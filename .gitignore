@@ -1,0 +1,7 @@
+# Runtime envelopes remain local and are never committed.
+events/incoming/*.json
+events/processed/*.json
+
+# Keep directory markers only.
+!events/incoming/.gitkeep
+!events/processed/.gitkeep
