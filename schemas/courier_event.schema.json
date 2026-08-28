@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "2026 Courier event envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "event_id",
+    "correlation_id",
+    "created_at",
+    "source",
+    "event_type",
+    "task_id",
+    "status",
+    "payload",
+    "dedupe_key",
+    "reply_channel"
+  ],
+  "properties": {
+    "event_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "correlation_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "created_at": { "type": "string", "format": "date-time" },
+    "source": { "type": "string", "enum": ["github_work", "courier", "central"] },
+    "event_type": { "type": "string", "enum": ["COURIER_NOOP", "CHIEF_COMMAND", "FINAL_REPORT", "ACK"] },
+    "task_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "status": { "type": "string", "enum": ["PENDING", "DISPATCHED", "PROCESSED", "FAILED", "ACKED"] },
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["message"],
+      "properties": {
+        "message": { "type": "string", "maxLength": 512 },
+        "parent_event_id": { "type": "string", "maxLength": 128 }
+      }
+    },
+    "dedupe_key": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "reply_channel": { "type": "string", "enum": ["control_thread"] }
+  }
+}
