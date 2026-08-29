@@ -1,4 +1,4 @@
-# Chief Relay Protocol (Antigravity <-> Chief / ChatGPT)
+# Chief Relay Protocol (Antigravity ↔ Chief / ChatGPT)
 
 ## 1. Overview & Objectives
 
@@ -15,13 +15,19 @@ This protocol avoids live web-chat push hacks and expensive API polling. It oper
 ```
 [CHIEF_NEXT_COMMAND] (Type: COMMAND, Source: chief, Destination: antigravity)
         │
-        ▼
-[ANTIGRAVITY EXECUTION] (Autonomous execution within allowed scope up to Human Gate)
+        ▼ (Pushed to GitHub / stored in events/incoming/)
+[DISCOVERY & INTAKE] (`scripts/run_chief_relay_cycle.py` discovers pending command)
         │
         ▼
-[ANTIGRAVITY_RESULT] (Type: RESULT, Source: antigravity, Destination: chief)
+[ANTIGRAVITY CONSUMER] (`scripts/consume_chief_command.py` validates scope, cost, gates & dedupe)
         │
         ▼
+[SAFE BOUNDED EXECUTION] (Autonomous technical execution within allowed scope up to Human Gate)
+        │
+        ▼
+[ANTIGRAVITY_RESULT] (`events/processed/<task_id>-result.json`, Type: RESULT, Source: antigravity, Destination: chief)
+        │
+        ▼ (Committed & pushed to GitHub)
 [CHIEF EVALUATION & NEXT COMMAND] (Chief reads facts, decides safe next state)
 ```
 
@@ -72,7 +78,25 @@ Required payload fields:
 
 ---
 
-## 6. Deduplication & Echo-Protection Rules
+## 6. Execution & Deduplication Tooling
+
+1. **Cycle Runner**: `scripts/run_chief_relay_cycle.py [--pull] [--push] [--repo-dir <path>]`
+   - Scans `events/incoming/` for the oldest pending Chief COMMAND.
+   - Invokes `consume_chief_command.py`.
+   - Validates the resulting record via `validate_chief_relay.py`.
+   - Stages, commits, and pushes the new result if `--push` is supplied.
+   - Enforces `max_iterations = 1`.
+
+2. **Consumer**: `scripts/consume_chief_command.py --command <file> [--incoming-dir <dir>] [--processed-dir <dir>]`
+   - Enforces schema, route, type, hash, scope, cost policy, human gate policy, and `message_id` deduplication.
+   - Generates and writes `events/processed/<task_id>-result.json`.
+
+3. **Validator**: `scripts/validate_chief_relay.py --file <file> [--incoming-dir <dir>] [--processed-dir <dir>]`
+   - Deterministic standalone validator for results and commands.
+
+---
+
+## 7. Deduplication & Echo-Protection Rules
 
 1. **No Echo**: A RESULT cannot be consumed as a new TASK/COMMAND.
 2. **Deterministic Hash**: Payloads with mismatched `payload_hash` are rejected.
