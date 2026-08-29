@@ -1,4 +1,4 @@
-name: Courier Codex one-time test 069
+name: Courier Codex one-time test 073
 
 on:
   push:
@@ -46,7 +46,7 @@ jobs:
 
   codex-and-publish-result:
     # Exact one-time guard: no other TASK can invoke Codex through this workflow.
-    if: ${{ needs.validate-task.outputs.task_id == 'COURIER-GITHUB-CODEX-AUTO-069' && needs.validate-task.outputs.message_id == 'msg-cgca-069-task-2521279b-5338-4cf8-aba5-d6305c847baf' }}
+    if: ${{ needs.validate-task.outputs.task_id == 'COURIER-CODEX-AUTO-E2E-073' && needs.validate-task.outputs.message_id == 'msg-cgca-073-task-6eb40334-9ce1-4af1-bf0a-20eb47f5cb86' }}
     needs: validate-task
     runs-on: ubuntu-latest
     permissions:
@@ -77,7 +77,7 @@ jobs:
 
   publish-result:
     # Same exact one-time guard, in a fresh job with schema-bound output only.
-    if: ${{ needs.validate-task.outputs.task_id == 'COURIER-GITHUB-CODEX-AUTO-069' && needs.validate-task.outputs.message_id == 'msg-cgca-069-task-2521279b-5338-4cf8-aba5-d6305c847baf' }}
+    if: ${{ needs.validate-task.outputs.task_id == 'COURIER-CODEX-AUTO-E2E-073' && needs.validate-task.outputs.message_id == 'msg-cgca-073-task-6eb40334-9ce1-4af1-bf0a-20eb47f5cb86' }}
     needs: [validate-task, codex-and-publish-result]
     runs-on: ubuntu-latest
     permissions:
