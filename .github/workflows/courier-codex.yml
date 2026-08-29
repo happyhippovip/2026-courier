@@ -1,4 +1,4 @@
-name: Courier Codex (disabled pending explicit activation)
+name: Courier Codex one-time test 069
 
 on:
   push:
@@ -16,6 +16,8 @@ jobs:
       contents: read
     outputs:
       task_path: ${{ steps.select.outputs.task_path }}
+      task_id: ${{ steps.select.outputs.task_id }}
+      message_id: ${{ steps.select.outputs.message_id }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -34,11 +36,17 @@ jobs:
           task_path="$(printf '%s\n' "$changed" | sed -n '1p')"
           python3 scripts/validate_courier_task.py --task "$task_path" --processed-dir events/processed
           printf 'task_path=%s\n' "$task_path" >> "$GITHUB_OUTPUT"
+          python3 - "$task_path" "$GITHUB_OUTPUT" <<'PY'
+          import json, sys
+          task = json.load(open(sys.argv[1], encoding="utf-8"))
+          with open(sys.argv[2], "a", encoding="utf-8") as output:
+              output.write(f"task_id={task['task_id']}\n")
+              output.write(f"message_id={task['message_id']}\n")
+          PY
 
   codex-and-publish-result:
-    # Hard safety gate: this job cannot execute, access OPENAI_API_KEY, or push
-    # a RESULT until an explicit later change removes this false condition.
-    if: ${{ false }}
+    # Exact one-time guard: no other TASK can invoke Codex through this workflow.
+    if: ${{ needs.validate-task.outputs.task_id == 'COURIER-GITHUB-CODEX-AUTO-069' && needs.validate-task.outputs.message_id == 'msg-cgca-069-task-2521279b-5338-4cf8-aba5-d6305c847baf' }}
     needs: validate-task
     runs-on: ubuntu-latest
     permissions:
@@ -48,7 +56,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          persist-credentials: true
+          persist-credentials: false
       - id: run_codex
         uses: openai/codex-action@v1
         with:
@@ -63,13 +71,13 @@ jobs:
             correlation_id, set parent_id to the TASK message_id, and set
             source=codex, destination=github_courier, type=RESULT, status=DONE,
             a new safe message_id, the exact canonical payload hash, and
-            max_iterations=1. Do not create files, commands, commits, network
+            max_iterations=1. Set payload.result exactly to the TASK payload's
+            result_request. Do not create files, commands, commits, network
             calls, messages, or any additional task.
 
   publish-result:
-    # Separate fresh job and hard safety gate. It receives only schema-bound
-    # Codex output; it cannot run until a later explicit activation change.
-    if: ${{ false }}
+    # Same exact one-time guard, in a fresh job with schema-bound output only.
+    if: ${{ needs.validate-task.outputs.task_id == 'COURIER-GITHUB-CODEX-AUTO-069' && needs.validate-task.outputs.message_id == 'msg-cgca-069-task-2521279b-5338-4cf8-aba5-d6305c847baf' }}
     needs: [validate-task, codex-and-publish-result]
     runs-on: ubuntu-latest
     permissions:

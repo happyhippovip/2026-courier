@@ -19,7 +19,7 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["result"],
-      "properties": { "result": { "const": "COURIER_CODEX_ACK" } }
+      "properties": { "result": { "enum": ["COURIER_CODEX_ACK", "COURIER_SEQUENTIAL_ACK", "COURIER_AUTOMATIC_ACK"] } }
     },
     "payload_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
     "max_iterations": { "const": 1 }

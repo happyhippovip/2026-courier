@@ -51,7 +51,10 @@ def main() -> None:
         fail("parent or message identity mismatch")
     if result["max_iterations"] != task["max_iterations"] or result["max_iterations"] != 1:
         fail("iteration bound mismatch")
-    if result["payload"] != {"result": "COURIER_CODEX_ACK"}:
+    expected_result = task.get("payload", {}).get("result_request")
+    if expected_result not in {"COURIER_CODEX_ACK", "COURIER_SEQUENTIAL_ACK", "COURIER_AUTOMATIC_ACK"}:
+        fail("unsupported task result_request")
+    if result["payload"] != {"result": expected_result}:
         fail("unexpected payload")
     if result["payload_hash"] != payload_hash(result["payload"]):
         fail("payload hash mismatch")

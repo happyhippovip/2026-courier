@@ -55,6 +55,8 @@ def main() -> None:
         fail("max_iterations must be exactly 1")
     if not isinstance(task["payload"], dict) or canonical_hash(task["payload"]) != task["payload_hash"]:
         fail("payload_hash mismatch")
+    if task["payload"].get("result_request") not in {"COURIER_CODEX_ACK", "COURIER_SEQUENTIAL_ACK", "COURIER_AUTOMATIC_ACK"}:
+        fail("unsupported result_request")
 
     for candidate in processed_dir.glob("*.json"):
         try:
