@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run exactly one Chief Relay cycle: Pull -> Discover -> Build Worker Job -> Consume -> Validate -> Commit -> Push."""
+"""Run exactly one Chief Relay cycle: Pull -> Discover -> Build Worker Job -> Validate Schema -> Consume -> Validate Result -> Commit -> Push."""
 
 from __future__ import annotations
 
@@ -104,7 +104,23 @@ def run_cycle(
     if not worker_job_file.exists():
         fail(f"Worker job file was not created: {worker_job_file}")
 
-    # 3b. Consume command
+    # 3b. Validate Worker Job against JSON Schema
+    val_job_res = subprocess.run(
+        [
+            sys.executable,
+            str(build_job_script),
+            "--validate-job",
+            str(worker_job_file),
+            "--schema",
+            str(repo_dir / "schemas/antigravity_worker_job.schema.json"),
+        ],
+        capture_output=True,
+        text=True,
+    )
+    if val_job_res.returncode != 0:
+        fail(f"Worker job JSON Schema validation failed: {val_job_res.stderr.strip()}")
+
+    # 3c. Consume command
     consume_script = repo_dir / "scripts/consume_chief_command.py"
     res = subprocess.run(
         [

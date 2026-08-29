@@ -64,17 +64,11 @@
     },
     "cost_policy": {
       "type": "string",
-      "enum": [
-        "ZERO_COST_ONLY",
-        "FREE_TIER_ONLY"
-      ]
+      "const": "ZERO_COST_ONLY"
     },
     "human_gate_policy": {
       "type": "string",
-      "enum": [
-        "STOP_ON_HUMAN_GATE_ONLY",
-        "AUTO_IF_SAFE"
-      ]
+      "const": "STOP_ON_HUMAN_GATE_ONLY"
     },
     "max_iterations": {
       "type": "integer",
