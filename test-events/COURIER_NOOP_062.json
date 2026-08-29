@@ -1,0 +1,10 @@
+{
+  "event_id": "COURIER_NOOP_062-923b4fc6-1421-41ec-a0f0-87f285662ff3",
+  "correlation_id": "COURIER_NOOP_062-777f6acd-884d-4ba0-b744-bdcc4b097bf5",
+  "created_at": "2026-08-29T00:16:35Z",
+  "source": "GITHUB",
+  "target": "WORK",
+  "type": "COURIER_NOOP",
+  "task_id": "COURIER_NOOP_062",
+  "dedupe_key": "80edac1c76957b27b4aae3b54715efcae193c37a1f5e5615521ba6a40d754e18"
+}
