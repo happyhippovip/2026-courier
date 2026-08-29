@@ -111,6 +111,7 @@
       ],
       "properties": {
         "schema_version": {
+          "type": "string",
           "const": "2.0"
         },
         "message_id": {

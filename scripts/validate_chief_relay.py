@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import sys
 from pathlib import Path
 
 
@@ -35,7 +36,23 @@ def canonical_hash(payload: object) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
-def validate_event(file_path: Path) -> dict:
+def check_dedupe(candidate_path: Path, candidate_message_id: str, search_dirs: list[Path]) -> None:
+    candidate_real = candidate_path.resolve()
+    for search_dir in search_dirs:
+        if not search_dir.exists():
+            continue
+        for existing_file in search_dir.glob("*.json"):
+            if existing_file.resolve() == candidate_real:
+                continue
+            try:
+                existing_data = json.loads(existing_file.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+            if existing_data.get("message_id") == candidate_message_id:
+                fail(f"duplicate message_id '{candidate_message_id}' already exists in {existing_file.as_posix()}")
+
+
+def validate_event(file_path: Path, processed_dir: Path | None = None, incoming_dir: Path | None = None) -> dict:
     if not file_path.exists():
         fail(f"File does not exist: {file_path}")
     try:
@@ -51,6 +68,14 @@ def validate_event(file_path: Path) -> dict:
 
     if data["max_iterations"] != 1:
         fail(f"max_iterations must be 1, got {data['max_iterations']}")
+
+    if not isinstance(data.get("message_id"), str) or not data["message_id"]:
+        fail("message_id must be a non-empty string")
+
+    # Enforce deduplication against search directories if provided
+    search_dirs = [d for d in [processed_dir, incoming_dir] if d is not None]
+    if search_dirs:
+        check_dedupe(file_path, data["message_id"], search_dirs)
 
     if canonical_hash(data["payload"]) != data["payload_hash"]:
         fail("payload_hash mismatch")
@@ -86,9 +111,14 @@ def validate_event(file_path: Path) -> dict:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Validate Chief Relay events")
     parser.add_argument("--file", required=True, help="Path to event JSON")
+    parser.add_argument("--processed-dir", required=False, default=None, help="Directory with processed events")
+    parser.add_argument("--incoming-dir", required=False, default=None, help="Directory with incoming events")
     args = parser.parse_args()
 
-    data = validate_event(Path(args.file))
+    processed_dir = Path(args.processed_dir) if args.processed_dir else None
+    incoming_dir = Path(args.incoming_dir) if args.incoming_dir else None
+
+    data = validate_event(Path(args.file), processed_dir=processed_dir, incoming_dir=incoming_dir)
     print(f"VALIDATION_PASS: type={data['type']}, id={data['message_id']}, task={data['task_id']}")
 
 
