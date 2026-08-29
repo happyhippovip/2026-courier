@@ -1,48 +1,194 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "2026 Courier event envelope",
-  "description": "Version 2 is the canonical GitHub↔Codex envelope. Version 1 remains readable for historical courier records.",
+  "description": "Version 2 is the canonical GitHub<->Codex<->Antigravity<->Chief envelope. Version 1 remains readable for historical courier records.",
   "oneOf": [
-    { "$ref": "#/$defs/v1_historical" },
-    { "$ref": "#/$defs/v2_canonical" }
+    {
+      "$ref": "#/$defs/v1_historical"
+    },
+    {
+      "$ref": "#/$defs/v2_canonical"
+    }
   ],
   "$defs": {
-    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
     "v1_historical": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["event_id", "correlation_id", "created_at", "source", "event_type", "task_id", "status", "payload", "dedupe_key", "reply_channel"],
+      "required": [
+        "event_id",
+        "correlation_id",
+        "created_at",
+        "source",
+        "event_type",
+        "task_id",
+        "status",
+        "payload",
+        "dedupe_key",
+        "reply_channel"
+      ],
       "properties": {
-        "event_id": { "type": "string", "minLength": 1, "maxLength": 128 },
-        "correlation_id": { "type": "string", "minLength": 1, "maxLength": 128 },
-        "created_at": { "type": "string", "format": "date-time" },
-        "source": { "type": "string", "enum": ["github_work", "courier", "central"] },
-        "event_type": { "type": "string", "enum": ["COURIER_NOOP", "CHIEF_COMMAND", "FINAL_REPORT", "ACK"] },
-        "task_id": { "type": "string", "minLength": 1, "maxLength": 128 },
-        "status": { "type": "string", "enum": ["PENDING", "DISPATCHED", "PROCESSED", "FAILED", "ACKED"] },
-        "payload": { "type": "object" },
-        "dedupe_key": { "$ref": "#/$defs/sha256" },
-        "reply_channel": { "type": "string", "enum": ["control_thread"] }
+        "event_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "correlation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "github_work",
+            "courier",
+            "central"
+          ]
+        },
+        "event_type": {
+          "type": "string",
+          "enum": [
+            "COURIER_NOOP",
+            "CHIEF_COMMAND",
+            "FINAL_REPORT",
+            "ACK"
+          ]
+        },
+        "task_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "PENDING",
+            "DISPATCHED",
+            "PROCESSED",
+            "FAILED",
+            "ACKED"
+          ]
+        },
+        "payload": {
+          "type": "object"
+        },
+        "dedupe_key": {
+          "$ref": "#/$defs/sha256"
+        },
+        "reply_channel": {
+          "type": "string",
+          "enum": [
+            "control_thread"
+          ]
+        }
       }
     },
     "v2_canonical": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["schema_version", "message_id", "task_id", "correlation_id", "parent_id", "source", "destination", "type", "status", "created_at", "payload", "payload_hash", "max_iterations"],
+      "required": [
+        "schema_version",
+        "message_id",
+        "task_id",
+        "correlation_id",
+        "parent_id",
+        "source",
+        "destination",
+        "type",
+        "status",
+        "created_at",
+        "payload",
+        "payload_hash",
+        "max_iterations"
+      ],
       "properties": {
-        "schema_version": { "const": "2.0" },
-        "message_id": { "type": "string", "minLength": 1, "maxLength": 128 },
-        "task_id": { "type": "string", "minLength": 1, "maxLength": 128 },
-        "correlation_id": { "type": "string", "minLength": 1, "maxLength": 128 },
-        "parent_id": { "type": ["string", "null"], "maxLength": 128 },
-        "source": { "type": "string", "enum": ["github_courier", "codex"] },
-        "destination": { "type": "string", "enum": ["codex", "github_courier"] },
-        "type": { "type": "string", "enum": ["TASK", "RESULT", "ACK", "BLOCKED"] },
-        "status": { "type": "string", "enum": ["NEW", "CLAIMED", "RUNNING", "DONE", "BLOCKED", "FAILED"] },
-        "created_at": { "type": "string", "format": "date-time" },
-        "payload": { "type": "object", "maxProperties": 16 },
-        "payload_hash": { "$ref": "#/$defs/sha256" },
-        "max_iterations": { "type": "integer", "minimum": 1, "maximum": 1 }
+        "schema_version": {
+          "const": "2.0"
+        },
+        "message_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "task_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "correlation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "parent_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 128
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "github_courier",
+            "codex",
+            "antigravity",
+            "chief"
+          ]
+        },
+        "destination": {
+          "type": "string",
+          "enum": [
+            "codex",
+            "github_courier",
+            "antigravity",
+            "chief"
+          ]
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "TASK",
+            "RESULT",
+            "COMMAND",
+            "ACK",
+            "BLOCKED"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "NEW",
+            "CLAIMED",
+            "RUNNING",
+            "DONE",
+            "BLOCKED",
+            "FAILED"
+          ]
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "payload": {
+          "type": "object"
+        },
+        "payload_hash": {
+          "$ref": "#/$defs/sha256"
+        },
+        "max_iterations": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1
+        }
       }
     }
   }
