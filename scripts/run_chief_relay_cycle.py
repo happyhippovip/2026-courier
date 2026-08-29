@@ -126,7 +126,7 @@ def run_cycle(
     # 5. Optional Git Commit & Push
     commit_sha = None
     if push:
-        subprocess.run(["git", "-C", str(repo_dir), "add", str(result_file)], check=True)
+        subprocess.run(["git", "-C", str(repo_dir), "add", "-f", str(result_file)], check=True)
         commit_msg = f"Publish Antigravity result for {task_id} ({cmd_data['message_id']})"
         subprocess.run(["git", "-C", str(repo_dir), "commit", "-m", commit_msg], check=True)
         push_res = subprocess.run(["git", "-C", str(repo_dir), "push", "origin", "main"], capture_output=True, text=True)
