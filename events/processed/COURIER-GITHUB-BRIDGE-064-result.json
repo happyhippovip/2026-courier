@@ -1,0 +1,17 @@
+{
+  "schema_version": "2.0",
+  "message_id": "msg-cgb-064-result-20260829-001",
+  "task_id": "COURIER-GITHUB-BRIDGE-064",
+  "correlation_id": "corr-cgb-064-20260829-001",
+  "parent_id": "msg-cgb-064-task-20260829-001",
+  "source": "codex",
+  "destination": "github_courier",
+  "type": "RESULT",
+  "status": "DONE",
+  "created_at": "2026-08-29T00:00:01Z",
+  "payload": {
+    "result": "COURIER_CODEX_ACK"
+  },
+  "payload_hash": "f092d1c03aee6d377cef4aed58a80e111f3728610cb86f3b2b51e17c2a63fcc8",
+  "max_iterations": 1
+}
