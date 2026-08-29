@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run exactly one Chief Relay cycle: Pull -> Discover -> Build Worker Job -> Validate Schema -> Consume -> Validate Result -> Commit -> Push."""
+"""Run exactly one Chief Relay cycle: Pull -> Discover -> Resolve Memory Context -> Build Worker Job -> Validate Schema -> Consume -> Validate Result -> Commit -> Push."""
 
 from __future__ import annotations
 
@@ -8,6 +8,8 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+
+DEFAULT_MEMORY_REPO = Path("/Users/user/Downloads/2026-project-memory")
 
 
 def fail(message: str) -> None:
@@ -60,6 +62,7 @@ def run_cycle(
     incoming_dir: Path,
     processed_dir: Path,
     dispatch_dir: Path,
+    memory_repo: Path = DEFAULT_MEMORY_REPO,
     pull: bool = False,
     push: bool = False,
 ) -> dict:
@@ -83,17 +86,21 @@ def run_cycle(
     cmd_data = json.loads(pending_cmd.read_text(encoding="utf-8"))
     task_id = cmd_data["task_id"]
 
-    # 3a. Build Worker Job Dispatch Contract
+    # 3a. Build Worker Job Dispatch Contract with Memory Resolution
     build_job_script = repo_dir / "scripts/build_antigravity_worker_job.py"
+    build_cmd = [
+        sys.executable,
+        str(build_job_script),
+        "--command",
+        str(pending_cmd),
+        "--output-dir",
+        str(dispatch_dir),
+    ]
+    if memory_repo and memory_repo.exists():
+        build_cmd.extend(["--memory-repo", str(memory_repo)])
+
     build_res = subprocess.run(
-        [
-            sys.executable,
-            str(build_job_script),
-            "--command",
-            str(pending_cmd),
-            "--output-dir",
-            str(dispatch_dir),
-        ],
+        build_cmd,
         capture_output=True,
         text=True,
     )
@@ -187,11 +194,12 @@ def run_cycle(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run one Chief Relay cycle (max_iterations=1)")
+    parser = argparse.ArgumentParser(description="Run one Chief Relay cycle with Memory Awareness (max_iterations=1)")
     parser.add_argument("--repo-dir", default=".", help="Repository root directory")
     parser.add_argument("--incoming-dir", default="events/incoming", help="Incoming events directory")
     parser.add_argument("--processed-dir", default="events/processed", help="Processed events directory")
     parser.add_argument("--dispatch-dir", default="events/dispatch", help="Dispatch worker jobs directory")
+    parser.add_argument("--memory-repo", default=str(DEFAULT_MEMORY_REPO), help="Path to canonical 2026-project-memory")
     parser.add_argument("--pull", action="store_true", help="Pull latest main before processing")
     parser.add_argument("--push", action="store_true", help="Commit and push result after processing")
     args = parser.parse_args()
@@ -200,12 +208,14 @@ def main() -> None:
     incoming_dir = (repo_dir / args.incoming_dir).resolve()
     processed_dir = (repo_dir / args.processed_dir).resolve()
     dispatch_dir = (repo_dir / args.dispatch_dir).resolve()
+    memory_repo = Path(args.memory_repo).resolve() if args.memory_repo else None
 
     result = run_cycle(
         repo_dir=repo_dir,
         incoming_dir=incoming_dir,
         processed_dir=processed_dir,
         dispatch_dir=dispatch_dir,
+        memory_repo=memory_repo,
         pull=args.pull,
         push=args.push,
     )

@@ -78,6 +78,53 @@
       "type": "string",
       "const": "ANTIGRAVITY_RESULT"
     },
+    "memory_context": {
+      "type": "object",
+      "required": [
+        "memory_repo",
+        "memory_commit",
+        "files_consulted",
+        "relevant_context",
+        "status_labels",
+        "source_references",
+        "generated_at"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "memory_repo": {
+          "type": "string"
+        },
+        "memory_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{7,40}$"
+        },
+        "files_consulted": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "relevant_context": {
+          "type": "object"
+        },
+        "status_labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "source_references": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "generated_at": {
+          "type": "string"
+        }
+      }
+    },
     "created_at": {
       "type": "string"
     }

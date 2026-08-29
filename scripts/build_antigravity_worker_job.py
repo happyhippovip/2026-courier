@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic Command-to-Worker-Job Builder and Strict JSON Schema Validator for Antigravity."""
+"""Deterministic Command-to-Worker-Job Builder and Strict JSON Schema Validator for Antigravity with Memory-Aware Context Resolution."""
 
 from __future__ import annotations
 
@@ -12,6 +12,12 @@ import re
 import sys
 import uuid
 from pathlib import Path
+
+# Import local memory resolver
+try:
+    from resolve_project_memory import build_memory_context_package, DEFAULT_MEMORY_REPO_PATH
+except ImportError:
+    from scripts.resolve_project_memory import build_memory_context_package, DEFAULT_MEMORY_REPO_PATH
 
 REQUIRED_ENVELOPE = {
     "schema_version", "message_id", "task_id", "correlation_id", "parent_id",
@@ -72,7 +78,6 @@ def validate_worker_job_against_schema(job_data: dict, schema_path: Path | None 
         except Exception as exc:
             return False, f"Failed to load schema file {schema_path}: {exc}"
 
-    # Required fields check
     req_fields = set(schema.get("required", [])) if schema else {
         "schema_version", "job_id", "source_command_message_id", "task_id",
         "correlation_id", "target_agent", "instruction", "allowed_scope",
@@ -83,8 +88,14 @@ def validate_worker_job_against_schema(job_data: dict, schema_path: Path | None 
     if not isinstance(job_data, dict):
         return False, "Job data must be a JSON object"
 
-    if set(job_data.keys()) != req_fields:
-        return False, f"Field mismatch: expected {req_fields}, got {set(job_data.keys())}"
+    # All required fields must be present
+    if not req_fields.issubset(set(job_data.keys())):
+        return False, f"Missing required fields: {req_fields - set(job_data.keys())}"
+
+    # Allowed keys
+    allowed_keys = req_fields.union({"memory_context"})
+    if not set(job_data.keys()).issubset(allowed_keys):
+        return False, f"Unexpected extra fields: {set(job_data.keys()) - allowed_keys}"
 
     # Property checks
     if job_data.get("schema_version") != "2.0":
@@ -132,6 +143,19 @@ def validate_worker_job_against_schema(job_data: dict, schema_path: Path | None 
     created_at = job_data.get("created_at")
     if not isinstance(created_at, str) or len(created_at) < 1:
         return False, "created_at must be a non-empty ISO 8601 string"
+
+    # Memory context check if present
+    if "memory_context" in job_data:
+        m_ctx = job_data["memory_context"]
+        if not isinstance(m_ctx, dict):
+            return False, "memory_context must be a JSON object"
+        m_req = {"memory_repo", "memory_commit", "files_consulted", "relevant_context", "status_labels", "source_references", "generated_at"}
+        if set(m_ctx.keys()) != m_req:
+            return False, f"memory_context fields mismatch: expected {m_req}, got {set(m_ctx.keys())}"
+        if not re.match(r"^[0-9a-fA-F]{7,40}$", str(m_ctx.get("memory_commit", ""))):
+            return False, f"Invalid memory_commit hash: {m_ctx.get('memory_commit')}"
+        if not isinstance(m_ctx.get("files_consulted"), list) or not m_ctx.get("files_consulted"):
+            return False, "files_consulted must be a non-empty list of strings"
 
     return True, "VALID"
 
@@ -189,7 +213,12 @@ def validate_command_for_job(cmd_data: dict) -> tuple[bool, str]:
     return True, "VALID"
 
 
-def build_worker_job(command_file: Path, output_dir: Path, schema_path: Path | None = None) -> dict:
+def build_worker_job(
+    command_file: Path,
+    output_dir: Path,
+    schema_path: Path | None = None,
+    memory_repo_path: Path | None = None,
+) -> dict:
     if not command_file.exists():
         fail(f"Command file not found: {command_file}")
 
@@ -205,6 +234,19 @@ def build_worker_job(command_file: Path, output_dir: Path, schema_path: Path | N
     task_id = cmd_data["task_id"]
     job_id = f"job-ag-{task_id}-{uuid.uuid4().hex[:8]}"
     created_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    instruction = cmd_data["payload"]["one_next_command"]
+
+    # Resolve read-only memory context package
+    mem_repo = memory_repo_path or DEFAULT_MEMORY_REPO_PATH
+    memory_context = None
+    if mem_repo and mem_repo.exists():
+        try:
+            memory_context = build_memory_context_package(
+                memory_repo_path=mem_repo,
+                instruction=instruction,
+            )
+        except Exception as exc:
+            print(f"MEMORY_RESOLVE_WARNING: {exc}", file=sys.stderr)
 
     worker_job = {
         "schema_version": "2.0",
@@ -213,7 +255,7 @@ def build_worker_job(command_file: Path, output_dir: Path, schema_path: Path | N
         "task_id": task_id,
         "correlation_id": cmd_data["correlation_id"],
         "target_agent": "ANTIGRAVITY",
-        "instruction": cmd_data["payload"]["one_next_command"],
+        "instruction": instruction,
         "allowed_scope": list(cmd_data["payload"]["allowed_scope"]),
         "forbidden_scope": list(FORBIDDEN_SCOPES_LIST),
         "cost_policy": cmd_data["payload"]["cost_policy"],
@@ -222,6 +264,9 @@ def build_worker_job(command_file: Path, output_dir: Path, schema_path: Path | N
         "expected_output": "ANTIGRAVITY_RESULT",
         "created_at": created_at,
     }
+
+    if memory_context:
+        worker_job["memory_context"] = memory_context
 
     # Strict JSON Schema validation before emission
     is_schema_valid, schema_err = validate_worker_job_against_schema(worker_job, schema_path)
@@ -236,11 +281,12 @@ def build_worker_job(command_file: Path, output_dir: Path, schema_path: Path | N
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Build and Validate Antigravity Worker Job from Chief Command")
+    parser = argparse.ArgumentParser(description="Build and Validate Memory-Aware Antigravity Worker Job from Chief Command")
     parser.add_argument("--command", help="Path to Chief command JSON")
     parser.add_argument("--output-dir", default="events/dispatch", help="Output directory for dispatch worker job")
     parser.add_argument("--validate-job", help="Validate an existing worker job file against the JSON Schema")
     parser.add_argument("--schema", help="Custom path to antigravity_worker_job.schema.json")
+    parser.add_argument("--memory-repo", default=str(DEFAULT_MEMORY_REPO_PATH), help="Path to 2026-project-memory")
     args = parser.parse_args()
 
     schema_path = Path(args.schema).resolve() if args.schema else None
@@ -264,8 +310,9 @@ def main() -> None:
 
     command_path = Path(args.command)
     output_dir = Path(args.output_dir)
+    mem_repo_path = Path(args.memory_repo).resolve() if args.memory_repo else None
 
-    job = build_worker_job(command_path, output_dir, schema_path)
+    job = build_worker_job(command_path, output_dir, schema_path, mem_repo_path)
     print(f"WORKER_JOB_CREATED: id={job['job_id']}, task={job['task_id']}, src_msg={job['source_command_message_id']}")
 
 
