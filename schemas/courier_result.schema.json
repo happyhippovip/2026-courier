@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Courier Codex result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "task_id",
+    "correlation_id",
+    "parent_id",
+    "result"
+  ],
+  "properties": {
+    "task_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "correlation_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "parent_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "result": { "const": "COURIER_CODEX_ACK" }
+  }
+}
