@@ -1,11 +1,14 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
+  ACADEMY_FLOW_STEPS,
+  resolveAcademyEconomics,
   resolveAcademySummary,
   resolveBodyguardsTruth,
   resolveChiefWaitState,
   resolveCorrelationTruth,
   resolveDecisionTruth,
+  resolveDirectorTruth,
   resolveDeskMatrix,
   resolveGateDecisionTruth,
   resolveLivingRoomAgents,
@@ -15,6 +18,7 @@ import {
   resolveSpeechBubble,
   resolveExecutionTruth,
   resolveStewardTruth,
+  resolveTeacherTruth,
   resolveThreadContext,
   validateThreadAssociation,
 } from '../studio/execution_truth.js';
@@ -249,13 +253,6 @@ assert.match(studioSource, /is-flow-active/);
 // -------------------------------------------------------------
 // 7. AI ACADEMY TRUTH RESOLUTION (TEACHER, DIRECTOR, ECONOMICS)
 // -------------------------------------------------------------
-import {
-  ACADEMY_FLOW_STEPS,
-  resolveAcademyEconomics,
-  resolveDirectorTruth,
-  resolveTeacherTruth,
-} from '../studio/execution_truth.js';
-
 // 7.1 Missing Academy Evidence => UNKNOWN / null values
 const emptyTeacher = resolveTeacherTruth({});
 assert.equal(emptyTeacher.state, 'UNKNOWN');
@@ -614,8 +611,28 @@ assert.ok(walkPath.length >= 3);
 assert.equal(typeof walkPath[0].x, 'number');
 assert.equal(typeof walkPath[walkPath.length - 1].x, 'number');
 
-console.log('execution truth tests: PASS (100% SUCCESS)');
+// -------------------------------------------------------------
+// 12. STUDIO TELEMETRY + DOM SAFETY REGRESSIONS
+// -------------------------------------------------------------
+// The existing Academy economics resolver is the callable Treasury source.
+assert.equal(typeof resolveAcademyEconomics, 'function');
+assert.equal(resolveAcademyEconomics({}).revenue_evidence, 'UNKNOWN');
 
+// No static demo identifiers, versions, hashes, commits, or revenue goals may
+// be substituted when backend state is absent.
+assert.doesNotMatch(studioSource, /corr-demo-c94b85b8|\bv64\b|8f0874f495cf|e7edad01|62c658b0|\$8 \/ \$1,000,000,000/);
+assert.match(studioSource, /resetUnverifiedTelemetry/);
+assert.match(studioSource, /textContent = "HEAD: UNAVAILABLE"/);
+
+// Backend-controlled name/title strings are inserted as text, never HTML.
+assert.doesNotMatch(studioSource, /nameplate\.innerHTML/);
+assert.match(studioSource, /title\.textContent = agent\.name \|\| "UNKNOWN"/);
+assert.match(studioSource, /subtitle\.textContent = agent\.title \|\| "UNKNOWN"/);
+const hostileAgentName = '<img src=x onerror=alert(1)>';
+assert.ok(hostileAgentName.includes('<img'));
+assert.match(studioSource, /textContent = agent\.name/);
+
+console.log('execution truth tests: PASS (100% SUCCESS)');
 
 
 

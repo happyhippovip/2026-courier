@@ -8,7 +8,7 @@ import {
   resolveLiveHQMetrics,
   resolvePermissionGuardTruth,
   resolveTeacherTruth,
-  resolveTreasuryTruth,
+  resolveAcademyEconomics,
   resolveActiveGateTruth,
   findWalkingPath,
   HQ_WAYPOINTS,
@@ -49,6 +49,7 @@ export class LivingHQController {
     this.lastPatrolTime = Date.now();
 
     this.initElements();
+    this.resetUnverifiedTelemetry();
     this.bindEvents();
     this.startClock();
     this.startAnimationLoop();
@@ -108,6 +109,25 @@ export class LivingHQController {
     this.panelCtxHash = document.getElementById("panel-ctx-hash");
     this.panelRepoCourier = document.getElementById("panel-repo-courier");
     this.panelRepoMemory = document.getElementById("panel-repo-memory");
+  }
+
+  /** Replace static markup placeholders before the first local state refresh. */
+  resetUnverifiedTelemetry() {
+    if (this.courierCommitTag) this.courierCommitTag.textContent = "HEAD: UNAVAILABLE";
+    if (this.contextPillVer) this.contextPillVer.textContent = "CONTEXT: UNKNOWN";
+    if (this.tvLiveCorr) this.tvLiveCorr.textContent = "NONE";
+    if (this.tvLiveCtx) this.tvLiveCtx.textContent = "UNKNOWN";
+    if (this.tvLiveSchool) this.tvLiveSchool.textContent = "UNKNOWN";
+    if (this.liveWfId) this.liveWfId.textContent = "NONE";
+    if (this.treasuryEur) this.treasuryEur.textContent = "UNKNOWN";
+    if (this.treasuryUsd) this.treasuryUsd.textContent = "UNAVAILABLE";
+    if (this.treasuryVerified) this.treasuryVerified.textContent = "NOT_VERIFIED";
+    if (this.treasuryGoal) this.treasuryGoal.textContent = "NOT_VERIFIED";
+    if (this.panelCtxVer) this.panelCtxVer.textContent = "UNKNOWN";
+    if (this.panelCtxPrev) this.panelCtxPrev.textContent = "UNKNOWN";
+    if (this.panelCtxHash) this.panelCtxHash.textContent = "UNAVAILABLE";
+    if (this.panelRepoCourier) this.panelRepoCourier.textContent = "UNAVAILABLE";
+    if (this.panelRepoMemory) this.panelRepoMemory.textContent = "UNAVAILABLE";
   }
 
   bindEvents() {
@@ -288,9 +308,9 @@ export class LivingHQController {
     if (this.tvActiveCount) this.tvActiveCount.textContent = metrics.active_agents;
     if (this.tvCapacityPct) this.tvCapacityPct.textContent = `${Math.round((metrics.active_agents / 40) * 100 * 10) / 10}% Capacity`;
 
-    const wf = metrics.current_workflow || "IDLE_MONITORING";
-    const corr = metrics.correlation_id || "corr-demo-c94b85b8";
-    const ctxVer = metrics.context_version ? `v${metrics.context_version}` : "v64";
+    const wf = metrics.current_workflow || "NONE";
+    const corr = metrics.correlation_id || "NONE";
+    const ctxVer = metrics.context_version ? `v${metrics.context_version}` : "UNKNOWN";
 
     if (this.tvLiveWf) this.tvLiveWf.textContent = wf;
     if (this.tvLiveCorr) this.tvLiveCorr.textContent = corr;
@@ -298,7 +318,7 @@ export class LivingHQController {
     if (this.contextPillVer) this.contextPillVer.textContent = `CONTEXT: ${ctxVer}`;
 
     const teacher = resolveTeacherTruth(stateData);
-    const nextSchool = teacher.next_school_time || "06:00 UTC";
+    const nextSchool = teacher.next_school_time || "UNKNOWN";
     if (this.tvLiveSchool) this.tvLiveSchool.textContent = nextSchool;
 
     // Invariant: Flow indicator
@@ -359,12 +379,23 @@ export class LivingHQController {
         
         const nameplate = document.createElement("div");
         nameplate.className = "agent-nameplate";
-        nameplate.innerHTML = `<span class="nameplate-title">${agent.name}</span><span class="nameplate-subtitle">${agent.title}</span>`;
+        const title = document.createElement("span");
+        title.className = "nameplate-title";
+        title.textContent = agent.name || "UNKNOWN";
+        const subtitle = document.createElement("span");
+        subtitle.className = "nameplate-subtitle";
+        subtitle.textContent = agent.title || "UNKNOWN";
+        nameplate.append(title, subtitle);
 
         const avatar = document.createElement("div");
         avatar.className = "agent-avatar-body";
         const iconSymbol = agent.is_bodyguard ? "🛡️" : (AVATAR_ICONS[agent.id] || "🤖");
-        avatar.innerHTML = `<span class="avatar-icon">${iconSymbol}</span><span class="avatar-status-ring"></span>`;
+        const avatarIcon = document.createElement("span");
+        avatarIcon.className = "avatar-icon";
+        avatarIcon.textContent = iconSymbol;
+        const avatarRing = document.createElement("span");
+        avatarRing.className = "avatar-status-ring";
+        avatar.append(avatarIcon, avatarRing);
 
         const speech = document.createElement("div");
         speech.className = "agent-speech-bubble";
@@ -386,7 +417,7 @@ export class LivingHQController {
 
       // Update Subtitle & Speech
       const subtitle = node.querySelector(".nameplate-subtitle");
-      if (subtitle) subtitle.textContent = agent.title;
+      if (subtitle) subtitle.textContent = agent.title || "UNKNOWN";
 
       const speechEl = node.querySelector(".agent-speech-bubble");
       if (speechEl) {
@@ -442,29 +473,35 @@ export class LivingHQController {
     // SNITCH Permission Guard
     const pg = resolvePermissionGuardTruth(stateData);
     if (this.snitchPermStatus) {
-      this.snitchPermStatus.textContent = pg.status || "PERMISSIONS HEALTHY";
+      this.snitchPermStatus.textContent = pg.status || "UNKNOWN";
       this.snitchPermStatus.className = pg.status === "DANGEROUS REQUEST" ? "text-danger" : "badge-perm-healthy";
     }
-    if (this.snitchPermCommand) this.snitchPermCommand.textContent = pg.last_command || "curl -s http://127.0.0.1:8088/api/state";
-    if (this.snitchPermRuleRec) this.snitchPermRuleRec.textContent = pg.rule_recommendation || "ALREADY_ALLOWED";
+    if (this.snitchPermCommand) this.snitchPermCommand.textContent = pg.last_command || "NONE";
+    if (this.snitchPermRuleRec) this.snitchPermRuleRec.textContent = pg.rule_recommendation || "UNKNOWN";
 
     // Workflow
-    if (this.liveWfId) this.liveWfId.textContent = metrics.current_workflow || "WF-IDLE";
+    if (this.liveWfId) this.liveWfId.textContent = metrics.current_workflow || "NONE";
     if (this.liveWfStatus) this.liveWfStatus.textContent = metrics.active_agents > 0 ? "IN_PROGRESS" : "IDLE";
     if (this.liveWfBar) this.liveWfBar.style.width = `${Math.min(100, metrics.active_agents * 25)}%`;
 
     // Treasury
-    const treasury = resolveTreasuryTruth(stateData);
-    if (this.treasuryEur) this.treasuryEur.textContent = treasury.eur || "UNKNOWN";
-    if (this.treasuryUsd) this.treasuryUsd.textContent = treasury.usd || "UNKNOWN";
-    if (this.treasuryVerified) this.treasuryVerified.textContent = treasury.revenue_evidence || "NOT_VERIFIED";
-    if (this.treasuryGoal) this.treasuryGoal.textContent = treasury.goal_label || "$8 / $1,000,000,000";
+    const economics = resolveAcademyEconomics(stateData);
+    if (this.treasuryEur) this.treasuryEur.textContent = economics.measured_cost_saved_eur === null
+      ? "UNKNOWN"
+      : `${economics.measured_cost_saved_eur} EUR`;
+    if (this.treasuryUsd) this.treasuryUsd.textContent = "UNAVAILABLE";
+    if (this.treasuryVerified) this.treasuryVerified.textContent = economics.revenue_evidence || "NOT_VERIFIED";
+    if (this.treasuryGoal) this.treasuryGoal.textContent = economics.truth_label || "NOT_VERIFIED";
 
     // Repositories & Context
-    if (this.panelCtxVer) this.panelCtxVer.textContent = metrics.context_version ? `v${metrics.context_version}` : "v64";
-    if (this.panelCtxHash) this.panelCtxHash.textContent = metrics.snapshot_hash ? `${metrics.snapshot_hash.slice(0, 16)}...` : "8f0874f495cf...";
-    if (this.panelRepoCourier) this.panelRepoCourier.textContent = metrics.repo_courier_head ? metrics.repo_courier_head.slice(0, 8) : "e7edad01";
-    if (this.panelRepoMemory) this.panelRepoMemory.textContent = metrics.repo_memory_head ? metrics.repo_memory_head.slice(0, 8) : "62c658b0";
+    if (this.panelCtxVer) this.panelCtxVer.textContent = metrics.context_version ? `v${metrics.context_version}` : "UNKNOWN";
+    const previousContextVersion = stateData?.context_snapshot?.previous_snapshot_version;
+    if (this.panelCtxPrev) this.panelCtxPrev.textContent = Number.isFinite(previousContextVersion)
+      ? `v${previousContextVersion}`
+      : "UNKNOWN";
+    if (this.panelCtxHash) this.panelCtxHash.textContent = metrics.snapshot_hash ? `${metrics.snapshot_hash.slice(0, 16)}...` : "UNAVAILABLE";
+    if (this.panelRepoCourier) this.panelRepoCourier.textContent = metrics.repo_courier_head ? metrics.repo_courier_head.slice(0, 8) : "UNAVAILABLE";
+    if (this.panelRepoMemory) this.panelRepoMemory.textContent = metrics.repo_memory_head ? metrics.repo_memory_head.slice(0, 8) : "UNAVAILABLE";
 
     // Human Gate Modal
     const gate = resolveActiveGateTruth(stateData);
