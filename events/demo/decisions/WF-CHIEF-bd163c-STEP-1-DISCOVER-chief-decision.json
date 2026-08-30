@@ -1,13 +1,13 @@
 {
   "schema_version": "2.0",
-  "decision_id": "dec-74aafcd688",
-  "task_id": "WF-CHIEF-f3cbc1-STEP-1-DISCOVER",
-  "correlation_id": "corr-demo-3fbaa65c",
-  "workflow_id": "WF-CHIEF-f3cbc1",
+  "decision_id": "dec-6f46cfd2b2",
+  "task_id": "WF-CHIEF-bd163c-STEP-1-DISCOVER",
+  "correlation_id": "corr-demo-4bded791",
+  "workflow_id": "WF-CHIEF-bd163c",
   "round_index": 0,
   "verdict": "HUMAN_APPROVAL_REQUIRED",
   "action": "STOP_AT_HUMAN_GATE",
   "next_task": null,
   "reason": "Task payload flagged for explicit human approval before advancing.",
-  "created_at": "2026-08-30T15:12:52.084234+00:00"
+  "created_at": "2026-08-30T15:18:25.918462+00:00"
 }

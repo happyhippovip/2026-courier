@@ -1,0 +1,12 @@
+{
+  "schema_version": "2.0",
+  "approval_id": "appr-demo-0404d451",
+  "action": "APPROVE",
+  "decision": "APPROVE",
+  "workflow_id": "WF-CHIEF-bd163c",
+  "task_id": "WF-CHIEF-bd163c-STEP-1-DISCOVER",
+  "correlation_id": "corr-demo-4bded791",
+  "operator": "HUMAN_OPERATOR",
+  "reason": "Authorized execution of remaining workflow rounds for live demonstration",
+  "timestamp": "2026-08-30T15:18:25.925188+00:00"
+}

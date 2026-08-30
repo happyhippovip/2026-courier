@@ -53,6 +53,7 @@ try:
         CodexVisualStateTracker,
         execute_codex_task,
     )
+    from run_context_sync import UpdateSteward
 except ImportError:
     from scripts.run_antigravity_bridge import (
         AntigravityHookRunner,
@@ -66,15 +67,15 @@ except ImportError:
         CodexVisualStateTracker,
         execute_codex_task,
     )
+    from scripts.run_context_sync import UpdateSteward
 
 
-class WorkflowLockedError(RuntimeError):
-    """Raised when a workflow is already locked by another supervisor instance."""
-    pass
+class WorkflowLockedError(Exception):
+    """Raised when a workflow lock file cannot be acquired."""
 
 
 class AutonomousLevel6Loop:
-    """Manages multi-round autonomous task chains with safety guards and observability."""
+    """Orchestrates an autonomous multi-turn Level 6 loop across Antigravity and Codex bridges."""
 
     def __init__(
         self,
@@ -88,6 +89,8 @@ class AutonomousLevel6Loop:
 
         self.locks_dir = repo_dir / "events/locks"
         self.locks_dir.mkdir(parents=True, exist_ok=True)
+
+        self.steward = UpdateSteward(repo_dir=repo_dir)
 
         self.state_tracker = AntigravityVisualStateTracker(
             agent_id="agent-antigravity-bridge",
@@ -312,6 +315,7 @@ class AutonomousLevel6Loop:
             }
 
         save_json(decision_file, decision)
+        self.steward.refresh_snapshot_after_event("CHIEF_DECISION_SAVED", task_id)
         return decision
 
     def run_multi_round_workflow(
@@ -395,6 +399,9 @@ class AutonomousLevel6Loop:
                     "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
                     "max_iterations": 1,
                     "context_delta": current_task_info.get("context_delta"),
+                    "context_version": current_task_info.get("context_version"),
+                    "context_snapshot_hash": current_task_info.get("context_snapshot_hash"),
+                    "bounded_context": current_task_info.get("bounded_context"),
                     "routing_decision": {
                         "target_agent": target_agent_name,
                         "routing_reason": current_task_info.get("routing_reason", "Assigned by SmartResourceRouter"),

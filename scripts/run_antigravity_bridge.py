@@ -287,6 +287,8 @@ def execute_bridge_task(worker_job_path: Path, hooks: AntigravityHookRunner, for
             "execution_mode": "AUTOMATED_ANTIGRAVITY_BRIDGE",
             "zero_cost_policy": "ZERO_COST_ONLY",
             "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+            "context_version_seen": job.get("context_version"),
+            "context_snapshot_hash_seen": job.get("context_snapshot_hash"),
         }
     else:
         hooks.on_tool_action(task_id, "Executing generic structured summary", 0.6)
@@ -297,6 +299,8 @@ def execute_bridge_task(worker_job_path: Path, hooks: AntigravityHookRunner, for
             "execution_mode": "AUTOMATED_ANTIGRAVITY_BRIDGE",
             "zero_cost_policy": "ZERO_COST_ONLY",
             "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+            "context_version_seen": job.get("context_version"),
+            "context_snapshot_hash_seen": job.get("context_snapshot_hash"),
         }
 
     hooks.on_tool_action(task_id, "Formatting structured result payload", 0.9)

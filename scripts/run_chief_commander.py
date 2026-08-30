@@ -44,13 +44,15 @@ if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
 try:
+    from run_thought_curator import ThoughtCurator
     from run_autonomous_loop import AutonomousLevel6Loop
     from run_antigravity_bridge import AntigravityVisualStateTracker, load_json, save_json
-    from run_thought_curator import ThoughtCurator
+    from run_context_sync import UpdateSteward
 except ImportError:
+    from scripts.run_thought_curator import ThoughtCurator
     from scripts.run_autonomous_loop import AutonomousLevel6Loop
     from scripts.run_antigravity_bridge import AntigravityVisualStateTracker, load_json, save_json
-    from scripts.run_thought_curator import ThoughtCurator
+    from scripts.run_context_sync import UpdateSteward
 
 
 class SmartResourceRouter:
@@ -110,6 +112,7 @@ class ChiefCommander:
     def __init__(self, repo_dir: Path = COURIER_DIR):
         self.repo_dir = repo_dir
         self.curator = ThoughtCurator(repo_dir=repo_dir)
+        self.steward = UpdateSteward(repo_dir=repo_dir)
         self.loop_engine = AutonomousLevel6Loop(repo_dir=repo_dir, max_iterations=4)
         self.chief_state_tracker = AntigravityVisualStateTracker(
             agent_id="agent-chief-commander",
@@ -128,22 +131,25 @@ class ChiefCommander:
         workflow_id = f"WF-CHIEF-{uuid.uuid4().hex[:6]}"
         idea_lower = idea_text.lower()
 
+        # Update Steward compiles snapshot
+        snapshot = self.steward.generate_context_snapshot(context_delta=context_delta)
+
         # Step 1: Strategy & Discovery
         step1_desc = f"Formulate execution strategy and inspect context for: {idea_text[:120]}"
         step1_scope = ["config/local_tools.json", "config/teamwork_policy.json"]
         target_1, reason_1, exec_class_1 = SmartResourceRouter.classify_and_route(step1_desc, step1_scope, context_delta)
 
-        plan = [
-            {
-                "task_id": f"{workflow_id}-STEP-1-DISCOVER",
-                "target_agent": target_1,
-                "routing_reason": reason_1,
-                "execution_class": exec_class_1,
-                "instruction": step1_desc,
-                "allowed_scope": step1_scope,
-                "context_delta": context_delta,
-            }
-        ]
+        step1 = {
+            "task_id": f"{workflow_id}-STEP-1-DISCOVER",
+            "target_agent": target_1,
+            "routing_reason": reason_1,
+            "execution_class": exec_class_1,
+            "instruction": step1_desc,
+            "allowed_scope": step1_scope,
+            "context_delta": context_delta,
+        }
+        self.steward.attach_task_context(step1, snapshot)
+        plan = [step1]
 
         # Step 2: Implementation or QA Audit
         if "test" in idea_lower or "verify" in idea_lower or "audit" in idea_lower:
@@ -154,7 +160,7 @@ class ChiefCommander:
             step2_scope = ["config/social_channels.json", "config/teamwork_policy.json"]
 
         target_2, reason_2, exec_class_2 = SmartResourceRouter.classify_and_route(step2_desc, step2_scope, context_delta)
-        plan.append({
+        step2 = {
             "task_id": f"{workflow_id}-STEP-2-{'QA' if target_2 == 'codex' else 'IMPLEMENT'}",
             "target_agent": target_2,
             "routing_reason": reason_2,
@@ -162,13 +168,15 @@ class ChiefCommander:
             "instruction": step2_desc,
             "allowed_scope": step2_scope,
             "context_delta": context_delta,
-        })
+        }
+        self.steward.attach_task_context(step2, snapshot)
+        plan.append(step2)
 
         # Step 3: Chief Synthesis & Final Acceptance
         step3_desc = f"Finalize results, verify invariants, and assemble completion package for: {idea_text[:120]}"
         step3_scope = ["config/teamwork_policy.json"]
         target_3, reason_3, exec_class_3 = SmartResourceRouter.classify_and_route(step3_desc, step3_scope, context_delta)
-        plan.append({
+        step3 = {
             "task_id": f"{workflow_id}-STEP-3-SYNTHESIZE",
             "target_agent": target_3,
             "routing_reason": reason_3,
@@ -176,7 +184,9 @@ class ChiefCommander:
             "instruction": step3_desc,
             "allowed_scope": step3_scope,
             "context_delta": context_delta,
-        })
+        }
+        self.steward.attach_task_context(step3, snapshot)
+        plan.append(step3)
 
         return workflow_id, plan
 

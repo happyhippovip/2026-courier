@@ -1,11 +1,11 @@
 {
   "schema_version": "2.0",
-  "job_id": "job-ag-WF-CHIEF-f3cbc1-STEP-3-SYNTHESIZE",
-  "source_command_message_id": "msg-cmd-WF-CHIEF-f3cbc1-STEP-3-SYNTHESIZE",
-  "task_id": "WF-CHIEF-f3cbc1-STEP-3-SYNTHESIZE",
-  "correlation_id": "corr-demo-3fbaa65c",
-  "workflow_id": "WF-CHIEF-f3cbc1",
-  "parent_task_id": "WF-CHIEF-f3cbc1-STEP-2-IMPLEMENT",
+  "job_id": "job-ag-WF-CHIEF-bd163c-STEP-3-SYNTHESIZE",
+  "source_command_message_id": "msg-cmd-WF-CHIEF-bd163c-STEP-3-SYNTHESIZE",
+  "task_id": "WF-CHIEF-bd163c-STEP-3-SYNTHESIZE",
+  "correlation_id": "corr-demo-4bded791",
+  "workflow_id": "WF-CHIEF-bd163c",
+  "parent_task_id": "WF-CHIEF-bd163c-STEP-2-IMPLEMENT",
   "target_agent": "courier-antigravity-bridge",
   "instruction": "Finalize results, verify invariants, and assemble completion package for: Optimiere FruitKI 3D Video-Render Pipeline und erstelle Release-Metadaten",
   "allowed_scope": [
@@ -20,11 +20,14 @@
   "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
   "max_iterations": 1,
   "context_delta": null,
+  "context_version": null,
+  "context_snapshot_hash": null,
+  "bounded_context": null,
   "routing_decision": {
     "target_agent": "courier-antigravity-bridge",
     "routing_reason": "Assigned by SmartResourceRouter",
     "execution_class": "DETERMINISTIC_ANTIGRAVITY"
   },
   "expected_output": "Structured summary result",
-  "created_at": "2026-08-30T15:12:52.095358+00:00"
+  "created_at": "2026-08-30T15:18:25.946328+00:00"
 }

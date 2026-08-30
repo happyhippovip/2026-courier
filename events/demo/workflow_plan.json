@@ -1,8 +1,8 @@
 {
-  "workflow_id": "WF-CHIEF-f3cbc1",
+  "workflow_id": "WF-CHIEF-bd163c",
   "plan": [
     {
-      "task_id": "WF-CHIEF-f3cbc1-STEP-1-DISCOVER",
+      "task_id": "WF-CHIEF-bd163c-STEP-1-DISCOVER",
       "target_agent": "antigravity",
       "routing_reason": "Primary heavy worker for 3D/video rendering & asset pipeline",
       "execution_class": "DETERMINISTIC_ANTIGRAVITY",
@@ -36,11 +36,31 @@
           "ideas": true,
           "project_state": true
         },
-        "timestamp": "2026-08-30T15:12:52.076167+00:00"
+        "timestamp": "2026-08-30T15:18:25.896306+00:00"
+      },
+      "context_version": 11,
+      "context_snapshot_hash": "60fa1e8ef9d18720471cc2ccfc97da0e73c7909c5a5c182342325dea997b00e4",
+      "bounded_context": {
+        "context_version": 11,
+        "context_snapshot_hash": "60fa1e8ef9d18720471cc2ccfc97da0e73c7909c5a5c182342325dea997b00e4",
+        "repositories": {
+          "courier_head": "b920a5f303982f76eba461ce223dd44d908ca98c",
+          "memory_head": "57ac6525e7f8c74c9521dae883f5538e6d572a26",
+          "godot_head": "NOT_CONNECTED"
+        },
+        "latest_verified_milestone": "**VERIFIED_CURRENT** | Source: local repository audit of `2026-Projektzentrale` | Verified: 2026-08-29. Two final vertical FruitKI files exist locally: `kiwi-stealth-short-001-final.mp4` (10 s) and `strawberry-school-short-002-final.mp4` (7.125 s); both were locally inspected as 360\u00d7640 H.264/AAC assets. See [TECHNICAL_CONTEXT.md](TECHNICAL_CONTEXT.md).",
+        "latest_decisions": [
+          "D-001 \u2014 Revenue first, conservative capital",
+          "D-002 \u2014 Crypto and speculative recovery blocked",
+          "D-003 \u2014 Protected and private assets excluded",
+          "D-004 \u2014 No paid or irreversible action by default",
+          "D-005 \u2014 Separate project memory repository"
+        ],
+        "truth_invariants": "IDEA != IMPLEMENTED | USER_REPORTED != VERIFIED | DETERMINISTIC != REAL_EXTERNAL"
       }
     },
     {
-      "task_id": "WF-CHIEF-f3cbc1-STEP-2-IMPLEMENT",
+      "task_id": "WF-CHIEF-bd163c-STEP-2-IMPLEMENT",
       "target_agent": "antigravity",
       "routing_reason": "Primary heavy worker for 3D/video rendering & asset pipeline",
       "execution_class": "DETERMINISTIC_ANTIGRAVITY",
@@ -74,11 +94,31 @@
           "ideas": true,
           "project_state": true
         },
-        "timestamp": "2026-08-30T15:12:52.076167+00:00"
+        "timestamp": "2026-08-30T15:18:25.896306+00:00"
+      },
+      "context_version": 11,
+      "context_snapshot_hash": "60fa1e8ef9d18720471cc2ccfc97da0e73c7909c5a5c182342325dea997b00e4",
+      "bounded_context": {
+        "context_version": 11,
+        "context_snapshot_hash": "60fa1e8ef9d18720471cc2ccfc97da0e73c7909c5a5c182342325dea997b00e4",
+        "repositories": {
+          "courier_head": "b920a5f303982f76eba461ce223dd44d908ca98c",
+          "memory_head": "57ac6525e7f8c74c9521dae883f5538e6d572a26",
+          "godot_head": "NOT_CONNECTED"
+        },
+        "latest_verified_milestone": "**VERIFIED_CURRENT** | Source: local repository audit of `2026-Projektzentrale` | Verified: 2026-08-29. Two final vertical FruitKI files exist locally: `kiwi-stealth-short-001-final.mp4` (10 s) and `strawberry-school-short-002-final.mp4` (7.125 s); both were locally inspected as 360\u00d7640 H.264/AAC assets. See [TECHNICAL_CONTEXT.md](TECHNICAL_CONTEXT.md).",
+        "latest_decisions": [
+          "D-001 \u2014 Revenue first, conservative capital",
+          "D-002 \u2014 Crypto and speculative recovery blocked",
+          "D-003 \u2014 Protected and private assets excluded",
+          "D-004 \u2014 No paid or irreversible action by default",
+          "D-005 \u2014 Separate project memory repository"
+        ],
+        "truth_invariants": "IDEA != IMPLEMENTED | USER_REPORTED != VERIFIED | DETERMINISTIC != REAL_EXTERNAL"
       }
     },
     {
-      "task_id": "WF-CHIEF-f3cbc1-STEP-3-SYNTHESIZE",
+      "task_id": "WF-CHIEF-bd163c-STEP-3-SYNTHESIZE",
       "target_agent": "antigravity",
       "routing_reason": "Primary heavy worker for 3D/video rendering & asset pipeline",
       "execution_class": "DETERMINISTIC_ANTIGRAVITY",
@@ -111,7 +151,27 @@
           "ideas": true,
           "project_state": true
         },
-        "timestamp": "2026-08-30T15:12:52.076167+00:00"
+        "timestamp": "2026-08-30T15:18:25.896306+00:00"
+      },
+      "context_version": 11,
+      "context_snapshot_hash": "60fa1e8ef9d18720471cc2ccfc97da0e73c7909c5a5c182342325dea997b00e4",
+      "bounded_context": {
+        "context_version": 11,
+        "context_snapshot_hash": "60fa1e8ef9d18720471cc2ccfc97da0e73c7909c5a5c182342325dea997b00e4",
+        "repositories": {
+          "courier_head": "b920a5f303982f76eba461ce223dd44d908ca98c",
+          "memory_head": "57ac6525e7f8c74c9521dae883f5538e6d572a26",
+          "godot_head": "NOT_CONNECTED"
+        },
+        "latest_verified_milestone": "**VERIFIED_CURRENT** | Source: local repository audit of `2026-Projektzentrale` | Verified: 2026-08-29. Two final vertical FruitKI files exist locally: `kiwi-stealth-short-001-final.mp4` (10 s) and `strawberry-school-short-002-final.mp4` (7.125 s); both were locally inspected as 360\u00d7640 H.264/AAC assets. See [TECHNICAL_CONTEXT.md](TECHNICAL_CONTEXT.md).",
+        "latest_decisions": [
+          "D-001 \u2014 Revenue first, conservative capital",
+          "D-002 \u2014 Crypto and speculative recovery blocked",
+          "D-003 \u2014 Protected and private assets excluded",
+          "D-004 \u2014 No paid or irreversible action by default",
+          "D-005 \u2014 Separate project memory repository"
+        ],
+        "truth_invariants": "IDEA != IMPLEMENTED | USER_REPORTED != VERIFIED | DETERMINISTIC != REAL_EXTERNAL"
       }
     }
   ]

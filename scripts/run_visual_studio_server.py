@@ -140,11 +140,16 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 human_gate_active = True
                 break
 
+        # Read latest context snapshot
+        snapshot_file = EVENTS_DIR / "context-snapshots/snapshot-current.json"
+        snapshot_data = load_json_safe(snapshot_file) if snapshot_file.exists() else None
+
         response_data = {
             "schema_version": "2.0",
             "server_time": datetime.datetime.now(datetime.timezone.utc).isoformat(),
             "agents": agents_data,
             "counts": counts,
+            "context_snapshot": snapshot_data,
             "bus": {
                 "is_locked": is_locked,
                 "active_lock": active_lock_name,
@@ -152,6 +157,8 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "active_workflow": active_lock_name or "IDLE_MONITORING",
                 "correlation_id": derived_correlation_id,
                 "human_gate": human_gate_active,
+                "context_version": snapshot_data.get("context_version") if snapshot_data else 0,
+                "snapshot_hash": snapshot_data.get("snapshot_hash") if snapshot_data else "NONE",
             }
         }
 
