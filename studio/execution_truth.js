@@ -851,43 +851,46 @@ export function resolveLivingRoomAgents(stateData) {
   const desks = resolveDeskMatrix(stateData);
   const bodyguards = resolveBodyguardsTruth(stateData);
 
-  // Default coordinate map for living operations floor (normalized % of 1920x1080 stage)
+  // Default coordinate map matching the 16:9 pixel-art reference image
   const baseCoordinates = {
-    'agent-chief-commander': { x: 46.5, y: 43.5, zone: 'COMMAND_TABLE', name: 'CHIEF', title: 'CHIEF COMMANDER' },
-    'smart-resource-router': { x: 57.5, y: 44.5, zone: 'COMMAND_TABLE', name: 'ROUTER', title: 'SMART ROUTER' },
-    'agent-thought-curator': { x: 16.5, y: 37.5, zone: 'IDEA_LAB', name: 'IDEA SYNC', title: 'THOUGHT CURATOR' },
-    'agent-human-gate-monitor': { x: 8.0, y: 37.5, zone: 'HUMAN_GATE', name: 'HUMAN', title: 'HUMAN INBOX' },
-    'agent-update-steward': { x: 29.5, y: 43.0, zone: 'CONTEXT', name: 'UPDATE STEWARD', title: 'CONTEXT STEWARD' },
-    'agent-antigravity-bridge': { x: 68.5, y: 44.5, zone: 'ANTIGRAVITY', name: 'GRAVITY', title: 'ANTIGRAVITY STUDIO' },
-    'agent-courier-relay': { x: 76.5, y: 44.5, zone: 'COURIER', name: 'COURIER', title: 'COURIER HUB' },
-    'agent-academy-teacher': { x: 85.5, y: 44.5, zone: 'ACADEMY', name: 'ACADEMY TEACHER', title: 'AGENTENLEHRER' },
-    'agent-academy-director': { x: 92.0, y: 64.0, zone: 'ACADEMY', name: 'ACADEMY DIRECTOR', title: 'SCHULDIREKTOR' },
-    'agent-snitch': { x: 6.5, y: 68.0, zone: 'SERVER', name: 'SNITCH 3.0', title: 'WATCHDOG / PERMISSION' },
-    'agent-asset-validator': { x: 63.5, y: 55.5, zone: 'WORKSTATIONS', name: 'ASSET VALIDATOR', title: 'MEDIA PIPELINE' },
-    'agent-video-synth': { x: 69.5, y: 55.5, zone: 'WORKSTATIONS', name: 'VIDEO SYNTH', title: '3D SHORTS SYNTH' },
-    'agent-channel-dispatcher': { x: 75.5, y: 55.5, zone: 'WORKSTATIONS', name: 'CHANNEL DISPATCH', title: 'SOCIAL DISPATCH' },
-    'agent-memory-mesh': { x: 81.5, y: 55.5, zone: 'WORKSTATIONS', name: 'MEMORY MESH', title: 'PROJECT MEMORY' },
-    'agent-test-guardian': { x: 87.5, y: 55.5, zone: 'WORKSTATIONS', name: 'TEST GUARDIAN', title: 'QA AUDIT LAB' },
-    'agent-loop-supervisor': { x: 63.5, y: 66.0, zone: 'WORKSTATIONS', name: 'LOOP SUPERVISOR', title: 'L6 ORCHESTRATION' },
+    'agent-chief-commander': { x: 50.0, y: 42.0, zone: 'COMMAND_TABLE', name: 'CHIEF COMMANDER', title: 'Chief / Strategy' },
+    'smart-resource-router': { x: 57.5, y: 44.0, zone: 'COMMAND_TABLE', name: 'SMART ROUTER', title: 'Task Router' },
+    'agent-human-gate-monitor': { x: 14.5, y: 35.5, zone: 'DESK_01', name: 'HUMAN GATE', title: 'Human Gate / Strategy' },
+    'agent-thought-curator': { x: 22.0, y: 35.5, zone: 'DESK_02', name: 'IDEA SYNC', title: 'Memory & Curation' },
+    'agent-update-steward': { x: 29.5, y: 35.5, zone: 'DESK_03', name: 'UPDATE STEWARD', title: 'Context Sync Steward' },
+    'agent-codex-bridge': { x: 14.5, y: 48.0, zone: 'DESK_04', name: 'CODEX', title: 'Technical QA Specialist' },
+    'agent-asset-validator': { x: 22.0, y: 48.0, zone: 'DESK_05', name: 'ASSET VALIDATOR', title: 'Media Asset Validator' },
+    'agent-video-synth': { x: 29.5, y: 48.0, zone: 'DESK_06', name: 'VIDEO SYNTH', title: '3D Movie Synth' },
+    'agent-channel-dispatcher': { x: 14.5, y: 60.5, zone: 'DESK_07', name: 'CHANNEL DISPATCH', title: 'Social Dispatcher' },
+    'agent-memory-mesh': { x: 22.0, y: 60.5, zone: 'DESK_08', name: 'MEMORY MESH', title: 'Project Memory Indexer' },
+    'agent-test-guardian': { x: 29.5, y: 60.5, zone: 'DESK_09', name: 'TEST GUARDIAN', title: 'Regression Sentinel' },
+    'agent-antigravity-bridge': { x: 66.5, y: 45.0, zone: 'DESK_16', name: 'ANTIGRAVITY', title: 'Visual & Heavy Worker' },
+    'agent-courier-relay': { x: 74.0, y: 45.0, zone: 'DESK_17', name: 'COURIER', title: 'Message Transport' },
+    'agent-academy-teacher': { x: 81.5, y: 45.0, zone: 'DESK_19', name: 'ACADEMY TEACHER', title: 'Agentenlehrer' },
+    'agent-academy-director': { x: 89.0, y: 45.0, zone: 'DESK_21', name: 'ACADEMY DIRECTOR', title: 'Schuldirektor' },
+    'agent-snitch': { x: 63.5, y: 59.5, zone: 'DESK_13', name: 'SNITCH 3.0', title: 'Runtime & Permission Guard' },
+    'agent-loop-supervisor': { x: 71.0, y: 59.5, zone: 'DESK_22', name: 'LOOP SUPERVISOR', title: 'L6 Orchestration' },
   };
 
   // Bodyguard leisure vs active positions
   const bodyguardStandbySlots = [
-    { callsign: 'ALPHA', x: 14.0, y: 63.5, leisure_area: 'READY_ROOM', leisure_x: 88.0, leisure_y: 88.0 },
-    { callsign: 'BRAVO', x: 18.5, y: 63.5, leisure_area: 'READY_ROOM', leisure_x: 93.0, leisure_y: 88.0 },
-    { callsign: 'CHARLIE', x: 23.0, y: 63.5, leisure_area: 'READY_ROOM', leisure_x: 83.5, leisure_y: 16.5 },
-    { callsign: 'DELTA', x: 27.5, y: 63.5, leisure_area: 'READY_ROOM', leisure_x: 88.0, leisure_y: 16.5 },
-    { callsign: 'ECHO', x: 32.0, y: 63.5, leisure_area: 'READY_ROOM', leisure_x: 18.0, leisure_y: 28.0 },
-    { callsign: 'FOXTROT', x: 36.5, y: 63.5, leisure_area: 'READY_ROOM', leisure_x: 23.0, leisure_y: 28.0 },
-    { callsign: 'GOLF', x: 41.0, y: 63.5, leisure_area: 'READY_ROOM', leisure_x: 14.0, leisure_y: 63.5 },
-    { callsign: 'HOTEL', x: 45.5, y: 63.5, leisure_area: 'READY_ROOM', leisure_x: 35.0, leisure_y: 63.5 },
+    { callsign: 'ALPHA', leisure_area: 'COFFEE_BAR', x: 80.0, y: 91.0 },
+    { callsign: 'BRAVO', leisure_area: 'COFFEE_BAR', x: 85.0, y: 91.0 },
+    { callsign: 'CHARLIE', leisure_area: 'SAUNA', x: 79.0, y: 14.0 },
+    { callsign: 'DELTA', leisure_area: 'SAUNA', x: 84.0, y: 14.0 },
+    { callsign: 'ECHO', leisure_area: 'VISITOR_LOUNGE', x: 12.0, y: 84.0 },
+    { callsign: 'FOXTROT', leisure_area: 'VISITOR_LOUNGE', x: 28.0, y: 84.0 },
+    { callsign: 'GOLF', leisure_area: 'FOUNTAIN_READY', x: 44.0, y: 67.0 },
+    { callsign: 'HOTEL', leisure_area: 'FOUNTAIN_READY', x: 56.0, y: 67.0 },
   ];
 
   const assignedWorkstationCoords = [
-    { x: 69.5, y: 66.0 }, // Desk 22
-    { x: 75.5, y: 66.0 }, // Desk 24
-    { x: 81.5, y: 66.0 }, // Desk 25
+    { x: 78.5, y: 59.5 }, // Desk 23
+    { x: 86.0, y: 59.5 }, // Desk 24
+    { x: 80.0, y: 73.5 }, // Desk 24 lower
+    { x: 88.0, y: 73.5 }, // Desk 25 lower
   ];
+
 
   const results = [];
 

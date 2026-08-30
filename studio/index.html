@@ -2,16 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>2026 Courier // Living Agent HQ Operations Cockpit</title>
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body class="theme-dark">
 
-  <!-- Top Navigation & Cockpit Header Bar -->
+  <!-- Top Cockpit Header Bar -->
   <header class="studio-header">
     <div class="header-left">
       <div class="logo-badge">
@@ -27,12 +27,12 @@
         <span class="context-tag" id="context-pill-ver">CONTEXT: v64</span>
       </div>
       <div class="mode-toggle">
-        <button id="btn-aspect-16-9" class="btn-toggle active" title="16:9 Landscape">16:9</button>
+        <button id="btn-aspect-16-9" class="btn-toggle active" title="16:9 Fullscreen Landscape">16:9</button>
         <button id="btn-aspect-9-16" class="btn-toggle" title="9:16 Vertical">9:16</button>
       </div>
     </div>
 
-    <!-- Camera / View Controls -->
+    <!-- Camera / View Navigation Buttons -->
     <div class="header-center camera-controls" id="camera-controls">
       <span class="camera-label">CAMERA:</span>
       <button class="cam-btn active" data-view="overview">HQ OVERVIEW</button>
@@ -46,7 +46,7 @@
     </div>
 
     <div class="header-right">
-      <button id="btn-toggle-details" class="btn-control" title="Toggle Detailed Control Panel">
+      <button id="btn-toggle-details" class="btn-control" title="Toggle Detailed Control Drawer">
         <span class="toggle-icon">📊</span> DETAILS / INBOX
       </button>
       <button id="btn-recording-mode" class="btn-control" title="Toggle Clean Recording Mode">
@@ -60,552 +60,82 @@
   </header>
 
   <!-- ================================================================= -->
-  <!-- MAIN FIRST SCREEN: THE LIVING AGENT HQ OPERATIONS ROOM           -->
+  <!-- MAIN FULLSCREEN LIVING AGENT HQ OPERATIONS STAGE                  -->
   <!-- ================================================================= -->
   <main class="living-hq-wrapper" id="living-hq-wrapper">
-    <div class="living-hq-stage" id="living-hq-stage">
+    <div class="living-hq-stage view-overview" id="living-hq-stage">
 
-      <!-- Room Background & Architecture Layer -->
-      <div class="room-floor-grid"></div>
+      <!-- Master Background Image Artwork (1:1 Reference Artwork) -->
+      <div class="room-canvas-art" id="room-canvas-art"></div>
 
-      <!-- TOP WALL SECTION -->
-      <div class="top-wall-section">
-
-        <!-- Top Left: Fireplace, Brand Motifs, and Dual-Loop Panels -->
-        <div class="wall-cluster wall-left">
-          <div class="brand-motifs-bar">
-            <div class="brand-box apple-box">
-              <span class="brand-logo"></span>
-              <span class="brand-sub">Think Different.</span>
-            </div>
-            <div class="brand-box openai-box">
-              <span class="brand-logo">✹</span>
-              <span class="brand-title">OpenAI</span>
-            </div>
-            <div class="brand-box google-box">
-              <span class="brand-logo">G</span>
-              <span class="brand-title">Google</span>
-            </div>
-            <div class="brand-box btc-box">
-              <span class="brand-logo">₿</span>
-              <span class="brand-title">Bitcoin</span>
-            </div>
-            <div class="brand-box ordi-box">
-              <span class="brand-title-lg">$ORDI</span>
-              <span class="brand-sub">Future is Onchain</span>
-            </div>
-            <div class="brand-box xlm-box">
-              <span class="brand-title-lg">$XLM</span>
-              <span class="brand-sub">Stellar<br>New Money. Built Future.</span>
-            </div>
+      <!-- Live Big TV Wall Real-Data Overlay -->
+      <div class="tv-wall-live-overlay" id="tv-wall-live-overlay">
+        <!-- Live Active Count & Capacity -->
+        <div class="tv-live-gauge">
+          <div class="tv-gauge-nums">
+            <span class="live-active-num" id="tv-active-count">17</span>
+            <span class="live-slash">/</span>
+            <span class="live-max">40</span>
           </div>
+          <div class="tv-gauge-percent" id="tv-capacity-pct">42.5% Capacity</div>
+        </div>
 
-          <!-- Dual Loop Logic Panels -->
-          <div class="loop-cards-container">
-            <div class="loop-card production-loop-card">
-              <div class="loop-card-title">PRODUCTION LOOP:</div>
-              <div class="loop-card-flow">Human ➔ Idea Sync ➔ Update Steward ➔ Chief ➔ Router ➔ Workers ➔ Courier ➔ Update Steward ➔ Chief Review</div>
-            </div>
-            <div class="loop-card learning-loop-card">
-              <div class="loop-card-title">LEARNING LOOP:</div>
-              <div class="loop-card-flow">External Update ➔ Agentenlehrer ➔ Schuldirektor (Eval Gate) ➔ Idea Sync ➔ Update Steward (Snapshot) ➔ Agents Learn</div>
-            </div>
+        <!-- Live Flight Deck Operational Status -->
+        <div class="tv-live-flight-info">
+          <div class="flight-line">Workflow: <b id="tv-live-wf" class="text-cyan">IDLE_MONITORING</b></div>
+          <div class="flight-line">Correlation: <b id="tv-live-corr" class="text-muted">corr-demo-c94b85b8</b></div>
+          <div class="flight-line">Context: <b id="tv-live-ctx" class="text-green">v64</b> • School: <b id="tv-live-school" class="text-orange">06:00 UTC</b></div>
+        </div>
+
+        <!-- Live 24H PNL & Financial Evidence -->
+        <div class="tv-live-kpis">
+          <div class="live-kpi-item">
+            <span class="kpi-label">24H PNL</span>
+            <span class="kpi-value text-green" id="tv-kpi-pnl">+$28,540.32</span>
           </div>
-
-          <!-- Cozy Fireplace with Animated Hearth -->
-          <div class="cozy-fireplace">
-            <div class="fireplace-mantel"></div>
-            <div class="fireplace-hearth">
-              <div class="fire-flame flame-1"></div>
-              <div class="fire-flame flame-2"></div>
-              <div class="fire-flame flame-3"></div>
-              <div class="fire-glow"></div>
-            </div>
+          <div class="live-kpi-item">
+            <span class="kpi-label">WIN RATE</span>
+            <span class="kpi-value text-cyan">78.6%</span>
+          </div>
+          <div class="live-kpi-item">
+            <span class="kpi-label">TREASURY</span>
+            <span class="kpi-value text-white" id="tv-live-treasury">$8 GOAL</span>
           </div>
         </div>
 
-        <!-- Top Center: Big Central TV Wall (BOT AGENT HQ) -->
-        <div class="wall-cluster wall-center-tv">
-          <div class="big-tv-screen" id="big-tv-screen">
-            <div class="tv-screen-glare"></div>
-            
-            <div class="tv-top-header">
-              <div class="tv-dots-left"><span class="tv-dot"></span><span class="tv-dot"></span></div>
-              <div class="tv-main-titles">
-                <h1 class="tv-screen-title">BOT AGENT HQ</h1>
-                <span class="tv-screen-subtitle">AI AUTOMATION & TRADING SYSTEMS</span>
-              </div>
-              <div class="tv-dots-right"><span class="tv-dot"></span><span class="tv-dot"></span><span class="tv-dot"></span></div>
-            </div>
-
-            <div class="tv-body-grid">
-              <!-- Left TV Column: Active Bot Agents Gauge -->
-              <div class="tv-col tv-col-gauge">
-                <span class="tv-widget-label">ACTIVE BOT AGENTS</span>
-                <div class="tv-gauge-number">
-                  <span class="gauge-current" id="tv-active-count">17</span>
-                  <span class="gauge-slash">/</span>
-                  <span class="gauge-max">40</span>
-                </div>
-                <div class="tv-gauge-sub" id="tv-capacity-pct">42.5% Capacity</div>
-                
-                <!-- Mini Agent Avatars Matrix -->
-                <div class="tv-mini-avatar-grid">
-                  <span class="mini-av av-chief" title="Chief">👑</span>
-                  <span class="mini-av av-idea" title="Idea Sync">🧠</span>
-                  <span class="mini-av av-steward" title="Update Steward">🔄</span>
-                  <span class="mini-av av-router" title="Router">🧭</span>
-                  <span class="mini-av av-gravity" title="Gravity">🎨</span>
-                  <span class="mini-av av-courier" title="Courier">⚡</span>
-                  <span class="mini-av av-teacher" title="Teacher">👨‍🏫</span>
-                  <span class="mini-av av-alpha" title="BG Alpha">🛡️</span>
-                  <span class="mini-av av-bravo" title="BG Bravo">🛡️</span>
-                  <span class="mini-av av-charlie" title="BG Charlie">🛡️</span>
-                  <span class="mini-av av-echo" title="BG Echo">🛡️</span>
-                  <span class="mini-av av-snitch" title="SNITCH">👀</span>
-                  <span class="mini-av av-director" title="Director">🏛️</span>
-                  <span class="mini-av av-hotel" title="BG Hotel">🛡️</span>
-                </div>
-              </div>
-
-              <!-- Center TV Column: Performance Line Graph -->
-              <div class="tv-col tv-col-chart">
-                <div class="tv-chart-header">
-                  <span class="tv-widget-label">PORTFOLIO PERFORMANCE</span>
-                </div>
-                <div class="tv-chart-canvas-box">
-                  <svg class="tv-sparkline-svg" viewBox="0 0 300 90" preserveAspectRatio="none">
-                    <defs>
-                      <linearGradient id="tv-chart-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stop-color="#00e5ff" stop-opacity="0.45" />
-                        <stop offset="100%" stop-color="#00e5ff" stop-opacity="0.0" />
-                      </linearGradient>
-                    </defs>
-                    <path class="chart-area" fill="url(#tv-chart-grad)" d="M 0,75 Q 40,45 80,60 T 160,35 T 230,25 T 300,10 L 300,90 L 0,90 Z" />
-                    <path class="chart-line" fill="none" stroke="#00e5ff" stroke-width="2.5" d="M 0,75 Q 40,45 80,60 T 160,35 T 230,25 T 300,10" />
-                  </svg>
-                </div>
-              </div>
-
-              <!-- Right TV Column: System Status Checklist -->
-              <div class="tv-col tv-col-status">
-                <span class="tv-widget-label">SYSTEM STATUS</span>
-                <ul class="tv-status-list">
-                  <li><span class="status-led green"></span> Data Feeds</li>
-                  <li><span class="status-led green"></span> AI Models</li>
-                  <li><span class="status-led green"></span> Execution Engine</li>
-                  <li><span class="status-led green"></span> Risk Manager</li>
-                  <li><span class="status-led green"></span> Notifications</li>
-                  <li><span class="status-led green"></span> Orchestrator</li>
-                  <li><span class="status-led green"></span> Backup Systems</li>
-                </ul>
-              </div>
-            </div>
-
-            <!-- Financial / Operational KPI Row -->
-            <div class="tv-kpi-row">
-              <div class="kpi-block">
-                <span class="kpi-title">24H PNL</span>
-                <span class="kpi-val green" id="tv-kpi-pnl">+$28,540.32</span>
-              </div>
-              <div class="kpi-block">
-                <span class="kpi-title">WIN RATE</span>
-                <span class="kpi-val cyan">78.6%</span>
-              </div>
-              <div class="kpi-block">
-                <span class="kpi-title">TOTAL VOLUME</span>
-                <span class="kpi-val white">$12.48M</span>
-              </div>
-              <div class="kpi-block">
-                <span class="kpi-title">SHARPE RATIO</span>
-                <span class="kpi-val cyan">2.47</span>
-              </div>
-            </div>
-
-            <!-- Market & Agent Ticker Tape Strip -->
-            <div class="tv-ticker-strip">
-              <span class="ticker-item"><i class="ticker-dot green"></i> BTC/USDT <b class="text-green">+1.35%</b></span>
-              <span class="ticker-item"><i class="ticker-dot green"></i> ETH/USDT <b class="text-green">+2.21%</b></span>
-              <span class="ticker-item"><i class="ticker-dot green"></i> SOL/USDT <b class="text-green">+3.87%</b></span>
-              <span class="ticker-item"><i class="ticker-dot green"></i> XLM/USDT <b class="text-green">+1.12%</b></span>
-              <span class="ticker-item"><i class="ticker-dot green"></i> $ORDI/USDT <b class="text-green">+8.91%</b></span>
-              <span class="ticker-item"><i class="ticker-dot cyan"></i> AGENTS <b class="text-cyan">+12.04%</b></span>
-            </div>
-          </div>
+        <!-- Live Market & Agent Ticker Tape -->
+        <div class="tv-live-ticker">
+          <span class="ticker-elem"><i class="dot green"></i> BTC <b class="text-green">+1.35%</b></span>
+          <span class="ticker-elem"><i class="dot green"></i> ETH <b class="text-green">+2.21%</b></span>
+          <span class="ticker-elem"><i class="dot green"></i> SOL <b class="text-green">+3.87%</b></span>
+          <span class="ticker-elem"><i class="dot green"></i> XLM <b class="text-green">+1.12%</b></span>
+          <span class="ticker-elem"><i class="dot green"></i> $ORDI <b class="text-green">+8.91%</b></span>
+          <span class="ticker-elem"><i class="dot cyan"></i> AGENTS <b class="text-cyan">100% HEALTHY</b></span>
         </div>
-
-        <!-- Top Right: TV Wall Overview, Slogans, Sauna, Server Room -->
-        <div class="wall-cluster wall-right">
-          <div class="tv-overview-box">
-            <div class="tv-overview-header">
-              <span class="tv-overview-title">TV WALL OVERVIEW</span>
-            </div>
-            <div class="tv-overview-stats">
-              <div class="workstations-count">
-                <span class="count-big" id="tv-workstations-total">36</span>
-                <span class="count-label">WORKSTATIONS<br><small>Active: <b id="tv-ws-active">12</b> • Idle: <b id="tv-ws-idle">24</b></small></span>
-              </div>
-              <div class="overview-flight-lines">
-                <div>Context: <b id="tv-overview-context" class="font-mono text-cyan">v64</b></div>
-                <div>Workflow: <b id="tv-overview-workflow" class="font-mono text-accent">IDLE_MONITORING</b></div>
-                <div>Correlation: <b id="tv-overview-correlation" class="font-mono text-muted">corr-demo-c94b85b8</b></div>
-                <div>Next School Time: <b id="tv-overview-school" class="font-mono text-secondary">06:00 UTC</b></div>
-              </div>
-            </div>
-            <div class="world-map-graphic">
-              <div class="map-grid-dots"></div>
-            </div>
-          </div>
-
-          <div class="slogan-plaque">
-            <span>Discipline</span>
-            <span>Systems</span>
-            <span>Freedom</span>
-          </div>
-
-          <!-- Glass Sauna Room with Warm Cedar Interior -->
-          <div class="facility-room sauna-room" id="zone-sauna">
-            <div class="facility-sign">SAUNA</div>
-            <div class="sauna-interior">
-              <div class="sauna-bench top-bench"></div>
-              <div class="sauna-bench bottom-bench"></div>
-              <div class="sauna-stove">
-                <span class="stove-stones"></span>
-                <span class="stove-steam"></span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Server & Defense Room with Glowing Blue/Green LEDs -->
-          <div class="facility-room server-room" id="zone-server">
-            <div class="facility-sign">SERVER ROOM</div>
-            <div class="server-racks-grid">
-              <div class="server-rack">
-                <span class="rack-led blink-1"></span><span class="rack-led blink-2"></span><span class="rack-led blink-3"></span>
-                <span class="rack-slot"></span><span class="rack-slot"></span><span class="rack-slot"></span>
-              </div>
-              <div class="server-rack">
-                <span class="rack-led blink-2"></span><span class="rack-led blink-1"></span><span class="rack-led blink-3"></span>
-                <span class="rack-slot"></span><span class="rack-slot"></span><span class="rack-slot"></span>
-              </div>
-              <div class="server-rack">
-                <span class="rack-led blink-3"></span><span class="rack-led blink-2"></span><span class="rack-led blink-1"></span>
-                <span class="rack-slot"></span><span class="rack-slot"></span><span class="rack-slot"></span>
-              </div>
-            </div>
-          </div>
-        </div>
-
       </div>
 
-      <!-- ============================================================= -->
-      <!-- CENTRAL OPERATIONS FLOOR: FOUNTAIN, STRATEGY TABLE & WORKSTATIONS -->
-      <!-- ============================================================= -->
-      <div class="operations-floor-section">
-
-        <!-- Centerpiece: Illuminated Central Plaza Fountain -->
-        <div class="central-fountain-structure" id="central-fountain">
-          <div class="fountain-outer-pool">
-            <div class="fountain-ripple-ring ring-1"></div>
-            <div class="fountain-ripple-ring ring-2"></div>
-            <div class="fountain-ripple-ring ring-3"></div>
-          </div>
-          <div class="fountain-stone-tier tier-mid"></div>
-          <div class="fountain-stone-tier tier-top">
-            <div class="fountain-water-spout"></div>
-          </div>
-          <div class="fountain-corner-lanterns">
-            <span class="floor-lantern l-nw"></span>
-            <span class="floor-lantern l-ne"></span>
-            <span class="floor-lantern l-sw"></span>
-            <span class="floor-lantern l-se"></span>
-          </div>
-        </div>
-
-        <!-- Strategy & Command Conference Table (Holographic Map) -->
-        <div class="strategy-command-table" id="strategy-table">
-          <div class="hologram-table-surface">
-            <div class="holo-grid-map"></div>
-            <div class="holo-radar-sweep"></div>
-          </div>
-          <div class="exec-chair chair-chief"></div>
-          <div class="exec-chair chair-router"></div>
-        </div>
-
-        <!-- Static Workstation Desks Backdrop Layer -->
-        <div class="workstations-furniture-grid">
-          <!-- Left Wing Desks -->
-          <div class="desk-unit desk-human" style="left: 8.0%; top: 38.5%;">
-            <div class="desk-top"><span class="desk-monitor triple-screen"></span></div>
-          </div>
-          <div class="desk-unit desk-curator" style="left: 16.5%; top: 38.5%;">
-            <div class="desk-top"><span class="desk-monitor triple-screen"></span></div>
-          </div>
-          <div class="desk-unit desk-steward" style="left: 29.5%; top: 44.0%;">
-            <div class="desk-top"><span class="desk-monitor dual-screen"></span></div>
-          </div>
-
-          <!-- Right Wing Desks -->
-          <div class="desk-unit desk-gravity" style="left: 68.5%; top: 45.5%;">
-            <div class="desk-top"><span class="desk-monitor curved-screen"></span></div>
-          </div>
-          <div class="desk-unit desk-courier" style="left: 76.5%; top: 45.5%;">
-            <div class="desk-top"><span class="desk-monitor dual-screen"></span></div>
-          </div>
-          <div class="desk-unit desk-teacher" style="left: 85.5%; top: 45.5%;">
-            <div class="desk-top"><span class="desk-monitor triple-screen"></span></div>
-          </div>
-
-          <!-- Strategy & Command Signboard -->
-          <div class="strategy-signboard">
-            <div class="sign-title">STRATEGY & COMMAND</div>
-            <ul class="sign-list">
-              <li>• Market Analysis</li>
-              <li>• Risk Control</li>
-              <li>• Automation Rules</li>
-              <li>• Agent Allocation</li>
-              <li>• Performance Review</li>
-            </ul>
-          </div>
-
-          <div class="pillar-plaque">
-            <span>BUILD</span>
-            <span>AUTOMATE</span>
-            <span>SCALE</span>
-            <span>REPEAT</span>
-          </div>
-
-          <!-- Lower Workstations Grid (16 to 25) -->
-          <div class="numbered-desk-unit" style="left: 63.5%; top: 56.5%;"><span class="desk-num">16</span><div class="desk-top"><span class="desk-monitor curved-screen"></span></div></div>
-          <div class="numbered-desk-unit" style="left: 69.5%; top: 56.5%;"><span class="desk-num">17</span><div class="desk-top"><span class="desk-monitor curved-screen"></span></div></div>
-          <div class="numbered-desk-unit" style="left: 75.5%; top: 56.5%;"><span class="desk-num">18</span><div class="desk-top"><span class="desk-monitor curved-screen"></span></div></div>
-          <div class="numbered-desk-unit" style="left: 81.5%; top: 56.5%;"><span class="desk-num">19</span><div class="desk-top"><span class="desk-monitor curved-screen"></span></div></div>
-          <div class="numbered-desk-unit" style="left: 87.5%; top: 56.5%;"><span class="desk-num">20</span><div class="desk-top"><span class="desk-monitor curved-screen"></span></div></div>
-
-          <div class="numbered-desk-unit" style="left: 63.5%; top: 67.0%;"><span class="desk-num">21</span><div class="desk-top"><span class="desk-monitor curved-screen"></span></div></div>
-          <div class="numbered-desk-unit" style="left: 69.5%; top: 67.0%;"><span class="desk-num">22</span><div class="desk-top"><span class="desk-monitor curved-screen"></span></div></div>
-          <div class="numbered-desk-unit" style="left: 75.5%; top: 67.0%;"><span class="desk-num">24</span><div class="desk-top"><span class="desk-monitor curved-screen"></span></div></div>
-          <div class="numbered-desk-unit" style="left: 81.5%; top: 67.0%;"><span class="desk-num">25</span><div class="desk-top"><span class="desk-monitor curved-screen"></span></div></div>
-
-          <!-- Bottom Left: Bodyguard Ready Room Area -->
-          <div class="bodyguards-ready-zone" id="zone-bodyguards">
-            <div class="ready-zone-banner">
-              <span class="banner-title">BODYGUARDS</span>
-              <span class="banner-sub">8 RESERVE SLOTS</span>
-            </div>
-            <div class="ready-slots-grid">
-              <div class="slot-marker" style="left: 14.0%; top: 63.5%;"></div>
-              <div class="slot-marker" style="left: 18.5%; top: 63.5%;"></div>
-              <div class="slot-marker" style="left: 23.0%; top: 63.5%;"></div>
-              <div class="slot-marker" style="left: 27.5%; top: 63.5%;"></div>
-              <div class="slot-marker" style="left: 32.0%; top: 63.5%;"></div>
-              <div class="slot-marker" style="left: 36.5%; top: 63.5%;"></div>
-              <div class="slot-marker" style="left: 41.0%; top: 63.5%;"></div>
-              <div class="slot-marker" style="left: 45.5%; top: 63.5%;"></div>
-            </div>
-          </div>
-
-          <!-- Bottom Right: Kitchen & Coffee Bar -->
-          <div class="kitchen-coffee-bar" id="zone-coffee-bar">
-            <div class="kitchen-header">KITCHEN & COFFEE BAR</div>
-            <div class="espresso-counter">
-              <div class="espresso-machine"><span class="steam-puff"></span></div>
-              <div class="bar-stools">
-                <span class="stool"></span>
-                <span class="stool"></span>
-                <span class="stool"></span>
-                <span class="stool"></span>
-              </div>
-              <div class="snack-vending-box"><span class="vending-sign">barfud</span></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- =========================================================== -->
-        <!-- DYNAMIC AGENTS LAYER (ANIMATED CHARACTERS & FLOATING NAMEPLATES) -->
-        <!-- =========================================================== -->
-        <div class="living-agents-layer" id="living-agents-layer">
-          <!-- Populated and synchronized in real time via studio.js -->
-        </div>
-
+      <!-- Moving Message / Courier Transport Packet -->
+      <div class="courier-transport-packet" id="courier-packet" style="display: none;">
+        <span class="packet-glow"></span>
+        <span class="packet-icon">📦</span>
+        <span class="packet-label" id="courier-packet-label">RESULT</span>
       </div>
 
-      <!-- ============================================================= -->
-      <!-- BOTTOM SECTION: 4 REAL-TIME TELEMETRY & OPERATIONS PANELS      -->
-      <!-- ============================================================= -->
-      <div class="bottom-telemetry-section">
-
-        <!-- Panel 1: SNITCH 3.0 — PERMISSION GUARD -->
-        <div class="telemetry-panel panel-snitch" id="panel-snitch-telemetry">
-          <div class="panel-header">
-            <span class="panel-icon">🛡️</span>
-            <span class="panel-title">SNITCH 3.0 — PERMISSION GUARD</span>
-          </div>
-          <div class="panel-body">
-            <div class="perm-status-row">
-              <span class="status-sublabel">STATUS:</span>
-              <span class="badge badge-perm-healthy font-mono" id="snitch-perm-status">PERMISSIONS HEALTHY</span>
-            </div>
-            <div class="perm-detail-row">
-              <span class="status-sublabel">LAST CHECKED COMMAND</span>
-              <div class="code-pill font-mono" id="snitch-perm-command">curl -s http://127.0.0.1:8088/api/state</div>
-            </div>
-            <div class="perm-detail-row">
-              <span class="status-sublabel">RULE MATCH</span>
-              <div class="text-green font-mono text-bold" id="snitch-perm-rule-rec">ALREADY_ALLOWED</div>
-            </div>
-            <div class="perm-events-list">
-              <span class="status-sublabel">RECENT PERMISSION EVENTS</span>
-              <div class="perm-mini-events font-mono" id="snitch-mini-events">
-                <div class="perm-ev-item"><span class="dot green"></span> ALREADY_ALLOWED <small>curl -s http://127.0.0.1:8088/api/state</small></div>
-                <div class="perm-ev-item"><span class="dot green"></span> ALREADY_ALLOWED <small>python3 scripts/launch_visual_studio.py --status</small></div>
-                <div class="perm-ev-item"><span class="dot yellow"></span> ONE_TIME_ONLY <small>pkill -f run_visual_studio_server.py</small></div>
-              </div>
-            </div>
-            <div class="panel-footer-meta">
-              <span id="snitch-perm-updated">LAST UPDATED: 17:42:18</span>
-              <a href="#control-panel-drawer" class="view-audit-link" id="link-view-audit">VIEW FULL AUDIT LOG →</a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Panel 2: LIVE WORKFLOW -->
-        <div class="telemetry-panel panel-workflow" id="panel-workflow-telemetry">
-          <div class="panel-header">
-            <span class="panel-icon">⚡</span>
-            <span class="panel-title">LIVE WORKFLOW</span>
-          </div>
-          <div class="panel-body">
-            <div class="wf-meta-row font-mono">
-              <div>ID: <b id="live-wf-id" class="text-white">WF-2026-08-30-1742</b></div>
-              <div>CORRELATION: <b id="live-wf-correlation" class="text-cyan">corr-demo-c94b85b8</b></div>
-            </div>
-            <div class="wf-timeline-feed font-mono" id="live-wf-timeline">
-              <div class="timeline-entry"><span class="tl-time">17:42</span> <span class="tl-text">Human submitted idea</span></div>
-              <div class="timeline-entry"><span class="tl-time">17:42</span> <span class="tl-text">Idea Sync ingested & classified</span></div>
-              <div class="timeline-entry"><span class="tl-time">17:42</span> <span class="tl-text">Update Steward created snapshot v64</span></div>
-              <div class="timeline-entry"><span class="tl-time">17:42</span> <span class="tl-text">Chief routed to Gravity</span></div>
-              <div class="timeline-entry active"><span class="tl-time">17:42</span> <span class="tl-text">Gravity started working</span></div>
-            </div>
-            <div class="wf-progress-container">
-              <div class="wf-prog-info">
-                <span id="live-wf-status">STATUS: IN_PROGRESS</span>
-                <span id="live-wf-pct">35%</span>
-              </div>
-              <div class="wf-bar-track">
-                <div class="wf-bar-fill" id="live-wf-bar" style="width: 35%;"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Panel 3: AGENT ACTIVITY FEED -->
-        <div class="telemetry-panel panel-feed" id="panel-feed-telemetry">
-          <div class="panel-header">
-            <span class="panel-icon">📡</span>
-            <span class="panel-title">AGENT ACTIVITY FEED</span>
-          </div>
-          <div class="panel-body">
-            <div class="activity-feed-list" id="activity-feed-list">
-              <div class="feed-item">
-                <span class="badge-agent-sm badge-gravity">GRAVITY</span>
-                <span class="feed-msg">Rendering pipeline step 2/5... Estimated 45s remaining.</span>
-                <span class="feed-ts">17:42</span>
-              </div>
-              <div class="feed-item">
-                <span class="badge-agent-sm badge-courier">COURIER</span>
-                <span class="feed-msg">Packaging intermediate results.</span>
-                <span class="feed-ts">17:42</span>
-              </div>
-              <div class="feed-item">
-                <span class="badge-agent-sm badge-snitch">SNITCH</span>
-                <span class="feed-msg">All systems nominal. Permissions healthy.</span>
-                <span class="feed-ts">17:42</span>
-              </div>
-              <div class="feed-item">
-                <span class="badge-agent-sm badge-teacher">TEACHER</span>
-                <span class="feed-msg">Extracting best practices from execution.</span>
-                <span class="feed-ts">17:42</span>
-              </div>
-              <div class="feed-item">
-                <span class="badge-agent-sm badge-steward">STEWARD</span>
-                <span class="feed-msg">Snapshot integrity verified (v64).</span>
-                <span class="feed-ts">17:42</span>
-              </div>
-            </div>
-            <div class="panel-footer-meta">
-              <span class="text-muted">REAL-TIME EXECUTION LOG</span>
-              <a href="#control-panel-drawer" class="view-audit-link" id="link-view-feed">VIEW FULL FEED →</a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Panel 4: CONTEXT & REPOSITORIES -->
-        <div class="telemetry-panel panel-context" id="panel-context-telemetry">
-          <div class="panel-header">
-            <span class="panel-icon">📦</span>
-            <span class="panel-title">CONTEXT & REPOSITORIES</span>
-          </div>
-          <div class="panel-body">
-            <div class="context-grid-2x2">
-              <div class="ctx-cell">
-                <span class="ctx-label">CONTEXT VERSION</span>
-                <span class="ctx-val font-mono text-cyan" id="panel-ctx-ver">v64</span>
-              </div>
-              <div class="ctx-cell">
-                <span class="ctx-label">PREVIOUS VERSION</span>
-                <span class="ctx-val font-mono text-muted" id="panel-ctx-prev">v63</span>
-              </div>
-              <div class="ctx-cell">
-                <span class="ctx-label">SNAPSHOT HASH</span>
-                <span class="ctx-val font-mono text-truncate" id="panel-ctx-hash">8f0874f495cf...</span>
-              </div>
-              <div class="ctx-cell">
-                <span class="ctx-label">LAST REFRESH</span>
-                <span class="ctx-val font-mono" id="panel-ctx-refresh">17:37:43</span>
-              </div>
-            </div>
-            <div class="tracked-repos-list font-mono">
-              <span class="ctx-sublabel">TRACKED REPOSITORIES (HEADs)</span>
-              <div class="repo-line"><span>Courier:</span> <b id="panel-repo-courier" class="text-accent">e7edad01</b> <span>Memory:</span> <b id="panel-repo-memory" class="text-accent">62c658b0</b></div>
-              <div class="repo-line"><span>Godot:</span> <b class="text-muted">NOT_CONNECTED</b></div>
-            </div>
-            <div class="ctx-sync-bar-box">
-              <div class="ctx-sync-bar-track">
-                <div class="ctx-sync-bar-fill" id="panel-ctx-sync-bar" style="width: 100%;"></div>
-              </div>
-              <span class="ctx-sync-label font-mono" id="panel-ctx-status-label">Status: Context v64 (8f0874f4) 100%</span>
-            </div>
-          </div>
-        </div>
-
+      <!-- Dynamic Agent Characters Layer (Avatars, MMORPG Nameplates & Speech) -->
+      <div class="living-agents-layer" id="living-agents-layer">
+        <!-- Rendered dynamically by studio.js -->
       </div>
 
     </div>
   </main>
 
   <!-- ================================================================= -->
-  <!-- BOTTOM FOOTER BAR                                                -->
-  <!-- ================================================================= -->
-  <footer class="hq-bottom-footer">
-    <div class="footer-item">NEXT SCHOOL TIME: <b id="footer-school-time" class="text-cyan">06:00 UTC</b></div>
-    <div class="footer-divider">|</div>
-    <div class="footer-item">ROUTER MODE: <b class="text-green">AUTO</b></div>
-    <div class="footer-divider">|</div>
-    <div class="footer-item">HUMAN GATE: <b id="footer-gate-status" class="text-green">ACTIVE</b></div>
-    <div class="footer-divider">|</div>
-    <div class="footer-item">INCIDENTS: <b id="footer-incidents-count" class="text-green">0</b></div>
-    <div class="footer-divider">|</div>
-    <div class="footer-copy">© 2026 COURIER OPERATIONS HQ</div>
-  </footer>
-
-  <!-- ================================================================= -->
-  <!-- COLLAPSIBLE DETAILED CONTROL PANELS & HUMAN INBOX                 -->
+  <!-- COLLAPSIBLE CONTROL DRAWER (HUMAN INBOX, AUDIT & GATE MODAL)      -->
   <!-- ================================================================= -->
   <section class="control-panel-drawer hidden" id="control-panel-drawer">
     <div class="drawer-inner">
       <div class="drawer-header">
-        <h2>🛠️ DETAILED OPERATIONS & HUMAN DIRECTIVE INBOX</h2>
+        <h2>🛠️ DETAILED OPERATIONS & HUMAN STRATEGY INBOX</h2>
         <button id="btn-close-drawer" class="btn-close">✕ CLOSE</button>
       </div>
 
@@ -644,33 +174,39 @@
         </div>
       </aside>
 
-      <!-- Treasury Truth Evidence -->
-      <div class="treasury-drawer-card">
-        <h3>💰 TREASURY EVIDENCE</h3>
-        <div class="treasury-stats-grid">
+      <!-- Bottom 4 Telemetry Panels in Drawer -->
+      <div class="drawer-telemetry-grid">
+        <!-- Panel 1: SNITCH 3.0 Permission Guard -->
+        <div class="telemetry-card">
+          <h4>🛡️ SNITCH 3.0 — PERMISSION GUARD</h4>
+          <div>Status: <b id="snitch-perm-status" class="badge-perm-healthy">PERMISSIONS HEALTHY</b></div>
+          <div class="code-pill font-mono" id="snitch-perm-command">curl -s http://127.0.0.1:8088/api/state</div>
+          <div>Rule Match: <b id="snitch-perm-rule-rec" class="text-green">ALREADY_ALLOWED</b></div>
+        </div>
+
+        <!-- Panel 2: Live Workflow -->
+        <div class="telemetry-card">
+          <h4>⚡ LIVE WORKFLOW</h4>
+          <div>ID: <b id="live-wf-id" class="text-white">WF-2026-08-30-1742</b></div>
+          <div>Status: <b id="live-wf-status" class="text-cyan">IN_PROGRESS (35%)</b></div>
+          <div class="wf-bar-track"><div class="wf-bar-fill" id="live-wf-bar" style="width: 35%;"></div></div>
+        </div>
+
+        <!-- Panel 3: Treasury Truth -->
+        <div class="telemetry-card">
+          <h4>💰 TREASURY TRUTH</h4>
           <div>EUR: <b id="treasury-eur">UNKNOWN</b></div>
           <div>USD: <b id="treasury-usd">UNKNOWN</b></div>
-          <div>VERIFIED: <b id="treasury-verified">NOT_VERIFIED</b></div>
-          <div>GOAL: <b id="treasury-goal">$8 / $1,000,000,000</b></div>
+          <div>Evidence: <b id="treasury-verified">NOT_VERIFIED</b></div>
+          <div>Goal: <b id="treasury-goal">$8 / $1,000,000,000</b></div>
         </div>
-      </div>
 
-      <!-- Detailed Academy Evidence Explorer -->
-      <div class="academy-explorer-drawer">
-        <h3>🏛️ AI ACADEMY EVIDENCE EXPLORER</h3>
-        <div class="explorer-grid">
-          <div class="explorer-col">
-            <h4>Lessons Today (<span id="count-lessons">0</span>)</h4>
-            <div class="explorer-list font-mono" id="explorer-lessons-list">No lessons recorded yet today.</div>
-          </div>
-          <div class="explorer-col">
-            <h4>Opportunities (<span id="count-opps">0</span>)</h4>
-            <div class="explorer-list font-mono" id="explorer-opps-list">No opportunities discovered yet today.</div>
-          </div>
-          <div class="explorer-col">
-            <h4>Evaluations (<span id="count-evals">0</span>)</h4>
-            <div class="explorer-list font-mono" id="explorer-evals-list">No evaluations recorded yet today.</div>
-          </div>
+        <!-- Panel 4: Context & Repositories -->
+        <div class="telemetry-card">
+          <h4>📦 CONTEXT & REPOSITORIES</h4>
+          <div>Version: <b id="panel-ctx-ver" class="text-cyan">v64</b> (Prev: <b id="panel-ctx-prev">v63</b>)</div>
+          <div>Hash: <b id="panel-ctx-hash" class="font-mono text-truncate">8f0874f495cf...</b></div>
+          <div>Courier: <b id="panel-repo-courier" class="text-green">e7edad01</b> • Memory: <b id="panel-repo-memory" class="text-green">62c658b0</b></div>
         </div>
       </div>
 
