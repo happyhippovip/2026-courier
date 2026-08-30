@@ -4,6 +4,7 @@ import {
   resolveChiefWaitState,
   resolveCorrelationTruth,
   resolveDecisionTruth,
+  resolveGateDecisionTruth,
   resolveExecutionTruth,
   resolveStewardTruth,
   resolveThreadContext,
@@ -34,6 +35,28 @@ assert.equal(resolveExecutionTruth({ execution_class: 'untrusted-label' }), 'UNK
 // The display layer must not turn no decision into an approval.
 assert.equal(resolveDecisionTruth({}), 'NO_DECISION');
 assert.equal(resolveDecisionTruth({ last_decision: 'REJECTED' }), 'REJECTED');
+
+// A global decision never attaches to a human gate without matching
+// workflow/correlation provenance.
+const gateWithoutProvenance = {
+  human_gate: true,
+  last_decision: 'ACCEPTED',
+  active_human_gate: { workflow_id: 'idea-1', correlation_id: null, provenance_complete: false },
+  gate_decision: { status: 'ACCEPTED', workflow_id: 'WF-OTHER', correlation_id: 'corr-other' },
+};
+assert.equal(resolveGateDecisionTruth(gateWithoutProvenance), 'NO_DECISION');
+const gateWithMismatchedDecision = {
+  human_gate: true,
+  active_human_gate: { workflow_id: 'idea-1', correlation_id: 'corr-gate-1', provenance_complete: true },
+  gate_decision: { status: 'ACCEPTED', workflow_id: 'WF-OTHER', correlation_id: 'corr-other' },
+};
+assert.equal(resolveGateDecisionTruth(gateWithMismatchedDecision), 'NO_DECISION');
+const gateWithMatchingDecision = {
+  human_gate: true,
+  active_human_gate: { workflow_id: 'idea-1', correlation_id: 'corr-gate-1', provenance_complete: true },
+  gate_decision: { status: 'APPROVE', workflow_id: 'idea-1', correlation_id: 'corr-gate-1' },
+};
+assert.equal(resolveGateDecisionTruth(gateWithMatchingDecision), 'APPROVE');
 
 // A missing correlation remains absent; it is never generated in the browser.
 assert.equal(resolveCorrelationTruth({}), null);
@@ -198,6 +221,7 @@ assert.equal(validateThreadAssociation(wrongCorrResult, 'WF-CHIEF-001', 'corr-te
 const studioSource = readFileSync(new URL('../studio/studio.js', import.meta.url), 'utf8');
 assert.doesNotMatch(studioSource, /corr-live-|crypto\.randomUUID|Math\.random\(/);
 assert.doesNotMatch(studioSource, /last_decision\s*\|\|\s*['\"]ACCEPTED['\"]/);
+assert.match(studioSource, /is-flow-active/);
 
 // -------------------------------------------------------------
 // 7. AI ACADEMY TRUTH RESOLUTION (TEACHER, DIRECTOR, ECONOMICS)
@@ -372,7 +396,7 @@ assert.equal(codexDesk.status, 'IDLE');
 
 // Verify equipped available desk (no active agent attached)
 const unassignedEquipped = desks.find(d => d.id === 'DESK-EQUIPPED-18');
-assert.equal(unassignedEquipped.status, 'AVAILABLE');
+assert.equal(unassignedEquipped.status, 'REGISTERED_EQUIPPED');
 
 // 8.2 Master TV Wall Overview Metrics
 const hqMetrics = resolveLiveHQMetrics(mockHQState);
@@ -383,6 +407,15 @@ assert.equal(hqMetrics.future_workstations, 3);
 assert.equal(hqMetrics.current_workflow, 'WF-CHIEF-DEMO-001');
 assert.equal(hqMetrics.correlation_id, 'corr-hq-999');
 assert.equal(hqMetrics.context_version, 5);
+
+// No machine state must not turn the TV wall into a healthy/idle claim.
+const unknownHQ = resolveLiveHQMetrics({});
+assert.equal(unknownHQ.current_workflow, null);
+assert.equal(unknownHQ.correlation_id, null);
+assert.equal(unknownHQ.context_version, null);
+assert.equal(unknownHQ.system_health, 'UNKNOWN');
+assert.equal(resolveAcademySummary({}).is_enabled, null);
+assert.equal(resolveAcademySummary({}).recent_lessons, null);
 
 // 8.3 Structured Academy Evidence API
 const academySummary = resolveAcademySummary(mockHQState);

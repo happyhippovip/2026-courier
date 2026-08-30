@@ -201,6 +201,10 @@ class ChiefCommander:
             len(curation.get("conflicts", [])) > 0
         )
 
+        # A human-gate state must have stable provenance.  A later, unrelated
+        # Chief decision must never be attached to this blocked idea.
+        correlation_id = f"corr-chief-{uuid.uuid4().hex[:8]}"
+
         if is_conflict:
             print(f"\n[CHIEF] Blocked on policy conflict: {curation.get('conflicts')}")
             self.chief_state_tracker.update_state(
@@ -213,16 +217,18 @@ class ChiefCommander:
                 result=None,
                 blocked=True,
                 human_gate="REQUIRE_EXPLICIT_HUMAN_APPROVAL",
+                correlation_id=correlation_id,
             )
             return {
                 "status": "BLOCKED_POLICY_CONFLICT",
+                "workflow_id": curation["idea_id"],
+                "correlation_id": correlation_id,
                 "curation": curation,
                 "workflow_plan": [],
                 "history": [],
             }
 
         # 2. Step: Formulate Workflow Plan with Context Delta and Router Selection
-        correlation_id = f"corr-chief-{uuid.uuid4().hex[:8]}"
         workflow_id, plan = self.formulate_workflow_plan(
             idea_text=idea_text,
             idea_type=idea_type,
@@ -262,6 +268,7 @@ class ChiefCommander:
             next_action=f"Dispatching Round 1 to {plan[0]['target_agent']}",
             blocked=False,
             human_gate=None,
+            correlation_id=correlation_id,
         )
 
         # Run multi-round autonomous loop
@@ -283,6 +290,7 @@ class ChiefCommander:
             result=result["history"][-1]["result_file"] if result["history"] else None,
             blocked=result["status"] in ["BLOCKED_HUMAN_GATE", "BLOCKED_POLICY_CONFLICT"],
             human_gate="REQUIRE_EXPLICIT_HUMAN_APPROVAL" if result["status"] in ["BLOCKED_HUMAN_GATE", "BLOCKED_POLICY_CONFLICT"] else None,
+            correlation_id=correlation_id,
         )
 
         return result

@@ -41,6 +41,29 @@ export function resolveDecisionTruth(busState) {
 }
 
 /**
+ * A human-gate decision is valid only when the API has already matched it to
+ * the currently active gate by workflow_id *and* correlation_id.  The browser
+ * does not attempt that association itself and never falls back to a global
+ * latest decision.
+ */
+export function resolveGateDecisionTruth(busState) {
+  const gate = busState?.active_human_gate;
+  const decision = busState?.gate_decision;
+  if (!gate?.provenance_complete || !gate.workflow_id || !gate.correlation_id) {
+    return 'NO_DECISION';
+  }
+  if (
+    decision?.workflow_id !== gate.workflow_id
+    || decision?.correlation_id !== gate.correlation_id
+  ) {
+    return 'NO_DECISION';
+  }
+  return typeof decision.status === 'string' && decision.status.trim()
+    ? decision.status
+    : 'NO_DECISION';
+}
+
+/**
  * Return a real correlation id only.  The caller may display a neutral label
  * for null, but must never generate an identifier in the browser.
  */
@@ -457,22 +480,22 @@ export function resolveAcademyEconomics(stateData) {
  * Resolve bounded Academy structured evidence (config, lessons, opportunities, evaluations).
  */
 export function resolveAcademySummary(stateData) {
-  const academy = stateData?.academy || {};
-  const config = academy.config || {};
-  const lessons = Array.isArray(academy.lessons) ? academy.lessons : [];
-  const opportunities = Array.isArray(academy.opportunities) ? academy.opportunities : [];
-  const evaluations = Array.isArray(academy.evaluations) ? academy.evaluations : [];
+  const academy = stateData?.academy;
+  const config = academy?.config;
+  const lessons = Array.isArray(academy?.lessons) ? academy.lessons : null;
+  const opportunities = Array.isArray(academy?.opportunities) ? academy.opportunities : null;
+  const evaluations = Array.isArray(academy?.evaluations) ? academy.evaluations : null;
 
   return {
-    is_enabled: typeof config.academy_enabled === 'boolean' ? config.academy_enabled : true,
-    timezone: config.academy_timezone || 'UTC',
-    daily_time: config.academy_daily_time || '06:00',
-    window_minutes: typeof config.academy_window_minutes === 'number' ? config.academy_window_minutes : 60,
-    lessons_count: lessons.length,
+    is_enabled: typeof config?.academy_enabled === 'boolean' ? config.academy_enabled : null,
+    timezone: typeof config?.academy_timezone === 'string' ? config.academy_timezone : null,
+    daily_time: typeof config?.academy_daily_time === 'string' ? config.academy_daily_time : null,
+    window_minutes: Number.isFinite(config?.academy_window_minutes) ? config.academy_window_minutes : null,
+    lessons_count: lessons?.length ?? null,
     recent_lessons: lessons,
-    opportunities_count: opportunities.length,
+    opportunities_count: opportunities?.length ?? null,
     recent_opportunities: opportunities,
-    evaluations_count: evaluations.length,
+    evaluations_count: evaluations?.length ?? null,
     recent_evaluations: evaluations,
   };
 }
@@ -517,16 +540,16 @@ export function resolveDeskMatrix(stateData) {
 
   return deskDefinitions.map(def => {
     if (def.type === 'FUTURE') {
-      return { ...def, status: 'FUTURE_EXPANSION', state: 'FUTURE', task: 'Reserved for expansion', execution_class: 'UNKNOWN' };
+      return { ...def, status: 'FUTURE_EXPANSION', state: 'FUTURE', task: null, execution_class: 'UNKNOWN' };
     }
 
     if (!def.agentId) {
-      return { ...def, status: 'AVAILABLE', state: 'READY', task: 'Available Workstation', execution_class: 'UNKNOWN' };
+      return { ...def, status: 'REGISTERED_EQUIPPED', state: 'REGISTERED', task: null, execution_class: 'REGISTERED' };
     }
 
     const agent = agents[def.agentId];
     if (!agent) {
-      return { ...def, status: 'IDLE', state: 'IDLE', task: 'Standby', execution_class: 'UNKNOWN' };
+      return { ...def, status: 'UNKNOWN', state: 'UNKNOWN', task: null, execution_class: 'UNKNOWN' };
     }
 
     const state = typeof agent.state === 'string' ? agent.state : 'IDLE';
@@ -551,6 +574,7 @@ export function resolveLiveHQMetrics(stateData) {
   const desks = resolveDeskMatrix(stateData);
   const bus = stateData?.bus || {};
   const snapshot = stateData?.context_snapshot;
+  const hasMachineState = Object.keys(stateData?.agents || {}).length > 0 || Boolean(stateData?.bus);
 
   let activeCount = 0;
   let idleCount = 0;
@@ -562,7 +586,7 @@ export function resolveLiveHQMetrics(stateData) {
     if (desk.status === 'ACTIVE') activeCount++;
     else if (desk.status === 'BLOCKED') blockedCount++;
     else if (desk.status === 'IDLE') idleCount++;
-    else if (desk.status === 'AVAILABLE') availableCount++;
+    else if (desk.status === 'REGISTERED_EQUIPPED') availableCount++;
     else if (desk.status === 'FUTURE_EXPANSION') futureCount++;
   }
 
@@ -575,10 +599,16 @@ export function resolveLiveHQMetrics(stateData) {
     future_workstations: futureCount,
     total_capacity: 40,
     chief_wait_state: resolveChiefWaitState(stateData),
-    current_workflow: typeof bus.active_workflow === 'string' ? bus.active_workflow : 'IDLE_MONITORING',
-    correlation_id: resolveCorrelationTruth(bus) || 'NONE',
-    context_version: typeof snapshot?.context_version === 'number' ? snapshot.context_version : (bus.context_version || 0),
-    system_health: blockedCount > 0 ? 'ATTENTION_REQUIRED' : (bus.is_locked ? 'OPERATIONAL_BUSY' : 'OPERATIONAL_HEALTHY'),
+    current_workflow: typeof bus.active_workflow === 'string' && bus.active_workflow !== 'IDLE_MONITORING'
+      ? bus.active_workflow
+      : null,
+    correlation_id: resolveCorrelationTruth(bus),
+    context_version: Number.isFinite(snapshot?.context_version)
+      ? snapshot.context_version
+      : (Number.isFinite(bus.context_version) && bus.context_version > 0 ? bus.context_version : null),
+    system_health: !hasMachineState
+      ? 'UNKNOWN'
+      : (blockedCount > 0 ? 'ATTENTION_REQUIRED' : (bus.is_locked ? 'OPERATIONAL_BUSY' : 'OPERATIONAL_HEALTHY')),
   };
 }
 

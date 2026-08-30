@@ -772,6 +772,10 @@ body.view-9-16 .workstation-card.hub-card {
   border-radius: 50%;
   background: var(--accent-cyan);
   box-shadow: 0 0 8px var(--accent-cyan);
+  opacity: 0;
+}
+
+.bus-flow-viz.is-flow-active .flow-dot {
   animation: transit-flow 2s infinite linear;
 }
 

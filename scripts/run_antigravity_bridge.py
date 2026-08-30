@@ -90,6 +90,7 @@ class AntigravityVisualStateTracker:
         result: dict | str | None = None,
         blocked: bool = False,
         human_gate: str | None = None,
+        correlation_id: str | None = None,
     ) -> dict:
         now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
         state_data = {
@@ -102,6 +103,7 @@ class AntigravityVisualStateTracker:
             "progress": round(progress, 2),
             "position_hint": position_hint,
             "workflow": workflow,
+            "correlation_id": correlation_id,
             "last_action": last_action,
             "next_action": next_action,
             "result": result,

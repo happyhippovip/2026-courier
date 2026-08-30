@@ -8,6 +8,7 @@ import {
   resolveChiefWaitState,
   resolveCorrelationTruth,
   resolveDecisionTruth,
+  resolveGateDecisionTruth,
   resolveDeskMatrix,
   resolveDirectorTruth,
   resolveExecutionTruth,
@@ -49,6 +50,7 @@ class OperationsStudio {
     this.tvChiefWait = document.getElementById('tv-chief-wait');
     this.tvContextVer = document.getElementById('tv-context-ver');
     this.tvAcademyTime = document.getElementById('tv-academy-time');
+    this.busFlowViz = document.querySelector('.bus-flow-viz');
 
     // Academy Evidence Explorer Elements
     this.explorerLessonsList = document.getElementById('explorer-lessons-list');
@@ -317,14 +319,16 @@ class OperationsStudio {
 
     const { agents = {}, counts = {}, bus = {} } = data;
 
-    // Preserve only identifiers received from Courier state.  The UI never
-    // synthesizes a workflow/correlation identity for a human-gate decision.
-    this.currentWorkflow = typeof bus.active_workflow === 'string'
-      && bus.active_workflow
-      && bus.active_workflow !== 'IDLE_MONITORING'
-      ? bus.active_workflow
-      : null;
-    this.currentCorrelation = resolveCorrelationTruth(bus);
+    // Human-gate actions must use the exact active-gate provenance, never the
+    // global/latest workflow or decision shown elsewhere on the dashboard.
+    const activeGate = bus.active_human_gate;
+    const gateProvenanceComplete = Boolean(
+      activeGate?.provenance_complete
+      && activeGate.workflow_id
+      && activeGate.correlation_id
+    );
+    this.currentWorkflow = gateProvenanceComplete ? activeGate.workflow_id : null;
+    this.currentCorrelation = gateProvenanceComplete ? activeGate.correlation_id : null;
     const hasVerifiedGateContext = Boolean(this.currentWorkflow && this.currentCorrelation);
     this.btnGateApprove.disabled = !hasVerifiedGateContext;
     this.btnGateReject.disabled = !hasVerifiedGateContext;
@@ -334,6 +338,9 @@ class OperationsStudio {
     this.countProcessed.textContent = counts.processed || 0;
     this.countDecisions.textContent = counts.decisions || 0;
     this.busLockStatus.textContent = bus.is_locked ? `LOCKED (${bus.active_lock})` : 'UNLOCKED';
+    if (this.busFlowViz) {
+      this.busFlowViz.classList.toggle('is-flow-active', Boolean(this.currentWorkflow && bus.is_locked));
+    }
 
     // 2. Update Thought Curator Station
     const curator = agents['agent-thought-curator'] || {};
@@ -417,7 +424,9 @@ class OperationsStudio {
     this.badgeChiefState.textContent = chiefState;
     this.chiefWorkflow.textContent = chief.workflow || bus.active_workflow || '-';
     this.chiefWaitState.textContent = chiefWaitState;
-    this.chiefLastDecision.textContent = resolveDecisionTruth(bus);
+    this.chiefLastDecision.textContent = bus.human_gate
+      ? resolveGateDecisionTruth(bus)
+      : resolveDecisionTruth(bus);
     this.chiefContextVersion.textContent = threadContext.context_version ? `v${threadContext.context_version}` : '-';
     this.chiefTaskLabel.textContent = chief.task ? `Task: ${chief.task}` : 'Task: Standby';
     const chiefProgress = Math.round((chief.progress || 0) * 100);
@@ -642,11 +651,11 @@ class OperationsStudio {
     if (this.tvBlockedAgents) this.tvBlockedAgents.textContent = hqMetrics.blocked_agents;
     if (this.tvAvailableDesks) this.tvAvailableDesks.textContent = hqMetrics.available_workstations;
     if (this.tvFutureDesks) this.tvFutureDesks.textContent = hqMetrics.future_workstations;
-    if (this.tvWorkflow) this.tvWorkflow.textContent = hqMetrics.current_workflow;
-    if (this.tvCorrelation) this.tvCorrelation.textContent = hqMetrics.correlation_id;
+    if (this.tvWorkflow) this.tvWorkflow.textContent = hqMetrics.current_workflow || 'UNKNOWN';
+    if (this.tvCorrelation) this.tvCorrelation.textContent = hqMetrics.correlation_id || 'UNKNOWN';
     if (this.tvChiefWait) this.tvChiefWait.textContent = hqMetrics.chief_wait_state;
-    if (this.tvContextVer) this.tvContextVer.textContent = `v${hqMetrics.context_version}`;
-    if (this.tvAcademyTime) this.tvAcademyTime.textContent = teacher.next_school_time || '06:00 UTC';
+    if (this.tvContextVer) this.tvContextVer.textContent = hqMetrics.context_version === null ? 'UNKNOWN' : `v${hqMetrics.context_version}`;
+    if (this.tvAcademyTime) this.tvAcademyTime.textContent = teacher.next_school_time || 'UNKNOWN';
     if (this.tvSystemHealth) {
       this.tvSystemHealth.textContent = hqMetrics.system_health;
       this.tvSystemHealth.className = hqMetrics.system_health === 'ATTENTION_REQUIRED'
@@ -662,7 +671,9 @@ class OperationsStudio {
           .map(l => `<div class="log-entry">📌 [${l.status}] <b>${l.title}</b> (${l.topic || 'General'}) - Risk: ${l.risk || 'LOW'}</div>`)
           .join('');
       } else {
-        this.explorerLessonsList.innerHTML = '<div class="log-entry system">No recent lessons discovered yet.</div>';
+        this.explorerLessonsList.textContent = academySummary.recent_lessons === null
+          ? 'Academy evidence unavailable.'
+          : 'No recent lessons discovered yet.';
       }
     }
 
@@ -672,7 +683,9 @@ class OperationsStudio {
           .map(o => `<div class="log-entry text-accent">💡 [${o.status}] <b>${o.title}</b> (Rev: ${o.revenue_evidence || 'NOT_VERIFIED'})</div>`)
           .join('');
       } else {
-        this.explorerOppsList.innerHTML = '<div class="log-entry system">No opportunity candidates pending.</div>';
+        this.explorerOppsList.textContent = academySummary.recent_opportunities === null
+          ? 'Academy evidence unavailable.'
+          : 'No opportunity candidates pending.';
       }
     }
 
@@ -682,14 +695,18 @@ class OperationsStudio {
           .map(e => `<div class="log-entry">⚖️ [${e.verdict}] Eval: ${e.lesson_id} - Time saved: ${e.metrics?.runtime_seconds_saved || 0}s</div>`)
           .join('');
       } else {
-        this.explorerEvalsList.innerHTML = '<div class="log-entry system">No evaluation runs recorded.</div>';
+        this.explorerEvalsList.textContent = academySummary.recent_evaluations === null
+          ? 'Academy evidence unavailable.'
+          : 'No evaluation runs recorded.';
       }
     }
 
     // 11. Human Gate Alert Banner
     if (curatorState === 'CONFLICT' || curatorState === 'BLOCKED' || chief.state === 'BLOCKED_HUMAN_GATE' || chief.state === 'BLOCKED_POLICY_CONFLICT' || codex.state === 'BLOCKED_HUMAN_GATE' || ag.state === 'BLOCKED_HUMAN_GATE' || bus.human_gate) {
       this.gateBanner.classList.remove('hidden');
-      this.gateDesc.textContent = `Workflow task paused: ${curator.last_action || codex.task || ag.task || chief.task || 'Explicit human approval required'}`;
+      this.gateDesc.textContent = hasVerifiedGateContext
+        ? `Workflow task paused: ${curator.last_action || codex.task || ag.task || chief.task || 'Explicit human approval required'}`
+        : 'Workflow task paused: WAITING_FOR_HUMAN — verified workflow/correlation provenance is unavailable.';
     } else {
       this.gateBanner.classList.add('hidden');
     }

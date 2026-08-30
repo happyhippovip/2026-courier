@@ -56,6 +56,81 @@ def save_json_safe(path: Path, data: dict) -> None:
         print(f"[SERVER] Error saving {path}: {e}")
 
 
+def _nonempty_text(value: object) -> str | None:
+    return value.strip() if isinstance(value, str) and value.strip() else None
+
+
+def load_agent_states(states_dir: Path) -> dict[str, dict]:
+    """Load machine state without creating an inferred human-gate identity."""
+    states: dict[str, dict] = {}
+    if not states_dir.exists():
+        return states
+    for state_file in states_dir.glob("*.json"):
+        data = load_json_safe(state_file)
+        agent_id = _nonempty_text(data.get("id"))
+        if agent_id:
+            states[agent_id] = data
+    return states
+
+
+def find_active_human_gate(agents_data: dict[str, dict]) -> dict | None:
+    """Return the active gate and only its recorded provenance.
+
+    A legacy gate without workflow/correlation remains visible, but cannot be
+    approved or associated with a decision until it has complete provenance.
+    """
+    for agent_id in sorted(agents_data):
+        agent = agents_data[agent_id]
+        if agent.get("human_gate") or agent.get("state") in {
+            "BLOCKED_HUMAN_GATE", "BLOCKED_POLICY_CONFLICT", "CONFLICT"
+        }:
+            workflow_id = _nonempty_text(agent.get("workflow"))
+            correlation_id = _nonempty_text(agent.get("correlation_id"))
+            return {
+                "agent_id": agent_id,
+                "workflow_id": workflow_id,
+                "correlation_id": correlation_id,
+                "task_id": _nonempty_text(agent.get("task")),
+                "state": _nonempty_text(agent.get("state")) or "UNKNOWN",
+                "provenance_complete": bool(workflow_id and correlation_id),
+            }
+    return None
+
+
+def resolve_active_gate_decision(gate: dict | None, decisions_dir: Path, approvals_dir: Path) -> dict:
+    """Resolve only a decision whose complete provenance matches the gate."""
+    result = {
+        "status": "NO_DECISION",
+        "workflow_id": gate.get("workflow_id") if gate else None,
+        "correlation_id": gate.get("correlation_id") if gate else None,
+        "source": None,
+        "provenance_complete": bool(gate and gate.get("provenance_complete")),
+    }
+    if not gate or not gate.get("provenance_complete"):
+        return result
+
+    candidates: list[tuple[float, str, str]] = []
+    for directory, source, field in (
+        (decisions_dir, "CHIEF_DECISION", "verdict"),
+        (approvals_dir, "HUMAN_APPROVAL", "action"),
+    ):
+        if not directory.exists():
+            continue
+        for path in directory.glob("*.json"):
+            data = load_json_safe(path)
+            if (
+                data.get("workflow_id") == gate["workflow_id"]
+                and data.get("correlation_id") == gate["correlation_id"]
+            ):
+                value = _nonempty_text(data.get(field))
+                if value:
+                    candidates.append((path.stat().st_mtime, source, value))
+    if candidates:
+        _, source, status = max(candidates, key=lambda item: item[0])
+        result.update({"status": status, "source": source})
+    return result
+
+
 class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(STUDIO_DIR), **kwargs)
@@ -81,16 +156,12 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_error(404, "Endpoint not found")
 
     def handle_api_state(self):
-        agents_data = {}
         states_dir = EVENTS_DIR / "agent-states"
-        if states_dir.exists():
-            for state_file in states_dir.glob("*.json"):
-                data = load_json_safe(state_file)
-                if data and "id" in data:
-                    # Ground execution_class strictly in evidence
-                    if "execution_class" not in data:
-                        data["execution_class"] = data.get("result_execution_class", "UNKNOWN")
-                    agents_data[data["id"]] = data
+        agents_data = load_agent_states(states_dir)
+        for data in agents_data.values():
+            # Ground execution_class strictly in evidence.
+            if "execution_class" not in data:
+                data["execution_class"] = data.get("result_execution_class", "UNKNOWN")
 
         dispatch_dir = EVENTS_DIR / "dispatch"
         processed_dir = EVENTS_DIR / "processed"
@@ -133,12 +204,13 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 latest_evt = load_json_safe(sorted_events[0])
                 derived_correlation_id = latest_evt.get("correlation_id", "UNKNOWN")
 
-        # Check if Human Gate is pending
-        human_gate_active = False
-        for agent in agents_data.values():
-            if agent.get("blocked") or agent.get("human_gate") or agent.get("state") in ["BLOCKED_HUMAN_GATE", "BLOCKED_POLICY_CONFLICT", "CONFLICT"]:
-                human_gate_active = True
-                break
+        # A gate is active based on machine state.  Its decision may only be
+        # attached when both workflow_id and correlation_id match exactly.
+        active_human_gate = find_active_human_gate(agents_data)
+        human_gate_active = active_human_gate is not None
+        gate_decision = resolve_active_gate_decision(
+            active_human_gate, decisions_dir, approvals_dir
+        )
 
         # Read latest context snapshot
         snapshot_file = EVENTS_DIR / "context-snapshots/snapshot-current.json"
@@ -221,6 +293,8 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "active_workflow": active_lock_name or "IDLE_MONITORING",
                 "correlation_id": derived_correlation_id,
                 "human_gate": human_gate_active,
+                "active_human_gate": active_human_gate,
+                "gate_decision": gate_decision,
                 "context_version": snapshot_data.get("context_version") if snapshot_data else 0,
                 "snapshot_hash": snapshot_data.get("snapshot_hash") if snapshot_data else "NONE",
             }
@@ -269,13 +343,25 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         try:
             req_data = json.loads(post_body)
             action = req_data.get("action", "").upper()  # "APPROVE" or "REJECT"
-            workflow_id = req_data.get("workflow_id", "WF-GLOBAL")
-            task_id = req_data.get("task_id", "TASK-GLOBAL")
-            correlation_id = req_data.get("correlation_id", "corr-human-gate")
+            workflow_id = _nonempty_text(req_data.get("workflow_id"))
+            correlation_id = _nonempty_text(req_data.get("correlation_id"))
             reason = req_data.get("reason", "Operator decision from Visual Studio Cockpit")
 
             if action not in ["APPROVE", "REJECT"]:
                 self.send_error(400, "Invalid action. Must be APPROVE or REJECT.")
+                return
+
+            active_gate = find_active_human_gate(
+                load_agent_states(EVENTS_DIR / "agent-states")
+            )
+            if not active_gate or not active_gate.get("provenance_complete"):
+                self.send_error(409, "Human gate has no verified workflow/correlation provenance.")
+                return
+            if (
+                workflow_id != active_gate["workflow_id"]
+                or correlation_id != active_gate["correlation_id"]
+            ):
+                self.send_error(409, "Human gate provenance mismatch.")
                 return
 
             approval_id = f"appr-{uuid.uuid4().hex[:8]}"
@@ -285,7 +371,7 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "action": action,
                 "decision": action,
                 "workflow_id": workflow_id,
-                "task_id": task_id,
+                "task_id": active_gate.get("task_id"),
                 "correlation_id": correlation_id,
                 "operator": "HUMAN_OPERATOR",
                 "reason": reason,
