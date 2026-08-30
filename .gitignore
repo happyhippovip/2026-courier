@@ -14,6 +14,23 @@ events/thought-rejected/*.json
 events/thoughts/*.json
 events/agent-states/*.json
 
+# Python & bytecode caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Runtime locks & leases
+events/locks/*.lease
+events/locks/*.lock
+
+# Demo workflow runs & scratch assets
+events/demo/*
+!events/demo/.gitkeep
+studio/assets/*_cropped.*
+
+# Intermediate context snapshot history (replicated in 2026-project-memory)
+events/context-snapshots/snapshot-v*.json
+
 # Runtime generated content artifacts remain local.
 runtime/content/*
 !runtime/content/.gitkeep
@@ -32,4 +49,7 @@ runtime/content/*
 !events/thought-rejected/.gitkeep
 !events/thoughts/.gitkeep
 !events/agent-states/.gitkeep
-
+!events/locks/.gitkeep
+!events/context-snapshots/.gitkeep
+!events/context-snapshots/snapshot-current.json
+!events/academy/economics.json

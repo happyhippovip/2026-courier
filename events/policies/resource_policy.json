@@ -1,0 +1,82 @@
+{
+  "schema_version": "2026.08.30-policy-v1",
+  "policy_name": "COURIER_AUTONOMOUS_RESOURCE_AND_ROUTING_POLICY",
+  "confirmed_at": "2026-08-30T22:08:47+02:00",
+  "active_paid_resources": {
+    "google_antigravity_plus": {
+      "provider": "google",
+      "tier": "plus",
+      "status": "ACTIVE_PAID",
+      "role": "PRIMARY_BUILDER",
+      "capabilities": [
+        "major_implementations",
+        "new_subsystems",
+        "multi_file_refactoring",
+        "architecture_builds",
+        "3d_media_pipelines",
+        "planning_and_synthesis"
+      ]
+    },
+    "chatgpt_plus_codex": {
+      "provider": "openai",
+      "tier": "plus",
+      "status": "ACTIVE_PAID",
+      "role": "PRIMARY_CONTROLLER_REVIEWER",
+      "capabilities": [
+        "code_reviews",
+        "qa_audits",
+        "unit_test_verification",
+        "diff_inspections",
+        "security_gates",
+        "commit_verification"
+      ]
+    }
+  },
+  "planned_resources": {
+    "future_google_upgrade": {
+      "status": "PLANNED_NOT_ACTIVE",
+      "budget_eligible": false,
+      "routing_eligible": false
+    }
+  },
+  "unauthorized_resources": {
+    "on_demand_api_tiers": {
+      "status": "UNAVAILABLE",
+      "spend_allowed": false,
+      "auto_activation_allowed": false
+    },
+    "third_party_model_providers": {
+      "status": "UNAVAILABLE",
+      "spend_allowed": false
+    }
+  },
+  "operating_invariants": {
+    "standard": "ONE_TASK_ONE_BUILDER_ONE_RESULT_ONE_REVIEW",
+    "default_builder": "courier-antigravity-bridge",
+    "default_reviewer": "courier-codex-bridge",
+    "allow_parallel_builder_dispatch": false,
+    "allow_redundant_second_opinion": false,
+    "allow_auto_capacity_expansion": false,
+    "require_human_gate_for_tier_change": true,
+    "require_human_gate_for_spend": true,
+    "max_autonomous_iterations_per_task": 1
+  },
+  "agent_lifecycle_states": [
+    "REGISTERED",
+    "AVAILABLE",
+    "SELECTED",
+    "RUNNING"
+  ],
+  "context_optimization": {
+    "use_compact_context_packages": true,
+    "use_delta_context": true,
+    "use_file_manifest_hashing": true,
+    "omit_raw_chat_history": true
+  },
+  "demo_safe_mode": {
+    "enabled": true,
+    "model_calls_allowed": 0,
+    "provenance_tag": "DEMO",
+    "allow_verified_label": false
+  }
+}

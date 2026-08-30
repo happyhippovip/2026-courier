@@ -49,12 +49,29 @@ try:
     from run_antigravity_bridge import AntigravityVisualStateTracker, load_json, save_json
     from run_context_sync import UpdateSteward
     from run_bodyguards import BodyguardPoolManager
+    from resource_policy import (
+        ResourcePolicyManager,
+        CostGate,
+        TaskLeaseManager,
+        TaskDedupeEngine,
+        ChiefContextPackageBuilder,
+        ReviewDedupeTracker,
+    )
 except ImportError:
     from scripts.run_thought_curator import ThoughtCurator
     from scripts.run_autonomous_loop import AutonomousLevel6Loop
     from scripts.run_antigravity_bridge import AntigravityVisualStateTracker, load_json, save_json
     from scripts.run_context_sync import UpdateSteward
     from scripts.run_bodyguards import BodyguardPoolManager
+    from scripts.resource_policy import (
+        ResourcePolicyManager,
+        CostGate,
+        TaskLeaseManager,
+        TaskDedupeEngine,
+        ChiefContextPackageBuilder,
+        ReviewDedupeTracker,
+    )
+
 
 
 
@@ -116,7 +133,7 @@ class ChiefCommander:
         self.repo_dir = repo_dir
         self.curator = ThoughtCurator(repo_dir=repo_dir)
         self.steward = UpdateSteward(repo_dir=repo_dir)
-        self.loop_engine = AutonomousLevel6Loop(repo_dir=repo_dir, max_iterations=4)
+        self.loop_engine = AutonomousLevel6Loop(repo_dir=repo_dir)
         self.chief_state_tracker = AntigravityVisualStateTracker(
             agent_id="agent-chief-commander",
             name="Chief Commander",

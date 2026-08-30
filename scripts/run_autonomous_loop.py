@@ -54,6 +54,14 @@ try:
         execute_codex_task,
     )
     from run_context_sync import UpdateSteward
+    from resource_policy import (
+        ResourcePolicyManager,
+        CostGate,
+        TaskLeaseManager,
+        TaskDedupeEngine,
+        ChiefContextPackageBuilder,
+        ReviewDedupeTracker,
+    )
 except ImportError:
     from scripts.run_antigravity_bridge import (
         AntigravityHookRunner,
@@ -68,6 +76,15 @@ except ImportError:
         execute_codex_task,
     )
     from scripts.run_context_sync import UpdateSteward
+    from scripts.resource_policy import (
+        ResourcePolicyManager,
+        CostGate,
+        TaskLeaseManager,
+        TaskDedupeEngine,
+        ChiefContextPackageBuilder,
+        ReviewDedupeTracker,
+    )
+
 
 
 class WorkflowLockedError(Exception):
@@ -80,11 +97,14 @@ class AutonomousLevel6Loop:
     def __init__(
         self,
         repo_dir: Path = COURIER_DIR,
-        max_iterations: int = 3,
+        max_iterations: int | None = None,
         timeout_seconds: float = 60.0,
     ):
         self.repo_dir = repo_dir
-        self.max_iterations = max_iterations
+        if max_iterations is None:
+            self.max_iterations = ResourcePolicyManager.get_default_iterations(repo_dir=repo_dir)
+        else:
+            self.max_iterations = max_iterations
         self.timeout_seconds = timeout_seconds
 
         self.locks_dir = repo_dir / "events/locks"
@@ -105,6 +125,9 @@ class AutonomousLevel6Loop:
             role="Courier Level 6 Automation",
         )
         self.codex_hooks = CodexHookRunner(self.codex_state_tracker)
+
+        self.lease_manager = TaskLeaseManager(repo_dir=repo_dir)
+        self.dedupe_engine = TaskDedupeEngine(repo_dir=repo_dir)
 
     def acquire_workflow_lock(
         self,
@@ -383,11 +406,32 @@ class AutonomousLevel6Loop:
 
                 # 2. Stage WorkerJob in dispatch/
                 dispatch_file = self.repo_dir / f"events/dispatch/{task_id}-worker-job.json"
+                task_hash = self.dedupe_engine.compute_task_hash(
+                    task_type="WORKER_TASK",
+                    instruction=instruction,
+                    target_agent=target_agent_name,
+                    input_files=allowed_scope,
+                    parameters=current_task_info.get("parameters"),
+                )
+
+                ctx_ver_raw = current_task_info.get("context_version")
+                ctx_ver_int = int(str(ctx_ver_raw).lstrip("v")) if (ctx_ver_raw and str(ctx_ver_raw).lstrip("v").isdigit()) else 73
+                context_pkg = ChiefContextPackageBuilder.build_compact_package(
+                    workflow_id=workflow_id,
+                    task_id=task_id,
+                    instruction=instruction,
+                    scope_files=allowed_scope,
+                    context_version=ctx_ver_int,
+                    context_delta=current_task_info.get("context_delta"),
+                    repo_dir=self.repo_dir,
+                )
+
                 job_data = {
                     "schema_version": "2.0",
                     "job_id": f"job-{'cdx' if is_codex else 'ag'}-{task_id}",
                     "source_command_message_id": f"msg-cmd-{task_id}",
                     "task_id": task_id,
+                    "task_hash": task_hash,
                     "correlation_id": correlation_id,
                     "workflow_id": workflow_id,
                     "parent_task_id": parent_task_id,
@@ -398,6 +442,7 @@ class AutonomousLevel6Loop:
                     "cost_policy": "ZERO_COST_ONLY",
                     "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
                     "max_iterations": 1,
+                    "context_package": context_pkg,
                     "context_delta": current_task_info.get("context_delta"),
                     "context_version": current_task_info.get("context_version"),
                     "context_snapshot_hash": current_task_info.get("context_snapshot_hash"),
@@ -412,15 +457,62 @@ class AutonomousLevel6Loop:
                 }
                 save_json(dispatch_file, job_data)
 
-                # 3. Execute Bridge Task (Antigravity or Codex)
-                if is_codex:
-                    result_file = execute_codex_task(
-                        dispatch_file,
-                        active_hooks,
-                        try_real_cli=try_real_codex,
-                    )
+                # 3. Deduplication Check & Single-Owner Lease Enforcement
+                cached_res = self.dedupe_engine.get_cached_result(task_hash)
+                if cached_res and not payload_override:
+                    print(f"[DEDUPE] Identical task input hash ({task_hash[:12]}...) found. Reusing verified result without executing model.")
+                    result_file = self.repo_dir / f"events/processed/{task_id}-result.json"
+                    save_json(result_file, cached_res)
                 else:
-                    result_file = execute_bridge_task(dispatch_file, active_hooks)
+                    acquired, lease_reason, lease_data = self.lease_manager.acquire_lease(
+                        task_id=task_id,
+                        task_hash=task_hash,
+                        owner_id=target_agent_name,
+                    )
+                    if not acquired:
+                        print(f"[COST GATE] Duplicate builder dispatch blocked for task {task_id}: Already claimed by {lease_data.get('owner_id')}.")
+                        decision = {
+                            "schema_version": "2.0",
+                            "decision_id": f"dec-{uuid.uuid4().hex[:10]}",
+                            "task_id": task_id,
+                            "correlation_id": correlation_id,
+                            "workflow_id": workflow_id,
+                            "round_index": iteration,
+                            "verdict": "DUPLICATE_DISPATCH_BLOCKED",
+                            "action": "STOP_ON_DUPLICATE_CLAIM",
+                            "next_task": None,
+                            "reason": f"Single-owner lease violation: Task already claimed by {lease_data.get('owner_id')}.",
+                            "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                        }
+                        decision_file = self.repo_dir / f"events/chief-decisions/{task_id}-chief-decision.json"
+                        save_json(decision_file, decision)
+                        history.append({
+                            "round": iteration + 1,
+                            "task_id": task_id,
+                            "target_agent": target_agent_name,
+                            "verdict": "DUPLICATE_DISPATCH_BLOCKED",
+                            "action": "STOP_ON_DUPLICATE_CLAIM",
+                        })
+                        status = "STOPPED_DUPLICATE_DISPATCH"
+                        stop_reason = "DUPLICATE_BUILDER_DISPATCH_BLOCKED"
+                        break
+
+                    try:
+                        if is_codex:
+                            result_file = execute_codex_task(
+                                dispatch_file,
+                                active_hooks,
+                                try_real_cli=try_real_codex,
+                            )
+                        else:
+                            result_file = execute_bridge_task(dispatch_file, active_hooks)
+                    finally:
+                        self.lease_manager.release_lease(task_id, target_agent_name)
+
+                    if result_file and result_file.exists():
+                        res_data = load_json(result_file)
+                        res_hash = hashlib.sha256(json.dumps(res_data.get("payload", {}), sort_keys=True).encode("utf-8")).hexdigest()
+                        self.dedupe_engine.register_task_result(task_hash, task_id, result_file.name, res_hash)
 
                 # If payload override specified (for simulating human approval gate or specific return condition)
                 if payload_override:
