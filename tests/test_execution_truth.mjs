@@ -597,7 +597,25 @@ assert.equal(bgAlpha.is_bodyguard, true);
 assert.equal(bgAlpha.state, 'STANDBY');
 assert.ok(bgAlpha.leisure_area);
 
+// -------------------------------------------------------------
+// 11. WALKABLE NAVIGATION GRAPH & WAYPOINT PATHFINDING
+// -------------------------------------------------------------
+import { findWalkingPath, HQ_WAYPOINTS, HQ_NAV_GRAPH } from '../studio/execution_truth.js';
+
+assert.ok(HQ_WAYPOINTS.CHIEF_COMMAND);
+assert.ok(HQ_WAYPOINTS.COFFEE_BAR_CHARLIE);
+assert.ok(HQ_WAYPOINTS.SAUNA_ALPHA);
+assert.ok(HQ_NAV_GRAPH.CHIEF_COMMAND.length > 0);
+
+// Path between Sauna and Coffee Bar traverses multiple corridors without teleporting
+const walkPath = findWalkingPath(79.0, 14.0, 80.0, 91.0);
+assert.ok(Array.isArray(walkPath));
+assert.ok(walkPath.length >= 3);
+assert.equal(typeof walkPath[0].x, 'number');
+assert.equal(typeof walkPath[walkPath.length - 1].x, 'number');
+
 console.log('execution truth tests: PASS (100% SUCCESS)');
+
 
 
 

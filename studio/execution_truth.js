@@ -874,14 +874,14 @@ export function resolveLivingRoomAgents(stateData) {
 
   // Bodyguard leisure vs active positions
   const bodyguardStandbySlots = [
-    { callsign: 'ALPHA', leisure_area: 'COFFEE_BAR', x: 80.0, y: 91.0 },
-    { callsign: 'BRAVO', leisure_area: 'COFFEE_BAR', x: 85.0, y: 91.0 },
-    { callsign: 'CHARLIE', leisure_area: 'SAUNA', x: 79.0, y: 14.0 },
-    { callsign: 'DELTA', leisure_area: 'SAUNA', x: 84.0, y: 14.0 },
+    { callsign: 'ALPHA', leisure_area: 'SAUNA', x: 79.0, y: 14.0 },
+    { callsign: 'BRAVO', leisure_area: 'SAUNA', x: 84.0, y: 14.0 },
+    { callsign: 'CHARLIE', leisure_area: 'COFFEE_BAR', x: 80.0, y: 91.0 },
+    { callsign: 'DELTA', leisure_area: 'COFFEE_BAR', x: 85.0, y: 91.0 },
     { callsign: 'ECHO', leisure_area: 'VISITOR_LOUNGE', x: 12.0, y: 84.0 },
     { callsign: 'FOXTROT', leisure_area: 'VISITOR_LOUNGE', x: 28.0, y: 84.0 },
-    { callsign: 'GOLF', leisure_area: 'FOUNTAIN_READY', x: 44.0, y: 67.0 },
-    { callsign: 'HOTEL', leisure_area: 'FOUNTAIN_READY', x: 56.0, y: 67.0 },
+    { callsign: 'GOLF', leisure_area: 'READY_ROOM', x: 44.0, y: 67.0 },
+    { callsign: 'HOTEL', leisure_area: 'READY_ROOM', x: 56.0, y: 67.0 },
   ];
 
   const assignedWorkstationCoords = [
@@ -890,7 +890,6 @@ export function resolveLivingRoomAgents(stateData) {
     { x: 80.0, y: 73.5 }, // Desk 24 lower
     { x: 88.0, y: 73.5 }, // Desk 25 lower
   ];
-
 
   const results = [];
 
@@ -913,6 +912,8 @@ export function resolveLivingRoomAgents(stateData) {
       zone: coords.zone,
       x: coords.x,
       y: coords.y,
+      homeX: coords.x,
+      homeY: coords.y,
       state,
       task,
       progress,
@@ -945,7 +946,7 @@ export function resolveLivingRoomAgents(stateData) {
         if (slot.leisure_area === 'COFFEE_BAR') speechText = `Standing by at the coffee bar.`;
         else if (slot.leisure_area === 'SAUNA') speechText = `Standing by in the sauna.`;
         else if (slot.leisure_area === 'VISITOR_LOUNGE') speechText = `Standing by in the visitor lounge.`;
-        else speechText = `Standing by near the fountain.`;
+        else speechText = `Standing by in the ready room.`;
       } else if (bg.state === 'WORKING') {
         speechText = `Covering ${bg.temporary_role || 'task'} at workstation.`;
       } else if (bg.state === 'RETURNING') {
@@ -960,6 +961,8 @@ export function resolveLivingRoomAgents(stateData) {
       zone: 'BODYGUARDS',
       x: targetX,
       y: targetY,
+      homeX: slot.x,
+      homeY: slot.y,
       state: bg.state,
       task: bg.task || (bg.state === 'STANDBY' ? 'Reserve Duty (Standby)' : bg.state),
       progress: bg.progress,
@@ -975,6 +978,169 @@ export function resolveLivingRoomAgents(stateData) {
   });
 
   return results;
-
 }
+
+// --------------------------------------------------------------------------
+// 11. WALKABLE NAVIGATION GRAPH & WAYPOINT PATHFINDER
+// --------------------------------------------------------------------------
+
+export const HQ_WAYPOINTS = Object.freeze({
+  // Corridors & Crossroads
+  'CORRIDOR_NORTH': { x: 50.0, y: 35.0 },
+  'CORRIDOR_COMMAND': { x: 50.0, y: 48.0 },
+  'CORRIDOR_CROSS_MID': { x: 50.0, y: 56.0 },
+  'CORRIDOR_FOUNTAIN_TOP': { x: 50.0, y: 60.0 },
+  'CORRIDOR_FOUNTAIN_LEFT': { x: 38.0, y: 67.0 },
+  'CORRIDOR_FOUNTAIN_RIGHT': { x: 62.0, y: 67.0 },
+  'CORRIDOR_SOUTH': { x: 50.0, y: 80.0 },
+  'CORRIDOR_BOTTOM_CROSS': { x: 50.0, y: 90.0 },
+  'LEFT_AISLE_TOP': { x: 34.0, y: 35.5 },
+  'LEFT_AISLE_MID': { x: 34.0, y: 48.0 },
+  'LEFT_AISLE_BOT': { x: 34.0, y: 60.5 },
+  'RIGHT_AISLE_TOP': { x: 62.0, y: 45.0 },
+  'RIGHT_AISLE_MID': { x: 62.0, y: 59.5 },
+  'RIGHT_AISLE_BOT': { x: 62.0, y: 73.5 },
+
+  // Key Workstations & Zones
+  'CHIEF_COMMAND': { x: 50.0, y: 42.0 },
+  'ROUTER_DESK': { x: 57.5, y: 44.0 },
+  'DESK_01': { x: 14.5, y: 35.5 },
+  'DESK_02': { x: 22.0, y: 35.5 },
+  'DESK_03': { x: 29.5, y: 35.5 },
+  'DESK_04': { x: 14.5, y: 48.0 },
+  'DESK_05': { x: 22.0, y: 48.0 },
+  'DESK_06': { x: 29.5, y: 48.0 },
+  'DESK_07': { x: 14.5, y: 60.5 },
+  'DESK_08': { x: 22.0, y: 60.5 },
+  'DESK_09': { x: 29.5, y: 60.5 },
+  'DESK_16': { x: 66.5, y: 45.0 },
+  'DESK_17': { x: 74.0, y: 45.0 },
+  'DESK_19': { x: 81.5, y: 45.0 },
+  'DESK_21': { x: 89.0, y: 45.0 },
+  'DESK_13': { x: 63.5, y: 59.5 },
+  'DESK_22': { x: 71.0, y: 59.5 },
+  'DESK_23': { x: 78.5, y: 59.5 },
+  'DESK_24': { x: 86.0, y: 59.5 },
+  'DESK_24_LOW': { x: 80.0, y: 73.5 },
+  'DESK_25_LOW': { x: 88.0, y: 73.5 },
+
+  // Special Facilities
+  'SAUNA_ALPHA': { x: 79.0, y: 14.0 },
+  'SAUNA_BRAVO': { x: 84.0, y: 14.0 },
+  'COFFEE_BAR_CHARLIE': { x: 80.0, y: 91.0 },
+  'COFFEE_BAR_DELTA': { x: 85.0, y: 91.0 },
+  'VISITOR_LOUNGE_ECHO': { x: 12.0, y: 84.0 },
+  'VISITOR_LOUNGE_FOXTROT': { x: 28.0, y: 84.0 },
+  'READY_ROOM_GOLF': { x: 44.0, y: 67.0 },
+  'READY_ROOM_HOTEL': { x: 56.0, y: 67.0 },
+  'SERVER_ROOM': { x: 88.0, y: 38.0 },
+  'FIREPLACE': { x: 18.0, y: 28.0 },
+});
+
+export const HQ_NAV_GRAPH = Object.freeze({
+  'CHIEF_COMMAND': ['CORRIDOR_COMMAND', 'ROUTER_DESK'],
+  'ROUTER_DESK': ['CHIEF_COMMAND', 'RIGHT_AISLE_TOP'],
+  'CORRIDOR_NORTH': ['CORRIDOR_COMMAND', 'LEFT_AISLE_TOP', 'SAUNA_ALPHA', 'FIREPLACE'],
+  'CORRIDOR_COMMAND': ['CHIEF_COMMAND', 'CORRIDOR_NORTH', 'CORRIDOR_CROSS_MID'],
+  'CORRIDOR_CROSS_MID': ['CORRIDOR_COMMAND', 'CORRIDOR_FOUNTAIN_TOP', 'LEFT_AISLE_MID', 'RIGHT_AISLE_MID'],
+  'CORRIDOR_FOUNTAIN_TOP': ['CORRIDOR_CROSS_MID', 'CORRIDOR_FOUNTAIN_LEFT', 'CORRIDOR_FOUNTAIN_RIGHT'],
+  'CORRIDOR_FOUNTAIN_LEFT': ['CORRIDOR_FOUNTAIN_TOP', 'CORRIDOR_SOUTH', 'READY_ROOM_GOLF', 'LEFT_AISLE_BOT'],
+  'CORRIDOR_FOUNTAIN_RIGHT': ['CORRIDOR_FOUNTAIN_TOP', 'CORRIDOR_SOUTH', 'READY_ROOM_HOTEL', 'RIGHT_AISLE_MID'],
+  'CORRIDOR_SOUTH': ['CORRIDOR_FOUNTAIN_LEFT', 'CORRIDOR_FOUNTAIN_RIGHT', 'CORRIDOR_BOTTOM_CROSS', 'RIGHT_AISLE_BOT'],
+  'CORRIDOR_BOTTOM_CROSS': ['CORRIDOR_SOUTH', 'VISITOR_LOUNGE_FOXTROT', 'COFFEE_BAR_CHARLIE'],
+
+  'LEFT_AISLE_TOP': ['CORRIDOR_NORTH', 'DESK_01', 'DESK_02', 'DESK_03', 'LEFT_AISLE_MID'],
+  'LEFT_AISLE_MID': ['LEFT_AISLE_TOP', 'CORRIDOR_CROSS_MID', 'DESK_04', 'DESK_05', 'DESK_06', 'LEFT_AISLE_BOT'],
+  'LEFT_AISLE_BOT': ['LEFT_AISLE_MID', 'CORRIDOR_FOUNTAIN_LEFT', 'DESK_07', 'DESK_08', 'DESK_09', 'VISITOR_LOUNGE_ECHO'],
+
+  'RIGHT_AISLE_TOP': ['ROUTER_DESK', 'DESK_16', 'DESK_17', 'DESK_19', 'DESK_21', 'SERVER_ROOM', 'RIGHT_AISLE_MID'],
+  'RIGHT_AISLE_MID': ['RIGHT_AISLE_TOP', 'CORRIDOR_CROSS_MID', 'CORRIDOR_FOUNTAIN_RIGHT', 'DESK_13', 'DESK_22', 'DESK_23', 'DESK_24', 'RIGHT_AISLE_BOT'],
+  'RIGHT_AISLE_BOT': ['RIGHT_AISLE_MID', 'CORRIDOR_SOUTH', 'DESK_24_LOW', 'DESK_25_LOW', 'COFFEE_BAR_CHARLIE'],
+
+  'DESK_01': ['LEFT_AISLE_TOP'],
+  'DESK_02': ['LEFT_AISLE_TOP'],
+  'DESK_03': ['LEFT_AISLE_TOP'],
+  'DESK_04': ['LEFT_AISLE_MID'],
+  'DESK_05': ['LEFT_AISLE_MID'],
+  'DESK_06': ['LEFT_AISLE_MID'],
+  'DESK_07': ['LEFT_AISLE_BOT'],
+  'DESK_08': ['LEFT_AISLE_BOT'],
+  'DESK_09': ['LEFT_AISLE_BOT'],
+
+  'DESK_16': ['RIGHT_AISLE_TOP'],
+  'DESK_17': ['RIGHT_AISLE_TOP'],
+  'DESK_19': ['RIGHT_AISLE_TOP'],
+  'DESK_21': ['RIGHT_AISLE_TOP'],
+  'DESK_13': ['RIGHT_AISLE_MID'],
+  'DESK_22': ['RIGHT_AISLE_MID'],
+  'DESK_23': ['RIGHT_AISLE_MID'],
+  'DESK_24': ['RIGHT_AISLE_MID'],
+  'DESK_24_LOW': ['RIGHT_AISLE_BOT'],
+  'DESK_25_LOW': ['RIGHT_AISLE_BOT'],
+
+  'SAUNA_ALPHA': ['CORRIDOR_NORTH', 'SAUNA_BRAVO'],
+  'SAUNA_BRAVO': ['SAUNA_ALPHA'],
+  'COFFEE_BAR_CHARLIE': ['CORRIDOR_BOTTOM_CROSS', 'RIGHT_AISLE_BOT', 'COFFEE_BAR_DELTA'],
+  'COFFEE_BAR_DELTA': ['COFFEE_BAR_CHARLIE'],
+  'VISITOR_LOUNGE_ECHO': ['LEFT_AISLE_BOT', 'VISITOR_LOUNGE_FOXTROT'],
+  'VISITOR_LOUNGE_FOXTROT': ['CORRIDOR_BOTTOM_CROSS', 'VISITOR_LOUNGE_ECHO'],
+  'READY_ROOM_GOLF': ['CORRIDOR_FOUNTAIN_LEFT', 'READY_ROOM_HOTEL'],
+  'READY_ROOM_HOTEL': ['CORRIDOR_FOUNTAIN_RIGHT', 'READY_ROOM_GOLF'],
+  'SERVER_ROOM': ['RIGHT_AISLE_TOP'],
+  'FIREPLACE': ['CORRIDOR_NORTH'],
+});
+
+export function findNearestWaypoint(x, y) {
+  let bestKey = 'CORRIDOR_CROSS_MID';
+  let bestDist = Infinity;
+  for (const [key, pt] of Object.entries(HQ_WAYPOINTS)) {
+    const dist = Math.hypot(pt.x - x, pt.y - y);
+    if (dist < bestDist) {
+      bestDist = dist;
+      bestKey = key;
+    }
+  }
+  return bestKey;
+}
+
+export function bfsNavGraph(startWp, targetWp) {
+  if (startWp === targetWp) return [startWp];
+  const queue = [[startWp]];
+  const visited = new Set([startWp]);
+
+  while (queue.length > 0) {
+    const path = queue.shift();
+    const node = path[path.length - 1];
+    const neighbors = HQ_NAV_GRAPH[node] || [];
+
+    for (const neighbor of neighbors) {
+      if (neighbor === targetWp) {
+        return [...path, neighbor];
+      }
+      if (!visited.has(neighbor)) {
+        visited.add(neighbor);
+        queue.push([...path, neighbor]);
+      }
+    }
+  }
+  return [startWp, targetWp];
+}
+
+export function findWalkingPath(startX, startY, targetX, targetY) {
+  const dist = Math.hypot(targetX - startX, targetY - startY);
+  if (dist < 1.5) return [{ x: targetX, y: targetY }];
+
+  const startWp = findNearestWaypoint(startX, startY);
+  const targetWp = findNearestWaypoint(targetX, targetY);
+
+  if (startWp === targetWp) {
+    return [HQ_WAYPOINTS[startWp], { x: targetX, y: targetY }];
+  }
+
+  const pathKeys = bfsNavGraph(startWp, targetWp);
+  const coordsPath = pathKeys.map(k => ({ ...HQ_WAYPOINTS[k] }));
+  coordsPath.push({ x: targetX, y: targetY });
+  return coordsPath;
+}
+
 

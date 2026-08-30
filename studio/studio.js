@@ -1,6 +1,6 @@
 // ============================================================================
-// 2026 Courier Studio // Living Agent HQ Operations Controller
-// High-Fidelity Character Layer, MMORPG Nameplates, Real State & Courier Relay
+// 2026 Courier Studio // Living Agent HQ 60FPS Walking Simulation Engine
+// Waypoint Navigation Graph, Real State Binding, MMORPG Nameplates & Courier Relay
 // ============================================================================
 
 import {
@@ -10,6 +10,8 @@ import {
   resolveTeacherTruth,
   resolveTreasuryTruth,
   resolveActiveGateTruth,
+  findWalkingPath,
+  HQ_WAYPOINTS,
 } from "./execution_truth.js";
 
 const AVATAR_ICONS = {
@@ -36,12 +38,20 @@ export class LivingHQController {
   constructor() {
     this.pollInterval = 1000;
     this.isPolling = false;
-    this.agentNodes = new Map();
     this.currentView = "overview";
+
+    // Simulation State per Agent: id -> { currentX, currentY, targetX, targetY, pathQueue: [], isWalking: false, facing: 1 }
+    this.agentSims = new Map();
+    this.agentNodes = new Map();
+    this.lastAgents = [];
+
+    // Ambient walking patrol timer
+    this.lastPatrolTime = Date.now();
 
     this.initElements();
     this.bindEvents();
     this.startClock();
+    this.startAnimationLoop();
     this.startPolling();
   }
 
@@ -178,6 +188,72 @@ export class LivingHQController {
     setInterval(update, 1000);
   }
 
+  // ------------------------------------------------------------------------
+  // 60 FPS RequestAnimationFrame Simulation Loop
+  // ------------------------------------------------------------------------
+  startAnimationLoop() {
+    let lastTime = performance.now();
+
+    const loop = (time) => {
+      const delta = Math.min((time - lastTime) / 1000, 0.1); // seconds capped at 100ms
+      lastTime = time;
+
+      this.updateAgentPositions(delta);
+      requestAnimationFrame(loop);
+    };
+
+    requestAnimationFrame(loop);
+  }
+
+  updateAgentPositions(delta) {
+    const WALK_SPEED = 18.0; // % per second
+
+    for (const [id, sim] of this.agentSims.entries()) {
+      const node = this.agentNodes.get(id);
+      if (!node) continue;
+
+      if (sim.pathQueue && sim.pathQueue.length > 0) {
+        const nextWp = sim.pathQueue[0];
+        const dx = nextWp.x - sim.currentX;
+        const dy = nextWp.y - sim.currentY;
+        const dist = Math.hypot(dx, dy);
+
+        if (dist <= 0.6) {
+          // Reached waypoint
+          sim.currentX = nextWp.x;
+          sim.currentY = nextWp.y;
+          sim.pathQueue.shift();
+        } else {
+          // Step towards waypoint
+          const moveDist = WALK_SPEED * delta;
+          const ratio = Math.min(moveDist / dist, 1.0);
+          sim.currentX += dx * ratio;
+          sim.currentY += dy * ratio;
+
+          // Update facing direction
+          if (Math.abs(dx) > 0.1) {
+            sim.facing = dx > 0 ? 1 : -1;
+          }
+        }
+
+        sim.isWalking = true;
+      } else {
+        sim.isWalking = false;
+      }
+
+      // Apply coordinates and classes to DOM node
+      node.style.left = `${sim.currentX.toFixed(2)}%`;
+      node.style.top = `${sim.currentY.toFixed(2)}%`;
+
+      node.classList.toggle("is-walking", sim.isWalking);
+      node.classList.toggle("facing-left", sim.facing === -1);
+      node.classList.toggle("facing-right", sim.facing === 1);
+    }
+  }
+
+  // ------------------------------------------------------------------------
+  // Polling Machine State & Dispatching Waypoint Paths
+  // ------------------------------------------------------------------------
   async startPolling() {
     if (this.isPolling) return;
     this.isPolling = true;
@@ -204,6 +280,7 @@ export class LivingHQController {
     // 1. Resolve and Render Dynamic Living Agents
     const agents = resolveLivingRoomAgents(stateData);
     this.lastAgents = agents;
+    this.syncAgentSimulations(agents);
     this.renderLivingAgents(agents);
 
     // 2. Resolve Master TV Wall Data
@@ -233,6 +310,37 @@ export class LivingHQController {
 
     // 4. Update Telemetry Panels & Human Gate
     this.updateTelemetryAndGate(stateData, metrics);
+  }
+
+  syncAgentSimulations(agents) {
+    for (const agent of agents) {
+      let sim = this.agentSims.get(agent.id);
+
+      if (!sim) {
+        sim = {
+          id: agent.id,
+          currentX: agent.x,
+          currentY: agent.y,
+          targetX: agent.x,
+          targetY: agent.y,
+          homeX: agent.homeX || agent.x,
+          homeY: agent.homeY || agent.y,
+          pathQueue: [],
+          isWalking: false,
+          facing: 1,
+        };
+        this.agentSims.set(agent.id, sim);
+      }
+
+      // Check if backend target position changed significantly (> 2.0%)
+      const distToTarget = Math.hypot(agent.x - sim.targetX, agent.y - sim.targetY);
+      if (distToTarget > 2.0) {
+        sim.targetX = agent.x;
+        sim.targetY = agent.y;
+        // Compute path through walkable navigation graph
+        sim.pathQueue = findWalkingPath(sim.currentX, sim.currentY, agent.x, agent.y);
+      }
+    }
   }
 
   renderLivingAgents(agents) {
@@ -270,10 +378,6 @@ export class LivingHQController {
         this.agentNodes.set(agent.id, node);
       }
 
-      // Smooth Position Update
-      node.style.left = `${agent.x}%`;
-      node.style.top = `${agent.y}%`;
-
       // State Classes
       node.className = "living-agent-node";
       if (agent.is_active) node.classList.add("state-working");
@@ -300,6 +404,7 @@ export class LivingHQController {
       if (!seenIds.has(id)) {
         node.remove();
         this.agentNodes.delete(id);
+        this.agentSims.delete(id);
       }
     }
   }
@@ -312,13 +417,21 @@ export class LivingHQController {
 
     if (activeWorker && courier) {
       this.courierPacket.style.display = "flex";
-      // Position between worker and courier/chief
-      const px = (activeWorker.x + courier.x) / 2;
-      const py = (activeWorker.y + courier.y) / 2;
+      const courierSim = this.agentSims.get("agent-courier-relay");
+      const workerSim = this.agentSims.get(activeWorker.id);
+
+      const px = ((workerSim ? workerSim.currentX : activeWorker.x) + (courierSim ? courierSim.currentX : courier.x)) / 2;
+      const py = ((workerSim ? workerSim.currentY : activeWorker.y) + (courierSim ? courierSim.currentY : courier.y)) / 2;
+      
       this.courierPacket.style.left = `${px}%`;
       this.courierPacket.style.top = `${py}%`;
-      if (this.courierPacketLabel) {
-        this.courierPacketLabel.textContent = activeWorker.progress > 0.8 ? "RESULT_READY" : "TASK_DISPATCH";
+
+      if (activeWorker.progress >= 0.8) {
+        this.courierPacket.className = "courier-transport-packet packet-result";
+        if (this.courierPacketLabel) this.courierPacketLabel.textContent = "📨 RESULT";
+      } else {
+        this.courierPacket.className = "courier-transport-packet packet-task";
+        if (this.courierPacketLabel) this.courierPacketLabel.textContent = "📦 TASK";
       }
     } else {
       this.courierPacket.style.display = "none";
