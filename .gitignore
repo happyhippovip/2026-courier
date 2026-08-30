@@ -3,9 +3,11 @@ events/incoming/*.json
 events/processed/*.json
 events/dispatch/*.json
 events/proposals/*.json
+events/approvals/*.json
 
 # Keep directory markers only.
 !events/incoming/.gitkeep
 !events/processed/.gitkeep
 !events/dispatch/.gitkeep
 !events/proposals/.gitkeep
+!events/approvals/.gitkeep
