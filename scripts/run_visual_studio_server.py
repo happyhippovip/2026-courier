@@ -75,6 +75,8 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_human_gate()
         elif self.path == "/api/trigger-workflow":
             self.handle_trigger_workflow()
+        elif self.path == "/api/trigger-demo":
+            self.handle_trigger_demo()
         else:
             self.send_error(404, "Endpoint not found")
 
@@ -249,6 +251,21 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
         self.wfile.write(json.dumps({"status": "TRIGGERED", "message": "Demo workflow started in background"}).encode("utf-8"))
+
+    def handle_trigger_demo(self):
+        def run_async_demo():
+            from run_demo_workflow import DemoOrchestrator
+            orchestrator = DemoOrchestrator(repo_dir=COURIER_DIR)
+            orchestrator.reset_demo_environment()
+            orchestrator.run_live_demo()
+
+        threading.Thread(target=run_async_demo, daemon=True).start()
+
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+        self.wfile.write(json.dumps({"status": "TRIGGERED", "message": "Deterministic live demo workflow started in background"}).encode("utf-8"))
 
 
 def run_server(port: int = 8088):

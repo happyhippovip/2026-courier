@@ -1,0 +1,25 @@
+{
+  "schema_version": "2.0",
+  "message_id": "msg-res-20a9e6c8142a",
+  "task_id": "WF-CHIEF-f3cbc1-STEP-1-DISCOVER",
+  "correlation_id": "corr-demo-3fbaa65c",
+  "parent_id": "msg-cmd-WF-CHIEF-f3cbc1-STEP-1-DISCOVER",
+  "source": "antigravity",
+  "destination": "courier",
+  "type": "RESULT",
+  "status": "COMPLETED",
+  "created_at": "2026-08-30T15:12:52.082518+00:00",
+  "payload": {
+    "verdict": "HUMAN_APPROVAL_REQUIRED",
+    "action_executed": "READ_FIXTURE_AND_SUMMARIZE",
+    "target_file": "config/local_tools.json",
+    "file_size_bytes": 951,
+    "content_summary": "Verified readable content (500 chars snippet)",
+    "execution_mode": "AUTOMATED_ANTIGRAVITY_BRIDGE",
+    "zero_cost_policy": "ZERO_COST_ONLY",
+    "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+    "requires_human_approval": true
+  },
+  "payload_hash": "693808e35c56b8d0689a94e5bfae359a6f030a064220d5b3af17525a884195da",
+  "max_iterations": 1
+}

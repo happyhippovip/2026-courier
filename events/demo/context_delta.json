@@ -1,0 +1,27 @@
+{
+  "idea_id": "idea-5138f1d9",
+  "raw_idea": "Optimiere FruitKI 3D Video-Render Pipeline und erstelle Release-Metadaten",
+  "normalized_idea": "optimiere fruitki 3d video-render pipeline und erstelle release-metadaten",
+  "normalized_summary": "Optimiere FruitKI 3D Video-Render Pipeline und erstelle Release-Metadaten",
+  "idea_status": "PROPOSED",
+  "type": "GOAL",
+  "classification": "NEW",
+  "truth_boundary": "IDEA != VERIFIED | USER_REPORTED != TECHNICALLY_VERIFIED",
+  "conflicts": [],
+  "related_ideas": [],
+  "memory_references": [],
+  "affected_agents": [
+    "antigravity"
+  ],
+  "affected_workflows": [
+    "3D Shorts Pipeline (Antigravity Media Studio)"
+  ],
+  "recommended_next_action": "ROUTE_TO_ANTIGRAVITY_PRIMARY",
+  "target_agent_recommendation": "antigravity",
+  "sources_indexed": {
+    "decisions": true,
+    "ideas": true,
+    "project_state": true
+  },
+  "timestamp": "2026-08-30T15:12:52.076167+00:00"
+}
