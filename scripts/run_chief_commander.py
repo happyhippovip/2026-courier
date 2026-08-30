@@ -48,11 +48,14 @@ try:
     from run_autonomous_loop import AutonomousLevel6Loop
     from run_antigravity_bridge import AntigravityVisualStateTracker, load_json, save_json
     from run_context_sync import UpdateSteward
+    from run_bodyguards import BodyguardPoolManager
 except ImportError:
     from scripts.run_thought_curator import ThoughtCurator
     from scripts.run_autonomous_loop import AutonomousLevel6Loop
     from scripts.run_antigravity_bridge import AntigravityVisualStateTracker, load_json, save_json
     from scripts.run_context_sync import UpdateSteward
+    from scripts.run_bodyguards import BodyguardPoolManager
+
 
 
 class SmartResourceRouter:
@@ -137,6 +140,17 @@ class ChiefCommander:
         target_agent, routing_reason, execution_class = SmartResourceRouter.classify_and_route(
             description, [], {"runtime_alert": alert["message_id"]}
         )
+
+        bodyguard_candidate = None
+        if alert.get("classification") in {"SUSPECTED_STALL", "STALLED", "RUNAWAY_RISK", "BLOCKED"}:
+            try:
+                bg_manager = BodyguardPoolManager(self.repo_dir)
+                available = bg_manager.get_available_bodyguards()
+                if available:
+                    bodyguard_candidate = available[0]["callsign"]
+            except Exception:
+                pass
+
         decision = {
             "schema_version": "2.0",
             "decision_id": f"dec-runtime-{uuid.uuid4().hex[:10]}",
@@ -146,6 +160,7 @@ class ChiefCommander:
             "verdict": "RUNTIME_ALERT_REVIEWED",
             "action": "RECOMMEND_SCOPED_DIAGNOSIS",
             "recommended_target_agent": target_agent,
+            "recommended_reserve_bodyguard": bodyguard_candidate,
             "execution_class": execution_class,
             "reason": routing_reason,
             "next_task": None,
@@ -155,6 +170,7 @@ class ChiefCommander:
         decision_dir.mkdir(parents=True, exist_ok=True)
         save_json(decision_dir / f"{alert['message_id']}-chief-decision.json", decision)
         return decision
+
 
     def formulate_workflow_plan(
         self,

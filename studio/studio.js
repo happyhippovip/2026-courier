@@ -5,6 +5,7 @@ import {
   executionBadgeLabel,
   resolveAcademyEconomics,
   resolveAcademySummary,
+  resolveBodyguardsTruth,
   resolveChiefWaitState,
   resolveCorrelationTruth,
   resolveDecisionTruth,
@@ -14,6 +15,7 @@ import {
   resolveDirectorTruth,
   resolveExecutionTruth,
   resolveLiveHQMetrics,
+  resolveSnitchTruth,
   resolveStewardTruth,
   resolveTeacherTruth,
   resolveThreadContext,
@@ -52,14 +54,25 @@ class OperationsStudio {
     this.tvContextVer = document.getElementById('tv-context-ver');
     this.tvAcademyTime = document.getElementById('tv-academy-time');
     this.busFlowViz = document.querySelector('.bus-flow-viz');
+
+    // SNITCH 2.0 Watchdog Elements
     this.snitchState = document.getElementById('snitch-state');
     this.snitchTask = document.getElementById('snitch-task');
     this.snitchAlert = document.getElementById('snitch-alert');
+    this.snitchSpeech = document.getElementById('snitch-speech');
+    this.snitchAction = document.getElementById('snitch-action');
+    this.snitchFeedLog = document.getElementById('snitch-feed-log');
+
+    // Bodyguard Ready Room Elements
+    this.badgeBodyguardsSummary = document.getElementById('badge-bodyguards-summary');
+    this.bodyguardCardsContainer = document.getElementById('bodyguard-cards-container');
+
     this.treasuryEur = document.getElementById('treasury-eur');
     this.treasuryUsd = document.getElementById('treasury-usd');
     this.treasuryVerified = document.getElementById('treasury-verified');
     this.treasuryGoal = document.getElementById('treasury-goal');
     this.treasuryGoalBar = document.getElementById('treasury-goal-bar');
+
 
     // Academy Evidence Explorer Elements
     this.explorerLessonsList = document.getElementById('explorer-lessons-list');
@@ -511,18 +524,64 @@ class OperationsStudio {
       codexCard.classList.remove('active-working');
     }
 
-    // 6. SNITCH watchdog: display only its persisted machine evidence.
-    const snitch = agents['agent-snitch'] || {};
-    if (this.snitchState) this.snitchState.textContent = snitch.state || 'UNKNOWN';
-    if (this.snitchTask) this.snitchTask.textContent = snitch.task || 'No monitored task recorded';
-    if (this.snitchAlert) this.snitchAlert.textContent = data.runtime_alert?.classification || 'NO_ALERT';
+    // 6. SNITCH 2.0 runtime watchdog: display only its persisted machine evidence.
+    const snitchTruth = resolveSnitchTruth(data);
+    if (this.snitchState) {
+      this.snitchState.textContent = snitchTruth.state;
+      this.snitchState.className = `badge badge-snitch ${snitchTruth.active_incident ? 'text-alert' : ''}`;
+    }
+    if (this.snitchTask) this.snitchTask.textContent = snitchTruth.task;
+    if (this.snitchSpeech) this.snitchSpeech.textContent = `"${snitchTruth.speech}"`;
+    if (this.snitchAction) this.snitchAction.textContent = snitchTruth.last_action;
+    if (snitchTruth.active_incident && this.snitchFeedLog && snitchTruth.incident_details) {
+      const inc = snitchTruth.incident_details;
+      this.appendLog(
+        this.snitchFeedLog,
+        `[SNITCH ALERT] ${inc.classification || inc.reason || 'Material Runtime Abnormality'} (Severity: ${inc.severity || 'HIGH'})`
+      );
+    }
     const snitchCard = document.getElementById('station-snitch');
     if (snitchCard) {
       snitchCard.classList.toggle(
         'active-working',
-        snitch.state === 'MONITORING' || snitch.state === 'SLOW_BUT_PROGRESSING',
+        snitchTruth.state === 'MONITORING' || snitchTruth.state === 'SLOW_BUT_PROGRESSING',
       );
     }
+
+    // 7. BODYGUARDS: 8 Universal Reserve Worker Slots
+    const bodyguards = resolveBodyguardsTruth(data);
+    const standbyCount = bodyguards.filter(b => b.is_standby).length;
+    if (this.badgeBodyguardsSummary) {
+      this.badgeBodyguardsSummary.textContent = `${standbyCount} / 8 STANDBY`;
+    }
+
+    bodyguards.forEach(bg => {
+      const callsignLower = bg.callsign.toLowerCase();
+      const badgeEl = document.getElementById(`bg-badge-${callsignLower}`);
+      const roleEl = document.getElementById(`bg-role-${callsignLower}`);
+      const taskEl = document.getElementById(`bg-task-${callsignLower}`);
+      const speechEl = document.getElementById(`bg-speech-${callsignLower}`);
+      const cardEl = document.getElementById(`bg-card-${callsignLower}`);
+
+      if (badgeEl) {
+        badgeEl.textContent = bg.state;
+        badgeEl.className = `bg-badge badge-${bg.state.toLowerCase()}`;
+      }
+      if (roleEl) {
+        roleEl.textContent = `ROLE: ${bg.temporary_role || 'NONE'}`;
+      }
+      if (taskEl) {
+        taskEl.textContent = `Task: ${bg.task || (bg.is_standby ? 'Reserve Duty' : 'Active')}`;
+      }
+      if (speechEl) {
+        speechEl.textContent = `"${bg.speech}"`;
+      }
+      if (cardEl) {
+        cardEl.classList.toggle('active-working', bg.state === 'WORKING' || bg.state === 'ASSIGNED');
+        cardEl.classList.toggle('blocked', bg.blocked);
+      }
+    });
+
 
     this.renderSpeechBubbles({
       'agent-chief-commander': chief,

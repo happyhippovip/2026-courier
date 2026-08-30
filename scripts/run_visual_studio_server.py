@@ -36,8 +36,11 @@ if str(SCRIPTS_DIR) not in sys.path:
 
 try:
     from run_chief_commander import ChiefCommander
+    from run_bodyguards import BodyguardPoolManager
 except ImportError:
     from scripts.run_chief_commander import ChiefCommander
+    from scripts.run_bodyguards import BodyguardPoolManager
+
 
 
 def load_json_safe(path: Path) -> dict:
@@ -296,6 +299,35 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "evaluations": recent_evals,
             }
 
+        # Read SNITCH state and recent incidents
+        snitch_file = states_dir / "agent-snitch.json"
+        snitch_data = load_json_safe(snitch_file) if snitch_file.exists() else None
+
+        incidents_data = []
+        if runtime_alerts_dir.exists():
+            alert_files = sorted(runtime_alerts_dir.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
+            for af in alert_files[:10]:
+                ad = load_json_safe(af)
+                if ad and "message_id" in ad:
+                    incidents_data.append({
+                        "message_id": ad.get("message_id"),
+                        "incident_id": ad.get("incident_id"),
+                        "classification": ad.get("classification"),
+                        "severity": ad.get("severity", "MEDIUM"),
+                        "status": ad.get("status", "OPEN"),
+                        "task_id": ad.get("task_id"),
+                        "workflow_id": ad.get("workflow_id"),
+                        "correlation_id": ad.get("correlation_id"),
+                        "reason": ad.get("reason"),
+                        "created_at": ad.get("created_at"),
+                    })
+
+        # Read 8 Bodyguards reserve states
+        try:
+            bodyguards_data = BodyguardPoolManager(COURIER_DIR).get_all_bodyguards()
+        except Exception:
+            bodyguards_data = []
+
         response_data = {
             "schema_version": "2.0",
             "server_time": datetime.datetime.now(datetime.timezone.utc).isoformat(),
@@ -303,6 +335,9 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             "counts": counts,
             "context_snapshot": snapshot_data,
             "academy": academy_data,
+            "snitch": snitch_data,
+            "bodyguards": bodyguards_data,
+            "incidents": incidents_data,
             "runtime_alert": latest_runtime_alert,
             "treasury": treasury,
             "bus": {
@@ -318,6 +353,7 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "snapshot_hash": snapshot_data.get("snapshot_hash") if snapshot_data else "NONE",
             }
         }
+
 
         self.send_response(200)
         self.send_header("Content-Type", "application/json")

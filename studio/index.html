@@ -422,26 +422,163 @@
       </div>
   </section>
 
-  <!-- SNITCH: deterministic runtime watchdog, never a process controller -->
+  <!-- SNITCH 2.0: deterministic runtime watchdog & runaway detector -->
   <section class="workstation-card" id="station-snitch">
     <div class="card-header">
       <div class="station-identity">
         <span class="station-icon">👀</span>
         <div>
-          <h2 class="station-title">SNITCH</h2>
-          <span class="station-role">Runtime Watchdog / Delay Sentinel</span>
+          <h2 class="station-title">SNITCH 2.0</h2>
+          <span class="station-role">Operations Watchdog / Delay Sentinel / Runaway Detector</span>
         </div>
       </div>
-      <span class="badge badge-snitch" id="snitch-state">UNKNOWN</span>
+      <span class="badge badge-snitch" id="snitch-state">MONITORING</span>
     </div>
     <div class="card-body">
-      <div class="metric-row">
-        <div class="metric-box"><span class="metric-label">MONITORED TASK</span><span class="metric-value font-mono" id="snitch-task">UNKNOWN</span></div>
-        <div class="metric-box"><span class="metric-label">LATEST ALERT</span><span class="metric-value font-mono text-alert" id="snitch-alert">NO_ALERT</span></div>
+      <!-- SNITCH Speech Bubble -->
+      <div class="snitch-speech-box" id="snitch-speech-container">
+        <span class="speech-author">👀 SNITCH:</span>
+        <span class="speech-quote" id="snitch-speech">"I'm monitoring running tasks. Everything looks healthy."</span>
       </div>
-      <div class="feed-label">Evidence-based only · No automatic kill, restart, delete, or dispatch</div>
+
+      <div class="metric-row">
+        <div class="metric-box">
+          <span class="metric-label">MONITORED TASK</span>
+          <span class="metric-value font-mono" id="snitch-task">Active Monitoring</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-label">FIVE-MINUTE REVIEW RULE</span>
+          <span class="metric-value font-mono text-accent">RUNTIME > 5 MIN ≠ ERROR</span>
+        </div>
+      </div>
+
+      <div class="metric-row">
+        <div class="metric-box">
+          <span class="metric-label">LAST OBSERVED ACTION</span>
+          <span class="metric-value font-mono" id="snitch-action">Monitoring operations floor for runaway tasks or stalls</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-label">AUTO-KILL POLICY</span>
+          <span class="metric-value font-mono text-muted">DISABLED (CHIEF ONLY)</span>
+        </div>
+      </div>
+
+      <div class="action-feed">
+        <span class="feed-label">INCIDENT & ESCALATION FEED</span>
+        <div class="feed-log font-mono" id="snitch-feed-log">
+          <div class="log-entry system">[SNITCH] Standby. Local watchdog monitoring active.</div>
+        </div>
+      </div>
     </div>
   </section>
+
+  <!-- BODYGUARD READY ROOM: 8 Universal Reserve Worker Slots -->
+  <section class="workstation-card hub-card" id="station-bodyguards">
+    <div class="card-header">
+      <div class="station-identity">
+        <span class="station-icon">🛡️</span>
+        <div>
+          <h2 class="station-title">BODYGUARD READY ROOM</h2>
+          <span class="station-role">8 Universal Reserve Worker Slots (Standby: 0 Model Calls, 0.00 EUR)</span>
+        </div>
+      </div>
+      <span class="badge badge-bus" id="badge-bodyguards-summary">8 STANDBY</span>
+    </div>
+
+    <div class="card-body">
+      <div class="bodyguard-grid" id="bodyguard-cards-container">
+        <!-- Generated dynamically in studio.js or default template below -->
+        <div class="bodyguard-slot-card" id="bg-card-alpha">
+          <div class="bg-card-header">
+            <span class="bg-slot-tag">BG-01</span>
+            <span class="bg-callsign font-mono">ALPHA</span>
+            <span class="bg-badge badge-standby" id="bg-badge-alpha">STANDBY</span>
+          </div>
+          <div class="bg-role-tag font-mono" id="bg-role-alpha">ROLE: NONE</div>
+          <div class="bg-task-desc font-mono" id="bg-task-alpha">Task: Reserve Duty</div>
+          <div class="bg-speech-bubble" id="bg-speech-alpha">"Ready for reserve duty."</div>
+        </div>
+
+        <div class="bodyguard-slot-card" id="bg-card-bravo">
+          <div class="bg-card-header">
+            <span class="bg-slot-tag">BG-02</span>
+            <span class="bg-callsign font-mono">BRAVO</span>
+            <span class="bg-badge badge-standby" id="bg-badge-bravo">STANDBY</span>
+          </div>
+          <div class="bg-role-tag font-mono" id="bg-role-bravo">ROLE: NONE</div>
+          <div class="bg-task-desc font-mono" id="bg-task-bravo">Task: Reserve Duty</div>
+          <div class="bg-speech-bubble" id="bg-speech-bravo">"Ready for reserve duty."</div>
+        </div>
+
+        <div class="bodyguard-slot-card" id="bg-card-charlie">
+          <div class="bg-card-header">
+            <span class="bg-slot-tag">BG-03</span>
+            <span class="bg-callsign font-mono">CHARLIE</span>
+            <span class="bg-badge badge-standby" id="bg-badge-charlie">STANDBY</span>
+          </div>
+          <div class="bg-role-tag font-mono" id="bg-role-charlie">ROLE: NONE</div>
+          <div class="bg-task-desc font-mono" id="bg-task-charlie">Task: Reserve Duty</div>
+          <div class="bg-speech-bubble" id="bg-speech-charlie">"Ready for reserve duty."</div>
+        </div>
+
+        <div class="bodyguard-slot-card" id="bg-card-delta">
+          <div class="bg-card-header">
+            <span class="bg-slot-tag">BG-04</span>
+            <span class="bg-callsign font-mono">DELTA</span>
+            <span class="bg-badge badge-standby" id="bg-badge-delta">STANDBY</span>
+          </div>
+          <div class="bg-role-tag font-mono" id="bg-role-delta">ROLE: NONE</div>
+          <div class="bg-task-desc font-mono" id="bg-task-delta">Task: Reserve Duty</div>
+          <div class="bg-speech-bubble" id="bg-speech-delta">"Ready for reserve duty."</div>
+        </div>
+
+        <div class="bodyguard-slot-card" id="bg-card-echo">
+          <div class="bg-card-header">
+            <span class="bg-slot-tag">BG-05</span>
+            <span class="bg-callsign font-mono">ECHO</span>
+            <span class="bg-badge badge-standby" id="bg-badge-echo">STANDBY</span>
+          </div>
+          <div class="bg-role-tag font-mono" id="bg-role-echo">ROLE: NONE</div>
+          <div class="bg-task-desc font-mono" id="bg-task-echo">Task: Reserve Duty</div>
+          <div class="bg-speech-bubble" id="bg-speech-echo">"Ready for reserve duty."</div>
+        </div>
+
+        <div class="bodyguard-slot-card" id="bg-card-foxtrot">
+          <div class="bg-card-header">
+            <span class="bg-slot-tag">BG-06</span>
+            <span class="bg-callsign font-mono">FOXTROT</span>
+            <span class="bg-badge badge-standby" id="bg-badge-foxtrot">STANDBY</span>
+          </div>
+          <div class="bg-role-tag font-mono" id="bg-role-foxtrot">ROLE: NONE</div>
+          <div class="bg-task-desc font-mono" id="bg-task-foxtrot">Task: Reserve Duty</div>
+          <div class="bg-speech-bubble" id="bg-speech-foxtrot">"Ready for reserve duty."</div>
+        </div>
+
+        <div class="bodyguard-slot-card" id="bg-card-golf">
+          <div class="bg-card-header">
+            <span class="bg-slot-tag">BG-07</span>
+            <span class="bg-callsign font-mono">GOLF</span>
+            <span class="bg-badge badge-standby" id="bg-badge-golf">STANDBY</span>
+          </div>
+          <div class="bg-role-tag font-mono" id="bg-role-golf">ROLE: NONE</div>
+          <div class="bg-task-desc font-mono" id="bg-task-golf">Task: Reserve Duty</div>
+          <div class="bg-speech-bubble" id="bg-speech-golf">"Ready for reserve duty."</div>
+        </div>
+
+        <div class="bodyguard-slot-card" id="bg-card-hotel">
+          <div class="bg-card-header">
+            <span class="bg-slot-tag">BG-08</span>
+            <span class="bg-callsign font-mono">HOTEL</span>
+            <span class="bg-badge badge-standby" id="bg-badge-hotel">STANDBY</span>
+          </div>
+          <div class="bg-role-tag font-mono" id="bg-role-hotel">ROLE: NONE</div>
+          <div class="bg-task-desc font-mono" id="bg-task-hotel">Task: Reserve Duty</div>
+          <div class="bg-speech-bubble" id="bg-speech-hotel">"Ready for reserve duty."</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
 
   <!-- 4. Antigravity Primary Heavy Studio -->
     <section class="workstation-card" id="station-antigravity">

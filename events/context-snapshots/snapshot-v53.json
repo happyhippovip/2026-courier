@@ -1,16 +1,16 @@
 {
   "schema_version": "2.0",
-  "context_version": 57,
-  "generated_at": "2026-08-30T17:22:42.029819+00:00",
+  "context_version": 53,
+  "generated_at": "2026-08-30T17:22:08.882375+00:00",
   "repositories": {
     "courier_head": "0eef375843dc680ec7515b3a035358bdc4c0a598",
     "memory_head": "37e1747c269761ae9d13e2db1f5fc4f03969c1d6",
     "godot_head": "NOT_CONNECTED"
   },
   "workflow_state": {
-    "workflow_id": "WF-CHIEF-baf86f",
-    "correlation_id": "corr-demo-ac30d722",
-    "current_task_id": "WF-CHIEF-baf86f-STEP-3-SYNTHESIZE",
+    "workflow_id": "WF-CHIEF-1378f3",
+    "correlation_id": "corr-ack-a2f44a",
+    "current_task_id": "WF-CHIEF-1378f3-STEP-1-DISCOVER",
     "is_locked": false,
     "agent_states": {
       "agent-codex-bridge": {
@@ -25,7 +25,7 @@
         "task": "Compiling Project Context Snapshot",
         "progress": 0.1,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T17:22:42.029858+00:00"
+        "updated_at": "2026-08-30T17:22:08.882409+00:00"
       },
       "test-agent-busy": {
         "state": "RUNNING",
@@ -60,14 +60,14 @@
         "task": "Curated idea-5138f1d9",
         "progress": 1.0,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T17:22:41.293250+00:00"
+        "updated_at": "2026-08-30T17:22:08.868917+00:00"
       },
       "agent-academy-director": {
-        "state": "EVALUATING",
+        "state": "ADOPTION APPROVED",
         "task": null,
         "progress": 0.0,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T17:22:42.020048+00:00"
+        "updated_at": "2026-08-30T17:22:07.686126+00:00"
       },
       "agent-bodyguard-delta": {
         "state": "STANDBY",
@@ -78,10 +78,10 @@
       },
       "agent-antigravity-bridge": {
         "state": "COMPLETED",
-        "task": "WF-CHIEF-baf86f-STEP-3-SYNTHESIZE",
+        "task": "WF-CHIEF-1378f3-STEP-1-DISCOVER",
         "progress": 1.0,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T17:22:41.466202+00:00"
+        "updated_at": "2026-08-30T17:22:08.350358+00:00"
       },
       "agent-bodyguard-charlie": {
         "state": "STANDBY",
@@ -137,7 +137,7 @@
         "task": null,
         "progress": 0.0,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T17:22:42.011693+00:00"
+        "updated_at": "2026-08-30T17:22:07.735703+00:00"
       },
       "agent-snitch": {
         "state": "EXPECTED_LONG_RUNNING",
@@ -147,10 +147,10 @@
         "updated_at": "2026-08-30T17:04:56.621194+00:00"
       }
     },
-    "total_decisions": 87,
-    "total_results": 99,
-    "total_approvals": 13,
-    "total_adoptions": 12
+    "total_decisions": 80,
+    "total_results": 92,
+    "total_approvals": 12,
+    "total_adoptions": 11
   },
   "memory_truth": {
     "latest_verified_milestone": "**VERIFIED_CURRENT** | Source: local repository audit of `2026-Projektzentrale` | Verified: 2026-08-29. Two final vertical FruitKI files exist locally: `kiwi-stealth-short-001-final.mp4` (10 s) and `strawberry-school-short-002-final.mp4` (7.125 s); both were locally inspected as 360\u00d7640 H.264/AAC assets. See [TECHNICAL_CONTEXT.md](TECHNICAL_CONTEXT.md).",
@@ -223,9 +223,9 @@
       "ideas": true,
       "project_state": true
     },
-    "timestamp": "2026-08-30T17:22:41.293196+00:00"
+    "timestamp": "2026-08-30T17:22:08.868872+00:00"
   },
-  "academy_adoptions": 12,
+  "academy_adoptions": 11,
   "truth_classifications": {
     "courier_codebase": "VERIFIED",
     "project_memory": "VERIFIED",
@@ -237,9 +237,9 @@
     "truth_invariants": "IDEA != IMPLEMENTED | USER_REPORTED != VERIFIED | DETERMINISTIC != REAL_EXTERNAL"
   },
   "changed_since_previous_snapshot": [
-    "academy_adoptions"
+    "idea_delta"
   ],
-  "previous_snapshot_version": 56,
-  "previous_snapshot_hash": "ce3ac7ec58819e70ab86bd43bf30dfcb59dbd2baddb184a7d887b037015c748c",
-  "snapshot_hash": "45dc8f11ffc6e14e40afee881557c82d0bbe1f320cdefb4f2fc019e6e64c6a5a"
+  "previous_snapshot_version": 52,
+  "previous_snapshot_hash": "e7f0a3d1d1335ef3359fec7206190ef1f40dbc25b7b0f2354beed663850f15e9",
+  "snapshot_hash": "bc0255bda7a8e2f0c63fe50681916c9df11dc4b58b8ce0a48c042e4dc20233ae"
 }

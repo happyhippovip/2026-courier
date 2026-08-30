@@ -1,16 +1,22 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
+  resolveAcademySummary,
+  resolveBodyguardsTruth,
   resolveChiefWaitState,
   resolveCorrelationTruth,
   resolveDecisionTruth,
+  resolveDeskMatrix,
   resolveGateDecisionTruth,
+  resolveLiveHQMetrics,
+  resolveSnitchTruth,
   resolveSpeechBubble,
   resolveExecutionTruth,
   resolveStewardTruth,
   resolveThreadContext,
   validateThreadAssociation,
 } from '../studio/execution_truth.js';
+
 
 // -------------------------------------------------------------
 // 1. EXECUTION CLASS RESOLUTION
@@ -350,11 +356,7 @@ assert.deepEqual(ACADEMY_FLOW_STEPS, [
 // -------------------------------------------------------------
 // 8. LIVE AGENT HQ DESK MATRIX, CAPACITIES & METRICS
 // -------------------------------------------------------------
-import {
-  resolveAcademySummary,
-  resolveDeskMatrix,
-  resolveLiveHQMetrics,
-} from '../studio/execution_truth.js';
+
 
 // 8.1 Desk Matrix Resolution & Capacities
 const mockHQState = {
@@ -388,7 +390,7 @@ const mockHQState = {
 };
 
 const desks = resolveDeskMatrix(mockHQState);
-assert.equal(desks.length, 29, 'HQ must have 29 visible desks including SNITCH');
+assert.equal(desks.length, 36, 'HQ must have 36 visible desks including SNITCH and 8 Bodyguards');
 
 // Verify planned future expansion desks
 const futureDesks = desks.filter(d => d.type === 'FUTURE');
@@ -414,8 +416,9 @@ assert.equal(unassignedEquipped.status, 'REGISTERED_EQUIPPED');
 
 // 8.2 Master TV Wall Overview Metrics
 const hqMetrics = resolveLiveHQMetrics(mockHQState);
-assert.equal(hqMetrics.total_desks, 29);
+assert.equal(hqMetrics.total_desks, 36);
 assert.equal(hqMetrics.total_capacity, 40);
+
 assert.equal(hqMetrics.active_agents >= 2, true);
 assert.equal(hqMetrics.future_workstations, 3);
 assert.equal(hqMetrics.current_workflow, 'WF-CHIEF-DEMO-001');
@@ -463,4 +466,86 @@ const cdxOnlyDesks = resolveDeskMatrix(cdxOnlyState);
 assert.equal(cdxOnlyDesks.find(d => d.id === 'DESK-ANTIGRAVITY-05').status, 'IDLE');
 assert.equal(cdxOnlyDesks.find(d => d.id === 'DESK-CODEX-06').status, 'ACTIVE');
 
+// -------------------------------------------------------------
+// 9. SNITCH 2.0 & EIGHT BODYGUARDS TRUTH INVARIANTS
+// -------------------------------------------------------------
+// 9.1 SNITCH 2.0 Watchdog Truth Resolution
+const defaultSnitch = resolveSnitchTruth({});
+assert.equal(defaultSnitch.name, 'SNITCH');
+assert.equal(defaultSnitch.state, 'MONITORING');
+assert.equal(defaultSnitch.speech, "I'm monitoring running tasks. Everything looks healthy.");
+assert.equal(defaultSnitch.auto_kill_policy, 'DISABLED (CHIEF_ESCALATION_ONLY)');
+assert.equal(defaultSnitch.five_minute_rule, 'RUNTIME > 5 MIN != ERROR (DISTINGUISHES PERSISTENT SERVICES AND PROGRESSING TASKS)');
+
+const persistentSnitch = resolveSnitchTruth({
+  snitch: { state: 'EXPECTED_LONG_RUNNING', speech: 'The Studio server is intentionally persistent. No action needed.' },
+});
+assert.equal(persistentSnitch.state, 'EXPECTED_LONG_RUNNING');
+assert.equal(persistentSnitch.speech, 'The Studio server is intentionally persistent. No action needed.');
+
+const slowSnitch = resolveSnitchTruth({
+  snitch: { state: 'SLOW_BUT_PROGRESSING', speech: 'This task has exceeded five minutes, but progress is still detected.' },
+});
+assert.equal(slowSnitch.state, 'SLOW_BUT_PROGRESSING');
+assert.equal(slowSnitch.speech, 'This task has exceeded five minutes, but progress is still detected.');
+
+const stalledSnitch = resolveSnitchTruth({
+  snitch: {
+    state: 'STALLED',
+    speech: 'No meaningful progress detected. I informed Chief.',
+    incident: { active: true, classification: 'STALLED', severity: 'HIGH' },
+  },
+});
+assert.equal(stalledSnitch.state, 'STALLED');
+assert.equal(stalledSnitch.active_incident, true);
+assert.equal(stalledSnitch.incident_details.severity, 'HIGH');
+
+// 9.2 Eight Bodyguards Reserve Pool Truth Resolution
+const defaultBodyguards = resolveBodyguardsTruth({});
+assert.equal(defaultBodyguards.length, 8);
+const expectedBgNames = ['ALPHA', 'BRAVO', 'CHARLIE', 'DELTA', 'ECHO', 'FOXTROT', 'GOLF', 'HOTEL'];
+assert.deepEqual(defaultBodyguards.map(b => b.callsign), expectedBgNames);
+defaultBodyguards.forEach(bg => {
+  assert.equal(bg.state, 'STANDBY');
+  assert.equal(bg.is_standby, true);
+  assert.equal(bg.model_calls_incurred, 0);
+  assert.equal(bg.speech, 'Ready for reserve duty.');
+});
+
+// Assigned Bodyguard Alpha
+const assignedBgState = {
+  bodyguards: [
+    {
+      id: 'agent-bodyguard-alpha',
+      callsign: 'ALPHA',
+      state: 'ASSIGNED',
+      temporary_role: 'QA_WORKER',
+      task: 'TASK-QA-001',
+      speech: 'Temporary role QA_WORKER received. Preparing task.',
+    },
+  ],
+};
+const resolvedAssignedBgs = resolveBodyguardsTruth(assignedBgState);
+const alphaBg = resolvedAssignedBgs.find(b => b.callsign === 'ALPHA');
+assert.equal(alphaBg.state, 'ASSIGNED');
+assert.equal(alphaBg.temporary_role, 'QA_WORKER');
+assert.equal(alphaBg.is_standby, false);
+assert.equal(alphaBg.speech, 'Temporary role QA_WORKER received. Preparing task.');
+
+// Bravo remains STANDBY
+const bravoBg = resolvedAssignedBgs.find(b => b.callsign === 'BRAVO');
+assert.equal(bravoBg.state, 'STANDBY');
+assert.equal(bravoBg.is_standby, true);
+
+// 9.3 Live Desk Matrix contains SNITCH, 8 Bodyguards, and 3 Future Expansion Desks
+const fullHQDesks = resolveDeskMatrix(assignedBgState);
+assert.ok(fullHQDesks.find(d => d.id === 'DESK-SNITCH-10'));
+assert.ok(fullHQDesks.find(d => d.id === 'DESK-BG-01'));
+assert.ok(fullHQDesks.find(d => d.id === 'DESK-BG-08'));
+assert.equal(fullHQDesks.filter(d => d.type === 'BODYGUARD').length, 8);
+assert.equal(fullHQDesks.filter(d => d.type === 'FUTURE').length, 3);
+assert.equal(fullHQDesks.find(d => d.id === 'DESK-BG-01').status, 'ACTIVE');
+assert.equal(fullHQDesks.find(d => d.id === 'DESK-BG-02').status, 'IDLE');
+
 console.log('execution truth tests: PASS (100% SUCCESS)');
+

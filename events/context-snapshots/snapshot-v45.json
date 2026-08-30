@@ -1,16 +1,16 @@
 {
   "schema_version": "2.0",
-  "context_version": 57,
-  "generated_at": "2026-08-30T17:22:42.029819+00:00",
+  "context_version": 45,
+  "generated_at": "2026-08-30T15:55:37.376367+00:00",
   "repositories": {
-    "courier_head": "0eef375843dc680ec7515b3a035358bdc4c0a598",
-    "memory_head": "37e1747c269761ae9d13e2db1f5fc4f03969c1d6",
+    "courier_head": "eb0cc383f7e3b707e53af68acd773bbc67a55f78",
+    "memory_head": "b40e263616c3036ecb39be2e8016afc3f9edc572",
     "godot_head": "NOT_CONNECTED"
   },
   "workflow_state": {
-    "workflow_id": "WF-CHIEF-baf86f",
-    "correlation_id": "corr-demo-ac30d722",
-    "current_task_id": "WF-CHIEF-baf86f-STEP-3-SYNTHESIZE",
+    "workflow_id": "WF-CHIEF-b9f026",
+    "correlation_id": "corr-demo-0d2ba5e3",
+    "current_task_id": "WF-CHIEF-b9f026-STEP-3-SYNTHESIZE",
     "is_locked": false,
     "agent_states": {
       "agent-codex-bridge": {
@@ -25,7 +25,7 @@
         "task": "Compiling Project Context Snapshot",
         "progress": 0.1,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T17:22:42.029858+00:00"
+        "updated_at": "2026-08-30T15:55:37.376406+00:00"
       },
       "test-agent-busy": {
         "state": "RUNNING",
@@ -34,68 +34,26 @@
         "execution_class": "UNKNOWN",
         "updated_at": null
       },
-      "agent-bodyguard-hotel": {
-        "state": "STANDBY",
-        "task": "Reserve Duty (Standby)",
-        "progress": 0.0,
-        "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T17:17:31.200648+00:00"
-      },
-      "agent-bodyguard-golf": {
-        "state": "STANDBY",
-        "task": "Reserve Duty (Standby)",
-        "progress": 0.0,
-        "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T17:17:31.198252+00:00"
-      },
-      "agent-bodyguard-alpha": {
-        "state": "STANDBY",
-        "task": "Reserve Duty (Standby)",
-        "progress": 0.0,
-        "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T17:17:31.176750+00:00"
-      },
       "agent-thought-curator": {
         "state": "SENT TO CHIEF",
         "task": "Curated idea-5138f1d9",
         "progress": 1.0,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T17:22:41.293250+00:00"
+        "updated_at": "2026-08-30T15:55:37.372858+00:00"
       },
       "agent-academy-director": {
-        "state": "EVALUATING",
+        "state": "ADOPTION APPROVED",
         "task": null,
         "progress": 0.0,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T17:22:42.020048+00:00"
-      },
-      "agent-bodyguard-delta": {
-        "state": "STANDBY",
-        "task": "Reserve Duty (Standby)",
-        "progress": 0.0,
-        "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T17:17:31.183732+00:00"
+        "updated_at": "2026-08-30T15:44:00.210231+00:00"
       },
       "agent-antigravity-bridge": {
         "state": "COMPLETED",
-        "task": "WF-CHIEF-baf86f-STEP-3-SYNTHESIZE",
+        "task": "WF-CHIEF-b9f026-STEP-3-SYNTHESIZE",
         "progress": 1.0,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T17:22:41.466202+00:00"
-      },
-      "agent-bodyguard-charlie": {
-        "state": "STANDBY",
-        "task": "Reserve Duty (Standby)",
-        "progress": 0.0,
-        "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T17:17:31.181718+00:00"
-      },
-      "agent-bodyguard-echo": {
-        "state": "STANDBY",
-        "task": "Reserve Duty (Standby)",
-        "progress": 0.0,
-        "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T17:17:31.186324+00:00"
+        "updated_at": "2026-08-30T15:44:00.052549+00:00"
       },
       "test-agent-g": {
         "state": "AWAITING_CHIEF_REVIEW",
@@ -118,39 +76,18 @@
         "execution_class": "UNKNOWN",
         "updated_at": "2026-08-30T14:41:16.687284+00:00"
       },
-      "agent-bodyguard-foxtrot": {
-        "state": "STANDBY",
-        "task": "Reserve Duty (Standby)",
-        "progress": 0.0,
-        "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T17:17:31.195279+00:00"
-      },
-      "agent-bodyguard-bravo": {
-        "state": "STANDBY",
-        "task": "Reserve Duty (Standby)",
-        "progress": 0.0,
-        "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T17:17:31.180043+00:00"
-      },
       "agent-academy-teacher": {
         "state": "PENDING_REVIEW",
         "task": null,
         "progress": 0.0,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T17:22:42.011693+00:00"
-      },
-      "agent-snitch": {
-        "state": "EXPECTED_LONG_RUNNING",
-        "task": null,
-        "progress": 0.0,
-        "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T17:04:56.621194+00:00"
+        "updated_at": "2026-08-30T15:44:00.195958+00:00"
       }
     },
-    "total_decisions": 87,
-    "total_results": 99,
-    "total_approvals": 13,
-    "total_adoptions": 12
+    "total_decisions": 73,
+    "total_results": 85,
+    "total_approvals": 10,
+    "total_adoptions": 9
   },
   "memory_truth": {
     "latest_verified_milestone": "**VERIFIED_CURRENT** | Source: local repository audit of `2026-Projektzentrale` | Verified: 2026-08-29. Two final vertical FruitKI files exist locally: `kiwi-stealth-short-001-final.mp4` (10 s) and `strawberry-school-short-002-final.mp4` (7.125 s); both were locally inspected as 360\u00d7640 H.264/AAC assets. See [TECHNICAL_CONTEXT.md](TECHNICAL_CONTEXT.md).",
@@ -185,8 +122,7 @@
       "D-028 \u2014 Update Steward Studio workstation and task thread context integration",
       "D-029 \u2014 AI Academy Layer (Teacher + Director) and Evidence Evaluation Architecture",
       "D-030 \u2014 AI Academy visual workstation and dual-loop process integration",
-      "D-031 \u2014 Live Agent HQ / Operations World, Master TV Wall and Facility Matrix",
-      "D-032 \u2014 Human Gate provenance and SNITCH evidence-only runtime monitoring"
+      "D-031 \u2014 Live Agent HQ / Operations World, Master TV Wall and Facility Matrix"
     ],
     "open_blockers": [],
     "relevant_ideas": [],
@@ -223,9 +159,9 @@
       "ideas": true,
       "project_state": true
     },
-    "timestamp": "2026-08-30T17:22:41.293196+00:00"
+    "timestamp": "2026-08-30T15:55:37.372780+00:00"
   },
-  "academy_adoptions": 12,
+  "academy_adoptions": 9,
   "truth_classifications": {
     "courier_codebase": "VERIFIED",
     "project_memory": "VERIFIED",
@@ -237,9 +173,11 @@
     "truth_invariants": "IDEA != IMPLEMENTED | USER_REPORTED != VERIFIED | DETERMINISTIC != REAL_EXTERNAL"
   },
   "changed_since_previous_snapshot": [
-    "academy_adoptions"
+    "courier_head",
+    "memory_head",
+    "decisions"
   ],
-  "previous_snapshot_version": 56,
-  "previous_snapshot_hash": "ce3ac7ec58819e70ab86bd43bf30dfcb59dbd2baddb184a7d887b037015c748c",
-  "snapshot_hash": "45dc8f11ffc6e14e40afee881557c82d0bbe1f320cdefb4f2fc019e6e64c6a5a"
+  "previous_snapshot_version": 44,
+  "previous_snapshot_hash": "def7fbe532e16d771b079d9b2aa3473ff98442cf1e3b6849e30eb9e399ec5555",
+  "snapshot_hash": "4bc73978172da6ca2b1bc0b8d55da1dc09a33f6cb4bcb6f8c25e21ae99886047"
 }

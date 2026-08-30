@@ -1,14 +1,14 @@
 {
   "schema_version": "2.0",
-  "decision_id": "dec-3c516ee41d",
-  "task_id": "WF-CHIEF-b9f026-STEP-2-IMPLEMENT",
-  "correlation_id": "corr-demo-0d2ba5e3",
-  "workflow_id": "WF-CHIEF-b9f026",
+  "decision_id": "dec-04ad4aa8db",
+  "task_id": "WF-CHIEF-baf86f-STEP-2-IMPLEMENT",
+  "correlation_id": "corr-demo-ac30d722",
+  "workflow_id": "WF-CHIEF-baf86f",
   "round_index": 0,
   "verdict": "ACCEPTED",
   "action": "DISPATCH_NEXT_WORKFLOW_TASK",
   "next_task": {
-    "task_id": "WF-CHIEF-b9f026-STEP-3-SYNTHESIZE",
+    "task_id": "WF-CHIEF-baf86f-STEP-3-SYNTHESIZE",
     "instruction": "Finalize results, verify invariants, and assemble completion package for: Optimiere FruitKI 3D Video-Render Pipeline und erstelle Release-Metadaten",
     "allowed_scope": [
       "config/teamwork_policy.json"
@@ -17,5 +17,5 @@
     "payload_override": null
   },
   "reason": "Round 1 passed; advancing to Round 2.",
-  "created_at": "2026-08-30T15:44:00.033451+00:00"
+  "created_at": "2026-08-30T17:22:41.393291+00:00"
 }

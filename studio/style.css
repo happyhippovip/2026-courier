@@ -1256,3 +1256,139 @@ body.recording-mode .preset-pills {
   border-color: var(--accent-cyan);
   color: var(--text-primary);
 }
+
+/* SNITCH 2.0 Watchdog Styling */
+.badge-snitch {
+  background: rgba(255, 183, 3, 0.15);
+  border: 1px solid #ffb703;
+  color: #ffb703;
+}
+
+.snitch-speech-box {
+  background: rgba(255, 183, 3, 0.08);
+  border: 1px solid rgba(255, 183, 3, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.speech-author {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: #ffb703;
+}
+
+.speech-quote {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--text-primary);
+}
+
+/* Bodyguard Ready Room Grid */
+.bodyguard-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.bodyguard-slot-card {
+  background: rgba(18, 22, 34, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.bodyguard-slot-card:hover {
+  border-color: var(--accent-cyan);
+  transform: translateY(-2px);
+}
+
+.bg-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bg-slot-tag {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
+.bg-callsign {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-cyan);
+}
+
+.bg-badge {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
+.badge-standby {
+  background: rgba(0, 255, 136, 0.12);
+  border: 1px solid rgba(0, 255, 136, 0.4);
+  color: var(--accent-green);
+}
+
+.badge-assigned {
+  background: rgba(58, 134, 255, 0.15);
+  border: 1px solid var(--accent-blue);
+  color: var(--accent-blue);
+}
+
+.badge-working {
+  background: rgba(255, 183, 3, 0.15);
+  border: 1px solid #ffb703;
+  color: #ffb703;
+}
+
+.badge-returning {
+  background: rgba(157, 78, 221, 0.15);
+  border: 1px solid var(--accent-purple);
+  color: var(--accent-purple);
+}
+
+.badge-mismatch {
+  background: rgba(255, 0, 85, 0.15);
+  border: 1px solid var(--accent-red);
+  color: var(--accent-red);
+}
+
+.bg-role-tag {
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+.bg-task-desc {
+  font-size: 10px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bg-speech-bubble {
+  font-size: 10px;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(0, 0, 0, 0.25);
+  padding: 4px 6px;
+  border-radius: 4px;
+  border-left: 2px solid var(--accent-cyan);
+}
+

@@ -524,7 +524,126 @@ export function resolveAcademySummary(stateData) {
 }
 
 /**
- * Resolve Live Agent HQ Desk Matrix (29 workstations: 18 agent roles, ~25 equipped, 3 future expansion).
+ * Resolve SNITCH 2.0 runtime watchdog truth strictly from evidence.
+ */
+export function resolveSnitchTruth(stateData) {
+  const snitch = stateData?.snitch || stateData?.agents?.['agent-snitch'] || {};
+  const incidents = Array.isArray(stateData?.incidents) ? stateData.incidents : [];
+  const latestAlert = stateData?.runtime_alert;
+
+  const state = typeof snitch.state === 'string' && snitch.state.trim()
+    ? snitch.state
+    : 'MONITORING';
+
+  const defaultSpeech = state === 'EXPECTED_LONG_RUNNING'
+    ? 'The Studio server is intentionally persistent. No action needed.'
+    : (state === 'SLOW_BUT_PROGRESSING'
+        ? 'This task has exceeded five minutes, but progress is still detected.'
+        : (state === 'STALLED' || state === 'SUSPECTED_STALL'
+            ? 'No meaningful progress detected. I informed Chief.'
+            : (state === 'RUNAWAY_RISK'
+                ? 'A bounded process exceeded its safety contract. I raised a high-priority incident.'
+                : (state === 'WAITING_FOR_HUMAN'
+                    ? 'A workflow task is paused at the Human Gate awaiting sign-off.'
+                    : "I'm monitoring running tasks. Everything looks healthy."))));
+
+  const speech = typeof snitch.speech === 'string' && snitch.speech.trim()
+    ? snitch.speech
+    : defaultSpeech;
+
+  const activeIncident = Boolean(snitch.incident?.active || latestAlert || incidents.length > 0);
+
+  return {
+    id: 'agent-snitch',
+    name: 'SNITCH',
+    role: 'OPERATIONS WATCHDOG / DELAY SENTINEL',
+    state,
+    speech,
+    task: snitch.task || 'Active Monitoring',
+    last_action: snitch.last_action || 'Monitoring operations floor for runaway tasks or stalls',
+    next_action: snitch.next_action || 'Continue evidence-based monitoring',
+    active_incident: activeIncident,
+    incident_details: snitch.incident || latestAlert || null,
+    incidents_list: incidents,
+    auto_kill_policy: 'DISABLED (CHIEF_ESCALATION_ONLY)',
+    five_minute_rule: 'RUNTIME > 5 MIN != ERROR (DISTINGUISHES PERSISTENT SERVICES AND PROGRESSING TASKS)',
+  };
+}
+
+/**
+ * Resolve Eight Bodyguards Reserve Pool truth strictly from evidence.
+ */
+export function resolveBodyguardsTruth(stateData) {
+  const registry = [
+    { slot: 'BG-01', callsign: 'ALPHA', id: 'agent-bodyguard-alpha', name: 'BODYGUARD ALPHA' },
+    { slot: 'BG-02', callsign: 'BRAVO', id: 'agent-bodyguard-bravo', name: 'BODYGUARD BRAVO' },
+    { slot: 'BG-03', callsign: 'CHARLIE', id: 'agent-bodyguard-charlie', name: 'BODYGUARD CHARLIE' },
+    { slot: 'BG-04', callsign: 'DELTA', id: 'agent-bodyguard-delta', name: 'BODYGUARD DELTA' },
+    { slot: 'BG-05', callsign: 'ECHO', id: 'agent-bodyguard-echo', name: 'BODYGUARD ECHO' },
+    { slot: 'BG-06', callsign: 'FOXTROT', id: 'agent-bodyguard-foxtrot', name: 'BODYGUARD FOXTROT' },
+    { slot: 'BG-07', callsign: 'GOLF', id: 'agent-bodyguard-golf', name: 'BODYGUARD GOLF' },
+    { slot: 'BG-08', callsign: 'HOTEL', id: 'agent-bodyguard-hotel', name: 'BODYGUARD HOTEL' },
+  ];
+
+  const poolData = Array.isArray(stateData?.bodyguards) ? stateData.bodyguards : [];
+  const agents = stateData?.agents || {};
+
+  return registry.map(reg => {
+    const fromPool = poolData.find(b => b.id === reg.id || b.callsign === reg.callsign);
+    const fromAgent = agents[reg.id];
+    const raw = fromPool || fromAgent || {};
+
+    const state = typeof raw.state === 'string' && raw.state.trim()
+      ? raw.state
+      : 'STANDBY';
+
+    const tempRole = typeof raw.temporary_role === 'string' && raw.temporary_role.trim()
+      ? raw.temporary_role
+      : null;
+
+    const defaultSpeech = state === 'STANDBY'
+      ? 'Ready for reserve duty.'
+      : (state === 'ASSIGNED'
+          ? `Temporary role ${tempRole || 'ACCEPTED'} received. Preparing task.`
+          : (state === 'WORKING'
+              ? "I'm covering this task while the specialist is busy."
+              : (state === 'RETURNING'
+                  ? 'Result delivered to Courier. Returning to standby.'
+                  : (state === 'CAPABILITY_MISMATCH'
+                      ? 'Required capability is unavailable. Flagging capability mismatch.'
+                      : `Bodyguard ${reg.callsign} on reserve.`))));
+
+    const speech = typeof raw.speech === 'string' && raw.speech.trim()
+      ? raw.speech
+      : defaultSpeech;
+
+    return {
+      slot: reg.slot,
+      callsign: reg.callsign,
+      id: reg.id,
+      name: reg.name,
+      state,
+      temporary_role: tempRole,
+      task: raw.task || (state === 'STANDBY' ? 'Reserve Duty (Standby)' : null),
+      progress: Number.isFinite(raw.progress) ? raw.progress : 0.0,
+      speech,
+      is_standby: state === 'STANDBY',
+      blocked: state === 'BLOCKED' || state === 'CAPABILITY_MISMATCH',
+      model_calls_incurred: 0,
+      supported_capabilities: raw.supported_capabilities || [
+        'local_filesystem',
+        'deterministic_execution',
+        'courier_envelope_handling',
+        'git_inspection',
+        'media_metadata',
+        'test_runner',
+      ],
+    };
+  });
+}
+
+/**
+ * Resolve Live Agent HQ Desk Matrix (37 total desks: core agents, 8 bodyguards, ~25 equipped pods, 3 future expansion).
  */
 export function resolveDeskMatrix(stateData) {
   const agents = stateData?.agents || {};
@@ -540,7 +659,7 @@ export function resolveDeskMatrix(stateData) {
     { id: 'DESK-TEACHER-07', agentId: 'agent-academy-teacher', name: 'Agentenlehrer', zone: 'ACADEMY', icon: '👨‍🏫', type: 'ACADEMY' },
     { id: 'DESK-DIRECTOR-08', agentId: 'agent-academy-director', name: 'Schuldirektor', zone: 'ACADEMY', icon: '🏛️', type: 'ACADEMY' },
     { id: 'DESK-ROUTER-09', agentId: 'smart-resource-router', name: 'Smart Router', zone: 'STRATEGY', icon: '🧭', type: 'ROUTER' },
-    { id: 'DESK-SECURITY-10', agentId: 'agent-security-sentinel', name: 'Security Sentinel', zone: 'SERVER', icon: '🛡️', type: 'SECURITY' },
+    { id: 'DESK-SNITCH-10', agentId: 'agent-snitch', name: 'SNITCH Watchdog', zone: 'SERVER', icon: '👀', type: 'WATCHDOG' },
     { id: 'DESK-ASSET-11', agentId: 'agent-asset-validator', name: 'Asset Validator', zone: 'ANTIGRAVITY', icon: '📐', type: 'WORKER' },
     { id: 'DESK-VIDEO-12', agentId: 'agent-video-synth', name: 'Video Synth', zone: 'ANTIGRAVITY', icon: '🎬', type: 'WORKER' },
     { id: 'DESK-CHANNEL-13', agentId: 'agent-channel-dispatcher', name: 'Channel Dispatcher', zone: 'COURIER', icon: '📡', type: 'COURIER' },
@@ -548,7 +667,14 @@ export function resolveDeskMatrix(stateData) {
     { id: 'DESK-GATE-15', agentId: 'agent-human-gate-monitor', name: 'Human Gate Monitor', zone: 'STRATEGY', icon: '🚨', type: 'GATE' },
     { id: 'DESK-TEST-16', agentId: 'agent-test-guardian', name: 'Test Guardian', zone: 'CODEX', icon: '🧪', type: 'QA' },
     { id: 'DESK-LOOP-17', agentId: 'agent-loop-supervisor', name: 'Loop Supervisor', zone: 'STRATEGY', icon: '🔁', type: 'SUPERVISOR' },
-    { id: 'DESK-SNITCH-18', agentId: 'agent-snitch', name: 'SNITCH', zone: 'SERVER', icon: '👀', type: 'WATCHDOG' },
+    { id: 'DESK-BG-01', agentId: 'agent-bodyguard-alpha', name: 'Bodyguard Alpha', zone: 'BODYGUARDS', icon: '🛡️', type: 'BODYGUARD' },
+    { id: 'DESK-BG-02', agentId: 'agent-bodyguard-bravo', name: 'Bodyguard Bravo', zone: 'BODYGUARDS', icon: '🛡️', type: 'BODYGUARD' },
+    { id: 'DESK-BG-03', agentId: 'agent-bodyguard-charlie', name: 'Bodyguard Charlie', zone: 'BODYGUARDS', icon: '🛡️', type: 'BODYGUARD' },
+    { id: 'DESK-BG-04', agentId: 'agent-bodyguard-delta', name: 'Bodyguard Delta', zone: 'BODYGUARDS', icon: '🛡️', type: 'BODYGUARD' },
+    { id: 'DESK-BG-05', agentId: 'agent-bodyguard-echo', name: 'Bodyguard Echo', zone: 'BODYGUARDS', icon: '🛡️', type: 'BODYGUARD' },
+    { id: 'DESK-BG-06', agentId: 'agent-bodyguard-foxtrot', name: 'Bodyguard Foxtrot', zone: 'BODYGUARDS', icon: '🛡️', type: 'BODYGUARD' },
+    { id: 'DESK-BG-07', agentId: 'agent-bodyguard-golf', name: 'Bodyguard Golf', zone: 'BODYGUARDS', icon: '🛡️', type: 'BODYGUARD' },
+    { id: 'DESK-BG-08', agentId: 'agent-bodyguard-hotel', name: 'Bodyguard Hotel', zone: 'BODYGUARDS', icon: '🛡️', type: 'BODYGUARD' },
     { id: 'DESK-EQUIPPED-18', agentId: null, name: 'Code Review Pod', zone: 'CODEX', icon: '📝', type: 'EQUIPPED' },
     { id: 'DESK-EQUIPPED-19', agentId: null, name: '3D Shader Workbench', zone: 'ANTIGRAVITY', icon: '✨', type: 'EQUIPPED' },
     { id: 'DESK-EQUIPPED-20', agentId: null, name: 'Audio Synth Station', zone: 'ANTIGRAVITY', icon: '🎙️', type: 'EQUIPPED' },
@@ -573,12 +699,32 @@ export function resolveDeskMatrix(stateData) {
 
     const agent = agents[def.agentId];
     if (!agent) {
+      // Check if it's a bodyguard in pool
+      if (def.type === 'BODYGUARD') {
+        const bgs = resolveBodyguardsTruth(stateData);
+        const bg = bgs.find(b => b.id === def.agentId);
+        if (bg) {
+          const bgState = bg.state;
+          const isBgBusy = bgState === 'WORKING' || bgState === 'PREPARING' || bgState === 'ASSIGNED';
+          const isBgBlocked = bgState === 'BLOCKED' || bgState === 'CAPABILITY_MISMATCH';
+          return {
+            ...def,
+            status: isBgBlocked ? 'BLOCKED' : (isBgBusy ? 'ACTIVE' : 'IDLE'),
+            state: bgState,
+            task: bg.task || 'Reserve Duty (Standby)',
+            execution_class: 'DETERMINISTIC_ANTIGRAVITY',
+            progress: bg.progress,
+            temporary_role: bg.temporary_role,
+            speech: bg.speech,
+          };
+        }
+      }
       return { ...def, status: 'UNKNOWN', state: 'UNKNOWN', task: null, execution_class: 'UNKNOWN' };
     }
 
     const state = typeof agent.state === 'string' ? agent.state : 'IDLE';
-    const isBusy = state === 'RUNNING' || state === 'COMPARING' || state === 'REVIEWING' || state === 'COORDINATING';
-    const isBlocked = agent.blocked || bus.human_gate || state.includes('BLOCKED');
+    const isBusy = state === 'RUNNING' || state === 'COMPARING' || state === 'REVIEWING' || state === 'COORDINATING' || state === 'WORKING';
+    const isBlocked = agent.blocked || bus.human_gate || state.includes('BLOCKED') || state === 'CAPABILITY_MISMATCH';
 
     return {
       ...def,
@@ -587,6 +733,8 @@ export function resolveDeskMatrix(stateData) {
       task: agent.task || 'Standby',
       execution_class: resolveExecutionTruth(agent),
       progress: Number.isFinite(agent.progress) ? agent.progress : 0.0,
+      speech: agent.speech || null,
+      temporary_role: agent.temporary_role || null,
     };
   });
 }
@@ -635,6 +783,7 @@ export function resolveLiveHQMetrics(stateData) {
       : (blockedCount > 0 ? 'ATTENTION_REQUIRED' : (bus.is_locked ? 'OPERATIONAL_BUSY' : 'OPERATIONAL_HEALTHY')),
   };
 }
+
 
 // This is a static explanation of the architecture, not execution evidence.
 export const ACADEMY_FLOW_STEPS = Object.freeze([
