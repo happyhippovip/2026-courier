@@ -1,4 +1,7 @@
 # Runtime envelopes remain local and are never committed automatically.
+**/__pycache__/
+*.pyc
+
 events/incoming/*.json
 events/processed/*.json
 events/dispatch/*.json
