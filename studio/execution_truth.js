@@ -63,6 +63,29 @@ export function resolveGateDecisionTruth(busState) {
     : 'NO_DECISION';
 }
 
+/** Deterministic, machine-state-derived speech; no model narration. */
+export function resolveSpeechBubble(agentId, agentState, busState) {
+  const state = typeof agentState?.state === 'string' ? agentState.state : 'UNKNOWN';
+  const task = typeof agentState?.task === 'string' && agentState.task ? agentState.task : null;
+  if (agentId === 'agent-snitch') {
+    if (state === 'EXPECTED_LONG_RUNNING') return 'The Studio server is intentionally running continuously. No action needed.';
+    if (state === 'SLOW_BUT_PROGRESSING') return 'This task is slow, but recent progress is recorded.';
+    if (state === 'ALERT_SENT' || state === 'STALLED') return 'No recent progress was recorded. I informed Chief.';
+    if (state === 'WAITING_FOR_HUMAN') return 'A human gate is active. I am monitoring safely.';
+    if (state === 'MONITORING') return 'I am watching runtime evidence. Everything is within threshold.';
+  }
+  if (agentId === 'agent-chief-commander' && state === 'RUNNING') {
+    return 'A workflow is active. I am waiting for machine-recorded results.';
+  }
+  if (agentId === 'agent-courier-relay' && task) return `Courier is handling: ${task}.`;
+  if (agentId === 'agent-academy-teacher' && state === 'PENDING_REVIEW') return 'I am waiting for the next safe lesson window.';
+  if (busState?.human_gate && (agentId === 'agent-chief-commander' || state.includes('BLOCKED'))) {
+    return 'This workflow is waiting for verified human approval.';
+  }
+  if (task) return `${state}: ${task}.`;
+  return state === 'UNKNOWN' ? 'No current machine evidence is available.' : `${state}: no task is currently recorded.`;
+}
+
 /**
  * Return a real correlation id only.  The caller may display a neutral label
  * for null, but must never generate an identifier in the browser.
@@ -501,7 +524,7 @@ export function resolveAcademySummary(stateData) {
 }
 
 /**
- * Resolve Live Agent HQ Desk Matrix (28 workstations: 17 active equipped roles, ~25 equipped, 3 future expansion).
+ * Resolve Live Agent HQ Desk Matrix (29 workstations: 18 agent roles, ~25 equipped, 3 future expansion).
  */
 export function resolveDeskMatrix(stateData) {
   const agents = stateData?.agents || {};
@@ -525,6 +548,7 @@ export function resolveDeskMatrix(stateData) {
     { id: 'DESK-GATE-15', agentId: 'agent-human-gate-monitor', name: 'Human Gate Monitor', zone: 'STRATEGY', icon: '🚨', type: 'GATE' },
     { id: 'DESK-TEST-16', agentId: 'agent-test-guardian', name: 'Test Guardian', zone: 'CODEX', icon: '🧪', type: 'QA' },
     { id: 'DESK-LOOP-17', agentId: 'agent-loop-supervisor', name: 'Loop Supervisor', zone: 'STRATEGY', icon: '🔁', type: 'SUPERVISOR' },
+    { id: 'DESK-SNITCH-18', agentId: 'agent-snitch', name: 'SNITCH', zone: 'SERVER', icon: '👀', type: 'WATCHDOG' },
     { id: 'DESK-EQUIPPED-18', agentId: null, name: 'Code Review Pod', zone: 'CODEX', icon: '📝', type: 'EQUIPPED' },
     { id: 'DESK-EQUIPPED-19', agentId: null, name: '3D Shader Workbench', zone: 'ANTIGRAVITY', icon: '✨', type: 'EQUIPPED' },
     { id: 'DESK-EQUIPPED-20', agentId: null, name: 'Audio Synth Station', zone: 'ANTIGRAVITY', icon: '🎙️', type: 'EQUIPPED' },

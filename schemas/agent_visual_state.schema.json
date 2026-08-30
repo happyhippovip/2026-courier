@@ -68,6 +68,10 @@
       "type": ["string", "null"],
       "description": "Active workflow domain, e.g. content_production, dropshipping, automation, memory_sync"
     },
+    "correlation_id": {
+      "type": ["string", "null"],
+      "description": "Courier correlation identifier when a state belongs to a workflow"
+    },
     "last_action": {
       "type": "string",
       "description": "Description of the most recently executed action"

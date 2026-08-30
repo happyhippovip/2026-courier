@@ -17,10 +17,19 @@
         <span class="logo-pulse"></span>
         <span class="logo-title">COURIER // CHIEF OPERATIONS COCKPIT</span>
       </div>
+      <div class="treasury-mini" aria-label="Treasury evidence display">
+        <span class="treasury-title">TREASURY</span>
+        <span>EUR: <b id="treasury-eur">UNKNOWN</b></span>
+        <span>USD: <b id="treasury-usd">UNKNOWN</b></span>
+        <span class="treasury-verified">VERIFIED: <b id="treasury-verified">NOT_VERIFIED</b></span>
+        <span class="treasury-goal" id="treasury-goal">$8 / $1,000,000,000</span>
+        <span class="treasury-goal-note">ASPIRATIONAL GOAL — NOT REVENUE FORECAST</span>
+        <span class="treasury-goal-track"><i id="treasury-goal-bar"></i></span>
+      </div>
       <div class="system-status">
         <span class="status-indicator online"></span>
-        <span class="status-text" id="server-status">LIVE BUS CONNECTED</span>
-        <span class="commit-badge" id="courier-commit">HEAD: 293dbff</span>
+        <span class="status-text" id="server-status">CONNECTING TO LOCAL BUS</span>
+        <span class="commit-badge" id="courier-commit">HEAD: UNVERIFIED</span>
       </div>
     </div>
 
@@ -92,9 +101,9 @@
       <div class="tv-title-row">
         <span class="tv-live-beacon"></span>
         <h2 class="tv-wall-title">HQ FLIGHT DECK // MASTER OPERATIONS TV WALL</h2>
-        <span class="tv-capacity-tag">Capacity: ~17 Active • ~25 Equipped • 3 Future Expansion • 40 Max</span>
+        <span class="tv-capacity-tag">Capacity: 18 Agent Roles • ~25 Equipped • 3 Future Expansion • 40 Max</span>
       </div>
-      <div class="tv-health-badge" id="tv-system-health">OPERATIONAL_HEALTHY</div>
+      <div class="tv-health-badge" id="tv-system-health">UNKNOWN</div>
     </div>
 
     <div class="tv-grid-metrics">
@@ -104,15 +113,15 @@
       </div>
       <div class="tv-metric-card">
         <span class="tv-label">IDLE / READY</span>
-        <span class="tv-val" id="tv-idle-agents">17</span>
+        <span class="tv-val" id="tv-idle-agents">UNKNOWN</span>
       </div>
       <div class="tv-metric-card">
         <span class="tv-label">BLOCKED / GATED</span>
-        <span class="tv-val text-alert" id="tv-blocked-agents">0</span>
+        <span class="tv-val text-alert" id="tv-blocked-agents">UNKNOWN</span>
       </div>
       <div class="tv-metric-card">
         <span class="tv-label">EQUIPPED DESKS</span>
-        <span class="tv-val" id="tv-available-desks">25</span>
+        <span class="tv-val" id="tv-available-desks">UNKNOWN</span>
       </div>
       <div class="tv-metric-card">
         <span class="tv-label">FUTURE DESKS</span>
@@ -127,23 +136,23 @@
     <div class="tv-flight-row">
       <div class="tv-flight-item">
         <span class="tv-sublabel">WORKFLOW:</span>
-        <span class="tv-subval font-mono" id="tv-workflow">IDLE_MONITORING</span>
+        <span class="tv-subval font-mono" id="tv-workflow">UNKNOWN</span>
       </div>
       <div class="tv-flight-item">
         <span class="tv-sublabel">CORRELATION:</span>
-        <span class="tv-subval font-mono text-accent" id="tv-correlation">NONE</span>
+        <span class="tv-subval font-mono text-accent" id="tv-correlation">UNKNOWN</span>
       </div>
       <div class="tv-flight-item">
         <span class="tv-sublabel">CHIEF WAIT STATE:</span>
-        <span class="tv-subval font-mono" id="tv-chief-wait">IDLE</span>
+        <span class="tv-subval font-mono" id="tv-chief-wait">UNKNOWN</span>
       </div>
       <div class="tv-flight-item">
         <span class="tv-sublabel">CONTEXT VERSION:</span>
-        <span class="tv-subval font-mono" id="tv-context-ver">v0</span>
+        <span class="tv-subval font-mono" id="tv-context-ver">UNKNOWN</span>
       </div>
       <div class="tv-flight-item">
         <span class="tv-sublabel">NEXT SCHOOL TIME:</span>
-        <span class="tv-subval font-mono text-secondary" id="tv-academy-time">06:00 UTC</span>
+        <span class="tv-subval font-mono text-secondary" id="tv-academy-time">UNKNOWN</span>
       </div>
     </div>
   </section>
@@ -411,9 +420,30 @@
           </div>
         </div>
       </div>
-    </section>
+  </section>
 
-    <!-- 4. Antigravity Primary Heavy Studio -->
+  <!-- SNITCH: deterministic runtime watchdog, never a process controller -->
+  <section class="workstation-card" id="station-snitch">
+    <div class="card-header">
+      <div class="station-identity">
+        <span class="station-icon">👀</span>
+        <div>
+          <h2 class="station-title">SNITCH</h2>
+          <span class="station-role">Runtime Watchdog / Delay Sentinel</span>
+        </div>
+      </div>
+      <span class="badge badge-snitch" id="snitch-state">UNKNOWN</span>
+    </div>
+    <div class="card-body">
+      <div class="metric-row">
+        <div class="metric-box"><span class="metric-label">MONITORED TASK</span><span class="metric-value font-mono" id="snitch-task">UNKNOWN</span></div>
+        <div class="metric-box"><span class="metric-label">LATEST ALERT</span><span class="metric-value font-mono text-alert" id="snitch-alert">NO_ALERT</span></div>
+      </div>
+      <div class="feed-label">Evidence-based only · No automatic kill, restart, delete, or dispatch</div>
+    </div>
+  </section>
+
+  <!-- 4. Antigravity Primary Heavy Studio -->
     <section class="workstation-card" id="station-antigravity">
       <div class="card-header">
         <div class="station-identity">
@@ -738,32 +768,32 @@
             <span class="station-role">Deterministic Infrastructure & Sentinel Defenses</span>
           </div>
         </div>
-        <span class="badge badge-worker execution-real">ACTIVE // 0.00 EUR</span>
+        <span class="badge badge-worker execution-registered">REGISTERED // NO LIVE TELEMETRY</span>
       </div>
 
       <div class="card-body">
         <div class="metric-row">
           <div class="metric-box">
             <span class="metric-label">Rack Thermal & Power</span>
-            <span class="metric-value font-mono text-accent">21.4°C • NORMAL</span>
+            <span class="metric-value font-mono text-accent">UNKNOWN (NO LIVE TELEMETRY)</span>
           </div>
           <div class="metric-box">
             <span class="metric-label">Sentinel Gate</span>
-            <span class="metric-value font-mono">DESK-SECURITY-10 (ACTIVE)</span>
+            <span class="metric-value font-mono">DESK-SECURITY-10 (REGISTERED)</span>
           </div>
         </div>
 
         <div class="server-racks-display">
-          <div class="rack-unit"><span class="rack-led online"></span> RACK-01 // COURIER BUS</div>
-          <div class="rack-unit"><span class="rack-led online"></span> RACK-02 // MEMORY MESH</div>
-          <div class="rack-unit"><span class="rack-led online"></span> RACK-03 // EVAL RUNNER</div>
+          <div class="rack-unit"><span class="rack-led standby"></span> RACK-01 // COURIER BUS (REGISTERED)</div>
+          <div class="rack-unit"><span class="rack-led standby"></span> RACK-02 // MEMORY MESH (REGISTERED)</div>
+          <div class="rack-unit"><span class="rack-led standby"></span> RACK-03 // EVAL RUNNER (REGISTERED)</div>
           <div class="rack-unit"><span class="rack-led standby"></span> RACK-04 // BACKUP VAULT</div>
         </div>
 
         <div class="action-feed">
           <span class="feed-label">INFRASTRUCTURE STATUS</span>
           <div class="feed-log font-mono">
-            <div class="log-entry">[INFRA] 100% deterministic local runtime active. Zero external API leaks.</div>
+            <div class="log-entry">[INFRA] Registered topology only; live rack telemetry is not connected.</div>
           </div>
         </div>
       </div>
@@ -888,7 +918,7 @@
     </div>
     <div class="footer-item">
       <span class="label">THOUGHT CURATOR:</span>
-      <span class="val highlight">ACTIVE (DETERMINISTIC MEMORY SYNC)</span>
+      <span class="val highlight">UNKNOWN (AWAITING LOCAL STATE)</span>
     </div>
     <div class="footer-item">
       <span class="label">UPDATE STEWARD:</span>

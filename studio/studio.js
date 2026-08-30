@@ -9,6 +9,7 @@ import {
   resolveCorrelationTruth,
   resolveDecisionTruth,
   resolveGateDecisionTruth,
+  resolveSpeechBubble,
   resolveDeskMatrix,
   resolveDirectorTruth,
   resolveExecutionTruth,
@@ -51,6 +52,14 @@ class OperationsStudio {
     this.tvContextVer = document.getElementById('tv-context-ver');
     this.tvAcademyTime = document.getElementById('tv-academy-time');
     this.busFlowViz = document.querySelector('.bus-flow-viz');
+    this.snitchState = document.getElementById('snitch-state');
+    this.snitchTask = document.getElementById('snitch-task');
+    this.snitchAlert = document.getElementById('snitch-alert');
+    this.treasuryEur = document.getElementById('treasury-eur');
+    this.treasuryUsd = document.getElementById('treasury-usd');
+    this.treasuryVerified = document.getElementById('treasury-verified');
+    this.treasuryGoal = document.getElementById('treasury-goal');
+    this.treasuryGoalBar = document.getElementById('treasury-goal-bar');
 
     // Academy Evidence Explorer Elements
     this.explorerLessonsList = document.getElementById('explorer-lessons-list');
@@ -502,6 +511,43 @@ class OperationsStudio {
       codexCard.classList.remove('active-working');
     }
 
+    // 6. SNITCH watchdog: display only its persisted machine evidence.
+    const snitch = agents['agent-snitch'] || {};
+    if (this.snitchState) this.snitchState.textContent = snitch.state || 'UNKNOWN';
+    if (this.snitchTask) this.snitchTask.textContent = snitch.task || 'No monitored task recorded';
+    if (this.snitchAlert) this.snitchAlert.textContent = data.runtime_alert?.classification || 'NO_ALERT';
+    const snitchCard = document.getElementById('station-snitch');
+    if (snitchCard) {
+      snitchCard.classList.toggle(
+        'active-working',
+        snitch.state === 'MONITORING' || snitch.state === 'SLOW_BUT_PROGRESSING',
+      );
+    }
+
+    this.renderSpeechBubbles({
+      'agent-chief-commander': chief,
+      'agent-courier-relay': agents['agent-courier-relay'] || {},
+      'agent-antigravity-bridge': ag,
+      'agent-codex-bridge': codex,
+      'agent-thought-curator': curator,
+      'agent-update-steward': agents['agent-update-steward'] || {},
+      'agent-academy-teacher': agents['agent-academy-teacher'] || {},
+      'agent-academy-director': agents['agent-academy-director'] || {},
+      'agent-snitch': snitch,
+    }, bus);
+
+    const treasury = data.treasury || {};
+    if (this.treasuryEur) this.treasuryEur.textContent = treasury.eur ?? 'UNKNOWN';
+    if (this.treasuryUsd) this.treasuryUsd.textContent = treasury.usd ?? 'UNKNOWN';
+    if (this.treasuryVerified) this.treasuryVerified.textContent = treasury.last_verified_at || 'NOT_VERIFIED';
+    if (this.treasuryGoal) {
+      this.treasuryGoal.textContent = `$${treasury.goal_current_usd ?? 'UNKNOWN'} / $${Number(treasury.goal_target_usd || 1_000_000_000).toLocaleString()}`;
+    }
+    if (this.treasuryGoalBar) {
+      const percent = Math.min(100, ((Number(treasury.goal_current_usd) || 0) / (Number(treasury.goal_target_usd) || 1)) * 100);
+      this.treasuryGoalBar.style.width = `${percent}%`;
+    }
+
     // 7. Update AI Academy: Agentenlehrer Station
     const teacher = resolveTeacherTruth(data);
     if (this.badgeTeacherState) {
@@ -714,6 +760,31 @@ class OperationsStudio {
 
   formatEvidenceValue(value) {
     return value === null || value === undefined ? 'UNKNOWN' : String(value);
+  }
+
+  renderSpeechBubbles(agentStates, bus) {
+    const stationByAgent = {
+      'agent-chief-commander': 'station-chief',
+      'agent-courier-relay': 'station-courier',
+      'agent-antigravity-bridge': 'station-antigravity',
+      'agent-codex-bridge': 'station-codex',
+      'agent-thought-curator': 'station-curator',
+      'agent-update-steward': 'station-steward',
+      'agent-academy-teacher': 'station-teacher',
+      'agent-academy-director': 'station-director',
+      'agent-snitch': 'station-snitch',
+    };
+    for (const [agentId, state] of Object.entries(agentStates)) {
+      const station = document.getElementById(stationByAgent[agentId]);
+      if (!station) continue;
+      let bubble = station.querySelector('.agent-speech-bubble');
+      if (!bubble) {
+        bubble = document.createElement('p');
+        bubble.className = 'agent-speech-bubble';
+        station.querySelector('.card-header')?.after(bubble);
+      }
+      bubble.textContent = resolveSpeechBubble(agentId, state, bus);
+    }
   }
 
   renderEvidencePills(container, values, emptyLabel) {

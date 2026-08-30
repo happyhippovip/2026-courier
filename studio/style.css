@@ -417,6 +417,47 @@ body.view-9-16 .studio-grid {
   box-shadow: 0 0 24px rgba(0, 240, 255, 0.2);
 }
 
+.agent-speech-bubble {
+  margin: 0 14px 10px;
+  padding: 7px 10px;
+  border: 1px solid rgba(0, 240, 255, 0.24);
+  border-radius: 10px;
+  background: rgba(0, 240, 255, 0.06);
+  color: var(--text-primary);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.agent-speech-bubble::before {
+  content: 'STATE · ';
+  color: var(--accent-cyan);
+  font-family: var(--font-mono);
+  font-size: 9px;
+}
+
+.treasury-mini {
+  display: grid;
+  grid-template-columns: repeat(2, max-content);
+  gap: 2px 8px;
+  margin-left: 12px;
+  padding: 5px 9px;
+  border-left: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font: 9px/1.25 var(--font-mono);
+}
+
+.treasury-title, .treasury-goal, .treasury-goal-note, .treasury-goal-track, .treasury-verified {
+  grid-column: 1 / -1;
+}
+
+.treasury-title { color: var(--accent-gold, #f5c542); font-weight: 800; }
+.treasury-goal { color: var(--text-primary); font-weight: 700; }
+.treasury-goal-note { color: var(--text-muted); font-size: 8px; }
+.treasury-goal-track { display: block; height: 3px; width: 100%; background: rgba(245, 197, 66, 0.16); border-radius: 99px; overflow: hidden; }
+.treasury-goal-track i { display: block; height: 100%; min-width: 1px; background: var(--accent-gold, #f5c542); }
+
+.badge-snitch { color: #ffc857; border-color: rgba(255, 200, 87, 0.45); }
+
 .workstation-card.hub-card {
   grid-column: span 2;
 }

@@ -5,6 +5,7 @@ import {
   resolveCorrelationTruth,
   resolveDecisionTruth,
   resolveGateDecisionTruth,
+  resolveSpeechBubble,
   resolveExecutionTruth,
   resolveStewardTruth,
   resolveThreadContext,
@@ -57,6 +58,19 @@ const gateWithMatchingDecision = {
   gate_decision: { status: 'APPROVE', workflow_id: 'idea-1', correlation_id: 'corr-gate-1' },
 };
 assert.equal(resolveGateDecisionTruth(gateWithMatchingDecision), 'APPROVE');
+
+assert.match(
+  resolveSpeechBubble('agent-snitch', { state: 'EXPECTED_LONG_RUNNING' }, {}),
+  /intentionally running continuously/i,
+);
+assert.match(
+  resolveSpeechBubble('agent-snitch', { state: 'STALLED' }, {}),
+  /informed Chief/i,
+);
+assert.match(
+  resolveSpeechBubble('agent-chief-commander', {}, {}),
+  /No current machine evidence/i,
+);
 
 // A missing correlation remains absent; it is never generated in the browser.
 assert.equal(resolveCorrelationTruth({}), null);
@@ -374,7 +388,7 @@ const mockHQState = {
 };
 
 const desks = resolveDeskMatrix(mockHQState);
-assert.equal(desks.length, 28, 'HQ must have 28 initial visible desks');
+assert.equal(desks.length, 29, 'HQ must have 29 visible desks including SNITCH');
 
 // Verify planned future expansion desks
 const futureDesks = desks.filter(d => d.type === 'FUTURE');
@@ -400,7 +414,7 @@ assert.equal(unassignedEquipped.status, 'REGISTERED_EQUIPPED');
 
 // 8.2 Master TV Wall Overview Metrics
 const hqMetrics = resolveLiveHQMetrics(mockHQState);
-assert.equal(hqMetrics.total_desks, 28);
+assert.equal(hqMetrics.total_desks, 29);
 assert.equal(hqMetrics.total_capacity, 40);
 assert.equal(hqMetrics.active_agents >= 2, true);
 assert.equal(hqMetrics.future_workstations, 3);

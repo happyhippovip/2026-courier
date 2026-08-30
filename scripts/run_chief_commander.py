@@ -120,6 +120,42 @@ class ChiefCommander:
             role="Autonomous Orchestration & Review",
         )
 
+    def review_runtime_alert(self, alert: dict) -> dict:
+        """Create a bounded Chief routing recommendation for a SNITCH alert.
+
+        This deliberately does not start, kill, or restart a worker.  It is a
+        durable Courier/Chief decision artifact that a separately authorized
+        dispatcher may later consume.
+        """
+        required = ("message_id", "workflow_id", "correlation_id", "classification", "reason")
+        if not all(isinstance(alert.get(field), str) and alert[field] for field in required):
+            raise ValueError("Runtime alert lacks required provenance")
+        if alert.get("agent_id") != "agent-snitch":
+            raise ValueError("Runtime alert source must be agent-snitch")
+
+        description = f"Runtime alert diagnosis: {alert['classification']} — {alert['reason']}"
+        target_agent, routing_reason, execution_class = SmartResourceRouter.classify_and_route(
+            description, [], {"runtime_alert": alert["message_id"]}
+        )
+        decision = {
+            "schema_version": "2.0",
+            "decision_id": f"dec-runtime-{uuid.uuid4().hex[:10]}",
+            "source_alert_id": alert["message_id"],
+            "workflow_id": alert["workflow_id"],
+            "correlation_id": alert["correlation_id"],
+            "verdict": "RUNTIME_ALERT_REVIEWED",
+            "action": "RECOMMEND_SCOPED_DIAGNOSIS",
+            "recommended_target_agent": target_agent,
+            "execution_class": execution_class,
+            "reason": routing_reason,
+            "next_task": None,
+            "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        }
+        decision_dir = self.repo_dir / "events/chief-decisions"
+        decision_dir.mkdir(parents=True, exist_ok=True)
+        save_json(decision_dir / f"{alert['message_id']}-chief-decision.json", decision)
+        return decision
+
     def formulate_workflow_plan(
         self,
         idea_text: str,

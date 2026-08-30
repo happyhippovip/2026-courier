@@ -168,12 +168,14 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         decisions_dir = EVENTS_DIR / "chief-decisions"
         locks_dir = EVENTS_DIR / "locks"
         approvals_dir = EVENTS_DIR / "approvals"
+        runtime_alerts_dir = EVENTS_DIR / "runtime-alerts"
 
         counts = {
             "dispatch": len(list(dispatch_dir.glob("*.json"))) if dispatch_dir.exists() else 0,
             "processed": len(list(processed_dir.glob("*.json"))) if processed_dir.exists() else 0,
             "decisions": len(list(decisions_dir.glob("*.json"))) if decisions_dir.exists() else 0,
             "approvals": len(list(approvals_dir.glob("*.json"))) if approvals_dir.exists() else 0,
+            "runtime_alerts": len(list(runtime_alerts_dir.glob("*.json"))) if runtime_alerts_dir.exists() else 0,
         }
 
         active_locks = list(locks_dir.glob("*.lock")) if locks_dir.exists() else []
@@ -211,6 +213,21 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         gate_decision = resolve_active_gate_decision(
             active_human_gate, decisions_dir, approvals_dir
         )
+
+        latest_runtime_alert = None
+        if runtime_alerts_dir.exists():
+            alert_files = sorted(runtime_alerts_dir.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
+            if alert_files:
+                latest_runtime_alert = load_json_safe(alert_files[0]) or None
+
+        treasury = {
+            "eur": None,
+            "usd": None,
+            "last_verified_at": None,
+            "goal_current_usd": 8,
+            "goal_target_usd": 1_000_000_000,
+            "goal_status": "ASPIRATIONAL_MANUAL_NOT_VERIFIED",
+        }
 
         # Read latest context snapshot
         snapshot_file = EVENTS_DIR / "context-snapshots/snapshot-current.json"
@@ -286,6 +303,8 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             "counts": counts,
             "context_snapshot": snapshot_data,
             "academy": academy_data,
+            "runtime_alert": latest_runtime_alert,
+            "treasury": treasury,
             "bus": {
                 "is_locked": is_locked,
                 "active_lock": active_lock_name,
