@@ -144,9 +144,68 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         snapshot_file = EVENTS_DIR / "context-snapshots/snapshot-current.json"
         snapshot_data = load_json_safe(snapshot_file) if snapshot_file.exists() else None
 
-        # Read academy summary
-        econ_file = EVENTS_DIR / "academy/economics.json"
-        econ_data = load_json_safe(econ_file) if econ_file.exists() else None
+        # Read academy structured evidence
+        academy_dir = EVENTS_DIR / "academy"
+        academy_data = None
+        if academy_dir.exists():
+            config_data = load_json_safe(academy_dir / "config.json")
+            econ_data = load_json_safe(academy_dir / "economics.json")
+
+            # Collect latest lessons (bounded to latest 15)
+            lessons_dir = academy_dir / "lessons"
+            recent_lessons = []
+            opportunity_candidates = []
+            if lessons_dir.exists():
+                lfiles = sorted(lessons_dir.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
+                for lf in lfiles[:15]:
+                    ld = load_json_safe(lf)
+                    if ld and "lesson_id" in ld:
+                        summary_entry = {
+                            "lesson_id": ld.get("lesson_id"),
+                            "title": ld.get("title"),
+                            "topic": ld.get("topic"),
+                            "status": ld.get("status", "DISCOVERED"),
+                            "lesson_type": ld.get("lesson_type"),
+                            "risk": ld.get("risk", "LOW"),
+                            "affected_agents": ld.get("affected_agents", []),
+                            "expected_benefit": ld.get("expected_benefit"),
+                            "discovered_at": ld.get("discovered_at"),
+                            "novelty_hash": ld.get("novelty_hash", "")[:12],
+                        }
+                        recent_lessons.append(summary_entry)
+                        if ld.get("lesson_type") == "OPPORTUNITY_CANDIDATE":
+                            opportunity_candidates.append({
+                                "lesson_id": ld.get("lesson_id"),
+                                "title": ld.get("title"),
+                                "status": ld.get("status", "DISCOVERED"),
+                                "idea_sync_id": ld.get("idea_sync_id"),
+                                "evidence": ld.get("evidence"),
+                                "revenue_evidence": "NOT_VERIFIED",
+                            })
+
+            # Collect latest evaluations (bounded to 10)
+            evals_dir = academy_dir / "evaluations"
+            recent_evals = []
+            if evals_dir.exists():
+                efiles = sorted(evals_dir.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
+                for ef in efiles[:10]:
+                    ed = load_json_safe(ef)
+                    if ed and "evaluation_id" in ed:
+                        recent_evals.append({
+                            "evaluation_id": ed.get("evaluation_id"),
+                            "lesson_id": ed.get("lesson_id"),
+                            "verdict": ed.get("verdict", "UNKNOWN"),
+                            "metrics": ed.get("metrics", {}),
+                            "evaluated_at": ed.get("evaluated_at"),
+                        })
+
+            academy_data = {
+                "config": config_data,
+                "economics": econ_data,
+                "lessons": recent_lessons,
+                "opportunities": opportunity_candidates,
+                "evaluations": recent_evals,
+            }
 
         response_data = {
             "schema_version": "2.0",
@@ -154,7 +213,7 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             "agents": agents_data,
             "counts": counts,
             "context_snapshot": snapshot_data,
-            "academy": econ_data,
+            "academy": academy_data,
             "bus": {
                 "is_locked": is_locked,
                 "active_lock": active_lock_name,

@@ -926,3 +926,288 @@ body.recording-mode .preset-pills {
 .loop-learning .loop-steps {
   color: var(--text-primary);
 }
+
+/* Master Operations TV Wall */
+.master-tv-wall {
+  background: linear-gradient(180deg, rgba(16, 21, 34, 0.95), rgba(11, 14, 20, 0.98));
+  border-bottom: 1px solid var(--border-color);
+  padding: 14px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tv-wall-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tv-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tv-live-beacon {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  box-shadow: 0 0 10px var(--accent-cyan);
+  animation: pulse-glow 2s infinite ease-in-out;
+}
+
+.tv-wall-title {
+  font-family: var(--font-orbitron);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: var(--text-primary);
+}
+
+.tv-capacity-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tv-health-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 4px;
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--accent-green);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.tv-health-badge.alert {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--accent-red);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.tv-grid-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+}
+
+.tv-metric-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tv-metric-card .tv-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+}
+
+.tv-metric-card .tv-val {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.tv-flight-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 11px;
+}
+
+.tv-flight-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tv-sublabel {
+  color: var(--text-muted);
+}
+
+.tv-subval {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* Academy Explorer Grid */
+.academy-explorer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.explorer-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.explorer-list {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 8px;
+  max-height: 160px;
+  overflow-y: auto;
+  font-size: 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Server Racks Display */
+.server-racks-display {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.rack-unit {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+}
+
+.rack-led {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-muted);
+}
+
+.rack-led.online {
+  background: var(--accent-green);
+  box-shadow: 0 0 6px var(--accent-green);
+}
+
+.rack-led.standby {
+  background: var(--accent-amber);
+}
+
+/* Wellness Amenities Grid */
+.wellness-amenities-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.amenity-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.amenity-icon {
+  font-size: 20px;
+}
+
+.amenity-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.amenity-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.amenity-sub {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+/* Expansion Desks Grid */
+.expansion-desks-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.future-desk-pill {
+  background: rgba(157, 78, 221, 0.08);
+  border: 1px dashed rgba(157, 78, 221, 0.3);
+  border-radius: 6px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.desk-icon {
+  font-size: 16px;
+}
+
+.desk-name {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-purple);
+}
+
+.desk-status {
+  font-size: 9px;
+  color: var(--text-muted);
+}
+
+.expansion-note {
+  font-size: 11px;
+  margin-top: 4px;
+}
+
+/* Wall Brand Motifs */
+.brand-motifs-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.brand-poster {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.brand-poster:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-cyan);
+  color: var(--text-primary);
+}

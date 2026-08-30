@@ -414,7 +414,7 @@ export function resolveDirectorTruth(stateData) {
  * Never fabricates earned revenue; reports NOT_VERIFIED / UNKNOWN if absent.
  */
 export function resolveAcademyEconomics(stateData) {
-  const econ = stateData?.academy || {};
+  const econ = stateData?.academy?.economics || stateData?.academy || {};
   const director = stateData?.agents?.['agent-academy-director'];
 
   const measuredMinSaved = Number.isFinite(econ.measured_minutes_saved)
@@ -450,6 +450,135 @@ export function resolveAcademyEconomics(stateData) {
     eval_pass_rate: evalPassRate,
     revenue_evidence: revenueEvidence,
     truth_label: 'OPPORTUNITY != REVENUE (MEASURED SAVINGS ONLY)',
+  };
+}
+
+/**
+ * Resolve bounded Academy structured evidence (config, lessons, opportunities, evaluations).
+ */
+export function resolveAcademySummary(stateData) {
+  const academy = stateData?.academy || {};
+  const config = academy.config || {};
+  const lessons = Array.isArray(academy.lessons) ? academy.lessons : [];
+  const opportunities = Array.isArray(academy.opportunities) ? academy.opportunities : [];
+  const evaluations = Array.isArray(academy.evaluations) ? academy.evaluations : [];
+
+  return {
+    is_enabled: typeof config.academy_enabled === 'boolean' ? config.academy_enabled : true,
+    timezone: config.academy_timezone || 'UTC',
+    daily_time: config.academy_daily_time || '06:00',
+    window_minutes: typeof config.academy_window_minutes === 'number' ? config.academy_window_minutes : 60,
+    lessons_count: lessons.length,
+    recent_lessons: lessons,
+    opportunities_count: opportunities.length,
+    recent_opportunities: opportunities,
+    evaluations_count: evaluations.length,
+    recent_evaluations: evaluations,
+  };
+}
+
+/**
+ * Resolve Live Agent HQ Desk Matrix (28 workstations: 17 active equipped roles, ~25 equipped, 3 future expansion).
+ */
+export function resolveDeskMatrix(stateData) {
+  const agents = stateData?.agents || {};
+  const bus = stateData?.bus || {};
+
+  const deskDefinitions = [
+    { id: 'DESK-CHIEF-01', agentId: 'agent-chief-commander', name: 'Chief Commander', zone: 'STRATEGY', icon: '👑', type: 'CORE' },
+    { id: 'DESK-CURATOR-02', agentId: 'agent-thought-curator', name: 'Idea Sync / Curator', zone: 'IDEA_LAB', icon: '🧠', type: 'CORE' },
+    { id: 'DESK-STEWARD-03', agentId: 'agent-update-steward', name: 'Update Steward', zone: 'CONTEXT', icon: '🔄', type: 'CORE' },
+    { id: 'DESK-COURIER-04', agentId: 'agent-courier-relay', name: 'Courier Hub Relay', zone: 'COURIER', icon: '⚡', type: 'CORE' },
+    { id: 'DESK-ANTIGRAVITY-05', agentId: 'agent-antigravity-bridge', name: 'Antigravity Studio', zone: 'ANTIGRAVITY', icon: '🎨', type: 'WORKER' },
+    { id: 'DESK-CODEX-06', agentId: 'agent-codex-bridge', name: 'Codex Technical Lab', zone: 'CODEX', icon: '💻', type: 'WORKER' },
+    { id: 'DESK-TEACHER-07', agentId: 'agent-academy-teacher', name: 'Agentenlehrer', zone: 'ACADEMY', icon: '👨‍🏫', type: 'ACADEMY' },
+    { id: 'DESK-DIRECTOR-08', agentId: 'agent-academy-director', name: 'Schuldirektor', zone: 'ACADEMY', icon: '🏛️', type: 'ACADEMY' },
+    { id: 'DESK-ROUTER-09', agentId: 'smart-resource-router', name: 'Smart Router', zone: 'STRATEGY', icon: '🧭', type: 'ROUTER' },
+    { id: 'DESK-SECURITY-10', agentId: 'agent-security-sentinel', name: 'Security Sentinel', zone: 'SERVER', icon: '🛡️', type: 'SECURITY' },
+    { id: 'DESK-ASSET-11', agentId: 'agent-asset-validator', name: 'Asset Validator', zone: 'ANTIGRAVITY', icon: '📐', type: 'WORKER' },
+    { id: 'DESK-VIDEO-12', agentId: 'agent-video-synth', name: 'Video Synth', zone: 'ANTIGRAVITY', icon: '🎬', type: 'WORKER' },
+    { id: 'DESK-CHANNEL-13', agentId: 'agent-channel-dispatcher', name: 'Channel Dispatcher', zone: 'COURIER', icon: '📡', type: 'COURIER' },
+    { id: 'DESK-MEMORY-14', agentId: 'agent-memory-mesh', name: 'Memory Mesh Indexer', zone: 'IDEA_LAB', icon: '🗄️', type: 'INDEXER' },
+    { id: 'DESK-GATE-15', agentId: 'agent-human-gate-monitor', name: 'Human Gate Monitor', zone: 'STRATEGY', icon: '🚨', type: 'GATE' },
+    { id: 'DESK-TEST-16', agentId: 'agent-test-guardian', name: 'Test Guardian', zone: 'CODEX', icon: '🧪', type: 'QA' },
+    { id: 'DESK-LOOP-17', agentId: 'agent-loop-supervisor', name: 'Loop Supervisor', zone: 'STRATEGY', icon: '🔁', type: 'SUPERVISOR' },
+    { id: 'DESK-EQUIPPED-18', agentId: null, name: 'Code Review Pod', zone: 'CODEX', icon: '📝', type: 'EQUIPPED' },
+    { id: 'DESK-EQUIPPED-19', agentId: null, name: '3D Shader Workbench', zone: 'ANTIGRAVITY', icon: '✨', type: 'EQUIPPED' },
+    { id: 'DESK-EQUIPPED-20', agentId: null, name: 'Audio Synth Station', zone: 'ANTIGRAVITY', icon: '🎙️', type: 'EQUIPPED' },
+    { id: 'DESK-EQUIPPED-21', agentId: null, name: 'Memory Diff Inspector', zone: 'IDEA_LAB', icon: '📑', type: 'EQUIPPED' },
+    { id: 'DESK-EQUIPPED-22', agentId: null, name: 'Academy Eval Pod', zone: 'ACADEMY', icon: '📊', type: 'EQUIPPED' },
+    { id: 'DESK-EQUIPPED-23', agentId: null, name: 'Opportunity Scout Desk', zone: 'ACADEMY', icon: '🔭', type: 'EQUIPPED' },
+    { id: 'DESK-EQUIPPED-24', agentId: null, name: 'Economics Tracker', zone: 'STRATEGY', icon: '📈', type: 'EQUIPPED' },
+    { id: 'DESK-EQUIPPED-25', agentId: null, name: 'Incident Responder Pod', zone: 'SERVER', icon: '🚒', type: 'EQUIPPED' },
+    { id: 'DESK-FUTURE-26', agentId: null, name: 'Expansion Station Alpha', zone: 'FUTURE', icon: '🔮', type: 'FUTURE' },
+    { id: 'DESK-FUTURE-27', agentId: null, name: 'Expansion Station Beta', zone: 'FUTURE', icon: '🔮', type: 'FUTURE' },
+    { id: 'DESK-FUTURE-28', agentId: null, name: 'Expansion Station Gamma', zone: 'FUTURE', icon: '🔮', type: 'FUTURE' },
+  ];
+
+  return deskDefinitions.map(def => {
+    if (def.type === 'FUTURE') {
+      return { ...def, status: 'FUTURE_EXPANSION', state: 'FUTURE', task: 'Reserved for expansion', execution_class: 'UNKNOWN' };
+    }
+
+    if (!def.agentId) {
+      return { ...def, status: 'AVAILABLE', state: 'READY', task: 'Available Workstation', execution_class: 'UNKNOWN' };
+    }
+
+    const agent = agents[def.agentId];
+    if (!agent) {
+      return { ...def, status: 'IDLE', state: 'IDLE', task: 'Standby', execution_class: 'UNKNOWN' };
+    }
+
+    const state = typeof agent.state === 'string' ? agent.state : 'IDLE';
+    const isBusy = state === 'RUNNING' || state === 'COMPARING' || state === 'REVIEWING' || state === 'COORDINATING';
+    const isBlocked = agent.blocked || bus.human_gate || state.includes('BLOCKED');
+
+    return {
+      ...def,
+      status: isBlocked ? 'BLOCKED' : (isBusy ? 'ACTIVE' : 'IDLE'),
+      state,
+      task: agent.task || 'Standby',
+      execution_class: resolveExecutionTruth(agent),
+      progress: Number.isFinite(agent.progress) ? agent.progress : 0.0,
+    };
+  });
+}
+
+/**
+ * Resolve Live HQ Master Overview metrics for the Large Dashboard / TV Wall.
+ */
+export function resolveLiveHQMetrics(stateData) {
+  const desks = resolveDeskMatrix(stateData);
+  const bus = stateData?.bus || {};
+  const snapshot = stateData?.context_snapshot;
+
+  let activeCount = 0;
+  let idleCount = 0;
+  let blockedCount = 0;
+  let availableCount = 0;
+  let futureCount = 0;
+
+  for (const desk of desks) {
+    if (desk.status === 'ACTIVE') activeCount++;
+    else if (desk.status === 'BLOCKED') blockedCount++;
+    else if (desk.status === 'IDLE') idleCount++;
+    else if (desk.status === 'AVAILABLE') availableCount++;
+    else if (desk.status === 'FUTURE_EXPANSION') futureCount++;
+  }
+
+  return {
+    total_desks: desks.length,
+    active_agents: activeCount,
+    idle_agents: idleCount,
+    blocked_agents: blockedCount,
+    available_workstations: availableCount,
+    future_workstations: futureCount,
+    total_capacity: 40,
+    chief_wait_state: resolveChiefWaitState(stateData),
+    current_workflow: typeof bus.active_workflow === 'string' ? bus.active_workflow : 'IDLE_MONITORING',
+    correlation_id: resolveCorrelationTruth(bus) || 'NONE',
+    context_version: typeof snapshot?.context_version === 'number' ? snapshot.context_version : (bus.context_version || 0),
+    system_health: blockedCount > 0 ? 'ATTENTION_REQUIRED' : (bus.is_locked ? 'OPERATIONAL_BUSY' : 'OPERATIONAL_HEALTHY'),
   };
 }
 

@@ -86,7 +86,69 @@
     </div>
   </section>
 
-  <!-- Main Canvas: Agent Workstations & Academy Classrooms -->
+  <!-- Large Main Dashboard / Operations TV Wall -->
+  <section class="master-tv-wall" id="master-tv-wall">
+    <div class="tv-wall-header">
+      <div class="tv-title-row">
+        <span class="tv-live-beacon"></span>
+        <h2 class="tv-wall-title">HQ FLIGHT DECK // MASTER OPERATIONS TV WALL</h2>
+        <span class="tv-capacity-tag">Capacity: ~17 Active • ~25 Equipped • 3 Future Expansion • 40 Max</span>
+      </div>
+      <div class="tv-health-badge" id="tv-system-health">OPERATIONAL_HEALTHY</div>
+    </div>
+
+    <div class="tv-grid-metrics">
+      <div class="tv-metric-card">
+        <span class="tv-label">ACTIVE AGENTS</span>
+        <span class="tv-val text-accent" id="tv-active-agents">0</span>
+      </div>
+      <div class="tv-metric-card">
+        <span class="tv-label">IDLE / READY</span>
+        <span class="tv-val" id="tv-idle-agents">17</span>
+      </div>
+      <div class="tv-metric-card">
+        <span class="tv-label">BLOCKED / GATED</span>
+        <span class="tv-val text-alert" id="tv-blocked-agents">0</span>
+      </div>
+      <div class="tv-metric-card">
+        <span class="tv-label">EQUIPPED DESKS</span>
+        <span class="tv-val" id="tv-available-desks">25</span>
+      </div>
+      <div class="tv-metric-card">
+        <span class="tv-label">FUTURE DESKS</span>
+        <span class="tv-val text-muted" id="tv-future-desks">3</span>
+      </div>
+      <div class="tv-metric-card">
+        <span class="tv-label">MAX CAPACITY</span>
+        <span class="tv-val">40</span>
+      </div>
+    </div>
+
+    <div class="tv-flight-row">
+      <div class="tv-flight-item">
+        <span class="tv-sublabel">WORKFLOW:</span>
+        <span class="tv-subval font-mono" id="tv-workflow">IDLE_MONITORING</span>
+      </div>
+      <div class="tv-flight-item">
+        <span class="tv-sublabel">CORRELATION:</span>
+        <span class="tv-subval font-mono text-accent" id="tv-correlation">NONE</span>
+      </div>
+      <div class="tv-flight-item">
+        <span class="tv-sublabel">CHIEF WAIT STATE:</span>
+        <span class="tv-subval font-mono" id="tv-chief-wait">IDLE</span>
+      </div>
+      <div class="tv-flight-item">
+        <span class="tv-sublabel">CONTEXT VERSION:</span>
+        <span class="tv-subval font-mono" id="tv-context-ver">v0</span>
+      </div>
+      <div class="tv-flight-item">
+        <span class="tv-sublabel">NEXT SCHOOL TIME:</span>
+        <span class="tv-subval font-mono text-secondary" id="tv-academy-time">06:00 UTC</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Canvas: Agent Workstations, Classrooms & HQ Facilities -->
   <main class="studio-grid" id="main-studio-canvas">
 
     <!-- 1. Idea Sync & Thought Curator Station -->
@@ -620,6 +682,198 @@
           <div class="feed-log font-mono" id="director-feed-log">
             <div class="log-entry system">[DIREKTOR] No backend activity evidence yet.</div>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9. AI Academy Evidence & Opportunity Explorer -->
+    <section class="workstation-card hub-card" id="card-academy-explorer">
+      <div class="card-header">
+        <div class="station-identity">
+          <span class="station-icon">📚</span>
+          <div>
+            <h2 class="station-title">ACADEMY EVIDENCE EXPLORER</h2>
+            <span class="station-role">Structured Lessons, Opportunity Candidates & Eval Gates</span>
+          </div>
+        </div>
+        <span class="badge badge-bus" id="badge-academy-explorer">EVIDENCE SYNCED</span>
+      </div>
+
+      <div class="card-body">
+        <div class="academy-explorer-grid">
+          <!-- Lessons Feed -->
+          <div class="explorer-col">
+            <span class="feed-label">RECENT LESSON PROPOSALS</span>
+            <div class="explorer-list font-mono" id="explorer-lessons-list">
+              <div class="log-entry">Loading lessons evidence...</div>
+            </div>
+          </div>
+
+          <!-- Opportunity Candidates Feed -->
+          <div class="explorer-col">
+            <span class="feed-label">OPPORTUNITY CANDIDATES (REVENUE: NOT_VERIFIED)</span>
+            <div class="explorer-list font-mono" id="explorer-opps-list">
+              <div class="log-entry">Loading opportunity candidates...</div>
+            </div>
+          </div>
+
+          <!-- Evaluations Feed -->
+          <div class="explorer-col">
+            <span class="feed-label">EVALUATION GATES & BENCHMARKS</span>
+            <div class="explorer-list font-mono" id="explorer-evals-list">
+              <div class="log-entry">Loading evaluations evidence...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10. Server Room & Security Defense Center -->
+    <section class="workstation-card" id="facility-server-room">
+      <div class="card-header">
+        <div class="station-identity">
+          <span class="station-icon">🖥️</span>
+          <div>
+            <h2 class="station-title">SERVER ROOM & SECURITY VAULT</h2>
+            <span class="station-role">Deterministic Infrastructure & Sentinel Defenses</span>
+          </div>
+        </div>
+        <span class="badge badge-worker execution-real">ACTIVE // 0.00 EUR</span>
+      </div>
+
+      <div class="card-body">
+        <div class="metric-row">
+          <div class="metric-box">
+            <span class="metric-label">Rack Thermal & Power</span>
+            <span class="metric-value font-mono text-accent">21.4°C • NORMAL</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Sentinel Gate</span>
+            <span class="metric-value font-mono">DESK-SECURITY-10 (ACTIVE)</span>
+          </div>
+        </div>
+
+        <div class="server-racks-display">
+          <div class="rack-unit"><span class="rack-led online"></span> RACK-01 // COURIER BUS</div>
+          <div class="rack-unit"><span class="rack-led online"></span> RACK-02 // MEMORY MESH</div>
+          <div class="rack-unit"><span class="rack-led online"></span> RACK-03 // EVAL RUNNER</div>
+          <div class="rack-unit"><span class="rack-led standby"></span> RACK-04 // BACKUP VAULT</div>
+        </div>
+
+        <div class="action-feed">
+          <span class="feed-label">INFRASTRUCTURE STATUS</span>
+          <div class="feed-log font-mono">
+            <div class="log-entry">[INFRA] 100% deterministic local runtime active. Zero external API leaks.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11. HQ Executive Wing & Wellness Area -->
+    <section class="workstation-card" id="facility-wellness-wing">
+      <div class="card-header">
+        <div class="station-identity">
+          <span class="station-icon">⛲</span>
+          <div>
+            <h2 class="station-title">EXECUTIVE WING & WELLNESS LOUNGE</h2>
+            <span class="station-role">Warm Cedar Interior • Central Fountain • Sauna</span>
+          </div>
+        </div>
+        <span class="badge badge-curator">PREMIUM AMBIENCE</span>
+      </div>
+
+      <div class="card-body">
+        <div class="wellness-amenities-grid">
+          <div class="amenity-card">
+            <span class="amenity-icon">⛲</span>
+            <div class="amenity-info">
+              <span class="amenity-title">Central Plaza Fountain</span>
+              <span class="amenity-sub">Ambient pixel ripples & reflections</span>
+            </div>
+          </div>
+          <div class="amenity-card">
+            <span class="amenity-icon">🛋️</span>
+            <div class="amenity-info">
+              <span class="amenity-title">Visitor & Team Lounge</span>
+              <span class="amenity-sub">Leather club chairs & monsteras</span>
+            </div>
+          </div>
+          <div class="amenity-card">
+            <span class="amenity-icon">🧖</span>
+            <div class="amenity-info">
+              <span class="amenity-title">Cedar Wood Sauna</span>
+              <span class="amenity-sub">85°C Thermal relaxation zone</span>
+            </div>
+          </div>
+          <div class="amenity-card">
+            <span class="amenity-icon">☕</span>
+            <div class="amenity-info">
+              <span class="amenity-title">Espresso & Tea Bar</span>
+              <span class="amenity-sub">Fresh roast & team recharge</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 12. Planned Expansion Workstations -->
+    <section class="workstation-card" id="facility-future-expansion">
+      <div class="card-header">
+        <div class="station-identity">
+          <span class="station-icon">🔮</span>
+          <div>
+            <h2 class="station-title">FUTURE EXPANSION DESKS</h2>
+            <span class="station-role">Planned Modular Capacities (3 Planned • 40 Max)</span>
+          </div>
+        </div>
+        <span class="badge badge-worker execution-simulated">FUTURE_EXPANSION</span>
+      </div>
+
+      <div class="card-body">
+        <div class="expansion-desks-grid">
+          <div class="future-desk-pill">
+            <span class="desk-icon">🔮</span>
+            <span class="desk-name">DESK-FUTURE-26</span>
+            <span class="desk-status">RESERVED_ALPHA</span>
+          </div>
+          <div class="future-desk-pill">
+            <span class="desk-icon">🔮</span>
+            <span class="desk-name">DESK-FUTURE-27</span>
+            <span class="desk-status">RESERVED_BETA</span>
+          </div>
+          <div class="future-desk-pill">
+            <span class="desk-icon">🔮</span>
+            <span class="desk-name">DESK-FUTURE-28</span>
+            <span class="desk-status">RESERVED_GAMMA</span>
+          </div>
+        </div>
+        <div class="expansion-note font-mono text-muted">
+          💡 Modular workstation pods provisioned for future subagents up to 40 total capacity.
+        </div>
+      </div>
+    </section>
+
+    <!-- 13. HQ Wall & Brand Decor Gallery (Decorative Only) -->
+    <section class="workstation-card" id="facility-wall-decor">
+      <div class="card-header">
+        <div class="station-identity">
+          <span class="station-icon">🖼️</span>
+          <div>
+            <h2 class="station-title">WALL DECOR & BRAND MOTIFS</h2>
+            <span class="station-role">Decorative Posters • No Technical Integration Inferred</span>
+          </div>
+        </div>
+        <span class="badge badge-curator">DECORATIVE_ONLY</span>
+      </div>
+
+      <div class="card-body">
+        <div class="brand-motifs-container">
+          <div class="brand-poster" title="Decorative Silicon Motif">🍎 Apple</div>
+          <div class="brand-poster" title="Decorative Model Architecture Motif">⚡ OpenAI</div>
+          <div class="brand-poster" title="Decorative Workspace & Gemini Motif">🌐 Google</div>
+          <div class="brand-poster" title="Decorative Settlement Motif">₿ Bitcoin</div>
+          <div class="brand-poster" title="Decorative Protocol Motif">🟣 $ODI</div>
+          <div class="brand-poster" title="Decorative Stellar Fast Settlement Motif">🚀 $XLM (Stellar)</div>
         </div>
       </div>
     </section>

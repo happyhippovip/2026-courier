@@ -4,11 +4,14 @@
 import {
   executionBadgeLabel,
   resolveAcademyEconomics,
+  resolveAcademySummary,
   resolveChiefWaitState,
   resolveCorrelationTruth,
   resolveDecisionTruth,
+  resolveDeskMatrix,
   resolveDirectorTruth,
   resolveExecutionTruth,
+  resolveLiveHQMetrics,
   resolveStewardTruth,
   resolveTeacherTruth,
   resolveThreadContext,
@@ -33,6 +36,24 @@ class OperationsStudio {
     this.ideaInput = document.getElementById('human-idea-input');
     this.btnDispatchIdea = document.getElementById('btn-dispatch-idea');
     this.presetBtns = document.querySelectorAll('.preset-btn');
+
+    // Master Operations TV Wall Elements
+    this.tvActiveAgents = document.getElementById('tv-active-agents');
+    this.tvIdleAgents = document.getElementById('tv-idle-agents');
+    this.tvBlockedAgents = document.getElementById('tv-blocked-agents');
+    this.tvAvailableDesks = document.getElementById('tv-available-desks');
+    this.tvFutureDesks = document.getElementById('tv-future-desks');
+    this.tvSystemHealth = document.getElementById('tv-system-health');
+    this.tvWorkflow = document.getElementById('tv-workflow');
+    this.tvCorrelation = document.getElementById('tv-correlation');
+    this.tvChiefWait = document.getElementById('tv-chief-wait');
+    this.tvContextVer = document.getElementById('tv-context-ver');
+    this.tvAcademyTime = document.getElementById('tv-academy-time');
+
+    // Academy Evidence Explorer Elements
+    this.explorerLessonsList = document.getElementById('explorer-lessons-list');
+    this.explorerOppsList = document.getElementById('explorer-opps-list');
+    this.explorerEvalsList = document.getElementById('explorer-evals-list');
 
     // Human Gate Banner
     this.gateBanner = document.getElementById('human-gate-banner');
@@ -614,7 +635,58 @@ class OperationsStudio {
         : 'STANDBY';
     }
 
-    // 9. Human Gate Alert Banner
+    // 9. Update Master Operations TV Wall
+    const hqMetrics = resolveLiveHQMetrics(data);
+    if (this.tvActiveAgents) this.tvActiveAgents.textContent = hqMetrics.active_agents;
+    if (this.tvIdleAgents) this.tvIdleAgents.textContent = hqMetrics.idle_agents;
+    if (this.tvBlockedAgents) this.tvBlockedAgents.textContent = hqMetrics.blocked_agents;
+    if (this.tvAvailableDesks) this.tvAvailableDesks.textContent = hqMetrics.available_workstations;
+    if (this.tvFutureDesks) this.tvFutureDesks.textContent = hqMetrics.future_workstations;
+    if (this.tvWorkflow) this.tvWorkflow.textContent = hqMetrics.current_workflow;
+    if (this.tvCorrelation) this.tvCorrelation.textContent = hqMetrics.correlation_id;
+    if (this.tvChiefWait) this.tvChiefWait.textContent = hqMetrics.chief_wait_state;
+    if (this.tvContextVer) this.tvContextVer.textContent = `v${hqMetrics.context_version}`;
+    if (this.tvAcademyTime) this.tvAcademyTime.textContent = teacher.next_school_time || '06:00 UTC';
+    if (this.tvSystemHealth) {
+      this.tvSystemHealth.textContent = hqMetrics.system_health;
+      this.tvSystemHealth.className = hqMetrics.system_health === 'ATTENTION_REQUIRED'
+        ? 'tv-health-badge alert'
+        : 'tv-health-badge';
+    }
+
+    // 10. Update Academy Evidence Explorer
+    const academySummary = resolveAcademySummary(data);
+    if (this.explorerLessonsList) {
+      if (academySummary.recent_lessons && academySummary.recent_lessons.length > 0) {
+        this.explorerLessonsList.innerHTML = academySummary.recent_lessons
+          .map(l => `<div class="log-entry">📌 [${l.status}] <b>${l.title}</b> (${l.topic || 'General'}) - Risk: ${l.risk || 'LOW'}</div>`)
+          .join('');
+      } else {
+        this.explorerLessonsList.innerHTML = '<div class="log-entry system">No recent lessons discovered yet.</div>';
+      }
+    }
+
+    if (this.explorerOppsList) {
+      if (academySummary.recent_opportunities && academySummary.recent_opportunities.length > 0) {
+        this.explorerOppsList.innerHTML = academySummary.recent_opportunities
+          .map(o => `<div class="log-entry text-accent">💡 [${o.status}] <b>${o.title}</b> (Rev: ${o.revenue_evidence || 'NOT_VERIFIED'})</div>`)
+          .join('');
+      } else {
+        this.explorerOppsList.innerHTML = '<div class="log-entry system">No opportunity candidates pending.</div>';
+      }
+    }
+
+    if (this.explorerEvalsList) {
+      if (academySummary.recent_evaluations && academySummary.recent_evaluations.length > 0) {
+        this.explorerEvalsList.innerHTML = academySummary.recent_evaluations
+          .map(e => `<div class="log-entry">⚖️ [${e.verdict}] Eval: ${e.lesson_id} - Time saved: ${e.metrics?.runtime_seconds_saved || 0}s</div>`)
+          .join('');
+      } else {
+        this.explorerEvalsList.innerHTML = '<div class="log-entry system">No evaluation runs recorded.</div>';
+      }
+    }
+
+    // 11. Human Gate Alert Banner
     if (curatorState === 'CONFLICT' || curatorState === 'BLOCKED' || chief.state === 'BLOCKED_HUMAN_GATE' || chief.state === 'BLOCKED_POLICY_CONFLICT' || codex.state === 'BLOCKED_HUMAN_GATE' || ag.state === 'BLOCKED_HUMAN_GATE' || bus.human_gate) {
       this.gateBanner.classList.remove('hidden');
       this.gateDesc.textContent = `Workflow task paused: ${curator.last_action || codex.task || ag.task || chief.task || 'Explicit human approval required'}`;

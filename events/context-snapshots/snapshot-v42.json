@@ -1,16 +1,16 @@
 {
   "schema_version": "2.0",
-  "context_version": 44,
-  "generated_at": "2026-08-30T15:44:00.200826+00:00",
+  "context_version": 42,
+  "generated_at": "2026-08-30T15:43:59.589581+00:00",
   "repositories": {
     "courier_head": "0e5f4554b2456b5bc13cb71cab008577e2284b3c",
     "memory_head": "c337e2309817ab737b607d3f60b52ea4ae8586be",
     "godot_head": "NOT_CONNECTED"
   },
   "workflow_state": {
-    "workflow_id": "WF-CHIEF-b9f026",
-    "correlation_id": "corr-demo-0d2ba5e3",
-    "current_task_id": "WF-CHIEF-b9f026-STEP-3-SYNTHESIZE",
+    "workflow_id": "WF-CHIEF-18b7ba",
+    "correlation_id": "corr-rej-9879054d",
+    "current_task_id": "WF-CHIEF-18b7ba-STEP-1-DISCOVER",
     "is_locked": false,
     "agent_states": {
       "agent-codex-bridge": {
@@ -25,7 +25,7 @@
         "task": "Compiling Project Context Snapshot",
         "progress": 0.1,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T15:44:00.200840+00:00"
+        "updated_at": "2026-08-30T15:43:59.589594+00:00"
       },
       "test-agent-busy": {
         "state": "RUNNING",
@@ -39,21 +39,21 @@
         "task": "Curated idea-5138f1d9",
         "progress": 1.0,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T15:43:59.991143+00:00"
+        "updated_at": "2026-08-30T15:43:59.586122+00:00"
       },
       "agent-academy-director": {
-        "state": "EVALUATING",
+        "state": "ADOPTION APPROVED",
         "task": null,
         "progress": 0.0,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T15:44:00.198628+00:00"
+        "updated_at": "2026-08-30T15:43:59.035274+00:00"
       },
       "agent-antigravity-bridge": {
-        "state": "COMPLETED",
-        "task": "WF-CHIEF-b9f026-STEP-3-SYNTHESIZE",
-        "progress": 1.0,
+        "state": "BLOCKED_HUMAN_GATE",
+        "task": "WF-CHIEF-18b7ba-STEP-1-DISCOVER",
+        "progress": 0.33,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T15:44:00.052549+00:00"
+        "updated_at": "2026-08-30T15:43:59.442678+00:00"
       },
       "test-agent-g": {
         "state": "AWAITING_CHIEF_REVIEW",
@@ -67,7 +67,7 @@
         "task": "Policy Conflict: idea-aa9a9ff3",
         "progress": 0.0,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T15:43:59.603956+00:00"
+        "updated_at": "2026-08-30T15:35:05.601513+00:00"
       },
       "test-agent-codex": {
         "state": "AWAITING_CHIEF_REVIEW",
@@ -81,13 +81,13 @@
         "task": null,
         "progress": 0.0,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T15:44:00.195958+00:00"
+        "updated_at": "2026-08-30T15:43:59.049882+00:00"
       }
     },
-    "total_decisions": 73,
-    "total_results": 85,
-    "total_approvals": 10,
-    "total_adoptions": 9
+    "total_decisions": 70,
+    "total_results": 82,
+    "total_approvals": 9,
+    "total_adoptions": 8
   },
   "memory_truth": {
     "latest_verified_milestone": "**VERIFIED_CURRENT** | Source: local repository audit of `2026-Projektzentrale` | Verified: 2026-08-29. Two final vertical FruitKI files exist locally: `kiwi-stealth-short-001-final.mp4` (10 s) and `strawberry-school-short-002-final.mp4` (7.125 s); both were locally inspected as 360\u00d7640 H.264/AAC assets. See [TECHNICAL_CONTEXT.md](TECHNICAL_CONTEXT.md).",
@@ -160,7 +160,7 @@
     },
     "timestamp": "2026-08-30T15:43:59.586105+00:00"
   },
-  "academy_adoptions": 9,
+  "academy_adoptions": 8,
   "truth_classifications": {
     "courier_codebase": "VERIFIED",
     "project_memory": "VERIFIED",
@@ -172,9 +172,9 @@
     "truth_invariants": "IDEA != IMPLEMENTED | USER_REPORTED != VERIFIED | DETERMINISTIC != REAL_EXTERNAL"
   },
   "changed_since_previous_snapshot": [
-    "academy_adoptions"
+    "workflow_id"
   ],
-  "previous_snapshot_version": 43,
-  "previous_snapshot_hash": "4cdca4eb21155eaabee3d1c09b5385bb3cceb17f915de9888f1013acb3bc0b82",
-  "snapshot_hash": "def7fbe532e16d771b079d9b2aa3473ff98442cf1e3b6849e30eb9e399ec5555"
+  "previous_snapshot_version": 41,
+  "previous_snapshot_hash": "c3ab07b1bab72cd6482b63967006f77d5d8f80df9fd14a1ad84cf385aef945cb",
+  "snapshot_hash": "28ffc840572676b267f461d487ff277239171a3cb0b0c37c6ac7161d8b2542ef"
 }

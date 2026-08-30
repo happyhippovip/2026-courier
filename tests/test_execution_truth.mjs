@@ -309,4 +309,111 @@ assert.deepEqual(ACADEMY_FLOW_STEPS, [
   'NEW CONTEXT VERSION', 'AFFECTED AGENT',
 ]);
 
+// -------------------------------------------------------------
+// 8. LIVE AGENT HQ DESK MATRIX, CAPACITIES & METRICS
+// -------------------------------------------------------------
+import {
+  resolveAcademySummary,
+  resolveDeskMatrix,
+  resolveLiveHQMetrics,
+} from '../studio/execution_truth.js';
+
+// 8.1 Desk Matrix Resolution & Capacities
+const mockHQState = {
+  bus: {
+    is_locked: true,
+    active_workflow: 'WF-CHIEF-DEMO-001',
+    correlation_id: 'corr-hq-999',
+    context_version: 5,
+  },
+  agents: {
+    'agent-chief-commander': { id: 'agent-chief-commander', state: 'COORDINATING', task: 'Directing Task 1' },
+    'agent-antigravity-bridge': { id: 'agent-antigravity-bridge', state: 'RUNNING', task: '3D Render', execution_class: 'REAL_ANTIGRAVITY' },
+    'agent-codex-bridge': { id: 'agent-codex-bridge', state: 'IDLE', task: 'Standby' },
+    'agent-academy-teacher': { id: 'agent-academy-teacher', state: 'PENDING_REVIEW' },
+    'agent-academy-director': { id: 'agent-academy-director', state: 'EVALUATING' },
+  },
+  academy: {
+    config: { academy_enabled: true, academy_timezone: 'UTC', academy_daily_time: '06:00' },
+    economics: { measured_minutes_saved: 12.0, measured_cost_saved_eur: 0.0, revenue_evidence: 'NOT_VERIFIED' },
+    lessons: [
+      { lesson_id: 'lesson-001', title: 'Static Caching', topic: 'Performance', status: 'ADOPTED', risk: 'LOW' },
+      { lesson_id: 'lesson-002', title: 'Monetization Strategy', topic: 'Distribution', status: 'DISCOVERED', lesson_type: 'OPPORTUNITY_CANDIDATE' },
+    ],
+    opportunities: [
+      { lesson_id: 'lesson-002', title: 'Monetization Strategy', status: 'DISCOVERED', revenue_evidence: 'NOT_VERIFIED' },
+    ],
+    evaluations: [
+      { evaluation_id: 'eval-001', lesson_id: 'lesson-001', verdict: 'PASS', metrics: { runtime_seconds_saved: 15 } },
+    ],
+  },
+};
+
+const desks = resolveDeskMatrix(mockHQState);
+assert.equal(desks.length, 28, 'HQ must have 28 initial visible desks');
+
+// Verify planned future expansion desks
+const futureDesks = desks.filter(d => d.type === 'FUTURE');
+assert.equal(futureDesks.length, 3, 'Must have exactly 3 clearly marked future expansion desks');
+assert.equal(futureDesks[0].status, 'FUTURE_EXPANSION');
+assert.equal(futureDesks[1].status, 'FUTURE_EXPANSION');
+assert.equal(futureDesks[2].status, 'FUTURE_EXPANSION');
+
+// Verify active agent vs idle agent desk assignment
+const chiefDesk = desks.find(d => d.id === 'DESK-CHIEF-01');
+assert.equal(chiefDesk.status, 'ACTIVE');
+
+const agDesk = desks.find(d => d.id === 'DESK-ANTIGRAVITY-05');
+assert.equal(agDesk.status, 'ACTIVE');
+assert.equal(agDesk.execution_class, 'REAL_ANTIGRAVITY');
+
+const codexDesk = desks.find(d => d.id === 'DESK-CODEX-06');
+assert.equal(codexDesk.status, 'IDLE');
+
+// Verify equipped available desk (no active agent attached)
+const unassignedEquipped = desks.find(d => d.id === 'DESK-EQUIPPED-18');
+assert.equal(unassignedEquipped.status, 'AVAILABLE');
+
+// 8.2 Master TV Wall Overview Metrics
+const hqMetrics = resolveLiveHQMetrics(mockHQState);
+assert.equal(hqMetrics.total_desks, 28);
+assert.equal(hqMetrics.total_capacity, 40);
+assert.equal(hqMetrics.active_agents >= 2, true);
+assert.equal(hqMetrics.future_workstations, 3);
+assert.equal(hqMetrics.current_workflow, 'WF-CHIEF-DEMO-001');
+assert.equal(hqMetrics.correlation_id, 'corr-hq-999');
+assert.equal(hqMetrics.context_version, 5);
+
+// 8.3 Structured Academy Evidence API
+const academySummary = resolveAcademySummary(mockHQState);
+assert.equal(academySummary.is_enabled, true);
+assert.equal(academySummary.daily_time, '06:00');
+assert.equal(academySummary.lessons_count, 2);
+assert.equal(academySummary.opportunities_count, 1);
+assert.equal(academySummary.evaluations_count, 1);
+assert.equal(academySummary.recent_opportunities[0].revenue_evidence, 'NOT_VERIFIED');
+
+// 8.4 Real Agent Movement & Task Isolation Invariants
+// Task routed to Antigravity does not activate Codex
+const agOnlyState = {
+  agents: {
+    'agent-antigravity-bridge': { id: 'agent-antigravity-bridge', state: 'RUNNING', task: '3D Render' },
+    'agent-codex-bridge': { id: 'agent-codex-bridge', state: 'IDLE', task: 'Standby' },
+  },
+};
+const agOnlyDesks = resolveDeskMatrix(agOnlyState);
+assert.equal(agOnlyDesks.find(d => d.id === 'DESK-ANTIGRAVITY-05').status, 'ACTIVE');
+assert.equal(agOnlyDesks.find(d => d.id === 'DESK-CODEX-06').status, 'IDLE');
+
+// Task routed to Codex does not activate Antigravity
+const cdxOnlyState = {
+  agents: {
+    'agent-antigravity-bridge': { id: 'agent-antigravity-bridge', state: 'IDLE', task: 'Standby' },
+    'agent-codex-bridge': { id: 'agent-codex-bridge', state: 'RUNNING', task: 'Code Audit' },
+  },
+};
+const cdxOnlyDesks = resolveDeskMatrix(cdxOnlyState);
+assert.equal(cdxOnlyDesks.find(d => d.id === 'DESK-ANTIGRAVITY-05').status, 'IDLE');
+assert.equal(cdxOnlyDesks.find(d => d.id === 'DESK-CODEX-06').status, 'ACTIVE');
+
 console.log('execution truth tests: PASS (100% SUCCESS)');

@@ -1,17 +1,17 @@
 {
   "schema_version": "2.0",
-  "context_version": 44,
-  "generated_at": "2026-08-30T15:44:00.200826+00:00",
+  "context_version": 39,
+  "generated_at": "2026-08-30T15:43:59.225278+00:00",
   "repositories": {
     "courier_head": "0e5f4554b2456b5bc13cb71cab008577e2284b3c",
     "memory_head": "c337e2309817ab737b607d3f60b52ea4ae8586be",
     "godot_head": "NOT_CONNECTED"
   },
   "workflow_state": {
-    "workflow_id": "WF-CHIEF-b9f026",
-    "correlation_id": "corr-demo-0d2ba5e3",
-    "current_task_id": "WF-CHIEF-b9f026-STEP-3-SYNTHESIZE",
-    "is_locked": false,
+    "workflow_id": "WF-CHIEF-3b2eb2",
+    "correlation_id": "UNKNOWN",
+    "current_task_id": "UNKNOWN",
+    "is_locked": true,
     "agent_states": {
       "agent-codex-bridge": {
         "state": "COMPLETED",
@@ -25,7 +25,7 @@
         "task": "Compiling Project Context Snapshot",
         "progress": 0.1,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T15:44:00.200840+00:00"
+        "updated_at": "2026-08-30T15:43:59.225289+00:00"
       },
       "test-agent-busy": {
         "state": "RUNNING",
@@ -36,24 +36,24 @@
       },
       "agent-thought-curator": {
         "state": "SENT TO CHIEF",
-        "task": "Curated idea-5138f1d9",
+        "task": "Curated idea-36bc49d8",
         "progress": 1.0,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T15:43:59.991143+00:00"
+        "updated_at": "2026-08-30T15:43:59.199768+00:00"
       },
       "agent-academy-director": {
-        "state": "EVALUATING",
+        "state": "ADOPTION APPROVED",
         "task": null,
         "progress": 0.0,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T15:44:00.198628+00:00"
+        "updated_at": "2026-08-30T15:43:59.035274+00:00"
       },
       "agent-antigravity-bridge": {
-        "state": "COMPLETED",
-        "task": "WF-CHIEF-b9f026-STEP-3-SYNTHESIZE",
+        "state": "AWAITING_CHIEF_REVIEW",
+        "task": "WF-CHIEF-3b2eb2-STEP-1-DISCOVER",
         "progress": 1.0,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T15:44:00.052549+00:00"
+        "updated_at": "2026-08-30T15:43:59.224320+00:00"
       },
       "test-agent-g": {
         "state": "AWAITING_CHIEF_REVIEW",
@@ -67,7 +67,7 @@
         "task": "Policy Conflict: idea-aa9a9ff3",
         "progress": 0.0,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T15:43:59.603956+00:00"
+        "updated_at": "2026-08-30T15:35:05.601513+00:00"
       },
       "test-agent-codex": {
         "state": "AWAITING_CHIEF_REVIEW",
@@ -81,13 +81,13 @@
         "task": null,
         "progress": 0.0,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T15:44:00.195958+00:00"
+        "updated_at": "2026-08-30T15:43:59.049882+00:00"
       }
     },
-    "total_decisions": 73,
-    "total_results": 85,
-    "total_approvals": 10,
-    "total_adoptions": 9
+    "total_decisions": 66,
+    "total_results": 78,
+    "total_approvals": 9,
+    "total_adoptions": 8
   },
   "memory_truth": {
     "latest_verified_milestone": "**VERIFIED_CURRENT** | Source: local repository audit of `2026-Projektzentrale` | Verified: 2026-08-29. Two final vertical FruitKI files exist locally: `kiwi-stealth-short-001-final.mp4` (10 s) and `strawberry-school-short-002-final.mp4` (7.125 s); both were locally inspected as 360\u00d7640 H.264/AAC assets. See [TECHNICAL_CONTEXT.md](TECHNICAL_CONTEXT.md).",
@@ -134,12 +134,12 @@
     }
   },
   "latest_idea_delta": {
-    "idea_id": "idea-5138f1d9",
-    "raw_idea": "Optimiere FruitKI 3D Video-Render Pipeline und erstelle Release-Metadaten",
-    "normalized_idea": "optimiere fruitki 3d video-render pipeline und erstelle release-metadaten",
-    "normalized_summary": "Optimiere FruitKI 3D Video-Render Pipeline und erstelle Release-Metadaten",
+    "idea_id": "idea-36bc49d8",
+    "raw_idea": "Neue Feature Idee f\u00fcr automatische Metadaten-Validierung 5e686a",
+    "normalized_idea": "neue feature idee f\u00fcr automatische metadaten-validierung 5e686a",
+    "normalized_summary": "Neue Feature Idee f\u00fcr automatische Metadaten-Validierung 5e686a",
     "idea_status": "PROPOSED",
-    "type": "GOAL",
+    "type": "IDEA",
     "classification": "NEW",
     "truth_boundary": "IDEA != VERIFIED | USER_REPORTED != TECHNICALLY_VERIFIED",
     "conflicts": [],
@@ -149,7 +149,7 @@
       "antigravity"
     ],
     "affected_workflows": [
-      "3D Shorts Pipeline (Antigravity Media Studio)"
+      "General Architecture (Courier System)"
     ],
     "recommended_next_action": "ROUTE_TO_ANTIGRAVITY_PRIMARY",
     "target_agent_recommendation": "antigravity",
@@ -158,9 +158,9 @@
       "ideas": true,
       "project_state": true
     },
-    "timestamp": "2026-08-30T15:43:59.586105+00:00"
+    "timestamp": "2026-08-30T15:43:59.199751+00:00"
   },
-  "academy_adoptions": 9,
+  "academy_adoptions": 8,
   "truth_classifications": {
     "courier_codebase": "VERIFIED",
     "project_memory": "VERIFIED",
@@ -172,9 +172,9 @@
     "truth_invariants": "IDEA != IMPLEMENTED | USER_REPORTED != VERIFIED | DETERMINISTIC != REAL_EXTERNAL"
   },
   "changed_since_previous_snapshot": [
-    "academy_adoptions"
+    "workflow_id"
   ],
-  "previous_snapshot_version": 43,
-  "previous_snapshot_hash": "4cdca4eb21155eaabee3d1c09b5385bb3cceb17f915de9888f1013acb3bc0b82",
-  "snapshot_hash": "def7fbe532e16d771b079d9b2aa3473ff98442cf1e3b6849e30eb9e399ec5555"
+  "previous_snapshot_version": 38,
+  "previous_snapshot_hash": "335eaa91d7f55eda0189e5ec0df1ace9668f9978966715552882b8a8b81008dd",
+  "snapshot_hash": "5088275a8acae4ebad5f21f7183bbbcc752c41a4950e6f52aba1e340e6187169"
 }
