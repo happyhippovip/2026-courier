@@ -1,7 +1,4 @@
 # Runtime envelopes remain local and are never committed automatically.
-**/__pycache__/
-*.pyc
-
 events/incoming/*.json
 events/processed/*.json
 events/dispatch/*.json
@@ -11,6 +8,10 @@ events/chief-decisions/*.json
 events/night-queue/*.json
 events/morning-reports/*.json
 events/morning-reports/*.md
+
+# Runtime generated content artifacts remain local.
+runtime/content/*
+!runtime/content/.gitkeep
 
 # Keep directory markers only.
 !events/incoming/.gitkeep
