@@ -55,17 +55,21 @@ class OperationsStudio {
     this.tvAcademyTime = document.getElementById('tv-academy-time');
     this.busFlowViz = document.querySelector('.bus-flow-viz');
 
-    // SNITCH 2.0 Watchdog Elements
+    // SNITCH 3.0 Watchdog & Permission Guard Elements
     this.snitchState = document.getElementById('snitch-state');
     this.snitchTask = document.getElementById('snitch-task');
     this.snitchAlert = document.getElementById('snitch-alert');
     this.snitchSpeech = document.getElementById('snitch-speech');
     this.snitchAction = document.getElementById('snitch-action');
     this.snitchFeedLog = document.getElementById('snitch-feed-log');
+    this.snitchPermStatus = document.getElementById('snitch-permission-status');
+    this.snitchPermCommand = document.getElementById('snitch-perm-command');
+    this.snitchPermRuleRec = document.getElementById('snitch-perm-rule-rec');
 
     // Bodyguard Ready Room Elements
     this.badgeBodyguardsSummary = document.getElementById('badge-bodyguards-summary');
     this.bodyguardCardsContainer = document.getElementById('bodyguard-cards-container');
+
 
     this.treasuryEur = document.getElementById('treasury-eur');
     this.treasuryUsd = document.getElementById('treasury-usd');
@@ -524,11 +528,33 @@ class OperationsStudio {
       codexCard.classList.remove('active-working');
     }
 
-    // 6. SNITCH 2.0 runtime watchdog: display only its persisted machine evidence.
+    // 6. SNITCH 3.0 runtime watchdog & permission guard: display only persisted machine evidence.
     const snitchTruth = resolveSnitchTruth(data);
     if (this.snitchState) {
       this.snitchState.textContent = snitchTruth.state;
       this.snitchState.className = `badge badge-snitch ${snitchTruth.active_incident ? 'text-alert' : ''}`;
+    }
+    if (this.snitchPermStatus) {
+      const pStatus = snitchTruth.permission_guard?.status || 'PERMISSIONS HEALTHY';
+      this.snitchPermStatus.textContent = pStatus;
+      const badgeClass = pStatus === 'PERMISSIONS HEALTHY'
+        ? 'badge-perm-healthy'
+        : (pStatus === 'NEW SAFE RULE'
+            ? 'badge-perm-new-rule'
+            : (pStatus === 'ONE-TIME APPROVAL'
+                ? 'badge-perm-one-time'
+                : (pStatus === 'DANGEROUS REQUEST'
+                    ? 'badge-perm-dangerous'
+                    : 'badge-perm-wait')));
+      this.snitchPermStatus.className = `badge ${badgeClass}`;
+    }
+    if (this.snitchPermCommand) {
+      this.snitchPermCommand.textContent = snitchTruth.permission_guard?.last_checked_command || 'python3 scripts/launch_visual_studio.py --status';
+    }
+    if (this.snitchPermRuleRec) {
+      const match = snitchTruth.permission_guard?.rule_match || 'STUDIO_LIFECYCLE';
+      const rec = snitchTruth.permission_guard?.recommendation || 'ALREADY_ALLOWED';
+      this.snitchPermRuleRec.textContent = `${match} · ${rec}`;
     }
     if (this.snitchTask) this.snitchTask.textContent = snitchTruth.task;
     if (this.snitchSpeech) this.snitchSpeech.textContent = `"${snitchTruth.speech}"`;
@@ -547,6 +573,7 @@ class OperationsStudio {
         snitchTruth.state === 'MONITORING' || snitchTruth.state === 'SLOW_BUT_PROGRESSING',
       );
     }
+
 
     // 7. BODYGUARDS: 8 Universal Reserve Worker Slots
     const bodyguards = resolveBodyguardsTruth(data);

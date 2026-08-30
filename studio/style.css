@@ -1392,3 +1392,35 @@ body.recording-mode .preset-pills {
   border-left: 2px solid var(--accent-cyan);
 }
 
+/* Permission Guard Status Badges */
+.badge-perm-healthy {
+  background: rgba(0, 255, 136, 0.12);
+  border: 1px solid rgba(0, 255, 136, 0.4);
+  color: var(--accent-green);
+}
+
+.badge-perm-wait {
+  background: rgba(255, 183, 3, 0.15);
+  border: 1px solid #ffb703;
+  color: #ffb703;
+}
+
+.badge-perm-new-rule {
+  background: rgba(0, 240, 255, 0.15);
+  border: 1px solid var(--accent-cyan);
+  color: var(--accent-cyan);
+}
+
+.badge-perm-one-time {
+  background: rgba(157, 78, 221, 0.15);
+  border: 1px solid var(--accent-purple);
+  color: var(--accent-purple);
+}
+
+.badge-perm-dangerous {
+  background: rgba(255, 0, 85, 0.2);
+  border: 1px solid var(--accent-red);
+  color: var(--accent-red);
+}
+
+

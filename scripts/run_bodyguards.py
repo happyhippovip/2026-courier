@@ -46,6 +46,7 @@ ALLOWED_TEMP_ROLES = {
     "CONTENT_WORKER",
     "RESEARCH_WORKER",
     "QA_WORKER",
+    "PERMISSION_DIAGNOSTIC_WORKER",
 }
 
 SUPPORTED_CAPABILITIES = {
@@ -58,7 +59,10 @@ SUPPORTED_CAPABILITIES = {
     "state_aggregation",
     "test_runner",
     "diff_analysis",
+    "permission_audit",
+    "sandbox_rule_matching",
 }
+
 
 
 def utc_now() -> dt.datetime:

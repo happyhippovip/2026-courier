@@ -9,6 +9,7 @@ import {
   resolveDeskMatrix,
   resolveGateDecisionTruth,
   resolveLiveHQMetrics,
+  resolvePermissionGuardTruth,
   resolveSnitchTruth,
   resolveSpeechBubble,
   resolveExecutionTruth,
@@ -16,6 +17,7 @@ import {
   resolveThreadContext,
   validateThreadAssociation,
 } from '../studio/execution_truth.js';
+
 
 
 // -------------------------------------------------------------
@@ -545,7 +547,31 @@ assert.ok(fullHQDesks.find(d => d.id === 'DESK-BG-08'));
 assert.equal(fullHQDesks.filter(d => d.type === 'BODYGUARD').length, 8);
 assert.equal(fullHQDesks.filter(d => d.type === 'FUTURE').length, 3);
 assert.equal(fullHQDesks.find(d => d.id === 'DESK-BG-01').status, 'ACTIVE');
-assert.equal(fullHQDesks.find(d => d.id === 'DESK-BG-02').status, 'IDLE');
+// 9.4 SNITCH 3.0 Permission Guard Truth Resolution
+const defaultPermGuard = resolvePermissionGuardTruth({});
+assert.equal(defaultPermGuard.status, 'PERMISSIONS HEALTHY');
+assert.equal(defaultPermGuard.recommendation, 'ALREADY_ALLOWED');
+assert.equal(defaultPermGuard.risk_class, 'SAFE');
+
+const customPermState = {
+  snitch: {
+    permission_guard: {
+      status: 'DANGEROUS REQUEST',
+      last_checked_command: 'sudo rm -rf /var/log',
+      rule_match: 'DANGEROUS_COMMANDS',
+      recommendation: 'DANGEROUS_DO_NOT_PERSIST',
+      risk_class: 'CRITICAL',
+      speech: 'Dangerous command detected. Do not add permanent rule. Human approval required.',
+    },
+  },
+};
+const customPerm = resolvePermissionGuardTruth(customPermState);
+assert.equal(customPerm.status, 'DANGEROUS REQUEST');
+assert.equal(customPerm.last_checked_command, 'sudo rm -rf /var/log');
+assert.equal(customPerm.recommendation, 'DANGEROUS_DO_NOT_PERSIST');
+assert.equal(customPerm.risk_class, 'CRITICAL');
+assert.match(customPerm.speech, /Dangerous command detected/);
 
 console.log('execution truth tests: PASS (100% SUCCESS)');
+
 

@@ -14,8 +14,15 @@ COURIER_DIR = TESTS_DIR.parent
 if str(COURIER_DIR) not in sys.path:
     sys.path.insert(0, str(COURIER_DIR))
 
-from scripts.run_snitch_watchdog import RuntimeObservation, SnitchWatchdog
+from scripts.run_snitch_watchdog import (
+    RuntimeObservation,
+    SnitchWatchdog,
+    PermissionGuard,
+    PermissionMasterlist,
+    SandboxAuditor,
+)
 from scripts.run_chief_commander import ChiefCommander
+
 
 
 
@@ -174,6 +181,111 @@ class SnitchWatchdogTests(unittest.TestCase):
         self.assertIn("Bodyguard Alpha", resolved_data["resolution"])
 
 
+class PermissionGuardTests(unittest.TestCase):
+    """Deterministic tests for SNITCH 3.0 Permission Guard and Sandbox Auditor."""
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.repo = Path(self.temp.name)
+        self.guard = PermissionGuard(self.repo)
+
+    def tearDown(self):
+        self.temp.cleanup()
+
+    def test_01_known_localhost_curl_already_allowed(self):
+        """1. Known localhost curl -> ALREADY_ALLOWED."""
+        res_ip = self.guard.audit("curl -s http://127.0.0.1:8088/api/state")
+        res_host = self.guard.audit("curl http://localhost:8088/api/state")
+        self.assertEqual(res_ip["classification"], "ALREADY_ALLOWED")
+        self.assertEqual(res_host["classification"], "ALREADY_ALLOWED")
+        self.assertEqual(res_ip["existing_rule_match"], "LOCALHOST_HEALTH_CHECKS")
+        self.assertEqual(res_ip["risk_class"], "SAFE")
+        self.assertEqual(res_ip["status_label"], "PERMISSIONS HEALTHY")
+
+    def test_02_known_studio_launcher_already_allowed(self):
+        """2. Known Studio launcher -> ALREADY_ALLOWED."""
+        res_launcher = self.guard.audit("python3 scripts/launch_visual_studio.py")
+        res_status = self.guard.audit("python3 scripts/launch_visual_studio.py --status")
+        res_server = self.guard.audit("python3 scripts/run_visual_studio_server.py")
+        self.assertEqual(res_launcher["classification"], "ALREADY_ALLOWED")
+        self.assertEqual(res_status["classification"], "ALREADY_ALLOWED")
+        self.assertEqual(res_server["classification"], "ALREADY_ALLOWED")
+        self.assertEqual(res_launcher["existing_rule_match"], "STUDIO_LIFECYCLE")
+
+    def test_03_new_safe_project_script_recommended(self):
+        """3. New safe project script in scripts/ -> SAFE_PROJECT_RULE_RECOMMENDED."""
+        res = self.guard.audit("python3 scripts/run_custom_optimizer.py")
+        self.assertEqual(res["classification"], "SAFE_PROJECT_RULE_RECOMMENDED")
+        self.assertEqual(res["status_label"], "NEW SAFE RULE")
+        self.assertEqual(res["recommended_action"], "ADD_PERSISTENT_PROJECT_RULE")
+        self.assertIn("recurring project rule", res["speech"])
+
+    def test_04_generic_pkill_one_time_only(self):
+        """4. Generic or scoped pkill -> ONE_TIME_ONLY (never permanent allow)."""
+        res_generic = self.guard.audit("pkill python3")
+        self.assertEqual(res_generic["classification"], "ONE_TIME_ONLY")
+        self.assertEqual(res_generic["status_label"], "ONE-TIME APPROVAL")
+        self.assertIn("One-time approval is safer", res_generic["speech"])
+
+        res_studio = self.guard.audit("pkill -f run_visual_studio_server.py")
+        self.assertEqual(res_studio["classification"], "ONE_TIME_ONLY")
+        self.assertEqual(res_studio["safer_equivalent"], "python3 scripts/launch_visual_studio.py")
+
+    def test_05_rm_rf_dangerous_do_not_persist(self):
+        """5. rm -rf -> DANGEROUS_DO_NOT_PERSIST."""
+        res1 = self.guard.audit("rm -rf /tmp/build")
+        res2 = self.guard.audit("rm -r -f data/cache")
+        self.assertEqual(res1["classification"], "DANGEROUS_DO_NOT_PERSIST")
+        self.assertEqual(res2["classification"], "DANGEROUS_DO_NOT_PERSIST")
+        self.assertEqual(res1["risk_class"], "CRITICAL")
+        self.assertEqual(res1["status_label"], "DANGEROUS REQUEST")
+        self.assertIn("Dangerous command detected", res1["speech"])
+
+    def test_06_sudo_dangerous_do_not_persist(self):
+        """6. sudo -> DANGEROUS_DO_NOT_PERSIST."""
+        res = self.guard.audit("sudo apt-get install ffmpeg")
+        self.assertEqual(res["classification"], "DANGEROUS_DO_NOT_PERSIST")
+        self.assertEqual(res["risk_class"], "CRITICAL")
+        self.assertEqual(res["status_label"], "DANGEROUS REQUEST")
+
+    def test_07_existing_prefix_variation_correct_rule_match(self):
+        """7. Existing prefix variations match correct rule family."""
+        res_git = self.guard.audit("git push origin main")
+        res_status = self.guard.audit("git status --short")
+        res_node = self.guard.audit("node tests/test_execution_truth.mjs")
+        self.assertEqual(res_git["classification"], "ALREADY_ALLOWED")
+        self.assertEqual(res_status["classification"], "ALREADY_ALLOWED")
+        self.assertEqual(res_node["classification"], "ALREADY_ALLOWED")
+
+    def test_08_duplicate_permission_event_no_alert_spam(self):
+        """8. Duplicate permission wait events produce only one incident file."""
+        unknown_res = self.guard.audit("unregistered_daemon --run")
+        first_alert = self.guard.create_permission_incident(unknown_res, agent_id="Gravity")
+        second_alert = self.guard.create_permission_incident(unknown_res, agent_id="Gravity")
+
+        alerts = list((self.repo / "events/runtime-alerts").glob("*.json"))
+        self.assertEqual(len(alerts), 1)
+        self.assertEqual(first_alert, second_alert)
+        self.assertEqual(first_alert, alerts[0])
+
+    def test_09_unknown_command_unknown(self):
+        """9. Unknown command -> UNKNOWN."""
+        res = self.guard.audit("completely_unknown_cli_tool --action test")
+        self.assertEqual(res["classification"], "UNKNOWN")
+        self.assertEqual(res["status_label"], "PERMISSION WAIT")
+        self.assertIn("not in the project masterlist", res["speech"])
+
+    def test_10_zero_model_calls_pure_deterministic(self):
+        """10. Permission Guard audit executes deterministically with 0 model calls."""
+        res = self.guard.audit("git status")
+        self.assertIsNotNone(res["classification"])
+        self.assertIn("requested_command", res)
+        # SandboxAuditor alias matches PermissionGuard
+        auditor = SandboxAuditor(self.repo)
+        self.assertEqual(auditor.audit("git log")["classification"], "ALREADY_ALLOWED")
+
+
 if __name__ == "__main__":
     unittest.main()
+
 

@@ -565,10 +565,53 @@ export function resolveSnitchTruth(stateData) {
     active_incident: activeIncident,
     incident_details: snitch.incident || latestAlert || null,
     incidents_list: incidents,
+    permission_guard: resolvePermissionGuardTruth(stateData),
     auto_kill_policy: 'DISABLED (CHIEF_ESCALATION_ONLY)',
     five_minute_rule: 'RUNTIME > 5 MIN != ERROR (DISTINGUISHES PERSISTENT SERVICES AND PROGRESSING TASKS)',
   };
 }
+
+/**
+ * Resolve SNITCH 3.0 Permission Guard / Sandbox Auditor truth strictly from evidence.
+ */
+export function resolvePermissionGuardTruth(stateData) {
+  const snitch = stateData?.snitch || stateData?.agents?.['agent-snitch'] || {};
+  const pg = snitch.permission_guard || stateData?.permission_guard || {};
+
+  const status = typeof pg.status === 'string' && pg.status.trim()
+    ? pg.status
+    : 'PERMISSIONS HEALTHY';
+
+  const lastCheckedCommand = typeof pg.last_checked_command === 'string' && pg.last_checked_command.trim()
+    ? pg.last_checked_command
+    : 'python3 scripts/launch_visual_studio.py --status';
+
+  const ruleMatch = typeof pg.rule_match === 'string' && pg.rule_match.trim()
+    ? pg.rule_match
+    : 'STUDIO_LIFECYCLE';
+
+  const recommendation = typeof pg.recommendation === 'string' && pg.recommendation.trim()
+    ? pg.recommendation
+    : 'ALREADY_ALLOWED';
+
+  const riskClass = typeof pg.risk_class === 'string' && pg.risk_class.trim()
+    ? pg.risk_class
+    : 'SAFE';
+
+  const speech = typeof pg.speech === 'string' && pg.speech.trim()
+    ? pg.speech
+    : 'All observed commands adhere to approved project rules.';
+
+  return {
+    status,
+    last_checked_command: lastCheckedCommand,
+    rule_match: ruleMatch,
+    recommendation,
+    risk_class: riskClass,
+    speech,
+  };
+}
+
 
 /**
  * Resolve Eight Bodyguards Reserve Pool truth strictly from evidence.

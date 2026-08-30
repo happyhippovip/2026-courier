@@ -422,17 +422,20 @@
       </div>
   </section>
 
-  <!-- SNITCH 2.0: deterministic runtime watchdog & runaway detector -->
+  <!-- SNITCH 3.0: deterministic runtime watchdog & permission guard -->
   <section class="workstation-card" id="station-snitch">
     <div class="card-header">
       <div class="station-identity">
         <span class="station-icon">👀</span>
         <div>
-          <h2 class="station-title">SNITCH 2.0</h2>
-          <span class="station-role">Operations Watchdog / Delay Sentinel / Runaway Detector</span>
+          <h2 class="station-title">SNITCH 3.0</h2>
+          <span class="station-role">Operations Watchdog / Delay Sentinel / Permission Guard</span>
         </div>
       </div>
-      <span class="badge badge-snitch" id="snitch-state">MONITORING</span>
+      <div class="badge-cluster">
+        <span class="badge badge-snitch" id="snitch-state">MONITORING</span>
+        <span class="badge badge-perm-healthy" id="snitch-permission-status">PERMISSIONS HEALTHY</span>
+      </div>
     </div>
     <div class="card-body">
       <!-- SNITCH Speech Bubble -->
@@ -454,6 +457,17 @@
 
       <div class="metric-row">
         <div class="metric-box">
+          <span class="metric-label">LAST CHECKED COMMAND</span>
+          <span class="metric-value font-mono" id="snitch-perm-command">python3 scripts/launch_visual_studio.py --status</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-label">RULE MATCH & RECOMMENDATION</span>
+          <span class="metric-value font-mono" id="snitch-perm-rule-rec">STUDIO_LIFECYCLE · ALREADY_ALLOWED</span>
+        </div>
+      </div>
+
+      <div class="metric-row">
+        <div class="metric-box">
           <span class="metric-label">LAST OBSERVED ACTION</span>
           <span class="metric-value font-mono" id="snitch-action">Monitoring operations floor for runaway tasks or stalls</span>
         </div>
@@ -464,13 +478,14 @@
       </div>
 
       <div class="action-feed">
-        <span class="feed-label">INCIDENT & ESCALATION FEED</span>
+        <span class="feed-label">INCIDENT & PERMISSION ESCALATION FEED</span>
         <div class="feed-log font-mono" id="snitch-feed-log">
-          <div class="log-entry system">[SNITCH] Standby. Local watchdog monitoring active.</div>
+          <div class="log-entry system">[SNITCH] Standby. Local watchdog & Permission Guard active.</div>
         </div>
       </div>
     </div>
   </section>
+
 
   <!-- BODYGUARD READY ROOM: 8 Universal Reserve Worker Slots -->
   <section class="workstation-card hub-card" id="station-bodyguards">
