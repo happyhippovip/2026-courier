@@ -35,6 +35,9 @@ PROCESSED_DIR = EVENTS_DIR / "processed"
 DECISIONS_DIR = EVENTS_DIR / "chief-decisions"
 STATES_DIR = EVENTS_DIR / "agent-states"
 LOCKS_DIR = EVENTS_DIR / "locks"
+APPROVALS_DIR = EVENTS_DIR / "approvals"
+
+APPROVALS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Import Level 6 Autonomous Engine & Bridge Components
 if str(SCRIPTS_DIR) not in sys.path:
@@ -54,24 +57,51 @@ class SmartResourceRouter:
     """Classifies tasks and routes work based on workload type and agent specializations."""
 
     @staticmethod
-    def classify_and_route(task_desc: str, scope_files: list[str]) -> str:
-        """Determines whether a task should be assigned to ANTIGRAVITY or CODEX."""
+    def classify_and_route(task_desc: str, scope_files: list[str], context_delta: dict | None = None) -> tuple[str, str, str]:
+        """Determines whether a task should be assigned to ANTIGRAVITY or CODEX.
+        
+        Returns:
+            tuple of (target_agent, routing_reason, execution_class)
+        """
         desc_lower = task_desc.lower()
         scope_str = " ".join(scope_files).lower()
 
         # Keywords indicating scarce technical code review / unit test audits
         codex_triggers = [
             "code review", "syntax audit", "unit test verification", "lint check",
-            "security audit", "independent qa verify", "strict schema test"
+            "security audit", "independent qa verify", "strict schema test", "qa audit"
         ]
 
         # Check if explicitly an independent technical code check
         for trigger in codex_triggers:
             if trigger in desc_lower:
-                return "codex"
+                return (
+                    "codex",
+                    f"Scarce technical verification requested: '{trigger}'",
+                    "DETERMINISTIC_CODEX"
+                )
 
-        # Default to Antigravity as primary heavy worker for all creative, visual, media, planning, and broad implementation
-        return "antigravity"
+        # Enforce quota protection: Heavy work, media, 3D, UI, creative, and planning go to Antigravity
+        if any(w in desc_lower for w in ["render", "3d", "video", "short", "fruitki", "godot", "asset"]):
+            return (
+                "antigravity",
+                "Primary heavy worker for 3D/video rendering & asset pipeline",
+                "DETERMINISTIC_ANTIGRAVITY"
+            )
+
+        if any(w in desc_lower for w in ["strategy", "plan", "synthesize", "package", "policy", "discover"]):
+            return (
+                "antigravity",
+                "Primary heavy worker for high-context planning & release synthesis",
+                "DETERMINISTIC_ANTIGRAVITY"
+            )
+
+        # Default to Antigravity as primary heavy worker for all implementation
+        return (
+            "antigravity",
+            "Default primary worker (Quota Protection active for Codex)",
+            "DETERMINISTIC_ANTIGRAVITY"
+        )
 
 
 class ChiefCommander:
@@ -87,56 +117,93 @@ class ChiefCommander:
             role="Autonomous Orchestration & Review",
         )
 
-    def formulate_workflow_plan(self, idea_text: str, idea_type: str = "IDEA", correlation_id: str | None = None) -> tuple[str, list[dict]]:
-        """Converts a human idea into a multi-step bounded workflow plan."""
+    def formulate_workflow_plan(
+        self,
+        idea_text: str,
+        idea_type: str = "IDEA",
+        context_delta: dict | None = None,
+        correlation_id: str | None = None
+    ) -> tuple[str, list[dict]]:
+        """Converts a human idea and Context Delta into a multi-step bounded workflow plan using SmartResourceRouter."""
         workflow_id = f"WF-CHIEF-{uuid.uuid4().hex[:6]}"
         idea_lower = idea_text.lower()
 
-        # Step 1: Initial Discovery / Context Review (Always Antigravity)
+        # Step 1: Strategy & Discovery
+        step1_desc = f"Formulate execution strategy and inspect context for: {idea_text[:120]}"
+        step1_scope = ["config/local_tools.json", "config/teamwork_policy.json"]
+        target_1, reason_1, exec_class_1 = SmartResourceRouter.classify_and_route(step1_desc, step1_scope, context_delta)
+
         plan = [
             {
                 "task_id": f"{workflow_id}-STEP-1-DISCOVER",
-                "target_agent": "antigravity",
-                "instruction": f"Formulate execution strategy and inspect context for: {idea_text[:120]}",
-                "allowed_scope": ["config/local_tools.json", "config/teamwork_policy.json"],
+                "target_agent": target_1,
+                "routing_reason": reason_1,
+                "execution_class": exec_class_1,
+                "instruction": step1_desc,
+                "allowed_scope": step1_scope,
+                "context_delta": context_delta,
             }
         ]
 
-        # Step 2: Implementation or Detailed Verification
+        # Step 2: Implementation or QA Audit
         if "test" in idea_lower or "verify" in idea_lower or "audit" in idea_lower:
-            # Use Codex for independent bounded QA check if explicitly technical
-            plan.append({
-                "task_id": f"{workflow_id}-STEP-2-QA-AUDIT",
-                "target_agent": "codex",
-                "instruction": f"Perform independent technical QA verification for: {idea_text[:120]}",
-                "allowed_scope": ["config/local_tools.json"],
-            })
+            step2_desc = f"Perform independent technical QA audit and syntax verification for: {idea_text[:120]}"
+            step2_scope = ["config/local_tools.json"]
         else:
-            # Continue with Antigravity as primary heavy worker
-            plan.append({
-                "task_id": f"{workflow_id}-STEP-2-IMPLEMENT",
-                "target_agent": "antigravity",
-                "instruction": f"Execute core implementation and asset validation for: {idea_text[:120]}",
-                "allowed_scope": ["config/social_channels.json", "config/teamwork_policy.json"],
-            })
+            step2_desc = f"Execute core implementation and asset validation for: {idea_text[:120]}"
+            step2_scope = ["config/social_channels.json", "config/teamwork_policy.json"]
 
-        # Step 3: Chief Synthesis & Final Acceptance (Antigravity)
+        target_2, reason_2, exec_class_2 = SmartResourceRouter.classify_and_route(step2_desc, step2_scope, context_delta)
+        plan.append({
+            "task_id": f"{workflow_id}-STEP-2-{'QA' if target_2 == 'codex' else 'IMPLEMENT'}",
+            "target_agent": target_2,
+            "routing_reason": reason_2,
+            "execution_class": exec_class_2,
+            "instruction": step2_desc,
+            "allowed_scope": step2_scope,
+            "context_delta": context_delta,
+        })
+
+        # Step 3: Chief Synthesis & Final Acceptance
+        step3_desc = f"Finalize results, verify invariants, and assemble completion package for: {idea_text[:120]}"
+        step3_scope = ["config/teamwork_policy.json"]
+        target_3, reason_3, exec_class_3 = SmartResourceRouter.classify_and_route(step3_desc, step3_scope, context_delta)
         plan.append({
             "task_id": f"{workflow_id}-STEP-3-SYNTHESIZE",
-            "target_agent": "antigravity",
-            "instruction": f"Finalize results, verify invariants, and assemble completion package for: {idea_text[:120]}",
-            "allowed_scope": ["config/teamwork_policy.json"],
+            "target_agent": target_3,
+            "routing_reason": reason_3,
+            "execution_class": exec_class_3,
+            "instruction": step3_desc,
+            "allowed_scope": step3_scope,
+            "context_delta": context_delta,
         })
 
         return workflow_id, plan
 
     def execute_human_idea(self, idea_text: str, idea_type: str = "IDEA", dry_run: bool = False) -> dict:
         """Curates human input, verifies against memory, and executes through the autonomous Chief loop."""
-        # 1. Step: Idea Sync & Memory Comparison
+        # 1. Step: Idea Sync & Memory Comparison -> Generates Context Delta
         curation = self.curator.curate_idea(idea_text, idea_type)
 
-        if curation.get("classification") == "CONFLICT":
+        # Check for Policy Conflict
+        is_conflict = (
+            curation.get("classification") in ["CONFLICT", "CONFLICT FOUND"] or
+            len(curation.get("conflicts", [])) > 0
+        )
+
+        if is_conflict:
             print(f"\n[CHIEF] Blocked on policy conflict: {curation.get('conflicts')}")
+            self.chief_state_tracker.update_state(
+                state="BLOCKED_POLICY_CONFLICT",
+                task=f"Policy Conflict: {curation['idea_id']}",
+                progress=0.0,
+                workflow=curation["idea_id"],
+                last_action=f"Blocked dispatch on policy conflict: {[c['rule'] for c in curation.get('conflicts', [])]}",
+                next_action="Awaiting explicit human approval event to proceed",
+                result=None,
+                blocked=True,
+                human_gate="REQUIRE_EXPLICIT_HUMAN_APPROVAL",
+            )
             return {
                 "status": "BLOCKED_POLICY_CONFLICT",
                 "curation": curation,
@@ -144,15 +211,23 @@ class ChiefCommander:
                 "history": [],
             }
 
-        # 2. Step: Formulate Workflow Plan
-        workflow_id, plan = self.formulate_workflow_plan(idea_text, idea_type)
+        # 2. Step: Formulate Workflow Plan with Context Delta and Router Selection
         correlation_id = f"corr-chief-{uuid.uuid4().hex[:8]}"
+        workflow_id, plan = self.formulate_workflow_plan(
+            idea_text=idea_text,
+            idea_type=idea_type,
+            context_delta=curation,
+            correlation_id=correlation_id,
+        )
 
         print(f"\n=======================================================")
         print(f"👑 CHIEF COMMANDER: Ingested Human {idea_type}")
         print(f"   Idea: {idea_text}")
         print(f"   Curation Classification: {curation['classification']}")
+        print(f"   Context Delta Propagated: ID {curation['idea_id']} (Links: {len(curation.get('memory_references', []))})")
         print(f"   Workflow: {workflow_id} ({len(plan)} Planned Steps)")
+        for i, step in enumerate(plan, 1):
+            print(f"   Step {i}: [{step['target_agent'].upper()}] {step['instruction'][:60]}... (Reason: {step['routing_reason']})")
         if dry_run:
             print(f"   [DRY RUN] Routing decision completed without executing production tasks.")
         print(f"=======================================================")
@@ -174,7 +249,7 @@ class ChiefCommander:
             progress=0.0,
             workflow=workflow_id,
             last_action=f"Ingested human {idea_type.lower()}: {idea_text[:60]} (Curation: {curation['classification']})",
-            next_action="Dispatching Round 1 to primary worker",
+            next_action=f"Dispatching Round 1 to {plan[0]['target_agent']}",
             blocked=False,
             human_gate=None,
         )
@@ -196,8 +271,8 @@ class ChiefCommander:
             last_action=f"Workflow {workflow_id} concluded with status: {result['status']}",
             next_action="Standby for next human directive",
             result=result["history"][-1]["result_file"] if result["history"] else None,
-            blocked=result["status"] == "BLOCKED_HUMAN_GATE",
-            human_gate="REQUIRE_EXPLICIT_HUMAN_APPROVAL" if result["status"] == "BLOCKED_HUMAN_GATE" else None,
+            blocked=result["status"] in ["BLOCKED_HUMAN_GATE", "BLOCKED_POLICY_CONFLICT"],
+            human_gate="REQUIRE_EXPLICIT_HUMAN_APPROVAL" if result["status"] in ["BLOCKED_HUMAN_GATE", "BLOCKED_POLICY_CONFLICT"] else None,
         )
 
         return result

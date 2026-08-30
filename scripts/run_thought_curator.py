@@ -2,7 +2,7 @@
 """Idea Sync & Thought Curator Engine for 2026 Courier.
 
 Permanent idea-memory and context synchronization agent:
-Human → Idea Sync → Chief Commander → Router → Worker Agents → Courier → Chief Review
+Human → Idea Sync → Memory Comparison → Context Delta → Chief Commander → Smart Router → Workers
 
 Visual States:
 - IDLE
@@ -11,7 +11,7 @@ Visual States:
 - COMPARING
 - DUPLICATE FOUND
 - RELATED FOUND
-- CONFLICT FOUND
+- CONFLICT
 - CONTEXT UPDATED
 - SENT TO CHIEF
 - DEFERRED
@@ -71,40 +71,66 @@ class ThoughtCurator:
             name="Thought Curator",
             role="Permanent Idea Sync & Memory Curator",
         )
-        self.memory_index = self._index_project_memory()
+        self.memory_index, self.sources_available = self._index_project_memory()
 
-    def _index_project_memory(self) -> dict[str, list[dict]]:
-        """Indexes canonical memory entries for deterministic keyword and policy matching."""
+    def _index_project_memory(self) -> tuple[dict[str, list[dict]], dict[str, bool]]:
+        """Indexes canonical memory entries from DECISIONS.md, IDEA_ARCHIVE.md, and PROJECT_STATE.md."""
         index = {
             "decisions": [],
             "ideas": [],
-            "state_principles": [],
+            "project_state": [],
+        }
+        sources = {
+            "decisions": False,
+            "ideas": False,
+            "project_state": False,
         }
 
         # 1. Index DECISIONS.md
         decisions_file = self.memory_dir / "DECISIONS.md"
         if decisions_file.exists():
-            content = decisions_file.read_text(encoding="utf-8")
-            for match in re.finditer(r"##\s+(D-\d+)\s+—\s+([^\n]+)([\s\S]*?)(?=\n##\s+D-\d+|\Z)", content):
-                index["decisions"].append({
-                    "id": match.group(1),
-                    "title": match.group(2).strip(),
-                    "body": match.group(3).strip(),
-                })
+            try:
+                content = decisions_file.read_text(encoding="utf-8")
+                for match in re.finditer(r"##\s+(D-\d+)\s+—\s+([^\n]+)([\s\S]*?)(?=\n##\s+D-\d+|\Z)", content):
+                    index["decisions"].append({
+                        "id": match.group(1),
+                        "title": match.group(2).strip(),
+                        "body": match.group(3).strip(),
+                    })
+                sources["decisions"] = True
+            except Exception as e:
+                print(f"[CURATOR] Warning: Could not read DECISIONS.md: {e}")
 
         # 2. Index IDEA_ARCHIVE.md
         ideas_file = self.memory_dir / "IDEA_ARCHIVE.md"
         if ideas_file.exists():
-            content = ideas_file.read_text(encoding="utf-8")
-            for line in content.splitlines():
-                line_s = line.strip()
-                if line_s.startswith("- **"):
-                    index["ideas"].append({"entry": line_s})
+            try:
+                content = ideas_file.read_text(encoding="utf-8")
+                for line in content.splitlines():
+                    line_s = line.strip()
+                    if line_s.startswith("- **"):
+                        index["ideas"].append({"entry": line_s})
+                sources["ideas"] = True
+            except Exception as e:
+                print(f"[CURATOR] Warning: Could not read IDEA_ARCHIVE.md: {e}")
 
-        return index
+        # 3. Index PROJECT_STATE.md (Actual parsing of verified milestones & principles)
+        state_file = self.memory_dir / "PROJECT_STATE.md"
+        if state_file.exists():
+            try:
+                content = state_file.read_text(encoding="utf-8")
+                for line in content.splitlines():
+                    line_s = line.strip()
+                    if line_s.startswith("- **") or line_s.startswith("## ") or "VERIFIED" in line_s:
+                        index["project_state"].append({"entry": line_s})
+                sources["project_state"] = True
+            except Exception as e:
+                print(f"[CURATOR] Warning: Could not read PROJECT_STATE.md: {e}")
+
+        return index, sources
 
     def curate_idea(self, raw_idea: str, idea_type: str = "IDEA") -> dict:
-        """Processes a human idea through the full Thought Curator lifecycle."""
+        """Processes a human idea through the full Thought Curator lifecycle into a Context Delta."""
         normalized = " ".join(raw_idea.strip().lower().split())
         idea_hash = hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:8]
         idea_id = f"idea-{idea_hash}"
@@ -130,7 +156,7 @@ class ThoughtCurator:
             task=f"Reading memory for {idea_id}",
             progress=0.35,
             workflow=idea_id,
-            last_action="Scanning DECISIONS.md, IDEA_ARCHIVE.md, and PROJECT_STATE.md",
+            last_action=f"Scanning Project Memory (Available: {self.sources_available})",
             next_action="Comparing semantic tokens & policy rules",
             blocked=False,
             human_gate=None,
@@ -142,7 +168,7 @@ class ThoughtCurator:
             task=f"Comparing {idea_id}",
             progress=0.55,
             workflow=idea_id,
-            last_action="Evaluating policy compliance and checking prior duplicate/related concepts",
+            last_action="Evaluating policy compliance against DECISIONS.md and PROJECT_STATE.md",
             next_action="Formulating Context Delta package",
             blocked=False,
             human_gate=None,
@@ -163,7 +189,7 @@ class ThoughtCurator:
                 "reason": "Crypto trading, memecoins, and token speculation are strictly forbidden by project policy."
             })
             memory_links.append({"type": "DECISION", "id": "D-002", "title": "Crypto and speculative recovery blocked", "status": "VIOLATION"})
-            classification = "CONFLICT FOUND"
+            classification = "CONFLICT"
 
         # Policy D-004: Paid action without gate
         paid_keywords = ["kauf", "pay", "credit", "subscription", "kostenpflichtig", "anzeigen schalten", "werbung kaufen", "fremdkapital"]
@@ -174,8 +200,8 @@ class ThoughtCurator:
                 "reason": "Paid services, credit purchases or ad spending require explicit human approval."
             })
             memory_links.append({"type": "DECISION", "id": "D-004", "title": "No paid or irreversible action by default", "status": "HUMAN_GATE"})
-            if classification != "CONFLICT FOUND":
-                classification = "CONFLICT FOUND"
+            if classification != "CONFLICT":
+                classification = "CONFLICT"
 
         # Policy D-022: Scoped permissions & safe cleanup
         cleanup_keywords = ["rm -rf", "delete all", "force push", "sudo", "lösche alles", "format"]
@@ -186,7 +212,7 @@ class ThoughtCurator:
                 "reason": "Destructive shell commands or unconstrained cleanup are blocked by policy."
             })
             memory_links.append({"type": "DECISION", "id": "D-022", "title": "Scoped permissions and safe cleanup", "status": "VIOLATION"})
-            classification = "CONFLICT FOUND"
+            classification = "CONFLICT"
 
         # Check for related entries in IDEA_ARCHIVE.md
         for idea_item in self.memory_index.get("ideas", []):
@@ -198,21 +224,33 @@ class ThoughtCurator:
                 clean_name = idea_item["entry"].split(":**")[0].replace("- **", "") if ":**" in idea_item["entry"] else "IDEA"
                 memory_links.append({"type": "ARCHIVED_IDEA", "id": clean_name, "title": idea_item["entry"][:60], "status": "RELATED"})
 
-        if related_entries and classification != "CONFLICT FOUND":
-            classification = "RELATED FOUND"
+        # Check for related entries in PROJECT_STATE.md
+        for state_item in self.memory_index.get("project_state", []):
+            entry_text = state_item["entry"].lower()
+            entry_tokens = set(re.findall(r"\w+", entry_text))
+            common = tokens.intersection(entry_tokens) - {"and", "or", "the", "for", "with", "in", "to", "und", "der", "die", "das", "ein", "eine", "für", "mit"}
+            if len(common) >= 3:
+                memory_links.append({"type": "PROJECT_STATE", "id": "STATE_PRINCIPLE", "title": state_item["entry"][:60], "status": "MATCHED"})
 
-        # Identify affected components / agents
-        affected_components = []
+        if related_entries and classification != "CONFLICT":
+            classification = "RELATED"
+
+        # Identify affected components / agents / workflows
+        affected_agents = []
+        affected_workflows = []
         if any(k in normalized for k in ["short", "godot", "render", "video", "fruitki", "strawberry", "kiwi", "3d", "media"]):
-            affected_components.append("3D Shorts Pipeline (Antigravity Media Studio)")
-        if any(k in normalized for k in ["syntax", "audit", "lint", "test", "review", "code", "schema", "qa"]):
-            affected_components.append("Code Verification & QA (Codex Lab)")
-        if not affected_components:
-            affected_components.append("General Architecture (Courier System)")
+            affected_agents.append("antigravity")
+            affected_workflows.append("3D Shorts Pipeline (Antigravity Media Studio)")
+        if any(k in normalized for k in ["syntax", "audit", "lint", "test", "review", "code", "schema", "qa", "verifikation"]):
+            affected_agents.append("codex")
+            affected_workflows.append("Code Verification & QA (Codex Lab)")
+        if not affected_agents:
+            affected_agents.append("antigravity")
+            affected_workflows.append("General Architecture (Courier System)")
 
         # Formulate Recommended Next Action & Target Agent
         qa_keywords = ["audit", "syntax", "unit test", "unit-test", "code review", "lint", "qa", "verifikation"]
-        if classification == "CONFLICT FOUND":
+        if classification == "CONFLICT":
             rec_action = "STOP_ON_POLICY_CONFLICT"
             target_agent = "chief_gate"
         elif any(kw in normalized for kw in qa_keywords):
@@ -234,25 +272,29 @@ class ThoughtCurator:
             human_gate=None,
         )
 
-        # Final Context Delta
+        # Final Machine-Readable Context Delta Object
         context_delta = {
             "idea_id": idea_id,
             "raw_idea": raw_idea,
             "normalized_idea": normalized,
+            "normalized_summary": raw_idea[:100],
+            "idea_status": "PROPOSED",
             "type": idea_type,
             "classification": classification,
             "truth_boundary": "IDEA != VERIFIED | USER_REPORTED != TECHNICALLY_VERIFIED",
             "conflicts": conflicts,
-            "related_memory_entries": related_entries[:3],
-            "memory_links": memory_links,
-            "affected_components": affected_components,
+            "related_ideas": related_entries[:3],
+            "memory_references": memory_links,
+            "affected_agents": affected_agents,
+            "affected_workflows": affected_workflows,
             "recommended_next_action": rec_action,
             "target_agent_recommendation": target_agent,
+            "sources_indexed": self.sources_available,
             "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         }
 
         # 5. Final State: SENT TO CHIEF or BLOCKED
-        final_state = "BLOCKED" if classification == "CONFLICT FOUND" else "SENT TO CHIEF"
+        final_state = "BLOCKED" if classification == "CONFLICT" else "SENT TO CHIEF"
         self.state_tracker.update_state(
             state=final_state,
             task=f"Curated {idea_id}",
@@ -262,7 +304,7 @@ class ThoughtCurator:
             next_action=f"Forwarding to Chief Commander (Agent: {target_agent})" if final_state == "SENT TO CHIEF" else "Awaiting human override or reformulation",
             result=f"Classification: {classification} | Links: {len(memory_links)}",
             blocked=final_state == "BLOCKED",
-            human_gate="REQUIRE_HUMAN_CONFIRMATION" if final_state == "BLOCKED" else None,
+            human_gate="REQUIRE_EXPLICIT_HUMAN_APPROVAL" if final_state == "BLOCKED" else None,
         )
 
         # Save thought record

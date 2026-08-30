@@ -6,6 +6,8 @@ class OperationsStudio {
   constructor() {
     this.pollInterval = 500;
     this.isPolling = false;
+    this.currentWorkflow = 'WF-GLOBAL';
+    this.currentCorrelation = 'NO_ACTIVE_WORKFLOW';
     this.initElements();
     this.bindEvents();
     this.startPolling();
@@ -110,13 +112,33 @@ class OperationsStudio {
       if (e.key === 'Enter') this.submitHumanIdea();
     });
 
-    this.btnGateApprove.addEventListener('click', () => {
-      this.gateBanner.classList.add('hidden');
-    });
+    this.btnGateApprove.addEventListener('click', () => this.sendHumanGateDecision('APPROVE'));
+    this.btnGateReject.addEventListener('click', () => this.sendHumanGateDecision('REJECT'));
+  }
 
-    this.btnGateReject.addEventListener('click', () => {
+  async sendHumanGateDecision(action) {
+    try {
+      this.btnGateApprove.disabled = true;
+      this.btnGateReject.disabled = true;
+      const res = await fetch('/api/human-gate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: action,
+          workflow_id: this.currentWorkflow,
+          correlation_id: this.currentCorrelation,
+          reason: `Human operator executed ${action} action in Studio Cockpit`,
+        }),
+      });
+      const data = await res.json();
+      this.appendLog(this.chiefFeedLog, `[HUMAN GATE] Decision persisted: ${action} (${data.approval_id || 'OK'})`);
       this.gateBanner.classList.add('hidden');
-    });
+    } catch (err) {
+      console.error('Failed to submit human gate action:', err);
+    } finally {
+      this.btnGateApprove.disabled = false;
+      this.btnGateReject.disabled = false;
+    }
   }
 
   async submitHumanIdea() {
@@ -186,7 +208,7 @@ class OperationsStudio {
       this.step1.classList.add('active');
     } else if (state === 'READING MEMORY') {
       this.step2.classList.add('active');
-    } else if (state === 'COMPARING' || state === 'DUPLICATE FOUND' || state === 'RELATED FOUND' || state === 'CONFLICT FOUND') {
+    } else if (state === 'COMPARING' || state === 'DUPLICATE FOUND' || state === 'RELATED' || state === 'RELATED FOUND' || state === 'CONFLICT') {
       this.step3.classList.add('active');
     } else if (state === 'CONTEXT UPDATED') {
       this.step4.classList.add('active');
@@ -199,6 +221,10 @@ class OperationsStudio {
     if (!data) return;
 
     const { agents = {}, counts = {}, bus = {} } = data;
+
+    // Preserve Current Workflow & Correlation
+    this.currentWorkflow = bus.active_workflow || 'WF-GLOBAL';
+    this.currentCorrelation = bus.correlation_id || 'NO_ACTIVE_WORKFLOW';
 
     // 1. Update Bus Counts
     this.countDispatch.textContent = counts.dispatch || 0;
@@ -238,7 +264,7 @@ class OperationsStudio {
     const chiefState = chief.state || (bus.is_locked ? 'COORDINATING' : 'IDLE');
     this.badgeChiefState.textContent = chiefState;
     this.chiefWorkflow.textContent = chief.workflow || bus.active_workflow || '-';
-    this.chiefLastDecision.textContent = bus.last_decision || 'ACCEPTED';
+    this.chiefLastDecision.textContent = bus.last_decision || 'NO_DECISION';
     this.chiefTaskLabel.textContent = chief.task ? `Task: ${chief.task}` : 'Task: Standby';
     const chiefProgress = Math.round((chief.progress || 0) * 100);
     this.chiefProgressNum.textContent = `${chiefProgress}%`;
@@ -257,6 +283,8 @@ class OperationsStudio {
 
     // 4. Update Antigravity Station (Primary Heavy Worker)
     const ag = agents['agent-antigravity-bridge'] || {};
+    const agExecClass = ag.execution_class || (ag.state === 'RUNNING' ? 'DETERMINISTIC_ANTIGRAVITY' : 'DETERMINISTIC_ANTIGRAVITY');
+    this.badgeAgMode.textContent = `🟢 ${agExecClass}`;
     this.agState.textContent = ag.state || 'IDLE';
     this.agTaskLabel.textContent = ag.task ? `Task: ${ag.task}` : 'Task: IDLE';
     const agProgress = Math.round((ag.progress || 0) * 100);
@@ -276,6 +304,8 @@ class OperationsStudio {
 
     // 5. Update Codex Station (Scarce Technical Specialist)
     const codex = agents['agent-codex-bridge'] || {};
+    const codexExecClass = codex.execution_class || (codex.state === 'RUNNING' ? 'DETERMINISTIC_CODEX' : 'DETERMINISTIC_CODEX');
+    this.badgeCodexMode.textContent = codexExecClass === 'REAL_CODEX_CLI' ? '🟢 REAL_CODEX_CLI' : `🟡 ${codexExecClass}`;
     this.codexState.textContent = codex.state || 'IDLE';
     this.codexTaskLabel.textContent = codex.task ? `Task: ${codex.task}` : 'Task: IDLE';
     const cdxProgress = Math.round((codex.progress || 0) * 100);
@@ -294,7 +324,7 @@ class OperationsStudio {
     }
 
     // 6. Human Gate Alert Banner
-    if (curatorState === 'CONFLICT FOUND' || curatorState === 'BLOCKED' || chief.state === 'BLOCKED_HUMAN_GATE' || codex.state === 'BLOCKED_HUMAN_GATE' || ag.state === 'BLOCKED_HUMAN_GATE' || bus.human_gate) {
+    if (curatorState === 'CONFLICT' || curatorState === 'BLOCKED' || chief.state === 'BLOCKED_HUMAN_GATE' || chief.state === 'BLOCKED_POLICY_CONFLICT' || codex.state === 'BLOCKED_HUMAN_GATE' || ag.state === 'BLOCKED_HUMAN_GATE' || bus.human_gate) {
       this.gateBanner.classList.remove('hidden');
       this.gateDesc.textContent = `Workflow task paused: ${curator.last_action || codex.task || ag.task || chief.task || 'Explicit human approval required'}`;
     } else {

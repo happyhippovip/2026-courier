@@ -143,6 +143,20 @@ class AutonomousLevel6Loop:
             except OSError:
                 pass
 
+    def check_human_approval(self, workflow_id: str, task_id: str) -> dict | None:
+        """Checks events/approvals/ for an explicit human gate approval or rejection event."""
+        approvals_dir = self.repo_dir / "events/approvals"
+        if not approvals_dir.exists():
+            return None
+        for appr_file in sorted(approvals_dir.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True):
+            try:
+                data = load_json(appr_file)
+                if data.get("workflow_id") == workflow_id or data.get("task_id") == task_id:
+                    return data
+            except Exception:
+                pass
+        return None
+
     def evaluate_chief_decision(
         self,
         task_id: str,
@@ -154,30 +168,57 @@ class AutonomousLevel6Loop:
     ) -> dict:
         """Evaluates Chief Review for the result and determines next workflow action."""
         decisions_dir = self.repo_dir / "events/chief-decisions"
-        decisions_dir.mkdir(parents=True, exist_ok=True)
-        decision_file = decisions_dir / f"{task_id}-chief-decision.json"
-
-        res_data = load_json(result_file)
-        payload = res_data.get("payload", {})
-        verdict = payload.get("verdict", "PASS")
-
+        """Acts as Chief Review Router, evaluating worker output and generating a ChiefDecision event."""
         now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        decision_file = self.repo_dir / f"events/chief-decisions/{task_id}-chief-decision.json"
 
-        if verdict == "HUMAN_APPROVAL_REQUIRED":
-            decision = {
-                "schema_version": "2.0",
-                "decision_id": f"dec-{uuid.uuid4().hex[:10]}",
-                "task_id": task_id,
-                "correlation_id": correlation_id,
-                "workflow_id": workflow_id,
-                "round_index": round_index,
-                "verdict": "HUMAN_APPROVAL_REQUIRED",
-                "action": "STOP_AT_HUMAN_GATE",
-                "next_task": None,
-                "reason": payload.get("reason", "Explicit human approval required for this stage."),
-                "created_at": now_iso,
-            }
-        elif verdict == "NEEDS_FIX":
+        result_data = load_json(result_file)
+        payload = result_data.get("payload", {})
+        verdict = payload.get("verdict", "FAIL")
+
+        # 1. Check for Human Approval Gate Requirement
+        if payload.get("requires_human_approval") or payload.get("human_gate_required") or verdict == "HUMAN_GATE":
+            # Check if an approval event was already persisted
+            approval_event = self.check_human_approval(workflow_id, task_id)
+            if approval_event:
+                if approval_event.get("action") == "APPROVE":
+                    print(f"[CHIEF REVIEW] Human approval event consumed for {workflow_id}: APPROVED by {approval_event.get('operator', 'HUMAN')}")
+                    verdict = "ACCEPTED"
+                elif approval_event.get("action") == "REJECT":
+                    print(f"[CHIEF REVIEW] Human approval event consumed for {workflow_id}: REJECTED by {approval_event.get('operator', 'HUMAN')}")
+                    decision = {
+                        "schema_version": "2.0",
+                        "decision_id": f"dec-{uuid.uuid4().hex[:10]}",
+                        "task_id": task_id,
+                        "correlation_id": correlation_id,
+                        "workflow_id": workflow_id,
+                        "round_index": round_index,
+                        "verdict": "REJECTED",
+                        "action": "STOP_ON_HUMAN_REJECTION",
+                        "next_task": None,
+                        "reason": f"Workflow task explicitly rejected by human operator: {approval_event.get('reason', 'None')}",
+                        "created_at": now_iso,
+                    }
+                    save_json(decision_file, decision)
+                    return decision
+            else:
+                decision = {
+                    "schema_version": "2.0",
+                    "decision_id": f"dec-{uuid.uuid4().hex[:10]}",
+                    "task_id": task_id,
+                    "correlation_id": correlation_id,
+                    "workflow_id": workflow_id,
+                    "round_index": round_index,
+                    "verdict": "HUMAN_APPROVAL_REQUIRED",
+                    "action": "STOP_AT_HUMAN_GATE",
+                    "next_task": None,
+                    "reason": "Task payload flagged for explicit human approval before advancing.",
+                    "created_at": now_iso,
+                }
+                save_json(decision_file, decision)
+                return decision
+
+        if verdict == "NEEDS_FIX":
             decision = {
                 "schema_version": "2.0",
                 "decision_id": f"dec-{uuid.uuid4().hex[:10]}",
@@ -335,6 +376,12 @@ class AutonomousLevel6Loop:
                     "cost_policy": "ZERO_COST_ONLY",
                     "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
                     "max_iterations": 1,
+                    "context_delta": current_task_info.get("context_delta"),
+                    "routing_decision": {
+                        "target_agent": target_agent_name,
+                        "routing_reason": current_task_info.get("routing_reason", "Assigned by SmartResourceRouter"),
+                        "execution_class": "REAL_CODEX_CLI" if (is_codex and try_real_codex) else ("DETERMINISTIC_CODEX" if is_codex else "DETERMINISTIC_ANTIGRAVITY"),
+                    },
                     "expected_output": "Structured summary result",
                     "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
                 }
