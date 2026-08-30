@@ -451,8 +451,9 @@ def execute_codex_task(worker_job_path: Path, hooks: CodexHookRunner, force: boo
     if parent_task_id:
         payload["parent_task_id"] = parent_task_id
 
-    payload["context_version_seen"] = job_data.get("context_version")
-    payload["context_snapshot_hash_seen"] = job_data.get("context_snapshot_hash")
+    payload["context_version_seen"] = job.get("context_version")
+    payload["context_snapshot_hash_seen"] = job.get("context_snapshot_hash")
+
 
     hooks.on_tool_action(task_id, "Formatting structured Codex result payload", 0.9)
 

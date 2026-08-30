@@ -277,12 +277,14 @@ class PermissionGuard:
         self.alerts_dir = repo_dir / "events/runtime-alerts"
         self.last_audit: dict[str, Any] = {
             "status": "PERMISSIONS HEALTHY",
+            "status_label": "PERMISSIONS HEALTHY",
             "last_checked_command": "python3 scripts/launch_visual_studio.py --status",
             "rule_match": "STUDIO_LIFECYCLE",
             "recommendation": "ALREADY_ALLOWED",
             "risk_class": "SAFE",
             "speech": "All observed commands adhere to approved project rules.",
         }
+
 
 
     def normalize_command(self, command: str) -> str:
