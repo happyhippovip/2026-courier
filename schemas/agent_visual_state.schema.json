@@ -1,0 +1,97 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AgentVisualState",
+  "description": "Machine-readable visual and operational state for Antigravity, Chief, Codex, and Courier agents in future visual dashboards or workstation worlds.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "id",
+    "name",
+    "role",
+    "state",
+    "task",
+    "progress",
+    "position_hint",
+    "workflow",
+    "last_action",
+    "next_action",
+    "result",
+    "blocked",
+    "human_gate",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "2.0"
+    },
+    "id": {
+      "type": "string",
+      "description": "Unique agent identifier, e.g. agent-antigravity-bridge"
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name of the agent, e.g. Antigravity Bridge"
+    },
+    "role": {
+      "type": "string",
+      "description": "Role definition, e.g. Courier Automation Bridge"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "IDLE",
+        "RECEIVING_TASK",
+        "RUNNING",
+        "AWAITING_CHIEF_REVIEW",
+        "NEEDS_FIX",
+        "BLOCKED_HUMAN_GATE",
+        "COMPLETED",
+        "FAILED"
+      ]
+    },
+    "task": {
+      "type": ["string", "null"],
+      "description": "Currently assigned task ID or short description"
+    },
+    "progress": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Current task progress normalized between 0.0 and 1.0"
+    },
+    "position_hint": {
+      "type": "string",
+      "description": "Suggested visual workstation or room location, e.g. workstation_3d_render, workstation_chief, workstation_courier"
+    },
+    "workflow": {
+      "type": ["string", "null"],
+      "description": "Active workflow domain, e.g. content_production, dropshipping, automation, memory_sync"
+    },
+    "last_action": {
+      "type": "string",
+      "description": "Description of the most recently executed action"
+    },
+    "next_action": {
+      "type": ["string", "null"],
+      "description": "Anticipated next action"
+    },
+    "result": {
+      "type": ["object", "string", "null"],
+      "description": "Summary or envelope reference of the produced result"
+    },
+    "blocked": {
+      "type": "boolean",
+      "description": "Whether the agent is currently blocked from further execution"
+    },
+    "human_gate": {
+      "type": ["string", "null"],
+      "description": "Human gate identifier if approval is required, otherwise null"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": false
+}

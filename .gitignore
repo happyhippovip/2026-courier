@@ -11,6 +11,7 @@ events/morning-reports/*.md
 events/thought-incoming/*.json
 events/thought-processed/*.json
 events/thought-rejected/*.json
+events/agent-states/*.json
 
 # Runtime generated content artifacts remain local.
 runtime/content/*
@@ -28,3 +29,4 @@ runtime/content/*
 !events/thought-incoming/.gitkeep
 !events/thought-processed/.gitkeep
 !events/thought-rejected/.gitkeep
+!events/agent-states/.gitkeep
