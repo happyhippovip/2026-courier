@@ -233,6 +233,8 @@ class UpdateSteward:
                 except Exception:
                     pass
 
+        adoptions_dir = events_dir / "academy/adoptions"
+
         return {
             "workflow_id": workflow_id,
             "correlation_id": correlation_id,
@@ -242,6 +244,7 @@ class UpdateSteward:
             "total_decisions": len(list(decisions_dir.glob("*.json"))) if decisions_dir.exists() else 0,
             "total_results": len(list(results_dir.glob("*.json"))) if results_dir.exists() else 0,
             "total_approvals": len(list(approvals_dir.glob("*.json"))) if approvals_dir.exists() else 0,
+            "total_adoptions": len(list(adoptions_dir.glob("*.json"))) if adoptions_dir.exists() else 0,
         }
 
     def get_latest_snapshot(self) -> dict | None:
@@ -291,6 +294,8 @@ class UpdateSteward:
                 changed_items.append("decisions")
             if previous_snapshot.get("workflow_state", {}).get("workflow_id") != courier_state["workflow_id"]:
                 changed_items.append("workflow_id")
+            if previous_snapshot.get("academy_adoptions", 0) != courier_state.get("total_adoptions", 0):
+                changed_items.append("academy_adoptions")
             if context_delta and context_delta.get("idea_id") != (previous_snapshot.get("latest_idea_delta") or {}).get("idea_id"):
                 changed_items.append("idea_delta")
         else:
@@ -337,6 +342,7 @@ class UpdateSteward:
             "workflow_state": courier_state,
             "memory_truth": memory_truth,
             "latest_idea_delta": context_delta or (previous_snapshot.get("latest_idea_delta") if previous_snapshot else None),
+            "academy_adoptions": courier_state.get("total_adoptions", 0),
             "truth_classifications": truth_classifications,
             "changed_since_previous_snapshot": changed_items,
             "previous_snapshot_version": prev_version,

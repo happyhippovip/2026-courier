@@ -144,12 +144,17 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         snapshot_file = EVENTS_DIR / "context-snapshots/snapshot-current.json"
         snapshot_data = load_json_safe(snapshot_file) if snapshot_file.exists() else None
 
+        # Read academy summary
+        econ_file = EVENTS_DIR / "academy/economics.json"
+        econ_data = load_json_safe(econ_file) if econ_file.exists() else None
+
         response_data = {
             "schema_version": "2.0",
             "server_time": datetime.datetime.now(datetime.timezone.utc).isoformat(),
             "agents": agents_data,
             "counts": counts,
             "context_snapshot": snapshot_data,
+            "academy": econ_data,
             "bus": {
                 "is_locked": is_locked,
                 "active_lock": active_lock_name,

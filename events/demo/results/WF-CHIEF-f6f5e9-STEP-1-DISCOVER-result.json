@@ -1,14 +1,14 @@
 {
   "schema_version": "2.0",
-  "message_id": "msg-res-c3d1cb5a764f",
-  "task_id": "WF-CHIEF-2ddef5-STEP-1-DISCOVER",
-  "correlation_id": "corr-demo-e15543bb",
-  "parent_id": "msg-cmd-WF-CHIEF-2ddef5-STEP-1-DISCOVER",
+  "message_id": "msg-res-62172d719847",
+  "task_id": "WF-CHIEF-f6f5e9-STEP-1-DISCOVER",
+  "correlation_id": "corr-demo-0d448ec2",
+  "parent_id": "msg-cmd-WF-CHIEF-f6f5e9-STEP-1-DISCOVER",
   "source": "antigravity",
   "destination": "courier",
   "type": "RESULT",
   "status": "COMPLETED",
-  "created_at": "2026-08-30T15:23:04.280855+00:00",
+  "created_at": "2026-08-30T15:30:55.676384+00:00",
   "payload": {
     "verdict": "HUMAN_APPROVAL_REQUIRED",
     "action_executed": "READ_FIXTURE_AND_SUMMARIZE",
@@ -18,10 +18,10 @@
     "execution_mode": "AUTOMATED_ANTIGRAVITY_BRIDGE",
     "zero_cost_policy": "ZERO_COST_ONLY",
     "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
-    "context_version_seen": 18,
-    "context_snapshot_hash_seen": "822c7c19ebd71962255b95fc45641a3a174b2dc684722331366cca80ff3e39a8",
+    "context_version_seen": 26,
+    "context_snapshot_hash_seen": "bbf4774e9fbd4d4d06914d251bccb0c61c901e2be7ecd2309633eed80d62a2ec",
     "requires_human_approval": true
   },
-  "payload_hash": "8d3b500ec07c5cb26e335689a746e94dc0ee95332fbda7159ce505e99b46cf81",
+  "payload_hash": "55b0d970257754dee0bcb27d56e3650c0d8bcc037088168197095be1b4a4ab02",
   "max_iterations": 1
 }
