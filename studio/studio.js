@@ -1,13 +1,19 @@
 /**
  * 2026 Courier // Autonomous Chief Operations Cockpit Controller
  */
+import {
+  executionBadgeLabel,
+  resolveCorrelationTruth,
+  resolveDecisionTruth,
+  resolveExecutionTruth,
+} from './execution_truth.js';
 
 class OperationsStudio {
   constructor() {
     this.pollInterval = 500;
     this.isPolling = false;
-    this.currentWorkflow = 'WF-GLOBAL';
-    this.currentCorrelation = 'NO_ACTIVE_WORKFLOW';
+    this.currentWorkflow = null;
+    this.currentCorrelation = null;
     this.initElements();
     this.bindEvents();
     this.startPolling();
@@ -117,6 +123,11 @@ class OperationsStudio {
   }
 
   async sendHumanGateDecision(action) {
+    if (!this.currentWorkflow || !this.currentCorrelation) {
+      this.appendLog(this.chiefFeedLog, '[HUMAN GATE] WAITING_FOR_HUMAN: no verified workflow and correlation are available.');
+      return;
+    }
+
     try {
       this.btnGateApprove.disabled = true;
       this.btnGateReject.disabled = true;
@@ -222,9 +233,17 @@ class OperationsStudio {
 
     const { agents = {}, counts = {}, bus = {} } = data;
 
-    // Preserve Current Workflow & Correlation
-    this.currentWorkflow = bus.active_workflow || 'WF-GLOBAL';
-    this.currentCorrelation = bus.correlation_id || 'NO_ACTIVE_WORKFLOW';
+    // Preserve only identifiers received from Courier state.  The UI never
+    // synthesizes a workflow/correlation identity for a human-gate decision.
+    this.currentWorkflow = typeof bus.active_workflow === 'string'
+      && bus.active_workflow
+      && bus.active_workflow !== 'IDLE_MONITORING'
+      ? bus.active_workflow
+      : null;
+    this.currentCorrelation = resolveCorrelationTruth(bus);
+    const hasVerifiedGateContext = Boolean(this.currentWorkflow && this.currentCorrelation);
+    this.btnGateApprove.disabled = !hasVerifiedGateContext;
+    this.btnGateReject.disabled = !hasVerifiedGateContext;
 
     // 1. Update Bus Counts
     this.countDispatch.textContent = counts.dispatch || 0;
@@ -264,7 +283,7 @@ class OperationsStudio {
     const chiefState = chief.state || (bus.is_locked ? 'COORDINATING' : 'IDLE');
     this.badgeChiefState.textContent = chiefState;
     this.chiefWorkflow.textContent = chief.workflow || bus.active_workflow || '-';
-    this.chiefLastDecision.textContent = bus.last_decision || 'NO_DECISION';
+    this.chiefLastDecision.textContent = resolveDecisionTruth(bus);
     this.chiefTaskLabel.textContent = chief.task ? `Task: ${chief.task}` : 'Task: Standby';
     const chiefProgress = Math.round((chief.progress || 0) * 100);
     this.chiefProgressNum.textContent = `${chiefProgress}%`;
@@ -283,8 +302,8 @@ class OperationsStudio {
 
     // 4. Update Antigravity Station (Primary Heavy Worker)
     const ag = agents['agent-antigravity-bridge'] || {};
-    const agExecClass = ag.execution_class || (ag.state === 'RUNNING' ? 'DETERMINISTIC_ANTIGRAVITY' : 'DETERMINISTIC_ANTIGRAVITY');
-    this.badgeAgMode.textContent = `🟢 ${agExecClass}`;
+    const agExecClass = resolveExecutionTruth(ag);
+    this.setExecutionBadge(this.badgeAgMode, agExecClass);
     this.agState.textContent = ag.state || 'IDLE';
     this.agTaskLabel.textContent = ag.task ? `Task: ${ag.task}` : 'Task: IDLE';
     const agProgress = Math.round((ag.progress || 0) * 100);
@@ -304,8 +323,8 @@ class OperationsStudio {
 
     // 5. Update Codex Station (Scarce Technical Specialist)
     const codex = agents['agent-codex-bridge'] || {};
-    const codexExecClass = codex.execution_class || (codex.state === 'RUNNING' ? 'DETERMINISTIC_CODEX' : 'DETERMINISTIC_CODEX');
-    this.badgeCodexMode.textContent = codexExecClass === 'REAL_CODEX_CLI' ? '🟢 REAL_CODEX_CLI' : `🟡 ${codexExecClass}`;
+    const codexExecClass = resolveExecutionTruth(codex);
+    this.setExecutionBadge(this.badgeCodexMode, codexExecClass);
     this.codexState.textContent = codex.state || 'IDLE';
     this.codexTaskLabel.textContent = codex.task ? `Task: ${codex.task}` : 'Task: IDLE';
     const cdxProgress = Math.round((codex.progress || 0) * 100);
@@ -330,6 +349,33 @@ class OperationsStudio {
     } else {
       this.gateBanner.classList.add('hidden');
     }
+  }
+
+  setExecutionBadge(element, executionClass) {
+    element.textContent = executionBadgeLabel(executionClass);
+    element.classList.remove(
+      'execution-real',
+      'execution-deterministic',
+      'execution-fallback',
+      'execution-simulated',
+      'execution-registered',
+      'execution-human-gate',
+      'execution-blocked',
+      'execution-unknown',
+    );
+    const styleClass = {
+      REAL_CODEX_CLI: 'execution-real',
+      REAL_ANTIGRAVITY: 'execution-real',
+      DETERMINISTIC_CODEX: 'execution-deterministic',
+      DETERMINISTIC_ANTIGRAVITY: 'execution-deterministic',
+      FALLBACK: 'execution-fallback',
+      SIMULATED_VISUAL: 'execution-simulated',
+      REGISTERED: 'execution-registered',
+      WAITING_FOR_HUMAN: 'execution-human-gate',
+      BLOCKED: 'execution-blocked',
+      UNKNOWN: 'execution-unknown',
+    }[executionClass] || 'execution-unknown';
+    element.classList.add(styleClass);
   }
 
   appendLog(feedElement, text) {

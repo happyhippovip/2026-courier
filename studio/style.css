@@ -354,6 +354,16 @@ body.theme-dark {
   color: var(--accent-red);
 }
 
+/* Execution class colors express provenance, not an inferred agent identity. */
+.badge.execution-real { color: var(--accent-green); border-color: rgba(0, 255, 136, 0.45); }
+.badge.execution-deterministic { color: var(--accent-amber); border-color: rgba(255, 183, 3, 0.45); }
+.badge.execution-fallback { color: #ff9f43; border-color: rgba(255, 159, 67, 0.5); }
+.badge.execution-simulated { color: #c77dff; border-color: rgba(199, 125, 255, 0.5); }
+.badge.execution-registered { color: var(--accent-blue); border-color: rgba(58, 134, 255, 0.5); }
+.badge.execution-human-gate { color: var(--accent-amber); border-color: rgba(255, 183, 3, 0.55); }
+.badge.execution-blocked { color: var(--accent-red); border-color: rgba(255, 51, 102, 0.55); }
+.badge.execution-unknown { color: var(--text-muted); border-color: var(--border-color); }
+
 /* Main Grid Layout */
 .studio-grid {
   flex: 1;
