@@ -422,58 +422,59 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: rgba(6, 10, 16, 0.94);
-  border: 1px solid rgba(0, 210, 255, 0.5);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.8), 0 0 10px rgba(0, 210, 255, 0.2);
+  background: rgba(4, 7, 12, 0.95);
+  border: 1.5px solid rgba(0, 210, 255, 0.6);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.9), 0 0 12px rgba(0, 210, 255, 0.3);
   border-radius: 4px;
-  padding: 2px 6px;
+  padding: 2px 7px;
   margin-bottom: 4px;
   white-space: nowrap;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
   z-index: 30;
 }
 
 .nameplate-title {
   font-family: var(--font-orbitron);
-  font-size: 8.5px;
+  font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.5px;
   color: #ffffff;
-  text-shadow: 0 0 6px rgba(0, 210, 255, 0.6);
+  text-shadow: 0 1px 4px #000, 0 0 8px rgba(0, 210, 255, 0.8);
 }
 
 .nameplate-subtitle {
   font-family: var(--font-mono);
-  font-size: 7px;
+  font-size: 7.5px;
   color: var(--border-cyan);
-  opacity: 0.9;
+  opacity: 0.95;
+  text-shadow: 0 1px 3px #000;
 }
 
 /* Avatar Sprite Icon */
 .agent-avatar-body {
   position: relative;
-  width: 24px;
-  height: 24px;
-  background: radial-gradient(circle, #1a2936 0%, #0d151c 100%);
+  width: 26px;
+  height: 26px;
+  background: radial-gradient(circle, #1e3142 0%, #0a1118 100%);
   border: 1.5px solid var(--border-cyan);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 12px rgba(0, 210, 255, 0.4);
+  box-shadow: 0 0 14px rgba(0, 210, 255, 0.5);
   transition: all 0.3s ease;
 }
 
 .avatar-icon {
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .avatar-status-ring {
   position: absolute;
   top: -2px;
   left: -2px;
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   border: 2px solid transparent;
 }
@@ -481,18 +482,18 @@ html, body {
 /* Active & Blocked States */
 .living-agent-node.state-working .agent-avatar-body {
   border-color: var(--border-green);
-  box-shadow: 0 0 16px rgba(0, 255, 170, 0.8);
+  box-shadow: 0 0 18px rgba(0, 255, 170, 0.9);
   animation: bounce-working 1s infinite alternate ease-in-out;
 }
 
 .living-agent-node.state-working .nameplate-title {
   color: var(--border-green);
-  text-shadow: 0 0 8px rgba(0, 255, 170, 0.8);
+  text-shadow: 0 1px 4px #000, 0 0 10px rgba(0, 255, 170, 0.9);
 }
 
 .living-agent-node.state-blocked .agent-avatar-body {
   border-color: #ff4444;
-  box-shadow: 0 0 16px rgba(255, 68, 68, 0.8);
+  box-shadow: 0 0 18px rgba(255, 68, 68, 0.9);
 }
 
 .living-agent-node.state-blocked .nameplate-title {
@@ -501,7 +502,8 @@ html, body {
 
 /* Bodyguards in Leisure Area Styling */
 .living-agent-node.is-bodyguard .agent-nameplate {
-  border-color: rgba(255, 153, 0, 0.5);
+  border-color: rgba(255, 153, 0, 0.6);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.9), 0 0 12px rgba(255, 153, 0, 0.3);
 }
 
 .living-agent-node.is-bodyguard .nameplate-subtitle {
@@ -510,23 +512,25 @@ html, body {
 
 .living-agent-node.is-bodyguard .agent-avatar-body {
   border-color: var(--border-orange);
+  box-shadow: 0 0 12px rgba(255, 153, 0, 0.4);
 }
 
 /* Speech Bubbles */
 .agent-speech-bubble {
   position: absolute;
-  bottom: calc(100% + 2px);
+  bottom: calc(100% + 4px);
   background: #ffffff;
-  color: #0d1117;
+  color: #080c12;
   font-family: var(--font-sans);
-  font-size: 8.5px;
+  font-size: 9px;
   font-weight: 700;
-  padding: 3px 7px;
+  padding: 4px 9px;
   border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.8);
   white-space: nowrap;
   z-index: 40;
   animation: pop-speech 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  border: 1px solid rgba(0, 0, 0, 0.2);
 }
 
 .agent-speech-bubble::after {
@@ -535,7 +539,7 @@ html, body {
   top: 100%;
   left: 50%;
   transform: translateX(-50%);
-  border-width: 4px;
+  border-width: 5px;
   border-style: solid;
   border-color: #ffffff transparent transparent transparent;
 }
