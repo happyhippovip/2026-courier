@@ -20,6 +20,7 @@ import hashlib
 import json
 import os
 import re
+import subprocess
 import sys
 import uuid
 from pathlib import Path
@@ -240,6 +241,41 @@ class CodexHookRunner:
 CODEX_CLI_PATH = Path("/Applications/ChatGPT.app/Contents/Resources/codex")
 
 
+def codex_cli_version() -> str:
+    """Return the installed CLI version without treating it as backend proof."""
+    try:
+        proc = subprocess.run(
+            [str(CODEX_CLI_PATH), "--version"],
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            timeout=10.0,
+        )
+        if proc.returncode == 0:
+            return proc.stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        pass
+    return "UNKNOWN"
+
+
+def parse_real_codex_result(content: str) -> dict:
+    """Accept only the narrow JSON result contract requested from the real worker."""
+    candidate = content.strip()
+    if candidate.startswith("```"):
+        candidate = re.sub(r"^```(?:json)?\\s*|\\s*```$", "", candidate).strip()
+
+    data = json.loads(candidate)
+    if not isinstance(data, dict):
+        raise ValueError("Codex CLI did not return a JSON object")
+
+    verdict = data.get("verdict")
+    summary = data.get("summary")
+    if verdict not in {"PASS", "HUMAN_APPROVAL_REQUIRED"} or not isinstance(summary, str):
+        raise ValueError("Codex CLI JSON does not satisfy the required verdict/summary contract")
+    return {"verdict": verdict, "summary": summary[:500]}
+
+
 def execute_real_codex_cli(instruction: str, allowed_scope: list[str], task_id: str) -> tuple[bool, dict]:
     """Invokes the real installed Codex CLI non-interactively."""
     if not CODEX_CLI_PATH.exists():
@@ -249,7 +285,11 @@ def execute_real_codex_cli(instruction: str, allowed_scope: list[str], task_id: 
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
     scope_str = ", ".join(allowed_scope) if allowed_scope else "read-only workspace"
-    prompt = f"TASK ID: {task_id}\nSCOPE: {scope_str}\nINSTRUCTION: {instruction}\nReturn a concise JSON object with 'verdict' ('PASS' or 'HUMAN_APPROVAL_REQUIRED') and 'summary'."
+    prompt = (
+        f"TASK ID: {task_id}\nSCOPE: {scope_str}\nINSTRUCTION: {instruction}\n"
+        "Perform only read-only repository inspection. Return exactly one JSON object with "
+        "'verdict' ('PASS' or 'HUMAN_APPROVAL_REQUIRED') and a non-sensitive 'summary'."
+    )
 
     cmd = [
         str(CODEX_CLI_PATH),
@@ -276,12 +316,23 @@ def execute_real_codex_cli(instruction: str, allowed_scope: list[str], task_id: 
             content = out_file.read_text(encoding="utf-8").strip()
             if out_file.exists():
                 out_file.unlink()
+            try:
+                normalized_result = parse_real_codex_result(content)
+            except (ValueError, json.JSONDecodeError) as exc:
+                return False, {
+                    "verdict": "FAILED",
+                    "agent_source": "CODEX_CLI_REAL",
+                    "execution_mode": "REAL_CODEX_CLI_EXECUTION",
+                    "error": f"Invalid machine-readable Codex result: {exc}",
+                    "cli_version": codex_cli_version(),
+                }
             return True, {
-                "verdict": "PASS",
+                **normalized_result,
                 "agent_source": "CODEX_CLI_REAL",
                 "execution_mode": "REAL_CODEX_CLI_EXECUTION",
-                "cli_output": content[:500],
-                "cli_version": "0.150.0-alpha.12.2",
+                "cli_process_returncode": proc.returncode,
+                "cli_output_sha256": hashlib.sha256(content.encode("utf-8")).hexdigest(),
+                "cli_version": codex_cli_version(),
             }
         else:
             err_text = (proc.stderr + "\n" + proc.stdout).strip()
@@ -294,7 +345,7 @@ def execute_real_codex_cli(instruction: str, allowed_scope: list[str], task_id: 
                     "agent_source": "CODEX_CLI_REAL",
                     "execution_mode": "REAL_CODEX_CLI_EXECUTION",
                     "error": "OpenAI Codex usage limit reached (resets at 4:32 PM)",
-                    "cli_version": "0.150.0-alpha.12.2",
+                    "cli_version": codex_cli_version(),
                 }
             return False, {
                 "verdict": "FAILED",
@@ -327,6 +378,8 @@ def execute_codex_task(worker_job_path: Path, hooks: CodexHookRunner, force: boo
     task_id = job.get("task_id", f"task-cdx-{uuid.uuid4().hex[:8]}")
     correlation_id = job.get("correlation_id", f"corr-cdx-{uuid.uuid4().hex[:8]}")
     parent_id = job.get("source_command_message_id")
+    workflow_id = job.get("workflow_id")
+    parent_task_id = job.get("parent_task_id")
     instruction = job.get("instruction", "Execute Codex task")
     allowed_scope = job.get("allowed_scope", [])
 
@@ -390,6 +443,13 @@ def execute_codex_task(worker_job_path: Path, hooks: CodexHookRunner, force: boo
                 "zero_cost_policy": "ZERO_COST_ONLY",
                 "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
             }
+
+    # Keep workflow lineage separate from the envelope's parent_id, which
+    # references the source command message rather than the preceding task.
+    if workflow_id:
+        payload["workflow_id"] = workflow_id
+    if parent_task_id:
+        payload["parent_task_id"] = parent_task_id
 
     hooks.on_tool_action(task_id, "Formatting structured Codex result payload", 0.9)
 
@@ -464,6 +524,7 @@ def main() -> int:
     parser.add_argument("--job-file", type=Path, help="Path to Codex WorkerJob JSON file")
     parser.add_argument("--auto-discover", action="store_true", help="Auto-discover pending worker jobs")
     parser.add_argument("--review", action="store_true", help="Trigger Chief Review Router after execution")
+    parser.add_argument("--real-codex", action="store_true", help="Use the installed Codex CLI; never falls back on failure")
     args = parser.parse_args()
 
     state_tracker = CodexVisualStateTracker()
@@ -481,7 +542,7 @@ def main() -> int:
         return 0
 
     print(f"=== RUNNING CODEX AUTOMATION BRIDGE: {target_job.name} ===")
-    result_file = execute_codex_task(target_job, hooks)
+    result_file = execute_codex_task(target_job, hooks, try_real_cli=args.real_codex)
 
     if args.review:
         task_id = load_json(target_job).get("task_id", target_job.stem.replace("-worker-job", ""))

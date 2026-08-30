@@ -260,6 +260,7 @@ class AutonomousLevel6Loop:
         workflow_id: str,
         workflow_plan: list[dict],
         correlation_id: str | None = None,
+        try_real_codex: bool = False,
     ) -> dict:
         """Executes a multi-round Level 6 workflow until completion, human gate, or max iterations."""
         if not correlation_id:
@@ -325,6 +326,8 @@ class AutonomousLevel6Loop:
                     "source_command_message_id": f"msg-cmd-{task_id}",
                     "task_id": task_id,
                     "correlation_id": correlation_id,
+                    "workflow_id": workflow_id,
+                    "parent_task_id": parent_task_id,
                     "target_agent": target_agent_name,
                     "instruction": instruction,
                     "allowed_scope": allowed_scope,
@@ -339,7 +342,11 @@ class AutonomousLevel6Loop:
 
                 # 3. Execute Bridge Task (Antigravity or Codex)
                 if is_codex:
-                    result_file = execute_codex_task(dispatch_file, active_hooks)
+                    result_file = execute_codex_task(
+                        dispatch_file,
+                        active_hooks,
+                        try_real_cli=try_real_codex,
+                    )
                 else:
                     result_file = execute_bridge_task(dispatch_file, active_hooks)
 
@@ -456,6 +463,7 @@ def main() -> int:
     parser.add_argument("--workflow-id", type=str, default=f"wf-{uuid.uuid4().hex[:8]}")
     parser.add_argument("--max-iterations", type=int, default=3)
     parser.add_argument("--plan-file", type=Path, help="JSON file containing list of task step objects")
+    parser.add_argument("--real-codex", action="store_true", help="Use the installed Codex CLI for Codex-targeted plan steps")
     args = parser.parse_args()
 
     plan = []
@@ -463,7 +471,11 @@ def main() -> int:
         plan = load_json(args.plan_file)
 
     engine = AutonomousLevel6Loop(max_iterations=args.max_iterations)
-    result = engine.run_multi_round_workflow(args.workflow_id, plan)
+    result = engine.run_multi_round_workflow(
+        args.workflow_id,
+        plan,
+        try_real_codex=args.real_codex,
+    )
     print(json.dumps(result, indent=2))
     return 0 if result["status"] == "COMPLETED" else 1
 
