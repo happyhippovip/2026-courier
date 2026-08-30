@@ -48,6 +48,11 @@ try:
         load_json,
         save_json,
     )
+    from run_codex_bridge import (
+        CodexHookRunner,
+        CodexVisualStateTracker,
+        execute_codex_task,
+    )
 except ImportError:
     from scripts.run_antigravity_bridge import (
         AntigravityHookRunner,
@@ -55,6 +60,11 @@ except ImportError:
         execute_bridge_task,
         load_json,
         save_json,
+    )
+    from scripts.run_codex_bridge import (
+        CodexHookRunner,
+        CodexVisualStateTracker,
+        execute_codex_task,
     )
 
 
@@ -85,6 +95,13 @@ class AutonomousLevel6Loop:
             role="Courier Level 6 Automation",
         )
         self.hooks = AntigravityHookRunner(self.state_tracker)
+
+        self.codex_state_tracker = CodexVisualStateTracker(
+            agent_id="agent-codex-bridge",
+            name="Codex Bridge",
+            role="Courier Level 6 Automation",
+        )
+        self.codex_hooks = CodexHookRunner(self.codex_state_tracker)
 
     def acquire_workflow_lock(self, workflow_id: str) -> Path:
         """Acquires a deterministic, process-aware lock file for the given workflow."""
@@ -174,6 +191,7 @@ class AutonomousLevel6Loop:
                     "task_id": f"repair-{task_id}",
                     "instruction": f"Fix defects reported in {task_id}",
                     "allowed_scope": payload.get("target_file", []),
+                    "target_agent": res_data.get("source", "antigravity"),
                 },
                 "reason": "QA verification failed; repair task dispatched.",
                 "created_at": now_iso,
@@ -187,6 +205,7 @@ class AutonomousLevel6Loop:
                     "task_id": next_step.get("task_id", f"{workflow_id}-round-{round_index + 2}"),
                     "instruction": next_step.get("instruction", "Execute next step"),
                     "allowed_scope": next_step.get("allowed_scope", []),
+                    "target_agent": next_step.get("target_agent", "antigravity"),
                     "payload_override": next_step.get("payload_override"),
                 }
 
@@ -277,30 +296,36 @@ class AutonomousLevel6Loop:
                 instruction = current_task_info.get("instruction", "Execute step")
                 allowed_scope = current_task_info.get("allowed_scope", [])
                 payload_override = current_task_info.get("payload_override")
+                target_agent_raw = current_task_info.get("target_agent", "antigravity").lower()
 
-                print(f"\n--- [ROUND {iteration + 1}/{self.max_iterations}] Task: {task_id} ---")
+                is_codex = "codex" in target_agent_raw
+                target_agent_name = "courier-codex-bridge" if is_codex else "courier-antigravity-bridge"
+                active_tracker = self.codex_state_tracker if is_codex else self.state_tracker
+                active_hooks = self.codex_hooks if is_codex else self.hooks
+
+                print(f"\n--- [ROUND {iteration + 1}/{self.max_iterations}] Task: {task_id} (Target: {target_agent_name}) ---")
 
                 # 1. Update visual state
-                self.state_tracker.update_state(
+                active_tracker.update_state(
                     state="RUNNING",
                     task=task_id,
                     progress=float(iteration) / float(len(workflow_plan)),
                     workflow=workflow_id,
                     last_action=f"Starting round {iteration + 1}: {task_id}",
-                    next_action="Executing bridge task",
+                    next_action=f"Executing {target_agent_name} task",
                     blocked=False,
                     human_gate=None,
                 )
 
-                # 2. Stage AntigravityWorkerJob in dispatch/
+                # 2. Stage WorkerJob in dispatch/
                 dispatch_file = self.repo_dir / f"events/dispatch/{task_id}-worker-job.json"
                 job_data = {
                     "schema_version": "2.0",
-                    "job_id": f"job-ag-{task_id}",
+                    "job_id": f"job-{'cdx' if is_codex else 'ag'}-{task_id}",
                     "source_command_message_id": f"msg-cmd-{task_id}",
                     "task_id": task_id,
                     "correlation_id": correlation_id,
-                    "target_agent": "courier-antigravity-bridge",
+                    "target_agent": target_agent_name,
                     "instruction": instruction,
                     "allowed_scope": allowed_scope,
                     "forbidden_scope": ["public_upload", "secrets", "paid_apis"],
@@ -312,8 +337,11 @@ class AutonomousLevel6Loop:
                 }
                 save_json(dispatch_file, job_data)
 
-                # 3. Execute Bridge Task (with Dedupe & Replay Guard)
-                result_file = execute_bridge_task(dispatch_file, self.hooks)
+                # 3. Execute Bridge Task (Antigravity or Codex)
+                if is_codex:
+                    result_file = execute_codex_task(dispatch_file, active_hooks)
+                else:
+                    result_file = execute_bridge_task(dispatch_file, active_hooks)
 
                 # If payload override specified (for simulating human approval gate or specific return condition)
                 if payload_override:
@@ -337,6 +365,7 @@ class AutonomousLevel6Loop:
                 round_record = {
                     "round": iteration + 1,
                     "task_id": task_id,
+                    "target_agent": target_agent_name,
                     "parent_task_id": parent_task_id,
                     "correlation_id": correlation_id,
                     "verdict": verdict,
@@ -346,13 +375,13 @@ class AutonomousLevel6Loop:
                 }
                 history.append(round_record)
 
-                print(f"[ROUND {iteration + 1} RESULT] Verdict: {verdict} -> Action: {action}")
+                print(f"[ROUND {iteration + 1} RESULT ({target_agent_name})] Verdict: {verdict} -> Action: {action}")
 
                 # 5. Handle Action routing
                 if action == "STOP_AT_HUMAN_GATE":
                     status = "BLOCKED_HUMAN_GATE"
                     stop_reason = "HUMAN_APPROVAL_REQUIRED"
-                    self.state_tracker.update_state(
+                    active_tracker.update_state(
                         state="BLOCKED_HUMAN_GATE",
                         task=task_id,
                         progress=float(iteration + 1) / float(len(workflow_plan)),
@@ -367,7 +396,7 @@ class AutonomousLevel6Loop:
                 elif action == "STOP_ON_FAILURE":
                     status = "FAILED"
                     stop_reason = "EXECUTION_FAILURE"
-                    self.state_tracker.update_state(
+                    active_tracker.update_state(
                         state="FAILED",
                         task=task_id,
                         progress=float(iteration + 1) / float(len(workflow_plan)),
@@ -381,12 +410,12 @@ class AutonomousLevel6Loop:
                 elif action == "COMPLETE_WORKFLOW":
                     status = "COMPLETED"
                     stop_reason = "ALL_STEPS_ACCEPTED"
-                    self.state_tracker.update_state(
+                    active_tracker.update_state(
                         state="COMPLETED",
                         task=task_id,
                         progress=1.0,
                         workflow=workflow_id,
-                        last_action=f"Workflow {workflow_id} successfully completed",
+                        last_action=f"Workflow {workflow_id} successfully completed by {target_agent_name}",
                         next_action=None,
                         blocked=False,
                         human_gate=None,
