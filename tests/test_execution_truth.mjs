@@ -8,6 +8,7 @@ import {
   resolveDecisionTruth,
   resolveDeskMatrix,
   resolveGateDecisionTruth,
+  resolveLivingRoomAgents,
   resolveLiveHQMetrics,
   resolvePermissionGuardTruth,
   resolveSnitchTruth,
@@ -571,6 +572,30 @@ assert.equal(customPerm.last_checked_command, 'sudo rm -rf /var/log');
 assert.equal(customPerm.recommendation, 'DANGEROUS_DO_NOT_PERSIST');
 assert.equal(customPerm.risk_class, 'CRITICAL');
 assert.match(customPerm.speech, /Dangerous command detected/);
+
+// -------------------------------------------------------------
+// 10. LIVING ROOM OPERATIONS FLOOR & MMORPG AGENT RESOLUTION
+// -------------------------------------------------------------
+const livingAgents = resolveLivingRoomAgents(customPermState);
+// 16 Core/Specialist roles + 8 Bodyguards = 24 visible agents
+assert.equal(livingAgents.length, 24);
+
+const chiefChar = livingAgents.find(a => a.id === 'agent-chief-commander');
+assert.ok(chiefChar);
+assert.equal(chiefChar.name, 'CHIEF');
+assert.equal(chiefChar.zone, 'COMMAND_TABLE');
+assert.equal(typeof chiefChar.x, 'number');
+assert.equal(typeof chiefChar.y, 'number');
+
+const snitchChar = livingAgents.find(a => a.id === 'agent-snitch');
+assert.ok(snitchChar);
+assert.equal(snitchChar.name, 'SNITCH 3.0');
+
+const bgAlpha = livingAgents.find(a => a.name === 'BODYGUARD ALPHA');
+assert.ok(bgAlpha);
+assert.equal(bgAlpha.is_bodyguard, true);
+assert.equal(bgAlpha.state, 'STANDBY');
+assert.equal(bgAlpha.leisure_area, 'READY_ROOM');
 
 console.log('execution truth tests: PASS (100% SUCCESS)');
 

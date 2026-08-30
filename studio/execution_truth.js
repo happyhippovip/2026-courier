@@ -841,3 +841,124 @@ export const ACADEMY_FLOW_STEPS = Object.freeze([
   'NEW CONTEXT VERSION',
   'AFFECTED AGENT',
 ]);
+
+/**
+ * Resolve Living Room Character Positions, Nameplates, Speech, and Visual States.
+ */
+export function resolveLivingRoomAgents(stateData) {
+  const agents = stateData?.agents || {};
+  const bus = stateData?.bus || {};
+  const desks = resolveDeskMatrix(stateData);
+  const bodyguards = resolveBodyguardsTruth(stateData);
+
+  // Default coordinate map for living operations floor (normalized % of 1920x1080 stage)
+  const baseCoordinates = {
+    'agent-chief-commander': { x: 46.5, y: 43.5, zone: 'COMMAND_TABLE', name: 'CHIEF', title: 'CHIEF COMMANDER' },
+    'smart-resource-router': { x: 57.5, y: 44.5, zone: 'COMMAND_TABLE', name: 'ROUTER', title: 'SMART ROUTER' },
+    'agent-thought-curator': { x: 16.5, y: 37.5, zone: 'IDEA_LAB', name: 'IDEA SYNC', title: 'THOUGHT CURATOR' },
+    'agent-human-gate-monitor': { x: 8.0, y: 37.5, zone: 'HUMAN_GATE', name: 'HUMAN', title: 'HUMAN INBOX' },
+    'agent-update-steward': { x: 29.5, y: 43.0, zone: 'CONTEXT', name: 'UPDATE STEWARD', title: 'CONTEXT STEWARD' },
+    'agent-antigravity-bridge': { x: 68.5, y: 44.5, zone: 'ANTIGRAVITY', name: 'GRAVITY', title: 'ANTIGRAVITY STUDIO' },
+    'agent-courier-relay': { x: 76.5, y: 44.5, zone: 'COURIER', name: 'COURIER', title: 'COURIER HUB' },
+    'agent-academy-teacher': { x: 85.5, y: 44.5, zone: 'ACADEMY', name: 'ACADEMY TEACHER', title: 'AGENTENLEHRER' },
+    'agent-academy-director': { x: 92.0, y: 64.0, zone: 'ACADEMY', name: 'ACADEMY DIRECTOR', title: 'SCHULDIREKTOR' },
+    'agent-snitch': { x: 6.5, y: 68.0, zone: 'SERVER', name: 'SNITCH 3.0', title: 'WATCHDOG / PERMISSION' },
+    'agent-asset-validator': { x: 63.5, y: 55.5, zone: 'WORKSTATIONS', name: 'ASSET VALIDATOR', title: 'MEDIA PIPELINE' },
+    'agent-video-synth': { x: 69.5, y: 55.5, zone: 'WORKSTATIONS', name: 'VIDEO SYNTH', title: '3D SHORTS SYNTH' },
+    'agent-channel-dispatcher': { x: 75.5, y: 55.5, zone: 'WORKSTATIONS', name: 'CHANNEL DISPATCH', title: 'SOCIAL DISPATCH' },
+    'agent-memory-mesh': { x: 81.5, y: 55.5, zone: 'WORKSTATIONS', name: 'MEMORY MESH', title: 'PROJECT MEMORY' },
+    'agent-test-guardian': { x: 87.5, y: 55.5, zone: 'WORKSTATIONS', name: 'TEST GUARDIAN', title: 'QA AUDIT LAB' },
+    'agent-loop-supervisor': { x: 63.5, y: 66.0, zone: 'WORKSTATIONS', name: 'LOOP SUPERVISOR', title: 'L6 ORCHESTRATION' },
+  };
+
+  // Bodyguard leisure vs active positions
+  const bodyguardStandbySlots = [
+    { callsign: 'ALPHA', x: 14.0, y: 63.5, leisure_area: 'READY_ROOM', leisure_x: 88.0, leisure_y: 88.0 },
+    { callsign: 'BRAVO', x: 18.5, y: 63.5, leisure_area: 'READY_ROOM', leisure_x: 93.0, leisure_y: 88.0 },
+    { callsign: 'CHARLIE', x: 23.0, y: 63.5, leisure_area: 'READY_ROOM', leisure_x: 83.5, leisure_y: 16.5 },
+    { callsign: 'DELTA', x: 27.5, y: 63.5, leisure_area: 'READY_ROOM', leisure_x: 88.0, leisure_y: 16.5 },
+    { callsign: 'ECHO', x: 32.0, y: 63.5, leisure_area: 'READY_ROOM', leisure_x: 18.0, leisure_y: 28.0 },
+    { callsign: 'FOXTROT', x: 36.5, y: 63.5, leisure_area: 'READY_ROOM', leisure_x: 23.0, leisure_y: 28.0 },
+    { callsign: 'GOLF', x: 41.0, y: 63.5, leisure_area: 'READY_ROOM', leisure_x: 14.0, leisure_y: 63.5 },
+    { callsign: 'HOTEL', x: 45.5, y: 63.5, leisure_area: 'READY_ROOM', leisure_x: 35.0, leisure_y: 63.5 },
+  ];
+
+  const assignedWorkstationCoords = [
+    { x: 69.5, y: 66.0 }, // Desk 22
+    { x: 75.5, y: 66.0 }, // Desk 24
+    { x: 81.5, y: 66.0 }, // Desk 25
+  ];
+
+  const results = [];
+
+  // 1. Process Core & Specialist Agents
+  for (const [agentId, coords] of Object.entries(baseCoordinates)) {
+    const raw = agents[agentId] || {};
+    const desk = desks.find(d => d.agentId === agentId) || {};
+    const state = typeof raw.state === 'string' && raw.state.trim() ? raw.state : (desk.state || 'IDLE');
+    const task = raw.task || desk.task || (state === 'IDLE' ? 'Standby' : state);
+    const progress = Number.isFinite(raw.progress) ? raw.progress : (desk.progress || 0.0);
+    const speech = resolveSpeechBubble(raw, agentId.replace('agent-', '').replace('-bridge', ''));
+
+    const isBusy = state === 'RUNNING' || state === 'COMPARING' || state === 'REVIEWING' || state === 'COORDINATING' || state === 'WORKING';
+    const isBlocked = raw.blocked || desk.status === 'BLOCKED';
+
+    results.push({
+      id: agentId,
+      name: coords.name,
+      title: coords.title,
+      zone: coords.zone,
+      x: coords.x,
+      y: coords.y,
+      state,
+      task,
+      progress,
+      speech,
+      is_active: isBusy,
+      is_blocked: isBlocked,
+      is_bodyguard: false,
+      role: raw.role || coords.title,
+      animation: isBusy ? 'working' : (isBlocked ? 'blocked' : 'idle'),
+    });
+  }
+
+  // 2. Process Eight Reserve Bodyguards
+  bodyguards.forEach((bg, idx) => {
+    const slot = bodyguardStandbySlots[idx] || { callsign: bg.callsign, x: 14 + idx * 4.5, y: 63.5, leisure_area: 'READY_ROOM' };
+    const isAssigned = bg.state === 'ASSIGNED' || bg.state === 'WORKING' || bg.state === 'RETURNING';
+    
+    let targetX = slot.x;
+    let targetY = slot.y;
+    let currentArea = 'READY_ROOM';
+
+    if (isAssigned) {
+      const assignedDesk = assignedWorkstationCoords[idx % assignedWorkstationCoords.length];
+      targetX = assignedDesk.x;
+      targetY = assignedDesk.y;
+      currentArea = 'WORKSTATION';
+    }
+
+    results.push({
+      id: bg.id,
+      name: `BODYGUARD ${bg.callsign}`,
+      title: bg.temporary_role ? `TEMP: ${bg.temporary_role}` : `RESERVE ${bg.slot}`,
+      zone: 'BODYGUARDS',
+      x: targetX,
+      y: targetY,
+      state: bg.state,
+      task: bg.task || (bg.state === 'STANDBY' ? 'Reserve Duty (Standby)' : bg.state),
+      progress: bg.progress,
+      speech: bg.speech,
+      is_active: isAssigned,
+      is_blocked: bg.blocked,
+      is_bodyguard: true,
+      callsign: bg.callsign,
+      slot: bg.slot,
+      leisure_area: slot.leisure_area,
+      animation: bg.state === 'WORKING' ? 'working' : (bg.state === 'RETURNING' ? 'walking' : 'idle'),
+    });
+  });
+
+  return results;
+}
+

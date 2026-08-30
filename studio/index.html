@@ -3,1089 +3,681 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>2026 Courier // Autonomous Chief Operations Cockpit</title>
+  <title>2026 Courier // Living Agent HQ Operations Cockpit</title>
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700;800&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="theme-dark">
-  <!-- Top Navigation & Control Bar -->
+
+  <!-- Top Navigation & Cockpit Header Bar -->
   <header class="studio-header">
     <div class="header-left">
       <div class="logo-badge">
         <span class="logo-pulse"></span>
         <span class="logo-title">COURIER // CHIEF OPERATIONS COCKPIT</span>
       </div>
-      <div class="treasury-mini" aria-label="Treasury evidence display">
-        <span class="treasury-title">TREASURY</span>
-        <span>EUR: <b id="treasury-eur">UNKNOWN</b></span>
-        <span>USD: <b id="treasury-usd">UNKNOWN</b></span>
-        <span class="treasury-verified">VERIFIED: <b id="treasury-verified">NOT_VERIFIED</b></span>
-        <span class="treasury-goal" id="treasury-goal">$8 / $1,000,000,000</span>
-        <span class="treasury-goal-note">ASPIRATIONAL GOAL — NOT REVENUE FORECAST</span>
-        <span class="treasury-goal-track"><i id="treasury-goal-bar"></i></span>
+      <div class="live-bus-badge">
+        <span class="bus-dot active"></span>
+        <span class="bus-text" id="server-status">LIVE BUS CONNECTED</span>
       </div>
-      <div class="system-status">
-        <span class="status-indicator online"></span>
-        <span class="status-text" id="server-status">CONNECTING TO LOCAL BUS</span>
-        <span class="commit-badge" id="courier-commit">HEAD: UNVERIFIED</span>
+      <div class="head-context-pill">
+        <span class="head-tag" id="courier-commit">HEAD: e7edad01</span>
+        <span class="context-tag" id="context-pill-ver">CONTEXT: v64</span>
+      </div>
+      <div class="mode-toggle">
+        <button id="btn-aspect-16-9" class="btn-toggle active" title="16:9 Landscape">16:9</button>
+        <button id="btn-aspect-9-16" class="btn-toggle" title="9:16 Vertical">9:16</button>
       </div>
     </div>
 
-    <div class="header-controls">
-      <div class="mode-toggle">
-        <button id="btn-aspect-16-9" class="btn-toggle active" title="16:9 Landscape">16:9</button>
-        <button id="btn-aspect-9-16" class="btn-toggle" title="9:16 Vertical Shorts">9:16</button>
-      </div>
+    <!-- Camera / View Controls -->
+    <div class="header-center camera-controls" id="camera-controls">
+      <span class="camera-label">CAMERA:</span>
+      <button class="cam-btn active" data-view="overview">HQ OVERVIEW</button>
+      <button class="cam-btn" data-view="command">COMMAND TABLE</button>
+      <button class="cam-btn" data-view="tvwall">TV WALL</button>
+      <button class="cam-btn" data-view="bodyguards">BODYGUARDS</button>
+      <button class="cam-btn" data-view="academy">ACADEMY</button>
+      <button class="cam-btn" data-view="server">SERVER ROOM</button>
+      <button class="cam-btn" data-view="sauna">SAUNA & BAR</button>
+      <button class="cam-btn" data-view="active">ACTIVE WORKER</button>
+    </div>
+
+    <div class="header-right">
+      <button id="btn-toggle-details" class="btn-control" title="Toggle Detailed Control Panel">
+        <span class="toggle-icon">📊</span> DETAILS / INBOX
+      </button>
       <button id="btn-recording-mode" class="btn-control" title="Toggle Clean Recording Mode">
         <span class="record-dot"></span> RECORD MODE
       </button>
+      <div class="hq-time-badge">
+        <span class="time-dot"></span>
+        <span class="hq-time-text" id="hq-live-clock">HQ TIME: 17:42:18 UTC</span>
+      </div>
     </div>
   </header>
 
-  <!-- Human Idea & Strategic Directive Inbox -->
-  <section class="human-inbox-section">
-    <div class="inbox-container">
-      <div class="inbox-header">
-        <span class="inbox-tag">💡 HUMAN IDEA & STRATEGY INBOX</span>
-        <span class="inbox-sub">Human → Idea Sync → Memory Comparison → Context Delta → Chief Commander → Workers</span>
+  <!-- ================================================================= -->
+  <!-- MAIN FIRST SCREEN: THE LIVING AGENT HQ OPERATIONS ROOM           -->
+  <!-- ================================================================= -->
+  <main class="living-hq-wrapper" id="living-hq-wrapper">
+    <div class="living-hq-stage" id="living-hq-stage">
+
+      <!-- Room Background & Architecture Layer -->
+      <div class="room-floor-grid"></div>
+
+      <!-- TOP WALL SECTION -->
+      <div class="top-wall-section">
+
+        <!-- Top Left: Fireplace, Brand Motifs, and Dual-Loop Panels -->
+        <div class="wall-cluster wall-left">
+          <div class="brand-motifs-bar">
+            <div class="brand-box apple-box">
+              <span class="brand-logo"></span>
+              <span class="brand-sub">Think Different.</span>
+            </div>
+            <div class="brand-box openai-box">
+              <span class="brand-logo">✹</span>
+              <span class="brand-title">OpenAI</span>
+            </div>
+            <div class="brand-box google-box">
+              <span class="brand-logo">G</span>
+              <span class="brand-title">Google</span>
+            </div>
+            <div class="brand-box btc-box">
+              <span class="brand-logo">₿</span>
+              <span class="brand-title">Bitcoin</span>
+            </div>
+            <div class="brand-box ordi-box">
+              <span class="brand-title-lg">$ORDI</span>
+              <span class="brand-sub">Future is Onchain</span>
+            </div>
+            <div class="brand-box xlm-box">
+              <span class="brand-title-lg">$XLM</span>
+              <span class="brand-sub">Stellar<br>New Money. Built Future.</span>
+            </div>
+          </div>
+
+          <!-- Dual Loop Logic Panels -->
+          <div class="loop-cards-container">
+            <div class="loop-card production-loop-card">
+              <div class="loop-card-title">PRODUCTION LOOP:</div>
+              <div class="loop-card-flow">Human ➔ Idea Sync ➔ Update Steward ➔ Chief ➔ Router ➔ Workers ➔ Courier ➔ Update Steward ➔ Chief Review</div>
+            </div>
+            <div class="loop-card learning-loop-card">
+              <div class="loop-card-title">LEARNING LOOP:</div>
+              <div class="loop-card-flow">External Update ➔ Agentenlehrer ➔ Schuldirektor (Eval Gate) ➔ Idea Sync ➔ Update Steward (Snapshot) ➔ Agents Learn</div>
+            </div>
+          </div>
+
+          <!-- Cozy Fireplace with Animated Hearth -->
+          <div class="cozy-fireplace">
+            <div class="fireplace-mantel"></div>
+            <div class="fireplace-hearth">
+              <div class="fire-flame flame-1"></div>
+              <div class="fire-flame flame-2"></div>
+              <div class="fire-flame flame-3"></div>
+              <div class="fire-glow"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Center: Big Central TV Wall (BOT AGENT HQ) -->
+        <div class="wall-cluster wall-center-tv">
+          <div class="big-tv-screen" id="big-tv-screen">
+            <div class="tv-screen-glare"></div>
+            
+            <div class="tv-top-header">
+              <div class="tv-dots-left"><span class="tv-dot"></span><span class="tv-dot"></span></div>
+              <div class="tv-main-titles">
+                <h1 class="tv-screen-title">BOT AGENT HQ</h1>
+                <span class="tv-screen-subtitle">AI AUTOMATION & TRADING SYSTEMS</span>
+              </div>
+              <div class="tv-dots-right"><span class="tv-dot"></span><span class="tv-dot"></span><span class="tv-dot"></span></div>
+            </div>
+
+            <div class="tv-body-grid">
+              <!-- Left TV Column: Active Bot Agents Gauge -->
+              <div class="tv-col tv-col-gauge">
+                <span class="tv-widget-label">ACTIVE BOT AGENTS</span>
+                <div class="tv-gauge-number">
+                  <span class="gauge-current" id="tv-active-count">17</span>
+                  <span class="gauge-slash">/</span>
+                  <span class="gauge-max">40</span>
+                </div>
+                <div class="tv-gauge-sub" id="tv-capacity-pct">42.5% Capacity</div>
+                
+                <!-- Mini Agent Avatars Matrix -->
+                <div class="tv-mini-avatar-grid">
+                  <span class="mini-av av-chief" title="Chief">👑</span>
+                  <span class="mini-av av-idea" title="Idea Sync">🧠</span>
+                  <span class="mini-av av-steward" title="Update Steward">🔄</span>
+                  <span class="mini-av av-router" title="Router">🧭</span>
+                  <span class="mini-av av-gravity" title="Gravity">🎨</span>
+                  <span class="mini-av av-courier" title="Courier">⚡</span>
+                  <span class="mini-av av-teacher" title="Teacher">👨‍🏫</span>
+                  <span class="mini-av av-alpha" title="BG Alpha">🛡️</span>
+                  <span class="mini-av av-bravo" title="BG Bravo">🛡️</span>
+                  <span class="mini-av av-charlie" title="BG Charlie">🛡️</span>
+                  <span class="mini-av av-echo" title="BG Echo">🛡️</span>
+                  <span class="mini-av av-snitch" title="SNITCH">👀</span>
+                  <span class="mini-av av-director" title="Director">🏛️</span>
+                  <span class="mini-av av-hotel" title="BG Hotel">🛡️</span>
+                </div>
+              </div>
+
+              <!-- Center TV Column: Performance Line Graph -->
+              <div class="tv-col tv-col-chart">
+                <div class="tv-chart-header">
+                  <span class="tv-widget-label">PORTFOLIO PERFORMANCE</span>
+                </div>
+                <div class="tv-chart-canvas-box">
+                  <svg class="tv-sparkline-svg" viewBox="0 0 300 90" preserveAspectRatio="none">
+                    <defs>
+                      <linearGradient id="tv-chart-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#00e5ff" stop-opacity="0.45" />
+                        <stop offset="100%" stop-color="#00e5ff" stop-opacity="0.0" />
+                      </linearGradient>
+                    </defs>
+                    <path class="chart-area" fill="url(#tv-chart-grad)" d="M 0,75 Q 40,45 80,60 T 160,35 T 230,25 T 300,10 L 300,90 L 0,90 Z" />
+                    <path class="chart-line" fill="none" stroke="#00e5ff" stroke-width="2.5" d="M 0,75 Q 40,45 80,60 T 160,35 T 230,25 T 300,10" />
+                  </svg>
+                </div>
+              </div>
+
+              <!-- Right TV Column: System Status Checklist -->
+              <div class="tv-col tv-col-status">
+                <span class="tv-widget-label">SYSTEM STATUS</span>
+                <ul class="tv-status-list">
+                  <li><span class="status-led green"></span> Data Feeds</li>
+                  <li><span class="status-led green"></span> AI Models</li>
+                  <li><span class="status-led green"></span> Execution Engine</li>
+                  <li><span class="status-led green"></span> Risk Manager</li>
+                  <li><span class="status-led green"></span> Notifications</li>
+                  <li><span class="status-led green"></span> Orchestrator</li>
+                  <li><span class="status-led green"></span> Backup Systems</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Financial / Operational KPI Row -->
+            <div class="tv-kpi-row">
+              <div class="kpi-block">
+                <span class="kpi-title">24H PNL</span>
+                <span class="kpi-val green" id="tv-kpi-pnl">+$28,540.32</span>
+              </div>
+              <div class="kpi-block">
+                <span class="kpi-title">WIN RATE</span>
+                <span class="kpi-val cyan">78.6%</span>
+              </div>
+              <div class="kpi-block">
+                <span class="kpi-title">TOTAL VOLUME</span>
+                <span class="kpi-val white">$12.48M</span>
+              </div>
+              <div class="kpi-block">
+                <span class="kpi-title">SHARPE RATIO</span>
+                <span class="kpi-val cyan">2.47</span>
+              </div>
+            </div>
+
+            <!-- Market & Agent Ticker Tape Strip -->
+            <div class="tv-ticker-strip">
+              <span class="ticker-item"><i class="ticker-dot green"></i> BTC/USDT <b class="text-green">+1.35%</b></span>
+              <span class="ticker-item"><i class="ticker-dot green"></i> ETH/USDT <b class="text-green">+2.21%</b></span>
+              <span class="ticker-item"><i class="ticker-dot green"></i> SOL/USDT <b class="text-green">+3.87%</b></span>
+              <span class="ticker-item"><i class="ticker-dot green"></i> XLM/USDT <b class="text-green">+1.12%</b></span>
+              <span class="ticker-item"><i class="ticker-dot green"></i> $ORDI/USDT <b class="text-green">+8.91%</b></span>
+              <span class="ticker-item"><i class="ticker-dot cyan"></i> AGENTS <b class="text-cyan">+12.04%</b></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Right: TV Wall Overview, Slogans, Sauna, Server Room -->
+        <div class="wall-cluster wall-right">
+          <div class="tv-overview-box">
+            <div class="tv-overview-header">
+              <span class="tv-overview-title">TV WALL OVERVIEW</span>
+            </div>
+            <div class="tv-overview-stats">
+              <div class="workstations-count">
+                <span class="count-big" id="tv-workstations-total">36</span>
+                <span class="count-label">WORKSTATIONS<br><small>Active: <b id="tv-ws-active">12</b> • Idle: <b id="tv-ws-idle">24</b></small></span>
+              </div>
+              <div class="overview-flight-lines">
+                <div>Context: <b id="tv-overview-context" class="font-mono text-cyan">v64</b></div>
+                <div>Workflow: <b id="tv-overview-workflow" class="font-mono text-accent">IDLE_MONITORING</b></div>
+                <div>Correlation: <b id="tv-overview-correlation" class="font-mono text-muted">corr-demo-c94b85b8</b></div>
+                <div>Next School Time: <b id="tv-overview-school" class="font-mono text-secondary">06:00 UTC</b></div>
+              </div>
+            </div>
+            <div class="world-map-graphic">
+              <div class="map-grid-dots"></div>
+            </div>
+          </div>
+
+          <div class="slogan-plaque">
+            <span>Discipline</span>
+            <span>Systems</span>
+            <span>Freedom</span>
+          </div>
+
+          <!-- Glass Sauna Room with Warm Cedar Interior -->
+          <div class="facility-room sauna-room" id="zone-sauna">
+            <div class="facility-sign">SAUNA</div>
+            <div class="sauna-interior">
+              <div class="sauna-bench top-bench"></div>
+              <div class="sauna-bench bottom-bench"></div>
+              <div class="sauna-stove">
+                <span class="stove-stones"></span>
+                <span class="stove-steam"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Server & Defense Room with Glowing Blue/Green LEDs -->
+          <div class="facility-room server-room" id="zone-server">
+            <div class="facility-sign">SERVER ROOM</div>
+            <div class="server-racks-grid">
+              <div class="server-rack">
+                <span class="rack-led blink-1"></span><span class="rack-led blink-2"></span><span class="rack-led blink-3"></span>
+                <span class="rack-slot"></span><span class="rack-slot"></span><span class="rack-slot"></span>
+              </div>
+              <div class="server-rack">
+                <span class="rack-led blink-2"></span><span class="rack-led blink-1"></span><span class="rack-led blink-3"></span>
+                <span class="rack-slot"></span><span class="rack-slot"></span><span class="rack-slot"></span>
+              </div>
+              <div class="server-rack">
+                <span class="rack-led blink-3"></span><span class="rack-led blink-2"></span><span class="rack-led blink-1"></span>
+                <span class="rack-slot"></span><span class="rack-slot"></span><span class="rack-slot"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
-      <div class="inbox-form">
-        <div class="input-wrapper">
-          <input type="text" id="human-idea-input" class="idea-input" placeholder="e.g. Prüfe Render-Pipeline für neue Strawberry Shorts & verifiziere Tool-Konfiguration..." />
+
+      <!-- ============================================================= -->
+      <!-- CENTRAL OPERATIONS FLOOR: FOUNTAIN, STRATEGY TABLE & WORKSTATIONS -->
+      <!-- ============================================================= -->
+      <div class="operations-floor-section">
+
+        <!-- Centerpiece: Illuminated Central Plaza Fountain -->
+        <div class="central-fountain-structure" id="central-fountain">
+          <div class="fountain-outer-pool">
+            <div class="fountain-ripple-ring ring-1"></div>
+            <div class="fountain-ripple-ring ring-2"></div>
+            <div class="fountain-ripple-ring ring-3"></div>
+          </div>
+          <div class="fountain-stone-tier tier-mid"></div>
+          <div class="fountain-stone-tier tier-top">
+            <div class="fountain-water-spout"></div>
+          </div>
+          <div class="fountain-corner-lanterns">
+            <span class="floor-lantern l-nw"></span>
+            <span class="floor-lantern l-ne"></span>
+            <span class="floor-lantern l-sw"></span>
+            <span class="floor-lantern l-se"></span>
+          </div>
+        </div>
+
+        <!-- Strategy & Command Conference Table (Holographic Map) -->
+        <div class="strategy-command-table" id="strategy-table">
+          <div class="hologram-table-surface">
+            <div class="holo-grid-map"></div>
+            <div class="holo-radar-sweep"></div>
+          </div>
+          <div class="exec-chair chair-chief"></div>
+          <div class="exec-chair chair-router"></div>
+        </div>
+
+        <!-- Static Workstation Desks Backdrop Layer -->
+        <div class="workstations-furniture-grid">
+          <!-- Left Wing Desks -->
+          <div class="desk-unit desk-human" style="left: 8.0%; top: 38.5%;">
+            <div class="desk-top"><span class="desk-monitor triple-screen"></span></div>
+          </div>
+          <div class="desk-unit desk-curator" style="left: 16.5%; top: 38.5%;">
+            <div class="desk-top"><span class="desk-monitor triple-screen"></span></div>
+          </div>
+          <div class="desk-unit desk-steward" style="left: 29.5%; top: 44.0%;">
+            <div class="desk-top"><span class="desk-monitor dual-screen"></span></div>
+          </div>
+
+          <!-- Right Wing Desks -->
+          <div class="desk-unit desk-gravity" style="left: 68.5%; top: 45.5%;">
+            <div class="desk-top"><span class="desk-monitor curved-screen"></span></div>
+          </div>
+          <div class="desk-unit desk-courier" style="left: 76.5%; top: 45.5%;">
+            <div class="desk-top"><span class="desk-monitor dual-screen"></span></div>
+          </div>
+          <div class="desk-unit desk-teacher" style="left: 85.5%; top: 45.5%;">
+            <div class="desk-top"><span class="desk-monitor triple-screen"></span></div>
+          </div>
+
+          <!-- Strategy & Command Signboard -->
+          <div class="strategy-signboard">
+            <div class="sign-title">STRATEGY & COMMAND</div>
+            <ul class="sign-list">
+              <li>• Market Analysis</li>
+              <li>• Risk Control</li>
+              <li>• Automation Rules</li>
+              <li>• Agent Allocation</li>
+              <li>• Performance Review</li>
+            </ul>
+          </div>
+
+          <div class="pillar-plaque">
+            <span>BUILD</span>
+            <span>AUTOMATE</span>
+            <span>SCALE</span>
+            <span>REPEAT</span>
+          </div>
+
+          <!-- Lower Workstations Grid (16 to 25) -->
+          <div class="numbered-desk-unit" style="left: 63.5%; top: 56.5%;"><span class="desk-num">16</span><div class="desk-top"><span class="desk-monitor curved-screen"></span></div></div>
+          <div class="numbered-desk-unit" style="left: 69.5%; top: 56.5%;"><span class="desk-num">17</span><div class="desk-top"><span class="desk-monitor curved-screen"></span></div></div>
+          <div class="numbered-desk-unit" style="left: 75.5%; top: 56.5%;"><span class="desk-num">18</span><div class="desk-top"><span class="desk-monitor curved-screen"></span></div></div>
+          <div class="numbered-desk-unit" style="left: 81.5%; top: 56.5%;"><span class="desk-num">19</span><div class="desk-top"><span class="desk-monitor curved-screen"></span></div></div>
+          <div class="numbered-desk-unit" style="left: 87.5%; top: 56.5%;"><span class="desk-num">20</span><div class="desk-top"><span class="desk-monitor curved-screen"></span></div></div>
+
+          <div class="numbered-desk-unit" style="left: 63.5%; top: 67.0%;"><span class="desk-num">21</span><div class="desk-top"><span class="desk-monitor curved-screen"></span></div></div>
+          <div class="numbered-desk-unit" style="left: 69.5%; top: 67.0%;"><span class="desk-num">22</span><div class="desk-top"><span class="desk-monitor curved-screen"></span></div></div>
+          <div class="numbered-desk-unit" style="left: 75.5%; top: 67.0%;"><span class="desk-num">24</span><div class="desk-top"><span class="desk-monitor curved-screen"></span></div></div>
+          <div class="numbered-desk-unit" style="left: 81.5%; top: 67.0%;"><span class="desk-num">25</span><div class="desk-top"><span class="desk-monitor curved-screen"></span></div></div>
+
+          <!-- Bottom Left: Bodyguard Ready Room Area -->
+          <div class="bodyguards-ready-zone" id="zone-bodyguards">
+            <div class="ready-zone-banner">
+              <span class="banner-title">BODYGUARDS</span>
+              <span class="banner-sub">8 RESERVE SLOTS</span>
+            </div>
+            <div class="ready-slots-grid">
+              <div class="slot-marker" style="left: 14.0%; top: 63.5%;"></div>
+              <div class="slot-marker" style="left: 18.5%; top: 63.5%;"></div>
+              <div class="slot-marker" style="left: 23.0%; top: 63.5%;"></div>
+              <div class="slot-marker" style="left: 27.5%; top: 63.5%;"></div>
+              <div class="slot-marker" style="left: 32.0%; top: 63.5%;"></div>
+              <div class="slot-marker" style="left: 36.5%; top: 63.5%;"></div>
+              <div class="slot-marker" style="left: 41.0%; top: 63.5%;"></div>
+              <div class="slot-marker" style="left: 45.5%; top: 63.5%;"></div>
+            </div>
+          </div>
+
+          <!-- Bottom Right: Kitchen & Coffee Bar -->
+          <div class="kitchen-coffee-bar" id="zone-coffee-bar">
+            <div class="kitchen-header">KITCHEN & COFFEE BAR</div>
+            <div class="espresso-counter">
+              <div class="espresso-machine"><span class="steam-puff"></span></div>
+              <div class="bar-stools">
+                <span class="stool"></span>
+                <span class="stool"></span>
+                <span class="stool"></span>
+                <span class="stool"></span>
+              </div>
+              <div class="snack-vending-box"><span class="vending-sign">barfud</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- =========================================================== -->
+        <!-- DYNAMIC AGENTS LAYER (ANIMATED CHARACTERS & FLOATING NAMEPLATES) -->
+        <!-- =========================================================== -->
+        <div class="living-agents-layer" id="living-agents-layer">
+          <!-- Populated and synchronized in real time via studio.js -->
+        </div>
+
+      </div>
+
+      <!-- ============================================================= -->
+      <!-- BOTTOM SECTION: 4 REAL-TIME TELEMETRY & OPERATIONS PANELS      -->
+      <!-- ============================================================= -->
+      <div class="bottom-telemetry-section">
+
+        <!-- Panel 1: SNITCH 3.0 — PERMISSION GUARD -->
+        <div class="telemetry-panel panel-snitch" id="panel-snitch-telemetry">
+          <div class="panel-header">
+            <span class="panel-icon">🛡️</span>
+            <span class="panel-title">SNITCH 3.0 — PERMISSION GUARD</span>
+          </div>
+          <div class="panel-body">
+            <div class="perm-status-row">
+              <span class="status-sublabel">STATUS:</span>
+              <span class="badge badge-perm-healthy font-mono" id="snitch-perm-status">PERMISSIONS HEALTHY</span>
+            </div>
+            <div class="perm-detail-row">
+              <span class="status-sublabel">LAST CHECKED COMMAND</span>
+              <div class="code-pill font-mono" id="snitch-perm-command">curl -s http://127.0.0.1:8088/api/state</div>
+            </div>
+            <div class="perm-detail-row">
+              <span class="status-sublabel">RULE MATCH</span>
+              <div class="text-green font-mono text-bold" id="snitch-perm-rule-rec">ALREADY_ALLOWED</div>
+            </div>
+            <div class="perm-events-list">
+              <span class="status-sublabel">RECENT PERMISSION EVENTS</span>
+              <div class="perm-mini-events font-mono" id="snitch-mini-events">
+                <div class="perm-ev-item"><span class="dot green"></span> ALREADY_ALLOWED <small>curl -s http://127.0.0.1:8088/api/state</small></div>
+                <div class="perm-ev-item"><span class="dot green"></span> ALREADY_ALLOWED <small>python3 scripts/launch_visual_studio.py --status</small></div>
+                <div class="perm-ev-item"><span class="dot yellow"></span> ONE_TIME_ONLY <small>pkill -f run_visual_studio_server.py</small></div>
+              </div>
+            </div>
+            <div class="panel-footer-meta">
+              <span id="snitch-perm-updated">LAST UPDATED: 17:42:18</span>
+              <a href="#control-panel-drawer" class="view-audit-link" id="link-view-audit">VIEW FULL AUDIT LOG →</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 2: LIVE WORKFLOW -->
+        <div class="telemetry-panel panel-workflow" id="panel-workflow-telemetry">
+          <div class="panel-header">
+            <span class="panel-icon">⚡</span>
+            <span class="panel-title">LIVE WORKFLOW</span>
+          </div>
+          <div class="panel-body">
+            <div class="wf-meta-row font-mono">
+              <div>ID: <b id="live-wf-id" class="text-white">WF-2026-08-30-1742</b></div>
+              <div>CORRELATION: <b id="live-wf-correlation" class="text-cyan">corr-demo-c94b85b8</b></div>
+            </div>
+            <div class="wf-timeline-feed font-mono" id="live-wf-timeline">
+              <div class="timeline-entry"><span class="tl-time">17:42</span> <span class="tl-text">Human submitted idea</span></div>
+              <div class="timeline-entry"><span class="tl-time">17:42</span> <span class="tl-text">Idea Sync ingested & classified</span></div>
+              <div class="timeline-entry"><span class="tl-time">17:42</span> <span class="tl-text">Update Steward created snapshot v64</span></div>
+              <div class="timeline-entry"><span class="tl-time">17:42</span> <span class="tl-text">Chief routed to Gravity</span></div>
+              <div class="timeline-entry active"><span class="tl-time">17:42</span> <span class="tl-text">Gravity started working</span></div>
+            </div>
+            <div class="wf-progress-container">
+              <div class="wf-prog-info">
+                <span id="live-wf-status">STATUS: IN_PROGRESS</span>
+                <span id="live-wf-pct">35%</span>
+              </div>
+              <div class="wf-bar-track">
+                <div class="wf-bar-fill" id="live-wf-bar" style="width: 35%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 3: AGENT ACTIVITY FEED -->
+        <div class="telemetry-panel panel-feed" id="panel-feed-telemetry">
+          <div class="panel-header">
+            <span class="panel-icon">📡</span>
+            <span class="panel-title">AGENT ACTIVITY FEED</span>
+          </div>
+          <div class="panel-body">
+            <div class="activity-feed-list" id="activity-feed-list">
+              <div class="feed-item">
+                <span class="badge-agent-sm badge-gravity">GRAVITY</span>
+                <span class="feed-msg">Rendering pipeline step 2/5... Estimated 45s remaining.</span>
+                <span class="feed-ts">17:42</span>
+              </div>
+              <div class="feed-item">
+                <span class="badge-agent-sm badge-courier">COURIER</span>
+                <span class="feed-msg">Packaging intermediate results.</span>
+                <span class="feed-ts">17:42</span>
+              </div>
+              <div class="feed-item">
+                <span class="badge-agent-sm badge-snitch">SNITCH</span>
+                <span class="feed-msg">All systems nominal. Permissions healthy.</span>
+                <span class="feed-ts">17:42</span>
+              </div>
+              <div class="feed-item">
+                <span class="badge-agent-sm badge-teacher">TEACHER</span>
+                <span class="feed-msg">Extracting best practices from execution.</span>
+                <span class="feed-ts">17:42</span>
+              </div>
+              <div class="feed-item">
+                <span class="badge-agent-sm badge-steward">STEWARD</span>
+                <span class="feed-msg">Snapshot integrity verified (v64).</span>
+                <span class="feed-ts">17:42</span>
+              </div>
+            </div>
+            <div class="panel-footer-meta">
+              <span class="text-muted">REAL-TIME EXECUTION LOG</span>
+              <a href="#control-panel-drawer" class="view-audit-link" id="link-view-feed">VIEW FULL FEED →</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 4: CONTEXT & REPOSITORIES -->
+        <div class="telemetry-panel panel-context" id="panel-context-telemetry">
+          <div class="panel-header">
+            <span class="panel-icon">📦</span>
+            <span class="panel-title">CONTEXT & REPOSITORIES</span>
+          </div>
+          <div class="panel-body">
+            <div class="context-grid-2x2">
+              <div class="ctx-cell">
+                <span class="ctx-label">CONTEXT VERSION</span>
+                <span class="ctx-val font-mono text-cyan" id="panel-ctx-ver">v64</span>
+              </div>
+              <div class="ctx-cell">
+                <span class="ctx-label">PREVIOUS VERSION</span>
+                <span class="ctx-val font-mono text-muted" id="panel-ctx-prev">v63</span>
+              </div>
+              <div class="ctx-cell">
+                <span class="ctx-label">SNAPSHOT HASH</span>
+                <span class="ctx-val font-mono text-truncate" id="panel-ctx-hash">8f0874f495cf...</span>
+              </div>
+              <div class="ctx-cell">
+                <span class="ctx-label">LAST REFRESH</span>
+                <span class="ctx-val font-mono" id="panel-ctx-refresh">17:37:43</span>
+              </div>
+            </div>
+            <div class="tracked-repos-list font-mono">
+              <span class="ctx-sublabel">TRACKED REPOSITORIES (HEADs)</span>
+              <div class="repo-line"><span>Courier:</span> <b id="panel-repo-courier" class="text-accent">e7edad01</b> <span>Memory:</span> <b id="panel-repo-memory" class="text-accent">62c658b0</b></div>
+              <div class="repo-line"><span>Godot:</span> <b class="text-muted">NOT_CONNECTED</b></div>
+            </div>
+            <div class="ctx-sync-bar-box">
+              <div class="ctx-sync-bar-track">
+                <div class="ctx-sync-bar-fill" id="panel-ctx-sync-bar" style="width: 100%;"></div>
+              </div>
+              <span class="ctx-sync-label font-mono" id="panel-ctx-status-label">Status: Context v64 (8f0874f4) 100%</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ================================================================= -->
+  <!-- BOTTOM FOOTER BAR                                                -->
+  <!-- ================================================================= -->
+  <footer class="hq-bottom-footer">
+    <div class="footer-item">NEXT SCHOOL TIME: <b id="footer-school-time" class="text-cyan">06:00 UTC</b></div>
+    <div class="footer-divider">|</div>
+    <div class="footer-item">ROUTER MODE: <b class="text-green">AUTO</b></div>
+    <div class="footer-divider">|</div>
+    <div class="footer-item">HUMAN GATE: <b id="footer-gate-status" class="text-green">ACTIVE</b></div>
+    <div class="footer-divider">|</div>
+    <div class="footer-item">INCIDENTS: <b id="footer-incidents-count" class="text-green">0</b></div>
+    <div class="footer-divider">|</div>
+    <div class="footer-copy">© 2026 COURIER OPERATIONS HQ</div>
+  </footer>
+
+  <!-- ================================================================= -->
+  <!-- COLLAPSIBLE DETAILED CONTROL PANELS & HUMAN INBOX                 -->
+  <!-- ================================================================= -->
+  <section class="control-panel-drawer hidden" id="control-panel-drawer">
+    <div class="drawer-inner">
+      <div class="drawer-header">
+        <h2>🛠️ DETAILED OPERATIONS & HUMAN DIRECTIVE INBOX</h2>
+        <button id="btn-close-drawer" class="btn-close">✕ CLOSE</button>
+      </div>
+
+      <!-- Human Idea & Strategic Directive Inbox -->
+      <div class="inbox-section-drawer">
+        <div class="inbox-header">
+          <span class="inbox-tag">💡 HUMAN STRATEGY DISPATCH</span>
+          <span class="inbox-sub">Human ➔ Idea Sync ➔ Memory Comparison ➔ Context Delta ➔ Chief ➔ Workers</span>
+        </div>
+        <div class="inbox-form">
+          <input type="text" id="human-idea-input" class="idea-input" placeholder="e.g. Führe Video-Pipeline für Strawberry Shorts aus..." />
           <div class="preset-pills">
             <button class="preset-btn" data-idea="Optimiere Godot 3D Video-Render Pipeline und prüfe Channel-Konfigurationen">🎬 3D Shorts Pipeline</button>
             <button class="preset-btn" data-idea="Führe technische Code-Prüfung und Syntax-Audit der Courier-Tools durch">🔍 Technical QA Audit</button>
             <button class="preset-btn" data-idea="Synthetisiere Multi-Agent Teamwork Policies und erstelle Release-Paket">📦 Synthesis & Package</button>
             <button class="preset-btn" data-idea="Kaufe neue Krypto Tokens und starte bezahlte Kampagnen">⚠️ Conflict Test (D-002/D-004)</button>
           </div>
-        </div>
-        <button id="btn-dispatch-idea" class="btn-dispatch">
-          <span class="dispatch-icon">⚡</span> DISPATCH TO CURATOR & CHIEF
-        </button>
-      </div>
-    </div>
-  </section>
-
-  <!-- Human Approval Gate Alert Banner (Hidden by default) -->
-  <aside id="human-gate-banner" class="gate-banner hidden">
-    <div class="gate-content">
-      <div class="gate-icon">🛡️</div>
-      <div class="gate-info">
-        <div class="gate-title">HUMAN APPROVAL REQUIRED</div>
-        <div class="gate-description" id="gate-desc">A workflow task or policy alert requires explicit human sign-off before proceeding.</div>
-      </div>
-      <div class="gate-actions">
-        <button id="btn-gate-approve" class="btn-gate approve">APPROVE</button>
-        <button id="btn-gate-reject" class="btn-gate reject">REJECT</button>
-      </div>
-    </div>
-  </aside>
-
-  <!-- Dual-Loop Architecture Flow Banner: Production Loop + Learning Loop -->
-  <section class="dual-loop-banner" id="dual-loop-banner">
-    <div class="loop-track loop-production">
-      <span class="loop-tag">🔄 PRODUCTION LOOP:</span>
-      <span class="loop-steps">HUMAN ➔ IDEA SYNC ➔ UPDATE STEWARD ➔ CHIEF ➔ ROUTER ➔ WORKERS ➔ COURIER ➔ UPDATE STEWARD ➔ CHIEF REVIEW</span>
-    </div>
-    <div class="loop-track loop-learning">
-      <span class="loop-tag">🎓 LEARNING LOOP (AI ACADEMY):</span>
-      <span class="loop-steps">EXTERNAL UPDATE ➔ AGENTENLEHRER ➔ SCHULDIREKTOR (EVAL GATE) ➔ IDEA SYNC ➔ UPDATE STEWARD (SNAPSHOT) ➔ AGENTS LEARN</span>
-    </div>
-  </section>
-
-  <!-- Large Main Dashboard / Operations TV Wall -->
-  <section class="master-tv-wall" id="master-tv-wall">
-    <div class="tv-wall-header">
-      <div class="tv-title-row">
-        <span class="tv-live-beacon"></span>
-        <h2 class="tv-wall-title">HQ FLIGHT DECK // MASTER OPERATIONS TV WALL</h2>
-        <span class="tv-capacity-tag">Capacity: 18 Agent Roles • ~25 Equipped • 3 Future Expansion • 40 Max</span>
-      </div>
-      <div class="tv-health-badge" id="tv-system-health">UNKNOWN</div>
-    </div>
-
-    <div class="tv-grid-metrics">
-      <div class="tv-metric-card">
-        <span class="tv-label">ACTIVE AGENTS</span>
-        <span class="tv-val text-accent" id="tv-active-agents">0</span>
-      </div>
-      <div class="tv-metric-card">
-        <span class="tv-label">IDLE / READY</span>
-        <span class="tv-val" id="tv-idle-agents">UNKNOWN</span>
-      </div>
-      <div class="tv-metric-card">
-        <span class="tv-label">BLOCKED / GATED</span>
-        <span class="tv-val text-alert" id="tv-blocked-agents">UNKNOWN</span>
-      </div>
-      <div class="tv-metric-card">
-        <span class="tv-label">EQUIPPED DESKS</span>
-        <span class="tv-val" id="tv-available-desks">UNKNOWN</span>
-      </div>
-      <div class="tv-metric-card">
-        <span class="tv-label">FUTURE DESKS</span>
-        <span class="tv-val text-muted" id="tv-future-desks">3</span>
-      </div>
-      <div class="tv-metric-card">
-        <span class="tv-label">MAX CAPACITY</span>
-        <span class="tv-val">40</span>
-      </div>
-    </div>
-
-    <div class="tv-flight-row">
-      <div class="tv-flight-item">
-        <span class="tv-sublabel">WORKFLOW:</span>
-        <span class="tv-subval font-mono" id="tv-workflow">UNKNOWN</span>
-      </div>
-      <div class="tv-flight-item">
-        <span class="tv-sublabel">CORRELATION:</span>
-        <span class="tv-subval font-mono text-accent" id="tv-correlation">UNKNOWN</span>
-      </div>
-      <div class="tv-flight-item">
-        <span class="tv-sublabel">CHIEF WAIT STATE:</span>
-        <span class="tv-subval font-mono" id="tv-chief-wait">UNKNOWN</span>
-      </div>
-      <div class="tv-flight-item">
-        <span class="tv-sublabel">CONTEXT VERSION:</span>
-        <span class="tv-subval font-mono" id="tv-context-ver">UNKNOWN</span>
-      </div>
-      <div class="tv-flight-item">
-        <span class="tv-sublabel">NEXT SCHOOL TIME:</span>
-        <span class="tv-subval font-mono text-secondary" id="tv-academy-time">UNKNOWN</span>
-      </div>
-    </div>
-  </section>
-
-  <!-- Main Canvas: Agent Workstations, Classrooms & HQ Facilities -->
-  <main class="studio-grid" id="main-studio-canvas">
-
-    <!-- 1. Idea Sync & Thought Curator Station -->
-    <section class="workstation-card" id="station-curator">
-      <div class="card-header">
-        <div class="station-identity">
-          <span class="station-icon">🧠</span>
-          <div>
-            <h2 class="station-title">IDEA SYNC / CURATOR</h2>
-            <span class="station-role">Memory Ingestion & Context Delta</span>
-          </div>
-        </div>
-        <span class="badge badge-curator" id="badge-curator-state">IDLE</span>
-      </div>
-
-      <div class="card-body">
-        <!-- 5-Step Pipeline Flow Indicator -->
-        <div class="flow-steps-bar">
-          <span class="flow-step" id="step-1">1. ARRIVAL</span>
-          <span class="flow-arrow">→</span>
-          <span class="flow-step" id="step-2">2. MEMORY</span>
-          <span class="flow-arrow">→</span>
-          <span class="flow-step" id="step-3">3. CONNECTIONS</span>
-          <span class="flow-arrow">→</span>
-          <span class="flow-step" id="step-4">4. DELTA</span>
-          <span class="flow-arrow">→</span>
-          <span class="flow-step" id="step-5">5. CHIEF</span>
-        </div>
-
-        <div class="metric-row">
-          <div class="metric-box">
-            <span class="metric-label">Classification</span>
-            <span class="metric-value font-mono text-accent" id="curator-class">-</span>
-          </div>
-          <div class="metric-box">
-            <span class="metric-label">Memory Truth Rule</span>
-            <span class="metric-value font-mono text-muted">IDEA ≠ VERIFIED</span>
-          </div>
-        </div>
-
-        <!-- Dynamic Memory Links & Badges Container -->
-        <div class="memory-links-box">
-          <span class="feed-label">MEMORY CONNECTIONS & POLICY GUARDS</span>
-          <div class="links-container" id="curator-memory-links">
-            <span class="link-chip chip-neutral">DECISIONS.md (Indexed)</span>
-            <span class="link-chip chip-neutral">IDEA_ARCHIVE.md (Indexed)</span>
-          </div>
-        </div>
-
-        <!-- Affected Workflows & Agents Indicator -->
-        <div class="affected-agents-box">
-          <span class="feed-label">AFFECTED AGENTS & WORKFLOWS</span>
-          <div class="affected-pill-container" id="curator-affected-agents">
-            <span class="affected-pill">Antigravity Studio (3D Shorts)</span>
-          </div>
-        </div>
-
-        <!-- Machine-Readable Context Delta Packet -->
-        <div class="context-delta-box">
-          <span class="feed-label">CONTEXT DELTA HANDOFF OBJECT</span>
-          <div class="context-delta-preview font-mono" id="curator-context-delta">
-            📦 DELTA: Standby for human idea...
-          </div>
-        </div>
-
-        <div class="task-progress-box">
-          <div class="progress-info">
-            <span id="curator-task-label">Status: IDLE</span>
-            <span id="curator-progress-num">0%</span>
-          </div>
-          <div class="progress-bar-bg">
-            <div class="progress-bar-fill fill-curator" id="curator-progress-bar" style="width: 0%;"></div>
-          </div>
-        </div>
-
-        <div class="action-feed">
-          <span class="feed-label">CURATION & MEMORY COMPARISON LOG</span>
-          <div class="feed-log" id="curator-feed-log">
-            <div class="log-entry system">[CURATOR] Standby for human ideas. Memory index active.</div>
-          </div>
-        </div>
-      </div>
-    </section>
-    
-    <!-- 2. Context Sync / Update Steward Station -->
-    <section class="workstation-card" id="station-steward">
-      <div class="card-header">
-        <div class="station-identity">
-          <span class="station-icon">🔄</span>
-          <div>
-            <h2 class="station-title">UPDATE STEWARD</h2>
-            <span class="station-role">Context Sync & Task Versioning</span>
-          </div>
-        </div>
-        <span class="badge badge-steward" id="badge-steward-state">UNKNOWN</span>
-      </div>
-
-      <div class="card-body">
-        <div class="metric-row">
-          <div class="metric-box">
-            <span class="metric-label">Context Version</span>
-            <span class="metric-value font-mono text-accent" id="steward-context-version">-</span>
-          </div>
-          <div class="metric-box">
-            <span class="metric-label">Previous Version</span>
-            <span class="metric-value font-mono text-muted" id="steward-prev-version">-</span>
-          </div>
-        </div>
-
-        <div class="metric-row">
-          <div class="metric-box">
-            <span class="metric-label">Snapshot Hash</span>
-            <span class="metric-value font-mono" id="steward-snapshot-hash">-</span>
-          </div>
-          <div class="metric-box">
-            <span class="metric-label">Last Refresh</span>
-            <span class="metric-value font-mono text-secondary" id="steward-last-refresh">--:--:--</span>
-          </div>
-        </div>
-
-        <!-- Tracked Repositories Container -->
-        <div class="memory-links-box">
-          <span class="feed-label">TRACKED REPOSITORIES (HEADS)</span>
-          <div class="links-container" id="steward-repos">
-            <span class="link-chip chip-neutral" id="repo-courier">Courier: -</span>
-            <span class="link-chip chip-neutral" id="repo-memory">Memory: -</span>
-            <span class="link-chip chip-neutral" id="repo-godot">Godot: -</span>
-          </div>
-        </div>
-
-        <!-- Changed Items Container -->
-        <div class="affected-agents-box">
-          <span class="feed-label">CHANGED SINCE PREVIOUS SNAPSHOT</span>
-          <div class="affected-pill-container" id="steward-changed-items">
-            <span class="affected-pill">NONE</span>
-          </div>
-        </div>
-
-        <div class="task-progress-box">
-          <div class="progress-info">
-            <span id="steward-task-label">Status: UNKNOWN</span>
-            <span id="steward-progress-num">0%</span>
-          </div>
-          <div class="progress-bar-bg">
-            <div class="progress-bar-fill fill-steward" id="steward-progress-bar" style="width: 0%;"></div>
-          </div>
-        </div>
-
-        <div class="action-feed">
-          <span class="feed-label">CONTEXT SYNCHRONIZATION LOG</span>
-          <div class="feed-log font-mono" id="steward-feed-log">
-            <div class="log-entry system">[STEWARD] Standby for repository and event synchronization.</div>
-          </div>
-        </div>
-      </div>
-    </section>
-    
-    <!-- 3. Chief Command & Review Center -->
-    <section class="workstation-card" id="station-chief">
-      <div class="card-header">
-        <div class="station-identity">
-          <span class="station-icon">👑</span>
-          <div>
-            <h2 class="station-title">CHIEF COMMANDER</h2>
-            <span class="station-role">Strategy & Smart Router</span>
-          </div>
-        </div>
-        <span class="badge badge-chief" id="badge-chief-state">IDLE</span>
-      </div>
-
-      <div class="card-body">
-        <div class="metric-row">
-          <div class="metric-box">
-            <span class="metric-label">Active Workflow</span>
-            <span class="metric-value font-mono" id="chief-workflow">-</span>
-          </div>
-          <div class="metric-box">
-            <span class="metric-label">Chief Wait State</span>
-            <span class="metric-value text-accent font-mono" id="chief-wait-state">IDLE</span>
-          </div>
-        </div>
-
-        <div class="metric-row">
-          <div class="metric-box">
-            <span class="metric-label">Last Decision</span>
-            <span class="metric-value text-accent font-mono" id="chief-last-decision">NONE</span>
-          </div>
-          <div class="metric-box">
-            <span class="metric-label">Task Context Version</span>
-            <span class="metric-value font-mono text-muted" id="chief-context-version">-</span>
-          </div>
-        </div>
-
-        <div class="task-progress-box">
-          <div class="progress-info">
-            <span id="chief-task-label">Current Task: None</span>
-            <span id="chief-progress-num">0%</span>
-          </div>
-          <div class="progress-bar-bg">
-            <div class="progress-bar-fill" id="chief-progress-bar" style="width: 0%;"></div>
-          </div>
-        </div>
-
-        <div class="action-feed">
-          <span class="feed-label">CHIEF DIRECTIVE & ROUTING LOG</span>
-          <div class="feed-log" id="chief-feed-log">
-            <div class="log-entry system">[CHIEF] Standby. Submit human idea to initiate autonomous loop.</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 4. Central Courier Transit Bus & Thread Context -->
-    <section class="workstation-card hub-card" id="station-courier">
-      <div class="card-header">
-        <div class="station-identity">
-          <span class="station-icon">⚡</span>
-          <div>
-            <h2 class="station-title">COURIER EVENT BUS</h2>
-            <span class="station-role">Atomic Event Relay & Task Thread Context</span>
-          </div>
-        </div>
-        <span class="badge badge-bus" id="badge-bus-state">DISPATCHING</span>
-      </div>
-
-      <div class="card-body">
-        <div class="bus-flow-viz">
-          <div class="bus-node" id="node-dispatch">
-            <span class="node-icon">📦</span>
-            <span class="node-text">DISPATCH</span>
-            <span class="node-count" id="count-dispatch">0</span>
-          </div>
-          <div class="bus-connector"><span class="flow-dot"></span></div>
-          <div class="bus-node" id="node-processed">
-            <span class="node-icon">📥</span>
-            <span class="node-text">RESULT_READY</span>
-            <span class="node-count" id="count-processed">0</span>
-          </div>
-          <div class="bus-connector"><span class="flow-dot"></span></div>
-          <div class="bus-node" id="node-decisions">
-            <span class="node-icon">⚖️</span>
-            <span class="node-text">DECISIONS</span>
-            <span class="node-count" id="count-decisions">0</span>
-          </div>
-        </div>
-
-        <!-- Task Thread Context Indicators -->
-        <div class="transit-metrics">
-          <div class="metric-pill">
-            <span class="pill-label">Lock Status:</span>
-            <span class="pill-value" id="bus-lock-status">UNLOCKED</span>
-          </div>
-          <div class="metric-pill">
-            <span class="pill-label">Thread Correlation:</span>
-            <span class="pill-value font-mono text-accent" id="thread-correlation">NONE</span>
-          </div>
-          <div class="metric-pill">
-            <span class="pill-label">Thread Actors:</span>
-            <span class="pill-value font-mono" id="thread-actors">-</span>
-          </div>
-        </div>
-      </div>
-  </section>
-
-  <!-- SNITCH 3.0: deterministic runtime watchdog & permission guard -->
-  <section class="workstation-card" id="station-snitch">
-    <div class="card-header">
-      <div class="station-identity">
-        <span class="station-icon">👀</span>
-        <div>
-          <h2 class="station-title">SNITCH 3.0</h2>
-          <span class="station-role">Operations Watchdog / Delay Sentinel / Permission Guard</span>
-        </div>
-      </div>
-      <div class="badge-cluster">
-        <span class="badge badge-snitch" id="snitch-state">MONITORING</span>
-        <span class="badge badge-perm-healthy" id="snitch-permission-status">PERMISSIONS HEALTHY</span>
-      </div>
-    </div>
-    <div class="card-body">
-      <!-- SNITCH Speech Bubble -->
-      <div class="snitch-speech-box" id="snitch-speech-container">
-        <span class="speech-author">👀 SNITCH:</span>
-        <span class="speech-quote" id="snitch-speech">"I'm monitoring running tasks. Everything looks healthy."</span>
-      </div>
-
-      <div class="metric-row">
-        <div class="metric-box">
-          <span class="metric-label">MONITORED TASK</span>
-          <span class="metric-value font-mono" id="snitch-task">Active Monitoring</span>
-        </div>
-        <div class="metric-box">
-          <span class="metric-label">FIVE-MINUTE REVIEW RULE</span>
-          <span class="metric-value font-mono text-accent">RUNTIME > 5 MIN ≠ ERROR</span>
+          <button id="btn-dispatch-idea" class="btn-dispatch">
+            <span class="dispatch-icon">⚡</span> DISPATCH DIRECTIVE
+          </button>
         </div>
       </div>
 
-      <div class="metric-row">
-        <div class="metric-box">
-          <span class="metric-label">LAST CHECKED COMMAND</span>
-          <span class="metric-value font-mono" id="snitch-perm-command">python3 scripts/launch_visual_studio.py --status</span>
+      <!-- Human Approval Gate Alert Banner -->
+      <aside id="human-gate-banner" class="gate-banner hidden">
+        <div class="gate-content">
+          <div class="gate-icon">🛡️</div>
+          <div class="gate-info">
+            <div class="gate-title">HUMAN APPROVAL REQUIRED</div>
+            <div class="gate-description" id="gate-desc">A workflow task or policy alert requires explicit human sign-off before proceeding.</div>
+          </div>
+          <div class="gate-actions">
+            <button id="btn-gate-approve" class="btn-gate approve">APPROVE</button>
+            <button id="btn-gate-reject" class="btn-gate reject">REJECT</button>
+          </div>
         </div>
-        <div class="metric-box">
-          <span class="metric-label">RULE MATCH & RECOMMENDATION</span>
-          <span class="metric-value font-mono" id="snitch-perm-rule-rec">STUDIO_LIFECYCLE · ALREADY_ALLOWED</span>
-        </div>
-      </div>
+      </aside>
 
-      <div class="metric-row">
-        <div class="metric-box">
-          <span class="metric-label">LAST OBSERVED ACTION</span>
-          <span class="metric-value font-mono" id="snitch-action">Monitoring operations floor for runaway tasks or stalls</span>
-        </div>
-        <div class="metric-box">
-          <span class="metric-label">AUTO-KILL POLICY</span>
-          <span class="metric-value font-mono text-muted">DISABLED (CHIEF ONLY)</span>
-        </div>
-      </div>
-
-      <div class="action-feed">
-        <span class="feed-label">INCIDENT & PERMISSION ESCALATION FEED</span>
-        <div class="feed-log font-mono" id="snitch-feed-log">
-          <div class="log-entry system">[SNITCH] Standby. Local watchdog & Permission Guard active.</div>
+      <!-- Treasury Truth Evidence -->
+      <div class="treasury-drawer-card">
+        <h3>💰 TREASURY EVIDENCE</h3>
+        <div class="treasury-stats-grid">
+          <div>EUR: <b id="treasury-eur">UNKNOWN</b></div>
+          <div>USD: <b id="treasury-usd">UNKNOWN</b></div>
+          <div>VERIFIED: <b id="treasury-verified">NOT_VERIFIED</b></div>
+          <div>GOAL: <b id="treasury-goal">$8 / $1,000,000,000</b></div>
         </div>
       </div>
-    </div>
-  </section>
 
-
-  <!-- BODYGUARD READY ROOM: 8 Universal Reserve Worker Slots -->
-  <section class="workstation-card hub-card" id="station-bodyguards">
-    <div class="card-header">
-      <div class="station-identity">
-        <span class="station-icon">🛡️</span>
-        <div>
-          <h2 class="station-title">BODYGUARD READY ROOM</h2>
-          <span class="station-role">8 Universal Reserve Worker Slots (Standby: 0 Model Calls, 0.00 EUR)</span>
-        </div>
-      </div>
-      <span class="badge badge-bus" id="badge-bodyguards-summary">8 STANDBY</span>
-    </div>
-
-    <div class="card-body">
-      <div class="bodyguard-grid" id="bodyguard-cards-container">
-        <!-- Generated dynamically in studio.js or default template below -->
-        <div class="bodyguard-slot-card" id="bg-card-alpha">
-          <div class="bg-card-header">
-            <span class="bg-slot-tag">BG-01</span>
-            <span class="bg-callsign font-mono">ALPHA</span>
-            <span class="bg-badge badge-standby" id="bg-badge-alpha">STANDBY</span>
-          </div>
-          <div class="bg-role-tag font-mono" id="bg-role-alpha">ROLE: NONE</div>
-          <div class="bg-task-desc font-mono" id="bg-task-alpha">Task: Reserve Duty</div>
-          <div class="bg-speech-bubble" id="bg-speech-alpha">"Ready for reserve duty."</div>
-        </div>
-
-        <div class="bodyguard-slot-card" id="bg-card-bravo">
-          <div class="bg-card-header">
-            <span class="bg-slot-tag">BG-02</span>
-            <span class="bg-callsign font-mono">BRAVO</span>
-            <span class="bg-badge badge-standby" id="bg-badge-bravo">STANDBY</span>
-          </div>
-          <div class="bg-role-tag font-mono" id="bg-role-bravo">ROLE: NONE</div>
-          <div class="bg-task-desc font-mono" id="bg-task-bravo">Task: Reserve Duty</div>
-          <div class="bg-speech-bubble" id="bg-speech-bravo">"Ready for reserve duty."</div>
-        </div>
-
-        <div class="bodyguard-slot-card" id="bg-card-charlie">
-          <div class="bg-card-header">
-            <span class="bg-slot-tag">BG-03</span>
-            <span class="bg-callsign font-mono">CHARLIE</span>
-            <span class="bg-badge badge-standby" id="bg-badge-charlie">STANDBY</span>
-          </div>
-          <div class="bg-role-tag font-mono" id="bg-role-charlie">ROLE: NONE</div>
-          <div class="bg-task-desc font-mono" id="bg-task-charlie">Task: Reserve Duty</div>
-          <div class="bg-speech-bubble" id="bg-speech-charlie">"Ready for reserve duty."</div>
-        </div>
-
-        <div class="bodyguard-slot-card" id="bg-card-delta">
-          <div class="bg-card-header">
-            <span class="bg-slot-tag">BG-04</span>
-            <span class="bg-callsign font-mono">DELTA</span>
-            <span class="bg-badge badge-standby" id="bg-badge-delta">STANDBY</span>
-          </div>
-          <div class="bg-role-tag font-mono" id="bg-role-delta">ROLE: NONE</div>
-          <div class="bg-task-desc font-mono" id="bg-task-delta">Task: Reserve Duty</div>
-          <div class="bg-speech-bubble" id="bg-speech-delta">"Ready for reserve duty."</div>
-        </div>
-
-        <div class="bodyguard-slot-card" id="bg-card-echo">
-          <div class="bg-card-header">
-            <span class="bg-slot-tag">BG-05</span>
-            <span class="bg-callsign font-mono">ECHO</span>
-            <span class="bg-badge badge-standby" id="bg-badge-echo">STANDBY</span>
-          </div>
-          <div class="bg-role-tag font-mono" id="bg-role-echo">ROLE: NONE</div>
-          <div class="bg-task-desc font-mono" id="bg-task-echo">Task: Reserve Duty</div>
-          <div class="bg-speech-bubble" id="bg-speech-echo">"Ready for reserve duty."</div>
-        </div>
-
-        <div class="bodyguard-slot-card" id="bg-card-foxtrot">
-          <div class="bg-card-header">
-            <span class="bg-slot-tag">BG-06</span>
-            <span class="bg-callsign font-mono">FOXTROT</span>
-            <span class="bg-badge badge-standby" id="bg-badge-foxtrot">STANDBY</span>
-          </div>
-          <div class="bg-role-tag font-mono" id="bg-role-foxtrot">ROLE: NONE</div>
-          <div class="bg-task-desc font-mono" id="bg-task-foxtrot">Task: Reserve Duty</div>
-          <div class="bg-speech-bubble" id="bg-speech-foxtrot">"Ready for reserve duty."</div>
-        </div>
-
-        <div class="bodyguard-slot-card" id="bg-card-golf">
-          <div class="bg-card-header">
-            <span class="bg-slot-tag">BG-07</span>
-            <span class="bg-callsign font-mono">GOLF</span>
-            <span class="bg-badge badge-standby" id="bg-badge-golf">STANDBY</span>
-          </div>
-          <div class="bg-role-tag font-mono" id="bg-role-golf">ROLE: NONE</div>
-          <div class="bg-task-desc font-mono" id="bg-task-golf">Task: Reserve Duty</div>
-          <div class="bg-speech-bubble" id="bg-speech-golf">"Ready for reserve duty."</div>
-        </div>
-
-        <div class="bodyguard-slot-card" id="bg-card-hotel">
-          <div class="bg-card-header">
-            <span class="bg-slot-tag">BG-08</span>
-            <span class="bg-callsign font-mono">HOTEL</span>
-            <span class="bg-badge badge-standby" id="bg-badge-hotel">STANDBY</span>
-          </div>
-          <div class="bg-role-tag font-mono" id="bg-role-hotel">ROLE: NONE</div>
-          <div class="bg-task-desc font-mono" id="bg-task-hotel">Task: Reserve Duty</div>
-          <div class="bg-speech-bubble" id="bg-speech-hotel">"Ready for reserve duty."</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-
-  <!-- 4. Antigravity Primary Heavy Studio -->
-    <section class="workstation-card" id="station-antigravity">
-      <div class="card-header">
-        <div class="station-identity">
-          <span class="station-icon">🎨</span>
-          <div>
-            <h2 class="station-title">ANTIGRAVITY STUDIO</h2>
-            <span class="station-role">Primary Heavy Worker (3D/Media/UI)</span>
-          </div>
-        </div>
-        <span class="badge badge-worker execution-unknown" id="badge-ag-mode">⚪ UNKNOWN</span>
-      </div>
-
-      <div class="card-body">
-        <div class="metric-row">
-          <div class="metric-box">
-            <span class="metric-label">Specialization</span>
-            <span class="metric-value font-mono">Creative / 3D / Synthesis</span>
-          </div>
-          <div class="metric-box">
-            <span class="metric-label">Status</span>
-            <span class="metric-value" id="ag-state">IDLE</span>
-          </div>
-        </div>
-
-        <div class="task-progress-box">
-          <div class="progress-info">
-            <span id="ag-task-label">Task: IDLE</span>
-            <span id="ag-progress-num">0%</span>
-          </div>
-          <div class="progress-bar-bg">
-            <div class="progress-bar-fill fill-ag" id="ag-progress-bar" style="width: 0%;"></div>
-          </div>
-        </div>
-
-        <div class="action-feed">
-          <span class="feed-label">ANTIGRAVITY WORKSTREAM LOG</span>
-          <div class="feed-log terminal-font" id="ag-feed-log">
-            <div class="log-entry">[AG] Primary heavy worker ready.</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 5. Codex Technical Lab -->
-    <section class="workstation-card" id="station-codex">
-      <div class="card-header">
-        <div class="station-identity">
-          <span class="station-icon">💻</span>
-          <div>
-            <h2 class="station-title">CODEX LAB</h2>
-            <span class="station-role">Scarce Technical Specialist (Code/QA)</span>
-          </div>
-        </div>
-        <span class="badge badge-worker execution-unknown" id="badge-codex-mode">⚪ UNKNOWN</span>
-      </div>
-
-      <div class="card-body">
-        <div class="metric-row">
-          <div class="metric-box">
-            <span class="metric-label">Quota Guard</span>
-            <span class="metric-value font-mono text-accent">PROTECTED (QA ONLY)</span>
-          </div>
-          <div class="metric-box">
-            <span class="metric-label">Status</span>
-            <span class="metric-value" id="codex-state">IDLE</span>
-          </div>
-        </div>
-
-        <div class="task-progress-box">
-          <div class="progress-info">
-            <span id="codex-task-label">Task: IDLE</span>
-            <span id="codex-progress-num">0%</span>
-          </div>
-          <div class="progress-bar-bg">
-            <div class="progress-bar-fill fill-codex" id="codex-progress-bar" style="width: 0%;"></div>
-          </div>
-        </div>
-
-        <div class="action-feed">
-          <span class="feed-label">CODEX VERIFICATION LOG</span>
-          <div class="feed-log terminal-font" id="codex-feed-log">
-            <div class="log-entry">[CODEX] Standby for independent code/test reviews.</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 7. AI Academy: Agentenlehrer (Teacher) Station -->
-    <section class="workstation-card" id="station-teacher">
-      <div class="card-header">
-        <div class="station-identity">
-          <span class="station-icon">👨‍🏫</span>
-          <div>
-            <div class="station-title-row">
-              <h2 class="station-title">AGENTENLEHRER</h2>
-              <span class="identity-props" title="Teacher Visual Identity">🎓 Hat • 👓 Glasses • 🪄 Pointer</span>
-            </div>
-            <span class="station-role">System Learning & Improvement</span>
-          </div>
-        </div>
-        <span class="badge badge-teacher" id="badge-teacher-state">UNKNOWN</span>
-      </div>
-
-      <div class="card-body">
-        <div class="metric-row">
-          <div class="metric-box">
-            <span class="metric-label">Current Topic</span>
-            <span class="metric-value font-mono text-accent" id="teacher-topic">UNKNOWN</span>
-          </div>
-          <div class="metric-box">
-            <span class="metric-label">School Schedule</span>
-            <span class="metric-value font-mono" id="teacher-schedule-status">UNKNOWN</span>
-          </div>
-        </div>
-
-        <div class="metric-row">
-          <div class="metric-box">
-            <span class="metric-label">Next School Time</span>
-            <span class="metric-value font-mono text-secondary" id="teacher-next-time">UNKNOWN</span>
-          </div>
-          <div class="metric-box">
-            <span class="metric-label">Lessons Today / Opps</span>
-            <span class="metric-value font-mono" id="teacher-lessons-opps">UNKNOWN / UNKNOWN</span>
-          </div>
-        </div>
-
-        <div class="metric-row">
-          <div class="metric-box">
-            <span class="metric-label">Last School Time</span>
-            <span class="metric-value font-mono" id="teacher-last-time">UNKNOWN</span>
-          </div>
-          <div class="metric-box">
-            <span class="metric-label">Next Action</span>
-            <span class="metric-value font-mono" id="teacher-next-action">UNKNOWN</span>
-          </div>
-        </div>
-
-        <div class="metric-row">
-          <div class="metric-box">
-            <span class="metric-label">Academy / School Window</span>
-            <span class="metric-value font-mono" id="teacher-academy-window">UNKNOWN / UNKNOWN</span>
-          </div>
-          <div class="metric-box">
-            <span class="metric-label">Eligible Agents</span>
-            <span class="metric-value font-mono" id="teacher-eligible-agents">UNKNOWN</span>
-          </div>
-        </div>
-
-        <!-- Latest Lesson / Proposal Preview -->
-        <div class="context-delta-box">
-          <span class="feed-label">LATEST LESSON PROPOSAL</span>
-          <div class="context-delta-preview font-mono" id="teacher-latest-lesson">
-            📚 UNKNOWN
-          </div>
-        </div>
-
-        <!-- Affected Agents Container -->
-        <div class="affected-agents-box">
-          <span class="feed-label">AFFECTED AGENTS</span>
-          <div class="affected-pill-container" id="teacher-affected-agents">
-            <span class="affected-pill">UNKNOWN</span>
-          </div>
-        </div>
-
-        <!-- Pending Lessons / Deferral Queue -->
-        <div class="affected-agents-box">
-          <span class="feed-label">PENDING LESSONS (SAFE TASK BOUNDARY QUEUE)</span>
-          <div class="affected-pill-container" id="teacher-pending-lessons">
-            <span class="affected-pill">UNKNOWN</span>
-          </div>
-        </div>
-
-        <div class="affected-agents-box">
-          <span class="feed-label">OPPORTUNITY CANDIDATES (NOT REVENUE)</span>
-          <div class="affected-pill-container" id="teacher-opportunity-candidates">
-            <span class="affected-pill">UNKNOWN</span>
-          </div>
-        </div>
-
-        <div class="task-progress-box">
-          <div class="progress-info">
-            <span id="teacher-task-label">Status: UNKNOWN</span>
-            <span id="teacher-progress-num">UNKNOWN</span>
-          </div>
-          <div class="progress-bar-bg">
-            <div class="progress-bar-fill fill-teacher" id="teacher-progress-bar" style="width: 0%;"></div>
-          </div>
-        </div>
-
-        <div class="metric-box">
-          <span class="metric-label">Next Action</span>
-          <span class="metric-value font-mono" id="director-next-action">UNKNOWN</span>
-        </div>
-
-        <div class="action-feed">
-          <span class="feed-label">AGENTENLEHRER LEARNING FEED</span>
-          <div class="feed-log font-mono" id="teacher-feed-log">
-            <div class="log-entry system">[LEHRER] No backend activity evidence yet.</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 8. AI Academy: Schuldirektor (Director & Evaluation Gate) Station -->
-    <section class="workstation-card" id="station-director">
-      <div class="card-header">
-        <div class="station-identity">
-          <span class="station-icon">🏛️</span>
-          <div>
-            <div class="station-title-row">
-              <h2 class="station-title">SCHULDIREKTOR</h2>
-              <span class="identity-props" title="Director Visual Identity">⚖️ Governance • 📊 Evaluation Gate</span>
-            </div>
-            <span class="station-role">Academy Governance & Evaluation Gate</span>
-          </div>
-        </div>
-        <span class="badge badge-director" id="badge-director-state">UNKNOWN</span>
-      </div>
-
-      <div class="card-body">
-        <div class="metric-row">
-          <div class="metric-box">
-            <span class="metric-label">Lessons Reviewed / Approved</span>
-            <span class="metric-value font-mono text-accent" id="director-reviewed-approved">UNKNOWN / UNKNOWN</span>
-          </div>
-          <div class="metric-box">
-            <span class="metric-label">Evals Pass / Fail</span>
-            <span class="metric-value font-mono" id="director-evals-ratio">UNKNOWN / UNKNOWN</span>
-          </div>
-        </div>
-
-        <div class="metric-row">
-          <div class="metric-box">
-            <span class="metric-label">Rule Violations</span>
-            <span class="metric-value font-mono" id="director-rule-violations">UNKNOWN</span>
-          </div>
-          <div class="metric-box">
-            <span class="metric-label">Tests Required</span>
-            <span class="metric-value font-mono text-secondary" id="director-tests-required">UNKNOWN</span>
-          </div>
-        </div>
-
-        <!-- Economic Learning & Measured Savings Panel -->
-        <div class="memory-links-box" id="academy-econ-panel">
-          <span class="feed-label">MEASURED ECONOMIC METRICS (TRUTH GROUNDED)</span>
-          <div class="links-container">
-            <span class="link-chip chip-neutral" id="econ-min-saved">⏱️ Saved: UNKNOWN</span>
-            <span class="link-chip chip-neutral" id="econ-cost-saved">💶 Saved: UNKNOWN</span>
-            <span class="link-chip chip-neutral" id="econ-revenue-truth">💰 Revenue: UNKNOWN</span>
-            <span class="link-chip chip-neutral" id="econ-adopted-count">📜 Adopted: UNKNOWN</span>
-          </div>
-        </div>
-
-        <div class="task-progress-box">
-          <div class="progress-info">
-            <span id="director-task-label">Status: UNKNOWN</span>
-            <span id="director-progress-num">UNKNOWN</span>
-          </div>
-          <div class="progress-bar-bg">
-            <div class="progress-bar-fill fill-director" id="director-progress-bar" style="width: 0%;"></div>
-          </div>
-        </div>
-
-        <div class="action-feed">
-          <span class="feed-label">SCHULDIREKTOR GOVERNANCE LOG</span>
-          <div class="feed-log font-mono" id="director-feed-log">
-            <div class="log-entry system">[DIREKTOR] No backend activity evidence yet.</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 9. AI Academy Evidence & Opportunity Explorer -->
-    <section class="workstation-card hub-card" id="card-academy-explorer">
-      <div class="card-header">
-        <div class="station-identity">
-          <span class="station-icon">📚</span>
-          <div>
-            <h2 class="station-title">ACADEMY EVIDENCE EXPLORER</h2>
-            <span class="station-role">Structured Lessons, Opportunity Candidates & Eval Gates</span>
-          </div>
-        </div>
-        <span class="badge badge-bus" id="badge-academy-explorer">EVIDENCE SYNCED</span>
-      </div>
-
-      <div class="card-body">
-        <div class="academy-explorer-grid">
-          <!-- Lessons Feed -->
+      <!-- Detailed Academy Evidence Explorer -->
+      <div class="academy-explorer-drawer">
+        <h3>🏛️ AI ACADEMY EVIDENCE EXPLORER</h3>
+        <div class="explorer-grid">
           <div class="explorer-col">
-            <span class="feed-label">RECENT LESSON PROPOSALS</span>
-            <div class="explorer-list font-mono" id="explorer-lessons-list">
-              <div class="log-entry">Loading lessons evidence...</div>
-            </div>
+            <h4>Lessons Today (<span id="count-lessons">0</span>)</h4>
+            <div class="explorer-list font-mono" id="explorer-lessons-list">No lessons recorded yet today.</div>
           </div>
-
-          <!-- Opportunity Candidates Feed -->
           <div class="explorer-col">
-            <span class="feed-label">OPPORTUNITY CANDIDATES (REVENUE: NOT_VERIFIED)</span>
-            <div class="explorer-list font-mono" id="explorer-opps-list">
-              <div class="log-entry">Loading opportunity candidates...</div>
-            </div>
+            <h4>Opportunities (<span id="count-opps">0</span>)</h4>
+            <div class="explorer-list font-mono" id="explorer-opps-list">No opportunities discovered yet today.</div>
           </div>
-
-          <!-- Evaluations Feed -->
           <div class="explorer-col">
-            <span class="feed-label">EVALUATION GATES & BENCHMARKS</span>
-            <div class="explorer-list font-mono" id="explorer-evals-list">
-              <div class="log-entry">Loading evaluations evidence...</div>
-            </div>
+            <h4>Evaluations (<span id="count-evals">0</span>)</h4>
+            <div class="explorer-list font-mono" id="explorer-evals-list">No evaluations recorded yet today.</div>
           </div>
         </div>
       </div>
-    </section>
 
-    <!-- 10. Server Room & Security Defense Center -->
-    <section class="workstation-card" id="facility-server-room">
-      <div class="card-header">
-        <div class="station-identity">
-          <span class="station-icon">🖥️</span>
-          <div>
-            <h2 class="station-title">SERVER ROOM & SECURITY VAULT</h2>
-            <span class="station-role">Deterministic Infrastructure & Sentinel Defenses</span>
-          </div>
-        </div>
-        <span class="badge badge-worker execution-registered">REGISTERED // NO LIVE TELEMETRY</span>
-      </div>
-
-      <div class="card-body">
-        <div class="metric-row">
-          <div class="metric-box">
-            <span class="metric-label">Rack Thermal & Power</span>
-            <span class="metric-value font-mono text-accent">UNKNOWN (NO LIVE TELEMETRY)</span>
-          </div>
-          <div class="metric-box">
-            <span class="metric-label">Sentinel Gate</span>
-            <span class="metric-value font-mono">DESK-SECURITY-10 (REGISTERED)</span>
-          </div>
-        </div>
-
-        <div class="server-racks-display">
-          <div class="rack-unit"><span class="rack-led standby"></span> RACK-01 // COURIER BUS (REGISTERED)</div>
-          <div class="rack-unit"><span class="rack-led standby"></span> RACK-02 // MEMORY MESH (REGISTERED)</div>
-          <div class="rack-unit"><span class="rack-led standby"></span> RACK-03 // EVAL RUNNER (REGISTERED)</div>
-          <div class="rack-unit"><span class="rack-led standby"></span> RACK-04 // BACKUP VAULT</div>
-        </div>
-
-        <div class="action-feed">
-          <span class="feed-label">INFRASTRUCTURE STATUS</span>
-          <div class="feed-log font-mono">
-            <div class="log-entry">[INFRA] Registered topology only; live rack telemetry is not connected.</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 11. HQ Executive Wing & Wellness Area -->
-    <section class="workstation-card" id="facility-wellness-wing">
-      <div class="card-header">
-        <div class="station-identity">
-          <span class="station-icon">⛲</span>
-          <div>
-            <h2 class="station-title">EXECUTIVE WING & WELLNESS LOUNGE</h2>
-            <span class="station-role">Warm Cedar Interior • Central Fountain • Sauna</span>
-          </div>
-        </div>
-        <span class="badge badge-curator">PREMIUM AMBIENCE</span>
-      </div>
-
-      <div class="card-body">
-        <div class="wellness-amenities-grid">
-          <div class="amenity-card">
-            <span class="amenity-icon">⛲</span>
-            <div class="amenity-info">
-              <span class="amenity-title">Central Plaza Fountain</span>
-              <span class="amenity-sub">Ambient pixel ripples & reflections</span>
-            </div>
-          </div>
-          <div class="amenity-card">
-            <span class="amenity-icon">🛋️</span>
-            <div class="amenity-info">
-              <span class="amenity-title">Visitor & Team Lounge</span>
-              <span class="amenity-sub">Leather club chairs & monsteras</span>
-            </div>
-          </div>
-          <div class="amenity-card">
-            <span class="amenity-icon">🧖</span>
-            <div class="amenity-info">
-              <span class="amenity-title">Cedar Wood Sauna</span>
-              <span class="amenity-sub">85°C Thermal relaxation zone</span>
-            </div>
-          </div>
-          <div class="amenity-card">
-            <span class="amenity-icon">☕</span>
-            <div class="amenity-info">
-              <span class="amenity-title">Espresso & Tea Bar</span>
-              <span class="amenity-sub">Fresh roast & team recharge</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 12. Planned Expansion Workstations -->
-    <section class="workstation-card" id="facility-future-expansion">
-      <div class="card-header">
-        <div class="station-identity">
-          <span class="station-icon">🔮</span>
-          <div>
-            <h2 class="station-title">FUTURE EXPANSION DESKS</h2>
-            <span class="station-role">Planned Modular Capacities (3 Planned • 40 Max)</span>
-          </div>
-        </div>
-        <span class="badge badge-worker execution-simulated">FUTURE_EXPANSION</span>
-      </div>
-
-      <div class="card-body">
-        <div class="expansion-desks-grid">
-          <div class="future-desk-pill">
-            <span class="desk-icon">🔮</span>
-            <span class="desk-name">DESK-FUTURE-26</span>
-            <span class="desk-status">RESERVED_ALPHA</span>
-          </div>
-          <div class="future-desk-pill">
-            <span class="desk-icon">🔮</span>
-            <span class="desk-name">DESK-FUTURE-27</span>
-            <span class="desk-status">RESERVED_BETA</span>
-          </div>
-          <div class="future-desk-pill">
-            <span class="desk-icon">🔮</span>
-            <span class="desk-name">DESK-FUTURE-28</span>
-            <span class="desk-status">RESERVED_GAMMA</span>
-          </div>
-        </div>
-        <div class="expansion-note font-mono text-muted">
-          💡 Modular workstation pods provisioned for future subagents up to 40 total capacity.
-        </div>
-      </div>
-    </section>
-
-    <!-- 13. HQ Wall & Brand Decor Gallery (Decorative Only) -->
-    <section class="workstation-card" id="facility-wall-decor">
-      <div class="card-header">
-        <div class="station-identity">
-          <span class="station-icon">🖼️</span>
-          <div>
-            <h2 class="station-title">WALL DECOR & BRAND MOTIFS</h2>
-            <span class="station-role">Decorative Posters • No Technical Integration Inferred</span>
-          </div>
-        </div>
-        <span class="badge badge-curator">DECORATIVE_ONLY</span>
-      </div>
-
-      <div class="card-body">
-        <div class="brand-motifs-container">
-          <div class="brand-poster" title="Decorative Silicon Motif">🍎 Apple</div>
-          <div class="brand-poster" title="Decorative Model Architecture Motif">⚡ OpenAI</div>
-          <div class="brand-poster" title="Decorative Workspace & Gemini Motif">🌐 Google</div>
-          <div class="brand-poster" title="Decorative Settlement Motif">₿ Bitcoin</div>
-          <div class="brand-poster" title="Decorative Protocol Motif">🟣 $ODI</div>
-          <div class="brand-poster" title="Decorative Stellar Fast Settlement Motif">🚀 $XLM (Stellar)</div>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- Live Operations Status Footer -->
-  <footer class="studio-footer">
-    <div class="footer-item">
-      <span class="label">ZERO-COST POLICY:</span>
-      <span class="val highlight">0.00 EUR (ENFORCED)</span>
     </div>
-    <div class="footer-item">
-      <span class="label">THOUGHT CURATOR:</span>
-      <span class="val highlight">UNKNOWN (AWAITING LOCAL STATE)</span>
-    </div>
-    <div class="footer-item">
-      <span class="label">UPDATE STEWARD:</span>
-      <span class="val highlight" id="footer-steward-status">UNKNOWN</span>
-    </div>
-    <div class="footer-item">
-      <span class="label">AI ACADEMY:</span>
-      <span class="val highlight" id="footer-academy-status">UNKNOWN</span>
-    </div>
-    <div class="footer-item">
-      <span class="label">LAST EVENT POLL:</span>
-      <span class="val font-mono" id="last-poll-time">--:--:--</span>
-    </div>
-  </footer>
+  </section>
 
+  <!-- Script Import -->
   <script type="module" src="studio.js"></script>
 </body>
 </html>

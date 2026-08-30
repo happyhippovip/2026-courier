@@ -305,6 +305,11 @@ class BodyguardPoolManager:
                 return standby_state
         raise ValueError(f"Unknown bodyguard callsign: {callsign}")
 
+    def release_bodyguard(self, callsign: str) -> dict[str, Any]:
+        """Explicitly reset a bodyguard back to STANDBY state."""
+        return self.complete_task(callsign)
+
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Manage Eight Bodyguards reserve pool.")
