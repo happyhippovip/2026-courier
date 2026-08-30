@@ -1,9 +1,9 @@
 {
   "schema_version": "2.0",
-  "updated_at": "2026-08-30T05:10:00Z",
+  "updated_at": "2026-08-30T11:58:00Z",
   "tools": {
     "ffmpeg_binary_path": "/usr/local/bin/ffmpeg",
-    "godot_binary_path": null
+    "godot_binary_path": "/Users/user/Desktop/Godot.app/Contents/MacOS/Godot"
   },
   "project_bindings": {
     "FruitKI": {
