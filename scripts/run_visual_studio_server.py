@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Visual Multi-Agent Operations Studio Server for 2026 Courier.
+"""Autonomous Chief Operations Cockpit Server for 2026 Courier.
 
 Serves the Studio Web UI and provides real-time state aggregation over the Courier Event Bus:
-- /api/state: Aggregates agent visual states, event bus queues, and active locks.
+- /api/state: Aggregates Chief, Antigravity, and Codex visual states, queues, and locks.
+- /api/submit-idea: Ingests human ideas/goals and routes them through the Chief Commander.
 - /api/trigger-workflow: Triggers a demonstration multi-round autonomous loop.
 """
 
@@ -30,9 +31,9 @@ if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
 try:
-    from run_autonomous_loop import AutonomousLevel6Loop
+    from run_chief_commander import ChiefCommander
 except ImportError:
-    AutonomousLevel6Loop = None
+    from scripts.run_chief_commander import ChiefCommander
 
 
 def load_json_safe(path: Path) -> dict:
@@ -55,7 +56,9 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             super().do_GET()
 
     def do_POST(self):
-        if self.path == "/api/trigger-workflow":
+        if self.path == "/api/submit-idea":
+            self.handle_submit_idea()
+        elif self.path == "/api/trigger-workflow":
             self.handle_trigger_workflow()
         else:
             self.send_error(404, "Endpoint not found")
@@ -111,32 +114,40 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(json.dumps(response_data).encode("utf-8"))
 
+    def handle_submit_idea(self):
+        content_len = int(self.headers.get("Content-Length", 0))
+        post_body = self.rfile.read(content_len).decode("utf-8")
+        try:
+            req_data = json.loads(post_body)
+            idea = req_data.get("idea", "").strip()
+            idea_type = req_data.get("type", "IDEA")
+
+            if not idea:
+                self.send_error(400, "Empty idea provided")
+                return
+
+            def run_async_chief():
+                chief = ChiefCommander(repo_dir=COURIER_DIR)
+                chief.execute_human_idea(idea, idea_type)
+
+            threading.Thread(target=run_async_chief, daemon=True).start()
+
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                "status": "INGESTED",
+                "message": f"Human {idea_type} received by Chief Commander and workflow dispatched.",
+                "idea": idea,
+            }).encode("utf-8"))
+
+        except Exception as exc:
+            self.send_error(500, f"Failed to ingest idea: {exc}")
+
     def handle_trigger_workflow(self):
         def run_async():
-            if AutonomousLevel6Loop:
-                engine = AutonomousLevel6Loop(repo_dir=COURIER_DIR, max_iterations=3)
-                wf_id = f"WF-STUDIO-DEMO-{uuid.uuid4().hex[:4]}"
-                plan = [
-                    {
-                        "task_id": f"{wf_id}-STEP-1-CODEX",
-                        "target_agent": "codex",
-                        "instruction": "Round 1: Codex checks configuration and schema validity.",
-                        "allowed_scope": ["config/local_tools.json"],
-                    },
-                    {
-                        "task_id": f"{wf_id}-STEP-2-ANTIGRAVITY",
-                        "target_agent": "antigravity",
-                        "instruction": "Round 2: Antigravity reviews media channels and render pipelines.",
-                        "allowed_scope": ["config/social_channels.json"],
-                    },
-                    {
-                        "task_id": f"{wf_id}-STEP-3-CODEX",
-                        "target_agent": "codex",
-                        "instruction": "Round 3: Codex verifies final policy adherence.",
-                        "allowed_scope": ["config/teamwork_policy.json"],
-                    },
-                ]
-                engine.run_multi_round_workflow(wf_id, plan)
+            chief = ChiefCommander(repo_dir=COURIER_DIR)
+            chief.execute_human_idea("Demo-Lauf: Optimiere Video-Pipeline und prüfe Channel-Konfigurationen", "GOAL")
 
         threading.Thread(target=run_async, daemon=True).start()
 
@@ -148,10 +159,9 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
 
 def run_server(port: int = 8088):
     server_address = ("", port)
-    # Enable address reuse to prevent port binding conflicts
     socketserver.TCPServer.allow_reuse_address = True
     with socketserver.TCPServer(server_address, StudioHTTPRequestHandler) as httpd:
-        print(f"=== VISUAL MULTI-AGENT OPERATIONS STUDIO RUNNING ===")
+        print(f"=== AUTONOMOUS CHIEF OPERATIONS COCKPIT RUNNING ===")
         print(f"Serving at: http://localhost:{port}")
         print(f"Studio Root: {STUDIO_DIR}")
         print(f"Courier Bus: {EVENTS_DIR}")
@@ -163,7 +173,7 @@ def run_server(port: int = 8088):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Run Visual Multi-Agent Operations Studio Server")
+    parser = argparse.ArgumentParser(description="Run Autonomous Chief Operations Cockpit Server")
     parser.add_argument("--port", type=int, default=8088, help="Port to serve UI (default: 8088)")
     args = parser.parse_args()
     run_server(args.port)

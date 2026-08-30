@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>2026 Courier // Visual Multi-Agent Operations Studio</title>
+  <title>2026 Courier // Autonomous Chief Operations Cockpit</title>
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,12 +15,12 @@
     <div class="header-left">
       <div class="logo-badge">
         <span class="logo-pulse"></span>
-        <span class="logo-title">COURIER // OPERATIONS STUDIO</span>
+        <span class="logo-title">COURIER // CHIEF OPERATIONS COCKPIT</span>
       </div>
       <div class="system-status">
         <span class="status-indicator online"></span>
         <span class="status-text" id="server-status">LIVE BUS CONNECTED</span>
-        <span class="commit-badge" id="courier-commit">HEAD: 5ec46f6</span>
+        <span class="commit-badge" id="courier-commit">HEAD: 34cffc7</span>
       </div>
     </div>
 
@@ -32,11 +32,31 @@
       <button id="btn-recording-mode" class="btn-control" title="Toggle Clean Recording Mode">
         <span class="record-dot"></span> RECORD MODE
       </button>
-      <button id="btn-trigger-demo" class="btn-action">
-        <span class="play-icon">▶</span> RUN MULTI-AGENT LOOP
-      </button>
     </div>
   </header>
+
+  <!-- Human Idea & Strategic Directive Inbox -->
+  <section class="human-inbox-section">
+    <div class="inbox-container">
+      <div class="inbox-header">
+        <span class="inbox-tag">💡 HUMAN IDEA & STRATEGY INBOX</span>
+        <span class="inbox-sub">Enter goal or strategic thought — Chief automatically plans, routes & executes</span>
+      </div>
+      <div class="inbox-form">
+        <div class="input-wrapper">
+          <input type="text" id="human-idea-input" class="idea-input" placeholder="e.g. Prüfe Render-Pipeline für neue Strawberry Shorts & verifiziere Tool-Konfiguration..." />
+          <div class="preset-pills">
+            <button class="preset-btn" data-idea="Optimiere Godot 3D Video-Render Pipeline und prüfe Channel-Konfigurationen">🎬 3D Shorts Pipeline</button>
+            <button class="preset-btn" data-idea="Führe technische Code-Prüfung und Syntax-Audit der Courier-Tools durch">🔍 Technical QA Audit</button>
+            <button class="preset-btn" data-idea="Synthetisiere Multi-Agent Teamwork Policies und erstelle Release-Paket">📦 Synthesis & Package</button>
+          </div>
+        </div>
+        <button id="btn-dispatch-idea" class="btn-dispatch">
+          <span class="dispatch-icon">⚡</span> DISPATCH TO CHIEF
+        </button>
+      </div>
+    </div>
+  </section>
 
   <!-- Human Approval Gate Alert Banner (Hidden by default) -->
   <aside id="human-gate-banner" class="gate-banner hidden">
@@ -62,8 +82,8 @@
         <div class="station-identity">
           <span class="station-icon">👑</span>
           <div>
-            <h2 class="station-title">CHIEF ROUTER</h2>
-            <span class="station-role">Review & Decision Engine</span>
+            <h2 class="station-title">CHIEF COMMANDER</h2>
+            <span class="station-role">Strategy & Smart Router</span>
           </div>
         </div>
         <span class="badge badge-chief" id="badge-chief-state">IDLE</span>
@@ -73,7 +93,7 @@
         <div class="metric-row">
           <div class="metric-box">
             <span class="metric-label">Active Workflow</span>
-            <span class="metric-value" id="chief-workflow">-</span>
+            <span class="metric-value font-mono" id="chief-workflow">-</span>
           </div>
           <div class="metric-box">
             <span class="metric-label">Last Decision</span>
@@ -92,9 +112,9 @@
         </div>
 
         <div class="action-feed">
-          <span class="feed-label">CHIEF DIRECTIVE FEED</span>
+          <span class="feed-label">CHIEF DIRECTIVE & ROUTING LOG</span>
           <div class="feed-log" id="chief-feed-log">
-            <div class="log-entry system">[SYSTEM] Awaiting Chief dispatch signals...</div>
+            <div class="log-entry system">[CHIEF] Standby. Submit human idea to initiate autonomous loop.</div>
           </div>
         </div>
       </div>
@@ -140,75 +160,31 @@
             <span class="pill-value" id="bus-lock-status">UNLOCKED</span>
           </div>
           <div class="metric-pill">
-            <span class="pill-label">Correlation ID:</span>
-            <span class="pill-value font-mono" id="bus-corr-id">-</span>
+            <span class="pill-label">Routing Priority:</span>
+            <span class="pill-value text-accent">ANTIGRAVITY (HEAVY) / CODEX (QA)</span>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- 3. Codex Technical Lab -->
-    <section class="workstation-card" id="station-codex">
-      <div class="card-header">
-        <div class="station-identity">
-          <span class="station-icon">💻</span>
-          <div>
-            <h2 class="station-title">CODEX LAB</h2>
-            <span class="station-role">Architecture & Code Verifier</span>
-          </div>
-        </div>
-        <span class="badge badge-worker" id="badge-codex-mode">🟢 REAL CODEX CLI</span>
-      </div>
-
-      <div class="card-body">
-        <div class="metric-row">
-          <div class="metric-box">
-            <span class="metric-label">Execution Backend</span>
-            <span class="metric-value font-mono" id="codex-backend-name">gpt-5.6-sol</span>
-          </div>
-          <div class="metric-box">
-            <span class="metric-label">Status</span>
-            <span class="metric-value" id="codex-state">IDLE</span>
-          </div>
-        </div>
-
-        <div class="task-progress-box">
-          <div class="progress-info">
-            <span id="codex-task-label">Task: IDLE</span>
-            <span id="codex-progress-num">0%</span>
-          </div>
-          <div class="progress-bar-bg">
-            <div class="progress-bar-fill fill-codex" id="codex-progress-bar" style="width: 0%;"></div>
-          </div>
-        </div>
-
-        <div class="action-feed">
-          <span class="feed-label">CODEX TERMINAL LOG</span>
-          <div class="feed-log terminal-font" id="codex-feed-log">
-            <div class="log-entry">[CODEX] Standby for technical audit tasks.</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 4. Antigravity 3D Media Studio -->
+    <!-- 3. Antigravity Primary Heavy Studio -->
     <section class="workstation-card" id="station-antigravity">
       <div class="card-header">
         <div class="station-identity">
           <span class="station-icon">🎨</span>
           <div>
             <h2 class="station-title">ANTIGRAVITY STUDIO</h2>
-            <span class="station-role">3D Godot & Content Pipeline</span>
+            <span class="station-role">Primary Heavy Worker (3D/Media/UI)</span>
           </div>
         </div>
-        <span class="badge badge-worker" id="badge-ag-mode">🟢 ANTIGRAVITY ENGINE</span>
+        <span class="badge badge-worker" id="badge-ag-mode">🟢 PRIMARY ENGINE</span>
       </div>
 
       <div class="card-body">
         <div class="metric-row">
           <div class="metric-box">
-            <span class="metric-label">Renderer Driver</span>
-            <span class="metric-value font-mono">Godot 4.7 (GL3)</span>
+            <span class="metric-label">Specialization</span>
+            <span class="metric-value font-mono">Creative / 3D / Synthesis</span>
           </div>
           <div class="metric-box">
             <span class="metric-label">Status</span>
@@ -227,9 +203,53 @@
         </div>
 
         <div class="action-feed">
-          <span class="feed-label">RENDER & MEDIA LOG</span>
+          <span class="feed-label">ANTIGRAVITY WORKSTREAM LOG</span>
           <div class="feed-log terminal-font" id="ag-feed-log">
-            <div class="log-entry">[AG] Bounded Movie Maker initialized (192 frames @ 24fps).</div>
+            <div class="log-entry">[AG] Primary heavy worker ready.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Codex Technical Lab -->
+    <section class="workstation-card" id="station-codex">
+      <div class="card-header">
+        <div class="station-identity">
+          <span class="station-icon">💻</span>
+          <div>
+            <h2 class="station-title">CODEX LAB</h2>
+            <span class="station-role">Scarce Technical Specialist (Code/QA)</span>
+          </div>
+        </div>
+        <span class="badge badge-worker" id="badge-codex-mode">🟢 REAL CODEX CLI</span>
+      </div>
+
+      <div class="card-body">
+        <div class="metric-row">
+          <div class="metric-box">
+            <span class="metric-label">Quota Guard</span>
+            <span class="metric-value font-mono text-accent">PROTECTED (QA ONLY)</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Status</span>
+            <span class="metric-value" id="codex-state">IDLE</span>
+          </div>
+        </div>
+
+        <div class="task-progress-box">
+          <div class="progress-info">
+            <span id="codex-task-label">Task: IDLE</span>
+            <span id="codex-progress-num">0%</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill fill-codex" id="codex-progress-bar" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <div class="action-feed">
+          <span class="feed-label">CODEX VERIFICATION LOG</span>
+          <div class="feed-log terminal-font" id="codex-feed-log">
+            <div class="log-entry">[CODEX] Standby for independent code/test reviews.</div>
           </div>
         </div>
       </div>
@@ -244,8 +264,8 @@
       <span class="val highlight">0.00 EUR (ENFORCED)</span>
     </div>
     <div class="footer-item">
-      <span class="label">BOUNDED EXECUTION:</span>
-      <span class="val highlight">ACTIVE (MAX_ITERATIONS = 3)</span>
+      <span class="label">AUTONOMOUS ROUTING:</span>
+      <span class="val highlight">ACTIVE</span>
     </div>
     <div class="footer-item">
       <span class="label">LAST EVENT POLL:</span>

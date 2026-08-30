@@ -1,5 +1,5 @@
 /**
- * 2026 Courier // Visual Multi-Agent Operations Studio Frontend Engine
+ * 2026 Courier // Autonomous Chief Operations Cockpit Controller
  */
 
 class OperationsStudio {
@@ -12,11 +12,15 @@ class OperationsStudio {
   }
 
   initElements() {
-    // Buttons & Controls
+    // Controls & Inbox
     this.btn16x9 = document.getElementById('btn-aspect-16-9');
     this.btn9x16 = document.getElementById('btn-aspect-9-16');
     this.btnRecord = document.getElementById('btn-recording-mode');
-    this.btnTrigger = document.getElementById('btn-trigger-demo');
+    this.ideaInput = document.getElementById('human-idea-input');
+    this.btnDispatchIdea = document.getElementById('btn-dispatch-idea');
+    this.presetBtns = document.querySelectorAll('.preset-btn');
+
+    // Human Gate Banner
     this.gateBanner = document.getElementById('human-gate-banner');
     this.gateDesc = document.getElementById('gate-desc');
     this.btnGateApprove = document.getElementById('btn-gate-approve');
@@ -37,16 +41,6 @@ class OperationsStudio {
     this.countProcessed = document.getElementById('count-processed');
     this.countDecisions = document.getElementById('count-decisions');
     this.busLockStatus = document.getElementById('bus-lock-status');
-    this.busCorrId = document.getElementById('bus-corr-id');
-
-    // Codex Elements
-    this.badgeCodexMode = document.getElementById('badge-codex-mode');
-    this.codexBackendName = document.getElementById('codex-backend-name');
-    this.codexState = document.getElementById('codex-state');
-    this.codexTaskLabel = document.getElementById('codex-task-label');
-    this.codexProgressNum = document.getElementById('codex-progress-num');
-    this.codexProgressBar = document.getElementById('codex-progress-bar');
-    this.codexFeedLog = document.getElementById('codex-feed-log');
 
     // Antigravity Elements
     this.badgeAgMode = document.getElementById('badge-ag-mode');
@@ -55,6 +49,14 @@ class OperationsStudio {
     this.agProgressNum = document.getElementById('ag-progress-num');
     this.agProgressBar = document.getElementById('ag-progress-bar');
     this.agFeedLog = document.getElementById('ag-feed-log');
+
+    // Codex Elements
+    this.badgeCodexMode = document.getElementById('badge-codex-mode');
+    this.codexState = document.getElementById('codex-state');
+    this.codexTaskLabel = document.getElementById('codex-task-label');
+    this.codexProgressNum = document.getElementById('codex-progress-num');
+    this.codexProgressBar = document.getElementById('codex-progress-bar');
+    this.codexFeedLog = document.getElementById('codex-feed-log');
 
     // Footer
     this.lastPollTime = document.getElementById('last-poll-time');
@@ -78,21 +80,16 @@ class OperationsStudio {
       document.body.classList.toggle('recording-mode');
     });
 
-    this.btnTrigger.addEventListener('click', async () => {
-      try {
-        this.btnTrigger.disabled = true;
-        this.btnTrigger.textContent = 'RUNNING...';
-        const res = await fetch('/api/trigger-workflow', { method: 'POST' });
-        const data = await res.json();
-        console.log('Workflow triggered:', data);
-      } catch (err) {
-        console.error('Trigger failed:', err);
-      } finally {
-        setTimeout(() => {
-          this.btnTrigger.disabled = false;
-          this.btnTrigger.innerHTML = '<span class="play-icon">▶</span> RUN MULTI-AGENT LOOP';
-        }, 2000);
-      }
+    this.presetBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idea = btn.getAttribute('data-idea');
+        this.ideaInput.value = idea;
+      });
+    });
+
+    this.btnDispatchIdea.addEventListener('click', () => this.submitHumanIdea());
+    this.ideaInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') this.submitHumanIdea();
     });
 
     this.btnGateApprove.addEventListener('click', () => {
@@ -102,6 +99,35 @@ class OperationsStudio {
     this.btnGateReject.addEventListener('click', () => {
       this.gateBanner.classList.add('hidden');
     });
+  }
+
+  async submitHumanIdea() {
+    const idea = this.ideaInput.value.trim();
+    if (!idea) return;
+
+    try {
+      this.btnDispatchIdea.disabled = true;
+      this.btnDispatchIdea.innerHTML = '<span class="dispatch-icon">⏳</span> ROUTING...';
+      
+      this.appendLog(this.chiefFeedLog, `[HUMAN IDEA] ${idea}`);
+
+      const res = await fetch('/api/submit-idea', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idea: idea, type: 'IDEA' }),
+      });
+
+      const data = await res.json();
+      console.log('Idea submitted to Chief:', data);
+      this.ideaInput.value = '';
+    } catch (err) {
+      console.error('Failed to submit idea:', err);
+    } finally {
+      setTimeout(() => {
+        this.btnDispatchIdea.disabled = false;
+        this.btnDispatchIdea.innerHTML = '<span class="dispatch-icon">⚡</span> DISPATCH TO CHIEF';
+      }, 1500);
+    }
   }
 
   startPolling() {
@@ -144,37 +170,30 @@ class OperationsStudio {
     this.countProcessed.textContent = counts.processed || 0;
     this.countDecisions.textContent = counts.decisions || 0;
     this.busLockStatus.textContent = bus.is_locked ? `LOCKED (${bus.active_lock})` : 'UNLOCKED';
-    this.busCorrId.textContent = bus.correlation_id || '-';
 
-    // 2. Update Codex Station
-    const codex = agents['agent-codex-bridge'] || {};
-    this.codexState.textContent = codex.state || 'IDLE';
-    this.codexTaskLabel.textContent = codex.task ? `Task: ${codex.task}` : 'Task: IDLE';
-    const cdxProgress = Math.round((codex.progress || 0) * 100);
-    this.codexProgressNum.textContent = `${cdxProgress}%`;
-    this.codexProgressBar.style.width = `${cdxProgress}%`;
+    // 2. Update Chief Station
+    const chief = agents['agent-chief-commander'] || {};
+    const chiefState = chief.state || (bus.is_locked ? 'COORDINATING' : 'IDLE');
+    this.badgeChiefState.textContent = chiefState;
+    this.chiefWorkflow.textContent = chief.workflow || bus.active_workflow || '-';
+    this.chiefLastDecision.textContent = bus.last_decision || 'ACCEPTED';
+    this.chiefTaskLabel.textContent = chief.task ? `Task: ${chief.task}` : 'Task: Standby';
+    const chiefProgress = Math.round((chief.progress || 0) * 100);
+    this.chiefProgressNum.textContent = `${chiefProgress}%`;
+    this.chiefProgressBar.style.width = `${chiefProgress}%`;
 
-    if (codex.last_action) {
-      this.appendLog(this.codexFeedLog, `[CODEX] ${codex.last_action}`);
+    if (chief.last_action) {
+      this.appendLog(this.chiefFeedLog, `[CHIEF] ${chief.last_action}`);
     }
 
-    const codexCard = document.getElementById('station-codex');
-    if (codex.state === 'RUNNING') {
-      codexCard.classList.add('active-working');
+    const chiefCard = document.getElementById('station-chief');
+    if (chiefState === 'RUNNING' || chiefState === 'COORDINATING') {
+      chiefCard.classList.add('active-working');
     } else {
-      codexCard.classList.remove('active-working');
+      chiefCard.classList.remove('active-working');
     }
 
-    // Worker mode identification
-    if (codex.result && codex.result.agent_source === 'CODEX_CLI_REAL') {
-      this.badgeCodexMode.textContent = '🟢 REAL CODEX CLI';
-      this.badgeCodexMode.style.borderColor = 'var(--accent-green)';
-      this.badgeCodexMode.style.color = 'var(--accent-green)';
-    } else {
-      this.badgeCodexMode.textContent = '🟡 DUAL HYBRID (CLI / CLASS B)';
-    }
-
-    // 3. Update Antigravity Station
+    // 3. Update Antigravity Station (Primary Heavy Worker)
     const ag = agents['agent-antigravity-bridge'] || {};
     this.agState.textContent = ag.state || 'IDLE';
     this.agTaskLabel.textContent = ag.task ? `Task: ${ag.task}` : 'Task: IDLE';
@@ -193,23 +212,29 @@ class OperationsStudio {
       agCard.classList.remove('active-working');
     }
 
-    // 4. Update Chief Station
-    const chiefState = (codex.state === 'RUNNING' || ag.state === 'RUNNING') ? 'COORDINATING' : 'IDLE';
-    this.badgeChiefState.textContent = chiefState;
-    this.chiefWorkflow.textContent = codex.workflow || ag.workflow || bus.active_workflow || '-';
-    this.chiefLastDecision.textContent = bus.last_decision || 'ACCEPTED';
+    // 4. Update Codex Station (Scarce Technical Specialist)
+    const codex = agents['agent-codex-bridge'] || {};
+    this.codexState.textContent = codex.state || 'IDLE';
+    this.codexTaskLabel.textContent = codex.task ? `Task: ${codex.task}` : 'Task: IDLE';
+    const cdxProgress = Math.round((codex.progress || 0) * 100);
+    this.codexProgressNum.textContent = `${cdxProgress}%`;
+    this.codexProgressBar.style.width = `${cdxProgress}%`;
 
-    const chiefCard = document.getElementById('station-chief');
-    if (chiefState === 'COORDINATING') {
-      chiefCard.classList.add('active-working');
-    } else {
-      chiefCard.classList.remove('active-working');
+    if (codex.last_action) {
+      this.appendLog(this.codexFeedLog, `[CODEX] ${codex.last_action}`);
     }
 
-    // 5. Human Gate Alert Banner Check
-    if (codex.state === 'BLOCKED_HUMAN_GATE' || ag.state === 'BLOCKED_HUMAN_GATE' || bus.human_gate) {
+    const codexCard = document.getElementById('station-codex');
+    if (codex.state === 'RUNNING') {
+      codexCard.classList.add('active-working');
+    } else {
+      codexCard.classList.remove('active-working');
+    }
+
+    // 5. Human Gate Alert Banner
+    if (chief.state === 'BLOCKED_HUMAN_GATE' || codex.state === 'BLOCKED_HUMAN_GATE' || ag.state === 'BLOCKED_HUMAN_GATE' || bus.human_gate) {
       this.gateBanner.classList.remove('hidden');
-      this.gateDesc.textContent = `Workflow task paused: ${codex.task || ag.task || 'Publication stage requires human approval'}`;
+      this.gateDesc.textContent = `Workflow task paused: ${codex.task || ag.task || chief.task || 'Explicit human approval required'}`;
     } else {
       this.gateBanner.classList.add('hidden');
     }
