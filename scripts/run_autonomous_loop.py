@@ -103,10 +103,16 @@ class AutonomousLevel6Loop:
         )
         self.codex_hooks = CodexHookRunner(self.codex_state_tracker)
 
-    def acquire_workflow_lock(self, workflow_id: str) -> Path:
-        """Acquires a deterministic, process-aware lock file for the given workflow."""
+    def acquire_workflow_lock(
+        self,
+        workflow_id: str,
+        correlation_id: str | None = None,
+        current_task_id: str | None = None,
+    ) -> Path:
+        """Acquires a deterministic, process-aware lock file persisting real workflow metadata."""
         lock_file = self.locks_dir / f"{workflow_id}.lock"
         pid = os.getpid()
+        now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
         if lock_file.exists():
             try:
@@ -128,8 +134,12 @@ class AutonomousLevel6Loop:
 
         lock_data = {
             "workflow_id": workflow_id,
+            "correlation_id": correlation_id or "UNKNOWN",
+            "current_task_id": current_task_id or "UNKNOWN",
+            "status": "LOCKED",
             "pid": pid,
-            "acquired_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "created_at": now_iso,
+            "updated_at": now_iso,
         }
         save_json(lock_file, lock_data)
         return lock_file
@@ -143,15 +153,24 @@ class AutonomousLevel6Loop:
             except OSError:
                 pass
 
-    def check_human_approval(self, workflow_id: str, task_id: str) -> dict | None:
-        """Checks events/approvals/ for an explicit human gate approval or rejection event."""
+    def check_human_approval(
+        self,
+        workflow_id: str,
+        correlation_id: str,
+        task_id: str | None = None,
+    ) -> dict | None:
+        """Checks events/approvals/ for an explicit human gate approval or rejection event.
+        
+        Strict validation: Both workflow_id AND correlation_id MUST match to prevent cross-workflow approvals.
+        """
         approvals_dir = self.repo_dir / "events/approvals"
         if not approvals_dir.exists():
             return None
         for appr_file in sorted(approvals_dir.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True):
             try:
                 data = load_json(appr_file)
-                if data.get("workflow_id") == workflow_id or data.get("task_id") == task_id:
+                # Strict matching on workflow_id and correlation_id
+                if data.get("workflow_id") == workflow_id and data.get("correlation_id") == correlation_id:
                     return data
             except Exception:
                 pass
@@ -166,8 +185,6 @@ class AutonomousLevel6Loop:
         round_index: int,
         workflow_plan: list[dict] | None = None,
     ) -> dict:
-        """Evaluates Chief Review for the result and determines next workflow action."""
-        decisions_dir = self.repo_dir / "events/chief-decisions"
         """Acts as Chief Review Router, evaluating worker output and generating a ChiefDecision event."""
         now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
         decision_file = self.repo_dir / f"events/chief-decisions/{task_id}-chief-decision.json"
@@ -177,15 +194,16 @@ class AutonomousLevel6Loop:
         verdict = payload.get("verdict", "FAIL")
 
         # 1. Check for Human Approval Gate Requirement
-        if payload.get("requires_human_approval") or payload.get("human_gate_required") or verdict == "HUMAN_GATE":
-            # Check if an approval event was already persisted
-            approval_event = self.check_human_approval(workflow_id, task_id)
+        if payload.get("requires_human_approval") or payload.get("human_gate_required") or verdict in ["HUMAN_GATE", "HUMAN_APPROVAL_REQUIRED"]:
+            # Check if an approval event was already persisted for this exact workflow and correlation
+            approval_event = self.check_human_approval(workflow_id, correlation_id, task_id)
             if approval_event:
-                if approval_event.get("action") == "APPROVE":
-                    print(f"[CHIEF REVIEW] Human approval event consumed for {workflow_id}: APPROVED by {approval_event.get('operator', 'HUMAN')}")
+                appr_action = approval_event.get("decision") or approval_event.get("action", "")
+                if appr_action == "APPROVE":
+                    print(f"[CHIEF REVIEW] Validated Human Approval consumed for {workflow_id} (corr: {correlation_id}): APPROVED by {approval_event.get('operator', 'HUMAN')}")
                     verdict = "ACCEPTED"
-                elif approval_event.get("action") == "REJECT":
-                    print(f"[CHIEF REVIEW] Human approval event consumed for {workflow_id}: REJECTED by {approval_event.get('operator', 'HUMAN')}")
+                elif appr_action == "REJECT":
+                    print(f"[CHIEF REVIEW] Validated Human Rejection consumed for {workflow_id} (corr: {correlation_id}): REJECTED by {approval_event.get('operator', 'HUMAN')}")
                     decision = {
                         "schema_version": "2.0",
                         "decision_id": f"dec-{uuid.uuid4().hex[:10]}",
@@ -447,6 +465,21 @@ class AutonomousLevel6Loop:
                     )
                     break
 
+                elif action == "STOP_ON_HUMAN_REJECTION":
+                    status = "REJECTED_BY_HUMAN"
+                    stop_reason = "HUMAN_OPERATOR_REJECTED"
+                    active_tracker.update_state(
+                        state="REJECTED",
+                        task=task_id,
+                        progress=float(iteration + 1) / float(len(workflow_plan)),
+                        workflow=workflow_id,
+                        last_action=f"Workflow explicitly rejected by human operator: {decision.get('reason')}",
+                        next_action=None,
+                        blocked=True,
+                        human_gate=None,
+                    )
+                    break
+
                 elif action == "STOP_ON_FAILURE":
                     status = "FAILED"
                     stop_reason = "EXECUTION_FAILURE"
@@ -503,6 +536,53 @@ class AutonomousLevel6Loop:
             "rounds_completed": len(history),
             "history": history,
         }
+
+    def resume_workflow(
+        self,
+        workflow_id: str,
+        correlation_id: str,
+        workflow_plan: list[dict],
+        from_round_index: int = 1,
+        try_real_codex: bool = False,
+    ) -> dict:
+        """Resumes a paused workflow starting from from_round_index after validating matching human approval."""
+        approval = self.check_human_approval(workflow_id, correlation_id)
+        if not approval:
+            return {
+                "workflow_id": workflow_id,
+                "correlation_id": correlation_id,
+                "status": "BLOCKED_HUMAN_GATE",
+                "stop_reason": "NO_MATCHING_APPROVAL_FOUND",
+                "history": [],
+            }
+
+        appr_action = approval.get("decision") or approval.get("action", "")
+        if appr_action == "REJECT":
+            return {
+                "workflow_id": workflow_id,
+                "correlation_id": correlation_id,
+                "status": "REJECTED_BY_HUMAN",
+                "stop_reason": "HUMAN_OPERATOR_REJECTED",
+                "history": [],
+            }
+
+        remaining_plan = workflow_plan[from_round_index:]
+        if not remaining_plan:
+            return {
+                "workflow_id": workflow_id,
+                "correlation_id": correlation_id,
+                "status": "COMPLETED",
+                "stop_reason": "NO_REMAINING_STEPS",
+                "history": [],
+            }
+
+        print(f"\n[RESUME] Resuming workflow {workflow_id} from Step {from_round_index + 1} ({len(remaining_plan)} steps remaining)...")
+        return self.run_multi_round_workflow(
+            workflow_id=workflow_id,
+            workflow_plan=remaining_plan,
+            correlation_id=correlation_id,
+            try_real_codex=try_real_codex,
+        )
 
 
 def main() -> int:

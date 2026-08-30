@@ -85,16 +85,9 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             for state_file in states_dir.glob("*.json"):
                 data = load_json_safe(state_file)
                 if data and "id" in data:
-                    # Provide truth-grounded execution_class if missing
+                    # Ground execution_class strictly in evidence
                     if "execution_class" not in data:
-                        if data["id"] == "agent-codex-bridge":
-                            data["execution_class"] = "DETERMINISTIC_CODEX"
-                        elif data["id"] == "agent-antigravity-bridge":
-                            data["execution_class"] = "DETERMINISTIC_ANTIGRAVITY"
-                        elif data["id"] == "agent-thought-curator":
-                            data["execution_class"] = "DETERMINISTIC_CURATOR"
-                        elif data["id"] == "agent-chief-commander":
-                            data["execution_class"] = "AUTONOMOUS_CHIEF"
+                        data["execution_class"] = data.get("result_execution_class", "UNKNOWN")
                     agents_data[data["id"]] = data
 
         dispatch_dir = EVENTS_DIR / "dispatch"
@@ -122,13 +115,12 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 last_dec_data = load_json_safe(dec_files[0])
                 last_decision = last_dec_data.get("verdict", "NO_DECISION")
 
-        # Derive Correlation ID Truth (No Synthetic Random Generation)
-        derived_correlation_id = "NO_ACTIVE_WORKFLOW"
+        # Derive Correlation ID Truth (No Synthetic Random Generation, No Workflow Name Derivations)
+        derived_correlation_id = "UNKNOWN"
         if is_locked and active_lock_name:
             lock_data = load_json_safe(active_locks[0])
-            derived_correlation_id = lock_data.get("correlation_id", f"corr-{active_lock_name}")
+            derived_correlation_id = lock_data.get("correlation_id", "UNKNOWN")
         else:
-            # Check latest dispatch or processed event
             recent_files = []
             if dispatch_dir.exists():
                 recent_files.extend(dispatch_dir.glob("*.json"))
@@ -137,7 +129,7 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             if recent_files:
                 sorted_events = sorted(recent_files, key=lambda p: p.stat().st_mtime, reverse=True)
                 latest_evt = load_json_safe(sorted_events[0])
-                derived_correlation_id = latest_evt.get("correlation_id", "NO_ACTIVE_WORKFLOW")
+                derived_correlation_id = latest_evt.get("correlation_id", "UNKNOWN")
 
         # Check if Human Gate is pending
         human_gate_active = False
@@ -218,6 +210,7 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "schema_version": "2.0",
                 "approval_id": approval_id,
                 "action": action,
+                "decision": action,
                 "workflow_id": workflow_id,
                 "task_id": task_id,
                 "correlation_id": correlation_id,
