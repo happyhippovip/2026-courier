@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Agent Command Center — Codex + Antigravity + Courier</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Global Top Bar -->
+  <header class="top-nav">
+    <div class="brand-section">
+      <div class="logo-pulse"></div>
+      <div class="brand-title">
+        <h1>AI AGENT COMMAND CENTER</h1>
+        <span class="sub-brand">ChatGPT/Codex · Google Antigravity · GitHub Courier v2.0</span>
+      </div>
+    </div>
+
+    <div class="system-status-pills">
+      <div class="status-pill real-pill" title="Verified Courier protocol and Memory Pipeline">
+        <span class="indicator live"></span>
+        <span class="pill-label">REAL AUTOMATION</span>
+        <span class="pill-val">ONLINE</span>
+      </div>
+      <div class="status-pill mem-pill">
+        <span class="pill-label">MEMORY HEAD</span>
+        <span class="pill-val code-font" id="memory-commit-pill">89cece2</span>
+      </div>
+      <div class="status-pill cost-pill">
+        <span class="pill-label">COST POLICY</span>
+        <span class="pill-val">0.00 EUR (ZERO_COST)</span>
+      </div>
+      <div class="status-pill gate-pill">
+        <span class="pill-label">HUMAN GATE</span>
+        <span class="pill-val">ACTIVE (LOCKED)</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Grid Dashboard -->
+  <main class="dashboard-grid">
+    
+    <!-- LEFT COLUMN: Commander HUD & Workflow -->
+    <section class="grid-column col-left">
+      
+      <!-- 1. Chief Commander HUD -->
+      <div class="card glass-card commander-hud">
+        <div class="card-header">
+          <div class="header-icon">👑</div>
+          <div class="header-text">
+            <h2>CHIEF COMMANDER</h2>
+            <span class="meta-tag">Strategic Orchestrator (ChatGPT/Codex)</span>
+          </div>
+          <span class="badge verified-badge">VERIFIED_ROLE</span>
+        </div>
+
+        <div class="commander-body">
+          <div class="directive-box">
+            <div class="directive-label">CURRENT ACTIVE DIRECTIVE</div>
+            <div class="directive-content" id="active-directive">
+              "Establish autonomous Agent Command Center MVP with verified Courier relay and demonstrable vertical 3D short-form pipeline."
+            </div>
+            <div class="directive-meta">
+              <span>Origin: Chief Commander</span>
+              <span>Scope: happyhippovip/2026-courier</span>
+            </div>
+          </div>
+
+          <div class="hud-stats-grid">
+            <div class="hud-stat-box">
+              <span class="stat-num" id="total-agents-count">17</span>
+              <span class="stat-title">Registered Roles</span>
+            </div>
+            <div class="hud-stat-box">
+              <span class="stat-num" id="active-agents-count">6</span>
+              <span class="stat-title">Active Guards/Workers</span>
+            </div>
+            <div class="hud-stat-box">
+              <span class="stat-num text-success">100%</span>
+              <span class="stat-title">E2E Cycle Health</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Live Interactive Workflow Visualizer -->
+      <div class="card glass-card workflow-card">
+        <div class="card-header">
+          <div class="header-icon">⚡</div>
+          <div class="header-text">
+            <h2>LIVE RELAY WORKFLOW</h2>
+            <span class="meta-tag">Chief ↔ Courier ↔ Antigravity Pipeline</span>
+          </div>
+          <span class="badge live-badge">PIPELINE 089/090</span>
+        </div>
+
+        <div class="workflow-diagram">
+          <div class="flow-node active-node" id="node-chief" data-step="1">
+            <div class="node-icon">🧠</div>
+            <div class="node-name">Chief</div>
+            <div class="node-sub">COMMAND</div>
+            <span class="node-badge real">REAL</span>
+          </div>
+
+          <div class="flow-connector" id="conn-1"></div>
+
+          <div class="flow-node" id="node-courier-in" data-step="2">
+            <div class="node-icon">📦</div>
+            <div class="node-name">Courier</div>
+            <div class="node-sub">Protocol v2.0</div>
+            <span class="node-badge real">REAL</span>
+          </div>
+
+          <div class="flow-connector" id="conn-2"></div>
+
+          <div class="flow-node" id="node-dispatcher" data-step="3">
+            <div class="node-icon">🎯</div>
+            <div class="node-name">Dispatcher</div>
+            <div class="node-sub">Contract Hardening</div>
+            <span class="node-badge real">REAL</span>
+          </div>
+
+          <div class="flow-connector" id="conn-3"></div>
+
+          <div class="flow-node" id="node-worker" data-step="4">
+            <div class="node-icon">🤖</div>
+            <div class="node-name">Worker</div>
+            <div class="node-sub">Antigravity</div>
+            <span class="node-badge real">REAL</span>
+          </div>
+
+          <div class="flow-connector" id="conn-4"></div>
+
+          <div class="flow-node" id="node-review" data-step="5">
+            <div class="node-icon">🛡️</div>
+            <div class="node-name">088 Policy</div>
+            <div class="node-sub">Auto-Approve / Gate</div>
+            <span class="node-badge real">REAL</span>
+          </div>
+
+          <div class="flow-connector" id="conn-5"></div>
+
+          <div class="flow-node" id="node-memory" data-step="6">
+            <div class="node-icon">💾</div>
+            <div class="node-name">Memory Write</div>
+            <div class="node-sub">087 Handler</div>
+            <span class="node-badge real">REAL</span>
+          </div>
+        </div>
+
+        <div class="workflow-caption">
+          <div class="caption-item"><span class="badge real-mini">REAL</span> Deterministic transport & 087/088 policy gates verified on GitHub main.</div>
+          <div class="caption-item"><span class="badge demo-mini">DEMO</span> Video rendering and creative generation run in demo simulation mode.</div>
+        </div>
+      </div>
+
+      <!-- 3. Human Gate & Safety Console -->
+      <div class="card glass-card safety-card">
+        <div class="card-header">
+          <div class="header-icon">🔒</div>
+          <div class="header-text">
+            <h2>HUMAN GATES & SAFETY BOUNDARIES</h2>
+            <span class="meta-tag">Strictly Enforced Personal Control Gates</span>
+          </div>
+          <span class="badge gate-badge">ENFORCED</span>
+        </div>
+
+        <div class="gates-grid">
+          <div class="gate-item locked">
+            <div class="gate-status-icon">⛔</div>
+            <div class="gate-info">
+              <span class="gate-title">Public Social Upload</span>
+              <span class="gate-desc">YouTube / TikTok live publishing requires explicit content approval</span>
+            </div>
+            <span class="gate-tag">LOCKED</span>
+          </div>
+
+          <div class="gate-item locked">
+            <div class="gate-status-icon">⛔</div>
+            <div class="gate-info">
+              <span class="gate-title">Account Login & OAuth</span>
+              <span class="gate-desc">Credentials remain exclusively in user Keychain</span>
+            </div>
+            <span class="gate-tag">LOCKED</span>
+          </div>
+
+          <div class="gate-item locked">
+            <div class="gate-status-icon">⛔</div>
+            <div class="gate-info">
+              <span class="gate-title">Payment & Paid APIs</span>
+              <span class="gate-desc">Hard zero-cost boundary (0.00 EUR). No credit cards or crypto</span>
+            </div>
+            <span class="gate-tag">BLOCKED</span>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- RIGHT COLUMN: Demo Mission & Agent Roster -->
+    <section class="grid-column col-right">
+
+      <!-- 4. Demo Mission: Short-Form Video Pipeline -->
+      <div class="card glass-card mission-card">
+        <div class="card-header">
+          <div class="header-icon">🎬</div>
+          <div class="header-text">
+            <h2>DEMO MISSION: VERTICAL 3D SHORT-FORM VIDEO</h2>
+            <span class="meta-tag">FruitKI Pipeline Simulation · Script → Visual → Render → Review</span>
+          </div>
+          <div class="mission-controls">
+            <button class="btn btn-sm btn-secondary" id="btn-reset-mission">Reset</button>
+            <button class="btn btn-sm btn-primary" id="btn-step-mission">Next Stage ➔</button>
+            <button class="btn btn-sm btn-accent" id="btn-auto-mission">▶ Run Auto Demo</button>
+          </div>
+        </div>
+
+        <div class="mission-stepper">
+          <div class="mission-step current" id="mstep-1" data-step="1">
+            <div class="step-num">1</div>
+            <div class="step-title">IDEA</div>
+            <div class="step-meta">Hook & Concept</div>
+          </div>
+          <div class="step-line" id="mline-1"></div>
+
+          <div class="mission-step" id="mstep-2" data-step="2">
+            <div class="step-num">2</div>
+            <div class="step-title">SCRIPT</div>
+            <div class="step-meta">7.125s Narrative</div>
+          </div>
+          <div class="step-line" id="mline-2"></div>
+
+          <div class="mission-step" id="mstep-3" data-step="3">
+            <div class="step-num">3</div>
+            <div class="step-title">VISUAL</div>
+            <div class="step-meta">Godot 3D Scene</div>
+          </div>
+          <div class="step-line" id="mline-3"></div>
+
+          <div class="mission-step" id="mstep-4" data-step="4">
+            <div class="step-num">4</div>
+            <div class="step-title">VIDEO</div>
+            <div class="step-meta">360×640 H.264</div>
+          </div>
+          <div class="step-line" id="mline-4"></div>
+
+          <div class="mission-step" id="mstep-5" data-step="5">
+            <div class="step-num">5</div>
+            <div class="step-title">REVIEW</div>
+            <div class="step-meta">QC & Safety Audit</div>
+          </div>
+          <div class="step-line" id="mline-5"></div>
+
+          <div class="mission-step" id="mstep-6" data-step="6">
+            <div class="step-num">6</div>
+            <div class="step-title">READY</div>
+            <div class="step-meta">Human Gate Awaiting</div>
+          </div>
+        </div>
+
+        <!-- Dynamic Mission Preview Box -->
+        <div class="mission-preview-container">
+          <div class="preview-media-card">
+            <div class="video-mockup">
+              <div class="video-overlay-tag" id="video-stage-badge">STAGE 1: IDEA SELECTED</div>
+              <div class="video-viewport">
+                <div class="canvas-simulation" id="canvas-sim">
+                  <div class="sim-character">🍓</div>
+                  <div class="sim-text-overlay" id="sim-text">"Strawberry School Mystery"</div>
+                  <div class="sim-stats-overlay">360×640 · 9:16 vertical</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="preview-details">
+            <div class="detail-header">
+              <h3 id="stage-title">Stage 1: Idea Generation & Character Hook</h3>
+              <span class="badge demo-badge">UI SIMULATED</span>
+            </div>
+            <p class="detail-desc" id="stage-desc">
+              Creative Director and Research Analyst selected high-retention character hook based on canonical FruitKI local production baseline.
+            </p>
+
+            <div class="detail-specs">
+              <div class="spec-row">
+                <span class="spec-label">Assigned Agent:</span>
+                <span class="spec-val" id="stage-agent">Creative Director</span>
+              </div>
+              <div class="spec-row">
+                <span class="spec-label">Asset Ref:</span>
+                <span class="spec-val code-font" id="stage-asset">strawberry-school-short-002-final.mp4</span>
+              </div>
+              <div class="spec-row">
+                <span class="spec-label">Target Format:</span>
+                <span class="spec-val">9:16 Vertical Video (360×640 H.264 / AAC)</span>
+              </div>
+              <div class="spec-row">
+                <span class="spec-label">Human Gate Status:</span>
+                <span class="spec-val text-success" id="stage-gate">SAFE (Local zero-cost generation)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 5. Agent Marketplace / Agent Roster -->
+      <div class="card glass-card roster-card">
+        <div class="card-header">
+          <div class="header-icon">👥</div>
+          <div class="header-text">
+            <h2>AGENT ROSTER & MARKETPLACE</h2>
+            <span class="meta-tag">17 Canonical Roles from Project Memory · Hire/Activate Controls (UI Concept)</span>
+          </div>
+          
+          <div class="filter-tabs" id="roster-filters">
+            <button class="filter-btn active" data-filter="all">All (17)</button>
+            <button class="filter-btn" data-filter="orchestration">Orchestration</button>
+            <button class="filter-btn" data-filter="production">Production</button>
+            <button class="filter-btn" data-filter="governance">Security & Governance</button>
+          </div>
+        </div>
+
+        <div class="roster-disclaimer">
+          <span>💡 <strong>Concept UI:</strong> "Activate" toggles simulated worker readiness. Real payments & purchases are strictly blocked.</span>
+        </div>
+
+        <!-- Dynamic Agent Grid -->
+        <div class="agent-cards-grid" id="agent-cards-container">
+          <!-- Populated by app.js -->
+        </div>
+      </div>
+
+      <!-- 6. Activity & Event Log Stream -->
+      <div class="card glass-card log-card">
+        <div class="card-header">
+          <div class="header-icon">📡</div>
+          <div class="header-text">
+            <h2>ACTIVITY & COURIER EVENT STREAM</h2>
+            <span class="meta-tag">Real-time Relay Log & Telemetry</span>
+          </div>
+          <button class="btn btn-xs btn-outline" id="btn-clear-logs">Clear Logs</button>
+        </div>
+
+        <div class="log-stream" id="log-stream-container">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="footer-left">
+      <span>AI Agent Command Center v1.0 (MVP 092) · HappyHippo VIP Ecosystem</span>
+    </div>
+    <div class="footer-right">
+      <span>Source of Truth: <a href="#" class="footer-link">happyhippovip/2026-project-memory</a> (Commit 89cece2)</span>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
