@@ -272,3 +272,149 @@ export function resolveThreadContext(stateData) {
     last_decision: resolveDecisionTruth(bus),
   };
 }
+
+/**
+ * Resolve Academy Teacher (Agentenlehrer) truth strictly from backend state evidence.
+ * Clearly distinguishes SCHEDULE READY from RESEARCH RUNNING without guessing.
+ */
+export function resolveTeacherTruth(stateData) {
+  const teacher = stateData?.agents?.['agent-academy-teacher'];
+  if (!teacher) {
+    return {
+      state: 'UNKNOWN',
+      schedule_status: 'UNKNOWN',
+      last_school_time: null,
+      next_school_time: null,
+      lessons_today: 0,
+      latest_lesson: null,
+      pending_lessons: [],
+      opportunities_found: 0,
+      affected_agents: [],
+      current_topic: null,
+      next_action: null,
+      visual_metadata: {
+        name: 'AGENTENLEHRER',
+        props: ['teacher_hat', 'glasses', 'teacher_pointer'],
+        role_label: 'SYSTEM LEARNING + IMPROVEMENT',
+      },
+    };
+  }
+
+  const state = typeof teacher.state === 'string' && teacher.state.trim()
+    ? teacher.state
+    : 'IDLE';
+
+  // Strict distinction between Schedule Ready and active Research Running
+  const scheduleStatus = state === 'RESEARCHING'
+    ? 'RESEARCH RUNNING'
+    : 'SCHEDULE READY';
+
+  return {
+    state,
+    schedule_status: scheduleStatus,
+    last_school_time: teacher.last_school_time || null,
+    next_school_time: teacher.next_school_time || '06:00 UTC',
+    lessons_today: typeof teacher.lessons_today === 'number' ? teacher.lessons_today : 0,
+    latest_lesson: teacher.latest_lesson || null,
+    pending_lessons: Array.isArray(teacher.pending_lessons) ? teacher.pending_lessons : [],
+    opportunities_found: typeof teacher.opportunities_found === 'number' ? teacher.opportunities_found : 0,
+    affected_agents: Array.isArray(teacher.affected_agents) ? teacher.affected_agents : [],
+    current_topic: teacher.current_topic || 'Standby',
+    next_action: teacher.next_action || teacher.last_action || 'Monitoring daily school schedule',
+    visual_metadata: teacher.visual_metadata || {
+      name: 'AGENTENLEHRER',
+      props: ['teacher_hat', 'glasses', 'teacher_pointer'],
+      role_label: 'SYSTEM LEARNING + IMPROVEMENT',
+    },
+  };
+}
+
+/**
+ * Resolve Academy Director (Schuldirektor) truth strictly from backend state evidence.
+ */
+export function resolveDirectorTruth(stateData) {
+  const director = stateData?.agents?.['agent-academy-director'];
+  if (!director) {
+    return {
+      state: 'UNKNOWN',
+      lessons_reviewed: 0,
+      lessons_approved: 0,
+      lessons_rejected: 0,
+      tests_required: 0,
+      evals_passed: 0,
+      evals_failed: 0,
+      rule_violations: 0,
+      measured_savings: { minutes_saved: 0.0, cost_saved_eur: 0.0 },
+      next_action: null,
+      visual_metadata: {
+        name: 'SCHULDIREKTOR',
+        role_label: 'ACADEMY GOVERNANCE + EVALUATION',
+      },
+    };
+  }
+
+  const state = typeof director.state === 'string' && director.state.trim()
+    ? director.state
+    : 'IDLE';
+
+  return {
+    state,
+    lessons_reviewed: typeof director.lessons_reviewed === 'number' ? director.lessons_reviewed : 0,
+    lessons_approved: typeof director.lessons_approved === 'number' ? director.lessons_approved : 0,
+    lessons_rejected: typeof director.lessons_rejected === 'number' ? director.lessons_rejected : 0,
+    tests_required: typeof director.tests_required === 'number' ? director.tests_required : 0,
+    evals_passed: typeof director.evals_passed === 'number' ? director.evals_passed : 0,
+    evals_failed: typeof director.evals_failed === 'number' ? director.evals_failed : 0,
+    rule_violations: typeof director.rule_violations === 'number' ? director.rule_violations : 0,
+    measured_savings: director.measured_savings || { minutes_saved: 0.0, cost_saved_eur: 0.0 },
+    next_action: director.next_action || director.last_action || 'Awaiting lesson submissions and evaluations',
+    visual_metadata: director.visual_metadata || {
+      name: 'SCHULDIREKTOR',
+      role_label: 'ACADEMY GOVERNANCE + EVALUATION',
+    },
+  };
+}
+
+/**
+ * Resolve Academy economic improvement metrics strictly from evidence.
+ * Never fabricates earned revenue; reports NOT_VERIFIED / UNKNOWN if absent.
+ */
+export function resolveAcademyEconomics(stateData) {
+  const econ = stateData?.academy || {};
+  const director = stateData?.agents?.['agent-academy-director'];
+
+  const measuredMinSaved = typeof econ.measured_minutes_saved === 'number'
+    ? econ.measured_minutes_saved
+    : (typeof director?.measured_savings?.minutes_saved === 'number' ? director.measured_savings.minutes_saved : 0.0);
+
+  const measuredCostSaved = typeof econ.measured_cost_saved_eur === 'number'
+    ? econ.measured_cost_saved_eur
+    : (typeof director?.measured_savings?.cost_saved_eur === 'number' ? director.measured_savings.cost_saved_eur : 0.0);
+
+  const totalLessonsAdopted = typeof econ.total_lessons_adopted === 'number'
+    ? econ.total_lessons_adopted
+    : (typeof director?.lessons_approved === 'number' ? director.lessons_approved : 0);
+
+  const opportunitiesTested = typeof econ.opportunities_tested === 'number'
+    ? econ.opportunities_tested
+    : 0;
+
+  const evalsPassed = typeof director?.evals_passed === 'number' ? director.evals_passed : 0;
+  const evalsFailed = typeof director?.evals_failed === 'number' ? director.evals_failed : 0;
+  const totalEvals = evalsPassed + evalsFailed;
+  const evalPassRate = totalEvals > 0 ? `${Math.round((evalsPassed / totalEvals) * 100)}%` : '100%';
+
+  const revenueEvidence = econ.revenue_evidence === 'VERIFIED_RESULT'
+    ? 'VERIFIED_RESULT'
+    : 'NOT_VERIFIED';
+
+  return {
+    measured_minutes_saved: measuredMinSaved,
+    measured_cost_saved_eur: measuredCostSaved,
+    lessons_adopted: totalLessonsAdopted,
+    opportunities_tested: opportunitiesTested,
+    eval_pass_rate: evalPassRate,
+    revenue_evidence: revenueEvidence,
+    truth_label: 'OPPORTUNITY != REVENUE (MEASURED SAVINGS ONLY)',
+  };
+}

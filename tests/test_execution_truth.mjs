@@ -199,4 +199,102 @@ const studioSource = readFileSync(new URL('../studio/studio.js', import.meta.url
 assert.doesNotMatch(studioSource, /corr-live-|crypto\.randomUUID|Math\.random\(/);
 assert.doesNotMatch(studioSource, /last_decision\s*\|\|\s*['\"]ACCEPTED['\"]/);
 
+// -------------------------------------------------------------
+// 7. AI ACADEMY TRUTH RESOLUTION (TEACHER, DIRECTOR, ECONOMICS)
+// -------------------------------------------------------------
+import {
+  resolveAcademyEconomics,
+  resolveDirectorTruth,
+  resolveTeacherTruth,
+} from '../studio/execution_truth.js';
+
+// 7.1 Missing Academy Evidence => UNKNOWN / 0 values
+const emptyTeacher = resolveTeacherTruth({});
+assert.equal(emptyTeacher.state, 'UNKNOWN');
+assert.equal(emptyTeacher.schedule_status, 'UNKNOWN');
+assert.equal(emptyTeacher.lessons_today, 0);
+assert.deepEqual(emptyTeacher.pending_lessons, []);
+
+const emptyDirector = resolveDirectorTruth({});
+assert.equal(emptyDirector.state, 'UNKNOWN');
+assert.equal(emptyDirector.lessons_reviewed, 0);
+assert.equal(emptyDirector.rule_violations, 0);
+
+// 7.2 Real Teacher Evidence & Schedule vs Research Distinction
+const teacherReadyState = {
+  agents: {
+    'agent-academy-teacher': {
+      id: 'agent-academy-teacher',
+      name: 'Agentenlehrer',
+      state: 'PENDING_REVIEW',
+      current_topic: 'PROMPT_CACHING_OPTIMIZATION',
+      lessons_today: 3,
+      opportunities_found: 1,
+      affected_agents: ['antigravity', 'codex'],
+      pending_lessons: ['lesson-20260830-001'],
+      visual_metadata: {
+        name: 'AGENTENLEHRER',
+        props: ['teacher_hat', 'glasses', 'teacher_pointer'],
+      },
+    },
+  },
+};
+const teacherTruthReady = resolveTeacherTruth(teacherReadyState);
+assert.equal(teacherTruthReady.state, 'PENDING_REVIEW');
+assert.equal(teacherTruthReady.schedule_status, 'SCHEDULE READY');
+assert.equal(teacherTruthReady.lessons_today, 3);
+assert.equal(teacherTruthReady.opportunities_found, 1);
+assert.deepEqual(teacherTruthReady.affected_agents, ['antigravity', 'codex']);
+assert.deepEqual(teacherTruthReady.visual_metadata.props, ['teacher_hat', 'glasses', 'teacher_pointer']);
+
+// Active Research State distinction
+const teacherResearchState = {
+  agents: {
+    'agent-academy-teacher': {
+      state: 'RESEARCHING',
+    },
+  },
+};
+const teacherTruthResearch = resolveTeacherTruth(teacherResearchState);
+assert.equal(teacherTruthResearch.schedule_status, 'RESEARCH RUNNING');
+
+// 7.3 Real Director Evidence & Governance Metrics
+const directorState = {
+  agents: {
+    'agent-academy-director': {
+      id: 'agent-academy-director',
+      name: 'Schuldirektor',
+      state: 'TEST REQUIRED',
+      lessons_reviewed: 4,
+      lessons_approved: 3,
+      lessons_rejected: 1,
+      tests_required: 2,
+      evals_passed: 2,
+      evals_failed: 0,
+      rule_violations: 0,
+      measured_savings: { minutes_saved: 14.5, cost_saved_eur: 0.0 },
+    },
+  },
+  academy: {
+    total_lessons_adopted: 2,
+    measured_minutes_saved: 14.5,
+    measured_cost_saved_eur: 0.0,
+    revenue_evidence: 'NOT_VERIFIED',
+  },
+};
+const directorTruth = resolveDirectorTruth(directorState);
+assert.equal(directorTruth.state, 'TEST REQUIRED');
+assert.equal(directorTruth.lessons_reviewed, 4);
+assert.equal(directorTruth.lessons_approved, 3);
+assert.equal(directorTruth.evals_passed, 2);
+assert.equal(directorTruth.rule_violations, 0);
+
+// 7.4 Academy Economics: Truth Invariant (No Fake Revenue)
+const econTruth = resolveAcademyEconomics(directorState);
+assert.equal(econTruth.measured_minutes_saved, 14.5);
+assert.equal(econTruth.measured_cost_saved_eur, 0.0);
+assert.equal(econTruth.lessons_adopted, 2);
+assert.equal(econTruth.revenue_evidence, 'NOT_VERIFIED');
+assert.equal(econTruth.eval_pass_rate, '100%');
+
 console.log('execution truth tests: PASS (100% SUCCESS)');

@@ -1,0 +1,32 @@
+{
+  "schema_version": "2.0",
+  "lesson_id": "lesson-20260830-05de5f",
+  "discovered_at": "2026-08-30T15:35:05.032988+00:00",
+  "source": "OpenAI Architecture Notes",
+  "source_type": "OFFICIAL_DOCS",
+  "source_date": "2026-08-30",
+  "topic": "PROMPT_COMPRESSION",
+  "title": "AST-Guided Token Compression df215b",
+  "summary": "Compresses long code ASTs into compact structural representations.",
+  "novelty_hash": "9588a3ba47141a8d5f1b2af4285b60bcbe379c95dc9f91e38470e485faff7579",
+  "affected_agents": [
+    "codex"
+  ],
+  "affected_workflows": [
+    "Code Review"
+  ],
+  "current_method": "Raw file parsing",
+  "proposed_method": "AST skeleton pruning",
+  "expected_benefit": "30% token reduction",
+  "expected_time_saving": null,
+  "expected_cost_saving": null,
+  "expected_quality_gain": null,
+  "risk": "LOW",
+  "confidence": 0.95,
+  "evidence": "Local AST pruning benchmarks in scratch/",
+  "lesson_type": "COST_REDUCTION",
+  "status": "EVAL_FAIL",
+  "truth_invariants": "DISCOVERED != ADOPTED | OPPORTUNITY != REVENUE | TESTED != PRODUCTION",
+  "created_at": "2026-08-30T15:35:05.032988+00:00",
+  "evaluation_id": "eval-lesson-20260830-05de5f"
+}

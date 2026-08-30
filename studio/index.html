@@ -74,7 +74,19 @@
     </div>
   </aside>
 
-  <!-- Main Canvas: 5 Agent Workstations & Transit Hub -->
+  <!-- Dual-Loop Architecture Flow Banner: Production Loop + Learning Loop -->
+  <section class="dual-loop-banner" id="dual-loop-banner">
+    <div class="loop-track loop-production">
+      <span class="loop-tag">🔄 PRODUCTION LOOP:</span>
+      <span class="loop-steps">HUMAN ➔ IDEA SYNC ➔ UPDATE STEWARD ➔ CHIEF ➔ ROUTER ➔ WORKERS ➔ COURIER ➔ UPDATE STEWARD ➔ CHIEF REVIEW</span>
+    </div>
+    <div class="loop-track loop-learning">
+      <span class="loop-tag">🎓 LEARNING LOOP (AI ACADEMY):</span>
+      <span class="loop-steps">EXTERNAL UPDATE ➔ AGENTENLEHRER ➔ SCHULDIREKTOR (EVAL GATE) ➔ IDEA SYNC ➔ UPDATE STEWARD (SNAPSHOT) ➔ AGENTS LEARN</span>
+    </div>
+  </section>
+
+  <!-- Main Canvas: Agent Workstations & Academy Classrooms -->
   <main class="studio-grid" id="main-studio-canvas">
 
     <!-- 1. Idea Sync & Thought Curator Station -->
@@ -427,6 +439,157 @@
       </div>
     </section>
 
+    <!-- 7. AI Academy: Agentenlehrer (Teacher) Station -->
+    <section class="workstation-card" id="station-teacher">
+      <div class="card-header">
+        <div class="station-identity">
+          <span class="station-icon">👨‍🏫</span>
+          <div>
+            <div class="station-title-row">
+              <h2 class="station-title">AGENTENLEHRER</h2>
+              <span class="identity-props" title="Teacher Visual Identity">🎓 Hat • 👓 Glasses • 🪄 Pointer</span>
+            </div>
+            <span class="station-role">System Learning & Improvement</span>
+          </div>
+        </div>
+        <span class="badge badge-teacher" id="badge-teacher-state">UNKNOWN</span>
+      </div>
+
+      <div class="card-body">
+        <div class="metric-row">
+          <div class="metric-box">
+            <span class="metric-label">Current Topic</span>
+            <span class="metric-value font-mono text-accent" id="teacher-topic">Standby</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">School Schedule</span>
+            <span class="metric-value font-mono" id="teacher-schedule-status">SCHEDULE READY</span>
+          </div>
+        </div>
+
+        <div class="metric-row">
+          <div class="metric-box">
+            <span class="metric-label">Next School Time</span>
+            <span class="metric-value font-mono text-secondary" id="teacher-next-time">06:00 UTC</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Lessons Today / Opps</span>
+            <span class="metric-value font-mono" id="teacher-lessons-opps">0 / 0</span>
+          </div>
+        </div>
+
+        <!-- Latest Lesson / Proposal Preview -->
+        <div class="context-delta-box">
+          <span class="feed-label">LATEST LESSON PROPOSAL</span>
+          <div class="context-delta-preview font-mono" id="teacher-latest-lesson">
+            📚 Standby for external discoveries & lessons...
+          </div>
+        </div>
+
+        <!-- Affected Agents Container -->
+        <div class="affected-agents-box">
+          <span class="feed-label">AFFECTED AGENTS</span>
+          <div class="affected-pill-container" id="teacher-affected-agents">
+            <span class="affected-pill">NONE</span>
+          </div>
+        </div>
+
+        <!-- Pending Lessons / Deferral Queue -->
+        <div class="affected-agents-box">
+          <span class="feed-label">PENDING LESSONS (SAFE TASK BOUNDARY QUEUE)</span>
+          <div class="affected-pill-container" id="teacher-pending-lessons">
+            <span class="affected-pill">QUEUE EMPTY</span>
+          </div>
+        </div>
+
+        <div class="task-progress-box">
+          <div class="progress-info">
+            <span id="teacher-task-label">Status: IDLE</span>
+            <span id="teacher-progress-num">0%</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill fill-teacher" id="teacher-progress-bar" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <div class="action-feed">
+          <span class="feed-label">AGENTENLEHRER LEARNING FEED</span>
+          <div class="feed-log font-mono" id="teacher-feed-log">
+            <div class="log-entry system">[LEHRER] Standby for daily school window & opportunity discovery.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. AI Academy: Schuldirektor (Director & Evaluation Gate) Station -->
+    <section class="workstation-card" id="station-director">
+      <div class="card-header">
+        <div class="station-identity">
+          <span class="station-icon">🏛️</span>
+          <div>
+            <div class="station-title-row">
+              <h2 class="station-title">SCHULDIREKTOR</h2>
+              <span class="identity-props" title="Director Visual Identity">⚖️ Governance • 📊 Evaluation Gate</span>
+            </div>
+            <span class="station-role">Academy Governance & Evaluation Gate</span>
+          </div>
+        </div>
+        <span class="badge badge-director" id="badge-director-state">UNKNOWN</span>
+      </div>
+
+      <div class="card-body">
+        <div class="metric-row">
+          <div class="metric-box">
+            <span class="metric-label">Lessons Reviewed / Approved</span>
+            <span class="metric-value font-mono text-accent" id="director-reviewed-approved">0 / 0</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Evals Pass / Fail</span>
+            <span class="metric-value font-mono" id="director-evals-ratio">0 / 0</span>
+          </div>
+        </div>
+
+        <div class="metric-row">
+          <div class="metric-box">
+            <span class="metric-label">Rule Violations</span>
+            <span class="metric-value font-mono" id="director-rule-violations">0</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Tests Required</span>
+            <span class="metric-value font-mono text-secondary" id="director-tests-required">0</span>
+          </div>
+        </div>
+
+        <!-- Economic Learning & Measured Savings Panel -->
+        <div class="memory-links-box" id="academy-econ-panel">
+          <span class="feed-label">MEASURED ECONOMIC METRICS (TRUTH GROUNDED)</span>
+          <div class="links-container">
+            <span class="link-chip chip-neutral" id="econ-min-saved">⏱️ Saved: 0.0 min</span>
+            <span class="link-chip chip-neutral" id="econ-cost-saved">💶 Saved: 0.00 EUR</span>
+            <span class="link-chip chip-neutral" id="econ-revenue-truth">💰 Revenue: NOT_VERIFIED</span>
+            <span class="link-chip chip-neutral" id="econ-adopted-count">📜 Adopted: 0</span>
+          </div>
+        </div>
+
+        <div class="task-progress-box">
+          <div class="progress-info">
+            <span id="director-task-label">Status: IDLE</span>
+            <span id="director-progress-num">0%</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill fill-director" id="director-progress-bar" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <div class="action-feed">
+          <span class="feed-label">SCHULDIREKTOR GOVERNANCE LOG</span>
+          <div class="feed-log font-mono" id="director-feed-log">
+            <div class="log-entry system">[DIREKTOR] Standby for lesson reviews, attendance checks & eval gates.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
   </main>
 
   <!-- Live Operations Status Footer -->
@@ -442,6 +605,10 @@
     <div class="footer-item">
       <span class="label">UPDATE STEWARD:</span>
       <span class="val highlight" id="footer-steward-status">ACTIVE (SNAPSHOT V12)</span>
+    </div>
+    <div class="footer-item">
+      <span class="label">AI ACADEMY:</span>
+      <span class="val highlight" id="footer-academy-status">ACTIVE (TEACHER + DIRECTOR)</span>
     </div>
     <div class="footer-item">
       <span class="label">LAST EVENT POLL:</span>

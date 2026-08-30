@@ -1,0 +1,13 @@
+{
+  "schema_version": "2.0",
+  "decision_id": "dec-9165f5df5d",
+  "task_id": "WF-CHIEF-209d6b-STEP-3-SYNTHESIZE",
+  "correlation_id": "corr-demo-b7c0662a",
+  "workflow_id": "WF-CHIEF-209d6b",
+  "round_index": 1,
+  "verdict": "ACCEPTED",
+  "action": "COMPLETE_WORKFLOW",
+  "next_task": null,
+  "reason": "All planned workflow rounds successfully executed.",
+  "created_at": "2026-08-30T15:35:06.005456+00:00"
+}

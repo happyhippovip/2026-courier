@@ -851,3 +851,78 @@ body.recording-mode .studio-header {
 body.recording-mode .preset-pills {
   opacity: 0.5;
 }
+
+/* AI Academy & Dual-Loop Styles */
+.badge-teacher {
+  background: rgba(255, 183, 3, 0.15);
+  color: var(--accent-amber);
+  border-color: rgba(255, 183, 3, 0.4);
+}
+
+.badge-director {
+  background: rgba(157, 78, 221, 0.15);
+  color: var(--accent-purple);
+  border-color: rgba(157, 78, 221, 0.4);
+}
+
+.progress-bar-fill.fill-teacher {
+  background: linear-gradient(90deg, #ffb703, #fb8500);
+}
+
+.progress-bar-fill.fill-director {
+  background: linear-gradient(90deg, #9d4edd, #7209b7);
+}
+
+.station-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.identity-props {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 400;
+}
+
+.dual-loop-banner {
+  background: rgba(10, 14, 23, 0.85);
+  border-bottom: 1px solid var(--border-color);
+  padding: 8px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+}
+
+.loop-track {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-mono);
+}
+
+.loop-production .loop-tag {
+  color: var(--accent-cyan);
+  font-weight: 700;
+  min-width: 170px;
+}
+
+.loop-production .loop-steps {
+  color: var(--text-secondary);
+}
+
+.loop-learning .loop-tag {
+  color: var(--accent-amber);
+  font-weight: 700;
+  min-width: 170px;
+}
+
+.loop-learning .loop-steps {
+  color: var(--text-primary);
+}

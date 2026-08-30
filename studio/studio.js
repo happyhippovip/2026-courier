@@ -3,11 +3,14 @@
  */
 import {
   executionBadgeLabel,
+  resolveAcademyEconomics,
   resolveChiefWaitState,
   resolveCorrelationTruth,
   resolveDecisionTruth,
+  resolveDirectorTruth,
   resolveExecutionTruth,
   resolveStewardTruth,
+  resolveTeacherTruth,
   resolveThreadContext,
 } from './execution_truth.js';
 
@@ -107,8 +110,38 @@ class OperationsStudio {
     this.codexProgressBar = document.getElementById('codex-progress-bar');
     this.codexFeedLog = document.getElementById('codex-feed-log');
 
+    // AI Academy: Agentenlehrer Elements
+    this.badgeTeacherState = document.getElementById('badge-teacher-state');
+    this.teacherTopic = document.getElementById('teacher-topic');
+    this.teacherScheduleStatus = document.getElementById('teacher-schedule-status');
+    this.teacherNextTime = document.getElementById('teacher-next-time');
+    this.teacherLessonsOpps = document.getElementById('teacher-lessons-opps');
+    this.teacherLatestLesson = document.getElementById('teacher-latest-lesson');
+    this.teacherAffectedAgents = document.getElementById('teacher-affected-agents');
+    this.teacherPendingLessons = document.getElementById('teacher-pending-lessons');
+    this.teacherTaskLabel = document.getElementById('teacher-task-label');
+    this.teacherProgressNum = document.getElementById('teacher-progress-num');
+    this.teacherProgressBar = document.getElementById('teacher-progress-bar');
+    this.teacherFeedLog = document.getElementById('teacher-feed-log');
+
+    // AI Academy: Schuldirektor Elements
+    this.badgeDirectorState = document.getElementById('badge-director-state');
+    this.directorReviewedApproved = document.getElementById('director-reviewed-approved');
+    this.directorEvalsRatio = document.getElementById('director-evals-ratio');
+    this.directorRuleViolations = document.getElementById('director-rule-violations');
+    this.directorTestsRequired = document.getElementById('director-tests-required');
+    this.econMinSaved = document.getElementById('econ-min-saved');
+    this.econCostSaved = document.getElementById('econ-cost-saved');
+    this.econRevenueTruth = document.getElementById('econ-revenue-truth');
+    this.econAdoptedCount = document.getElementById('econ-adopted-count');
+    this.directorTaskLabel = document.getElementById('director-task-label');
+    this.directorProgressNum = document.getElementById('director-progress-num');
+    this.directorProgressBar = document.getElementById('director-progress-bar');
+    this.directorFeedLog = document.getElementById('director-feed-log');
+
     // Footer
     this.footerStewardStatus = document.getElementById('footer-steward-status');
+    this.footerAcademyStatus = document.getElementById('footer-academy-status');
     this.lastPollTime = document.getElementById('last-poll-time');
     this.serverStatus = document.getElementById('server-status');
   }
@@ -433,7 +466,140 @@ class OperationsStudio {
       codexCard.classList.remove('active-working');
     }
 
-    // 6. Human Gate Alert Banner
+    // 7. Update AI Academy: Agentenlehrer Station
+    const teacher = resolveTeacherTruth(data);
+    if (this.badgeTeacherState) {
+      this.badgeTeacherState.textContent = teacher.state;
+    }
+    if (this.teacherTopic) {
+      this.teacherTopic.textContent = teacher.current_topic || 'Standby';
+    }
+    if (this.teacherScheduleStatus) {
+      this.teacherScheduleStatus.textContent = teacher.schedule_status;
+      this.teacherScheduleStatus.className = teacher.schedule_status === 'RESEARCH RUNNING'
+        ? 'metric-value font-mono text-accent'
+        : 'metric-value font-mono';
+    }
+    if (this.teacherNextTime) {
+      this.teacherNextTime.textContent = teacher.next_school_time || '06:00 UTC';
+    }
+    if (this.teacherLessonsOpps) {
+      this.teacherLessonsOpps.textContent = `${teacher.lessons_today} / ${teacher.opportunities_found}`;
+    }
+    if (this.teacherLatestLesson) {
+      this.teacherLatestLesson.textContent = teacher.latest_lesson
+        ? `📚 LESSON: ${teacher.latest_lesson}`
+        : '📚 Standby for external discoveries & lessons...';
+    }
+    if (this.teacherAffectedAgents) {
+      if (teacher.affected_agents && teacher.affected_agents.length > 0) {
+        this.teacherAffectedAgents.innerHTML = teacher.affected_agents
+          .map(agent => `<span class="affected-pill font-mono">${agent}</span>`)
+          .join(' ');
+      } else {
+        this.teacherAffectedAgents.innerHTML = '<span class="affected-pill font-mono">NONE</span>';
+      }
+    }
+    if (this.teacherPendingLessons) {
+      if (teacher.pending_lessons && teacher.pending_lessons.length > 0) {
+        this.teacherPendingLessons.innerHTML = teacher.pending_lessons
+          .map(p => `<span class="affected-pill font-mono text-accent">⏳ ${p}</span>`)
+          .join(' ');
+      } else {
+        this.teacherPendingLessons.innerHTML = '<span class="affected-pill font-mono">QUEUE EMPTY</span>';
+      }
+    }
+    if (this.teacherTaskLabel) {
+      this.teacherTaskLabel.textContent = `Status: ${teacher.state}`;
+    }
+    const teacherProgress = teacher.state === 'IDLE' ? 0 : 100;
+    if (this.teacherProgressNum) {
+      this.teacherProgressNum.textContent = `${teacherProgress}%`;
+    }
+    if (this.teacherProgressBar) {
+      this.teacherProgressBar.style.width = `${teacherProgress}%`;
+    }
+    if (teacher.next_action) {
+      this.appendLog(this.teacherFeedLog, `[LEHRER] ${teacher.next_action}`);
+    }
+
+    const teacherCard = document.getElementById('station-teacher');
+    if (teacherCard) {
+      if (teacher.state === 'RESEARCHING' || teacher.state === 'PROPOSING' || teacher.state === 'PENDING_REVIEW') {
+        teacherCard.classList.add('active-working');
+      } else {
+        teacherCard.classList.remove('active-working');
+      }
+    }
+
+    // 8. Update AI Academy: Schuldirektor Station & Economics
+    const director = resolveDirectorTruth(data);
+    const econ = resolveAcademyEconomics(data);
+
+    if (this.badgeDirectorState) {
+      this.badgeDirectorState.textContent = director.state;
+    }
+    if (this.directorReviewedApproved) {
+      this.directorReviewedApproved.textContent = `${director.lessons_reviewed} / ${director.lessons_approved}`;
+    }
+    if (this.directorEvalsRatio) {
+      this.directorEvalsRatio.textContent = `${director.evals_passed} / ${director.evals_failed}`;
+    }
+    if (this.directorRuleViolations) {
+      this.directorRuleViolations.textContent = director.rule_violations;
+      this.directorRuleViolations.className = director.rule_violations > 0
+        ? 'metric-value font-mono text-alert'
+        : 'metric-value font-mono';
+    }
+    if (this.directorTestsRequired) {
+      this.directorTestsRequired.textContent = director.tests_required;
+    }
+
+    // Update Economic Metrics
+    if (this.econMinSaved) {
+      this.econMinSaved.textContent = `⏱️ Saved: ${econ.measured_minutes_saved} min`;
+    }
+    if (this.econCostSaved) {
+      this.econCostSaved.textContent = `💶 Saved: ${econ.measured_cost_saved_eur.toFixed(2)} EUR`;
+    }
+    if (this.econRevenueTruth) {
+      this.econRevenueTruth.textContent = `💰 Revenue: ${econ.revenue_evidence}`;
+    }
+    if (this.econAdoptedCount) {
+      this.econAdoptedCount.textContent = `📜 Adopted: ${econ.lessons_adopted}`;
+    }
+
+    if (this.directorTaskLabel) {
+      this.directorTaskLabel.textContent = `Status: ${director.state}`;
+    }
+    const directorProgress = director.state === 'IDLE' ? 0 : 100;
+    if (this.directorProgressNum) {
+      this.directorProgressNum.textContent = `${directorProgress}%`;
+    }
+    if (this.directorProgressBar) {
+      this.directorProgressBar.style.width = `${directorProgress}%`;
+    }
+    if (director.next_action) {
+      this.appendLog(this.directorFeedLog, `[DIREKTOR] ${director.next_action}`);
+    }
+
+    const directorCard = document.getElementById('station-director');
+    if (directorCard) {
+      if (director.state === 'CHECKING ATTENDANCE' || director.state === 'REVIEWING LESSON' || director.state === 'EVALUATING') {
+        directorCard.classList.add('active-working');
+      } else {
+        directorCard.classList.remove('active-working');
+      }
+    }
+
+    // Update Footer Status
+    if (this.footerAcademyStatus) {
+      this.footerAcademyStatus.textContent = teacher.state !== 'UNKNOWN'
+        ? 'ACTIVE (TEACHER + DIRECTOR)'
+        : 'STANDBY';
+    }
+
+    // 9. Human Gate Alert Banner
     if (curatorState === 'CONFLICT' || curatorState === 'BLOCKED' || chief.state === 'BLOCKED_HUMAN_GATE' || chief.state === 'BLOCKED_POLICY_CONFLICT' || codex.state === 'BLOCKED_HUMAN_GATE' || ag.state === 'BLOCKED_HUMAN_GATE' || bus.human_gate) {
       this.gateBanner.classList.remove('hidden');
       this.gateDesc.textContent = `Workflow task paused: ${curator.last_action || codex.task || ag.task || chief.task || 'Explicit human approval required'}`;

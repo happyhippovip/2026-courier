@@ -1,0 +1,13 @@
+{
+  "schema_version": "2.0",
+  "delivery_id": "deliv-647ab0ab",
+  "lesson_id": "lesson-20260830-a23329",
+  "target_agent": "test-agent-idle",
+  "relevant_summary": "Burns subtitles directly in video memory to eliminate CPU readback.",
+  "reason_for_agent": "Relevant for test-agent-idle workflows: FFMPEG_SUBTITLES",
+  "recommended_change": "Improved automated pattern",
+  "context_version": 29,
+  "safe_from_task_id": null,
+  "status": "DELIVERED_TO_AGENT",
+  "delivered_at": "2026-08-30T15:35:05.080882+00:00"
+}
