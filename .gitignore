@@ -5,6 +5,9 @@ events/dispatch/*.json
 events/proposals/*.json
 events/approvals/*.json
 events/chief-decisions/*.json
+events/night-queue/*.json
+events/morning-reports/*.json
+events/morning-reports/*.md
 
 # Keep directory markers only.
 !events/incoming/.gitkeep
@@ -13,3 +16,5 @@ events/chief-decisions/*.json
 !events/proposals/.gitkeep
 !events/approvals/.gitkeep
 !events/chief-decisions/.gitkeep
+!events/night-queue/.gitkeep
+!events/morning-reports/.gitkeep

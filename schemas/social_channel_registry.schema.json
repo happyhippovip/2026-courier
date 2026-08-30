@@ -1,0 +1,76 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SocialChannelRegistry",
+  "description": "Registry schema for social media channels (YouTube, TikTok) with zero credential storage",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "channels",
+    "updated_at"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "2.0"
+    },
+    "updated_at": {
+      "type": "string"
+    },
+    "channels": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "channel_id",
+          "platform",
+          "channel_label",
+          "automation_status",
+          "content_project",
+          "publishing_policy",
+          "credential_reference_metadata"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "channel_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.-]+$"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "YOUTUBE",
+              "TIKTOK"
+            ]
+          },
+          "channel_label": {
+            "type": "string"
+          },
+          "automation_status": {
+            "type": "string",
+            "enum": [
+              "REGISTERED",
+              "READY_FOR_WORKFLOWS",
+              "HUMAN_GATE_LOCKED",
+              "PAUSED"
+            ]
+          },
+          "content_project": {
+            "type": "string"
+          },
+          "publishing_policy": {
+            "type": "string",
+            "enum": [
+              "REQUIRE_EXPLICIT_HUMAN_APPROVAL",
+              "STAGING_ONLY"
+            ]
+          },
+          "credential_reference_metadata": {
+            "type": "string",
+            "description": "Non-sensitive metadata name referencing external Keychain or environment secret only; no raw tokens allowed."
+          }
+        }
+      }
+    }
+  }
+}
