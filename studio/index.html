@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026 Courier // Visual Multi-Agent Operations Studio</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700;800&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="theme-dark">
+  <!-- Top Navigation & Control Bar -->
+  <header class="studio-header">
+    <div class="header-left">
+      <div class="logo-badge">
+        <span class="logo-pulse"></span>
+        <span class="logo-title">COURIER // OPERATIONS STUDIO</span>
+      </div>
+      <div class="system-status">
+        <span class="status-indicator online"></span>
+        <span class="status-text" id="server-status">LIVE BUS CONNECTED</span>
+        <span class="commit-badge" id="courier-commit">HEAD: 5ec46f6</span>
+      </div>
+    </div>
+
+    <div class="header-controls">
+      <div class="mode-toggle">
+        <button id="btn-aspect-16-9" class="btn-toggle active" title="16:9 Landscape">16:9</button>
+        <button id="btn-aspect-9-16" class="btn-toggle" title="9:16 Vertical Shorts">9:16</button>
+      </div>
+      <button id="btn-recording-mode" class="btn-control" title="Toggle Clean Recording Mode">
+        <span class="record-dot"></span> RECORD MODE
+      </button>
+      <button id="btn-trigger-demo" class="btn-action">
+        <span class="play-icon">▶</span> RUN MULTI-AGENT LOOP
+      </button>
+    </div>
+  </header>
+
+  <!-- Human Approval Gate Alert Banner (Hidden by default) -->
+  <aside id="human-gate-banner" class="gate-banner hidden">
+    <div class="gate-content">
+      <div class="gate-icon">🛡️</div>
+      <div class="gate-info">
+        <div class="gate-title">HUMAN APPROVAL REQUIRED</div>
+        <div class="gate-description" id="gate-desc">A workflow task requires explicit human sign-off before proceeding.</div>
+      </div>
+      <div class="gate-actions">
+        <button id="btn-gate-approve" class="btn-gate approve">APPROVE</button>
+        <button id="btn-gate-reject" class="btn-gate reject">REJECT</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Canvas: 4 Agent Workstations & Transit Hub -->
+  <main class="studio-grid" id="main-studio-canvas">
+    
+    <!-- 1. Chief Command & Review Center -->
+    <section class="workstation-card" id="station-chief">
+      <div class="card-header">
+        <div class="station-identity">
+          <span class="station-icon">👑</span>
+          <div>
+            <h2 class="station-title">CHIEF ROUTER</h2>
+            <span class="station-role">Review & Decision Engine</span>
+          </div>
+        </div>
+        <span class="badge badge-chief" id="badge-chief-state">IDLE</span>
+      </div>
+
+      <div class="card-body">
+        <div class="metric-row">
+          <div class="metric-box">
+            <span class="metric-label">Active Workflow</span>
+            <span class="metric-value" id="chief-workflow">-</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Last Decision</span>
+            <span class="metric-value text-accent" id="chief-last-decision">NONE</span>
+          </div>
+        </div>
+
+        <div class="task-progress-box">
+          <div class="progress-info">
+            <span id="chief-task-label">Current Task: None</span>
+            <span id="chief-progress-num">0%</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="chief-progress-bar" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <div class="action-feed">
+          <span class="feed-label">CHIEF DIRECTIVE FEED</span>
+          <div class="feed-log" id="chief-feed-log">
+            <div class="log-entry system">[SYSTEM] Awaiting Chief dispatch signals...</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Central Courier Transit Bus -->
+    <section class="workstation-card hub-card" id="station-courier">
+      <div class="card-header">
+        <div class="station-identity">
+          <span class="station-icon">⚡</span>
+          <div>
+            <h2 class="station-title">COURIER EVENT BUS</h2>
+            <span class="station-role">Atomic Event Relay & Queue</span>
+          </div>
+        </div>
+        <span class="badge badge-bus" id="badge-bus-state">DISPATCHING</span>
+      </div>
+
+      <div class="card-body">
+        <div class="bus-flow-viz">
+          <div class="bus-node" id="node-dispatch">
+            <span class="node-icon">📦</span>
+            <span class="node-text">DISPATCH</span>
+            <span class="node-count" id="count-dispatch">0</span>
+          </div>
+          <div class="bus-connector"><span class="flow-dot"></span></div>
+          <div class="bus-node" id="node-processed">
+            <span class="node-icon">📥</span>
+            <span class="node-text">RESULT_READY</span>
+            <span class="node-count" id="count-processed">0</span>
+          </div>
+          <div class="bus-connector"><span class="flow-dot"></span></div>
+          <div class="bus-node" id="node-decisions">
+            <span class="node-icon">⚖️</span>
+            <span class="node-text">DECISIONS</span>
+            <span class="node-count" id="count-decisions">0</span>
+          </div>
+        </div>
+
+        <div class="transit-metrics">
+          <div class="metric-pill">
+            <span class="pill-label">Lock Status:</span>
+            <span class="pill-value" id="bus-lock-status">UNLOCKED</span>
+          </div>
+          <div class="metric-pill">
+            <span class="pill-label">Correlation ID:</span>
+            <span class="pill-value font-mono" id="bus-corr-id">-</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Codex Technical Lab -->
+    <section class="workstation-card" id="station-codex">
+      <div class="card-header">
+        <div class="station-identity">
+          <span class="station-icon">💻</span>
+          <div>
+            <h2 class="station-title">CODEX LAB</h2>
+            <span class="station-role">Architecture & Code Verifier</span>
+          </div>
+        </div>
+        <span class="badge badge-worker" id="badge-codex-mode">🟢 REAL CODEX CLI</span>
+      </div>
+
+      <div class="card-body">
+        <div class="metric-row">
+          <div class="metric-box">
+            <span class="metric-label">Execution Backend</span>
+            <span class="metric-value font-mono" id="codex-backend-name">gpt-5.6-sol</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Status</span>
+            <span class="metric-value" id="codex-state">IDLE</span>
+          </div>
+        </div>
+
+        <div class="task-progress-box">
+          <div class="progress-info">
+            <span id="codex-task-label">Task: IDLE</span>
+            <span id="codex-progress-num">0%</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill fill-codex" id="codex-progress-bar" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <div class="action-feed">
+          <span class="feed-label">CODEX TERMINAL LOG</span>
+          <div class="feed-log terminal-font" id="codex-feed-log">
+            <div class="log-entry">[CODEX] Standby for technical audit tasks.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Antigravity 3D Media Studio -->
+    <section class="workstation-card" id="station-antigravity">
+      <div class="card-header">
+        <div class="station-identity">
+          <span class="station-icon">🎨</span>
+          <div>
+            <h2 class="station-title">ANTIGRAVITY STUDIO</h2>
+            <span class="station-role">3D Godot & Content Pipeline</span>
+          </div>
+        </div>
+        <span class="badge badge-worker" id="badge-ag-mode">🟢 ANTIGRAVITY ENGINE</span>
+      </div>
+
+      <div class="card-body">
+        <div class="metric-row">
+          <div class="metric-box">
+            <span class="metric-label">Renderer Driver</span>
+            <span class="metric-value font-mono">Godot 4.7 (GL3)</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Status</span>
+            <span class="metric-value" id="ag-state">IDLE</span>
+          </div>
+        </div>
+
+        <div class="task-progress-box">
+          <div class="progress-info">
+            <span id="ag-task-label">Task: IDLE</span>
+            <span id="ag-progress-num">0%</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill fill-ag" id="ag-progress-bar" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <div class="action-feed">
+          <span class="feed-label">RENDER & MEDIA LOG</span>
+          <div class="feed-log terminal-font" id="ag-feed-log">
+            <div class="log-entry">[AG] Bounded Movie Maker initialized (192 frames @ 24fps).</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Live Operations Status Footer -->
+  <footer class="studio-footer">
+    <div class="footer-item">
+      <span class="label">ZERO-COST POLICY:</span>
+      <span class="val highlight">0.00 EUR (ENFORCED)</span>
+    </div>
+    <div class="footer-item">
+      <span class="label">BOUNDED EXECUTION:</span>
+      <span class="val highlight">ACTIVE (MAX_ITERATIONS = 3)</span>
+    </div>
+    <div class="footer-item">
+      <span class="label">LAST EVENT POLL:</span>
+      <span class="val font-mono" id="last-poll-time">--:--:--</span>
+    </div>
+  </footer>
+
+  <script src="studio.js"></script>
+</body>
+</html>
