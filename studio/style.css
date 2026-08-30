@@ -542,6 +542,48 @@ body.view-9-16 .workstation-card.hub-card {
   background: rgba(255, 51, 102, 0.1);
 }
 
+/* Affected Agents & Workflows Box */
+.affected-agents-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.affected-pill-container {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.affected-pill {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  padding: 3px 8px;
+  border-radius: 20px;
+  border: 1px solid var(--accent-purple);
+  background: rgba(157, 78, 221, 0.1);
+  color: var(--accent-purple);
+}
+
+/* Context Delta Box */
+.context-delta-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.context-delta-preview {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-size: 10px;
+  color: var(--accent-cyan);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* Card Body */
 .card-body {
   display: flex;

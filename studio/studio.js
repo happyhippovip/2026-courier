@@ -34,6 +34,8 @@ class OperationsStudio {
     this.curatorProgressBar = document.getElementById('curator-progress-bar');
     this.curatorFeedLog = document.getElementById('curator-feed-log');
     this.curatorMemoryLinks = document.getElementById('curator-memory-links');
+    this.curatorAffectedAgents = document.getElementById('curator-affected-agents');
+    this.curatorContextDelta = document.getElementById('curator-context-delta');
 
     // Flow Steps
     this.step1 = document.getElementById('step-1');
@@ -215,6 +217,10 @@ class OperationsStudio {
     this.curatorProgressBar.style.width = `${curatorProgress}%`;
 
     this.updateFlowSteps(curatorState);
+
+    if (curator.workflow) {
+      this.curatorContextDelta.textContent = `📦 DELTA [${curator.workflow}]: ${curator.result || curator.last_action || 'Context compiled'}`;
+    }
 
     if (curator.last_action) {
       this.appendLog(this.curatorFeedLog, `[CURATOR] ${curator.last_action}`);
