@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Local Thought Ingestion Envelope",
+  "description": "Local file/event intake only. SLACK is deliberately excluded from this real adapter until separately integrated.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["ingestion_id", "source_type", "source_message_id", "source_timestamp", "received_at", "content_hash", "content", "metadata", "correlation_id", "privacy_class"],
+  "properties": {
+    "ingestion_id": {"type": "string", "minLength": 1},
+    "source_type": {"type": "string", "enum": ["CHAT_EXPORT", "COURIER_EVENT", "WORK_RESULT", "GOOGLE_ANTIGRAVITY_RESULT"]},
+    "source_message_id": {"type": "string", "minLength": 1},
+    "source_timestamp": {"type": "string", "format": "date-time"},
+    "received_at": {"type": "string", "format": "date-time"},
+    "content_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "content": {"type": ["string", "object"]},
+    "metadata": {"type": "object"},
+    "correlation_id": {"type": "string", "minLength": 1},
+    "privacy_class": {"type": "string", "enum": ["PUBLIC", "INTERNAL", "SENSITIVE"]}
+  }
+}

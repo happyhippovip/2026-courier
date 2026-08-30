@@ -8,6 +8,9 @@ events/chief-decisions/*.json
 events/night-queue/*.json
 events/morning-reports/*.json
 events/morning-reports/*.md
+events/thought-incoming/*.json
+events/thought-processed/*.json
+events/thought-rejected/*.json
 
 # Runtime generated content artifacts remain local.
 runtime/content/*
@@ -22,3 +25,6 @@ runtime/content/*
 !events/chief-decisions/.gitkeep
 !events/night-queue/.gitkeep
 !events/morning-reports/.gitkeep
+!events/thought-incoming/.gitkeep
+!events/thought-processed/.gitkeep
+!events/thought-rejected/.gitkeep

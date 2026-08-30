@@ -32,8 +32,8 @@ PROTECTED_STATUS_LABELS = {
     "UNKNOWN", "CONFLICT", "EXTERNAL_STATUS", "POSSIBLY_OUTDATED", "HISTORICAL_DECISION", "USER_INTENT", "IDEA"
 }
 PROPOSAL_STATUS_MAP = {"USER_INTENT": "IDEA", "POSSIBLY_OUTDATED": "UNKNOWN"}
-SENSITIVE_VALUE_PATTERN = re.compile(r"(?i)(ghp_[a-z0-9]{20,}|github_pat_[a-z0-9_]{20,}|sk-[a-z0-9]{20,}|AIza[0-9a-z_-]{30,}|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----)")
-SENSITIVE_FIELD_PATTERN = re.compile(r"(?i)(password|passphrase|secret|token|api[_-]?key|oauth|credential|cookie|session)")
+SENSITIVE_VALUE_PATTERN = re.compile(r"(?i)(ghp_[a-z0-9]{20,}|github_pat_[a-z0-9_]{20,}|sk-[a-z0-9]{20,}|AIza[0-9a-z_-]{30,}|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|\b(?:password|passphrase|secret|token|api[_-]?key|oauth|credential|cookie|session)\b\s*[:=]\s*\S+)")
+SENSITIVE_FIELD_PATTERN = re.compile(r"(?i)(password|passphrase|secret|token|api[_-]?key|oauth|credential|cookie|session|bank|iban|bic|tax|steuer|tin|passport|identity|birth|address)")
 
 
 def utc_now() -> str:
