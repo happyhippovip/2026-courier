@@ -43,9 +43,11 @@ if str(SCRIPTS_DIR) not in sys.path:
 try:
     from run_autonomous_loop import AutonomousLevel6Loop
     from run_antigravity_bridge import AntigravityVisualStateTracker, load_json, save_json
+    from run_thought_curator import ThoughtCurator
 except ImportError:
     from scripts.run_autonomous_loop import AutonomousLevel6Loop
     from scripts.run_antigravity_bridge import AntigravityVisualStateTracker, load_json, save_json
+    from scripts.run_thought_curator import ThoughtCurator
 
 
 class SmartResourceRouter:
@@ -73,10 +75,11 @@ class SmartResourceRouter:
 
 
 class ChiefCommander:
-    """Autonomous Chief Commander that ingests human ideas and orchestrates multi-agent execution."""
+    """Autonomous Chief Commander that ingests human ideas, compares memory, and orchestrates execution."""
 
     def __init__(self, repo_dir: Path = COURIER_DIR):
         self.repo_dir = repo_dir
+        self.curator = ThoughtCurator(repo_dir=repo_dir)
         self.loop_engine = AutonomousLevel6Loop(repo_dir=repo_dir, max_iterations=4)
         self.chief_state_tracker = AntigravityVisualStateTracker(
             agent_id="agent-chief-commander",
@@ -127,16 +130,42 @@ class ChiefCommander:
 
         return workflow_id, plan
 
-    def execute_human_idea(self, idea_text: str, idea_type: str = "IDEA") -> dict:
-        """Processes human input end-to-end through the autonomous Chief loop."""
+    def execute_human_idea(self, idea_text: str, idea_type: str = "IDEA", dry_run: bool = False) -> dict:
+        """Curates human input, verifies against memory, and executes through the autonomous Chief loop."""
+        # 1. Step: Idea Sync & Memory Comparison
+        curation = self.curator.curate_idea(idea_text, idea_type)
+
+        if curation.get("classification") == "CONFLICT":
+            print(f"\n[CHIEF] Blocked on policy conflict: {curation.get('conflicts')}")
+            return {
+                "status": "BLOCKED_POLICY_CONFLICT",
+                "curation": curation,
+                "workflow_plan": [],
+                "history": [],
+            }
+
+        # 2. Step: Formulate Workflow Plan
         workflow_id, plan = self.formulate_workflow_plan(idea_text, idea_type)
         correlation_id = f"corr-chief-{uuid.uuid4().hex[:8]}"
 
         print(f"\n=======================================================")
         print(f"👑 CHIEF COMMANDER: Ingested Human {idea_type}")
         print(f"   Idea: {idea_text}")
+        print(f"   Curation Classification: {curation['classification']}")
         print(f"   Workflow: {workflow_id} ({len(plan)} Planned Steps)")
+        if dry_run:
+            print(f"   [DRY RUN] Routing decision completed without executing production tasks.")
         print(f"=======================================================")
+
+        if dry_run:
+            return {
+                "status": "ROUTED_DRY_RUN",
+                "workflow_id": workflow_id,
+                "correlation_id": correlation_id,
+                "curation": curation,
+                "workflow_plan": plan,
+                "history": [],
+            }
 
         # Update Chief Visual State
         self.chief_state_tracker.update_state(
@@ -144,7 +173,7 @@ class ChiefCommander:
             task=f"Orchestrating {workflow_id}",
             progress=0.0,
             workflow=workflow_id,
-            last_action=f"Ingested human {idea_type.lower()}: {idea_text[:60]}",
+            last_action=f"Ingested human {idea_type.lower()}: {idea_text[:60]} (Curation: {curation['classification']})",
             next_action="Dispatching Round 1 to primary worker",
             blocked=False,
             human_gate=None,

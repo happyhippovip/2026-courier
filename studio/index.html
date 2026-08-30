@@ -20,7 +20,7 @@
       <div class="system-status">
         <span class="status-indicator online"></span>
         <span class="status-text" id="server-status">LIVE BUS CONNECTED</span>
-        <span class="commit-badge" id="courier-commit">HEAD: 34cffc7</span>
+        <span class="commit-badge" id="courier-commit">HEAD: 4f206ae</span>
       </div>
     </div>
 
@@ -40,7 +40,7 @@
     <div class="inbox-container">
       <div class="inbox-header">
         <span class="inbox-tag">💡 HUMAN IDEA & STRATEGY INBOX</span>
-        <span class="inbox-sub">Enter goal or strategic thought — Chief automatically plans, routes & executes</span>
+        <span class="inbox-sub">Enter goal or strategic thought — Thought Curator normalizes & compares with Project Memory</span>
       </div>
       <div class="inbox-form">
         <div class="input-wrapper">
@@ -52,7 +52,7 @@
           </div>
         </div>
         <button id="btn-dispatch-idea" class="btn-dispatch">
-          <span class="dispatch-icon">⚡</span> DISPATCH TO CHIEF
+          <span class="dispatch-icon">⚡</span> DISPATCH TO CURATOR & CHIEF
         </button>
       </div>
     </div>
@@ -73,10 +73,54 @@
     </div>
   </aside>
 
-  <!-- Main Canvas: 4 Agent Workstations & Transit Hub -->
+  <!-- Main Canvas: 5 Agent Workstations & Transit Hub -->
   <main class="studio-grid" id="main-studio-canvas">
+
+    <!-- 1. Idea Sync & Thought Curator Station -->
+    <section class="workstation-card" id="station-curator">
+      <div class="card-header">
+        <div class="station-identity">
+          <span class="station-icon">🧠</span>
+          <div>
+            <h2 class="station-title">IDEA SYNC / CURATOR</h2>
+            <span class="station-role">Memory Ingestion & Conflict Guard</span>
+          </div>
+        </div>
+        <span class="badge badge-curator" id="badge-curator-state">IDLE</span>
+      </div>
+
+      <div class="card-body">
+        <div class="metric-row">
+          <div class="metric-box">
+            <span class="metric-label">Classification</span>
+            <span class="metric-value font-mono text-accent" id="curator-class">-</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Policy Guard</span>
+            <span class="metric-value" id="curator-policy-guard">D-002 / D-004 CHECKED</span>
+          </div>
+        </div>
+
+        <div class="task-progress-box">
+          <div class="progress-info">
+            <span id="curator-task-label">Status: IDLE</span>
+            <span id="curator-progress-num">0%</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill fill-curator" id="curator-progress-bar" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <div class="action-feed">
+          <span class="feed-label">CURATION & MEMORY COMPARISON LOG</span>
+          <div class="feed-log" id="curator-feed-log">
+            <div class="log-entry system">[CURATOR] Standby for human ideas. Memory index active.</div>
+          </div>
+        </div>
+      </div>
+    </section>
     
-    <!-- 1. Chief Command & Review Center -->
+    <!-- 2. Chief Command & Review Center -->
     <section class="workstation-card" id="station-chief">
       <div class="card-header">
         <div class="station-identity">
@@ -120,7 +164,7 @@
       </div>
     </section>
 
-    <!-- 2. Central Courier Transit Bus -->
+    <!-- 3. Central Courier Transit Bus -->
     <section class="workstation-card hub-card" id="station-courier">
       <div class="card-header">
         <div class="station-identity">
@@ -167,7 +211,7 @@
       </div>
     </section>
 
-    <!-- 3. Antigravity Primary Heavy Studio -->
+    <!-- 4. Antigravity Primary Heavy Studio -->
     <section class="workstation-card" id="station-antigravity">
       <div class="card-header">
         <div class="station-identity">
@@ -211,7 +255,7 @@
       </div>
     </section>
 
-    <!-- 4. Codex Technical Lab -->
+    <!-- 5. Codex Technical Lab -->
     <section class="workstation-card" id="station-codex">
       <div class="card-header">
         <div class="station-identity">
@@ -264,8 +308,8 @@
       <span class="val highlight">0.00 EUR (ENFORCED)</span>
     </div>
     <div class="footer-item">
-      <span class="label">AUTONOMOUS ROUTING:</span>
-      <span class="val highlight">ACTIVE</span>
+      <span class="label">THOUGHT CURATOR:</span>
+      <span class="val highlight">ACTIVE (DETERMINISTIC MEMORY SYNC)</span>
     </div>
     <div class="footer-item">
       <span class="label">LAST EVENT POLL:</span>

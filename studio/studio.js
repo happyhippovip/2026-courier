@@ -26,6 +26,15 @@ class OperationsStudio {
     this.btnGateApprove = document.getElementById('btn-gate-approve');
     this.btnGateReject = document.getElementById('btn-gate-reject');
 
+    // Thought Curator Elements
+    this.badgeCuratorState = document.getElementById('badge-curator-state');
+    this.curatorClass = document.getElementById('curator-class');
+    this.curatorPolicyGuard = document.getElementById('curator-policy-guard');
+    this.curatorTaskLabel = document.getElementById('curator-task-label');
+    this.curatorProgressNum = document.getElementById('curator-progress-num');
+    this.curatorProgressBar = document.getElementById('curator-progress-bar');
+    this.curatorFeedLog = document.getElementById('curator-feed-log');
+
     // Chief Elements
     this.badgeChiefState = document.getElementById('badge-chief-state');
     this.chiefWorkflow = document.getElementById('chief-workflow');
@@ -107,9 +116,10 @@ class OperationsStudio {
 
     try {
       this.btnDispatchIdea.disabled = true;
-      this.btnDispatchIdea.innerHTML = '<span class="dispatch-icon">⏳</span> ROUTING...';
+      this.btnDispatchIdea.innerHTML = '<span class="dispatch-icon">⏳</span> CURATING...';
       
-      this.appendLog(this.chiefFeedLog, `[HUMAN IDEA] ${idea}`);
+      this.appendLog(this.curatorFeedLog, `[INGEST] Human idea: "${idea}"`);
+      this.appendLog(this.chiefFeedLog, `[HUMAN IDEA] Forwarded for processing: "${idea}"`);
 
       const res = await fetch('/api/submit-idea', {
         method: 'POST',
@@ -118,14 +128,14 @@ class OperationsStudio {
       });
 
       const data = await res.json();
-      console.log('Idea submitted to Chief:', data);
+      console.log('Idea processed by Curator & Chief:', data);
       this.ideaInput.value = '';
     } catch (err) {
       console.error('Failed to submit idea:', err);
     } finally {
       setTimeout(() => {
         this.btnDispatchIdea.disabled = false;
-        this.btnDispatchIdea.innerHTML = '<span class="dispatch-icon">⚡</span> DISPATCH TO CHIEF';
+        this.btnDispatchIdea.innerHTML = '<span class="dispatch-icon">⚡</span> DISPATCH TO CURATOR & CHIEF';
       }, 1500);
     }
   }
@@ -171,7 +181,28 @@ class OperationsStudio {
     this.countDecisions.textContent = counts.decisions || 0;
     this.busLockStatus.textContent = bus.is_locked ? `LOCKED (${bus.active_lock})` : 'UNLOCKED';
 
-    // 2. Update Chief Station
+    // 2. Update Thought Curator Station
+    const curator = agents['agent-thought-curator'] || {};
+    const curatorState = curator.state || 'IDLE';
+    this.badgeCuratorState.textContent = curatorState;
+    this.curatorTaskLabel.textContent = curator.task ? `Task: ${curator.task}` : 'Status: Standby';
+    this.curatorClass.textContent = curator.result || (curator.last_action ? curator.last_action.split('->')[0].replace('Classified as', '').trim() : '-');
+    const curatorProgress = Math.round((curator.progress || 0) * 100);
+    this.curatorProgressNum.textContent = `${curatorProgress}%`;
+    this.curatorProgressBar.style.width = `${curatorProgress}%`;
+
+    if (curator.last_action) {
+      this.appendLog(this.curatorFeedLog, `[CURATOR] ${curator.last_action}`);
+    }
+
+    const curatorCard = document.getElementById('station-curator');
+    if (curatorState === 'COMPARING' || curatorState === 'NEW IDEA') {
+      curatorCard.classList.add('active-working');
+    } else {
+      curatorCard.classList.remove('active-working');
+    }
+
+    // 3. Update Chief Station
     const chief = agents['agent-chief-commander'] || {};
     const chiefState = chief.state || (bus.is_locked ? 'COORDINATING' : 'IDLE');
     this.badgeChiefState.textContent = chiefState;
@@ -193,7 +224,7 @@ class OperationsStudio {
       chiefCard.classList.remove('active-working');
     }
 
-    // 3. Update Antigravity Station (Primary Heavy Worker)
+    // 4. Update Antigravity Station (Primary Heavy Worker)
     const ag = agents['agent-antigravity-bridge'] || {};
     this.agState.textContent = ag.state || 'IDLE';
     this.agTaskLabel.textContent = ag.task ? `Task: ${ag.task}` : 'Task: IDLE';
@@ -212,7 +243,7 @@ class OperationsStudio {
       agCard.classList.remove('active-working');
     }
 
-    // 4. Update Codex Station (Scarce Technical Specialist)
+    // 5. Update Codex Station (Scarce Technical Specialist)
     const codex = agents['agent-codex-bridge'] || {};
     this.codexState.textContent = codex.state || 'IDLE';
     this.codexTaskLabel.textContent = codex.task ? `Task: ${codex.task}` : 'Task: IDLE';
@@ -231,10 +262,10 @@ class OperationsStudio {
       codexCard.classList.remove('active-working');
     }
 
-    // 5. Human Gate Alert Banner
-    if (chief.state === 'BLOCKED_HUMAN_GATE' || codex.state === 'BLOCKED_HUMAN_GATE' || ag.state === 'BLOCKED_HUMAN_GATE' || bus.human_gate) {
+    // 6. Human Gate Alert Banner
+    if (curatorState === 'CONFLICT' || chief.state === 'BLOCKED_HUMAN_GATE' || codex.state === 'BLOCKED_HUMAN_GATE' || ag.state === 'BLOCKED_HUMAN_GATE' || bus.human_gate) {
       this.gateBanner.classList.remove('hidden');
-      this.gateDesc.textContent = `Workflow task paused: ${codex.task || ag.task || chief.task || 'Explicit human approval required'}`;
+      this.gateDesc.textContent = `Workflow task paused: ${curator.last_action || codex.task || ag.task || chief.task || 'Explicit human approval required'}`;
     } else {
       this.gateBanner.classList.add('hidden');
     }
