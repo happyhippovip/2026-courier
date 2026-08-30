@@ -20,7 +20,7 @@
       <div class="system-status">
         <span class="status-indicator online"></span>
         <span class="status-text" id="server-status">LIVE BUS CONNECTED</span>
-        <span class="commit-badge" id="courier-commit">HEAD: 4f206ae</span>
+        <span class="commit-badge" id="courier-commit">HEAD: 293dbff</span>
       </div>
     </div>
 
@@ -40,7 +40,7 @@
     <div class="inbox-container">
       <div class="inbox-header">
         <span class="inbox-tag">💡 HUMAN IDEA & STRATEGY INBOX</span>
-        <span class="inbox-sub">Enter goal or strategic thought — Thought Curator normalizes & compares with Project Memory</span>
+        <span class="inbox-sub">Human → Idea Sync → Memory Comparison → Context Delta → Chief Commander → Workers</span>
       </div>
       <div class="inbox-form">
         <div class="input-wrapper">
@@ -49,6 +49,7 @@
             <button class="preset-btn" data-idea="Optimiere Godot 3D Video-Render Pipeline und prüfe Channel-Konfigurationen">🎬 3D Shorts Pipeline</button>
             <button class="preset-btn" data-idea="Führe technische Code-Prüfung und Syntax-Audit der Courier-Tools durch">🔍 Technical QA Audit</button>
             <button class="preset-btn" data-idea="Synthetisiere Multi-Agent Teamwork Policies und erstelle Release-Paket">📦 Synthesis & Package</button>
+            <button class="preset-btn" data-idea="Kaufe neue Krypto Tokens und starte bezahlte Kampagnen">⚠️ Conflict Test (D-002/D-004)</button>
           </div>
         </div>
         <button id="btn-dispatch-idea" class="btn-dispatch">
@@ -64,7 +65,7 @@
       <div class="gate-icon">🛡️</div>
       <div class="gate-info">
         <div class="gate-title">HUMAN APPROVAL REQUIRED</div>
-        <div class="gate-description" id="gate-desc">A workflow task requires explicit human sign-off before proceeding.</div>
+        <div class="gate-description" id="gate-desc">A workflow task or policy alert requires explicit human sign-off before proceeding.</div>
       </div>
       <div class="gate-actions">
         <button id="btn-gate-approve" class="btn-gate approve">APPROVE</button>
@@ -83,21 +84,43 @@
           <span class="station-icon">🧠</span>
           <div>
             <h2 class="station-title">IDEA SYNC / CURATOR</h2>
-            <span class="station-role">Memory Ingestion & Conflict Guard</span>
+            <span class="station-role">Memory Ingestion & Context Delta</span>
           </div>
         </div>
         <span class="badge badge-curator" id="badge-curator-state">IDLE</span>
       </div>
 
       <div class="card-body">
+        <!-- 5-Step Pipeline Flow Indicator -->
+        <div class="flow-steps-bar">
+          <span class="flow-step" id="step-1">1. ARRIVAL</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-step" id="step-2">2. MEMORY</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-step" id="step-3">3. CONNECTIONS</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-step" id="step-4">4. DELTA</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-step" id="step-5">5. CHIEF</span>
+        </div>
+
         <div class="metric-row">
           <div class="metric-box">
             <span class="metric-label">Classification</span>
             <span class="metric-value font-mono text-accent" id="curator-class">-</span>
           </div>
           <div class="metric-box">
-            <span class="metric-label">Policy Guard</span>
-            <span class="metric-value" id="curator-policy-guard">D-002 / D-004 CHECKED</span>
+            <span class="metric-label">Memory Truth Rule</span>
+            <span class="metric-value font-mono text-muted">IDEA ≠ VERIFIED</span>
+          </div>
+        </div>
+
+        <!-- Dynamic Memory Links & Badges Container -->
+        <div class="memory-links-box">
+          <span class="feed-label">MEMORY CONNECTIONS & POLICY GUARDS</span>
+          <div class="links-container" id="curator-memory-links">
+            <span class="link-chip chip-neutral">DECISIONS.md (Indexed)</span>
+            <span class="link-chip chip-neutral">IDEA_ARCHIVE.md (Indexed)</span>
           </div>
         </div>
 

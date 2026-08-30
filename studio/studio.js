@@ -29,11 +29,18 @@ class OperationsStudio {
     // Thought Curator Elements
     this.badgeCuratorState = document.getElementById('badge-curator-state');
     this.curatorClass = document.getElementById('curator-class');
-    this.curatorPolicyGuard = document.getElementById('curator-policy-guard');
     this.curatorTaskLabel = document.getElementById('curator-task-label');
     this.curatorProgressNum = document.getElementById('curator-progress-num');
     this.curatorProgressBar = document.getElementById('curator-progress-bar');
     this.curatorFeedLog = document.getElementById('curator-feed-log');
+    this.curatorMemoryLinks = document.getElementById('curator-memory-links');
+
+    // Flow Steps
+    this.step1 = document.getElementById('step-1');
+    this.step2 = document.getElementById('step-2');
+    this.step3 = document.getElementById('step-3');
+    this.step4 = document.getElementById('step-4');
+    this.step5 = document.getElementById('step-5');
 
     // Chief Elements
     this.badgeChiefState = document.getElementById('badge-chief-state');
@@ -170,6 +177,22 @@ class OperationsStudio {
     }
   }
 
+  updateFlowSteps(state) {
+    [this.step1, this.step2, this.step3, this.step4, this.step5].forEach(s => s.classList.remove('active'));
+
+    if (state === 'NEW IDEA') {
+      this.step1.classList.add('active');
+    } else if (state === 'READING MEMORY') {
+      this.step2.classList.add('active');
+    } else if (state === 'COMPARING' || state === 'DUPLICATE FOUND' || state === 'RELATED FOUND' || state === 'CONFLICT FOUND') {
+      this.step3.classList.add('active');
+    } else if (state === 'CONTEXT UPDATED') {
+      this.step4.classList.add('active');
+    } else if (state === 'SENT TO CHIEF' || state === 'PROMOTED') {
+      this.step5.classList.add('active');
+    }
+  }
+
   updateUI(data) {
     if (!data) return;
 
@@ -186,17 +209,19 @@ class OperationsStudio {
     const curatorState = curator.state || 'IDLE';
     this.badgeCuratorState.textContent = curatorState;
     this.curatorTaskLabel.textContent = curator.task ? `Task: ${curator.task}` : 'Status: Standby';
-    this.curatorClass.textContent = curator.result || (curator.last_action ? curator.last_action.split('->')[0].replace('Classified as', '').trim() : '-');
+    this.curatorClass.textContent = curator.result ? curator.result.split('|')[0].replace('Classification:', '').trim() : (curator.last_action ? curator.last_action.split('->')[0].replace('Classified as', '').trim() : '-');
     const curatorProgress = Math.round((curator.progress || 0) * 100);
     this.curatorProgressNum.textContent = `${curatorProgress}%`;
     this.curatorProgressBar.style.width = `${curatorProgress}%`;
+
+    this.updateFlowSteps(curatorState);
 
     if (curator.last_action) {
       this.appendLog(this.curatorFeedLog, `[CURATOR] ${curator.last_action}`);
     }
 
     const curatorCard = document.getElementById('station-curator');
-    if (curatorState === 'COMPARING' || curatorState === 'NEW IDEA') {
+    if (curatorState === 'COMPARING' || curatorState === 'NEW IDEA' || curatorState === 'READING MEMORY') {
       curatorCard.classList.add('active-working');
     } else {
       curatorCard.classList.remove('active-working');
@@ -263,7 +288,7 @@ class OperationsStudio {
     }
 
     // 6. Human Gate Alert Banner
-    if (curatorState === 'CONFLICT' || chief.state === 'BLOCKED_HUMAN_GATE' || codex.state === 'BLOCKED_HUMAN_GATE' || ag.state === 'BLOCKED_HUMAN_GATE' || bus.human_gate) {
+    if (curatorState === 'CONFLICT FOUND' || curatorState === 'BLOCKED' || chief.state === 'BLOCKED_HUMAN_GATE' || codex.state === 'BLOCKED_HUMAN_GATE' || ag.state === 'BLOCKED_HUMAN_GATE' || bus.human_gate) {
       this.gateBanner.classList.remove('hidden');
       this.gateDesc.textContent = `Workflow task paused: ${curator.last_action || codex.task || ag.task || chief.task || 'Explicit human approval required'}`;
     } else {

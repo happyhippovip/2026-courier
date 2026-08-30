@@ -1,12 +1,29 @@
 #!/usr/bin/env python3
 """Idea Sync & Thought Curator Engine for 2026 Courier.
 
-Ingests, normalizes, and curates human ideas before routing to Chief Commander:
-- Compares against canonical Project Memory (DECISIONS.md, IDEA_ARCHIVE.md, PROJECT_STATE.md).
-- Detects duplicates, related prior ideas, policy conflicts, and outdated assumptions.
-- Formulates a structured Context Delta for Chief Commander.
-- Emits visual state updates for the Studio UI.
-- 100% deterministic local evaluation (0.00 EUR cost).
+Permanent idea-memory and context synchronization agent:
+Human → Idea Sync → Chief Commander → Router → Worker Agents → Courier → Chief Review
+
+Visual States:
+- IDLE
+- NEW IDEA
+- READING MEMORY
+- COMPARING
+- DUPLICATE FOUND
+- RELATED FOUND
+- CONFLICT FOUND
+- CONTEXT UPDATED
+- SENT TO CHIEF
+- DEFERRED
+- PROMOTED
+- BLOCKED
+
+Memory Truth Rule:
+- IDEA != VERIFIED
+- IDEA != IMPLEMENTED
+- USER_REPORTED != TECHNICALLY VERIFIED
+- Never silently overwrite historical decisions.
+- Deterministic/local comparison first (0.00 EUR cost).
 """
 
 from __future__ import annotations
@@ -18,6 +35,7 @@ import json
 import os
 import re
 import sys
+import time
 import uuid
 from pathlib import Path
 
@@ -43,7 +61,7 @@ except ImportError:
 
 
 class ThoughtCurator:
-    """Deterministic local curator that compares human ideas with project memory before Chief routing."""
+    """Permanent idea-memory and context synchronization agent."""
 
     def __init__(self, repo_dir: Path = COURIER_DIR, memory_dir: Path = PROJECT_MEMORY_DIR):
         self.repo_dir = repo_dir
@@ -51,7 +69,7 @@ class ThoughtCurator:
         self.state_tracker = AntigravityVisualStateTracker(
             agent_id="agent-thought-curator",
             name="Thought Curator",
-            role="Idea Ingestion & Memory Comparison",
+            role="Permanent Idea Sync & Memory Curator",
         )
         self.memory_index = self._index_project_memory()
 
@@ -67,7 +85,6 @@ class ThoughtCurator:
         decisions_file = self.memory_dir / "DECISIONS.md"
         if decisions_file.exists():
             content = decisions_file.read_text(encoding="utf-8")
-            # Parse sections like "## D-001 — Title"
             for match in re.finditer(r"##\s+(D-\d+)\s+—\s+([^\n]+)([\s\S]*?)(?=\n##\s+D-\d+|\Z)", content):
                 index["decisions"].append({
                     "id": match.group(1),
@@ -87,7 +104,7 @@ class ThoughtCurator:
         return index
 
     def curate_idea(self, raw_idea: str, idea_type: str = "IDEA") -> dict:
-        """Analyzes a human idea, detects conflicts/duplicates, and creates a Context Delta."""
+        """Processes a human idea through the full Thought Curator lifecycle."""
         normalized = " ".join(raw_idea.strip().lower().split())
         idea_hash = hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:8]
         idea_id = f"idea-{idea_hash}"
@@ -98,29 +115,42 @@ class ThoughtCurator:
         # 1. State: NEW IDEA
         self.state_tracker.update_state(
             state="NEW IDEA",
-            task=f"Analyzing {idea_id}",
-            progress=0.1,
+            task=f"Ingested {idea_id}",
+            progress=0.15,
             workflow=idea_id,
-            last_action=f"Ingested new {idea_type.lower()}: '{raw_idea[:60]}'",
-            next_action="Comparing with Project Memory & Decisions",
+            last_action=f"Ingested human {idea_type.lower()}: '{raw_idea[:60]}'",
+            next_action="Opening canonical Project Memory index",
             blocked=False,
             human_gate=None,
         )
 
-        # 2. State: COMPARING
+        # 2. State: READING MEMORY
+        self.state_tracker.update_state(
+            state="READING MEMORY",
+            task=f"Reading memory for {idea_id}",
+            progress=0.35,
+            workflow=idea_id,
+            last_action="Scanning DECISIONS.md, IDEA_ARCHIVE.md, and PROJECT_STATE.md",
+            next_action="Comparing semantic tokens & policy rules",
+            blocked=False,
+            human_gate=None,
+        )
+
+        # 3. State: COMPARING
         self.state_tracker.update_state(
             state="COMPARING",
             task=f"Comparing {idea_id}",
-            progress=0.4,
+            progress=0.55,
             workflow=idea_id,
-            last_action="Searching DECISIONS.md and IDEA_ARCHIVE.md",
-            next_action="Evaluating policy compliance and relationships",
+            last_action="Evaluating policy compliance and checking prior duplicate/related concepts",
+            next_action="Formulating Context Delta package",
             blocked=False,
             human_gate=None,
         )
 
         conflicts = []
         related_entries = []
+        memory_links = []
         classification = "NEW"
 
         # Check for policy conflicts
@@ -132,7 +162,8 @@ class ThoughtCurator:
                 "severity": "CRITICAL_REJECT",
                 "reason": "Crypto trading, memecoins, and token speculation are strictly forbidden by project policy."
             })
-            classification = "CONFLICT"
+            memory_links.append({"type": "DECISION", "id": "D-002", "title": "Crypto and speculative recovery blocked", "status": "VIOLATION"})
+            classification = "CONFLICT FOUND"
 
         # Policy D-004: Paid action without gate
         paid_keywords = ["kauf", "pay", "credit", "subscription", "kostenpflichtig", "anzeigen schalten", "werbung kaufen", "fremdkapital"]
@@ -142,8 +173,9 @@ class ThoughtCurator:
                 "severity": "HUMAN_GATE_REQUIRED",
                 "reason": "Paid services, credit purchases or ad spending require explicit human approval."
             })
-            if classification != "CONFLICT":
-                classification = "CONFLICT"
+            memory_links.append({"type": "DECISION", "id": "D-004", "title": "No paid or irreversible action by default", "status": "HUMAN_GATE"})
+            if classification != "CONFLICT FOUND":
+                classification = "CONFLICT FOUND"
 
         # Policy D-022: Scoped permissions & safe cleanup
         cleanup_keywords = ["rm -rf", "delete all", "force push", "sudo", "lösche alles", "format"]
@@ -153,7 +185,8 @@ class ThoughtCurator:
                 "severity": "CRITICAL_REJECT",
                 "reason": "Destructive shell commands or unconstrained cleanup are blocked by policy."
             })
-            classification = "CONFLICT"
+            memory_links.append({"type": "DECISION", "id": "D-022", "title": "Scoped permissions and safe cleanup", "status": "VIOLATION"})
+            classification = "CONFLICT FOUND"
 
         # Check for related entries in IDEA_ARCHIVE.md
         for idea_item in self.memory_index.get("ideas", []):
@@ -162,13 +195,24 @@ class ThoughtCurator:
             common = tokens.intersection(entry_tokens) - {"and", "or", "the", "for", "with", "in", "to", "und", "der", "die", "das", "ein", "eine", "für", "mit"}
             if len(common) >= 3:
                 related_entries.append(idea_item["entry"])
+                clean_name = idea_item["entry"].split(":**")[0].replace("- **", "") if ":**" in idea_item["entry"] else "IDEA"
+                memory_links.append({"type": "ARCHIVED_IDEA", "id": clean_name, "title": idea_item["entry"][:60], "status": "RELATED"})
 
-        if related_entries and classification != "CONFLICT":
-            classification = "RELATED"
+        if related_entries and classification != "CONFLICT FOUND":
+            classification = "RELATED FOUND"
 
-        # Formulate Recommended Next Action
-        qa_keywords = ["audit", "syntax", "unit test", "unit-test", "code review", "lint", "qa"]
-        if classification == "CONFLICT":
+        # Identify affected components / agents
+        affected_components = []
+        if any(k in normalized for k in ["short", "godot", "render", "video", "fruitki", "strawberry", "kiwi", "3d", "media"]):
+            affected_components.append("3D Shorts Pipeline (Antigravity Media Studio)")
+        if any(k in normalized for k in ["syntax", "audit", "lint", "test", "review", "code", "schema", "qa"]):
+            affected_components.append("Code Verification & QA (Codex Lab)")
+        if not affected_components:
+            affected_components.append("General Architecture (Courier System)")
+
+        # Formulate Recommended Next Action & Target Agent
+        qa_keywords = ["audit", "syntax", "unit test", "unit-test", "code review", "lint", "qa", "verifikation"]
+        if classification == "CONFLICT FOUND":
             rec_action = "STOP_ON_POLICY_CONFLICT"
             target_agent = "chief_gate"
         elif any(kw in normalized for kw in qa_keywords):
@@ -178,6 +222,18 @@ class ThoughtCurator:
             rec_action = "ROUTE_TO_ANTIGRAVITY_PRIMARY"
             target_agent = "antigravity"
 
+        # 4. State: CONTEXT UPDATED
+        self.state_tracker.update_state(
+            state="CONTEXT UPDATED",
+            task=f"Context assembled for {idea_id}",
+            progress=0.85,
+            workflow=idea_id,
+            last_action=f"Assembled Context Delta with {len(memory_links)} memory links",
+            next_action="Forwarding Context Delta to Chief Commander",
+            blocked=False,
+            human_gate=None,
+        )
+
         # Final Context Delta
         context_delta = {
             "idea_id": idea_id,
@@ -185,25 +241,28 @@ class ThoughtCurator:
             "normalized_idea": normalized,
             "type": idea_type,
             "classification": classification,
+            "truth_boundary": "IDEA != VERIFIED | USER_REPORTED != TECHNICALLY_VERIFIED",
             "conflicts": conflicts,
             "related_memory_entries": related_entries[:3],
+            "memory_links": memory_links,
+            "affected_components": affected_components,
             "recommended_next_action": rec_action,
             "target_agent_recommendation": target_agent,
             "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         }
 
-        # 3. Final State Update
-        final_state = "CONFLICT" if classification == "CONFLICT" else ("RELATED FOUND" if classification == "RELATED" else "SENT TO CHIEF")
+        # 5. Final State: SENT TO CHIEF or BLOCKED
+        final_state = "BLOCKED" if classification == "CONFLICT FOUND" else "SENT TO CHIEF"
         self.state_tracker.update_state(
             state=final_state,
             task=f"Curated {idea_id}",
             progress=1.0,
             workflow=idea_id,
             last_action=f"Classified as {classification} -> Recommendation: {rec_action}",
-            next_action=f"Forwarding to Chief Commander (Agent: {target_agent})",
-            result=f"Classification: {classification}",
-            blocked=classification == "CONFLICT",
-            human_gate="REQUIRE_HUMAN_CONFIRMATION" if classification == "CONFLICT" else None,
+            next_action=f"Forwarding to Chief Commander (Agent: {target_agent})" if final_state == "SENT TO CHIEF" else "Awaiting human override or reformulation",
+            result=f"Classification: {classification} | Links: {len(memory_links)}",
+            blocked=final_state == "BLOCKED",
+            human_gate="REQUIRE_HUMAN_CONFIRMATION" if final_state == "BLOCKED" else None,
         )
 
         # Save thought record
