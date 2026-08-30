@@ -1,11 +1,18 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
+  resolveChiefWaitState,
   resolveCorrelationTruth,
   resolveDecisionTruth,
   resolveExecutionTruth,
+  resolveStewardTruth,
+  resolveThreadContext,
+  validateThreadAssociation,
 } from '../studio/execution_truth.js';
 
+// -------------------------------------------------------------
+// 1. EXECUTION CLASS RESOLUTION
+// -------------------------------------------------------------
 // Missing machine evidence must never inherit a class from an agent identity.
 assert.equal(resolveExecutionTruth({ id: 'agent-codex-bridge', state: 'RUNNING' }), 'UNKNOWN');
 
@@ -21,6 +28,9 @@ assert.equal(resolveExecutionTruth({ execution_class: 'FALLBACK' }), 'FALLBACK')
 assert.equal(resolveExecutionTruth({ execution_class: 'SIMULATED_VISUAL' }), 'SIMULATED_VISUAL');
 assert.equal(resolveExecutionTruth({ execution_class: 'untrusted-label' }), 'UNKNOWN');
 
+// -------------------------------------------------------------
+// 2. DECISION & CORRELATION RESOLUTION
+// -------------------------------------------------------------
 // The display layer must not turn no decision into an approval.
 assert.equal(resolveDecisionTruth({}), 'NO_DECISION');
 assert.equal(resolveDecisionTruth({ last_decision: 'REJECTED' }), 'REJECTED');
@@ -30,8 +40,163 @@ assert.equal(resolveCorrelationTruth({}), null);
 assert.equal(resolveCorrelationTruth({ correlation_id: 'UNKNOWN' }), null);
 assert.equal(resolveCorrelationTruth({ correlation_id: 'corr-from-courier-001' }), 'corr-from-courier-001');
 
+// -------------------------------------------------------------
+// 3. UPDATE STEWARD TRUTH RESOLUTION
+// -------------------------------------------------------------
+// Missing Steward evidence => UNKNOWN and null/empty values, never guessed
+const emptySteward = resolveStewardTruth({});
+assert.equal(emptySteward.state, 'UNKNOWN');
+assert.equal(emptySteward.context_version, null);
+assert.equal(emptySteward.snapshot_hash, null);
+assert.equal(emptySteward.last_refresh, null);
+assert.deepEqual(emptySteward.changed_items, []);
+
+// Real Steward backend snapshot evidence
+const sampleState = {
+  agents: {
+    'agent-update-steward': {
+      id: 'agent-update-steward',
+      state: 'SNAPSHOT UPDATED',
+      task: 'Context v12 (8184d906)',
+      progress: 1.0,
+      updated_at: '2026-08-30T15:18:25.935944+00:00',
+      next_action: 'Context snapshot v12 published to Courier bus',
+    },
+  },
+  context_snapshot: {
+    context_version: 12,
+    previous_snapshot_version: 11,
+    snapshot_hash: '8184d906d79ba4a00dab4ca13a88795f84df87283408e705fd067c998f26a892',
+    generated_at: '2026-08-30T15:18:25.935921+00:00',
+    changed_since_previous_snapshot: ['workflow_id'],
+    repositories: {
+      courier_head: 'ee54710dc2dfead91410a9a812bbdfecc3bd8c63',
+      memory_head: 'fb330a9bc8c95756df6f74ccb9ac474db88d4a1b',
+      godot_head: 'NOT_CONNECTED',
+    },
+  },
+  bus: {
+    context_version: 12,
+    snapshot_hash: '8184d906d79ba4a00dab4ca13a88795f84df87283408e705fd067c998f26a892',
+  },
+};
+
+const realSteward = resolveStewardTruth(sampleState);
+assert.equal(realSteward.state, 'SNAPSHOT UPDATED');
+assert.equal(realSteward.context_version, 12);
+assert.equal(realSteward.previous_version, 11);
+assert.equal(realSteward.snapshot_hash, '8184d906d79ba4a00dab4ca13a88795f84df87283408e705fd067c998f26a892');
+assert.deepEqual(realSteward.changed_items, ['workflow_id']);
+assert.equal(realSteward.repositories.courier_head, 'ee54710dc2dfead91410a9a812bbdfecc3bd8c63');
+assert.equal(realSteward.repositories.memory_head, 'fb330a9bc8c95756df6f74ccb9ac474db88d4a1b');
+
+// -------------------------------------------------------------
+// 4. CHIEF WAIT-STATE RESOLUTION
+// -------------------------------------------------------------
+// Human Gate active => CHIEF WAITING FOR HUMAN
+assert.equal(
+  resolveChiefWaitState({ bus: { human_gate: true } }),
+  'CHIEF WAITING FOR HUMAN',
+);
+
+// Antigravity running => CHIEF WAITING FOR ANTIGRAVITY
+assert.equal(
+  resolveChiefWaitState({ agents: { 'agent-antigravity-bridge': { state: 'RUNNING' } } }),
+  'CHIEF WAITING FOR ANTIGRAVITY',
+);
+
+// Codex running => CHIEF WAITING FOR CODEX
+assert.equal(
+  resolveChiefWaitState({ agents: { 'agent-codex-bridge': { state: 'RUNNING' } } }),
+  'CHIEF WAITING FOR CODEX',
+);
+
+// Antigravity finished => RESULT RECEIVED FROM ANTIGRAVITY
+assert.equal(
+  resolveChiefWaitState({ agents: { 'agent-antigravity-bridge': { state: 'AWAITING_CHIEF_REVIEW' } } }),
+  'RESULT RECEIVED FROM ANTIGRAVITY',
+);
+
+// Codex finished => RESULT RECEIVED FROM CODEX
+assert.equal(
+  resolveChiefWaitState({ agents: { 'agent-codex-bridge': { state: 'AWAITING_CHIEF_REVIEW' } } }),
+  'RESULT RECEIVED FROM CODEX',
+);
+
+// Idle state
+assert.equal(
+  resolveChiefWaitState({ bus: { is_locked: false, active_workflow: 'IDLE_MONITORING' } }),
+  'IDLE',
+);
+
+// -------------------------------------------------------------
+// 5. THREAD CONTEXT & RESULT ASSOCIATION
+// -------------------------------------------------------------
+const agRunningState = {
+  bus: {
+    active_workflow: 'WF-CHIEF-001',
+    correlation_id: 'corr-test-1234',
+    is_locked: true,
+  },
+  agents: {
+    'agent-antigravity-bridge': {
+      id: 'agent-antigravity-bridge',
+      state: 'RUNNING',
+      task: 'WF-CHIEF-001-STEP-1-DISCOVER',
+    },
+  },
+  context_snapshot: {
+    context_version: 12,
+    snapshot_hash: '8184d906d79b',
+  },
+};
+
+const tcAg = resolveThreadContext(agRunningState);
+assert.equal(tcAg.workflow_id, 'WF-CHIEF-001');
+assert.equal(tcAg.correlation_id, 'corr-test-1234');
+assert.equal(tcAg.sender_agent_id, 'agent-antigravity-bridge');
+assert.equal(tcAg.sender_agent_type, 'antigravity');
+assert.equal(tcAg.task_id, 'WF-CHIEF-001-STEP-1-DISCOVER');
+assert.equal(tcAg.waiting_for, 'CHIEF WAITING FOR ANTIGRAVITY');
+assert.equal(tcAg.context_version, 12);
+
+// Result from Antigravity maps to correct task/workflow/thread
+const agResultEnvelope = {
+  task_id: 'WF-CHIEF-001-STEP-1-DISCOVER',
+  correlation_id: 'corr-test-1234',
+  source: 'antigravity',
+  payload: {
+    workflow_id: 'WF-CHIEF-001',
+    context_version_seen: 12,
+  },
+};
+assert.equal(validateThreadAssociation(agResultEnvelope, 'WF-CHIEF-001', 'corr-test-1234'), true);
+
+// Result from Codex maps to correct task/workflow/thread
+const cdxResultEnvelope = {
+  task_id: 'WF-CHIEF-001-STEP-2-AUDIT',
+  correlation_id: 'corr-test-1234',
+  source: 'codex',
+  payload: {
+    workflow_id: 'WF-CHIEF-001',
+    context_version_seen: 12,
+  },
+};
+assert.equal(validateThreadAssociation(cdxResultEnvelope, 'WF-CHIEF-001', 'corr-test-1234'), true);
+
+// Cross-thread protection: wrong correlation does not attach to another thread
+const wrongCorrResult = {
+  task_id: 'WF-OTHER-001-STEP-1',
+  correlation_id: 'corr-DIFFERENT-9999',
+  payload: { workflow_id: 'WF-OTHER-001' },
+};
+assert.equal(validateThreadAssociation(wrongCorrResult, 'WF-CHIEF-001', 'corr-test-1234'), false);
+
+// -------------------------------------------------------------
+// 6. SOURCE CODE TRUTH INVARIANTS (NO SYNTHETIC GENERATION)
+// -------------------------------------------------------------
 const studioSource = readFileSync(new URL('../studio/studio.js', import.meta.url), 'utf8');
 assert.doesNotMatch(studioSource, /corr-live-|crypto\.randomUUID|Math\.random\(/);
 assert.doesNotMatch(studioSource, /last_decision\s*\|\|\s*['\"]ACCEPTED['\"]/);
 
-console.log('execution truth tests: PASS');
+console.log('execution truth tests: PASS (100% SUCCESS)');

@@ -159,7 +159,80 @@
       </div>
     </section>
     
-    <!-- 2. Chief Command & Review Center -->
+    <!-- 2. Context Sync / Update Steward Station -->
+    <section class="workstation-card" id="station-steward">
+      <div class="card-header">
+        <div class="station-identity">
+          <span class="station-icon">🔄</span>
+          <div>
+            <h2 class="station-title">UPDATE STEWARD</h2>
+            <span class="station-role">Context Sync & Task Versioning</span>
+          </div>
+        </div>
+        <span class="badge badge-steward" id="badge-steward-state">UNKNOWN</span>
+      </div>
+
+      <div class="card-body">
+        <div class="metric-row">
+          <div class="metric-box">
+            <span class="metric-label">Context Version</span>
+            <span class="metric-value font-mono text-accent" id="steward-context-version">-</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Previous Version</span>
+            <span class="metric-value font-mono text-muted" id="steward-prev-version">-</span>
+          </div>
+        </div>
+
+        <div class="metric-row">
+          <div class="metric-box">
+            <span class="metric-label">Snapshot Hash</span>
+            <span class="metric-value font-mono" id="steward-snapshot-hash">-</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Last Refresh</span>
+            <span class="metric-value font-mono text-secondary" id="steward-last-refresh">--:--:--</span>
+          </div>
+        </div>
+
+        <!-- Tracked Repositories Container -->
+        <div class="memory-links-box">
+          <span class="feed-label">TRACKED REPOSITORIES (HEADS)</span>
+          <div class="links-container" id="steward-repos">
+            <span class="link-chip chip-neutral" id="repo-courier">Courier: -</span>
+            <span class="link-chip chip-neutral" id="repo-memory">Memory: -</span>
+            <span class="link-chip chip-neutral" id="repo-godot">Godot: -</span>
+          </div>
+        </div>
+
+        <!-- Changed Items Container -->
+        <div class="affected-agents-box">
+          <span class="feed-label">CHANGED SINCE PREVIOUS SNAPSHOT</span>
+          <div class="affected-pill-container" id="steward-changed-items">
+            <span class="affected-pill">NONE</span>
+          </div>
+        </div>
+
+        <div class="task-progress-box">
+          <div class="progress-info">
+            <span id="steward-task-label">Status: UNKNOWN</span>
+            <span id="steward-progress-num">0%</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill fill-steward" id="steward-progress-bar" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <div class="action-feed">
+          <span class="feed-label">CONTEXT SYNCHRONIZATION LOG</span>
+          <div class="feed-log font-mono" id="steward-feed-log">
+            <div class="log-entry system">[STEWARD] Standby for repository and event synchronization.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- 3. Chief Command & Review Center -->
     <section class="workstation-card" id="station-chief">
       <div class="card-header">
         <div class="station-identity">
@@ -179,8 +252,19 @@
             <span class="metric-value font-mono" id="chief-workflow">-</span>
           </div>
           <div class="metric-box">
+            <span class="metric-label">Chief Wait State</span>
+            <span class="metric-value text-accent font-mono" id="chief-wait-state">IDLE</span>
+          </div>
+        </div>
+
+        <div class="metric-row">
+          <div class="metric-box">
             <span class="metric-label">Last Decision</span>
-            <span class="metric-value text-accent" id="chief-last-decision">NONE</span>
+            <span class="metric-value text-accent font-mono" id="chief-last-decision">NONE</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Task Context Version</span>
+            <span class="metric-value font-mono text-muted" id="chief-context-version">-</span>
           </div>
         </div>
 
@@ -203,14 +287,14 @@
       </div>
     </section>
 
-    <!-- 3. Central Courier Transit Bus -->
+    <!-- 4. Central Courier Transit Bus & Thread Context -->
     <section class="workstation-card hub-card" id="station-courier">
       <div class="card-header">
         <div class="station-identity">
           <span class="station-icon">⚡</span>
           <div>
             <h2 class="station-title">COURIER EVENT BUS</h2>
-            <span class="station-role">Atomic Event Relay & Queue</span>
+            <span class="station-role">Atomic Event Relay & Task Thread Context</span>
           </div>
         </div>
         <span class="badge badge-bus" id="badge-bus-state">DISPATCHING</span>
@@ -237,14 +321,19 @@
           </div>
         </div>
 
+        <!-- Task Thread Context Indicators -->
         <div class="transit-metrics">
           <div class="metric-pill">
             <span class="pill-label">Lock Status:</span>
             <span class="pill-value" id="bus-lock-status">UNLOCKED</span>
           </div>
           <div class="metric-pill">
-            <span class="pill-label">Routing Priority:</span>
-            <span class="pill-value text-accent">ANTIGRAVITY (HEAVY) / CODEX (QA)</span>
+            <span class="pill-label">Thread Correlation:</span>
+            <span class="pill-value font-mono text-accent" id="thread-correlation">NONE</span>
+          </div>
+          <div class="metric-pill">
+            <span class="pill-label">Thread Actors:</span>
+            <span class="pill-value font-mono" id="thread-actors">-</span>
           </div>
         </div>
       </div>
@@ -349,6 +438,10 @@
     <div class="footer-item">
       <span class="label">THOUGHT CURATOR:</span>
       <span class="val highlight">ACTIVE (DETERMINISTIC MEMORY SYNC)</span>
+    </div>
+    <div class="footer-item">
+      <span class="label">UPDATE STEWARD:</span>
+      <span class="val highlight" id="footer-steward-status">ACTIVE (SNAPSHOT V12)</span>
     </div>
     <div class="footer-item">
       <span class="label">LAST EVENT POLL:</span>

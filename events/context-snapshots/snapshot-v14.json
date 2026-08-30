@@ -1,17 +1,17 @@
 {
   "schema_version": "2.0",
-  "context_version": 19,
-  "generated_at": "2026-08-30T15:23:04.320126+00:00",
+  "context_version": 14,
+  "generated_at": "2026-08-30T15:23:01.948508+00:00",
   "repositories": {
     "courier_head": "ee54710dc2dfead91410a9a812bbdfecc3bd8c63",
     "memory_head": "fb330a9bc8c95756df6f74ccb9ac474db88d4a1b",
     "godot_head": "NOT_CONNECTED"
   },
   "workflow_state": {
-    "workflow_id": "WF-CHIEF-2ddef5",
-    "correlation_id": "UNKNOWN",
-    "current_task_id": "UNKNOWN",
-    "is_locked": true,
+    "workflow_id": "WF-CHIEF-bd163c",
+    "correlation_id": "corr-demo-4bded791",
+    "current_task_id": "WF-CHIEF-bd163c-STEP-3-SYNTHESIZE",
+    "is_locked": false,
     "agent_states": {
       "agent-codex-bridge": {
         "state": "COMPLETED",
@@ -25,21 +25,21 @@
         "task": "Compiling Project Context Snapshot",
         "progress": 0.1,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T15:23:04.320153+00:00"
+        "updated_at": "2026-08-30T15:23:01.948559+00:00"
       },
       "agent-thought-curator": {
         "state": "SENT TO CHIEF",
-        "task": "Curated idea-5138f1d9",
+        "task": "Curated idea-88519020",
         "progress": 1.0,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T15:23:04.243458+00:00"
+        "updated_at": "2026-08-30T15:23:01.943605+00:00"
       },
       "agent-antigravity-bridge": {
-        "state": "AWAITING_CHIEF_REVIEW",
-        "task": "WF-CHIEF-2ddef5-STEP-2-IMPLEMENT",
+        "state": "COMPLETED",
+        "task": "WF-CHIEF-bd163c-STEP-3-SYNTHESIZE",
         "progress": 1.0,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T15:23:04.317612+00:00"
+        "updated_at": "2026-08-30T15:18:25.965268+00:00"
       },
       "test-agent-g": {
         "state": "AWAITING_CHIEF_REVIEW",
@@ -53,7 +53,7 @@
         "task": "Policy Conflict: idea-aa9a9ff3",
         "progress": 0.0,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T15:23:03.192088+00:00"
+        "updated_at": "2026-08-30T15:18:25.275589+00:00"
       },
       "test-agent-codex": {
         "state": "AWAITING_CHIEF_REVIEW",
@@ -63,9 +63,9 @@
         "updated_at": "2026-08-30T14:41:16.687284+00:00"
       }
     },
-    "total_decisions": 48,
-    "total_results": 60,
-    "total_approvals": 7
+    "total_decisions": 41,
+    "total_results": 53,
+    "total_approvals": 6
   },
   "memory_truth": {
     "latest_verified_milestone": "**VERIFIED_CURRENT** | Source: local repository audit of `2026-Projektzentrale` | Verified: 2026-08-29. Two final vertical FruitKI files exist locally: `kiwi-stealth-short-001-final.mp4` (10 s) and `strawberry-school-short-002-final.mp4` (7.125 s); both were locally inspected as 360\u00d7640 H.264/AAC assets. See [TECHNICAL_CONTEXT.md](TECHNICAL_CONTEXT.md).",
@@ -109,12 +109,12 @@
     }
   },
   "latest_idea_delta": {
-    "idea_id": "idea-5138f1d9",
-    "raw_idea": "Optimiere FruitKI 3D Video-Render Pipeline und erstelle Release-Metadaten",
-    "normalized_idea": "optimiere fruitki 3d video-render pipeline und erstelle release-metadaten",
-    "normalized_summary": "Optimiere FruitKI 3D Video-Render Pipeline und erstelle Release-Metadaten",
+    "idea_id": "idea-88519020",
+    "raw_idea": "Neue Feature Idee f\u00fcr automatische Metadaten-Validierung 3cc9a0",
+    "normalized_idea": "neue feature idee f\u00fcr automatische metadaten-validierung 3cc9a0",
+    "normalized_summary": "Neue Feature Idee f\u00fcr automatische Metadaten-Validierung 3cc9a0",
     "idea_status": "PROPOSED",
-    "type": "GOAL",
+    "type": "IDEA",
     "classification": "NEW",
     "truth_boundary": "IDEA != VERIFIED | USER_REPORTED != TECHNICALLY_VERIFIED",
     "conflicts": [],
@@ -124,7 +124,7 @@
       "antigravity"
     ],
     "affected_workflows": [
-      "3D Shorts Pipeline (Antigravity Media Studio)"
+      "General Architecture (Courier System)"
     ],
     "recommended_next_action": "ROUTE_TO_ANTIGRAVITY_PRIMARY",
     "target_agent_recommendation": "antigravity",
@@ -133,7 +133,7 @@
       "ideas": true,
       "project_state": true
     },
-    "timestamp": "2026-08-30T15:23:03.140522+00:00"
+    "timestamp": "2026-08-30T15:23:01.943526+00:00"
   },
   "truth_classifications": {
     "courier_codebase": "VERIFIED",
@@ -146,9 +146,9 @@
     "truth_invariants": "IDEA != IMPLEMENTED | USER_REPORTED != VERIFIED | DETERMINISTIC != REAL_EXTERNAL"
   },
   "changed_since_previous_snapshot": [
-    "workflow_id"
+    "idea_delta"
   ],
-  "previous_snapshot_version": 18,
-  "previous_snapshot_hash": "822c7c19ebd71962255b95fc45641a3a174b2dc684722331366cca80ff3e39a8",
-  "snapshot_hash": "27100b493e4233cbe5ca071c9500b78199cae550ae72b500c4c3480bd3bae248"
+  "previous_snapshot_version": 13,
+  "previous_snapshot_hash": "01b9069b9f438981199efcb04300304f085ce61df1516a9aea5715f7eb0356a9",
+  "snapshot_hash": "1f88798181073432e78f4c845975556e8320a8b14589eac20d20a88c02c2f4ce"
 }

@@ -1,14 +1,14 @@
 {
   "schema_version": "2.0",
-  "context_version": 19,
-  "generated_at": "2026-08-30T15:23:04.320126+00:00",
+  "context_version": 17,
+  "generated_at": "2026-08-30T15:23:02.548466+00:00",
   "repositories": {
     "courier_head": "ee54710dc2dfead91410a9a812bbdfecc3bd8c63",
     "memory_head": "fb330a9bc8c95756df6f74ccb9ac474db88d4a1b",
     "godot_head": "NOT_CONNECTED"
   },
   "workflow_state": {
-    "workflow_id": "WF-CHIEF-2ddef5",
+    "workflow_id": "WF-CHIEF-4cbdcb",
     "correlation_id": "UNKNOWN",
     "current_task_id": "UNKNOWN",
     "is_locked": true,
@@ -25,21 +25,21 @@
         "task": "Compiling Project Context Snapshot",
         "progress": 0.1,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T15:23:04.320153+00:00"
+        "updated_at": "2026-08-30T15:23:02.548519+00:00"
       },
       "agent-thought-curator": {
         "state": "SENT TO CHIEF",
         "task": "Curated idea-5138f1d9",
         "progress": 1.0,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T15:23:04.243458+00:00"
+        "updated_at": "2026-08-30T15:23:02.453502+00:00"
       },
       "agent-antigravity-bridge": {
         "state": "AWAITING_CHIEF_REVIEW",
-        "task": "WF-CHIEF-2ddef5-STEP-2-IMPLEMENT",
+        "task": "WF-CHIEF-4cbdcb-STEP-2-IMPLEMENT",
         "progress": 1.0,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T15:23:04.317612+00:00"
+        "updated_at": "2026-08-30T15:23:02.540212+00:00"
       },
       "test-agent-g": {
         "state": "AWAITING_CHIEF_REVIEW",
@@ -53,7 +53,7 @@
         "task": "Policy Conflict: idea-aa9a9ff3",
         "progress": 0.0,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T15:23:03.192088+00:00"
+        "updated_at": "2026-08-30T15:18:25.275589+00:00"
       },
       "test-agent-codex": {
         "state": "AWAITING_CHIEF_REVIEW",
@@ -63,8 +63,8 @@
         "updated_at": "2026-08-30T14:41:16.687284+00:00"
       }
     },
-    "total_decisions": 48,
-    "total_results": 60,
+    "total_decisions": 44,
+    "total_results": 56,
     "total_approvals": 7
   },
   "memory_truth": {
@@ -133,7 +133,7 @@
       "ideas": true,
       "project_state": true
     },
-    "timestamp": "2026-08-30T15:23:03.140522+00:00"
+    "timestamp": "2026-08-30T15:23:02.453457+00:00"
   },
   "truth_classifications": {
     "courier_codebase": "VERIFIED",
@@ -148,7 +148,7 @@
   "changed_since_previous_snapshot": [
     "workflow_id"
   ],
-  "previous_snapshot_version": 18,
-  "previous_snapshot_hash": "822c7c19ebd71962255b95fc45641a3a174b2dc684722331366cca80ff3e39a8",
-  "snapshot_hash": "27100b493e4233cbe5ca071c9500b78199cae550ae72b500c4c3480bd3bae248"
+  "previous_snapshot_version": 16,
+  "previous_snapshot_hash": "7bce768be191f85e9235ae3adc6e3d91f37f908e5f75abbb5bc8f3b8fe5d40f6",
+  "snapshot_hash": "ba610cb236367c905f70c279ee09d829162a27b4e9a5ec8b3ef179fdf85386fa"
 }

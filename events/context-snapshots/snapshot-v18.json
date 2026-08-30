@@ -1,17 +1,17 @@
 {
   "schema_version": "2.0",
-  "context_version": 19,
-  "generated_at": "2026-08-30T15:23:04.320126+00:00",
+  "context_version": 18,
+  "generated_at": "2026-08-30T15:23:03.149633+00:00",
   "repositories": {
     "courier_head": "ee54710dc2dfead91410a9a812bbdfecc3bd8c63",
     "memory_head": "fb330a9bc8c95756df6f74ccb9ac474db88d4a1b",
     "godot_head": "NOT_CONNECTED"
   },
   "workflow_state": {
-    "workflow_id": "WF-CHIEF-2ddef5",
-    "correlation_id": "UNKNOWN",
-    "current_task_id": "UNKNOWN",
-    "is_locked": true,
+    "workflow_id": "WF-CHIEF-d89e69",
+    "correlation_id": "corr-rej-7d84dadb",
+    "current_task_id": "WF-CHIEF-d89e69-STEP-1-DISCOVER",
+    "is_locked": false,
     "agent_states": {
       "agent-codex-bridge": {
         "state": "COMPLETED",
@@ -25,21 +25,21 @@
         "task": "Compiling Project Context Snapshot",
         "progress": 0.1,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T15:23:04.320153+00:00"
+        "updated_at": "2026-08-30T15:23:03.149671+00:00"
       },
       "agent-thought-curator": {
         "state": "SENT TO CHIEF",
         "task": "Curated idea-5138f1d9",
         "progress": 1.0,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T15:23:04.243458+00:00"
+        "updated_at": "2026-08-30T15:23:03.140646+00:00"
       },
       "agent-antigravity-bridge": {
-        "state": "AWAITING_CHIEF_REVIEW",
-        "task": "WF-CHIEF-2ddef5-STEP-2-IMPLEMENT",
-        "progress": 1.0,
+        "state": "BLOCKED_HUMAN_GATE",
+        "task": "WF-CHIEF-d89e69-STEP-1-DISCOVER",
+        "progress": 0.33,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T15:23:04.317612+00:00"
+        "updated_at": "2026-08-30T15:23:02.647923+00:00"
       },
       "test-agent-g": {
         "state": "AWAITING_CHIEF_REVIEW",
@@ -53,7 +53,7 @@
         "task": "Policy Conflict: idea-aa9a9ff3",
         "progress": 0.0,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-08-30T15:23:03.192088+00:00"
+        "updated_at": "2026-08-30T15:18:25.275589+00:00"
       },
       "test-agent-codex": {
         "state": "AWAITING_CHIEF_REVIEW",
@@ -63,9 +63,9 @@
         "updated_at": "2026-08-30T14:41:16.687284+00:00"
       }
     },
-    "total_decisions": 48,
-    "total_results": 60,
-    "total_approvals": 7
+    "total_decisions": 46,
+    "total_results": 58,
+    "total_approvals": 6
   },
   "memory_truth": {
     "latest_verified_milestone": "**VERIFIED_CURRENT** | Source: local repository audit of `2026-Projektzentrale` | Verified: 2026-08-29. Two final vertical FruitKI files exist locally: `kiwi-stealth-short-001-final.mp4` (10 s) and `strawberry-school-short-002-final.mp4` (7.125 s); both were locally inspected as 360\u00d7640 H.264/AAC assets. See [TECHNICAL_CONTEXT.md](TECHNICAL_CONTEXT.md).",
@@ -148,7 +148,7 @@
   "changed_since_previous_snapshot": [
     "workflow_id"
   ],
-  "previous_snapshot_version": 18,
-  "previous_snapshot_hash": "822c7c19ebd71962255b95fc45641a3a174b2dc684722331366cca80ff3e39a8",
-  "snapshot_hash": "27100b493e4233cbe5ca071c9500b78199cae550ae72b500c4c3480bd3bae248"
+  "previous_snapshot_version": 17,
+  "previous_snapshot_hash": "ba610cb236367c905f70c279ee09d829162a27b4e9a5ec8b3ef179fdf85386fa",
+  "snapshot_hash": "822c7c19ebd71962255b95fc45641a3a174b2dc684722331366cca80ff3e39a8"
 }

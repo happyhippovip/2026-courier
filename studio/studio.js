@@ -3,9 +3,12 @@
  */
 import {
   executionBadgeLabel,
+  resolveChiefWaitState,
   resolveCorrelationTruth,
   resolveDecisionTruth,
   resolveExecutionTruth,
+  resolveStewardTruth,
+  resolveThreadContext,
 } from './execution_truth.js';
 
 class OperationsStudio {
@@ -45,6 +48,22 @@ class OperationsStudio {
     this.curatorAffectedAgents = document.getElementById('curator-affected-agents');
     this.curatorContextDelta = document.getElementById('curator-context-delta');
 
+    // Update Steward Elements
+    this.badgeStewardState = document.getElementById('badge-steward-state');
+    this.stewardContextVersion = document.getElementById('steward-context-version');
+    this.stewardPrevVersion = document.getElementById('steward-prev-version');
+    this.stewardSnapshotHash = document.getElementById('steward-snapshot-hash');
+    this.stewardLastRefresh = document.getElementById('steward-last-refresh');
+    this.stewardRepos = document.getElementById('steward-repos');
+    this.repoCourier = document.getElementById('repo-courier');
+    this.repoMemory = document.getElementById('repo-memory');
+    this.repoGodot = document.getElementById('repo-godot');
+    this.stewardChangedItems = document.getElementById('steward-changed-items');
+    this.stewardTaskLabel = document.getElementById('steward-task-label');
+    this.stewardProgressNum = document.getElementById('steward-progress-num');
+    this.stewardProgressBar = document.getElementById('steward-progress-bar');
+    this.stewardFeedLog = document.getElementById('steward-feed-log');
+
     // Flow Steps
     this.step1 = document.getElementById('step-1');
     this.step2 = document.getElementById('step-2');
@@ -55,7 +74,9 @@ class OperationsStudio {
     // Chief Elements
     this.badgeChiefState = document.getElementById('badge-chief-state');
     this.chiefWorkflow = document.getElementById('chief-workflow');
+    this.chiefWaitState = document.getElementById('chief-wait-state');
     this.chiefLastDecision = document.getElementById('chief-last-decision');
+    this.chiefContextVersion = document.getElementById('chief-context-version');
     this.chiefTaskLabel = document.getElementById('chief-task-label');
     this.chiefProgressNum = document.getElementById('chief-progress-num');
     this.chiefProgressBar = document.getElementById('chief-progress-bar');
@@ -67,6 +88,8 @@ class OperationsStudio {
     this.countProcessed = document.getElementById('count-processed');
     this.countDecisions = document.getElementById('count-decisions');
     this.busLockStatus = document.getElementById('bus-lock-status');
+    this.threadCorrelation = document.getElementById('thread-correlation');
+    this.threadActors = document.getElementById('thread-actors');
 
     // Antigravity Elements
     this.badgeAgMode = document.getElementById('badge-ag-mode');
@@ -85,6 +108,7 @@ class OperationsStudio {
     this.codexFeedLog = document.getElementById('codex-feed-log');
 
     // Footer
+    this.footerStewardStatus = document.getElementById('footer-steward-status');
     this.lastPollTime = document.getElementById('last-poll-time');
     this.serverStatus = document.getElementById('server-status');
   }
@@ -278,12 +302,63 @@ class OperationsStudio {
       curatorCard.classList.remove('active-working');
     }
 
-    // 3. Update Chief Station
+    // 3. Update Context Sync / Update Steward Station
+    const steward = resolveStewardTruth(data);
+    this.badgeStewardState.textContent = steward.state;
+    this.stewardContextVersion.textContent = steward.context_version !== null ? `v${steward.context_version}` : '-';
+    this.stewardPrevVersion.textContent = steward.previous_version !== null ? `v${steward.previous_version}` : '-';
+    this.stewardSnapshotHash.textContent = steward.snapshot_hash ? `${steward.snapshot_hash.slice(0, 12)}...` : '-';
+    this.stewardLastRefresh.textContent = steward.last_refresh
+      ? (steward.last_refresh.includes('T') ? steward.last_refresh.split('T')[1].split('.')[0] : steward.last_refresh)
+      : '--:--:--';
+
+    // Update Repositories Chips
+    if (steward.repositories) {
+      this.repoCourier.textContent = `Courier: ${steward.repositories.courier_head ? steward.repositories.courier_head.slice(0, 8) : '-'}`;
+      this.repoMemory.textContent = `Memory: ${steward.repositories.memory_head ? steward.repositories.memory_head.slice(0, 8) : '-'}`;
+      this.repoGodot.textContent = `Godot: ${steward.repositories.godot_head ? (steward.repositories.godot_head === 'NOT_CONNECTED' ? 'NOT_CONNECTED' : steward.repositories.godot_head.slice(0, 8)) : 'NOT_CONNECTED'}`;
+    }
+
+    // Update Changed Items Container
+    if (this.stewardChangedItems) {
+      if (steward.changed_items && steward.changed_items.length > 0) {
+        this.stewardChangedItems.innerHTML = steward.changed_items
+          .map(item => `<span class="affected-pill font-mono">${item}</span>`)
+          .join(' ');
+      } else {
+        this.stewardChangedItems.innerHTML = '<span class="affected-pill font-mono">NONE (CURRENT)</span>';
+      }
+    }
+
+    this.stewardTaskLabel.textContent = `Status: ${steward.task}`;
+    const stewardProgress = Math.round((steward.progress || 0) * 100);
+    this.stewardProgressNum.textContent = `${stewardProgress}%`;
+    this.stewardProgressBar.style.width = `${stewardProgress}%`;
+
+    if (steward.next_action) {
+      this.appendLog(this.stewardFeedLog, `[STEWARD] ${steward.next_action}`);
+    }
+
+    const stewardCard = document.getElementById('station-steward');
+    if (stewardCard) {
+      if (steward.state === 'CHECKING' || steward.state === 'SNAPSHOT UPDATED' || steward.state === 'REFRESH REQUIRED') {
+        stewardCard.classList.add('active-working');
+      } else {
+        stewardCard.classList.remove('active-working');
+      }
+    }
+
+    // 4. Update Chief Station & Thread Context
     const chief = agents['agent-chief-commander'] || {};
     const chiefState = chief.state || (bus.is_locked ? 'COORDINATING' : 'IDLE');
+    const threadContext = resolveThreadContext(data);
+    const chiefWaitState = resolveChiefWaitState(data);
+
     this.badgeChiefState.textContent = chiefState;
     this.chiefWorkflow.textContent = chief.workflow || bus.active_workflow || '-';
+    this.chiefWaitState.textContent = chiefWaitState;
     this.chiefLastDecision.textContent = resolveDecisionTruth(bus);
+    this.chiefContextVersion.textContent = threadContext.context_version ? `v${threadContext.context_version}` : '-';
     this.chiefTaskLabel.textContent = chief.task ? `Task: ${chief.task}` : 'Task: Standby';
     const chiefProgress = Math.round((chief.progress || 0) * 100);
     this.chiefProgressNum.textContent = `${chiefProgress}%`;
@@ -298,6 +373,22 @@ class OperationsStudio {
       chiefCard.classList.add('active-working');
     } else {
       chiefCard.classList.remove('active-working');
+    }
+
+    // Update Bus Hub Thread Context Indicators
+    if (this.threadCorrelation) {
+      this.threadCorrelation.textContent = threadContext.correlation_id || 'NONE';
+    }
+    if (this.threadActors) {
+      const sender = threadContext.sender_agent_type ? threadContext.sender_agent_type.toUpperCase() : '-';
+      this.threadActors.textContent = `${sender} → CHIEF`;
+    }
+
+    // Update Footer Status
+    if (this.footerStewardStatus) {
+      this.footerStewardStatus.textContent = steward.context_version
+        ? `ACTIVE (SNAPSHOT V${steward.context_version})`
+        : 'STANDBY';
     }
 
     // 4. Update Antigravity Station (Primary Heavy Worker)

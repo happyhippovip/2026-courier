@@ -469,6 +469,12 @@ body.view-9-16 .workstation-card.hub-card {
   color: var(--accent-blue);
 }
 
+.badge-steward {
+  background: rgba(0, 240, 255, 0.15);
+  border: 1px solid var(--accent-cyan);
+  color: var(--accent-cyan);
+}
+
 .badge-chief {
   background: rgba(157, 78, 221, 0.15);
   border: 1px solid var(--accent-purple);
@@ -663,6 +669,10 @@ body.view-9-16 .workstation-card.hub-card {
 
 .progress-bar-fill.fill-curator {
   background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+}
+
+.progress-bar-fill.fill-steward {
+  background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
 }
 
 .progress-bar-fill.fill-codex {
