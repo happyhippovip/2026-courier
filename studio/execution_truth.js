@@ -901,7 +901,7 @@ export function resolveLivingRoomAgents(stateData) {
     const state = typeof raw.state === 'string' && raw.state.trim() ? raw.state : (desk.state || 'IDLE');
     const task = raw.task || desk.task || (state === 'IDLE' ? 'Standby' : state);
     const progress = Number.isFinite(raw.progress) ? raw.progress : (desk.progress || 0.0);
-    const speech = resolveSpeechBubble(raw, agentId.replace('agent-', '').replace('-bridge', ''));
+    const speech = raw.speech || resolveSpeechBubble(agentId, { state, task, ...raw }, bus);
 
     const isBusy = state === 'RUNNING' || state === 'COMPARING' || state === 'REVIEWING' || state === 'COORDINATING' || state === 'WORKING';
     const isBlocked = raw.blocked || desk.status === 'BLOCKED';
@@ -932,13 +932,25 @@ export function resolveLivingRoomAgents(stateData) {
     
     let targetX = slot.x;
     let targetY = slot.y;
-    let currentArea = 'READY_ROOM';
 
     if (isAssigned) {
       const assignedDesk = assignedWorkstationCoords[idx % assignedWorkstationCoords.length];
       targetX = assignedDesk.x;
       targetY = assignedDesk.y;
-      currentArea = 'WORKSTATION';
+    }
+
+    let speechText = bg.speech;
+    if (!speechText || speechText.includes('on reserve') || speechText.includes('Ready for reserve duty')) {
+      if (bg.state === 'STANDBY') {
+        if (slot.leisure_area === 'COFFEE_BAR') speechText = `Standing by at the coffee bar.`;
+        else if (slot.leisure_area === 'SAUNA') speechText = `Standing by in the sauna.`;
+        else if (slot.leisure_area === 'VISITOR_LOUNGE') speechText = `Standing by in the visitor lounge.`;
+        else speechText = `Standing by near the fountain.`;
+      } else if (bg.state === 'WORKING') {
+        speechText = `Covering ${bg.temporary_role || 'task'} at workstation.`;
+      } else if (bg.state === 'RETURNING') {
+        speechText = `Task complete. Returning to standby.`;
+      }
     }
 
     results.push({
@@ -951,7 +963,7 @@ export function resolveLivingRoomAgents(stateData) {
       state: bg.state,
       task: bg.task || (bg.state === 'STANDBY' ? 'Reserve Duty (Standby)' : bg.state),
       progress: bg.progress,
-      speech: bg.speech,
+      speech: speechText,
       is_active: isAssigned,
       is_blocked: bg.blocked,
       is_bodyguard: true,
@@ -963,5 +975,6 @@ export function resolveLivingRoomAgents(stateData) {
   });
 
   return results;
+
 }
 

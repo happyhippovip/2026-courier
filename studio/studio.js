@@ -34,7 +34,7 @@ const AVATAR_ICONS = {
 
 export class LivingHQController {
   constructor() {
-    this.pollInterval = 500;
+    this.pollInterval = 1000;
     this.isPolling = false;
     this.agentNodes = new Map();
     this.currentView = "overview";
@@ -152,6 +152,19 @@ export class LivingHQController {
   setCameraView(view) {
     this.currentView = view;
     if (!this.stage) return;
+
+    if (view === "active") {
+      const active = this.lastAgents?.find(a => a.is_active && !a.is_bodyguard) || this.lastAgents?.find(a => a.is_active);
+      if (active) {
+        const panX = 50 - active.x;
+        const panY = 50 - active.y;
+        this.stage.className = "living-hq-stage";
+        this.stage.style.transform = `scale(2.2) translate(${panX}%, ${panY}%)`;
+        return;
+      }
+    }
+
+    this.stage.style.transform = "";
     this.stage.className = "living-hq-stage view-" + view;
   }
 
@@ -190,6 +203,7 @@ export class LivingHQController {
   updateLivingHQ(stateData) {
     // 1. Resolve and Render Dynamic Living Agents
     const agents = resolveLivingRoomAgents(stateData);
+    this.lastAgents = agents;
     this.renderLivingAgents(agents);
 
     // 2. Resolve Master TV Wall Data
