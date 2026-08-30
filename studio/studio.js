@@ -116,9 +116,14 @@ class OperationsStudio {
     this.teacherScheduleStatus = document.getElementById('teacher-schedule-status');
     this.teacherNextTime = document.getElementById('teacher-next-time');
     this.teacherLessonsOpps = document.getElementById('teacher-lessons-opps');
+    this.teacherLastTime = document.getElementById('teacher-last-time');
+    this.teacherNextAction = document.getElementById('teacher-next-action');
+    this.teacherAcademyWindow = document.getElementById('teacher-academy-window');
+    this.teacherEligibleAgents = document.getElementById('teacher-eligible-agents');
     this.teacherLatestLesson = document.getElementById('teacher-latest-lesson');
     this.teacherAffectedAgents = document.getElementById('teacher-affected-agents');
     this.teacherPendingLessons = document.getElementById('teacher-pending-lessons');
+    this.teacherOpportunityCandidates = document.getElementById('teacher-opportunity-candidates');
     this.teacherTaskLabel = document.getElementById('teacher-task-label');
     this.teacherProgressNum = document.getElementById('teacher-progress-num');
     this.teacherProgressBar = document.getElementById('teacher-progress-bar');
@@ -130,6 +135,7 @@ class OperationsStudio {
     this.directorEvalsRatio = document.getElementById('director-evals-ratio');
     this.directorRuleViolations = document.getElementById('director-rule-violations');
     this.directorTestsRequired = document.getElementById('director-tests-required');
+    this.directorNextAction = document.getElementById('director-next-action');
     this.econMinSaved = document.getElementById('econ-min-saved');
     this.econCostSaved = document.getElementById('econ-cost-saved');
     this.econRevenueTruth = document.getElementById('econ-revenue-truth');
@@ -472,7 +478,7 @@ class OperationsStudio {
       this.badgeTeacherState.textContent = teacher.state;
     }
     if (this.teacherTopic) {
-      this.teacherTopic.textContent = teacher.current_topic || 'Standby';
+      this.teacherTopic.textContent = teacher.current_topic || 'UNKNOWN';
     }
     if (this.teacherScheduleStatus) {
       this.teacherScheduleStatus.textContent = teacher.schedule_status;
@@ -481,43 +487,49 @@ class OperationsStudio {
         : 'metric-value font-mono';
     }
     if (this.teacherNextTime) {
-      this.teacherNextTime.textContent = teacher.next_school_time || '06:00 UTC';
+      this.teacherNextTime.textContent = teacher.next_school_time || 'UNKNOWN';
     }
     if (this.teacherLessonsOpps) {
-      this.teacherLessonsOpps.textContent = `${teacher.lessons_today} / ${teacher.opportunities_found}`;
+      this.teacherLessonsOpps.textContent = `${this.formatEvidenceValue(teacher.lessons_today)} / ${this.formatEvidenceValue(teacher.opportunities_found)}`;
+    }
+    if (this.teacherLastTime) {
+      this.teacherLastTime.textContent = teacher.last_school_time || 'UNKNOWN';
+    }
+    if (this.teacherNextAction) {
+      this.teacherNextAction.textContent = teacher.next_action || 'UNKNOWN';
+    }
+    if (this.teacherAcademyWindow) {
+      const enabled = teacher.academy_enabled === null ? 'UNKNOWN' : (teacher.academy_enabled ? 'ENABLED' : 'DISABLED');
+      this.teacherAcademyWindow.textContent = `${enabled} / ${teacher.school_window_minutes === null ? 'UNKNOWN' : `${teacher.school_window_minutes} min`}`;
+    }
+    if (this.teacherEligibleAgents) {
+      this.teacherEligibleAgents.textContent = teacher.eligible_agents === null
+        ? 'UNKNOWN'
+        : (teacher.eligible_agents.length ? teacher.eligible_agents.join(', ') : 'NONE');
     }
     if (this.teacherLatestLesson) {
       this.teacherLatestLesson.textContent = teacher.latest_lesson
-        ? `📚 LESSON: ${teacher.latest_lesson}`
-        : '📚 Standby for external discoveries & lessons...';
+        ? `📚 LESSON: ${teacher.latest_lesson} | ${teacher.latest_lesson_status || 'STATUS UNKNOWN'}`
+        : '📚 UNKNOWN';
     }
     if (this.teacherAffectedAgents) {
-      if (teacher.affected_agents && teacher.affected_agents.length > 0) {
-        this.teacherAffectedAgents.innerHTML = teacher.affected_agents
-          .map(agent => `<span class="affected-pill font-mono">${agent}</span>`)
-          .join(' ');
-      } else {
-        this.teacherAffectedAgents.innerHTML = '<span class="affected-pill font-mono">NONE</span>';
-      }
+      this.renderEvidencePills(this.teacherAffectedAgents, teacher.affected_agents, 'NONE');
     }
     if (this.teacherPendingLessons) {
-      if (teacher.pending_lessons && teacher.pending_lessons.length > 0) {
-        this.teacherPendingLessons.innerHTML = teacher.pending_lessons
-          .map(p => `<span class="affected-pill font-mono text-accent">⏳ ${p}</span>`)
-          .join(' ');
-      } else {
-        this.teacherPendingLessons.innerHTML = '<span class="affected-pill font-mono">QUEUE EMPTY</span>';
-      }
+      this.renderEvidencePills(this.teacherPendingLessons, teacher.pending_lessons, 'QUEUE EMPTY');
+    }
+    if (this.teacherOpportunityCandidates) {
+      this.renderEvidencePills(this.teacherOpportunityCandidates, teacher.opportunity_candidates, 'NONE');
     }
     if (this.teacherTaskLabel) {
       this.teacherTaskLabel.textContent = `Status: ${teacher.state}`;
     }
-    const teacherProgress = teacher.state === 'IDLE' ? 0 : 100;
+    const teacherProgress = Number.isFinite(teacher.progress) ? Math.round(teacher.progress * 100) : null;
     if (this.teacherProgressNum) {
-      this.teacherProgressNum.textContent = `${teacherProgress}%`;
+      this.teacherProgressNum.textContent = teacherProgress === null ? 'UNKNOWN' : `${teacherProgress}%`;
     }
     if (this.teacherProgressBar) {
-      this.teacherProgressBar.style.width = `${teacherProgress}%`;
+      this.teacherProgressBar.style.width = `${teacherProgress || 0}%`;
     }
     if (teacher.next_action) {
       this.appendLog(this.teacherFeedLog, `[LEHRER] ${teacher.next_action}`);
@@ -540,44 +552,47 @@ class OperationsStudio {
       this.badgeDirectorState.textContent = director.state;
     }
     if (this.directorReviewedApproved) {
-      this.directorReviewedApproved.textContent = `${director.lessons_reviewed} / ${director.lessons_approved}`;
+      this.directorReviewedApproved.textContent = `${this.formatEvidenceValue(director.lessons_reviewed)} / ${this.formatEvidenceValue(director.lessons_approved)}`;
     }
     if (this.directorEvalsRatio) {
-      this.directorEvalsRatio.textContent = `${director.evals_passed} / ${director.evals_failed}`;
+      this.directorEvalsRatio.textContent = `${this.formatEvidenceValue(director.evals_passed)} / ${this.formatEvidenceValue(director.evals_failed)}`;
     }
     if (this.directorRuleViolations) {
-      this.directorRuleViolations.textContent = director.rule_violations;
-      this.directorRuleViolations.className = director.rule_violations > 0
+      this.directorRuleViolations.textContent = this.formatEvidenceValue(director.rule_violations);
+      this.directorRuleViolations.className = director.rule_violations !== null && director.rule_violations > 0
         ? 'metric-value font-mono text-alert'
         : 'metric-value font-mono';
     }
     if (this.directorTestsRequired) {
-      this.directorTestsRequired.textContent = director.tests_required;
+      this.directorTestsRequired.textContent = this.formatEvidenceValue(director.tests_required);
+    }
+    if (this.directorNextAction) {
+      this.directorNextAction.textContent = director.next_action || 'UNKNOWN';
     }
 
     // Update Economic Metrics
     if (this.econMinSaved) {
-      this.econMinSaved.textContent = `⏱️ Saved: ${econ.measured_minutes_saved} min`;
+      this.econMinSaved.textContent = `⏱️ Saved: ${econ.measured_minutes_saved === null ? 'UNKNOWN' : `${econ.measured_minutes_saved} min`}`;
     }
     if (this.econCostSaved) {
-      this.econCostSaved.textContent = `💶 Saved: ${econ.measured_cost_saved_eur.toFixed(2)} EUR`;
+      this.econCostSaved.textContent = `💶 Saved: ${econ.measured_cost_saved_eur === null ? 'UNKNOWN' : `${econ.measured_cost_saved_eur.toFixed(2)} EUR`}`;
     }
     if (this.econRevenueTruth) {
       this.econRevenueTruth.textContent = `💰 Revenue: ${econ.revenue_evidence}`;
     }
     if (this.econAdoptedCount) {
-      this.econAdoptedCount.textContent = `📜 Adopted: ${econ.lessons_adopted}`;
+      this.econAdoptedCount.textContent = `📜 Adopted: ${this.formatEvidenceValue(econ.lessons_adopted)}`;
     }
 
     if (this.directorTaskLabel) {
       this.directorTaskLabel.textContent = `Status: ${director.state}`;
     }
-    const directorProgress = director.state === 'IDLE' ? 0 : 100;
+    const directorProgress = Number.isFinite(director.progress) ? Math.round(director.progress * 100) : null;
     if (this.directorProgressNum) {
-      this.directorProgressNum.textContent = `${directorProgress}%`;
+      this.directorProgressNum.textContent = directorProgress === null ? 'UNKNOWN' : `${directorProgress}%`;
     }
     if (this.directorProgressBar) {
-      this.directorProgressBar.style.width = `${directorProgress}%`;
+      this.directorProgressBar.style.width = `${directorProgress || 0}%`;
     }
     if (director.next_action) {
       this.appendLog(this.directorFeedLog, `[DIREKTOR] ${director.next_action}`);
@@ -606,6 +621,21 @@ class OperationsStudio {
     } else {
       this.gateBanner.classList.add('hidden');
     }
+  }
+
+  formatEvidenceValue(value) {
+    return value === null || value === undefined ? 'UNKNOWN' : String(value);
+  }
+
+  renderEvidencePills(container, values, emptyLabel) {
+    container.replaceChildren();
+    const labels = values === null ? ['UNKNOWN'] : (values.length ? values : [emptyLabel]);
+    labels.forEach((label) => {
+      const pill = document.createElement('span');
+      pill.className = 'affected-pill font-mono';
+      pill.textContent = label;
+      container.appendChild(pill);
+    });
   }
 
   setExecutionBadge(element, executionClass) {

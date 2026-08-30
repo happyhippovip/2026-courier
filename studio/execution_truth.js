@@ -285,13 +285,19 @@ export function resolveTeacherTruth(stateData) {
       schedule_status: 'UNKNOWN',
       last_school_time: null,
       next_school_time: null,
-      lessons_today: 0,
+      lessons_today: null,
       latest_lesson: null,
-      pending_lessons: [],
-      opportunities_found: 0,
-      affected_agents: [],
+      latest_lesson_status: null,
+      pending_lessons: null,
+      opportunities_found: null,
+      affected_agents: null,
       current_topic: null,
       next_action: null,
+      academy_enabled: null,
+      school_window_minutes: null,
+      eligible_agents: null,
+      opportunity_candidates: null,
+      progress: null,
       visual_metadata: {
         name: 'AGENTENLEHRER',
         props: ['teacher_hat', 'glasses', 'teacher_pointer'],
@@ -302,25 +308,42 @@ export function resolveTeacherTruth(stateData) {
 
   const state = typeof teacher.state === 'string' && teacher.state.trim()
     ? teacher.state
-    : 'IDLE';
+    : 'UNKNOWN';
 
-  // Strict distinction between Schedule Ready and active Research Running
+  const nextSchoolTime = typeof teacher.next_school_time === 'string' && teacher.next_school_time.trim()
+    ? teacher.next_school_time
+    : null;
+
+  // A schedule is ready only if the backend has supplied a next school time.
+  // An absent teacher state never becomes a visual research/schedule claim.
   const scheduleStatus = state === 'RESEARCHING'
     ? 'RESEARCH RUNNING'
-    : 'SCHEDULE READY';
+    : (nextSchoolTime ? 'SCHEDULE READY' : 'UNKNOWN');
 
   return {
     state,
     schedule_status: scheduleStatus,
-    last_school_time: teacher.last_school_time || null,
-    next_school_time: teacher.next_school_time || '06:00 UTC',
-    lessons_today: typeof teacher.lessons_today === 'number' ? teacher.lessons_today : 0,
-    latest_lesson: teacher.latest_lesson || null,
-    pending_lessons: Array.isArray(teacher.pending_lessons) ? teacher.pending_lessons : [],
-    opportunities_found: typeof teacher.opportunities_found === 'number' ? teacher.opportunities_found : 0,
-    affected_agents: Array.isArray(teacher.affected_agents) ? teacher.affected_agents : [],
-    current_topic: teacher.current_topic || 'Standby',
-    next_action: teacher.next_action || teacher.last_action || 'Monitoring daily school schedule',
+    last_school_time: typeof teacher.last_school_time === 'string' ? teacher.last_school_time : null,
+    next_school_time: nextSchoolTime,
+    lessons_today: Number.isFinite(teacher.lessons_today) ? teacher.lessons_today : null,
+    latest_lesson: typeof teacher.latest_lesson === 'string' ? teacher.latest_lesson : null,
+    latest_lesson_status: typeof teacher.latest_lesson_status === 'string' ? teacher.latest_lesson_status : null,
+    pending_lessons: Array.isArray(teacher.pending_lessons) ? teacher.pending_lessons : null,
+    opportunities_found: Number.isFinite(teacher.opportunities_found) ? teacher.opportunities_found : null,
+    affected_agents: Array.isArray(teacher.affected_agents) ? teacher.affected_agents : null,
+    current_topic: typeof teacher.current_topic === 'string' ? teacher.current_topic : null,
+    next_action: typeof teacher.next_action === 'string'
+      ? teacher.next_action
+      : (typeof teacher.last_action === 'string' ? teacher.last_action : null),
+    academy_enabled: typeof stateData?.academy_config?.academy_enabled === 'boolean'
+      ? stateData.academy_config.academy_enabled
+      : null,
+    school_window_minutes: Number.isFinite(stateData?.academy_config?.academy_window_minutes)
+      ? stateData.academy_config.academy_window_minutes
+      : null,
+    eligible_agents: Array.isArray(teacher.eligible_agents) ? teacher.eligible_agents : null,
+    opportunity_candidates: Array.isArray(teacher.opportunity_candidates) ? teacher.opportunity_candidates : null,
+    progress: Number.isFinite(teacher.progress) ? teacher.progress : null,
     visual_metadata: teacher.visual_metadata || {
       name: 'AGENTENLEHRER',
       props: ['teacher_hat', 'glasses', 'teacher_pointer'],
@@ -337,15 +360,16 @@ export function resolveDirectorTruth(stateData) {
   if (!director) {
     return {
       state: 'UNKNOWN',
-      lessons_reviewed: 0,
-      lessons_approved: 0,
-      lessons_rejected: 0,
-      tests_required: 0,
-      evals_passed: 0,
-      evals_failed: 0,
-      rule_violations: 0,
-      measured_savings: { minutes_saved: 0.0, cost_saved_eur: 0.0 },
+      lessons_reviewed: null,
+      lessons_approved: null,
+      lessons_rejected: null,
+      tests_required: null,
+      evals_passed: null,
+      evals_failed: null,
+      rule_violations: null,
+      measured_savings: { minutes_saved: null, cost_saved_eur: null },
       next_action: null,
+      progress: null,
       visual_metadata: {
         name: 'SCHULDIREKTOR',
         role_label: 'ACADEMY GOVERNANCE + EVALUATION',
@@ -355,19 +379,29 @@ export function resolveDirectorTruth(stateData) {
 
   const state = typeof director.state === 'string' && director.state.trim()
     ? director.state
-    : 'IDLE';
+    : 'UNKNOWN';
 
   return {
     state,
-    lessons_reviewed: typeof director.lessons_reviewed === 'number' ? director.lessons_reviewed : 0,
-    lessons_approved: typeof director.lessons_approved === 'number' ? director.lessons_approved : 0,
-    lessons_rejected: typeof director.lessons_rejected === 'number' ? director.lessons_rejected : 0,
-    tests_required: typeof director.tests_required === 'number' ? director.tests_required : 0,
-    evals_passed: typeof director.evals_passed === 'number' ? director.evals_passed : 0,
-    evals_failed: typeof director.evals_failed === 'number' ? director.evals_failed : 0,
-    rule_violations: typeof director.rule_violations === 'number' ? director.rule_violations : 0,
-    measured_savings: director.measured_savings || { minutes_saved: 0.0, cost_saved_eur: 0.0 },
-    next_action: director.next_action || director.last_action || 'Awaiting lesson submissions and evaluations',
+    lessons_reviewed: Number.isFinite(director.lessons_reviewed) ? director.lessons_reviewed : null,
+    lessons_approved: Number.isFinite(director.lessons_approved) ? director.lessons_approved : null,
+    lessons_rejected: Number.isFinite(director.lessons_rejected) ? director.lessons_rejected : null,
+    tests_required: Number.isFinite(director.tests_required) ? director.tests_required : null,
+    evals_passed: Number.isFinite(director.evals_passed) ? director.evals_passed : null,
+    evals_failed: Number.isFinite(director.evals_failed) ? director.evals_failed : null,
+    rule_violations: Number.isFinite(director.rule_violations) ? director.rule_violations : null,
+    measured_savings: {
+      minutes_saved: Number.isFinite(director.measured_savings?.minutes_saved)
+        ? director.measured_savings.minutes_saved
+        : null,
+      cost_saved_eur: Number.isFinite(director.measured_savings?.cost_saved_eur)
+        ? director.measured_savings.cost_saved_eur
+        : null,
+    },
+    next_action: typeof director.next_action === 'string'
+      ? director.next_action
+      : (typeof director.last_action === 'string' ? director.last_action : null),
+    progress: Number.isFinite(director.progress) ? director.progress : null,
     visual_metadata: director.visual_metadata || {
       name: 'SCHULDIREKTOR',
       role_label: 'ACADEMY GOVERNANCE + EVALUATION',
@@ -383,30 +417,30 @@ export function resolveAcademyEconomics(stateData) {
   const econ = stateData?.academy || {};
   const director = stateData?.agents?.['agent-academy-director'];
 
-  const measuredMinSaved = typeof econ.measured_minutes_saved === 'number'
+  const measuredMinSaved = Number.isFinite(econ.measured_minutes_saved)
     ? econ.measured_minutes_saved
-    : (typeof director?.measured_savings?.minutes_saved === 'number' ? director.measured_savings.minutes_saved : 0.0);
+    : (Number.isFinite(director?.measured_savings?.minutes_saved) ? director.measured_savings.minutes_saved : null);
 
-  const measuredCostSaved = typeof econ.measured_cost_saved_eur === 'number'
+  const measuredCostSaved = Number.isFinite(econ.measured_cost_saved_eur)
     ? econ.measured_cost_saved_eur
-    : (typeof director?.measured_savings?.cost_saved_eur === 'number' ? director.measured_savings.cost_saved_eur : 0.0);
+    : (Number.isFinite(director?.measured_savings?.cost_saved_eur) ? director.measured_savings.cost_saved_eur : null);
 
-  const totalLessonsAdopted = typeof econ.total_lessons_adopted === 'number'
+  const totalLessonsAdopted = Number.isFinite(econ.total_lessons_adopted)
     ? econ.total_lessons_adopted
-    : (typeof director?.lessons_approved === 'number' ? director.lessons_approved : 0);
+    : null;
 
-  const opportunitiesTested = typeof econ.opportunities_tested === 'number'
+  const opportunitiesTested = Number.isFinite(econ.opportunities_tested)
     ? econ.opportunities_tested
-    : 0;
+    : null;
 
-  const evalsPassed = typeof director?.evals_passed === 'number' ? director.evals_passed : 0;
-  const evalsFailed = typeof director?.evals_failed === 'number' ? director.evals_failed : 0;
-  const totalEvals = evalsPassed + evalsFailed;
-  const evalPassRate = totalEvals > 0 ? `${Math.round((evalsPassed / totalEvals) * 100)}%` : '100%';
+  const evalsPassed = Number.isFinite(director?.evals_passed) ? director.evals_passed : null;
+  const evalsFailed = Number.isFinite(director?.evals_failed) ? director.evals_failed : null;
+  const totalEvals = evalsPassed !== null && evalsFailed !== null ? evalsPassed + evalsFailed : null;
+  const evalPassRate = totalEvals && totalEvals > 0 ? `${Math.round((evalsPassed / totalEvals) * 100)}%` : 'UNKNOWN';
 
-  const revenueEvidence = econ.revenue_evidence === 'VERIFIED_RESULT'
-    ? 'VERIFIED_RESULT'
-    : 'NOT_VERIFIED';
+  const revenueEvidence = typeof econ.revenue_evidence === 'string'
+    ? econ.revenue_evidence
+    : 'UNKNOWN';
 
   return {
     measured_minutes_saved: measuredMinSaved,
@@ -418,3 +452,17 @@ export function resolveAcademyEconomics(stateData) {
     truth_label: 'OPPORTUNITY != REVENUE (MEASURED SAVINGS ONLY)',
   };
 }
+
+// This is a static explanation of the architecture, not execution evidence.
+export const ACADEMY_FLOW_STEPS = Object.freeze([
+  'EXTERNAL FINDING',
+  'AGENTENLEHRER',
+  'LESSON',
+  'SCHULDIREKTOR',
+  'TEST / EVAL',
+  'IDEA SYNC',
+  'CHIEF',
+  'UPDATE STEWARD',
+  'NEW CONTEXT VERSION',
+  'AFFECTED AGENT',
+]);

@@ -459,22 +459,44 @@
         <div class="metric-row">
           <div class="metric-box">
             <span class="metric-label">Current Topic</span>
-            <span class="metric-value font-mono text-accent" id="teacher-topic">Standby</span>
+            <span class="metric-value font-mono text-accent" id="teacher-topic">UNKNOWN</span>
           </div>
           <div class="metric-box">
             <span class="metric-label">School Schedule</span>
-            <span class="metric-value font-mono" id="teacher-schedule-status">SCHEDULE READY</span>
+            <span class="metric-value font-mono" id="teacher-schedule-status">UNKNOWN</span>
           </div>
         </div>
 
         <div class="metric-row">
           <div class="metric-box">
             <span class="metric-label">Next School Time</span>
-            <span class="metric-value font-mono text-secondary" id="teacher-next-time">06:00 UTC</span>
+            <span class="metric-value font-mono text-secondary" id="teacher-next-time">UNKNOWN</span>
           </div>
           <div class="metric-box">
             <span class="metric-label">Lessons Today / Opps</span>
-            <span class="metric-value font-mono" id="teacher-lessons-opps">0 / 0</span>
+            <span class="metric-value font-mono" id="teacher-lessons-opps">UNKNOWN / UNKNOWN</span>
+          </div>
+        </div>
+
+        <div class="metric-row">
+          <div class="metric-box">
+            <span class="metric-label">Last School Time</span>
+            <span class="metric-value font-mono" id="teacher-last-time">UNKNOWN</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Next Action</span>
+            <span class="metric-value font-mono" id="teacher-next-action">UNKNOWN</span>
+          </div>
+        </div>
+
+        <div class="metric-row">
+          <div class="metric-box">
+            <span class="metric-label">Academy / School Window</span>
+            <span class="metric-value font-mono" id="teacher-academy-window">UNKNOWN / UNKNOWN</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Eligible Agents</span>
+            <span class="metric-value font-mono" id="teacher-eligible-agents">UNKNOWN</span>
           </div>
         </div>
 
@@ -482,7 +504,7 @@
         <div class="context-delta-box">
           <span class="feed-label">LATEST LESSON PROPOSAL</span>
           <div class="context-delta-preview font-mono" id="teacher-latest-lesson">
-            📚 Standby for external discoveries & lessons...
+            📚 UNKNOWN
           </div>
         </div>
 
@@ -490,7 +512,7 @@
         <div class="affected-agents-box">
           <span class="feed-label">AFFECTED AGENTS</span>
           <div class="affected-pill-container" id="teacher-affected-agents">
-            <span class="affected-pill">NONE</span>
+            <span class="affected-pill">UNKNOWN</span>
           </div>
         </div>
 
@@ -498,24 +520,36 @@
         <div class="affected-agents-box">
           <span class="feed-label">PENDING LESSONS (SAFE TASK BOUNDARY QUEUE)</span>
           <div class="affected-pill-container" id="teacher-pending-lessons">
-            <span class="affected-pill">QUEUE EMPTY</span>
+            <span class="affected-pill">UNKNOWN</span>
+          </div>
+        </div>
+
+        <div class="affected-agents-box">
+          <span class="feed-label">OPPORTUNITY CANDIDATES (NOT REVENUE)</span>
+          <div class="affected-pill-container" id="teacher-opportunity-candidates">
+            <span class="affected-pill">UNKNOWN</span>
           </div>
         </div>
 
         <div class="task-progress-box">
           <div class="progress-info">
-            <span id="teacher-task-label">Status: IDLE</span>
-            <span id="teacher-progress-num">0%</span>
+            <span id="teacher-task-label">Status: UNKNOWN</span>
+            <span id="teacher-progress-num">UNKNOWN</span>
           </div>
           <div class="progress-bar-bg">
             <div class="progress-bar-fill fill-teacher" id="teacher-progress-bar" style="width: 0%;"></div>
           </div>
         </div>
 
+        <div class="metric-box">
+          <span class="metric-label">Next Action</span>
+          <span class="metric-value font-mono" id="director-next-action">UNKNOWN</span>
+        </div>
+
         <div class="action-feed">
           <span class="feed-label">AGENTENLEHRER LEARNING FEED</span>
           <div class="feed-log font-mono" id="teacher-feed-log">
-            <div class="log-entry system">[LEHRER] Standby for daily school window & opportunity discovery.</div>
+            <div class="log-entry system">[LEHRER] No backend activity evidence yet.</div>
           </div>
         </div>
       </div>
@@ -541,22 +575,22 @@
         <div class="metric-row">
           <div class="metric-box">
             <span class="metric-label">Lessons Reviewed / Approved</span>
-            <span class="metric-value font-mono text-accent" id="director-reviewed-approved">0 / 0</span>
+            <span class="metric-value font-mono text-accent" id="director-reviewed-approved">UNKNOWN / UNKNOWN</span>
           </div>
           <div class="metric-box">
             <span class="metric-label">Evals Pass / Fail</span>
-            <span class="metric-value font-mono" id="director-evals-ratio">0 / 0</span>
+            <span class="metric-value font-mono" id="director-evals-ratio">UNKNOWN / UNKNOWN</span>
           </div>
         </div>
 
         <div class="metric-row">
           <div class="metric-box">
             <span class="metric-label">Rule Violations</span>
-            <span class="metric-value font-mono" id="director-rule-violations">0</span>
+            <span class="metric-value font-mono" id="director-rule-violations">UNKNOWN</span>
           </div>
           <div class="metric-box">
             <span class="metric-label">Tests Required</span>
-            <span class="metric-value font-mono text-secondary" id="director-tests-required">0</span>
+            <span class="metric-value font-mono text-secondary" id="director-tests-required">UNKNOWN</span>
           </div>
         </div>
 
@@ -564,17 +598,17 @@
         <div class="memory-links-box" id="academy-econ-panel">
           <span class="feed-label">MEASURED ECONOMIC METRICS (TRUTH GROUNDED)</span>
           <div class="links-container">
-            <span class="link-chip chip-neutral" id="econ-min-saved">⏱️ Saved: 0.0 min</span>
-            <span class="link-chip chip-neutral" id="econ-cost-saved">💶 Saved: 0.00 EUR</span>
-            <span class="link-chip chip-neutral" id="econ-revenue-truth">💰 Revenue: NOT_VERIFIED</span>
-            <span class="link-chip chip-neutral" id="econ-adopted-count">📜 Adopted: 0</span>
+            <span class="link-chip chip-neutral" id="econ-min-saved">⏱️ Saved: UNKNOWN</span>
+            <span class="link-chip chip-neutral" id="econ-cost-saved">💶 Saved: UNKNOWN</span>
+            <span class="link-chip chip-neutral" id="econ-revenue-truth">💰 Revenue: UNKNOWN</span>
+            <span class="link-chip chip-neutral" id="econ-adopted-count">📜 Adopted: UNKNOWN</span>
           </div>
         </div>
 
         <div class="task-progress-box">
           <div class="progress-info">
-            <span id="director-task-label">Status: IDLE</span>
-            <span id="director-progress-num">0%</span>
+            <span id="director-task-label">Status: UNKNOWN</span>
+            <span id="director-progress-num">UNKNOWN</span>
           </div>
           <div class="progress-bar-bg">
             <div class="progress-bar-fill fill-director" id="director-progress-bar" style="width: 0%;"></div>
@@ -584,7 +618,7 @@
         <div class="action-feed">
           <span class="feed-label">SCHULDIREKTOR GOVERNANCE LOG</span>
           <div class="feed-log font-mono" id="director-feed-log">
-            <div class="log-entry system">[DIREKTOR] Standby for lesson reviews, attendance checks & eval gates.</div>
+            <div class="log-entry system">[DIREKTOR] No backend activity evidence yet.</div>
           </div>
         </div>
       </div>
@@ -604,11 +638,11 @@
     </div>
     <div class="footer-item">
       <span class="label">UPDATE STEWARD:</span>
-      <span class="val highlight" id="footer-steward-status">ACTIVE (SNAPSHOT V12)</span>
+      <span class="val highlight" id="footer-steward-status">UNKNOWN</span>
     </div>
     <div class="footer-item">
       <span class="label">AI ACADEMY:</span>
-      <span class="val highlight" id="footer-academy-status">ACTIVE (TEACHER + DIRECTOR)</span>
+      <span class="val highlight" id="footer-academy-status">UNKNOWN</span>
     </div>
     <div class="footer-item">
       <span class="label">LAST EVENT POLL:</span>

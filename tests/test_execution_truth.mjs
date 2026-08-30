@@ -203,22 +203,26 @@ assert.doesNotMatch(studioSource, /last_decision\s*\|\|\s*['\"]ACCEPTED['\"]/);
 // 7. AI ACADEMY TRUTH RESOLUTION (TEACHER, DIRECTOR, ECONOMICS)
 // -------------------------------------------------------------
 import {
+  ACADEMY_FLOW_STEPS,
   resolveAcademyEconomics,
   resolveDirectorTruth,
   resolveTeacherTruth,
 } from '../studio/execution_truth.js';
 
-// 7.1 Missing Academy Evidence => UNKNOWN / 0 values
+// 7.1 Missing Academy Evidence => UNKNOWN / null values
 const emptyTeacher = resolveTeacherTruth({});
 assert.equal(emptyTeacher.state, 'UNKNOWN');
 assert.equal(emptyTeacher.schedule_status, 'UNKNOWN');
-assert.equal(emptyTeacher.lessons_today, 0);
-assert.deepEqual(emptyTeacher.pending_lessons, []);
+assert.equal(emptyTeacher.lessons_today, null);
+assert.equal(emptyTeacher.pending_lessons, null);
+assert.equal(emptyTeacher.next_school_time, null);
 
 const emptyDirector = resolveDirectorTruth({});
 assert.equal(emptyDirector.state, 'UNKNOWN');
-assert.equal(emptyDirector.lessons_reviewed, 0);
-assert.equal(emptyDirector.rule_violations, 0);
+assert.equal(emptyDirector.lessons_reviewed, null);
+assert.equal(emptyDirector.rule_violations, null);
+assert.equal(resolveAcademyEconomics({}).measured_minutes_saved, null);
+assert.equal(resolveAcademyEconomics({}).eval_pass_rate, 'UNKNOWN');
 
 // 7.2 Real Teacher Evidence & Schedule vs Research Distinction
 const teacherReadyState = {
@@ -227,6 +231,7 @@ const teacherReadyState = {
       id: 'agent-academy-teacher',
       name: 'Agentenlehrer',
       state: 'PENDING_REVIEW',
+      next_school_time: '06:00 UTC',
       current_topic: 'PROMPT_CACHING_OPTIMIZATION',
       lessons_today: 3,
       opportunities_found: 1,
@@ -296,5 +301,12 @@ assert.equal(econTruth.measured_cost_saved_eur, 0.0);
 assert.equal(econTruth.lessons_adopted, 2);
 assert.equal(econTruth.revenue_evidence, 'NOT_VERIFIED');
 assert.equal(econTruth.eval_pass_rate, '100%');
+
+// 7.5 The visible Academy map documents a flow, not a fabricated execution.
+assert.deepEqual(ACADEMY_FLOW_STEPS, [
+  'EXTERNAL FINDING', 'AGENTENLEHRER', 'LESSON', 'SCHULDIREKTOR',
+  'TEST / EVAL', 'IDEA SYNC', 'CHIEF', 'UPDATE STEWARD',
+  'NEW CONTEXT VERSION', 'AFFECTED AGENT',
+]);
 
 console.log('execution truth tests: PASS (100% SUCCESS)');
