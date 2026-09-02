@@ -43,7 +43,8 @@ class InvoiceGenerator:
             "payment_link": "Awaiting account owner configuration (AUTONOMOUS GENERATION)",
             "created_at": now.isoformat(),
             "due_date": due_date.isoformat(),
-            "status": "ISSUED_UNPAID",
+            "artifact_status": "DRAFT_SIMULATION",
+            "payment_status": "UNCONFIGURED",
             "destination_verified": False,
             "autonomous_spend_eur": 0.0
         }

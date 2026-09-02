@@ -87,13 +87,34 @@ class InboundResponseObserver:
         return result
 
     def classify_message_text(self, subject: str, body: str) -> Tuple[ResponseClassification, float]:
-        """Classifies incoming text into one of 11 machine-readable states with confidence."""
         combined = (subject + " " + body).lower()
 
-        if any(w in combined for w in ["interested", "sounds good", "let's do it", "send invoice", "payment link", "book a slot", "audit", "yes"]):
+        # 1. System / Delivery Non-Buyer signals
+        if any(w in combined for w in ["mailer-daemon", "delivery status notification", "failure notice", "undeliverable", "bounce"]):
+            return ResponseClassification.BOUNCE, 0.99
+        if any(w in combined for w in ["out of office", "automatic reply", "auto-reply", "vacation response", "away from my email"]):
+            return ResponseClassification.AUTO_REPLY, 0.95
+        if any(w in combined for w in ["unsubscribe", "remove me", "stop", "do not contact", "opt out"]):
+            return ResponseClassification.UNSUBSCRIBE_OR_STOP, 0.99
+
+        # 2. Buyer Negative / Deflection
+        if any(w in combined for w in ["wrong person", "no longer with", "forward this to"]):
+            return ResponseClassification.WRONG_PERSON, 0.90
+        if any(w in combined for w in ["not interested", "no thank you", "no thanks", "pass on this", "decline", "declining"]):
+            return ResponseClassification.NOT_INTERESTED, 0.90
+        if any(w in combined for w in ["not right now", "check back next quarter", "too busy right now"]):
+            return ResponseClassification.NOT_NOW, 0.85
+        if any(w in combined for w in ["too expensive", "budget constraint", "discount", "lower price"]):
+            return ResponseClassification.PRICE_OBJECTION, 0.85
+
+        # 3. Buyer Positive / Progressive signals
+        if any(w in combined for w in ["send invoice", "please send the invoice", "we would like to proceed", "let's proceed with the audit", "we want to purchase", "payment link", "book a slot"]):
             return ResponseClassification.POSITIVE_INTEREST, 0.95
-        
-        # Simplified for brevity, original logic can be fully restored here
+        if any(w in combined for w in ["can we include", "what about", "custom scope", "scope covers", "multi-repo"]):
+            return ResponseClassification.SCOPE_REQUEST, 0.85
+        if any(w in combined for w in ["how does it work", "what do you need", "question about", "timeline", "sample", "do you offer an audit"]):
+            return ResponseClassification.QUESTION, 0.85
+
         return ResponseClassification.UNKNOWN, 0.50
 
     def get_all_active_sent_experiments(self) -> List[Dict[str, Any]]:
