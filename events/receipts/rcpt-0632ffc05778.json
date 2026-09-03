@@ -1,0 +1,26 @@
+{
+  "receipt_id": "rcpt-0632ffc05778",
+  "provider": "GOOGLE_YOUTUBE_API",
+  "platform": "YOUTUBE",
+  "provenance_source": "ACTUAL_PROVIDER_READ",
+  "operation": "playlistItems.list",
+  "endpoint": "youtube.playlistItems.list",
+  "request_parameters_safe": {
+    "part": "snippet,contentDetails,status",
+    "playlistId": "UUg0O_a10jsQ74ffS_HgFGqA",
+    "maxResults": 50
+  },
+  "authenticated_channel_id": "UCg0O_a10jsQ74ffS_HgFGqA",
+  "scope_reference": "https://www.googleapis.com/auth/youtube.force-ssl",
+  "started_at": "2026-08-31T09:42:14.361561+00:00",
+  "completed_at": "2026-08-31T09:42:14.361561+00:00",
+  "result_count": 9,
+  "page_count": 1,
+  "next_page_token_present": false,
+  "coverage_complete": true,
+  "payload_evidence_hash": "f6b42f791f15c2fec24dd94535324c3ad54468509818fe5d6bd477fc762854ed",
+  "provenance_version": "2.0",
+  "trusted_adapter_version": "1.0",
+  "receipt_hash": "edbd0e7d8dd1a8d4d3e3f00cf6872833fb3bdfb18c966e01731769c5e0fa7505",
+  "previous_receipt_hash": null
+}
