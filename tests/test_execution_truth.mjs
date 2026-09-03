@@ -21,6 +21,19 @@ import {
   resolveTeacherTruth,
   resolveThreadContext,
   validateThreadAssociation,
+  resolveLiveOrchestrationTruth,
+  resolveReviewTruth,
+  resolveLiveAgentMotion,
+  resolveCapabilityTruth,
+  resolveSkillTruth,
+  resolveHandoffTruth,
+  sanitizeTruthText,
+  PROMPT_LIFECYCLE_PHASES,
+  TRUTH_MODES,
+  CANONICAL_EXAMPLE_STORY,
+  CANONICAL_SHOWCASE_1,
+  StorySceneController,
+  resolveStoryLivingAgents,
 } from '../studio/execution_truth.js';
 
 
@@ -632,7 +645,481 @@ const hostileAgentName = '<img src=x onerror=alert(1)>';
 assert.ok(hostileAgentName.includes('<img'));
 assert.match(studioSource, /textContent = agent\.name/);
 
+// -------------------------------------------------------------
+// 13. MISSION 108: WALKING AGENT HQ & LIVE ORCHESTRATION TRUTH
+// -------------------------------------------------------------
+
+// 1. IDLE agent stays idle without real task
+const idleOrch = resolveLiveOrchestrationTruth({});
+assert.equal(idleOrch.visual_phase, 'IDLE');
+assert.equal(idleOrch.courier_phase, 'IDLE');
+assert.equal(idleOrch.active_builder, null);
+
+// 2. Active builder task moves correct agent to workstation & TASK_RECEIVED / WORKING
+const workingState = {
+  bus: { is_locked: true },
+  agents: {
+    'agent-antigravity-bridge': {
+      id: 'agent-antigravity-bridge',
+      state: 'RUNNING',
+      task: 'TASK-BUILD-001',
+      progress: 0.5,
+    },
+  },
+};
+const workingOrch = resolveLiveOrchestrationTruth(workingState);
+assert.equal(workingOrch.active_builder, 'agent-antigravity-bridge');
+assert.equal(workingOrch.visual_phase, 'WORKING');
+assert.equal(workingOrch.active_task, 'TASK-BUILD-001');
+
+// 3. RESULT_READY triggers Courier return visualization
+const resultReadyState = {
+  bus: { is_locked: true },
+  agents: {
+    'agent-antigravity-bridge': {
+      id: 'agent-antigravity-bridge',
+      state: 'AWAITING_CHIEF_REVIEW',
+      task: 'TASK-BUILD-001',
+      progress: 1.0,
+    },
+    'agent-courier-relay': {
+      id: 'agent-courier-relay',
+      state: 'RETURNING',
+    },
+  },
+};
+const resultOrch = resolveLiveOrchestrationTruth(resultReadyState);
+assert.equal(resultOrch.visual_phase, 'RESULT_READY');
+assert.equal(resultOrch.courier_phase, 'RESULT_RETURN');
+
+// 4. NO_REVIEW keeps reviewer idle
+const noReviewTruth = resolveReviewTruth({ review_decision: 'NO_REVIEW' });
+assert.equal(noReviewTruth.reviewer_label, 'IDLE');
+assert.equal(noReviewTruth.reviewer_state, 'IDLE');
+
+// 5. BATCH_REVIEW shows queued state
+const batchReviewTruth = resolveReviewTruth({ review_decision: 'BATCH_REVIEW' });
+assert.equal(batchReviewTruth.reviewer_label, 'REVIEW QUEUED');
+assert.equal(batchReviewTruth.reviewer_state, 'WAITING');
+
+// 6. IMMEDIATE_REVIEW_REQUIRED shows reviewer required state (Codex active/high-priority)
+const immReviewTruth = resolveReviewTruth({ review_decision: 'IMMEDIATE_REVIEW_REQUIRED' });
+assert.equal(immReviewTruth.reviewer_label, 'REVIEW REQUIRED');
+assert.equal(immReviewTruth.reviewer_state, 'WORKING');
+
+// Living room agents reflect review state
+const livingImm = resolveLivingRoomAgents({ review_decision: 'IMMEDIATE_REVIEW_REQUIRED' });
+const cdxImm = livingImm.find(a => a.id === 'agent-codex-bridge');
+assert.ok(cdxImm);
+assert.equal(cdxImm.state, 'RUNNING');
+assert.equal(cdxImm.is_active, true);
+assert.match(cdxImm.title, /REVIEW REQUIRED/);
+
+// 7. Missing telemetry never generates fake activity
+const emptyLiving = resolveLivingRoomAgents({});
+for (const ag of emptyLiving) {
+  if (!ag.is_bodyguard) {
+    assert.ok(ag.state === 'IDLE' || ag.state === 'UNKNOWN');
+    assert.equal(ag.is_active, false);
+  }
+}
+
+// 8. Sanitized labels contain no secret payload
+const sensitivePrompt = 'Run task with token=ghp_secretToken123456789 and secret=superSecretValue456';
+const cleanPrompt = sanitizeTruthText(sensitivePrompt);
+assert.doesNotMatch(cleanPrompt, /ghp_secretToken123456789/);
+assert.doesNotMatch(cleanPrompt, /superSecretValue456/);
+assert.match(cleanPrompt, /\[REDACTED_SECRET\]/);
+
+// -------------------------------------------------------------
+// 14. MISSION 109: CINEMATIC PROMPT STORY MODE
+// -------------------------------------------------------------
+
+// 1. Truth modes and prompt lifecycle phases are strictly defined
+assert.ok(PROMPT_LIFECYCLE_PHASES.includes('PROMPT_RECEIVED'));
+assert.ok(PROMPT_LIFECYCLE_PHASES.includes('COURIER_DISPATCH'));
+assert.ok(PROMPT_LIFECYCLE_PHASES.includes('WORKING_VISUALIZED'));
+assert.ok(PROMPT_LIFECYCLE_PHASES.includes('COURIER_RETURN'));
+assert.ok(PROMPT_LIFECYCLE_PHASES.includes('DONE'));
+
+assert.deepEqual(TRUTH_MODES, ['LIVE', 'VISUALIZED', 'UNKNOWN']);
+
+// 2. Canonical Example Story is marked VISUALIZED/DEMO
+assert.ok(CANONICAL_EXAMPLE_STORY.story_id === 'story-demo-001' || CANONICAL_EXAMPLE_STORY.story_id === 'showcase-001');
+assert.equal(CANONICAL_EXAMPLE_STORY.assigned_agent, 'agent-antigravity-bridge');
+for (const step of CANONICAL_EXAMPLE_STORY.steps) {
+  assert.equal(step.truth_mode, 'VISUALIZED');
+  assert.ok(step.caption);
+  assert.doesNotMatch(step.caption, /ghp_|secret|token=|key=/i);
+}
+
+// 3. StorySceneController deterministic timeline playback
+const controller = new StorySceneController();
+assert.equal(controller.isPlaying, false);
+
+// Play starts playback
+controller.play();
+assert.equal(controller.isPlaying, true);
+
+// Get initial step: PROMPT_RECEIVED
+const step0 = controller.getCurrentStep();
+assert.equal(step0.phase, 'PROMPT_RECEIVED');
+assert.equal(step0.truth_mode, 'VISUALIZED');
+
+// Update advances step deterministically
+controller.update(2600); // Exceeds step0 duration (2500ms)
+const step1 = controller.getCurrentStep();
+assert.equal(step1.phase, 'TASK_ACCEPTED');
+
+// Pause stops advancement
+controller.pause();
+assert.equal(controller.isPlaying, false);
+controller.update(5000);
+assert.equal(controller.getCurrentStep().phase, 'TASK_ACCEPTED');
+
+// Restart returns to step 0
+controller.restart();
+assert.equal(controller.getCurrentStep().phase, 'PROMPT_RECEIVED');
+assert.equal(controller.isPlaying, true);
+
+// Next step manual advance
+controller.nextStep();
+assert.equal(controller.getCurrentStep().phase, 'TASK_ACCEPTED');
+
+// Speed setting
+controller.setSpeed(2.0);
+assert.equal(controller.playbackSpeed, 2.0);
+
+// 4. resolveStoryLivingAgents updates only active story agent
+const baseAgents = resolveLivingRoomAgents({});
+const stepDispatch = CANONICAL_EXAMPLE_STORY.steps.find(s => s.phase === 'COURIER_DISPATCH');
+const storyLiving = resolveStoryLivingAgents(stepDispatch, baseAgents);
+
+const courierAg = storyLiving.find(a => a.id === 'agent-courier-relay');
+assert.ok(courierAg);
+assert.equal(courierAg.is_active, true);
+assert.equal(courierAg.animation, 'walking');
+
+// Non-active agents remain inactive
+const snitchAg = storyLiving.find(a => a.id === 'agent-snitch');
+assert.ok(snitchAg);
+assert.equal(snitchAg.is_active, false);
+
+// 5. Full prompt is not exposed
+const progress = controller.getProgress();
+assert.ok(progress.task_title);
+assert.ok(progress.caption);
+assert.doesNotMatch(progress.caption, /\{.*\}|full_prompt/);
+
+// -------------------------------------------------------------
+// 15. MISSION 110: CINEMATIC SHOWCASE #1
+// -------------------------------------------------------------
+
+// 1. Showcase #1 begins at Chief
+const showcase = CANONICAL_SHOWCASE_1;
+assert.equal(showcase.steps[0].phase, 'PROMPT_RECEIVED');
+assert.equal(showcase.steps[0].agent, 'agent-chief-commander');
+assert.equal(showcase.steps[0].target_waypoint, 'CHIEF_COMMAND');
+
+// 2. TASK packet moves Chief -> Antigravity
+const dispatchStep = showcase.steps.find(s => s.phase === 'COURIER_DISPATCH');
+assert.ok(dispatchStep);
+assert.equal(dispatchStep.agent, 'agent-courier-relay');
+assert.equal(dispatchStep.target_waypoint, 'DESK_16');
+
+// 3. Antigravity visibly accepts task: READING -> TASK_ACCEPTED -> PLAN_CREATED
+const readingStep = showcase.steps.find(s => s.agent === 'agent-antigravity-bridge' && s.phase === 'READING');
+const acceptStep = showcase.steps.find(s => s.agent === 'agent-antigravity-bridge' && s.phase === 'TASK_ACCEPTED');
+const planStep = showcase.steps.find(s => s.agent === 'agent-antigravity-bridge' && s.phase === 'PLAN_CREATED');
+assert.ok(readingStep);
+assert.ok(acceptStep);
+assert.ok(planStep);
+
+// 4. WORKING is explicitly VISUALIZED
+const workStep = showcase.steps.find(s => s.phase === 'WORKING_VISUALIZED');
+assert.ok(workStep);
+assert.equal(workStep.truth_mode, 'VISUALIZED');
+assert.equal(workStep.agent, 'agent-antigravity-bridge');
+assert.match(workStep.caption, /WORKING • VISUALIZED/);
+
+// 5. RESULT packet moves Antigravity -> Chief
+const resultStep = showcase.steps.find(s => s.phase === 'RESULT_PREPARED');
+const returnStep = showcase.steps.find(s => s.phase === 'COURIER_RETURN');
+assert.ok(resultStep);
+assert.ok(returnStep);
+assert.equal(returnStep.target_waypoint, 'CHIEF_COMMAND');
+
+// 6. Final state is DONE
+const finalStep = showcase.steps[showcase.steps.length - 1];
+assert.equal(finalStep.phase, 'DONE');
+assert.equal(finalStep.agent, 'agent-chief-commander');
+
+// 7. 1x Runtime target is 20-30 seconds
+const showcaseCtrl = new StorySceneController(showcase);
+const totalRuntimeMs = showcaseCtrl.getTotalRuntimeMs();
+assert.ok(totalRuntimeMs >= 20000 && totalRuntimeMs <= 30000, `Showcase runtime ${totalRuntimeMs}ms is within 20-30s`);
+assert.equal(totalRuntimeMs, 24000);
+
+// 8. STORY MODE • VISUALIZED is strictly preserved
+for (const step of showcase.steps) {
+  assert.equal(step.truth_mode, 'VISUALIZED');
+}
+
+// 9. Camera sequence covers chief -> courier -> active -> courier -> command -> overview
+assert.equal(showcase.steps[0].camera_target, 'command');
+assert.ok(showcase.steps.some(s => s.camera_target === 'active'));
+assert.ok(showcase.steps.some(s => s.camera_target === 'command'));
+
+// 10. Sanitization: no full prompts, secrets or keys
+for (const step of showcase.steps) {
+  assert.doesNotMatch(step.caption, /ghp_|bearer|token|secret|password|apiKey/i);
+  assert.ok(step.caption.length < 120);
+}
+
+// 11. Movement & Dynamic Waypoint Trajectory
+const agentsAtStart = resolveStoryLivingAgents(showcase.steps[0], []);
+const courierAtStart = agentsAtStart.find(a => a.id === 'agent-courier-relay');
+assert.equal(courierAtStart.x, 50.0);
+assert.equal(courierAtStart.y, 42.0);
+
+const agentsAtDispatch = resolveStoryLivingAgents(dispatchStep, []);
+const courierAtDispatch = agentsAtDispatch.find(a => a.id === 'agent-courier-relay');
+assert.equal(courierAtDispatch.x, 66.5);
+assert.equal(courierAtDispatch.y, 45.0);
+assert.equal(courierAtDispatch.state, 'RUNNING');
+assert.equal(courierAtDispatch.animation, 'walking');
+
+const agentsAtReturn = resolveStoryLivingAgents(returnStep, []);
+const courierAtReturn = agentsAtReturn.find(a => a.id === 'agent-courier-relay');
+assert.equal(courierAtReturn.x, 50.0);
+assert.equal(courierAtReturn.y, 42.0);
+assert.equal(courierAtReturn.state, 'RUNNING');
+
+const agentsAtWork = resolveStoryLivingAgents(workStep, []);
+const agBuilder = agentsAtWork.find(a => a.id === 'agent-antigravity-bridge');
+assert.equal(agBuilder.x, 66.5);
+assert.equal(agBuilder.y, 45.0);
+// -------------------------------------------------------------
+// 16. MISSION 111: REAL LIVE AGENT MOVEMENT & STATE MACHINE
+// -------------------------------------------------------------
+
+// 1. Idle behavior: no unjustified movement, all at home desks
+const idleMotion = resolveLiveAgentMotion({
+  bus: { is_locked: false, active_workflow: 'IDLE_MONITORING' },
+  agents: {},
+  transport: { incoming_count: 0 },
+});
+assert.equal(idleMotion.is_idle, true);
+assert.equal(idleMotion.visual_phase, 'IDLE');
+assert.equal(idleMotion.courier_phase, 'IDLE');
+assert.equal(idleMotion.destinations['agent-courier-relay'].x, 74.0);
+assert.equal(idleMotion.destinations['agent-courier-relay'].y, 45.0);
+assert.equal(idleMotion.states['agent-codex-bridge'], 'IDLE');
+
+// 2. Real task dispatch: Task Received -> Courier routes Chief -> Router -> Builder (Desk 16)
+const taskDispatchMotion = resolveLiveAgentMotion({
+  bus: { is_locked: true, active_workflow: 'WF-BUILD-001', correlation_id: 'corr-001' },
+  agents: {
+    'agent-antigravity-bridge': { id: 'agent-antigravity-bridge', state: 'RUNNING', task: 'TASK-BUILD-001', progress: 0.2 },
+  },
+  transport: { incoming_count: 1 },
+});
+assert.equal(taskDispatchMotion.is_idle, false);
+assert.equal(taskDispatchMotion.courier_phase, 'TASK_DELIVERY');
+assert.equal(taskDispatchMotion.active_builder, 'agent-antigravity-bridge');
+assert.deepEqual(taskDispatchMotion.routes['agent-courier-relay'], ['CHIEF_COMMAND', 'ROUTER_DESK', 'DESK_16']);
+assert.equal(taskDispatchMotion.states['agent-courier-relay'], 'DISPATCHED');
+assert.equal(taskDispatchMotion.speech_overrides['agent-courier-relay'], 'DISPATCHED');
+
+// 3. Real task result return WITHOUT review: Codex remains strictly IDLE
+const resultNoReviewMotion = resolveLiveAgentMotion({
+  bus: { is_locked: true, active_workflow: 'WF-BUILD-001', correlation_id: 'corr-001' },
+  agents: {
+    'agent-antigravity-bridge': { id: 'agent-antigravity-bridge', state: 'AWAITING_CHIEF_REVIEW', task: 'TASK-BUILD-001', progress: 1.0 },
+  },
+  review_budget: { policy: { defaults: { low_risk_review: 'NO_REVIEW' } } },
+});
+assert.equal(resultNoReviewMotion.courier_phase, 'RESULT_RETURN');
+assert.equal(resultNoReviewMotion.review_required, false);
+assert.deepEqual(resultNoReviewMotion.routes['agent-courier-relay'], ['DESK_16', 'CHIEF_COMMAND']);
+assert.equal(resultNoReviewMotion.states['agent-codex-bridge'], 'IDLE');
+assert.equal(resultNoReviewMotion.destinations['agent-codex-bridge'].x, 14.5);
+assert.equal(resultNoReviewMotion.destinations['agent-codex-bridge'].y, 48.0);
+
+// 4. Real task result return WITH review required: Courier routes Builder -> Codex -> Chief
+const resultWithReviewMotion = resolveLiveAgentMotion({
+  bus: { is_locked: true, active_workflow: 'WF-AUTH-GATE-001', correlation_id: 'corr-auth' },
+  agents: {
+    'agent-antigravity-bridge': { id: 'agent-antigravity-bridge', state: 'AWAITING_CHIEF_REVIEW', task: 'TASK-AUTH-001', progress: 1.0 },
+    'agent-codex-bridge': { id: 'agent-codex-bridge', state: 'RUNNING', task: 'High-risk Auth Review' },
+  },
+});
+assert.equal(resultWithReviewMotion.review_required, true);
+assert.deepEqual(resultWithReviewMotion.routes['agent-courier-relay'], ['DESK_16', 'DESK_04', 'CHIEF_COMMAND']);
+assert.equal(resultWithReviewMotion.states['agent-codex-bridge'], 'RUNNING');
+assert.equal(resultWithReviewMotion.speech_overrides['agent-codex-bridge'], 'WAITING FOR REVIEW');
+
+// 5. Human Gate: Human Gate Monitor routes to Chief Command
+const humanGateMotion = resolveLiveAgentMotion({
+  bus: {
+    is_locked: true,
+    active_workflow: 'WF-SPEND-001',
+    correlation_id: 'corr-spend',
+    active_human_gate: { id: 'gate-spend', state: 'BLOCKED', provenance_complete: true, workflow_id: 'WF-SPEND-001', correlation_id: 'corr-spend' },
+  },
+  agents: {},
+});
+assert.equal(humanGateMotion.states['agent-human-gate-monitor'], 'HUMAN_GATE');
+assert.deepEqual(humanGateMotion.routes['agent-human-gate-monitor'], ['DESK_01', 'CHIEF_COMMAND']);
+assert.equal(humanGateMotion.speech_overrides['agent-human-gate-monitor'], 'HUMAN GATE');
+
+// 6. Deduplication fingerprint stability
+const fp1 = taskDispatchMotion.fingerprint;
+const taskDispatchMotionAgain = resolveLiveAgentMotion({
+  bus: { is_locked: true, active_workflow: 'WF-BUILD-001', correlation_id: 'corr-001' },
+  agents: {
+    'agent-antigravity-bridge': { id: 'agent-antigravity-bridge', state: 'RUNNING', task: 'TASK-BUILD-001', progress: 0.22 },
+  },
+  transport: { incoming_count: 1 },
+});
+// -------------------------------------------------------------
+// 17. MISSION 112: REAL ORCHESTRATION CANARY ROUNDTRIP
+// -------------------------------------------------------------
+
+// 1. Real task identity & stable correlation identity
+const canaryWorkflowId = 'WF-CHIEF-74a781';
+const canaryTaskId = 'WF-CHIEF-74a781-STEP-1-DISCOVER';
+const canaryCorrelationId = 'corr-chief-20afbb30';
+
+const canaryStateDispatch = {
+  bus: {
+    is_locked: true,
+    active_workflow: canaryWorkflowId,
+    correlation_id: canaryCorrelationId,
+    context_version: 77,
+  },
+  agents: {
+    'agent-chief-commander': { id: 'agent-chief-commander', state: 'RUNNING', task: `Orchestrating ${canaryWorkflowId}` },
+    'agent-antigravity-bridge': { id: 'agent-antigravity-bridge', state: 'RUNNING', task: canaryTaskId, progress: 0.15 },
+  },
+  transport: { incoming_count: 1 },
+  review_budget: { policy: { defaults: { low_risk_review: 'NO_REVIEW' } } },
+};
+
+const canaryMotionDispatch = resolveLiveAgentMotion(canaryStateDispatch);
+
+// Exactly one builder
+assert.equal(canaryMotionDispatch.active_builder, 'agent-antigravity-bridge');
+assert.equal(canaryMotionDispatch.is_idle, false);
+assert.equal(canaryMotionDispatch.courier_phase, 'TASK_DELIVERY');
+
+// Exactly-once dispatch visualization
+assert.deepEqual(canaryMotionDispatch.routes['agent-courier-relay'], ['CHIEF_COMMAND', 'ROUTER_DESK', 'DESK_16']);
+assert.equal(canaryMotionDispatch.states['agent-courier-relay'], 'DISPATCHED');
+
+// Codex remains strictly idle when review is unnecessary
+assert.equal(canaryMotionDispatch.states['agent-codex-bridge'], 'IDLE');
+assert.equal(canaryMotionDispatch.destinations['agent-codex-bridge'].x, 14.5);
+assert.equal(canaryMotionDispatch.destinations['agent-codex-bridge'].y, 48.0);
+
+// Result Ready & Exactly-once result return
+const canaryStateResult = {
+  bus: {
+    is_locked: true,
+    active_workflow: canaryWorkflowId,
+    correlation_id: canaryCorrelationId,
+    context_version: 77,
+  },
+  agents: {
+    'agent-chief-commander': { id: 'agent-chief-commander', state: 'RUNNING', task: `Orchestrating ${canaryWorkflowId}` },
+    'agent-antigravity-bridge': { id: 'agent-antigravity-bridge', state: 'AWAITING_CHIEF_REVIEW', task: canaryTaskId, progress: 1.0 },
+  },
+  review_budget: { policy: { defaults: { low_risk_review: 'NO_REVIEW' } } },
+};
+
+const canaryMotionResult = resolveLiveAgentMotion(canaryStateResult);
+assert.equal(canaryMotionResult.courier_phase, 'RESULT_RETURN');
+assert.deepEqual(canaryMotionResult.routes['agent-courier-relay'], ['DESK_16', 'CHIEF_COMMAND']);
+assert.equal(canaryMotionResult.states['agent-codex-bridge'], 'IDLE');
+
+// Unchanged polling does not restart route (fingerprint check)
+const canaryStateResultPoll2 = {
+  bus: {
+    is_locked: true,
+    active_workflow: canaryWorkflowId,
+    correlation_id: canaryCorrelationId,
+    context_version: 77,
+  },
+  agents: {
+    'agent-chief-commander': { id: 'agent-chief-commander', state: 'RUNNING', task: `Orchestrating ${canaryWorkflowId}` },
+    'agent-antigravity-bridge': { id: 'agent-antigravity-bridge', state: 'AWAITING_CHIEF_REVIEW', task: canaryTaskId, progress: 1.0 },
+  },
+  review_budget: { policy: { defaults: { low_risk_review: 'NO_REVIEW' } } },
+};
+const canaryMotionResultPoll2 = resolveLiveAgentMotion(canaryStateResultPoll2);
+// -------------------------------------------------------------
+// 18. MISSION 113: CAPABILITY, SKILL & HANDOFF LAYER
+// -------------------------------------------------------------
+
+// 1. Capability Truth Resolution
+const capabilityState = {
+  capabilities: {
+    'LOCAL_FILES_READ': 'AVAILABLE',
+    'LOCAL_FILES_WRITE': 'AVAILABLE',
+    'GIT_READ': 'AVAILABLE',
+    'GITHUB_WRITE': 'APPROVAL_REQUIRED',
+    'X_READ': 'AUTH_REQUIRED',
+  },
+};
+const capTruth = resolveCapabilityTruth(capabilityState);
+assert.equal(capTruth.total_capabilities, 5);
+assert.equal(capTruth.available_count, 3);
+assert.deepEqual(capTruth.available_capabilities, ['LOCAL_FILES_READ', 'LOCAL_FILES_WRITE', 'GIT_READ']);
+assert.deepEqual(capTruth.auth_required_capabilities, ['X_READ']);
+assert.deepEqual(capTruth.approval_required_capabilities, ['GITHUB_WRITE']);
+
+// 2. Skill Truth Resolution
+const skillState = {
+  skills: [
+    { skill_id: 'LOCAL_CANARY_VERIFY', owner_agent: 'agent-antigravity-bridge', verification_state: 'ACTIVE' },
+    { skill_id: 'REVIEW_BUDGET_EVALUATE', owner_agent: 'agent-codex-bridge', verification_state: 'ACTIVE' },
+    { skill_id: 'LEGACY_PROMPT', owner_agent: 'agent-chief-commander', verification_state: 'DEPRECATED' },
+  ],
+};
+const skillTruth = resolveSkillTruth(skillState);
+assert.equal(skillTruth.total_skills, 3);
+assert.equal(skillTruth.active_skills.length, 2);
+assert.deepEqual(skillTruth.owners.sort(), ['agent-antigravity-bridge', 'agent-chief-commander', 'agent-codex-bridge']);
+
+// 3. Handoff Truth Resolution & Motion Mapping
+const handoffState = {
+  active_handoff: {
+    handoff_id: 'handoff-test-001',
+    from_agent: 'agent-thought-curator',
+    to_agent: 'agent-antigravity-bridge',
+    task_id: 'WF-HANDOFF-101',
+    correlation_id: 'corr-handoff-101',
+    reason: 'Delegate 3D scene compile',
+  },
+  agents: {
+    'agent-thought-curator': { id: 'agent-thought-curator', state: 'HANDOFF' },
+    'agent-antigravity-bridge': { id: 'agent-antigravity-bridge', state: 'RUNNING' },
+  },
+};
+const handoffTruth = resolveHandoffTruth(handoffState);
+assert.equal(handoffTruth.has_active_handoff, true);
+assert.equal(handoffTruth.from_agent, 'agent-thought-curator');
+assert.equal(handoffTruth.to_agent, 'agent-antigravity-bridge');
+assert.equal(handoffTruth.task_id, 'WF-HANDOFF-101');
+assert.equal(handoffTruth.correlation_id, 'corr-handoff-101');
+
+// Verify Courier routes from Desk 02 -> Router -> Desk 16 with HANDOFF state
+const handoffMotion = resolveLiveAgentMotion(handoffState);
+assert.equal(handoffMotion.states['agent-courier-relay'], 'HANDOFF');
+assert.equal(handoffMotion.speech_overrides['agent-courier-relay'], 'HANDOFF');
+assert.deepEqual(handoffMotion.routes['agent-courier-relay'], ['DESK_02', 'ROUTER_DESK', 'DESK_16']);
+assert.equal(handoffMotion.states['agent-thought-curator'], 'HANDOFF');
+assert.equal(handoffMotion.states['agent-antigravity-bridge'], 'RUNNING');
+
 console.log('execution truth tests: PASS (100% SUCCESS)');
-
-
 

@@ -23,6 +23,41 @@ __pycache__/
 events/locks/*.lease
 events/locks/*.lock
 
+# Runtime GitHub Transport envelopes remain local.
+events/transport/incoming/*.json
+events/transport/processed/*.json
+events/transport/rejected/*.json
+events/transport/acknowledgements/*.json
+events/transport/transitions/*.json
+events/transport/transitions.jsonl
+events/transport/claims/*.claim
+events/transport/*.lock
+events/transport/registry.json
+!events/transport/.gitkeep
+!events/transport/incoming/.gitkeep
+!events/transport/processed/.gitkeep
+!events/transport/rejected/.gitkeep
+!events/transport/acknowledgements/.gitkeep
+!events/transport/transitions/.gitkeep
+!events/transport/claims/.gitkeep
+
+# Runtime Review Ledger & Budget files remain local.
+events/reviews/*.json
+events/reviews/*.jsonl
+events/reviews/*.lock
+!events/reviews/.gitkeep
+
+# Runtime state & sensitive payment configs remain strictly local
+events/runtime-state/*.json
+events/runtime-state/*.lock
+events/task-envelopes/*.json
+!events/runtime-state/.gitkeep
+!events/task-envelopes/.gitkeep
+
+
+
+
+
 # Demo workflow runs & scratch assets
 events/demo/*
 !events/demo/.gitkeep
