@@ -28,6 +28,11 @@ from pathlib import Path
 SCRIPTS_DIR = Path(__file__).resolve().parent
 COURIER_DIR = SCRIPTS_DIR.parent
 
+try:
+    from scripts.canonical_authority import CanonicalAuthority
+except ImportError:
+    from canonical_authority import CanonicalAuthority
+
 EVENTS_DIR = COURIER_DIR / "events"
 SCHEMAS_DIR = COURIER_DIR / "schemas"
 
@@ -68,14 +73,16 @@ def check_secrets_in_text(text: str) -> int:
 
 
 class CodexVisualStateTracker:
-    """Maintains machine-readable visual and operational state for Codex."""
+    """Maintains machine-readable visual and operational state for agent-codex-bridge."""
 
-    def __init__(self, agent_id: str = "agent-codex-bridge", name: str = "Codex Bridge", role: str = "Courier Codex Automation"):
+    def __init__(self, agent_id: str = "agent-codex-bridge", name: str = "Codex Bridge", role: str = "Courier Automation Codex", repo_dir: Path | None = None):
         self.agent_id = agent_id
         self.name = name
         self.role = role
-        self.state_file = STATES_DIR / f"{agent_id}.json"
-        STATES_DIR.mkdir(parents=True, exist_ok=True)
+        self.repo_dir = repo_dir or COURIER_DIR
+        self.states_dir = self.repo_dir / "events/agent-states"
+        self.states_dir.mkdir(parents=True, exist_ok=True)
+        self.state_file = self.states_dir / f"{agent_id}.json"
 
     def update_state(
         self,
@@ -389,86 +396,106 @@ def execute_codex_task(worker_job_path: Path, hooks: CodexHookRunner, force: boo
         print(f"[CODEX_DEDUPE] Task {task_id} already COMPLETED in {result_file.name}. Skipping duplicate execution.")
         return result_file
 
-    # 1. Trigger ON_TASK_START Hook
-    hooks.on_task_start(task_id, correlation_id, instruction)
-
-    # 2. Execute Task Logic: Real CLI if requested, or deterministic local inspection
-    hooks.on_tool_action(task_id, "Validating Codex scope and parameters", 0.3)
-
-    payload = {}
-    if try_real_cli and CODEX_CLI_PATH.exists():
-        hooks.on_tool_action(task_id, "Invoking real Codex CLI process (/Applications/ChatGPT.app/Contents/Resources/codex)", 0.6)
-        success, real_res = execute_real_codex_cli(instruction, allowed_scope, task_id)
-        payload = real_res
-        payload.update({
-            "zero_cost_policy": "ZERO_COST_ONLY",
-            "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
-        })
-    else:
-        target_fixture = None
-        for item in allowed_scope:
-            if isinstance(item, str) and (item.endswith(".json") or item.endswith(".md") or item.endswith(".txt") or item.endswith(".py") or item.endswith(".schema.json")):
-                # Path confinement check
-                try:
-                    candidate = (COURIER_DIR / item).resolve()
-                    if COURIER_DIR in candidate.parents or candidate == COURIER_DIR:
-                        if candidate.exists() and candidate.is_file():
-                            target_fixture = candidate
-                            break
-                except Exception:
-                    pass
-
-        if target_fixture and target_fixture.exists():
-            hooks.on_tool_action(task_id, f"Reading and verifying code/fixture: {target_fixture.name}", 0.6)
-            content_snippet = target_fixture.read_text(encoding="utf-8")[:500]
-            payload = {
-                "verdict": "PASS",
-                "agent_source": "CODEX",
-                "action_executed": "CODEX_INSPECT_CODE_AND_FIXTURE",
-                "target_file": str(target_fixture.relative_to(COURIER_DIR)),
-                "file_size_bytes": target_fixture.stat().st_size,
-                "content_summary": f"Codex verified syntax and structure ({len(content_snippet)} chars snippet)",
-                "execution_mode": "CLASS_B_DETERMINISTIC_WORKER",
-                "zero_cost_policy": "ZERO_COST_ONLY",
-                "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
-            }
-        else:
-            hooks.on_tool_action(task_id, "Executing generic Codex structured summary", 0.6)
-            payload = {
-                "verdict": "PASS",
-                "agent_source": "CODEX",
-                "action_executed": "CODEX_EXECUTE_INSTRUCTION",
-                "instruction_summary": instruction[:120],
-                "execution_mode": "CLASS_B_DETERMINISTIC_WORKER",
-                "zero_cost_policy": "ZERO_COST_ONLY",
-                "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
-            }
-
-    # Keep workflow lineage separate from the envelope's parent_id, which
-    # references the source command message rather than the preceding task.
-    if workflow_id:
-        payload["workflow_id"] = workflow_id
-    if parent_task_id:
-        payload["parent_task_id"] = parent_task_id
-
-    payload["context_version_seen"] = job.get("context_version")
-    payload["context_snapshot_hash_seen"] = job.get("context_snapshot_hash")
-
-
-    hooks.on_tool_action(task_id, "Formatting structured Codex result payload", 0.9)
-
-    # 3. Trigger ON_COMPLETION Hook (writes RESULT_READY)
-    result_file = hooks.on_task_completion(
+    # Acquire Canonical Scope Authority
+    auth = CanonicalAuthority()
+    target_scopes = [s for s in allowed_scope if isinstance(s, str) and s.strip()] or ["CODEX:BRIDGE"]
+    owner_id = "agent-codex-bridge"
+    success, gen, err = auth.acquire_scopes(
+        owner_id=owner_id,
         task_id=task_id,
-        correlation_id=correlation_id,
-        parent_id=parent_id,
-        payload=payload,
+        scopes=target_scopes,
     )
+    if not success:
+        print(f"[CODEX_AUTHORITY_DENIED] Task {task_id} rejected by CanonicalAuthority: {err}")
+        return hooks.on_task_failure(task_id, correlation_id, parent_id, f"DENIED_BY_CANONICAL_AUTHORITY: {err}")
 
-    # 4. Trigger ON_STOP Hook
-    hooks.on_task_stop(task_id)
+    try:
+        # 1. Trigger ON_TASK_START Hook
+        hooks.on_task_start(task_id, correlation_id, instruction)
 
-    return result_file
+        # 2. Execute Task Logic: Real CLI if requested, or deterministic local inspection
+        hooks.on_tool_action(task_id, "Validating Codex scope and parameters", 0.3)
+
+        payload = {}
+        if try_real_cli and CODEX_CLI_PATH.exists():
+            hooks.on_tool_action(task_id, "Invoking real Codex CLI process (/Applications/ChatGPT.app/Contents/Resources/codex)", 0.6)
+            success, real_res = execute_real_codex_cli(instruction, allowed_scope, task_id)
+            payload = real_res
+            payload.update({
+                "zero_cost_policy": "ZERO_COST_ONLY",
+                "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+            })
+        else:
+            target_fixture = None
+            for item in allowed_scope:
+                if isinstance(item, str) and (item.endswith(".json") or item.endswith(".md") or item.endswith(".txt") or item.endswith(".py") or item.endswith(".schema.json")):
+                    # Path confinement check
+                    try:
+                        candidate = (COURIER_DIR / item).resolve()
+                        if COURIER_DIR in candidate.parents or candidate == COURIER_DIR:
+                            if candidate.exists() and candidate.is_file():
+                                target_fixture = candidate
+                                break
+                    except Exception:
+                        pass
+
+            if target_fixture and target_fixture.exists():
+                hooks.on_tool_action(task_id, f"Reading and verifying code/fixture: {target_fixture.name}", 0.6)
+                content_snippet = target_fixture.read_text(encoding="utf-8")[:500]
+                payload = {
+                    "verdict": "PASS",
+                    "agent_source": "CODEX",
+                    "action_executed": "CODEX_INSPECT_CODE_AND_FIXTURE",
+                    "target_file": str(target_fixture.relative_to(COURIER_DIR)),
+                    "file_size_bytes": target_fixture.stat().st_size,
+                    "content_summary": f"Codex verified syntax and structure ({len(content_snippet)} chars snippet)",
+                    "execution_mode": "CLASS_B_DETERMINISTIC_WORKER",
+                    "zero_cost_policy": "ZERO_COST_ONLY",
+                    "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+                }
+            else:
+                hooks.on_tool_action(task_id, "Executing generic Codex structured summary", 0.6)
+                payload = {
+                    "verdict": "PASS",
+                    "agent_source": "CODEX",
+                    "action_executed": "CODEX_EXECUTE_INSTRUCTION",
+                    "instruction_summary": instruction[:120],
+                    "execution_mode": "CLASS_B_DETERMINISTIC_WORKER",
+                    "zero_cost_policy": "ZERO_COST_ONLY",
+                    "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+                }
+
+        # Keep workflow lineage separate from the envelope's parent_id, which
+        # references the source command message rather than the preceding task.
+        if workflow_id:
+            payload["workflow_id"] = workflow_id
+        if parent_task_id:
+            payload["parent_task_id"] = parent_task_id
+
+        payload["context_version_seen"] = job.get("context_version")
+        payload["context_snapshot_hash_seen"] = job.get("context_snapshot_hash")
+
+        hooks.on_tool_action(task_id, "Formatting structured Codex result payload", 0.9)
+
+        # 3. Trigger ON_COMPLETION Hook (writes RESULT_READY)
+        result_file = hooks.on_task_completion(
+            task_id=task_id,
+            correlation_id=correlation_id,
+            parent_id=parent_id,
+            payload=payload,
+        )
+
+        # 4. Trigger ON_STOP Hook
+        hooks.on_task_stop(task_id)
+
+        return result_file
+    finally:
+        auth.release_scopes(
+            owner_id=owner_id,
+            task_id=task_id,
+            scopes=target_scopes,
+            generation=gen,
+        )
 
 
 def run_chief_review_router(task_id: str, result_file: Path) -> dict:

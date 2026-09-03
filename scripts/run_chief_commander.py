@@ -57,6 +57,8 @@ try:
         ChiefContextPackageBuilder,
         ReviewDedupeTracker,
     )
+    from review_budget import ReviewBudgetManager
+    from resource_intelligence import ResourceIntelligenceManager
 except ImportError:
     from scripts.run_thought_curator import ThoughtCurator
     from scripts.run_autonomous_loop import AutonomousLevel6Loop
@@ -71,8 +73,87 @@ except ImportError:
         ChiefContextPackageBuilder,
         ReviewDedupeTracker,
     )
+    from scripts.review_budget import ReviewBudgetManager
+    from scripts.resource_intelligence import ResourceIntelligenceManager
 
 
+
+
+from dataclasses import dataclass, field, asdict
+
+
+def save_json_atomic(path: Path, data: dict) -> None:
+    """Durably persist Chief decisions without exposing a partial JSON file."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_suffix(path.suffix + f".tmp.{os.getpid()}.{uuid.uuid4().hex[:6]}")
+    temporary.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    os.replace(temporary, path)
+
+
+@dataclass
+class ChiefDecisionContract:
+    schema_version: str = "2.0"
+    chief_decision_id: str = ""
+    conversation_id: str = "c61b931a-e4f1-476d-b9d2-431218079df5"
+    chief_turn_id: str = ""
+    workflow_id: str = ""
+    task_id: str = ""
+    correlation_id: str = ""
+    result_id: str = ""
+    decision: str = "COMPLETE"  # Allowed: CONTINUE, ACCEPT, RETRY_SAFE, HANDOFF, REVIEW_REQUIRED, WAIT_FOR_HUMAN, COMPLETE, PAUSE
+    next_task: dict | None = None
+    risk_level: str = "LOW"
+    cost_class: str = "ZERO_COST_LOCAL"
+    review_decision: str = "NO_REVIEW"
+    value_gate: dict = field(default_factory=dict)
+    reason: str = ""
+    evidence_refs: list[str] = field(default_factory=list)
+    created_at: str = ""
+
+    def __post_init__(self):
+        if not self.chief_decision_id:
+            self.chief_decision_id = f"dec-chief-{uuid.uuid4().hex[:10]}"
+        if not self.chief_turn_id:
+            self.chief_turn_id = f"turn-{uuid.uuid4().hex[:8]}"
+        if not self.created_at:
+            self.created_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+        allowed_decisions = {
+            "CONTINUE", "ACCEPT", "RETRY_SAFE", "HANDOFF",
+            "REVIEW_REQUIRED", "WAIT_FOR_HUMAN", "COMPLETE", "PAUSE"
+        }
+        if self.decision not in allowed_decisions:
+            raise ValueError(f"Invalid Chief decision '{self.decision}'. Must be one of {allowed_decisions}")
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+
+def evaluate_value_gate(result_payload: dict, task_desc: str = "") -> dict:
+    """Evaluates whether a task result creates real information or advances production."""
+    creates_new_info = bool(result_payload.get("data") or result_payload.get("output") or result_payload.get("metrics") or result_payload.get("summary"))
+    fixes_problem = bool(result_payload.get("fixed_defects") or result_payload.get("repaired"))
+    advances_prod = bool(result_payload.get("verdict") in ("PASS", "ACCEPTED", "SUCCESS") or result_payload.get("status") in ("COMPLETED", "READY"))
+    reduces_risk = bool(result_payload.get("risk_reduced") or result_payload.get("lint_passed") or result_payload.get("tests_passed"))
+    testable_benefit = bool(result_payload.get("testable_artifact") or result_payload.get("verified_file") or creates_new_info or advances_prod)
+
+    # If explicitly flagged as zero-value or noop
+    if result_payload.get("is_noop") or result_payload.get("zero_value"):
+        creates_new_info = False
+        fixes_problem = False
+        advances_prod = False
+        reduces_risk = False
+        testable_benefit = False
+
+    passed = any([creates_new_info, fixes_problem, advances_prod, reduces_risk, testable_benefit])
+    return {
+        "creates_new_information": creates_new_info,
+        "fixes_verified_problem": fixes_problem,
+        "advances_production": advances_prod,
+        "reduces_risk_cost": reduces_risk,
+        "testable_benefit": testable_benefit,
+        "passed": passed,
+    }
 
 
 class SmartResourceRouter:
@@ -134,11 +215,331 @@ class ChiefCommander:
         self.curator = ThoughtCurator(repo_dir=repo_dir)
         self.steward = UpdateSteward(repo_dir=repo_dir)
         self.loop_engine = AutonomousLevel6Loop(repo_dir=repo_dir)
+        self.resource_intelligence = ResourceIntelligenceManager(repo_dir=repo_dir)
         self.chief_state_tracker = AntigravityVisualStateTracker(
             agent_id="agent-chief-commander",
             name="Chief Commander",
             role="Autonomous Orchestration & Review",
+            repo_dir=repo_dir,
         )
+
+    def resource_context(self) -> dict:
+        """Compact canonical capacity references for Chief decisions only."""
+        return self.resource_intelligence.context_for_role("CHIEF_COMMANDER")
+
+    def set_presence(self, presence_state: str, session_id: str | None = None) -> dict:
+        """Sets persistent Chief presence (AWAKE, SLEEPING, VACATION) and updates visual tracking."""
+        allowed = {"AWAKE", "SLEEPING", "VACATION"}
+        if presence_state not in allowed:
+            raise ValueError(f"Invalid presence state '{presence_state}'. Must be one of {allowed}")
+
+        now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        presence_file = self.repo_dir / "events/chief_presence.json"
+        presence_data = {
+            "schema_version": "2.0",
+            "presence": presence_state,
+            "session_id": session_id,
+            "updated_at": now_iso,
+        }
+        save_json(presence_file, presence_data)
+
+        if presence_state == "SLEEPING":
+            self.chief_state_tracker.update_state(
+                state="SLEEPING",
+                task="Resting (Zzz...)",
+                progress=1.0,
+                position_hint="fireplace",
+                workflow="NIGHT_AUTOPILOT",
+                last_action="Chief is resting. Autonomous night loop active.",
+                next_action="Zzz...",
+                blocked=False,
+            )
+        elif presence_state == "AWAKE":
+            self.chief_state_tracker.update_state(
+                state="IDLE",
+                task="Command & Strategy",
+                progress=0.0,
+                position_hint="command_table",
+                workflow=None,
+                last_action="Chief is awake and monitoring operations.",
+                next_action="Standby for human directive",
+                blocked=False,
+            )
+
+        return presence_data
+
+    def get_presence(self) -> dict:
+        """Reads the durable Chief presence record."""
+        presence_file = self.repo_dir / "events/chief_presence.json"
+        if not presence_file.exists():
+            return {
+                "schema_version": "2.0",
+                "presence": "AWAKE",
+                "session_id": None,
+                "updated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            }
+        data = load_json(presence_file)
+        if data and "presence" in data:
+            return data
+        return {
+            "schema_version": "2.0",
+            "presence": "AWAKE",
+            "session_id": None,
+            "updated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        }
+
+    def log_night_journal(self, session_id: str, entry: dict) -> Path:
+        """Appends an atomic JSON entry to the session's night journal."""
+        journal_dir = self.repo_dir / "events/night-journal"
+        journal_dir.mkdir(parents=True, exist_ok=True)
+        journal_file = journal_dir / f"journal-{session_id}.jsonl"
+
+        entry_record = dict(entry)
+        if "timestamp" not in entry_record:
+            entry_record["timestamp"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        if "chief_presence" not in entry_record:
+            entry_record["chief_presence"] = self.get_presence().get("presence", "SLEEPING")
+
+        with open(journal_file, "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry_record) + "\n")
+
+        return journal_file
+
+    def evaluate_result_and_decide(
+        self,
+        task_id: str,
+        correlation_id: str,
+        workflow_id: str,
+        result_file: Path,
+        workflow_plan: list[dict] | None = None,
+        round_index: int = 0,
+        conversation_id: str = "c61b931a-e4f1-476d-b9d2-431218079df5",
+        chief_turn_id: str | None = None,
+    ) -> ChiefDecisionContract:
+        """Evaluates a completed worker result and produces a persisted ChiefDecisionContract."""
+        now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        result_data = load_json(result_file)
+        payload = result_data.get("payload", {})
+        verdict = payload.get("verdict", "PASS")
+        result_id = result_data.get("result_id") or result_file.name
+
+        # 1. Evaluate Value Gate
+        value_gate_res = evaluate_value_gate(payload)
+
+        # 2. Evaluate Review Budget
+        review_decision = "NO_REVIEW"
+        try:
+            rb_mgr = ReviewBudgetManager(self.repo_dir)
+            review_eval = rb_mgr.evaluate_review_requirement(
+                task_id=task_id,
+                task_instruction=result_data.get("instruction", ""),
+                target_agent=result_data.get("source", "antigravity"),
+                diff_files=payload.get("modified_files", []),
+            )
+            review_decision = review_eval.get("decision", "NO_REVIEW")
+        except Exception:
+            review_decision = "NO_REVIEW"
+
+        # 3. Check for Human Approval Gate Requirement
+        if payload.get("requires_human_approval") or payload.get("human_gate_required") or verdict in ["HUMAN_GATE", "HUMAN_APPROVAL_REQUIRED"]:
+            approvals_dir = self.repo_dir / "events/approvals"
+            approval_event = None
+            if approvals_dir.exists():
+                for af in sorted(approvals_dir.glob("*.json"), reverse=True):
+                    try:
+                        ad = load_json(af)
+                        if ad.get("workflow_id") == workflow_id and (ad.get("task_id") == task_id or ad.get("correlation_id") == correlation_id):
+                            approval_event = ad
+                            break
+                    except Exception:
+                        pass
+
+            if approval_event:
+                if approval_event.get("decision") == "APPROVE" or approval_event.get("action") == "APPROVE":
+                    verdict = "ACCEPTED"
+                else:
+                    decision_obj = ChiefDecisionContract(
+                        conversation_id=conversation_id,
+                        chief_turn_id=chief_turn_id or f"turn-{uuid.uuid4().hex[:8]}",
+                        workflow_id=workflow_id,
+                        task_id=task_id,
+                        correlation_id=correlation_id,
+                        result_id=result_id,
+                        decision="COMPLETE",
+                        next_task=None,
+                        risk_level="HIGH",
+                        cost_class="ZERO_COST_LOCAL",
+                        review_decision=review_decision,
+                        value_gate=value_gate_res,
+                        reason=f"Rejected by human operator: {approval_event.get('reason', 'None')}",
+                        evidence_refs=[str(result_file.name)],
+                        created_at=now_iso,
+                    )
+                    self._persist_decision(task_id, decision_obj)
+                    return decision_obj
+            else:
+                decision_obj = ChiefDecisionContract(
+                    conversation_id=conversation_id,
+                    chief_turn_id=chief_turn_id or f"turn-{uuid.uuid4().hex[:8]}",
+                    workflow_id=workflow_id,
+                    task_id=task_id,
+                    correlation_id=correlation_id,
+                    result_id=result_id,
+                    decision="WAIT_FOR_HUMAN",
+                    next_task=None,
+                    risk_level="HIGH",
+                    cost_class="ZERO_COST_LOCAL",
+                    review_decision=review_decision,
+                    value_gate=value_gate_res,
+                    reason="Task payload flagged for explicit human approval before advancing.",
+                    evidence_refs=[str(result_file.name)],
+                    created_at=now_iso,
+                )
+                self._persist_decision(task_id, decision_obj)
+                return decision_obj
+
+        # 4. Handle Needs Fix / Retry
+        if verdict == "NEEDS_FIX":
+            repair_task = {
+                "task_id": f"{workflow_id}-REPAIR-{round_index + 1}",
+                "instruction": f"Fix defects reported in {task_id}",
+                "allowed_scope": payload.get("target_files", ["config/local_tools.json"]),
+                "target_agent": result_data.get("source", "antigravity"),
+                "cost_class": "ZERO_COST_LOCAL",
+                "risk_level": "MEDIUM",
+            }
+            decision_obj = ChiefDecisionContract(
+                conversation_id=conversation_id,
+                chief_turn_id=chief_turn_id or f"turn-{uuid.uuid4().hex[:8]}",
+                workflow_id=workflow_id,
+                task_id=task_id,
+                correlation_id=correlation_id,
+                result_id=result_id,
+                decision="RETRY_SAFE",
+                next_task=repair_task,
+                risk_level="MEDIUM",
+                cost_class="ZERO_COST_LOCAL",
+                review_decision=review_decision,
+                value_gate=value_gate_res,
+                reason="QA verification failed; repair task dispatched.",
+                evidence_refs=[str(result_file.name)],
+                created_at=now_iso,
+            )
+            self._persist_decision(task_id, decision_obj)
+            return decision_obj
+
+        # 5. Handle Review Required
+        if review_decision in ("IMMEDIATE_REVIEW_REQUIRED", "REVIEW_REQUIRED_BEFORE_PUSH"):
+            review_task = {
+                "task_id": f"{workflow_id}-REVIEW-{round_index + 1}",
+                "instruction": f"Perform independent technical QA review on {task_id} delta",
+                "allowed_scope": payload.get("target_files", ["config/local_tools.json"]),
+                "target_agent": "codex",
+                "cost_class": "ZERO_COST_LOCAL",
+                "risk_level": "HIGH",
+            }
+            decision_obj = ChiefDecisionContract(
+                conversation_id=conversation_id,
+                chief_turn_id=chief_turn_id or f"turn-{uuid.uuid4().hex[:8]}",
+                workflow_id=workflow_id,
+                task_id=task_id,
+                correlation_id=correlation_id,
+                result_id=result_id,
+                decision="REVIEW_REQUIRED",
+                next_task=review_task,
+                risk_level="HIGH",
+                cost_class="ZERO_COST_LOCAL",
+                review_decision=review_decision,
+                value_gate=value_gate_res,
+                reason="Review Budget flagged change as requiring independent Codex review.",
+                evidence_refs=[str(result_file.name)],
+                created_at=now_iso,
+            )
+            self._persist_decision(task_id, decision_obj)
+            return decision_obj
+
+        # 6. Handle Pass & Check Next Task
+        next_task_info = None
+        if workflow_plan and (round_index + 1) < len(workflow_plan):
+            next_step = workflow_plan[round_index + 1]
+            next_task_info = {
+                "task_id": next_step.get("task_id", f"{workflow_id}-round-{round_index + 2}"),
+                "instruction": next_step.get("instruction", "Execute next step"),
+                "allowed_scope": next_step.get("allowed_scope", []),
+                "target_agent": next_step.get("target_agent", "antigravity"),
+                "payload_override": next_step.get("payload_override"),
+                "cost_class": next_step.get("cost_class", "ZERO_COST_LOCAL"),
+                "risk_level": next_step.get("risk_level", "LOW"),
+            }
+
+        # Value Gate check: If Value Gate fails and there is no explicit planned next task, complete
+        if not value_gate_res["passed"] and not next_task_info:
+            decision_obj = ChiefDecisionContract(
+                conversation_id=conversation_id,
+                chief_turn_id=chief_turn_id or f"turn-{uuid.uuid4().hex[:8]}",
+                workflow_id=workflow_id,
+                task_id=task_id,
+                correlation_id=correlation_id,
+                result_id=result_id,
+                decision="COMPLETE",
+                next_task=None,
+                risk_level="LOW",
+                cost_class="ZERO_COST_LOCAL",
+                review_decision=review_decision,
+                value_gate=value_gate_res,
+                reason="Value Gate indicates zero additional information gain; completing workflow.",
+                evidence_refs=[str(result_file.name)],
+                created_at=now_iso,
+            )
+            self._persist_decision(task_id, decision_obj)
+            return decision_obj
+
+        if next_task_info:
+            decision_obj = ChiefDecisionContract(
+                conversation_id=conversation_id,
+                chief_turn_id=chief_turn_id or f"turn-{uuid.uuid4().hex[:8]}",
+                workflow_id=workflow_id,
+                task_id=task_id,
+                correlation_id=correlation_id,
+                result_id=result_id,
+                decision="CONTINUE",
+                next_task=next_task_info,
+                risk_level=next_task_info.get("risk_level", "LOW"),
+                cost_class=next_task_info.get("cost_class", "ZERO_COST_LOCAL"),
+                review_decision=review_decision,
+                value_gate=value_gate_res,
+                reason=f"Step {round_index + 1} passed; automatically continuing to {next_task_info['task_id']}.",
+                evidence_refs=[str(result_file.name)],
+                created_at=now_iso,
+            )
+        else:
+            decision_obj = ChiefDecisionContract(
+                conversation_id=conversation_id,
+                chief_turn_id=chief_turn_id or f"turn-{uuid.uuid4().hex[:8]}",
+                workflow_id=workflow_id,
+                task_id=task_id,
+                correlation_id=correlation_id,
+                result_id=result_id,
+                decision="COMPLETE",
+                next_task=None,
+                risk_level="LOW",
+                cost_class="ZERO_COST_LOCAL",
+                review_decision=review_decision,
+                value_gate=value_gate_res,
+                reason="All workflow plan steps successfully completed and accepted by Chief.",
+                evidence_refs=[str(result_file.name)],
+                created_at=now_iso,
+            )
+
+        self._persist_decision(task_id, decision_obj)
+        return decision_obj
+
+    def _persist_decision(self, task_id: str, decision: ChiefDecisionContract) -> Path:
+        decision_dir = self.repo_dir / "events/chief-decisions"
+        decision_dir.mkdir(parents=True, exist_ok=True)
+        decision_file = decision_dir / f"{task_id}-chief-decision.json"
+        save_json_atomic(decision_file, decision.to_dict())
+        return decision_file
 
     def review_runtime_alert(self, alert: dict) -> dict:
         """Create a bounded Chief routing recommendation for a SNITCH alert.
@@ -185,7 +586,7 @@ class ChiefCommander:
         }
         decision_dir = self.repo_dir / "events/chief-decisions"
         decision_dir.mkdir(parents=True, exist_ok=True)
-        save_json(decision_dir / f"{alert['message_id']}-chief-decision.json", decision)
+        save_json_atomic(decision_dir / f"{alert['message_id']}-chief-decision.json", decision)
         return decision
 
 

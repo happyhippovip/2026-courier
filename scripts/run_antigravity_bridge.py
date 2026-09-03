@@ -71,12 +71,14 @@ def check_secrets_in_text(text: str) -> int:
 class AntigravityVisualStateTracker:
     """Maintains machine-readable visual and operational state for future visual dashboards."""
 
-    def __init__(self, agent_id: str = "agent-antigravity-bridge", name: str = "Antigravity Bridge", role: str = "Courier Automation Bridge"):
+    def __init__(self, agent_id: str = "agent-antigravity-bridge", name: str = "Antigravity Bridge", role: str = "Courier Automation Bridge", repo_dir: Path | None = None):
         self.agent_id = agent_id
         self.name = name
         self.role = role
-        self.state_file = STATES_DIR / f"{agent_id}.json"
-        STATES_DIR.mkdir(parents=True, exist_ok=True)
+        self.repo_dir = repo_dir or COURIER_DIR
+        self.states_dir = self.repo_dir / "events/agent-states"
+        self.states_dir.mkdir(parents=True, exist_ok=True)
+        self.state_file = self.states_dir / f"{agent_id}.json"
 
     def update_state(
         self,

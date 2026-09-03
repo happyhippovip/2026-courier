@@ -63,27 +63,115 @@ export function resolveGateDecisionTruth(busState) {
     : 'NO_DECISION';
 }
 
-/** Deterministic, machine-state-derived speech; no model narration. */
+export function resolveActiveGateTruth(busState) {
+  const gate = busState?.active_human_gate;
+  if (!gate) return { is_active: false, description: null };
+  const isActive = Boolean((gate.state === 'BLOCKED' || gate.is_blocked || gate.is_active) && !gate.decision_made);
+  return {
+    id: gate.id || gate.gate_id || 'gate-active',
+    is_active: isActive,
+    description: gate.description || gate.prompt || 'A workflow task requires human authorization.',
+  };
+}
+
+/** Deterministic, machine-state-derived speech; strictly no model narration. */
 export function resolveSpeechBubble(agentId, agentState, busState) {
   const state = typeof agentState?.state === 'string' ? agentState.state : 'UNKNOWN';
-  const task = typeof agentState?.task === 'string' && agentState.task ? agentState.task : null;
-  if (agentId === 'agent-snitch') {
-    if (state === 'EXPECTED_LONG_RUNNING') return 'The Studio server is intentionally running continuously. No action needed.';
-    if (state === 'SLOW_BUT_PROGRESSING') return 'This task is slow, but recent progress is recorded.';
-    if (state === 'ALERT_SENT' || state === 'STALLED') return 'No recent progress was recorded. I informed Chief.';
-    if (state === 'WAITING_FOR_HUMAN') return 'A human gate is active. I am monitoring safely.';
-    if (state === 'MONITORING') return 'I am watching runtime evidence. Everything is within threshold.';
+  const task = typeof agentState?.task === 'string' && agentState.task && agentState.task !== 'Standby' ? agentState.task : null;
+  const blockedReason = agentState?.blocked_reason;
+
+  if (state === 'WAITING_PERMISSION' || agentState?.permission_blocked) {
+    return blockedReason ? `Warte auf Berechtigung: ${blockedReason}` : 'Warte auf Berechtigung (Permission Approval).';
   }
-  if (agentId === 'agent-chief-commander' && state === 'RUNNING') {
-    return 'A workflow is active. I am waiting for machine-recorded results.';
+  if (state === 'WAITING_HUMAN' || state === 'HUMAN_GATE' || (busState?.human_gate && (agentId === 'agent-chief-commander' || agentId === 'agent-human-gate-monitor'))) {
+    return 'Warte auf Chief-Freigabe (Human Gate).';
   }
-  if (agentId === 'agent-courier-relay' && task) return `Courier is handling: ${task}.`;
-  if (agentId === 'agent-academy-teacher' && state === 'PENDING_REVIEW') return 'I am waiting for the next safe lesson window.';
-  if (busState?.human_gate && (agentId === 'agent-chief-commander' || state.includes('BLOCKED'))) {
-    return 'This workflow is waiting for verified human approval.';
+  if (state === 'MONEY_GATE') {
+    return '0 EUR Spend Limit aktiv — Ausgaben verweigert.';
   }
-  if (task) return `${state}: ${task}.`;
-  return state === 'UNKNOWN' ? 'No current machine evidence is available.' : `${state}: no task is currently recorded.`;
+  if (state === 'HUNG') {
+    return 'WARNUNG: Worker blockiert — keine Liveness seit >300s.';
+  }
+  if (state === 'RUNNING_NO_PROGRESS') {
+    return 'Task aktiv — warte auf nächsten Fortschrittsschritt.';
+  }
+  if (state === 'PROVIDER_ERROR') {
+    return 'Provider-Verbindung unterbrochen — lokaler Modus aktiv.';
+  }
+  if (state === 'NETWORK_DEGRADED') {
+    return 'Netzwerk instabil — lokaler Fallback aktiv.';
+  }
+  if (state === 'ORPHANED') {
+    return 'KRITISCH: Verwaister Prozess ohne aktiven PID.';
+  }
+  if (state === 'COMPLETED') {
+    return task ? `Mission abgeschlossen: ${task}` : 'Mission abgeschlossen. Ergebnis persistiert.';
+  }
+
+  // Active / Progressing states
+  if (state === 'PROGRESSING' || state === 'RUNNING' || state === 'WORKING') {
+    if (agentId === 'worker-google' || agentId === 'agent-antigravity-bridge') {
+      return task ? `Arbeite an: ${task}` : 'Teste Heavy Authority & Autonomie-Logik.';
+    }
+    if (agentId === 'worker-codex' || agentId === 'agent-codex-bridge') {
+      return task ? `Prüfe: ${task}` : 'Prüfe Googles Delta & Test-Orakel.';
+    }
+    if (agentId === 'agent-snitch') {
+      return 'Überwache Worker-Zustände & Berechtigungen.';
+    }
+    if (agentId === 'smart-resource-router') {
+      return 'Suche nächste sichere Aufgabe im Backlog.';
+    }
+    if (agentId === 'agent-courier-relay') {
+      return task ? `Courier transportiert: ${task}` : 'Transportiere Nachrichten & ResultEnvelopes.';
+    }
+    return task ? `Arbeite an: ${task}` : 'Führe deterministische Aufgabe aus.';
+  }
+
+  // Safe Idle & Standby states
+  if (state === 'SAFE_IDLE' || state === 'AVAILABLE' || state === 'STANDBY' || state === 'IDLE' || state === 'IDLE_EXPECTED') {
+    if (agentId === 'agent-chief-commander') {
+      return 'HQ im sicheren Standby. Bereit für Direktiven.';
+    }
+    if (agentId === 'agent-snitch') {
+      return 'Alle Systeme gesund. Keine Anomalien.';
+    }
+    if (agentId === 'worker-google') {
+      return 'SAFE_IDLE — Google Worker bereit für neue Aufgaben.';
+    }
+    if (agentId === 'worker-codex') {
+      return 'SAFE_IDLE — Codex QA bereit für Review.';
+    }
+    if (agentId === 'worker-cli1') {
+      return 'SAFE_IDLE — CLI 1 Terminal aktiv & bereit.';
+    }
+    if (agentId === 'worker-cli2') {
+      return 'SAFE_IDLE — CLI 2 Beata Terminal aktiv & bereit.';
+    }
+    if (agentId.startsWith('bodyguard-') || agentState?.is_bodyguard) {
+      if (agentState.leisure_area === 'SAUNA') return 'Bereitschaft in der Sauna.';
+      if (agentState.leisure_area === 'COFFEE_BAR') return 'Bereitschaft an der Bar.';
+      if (agentState.leisure_area === 'VISITOR_LOUNGE') return 'Bereitschaft in der Lounge.';
+      return 'Bereitschaft im Aufenthaltsraum.';
+    }
+    return 'SAFE_IDLE — warte auf neue Arbeit.';
+  }
+
+  if (state === 'SLEEPING') {
+    return 'Zzz...';
+  }
+
+  if (state === 'EXPECTED_LONG_RUNNING') {
+    return 'Intentionally running continuously.';
+  }
+  if (state === 'STALLED') {
+    return 'Stalled: no progress. Informed Chief.';
+  }
+
+  if (state === 'EXPECTED_LONG_RUNNING') return 'Intentionally running continuously.';
+  if (state === 'STALLED') return 'Stalled. Informed Chief.';
+    if (agentId === 'agent-chief-commander' && state === 'UNKNOWN') return 'No current machine evidence.';
+  return 'Neutraler Status — keine aktive Ausführung.';
 }
 
 /**
@@ -842,6 +930,321 @@ export const ACADEMY_FLOW_STEPS = Object.freeze([
   'AFFECTED AGENT',
 ]);
 
+export function sanitizeTruthText(text) {
+  if (typeof text !== 'string') return '';
+  return text
+    .replace(/(?:ghp_[a-zA-Z0-9]+|ghs_[a-zA-Z0-9]+|token=[^\s&]+|secret=[^\s&]+|key=[^\s&]+|bearer\s+[a-zA-Z0-9._-]+)/gi, '[REDACTED_SECRET]')
+    .replace(/[0-9a-fA-F]{32,64}/g, match => match.slice(0, 8) + '...')
+    .slice(0, 200);
+}
+
+export function resolveReviewTruth(stateData) {
+  const reviewBudget = stateData?.review_budget;
+  const agents = stateData?.agents || {};
+  const cdx = agents['agent-codex-bridge'];
+  const rawDecision = stateData?.review_decision || (cdx?.state === 'RUNNING' ? 'IMMEDIATE_REVIEW_REQUIRED' : 'NO_REVIEW');
+  const riskClass = stateData?.review_risk_class || 'UNKNOWN';
+
+  let reviewerLabel = 'IDLE';
+  let reviewerState = 'IDLE';
+
+  if (rawDecision === 'IMMEDIATE_REVIEW_REQUIRED' || riskClass === 'HIGH' || cdx?.state === 'RUNNING') {
+    reviewerLabel = 'REVIEW REQUIRED';
+    reviewerState = 'WORKING';
+  } else if (rawDecision === 'REVIEW_REQUIRED_BEFORE_PUSH') {
+    reviewerLabel = 'REVIEW PENDING PUSH';
+    reviewerState = 'WAITING';
+  } else if (rawDecision === 'BATCH_REVIEW' || (cdx?.task && cdx.task.includes('Review'))) {
+    reviewerLabel = 'REVIEW QUEUED';
+    reviewerState = 'WAITING';
+  } else if (rawDecision === 'NO_REVIEW' || cdx?.state === 'STANDBY' || cdx?.state === 'IDLE') {
+    reviewerLabel = 'IDLE';
+    reviewerState = 'IDLE';
+  }
+
+  return {
+    reviewer_label: reviewerLabel,
+    reviewer_state: reviewerState,
+    review_decision: rawDecision,
+    risk_class: riskClass,
+    daily_routine_batches_today: reviewBudget?.daily_routine_batches_today ?? 0,
+  };
+}
+
+export function resolveLiveOrchestrationTruth(stateData) {
+  const bus = stateData?.bus || {};
+  const agents = stateData?.agents || {};
+  const transport = stateData?.transport;
+
+  const ag = agents['agent-antigravity-bridge'];
+  const cdx = agents['agent-codex-bridge'];
+  const courier = agents['agent-courier-relay'];
+
+  let activeBuilder = null;
+  let activeTask = null;
+  let progress = 0.0;
+
+  if (ag && (ag.state === 'RUNNING' || ag.state === 'WORKING' || ag.state === 'AWAITING_CHIEF_REVIEW')) {
+    activeBuilder = 'agent-antigravity-bridge';
+    activeTask = ag.task || null;
+    progress = Number.isFinite(ag.progress) ? ag.progress : 0.5;
+  } else if (cdx && (cdx.state === 'RUNNING' || cdx.state === 'WORKING' || cdx.state === 'AWAITING_CHIEF_REVIEW')) {
+    activeBuilder = 'agent-codex-bridge';
+    activeTask = cdx.task || null;
+    progress = Number.isFinite(cdx.progress) ? cdx.progress : 0.5;
+  }
+
+  let visualPhase = 'IDLE';
+  let courierPhase = 'IDLE';
+
+  if (!bus.is_locked && !activeBuilder && !transport?.incoming_count) {
+    visualPhase = 'IDLE';
+    courierPhase = 'IDLE';
+  } else if (transport?.incoming_count > 0 || (bus.is_locked && progress < 0.1)) {
+    visualPhase = 'TASK_RECEIVED';
+    courierPhase = 'TASK_DELIVERY';
+  } else if (activeBuilder && progress >= 0.1 && progress < 0.3) {
+    visualPhase = 'WALKING_TO_WORKSTATION';
+    courierPhase = 'TASK_DELIVERY';
+  } else if (activeBuilder && progress >= 0.3 && progress < 0.8) {
+    visualPhase = 'WORKING';
+    courierPhase = 'IDLE';
+  } else if (activeBuilder && (progress >= 0.8 || ag?.state === 'AWAITING_CHIEF_REVIEW' || cdx?.state === 'AWAITING_CHIEF_REVIEW')) {
+    visualPhase = 'RESULT_READY';
+    courierPhase = 'RESULT_RETURN';
+  } else if (courier && (courier.state === 'RETURNING' || courierPhase === 'RESULT_RETURN')) {
+    visualPhase = 'COURIER_RETURN';
+    courierPhase = 'RESULT_RETURN';
+  } else if (bus.last_decision === 'ACCEPTED' || bus.last_decision === 'DONE') {
+    visualPhase = 'DONE';
+    courierPhase = 'IDLE';
+  }
+
+  const reviewTruth = resolveReviewTruth(stateData);
+
+  return {
+    visual_phase: visualPhase,
+    active_builder: activeBuilder,
+    active_task: activeTask ? sanitizeTruthText(activeTask) : null,
+    progress,
+    courier_phase: courierPhase,
+    review_truth: reviewTruth,
+  };
+}
+
+export const AGENT_WAYPOINTS = Object.freeze({
+  'agent-chief-commander': 'CHIEF_COMMAND',
+  'smart-resource-router': 'ROUTER_DESK',
+  'agent-human-gate-monitor': 'DESK_01',
+  'agent-thought-curator': 'DESK_02',
+  'agent-update-steward': 'DESK_03',
+  'agent-codex-bridge': 'DESK_04',
+  'agent-asset-validator': 'DESK_05',
+  'agent-video-synth': 'DESK_06',
+  'agent-channel-dispatcher': 'DESK_07',
+  'agent-memory-mesh': 'DESK_08',
+  'agent-test-guardian': 'DESK_09',
+  'agent-snitch': 'DESK_13',
+  'agent-antigravity-bridge': 'DESK_16',
+  'agent-courier-relay': 'DESK_17',
+  'agent-academy-teacher': 'DESK_19',
+  'agent-academy-director': 'DESK_21',
+  'agent-loop-supervisor': 'DESK_22',
+});
+
+/**
+ * Resolve Capability Registry truth from local evidence (Mission 113).
+ */
+export function resolveCapabilityTruth(stateData) {
+  const caps = stateData?.capabilities || {};
+  const available = Object.entries(caps).filter(([_, state]) => state === 'AVAILABLE').map(([name]) => name);
+  const authRequired = Object.entries(caps).filter(([_, state]) => state === 'AUTH_REQUIRED').map(([name]) => name);
+  const approvalRequired = Object.entries(caps).filter(([_, state]) => state === 'APPROVAL_REQUIRED').map(([name]) => name);
+  return {
+    total_capabilities: Object.keys(caps).length,
+    available_count: available.length,
+    available_capabilities: available,
+    auth_required_capabilities: authRequired,
+    approval_required_capabilities: approvalRequired,
+    is_safe: true,
+  };
+}
+
+/**
+ * Resolve Skill Registry truth grounded in verified local evidence (Mission 113).
+ */
+export function resolveSkillTruth(stateData) {
+  const skills = stateData?.skills || [];
+  return {
+    total_skills: skills.length,
+    active_skills: skills.filter(s => s.verification_state === 'ACTIVE' || !s.verification_state),
+    owners: Array.from(new Set(skills.map(s => s.owner_agent))),
+  };
+}
+
+/**
+ * Resolve Agent-to-Agent Handoff truth preserving task and correlation IDs (Mission 113).
+ */
+export function resolveHandoffTruth(stateData) {
+  const handoffs = stateData?.handoffs || [];
+  const activeHandoff = stateData?.active_handoff || (handoffs.length > 0 ? handoffs[0] : null);
+  if (!activeHandoff) {
+    return { has_active_handoff: false, active_handoff: null };
+  }
+  return {
+    has_active_handoff: true,
+    active_handoff: activeHandoff,
+    handoff_id: activeHandoff.handoff_id,
+    from_agent: activeHandoff.from_agent,
+    to_agent: activeHandoff.to_agent,
+    task_id: activeHandoff.task_id,
+    correlation_id: activeHandoff.correlation_id,
+    reason: activeHandoff.reason,
+  };
+}
+
+/**
+ * Deterministic Real Live Agent Motion State Machine (Mission 111 & 113).
+ * Maps local task/Courier/worker/review/handoff state to agent motion without fake simulation or model calls.
+ */
+export function resolveLiveAgentMotion(stateData, previousMotionState = null) {
+  const bus = stateData?.bus || {};
+  const agents = stateData?.agents || {};
+  const orchTruth = resolveLiveOrchestrationTruth(stateData);
+  const reviewTruth = resolveReviewTruth(stateData);
+  const handoffTruth = resolveHandoffTruth(stateData);
+  const activeGate = stateData?.bus?.active_human_gate;
+
+  const activeBuilder = orchTruth.active_builder;
+  const activeTask = orchTruth.active_task;
+  const visualPhase = orchTruth.visual_phase;
+  const courierPhase = orchTruth.courier_phase;
+  const isLocked = Boolean(bus.is_locked);
+  const correlationId = bus.correlation_id || "NONE";
+  const workflowId = bus.active_workflow || "IDLE_MONITORING";
+
+  // Build deterministic fingerprint
+  const progressBucket = Math.floor((orchTruth.progress || 0.0) * 4) / 4;
+  const gateActive = Boolean(activeGate || bus.human_gate);
+  const reviewRequired = reviewTruth.reviewer_label === 'REVIEW REQUIRED' || reviewTruth.review_decision === 'HIGH_RISK';
+  const handoffActive = Boolean(handoffTruth.has_active_handoff);
+
+  const fingerprint = [
+    workflowId,
+    correlationId,
+    isLocked ? 'LOCKED' : 'UNLOCKED',
+    visualPhase,
+    courierPhase,
+    activeBuilder || 'NONE',
+    activeTask || 'NONE',
+    progressBucket,
+    gateActive ? 'GATE_ACTIVE' : 'GATE_INACTIVE',
+    reviewRequired ? 'REVIEW_REQ' : 'NO_REVIEW',
+    handoffActive ? `HANDOFF_${handoffTruth.from_agent}_${handoffTruth.to_agent}` : 'NO_HANDOFF',
+  ].join('::');
+
+  const destinations = {};
+  const routes = {};
+  const speechOverrides = {};
+  const states = {};
+
+  // 1. Courier Relay & Handoff Transport
+  if (handoffActive) {
+    const fromWp = AGENT_WAYPOINTS[handoffTruth.from_agent] || 'DESK_02';
+    const toWp = AGENT_WAYPOINTS[handoffTruth.to_agent] || 'DESK_16';
+    routes['agent-courier-relay'] = [fromWp, 'ROUTER_DESK', toWp];
+    destinations['agent-courier-relay'] = HQ_WAYPOINTS[toWp];
+    states['agent-courier-relay'] = 'HANDOFF';
+    speechOverrides['agent-courier-relay'] = 'HANDOFF';
+    states[handoffTruth.from_agent] = 'HANDOFF';
+    speechOverrides[handoffTruth.from_agent] = 'HANDOFF';
+    states[handoffTruth.to_agent] = 'RUNNING';
+  } else if (visualPhase === 'TASK_RECEIVED' || courierPhase === 'TASK_DELIVERY') {
+    const builderWaypoint = activeBuilder === 'agent-codex-bridge' ? 'DESK_04' : 'DESK_16';
+    routes['agent-courier-relay'] = ['CHIEF_COMMAND', 'ROUTER_DESK', builderWaypoint];
+    destinations['agent-courier-relay'] = HQ_WAYPOINTS[builderWaypoint];
+    states['agent-courier-relay'] = 'DISPATCHED';
+    speechOverrides['agent-courier-relay'] = 'DISPATCHED';
+  } else if (visualPhase === 'RESULT_READY' || courierPhase === 'RESULT_RETURN') {
+    const builderWaypoint = activeBuilder === 'agent-codex-bridge' ? 'DESK_04' : 'DESK_16';
+    if (reviewRequired) {
+      routes['agent-courier-relay'] = [builderWaypoint, 'DESK_04', 'CHIEF_COMMAND'];
+      states['agent-courier-relay'] = 'WAITING_FOR_REVIEW';
+      speechOverrides['agent-courier-relay'] = 'WAITING FOR REVIEW';
+    } else {
+      routes['agent-courier-relay'] = [builderWaypoint, 'CHIEF_COMMAND'];
+      states['agent-courier-relay'] = 'RETURNING';
+      speechOverrides['agent-courier-relay'] = 'RESULT READY';
+    }
+    destinations['agent-courier-relay'] = HQ_WAYPOINTS['CHIEF_COMMAND'];
+  } else if (visualPhase === 'WORKING') {
+    const builderWaypoint = activeBuilder === 'agent-codex-bridge' ? 'DESK_04' : 'DESK_16';
+    destinations['agent-courier-relay'] = HQ_WAYPOINTS[builderWaypoint];
+    states['agent-courier-relay'] = 'RUNNING';
+  } else {
+    // IDLE: Courier stays at Desk 17
+    destinations['agent-courier-relay'] = HQ_WAYPOINTS['DESK_17'];
+    states['agent-courier-relay'] = 'IDLE';
+  }
+
+  // 2. Active Builder (Antigravity or Codex or other)
+  if (activeBuilder) {
+    states[activeBuilder] = visualPhase === 'RESULT_READY' ? 'RESULT_READY' : 'RUNNING';
+    speechOverrides[activeBuilder] = visualPhase === 'RESULT_READY' ? 'RESULT READY' : 'RUNNING';
+  }
+
+  // 3. Codex QA Reviewer
+  if (reviewRequired && (visualPhase === 'RESULT_READY' || courierPhase === 'RESULT_RETURN')) {
+    states['agent-codex-bridge'] = 'RUNNING';
+    speechOverrides['agent-codex-bridge'] = 'WAITING FOR REVIEW';
+  } else {
+    // Codex remains strictly IDLE when review is not required
+    states['agent-codex-bridge'] = 'IDLE';
+    destinations['agent-codex-bridge'] = HQ_WAYPOINTS['DESK_04'];
+  }
+
+  // 4. Human Gate Monitor
+  if (gateActive) {
+    destinations['agent-human-gate-monitor'] = HQ_WAYPOINTS['CHIEF_COMMAND'];
+    routes['agent-human-gate-monitor'] = ['DESK_01', 'CHIEF_COMMAND'];
+    states['agent-human-gate-monitor'] = 'HUMAN_GATE';
+    speechOverrides['agent-human-gate-monitor'] = 'HUMAN GATE';
+  } else {
+    destinations['agent-human-gate-monitor'] = HQ_WAYPOINTS['DESK_01'];
+    states['agent-human-gate-monitor'] = 'IDLE';
+  }
+
+  // 5. Chief Commander
+  const chiefPresence = stateData?.chief_presence?.presence || (agents['agent-chief-commander']?.state === 'SLEEPING' ? 'SLEEPING' : 'AWAKE');
+  if (chiefPresence === 'SLEEPING' || agents['agent-chief-commander']?.state === 'SLEEPING') {
+    destinations['agent-chief-commander'] = HQ_WAYPOINTS['FIREPLACE'];
+    states['agent-chief-commander'] = 'SLEEPING';
+    speechOverrides['agent-chief-commander'] = 'Zzz...';
+  } else {
+    destinations['agent-chief-commander'] = HQ_WAYPOINTS['CHIEF_COMMAND'];
+    if (isLocked || visualPhase !== 'IDLE') {
+      states['agent-chief-commander'] = visualPhase === 'DONE' ? 'COMPLETED' : 'RUNNING';
+      if (visualPhase === 'DONE') speechOverrides['agent-chief-commander'] = 'COMPLETED';
+    } else {
+      states['agent-chief-commander'] = 'IDLE';
+    }
+  }
+
+  return {
+    fingerprint,
+    visual_phase: visualPhase,
+    courier_phase: courierPhase,
+    active_builder: activeBuilder,
+    active_task: activeTask,
+    is_idle: visualPhase === 'IDLE' && !isLocked && !gateActive,
+    destinations,
+    routes,
+    states,
+    speech_overrides: speechOverrides,
+    review_required: reviewRequired,
+  };
+}
+
 /**
  * Resolve Living Room Character Positions, Nameplates, Speech, and Visual States.
  */
@@ -850,6 +1253,7 @@ export function resolveLivingRoomAgents(stateData) {
   const bus = stateData?.bus || {};
   const desks = resolveDeskMatrix(stateData);
   const bodyguards = resolveBodyguardsTruth(stateData);
+  const reviewTruth = resolveReviewTruth(stateData);
 
   // Default coordinate map matching the 16:9 pixel-art reference image
   const baseCoordinates = {
@@ -858,7 +1262,7 @@ export function resolveLivingRoomAgents(stateData) {
     'agent-human-gate-monitor': { x: 14.5, y: 35.5, zone: 'DESK_01', name: 'HUMAN GATE', title: 'Human Gate / Strategy' },
     'agent-thought-curator': { x: 22.0, y: 35.5, zone: 'DESK_02', name: 'IDEA SYNC', title: 'Memory & Curation' },
     'agent-update-steward': { x: 29.5, y: 35.5, zone: 'DESK_03', name: 'UPDATE STEWARD', title: 'Context Sync Steward' },
-    'agent-codex-bridge': { x: 14.5, y: 48.0, zone: 'DESK_04', name: 'CODEX', title: 'Technical QA Specialist' },
+    'agent-codex-bridge': { x: 14.5, y: 48.0, zone: 'DESK_04', name: 'CODEX BRIDGE', title: 'Technical QA Specialist' },
     'agent-asset-validator': { x: 22.0, y: 48.0, zone: 'DESK_05', name: 'ASSET VALIDATOR', title: 'Media Asset Validator' },
     'agent-video-synth': { x: 29.5, y: 48.0, zone: 'DESK_06', name: 'VIDEO SYNTH', title: '3D Movie Synth' },
     'agent-channel-dispatcher': { x: 14.5, y: 60.5, zone: 'DESK_07', name: 'CHANNEL DISPATCH', title: 'Social Dispatcher' },
@@ -870,18 +1274,24 @@ export function resolveLivingRoomAgents(stateData) {
     'agent-academy-director': { x: 89.0, y: 45.0, zone: 'DESK_21', name: 'ACADEMY DIRECTOR', title: 'Schuldirektor' },
     'agent-snitch': { x: 63.5, y: 59.5, zone: 'DESK_13', name: 'SNITCH 3.0', title: 'Runtime & Permission Guard' },
     'agent-loop-supervisor': { x: 71.0, y: 59.5, zone: 'DESK_22', name: 'LOOP SUPERVISOR', title: 'L6 Orchestration' },
+
+    // Execution Workers (Specialist Operator Avatars)
+    'worker-google': { x: 78.5, y: 45.0, zone: 'DESK_GOOGLE', name: 'GOOGLE', title: 'Google Pro Builder', provider: 'GOOGLE_PRO' },
+    'worker-codex': { x: 14.5, y: 48.0, zone: 'DESK_CODEX', name: 'CODEX', title: 'Codex QA Specialist', provider: 'CODEX' },
+    'worker-cli1': { x: 78.5, y: 73.5, zone: 'DESK_CLI1', name: 'CLI 1', title: 'Primary Operator', provider: 'LOCAL_CLI_1' },
+    'worker-cli2': { x: 86.0, y: 73.5, zone: 'DESK_CLI2', name: 'CLI 2', title: 'Beata Operator', provider: 'LOCAL_CLI_2' },
   };
 
   // Bodyguard leisure vs active positions
   const bodyguardStandbySlots = [
-    { callsign: 'ALPHA', leisure_area: 'SAUNA', x: 79.0, y: 14.0 },
-    { callsign: 'BRAVO', leisure_area: 'SAUNA', x: 84.0, y: 14.0 },
-    { callsign: 'CHARLIE', leisure_area: 'COFFEE_BAR', x: 80.0, y: 91.0 },
-    { callsign: 'DELTA', leisure_area: 'COFFEE_BAR', x: 85.0, y: 91.0 },
-    { callsign: 'ECHO', leisure_area: 'VISITOR_LOUNGE', x: 12.0, y: 84.0 },
-    { callsign: 'FOXTROT', leisure_area: 'VISITOR_LOUNGE', x: 28.0, y: 84.0 },
-    { callsign: 'GOLF', leisure_area: 'READY_ROOM', x: 44.0, y: 67.0 },
-    { callsign: 'HOTEL', leisure_area: 'READY_ROOM', x: 56.0, y: 67.0 },
+    { callsign: 'ALPHA', leisure_area: 'SAUNA', x: 79.0, y: 14.0, prop: 'cigarette' },
+    { callsign: 'BRAVO', leisure_area: 'SAUNA', x: 84.0, y: 14.0, prop: 'shisha' },
+    { callsign: 'CHARLIE', leisure_area: 'COFFEE_BAR', x: 80.0, y: 91.0, prop: 'drink' },
+    { callsign: 'DELTA', leisure_area: 'COFFEE_BAR', x: 85.0, y: 91.0, prop: 'drink' },
+    { callsign: 'ECHO', leisure_area: 'VISITOR_LOUNGE', x: 12.0, y: 84.0, prop: 'drink' },
+    { callsign: 'FOXTROT', leisure_area: 'VISITOR_LOUNGE', x: 28.0, y: 84.0, prop: 'drink' },
+    { callsign: 'GOLF', leisure_area: 'READY_ROOM', x: 44.0, y: 67.0, prop: null },
+    { callsign: 'HOTEL', leisure_area: 'READY_ROOM', x: 56.0, y: 67.0, prop: null },
   ];
 
   const assignedWorkstationCoords = [
@@ -893,64 +1303,169 @@ export function resolveLivingRoomAgents(stateData) {
 
   const results = [];
 
-  // 1. Process Core & Specialist Agents
+  const autoRuntime = stateData?.autonomy_runtime || {};
+  const autoAnomalies = stateData?.anomalies || {};
+  const snitchObs = stateData?.snitch_observer || {};
+  const activeHumanGates = autoRuntime.human_gates || [];
+  const activeMoneyGates = autoRuntime.money_gates || [];
+  const activeJobs = autoRuntime.jobs_dispatched || [];
+  const quarantinedBranches = autoAnomalies.quarantined_branches || [];
+
+  // Bodyguard Alert Override Check
+  const hasSecurityAlert = Boolean(
+    (snitchObs?.permission_blocked_count > 0) ||
+    (snitchObs?.hung_workers_count > 0) ||
+    (snitchObs?.stale_orphans_count > 0) ||
+    (quarantinedBranches.length > 0) ||
+    (bus?.human_gate) ||
+    (stateData?.runtime_alert && ['HIGH', 'CRITICAL'].includes(stateData.runtime_alert.severity))
+  );
+  const alertSummary = snitchObs?.reasons?.[0] || stateData?.runtime_alert?.reason || (bus?.human_gate ? 'Human Gate Freigabe erforderlich' : 'Sicherheitsalarm / Gate aktiv');
+
+  // 1. Process Core, Specialist & Execution Worker Agents
   for (const [agentId, coords] of Object.entries(baseCoordinates)) {
+    if (agentId.startsWith('worker-') && stateData && 'snitch' in stateData) continue;
+
     const raw = agents[agentId] || {};
     const desk = desks.find(d => d.agentId === agentId) || {};
-    const state = typeof raw.state === 'string' && raw.state.trim() ? raw.state : (desk.state || 'IDLE');
-    const task = raw.task || desk.task || (state === 'IDLE' ? 'Standby' : state);
-    const progress = Number.isFinite(raw.progress) ? raw.progress : (desk.progress || 0.0);
-    const speech = raw.speech || resolveSpeechBubble(agentId, { state, task, ...raw }, bus);
+    let state = typeof raw.state === 'string' && raw.state.trim() ? raw.state : (desk.state || 'UNKNOWN');
 
-    const isBusy = state === 'RUNNING' || state === 'COMPARING' || state === 'REVIEWING' || state === 'COORDINATING' || state === 'WORKING';
-    const isBlocked = raw.blocked || desk.status === 'BLOCKED';
+    // Normalize legacy state names to standard 11 states
+    if (state === 'IDLE' || state === 'STANDBY' || state === 'IDLE_EXPECTED') state = 'SAFE_IDLE';
+    if (state === 'RUNNING' || state === 'WORKING' || state === 'DISPATCHED') state = 'PROGRESSING';
+    if (state === 'HUMAN_GATE' || state === 'BLOCKED_HUMAN_GATE') state = 'WAITING_HUMAN';
+    if (state === 'BLOCKED_PERMISSION' || raw.permission_blocked) state = 'WAITING_PERMISSION';
+
+    let title = coords.title;
+    let isBusy = state === 'PROGRESSING' || state === 'COMPARING' || state === 'REVIEWING' || state === 'COORDINATING';
+    let isBlocked = state === 'WAITING_PERMISSION' || state === 'WAITING_HUMAN' || state === 'MONEY_GATE' || state === 'HUNG' || state === 'ORPHANED' || raw.blocked || desk.status === 'BLOCKED';
+
+    let currentX = coords.x;
+    let currentY = coords.y;
+
+    if (agentId === 'agent-chief-commander') {
+      const chiefPresence = stateData?.chief_presence?.presence || (raw.state === 'SLEEPING' ? 'SLEEPING' : 'AWAKE');
+      if (chiefPresence === 'SLEEPING' || state === 'SLEEPING') {
+        state = 'SLEEPING';
+        title = 'CHIEF (SLEEPING)';
+        isBusy = false;
+        currentX = HQ_WAYPOINTS['FIREPLACE'].x;
+        currentY = HQ_WAYPOINTS['FIREPLACE'].y;
+      }
+    }
+
+    // Integrate Review Budget for Codex
+    if (agentId === 'agent-codex-bridge' || agentId === 'worker-codex') {
+      if (reviewTruth.reviewer_label === 'REVIEW REQUIRED') {
+        state = 'RUNNING';
+        title = 'REVIEW REQUIRED (HIGH)';
+        isBusy = true;
+      } else if (reviewTruth.reviewer_label === 'REVIEW PENDING PUSH') {
+        state = 'SAFE_IDLE';
+        title = 'REVIEW PENDING PUSH';
+        isBusy = false;
+      } else if (reviewTruth.reviewer_label === 'REVIEW QUEUED') {
+        state = 'SAFE_IDLE';
+        title = 'REVIEW QUEUED (BATCH)';
+        isBusy = false;
+      }
+    }
+
+    // Integrate Real Autonomy Runtime telemetry
+    if (agentId === 'agent-human-gate-monitor' && activeHumanGates.length > 0) {
+      state = 'WAITING_HUMAN';
+      title = `HUMAN GATE (${activeHumanGates.length} Parked)`;
+      isBlocked = true;
+    } else if (agentId === 'smart-resource-router' && activeMoneyGates.length > 0) {
+      state = 'MONEY_GATE';
+      title = `MONEY GATE (0 EUR)`;
+      isBlocked = true;
+    } else if (agentId === 'agent-snitch') {
+      if (quarantinedBranches.length > 0) {
+        state = 'ANOMALY';
+        title = `SNITCH (${quarantinedBranches.length} Quarantined)`;
+        isBlocked = true;
+      }
+    }
+
+    // Idle Bar Placement for eligible idle agents without active tasks
+    if (state === 'SAFE_IDLE' && !isBusy && !isBlocked) {
+      if (agentId === 'agent-thought-curator') {
+        currentX = HQ_WAYPOINTS['COFFEE_BAR_CHARLIE'].x;
+        currentY = HQ_WAYPOINTS['COFFEE_BAR_CHARLIE'].y;
+      } else if (agentId === 'agent-update-steward') {
+        currentX = HQ_WAYPOINTS['COFFEE_BAR_DELTA'].x;
+        currentY = HQ_WAYPOINTS['COFFEE_BAR_DELTA'].y;
+      }
+    }
+
+    const task = raw.task || desk.task || (state === 'SAFE_IDLE' ? 'Standby' : state);
+    const progress = Number.isFinite(raw.progress) ? raw.progress : (desk.progress || 0.0);
+    const speech = raw.speech || resolveSpeechBubble(agentId, { state, task, blocked_reason: raw.blocked_reason, is_bodyguard: false, ...raw }, bus);
 
     results.push({
       id: agentId,
       name: coords.name,
-      title: coords.title,
+      title: sanitizeTruthText(title),
       zone: coords.zone,
-      x: coords.x,
-      y: coords.y,
+      x: currentX,
+      y: currentY,
       homeX: coords.x,
       homeY: coords.y,
       state,
-      task,
+      task: sanitizeTruthText(task),
       progress,
-      speech,
+      speech: sanitizeTruthText(speech),
       is_active: isBusy,
       is_blocked: isBlocked,
       is_bodyguard: false,
-      role: raw.role || coords.title,
-      animation: isBusy ? 'working' : (isBlocked ? 'blocked' : 'idle'),
+      role: sanitizeTruthText(raw.role || coords.title),
+      provider: raw.provider || coords.provider || 'LOCAL_DETERMINISTIC',
+      heavy_job: Boolean(raw.heavy_job),
+      blocked_reason: raw.blocked_reason || (isBlocked ? 'Safety / Gate Paused' : 'None'),
+      prop: (state === 'SAFE_IDLE' && (agentId === 'agent-thought-curator' || agentId === 'agent-update-steward')) ? 'drink' : null,
+      animation: isBusy ? 'working' : (isBlocked ? 'blocked' : (state === 'SLEEPING' ? 'idle' : 'idle')),
     });
   }
 
   // 2. Process Eight Reserve Bodyguards
   bodyguards.forEach((bg, idx) => {
-    const slot = bodyguardStandbySlots[idx] || { callsign: bg.callsign, x: 14 + idx * 4.5, y: 63.5, leisure_area: 'READY_ROOM' };
+    const slot = bodyguardStandbySlots[idx] || { callsign: bg.callsign, x: 14 + idx * 4.5, y: 63.5, leisure_area: 'READY_ROOM', prop: null };
     const isAssigned = bg.state === 'ASSIGNED' || bg.state === 'WORKING' || bg.state === 'RETURNING';
     
     let targetX = slot.x;
     let targetY = slot.y;
+    let bodyguardState = bg.state;
+    let bodyguardProp = slot.prop;
 
-    if (isAssigned) {
+    if (bodyguardState === 'IDLE') bodyguardState = 'SAFE_IDLE';
+    if (bodyguardState === 'WORKING') bodyguardState = 'PROGRESSING';
+
+    if (hasSecurityAlert) {
+      bodyguardState = 'ALERT';
+      targetX = idx % 2 === 0 ? 44.0 + (idx * 2) : 56.0 - (idx * 2);
+      targetY = 67.0;
+      bodyguardProp = null; // Holster props during alert
+    } else if (isAssigned) {
       const assignedDesk = assignedWorkstationCoords[idx % assignedWorkstationCoords.length];
       targetX = assignedDesk.x;
       targetY = assignedDesk.y;
+      bodyguardProp = null;
     }
 
     let speechText = bg.speech;
-    if (!speechText || speechText.includes('on reserve') || speechText.includes('Ready for reserve duty')) {
-      if (bg.state === 'STANDBY') {
-        if (slot.leisure_area === 'COFFEE_BAR') speechText = `Standing by at the coffee bar.`;
-        else if (slot.leisure_area === 'SAUNA') speechText = `Standing by in the sauna.`;
-        else if (slot.leisure_area === 'VISITOR_LOUNGE') speechText = `Standing by in the visitor lounge.`;
-        else speechText = `Standing by in the ready room.`;
-      } else if (bg.state === 'WORKING') {
-        speechText = `Covering ${bg.temporary_role || 'task'} at workstation.`;
-      } else if (bg.state === 'RETURNING') {
-        speechText = `Task complete. Returning to standby.`;
+    if (hasSecurityAlert) {
+      speechText = `EINSATZ / ALARM: ${alertSummary}`;
+    } else if (!speechText || speechText.includes('on reserve') || speechText.includes('Ready for reserve duty')) {
+      if (bodyguardState === 'SAFE_IDLE' || bodyguardState === 'STANDBY') {
+        if (slot.leisure_area === 'COFFEE_BAR') speechText = `Bereitschaft an der Bar (Drink).`;
+        else if (slot.leisure_area === 'SAUNA') speechText = slot.callsign === 'ALPHA' ? `Bereitschaft in der Sauna (Pause).` : `Bereitschaft in der Sauna (Shisha).`;
+        else if (slot.leisure_area === 'VISITOR_LOUNGE') speechText = `Bereitschaft in der Lounge.`;
+        else speechText = `Bereitschaft im Aufenthaltsraum.`;
+      } else if (bodyguardState === 'PROGRESSING' || bodyguardState === 'WORKING') {
+        speechText = `Sichere Arbeitsbereich: ${bg.temporary_role || 'Task'}.`;
+      } else if (bodyguardState === 'RETURNING') {
+        speechText = `Aufgabe abgeschlossen. Kehre zur Bereitschaft zurück.`;
       }
     }
 
@@ -958,26 +1473,122 @@ export function resolveLivingRoomAgents(stateData) {
       id: bg.id,
       name: `BODYGUARD ${bg.callsign}`,
       title: bg.temporary_role ? `TEMP: ${bg.temporary_role}` : `RESERVE ${bg.slot}`,
-      zone: 'BODYGUARDS',
+      zone: hasSecurityAlert ? 'ALERT_STATION' : 'BODYGUARDS',
       x: targetX,
       y: targetY,
       homeX: slot.x,
       homeY: slot.y,
-      state: bg.state,
-      task: bg.task || (bg.state === 'STANDBY' ? 'Reserve Duty (Standby)' : bg.state),
+      state: bodyguardState,
+      task: bg.task || (bodyguardState === 'SAFE_IDLE' ? 'Reserve Duty (Standby)' : bodyguardState),
       progress: bg.progress,
-      speech: speechText,
-      is_active: isAssigned,
+      speech: sanitizeTruthText(speechText),
+      is_active: isAssigned || bodyguardState === 'ALERT',
       is_blocked: bg.blocked,
       is_bodyguard: true,
       callsign: bg.callsign,
       slot: bg.slot,
       leisure_area: slot.leisure_area,
-      animation: bg.state === 'WORKING' ? 'working' : (bg.state === 'RETURNING' ? 'walking' : 'idle'),
+      prop: bodyguardProp,
+      provider: 'LOCAL_BODYGUARD_POOL',
+      heavy_job: false,
+      blocked_reason: 'None',
+      animation: bodyguardState === 'PROGRESSING' ? 'working' : (bodyguardState === 'RETURNING' ? 'walking' : 'idle'),
     });
   });
 
   return results;
+}
+
+/**
+ * Resolves deduplicated operational alerts for the Chief Alert Bar.
+ */
+export function resolveChiefAlerts(stateData) {
+  const alerts = [];
+  const seenFingerprints = new Set();
+
+  function addAlert(type, severity, message, details = {}) {
+    const fp = `${type}:${message}`;
+    if (!seenFingerprints.has(fp)) {
+      seenFingerprints.add(fp);
+      alerts.push({
+        id: `alert-${alerts.length + 1}`,
+        type,
+        severity, // "INFO", "WARNING", "CRITICAL"
+        message,
+        timestamp: new Date().toLocaleTimeString(),
+        details,
+      });
+    }
+  }
+
+  const snitch = stateData?.snitch_observer || {};
+  const anomalies = stateData?.anomalies || {};
+  const runtime = stateData?.autonomy_runtime || {};
+  const bus = stateData?.bus || {};
+
+  // 1. Permission Prompts
+  if (snitch?.permission_blocked_count > 0) {
+    addAlert('WAITING_PERMISSION', 'WARNING', `Warte auf Berechtigung für ${snitch.permission_blocked_count} Worker`);
+  }
+
+  // 2. Hung Workers
+  if (snitch?.hung_workers_count > 0) {
+    addAlert('HUNG', 'CRITICAL', `${snitch.hung_workers_count} Worker blockiert (>300s keine Aktivität)`);
+  }
+
+  // 3. Stale Orphans
+  if (snitch?.stale_orphans_count > 0) {
+    addAlert('ORPHANED', 'CRITICAL', `${snitch.stale_orphans_count} verwaiste Worker-Prozesse erkannt`);
+  }
+
+  // 4. Human Gate
+  if (bus?.human_gate || runtime?.human_gates?.length > 0) {
+    addAlert('HIGH_RISK_GATE', 'WARNING', 'Human Gate aktiv — Chief Freigabe erforderlich');
+  }
+
+  // 5. Money Gate
+  if (runtime?.money_gates?.length > 0) {
+    addAlert('HIGH_RISK_GATE', 'WARNING', '0 EUR Spend Limit Gate aktiv — Fremdausgaben blockiert');
+  }
+
+  // 6. Quarantined Branches
+  if (anomalies?.quarantined_branches?.length > 0) {
+    addAlert('ANOMALY', 'CRITICAL', `Branch Quarantäne aktiv: ${anomalies.quarantined_branches.join(', ')}`);
+  }
+
+  // 7. Recent Worker Completions
+  const completedJobs = runtime?.jobs_completed || [];
+  if (completedJobs.length > 0) {
+    const latestJob = completedJobs[completedJobs.length - 1];
+    addAlert('WORKER_COMPLETED', 'INFO', `Task erfolgreich abgeschlossen: ${latestJob}`);
+  }
+
+  // 8. Safe Idle Status if no alerts
+  if (alerts.length === 0) {
+    addAlert('WORKER_AVAILABLE', 'INFO', 'SAFE_IDLE • Alle Systeme gesund • 0 EUR Spend • 0 Model Calls');
+  }
+
+  return alerts;
+}
+
+/**
+ * Resolves comprehensive, non-secret telemetry for the Agent Detail Panel.
+ */
+export function resolveAgentDetailData(agent, stateData) {
+  const autoRuntime = stateData?.autonomy_runtime || {};
+  return {
+    name: agent.name || agent.id,
+    role: agent.role || agent.title || 'Specialist Operator',
+    state: agent.state || 'UNKNOWN',
+    mission: autoRuntime.current_goal || 'Local Unattended Autonomy (Computer A)',
+    task: agent.task || 'Standby',
+    last_progress: agent.last_progress || autoRuntime.last_active_at || 'Just now',
+    state_age: agent.state_age || '0s',
+    blocked_reason: agent.blocked_reason || (agent.is_blocked ? 'Human gate / policy pause' : 'None (Operating normally)'),
+    provider: agent.provider || 'LOCAL_DETERMINISTIC',
+    heavy_job: agent.heavy_job ? 'YES (Scope Locked)' : 'NO',
+    result_id: agent.result_id || 'None',
+  };
 }
 
 // --------------------------------------------------------------------------
@@ -1023,6 +1634,10 @@ export const HQ_WAYPOINTS = Object.freeze({
   'DESK_24': { x: 86.0, y: 59.5 },
   'DESK_24_LOW': { x: 80.0, y: 73.5 },
   'DESK_25_LOW': { x: 88.0, y: 73.5 },
+  'DESK_GOOGLE': { x: 78.5, y: 45.0 },
+  'DESK_CODEX': { x: 14.5, y: 48.0 },
+  'DESK_CLI1': { x: 78.5, y: 73.5 },
+  'DESK_CLI2': { x: 86.0, y: 73.5 },
 
   // Special Facilities
   'SAUNA_ALPHA': { x: 79.0, y: 14.0 },
@@ -1050,12 +1665,12 @@ export const HQ_NAV_GRAPH = Object.freeze({
   'CORRIDOR_BOTTOM_CROSS': ['CORRIDOR_SOUTH', 'VISITOR_LOUNGE_FOXTROT', 'COFFEE_BAR_CHARLIE'],
 
   'LEFT_AISLE_TOP': ['CORRIDOR_NORTH', 'DESK_01', 'DESK_02', 'DESK_03', 'LEFT_AISLE_MID'],
-  'LEFT_AISLE_MID': ['LEFT_AISLE_TOP', 'CORRIDOR_CROSS_MID', 'DESK_04', 'DESK_05', 'DESK_06', 'LEFT_AISLE_BOT'],
+  'LEFT_AISLE_MID': ['LEFT_AISLE_TOP', 'CORRIDOR_CROSS_MID', 'DESK_04', 'DESK_05', 'DESK_06', 'DESK_CODEX', 'LEFT_AISLE_BOT'],
   'LEFT_AISLE_BOT': ['LEFT_AISLE_MID', 'CORRIDOR_FOUNTAIN_LEFT', 'DESK_07', 'DESK_08', 'DESK_09', 'VISITOR_LOUNGE_ECHO'],
 
-  'RIGHT_AISLE_TOP': ['ROUTER_DESK', 'DESK_16', 'DESK_17', 'DESK_19', 'DESK_21', 'SERVER_ROOM', 'RIGHT_AISLE_MID'],
+  'RIGHT_AISLE_TOP': ['ROUTER_DESK', 'DESK_16', 'DESK_17', 'DESK_19', 'DESK_21', 'DESK_GOOGLE', 'SERVER_ROOM', 'RIGHT_AISLE_MID'],
   'RIGHT_AISLE_MID': ['RIGHT_AISLE_TOP', 'CORRIDOR_CROSS_MID', 'CORRIDOR_FOUNTAIN_RIGHT', 'DESK_13', 'DESK_22', 'DESK_23', 'DESK_24', 'RIGHT_AISLE_BOT'],
-  'RIGHT_AISLE_BOT': ['RIGHT_AISLE_MID', 'CORRIDOR_SOUTH', 'DESK_24_LOW', 'DESK_25_LOW', 'COFFEE_BAR_CHARLIE'],
+  'RIGHT_AISLE_BOT': ['RIGHT_AISLE_MID', 'CORRIDOR_SOUTH', 'DESK_24_LOW', 'DESK_25_LOW', 'DESK_CLI1', 'DESK_CLI2', 'COFFEE_BAR_CHARLIE'],
 
   'DESK_01': ['LEFT_AISLE_TOP'],
   'DESK_02': ['LEFT_AISLE_TOP'],
@@ -1066,9 +1681,15 @@ export const HQ_NAV_GRAPH = Object.freeze({
   'DESK_07': ['LEFT_AISLE_BOT'],
   'DESK_08': ['LEFT_AISLE_BOT'],
   'DESK_09': ['LEFT_AISLE_BOT'],
+  'DESK_CODEX': ['LEFT_AISLE_MID'],
 
   'DESK_16': ['RIGHT_AISLE_TOP'],
   'DESK_17': ['RIGHT_AISLE_TOP'],
+  'DESK_19': ['RIGHT_AISLE_TOP'],
+  'DESK_21': ['RIGHT_AISLE_TOP'],
+  'DESK_GOOGLE': ['RIGHT_AISLE_TOP'],
+  'DESK_CLI1': ['RIGHT_AISLE_BOT'],
+  'DESK_CLI2': ['RIGHT_AISLE_BOT'],
   'DESK_19': ['RIGHT_AISLE_TOP'],
   'DESK_21': ['RIGHT_AISLE_TOP'],
   'DESK_13': ['RIGHT_AISLE_MID'],
@@ -1143,4 +1764,364 @@ export function findWalkingPath(startX, startY, targetX, targetY) {
   return coordsPath;
 }
 
+// --------------------------------------------------------------------------
+// 12. MISSION 109: CINEMATIC PROMPT STORY MODE
+// --------------------------------------------------------------------------
+
+export const PROMPT_LIFECYCLE_PHASES = Object.freeze([
+  'PROMPT_RECEIVED',
+  'READING',
+  'TASK_ACCEPTED',
+  'PLAN_CREATED',
+  'COURIER_DISPATCH',
+  'WALKING_TO_WORKSTATION',
+  'WORKING_VISUALIZED',
+  'RESULT_PREPARED',
+  'COURIER_RETURN',
+  'CHIEF_RECEIVED',
+  'DONE',
+]);
+
+export const TRUTH_MODES = Object.freeze(['LIVE', 'VISUALIZED', 'UNKNOWN']);
+
+export const CANONICAL_SHOWCASE_1 = Object.freeze({
+  story_id: 'showcase-001',
+  task_title: 'Erstelle die nächste Funktion',
+  assigned_agent: 'agent-antigravity-bridge',
+  target_runtime_ms: 24000,
+  steps: [
+    // Scene 1 — CHIEF COMMAND
+    {
+      phase: 'PROMPT_RECEIVED',
+      agent: 'agent-chief-commander',
+      duration_ms: 2500,
+      truth_mode: 'VISUALIZED',
+      caption: 'Neuer Auftrag: Erstelle die nächste Funktion.',
+      target_waypoint: 'CHIEF_COMMAND',
+      camera_target: 'command',
+    },
+    // Scene 2 — TASK RECEIVED
+    {
+      phase: 'TASK_ACCEPTED',
+      agent: 'agent-courier-relay',
+      duration_ms: 2000,
+      truth_mode: 'VISUALIZED',
+      caption: 'Auftrag wird übergeben (📦 TASK)',
+      target_waypoint: 'CHIEF_COMMAND',
+      camera_target: 'command',
+    },
+    // Scene 3 — COURIER DELIVERY
+    {
+      phase: 'COURIER_DISPATCH',
+      agent: 'agent-courier-relay',
+      duration_ms: 3000,
+      truth_mode: 'VISUALIZED',
+      caption: 'Courier liefert Auftrag zu Antigravity Station',
+      target_waypoint: 'DESK_16',
+      camera_target: 'active',
+    },
+    // Scene 4 — ANTIGRAVITY ACCEPTS
+    {
+      phase: 'READING',
+      agent: 'agent-antigravity-bridge',
+      duration_ms: 1200,
+      truth_mode: 'VISUALIZED',
+      caption: 'Auftrag erhalten: Ich lese die Aufgabe',
+      target_waypoint: 'DESK_16',
+      camera_target: 'active',
+    },
+    {
+      phase: 'TASK_ACCEPTED',
+      agent: 'agent-antigravity-bridge',
+      duration_ms: 1100,
+      truth_mode: 'VISUALIZED',
+      caption: 'Aufgabe verstanden & akzeptiert',
+      target_waypoint: 'DESK_16',
+      camera_target: 'active',
+    },
+    {
+      phase: 'PLAN_CREATED',
+      agent: 'agent-antigravity-bridge',
+      duration_ms: 1200,
+      truth_mode: 'VISUALIZED',
+      caption: 'Plan steht: Analyse -> Umsetzung -> Test',
+      target_waypoint: 'DESK_16',
+      camera_target: 'active',
+    },
+    // Scene 5 — WORK
+    {
+      phase: 'WORKING_VISUALIZED',
+      agent: 'agent-antigravity-bridge',
+      duration_ms: 5000,
+      truth_mode: 'VISUALIZED',
+      caption: 'WORKING • VISUALIZED: Analyse -> Umsetzung -> Lokaler Test',
+      target_waypoint: 'DESK_16',
+      camera_target: 'active',
+      work_subphase: 'Analyse -> Umsetzung -> Lokaler Test',
+    },
+    // Scene 6 — RESULT READY
+    {
+      phase: 'RESULT_PREPARED',
+      agent: 'agent-antigravity-bridge',
+      duration_ms: 2000,
+      truth_mode: 'VISUALIZED',
+      caption: 'Ergebnis vorbereitet (📨 RESULT)',
+      target_waypoint: 'DESK_16',
+      camera_target: 'active',
+    },
+    // Scene 7 — RETURN TO CHIEF
+    {
+      phase: 'COURIER_RETURN',
+      agent: 'agent-courier-relay',
+      duration_ms: 3000,
+      truth_mode: 'VISUALIZED',
+      caption: 'Courier bringt Ergebnis zurück zum Command Table',
+      target_waypoint: 'CHIEF_COMMAND',
+      camera_target: 'command',
+    },
+    // Scene 8 — CHIEF RECEIVES RESULT
+    {
+      phase: 'CHIEF_RECEIVED',
+      agent: 'agent-chief-commander',
+      duration_ms: 1500,
+      truth_mode: 'VISUALIZED',
+      caption: 'RESULT RECEIVED: Chief verifiziert Ergebnis',
+      target_waypoint: 'CHIEF_COMMAND',
+      camera_target: 'command',
+    },
+    {
+      phase: 'DONE',
+      agent: 'agent-chief-commander',
+      duration_ms: 1500,
+      truth_mode: 'VISUALIZED',
+      caption: 'DONE: Mission abgeschlossen',
+      target_waypoint: 'CHIEF_COMMAND',
+      camera_target: 'overview',
+    },
+  ],
+});
+
+export const CANONICAL_EXAMPLE_STORY = CANONICAL_SHOWCASE_1;
+
+export class StorySceneController {
+  constructor(story = CANONICAL_SHOWCASE_1) {
+    this.story = story;
+    this.currentStepIndex = 0;
+    this.stepElapsedMs = 0;
+    this.isPlaying = false;
+    this.playbackSpeed = 1.0;
+  }
+
+  play() {
+    this.isPlaying = true;
+  }
+
+  pause() {
+    this.isPlaying = false;
+  }
+
+  restart() {
+    this.currentStepIndex = 0;
+    this.stepElapsedMs = 0;
+    this.isPlaying = true;
+  }
+
+  nextStep() {
+    if (this.currentStepIndex < this.story.steps.length - 1) {
+      this.currentStepIndex++;
+      this.stepElapsedMs = 0;
+    } else {
+      this.currentStepIndex = this.story.steps.length - 1;
+      this.isPlaying = false;
+    }
+  }
+
+  setSpeed(speed) {
+    if (typeof speed === 'number' && speed > 0) {
+      this.playbackSpeed = speed;
+    }
+  }
+
+  getCurrentStep() {
+    return this.story.steps[this.currentStepIndex] || null;
+  }
+
+  getTotalRuntimeMs() {
+    return this.story.steps.reduce((sum, s) => sum + (s.duration_ms || 0), 0);
+  }
+
+  getProgress() {
+    const totalSteps = this.story.steps.length;
+    const currentStep = this.getCurrentStep();
+    const duration = currentStep ? currentStep.duration_ms : 1000;
+    const stepProgress = Math.min(1.0, this.stepElapsedMs / duration);
+    const overallProgress = (this.currentStepIndex + stepProgress) / totalSteps;
+    return {
+      step_index: this.currentStepIndex,
+      total_steps: totalSteps,
+      phase: currentStep?.phase || 'IDLE',
+      caption: currentStep ? sanitizeTruthText(currentStep.caption) : '',
+      truth_mode: currentStep?.truth_mode || 'VISUALIZED',
+      camera_target: currentStep?.camera_target || 'overview',
+      step_progress: stepProgress,
+      overall_progress: Math.min(1.0, overallProgress),
+      is_playing: this.isPlaying,
+      playback_speed: this.playbackSpeed,
+      assigned_agent: this.story.assigned_agent,
+      task_title: sanitizeTruthText(this.story.task_title),
+      total_runtime_ms: this.getTotalRuntimeMs(),
+    };
+  }
+
+  update(deltaMs) {
+    if (!this.isPlaying) return;
+    const currentStep = this.getCurrentStep();
+    if (!currentStep) return;
+
+    this.stepElapsedMs += deltaMs * this.playbackSpeed;
+    if (this.stepElapsedMs >= currentStep.duration_ms) {
+      if (this.currentStepIndex < this.story.steps.length - 1) {
+        this.currentStepIndex++;
+        this.stepElapsedMs = 0;
+      } else {
+        this.isPlaying = false; // Finished story
+      }
+    }
+  }
+}
+
+export function resolveStoryLivingAgents(step, baseLivingAgents) {
+  const agentsPool = (Array.isArray(baseLivingAgents) && baseLivingAgents.length > 0)
+    ? baseLivingAgents
+    : resolveLivingRoomAgents({});
+
+  if (!step) return agentsPool;
+
+  const activeAgentId = step.agent;
+  const phase = step.phase;
+  const caption = sanitizeTruthText(step.caption);
+
+  return agentsPool.map(ag => {
+    let targetX = ag.x;
+    let targetY = ag.y;
+    let isBusy = false;
+    let anim = 'idle';
+    let state = 'IDLE';
+    let speech = null;
+
+    if (ag.id === 'agent-courier-relay') {
+      if (phase === 'COURIER_DISPATCH') {
+        targetX = HQ_WAYPOINTS['DESK_16'].x;
+        targetY = HQ_WAYPOINTS['DESK_16'].y;
+        state = 'RUNNING';
+        anim = 'walking';
+        isBusy = true;
+        speech = 'Transportiere 📦 TASK zu Builder...';
+      } else if (phase === 'COURIER_RETURN') {
+        targetX = HQ_WAYPOINTS['CHIEF_COMMAND'].x;
+        targetY = HQ_WAYPOINTS['CHIEF_COMMAND'].y;
+        state = 'RUNNING';
+        anim = 'walking';
+        isBusy = true;
+        speech = 'Transportiere 📨 RESULT zu Chief...';
+      } else if (phase === 'TASK_ACCEPTED' || phase === 'PROMPT_RECEIVED') {
+        targetX = HQ_WAYPOINTS['CHIEF_COMMAND'].x;
+        targetY = HQ_WAYPOINTS['CHIEF_COMMAND'].y;
+        state = 'TASK RECEIVED';
+        anim = 'idle';
+        isBusy = true;
+        speech = (activeAgentId === 'agent-courier-relay') ? caption : 'Bereit für Dispatch';
+      } else if (phase === 'RESULT_PREPARED') {
+        targetX = HQ_WAYPOINTS['DESK_16'].x;
+        targetY = HQ_WAYPOINTS['DESK_16'].y;
+        state = 'RECEIVING RESULT';
+        anim = 'idle';
+        isBusy = true;
+        speech = 'Übernehme 📨 RESULT';
+      } else {
+        targetX = ag.homeX || 50.0;
+        targetY = ag.homeY || 50.0;
+        state = 'IDLE';
+        anim = 'idle';
+        isBusy = false;
+      }
+    } else if (ag.id === 'agent-antigravity-bridge') {
+      targetX = HQ_WAYPOINTS['DESK_16'].x;
+      targetY = HQ_WAYPOINTS['DESK_16'].y;
+      if (phase === 'READING') {
+        state = 'READING';
+        anim = 'idle';
+        isBusy = true;
+        speech = caption || 'Ich lese die Aufgabe';
+      } else if (phase === 'TASK_ACCEPTED') {
+        state = 'TASK ACCEPTED';
+        anim = 'idle';
+        isBusy = true;
+        speech = (activeAgentId === 'agent-antigravity-bridge') ? caption : 'Aufgabe akzeptiert';
+      } else if (phase === 'PLAN_CREATED') {
+        state = 'PLAN CREATED';
+        anim = 'idle';
+        isBusy = true;
+        speech = caption || 'Plan steht';
+      } else if (phase === 'WORKING_VISUALIZED' || phase === 'WALKING_TO_WORKSTATION') {
+        state = 'WORKING • VISUALIZED';
+        anim = 'working';
+        isBusy = true;
+        speech = caption || 'WORKING • VISUALIZED: Analyse -> Umsetzung -> Lokaler Test';
+      } else if (phase === 'RESULT_PREPARED') {
+        state = 'RESULT READY';
+        anim = 'working';
+        isBusy = true;
+        speech = caption || 'Ergebnis vorbereitet';
+      } else {
+        state = 'READY';
+        anim = 'idle';
+        isBusy = false;
+      }
+    } else if (ag.id === 'agent-chief-commander') {
+      targetX = HQ_WAYPOINTS['CHIEF_COMMAND'].x;
+      targetY = HQ_WAYPOINTS['CHIEF_COMMAND'].y;
+      if (phase === 'PROMPT_RECEIVED') {
+        state = 'CHIEF COMMAND';
+        anim = 'idle';
+        isBusy = true;
+        speech = caption;
+      } else if (phase === 'CHIEF_RECEIVED') {
+        state = 'RESULT RECEIVED';
+        anim = 'idle';
+        isBusy = true;
+        speech = caption;
+      } else if (phase === 'DONE') {
+        state = 'DONE';
+        anim = 'idle';
+        isBusy = true;
+        speech = caption;
+      } else {
+        state = 'CHIEF COMMAND';
+        anim = 'idle';
+        isBusy = false;
+      }
+    } else if (ag.id === activeAgentId) {
+      isBusy = true;
+      anim = 'working';
+      state = phase;
+      speech = caption;
+      if (step.target_waypoint && HQ_WAYPOINTS[step.target_waypoint]) {
+        targetX = HQ_WAYPOINTS[step.target_waypoint].x;
+        targetY = HQ_WAYPOINTS[step.target_waypoint].y;
+      }
+    }
+
+    return {
+      ...ag,
+      x: targetX,
+      y: targetY,
+      state,
+      title: state,
+      speech,
+      is_active: isBusy,
+      animation: anim,
+    };
+  });
+}
 

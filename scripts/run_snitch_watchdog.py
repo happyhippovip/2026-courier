@@ -24,6 +24,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+try:
+    from resource_intelligence import ResourceIntelligenceManager
+except ImportError:
+    from scripts.resource_intelligence import ResourceIntelligenceManager
+
 
 SCRIPTS_DIR = Path(__file__).resolve().parent
 COURIER_DIR = SCRIPTS_DIR.parent
@@ -620,6 +625,18 @@ class SnitchWatchdog:
         self.alerts_dir = repo_dir / "events/runtime-alerts"
         self.incidents_dir = repo_dir / "events/incidents"
         self.permission_guard = PermissionGuard(repo_dir)
+        self.resource_intelligence = ResourceIntelligenceManager(repo_dir)
+
+    def classify_resource_process(self, obs: RuntimeObservation) -> str:
+        """Expose the same evidence to capacity intelligence; never kills a process."""
+        progress = bool(obs.evidence and (
+            obs.evidence.get("frames_progressing") or obs.evidence.get("output_growing")
+            or obs.evidence.get("cpu_time_advancing")
+        ))
+        return self.resource_intelligence.classify_process(
+            obs.process, obs.elapsed_seconds, progress_detected=progress,
+            persistent_service=obs.persistent_service, orphaned=obs.is_orphan,
+        )
 
     def audit_permission(
         self,
@@ -777,6 +794,8 @@ class SnitchWatchdog:
             "blocked": classification in {"WAITING_FOR_HUMAN", "BLOCKED"},
             "human_gate": "REQUIRE_EXPLICIT_HUMAN_APPROVAL" if obs.human_gate else None,
             "auto_kill_policy": "DISABLED (CHIEF_ESCALATION_ONLY)",
+            "resource_process_class": self.classify_resource_process(obs),
+            "resource_context": self.resource_intelligence.context_for_role("SNITCH_WATCHDOG"),
             "updated_at": iso_now(),
         }
         save_json(self.states_dir / "agent-snitch.json", state)

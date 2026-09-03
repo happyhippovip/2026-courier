@@ -37,9 +37,17 @@ if str(SCRIPTS_DIR) not in sys.path:
 try:
     from run_chief_commander import ChiefCommander
     from run_bodyguards import BodyguardPoolManager
+    from capability_registry import CapabilityRegistry, SkillRegistry, ConnectorRegistry
+    from standing_objectives import StandingObjectivesRegistry
+    from resource_intelligence import ResourceIntelligenceManager
+    from live_operations_truth_contract import LiveOperationsTruthContract
 except ImportError:
     from scripts.run_chief_commander import ChiefCommander
     from scripts.run_bodyguards import BodyguardPoolManager
+    from scripts.capability_registry import CapabilityRegistry, SkillRegistry, ConnectorRegistry
+    from scripts.standing_objectives import StandingObjectivesRegistry
+    from scripts.resource_intelligence import ResourceIntelligenceManager
+    from scripts.live_operations_truth_contract import LiveOperationsTruthContract
 
 
 
@@ -137,6 +145,12 @@ def resolve_active_gate_decision(gate: dict | None, decisions_dir: Path, approva
 class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(STUDIO_DIR), **kwargs)
+
+    def end_headers(self):
+        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0")
+        self.send_header("Pragma", "no-cache")
+        self.send_header("Expires", "0")
+        super().end_headers()
 
     def do_GET(self):
         if self.path == "/api/state":
@@ -328,10 +342,387 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         except Exception:
             bodyguards_data = []
 
+        # Read Transport State
+        transport_dir = EVENTS_DIR / "transport"
+        transport_data = None
+        if transport_dir.exists():
+            reg_file = transport_dir / "registry.json"
+            reg_data = load_json_safe(reg_file) if reg_file.exists() else {}
+            trans_log = transport_dir / "transitions.jsonl"
+            latest_transition = None
+            if trans_log.exists():
+                try:
+                    lines = trans_log.read_text(encoding="utf-8").strip().splitlines()
+                    if lines:
+                        latest_transition = json.loads(lines[-1])
+                except Exception:
+                    pass
+            transport_data = {
+                "incoming_count": len(list((transport_dir / "incoming").glob("*.json"))) if (transport_dir / "incoming").exists() else 0,
+                "processed_count": len(list((transport_dir / "processed").glob("*.json"))) if (transport_dir / "processed").exists() else 0,
+                "rejected_count": len(list((transport_dir / "rejected").glob("*.json"))) if (transport_dir / "rejected").exists() else 0,
+                "ack_count": len(list((transport_dir / "acknowledgements").glob("*.json"))) if (transport_dir / "acknowledgements").exists() else 0,
+                "registry": reg_data,
+                "latest_transition": latest_transition,
+            }
+
+        # Read Review Budget & Ledger State
+        reviews_dir = EVENTS_DIR / "reviews"
+        review_budget_data = None
+        if reviews_dir.exists():
+            rev_ledger_file = reviews_dir / "ledger.json"
+            rev_data = load_json_safe(rev_ledger_file) if rev_ledger_file.exists() else {}
+            today_str = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
+            review_budget_data = {
+                "total_reviews": rev_data.get("stats", {}).get("total_reviews", 0),
+                "total_reused": rev_data.get("stats", {}).get("total_reused", 0),
+                "daily_routine_batches_today": rev_data.get("daily_batches", {}).get(today_str, 0),
+                "max_routine_batches_per_day": 1,
+                "policy": load_json_safe(EVENTS_DIR / "policies" / "review_policy.json") or {},
+            }
+
+        # Read Capability, Skill & Connector Registries
+        try:
+            capabilities_data = CapabilityRegistry(COURIER_DIR).export_summary()
+            skills_data = [s.to_dict() for s in SkillRegistry(COURIER_DIR).list_active_skills()]
+            connectors_data = ConnectorRegistry(COURIER_DIR).export_summary()
+        except Exception:
+            capabilities_data = {}
+            skills_data = []
+            connectors_data = {}
+
+        # Read active handoffs if any
+        handoffs_dir = EVENTS_DIR / "handoffs"
+        active_handoffs = []
+        if handoffs_dir.exists():
+            for hf in sorted(handoffs_dir.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)[:5]:
+                hd = load_json_safe(hf)
+                if hd and "handoff_id" in hd:
+                    active_handoffs.append(hd)
+
+        # Read Chief Presence
+        presence_file = EVENTS_DIR / "chief_presence.json"
+        chief_presence_data = load_json_safe(presence_file) or {"presence": "AWAKE"}
+
+        # Read Standing Objectives
+        try:
+            standing_objectives_data = StandingObjectivesRegistry(COURIER_DIR).export_summary()
+        except Exception:
+            standing_objectives_data = {}
+
+        # Resource capacity is local telemetry only; absent observations remain UNKNOWN.
+        try:
+            resource_intelligence_data = ResourceIntelligenceManager(COURIER_DIR).summary()
+        except Exception:
+            resource_intelligence_data = {"canonical_term": "MODEL_RESOURCE_CAPACITY", "status": "UNKNOWN"}
+
+        # Read Morning Report
+        morning_report_file = EVENTS_DIR / "morning-reports/latest_morning_report.json"
+        latest_morning_report_data = load_json_safe(morning_report_file)
+
+        # Read Heartbeat Telemetry
+        heartbeat_file = EVENTS_DIR / "heartbeat.json"
+        heartbeat_data = load_json_safe(heartbeat_file) or {}
+
+        # Read Opportunity Queue Telemetry
+        queue_dir = EVENTS_DIR / "opportunity-queue"
+        queue_summary = {"READY": 0, "RUNNING": 0, "BLOCKED": 0, "WAITING_FOR_HUMAN": 0, "COMPLETED": 0, "TOTAL": 0}
+        if queue_dir.exists():
+            for qf in queue_dir.glob("*.json"):
+                qd = load_json_safe(qf)
+                if qd and "status" in qd:
+                    st = qd["status"]
+                    queue_summary["TOTAL"] += 1
+                    if st in queue_summary:
+                        queue_summary[st] += 1
+        # Read Autonomy Runtime & 188G Endurance Telemetry (Strict Read-Only)
+        autonomy_dir = EVENTS_DIR / "autonomy-runtime"
+        autonomy_runtime_data = {
+            "status": "IDLE_EXPECTED",
+            "session_id": "NONE",
+            "current_goal": "Awaiting directive",
+            "current_action": "IDLE_EXPECTED",
+            "human_gates": [],
+            "money_gates": [],
+            "jobs_dispatched": [],
+            "jobs_completed": [],
+            "last_active_at": None,
+        }
+        endurance_188g_data = {
+            "is_running": False,
+            "status": "NO_ACTIVE_SESSION",
+            "session_id": "NONE",
+            "elapsed_seconds": 0.0,
+            "remaining_seconds": 0.0,
+            "duration_target_hours": 8.0,
+            "model_calls_during_idle": 0,
+            "autonomous_spend_eur": 0.0,
+            "completed_jobs": [],
+        }
+
+        if autonomy_dir.exists():
+            curr_sess_file = autonomy_dir / "current_session.json"
+            if curr_sess_file.exists():
+                cs = load_json_safe(curr_sess_file)
+                autonomy_runtime_data["status"] = cs.get("status", "IDLE_EXPECTED")
+                autonomy_runtime_data["session_id"] = cs.get("session_id", "NONE")
+                autonomy_runtime_data["current_goal"] = cs.get("goal", "Awaiting directive")
+                autonomy_runtime_data["current_action"] = cs.get("current_action", cs.get("status", "IDLE_EXPECTED"))
+                autonomy_runtime_data["human_gates"] = cs.get("human_gates_encountered", [])
+                autonomy_runtime_data["money_gates"] = cs.get("money_gates_encountered", [])
+                autonomy_runtime_data["jobs_dispatched"] = cs.get("jobs_dispatched", [])
+                autonomy_runtime_data["jobs_completed"] = cs.get("jobs_completed", [])
+                autonomy_runtime_data["last_active_at"] = cs.get("last_active_at")
+
+            hb_file = autonomy_dir / "heartbeat.json"
+            pid_file = autonomy_dir / "supervisor.pid"
+            if hb_file.exists():
+                hb = load_json_safe(hb_file)
+                endurance_188g_data["status"] = hb.get("status", "IDLE_EXPECTED")
+                endurance_188g_data["session_id"] = hb.get("session_id", "NONE")
+                endurance_188g_data["elapsed_seconds"] = hb.get("elapsed_seconds", 0.0)
+                endurance_188g_data["remaining_seconds"] = hb.get("remaining_seconds", 0.0)
+                endurance_188g_data["duration_target_hours"] = hb.get("duration_target_hours", 8.0)
+                endurance_188g_data["model_calls_during_idle"] = hb.get("model_calls_during_idle", 0)
+                endurance_188g_data["autonomous_spend_eur"] = hb.get("autonomous_spend_eur", 0.0)
+                endurance_188g_data["completed_jobs"] = autonomy_runtime_data["jobs_completed"]
+                endurance_188g_data["is_running"] = pid_file.exists()
+
+        # Read Snitch Anomaly Ledger
+        anomalies_dir = EVENTS_DIR / "anomalies"
+        anomaly_ledger_data = {"ledger": {}, "quarantined_branches": [], "quarantined_scopes": []}
+        if anomalies_dir.exists():
+            anom_file = anomalies_dir / "anomaly_ledger.json"
+            if anom_file.exists():
+                anom_map = load_json_safe(anom_file)
+                anomaly_ledger_data["ledger"] = anom_map
+                for fp, entry in anom_map.items():
+                    if entry.get("severity") == "CRITICAL" and not entry.get("resolved", False):
+                        b = entry.get("affected_branch")
+                        s = entry.get("affected_scope")
+                        if b and b not in anomaly_ledger_data["quarantined_branches"]:
+                            anomaly_ledger_data["quarantined_branches"].append(b)
+                        if s and s not in anomaly_ledger_data["quarantined_scopes"]:
+                            anomaly_ledger_data["quarantined_scopes"].append(s)
+
+        # Read Live Operations Truth Contract (Mission PRODUCT-1C / PRODUCT-2)
+        try:
+            truth_contract_data = LiveOperationsTruthContract(COURIER_DIR).snapshot()
+        except Exception:
+            truth_contract_data = {
+                "contract_version": "PRODUCT_1C_V1",
+                "current_goal": "NOT_AVAILABLE",
+                "organization_status": "IDLE",
+                "tasks": [],
+                "active_task": None,
+                "active_agent": None,
+                "active_provider": None,
+                "anomalies": [],
+                "endurance_188g": {"status": "NOT_AVAILABLE", "endurance_proven": "PENDING"},
+                "model_calls": 0,
+            }
+
+        # Build Real Task Board items
+        task_board_items = []
+        if queue_dir.exists():
+            for qf in sorted(queue_dir.glob("*.json")):
+                qd = load_json_safe(qf)
+                if qd and "opportunity_id" in qd:
+                    oid = qd.get("opportunity_id")
+                    task_board_items.append({
+                        "task_id": oid,
+                        "title": qd.get("description", qd.get("problem_or_goal", oid)),
+                        "owner_agent": qd.get("target_agent", "UNKNOWN"),
+                        "provider": "GOOGLE_PRO" if qd.get("target_agent") == "antigravity" else ("CODEX" if qd.get("target_agent") == "codex" else "LOCAL_DETERMINISTIC"),
+                        "status": qd.get("status", "BACKLOG"),
+                        "priority": qd.get("priority", 5),
+                        "risk": qd.get("risk", "LOW"),
+                        "cost_class": qd.get("cost_class", "FREE_LOCAL"),
+                    })
+
+        # Deduplicate and merge with truth contract tasks
+        for tc_task in truth_contract_data.get("tasks", []):
+            tid = tc_task.get("task_id")
+            existing = next((t for t in task_board_items if t["task_id"] == tid), None)
+            if existing:
+                existing["status"] = tc_task.get("status", existing["status"])
+                if tc_task.get("owner_agent"):
+                    existing["owner_agent"] = tc_task.get("owner_agent")
+                if tc_task.get("provider"):
+                    existing["provider"] = tc_task.get("provider")
+                existing["last_meaningful_event"] = tc_task.get("last_meaningful_event")
+            else:
+                task_board_items.append({
+                    "task_id": tid,
+                    "title": tc_task.get("title", tid),
+                    "owner_agent": tc_task.get("owner_agent", "UNKNOWN"),
+                    "provider": tc_task.get("provider", "LOCAL_DETERMINISTIC"),
+                    "status": tc_task.get("status", "UNKNOWN"),
+                    "last_meaningful_event": tc_task.get("last_meaningful_event"),
+                })
+
+        # Collect recent meaningful events for the Result Feed
+        recent_events = []
+        if autonomy_dir.exists():
+            event_ledger_file = autonomy_dir / "event_ledger.json"
+            if event_ledger_file.exists():
+                el = load_json_safe(event_ledger_file)
+                for ev in el.get("events", [])[-20:]:
+                    recent_events.append({
+                        "event_id": ev.get("event_id"),
+                        "event_type": ev.get("event_type"),
+                        "task_id": ev.get("task_id"),
+                        "source_worker": ev.get("source_worker"),
+                        "outcome": ev.get("payload", {}).get("outcome") if isinstance(ev.get("payload"), dict) else "UNKNOWN",
+                        "ingested_at": ev.get("ingested_at"),
+                    })
+
+        # Build Productivity Timeline (meaningful lifecycle events only)
+        timeline_events = []
+        for ev in recent_events:
+            ev_type = ev.get("event_type", "EVENT")
+            outcome = ev.get("outcome", "OK")
+            tid = ev.get("task_id", "")
+            worker = ev.get("source_worker", "")
+
+            label = "WORK_EVENT"
+            if ev_type == "RESULT" and outcome == "SUCCESS":
+                label = "TASK_COMPLETED"
+            elif ev_type == "RESULT" and outcome == "FAIL":
+                label = "TASK_FAILED"
+            elif ev_type == "HUMAN_GATE":
+                label = "HUMAN_GATE"
+            elif ev_type == "MONEY_GATE":
+                label = "MONEY_GATE"
+            elif ev_type == "DISPATCH":
+                label = "TASK_ASSIGNED"
+            elif ev_type == "START":
+                label = "JOB_STARTED"
+            elif ev_type == "ANOMALY":
+                label = "ANOMALY"
+
+            timeline_events.append({
+                "timestamp": ev.get("ingested_at") or datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                "event_type": label,
+                "task_id": tid,
+                "actor": worker or "SYSTEM",
+                "details": f"{label} for {tid} (Outcome: {outcome})",
+                "status": outcome,
+            })
+
+        if not timeline_events:
+            timeline_events.append({
+                "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                "event_type": "SAFE IDLE",
+                "task_id": "NONE",
+                "actor": "ORGANIZATION",
+                "details": "Organization operating safely in IDLE_EXPECTED state",
+                "status": "HEALTHY",
+            })
+
+        session_view = {
+            "status": autonomy_runtime_data.get("status", "IDLE_EXPECTED"),
+            "session_id": autonomy_runtime_data.get("session_id", "NONE"),
+            "started_at": autonomy_runtime_data.get("last_active_at") or datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "current_goal": autonomy_runtime_data.get("current_goal", "Autonomous Standby"),
+            "current_phase": "EXECUTION" if autonomy_runtime_data.get("status") == "RUNNING" else ("GATE_PAUSE" if "GATE" in str(autonomy_runtime_data.get("status", "")) else "SAFE_IDLE"),
+            "current_task": autonomy_runtime_data.get("current_action", "Safe Standby"),
+            "next_action": "Wait for evidence unlock or backlog opportunity",
+            "active_workers": [t.get("owner_agent") for t in task_board_items if t.get("status") == "ACTIVE"] or [],
+            "completed_tasks_count": len(autonomy_runtime_data.get("jobs_completed", [])),
+            "waiting_tasks_count": sum(1 for t in task_board_items if t.get("status") in ("WAITING", "BACKLOG", "READY")),
+            "failed_tasks_count": sum(1 for t in task_board_items if t.get("status") in ("FAILED", "BLOCKED")),
+            "human_gates_count": len(autonomy_runtime_data.get("human_gates", [])),
+            "money_gates_count": len(autonomy_runtime_data.get("money_gates", [])),
+            "anomalies_count": len(anomaly_ledger_data.get("quarantined_branches", [])),
+            "last_useful_result": autonomy_runtime_data["jobs_completed"][-1] if autonomy_runtime_data.get("jobs_completed") else "None",
+            "recovery_status": "HEALTHY" if not anomaly_ledger_data.get("quarantined_branches") else "BRANCH_QUARANTINED",
+        }
+
+        # Read Real Snitch Observer Telemetry
+        snitch_readiness = None
+        snitch_worker_observations = []
+        try:
+            from snitch_observer import SnitchObserver
+        except ImportError:
+            try:
+                from scripts.snitch_observer import SnitchObserver
+            except ImportError:
+                SnitchObserver = None
+
+        if SnitchObserver:
+            try:
+                observer = SnitchObserver(repo_dir=COURIER_DIR)
+                snitch_readiness = observer.compute_operational_readiness(oracle_test_command=None).to_dict()
+                snitch_worker_observations = [w.to_dict() for w in observer.inspect_workspace()]
+            except Exception as e:
+                snitch_readiness = {"readiness": "UNKNOWN", "safe_for_unattended_operation": False, "reasons": [str(e)]}
+
+        # Check Heavy Scope Lock
+        is_heavy_locked = bool(list(locks_dir.glob("scope_HEAVY*.json")))
+
+        # Ingest/Ensure Execution Workers (GOOGLE, CODEX, CLI1, CLI2)
+        execution_workers_def = {
+            "worker-google": {
+                "id": "worker-google",
+                "name": "GOOGLE",
+                "role": "Google Pro / Primary Builder",
+                "provider": "GOOGLE_PRO",
+                "state": "PROGRESSING" if any(t.get("provider") == "GOOGLE_PRO" and t.get("status") in ("ACTIVE", "RUNNING") for t in task_board_items) else "SAFE_IDLE",
+                "task": next((t.get("title") for t in task_board_items if t.get("provider") == "GOOGLE_PRO" and t.get("status") in ("ACTIVE", "RUNNING")), "Standby"),
+                "heavy_job": is_heavy_locked,
+                "execution_class": "REAL_ANTIGRAVITY",
+            },
+            "worker-codex": {
+                "id": "worker-codex",
+                "name": "CODEX",
+                "role": "Codex QA Specialist",
+                "provider": "CODEX",
+                "state": "PROGRESSING" if any(t.get("provider") == "CODEX" and t.get("status") in ("ACTIVE", "RUNNING") for t in task_board_items) else "SAFE_IDLE",
+                "task": next((t.get("title") for t in task_board_items if t.get("provider") == "CODEX" and t.get("status") in ("ACTIVE", "RUNNING")), "Standby"),
+                "heavy_job": False,
+                "execution_class": "REAL_CODEX_CLI",
+            },
+            "worker-cli1": {
+                "id": "worker-cli1",
+                "name": "CLI 1",
+                "role": "Primary Terminal Operator",
+                "provider": "LOCAL_CLI_1",
+                "state": "SAFE_IDLE",
+                "task": "Standby (Awaiting Directive)",
+                "heavy_job": False,
+                "execution_class": "DETERMINISTIC_ANTIGRAVITY",
+            },
+            "worker-cli2": {
+                "id": "worker-cli2",
+                "name": "CLI 2",
+                "role": "Beata Account Operator",
+                "provider": "LOCAL_CLI_2",
+                "state": "SAFE_IDLE",
+                "task": "Standby (Profile Isolated)",
+                "heavy_job": False,
+                "execution_class": "DETERMINISTIC_ANTIGRAVITY",
+            },
+        }
+
+        for wid, wdef in execution_workers_def.items():
+            if wid not in agents_data:
+                agents_data[wid] = wdef
+
         response_data = {
             "schema_version": "2.0",
             "server_time": datetime.datetime.now(datetime.timezone.utc).isoformat(),
             "agents": agents_data,
+            "snitch_observer": snitch_readiness,
+            "snitch_workers": snitch_worker_observations,
+            "autonomy_runtime": autonomy_runtime_data,
+            "endurance_188g": endurance_188g_data,
+            "anomalies": anomaly_ledger_data,
+            "truth_contract": truth_contract_data,
+            "task_board": task_board_items,
+            "result_feed": recent_events,
+            "session_view": session_view,
+            "productivity_timeline": timeline_events,
             "counts": counts,
             "context_snapshot": snapshot_data,
             "academy": academy_data,
@@ -340,6 +731,18 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             "incidents": incidents_data,
             "runtime_alert": latest_runtime_alert,
             "treasury": treasury,
+            "transport": transport_data,
+            "review_budget": review_budget_data,
+            "capabilities": capabilities_data,
+            "skills": skills_data,
+            "connectors": connectors_data,
+            "handoffs": active_handoffs,
+            "chief_presence": chief_presence_data,
+            "standing_objectives": standing_objectives_data,
+            "resource_intelligence": resource_intelligence_data,
+            "morning_report": latest_morning_report_data,
+            "heartbeat": heartbeat_data,
+            "opportunity_queue": queue_summary,
             "bus": {
                 "is_locked": is_locked,
                 "active_lock": active_lock_name,
