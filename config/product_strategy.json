@@ -1,0 +1,70 @@
+{
+  "schema_version": "1.0",
+  "strategy_name": "revenue_first_safe_product_strategy",
+  "primary_objective": "Build real user value and a commercially viable product that can become self-funding over time.",
+  "decision_order": [
+    "USER_VALUE",
+    "SELLABILITY",
+    "EXPECTED_NET_REVENUE",
+    "TIME_TO_VALIDATION",
+    "COST_EFFICIENCY",
+    "STRATEGIC_LEARNING"
+  ],
+  "gates": {
+    "TRUST_AND_SAFETY_REQUIRED": true,
+    "GOAL_ALIGNMENT_REQUIRED": true,
+    "EXTERNAL_COMMERCIAL_ACTION_REQUIRES_HUMAN_APPROVAL": true,
+    "PURCHASE_OR_SUBSCRIPTION_UPGRADE_REQUIRES_HUMAN_APPROVAL": true,
+    "PAID_OVERAGES_ALLOWED_AUTONOMOUSLY": false,
+    "PUBLICATION_OR_DEPLOYMENT_REQUIRES_HUMAN_APPROVAL": true,
+    "CUSTOMER_OUTREACH_REQUIRES_HUMAN_APPROVAL": true,
+    "PAYMENT_ACTIVATION_REQUIRES_HUMAN_APPROVAL": true
+  },
+  "autonomous_internal_actions": [
+    "ANALYZE_TARGET_USERS",
+    "ANALYZE_PAIN_POINTS",
+    "COMPARE_PRODUCT_OPPORTUNITIES",
+    "RANK_BY_EVIDENCE_ADJUSTED_ECONOMIC_VALUE",
+    "PREPARE_PRICING_HYPOTHESES",
+    "PREPARE_PACKAGING_HYPOTHESES",
+    "ESTIMATE_COST_TO_SERVE",
+    "IDENTIFY_SELLABILITY_GAPS",
+    "IMPROVE_INTERNAL_PRODUCT_READINESS",
+    "DESIGN_PRE_EXTERNAL_VALIDATION_PLANS",
+    "DEFINE_ACTIVATION_RETENTION_WTP_CONVERSION_METRICS"
+  ],
+  "candidate_scoring": {
+    "USER_VALUE": {"min": 0, "max": 5},
+    "SELLABILITY": {"min": 0, "max": 5},
+    "REVENUE_POTENTIAL": {"min": 0, "max": 5},
+    "TIME_TO_VALIDATION": {"min": 0, "max": 5, "higher_is_better": true},
+    "COST_EFFICIENCY": {"min": 0, "max": 5, "higher_is_better": true},
+    "STRATEGIC_LEARNING": {"min": 0, "max": 5}
+  },
+  "agent_system_policy": {
+    "PRODUCT_WORK_DEFAULT_PRIORITY": true,
+    "COURIER_CHANGES_REQUIRE_CONCRETE_PRODUCT_EXPOSED_DEFECT_OR_HIGH_VALUE_FRICTION": true,
+    "CHEAPEST_SUFFICIENT_CAPABILITY_FIRST": true,
+    "EXPENSIVE_SPECIALIST_TRIGGER": "HIGH_INFORMATION_GAIN_ONLY",
+    "CAPACITY_IS_NOT_A_TARGET_TO_BURN": true
+  },
+  "reinvestment_policy": {
+    "goal": "Use future product revenue, with human approval, to improve project tooling, model capacity, infrastructure, reliability and product development.",
+    "human_approval_required_for_actual_spend": true,
+    "potential_categories": [
+      "MODEL_OR_TOOL_SUBSCRIPTIONS",
+      "LEGITIMATE_MODEL_CAPACITY",
+      "TESTING_AND_RELIABILITY",
+      "HOSTING_AND_INFRASTRUCTURE",
+      "OBSERVABILITY_AND_SECURITY",
+      "PRODUCT_DESIGN_AND_USABILITY",
+      "VALIDATION_AND_DISTRIBUTION_TOOLING"
+    ]
+  },
+  "required_reference_docs": [
+    "docs/CANONICAL_COMPLETION_HANDOFF.md",
+    "docs/IMPORTANT_SIDE_THOUGHTS.md",
+    "docs/PRODUCT_REVENUE_AND_REINVESTMENT_STRATEGY.md"
+  ],
+  "last_updated": "2026-09-06"
+}
