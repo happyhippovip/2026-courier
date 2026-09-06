@@ -415,6 +415,58 @@ class UserSession:
         """Marks all notifications read."""
         return self.client.mark_all_notifications_read(self.user_id)
 
+    def get_notification_preferences(self) -> Dict[str, Any]:
+        """Gets user notification preferences."""
+        return self.client.get_notification_preferences(self.user_id)
+
+    def update_notification_preferences(self, **kwargs) -> Dict[str, Any]:
+        """Updates user notification preferences."""
+        return self.client.update_notification_preferences(self.user_id, **kwargs)
+
+    def register_push_device(
+        self,
+        endpoint: str,
+        p256dh: Optional[str] = None,
+        auth: Optional[str] = None,
+        platform: str = "web",
+        device_token: Optional[str] = None,
+        device_name: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Registers a push notification device for the active user session."""
+        return self.client.register_push_subscription(
+            user_id=self.user_id,
+            endpoint=endpoint,
+            p256dh=p256dh,
+            auth=auth,
+            platform=platform,
+            device_token=device_token,
+            device_name=device_name
+        )
+
+    def register_push_subscription(self, endpoint: str, **kwargs) -> Dict[str, Any]:
+        """Alias for register_push_device."""
+        return self.register_push_device(endpoint=endpoint, **kwargs)
+
+    def unregister_push_device(self, subscription_id: str) -> Dict[str, Any]:
+        """Unregisters a push notification device for the active user session."""
+        return self.client.unregister_push_subscription(subscription_id, user_id=self.user_id)
+
+    def unregister_push_subscription(self, subscription_id: str) -> Dict[str, Any]:
+        """Alias for unregister_push_device."""
+        return self.unregister_push_device(subscription_id)
+
+    def get_push_subscriptions(self, active_only: bool = True) -> List[Dict[str, Any]]:
+        """Lists active push subscriptions for the current user."""
+        return self.client.get_push_subscriptions(self.user_id, active_only=active_only)
+
+    def list_push_subscriptions(self, active_only: bool = True) -> List[Dict[str, Any]]:
+        """Alias for get_push_subscriptions."""
+        return self.get_push_subscriptions(active_only=active_only)
+
+    def get_dispatched_notifications(self) -> List[Dict[str, Any]]:
+        """Retrieves notification dispatch logs for current user."""
+        return self.client.get_dispatched_notifications(user_id=self.user_id)
+
     def search(self, query: str, search_type: str = "all", **filters) -> Dict[str, Any]:
         """Runs search scoped to viewer context."""
         return self.client.search(query=query, search_type=search_type, viewer_id=self.user_id, **filters)

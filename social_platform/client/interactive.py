@@ -124,6 +124,45 @@ class InteractiveConsole:
             print(f"\n--- Communities ({len(comms)}) ---")
             for c in comms:
                 print(f"[{c.get('id')}] {c.get('name')}: {c.get('description', '')}")
+        elif cmd in ("notifs", "notifications"):
+            if not self.session:
+                print("Please login first.")
+                return
+            unread_only = "--unread" in args or "-u" in args or (len(args) > 0 and args[0] == "unread")
+            notifs = self.session.get_notifications(unread_only=unread_only)
+            print(f"\n--- Notifications ({len(notifs)}) ---")
+            for n in notifs:
+                status = "UNREAD" if not n.get("is_read") else "READ"
+                print(f"[{status}] [{n.get('id')}] Type: {n.get('type')} | From: {n.get('actor_id')} | {n.get('content')}")
+        elif cmd in ("notif-prefs", "prefs"):
+            if not self.session:
+                print("Please login first.")
+                return
+            prefs = self.session.get_notification_preferences()
+            print(f"\n--- Notification Preferences for {self.session.user_id} ---")
+            print(f"  Mentions: {prefs.get('mentions')} | Replies: {prefs.get('replies')} | Endorsements: {prefs.get('endorsements')}")
+            print(f"  DMs: {prefs.get('direct_messages')} | Connections: {prefs.get('connections')}")
+            print(f"  Push Enabled: {prefs.get('push_enabled')} | In-App Enabled: {prefs.get('in_app_enabled')}")
+            print(f"  Quiet Hours: {prefs.get('quiet_hours_enabled')} ({prefs.get('quiet_hours_start')} - {prefs.get('quiet_hours_end')})")
+        elif cmd in ("push-reg", "push-register"):
+            if not self.session:
+                print("Please login first.")
+                return
+            if not args:
+                print("Usage: push-reg <endpoint_url> [platform]")
+                return
+            ep = args[0]
+            plat = args[1] if len(args) > 1 else "cli"
+            sub = self.session.register_push_device(endpoint=ep, platform=plat)
+            print(f"Push device registered! ID: {sub.get('id')}")
+        elif cmd in ("push-list", "push-devices"):
+            if not self.session:
+                print("Please login first.")
+                return
+            subs = self.session.list_push_subscriptions()
+            print(f"\n--- Registered Push Devices ({len(subs)}) ---")
+            for s in subs:
+                print(f"[{s.get('id')}] Platform: {s.get('platform')} | Endpoint: {s.get('endpoint')}")
         else:
             print(f"Unknown command: {cmd}. Type 'help' for available commands.")
 
@@ -137,5 +176,9 @@ class InteractiveConsole:
         print("  follow <user_id>              - Follow user")
         print("  dms                           - View active conversations")
         print("  msg <user_id> <text>          - Send direct message")
+        print("  notifs [--unread]             - View notifications inbox")
+        print("  notif-prefs                   - View user notification preferences")
+        print("  push-reg <endpoint>           - Register push notification device")
+        print("  push-list                     - List registered push devices")
         print("  communities                   - List communities")
         print("  exit                          - Exit console\n")

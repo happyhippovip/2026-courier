@@ -21,7 +21,8 @@
 - **State**: 
   - [REAL] Users, Connections/Follows, Discussions/Posts, Multi-Mode Transparent Feeds (Chronological, Following, Interests, Community, Weighted Value, Domain Reputation), Communities, Academic Spaces (Courses, Study Groups, Resources), DMs, Moderation, Appeals.
   - [REAL] Weighted Value Endorsements & Domain Reputation Scoring with academic role scaling, author authority ranking, leaderboard tracking, and study space aggregation.
-  - [NOT_IMPLEMENTED] Push notifications.
+  - [REAL] Push Notification Registration, User Preferences, & Event Dispatching Engine (`core/database.py`, `core/models.py`, `api/server.py`, `client/client.py`, `client/session.py`, `client/cli.py`, `client/interactive.py`).
+  - [REAL] Granular notification preference controls (mentions, replies, endorsements, DMs, connections, study spaces, quiet hours, min endorsement weight, sender muting).
 
 ## Tests
-- Run `python3 -m unittest discover -s social_platform/tests` to verify deterministic feed behavior, database persistence, REST API boundary, client interaction workflows, weighted endorsements, and domain reputation scoring.
+- Run `python3 -m unittest discover -s social_platform/tests` to verify deterministic feed behavior, database persistence, REST API boundary, client interaction workflows, weighted endorsements, domain reputation scoring, push notification registration, user preferences, and event dispatching.

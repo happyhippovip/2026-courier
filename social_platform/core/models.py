@@ -1099,16 +1099,319 @@ class CommunityBan:
             "created_at": self.created_at.isoformat() if isinstance(self.created_at, datetime) else str(self.created_at)
         }
 
+class NotificationType:
+    MENTION = "mention"
+    REPLY = "reply"
+    ENDORSEMENT = "endorsement"
+    DIRECT_MESSAGE = "direct_message"
+    FOLLOW = "follow"
+    CONNECTION = "connection"
+    JOIN_REQUEST = "join_request"
+    COMMUNITY_INVITE = "community_invite"
+    COURSE_UPDATE = "course_update"
+    STUDY_GROUP_UPDATE = "study_group_update"
+    MODERATION_ALERT = "moderation_alert"
+    ANNOUNCEMENT = "announcement"
+    SYSTEM_ANNOUNCEMENT = "announcement"
+
+@dataclass
+class NotificationPreferences:
+    user_id: str
+    mentions: bool = True
+    replies: bool = True
+    endorsements: bool = True
+    direct_messages: bool = True
+    connections: bool = True
+    community_activity: bool = True
+    course_activity: bool = True
+    study_group_activity: bool = True
+    announcements: bool = True
+    in_app_enabled: bool = True
+    push_enabled: bool = True
+    email_enabled: bool = False
+    digest_frequency: str = "instant"  # "instant", "daily", "weekly", "none"
+    quiet_hours_enabled: bool = False
+    quiet_hours_start: Optional[str] = None  # e.g. "22:00"
+    quiet_hours_end: Optional[str] = None    # e.g. "08:00"
+    min_endorsement_weight: float = 0.0
+    muted_senders: List[str] = field(default_factory=list)
+    created_at: datetime = field(default_factory=datetime.utcnow)
+    updated_at: datetime = field(default_factory=datetime.utcnow)
+
+    def __post_init__(self):
+        if isinstance(self.muted_senders, str):
+            try:
+                self.muted_senders = json.loads(self.muted_senders)
+            except Exception:
+                self.muted_senders = [s.strip() for s in self.muted_senders.split(",") if s.strip()]
+        elif self.muted_senders is None:
+            self.muted_senders = []
+        elif not isinstance(self.muted_senders, list):
+            self.muted_senders = list(self.muted_senders)
+        self.muted_senders = [str(s).strip() for s in self.muted_senders if str(s).strip()]
+
+        if isinstance(self.created_at, str):
+            try:
+                self.created_at = datetime.fromisoformat(self.created_at)
+            except Exception:
+                pass
+        if isinstance(self.updated_at, str):
+            try:
+                self.updated_at = datetime.fromisoformat(self.updated_at)
+            except Exception:
+                pass
+
+    @property
+    def notify_mentions(self) -> bool:
+        return self.mentions
+
+    @property
+    def notify_replies(self) -> bool:
+        return self.replies
+
+    @property
+    def notify_endorsements(self) -> bool:
+        return self.endorsements
+
+    @property
+    def notify_direct_messages(self) -> bool:
+        return self.direct_messages
+
+    @property
+    def notify_dms(self) -> bool:
+        return self.direct_messages
+
+    @property
+    def notify_connections(self) -> bool:
+        return self.connections
+
+    @property
+    def notify_follows(self) -> bool:
+        return self.connections
+
+    @property
+    def notify_community(self) -> bool:
+        return self.community_activity
+
+    @property
+    def notify_courses(self) -> bool:
+        return self.course_activity
+
+    @property
+    def notify_study_groups(self) -> bool:
+        return self.study_group_activity
+
+    def is_sender_muted(self, sender_id: str) -> bool:
+        if not sender_id or not self.muted_senders:
+            return False
+        return str(sender_id).strip() in self.muted_senders
+
+    def is_in_quiet_hours(self, current_time: Optional[datetime] = None) -> bool:
+        if not self.quiet_hours_enabled or not self.quiet_hours_start or not self.quiet_hours_end:
+            return False
+        now = current_time or datetime.utcnow()
+        try:
+            sh, sm = map(int, self.quiet_hours_start.split(":"))
+            eh, em = map(int, self.quiet_hours_end.split(":"))
+            current_minutes = now.hour * 60 + now.minute
+            start_minutes = sh * 60 + sm
+            end_minutes = eh * 60 + em
+
+            if start_minutes <= end_minutes:
+                return start_minutes <= current_minutes <= end_minutes
+            else:
+                # Spans midnight (e.g. 22:00 to 08:00)
+                return current_minutes >= start_minutes or current_minutes <= end_minutes
+        except Exception:
+            return False
+
+    def should_notify(self, notification_type: str, actor_id: Optional[str] = None, weight: float = 0.0, current_time: Optional[datetime] = None) -> bool:
+        if actor_id and self.is_sender_muted(actor_id):
+            return False
+        if self.is_in_quiet_hours(current_time):
+            return False
+
+        nt = str(notification_type).lower().strip()
+        if nt in ("mention", "mentions"):
+            return self.mentions
+        elif nt in ("reply", "replies"):
+            return self.replies
+        elif nt in ("endorsement", "endorsements"):
+            if not self.endorsements:
+                return False
+            if weight < self.min_endorsement_weight:
+                return False
+            return True
+        elif nt in ("direct_message", "dm", "message"):
+            return self.direct_messages
+        elif nt in ("connection", "follow", "connections", "follows"):
+            return self.connections
+        elif nt in ("community", "community_activity", "community_invite", "join_request"):
+            return self.community_activity
+        elif nt in ("course", "course_activity", "course_update"):
+            return self.course_activity
+        elif nt in ("study_group", "study_group_activity", "study_group_update"):
+            return self.study_group_activity
+        elif nt in ("announcement", "announcements", "system"):
+            return self.announcements
+        return True
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "user_id": self.user_id,
+            "mentions": self.mentions,
+            "notify_mentions": self.mentions,
+            "replies": self.replies,
+            "notify_replies": self.replies,
+            "endorsements": self.endorsements,
+            "notify_endorsements": self.endorsements,
+            "direct_messages": self.direct_messages,
+            "notify_direct_messages": self.direct_messages,
+            "notify_dms": self.direct_messages,
+            "connections": self.connections,
+            "notify_connections": self.connections,
+            "notify_follows": self.connections,
+            "community_activity": self.community_activity,
+            "notify_community": self.community_activity,
+            "course_activity": self.course_activity,
+            "notify_courses": self.course_activity,
+            "study_group_activity": self.study_group_activity,
+            "notify_study_groups": self.study_group_activity,
+            "announcements": self.announcements,
+            "in_app_enabled": self.in_app_enabled,
+            "push_enabled": self.push_enabled,
+            "email_enabled": self.email_enabled,
+            "digest_frequency": self.digest_frequency,
+            "quiet_hours_enabled": self.quiet_hours_enabled,
+            "quiet_hours_start": self.quiet_hours_start,
+            "quiet_hours_end": self.quiet_hours_end,
+            "min_endorsement_weight": self.min_endorsement_weight,
+            "muted_senders": self.muted_senders,
+            "created_at": self.created_at.isoformat() if isinstance(self.created_at, datetime) else str(self.created_at),
+            "updated_at": self.updated_at.isoformat() if isinstance(self.updated_at, datetime) else str(self.updated_at)
+        }
+
+UserNotificationPreferences = NotificationPreferences
+NotificationPreference = NotificationPreferences
+
+
+@dataclass
+class PushSubscription:
+    id: str
+    user_id: str
+    endpoint: str
+    p256dh: Optional[str] = None
+    auth: Optional[str] = None
+    platform: str = "web"  # "web", "ios", "android", "cli", "desktop"
+    device_token: Optional[str] = None
+    device_name: Optional[str] = None
+    is_active: bool = True
+    created_at: datetime = field(default_factory=datetime.utcnow)
+    last_used_at: Optional[datetime] = None
+
+    def __post_init__(self):
+        if isinstance(self.created_at, str):
+            try:
+                self.created_at = datetime.fromisoformat(self.created_at)
+            except Exception:
+                pass
+        if isinstance(self.last_used_at, str):
+            try:
+                self.last_used_at = datetime.fromisoformat(self.last_used_at)
+            except Exception:
+                pass
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "endpoint": self.endpoint,
+            "p256dh": self.p256dh,
+            "auth": self.auth,
+            "platform": self.platform,
+            "device_token": self.device_token,
+            "device_name": self.device_name,
+            "is_active": self.is_active,
+            "created_at": self.created_at.isoformat() if isinstance(self.created_at, datetime) else str(self.created_at),
+            "last_used_at": self.last_used_at.isoformat() if isinstance(self.last_used_at, datetime) else (str(self.last_used_at) if self.last_used_at else None)
+        }
+
+PushDevice = PushSubscription
+DeviceRegistration = PushSubscription
+UserPushSubscription = PushSubscription
+
+
+@dataclass
+class PushNotificationDispatch:
+    id: str
+    notification_id: str
+    user_id: str
+    subscription_id: Optional[str] = None
+    channel: str = "push"  # "push", "in_app", "email"
+    status: str = "delivered"  # "delivered", "queued", "suppressed", "failed"
+    payload: Dict[str, Any] = field(default_factory=dict)
+    dispatched_at: datetime = field(default_factory=datetime.utcnow)
+    error_message: Optional[str] = None
+
+    def __post_init__(self):
+        if isinstance(self.payload, str):
+            try:
+                self.payload = json.loads(self.payload)
+            except Exception:
+                self.payload = {}
+        elif self.payload is None:
+            self.payload = {}
+
+        if isinstance(self.dispatched_at, str):
+            try:
+                self.dispatched_at = datetime.fromisoformat(self.dispatched_at)
+            except Exception:
+                pass
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "id": self.id,
+            "notification_id": self.notification_id,
+            "user_id": self.user_id,
+            "subscription_id": self.subscription_id,
+            "channel": self.channel,
+            "status": self.status,
+            "payload": self.payload,
+            "dispatched_at": self.dispatched_at.isoformat() if isinstance(self.dispatched_at, datetime) else str(self.dispatched_at),
+            "error_message": self.error_message
+        }
+
+NotificationDispatchRecord = PushNotificationDispatch
+DispatchedNotification = PushNotificationDispatch
+NotificationDispatch = PushNotificationDispatch
+
+
 @dataclass
 class Notification:
     id: str
     user_id: str
-    type: str  # "mention", "reply", "endorsement", "direct_message"
+    type: str  # "mention", "reply", "endorsement", "direct_message", etc.
     actor_id: str
     target_id: str
     content: str = ""
     is_read: bool = False
+    title: Optional[str] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=datetime.utcnow)
+
+    def __post_init__(self):
+        if isinstance(self.created_at, str):
+            try:
+                self.created_at = datetime.fromisoformat(self.created_at)
+            except Exception:
+                pass
+        if isinstance(self.metadata, str):
+            try:
+                self.metadata = json.loads(self.metadata)
+            except Exception:
+                self.metadata = {}
+        elif self.metadata is None:
+            self.metadata = {}
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -1119,6 +1422,8 @@ class Notification:
             "target_id": self.target_id,
             "content": self.content,
             "is_read": self.is_read,
+            "title": self.title,
+            "metadata": self.metadata,
             "created_at": self.created_at.isoformat() if isinstance(self.created_at, datetime) else str(self.created_at)
         }
 

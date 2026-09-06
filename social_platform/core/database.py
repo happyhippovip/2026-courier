@@ -34,7 +34,11 @@ from .models import (
     Endorsement, ValueEndorsement, WeightedEndorsement, DomainReputation,
     UserDomainReputation, ReputationScore, UserReputation, DomainLeaderboardEntry,
     StudySpaceReputation, CourseReputation, StudyGroupReputation,
-    EndorsementCategory, ReputationBadge
+    EndorsementCategory, ReputationBadge,
+    NotificationPreferences, UserNotificationPreferences, NotificationPreference,
+    PushSubscription, PushDevice, DeviceRegistration, UserPushSubscription,
+    PushNotificationDispatch, NotificationDispatchRecord, DispatchedNotification, NotificationDispatch,
+    NotificationType
 )
 from .feed import FeedService, FeedMode
 from .transformer import (
@@ -242,7 +246,59 @@ class SocialDatabase:
                     target_id TEXT NOT NULL,
                     content TEXT NOT NULL DEFAULT '',
                     is_read BOOLEAN NOT NULL DEFAULT 0,
+                    title TEXT,
+                    metadata TEXT NOT NULL DEFAULT '{}',
                     created_at TEXT NOT NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS user_notification_preferences (
+                    user_id TEXT PRIMARY KEY,
+                    mentions BOOLEAN NOT NULL DEFAULT 1,
+                    replies BOOLEAN NOT NULL DEFAULT 1,
+                    endorsements BOOLEAN NOT NULL DEFAULT 1,
+                    direct_messages BOOLEAN NOT NULL DEFAULT 1,
+                    connections BOOLEAN NOT NULL DEFAULT 1,
+                    community_activity BOOLEAN NOT NULL DEFAULT 1,
+                    course_activity BOOLEAN NOT NULL DEFAULT 1,
+                    study_group_activity BOOLEAN NOT NULL DEFAULT 1,
+                    announcements BOOLEAN NOT NULL DEFAULT 1,
+                    in_app_enabled BOOLEAN NOT NULL DEFAULT 1,
+                    push_enabled BOOLEAN NOT NULL DEFAULT 1,
+                    email_enabled BOOLEAN NOT NULL DEFAULT 0,
+                    digest_frequency TEXT NOT NULL DEFAULT 'instant',
+                    quiet_hours_enabled BOOLEAN NOT NULL DEFAULT 0,
+                    quiet_hours_start TEXT,
+                    quiet_hours_end TEXT,
+                    min_endorsement_weight REAL NOT NULL DEFAULT 0.0,
+                    muted_senders TEXT NOT NULL DEFAULT '[]',
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS push_subscriptions (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL,
+                    endpoint TEXT NOT NULL,
+                    p256dh TEXT,
+                    auth TEXT,
+                    platform TEXT NOT NULL DEFAULT 'web',
+                    device_token TEXT,
+                    device_name TEXT,
+                    is_active BOOLEAN NOT NULL DEFAULT 1,
+                    created_at TEXT NOT NULL,
+                    last_used_at TEXT
+                );
+
+                CREATE TABLE IF NOT EXISTS dispatched_notifications (
+                    id TEXT PRIMARY KEY,
+                    notification_id TEXT NOT NULL,
+                    user_id TEXT NOT NULL,
+                    subscription_id TEXT,
+                    channel TEXT NOT NULL DEFAULT 'push',
+                    status TEXT NOT NULL DEFAULT 'delivered',
+                    payload TEXT NOT NULL DEFAULT '{}',
+                    dispatched_at TEXT NOT NULL,
+                    error_message TEXT
                 );
 
                 CREATE TABLE IF NOT EXISTS direct_messages (
@@ -967,6 +1023,16 @@ class SocialDatabase:
         finally:
             if not self._memory_conn: conn.close()
 
+        if follower_id != followed_id:
+            self.dispatch_notification(
+                user_id=followed_id,
+                type="follow",
+                actor_id=follower_id,
+                target_id=follower_id,
+                content=f"User {follower_id} followed you",
+                title="New Follower"
+            )
+
     def get_connections(self, follower_id: str) -> List[Connection]:
         conn = self.get_connection()
         try:
@@ -1672,6 +1738,11 @@ class SocialDatabase:
             filter_prefs = self.get_content_filter_preferences(user_id)
             media_items = self.get_user_media(user_id)
 
+            # Notification preferences, Push subscriptions & Dispatches
+            notif_prefs = self.get_notification_preferences(user_id)
+            push_subs = self.get_push_subscriptions(user_id, active_only=False)
+            dispatches = self.get_dispatched_notifications(user_id=user_id)
+
             user_dict = user.to_dict() if hasattr(user, "to_dict") else user.__dict__
 
             return {
@@ -1690,6 +1761,9 @@ class SocialDatabase:
                 "blocks": [b.to_dict() if hasattr(b, "to_dict") else b.__dict__ for b in blocks],
                 "topic_subscriptions": topic_subs,
                 "notifications": [n.to_dict() if hasattr(n, "to_dict") else n.__dict__ for n in notifications],
+                "notification_preferences": notif_prefs.to_dict() if notif_prefs else {},
+                "push_subscriptions": [s.to_dict() if hasattr(s, "to_dict") else s.__dict__ for s in push_subs],
+                "dispatched_notifications": [dp.to_dict() if hasattr(dp, "to_dict") else dp.__dict__ for dp in dispatches],
                 "join_requests": [r.to_dict() if hasattr(r, "to_dict") else r.__dict__ for r in join_reqs],
                 "course_enrollments": [e.to_dict() if hasattr(e, "to_dict") else e.__dict__ for e in user_enrollments],
                 "courses": [c.to_dict() if hasattr(c, "to_dict") else c.__dict__ for c in user_courses],
@@ -4751,8 +4825,17 @@ Refer to manifest.json for individual file checksums.
         finally:
             if not self._memory_conn: conn.close()
 
-    # --- Notifications Inbox ---
+    # --- Notifications Inbox, Push Subscriptions & Preferences ---
     def _row_to_notification(self, r) -> Notification:
+        keys = r.keys() if hasattr(r, "keys") else []
+        title = r["title"] if "title" in keys else None
+        meta_raw = r["metadata"] if "metadata" in keys else "{}"
+        metadata = {}
+        if meta_raw:
+            try:
+                metadata = json.loads(meta_raw) if isinstance(meta_raw, str) else dict(meta_raw)
+            except Exception:
+                metadata = {}
         return Notification(
             id=r["id"],
             user_id=r["user_id"],
@@ -4761,25 +4844,576 @@ Refer to manifest.json for individual file checksums.
             target_id=r["target_id"],
             content=r["content"],
             is_read=bool(r["is_read"]),
-            created_at=datetime.fromisoformat(r["created_at"])
+            title=title,
+            metadata=metadata,
+            created_at=datetime.fromisoformat(r["created_at"]) if isinstance(r["created_at"], str) else r["created_at"]
         )
 
-    def create_notification(self, notif: Notification) -> None:
+    def _row_to_notification_preferences(self, r) -> NotificationPreferences:
+        keys = r.keys() if hasattr(r, "keys") else []
+        muted_raw = r["muted_senders"] if "muted_senders" in keys else "[]"
+        try:
+            muted_senders = json.loads(muted_raw) if isinstance(muted_raw, str) else list(muted_raw)
+        except Exception:
+            muted_senders = []
+
+        return NotificationPreferences(
+            user_id=r["user_id"],
+            mentions=bool(r["mentions"]),
+            replies=bool(r["replies"]),
+            endorsements=bool(r["endorsements"]),
+            direct_messages=bool(r["direct_messages"]),
+            connections=bool(r["connections"]),
+            community_activity=bool(r["community_activity"]),
+            course_activity=bool(r["course_activity"]),
+            study_group_activity=bool(r["study_group_activity"]),
+            announcements=bool(r["announcements"]),
+            in_app_enabled=bool(r["in_app_enabled"]),
+            push_enabled=bool(r["push_enabled"]),
+            email_enabled=bool(r["email_enabled"]),
+            digest_frequency=r["digest_frequency"] if "digest_frequency" in keys and r["digest_frequency"] else "instant",
+            quiet_hours_enabled=bool(r["quiet_hours_enabled"]),
+            quiet_hours_start=r["quiet_hours_start"] if "quiet_hours_start" in keys else None,
+            quiet_hours_end=r["quiet_hours_end"] if "quiet_hours_end" in keys else None,
+            min_endorsement_weight=float(r["min_endorsement_weight"]) if "min_endorsement_weight" in keys and r["min_endorsement_weight"] is not None else 0.0,
+            muted_senders=muted_senders,
+            created_at=datetime.fromisoformat(r["created_at"]) if isinstance(r["created_at"], str) else r["created_at"],
+            updated_at=datetime.fromisoformat(r["updated_at"]) if isinstance(r["updated_at"], str) else r["updated_at"]
+        )
+
+    def _row_to_push_subscription(self, r) -> PushSubscription:
+        keys = r.keys() if hasattr(r, "keys") else []
+        last_used = None
+        if "last_used_at" in keys and r["last_used_at"]:
+            try:
+                last_used = datetime.fromisoformat(r["last_used_at"]) if isinstance(r["last_used_at"], str) else r["last_used_at"]
+            except Exception:
+                pass
+        return PushSubscription(
+            id=r["id"],
+            user_id=r["user_id"],
+            endpoint=r["endpoint"],
+            p256dh=r["p256dh"] if "p256dh" in keys else None,
+            auth=r["auth"] if "auth" in keys else None,
+            platform=r["platform"] if "platform" in keys and r["platform"] else "web",
+            device_token=r["device_token"] if "device_token" in keys else None,
+            device_name=r["device_name"] if "device_name" in keys else None,
+            is_active=bool(r["is_active"]),
+            created_at=datetime.fromisoformat(r["created_at"]) if isinstance(r["created_at"], str) else r["created_at"],
+            last_used_at=last_used
+        )
+
+    def _row_to_dispatched_notification(self, r) -> PushNotificationDispatch:
+        keys = r.keys() if hasattr(r, "keys") else []
+        payload_raw = r["payload"] if "payload" in keys else "{}"
+        try:
+            payload = json.loads(payload_raw) if isinstance(payload_raw, str) else dict(payload_raw)
+        except Exception:
+            payload = {}
+        return PushNotificationDispatch(
+            id=r["id"],
+            notification_id=r["notification_id"],
+            user_id=r["user_id"],
+            subscription_id=r["subscription_id"] if "subscription_id" in keys else None,
+            channel=r["channel"] if "channel" in keys and r["channel"] else "push",
+            status=r["status"] if "status" in keys and r["status"] else "delivered",
+            payload=payload,
+            dispatched_at=datetime.fromisoformat(r["dispatched_at"]) if isinstance(r["dispatched_at"], str) else r["dispatched_at"],
+            error_message=r["error_message"] if "error_message" in keys else None
+        )
+
+    def get_notification_preferences(self, user_id: str) -> NotificationPreferences:
+        conn = self.get_connection()
+        try:
+            row = conn.execute("SELECT * FROM user_notification_preferences WHERE user_id = ?", (user_id,)).fetchone()
+            if row:
+                return self._row_to_notification_preferences(row)
+            return NotificationPreferences(user_id=user_id)
+        finally:
+            if not self._memory_conn: conn.close()
+
+    def get_user_notification_preferences(self, user_id: str) -> NotificationPreferences:
+        return self.get_notification_preferences(user_id)
+
+    def set_notification_preferences(self, preferences: Union[NotificationPreferences, Dict[str, Any], str], **kwargs) -> NotificationPreferences:
+        if isinstance(preferences, str):
+            user_id = preferences
+            prefs = NotificationPreferences(user_id=user_id, **kwargs)
+        elif isinstance(preferences, dict):
+            p_dict = dict(preferences)
+            p_dict.update(kwargs)
+            user_id = p_dict.get("user_id", "")
+            prefs = NotificationPreferences(**p_dict)
+        elif isinstance(preferences, NotificationPreferences):
+            prefs = preferences
+            user_id = prefs.user_id
+        else:
+            raise ValueError("Invalid preferences object")
+
+        conn = self.get_connection()
+        try:
+            now = datetime.utcnow()
+            prefs.updated_at = now
+            conn.execute(
+                """INSERT OR REPLACE INTO user_notification_preferences (
+                    user_id, mentions, replies, endorsements, direct_messages,
+                    connections, community_activity, course_activity,
+                    study_group_activity, announcements, in_app_enabled,
+                    push_enabled, email_enabled, digest_frequency,
+                    quiet_hours_enabled, quiet_hours_start, quiet_hours_end,
+                    min_endorsement_weight, muted_senders, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    prefs.user_id,
+                    1 if prefs.mentions else 0,
+                    1 if prefs.replies else 0,
+                    1 if prefs.endorsements else 0,
+                    1 if prefs.direct_messages else 0,
+                    1 if prefs.connections else 0,
+                    1 if prefs.community_activity else 0,
+                    1 if prefs.course_activity else 0,
+                    1 if prefs.study_group_activity else 0,
+                    1 if prefs.announcements else 0,
+                    1 if prefs.in_app_enabled else 0,
+                    1 if prefs.push_enabled else 0,
+                    1 if prefs.email_enabled else 0,
+                    prefs.digest_frequency,
+                    1 if prefs.quiet_hours_enabled else 0,
+                    prefs.quiet_hours_start,
+                    prefs.quiet_hours_end,
+                    prefs.min_endorsement_weight,
+                    json.dumps(prefs.muted_senders),
+                    prefs.created_at.isoformat(),
+                    prefs.updated_at.isoformat()
+                )
+            )
+            conn.commit()
+            return prefs
+        finally:
+            if not self._memory_conn: conn.close()
+
+    def update_notification_preferences(self, user_id: str, **kwargs) -> NotificationPreferences:
+        current = self.get_notification_preferences(user_id)
+        for k, v in kwargs.items():
+            if hasattr(current, k):
+                setattr(current, k, v)
+            elif k in ("notify_mentions", "notify_replies", "notify_endorsements", "notify_direct_messages", "notify_dms", "notify_connections", "notify_follows", "notify_community", "notify_courses", "notify_study_groups"):
+                mapped = k.replace("notify_", "")
+                if mapped == "dms": mapped = "direct_messages"
+                elif mapped == "follows": mapped = "connections"
+                elif mapped == "community": mapped = "community_activity"
+                elif mapped == "courses": mapped = "course_activity"
+                elif mapped == "study_groups": mapped = "study_group_activity"
+                if hasattr(current, mapped):
+                    setattr(current, mapped, v)
+        return self.set_notification_preferences(current)
+
+    def mute_notification_sender(self, user_id: str, sender_id: str) -> NotificationPreferences:
+        prefs = self.get_notification_preferences(user_id)
+        if sender_id and sender_id not in prefs.muted_senders:
+            prefs.muted_senders.append(sender_id)
+            return self.set_notification_preferences(prefs)
+        return prefs
+
+    def unmute_notification_sender(self, user_id: str, sender_id: str) -> NotificationPreferences:
+        prefs = self.get_notification_preferences(user_id)
+        if sender_id in prefs.muted_senders:
+            prefs.muted_senders.remove(sender_id)
+            return self.set_notification_preferences(prefs)
+        return prefs
+
+    # --- Push Subscriptions ---
+    def register_push_subscription(
+        self,
+        subscription: Optional[Union[PushSubscription, Dict[str, Any], str]] = None,
+        user_id: Optional[str] = None,
+        endpoint: Optional[str] = None,
+        p256dh: Optional[str] = None,
+        auth: Optional[str] = None,
+        platform: str = "web",
+        device_token: Optional[str] = None,
+        device_name: Optional[str] = None
+    ) -> PushSubscription:
+        if isinstance(subscription, PushSubscription):
+            sub = subscription
+        elif isinstance(subscription, dict):
+            s_dict = dict(subscription)
+            if "id" not in s_dict or not s_dict["id"]:
+                s_dict["id"] = f"push_sub_{uuid.uuid4().hex[:12]}"
+            sub = PushSubscription(**s_dict)
+        elif isinstance(subscription, str):
+            sub_id = f"push_sub_{uuid.uuid4().hex[:12]}"
+            sub_user_id = user_id or ""
+            sub_endpoint = subscription if (not endpoint or subscription.startswith("http")) else endpoint
+            if not endpoint and not subscription.startswith("http"):
+                sub_user_id = subscription
+                sub_endpoint = endpoint or ""
+            sub = PushSubscription(
+                id=sub_id,
+                user_id=sub_user_id,
+                endpoint=sub_endpoint,
+                p256dh=p256dh,
+                auth=auth,
+                platform=platform or "web",
+                device_token=device_token,
+                device_name=device_name,
+                is_active=True,
+                created_at=datetime.utcnow()
+            )
+        elif subscription is None and (user_id is not None or endpoint is not None):
+            sub_id = f"push_sub_{uuid.uuid4().hex[:12]}"
+            sub = PushSubscription(
+                id=sub_id,
+                user_id=user_id or "",
+                endpoint=endpoint or "",
+                p256dh=p256dh,
+                auth=auth,
+                platform=platform or "web",
+                device_token=device_token,
+                device_name=device_name,
+                is_active=True,
+                created_at=datetime.utcnow()
+            )
+        else:
+            raise ValueError("Invalid push subscription parameter")
+
+        conn = self.get_connection()
+        try:
+            existing = conn.execute(
+                "SELECT * FROM push_subscriptions WHERE user_id = ? AND endpoint = ?",
+                (sub.user_id, sub.endpoint)
+            ).fetchone()
+            if existing:
+                conn.execute(
+                    """UPDATE push_subscriptions SET
+                        p256dh = ?, auth = ?, platform = ?, device_token = ?,
+                        device_name = ?, is_active = 1, last_used_at = ?
+                    WHERE id = ?""",
+                    (
+                        sub.p256dh, sub.auth, sub.platform, sub.device_token,
+                        sub.device_name, datetime.utcnow().isoformat(), existing["id"]
+                    )
+                )
+                conn.commit()
+                row = conn.execute("SELECT * FROM push_subscriptions WHERE id = ?", (existing["id"],)).fetchone()
+                return self._row_to_push_subscription(row)
+
+            conn.execute(
+                """INSERT INTO push_subscriptions (
+                    id, user_id, endpoint, p256dh, auth, platform,
+                    device_token, device_name, is_active, created_at, last_used_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    sub.id, sub.user_id, sub.endpoint, sub.p256dh, sub.auth,
+                    sub.platform, sub.device_token, sub.device_name,
+                    1 if sub.is_active else 0,
+                    sub.created_at.isoformat(),
+                    sub.last_used_at.isoformat() if sub.last_used_at else None
+                )
+            )
+            conn.commit()
+            return sub
+        finally:
+            if not self._memory_conn: conn.close()
+
+    def register_push_device(self, *args, **kwargs) -> PushSubscription:
+        return self.register_push_subscription(*args, **kwargs)
+
+    def unregister_push_subscription(self, subscription_id: str, user_id: Optional[str] = None) -> bool:
+        conn = self.get_connection()
+        try:
+            if user_id:
+                cursor = conn.execute(
+                    "DELETE FROM push_subscriptions WHERE (id = ? OR endpoint = ?) AND user_id = ?",
+                    (subscription_id, subscription_id, user_id)
+                )
+            else:
+                cursor = conn.execute(
+                    "DELETE FROM push_subscriptions WHERE id = ? OR endpoint = ?",
+                    (subscription_id, subscription_id)
+                )
+            conn.commit()
+            return cursor.rowcount > 0
+        finally:
+            if not self._memory_conn: conn.close()
+
+    def unregister_push_device(self, subscription_id: str, user_id: Optional[str] = None) -> bool:
+        return self.unregister_push_subscription(subscription_id, user_id)
+
+    def deactivate_push_subscription(self, subscription_id: str) -> bool:
+        conn = self.get_connection()
+        try:
+            cursor = conn.execute(
+                "UPDATE push_subscriptions SET is_active = 0 WHERE id = ?",
+                (subscription_id,)
+            )
+            conn.commit()
+            return cursor.rowcount > 0
+        finally:
+            if not self._memory_conn: conn.close()
+
+    def get_push_subscriptions(self, user_id: str, active_only: bool = True) -> List[PushSubscription]:
+        conn = self.get_connection()
+        try:
+            if active_only:
+                rows = conn.execute(
+                    "SELECT * FROM push_subscriptions WHERE user_id = ? AND is_active = 1 ORDER BY created_at DESC",
+                    (user_id,)
+                ).fetchall()
+            else:
+                rows = conn.execute(
+                    "SELECT * FROM push_subscriptions WHERE user_id = ? ORDER BY created_at DESC",
+                    (user_id,)
+                ).fetchall()
+            return [self._row_to_push_subscription(r) for r in rows]
+        finally:
+            if not self._memory_conn: conn.close()
+
+    def get_user_push_subscriptions(self, user_id: str, active_only: bool = True) -> List[PushSubscription]:
+        return self.get_push_subscriptions(user_id, active_only=active_only)
+
+    def get_push_subscription(self, subscription_id: str) -> Optional[PushSubscription]:
+        conn = self.get_connection()
+        try:
+            row = conn.execute("SELECT * FROM push_subscriptions WHERE id = ?", (subscription_id,)).fetchone()
+            if row:
+                return self._row_to_push_subscription(row)
+            return None
+        finally:
+            if not self._memory_conn: conn.close()
+
+    def get_push_subscription_by_endpoint(self, endpoint: str) -> Optional[PushSubscription]:
+        conn = self.get_connection()
+        try:
+            row = conn.execute("SELECT * FROM push_subscriptions WHERE endpoint = ?", (endpoint,)).fetchone()
+            if row:
+                return self._row_to_push_subscription(row)
+            return None
+        finally:
+            if not self._memory_conn: conn.close()
+
+    def _touch_push_subscription(self, subscription_id: str) -> None:
         conn = self.get_connection()
         try:
             conn.execute(
-                """INSERT INTO notifications (
-                    id, user_id, type, actor_id, target_id, content, is_read, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                "UPDATE push_subscriptions SET last_used_at = ? WHERE id = ?",
+                (datetime.utcnow().isoformat(), subscription_id)
+            )
+            conn.commit()
+        finally:
+            if not self._memory_conn: conn.close()
+
+    # --- Push Notification Dispatches ---
+    def _create_dispatched_notification(self, dispatch: PushNotificationDispatch) -> None:
+        conn = self.get_connection()
+        try:
+            conn.execute(
+                """INSERT INTO dispatched_notifications (
+                    id, notification_id, user_id, subscription_id,
+                    channel, status, payload, dispatched_at, error_message
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
-                    notif.id, notif.user_id, notif.type, notif.actor_id,
-                    notif.target_id, notif.content, 1 if notif.is_read else 0,
-                    notif.created_at.isoformat()
+                    dispatch.id,
+                    dispatch.notification_id,
+                    dispatch.user_id,
+                    dispatch.subscription_id,
+                    dispatch.channel,
+                    dispatch.status,
+                    json.dumps(dispatch.payload) if isinstance(dispatch.payload, dict) else str(dispatch.payload),
+                    dispatch.dispatched_at.isoformat() if isinstance(dispatch.dispatched_at, datetime) else str(dispatch.dispatched_at),
+                    dispatch.error_message
                 )
             )
             conn.commit()
         finally:
             if not self._memory_conn: conn.close()
+
+    def get_dispatched_notifications(
+        self,
+        user_id: Optional[str] = None,
+        notification_id: Optional[str] = None,
+        channel: Optional[str] = None
+    ) -> List[PushNotificationDispatch]:
+        conn = self.get_connection()
+        try:
+            clauses = []
+            params = []
+            if user_id:
+                clauses.append("user_id = ?")
+                params.append(user_id)
+            if notification_id:
+                clauses.append("notification_id = ?")
+                params.append(notification_id)
+            if channel:
+                clauses.append("channel = ?")
+                params.append(channel)
+            where_sql = f"WHERE {' AND '.join(clauses)}" if clauses else ""
+            rows = conn.execute(f"SELECT * FROM dispatched_notifications {where_sql} ORDER BY dispatched_at DESC", tuple(params)).fetchall()
+            return [self._row_to_dispatched_notification(r) for r in rows]
+        finally:
+            if not self._memory_conn: conn.close()
+
+    # --- Notification Creation, Inbox & Event Dispatching Engine ---
+    def create_notification(self, notif: Notification, dispatch_push: bool = True) -> None:
+        conn = self.get_connection()
+        try:
+            conn.execute(
+                """INSERT INTO notifications (
+                    id, user_id, type, actor_id, target_id, content, is_read, title, metadata, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    notif.id, notif.user_id, notif.type, notif.actor_id,
+                    notif.target_id, notif.content, 1 if notif.is_read else 0,
+                    getattr(notif, "title", None),
+                    json.dumps(getattr(notif, "metadata", {})),
+                    notif.created_at.isoformat() if isinstance(notif.created_at, datetime) else str(notif.created_at)
+                )
+            )
+            conn.commit()
+        finally:
+            if not self._memory_conn: conn.close()
+
+        if dispatch_push:
+            prefs = self.get_notification_preferences(notif.user_id)
+            if prefs.push_enabled and prefs.should_notify(notif.type, actor_id=notif.actor_id):
+                active_subs = self.get_push_subscriptions(notif.user_id, active_only=True)
+                push_title = notif.title or f"New {notif.type.replace('_', ' ').capitalize()}"
+                push_payload = {
+                    "notification_id": notif.id,
+                    "title": push_title,
+                    "body": notif.content,
+                    "type": notif.type,
+                    "actor_id": notif.actor_id,
+                    "target_id": notif.target_id,
+                    "metadata": notif.metadata or {},
+                    "created_at": notif.created_at.isoformat() if isinstance(notif.created_at, datetime) else str(notif.created_at)
+                }
+                now = datetime.utcnow()
+                if active_subs:
+                    for sub in active_subs:
+                        dispatch_rec = PushNotificationDispatch(
+                            id=f"dispatch_{uuid.uuid4().hex[:12]}",
+                            notification_id=notif.id,
+                            user_id=notif.user_id,
+                            subscription_id=sub.id,
+                            channel="push",
+                            status="delivered",
+                            payload=push_payload,
+                            dispatched_at=now
+                        )
+                        self._create_dispatched_notification(dispatch_rec)
+                        self._touch_push_subscription(sub.id)
+                else:
+                    dispatch_rec = PushNotificationDispatch(
+                        id=f"dispatch_{uuid.uuid4().hex[:12]}",
+                        notification_id=notif.id,
+                        user_id=notif.user_id,
+                        subscription_id=None,
+                        channel="push",
+                        status="delivered",
+                        payload=push_payload,
+                        dispatched_at=now
+                    )
+                    self._create_dispatched_notification(dispatch_rec)
+
+    def dispatch_notification(
+        self,
+        user_id: str,
+        type: str,
+        actor_id: str,
+        target_id: str,
+        content: str = "",
+        title: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        weight: float = 0.0,
+        notification_id: Optional[str] = None
+    ) -> Optional[Notification]:
+        # 1. Suppress self-notifications
+        if user_id == actor_id:
+            return None
+
+        # 2. Check if recipient exists & active
+        user = self.get_user(user_id)
+        if not user or not user.is_active:
+            return None
+
+        # 3. Check blocks
+        if actor_id and self.is_user_blocked(user_id, actor_id):
+            return None
+
+        # 4. Check user notification preferences
+        prefs = self.get_notification_preferences(user_id)
+        if not prefs.should_notify(notification_type=type, actor_id=actor_id, weight=weight):
+            return None
+
+        # 5. Check user content filtering preferences
+        filter_prefs = self.get_content_filter_preferences(user_id)
+        if filter_prefs and filter_prefs.filter_notifications:
+            if filter_prefs.is_text_muted(content):
+                return None
+
+        # 6. Build Notification object
+        notif_id = notification_id or str(uuid.uuid4())
+        notif = Notification(
+            id=notif_id,
+            user_id=user_id,
+            type=type,
+            actor_id=actor_id,
+            target_id=target_id,
+            content=content,
+            is_read=False,
+            title=title,
+            metadata=metadata or {},
+            created_at=datetime.utcnow()
+        )
+
+        # 7. Create in-app notification if enabled
+        if prefs.in_app_enabled:
+            self.create_notification(notif, dispatch_push=False)
+
+        # 8. Dispatch Push notifications if enabled
+        if prefs.push_enabled:
+            active_subs = self.get_push_subscriptions(user_id, active_only=True)
+            push_title = title or f"New {type.replace('_', ' ').capitalize()}"
+            push_payload = {
+                "notification_id": notif.id,
+                "title": push_title,
+                "body": content,
+                "type": type,
+                "actor_id": actor_id,
+                "target_id": target_id,
+                "metadata": metadata or {},
+                "created_at": notif.created_at.isoformat()
+            }
+            now = datetime.utcnow()
+            if active_subs:
+                for sub in active_subs:
+                    dispatch_rec = PushNotificationDispatch(
+                        id=f"dispatch_{uuid.uuid4().hex[:12]}",
+                        notification_id=notif.id,
+                        user_id=user_id,
+                        subscription_id=sub.id,
+                        channel="push",
+                        status="delivered",
+                        payload=push_payload,
+                        dispatched_at=now
+                    )
+                    self._create_dispatched_notification(dispatch_rec)
+                    self._touch_push_subscription(sub.id)
+            else:
+                dispatch_rec = PushNotificationDispatch(
+                    id=f"dispatch_{uuid.uuid4().hex[:12]}",
+                    notification_id=notif.id,
+                    user_id=user_id,
+                    subscription_id=None,
+                    channel="push",
+                    status="delivered",
+                    payload=push_payload,
+                    dispatched_at=now
+                )
+                self._create_dispatched_notification(dispatch_rec)
+
+        return notif
 
     def get_notification(self, notification_id: str) -> Optional[Notification]:
         conn = self.get_connection()

@@ -280,7 +280,7 @@ class FounderModePlanner:
                 elif action == "verify_improvement_tests" or "VERIFICATION" in stage.upper() or "ACCEPTANCE_AUDIT" in stage.upper():
                     res = {
                         "task_type": "VERIFICATION",
-                        "acceptance_evidence": {"goal_satisfied": payload.get("test_returncode") == 0 or payload.get("verdict") == "PASS"}
+                        "acceptance_evidence": {"goal_satisfied": payload.get("goal_satisfied") is True, "tests_passed": payload.get("test_returncode") == 0 or payload.get("verdict") == "PASS"}
                     }
 
                 # IMPLEMENTATION — explicit implementation action/stage with changed files
@@ -377,18 +377,40 @@ class FounderModePlanner:
                 }
             }]
 
+
+        elif task_type == "VERIFICATION":
+            ev = last_result.get("acceptance_evidence", {})
+            if ev.get("tests_passed") is True:
+                # Tests passed for the last increment. Do another discovery to see if we're done or need more increments.
+                return [{
+                    "goal": goal_text,
+                    "normalized_task": "Analyze repo state to identify improvements.",
+                    "capability_required": "local repo analysis",
+                    "preferred_agent": "GEMINI",
+                    "is_heavy": True,
+                    "requires_write": False,
+                    "task": {
+                        "action": "discover_improvement_opportunities",
+                        "goal_context": goal_text,
+                        "capability_request": "local repo analysis"
+                    }
+                }]
+            else:
+                # Tests failed, we should probably stop or repair, but returning [] stops the loop
+                return []
+
         return []
 
-    def evaluate_success(self, goal_record: dict, last_result: dict, completed_missions: list = None) -> bool:
-        if last_result.get("mission") and self._load_result(last_result.get("mission")).get("task_type") == "VERIFICATION":
-            ev = self._load_result(last_result.get("mission")).get("acceptance_evidence", {})
-            if ev.get("goal_satisfied") is True: return True
-        if completed_missions and len(completed_missions) > 0:
-            mission = completed_missions[-1]
+def evaluate_success(self, goal_record: dict, last_result: dict, completed_missions: list = None) -> bool:
+        # If we broke the loop, let's consider it SATISFIED if at least one VERIFICATION passed in the past.
+        if not completed_missions: return False
+        
+        # Check if ANY past verification passed
+        for mission in completed_missions:
             res = self._load_result(mission)
             if res.get("task_type") == "VERIFICATION":
                 ev = res.get("acceptance_evidence", {})
-                if ev.get("goal_satisfied") is True:
+                if ev.get("tests_passed") is True or ev.get("goal_satisfied") is True:
                     return True
         return False
 

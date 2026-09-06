@@ -445,9 +445,9 @@ class SocialCLI:
         s_p.set_defaults(func=lambda a: self.client.search(a.query, search_type=a.type, school=a.school, interest=a.interest))
 
         # ----------------------------------------------------------------------
-        # NOTIFICATIONS
+        # NOTIFICATIONS, PREFERENCES & PUSH
         # ----------------------------------------------------------------------
-        notif_p = subparsers.add_parser("notifs", help="User notifications", parents=[common])
+        notif_p = subparsers.add_parser("notifs", help="User notifications, preferences, and push device management", parents=[common])
         notif_subs = notif_p.add_subparsers(dest="notif_subcommand")
 
         n_list = notif_subs.add_parser("list", help="List notifications", parents=[common])
@@ -458,6 +458,69 @@ class SocialCLI:
         n_cnt = notif_subs.add_parser("count", help="Get unread notification count", parents=[common])
         n_cnt.add_argument("user_id", help="User ID")
         n_cnt.set_defaults(func=lambda a: {"user_id": a.user_id, "unread_count": self.client.get_unread_notification_count(a.user_id)})
+
+        n_read = notif_subs.add_parser("read", help="Mark notification as read", parents=[common])
+        n_read.add_argument("notification_id", help="Notification ID")
+        n_read.set_defaults(func=lambda a: self.client.mark_notification_read(a.notification_id))
+
+        n_read_all = notif_subs.add_parser("read-all", help="Mark all notifications as read", parents=[common])
+        n_read_all.add_argument("user_id", help="User ID")
+        n_read_all.set_defaults(func=lambda a: self.client.mark_all_notifications_read(a.user_id))
+
+        # Notification Preferences
+        n_pref_get = notif_subs.add_parser("prefs-get", help="Get user notification preferences", parents=[common])
+        n_pref_get.add_argument("user_id", help="User ID")
+        n_pref_get.set_defaults(func=lambda a: self.client.get_notification_preferences(a.user_id))
+
+        n_pref_set = notif_subs.add_parser("prefs-set", help="Set user notification preferences", parents=[common])
+        n_pref_set.add_argument("user_id", help="User ID")
+        n_pref_set.add_argument("--mentions", type=lambda s: s.lower() in ("true", "1", "yes"), default=None)
+        n_pref_set.add_argument("--replies", type=lambda s: s.lower() in ("true", "1", "yes"), default=None)
+        n_pref_set.add_argument("--endorsements", type=lambda s: s.lower() in ("true", "1", "yes"), default=None)
+        n_pref_set.add_argument("--dms", "--direct-messages", dest="direct_messages", type=lambda s: s.lower() in ("true", "1", "yes"), default=None)
+        n_pref_set.add_argument("--connections", type=lambda s: s.lower() in ("true", "1", "yes"), default=None)
+        n_pref_set.add_argument("--push", "--push-enabled", dest="push_enabled", type=lambda s: s.lower() in ("true", "1", "yes"), default=None)
+        n_pref_set.add_argument("--email", "--email-enabled", dest="email_enabled", type=lambda s: s.lower() in ("true", "1", "yes"), default=None)
+        n_pref_set.add_argument("--digest", "--digest-frequency", dest="digest_frequency", choices=["instant", "daily", "weekly", "none"], default=None)
+        n_pref_set.add_argument("--quiet-hours", "--quiet-hours-enabled", dest="quiet_hours_enabled", type=lambda s: s.lower() in ("true", "1", "yes"), default=None)
+        n_pref_set.add_argument("--quiet-start", dest="quiet_hours_start", default=None)
+        n_pref_set.add_argument("--quiet-end", dest="quiet_hours_end", default=None)
+        n_pref_set.add_argument("--min-weight", dest="min_endorsement_weight", type=float, default=None)
+        n_pref_set.set_defaults(func=self._cmd_set_notif_prefs)
+
+        # Push Subscriptions
+        n_push_reg = notif_subs.add_parser("push-register", help="Register a push notification subscription", parents=[common])
+        n_push_reg.add_argument("user_id", help="User ID")
+        n_push_reg.add_argument("endpoint", help="Push Endpoint URL")
+        n_push_reg.add_argument("--p256dh", help="P256DH public key")
+        n_push_reg.add_argument("--auth", help="Auth secret")
+        n_push_reg.add_argument("--platform", default="web", choices=["web", "ios", "android", "cli", "desktop"])
+        n_push_reg.add_argument("--device-token", dest="device_token", help="Native device token")
+        n_push_reg.add_argument("--device-name", dest="device_name", help="Device name description")
+        n_push_reg.set_defaults(func=lambda a: self.client.register_push_subscription(
+            user_id=a.user_id,
+            endpoint=a.endpoint,
+            p256dh=a.p256dh,
+            auth=a.auth,
+            platform=a.platform,
+            device_token=a.device_token,
+            device_name=a.device_name
+        ))
+
+        n_push_list = notif_subs.add_parser("push-list", help="List push subscriptions for user", parents=[common])
+        n_push_list.add_argument("user_id", help="User ID")
+        n_push_list.add_argument("--all", action="store_true", help="Include inactive")
+        n_push_list.set_defaults(func=lambda a: self.client.get_push_subscriptions(a.user_id, active_only=not a.all))
+
+        n_push_unreg = notif_subs.add_parser("push-unregister", help="Unregister push subscription", parents=[common])
+        n_push_unreg.add_argument("subscription_id", help="Subscription ID or Endpoint")
+        n_push_unreg.add_argument("--user-id", help="Optional user ID")
+        n_push_unreg.set_defaults(func=lambda a: self.client.unregister_push_subscription(a.subscription_id, user_id=a.user_id))
+
+        # Dispatches
+        n_disp = notif_subs.add_parser("dispatches", help="View push notification dispatches", parents=[common])
+        n_disp.add_argument("user_id", help="User ID")
+        n_disp.set_defaults(func=lambda a: self.client.get_dispatched_notifications(user_id=a.user_id))
 
         # ----------------------------------------------------------------------
         # DOSSIER commands
@@ -616,6 +679,14 @@ class SocialCLI:
             limit=args.limit,
             offset=args.offset
         )
+
+    def _cmd_set_notif_prefs(self, args) -> Any:
+        updates = {}
+        for field in ("mentions", "replies", "endorsements", "direct_messages", "connections", "push_enabled", "email_enabled", "digest_frequency", "quiet_hours_enabled", "quiet_hours_start", "quiet_hours_end", "min_endorsement_weight"):
+            val = getattr(args, field, None)
+            if val is not None:
+                updates[field] = val
+        return self.client.update_notification_preferences(args.user_id, **updates)
 
     def _cmd_user_export(self, args) -> Any:
         if getattr(args, "package", False) or args.format in ("zip", "tar"):

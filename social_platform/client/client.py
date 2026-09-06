@@ -881,7 +881,7 @@ class SocialPlatformClient:
         return self._request("POST", f"/appeals/{appeal_id}/resolve", json_data=payload)
 
     # --------------------------------------------------------------------------
-    # Notifications
+    # Notifications, Preferences & Push Subscriptions
     # --------------------------------------------------------------------------
 
     def get_notifications(self, user_id: str, unread_only: bool = False) -> List[Dict[str, Any]]:
@@ -901,6 +901,94 @@ class SocialPlatformClient:
     def mark_all_notifications_read(self, user_id: str) -> Dict[str, Any]:
         """Marks all notifications as read for a user."""
         return self._request("POST", f"/users/{user_id}/notifications/read_all")
+
+    def get_notification_preferences(self, user_id: str) -> Dict[str, Any]:
+        """Gets user notification preferences."""
+        return self._request("GET", f"/users/{user_id}/notification_preferences")
+
+    def update_notification_preferences(self, user_id: str, **kwargs) -> Dict[str, Any]:
+        """Updates user notification preferences."""
+        return self._request("POST", f"/users/{user_id}/notification_preferences", json_data=kwargs)
+
+    def register_push_subscription(
+        self,
+        user_id: str,
+        endpoint: str,
+        p256dh: Optional[str] = None,
+        auth: Optional[str] = None,
+        platform: str = "web",
+        device_token: Optional[str] = None,
+        device_name: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Registers a push notification device subscription."""
+        payload = {
+            "user_id": user_id,
+            "endpoint": endpoint,
+            "p256dh": p256dh,
+            "auth": auth,
+            "platform": platform,
+            "device_token": device_token,
+            "device_name": device_name
+        }
+        return self._request("POST", f"/users/{user_id}/push_subscriptions", json_data=payload)
+
+    def register_push_device(self, user_id: str, endpoint: str, **kwargs) -> Dict[str, Any]:
+        """Alias for register_push_subscription."""
+        return self.register_push_subscription(user_id=user_id, endpoint=endpoint, **kwargs)
+
+    def unregister_push_subscription(self, subscription_id: str, user_id: Optional[str] = None) -> Dict[str, Any]:
+        """Unregisters/deletes a push subscription."""
+        if user_id:
+            return self._request("DELETE", f"/users/{user_id}/push_subscriptions/{subscription_id}")
+        return self._request("DELETE", f"/push_subscriptions/{subscription_id}")
+
+    def unregister_push_device(self, subscription_id: str, user_id: Optional[str] = None) -> Dict[str, Any]:
+        """Alias for unregister_push_subscription."""
+        return self.unregister_push_subscription(subscription_id, user_id=user_id)
+
+    def get_push_subscriptions(self, user_id: str, active_only: bool = True) -> List[Dict[str, Any]]:
+        """Lists push device subscriptions for a user."""
+        params = {"active_only": active_only}
+        return self._request("GET", f"/users/{user_id}/push_subscriptions", params=params)
+
+    def get_push_subscription(self, subscription_id: str) -> Dict[str, Any]:
+        """Gets a push subscription by ID."""
+        return self._request("GET", f"/push_subscriptions/{subscription_id}")
+
+    def dispatch_notification(
+        self,
+        user_id: str,
+        type: str,
+        actor_id: str,
+        target_id: str,
+        content: str = "",
+        title: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        weight: float = 0.0
+    ) -> Dict[str, Any]:
+        """Dispatches an event notification honoring preferences and push delivery."""
+        payload = {
+            "user_id": user_id,
+            "type": type,
+            "actor_id": actor_id,
+            "target_id": target_id,
+            "content": content,
+            "title": title,
+            "metadata": metadata or {},
+            "weight": weight
+        }
+        return self._request("POST", f"/users/{user_id}/notifications/dispatch", json_data=payload)
+
+    def get_dispatched_notifications(self, user_id: Optional[str] = None, notification_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Retrieves push notification dispatch delivery logs."""
+        params = {}
+        if user_id:
+            params["user_id"] = user_id
+        if notification_id:
+            params["notification_id"] = notification_id
+        if user_id:
+            return self._request("GET", f"/users/{user_id}/notifications/dispatches", params=params)
+        return self._request("GET", "/notifications/dispatches", params=params)
 
     # --------------------------------------------------------------------------
     # Discovery & Search

@@ -17,7 +17,11 @@ from social_platform.core.models import (
     ContentLifecycleState, ContentStatus, ContentLifecycleAction,
     TransformationOptions, DossierOptions, ExportPackagingOptions,
     DossierSection, TransformationDossier, ExportPackageManifest, ExportPackage,
-    DossierFormat, ExportFormat, DossierType, ExportScope
+    DossierFormat, ExportFormat, DossierType, ExportScope,
+    NotificationPreferences, UserNotificationPreferences, NotificationPreference,
+    PushSubscription, PushDevice, DeviceRegistration, UserPushSubscription,
+    PushNotificationDispatch, NotificationDispatchRecord, DispatchedNotification, NotificationDispatch,
+    NotificationType
 )
 from social_platform.core.feed import (
     generate_chronological_feed, generate_following_feed,
@@ -183,10 +187,20 @@ class SocialAPIHandler(BaseHTTPRequestHandler):
             elif len(path_parts) == 3 and path_parts[2] == "notifications":
                 unread_only = query_params.get("unread_only", ["false"])[0].lower() in ("true", "1")
                 notifs = db.get_notifications(path_parts[1], unread_only=unread_only)
-                self._send_json([n.__dict__ for n in notifs])
+                self._send_json([n.to_dict() if hasattr(n, "to_dict") else n.__dict__ for n in notifs])
             elif len(path_parts) == 4 and path_parts[2] == "notifications" and path_parts[3] == "count":
                 count = db.get_unread_notification_count(path_parts[1])
                 self._send_json({"unread_count": count, "user_id": path_parts[1]})
+            elif (len(path_parts) == 3 and path_parts[2] in ("notification_preferences", "notification-preferences", "notif_preferences")) or (len(path_parts) == 4 and path_parts[2] == "notifications" and path_parts[3] in ("preferences", "prefs")):
+                prefs = db.get_notification_preferences(path_parts[1])
+                self._send_json(prefs.to_dict())
+            elif (len(path_parts) == 3 and path_parts[2] in ("push_subscriptions", "push-subscriptions", "push_devices")) or (len(path_parts) == 4 and path_parts[2] == "notifications" and path_parts[3] in ("push_subscriptions", "push-subscriptions", "push")):
+                active_only = query_params.get("active_only", ["true"])[0].lower() in ("true", "1")
+                subs = db.get_push_subscriptions(path_parts[1], active_only=active_only)
+                self._send_json([s.to_dict() for s in subs])
+            elif (len(path_parts) == 3 and path_parts[2] in ("dispatches", "dispatched_notifications")) or (len(path_parts) == 4 and path_parts[2] == "notifications" and path_parts[3] in ("dispatches", "dispatched")):
+                dispatches = db.get_dispatched_notifications(user_id=path_parts[1])
+                self._send_json([d.to_dict() for d in dispatches])
             elif len(path_parts) == 3 and path_parts[2] in ("conversations", "dms"):
                 convs = db.get_user_conversations(path_parts[1])
                 formatted = []
@@ -339,13 +353,44 @@ class SocialAPIHandler(BaseHTTPRequestHandler):
 
         # /notifications/...
         elif path_parts[0] == "notifications":
-            if len(path_parts) == 2:
+            if len(path_parts) == 2 and path_parts[1] in ("dispatches", "dispatched", "logs"):
+                uid = query_params.get("user_id", [None])[0]
+                nid = query_params.get("notification_id", [None])[0]
+                channel = query_params.get("channel", [None])[0]
+                dispatches = db.get_dispatched_notifications(user_id=uid, notification_id=nid, channel=channel)
+                self._send_json([d.to_dict() for d in dispatches])
+            elif len(path_parts) == 3 and path_parts[1] in ("preferences", "prefs"):
+                prefs = db.get_notification_preferences(path_parts[2])
+                self._send_json(prefs.to_dict())
+            elif len(path_parts) == 2:
                 unread_only = query_params.get("unread_only", ["false"])[0].lower() in ("true", "1")
                 notifs = db.get_notifications(path_parts[1], unread_only=unread_only)
-                self._send_json([n.__dict__ for n in notifs])
+                self._send_json([n.to_dict() if hasattr(n, "to_dict") else n.__dict__ for n in notifs])
             elif len(path_parts) == 3 and path_parts[2] == "count":
                 count = db.get_unread_notification_count(path_parts[1])
                 self._send_json({"unread_count": count, "user_id": path_parts[1]})
+            elif len(path_parts) == 3 and path_parts[2] in ("dispatches", "dispatched"):
+                dispatches = db.get_dispatched_notifications(user_id=path_parts[1])
+                self._send_json([d.to_dict() for d in dispatches])
+            else:
+                self._send_error("Not found", 404)
+
+        # /push_subscriptions or /push_devices...
+        elif path_parts[0] in ("push_subscriptions", "push-subscriptions", "push_devices", "push-devices", "push"):
+            if len(path_parts) == 1:
+                uid = query_params.get("user_id", [None])[0]
+                active_only = query_params.get("active_only", ["true"])[0].lower() in ("true", "1")
+                if uid:
+                    subs = db.get_push_subscriptions(uid, active_only=active_only)
+                    self._send_json([s.to_dict() for s in subs])
+                else:
+                    self._send_error("user_id parameter required", 400)
+            elif len(path_parts) == 2:
+                sub = db.get_push_subscription(path_parts[1]) or db.get_push_subscription_by_endpoint(path_parts[1])
+                if sub:
+                    self._send_json(sub.to_dict())
+                else:
+                    self._send_error("Push subscription not found", 404)
             else:
                 self._send_error("Not found", 404)
 
@@ -1458,11 +1503,85 @@ class SocialAPIHandler(BaseHTTPRequestHandler):
             except ValueError as e:
                 self._send_error(str(e), 400)
 
+        # POST /users/<id>/notification_preferences or /users/<id>/notifications/preferences
+        elif (len(path_parts) == 3 and path_parts[0] == "users" and path_parts[2] in ("notification_preferences", "notification-preferences", "notif_preferences")) or (len(path_parts) == 4 and path_parts[0] == "users" and path_parts[2] == "notifications" and path_parts[3] in ("preferences", "prefs")):
+            user_id = path_parts[1]
+            prefs = db.update_notification_preferences(user_id, **body)
+            self._send_json(prefs.to_dict(), 200)
+
+        # POST /users/<id>/push_subscriptions or /users/<id>/notifications/push_subscriptions
+        elif (len(path_parts) == 3 and path_parts[0] == "users" and path_parts[2] in ("push_subscriptions", "push-subscriptions", "push_devices", "push")) or (len(path_parts) == 4 and path_parts[0] == "users" and path_parts[2] == "notifications" and path_parts[3] in ("push_subscriptions", "push-subscriptions", "push")):
+            user_id = path_parts[1]
+            sub = db.register_push_subscription(body, user_id=user_id)
+            self._send_json(sub.to_dict(), 201)
+
+        # POST /users/<id>/notifications/dispatch or /users/<id>/dispatch
+        elif (len(path_parts) == 4 and path_parts[0] == "users" and path_parts[2] == "notifications" and path_parts[3] in ("dispatch", "send")) or (len(path_parts) == 3 and path_parts[0] == "users" and path_parts[2] in ("dispatch", "send_notification")):
+            user_id = path_parts[1]
+            notif = db.dispatch_notification(
+                user_id=user_id,
+                type=body.get("type", "announcement"),
+                actor_id=body.get("actor_id", ""),
+                target_id=body.get("target_id", ""),
+                content=body.get("content", ""),
+                title=body.get("title"),
+                metadata=body.get("metadata", {}),
+                weight=float(body.get("weight", 0.0))
+            )
+            if notif:
+                self._send_json(notif.to_dict(), 201)
+            else:
+                self._send_json({"status": "suppressed", "user_id": user_id}, 200)
+
         # POST /users/<id>/notifications/read_all or read
         elif len(path_parts) >= 3 and path_parts[0] == "users" and path_parts[2] == "notifications":
             user_id = path_parts[1]
-            updated_count = db.mark_all_notifications_as_read(user_id)
-            self._send_json({"status": "all_read", "user_id": user_id, "updated_count": updated_count}, 200)
+            action = path_parts[3] if len(path_parts) > 3 else "read_all"
+            if action in ("read_all", "readall"):
+                updated_count = db.mark_all_notifications_as_read(user_id)
+                self._send_json({"status": "all_read", "user_id": user_id, "updated_count": updated_count}, 200)
+            else:
+                updated_count = db.mark_all_notifications_as_read(user_id)
+                self._send_json({"status": "all_read", "user_id": user_id, "updated_count": updated_count}, 200)
+
+        # POST /notifications/dispatch
+        elif len(path_parts) == 2 and path_parts[0] == "notifications" and path_parts[1] in ("dispatch", "send"):
+            user_id = body.get("user_id")
+            if not user_id:
+                return self._send_error("user_id required", 400)
+            notif = db.dispatch_notification(
+                user_id=user_id,
+                type=body.get("type", "announcement"),
+                actor_id=body.get("actor_id", ""),
+                target_id=body.get("target_id", ""),
+                content=body.get("content", ""),
+                title=body.get("title"),
+                metadata=body.get("metadata", {}),
+                weight=float(body.get("weight", 0.0))
+            )
+            if notif:
+                self._send_json(notif.to_dict(), 201)
+            else:
+                self._send_json({"status": "suppressed", "user_id": user_id}, 200)
+
+        # POST /notifications/preferences
+        elif len(path_parts) == 2 and path_parts[0] == "notifications" and path_parts[1] in ("preferences", "prefs"):
+            user_id = body.get("user_id")
+            if not user_id:
+                return self._send_error("user_id required", 400)
+            prefs = db.update_notification_preferences(user_id, **body)
+            self._send_json(prefs.to_dict(), 200)
+
+        # POST /push_subscriptions or /push_subscriptions/register
+        elif path_parts[0] in ("push_subscriptions", "push-subscriptions", "push_devices", "push-devices", "push"):
+            if len(path_parts) == 1 or path_parts[1] in ("register", "create", "new"):
+                sub = db.register_push_subscription(body)
+                self._send_json(sub.to_dict(), 201)
+            elif len(path_parts) == 3 and path_parts[2] in ("unregister", "delete", "remove", "deactivate"):
+                success = db.unregister_push_subscription(path_parts[1])
+                self._send_json({"status": "unregistered", "id": path_parts[1], "success": success}, 200)
+            else:
+                self._send_error("Not found", 404)
 
         # POST /notifications/<id>/read or /notifications/<user_id>/read_all
         elif len(path_parts) >= 2 and path_parts[0] == "notifications":
@@ -2401,6 +2520,19 @@ class SocialAPIHandler(BaseHTTPRequestHandler):
             prefs = db.remove_content_warning_tag(user_id, tag)
             self._send_json({"status": "removed", "user_id": user_id, "tag": tag, "preferences": prefs.to_dict() if hasattr(prefs, "to_dict") else prefs.__dict__}, 200)
 
+        # DELETE /push_subscriptions/<id> or /push_devices/<id>
+        elif path_parts[0] in ("push_subscriptions", "push-subscriptions", "push_devices", "push-devices", "push") and len(path_parts) == 2:
+            sub_id = path_parts[1]
+            success = db.unregister_push_subscription(sub_id)
+            self._send_json({"status": "unregistered", "id": sub_id, "success": success}, 200)
+
+        # DELETE /users/<user_id>/push_subscriptions/<id>
+        elif len(path_parts) == 4 and path_parts[0] == "users" and path_parts[2] in ("push_subscriptions", "push-subscriptions", "push_devices", "push"):
+            user_id = path_parts[1]
+            sub_id = path_parts[3]
+            success = db.unregister_push_subscription(sub_id, user_id=user_id)
+            self._send_json({"status": "unregistered", "id": sub_id, "user_id": user_id, "success": success}, 200)
+
         else:
             self._send_error("Not found", 404)
 
@@ -2501,6 +2633,9 @@ class SocialAPIHandler(BaseHTTPRequestHandler):
             elif len(path_parts) == 3 and path_parts[2] in ("content_filtering", "content_filters", "filter_preferences", "filtering_preferences", "content_filtering_preferences", "content-filtering"):
                 prefs = db.update_content_filter_preferences(path_parts[1], **body)
                 self._send_json(prefs.to_dict() if hasattr(prefs, "to_dict") else prefs.__dict__, 200)
+            elif (len(path_parts) == 3 and path_parts[2] in ("notification_preferences", "notification-preferences", "notif_preferences")) or (len(path_parts) == 4 and path_parts[2] == "notifications" and path_parts[3] in ("preferences", "prefs")):
+                prefs = db.update_notification_preferences(path_parts[1], **body)
+                self._send_json(prefs.to_dict(), 200)
             else:
                 self._send_error("Not found", 404)
         elif path_parts[0] == "discussions" and len(path_parts) == 3 and path_parts[2] in ("visibility", "privacy"):
