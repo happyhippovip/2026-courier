@@ -152,11 +152,27 @@ class MultiChatGoalIntake:
             return None
         return self._mutate(_pop)
 
-    def reopen_invalidated_blocker(self, goal_id: str) -> bool:
+    def reopen_invalidated_blocker(self, goal_id: str, invalidation_evidence: dict = None) -> bool:
+        if not invalidation_evidence:
+            return False
+        reason = invalidation_evidence.get("reason")
+        provenance = invalidation_evidence.get("provenance")
+        defect_repaired = invalidation_evidence.get("defect_repaired")
+        if not reason or not provenance or not defect_repaired:
+            return False
+            
         def _reopen(data):
             for r in data:
                 if r["goal_id"] == goal_id and r["status"] in ("BLOCKED", "FAILED", "HUMAN_GATE"):
+                    # Check if the blocker was a genuine human gate that cannot be reopened
+                    blocker_ev = r.get("blocker_evidence", {})
+                    # If it was a genuine external gate, it cannot be reopened
+                    gate_type = str(blocker_ev.get("gate_type", "")).upper()
+                    if gate_type in ("OAUTH", "LOGIN", "PAYMENT", "DEPLOYMENT", "PUBLICATION", "REAL_TRADE", "WALLET_SIGNING", "KYC"):
+                        return False
+                        
                     r["status"] = "PENDING"
+                    r["invalidation_evidence"] = invalidation_evidence
                     return True
             return False
         return self._mutate(_reopen)
@@ -238,6 +254,22 @@ class ExperienceMemory:
 
 
 class FounderModePlanner:
+    def evaluate_success(self, goal_record: dict, last_result: dict, completed_missions: list = None) -> bool:
+        if not completed_missions: return False
+        
+        # The goal is ONLY satisfied if the CURRENT/LATEST mission was a DISCOVERY task
+        # and it explicitly indicated no more work is needed (e.g. goal_satisfied = True)
+        last_mission = completed_missions[-1]
+        res = self._load_result(last_mission)
+        if res.get("task_type") == "DISCOVERY":
+            if res.get("goal_satisfied") is True:
+                return True
+            # Or if it returned a finding but it's an empty/NONE finding meaning no more work
+            finding = res.get("finding", {})
+            if finding.get("finding_id") in ("NONE", "SATISFIED", "NO_MORE_WORK"):
+                return True
+        return False
+
     def __init__(self, workspace_dir):
         self.workspace_dir = workspace_dir
         
@@ -265,14 +297,15 @@ class FounderModePlanner:
                 if action == "discover_improvement_opportunities" or "DISCOVERY" in stage.upper():
                     res = {
                         "task_type": "DISCOVERY",
+                        "goal_satisfied": payload.get("goal_satisfied", False),
                         "finding": {
-                            "finding_id": payload.get("weakness_id", "UNKNOWN"),
+                            "finding_id": payload.get("weakness_id", payload.get("finding_id", "UNKNOWN")),
                             "description": payload.get("description", ""),
                             "evidence": str(payload.get("evidence", "")),
-                            "affected_files": payload.get("suggested_files", []),
-                            "recommended_action": "Fix weakness",
+                            "affected_files": payload.get("suggested_files", payload.get("affected_files", [])),
+                            "recommended_action": payload.get("recommended_action", "Fix weakness"),
                             "verification_strategy": payload.get("verification_strategy", ""),
-                            "confidence": 1.0
+                            "confidence": payload.get("confidence", 1.0)
                         }
                     }
 
@@ -400,19 +433,6 @@ class FounderModePlanner:
                 return []
 
         return []
-
-def evaluate_success(self, goal_record: dict, last_result: dict, completed_missions: list = None) -> bool:
-        # If we broke the loop, let's consider it SATISFIED if at least one VERIFICATION passed in the past.
-        if not completed_missions: return False
-        
-        # Check if ANY past verification passed
-        for mission in completed_missions:
-            res = self._load_result(mission)
-            if res.get("task_type") == "VERIFICATION":
-                ev = res.get("acceptance_evidence", {})
-                if ev.get("tests_passed") is True or ev.get("goal_satisfied") is True:
-                    return True
-        return False
 
 class FounderModeMVP:
     def __init__(self, workspace_dir: str, dispatcher: CourierSafetyDispatcher):

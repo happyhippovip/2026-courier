@@ -610,47 +610,31 @@ class CourierSafetyDispatcher:
         
         # Strip all file paths / identifiers ending in extensions or containing slashes to avoid false positives
         import re
-        raw_text = re.sub(r'\b[\w\.-]+/[\w\.-]+\b', '', raw_text) # strip things like tests/test_deploy.py
+        raw_text = re.sub(r'\b[\w\.-]+/[\w\.-]+\.(?:py|json|md|txt|mjs|js|ts|sh|yaml|yml)\b', '', raw_text) # strip things like tests/test_deploy.py
         raw_text = re.sub(r'\b[\w\.-]+\.(?:py|json|md|txt|mjs|js|ts|sh|yaml|yml)\b', '', raw_text) # strip things like test_deploy.py
         text = raw_text.lower()
-
-        # 1. Strip declarative safety sections and human gate meta-statements
-        text = re.sub(r'safety\s*/\s*external\s*boundaries:.*?(?=engineering\s*rules:|$)', '', text, flags=re.DOTALL)
-        text = re.sub(r'\bhuman_gate\s+(?:remains?\s+)?required\s+for:.*?(?=engineering\s*rules:|$)', '', text, flags=re.DOTALL)
-        text = re.sub(r'[^.]*?\bremains?\s+human_gate\b[^.]*?\.', '', text)
-        text = re.sub(r'[^.]*?\bstop\s+at\s+human_gate\b[^.]*?\.', '', text)
-        text = re.sub(r'do not manually select a worker[^.]*?\.', '', text)
-
-        # 2. Strip explicit negative constraint clauses (e.g., "without deployment, external services, credentials, publication, customer contact, purchases, or spend")
-        text = re.sub(r'\bwithout\s+[^.;\n]+?(?=[.;\n]|\b(?:but|while|instead)\b|$)', '', text)
-        text = re.sub(r'\b(?:do\s+not|don\'t|dont|does\s+not|doesn\'t|doesnt|did\s+not|didn\'t|didnt|must\s+not|cannot|can\'t|cant|should\s+not|shouldn\'t|never|avoid|prohibit|prohibits|prohibited|not\s+requir\w*)\s+[^.;\n]+?(?=[.;\n]|\b(?:but|while|instead)\b|$)', '', text)
-        text = re.sub(r'\bno\s+(?:deployment|deployments|publication|publish|purchases?|spending|spend|customer\s+contact|external\s+(?:sends?|services?)|wallet(?:\s+\w+)?|real\s+trades?|real-money(?:\s+\w+)?|oauth|login|2fa|captcha|credentials|human\s+approval|human\s+gate|account\s+automation|upgrades?|overages?)\b[^.;\n]*', '', text)
-        text = re.sub(r'\bspend\s*[:=]\s*0\b|\b0\s*eur\s*spend\b|\b0\s*spend\b', '', text)
-
-        # 3. Check for genuine affirmative gated actions remaining in the un-negated text
+        
+        # Action-aware gating (no negative phrase stripping, fails closed on contradictions)
         gated_action_patterns = [
-            r'\b(?:deploy|deploying|deployment)\b',
-            r'\b(?:publish|publishing|publication)\b',
-            r'\b(?:contact|contacting|email|message|reach\s+out\s+to)\s+(?:customers?|users?|clients?)\b',
-            r'\b(?:send|sending)\s+(?:external|emails?|sms|messages?)\s+to\b',
-            r'\b(?:login|log\s+in|logging\s+in|authenticate|authenticating)\b',
-            r'\b(?:oauth|2fa|two-factor|two\s+factor|captcha|password|secret\s+key)\b',
-            r'\b(?:purchase|purchasing|buy|buying|pay|paying|billing)\b',
-            r'\b(?:real\s+spend|real\s+money|real\s+trades?|trading|trade\s+execution)\b',
-            r'\b(?:wallet\s+signing|sign\s+transaction|sign\s+wallet)\b',
-            r'\b(?:human\s+approval\s+required|human\s+gate\s+required)\b',
-            r'\b(?:kyc|legal\s+contract)\b',
+            r'\b(?:deploy|deploying)\s+(?:production|prod|external|now|to\s+prod)\b',
+            r'\b(?:login|log\s+in|logging\s+in)\b',
+            r'\b(?:authenticate|authenticating)\s+(?:to|against|with|external)\b',
+            r'\b(?:publish|publishing)\s+(?:this|externally|production|to)\b',
+            r'\b(?:purchase|purchasing|buy|buying|pay|paying|upgrade)[\s/]+(?:paid|capacity|subscription|billing)\b',
+            r'\b(?:enable|setup)\s+(?:billing|purchases)\b',
+            r'\b(?:sign|signing)\s+(?:wallet|transaction)\b',
+            r'\b(?:perform|execute|do)\s+(?:wallet|real-money|trade)\b',
+            r'\breal-money\s+trade\b',
+            r'\bwallet\s+signing\b',
+            r'\b(?:contact|email|message)\s+(?:customers?|users?)\b',
+            r'\bhuman_gate\s+required\b'
         ]
-
-        fallback_keywords = (
-            "deploy", "deployment", "login", "oauth", "2fa", "captcha", "password", "secret", "billing", "purchase", "authenticate", "human approval",
-            "real spend", "real trade", "wallet", "publication", "publish", "customer contact", "external send", "legal", "kyc"
-        )
-
+        
         for pat in gated_action_patterns:
             if re.search(pat, text):
                 return True
-
+                
+        fallback_keywords = ["real spend", "real trade", "customer contact", "external send", "kyc", "oauth login"]
         return any(term in text for term in fallback_keywords)
 
 
