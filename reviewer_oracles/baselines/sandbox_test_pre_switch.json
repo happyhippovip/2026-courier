@@ -1,0 +1,63 @@
+{
+  "canonical_workspace": "/Users/user/Downloads/2026-courier",
+  "captured_at": "2026-08-31T16:54:00.616758+00:00",
+  "continuation_checkpoint": {
+    "events/chief-autopilot/lease.json": {
+      "present": true,
+      "sha256": "4cdb576b816556b73768ac642886522c60d9d857ba38c26370d62f223842bf38",
+      "size": 672
+    },
+    "events/chief-autopilot/status.json": {
+      "present": true,
+      "sha256": "d750637db6d7ea6ad6748f6bae0204238b3f359df0a96632f0a9720834cf05b0",
+      "size": 448
+    }
+  },
+  "declared_project": {
+    "classification": "UNKNOWN",
+    "name": "sandbox test"
+  },
+  "persistence_expectations": {
+    "authentication": "ACCOUNT_BOUND",
+    "browser_session": "SESSION_BOUND",
+    "git_state": "PROJECT_LOCAL_PERSISTENT",
+    "project_permission_state": "UNKNOWN",
+    "workspace": "LOCAL_MACHINE_PERSISTENT"
+  },
+  "project_policy": {
+    "classification": "UNKNOWN"
+  },
+  "safe_configuration_fingerprints": {
+    "config/local_tools.json": {
+      "present": true,
+      "sha256": "6a21412a453b54e37db57e0075bc2f53d97ed158140af954a3fd96cd0871f5bb",
+      "size": 951
+    },
+    "events/chief-autopilot/lease.json": {
+      "present": true,
+      "sha256": "4cdb576b816556b73768ac642886522c60d9d857ba38c26370d62f223842bf38",
+      "size": 672
+    },
+    "events/chief-autopilot/status.json": {
+      "present": true,
+      "sha256": "d750637db6d7ea6ad6748f6bae0204238b3f359df0a96632f0a9720834cf05b0",
+      "size": 448
+    }
+  },
+  "schema_version": 1,
+  "sensitive_data_exclusion": {
+    "passed": true,
+    "problems": []
+  },
+  "workspace_integrity": {
+    "branch": "main",
+    "dirty_counts": {
+      "deleted": 10,
+      "modified": 28,
+      "staged": 0,
+      "untracked": 180
+    },
+    "head": "c9446ff8cf41560eb044a60cede085636e3aaffa",
+    "status_digest": "956a834738e181c30033c3f95d24c903b3220d8b37239c38d9697ca535409ae2"
+  }
+}

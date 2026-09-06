@@ -46,6 +46,7 @@ class TaskEnvelope:
     task_id: str = ""
     mission_id: str = ""
     requested_model: Optional[str] = None
+    native_attempt: int = 1
 
     def to_dict(self) -> dict[str, Any]:
         return {"schema_version": "1.0", "type": "TASK", **self.__dict__}
@@ -250,7 +251,8 @@ class CourierSafetyDispatcher:
         if not safe: return {"status": "FAIL_CLOSED", "reason": reason}
         task_hash = canonical_task_hash(task_spec)
         prior = self.ledger.get_reviewed_entry(task_hash)
-        if prior: return {"status": "DEDUPED", "result": prior.get("review_result", "APPROVED"), "task_hash": task_hash}
+        if prior and (not mission_id or prior.get("file_hashes", {}).get("mission_id") == mission_id):
+            return {"status": "DEDUPED", "result": prior.get("review_result", "APPROVED"), "task_hash": task_hash}
         write, heavy = bool(task_spec.get("requires_write", False)), bool(task_spec.get("is_heavy", False))
         got_write = got_heavy = False
         try:
@@ -330,98 +332,143 @@ class CourierSafetyDispatcher:
         if res_data.get("is_stale") or res_data.get("status") in ("STALE", "SUPERSEDED", "INVALID"): return False
         if res_data.get("status") not in ("COMPLETED", "PASS", "SUCCESS"): return False
         if not res_data.get("result_fingerprint"): return False
-        expected_agent = task.get("preferred_agent") or dispatched_route
-        if expected_agent and res_data.get("target_agent") and res_data.get("target_agent") != expected_agent: return False
+        expected_agent = dispatched_route or task.get("preferred_agent")
+        if expected_agent and res_data.get("target_agent") != expected_agent: return False
         return True
     def verify_result(self, worker_id: str, task_hash: str, verification_status: str, result_data: Any = None) -> str:
-        state = self._inflight.get(task_hash)
-        state = self._inflight.get(task_hash)
         state = self._inflight.get(task_hash)
         try:
             if not state or state["worker_id"] != worker_id or verification_status != "PASS" or result_data != state["result"]:
                 self.last_result_status = "UNKNOWN" if verification_status == "UNKNOWN" else "FAIL"
                 return "FAIL_CLOSED"
-            if isinstance(result_data, dict):
-                if result_data.get("status") == "HUMAN_GATE" or result_data.get("payload", {}).get("verdict") in {"HUMAN_APPROVAL_REQUIRED", "HUMAN_GATE"}:
-                    self.last_result_status = "HUMAN_GATE"
-                    return "FAIL_CLOSED"
-                task = state.get("task", {})
-                mission_id = state.get("mission_id", "unknown")
 
-                if not self.canonical_validate_result(mission_id, task, result_data, state.get("route")):
-                    self.last_result_status = "FAIL"
-                    return "FAIL_CLOSED"
+            attempts = 1
+            max_attempts = 2
 
-                criteria = task.get("acceptance_criteria")
-                if state.get("requires_write") and not criteria:
-                    self.last_result_status = "FAIL"
-                    return "FAIL_CLOSED"
+            while attempts <= max_attempts:
+                if isinstance(result_data, dict):
+                    if result_data.get("status") == "HUMAN_GATE" or result_data.get("payload", {}).get("verdict") in {"HUMAN_APPROVAL_REQUIRED", "HUMAN_GATE"}:
+                        self.last_result_status = "HUMAN_GATE"
+                        return "FAIL_CLOSED"
+                    task = state.get("task", {})
+                    mission_id = state.get("mission_id", "unknown")
 
-                if criteria:
-                    if "file_exists" in criteria:
-                        from pathlib import Path
-                        import os
-                        ws_path = Path(self.workspace_dir).resolve()
-                        fpath = (Path(self.workspace_dir) / criteria["file_exists"]).resolve()
+                    if not self.canonical_validate_result(mission_id, task, result_data, state.get("route")):
+                        self.last_result_status = "FAIL"
+                        return "FAIL_CLOSED"
 
-                        # V1-V4: Path containment
-                        try:
-                            fpath.relative_to(ws_path)
-                        except ValueError:
-                            self.last_result_status = "FAIL"
-                            return "FAIL_CLOSED"
+                    criteria = task.get("acceptance_criteria")
+                    if state.get("requires_write") and not criteria:
+                        self.last_result_status = "FAIL"
+                        return "FAIL_CLOSED"
 
-                        # V9: Missing effect rejection
-                        if not fpath.exists():
-                            self.last_result_status = "FAIL"
-                            return "FAIL_CLOSED"
+                    effect_missing = False
 
-                        post_content = ""
-                        if "content_matches" in criteria:
+                    if criteria:
+                        if "file_exists" in criteria:
+                            from pathlib import Path
+                            import os
+                            ws_path = Path(self.workspace_dir).resolve()
+                            fpath = (Path(self.workspace_dir) / criteria["file_exists"]).resolve()
+
+                            # V1-V4: Path containment
                             try:
-                                post_content = fpath.read_text(encoding="utf-8").strip()
-                                if post_content != criteria["content_matches"].strip():
+                                fpath.relative_to(ws_path)
+                            except ValueError:
+                                self.last_result_status = "FAIL"
+                                return "FAIL_CLOSED"
+
+                            # V9: Missing effect rejection
+                            if not fpath.exists():
+                                effect_missing = True
+
+                            post_content = ""
+                            if not effect_missing and "content_matches" in criteria:
+                                try:
+                                    post_content = fpath.read_text(encoding="utf-8").strip()
+                                    if post_content != criteria["content_matches"].strip():
+                                        effect_missing = True
+                                except Exception:
+                                    effect_missing = True
+
+                            # V5-V8: Freshness checks
+                            prestate = state.get("prestate")
+                            if state.get("requires_write"):
+                                if prestate is None or type(prestate) is not dict or "exists" not in prestate:
                                     self.last_result_status = "FAIL"
                                     return "FAIL_CLOSED"
-                            except Exception:
-                                self.last_result_status = "FAIL"
-                                return "FAIL_CLOSED"
+                                
+                            if prestate is not None:
+                                was_present = prestate.get("exists", False)
+                                pre_content = prestate.get("content")
 
-                        # V5-V8: Freshness checks
-                        prestate = state.get("prestate")
-                        if state.get("requires_write"):
-                            if prestate is None or type(prestate) is not dict or "exists" not in prestate:
-                                self.last_result_status = "FAIL"
-                                return "FAIL_CLOSED"
-                            
-                        if prestate is not None:
-                            was_present = prestate.get("exists", False)
-                            pre_content = prestate.get("content")
-
-                            req_content = criteria.get("content_matches", "").strip()
-                            if was_present:
-                                if "content_matches" in criteria:
-                                    if pre_content == req_content:
-                                        # V6: Stale artifact rejection (already matched before execution)
+                                req_content = criteria.get("content_matches", "").strip()
+                                if was_present:
+                                    if "content_matches" in criteria:
+                                        if pre_content == req_content:
+                                            # V6: Stale artifact rejection
+                                            self.last_result_status = "FAIL"
+                                            return "FAIL_CLOSED"
+                                    else:
                                         self.last_result_status = "FAIL"
                                         return "FAIL_CLOSED"
-                                else:
-                                    # Just file_exists requested, and it was already there.
-                                    # Stale!
+                                        
+                        if effect_missing:
+                            if state.get("requires_write") and state.get("route") == "GEMINI" and attempts < max_attempts:
+                                attempts += 1
+                                envelope = TaskEnvelope(
+                                    task_hash=task_hash,
+                                    worker_id=worker_id,
+                                    target_agent=state.get("route"),
+                                    capability=task.get("capability_request", "default"),
+                                    requires_write=True,
+                                    is_heavy=state.get("is_heavy", False),
+                                    verification_required=True,
+                                    safety_decision="APPROVED_SAFE",
+                                    payload=task,
+                                    correlation_id=task.get("correlation_id", ""),
+                                    native_attempt=attempts,
+                                    task_id=task.get("task_id", ""),
+                                    mission_id=state.get("mission_id", ""),
+                                    requested_model=task.get("requested_model")
+                                )
+                                try:
+                                    new_dispatch = self.adapter_boundary.dispatch(state.get("route"), envelope, self.adapters)
+                                    result_data = new_dispatch.get("result")
+                                    state["result"] = result_data
+                                    continue
+                                except Exception:
                                     self.last_result_status = "FAIL"
                                     return "FAIL_CLOSED"
+                            else:
+                                self.last_result_status = "FAIL"
+                                return "FAIL_CLOSED"
+                                
+                    break
 
+            executing_agent = state.get("route")
+            # The dispatcher owns the supported-agent contract.  Test and production
+            # boundaries need not expose an implementation-specific class attribute.
+            if executing_agent not in self.adapters:
+                self.last_result_status = "FAIL"
+                return "FAIL_CLOSED"
 
             self.ledger.record_review(review_id=f"rev-{task_hash[:12]}", checkpoint_commit="CANONICAL", diff_hash=task_hash,
                 file_hashes={
-                    "mission_id": state.get("mission_id", ""),
-                    "result_fingerprint": state.get("result", {}).get("result_fingerprint", ""),
-                    "worker_id": worker_id,
+                    "task_hash": task_hash,
+                    "mission_id": mission_id,
+                    # ``worker_id`` is the agent that produced the accepted result;
+                    # the coordinator is retained separately for lease provenance.
+                    "worker_id": executing_agent,
+                    "coordinator_worker_id": worker_id,
+                    "dispatched_route": executing_agent,
                     "effect_verified": "True",
                     "freshness_verified": "True",
-                    "execution_provenance": f"exec-{state.get('mission_id', '')}"
+                    "result_fingerprint": canonical_hash(result_data),
+                    "native_attempt": str(attempts),
                 }, risk_class="SAFE", review_type="TASK_VERIFICATION", review_result="APPROVED",
-                reviewer=worker_id, reason="Verified identity-bound local task result")
+                reviewer=executing_agent, reason="Verified identity-bound local task result")
+            
             self.last_result_status = "PASS"
             return "VERIFIED_AND_CACHED"
         except Exception:
@@ -445,6 +492,7 @@ class CourierSafetyDispatcher:
         mission = self.mission_queue.claim_next(worker_id)
         if mission is None:
             return {"status": "NO_PENDING_MISSION"}
+        self.last_result_status = None
         mission_id = mission["mission_id"]
         task = dict(mission.get("task", {}))
         safe, reason = self.is_safe_action(task)
@@ -547,42 +595,63 @@ class CourierSafetyDispatcher:
 
     @staticmethod
     def _requires_human_gate(mission: dict[str, Any], task: dict[str, Any]) -> bool:
+        if task.get("human_gate_required") or mission.get("human_gate_required"):
+            return True
         if task.get("action") == "discover_improvement_opportunities":
             return False
 
         import re
         task_parts = []
         for k, v in task.items():
-            if k not in ("context", "files", "strategy", "acceptance_criteria", "description", "summary", "payload"):
+            if k not in ("files", "target_files", "changed_files", "strategy", "acceptance_criteria", "description", "summary", "payload", "task_hash", "correlation_id", "mission_id", "task_id", "result", "result_data"):
                 task_parts.append(str(v))
+
+        raw_text = " ".join(str(x) for x in (mission.get("goal", ""), mission.get("normalized_task", ""), " ".join(task_parts)))
         
-        text = " ".join(str(x) for x in (mission.get("goal", ""), mission.get("normalized_task", ""), " ".join(task_parts))).lower()
+        # Strip all file paths / identifiers ending in extensions or containing slashes to avoid false positives
+        import re
+        raw_text = re.sub(r'\b[\w\.-]+/[\w\.-]+\b', '', raw_text) # strip things like tests/test_deploy.py
+        raw_text = re.sub(r'\b[\w\.-]+\.(?:py|json|md|txt|mjs|js|ts|sh|yaml|yml)\b', '', raw_text) # strip things like test_deploy.py
+        text = raw_text.lower()
 
-        # 1a. Remove purely declarative lists of prohibited external actions
-        text = re.sub(r'\bno\s+[^.]*?actions\.?|\bno\s+[^.]*?purchases\.?', '', text)
-
-        # 1b. Remove explicitly negated safety constraints
-        negations = r'\b(?:no|not|without|prohibit|prohibits|prohibited|avoid|never)\b'
-        gates_pattern = r'(?:autonomous\s+)?(?:login|oauth|2fa|captcha|password|secret|billing|purchases?|real spend|real trade|wallet|publication|publish|customer contact|external send|legal|kyc|deployments?)'
-        text = re.sub(negations + r'(?:\s*(?:,|\band\b|\bor\b)?\s*' + gates_pattern + r')+', '', text)
-
-        # 2. Remove standard safety sections that are purely declarative constraints
+        # 1. Strip declarative safety sections and human gate meta-statements
         text = re.sub(r'safety\s*/\s*external\s*boundaries:.*?(?=engineering\s*rules:|$)', '', text, flags=re.DOTALL)
-
-        # 3. Remove sentences explicitly saying things are HUMAN_GATEs
         text = re.sub(r'\bhuman_gate\s+(?:remains?\s+)?required\s+for:.*?(?=engineering\s*rules:|$)', '', text, flags=re.DOTALL)
         text = re.sub(r'[^.]*?\bremains?\s+human_gate\b[^.]*?\.', '', text)
-
-        # 4. Remove sentences that specify conditions to "stop at HUMAN_GATE"
         text = re.sub(r'[^.]*?\bstop\s+at\s+human_gate\b[^.]*?\.', '', text)
-
-        # 5. Remove known declarative negative constraints
         text = re.sub(r'do not manually select a worker[^.]*?\.', '', text)
 
-        gates = ("login", "oauth", "2fa", "captcha", "password", "secret", "billing", "purchase",
-                 "real spend", "real trade", "wallet", "publication", "publish", "customer contact", "external send", "legal", "kyc")
+        # 2. Strip explicit negative constraint clauses (e.g., "without deployment, external services, credentials, publication, customer contact, purchases, or spend")
+        text = re.sub(r'\bwithout\s+[^.;\n]+?(?=[.;\n]|\b(?:but|while|instead)\b|$)', '', text)
+        text = re.sub(r'\b(?:do\s+not|don\'t|dont|does\s+not|doesn\'t|doesnt|did\s+not|didn\'t|didnt|must\s+not|cannot|can\'t|cant|should\s+not|shouldn\'t|never|avoid|prohibit|prohibits|prohibited|not\s+requir\w*)\s+[^.;\n]+?(?=[.;\n]|\b(?:but|while|instead)\b|$)', '', text)
+        text = re.sub(r'\bno\s+(?:deployment|deployments|publication|publish|purchases?|spending|spend|customer\s+contact|external\s+(?:sends?|services?)|wallet(?:\s+\w+)?|real\s+trades?|real-money(?:\s+\w+)?|oauth|login|2fa|captcha|credentials|human\s+approval|human\s+gate|account\s+automation|upgrades?|overages?)\b[^.;\n]*', '', text)
+        text = re.sub(r'\bspend\s*[:=]\s*0\b|\b0\s*eur\s*spend\b|\b0\s*spend\b', '', text)
 
-        return any(term in text for term in gates)
+        # 3. Check for genuine affirmative gated actions remaining in the un-negated text
+        gated_action_patterns = [
+            r'\b(?:deploy|deploying|deployment)\b',
+            r'\b(?:publish|publishing|publication)\b',
+            r'\b(?:contact|contacting|email|message|reach\s+out\s+to)\s+(?:customers?|users?|clients?)\b',
+            r'\b(?:send|sending)\s+(?:external|emails?|sms|messages?)\s+to\b',
+            r'\b(?:login|log\s+in|logging\s+in|authenticate|authenticating)\b',
+            r'\b(?:oauth|2fa|two-factor|two\s+factor|captcha|password|secret\s+key)\b',
+            r'\b(?:purchase|purchasing|buy|buying|pay|paying|billing)\b',
+            r'\b(?:real\s+spend|real\s+money|real\s+trades?|trading|trade\s+execution)\b',
+            r'\b(?:wallet\s+signing|sign\s+transaction|sign\s+wallet)\b',
+            r'\b(?:human\s+approval\s+required|human\s+gate\s+required)\b',
+            r'\b(?:kyc|legal\s+contract)\b',
+        ]
+
+        fallback_keywords = (
+            "deploy", "deployment", "login", "oauth", "2fa", "captcha", "password", "secret", "billing", "purchase", "authenticate", "human approval",
+            "real spend", "real trade", "wallet", "publication", "publish", "customer contact", "external send", "legal", "kyc"
+        )
+
+        for pat in gated_action_patterns:
+            if re.search(pat, text):
+                return True
+
+        return any(term in text for term in fallback_keywords)
 
 
 @dataclass(frozen=True)
@@ -799,7 +868,19 @@ class DynamicAgentRouter:
     """
     CAPABILITIES = {
         "CLI1": ("local repo analysis", "deterministic checks", "repo verification"),
-        "CODEX": ("legacy implementation",), # CODEX = OFF for routine work
+        # CODEX handles specialist work requiring deep structural analysis.
+        # It does NOT receive ordinary implementation, analysis, or refactoring.
+        # These keywords must appear explicitly in mission capability_required fields.
+        "CODEX": (
+            "legacy implementation",
+            "specialist architecture",
+            "state-machine repair",
+            "provenance audit",
+            "concurrency repair",
+            "complex integration specialist",
+            "ambiguous root cause specialist",
+            "high-information-gain specialist",
+        ),
         "GEMINI": ("analysis", "planning", "independent review", "acceptance review", "architecture", "implementation", "refactor", "debugging", "tests", "code", "google"),
     }
     VALID_STATES = frozenset({"AVAILABLE", "BUSY", "BLOCKED"})

@@ -1,0 +1,122 @@
+E
+======================================================================
+ERROR: test_complete_lifecycle_retries_once_then_satisfies_goal (tests.test_courier_complete_lifecycle.TestCourierCompleteLifecycle)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/scripts/courier_safety_dispatcher.py", line 717, in _document
+    with open(self.queue_file, encoding="utf-8") as handle: document = json.load(handle)
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/json/decoder.py", line 353, in raw_decode
+    obj, end = self.scan_once(s, idx)
+  File "<string>", line 4, in handler
+Exception: Timeout
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/tests/test_courier_complete_lifecycle.py", line 99, in test_complete_lifecycle_retries_once_then_satisfies_goal
+    runtime = self._run("Create a file named lifecycle_effect.txt containing exactly: DONE")
+  File "/Users/user/Downloads/2026-courier/tests/test_courier_complete_lifecycle.py", line 95, in _run
+    runtime.run_autonomous_loop()
+  File "/Users/user/Downloads/2026-courier/scripts/courier_founder_mode.py", line 419, in run_autonomous_loop
+    mission_result = self.dispatcher.process_next_mission(worker_id)
+  File "/Users/user/Downloads/2026-courier/scripts/courier_safety_dispatcher.py", line 492, in process_next_mission
+    mission = self.mission_queue.claim_next(worker_id)
+  File "/Users/user/Downloads/2026-courier/scripts/courier_safety_dispatcher.py", line 831, in claim_next
+    return self._mutate(claim)
+  File "/Users/user/Downloads/2026-courier/scripts/courier_safety_dispatcher.py", line 729, in _mutate
+    document = self._document()
+  File "/Users/user/Downloads/2026-courier/scripts/courier_safety_dispatcher.py", line 719, in _document
+    raise RuntimeError("MISSION_QUEUE_CORRUPT_FAIL_CLOSED") from error
+RuntimeError: MISSION_QUEUE_CORRUPT_FAIL_CLOSED
+
+----------------------------------------------------------------------
+Ran 1 test in 2.812s
+
+FAILED (errors=1)
+MISSION RESULT: VERIFIED, {'status': 'VERIFIED', 'mission_id': '37fa13fc-1565-4c7f-9828-1ebf7f20aeef', 'successor_mission_id': None, 'agent_dispatched': 'GEMINI'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '673595f3-4af1-4155-8ab0-01a70d597d9f'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'f6cbb166-90f7-434b-aeae-a0084f48f392'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '9ad281d2-eda4-4a0b-94d4-2e712a0bde72'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '80718243-4a05-474c-b858-fc41438a43e4'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '6f2b0244-16d9-4b01-bd69-41b18c113b8f'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'abf38825-af8b-4abf-8038-fda43577a7ef'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'bbc74f36-caaa-4963-9c45-78197fce9903'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'bb56ded3-8f4a-4755-9764-06e1de101d27'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'cb1dd410-6bd9-4c95-9a00-42a58d94fadd'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '485c1a72-469f-4be3-8ad7-08cb199062ae'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '99a9bd6d-eeb4-4755-a37e-d75424794e7c'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'e885eb2e-ef62-4606-96b3-daeb076266fc'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '02bb3042-9237-42bd-9cec-7a896b51c755'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '3f062ef5-de22-459f-bedb-79d2415cd89b'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '49eb76da-362e-48eb-a9be-84bf49c48b96'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'b2686b2d-3260-41c7-860a-87bb5b3ac6a3'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'c8b6333f-f753-4bdb-8278-52997681dfb3'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'f6f217f2-40ed-49c0-8769-a69f6953987e'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'a533c0f8-9e12-4de1-a1bd-114f63bb944a'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'c6b84454-d1be-4a35-a6dd-336befb74001'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '60be3c24-429f-41cc-b495-cf6593b99fb9'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '3046bfd0-ca39-4877-bc70-4cb8225ebc89'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'beb93f4d-7501-41be-9571-8f152b512ddd'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '6b87ac8c-7c0a-43b4-a6bd-c9d8cf95c762'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'fb2b4005-f1f8-443d-88d7-3f7234888213'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '4b10436b-f84e-4747-baff-d4ebac720c8d'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '68a2d7cd-2e56-45d6-83b2-4bbffff62b0c'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'febd0477-e0fe-4b3e-9545-25450470e536'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '6c3f12a7-9afb-4a6c-8b77-87c9e1ff2943'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'dc34d4ba-54b2-4f7d-b3aa-2f9d3ad906ce'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '9149dc37-0bab-4f9e-9bd5-fd0f4be84bb4'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'b29af833-eaed-4911-948a-01d33c8eebf4'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '56f39909-108e-4a6e-ad56-6343c3e43f65'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'dd43f898-182e-47af-ba76-02b9adab5643'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '7364a4de-9aa1-48e2-9acc-3514ed8ffdeb'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'ac785cd6-270e-46f0-bd8e-1e6e542973cc'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '010e4c22-8e53-499b-8017-9ea37ef564bf'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '002dc51d-125f-4beb-888c-4063c4abb024'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '1f1c8862-216f-412d-92cf-128c90707faf'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '8f8b8fcb-185e-4ce2-8f16-b59a28a5a805'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '40d4768e-e5c4-4af5-a1b8-b7e9f3cc9ac8'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'ce35bfca-7412-41df-a079-137ca67a4d47'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '0b1817c6-975c-46ab-a2e0-31e12a870383'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '90717441-b612-43fa-8134-05da10d6f259'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '82dc0075-5a7a-4bc7-b4b1-696a11712f66'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '9f93155f-5e65-49b9-b93c-a0f0b5f6c379'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'e42c381a-13b0-4a77-b58f-371aca8038f9'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'fbf4679a-7369-458c-8db2-8966c5ef607e'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'ccfbe5b1-6f2d-46d4-b05b-b59c15602a63'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'a747a28a-7f13-42e4-96f5-a4c37de17377'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '73be7c6f-be18-435d-af5e-881aba7cec30'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '8070fb25-a21f-43e0-827a-df8cddb5a7ec'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '3c31562f-048c-41a4-95ab-f0e8b5a4062d'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '84db5cc7-e318-498b-bb86-8b170ff0d7f6'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'c32a7eff-4627-42de-85b7-f1f9b903429e'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '46dff2be-3102-4eb0-8c4c-097a56637ced'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '870f31f4-025d-4d0b-b82b-fc184f6e2e17'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'b2564248-847c-4f1f-9355-95edb7e02c5d'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '5e3cbd3c-7d8c-465b-a18a-13ec9a21042a'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '4f90d65b-6936-492c-965f-36a946658765'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'b2e44b14-05fc-4d30-989f-9dd363e892ff'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '47d0acbe-cab8-48c5-adc9-3d86fe9a3461'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'c2cd74f8-436d-411f-aa9f-c071360db6f8'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'b73594d1-43fe-47db-8ca7-e93c743f0bf5'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '75e35a59-1ab6-430c-9bd0-7ef397cbc299'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'feffe054-4289-4dec-9916-1f747220e12f'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'f9486cdd-4df8-4488-845b-b367c8efcf00'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '71ff848b-d65c-4c15-9359-4db076b074dc'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'b3cb8557-ca92-4072-a2d8-299f44f231d2'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'bb80b041-58b3-4423-8c6f-cba7f2132827'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '45e060bb-38ac-4bd6-b8d5-5e6b6aac7875'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '874c5922-4767-47c5-9b97-f1710a64003d'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '697d21d3-d8fb-4b44-85b3-6a972fe8cbcc'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '8ac1e092-f578-4a64-b8dd-21fc094f989f'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '821e7fe2-0884-4424-88c6-55b2c899b379'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': 'c6e3b666-af85-4724-b81d-2f77fbf7a615'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '79318261-2b93-4f13-9d1c-d424c8e72d40'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '7248cd08-29a0-43a0-bfba-a6905a98e573'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '63769fa2-dd68-461e-ac40-69a898ca4460'}
+MISSION RESULT: FAILED, {'status': 'FAILED', 'mission_id': '30f7555d-ead4-4bdd-8040-cbd67480fc2d'}

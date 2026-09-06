@@ -1,0 +1,20 @@
+{
+  "schema_version": "HOST_DR_MANIFEST_V1",
+  "host_id": "home-mac-primary",
+  "host_epoch": "EPOCH_2026",
+  "host_generation": 1,
+  "generated_at": "2026-09-05T19:21:53.915579+00:00",
+  "survival_level": 2,
+  "confirmed_state_hashes": {
+    "chief_brain": "4fb059c9591634c7f65950152b815205f7e06f114009156d88f2a9f1cfb12a09",
+    "safe_queue": "cefb46540af8e32fb46f67e59ba3c636b87ebd909d0b59cdb168fce95e0357f0",
+    "canonical_authority": "a76c904bebaba722cd4614967b1288c722c892dee17e892ad558257e905d1c43",
+    "policy": "318771012d0585ded5f7ece537b628646ca3e00b945ebac5c02ce8ab59ef4795"
+  },
+  "active_missions": [
+    "MISSION_212"
+  ],
+  "pending_safe_jobs": [],
+  "unreconciled_jobs": [],
+  "manifest_digest": "8061d4c2114a64138f0232ce29c4c3ed020ec18f36b31d6673da50ee82c4dfbc"
+}

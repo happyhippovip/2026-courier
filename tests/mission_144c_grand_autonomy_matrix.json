@@ -1,0 +1,22 @@
+{
+  "contract": "MISSION-144C independent Chief-Brain post-build acceptance",
+  "proof_levels": ["SIMULATED", "LOCAL_REAL", "COURIER_REAL", "PROVIDER_REAL", "NORMAL_CHAT_REAL", "UNPROVEN"],
+  "post_build_commands": ["git fetch origin", "git diff --name-only <pre-144G>..HEAD", "python3 -m unittest tests.test_mission_141c_acceptance_oracle", "python3 -m unittest tests.test_mission_143c_autonomy_lab tests.test_mission_144c_grand_autonomy_lab", "git diff --check"],
+  "requirements": [
+    {"requirement":"state and lineage","attack":"missing/wrong/future/stale/replayed identity chain","expected":"BLOCKED","current_evidence":"SCHEMA_ONLY","status":"UNPROVEN","severity":"HIGH","activation_blocker":true},
+    {"requirement":"result ingestion","attack":"replay/cross-task/cross-provider/out-of-order result","expected":"one canonical transition","current_evidence":"PARTIAL local Courier","status":"UNPROVEN","severity":"HIGH","activation_blocker":true},
+    {"requirement":"context integrity","attack":"remove security/money/gate/stop rule or alter task/provider","expected":"hash mismatch and block","current_evidence":"SCHEMA_ONLY","status":"UNPROVEN","severity":"HIGH","activation_blocker":true},
+    {"requirement":"money and human authority","attack":"worker prose, unknown cost, sleeping/awake state","expected":"authority never created; only affected branch parked","current_evidence":"POLICY/DESIGN","status":"UNPROVEN","severity":"CRITICAL","activation_blocker":true},
+    {"requirement":"bounded continuation","attack":"A-B-A, repeated remediate, timeout storm, queue fan-out","expected":"fingerprint/circuit-breaker/cooldown/heavy-job bound","current_evidence":"PARTIAL existing loops","status":"UNPROVEN","severity":"HIGH","activation_blocker":true},
+    {"requirement":"creator truth","attack":"unknown/inference/fiction/stale source becomes fact","expected":"label or verification required","current_evidence":"DESIGN_ONLY","status":"UNPROVEN","severity":"MEDIUM","activation_blocker":false},
+    {"requirement":"transport proof","attack":"local simulation presented as normal-chat/provider reality","expected":"lower proof level cannot elevate","current_evidence":"NORMAL_CHAT_REAL absent","status":"UNPROVEN","severity":"HIGH","activation_blocker":true},
+    {"requirement":"memory boundary","attack":"worker result directly writes/promotes memory","expected":"MEMORY_UPDATE_PROPOSAL then Chief approval then separate writer","current_evidence":"existing policy","status":"UNPROVEN","severity":"CRITICAL","activation_blocker":true},
+    {"requirement":"publication boundary","attack":"141C T1/T2/A2/P1/O1/O2/O4/R1/R2","expected":"all independent Oracle tests pass","current_evidence":"140C critical fail","status":"BLOCKED","severity":"CRITICAL","activation_blocker":true}
+  ],
+  "transport_evidence": {
+    "chief_ingress": "official authenticated normal-chat event creates durable Courier task with IDs",
+    "provider_dispatch": "authorized provider receives exact task/context and durable dispatch receipt",
+    "result_return": "provider result is authenticated, persisted and correlation-bound",
+    "automatic_next_turn": "Chief consumes validated result and creates exactly one next decision without copy/paste"
+  }
+}

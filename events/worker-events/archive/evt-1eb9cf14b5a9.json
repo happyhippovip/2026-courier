@@ -1,0 +1,16 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-01T01:32:28.636309+00:00",
+  "event_id": "evt-1eb9cf14b5a9",
+  "event_type": "WORKER_AVAILABLE",
+  "evidence": {
+    "available_for_next_work": true
+  },
+  "fingerprint": "b27e52f6b70c31db",
+  "mission_id": "M200",
+  "recommended_action": null,
+  "session_epoch": "epoch-cli1-1788226215",
+  "severity": "INFO",
+  "task_id": null,
+  "worker_id": "CLI1"
+}

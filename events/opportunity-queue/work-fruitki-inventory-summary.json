@@ -1,0 +1,31 @@
+{
+  "allowed_scope": [
+    "runtime/content/inventory_summary.json"
+  ],
+  "cost_class": "FREE_LOCAL",
+  "created_at": "2026-08-31T23:57:20.061876+00:00",
+  "critical_path": false,
+  "dedupe_fingerprint": "e8340c59d920f42e",
+  "dedupe_hash": "e8340c59d920f42e",
+  "dependencies": [],
+  "description": "Compute deterministic inventory summary of all rendered and unrendered FruitKI shorts",
+  "estimated_cost": 0.0,
+  "expected_outcome": "Inventory summary written to runtime/content/inventory_summary.json",
+  "goal_id": "goal-creator-factory-autonomy",
+  "message_stamp": null,
+  "opportunity_id": "work-fruitki-inventory-summary",
+  "parallel_safe": true,
+  "priority": 8,
+  "problem_or_goal": "Compute deterministic inventory summary of all rendered and unrendered FruitKI shorts",
+  "provider": "LOCAL_DETERMINISTIC",
+  "reason": "First Shift Wave 1 Item: File runtime/content/inventory_summary.json exists with package counts",
+  "risk": "LOW",
+  "scope": [
+    "runtime/content/inventory_summary.json"
+  ],
+  "source": "REAL_WORK_BACKLOG",
+  "source_fingerprint": "fp-inv-01",
+  "status": "DONE",
+  "target_agent": "qa_guardian",
+  "updated_at": "2026-09-01T00:40:21.452596+00:00"
+}

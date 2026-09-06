@@ -1,0 +1,14 @@
+{
+  "artifacts": {
+    "artifacts_changed": [],
+    "fingerprint": "abc123idempotent"
+  },
+  "completed_at": "2026-09-01T16:44:29.104533+00:00",
+  "evidence": {},
+  "findings": "Executed on GOOGLE/CLI on COMPUTER_A. Result: SUCCESS",
+  "opportunity_id": "IDEMPOTENT-01",
+  "result_fingerprint": "ff2d1334028347c4",
+  "result_id": "RES-TASK-IDEMPOTENT-01-ff2d1334",
+  "status": "SUCCESS",
+  "task_id": "TASK-IDEMPOTENT-01"
+}

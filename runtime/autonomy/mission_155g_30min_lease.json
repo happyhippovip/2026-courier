@@ -1,0 +1,75 @@
+{
+  "mission_id": "155G",
+  "started_at": "2026-08-31T15:38:55.635284+00:00",
+  "deadline_at": "2026-08-31T16:08:55.635679+00:00",
+  "target_duration_seconds": 1800,
+  "elapsed_seconds": 297.09,
+  "remaining_seconds": 1502.91,
+  "status": "COMPLETE",
+  "current_phase": "COMPLETED",
+  "current_task": "SHIFT_FINISHED",
+  "completed_tasks": [],
+  "checkpoints": {
+    "CHECKPOINT_05": {
+      "timestamp": "2026-08-31T15:38:55.682267+00:00",
+      "elapsed_seconds": 0.05,
+      "remaining_seconds": 1799.95,
+      "current_task": "VISUAL_QUALITY_AUDIT",
+      "completed_count": 0,
+      "details": {
+        "summary": "Visual audit complete; selected 3 top upgrade targets & 2 new premium shorts."
+      }
+    },
+    "CHECKPOINT_10": {
+      "timestamp": "2026-08-31T15:41:53.634894+00:00",
+      "elapsed_seconds": 178.0,
+      "remaining_seconds": 1622.0,
+      "current_task": "RENDER_UPGRADE_03",
+      "completed_count": 0,
+      "details": {
+        "summary": "Completed 3 upgraded 1080p FHD video packages (Apple, Melon, Banana)."
+      }
+    },
+    "CHECKPOINT_15": {
+      "timestamp": "2026-08-31T15:43:52.257814+00:00",
+      "elapsed_seconds": 296.62,
+      "remaining_seconds": 1503.38,
+      "current_task": "RENDER_NEW_VIDEO_02",
+      "completed_count": 0,
+      "details": {
+        "summary": "Rendered 2 new premium 1080p FHD shorts (Dragonfruit Volcano, Strawberry Teleport)."
+      }
+    },
+    "CHECKPOINT_20": {
+      "timestamp": "2026-08-31T15:43:52.290351+00:00",
+      "elapsed_seconds": 296.66,
+      "remaining_seconds": 1503.34,
+      "current_task": "BUILD_ASSET_LIBRARY",
+      "completed_count": 0,
+      "details": {
+        "summary": "Generated 7 reusable creator assets & lighting presets."
+      }
+    },
+    "CHECKPOINT_25": {
+      "timestamp": "2026-08-31T15:43:52.723970+00:00",
+      "elapsed_seconds": 297.09,
+      "remaining_seconds": 1502.91,
+      "current_task": "MASTER_MANIFEST_AND_CONTACT_SHEET",
+      "completed_count": 0,
+      "details": {
+        "summary": "Master manifest & contact sheet compiled; entering final checks."
+      }
+    },
+    "CHECKPOINT_30": {
+      "timestamp": "2026-08-31T15:43:52.724583+00:00",
+      "elapsed_seconds": 297.09,
+      "remaining_seconds": 1502.91,
+      "current_task": "MASTER_MANIFEST_AND_CONTACT_SHEET",
+      "completed_count": 0,
+      "details": {
+        "summary": "Shift complete; 5 1080p FHD packages, 7 reusable assets, 0 errors."
+      }
+    }
+  },
+  "last_progress_at": "2026-08-31T15:43:52.725105+00:00"
+}

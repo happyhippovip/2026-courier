@@ -1,0 +1,26 @@
+{
+  "manifest_version": "1.0",
+  "offers": [
+    {
+      "id": "REV-OPP-B2B-AUTONOMY-AUDIT",
+      "title": "15-Point B2B Autonomy Safety Audit",
+      "price_eur": 99.0,
+      "cost_eur": 5.0,
+      "gross_margin_pct": 94.9,
+      "delivery_sla": "24h",
+      "deliverable_asset": "events/revenue-opportunities/offerings/b2b_autonomy_audit/SAMPLE_AUDIT_REPORT_DELIVERABLE.md",
+      "pre_send_asset": "events/revenue-opportunities/offerings/b2b_autonomy_audit/P01_MICRO_DIAGNOSTIC_ASSET.md",
+      "readiness": "100% READY"
+    },
+    {
+      "id": "REV-OPP-KIBEY-AI-MARKETPLACE",
+      "title": "Kibey Fast-Routing Micro-Package v1.0.0",
+      "price_eur": 49.0,
+      "cost_eur": 0.0,
+      "gross_margin_pct": 100.0,
+      "delivery_sla": "Instant (<1m)",
+      "deliverable_asset": "events/revenue-opportunities/offerings/kibey_ai_marketplace/dist/KIBEY_PILOT_DELIVERY_PACKAGE_v1.0.0.zip",
+      "readiness": "100% READY"
+    }
+  ]
+}

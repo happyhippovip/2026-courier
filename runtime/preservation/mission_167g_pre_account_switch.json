@@ -1,0 +1,61 @@
+{
+  "checkpoint_id": "chk-167g-20260831-175220",
+  "created_at": "2026-08-31T17:52:20.744787+00:00",
+  "machine": "COMPUTER_A",
+  "platform": "darwin",
+  "canonical_workspace": "/Users/user/Downloads/2026-courier",
+  "antigravity_project_id": "22351b50-db7e-4065-8d25-613eecae65e1",
+  "antigravity_project_name": "sandbox test",
+  "git_head": "c9446ff8cf41560eb044a60cede085636e3aaffa",
+  "git_branch": "main",
+  "git_status_digest": "7353c7f28c901eabe125f4cef6b6be43b80f4876aa4faed5a11d85fc7df3ea6b",
+  "git_counts": {
+    "modified": 18,
+    "deleted": 10,
+    "untracked": 128,
+    "total_dirty": 156
+  },
+  "critical_script_hashes": {
+    "scripts/chief_autopilot.py": "2fb40aa390a6531032dec591216eea1112f0f694a3dece1c16a7db992da57c13",
+    "scripts/two_computer_dispatcher.py": "65215f4bf273c49d7a5a946da1be2d30ad6ed762ac3a23f1ac7b714dabc8d98c",
+    "scripts/chief_continuation_controller.py": "0b079764aad58a1011c0a0fea5a489172c382dde28783daa4d6ed492fc644fe1",
+    "scripts/resource_intelligence.py": "545abef278e439e2badcaa2c35d093c91c3a30282f4e049b911ed4c9254a32d5",
+    "scripts/opportunity_queue.py": "1472cdc3c8ac27e6f2f0221d0355bbaef4add24ede7fb97f281ad2e769d7e611",
+    "scripts/timeboxed_autonomy_engine.py": "c20afc1ef67f9aab37ab6fa287b7ee88b2ce37ab5a039988e89fd4977a5bcc32",
+    "scripts/google_pool_controller.py": "f34cdf903dfcf8bf6b15f331a2ac270e85d745bb4978240d68cfff8d9f2cd977"
+  },
+  "critical_state_hashes": {
+    "events/chief-autopilot/status.json": "e8f4233e976cb715c5a226bd4a351043159a1a2d75dbf7db82d8c2b60e0ab6ef",
+    "events/chief-autopilot/lease.json": "33e8c1a2a60d5023ecd4c21d57d4cb9494287e447dc29e73aa28f4509b7be050",
+    "runtime/cluster/active_leases.json": "d9255be2e1381894456fedf55d5864f56371af3d041c9706ded815d090d2640d",
+    "runtime/cluster/task_queue.json": "ef635aca6201e355332a40e138405c6ac224f9781b7ace8c158007090c328878",
+    "runtime/cluster/node_registry.json": "28ce63a12c06907577b70090b91920aecd45eadb32116e2fb8c48d541abd1f30"
+  },
+  "autopilot_status": "PAUSED",
+  "active_leases_count": 0,
+  "incomplete_transactions_present": false,
+  "component_classification": {
+    "account_bound": [
+      "Google Account Quota",
+      "Google Auth Tokens / Sessions",
+      "Web Login State"
+    ],
+    "machine_local": [
+      "/Users/user/.gemini/antigravity (App Data)",
+      "Antigravity Desktop Application",
+      "Local Git Worktrees",
+      "Persistent Visual Studio Server Daemon"
+    ],
+    "project_local": [
+      "/Users/user/Downloads/2026-courier (Repository Root)",
+      "events/ and runtime/ persistent state logs",
+      "Local test suites and scripts"
+    ],
+    "session_only": [
+      "Active in-memory prompt context",
+      "Ephemeral subagent conversations"
+    ]
+  },
+  "auth_secrets_included": false,
+  "safe_to_switch": true
+}

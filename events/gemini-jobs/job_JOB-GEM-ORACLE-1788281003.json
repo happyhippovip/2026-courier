@@ -1,0 +1,29 @@
+{
+  "allowed_actions": [
+    "READ_ONLY_RESEARCH",
+    "SYNTHESIZE_OFFER",
+    "RANK_UNCERTAINTY"
+  ],
+  "cost_class": "ZERO_COST",
+  "created_at": "2026-09-01T16:43:23.649493+00:00",
+  "current_evidence": {},
+  "economic_context": {
+    "test_vector": "BLACK_BOX_ORACLE_1"
+  },
+  "expected_output_schema": "STRUCTURED_JSON_RESULT",
+  "forbidden_actions": [
+    "UNAPPROVED_SPEND",
+    "AUTO_PUBLISH",
+    "SECRET_LOGGING"
+  ],
+  "goal": "Autonomous Black-Box Continuity Verification of Multi-Worker Routing",
+  "job_id": "JOB-GEM-ORACLE-1788281003",
+  "opportunity_id": "REV-OPP-KIBEY-AI-MARKETPLACE",
+  "relevant_files": [],
+  "required_capability": "NON_DETERMINISTIC_REASONING",
+  "result_destination": "events/gemini-results/",
+  "risk_class": "LOW",
+  "task_class": "MARKET_INTERPRETATION",
+  "task_fingerprint": "0c66033254671595",
+  "task_id": "TASK-CODEX-ORACLE-B-1788281003"
+}

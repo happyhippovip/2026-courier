@@ -1,0 +1,91 @@
+{
+  "evaluation_name": "INFRA_DECISION_MATRIX_V1",
+  "evaluated_at": "2026-09-01T04:55:00Z",
+  "autonomous_spend_limit_eur": 0.0,
+  "best_autonomous_external_option": "GITHUB_SENTINEL",
+  "best_local_hardware_option": "LOCAL_SECOND_MAC",
+  "best_dedicated_sentinel_proposal": "LOCAL_MINI_PC (Pending Chief Approval)",
+  "estimated_autonomous_cost_eur": 0.0,
+  "options": [
+    {
+      "option_id": "GITHUB_SENTINEL",
+      "display_name": "GitHub Scheduled Action Sentinel",
+      "upfront_cost_eur": 0.0,
+      "monthly_cost_eur": 0.0,
+      "availability_score": 9.5,
+      "power_independence_score": 10.0,
+      "network_independence_score": 10.0,
+      "recovery_time_seconds": 300.0,
+      "security_score": 9.5,
+      "maintenance_overhead_score": 9.0,
+      "failure_modes": [
+        "GitHub Actions outage",
+        "Cron schedule jitter"
+      ],
+      "composite_score": 9.4,
+      "recommended": true,
+      "autonomous_eligible": true,
+      "rationale": "Zero cost (0.00 EUR), 100% autonomous eligible, independent cloud power/network."
+    },
+    {
+      "option_id": "LOCAL_SECOND_MAC",
+      "display_name": "Secondary Workstation Standby",
+      "upfront_cost_eur": 0.0,
+      "monthly_cost_eur": 0.0,
+      "availability_score": 8.5,
+      "power_independence_score": 5.0,
+      "network_independence_score": 5.0,
+      "recovery_time_seconds": 15.0,
+      "security_score": 9.0,
+      "maintenance_overhead_score": 8.0,
+      "failure_modes": [
+        "Secondary Mac asleep/lid-closed",
+        "Household power cut"
+      ],
+      "composite_score": 8.2,
+      "recommended": true,
+      "autonomous_eligible": true,
+      "rationale": "Zero cost, high compute capability, ideal for fast local failover."
+    },
+    {
+      "option_id": "LOCAL_MINI_PC",
+      "display_name": "Dedicated Raspberry Pi / Thin Client Sentinel",
+      "upfront_cost_eur": 65.0,
+      "monthly_cost_eur": 0.5,
+      "availability_score": 9.8,
+      "power_independence_score": 6.0,
+      "network_independence_score": 6.0,
+      "recovery_time_seconds": 5.0,
+      "security_score": 9.0,
+      "maintenance_overhead_score": 8.5,
+      "failure_modes": [
+        "Local power cut without UPS",
+        "SD card degradation"
+      ],
+      "composite_score": 8.8,
+      "recommended": false,
+      "autonomous_eligible": false,
+      "rationale": "Best local performance, but upfront hardware purchase requires Chief authorization."
+    },
+    {
+      "option_id": "REMOTE_VPS",
+      "display_name": "Hetzner / Cloud 1 vCPU Sentinel",
+      "upfront_cost_eur": 0.0,
+      "monthly_cost_eur": 4.5,
+      "availability_score": 9.9,
+      "power_independence_score": 10.0,
+      "network_independence_score": 10.0,
+      "recovery_time_seconds": 5.0,
+      "security_score": 8.5,
+      "maintenance_overhead_score": 7.5,
+      "failure_modes": [
+        "Recurring credit card charge",
+        "VPN disconnection"
+      ],
+      "composite_score": 8.5,
+      "recommended": false,
+      "autonomous_eligible": false,
+      "rationale": "Excellent independent availability, but recurring spend requires Chief authorization."
+    }
+  ]
+}

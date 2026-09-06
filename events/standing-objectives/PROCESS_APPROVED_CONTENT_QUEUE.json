@@ -1,0 +1,19 @@
+{
+  "objective_id": "PROCESS_APPROVED_CONTENT_QUEUE",
+  "name": "Process Approved Content Queue",
+  "enabled": true,
+  "priority": 2,
+  "allowed_scope": [
+    "config/social_channels.json"
+  ],
+  "allowed_actions": [
+    "READ"
+  ],
+  "risk_ceiling": "LOW",
+  "cost_ceiling": 0.0,
+  "last_evaluated": "2026-08-30T23:48:43.848528+00:00",
+  "last_useful_result_hash": "0183d3c16fcff799beb1c4909915e6a82f6d40a6ec2aa5875f9f7f184fbbba58",
+  "status": "COMPLETE",
+  "target_agent": "antigravity",
+  "instruction_template": "Inspect approved content rendering queue and prepare video frame manifests"
+}

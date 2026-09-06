@@ -1,0 +1,17 @@
+{
+  "gate_id": "GATE-SINGLE-EXPOSURE-P01",
+  "opportunity_id": "REV-OPP-B2B-AUTONOMY-AUDIT",
+  "gate_type": "HUMAN_SINGLE_EXPOSURE_AUTHORIZATION",
+  "status": "WAITING_HUMAN_ACTION",
+  "created_at": "2026-09-01T14:18:30+00:00",
+  "target_prospect": {
+    "prospect_id": "P-01",
+    "target_type": "AI Coding Agent Founder / Lead Engineer",
+    "qualification_context": "Public technical blog / post discussing background worker stalls in multi-file refactoring runs.",
+    "focus_area": "POSIX file fencing & orphan lock stall prevention",
+    "channel": "LINKEDIN_DM"
+  },
+  "exact_approved_message": "Hi [Name] — saw your notes on background worker stalls in multi-file refactoring. We built an internal 10-point reliability check for autonomous agent workflows (specifically testing POSIX flock fencing, crash recovery, and permission loops). We are offering a €99 founding check for exactly 1 workflow: we run a read-only architectural evaluation on sanitized code, deliver reproducible test proofs for any failure modes, and provide a prioritized fix plan within 48h. Zero production secrets required. If helpful for your team, let me know.",
+  "minimal_human_action": "Send this single message to 1 target founder via your LinkedIn/X profile. (Human action count: 1. Human copy/paste count: 1).",
+  "what_automation_does_after_gate": "Records timestamp in outreach_tracker.json, transitions state to EXPOSURE, prepares the delivery pipeline, and awaits market response without spamming or expanding the batch."
+}

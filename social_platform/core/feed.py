@@ -12,6 +12,10 @@ class FeedMode:
     INTERESTS = "interests"
     COMMUNITY_SCOPED = "community_scoped"
     COMMUNITY = "community"
+    WEIGHTED_VALUE = "weighted_value"
+    DOMAIN_REPUTATION = "domain_reputation"
+    REPUTATION = "reputation"
+    SCHOLARLY = "scholarly"
 
 
 def extract_interest_matches(content: str, interests: List[str]) -> List[str]:
@@ -171,6 +175,97 @@ def generate_community_scoped_feed(
     return feed_discussions
 
 
+def generate_weighted_value_feed(
+    user_id: str,
+    all_discussions: List[Discussion],
+    db: Optional[Any] = None,
+    min_endorsements: float = 0.0
+) -> List[Discussion]:
+    """
+    Generates a feed ranked by weighted value endorsements and peer validation.
+    Transparent explainability tags indicate exact endorsement weights, counts, and domain authority.
+    """
+    scored_items = []
+    for d in all_discussions:
+        weighted_score = float(getattr(d, "weighted_value_endorsements", 0.0) or d.value_endorsements or 0.0)
+        endorsements_count = int(d.value_endorsements or 0)
+        domain = getattr(d, "domain", None)
+        domain_rep = float(getattr(d, "domain_reputation_score", 0.0) or 0.0)
+        
+        tags = [
+            "mode:weighted_value",
+            f"weighted_endorsements:{weighted_score:.2f}",
+            f"endorsements_count:{endorsements_count}"
+        ]
+        if domain:
+            tags.append(f"domain:{domain}")
+        if domain_rep > 0:
+            tags.append(f"domain_reputation:{domain_rep:.1f}")
+        if d.author_id == user_id:
+            tags.append("author:self")
+
+        explanation = f"Ranked by weighted endorsements ({weighted_score:.1f} pts from {endorsements_count} endorsements)"
+        if domain:
+            explanation += f" in domain {domain}"
+
+        d.explanation_tags = tags
+        d.explanation = explanation
+        scored_items.append((weighted_score, domain_rep, d.created_at, d))
+
+    scored_items.sort(key=lambda x: (x[0], x[1], x[2]), reverse=True)
+    return [item[3] for item in scored_items]
+
+
+def generate_domain_reputation_feed(
+    user_id: str,
+    all_discussions: List[Discussion],
+    domain: Optional[str] = None,
+    db: Optional[Any] = None
+) -> List[Discussion]:
+    """
+    Generates a feed ranked by domain expertise and author reputation within specific academic domains.
+    Transparent explainability tags show author domain reputation, domain match, and post quality.
+    """
+    scored_items = []
+    for d in all_discussions:
+        d_domain = getattr(d, "domain", None)
+        weighted_score = float(getattr(d, "weighted_value_endorsements", 0.0) or d.value_endorsements or 0.0)
+        
+        author_rep = 0.0
+        if db and hasattr(db, "get_user_domain_reputation"):
+            target_domain = domain or d_domain or "general"
+            rep_obj = db.get_user_domain_reputation(d.author_id, target_domain)
+            if rep_obj:
+                author_rep = float(rep_obj.reputation_score)
+        else:
+            author_rep = float(getattr(d, "domain_reputation_score", 0.0) or 0.0)
+
+        tags = [
+            "mode:domain_reputation",
+            f"author_reputation:{author_rep:.1f}"
+        ]
+        if domain or d_domain:
+            tags.append(f"domain:{domain or d_domain}")
+        if weighted_score > 0:
+            tags.append(f"weighted_endorsements:{weighted_score:.2f}")
+
+        explanation = f"Ranked by domain reputation (author authority: {author_rep:.1f} pts"
+        if domain or d_domain:
+            explanation += f" in {domain or d_domain}"
+        explanation += ")"
+
+        d.explanation_tags = tags
+        d.explanation = explanation
+
+        domain_match_boost = 1.5 if (domain and d_domain and d_domain.lower() == domain.lower()) else 1.0
+        total_score = (author_rep * 2.0 + weighted_score * 1.0) * domain_match_boost
+        
+        scored_items.append((total_score, author_rep, weighted_score, d.created_at, d))
+
+    scored_items.sort(key=lambda x: (x[0], x[1], x[2], x[3]), reverse=True)
+    return [item[4] for item in scored_items]
+
+
 def generate_feed(
     user_id: str,
     all_discussions: List[Discussion],
@@ -183,7 +278,9 @@ def generate_feed(
     blocked_user_ids: Optional[List[str]] = None,
     content_filters: Optional[Any] = None,
     limit: Optional[int] = None,
-    offset: Optional[int] = None
+    offset: Optional[int] = None,
+    domain: Optional[str] = None,
+    db: Optional[Any] = None
 ) -> List[FeedItem]:
     """
     Unified multi-mode feed generation with explainability tags and transparent ranking.
@@ -221,6 +318,12 @@ def generate_feed(
     elif norm_mode in ("community_scoped", "community", "communities"):
         raw_feed = generate_community_scoped_feed(user_id, community_ids or [], candidate_discussions, community_id=community_id)
         actual_mode = FeedMode.COMMUNITY_SCOPED
+    elif norm_mode in ("weighted_value", "weighted", "endorsement", "endorsements", "value_endorsements"):
+        raw_feed = generate_weighted_value_feed(user_id, candidate_discussions, db=db)
+        actual_mode = FeedMode.WEIGHTED_VALUE
+    elif norm_mode in ("domain_reputation", "domain", "reputation", "scholarly"):
+        raw_feed = generate_domain_reputation_feed(user_id, candidate_discussions, domain=domain, db=db)
+        actual_mode = FeedMode.DOMAIN_REPUTATION
     else:  # chronological / all
         raw_feed = generate_chronological_feed(user_id, connections or [], candidate_discussions)
         actual_mode = FeedMode.CHRONOLOGICAL
@@ -229,7 +332,18 @@ def generate_feed(
     feed_items = []
     for d in raw_feed:
         matched_ints = extract_interest_matches(d.content, interests or []) if interests else []
-        score = float(len(matched_ints) * 10.0 + (d.value_endorsements * 1.0)) if actual_mode == FeedMode.INTEREST_MATCHED else float(d.value_endorsements)
+        weighted_score = float(getattr(d, "weighted_value_endorsements", 0.0) or d.value_endorsements or 0.0)
+        d_domain = getattr(d, "domain", None)
+        d_rep = float(getattr(d, "domain_reputation_score", 0.0) or 0.0)
+        
+        if actual_mode == FeedMode.INTEREST_MATCHED:
+            score = float(len(matched_ints) * 10.0 + (d.value_endorsements * 1.0))
+        elif actual_mode == FeedMode.WEIGHTED_VALUE:
+            score = weighted_score
+        elif actual_mode == FeedMode.DOMAIN_REPUTATION:
+            score = float(d_rep * 2.0 + weighted_score)
+        else:
+            score = float(d.value_endorsements)
         
         feed_item = FeedItem(
             discussion=d,
@@ -237,7 +351,10 @@ def generate_feed(
             explanation=getattr(d, "explanation", "") or "",
             mode=actual_mode,
             score=score,
-            matched_interests=matched_ints
+            matched_interests=matched_ints,
+            weighted_value_endorsements=weighted_score,
+            domain=d_domain,
+            domain_reputation_score=d_rep
         )
         if content_filters and d.author_id != user_id:
             if hasattr(content_filters, "matches_filters") and content_filters.matches_filters(
@@ -275,6 +392,7 @@ class FeedService:
         community_id: Optional[str] = None,
         channel_id: Optional[str] = None,
         interests: Optional[List[str]] = None,
+        domain: Optional[str] = None,
         limit: Optional[int] = None,
         offset: Optional[int] = None,
         include_hidden: bool = False
@@ -318,7 +436,9 @@ class FeedService:
             blocked_user_ids=list(blocked_ids),
             content_filters=filter_prefs,
             limit=limit,
-            offset=offset
+            offset=offset,
+            domain=domain,
+            db=self.db
         )
 
     def get_chronological_feed(self, user_id: str, **kwargs) -> List[FeedItem]:
@@ -332,3 +452,10 @@ class FeedService:
 
     def get_community_scoped_feed(self, user_id: str, community_id: Optional[str] = None, **kwargs) -> List[FeedItem]:
         return self.get_feed(user_id=user_id, mode=FeedMode.COMMUNITY_SCOPED, community_id=community_id, **kwargs)
+
+    def get_weighted_value_feed(self, user_id: str, **kwargs) -> List[FeedItem]:
+        return self.get_feed(user_id=user_id, mode=FeedMode.WEIGHTED_VALUE, **kwargs)
+
+    def get_domain_reputation_feed(self, user_id: str, domain: Optional[str] = None, **kwargs) -> List[FeedItem]:
+        return self.get_feed(user_id=user_id, mode=FeedMode.DOMAIN_REPUTATION, domain=domain, **kwargs)
+

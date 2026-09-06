@@ -1,0 +1,8 @@
+{
+  "schema_version": "2.0",
+  "decision_id": "dec-chief-930fadb2b7",
+  "task_id": "WF-CANARY-M116-REAL-CANARY-A",
+  "workflow_id": "WF-CANARY-M116-REAL",
+  "next_task_id": "WF-CANARY-M116-REAL-CANARY-B",
+  "consumed_at": "2026-08-30T23:42:43.545549+00:00"
+}

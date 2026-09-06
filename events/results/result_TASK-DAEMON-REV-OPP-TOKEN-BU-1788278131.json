@@ -1,0 +1,16 @@
+{
+  "artifacts": {
+    "artifacts_changed": [],
+    "fingerprint": "37e16957d765a4c854b4e6c936d5ffe9ed353f89ed5650458efaf2a15f615545"
+  },
+  "completed_at": "2026-09-01T15:55:31.742450+00:00",
+  "evidence": {
+    "capital_spent_eur": 0.0
+  },
+  "findings": "Executed on GOOGLE/ANTIGRAVITY_APP on COMPUTER_A. Result: SUCCESS",
+  "opportunity_id": "DAEMON-REV-OPP-TOKEN-BU-1788278131",
+  "result_fingerprint": "34e774ee83d9021b",
+  "result_id": "RES-TASK-DAEMON-REV-OPP-TOKEN-BU-1788278131-34e774ee",
+  "status": "SUCCESS",
+  "task_id": "TASK-DAEMON-REV-OPP-TOKEN-BU-1788278131"
+}

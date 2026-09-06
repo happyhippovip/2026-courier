@@ -1,0 +1,23 @@
+{
+  "IMP-3ea12a9b0d01": {
+    "improvement_id": "IMP-3ea12a9b0d01",
+    "question": "Can we make process liveness checks faster and safer?",
+    "source_role": "SNITCH_OBSERVER",
+    "current_method": "ps subprocess invocation",
+    "proposed_alternative": "CanonicalAuthority os.kill(pid, 0)",
+    "evidence": {
+      "sample_count": 10,
+      "runtime_gain": "95%"
+    },
+    "expected_value": "Near-zero latency liveness inspection without sandbox overhead",
+    "safety": "SAFE_LOCAL",
+    "reversibility": "REVERSIBLE",
+    "cost": 0.0,
+    "human_attention_saved": "HIGH",
+    "project_goal_impact": "HIGH",
+    "confidence": 0.85,
+    "status": "PENDING_DELIBERATION",
+    "created_at": "2026-09-01T12:12:37.271374+00:00",
+    "decision": null
+  }
+}

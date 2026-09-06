@@ -1,0 +1,65 @@
+{
+  "archived_at": "2026-09-01T01:17:08.551720+00:00",
+  "completed_at": "2026-09-01T01:17:08.551116+00:00",
+  "completion_fingerprint": "861588c3af01afeecc0f947a52de036c0f055b242a4cf951261221c9ac8740a2",
+  "description": "Verify rendering format, tags and aspect rules for 3D AI Short Studio",
+  "objective_id": "PROCESS_APPROVED_CONTENT_QUEUE",
+  "opportunity_id": "OPP-CHANNEL-CHAN_TT_3D_AI",
+  "original_payload": {
+    "allowed_actions": [
+      "READ"
+    ],
+    "allowed_scope": [
+      "config/social_channels.json"
+    ],
+    "cost_class": "ZERO_COST_LOCAL",
+    "created_at": "2026-08-30T23:53:26.364046+00:00",
+    "dedupe_fingerprint": "e1288715c9a318f6",
+    "dedupe_hash": "e1288715c9a318f6",
+    "description": "Verify rendering format, tags and aspect rules for 3D AI Short Studio",
+    "estimated_cost": 0.0,
+    "evidence": {
+      "channel": {
+        "automation_status": "ACTIVE_AUTOMATION",
+        "channel_id": "chan-tt-3d-ai",
+        "channel_label": "3D AI Short Studio",
+        "content_project": "3D-KI-Videos",
+        "created_at": "2026-08-29T12:00:00Z",
+        "credential_reference_metadata": "MACOS_KEYCHAIN_TIKTOK_OAUTH_PILOT",
+        "platform": "TIKTOK",
+        "production_enabled": true,
+        "publishing_policy": "REQUIRE_EXPLICIT_HUMAN_APPROVAL",
+        "updated_at": "2026-08-30T04:55:00Z",
+        "workflow_id": "3d-ai-tiktok"
+      }
+    },
+    "evidence_type": "",
+    "expected_output": "",
+    "expected_value": "Confirms output queue compatibility for 3D AI Short Studio",
+    "external_action_units": 0,
+    "heavy_job": false,
+    "model_need": false,
+    "objective_id": "PROCESS_APPROVED_CONTENT_QUEUE",
+    "opportunity_id": "OPP-CHANNEL-CHAN_TT_3D_AI",
+    "priority": 9,
+    "problem_or_goal": "",
+    "production_stage": "",
+    "project": "2026-courier",
+    "project_id": "",
+    "required_capabilities": [],
+    "risk": "LOW",
+    "risk_class": "LOW",
+    "source": "SOCIAL_CHANNEL_CONFIG",
+    "source_artifact": "",
+    "source_hash": "",
+    "status": "COMPLETED",
+    "target_agent": "antigravity",
+    "updated_at": "2026-08-30T23:53:26.378967+00:00"
+  },
+  "priority": 9,
+  "project": "2026-courier",
+  "result_reference": null,
+  "source": "SOCIAL_CHANNEL_CONFIG",
+  "status": "COMPLETED",
+  "target_agent": "antigravity"
+}

@@ -1,0 +1,35 @@
+{
+  "timestamp": "2026-09-02T01:31:50.000000+00:00",
+  "playbook_version": "1.0.0",
+  "target_prospects": ["P-01", "P-AUDIT-02", "P-AUDIT-04"],
+  "standard_offering": "REV-OPP-B2B-AUTONOMY-AUDIT",
+  "price_eur": 99.0,
+  "turnaround_sla": "24 hours from receipt of sanitized log",
+  "pre_verification_status": {
+    "delivery_asset_ready": true,
+    "audit_template_path": "events/revenue-opportunities/offerings/b2b_autonomy_audit/BLACK_BOX_PROOF_ARTIFACT.md",
+    "mitigation_recipes_ready": true,
+    "price_correct": true,
+    "scope_bounded": true,
+    "payment_reference_generatable": true,
+    "payment_instructions_ready_when_intent_exists": true
+  },
+  "branch_responses": {
+    "POSITIVE_INTEREST": {
+      "subject": "Re: B2B Multi-Agent Autonomy Safety Audit (€99 Pilot)",
+      "body": "Hi {name},\n\nGreat! To kick off the 24-hour audit, please reply with:\n1. One sanitized execution log or error trace (prompts/secrets redacted)\n2. Your agent timeout/retry configuration\n\nWe will deliver the complete 15-Point Safety Dossier and 3 drop-in Python mitigation recipes within 24 hours.\n\nPayment Reference: {payment_ref} (€99.00 EUR fixed).\nPayment details: SEPA wire instructions or secure credit card checkout link.\n\nBest regards,\n2026-Courier Commercial Engineering"
+    },
+    "QUESTION_ZERO_CODE_SECURITY": {
+      "subject": "Re: B2B Multi-Agent Autonomy Safety Audit - Security & Access",
+      "body": "Hi {name},\n\nTo confirm: we do NOT require repository access, API keys, or prompt text.\n\nThe 15-point audit runs entirely against sanitized execution logs, exit code sequences, and timeout configurations to diagnose deadlock states, mutex collisions, and token velocity spikes.\n\nIf you'd like to proceed with one sample log for €99 fixed, reply 'AUDIT'.\n\nBest regards,\n2026-Courier Commercial Engineering"
+    },
+    "SCOPE_REQUEST": {
+      "subject": "Re: Exact Pilot Scope - 15-Point Multi-Agent Safety Audit",
+      "body": "Hi {name},\n\nThe €99 pilot covers:\n1. Deadlock & file lock collision audit (flock / mutex behavior)\n2. Stale PID lock reclamation & crash recovery check\n3. Monotonic wall-clock deadline & loop termination bounds\n4. Token velocity rate limits & idempotency verification\n5. 3 drop-in Python code recipes (atomic locking, generation fencing, bounded retries)\n\nTurnaround: 24 hours. Fixed price: €99.00 EUR.\n\nReply 'AUDIT' to initiate.\n\nBest regards,\n2026-Courier Commercial Engineering"
+    },
+    "PRICE_OBJECTION": {
+      "subject": "Re: Multi-Agent Safety Audit - Pricing",
+      "body": "Hi {name},\n\nThe €99 price is a one-time fixed diagnostic pilot for 1 agent pipeline with zero recurring commitment or subscriptions.\n\nIt is designed to give your engineering team immediate actionable crash-prevention code recipes without enterprise consulting overhead.\n\nBest regards,\n2026-Courier Commercial Engineering"
+    }
+  }
+}

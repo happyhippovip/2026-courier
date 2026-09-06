@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.courier.autonomy.supervisor</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/python3</string>
+        <string>/Users/user/Downloads/2026-courier/scripts/autonomy_supervisor.py</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/user/Downloads/2026-courier</string>
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+        <key>Crashed</key>
+        <true/>
+    </dict>
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+    <key>StandardOutPath</key>
+    <string>/Users/user/Downloads/2026-courier/events/autonomy-supervisor/supervisor_stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/user/Downloads/2026-courier/events/autonomy-supervisor/supervisor_stderr.log</string>
+</dict>
+</plist>

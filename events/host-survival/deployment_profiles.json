@@ -1,0 +1,63 @@
+{
+  "schema_version": "DEPLOYMENT_PROFILES_V1",
+  "generated_at": "2026-09-01T04:55:00Z",
+  "autonomous_spend_limit_eur": 0.0,
+  "profiles": [
+    {
+      "profile_id": "GITHUB_SENTINEL",
+      "display_name": "GitHub Scheduled Sentinel Workflow",
+      "target_node": "GitHub Actions (Ubuntu Runner)",
+      "required_resources": "Free public/private repository workflow cron",
+      "expected_availability": "99.9% (Scheduled every 5-15 min)",
+      "recovery_capability": "LIVENESS_OBSERVATION_AND_DISPATCH_TRIGGER",
+      "network_requirements": "Outbound HTTPS probe to primary host health endpoint / status file sync",
+      "security_boundary": "Read-only liveness probe; zero secrets or write tokens exposed",
+      "upfront_cost_eur": 0.0,
+      "monthly_cost_eur": 0.0,
+      "limitations": "Cron frequency bounded to 5-15 min; no local LAN power cycling",
+      "recommended_role": "PRIMARY_ZERO_COST_OFFSITE_WATCHER"
+    },
+    {
+      "profile_id": "LOCAL_MINI_PC",
+      "display_name": "Local Dedicated Sentinel (Raspberry Pi / Thin Client)",
+      "target_node": "Raspberry Pi 4/5 or Intel N100 Thin Client (Linux Debian/Ubuntu)",
+      "required_resources": "2GB RAM, 16GB SD/SSD, 5W USB-C Power Supply",
+      "expected_availability": "99.95% (24/7 low-power local LAN)",
+      "recovery_capability": "CONTINUOUS_PROBING_AND_LOCAL_TAKEOVER_COORDINATION",
+      "network_requirements": "Local Gigabit Ethernet / Wi-Fi LAN",
+      "security_boundary": "Encrypted local network; isolated sandbox user",
+      "upfront_cost_eur": 65.0,
+      "monthly_cost_eur": 0.5,
+      "limitations": "Requires one-off hardware purchase (pending Chief authorization); shares local power circuit unless on UPS",
+      "recommended_role": "BEST_LOCAL_HIGH_FREQUENCY_SENTINEL"
+    },
+    {
+      "profile_id": "LOCAL_SECOND_MAC",
+      "display_name": "Secondary Workstation / Laptop Hot Standby",
+      "target_node": "Apple Silicon Mac (MacBook Air / Mac mini)",
+      "required_resources": "macOS 14+, Python 3.9+, Git",
+      "expected_availability": "99.0% (Subject to sleep/lid-close unless configured)",
+      "recovery_capability": "FULL_STANDBY_WITH_GPU_RENDERING_AND_BUILD_EXECUTION",
+      "network_requirements": "Local LAN / Wi-Fi",
+      "security_boundary": "Host OS sandboxing; identical toolchain",
+      "upfront_cost_eur": 0.0,
+      "monthly_cost_eur": 0.0,
+      "limitations": "Laptop may be mobile/offline; manual wake required without smart plug",
+      "recommended_role": "HOT_STANDBY_HEAVY_BUILDER"
+    },
+    {
+      "profile_id": "REMOTE_VPS",
+      "display_name": "Cloud Hosted VPS Sentinel Node",
+      "target_node": "Hetzner / DigitalOcean / AWS 1 vCPU Cloud Instance",
+      "required_resources": "1 vCPU, 1GB RAM, 20GB NVMe",
+      "expected_availability": "99.99% (Data center SLA, independent power/fiber)",
+      "recovery_capability": "INDEPENDENT_OFFSITE_WATCHER_AND_FAILOVER_ORCHESTRATOR",
+      "network_requirements": "Static Public IP, WireGuard / Tailscale VPN Mesh",
+      "security_boundary": "SSH key auth only; firewall restricted",
+      "upfront_cost_eur": 0.0,
+      "monthly_cost_eur": 4.5,
+      "limitations": "Recurring monthly cost requires human payment authorization",
+      "recommended_role": "ENTERPRISE_INDEPENDENT_OFFSITE_HUB"
+    }
+  ]
+}

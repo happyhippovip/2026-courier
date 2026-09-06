@@ -1,0 +1,121 @@
+{
+  "manifest_schema": "1.0",
+  "generated_at": "2026-09-06T14:12:34.663429+00:00",
+  "target_node_id": "NODE_B",
+  "target_resource_pool": "GOOGLE_PRO_POOL_2",
+  "protocol_version": "1.0.0",
+  "workspace_path": "/Users/user/Downloads/2026-courier",
+  "cluster_path": "/private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/tmpzi4pxakx/cluster",
+  "physical_computer_b_present": false,
+  "real_two_machine_transport": "UNVERIFIED",
+  "autostart_installed_on_b": false,
+  "phases": {
+    "PHASE_1_ENVIRONMENT_CHECK": {
+      "phase_name": "PHASE_1_ENVIRONMENT_CHECK",
+      "status": "PASS",
+      "details": {
+        "python_version": "3.9.13",
+        "python_path": "/usr/local/bin/python3",
+        "platform": "darwin",
+        "architecture": "x86_64",
+        "hostname": "MacBookPro.fritz.box"
+      },
+      "message": "Python 3.9.13 satisfies >= 3.9 requirement"
+    },
+    "PHASE_2_REPOSITORY_CHECK": {
+      "phase_name": "PHASE_2_REPOSITORY_CHECK",
+      "status": "PASS",
+      "details": {
+        "git_available": true,
+        "git_binary_path": "/usr/bin/git",
+        "workspace_exists": true,
+        "is_inside_work_tree": true,
+        "git_head": "12f85f7417193939603445eb335151dc2515325b"
+      },
+      "message": "Git repository verified at HEAD 12f85f74"
+    },
+    "PHASE_3_NODE_IDENTITY": {
+      "phase_name": "PHASE_3_NODE_IDENTITY",
+      "status": "PASS",
+      "details": {
+        "identity_file": "/private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/tmpzi4pxakx/cluster/node_b_identity.json",
+        "node_id": "NODE_B",
+        "resource_pool": "GOOGLE_PRO_POOL_2"
+      },
+      "message": "Node identity 'NODE_B' deterministically configured"
+    },
+    "PHASE_4_LOCAL_DIRECTORIES": {
+      "phase_name": "PHASE_4_LOCAL_DIRECTORIES",
+      "status": "PASS",
+      "details": {
+        "directories_established": [
+          "/private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/tmpzi4pxakx/cluster",
+          "/private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/tmpzi4pxakx/cluster/results",
+          "/Users/user/Downloads/2026-courier/runtime/autonomy",
+          "/Users/user/Downloads/2026-courier/runtime/preservation"
+        ]
+      },
+      "message": "4 local runtime directories established"
+    },
+    "PHASE_5_DISPATCHER_COMPATIBILITY": {
+      "phase_name": "PHASE_5_DISPATCHER_COMPATIBILITY",
+      "status": "PASS",
+      "details": {
+        "dispatcher_script_present": true,
+        "protocol_version": "1.0.0",
+        "dispatcher_path": "/Users/user/Downloads/2026-courier/scripts/two_computer_dispatcher.py"
+      },
+      "message": "Protocol version 1.0.0 compatible"
+    },
+    "PHASE_6_TRANSPORT_READINESS": {
+      "phase_name": "PHASE_6_TRANSPORT_READINESS",
+      "status": "UNVERIFIED",
+      "details": {
+        "transport_type": "LOCAL_DURABLE_FILESYSTEM_ADAPTER",
+        "cluster_state_dir": "/private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/tmpzi4pxakx/cluster",
+        "physical_computer_b_connected": false,
+        "public_ports_opened": 0
+      },
+      "message": "Transport prepared locally; real cross-machine transport remains UNVERIFIED until physical connection"
+    },
+    "PHASE_7_HEARTBEAT_READINESS": {
+      "phase_name": "PHASE_7_HEARTBEAT_READINESS",
+      "status": "PASS",
+      "details": {
+        "heartbeat_writable": true,
+        "test_payload_verified": true
+      },
+      "message": "Heartbeat payload serialization and channel writability verified"
+    },
+    "PHASE_8_RESULT_RETURN_READINESS": {
+      "phase_name": "PHASE_8_RESULT_RETURN_READINESS",
+      "status": "PASS",
+      "details": {
+        "result_channel_writable": true,
+        "result_dir": "/private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/tmpzi4pxakx/cluster/results"
+      },
+      "message": "Worker result return channel verified"
+    },
+    "PHASE_9_AUTOSTART_PREPARATION": {
+      "phase_name": "PHASE_9_AUTOSTART_PREPARATION",
+      "status": "PASS",
+      "details": {
+        "autostart_definition_file": "/Users/user/Downloads/2026-courier/runtime/cluster/com.courier.node_b_worker.plist",
+        "installation_status": "PREPARED_NOT_INSTALLED",
+        "autostart_installed_on_b": false
+      },
+      "message": "Autostart service definition generated (PREPARED_NOT_INSTALLED)"
+    }
+  },
+  "human_setup_checklist": [
+    "1. Power on Computer B",
+    "2. Verify Python 3 >= 3.9 installed (install via Homebrew or macOS developer tools if missing)",
+    "3. Verify Git installed and authenticate GitHub access if cloning privately",
+    "4. Clone repository into local workspace: /Users/user/Downloads/2026-courier",
+    "5. Authenticate Google AI Pro Pool 2 in official Antigravity/Chrome UI (zero credential sharing)",
+    "6. Run: python3 scripts/bootstrap_node_b.py",
+    "7. Verify Node B reports READY in cluster registry",
+    "8. (Optional) Enable autostart plist if automatic worker startup on boot is desired"
+  ],
+  "secret_exclusion_verified": true
+}

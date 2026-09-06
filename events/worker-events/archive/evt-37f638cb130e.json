@@ -1,0 +1,14 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-01T12:03:38.608396+00:00",
+  "event_id": "evt-37f638cb130e",
+  "event_type": "WORKER_PROGRESS",
+  "evidence": {},
+  "fingerprint": "21743785b6ac94f5",
+  "mission_id": "M212",
+  "recommended_action": null,
+  "session_epoch": "epoch-google-1788264216",
+  "severity": "INFO",
+  "task_id": "TASK-GEN-TEST-COV-SNITCH-OBSERVER",
+  "worker_id": "GOOGLE"
+}

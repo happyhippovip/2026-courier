@@ -1,0 +1,92 @@
+{
+  "opportunity_id": "REV-OPP-CLI-SENTINEL-TOOL",
+  "product_name": "Task Sentinel CLI (Pro Edition)",
+  "state": "OUTREACH_AUTHORIZED",
+  "updated_at": "2026-09-01T15:20:30.485512+00:00",
+  "prospects": [
+    {
+      "id": "P-SENTINEL-01",
+      "name": "Alex R.",
+      "role": "Lead SRE",
+      "status": "EXPOSURE_COMPLETED",
+      "target_tier": "PRO_DEV_29_EUR",
+      "sent_at": "2026-09-01T15:20:30.485512+00:00",
+      "economic_state": "EXPOSURE",
+      "response_state": "WAITING_FOR_RESPONSE",
+      "correlation_id": "CORR-SENTINEL01-20260901152029",
+      "message_fingerprint": "1f12534508771e5bacdbb014987383bfd395226c1b25b13ecc139b8efba6a367",
+      "delivery_detail": "APPLE_MAIL_DELIVERY_SENT",
+      "human_action_count_this_send": 0
+    },
+    {
+      "id": "P-SENTINEL-02",
+      "name": "Elena M.",
+      "role": "Head of Engineering",
+      "status": "READY_FOR_TRANSMISSION",
+      "target_tier": "TEAM_149_EUR"
+    },
+    {
+      "id": "P-SENTINEL-03",
+      "name": "David K.",
+      "role": "Founder, AI Agent Platform",
+      "status": "READY_FOR_TRANSMISSION",
+      "target_tier": "TEAM_149_EUR"
+    },
+    {
+      "id": "P-SENTINEL-04",
+      "name": "Marcus T.",
+      "role": "Staff DevOps Engineer",
+      "status": "READY_FOR_TRANSMISSION",
+      "target_tier": "PRO_DEV_29_EUR"
+    },
+    {
+      "id": "P-SENTINEL-05",
+      "name": "Sarah L.",
+      "role": "CTO",
+      "status": "READY_FOR_TRANSMISSION",
+      "target_tier": "TEAM_149_EUR"
+    },
+    {
+      "id": "P-SENTINEL-06",
+      "name": "Jonas B.",
+      "role": "Lead ML Engineer",
+      "status": "READY_FOR_TRANSMISSION",
+      "target_tier": "PRO_DEV_29_EUR"
+    },
+    {
+      "id": "P-SENTINEL-07",
+      "name": "Clara V.",
+      "role": "Principal SRE",
+      "status": "READY_FOR_TRANSMISSION",
+      "target_tier": "TEAM_149_EUR"
+    },
+    {
+      "id": "P-SENTINEL-08",
+      "name": "Tim H.",
+      "role": "Engineering Manager",
+      "status": "READY_FOR_TRANSMISSION",
+      "target_tier": "PRO_DEV_29_EUR"
+    },
+    {
+      "id": "P-SENTINEL-09",
+      "name": "Rachel S.",
+      "role": "DevOps Consultant",
+      "status": "READY_FOR_TRANSMISSION",
+      "target_tier": "PRO_DEV_29_EUR"
+    },
+    {
+      "id": "P-SENTINEL-10",
+      "name": "Kevin W.",
+      "role": "Indie Hacker",
+      "status": "READY_FOR_TRANSMISSION",
+      "target_tier": "PRO_DEV_29_EUR"
+    }
+  ],
+  "conversion_summary": {
+    "total_prospects": 10,
+    "transmitted": 1,
+    "replied": 0,
+    "paid_customers": 0,
+    "revenue_collected_eur": 0.0
+  }
+}

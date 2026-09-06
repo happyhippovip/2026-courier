@@ -1,0 +1,37 @@
+{
+  "directive_id": "DIRECTIVE-CHIEF-STANDING-MONEY-MACHINE-01",
+  "title": "CHIEF STANDING ORDER — AUTONOMOUS CONTINUOUS MONEY MACHINE",
+  "status": "ACTIVE_PERMANENT",
+  "created_at": "2026-09-01T14:22:40+00:00",
+  "primary_economic_target": "FIRST_REAL_EURO_AND_SCALE",
+  "autonomous_spend_limit_eur": 0.0,
+  "human_interaction_policy": {
+    "human_copy_paste_target": 0,
+    "human_routing_decisions": 0,
+    "human_role": "TRUE_AUTHORITY_GATE_ONLY",
+    "no_repeated_weiter": true,
+    "no_stopping_on_branch_wait": true
+  },
+  "canonical_lifecycle": [
+    "DISCOVERED",
+    "DESK_VERIFIED",
+    "OFFER_READY",
+    "MARKET_TEST_READY",
+    "OUTREACH_AUTHORIZED",
+    "EXPOSURE",
+    "MARKET_TESTED",
+    "RESPONSE",
+    "QUALIFIED_CONVERSATION",
+    "PAYMENT_DISCUSSION",
+    "CUSTOMER",
+    "REVENUE_RECEIVED",
+    "REPEATABLE",
+    "SCALING"
+  ],
+  "permanent_loop_invariants": {
+    "completion_is_checkpoint_not_stop": true,
+    "waiting_is_scope_local": true,
+    "zero_fake_evidence": true,
+    "real_revenue_received_requires_verified_bank_funds": true
+  }
+}

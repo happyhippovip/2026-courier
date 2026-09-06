@@ -1,0 +1,57 @@
+{
+  "timestamp": "2026-09-02T01:50:35.000000+00:00",
+  "worker": "GOOGLE_03",
+  "instant_fulfillment_matrix": {
+    "P-01": {
+      "offering": "REV-OPP-B2B-AUTONOMY-AUDIT",
+      "price_eur": 99.0,
+      "delivery_asset_exists": true,
+      "delivery_asset_opens": true,
+      "customer_input_required": "1 sample sanitized execution log or exit code sequence",
+      "no_secret_requirement": true,
+      "scope_boundaries": "1 agent pipeline, 15-point diagnostic, 3 Python code recipes",
+      "expected_delivery_time": "< 24 hours from receipt of log",
+      "what_can_be_delivered_immediately": "Sample 15-Point Safety Dossier template + 3 drop-in Python mitigation recipes (atomic locking, generation fencing, bounded retries)",
+      "what_requires_customer_data": "Customized 15-point diagnostic findings tailored to their specific log schema"
+    },
+    "P-AUDIT-02": {
+      "offering": "REV-OPP-B2B-AUTONOMY-AUDIT",
+      "price_eur": 99.0,
+      "delivery_asset_exists": true,
+      "delivery_asset_opens": true,
+      "customer_input_required": "1 sample recursion/deadlock log trace",
+      "no_secret_requirement": true,
+      "scope_boundaries": "1 subagent delegation chain, 15-point audit, 3 code recipes",
+      "expected_delivery_time": "< 24 hours from receipt of log",
+      "what_can_be_delivered_immediately": "Monotonic wall-clock circuit breaker decorator + flock locking harness",
+      "what_requires_customer_data": "Tailored recursion trace analysis"
+    },
+    "P-KIBEY-02": {
+      "offering": "REV-OPP-KIBEY-AI-MARKETPLACE",
+      "price_eur": 49.0,
+      "delivery_asset_exists": true,
+      "delivery_asset_opens": true,
+      "customer_input_required": "None (Instant digital download)",
+      "no_secret_requirement": true,
+      "scope_boundaries": "KIBEY_PILOT_DELIVERY_PACKAGE_v1.0.0.zip (router class, test suite, benchmark report, integration guide)",
+      "expected_delivery_time": "Instant (<1 min)",
+      "what_can_be_delivered_immediately": "Complete standalone ZIP archive verified on disk (2,226 bytes)",
+      "what_requires_customer_data": "None"
+    }
+  },
+  "buyer_onboarding_checklist": [
+    "1. Confirm zero repository access and zero credentials required",
+    "2. Request 1 sanitized log snippet (redacted of prompts/secrets)",
+    "3. Issue unique payment reference code (PAY-REF-XXXX)",
+    "4. Deliver 15-point audit report + 3 Python code recipes within 24 hours"
+  ],
+  "delivery_start_template": {
+    "subject": "Intake Confirmed: Your 24h B2B Autonomy Safety Audit",
+    "body": "Hi {name},\n\nWe have received your log snippet and initiated the 15-Point Safety Audit for your agent pipeline.\n\nYour Safety Dossier and 3 drop-in Python mitigation recipes will be delivered within 24 hours.\n\nPayment Reference: {payment_ref} (€99.00 EUR fixed).\n\nBest regards,\n2026-Courier Commercial Engineering"
+  },
+  "payment_intent_response": {
+    "subject": "Payment Details & Next Steps (€99 Fixed Pilot)",
+    "body": "Hi {name},\n\nThank you! Here are the payment details for your 15-Point Autonomy Safety Audit:\n- Amount: €99.00 EUR (Fixed one-time pilot, zero recurring commitment)\n- Reference: {payment_ref}\n- Payment Methods: SEPA Bank Wire or Secure Credit Card Checkout Link: {checkout_link}\n\nUpon confirmation, your complete Safety Dossier and drop-in code recipes will be transmitted immediately.\n\nBest regards,\n2026-Courier Commercial Engineering"
+  },
+  "post_payment_next_step": "Transmit verified deliverable package -> Acknowledge receipt -> Offer 1 free follow-up clarifying Q&A on drop-in code recipes."
+}

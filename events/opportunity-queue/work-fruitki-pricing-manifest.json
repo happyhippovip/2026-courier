@@ -1,0 +1,33 @@
+{
+  "allowed_scope": [
+    "runtime/content/licensing_tiers.json"
+  ],
+  "cost_class": "FREE_LOCAL",
+  "created_at": "2026-08-31T23:57:20.062873+00:00",
+  "critical_path": true,
+  "dedupe_fingerprint": "203df389fd4df74b",
+  "dedupe_hash": "203df389fd4df74b",
+  "dependencies": [
+    "work-fruitki-catalog-enrichment"
+  ],
+  "description": "Construct revenue-path asset licensing tier structure and pricing metadata specification",
+  "estimated_cost": 0.0,
+  "expected_outcome": "Pricing metadata specification written to runtime/content/licensing_tiers.json",
+  "goal_id": "goal-creator-factory-autonomy",
+  "message_stamp": null,
+  "opportunity_id": "work-fruitki-pricing-manifest",
+  "parallel_safe": true,
+  "priority": 7,
+  "problem_or_goal": "Construct revenue-path asset licensing tier structure and pricing metadata specification",
+  "provider": "LOCAL_DETERMINISTIC",
+  "reason": "First Shift Wave 2 Item: File runtime/content/licensing_tiers.json exists with valid non-empty pricing tiers",
+  "risk": "LOW",
+  "scope": [
+    "runtime/content/licensing_tiers.json"
+  ],
+  "source": "REAL_WORK_BACKLOG",
+  "source_fingerprint": "fp-pricing-01",
+  "status": "DONE",
+  "target_agent": "antigravity",
+  "updated_at": "2026-09-01T00:40:21.458463+00:00"
+}

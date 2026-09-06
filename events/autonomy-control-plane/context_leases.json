@@ -1,0 +1,42 @@
+{
+  "ctx-24835912": {
+    "bytes_size": 50,
+    "context_hash": "730a890bbea6e3d5f1ae51185bc992b7dda6a2d8887be6376c6423366a447575",
+    "context_id": "ctx-24835912",
+    "created_at": "2026-08-31T22:37:28.811376+00:00",
+    "last_used_at": "2026-08-31T22:37:28.811387+00:00",
+    "payload_summary": "Synthesize satisfied multi-worker barrier evidence",
+    "relevant_scope": "barrier:BARRIER-187G-SYNTHESIS",
+    "use_count": 1
+  },
+  "ctx-470f43b0": {
+    "bytes_size": 50,
+    "context_hash": "ece412a9028660a8c195929c3c790f72d5af0b58f96eff3e17b963afe7f1e70c",
+    "context_id": "ctx-470f43b0",
+    "created_at": "2026-08-31T22:33:05.403760+00:00",
+    "last_used_at": "2026-08-31T22:33:05.403771+00:00",
+    "payload_summary": "Synthesize satisfied multi-worker barrier evidence",
+    "relevant_scope": "barrier:bar_indep",
+    "use_count": 1
+  },
+  "ctx-486d907b": {
+    "bytes_size": 50,
+    "context_hash": "e7ef7473b2c477d2648837632bd0327854bb85032b28195a8e2ba48551d1c02f",
+    "context_id": "ctx-486d907b",
+    "created_at": "2026-08-31T22:34:09.248371+00:00",
+    "last_used_at": "2026-08-31T22:34:09.248385+00:00",
+    "payload_summary": "Synthesize satisfied multi-worker barrier evidence",
+    "relevant_scope": "barrier:BARRIER-186G-SYNTHESIS",
+    "use_count": 1
+  },
+  "ctx-b8351b98": {
+    "bytes_size": 50,
+    "context_hash": "fde9145f154b6489097f34ef2de9b7938ec1bb47fc264b7ef36a25f746862605",
+    "context_id": "ctx-b8351b98",
+    "created_at": "2026-08-31T22:33:05.408956+00:00",
+    "last_used_at": "2026-08-31T22:33:05.408965+00:00",
+    "payload_summary": "Synthesize satisfied multi-worker barrier evidence",
+    "relevant_scope": "barrier:bar_s1",
+    "use_count": 1
+  }
+}

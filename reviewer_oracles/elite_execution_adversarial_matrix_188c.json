@@ -1,0 +1,36 @@
+{
+  "required_fields": [
+    "GOAL", "EXPECTED_UNLOCK", "QUALITY_FLOOR", "RISK_CLASS", "NEW_INFORMATION",
+    "WHY_MODEL", "WHY_NOT_LOCAL", "WHY_NOT_CACHE", "WHY_NOW", "DEPENDENCIES",
+    "MUTATION_SCOPE", "OPPORTUNITY_COST", "CONTEXT_REFERENCE",
+    "EXPECTED_INFORMATION_GAIN", "STOP_CONDITION"
+  ],
+  "semantic_states": [
+    "NO_RELEVANT_CHANGE", "RELEVANT_LOW_RISK_DELTA", "RELEVANT_DECISION_DELTA",
+    "RELEVANT_HIGH_RISK_DELTA", "UNKNOWN_REQUIRES_CLASSIFICATION"
+  ],
+  "opportunity_outcomes": [
+    "RUN_NOW", "DEFER_FOR_HIGHER_VALUE", "LOCALIZE", "COALESCE",
+    "WAIT_FOR_DEPENDENCY", "DROP_ZERO_GAIN"
+  ],
+  "cases": [
+    {"id": "E01_FREE_ZERO_VALUE", "expected": "DROP_ZERO_GAIN; no model"},
+    {"id": "E02_CHEAP_BELOW_QUALITY_FLOOR", "expected": "do not lower floor; select capable tier"},
+    {"id": "E03_EXPENSIVE_UNNECESSARY", "expected": "LOCALIZE or cache; no unnecessary model"},
+    {"id": "E04_SAME_ACCEPTED_FINGERPRINT", "expected": "VALID cache reuse; zero model calls"},
+    {"id": "E05_UNRELATED_FILE_CHANGE", "expected": "NO_RELEVANT_CHANGE; cache remains valid"},
+    {"id": "E06_SECURITY_RELEVANT_CHANGE", "expected": "RELEVANT_HIGH_RISK_DELTA; invalidate"},
+    {"id": "E07_FORMATTING_ONLY_CHANGE", "expected": "NO_RELEVANT_CHANGE"},
+    {"id": "E08_MODEL_PENDING_LOCAL_PREP", "expected": "reversible local preparation only; no extra model"},
+    {"id": "E09_HUMAN_BLOCKED_INDEPENDENT_READY", "expected": "RUN_NOW independent safe work"},
+    {"id": "E10_MONEY_BLOCKED_INDEPENDENT_READY", "expected": "RUN_NOW independent safe work"},
+    {"id": "E11_PROVIDER_UNAVAILABLE", "expected": "LOCALIZE or WAIT_FOR_DEPENDENCY; no bypass"},
+    {"id": "E12_IDLE_WITHOUT_NEW_EVIDENCE", "expected": "idle; zero model calls"},
+    {"id": "E13_DUPLICATE_RESULT", "expected": "dedupe; no second transition"},
+    {"id": "E14_COMPATIBLE_TWO_RESULTS", "expected": "COALESCE before a new judgment"},
+    {"id": "E15_REVIEW_WITHOUT_JUDGMENT_DELTA", "expected": "VALID cache reuse"},
+    {"id": "E16_QUALITY_FLOOR_MET", "expected": "STOP_SUCCESS; no perfection loop"},
+    {"id": "E17_HIGH_VALUE_COMPETES_WITH_LOW_VALUE_HEAVY", "expected": "DEFER_FOR_HIGHER_VALUE"},
+    {"id": "E18_TWENTY_FIVE_LOGICAL_AGENTS", "expected": "at most one necessary model judgment"}
+  ]
+}

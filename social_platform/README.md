@@ -19,8 +19,9 @@
   - [REAL] Persistent Storage via SQLite3 (`core/database.py`).
   - [PLACEHOLDER] SQLAlchemy ORM with Pydantic for validation - Deferred to maintain zero external dependencies in the initial vertical.
 - **State**: 
-  - [REAL] Users, Connections/Follows, Discussions/Posts, Chronological Feed, Communities, Academic Spaces, DMs, Moderation, Appeals.
-  - [NOT_IMPLEMENTED] Endorsement weights, Push notifications.
+  - [REAL] Users, Connections/Follows, Discussions/Posts, Multi-Mode Transparent Feeds (Chronological, Following, Interests, Community, Weighted Value, Domain Reputation), Communities, Academic Spaces (Courses, Study Groups, Resources), DMs, Moderation, Appeals.
+  - [REAL] Weighted Value Endorsements & Domain Reputation Scoring with academic role scaling, author authority ranking, leaderboard tracking, and study space aggregation.
+  - [NOT_IMPLEMENTED] Push notifications.
 
 ## Tests
-- Run `python3 -m unittest discover social_platform/tests` to verify deterministic feed behavior, database persistence, REST API boundary, and client interaction workflows.
+- Run `python3 -m unittest discover -s social_platform/tests` to verify deterministic feed behavior, database persistence, REST API boundary, client interaction workflows, weighted endorsements, and domain reputation scoring.

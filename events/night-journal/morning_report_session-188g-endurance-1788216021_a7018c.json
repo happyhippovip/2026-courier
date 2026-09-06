@@ -1,0 +1,26 @@
+{
+  "autonomous_spend_eur": 0.0,
+  "blockers_removed_count": 0,
+  "completed_tasks": [
+    "OPP-188G-EVENT-1-CREATOR-AUDIT",
+    "OPP-188G-EVENT-2-RESOURCE-AUDIT",
+    "OPP-188G-EVENT-3-SECURITY-AUDIT",
+    "OPP-188G-EVENT-4-DISASTER-RECOVERY"
+  ],
+  "decisions_closed_count": 0,
+  "duplicate_dispatches_prevented": 2,
+  "ended_at": "2026-08-31T22:45:05.999005+00:00",
+  "goal": "Mission 188G Real Long Endurance Autonomy Session",
+  "human_gates_waiting_count": 3,
+  "model_calls_admitted": 4,
+  "model_calls_avoided_proven": 18,
+  "money_gates_waiting_count": 3,
+  "next_recommended_action": "RESUME_AUTONOMY_DISPATCH",
+  "remaining_open_loops_count": 0,
+  "report_id": "morning_report_session-188g-endurance-1788216021_a7018c",
+  "reviews_reused_proven": 1,
+  "session_id": "session-188g-endurance-1788216021",
+  "session_status": "IDLE_EXPECTED",
+  "started_at": "2026-08-31T22:40:21.560099+00:00",
+  "useful_tasks_completed_count": 4
+}

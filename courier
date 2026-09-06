@@ -1,0 +1,92 @@
+#!/usr/bin/env python3
+import sys
+import argparse
+import json
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from scripts.courier_founder_mode import MultiChatGoalIntake, FounderModeMVP
+from scripts.courier_safety_dispatcher import CourierSafetyDispatcher, MissionQueue
+
+def main():
+    parser = argparse.ArgumentParser(description="Courier Founder Mode CLI")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+    
+    # Goal subcommand
+    goal_parser = subparsers.add_parser("goal", help="Submit a high-level goal and start execution")
+    goal_parser.add_argument("text", nargs="?", help="The goal text to submit")
+    goal_parser.add_argument("--priority", type=int, default=1, help="Goal priority (higher = more important)")
+    goal_parser.add_argument("--source", type=str, default="local_cli", help="Identifier for the chat/source")
+    goal_parser.add_argument("--no-start", action="store_true", help="Submit only, do not start autonomous loop")
+    
+    # Status subcommand
+    status_parser = subparsers.add_parser("status", help="Inspect coordinated state (goals and blockers)")
+    
+    # Start subcommand (still useful for manual continuation)
+    start_parser = subparsers.add_parser("start", help="Manually start/continue the autonomous founder loop")
+    
+    args = parser.parse_args()
+    
+    workspace = Path(__file__).resolve().parent
+    intake = MultiChatGoalIntake(workspace)
+    
+    if args.command == "goal":
+        if args.text:
+            goal_id = intake.submit_goal(args.source, args.text, args.priority)
+            print(f"Goal submitted successfully. ID: {goal_id} | Source: {args.source}")
+            if not args.no_start:
+                print("Starting Courier Founder Mode Autonomous Loop...")
+                dispatcher = CourierSafetyDispatcher(workspace)
+                dispatcher.attach_real_worker_adapters(workspace)
+                founder = FounderModeMVP(workspace, dispatcher)
+                founder.run_autonomous_loop()
+                print("Loop completed. Stats:", founder.stats)
+        else:
+            print("Please provide a goal text or use 'courier status' to view goals.")
+            
+    elif args.command == "status":
+        print("=== COURIER FOUNDER MODE STATE ===")
+        goals = intake._read_no_lock()
+        
+        active = [g for g in goals if g["status"] == "ACTIVE"]
+        pending = [g for g in goals if g["status"] == "PENDING"]
+        satisfied = [g for g in goals if g["status"] == "SATISFIED"]
+        
+        print(f"\n[ACTIVE GOALS] ({len(active)})")
+        for g in active:
+            print(f"  - [{g['source']}] {g['goal']} (ID: {g['goal_id']})")
+            
+        print(f"\n[PENDING GOALS] ({len(pending)})")
+        for g in pending:
+            print(f"  - (Pri: {g['priority']}) [{g['source']}] {g['goal']}")
+            
+        print(f"\n[SATISFIED GOALS] ({len(satisfied)})")
+        for g in satisfied[-5:]: # show last 5
+            print(f"  - [{g['source']}] {g['goal']}")
+            
+        print(f"\n[MISSIONS BLOCKING / HUMAN GATES]")
+        try:
+            q = MissionQueue(workspace)
+            missions = q.read_all()
+            blocked = [m for m in missions if m["status"] in ["BLOCKED", "HUMAN_GATE", "FAIL"]]
+            if blocked:
+                for m in blocked:
+                    print(f"  - {m['status']}: {m.get('normalized_task', 'Unknown')} (Mission: {m['mission_id']})")
+            else:
+                print("  - None")
+        except Exception as e:
+            print(f"  - Could not read mission queue: {e}")
+            
+        print("\n==================================")
+                
+    elif args.command == "start":
+        print("Starting Courier Founder Mode Autonomous Loop...")
+        dispatcher = CourierSafetyDispatcher(workspace)
+        dispatcher.attach_real_worker_adapters(workspace)
+        founder = FounderModeMVP(workspace, dispatcher)
+        founder.run_autonomous_loop()
+        print("Loop completed. Stats:", founder.stats)
+
+if __name__ == "__main__":
+    main()

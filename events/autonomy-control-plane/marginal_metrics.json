@@ -1,0 +1,15 @@
+{
+  "blockers_removed_per_model_call": 0.0,
+  "blockers_removed_total": 0,
+  "context_bytes_avoided": 0,
+  "decisions_closed_per_model_call": 0.0,
+  "decisions_closed_total": 0,
+  "decisions_coalesced": 0,
+  "duplicate_calls_avoided": 2,
+  "model_calls_avoided": 18,
+  "model_calls_executed": 4,
+  "reviews_reused": 1,
+  "useful_results_per_model_call": 0.0,
+  "useful_results_total": 0,
+  "waited_correctly": 9
+}

@@ -197,6 +197,87 @@ class SocialPlatformClient:
         """Exports full user data bundle for portability."""
         return self._request("GET", f"/users/{user_id}/export")
 
+    def get_user_dossier(
+        self,
+        user_id: str,
+        format: str = "markdown",
+        dossier_type: str = "user_archive",
+        style: str = "standard",
+        anonymize_pii: bool = False,
+        redact_private_messages: bool = False
+    ) -> Dict[str, Any]:
+        """Generates structured content transformation dossier for a user."""
+        params = {
+            "format": format,
+            "type": dossier_type,
+            "style": style,
+            "anonymize": anonymize_pii,
+            "redact_dms": redact_private_messages
+        }
+        return self._request("GET", f"/users/{user_id}/dossier", params=params)
+
+    def create_export_package(
+        self,
+        user_id: str,
+        format: str = "zip"
+    ) -> Dict[str, Any]:
+        """Creates complete multi-dossier export package archive."""
+        params = {"format": format}
+        return self._request("GET", f"/users/{user_id}/export/package", params=params)
+
+    def download_export_package(
+        self,
+        user_id: str,
+        output_path: Optional[str] = None,
+        format: str = "zip"
+    ) -> str:
+        """Downloads export package archive and writes bytes to local path."""
+        import base64
+        pkg = self.create_export_package(user_id, format=format)
+        target_path = output_path or pkg.get("filename") or f"export_{user_id}.{format}"
+        b64_data = pkg.get("archive_base64", "")
+        if b64_data:
+            data_bytes = base64.b64decode(b64_data)
+            with open(target_path, "wb") as f:
+                f.write(data_bytes)
+        return target_path
+
+    def get_discussion_dossier(
+        self,
+        discussion_id: str,
+        format: str = "markdown",
+        style: str = "standard",
+        anonymize_pii: bool = False
+    ) -> Dict[str, Any]:
+        """Generates formatted discussion thread dossier."""
+        params = {"format": format, "style": style, "anonymize": anonymize_pii}
+        return self._request("GET", f"/discussions/{discussion_id}/dossier", params=params)
+
+    def get_community_dossier(
+        self,
+        community_id: str,
+        format: str = "markdown",
+        style: str = "standard",
+        anonymize_pii: bool = False
+    ) -> Dict[str, Any]:
+        """Generates formatted community knowledge digest dossier."""
+        params = {"format": format, "style": style, "anonymize": anonymize_pii}
+        return self._request("GET", f"/communities/{community_id}/dossier", params=params)
+
+    def transform_content(
+        self,
+        content: str,
+        target_format: str = "markdown",
+        options: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """Transforms arbitrary content between formats with verification."""
+        body = {"content": content, "target_format": target_format, "options": options or {}}
+        return self._request("POST", "/content/transform", json_data=body)
+
+    def get_export_formats(self) -> Dict[str, Any]:
+        """Gets supported dossier and export package formats."""
+        return self._request("GET", "/export/formats")
+
     def get_privacy_settings(self, user_id: str) -> Dict[str, Any]:
         """Gets user privacy controls."""
         return self._request("GET", f"/users/{user_id}/privacy")
@@ -328,9 +409,28 @@ class SocialPlatformClient:
         """Retrieves all public discussions."""
         return self._request("GET", "/discussions")
 
-    def endorse_discussion(self, discussion_id: str, user_id: str) -> Dict[str, Any]:
-        """Endorses a discussion for its substance/value."""
-        return self._request("POST", f"/discussions/{discussion_id}/endorse", json_data={"user_id": user_id})
+    def endorse_discussion(
+        self,
+        discussion_id: str,
+        user_id: str,
+        weight: Optional[float] = None,
+        domain: Optional[str] = None,
+        value_category: Optional[str] = None,
+        comment: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Endorses a discussion with optional domain reputation weighting and category metadata."""
+        payload = {
+            "user_id": user_id,
+            "weight": weight,
+            "domain": domain,
+            "value_category": value_category,
+            "comment": comment
+        }
+        return self._request("POST", f"/discussions/{discussion_id}/endorse", json_data=payload)
+
+    def get_discussion_endorsements(self, discussion_id: str) -> List[Dict[str, Any]]:
+        """Gets all weighted endorsements for a discussion."""
+        return self._request("GET", f"/discussions/{discussion_id}/endorsements")
 
     def reply(
         self,
@@ -363,6 +463,7 @@ class SocialPlatformClient:
         community_id: Optional[str] = None,
         channel_id: Optional[str] = None,
         interests: Optional[List[str]] = None,
+        domain: Optional[str] = None,
         limit: Optional[int] = None,
         offset: Optional[int] = None,
         include_hidden: bool = False
@@ -373,6 +474,7 @@ class SocialPlatformClient:
             "community_id": community_id,
             "channel_id": channel_id,
             "interests": interests,
+            "domain": domain,
             "limit": limit,
             "offset": offset,
             "include_hidden": include_hidden
@@ -390,6 +492,14 @@ class SocialPlatformClient:
     def get_community_feed(self, user_id: str, community_id: str, limit: Optional[int] = None, offset: Optional[int] = None) -> List[Dict[str, Any]]:
         """Gets feed scoped to a community."""
         return self.get_feed(user_id=user_id, mode="community_scoped", community_id=community_id, limit=limit, offset=offset)
+
+    def get_weighted_feed(self, user_id: str, limit: Optional[int] = None, offset: Optional[int] = None) -> List[Dict[str, Any]]:
+        """Gets feed ranked by weighted value endorsements and peer validation."""
+        return self.get_feed(user_id=user_id, mode="weighted_value", limit=limit, offset=offset)
+
+    def get_domain_feed(self, user_id: str, domain: Optional[str] = None, limit: Optional[int] = None, offset: Optional[int] = None) -> List[Dict[str, Any]]:
+        """Gets feed ranked by domain expertise and author reputation."""
+        return self.get_feed(user_id=user_id, mode="domain_reputation", domain=domain, limit=limit, offset=offset)
 
     # --------------------------------------------------------------------------
     # Communities & Channels
@@ -626,6 +736,37 @@ class SocialPlatformClient:
         """Lists members of a study group."""
         return self._request("GET", f"/study_groups/{study_group_id}/members")
 
+    def endorse_resource(
+        self,
+        resource_id: str,
+        user_id: str,
+        weight: Optional[float] = None,
+        domain: Optional[str] = None,
+        value_category: Optional[str] = None,
+        comment: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Endorses an academic study resource with optional domain reputation weighting."""
+        payload = {
+            "user_id": user_id,
+            "weight": weight,
+            "domain": domain,
+            "value_category": value_category,
+            "comment": comment
+        }
+        return self._request("POST", f"/resources/{resource_id}/endorse", json_data=payload)
+
+    def get_resource_endorsements(self, resource_id: str) -> List[Dict[str, Any]]:
+        """Gets all weighted endorsements for a resource."""
+        return self._request("GET", f"/resources/{resource_id}/endorsements")
+
+    def get_course_reputation(self, course_id: str) -> Dict[str, Any]:
+        """Gets aggregated domain reputation and endorsement metrics for a course."""
+        return self._request("GET", f"/courses/{course_id}/reputation")
+
+    def get_study_group_reputation(self, study_group_id: str) -> Dict[str, Any]:
+        """Gets aggregated domain reputation and endorsement metrics for a study group."""
+        return self._request("GET", f"/study_groups/{study_group_id}/reputation")
+
     # --------------------------------------------------------------------------
     # Direct Messages & Conversations
     # --------------------------------------------------------------------------
@@ -834,6 +975,50 @@ class SocialPlatformClient:
     def remove_mute_keyword(self, user_id: str, keyword: str) -> Dict[str, Any]:
         """Removes a keyword from user muted keyword list."""
         return self._request("DELETE", f"/users/{user_id}/mute_keywords/{urllib.parse.quote(keyword)}")
+
+    # --------------------------------------------------------------------------
+    # Reputation & Endorsements
+    # --------------------------------------------------------------------------
+
+    def get_user_reputation(self, user_id: str, domain: Optional[str] = None) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
+        """Gets user domain reputation score(s)."""
+        if domain:
+            return self._request("GET", f"/users/{user_id}/reputation/{domain}")
+        return self._request("GET", f"/users/{user_id}/reputation")
+
+    def get_domain_reputation(self, user_id: str, domain: str) -> Dict[str, Any]:
+        """Gets user domain reputation for a specific domain."""
+        return self._request("GET", f"/users/{user_id}/reputation/{domain}")
+
+    def get_domain_leaderboard(self, domain: str = "general", limit: int = 20) -> List[Dict[str, Any]]:
+        """Gets the top contributors for a specific domain."""
+        return self._request("GET", f"/reputation/leaderboard/{domain}?limit={limit}")
+
+    def get_user_reputation_summary(self, user_id: str) -> Dict[str, Any]:
+        """Gets a summary of a user's reputation across all domains."""
+        return self._request("GET", f"/reputation/summary/{user_id}")
+
+    def create_endorsement(
+        self,
+        target_type: str,
+        target_id: str,
+        user_id: str,
+        weight: Optional[float] = None,
+        domain: Optional[str] = None,
+        value_category: Optional[str] = None,
+        comment: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Creates a weighted value endorsement on a discussion or study resource."""
+        payload = {
+            "target_type": target_type,
+            "target_id": target_id,
+            "user_id": user_id,
+            "weight": weight,
+            "domain": domain,
+            "value_category": value_category,
+            "comment": comment
+        }
+        return self._request("POST", "/endorsements", json_data=payload)
 
     # --------------------------------------------------------------------------
     # User Session Helper

@@ -1,0 +1,50 @@
+{
+  "accounting": {
+    "branches_completed": 0,
+    "branches_waiting": 0,
+    "duplicates_avoided": 0,
+    "human_gates_encountered": 1,
+    "manual_intermediate_prompts": 0,
+    "model_calls_avoided": 7,
+    "money_gates_encountered": 0,
+    "publication_gates_encountered": 0,
+    "recoveries_performed": 0,
+    "safe_idle_periods": 0,
+    "useful_tasks_completed": 2,
+    "valuable_state_transitions": 2
+  },
+  "active_branches": {
+    "work-creator-compliance-oracle": {
+      "description": "Implement automated creator package compliance oracle verifying video codec, audio stream, and duration limits",
+      "dispatched_at": "2026-09-01T00:40:21.461642+00:00",
+      "provider": "CODEX",
+      "target_agent": "codex",
+      "task_id": "work-creator-compliance-oracle"
+    }
+  },
+  "completed_fingerprints": [],
+  "completed_tasks": [
+    "work-fruitki-inventory-summary",
+    "work-fruitki-pricing-manifest"
+  ],
+  "goal_set": [
+    "goal-creator-factory-autonomy"
+  ],
+  "human_gates": [
+    {
+      "desc": "Prepare human-reviewable release proposal dossier for verified FruitKI video packages",
+      "task_id": "work-fruitki-release-proposal"
+    }
+  ],
+  "last_processed_event": "RESULT_work-fruitki-pricing-manifest_SUCCESS",
+  "last_useful_transition": "TASK_COMPLETED_work-fruitki-pricing-manifest",
+  "money_gates": [],
+  "next_wake_condition": "ON_NEW_EVIDENCE",
+  "publication_gates": [],
+  "session_id": "session-single-pc-autonomy-001",
+  "started_at": "2026-09-01T00:40:21.435013+00:00",
+  "status": "STALE_RUNNING_OFFLINE",
+  "stop_reason": "ORPHAN_RECONCILED_PID_None",
+  "updated_at": "2026-09-01T00:40:21.461752+00:00",
+  "waiting_branches": {}
+}

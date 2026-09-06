@@ -1,0 +1,21 @@
+{
+  "payload": {
+    "bridge_action": "READ_FIXTURE_AND_SUMMARIZE",
+    "bridge_summary": "Verified readable content (500 chars snippet)",
+    "bridge_verdict": "PASS",
+    "entrypoint": "scripts/run_antigravity_bridge.py",
+    "execution_mode": "REAL_GEMINI_BRIDGE_EXECUTION",
+    "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+    "stage": "REAL_INDEPENDENT_ACCEPTANCE_AUDIT",
+    "status": "ACCEPTANCE_PASSED",
+    "worker_agent": "GEMINI",
+    "zero_cost_policy": "ZERO_COST_ONLY"
+  },
+  "result_fingerprint": "e8c5a0f1093c5353c2439ee259297bdd953eb3b456f5c0b33f28d5737c48bf3c",
+  "schema_version": "1.0",
+  "status": "COMPLETED",
+  "target_agent": "GEMINI",
+  "task_hash": "aa73c166289b9441ed4f6d1ae18e7075d1d94026040e992129da7d64c16c8700",
+  "type": "RESULT",
+  "worker_id": "m232-b06-operator"
+}

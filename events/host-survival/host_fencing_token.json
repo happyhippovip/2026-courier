@@ -1,0 +1,8 @@
+{
+  "primary_host_id": "home-mac-primary",
+  "host_epoch": "EPOCH_2026",
+  "host_generation": 1,
+  "active_since": "2026-09-01T04:16:51.027640+00:00",
+  "fenced_hosts": [],
+  "state": "ACTIVE"
+}

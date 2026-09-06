@@ -1,0 +1,10 @@
+{
+  "mission": "MISSION_222",
+  "timestamp": "2026-09-02T16:24:45.099461+00:00",
+  "fingerprint": "c80e4db0a1eff56495659dd11736982ee520d73c6bc4325bd29eafa8f3d9ac64",
+  "tests_total": 111,
+  "tests_passed": 111,
+  "red_team_passed": 29,
+  "single_writer": true,
+  "status": "RECONCILED"
+}

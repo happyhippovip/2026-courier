@@ -1,0 +1,19 @@
+{
+  "artifacts": {
+    "market_synthesis": "events/revenue-opportunities/offerings/b2b_autonomy_audit/MARKET_SYNTHESIS.md"
+  },
+  "completed_at": "2026-09-01T16:43:23.650289+00:00",
+  "evidence": {},
+  "human_gate_required": false,
+  "job_id": "JOB-GEM-ORACLE-1788281003",
+  "new_information": "B2B buyers prefer \u20ac99 fixed-scope pilot over open-ended consulting.",
+  "opportunity_id": "REV-OPP-KIBEY-AI-MARKETPLACE",
+  "provider_state": "REAL_GEMINI_ACTIVE_AUTHORIZED",
+  "recommended_next_action": "AUTO_APPROVE_OUTREACH_EXPERIMENT_REV-OPP-KIBEY-AI-MARKETPLACE",
+  "result_fingerprint": "c4f428e083d479ad",
+  "risk_detected": "NONE",
+  "spend_eur": 0.0,
+  "status": "SUCCESS",
+  "summary": "Gemini Brain analyzed market signals for REV-OPP-KIBEY-AI-MARKETPLACE: 95% AI agent pilot failure rate creates clear willingness to pay for crash-safety audit.",
+  "task_id": "TASK-CODEX-ORACLE-B-1788281003"
+}

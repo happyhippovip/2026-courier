@@ -1,0 +1,17 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-05T19:21:43.856302+00:00",
+  "event_id": "evt-ccce96b7f873",
+  "event_type": "WORKER_PROGRESS",
+  "evidence": {
+    "init": true,
+    "pid": 15709
+  },
+  "fingerprint": "d5829b40bf07618d",
+  "mission_id": null,
+  "recommended_action": null,
+  "session_epoch": "epoch-google-1788636103",
+  "severity": "INFO",
+  "task_id": "CANARY-INIT",
+  "worker_id": "GOOGLE"
+}

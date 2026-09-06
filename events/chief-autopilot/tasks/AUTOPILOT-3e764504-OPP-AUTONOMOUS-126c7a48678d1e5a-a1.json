@@ -1,0 +1,14 @@
+{
+  "attempts": 1,
+  "claim_id": "claim-4e0adec278fe489c9334306f9afda62b",
+  "completion_criteria": "Local evidence validated",
+  "external_actions": 0,
+  "lease_id": "autopilot-b216ebdd3e764504",
+  "max_iterations": 3,
+  "model_calls": 0,
+  "opportunity_id": "OPP-AUTONOMOUS-126c7a48678d1e5a",
+  "provider": "LOCAL_DETERMINISTIC",
+  "result_ref": "events/chief-autopilot/results/AUTOPILOT-3e764504-OPP-AUTONOMOUS-126c7a48678d1e5a-a1.json",
+  "status": "COMPLETE",
+  "task_id": "AUTOPILOT-3e764504-OPP-AUTONOMOUS-126c7a48678d1e5a-a1"
+}

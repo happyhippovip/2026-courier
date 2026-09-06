@@ -1,0 +1,30 @@
+{
+  "opportunity_id": "REV-OPP-TOKEN-BURN-QUOTA-AUDITOR",
+  "product_name": "LLM Token Burn & Spend Optimizer",
+  "state": "EXPOSURE",
+  "updated_at": "2026-09-01T16:40:17.434385+00:00",
+  "prospects": [
+    {
+      "id": "P-TOKEN-01",
+      "name": "Marcus V.",
+      "role": "Lead AI Engineer / LLM SaaS CTO",
+      "target_tier": "DEV_49_EUR",
+      "relevance_evidence": "Discussing monthly OpenAI/Anthropic API bill surges and prompt caching ROI on public developer forum.",
+      "status": "EXPOSURE_COMPLETED",
+      "sent_at": "2026-09-01T16:40:17.434385+00:00",
+      "economic_state": "EXPOSURE",
+      "response_state": "WAITING_FOR_RESPONSE",
+      "correlation_id": "CORR-TOKEN01-20260901164015",
+      "message_fingerprint": "d3fc6cdbbffaad69f08161a2cc6c29f925ad53ba334ab4891a83a818d302199c",
+      "delivery_detail": "APPLE_MAIL_DELIVERY_SENT",
+      "human_action_count_this_send": 0
+    }
+  ],
+  "conversion_summary": {
+    "total_prospects": 1,
+    "transmitted": 1,
+    "replied": 0,
+    "paid_customers": 0,
+    "revenue_collected_eur": 0.0
+  }
+}

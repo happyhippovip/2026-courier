@@ -1,0 +1,19 @@
+{
+  "artifacts": {
+    "artifacts_changed": [
+      "events/runtime-state/oracle_stage_a.json"
+    ],
+    "fingerprint": "46baf8e0ba99e49735a5b7df49371f3bb0ea298f48ae7b9ed24bfe79314718ed"
+  },
+  "completed_at": "2026-09-01T16:43:06.025078+00:00",
+  "evidence": {
+    "capital_spent_eur": 0.0,
+    "worker_surface": "GOOGLE_CLI"
+  },
+  "findings": "Executed on GOOGLE/CLI on COMPUTER_A. Result: SUCCESS",
+  "opportunity_id": "CODEX-ORACLE-A-1788280986",
+  "result_fingerprint": "5c1a8f144f617f76",
+  "result_id": "RES-TASK-CODEX-ORACLE-A-1788280986-5c1a8f14",
+  "status": "SUCCESS",
+  "task_id": "TASK-CODEX-ORACLE-A-1788280986"
+}

@@ -1,0 +1,230 @@
+{
+  "canary_id": "canary-b07r2-human-idea-execution",
+  "root_goal": "Find one small safe improvement that makes Courier more reliable, implement it if justified, verify it, learn from the result, and stop.",
+  "human_goal_only_seeded": true,
+  "weakness_preselected": false,
+  "target_file_preselected": false,
+  "mission_chain_preselected": false,
+  "discovery_from_actual_repo": true,
+  "implementation_from_verified_evidence": true,
+  "real_google_writer_used": true,
+  "verification_from_actual_repo": true,
+  "manual_weiter_required": false,
+  "manual_successor_enqueue": 0,
+  "goal_satisfied": true,
+  "total_missions": 3,
+  "verified_missions": 3,
+  "write_missions": 1,
+  "experience_memory_record": {
+    "schema_version": "1.0",
+    "memory_id": "mem-9fac2d736966",
+    "goal": "Find one small safe improvement that makes Courier more reliable, implement it if justified, verify it, learn from the result, and stop.",
+    "task": {
+      "action": "autonomous_goal_canary_b07r2",
+      "total_missions": 3
+    },
+    "result": {
+      "verified_missions": 3,
+      "verdict": "PASS"
+    },
+    "error": null,
+    "root_cause": "Lack of configurable paths in helper functions caused coupling",
+    "lesson": "Autonomous evidence-driven discovery, bounded single-writer implementation, and local test verification successfully improved reliability without hardcoded mission chains",
+    "reusable_pattern": "Discover-Decompose-Route-Verify-Learn loop",
+    "fingerprint": "443d1f518de8e548163be7dbba98f26c7134d6c411f9aaa9a2c50efe269004c6",
+    "timestamp": 1788476712.339681
+  },
+  "trace": [
+    {
+      "step": 0,
+      "event": "ROOT_GOAL_SEEDED",
+      "root_goal": "Find one small safe improvement that makes Courier more reliable, implement it if justified, verify it, learn from the result, and stop.",
+      "planner_decision": {
+        "decision": "CONTINUE",
+        "next_mission": {
+          "mission_id": "plan-disc-a04f014b",
+          "goal": "Find one small safe improvement that makes Courier more reliable, implement it if justified, verify it, learn from the result, and stop.",
+          "normalized_task": "Inspect repository and discover actionable, safe, locally verifiable improvement opportunities",
+          "capability_required": "local repo analysis",
+          "preferred_agent": "CLI1",
+          "requires_write": false,
+          "is_heavy": false,
+          "risk_class": "SAFE",
+          "task": {
+            "action": "discover_improvement_opportunities",
+            "root_goal": "Find one small safe improvement that makes Courier more reliable, implement it if justified, verify it, learn from the result, and stop.",
+            "requires_write": false,
+            "correlation_id": "corr-plan-disc-a04f014b",
+            "task_id": "plan-disc-a04f014b"
+          }
+        },
+        "reason": "Created initial discovery mission for real repository inspection."
+      }
+    },
+    {
+      "step": 1,
+      "event": "PLANNER_STEP",
+      "verified_missions_count": 1,
+      "planner_decision": {
+        "decision": "CONTINUE",
+        "next_mission": {
+          "mission_id": "plan-imp-13adb8a6",
+          "goal": "Implement NATIVE_AGY_PATH_CONFIGURABILITY: is_agy_installed and get_agy_version helper functions should accept an optional agy_path parameter for hermetic execution",
+          "normalized_task": "Apply bounded implementation to scripts/native_agy_runner.py, tests/test_native_agy_runner.py",
+          "capability_required": "architecture",
+          "preferred_agent": "GEMINI",
+          "requires_write": true,
+          "is_heavy": false,
+          "risk_class": "SAFE",
+          "task": {
+            "action": "implement_bounded_improvement",
+            "weakness_id": "NATIVE_AGY_PATH_CONFIGURABILITY",
+            "description": "is_agy_installed and get_agy_version helper functions should accept an optional agy_path parameter for hermetic execution",
+            "target_files": [
+              "scripts/native_agy_runner.py",
+              "tests/test_native_agy_runner.py"
+            ],
+            "verification_strategy": "run_unit_tests",
+            "requires_write": true,
+            "correlation_id": "corr-plan-imp-13adb8a6",
+            "task_id": "plan-imp-13adb8a6"
+          }
+        },
+        "reason": "Derived targeted implementation mission from verified discovery evidence for 'NATIVE_AGY_PATH_CONFIGURABILITY'."
+      }
+    },
+    {
+      "step": 2,
+      "event": "PLANNER_STEP",
+      "verified_missions_count": 2,
+      "planner_decision": {
+        "decision": "CONTINUE",
+        "next_mission": {
+          "mission_id": "plan-ver-422453bc",
+          "goal": "Verify repository state and regression tests for scripts/native_agy_runner.py, tests/test_native_agy_runner.py",
+          "normalized_task": "Execute verification strategy (run_unit_tests) on scripts/native_agy_runner.py, tests/test_native_agy_runner.py",
+          "capability_required": "repo verification",
+          "preferred_agent": "CLI1",
+          "requires_write": false,
+          "is_heavy": false,
+          "risk_class": "SAFE",
+          "task": {
+            "action": "verify_improvement_tests",
+            "target_files": [
+              "scripts/native_agy_runner.py",
+              "tests/test_native_agy_runner.py"
+            ],
+            "verification_strategy": "run_unit_tests",
+            "requires_write": false,
+            "correlation_id": "corr-plan-ver-422453bc",
+            "task_id": "plan-ver-422453bc"
+          }
+        },
+        "reason": "Derived verification mission to test implemented changes in scripts/native_agy_runner.py, tests/test_native_agy_runner.py."
+      }
+    },
+    {
+      "step": 3,
+      "event": "PLANNER_STEP",
+      "verified_missions_count": 3,
+      "planner_decision": {
+        "decision": "GOAL_SATISFIED",
+        "next_mission": null,
+        "reason": "Root goal satisfied: Executed real verification test suite on ['scripts/native_agy_runner.py', 'tests/test_native_agy_runner.py']: verdict=PASS"
+      }
+    }
+  ],
+  "final_missions": [
+    {
+      "capability_required": "local repo analysis",
+      "claimed_by": "canary-worker",
+      "created_at": 1788476711.595315,
+      "goal": "Find one small safe improvement that makes Courier more reliable, implement it if justified, verify it, learn from the result, and stop.",
+      "is_heavy": false,
+      "mission_id": "plan-disc-a04f014b",
+      "next_mission_reference": "plan-imp-13adb8a6",
+      "normalized_task": "Inspect repository and discover actionable, safe, locally verifiable improvement opportunities",
+      "parent_mission_id": null,
+      "preferred_agent": "CLI1",
+      "requires_write": false,
+      "result_reference": "/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/tmpwf9bf1kv/events/task-envelopes/result_cli1_9521d10a90f9d1acd8fd8a0466b7ba95e22ccb41b0f0d533cc98ee4805e6d9e6.json",
+      "risk_class": "SAFE",
+      "status": "VERIFIED",
+      "task": {
+        "action": "discover_improvement_opportunities",
+        "capability_request": "local repo analysis",
+        "correlation_id": "corr-plan-disc-a04f014b",
+        "requires_write": false,
+        "root_goal": "Find one small safe improvement that makes Courier more reliable, implement it if justified, verify it, learn from the result, and stop.",
+        "task_id": "plan-disc-a04f014b"
+      },
+      "task_hash": "9521d10a90f9d1acd8fd8a0466b7ba95e22ccb41b0f0d533cc98ee4805e6d9e6",
+      "verification_reference": "9521d10a90f9d1acd8fd8a0466b7ba95e22ccb41b0f0d533cc98ee4805e6d9e6",
+      "verification_required": true
+    },
+    {
+      "capability_required": "architecture",
+      "claimed_by": "canary-worker",
+      "created_at": 1788476711.620681,
+      "goal": "Implement NATIVE_AGY_PATH_CONFIGURABILITY: is_agy_installed and get_agy_version helper functions should accept an optional agy_path parameter for hermetic execution",
+      "is_heavy": false,
+      "mission_id": "plan-imp-13adb8a6",
+      "next_mission_reference": "plan-ver-422453bc",
+      "normalized_task": "Apply bounded implementation to scripts/native_agy_runner.py, tests/test_native_agy_runner.py",
+      "parent_mission_id": "plan-disc-a04f014b",
+      "preferred_agent": "GEMINI",
+      "requires_write": true,
+      "result_reference": "/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/tmpwf9bf1kv/events/task-envelopes/result_gemini_787f2ea116cd2f587fe118d829e9c1103616fe6628c1d758f0dbb0ee6fd93ec5.json",
+      "risk_class": "SAFE",
+      "status": "VERIFIED",
+      "task": {
+        "action": "implement_bounded_improvement",
+        "capability_request": "architecture",
+        "correlation_id": "corr-plan-imp-13adb8a6",
+        "description": "is_agy_installed and get_agy_version helper functions should accept an optional agy_path parameter for hermetic execution",
+        "requires_write": true,
+        "target_files": [
+          "scripts/native_agy_runner.py",
+          "tests/test_native_agy_runner.py"
+        ],
+        "task_id": "plan-imp-13adb8a6",
+        "verification_strategy": "run_unit_tests",
+        "weakness_id": "NATIVE_AGY_PATH_CONFIGURABILITY"
+      },
+      "task_hash": "787f2ea116cd2f587fe118d829e9c1103616fe6628c1d758f0dbb0ee6fd93ec5",
+      "verification_reference": "787f2ea116cd2f587fe118d829e9c1103616fe6628c1d758f0dbb0ee6fd93ec5",
+      "verification_required": true
+    },
+    {
+      "capability_required": "repo verification",
+      "claimed_by": "canary-worker",
+      "created_at": 1788476711.646127,
+      "goal": "Verify repository state and regression tests for scripts/native_agy_runner.py, tests/test_native_agy_runner.py",
+      "is_heavy": false,
+      "mission_id": "plan-ver-422453bc",
+      "next_mission_reference": null,
+      "normalized_task": "Execute verification strategy (run_unit_tests) on scripts/native_agy_runner.py, tests/test_native_agy_runner.py",
+      "parent_mission_id": "plan-imp-13adb8a6",
+      "preferred_agent": "CLI1",
+      "requires_write": false,
+      "result_reference": "/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/tmpwf9bf1kv/events/task-envelopes/result_cli1_afc3041bd4965265f04265d0c944ccdc9f37e435e8518f31654e9f3e1daca094.json",
+      "risk_class": "SAFE",
+      "status": "VERIFIED",
+      "task": {
+        "action": "verify_improvement_tests",
+        "capability_request": "repo verification",
+        "correlation_id": "corr-plan-ver-422453bc",
+        "requires_write": false,
+        "target_files": [
+          "scripts/native_agy_runner.py",
+          "tests/test_native_agy_runner.py"
+        ],
+        "task_id": "plan-ver-422453bc",
+        "verification_strategy": "run_unit_tests"
+      },
+      "task_hash": "afc3041bd4965265f04265d0c944ccdc9f37e435e8518f31654e9f3e1daca094",
+      "verification_reference": "afc3041bd4965265f04265d0c944ccdc9f37e435e8518f31654e9f3e1daca094",
+      "verification_required": true
+    }
+  ]
+}

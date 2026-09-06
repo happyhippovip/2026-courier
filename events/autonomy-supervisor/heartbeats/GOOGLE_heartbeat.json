@@ -1,0 +1,13 @@
+{
+  "worker_id": "GOOGLE",
+  "session_epoch": "EPOCH_2026",
+  "mission_id": "M212",
+  "state": "PROGRESSING",
+  "last_progress_at": "2026-09-05T19:21:53.908283+00:00",
+  "last_heartbeat_at": "2026-09-05T19:21:53.908283+00:00",
+  "process_id": 15736,
+  "process_start_identity": "proc-15736-GOOGLE",
+  "current_fingerprint": "",
+  "checkpoint_ref": "",
+  "provider_state": "AVAILABLE"
+}

@@ -1,0 +1,20 @@
+{
+  "gate_id": "GATE-EMAIL-TRANSPORT-PERSISTENT-AUTH",
+  "title": "One-Time Outbound Email Transport Authorization",
+  "status": "AWAITING_HUMAN_ONE_TIME_AUTH",
+  "created_at": "2026-09-01T14:36:00+00:00",
+  "opportunities_unlocked": [
+    "REV-OPP-B2B-AUTONOMY-AUDIT",
+    "REV-OPP-CONTENT-TO-MARKETING-ASSET"
+  ],
+  "autonomy_leverage_multiplier": "MAXIMUM (Unlocks 15+ qualified prospect dispatches and 48h client report deliveries)",
+  "exact_irreducible_action": "Complete sign-in on the opened Apple Mail account setup prompt (or configure local SMTP/Gmail app password)",
+  "post_auth_automated_sequence": [
+    "1. Google detects active mail transport and validates connection",
+    "2. Google transmits pre-formatted P-01 message (€99 B2B Audit)",
+    "3. Google transmits pre-formatted CP-01 message (€49 Content Transformation)",
+    "4. Google records empirical timestamps and advances ledger to EXPOSURE",
+    "5. Google monitors for incoming replies without human prompt nudges"
+  ],
+  "human_involvement_per_economic_cycle": "APPROACHES_ZERO (One-time auth enables perpetual machine execution)"
+}

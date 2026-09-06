@@ -1,0 +1,38 @@
+Continue building the existing social_platform FROM THE NEW VERIFIED CHECKPOINT.
+
+Do not rebuild verified history.
+Do not build Courier unless a concrete Courier defect blocks this product goal.
+
+Courier owns the next decision.
+
+Analyze the actual product state and choose the highest-value missing coherent
+end-to-end USER WORKFLOW.
+
+Prefer completing and connecting existing capabilities over adding isolated
+technical primitives.
+
+Potential directions include:
+- complete content lifecycle: create -> interact -> report -> moderate -> appeal -> remove
+- complete community user journey
+- complete communication/messaging workflow
+- complete academic student journey
+- discovery/recommendation coherence
+- user control, preferences, privacy, and data ownership
+
+These are examples, not mandatory feature selections.
+
+Courier must:
+DISCOVER
+-> SELECT HIGHEST-VALUE GAP
+-> PLAN
+-> ROUTE
+-> IMPLEMENT
+-> VERIFY
+-> PROVE
+-> FINGERPRINT
+-> REPLAN
+-> CONTINUE
+
+Use Gemini Flash as normal builder.
+Use CLI1 for cheap deterministic discovery/verification.
+Use Codex only for genuine high-information-gain specialist problems.

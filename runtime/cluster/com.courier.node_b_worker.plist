@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.courier.node_b_worker</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/local/bin/python3</string>
+        <string>/Users/user/Downloads/2026-courier/scripts/onboard_computer_b.py</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/user/Downloads/2026-courier</string>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <false/>
+    <key>StandardOutPath</key>
+    <string>/Users/user/Downloads/2026-courier/runtime/cluster/node_b_worker.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/user/Downloads/2026-courier/runtime/cluster/node_b_worker_err.log</string>
+</dict>
+</plist>

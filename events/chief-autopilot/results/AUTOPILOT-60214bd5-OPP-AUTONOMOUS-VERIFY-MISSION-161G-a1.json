@@ -1,0 +1,18 @@
+{
+  "action_type": "UNIT_TEST_EXECUTION",
+  "details": {
+    "returncode": 0,
+    "stderr_tail": "k\ntest_18_node_b_onboarding_verification (tests.test_two_computer_dispatcher_mission_161g.TestTwoComputerDispatcherMission161G) ... ok\ntest_19_scope_lock_manager_directory_prefixes (tests.test_two_computer_dispatcher_mission_161g.TestTwoComputerDispatcherMission161G) ... ok\ntest_20_zero_credentials_stored (tests.test_two_computer_dispatcher_mission_161g.TestTwoComputerDispatcherMission161G) ... ok\n\n----------------------------------------------------------------------\nRan 20 tests in 0.218s\n\nOK\n",
+    "stdout_tail": "",
+    "test_module": "tests/test_two_computer_dispatcher_mission_161g.py"
+  },
+  "external_actions": 0,
+  "finished_at": "2026-08-31T17:37:08.537000+00:00",
+  "model_calls": 0,
+  "node_id": "NODE_A",
+  "opportunity_id": "OPP-AUTONOMOUS-VERIFY-MISSION-161G",
+  "result_id": "RES-AUTOPILOT-60214bd5-OPP-AUTONOMOUS-VERIFY-MISSION-161G-a1",
+  "started_at": "2026-08-31T17:37:08.154911+00:00",
+  "status": "SUCCESS",
+  "task_id": "AUTOPILOT-60214bd5-OPP-AUTONOMOUS-VERIFY-MISSION-161G-a1"
+}

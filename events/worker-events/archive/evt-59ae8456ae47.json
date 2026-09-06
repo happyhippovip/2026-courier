@@ -1,0 +1,17 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-01T12:31:05.186655+00:00",
+  "event_id": "evt-59ae8456ae47",
+  "event_type": "WORKER_STARTED",
+  "evidence": {
+    "availability_class": "PRIMARY_BUILDER",
+    "initial_registration": true
+  },
+  "fingerprint": "d76627b96549853c",
+  "mission_id": null,
+  "recommended_action": null,
+  "session_epoch": "epoch-google-1788265865",
+  "severity": "INFO",
+  "task_id": null,
+  "worker_id": "GOOGLE"
+}

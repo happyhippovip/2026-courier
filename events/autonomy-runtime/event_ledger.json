@@ -1,0 +1,317 @@
+{
+  "events": [
+    {
+      "artifact_path": null,
+      "correlation_id": "corr-det-a1fe29f4",
+      "event_hash": "2bb3c98786d0f706482577c75ce2180376a7a58bbe2259265d7fe329cc62f255",
+      "event_id": "evt-78f9e078",
+      "event_type": "RESULT",
+      "ingested_at": "2026-08-31T22:33:16.173804+00:00",
+      "payload": {
+        "outcome": "SUCCESS",
+        "result": {
+          "dr_module_present": true,
+          "status": "PASS"
+        }
+      },
+      "source_worker": "LOCAL_DETERMINISTIC",
+      "task_id": "OPP-186G-VERIFY-DISASTER-RECOVERY"
+    },
+    {
+      "artifact_path": null,
+      "correlation_id": "corr-det-8d30e49e",
+      "event_hash": "7a28d871f5696fdf812fa3c1472653a24827c67f07ecdeb548e2aeceea834cdc",
+      "event_id": "evt-1824549d",
+      "event_type": "RESULT",
+      "ingested_at": "2026-08-31T22:33:16.189488+00:00",
+      "payload": {
+        "outcome": "SUCCESS",
+        "result": {
+          "dr_module_present": true,
+          "status": "PASS"
+        }
+      },
+      "source_worker": "LOCAL_DETERMINISTIC",
+      "task_id": "OPP-186G-VERIFY-DISASTER-RECOVERY"
+    },
+    {
+      "artifact_path": null,
+      "correlation_id": "corr-det-29a49f6c",
+      "event_hash": "3dac752545cc41f6333eaf0850a509a447aa63b15cd3995079dde57826df0578",
+      "event_id": "evt-199f7ebc",
+      "event_type": "RESULT",
+      "ingested_at": "2026-08-31T22:33:36.264413+00:00",
+      "payload": {
+        "outcome": "SUCCESS",
+        "result": {
+          "dr_module_present": true,
+          "status": "PASS"
+        }
+      },
+      "source_worker": "LOCAL_DETERMINISTIC",
+      "task_id": "OPP-186G-VERIFY-DISASTER-RECOVERY"
+    },
+    {
+      "artifact_path": null,
+      "correlation_id": "corr-det-b7c0e4fe",
+      "event_hash": "3fe02e41c8922baf2401d507a14fa505895553942a4e7caf00110669ab9969d3",
+      "event_id": "evt-baf30842",
+      "event_type": "RESULT",
+      "ingested_at": "2026-08-31T22:34:09.184901+00:00",
+      "payload": {
+        "outcome": "SUCCESS",
+        "result": {
+          "packages_audited": 20,
+          "status": "PASS",
+          "valid_packages": 20
+        }
+      },
+      "source_worker": "LOCAL_DETERMINISTIC",
+      "task_id": "OPP-186G-AUDIT-CREATOR-PACKAGES"
+    },
+    {
+      "artifact_path": null,
+      "correlation_id": "corr-det-ce490b4a",
+      "event_hash": "6a1375f1803282c6ff41f93f6c0ff844686ad0f3a350ac60891326aab32f3649",
+      "event_id": "evt-4e141f62",
+      "event_type": "RESULT",
+      "ingested_at": "2026-08-31T22:34:09.201681+00:00",
+      "payload": {
+        "outcome": "SUCCESS",
+        "result": {
+          "observations_count": 28,
+          "status": "PASS"
+        }
+      },
+      "source_worker": "LOCAL_DETERMINISTIC",
+      "task_id": "OPP-186G-AUDIT-RESOURCE-INTELLIGENCE"
+    },
+    {
+      "artifact_path": null,
+      "correlation_id": "CORR-186G-WA",
+      "event_hash": "f75a6656627af7aaecf0456f10f2effa0929669a37feb367a96a682098347f7c",
+      "event_id": "evt-7ef2c167",
+      "event_type": "RESULT",
+      "ingested_at": "2026-08-31T22:34:09.221783+00:00",
+      "payload": {
+        "result": "Worker A completed audit part 1"
+      },
+      "source_worker": "GOOGLE",
+      "task_id": "OPP-186G-WA"
+    },
+    {
+      "artifact_path": null,
+      "correlation_id": "CORR-186G-WB",
+      "event_hash": "d41c18c5cf46b9f040faf05e3972a8d51fdcd3384231731513b580201ce1694c",
+      "event_id": "evt-76761827",
+      "event_type": "RESULT",
+      "ingested_at": "2026-08-31T22:34:09.234607+00:00",
+      "payload": {
+        "result": "Worker B completed audit part 2"
+      },
+      "source_worker": "CODEX",
+      "task_id": "OPP-186G-WB"
+    },
+    {
+      "artifact_path": null,
+      "correlation_id": "corr-det-e9cd18d4",
+      "event_hash": "ce047cd1aaf61aeac87a326abd28241c3284023a3a4b2680a900a7e0a27c9f7c",
+      "event_id": "evt-79479894",
+      "event_type": "RESULT",
+      "ingested_at": "2026-08-31T22:34:09.253896+00:00",
+      "payload": {
+        "outcome": "SUCCESS",
+        "result": {
+          "dr_module_present": true,
+          "status": "PASS"
+        }
+      },
+      "source_worker": "LOCAL_DETERMINISTIC",
+      "task_id": "OPP-186G-VERIFY-DISASTER-RECOVERY"
+    },
+    {
+      "artifact_path": null,
+      "correlation_id": "corr-det-9be7dd86",
+      "event_hash": "eb4761516991d098d8422960c49668778772d9e71c0743f96b974300363c107d",
+      "event_id": "evt-267d5b7f",
+      "event_type": "RESULT",
+      "ingested_at": "2026-08-31T22:37:28.744543+00:00",
+      "payload": {
+        "outcome": "SUCCESS",
+        "result": {
+          "packages_audited": 20,
+          "status": "PASS",
+          "valid_packages": 20
+        }
+      },
+      "source_worker": "LOCAL_DETERMINISTIC",
+      "task_id": "OPP-187G-AUDIT-ALL-20-CREATOR-PACKAGES"
+    },
+    {
+      "artifact_path": null,
+      "correlation_id": "corr-det-f028fae4",
+      "event_hash": "9403e2ace240c62c12ab3f31da84a1dad7cd596ee136530402eef44e389ced86",
+      "event_id": "evt-0481800c",
+      "event_type": "RESULT",
+      "ingested_at": "2026-08-31T22:37:28.763056+00:00",
+      "payload": {
+        "outcome": "SUCCESS",
+        "result": {
+          "observations_count": 28,
+          "status": "PASS"
+        }
+      },
+      "source_worker": "LOCAL_DETERMINISTIC",
+      "task_id": "OPP-187G-VERIFY-RESOURCE-RESET-SEGMENTATION"
+    },
+    {
+      "artifact_path": null,
+      "correlation_id": "CORR-187G-WA",
+      "event_hash": "0722caea2cbf40b383bbf8c78388e271251db7a85cc9427696d4bd381d2664ac",
+      "event_id": "evt-634e3af8",
+      "event_type": "RESULT",
+      "ingested_at": "2026-08-31T22:37:28.783405+00:00",
+      "payload": {
+        "part_a": "done"
+      },
+      "source_worker": "GOOGLE",
+      "task_id": "OPP-187G-WA"
+    },
+    {
+      "artifact_path": null,
+      "correlation_id": "CORR-187G-WB",
+      "event_hash": "2be5260cffe8833b1fa5d8e084d28514750c030216937c2414790ab0ac7abce6",
+      "event_id": "evt-2193328d",
+      "event_type": "RESULT",
+      "ingested_at": "2026-08-31T22:37:28.796307+00:00",
+      "payload": {
+        "part_b": "done"
+      },
+      "source_worker": "CODEX",
+      "task_id": "OPP-187G-WB"
+    },
+    {
+      "artifact_path": null,
+      "correlation_id": "corr-det-e0824203",
+      "event_hash": "854147706c9e1ce8d95bb91be7e69340f651ab1abfdb3b0d2aaede3ab3fdf78f",
+      "event_id": "evt-abf7442f",
+      "event_type": "RESULT",
+      "ingested_at": "2026-08-31T22:37:28.892976+00:00",
+      "payload": {
+        "outcome": "SUCCESS",
+        "result": {
+          "clean": true,
+          "secret_scan": "PASS"
+        }
+      },
+      "source_worker": "LOCAL_DETERMINISTIC",
+      "task_id": "OPP-187G-SECURITY-SECRET-EXCLUSION-AUDIT"
+    },
+    {
+      "artifact_path": null,
+      "correlation_id": "corr-det-61bf3d07",
+      "event_hash": "6821238ec54c1d2ea87dcc32322d085b2c59fe4518047638e17bf2610b25b665",
+      "event_id": "evt-af9c0d59",
+      "event_type": "RESULT",
+      "ingested_at": "2026-08-31T22:37:28.908988+00:00",
+      "payload": {
+        "outcome": "SUCCESS",
+        "result": {
+          "dr_module_present": true,
+          "status": "PASS"
+        }
+      },
+      "source_worker": "LOCAL_DETERMINISTIC",
+      "task_id": "OPP-187G-VERIFY-DISASTER-RECOVERY-SANDBOX"
+    },
+    {
+      "artifact_path": null,
+      "correlation_id": "corr-det-8fcbe0c7",
+      "event_hash": "0ef8710458ca6522de045d3e981bbd77a88dc6138286b7ae21e514769f21192b",
+      "event_id": "evt-04f6803e",
+      "event_type": "RESULT",
+      "ingested_at": "2026-08-31T22:40:27.606443+00:00",
+      "payload": {
+        "outcome": "SUCCESS",
+        "result": {
+          "packages_audited": 20,
+          "status": "PASS",
+          "valid_packages": 20
+        }
+      },
+      "source_worker": "LOCAL_DETERMINISTIC",
+      "task_id": "OPP-188G-EVENT-1-CREATOR-AUDIT"
+    },
+    {
+      "artifact_path": null,
+      "correlation_id": "corr-det-dda88b91",
+      "event_hash": "508f3f1d51515a3206350946f2f8ee7410da93366472e12eafb6bcb7b6078b3e",
+      "event_id": "evt-488c4c86",
+      "event_type": "RESULT",
+      "ingested_at": "2026-08-31T22:40:37.664901+00:00",
+      "payload": {
+        "outcome": "SUCCESS",
+        "result": {
+          "observations_verified": 28,
+          "status": "PASS"
+        }
+      },
+      "source_worker": "LOCAL_DETERMINISTIC",
+      "task_id": "OPP-188G-EVENT-2-RESOURCE-AUDIT"
+    },
+    {
+      "artifact_path": null,
+      "correlation_id": "corr-det-a2a9db69",
+      "event_hash": "046d7111921209397917e42e4a2293e574dddce71c82368aff04abb1631be6e7",
+      "event_id": "evt-50254c92",
+      "event_type": "RESULT",
+      "ingested_at": "2026-08-31T22:40:51.827171+00:00",
+      "payload": {
+        "outcome": "SUCCESS",
+        "result": {
+          "clean": true,
+          "secret_exclusion": "PASS"
+        }
+      },
+      "source_worker": "LOCAL_DETERMINISTIC",
+      "task_id": "OPP-188G-EVENT-3-SECURITY-AUDIT"
+    },
+    {
+      "artifact_path": null,
+      "correlation_id": "corr-det-a7748404",
+      "event_hash": "0c984fe2fa94190a33694334c7110b01099f29d8ea8c6aadffbad795f58c6a3e",
+      "event_id": "evt-67a1e79d",
+      "event_type": "RESULT",
+      "ingested_at": "2026-08-31T22:41:22.011139+00:00",
+      "payload": {
+        "outcome": "SUCCESS",
+        "result": {
+          "disaster_recovery_module_present": true,
+          "status": "PASS"
+        }
+      },
+      "source_worker": "LOCAL_DETERMINISTIC",
+      "task_id": "OPP-188G-EVENT-4-DISASTER-RECOVERY"
+    }
+  ],
+  "processed_event_hashes": [
+    "2bb3c98786d0f706482577c75ce2180376a7a58bbe2259265d7fe329cc62f255",
+    "7a28d871f5696fdf812fa3c1472653a24827c67f07ecdeb548e2aeceea834cdc",
+    "3dac752545cc41f6333eaf0850a509a447aa63b15cd3995079dde57826df0578",
+    "3fe02e41c8922baf2401d507a14fa505895553942a4e7caf00110669ab9969d3",
+    "6a1375f1803282c6ff41f93f6c0ff844686ad0f3a350ac60891326aab32f3649",
+    "f75a6656627af7aaecf0456f10f2effa0929669a37feb367a96a682098347f7c",
+    "d41c18c5cf46b9f040faf05e3972a8d51fdcd3384231731513b580201ce1694c",
+    "ce047cd1aaf61aeac87a326abd28241c3284023a3a4b2680a900a7e0a27c9f7c",
+    "eb4761516991d098d8422960c49668778772d9e71c0743f96b974300363c107d",
+    "9403e2ace240c62c12ab3f31da84a1dad7cd596ee136530402eef44e389ced86",
+    "0722caea2cbf40b383bbf8c78388e271251db7a85cc9427696d4bd381d2664ac",
+    "2be5260cffe8833b1fa5d8e084d28514750c030216937c2414790ab0ac7abce6",
+    "854147706c9e1ce8d95bb91be7e69340f651ab1abfdb3b0d2aaede3ab3fdf78f",
+    "6821238ec54c1d2ea87dcc32322d085b2c59fe4518047638e17bf2610b25b665",
+    "0ef8710458ca6522de045d3e981bbd77a88dc6138286b7ae21e514769f21192b",
+    "508f3f1d51515a3206350946f2f8ee7410da93366472e12eafb6bcb7b6078b3e",
+    "046d7111921209397917e42e4a2293e574dddce71c82368aff04abb1631be6e7",
+    "0c984fe2fa94190a33694334c7110b01099f29d8ea8c6aadffbad795f58c6a3e"
+  ]
+}

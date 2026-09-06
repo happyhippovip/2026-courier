@@ -1,0 +1,14 @@
+{
+  "investigation_id": "inv-gen-test-cov-live-worker-registry",
+  "task_id": "TASK-GEN-TEST-COV-LIVE-WORKER-REGISTRY",
+  "input_fingerprint": "ada676b3a83ce4c0b4a7a4ffc39c850ff0733dad8c834ddca7115633151bb548",
+  "evidence_read": "Verify and construct focused test harness for live_worker_registry.py",
+  "commands_run": [],
+  "findings": "Confirmed test gap: Verify and construct focused test harness for live_worker_registry.py",
+  "result_class": "TEST_GAP_CONFIRMED",
+  "result_fingerprint": "d3a9dd3042de6add",
+  "follow_up_tasks": [
+    "TASK-ENG-FOLLOWUP-TEST-COV-LIVE-WORKER-REGISTRY"
+  ],
+  "closed_at": "2026-09-01T12:04:02.167713+00:00"
+}

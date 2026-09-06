@@ -1,0 +1,20 @@
+{
+  "experiment_id": "EXP-AUDIT-20260901-02",
+  "prospect_alias": "P-AUDIT-02",
+  "target_offering": "REV-OPP-B2B-AUTONOMY-AUDIT",
+  "price_eur": 99.0,
+  "correlation_id": "CORR-AUDIT02-20260901235445",
+  "sent_at": "2026-09-01T21:54:45.000000+00:00",
+  "observed_pain": "Agents entering unhandled infinite delegation loops and deadlock states during multi-turn tool execution, hitting recursion limit crashes.",
+  "public_source": "Public GitHub Issue & Agent Reliability Reports 2026-Q1 (LangGraph/CrewAI recursion limits & deadlock issues)",
+  "source_date": "2026-02-15",
+  "buyer_role": "Head of AI Engineering / Technical Lead",
+  "evidence_class": "SOURCE_SUPPORTED_PRODUCTION_INCIDENT",
+  "confidence": "HIGH",
+  "message_fingerprint": "a4d92bc87f119028e3b1c67d",
+  "delivery_status": "EXPOSURE_COMPLETED_WAITING_FOR_RESPONSE",
+  "message_body": {
+    "subject": "Quick question on multi-agent loop termination & deadlock defense",
+    "body": "Hi Team,\n\nNoticed the common challenge in production multi-agent pipelines where agents enter recursive loops during tool delegation or hit recursion limits when subagents deadlock.\n\nWe built a 15-Point Black-Box Multi-Agent Safety Audit (€99, 24h SLA) that detects loop runaway risks, deadlock states, and stale lock collisions.\n\nKey feature: Zero-Access Security. You don't need to share any repo access, private prompts, or API keys—we analyze only sanitized error schemas or execution traces. Includes 3 concrete drop-in Python mitigation recipes (generation-fenced locks, monotonic timeouts, bounded retries).\n\nWould you be open to a 24-hour audit of one agent workflow for €99 fixed? If so, reply 'AUDIT' and we'll send the 1-page intake checklist.\n\nBest regards,\n2026-Courier Commercial Engineering"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "allowed_actions": [
+    "READ_ONLY_RESEARCH",
+    "SYNTHESIZE_OFFER",
+    "RANK_UNCERTAINTY"
+  ],
+  "cost_class": "ZERO_COST",
+  "created_at": "2026-09-01T15:27:21.952405+00:00",
+  "current_evidence": {},
+  "economic_context": {
+    "economic_class": "CASH_NOW",
+    "target_customer": "AI Agent Framework Developers & LLM Automation Engineers",
+    "time_to_first_eur": "1-3_DAYS"
+  },
+  "expected_output_schema": "STRUCTURED_JSON_RESULT",
+  "forbidden_actions": [
+    "UNAPPROVED_SPEND",
+    "AUTO_PUBLISH",
+    "SECRET_LOGGING"
+  ],
+  "goal": "Analyze market dynamics, pricing elasticity, and competitive moat for Autonomous Agent Crash-Safety & Deadlock Verification Toolkit",
+  "job_id": "JOB-GEM-REV-OPP-AGENT-CR-f576b5",
+  "opportunity_id": "REV-OPP-AGENT-CRASH-SAFETY-TOOLKIT",
+  "relevant_files": [],
+  "required_capability": "NON_DETERMINISTIC_REASONING",
+  "result_destination": "events/gemini-results/",
+  "risk_class": "LOW",
+  "task_class": "MARKET_INTERPRETATION",
+  "task_fingerprint": "c7f738e8a9fa3d6f",
+  "task_id": "TASK-EXEC-REV-OPP-AGENT-CRASH--S1"
+}

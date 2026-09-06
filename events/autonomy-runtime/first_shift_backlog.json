@@ -1,0 +1,186 @@
+{
+  "autonomous_spend_eur": 0.0,
+  "created_at": "2026-08-31T23:57:20.065956+00:00",
+  "goal_id": "goal-creator-factory-autonomy",
+  "human_gates": [
+    "work-fruitki-release-proposal"
+  ],
+  "items": [
+    {
+      "acceptance_condition": "File runtime/content/catalog_manifest.json exists and contains valid JSON with >=10 packages",
+      "cost_class": "FREE_LOCAL",
+      "created_at": "2026-08-31T23:57:20.057976+00:00",
+      "critical_path": true,
+      "dependencies": [],
+      "description": "Generate comprehensive FruitKI 3D asset catalog manifest with duration, resolution, and theme metadata",
+      "expected_outcome": "Authoritative catalog manifest written to runtime/content/catalog_manifest.json",
+      "expected_useful_state_change": "Authoritative catalog manifest written to runtime/content/catalog_manifest.json",
+      "gate": "READY",
+      "goal_id": "goal-creator-factory-autonomy",
+      "opportunity_id": "work-fruitki-catalog-enrichment",
+      "parallel_safe": true,
+      "priority": 9,
+      "problem_or_goal": "Generate comprehensive FruitKI 3D asset catalog manifest with duration, resolution, and theme metadata",
+      "provider": "GOOGLE_PRO",
+      "risk": "LOW",
+      "scope": [
+        "runtime/content/catalog_manifest.json"
+      ],
+      "source_fingerprint": "fp-catalog-01",
+      "target_agent": "creator_director",
+      "wave": 1,
+      "work_id": "work-fruitki-catalog-enrichment"
+    },
+    {
+      "acceptance_condition": "Test file tests/test_creator_package_compliance.py passes with >=5 assertions",
+      "cost_class": "FREE_LOCAL",
+      "created_at": "2026-08-31T23:57:20.058784+00:00",
+      "critical_path": true,
+      "dependencies": [],
+      "description": "Implement automated creator package compliance oracle verifying video codec, audio stream, and duration limits",
+      "expected_outcome": "Automated compliance test suite established in tests/test_creator_package_compliance.py",
+      "expected_useful_state_change": "Automated compliance test suite established in tests/test_creator_package_compliance.py",
+      "gate": "READY",
+      "goal_id": "goal-creator-factory-autonomy",
+      "opportunity_id": "work-creator-compliance-oracle",
+      "parallel_safe": true,
+      "priority": 9,
+      "problem_or_goal": "Implement automated creator package compliance oracle verifying video codec, audio stream, and duration limits",
+      "provider": "CODEX",
+      "risk": "LOW",
+      "scope": [
+        "tests/test_creator_package_compliance.py"
+      ],
+      "source_fingerprint": "fp-oracle-01",
+      "target_agent": "codex",
+      "wave": 1,
+      "work_id": "work-creator-compliance-oracle"
+    },
+    {
+      "acceptance_condition": "File runtime/content/inventory_summary.json exists with package counts",
+      "cost_class": "FREE_LOCAL",
+      "created_at": "2026-08-31T23:57:20.058794+00:00",
+      "critical_path": false,
+      "dependencies": [],
+      "description": "Compute deterministic inventory summary of all rendered and unrendered FruitKI shorts",
+      "expected_outcome": "Inventory summary written to runtime/content/inventory_summary.json",
+      "expected_useful_state_change": "Inventory summary written to runtime/content/inventory_summary.json",
+      "gate": "READY",
+      "goal_id": "goal-creator-factory-autonomy",
+      "opportunity_id": "work-fruitki-inventory-summary",
+      "parallel_safe": true,
+      "priority": 8,
+      "problem_or_goal": "Compute deterministic inventory summary of all rendered and unrendered FruitKI shorts",
+      "provider": "LOCAL_DETERMINISTIC",
+      "risk": "LOW",
+      "scope": [
+        "runtime/content/inventory_summary.json"
+      ],
+      "source_fingerprint": "fp-inv-01",
+      "target_agent": "qa_guardian",
+      "wave": 1,
+      "work_id": "work-fruitki-inventory-summary"
+    },
+    {
+      "acceptance_condition": "File runtime/content/licensing_tiers.json exists with valid non-empty pricing tiers",
+      "cost_class": "FREE_LOCAL",
+      "created_at": "2026-08-31T23:57:20.058802+00:00",
+      "critical_path": true,
+      "dependencies": [
+        "work-fruitki-catalog-enrichment"
+      ],
+      "description": "Construct revenue-path asset licensing tier structure and pricing metadata specification",
+      "expected_outcome": "Pricing metadata specification written to runtime/content/licensing_tiers.json",
+      "expected_useful_state_change": "Pricing metadata specification written to runtime/content/licensing_tiers.json",
+      "gate": "READY",
+      "goal_id": "goal-creator-factory-autonomy",
+      "opportunity_id": "work-fruitki-pricing-manifest",
+      "parallel_safe": true,
+      "priority": 7,
+      "problem_or_goal": "Construct revenue-path asset licensing tier structure and pricing metadata specification",
+      "provider": "LOCAL_DETERMINISTIC",
+      "risk": "LOW",
+      "scope": [
+        "runtime/content/licensing_tiers.json"
+      ],
+      "source_fingerprint": "fp-pricing-01",
+      "target_agent": "antigravity",
+      "wave": 2,
+      "work_id": "work-fruitki-pricing-manifest"
+    },
+    {
+      "acceptance_condition": "File runtime/content/qc_batch_report.json exists with PASS verdict for inspected assets",
+      "cost_class": "FREE_LOCAL",
+      "created_at": "2026-08-31T23:57:20.058808+00:00",
+      "critical_path": true,
+      "dependencies": [
+        "work-creator-compliance-oracle"
+      ],
+      "description": "Execute deterministic batch QC verification across Golden Trophy, Mystery Box, and Banana Ninja packages",
+      "expected_outcome": "QC batch validation report saved in runtime/content/qc_batch_report.json",
+      "expected_useful_state_change": "QC batch validation report saved in runtime/content/qc_batch_report.json",
+      "gate": "READY",
+      "goal_id": "goal-creator-factory-autonomy",
+      "opportunity_id": "work-creator-package-qc-batch",
+      "parallel_safe": true,
+      "priority": 8,
+      "problem_or_goal": "Execute deterministic batch QC verification across Golden Trophy, Mystery Box, and Banana Ninja packages",
+      "provider": "GOOGLE_PRO",
+      "risk": "LOW",
+      "scope": [
+        "runtime/content/qc_batch_report.json"
+      ],
+      "source_fingerprint": "fp-qc-batch-01",
+      "target_agent": "qa_guardian",
+      "wave": 2,
+      "work_id": "work-creator-package-qc-batch"
+    },
+    {
+      "acceptance_condition": "Dossier file generated; stays strictly in HUMAN_GATE status until explicit human approval",
+      "cost_class": "FREE_LOCAL",
+      "created_at": "2026-08-31T23:57:20.058815+00:00",
+      "critical_path": false,
+      "dependencies": [
+        "work-fruitki-pricing-manifest",
+        "work-creator-package-qc-batch"
+      ],
+      "description": "Prepare human-reviewable release proposal dossier for verified FruitKI video packages",
+      "expected_outcome": "Release proposal dossier generated at runtime/human_gates/release_proposal_dossier.json",
+      "expected_useful_state_change": "Release proposal dossier generated at runtime/human_gates/release_proposal_dossier.json",
+      "gate": "HUMAN_GATE",
+      "goal_id": "goal-creator-factory-autonomy",
+      "opportunity_id": "work-fruitki-release-proposal",
+      "parallel_safe": true,
+      "priority": 7,
+      "problem_or_goal": "Prepare human-reviewable release proposal dossier for verified FruitKI video packages",
+      "provider": "LOCAL_DETERMINISTIC",
+      "risk": "MEDIUM",
+      "scope": [
+        "runtime/human_gates/release_proposal_dossier.json"
+      ],
+      "source_fingerprint": "fp-release-dossier-01",
+      "target_agent": "publication_officer",
+      "wave": 3,
+      "work_id": "work-fruitki-release-proposal"
+    }
+  ],
+  "money_gates": [],
+  "parallel_pair": [
+    "work-fruitki-catalog-enrichment",
+    "work-creator-compliance-oracle"
+  ],
+  "shift_id": "first-autonomous-shift-001",
+  "total_items": 6,
+  "wave_1": [
+    "work-fruitki-catalog-enrichment",
+    "work-creator-compliance-oracle",
+    "work-fruitki-inventory-summary"
+  ],
+  "wave_2": [
+    "work-fruitki-pricing-manifest",
+    "work-creator-package-qc-batch"
+  ],
+  "wave_3": [
+    "work-fruitki-release-proposal"
+  ]
+}

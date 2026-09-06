@@ -1,0 +1,29 @@
+{
+  "batch_id": "DOSSIER-BATCH-20260901-01",
+  "created_at": "2026-09-01T14:28:44.712933+00:00",
+  "prospect_dossiers": {
+    "CP-01": {
+      "package_id": "PKG-38315be16211",
+      "topic_title": "Agent State Persistence & Crash Recovery",
+      "created_at": "2026-09-01T14:28:44.710714+00:00",
+      "assets": {
+        "linkedin_post": "events/content-transformation-packages/pkg_38315be16211/ASSET_1_LINKEDIN_POST.md",
+        "carousel_deck": "events/content-transformation-packages/pkg_38315be16211/ASSET_2_CAROUSEL_DECK.md",
+        "newsletter_teaser": "events/content-transformation-packages/pkg_38315be16211/ASSET_3_NEWSLETTER_TEASER.md"
+      },
+      "capital_spent_eur": 0.0
+    },
+    "CP-02": {
+      "package_id": "PKG-9c29fe9bf19b",
+      "topic_title": "Batch Task Anti-Stall Architecture",
+      "created_at": "2026-09-01T14:28:44.712556+00:00",
+      "assets": {
+        "linkedin_post": "events/content-transformation-packages/pkg_9c29fe9bf19b/ASSET_1_LINKEDIN_POST.md",
+        "carousel_deck": "events/content-transformation-packages/pkg_9c29fe9bf19b/ASSET_2_CAROUSEL_DECK.md",
+        "newsletter_teaser": "events/content-transformation-packages/pkg_9c29fe9bf19b/ASSET_3_NEWSLETTER_TEASER.md"
+      },
+      "capital_spent_eur": 0.0
+    }
+  },
+  "autonomous_spend_eur": 0.0
+}

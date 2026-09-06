@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "research_question": "What is the current YouTube publication status for video wGNC-KIpGxc on channel FruitKI?",
+  "source": "https://www.youtube.com/watch?v=wGNC-KIpGxc",
+  "source_type": "YOUTUBE",
+  "retrieved_at": "2026-08-31T01:54:56.609991+00:00",
+  "evidence_hash": "1b5f5f83e6629a1c067fa8d459b3ba971262b5cfafdb33fb93dc742b7654d97c",
+  "dedupe_fingerprint": "cb012658aad207a39fc171d9519b87037c8d29dea32a90f9d4c34281bf54960e",
+  "finding": "Video 'Wenn du wei\u00dft,dass du dieHauptfigur im Schulmusical bist #FruitHighSchool #BackToSchool #strawberry' is currently public on channel FruitKI (@kifruchtefilme).",
+  "confidence": "HIGH",
+  "information_gain": "NO_NEW_INFORMATION",
+  "production_relevance": "NO_CURRENT_PIPELINE_CHANGE",
+  "last_checked": "2026-08-31T01:54:56.609991+00:00",
+  "analytics_snapshot": null,
+  "publication_authorized": false
+}

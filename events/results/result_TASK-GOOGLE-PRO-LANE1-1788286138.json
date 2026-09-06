@@ -1,0 +1,19 @@
+{
+  "artifacts": {
+    "artifacts_changed": [
+      "events/revenue-opportunities/market_research/lane_1_analysis.json"
+    ],
+    "fingerprint": "5139019c132682fedf8a4d806d2d7387260c2179d368be5ccf8c68d5d45a98a7"
+  },
+  "completed_at": "2026-09-01T18:08:58.018666+00:00",
+  "evidence": {
+    "capacity_slot": "GOOGLE_PRO_01",
+    "marginal_cost_eur": 0.0
+  },
+  "findings": "Executed on GOOGLE/ANTIGRAVITY_APP on COMPUTER_A. Result: SUCCESS",
+  "opportunity_id": "GOOGLE-PRO-LANE1-1788286138",
+  "result_fingerprint": "734c762b12ee95ca",
+  "result_id": "RES-TASK-GOOGLE-PRO-LANE1-1788286138-734c762b",
+  "status": "SUCCESS",
+  "task_id": "TASK-GOOGLE-PRO-LANE1-1788286138"
+}

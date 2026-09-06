@@ -1,0 +1,17 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-01T01:30:15.847205+00:00",
+  "event_id": "evt-36870e92e4e6",
+  "event_type": "WORKER_STARTED",
+  "evidence": {
+    "availability_class": "TEMPORARY_30_DAY",
+    "initial_registration": true
+  },
+  "fingerprint": "4394f7ae28e5ba3e",
+  "mission_id": "M200",
+  "recommended_action": null,
+  "session_epoch": "epoch-cli1-1788226215",
+  "severity": "INFO",
+  "task_id": null,
+  "worker_id": "CLI1"
+}

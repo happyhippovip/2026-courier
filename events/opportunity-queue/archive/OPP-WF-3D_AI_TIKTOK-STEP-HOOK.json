@@ -1,0 +1,54 @@
+{
+  "archived_at": "2026-09-01T01:17:08.598534+00:00",
+  "completed_at": "2026-09-01T01:17:08.597942+00:00",
+  "completion_fingerprint": "0f7809b6df711f2756700888edbe68530109407dfa3ed37c433a3ac175652550",
+  "description": "Validate pipeline stage HOOK constraints for workflow 3d-ai-tiktok",
+  "objective_id": "PROCESS_APPROVED_CONTENT_QUEUE",
+  "opportunity_id": "OPP-WF-3D_AI_TIKTOK-STEP-HOOK",
+  "original_payload": {
+    "allowed_actions": [
+      "READ"
+    ],
+    "allowed_scope": [
+      "config/content_workflows.json"
+    ],
+    "cost_class": "ZERO_COST_LOCAL",
+    "created_at": "2026-08-30T23:59:27.240868+00:00",
+    "dedupe_fingerprint": "c3d8cb393f22bbe7",
+    "dedupe_hash": "c3d8cb393f22bbe7",
+    "description": "Validate pipeline stage HOOK constraints for workflow 3d-ai-tiktok",
+    "estimated_cost": 0.0,
+    "evidence": {
+      "step": "HOOK",
+      "workflow": "3d-ai-tiktok"
+    },
+    "evidence_type": "",
+    "expected_output": "",
+    "expected_value": "Ensures stage HOOK schema conformance for 3d-ai-tiktok",
+    "external_action_units": 0,
+    "heavy_job": false,
+    "model_need": false,
+    "objective_id": "PROCESS_APPROVED_CONTENT_QUEUE",
+    "opportunity_id": "OPP-WF-3D_AI_TIKTOK-STEP-HOOK",
+    "priority": 8,
+    "problem_or_goal": "",
+    "production_stage": "",
+    "project": "2026-courier",
+    "project_id": "",
+    "required_capabilities": [],
+    "risk": "LOW",
+    "risk_class": "LOW",
+    "source": "CONTENT_WORKFLOW_PIPELINE",
+    "source_artifact": "",
+    "source_hash": "",
+    "status": "COMPLETED",
+    "target_agent": "antigravity",
+    "updated_at": "2026-08-30T23:59:27.294762+00:00"
+  },
+  "priority": 8,
+  "project": "2026-courier",
+  "result_reference": null,
+  "source": "CONTENT_WORKFLOW_PIPELINE",
+  "status": "COMPLETED",
+  "target_agent": "antigravity"
+}

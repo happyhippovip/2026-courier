@@ -25,6 +25,7 @@ class GoalRecord:
 
 class MultiChatGoalIntake:
     def __init__(self, workspace_dir: str):
+        pass
         self.workspace_dir = Path(workspace_dir)
         self.db_file = self.workspace_dir / "events" / "founder-mode" / "goals.json"
         self.lock_file = self.workspace_dir / "events" / "founder-mode" / "goals.lock"
@@ -117,6 +118,10 @@ class MultiChatGoalIntake:
                         has_blocked = any(m.get("goal") == g["goal"] and m.get("status") == "BLOCKED" and m.get("result_reference") == "WORKER_UNAVAILABLE" for m in missions)
                         if has_blocked:
                             g["status"] = "BLOCKED"
+                        else:
+                            # Stale ACTIVE with no live or blocked missions means the orchestrator crashed.
+                            # Reset to PENDING so it can be picked up again.
+                            g["status"] = "PENDING"
 
             # Then, check if any BLOCKED goals are now unblocked due to changed evidence
             for g in data:
@@ -146,6 +151,15 @@ class MultiChatGoalIntake:
                     return g
             return None
         return self._mutate(_pop)
+
+    def reopen_invalidated_blocker(self, goal_id: str) -> bool:
+        def _reopen(data):
+            for r in data:
+                if r["goal_id"] == goal_id and r["status"] in ("BLOCKED", "FAILED", "HUMAN_GATE"):
+                    r["status"] = "PENDING"
+                    return True
+            return False
+        return self._mutate(_reopen)
 
     def set_status(self, goal_id: str, status: str, blocker_evidence: dict = None):
         def _update(data):
@@ -303,13 +317,12 @@ class FounderModePlanner:
                 "capability_required": "local repo analysis",
                 "preferred_agent": "GEMINI",
                 "is_heavy": False,
-                "requires_write": True,
+                "requires_write": False,
                 "is_heavy": True,
                 "task": {
                     "action": "discover_improvement_opportunities",
                     "goal_context": goal_text,
-                    "capability_request": "local repo analysis",
-                    "acceptance_criteria": self._extract_acceptance_criteria(goal_text)
+                    "capability_request": "local repo analysis"
                 }
             }]
 
@@ -337,20 +350,23 @@ class FounderModePlanner:
                 "is_heavy": True,
                 "requires_write": True,
                 "task": {
-                    "prompt": f"Fix {finding['finding_id']}",
-                    "capability_request": "implementation"
+                    "action": "implement_bounded_improvement",
+                    "prompt": f"Fix {finding['finding_id']}. Details: {finding.get('description', '')}. Verify via: {finding.get('verification_strategy', '')}",
+                    "capability_request": "implementation",
+                    "acceptance_criteria": self._extract_acceptance_criteria(goal_text) or {"finding_id": finding["finding_id"], "affected_files": finding["affected_files"]}
                 }
             }]
 
         elif task_type == "IMPLEMENTATION":
             files = last_result.get("changed_files", [])
+            files_str = ", ".join(files) if len(files) <= 5 else f"{len(files)} files"
             return [{
                 "goal": goal_text,
-                "normalized_task": f"Verify implementation in {', '.join(files)}",
+                "normalized_task": f"Verify implementation in {files_str}",
                 "capability_required": "repo verification",
-                "preferred_agent": "GEMINI",
+                "preferred_agent": "CLI1",
                 "is_heavy": False,
-                "requires_write": True,
+                "requires_write": False,
                 "is_heavy": True,
                 "task": {
                     "action": "verify_improvement_tests",
@@ -433,7 +449,7 @@ class FounderModeMVP:
                 self.intake.set_status(goal["goal_id"], "HUMAN_GATE")
                 break
                 
-            if status in ["BLOCKED", "FAIL", "UNKNOWN"]:
+            if status in ["BLOCKED", "FAIL", "FAILED", "UNKNOWN"]:
                 self.stats["blockers"] += 1
                 # Record error lesson
                 self.memory.record_lesson(
@@ -449,6 +465,19 @@ class FounderModeMVP:
                     resolver = WorkerAvailabilityResolver()
                     gemini_evidence = resolver.resolve_gemini()
                     evidence = {"worker_evidence": gemini_evidence.to_dict()}
+                
+                    continue
+                from scripts.courier_self_repair import CourierSelfRepair
+                repair = CourierSelfRepair(self.workspace_dir)
+                res = repair.handle_failure(
+                    goal_id=goal["goal_id"],
+                    original_goal=goal["goal"],
+                    failure=mission_result.get("reason", "Unknown failure")
+                )
+                if res.get("status") == "REPAIR_QUEUED":
+                    continue
+                if status == "FAILED":
+                    continue
                 
                 self.intake.set_status(goal["goal_id"], "BLOCKED", blocker_evidence=evidence)
                 break

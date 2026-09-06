@@ -1,0 +1,30 @@
+{
+  "BARRIER-187G-SYNTHESIS": {
+    "arrived_result_ids": [
+      "CORR-187G-WA",
+      "CORR-187G-WB"
+    ],
+    "barrier_id": "BARRIER-187G-SYNTHESIS",
+    "created_at": "2026-08-31T22:37:28.726091+00:00",
+    "decision_owner": "CHIEF",
+    "dispatch_condition": "BARRIER_SATISFIED",
+    "optional_result_ids": [],
+    "required_result_ids": [
+      "CORR-187G-WA",
+      "CORR-187G-WB"
+    ],
+    "review_policy": "ACCUMULATE_DEBT",
+    "satisfied_at": "2026-08-31T22:37:28.807422+00:00",
+    "state": "CLOSED",
+    "stored_results": {
+      "CORR-187G-WA": {
+        "part_a": "done"
+      },
+      "CORR-187G-WB": {
+        "part_b": "done"
+      }
+    },
+    "task_id": "OPP-187G-MULTI-WORKER-SYNTHESIS",
+    "wait_policy": "ALL_REQUIRED"
+  }
+}

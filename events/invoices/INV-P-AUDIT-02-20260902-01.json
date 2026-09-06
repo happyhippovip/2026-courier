@@ -1,0 +1,17 @@
+{
+  "invoice_id": "INV-P-AUDIT-02-20260902-01",
+  "opportunity_id": "REV-OPP-B2B-AUTONOMY-AUDIT",
+  "prospect_id": "P-AUDIT-02",
+  "customer_name": "Test Lead",
+  "customer_email": "lead@example.com",
+  "amount_eur": 99.0,
+  "currency": "EUR",
+  "business_name": "2026-Courier Commercial Operations",
+  "payment_reference": "REF-INV-P-AUDIT-02-20260902-01-79bc4842",
+  "payment_link": "Awaiting account owner configuration (AUTONOMOUS GENERATION)",
+  "created_at": "2026-09-02T19:18:10.300012+00:00",
+  "due_date": "2026-09-09T19:18:10.300012+00:00",
+  "status": "ISSUED_UNPAID",
+  "destination_verified": false,
+  "autonomous_spend_eur": 0.0
+}

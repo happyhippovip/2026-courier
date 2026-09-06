@@ -1,0 +1,31 @@
+{
+  "allowed_actions": [
+    "READ_ONLY_RESEARCH",
+    "SYNTHESIZE_OFFER",
+    "RANK_UNCERTAINTY"
+  ],
+  "cost_class": "ZERO_COST",
+  "created_at": "2026-09-01T13:58:28.403190+00:00",
+  "current_evidence": {},
+  "economic_context": {
+    "economic_class": "RECURRING_REVENUE",
+    "target_customer": "Indie Game Developers, 3D Creators & Mobile Animators",
+    "time_to_first_eur": "1-2_WEEKS"
+  },
+  "expected_output_schema": "STRUCTURED_JSON_RESULT",
+  "forbidden_actions": [
+    "UNAPPROVED_SPEND",
+    "AUTO_PUBLISH",
+    "SECRET_LOGGING"
+  ],
+  "goal": "Analyze market dynamics, pricing elasticity, and competitive moat for FruitKI & Godot 3D Animation Asset Commercial Royalty-Free Pack",
+  "job_id": "JOB-GEM-REV-OPP-ASSET-LI-51bcaa",
+  "opportunity_id": "REV-OPP-ASSET-LICENSING-FRUITKI",
+  "relevant_files": [],
+  "required_capability": "NON_DETERMINISTIC_REASONING",
+  "result_destination": "events/gemini-results/",
+  "risk_class": "LOW",
+  "task_class": "MARKET_INTERPRETATION",
+  "task_fingerprint": "ce3d457561fae52f",
+  "task_id": "TASK-EXEC-REV-OPP-ASSET-LICENS-S1"
+}

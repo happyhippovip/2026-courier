@@ -1,0 +1,16 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-01T12:04:02.220548+00:00",
+  "event_id": "evt-5620f9a36cd1",
+  "event_type": "WORKER_PROGRESS",
+  "evidence": {
+    "executed_before_restart": true
+  },
+  "fingerprint": "2a5e3fc5365c49da",
+  "mission_id": "M212",
+  "recommended_action": null,
+  "session_epoch": "epoch-google-1788264239",
+  "severity": "INFO",
+  "task_id": "TASK-RECOVERY-VERIFY-001",
+  "worker_id": "GOOGLE"
+}

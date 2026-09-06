@@ -1,0 +1,14 @@
+{
+  "blocking_scope": [
+    "events/revenue-opportunities/offerings/b2b_autonomy_audit"
+  ],
+  "correlation_id": "CORR-B2B-OUTREACH-01",
+  "created_at": "2026-09-01T13:58:25.439396+00:00",
+  "expected_result_type": "HUMAN_OUTREACH_APPROVAL_RESULT",
+  "released_at": "2026-09-01T14:10:50.985878+00:00",
+  "result_fingerprint": "b248bc23061bf86e",
+  "state": "RESULT_RECEIVED",
+  "task_id": "TASK-B2B-OUTREACH-BATCH-01",
+  "wait_id": "WAIT-TASK-B2B-OUTREAC-8c95e7",
+  "worker_id": "GOOGLE_BUILDER"
+}

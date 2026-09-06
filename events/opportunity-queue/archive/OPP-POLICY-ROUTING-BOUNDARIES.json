@@ -1,0 +1,53 @@
+{
+  "archived_at": "2026-09-01T01:17:08.668546+00:00",
+  "completed_at": "2026-09-01T01:17:08.667683+00:00",
+  "completion_fingerprint": "0bb2fd495b5d098165af7a06f403ef4eca9a31f471f4e86600e54ad4210c406b",
+  "description": "Verify routine vs teamwork multi-agent routing boundaries",
+  "objective_id": "IMPROVE_RELIABILITY",
+  "opportunity_id": "OPP-POLICY-ROUTING-BOUNDARIES",
+  "original_payload": {
+    "allowed_actions": [
+      "READ"
+    ],
+    "allowed_scope": [
+      "config/teamwork_policy.json"
+    ],
+    "cost_class": "ZERO_COST_LOCAL",
+    "created_at": "2026-08-30T23:59:27.243073+00:00",
+    "dedupe_fingerprint": "01833106fd3ba145",
+    "dedupe_hash": "01833106fd3ba145",
+    "description": "Verify routine vs teamwork multi-agent routing boundaries",
+    "estimated_cost": 0.0,
+    "evidence": {
+      "policy_file": "config/teamwork_policy.json"
+    },
+    "evidence_type": "",
+    "expected_output": "",
+    "expected_value": "Ensures routine deterministic tasks run single-agent without team overhead",
+    "external_action_units": 0,
+    "heavy_job": false,
+    "model_need": false,
+    "objective_id": "IMPROVE_RELIABILITY",
+    "opportunity_id": "OPP-POLICY-ROUTING-BOUNDARIES",
+    "priority": 7,
+    "problem_or_goal": "",
+    "production_stage": "",
+    "project": "2026-courier",
+    "project_id": "",
+    "required_capabilities": [],
+    "risk": "LOW",
+    "risk_class": "LOW",
+    "source": "TEAMWORK_POLICY",
+    "source_artifact": "",
+    "source_hash": "",
+    "status": "COMPLETED",
+    "target_agent": "antigravity",
+    "updated_at": "2026-08-30T23:59:27.296123+00:00"
+  },
+  "priority": 7,
+  "project": "2026-courier",
+  "result_reference": null,
+  "source": "TEAMWORK_POLICY",
+  "status": "COMPLETED",
+  "target_agent": "antigravity"
+}

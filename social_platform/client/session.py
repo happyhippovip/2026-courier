@@ -8,9 +8,38 @@ class UserSession:
     Provides ergonomic end-to-end interactions with the platform.
     """
 
-    def __init__(self, client: SocialPlatformClient, user_id: str):
-        self.client = client
-        self.user_id = user_id
+    def __init__(
+        self,
+        arg1: Any = None,
+        arg2: Any = None,
+        *,
+        client: Any = None,
+        user_id: Any = None
+    ):
+        resolved_client = client
+        resolved_user_id = user_id
+
+        if arg1 is not None:
+            if isinstance(arg1, SocialPlatformClient):
+                resolved_client = arg1
+            elif isinstance(arg1, str) or isinstance(arg1, (int, float)):
+                resolved_user_id = str(arg1)
+            else:
+                resolved_client = arg1
+
+        if arg2 is not None:
+            if isinstance(arg2, SocialPlatformClient):
+                resolved_client = arg2
+            elif isinstance(arg2, str) or isinstance(arg2, (int, float)):
+                resolved_user_id = str(arg2)
+            else:
+                if resolved_client is None:
+                    resolved_client = arg2
+                else:
+                    resolved_user_id = str(arg2)
+
+        self.client = resolved_client
+        self.user_id = str(resolved_user_id) if resolved_user_id is not None else ""
 
     # --------------------------------------------------------------------------
     # Profile & Identity
@@ -47,6 +76,46 @@ class UserSession:
     def export_data(self) -> Dict[str, Any]:
         """Exports all data associated with the active user."""
         return self.client.export_user_data(self.user_id)
+
+    def get_dossier(
+        self,
+        format: str = "markdown",
+        dossier_type: str = "user_archive",
+        style: str = "standard",
+        anonymize_pii: bool = False,
+        redact_private_messages: bool = False
+    ) -> Dict[str, Any]:
+        """Generates a structured content transformation dossier for this session's user."""
+        return self.client.get_user_dossier(
+            self.user_id,
+            format=format,
+            dossier_type=dossier_type,
+            style=style,
+            anonymize_pii=anonymize_pii,
+            redact_private_messages=redact_private_messages
+        )
+
+    def get_academic_portfolio(self, format: str = "markdown", **kwargs) -> Dict[str, Any]:
+        """Generates academic portfolio dossier for this session's user."""
+        return self.client.get_user_dossier(self.user_id, format=format, dossier_type="academic_portfolio", **kwargs)
+
+    def get_research_dossier(self, format: str = "markdown", **kwargs) -> Dict[str, Any]:
+        """Generates research and publications dossier for this session's user."""
+        return self.client.get_user_dossier(self.user_id, format=format, dossier_type="research_dossier", **kwargs)
+
+    def export_package(self, format: str = "zip", output_path: Optional[str] = None) -> Any:
+        """Creates or downloads a complete multi-format export archive package."""
+        if output_path:
+            return self.client.download_export_package(self.user_id, output_path=output_path, format=format)
+        return self.client.create_export_package(self.user_id, format=format)
+
+    def get_discussion_dossier(self, discussion_id: str, format: str = "markdown", **kwargs) -> Dict[str, Any]:
+        """Generates formatted discussion thread dossier."""
+        return self.client.get_discussion_dossier(discussion_id, format=format, **kwargs)
+
+    def get_community_dossier(self, community_id: str, format: str = "markdown", **kwargs) -> Dict[str, Any]:
+        """Generates formatted community knowledge digest dossier."""
+        return self.client.get_community_dossier(community_id, format=format, **kwargs)
 
     # --------------------------------------------------------------------------
     # Content & Feed
@@ -100,9 +169,58 @@ class UserSession:
             reply_id=reply_id
         )
 
-    def endorse(self, discussion_id: str) -> Dict[str, Any]:
-        """Endorses a discussion for substance/value."""
-        return self.client.endorse_discussion(discussion_id=discussion_id, user_id=self.user_id)
+    def endorse(
+        self,
+        discussion_id: str,
+        weight: Optional[float] = None,
+        domain: Optional[str] = None,
+        value_category: Optional[str] = None,
+        comment: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Endorses a discussion for substance/value with optional domain reputation weighting."""
+        return self.client.endorse_discussion(
+            discussion_id=discussion_id,
+            user_id=self.user_id,
+            weight=weight,
+            domain=domain,
+            value_category=value_category,
+            comment=comment
+        )
+
+    def endorse_discussion(
+        self,
+        discussion_id: str,
+        weight: Optional[float] = None,
+        domain: Optional[str] = None,
+        value_category: Optional[str] = None,
+        comment: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Alias for endorse."""
+        return self.endorse(
+            discussion_id=discussion_id,
+            weight=weight,
+            domain=domain,
+            value_category=value_category,
+            comment=comment
+        )
+
+    def endorse_resource(
+        self,
+        resource_id: str,
+        weight: Optional[float] = None,
+        domain: Optional[str] = None,
+        value_category: Optional[str] = None,
+        comment: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Endorses an academic study resource with optional domain reputation weighting."""
+        return self.client.endorse_resource(
+            resource_id=resource_id,
+            user_id=self.user_id,
+            weight=weight,
+            domain=domain,
+            value_category=value_category,
+            comment=comment
+        )
 
     def feed(
         self,
@@ -112,6 +230,7 @@ class UserSession:
         community_id: Optional[str] = None,
         channel_id: Optional[str] = None,
         interests: Optional[List[str]] = None,
+        domain: Optional[str] = None,
         include_hidden: bool = False
     ) -> List[Dict[str, Any]]:
         """Retrieves personal feed."""
@@ -121,6 +240,7 @@ class UserSession:
             community_id=community_id,
             channel_id=channel_id,
             interests=interests,
+            domain=domain,
             limit=limit,
             offset=offset,
             include_hidden=include_hidden
@@ -137,6 +257,22 @@ class UserSession:
     def community_feed(self, community_id: str, limit: Optional[int] = None, offset: Optional[int] = None) -> List[Dict[str, Any]]:
         """Retrieves feed for a specific community."""
         return self.client.get_community_feed(user_id=self.user_id, community_id=community_id, limit=limit, offset=offset)
+
+    def weighted_feed(self, limit: Optional[int] = None, offset: Optional[int] = None) -> List[Dict[str, Any]]:
+        """Retrieves feed ranked by weighted value endorsements and peer validation."""
+        return self.client.get_weighted_feed(user_id=self.user_id, limit=limit, offset=offset)
+
+    def domain_feed(self, domain: Optional[str] = None, limit: Optional[int] = None, offset: Optional[int] = None) -> List[Dict[str, Any]]:
+        """Retrieves feed ranked by domain expertise and author reputation."""
+        return self.client.get_domain_feed(user_id=self.user_id, domain=domain, limit=limit, offset=offset)
+
+    def get_reputation(self, domain: Optional[str] = None) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
+        """Gets active user's domain reputation score(s)."""
+        return self.client.get_user_reputation(user_id=self.user_id, domain=domain)
+
+    def get_domain_reputation(self, domain: str) -> Dict[str, Any]:
+        """Gets active user's reputation in a specific domain."""
+        return self.client.get_domain_reputation(user_id=self.user_id, domain=domain)
 
     # --------------------------------------------------------------------------
     # Social Graph

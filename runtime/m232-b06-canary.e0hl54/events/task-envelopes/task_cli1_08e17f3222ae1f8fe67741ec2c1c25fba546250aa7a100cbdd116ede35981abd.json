@@ -1,0 +1,18 @@
+{
+  "capability": "local repo analysis",
+  "is_heavy": true,
+  "payload": {
+    "action": "inspect_repo",
+    "capability_request": "local repo analysis",
+    "is_heavy": true,
+    "requires_write": false
+  },
+  "requires_write": false,
+  "safety_decision": "APPROVED_SAFE",
+  "schema_version": "1.0",
+  "target_agent": "CLI1",
+  "task_hash": "08e17f3222ae1f8fe67741ec2c1c25fba546250aa7a100cbdd116ede35981abd",
+  "type": "TASK",
+  "verification_required": true,
+  "worker_id": "m232-b06-operator"
+}

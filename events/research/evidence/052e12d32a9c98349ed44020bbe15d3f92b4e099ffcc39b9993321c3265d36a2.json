@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "research_question": "Does current official YouTube scope documentation change the local creator production decision?",
+  "source": "https://developers.google.com/youtube/v3/guides/auth/installed-apps",
+  "source_type": "OFFICIAL_PUBLIC_DOCUMENTATION",
+  "retrieved_at": "2026-08-31T01:40:34.816324+00:00",
+  "evidence_hash": "4ab8ebfb8fa0627c41ce54fb6ab86e6ccb82f8b20fe43b7d5be848fb8af186c9",
+  "dedupe_fingerprint": "052e12d32a9c98349ed44020bbe15d3f92b4e099ffcc39b9993321c3265d36a2",
+  "finding": "The documented YouTube Data API scope list includes youtube.force-ssl. The current local pilot already uses that scope; this check changes no current production decision.",
+  "confidence": "HIGH",
+  "information_gain": "NO_NEW_INFORMATION",
+  "production_relevance": "NO_CURRENT_PIPELINE_CHANGE",
+  "last_checked": "2026-08-31T01:40:34.816324+00:00",
+  "analytics_snapshot": null,
+  "publication_authorized": false
+}

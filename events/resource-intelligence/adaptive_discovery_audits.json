@@ -1,0 +1,48 @@
+[
+  {
+    "search_id": "audit-1788264498165",
+    "search_depth": "LIGHT_SCAN",
+    "trigger_reason": "FORCED_SCAN",
+    "executed_at": "2026-09-01T12:08:18.161166+00:00",
+    "new_options_found": [
+      "Worker CLI1 is available with 0 EUR spend profile",
+      "Worker CLI2 is available with 0 EUR spend profile",
+      "Worker CODEX is available with 0 EUR spend profile"
+    ],
+    "useful_capability_changes": [],
+    "potential_route_improvements": [],
+    "actionable_changes": [],
+    "information_gain_class": "MEDIUM_INFORMATION_GAIN",
+    "previous_cadence_days": 3,
+    "new_cadence_days": 2,
+    "next_search_at": "2026-09-03T12:08:18.161166+00:00",
+    "consecutive_no_change_count": 0,
+    "model_calls": 0,
+    "model_calls_avoided": 1,
+    "spend_eur": 0.0,
+    "search_fingerprint": "6a4509fc7740bc6e"
+  },
+  {
+    "search_id": "audit-1788636106897",
+    "search_depth": "LIGHT_SCAN",
+    "trigger_reason": "SCHEDULED_CADENCE_REACHED",
+    "executed_at": "2026-09-05T19:21:46.896715+00:00",
+    "new_options_found": [
+      "Worker CLI1 is available with 0 EUR spend profile",
+      "Worker CLI2 is available with 0 EUR spend profile",
+      "Worker CODEX is available with 0 EUR spend profile"
+    ],
+    "useful_capability_changes": [],
+    "potential_route_improvements": [],
+    "actionable_changes": [],
+    "information_gain_class": "MEDIUM_INFORMATION_GAIN",
+    "previous_cadence_days": 2,
+    "new_cadence_days": 1,
+    "next_search_at": "2026-09-06T19:21:46.896715+00:00",
+    "consecutive_no_change_count": 0,
+    "model_calls": 0,
+    "model_calls_avoided": 1,
+    "spend_eur": 0.0,
+    "search_fingerprint": "18fc7e380efc6355"
+  }
+]

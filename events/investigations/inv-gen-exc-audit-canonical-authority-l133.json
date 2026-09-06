@@ -1,0 +1,14 @@
+{
+  "investigation_id": "inv-gen-exc-audit-canonical-authority-l133",
+  "task_id": "TASK-GEN-EXC-AUDIT-CANONICAL-AUTHORITY-L133",
+  "input_fingerprint": "e60e5bf4d7407122bedf395762fd9f1c08b7114ce0206797803ac888911b4fd9",
+  "evidence_read": "Audit silent exception block in scripts/canonical_authority.py:133",
+  "commands_run": [],
+  "findings": "Confirmed silent exception suppression defect: Audit silent exception block in scripts/canonical_authority.py:133",
+  "result_class": "DEFECT_CONFIRMED",
+  "result_fingerprint": "ddd2994a290127d0",
+  "follow_up_tasks": [
+    "TASK-ENG-FOLLOWUP-EXC-AUDIT-CANONICAL-AUTHORITY-L133"
+  ],
+  "closed_at": "2026-09-01T12:04:05.289433+00:00"
+}

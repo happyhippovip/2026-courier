@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "research_question": "What is the current YouTube publication status for video RuXNuM5Xbj8 on channel FruitKI?",
+  "source": "https://www.youtube.com/watch?v=RuXNuM5Xbj8",
+  "source_type": "YOUTUBE",
+  "retrieved_at": "2026-08-31T01:54:56.609155+00:00",
+  "evidence_hash": "bcafc1e638fbc9ab3aef94c6ea5ea4879926a63bd26871efd4e6f16c755af8b6",
+  "dedupe_fingerprint": "c65befb5440a7732ac229c4b5a8b2240f097e74e4f355bdc1f71cd9985ee11d4",
+  "finding": "Video 'FruitKI private pipeline test' is currently private on channel FruitKI (@kifruchtefilme).",
+  "confidence": "HIGH",
+  "information_gain": "NO_NEW_INFORMATION",
+  "production_relevance": "NO_CURRENT_PIPELINE_CHANGE",
+  "last_checked": "2026-08-31T01:54:56.609155+00:00",
+  "analytics_snapshot": null,
+  "publication_authorized": false
+}

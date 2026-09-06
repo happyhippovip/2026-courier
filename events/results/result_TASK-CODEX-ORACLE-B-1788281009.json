@@ -1,0 +1,19 @@
+{
+  "artifacts": {
+    "artifacts_changed": [
+      "events/runtime-state/oracle_stage_b.json"
+    ],
+    "fingerprint": "25bd9fd4ad914f2444754e97c3965c6da49895a9b2c3d1655e58491a5f6a3ed3"
+  },
+  "completed_at": "2026-09-01T16:43:29.780229+00:00",
+  "evidence": {
+    "gemini_job_id": "JOB-GEM-ORACLE-1788281009",
+    "status": "SUCCESS"
+  },
+  "findings": "Executed on GOOGLE/ANTIGRAVITY_APP on COMPUTER_A. Result: SUCCESS",
+  "opportunity_id": "CODEX-ORACLE-B-1788281009",
+  "result_fingerprint": "72b4c7aa5da8e1a5",
+  "result_id": "RES-TASK-CODEX-ORACLE-B-1788281009-72b4c7aa",
+  "status": "SUCCESS",
+  "task_id": "TASK-CODEX-ORACLE-B-1788281009"
+}

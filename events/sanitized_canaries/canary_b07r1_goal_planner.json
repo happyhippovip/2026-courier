@@ -1,0 +1,198 @@
+{
+  "canary_id": "canary-b07r1-goal-planner",
+  "root_goal": "Improve Courier's operational readiness by autonomously finding one small, safe, locally verifiable weakness in its own dispatcher/worker infrastructure, improving it if justified, verifying the result, and stopping when the goal is satisfied.",
+  "planner_type": "CourierGoalPlanner",
+  "mission_id_specific_derivation_present": false,
+  "task_content_pre_scripted": false,
+  "total_missions_created": 3,
+  "verified_missions_count": 3,
+  "write_missions_count": 1,
+  "trace": [
+    {
+      "step": 0,
+      "event": "ROOT_GOAL_SEEDED",
+      "root_goal": "Improve Courier's operational readiness by autonomously finding one small, safe, locally verifiable weakness in its own dispatcher/worker infrastructure, improving it if justified, verifying the result, and stopping when the goal is satisfied.",
+      "planner_decision": {
+        "decision": "CONTINUE",
+        "next_mission": {
+          "mission_id": "plan-diag-2eb789c0",
+          "goal": "Improve Courier's operational readiness by autonomously finding one small, safe, locally verifiable weakness in its own dispatcher/worker infrastructure, improving it if justified, verifying the result, and stopping when the goal is satisfied.",
+          "normalized_task": "Diagnose dispatcher and worker infrastructure for safe, locally verifiable weaknesses",
+          "capability_required": "local repo analysis",
+          "preferred_agent": "CLI1",
+          "requires_write": false,
+          "is_heavy": false,
+          "risk_class": "SAFE",
+          "task": {
+            "action": "diagnose_infrastructure",
+            "target_subsystem": "dispatcher_and_workers",
+            "requires_write": false,
+            "correlation_id": "corr-plan-diag-2eb789c0",
+            "task_id": "plan-diag-2eb789c0"
+          }
+        },
+        "reason": "Created initial discovery mission to diagnose infrastructure weaknesses."
+      }
+    },
+    {
+      "step": 1,
+      "event": "PLANNER_STEP",
+      "verified_missions_count": 1,
+      "planner_decision": {
+        "decision": "CONTINUE",
+        "next_mission": {
+          "mission_id": "plan-imp-334a470f",
+          "goal": "Improve AGY_HELPER_PATH_CONFIGURABILITY: is_agy_installed and get_agy_version hardcode AGY_CLI_PATH without optional agy_path parameter",
+          "normalized_task": "Apply bounded code improvement to scripts/native_agy_runner.py",
+          "capability_required": "architecture",
+          "preferred_agent": "GEMINI",
+          "requires_write": true,
+          "is_heavy": false,
+          "risk_class": "SAFE",
+          "task": {
+            "action": "implement_bounded_improvement",
+            "target_weakness": "AGY_HELPER_PATH_CONFIGURABILITY",
+            "description": "is_agy_installed and get_agy_version hardcode AGY_CLI_PATH without optional agy_path parameter",
+            "target_files": [
+              "scripts/native_agy_runner.py"
+            ],
+            "requires_write": true,
+            "correlation_id": "corr-plan-imp-334a470f",
+            "task_id": "plan-imp-334a470f"
+          }
+        },
+        "reason": "Derived code improvement mission for identified weakness 'AGY_HELPER_PATH_CONFIGURABILITY'."
+      }
+    },
+    {
+      "step": 2,
+      "event": "PLANNER_STEP",
+      "verified_missions_count": 2,
+      "planner_decision": {
+        "decision": "CONTINUE",
+        "next_mission": {
+          "mission_id": "plan-ver-503ea92c",
+          "goal": "Verify test suite and regression status of the improved infrastructure",
+          "normalized_task": "Run regression test suite verifying updates in scripts/native_agy_runner.py, tests/test_native_agy_runner.py",
+          "capability_required": "repo verification",
+          "preferred_agent": "CLI1",
+          "requires_write": false,
+          "is_heavy": false,
+          "risk_class": "SAFE",
+          "task": {
+            "action": "verify_improvement_tests",
+            "target_files": [
+              "scripts/native_agy_runner.py",
+              "tests/test_native_agy_runner.py"
+            ],
+            "requires_write": false,
+            "correlation_id": "corr-plan-ver-503ea92c",
+            "task_id": "plan-ver-503ea92c"
+          }
+        },
+        "reason": "Derived verification test mission to confirm regression-free status of code changes."
+      }
+    },
+    {
+      "step": 3,
+      "event": "PLANNER_STEP",
+      "verified_missions_count": 3,
+      "planner_decision": {
+        "decision": "GOAL_SATISFIED",
+        "next_mission": null,
+        "reason": "Root goal satisfied: weakness diagnosed, bounded improvement implemented, and test suite verified."
+      }
+    }
+  ],
+  "final_missions": [
+    {
+      "capability_required": "local repo analysis",
+      "claimed_by": "canary-worker",
+      "created_at": 1788472958.5408158,
+      "goal": "Improve Courier's operational readiness by autonomously finding one small, safe, locally verifiable weakness in its own dispatcher/worker infrastructure, improving it if justified, verifying the result, and stopping when the goal is satisfied.",
+      "is_heavy": false,
+      "mission_id": "plan-diag-2eb789c0",
+      "next_mission_reference": "plan-imp-334a470f",
+      "normalized_task": "Diagnose dispatcher and worker infrastructure for safe, locally verifiable weaknesses",
+      "parent_mission_id": null,
+      "preferred_agent": "CLI1",
+      "requires_write": false,
+      "result_reference": "/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/tmpp1ruo2wv/events/task-envelopes/result_cli1_75c4053abd046841179a19fe2ed2b63ec786a0a0287f88c1c337efd6b72f3a25.json",
+      "risk_class": "SAFE",
+      "status": "VERIFIED",
+      "task": {
+        "action": "diagnose_infrastructure",
+        "capability_request": "local repo analysis",
+        "correlation_id": "corr-plan-diag-2eb789c0",
+        "requires_write": false,
+        "target_subsystem": "dispatcher_and_workers",
+        "task_id": "plan-diag-2eb789c0"
+      },
+      "task_hash": "75c4053abd046841179a19fe2ed2b63ec786a0a0287f88c1c337efd6b72f3a25",
+      "verification_reference": "75c4053abd046841179a19fe2ed2b63ec786a0a0287f88c1c337efd6b72f3a25",
+      "verification_required": true
+    },
+    {
+      "capability_required": "architecture",
+      "claimed_by": "canary-worker",
+      "created_at": 1788472958.557647,
+      "goal": "Improve AGY_HELPER_PATH_CONFIGURABILITY: is_agy_installed and get_agy_version hardcode AGY_CLI_PATH without optional agy_path parameter",
+      "is_heavy": false,
+      "mission_id": "plan-imp-334a470f",
+      "next_mission_reference": "plan-ver-503ea92c",
+      "normalized_task": "Apply bounded code improvement to scripts/native_agy_runner.py",
+      "parent_mission_id": "plan-diag-2eb789c0",
+      "preferred_agent": "GEMINI",
+      "requires_write": true,
+      "result_reference": "/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/tmpp1ruo2wv/events/task-envelopes/result_gemini_f53fa1b9804f7489b9e30150009367dc86bb9963c5dadbc4bd6924721b2dcc08.json",
+      "risk_class": "SAFE",
+      "status": "VERIFIED",
+      "task": {
+        "action": "implement_bounded_improvement",
+        "capability_request": "architecture",
+        "correlation_id": "corr-plan-imp-334a470f",
+        "description": "is_agy_installed and get_agy_version hardcode AGY_CLI_PATH without optional agy_path parameter",
+        "requires_write": true,
+        "target_files": [
+          "scripts/native_agy_runner.py"
+        ],
+        "target_weakness": "AGY_HELPER_PATH_CONFIGURABILITY",
+        "task_id": "plan-imp-334a470f"
+      },
+      "task_hash": "f53fa1b9804f7489b9e30150009367dc86bb9963c5dadbc4bd6924721b2dcc08",
+      "verification_reference": "f53fa1b9804f7489b9e30150009367dc86bb9963c5dadbc4bd6924721b2dcc08",
+      "verification_required": true
+    },
+    {
+      "capability_required": "repo verification",
+      "claimed_by": "canary-worker",
+      "created_at": 1788472958.5943072,
+      "goal": "Verify test suite and regression status of the improved infrastructure",
+      "is_heavy": false,
+      "mission_id": "plan-ver-503ea92c",
+      "next_mission_reference": null,
+      "normalized_task": "Run regression test suite verifying updates in scripts/native_agy_runner.py, tests/test_native_agy_runner.py",
+      "parent_mission_id": "plan-imp-334a470f",
+      "preferred_agent": "CLI1",
+      "requires_write": false,
+      "result_reference": "/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/tmpp1ruo2wv/events/task-envelopes/result_cli1_89475f3920e140bde1fb60f32a7e1fc57f2416d660adc11c33d18e55544ebb65.json",
+      "risk_class": "SAFE",
+      "status": "VERIFIED",
+      "task": {
+        "action": "verify_improvement_tests",
+        "capability_request": "repo verification",
+        "correlation_id": "corr-plan-ver-503ea92c",
+        "requires_write": false,
+        "target_files": [
+          "scripts/native_agy_runner.py",
+          "tests/test_native_agy_runner.py"
+        ],
+        "task_id": "plan-ver-503ea92c"
+      },
+      "task_hash": "89475f3920e140bde1fb60f32a7e1fc57f2416d660adc11c33d18e55544ebb65",
+      "verification_reference": "89475f3920e140bde1fb60f32a7e1fc57f2416d660adc11c33d18e55544ebb65",
+      "verification_required": true
+    }
+  ],
+  "goal_satisfied": true
+}

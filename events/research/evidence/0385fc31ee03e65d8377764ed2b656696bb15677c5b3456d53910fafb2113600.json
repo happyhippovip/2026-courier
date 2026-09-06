@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "research_question": "What is the current YouTube publication status for video nMfOO0mZR5U on channel FruitKI?",
+  "source": "https://www.youtube.com/watch?v=nMfOO0mZR5U",
+  "source_type": "YOUTUBE",
+  "retrieved_at": "2026-08-31T01:54:56.608308+00:00",
+  "evidence_hash": "48d6bb6d2450abc350c942064144f72ccb0d7847040cb0159196f706b48b8040",
+  "dedupe_fingerprint": "0385fc31ee03e65d8377764ed2b656696bb15677c5b3456d53910fafb2113600",
+  "finding": "Video 'universuX 3D pipeline smoke test' is currently private on channel FruitKI (@kifruchtefilme).",
+  "confidence": "HIGH",
+  "information_gain": "NO_NEW_INFORMATION",
+  "production_relevance": "NO_CURRENT_PIPELINE_CHANGE",
+  "last_checked": "2026-08-31T01:54:56.608308+00:00",
+  "analytics_snapshot": null,
+  "publication_authorized": false
+}

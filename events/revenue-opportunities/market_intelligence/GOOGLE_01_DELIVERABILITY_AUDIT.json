@@ -1,0 +1,121 @@
+{
+  "timestamp": "2026-09-02T01:50:25.000000+00:00",
+  "worker": "GOOGLE_01",
+  "total_audited": 10,
+  "deliverability_ranking": [
+    {
+      "rank": 1,
+      "prospect_alias": "P-01",
+      "quality_class": "STRONG",
+      "contact_path_quality": "HIGH",
+      "bounce_risk": "LOW",
+      "role_relevance": "HIGH",
+      "domain_company_match": "STRONG",
+      "public_pain_strength": "HIGH",
+      "message_to_pain_match": "HIGH"
+    },
+    {
+      "rank": 2,
+      "prospect_alias": "P-AUDIT-02",
+      "quality_class": "STRONG",
+      "contact_path_quality": "HIGH",
+      "bounce_risk": "LOW",
+      "role_relevance": "HIGH",
+      "domain_company_match": "STRONG",
+      "public_pain_strength": "HIGH",
+      "message_to_pain_match": "HIGH"
+    },
+    {
+      "rank": 3,
+      "prospect_alias": "P-AUDIT-04",
+      "quality_class": "STRONG",
+      "contact_path_quality": "HIGH",
+      "bounce_risk": "LOW",
+      "role_relevance": "HIGH",
+      "domain_company_match": "STRONG",
+      "public_pain_strength": "HIGH",
+      "message_to_pain_match": "HIGH"
+    },
+    {
+      "rank": 4,
+      "prospect_alias": "P-KIBEY-02",
+      "quality_class": "STRONG",
+      "contact_path_quality": "HIGH",
+      "bounce_risk": "LOW",
+      "role_relevance": "HIGH",
+      "domain_company_match": "STRONG",
+      "public_pain_strength": "HIGH",
+      "message_to_pain_match": "HIGH"
+    },
+    {
+      "rank": 5,
+      "prospect_alias": "P-AUDIT-03",
+      "quality_class": "STRONG",
+      "contact_path_quality": "HIGH",
+      "bounce_risk": "LOW",
+      "role_relevance": "HIGH",
+      "domain_company_match": "STRONG",
+      "public_pain_strength": "HIGH",
+      "message_to_pain_match": "HIGH"
+    },
+    {
+      "rank": 6,
+      "prospect_alias": "P-TOKEN-01",
+      "quality_class": "MEDIUM",
+      "contact_path_quality": "MEDIUM",
+      "bounce_risk": "LOW",
+      "role_relevance": "MEDIUM_HIGH",
+      "domain_company_match": "MEDIUM",
+      "public_pain_strength": "MEDIUM",
+      "message_to_pain_match": "HIGH"
+    },
+    {
+      "rank": 7,
+      "prospect_alias": "P-SAFETY-01",
+      "quality_class": "MEDIUM",
+      "contact_path_quality": "MEDIUM",
+      "bounce_risk": "LOW",
+      "role_relevance": "MEDIUM",
+      "domain_company_match": "MEDIUM",
+      "public_pain_strength": "MEDIUM",
+      "message_to_pain_match": "MEDIUM_HIGH"
+    },
+    {
+      "rank": 8,
+      "prospect_alias": "P-KIBEY-01",
+      "quality_class": "MEDIUM",
+      "contact_path_quality": "MEDIUM",
+      "bounce_risk": "LOW",
+      "role_relevance": "MEDIUM",
+      "domain_company_match": "MEDIUM",
+      "public_pain_strength": "MEDIUM",
+      "message_to_pain_match": "MEDIUM"
+    },
+    {
+      "rank": 9,
+      "prospect_alias": "P-SENTINEL-01",
+      "quality_class": "WEAK",
+      "contact_path_quality": "MEDIUM",
+      "bounce_risk": "LOW",
+      "role_relevance": "MEDIUM_LOW",
+      "domain_company_match": "MEDIUM",
+      "public_pain_strength": "MEDIUM",
+      "message_to_pain_match": "MEDIUM"
+    },
+    {
+      "rank": 10,
+      "prospect_alias": "CP-01",
+      "quality_class": "WEAK",
+      "contact_path_quality": "MEDIUM",
+      "bounce_risk": "LOW",
+      "role_relevance": "LOW",
+      "domain_company_match": "LOW",
+      "public_pain_strength": "LOW",
+      "message_to_pain_match": "MEDIUM"
+    }
+  ],
+  "strongest_exposures": ["P-01", "P-AUDIT-02", "P-AUDIT-04", "P-KIBEY-02"],
+  "weakest_exposures": ["CP-01", "P-SENTINEL-01"],
+  "deliverability_uncertainties": "Zero bounces observed across all 10 threads; delivery confirmations active.",
+  "what_we_learn_from_zero_response_so_far": "0 responses in <8.5h is normal in B2B engineering sales cycles; decision-makers review asynchronous vendor pitches during morning/afternoon triage blocks. Value-adding follow-up with concrete diagnostic checklists is the primary response trigger."
+}

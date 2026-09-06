@@ -1,0 +1,31 @@
+{
+  "allowed_scope": [
+    "tests/test_creator_package_compliance.py"
+  ],
+  "cost_class": "FREE_LOCAL",
+  "created_at": "2026-08-31T23:57:20.060914+00:00",
+  "critical_path": true,
+  "dedupe_fingerprint": "d0abd9e42e093269",
+  "dedupe_hash": "d0abd9e42e093269",
+  "dependencies": [],
+  "description": "Implement automated creator package compliance oracle verifying video codec, audio stream, and duration limits",
+  "estimated_cost": 0.0,
+  "expected_outcome": "Automated compliance test suite established in tests/test_creator_package_compliance.py",
+  "goal_id": "goal-creator-factory-autonomy",
+  "message_stamp": null,
+  "opportunity_id": "work-creator-compliance-oracle",
+  "parallel_safe": true,
+  "priority": 9,
+  "problem_or_goal": "Implement automated creator package compliance oracle verifying video codec, audio stream, and duration limits",
+  "provider": "CODEX",
+  "reason": "First Shift Wave 1 Item: Test file tests/test_creator_package_compliance.py passes with >=5 assertions",
+  "risk": "LOW",
+  "scope": [
+    "tests/test_creator_package_compliance.py"
+  ],
+  "source": "REAL_WORK_BACKLOG",
+  "source_fingerprint": "fp-oracle-01",
+  "status": "READY",
+  "target_agent": "codex",
+  "updated_at": "2026-08-31T23:57:20.060931+00:00"
+}

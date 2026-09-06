@@ -1,0 +1,131 @@
+{
+  "schema_version": "1.0",
+  "purpose": "HUMAN_AUDIENCE_DECISION_SUPPORT",
+  "generated_at": "2026-08-31T09:51:25.467639+00:00",
+  "overall_status": "PENDING_HUMAN_DECISION",
+  "cards": {
+    "golden_trophy_short": {
+      "card_version": "1.0",
+      "content_id": "golden_trophy_short",
+      "human_readable_title": "Wer kriegt die goldene Trophäe? 🏆🍓🥝 #Shorts",
+      "media_filename": "render.mp4",
+      "media_path": "/Users/user/Downloads/2026-courier/runtime/content/golden_trophy_short/render.mp4",
+      "media_sha256": "bd87cc42f7c98f92148b39b01e6cebfd4f451f61152fc01319aa3d8d500a88d8",
+      "publication_fingerprint": "c42c6830a2b5f3d43f542b0d9521bf5572ae12e43b09bc4724e16b4a0081eed0",
+      "technical_specifications": {
+        "duration_seconds": 8.0,
+        "dimensions": {
+          "width": 360,
+          "height": 640,
+          "aspect_ratio": "9:16"
+        },
+        "frame_rate": "24/1",
+        "codec": "h264"
+      },
+      "metadata_revision_hash": "a6b3a8fd7c135d7b88ac71bc8df9a81fd3c45ac14f24e19e7db5f01317906446",
+      "current_audience_state": "DECISION_REQUIRED",
+      "current_technical_blocker": "AUDIENCE_DECISION_REQUIRED",
+      "observable_content_facts": {
+        "characters_depicted": [
+          "Erdbeere (Strawberry)",
+          "Kiwi",
+          "Goldene Trophäe (Golden Trophy)"
+        ],
+        "visual_theme": "Rasanter Wettlauf zweier animierter Fruchtcharaktere um eine goldene Trophäe im virtuellen 3D-Studio",
+        "dialogue_and_text": "Titel und Beschreibung auf Deutsch: 'Wer kriegt die goldene Trophäe? Erdbeere und Kiwi liefern sich eine rasante Jagd... Schreib deinen Favoriten in die Kommentare!'",
+        "animation_style": "Stilisierte 3D-Animation von anthropomorphen Früchten mit Gesichtsausdrücken und Bewegungskomik",
+        "audio_presence": "Visuell zentrierter 9:16 Kurzfilm (Shorts) mit dynamischer Szenenführung",
+        "context_setting": "FruitKI 3D Studio (Wettkampf/Duell um Siegestrophäe)"
+      },
+      "human_choice_options": [
+        "MADE_FOR_KIDS",
+        "NOT_MADE_FOR_KIDS",
+        "CANCEL / NO DECISION"
+      ],
+      "default_selection": null,
+      "card_warning": "This decision is the Human audience classification for this exact media asset/fingerprint. This decision does NOT authorize: upload, publication, public release, or spending. This decision creates no private-upload approval.",
+      "decision_record_binding_previews": {
+        "MADE_FOR_KIDS": {
+          "decision": "MADE_FOR_KIDS",
+          "decision_source": "HUMAN_EXPLICIT_REVIEW",
+          "preview_decision_hash": "517ac3506bd954b5b4904764156b555d0323008b7e283225a91dfdc1f73f52ab",
+          "policy_version": "1.0",
+          "schema_version": "1.0",
+          "status": "PREVIEW_ONLY_NOT_DURABLE"
+        },
+        "NOT_MADE_FOR_KIDS": {
+          "decision": "NOT_MADE_FOR_KIDS",
+          "decision_source": "HUMAN_EXPLICIT_REVIEW",
+          "preview_decision_hash": "6439158e32bf5e048ed84f7e543d85e548a14668ef8df720928586e47d25c1eb",
+          "policy_version": "1.0",
+          "schema_version": "1.0",
+          "status": "PREVIEW_ONLY_NOT_DURABLE"
+        }
+      },
+      "generated_at": "2026-08-31T09:51:25.465761+00:00",
+      "decision_status": "PENDING_HUMAN_DECISION"
+    },
+    "mystery_box_short": {
+      "card_version": "1.0",
+      "content_id": "mystery_box_short",
+      "human_readable_title": "Was ist in der Mystery Box? 📦🍓✨ #Shorts",
+      "media_filename": "fruitki_strawberry_mystery_box.mp4",
+      "media_path": "/Users/user/Downloads/2026-courier/runtime/content/mystery_box_short/fruitki_strawberry_mystery_box.mp4",
+      "media_sha256": "0610c35c3589e38f943de2bf3efca75f670852390b69814e77f8251ab91bba99",
+      "publication_fingerprint": "0226e05a99d440b4302c0167cc9894b1e24dc497522638740472cd05dbd34b39",
+      "technical_specifications": {
+        "duration_seconds": 7.5,
+        "dimensions": {
+          "width": 360,
+          "height": 640,
+          "aspect_ratio": "9:16"
+        },
+        "frame_rate": "24/1",
+        "codec": "h264"
+      },
+      "metadata_revision_hash": "996aea51a860ba5184642e45a7054fb42c0fa0bdfcc1c51b8def59a83a11dc6b",
+      "current_audience_state": "DECISION_REQUIRED",
+      "current_technical_blocker": "AUDIENCE_DECISION_REQUIRED",
+      "observable_content_facts": {
+        "characters_depicted": [
+          "Erdbeere (Strawberry)",
+          "Geheimnisvolle Kiste (Mystery Box)",
+          "Konfetti"
+        ],
+        "visual_theme": "Neugieriges Entdecken und Öffnen einer geheimnisvollen Kiste mit anschließender Konfetti-Überraschung im Studio",
+        "dialogue_and_text": "Titel und Beschreibung auf Deutsch: 'Was ist in der Mystery Box? Erdbeere entdeckt eine geheimnisvolle Kiste... Eine explosive Konfetti-Überraschung!'",
+        "animation_style": "Stilisierte 3D-Animation eines Fruchtcharakters mit Neugier- und Überraschungsmimik",
+        "audio_presence": "Visuell zentrierter 9:16 Kurzfilm (Shorts) mit Überraschungseffekt",
+        "context_setting": "FruitKI 3D Studio (Unboxing/Entdeckung)"
+      },
+      "human_choice_options": [
+        "MADE_FOR_KIDS",
+        "NOT_MADE_FOR_KIDS",
+        "CANCEL / NO DECISION"
+      ],
+      "default_selection": null,
+      "card_warning": "This decision is the Human audience classification for this exact media asset/fingerprint. This decision does NOT authorize: upload, publication, public release, or spending. This decision creates no private-upload approval.",
+      "decision_record_binding_previews": {
+        "MADE_FOR_KIDS": {
+          "decision": "MADE_FOR_KIDS",
+          "decision_source": "HUMAN_EXPLICIT_REVIEW",
+          "preview_decision_hash": "557eea764b1bdc70d5bc113d3d758d1a2192ca519799a0092283cc91b39678e4",
+          "policy_version": "1.0",
+          "schema_version": "1.0",
+          "status": "PREVIEW_ONLY_NOT_DURABLE"
+        },
+        "NOT_MADE_FOR_KIDS": {
+          "decision": "NOT_MADE_FOR_KIDS",
+          "decision_source": "HUMAN_EXPLICIT_REVIEW",
+          "preview_decision_hash": "c5c18335581cf317c3d766cd2db74c5fb93b5001994ae414205050ad4f2a5994",
+          "policy_version": "1.0",
+          "schema_version": "1.0",
+          "status": "PREVIEW_ONLY_NOT_DURABLE"
+        }
+      },
+      "generated_at": "2026-08-31T09:51:25.467471+00:00",
+      "decision_status": "PENDING_HUMAN_DECISION"
+    }
+  },
+  "instructions_for_chief": "Review the observable content facts in each card. Select either MADE_FOR_KIDS or NOT_MADE_FOR_KIDS for each short. Explicit Human submission will produce the durable AudienceDecisionRecord. Until then, both packages remain locked at AUDIENCE_DECISION_REQUIRED."
+}

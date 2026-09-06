@@ -1,0 +1,58 @@
+{
+  "archived_at": "2026-09-01T01:17:08.489702+00:00",
+  "completed_at": "2026-09-01T01:17:08.488480+00:00",
+  "completion_fingerprint": "7724d9c31b76c952dfe38f4a1915c2e64081459622e548ea2b19cb973907014b",
+  "description": "Prepare a local, human-gated publication package for QC-passed media.",
+  "objective_id": "PROCESS_APPROVED_CONTENT_QUEUE",
+  "opportunity_id": "OPP-CREATOR-FRUITKI-MYSTERY-BOX-READY_FOR_PUBLICATION",
+  "original_payload": {
+    "allowed_actions": [
+      "READ"
+    ],
+    "allowed_scope": [
+      "/Users/user/Downloads/2026-courier/runtime/content/mystery_box_short/fruitki_strawberry_mystery_box.mp4"
+    ],
+    "cost_class": "ZERO_COST_LOCAL",
+    "created_at": "2026-08-31T01:32:34.121194+00:00",
+    "dedupe_fingerprint": "8d2f82eee0c2c436410ba4bd743dfaec27fc35bea9d544338d8a063c9f6194b2",
+    "dedupe_hash": "8d2f82eee0c2c436",
+    "description": "Prepare a local, human-gated publication package for QC-passed media.",
+    "estimated_cost": 0.0,
+    "evidence": {
+      "creator_action": "PREPARE_PUBLICATION_PACKAGE",
+      "media": "/Users/user/Downloads/2026-courier/runtime/content/mystery_box_short/fruitki_strawberry_mystery_box.mp4",
+      "scene": "/Users/user/Downloads/2026-Projektzentrale/05-3D-Shorts-Produktion/godot-short-studio/strawberry_mystery_box.tscn"
+    },
+    "evidence_type": "LOCAL_MEDIA_AND_AUTHORED_SCENE",
+    "expected_output": "publish_package.json",
+    "expected_value": "Persisted local Creator Factory evidence; no publication.",
+    "external_action_units": 0,
+    "heavy_job": true,
+    "model_need": false,
+    "objective_id": "PROCESS_APPROVED_CONTENT_QUEUE",
+    "opportunity_id": "OPP-CREATOR-FRUITKI-MYSTERY-BOX-READY_FOR_PUBLICATION",
+    "priority": 10,
+    "problem_or_goal": "Prepare a local, human-gated publication package for QC-passed media.",
+    "production_stage": "READY_FOR_PUBLICATION",
+    "project": "2026-courier",
+    "project_id": "fruitki-mystery-box",
+    "required_capabilities": [
+      "FFPROBE",
+      "LOCAL_JSON"
+    ],
+    "risk": "LOW",
+    "risk_class": "LOW",
+    "source": "LOCAL_CREATOR_ARTIFACT",
+    "source_artifact": "/Users/user/Downloads/2026-courier/runtime/content/mystery_box_short/fruitki_strawberry_mystery_box.mp4",
+    "source_hash": "0610c35c3589e38f943de2bf3efca75f670852390b69814e77f8251ab91bba99",
+    "status": "COMPLETED",
+    "target_agent": "antigravity",
+    "updated_at": "2026-08-31T01:32:34.137544+00:00"
+  },
+  "priority": 10,
+  "project": "2026-courier",
+  "result_reference": null,
+  "source": "LOCAL_CREATOR_ARTIFACT",
+  "status": "COMPLETED",
+  "target_agent": "antigravity"
+}

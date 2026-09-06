@@ -1,0 +1,10 @@
+{
+  "created_at": "2026-09-01T15:06:42.593537+00:00",
+  "description": "Opportunity REV-OPP-YOUTUBE-CREATOR-AUTOMATION requires human gate approval; parked safely.",
+  "gate_id": "GATE-ee2d2e19",
+  "gate_type": "PUBLICATION",
+  "minimal_human_action": "Review and approve publication/payment action",
+  "opportunity_id": "REV-OPP-YOUTUBE-CREATOR-AUTOMATION",
+  "parked_safe_state": "PARKED_WITHOUT_SYSTEM_BLOCK",
+  "status": "WAITING_HUMAN_ACTION"
+}

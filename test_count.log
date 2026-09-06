@@ -1,0 +1,310 @@
+..........................................................................................................................................FF............................................................/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+.F..../Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+.......................................................................................F.FF............................................................................................................................F/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/tempfile.py:821: ResourceWarning: Implicitly cleaning up <TemporaryDirectory '/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/tmpwcgc_mdt'>
+  _warnings.warn(warn_message, ResourceWarning)
+....................................................................F..F...........................................................F........................................................F.................................F.................................................................E.......F.....................................F.....................................................................................................F............................................................................................................................F.F..................................................................................................CANONICAL_AUTHORITY_DENIED: Scope 'HEAVY:GLOBAL' is locked by task 'active_task' (owner 'existing_heavy_job', gen 2)
+...........................F.........................................................................................................................................................................................................................../Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/unittest/case.py:550: ResourceWarning: unclosed file <_io.TextIOWrapper name='/private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/daemon_test_uzud1_bm/events/runtime-state/daemon.pid' mode='a+' encoding='utf-8'>
+  method()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+./Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/unittest/suite.py:107: ResourceWarning: unclosed file <_io.TextIOWrapper name='/private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/daemon_test_uzud1_bm/events/runtime-state/daemon.pid' mode='a+' encoding='utf-8'>
+  for index, test in enumerate(self):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+..................................................F..........................................................F........................................................F.....F............................................................................................................F.F.......................F...................................................................................................................F............................................................................../Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.13). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+.............
+======================================================================
+ERROR: test_01_conversion_evaluation (test_evaluate_revenue_conversion_state.TestEvaluateRevenueConversionState)
+Verifies deterministic age evaluation and anti-spam policy compliance.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/tests/test_evaluate_revenue_conversion_state.py", line 31, in test_01_conversion_evaluation
+    playbook_path = evaluator.generate_response_playbook_doc()
+  File "/Users/user/Downloads/2026-courier/scripts/evaluate_revenue_conversion_state.py", line 145, in generate_response_playbook_doc
+    playbook_path.write_text(content, encoding="utf-8")
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1285, in write_text
+    with self.open(mode='w', encoding=encoding, errors=errors) as f:
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1252, in open
+    return io.open(self, mode, buffering, encoding, errors, newline,
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1120, in _opener
+    return self._accessor.open(self, flags, mode)
+FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/eval_test_ono7b5x_/events/revenue-opportunities/RESPONSE_CONVERSION_PLAYBOOK.md'
+
+======================================================================
+FAIL: test_03_inventory_summary_output_validation (test_autonomous_single_pc_executor.TestSinglePCAutonomousExecutor)
+Verifies inventory_summary.json generated with valid structure.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/tests/test_autonomous_single_pc_executor.py", line 73, in test_03_inventory_summary_output_validation
+    self.assertEqual(data.get("qc_passed_count"), 20)
+AssertionError: 24 != 20
+
+======================================================================
+FAIL: test_04_pricing_manifest_output_validation (test_autonomous_single_pc_executor.TestSinglePCAutonomousExecutor)
+Verifies licensing_tiers.json generated with non-empty tiers.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/tests/test_autonomous_single_pc_executor.py", line 87, in test_04_pricing_manifest_output_validation
+    self.assertEqual(data.get("eligible_commercial_packages_count"), 20)
+AssertionError: 24 != 20
+
+======================================================================
+FAIL: test_atomic_opportunity_claim_has_one_winner_and_safe_release (test_autonomy_safety_mission_119b.TestMission119BAutonomySafety)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/tests/test_autonomy_safety_mission_119b.py", line 94, in test_atomic_opportunity_claim_has_one_winner_and_safe_release
+    self.assertEqual(losers[0][1], "ALREADY_CLAIMED")
+AssertionError: 'AUTHORITY_DENIED' != 'ALREADY_CLAIMED'
+- AUTHORITY_DENIED
++ ALREADY_CLAIMED
+
+
+======================================================================
+FAIL: test_08_empty_queue_useful_task_derivation (test_chief_autopilot_mission_163g.TestChiefAutopilotMission163G)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/tests/test_chief_autopilot_mission_163g.py", line 146, in test_08_empty_queue_useful_task_derivation
+    self.assertEqual(res["CHIEF_STATUS"], "LOCAL_TASK_COMPLETE")
+AssertionError: 'LOCAL_TASK_FAILED' != 'LOCAL_TASK_COMPLETE'
+- LOCAL_TASK_FAILED
++ LOCAL_TASK_COMPLETE
+
+
+======================================================================
+FAIL: test_10_duplicate_suppression (test_chief_autopilot_mission_163g.TestChiefAutopilotMission163G)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/tests/test_chief_autopilot_mission_163g.py", line 171, in test_10_duplicate_suppression
+    self.assertIn("ALREADY_CLAIMED", code)
+AssertionError: 'ALREADY_CLAIMED' not found in 'AUTHORITY_DENIED'
+
+======================================================================
+FAIL: test_11_atomic_task_claim_and_result_ingestion (test_chief_autopilot_mission_163g.TestChiefAutopilotMission163G)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/tests/test_chief_autopilot_mission_163g.py", line 183, in test_11_atomic_task_claim_and_result_ingestion
+    self.assertEqual(res["CHIEF_STATUS"], "LOCAL_TASK_COMPLETE")
+AssertionError: 'LOCAL_TASK_FAILED' != 'LOCAL_TASK_COMPLETE'
+- LOCAL_TASK_FAILED
++ LOCAL_TASK_COMPLETE
+
+
+======================================================================
+FAIL: test_integration_with_safety_dispatcher_full_lifecycle (test_courier_goal_planner.TestCourierGoalPlanner)
+Verify autonomous planning integration with CourierSafetyDispatcher end-to-end.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/unittest/mock.py", line 1336, in patched
+    return func(*newargs, **newkeywargs)
+  File "/Users/user/Downloads/2026-courier/tests/test_courier_goal_planner.py", line 300, in test_integration_with_safety_dispatcher_full_lifecycle
+    self.assertEqual(res["status"], "VERIFIED")
+AssertionError: 'BLOCKED' != 'VERIFIED'
+- BLOCKED
++ VERIFIED
+
+
+======================================================================
+FAIL: test_t3_exact_content (test_courier_task_effect_verification.TestTaskEffectVerification)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/tests/test_courier_task_effect_verification.py", line 98, in test_t3_exact_content
+    self.assertEqual(status, "VERIFIED_AND_CACHED")
+AssertionError: 'FAIL_CLOSED' != 'VERIFIED_AND_CACHED'
+- FAIL_CLOSED
++ VERIFIED_AND_CACHED
+
+
+======================================================================
+FAIL: test_t6_verify_present (test_courier_task_effect_verification.TestTaskEffectVerification)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/tests/test_courier_task_effect_verification.py", line 175, in test_t6_verify_present
+    self.assertEqual(status, "VERIFIED_AND_CACHED")
+AssertionError: 'FAIL_CLOSED' != 'VERIFIED_AND_CACHED'
+- FAIL_CLOSED
++ VERIFIED_AND_CACHED
+
+
+======================================================================
+FAIL: test_14_private_upload_approval_does_not_authorize_public_release (test_creator_publication_integrity_mission_182g.TestCreatorPublicationIntegrityMission182G)
+Private upload approval record cannot be used to execute public release.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/tests/test_creator_publication_integrity_mission_182g.py", line 289, in test_14_private_upload_approval_does_not_authorize_public_release
+    self.assertIn(res["code"], ("AUDIENCE_DECISION_REQUIRED", "RELEASE_NOT_APPROVED"))
+AssertionError: 'CHANNEL_EVIDENCE_STALE' not found in ('AUDIENCE_DECISION_REQUIRED', 'RELEASE_NOT_APPROVED')
+
+======================================================================
+FAIL: test_43_protected_mission_137g_files_remain_byte_identical (test_creator_work_planner_mission_139g.TestCreatorWorkPlannerMission139G)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/tests/test_creator_work_planner_mission_139g.py", line 540, in test_43_protected_mission_137g_files_remain_byte_identical
+    self.assertEqual(
+AssertionError: 'f6d916e90f2817780e15ebf45b0cc83daaed28e6da7730c8195de01cb10149d7' != 'ebd31bba7a0453c71db7cad0e7d5a5d762f040747954970da62414f380da887e'
+- f6d916e90f2817780e15ebf45b0cc83daaed28e6da7730c8195de01cb10149d7
++ ebd31bba7a0453c71db7cad0e7d5a5d762f040747954970da62414f380da887e
+ : PROTECTED 137G FILE MUTATED: scripts/evidence_provenance.py
+
+======================================================================
+FAIL: test_32_prohibited_137g_files_remain_byte_identical (test_creator_work_queue_and_handoff_mission_138g.TestCreatorWorkQueueAndHandoffMission138G)
+Verify that all protected Mission-137G files remain 100% byte-identical.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/tests/test_creator_work_queue_and_handoff_mission_138g.py", line 457, in test_32_prohibited_137g_files_remain_byte_identical
+    self.assertEqual(
+AssertionError: 'f6d916e90f2817780e15ebf45b0cc83daaed28e6da7730c8195de01cb10149d7' != 'ebd31bba7a0453c71db7cad0e7d5a5d762f040747954970da62414f380da887e'
+- f6d916e90f2817780e15ebf45b0cc83daaed28e6da7730c8195de01cb10149d7
++ ebd31bba7a0453c71db7cad0e7d5a5d762f040747954970da62414f380da887e
+ : PROTECTED 137G FILE MUTATED: scripts/evidence_provenance.py (expected ebd31bba7a0453c71db7cad0e7d5a5d762f040747954970da62414f380da887e, got f6d916e90f2817780e15ebf45b0cc83daaed28e6da7730c8195de01cb10149d7)
+
+======================================================================
+FAIL: test_real_packages_stop_at_audience_decision_required (test_evidence_provenance_mission_131g.TestEvidenceProvenanceMission131G)
+Verify real Golden Trophy and Mystery Box packages pass provenance and stop at audience gate.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/tests/test_evidence_provenance_mission_131g.py", line 365, in test_real_packages_stop_at_audience_decision_required
+    self.assertEqual(gt_res.code, "AUDIENCE_DECISION_REQUIRED")
+AssertionError: 'CHANNEL_EVIDENCE_STALE' != 'AUDIENCE_DECISION_REQUIRED'
+- CHANNEL_EVIDENCE_STALE
++ AUDIENCE_DECISION_REQUIRED
+
+
+======================================================================
+FAIL: test_01_seven_account_pool_initialization (test_google_capacity_fabric_manager.TestGoogleCapacityFabricManager)
+Verifies 7 authorized accounts initialized with total acquisition cost of 20 EUR.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/tests/test_google_capacity_fabric_manager.py", line 31, in test_01_seven_account_pool_initialization
+    self.assertEqual(len(mgr.pool), 7)
+AssertionError: 2 != 7
+
+======================================================================
+FAIL: test_goal_satisfaction_evidence_based (test_m234_evidence_planner.TestEvidencePlanner)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/tests/test_m234_evidence_planner.py", line 85, in test_goal_satisfaction_evidence_based
+    self.assertFalse(self.planner.evaluate_success(self.goal, {"mission": {"result_data": {}}}))
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_a2_caller_audience_object_is_not_production_authority (test_mission_141c_acceptance_oracle.Mission141CAcceptanceOracle)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/tests/test_mission_141c_acceptance_oracle.py", line 119, in test_a2_caller_audience_object_is_not_production_authority
+    self.assertNotEqual(result.result, "READY_FOR_PRIVATE_UPLOAD_APPROVAL")
+AssertionError: 'READY_FOR_PRIVATE_UPLOAD_APPROVAL' == 'READY_FOR_PRIVATE_UPLOAD_APPROVAL'
+
+======================================================================
+FAIL: test_o4_arbitrary_callback_cannot_reconcile (test_mission_141c_acceptance_oracle.Mission141CAcceptanceOracle)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/tests/test_mission_141c_acceptance_oracle.py", line 144, in test_o4_arbitrary_callback_cannot_reconcile
+    self.assertFalse(ok, f"callback bypassed reconciliation with {code}")
+AssertionError: True is not false : callback bypassed reconciliation with RECONCILED_SUCCESS
+
+======================================================================
+FAIL: test_05_multi_step_investigate_fix_verify_chain (test_mission_217_investigate_fix_verify_loop.TestMission217InvestigateFixVerifyLoop)
+Executes 3 complete investigate -> follow-up -> execute -> verify chains continuously.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/tests/test_mission_217_investigate_fix_verify_loop.py", line 177, in test_05_multi_step_investigate_fix_verify_chain
+    self.assertGreaterEqual(len(inv_files), 3)
+AssertionError: 2 not greater than or equal to 3
+
+======================================================================
+FAIL: test_missing_audience_record_rejected (test_production_security_remediations_mission_139g.TestPhaseG_DurableAudienceAuthority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/tests/test_production_security_remediations_mission_139g.py", line 509, in test_missing_audience_record_rejected
+    self.assertEqual(res.result, "AUDIENCE_DECISION_REQUIRED")
+AssertionError: 'READY_FOR_PRIVATE_UPLOAD_APPROVAL' != 'AUDIENCE_DECISION_REQUIRED'
+- READY_FOR_PRIVATE_UPLOAD_APPROVAL
++ AUDIENCE_DECISION_REQUIRED
+
+
+======================================================================
+FAIL: test_executor_stops_on_non_ready_acceptance (test_production_trust_and_executor_hardening_mission_137g.TestProductionTrustAndExecutorHardeningMission137G)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/tests/test_production_trust_and_executor_hardening_mission_137g.py", line 398, in test_executor_stops_on_non_ready_acceptance
+    self.assertEqual(res.code, "AUDIENCE_DECISION_REQUIRED")
+AssertionError: 'EDITORIAL_RECONFIRMATION_REQUIRED' != 'AUDIENCE_DECISION_REQUIRED'
+- EDITORIAL_RECONFIRMATION_REQUIRED
++ AUDIENCE_DECISION_REQUIRED
+
+
+======================================================================
+FAIL: test_real_fruitki_packages_preflight_fail_closed (test_publication_engine_mission_128g.TestPublicationEngineMission128G)
+Verify real Golden Trophy and Mystery Box packages fail closed at audience gate.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/tests/test_publication_engine_mission_128g.py", line 42, in test_real_fruitki_packages_preflight_fail_closed
+    self.assertEqual(gt_res.code, "AUDIENCE_DECISION_REQUIRED")
+AssertionError: 'CHANNEL_EVIDENCE_STALE' != 'AUDIENCE_DECISION_REQUIRED'
+- CHANNEL_EVIDENCE_STALE
++ AUDIENCE_DECISION_REQUIRED
+
+
+======================================================================
+FAIL: test_real_packages_fail_closed_with_audience_decision_required (test_publication_engine_mission_129g.TestPublicationEngineMission129G)
+Real FruitKI packages must fail closed on AUDIENCE_DECISION_REQUIRED before authorization.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/tests/test_publication_engine_mission_129g.py", line 67, in test_real_packages_fail_closed_with_audience_decision_required
+    self.assertEqual(gt_res.code, "AUDIENCE_DECISION_REQUIRED")
+AssertionError: 'CHANNEL_EVIDENCE_STALE' != 'AUDIENCE_DECISION_REQUIRED'
+- CHANNEL_EVIDENCE_STALE
++ AUDIENCE_DECISION_REQUIRED
+
+
+======================================================================
+FAIL: test_01_checkpoint_creation_and_fields (test_same_pc_account_switch_continuity_mission_167g.TestSamePCAccountSwitchContinuityMission167G)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/tests/test_same_pc_account_switch_continuity_mission_167g.py", line 49, in test_01_checkpoint_creation_and_fields
+    self.assertEqual(chk["git_branch"], "main")
+AssertionError: 'courier/m232-b03-operator-model' != 'main'
+- courier/m232-b03-operator-model
++ main
+
+
+======================================================================
+FAIL: test_03_git_head_branch_dirty_tracking (test_same_pc_account_switch_continuity_mission_167g.TestSamePCAccountSwitchContinuityMission167G)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/tests/test_same_pc_account_switch_continuity_mission_167g.py", line 67, in test_03_git_head_branch_dirty_tracking
+    self.assertEqual(chk["git_branch"], "main")
+AssertionError: 'courier/m232-b03-operator-model' != 'main'
+- courier/m232-b03-operator-model
++ main
+
+
+======================================================================
+FAIL: test_injection_d_safe_idle_classification (test_snitch_failure_injections.SnitchFailureInjectionTests)
+Injection D: Safe idle session burns zero budget.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/tests/test_snitch_failure_injections.py", line 136, in test_injection_d_safe_idle_classification
+    self.assertEqual(obs_list[0].state, WorkerState.SAFE_IDLE)
+AssertionError: <WorkerState.PREMATURE_IDLE: 'PREMATURE_IDLE'> != <WorkerState.SAFE_IDLE: 'SAFE_IDLE'>
+
+======================================================================
+FAIL: test_02_end_to_end_unattended_session_with_controlled_restart (test_unattended_autonomy_acceptance_mission_186g.TestUnattendedAutonomyAcceptanceMission186G)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/tests/test_unattended_autonomy_acceptance_mission_186g.py", line 139, in test_02_end_to_end_unattended_session_with_controlled_restart
+    self.assertEqual(res5["status"], "PROGRESS_MADE")
+AssertionError: 'IDLE_EXPECTED' != 'PROGRESS_MADE'
+- IDLE_EXPECTED
++ PROGRESS_MADE
+
+
+----------------------------------------------------------------------
+Ran 1847 tests in 88.097s
+
+FAILED (failures=26, errors=1)

@@ -149,9 +149,15 @@ class SocialCLI:
         u_priv.set_defaults(func=self._cmd_user_privacy)
 
         # user export
-        u_exp = user_subs.add_parser("export", help="Export user data bundle", parents=[common])
+        u_exp = user_subs.add_parser("export", help="Export user data bundle or dossier", parents=[common])
         u_exp.add_argument("user_id", help="User ID")
-        u_exp.set_defaults(func=lambda a: self.client.export_user_data(a.user_id))
+        u_exp.add_argument("--format", default="json", choices=["json", "markdown", "html", "text", "csv", "zip", "tar"], help="Export format")
+        u_exp.add_argument("--type", "--dossier-type", dest="dossier_type", default="user_archive", choices=["user_archive", "user_profile", "academic_portfolio", "research_dossier", "gdpr_package"], help="Dossier type")
+        u_exp.add_argument("--style", default="standard", choices=["standard", "compact", "executive", "academic"], help="Formatting style")
+        u_exp.add_argument("--anonymize", action="store_true", help="Anonymize PII in export")
+        u_exp.add_argument("--package", action="store_true", help="Build complete multi-format archive package")
+        u_exp.add_argument("--output", "-o", help="Write output to file path")
+        u_exp.set_defaults(func=self._cmd_user_export)
 
         # ----------------------------------------------------------------------
         # POST commands
@@ -163,6 +169,7 @@ class SocialCLI:
         p_create = post_subs.add_parser("create", help="Create a discussion post", parents=[common])
         p_create.add_argument("--author-id", required=True, help="Author user ID")
         p_create.add_argument("--content", required=True, help="Post content")
+        p_create.add_argument("--id", dest="discussion_id", help="Explicit discussion ID")
         p_create.add_argument("--tags", nargs="*", default=[], help="Topic tags")
         p_create.add_argument("--visibility", default="public", choices=["public", "connections_only", "private"])
         p_create.add_argument("--cw", "--content-warning", nargs="*", default=[], dest="cw", help="Content warnings")
@@ -194,7 +201,11 @@ class SocialCLI:
         p_end = post_subs.add_parser("endorse", help="Endorse a discussion for value", parents=[common])
         p_end.add_argument("discussion_id", help="Discussion ID")
         p_end.add_argument("--user-id", required=True, help="Endorsing user ID")
-        p_end.set_defaults(func=lambda a: self.client.endorse_discussion(a.discussion_id, a.user_id))
+        p_end.add_argument("--weight", type=float, help="Endorsement weight")
+        p_end.add_argument("--domain", help="Academic/subject domain")
+        p_end.add_argument("--category", "--value-category", dest="category", help="Endorsement value category")
+        p_end.add_argument("--comment", help="Endorsement review comment")
+        p_end.set_defaults(func=lambda a: self.client.endorse_discussion(a.discussion_id, a.user_id, weight=a.weight, domain=a.domain, value_category=a.category, comment=a.comment))
 
         # post list
         p_list = post_subs.add_parser("list", help="List all discussions", parents=[common])
@@ -205,7 +216,8 @@ class SocialCLI:
         # ----------------------------------------------------------------------
         feed_p = subparsers.add_parser("feed", help="Feed retrieval and reading", parents=[common])
         feed_p.add_argument("user_id", help="User ID")
-        feed_p.add_argument("--mode", default="chronological", choices=["chronological", "following", "interest_matched", "community_scoped"])
+        feed_p.add_argument("--mode", default="chronological", choices=["chronological", "following", "interest_matched", "community_scoped", "weighted_value", "domain_reputation"])
+        feed_p.add_argument("--domain", help="Domain filter/scope for domain_reputation feed")
         feed_p.add_argument("--community-id", help="Community ID for community_scoped mode")
         feed_p.add_argument("--channel-id", help="Channel ID filter")
         feed_p.add_argument("--interests", nargs="*", help="Interest topics filter")
@@ -352,6 +364,21 @@ class SocialCLI:
         a_addres.add_argument("--type", default="note", help="Resource type")
         a_addres.set_defaults(func=lambda a: self.client.add_course_resource(course_id=a.course_id, uploader_id=a.uploader_id, title=a.title, url=a.url, resource_type=a.type))
 
+        # endorse resource
+        a_endres = acad_subs.add_parser("endorse-resource", help="Endorse a study resource", parents=[common])
+        a_endres.add_argument("resource_id", help="Resource ID")
+        a_endres.add_argument("--user-id", required=True, help="Endorser user ID")
+        a_endres.add_argument("--weight", type=float, help="Endorsement weight")
+        a_endres.add_argument("--domain", help="Subject domain")
+        a_endres.add_argument("--category", help="Value category")
+        a_endres.add_argument("--comment", help="Endorsement review comment")
+        a_endres.set_defaults(func=lambda a: self.client.endorse_resource(a.resource_id, a.user_id, weight=a.weight, domain=a.domain, value_category=a.category, comment=a.comment))
+
+        # course reputation
+        a_crep = acad_subs.add_parser("reputation", help="Get course reputation metrics", parents=[common])
+        a_crep.add_argument("course_id", help="Course ID")
+        a_crep.set_defaults(func=lambda a: self.client.get_course_reputation(a.course_id))
+
         # ----------------------------------------------------------------------
         # DIRECT MESSAGING (DM)
         # ----------------------------------------------------------------------
@@ -432,6 +459,97 @@ class SocialCLI:
         n_cnt.add_argument("user_id", help="User ID")
         n_cnt.set_defaults(func=lambda a: {"user_id": a.user_id, "unread_count": self.client.get_unread_notification_count(a.user_id)})
 
+        # ----------------------------------------------------------------------
+        # DOSSIER commands
+        # ----------------------------------------------------------------------
+        dossier_p = subparsers.add_parser("dossier", help="Content transformation dossier generator", parents=[common])
+        dossier_subs = dossier_p.add_subparsers(dest="dossier_subcommand")
+
+        # dossier user
+        d_user = dossier_subs.add_parser("user", help="Generate user dossier", parents=[common])
+        d_user.add_argument("user_id", help="User ID")
+        d_user.add_argument("--format", default="markdown", choices=["markdown", "html", "json", "text", "csv"], help="Format")
+        d_user.add_argument("--type", "--dossier-type", dest="dossier_type", default="user_archive", choices=["user_archive", "user_profile", "academic_portfolio", "research_dossier", "gdpr_package"])
+        d_user.add_argument("--style", default="standard", choices=["standard", "compact", "executive", "academic"])
+        d_user.add_argument("--anonymize", action="store_true", help="Anonymize PII")
+        d_user.add_argument("--output", "-o", help="Output file path")
+        d_user.set_defaults(func=self._cmd_dossier_user)
+
+        # dossier discussion
+        d_disc = dossier_subs.add_parser("discussion", help="Generate discussion thread dossier", parents=[common])
+        d_disc.add_argument("discussion_id", help="Discussion ID")
+        d_disc.add_argument("--format", default="markdown", choices=["markdown", "html", "json", "text", "csv"])
+        d_disc.add_argument("--style", default="standard")
+        d_disc.add_argument("--anonymize", action="store_true")
+        d_disc.add_argument("--output", "-o", help="Output file path")
+        d_disc.set_defaults(func=self._cmd_dossier_discussion)
+
+        # dossier community
+        d_comm = dossier_subs.add_parser("community", help="Generate community digest dossier", parents=[common])
+        d_comm.add_argument("community_id", help="Community ID")
+        d_comm.add_argument("--format", default="markdown", choices=["markdown", "html", "json", "text", "csv"])
+        d_comm.add_argument("--style", default="standard")
+        d_comm.add_argument("--anonymize", action="store_true")
+        d_comm.add_argument("--output", "-o", help="Output file path")
+        d_comm.set_defaults(func=self._cmd_dossier_community)
+
+        # dossier transform
+        d_trans = dossier_subs.add_parser("transform", help="Transform text content between formats", parents=[common])
+        d_trans.add_argument("--content", required=True, help="Input content text")
+        d_trans.add_argument("--format", default="markdown", choices=["markdown", "html", "text", "json", "csv"])
+        d_trans.add_argument("--output", "-o", help="Output file path")
+        d_trans.set_defaults(func=self._cmd_dossier_transform)
+
+        # ----------------------------------------------------------------------
+        # EXPORT commands
+        # ----------------------------------------------------------------------
+        export_p = subparsers.add_parser("export", help="Packaging and export tools", parents=[common])
+        export_subs = export_p.add_subparsers(dest="export_subcommand")
+
+        # export package
+        e_pkg = export_subs.add_parser("package", help="Create full multi-format archive package", parents=[common])
+        e_pkg.add_argument("user_id", help="User ID")
+        e_pkg.add_argument("--format", default="zip", choices=["zip", "tar"], help="Archive format")
+        e_pkg.add_argument("--output", "-o", help="Save archive to file path")
+        e_pkg.set_defaults(func=self._cmd_export_package)
+
+        # export formats
+        e_fmt = export_subs.add_parser("formats", help="List supported export formats", parents=[common])
+        e_fmt.set_defaults(func=lambda a: self.client.get_export_formats())
+
+        # ----------------------------------------------------------------------
+        # REPUTATION commands
+        # ----------------------------------------------------------------------
+        rep_p = subparsers.add_parser("reputation", help="Domain reputation scoring and leaderboards", parents=[common])
+        rep_subs = rep_p.add_subparsers(dest="rep_subcommand")
+
+        # user reputation
+        r_usr = rep_subs.add_parser("user", help="Get user domain reputation", parents=[common])
+        r_usr.add_argument("user_id", help="User ID")
+        r_usr.add_argument("--domain", help="Domain (optional, returns all if omitted)")
+        r_usr.set_defaults(func=lambda a: self.client.get_user_reputation(a.user_id, domain=a.domain))
+
+        # user reputation summary
+        p_repsum = rep_subs.add_parser("summary", help="Get user reputation summary", parents=[common])
+        p_repsum.add_argument("user_id", help="User ID to get summary for")
+        p_repsum.set_defaults(func=lambda a: self.client.get_user_reputation_summary(a.user_id))
+
+        # domain leaderboard
+        p_lead = rep_subs.add_parser("top", help="Get domain leaderboard", parents=[common])
+        p_lead.add_argument("--domain", default="general", help="Domain")
+        p_lead.add_argument("--limit", type=int, default=20, help="Max entries")
+        p_lead.set_defaults(func=lambda a: self.client.get_domain_leaderboard(domain=a.domain, limit=a.limit))
+
+        # course reputation
+        r_crs = rep_subs.add_parser("course", help="Get course reputation metrics", parents=[common])
+        r_crs.add_argument("course_id", help="Course ID")
+        r_crs.set_defaults(func=lambda a: self.client.get_course_reputation(a.course_id))
+
+        # study group reputation
+        r_sg = rep_subs.add_parser("study-group", help="Get study group reputation metrics", parents=[common])
+        r_sg.add_argument("study_group_id", help="Study group ID")
+        r_sg.set_defaults(func=lambda a: self.client.get_study_group_reputation(a.study_group_id))
+
         return parser
 
     # Command helper methods
@@ -477,6 +595,7 @@ class SocialCLI:
         return self.client.create_discussion(
             author_id=args.author_id,
             content=args.content,
+            discussion_id=getattr(args, "discussion_id", None),
             tags=args.tags,
             visibility=args.visibility,
             content_warnings=args.cw,
@@ -493,9 +612,95 @@ class SocialCLI:
             community_id=args.community_id,
             channel_id=args.channel_id,
             interests=args.interests,
+            domain=getattr(args, "domain", None),
             limit=args.limit,
             offset=args.offset
         )
+
+    def _cmd_user_export(self, args) -> Any:
+        if getattr(args, "package", False) or args.format in ("zip", "tar"):
+            pkg = self.client.create_export_package(args.user_id, format=args.format if args.format in ("zip", "tar") else "zip")
+            if getattr(args, "output", None):
+                self.client.download_export_package(args.user_id, output_path=args.output, format=args.format if args.format in ("zip", "tar") else "zip")
+                return {"status": "saved", "output_path": args.output, "package": pkg}
+            return pkg
+        elif args.format != "json" or getattr(args, "dossier_type", "user_archive") != "user_archive":
+            dossier = self.client.get_user_dossier(
+                args.user_id,
+                format=args.format,
+                dossier_type=getattr(args, "dossier_type", "user_archive"),
+                style=getattr(args, "style", "standard"),
+                anonymize_pii=getattr(args, "anonymize", False)
+            )
+            if getattr(args, "output", None):
+                with open(args.output, "w") as f:
+                    f.write(dossier.get("rendered_content", ""))
+                return {"status": "saved", "output_path": args.output, "dossier_id": dossier.get("id")}
+            return dossier
+        else:
+            data = self.client.export_user_data(args.user_id)
+            if getattr(args, "output", None):
+                with open(args.output, "w") as f:
+                    json.dump(data, f, indent=2)
+                return {"status": "saved", "output_path": args.output}
+            return data
+
+    def _cmd_dossier_user(self, args) -> Any:
+        dossier = self.client.get_user_dossier(
+            args.user_id,
+            format=args.format,
+            dossier_type=args.dossier_type,
+            style=args.style,
+            anonymize_pii=getattr(args, "anonymize", False)
+        )
+        if getattr(args, "output", None):
+            with open(args.output, "w") as f:
+                f.write(dossier.get("rendered_content", ""))
+            return {"status": "saved", "output_path": args.output, "dossier_id": dossier.get("id"), "checksum": dossier.get("checksum")}
+        return dossier
+
+    def _cmd_dossier_discussion(self, args) -> Any:
+        dossier = self.client.get_discussion_dossier(
+            args.discussion_id,
+            format=args.format,
+            style=args.style,
+            anonymize_pii=getattr(args, "anonymize", False)
+        )
+        if getattr(args, "output", None):
+            with open(args.output, "w") as f:
+                f.write(dossier.get("rendered_content", ""))
+            return {"status": "saved", "output_path": args.output, "dossier_id": dossier.get("id"), "checksum": dossier.get("checksum")}
+        return dossier
+
+    def _cmd_dossier_community(self, args) -> Any:
+        dossier = self.client.get_community_dossier(
+            args.community_id,
+            format=args.format,
+            style=args.style,
+            anonymize_pii=getattr(args, "anonymize", False)
+        )
+        if getattr(args, "output", None):
+            with open(args.output, "w") as f:
+                f.write(dossier.get("rendered_content", ""))
+            return {"status": "saved", "output_path": args.output, "dossier_id": dossier.get("id"), "checksum": dossier.get("checksum")}
+        return dossier
+
+    def _cmd_dossier_transform(self, args) -> Any:
+        res = self.client.transform_content(
+            args.content,
+            target_format=args.format
+        )
+        if getattr(args, "output", None):
+            with open(args.output, "w") as f:
+                f.write(res.get("rendered_content", ""))
+            return {"status": "saved", "output_path": args.output, "checksum": res.get("checksum")}
+        return res
+
+    def _cmd_export_package(self, args) -> Any:
+        if getattr(args, "output", None):
+            out_file = self.client.download_export_package(args.user_id, output_path=args.output, format=args.format)
+            return {"status": "saved", "output_path": out_file}
+        return self.client.create_export_package(args.user_id, format=args.format)
 
 
 def main(argv: Optional[List[str]] = None) -> int:

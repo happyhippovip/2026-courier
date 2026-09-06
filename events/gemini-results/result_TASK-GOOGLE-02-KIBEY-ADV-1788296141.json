@@ -1,0 +1,20 @@
+{
+  "account_alias": "GOOGLE_02",
+  "auth_context": "CLI1_DISPATCH_AUTHORIZED_PROFILE",
+  "completed_at": "2026-09-01T20:55:42.128180+00:00",
+  "end_t": 1788296142.1282098,
+  "output": {
+    "ONE_CONCRETE_PROOF_ARTIFACT": "A reproducible benchmark script (kibey_zero_hang_benchmark.py) proving 100% successful failover in <50ms under synthetic HTTP 429 rate-limiting.",
+    "PRIMARY_BUYER_OBJECTION": "Why should I add a routing layer dependency when I can just call LiteLLM or OpenRouter directly?",
+    "WHAT_PROOF_IS_MISSING": "Verified benchmark showing zero latency overhead, sub-millisecond atomic lease failover, and exact fallback behavior when the primary model rate-limits.",
+    "WOULD_BUY_IF": "Drop-in Python library with 0 external dependencies that guarantees zero hanging calls and requires exactly 2 lines of setup code."
+  },
+  "real_provider_invocation": true,
+  "result_fingerprint": "09ea9bd84f8b0db3325176657f9f1c4dfb410bd8f94febc29064ac10b9832af0",
+  "spend_eur": 0.0,
+  "start_t": 1788296141.474942,
+  "started_at": "2026-09-01T20:55:41.474934+00:00",
+  "status": "SUCCESS",
+  "surface": "CLI",
+  "task_id": "TASK-GOOGLE-02-KIBEY-ADV-1788296141"
+}

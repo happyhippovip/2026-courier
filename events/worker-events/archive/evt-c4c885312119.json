@@ -1,0 +1,17 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-01T12:04:05.078167+00:00",
+  "event_id": "evt-c4c885312119",
+  "event_type": "WORKER_PROGRESS",
+  "evidence": {
+    "timestamp": "2026-09-01T12:04:05.068115+00:00",
+    "verified_task": "TASK-ENG-FOLLOWUP-TEST-COV-LIVE-WORKER-REGISTRY"
+  },
+  "fingerprint": "a2ff567321f9d5b7",
+  "mission_id": "M212",
+  "recommended_action": null,
+  "session_epoch": "epoch-google-1788264239",
+  "severity": "INFO",
+  "task_id": "TASK-ENG-FOLLOWUP-TEST-COV-LIVE-WORKER-REGISTRY",
+  "worker_id": "GOOGLE"
+}

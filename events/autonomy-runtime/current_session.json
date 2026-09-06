@@ -1,0 +1,5101 @@
+{
+  "allowed_scopes": [
+    "PROJECT_GLOBAL"
+  ],
+  "ended_at": null,
+  "events_log": [
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 1,
+      "timestamp": "2026-08-31T22:40:21.564189+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 2,
+      "timestamp": "2026-08-31T22:40:23.572064+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 3,
+      "timestamp": "2026-08-31T22:40:25.579959+00:00"
+    },
+    {
+      "action_type": "LOCAL_DETERMINISTIC_EXECUTION",
+      "details": {
+        "action_type": "LOCAL_DETERMINISTIC_EXECUTION",
+        "execution_tier": "LOCAL_DETERMINISTIC",
+        "result": {
+          "packages_audited": 20,
+          "status": "PASS",
+          "valid_packages": 20
+        },
+        "task_id": "OPP-188G-EVENT-1-CREATOR-AUDIT",
+        "title": "Audit all creator packages"
+      },
+      "ingestion": {
+        "correlation_id": "corr-det-8fcbe0c7",
+        "event_id": "evt-04f6803e",
+        "event_type": "RESULT",
+        "satisfied_barriers": [],
+        "status": "INGESTED"
+      },
+      "step_index": 4,
+      "timestamp": "2026-08-31T22:40:27.605823+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 5,
+      "timestamp": "2026-08-31T22:40:29.627828+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 6,
+      "timestamp": "2026-08-31T22:40:31.640696+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 7,
+      "timestamp": "2026-08-31T22:40:33.646537+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 8,
+      "timestamp": "2026-08-31T22:40:35.655428+00:00"
+    },
+    {
+      "action_type": "LOCAL_DETERMINISTIC_EXECUTION",
+      "details": {
+        "action_type": "LOCAL_DETERMINISTIC_EXECUTION",
+        "execution_tier": "LOCAL_DETERMINISTIC",
+        "result": {
+          "observations_verified": 28,
+          "status": "PASS"
+        },
+        "task_id": "OPP-188G-EVENT-2-RESOURCE-AUDIT",
+        "title": "Verify resource reset observations"
+      },
+      "ingestion": {
+        "correlation_id": "corr-det-dda88b91",
+        "event_id": "evt-488c4c86",
+        "event_type": "RESULT",
+        "satisfied_barriers": [],
+        "status": "INGESTED"
+      },
+      "step_index": 9,
+      "timestamp": "2026-08-31T22:40:37.664586+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 10,
+      "timestamp": "2026-08-31T22:40:39.689117+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 11,
+      "timestamp": "2026-08-31T22:40:41.697097+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 12,
+      "timestamp": "2026-08-31T22:40:43.707695+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 13,
+      "timestamp": "2026-08-31T22:40:45.716341+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 14,
+      "timestamp": "2026-08-31T22:40:47.727927+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 15,
+      "timestamp": "2026-08-31T22:40:49.738820+00:00"
+    },
+    {
+      "action_type": "LOCAL_DETERMINISTIC_EXECUTION",
+      "details": {
+        "action_type": "LOCAL_DETERMINISTIC_EXECUTION",
+        "execution_tier": "LOCAL_DETERMINISTIC",
+        "result": {
+          "clean": true,
+          "secret_exclusion": "PASS"
+        },
+        "task_id": "OPP-188G-EVENT-3-SECURITY-AUDIT",
+        "title": "Run zero-secret scan across repo"
+      },
+      "ingestion": {
+        "correlation_id": "corr-det-a2a9db69",
+        "event_id": "evt-50254c92",
+        "event_type": "RESULT",
+        "satisfied_barriers": [],
+        "status": "INGESTED"
+      },
+      "step_index": 16,
+      "timestamp": "2026-08-31T22:40:51.826847+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 17,
+      "timestamp": "2026-08-31T22:40:53.853511+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 18,
+      "timestamp": "2026-08-31T22:40:55.867072+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 19,
+      "timestamp": "2026-08-31T22:40:57.878562+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 20,
+      "timestamp": "2026-08-31T22:40:59.889371+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 21,
+      "timestamp": "2026-08-31T22:41:01.897625+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 22,
+      "timestamp": "2026-08-31T22:41:03.908344+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 23,
+      "timestamp": "2026-08-31T22:41:05.916663+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 24,
+      "timestamp": "2026-08-31T22:41:07.925216+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 25,
+      "timestamp": "2026-08-31T22:41:09.934726+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 26,
+      "timestamp": "2026-08-31T22:41:11.950930+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 27,
+      "timestamp": "2026-08-31T22:41:13.964654+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 28,
+      "timestamp": "2026-08-31T22:41:15.976268+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 29,
+      "timestamp": "2026-08-31T22:41:17.985027+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 30,
+      "timestamp": "2026-08-31T22:41:19.997058+00:00"
+    },
+    {
+      "action_type": "LOCAL_DETERMINISTIC_EXECUTION",
+      "details": {
+        "action_type": "LOCAL_DETERMINISTIC_EXECUTION",
+        "execution_tier": "LOCAL_DETERMINISTIC",
+        "result": {
+          "disaster_recovery_module_present": true,
+          "status": "PASS"
+        },
+        "task_id": "OPP-188G-EVENT-4-DISASTER-RECOVERY",
+        "title": "Verify disaster recovery sandbox"
+      },
+      "ingestion": {
+        "correlation_id": "corr-det-a7748404",
+        "event_id": "evt-67a1e79d",
+        "event_type": "RESULT",
+        "satisfied_barriers": [],
+        "status": "INGESTED"
+      },
+      "step_index": 31,
+      "timestamp": "2026-08-31T22:41:22.010393+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 32,
+      "timestamp": "2026-08-31T22:41:24.033741+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 33,
+      "timestamp": "2026-08-31T22:41:26.042795+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 34,
+      "timestamp": "2026-08-31T22:41:28.051659+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 35,
+      "timestamp": "2026-08-31T22:41:30.059731+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 36,
+      "timestamp": "2026-08-31T22:41:32.071140+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 37,
+      "timestamp": "2026-08-31T22:41:34.081941+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 38,
+      "timestamp": "2026-08-31T22:41:36.095194+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 39,
+      "timestamp": "2026-08-31T22:41:38.107204+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 40,
+      "timestamp": "2026-08-31T22:41:40.117002+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 41,
+      "timestamp": "2026-08-31T22:41:42.126922+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 42,
+      "timestamp": "2026-08-31T22:41:44.140156+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 43,
+      "timestamp": "2026-08-31T22:41:46.152837+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 44,
+      "timestamp": "2026-08-31T22:41:48.165446+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 45,
+      "timestamp": "2026-08-31T22:41:50.178407+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 46,
+      "timestamp": "2026-08-31T22:41:52.191002+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 47,
+      "timestamp": "2026-08-31T22:41:54.214066+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 48,
+      "timestamp": "2026-08-31T22:41:56.226683+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 49,
+      "timestamp": "2026-08-31T22:41:58.240904+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 50,
+      "timestamp": "2026-08-31T22:42:00.253624+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 51,
+      "timestamp": "2026-08-31T22:42:02.266882+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 52,
+      "timestamp": "2026-08-31T22:42:04.282916+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 53,
+      "timestamp": "2026-08-31T22:42:06.297574+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 54,
+      "timestamp": "2026-08-31T22:42:08.309315+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 55,
+      "timestamp": "2026-08-31T22:42:10.321424+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 56,
+      "timestamp": "2026-08-31T22:42:12.334084+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 57,
+      "timestamp": "2026-08-31T22:42:14.349777+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 58,
+      "timestamp": "2026-08-31T22:42:16.364407+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 59,
+      "timestamp": "2026-08-31T22:42:18.380277+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 60,
+      "timestamp": "2026-08-31T22:42:20.395039+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 61,
+      "timestamp": "2026-08-31T22:42:22.408755+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 62,
+      "timestamp": "2026-08-31T22:42:24.423004+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 63,
+      "timestamp": "2026-08-31T22:42:26.431608+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 64,
+      "timestamp": "2026-08-31T22:42:28.441800+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 65,
+      "timestamp": "2026-08-31T22:42:30.454495+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 66,
+      "timestamp": "2026-08-31T22:42:32.495150+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 67,
+      "timestamp": "2026-08-31T22:42:34.525449+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 68,
+      "timestamp": "2026-08-31T22:42:36.539044+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 69,
+      "timestamp": "2026-08-31T22:42:38.552398+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 70,
+      "timestamp": "2026-08-31T22:42:40.566306+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 71,
+      "timestamp": "2026-08-31T22:42:42.578483+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 72,
+      "timestamp": "2026-08-31T22:42:44.593910+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 73,
+      "timestamp": "2026-08-31T22:42:46.608996+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 74,
+      "timestamp": "2026-08-31T22:42:48.624006+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 75,
+      "timestamp": "2026-08-31T22:42:50.640530+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 76,
+      "timestamp": "2026-08-31T22:42:52.655994+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 77,
+      "timestamp": "2026-08-31T22:42:54.673041+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 78,
+      "timestamp": "2026-08-31T22:42:56.686640+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 79,
+      "timestamp": "2026-08-31T22:42:58.702879+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 80,
+      "timestamp": "2026-08-31T22:43:00.717765+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 81,
+      "timestamp": "2026-08-31T22:43:02.734959+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 82,
+      "timestamp": "2026-08-31T22:43:04.750503+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 83,
+      "timestamp": "2026-08-31T22:43:06.809150+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 84,
+      "timestamp": "2026-08-31T22:43:08.825865+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 85,
+      "timestamp": "2026-08-31T22:43:10.842301+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 86,
+      "timestamp": "2026-08-31T22:43:12.860326+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 87,
+      "timestamp": "2026-08-31T22:43:14.875783+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 88,
+      "timestamp": "2026-08-31T22:43:16.893436+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 89,
+      "timestamp": "2026-08-31T22:43:18.911076+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 90,
+      "timestamp": "2026-08-31T22:43:20.928443+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 91,
+      "timestamp": "2026-08-31T22:43:22.943382+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 92,
+      "timestamp": "2026-08-31T22:43:24.963721+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 93,
+      "timestamp": "2026-08-31T22:43:26.982093+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 94,
+      "timestamp": "2026-08-31T22:43:29.001234+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 95,
+      "timestamp": "2026-08-31T22:43:31.016625+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 96,
+      "timestamp": "2026-08-31T22:43:33.036396+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 97,
+      "timestamp": "2026-08-31T22:43:35.056255+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 98,
+      "timestamp": "2026-08-31T22:43:37.074551+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 99,
+      "timestamp": "2026-08-31T22:43:39.093372+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 100,
+      "timestamp": "2026-08-31T22:43:41.112404+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 101,
+      "timestamp": "2026-08-31T22:43:43.129656+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 102,
+      "timestamp": "2026-08-31T22:43:45.149875+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 103,
+      "timestamp": "2026-08-31T22:43:47.166551+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 104,
+      "timestamp": "2026-08-31T22:43:49.183202+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 105,
+      "timestamp": "2026-08-31T22:43:51.199578+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 106,
+      "timestamp": "2026-08-31T22:43:53.219974+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 107,
+      "timestamp": "2026-08-31T22:43:55.242107+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 108,
+      "timestamp": "2026-08-31T22:43:57.261125+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 109,
+      "timestamp": "2026-08-31T22:43:59.282251+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 110,
+      "timestamp": "2026-08-31T22:44:01.301800+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 111,
+      "timestamp": "2026-08-31T22:44:03.317949+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 112,
+      "timestamp": "2026-08-31T22:44:05.336382+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 113,
+      "timestamp": "2026-08-31T22:44:07.355589+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 114,
+      "timestamp": "2026-08-31T22:44:09.374956+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 115,
+      "timestamp": "2026-08-31T22:44:11.396183+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 116,
+      "timestamp": "2026-08-31T22:44:13.417120+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 117,
+      "timestamp": "2026-08-31T22:44:15.437753+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 118,
+      "timestamp": "2026-08-31T22:44:17.459614+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 119,
+      "timestamp": "2026-08-31T22:44:19.478774+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 120,
+      "timestamp": "2026-08-31T22:44:21.499009+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 121,
+      "timestamp": "2026-08-31T22:44:23.518196+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 122,
+      "timestamp": "2026-08-31T22:44:25.540126+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 123,
+      "timestamp": "2026-08-31T22:44:27.561436+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 124,
+      "timestamp": "2026-08-31T22:44:29.582729+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 125,
+      "timestamp": "2026-08-31T22:44:31.604399+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 126,
+      "timestamp": "2026-08-31T22:44:33.625163+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 127,
+      "timestamp": "2026-08-31T22:44:35.648179+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 128,
+      "timestamp": "2026-08-31T22:44:37.669190+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 129,
+      "timestamp": "2026-08-31T22:44:39.692221+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 130,
+      "timestamp": "2026-08-31T22:44:41.713754+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 131,
+      "timestamp": "2026-08-31T22:44:43.732995+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 132,
+      "timestamp": "2026-08-31T22:44:45.752952+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 133,
+      "timestamp": "2026-08-31T22:44:47.774963+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 134,
+      "timestamp": "2026-08-31T22:44:49.795385+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 135,
+      "timestamp": "2026-08-31T22:44:51.819478+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 136,
+      "timestamp": "2026-08-31T22:44:53.842479+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 137,
+      "timestamp": "2026-08-31T22:44:55.870212+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 138,
+      "timestamp": "2026-08-31T22:44:57.893224+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 139,
+      "timestamp": "2026-08-31T22:44:59.916402+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 140,
+      "timestamp": "2026-08-31T22:45:01.943337+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 141,
+      "timestamp": "2026-08-31T22:45:03.965945+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 142,
+      "timestamp": "2026-08-31T22:45:05.987188+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 143,
+      "timestamp": "2026-08-31T22:45:08.015275+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 144,
+      "timestamp": "2026-08-31T22:45:10.036372+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 145,
+      "timestamp": "2026-08-31T22:45:12.058527+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 146,
+      "timestamp": "2026-08-31T22:45:14.080919+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 147,
+      "timestamp": "2026-08-31T22:45:16.105936+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 148,
+      "timestamp": "2026-08-31T22:45:18.131591+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 149,
+      "timestamp": "2026-08-31T22:45:20.156788+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 150,
+      "timestamp": "2026-08-31T22:45:22.180023+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 151,
+      "timestamp": "2026-08-31T22:45:24.204499+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 152,
+      "timestamp": "2026-08-31T22:45:26.227912+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 153,
+      "timestamp": "2026-08-31T22:45:28.250785+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 154,
+      "timestamp": "2026-08-31T22:45:30.275713+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 155,
+      "timestamp": "2026-08-31T22:45:32.299417+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 156,
+      "timestamp": "2026-08-31T22:45:34.326029+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 157,
+      "timestamp": "2026-08-31T22:45:36.351521+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 158,
+      "timestamp": "2026-08-31T22:45:38.374328+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 159,
+      "timestamp": "2026-08-31T22:45:40.417646+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 160,
+      "timestamp": "2026-08-31T22:45:42.446600+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 161,
+      "timestamp": "2026-08-31T22:45:44.470539+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 162,
+      "timestamp": "2026-08-31T22:45:46.496155+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 163,
+      "timestamp": "2026-08-31T22:45:48.523212+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 164,
+      "timestamp": "2026-08-31T22:45:50.592984+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 165,
+      "timestamp": "2026-08-31T22:45:52.617394+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 166,
+      "timestamp": "2026-08-31T22:45:54.646212+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 167,
+      "timestamp": "2026-08-31T22:45:56.670309+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 168,
+      "timestamp": "2026-08-31T22:45:58.698735+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 169,
+      "timestamp": "2026-08-31T22:46:00.726219+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 170,
+      "timestamp": "2026-08-31T22:46:02.750996+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 171,
+      "timestamp": "2026-08-31T22:46:04.777123+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 172,
+      "timestamp": "2026-08-31T22:46:06.805149+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 173,
+      "timestamp": "2026-08-31T22:46:08.831629+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 174,
+      "timestamp": "2026-08-31T22:46:10.860129+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 175,
+      "timestamp": "2026-08-31T22:46:12.886167+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 176,
+      "timestamp": "2026-08-31T22:46:14.912004+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 177,
+      "timestamp": "2026-08-31T22:46:16.940967+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 178,
+      "timestamp": "2026-08-31T22:46:18.967811+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 179,
+      "timestamp": "2026-08-31T22:46:20.994603+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 180,
+      "timestamp": "2026-08-31T22:46:23.020577+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 181,
+      "timestamp": "2026-08-31T22:46:25.052351+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 182,
+      "timestamp": "2026-08-31T22:46:27.079534+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 183,
+      "timestamp": "2026-08-31T22:46:29.103399+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 184,
+      "timestamp": "2026-08-31T22:46:31.132296+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 185,
+      "timestamp": "2026-08-31T22:46:33.161135+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 186,
+      "timestamp": "2026-08-31T22:46:35.186602+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 187,
+      "timestamp": "2026-08-31T22:46:37.213786+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 188,
+      "timestamp": "2026-08-31T22:46:39.245490+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 189,
+      "timestamp": "2026-08-31T22:46:41.274539+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 190,
+      "timestamp": "2026-08-31T22:46:43.313632+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 191,
+      "timestamp": "2026-08-31T22:46:45.341495+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 192,
+      "timestamp": "2026-08-31T22:46:47.371442+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 193,
+      "timestamp": "2026-08-31T22:46:49.398057+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 194,
+      "timestamp": "2026-08-31T22:46:51.427955+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 195,
+      "timestamp": "2026-08-31T22:46:53.457477+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 196,
+      "timestamp": "2026-08-31T22:46:55.483305+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 197,
+      "timestamp": "2026-08-31T22:46:57.513549+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 198,
+      "timestamp": "2026-08-31T22:46:59.541684+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 199,
+      "timestamp": "2026-08-31T22:47:01.575511+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 200,
+      "timestamp": "2026-08-31T22:47:03.603915+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 201,
+      "timestamp": "2026-08-31T22:47:05.633159+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 202,
+      "timestamp": "2026-08-31T22:47:07.661428+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 203,
+      "timestamp": "2026-08-31T22:47:09.691730+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 204,
+      "timestamp": "2026-08-31T22:47:11.718033+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 205,
+      "timestamp": "2026-08-31T22:47:13.746570+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 206,
+      "timestamp": "2026-08-31T22:47:15.776751+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 207,
+      "timestamp": "2026-08-31T22:47:17.806607+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 208,
+      "timestamp": "2026-08-31T22:47:19.836137+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 209,
+      "timestamp": "2026-08-31T22:47:21.862958+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 210,
+      "timestamp": "2026-08-31T22:47:23.891385+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 211,
+      "timestamp": "2026-08-31T22:47:25.925583+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 212,
+      "timestamp": "2026-08-31T22:47:27.967466+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 213,
+      "timestamp": "2026-08-31T22:47:30.017713+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 214,
+      "timestamp": "2026-08-31T22:47:32.049365+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 215,
+      "timestamp": "2026-08-31T22:47:34.080297+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 216,
+      "timestamp": "2026-08-31T22:47:36.112201+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 217,
+      "timestamp": "2026-08-31T22:47:38.144190+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 218,
+      "timestamp": "2026-08-31T22:47:40.177122+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 219,
+      "timestamp": "2026-08-31T22:47:42.209668+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 220,
+      "timestamp": "2026-08-31T22:47:44.237695+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 221,
+      "timestamp": "2026-08-31T22:47:46.269400+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 222,
+      "timestamp": "2026-08-31T22:47:48.302859+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 223,
+      "timestamp": "2026-08-31T22:47:50.336057+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 224,
+      "timestamp": "2026-08-31T22:47:52.365646+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 225,
+      "timestamp": "2026-08-31T22:47:54.412262+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 226,
+      "timestamp": "2026-08-31T22:47:56.453630+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 227,
+      "timestamp": "2026-08-31T22:47:58.488781+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 228,
+      "timestamp": "2026-08-31T22:48:00.524658+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 229,
+      "timestamp": "2026-08-31T22:48:02.558435+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 230,
+      "timestamp": "2026-08-31T22:48:04.589280+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 231,
+      "timestamp": "2026-08-31T22:48:06.645496+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 232,
+      "timestamp": "2026-08-31T22:48:08.689921+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 233,
+      "timestamp": "2026-08-31T22:48:10.733518+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 234,
+      "timestamp": "2026-08-31T22:48:12.762831+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 235,
+      "timestamp": "2026-08-31T22:48:14.803222+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 236,
+      "timestamp": "2026-08-31T22:48:16.833598+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 237,
+      "timestamp": "2026-08-31T22:48:18.907062+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 238,
+      "timestamp": "2026-08-31T22:48:20.983584+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 239,
+      "timestamp": "2026-08-31T22:48:23.025715+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 240,
+      "timestamp": "2026-08-31T22:48:25.058110+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 241,
+      "timestamp": "2026-08-31T22:48:27.089964+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 242,
+      "timestamp": "2026-08-31T22:48:29.119976+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 243,
+      "timestamp": "2026-08-31T22:48:31.154721+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 244,
+      "timestamp": "2026-08-31T22:48:33.190361+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 245,
+      "timestamp": "2026-08-31T22:48:35.224976+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 246,
+      "timestamp": "2026-08-31T22:48:37.258342+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 247,
+      "timestamp": "2026-08-31T22:48:39.295644+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 248,
+      "timestamp": "2026-08-31T22:48:41.329700+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 249,
+      "timestamp": "2026-08-31T22:48:43.361833+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 250,
+      "timestamp": "2026-08-31T22:48:45.398358+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 251,
+      "timestamp": "2026-08-31T22:48:47.442273+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 252,
+      "timestamp": "2026-08-31T22:48:49.479673+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 253,
+      "timestamp": "2026-08-31T22:48:51.521760+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 254,
+      "timestamp": "2026-08-31T22:48:53.558844+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 255,
+      "timestamp": "2026-08-31T22:48:55.595687+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 256,
+      "timestamp": "2026-08-31T22:48:57.637438+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 257,
+      "timestamp": "2026-08-31T22:48:59.680119+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 258,
+      "timestamp": "2026-08-31T22:49:01.713713+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 259,
+      "timestamp": "2026-08-31T22:49:03.762485+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 260,
+      "timestamp": "2026-08-31T22:49:05.797121+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 261,
+      "timestamp": "2026-08-31T22:49:07.837090+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 262,
+      "timestamp": "2026-08-31T22:49:09.873841+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 263,
+      "timestamp": "2026-08-31T22:49:11.915839+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 264,
+      "timestamp": "2026-08-31T22:49:13.951347+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 265,
+      "timestamp": "2026-08-31T22:49:15.993358+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 266,
+      "timestamp": "2026-08-31T22:49:18.029763+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 267,
+      "timestamp": "2026-08-31T22:49:20.066072+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 268,
+      "timestamp": "2026-08-31T22:49:22.108720+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 269,
+      "timestamp": "2026-08-31T22:49:24.145852+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 270,
+      "timestamp": "2026-08-31T22:49:26.184351+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 271,
+      "timestamp": "2026-08-31T22:49:28.223234+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 272,
+      "timestamp": "2026-08-31T22:49:30.260318+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 273,
+      "timestamp": "2026-08-31T22:49:32.300278+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 274,
+      "timestamp": "2026-08-31T22:49:34.351760+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 275,
+      "timestamp": "2026-08-31T22:49:36.388747+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 276,
+      "timestamp": "2026-08-31T22:49:38.422555+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 277,
+      "timestamp": "2026-08-31T22:49:40.468399+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 278,
+      "timestamp": "2026-08-31T22:49:42.504931+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 279,
+      "timestamp": "2026-08-31T22:49:44.548169+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 280,
+      "timestamp": "2026-08-31T22:49:46.588383+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 281,
+      "timestamp": "2026-08-31T22:49:48.627092+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 282,
+      "timestamp": "2026-08-31T22:49:50.663235+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 283,
+      "timestamp": "2026-08-31T22:49:52.696944+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 284,
+      "timestamp": "2026-08-31T22:49:54.755890+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 285,
+      "timestamp": "2026-08-31T22:49:56.791904+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 286,
+      "timestamp": "2026-08-31T22:49:58.831073+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 287,
+      "timestamp": "2026-08-31T22:50:00.867377+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 288,
+      "timestamp": "2026-08-31T22:50:02.905061+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 289,
+      "timestamp": "2026-08-31T22:50:04.943313+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 290,
+      "timestamp": "2026-08-31T22:50:07.009703+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 291,
+      "timestamp": "2026-08-31T22:50:09.055149+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 292,
+      "timestamp": "2026-08-31T22:50:11.092900+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 293,
+      "timestamp": "2026-08-31T22:50:13.135343+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 294,
+      "timestamp": "2026-08-31T22:50:15.171913+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 295,
+      "timestamp": "2026-08-31T22:50:17.210450+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 296,
+      "timestamp": "2026-08-31T22:50:19.249621+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 297,
+      "timestamp": "2026-08-31T22:50:21.286263+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 298,
+      "timestamp": "2026-08-31T22:50:23.325296+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 299,
+      "timestamp": "2026-08-31T22:50:25.364337+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 300,
+      "timestamp": "2026-08-31T22:50:27.403159+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 301,
+      "timestamp": "2026-08-31T22:50:29.443506+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 302,
+      "timestamp": "2026-08-31T22:50:31.480677+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 303,
+      "timestamp": "2026-08-31T22:50:33.521131+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 304,
+      "timestamp": "2026-08-31T22:50:35.560461+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 305,
+      "timestamp": "2026-08-31T22:50:37.603500+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 306,
+      "timestamp": "2026-08-31T22:50:39.640294+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 307,
+      "timestamp": "2026-08-31T22:50:41.699952+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 308,
+      "timestamp": "2026-08-31T22:50:43.739736+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 309,
+      "timestamp": "2026-08-31T22:50:45.785344+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 310,
+      "timestamp": "2026-08-31T22:50:47.825204+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 311,
+      "timestamp": "2026-08-31T22:50:49.869890+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 312,
+      "timestamp": "2026-08-31T22:50:51.913015+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 313,
+      "timestamp": "2026-08-31T22:50:53.954446+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 314,
+      "timestamp": "2026-08-31T22:50:55.997780+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 315,
+      "timestamp": "2026-08-31T22:50:58.037195+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 316,
+      "timestamp": "2026-08-31T22:51:00.081620+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 317,
+      "timestamp": "2026-08-31T22:51:02.125626+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 318,
+      "timestamp": "2026-08-31T22:51:04.169218+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 319,
+      "timestamp": "2026-08-31T22:51:06.214550+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 320,
+      "timestamp": "2026-08-31T22:51:08.253367+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 321,
+      "timestamp": "2026-08-31T22:51:10.301446+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 322,
+      "timestamp": "2026-08-31T22:51:12.344945+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 323,
+      "timestamp": "2026-08-31T22:51:14.394039+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 324,
+      "timestamp": "2026-08-31T22:51:16.451385+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 325,
+      "timestamp": "2026-08-31T22:51:18.540635+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 326,
+      "timestamp": "2026-08-31T22:51:20.602973+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 327,
+      "timestamp": "2026-08-31T22:51:22.674833+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 328,
+      "timestamp": "2026-08-31T22:51:24.794017+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 329,
+      "timestamp": "2026-08-31T22:51:26.839689+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 330,
+      "timestamp": "2026-08-31T22:51:28.891258+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 331,
+      "timestamp": "2026-08-31T22:51:30.938529+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 332,
+      "timestamp": "2026-08-31T22:51:32.986326+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 333,
+      "timestamp": "2026-08-31T22:51:35.037265+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 334,
+      "timestamp": "2026-08-31T22:51:37.082743+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 335,
+      "timestamp": "2026-08-31T22:51:39.126146+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 336,
+      "timestamp": "2026-08-31T22:51:41.171024+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 337,
+      "timestamp": "2026-08-31T22:51:43.218616+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 338,
+      "timestamp": "2026-08-31T22:51:45.260994+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 339,
+      "timestamp": "2026-08-31T22:51:47.307563+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 340,
+      "timestamp": "2026-08-31T22:51:49.352362+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 341,
+      "timestamp": "2026-08-31T22:51:51.401184+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 342,
+      "timestamp": "2026-08-31T22:51:53.449761+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 343,
+      "timestamp": "2026-08-31T22:51:55.499294+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 344,
+      "timestamp": "2026-08-31T22:51:57.549911+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 345,
+      "timestamp": "2026-08-31T22:51:59.598693+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 346,
+      "timestamp": "2026-08-31T22:52:01.646759+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 347,
+      "timestamp": "2026-08-31T22:52:03.695587+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 348,
+      "timestamp": "2026-08-31T22:52:05.743251+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 349,
+      "timestamp": "2026-08-31T22:52:07.791187+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 350,
+      "timestamp": "2026-08-31T22:52:09.842573+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 351,
+      "timestamp": "2026-08-31T22:52:11.892011+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 352,
+      "timestamp": "2026-08-31T22:52:13.938582+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 353,
+      "timestamp": "2026-08-31T22:52:15.986618+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 354,
+      "timestamp": "2026-08-31T22:52:18.034554+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 355,
+      "timestamp": "2026-08-31T22:52:20.078347+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 356,
+      "timestamp": "2026-08-31T22:52:22.125966+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 357,
+      "timestamp": "2026-08-31T22:52:24.176805+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 358,
+      "timestamp": "2026-08-31T22:52:26.226885+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 359,
+      "timestamp": "2026-08-31T22:52:28.279772+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 360,
+      "timestamp": "2026-08-31T22:52:30.329516+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 361,
+      "timestamp": "2026-08-31T22:52:32.416669+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 362,
+      "timestamp": "2026-08-31T22:52:34.483102+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 363,
+      "timestamp": "2026-08-31T22:52:36.559459+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 364,
+      "timestamp": "2026-08-31T22:52:38.624873+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 365,
+      "timestamp": "2026-08-31T22:52:40.679322+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 366,
+      "timestamp": "2026-08-31T22:52:42.751797+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 367,
+      "timestamp": "2026-08-31T22:52:44.807945+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 368,
+      "timestamp": "2026-08-31T22:52:46.864262+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 369,
+      "timestamp": "2026-08-31T22:52:48.927111+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 370,
+      "timestamp": "2026-08-31T22:52:50.988075+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 371,
+      "timestamp": "2026-08-31T22:52:53.060149+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 372,
+      "timestamp": "2026-08-31T22:52:55.117765+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 373,
+      "timestamp": "2026-08-31T22:52:57.184081+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 374,
+      "timestamp": "2026-08-31T22:52:59.242435+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 375,
+      "timestamp": "2026-08-31T22:53:01.294352+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 376,
+      "timestamp": "2026-08-31T22:53:03.358468+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 377,
+      "timestamp": "2026-08-31T22:53:05.417307+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 378,
+      "timestamp": "2026-08-31T22:53:07.472159+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 379,
+      "timestamp": "2026-08-31T22:53:09.534641+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 380,
+      "timestamp": "2026-08-31T22:53:11.606564+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 381,
+      "timestamp": "2026-08-31T22:53:13.672389+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 382,
+      "timestamp": "2026-08-31T22:53:15.766578+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 383,
+      "timestamp": "2026-08-31T22:53:17.827499+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 384,
+      "timestamp": "2026-08-31T22:53:19.882328+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 385,
+      "timestamp": "2026-08-31T22:53:21.931279+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 386,
+      "timestamp": "2026-08-31T22:53:23.984700+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 387,
+      "timestamp": "2026-08-31T22:53:26.050552+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 388,
+      "timestamp": "2026-08-31T22:53:28.109049+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 389,
+      "timestamp": "2026-08-31T22:53:30.162891+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 390,
+      "timestamp": "2026-08-31T22:53:32.212653+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 391,
+      "timestamp": "2026-08-31T22:53:34.259333+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 392,
+      "timestamp": "2026-08-31T22:53:36.311035+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 393,
+      "timestamp": "2026-08-31T22:53:38.364049+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 394,
+      "timestamp": "2026-08-31T22:53:40.426318+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 395,
+      "timestamp": "2026-08-31T22:53:42.505944+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 396,
+      "timestamp": "2026-08-31T22:53:44.566454+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 397,
+      "timestamp": "2026-08-31T22:53:46.623894+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 398,
+      "timestamp": "2026-08-31T22:53:48.686481+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 399,
+      "timestamp": "2026-08-31T22:53:50.749862+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 400,
+      "timestamp": "2026-08-31T22:53:52.817011+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 401,
+      "timestamp": "2026-08-31T22:53:54.902915+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 402,
+      "timestamp": "2026-08-31T22:53:56.956743+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 403,
+      "timestamp": "2026-08-31T22:53:59.016543+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 404,
+      "timestamp": "2026-08-31T22:54:01.069956+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 405,
+      "timestamp": "2026-08-31T22:54:03.125781+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 406,
+      "timestamp": "2026-08-31T22:54:05.194589+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 407,
+      "timestamp": "2026-08-31T22:54:07.257259+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 408,
+      "timestamp": "2026-08-31T22:54:09.311993+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 409,
+      "timestamp": "2026-08-31T22:54:11.371479+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 410,
+      "timestamp": "2026-08-31T22:54:13.441286+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 411,
+      "timestamp": "2026-08-31T22:54:15.504985+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 412,
+      "timestamp": "2026-08-31T22:54:17.576271+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 413,
+      "timestamp": "2026-08-31T22:54:19.636896+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 414,
+      "timestamp": "2026-08-31T22:54:21.720205+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 415,
+      "timestamp": "2026-08-31T22:54:23.777887+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 416,
+      "timestamp": "2026-08-31T22:54:25.836731+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 417,
+      "timestamp": "2026-08-31T22:54:27.902478+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 418,
+      "timestamp": "2026-08-31T22:54:29.971982+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 419,
+      "timestamp": "2026-08-31T22:54:32.038672+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 420,
+      "timestamp": "2026-08-31T22:54:34.111107+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 421,
+      "timestamp": "2026-08-31T22:54:36.169304+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 422,
+      "timestamp": "2026-08-31T22:54:38.236241+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 423,
+      "timestamp": "2026-08-31T22:54:40.294792+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 424,
+      "timestamp": "2026-08-31T22:54:42.355789+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 425,
+      "timestamp": "2026-08-31T22:54:44.428622+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 426,
+      "timestamp": "2026-08-31T22:54:46.490793+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 427,
+      "timestamp": "2026-08-31T22:54:48.563210+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 428,
+      "timestamp": "2026-08-31T22:54:50.636022+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 429,
+      "timestamp": "2026-08-31T22:54:52.695026+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 430,
+      "timestamp": "2026-08-31T22:54:54.811549+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 431,
+      "timestamp": "2026-08-31T22:54:56.866733+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 432,
+      "timestamp": "2026-08-31T22:54:58.943390+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 433,
+      "timestamp": "2026-08-31T22:55:01.014033+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 434,
+      "timestamp": "2026-08-31T22:55:03.069640+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 435,
+      "timestamp": "2026-08-31T22:55:05.126019+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 436,
+      "timestamp": "2026-08-31T22:55:07.180584+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 437,
+      "timestamp": "2026-08-31T22:55:09.239474+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 438,
+      "timestamp": "2026-08-31T22:55:11.298682+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 439,
+      "timestamp": "2026-08-31T22:55:13.356901+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 440,
+      "timestamp": "2026-08-31T22:55:15.416219+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 441,
+      "timestamp": "2026-08-31T22:55:17.481048+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 442,
+      "timestamp": "2026-08-31T22:55:19.545740+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 443,
+      "timestamp": "2026-08-31T22:55:21.605632+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 444,
+      "timestamp": "2026-08-31T22:55:23.667687+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 445,
+      "timestamp": "2026-08-31T22:55:25.761536+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 446,
+      "timestamp": "2026-08-31T22:55:27.827362+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 447,
+      "timestamp": "2026-08-31T22:55:29.904700+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 448,
+      "timestamp": "2026-08-31T22:55:31.972923+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 449,
+      "timestamp": "2026-08-31T22:55:34.041259+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 450,
+      "timestamp": "2026-08-31T22:55:36.105095+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 451,
+      "timestamp": "2026-08-31T22:55:38.167837+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 452,
+      "timestamp": "2026-08-31T22:55:40.240621+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 453,
+      "timestamp": "2026-08-31T22:55:42.322749+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 454,
+      "timestamp": "2026-08-31T22:55:44.450725+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 455,
+      "timestamp": "2026-08-31T22:55:46.531109+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 456,
+      "timestamp": "2026-08-31T22:55:48.600775+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 457,
+      "timestamp": "2026-08-31T22:55:50.681631+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 458,
+      "timestamp": "2026-08-31T22:55:52.827432+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 459,
+      "timestamp": "2026-08-31T22:55:54.904549+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 460,
+      "timestamp": "2026-08-31T22:55:56.966944+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 461,
+      "timestamp": "2026-08-31T22:55:59.034818+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 462,
+      "timestamp": "2026-08-31T22:56:01.095706+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 463,
+      "timestamp": "2026-08-31T22:56:03.156723+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 464,
+      "timestamp": "2026-08-31T22:56:05.214944+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 465,
+      "timestamp": "2026-08-31T22:56:07.278123+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 466,
+      "timestamp": "2026-08-31T22:56:09.339945+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 467,
+      "timestamp": "2026-08-31T22:56:11.399880+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 468,
+      "timestamp": "2026-08-31T22:56:13.464331+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 469,
+      "timestamp": "2026-08-31T22:56:15.525943+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 470,
+      "timestamp": "2026-08-31T22:56:17.588139+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 471,
+      "timestamp": "2026-08-31T22:56:19.652342+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 472,
+      "timestamp": "2026-08-31T22:56:21.715136+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 473,
+      "timestamp": "2026-08-31T22:56:23.799914+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 474,
+      "timestamp": "2026-08-31T22:56:25.865713+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 475,
+      "timestamp": "2026-08-31T22:56:27.932250+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 476,
+      "timestamp": "2026-08-31T22:56:30.005550+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 477,
+      "timestamp": "2026-08-31T22:56:32.076635+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 478,
+      "timestamp": "2026-08-31T22:56:34.146834+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 479,
+      "timestamp": "2026-08-31T22:56:36.218828+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 480,
+      "timestamp": "2026-08-31T22:56:38.284526+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 481,
+      "timestamp": "2026-08-31T22:56:40.348141+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 482,
+      "timestamp": "2026-08-31T22:56:42.416614+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 483,
+      "timestamp": "2026-08-31T22:56:44.482384+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 484,
+      "timestamp": "2026-08-31T22:56:46.547998+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 485,
+      "timestamp": "2026-08-31T22:56:48.616089+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 486,
+      "timestamp": "2026-08-31T22:56:50.680428+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 487,
+      "timestamp": "2026-08-31T22:56:52.755744+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 488,
+      "timestamp": "2026-08-31T22:56:54.827063+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 489,
+      "timestamp": "2026-08-31T22:56:56.898469+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 490,
+      "timestamp": "2026-08-31T22:56:58.982629+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 491,
+      "timestamp": "2026-08-31T22:57:01.048921+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 492,
+      "timestamp": "2026-08-31T22:57:03.140931+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 493,
+      "timestamp": "2026-08-31T22:57:05.219335+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 494,
+      "timestamp": "2026-08-31T22:57:07.298127+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 495,
+      "timestamp": "2026-08-31T22:57:09.367957+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 496,
+      "timestamp": "2026-08-31T22:57:11.435338+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 497,
+      "timestamp": "2026-08-31T22:57:13.510821+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 498,
+      "timestamp": "2026-08-31T22:57:15.578186+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 499,
+      "timestamp": "2026-08-31T22:57:17.656131+00:00"
+    },
+    {
+      "action_type": "IDLE_EXPECTED",
+      "details": {
+        "action_type": "IDLE_EXPECTED",
+        "message": "No actionable backlog or barriers remaining. Safe idle state.",
+        "status": "IDLE_EXPECTED"
+      },
+      "step_index": 500,
+      "timestamp": "2026-08-31T22:57:19.729207+00:00"
+    }
+  ],
+  "goal": "Mission 188G Real Long Endurance Autonomy Session",
+  "human_gates_encountered": [
+    {
+      "reason": "HUMAN_GATE",
+      "task_id": "OPP-186G-HUMAN-GATE-AUDIENCE"
+    },
+    {
+      "reason": "HUMAN_GATE",
+      "task_id": "OPP-187G-HUMAN-GATE-AUDIENCE-SELF-DECLARATION"
+    },
+    {
+      "reason": "HUMAN_GATE",
+      "task_id": "OPP-188G-PARKED-HUMAN-GATE"
+    }
+  ],
+  "iterations_completed": 501,
+  "jobs_completed": [
+    "OPP-188G-EVENT-1-CREATOR-AUDIT",
+    "OPP-188G-EVENT-2-RESOURCE-AUDIT",
+    "OPP-188G-EVENT-3-SECURITY-AUDIT",
+    "OPP-188G-EVENT-4-DISASTER-RECOVERY"
+  ],
+  "jobs_dispatched": [],
+  "last_active_at": "2026-08-31T22:57:21.815062+00:00",
+  "max_iterations": 500,
+  "max_runtime_minutes": 480,
+  "money_gates_encountered": [
+    {
+      "reason": "MONEY_GATE_SPEND_LIMIT_0",
+      "task_id": "OPP-187G-MONEY-GATE-EXTERNAL-PAID-CREDITS"
+    },
+    {
+      "reason": "MONEY_GATE_SPEND_LIMIT_0",
+      "task_id": "OPP-186G-MONEY-GATE-EXTERNAL"
+    },
+    {
+      "reason": "MONEY_GATE_SPEND_LIMIT_0",
+      "task_id": "OPP-188G-PARKED-MONEY-GATE"
+    }
+  ],
+  "morning_report_path": "/Users/user/Downloads/2026-courier/events/night-journal/morning_report_session-188g-endurance-1788216021_f1c84a.json",
+  "session_id": "session-188g-endurance-1788216021",
+  "started_at": "2026-08-31T22:40:21.560099+00:00",
+  "status": "STOPPED_SAFELY"
+}

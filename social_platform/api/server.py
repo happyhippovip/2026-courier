@@ -14,7 +14,10 @@ from social_platform.core.models import (
     ContentFilterPreferences, UserContentFilter, UserContentFilterPreferences, ContentFilteringPreferences,
     UserAccessibilitySettings, AccessibilitySettings, UserSettingsAccessibility,
     ModerationAppeal, ContentAppeal, ContentReport, ContentLifecycleEvent, ContentInteraction,
-    ContentLifecycleState, ContentStatus, ContentLifecycleAction
+    ContentLifecycleState, ContentStatus, ContentLifecycleAction,
+    TransformationOptions, DossierOptions, ExportPackagingOptions,
+    DossierSection, TransformationDossier, ExportPackageManifest, ExportPackage,
+    DossierFormat, ExportFormat, DossierType, ExportScope
 )
 from social_platform.core.feed import (
     generate_chronological_feed, generate_following_feed,
@@ -72,6 +75,25 @@ class SocialAPIHandler(BaseHTTPRequestHandler):
                 user = db.get_user(path_parts[1])
                 if user:
                     self._send_json(user.__dict__)
+                else:
+                    self._send_error("User not found", 404)
+            elif len(path_parts) == 3 and path_parts[2] in ("dossier", "dossiers"):
+                fmt = query_params.get("format", ["markdown"])[0]
+                dtype = query_params.get("type", query_params.get("dossier_type", ["user_archive"]))[0]
+                style = query_params.get("style", ["standard"])[0]
+                anon = query_params.get("anonymize", query_params.get("anonymize_pii", ["false"]))[0].lower() in ("true", "1")
+                redact_dms = query_params.get("redact_dms", query_params.get("redact_private_messages", ["false"]))[0].lower() in ("true", "1")
+                opts = TransformationOptions(format=fmt, dossier_type=dtype, style=style, anonymize_pii=anon, redact_private_messages=redact_dms)
+                dossier = db.generate_user_dossier(path_parts[1], format=fmt, dossier_type=dtype, options=opts)
+                if dossier is not None:
+                    self._send_json(dossier.to_dict(), 200)
+                else:
+                    self._send_error("User not found", 404)
+            elif (len(path_parts) == 4 and path_parts[2] == "export" and path_parts[3] in ("package", "archive", "bundle")) or (len(path_parts) == 3 and path_parts[2] in ("package", "export_package", "archive")):
+                fmt = query_params.get("format", ["zip"])[0]
+                pkg = db.create_export_package(path_parts[1], format=fmt)
+                if pkg is not None:
+                    self._send_json(pkg.to_dict(), 200)
                 else:
                     self._send_error("User not found", 404)
             elif len(path_parts) == 3 and path_parts[2] in ("export", "export_data", "data_export", "data"):
@@ -208,6 +230,19 @@ class SocialAPIHandler(BaseHTTPRequestHandler):
                     include_hidden=inc_hidden
                 )
                 self._send_json([item.to_dict() if hasattr(item, "to_dict") else item.__dict__ for item in feed])
+            elif len(path_parts) in (3, 4) and path_parts[2] in ("reputation", "reputations", "domain_reputation", "reputation_scores"):
+                if len(path_parts) == 4:
+                    domain = path_parts[3]
+                    rep = db.get_user_domain_reputation(path_parts[1], domain)
+                    self._send_json(rep.to_dict() if hasattr(rep, "to_dict") else (rep.__dict__ if rep else {"user_id": path_parts[1], "domain": domain, "reputation_score": 0.0}), 200)
+                else:
+                    domain = query_params.get("domain", [None])[0]
+                    if domain:
+                        rep = db.get_user_domain_reputation(path_parts[1], domain)
+                        self._send_json(rep.to_dict() if hasattr(rep, "to_dict") else (rep.__dict__ if rep else {"user_id": path_parts[1], "domain": domain, "reputation_score": 0.0}), 200)
+                    else:
+                        reps = db.get_user_all_reputations(path_parts[1])
+                        self._send_json([r.to_dict() if hasattr(r, "to_dict") else r.__dict__ for r in reps], 200)
             elif len(path_parts) == 3 and path_parts[2] in ("courses", "enrolled_courses"):
                 user_courses = db.get_user_courses(path_parts[1])
                 self._send_json([c.to_dict() if hasattr(c, "to_dict") else c.__dict__ for c in user_courses], 200)
@@ -402,12 +437,15 @@ class SocialAPIHandler(BaseHTTPRequestHandler):
                 offset = int(offset_param) if offset_param and offset_param.isdigit() else None
                 inc_hidden = query_params.get("include_hidden", ["false"])[0].lower() in ("true", "1")
 
+                domain_param = query_params.get("domain", [None])[0]
+
                 feed = db.get_feed(
                     user_id=user_id,
                     mode=mode,
                     community_id=comm_id,
                     channel_id=channel_id,
                     interests=interests,
+                    domain=domain_param,
                     limit=limit,
                     offset=offset,
                     include_hidden=inc_hidden
@@ -431,6 +469,9 @@ class SocialAPIHandler(BaseHTTPRequestHandler):
             elif len(path_parts) == 3 and path_parts[2] == "replies":
                 replies = db.get_replies(path_parts[1])
                 self._send_json([r.to_dict() if hasattr(r, "to_dict") else r.__dict__ for r in replies])
+            elif len(path_parts) == 3 and path_parts[2] in ("endorsements", "endorse", "value_endorsements"):
+                ends = db.get_discussion_endorsements(path_parts[1])
+                self._send_json([e.to_dict() if hasattr(e, "to_dict") else e.__dict__ for e in ends], 200)
             elif len(path_parts) == 3 and path_parts[2] in ("media", "media_attachments", "attachments"):
                 media_list = db.get_discussion_media(path_parts[1])
                 self._send_json([m.to_dict() if hasattr(m, "to_dict") else m.__dict__ for m in media_list], 200)
@@ -455,9 +496,19 @@ class SocialAPIHandler(BaseHTTPRequestHandler):
             elif len(path_parts) == 3 and path_parts[2] in ("appeals",):
                 appeals = db.get_moderation_appeals(target_id=path_parts[1])
                 self._send_json([a.to_dict() if hasattr(a, "to_dict") else a.__dict__ for a in appeals], 200)
-            elif len(path_parts) == 3 and path_parts[2] in ("interactions",):
+            elif len(path_parts) == 3 and path_parts[2] in ("interactions", "interaction", "interact"):
                 interactions = db.get_discussion_interactions(path_parts[1])
                 self._send_json([i.to_dict() if hasattr(i, "to_dict") else i.__dict__ for i in interactions], 200)
+            elif len(path_parts) == 3 and path_parts[2] in ("dossier", "dossiers", "export"):
+                fmt = query_params.get("format", ["markdown"])[0]
+                style = query_params.get("style", ["standard"])[0]
+                anon = query_params.get("anonymize", query_params.get("anonymize_pii", ["false"]))[0].lower() in ("true", "1")
+                opts = TransformationOptions(format=fmt, style=style, anonymize_pii=anon)
+                dossier = db.generate_discussion_dossier(path_parts[1], format=fmt, options=opts)
+                if dossier:
+                    self._send_json(dossier.to_dict(), 200)
+                else:
+                    self._send_error("Discussion not found", 404)
             elif len(path_parts) == 3 and path_parts[2] in ("status",):
                 disc = db.get_discussion(path_parts[1])
                 if disc:
@@ -486,6 +537,16 @@ class SocialAPIHandler(BaseHTTPRequestHandler):
                 comm = db.get_community(path_parts[1])
                 if comm:
                     self._send_json(comm.__dict__)
+                else:
+                    self._send_error("Community not found", 404)
+            elif len(path_parts) == 3 and path_parts[2] in ("dossier", "dossiers", "digest", "export"):
+                fmt = query_params.get("format", ["markdown"])[0]
+                style = query_params.get("style", ["standard"])[0]
+                anon = query_params.get("anonymize", query_params.get("anonymize_pii", ["false"]))[0].lower() in ("true", "1")
+                opts = TransformationOptions(format=fmt, style=style, anonymize_pii=anon)
+                dossier = db.generate_community_dossier(path_parts[1], format=fmt, options=opts)
+                if dossier:
+                    self._send_json(dossier.to_dict(), 200)
                 else:
                     self._send_error("Community not found", 404)
             elif len(path_parts) == 3 and path_parts[2] == "channels":
@@ -587,6 +648,9 @@ class SocialAPIHandler(BaseHTTPRequestHandler):
                         self._send_json(syl.to_dict() if hasattr(syl, "to_dict") else syl.__dict__, 200)
                     else:
                         self._send_error("Syllabus not found", 404)
+                elif sub in ("reputation", "reputation_metrics", "metrics"):
+                    metrics = db.get_course_reputation_metrics(cid)
+                    self._send_json(metrics.to_dict() if hasattr(metrics, "to_dict") else metrics.__dict__, 200)
                 elif sub in ("enrollments", "members", "students"):
                     ver_only = query_params.get("verified_only", ["false"])[0].lower() in ("true", "1")
                     role_filter = query_params.get("role", [None])[0]
@@ -614,13 +678,16 @@ class SocialAPIHandler(BaseHTTPRequestHandler):
                 self._send_error("Not found", 404)
 
         # /resources or /course_resources...
-        elif path_parts[0] in ("resources", "course_resources"):
+        elif path_parts[0] in ("resources", "course_resources", "course-resources"):
             if len(path_parts) == 2:
                 res = db.get_course_resource(path_parts[1])
                 if res:
                     self._send_json(res.to_dict() if hasattr(res, "to_dict") else res.__dict__, 200)
                 else:
                     self._send_error("Resource not found", 404)
+            elif len(path_parts) == 3 and path_parts[2] in ("endorsements", "endorse", "value_endorsements"):
+                ends = db.get_resource_endorsements(path_parts[1])
+                self._send_json([e.to_dict() if hasattr(e, "to_dict") else e.__dict__ for e in ends], 200)
             else:
                 self._send_error("Not found", 404)
 
@@ -652,6 +719,9 @@ class SocialAPIHandler(BaseHTTPRequestHandler):
                     res_type = query_params.get("type", query_params.get("resource_type", [None]))[0]
                     resources = db.get_study_group_resources(sg_id, resource_type=res_type)
                     self._send_json([r.to_dict() if hasattr(r, "to_dict") else r.__dict__ for r in resources], 200)
+                elif sub in ("reputation", "reputation_metrics", "metrics"):
+                    metrics = db.get_study_group_reputation_metrics(sg_id)
+                    self._send_json(metrics.to_dict() if hasattr(metrics, "to_dict") else metrics.__dict__, 200)
                 else:
                     self._send_error("Not found", 404)
             else:
@@ -753,6 +823,56 @@ class SocialAPIHandler(BaseHTTPRequestHandler):
                     self._send_error("Not found", 404)
             else:
                 self._send_error("Not found", 404)
+
+        # /export/... or /dossiers/...
+        elif path_parts[0] in ("export", "exports", "dossier", "dossiers"):
+            if len(path_parts) >= 2 and path_parts[1] in ("formats", "types", "supported", "options"):
+                self._send_json({
+                    "supported_formats": ["markdown", "html", "json", "text", "csv", "zip", "tar"],
+                    "supported_dossier_types": ["user_archive", "user_profile", "academic_portfolio", "research_dossier", "community_digest", "discussion_thread", "gdpr_package"]
+                }, 200)
+            else:
+                self._send_error("Not found", 404)
+
+        # /reputation/...
+        elif path_parts[0] in ("reputation", "reputations", "leaderboard", "leaderboards"):
+            if len(path_parts) == 3 and path_parts[1] == "summary":
+                user_id = path_parts[2]
+                summary = db.get_user_reputation_summary(user_id)
+                self._send_json(summary, 200)
+                return
+
+            limit_param = query_params.get("limit", [None])[0]
+            limit = int(limit_param) if limit_param and limit_param.isdigit() else 20
+            if len(path_parts) >= 2 and path_parts[1] in ("leaderboard", "top", "rankings"):
+                domain = path_parts[2] if len(path_parts) >= 3 else query_params.get("domain", ["general"])[0]
+                entries = db.get_top_contributors_by_domain(domain=domain, limit=limit)
+                self._send_json([e.to_dict() if hasattr(e, "to_dict") else e.__dict__ for e in entries], 200)
+            elif len(path_parts) == 2:
+                domain = path_parts[1]
+                entries = db.get_top_contributors_by_domain(domain=domain, limit=limit)
+                self._send_json([e.to_dict() if hasattr(e, "to_dict") else e.__dict__ for e in entries], 200)
+            else:
+                domain = query_params.get("domain", ["general"])[0]
+                entries = db.get_top_contributors_by_domain(domain=domain, limit=limit)
+                self._send_json([e.to_dict() if hasattr(e, "to_dict") else e.__dict__ for e in entries], 200)
+
+        # /endorsements/...
+        elif path_parts[0] in ("endorsements", "endorse"):
+            if len(path_parts) >= 2:
+                target_id = path_parts[1]
+                ends = db.get_discussion_endorsements(target_id)
+                if not ends:
+                    ends = db.get_resource_endorsements(target_id)
+                self._send_json([e.to_dict() if hasattr(e, "to_dict") else e.__dict__ for e in ends], 200)
+            else:
+                target_type = query_params.get("target_type", query_params.get("type", [None]))[0]
+                target_id = query_params.get("target_id", query_params.get("id", [None]))[0]
+                if target_type and target_id:
+                    ends = db.get_endorsements(target_type, target_id)
+                    self._send_json([e.to_dict() if hasattr(e, "to_dict") else e.__dict__ for e in ends], 200)
+                else:
+                    self._send_error("target_id required", 400)
 
         else:
             self._send_error("Not found", 404)
@@ -927,6 +1047,28 @@ class SocialAPIHandler(BaseHTTPRequestHandler):
                     self._send_error("User not found", 404)
             except ValueError as e:
                 self._send_error(str(e), 400)
+
+        # POST /users/<id>/dossier
+        elif len(path_parts) >= 2 and path_parts[0] == "users" and path_parts[-1] in ("dossier", "dossiers"):
+            user_id = path_parts[1]
+            fmt = body.get("format", "markdown")
+            dtype = body.get("dossier_type", body.get("type", "user_archive"))
+            options = body.get("options", body)
+            dossier = db.generate_user_dossier(user_id, format=fmt, dossier_type=dtype, options=options)
+            if dossier:
+                self._send_json(dossier.to_dict(), 200)
+            else:
+                self._send_error("User not found", 404)
+
+        # POST /users/<id>/export/package or /users/<id>/package
+        elif (len(path_parts) >= 3 and path_parts[0] == "users" and path_parts[-1] in ("package", "archive", "bundle")) or (len(path_parts) == 3 and path_parts[0] == "users" and path_parts[2] in ("export_package", "package")):
+            user_id = path_parts[1]
+            fmt = body.get("format", "zip")
+            pkg = db.create_export_package(user_id, format=fmt, options=body)
+            if pkg:
+                self._send_json(pkg.to_dict(), 200)
+            else:
+                self._send_error("User not found", 404)
 
         # POST /users/<id>/export or /users/<id>/export_data or /users/<id>/data_export
         elif len(path_parts) >= 2 and path_parts[0] == "users" and path_parts[-1] in ("export", "export_data", "data_export", "download_data"):
@@ -1340,10 +1482,14 @@ class SocialAPIHandler(BaseHTTPRequestHandler):
         elif len(path_parts) == 3 and path_parts[0] == "discussions" and path_parts[2] in ("endorse", "endorsement", "endorsements"):
             disc_id = path_parts[1]
             actor_id = body.get("actor_id") or body.get("user_id") or body.get("endorser_id")
-            success = db.endorse_discussion(disc_id, actor_id=actor_id)
+            weight = body.get("weight")
+            domain = body.get("domain")
+            val_cat = body.get("value_category") or body.get("category")
+            comment = body.get("comment")
+            success = db.endorse_discussion(disc_id, actor_id=actor_id, weight=weight, domain=domain, value_category=val_cat, comment=comment)
             if success:
                 disc = db.get_discussion(disc_id)
-                self._send_json(disc.__dict__ if disc else {"status": "endorsed", "id": disc_id}, 200)
+                self._send_json(disc.to_dict() if hasattr(disc, "to_dict") else (disc.__dict__ if disc else {"status": "endorsed", "id": disc_id}), 200)
             else:
                 self._send_error("Discussion not found", 404)
 
@@ -1492,16 +1638,30 @@ class SocialAPIHandler(BaseHTTPRequestHandler):
 
         # POST /endorsements or /endorse
         elif parsed.path in ("/endorsements", "/endorse"):
-            disc_id = body.get("discussion_id")
-            if not disc_id:
-                return self._send_error("discussion_id required")
+            target_type = body.get("target_type") or body.get("type", "discussion")
+            target_id = body.get("target_id") or body.get("discussion_id") or body.get("resource_id") or body.get("id")
+            if not target_id:
+                return self._send_error("target_id or discussion_id required")
             actor_id = body.get("actor_id") or body.get("user_id") or body.get("endorser_id")
-            success = db.endorse_discussion(disc_id, actor_id=actor_id)
-            if success:
-                disc = db.get_discussion(disc_id)
-                self._send_json(disc.__dict__ if disc else {"status": "endorsed", "id": disc_id}, 200)
+            weight = body.get("weight")
+            domain = body.get("domain")
+            val_cat = body.get("value_category") or body.get("category")
+            comment = body.get("comment")
+
+            if target_type in ("resource", "course_resource") or body.get("resource_id"):
+                success = db.endorse_resource(target_id, actor_id=actor_id, weight=weight, domain=domain, value_category=val_cat, comment=comment)
+                if success:
+                    res = db.get_course_resource(target_id)
+                    self._send_json(res.to_dict() if res else {"status": "endorsed", "resource_id": target_id}, 200)
+                else:
+                    self._send_error("Resource not found", 404)
             else:
-                self._send_error("Discussion not found", 404)
+                success = db.endorse_discussion(target_id, actor_id=actor_id, weight=weight, domain=domain, value_category=val_cat, comment=comment)
+                if success:
+                    disc = db.get_discussion(target_id)
+                    self._send_json(disc.to_dict() if hasattr(disc, "to_dict") else (disc.__dict__ if disc else {"status": "endorsed", "id": target_id}), 200)
+                else:
+                    self._send_error("Discussion not found", 404)
 
         # POST /reports or /moderation/reports
         elif parsed.path in ("/reports", "/moderation/reports"):
@@ -1939,7 +2099,11 @@ class SocialAPIHandler(BaseHTTPRequestHandler):
             elif len(path_parts) == 3 and path_parts[2] in ("endorse", "endorsement", "endorsements", "upvote"):
                 rid = path_parts[1]
                 actor = body.get("actor_id") or body.get("user_id")
-                success = db.endorse_resource(rid, actor_id=actor)
+                weight = body.get("weight")
+                domain = body.get("domain")
+                val_cat = body.get("value_category") or body.get("category")
+                comment = body.get("comment")
+                success = db.endorse_resource(rid, actor_id=actor, weight=weight, domain=domain, value_category=val_cat, comment=comment)
                 if success:
                     res = db.get_course_resource(rid)
                     self._send_json(res.to_dict() if res else {"status": "endorsed", "resource_id": rid}, 200)
@@ -2085,6 +2249,33 @@ class SocialAPIHandler(BaseHTTPRequestHandler):
                     self._send_error("Media not found", 404)
             else:
                 self._send_error("Not found", 404)
+
+        # POST /discussions/<id>/dossier
+        elif len(path_parts) >= 2 and path_parts[0] == "discussions" and path_parts[-1] in ("dossier", "dossiers", "export"):
+            disc_id = path_parts[1]
+            fmt = body.get("format", "markdown")
+            dossier = db.generate_discussion_dossier(disc_id, format=fmt, options=body)
+            if dossier:
+                self._send_json(dossier.to_dict(), 200)
+            else:
+                self._send_error("Discussion not found", 404)
+
+        # POST /communities/<id>/dossier
+        elif len(path_parts) >= 2 and path_parts[0] == "communities" and path_parts[-1] in ("dossier", "dossiers", "digest", "export"):
+            comm_id = path_parts[1]
+            fmt = body.get("format", "markdown")
+            dossier = db.generate_community_dossier(comm_id, format=fmt, options=body)
+            if dossier:
+                self._send_json(dossier.to_dict(), 200)
+            else:
+                self._send_error("Community not found", 404)
+
+        # POST /content/transform or /transform
+        elif path_parts[0] in ("content", "transform") and (len(path_parts) == 1 or path_parts[-1] in ("transform", "dossier")):
+            content = body.get("content", "")
+            target_fmt = body.get("target_format", body.get("format", "markdown"))
+            res = db.transform_content(content, target_format=target_fmt, options=body.get("options"))
+            self._send_json(res, 200)
 
         else:
             self._send_error("Not found", 404)

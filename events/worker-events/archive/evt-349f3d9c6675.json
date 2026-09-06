@@ -1,0 +1,17 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-01T12:04:05.138096+00:00",
+  "event_id": "evt-349f3d9c6675",
+  "event_type": "WORKER_PROGRESS",
+  "evidence": {
+    "timestamp": "2026-09-01T12:04:05.128772+00:00",
+    "verified_task": "TASK-ENG-FOLLOWUP-TEST-COV-HOST-SURVIVAL-ENGINE"
+  },
+  "fingerprint": "b7e5c23f34e45cbd",
+  "mission_id": "M212",
+  "recommended_action": null,
+  "session_epoch": "epoch-google-1788264239",
+  "severity": "INFO",
+  "task_id": "TASK-ENG-FOLLOWUP-TEST-COV-HOST-SURVIVAL-ENGINE",
+  "worker_id": "GOOGLE"
+}

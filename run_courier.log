@@ -1,0 +1,22 @@
+Starting Autonomous Loop with 30m timeout...
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/scripts/courier_safety_dispatcher.py", line 712, in _lock
+    return os.open(self.lock_file, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+FileExistsError: [Errno 17] File exists: '/Users/user/Downloads/2026-courier/events/mission-queue/queue.lock'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/run_courier_long.py", line 17, in <module>
+    mvp.run_autonomous_loop()
+  File "/Users/user/Downloads/2026-courier/scripts/courier_founder_mode.py", line 435, in run_autonomous_loop
+    mission_result = self.dispatcher.process_next_mission(worker_id)
+  File "/Users/user/Downloads/2026-courier/scripts/courier_safety_dispatcher.py", line 557, in process_next_mission
+    self.mission_queue.transition(mission_id, "BLOCKED", claimed_by=worker_id,
+  File "/Users/user/Downloads/2026-courier/scripts/courier_safety_dispatcher.py", line 827, in transition
+    return self._mutate(apply)
+  File "/Users/user/Downloads/2026-courier/scripts/courier_safety_dispatcher.py", line 732, in _mutate
+    fd = self._lock()
+  File "/Users/user/Downloads/2026-courier/scripts/courier_safety_dispatcher.py", line 714, in _lock
+    raise RuntimeError("MISSION_QUEUE_BUSY_FAIL_CLOSED") from error
+RuntimeError: MISSION_QUEUE_BUSY_FAIL_CLOSED

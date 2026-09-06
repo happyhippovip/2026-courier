@@ -1,0 +1,25 @@
+{
+  "gate_id": "GATE-EXEC-B2B-OUTREACH-01",
+  "opportunity_id": "REV-OPP-B2B-AUTONOMY-AUDIT",
+  "gate_type": "HUMAN_AUTHORITY_DISPATCH_GATE",
+  "status": "WAITING_HUMAN_ACTION",
+  "created_at": "2026-09-01T14:14:40+00:00",
+  "why_human_required": "Direct messaging on LinkedIn, X, and GitHub requires authenticated user session cookies/tokens which are not available in the sandboxed runtime.",
+  "missing_automation_gap": "NO_AUTHENTICATED_PLATFORM_API_SESSION_IN_SANDBOX",
+  "authorized_scope": "€99 AI Agent Reliability Check (1 workflow, max 10 qualified prospects, 0.00 EUR spend)",
+  "dispatch_packet_ref": "events/revenue-opportunities/offerings/b2b_autonomy_audit/OUTREACH_DISPATCH_PACKET_10_PROSPECTS.md",
+  "tracker_ref": "events/revenue-opportunities/offerings/b2b_autonomy_audit/outreach_tracker.json",
+  "minimal_human_action": "Copy-paste the 10 pre-qualified direct messages to the respective founders on LinkedIn/X/GitHub via personal browser. Time: ~3-5 minutes. Autonomous spend: 0.00 EUR.",
+  "prospects_summary": [
+    {"id": "P-01", "type": "AI Coding Agent Founder", "channel": "LINKEDIN_DM", "focus": "POSIX flock fencing & stall prevention"},
+    {"id": "P-02", "type": "Research Agent Startup CTO", "channel": "X_DM", "focus": "Kernel PID liveness & orphan cleanup"},
+    {"id": "P-03", "type": "DevTool AI Agent Builder", "channel": "GITHUB_DISCUSSION", "focus": "Reboot state recovery & epoch fencing"},
+    {"id": "P-04", "type": "AI Automation Agency Lead", "channel": "LINKEDIN_DM", "focus": "Non-interactive stdin & loop breaking"},
+    {"id": "P-05", "type": "Multi-Agent Framework Contributor", "channel": "X_DM", "focus": "Flock leasing & workspace collisions"},
+    {"id": "P-06", "type": "Autonomous ETL Founder", "channel": "LINKEDIN_DM", "focus": "Spend firewall & fail-closed error handling"},
+    {"id": "P-07", "type": "AI DevOps Platform Engineer", "channel": "GITHUB_DISCUSSION", "focus": "Heartbeat staleness & zombie processes"},
+    {"id": "P-08", "type": "AI Automation Builder", "channel": "X_DM", "focus": "State corruption protection & atomic file ops"},
+    {"id": "P-09", "type": "LLM Batch Processing Tech Lead", "channel": "LINKEDIN_DM", "focus": "Idempotency keys & completion fingerprints"},
+    {"id": "P-10", "type": "Agent Infrastructure Engineer", "channel": "GITHUB_DISCUSSION", "focus": "Canonical authority & single-winner leasing"}
+  ]
+}

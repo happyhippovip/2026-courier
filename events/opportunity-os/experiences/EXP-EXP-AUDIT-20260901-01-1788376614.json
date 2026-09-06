@@ -1,0 +1,22 @@
+{
+  "experience_id": "EXP-EXP-AUDIT-20260901-01-1788376614",
+  "opportunity_id": "EXP-AUDIT-20260901-01",
+  "domain": "B2B_AUTOMATION",
+  "hypothesis": "Offer 'REV-OPP-B2B-AUTONOMY-AUDIT' maintains positive unit contribution.",
+  "evidence_before": [
+    "Multi-agent workflows suffering from silent loops, unmonitored token burn, and deadlock hangs during multi-step tool calls."
+  ],
+  "action_taken": "Monitor inbound response and convert",
+  "expected_result": "Net margin > 0, price \u20ac99.0",
+  "actual_result": "Unit economics model passed synthetic validation",
+  "cost_eur": 0.0,
+  "revenue_eur": 0.0,
+  "time_used_hours": 0.5,
+  "success": true,
+  "evidence_type": "SIMULATED",
+  "failure_mode": null,
+  "lesson": "Synthetic model confirmed margin structure; external customer test required before live commitment.",
+  "confidence_delta": 0.05,
+  "reusable_pattern": "MODEL_CHECK_B2B_AUTOMATION",
+  "timestamp": "2026-09-02T19:16:54.381870+00:00"
+}

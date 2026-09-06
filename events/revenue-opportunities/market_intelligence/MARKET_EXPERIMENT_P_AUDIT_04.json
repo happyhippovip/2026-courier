@@ -1,0 +1,20 @@
+{
+  "experiment_id": "EXP-AUDIT-20260902-04",
+  "prospect_alias": "P-AUDIT-04",
+  "target_offering": "REV-OPP-B2B-AUTONOMY-AUDIT",
+  "price_eur": 99.0,
+  "correlation_id": "CORR-AUDIT04-20260902010015",
+  "sent_at": "2026-09-01T23:00:15.000000+00:00",
+  "observed_pain": "Autonomous agent workflows entering self-healing retry storms and context-bloat loops, causing sudden API token surges and unhandled timeout deadlocks.",
+  "public_source": "Public AI Engineering Architecture & Incident Post-Mortems 2026-Q1 (AI Agent spending incident repositories & retry storm analyses)",
+  "source_date": "2026-03-01",
+  "buyer_role": "VP of Engineering / Head of AI Infrastructure",
+  "evidence_class": "SOURCE_SUPPORTED_PRODUCTION_INCIDENT",
+  "confidence": "HIGH",
+  "message_fingerprint": "d982103fca90192e448b011a",
+  "delivery_status": "EXPOSURE_COMPLETED_WAITING_FOR_RESPONSE",
+  "message_body": {
+    "subject": "Quick question on autonomous agent retry storms & token-velocity limits",
+    "body": "Hi Team,\n\nNoticed the common challenge in production autonomous systems where agents attempting self-healing retries enter runaway loops, accumulating context bloat and sudden API token surges.\n\nWe built a 15-Point Black-Box Multi-Agent Safety Audit (€99, 24h SLA) that identifies:\n- Token-velocity runaway vectors & missing circuit breaker thresholds\n- Context bloat and stale lock collision states\n- Unbounded retry loops in long-running tool chains\n\nKey feature: Zero-Access Security. You share ZERO repository access, API keys, or internal prompt contents—we analyze only sanitized error schemas or exit code traces. Includes 3 concrete drop-in Python circuit-breaker and generation-fencing code recipes.\n\nWould you be open to a 24-hour audit of one agent pipeline for €99 fixed? If so, reply 'AUDIT' and we'll send the 1-page intake checklist.\n\nBest regards,\n2026-Courier Commercial Engineering"
+  }
+}

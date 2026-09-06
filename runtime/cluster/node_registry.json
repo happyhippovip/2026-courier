@@ -1,0 +1,26 @@
+{
+  "nodes": {
+    "NODE_B": {
+      "node_id": "NODE_B",
+      "hostname": "MacBookPro.fritz.box",
+      "platform": "darwin",
+      "workspace_path": "/Users/user/Downloads/2026-courier",
+      "worktree_path": "/Users/user/Downloads/2026-courier-node-b",
+      "status": "READY",
+      "last_heartbeat": "2026-08-31T17:37:15.211395+00:00",
+      "capabilities": [
+        "local_compute",
+        "python_test",
+        "creator_pipeline",
+        "visual_qc"
+      ],
+      "resource_pool": "GOOGLE_PRO_POOL_2",
+      "current_task_id": null,
+      "current_lease_id": null,
+      "current_file_scope": [],
+      "heavy_job_active": false,
+      "continuation_state": null,
+      "last_result_id": null
+    }
+  }
+}

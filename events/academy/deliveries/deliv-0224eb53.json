@@ -1,0 +1,13 @@
+{
+  "schema_version": "2.0",
+  "delivery_id": "deliv-0224eb53",
+  "lesson_id": "lesson-20260901-59e7d6",
+  "target_agent": "agent-antigravity-bridge",
+  "relevant_summary": "Optimizes repetitive context prefixes to reduce token latency by 45% and eliminate redundant parsing.",
+  "reason_for_agent": "Relevant for agent-antigravity-bridge workflows: PROMPT_CACHING_OPTIMIZATION",
+  "recommended_change": "Deterministic immutable system prompt prefix caching",
+  "context_version": 1,
+  "safe_from_task_id": "BUNDLE-2026-cou-9a81a8",
+  "status": "DELIVERED_TO_AGENT",
+  "delivered_at": "2026-09-01T02:30:14.597929+00:00"
+}

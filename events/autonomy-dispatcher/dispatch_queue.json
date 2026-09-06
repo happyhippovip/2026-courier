@@ -1,0 +1,736 @@
+[
+  {
+    "task_id": "TASK-CANARY-AUTONOMY-VERIFY",
+    "objective": "Verify live process canary execution and authority acquisition",
+    "task_type": "SAFE_LOCAL_ENGINEERING",
+    "scope": [
+      "events/runtime-state/canary_proof.json"
+    ],
+    "safety_class": "SAFE_LOCAL",
+    "priority": 10,
+    "expected_value": "Local verified improvement",
+    "requires_payment": false,
+    "requires_human": false,
+    "requires_heavy_slot": false,
+    "dependencies": [],
+    "task_fingerprint": "8dbe50a83e29edaef74f6d1e121d1c11f08cea4be39ad2b7d5566d0583892ae8",
+    "status": "COMPLETED",
+    "result_evidence": {},
+    "created_at": "2026-09-01T12:03:59.356639+00:00",
+    "completed_at": "2026-09-01T12:03:59.365239+00:00"
+  },
+  {
+    "task_id": "OPP-186G-HUMAN-GATE-AUDIENCE",
+    "objective": "Awaiting explicit human audience self-declaration decision",
+    "task_type": "OPPORTUNITY_TASK",
+    "scope": [
+      "repo/local"
+    ],
+    "safety_class": "HUMAN_AUDIENCE_GATED",
+    "priority": 10,
+    "expected_value": "Evidence-backed output",
+    "requires_payment": false,
+    "requires_human": true,
+    "requires_heavy_slot": false,
+    "dependencies": [],
+    "task_fingerprint": "be1dc4615900ad53ded91ab39c4370eb7e31bfa260c756cd128dc1704d4be2f3",
+    "status": "WAITING_HUMAN",
+    "result_evidence": {},
+    "created_at": "2026-09-01T12:03:37.040277+00:00",
+    "completed_at": null
+  },
+  {
+    "task_id": "OPP-AUTONOMOUS-7d6ee132ac250224",
+    "objective": "HIGH_RISK_SECURITY_OR_TRUST_BOUNDARY_CHANGE",
+    "task_type": "OPPORTUNITY_TASK",
+    "scope": [
+      "repo/local"
+    ],
+    "safety_class": "HUMAN_AUDIENCE_GATED",
+    "priority": 10,
+    "expected_value": "Preserve safety at the active trust boundary",
+    "requires_payment": false,
+    "requires_human": true,
+    "requires_heavy_slot": false,
+    "dependencies": [],
+    "task_fingerprint": "93a83496a75f0a3025397ef1f2ca98c1376fd0efcaff993d763a43bf37a125a4",
+    "status": "WAITING_HUMAN",
+    "result_evidence": {},
+    "created_at": "2026-09-01T12:03:37.042189+00:00",
+    "completed_at": null
+  },
+  {
+    "task_id": "OPP-188G-PARKED-HUMAN-GATE",
+    "objective": "Human audience self-declaration decision required (Parked)",
+    "task_type": "OPPORTUNITY_TASK",
+    "scope": [
+      "repo/local"
+    ],
+    "safety_class": "HUMAN_AUDIENCE_GATED",
+    "priority": 10,
+    "expected_value": "Evidence-backed output",
+    "requires_payment": false,
+    "requires_human": true,
+    "requires_heavy_slot": false,
+    "dependencies": [],
+    "task_fingerprint": "374c985b4c16c348beef3399883b9608373fa0ab9b957dc7e2dc4fb3371c1d8b",
+    "status": "WAITING_HUMAN",
+    "result_evidence": {},
+    "created_at": "2026-09-01T12:03:37.043899+00:00",
+    "completed_at": null
+  },
+  {
+    "task_id": "OPP-187G-MONEY-GATE-EXTERNAL-PAID-CREDITS",
+    "objective": "Awaiting payment approval for external credits (strictly 0 EUR autonomous spend limit)",
+    "task_type": "OPPORTUNITY_TASK",
+    "scope": [
+      "repo/local"
+    ],
+    "safety_class": "HUMAN_AUDIENCE_GATED",
+    "priority": 10,
+    "expected_value": "Evidence-backed output",
+    "requires_payment": false,
+    "requires_human": true,
+    "requires_heavy_slot": false,
+    "dependencies": [],
+    "task_fingerprint": "a653a46f4344594e224853668491eb1d10bbcd0a4e99f71e78d7e85b9f4fdd89",
+    "status": "WAITING_HUMAN",
+    "result_evidence": {},
+    "created_at": "2026-09-01T12:03:37.045677+00:00",
+    "completed_at": null
+  },
+  {
+    "task_id": "OPP-186G-MONEY-GATE-EXTERNAL",
+    "objective": "Awaiting payment authorization for external credits (0 EUR spend limit)",
+    "task_type": "OPPORTUNITY_TASK",
+    "scope": [
+      "repo/local"
+    ],
+    "safety_class": "HUMAN_AUDIENCE_GATED",
+    "priority": 10,
+    "expected_value": "Evidence-backed output",
+    "requires_payment": false,
+    "requires_human": true,
+    "requires_heavy_slot": false,
+    "dependencies": [],
+    "task_fingerprint": "3a5ef03119b563c7f42b1560079344b77da9607f2696ac6de2e0360944a263ff",
+    "status": "WAITING_HUMAN",
+    "result_evidence": {},
+    "created_at": "2026-09-01T12:03:37.047545+00:00",
+    "completed_at": null
+  },
+  {
+    "task_id": "OPP-188G-PARKED-MONEY-GATE",
+    "objective": "Payment authorization required for external spend (Parked with 0 EUR limit)",
+    "task_type": "OPPORTUNITY_TASK",
+    "scope": [
+      "repo/local"
+    ],
+    "safety_class": "HUMAN_AUDIENCE_GATED",
+    "priority": 10,
+    "expected_value": "Evidence-backed output",
+    "requires_payment": false,
+    "requires_human": true,
+    "requires_heavy_slot": false,
+    "dependencies": [],
+    "task_fingerprint": "2a0be2087187eb600350ba81632bbc34148d4aa34cf86cac04fa50b6915af026",
+    "status": "WAITING_HUMAN",
+    "result_evidence": {},
+    "created_at": "2026-09-01T12:03:37.050125+00:00",
+    "completed_at": null
+  },
+  {
+    "task_id": "OPP-187G-HUMAN-GATE-AUDIENCE-SELF-DECLARATION",
+    "objective": "Awaiting explicit human audience self-declaration decision for FruitKI release",
+    "task_type": "OPPORTUNITY_TASK",
+    "scope": [
+      "repo/local"
+    ],
+    "safety_class": "HUMAN_AUDIENCE_GATED",
+    "priority": 10,
+    "expected_value": "Evidence-backed output",
+    "requires_payment": false,
+    "requires_human": true,
+    "requires_heavy_slot": false,
+    "dependencies": [],
+    "task_fingerprint": "03572efc83efc74963b9182bcea8856085260b28439c32b789dd1e01ea9a653c",
+    "status": "WAITING_HUMAN",
+    "result_evidence": {},
+    "created_at": "2026-09-01T12:03:37.052980+00:00",
+    "completed_at": null
+  },
+  {
+    "task_id": "TASK-GEN-TEST-COV-CONTINUOUS-SAFE-WORK-DISPATCHER",
+    "objective": "Verify and construct focused test harness for continuous_safe_work_dispatcher.py",
+    "task_type": "SAFE_LOCAL_INVESTIGATION",
+    "scope": [
+      "scripts/continuous_safe_work_dispatcher.py",
+      "tests/test_continuous_safe_work_dispatcher.py"
+    ],
+    "safety_class": "SAFE_LOCAL",
+    "priority": 4,
+    "expected_value": "Verified focused test harness for core subsystem",
+    "requires_payment": false,
+    "requires_human": false,
+    "requires_heavy_slot": false,
+    "dependencies": [],
+    "task_fingerprint": "8d205117f693d4f87cf6fadc7e65ca3ac92f594c033e41a8765c19a4beed9c77",
+    "status": "COMPLETED",
+    "result_evidence": {
+      "verified_task": "TASK-GEN-TEST-COV-CONTINUOUS-SAFE-WORK-DISPATCHER",
+      "timestamp": "2026-09-01T12:04:05.161955+00:00"
+    },
+    "created_at": "2026-09-01T12:03:38.571748+00:00",
+    "completed_at": "2026-09-01T12:04:05.162912+00:00"
+  },
+  {
+    "task_id": "TASK-GEN-TEST-COV-HOST-SURVIVAL-ENGINE",
+    "objective": "Verify and construct focused test harness for host_survival_engine.py",
+    "task_type": "SAFE_LOCAL_INVESTIGATION",
+    "scope": [
+      "scripts/host_survival_engine.py",
+      "tests/test_host_survival_engine.py"
+    ],
+    "safety_class": "SAFE_LOCAL",
+    "priority": 4,
+    "expected_value": "Verified focused test harness for core subsystem",
+    "requires_payment": false,
+    "requires_human": false,
+    "requires_heavy_slot": false,
+    "dependencies": [],
+    "task_fingerprint": "5ac316a4f05d079844d8d21e529736881082fef8988f0cdbe23a08d21e1b2309",
+    "status": "COMPLETED",
+    "result_evidence": {
+      "verified_task": "TASK-GEN-TEST-COV-HOST-SURVIVAL-ENGINE",
+      "timestamp": "2026-09-01T12:04:05.098114+00:00"
+    },
+    "created_at": "2026-09-01T12:03:38.574459+00:00",
+    "completed_at": "2026-09-01T12:04:05.099181+00:00"
+  },
+  {
+    "task_id": "TASK-GEN-TEST-COV-LIVE-WORKER-REGISTRY",
+    "objective": "Verify and construct focused test harness for live_worker_registry.py",
+    "task_type": "SAFE_LOCAL_INVESTIGATION",
+    "scope": [
+      "scripts/live_worker_registry.py",
+      "tests/test_live_worker_registry.py"
+    ],
+    "safety_class": "SAFE_LOCAL",
+    "priority": 4,
+    "expected_value": "Verified focused test harness for core subsystem",
+    "requires_payment": false,
+    "requires_human": false,
+    "requires_heavy_slot": false,
+    "dependencies": [],
+    "task_fingerprint": "ada676b3a83ce4c0b4a7a4ffc39c850ff0733dad8c834ddca7115633151bb548",
+    "status": "COMPLETED",
+    "result_evidence": {
+      "opportunity_executed": "TASK-GEN-TEST-COV-LIVE-WORKER-REGISTRY"
+    },
+    "created_at": "2026-09-01T12:03:38.576962+00:00",
+    "completed_at": "2026-09-01T12:04:02.167563+00:00"
+  },
+  {
+    "task_id": "TASK-GEN-TEST-COV-SNITCH-OBSERVER",
+    "objective": "Verify and construct focused test harness for snitch_observer.py",
+    "task_type": "SAFE_LOCAL_INVESTIGATION",
+    "scope": [
+      "scripts/snitch_observer.py",
+      "tests/test_snitch_observer.py"
+    ],
+    "safety_class": "SAFE_LOCAL",
+    "priority": 4,
+    "expected_value": "Verified focused test harness for core subsystem",
+    "requires_payment": false,
+    "requires_human": false,
+    "requires_heavy_slot": false,
+    "dependencies": [],
+    "task_fingerprint": "290812965826cd9c2c850218f11be4e28fa3728ca81f8eacf4de143e61a003de",
+    "status": "COMPLETED",
+    "result_evidence": {},
+    "created_at": "2026-09-01T12:03:38.579497+00:00",
+    "completed_at": "2026-09-01T12:03:38.599441+00:00"
+  },
+  {
+    "task_id": "TASK-GEN-EXC-AUDIT-CANONICAL-AUTHORITY-L61",
+    "objective": "Audit silent exception block in scripts/canonical_authority.py:61",
+    "task_type": "SAFE_LOCAL_INVESTIGATION",
+    "scope": [
+      "scripts/canonical_authority.py"
+    ],
+    "safety_class": "SAFE_LOCAL",
+    "priority": 4,
+    "expected_value": "Replaced silent pass with structured fail-closed telemetry",
+    "requires_payment": false,
+    "requires_human": false,
+    "requires_heavy_slot": false,
+    "dependencies": [],
+    "task_fingerprint": "2a48e44de5a3736c1df58a4c40e2e289a157ac00a61f22fe867c5c21fd34303d",
+    "status": "COMPLETED",
+    "result_evidence": {
+      "verified_task": "TASK-GEN-EXC-AUDIT-CANONICAL-AUTHORITY-L61",
+      "timestamp": "2026-09-01T12:04:05.227318+00:00"
+    },
+    "created_at": "2026-09-01T12:03:38.582367+00:00",
+    "completed_at": "2026-09-01T12:04:05.227932+00:00"
+  },
+  {
+    "task_id": "TASK-GEN-EXC-AUDIT-CANONICAL-AUTHORITY-L133",
+    "objective": "Audit silent exception block in scripts/canonical_authority.py:133",
+    "task_type": "SAFE_LOCAL_INVESTIGATION",
+    "scope": [
+      "scripts/canonical_authority.py"
+    ],
+    "safety_class": "SAFE_LOCAL",
+    "priority": 4,
+    "expected_value": "Replaced silent pass with structured fail-closed telemetry",
+    "requires_payment": false,
+    "requires_human": false,
+    "requires_heavy_slot": false,
+    "dependencies": [],
+    "task_fingerprint": "e60e5bf4d7407122bedf395762fd9f1c08b7114ce0206797803ac888911b4fd9",
+    "status": "COMPLETED",
+    "result_evidence": {
+      "verified_task": "TASK-GEN-EXC-AUDIT-CANONICAL-AUTHORITY-L133",
+      "timestamp": "2026-09-01T12:04:05.288633+00:00"
+    },
+    "created_at": "2026-09-01T12:03:38.585131+00:00",
+    "completed_at": "2026-09-01T12:04:05.289367+00:00"
+  },
+  {
+    "task_id": "TASK-ENG-FOLLOWUP-TEST-COV-SNITCH-OBSERVER",
+    "objective": "Implement verified engineering solution for TASK-GEN-TEST-COV-SNITCH-OBSERVER",
+    "task_type": "SAFE_LOCAL_ENGINEERING",
+    "scope": [
+      "scripts/snitch_observer.py",
+      "tests/test_snitch_observer.py"
+    ],
+    "safety_class": "SAFE_LOCAL",
+    "priority": 8,
+    "expected_value": "Resolved TEST_GAP_CONFIRMED: Confirmed test gap: Verify and construct focused test harness for snitch_observer.py",
+    "requires_payment": false,
+    "requires_human": false,
+    "requires_heavy_slot": false,
+    "dependencies": [
+      "TASK-GEN-TEST-COV-SNITCH-OBSERVER"
+    ],
+    "task_fingerprint": "565ba181aa62e1e081755c8dc40093bc18f1cd94972f4954f30bcc25d44256aa",
+    "status": "COMPLETED",
+    "result_evidence": {},
+    "created_at": "2026-09-01T12:03:38.600073+00:00",
+    "completed_at": "2026-09-01T12:04:02.128750+00:00"
+  },
+  {
+    "task_id": "TASK-ENG-FOLLOWUP-TEST-COV-LIVE-WORKER-REGISTRY",
+    "objective": "Implement verified engineering solution for TASK-GEN-TEST-COV-LIVE-WORKER-REGISTRY",
+    "task_type": "SAFE_LOCAL_ENGINEERING",
+    "scope": [
+      "scripts/live_worker_registry.py",
+      "tests/test_live_worker_registry.py"
+    ],
+    "safety_class": "SAFE_LOCAL",
+    "priority": 8,
+    "expected_value": "Resolved TEST_GAP_CONFIRMED: Confirmed test gap: Verify and construct focused test harness for live_worker_registry.py",
+    "requires_payment": false,
+    "requires_human": false,
+    "requires_heavy_slot": false,
+    "dependencies": [
+      "TASK-GEN-TEST-COV-LIVE-WORKER-REGISTRY"
+    ],
+    "task_fingerprint": "94a3f94b73c81a4bfc3d86b575dabdada873026ea2b297f98df9bb4aa8e71e82",
+    "status": "COMPLETED",
+    "result_evidence": {
+      "verified_task": "TASK-ENG-FOLLOWUP-TEST-COV-LIVE-WORKER-REGISTRY",
+      "timestamp": "2026-09-01T12:04:05.068115+00:00"
+    },
+    "created_at": "2026-09-01T12:04:02.169192+00:00",
+    "completed_at": "2026-09-01T12:04:05.069343+00:00"
+  },
+  {
+    "task_id": "TASK-RECOVERY-VERIFY-001",
+    "objective": "Verify crash recovery and state persistence across restarts",
+    "task_type": "LOW_RISK_LOCAL_ENGINEERING",
+    "scope": [
+      "repo/local"
+    ],
+    "safety_class": "SAFE_LOCAL",
+    "priority": 8,
+    "expected_value": "Local verified improvement",
+    "requires_payment": false,
+    "requires_human": false,
+    "requires_heavy_slot": false,
+    "dependencies": [],
+    "task_fingerprint": "2f688b13306bed9019abfcbaa0c89fbbb73a6feb90fea73edafb37ba0720d753",
+    "status": "COMPLETED",
+    "result_evidence": {},
+    "created_at": "2026-09-05T19:21:47.106244+00:00",
+    "completed_at": "2026-09-05T19:21:47.111626+00:00"
+  },
+  {
+    "task_id": "TASK-ENG-FOLLOWUP-TEST-COV-HOST-SURVIVAL-ENGINE",
+    "objective": "Implement verified engineering solution for TASK-GEN-TEST-COV-HOST-SURVIVAL-ENGINE",
+    "task_type": "SAFE_LOCAL_ENGINEERING",
+    "scope": [
+      "scripts/host_survival_engine.py",
+      "tests/test_host_survival_engine.py"
+    ],
+    "safety_class": "SAFE_LOCAL",
+    "priority": 8,
+    "expected_value": "Resolved TEST_GAP_CONFIRMED: Confirmed test gap: Verify and construct focused test harness for host_survival_engine.py",
+    "requires_payment": false,
+    "requires_human": false,
+    "requires_heavy_slot": false,
+    "dependencies": [
+      "TASK-GEN-TEST-COV-HOST-SURVIVAL-ENGINE"
+    ],
+    "task_fingerprint": "0523664d612a93a8304bdbeab04da6da8e6f49b76b66ceb423896e7b2ff2f539",
+    "status": "COMPLETED",
+    "result_evidence": {
+      "verified_task": "TASK-ENG-FOLLOWUP-TEST-COV-HOST-SURVIVAL-ENGINE",
+      "timestamp": "2026-09-01T12:04:05.128772+00:00"
+    },
+    "created_at": "2026-09-01T12:04:05.099843+00:00",
+    "completed_at": "2026-09-01T12:04:05.129734+00:00"
+  },
+  {
+    "task_id": "TASK-ENG-FOLLOWUP-TEST-COV-CONTINUOUS-SAFE-WORK-DISPATCHER",
+    "objective": "Implement verified engineering solution for TASK-GEN-TEST-COV-CONTINUOUS-SAFE-WORK-DISPATCHER",
+    "task_type": "SAFE_LOCAL_ENGINEERING",
+    "scope": [
+      "scripts/continuous_safe_work_dispatcher.py",
+      "tests/test_continuous_safe_work_dispatcher.py"
+    ],
+    "safety_class": "SAFE_LOCAL",
+    "priority": 8,
+    "expected_value": "Resolved TEST_GAP_CONFIRMED: Confirmed test gap: Verify and construct focused test harness for continuous_safe_work_dispatcher.py",
+    "requires_payment": false,
+    "requires_human": false,
+    "requires_heavy_slot": false,
+    "dependencies": [
+      "TASK-GEN-TEST-COV-CONTINUOUS-SAFE-WORK-DISPATCHER"
+    ],
+    "task_fingerprint": "402a1366db0e927b0e5032c35727ec6ea124fc01cb32a91a7d01cfc0f09acb1e",
+    "status": "COMPLETED",
+    "result_evidence": {
+      "verified_task": "TASK-ENG-FOLLOWUP-TEST-COV-CONTINUOUS-SAFE-WORK-DISPATCHER",
+      "timestamp": "2026-09-01T12:04:05.195202+00:00"
+    },
+    "created_at": "2026-09-01T12:04:05.163462+00:00",
+    "completed_at": "2026-09-01T12:04:05.196144+00:00"
+  },
+  {
+    "task_id": "TASK-ENG-FOLLOWUP-EXC-AUDIT-CANONICAL-AUTHORITY-L61",
+    "objective": "Implement verified engineering solution for TASK-GEN-EXC-AUDIT-CANONICAL-AUTHORITY-L61",
+    "task_type": "SAFE_LOCAL_ENGINEERING",
+    "scope": [
+      "scripts/canonical_authority.py"
+    ],
+    "safety_class": "SAFE_LOCAL",
+    "priority": 8,
+    "expected_value": "Resolved DEFECT_CONFIRMED: Confirmed silent exception suppression defect: Audit silent exception block in scripts/canonical_authority.py:61",
+    "requires_payment": false,
+    "requires_human": false,
+    "requires_heavy_slot": false,
+    "dependencies": [
+      "TASK-GEN-EXC-AUDIT-CANONICAL-AUTHORITY-L61"
+    ],
+    "task_fingerprint": "6709f8a2bdf4a85b950bec2e9532f138ba9ec4b0f0e7119d68a428fc5791c089",
+    "status": "COMPLETED",
+    "result_evidence": {
+      "verified_task": "TASK-ENG-FOLLOWUP-EXC-AUDIT-CANONICAL-AUTHORITY-L61",
+      "timestamp": "2026-09-01T12:04:05.258925+00:00"
+    },
+    "created_at": "2026-09-01T12:04:05.228476+00:00",
+    "completed_at": "2026-09-01T12:04:05.259595+00:00"
+  },
+  {
+    "task_id": "TASK-ENG-FOLLOWUP-EXC-AUDIT-CANONICAL-AUTHORITY-L133",
+    "objective": "Implement verified engineering solution for TASK-GEN-EXC-AUDIT-CANONICAL-AUTHORITY-L133",
+    "task_type": "SAFE_LOCAL_ENGINEERING",
+    "scope": [
+      "scripts/canonical_authority.py"
+    ],
+    "safety_class": "SAFE_LOCAL",
+    "priority": 8,
+    "expected_value": "Resolved DEFECT_CONFIRMED: Confirmed silent exception suppression defect: Audit silent exception block in scripts/canonical_authority.py:133",
+    "requires_payment": false,
+    "requires_human": false,
+    "requires_heavy_slot": false,
+    "dependencies": [
+      "TASK-GEN-EXC-AUDIT-CANONICAL-AUTHORITY-L133"
+    ],
+    "task_fingerprint": "7996d2ba2529183aaf4c0b3863a4bc70a0ace3fdc9daad560cad491e23b48774",
+    "status": "COMPLETED",
+    "result_evidence": {
+      "verified_task": "TASK-ENG-FOLLOWUP-EXC-AUDIT-CANONICAL-AUTHORITY-L133",
+      "timestamp": "2026-09-01T12:04:05.318972+00:00"
+    },
+    "created_at": "2026-09-01T12:04:05.290050+00:00",
+    "completed_at": "2026-09-01T12:04:05.319759+00:00"
+  },
+  {
+    "task_id": "TASK-CANARY-AUTONOMY-1788264278751",
+    "objective": "Verify live process canary execution and authority acquisition",
+    "task_type": "SAFE_LOCAL_ENGINEERING",
+    "scope": [
+      "events/runtime-state/canary_proof.json"
+    ],
+    "safety_class": "SAFE_LOCAL",
+    "priority": 10,
+    "expected_value": "Local verified improvement",
+    "requires_payment": false,
+    "requires_human": false,
+    "requires_heavy_slot": false,
+    "dependencies": [],
+    "task_fingerprint": "8dbe50a83e29edaef74f6d1e121d1c11f08cea4be39ad2b7d5566d0583892ae8",
+    "status": "COMPLETED",
+    "result_evidence": {},
+    "created_at": "2026-09-01T12:04:38.751685+00:00",
+    "completed_at": "2026-09-01T12:04:38.755425+00:00"
+  },
+  {
+    "task_id": "OPP-WAKE-1788264281",
+    "objective": "Real event wake validation for autonomous Computer-A loop",
+    "task_type": "OPPORTUNITY_TASK",
+    "scope": [
+      "repo/local"
+    ],
+    "safety_class": "SAFE_LOCAL",
+    "priority": 9,
+    "expected_value": "Verified event-driven wake from SAFE_IDLE",
+    "requires_payment": false,
+    "requires_human": false,
+    "requires_heavy_slot": false,
+    "dependencies": [],
+    "task_fingerprint": "7144d8e43cfccf83bfc1aba934d244d44b277b061b76d217a1f405d83e2a471f",
+    "status": "COMPLETED",
+    "result_evidence": {
+      "opportunity_executed": "OPP-WAKE-1788264281"
+    },
+    "created_at": "2026-09-01T12:04:41.244612+00:00",
+    "completed_at": "2026-09-01T12:04:42.533441+00:00"
+  },
+  {
+    "task_id": "TASK-CANARY-AUTONOMY-1788264297297",
+    "objective": "Verify live process canary execution and authority acquisition (TASK-CANARY-AUTONOMY-1788264297297)",
+    "task_type": "SAFE_LOCAL_ENGINEERING",
+    "scope": [
+      "events/runtime-state/canary_proof.json"
+    ],
+    "safety_class": "SAFE_LOCAL",
+    "priority": 10,
+    "expected_value": "Local verified improvement",
+    "requires_payment": false,
+    "requires_human": false,
+    "requires_heavy_slot": false,
+    "dependencies": [],
+    "task_fingerprint": "5be62fc9d9776ac60b5fbe3b7fa5cbb0b260a8ece682af10d8ddf8201a831e4a",
+    "status": "COMPLETED",
+    "result_evidence": {
+      "proof_file": "/Users/user/Downloads/2026-courier/events/runtime-state/canary_proof.json",
+      "pid": 34013
+    },
+    "created_at": "2026-09-01T12:04:57.297378+00:00",
+    "completed_at": "2026-09-01T12:04:57.312967+00:00"
+  },
+  {
+    "task_id": "OPP-WAKE-1788264300",
+    "objective": "Real event wake validation for autonomous Computer-A loop",
+    "task_type": "OPPORTUNITY_TASK",
+    "scope": [
+      "repo/local"
+    ],
+    "safety_class": "SAFE_LOCAL",
+    "priority": 9,
+    "expected_value": "Verified event-driven wake from SAFE_IDLE",
+    "requires_payment": false,
+    "requires_human": false,
+    "requires_heavy_slot": false,
+    "dependencies": [],
+    "task_fingerprint": "0a642c0560d0d1a7c8dfc20b806e4d2f6fc51c2bbb03387fb1b3ea1950a6dab9",
+    "status": "COMPLETED",
+    "result_evidence": {
+      "opportunity_executed": "OPP-WAKE-1788264300"
+    },
+    "created_at": "2026-09-01T12:05:00.264304+00:00",
+    "completed_at": "2026-09-01T12:05:01.566463+00:00"
+  },
+  {
+    "task_id": "TASK-CANARY-AUTONOMY-1788264979248",
+    "objective": "Verify live process canary execution and authority acquisition (TASK-CANARY-AUTONOMY-1788264979248)",
+    "task_type": "SAFE_LOCAL_ENGINEERING",
+    "scope": [
+      "events/runtime-state/canary_proof.json"
+    ],
+    "safety_class": "SAFE_LOCAL",
+    "priority": 10,
+    "expected_value": "Local verified improvement",
+    "requires_payment": false,
+    "requires_human": false,
+    "requires_heavy_slot": false,
+    "dependencies": [],
+    "task_fingerprint": "e188398a7251eb6b9be8463f277d693c2e1694c0490aa2a9c7f3791219871a66",
+    "status": "COMPLETED",
+    "result_evidence": {
+      "proof_file": "/Users/user/Downloads/2026-courier/events/runtime-state/canary_proof.json",
+      "pid": 34547
+    },
+    "created_at": "2026-09-01T12:16:19.248267+00:00",
+    "completed_at": "2026-09-01T12:16:19.260805+00:00"
+  },
+  {
+    "task_id": "OPP-WAKE-1788264981",
+    "objective": "Real event wake validation for autonomous Computer-A loop",
+    "task_type": "OPPORTUNITY_TASK",
+    "scope": [
+      "repo/local"
+    ],
+    "safety_class": "SAFE_LOCAL",
+    "priority": 9,
+    "expected_value": "Verified event-driven wake from SAFE_IDLE",
+    "requires_payment": false,
+    "requires_human": false,
+    "requires_heavy_slot": false,
+    "dependencies": [],
+    "task_fingerprint": "2b64a9f31feb9ec9af3ce77d81d3d9226966037dcfa1cfcaf9cce2e51de9ef19",
+    "status": "COMPLETED",
+    "result_evidence": {
+      "opportunity_executed": "OPP-WAKE-1788264981"
+    },
+    "created_at": "2026-09-01T12:16:21.812068+00:00",
+    "completed_at": "2026-09-01T12:16:23.029770+00:00"
+  },
+  {
+    "task_id": "OPP-ENDURANCE-WAKE-1788265115",
+    "objective": "Verified event-driven wake from SAFE_IDLE during endurance canary",
+    "task_type": "OPPORTUNITY_TASK",
+    "scope": [
+      "repo/local"
+    ],
+    "safety_class": "SAFE_LOCAL",
+    "priority": 9,
+    "expected_value": "Evidence-backed output",
+    "requires_payment": false,
+    "requires_human": false,
+    "requires_heavy_slot": false,
+    "dependencies": [],
+    "task_fingerprint": "b23f0913f940f7cbe583f2f17da7041a878da01562e815c33aa1ccc2258ba17c",
+    "status": "COMPLETED",
+    "result_evidence": {},
+    "created_at": "2026-09-01T12:18:35.837907+00:00",
+    "completed_at": "2026-09-01T12:18:37.103584+00:00"
+  },
+  {
+    "task_id": "TASK-CANARY-AUTONOMY-1788636103857",
+    "objective": "Verify live process canary execution and authority acquisition (TASK-CANARY-AUTONOMY-1788636103857)",
+    "task_type": "SAFE_LOCAL_ENGINEERING",
+    "scope": [
+      "events/runtime-state/canary_proof.json"
+    ],
+    "safety_class": "SAFE_LOCAL",
+    "priority": 10,
+    "expected_value": "Local verified improvement",
+    "requires_payment": false,
+    "requires_human": false,
+    "requires_heavy_slot": false,
+    "dependencies": [],
+    "task_fingerprint": "7ddd4bf340ead4f340520c022c00850fccc4e0fc9666f253bb20570e5d3611fb",
+    "status": "COMPLETED",
+    "result_evidence": {
+      "proof_file": "/Users/user/Downloads/2026-courier/events/runtime-state/canary_proof.json",
+      "pid": 15709
+    },
+    "created_at": "2026-09-05T19:21:43.857181+00:00",
+    "completed_at": "2026-09-05T19:21:43.875386+00:00"
+  },
+  {
+    "task_id": "TASK-T4-TEST-GAP-apply_memory_update_proposal",
+    "objective": "Add deterministic regression test suite for scripts/apply_memory_update_proposal.py",
+    "task_type": "REGRESSION_TEST_COVERAGE",
+    "scope": [
+      "scripts/apply_memory_update_proposal.py",
+      "tests/test_apply_memory_update_proposal.py"
+    ],
+    "safety_class": "SAFE_LOCAL",
+    "priority": 7,
+    "expected_value": "Local verified improvement",
+    "requires_payment": false,
+    "requires_human": false,
+    "requires_heavy_slot": false,
+    "dependencies": [],
+    "task_fingerprint": "c19f0720d6c21ba176c9611fefa9557393dd5b4446ba6ad99de88302e69798b9",
+    "status": "COMPLETED",
+    "result_evidence": {},
+    "created_at": "2026-09-05T19:21:46.959959+00:00",
+    "completed_at": "2026-09-05T19:21:46.992879+00:00"
+  },
+  {
+    "task_id": "TASK-T4-TEST-GAP-antigravity_project_snapshot",
+    "objective": "Add deterministic regression test suite for scripts/antigravity_project_snapshot.py",
+    "task_type": "REGRESSION_TEST_COVERAGE",
+    "scope": [
+      "scripts/antigravity_project_snapshot.py",
+      "tests/test_antigravity_project_snapshot.py"
+    ],
+    "safety_class": "SAFE_LOCAL",
+    "priority": 7,
+    "expected_value": "Local verified improvement",
+    "requires_payment": false,
+    "requires_human": false,
+    "requires_heavy_slot": false,
+    "dependencies": [],
+    "task_fingerprint": "cb33b148d5a2d3a1697f3c60f94f9a34a23b1ede7f01fd0299dee20a388b96d1",
+    "status": "COMPLETED",
+    "result_evidence": {
+      "opportunity_executed": "TASK-T4-TEST-GAP-antigravity_project_snapshot"
+    },
+    "created_at": "2026-09-05T19:21:46.964846+00:00",
+    "completed_at": "2026-09-05T19:21:47.057720+00:00"
+  },
+  {
+    "task_id": "TASK-T8-KIBEY-PROOF-VALIDATION",
+    "objective": "Execute deterministic KIbey router delivery proof test",
+    "task_type": "PREPARED_VALIDATION",
+    "scope": [
+      "events/revenue-opportunities"
+    ],
+    "safety_class": "SAFE_LOCAL",
+    "priority": 4,
+    "expected_value": "Local verified improvement",
+    "requires_payment": false,
+    "requires_human": false,
+    "requires_heavy_slot": false,
+    "dependencies": [],
+    "task_fingerprint": "73e53be182a9f0b287bc8c35fcd49546758d35e16f7a9d03954ba9532b1b16eb",
+    "status": "COMPLETED",
+    "result_evidence": {
+      "verified_task": "TASK-T8-KIBEY-PROOF-VALIDATION",
+      "timestamp": "2026-09-05T19:21:51.388080+00:00"
+    },
+    "created_at": "2026-09-05T19:21:46.970113+00:00",
+    "completed_at": "2026-09-05T19:21:51.388652+00:00"
+  },
+  {
+    "task_id": "TASK-CANARY-AUTONOMY-1788636113894",
+    "objective": "Verify live process canary execution and authority acquisition (TASK-CANARY-AUTONOMY-1788636113894)",
+    "task_type": "SAFE_LOCAL_ENGINEERING",
+    "scope": [
+      "events/runtime-state/canary_proof.json"
+    ],
+    "safety_class": "SAFE_LOCAL",
+    "priority": 10,
+    "expected_value": "Local verified improvement",
+    "requires_payment": false,
+    "requires_human": false,
+    "requires_heavy_slot": false,
+    "dependencies": [],
+    "task_fingerprint": "2ef0900c8832d0fcf589a403ce9fe28348ed338ef5b07be3df703cdfc2b4c784",
+    "status": "COMPLETED",
+    "result_evidence": {
+      "proof_file": "/Users/user/Downloads/2026-courier/events/runtime-state/canary_proof.json",
+      "pid": 15736
+    },
+    "created_at": "2026-09-05T19:21:53.894751+00:00",
+    "completed_at": "2026-09-05T19:21:53.909991+00:00"
+  }
+]

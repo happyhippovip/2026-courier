@@ -1,0 +1,22 @@
+{
+  "receipt_id": "rcpt-c5a1568c9073",
+  "provider": "GOOGLE_YOUTUBE",
+  "platform": "YOUTUBE",
+  "operation": "channels.list",
+  "endpoint": "youtube.channels.list",
+  "request_parameters_safe": {
+    "part": "id,snippet,contentDetails",
+    "mine": true
+  },
+  "authenticated_channel_id": "UCg0O_a10jsQ74ffS_HgFGqA",
+  "scope_reference": "https://www.googleapis.com/auth/youtube.force-ssl",
+  "started_at": "2026-08-31T09:24:58.948558+00:00",
+  "completed_at": "2026-08-31T09:24:58.948558+00:00",
+  "result_count": 1,
+  "page_count": 1,
+  "next_page_token_present": false,
+  "coverage_complete": true,
+  "payload_evidence_hash": "38ba0b75f271b39e07b0c1643147855c43d03b136bf5f9fef472eaa851afc07d",
+  "receipt_hash": "29df93b32b7b86078b8bbda2b985886a8439d7d6a2375ce60b2dd79e484fb1c6",
+  "previous_receipt_hash": null
+}

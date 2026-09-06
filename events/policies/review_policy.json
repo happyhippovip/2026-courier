@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0",
+  "name": "ReviewBudgetPolicy",
+  "defaults": {
+    "model_review_trigger": "INFORMATION_GAIN_NOT_TIME",
+    "routine_daily_review": "OFF",
+    "full_repo_review": "EXCEPTION_ONLY",
+    "delta_review": "DEFAULT",
+    "unchanged_file_resend": "FORBIDDEN",
+    "deterministic_checks": "ALWAYS",
+    "low_risk_review": "BATCH_OPTIONAL",
+    "medium_risk_review": "REQUIRED_BEFORE_MAIN_PUSH",
+    "high_risk_review": "REQUIRED_BEFORE_ACTIVATION_OR_EXTERNAL_RELEASE",
+    "no_change": "NO_REVIEW",
+    "same_diff_hash": "REUSE_PREVIOUS_REVIEW",
+    "max_routine_codex_batches_per_day": 1
+  },
+  "risk_rules": {
+    "high_risk_patterns": [
+      "auth",
+      "hmac",
+      "signature",
+      "oauth",
+      "token",
+      "secret",
+      "credential",
+      "permission",
+      "spending",
+      "payment",
+      "cost_gate",
+      "destructive",
+      "2026-project-memory",
+      "apply_memory_update",
+      "lock",
+      "lease",
+      "atomic",
+      "claims"
+    ],
+    "medium_risk_patterns": [
+      "routing",
+      "dispatcher",
+      "agent",
+      "persistence",
+      "orchestration",
+      "supervisor",
+      "autonomous_loop",
+      "chief_commander",
+      "github_transport"
+    ],
+    "low_risk_patterns": [
+      "docs/",
+      ".md",
+      "readme",
+      "comment",
+      "tests/",
+      "assets/",
+      "studio/assets/"
+    ]
+  }
+}

@@ -1,0 +1,74 @@
+[
+  {
+    "created_at": 1788519408.834037,
+    "error": "None",
+    "fingerprint": "8133a00937f37d9a26ac3510b880a99716545754a7aa296e15b1752fe9c6c7ce",
+    "goal": "Test idea from slack",
+    "lesson": "Implementation succeeded.",
+    "lesson_id": "4a2718b3-b8a7-4e01-88fa-dfa5d1386a8e",
+    "result": "SUCCESS",
+    "reusable_pattern": "Standard execution",
+    "root_cause": "None",
+    "task": ""
+  },
+  {
+    "created_at": 1788519438.7877262,
+    "error": null,
+    "fingerprint": "05248c76b2d634de76d2e144618b2144086c6e767bf5762408c534064b21ffaa",
+    "goal": "Another test",
+    "lesson": "Failed execution on this approach.",
+    "lesson_id": "8458e1bb-74e4-4543-88ac-bfa49029a064",
+    "result": "BLOCKED",
+    "reusable_pattern": "None",
+    "root_cause": "Unknown",
+    "task": ""
+  },
+  {
+    "created_at": 1788549768.59217,
+    "error": "ACTIVE != SATISFIED, MISSING_ACK_OR_DISPATCH_FAIL: DISPATCH_FAILED: LOCAL_CONSUMER_NOT_REGISTERED",
+    "fingerprint": "ce650c518e74ccc5bc923210e92dbab4e9a91453ee4525e266b392b0c41d1ea2",
+    "goal": "Finish assembling Courier itself into one coherent, daily-usable autonomous coordination system",
+    "lesson": "Always ensure class methods are properly indented within the class block, and that DEDUPED tasks properly read from the cache and transition to VERIFIED.",
+    "lesson_id": "310e2ea5-3654-460e-90c2-03056c652dbd",
+    "result": "SUCCESS",
+    "reusable_pattern": "When using early-return cached execution (DEDUPED), the dispatcher must actively retrieve the existing result payload from disk to satisfy downstream planners.",
+    "root_cause": "process_next_mission was at module scope and CourierSafetyDispatcher didn't handle DEDUPED successfully",
+    "task": "Integrate CLI1 evidence for test_m233_founder_mode.py"
+  },
+  {
+    "created_at": 1788550287.5391302,
+    "error": "None",
+    "fingerprint": "442c996758ccea9265bb925c14b2e07ea3fdf121a79b34cec4ad0072315a59c5",
+    "goal": "FIRST REAL PRODUCT MISSION \u2014 BUILD THE FOUNDATION OF A NEXT-GENERATION SOCIAL PLATFORM",
+    "lesson": "Starting a modular python-based core using dataclasses guarantees zero external dependencies (no pydantic needed initially) allowing cheap/fast deterministic tests in the CLI1 phase.",
+    "lesson_id": "aba1961a-732c-4ba6-a955-8455fd060911",
+    "result": "SUCCESS",
+    "reusable_pattern": "When bootstrapping backend foundations, use stdlib dataclasses for models to avoid dependency blockers, maintaining testing agility during rapid iteration.",
+    "root_cause": "N/A",
+    "task": "Design and implement initial product data foundation"
+  },
+  {
+    "created_at": 1788551036.841655,
+    "error": "Goal safety constraints triggered HUMAN_GATE. Dedupe failed to unblock loop.",
+    "fingerprint": "1299a8eb59b4dfc827d5da2b4e35bf6bbd04df8940797b9174000d2a1185e452",
+    "goal": "REAL-OPERATIONS REPAIR",
+    "lesson": "Intent-aware gates should strip out negated keywords and boundary declarations before parsing. Resubmitting an active goal must reset BLOCKED/HUMAN_GATE queue missions to PENDING and the goal itself to PENDING.",
+    "lesson_id": "0293335b-dc5d-4f9f-8039-70a039d6ca3a",
+    "result": "SUCCESS",
+    "reusable_pattern": "When applying safety keyword checks, use negative lookbehinds or structured removal of constraint phrases. In single-reader task queues, semantic continuation means demoting blocked/failed terminal states back to ready states.",
+    "root_cause": "_requires_human_gate naively matched keywords in the goal constraints. submit_goal deduped to ACTIVE goals but didn't set them back to PENDING.",
+    "task": "Fix false-positive HUMAN_GATE and goal continuation dedupe"
+  },
+  {
+    "created_at": 1788685101.535412,
+    "error": "EMPTY_WRITE_CRITERIA_FAIL_CLOSED",
+    "fingerprint": "26556955a8c7012e1d9d7dcb913d0e892d94cd1944c29261243ae3a04d62d504",
+    "goal": "discovery-to-implementation planning",
+    "lesson": "explicit deterministic acceptance intent must survive planning transitions",
+    "lesson_id": "ad533bda-da6a-4462-853b-acabfbdb38aa",
+    "result": "write mission rejected before dispatch",
+    "reusable_pattern": "validate write contracts at planner boundary and preserve explicit acceptance data end-to-end",
+    "root_cause": "Structured explicit file intent was not recognized by the planner contract parser",
+    "task": "discovery-to-implementation planning"
+  }
+]

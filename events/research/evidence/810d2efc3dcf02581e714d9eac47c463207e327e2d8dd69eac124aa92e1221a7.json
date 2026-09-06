@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "research_question": "What is the current YouTube publication status for video xCUzPC1Osq8 on channel FruitKI?",
+  "source": "https://www.youtube.com/watch?v=xCUzPC1Osq8",
+  "source_type": "YOUTUBE",
+  "retrieved_at": "2026-08-31T01:54:56.607245+00:00",
+  "evidence_hash": "730db26302045cf692a4b0f9364e6d974485d058327526aca6f1f6ed5b482d41",
+  "dedupe_fingerprint": "810d2efc3dcf02581e714d9eac47c463207e327e2d8dd69eac124aa92e1221a7",
+  "finding": "Video 'Kiwi kann nicht leise sein \ud83e\udd2b\ud83e\udd5d #Shorts' is currently public on channel FruitKI (@kifruchtefilme).",
+  "confidence": "HIGH",
+  "information_gain": "NO_NEW_INFORMATION",
+  "production_relevance": "NO_CURRENT_PIPELINE_CHANGE",
+  "last_checked": "2026-08-31T01:54:56.607245+00:00",
+  "analytics_snapshot": null,
+  "publication_authorized": false
+}

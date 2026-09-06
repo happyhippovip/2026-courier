@@ -1,0 +1,34 @@
+{
+  "allowed_scope": [
+    "runtime/human_gates/release_proposal_dossier.json"
+  ],
+  "cost_class": "FREE_LOCAL",
+  "created_at": "2026-08-31T23:57:20.064726+00:00",
+  "critical_path": false,
+  "dedupe_fingerprint": "b356e05c10654c60",
+  "dedupe_hash": "b356e05c10654c60",
+  "dependencies": [
+    "work-fruitki-pricing-manifest",
+    "work-creator-package-qc-batch"
+  ],
+  "description": "Prepare human-reviewable release proposal dossier for verified FruitKI video packages",
+  "estimated_cost": 0.0,
+  "expected_outcome": "Release proposal dossier generated at runtime/human_gates/release_proposal_dossier.json",
+  "goal_id": "goal-creator-factory-autonomy",
+  "message_stamp": null,
+  "opportunity_id": "work-fruitki-release-proposal",
+  "parallel_safe": true,
+  "priority": 7,
+  "problem_or_goal": "Prepare human-reviewable release proposal dossier for verified FruitKI video packages",
+  "provider": "LOCAL_DETERMINISTIC",
+  "reason": "First Shift Wave 3 Item: Dossier file generated; stays strictly in HUMAN_GATE status until explicit human approval",
+  "risk": "MEDIUM",
+  "scope": [
+    "runtime/human_gates/release_proposal_dossier.json"
+  ],
+  "source": "REAL_WORK_BACKLOG",
+  "source_fingerprint": "fp-release-dossier-01",
+  "status": "HUMAN_GATE",
+  "target_agent": "publication_officer",
+  "updated_at": "2026-08-31T23:57:20.064738+00:00"
+}

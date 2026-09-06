@@ -1,0 +1,18 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-01T01:32:28.633201+00:00",
+  "event_id": "evt-bc6b85bddec6",
+  "event_type": "WORKER_COMPLETED",
+  "evidence": {
+    "mission": "M203",
+    "status": "PASS",
+    "tests_passed": 98
+  },
+  "fingerprint": "760da1151986c57b",
+  "mission_id": "M200",
+  "recommended_action": null,
+  "session_epoch": "epoch-cli1-1788226215",
+  "severity": "INFO",
+  "task_id": "OPP-M200-OPERATIONS",
+  "worker_id": "CLI1"
+}

@@ -1,0 +1,11 @@
+{
+  "current_task": "NONE",
+  "lease_status": "PAUSED",
+  "model_calls": 0,
+  "node_id": "NODE_A",
+  "progress_state": "TASK_LIMIT_REACHED",
+  "provider": "NONE",
+  "remaining_minutes": 4,
+  "tasks_completed": 2,
+  "timestamp": "2026-08-31T17:37:08.547189+00:00"
+}

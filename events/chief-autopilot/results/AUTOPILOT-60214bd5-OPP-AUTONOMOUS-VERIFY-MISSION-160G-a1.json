@@ -1,0 +1,18 @@
+{
+  "action_type": "UNIT_TEST_EXECUTION",
+  "details": {
+    "returncode": 0,
+    "stderr_tail": "on_160g.TestAntigravityAccountSwitchContinuityMission160G) ... ok\ntest_09_changed_setting_detection (tests.test_antigravity_account_switch_continuity_mission_160g.TestAntigravityAccountSwitchContinuityMission160G) ... ok\ntest_10_same_workspace_continuation_and_account_transition (tests.test_antigravity_account_switch_continuity_mission_160g.TestAntigravityAccountSwitchContinuityMission160G) ... ok\n\n----------------------------------------------------------------------\nRan 10 tests in 0.025s\n\nOK\n",
+    "stdout_tail": "project_snapshot_sandbox_test.json\n\u2705 Secret-free Antigravity project snapshot written: /Users/user/Downloads/2026-courier/runtime/preservation/antigravity_project_snapshot_sandbox_test.json\n\u2705 Secret-free Antigravity project snapshot written: /Users/user/Downloads/2026-courier/runtime/preservation/antigravity_project_snapshot_sandbox_test.json\n\u2705 Secret-free Antigravity project snapshot written: /Users/user/Downloads/2026-courier/runtime/preservation/antigravity_project_snapshot_sandbox_test.json\n",
+    "test_module": "tests/test_antigravity_account_switch_continuity_mission_160g.py"
+  },
+  "external_actions": 0,
+  "finished_at": "2026-08-31T17:37:08.122750+00:00",
+  "model_calls": 0,
+  "node_id": "NODE_A",
+  "opportunity_id": "OPP-AUTONOMOUS-VERIFY-MISSION-160G",
+  "result_id": "RES-AUTOPILOT-60214bd5-OPP-AUTONOMOUS-VERIFY-MISSION-160G-a1",
+  "started_at": "2026-08-31T17:37:07.968832+00:00",
+  "status": "SUCCESS",
+  "task_id": "AUTOPILOT-60214bd5-OPP-AUTONOMOUS-VERIFY-MISSION-160G-a1"
+}

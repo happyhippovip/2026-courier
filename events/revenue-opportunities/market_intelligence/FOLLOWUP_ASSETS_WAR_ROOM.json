@@ -1,0 +1,48 @@
+{
+  "timestamp": "2026-09-01T23:07:40.000000+00:00",
+  "war_room_status": "THREE_GOOGLE_WORKERS_SYNTHESIZED",
+  "live_executable_capacities": 3,
+  "top_3_conversion_prospects": [
+    {
+      "rank": 1,
+      "prospect_alias": "P-01",
+      "offering": "REV-OPP-B2B-AUTONOMY-AUDIT",
+      "price_eur": 99.0,
+      "correlation_id": "CORR-P01-20260901150347",
+      "age_hours": 8.05,
+      "earliest_followup_time": "2026-09-02T15:03:49.000000+00:00",
+      "followup_asset": "BLACK_BOX_DIAGNOSTIC_CHECKLIST_v1",
+      "prepared_status": "PREPARED_WAITING_FOR_24H_WINDOW"
+    },
+    {
+      "rank": 2,
+      "prospect_alias": "P-AUDIT-02",
+      "offering": "REV-OPP-B2B-AUTONOMY-AUDIT",
+      "price_eur": 99.0,
+      "correlation_id": "CORR-AUDIT02-20260901235445",
+      "age_hours": 1.22,
+      "earliest_followup_time": "2026-09-02T23:54:45.000000+00:00",
+      "followup_asset": "RECURSION_LIMIT_CIRCUIT_BREAKER_SNIPPET",
+      "prepared_status": "PREPARED_WAITING_FOR_24H_WINDOW"
+    },
+    {
+      "rank": 3,
+      "prospect_alias": "P-KIBEY-02",
+      "offering": "REV-OPP-KIBEY-AI-MARKETPLACE",
+      "price_eur": 49.0,
+      "correlation_id": "CORR-KIBEY02-20260901235445",
+      "age_hours": 1.22,
+      "earliest_followup_time": "2026-09-02T23:54:45.000000+00:00",
+      "followup_asset": "KIBEY_ZERO_DEPENDENCY_BENCHMARK_REPORT",
+      "prepared_status": "PREPARED_WAITING_FOR_24H_WINDOW"
+    }
+  ],
+  "primary_objection_cluster": "Trust barrier regarding code/key sharing & skepticism over routing overhead",
+  "primary_trust_gap": "Fear of exposing proprietary prompt architectures or credentials",
+  "best_followup_candidate": "P-01 (Reaches 24h eligibility at 2026-09-02T15:03:49Z with Black-Box Diagnostic Checklist)",
+  "outbound_capacity": {
+    "total_exposures_sent": 10,
+    "authorized_cap": 10,
+    "new_outbound_permitted": false
+  }
+}

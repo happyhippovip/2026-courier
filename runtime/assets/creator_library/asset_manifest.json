@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "created_at": "2026-08-31T15:43:52.289760+00:00",
+  "total_assets": 7,
+  "expression_pack": [
+    "exp_happy.png",
+    "exp_shocked.png",
+    "exp_cool_sunglasses.png",
+    "exp_laser_focus.png"
+  ],
+  "lighting_presets": [
+    "neon_cyberpunk",
+    "cosmic_nebula",
+    "sunny_stage"
+  ],
+  "target_future_shorts": [
+    "dragonfruit_volcano",
+    "strawberry_teleport",
+    "future_backlog_shorts"
+  ]
+}

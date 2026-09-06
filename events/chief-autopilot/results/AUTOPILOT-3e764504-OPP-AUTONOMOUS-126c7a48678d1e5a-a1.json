@@ -1,0 +1,8 @@
+{
+  "external_actions": 0,
+  "model_calls": 0,
+  "opportunity_id": "OPP-AUTONOMOUS-126c7a48678d1e5a",
+  "result": "LOCAL_DETERMINISTIC_EVIDENCE_VALIDATED",
+  "status": "RESULT_RECEIVED",
+  "task_id": "AUTOPILOT-3e764504-OPP-AUTONOMOUS-126c7a48678d1e5a-a1"
+}

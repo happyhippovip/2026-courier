@@ -1,0 +1,8 @@
+{
+  "loop_task_1": {
+    "consecutive_no_progress": 3,
+    "reason": "Chatter/loop detected: 3 consecutive calls with 0 new information and 0 artifact progress.",
+    "total_calls": 3,
+    "tripped": true
+  }
+}

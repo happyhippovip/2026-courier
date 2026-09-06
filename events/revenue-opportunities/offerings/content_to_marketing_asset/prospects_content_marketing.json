@@ -1,0 +1,62 @@
+{
+  "offering_id": "OFFER-CONTENT-REPURPOSE-01",
+  "offering_title": "Raw Content to Finished Marketing Asset Fast-Turnaround Service",
+  "price": "\u20ac49 (Single Batch) / \u20ac149 (Monthly 4-Pack)",
+  "turnaround_sla": "24-48 Hours",
+  "autonomous_spend_eur": 0.0,
+  "created_at": "2026-09-01T14:22:50+00:00",
+  "prospects": [
+    {
+      "prospect_id": "CP-01",
+      "target_type": "Solo AI Consultant / Substack Author",
+      "qualification_context": "Publishes detailed technical essays on AI architecture but lacks short-form social carousels.",
+      "channel": "EMAIL_APPLE_MAIL",
+      "proposed_angle": "Turn 1 existing technical newsletter into 3 high-impact LinkedIn posts and 1 carousel deck.",
+      "economic_state": "EXPOSURE",
+      "sent_at": "2026-09-01T15:06:33.182934+00:00",
+      "response_state": "WAITING_FOR_RESPONSE",
+      "launched_at": "2026-09-01T14:30:51.362708+00:00",
+      "human_copy_paste_count": 0,
+      "correlation_id": "CORR-CP01-20260901150632",
+      "message_fingerprint": "33a13def7c0a6ea635e3e8fbf5841e440725a58a19cafe5eaa067d0372f511d9",
+      "delivery_detail": "APPLE_MAIL_DELIVERY_SENT",
+      "human_action_count_this_send": 0
+    },
+    {
+      "prospect_id": "CP-02",
+      "target_type": "Open-Source DevTool Founder",
+      "qualification_context": "Maintains active GitHub repo with detailed changelogs but no visual social marketing assets.",
+      "channel": "X_DM",
+      "proposed_angle": "Turn technical release changelog into a 5-slide visual developer carousel.",
+      "economic_state": "DISCOVERED",
+      "sent_at": null
+    },
+    {
+      "prospect_id": "CP-03",
+      "target_type": "B2B Tech Agency Owner",
+      "qualification_context": "Produces podcast/client case studies but does not repurpose into bite-sized thought leadership.",
+      "channel": "LINKEDIN_DM",
+      "proposed_angle": "Convert 1 client interview transcript into 3 ready-to-publish case study snippets.",
+      "economic_state": "DISCOVERED",
+      "sent_at": null
+    },
+    {
+      "prospect_id": "CP-04",
+      "target_type": "AI Infrastructure Blogger",
+      "qualification_context": "Writes comprehensive benchmarks on LLM latency and GPU throughput.",
+      "channel": "X_DM",
+      "proposed_angle": "Convert benchmark post into a 5-slide visual infographic breakdown.",
+      "economic_state": "DISCOVERED",
+      "sent_at": null
+    },
+    {
+      "prospect_id": "CP-05",
+      "target_type": "Python Library Maintainer",
+      "qualification_context": "Has high-starred GitHub project and wants to promote commercial support offerings.",
+      "channel": "GITHUB_DISCUSSION",
+      "proposed_angle": "Convert library documentation into 3 developer adoption posts.",
+      "economic_state": "DISCOVERED",
+      "sent_at": null
+    }
+  ]
+}

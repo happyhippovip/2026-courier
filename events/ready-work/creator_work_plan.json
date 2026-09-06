@@ -1,0 +1,2343 @@
+{
+  "schema_version": "1.0",
+  "inventory_id": "8108a5d24b2f650bc023e47c46bca5c49c6d372ee9bd7a53073dd60eb3f9520c",
+  "queue_id": "294f1a5f9fafdacb9b101bfa85aa089f872284fbfa6e6bafcd5a13efeff7af82",
+  "plans": [
+    {
+      "plan_id": "PLAN-4533803ffee0a4f3",
+      "plan_schema_version": "1.0",
+      "source_state_hash": "085cc67ed6d89be953ca89565e139a9c401f53472c1c02f4f175dc918cbf632e",
+      "created_from_queue_hash": "294f1a5f9fafdacb9b101bfa85aa089f872284fbfa6e6bafcd5a13efeff7af82",
+      "content_id": "banana_ninja_escape_short",
+      "task_id": "TASK-CREATOR-banana_ninja_escape_short-085cc67e",
+      "action_type": "HUMAN_AUDIENCE_DECISION",
+      "status": "WAITING_HUMAN",
+      "responsible_role": "HUMAN_AUDIENCE_DECIDER",
+      "risk_class": "HIGH",
+      "execution_class": "HUMAN_GATE",
+      "requires_model": false,
+      "preferred_worker_class": "HUMAN_OPERATOR",
+      "requires_review": true,
+      "requires_human": true,
+      "requires_external_access": false,
+      "external_side_effect_class": "NONE",
+      "maximum_iterations": 1,
+      "maximum_model_calls": 0,
+      "maximum_external_calls": 0,
+      "money_limit_eur": 0.0,
+      "idempotency_key": "262d757ab71476d4c8f4a382aea95bad854f6398fd569d9909f8a52fb98da806",
+      "dependencies": [
+        "runtime/content/banana_ninja_escape_short/qc_report.json",
+        "runtime/content/banana_ninja_escape_short/render.mp4"
+      ],
+      "blocking_gate": "AUDIENCE_DECISION_GATE",
+      "success_condition": "ACTION_HUMAN_AUDIENCE_DECISION_COMPLETED_DETERMINISTICALLY",
+      "failure_condition": "EXECUTION_ERROR_OR_SAFETY_GATE_VIOLATION",
+      "stop_condition": "BLOCKED_AT_HUMAN_GATE_NO_AUTONOMOUS_OVERRIDE",
+      "evidence_references": [
+        "runtime/content/banana_ninja_escape_short/publish_package.json",
+        "runtime/content/banana_ninja_escape_short/qc_report.json",
+        "runtime/content/banana_ninja_escape_short/render.mp4",
+        "runtime/content/banana_ninja_escape_short/render_metadata.json"
+      ]
+    },
+    {
+      "plan_id": "PLAN-709f0ff67e9c4623",
+      "plan_schema_version": "1.0",
+      "source_state_hash": "d521f9dce15839ea00cb3767a05dfe4de5362172fd5aa87fb266eb8015bad328",
+      "created_from_queue_hash": "294f1a5f9fafdacb9b101bfa85aa089f872284fbfa6e6bafcd5a13efeff7af82",
+      "content_id": "banana_skateboard_loop_short",
+      "task_id": "TASK-CREATOR-banana_skateboard_loop_short-d521f9dc",
+      "action_type": "HUMAN_AUDIENCE_DECISION",
+      "status": "WAITING_HUMAN",
+      "responsible_role": "HUMAN_AUDIENCE_DECIDER",
+      "risk_class": "HIGH",
+      "execution_class": "HUMAN_GATE",
+      "requires_model": false,
+      "preferred_worker_class": "HUMAN_OPERATOR",
+      "requires_review": true,
+      "requires_human": true,
+      "requires_external_access": false,
+      "external_side_effect_class": "NONE",
+      "maximum_iterations": 1,
+      "maximum_model_calls": 0,
+      "maximum_external_calls": 0,
+      "money_limit_eur": 0.0,
+      "idempotency_key": "62e44b0a9edca98d9e9d7afc4d39124e53a410c9cb0f9f0c9e66c3653ceb766f",
+      "dependencies": [
+        "runtime/content/banana_skateboard_loop_short/qc_report.json",
+        "runtime/content/banana_skateboard_loop_short/render.mp4"
+      ],
+      "blocking_gate": "AUDIENCE_DECISION_GATE",
+      "success_condition": "ACTION_HUMAN_AUDIENCE_DECISION_COMPLETED_DETERMINISTICALLY",
+      "failure_condition": "EXECUTION_ERROR_OR_SAFETY_GATE_VIOLATION",
+      "stop_condition": "BLOCKED_AT_HUMAN_GATE_NO_AUTONOMOUS_OVERRIDE",
+      "evidence_references": [
+        "runtime/content/banana_skateboard_loop_short/publish_package.json",
+        "runtime/content/banana_skateboard_loop_short/qc_report.json",
+        "runtime/content/banana_skateboard_loop_short/render.mp4",
+        "runtime/content/banana_skateboard_loop_short/render_metadata.json"
+      ]
+    },
+    {
+      "plan_id": "PLAN-209cbbd1ed057420",
+      "plan_schema_version": "1.0",
+      "source_state_hash": "eed1f65163af5fca2f4a063bd83b3af6fee260ee16850348497dedc3ee2316b9",
+      "created_from_queue_hash": "294f1a5f9fafdacb9b101bfa85aa089f872284fbfa6e6bafcd5a13efeff7af82",
+      "content_id": "banana_skateboard_loop_v2_short",
+      "task_id": "TASK-CREATOR-banana_skateboard_loop_v2_short-eed1f651",
+      "action_type": "HUMAN_AUDIENCE_DECISION",
+      "status": "WAITING_HUMAN",
+      "responsible_role": "HUMAN_AUDIENCE_DECIDER",
+      "risk_class": "HIGH",
+      "execution_class": "HUMAN_GATE",
+      "requires_model": false,
+      "preferred_worker_class": "HUMAN_OPERATOR",
+      "requires_review": true,
+      "requires_human": true,
+      "requires_external_access": false,
+      "external_side_effect_class": "NONE",
+      "maximum_iterations": 1,
+      "maximum_model_calls": 0,
+      "maximum_external_calls": 0,
+      "money_limit_eur": 0.0,
+      "idempotency_key": "c05c47786fdec0ac603de164977b96d5e973d6c6ae91a7aa32109d98c9439850",
+      "dependencies": [
+        "runtime/content/banana_skateboard_loop_v2_short/qc_report.json",
+        "runtime/content/banana_skateboard_loop_v2_short/render.mp4"
+      ],
+      "blocking_gate": "AUDIENCE_DECISION_GATE",
+      "success_condition": "ACTION_HUMAN_AUDIENCE_DECISION_COMPLETED_DETERMINISTICALLY",
+      "failure_condition": "EXECUTION_ERROR_OR_SAFETY_GATE_VIOLATION",
+      "stop_condition": "BLOCKED_AT_HUMAN_GATE_NO_AUTONOMOUS_OVERRIDE",
+      "evidence_references": [
+        "runtime/content/banana_skateboard_loop_v2_short/publish_package.json",
+        "runtime/content/banana_skateboard_loop_v2_short/qc_report.json",
+        "runtime/content/banana_skateboard_loop_v2_short/render.mp4",
+        "runtime/content/banana_skateboard_loop_v2_short/render_metadata.json"
+      ]
+    },
+    {
+      "plan_id": "PLAN-b7167a79494e3757",
+      "plan_schema_version": "1.0",
+      "source_state_hash": "0ae54825bacde9eed2f7ccbf61701d8cdd9c137fa1530aecd90487de1937c901",
+      "created_from_queue_hash": "294f1a5f9fafdacb9b101bfa85aa089f872284fbfa6e6bafcd5a13efeff7af82",
+      "content_id": "cherry_catapult_target_short",
+      "task_id": "TASK-CREATOR-cherry_catapult_target_short-0ae54825",
+      "action_type": "HUMAN_AUDIENCE_DECISION",
+      "status": "WAITING_HUMAN",
+      "responsible_role": "HUMAN_AUDIENCE_DECIDER",
+      "risk_class": "HIGH",
+      "execution_class": "HUMAN_GATE",
+      "requires_model": false,
+      "preferred_worker_class": "HUMAN_OPERATOR",
+      "requires_review": true,
+      "requires_human": true,
+      "requires_external_access": false,
+      "external_side_effect_class": "NONE",
+      "maximum_iterations": 1,
+      "maximum_model_calls": 0,
+      "maximum_external_calls": 0,
+      "money_limit_eur": 0.0,
+      "idempotency_key": "df8c5afa3f8a26409ca9cc57166fc7bdf1ed8d26d18fd96e77b9987fa1ff26b5",
+      "dependencies": [
+        "runtime/content/cherry_catapult_target_short/qc_report.json",
+        "runtime/content/cherry_catapult_target_short/render.mp4"
+      ],
+      "blocking_gate": "AUDIENCE_DECISION_GATE",
+      "success_condition": "ACTION_HUMAN_AUDIENCE_DECISION_COMPLETED_DETERMINISTICALLY",
+      "failure_condition": "EXECUTION_ERROR_OR_SAFETY_GATE_VIOLATION",
+      "stop_condition": "BLOCKED_AT_HUMAN_GATE_NO_AUTONOMOUS_OVERRIDE",
+      "evidence_references": [
+        "runtime/content/cherry_catapult_target_short/publish_package.json",
+        "runtime/content/cherry_catapult_target_short/qc_report.json",
+        "runtime/content/cherry_catapult_target_short/render.mp4",
+        "runtime/content/cherry_catapult_target_short/render_metadata.json"
+      ]
+    },
+    {
+      "plan_id": "PLAN-95a18c2d32bd3c54",
+      "plan_schema_version": "1.0",
+      "source_state_hash": "ab576d8bca0f4263eb70983e847b8f09c28c014f127add93bb66fbd96a698fed",
+      "created_from_queue_hash": "294f1a5f9fafdacb9b101bfa85aa089f872284fbfa6e6bafcd5a13efeff7af82",
+      "content_id": "demo_live_render",
+      "task_id": "TASK-CREATOR-demo_live_render-ab576d8b",
+      "action_type": "LOCAL_QC_EXECUTION",
+      "status": "READY_TO_EXECUTE",
+      "responsible_role": "LOCAL_QC_RUNNER",
+      "risk_class": "LOW",
+      "execution_class": "DETERMINISTIC_LOCAL",
+      "requires_model": false,
+      "preferred_worker_class": "LOCAL_DETERMINISTIC_RUNNER",
+      "requires_review": false,
+      "requires_human": false,
+      "requires_external_access": false,
+      "external_side_effect_class": "NONE",
+      "maximum_iterations": 1,
+      "maximum_model_calls": 0,
+      "maximum_external_calls": 0,
+      "money_limit_eur": 0.0,
+      "idempotency_key": "2321a7cc301484f6b256151ccf651cd4020518874a744930de1384c2cf057ab2",
+      "dependencies": [
+        "runtime/content/demo_live_render/demo_strawberry_short.avi"
+      ],
+      "blocking_gate": "QC_REQUIRED",
+      "success_condition": "ACTION_LOCAL_QC_EXECUTION_COMPLETED_DETERMINISTICALLY",
+      "failure_condition": "EXECUTION_ERROR_OR_SAFETY_GATE_VIOLATION",
+      "stop_condition": "EXECUTE_SINGLE_BOUNDED_ITERATION",
+      "evidence_references": [
+        "runtime/content/demo_live_render/demo_strawberry_short.avi"
+      ]
+    },
+    {
+      "plan_id": "PLAN-78431556f294066d",
+      "plan_schema_version": "1.0",
+      "source_state_hash": "97da0ab8da07d7ba620aee03b18a24d7d3184143fec119ccc8db1502921ff994",
+      "created_from_queue_hash": "294f1a5f9fafdacb9b101bfa85aa089f872284fbfa6e6bafcd5a13efeff7af82",
+      "content_id": "disco_berry_dance_battle_short",
+      "task_id": "TASK-CREATOR-disco_berry_dance_battle_short-97da0ab8",
+      "action_type": "HUMAN_AUDIENCE_DECISION",
+      "status": "WAITING_HUMAN",
+      "responsible_role": "HUMAN_AUDIENCE_DECIDER",
+      "risk_class": "HIGH",
+      "execution_class": "HUMAN_GATE",
+      "requires_model": false,
+      "preferred_worker_class": "HUMAN_OPERATOR",
+      "requires_review": true,
+      "requires_human": true,
+      "requires_external_access": false,
+      "external_side_effect_class": "NONE",
+      "maximum_iterations": 1,
+      "maximum_model_calls": 0,
+      "maximum_external_calls": 0,
+      "money_limit_eur": 0.0,
+      "idempotency_key": "2454248fa43d43b13a4ce53ecfc60f76d687d4b2f29bd69aae0a41cd992d1ec5",
+      "dependencies": [
+        "runtime/content/disco_berry_dance_battle_short/qc_report.json",
+        "runtime/content/disco_berry_dance_battle_short/render.mp4"
+      ],
+      "blocking_gate": "AUDIENCE_DECISION_GATE",
+      "success_condition": "ACTION_HUMAN_AUDIENCE_DECISION_COMPLETED_DETERMINISTICALLY",
+      "failure_condition": "EXECUTION_ERROR_OR_SAFETY_GATE_VIOLATION",
+      "stop_condition": "BLOCKED_AT_HUMAN_GATE_NO_AUTONOMOUS_OVERRIDE",
+      "evidence_references": [
+        "runtime/content/disco_berry_dance_battle_short/publish_package.json",
+        "runtime/content/disco_berry_dance_battle_short/qc_report.json",
+        "runtime/content/disco_berry_dance_battle_short/render.mp4",
+        "runtime/content/disco_berry_dance_battle_short/render_metadata.json"
+      ]
+    },
+    {
+      "plan_id": "PLAN-bdfcf60d49ef1e3e",
+      "plan_schema_version": "1.0",
+      "source_state_hash": "fb60f7676de20dc95bf5544046aac145b3e6e52f25b924af595590f1d434b8a2",
+      "created_from_queue_hash": "294f1a5f9fafdacb9b101bfa85aa089f872284fbfa6e6bafcd5a13efeff7af82",
+      "content_id": "dragonfruit_volcano_eruption_short",
+      "task_id": "TASK-CREATOR-dragonfruit_volcano_eruption_short-fb60f767",
+      "action_type": "HUMAN_AUDIENCE_DECISION",
+      "status": "WAITING_HUMAN",
+      "responsible_role": "HUMAN_AUDIENCE_DECIDER",
+      "risk_class": "HIGH",
+      "execution_class": "HUMAN_GATE",
+      "requires_model": false,
+      "preferred_worker_class": "HUMAN_OPERATOR",
+      "requires_review": true,
+      "requires_human": true,
+      "requires_external_access": false,
+      "external_side_effect_class": "NONE",
+      "maximum_iterations": 1,
+      "maximum_model_calls": 0,
+      "maximum_external_calls": 0,
+      "money_limit_eur": 0.0,
+      "idempotency_key": "257812dde998d03a379193174149f4b4bf2c8dc8c81d2528630fee03222f47c5",
+      "dependencies": [
+        "runtime/content/dragonfruit_volcano_eruption_short/qc_report.json",
+        "runtime/content/dragonfruit_volcano_eruption_short/render.mp4"
+      ],
+      "blocking_gate": "AUDIENCE_DECISION_GATE",
+      "success_condition": "ACTION_HUMAN_AUDIENCE_DECISION_COMPLETED_DETERMINISTICALLY",
+      "failure_condition": "EXECUTION_ERROR_OR_SAFETY_GATE_VIOLATION",
+      "stop_condition": "BLOCKED_AT_HUMAN_GATE_NO_AUTONOMOUS_OVERRIDE",
+      "evidence_references": [
+        "runtime/content/dragonfruit_volcano_eruption_short/publish_package.json",
+        "runtime/content/dragonfruit_volcano_eruption_short/qc_report.json",
+        "runtime/content/dragonfruit_volcano_eruption_short/render.mp4",
+        "runtime/content/dragonfruit_volcano_eruption_short/render_metadata.json"
+      ]
+    },
+    {
+      "plan_id": "PLAN-69a3b4474cd3e4e3",
+      "plan_schema_version": "1.0",
+      "source_state_hash": "bce126cc295dc01c37d88360f9460537751b836cef083a8efa1294c2d89e564c",
+      "created_from_queue_hash": "294f1a5f9fafdacb9b101bfa85aa089f872284fbfa6e6bafcd5a13efeff7af82",
+      "content_id": "giant_pineapple_anvil_short",
+      "task_id": "TASK-CREATOR-giant_pineapple_anvil_short-bce126cc",
+      "action_type": "HUMAN_AUDIENCE_DECISION",
+      "status": "WAITING_HUMAN",
+      "responsible_role": "HUMAN_AUDIENCE_DECIDER",
+      "risk_class": "HIGH",
+      "execution_class": "HUMAN_GATE",
+      "requires_model": false,
+      "preferred_worker_class": "HUMAN_OPERATOR",
+      "requires_review": true,
+      "requires_human": true,
+      "requires_external_access": false,
+      "external_side_effect_class": "NONE",
+      "maximum_iterations": 1,
+      "maximum_model_calls": 0,
+      "maximum_external_calls": 0,
+      "money_limit_eur": 0.0,
+      "idempotency_key": "43820d8dcedd31a18acd6c8092e23c2919f0340fa807d6b9d0ae9b79e2a5f2b6",
+      "dependencies": [
+        "runtime/content/giant_pineapple_anvil_short/qc_report.json",
+        "runtime/content/giant_pineapple_anvil_short/render.mp4"
+      ],
+      "blocking_gate": "AUDIENCE_DECISION_GATE",
+      "success_condition": "ACTION_HUMAN_AUDIENCE_DECISION_COMPLETED_DETERMINISTICALLY",
+      "failure_condition": "EXECUTION_ERROR_OR_SAFETY_GATE_VIOLATION",
+      "stop_condition": "BLOCKED_AT_HUMAN_GATE_NO_AUTONOMOUS_OVERRIDE",
+      "evidence_references": [
+        "runtime/content/giant_pineapple_anvil_short/publish_package.json",
+        "runtime/content/giant_pineapple_anvil_short/qc_report.json",
+        "runtime/content/giant_pineapple_anvil_short/render.mp4",
+        "runtime/content/giant_pineapple_anvil_short/render_metadata.json"
+      ]
+    },
+    {
+      "plan_id": "PLAN-2bec0a67928e36eb",
+      "plan_schema_version": "1.0",
+      "source_state_hash": "b5857e075747fec484f05a5fc683187a0f93114161ee0d5788cdb1aafd0cedbc",
+      "created_from_queue_hash": "294f1a5f9fafdacb9b101bfa85aa089f872284fbfa6e6bafcd5a13efeff7af82",
+      "content_id": "golden_trophy_short",
+      "task_id": "TASK-CREATOR-golden_trophy_short-b5857e07",
+      "action_type": "HUMAN_AUDIENCE_DECISION",
+      "status": "WAITING_HUMAN",
+      "responsible_role": "HUMAN_AUDIENCE_DECIDER",
+      "risk_class": "HIGH",
+      "execution_class": "HUMAN_GATE",
+      "requires_model": false,
+      "preferred_worker_class": "HUMAN_OPERATOR",
+      "requires_review": true,
+      "requires_human": true,
+      "requires_external_access": false,
+      "external_side_effect_class": "NONE",
+      "maximum_iterations": 1,
+      "maximum_model_calls": 0,
+      "maximum_external_calls": 0,
+      "money_limit_eur": 0.0,
+      "idempotency_key": "d2ee09e3d8e8207c1b9e98189849e7fb1c206204115d9beed5ccba590e8382cf",
+      "dependencies": [
+        "runtime/content/golden_trophy_short/qc_report.json",
+        "runtime/content/golden_trophy_short/render.mp4"
+      ],
+      "blocking_gate": "AUDIENCE_DECISION_GATE",
+      "success_condition": "ACTION_HUMAN_AUDIENCE_DECISION_COMPLETED_DETERMINISTICALLY",
+      "failure_condition": "EXECUTION_ERROR_OR_SAFETY_GATE_VIOLATION",
+      "stop_condition": "BLOCKED_AT_HUMAN_GATE_NO_AUTONOMOUS_OVERRIDE",
+      "evidence_references": [
+        "runtime/content/golden_trophy_short/publish_package.json",
+        "runtime/content/golden_trophy_short/qc_report.json",
+        "runtime/content/golden_trophy_short/render.mp4",
+        "runtime/content/golden_trophy_short/render_metadata.json"
+      ]
+    },
+    {
+      "plan_id": "PLAN-7864c8f7b1c281ee",
+      "plan_schema_version": "1.0",
+      "source_state_hash": "51107a07e4ccfb979529b54159c1f58492b4a98a16c1ab4edfe0c1c03c236e47",
+      "created_from_queue_hash": "294f1a5f9fafdacb9b101bfa85aa089f872284fbfa6e6bafcd5a13efeff7af82",
+      "content_id": "kiwi_time_freeze_stopwatch_short",
+      "task_id": "TASK-CREATOR-kiwi_time_freeze_stopwatch_short-51107a07",
+      "action_type": "HUMAN_AUDIENCE_DECISION",
+      "status": "WAITING_HUMAN",
+      "responsible_role": "HUMAN_AUDIENCE_DECIDER",
+      "risk_class": "HIGH",
+      "execution_class": "HUMAN_GATE",
+      "requires_model": false,
+      "preferred_worker_class": "HUMAN_OPERATOR",
+      "requires_review": true,
+      "requires_human": true,
+      "requires_external_access": false,
+      "external_side_effect_class": "NONE",
+      "maximum_iterations": 1,
+      "maximum_model_calls": 0,
+      "maximum_external_calls": 0,
+      "money_limit_eur": 0.0,
+      "idempotency_key": "d2f5077b3e01a6c9779f5d19085e8793423b3fd07df50aa13c780c7f8f7b67d2",
+      "dependencies": [
+        "runtime/content/kiwi_time_freeze_stopwatch_short/qc_report.json",
+        "runtime/content/kiwi_time_freeze_stopwatch_short/render.mp4"
+      ],
+      "blocking_gate": "AUDIENCE_DECISION_GATE",
+      "success_condition": "ACTION_HUMAN_AUDIENCE_DECISION_COMPLETED_DETERMINISTICALLY",
+      "failure_condition": "EXECUTION_ERROR_OR_SAFETY_GATE_VIOLATION",
+      "stop_condition": "BLOCKED_AT_HUMAN_GATE_NO_AUTONOMOUS_OVERRIDE",
+      "evidence_references": [
+        "runtime/content/kiwi_time_freeze_stopwatch_short/publish_package.json",
+        "runtime/content/kiwi_time_freeze_stopwatch_short/qc_report.json",
+        "runtime/content/kiwi_time_freeze_stopwatch_short/render.mp4",
+        "runtime/content/kiwi_time_freeze_stopwatch_short/render_metadata.json"
+      ]
+    },
+    {
+      "plan_id": "PLAN-2b1be46b3366b2d7",
+      "plan_schema_version": "1.0",
+      "source_state_hash": "5151081fb22e8e9c1475cc0d032765e01cfe66ca8b559dbc1b2d039f46cf1bcb",
+      "created_from_queue_hash": "294f1a5f9fafdacb9b101bfa85aa089f872284fbfa6e6bafcd5a13efeff7af82",
+      "content_id": "magnifying_glass_camera_fix_158g",
+      "task_id": "TASK-CREATOR-magnifying_glass_camera_fix_158g-5151081f",
+      "action_type": "LOCAL_QC_EXECUTION",
+      "status": "READY_TO_EXECUTE",
+      "responsible_role": "LOCAL_QC_RUNNER",
+      "risk_class": "LOW",
+      "execution_class": "DETERMINISTIC_LOCAL",
+      "requires_model": false,
+      "preferred_worker_class": "LOCAL_DETERMINISTIC_RUNNER",
+      "requires_review": false,
+      "requires_human": false,
+      "requires_external_access": false,
+      "external_side_effect_class": "NONE",
+      "maximum_iterations": 1,
+      "maximum_model_calls": 0,
+      "maximum_external_calls": 0,
+      "money_limit_eur": 0.0,
+      "idempotency_key": "1464052aaa06d3ededfece3b771abd3af082ed1a195803272145e7305ff0b278",
+      "dependencies": [
+        "runtime/content/magnifying_glass_camera_fix_158g/render.mp4"
+      ],
+      "blocking_gate": "QC_REQUIRED",
+      "success_condition": "ACTION_LOCAL_QC_EXECUTION_COMPLETED_DETERMINISTICALLY",
+      "failure_condition": "EXECUTION_ERROR_OR_SAFETY_GATE_VIOLATION",
+      "stop_condition": "EXECUTE_SINGLE_BOUNDED_ITERATION",
+      "evidence_references": [
+        "runtime/content/magnifying_glass_camera_fix_158g/render.mp4",
+        "runtime/content/magnifying_glass_camera_fix_158g/render_metadata.json"
+      ]
+    },
+    {
+      "plan_id": "PLAN-1f1854c51119c8cf",
+      "plan_schema_version": "1.0",
+      "source_state_hash": "20c26f2e9965b9cb3c33a6d634d5ce982a59efc45553cc3b8c8db8ded67bc259",
+      "created_from_queue_hash": "294f1a5f9fafdacb9b101bfa85aa089f872284fbfa6e6bafcd5a13efeff7af82",
+      "content_id": "magnifying_glass_camera_fix_158g_attempt2",
+      "task_id": "TASK-CREATOR-magnifying_glass_camera_fix_158g_attempt2-20c26f2e",
+      "action_type": "LOCAL_QC_EXECUTION",
+      "status": "READY_TO_EXECUTE",
+      "responsible_role": "LOCAL_QC_RUNNER",
+      "risk_class": "LOW",
+      "execution_class": "DETERMINISTIC_LOCAL",
+      "requires_model": false,
+      "preferred_worker_class": "LOCAL_DETERMINISTIC_RUNNER",
+      "requires_review": false,
+      "requires_human": false,
+      "requires_external_access": false,
+      "external_side_effect_class": "NONE",
+      "maximum_iterations": 1,
+      "maximum_model_calls": 0,
+      "maximum_external_calls": 0,
+      "money_limit_eur": 0.0,
+      "idempotency_key": "92380ed0161a25c054dbbf21e0f84c97facfa4c2958d59256f97d9ffe4b000c7",
+      "dependencies": [
+        "runtime/content/magnifying_glass_camera_fix_158g_attempt2/render.avi"
+      ],
+      "blocking_gate": "QC_REQUIRED",
+      "success_condition": "ACTION_LOCAL_QC_EXECUTION_COMPLETED_DETERMINISTICALLY",
+      "failure_condition": "EXECUTION_ERROR_OR_SAFETY_GATE_VIOLATION",
+      "stop_condition": "EXECUTE_SINGLE_BOUNDED_ITERATION",
+      "evidence_references": [
+        "runtime/content/magnifying_glass_camera_fix_158g_attempt2/render.avi"
+      ]
+    },
+    {
+      "plan_id": "PLAN-016c43302fcbd1a2",
+      "plan_schema_version": "1.0",
+      "source_state_hash": "866ff7fbca8629b80d9368db8118c98e6b5ca222fa3978493e56de956acdb5e6",
+      "created_from_queue_hash": "294f1a5f9fafdacb9b101bfa85aa089f872284fbfa6e6bafcd5a13efeff7af82",
+      "content_id": "magnifying_glass_camera_fix_verified",
+      "task_id": "TASK-CREATOR-magnifying_glass_camera_fix_verified-866ff7fb",
+      "action_type": "LOCAL_QC_EXECUTION",
+      "status": "READY_TO_EXECUTE",
+      "responsible_role": "LOCAL_QC_RUNNER",
+      "risk_class": "LOW",
+      "execution_class": "DETERMINISTIC_LOCAL",
+      "requires_model": false,
+      "preferred_worker_class": "LOCAL_DETERMINISTIC_RUNNER",
+      "requires_review": false,
+      "requires_human": false,
+      "requires_external_access": false,
+      "external_side_effect_class": "NONE",
+      "maximum_iterations": 1,
+      "maximum_model_calls": 0,
+      "maximum_external_calls": 0,
+      "money_limit_eur": 0.0,
+      "idempotency_key": "6626c93018d5e7f0fed27ee74af02494e9c7d5f7e736488658e8e6132ceb2f99",
+      "dependencies": [
+        "runtime/content/magnifying_glass_camera_fix_verified/render.mp4"
+      ],
+      "blocking_gate": "QC_REQUIRED",
+      "success_condition": "ACTION_LOCAL_QC_EXECUTION_COMPLETED_DETERMINISTICALLY",
+      "failure_condition": "EXECUTION_ERROR_OR_SAFETY_GATE_VIOLATION",
+      "stop_condition": "EXECUTE_SINGLE_BOUNDED_ITERATION",
+      "evidence_references": [
+        "runtime/content/magnifying_glass_camera_fix_verified/render.mp4",
+        "runtime/content/magnifying_glass_camera_fix_verified/render_metadata.json"
+      ]
+    },
+    {
+      "plan_id": "PLAN-476b6c39b58221eb",
+      "plan_schema_version": "1.0",
+      "source_state_hash": "144ca3926b0c1a4eef23eced1fb65af311af8814c92db752843a7b2e3867063c",
+      "created_from_queue_hash": "294f1a5f9fafdacb9b101bfa85aa089f872284fbfa6e6bafcd5a13efeff7af82",
+      "content_id": "magnifying_glass_composition_remediated",
+      "task_id": "TASK-CREATOR-magnifying_glass_composition_remediated-144ca392",
+      "action_type": "LOCAL_QC_EXECUTION",
+      "status": "READY_TO_EXECUTE",
+      "responsible_role": "LOCAL_QC_RUNNER",
+      "risk_class": "LOW",
+      "execution_class": "DETERMINISTIC_LOCAL",
+      "requires_model": false,
+      "preferred_worker_class": "LOCAL_DETERMINISTIC_RUNNER",
+      "requires_review": false,
+      "requires_human": false,
+      "requires_external_access": false,
+      "external_side_effect_class": "NONE",
+      "maximum_iterations": 1,
+      "maximum_model_calls": 0,
+      "maximum_external_calls": 0,
+      "money_limit_eur": 0.0,
+      "idempotency_key": "da61d3a4eb03230c8744ec75c6d6a23d693655859d07e1ecc3588133b829302d",
+      "dependencies": [
+        "runtime/content/magnifying_glass_composition_remediated/render.mp4"
+      ],
+      "blocking_gate": "QC_REQUIRED",
+      "success_condition": "ACTION_LOCAL_QC_EXECUTION_COMPLETED_DETERMINISTICALLY",
+      "failure_condition": "EXECUTION_ERROR_OR_SAFETY_GATE_VIOLATION",
+      "stop_condition": "EXECUTE_SINGLE_BOUNDED_ITERATION",
+      "evidence_references": [
+        "runtime/content/magnifying_glass_composition_remediated/render.mp4",
+        "runtime/content/magnifying_glass_composition_remediated/render_metadata.json"
+      ]
+    },
+    {
+      "plan_id": "PLAN-4c94ce11d5d31df1",
+      "plan_schema_version": "1.0",
+      "source_state_hash": "724cb5890f2b8eb235f49944941214abaeefcf39b092d1cb25fb1a7ca1e0026b",
+      "created_from_queue_hash": "294f1a5f9fafdacb9b101bfa85aa089f872284fbfa6e6bafcd5a13efeff7af82",
+      "content_id": "magnifying_glass_short",
+      "task_id": "TASK-CREATOR-magnifying_glass_short-724cb589",
+      "action_type": "LOCAL_QC_EXECUTION",
+      "status": "READY_TO_EXECUTE",
+      "responsible_role": "LOCAL_QC_RUNNER",
+      "risk_class": "LOW",
+      "execution_class": "DETERMINISTIC_LOCAL",
+      "requires_model": false,
+      "preferred_worker_class": "LOCAL_DETERMINISTIC_RUNNER",
+      "requires_review": false,
+      "requires_human": false,
+      "requires_external_access": false,
+      "external_side_effect_class": "NONE",
+      "maximum_iterations": 1,
+      "maximum_model_calls": 0,
+      "maximum_external_calls": 0,
+      "money_limit_eur": 0.0,
+      "idempotency_key": "fb76b2dfe6ca537c2de60aeb7ab96fc56140d53a4afb2f62e0b6bb3fb6e09d7f",
+      "dependencies": [
+        "runtime/content/magnifying_glass_short/render.mp4"
+      ],
+      "blocking_gate": "QC_REQUIRED",
+      "success_condition": "ACTION_LOCAL_QC_EXECUTION_COMPLETED_DETERMINISTICALLY",
+      "failure_condition": "EXECUTION_ERROR_OR_SAFETY_GATE_VIOLATION",
+      "stop_condition": "EXECUTE_SINGLE_BOUNDED_ITERATION",
+      "evidence_references": [
+        "runtime/content/magnifying_glass_short/render.mp4",
+        "runtime/content/magnifying_glass_short/render_metadata.json"
+      ]
+    },
+    {
+      "plan_id": "PLAN-3a1bd6b57c6c8566",
+      "plan_schema_version": "1.0",
+      "source_state_hash": "7018cd37123912501ae5fa39a140086a746325f646eacb101246b8f973e95e8a",
+      "created_from_queue_hash": "294f1a5f9fafdacb9b101bfa85aa089f872284fbfa6e6bafcd5a13efeff7af82",
+      "content_id": "micro_fruit_grand_prix_short",
+      "task_id": "TASK-CREATOR-micro_fruit_grand_prix_short-7018cd37",
+      "action_type": "HUMAN_AUDIENCE_DECISION",
+      "status": "WAITING_HUMAN",
+      "responsible_role": "HUMAN_AUDIENCE_DECIDER",
+      "risk_class": "HIGH",
+      "execution_class": "HUMAN_GATE",
+      "requires_model": false,
+      "preferred_worker_class": "HUMAN_OPERATOR",
+      "requires_review": true,
+      "requires_human": true,
+      "requires_external_access": false,
+      "external_side_effect_class": "NONE",
+      "maximum_iterations": 1,
+      "maximum_model_calls": 0,
+      "maximum_external_calls": 0,
+      "money_limit_eur": 0.0,
+      "idempotency_key": "4e0de523968fcb5d331826f5861c19620d7bbfe2fddead5da45618a2e2ebd314",
+      "dependencies": [
+        "runtime/content/micro_fruit_grand_prix_short/qc_report.json",
+        "runtime/content/micro_fruit_grand_prix_short/render.mp4"
+      ],
+      "blocking_gate": "AUDIENCE_DECISION_GATE",
+      "success_condition": "ACTION_HUMAN_AUDIENCE_DECISION_COMPLETED_DETERMINISTICALLY",
+      "failure_condition": "EXECUTION_ERROR_OR_SAFETY_GATE_VIOLATION",
+      "stop_condition": "BLOCKED_AT_HUMAN_GATE_NO_AUTONOMOUS_OVERRIDE",
+      "evidence_references": [
+        "runtime/content/micro_fruit_grand_prix_short/publish_package.json",
+        "runtime/content/micro_fruit_grand_prix_short/qc_report.json",
+        "runtime/content/micro_fruit_grand_prix_short/render.mp4",
+        "runtime/content/micro_fruit_grand_prix_short/render_metadata.json"
+      ]
+    },
+    {
+      "plan_id": "PLAN-3014f8fdb7b7619c",
+      "plan_schema_version": "1.0",
+      "source_state_hash": "3384629ba8f9ab9656e5a957d4c676b9e82ee4d0e4f983aa67cae1bcdbda2e52",
+      "created_from_queue_hash": "294f1a5f9fafdacb9b101bfa85aa089f872284fbfa6e6bafcd5a13efeff7af82",
+      "content_id": "mystery_box_short",
+      "task_id": "TASK-CREATOR-mystery_box_short-3384629b",
+      "action_type": "HUMAN_AUDIENCE_DECISION",
+      "status": "WAITING_HUMAN",
+      "responsible_role": "HUMAN_AUDIENCE_DECIDER",
+      "risk_class": "HIGH",
+      "execution_class": "HUMAN_GATE",
+      "requires_model": false,
+      "preferred_worker_class": "HUMAN_OPERATOR",
+      "requires_review": true,
+      "requires_human": true,
+      "requires_external_access": false,
+      "external_side_effect_class": "NONE",
+      "maximum_iterations": 1,
+      "maximum_model_calls": 0,
+      "maximum_external_calls": 0,
+      "money_limit_eur": 0.0,
+      "idempotency_key": "876657db3d7dc259bf2d6394ce7857210787f24c248c9ff743bb398e869e7dc9",
+      "dependencies": [
+        "runtime/content/mystery_box_short/fruitki_strawberry_mystery_box.mp4",
+        "runtime/content/mystery_box_short/qc_report.json"
+      ],
+      "blocking_gate": "AUDIENCE_DECISION_GATE",
+      "success_condition": "ACTION_HUMAN_AUDIENCE_DECISION_COMPLETED_DETERMINISTICALLY",
+      "failure_condition": "EXECUTION_ERROR_OR_SAFETY_GATE_VIOLATION",
+      "stop_condition": "BLOCKED_AT_HUMAN_GATE_NO_AUTONOMOUS_OVERRIDE",
+      "evidence_references": [
+        "runtime/content/mystery_box_short/fruitki_strawberry_mystery_box.mp4",
+        "runtime/content/mystery_box_short/publish_package.json",
+        "runtime/content/mystery_box_short/qc_report.json"
+      ]
+    },
+    {
+      "plan_id": "PLAN-26fac2b16d9e2c52",
+      "plan_schema_version": "1.0",
+      "source_state_hash": "9c765ee0dbabfe3646768058956b16c5bbeb2565c59fc199cf3e2d0e1d67e29d",
+      "created_from_queue_hash": "294f1a5f9fafdacb9b101bfa85aa089f872284fbfa6e6bafcd5a13efeff7af82",
+      "content_id": "mystery_portal_apple_short",
+      "task_id": "TASK-CREATOR-mystery_portal_apple_short-9c765ee0",
+      "action_type": "HUMAN_AUDIENCE_DECISION",
+      "status": "WAITING_HUMAN",
+      "responsible_role": "HUMAN_AUDIENCE_DECIDER",
+      "risk_class": "HIGH",
+      "execution_class": "HUMAN_GATE",
+      "requires_model": false,
+      "preferred_worker_class": "HUMAN_OPERATOR",
+      "requires_review": true,
+      "requires_human": true,
+      "requires_external_access": false,
+      "external_side_effect_class": "NONE",
+      "maximum_iterations": 1,
+      "maximum_model_calls": 0,
+      "maximum_external_calls": 0,
+      "money_limit_eur": 0.0,
+      "idempotency_key": "bd1e774bfed321e27c23ae762e4f4176488ed6e4df896baffa8dae186c97589e",
+      "dependencies": [
+        "runtime/content/mystery_portal_apple_short/qc_report.json",
+        "runtime/content/mystery_portal_apple_short/render.mp4"
+      ],
+      "blocking_gate": "AUDIENCE_DECISION_GATE",
+      "success_condition": "ACTION_HUMAN_AUDIENCE_DECISION_COMPLETED_DETERMINISTICALLY",
+      "failure_condition": "EXECUTION_ERROR_OR_SAFETY_GATE_VIOLATION",
+      "stop_condition": "BLOCKED_AT_HUMAN_GATE_NO_AUTONOMOUS_OVERRIDE",
+      "evidence_references": [
+        "runtime/content/mystery_portal_apple_short/publish_package.json",
+        "runtime/content/mystery_portal_apple_short/qc_report.json",
+        "runtime/content/mystery_portal_apple_short/render.mp4",
+        "runtime/content/mystery_portal_apple_short/render_metadata.json"
+      ]
+    },
+    {
+      "plan_id": "PLAN-0e4be7fbb35feb2b",
+      "plan_schema_version": "1.0",
+      "source_state_hash": "b2766bdcf400dc2e9683e385f9656095a144b854e353e20f77cbc5bcb83e1c2e",
+      "created_from_queue_hash": "294f1a5f9fafdacb9b101bfa85aa089f872284fbfa6e6bafcd5a13efeff7af82",
+      "content_id": "mystery_portal_apple_v2_short",
+      "task_id": "TASK-CREATOR-mystery_portal_apple_v2_short-b2766bdc",
+      "action_type": "HUMAN_AUDIENCE_DECISION",
+      "status": "WAITING_HUMAN",
+      "responsible_role": "HUMAN_AUDIENCE_DECIDER",
+      "risk_class": "HIGH",
+      "execution_class": "HUMAN_GATE",
+      "requires_model": false,
+      "preferred_worker_class": "HUMAN_OPERATOR",
+      "requires_review": true,
+      "requires_human": true,
+      "requires_external_access": false,
+      "external_side_effect_class": "NONE",
+      "maximum_iterations": 1,
+      "maximum_model_calls": 0,
+      "maximum_external_calls": 0,
+      "money_limit_eur": 0.0,
+      "idempotency_key": "be2cfa351c18de96c8f6aa955d04df808f5318b06be88d98367b20fc10408424",
+      "dependencies": [
+        "runtime/content/mystery_portal_apple_v2_short/qc_report.json",
+        "runtime/content/mystery_portal_apple_v2_short/render.mp4"
+      ],
+      "blocking_gate": "AUDIENCE_DECISION_GATE",
+      "success_condition": "ACTION_HUMAN_AUDIENCE_DECISION_COMPLETED_DETERMINISTICALLY",
+      "failure_condition": "EXECUTION_ERROR_OR_SAFETY_GATE_VIOLATION",
+      "stop_condition": "BLOCKED_AT_HUMAN_GATE_NO_AUTONOMOUS_OVERRIDE",
+      "evidence_references": [
+        "runtime/content/mystery_portal_apple_v2_short/publish_package.json",
+        "runtime/content/mystery_portal_apple_v2_short/qc_report.json",
+        "runtime/content/mystery_portal_apple_v2_short/render.mp4",
+        "runtime/content/mystery_portal_apple_v2_short/render_metadata.json"
+      ]
+    },
+    {
+      "plan_id": "PLAN-577a98c56eb9bbf6",
+      "plan_schema_version": "1.0",
+      "source_state_hash": "cf4692af13f7a53f0b3fd36f4be7ef5c03bfbc509618eb16dab6b34508c33764",
+      "created_from_queue_hash": "294f1a5f9fafdacb9b101bfa85aa089f872284fbfa6e6bafcd5a13efeff7af82",
+      "content_id": "orange_laser_heist_short",
+      "task_id": "TASK-CREATOR-orange_laser_heist_short-cf4692af",
+      "action_type": "HUMAN_AUDIENCE_DECISION",
+      "status": "WAITING_HUMAN",
+      "responsible_role": "HUMAN_AUDIENCE_DECIDER",
+      "risk_class": "HIGH",
+      "execution_class": "HUMAN_GATE",
+      "requires_model": false,
+      "preferred_worker_class": "HUMAN_OPERATOR",
+      "requires_review": true,
+      "requires_human": true,
+      "requires_external_access": false,
+      "external_side_effect_class": "NONE",
+      "maximum_iterations": 1,
+      "maximum_model_calls": 0,
+      "maximum_external_calls": 0,
+      "money_limit_eur": 0.0,
+      "idempotency_key": "de93ffc58300c32e34e25c8975cfa590a879924dd4f59e759bccff39ac0b5306",
+      "dependencies": [
+        "runtime/content/orange_laser_heist_short/qc_report.json",
+        "runtime/content/orange_laser_heist_short/render.mp4"
+      ],
+      "blocking_gate": "AUDIENCE_DECISION_GATE",
+      "success_condition": "ACTION_HUMAN_AUDIENCE_DECISION_COMPLETED_DETERMINISTICALLY",
+      "failure_condition": "EXECUTION_ERROR_OR_SAFETY_GATE_VIOLATION",
+      "stop_condition": "BLOCKED_AT_HUMAN_GATE_NO_AUTONOMOUS_OVERRIDE",
+      "evidence_references": [
+        "runtime/content/orange_laser_heist_short/publish_package.json",
+        "runtime/content/orange_laser_heist_short/qc_report.json",
+        "runtime/content/orange_laser_heist_short/render.mp4",
+        "runtime/content/orange_laser_heist_short/render_metadata.json"
+      ]
+    },
+    {
+      "plan_id": "PLAN-4e60b56dd47071a1",
+      "plan_schema_version": "1.0",
+      "source_state_hash": "e32810ea7f373a4d83adbd34eaa6ad89400a0f5aa87708315e7a9130f85e6d5d",
+      "created_from_queue_hash": "294f1a5f9fafdacb9b101bfa85aa089f872284fbfa6e6bafcd5a13efeff7af82",
+      "content_id": "strawberry_quantum_teleport_short",
+      "task_id": "TASK-CREATOR-strawberry_quantum_teleport_short-e32810ea",
+      "action_type": "HUMAN_AUDIENCE_DECISION",
+      "status": "WAITING_HUMAN",
+      "responsible_role": "HUMAN_AUDIENCE_DECIDER",
+      "risk_class": "HIGH",
+      "execution_class": "HUMAN_GATE",
+      "requires_model": false,
+      "preferred_worker_class": "HUMAN_OPERATOR",
+      "requires_review": true,
+      "requires_human": true,
+      "requires_external_access": false,
+      "external_side_effect_class": "NONE",
+      "maximum_iterations": 1,
+      "maximum_model_calls": 0,
+      "maximum_external_calls": 0,
+      "money_limit_eur": 0.0,
+      "idempotency_key": "1f0ebf31662c625dc8161372914a02635003f3891990d99dc3f43645e42fb14c",
+      "dependencies": [
+        "runtime/content/strawberry_quantum_teleport_short/qc_report.json",
+        "runtime/content/strawberry_quantum_teleport_short/render.mp4"
+      ],
+      "blocking_gate": "AUDIENCE_DECISION_GATE",
+      "success_condition": "ACTION_HUMAN_AUDIENCE_DECISION_COMPLETED_DETERMINISTICALLY",
+      "failure_condition": "EXECUTION_ERROR_OR_SAFETY_GATE_VIOLATION",
+      "stop_condition": "BLOCKED_AT_HUMAN_GATE_NO_AUTONOMOUS_OVERRIDE",
+      "evidence_references": [
+        "runtime/content/strawberry_quantum_teleport_short/publish_package.json",
+        "runtime/content/strawberry_quantum_teleport_short/qc_report.json",
+        "runtime/content/strawberry_quantum_teleport_short/render.mp4",
+        "runtime/content/strawberry_quantum_teleport_short/render_metadata.json"
+      ]
+    },
+    {
+      "plan_id": "PLAN-627ca33a34a19d18",
+      "plan_schema_version": "1.0",
+      "source_state_hash": "0c26f055d9a6bba03beb844cb196a12f2fb0a59ecf23139862943dd49d456bdd",
+      "created_from_queue_hash": "294f1a5f9fafdacb9b101bfa85aa089f872284fbfa6e6bafcd5a13efeff7af82",
+      "content_id": "three_door_mystery_vault_short",
+      "task_id": "TASK-CREATOR-three_door_mystery_vault_short-0c26f055",
+      "action_type": "HUMAN_AUDIENCE_DECISION",
+      "status": "WAITING_HUMAN",
+      "responsible_role": "HUMAN_AUDIENCE_DECIDER",
+      "risk_class": "HIGH",
+      "execution_class": "HUMAN_GATE",
+      "requires_model": false,
+      "preferred_worker_class": "HUMAN_OPERATOR",
+      "requires_review": true,
+      "requires_human": true,
+      "requires_external_access": false,
+      "external_side_effect_class": "NONE",
+      "maximum_iterations": 1,
+      "maximum_model_calls": 0,
+      "maximum_external_calls": 0,
+      "money_limit_eur": 0.0,
+      "idempotency_key": "276d1eb69a4001dc1a7b0731b972609af79a976d10a3852e66937676e59f1a8a",
+      "dependencies": [
+        "runtime/content/three_door_mystery_vault_short/qc_report.json",
+        "runtime/content/three_door_mystery_vault_short/render.mp4"
+      ],
+      "blocking_gate": "AUDIENCE_DECISION_GATE",
+      "success_condition": "ACTION_HUMAN_AUDIENCE_DECISION_COMPLETED_DETERMINISTICALLY",
+      "failure_condition": "EXECUTION_ERROR_OR_SAFETY_GATE_VIOLATION",
+      "stop_condition": "BLOCKED_AT_HUMAN_GATE_NO_AUTONOMOUS_OVERRIDE",
+      "evidence_references": [
+        "runtime/content/three_door_mystery_vault_short/publish_package.json",
+        "runtime/content/three_door_mystery_vault_short/qc_report.json",
+        "runtime/content/three_door_mystery_vault_short/render.mp4",
+        "runtime/content/three_door_mystery_vault_short/render_metadata.json"
+      ]
+    },
+    {
+      "plan_id": "PLAN-7cd14a97b73b780e",
+      "plan_schema_version": "1.0",
+      "source_state_hash": "3ab04a5c4a149d72068d8b6736cb7adfd7e1352e4299bce4b9b1470acbd8ab6d",
+      "created_from_queue_hash": "294f1a5f9fafdacb9b101bfa85aa089f872284fbfa6e6bafcd5a13efeff7af82",
+      "content_id": "watermelon_ice_crush_short",
+      "task_id": "TASK-CREATOR-watermelon_ice_crush_short-3ab04a5c",
+      "action_type": "HUMAN_AUDIENCE_DECISION",
+      "status": "WAITING_HUMAN",
+      "responsible_role": "HUMAN_AUDIENCE_DECIDER",
+      "risk_class": "HIGH",
+      "execution_class": "HUMAN_GATE",
+      "requires_model": false,
+      "preferred_worker_class": "HUMAN_OPERATOR",
+      "requires_review": true,
+      "requires_human": true,
+      "requires_external_access": false,
+      "external_side_effect_class": "NONE",
+      "maximum_iterations": 1,
+      "maximum_model_calls": 0,
+      "maximum_external_calls": 0,
+      "money_limit_eur": 0.0,
+      "idempotency_key": "6581b12f516146b9cc1e48adf3e530989200387c9da7f4195654774133e15b70",
+      "dependencies": [
+        "runtime/content/watermelon_ice_crush_short/qc_report.json",
+        "runtime/content/watermelon_ice_crush_short/render.mp4"
+      ],
+      "blocking_gate": "AUDIENCE_DECISION_GATE",
+      "success_condition": "ACTION_HUMAN_AUDIENCE_DECISION_COMPLETED_DETERMINISTICALLY",
+      "failure_condition": "EXECUTION_ERROR_OR_SAFETY_GATE_VIOLATION",
+      "stop_condition": "BLOCKED_AT_HUMAN_GATE_NO_AUTONOMOUS_OVERRIDE",
+      "evidence_references": [
+        "runtime/content/watermelon_ice_crush_short/publish_package.json",
+        "runtime/content/watermelon_ice_crush_short/qc_report.json",
+        "runtime/content/watermelon_ice_crush_short/render.mp4",
+        "runtime/content/watermelon_ice_crush_short/render_metadata.json"
+      ]
+    },
+    {
+      "plan_id": "PLAN-037fcb37d0d8b6e5",
+      "plan_schema_version": "1.0",
+      "source_state_hash": "75215474db1baa398cb96652d53b48f459c29b63c1c340d29c7022ac88814559",
+      "created_from_queue_hash": "294f1a5f9fafdacb9b101bfa85aa089f872284fbfa6e6bafcd5a13efeff7af82",
+      "content_id": "watermelon_super_bounce_short",
+      "task_id": "TASK-CREATOR-watermelon_super_bounce_short-75215474",
+      "action_type": "HUMAN_AUDIENCE_DECISION",
+      "status": "WAITING_HUMAN",
+      "responsible_role": "HUMAN_AUDIENCE_DECIDER",
+      "risk_class": "HIGH",
+      "execution_class": "HUMAN_GATE",
+      "requires_model": false,
+      "preferred_worker_class": "HUMAN_OPERATOR",
+      "requires_review": true,
+      "requires_human": true,
+      "requires_external_access": false,
+      "external_side_effect_class": "NONE",
+      "maximum_iterations": 1,
+      "maximum_model_calls": 0,
+      "maximum_external_calls": 0,
+      "money_limit_eur": 0.0,
+      "idempotency_key": "aac13dbedf53cb498e3a15795803f7a1522a0bb1c87c2a26dbc6db96f3af0f02",
+      "dependencies": [
+        "runtime/content/watermelon_super_bounce_short/qc_report.json",
+        "runtime/content/watermelon_super_bounce_short/render.mp4"
+      ],
+      "blocking_gate": "AUDIENCE_DECISION_GATE",
+      "success_condition": "ACTION_HUMAN_AUDIENCE_DECISION_COMPLETED_DETERMINISTICALLY",
+      "failure_condition": "EXECUTION_ERROR_OR_SAFETY_GATE_VIOLATION",
+      "stop_condition": "BLOCKED_AT_HUMAN_GATE_NO_AUTONOMOUS_OVERRIDE",
+      "evidence_references": [
+        "runtime/content/watermelon_super_bounce_short/publish_package.json",
+        "runtime/content/watermelon_super_bounce_short/qc_report.json",
+        "runtime/content/watermelon_super_bounce_short/render.mp4",
+        "runtime/content/watermelon_super_bounce_short/render_metadata.json"
+      ]
+    },
+    {
+      "plan_id": "PLAN-2588e05c3217a17b",
+      "plan_schema_version": "1.0",
+      "source_state_hash": "6d67d8eff553ad12b50d53d1def99431e19b5e530b8f127607e09299d439a977",
+      "created_from_queue_hash": "294f1a5f9fafdacb9b101bfa85aa089f872284fbfa6e6bafcd5a13efeff7af82",
+      "content_id": "watermelon_super_bounce_v2_short",
+      "task_id": "TASK-CREATOR-watermelon_super_bounce_v2_short-6d67d8ef",
+      "action_type": "HUMAN_AUDIENCE_DECISION",
+      "status": "WAITING_HUMAN",
+      "responsible_role": "HUMAN_AUDIENCE_DECIDER",
+      "risk_class": "HIGH",
+      "execution_class": "HUMAN_GATE",
+      "requires_model": false,
+      "preferred_worker_class": "HUMAN_OPERATOR",
+      "requires_review": true,
+      "requires_human": true,
+      "requires_external_access": false,
+      "external_side_effect_class": "NONE",
+      "maximum_iterations": 1,
+      "maximum_model_calls": 0,
+      "maximum_external_calls": 0,
+      "money_limit_eur": 0.0,
+      "idempotency_key": "9b89209f8ed950182f0543b580a157980fa7383e218bab1ab9e8c7da413eea38",
+      "dependencies": [
+        "runtime/content/watermelon_super_bounce_v2_short/qc_report.json",
+        "runtime/content/watermelon_super_bounce_v2_short/render.mp4"
+      ],
+      "blocking_gate": "AUDIENCE_DECISION_GATE",
+      "success_condition": "ACTION_HUMAN_AUDIENCE_DECISION_COMPLETED_DETERMINISTICALLY",
+      "failure_condition": "EXECUTION_ERROR_OR_SAFETY_GATE_VIOLATION",
+      "stop_condition": "BLOCKED_AT_HUMAN_GATE_NO_AUTONOMOUS_OVERRIDE",
+      "evidence_references": [
+        "runtime/content/watermelon_super_bounce_v2_short/publish_package.json",
+        "runtime/content/watermelon_super_bounce_v2_short/qc_report.json",
+        "runtime/content/watermelon_super_bounce_v2_short/render.mp4",
+        "runtime/content/watermelon_super_bounce_v2_short/render_metadata.json"
+      ]
+    },
+    {
+      "plan_id": "PLAN-2236792b6c831a57",
+      "plan_schema_version": "1.0",
+      "source_state_hash": "6da6bdf3caf2095ce4e3683a17f903297ce1c465124392d93036a4f743ea1aad",
+      "created_from_queue_hash": "294f1a5f9fafdacb9b101bfa85aa089f872284fbfa6e6bafcd5a13efeff7af82",
+      "content_id": "wrong_potion_lemon_short",
+      "task_id": "TASK-CREATOR-wrong_potion_lemon_short-6da6bdf3",
+      "action_type": "HUMAN_AUDIENCE_DECISION",
+      "status": "WAITING_HUMAN",
+      "responsible_role": "HUMAN_AUDIENCE_DECIDER",
+      "risk_class": "HIGH",
+      "execution_class": "HUMAN_GATE",
+      "requires_model": false,
+      "preferred_worker_class": "HUMAN_OPERATOR",
+      "requires_review": true,
+      "requires_human": true,
+      "requires_external_access": false,
+      "external_side_effect_class": "NONE",
+      "maximum_iterations": 1,
+      "maximum_model_calls": 0,
+      "maximum_external_calls": 0,
+      "money_limit_eur": 0.0,
+      "idempotency_key": "84500df03be5ec7c76d128c25a17169879d1472b96ac474a17f95ca78a33f804",
+      "dependencies": [
+        "runtime/content/wrong_potion_lemon_short/qc_report.json",
+        "runtime/content/wrong_potion_lemon_short/render.mp4"
+      ],
+      "blocking_gate": "AUDIENCE_DECISION_GATE",
+      "success_condition": "ACTION_HUMAN_AUDIENCE_DECISION_COMPLETED_DETERMINISTICALLY",
+      "failure_condition": "EXECUTION_ERROR_OR_SAFETY_GATE_VIOLATION",
+      "stop_condition": "BLOCKED_AT_HUMAN_GATE_NO_AUTONOMOUS_OVERRIDE",
+      "evidence_references": [
+        "runtime/content/wrong_potion_lemon_short/publish_package.json",
+        "runtime/content/wrong_potion_lemon_short/qc_report.json",
+        "runtime/content/wrong_potion_lemon_short/render.mp4",
+        "runtime/content/wrong_potion_lemon_short/render_metadata.json"
+      ]
+    }
+  ],
+  "contract_evaluations": {
+    "banana_ninja_escape_short": {
+      "valid": true,
+      "code": "PLAN_VALID_FOR_EXECUTION",
+      "message": "WorkPlan satisfies all safety invariants and execution preconditions",
+      "details": {
+        "plan_id": "PLAN-4533803ffee0a4f3",
+        "task_id": "TASK-CREATOR-banana_ninja_escape_short-085cc67e"
+      }
+    },
+    "banana_skateboard_loop_short": {
+      "valid": true,
+      "code": "PLAN_VALID_FOR_EXECUTION",
+      "message": "WorkPlan satisfies all safety invariants and execution preconditions",
+      "details": {
+        "plan_id": "PLAN-709f0ff67e9c4623",
+        "task_id": "TASK-CREATOR-banana_skateboard_loop_short-d521f9dc"
+      }
+    },
+    "banana_skateboard_loop_v2_short": {
+      "valid": true,
+      "code": "PLAN_VALID_FOR_EXECUTION",
+      "message": "WorkPlan satisfies all safety invariants and execution preconditions",
+      "details": {
+        "plan_id": "PLAN-209cbbd1ed057420",
+        "task_id": "TASK-CREATOR-banana_skateboard_loop_v2_short-eed1f651"
+      }
+    },
+    "cherry_catapult_target_short": {
+      "valid": true,
+      "code": "PLAN_VALID_FOR_EXECUTION",
+      "message": "WorkPlan satisfies all safety invariants and execution preconditions",
+      "details": {
+        "plan_id": "PLAN-b7167a79494e3757",
+        "task_id": "TASK-CREATOR-cherry_catapult_target_short-0ae54825"
+      }
+    },
+    "demo_live_render": {
+      "valid": true,
+      "code": "PLAN_VALID_FOR_EXECUTION",
+      "message": "WorkPlan satisfies all safety invariants and execution preconditions",
+      "details": {
+        "plan_id": "PLAN-95a18c2d32bd3c54",
+        "task_id": "TASK-CREATOR-demo_live_render-ab576d8b"
+      }
+    },
+    "disco_berry_dance_battle_short": {
+      "valid": true,
+      "code": "PLAN_VALID_FOR_EXECUTION",
+      "message": "WorkPlan satisfies all safety invariants and execution preconditions",
+      "details": {
+        "plan_id": "PLAN-78431556f294066d",
+        "task_id": "TASK-CREATOR-disco_berry_dance_battle_short-97da0ab8"
+      }
+    },
+    "dragonfruit_volcano_eruption_short": {
+      "valid": true,
+      "code": "PLAN_VALID_FOR_EXECUTION",
+      "message": "WorkPlan satisfies all safety invariants and execution preconditions",
+      "details": {
+        "plan_id": "PLAN-bdfcf60d49ef1e3e",
+        "task_id": "TASK-CREATOR-dragonfruit_volcano_eruption_short-fb60f767"
+      }
+    },
+    "giant_pineapple_anvil_short": {
+      "valid": true,
+      "code": "PLAN_VALID_FOR_EXECUTION",
+      "message": "WorkPlan satisfies all safety invariants and execution preconditions",
+      "details": {
+        "plan_id": "PLAN-69a3b4474cd3e4e3",
+        "task_id": "TASK-CREATOR-giant_pineapple_anvil_short-bce126cc"
+      }
+    },
+    "golden_trophy_short": {
+      "valid": true,
+      "code": "PLAN_VALID_FOR_EXECUTION",
+      "message": "WorkPlan satisfies all safety invariants and execution preconditions",
+      "details": {
+        "plan_id": "PLAN-2bec0a67928e36eb",
+        "task_id": "TASK-CREATOR-golden_trophy_short-b5857e07"
+      }
+    },
+    "kiwi_time_freeze_stopwatch_short": {
+      "valid": true,
+      "code": "PLAN_VALID_FOR_EXECUTION",
+      "message": "WorkPlan satisfies all safety invariants and execution preconditions",
+      "details": {
+        "plan_id": "PLAN-7864c8f7b1c281ee",
+        "task_id": "TASK-CREATOR-kiwi_time_freeze_stopwatch_short-51107a07"
+      }
+    },
+    "magnifying_glass_camera_fix_158g": {
+      "valid": true,
+      "code": "PLAN_VALID_FOR_EXECUTION",
+      "message": "WorkPlan satisfies all safety invariants and execution preconditions",
+      "details": {
+        "plan_id": "PLAN-2b1be46b3366b2d7",
+        "task_id": "TASK-CREATOR-magnifying_glass_camera_fix_158g-5151081f"
+      }
+    },
+    "magnifying_glass_camera_fix_158g_attempt2": {
+      "valid": true,
+      "code": "PLAN_VALID_FOR_EXECUTION",
+      "message": "WorkPlan satisfies all safety invariants and execution preconditions",
+      "details": {
+        "plan_id": "PLAN-1f1854c51119c8cf",
+        "task_id": "TASK-CREATOR-magnifying_glass_camera_fix_158g_attempt2-20c26f2e"
+      }
+    },
+    "magnifying_glass_camera_fix_verified": {
+      "valid": true,
+      "code": "PLAN_VALID_FOR_EXECUTION",
+      "message": "WorkPlan satisfies all safety invariants and execution preconditions",
+      "details": {
+        "plan_id": "PLAN-016c43302fcbd1a2",
+        "task_id": "TASK-CREATOR-magnifying_glass_camera_fix_verified-866ff7fb"
+      }
+    },
+    "magnifying_glass_composition_remediated": {
+      "valid": true,
+      "code": "PLAN_VALID_FOR_EXECUTION",
+      "message": "WorkPlan satisfies all safety invariants and execution preconditions",
+      "details": {
+        "plan_id": "PLAN-476b6c39b58221eb",
+        "task_id": "TASK-CREATOR-magnifying_glass_composition_remediated-144ca392"
+      }
+    },
+    "magnifying_glass_short": {
+      "valid": true,
+      "code": "PLAN_VALID_FOR_EXECUTION",
+      "message": "WorkPlan satisfies all safety invariants and execution preconditions",
+      "details": {
+        "plan_id": "PLAN-4c94ce11d5d31df1",
+        "task_id": "TASK-CREATOR-magnifying_glass_short-724cb589"
+      }
+    },
+    "micro_fruit_grand_prix_short": {
+      "valid": true,
+      "code": "PLAN_VALID_FOR_EXECUTION",
+      "message": "WorkPlan satisfies all safety invariants and execution preconditions",
+      "details": {
+        "plan_id": "PLAN-3a1bd6b57c6c8566",
+        "task_id": "TASK-CREATOR-micro_fruit_grand_prix_short-7018cd37"
+      }
+    },
+    "mystery_box_short": {
+      "valid": true,
+      "code": "PLAN_VALID_FOR_EXECUTION",
+      "message": "WorkPlan satisfies all safety invariants and execution preconditions",
+      "details": {
+        "plan_id": "PLAN-3014f8fdb7b7619c",
+        "task_id": "TASK-CREATOR-mystery_box_short-3384629b"
+      }
+    },
+    "mystery_portal_apple_short": {
+      "valid": true,
+      "code": "PLAN_VALID_FOR_EXECUTION",
+      "message": "WorkPlan satisfies all safety invariants and execution preconditions",
+      "details": {
+        "plan_id": "PLAN-26fac2b16d9e2c52",
+        "task_id": "TASK-CREATOR-mystery_portal_apple_short-9c765ee0"
+      }
+    },
+    "mystery_portal_apple_v2_short": {
+      "valid": true,
+      "code": "PLAN_VALID_FOR_EXECUTION",
+      "message": "WorkPlan satisfies all safety invariants and execution preconditions",
+      "details": {
+        "plan_id": "PLAN-0e4be7fbb35feb2b",
+        "task_id": "TASK-CREATOR-mystery_portal_apple_v2_short-b2766bdc"
+      }
+    },
+    "orange_laser_heist_short": {
+      "valid": true,
+      "code": "PLAN_VALID_FOR_EXECUTION",
+      "message": "WorkPlan satisfies all safety invariants and execution preconditions",
+      "details": {
+        "plan_id": "PLAN-577a98c56eb9bbf6",
+        "task_id": "TASK-CREATOR-orange_laser_heist_short-cf4692af"
+      }
+    },
+    "strawberry_quantum_teleport_short": {
+      "valid": true,
+      "code": "PLAN_VALID_FOR_EXECUTION",
+      "message": "WorkPlan satisfies all safety invariants and execution preconditions",
+      "details": {
+        "plan_id": "PLAN-4e60b56dd47071a1",
+        "task_id": "TASK-CREATOR-strawberry_quantum_teleport_short-e32810ea"
+      }
+    },
+    "three_door_mystery_vault_short": {
+      "valid": true,
+      "code": "PLAN_VALID_FOR_EXECUTION",
+      "message": "WorkPlan satisfies all safety invariants and execution preconditions",
+      "details": {
+        "plan_id": "PLAN-627ca33a34a19d18",
+        "task_id": "TASK-CREATOR-three_door_mystery_vault_short-0c26f055"
+      }
+    },
+    "watermelon_ice_crush_short": {
+      "valid": true,
+      "code": "PLAN_VALID_FOR_EXECUTION",
+      "message": "WorkPlan satisfies all safety invariants and execution preconditions",
+      "details": {
+        "plan_id": "PLAN-7cd14a97b73b780e",
+        "task_id": "TASK-CREATOR-watermelon_ice_crush_short-3ab04a5c"
+      }
+    },
+    "watermelon_super_bounce_short": {
+      "valid": true,
+      "code": "PLAN_VALID_FOR_EXECUTION",
+      "message": "WorkPlan satisfies all safety invariants and execution preconditions",
+      "details": {
+        "plan_id": "PLAN-037fcb37d0d8b6e5",
+        "task_id": "TASK-CREATOR-watermelon_super_bounce_short-75215474"
+      }
+    },
+    "watermelon_super_bounce_v2_short": {
+      "valid": true,
+      "code": "PLAN_VALID_FOR_EXECUTION",
+      "message": "WorkPlan satisfies all safety invariants and execution preconditions",
+      "details": {
+        "plan_id": "PLAN-2588e05c3217a17b",
+        "task_id": "TASK-CREATOR-watermelon_super_bounce_v2_short-6d67d8ef"
+      }
+    },
+    "wrong_potion_lemon_short": {
+      "valid": true,
+      "code": "PLAN_VALID_FOR_EXECUTION",
+      "message": "WorkPlan satisfies all safety invariants and execution preconditions",
+      "details": {
+        "plan_id": "PLAN-2236792b6c831a57",
+        "task_id": "TASK-CREATOR-wrong_potion_lemon_short-6da6bdf3"
+      }
+    }
+  },
+  "review_evaluations": {
+    "banana_ninja_escape_short": {
+      "decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "reason_code": "CRITICAL_BOUNDARY_REVIEW_REQUIRED",
+      "risk_class": "HIGH",
+      "review_fingerprint": "a1adfd170218943a9e9e01eae4e67997",
+      "reusable_fingerprint": null,
+      "codex_calls_authorized": 0
+    },
+    "banana_skateboard_loop_short": {
+      "decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "reason_code": "CRITICAL_BOUNDARY_REVIEW_REQUIRED",
+      "risk_class": "HIGH",
+      "review_fingerprint": "a1adfd170218943a9e9e01eae4e67997",
+      "reusable_fingerprint": null,
+      "codex_calls_authorized": 0
+    },
+    "banana_skateboard_loop_v2_short": {
+      "decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "reason_code": "CRITICAL_BOUNDARY_REVIEW_REQUIRED",
+      "risk_class": "HIGH",
+      "review_fingerprint": "a1adfd170218943a9e9e01eae4e67997",
+      "reusable_fingerprint": null,
+      "codex_calls_authorized": 0
+    },
+    "cherry_catapult_target_short": {
+      "decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "reason_code": "CRITICAL_BOUNDARY_REVIEW_REQUIRED",
+      "risk_class": "HIGH",
+      "review_fingerprint": "a1adfd170218943a9e9e01eae4e67997",
+      "reusable_fingerprint": null,
+      "codex_calls_authorized": 0
+    },
+    "demo_live_render": {
+      "decision": "REVIEW_NOT_REQUIRED",
+      "reason_code": "NO_CHANGES_NO_REVIEW",
+      "risk_class": "LOW",
+      "review_fingerprint": "b83353f1e4f54a8ee0842cd63abb2a48",
+      "reusable_fingerprint": null,
+      "codex_calls_authorized": 0
+    },
+    "disco_berry_dance_battle_short": {
+      "decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "reason_code": "CRITICAL_BOUNDARY_REVIEW_REQUIRED",
+      "risk_class": "HIGH",
+      "review_fingerprint": "a1adfd170218943a9e9e01eae4e67997",
+      "reusable_fingerprint": null,
+      "codex_calls_authorized": 0
+    },
+    "dragonfruit_volcano_eruption_short": {
+      "decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "reason_code": "CRITICAL_BOUNDARY_REVIEW_REQUIRED",
+      "risk_class": "HIGH",
+      "review_fingerprint": "a1adfd170218943a9e9e01eae4e67997",
+      "reusable_fingerprint": null,
+      "codex_calls_authorized": 0
+    },
+    "giant_pineapple_anvil_short": {
+      "decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "reason_code": "CRITICAL_BOUNDARY_REVIEW_REQUIRED",
+      "risk_class": "HIGH",
+      "review_fingerprint": "a1adfd170218943a9e9e01eae4e67997",
+      "reusable_fingerprint": null,
+      "codex_calls_authorized": 0
+    },
+    "golden_trophy_short": {
+      "decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "reason_code": "CRITICAL_BOUNDARY_REVIEW_REQUIRED",
+      "risk_class": "HIGH",
+      "review_fingerprint": "a1adfd170218943a9e9e01eae4e67997",
+      "reusable_fingerprint": null,
+      "codex_calls_authorized": 0
+    },
+    "kiwi_time_freeze_stopwatch_short": {
+      "decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "reason_code": "CRITICAL_BOUNDARY_REVIEW_REQUIRED",
+      "risk_class": "HIGH",
+      "review_fingerprint": "a1adfd170218943a9e9e01eae4e67997",
+      "reusable_fingerprint": null,
+      "codex_calls_authorized": 0
+    },
+    "magnifying_glass_camera_fix_158g": {
+      "decision": "REVIEW_NOT_REQUIRED",
+      "reason_code": "NO_CHANGES_NO_REVIEW",
+      "risk_class": "LOW",
+      "review_fingerprint": "b83353f1e4f54a8ee0842cd63abb2a48",
+      "reusable_fingerprint": null,
+      "codex_calls_authorized": 0
+    },
+    "magnifying_glass_camera_fix_158g_attempt2": {
+      "decision": "REVIEW_NOT_REQUIRED",
+      "reason_code": "NO_CHANGES_NO_REVIEW",
+      "risk_class": "LOW",
+      "review_fingerprint": "b83353f1e4f54a8ee0842cd63abb2a48",
+      "reusable_fingerprint": null,
+      "codex_calls_authorized": 0
+    },
+    "magnifying_glass_camera_fix_verified": {
+      "decision": "REVIEW_NOT_REQUIRED",
+      "reason_code": "NO_CHANGES_NO_REVIEW",
+      "risk_class": "LOW",
+      "review_fingerprint": "b83353f1e4f54a8ee0842cd63abb2a48",
+      "reusable_fingerprint": null,
+      "codex_calls_authorized": 0
+    },
+    "magnifying_glass_composition_remediated": {
+      "decision": "REVIEW_NOT_REQUIRED",
+      "reason_code": "NO_CHANGES_NO_REVIEW",
+      "risk_class": "LOW",
+      "review_fingerprint": "b83353f1e4f54a8ee0842cd63abb2a48",
+      "reusable_fingerprint": null,
+      "codex_calls_authorized": 0
+    },
+    "magnifying_glass_short": {
+      "decision": "REVIEW_NOT_REQUIRED",
+      "reason_code": "NO_CHANGES_NO_REVIEW",
+      "risk_class": "LOW",
+      "review_fingerprint": "b83353f1e4f54a8ee0842cd63abb2a48",
+      "reusable_fingerprint": null,
+      "codex_calls_authorized": 0
+    },
+    "micro_fruit_grand_prix_short": {
+      "decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "reason_code": "CRITICAL_BOUNDARY_REVIEW_REQUIRED",
+      "risk_class": "HIGH",
+      "review_fingerprint": "a1adfd170218943a9e9e01eae4e67997",
+      "reusable_fingerprint": null,
+      "codex_calls_authorized": 0
+    },
+    "mystery_box_short": {
+      "decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "reason_code": "CRITICAL_BOUNDARY_REVIEW_REQUIRED",
+      "risk_class": "HIGH",
+      "review_fingerprint": "a1adfd170218943a9e9e01eae4e67997",
+      "reusable_fingerprint": null,
+      "codex_calls_authorized": 0
+    },
+    "mystery_portal_apple_short": {
+      "decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "reason_code": "CRITICAL_BOUNDARY_REVIEW_REQUIRED",
+      "risk_class": "HIGH",
+      "review_fingerprint": "a1adfd170218943a9e9e01eae4e67997",
+      "reusable_fingerprint": null,
+      "codex_calls_authorized": 0
+    },
+    "mystery_portal_apple_v2_short": {
+      "decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "reason_code": "CRITICAL_BOUNDARY_REVIEW_REQUIRED",
+      "risk_class": "HIGH",
+      "review_fingerprint": "a1adfd170218943a9e9e01eae4e67997",
+      "reusable_fingerprint": null,
+      "codex_calls_authorized": 0
+    },
+    "orange_laser_heist_short": {
+      "decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "reason_code": "CRITICAL_BOUNDARY_REVIEW_REQUIRED",
+      "risk_class": "HIGH",
+      "review_fingerprint": "a1adfd170218943a9e9e01eae4e67997",
+      "reusable_fingerprint": null,
+      "codex_calls_authorized": 0
+    },
+    "strawberry_quantum_teleport_short": {
+      "decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "reason_code": "CRITICAL_BOUNDARY_REVIEW_REQUIRED",
+      "risk_class": "HIGH",
+      "review_fingerprint": "a1adfd170218943a9e9e01eae4e67997",
+      "reusable_fingerprint": null,
+      "codex_calls_authorized": 0
+    },
+    "three_door_mystery_vault_short": {
+      "decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "reason_code": "CRITICAL_BOUNDARY_REVIEW_REQUIRED",
+      "risk_class": "HIGH",
+      "review_fingerprint": "a1adfd170218943a9e9e01eae4e67997",
+      "reusable_fingerprint": null,
+      "codex_calls_authorized": 0
+    },
+    "watermelon_ice_crush_short": {
+      "decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "reason_code": "CRITICAL_BOUNDARY_REVIEW_REQUIRED",
+      "risk_class": "HIGH",
+      "review_fingerprint": "a1adfd170218943a9e9e01eae4e67997",
+      "reusable_fingerprint": null,
+      "codex_calls_authorized": 0
+    },
+    "watermelon_super_bounce_short": {
+      "decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "reason_code": "CRITICAL_BOUNDARY_REVIEW_REQUIRED",
+      "risk_class": "HIGH",
+      "review_fingerprint": "a1adfd170218943a9e9e01eae4e67997",
+      "reusable_fingerprint": null,
+      "codex_calls_authorized": 0
+    },
+    "watermelon_super_bounce_v2_short": {
+      "decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "reason_code": "CRITICAL_BOUNDARY_REVIEW_REQUIRED",
+      "risk_class": "HIGH",
+      "review_fingerprint": "a1adfd170218943a9e9e01eae4e67997",
+      "reusable_fingerprint": null,
+      "codex_calls_authorized": 0
+    },
+    "wrong_potion_lemon_short": {
+      "decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "reason_code": "CRITICAL_BOUNDARY_REVIEW_REQUIRED",
+      "risk_class": "HIGH",
+      "review_fingerprint": "a1adfd170218943a9e9e01eae4e67997",
+      "reusable_fingerprint": null,
+      "codex_calls_authorized": 0
+    }
+  },
+  "chief_returns": {
+    "banana_ninja_escape_short": {
+      "schema_version": "1.0",
+      "task_id": "TASK-CREATOR-banana_ninja_escape_short-085cc67e",
+      "plan_id": "PLAN-4533803ffee0a4f3",
+      "content_id": "banana_ninja_escape_short",
+      "result_status": "WAITING_FOR_USER",
+      "useful_work_completed": false,
+      "files_changed": [],
+      "tests_run": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "state_hash_before": "085cc67ed6d89be953ca89565e139a9c401f53472c1c02f4f175dc918cbf632e",
+      "state_hash_after": "085cc67ed6d89be953ca89565e139a9c401f53472c1c02f4f175dc918cbf632e",
+      "review_decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "human_gate": true,
+      "external_gate": false,
+      "money_spent_eur": 0.0,
+      "recommended_next_action": "AWAIT_HUMAN_AUDIENCE_DECISION",
+      "prohibited_next_actions": [
+        "AUDIENCE_CLASSIFICATION",
+        "CREATE_REAL_APPROVAL_RECORD",
+        "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+        "IDENTITY_OR_KYC_DECLARATIONS",
+        "PUBLIC_RELEASE",
+        "REAL_YOUTUBE_UPLOAD",
+        "SET_PUBLICATION_AUTHORIZED_TRUE",
+        "SPEND_MONEY",
+        "SUBSCRIPTION_OR_CREDIT_CHANGE"
+      ],
+      "evidence_references": [
+        "runtime/content/banana_ninja_escape_short/publish_package.json",
+        "runtime/content/banana_ninja_escape_short/qc_report.json",
+        "runtime/content/banana_ninja_escape_short/render.mp4",
+        "runtime/content/banana_ninja_escape_short/render_metadata.json"
+      ]
+    },
+    "banana_skateboard_loop_short": {
+      "schema_version": "1.0",
+      "task_id": "TASK-CREATOR-banana_skateboard_loop_short-d521f9dc",
+      "plan_id": "PLAN-709f0ff67e9c4623",
+      "content_id": "banana_skateboard_loop_short",
+      "result_status": "WAITING_FOR_USER",
+      "useful_work_completed": false,
+      "files_changed": [],
+      "tests_run": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "state_hash_before": "d521f9dce15839ea00cb3767a05dfe4de5362172fd5aa87fb266eb8015bad328",
+      "state_hash_after": "d521f9dce15839ea00cb3767a05dfe4de5362172fd5aa87fb266eb8015bad328",
+      "review_decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "human_gate": true,
+      "external_gate": false,
+      "money_spent_eur": 0.0,
+      "recommended_next_action": "AWAIT_HUMAN_AUDIENCE_DECISION",
+      "prohibited_next_actions": [
+        "AUDIENCE_CLASSIFICATION",
+        "CREATE_REAL_APPROVAL_RECORD",
+        "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+        "IDENTITY_OR_KYC_DECLARATIONS",
+        "PUBLIC_RELEASE",
+        "REAL_YOUTUBE_UPLOAD",
+        "SET_PUBLICATION_AUTHORIZED_TRUE",
+        "SPEND_MONEY",
+        "SUBSCRIPTION_OR_CREDIT_CHANGE"
+      ],
+      "evidence_references": [
+        "runtime/content/banana_skateboard_loop_short/publish_package.json",
+        "runtime/content/banana_skateboard_loop_short/qc_report.json",
+        "runtime/content/banana_skateboard_loop_short/render.mp4",
+        "runtime/content/banana_skateboard_loop_short/render_metadata.json"
+      ]
+    },
+    "banana_skateboard_loop_v2_short": {
+      "schema_version": "1.0",
+      "task_id": "TASK-CREATOR-banana_skateboard_loop_v2_short-eed1f651",
+      "plan_id": "PLAN-209cbbd1ed057420",
+      "content_id": "banana_skateboard_loop_v2_short",
+      "result_status": "WAITING_FOR_USER",
+      "useful_work_completed": false,
+      "files_changed": [],
+      "tests_run": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "state_hash_before": "eed1f65163af5fca2f4a063bd83b3af6fee260ee16850348497dedc3ee2316b9",
+      "state_hash_after": "eed1f65163af5fca2f4a063bd83b3af6fee260ee16850348497dedc3ee2316b9",
+      "review_decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "human_gate": true,
+      "external_gate": false,
+      "money_spent_eur": 0.0,
+      "recommended_next_action": "AWAIT_HUMAN_AUDIENCE_DECISION",
+      "prohibited_next_actions": [
+        "AUDIENCE_CLASSIFICATION",
+        "CREATE_REAL_APPROVAL_RECORD",
+        "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+        "IDENTITY_OR_KYC_DECLARATIONS",
+        "PUBLIC_RELEASE",
+        "REAL_YOUTUBE_UPLOAD",
+        "SET_PUBLICATION_AUTHORIZED_TRUE",
+        "SPEND_MONEY",
+        "SUBSCRIPTION_OR_CREDIT_CHANGE"
+      ],
+      "evidence_references": [
+        "runtime/content/banana_skateboard_loop_v2_short/publish_package.json",
+        "runtime/content/banana_skateboard_loop_v2_short/qc_report.json",
+        "runtime/content/banana_skateboard_loop_v2_short/render.mp4",
+        "runtime/content/banana_skateboard_loop_v2_short/render_metadata.json"
+      ]
+    },
+    "cherry_catapult_target_short": {
+      "schema_version": "1.0",
+      "task_id": "TASK-CREATOR-cherry_catapult_target_short-0ae54825",
+      "plan_id": "PLAN-b7167a79494e3757",
+      "content_id": "cherry_catapult_target_short",
+      "result_status": "WAITING_FOR_USER",
+      "useful_work_completed": false,
+      "files_changed": [],
+      "tests_run": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "state_hash_before": "0ae54825bacde9eed2f7ccbf61701d8cdd9c137fa1530aecd90487de1937c901",
+      "state_hash_after": "0ae54825bacde9eed2f7ccbf61701d8cdd9c137fa1530aecd90487de1937c901",
+      "review_decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "human_gate": true,
+      "external_gate": false,
+      "money_spent_eur": 0.0,
+      "recommended_next_action": "AWAIT_HUMAN_AUDIENCE_DECISION",
+      "prohibited_next_actions": [
+        "AUDIENCE_CLASSIFICATION",
+        "CREATE_REAL_APPROVAL_RECORD",
+        "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+        "IDENTITY_OR_KYC_DECLARATIONS",
+        "PUBLIC_RELEASE",
+        "REAL_YOUTUBE_UPLOAD",
+        "SET_PUBLICATION_AUTHORIZED_TRUE",
+        "SPEND_MONEY",
+        "SUBSCRIPTION_OR_CREDIT_CHANGE"
+      ],
+      "evidence_references": [
+        "runtime/content/cherry_catapult_target_short/publish_package.json",
+        "runtime/content/cherry_catapult_target_short/qc_report.json",
+        "runtime/content/cherry_catapult_target_short/render.mp4",
+        "runtime/content/cherry_catapult_target_short/render_metadata.json"
+      ]
+    },
+    "demo_live_render": {
+      "schema_version": "1.0",
+      "task_id": "TASK-CREATOR-demo_live_render-ab576d8b",
+      "plan_id": "PLAN-95a18c2d32bd3c54",
+      "content_id": "demo_live_render",
+      "result_status": "DONE",
+      "useful_work_completed": true,
+      "files_changed": [],
+      "tests_run": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "state_hash_before": "ab576d8bca0f4263eb70983e847b8f09c28c014f127add93bb66fbd96a698fed",
+      "state_hash_after": "ab576d8bca0f4263eb70983e847b8f09c28c014f127add93bb66fbd96a698fed",
+      "review_decision": "REVIEW_NOT_REQUIRED",
+      "human_gate": false,
+      "external_gate": false,
+      "money_spent_eur": 0.0,
+      "recommended_next_action": "DISPATCH_LOCAL_QC_EXECUTION",
+      "prohibited_next_actions": [
+        "AUDIENCE_CLASSIFICATION",
+        "CREATE_REAL_APPROVAL_RECORD",
+        "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+        "IDENTITY_OR_KYC_DECLARATIONS",
+        "PUBLIC_RELEASE",
+        "REAL_YOUTUBE_UPLOAD",
+        "SET_PUBLICATION_AUTHORIZED_TRUE",
+        "SPEND_MONEY",
+        "SUBSCRIPTION_OR_CREDIT_CHANGE"
+      ],
+      "evidence_references": [
+        "runtime/content/demo_live_render/demo_strawberry_short.avi"
+      ]
+    },
+    "disco_berry_dance_battle_short": {
+      "schema_version": "1.0",
+      "task_id": "TASK-CREATOR-disco_berry_dance_battle_short-97da0ab8",
+      "plan_id": "PLAN-78431556f294066d",
+      "content_id": "disco_berry_dance_battle_short",
+      "result_status": "WAITING_FOR_USER",
+      "useful_work_completed": false,
+      "files_changed": [],
+      "tests_run": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "state_hash_before": "97da0ab8da07d7ba620aee03b18a24d7d3184143fec119ccc8db1502921ff994",
+      "state_hash_after": "97da0ab8da07d7ba620aee03b18a24d7d3184143fec119ccc8db1502921ff994",
+      "review_decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "human_gate": true,
+      "external_gate": false,
+      "money_spent_eur": 0.0,
+      "recommended_next_action": "AWAIT_HUMAN_AUDIENCE_DECISION",
+      "prohibited_next_actions": [
+        "AUDIENCE_CLASSIFICATION",
+        "CREATE_REAL_APPROVAL_RECORD",
+        "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+        "IDENTITY_OR_KYC_DECLARATIONS",
+        "PUBLIC_RELEASE",
+        "REAL_YOUTUBE_UPLOAD",
+        "SET_PUBLICATION_AUTHORIZED_TRUE",
+        "SPEND_MONEY",
+        "SUBSCRIPTION_OR_CREDIT_CHANGE"
+      ],
+      "evidence_references": [
+        "runtime/content/disco_berry_dance_battle_short/publish_package.json",
+        "runtime/content/disco_berry_dance_battle_short/qc_report.json",
+        "runtime/content/disco_berry_dance_battle_short/render.mp4",
+        "runtime/content/disco_berry_dance_battle_short/render_metadata.json"
+      ]
+    },
+    "dragonfruit_volcano_eruption_short": {
+      "schema_version": "1.0",
+      "task_id": "TASK-CREATOR-dragonfruit_volcano_eruption_short-fb60f767",
+      "plan_id": "PLAN-bdfcf60d49ef1e3e",
+      "content_id": "dragonfruit_volcano_eruption_short",
+      "result_status": "WAITING_FOR_USER",
+      "useful_work_completed": false,
+      "files_changed": [],
+      "tests_run": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "state_hash_before": "fb60f7676de20dc95bf5544046aac145b3e6e52f25b924af595590f1d434b8a2",
+      "state_hash_after": "fb60f7676de20dc95bf5544046aac145b3e6e52f25b924af595590f1d434b8a2",
+      "review_decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "human_gate": true,
+      "external_gate": false,
+      "money_spent_eur": 0.0,
+      "recommended_next_action": "AWAIT_HUMAN_AUDIENCE_DECISION",
+      "prohibited_next_actions": [
+        "AUDIENCE_CLASSIFICATION",
+        "CREATE_REAL_APPROVAL_RECORD",
+        "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+        "IDENTITY_OR_KYC_DECLARATIONS",
+        "PUBLIC_RELEASE",
+        "REAL_YOUTUBE_UPLOAD",
+        "SET_PUBLICATION_AUTHORIZED_TRUE",
+        "SPEND_MONEY",
+        "SUBSCRIPTION_OR_CREDIT_CHANGE"
+      ],
+      "evidence_references": [
+        "runtime/content/dragonfruit_volcano_eruption_short/publish_package.json",
+        "runtime/content/dragonfruit_volcano_eruption_short/qc_report.json",
+        "runtime/content/dragonfruit_volcano_eruption_short/render.mp4",
+        "runtime/content/dragonfruit_volcano_eruption_short/render_metadata.json"
+      ]
+    },
+    "giant_pineapple_anvil_short": {
+      "schema_version": "1.0",
+      "task_id": "TASK-CREATOR-giant_pineapple_anvil_short-bce126cc",
+      "plan_id": "PLAN-69a3b4474cd3e4e3",
+      "content_id": "giant_pineapple_anvil_short",
+      "result_status": "WAITING_FOR_USER",
+      "useful_work_completed": false,
+      "files_changed": [],
+      "tests_run": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "state_hash_before": "bce126cc295dc01c37d88360f9460537751b836cef083a8efa1294c2d89e564c",
+      "state_hash_after": "bce126cc295dc01c37d88360f9460537751b836cef083a8efa1294c2d89e564c",
+      "review_decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "human_gate": true,
+      "external_gate": false,
+      "money_spent_eur": 0.0,
+      "recommended_next_action": "AWAIT_HUMAN_AUDIENCE_DECISION",
+      "prohibited_next_actions": [
+        "AUDIENCE_CLASSIFICATION",
+        "CREATE_REAL_APPROVAL_RECORD",
+        "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+        "IDENTITY_OR_KYC_DECLARATIONS",
+        "PUBLIC_RELEASE",
+        "REAL_YOUTUBE_UPLOAD",
+        "SET_PUBLICATION_AUTHORIZED_TRUE",
+        "SPEND_MONEY",
+        "SUBSCRIPTION_OR_CREDIT_CHANGE"
+      ],
+      "evidence_references": [
+        "runtime/content/giant_pineapple_anvil_short/publish_package.json",
+        "runtime/content/giant_pineapple_anvil_short/qc_report.json",
+        "runtime/content/giant_pineapple_anvil_short/render.mp4",
+        "runtime/content/giant_pineapple_anvil_short/render_metadata.json"
+      ]
+    },
+    "golden_trophy_short": {
+      "schema_version": "1.0",
+      "task_id": "TASK-CREATOR-golden_trophy_short-b5857e07",
+      "plan_id": "PLAN-2bec0a67928e36eb",
+      "content_id": "golden_trophy_short",
+      "result_status": "WAITING_FOR_USER",
+      "useful_work_completed": false,
+      "files_changed": [],
+      "tests_run": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "state_hash_before": "b5857e075747fec484f05a5fc683187a0f93114161ee0d5788cdb1aafd0cedbc",
+      "state_hash_after": "b5857e075747fec484f05a5fc683187a0f93114161ee0d5788cdb1aafd0cedbc",
+      "review_decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "human_gate": true,
+      "external_gate": false,
+      "money_spent_eur": 0.0,
+      "recommended_next_action": "AWAIT_HUMAN_AUDIENCE_DECISION",
+      "prohibited_next_actions": [
+        "AUDIENCE_CLASSIFICATION",
+        "CREATE_REAL_APPROVAL_RECORD",
+        "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+        "IDENTITY_OR_KYC_DECLARATIONS",
+        "PUBLIC_RELEASE",
+        "REAL_YOUTUBE_UPLOAD",
+        "SET_PUBLICATION_AUTHORIZED_TRUE",
+        "SPEND_MONEY",
+        "SUBSCRIPTION_OR_CREDIT_CHANGE"
+      ],
+      "evidence_references": [
+        "runtime/content/golden_trophy_short/publish_package.json",
+        "runtime/content/golden_trophy_short/qc_report.json",
+        "runtime/content/golden_trophy_short/render.mp4",
+        "runtime/content/golden_trophy_short/render_metadata.json"
+      ]
+    },
+    "kiwi_time_freeze_stopwatch_short": {
+      "schema_version": "1.0",
+      "task_id": "TASK-CREATOR-kiwi_time_freeze_stopwatch_short-51107a07",
+      "plan_id": "PLAN-7864c8f7b1c281ee",
+      "content_id": "kiwi_time_freeze_stopwatch_short",
+      "result_status": "WAITING_FOR_USER",
+      "useful_work_completed": false,
+      "files_changed": [],
+      "tests_run": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "state_hash_before": "51107a07e4ccfb979529b54159c1f58492b4a98a16c1ab4edfe0c1c03c236e47",
+      "state_hash_after": "51107a07e4ccfb979529b54159c1f58492b4a98a16c1ab4edfe0c1c03c236e47",
+      "review_decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "human_gate": true,
+      "external_gate": false,
+      "money_spent_eur": 0.0,
+      "recommended_next_action": "AWAIT_HUMAN_AUDIENCE_DECISION",
+      "prohibited_next_actions": [
+        "AUDIENCE_CLASSIFICATION",
+        "CREATE_REAL_APPROVAL_RECORD",
+        "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+        "IDENTITY_OR_KYC_DECLARATIONS",
+        "PUBLIC_RELEASE",
+        "REAL_YOUTUBE_UPLOAD",
+        "SET_PUBLICATION_AUTHORIZED_TRUE",
+        "SPEND_MONEY",
+        "SUBSCRIPTION_OR_CREDIT_CHANGE"
+      ],
+      "evidence_references": [
+        "runtime/content/kiwi_time_freeze_stopwatch_short/publish_package.json",
+        "runtime/content/kiwi_time_freeze_stopwatch_short/qc_report.json",
+        "runtime/content/kiwi_time_freeze_stopwatch_short/render.mp4",
+        "runtime/content/kiwi_time_freeze_stopwatch_short/render_metadata.json"
+      ]
+    },
+    "magnifying_glass_camera_fix_158g": {
+      "schema_version": "1.0",
+      "task_id": "TASK-CREATOR-magnifying_glass_camera_fix_158g-5151081f",
+      "plan_id": "PLAN-2b1be46b3366b2d7",
+      "content_id": "magnifying_glass_camera_fix_158g",
+      "result_status": "DONE",
+      "useful_work_completed": true,
+      "files_changed": [],
+      "tests_run": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "state_hash_before": "5151081fb22e8e9c1475cc0d032765e01cfe66ca8b559dbc1b2d039f46cf1bcb",
+      "state_hash_after": "5151081fb22e8e9c1475cc0d032765e01cfe66ca8b559dbc1b2d039f46cf1bcb",
+      "review_decision": "REVIEW_NOT_REQUIRED",
+      "human_gate": false,
+      "external_gate": false,
+      "money_spent_eur": 0.0,
+      "recommended_next_action": "DISPATCH_LOCAL_QC_EXECUTION",
+      "prohibited_next_actions": [
+        "AUDIENCE_CLASSIFICATION",
+        "CREATE_REAL_APPROVAL_RECORD",
+        "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+        "IDENTITY_OR_KYC_DECLARATIONS",
+        "PUBLIC_RELEASE",
+        "REAL_YOUTUBE_UPLOAD",
+        "SET_PUBLICATION_AUTHORIZED_TRUE",
+        "SPEND_MONEY",
+        "SUBSCRIPTION_OR_CREDIT_CHANGE"
+      ],
+      "evidence_references": [
+        "runtime/content/magnifying_glass_camera_fix_158g/render.mp4",
+        "runtime/content/magnifying_glass_camera_fix_158g/render_metadata.json"
+      ]
+    },
+    "magnifying_glass_camera_fix_158g_attempt2": {
+      "schema_version": "1.0",
+      "task_id": "TASK-CREATOR-magnifying_glass_camera_fix_158g_attempt2-20c26f2e",
+      "plan_id": "PLAN-1f1854c51119c8cf",
+      "content_id": "magnifying_glass_camera_fix_158g_attempt2",
+      "result_status": "DONE",
+      "useful_work_completed": true,
+      "files_changed": [],
+      "tests_run": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "state_hash_before": "20c26f2e9965b9cb3c33a6d634d5ce982a59efc45553cc3b8c8db8ded67bc259",
+      "state_hash_after": "20c26f2e9965b9cb3c33a6d634d5ce982a59efc45553cc3b8c8db8ded67bc259",
+      "review_decision": "REVIEW_NOT_REQUIRED",
+      "human_gate": false,
+      "external_gate": false,
+      "money_spent_eur": 0.0,
+      "recommended_next_action": "DISPATCH_LOCAL_QC_EXECUTION",
+      "prohibited_next_actions": [
+        "AUDIENCE_CLASSIFICATION",
+        "CREATE_REAL_APPROVAL_RECORD",
+        "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+        "IDENTITY_OR_KYC_DECLARATIONS",
+        "PUBLIC_RELEASE",
+        "REAL_YOUTUBE_UPLOAD",
+        "SET_PUBLICATION_AUTHORIZED_TRUE",
+        "SPEND_MONEY",
+        "SUBSCRIPTION_OR_CREDIT_CHANGE"
+      ],
+      "evidence_references": [
+        "runtime/content/magnifying_glass_camera_fix_158g_attempt2/render.avi"
+      ]
+    },
+    "magnifying_glass_camera_fix_verified": {
+      "schema_version": "1.0",
+      "task_id": "TASK-CREATOR-magnifying_glass_camera_fix_verified-866ff7fb",
+      "plan_id": "PLAN-016c43302fcbd1a2",
+      "content_id": "magnifying_glass_camera_fix_verified",
+      "result_status": "DONE",
+      "useful_work_completed": true,
+      "files_changed": [],
+      "tests_run": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "state_hash_before": "866ff7fbca8629b80d9368db8118c98e6b5ca222fa3978493e56de956acdb5e6",
+      "state_hash_after": "866ff7fbca8629b80d9368db8118c98e6b5ca222fa3978493e56de956acdb5e6",
+      "review_decision": "REVIEW_NOT_REQUIRED",
+      "human_gate": false,
+      "external_gate": false,
+      "money_spent_eur": 0.0,
+      "recommended_next_action": "DISPATCH_LOCAL_QC_EXECUTION",
+      "prohibited_next_actions": [
+        "AUDIENCE_CLASSIFICATION",
+        "CREATE_REAL_APPROVAL_RECORD",
+        "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+        "IDENTITY_OR_KYC_DECLARATIONS",
+        "PUBLIC_RELEASE",
+        "REAL_YOUTUBE_UPLOAD",
+        "SET_PUBLICATION_AUTHORIZED_TRUE",
+        "SPEND_MONEY",
+        "SUBSCRIPTION_OR_CREDIT_CHANGE"
+      ],
+      "evidence_references": [
+        "runtime/content/magnifying_glass_camera_fix_verified/render.mp4",
+        "runtime/content/magnifying_glass_camera_fix_verified/render_metadata.json"
+      ]
+    },
+    "magnifying_glass_composition_remediated": {
+      "schema_version": "1.0",
+      "task_id": "TASK-CREATOR-magnifying_glass_composition_remediated-144ca392",
+      "plan_id": "PLAN-476b6c39b58221eb",
+      "content_id": "magnifying_glass_composition_remediated",
+      "result_status": "DONE",
+      "useful_work_completed": true,
+      "files_changed": [],
+      "tests_run": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "state_hash_before": "144ca3926b0c1a4eef23eced1fb65af311af8814c92db752843a7b2e3867063c",
+      "state_hash_after": "144ca3926b0c1a4eef23eced1fb65af311af8814c92db752843a7b2e3867063c",
+      "review_decision": "REVIEW_NOT_REQUIRED",
+      "human_gate": false,
+      "external_gate": false,
+      "money_spent_eur": 0.0,
+      "recommended_next_action": "DISPATCH_LOCAL_QC_EXECUTION",
+      "prohibited_next_actions": [
+        "AUDIENCE_CLASSIFICATION",
+        "CREATE_REAL_APPROVAL_RECORD",
+        "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+        "IDENTITY_OR_KYC_DECLARATIONS",
+        "PUBLIC_RELEASE",
+        "REAL_YOUTUBE_UPLOAD",
+        "SET_PUBLICATION_AUTHORIZED_TRUE",
+        "SPEND_MONEY",
+        "SUBSCRIPTION_OR_CREDIT_CHANGE"
+      ],
+      "evidence_references": [
+        "runtime/content/magnifying_glass_composition_remediated/render.mp4",
+        "runtime/content/magnifying_glass_composition_remediated/render_metadata.json"
+      ]
+    },
+    "magnifying_glass_short": {
+      "schema_version": "1.0",
+      "task_id": "TASK-CREATOR-magnifying_glass_short-724cb589",
+      "plan_id": "PLAN-4c94ce11d5d31df1",
+      "content_id": "magnifying_glass_short",
+      "result_status": "DONE",
+      "useful_work_completed": true,
+      "files_changed": [],
+      "tests_run": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "state_hash_before": "724cb5890f2b8eb235f49944941214abaeefcf39b092d1cb25fb1a7ca1e0026b",
+      "state_hash_after": "724cb5890f2b8eb235f49944941214abaeefcf39b092d1cb25fb1a7ca1e0026b",
+      "review_decision": "REVIEW_NOT_REQUIRED",
+      "human_gate": false,
+      "external_gate": false,
+      "money_spent_eur": 0.0,
+      "recommended_next_action": "DISPATCH_LOCAL_QC_EXECUTION",
+      "prohibited_next_actions": [
+        "AUDIENCE_CLASSIFICATION",
+        "CREATE_REAL_APPROVAL_RECORD",
+        "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+        "IDENTITY_OR_KYC_DECLARATIONS",
+        "PUBLIC_RELEASE",
+        "REAL_YOUTUBE_UPLOAD",
+        "SET_PUBLICATION_AUTHORIZED_TRUE",
+        "SPEND_MONEY",
+        "SUBSCRIPTION_OR_CREDIT_CHANGE"
+      ],
+      "evidence_references": [
+        "runtime/content/magnifying_glass_short/render.mp4",
+        "runtime/content/magnifying_glass_short/render_metadata.json"
+      ]
+    },
+    "micro_fruit_grand_prix_short": {
+      "schema_version": "1.0",
+      "task_id": "TASK-CREATOR-micro_fruit_grand_prix_short-7018cd37",
+      "plan_id": "PLAN-3a1bd6b57c6c8566",
+      "content_id": "micro_fruit_grand_prix_short",
+      "result_status": "WAITING_FOR_USER",
+      "useful_work_completed": false,
+      "files_changed": [],
+      "tests_run": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "state_hash_before": "7018cd37123912501ae5fa39a140086a746325f646eacb101246b8f973e95e8a",
+      "state_hash_after": "7018cd37123912501ae5fa39a140086a746325f646eacb101246b8f973e95e8a",
+      "review_decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "human_gate": true,
+      "external_gate": false,
+      "money_spent_eur": 0.0,
+      "recommended_next_action": "AWAIT_HUMAN_AUDIENCE_DECISION",
+      "prohibited_next_actions": [
+        "AUDIENCE_CLASSIFICATION",
+        "CREATE_REAL_APPROVAL_RECORD",
+        "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+        "IDENTITY_OR_KYC_DECLARATIONS",
+        "PUBLIC_RELEASE",
+        "REAL_YOUTUBE_UPLOAD",
+        "SET_PUBLICATION_AUTHORIZED_TRUE",
+        "SPEND_MONEY",
+        "SUBSCRIPTION_OR_CREDIT_CHANGE"
+      ],
+      "evidence_references": [
+        "runtime/content/micro_fruit_grand_prix_short/publish_package.json",
+        "runtime/content/micro_fruit_grand_prix_short/qc_report.json",
+        "runtime/content/micro_fruit_grand_prix_short/render.mp4",
+        "runtime/content/micro_fruit_grand_prix_short/render_metadata.json"
+      ]
+    },
+    "mystery_box_short": {
+      "schema_version": "1.0",
+      "task_id": "TASK-CREATOR-mystery_box_short-3384629b",
+      "plan_id": "PLAN-3014f8fdb7b7619c",
+      "content_id": "mystery_box_short",
+      "result_status": "WAITING_FOR_USER",
+      "useful_work_completed": false,
+      "files_changed": [],
+      "tests_run": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "state_hash_before": "3384629ba8f9ab9656e5a957d4c676b9e82ee4d0e4f983aa67cae1bcdbda2e52",
+      "state_hash_after": "3384629ba8f9ab9656e5a957d4c676b9e82ee4d0e4f983aa67cae1bcdbda2e52",
+      "review_decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "human_gate": true,
+      "external_gate": false,
+      "money_spent_eur": 0.0,
+      "recommended_next_action": "AWAIT_HUMAN_AUDIENCE_DECISION",
+      "prohibited_next_actions": [
+        "AUDIENCE_CLASSIFICATION",
+        "CREATE_REAL_APPROVAL_RECORD",
+        "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+        "IDENTITY_OR_KYC_DECLARATIONS",
+        "PUBLIC_RELEASE",
+        "REAL_YOUTUBE_UPLOAD",
+        "SET_PUBLICATION_AUTHORIZED_TRUE",
+        "SPEND_MONEY",
+        "SUBSCRIPTION_OR_CREDIT_CHANGE"
+      ],
+      "evidence_references": [
+        "runtime/content/mystery_box_short/fruitki_strawberry_mystery_box.mp4",
+        "runtime/content/mystery_box_short/publish_package.json",
+        "runtime/content/mystery_box_short/qc_report.json"
+      ]
+    },
+    "mystery_portal_apple_short": {
+      "schema_version": "1.0",
+      "task_id": "TASK-CREATOR-mystery_portal_apple_short-9c765ee0",
+      "plan_id": "PLAN-26fac2b16d9e2c52",
+      "content_id": "mystery_portal_apple_short",
+      "result_status": "WAITING_FOR_USER",
+      "useful_work_completed": false,
+      "files_changed": [],
+      "tests_run": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "state_hash_before": "9c765ee0dbabfe3646768058956b16c5bbeb2565c59fc199cf3e2d0e1d67e29d",
+      "state_hash_after": "9c765ee0dbabfe3646768058956b16c5bbeb2565c59fc199cf3e2d0e1d67e29d",
+      "review_decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "human_gate": true,
+      "external_gate": false,
+      "money_spent_eur": 0.0,
+      "recommended_next_action": "AWAIT_HUMAN_AUDIENCE_DECISION",
+      "prohibited_next_actions": [
+        "AUDIENCE_CLASSIFICATION",
+        "CREATE_REAL_APPROVAL_RECORD",
+        "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+        "IDENTITY_OR_KYC_DECLARATIONS",
+        "PUBLIC_RELEASE",
+        "REAL_YOUTUBE_UPLOAD",
+        "SET_PUBLICATION_AUTHORIZED_TRUE",
+        "SPEND_MONEY",
+        "SUBSCRIPTION_OR_CREDIT_CHANGE"
+      ],
+      "evidence_references": [
+        "runtime/content/mystery_portal_apple_short/publish_package.json",
+        "runtime/content/mystery_portal_apple_short/qc_report.json",
+        "runtime/content/mystery_portal_apple_short/render.mp4",
+        "runtime/content/mystery_portal_apple_short/render_metadata.json"
+      ]
+    },
+    "mystery_portal_apple_v2_short": {
+      "schema_version": "1.0",
+      "task_id": "TASK-CREATOR-mystery_portal_apple_v2_short-b2766bdc",
+      "plan_id": "PLAN-0e4be7fbb35feb2b",
+      "content_id": "mystery_portal_apple_v2_short",
+      "result_status": "WAITING_FOR_USER",
+      "useful_work_completed": false,
+      "files_changed": [],
+      "tests_run": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "state_hash_before": "b2766bdcf400dc2e9683e385f9656095a144b854e353e20f77cbc5bcb83e1c2e",
+      "state_hash_after": "b2766bdcf400dc2e9683e385f9656095a144b854e353e20f77cbc5bcb83e1c2e",
+      "review_decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "human_gate": true,
+      "external_gate": false,
+      "money_spent_eur": 0.0,
+      "recommended_next_action": "AWAIT_HUMAN_AUDIENCE_DECISION",
+      "prohibited_next_actions": [
+        "AUDIENCE_CLASSIFICATION",
+        "CREATE_REAL_APPROVAL_RECORD",
+        "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+        "IDENTITY_OR_KYC_DECLARATIONS",
+        "PUBLIC_RELEASE",
+        "REAL_YOUTUBE_UPLOAD",
+        "SET_PUBLICATION_AUTHORIZED_TRUE",
+        "SPEND_MONEY",
+        "SUBSCRIPTION_OR_CREDIT_CHANGE"
+      ],
+      "evidence_references": [
+        "runtime/content/mystery_portal_apple_v2_short/publish_package.json",
+        "runtime/content/mystery_portal_apple_v2_short/qc_report.json",
+        "runtime/content/mystery_portal_apple_v2_short/render.mp4",
+        "runtime/content/mystery_portal_apple_v2_short/render_metadata.json"
+      ]
+    },
+    "orange_laser_heist_short": {
+      "schema_version": "1.0",
+      "task_id": "TASK-CREATOR-orange_laser_heist_short-cf4692af",
+      "plan_id": "PLAN-577a98c56eb9bbf6",
+      "content_id": "orange_laser_heist_short",
+      "result_status": "WAITING_FOR_USER",
+      "useful_work_completed": false,
+      "files_changed": [],
+      "tests_run": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "state_hash_before": "cf4692af13f7a53f0b3fd36f4be7ef5c03bfbc509618eb16dab6b34508c33764",
+      "state_hash_after": "cf4692af13f7a53f0b3fd36f4be7ef5c03bfbc509618eb16dab6b34508c33764",
+      "review_decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "human_gate": true,
+      "external_gate": false,
+      "money_spent_eur": 0.0,
+      "recommended_next_action": "AWAIT_HUMAN_AUDIENCE_DECISION",
+      "prohibited_next_actions": [
+        "AUDIENCE_CLASSIFICATION",
+        "CREATE_REAL_APPROVAL_RECORD",
+        "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+        "IDENTITY_OR_KYC_DECLARATIONS",
+        "PUBLIC_RELEASE",
+        "REAL_YOUTUBE_UPLOAD",
+        "SET_PUBLICATION_AUTHORIZED_TRUE",
+        "SPEND_MONEY",
+        "SUBSCRIPTION_OR_CREDIT_CHANGE"
+      ],
+      "evidence_references": [
+        "runtime/content/orange_laser_heist_short/publish_package.json",
+        "runtime/content/orange_laser_heist_short/qc_report.json",
+        "runtime/content/orange_laser_heist_short/render.mp4",
+        "runtime/content/orange_laser_heist_short/render_metadata.json"
+      ]
+    },
+    "strawberry_quantum_teleport_short": {
+      "schema_version": "1.0",
+      "task_id": "TASK-CREATOR-strawberry_quantum_teleport_short-e32810ea",
+      "plan_id": "PLAN-4e60b56dd47071a1",
+      "content_id": "strawberry_quantum_teleport_short",
+      "result_status": "WAITING_FOR_USER",
+      "useful_work_completed": false,
+      "files_changed": [],
+      "tests_run": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "state_hash_before": "e32810ea7f373a4d83adbd34eaa6ad89400a0f5aa87708315e7a9130f85e6d5d",
+      "state_hash_after": "e32810ea7f373a4d83adbd34eaa6ad89400a0f5aa87708315e7a9130f85e6d5d",
+      "review_decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "human_gate": true,
+      "external_gate": false,
+      "money_spent_eur": 0.0,
+      "recommended_next_action": "AWAIT_HUMAN_AUDIENCE_DECISION",
+      "prohibited_next_actions": [
+        "AUDIENCE_CLASSIFICATION",
+        "CREATE_REAL_APPROVAL_RECORD",
+        "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+        "IDENTITY_OR_KYC_DECLARATIONS",
+        "PUBLIC_RELEASE",
+        "REAL_YOUTUBE_UPLOAD",
+        "SET_PUBLICATION_AUTHORIZED_TRUE",
+        "SPEND_MONEY",
+        "SUBSCRIPTION_OR_CREDIT_CHANGE"
+      ],
+      "evidence_references": [
+        "runtime/content/strawberry_quantum_teleport_short/publish_package.json",
+        "runtime/content/strawberry_quantum_teleport_short/qc_report.json",
+        "runtime/content/strawberry_quantum_teleport_short/render.mp4",
+        "runtime/content/strawberry_quantum_teleport_short/render_metadata.json"
+      ]
+    },
+    "three_door_mystery_vault_short": {
+      "schema_version": "1.0",
+      "task_id": "TASK-CREATOR-three_door_mystery_vault_short-0c26f055",
+      "plan_id": "PLAN-627ca33a34a19d18",
+      "content_id": "three_door_mystery_vault_short",
+      "result_status": "WAITING_FOR_USER",
+      "useful_work_completed": false,
+      "files_changed": [],
+      "tests_run": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "state_hash_before": "0c26f055d9a6bba03beb844cb196a12f2fb0a59ecf23139862943dd49d456bdd",
+      "state_hash_after": "0c26f055d9a6bba03beb844cb196a12f2fb0a59ecf23139862943dd49d456bdd",
+      "review_decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "human_gate": true,
+      "external_gate": false,
+      "money_spent_eur": 0.0,
+      "recommended_next_action": "AWAIT_HUMAN_AUDIENCE_DECISION",
+      "prohibited_next_actions": [
+        "AUDIENCE_CLASSIFICATION",
+        "CREATE_REAL_APPROVAL_RECORD",
+        "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+        "IDENTITY_OR_KYC_DECLARATIONS",
+        "PUBLIC_RELEASE",
+        "REAL_YOUTUBE_UPLOAD",
+        "SET_PUBLICATION_AUTHORIZED_TRUE",
+        "SPEND_MONEY",
+        "SUBSCRIPTION_OR_CREDIT_CHANGE"
+      ],
+      "evidence_references": [
+        "runtime/content/three_door_mystery_vault_short/publish_package.json",
+        "runtime/content/three_door_mystery_vault_short/qc_report.json",
+        "runtime/content/three_door_mystery_vault_short/render.mp4",
+        "runtime/content/three_door_mystery_vault_short/render_metadata.json"
+      ]
+    },
+    "watermelon_ice_crush_short": {
+      "schema_version": "1.0",
+      "task_id": "TASK-CREATOR-watermelon_ice_crush_short-3ab04a5c",
+      "plan_id": "PLAN-7cd14a97b73b780e",
+      "content_id": "watermelon_ice_crush_short",
+      "result_status": "WAITING_FOR_USER",
+      "useful_work_completed": false,
+      "files_changed": [],
+      "tests_run": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "state_hash_before": "3ab04a5c4a149d72068d8b6736cb7adfd7e1352e4299bce4b9b1470acbd8ab6d",
+      "state_hash_after": "3ab04a5c4a149d72068d8b6736cb7adfd7e1352e4299bce4b9b1470acbd8ab6d",
+      "review_decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "human_gate": true,
+      "external_gate": false,
+      "money_spent_eur": 0.0,
+      "recommended_next_action": "AWAIT_HUMAN_AUDIENCE_DECISION",
+      "prohibited_next_actions": [
+        "AUDIENCE_CLASSIFICATION",
+        "CREATE_REAL_APPROVAL_RECORD",
+        "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+        "IDENTITY_OR_KYC_DECLARATIONS",
+        "PUBLIC_RELEASE",
+        "REAL_YOUTUBE_UPLOAD",
+        "SET_PUBLICATION_AUTHORIZED_TRUE",
+        "SPEND_MONEY",
+        "SUBSCRIPTION_OR_CREDIT_CHANGE"
+      ],
+      "evidence_references": [
+        "runtime/content/watermelon_ice_crush_short/publish_package.json",
+        "runtime/content/watermelon_ice_crush_short/qc_report.json",
+        "runtime/content/watermelon_ice_crush_short/render.mp4",
+        "runtime/content/watermelon_ice_crush_short/render_metadata.json"
+      ]
+    },
+    "watermelon_super_bounce_short": {
+      "schema_version": "1.0",
+      "task_id": "TASK-CREATOR-watermelon_super_bounce_short-75215474",
+      "plan_id": "PLAN-037fcb37d0d8b6e5",
+      "content_id": "watermelon_super_bounce_short",
+      "result_status": "WAITING_FOR_USER",
+      "useful_work_completed": false,
+      "files_changed": [],
+      "tests_run": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "state_hash_before": "75215474db1baa398cb96652d53b48f459c29b63c1c340d29c7022ac88814559",
+      "state_hash_after": "75215474db1baa398cb96652d53b48f459c29b63c1c340d29c7022ac88814559",
+      "review_decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "human_gate": true,
+      "external_gate": false,
+      "money_spent_eur": 0.0,
+      "recommended_next_action": "AWAIT_HUMAN_AUDIENCE_DECISION",
+      "prohibited_next_actions": [
+        "AUDIENCE_CLASSIFICATION",
+        "CREATE_REAL_APPROVAL_RECORD",
+        "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+        "IDENTITY_OR_KYC_DECLARATIONS",
+        "PUBLIC_RELEASE",
+        "REAL_YOUTUBE_UPLOAD",
+        "SET_PUBLICATION_AUTHORIZED_TRUE",
+        "SPEND_MONEY",
+        "SUBSCRIPTION_OR_CREDIT_CHANGE"
+      ],
+      "evidence_references": [
+        "runtime/content/watermelon_super_bounce_short/publish_package.json",
+        "runtime/content/watermelon_super_bounce_short/qc_report.json",
+        "runtime/content/watermelon_super_bounce_short/render.mp4",
+        "runtime/content/watermelon_super_bounce_short/render_metadata.json"
+      ]
+    },
+    "watermelon_super_bounce_v2_short": {
+      "schema_version": "1.0",
+      "task_id": "TASK-CREATOR-watermelon_super_bounce_v2_short-6d67d8ef",
+      "plan_id": "PLAN-2588e05c3217a17b",
+      "content_id": "watermelon_super_bounce_v2_short",
+      "result_status": "WAITING_FOR_USER",
+      "useful_work_completed": false,
+      "files_changed": [],
+      "tests_run": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "state_hash_before": "6d67d8eff553ad12b50d53d1def99431e19b5e530b8f127607e09299d439a977",
+      "state_hash_after": "6d67d8eff553ad12b50d53d1def99431e19b5e530b8f127607e09299d439a977",
+      "review_decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "human_gate": true,
+      "external_gate": false,
+      "money_spent_eur": 0.0,
+      "recommended_next_action": "AWAIT_HUMAN_AUDIENCE_DECISION",
+      "prohibited_next_actions": [
+        "AUDIENCE_CLASSIFICATION",
+        "CREATE_REAL_APPROVAL_RECORD",
+        "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+        "IDENTITY_OR_KYC_DECLARATIONS",
+        "PUBLIC_RELEASE",
+        "REAL_YOUTUBE_UPLOAD",
+        "SET_PUBLICATION_AUTHORIZED_TRUE",
+        "SPEND_MONEY",
+        "SUBSCRIPTION_OR_CREDIT_CHANGE"
+      ],
+      "evidence_references": [
+        "runtime/content/watermelon_super_bounce_v2_short/publish_package.json",
+        "runtime/content/watermelon_super_bounce_v2_short/qc_report.json",
+        "runtime/content/watermelon_super_bounce_v2_short/render.mp4",
+        "runtime/content/watermelon_super_bounce_v2_short/render_metadata.json"
+      ]
+    },
+    "wrong_potion_lemon_short": {
+      "schema_version": "1.0",
+      "task_id": "TASK-CREATOR-wrong_potion_lemon_short-6da6bdf3",
+      "plan_id": "PLAN-2236792b6c831a57",
+      "content_id": "wrong_potion_lemon_short",
+      "result_status": "WAITING_FOR_USER",
+      "useful_work_completed": false,
+      "files_changed": [],
+      "tests_run": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "state_hash_before": "6da6bdf3caf2095ce4e3683a17f903297ce1c465124392d93036a4f743ea1aad",
+      "state_hash_after": "6da6bdf3caf2095ce4e3683a17f903297ce1c465124392d93036a4f743ea1aad",
+      "review_decision": "REVIEW_REQUIRED_BEFORE_ACTIVATION",
+      "human_gate": true,
+      "external_gate": false,
+      "money_spent_eur": 0.0,
+      "recommended_next_action": "AWAIT_HUMAN_AUDIENCE_DECISION",
+      "prohibited_next_actions": [
+        "AUDIENCE_CLASSIFICATION",
+        "CREATE_REAL_APPROVAL_RECORD",
+        "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+        "IDENTITY_OR_KYC_DECLARATIONS",
+        "PUBLIC_RELEASE",
+        "REAL_YOUTUBE_UPLOAD",
+        "SET_PUBLICATION_AUTHORIZED_TRUE",
+        "SPEND_MONEY",
+        "SUBSCRIPTION_OR_CREDIT_CHANGE"
+      ],
+      "evidence_references": [
+        "runtime/content/wrong_potion_lemon_short/publish_package.json",
+        "runtime/content/wrong_potion_lemon_short/qc_report.json",
+        "runtime/content/wrong_potion_lemon_short/render.mp4",
+        "runtime/content/wrong_potion_lemon_short/render_metadata.json"
+      ]
+    }
+  }
+}

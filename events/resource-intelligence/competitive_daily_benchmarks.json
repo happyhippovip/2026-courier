@@ -1,0 +1,34 @@
+{
+  "2026-09-01": {
+    "date_str": "2026-09-01",
+    "useful_tasks_completed": 0,
+    "failure_rate": 0.0,
+    "recovery_success_rate": 1.0,
+    "duplicate_executions": 0,
+    "human_interventions": 0,
+    "weiter_prompts_required": 0,
+    "model_calls_per_useful_result": 0.0,
+    "unnecessary_model_calls": 0,
+    "permission_blocks": 0,
+    "meaningful_deltas": 0,
+    "safe_autonomous_runtime_seconds": 1804.53,
+    "is_better_than_yesterday": true,
+    "learning_summary": "Endurance canary session completed 1804.53s wall-clock with 0 weiter prompts and 0 EUR spend."
+  },
+  "2026-09-05": {
+    "date_str": "2026-09-05",
+    "useful_tasks_completed": 4,
+    "failure_rate": 0.0,
+    "recovery_success_rate": 1.0,
+    "duplicate_executions": 0,
+    "human_interventions": 0,
+    "weiter_prompts_required": 0,
+    "model_calls_per_useful_result": 0.0,
+    "unnecessary_model_calls": 0,
+    "permission_blocks": 0,
+    "meaningful_deltas": 0,
+    "safe_autonomous_runtime_seconds": 0.0010638236999511719,
+    "is_better_than_yesterday": true,
+    "learning_summary": "Batch execution completed with 4 verified tasks."
+  }
+}

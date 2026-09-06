@@ -2,8 +2,15 @@ import sqlite3
 import json
 import re
 import uuid
+import io
+import html
+import csv
+import base64
+import hashlib
+import zipfile
+import tarfile
 from datetime import datetime
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from .models import (
     User, Connection, Discussion, Community, CommunityMember, Channel,
     ModerationReport, ContentReport, ModerationAppeal, ContentAppeal,
@@ -20,9 +27,20 @@ from .models import (
     MediaAttachment, Media, MediaMetadata, MediaAccessibility,
     ContentFilterPreferences, UserContentFilter, UserContentFilterPreferences, ContentFilteringPreferences,
     UserAccessibilitySettings, AccessibilitySettings, UserSettingsAccessibility,
-    ContentLifecycleState, ContentStatus, ContentState, ContentLifecycleAction, ContentLifecycleEvent, ContentInteraction
+    ContentLifecycleState, ContentStatus, ContentState, ContentLifecycleAction, ContentLifecycleEvent, ContentInteraction,
+    DossierFormat, ExportFormat, DossierType, ExportScope, TransformationStyle,
+    TransformationOptions, DossierOptions, ExportPackagingOptions,
+    DossierSection, TransformationDossier, ExportPackageManifest, ExportPackage,
+    Endorsement, ValueEndorsement, WeightedEndorsement, DomainReputation,
+    UserDomainReputation, ReputationScore, UserReputation, DomainLeaderboardEntry,
+    StudySpaceReputation, CourseReputation, StudyGroupReputation,
+    EndorsementCategory, ReputationBadge
 )
 from .feed import FeedService, FeedMode
+from .transformer import (
+    ContentTransformer, build_dossier_from_sections, package_archive,
+    compute_sha256, anonymize_text
+)
 
 ROLE_LEVELS: Dict[str, int] = {
     "owner": 40,
@@ -369,7 +387,40 @@ class SocialDatabase:
                     updated_at TEXT NOT NULL
                 );
 
+                CREATE TABLE IF NOT EXISTS endorsements (
+                    id TEXT PRIMARY KEY,
+                    target_type TEXT NOT NULL DEFAULT 'discussion',
+                    target_id TEXT NOT NULL,
+                    endorser_id TEXT NOT NULL,
+                    domain TEXT NOT NULL DEFAULT 'general',
+                    weight REAL NOT NULL DEFAULT 1.0,
+                    value_category TEXT NOT NULL DEFAULT 'general',
+                    comment TEXT NOT NULL DEFAULT '',
+                    created_at TEXT NOT NULL,
+                    UNIQUE(target_type, target_id, endorser_id)
+                );
+
+                CREATE TABLE IF NOT EXISTS domain_reputations (
+                    user_id TEXT NOT NULL,
+                    domain TEXT NOT NULL,
+                    score REAL NOT NULL DEFAULT 0.0,
+                    endorsements_received_count INTEGER NOT NULL DEFAULT 0,
+                    weighted_endorsements_received REAL NOT NULL DEFAULT 0.0,
+                    endorsements_given_count INTEGER NOT NULL DEFAULT 0,
+                    discussions_count INTEGER NOT NULL DEFAULT 0,
+                    resources_count INTEGER NOT NULL DEFAULT 0,
+                    verified_role TEXT NOT NULL DEFAULT 'member',
+                    badge TEXT NOT NULL DEFAULT 'contributor',
+                    updated_at TEXT NOT NULL,
+                    PRIMARY KEY (user_id, domain)
+                );
+
                 CREATE INDEX IF NOT EXISTS idx_discussion_tags_tag ON discussion_tags (tag);
+                CREATE INDEX IF NOT EXISTS idx_endorsements_target ON endorsements (target_type, target_id);
+                CREATE INDEX IF NOT EXISTS idx_endorsements_endorser ON endorsements (endorser_id);
+                CREATE INDEX IF NOT EXISTS idx_endorsements_domain ON endorsements (domain);
+                CREATE INDEX IF NOT EXISTS idx_domain_rep_domain ON domain_reputations (domain);
+                CREATE INDEX IF NOT EXISTS idx_domain_rep_score ON domain_reputations (score);
                 CREATE INDEX IF NOT EXISTS idx_lifecycle_events_target ON content_lifecycle_events (target_type, target_id);
                 CREATE INDEX IF NOT EXISTS idx_lifecycle_events_actor ON content_lifecycle_events (actor_id);
                 CREATE INDEX IF NOT EXISTS idx_content_interactions_target ON content_interactions (target_type, target_id);
@@ -401,6 +452,8 @@ class SocialDatabase:
             try:
                 cursor = conn.execute("PRAGMA table_info(discussions)")
                 columns = [row["name"] for row in cursor.fetchall()]
+                if "weighted_value_endorsements" not in columns:
+                    conn.execute("ALTER TABLE discussions ADD COLUMN weighted_value_endorsements REAL NOT NULL DEFAULT 0.0")
                 if "community_id" not in columns:
                     conn.execute("ALTER TABLE discussions ADD COLUMN community_id TEXT")
                 if "channel_id" not in columns:
@@ -453,6 +506,8 @@ class SocialDatabase:
                 cres_cols = [row["name"] for row in cursor.fetchall()]
                 if "upvotes_count" not in cres_cols and len(cres_cols) > 0:
                     conn.execute("ALTER TABLE course_resources ADD COLUMN upvotes_count INTEGER NOT NULL DEFAULT 0")
+                if "weighted_endorsements_count" not in cres_cols and len(cres_cols) > 0:
+                    conn.execute("ALTER TABLE course_resources ADD COLUMN weighted_endorsements_count REAL NOT NULL DEFAULT 0.0")
             except Exception:
                 pass
 
@@ -966,6 +1021,8 @@ class SocialDatabase:
         rep_count_val = r["report_count"] if "report_count" in r.keys() and r["report_count"] is not None else 0
         last_int_val = r["last_interacted_at"] if "last_interacted_at" in r.keys() else None
         int_count_val = r["interaction_count"] if "interaction_count" in r.keys() and r["interaction_count"] is not None else 0
+        weighted_val = float(r["weighted_value_endorsements"]) if "weighted_value_endorsements" in r.keys() and r["weighted_value_endorsements"] is not None else float(r["value_endorsements"])
+        dom_val = tags_list[0] if tags_list else (f"course:{r['course_id']}" if ("course_id" in r.keys() and r["course_id"]) else None)
 
         disc = Discussion(
             id=r["id"],
@@ -973,6 +1030,8 @@ class SocialDatabase:
             content=r["content"],
             created_at=datetime.fromisoformat(r["created_at"]) if isinstance(r["created_at"], str) else r["created_at"],
             value_endorsements=r["value_endorsements"],
+            weighted_value_endorsements=weighted_val,
+            domain=dom_val,
             parent_id=r["parent_id"],
             community_id=r["community_id"] if "community_id" in r.keys() else None,
             channel_id=r["channel_id"] if "channel_id" in r.keys() else None,
@@ -1167,12 +1226,57 @@ class SocialDatabase:
         finally:
             if not self._memory_conn: conn.close()
 
-    def endorse_discussion(self, discussion_id: str, actor_id: Optional[str] = None) -> bool:
+    def endorse_discussion(
+        self,
+        discussion_id: str,
+        actor_id: Optional[str] = None,
+        weight: Optional[float] = None,
+        domain: Optional[str] = None,
+        value_category: str = "general",
+        comment: str = ""
+    ) -> bool:
+        disc = self.get_discussion(discussion_id)
+        if not disc:
+            return False
+
+        target_domain = domain
+        if not target_domain:
+            if getattr(disc, "tags", None) and len(disc.tags) > 0:
+                target_domain = disc.tags[0]
+            elif getattr(disc, "course_id", None):
+                target_domain = f"course:{disc.course_id}"
+            else:
+                target_domain = "general"
+
+        effective_weight = weight
+        if effective_weight is None:
+            if actor_id:
+                effective_weight = self.calculate_endorser_weight(
+                    actor_id, domain=target_domain, target_type="discussion", target_id=discussion_id
+                )
+            else:
+                effective_weight = 1.0
+        effective_weight = max(1.0, round(float(effective_weight), 2))
+
+        if actor_id:
+            self.record_endorsement(
+                target_id=discussion_id,
+                endorser_id=actor_id,
+                target_type="discussion",
+                domain=target_domain,
+                weight=effective_weight,
+                value_category=value_category,
+                comment=comment
+            )
+
         conn = self.get_connection()
         try:
             cursor = conn.execute(
-                "UPDATE discussions SET value_endorsements = value_endorsements + 1 WHERE id = ?",
-                (discussion_id,)
+                """UPDATE discussions
+                   SET value_endorsements = value_endorsements + 1,
+                       weighted_value_endorsements = weighted_value_endorsements + ?
+                   WHERE id = ?""",
+                (effective_weight, discussion_id)
             )
             conn.commit()
             success = cursor.rowcount > 0
@@ -1180,18 +1284,25 @@ class SocialDatabase:
             if not self._memory_conn: conn.close()
 
         if success:
-            disc = self.get_discussion(discussion_id)
-            if disc and (not actor_id or actor_id != disc.author_id):
+            if actor_id and actor_id != disc.author_id:
                 endorse_notif = Notification(
                     id=str(uuid.uuid4()),
                     user_id=disc.author_id,
                     type="endorsement",
-                    actor_id=actor_id or "anonymous",
+                    actor_id=actor_id,
                     target_id=disc.id,
-                    content="Discussion endorsed",
+                    content=f"Discussion endorsed (weight: {effective_weight:.1f}) in {target_domain}",
                     created_at=datetime.utcnow()
                 )
                 self.create_notification(endorse_notif)
+
+            # Update author's and endorser's domain reputation
+            if disc.author_id:
+                self.calculate_domain_reputation(disc.author_id, domain=target_domain)
+                if target_domain != "general":
+                    self.calculate_domain_reputation(disc.author_id, domain="general")
+            if actor_id:
+                self.calculate_domain_reputation(actor_id, domain=target_domain)
         return success
 
     def get_replies(self, parent_id: str, include_hidden: bool = False) -> List[Discussion]:
@@ -1210,6 +1321,8 @@ class SocialDatabase:
             return [self._row_to_discussion(r) for r in rows]
         finally:
             if not self._memory_conn: conn.close()
+
+    get_discussion_replies = get_replies
 
     def get_channel_discussions(self, channel_id: str, include_hidden: bool = False) -> List[Discussion]:
         conn = self.get_connection()
@@ -1604,6 +1717,706 @@ class SocialDatabase:
         if data is None:
             return None
         return json.dumps(data, default=str, indent=indent)
+
+    # --- Content Transformation Dossiers & Export Packaging Engine ---
+    def generate_user_dossier(
+        self,
+        user_id: str,
+        format: str = "markdown",
+        dossier_type: str = "user_archive",
+        options: Optional[Union[Dict[str, Any], TransformationOptions]] = None
+    ) -> Optional[TransformationDossier]:
+        user = self.get_user(user_id)
+        if not user:
+            return None
+
+        # Resolve options
+        if isinstance(options, TransformationOptions):
+            opts = options
+            opts.format = format or opts.format
+            opts.dossier_type = dossier_type or opts.dossier_type
+        elif isinstance(options, dict):
+            opts_dict = options.copy()
+            if format:
+                opts_dict["format"] = format
+            if dossier_type:
+                opts_dict["dossier_type"] = dossier_type
+            opts = TransformationOptions(**opts_dict)
+        else:
+            opts = TransformationOptions(format=format, dossier_type=dossier_type)
+
+        conn = self.get_connection()
+        try:
+            # 1. Fetch user data
+            discussions = self.get_user_discussions(user_id, include_replies=False, include_hidden=True)
+            replies = self.get_user_replies(user_id, include_hidden=True)
+            connections = self.get_connections(user_id)
+            follower_rows = conn.execute("SELECT * FROM connections WHERE followed_id = ?", (user_id,)).fetchall()
+            communities = self.get_user_communities(user_id)
+            enrollments = self.get_user_enrollments(user_id)
+            courses = self.get_user_courses(user_id)
+            study_groups = self.get_user_study_groups(user_id)
+            res_rows = conn.execute("SELECT * FROM course_resources WHERE uploader_id = ? ORDER BY created_at DESC", (user_id,)).fetchall()
+            user_resources = [self._row_to_course_resource(r) for r in res_rows]
+            
+            dm_rows = conn.execute(
+                "SELECT * FROM direct_messages WHERE sender_id = ? OR recipient_id = ? ORDER BY created_at ASC",
+                (user_id, user_id)
+            ).fetchall()
+            dms = [self._row_to_direct_message(r) for r in dm_rows]
+
+            privacy = self.get_privacy_settings(user_id)
+            accessibility = self.get_accessibility_settings(user_id)
+            filter_prefs = self.get_content_filter_preferences(user_id)
+            topics = self.get_user_topic_subscriptions(user_id)
+
+            sections: List[DossierSection] = []
+            item_counts: Dict[str, int] = {
+                "discussions": len(discussions),
+                "replies": len(replies),
+                "connections": len(connections),
+                "followers": len(follower_rows),
+                "communities": len(communities),
+                "courses": len(courses),
+                "study_groups": len(study_groups),
+                "resources": len(user_resources),
+                "direct_messages": len(dms)
+            }
+
+            uname = user.username
+            target_type = "user"
+            meta: Dict[str, Any] = {
+                "target_id": user_id,
+                "username": uname,
+                "author": uname,
+                "school": user.school,
+                "university": user.university,
+                "class_year": user.class_year,
+                "visibility": user.visibility,
+                "dm_privacy": user.dm_privacy,
+                "created_at": str(user.created_at)
+            }
+
+            norm_type = opts.dossier_type.lower().strip()
+
+            if norm_type in ("academic_portfolio", "academic"):
+                title = f"Academic Portfolio: {user.username}"
+                summary = f"Academic curriculum, coursework, study groups, and shared resources for {user.username} ({user.university or user.school or 'Academic Space'})."
+
+                # Section: Student Identity
+                id_lines = [
+                    f"- **Username**: {user.username}",
+                    f"- **University**: {user.university or 'N/A'}",
+                    f"- **School / Faculty**: {user.school or 'N/A'}",
+                    f"- **Class Year**: {user.class_year or 'N/A'}",
+                    f"- **Bio**: {user.bio or 'N/A'}"
+                ]
+                sections.append(DossierSection(
+                    title="Student Identity & Academic Affiliation",
+                    section_type="academic_profile",
+                    content="\n".join(id_lines),
+                    item_count=1
+                ))
+
+                # Section: Course Enrolments
+                course_lines = []
+                for c in courses:
+                    enr = next((e for e in enrollments if e.course_id == c.id), None)
+                    role = enr.role if enr else "student"
+                    term = f" ({c.term})" if c.term else ""
+                    course_lines.append(f"### {c.code}: {c.title}{term}")
+                    course_lines.append(f"- **Role**: `{role}`")
+                    course_lines.append(f"- **Instructor**: {c.instructor or 'TBD'}")
+                    if c.description:
+                        course_lines.append(f"- **Description**: {c.description}")
+                    course_lines.append("")
+                sections.append(DossierSection(
+                    title="Course Enrollments & Curriculum",
+                    section_type="courses",
+                    content="\n".join(course_lines).strip() if course_lines else "No enrolled courses on record.",
+                    item_count=len(courses)
+                ))
+
+                # Section: Study Groups
+                sg_lines = []
+                for g in study_groups:
+                    sg_lines.append(f"- **{g.name}** (Course ID: `{g.course_id or 'General'}`): {g.description or 'Study group'}")
+                sections.append(DossierSection(
+                    title="Study Groups & Collaborative Circles",
+                    section_type="study_groups",
+                    content="\n".join(sg_lines) if sg_lines else "No active study groups.",
+                    item_count=len(study_groups)
+                ))
+
+                # Section: Uploaded Resources
+                res_lines = []
+                for r in user_resources:
+                    res_lines.append(f"- **{r.title}** [`{r.resource_type}`] (Course: `{r.course_id}`): {r.url or r.description}")
+                sections.append(DossierSection(
+                    title="Uploaded Academic Resources",
+                    section_type="resources",
+                    content="\n".join(res_lines) if res_lines else "No uploaded academic resources.",
+                    item_count=len(user_resources)
+                ))
+
+            elif norm_type in ("research_dossier", "research"):
+                title = f"Research & Discussion Dossier: {user.username}"
+                summary = f"Scholarly discussions, topic focus areas, peer contributions, and endorsements for {user.username}."
+
+                # Topic Subscriptions
+                top_lines = [f"- `#{t}`" for t in (topics or user.interests)]
+                sections.append(DossierSection(
+                    title="Research Topics & Core Focus Areas",
+                    section_type="topics",
+                    content="\n".join(top_lines) if top_lines else "No topic subscriptions recorded.",
+                    item_count=len(topics or user.interests)
+                ))
+
+                # Authored Discussions
+                disc_lines = []
+                for d in discussions:
+                    cw = f" [CW: {', '.join(d.content_warnings)}]" if getattr(d, 'content_warnings', None) else ""
+                    endorse_badge = f" [★ {d.endorsements_count} Endorsements]" if getattr(d, 'endorsements_count', 0) > 0 else ""
+                    disc_lines.append(f"### Discussion `{d.id}`: {d.created_at.strftime('%Y-%m-%d %H:%M') if isinstance(d.created_at, datetime) else str(d.created_at)}{cw}{endorse_badge}")
+                    disc_lines.append(d.content)
+                    if getattr(d, 'tags', None):
+                        disc_lines.append(f"*Tags*: {', '.join(['#' + t for t in d.tags])}")
+                    disc_lines.append("")
+                sections.append(DossierSection(
+                    title="Authored Research Publications & Discussions",
+                    section_type="publications",
+                    content="\n".join(disc_lines).strip() if disc_lines else "No discussions authored.",
+                    item_count=len(discussions)
+                ))
+
+                # Thread Contributions
+                rep_lines = []
+                for r in replies:
+                    rep_lines.append(f"- In reply to `{r.parent_id}` ({r.created_at.strftime('%Y-%m-%d') if isinstance(r.created_at, datetime) else str(r.created_at)}): {r.content[:150]}")
+                sections.append(DossierSection(
+                    title="Peer Discussion & Thread Contributions",
+                    section_type="replies",
+                    content="\n".join(rep_lines) if rep_lines else "No reply contributions recorded.",
+                    item_count=len(replies)
+                ))
+
+            elif norm_type in ("user_profile", "profile"):
+                title = f"User Profile Dossier: {user.username}"
+                summary = f"Profile credentials, interests, and affiliations for {user.username}."
+
+                prof_lines = [
+                    f"- **Username**: {user.username}",
+                    f"- **Status**: {'Active' if user.is_active else 'Deactivated'}",
+                    f"- **Bio**: {user.bio or 'None'}",
+                    f"- **Institution**: {user.university or user.school or 'N/A'}",
+                    f"- **Class Year**: {user.class_year or 'N/A'}",
+                    f"- **Interests**: {', '.join(user.interests) if user.interests else 'None'}",
+                    f"- **Profile Visibility**: `{user.visibility}`",
+                    f"- **Direct Message Setting**: `{user.dm_privacy}`"
+                ]
+                sections.append(DossierSection(
+                    title="Identity & Academic Affiliations",
+                    section_type="profile",
+                    content="\n".join(prof_lines),
+                    item_count=1
+                ))
+
+                comm_lines = [f"- **{c.name}** (ID: `{c.id}`): {c.description}" for c in communities]
+                sections.append(DossierSection(
+                    title="Community Memberships",
+                    section_type="communities",
+                    content="\n".join(comm_lines) if comm_lines else "No community memberships.",
+                    item_count=len(communities)
+                ))
+
+                course_lines = [f"- **{c.code}**: {c.title}" for c in courses]
+                sections.append(DossierSection(
+                    title="Active Course Spaces",
+                    section_type="courses",
+                    content="\n".join(course_lines) if course_lines else "No active course spaces.",
+                    item_count=len(courses)
+                ))
+
+            elif norm_type in ("gdpr_package", "gdpr", "compliance"):
+                title = f"Data Portability & Compliance Package: {user.username}"
+                summary = f"Full user data disclosure and compliance audit record for account {user_id}."
+
+                sections.append(DossierSection(
+                    title="1. Account Identification & Metadata",
+                    section_type="account",
+                    content=json.dumps(user.to_dict() if hasattr(user, "to_dict") else user.__dict__, indent=2),
+                    item_count=1
+                ))
+                sections.append(DossierSection(
+                    title="2. Post & Discussion Records",
+                    section_type="posts",
+                    content="\n\n".join([f"ID: {d.id} | Date: {d.created_at}\n{d.content}" for d in discussions]),
+                    item_count=len(discussions)
+                ))
+                sections.append(DossierSection(
+                    title="3. Direct Message History",
+                    section_type="direct_messages",
+                    content="\n".join([f"[{m.created_at}] {m.sender_id} -> {m.recipient_id}: {m.content}" for m in dms]) if not opts.redact_private_messages else "[REDACTED_UPON_REQUEST]",
+                    item_count=len(dms)
+                ))
+                sections.append(DossierSection(
+                    title="4. Privacy Controls & Accessibility Settings",
+                    section_type="settings",
+                    content=json.dumps({
+                        "privacy": privacy.to_dict() if privacy else {},
+                        "accessibility": accessibility.to_dict() if accessibility else {},
+                        "content_filters": filter_prefs.to_dict() if filter_prefs else {}
+                    }, indent=2),
+                    item_count=3
+                ))
+
+            else:
+                # Default: user_archive (comprehensive)
+                title = f"Complete User Archive: {user.username}"
+                summary = f"Comprehensive chronological export and activity dossier for {user.username} (ID: {user_id})."
+
+                # 1. Profile
+                p_lines = [
+                    f"- **Username**: {user.username}",
+                    f"- **Account Created**: {user.created_at}",
+                    f"- **Bio**: {user.bio or 'None'}",
+                    f"- **School / University**: {user.university or user.school or 'N/A'}",
+                    f"- **Class Year**: {user.class_year or 'N/A'}",
+                    f"- **Interests**: {', '.join(user.interests) if user.interests else 'None'}"
+                ]
+                sections.append(DossierSection(
+                    title="User Profile & Bio",
+                    section_type="profile",
+                    content="\n".join(p_lines),
+                    item_count=1
+                ))
+
+                # 2. Discussions
+                disc_lines = []
+                for d in discussions:
+                    disc_lines.append(f"### `{d.id}` ({d.created_at})")
+                    disc_lines.append(d.content)
+                    disc_lines.append("")
+                sections.append(DossierSection(
+                    title="Discussions & Publications",
+                    section_type="discussions",
+                    content="\n".join(disc_lines).strip() if disc_lines else "No discussions authored.",
+                    item_count=len(discussions)
+                ))
+
+                # 3. Replies
+                rep_lines = []
+                for r in replies:
+                    rep_lines.append(f"- `{r.id}` on `{r.parent_id}` ({r.created_at}): {r.content}")
+                sections.append(DossierSection(
+                    title="Thread Replies & Contributions",
+                    section_type="replies",
+                    content="\n".join(rep_lines) if rep_lines else "No replies.",
+                    item_count=len(replies)
+                ))
+
+                # 4. Courses & Academic
+                c_lines = [f"- **{c.code}**: {c.title}" for c in courses]
+                sections.append(DossierSection(
+                    title="Academic Courses & Spaces",
+                    section_type="courses",
+                    content="\n".join(c_lines) if c_lines else "No courses.",
+                    item_count=len(courses)
+                ))
+
+                # 5. Communities
+                comm_lines = [f"- **{c.name}** (`{c.id}`): {c.description}" for c in communities]
+                sections.append(DossierSection(
+                    title="Communities & Channels",
+                    section_type="communities",
+                    content="\n".join(comm_lines) if comm_lines else "No communities.",
+                    item_count=len(communities)
+                ))
+
+                # 6. Connections
+                conn_lines = [f"- Following: `{c.followed_id}` ({c.created_at})" for c in connections]
+                sections.append(DossierSection(
+                    title="Network & Connections",
+                    section_type="connections",
+                    content="\n".join(conn_lines) if conn_lines else "No connections.",
+                    item_count=len(connections)
+                ))
+
+                # 7. Messages
+                if opts.include_direct_messages and not opts.redact_private_messages:
+                    msg_lines = [f"[{m.created_at}] `{m.sender_id}` -> `{m.recipient_id}`: {m.content}" for m in dms]
+                    sections.append(DossierSection(
+                        title="Direct Messages",
+                        section_type="direct_messages",
+                        content="\n".join(msg_lines) if msg_lines else "No direct messages.",
+                        item_count=len(dms)
+                    ))
+
+                # 8. Privacy & Settings
+                settings_lines = [
+                    f"- Visibility: `{user.visibility}`",
+                    f"- DM Privacy: `{user.dm_privacy}`",
+                    f"- Discoverable: `{user.is_publicly_discoverable}`"
+                ]
+                sections.append(DossierSection(
+                    title="Privacy Controls & Settings",
+                    section_type="settings",
+                    content="\n".join(settings_lines),
+                    item_count=3
+                ))
+
+            return build_dossier_from_sections(
+                target_id=user_id,
+                target_type=target_type,
+                title=title,
+                dossier_type=norm_type,
+                format_type=opts.format,
+                summary=summary,
+                sections=sections,
+                item_counts=item_counts,
+                metadata=meta,
+                options=opts
+            )
+        finally:
+            if not self._memory_conn:
+                conn.close()
+
+    def generate_discussion_dossier(
+        self,
+        discussion_id: str,
+        format: str = "markdown",
+        options: Optional[Union[Dict[str, Any], TransformationOptions]] = None
+    ) -> Optional[TransformationDossier]:
+        disc = self.get_discussion(discussion_id)
+        if not disc:
+            return None
+
+        # Resolve options
+        if isinstance(options, TransformationOptions):
+            opts = options
+            opts.format = format or opts.format
+            opts.dossier_type = "discussion_thread"
+        elif isinstance(options, dict):
+            opts_dict = options.copy()
+            if format:
+                opts_dict["format"] = format
+            opts_dict["dossier_type"] = "discussion_thread"
+            opts = TransformationOptions(**opts_dict)
+        else:
+            opts = TransformationOptions(format=format, dossier_type="discussion_thread")
+
+        author = self.get_user(disc.author_id)
+        replies = self.get_replies(discussion_id, include_hidden=True)
+        media_items = self.get_discussion_media(discussion_id)
+        endorsements = self.get_discussion_endorsements(discussion_id) if hasattr(self, "get_discussion_endorsements") else []
+
+        sections: List[DossierSection] = []
+        item_counts: Dict[str, int] = {
+            "root_discussion": 1,
+            "replies": len(replies),
+            "media_items": len(media_items),
+            "endorsements": len(endorsements)
+        }
+
+        title = f"Discussion Dossier: #{disc.id}"
+        summary = f"Discussion thread by @{author.username if author else disc.author_id} created on {disc.created_at} with {len(replies)} replies."
+
+        # 1. Root Post
+        root_lines = [
+            f"- **Discussion ID**: `{disc.id}`",
+            f"- **Author**: @{author.username if author else disc.author_id} (`{disc.author_id}`)",
+            f"- **Created At**: {disc.created_at}",
+            f"- **Visibility**: `{getattr(disc, 'visibility', 'public')}`",
+            f"- **Tags**: {', '.join(['#' + t for t in disc.tags]) if getattr(disc, 'tags', None) else 'None'}",
+            f"- **Content Warnings**: {', '.join(disc.content_warnings) if getattr(disc, 'content_warnings', None) else 'None'}",
+            f"- **Endorsements**: {getattr(disc, 'endorsements_count', 0)}",
+            "",
+            "### Content:",
+            disc.content
+        ]
+        sections.append(DossierSection(
+            title="Root Discussion",
+            section_type="root_post",
+            content="\n".join(root_lines),
+            item_count=1
+        ))
+
+        # 2. Media Attachments
+        if media_items:
+            m_lines = []
+            for m in media_items:
+                alt = f" (Alt: {m.alt_text})" if getattr(m, 'alt_text', None) else ""
+                m_lines.append(f"- **{getattr(m, 'media_type', 'attachment')}**: {m.url}{alt}")
+                if getattr(m, 'audio_transcript', None):
+                    m_lines.append(f"  *Transcript*: {m.audio_transcript}")
+            sections.append(DossierSection(
+                title="Media Attachments & Transcripts",
+                section_type="media",
+                content="\n".join(m_lines),
+                item_count=len(media_items)
+            ))
+
+        # 3. Replies
+        rep_lines = []
+        for r in replies:
+            r_author = self.get_user(r.author_id)
+            r_uname = r_author.username if r_author else r.author_id
+            rep_lines.append(f"### Reply `{r.id}` by @{r_uname} ({r.created_at})")
+            rep_lines.append(r.content)
+            rep_lines.append("")
+        sections.append(DossierSection(
+            title="Chronological Replies & Discussion Tree",
+            section_type="replies",
+            content="\n".join(rep_lines).strip() if rep_lines else "No replies to this discussion.",
+            item_count=len(replies)
+        ))
+
+        # 4. Endorsement Ledger
+        if endorsements:
+            e_lines = [f"- Endorsed by `{e.user_id}` on {e.created_at}" for e in endorsements]
+            sections.append(DossierSection(
+                title="Peer Endorsements & Recognition",
+                section_type="endorsements",
+                content="\n".join(e_lines),
+                item_count=len(endorsements)
+            ))
+
+        meta = {
+            "target_id": discussion_id,
+            "author_id": disc.author_id,
+            "created_at": str(disc.created_at),
+            "replies_count": len(replies),
+            "status": getattr(disc, "status", "active")
+        }
+
+        return build_dossier_from_sections(
+            target_id=discussion_id,
+            target_type="discussion",
+            title=title,
+            dossier_type="discussion_thread",
+            format_type=opts.format,
+            summary=summary,
+            sections=sections,
+            item_counts=item_counts,
+            metadata=meta,
+            options=opts
+        )
+
+    def generate_community_dossier(
+        self,
+        community_id: str,
+        format: str = "markdown",
+        options: Optional[Union[Dict[str, Any], TransformationOptions]] = None
+    ) -> Optional[TransformationDossier]:
+        comm = self.get_community(community_id)
+        if not comm:
+            return None
+
+        # Resolve options
+        if isinstance(options, TransformationOptions):
+            opts = options
+            opts.format = format or opts.format
+            opts.dossier_type = "community_digest"
+        elif isinstance(options, dict):
+            opts_dict = options.copy()
+            if format:
+                opts_dict["format"] = format
+            opts_dict["dossier_type"] = "community_digest"
+            opts = TransformationOptions(**opts_dict)
+        else:
+            opts = TransformationOptions(format=format, dossier_type="community_digest")
+
+        channels = self.get_community_channels(community_id)
+        members = self.get_community_members(community_id)
+        discussions = self.get_community_discussions(community_id)
+
+        sections: List[DossierSection] = []
+        item_counts: Dict[str, int] = {
+            "channels": len(channels),
+            "members": len(members),
+            "discussions": len(discussions)
+        }
+
+        title = f"Community Digest: {comm.name}"
+        summary = f"Community knowledge digest, channels index, and discussion archive for {comm.name} ({community_id})."
+
+        # 1. Overview
+        ov_lines = [
+            f"- **Name**: {comm.name}",
+            f"- **ID**: `{comm.id}`",
+            f"- **Description**: {comm.description or 'None'}",
+            f"- **Rules**: {getattr(comm, 'rules', None) or 'Standard academic conduct'}",
+            f"- **Visibility**: `{comm.visibility}`",
+            f"- **Created At**: {comm.created_at}",
+            f"- **Member Count**: {len(members)}"
+        ]
+        sections.append(DossierSection(
+            title="Community Overview & Governance",
+            section_type="overview",
+            content="\n".join(ov_lines),
+            item_count=1
+        ))
+
+        # 2. Channels
+        ch_lines = [f"- **#{c.name}** (`{c.id}`): {c.description or 'General channel'}" for c in channels]
+        sections.append(DossierSection(
+            title="Channels Directory",
+            section_type="channels",
+            content="\n".join(ch_lines) if ch_lines else "No channels configured.",
+            item_count=len(channels)
+        ))
+
+        # 3. Leadership & Members
+        mem_lines = [f"- User `{m.user_id}`: `{m.role}` (Joined: {m.joined_at})" for m in members]
+        sections.append(DossierSection(
+            title="Leadership & Membership Roster",
+            section_type="members",
+            content="\n".join(mem_lines) if mem_lines else "No members on record.",
+            item_count=len(members)
+        ))
+
+        # 4. Discussions
+        disc_lines = []
+        for d in discussions:
+            disc_lines.append(f"### `{d.id}` by `{d.author_id}` ({d.created_at})")
+            disc_lines.append(d.content)
+            disc_lines.append("")
+        sections.append(DossierSection(
+            title="Community Discussions Archive",
+            section_type="discussions",
+            content="\n".join(disc_lines).strip() if disc_lines else "No discussions in this community.",
+            item_count=len(discussions)
+        ))
+
+        meta = {
+            "target_id": community_id,
+            "name": comm.name,
+            "created_at": str(comm.created_at),
+            "members_count": len(members),
+            "discussions_count": len(discussions)
+        }
+
+        return build_dossier_from_sections(
+            target_id=community_id,
+            target_type="community",
+            title=title,
+            dossier_type="community_digest",
+            format_type=opts.format,
+            summary=summary,
+            sections=sections,
+            item_counts=item_counts,
+            metadata=meta,
+            options=opts
+        )
+
+    def generate_academic_portfolio_dossier(
+        self,
+        user_id: str,
+        format: str = "markdown",
+        options: Optional[Union[Dict[str, Any], TransformationOptions]] = None
+    ) -> Optional[TransformationDossier]:
+        return self.generate_user_dossier(user_id, format=format, dossier_type="academic_portfolio", options=options)
+
+    def generate_research_dossier(
+        self,
+        user_id: str,
+        format: str = "markdown",
+        options: Optional[Union[Dict[str, Any], TransformationOptions]] = None
+    ) -> Optional[TransformationDossier]:
+        return self.generate_user_dossier(user_id, format=format, dossier_type="research_dossier", options=options)
+
+    def create_export_package(
+        self,
+        user_id: str,
+        format: str = "zip",
+        options: Optional[Union[Dict[str, Any], TransformationOptions]] = None
+    ) -> Optional[ExportPackage]:
+        user = self.get_user(user_id)
+        if not user:
+            return None
+
+        opts = options if isinstance(options, TransformationOptions) else TransformationOptions(**(options or {}))
+
+        # Generate individual dossiers
+        archive_md = self.generate_user_dossier(user_id, format="markdown", dossier_type="user_archive", options=opts)
+        archive_html = self.generate_user_dossier(user_id, format="html", dossier_type="user_archive", options=opts)
+        academic_md = self.generate_user_dossier(user_id, format="markdown", dossier_type="academic_portfolio", options=opts)
+        research_md = self.generate_user_dossier(user_id, format="markdown", dossier_type="research_dossier", options=opts)
+        archive_csv = self.generate_user_dossier(user_id, format="csv", dossier_type="user_archive", options=opts)
+        raw_json_str = self.export_user_data_json(user_id, indent=2) or "{}"
+
+        readme_text = f"""================================================================================
+SOCIAL PLATFORM DATA PORTABILITY & DOSSIER PACKAGE
+================================================================================
+User ID     : {user_id}
+Username    : {user.username}
+Generated   : {datetime.utcnow().isoformat()}
+Platform    : SocialPlatform Foundation v2.0
+================================================================================
+
+PACKAGE CONTENTS:
+1. data_bundle.json         : Complete machine-readable SQLite database export.
+2. archive_dossier.md       : Full user activity archive in Markdown format.
+3. archive_dossier.html     : Full user activity archive in interactive styled HTML.
+4. academic_portfolio.md    : Enrolled courses, study groups, and syllabus dossiers.
+5. research_dossier.md      : Authored publications, endorsements, and topic indices.
+6. content_index.csv        : Tabular spreadsheet index of all authored records.
+7. manifest.json            : Cryptographic verification hashes and file manifests.
+
+SECURITY & VERIFICATION:
+All files inside this archive are cryptographically hashed using SHA-256.
+Refer to manifest.json for individual file checksums.
+================================================================================
+"""
+
+        files: Dict[str, Union[str, bytes]] = {
+            "README.txt": readme_text,
+            "data_bundle.json": raw_json_str,
+            "archive_dossier.md": archive_md.rendered_content if archive_md else "",
+            "archive_dossier.html": archive_html.rendered_content if archive_html else "",
+            "academic_portfolio.md": academic_md.rendered_content if academic_md else "",
+            "research_dossier.md": research_md.rendered_content if research_md else "",
+            "content_index.csv": archive_csv.rendered_content if archive_csv else ""
+        }
+
+        meta = {
+            "user_id": user_id,
+            "username": user.username,
+            "export_version": "2.0",
+            "generator": "SocialDatabase Export Packaging Engine"
+        }
+
+        return package_archive(user_id=user_id, files=files, format_type=format, metadata=meta)
+
+    def transform_content(
+        self,
+        content: str,
+        target_format: str = "markdown",
+        options: Optional[Union[Dict[str, Any], TransformationOptions]] = None
+    ) -> Dict[str, Any]:
+        opts = options if isinstance(options, TransformationOptions) else TransformationOptions(**(options or {}))
+        opts.format = target_format
+
+        sec = DossierSection(title="Transformed Content", section_type="content", content=content, item_count=1)
+        meta = {"transformed_at": datetime.utcnow().isoformat()}
+        dossier = build_dossier_from_sections(
+            target_id="content_transform",
+            target_type="generic",
+            title="Transformed Content",
+            dossier_type="generic",
+            format_type=target_format,
+            summary="",
+            sections=[sec],
+            item_counts={"content": 1},
+            metadata=meta,
+            options=opts
+        )
+        return {
+            "target_format": target_format,
+            "rendered_content": dossier.rendered_content,
+            "checksum": dossier.checksum,
+            "size_bytes": dossier.size_bytes
+        }
 
     # --- Topic Tags & Hashtags ---
     def tag_discussion(self, discussion_id: str, tag: str) -> bool:
@@ -4630,6 +5443,7 @@ class SocialDatabase:
         community_id: Optional[str] = None,
         channel_id: Optional[str] = None,
         interests: Optional[List[str]] = None,
+        domain: Optional[str] = None,
         limit: Optional[int] = None,
         offset: Optional[int] = None,
         include_hidden: bool = False
@@ -4641,6 +5455,7 @@ class SocialDatabase:
             community_id=community_id,
             channel_id=channel_id,
             interests=interests,
+            domain=domain,
             limit=limit,
             offset=offset,
             include_hidden=include_hidden
@@ -4725,6 +5540,7 @@ class SocialDatabase:
             tags=tags_list,
             endorsements_count=r["endorsements_count"] if "endorsements_count" in r.keys() else 0,
             upvotes_count=r["upvotes_count"] if "upvotes_count" in r.keys() else (r["endorsements_count"] if "endorsements_count" in r.keys() else 0),
+            weighted_endorsements_count=float(r["weighted_endorsements_count"]) if "weighted_endorsements_count" in r.keys() and r["weighted_endorsements_count"] is not None else float(r["endorsements_count"] if "endorsements_count" in r.keys() else 0),
             created_at=datetime.fromisoformat(r["created_at"]) if isinstance(r["created_at"], str) else r["created_at"]
         )
 
@@ -4938,6 +5754,9 @@ class SocialDatabase:
             if not self._memory_conn: conn.close()
 
     # --- Course Enrollment & Classmate Verification ---
+    def enroll_user_in_course(self, *args, **kwargs):
+        return self.enroll_in_course(*args, **kwargs)
+
     def enroll_in_course(
         self,
         course_id_or_enrollment: Any,
@@ -5407,32 +6226,98 @@ class SocialDatabase:
     def get_course_syllabus(self, course_id: str) -> Optional[CourseResource]:
         return self.get_syllabus(course_id)
 
-    def endorse_resource(self, resource_id: str, actor_id: Optional[str] = None, user_id: Optional[str] = None) -> bool:
+    def endorse_resource(
+        self,
+        resource_id: str,
+        actor_id: Optional[str] = None,
+        user_id: Optional[str] = None,
+        weight: Optional[float] = None,
+        domain: Optional[str] = None,
+        value_category: str = "general",
+        comment: str = ""
+    ) -> bool:
         actor = actor_id or user_id
+        res = self.get_course_resource(resource_id)
+        if not res:
+            return False
+
+        target_domain = domain
+        if not target_domain:
+            if getattr(res, "course_id", None):
+                target_domain = f"course:{res.course_id}"
+            elif getattr(res, "tags", None) and len(res.tags) > 0:
+                target_domain = res.tags[0]
+            else:
+                target_domain = "general"
+
+        effective_weight = weight
+        if effective_weight is None:
+            if actor:
+                effective_weight = self.calculate_endorser_weight(
+                    actor, domain=target_domain, target_type="course_resource", target_id=resource_id
+                )
+            else:
+                effective_weight = 1.0
+        effective_weight = max(1.0, round(float(effective_weight), 2))
+
+        if actor:
+            self.record_endorsement(
+                target_id=resource_id,
+                endorser_id=actor,
+                target_type="course_resource",
+                domain=target_domain,
+                weight=effective_weight,
+                value_category=value_category,
+                comment=comment
+            )
+
         conn = self.get_connection()
         try:
             cursor = conn.execute(
-                "UPDATE course_resources SET endorsements_count = endorsements_count + 1 WHERE id = ?",
-                (resource_id,)
+                """UPDATE course_resources
+                   SET endorsements_count = endorsements_count + 1,
+                       weighted_endorsements_count = weighted_endorsements_count + ?
+                   WHERE id = ?""",
+                (effective_weight, resource_id)
             )
             conn.commit()
-            if cursor.rowcount > 0 and actor:
-                res = self.get_course_resource(resource_id)
-                if res and res.uploader_id and res.uploader_id != actor:
-                    self.create_notification(Notification(
-                        id=str(uuid.uuid4()),
-                        user_id=res.uploader_id,
-                        type="resource_endorsed",
-                        actor_id=actor,
-                        target_id=resource_id,
-                        content=f"Resource endorsed: {res.title[:80]}"
-                    ))
-            return cursor.rowcount > 0
+            success = cursor.rowcount > 0
         finally:
             if not self._memory_conn: conn.close()
 
-    def endorse_course_resource(self, resource_id: str, actor_id: Optional[str] = None, user_id: Optional[str] = None) -> bool:
-        return self.endorse_resource(resource_id, actor_id=actor_id, user_id=user_id)
+        if success:
+            if actor and res.uploader_id and res.uploader_id != actor:
+                self.create_notification(Notification(
+                    id=str(uuid.uuid4()),
+                    user_id=res.uploader_id,
+                    type="resource_endorsed",
+                    actor_id=actor,
+                    target_id=resource_id,
+                    content=f"Resource endorsed: {res.title[:80]} (weight: {effective_weight:.1f})"
+                ))
+
+            if res.uploader_id:
+                self.calculate_domain_reputation(res.uploader_id, domain=target_domain)
+                if target_domain != "general":
+                    self.calculate_domain_reputation(res.uploader_id, domain="general")
+            if actor:
+                self.calculate_domain_reputation(actor, domain=target_domain)
+        return success
+
+    def endorse_course_resource(
+        self,
+        resource_id: str,
+        actor_id: Optional[str] = None,
+        user_id: Optional[str] = None,
+        weight: Optional[float] = None,
+        domain: Optional[str] = None,
+        value_category: str = "general",
+        comment: str = ""
+    ) -> bool:
+        return self.endorse_resource(
+            resource_id, actor_id=actor_id, user_id=user_id, weight=weight,
+            domain=domain, value_category=value_category, comment=comment
+        )
 
     def upvote_resource(self, resource_id: str, actor_id: Optional[str] = None, user_id: Optional[str] = None) -> bool:
         actor = actor_id or user_id
@@ -6216,6 +7101,590 @@ class SocialDatabase:
         return self.set_accessibility_settings(current)
 
 
+    # =========================================================================
+    # --- Weighted Value Endorsements & Domain Reputation ---
+    # =========================================================================
+
+    def calculate_endorser_weight(
+        self,
+        endorser_id: str,
+        domain: Optional[str] = "general",
+        target_type: Optional[str] = "discussion",
+        target_id: Optional[str] = None,
+        target_course_id: Optional[str] = None,
+        course_id: Optional[str] = None
+    ) -> float:
+        """
+        Calculates endorsement weight based on:
+        - Base weight: 1.0
+        - Course / study space academic standing (Instructor: +2.0, TA: +1.5, Verified classmate: +0.5)
+        - Domain reputation of the endorser (+ min(reputation / 25.0, 4.0))
+        - User verification status (+0.2 if active/verified)
+        """
+        base_weight = 1.0
+        role_bonus = 0.0
+        rep_bonus = 0.0
+        active_bonus = 0.0
+
+        clean_domain = str(domain).strip().lower().lstrip("#") if domain else "general"
+
+        # 1. Check Course / Study Space role if relevant
+        cid = target_course_id or course_id
+        if not cid and target_type in ("course_resource", "course", "resource", "syllabus") and target_id:
+            res = self.get_course_resource(target_id)
+            if res:
+                cid = res.course_id
+        elif not cid and target_type in ("discussion",) and target_id:
+            disc = self.get_discussion(target_id)
+            if disc and disc.course_id:
+                cid = disc.course_id
+
+        if not cid and clean_domain.startswith("course:"):
+            cid = clean_domain.split(":", 1)[1]
+
+        if cid:
+            enrollments = self.get_user_enrollments(endorser_id)
+            for enr in enrollments:
+                if enr.course_id == cid:
+                    role = getattr(enr, "role", "student").lower()
+                    if role in ("instructor", "professor", "teacher"):
+                        role_bonus = max(role_bonus, 2.0)
+                    elif role in ("ta", "teaching_assistant"):
+                        role_bonus = max(role_bonus, 1.5)
+                    elif getattr(enr, "is_verified", True):
+                        role_bonus = max(role_bonus, 0.5)
+
+        # 2. Check Endorser Domain Reputation
+        rep = self.get_user_domain_reputation(endorser_id, domain=clean_domain)
+        if rep and rep.score > 0:
+            rep_bonus = min(rep.score / 25.0, 4.0)
+
+        # 3. Check User verification / active state
+        user = self.get_user(endorser_id)
+        if user and user.is_active:
+            active_bonus = 0.2
+
+        total_weight = round(base_weight + role_bonus + rep_bonus + active_bonus, 2)
+        return max(1.0, total_weight)
+
+    def get_user_course_enrollments(self, user_id: str) -> List[CourseEnrollment]:
+        return self.get_user_enrollments(user_id)
+
+    def get_discussions_by_author(self, author_id: str, include_hidden: bool = False) -> List[Discussion]:
+        return self.get_user_discussions(author_id, include_replies=True, include_hidden=include_hidden)
+
+    def record_endorsement(
+        self,
+        target_id: str,
+        endorser_id: str,
+        target_type: str = "discussion",
+        domain: Optional[str] = None,
+        weight: Optional[float] = None,
+        value_category: str = "general",
+        comment: str = "",
+        metadata: Optional[Dict[str, Any]] = None
+    ) -> Endorsement:
+        """
+        Records a weighted value endorsement for a discussion, course resource, or study space.
+        """
+        clean_domain = str(domain).strip().lower().lstrip("#") if domain else "general"
+        if not domain:
+            if target_type == "discussion":
+                disc = self.get_discussion(target_id)
+                if disc:
+                    if disc.tags:
+                        clean_domain = disc.tags[0]
+                    elif disc.course_id:
+                        clean_domain = f"course:{disc.course_id}"
+            elif target_type in ("course_resource", "resource"):
+                res = self.get_course_resource(target_id)
+                if res:
+                    if res.course_id:
+                        clean_domain = f"course:{res.course_id}"
+                    elif res.tags:
+                        clean_domain = res.tags[0]
+
+        effective_weight = weight
+        if effective_weight is None:
+            effective_weight = self.calculate_endorser_weight(
+                endorser_id, domain=clean_domain, target_type=target_type, target_id=target_id
+            )
+        effective_weight = max(1.0, round(float(effective_weight), 2))
+
+        endorsement_id = f"end_{uuid.uuid4().hex[:12]}"
+        now = datetime.utcnow()
+        meta_dict = metadata or {}
+
+        conn = self.get_connection()
+        try:
+            conn.execute(
+                """INSERT OR REPLACE INTO endorsements
+                   (id, target_type, target_id, endorser_id, domain, weight, value_category, comment, created_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    endorsement_id, target_type, target_id, endorser_id,
+                    clean_domain, effective_weight, value_category, comment, now.isoformat()
+                )
+            )
+            conn.commit()
+        finally:
+            if not self._memory_conn: conn.close()
+
+        # Also track interaction
+        try:
+            self.record_interaction(
+                user_id=endorser_id,
+                target_id=target_id,
+                target_type=target_type,
+                interaction_type="endorse",
+                metadata={"weight": effective_weight, "domain": clean_domain, "category": value_category}
+            )
+        except Exception:
+            pass
+
+        return Endorsement(
+            id=endorsement_id,
+            target_type=target_type,
+            target_id=target_id,
+            endorser_id=endorser_id,
+            domain=clean_domain,
+            weight=effective_weight,
+            value_category=value_category,
+            comment=comment,
+            created_at=now,
+            metadata=meta_dict
+        )
+
+    def get_endorsements(self, target_id: str, target_type: Optional[str] = None) -> List[Endorsement]:
+        """Returns all endorsements for a given target entity."""
+        conn = self.get_connection()
+        try:
+            if target_type:
+                rows = conn.execute(
+                    "SELECT * FROM endorsements WHERE target_id = ? AND target_type = ? ORDER BY created_at DESC",
+                    (target_id, target_type)
+                ).fetchall()
+            else:
+                rows = conn.execute(
+                    "SELECT * FROM endorsements WHERE target_id = ? ORDER BY created_at DESC",
+                    (target_id,)
+                ).fetchall()
+            return [self._row_to_endorsement(r) for r in rows]
+        finally:
+            if not self._memory_conn: conn.close()
+
+    def _row_to_endorsement(self, r) -> Endorsement:
+        return Endorsement(
+            id=r["id"],
+            target_type=r["target_type"] if "target_type" in r.keys() else "discussion",
+            target_id=r["target_id"],
+            endorser_id=r["endorser_id"],
+            domain=r["domain"] if "domain" in r.keys() else "general",
+            weight=float(r["weight"]) if "weight" in r.keys() and r["weight"] is not None else 1.0,
+            value_category=r["value_category"] if "value_category" in r.keys() else "general",
+            comment=r["comment"] if "comment" in r.keys() else "",
+            created_at=datetime.fromisoformat(r["created_at"]) if isinstance(r["created_at"], str) else r["created_at"]
+        )
+
+    def get_discussion_endorsements(self, discussion_id: str) -> List[Endorsement]:
+        return self.get_endorsements(discussion_id, target_type="discussion")
+
+    def get_resource_endorsements(self, resource_id: str) -> List[Endorsement]:
+        return self.get_endorsements(resource_id, target_type="course_resource")
+
+    def calculate_domain_reputation(self, user_id: str, domain: str = "general") -> DomainReputation:
+        """
+        Computes and updates domain reputation score for a user in a domain/topic/course.
+        """
+        clean_domain = str(domain).strip().lower().lstrip("#") if domain else "general"
+
+        conn = self.get_connection()
+        try:
+            # 1. Discussions authored by user in this domain
+            all_discs = self.get_user_discussions(user_id, include_replies=True, include_hidden=False)
+            endorsed_disc_ids = {
+                r["target_id"] for r in conn.execute(
+                    "SELECT DISTINCT target_id FROM endorsements WHERE target_type = 'discussion' AND domain = ?",
+                    (clean_domain,)
+                ).fetchall()
+            }
+            if clean_domain == "general":
+                domain_discs = all_discs
+            elif clean_domain.startswith("course:"):
+                cid = clean_domain.split(":", 1)[1]
+                domain_discs = [d for d in all_discs if getattr(d, "course_id", None) == cid or d.id in endorsed_disc_ids]
+            else:
+                domain_discs = [
+                    d for d in all_discs
+                    if clean_domain in [t.lower().lstrip("#") for t in getattr(d, "tags", [])]
+                    or (clean_domain in getattr(d, "content", "").lower())
+                    or (getattr(d, "domain", None) and getattr(d, "domain").lower() == clean_domain)
+                    or (d.id in endorsed_disc_ids)
+                ]
+
+            disc_count = len(domain_discs)
+            disc_weighted_endorsements = 0.0
+            disc_endorsements_count = 0
+
+            for d in domain_discs:
+                disc_weighted_endorsements += float(getattr(d, "weighted_value_endorsements", d.value_endorsements) or 0.0)
+                disc_endorsements_count += int(getattr(d, "value_endorsements", 0) or 0)
+
+            # 2. Resources uploaded by user in this domain
+            all_res = conn.execute(
+                "SELECT * FROM course_resources WHERE uploader_id = ?",
+                (user_id,)
+            ).fetchall()
+            resources = [self._row_to_course_resource(r) for r in all_res]
+            endorsed_res_ids = {
+                r["target_id"] for r in conn.execute(
+                    "SELECT DISTINCT target_id FROM endorsements WHERE target_type IN ('course_resource', 'resource') AND domain = ?",
+                    (clean_domain,)
+                ).fetchall()
+            }
+
+            if clean_domain == "general":
+                domain_res = resources
+            elif clean_domain.startswith("course:"):
+                cid = clean_domain.split(":", 1)[1]
+                domain_res = [r for r in resources if r.course_id == cid or r.id in endorsed_res_ids]
+            else:
+                domain_res = [
+                    r for r in resources
+                    if clean_domain in [t.lower().lstrip("#") for t in getattr(r, "tags", [])]
+                    or (clean_domain in (r.title + " " + r.description).lower())
+                    or (r.id in endorsed_res_ids)
+                ]
+
+            res_count = len(domain_res)
+            res_weighted_endorsements = 0.0
+            res_endorsements_count = 0
+
+            for r in domain_res:
+                res_weighted_endorsements += float(getattr(r, "weighted_endorsements_count", r.endorsements_count) or 0.0)
+                res_endorsements_count += int(getattr(r, "endorsements_count", 0) or 0)
+
+            # 3. Endorsements given by user in this domain
+            given_count_row = conn.execute(
+                "SELECT COUNT(*) as c FROM endorsements WHERE endorser_id = ? AND (domain = ? OR ? = 'general')",
+                (user_id, clean_domain, clean_domain)
+            ).fetchone()
+            given_count = given_count_row["c"] if given_count_row else 0
+
+            # 4. Verified roles & academic standing
+            enrollments = self.get_user_enrollments(user_id)
+            verified_role = "member"
+            role_bonus = 0.0
+
+            for enr in enrollments:
+                r_name = getattr(enr, "role", "student").lower()
+                if clean_domain.startswith("course:") and clean_domain.split(":", 1)[1] != enr.course_id:
+                    continue
+                if r_name in ("instructor", "professor", "teacher"):
+                    verified_role = "instructor"
+                    role_bonus = max(role_bonus, 20.0)
+                elif r_name in ("ta", "teaching_assistant") and verified_role != "instructor":
+                    verified_role = "ta"
+                    role_bonus = max(role_bonus, 15.0)
+                elif getattr(enr, "is_verified", True) and verified_role not in ("instructor", "ta"):
+                    verified_role = "student"
+                    role_bonus = max(role_bonus, 5.0)
+
+            # 5. Calculate aggregate domain reputation score
+            score = round(
+                disc_weighted_endorsements * 1.0 +
+                res_weighted_endorsements * 1.5 +
+                disc_count * 2.0 +
+                res_count * 3.0 +
+                given_count * 0.5 +
+                role_bonus,
+                2
+            )
+
+            total_received_endorsements = disc_endorsements_count + res_endorsements_count
+            total_weighted_received = round(disc_weighted_endorsements + res_weighted_endorsements, 2)
+
+            # Determine badge
+            if score >= 100.0:
+                badge = ReputationBadge.DISTINGUISHED_SCHOLAR
+            elif score >= 50.0:
+                badge = ReputationBadge.DOMAIN_EXPERT
+            elif score >= 25.0:
+                badge = ReputationBadge.SCHOLAR
+            elif score >= 10.0:
+                badge = ReputationBadge.CONTRIBUTOR
+            else:
+                badge = ReputationBadge.NOVICE
+
+            now = datetime.utcnow()
+            conn.execute(
+                """INSERT OR REPLACE INTO domain_reputations
+                   (user_id, domain, score, endorsements_received_count, weighted_endorsements_received,
+                    endorsements_given_count, discussions_count, resources_count, verified_role, badge, updated_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    user_id, clean_domain, score, total_received_endorsements, total_weighted_received,
+                    given_count, disc_count, res_count, verified_role, badge, now.isoformat()
+                )
+            )
+            conn.commit()
+
+            return DomainReputation(
+                user_id=user_id,
+                domain=clean_domain,
+                score=score,
+                endorsements_received_count=total_received_endorsements,
+                weighted_endorsements_received=total_weighted_received,
+                endorsements_given_count=given_count,
+                discussions_count=disc_count,
+                resources_count=res_count,
+                verified_role=verified_role,
+                badge=badge,
+                updated_at=now,
+                details={
+                    "disc_weighted_endorsements": disc_weighted_endorsements,
+                    "res_weighted_endorsements": res_weighted_endorsements,
+                    "role_bonus": role_bonus
+                }
+            )
+        finally:
+            if not self._memory_conn: conn.close()
+
+    def get_user_domain_reputation(self, user_id: str, domain: str = "general") -> DomainReputation:
+        """Gets domain reputation for user, computing if not yet cached."""
+        clean_domain = str(domain).strip().lower().lstrip("#") if domain else "general"
+        conn = self.get_connection()
+        try:
+            row = conn.execute(
+                "SELECT * FROM domain_reputations WHERE user_id = ? AND domain = ?",
+                (user_id, clean_domain)
+            ).fetchone()
+            if row:
+                return DomainReputation(
+                    user_id=row["user_id"],
+                    domain=row["domain"],
+                    score=float(row["score"]),
+                    endorsements_received_count=int(row["endorsements_received_count"]),
+                    weighted_endorsements_received=float(row["weighted_endorsements_received"]),
+                    endorsements_given_count=int(row["endorsements_given_count"]),
+                    discussions_count=int(row["discussions_count"]),
+                    resources_count=int(row["resources_count"]),
+                    verified_role=row["verified_role"],
+                    badge=row["badge"],
+                    updated_at=datetime.fromisoformat(row["updated_at"]) if isinstance(row["updated_at"], str) else row["updated_at"]
+                )
+        finally:
+            if not self._memory_conn: conn.close()
+
+        return self.calculate_domain_reputation(user_id, domain=clean_domain)
+
+    def get_user_all_reputations(self, user_id: str) -> List[DomainReputation]:
+        """Returns all domain reputations for a user across all active areas."""
+        domains = {"general"}
+        conn = self.get_connection()
+        try:
+            d_rows = conn.execute("SELECT tags, course_id, domain FROM discussions WHERE author_id = ?", (user_id,)).fetchall()
+            for dr in d_rows:
+                if dr["course_id"]:
+                    domains.add(f"course:{dr['course_id']}")
+                if "domain" in dr.keys() and dr["domain"]:
+                    domains.add(dr["domain"].lower().lstrip("#"))
+                if dr["tags"]:
+                    try:
+                        t_list = json.loads(dr["tags"])
+                        for t in t_list:
+                            if t: domains.add(str(t).lower().lstrip("#"))
+                    except Exception:
+                        pass
+
+            enr_rows = conn.execute("SELECT course_id FROM course_enrollments WHERE user_id = ?", (user_id,)).fetchall()
+            for er in enr_rows:
+                if er["course_id"]:
+                    domains.add(f"course:{er['course_id']}")
+
+            cached = conn.execute("SELECT domain FROM domain_reputations WHERE user_id = ?", (user_id,)).fetchall()
+            for c in cached:
+                if c["domain"]: domains.add(c["domain"])
+        finally:
+            if not self._memory_conn: conn.close()
+
+        reps = [self.get_user_domain_reputation(user_id, d) for d in sorted(domains)]
+        reps.sort(key=lambda r: r.score, reverse=True)
+        return reps
+
+    def get_user_reputation_summary(self, user_id: str) -> Dict[str, Any]:
+        """Returns comprehensive reputation summary across all domains for user."""
+        reps = self.get_user_all_reputations(user_id)
+        general = self.get_user_domain_reputation(user_id, domain="general")
+        return {
+            "user_id": user_id,
+            "general_score": general.score,
+            "general_badge": general.badge,
+            "domains_count": len(reps),
+            "reputations": [r.to_dict() for r in reps]
+        }
+
+    def get_top_contributors_by_domain(self, domain: str = "general", limit: int = 20) -> List[DomainLeaderboardEntry]:
+        """Returns top contributors ranked by domain reputation score."""
+        clean_domain = str(domain).strip().lower().lstrip("#") if domain else "general"
+        conn = self.get_connection()
+        try:
+            rows = conn.execute(
+                """SELECT dr.*, u.username
+                   FROM domain_reputations dr
+                   JOIN users u ON dr.user_id = u.id
+                   WHERE dr.domain = ?
+                   ORDER BY dr.score DESC, dr.weighted_endorsements_received DESC
+                   LIMIT ?""",
+                (clean_domain, limit)
+            ).fetchall()
+
+            entries = []
+            for i, r in enumerate(rows, 1):
+                entries.append(DomainLeaderboardEntry(
+                    user_id=r["user_id"],
+                    username=r["username"],
+                    domain=r["domain"],
+                    score=float(r["score"]),
+                    badge=r["badge"],
+                    rank=i,
+                    endorsements_received=int(r["endorsements_received_count"]),
+                    weighted_endorsements=float(r["weighted_endorsements_received"]),
+                    contributions_count=int(r["discussions_count"]) + int(r["resources_count"]),
+                    verified_role=r["verified_role"]
+                ))
+            return entries
+        finally:
+            if not self._memory_conn: conn.close()
+
+    def get_course_reputation_metrics(self, course_id: str) -> StudySpaceReputation:
+        """Calculates reputation, quality, and activity metrics for an academic course / study space."""
+        course = self.get_course(course_id)
+        if not course:
+            return StudySpaceReputation(target_id=course_id, target_type="course")
+
+        conn = self.get_connection()
+        try:
+            res_row = conn.execute(
+                """SELECT COUNT(*) as total_res,
+                          COALESCE(SUM(endorsements_count), 0) as total_end,
+                          COALESCE(SUM(weighted_endorsements_count), 0) as total_wend
+                   FROM course_resources
+                   WHERE course_id = ?""",
+                (course_id,)
+            ).fetchone()
+            total_res = res_row["total_res"] if res_row else 0
+            total_end = res_row["total_end"] if res_row else 0
+            total_wend = float(res_row["total_wend"]) if res_row else 0.0
+
+            disc_row = conn.execute(
+                """SELECT COUNT(*) as total_disc,
+                          COALESCE(SUM(value_endorsements), 0) as total_disc_end,
+                          COALESCE(SUM(weighted_value_endorsements), 0) as total_disc_wend
+                   FROM discussions
+                   WHERE course_id = ? AND is_hidden = 0""",
+                (course_id,)
+            ).fetchone()
+            total_disc = disc_row["total_disc"] if disc_row else 0
+            total_disc_end = disc_row["total_disc_end"] if disc_row else 0
+            total_disc_wend = float(disc_row["total_disc_wend"]) if disc_row else 0.0
+
+            enr_row = conn.execute(
+                """SELECT COUNT(*) as total_members,
+                          COALESCE(SUM(CASE WHEN is_verified = 1 THEN 1 ELSE 0 END), 0) as verified_members
+                   FROM course_enrollments
+                   WHERE course_id = ?""",
+                (course_id,)
+            ).fetchone()
+            total_members = enr_row["total_members"] if enr_row else 0
+            verified_members = enr_row["verified_members"] if enr_row else 0
+
+            all_weighted_end = round(total_wend + total_disc_wend, 2)
+            quality_score = round((all_weighted_end * 2.0) + (total_res * 3.0), 2)
+            activity_score = round((total_disc * 2.5) + (total_members * 1.5), 2)
+            reputation_score = round(quality_score + activity_score, 2)
+
+            top_contribs = [e.to_dict() for e in self.get_top_contributors_by_domain(domain=f"course:{course_id}", limit=5)]
+
+            return StudySpaceReputation(
+                target_id=course_id,
+                target_type="course",
+                name=course.title or course.code,
+                domain=f"course:{course_id}",
+                reputation_score=reputation_score,
+                quality_score=quality_score,
+                activity_score=activity_score,
+                total_resources=total_res,
+                total_resource_endorsements=total_end,
+                total_weighted_endorsements=all_weighted_end,
+                total_discussions=total_disc,
+                member_count=total_members,
+                verified_member_count=verified_members,
+                top_contributors=top_contribs
+            )
+        finally:
+            if not self._memory_conn: conn.close()
+
+    def get_study_group_reputation_metrics(self, study_group_id: str) -> StudySpaceReputation:
+        """Calculates reputation, quality, and activity metrics for a study group."""
+        group = self.get_study_group(study_group_id)
+        if not group:
+            return StudySpaceReputation(target_id=study_group_id, target_type="study_group")
+
+        conn = self.get_connection()
+        try:
+            mem_row = conn.execute(
+                """SELECT COUNT(*) as total_members,
+                          COALESCE(SUM(CASE WHEN is_verified_classmate = 1 THEN 1 ELSE 0 END), 0) as verified_members
+                   FROM study_group_members
+                   WHERE study_group_id = ?""",
+                (study_group_id,)
+            ).fetchone()
+            total_members = mem_row["total_members"] if mem_row else 0
+            verified_members = mem_row["verified_members"] if mem_row else 0
+
+            disc_row = conn.execute(
+                """SELECT COUNT(*) as total_disc,
+                          COALESCE(SUM(weighted_value_endorsements), 0) as total_wend
+                   FROM discussions
+                   WHERE study_group_id = ? AND is_hidden = 0""",
+                (study_group_id,)
+            ).fetchone()
+            total_disc = disc_row["total_disc"] if disc_row else 0
+            total_wend = float(disc_row["total_wend"]) if disc_row else 0.0
+
+            res_row = conn.execute(
+                """SELECT COUNT(*) as total_res,
+                          COALESCE(SUM(weighted_endorsements_count), 0) as total_res_wend
+                   FROM course_resources
+                   WHERE study_group_id = ?""",
+                (study_group_id,)
+            ).fetchone()
+            total_res = res_row["total_res"] if res_row else 0
+            total_res_wend = float(res_row["total_res_wend"]) if res_row else 0.0
+
+            all_wend = round(total_wend + total_res_wend, 2)
+            quality_score = round((all_wend * 2.0) + (total_res * 3.0), 2)
+            activity_score = round((total_disc * 2.0) + (total_members * 2.0), 2)
+            reputation_score = round(quality_score + activity_score, 2)
+
+            return StudySpaceReputation(
+                target_id=study_group_id,
+                target_type="study_group",
+                name=group.name,
+                domain=f"study_group:{study_group_id}",
+                reputation_score=reputation_score,
+                quality_score=quality_score,
+                activity_score=activity_score,
+                total_resources=total_res,
+                total_resource_endorsements=int(all_wend),
+                total_weighted_endorsements=all_wend,
+                total_discussions=total_disc,
+                member_count=total_members,
+                verified_member_count=verified_members
+            )
+        finally:
+            if not self._memory_conn: conn.close()
 
 
 

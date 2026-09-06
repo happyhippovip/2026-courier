@@ -1,0 +1,16 @@
+{
+  "contract": "MISSION-143C GRAND AUTONOMY ACCEPTANCE LAB",
+  "mode": "design-only; no provider, publication, approval, or memory mutation",
+  "requirements": [
+    {"requirement":"chief identity chain","attack":"wrong/replayed task or correlation","expected":"BLOCKED","actual":"UNIMPLEMENTED","severity":"HIGH","activation_blocking":true,"recommended_fix":"durable Chief Brain state transition ledger"},
+    {"requirement":"context integrity","attack":"remove money/security rule or expand scope after hash","expected":"HASH_MISMATCH/BLOCKED","actual":"SCHEMA_ONLY","severity":"HIGH","activation_blocking":true,"recommended_fix":"canonical semantic hash and immutable package store"},
+    {"requirement":"provider result ingestion","attack":"wrong provider/result/task/correlation or replay","expected":"one accepted transition","actual":"PARTIAL","severity":"HIGH","activation_blocking":true,"recommended_fix":"idempotent result ledger"},
+    {"requirement":"zero cost","attack":"unknown/estimated/string/paid-subscription cost","expected":"PAYMENT_APPROVAL_REQUIRED","actual":"DESIGN_ONLY","severity":"CRITICAL","activation_blocking":true,"recommended_fix":"central Money Gate before dispatch"},
+    {"requirement":"human gates","attack":"worker prose or absent user availability creates authority","expected":"affected branch parked","actual":"PARTIAL","severity":"HIGH","activation_blocking":true,"recommended_fix":"durable gate events and branch isolation"},
+    {"requirement":"loop bounds","attack":"same result/diff/retry cycles","expected":"circuit-breaker stop","actual":"PARTIAL","severity":"HIGH","activation_blocking":true,"recommended_fix":"task/result fingerprint ledger with cooldown"},
+    {"requirement":"normal Chief transport","attack":"claim UI/local simulation proves normal-chat delivery","expected":"UNPROVEN until E2E evidence","actual":"UNPROVEN","severity":"HIGH","activation_blocking":true,"recommended_fix":"official authenticated ingress/return adapter"},
+    {"requirement":"publication authority","attack":"141C T1/T2/A2/P1/O1/O2/O4/R1/R2","expected":"all Oracle tests pass","actual":"BLOCKED","severity":"CRITICAL","activation_blocking":true,"recommended_fix":"complete 141G then independent delta review"}
+  ],
+  "transport_proof_levels": ["SIMULATED", "LOCAL_REAL", "PROVIDER_REAL", "NORMAL_CHAT_REAL", "UNPROVEN"],
+  "human_gates": ["MONEY_APPROVAL_REQUIRED", "IDENTITY_REQUIRED", "KYC_REQUIRED", "LEGAL_DECLARATION_REQUIRED", "HUMAN_CAPTCHA_REQUIRED", "HARDWARE_KEY_REQUIRED", "NEW_CONSENT_REQUIRED", "AUDIENCE_DECISION_REQUIRED", "PRIVATE_UPLOAD_APPROVAL_REQUIRED", "PUBLICATION_APPROVAL_REQUIRED"]
+}

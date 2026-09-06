@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "research_question": "What is the current YouTube publication status for video YfkJPoQfbYE on channel FruitKI?",
+  "source": "https://www.youtube.com/watch?v=YfkJPoQfbYE",
+  "source_type": "YOUTUBE",
+  "retrieved_at": "2026-08-31T01:54:56.606002+00:00",
+  "evidence_hash": "7fd91da5527e4c48ea8b16f81a2bd1eb260e376831d97661bec174fbcd9d4db0",
+  "dedupe_fingerprint": "739cb792216e77b4ec3bb0ab37283c8c49a73ecab2573abf6eb2c2c511be6d10",
+  "finding": "Video 'Wir sind zu sp\u00e4t! \ud83c\udf53\ud83c\udf4c #Shorts' is currently public on channel FruitKI (@kifruchtefilme).",
+  "confidence": "HIGH",
+  "information_gain": "NO_NEW_INFORMATION",
+  "production_relevance": "NO_CURRENT_PIPELINE_CHANGE",
+  "last_checked": "2026-08-31T01:54:56.606002+00:00",
+  "analytics_snapshot": null,
+  "publication_authorized": false
+}

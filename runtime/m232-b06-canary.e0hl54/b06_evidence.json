@@ -1,0 +1,100 @@
+{
+  "missions": [
+    {
+      "capability_required": "local repo analysis",
+      "claimed_by": "m232-b06-operator",
+      "created_at": 1788466283.784832,
+      "goal": "Native CLI1 read-only Courier acceptance",
+      "is_heavy": true,
+      "mission_id": "M232-B06-CLI1",
+      "next_mission_reference": "M232-B06-CODEX",
+      "normalized_task": "Inspect current repository read-only",
+      "parent_mission_id": null,
+      "preferred_agent": "CLI1",
+      "requires_write": false,
+      "result_reference": "runtime/m232-b06-canary.e0hl54/events/task-envelopes/result_cli1_08e17f3222ae1f8fe67741ec2c1c25fba546250aa7a100cbdd116ede35981abd.json",
+      "risk_class": "SAFE",
+      "status": "VERIFIED",
+      "task": {
+        "action": "inspect_repo",
+        "capability_request": "local repo analysis",
+        "is_heavy": true,
+        "requires_write": false
+      },
+      "task_hash": "08e17f3222ae1f8fe67741ec2c1c25fba546250aa7a100cbdd116ede35981abd",
+      "verification_reference": "08e17f3222ae1f8fe67741ec2c1c25fba546250aa7a100cbdd116ede35981abd",
+      "verification_required": true
+    },
+    {
+      "capability_required": "code tests",
+      "claimed_by": "m232-b06-operator",
+      "created_at": 1788466283.868119,
+      "goal": "Native Codex read-only verification",
+      "is_heavy": true,
+      "mission_id": "M232-B06-CODEX",
+      "next_mission_reference": "M232-B06-GEMINI",
+      "normalized_task": "Verify schema presence read-only",
+      "parent_mission_id": "M232-B06-CLI1",
+      "preferred_agent": "CODEX",
+      "requires_write": false,
+      "result_reference": "runtime/m232-b06-canary.e0hl54/events/task-envelopes/result_codex_eb623aa54db6847d2e2f4dc584a914b290b2d8fc3e5b778b5e51e40e5e4dc67e.json",
+      "risk_class": "SAFE",
+      "status": "VERIFIED",
+      "task": {
+        "action": "verify_schemas",
+        "capability_request": "code tests",
+        "is_heavy": true,
+        "requires_write": false
+      },
+      "task_hash": "eb623aa54db6847d2e2f4dc584a914b290b2d8fc3e5b778b5e51e40e5e4dc67e",
+      "verification_reference": "eb623aa54db6847d2e2f4dc584a914b290b2d8fc3e5b778b5e51e40e5e4dc67e",
+      "verification_required": true
+    },
+    {
+      "capability_required": "acceptance review",
+      "claimed_by": "m232-b06-operator",
+      "created_at": 1788466309.447411,
+      "goal": "Native Gemini independent read-only acceptance",
+      "is_heavy": true,
+      "mission_id": "M232-B06-GEMINI",
+      "next_mission_reference": null,
+      "normalized_task": "Independently inspect repository read-only",
+      "parent_mission_id": "M232-B06-CODEX",
+      "preferred_agent": "GEMINI",
+      "requires_write": false,
+      "result_reference": "runtime/m232-b06-canary.e0hl54/events/task-envelopes/result_gemini_aa73c166289b9441ed4f6d1ae18e7075d1d94026040e992129da7d64c16c8700.json",
+      "risk_class": "SAFE",
+      "status": "VERIFIED",
+      "task": {
+        "action": "acceptance_review",
+        "capability_request": "acceptance review",
+        "is_heavy": true,
+        "requires_write": false
+      },
+      "task_hash": "aa73c166289b9441ed4f6d1ae18e7075d1d94026040e992129da7d64c16c8700",
+      "verification_reference": "aa73c166289b9441ed4f6d1ae18e7075d1d94026040e992129da7d64c16c8700",
+      "verification_required": true
+    }
+  ],
+  "results": [
+    {
+      "mission_id": "M232-B06-CLI1",
+      "status": "VERIFIED",
+      "successor_mission_id": "M232-B06-CODEX"
+    },
+    {
+      "mission_id": "M232-B06-CODEX",
+      "status": "VERIFIED",
+      "successor_mission_id": "M232-B06-GEMINI"
+    },
+    {
+      "mission_id": "M232-B06-GEMINI",
+      "status": "VERIFIED",
+      "successor_mission_id": null
+    }
+  ],
+  "terminal": {
+    "status": "NO_PENDING_MISSION"
+  },
+  "workspace": "runtime/m232-b06-canary.e0hl54"
+}

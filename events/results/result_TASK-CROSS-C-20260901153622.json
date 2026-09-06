@@ -1,0 +1,18 @@
+{
+  "artifacts": {
+    "artifacts_changed": [
+      "events/runtime-state/stage_c.json"
+    ],
+    "fingerprint": "d86a52eb635c977a8bd2e83c94b16a25893dd26f2f6b56c4634fa0aa30e758b7"
+  },
+  "completed_at": "2026-09-01T15:36:22.607378+00:00",
+  "evidence": {
+    "task_type": "ROUTINE_BUILD"
+  },
+  "findings": "Executed on GOOGLE/CLI on COMPUTER_A. Result: SUCCESS",
+  "opportunity_id": "CROSS-C-20260901153622",
+  "result_fingerprint": "76c18a32f701cae8",
+  "result_id": "RES-TASK-CROSS-C-20260901153622-76c18a32",
+  "status": "SUCCESS",
+  "task_id": "TASK-CROSS-C-20260901153622"
+}

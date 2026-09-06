@@ -1,0 +1,10 @@
+{
+  "current": null,
+  "last_blocked": {
+    "reason": "REVIEW_SCOPE_EXCEEDS_AUTONOMOUS_BOUND",
+    "scope_count": 127,
+    "task_id": "TASK-WEITER-232753b36e91da13"
+  },
+  "schema_version": "1.0",
+  "stopped": false
+}

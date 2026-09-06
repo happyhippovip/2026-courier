@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.antigravity.desktop_guardian</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Library/Frameworks/Python.framework/Versions/3.9/bin/python3</string>
+        <string>/Users/user/Downloads/2026-courier/scripts/desktop_guardian.py</string>
+        <string>--daemon</string>
+        <string>--interval</string>
+        <string>5.0</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/user/Downloads/2026-courier</string>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/Users/user/Downloads/2026-courier/events/runtime-state/desktop_guardian.stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/user/Downloads/2026-courier/events/runtime-state/desktop_guardian.stderr.log</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PYTHONPATH</key>
+        <string>/Users/user/Downloads/2026-courier</string>
+    </dict>
+</dict>
+</plist>

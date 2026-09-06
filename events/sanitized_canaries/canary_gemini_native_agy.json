@@ -1,0 +1,31 @@
+{
+  "canary_id": "canary-auth-check-001",
+  "executable": "/Users/user/.local/bin/agy",
+  "requested_model": "gemini-3.7-flash-medium",
+  "confirmed_model": "UNKNOWN",
+  "model_identity_truthful": "UNKNOWN",
+  "conversation_id": "f7fc173b-07a4-4467-a027-604b66288858",
+  "duration_seconds": 2.438897,
+  "usage": {
+    "input_tokens": 26498,
+    "output_tokens": 222,
+    "thinking_tokens": 126,
+    "cache_read_tokens": 0,
+    "total_tokens": 26720
+  },
+  "output_sha256": "a4efaf765818f02d141606a0bd81cb7a4951607a9f54209641da515c7c0b8dc7",
+  "verdict": "PASS",
+  "summary": "All schemas and repository structure checks have passed acceptance review successfully.",
+  "correlation_id": "canary-auth-check-001",
+  "task_id": "task-auth-check-001",
+  "task_hash": "hash-auth-check-001",
+  "target_agent": "GEMINI",
+  "model_payload": {
+    "correlation_id": "canary-auth-check-001",
+    "task_id": "task-auth-check-001",
+    "task_hash": "hash-auth-check-001",
+    "target_agent": "GEMINI",
+    "verdict": "PASS",
+    "summary": "All schemas and repository structure checks have passed acceptance review successfully."
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "payload": {
+    "entrypoint": "scripts/cli_operations_autopilot.py",
+    "execution_mode": "REAL_CLI1_PROCESS_EXECUTION",
+    "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+    "organization_observation": {
+      "active_locks_count": 0,
+      "active_workers_count": 3,
+      "daemon_alive": true,
+      "heavy_job_active": false
+    },
+    "stage": "REAL_ORGANIZATIONAL_AND_REPO_OBSERVATION",
+    "status": "ANALYSIS_COMPLETE",
+    "worker_agent": "CLI1",
+    "zero_cost_policy": "ZERO_COST_ONLY"
+  },
+  "result_fingerprint": "89b6be0abd14f0bf00034c76ca05e658b407c39d971b3207b6a1cbf42d4665c9",
+  "schema_version": "1.0",
+  "status": "COMPLETED",
+  "target_agent": "CLI1",
+  "task_hash": "08e17f3222ae1f8fe67741ec2c1c25fba546250aa7a100cbdd116ede35981abd",
+  "type": "RESULT",
+  "worker_id": "m232-b06-operator"
+}

@@ -1,0 +1,19 @@
+{
+  "artifacts": {
+    "artifacts_changed": [
+      "events/revenue-opportunities/market_intelligence/b2b_pain_analysis.json"
+    ],
+    "fingerprint": "af7bb23982cfd02ce408867aa223908a6cbc2d9bf66763186588d7d8be5eab62"
+  },
+  "completed_at": "2026-09-01T18:32:51.000769+00:00",
+  "evidence": {
+    "job_id": "JOB-GEM-MARKET-1788287570",
+    "marginal_cost_eur": 0.0
+  },
+  "findings": "Executed on GOOGLE/ANTIGRAVITY_APP on COMPUTER_A. Result: SUCCESS",
+  "opportunity_id": "GOOGLE-01-MARKET-1788287570",
+  "result_fingerprint": "5612d0dd46f5c4b4",
+  "result_id": "RES-TASK-GOOGLE-01-MARKET-1788287570-5612d0dd",
+  "status": "SUCCESS",
+  "task_id": "TASK-GOOGLE-01-MARKET-1788287570"
+}

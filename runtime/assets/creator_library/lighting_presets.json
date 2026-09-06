@@ -1,0 +1,41 @@
+{
+  "neon_cyberpunk": {
+    "top_color": [
+      30,
+      10,
+      45
+    ],
+    "bottom_color": [
+      134,
+      25,
+      143
+    ],
+    "rim_light": true
+  },
+  "cosmic_nebula": {
+    "top_color": [
+      15,
+      23,
+      42
+    ],
+    "bottom_color": [
+      50,
+      30,
+      120
+    ],
+    "rim_light": true
+  },
+  "sunny_stage": {
+    "top_color": [
+      254,
+      240,
+      138
+    ],
+    "bottom_color": [
+      245,
+      158,
+      11
+    ],
+    "rim_light": false
+  }
+}

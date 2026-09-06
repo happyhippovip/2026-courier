@@ -1,0 +1,17 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-01T01:42:55.897941+00:00",
+  "event_id": "evt-abf1912ebf0e",
+  "event_type": "UNKNOWN_ANOMALY",
+  "evidence": {
+    "pid": null,
+    "reason": "MISSING_OR_INVALID_PID_WITH_ACTIVE_STATE"
+  },
+  "fingerprint": "ab52bc2b5d79fe69",
+  "mission_id": "M199",
+  "recommended_action": null,
+  "session_epoch": "epoch-google-1788226215",
+  "severity": "WARNING",
+  "task_id": "OPP-SAFETY-PASS",
+  "worker_id": "GOOGLE"
+}

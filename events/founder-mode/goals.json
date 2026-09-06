@@ -1,0 +1,212 @@
+[
+  {
+    "goal": "Create a file named native_write_smoke_a.txt containing exactly: SMOKE_TEST_PASS",
+    "goal_id": "smoke_a",
+    "priority": 100,
+    "status": "SATISFIED"
+  },
+  {
+    "goal": "Create a file named native_write_smoke_b.txt containing exactly: SMOKE_TEST_PASS",
+    "goal_id": "smoke_b",
+    "priority": 100,
+    "status": "SATISFIED"
+  },
+  {
+    "goal": "Create a file named native_write_smoke_c.txt containing exactly: SMOKE_TEST_PASS",
+    "goal_id": "smoke_c",
+    "priority": 100,
+    "status": "BLOCKED"
+  },
+  {
+    "constraints": [],
+    "created_at": 1788697286.162656,
+    "goal": "Analyze the existing social_platform repository (64/64 tests) and identify the highest-value missing end-to-end user workflow or cross-feature consistency gap (e.g. PRIVACY COHERENCE, CONTENT LIFECYCLE, COMMUNICATION WORKFLOW, COMMUNITY WORKFLOW, or ACADEMIC USER JOURNEY). Plan and implement a coherent product milestone connecting existing capabilities into a complete, usable, end-to-end workflow. Implement safely, verify thoroughly, and record proof. Do not rebuild verified history. Do not build unnecessary infrastructural primitives. Stop when the coherent milestone is materially complete.",
+    "goal_id": "ffad79c1-81e2-4580-9378-b9d0cfc62c35",
+    "priority": 10,
+    "source": "local_cli",
+    "status": "SATISFIED"
+  },
+  {
+    "constraints": [],
+    "created_at": 1788684601.325479,
+    "goal": "Create exactly one repository-root file named courier_freeze_native_canary_8.txt with exact content COURIER_NATIVE_AUTONOMY_PROVEN_2026_09_06_CANARY_8 using the normal autonomous Courier workflow. The implementation must be performed by the authorized native Gemini worker. The goal is satisfied only after deterministic effect/freshness verification and required read-only verification follow-up.",
+    "goal_id": "926d41c0-6137-4477-93e8-cddb37dcdf82",
+    "priority": 1,
+    "source": "CLI",
+    "status": "BLOCKED"
+  },
+  {
+    "constraints": [],
+    "created_at": 1788686948.619753,
+    "goal": "Continue building the existing social_platform product into a useful local-first social-network foundation. Work from the existing implementation rather than rebuilding it. Choose the single highest-value missing product capability that can be implemented safely and completely in the local repository without deployment, external services, credentials, publication, customer contact, purchases, or spend.",
+    "goal_id": "9c066b93-5011-4f78-9e54-76d6cdf0ab25",
+    "priority": 1,
+    "reopen_provenance": {
+      "timeout_adjustment": 180.0
+    },
+    "reopen_reason": "TIMEOUT_RETRY: Increased execution timeout to 180s for bounded product implementation",
+    "reopened_at": 1788687779.138177,
+    "source": "CLI",
+    "status": "SATISFIED"
+  },
+  {
+    "constraints": [],
+    "created_at": 1788688129.757823,
+    "goal": "Continue building the existing social_platform product from its current verified state. Do not rebuild existing features. Inspect only enough product state to identify the single highest-value missing user-facing capability that can be implemented completely and safely in the local repository. Prefer capabilities that increase real product usefulness, coherence, privacy, safety, accessibility, or discoverability. Candidate product areas include: communities, interests, search/discovery, notifications, messaging, privacy controls, moderation, schools/universities/classes. Courier should choose the capability autonomously based on the current verified product state. The implementation must stay inside the social_platform product unless an actual blocking Courier defect occurs. Work must remain local-only. No deployment. No publication. No external services. No credentials. No customer contact. No account automation. No purchases. No upgrades. No overages. No real-money activity. No wallet actions.",
+    "goal_id": "1f2b921a-10ed-4834-9f22-623fe63bdcb5",
+    "priority": 1,
+    "reopen_provenance": {
+      "regex_parser_updated": true
+    },
+    "reopen_reason": "PARSER_DEFECT_REPAIR: Corrected human_gate negative constraint parser to strip wallet/external/account constraints",
+    "reopened_at": 1788688157.843134,
+    "source": "CLI",
+    "status": "SATISFIED"
+  },
+  {
+    "constraints": [],
+    "created_at": 1788688357.910159,
+    "goal": "Continue building the existing social_platform from its current verified state into a genuinely useful local-first social-network foundation. Do not rebuild capabilities already proven complete. Inspect only enough product state to identify the single highest-value missing user-facing capability that can be implemented safely and completely in the local repository. Prefer capabilities that increase real product usefulness, coherence, privacy, safety, accessibility, or discoverability. Candidate product areas include: communities, interests, search and discovery, notifications, messaging, privacy controls, moderation, schools/universities/classes. Courier should choose the capability autonomously based on the current verified product state. The implementation must stay inside the social_platform product unless an actual blocking Courier defect occurs. Work must remain local-only. No deployment. No publication. No external services. No credentials. No customer contact. No account automation. No purchases. No upgrades. No overages. No real-money activity. No wallet actions.",
+    "goal_id": "7983b342-7011-44f8-b82e-5b31841c1d35",
+    "priority": 1,
+    "source": "CLI",
+    "status": "SATISFIED"
+  },
+  {
+    "constraints": [],
+    "created_at": 1788688588.8673658,
+    "goal": "Continue developing the existing social_platform from its current verified state toward a coherent, genuinely useful, privacy-conscious local-first social network. Courier owns the execution strategy. Use the current verified product state and existing product vision/backlog. Autonomously determine the highest-value safe missing work. Do not ask the human to choose features, files, workers, tests, retries, or ordinary implementation decisions. Do not rebuild verified capabilities. Continue through useful product increments using Courier canonical loop. Candidate areas: profiles, feed, social graph, discussions/replies, communities, interests, search/discovery, notifications, messaging, privacy controls, moderation/safety, schools/universities/classes, accessibility, transparent recommendations. Local repository work only. No deployment. No publication. No customer contact. No external sends. No credentials. No OAuth/login/2FA. No purchases/upgrades. No overages. No wallet signing. No real trades. No real funds.",
+    "goal_id": "c3ad7cdd-ecf0-4449-a529-01d5954c960e",
+    "priority": 1,
+    "source": "CLI",
+    "status": "SATISFIED"
+  },
+  {
+    "constraints": [],
+    "created_at": 1788688894.936776,
+    "goal": "Continue building the existing social_platform into a coherent, genuinely useful, privacy-conscious, accessible, local-first social network. Courier owns the execution strategy. Use the verified current product state and existing product vision/backlog. Autonomously determine what provides the highest product value next. Do not rebuild already-proven capabilities. Continue through useful product increments using Courier canonical loop. Candidate areas: profiles, feed, social graph, discussions/replies, communities, interests, search/discovery, notifications, messaging, privacy controls, moderation/safety, schools/universities/classes, accessibility, transparent recommendations. Local repository work only. No deployment. No publication. No customer contact. No external sends. No credentials. No OAuth/login/2FA. No purchases/upgrades. No overages. No wallet signing. No real trades. No real funds.",
+    "goal_id": "a9ab2a9d-6cc1-480d-9f0e-637053512f9e",
+    "priority": 1,
+    "source": "CLI",
+    "status": "BLOCKED"
+  },
+  {
+    "constraints": [],
+    "created_at": 1788689094.717961,
+    "goal": "Continue developing the existing social_platform from its current verified state into a substantially more complete, coherent, useful, privacy-conscious, accessible, local-first social-network MVP. Courier owns the execution strategy. Complete meaningful product increments across the verified social_platform. Candidate areas: profiles, feeds, social graph, discussions/replies, communities, interests, search/discovery, notifications, messaging, privacy controls, moderation/safety, schools/universities/classes, accessibility, transparent recommendations. Local repository work only. No deployment. No publication. No customer contact. No external sends. No credentials. No OAuth/login/2FA. No purchases/upgrades. No overages. No wallet signing. No real trades. No real funds.",
+    "goal_id": "1a79ba3c-4e45-4c67-abb8-6ff032f7df85",
+    "priority": 1,
+    "source": "CLI",
+    "status": "SATISFIED"
+  },
+  {
+    "constraints": [],
+    "created_at": 1788689489.1353421,
+    "goal": "Continue developing social_platform with topic tags and interest subscriptions",
+    "goal_id": "ce2aa567-c105-4c05-8e7b-b718b733a8d9",
+    "priority": 1,
+    "reopen_provenance": {
+      "timeout": 300.0
+    },
+    "reopen_reason": "TIMEOUT_RECOVERY: Bounded native worker timeout adjusted for autonomous implementation",
+    "reopened_at": 1788689684.845803,
+    "source": "CLI",
+    "status": "BLOCKED"
+  },
+  {
+    "constraints": [],
+    "created_at": 1788690735.8285298,
+    "goal": "Advance the existing social_platform from its verified 40-test baseline toward complete cross-feature coherence and end-to-end user workflows. Do not rebuild existing verified features. Courier owns autonomous discovery, planning, decomposition, routing to Gemini Flash / CLI1, verification, proof recording, and replan. Focus on cross-feature coherence gaps: cross-feature privacy semantics, blocking consistency across feeds/search/dms/notifications, community privacy and content visibility across all search/feed endpoints, and unified user workflow integration. Local repository work only. Zero spend. No external dependencies or deployments.",
+    "goal_id": "671caaab-a467-4ee9-b1af-6a4bdf9c87ee",
+    "priority": 1,
+    "source": "supervisor",
+    "status": "HUMAN_GATE"
+  },
+  {
+    "blocker_evidence": {
+      "planner_error": "WRITE_ACCEPTANCE_CRITERIA_UNDERIVABLE"
+    },
+    "constraints": [],
+    "created_at": 1788690761.1193888,
+    "goal": "Develop cross-feature coherence and user workflows for social_platform from the verified 40-test baseline. Implement moderation content reporting, appeals, and privacy enforcement across feeds, search, and direct messaging.",
+    "goal_id": "d9acdf1c-491d-4fc5-a5ef-5626906f9cae",
+    "priority": 1,
+    "source": "supervisor",
+    "status": "BLOCKED"
+  },
+  {
+    "constraints": [],
+    "created_at": 1788690778.347164,
+    "goal": "Continue developing the existing social_platform from its current verified state toward cross-feature coherence and user workflows. Candidate areas: content reporting and appeals, privacy consistency across feeds, search, and direct messaging.",
+    "goal_id": "b9d06ca0-8b1c-4cc0-af12-0606b3b6418e",
+    "priority": 1,
+    "source": "supervisor",
+    "status": "BLOCKED"
+  },
+  {
+    "blocker_evidence": {
+      "planner_error": "WRITE_ACCEPTANCE_CRITERIA_UNDERIVABLE"
+    },
+    "constraints": [],
+    "created_at": 1788690973.588748,
+    "goal": "Advance the social_platform product from the verified 40-test baseline. Implement content reporting, appeals workflow, and cross-feature privacy consistency across feeds, search, and direct messaging.",
+    "goal_id": "3b34b133-c49c-4a5d-b44d-3b0e680f4e06",
+    "priority": 1,
+    "source": "supervisor",
+    "status": "BLOCKED"
+  },
+  {
+    "constraints": [],
+    "created_at": 1788690982.832302,
+    "goal": "Continue developing the existing social_platform from its current verified state toward cross-feature coherence and user workflows. Focus areas: content reporting and appeals workflow, privacy consistency across feeds, search, and direct messaging.",
+    "goal_id": "5b6c96fe-957c-4032-be4c-5363a125f909",
+    "priority": 1,
+    "source": "supervisor",
+    "status": "BLOCKED"
+  },
+  {
+    "constraints": [],
+    "created_at": 1788691448.5116422,
+    "goal": "Continue developing the existing social_platform from its current verified 47-test state toward cross-feature coherence and user workflows. Candidate areas: content reporting and appeals, academic study groups, accessibility and content filtering preferences.",
+    "goal_id": "0fcb3a15-f55d-42ac-8811-8c1d2c2f0b48",
+    "priority": 1,
+    "source": "supervisor",
+    "status": "BLOCKED"
+  },
+  {
+    "constraints": [],
+    "created_at": 1788694748.492584,
+    "goal": "Advance the existing social_platform from its verified 47-test baseline toward cross-feature coherence and complete user workflows. Candidate areas: cross-feature privacy consistency across feeds, search, and direct messaging; content reporting and moderation lifecycle; and academic study spaces.",
+    "goal_id": "0437e86f-bfee-4dd7-a497-04f31526f288",
+    "priority": 1,
+    "source": "supervisor",
+    "status": "BLOCKED"
+  },
+  {
+    "constraints": [],
+    "created_at": 1788698753.3148959,
+    "goal": "Continue building the existing social_platform FROM THE NEW VERIFIED CHECKPOINT.\n\nDo not rebuild verified history.\nDo not build Courier unless a concrete Courier defect blocks this product goal.\n\nCourier owns the next decision.\n\nAnalyze the actual product state and choose the highest-value missing coherent\nend-to-end USER WORKFLOW.\n\nPrefer completing and connecting existing capabilities over adding isolated\ntechnical primitives.\n\nPotential directions include:\n- complete content lifecycle: create -> interact -> report -> moderate -> appeal -> remove\n- complete community user journey\n- complete communication/messaging workflow\n- complete academic student journey\n- discovery/recommendation coherence\n- user control, preferences, privacy, and data ownership\n\nThese are examples, not mandatory feature selections.\n\nCourier must:\nDISCOVER\n-> SELECT HIGHEST-VALUE GAP\n-> PLAN\n-> ROUTE\n-> IMPLEMENT\n-> VERIFY\n-> PROVE\n-> FINGERPRINT\n-> REPLAN\n-> CONTINUE\n\nUse Gemini Flash as normal builder.\nUse CLI1 for cheap deterministic discovery/verification.\nUse Codex only for genuine high-information-gain specialist problems.",
+    "goal_id": "ef3c716c-a053-43fb-9bba-864f8395764b",
+    "priority": 1,
+    "source": "local_cli",
+    "status": "SATISFIED"
+  },
+  {
+    "constraints": [],
+    "created_at": 1788719433.421997,
+    "goal": "Continue building the existing social_platform from the current verified checkpoint. Inspect the real repository and select the highest-value missing coherent end-to-end user workflow or cross-feature consistency gap. Implement and verify substantial product improvements through Courier only. Continue across multiple meaningful increments until a coherent milestone is satisfied, a genuine human gate is reached, or a concrete unresolved blocker remains.",
+    "goal_id": "d3c1c638-82dd-4461-a49a-89ce32b18979",
+    "priority": 1,
+    "source": "local_cli",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1788721760.786228,
+    "goal": "Test goal",
+    "goal_id": "40dc4cf8-e57d-4f38-bc02-8c2b35d719b5",
+    "priority": 1,
+    "source": "CLI",
+    "status": "SATISFIED"
+  }
+]

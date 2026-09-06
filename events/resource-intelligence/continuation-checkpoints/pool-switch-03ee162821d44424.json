@@ -1,0 +1,24 @@
+{
+  "checkpoint_id": "pool-switch-03ee162821d44424",
+  "chief_turn_id": "UNKNOWN",
+  "completed_phases": [],
+  "correlation_id": "UNKNOWN",
+  "current_phase": "SWITCH_REQUESTED",
+  "git_head": "c9446ff8cf41560eb044a60cede085636e3aaffa",
+  "git_status_fingerprint": "4986ea428bdd7e4a38c2d1048d54057fc027c7d0f818614fbc93cca5e5b4855a",
+  "human_gate_state": "HUMAN_AUTH_REQUIRED",
+  "last_successful_result": null,
+  "money_gate_state": "ZERO_SPEND_ONLY",
+  "next_safe_action": "Human performs supported provider login, then verify-switch",
+  "provider_chat_history_included": false,
+  "remaining_phases": [
+    "HUMAN_AUTH",
+    "VERIFYING_NEW_POOL",
+    "CONTINUATION_READY"
+  ],
+  "resource_pool": "GOOGLE_PRO_POOL_2",
+  "risk_class": "LOW",
+  "task_id": "TASK-149G-VERIFY-POOL-3",
+  "working_files": [],
+  "workspace_fingerprint": "4769ba688df15bbb4ad58c7c21ab1cca332e807ccf0c356b7fa73733fa5b0c3e"
+}

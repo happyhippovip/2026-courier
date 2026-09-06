@@ -1,0 +1,20 @@
+{
+  "active_experiments": 7318,
+  "autonomous_completion_rate": 1.0,
+  "capital_spent_eur": 0.0,
+  "compound_assets_created": 7318,
+  "cost_per_useful_result_eur": 0.0,
+  "customers": 0,
+  "failed_experiments": 0,
+  "human_interventions": 13,
+  "losers_killed": 0,
+  "model_resource_usage": 0,
+  "qualified_leads": 0,
+  "real_revenue_received_eur": 0.0,
+  "recurring_revenue_eur": 0.0,
+  "schema_version": "1.0",
+  "time_to_first_eur_target": "1_TO_7_DAYS",
+  "updated_at": "2026-09-01T16:40:17.383652+00:00",
+  "validated_opportunities": 6,
+  "winners_active": 0
+}

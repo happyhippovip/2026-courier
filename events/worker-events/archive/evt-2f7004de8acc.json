@@ -1,0 +1,18 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-01T12:45:23.430378+00:00",
+  "event_id": "evt-2f7004de8acc",
+  "event_type": "WORKER_PROGRESS",
+  "evidence": {
+    "cycle": 100,
+    "pid": 35468,
+    "wall_clock_elapsed": 629.9245998859406
+  },
+  "fingerprint": "c08a63aa92dedf19",
+  "mission_id": null,
+  "recommended_action": null,
+  "session_epoch": "epoch-google-1788266093",
+  "severity": "INFO",
+  "task_id": "ENDURANCE-OBSERVATION-CYCLE-100",
+  "worker_id": "GOOGLE"
+}

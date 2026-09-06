@@ -1,0 +1,13 @@
+{
+  "schema_version": "2.0",
+  "adoption_id": "adopt-lesson-20260901-59e7d6",
+  "lesson_id": "lesson-20260901-59e7d6",
+  "title": "Zero-Latency Static Prompt Caching Protocol 30149e",
+  "topic": "PROMPT_CACHING_OPTIMIZATION",
+  "affected_agents": [
+    "antigravity",
+    "codex"
+  ],
+  "evaluation_id": "eval-lesson-20260901-59e7d6",
+  "adopted_at": "2026-09-01T02:30:14.578766+00:00"
+}

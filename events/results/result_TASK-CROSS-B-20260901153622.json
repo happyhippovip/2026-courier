@@ -1,0 +1,18 @@
+{
+  "artifacts": {
+    "artifacts_changed": [
+      "events/runtime-state/stage_b.json"
+    ],
+    "fingerprint": "53517e57cfca48ad30dc4eb2a911132acc25babf436d2564b35f5bae11788a57"
+  },
+  "completed_at": "2026-09-01T15:36:22.600978+00:00",
+  "evidence": {
+    "task_type": "PRIMARY_EXECUTION"
+  },
+  "findings": "Executed on GOOGLE/ANTIGRAVITY_APP on COMPUTER_A. Result: SUCCESS",
+  "opportunity_id": "CROSS-B-20260901153622",
+  "result_fingerprint": "bcb794f5940398f0",
+  "result_id": "RES-TASK-CROSS-B-20260901153622-bcb794f5",
+  "status": "SUCCESS",
+  "task_id": "TASK-CROSS-B-20260901153622"
+}

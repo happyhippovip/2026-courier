@@ -1,0 +1,27 @@
+{
+  "payload": {
+    "cli_result": {
+      "agent_source": "CODEX_CLI_REAL",
+      "cli_output_sha256": "38e1a8ca5fb4cbae4d30468cca5d8fb14dcbaeb87c1db9c121c1f0e66ba4f05d",
+      "cli_process_returncode": 0,
+      "cli_version": "codex-cli 0.151.0-alpha.7.2",
+      "execution_mode": "REAL_CODEX_CLI_EXECUTION",
+      "summary": "The schemas directory contains 24 parseable JSON Schema files with consistent metadata and valid required-property references. Internal references inspected are structurally valid.",
+      "verdict": "PASS"
+    },
+    "entrypoint": "/Applications/ChatGPT.app/Contents/Resources/codex",
+    "execution_mode": "REAL_CODEX_CLI_EXECUTION",
+    "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+    "stage": "REAL_CODEX_MODEL_EXECUTION",
+    "status": "INVARIANTS_VERIFIED",
+    "worker_agent": "CODEX",
+    "zero_cost_policy": "ZERO_COST_ONLY"
+  },
+  "result_fingerprint": "dc0ce716ab79418e516daef1e1645f6b3a2be3df8beb49453403f160fcde17d3",
+  "schema_version": "1.0",
+  "status": "COMPLETED",
+  "target_agent": "CODEX",
+  "task_hash": "eb623aa54db6847d2e2f4dc584a914b290b2d8fc3e5b778b5e51e40e5e4dc67e",
+  "type": "RESULT",
+  "worker_id": "m232-b06-operator"
+}

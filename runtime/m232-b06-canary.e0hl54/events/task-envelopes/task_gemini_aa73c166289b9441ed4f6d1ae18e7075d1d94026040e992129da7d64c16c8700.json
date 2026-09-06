@@ -1,0 +1,18 @@
+{
+  "capability": "acceptance review",
+  "is_heavy": true,
+  "payload": {
+    "action": "acceptance_review",
+    "capability_request": "acceptance review",
+    "is_heavy": true,
+    "requires_write": false
+  },
+  "requires_write": false,
+  "safety_decision": "APPROVED_SAFE",
+  "schema_version": "1.0",
+  "target_agent": "GEMINI",
+  "task_hash": "aa73c166289b9441ed4f6d1ae18e7075d1d94026040e992129da7d64c16c8700",
+  "type": "TASK",
+  "verification_required": true,
+  "worker_id": "m232-b06-operator"
+}

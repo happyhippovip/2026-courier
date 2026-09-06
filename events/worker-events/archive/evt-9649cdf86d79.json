@@ -1,0 +1,17 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-01T12:04:05.203442+00:00",
+  "event_id": "evt-9649cdf86d79",
+  "event_type": "WORKER_PROGRESS",
+  "evidence": {
+    "timestamp": "2026-09-01T12:04:05.195202+00:00",
+    "verified_task": "TASK-ENG-FOLLOWUP-TEST-COV-CONTINUOUS-SAFE-WORK-DISPATCHER"
+  },
+  "fingerprint": "a53ea3174b7e2da6",
+  "mission_id": "M212",
+  "recommended_action": null,
+  "session_epoch": "epoch-google-1788264239",
+  "severity": "INFO",
+  "task_id": "TASK-ENG-FOLLOWUP-TEST-COV-CONTINUOUS-SAFE-WORK-DISPATCHER",
+  "worker_id": "GOOGLE"
+}

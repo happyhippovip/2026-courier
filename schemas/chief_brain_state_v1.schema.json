@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CHIEF_BRAIN_STATE_V1 (design contract; not an active runtime writer)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "conversation_id", "chief_turn_id", "task_id", "correlation_id", "objective", "state", "cost_policy", "human_gates", "security_gates", "checkpoint_hash"],
+  "properties": {
+    "schema_version": {"const": "CHIEF_BRAIN_STATE_V1"},
+    "conversation_id": {"type": "string", "minLength": 1},
+    "chief_turn_id": {"type": "string", "minLength": 1},
+    "task_id": {"type": "string", "minLength": 1},
+    "correlation_id": {"type": "string", "minLength": 1},
+    "worker_job_id": {"type": ["string", "null"]},
+    "result_id": {"type": ["string", "null"]},
+    "next_chief_turn_id": {"type": ["string", "null"]},
+    "objective": {"type": "string", "minLength": 1},
+    "state": {"enum": ["ACTIVE", "WAITING", "BLOCKED", "DONE", "IDLE"]},
+    "active_task_fingerprint": {"type": ["string", "null"]},
+    "blocked_branches": {"type": "array", "items": {"type": "string"}},
+    "available_workers": {"type": "array", "items": {"type": "object"}},
+    "provider_quota_state": {"type": "object"},
+    "cost_policy": {"const": "AUTONOMOUS_SPEND_LIMIT_EUR=0"},
+    "human_gates": {"type": "array", "items": {"type": "object"}},
+    "security_gates": {"type": "array", "items": {"type": "object"}},
+    "memory_references": {"type": "array", "items": {"type": "string"}},
+    "affected_files": {"type": "array", "items": {"type": "string"}},
+    "checkpoint_hash": {"type": "string", "minLength": 1}
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "autonomous_spend_eur": 0.0,
+  "blockers_removed_count": 0,
+  "completed_tasks": [
+    "OPP-187G-AUDIT-ALL-20-CREATOR-PACKAGES",
+    "OPP-187G-VERIFY-RESOURCE-RESET-SEGMENTATION",
+    "OPP-187G-MULTI-WORKER-SYNTHESIS",
+    "OPP-187G-SECURITY-SECRET-EXCLUSION-AUDIT",
+    "OPP-187G-VERIFY-DISASTER-RECOVERY-SANDBOX"
+  ],
+  "decisions_closed_count": 0,
+  "duplicate_dispatches_prevented": 2,
+  "ended_at": "2026-08-31T22:37:28.925420+00:00",
+  "goal": "Mission 187G Real Long Sleep Autonomy Acceptance Run",
+  "human_gates_waiting_count": 2,
+  "model_calls_admitted": 4,
+  "model_calls_avoided_proven": 14,
+  "money_gates_waiting_count": 2,
+  "next_recommended_action": "RESUME_AUTONOMY_DISPATCH",
+  "remaining_open_loops_count": 0,
+  "report_id": "morning_report_session-187g-long-sleep-1788215848_6be8b2",
+  "reviews_reused_proven": 1,
+  "session_id": "session-187g-long-sleep-1788215848",
+  "session_status": "IDLE_EXPECTED",
+  "started_at": "2026-08-31T22:37:28.720657+00:00",
+  "useful_tasks_completed_count": 5
+}

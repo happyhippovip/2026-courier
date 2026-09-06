@@ -1,0 +1,707 @@
+test_01_active_runtime_applies_central_policy (test_active_runtime_integration_mission_190g_r2.TestActiveRuntimeIntegrationMission190GR2) ... ok
+test_02_conflicting_agent_specialization_cannot_weaken_mandatory_policy (test_active_runtime_integration_mission_190g_r2.TestActiveRuntimeIntegrationMission190GR2) ... ok
+test_03_active_runtime_invokes_fast_finish_evaluation (test_active_runtime_integration_mission_190g_r2.TestActiveRuntimeIntegrationMission190GR2) ... ok
+test_04_fast_finish_selected_safe_action_reaches_canonical_admission (test_active_runtime_integration_mission_190g_r2.TestActiveRuntimeIntegrationMission190GR2) ... ok
+test_05_fast_finish_selected_publication_hits_publication_gate (test_active_runtime_integration_mission_190g_r2.TestActiveRuntimeIntegrationMission190GR2) ... ok
+test_06_fast_finish_selected_money_action_hits_payment_gate (test_active_runtime_integration_mission_190g_r2.TestActiveRuntimeIntegrationMission190GR2) ... ok
+test_07_active_runtime_routes_normal_observation_through_snitch (test_active_runtime_integration_mission_190g_r2.TestActiveRuntimeIntegrationMission190GR2) ... ok
+test_08_active_runtime_routes_critical_observation_through_snitch (test_active_runtime_integration_mission_190g_r2.TestActiveRuntimeIntegrationMission190GR2) ... ok
+test_09_critical_observation_creates_durable_quarantine (test_active_runtime_integration_mission_190g_r2.TestActiveRuntimeIntegrationMission190GR2) ... ok
+test_10_duplicate_anomaly_does_not_reescalate (test_active_runtime_integration_mission_190g_r2.TestActiveRuntimeIntegrationMission190GR2) ... ok
+test_11_unrelated_branch_remains_available (test_active_runtime_integration_mission_190g_r2.TestActiveRuntimeIntegrationMission190GR2) ... ok
+test_12_active_runtime_uses_anti_swarm_admission (test_active_runtime_integration_mission_190g_r2.TestActiveRuntimeIntegrationMission190GR2) ... ok
+test_13_twenty_five_logical_agents_plus_one_model_judgment_yields_minimum_necessary_model_work (test_active_runtime_integration_mission_190g_r2.TestActiveRuntimeIntegrationMission190GR2) ... ok
+test_14_twenty_five_logical_agents_plus_deterministic_action_yields_zero_unnecessary_model_work (test_active_runtime_integration_mission_190g_r2.TestActiveRuntimeIntegrationMission190GR2) ... ok
+test_15_older_control_plane_route_cannot_bypass_organization_policy_layer (test_active_runtime_integration_mission_190g_r2.TestActiveRuntimeIntegrationMission190GR2) ... ok
+test_16_integrated_real_runtime_scenario (test_active_runtime_integration_mission_190g_r2.TestActiveRuntimeIntegrationMission190GR2) ... ok
+test_17_stop_success_when_goal_and_quality_floor_satisfied (test_active_runtime_integration_mission_190g_r2.TestActiveRuntimeIntegrationMission190GR2) ... ok
+test_01_initial_cadence_defaults_to_3_days (test_adaptive_solution_discovery.TestAdaptiveSolutionDiscovery)
+Initial search cadence is 3 days by default. ... ok
+test_02_cadence_shrinking_on_high_or_medium_info_gain (test_adaptive_solution_discovery.TestAdaptiveSolutionDiscovery)
+Cadence shortens toward 1 day upon high/medium information gain. ... ok
+test_03_cadence_expanding_on_consecutive_no_change_scans (test_adaptive_solution_discovery.TestAdaptiveSolutionDiscovery)
+Cadence extends toward 5-7 days upon consecutive no-change scans. ... ok
+test_04_immediate_event_triggered_scan_override (test_adaptive_solution_discovery.TestAdaptiveSolutionDiscovery)
+Emergency or provider failure immediately triggers out-of-cycle search. ... ok
+test_05_challenger_evaluation_and_minimum_improvement_threshold (test_adaptive_solution_discovery.TestAdaptiveSolutionDiscovery)
+Challenger must exceed minimum threshold (+15%) for primary switch. ... ok
+test_06_safe_reversible_auto_switch_and_rollback (test_adaptive_solution_discovery.TestAdaptiveSolutionDiscovery)
+Auto-switch preserves rollback route and can be cleanly rolled back. ... ok
+test_07_no_change_result_reuse_avoids_model_calls (test_adaptive_solution_discovery.TestAdaptiveSolutionDiscovery)
+When no change occurred, search reuses stable state with 0 model calls and 0 EUR spend. ... ok
+test_08_weekly_strategic_floor_triggers_scan_after_7_days (test_adaptive_solution_discovery.TestAdaptiveSolutionDiscovery)
+Weekly strategic floor triggers evaluation after 7 days even if fully stable. ... ok
+test_01_project_discovery (test_antigravity_account_switch_continuity_mission_160g.TestAntigravityAccountSwitchContinuityMission160G) ... ok
+test_02_folder_binding_fingerprint (test_antigravity_account_switch_continuity_mission_160g.TestAntigravityAccountSwitchContinuityMission160G) ... ok
+test_03_permission_fingerprint (test_antigravity_account_switch_continuity_mission_160g.TestAntigravityAccountSwitchContinuityMission160G) ... ok
+test_04_sandbox_policy_fingerprint (test_antigravity_account_switch_continuity_mission_160g.TestAntigravityAccountSwitchContinuityMission160G) ... ok
+test_05_non_workspace_policy_fingerprint (test_antigravity_account_switch_continuity_mission_160g.TestAntigravityAccountSwitchContinuityMission160G) ... ok
+test_06_continuation_checkpoint (test_antigravity_account_switch_continuity_mission_160g.TestAntigravityAccountSwitchContinuityMission160G) ... ok
+test_07_secret_exclusion (test_antigravity_account_switch_continuity_mission_160g.TestAntigravityAccountSwitchContinuityMission160G) ... ok
+test_08_missing_project_failsafe (test_antigravity_account_switch_continuity_mission_160g.TestAntigravityAccountSwitchContinuityMission160G) ... ok
+test_09_changed_setting_detection (test_antigravity_account_switch_continuity_mission_160g.TestAntigravityAccountSwitchContinuityMission160G) ... ok
+test_10_same_workspace_continuation_and_account_transition (test_antigravity_account_switch_continuity_mission_160g.TestAntigravityAccountSwitchContinuityMission160G) ... ok
+test_approval_id_conflict_detection (test_approval_hardening_and_executor_mission_133g.TestApprovalHardeningAndExecutorMission133G) ... ok
+test_approval_id_first_registration_and_idempotent_duplicate (test_approval_hardening_and_executor_mission_133g.TestApprovalHardeningAndExecutorMission133G) ... ok
+test_caller_active_vs_ledger_derived_state (test_approval_hardening_and_executor_mission_133g.TestApprovalHardeningAndExecutorMission133G) ... ok
+test_crash_safety_and_reconciliation_unique_match (test_approval_hardening_and_executor_mission_133g.TestApprovalHardeningAndExecutorMission133G) ... ok
+test_deterministic_operation_id (test_approval_hardening_and_executor_mission_133g.TestApprovalHardeningAndExecutorMission133G) ... ok
+test_executor_successful_private_upload_and_approval_consumption (test_approval_hardening_and_executor_mission_133g.TestApprovalHardeningAndExecutorMission133G) ... ok
+test_fenced_reservation_concurrency_2_and_6_workers (test_approval_hardening_and_executor_mission_133g.TestApprovalHardeningAndExecutorMission133G) ... ✅ Secret-free Antigravity project snapshot written: /Users/user/Downloads/2026-courier/runtime/preservation/antigravity_project_snapshot_sandbox_test.json
+✅ Secret-free Antigravity project snapshot written: /Users/user/Downloads/2026-courier/runtime/preservation/antigravity_project_snapshot_sandbox_test.json
+✅ Secret-free Antigravity project snapshot written: /Users/user/Downloads/2026-courier/runtime/preservation/antigravity_project_snapshot_sandbox_test.json
+✅ Secret-free Antigravity project snapshot written: /Users/user/Downloads/2026-courier/runtime/preservation/antigravity_project_snapshot_sandbox_test.json
+✅ Secret-free Antigravity project snapshot written: /Users/user/Downloads/2026-courier/runtime/preservation/antigravity_project_snapshot_sandbox_test.json
+ok
+test_money_firewall_finite_exact_zero (test_approval_hardening_and_executor_mission_133g.TestApprovalHardeningAndExecutorMission133G) ... ok
+test_real_packages_stop_at_human_audience_gate (test_approval_hardening_and_executor_mission_133g.TestApprovalHardeningAndExecutorMission133G) ... ok
+test_binding_previews_marked_not_durable (test_audience_decision_support_and_dry_run_mission_135g.TestAudienceDecisionSupportAndDryRunMission135G) ... ok
+test_crash_before_and_after_reservation (test_audience_decision_support_and_dry_run_mission_135g.TestAudienceDecisionSupportAndDryRunMission135G) ... ok
+test_fencing_stale_owner_rejected (test_audience_decision_support_and_dry_run_mission_135g.TestAudienceDecisionSupportAndDryRunMission135G) ... ok
+test_golden_trophy_decision_card_generation (test_audience_decision_support_and_dry_run_mission_135g.TestAudienceDecisionSupportAndDryRunMission135G) ... ok
+test_human_choice_options_and_no_default (test_audience_decision_support_and_dry_run_mission_135g.TestAudienceDecisionSupportAndDryRunMission135G) ... ok
+test_mystery_box_decision_card_generation (test_audience_decision_support_and_dry_run_mission_135g.TestAudienceDecisionSupportAndDryRunMission135G) ... ok
+test_normal_success_dryrun_simulation (test_audience_decision_support_and_dry_run_mission_135g.TestAudienceDecisionSupportAndDryRunMission135G) ... ok
+test_observable_content_facts_grounded (test_audience_decision_support_and_dry_run_mission_135g.TestAudienceDecisionSupportAndDryRunMission135G) ... ok
+test_preview_cannot_satisfy_real_acceptance_gate (test_audience_decision_support_and_dry_run_mission_135g.TestAudienceDecisionSupportAndDryRunMission135G) ... ok
+test_private_approval_firebreak_against_public_release (test_audience_decision_support_and_dry_run_mission_135g.TestAudienceDecisionSupportAndDryRunMission135G) ... ok
+test_reconciliation_exact_id_vs_ambiguous (test_audience_decision_support_and_dry_run_mission_135g.TestAudienceDecisionSupportAndDryRunMission135G) ... ok
+test_secret_absence_in_all_artifacts_and_cards (test_audience_decision_support_and_dry_run_mission_135g.TestAudienceDecisionSupportAndDryRunMission135G) ... ok
+test_timeout_after_possible_dispatch_and_no_auto_retry (test_audience_decision_support_and_dry_run_mission_135g.TestAudienceDecisionSupportAndDryRunMission135G) ... ok
+test_zero_spend_validation (test_audience_decision_support_and_dry_run_mission_135g.TestAudienceDecisionSupportAndDryRunMission135G) ... ok
+test_01_all_28_canonical_observations_preserved (test_authoritative_reset_resolution_mission_179g.TestAuthoritativeResetResolutionMission179G) ... ok
+test_02_forged_segment_id_across_google_reset_denied (test_authoritative_reset_resolution_mission_179g.TestAuthoritativeResetResolutionMission179G) ... ok
+test_03_forged_segment_id_across_openai_reset_denied (test_authoritative_reset_resolution_mission_179g.TestAuthoritativeResetResolutionMission179G) ... ok
+test_04_caller_tampered_metadata_on_same_segment_denied (test_authoritative_reset_resolution_mission_179g.TestAuthoritativeResetResolutionMission179G) ... ok
+test_05_unknown_observation_id_denied (test_authoritative_reset_resolution_mission_179g.TestAuthoritativeResetResolutionMission179G) ... ok
+test_06_malformed_observation_type_denied (test_authoritative_reset_resolution_mission_179g.TestAuthoritativeResetResolutionMission179G) ... ok
+test_07_cross_account_denied (test_authoritative_reset_resolution_mission_179g.TestAuthoritativeResetResolutionMission179G) ... ok
+test_08_cross_model_pool_denied (test_authoritative_reset_resolution_mission_179g.TestAuthoritativeResetResolutionMission179G) ... ok
+test_09_cross_provider_denied (test_authoritative_reset_resolution_mission_179g.TestAuthoritativeResetResolutionMission179G) ... ok
+test_10_google_pre_post_14_21_five_hour_denied (test_authoritative_reset_resolution_mission_179g.TestAuthoritativeResetResolutionMission179G) ... ok
+test_11_google_post_reset_delta_allowed (test_authoritative_reset_resolution_mission_179g.TestAuthoritativeResetResolutionMission179G) ... ok
+test_12_google_five_hour_reset_does_not_reset_weekly (test_authoritative_reset_resolution_mission_179g.TestAuthoritativeResetResolutionMission179G) ... ok
+test_13_openai_zero_to_83_five_hour_reset_denied (test_authoritative_reset_resolution_mission_179g.TestAuthoritativeResetResolutionMission179G) ... ok
+test_14_openai_weekly_delta_in_same_week_allowed (test_authoritative_reset_resolution_mission_179g.TestAuthoritativeResetResolutionMission179G) ... ok
+test_15_unknown_timestamp_fails_closed (test_authoritative_reset_resolution_mission_179g.TestAuthoritativeResetResolutionMission179G) ... ok
+test_16_out_of_order_timestamps_fail_closed (test_authoritative_reset_resolution_mission_179g.TestAuthoritativeResetResolutionMission179G) ... ok
+test_17_deterministic_string_id_calculations (test_authoritative_reset_resolution_mission_179g.TestAuthoritativeResetResolutionMission179G) ... ok
+test_18_money_firewall_and_physical_energy_denied (test_authoritative_reset_resolution_mission_179g.TestAuthoritativeResetResolutionMission179G) ... ok
+test_1_unavailable_unchanged_evidence_no_retry (test_auto_retry_cases.TestRecoverySemantics) ... ok
+test_2_unavailable_to_available_exactly_one_retry (test_auto_retry_cases.TestRecoverySemantics) ... ok
+test_3_repeated_start_unchanged_available_evidence_no_duplicate_retry (test_auto_retry_cases.TestRecoverySemantics) ... ok
+test_4_human_gate_unaffected_by_availability_changes (test_auto_retry_cases.TestRecoverySemantics) ... ok
+test_5_duplicate_goal_submission_cannot_bypass_human_gate (test_auto_retry_cases.TestRecoverySemantics) ... ok
+test_01_google_completion_to_candidate_signal (test_automatic_result_handoff.TestAutomaticResultHandoff) ... ok
+test_02_cli2_high_defect_to_release_blocker (test_automatic_result_handoff.TestAutomaticResultHandoff) ... ok
+test_03_cli2_pass_matching_candidate_to_final_acceptance_ready (test_automatic_result_handoff.TestAutomaticResultHandoff) ... ok
+test_04_mismatched_candidate_fingerprint_suppression (test_automatic_result_handoff.TestAutomaticResultHandoff) ... ok
+test_05_codex_release_to_release_accepted (test_automatic_result_handoff.TestAutomaticResultHandoff) ... ok
+test_06_codex_remediate_to_remediation_required (test_automatic_result_handoff.TestAutomaticResultHandoff) ... ok
+test_07_execution_surface_block_detection (test_automatic_result_handoff.TestAutomaticResultHandoff) ... ok
+test_08_duplicate_result_and_fast_path (test_automatic_result_handoff.TestAutomaticResultHandoff) ... ok
+test_01_handle_positive_interest (test_autonomous_commercial_responder.TestAutonomousCommercialResponder)
+Generates invoice, reference token, pre-approved reply copy, and advances to PAYMENT_DISCUSSION. ... ok
+test_a_normal_two_step_continuation (test_autonomous_continuation_mission_116.TestAutonomousContinuationMission116)
+A. Normal two-step continuation: Task A -> Result A -> CONTINUE -> Task B -> Result B -> COMPLETE. ... ok
+test_b_duplicate_result_idempotency (test_autonomous_continuation_mission_116.TestAutonomousContinuationMission116)
+B. Duplicate Result A handling: Idempotent consumption prevents second dispatch. ... ok
+test_c_supervisor_restart_recovery_before_dispatch (test_autonomous_continuation_mission_116.TestAutonomousContinuationMission116)
+C. Supervisor restart after Chief decision but before dispatch. ... ok
+test_d_supervisor_restart_recovery_after_dispatch (test_autonomous_continuation_mission_116.TestAutonomousContinuationMission116)
+D. Supervisor restart after dispatch: Recognizes pending dispatch. ... ok
+test_e_max_tasks_limit (test_autonomous_continuation_mission_116.TestAutonomousContinuationMission116)
+E. MAX_TASKS reached limit enforcement (Bounded stop). ... ok
+test_f_value_gate_zero_value_stop (test_autonomous_continuation_mission_116.TestAutonomousContinuationMission116)
+F. Zero-value next step: Value Gate halts continuation. ... ok
+test_g_zero_spend_firewall (test_autonomous_continuation_mission_116.TestAutonomousContinuationMission116)
+G. Cost not proven zero: Zero-Spend Firewall raises PAYMENT_APPROVAL_REQUIRED. ... ok
+test_h_waiting_for_human_gate (test_autonomous_continuation_mission_116.TestAutonomousContinuationMission116)
+H. WAITING_FOR_HUMAN parking: Task requiring explicit human approval is safely parked. ... ok
+test_i_malformed_decision_handling (test_autonomous_continuation_mission_116.TestAutonomousContinuationMission116)
+I. Malformed decision handling: Invalid decision string raises ValueError (fails safe). ... ok
+test_j_agent_roster_preservation (test_autonomous_continuation_mission_116.TestAutonomousContinuationMission116)
+J. Existing agent roster preserved: All desks and core agents intact. ... ok
+test_01_run_single_autonomous_cycle (test_autonomous_money_machine_daemon.TestAutonomousMoneyMachineDaemon)
+Executes full autonomous cycle and proves zero human WEITER and zero copy/paste. ... ok
+test_01_expired_lock_dead_owner_reconciled (test_autonomous_operational_hygiene.TestAutonomousOperationalHygiene) ... ok
+test_02_live_owner_lock_never_displaced (test_autonomous_operational_hygiene.TestAutonomousOperationalHygiene) ... ok
+test_03_malformed_authority_record_fails_closed_and_alerts_once (test_autonomous_operational_hygiene.TestAutonomousOperationalHygiene) ... ok
+test_04_stale_opportunity_claim_reconciled (test_autonomous_operational_hygiene.TestAutonomousOperationalHygiene) ... ok
+test_05_expired_temporary_worker_and_false_running_reconciled (test_autonomous_operational_hygiene.TestAutonomousOperationalHygiene) ... ok
+test_01_session_view_complete_schema (test_autonomous_operations_cockpit_mission_product_3.TestAutonomousOperationsCockpitMissionProduct3)
+Server /api/state returns complete session_view dictionary. ... ok
+test_02_productivity_timeline_filtering (test_autonomous_operations_cockpit_mission_product_3.TestAutonomousOperationsCockpitMissionProduct3)
+Productivity timeline converts raw ledger events to meaningful lifecycle entries. ... ok
+test_03_agent_inspector_no_secrets_and_valid_structure (test_autonomous_operations_cockpit_mission_product_3.TestAutonomousOperationsCockpitMissionProduct3)
+All 25 agents registered in execution_truth.js have defined roles and no secrets. ... ok
+test_04_failure_and_recovery_visibility (test_autonomous_operations_cockpit_mission_product_3.TestAutonomousOperationsCockpitMissionProduct3)
+Critical anomaly quarantines branch and surfaces in session_view. ... ok
+test_05_safe_ui_controls_markup (test_autonomous_operations_cockpit_mission_product_3.TestAutonomousOperationsCockpitMissionProduct3)
+Index.html contains required safe control buttons and modal containers. ... ok
+test_06_morning_report_view_zero_model_calls (test_autonomous_operations_cockpit_mission_product_3.TestAutonomousOperationsCockpitMissionProduct3)
+Morning report is retrieved deterministically from local files. ... ok
+test_07_scenario_a_safe_task_end_to_end (test_autonomous_operations_cockpit_mission_product_3.TestAutonomousOperationsCockpitMissionProduct3)
+Scenario A: Safe local task executes and completes. ... ok
+test_08_scenario_b_independent_task_and_gated_task (test_autonomous_operations_cockpit_mission_product_3.TestAutonomousOperationsCockpitMissionProduct3)
+Scenario B: Gated task B does not block independent task A. ... ok
+test_09_scenario_d_safe_idle_zero_fake_activity (test_autonomous_operations_cockpit_mission_product_3.TestAutonomousOperationsCockpitMissionProduct3)
+Scenario D: Safe idle has 0 active workers and IDLE_EXPECTED state. ... ok
+test_10_codex_product_2c_join_readiness (test_autonomous_operations_cockpit_mission_product_3.TestAutonomousOperationsCockpitMissionProduct3)
+Codex PRODUCT-2C can seamlessly publish jobs or queue opportunities. ... ok
+test_01_real_chief_brain_goal_creates_candidate (test_autonomous_opportunity_discovery_mission_product_4.TestAutonomousOpportunityDiscoveryMissionProduct4)
+Active Chief Brain goal generates a canonical opportunity candidate. ... ok
+test_02_completed_goal_creates_none (test_autonomous_opportunity_discovery_mission_product_4.TestAutonomousOpportunityDiscoveryMissionProduct4)
+A goal already completed produces no new opportunity. ... ok
+test_03_closed_strand_protection (test_autonomous_opportunity_discovery_mission_product_4.TestAutonomousOpportunityDiscoveryMissionProduct4)
+Closed strand with no relevant delta produces zero opportunities. ... ok
+test_04_invalidating_evidence_reopens_bounded_work (test_autonomous_opportunity_discovery_mission_product_4.TestAutonomousOpportunityDiscoveryMissionProduct4)
+Genuine new failure/invalidation evidence justifies bounded remediation work. ... ok
+test_05_duplicate_evidence_creates_no_duplicate (test_autonomous_opportunity_discovery_mission_product_4.TestAutonomousOpportunityDiscoveryMissionProduct4)
+Duplicate evidence yields exactly one canonical opportunity record. ... ok
+test_06_polling_creates_no_spam (test_autonomous_opportunity_discovery_mission_product_4.TestAutonomousOpportunityDiscoveryMissionProduct4)
+Repeated polling cycles with unchanged state generate 0 candidates. ... ok
+test_07_restart_preserves_deduplication (test_autonomous_opportunity_discovery_mission_product_4.TestAutonomousOpportunityDiscoveryMissionProduct4)
+Instantiating a new engine instance after restart preserves deduplication. ... ok
+test_08_unresolved_dependency_prevents_premature_work (test_autonomous_opportunity_discovery_mission_product_4.TestAutonomousOpportunityDiscoveryMissionProduct4)
+Step B is not emitted if prerequisite Step A is not yet completed. ... ok
+test_09_result_unlocks_next_candidate_and_10_stop_success (test_autonomous_opportunity_discovery_mission_product_4.TestAutonomousOpportunityDiscoveryMissionProduct4)
+Zero-prompt sequential chain: Step A complete -> unlocks B -> B complete -> unlocks C -> C complete -> STOP_SUCCESS. ... ok
+test_11_parallel_independent_opportunities_coexist (test_autonomous_opportunity_discovery_mission_product_4.TestAutonomousOpportunityDiscoveryMissionProduct4)
+Two independent useful opportunities with different scopes and workers are both emitted. ... ok
+test_12_human_gate_classification_and_13_branch_survival (test_autonomous_opportunity_discovery_mission_product_4.TestAutonomousOpportunityDiscoveryMissionProduct4)
+Human gate is classified properly while independent safe branch remains eligible. ... ok
+test_14_money_gate_classification_and_15_branch_survival (test_autonomous_opportunity_discovery_mission_product_4.TestAutonomousOpportunityDiscoveryMissionProduct4)
+Spend > 0 EUR is classified as MONEY_GATE; safe branch remains eligible. ... ok
+test_16_publication_gate_preserved (test_autonomous_opportunity_discovery_mission_product_4.TestAutonomousOpportunityDiscoveryMissionProduct4)
+Public upload or release deployment is strictly gated. ... ok
+test_17_deterministic_first_zero_model_calls (test_autonomous_opportunity_discovery_mission_product_4.TestAutonomousOpportunityDiscoveryMissionProduct4)
+Discovery process executes completely locally without calling any LLM API. ... ok
+test_18_no_fake_revenue_or_busywork_rejection (test_autonomous_opportunity_discovery_mission_product_4.TestAutonomousOpportunityDiscoveryMissionProduct4)
+Artificial tasks such as fake revenue or routine review are rejected. ... ok
+test_22_product_3_cockpit_compatibility (test_autonomous_opportunity_discovery_mission_product_4.TestAutonomousOpportunityDiscoveryMissionProduct4)
+Discovered opportunities are directly rendered in Product-3 Live Task Board. ... ok
+test_23_codex_bridge_compatibility (test_autonomous_opportunity_discovery_mission_product_4.TestAutonomousOpportunityDiscoveryMissionProduct4)
+Codex provider fields are preserved for Codex dispatch. ... ok
+test_24_message_completion_stamp_done_prevents_redispatch (test_autonomous_opportunity_discovery_mission_product_4.TestAutonomousOpportunityDiscoveryMissionProduct4)
+Message completion stamp DONE prevents re-dispatch of identical semantic work. ... ok
+test_25_message_completion_stamp_handoff_re_eligible (test_autonomous_opportunity_discovery_mission_product_4.TestAutonomousOpportunityDiscoveryMissionProduct4)
+Message completion stamp NOT_DONE or HANDOFF_REQUIRED makes task eligible for handoff. ... ok
+test_01_full_production_canary_pipeline (test_autonomous_production_canary.TestAutonomousProductionCanary)
+Runs the entire 10-phase operational canary and verifies READY_FOR_LONGER_UNATTENDED_CANARY. ... ok
+test_01_executor_initialization_and_handlers (test_autonomous_single_pc_executor.TestSinglePCAutonomousExecutor)
+Executor initializes with all required deterministic handlers. ... ok
+test_02_sequential_zero_prompt_execution (test_autonomous_single_pc_executor.TestSinglePCAutonomousExecutor)
+Runs shift and verifies tasks execute without manual intervention. ... ok
+test_03_inventory_summary_output_validation (test_autonomous_single_pc_executor.TestSinglePCAutonomousExecutor)
+Verifies inventory_summary.json generated with valid structure. ... FAIL
+test_04_pricing_manifest_output_validation (test_autonomous_single_pc_executor.TestSinglePCAutonomousExecutor)
+Verifies licensing_tiers.json generated with non-empty tiers. ... FAIL
+test_05_duplicate_suppression_on_repeated_runs (test_autonomous_single_pc_executor.TestSinglePCAutonomousExecutor)
+Repeated execution does not duplicate already completed tasks. ... ok
+test_06_human_gate_isolation (test_autonomous_single_pc_executor.TestSinglePCAutonomousExecutor)
+Human-gated release proposal is isolated without unauthorized publication. ... ok
+test_01_session_starts_from_canonical_state (test_autonomous_work_session_controller_mission_product_5.TestAutonomousWorkSessionControllerMissionProduct5)
+Session controller initializes cleanly with RUNNING status and goal set. ... ok
+test_02_five_step_goal_zero_prompt_chain_and_03_result_triggers_next (test_autonomous_work_session_controller_mission_product_5.TestAutonomousWorkSessionControllerMissionProduct5)
+Five sequential steps (A -> B -> C -> D -> E) complete without manual prompts to STOP_SUCCESS. ... ok
+test_04_no_result_and_05_safe_idle_when_no_work (test_autonomous_work_session_controller_mission_product_5.TestAutonomousWorkSessionControllerMissionProduct5)
+When no pending work exists, enters SAFE_IDLE without model calls. ... ok
+test_06_completed_work_not_redispatched (test_autonomous_work_session_controller_mission_product_5.TestAutonomousWorkSessionControllerMissionProduct5)
+Completed task is not emitted in subsequent steps. ... ok
+test_07_claimed_work_not_duplicated (test_autonomous_work_session_controller_mission_product_5.TestAutonomousWorkSessionControllerMissionProduct5)
+Work marked CLAIMED by message stamp is not dispatched to another worker. ... ok
+test_08_human_gated_branch_does_not_block_safe_branch (test_autonomous_work_session_controller_mission_product_5.TestAutonomousWorkSessionControllerMissionProduct5)
+Gated branch (Human) waits locally while safe branch runs. ... ok
+test_09_money_gated_branch_does_not_block_safe_branch (test_autonomous_work_session_controller_mission_product_5.TestAutonomousWorkSessionControllerMissionProduct5)
+Gated branch (Money) waits locally while safe branch runs. ... ok
+test_10_publication_gated_branch_does_not_block_safe_branch (test_autonomous_work_session_controller_mission_product_5.TestAutonomousWorkSessionControllerMissionProduct5)
+Publication gate waits locally while safe branch runs. ... ok
+test_11_global_waiting_human_only_when_no_safe_work (test_autonomous_work_session_controller_mission_product_5.TestAutonomousWorkSessionControllerMissionProduct5)
+Controller enters global WAITING_HUMAN only when NO safe work remains. ... ok
+test_12_global_waiting_money_only_when_no_safe_work (test_autonomous_work_session_controller_mission_product_5.TestAutonomousWorkSessionControllerMissionProduct5)
+Controller enters global WAITING_MONEY only when NO safe work remains. ... ok
+test_13_restart_resumes_correct_step_and_14_preserves_done_state (test_autonomous_work_session_controller_mission_product_5.TestAutonomousWorkSessionControllerMissionProduct5)
+Session restarted from disk resumes from exactly where it left off without duplicating completed steps. ... ok
+test_16_branch_failure_does_not_kill_independent_branch (test_autonomous_work_session_controller_mission_product_5.TestAutonomousWorkSessionControllerMissionProduct5)
+Failure on branch A records waiting/failed branch but does not crash the session. ... ok
+test_17_systemic_anomaly_fails_closed (test_autonomous_work_session_controller_mission_product_5.TestAutonomousWorkSessionControllerMissionProduct5)
+Critical systemic anomaly transitions controller to FAILED_SYSTEMIC. ... ok
+test_24_cockpit_snapshot_zero_model_calls (test_autonomous_work_session_controller_mission_product_5.TestAutonomousWorkSessionControllerMissionProduct5)
+Cockpit snapshot produces full telemetry dictionary with 0 model calls. ... ok
+test_25_structured_end_session_report_zero_model_calls (test_autonomous_work_session_controller_mission_product_5.TestAutonomousWorkSessionControllerMissionProduct5)
+Structured end-session report produces clean dictionary with 0 model calls. ... ok
+test_26_no_busywork_loop_when_empty (test_autonomous_work_session_controller_mission_product_5.TestAutonomousWorkSessionControllerMissionProduct5)
+When queue is empty and goals are empty, stays in SAFE_IDLE without inventing work. ... ok
+test_01_empty_queue_triggers_discovery (test_autonomy_acceleration_builder_round.TestAutonomyAccelerationBuilderRound)
+When queue is empty, engine discovers actionable unblocked opportunities. ... ok
+test_02_multi_task_continuation_zero_prompt (test_autonomy_acceleration_builder_round.TestAutonomyAccelerationBuilderRound)
+Executes at least 2 sequential tasks automatically without intermediate prompts. ... ok
+test_03_high_value_vs_useful_ranking (test_autonomy_acceleration_builder_round.TestAutonomyAccelerationBuilderRound)
+HIGH_VALUE critical-path items rank ahead of USEFUL and NEUTRAL. ... ok
+test_04_duplicate_suppression_and_closed_strand (test_autonomy_acceleration_builder_round.TestAutonomyAccelerationBuilderRound)
+Already completed tasks are categorized as SUPPRESSED and not re-executed. ... ok
+test_05_restart_recovery_preserves_completed (test_autonomy_acceleration_builder_round.TestAutonomyAccelerationBuilderRound)
+Restarting session preserves completed state and avoids redundant executions. ... ok
+test_06_stop_and_resume_semantics (test_autonomy_acceleration_builder_round.TestAutonomyAccelerationBuilderRound)
+Session can be stopped cleanly and resumed from persisted state. ... ok
+test_07_human_money_gate_isolation (test_autonomy_acceleration_builder_round.TestAutonomyAccelerationBuilderRound)
+Human/Money gates are parked safely with zero spend and zero publication. ... ok
+test_08_max_iteration_bounded_protection (test_autonomy_acceleration_builder_round.TestAutonomyAccelerationBuilderRound)
+Executor respects max_steps bound without runaway iteration. ... ok
+test_01_canonical_state_reconstruction_closed_strands (test_autonomy_control_plane_mission_184g.TestAutonomyControlPlaneMission184G) ... ok
+test_02_zero_gain_is_strictly_rejected (test_autonomy_control_plane_mission_184g.TestAutonomyControlPlaneMission184G) ... ok
+test_03_critical_unblock_and_high_value_are_admitted (test_autonomy_control_plane_mission_184g.TestAutonomyControlPlaneMission184G) ... ok
+test_04_deterministic_resolver_prevents_model_call (test_autonomy_control_plane_mission_184g.TestAutonomyControlPlaneMission184G) ... ok
+test_05_barrier_waits_for_all_required_results (test_autonomy_control_plane_mission_184g.TestAutonomyControlPlaneMission184G) ... ok
+test_06_barrier_arrival_order_invariance (test_autonomy_control_plane_mission_184g.TestAutonomyControlPlaneMission184G) ... ok
+test_07_barrier_duplicate_arrival_protection (test_autonomy_control_plane_mission_184g.TestAutonomyControlPlaneMission184G) ... ok
+test_08_branch_isolation_unrelated_tasks_not_frozen (test_autonomy_control_plane_mission_184g.TestAutonomyControlPlaneMission184G) ... ok
+test_09_barrier_state_restores_cleanly_on_restart (test_autonomy_control_plane_mission_184g.TestAutonomyControlPlaneMission184G) ... ok
+test_10_context_lease_reuse_and_bytes_saved_tracking (test_autonomy_control_plane_mission_184g.TestAutonomyControlPlaneMission184G) ... ok
+test_11_accepted_judgment_cache_hit_prevents_re_review (test_autonomy_control_plane_mission_184g.TestAutonomyControlPlaneMission184G) ... ok
+test_12_review_debt_accumulation_and_flush (test_autonomy_control_plane_mission_184g.TestAutonomyControlPlaneMission184G) ... ok
+test_13_shadow_call_firewall_blocks_worker_fan_out (test_autonomy_control_plane_mission_184g.TestAutonomyControlPlaneMission184G) ... ok
+test_14_circuit_breaker_trips_on_consecutive_no_progress (test_autonomy_control_plane_mission_184g.TestAutonomyControlPlaneMission184G) ... ok
+test_15_scope_locking_prevents_conflicting_mutations (test_autonomy_control_plane_mission_184g.TestAutonomyControlPlaneMission184G) ... ok
+test_16_hard_night_firewalls_exact_zero_and_publication_denial (test_autonomy_control_plane_mission_184g.TestAutonomyControlPlaneMission184G) ... ok
+test_17_continuation_loop_runs_events_and_stops_on_idle (test_autonomy_control_plane_mission_184g.TestAutonomyControlPlaneMission184G) ... ok
+test_18_sleep_mode_accelerated_simulation_all_pass (test_autonomy_control_plane_mission_184g.TestAutonomyControlPlaneMission184G) ... ok
+test_01_idle_cycles_do_not_exhaust_productive_budget (test_autonomy_control_plane_remediation.TestAutonomyControlPlaneRemediation)
+HIGH-1: 600 idle cycles do NOT exhaust 500 productive iteration budget. ... ok
+test_02_productive_iterations_properly_bounded (test_autonomy_control_plane_remediation.TestAutonomyControlPlaneRemediation)
+Productive execution steps correctly increment iterations_completed up to limit. ... ok
+test_03_crash_after_side_effect_prevents_duplicate_reexecution (test_autonomy_control_plane_remediation.TestAutonomyControlPlaneRemediation)
+HIGH-2: Post-crash uncommitted task fails closed as EFFECT_UNKNOWN_AFTER_CRASH. ... ok
+test_04_transactional_event_ingest_and_crash_replay (test_autonomy_control_plane_remediation.TestAutonomyControlPlaneRemediation)
+HIGH-3: Uncommitted event replay applies downstream changes without duplicate rejection. ... ok
+test_05_stale_claim_reclaim_toctou_safety (test_autonomy_control_plane_remediation.TestAutonomyControlPlaneRemediation)
+MEDIUM-1: Stale reclaim does not delete intermediate replacement claims. ... ok
+test_06_process_liveness_reconciliation (test_autonomy_control_plane_remediation.TestAutonomyControlPlaneRemediation)
+MEDIUM-2: RUNNING state with dead PID reconciles to STALE_RUNNING_OFFLINE. ... ok
+test_07_cross_process_heavy_job_mutex (test_autonomy_control_plane_remediation.TestAutonomyControlPlaneRemediation)
+MEDIUM-3: HEAVY_JOB_LIMIT=1 is strictly enforced across separate processes. ... ok
+test_01_no_manual_weiter_google_to_cli2 (test_autonomy_orchestrator.TestAutonomyOrchestrator)
+When Google builder completes, automatically routes to CLI2 without manual WEITER. ... ok
+test_02_cli2_pass_routes_to_codex (test_autonomy_orchestrator.TestAutonomyOrchestrator)
+When CLI2 passes same fingerprint, automatically routes to Codex acceptance review. ... ok
+test_03_cli2_defect_and_codex_remediate_route_to_google (test_autonomy_orchestrator.TestAutonomyOrchestrator)
+CLI2 defects or Codex remediation requests route back to Google builder. ... ok
+test_04_codex_release_unlocks_next_mission (test_autonomy_orchestrator.TestAutonomyOrchestrator)
+Codex release verdict unlocks next safe autonomy phase automatically. ... ok
+test_05_quota_and_surface_block_wait_safely (test_autonomy_orchestrator.TestAutonomyOrchestrator)
+Provider quota exhaustion or surface block transitions to WAITING_RESOURCE. ... ok
+test_06_pid_none_not_alive_and_dead_pid_orphaned (test_autonomy_orchestrator.TestAutonomyOrchestrator)
+pid=None is never assumed alive; dead PID transitions to ORPHANED. ... ok
+test_07_dependency_enforcement_and_no_duplicate_execution (test_autonomy_orchestrator.TestAutonomyOrchestrator)
+Jobs with unmet dependencies are not executed; completed jobs are not re-executed. ... ok
+test_08_paid_action_and_human_gate_block_fail_closed (test_autonomy_orchestrator.TestAutonomyOrchestrator)
+Paid jobs block at WAITING_PERMISSION; human gates block at WAITING_HUMAN. ... ok
+test_09_checkpoint_persistence_and_restart (test_autonomy_orchestrator.TestAutonomyOrchestrator)
+State, queue, and completed jobs survive orchestrator restart. ... ok
+test_adversarial_canary_preserves_all_four_hour_guards (test_autonomy_safety_mission_119b.TestMission119BAutonomySafety)
+One local, zero-spend canary combines the four safety boundaries. ... 
+=======================================================
+🤖 AUTONOMOUS SUPERVISOR: Starting Loop for WF-TEST-TWO-STEP-001
+   Correlation: corr-auto-2f6584e0
+   Max Tasks: 5 | Spend Limit: 0.00 EUR
+=======================================================
+
+--- [AUTONOMOUS STEP 1] Task: WF-TEST-TWO-STEP-001-STEP-A (antigravity) ---
+[DEDUPE] Task WF-TEST-TWO-STEP-001-STEP-A already COMPLETED in WF-TEST-TWO-STEP-001-STEP-A-result.json. Skipping duplicate execution.
+[CHIEF DECISION] Decision: CONTINUE | Reason: Step 1 passed; automatically continuing to WF-TEST-TWO-STEP-001-STEP-B.
+
+--- [AUTONOMOUS STEP 2] Task: WF-TEST-TWO-STEP-001-STEP-B (antigravity) ---
+[DEDUPE] Task WF-TEST-TWO-STEP-001-STEP-B already COMPLETED in WF-TEST-TWO-STEP-001-STEP-B-result.json. Skipping duplicate execution.
+[CHIEF DECISION] Decision: COMPLETE | Reason: All workflow plan steps successfully completed and accepted by Chief.
+
+=======================================================
+🏁 AUTONOMOUS SUPERVISOR COMPLETED: COMPLETED (GOAL_COMPLETED)
+   Tasks Executed: 2 | Human Prompts: 0 | Spend: 0.00 EUR
+=======================================================
+
+
+=======================================================
+🤖 AUTONOMOUS SUPERVISOR: Starting Loop for WF-TEST-MAX-TASKS-005
+   Correlation: corr-auto-b38f741a
+   Max Tasks: 2 | Spend Limit: 0.00 EUR
+=======================================================
+
+--- [AUTONOMOUS STEP 1] Task: WF-TEST-MAX-TASKS-005-STEP-1 (antigravity) ---
+[DEDUPE] Task WF-TEST-MAX-TASKS-005-STEP-1 already COMPLETED in WF-TEST-MAX-TASKS-005-STEP-1-result.json. Skipping duplicate execution.
+[CHIEF DECISION] Decision: CONTINUE | Reason: Step 1 passed; automatically continuing to WF-TEST-MAX-TASKS-005-STEP-2.
+
+--- [AUTONOMOUS STEP 2] Task: WF-TEST-MAX-TASKS-005-STEP-2 (antigravity) ---
+[DEDUPE] Task WF-TEST-MAX-TASKS-005-STEP-2 already COMPLETED in WF-TEST-MAX-TASKS-005-STEP-2-result.json. Skipping duplicate execution.
+[CHIEF DECISION] Decision: CONTINUE | Reason: Step 2 passed; automatically continuing to WF-TEST-MAX-TASKS-005-STEP-3.
+[BOUNDED LIMIT] Reached maximum allowed tasks per workflow (2).
+
+=======================================================
+🏁 AUTONOMOUS SUPERVISOR COMPLETED: STOPPED_MAX_TASKS (MAX_TASKS_REACHED)
+   Tasks Executed: 2 | Human Prompts: 0 | Spend: 0.00 EUR
+=======================================================
+
+
+=======================================================
+🤖 AUTONOMOUS SUPERVISOR: Starting Loop for WF-TEST-FIREWALL-007
+   Correlation: corr-auto-2aa21c97
+   Max Tasks: 5 | Spend Limit: 0.00 EUR
+=======================================================
+
+--- [AUTONOMOUS STEP 1] Task: WF-TEST-FIREWALL-007-PAID-TASK (antigravity) ---
+[ZERO-SPEND FIREWALL] Zero-Spend Firewall violated: Task WF-TEST-FIREWALL-007-PAID-TASK requires unapproved spend 'PAID_API_USAGE'
+
+=======================================================
+🏁 AUTONOMOUS SUPERVISOR COMPLETED: PAYMENT_APPROVAL_REQUIRED (PAYMENT_APPROVAL_REQUIRED)
+   Tasks Executed: 0 | Human Prompts: 0 | Spend: 0.00 EUR
+=======================================================
+
+/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+ok
+test_atomic_opportunity_claim_has_one_winner_and_safe_release (test_autonomy_safety_mission_119b.TestMission119BAutonomySafety) ... 
+=======================================================
+🚀 LONG-RUN WORK ENGINE: Starting Session m119b-adversarial-canary
+   Max Duration: 20s | Max Operations: 2 | Spend Limit: 0.0 EUR
+=======================================================
+
+[OPPORTUNITY QUEUE] Discovered 0 initial evidence-backed opportunities.
+
+--- [LONG-RUN JOB 1] Task: WF-LONG-RUN-l-canary-OPP-119B-CANARY--TASK (1 ops bundled) ---
+[CHIEF EVALUATION] Decision: WAIT_FOR_HUMAN | Reason: Task payload flagged for explicit human approval before advancing.
+
+--- [LONG-RUN JOB 2] Task: WF-LONG-RUN-l-canary-OPP-119B-CANARY--TASK (1 ops bundled) ---
+[CHIEF EVALUATION] Decision: COMPLETE | Reason: All workflow plan steps successfully completed and accepted by Chief.
+[IDLE MONITORING] Opportunity queue empty (Check 1/1).
+[IDLE MONITORING] No further actionable opportunities. Graceful IDLE stop.
+
+=======================================================
+🏁 LONG-RUN ENGINE COMPLETED: COMPLETED (IDLE_MONITORING_NO_WORK)
+   Operations Finished: 1 | Builder Jobs: 2 | Refills: 0 | Spend: 0.00 EUR
+=======================================================
+
+FAIL
+test_budget_reservations_are_persisted_and_fail_closed (test_autonomy_safety_mission_119b.TestMission119BAutonomySafety) ... ok
+test_case_c_concurrent_recovery_finalizes_one_existing_dispatch_without_redispatch (test_autonomy_safety_mission_119b.TestMission119BAutonomySafety) ... ok
+test_decision_intents_recover_across_three_crash_windows (test_autonomy_safety_mission_119b.TestMission119BAutonomySafety) ... ok
+test_human_gate_parks_only_affected_branch_and_independent_branch_completes (test_autonomy_safety_mission_119b.TestMission119BAutonomySafety) ... ok
+test_two_supervisors_dispatch_one_shared_opportunity_once (test_autonomy_safety_mission_119b.TestMission119BAutonomySafety) ... 
+=======================================================
+🚀 LONG-RUN WORK ENGINE: Starting Session m119b-human-gate
+   Max Duration: 20s | Max Operations: 2 | Spend Limit: 0.0 EUR
+=======================================================
+
+[OPPORTUNITY QUEUE] Discovered 0 initial evidence-backed opportunities.
+
+--- [LONG-RUN JOB 1] Task: WF-LONG-RUN-man-gate-OPP-119B-HUMAN-TASK (1 ops bundled) ---
+[CHIEF EVALUATION] Decision: WAIT_FOR_HUMAN | Reason: Task payload flagged for explicit human approval before advancing.
+
+--- [LONG-RUN JOB 2] Task: WF-LONG-RUN-man-gate-OPP-119B-SAFE-TASK (1 ops bundled) ---
+[CHIEF EVALUATION] Decision: COMPLETE | Reason: All workflow plan steps successfully completed and accepted by Chief.
+[IDLE MONITORING] Opportunity queue empty (Check 1/1).
+[IDLE MONITORING] No further actionable opportunities. Graceful IDLE stop.
+
+=======================================================
+🏁 LONG-RUN ENGINE COMPLETED: COMPLETED (IDLE_MONITORING_NO_WORK)
+   Operations Finished: 1 | Builder Jobs: 2 | Refills: 0 | Spend: 0.00 EUR
+=======================================================
+
+/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+
+=======================================================
+🚀 LONG-RUN WORK ENGINE: Starting Session m119b-supervisor-b
+   Max Duration: 15s | Max Operations: 1 | Spend Limit: 0.0 EUR
+=======================================================
+
+[OPPORTUNITY QUEUE] Discovered 0 initial evidence-backed opportunities.
+[IDLE MONITORING] Opportunity queue empty (Check 1/1).
+[IDLE MONITORING] No further actionable opportunities. Graceful IDLE stop.
+
+=======================================================
+🏁 LONG-RUN ENGINE COMPLETED: COMPLETED (IDLE_MONITORING_NO_WORK)
+   Operations Finished: 0 | Builder Jobs: 0 | Refills: 0 | Spend: 0.00 EUR
+=======================================================
+
+
+=======================================================
+🚀 LONG-RUN WORK ENGINE: Starting Session m119b-supervisor-a
+   Max Duration: 15s | Max Operations: 1 | Spend Limit: 0.0 EUR
+=======================================================
+
+[OPPORTUNITY QUEUE] Discovered 0 initial evidence-backed opportunities.
+
+--- [LONG-RUN JOB 1] Task: WF-LONG-RUN-rvisor-a-OPP-119B-SHARED-TASK (1 ops bundled) ---
+[DEDUPE] Task WF-LONG-RUN-rvisor-a-OPP-119B-SHARED-TASK already COMPLETED in WF-LONG-RUN-rvisor-a-OPP-119B-SHARED-TASK-result.json. Skipping duplicate execution.
+[CHIEF EVALUATION] Decision: COMPLETE | Reason: All workflow plan steps successfully completed and accepted by Chief.
+
+=======================================================
+🏁 LONG-RUN ENGINE COMPLETED: COMPLETED (WORK_BUDGET_COMPLETED)
+   Operations Finished: 1 | Builder Jobs: 1 | Refills: 0 | Spend: 0.00 EUR
+=======================================================
+
+ok
+test_01_single_active_leader_across_instances (test_autonomy_supervisor.TestAutonomySupervisor)
+Exactly one active supervisor leader is elected across competing instances. ... ok
+test_02_monotonic_generation_fencing_on_failover (test_autonomy_supervisor.TestAutonomySupervisor)
+When old leader releases, follower acquires lease with incremented generation. ... ok
+test_03_corrupt_lease_fails_closed (test_autonomy_supervisor.TestAutonomySupervisor)
+Malformed or corrupt lease file prevents leadership promotion. ... ok
+test_04_worker_restart_matrix_governance (test_autonomy_supervisor.TestAutonomySupervisor)
+CLI1/CLI2 can restart, Google is conditional, Chief is forbidden. ... ok
+test_05_crash_loop_prevention (test_autonomy_supervisor.TestAutonomySupervisor)
+Exceeding max restarts per window blocks restart storm. ... ok
+test_06_pid_none_and_dead_pid_classification (test_autonomy_supervisor.TestAutonomySupervisor)
+pid=None is never alive; dead process transitions to ORPHANED. ... ok
+test_07_persistent_daemon_with_heartbeat_not_falsely_hung (test_autonomy_supervisor.TestAutonomySupervisor)
+Persistent daemon in SAFE_IDLE with alive PID is not marked HUNG. ... ok
+test_08_provider_quota_exhaustion_transitions_to_waiting_resource (test_autonomy_supervisor.TestAutonomySupervisor)
+Provider quota exhaustion sets WAITING_RESOURCE. ... ok
+test_09_chief_offline_mode_preserves_safe_execution (test_autonomy_supervisor.TestAutonomySupervisor)
+Chief offline mode is enabled by default to allow approved safe work to continue. ... ok
+test_10_checkpoint_persistence_and_metrics_counters (test_autonomy_supervisor.TestAutonomySupervisor)
+Supervisor checkpoint stores telemetry and restart metrics. ... ok
+test_01_all_eight_default_standby (test_bodyguards.EightBodyguardsTests)
+1. All 8 bodyguards initialize in STANDBY state with exact names. ... ok
+test_02_standby_causes_zero_model_calls (test_bodyguards.EightBodyguardsTests)
+2. Standby bodyguards incur exactly 0 model calls and 0 cost. ... ok
+test_03_assign_alpha_only_alpha_activated (test_bodyguards.EightBodyguardsTests)
+3. Assign Alpha -> only Alpha transitions to ASSIGNED / WORKING. ... ok
+test_04_bravo_remains_in_standby_when_alpha_assigned (test_bodyguards.EightBodyguardsTests)
+4. When Alpha is assigned, Bravo (and others) remain in STANDBY. ... ok
+test_05_completed_task_transitions_returning_to_standby (test_bodyguards.EightBodyguardsTests)
+5. Task completion transitions Bodyguard through RETURNING back to STANDBY. ... ok
+test_06_missing_required_capability_triggers_capability_mismatch (test_bodyguards.EightBodyguardsTests)
+6. Missing required capability -> CAPABILITY_MISMATCH (no false capability claims!). ... ok
+test_07_no_specialist_replacement_claim_without_evidence (test_bodyguards.EightBodyguardsTests)
+7. Bodyguard roles are strictly temporary without replacing core specialist identity. ... ok
+test_08_no_duplicate_assignment_error_when_exhausted (test_bodyguards.EightBodyguardsTests)
+8. Trying to assign a specific busy bodyguard raises ValueError. ... ok
+test_09_workload_routing_selects_first_free_available_standby (test_bodyguards.EightBodyguardsTests)
+9. Workload routing assigns next available standby bodyguard when none specified. ... ok
+test_10_speech_bubbles_match_state_invariants (test_bodyguards.EightBodyguardsTests)
+10. Bodyguard speech generation produces exact deterministic text for all states. ... ok
+test_01_bootstrap_rerun_idempotency (test_bootstrap_node_b_mission_162g.TestBootstrapNodeBMission162G) ... ok
+test_02_incompatible_python_version_detection (test_bootstrap_node_b_mission_162g.TestBootstrapNodeBMission162G) ... ok
+test_03_missing_git_detection (test_bootstrap_node_b_mission_162g.TestBootstrapNodeBMission162G) ... ok
+test_04_missing_non_git_repository_detection (test_bootstrap_node_b_mission_162g.TestBootstrapNodeBMission162G) ... ok
+test_05_invalid_node_id_rejection (test_bootstrap_node_b_mission_162g.TestBootstrapNodeBMission162G) ... ok
+test_06_correct_node_b_identity_and_pool (test_bootstrap_node_b_mission_162g.TestBootstrapNodeBMission162G) ... ok
+test_07_dirty_workspace_preservation_no_destructive_git (test_bootstrap_node_b_mission_162g.TestBootstrapNodeBMission162G) ... ok
+test_08_protocol_compatibility (test_bootstrap_node_b_mission_162g.TestBootstrapNodeBMission162G) ... ok
+test_09_protocol_incompatibility_detection (test_bootstrap_node_b_mission_162g.TestBootstrapNodeBMission162G) ... ok
+test_10_transport_prepared_but_unverified_offline (test_bootstrap_node_b_mission_162g.TestBootstrapNodeBMission162G) ... ok
+test_11_heartbeat_readiness_channel (test_bootstrap_node_b_mission_162g.TestBootstrapNodeBMission162G) ... ok
+test_12_human_auth_gate_requirement (test_bootstrap_node_b_mission_162g.TestBootstrapNodeBMission162G) ... ok
+test_13_credential_and_secret_exclusion (test_bootstrap_node_b_mission_162g.TestBootstrapNodeBMission162G) ... ok
+test_14_autostart_plist_generation_prepared_not_installed (test_bootstrap_node_b_mission_162g.TestBootstrapNodeBMission162G) ... ok
+test_15_restart_safe_state_persistence (test_bootstrap_node_b_mission_162g.TestBootstrapNodeBMission162G) ... ok
+test_16_pool_4_remains_not_configured (test_bootstrap_node_b_mission_162g.TestBootstrapNodeBMission162G) ... ok
+test_17_zero_public_ports_opened (test_bootstrap_node_b_mission_162g.TestBootstrapNodeBMission162G) ... ok
+test_18_offline_physical_node_b_remains_offline (test_bootstrap_node_b_mission_162g.TestBootstrapNodeBMission162G) ... ok
+test_01_bootstrap_success_with_valid_dr_manifest (test_bootstrap_replacement_host.TestBootstrapReplacementHost)
+Bootstrap succeeds, fences previous host, and increments generation. ... ok
+test_02_bootstrap_fails_closed_when_dr_manifest_missing (test_bootstrap_replacement_host.TestBootstrapReplacementHost)
+Bootstrap raises ValueError if DR manifest does not exist. ... ok
+test_03_bootstrap_fails_closed_when_dr_manifest_corrupted (test_bootstrap_replacement_host.TestBootstrapReplacementHost)
+Bootstrap raises ValueError if DR manifest is corrupt. ... ok
+test_01_generate_prospect_dossiers (test_build_content_transformation_dossiers.TestDossierBatchGenerator)
+Generates pre-transformed deliverable dossiers for CP-01 and CP-02. ... ok
+test_01_build_release_archive (test_build_fruitki_release_zip.TestFruitKIReleaseBuilder)
+Builds valid .zip archive with bundle manifest, license, and README. ... ok
+test_01_split_brain_heavy_job_single_winner (test_canonical_authority_root_cause.TestCanonicalAuthorityRootCause)
+AutonomyControlPlane, EliteExecutionCore, and ResourceIntelligence cannot simultaneously hold heavy slot. ... ok
+test_02_split_brain_overlapping_mutation_scopes (test_canonical_authority_root_cause.TestCanonicalAuthorityRootCause)
+ACP and EEC cannot acquire overlapping scope paths. ... ok
+test_03_corruption_matrix_zero_byte_file (test_canonical_authority_root_cause.TestCanonicalAuthorityRootCause)
+Zero-byte scope file is parsed as CORRUPT_BLOCKED and fails closed on acquisition. ... ok
+test_04_corruption_matrix_malformed_json_and_non_dict (test_canonical_authority_root_cause.TestCanonicalAuthorityRootCause)
+Malformed JSON, arrays, null, and non-dicts fail closed. ... ok
+test_05_corruption_matrix_missing_or_invalid_fields (test_canonical_authority_root_cause.TestCanonicalAuthorityRootCause)
+Missing owner, negative generation, non-integer generation fail closed. ... ok
+test_06_generation_fencing_rejects_stale_owner_actions (test_canonical_authority_root_cause.TestCanonicalAuthorityRootCause)
+Stale generation cannot renew, release, or overwrite newer owner. ... ok
+test_07_atomic_multi_scope_all_or_nothing (test_canonical_authority_root_cause.TestCanonicalAuthorityRootCause)
+If one of three requested scopes is locked, none are acquired. ... ok
+test_08_cross_process_heavy_contention (test_canonical_authority_root_cause.TestCanonicalAuthorityRootCause)
+Contention across separate OS processes results in exactly 1 winner. ... ok
+test_09_live_worker_registry_missing_pid_not_assumed_alive (test_canonical_authority_root_cause.TestCanonicalAuthorityRootCause)
+Missing or None PID is never assumed alive; transitions to UNKNOWN instead of remaining PROGRESSING. ... ok
+test_10_live_worker_registry_dead_pid_transitions_to_orphaned (test_canonical_authority_root_cause.TestCanonicalAuthorityRootCause)
+Dead PID with PROGRESSING state transitions to ORPHANED. ... ok
+test_action_safety_policy (test_capability_registry.TestCapabilityRegistry) ... ok
+test_capability_resolution_and_fail_closed (test_capability_registry.TestCapabilityRegistry) ... ok
+test_connector_registry_fail_closed (test_capability_registry.TestCapabilityRegistry) ... ok
+test_handoff_protocol_preserves_identities (test_capability_registry.TestCapabilityRegistry) ... ok
+test_minimal_context_transfer_reuse_and_delta (test_capability_registry.TestCapabilityRegistry) ... ok
+test_persistent_agent_profile_secret_rejection (test_capability_registry.TestCapabilityRegistry) ... ok
+test_persistent_agent_profile_valid (test_capability_registry.TestCapabilityRegistry) ... ok
+test_resumable_human_gate_identity_preservation (test_capability_registry.TestCapabilityRegistry) ... ok
+test_routine_proposal_unapproved_and_sanitized (test_capability_registry.TestCapabilityRegistry) ... ok
+test_skill_registry_initial_verified (test_capability_registry.TestCapabilityRegistry) ... ok
+test_controller_starts_lease_and_persists_heartbeat_and_status (test_chief_autopilot_mission_153c.ChiefAutopilotTests) ... ok
+test_duplicate_lease_task_is_suppressed_by_queue_claim (test_chief_autopilot_mission_153c.ChiefAutopilotTests) ... ok
+test_existing_chief_provider_task_is_preserved_not_redispatched (test_chief_autopilot_mission_153c.ChiefAutopilotTests) ... ok
+test_expired_lease_dispatches_nothing_and_reports (test_chief_autopilot_mission_153c.ChiefAutopilotTests) ... ok
+test_explicit_lease_runner_processes_only_local_work_and_exits_on_wait (test_chief_autopilot_mission_153c.ChiefAutopilotTests) ... ok
+test_failed_local_task_is_bounded_at_three_attempts (test_chief_autopilot_mission_153c.ChiefAutopilotTests) ... ok
+test_heartbeat_is_zero_model_and_persistent_service_is_not_a_task (test_chief_autopilot_mission_153c.ChiefAutopilotTests) ... ok
+test_independent_local_branch_runs_when_provider_transport_is_unavailable (test_chief_autopilot_mission_153c.ChiefAutopilotTests) ... ok
+test_money_and_publication_gates_block_their_branch (test_chief_autopilot_mission_153c.ChiefAutopilotTests) ... ok
+test_only_remote_work_pauses_without_fake_provider_execution (test_chief_autopilot_mission_153c.ChiefAutopilotTests) ... ok
+test_restart_recovers_without_extending_expiry (test_chief_autopilot_mission_153c.ChiefAutopilotTests) ... ok
+test_stop_prevents_new_dispatch_without_terminating_any_process (test_chief_autopilot_mission_153c.ChiefAutopilotTests) ... ok
+test_successful_local_results_continue_without_second_human_command (test_chief_autopilot_mission_153c.ChiefAutopilotTests) ... ok
+test_supported_commands_and_invalid_durations (test_chief_autopilot_mission_153c.ChiefAutopilotTests) ... ok
+test_task_limit_is_enforced (test_chief_autopilot_mission_153c.ChiefAutopilotTests) ... ok
+test_three_task_acceptance_sequence_needs_no_second_human_command (test_chief_autopilot_mission_153c.ChiefAutopilotTests) ... ok
+test_01_start_session (test_chief_autopilot_mission_163g.TestChiefAutopilotMission163G) ... ok
+test_02_stop_session (test_chief_autopilot_mission_163g.TestChiefAutopilotMission163G) ... ok
+test_03_resume_session (test_chief_autopilot_mission_163g.TestChiefAutopilotMission163G) ... ok
+test_04_monotonic_deadline_enforcement (test_chief_autopilot_mission_163g.TestChiefAutopilotMission163G) ... ok
+test_05_max_task_limit (test_chief_autopilot_mission_163g.TestChiefAutopilotMission163G) ... ok
+test_06_hard_max_task_limit (test_chief_autopilot_mission_163g.TestChiefAutopilotMission163G) ... ok
+test_07_node_b_offline_does_not_block_node_a (test_chief_autopilot_mission_163g.TestChiefAutopilotMission163G) ... ok
+test_08_empty_queue_useful_task_derivation (test_chief_autopilot_mission_163g.TestChiefAutopilotMission163G) ... FAIL
+test_09_busywork_rejection (test_chief_autopilot_mission_163g.TestChiefAutopilotMission163G) ... ok
+test_10_duplicate_suppression (test_chief_autopilot_mission_163g.TestChiefAutopilotMission163G) ... FAIL
+test_11_atomic_task_claim_and_result_ingestion (test_chief_autopilot_mission_163g.TestChiefAutopilotMission163G) ... FAIL
+test_12_automatic_next_task_selection_loop (test_chief_autopilot_mission_163g.TestChiefAutopilotMission163G) ... ok
+test_13_human_gate_detection (test_chief_autopilot_mission_163g.TestChiefAutopilotMission163G) ... ok
+test_14_money_gate_unknown_cost_detection (test_chief_autopilot_mission_163g.TestChiefAutopilotMission163G) ... ok
+test_15_restart_recovery (test_chief_autopilot_mission_163g.TestChiefAutopilotMission163G) ... ok
+test_16_command_parsing (test_chief_autopilot_mission_163g.TestChiefAutopilotMission163G) ... ok
+test_17_zero_credentials_and_zero_video_spend (test_chief_autopilot_mission_163g.TestChiefAutopilotMission163G) ... ok
+test_01_durable_intent_survives_restart (test_chief_brain_mission_169.TestChiefBrainMission169) ... ok
+test_02_provider_change_does_not_remove_intent (test_chief_brain_mission_169.TestChiefBrainMission169) ... ok
+test_03_account_change_does_not_remove_intent (test_chief_brain_mission_169.TestChiefBrainMission169) ... ok
+test_04_superseded_intent_no_longer_controls_behavior (test_chief_brain_mission_169.TestChiefBrainMission169) ... ok
+test_05_historical_decision_remains_retrievable (test_chief_brain_mission_169.TestChiefBrainMission169) ... ok
+test_06_rough_idea_survives_restart (test_chief_brain_mission_169.TestChiefBrainMission169) ... ok
+test_07_result_becomes_local_canonical_evidence (test_chief_brain_mission_169.TestChiefBrainMission169) ... ok
+test_08_worker_claim_is_distinct_from_verified_evidence (test_chief_brain_mission_169.TestChiefBrainMission169) ... ok
+test_09_open_loops_survive_restart (test_chief_brain_mission_169.TestChiefBrainMission169) ... ok
+test_10_next_action_reconstructs_after_restart (test_chief_brain_mission_169.TestChiefBrainMission169) ... ok
+test_11_context_package_excludes_irrelevant_history (test_chief_brain_mission_169.TestChiefBrainMission169) ... ok
+test_12_context_package_remains_bounded (test_chief_brain_mission_169.TestChiefBrainMission169) ... ok
+test_13_duplicate_idea_detection (test_chief_brain_mission_169.TestChiefBrainMission169) ... ok
+test_14_unknown_remains_unknown (test_chief_brain_mission_169.TestChiefBrainMission169) ... ok
+test_15_secret_like_memory_is_rejected (test_chief_brain_mission_169.TestChiefBrainMission169) ... ok
+test_16_money_authorization_cannot_be_inferred (test_chief_brain_mission_169.TestChiefBrainMission169) ... ok
+test_17_publication_authorization_cannot_be_inferred (test_chief_brain_mission_169.TestChiefBrainMission169) ... ok
+test_18_completed_tasks_do_not_reopen_accidentally (test_chief_brain_mission_169.TestChiefBrainMission169) ... ok
+test_19_hung_tasks_distinguishable (test_chief_brain_mission_169.TestChiefBrainMission169) ... ok
+test_20_persistent_expected_services_are_not_tasks (test_chief_brain_mission_169.TestChiefBrainMission169) ... ok
+test_21_crash_during_atomic_write_preserves_previous_state (test_chief_brain_mission_169.TestChiefBrainMission169) ... ok
+test_22_malformed_state_fails_safely (test_chief_brain_mission_169.TestChiefBrainMission169) ... ok
+test_23_concurrent_reads_are_safe (test_chief_brain_mission_169.TestChiefBrainMission169) ... ok
+test_24_concurrent_write_strategy_is_deterministic (test_chief_brain_mission_169.TestChiefBrainMission169) ... ok
+test_25_handover_snapshot_regenerates_from_brain_state (test_chief_brain_mission_169.TestChiefBrainMission169) ... ok
+test_26_fresh_chief_bootstrap_reconstructs_current_mission (test_chief_brain_mission_169.TestChiefBrainMission169) ... ok
+test_27_codex_context_generated_without_google_chat (test_chief_brain_mission_169.TestChiefBrainMission169) ... ok
+test_28_google_context_generated_without_codex_chat (test_chief_brain_mission_169.TestChiefBrainMission169) ... ok
+test_29_no_account_credentials_required (test_chief_brain_mission_169.TestChiefBrainMission169) ... ok
+test_30_deletion_and_supersession_audit_trail (test_chief_brain_mission_169.TestChiefBrainMission169) ... ok
+test_backlog_ranking_and_busywork_rejection (test_chief_continuation_controller_mission_148c.ChiefContinuationControllerTests) ... ok
+test_continue_aliases_are_equivalent_and_status_is_read_only (test_chief_continuation_controller_mission_148c.ChiefContinuationControllerTests) ... ok
+test_durable_result_is_ingested_not_provider_chat_history (test_chief_continuation_controller_mission_148c.ChiefContinuationControllerTests) ... ok
+test_empty_queue_discovers_unfinished_mission_and_persists_one_task (test_chief_continuation_controller_mission_148c.ChiefContinuationControllerTests) ... ok
+test_exhausted_verified_google_pool_checkpoints_same_task_then_resumes (test_chief_continuation_controller_mission_148c.ChiefContinuationControllerTests) ... ok
+test_human_money_and_publication_backlog_items_fail_closed (test_chief_continuation_controller_mission_148c.ChiefContinuationControllerTests) ... ok
+test_interrupted_task_and_heavy_limit_prevent_second_dispatch (test_chief_continuation_controller_mission_148c.ChiefContinuationControllerTests) ... ok
+test_malformed_cost_metadata_fails_closed (test_chief_continuation_controller_mission_148c.ChiefContinuationControllerTests) ... ok
+test_money_and_publication_are_human_gates (test_chief_continuation_controller_mission_148c.ChiefContinuationControllerTests) ... ok
+test_nested_creator_plan_routes_existing_local_qc_not_human_content (test_chief_continuation_controller_mission_148c.ChiefContinuationControllerTests) ... ok
+test_no_provider_chat_or_secret_material_in_task (test_chief_continuation_controller_mission_148c.ChiefContinuationControllerTests) ... ok
+test_oversized_shared_review_scope_is_blocked_not_dispatched (test_chief_continuation_controller_mission_148c.ChiefContinuationControllerTests) ... ok
+test_pool_four_is_never_selected_by_local_planner (test_chief_continuation_controller_mission_148c.ChiefContinuationControllerTests) ... ok
+test_prepared_pool_switch_blocks_new_task_until_human_auth (test_chief_continuation_controller_mission_148c.ChiefContinuationControllerTests) ... ok
+test_result_ingestion_completes_claim_before_next_planning (test_chief_continuation_controller_mission_148c.ChiefContinuationControllerTests) ... ok
+test_status_has_no_model_call_and_stop_prevents_dispatch (test_chief_continuation_controller_mission_148c.ChiefContinuationControllerTests) ... ok
+test_true_no_work_remains_no_ready_action (test_chief_continuation_controller_mission_148c.ChiefContinuationControllerTests) ... ok
+test_unavailable_provider_blocks_and_unknown_command_fails_closed (test_chief_continuation_controller_mission_148c.ChiefContinuationControllerTests) ... ok
+test_weiter_creates_exactly_one_prepared_task_and_reuses_it (test_chief_continuation_controller_mission_148c.ChiefContinuationControllerTests) ... ok
+test_01_record_execution_result_and_fingerprint (test_chief_decision_protocol.TestChiefDecisionProtocol)
+Result envelope is saved to disk with deterministic SHA-256 fingerprint. ... ok
+test_02_evaluate_result_and_generate_auto_decision (test_chief_decision_protocol.TestChiefDecisionProtocol)
+Evaluates completed result and emits structured ChiefDecisionRecord. ... ok
+test_03_human_gate_parks_step_without_blocking_system (test_chief_decision_protocol.TestChiefDecisionProtocol)
+When publication or payment is needed, Human Fast-Gate is generated and step is parked. ... ok
+test_04_closed_loop_continuous_autonomous_chain (test_chief_decision_protocol.TestChiefDecisionProtocol)
+Demonstrates continuous multi-step autonomous chain without human copy/paste or WEITER. ... ok
+test_05_dependency_wait_semantics_scope_local (test_chief_decision_protocol.TestChiefDecisionProtocol)
+Dependency wait blocks only matching scope and resolves upon result arrival. ... ok
+test_01_incident_recovery_execution (test_cli1_incident_recovery.TestCLI1IncidentRecovery)
+Verifies automated incident detection, orphan reclamation, and failover to alternate worker. ... ok
+test_capability_handoff_preserves_identity_and_prevents_ping_pong (test_completion_handoff_engine_product_5c.CompletionHandoffEngineTests) ... ok
+test_dependency_and_gates_wait_without_handoff_while_independent_work_can_continue (test_completion_handoff_engine_product_5c.CompletionHandoffEngineTests) ... ok
+test_open_claim_done_is_terminal_and_evidence_required (test_completion_handoff_engine_product_5c.CompletionHandoffEngineTests) ... ok
+test_product_4_and_batch_compatibility_and_zero_model_bookkeeping (test_completion_handoff_engine_product_5c.CompletionHandoffEngineTests) ... ok
+test_unmet_acceptance_and_restart_recovery_are_safe (test_completion_handoff_engine_product_5c.CompletionHandoffEngineTests) ... ok
+test_01_permanent_research_question_persisted (test_compound_intelligence_flywheel.TestCompoundIntelligenceFlywheel)
+Permanent research question is prominently persisted in central state. ... ok
+test_02_compounding_value_weighting (test_compound_intelligence_flywheel.TestCompoundIntelligenceFlywheel)
+Higher compounding categories receive higher multiplier weights. ... ok
+test_03_challenge_and_verification_loop (test_compound_intelligence_flywheel.TestCompoundIntelligenceFlywheel)
+Ideas require adversarial challenge and experimental verification before adoption. ... ok
+test_04_failed_or_marginal_idea_rejected (test_compound_intelligence_flywheel.TestCompoundIntelligenceFlywheel)
+Ideas that fail experiments or produce marginal gains (<5%) are rejected. ... ok
+test_05_flywheel_cycle_velocity_multiplication (test_compound_intelligence_flywheel.TestCompoundIntelligenceFlywheel)
+Recording flywheel cycles tracks compounding velocity over time. ... ok
+test_01_google_candidate_triggers_cli2_attack_automatically (test_continuous_autonomous_operations.TestContinuousAutonomousOperations)
+GOOGLE candidate ready automatically dispatches CLI2 attack without manual WEITER. ... ok
+test_02_cli2_high_defect_triggers_google_remediate_automatically (test_continuous_autonomous_operations.TestContinuousAutonomousOperations)
+CLI2 HIGH defect automatically triggers GOOGLE remediation without manual WEITER. ... ok
+test_03_cli2_pass_triggers_codex_acceptance_automatically (test_continuous_autonomous_operations.TestContinuousAutonomousOperations)
+CLI2 pass automatically dispatches CODEX acceptance without manual WEITER. ... ok
+test_04_resource_aware_model_routing_fallback_to_claude_when_gemini_zero (test_continuous_autonomous_operations.TestContinuousAutonomousOperations)
+When Gemini quota is 0%, router seamlessly assigns Claude 3.5 Sonnet. ... ok
+test_05_all_quotas_exhausted_transitions_to_waiting_resource (test_continuous_autonomous_operations.TestContinuousAutonomousOperations)
+When all compatible models are exhausted, router sets WAITING_RESOURCE (0 EUR spend). ... ok
+test_06_chain_of_safe_jobs_executed_continuously_without_weiter (test_continuous_autonomous_operations.TestContinuousAutonomousOperations)
+A series of safe jobs execute sequentially without requiring manual WEITER. ... ok
+test_07_payment_job_blocks_at_waiting_permission (test_continuous_autonomous_operations.TestContinuousAutonomousOperations)
+Job requiring payment strictly blocks at WAITING_PERMISSION. ... ok
+test_board_generation_blocked (test_control_center.TestControlCenter) ... ok
+test_board_generation_standby (test_control_center.TestControlCenter) ... ok
+test_L1_direct_HUMAN_GATE_to_PENDING_denied (test_courier_adversarial.TestAdversarialLifecycleAuthority) ... ok
+test_L2_direct_FAILED_to_PENDING_denied (test_courier_adversarial.TestAdversarialLifecycleAuthority) ... ok
+test_L3_arbitrary_BLOCKED_to_PENDING_denied (test_courier_adversarial.TestAdversarialLifecycleAuthority) ... ok
+test_L4_WORKER_UNAVAILABLE_without_evidence_change_denied (test_courier_adversarial.TestAdversarialLifecycleAuthority) ... ok
+test_L5_WORKER_UNAVAILABLE_changed_evidence_allowed (test_courier_adversarial.TestAdversarialLifecycleAuthority) ... ok
+test_L6_second_identical_retry_denied (test_courier_adversarial.TestAdversarialLifecycleAuthority) ... ok
+test_L7_conflicting_writer_claim_denied (test_courier_adversarial.TestAdversarialLifecycleAuthority) ... ok
+test_L8_concurrent_retry_attempts_cannot_both_win (test_courier_adversarial.TestAdversarialLifecycleAuthority) ... ok
+test_D10_deduped_but_result_missing (test_courier_adversarial.TestAdversarialRecoveryAndDedupe) ... ok
+test_D1_same_task_hash_foreign_mission (test_courier_adversarial.TestAdversarialRecoveryAndDedupe) ... ok
+test_D2_same_task_hash_stale_result (test_courier_adversarial.TestAdversarialRecoveryAndDedupe) ... ok
+test_D3_same_filename_pattern_malformed (test_courier_adversarial.TestAdversarialRecoveryAndDedupe) ... ok
+test_D4_same_task_hash_wrong_worker (test_courier_adversarial.TestAdversarialRecoveryAndDedupe) ... ok
+test_D5_same_task_hash_requested_gemini_confirmed_local (test_courier_adversarial.TestAdversarialRecoveryAndDedupe) ... ok
+test_D6_result_status_not_successful (test_courier_adversarial.TestAdversarialRecoveryAndDedupe) ... ok
+test_D7_missing_verification_evidence (test_courier_adversarial.TestAdversarialRecoveryAndDedupe) ... ok
+test_D8_correct_fully_identity_bound (test_courier_adversarial.TestAdversarialRecoveryAndDedupe) ... ok
+test_D9_valid_explicit_cross_mission_reuse (test_courier_adversarial.TestAdversarialRecoveryAndDedupe) ... ok
+test_R10_duplicate_goal_intake_cannot_bypass_terminal_safety (test_courier_adversarial.TestAdversarialRecoveryAndDedupe) ... ok
+test_R1_active_founder_goal_stale_claimed (test_courier_adversarial.TestAdversarialRecoveryAndDedupe) ... ok
+test_R2_active_founder_goal_failed_mission (test_courier_adversarial.TestAdversarialRecoveryAndDedupe) ... ok
+test_R3_human_gate_sticky (test_courier_adversarial.TestAdversarialRecoveryAndDedupe) ... ok
+test_R4_blocked_auth_required (test_courier_adversarial.TestAdversarialRecoveryAndDedupe) ... ok
+test_R5_blocked_worker_unavailable_unchanged_fingerprint (test_courier_adversarial.TestAdversarialRecoveryAndDedupe) ... ok
+test_R6_blocked_worker_unavailable_changed_fingerprint (test_courier_adversarial.TestAdversarialRecoveryAndDedupe) ... ok
+test_R7_run_courier_again_same_new_fingerprint (test_courier_adversarial.TestAdversarialRecoveryAndDedupe) ... ok
+test_R8_worker_unavailable_changed_live_writer (test_courier_adversarial.TestAdversarialRecoveryAndDedupe) ... ok
+test_R9_two_founder_goals_cannot_steal (test_courier_adversarial.TestAdversarialRecoveryAndDedupe) ... ok
+test_V10_successor_permitted_only_after_accepted_validation (test_courier_adversarial.TestAdversarialResultValidation) ... ok
+test_V1_stale_same_mission (test_courier_adversarial.TestAdversarialResultValidation) ... ok
+test_V2_foreign_same_hash (test_courier_adversarial.TestAdversarialResultValidation) ... ok
+test_V3_arbitrary_boolean_reuse (test_courier_adversarial.TestAdversarialResultValidation) ... ok
+test_V4_malformed_result (test_courier_adversarial.TestAdversarialResultValidation) ... ok
+test_V5_wrong_worker (test_courier_adversarial.TestAdversarialResultValidation) ... ok
+test_V6_requested_gemini_confirmed_local (test_courier_adversarial.TestAdversarialResultValidation) ... ok
+test_V7_missing_verification_evidence (test_courier_adversarial.TestAdversarialResultValidation) ... ok
+test_V8_valid_current_identity_bound (test_courier_adversarial.TestAdversarialResultValidation) ... ok
+test_V9_successor_absent_after_rejected_validation (test_courier_adversarial.TestAdversarialResultValidation) ... ok
+test_complete_lifecycle_retries_once_then_satisfies_goal (test_courier_complete_lifecycle.TestCourierCompleteLifecycle) ... 

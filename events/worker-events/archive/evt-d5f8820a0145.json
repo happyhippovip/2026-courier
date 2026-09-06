@@ -1,0 +1,17 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-01T12:04:57.320340+00:00",
+  "event_id": "evt-d5f8820a0145",
+  "event_type": "WORKER_PROGRESS",
+  "evidence": {
+    "pid": 34013,
+    "proof_file": "/Users/user/Downloads/2026-courier/events/runtime-state/canary_proof.json"
+  },
+  "fingerprint": "99ec02f5252bec05",
+  "mission_id": "M212",
+  "recommended_action": null,
+  "session_epoch": "epoch-google-1788264297",
+  "severity": "INFO",
+  "task_id": "TASK-CANARY-AUTONOMY-1788264297297",
+  "worker_id": "GOOGLE"
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0",
+  "status": "ACCEPTED",
+  "target_agent": "CLI1",
+  "task_hash": "08e17f3222ae1f8fe67741ec2c1c25fba546250aa7a100cbdd116ede35981abd",
+  "type": "ACK",
+  "worker_id": "m232-b06-operator"
+}

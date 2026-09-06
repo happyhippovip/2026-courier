@@ -1,0 +1,19 @@
+{
+  "objective_id": "KEEP_PRODUCTION_PIPELINE_HEALTHY",
+  "name": "Keep Production Pipeline Healthy",
+  "enabled": true,
+  "priority": 1,
+  "allowed_scope": [
+    "config/local_tools.json"
+  ],
+  "allowed_actions": [
+    "READ"
+  ],
+  "risk_ceiling": "LOW",
+  "cost_ceiling": 0.0,
+  "last_evaluated": "2026-08-30T23:48:43.835176+00:00",
+  "last_useful_result_hash": "0b3cfc7379672ea69cd79fabd92c3f49478fb134b290847a7ff68cd704aab70f",
+  "status": "COMPLETE",
+  "target_agent": "antigravity",
+  "instruction_template": "Audit local tool definitions and verify production pipeline health fixtures"
+}

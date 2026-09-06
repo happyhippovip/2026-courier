@@ -1,0 +1,424 @@
+{
+  "inventory": {
+    "schema_version": "1.0",
+    "inventory_id": "ecd231c9f82edc81cf2b19e692aece788e35a21988fc36f6ec8d0048115e315e",
+    "generated_at": "2026-08-31T12:00:00.000000+00:00",
+    "assets": {
+      "demo_live_render": {
+        "schema_version": "1.0",
+        "content_id": "demo_live_render",
+        "product_family": "unknown",
+        "media_master_path": "runtime/content/demo_live_render/demo_strawberry_short.avi",
+        "media_sha256": "58db40735b2ba1e5d2bc8481c7bf1bc5d25fd42af3be97450bc46726186d8e02",
+        "duration_seconds": null,
+        "resolution": null,
+        "qc_status": "NOT_AVAILABLE",
+        "qc_report_path": null,
+        "publish_package_path": null,
+        "target_platform": null,
+        "target_channel_id": null,
+        "target_channel_handle": null,
+        "audience_state": "NOT_AVAILABLE",
+        "publication_authorized": null,
+        "current_technical_readiness_state": "MEDIA_RENDERED_UNPACKAGED",
+        "current_blocking_gate": "QC_REQUIRED",
+        "evidence_timestamp": null,
+        "immutable_content_fingerprint": null,
+        "last_deterministic_verification_timestamp": "2026-08-31T12:00:00.000000+00:00",
+        "source_files": [
+          "runtime/content/demo_live_render/demo_strawberry_short.avi"
+        ],
+        "asset_state_hash": "ab576d8bca0f4263eb70983e847b8f09c28c014f127add93bb66fbd96a698fed"
+      },
+      "golden_trophy_short": {
+        "schema_version": "1.0",
+        "content_id": "golden_trophy_short",
+        "product_family": "fruitki",
+        "media_master_path": "runtime/content/golden_trophy_short/render.mp4",
+        "media_sha256": "bd87cc42f7c98f92148b39b01e6cebfd4f451f61152fc01319aa3d8d500a88d8",
+        "duration_seconds": 8.0,
+        "resolution": "360x640",
+        "qc_status": "PASS",
+        "qc_report_path": "runtime/content/golden_trophy_short/qc_report.json",
+        "publish_package_path": "runtime/content/golden_trophy_short/publish_package.json",
+        "target_platform": "YOUTUBE",
+        "target_channel_id": "UCg0O_a10jsQ74ffS_HgFGqA",
+        "target_channel_handle": "@kifruchtefilme",
+        "audience_state": "DECISION_REQUIRED",
+        "publication_authorized": false,
+        "current_technical_readiness_state": "COMPLETE_READY_FOR_REVIEW",
+        "current_blocking_gate": "AUDIENCE_DECISION_GATE",
+        "evidence_timestamp": "2026-08-31T09:42:14.361561+00:00",
+        "immutable_content_fingerprint": "c42c6830a2b5f3d43f542b0d9521bf5572ae12e43b09bc4724e16b4a0081eed0",
+        "last_deterministic_verification_timestamp": "2026-08-31T12:00:00.000000+00:00",
+        "source_files": [
+          "runtime/content/golden_trophy_short/publish_package.json",
+          "runtime/content/golden_trophy_short/qc_report.json",
+          "runtime/content/golden_trophy_short/render.mp4",
+          "runtime/content/golden_trophy_short/render_metadata.json"
+        ],
+        "asset_state_hash": "b5857e075747fec484f05a5fc683187a0f93114161ee0d5788cdb1aafd0cedbc"
+      },
+      "magnifying_glass_short": {
+        "schema_version": "1.0",
+        "content_id": "magnifying_glass_short",
+        "product_family": "fruitki",
+        "media_master_path": "runtime/content/magnifying_glass_short/render.mp4",
+        "media_sha256": "984165601008db0abc000194ab4f9f4b1b74d213b3e5dfede0a664b23974fba7",
+        "duration_seconds": 8.0,
+        "resolution": "360x640",
+        "qc_status": "NOT_AVAILABLE",
+        "qc_report_path": null,
+        "publish_package_path": null,
+        "target_platform": null,
+        "target_channel_id": null,
+        "target_channel_handle": null,
+        "audience_state": "NOT_AVAILABLE",
+        "publication_authorized": null,
+        "current_technical_readiness_state": "MEDIA_RENDERED_UNPACKAGED",
+        "current_blocking_gate": "QC_REQUIRED",
+        "evidence_timestamp": null,
+        "immutable_content_fingerprint": null,
+        "last_deterministic_verification_timestamp": "2026-08-31T12:00:00.000000+00:00",
+        "source_files": [
+          "runtime/content/magnifying_glass_short/render.mp4",
+          "runtime/content/magnifying_glass_short/render_metadata.json"
+        ],
+        "asset_state_hash": "724cb5890f2b8eb235f49944941214abaeefcf39b092d1cb25fb1a7ca1e0026b"
+      },
+      "mystery_box_short": {
+        "schema_version": "1.0",
+        "content_id": "mystery_box_short",
+        "product_family": "fruitki",
+        "media_master_path": "runtime/content/mystery_box_short/fruitki_strawberry_mystery_box.mp4",
+        "media_sha256": "0610c35c3589e38f943de2bf3efca75f670852390b69814e77f8251ab91bba99",
+        "duration_seconds": 7.5,
+        "resolution": "360x640",
+        "qc_status": "PASS",
+        "qc_report_path": "runtime/content/mystery_box_short/qc_report.json",
+        "publish_package_path": "runtime/content/mystery_box_short/publish_package.json",
+        "target_platform": "YOUTUBE",
+        "target_channel_id": "UCg0O_a10jsQ74ffS_HgFGqA",
+        "target_channel_handle": "@kifruchtefilme",
+        "audience_state": "DECISION_REQUIRED",
+        "publication_authorized": false,
+        "current_technical_readiness_state": "COMPLETE_READY_FOR_REVIEW",
+        "current_blocking_gate": "AUDIENCE_DECISION_GATE",
+        "evidence_timestamp": "2026-08-31T09:42:14.361561+00:00",
+        "immutable_content_fingerprint": "0226e05a99d440b4302c0167cc9894b1e24dc497522638740472cd05dbd34b39",
+        "last_deterministic_verification_timestamp": "2026-08-31T12:00:00.000000+00:00",
+        "source_files": [
+          "runtime/content/mystery_box_short/fruitki_strawberry_mystery_box.mp4",
+          "runtime/content/mystery_box_short/publish_package.json",
+          "runtime/content/mystery_box_short/qc_report.json"
+        ],
+        "asset_state_hash": "3384629ba8f9ab9656e5a957d4c676b9e82ee4d0e4f983aa67cae1bcdbda2e52"
+      }
+    }
+  },
+  "queue": {
+    "schema_version": "1.0",
+    "queue_id": "2a922c065e0dd3c128d79ccf44b9e2b538922f96b0b5db3c01d81339dabcf0ed",
+    "generated_at": "2026-08-31T12:00:00.000000+00:00",
+    "items": [
+      {
+        "queue_item_id": "09aa2e33789e7f17040896e9d01cf76e",
+        "content_id": "demo_live_render",
+        "action_type": "LOCAL_QC_EXECUTION",
+        "status": "READY_FOR_AUTONOMOUS_LOCAL_WORK",
+        "reason_code": "QC_REPORT_MISSING_OR_INVALID",
+        "evidence_references": [
+          "runtime/content/demo_live_render/demo_strawberry_short.avi"
+        ],
+        "allowed_side_effect_class": "WRITE_LOCAL_ARTIFACTS",
+        "maximum_model_calls": 1,
+        "maximum_external_calls": 0,
+        "money_limit_eur": 0.0,
+        "requires_human": false,
+        "requires_independent_review": false,
+        "created_from_state_hash": "ab576d8bca0f4263eb70983e847b8f09c28c014f127add93bb66fbd96a698fed",
+        "idempotency_key": "2321a7cc301484f6b256151ccf651cd4020518874a744930de1384c2cf057ab2"
+      },
+      {
+        "queue_item_id": "9472d65259dfd69520082bb7861d4f01",
+        "content_id": "golden_trophy_short",
+        "action_type": "HUMAN_AUDIENCE_DECISION",
+        "status": "WAITING_FOR_HUMAN_DECISION",
+        "reason_code": "AUDIENCE_DECISION_REQUIRED",
+        "evidence_references": [
+          "runtime/content/golden_trophy_short/publish_package.json",
+          "runtime/content/golden_trophy_short/qc_report.json",
+          "runtime/content/golden_trophy_short/render.mp4",
+          "runtime/content/golden_trophy_short/render_metadata.json"
+        ],
+        "allowed_side_effect_class": "HUMAN_INTERACTION_REQUIRED",
+        "maximum_model_calls": 0,
+        "maximum_external_calls": 0,
+        "money_limit_eur": 0.0,
+        "requires_human": true,
+        "requires_independent_review": false,
+        "created_from_state_hash": "b5857e075747fec484f05a5fc683187a0f93114161ee0d5788cdb1aafd0cedbc",
+        "idempotency_key": "d2ee09e3d8e8207c1b9e98189849e7fb1c206204115d9beed5ccba590e8382cf"
+      },
+      {
+        "queue_item_id": "fcf5f3b7df982e50be0e42868ae21307",
+        "content_id": "magnifying_glass_short",
+        "action_type": "LOCAL_QC_EXECUTION",
+        "status": "READY_FOR_AUTONOMOUS_LOCAL_WORK",
+        "reason_code": "QC_REPORT_MISSING_OR_INVALID",
+        "evidence_references": [
+          "runtime/content/magnifying_glass_short/render.mp4",
+          "runtime/content/magnifying_glass_short/render_metadata.json"
+        ],
+        "allowed_side_effect_class": "WRITE_LOCAL_ARTIFACTS",
+        "maximum_model_calls": 1,
+        "maximum_external_calls": 0,
+        "money_limit_eur": 0.0,
+        "requires_human": false,
+        "requires_independent_review": false,
+        "created_from_state_hash": "724cb5890f2b8eb235f49944941214abaeefcf39b092d1cb25fb1a7ca1e0026b",
+        "idempotency_key": "fb76b2dfe6ca537c2de60aeb7ab96fc56140d53a4afb2f62e0b6bb3fb6e09d7f"
+      },
+      {
+        "queue_item_id": "ca7b78987eb10770d820f3d0ef948c06",
+        "content_id": "mystery_box_short",
+        "action_type": "HUMAN_AUDIENCE_DECISION",
+        "status": "WAITING_FOR_HUMAN_DECISION",
+        "reason_code": "AUDIENCE_DECISION_REQUIRED",
+        "evidence_references": [
+          "runtime/content/mystery_box_short/fruitki_strawberry_mystery_box.mp4",
+          "runtime/content/mystery_box_short/publish_package.json",
+          "runtime/content/mystery_box_short/qc_report.json"
+        ],
+        "allowed_side_effect_class": "HUMAN_INTERACTION_REQUIRED",
+        "maximum_model_calls": 0,
+        "maximum_external_calls": 0,
+        "money_limit_eur": 0.0,
+        "requires_human": true,
+        "requires_independent_review": false,
+        "created_from_state_hash": "3384629ba8f9ab9656e5a957d4c676b9e82ee4d0e4f983aa67cae1bcdbda2e52",
+        "idempotency_key": "876657db3d7dc259bf2d6394ce7857210787f24c248c9ff743bb398e869e7dc9"
+      }
+    ]
+  },
+  "policy_evaluations": {
+    "demo_live_render": {
+      "decision": "ALLOW_LOCAL",
+      "reason_code": "AUTONOMOUS_LOCAL_WORK_PERMITTED",
+      "permitted_actions": [
+        "LOCAL_QC_EXECUTION"
+      ],
+      "prohibited_actions": [
+        "AUDIENCE_CLASSIFICATION",
+        "CREATE_REAL_APPROVAL_RECORD",
+        "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+        "IDENTITY_OR_KYC_DECLARATIONS",
+        "PUBLIC_RELEASE",
+        "REAL_YOUTUBE_UPLOAD",
+        "SET_PUBLICATION_AUTHORIZED_TRUE",
+        "SPEND_MONEY",
+        "SUBSCRIPTION_OR_CREDIT_CHANGE"
+      ],
+      "details": {
+        "action_type": "LOCAL_QC_EXECUTION",
+        "allowed_side_effects": "WRITE_LOCAL_ARTIFACTS"
+      }
+    },
+    "golden_trophy_short": {
+      "decision": "WAIT_HUMAN",
+      "reason_code": "HUMAN_GATE_REQUIRED",
+      "permitted_actions": [],
+      "prohibited_actions": [
+        "AUDIENCE_CLASSIFICATION",
+        "CREATE_REAL_APPROVAL_RECORD",
+        "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+        "IDENTITY_OR_KYC_DECLARATIONS",
+        "PUBLIC_RELEASE",
+        "REAL_YOUTUBE_UPLOAD",
+        "SET_PUBLICATION_AUTHORIZED_TRUE",
+        "SPEND_MONEY",
+        "SUBSCRIPTION_OR_CREDIT_CHANGE"
+      ],
+      "details": {
+        "status": "WAITING_FOR_HUMAN_DECISION",
+        "action_type": "HUMAN_AUDIENCE_DECISION"
+      }
+    },
+    "magnifying_glass_short": {
+      "decision": "ALLOW_LOCAL",
+      "reason_code": "AUTONOMOUS_LOCAL_WORK_PERMITTED",
+      "permitted_actions": [
+        "LOCAL_QC_EXECUTION"
+      ],
+      "prohibited_actions": [
+        "AUDIENCE_CLASSIFICATION",
+        "CREATE_REAL_APPROVAL_RECORD",
+        "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+        "IDENTITY_OR_KYC_DECLARATIONS",
+        "PUBLIC_RELEASE",
+        "REAL_YOUTUBE_UPLOAD",
+        "SET_PUBLICATION_AUTHORIZED_TRUE",
+        "SPEND_MONEY",
+        "SUBSCRIPTION_OR_CREDIT_CHANGE"
+      ],
+      "details": {
+        "action_type": "LOCAL_QC_EXECUTION",
+        "allowed_side_effects": "WRITE_LOCAL_ARTIFACTS"
+      }
+    },
+    "mystery_box_short": {
+      "decision": "WAIT_HUMAN",
+      "reason_code": "HUMAN_GATE_REQUIRED",
+      "permitted_actions": [],
+      "prohibited_actions": [
+        "AUDIENCE_CLASSIFICATION",
+        "CREATE_REAL_APPROVAL_RECORD",
+        "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+        "IDENTITY_OR_KYC_DECLARATIONS",
+        "PUBLIC_RELEASE",
+        "REAL_YOUTUBE_UPLOAD",
+        "SET_PUBLICATION_AUTHORIZED_TRUE",
+        "SPEND_MONEY",
+        "SUBSCRIPTION_OR_CREDIT_CHANGE"
+      ],
+      "details": {
+        "status": "WAITING_FOR_HUMAN_DECISION",
+        "action_type": "HUMAN_AUDIENCE_DECISION"
+      }
+    }
+  },
+  "handoff_manifest": {
+    "schema_version": "1.0",
+    "manifest_hash": "deacddb722f15b2ae47c4ba99c24db2aec4ecd2987939f44000580667c70de8c",
+    "inventory_id": "ecd231c9f82edc81cf2b19e692aece788e35a21988fc36f6ec8d0048115e315e",
+    "queue_id": "2a922c065e0dd3c128d79ccf44b9e2b538922f96b0b5db3c01d81339dabcf0ed",
+    "generated_at": "2026-08-31T12:00:00.000000+00:00",
+    "zero_cost_verified": true,
+    "contracts": {
+      "demo_live_render": {
+        "schema_version": "1.0",
+        "task_id": "TASK-CREATOR-demo_live_render-ab576d8b",
+        "content_id": "demo_live_render",
+        "state_hash": "ab576d8bca0f4263eb70983e847b8f09c28c014f127add93bb66fbd96a698fed",
+        "current_readiness": "MEDIA_RENDERED_UNPACKAGED",
+        "blocker": "QC_REQUIRED",
+        "recommended_next_role": "LOCAL_QC_SPECIALIST",
+        "permitted_actions": [
+          "ASSET_VALIDATION",
+          "LOCAL_QC_EXECUTION"
+        ],
+        "prohibited_actions": [
+          "AUDIENCE_CLASSIFICATION",
+          "CREATE_REAL_APPROVAL_RECORD",
+          "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+          "IDENTITY_OR_KYC_DECLARATIONS",
+          "PUBLIC_RELEASE",
+          "REAL_YOUTUBE_UPLOAD",
+          "SET_PUBLICATION_AUTHORIZED_TRUE",
+          "SPEND_MONEY",
+          "SUBSCRIPTION_OR_CREDIT_CHANGE"
+        ],
+        "zero_cost_invariant": true,
+        "evidence_references": [
+          "runtime/content/demo_live_render/demo_strawberry_short.avi"
+        ],
+        "model_judgment_required": true,
+        "human_gate_required": false,
+        "review_recommendation": "OPTIONAL_BATCHED"
+      },
+      "golden_trophy_short": {
+        "schema_version": "1.0",
+        "task_id": "TASK-CREATOR-golden_trophy_short-b5857e07",
+        "content_id": "golden_trophy_short",
+        "state_hash": "b5857e075747fec484f05a5fc683187a0f93114161ee0d5788cdb1aafd0cedbc",
+        "current_readiness": "COMPLETE_READY_FOR_REVIEW",
+        "blocker": "AUDIENCE_DECISION_GATE",
+        "recommended_next_role": "HUMAN_AUDIENCE_DECIDER",
+        "permitted_actions": [],
+        "prohibited_actions": [
+          "AUDIENCE_CLASSIFICATION",
+          "CREATE_REAL_APPROVAL_RECORD",
+          "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+          "IDENTITY_OR_KYC_DECLARATIONS",
+          "PUBLIC_RELEASE",
+          "REAL_YOUTUBE_UPLOAD",
+          "SET_PUBLICATION_AUTHORIZED_TRUE",
+          "SPEND_MONEY",
+          "SUBSCRIPTION_OR_CREDIT_CHANGE"
+        ],
+        "zero_cost_invariant": true,
+        "evidence_references": [
+          "runtime/content/golden_trophy_short/publish_package.json",
+          "runtime/content/golden_trophy_short/qc_report.json",
+          "runtime/content/golden_trophy_short/render.mp4",
+          "runtime/content/golden_trophy_short/render_metadata.json"
+        ],
+        "model_judgment_required": false,
+        "human_gate_required": true,
+        "review_recommendation": "BEFORE_ACTIVATION"
+      },
+      "magnifying_glass_short": {
+        "schema_version": "1.0",
+        "task_id": "TASK-CREATOR-magnifying_glass_short-724cb589",
+        "content_id": "magnifying_glass_short",
+        "state_hash": "724cb5890f2b8eb235f49944941214abaeefcf39b092d1cb25fb1a7ca1e0026b",
+        "current_readiness": "MEDIA_RENDERED_UNPACKAGED",
+        "blocker": "QC_REQUIRED",
+        "recommended_next_role": "LOCAL_QC_SPECIALIST",
+        "permitted_actions": [
+          "ASSET_VALIDATION",
+          "LOCAL_QC_EXECUTION"
+        ],
+        "prohibited_actions": [
+          "AUDIENCE_CLASSIFICATION",
+          "CREATE_REAL_APPROVAL_RECORD",
+          "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+          "IDENTITY_OR_KYC_DECLARATIONS",
+          "PUBLIC_RELEASE",
+          "REAL_YOUTUBE_UPLOAD",
+          "SET_PUBLICATION_AUTHORIZED_TRUE",
+          "SPEND_MONEY",
+          "SUBSCRIPTION_OR_CREDIT_CHANGE"
+        ],
+        "zero_cost_invariant": true,
+        "evidence_references": [
+          "runtime/content/magnifying_glass_short/render.mp4",
+          "runtime/content/magnifying_glass_short/render_metadata.json"
+        ],
+        "model_judgment_required": true,
+        "human_gate_required": false,
+        "review_recommendation": "OPTIONAL_BATCHED"
+      },
+      "mystery_box_short": {
+        "schema_version": "1.0",
+        "task_id": "TASK-CREATOR-mystery_box_short-3384629b",
+        "content_id": "mystery_box_short",
+        "state_hash": "3384629ba8f9ab9656e5a957d4c676b9e82ee4d0e4f983aa67cae1bcdbda2e52",
+        "current_readiness": "COMPLETE_READY_FOR_REVIEW",
+        "blocker": "AUDIENCE_DECISION_GATE",
+        "recommended_next_role": "HUMAN_AUDIENCE_DECIDER",
+        "permitted_actions": [],
+        "prohibited_actions": [
+          "AUDIENCE_CLASSIFICATION",
+          "CREATE_REAL_APPROVAL_RECORD",
+          "EXTERNAL_DESTRUCTIVE_OPERATIONS",
+          "IDENTITY_OR_KYC_DECLARATIONS",
+          "PUBLIC_RELEASE",
+          "REAL_YOUTUBE_UPLOAD",
+          "SET_PUBLICATION_AUTHORIZED_TRUE",
+          "SPEND_MONEY",
+          "SUBSCRIPTION_OR_CREDIT_CHANGE"
+        ],
+        "zero_cost_invariant": true,
+        "evidence_references": [
+          "runtime/content/mystery_box_short/fruitki_strawberry_mystery_box.mp4",
+          "runtime/content/mystery_box_short/publish_package.json",
+          "runtime/content/mystery_box_short/qc_report.json"
+        ],
+        "model_judgment_required": false,
+        "human_gate_required": true,
+        "review_recommendation": "BEFORE_ACTIVATION"
+      }
+    }
+  }
+}

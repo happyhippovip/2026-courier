@@ -1,0 +1,54 @@
+{
+  "archived_at": "2026-09-01T01:17:08.636238+00:00",
+  "completed_at": "2026-09-01T01:17:08.635661+00:00",
+  "completion_fingerprint": "77a8de16f00a0570703535d488fe8cd025f252aa0adb9a9b4607aae352af44f5",
+  "description": "Validate pipeline stage VIDEO_BUILD constraints for workflow fruitki-youtube",
+  "objective_id": "PROCESS_APPROVED_CONTENT_QUEUE",
+  "opportunity_id": "OPP-WF-FRUITKI_YOUTUBE-STEP-VIDEO_BUILD",
+  "original_payload": {
+    "allowed_actions": [
+      "READ"
+    ],
+    "allowed_scope": [
+      "config/content_workflows.json"
+    ],
+    "cost_class": "ZERO_COST_LOCAL",
+    "created_at": "2026-08-30T23:59:27.239588+00:00",
+    "dedupe_fingerprint": "a72cb564f57f54e6",
+    "dedupe_hash": "a72cb564f57f54e6",
+    "description": "Validate pipeline stage VIDEO_BUILD constraints for workflow fruitki-youtube",
+    "estimated_cost": 0.0,
+    "evidence": {
+      "step": "VIDEO_BUILD",
+      "workflow": "fruitki-youtube"
+    },
+    "evidence_type": "",
+    "expected_output": "",
+    "expected_value": "Ensures stage VIDEO_BUILD schema conformance for fruitki-youtube",
+    "external_action_units": 0,
+    "heavy_job": false,
+    "model_need": false,
+    "objective_id": "PROCESS_APPROVED_CONTENT_QUEUE",
+    "opportunity_id": "OPP-WF-FRUITKI_YOUTUBE-STEP-VIDEO_BUILD",
+    "priority": 8,
+    "problem_or_goal": "",
+    "production_stage": "",
+    "project": "2026-courier",
+    "project_id": "",
+    "required_capabilities": [],
+    "risk": "LOW",
+    "risk_class": "LOW",
+    "source": "CONTENT_WORKFLOW_PIPELINE",
+    "source_artifact": "",
+    "source_hash": "",
+    "status": "COMPLETED",
+    "target_agent": "antigravity",
+    "updated_at": "2026-08-30T23:59:27.279019+00:00"
+  },
+  "priority": 8,
+  "project": "2026-courier",
+  "result_reference": null,
+  "source": "CONTENT_WORKFLOW_PIPELINE",
+  "status": "COMPLETED",
+  "target_agent": "antigravity"
+}

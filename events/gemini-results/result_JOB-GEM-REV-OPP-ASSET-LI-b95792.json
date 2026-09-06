@@ -1,0 +1,19 @@
+{
+  "artifacts": {
+    "market_synthesis": "events/revenue-opportunities/offerings/b2b_autonomy_audit/MARKET_SYNTHESIS.md"
+  },
+  "completed_at": "2026-09-01T15:27:21.959053+00:00",
+  "evidence": {},
+  "human_gate_required": false,
+  "job_id": "JOB-GEM-REV-OPP-ASSET-LI-b95792",
+  "new_information": "B2B buyers prefer \u20ac99 fixed-scope pilot over open-ended consulting.",
+  "opportunity_id": "REV-OPP-ASSET-LICENSING-FRUITKI",
+  "provider_state": "REAL_GEMINI_ACTIVE_AUTHORIZED",
+  "recommended_next_action": "AUTO_APPROVE_OUTREACH_EXPERIMENT_REV-OPP-ASSET-LICENSING-FRUITKI",
+  "result_fingerprint": "72863a7807b3f759",
+  "risk_detected": "NONE",
+  "spend_eur": 0.0,
+  "status": "SUCCESS",
+  "summary": "Gemini Brain analyzed market signals for REV-OPP-ASSET-LICENSING-FRUITKI: 95% AI agent pilot failure rate creates clear willingness to pay for crash-safety audit.",
+  "task_id": "TASK-EXEC-REV-OPP-ASSET-LICENS-S2"
+}

@@ -1,0 +1,17 @@
+{
+  "autonomous_continuations": 0,
+  "autonomous_spend_eur": 0.0,
+  "current_action": "IDLE",
+  "delayed_events_handled": 0,
+  "duration_target_hours": 8.0,
+  "elapsed_seconds": 4559.56,
+  "human_gate_parked": true,
+  "model_calls_during_idle": 0,
+  "money_gate_parked": true,
+  "pid": 86486,
+  "publication_authorization": "DENY",
+  "remaining_seconds": 24240.44,
+  "session_id": "session-188g-endurance-1788216021",
+  "status": "NO_ACTIVE_SESSION",
+  "timestamp": "2026-08-31T23:58:23.481578+00:00"
+}

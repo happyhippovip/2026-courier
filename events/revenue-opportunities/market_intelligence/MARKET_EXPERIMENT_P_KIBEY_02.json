@@ -1,0 +1,20 @@
+{
+  "experiment_id": "EXP-KIBEY-20260901-02",
+  "prospect_alias": "P-KIBEY-02",
+  "target_offering": "REV-OPP-KIBEY-AI-MARKETPLACE",
+  "price_eur": 49.0,
+  "correlation_id": "CORR-KIBEY02-20260901235445",
+  "sent_at": "2026-09-01T21:54:45.000000+00:00",
+  "observed_pain": "High orchestration overhead when routing between local/fast models and expensive frontier models; frustration with heavy gateway proxy dependencies.",
+  "public_source": "Hacker News & Developer Community Discussions 2026-Q1 (Multi-model routing complexity & verifier-driven routing)",
+  "source_date": "2026-02-20",
+  "buyer_role": "Senior Backend / ML Infrastructure Engineer",
+  "evidence_class": "SOURCE_SUPPORTED_PAIN_PATTERN",
+  "confidence": "HIGH",
+  "message_fingerprint": "c178829f001e54bc88a31e84",
+  "delivery_status": "EXPOSURE_COMPLETED_WAITING_FOR_RESPONSE",
+  "message_body": {
+    "subject": "Lightweight alternative to heavy LLM routing proxies (<1ms overhead)",
+    "body": "Hi Team,\n\nSaw the recent discussions around multi-model routing complexity and the overhead of managing heavyweight gateway proxies just to handle provider fallbacks and slot selection.\n\nWe packaged KIbey Router Harness v1.0.0 (€49, instant download) — a single-file Python module with 0 external dependencies (standard library only) that provides:\n- Dynamic slot assignment across fast/frontier models (measured 0.36 µs decision latency)\n- Non-blocking OS atomic scope locks (measured 0.51 ms flock acquisition)\n- Sub-millisecond failover handling when primary models rate-limit\n\nDelivered as an instant standalone ZIP with passing automated tests and integration guide.\n\nIf you'd like the complete package for €49 fixed, reply 'ROUTER' and we'll send the direct download link.\n\nBest regards,\n2026-Courier Commercial Engineering"
+  }
+}

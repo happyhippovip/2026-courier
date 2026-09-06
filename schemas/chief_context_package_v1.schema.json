@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CHIEF_CONTEXT_PACKAGE_V1 (design contract)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "context_package_id", "context_hash", "created_at", "source_state_hash", "task_id", "provider_role", "mission", "authoritative_state", "security_rules", "money_rules", "allowed_actions", "forbidden_actions", "stop_conditions", "output_contract"],
+  "properties": {
+    "schema_version": {"const": "CHIEF_CONTEXT_PACKAGE_V1"},
+    "context_package_id": {"type": "string", "minLength": 1},
+    "context_hash": {"type": "string", "minLength": 1},
+    "created_at": {"type": "string", "format": "date-time"},
+    "source_state_hash": {"type": "string", "minLength": 1},
+    "task_id": {"type": "string", "minLength": 1},
+    "provider_role": {"enum": ["GOOGLE_BUILD", "CODEX_REVIEW", "LOCAL_DETERMINISTIC"]},
+    "mission": {"type": "string"},
+    "authoritative_state": {"type": "object"},
+    "relevant_decisions": {"type": "array", "items": {"type": "object"}},
+    "security_rules": {"type": "array", "items": {"type": "string"}},
+    "money_rules": {"type": "array", "items": {"type": "string"}},
+    "files_in_scope": {"type": "array", "items": {"type": "string"}},
+    "previous_result": {"type": ["object", "null"]},
+    "known_failures": {"type": "array", "items": {"type": "string"}},
+    "required_tests": {"type": "array", "items": {"type": "string"}},
+    "do_not_repeat": {"type": "array", "items": {"type": "string"}},
+    "output_contract": {"type": "object"},
+    "stop_conditions": {"type": "array", "items": {"type": "string"}},
+    "memory_references": {"type": "array", "items": {"type": "string"}},
+    "delta_references": {"type": "array", "items": {"type": "string"}},
+    "allowed_actions": {"type": "array", "items": {"type": "string"}},
+    "forbidden_actions": {"type": "array", "items": {"type": "string"}}
+  }
+}

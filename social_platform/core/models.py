@@ -330,6 +330,9 @@ class Discussion:
     created_at: datetime = field(default_factory=datetime.utcnow)
     # Value over engagement: users can endorse a discussion for its value, but no "like" counters are publicly pushed by default.
     value_endorsements: int = 0
+    weighted_value_endorsements: float = 0.0
+    domain: Optional[str] = None
+    domain_reputation_score: float = 0.0
     parent_id: Optional[str] = None
     community_id: Optional[str] = None
     channel_id: Optional[str] = None
@@ -449,6 +452,10 @@ class Discussion:
         return self.content_warnings
 
     @property
+    def endorsements_count(self) -> int:
+        return self.value_endorsements
+
+    @property
     def has_content_warning(self) -> bool:
         return len(self.content_warnings) > 0
 
@@ -503,6 +510,10 @@ class Discussion:
             "content": self.content,
             "created_at": self.created_at.isoformat() if isinstance(self.created_at, datetime) else str(self.created_at),
             "value_endorsements": self.value_endorsements,
+            "endorsements_count": self.value_endorsements,
+            "weighted_value_endorsements": getattr(self, "weighted_value_endorsements", float(self.value_endorsements)),
+            "domain": getattr(self, "domain", None),
+            "domain_reputation_score": getattr(self, "domain_reputation_score", 0.0),
             "parent_id": self.parent_id,
             "community_id": self.community_id,
             "channel_id": self.channel_id,
@@ -553,6 +564,9 @@ class FeedItem:
     content_warnings: List[str] = field(default_factory=list)
     is_filtered: bool = False
     filter_reasons: List[str] = field(default_factory=list)
+    weighted_value_endorsements: float = 0.0
+    domain: Optional[str] = None
+    domain_reputation_score: float = 0.0
 
     def __post_init__(self):
         if not self.explanation_tags and hasattr(self.discussion, "explanation_tags") and self.discussion.explanation_tags:
@@ -588,6 +602,14 @@ class FeedItem:
     @property
     def value_endorsements(self) -> int:
         return self.discussion.value_endorsements
+
+    @property
+    def endorsements_count(self) -> int:
+        return self.discussion.value_endorsements
+
+    @property
+    def weighted_endorsements(self) -> float:
+        return self.weighted_value_endorsements or getattr(self.discussion, "weighted_value_endorsements", float(self.discussion.value_endorsements))
 
     @property
     def parent_id(self) -> Optional[str]:
@@ -642,7 +664,7 @@ class FeedItem:
         return self.media
 
     def __getitem__(self, key: str) -> Any:
-        if key in ("explanation_tags", "explanation", "mode", "score", "matched_interests", "discussion", "tags", "topic_tags", "hashtags", "course_id", "study_group_id", "media", "content_warnings", "is_filtered", "filter_reasons"):
+        if key in ("explanation_tags", "explanation", "mode", "score", "matched_interests", "discussion", "tags", "topic_tags", "hashtags", "course_id", "study_group_id", "media", "content_warnings", "is_filtered", "filter_reasons", "weighted_value_endorsements", "domain", "domain_reputation_score"):
             return getattr(self, key)
         return getattr(self.discussion, key)
 
@@ -653,6 +675,10 @@ class FeedItem:
             "content": self.discussion.content,
             "created_at": self.discussion.created_at.isoformat() if isinstance(self.discussion.created_at, datetime) else str(self.discussion.created_at),
             "value_endorsements": self.discussion.value_endorsements,
+            "endorsements_count": self.discussion.value_endorsements,
+            "weighted_value_endorsements": self.weighted_value_endorsements or getattr(self.discussion, "weighted_value_endorsements", float(self.discussion.value_endorsements)),
+            "domain": self.domain or getattr(self.discussion, "domain", None),
+            "domain_reputation_score": self.domain_reputation_score or getattr(self.discussion, "domain_reputation_score", 0.0),
             "parent_id": self.discussion.parent_id,
             "community_id": self.discussion.community_id,
             "channel_id": self.discussion.channel_id,
@@ -747,6 +773,14 @@ class Community:
     @property
     def is_public(self) -> bool:
         return not self.is_private
+
+    @property
+    def visibility(self) -> str:
+        return "private" if self.is_private else "public"
+
+    @property
+    def rules(self) -> str:
+        return ""
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -1260,6 +1294,8 @@ class CourseResource:
     tags: List[str] = field(default_factory=list)
     endorsements_count: int = 0
     upvotes_count: int = 0
+    weighted_endorsements_count: float = 0.0
+    domain_reputation_score: float = 0.0
     created_at: datetime = field(default_factory=datetime.utcnow)
 
     def __post_init__(self):
@@ -1303,6 +1339,10 @@ class CourseResource:
         return self.endorsements_count
 
     @property
+    def weighted_endorsements(self) -> float:
+        return self.weighted_endorsements_count or float(self.endorsements_count)
+
+    @property
     def upvotes(self) -> int:
         return self.upvotes_count
 
@@ -1325,6 +1365,9 @@ class CourseResource:
             "endorsements_count": self.endorsements_count,
             "upvotes_count": self.upvotes_count,
             "value_endorsements": self.endorsements_count,
+            "weighted_endorsements_count": self.weighted_endorsements_count or float(self.endorsements_count),
+            "weighted_value_endorsements": self.weighted_endorsements_count or float(self.endorsements_count),
+            "domain_reputation_score": self.domain_reputation_score,
             "upvotes": self.upvotes_count,
             "is_syllabus": self.is_syllabus,
             "created_at": self.created_at.isoformat() if isinstance(self.created_at, datetime) else str(self.created_at)
@@ -1653,6 +1696,487 @@ AccessibilitySettings = UserAccessibilitySettings
 UserSettingsAccessibility = UserAccessibilitySettings
 
 
+# --- Content Transformation Dossiers & Export Packaging Models ---
+
+class DossierFormat:
+    JSON = "json"
+    MARKDOWN = "markdown"
+    MD = "markdown"
+    HTML = "html"
+    TEXT = "text"
+    TXT = "text"
+    CSV = "csv"
+    ZIP = "zip"
+    TAR = "tar"
+
+ExportFormat = DossierFormat
+
+class DossierType:
+    USER_ARCHIVE = "user_archive"
+    USER_PROFILE = "user_profile"
+    ACADEMIC_PORTFOLIO = "academic_portfolio"
+    RESEARCH_DOSSIER = "research_dossier"
+    COMMUNITY_DIGEST = "community_digest"
+    DISCUSSION_THREAD = "discussion_thread"
+    GDPR_PACKAGE = "gdpr_package"
+
+ExportScope = DossierType
+
+class TransformationStyle:
+    STANDARD = "standard"
+    COMPACT = "compact"
+    EXECUTIVE = "executive"
+    ACADEMIC = "academic"
 
 
+@dataclass
+class TransformationOptions:
+    format: str = "markdown"
+    dossier_type: str = "user_archive"
+    style: str = "standard"
+    anonymize_pii: bool = False
+    redact_private_messages: bool = False
+    include_replies: bool = True
+    include_media_metadata: bool = True
+    include_academic_data: bool = True
+    include_communities: bool = True
+    include_direct_messages: bool = True
+    include_system_metadata: bool = True
+    include_frontmatter: bool = True
+    include_toc: bool = True
+    filter_tags: List[str] = field(default_factory=list)
+    since_date: Optional[str] = None
+    until_date: Optional[str] = None
 
+    def __post_init__(self):
+        if self.format:
+            self.format = self.format.lower().strip().lstrip(".")
+            if self.format == "md":
+                self.format = "markdown"
+            elif self.format == "txt":
+                self.format = "text"
+        if self.dossier_type:
+            self.dossier_type = self.dossier_type.lower().strip()
+        if self.style:
+            self.style = self.style.lower().strip()
+        if isinstance(self.filter_tags, str):
+            try:
+                self.filter_tags = json.loads(self.filter_tags)
+            except Exception:
+                self.filter_tags = [t.strip() for t in self.filter_tags.split(",") if t.strip()]
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "format": self.format,
+            "dossier_type": self.dossier_type,
+            "style": self.style,
+            "anonymize_pii": self.anonymize_pii,
+            "redact_private_messages": self.redact_private_messages,
+            "include_replies": self.include_replies,
+            "include_media_metadata": self.include_media_metadata,
+            "include_academic_data": self.include_academic_data,
+            "include_communities": self.include_communities,
+            "include_direct_messages": self.include_direct_messages,
+            "include_system_metadata": self.include_system_metadata,
+            "include_frontmatter": self.include_frontmatter,
+            "include_toc": self.include_toc,
+            "filter_tags": self.filter_tags,
+            "since_date": self.since_date,
+            "until_date": self.until_date
+        }
+
+DossierOptions = TransformationOptions
+ExportPackagingOptions = TransformationOptions
+
+
+@dataclass
+class DossierSection:
+    title: str
+    section_type: str
+    content: str
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    item_count: int = 0
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "title": self.title,
+            "section_type": self.section_type,
+            "content": self.content,
+            "metadata": self.metadata,
+            "item_count": self.item_count
+        }
+
+
+@dataclass
+class TransformationDossier:
+    id: str
+    title: str
+    dossier_type: str
+    format: str
+    target_id: str
+    target_type: str = "user"
+    summary: str = ""
+    sections: List[DossierSection] = field(default_factory=list)
+    rendered_content: str = ""
+    item_counts: Dict[str, int] = field(default_factory=dict)
+    checksum: str = ""
+    size_bytes: int = 0
+    created_at: datetime = field(default_factory=datetime.utcnow)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self):
+        if isinstance(self.created_at, str):
+            try:
+                self.created_at = datetime.fromisoformat(self.created_at)
+            except Exception:
+                pass
+        if not self.size_bytes and self.rendered_content:
+            self.size_bytes = len(self.rendered_content.encode("utf-8"))
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "id": self.id,
+            "title": self.title,
+            "dossier_type": self.dossier_type,
+            "format": self.format,
+            "target_id": self.target_id,
+            "target_type": self.target_type,
+            "summary": self.summary,
+            "sections": [s.to_dict() if hasattr(s, "to_dict") else s for s in self.sections],
+            "rendered_content": self.rendered_content,
+            "item_counts": self.item_counts,
+            "checksum": self.checksum,
+            "size_bytes": self.size_bytes,
+            "created_at": self.created_at.isoformat() if isinstance(self.created_at, datetime) else str(self.created_at),
+            "metadata": self.metadata
+        }
+
+
+@dataclass
+class ExportPackageManifest:
+    package_id: str
+    user_id: Optional[str] = None
+    format: str = "zip"
+    file_list: List[Dict[str, Any]] = field(default_factory=list)
+    total_files: int = 0
+    total_bytes: int = 0
+    checksum: str = ""
+    created_at: datetime = field(default_factory=datetime.utcnow)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self):
+        if isinstance(self.created_at, str):
+            try:
+                self.created_at = datetime.fromisoformat(self.created_at)
+            except Exception:
+                pass
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "package_id": self.package_id,
+            "user_id": self.user_id,
+            "format": self.format,
+            "file_list": self.file_list,
+            "total_files": self.total_files,
+            "total_bytes": self.total_bytes,
+            "checksum": self.checksum,
+            "created_at": self.created_at.isoformat() if isinstance(self.created_at, datetime) else str(self.created_at),
+            "metadata": self.metadata
+        }
+
+
+@dataclass
+class ExportPackage:
+    manifest: ExportPackageManifest
+    archive_bytes: bytes = field(default=b"")
+    archive_base64: Optional[str] = None
+    filename: str = ""
+    content_type: str = "application/zip"
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "manifest": self.manifest.to_dict() if hasattr(self.manifest, "to_dict") else self.manifest,
+            "filename": self.filename,
+            "content_type": self.content_type,
+            "archive_base64": self.archive_base64,
+            "size_bytes": len(self.archive_bytes) if self.archive_bytes else 0
+        }
+
+
+# =========================================================================
+# --- Weighted Value Endorsements & Domain Reputation Models ---
+# =========================================================================
+
+class EndorsementCategory:
+    GENERAL = "general"
+    ACADEMIC = "academic"
+    RESEARCH = "academic"
+    ACCURACY = "accuracy"
+    RIGOR = "accuracy"
+    CLARITY = "clarity"
+    PEDAGOGICAL = "pedagogical"
+    THOROUGHNESS = "thoroughness"
+    INNOVATION = "innovation"
+    BREAKTHROUGH = "innovation"
+    CODE_QUALITY = "code_quality"
+
+
+class ReputationBadge:
+    NOVICE = "novice"
+    CONTRIBUTOR = "contributor"
+    SCHOLAR = "scholar"
+    DOMAIN_EXPERT = "domain_expert"
+    DISTINGUISHED_SCHOLAR = "distinguished_scholar"
+
+
+@dataclass
+class Endorsement:
+    id: str
+    target_type: str = "discussion"  # "discussion", "course_resource", "study_space", "study_group", "reply", "user"
+    target_id: str = ""
+    endorser_id: str = ""
+    domain: str = "general"
+    weight: float = 1.0
+    value_category: str = "general"
+    comment: str = ""
+    created_at: datetime = field(default_factory=datetime.utcnow)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self):
+        if isinstance(self.created_at, str):
+            try:
+                self.created_at = datetime.fromisoformat(self.created_at)
+            except Exception:
+                pass
+        if isinstance(self.metadata, str):
+            try:
+                self.metadata = json.loads(self.metadata)
+            except Exception:
+                self.metadata = {}
+        elif self.metadata is None:
+            self.metadata = {}
+        if self.domain:
+            self.domain = str(self.domain).strip().lower().lstrip("#")
+        else:
+            self.domain = "general"
+        if self.weight is not None:
+            self.weight = float(self.weight)
+        else:
+            self.weight = 1.0
+
+    def __getitem__(self, key):
+        return getattr(self, key)
+
+    @property
+    def user_id(self) -> str:
+        return self.endorser_id
+
+    @property
+    def actor_id(self) -> str:
+        return self.endorser_id
+
+    @property
+    def author_id(self) -> str:
+        return self.endorser_id
+
+    @property
+    def score(self) -> float:
+        return self.weight
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "id": self.id,
+            "target_type": self.target_type,
+            "target_id": self.target_id,
+            "endorser_id": self.endorser_id,
+            "user_id": self.endorser_id,
+            "actor_id": self.endorser_id,
+            "domain": self.domain,
+            "weight": self.weight,
+            "score": self.weight,
+            "value_category": self.value_category,
+            "category": self.value_category,
+            "comment": self.comment,
+            "metadata": self.metadata,
+            "created_at": self.created_at.isoformat() if isinstance(self.created_at, datetime) else str(self.created_at)
+        }
+
+ValueEndorsement = Endorsement
+WeightedEndorsement = Endorsement
+
+
+@dataclass
+class DomainReputation:
+    user_id: str
+    domain: str = "general"
+    score: float = 0.0
+    endorsements_received_count: int = 0
+    weighted_endorsements_received: float = 0.0
+    endorsements_given_count: int = 0
+    discussions_count: int = 0
+    resources_count: int = 0
+    verified_role: str = "member"
+    badge: str = ReputationBadge.NOVICE
+    updated_at: datetime = field(default_factory=datetime.utcnow)
+    details: Dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self):
+        if self.domain:
+            self.domain = str(self.domain).strip().lower().lstrip("#")
+        else:
+            self.domain = "general"
+        if isinstance(self.updated_at, str):
+            try:
+                self.updated_at = datetime.fromisoformat(self.updated_at)
+            except Exception:
+                pass
+        self.score = float(self.score)
+        self.weighted_endorsements_received = float(self.weighted_endorsements_received)
+        if not self.badge or self.badge == "contributor":
+            if self.score >= 100.0:
+                self.badge = ReputationBadge.DISTINGUISHED_SCHOLAR
+            elif self.score >= 50.0:
+                self.badge = ReputationBadge.DOMAIN_EXPERT
+            elif self.score >= 25.0:
+                self.badge = ReputationBadge.SCHOLAR
+            elif self.score >= 10.0:
+                self.badge = ReputationBadge.CONTRIBUTOR
+            else:
+                self.badge = ReputationBadge.NOVICE
+
+    def __getitem__(self, key):
+        return getattr(self, key)
+
+    @property
+    def reputation_score(self) -> float:
+        return self.score
+
+    @property
+    def topic(self) -> str:
+        return self.domain
+
+    @property
+    def total_endorsements_received(self) -> int:
+        return self.endorsements_received_count
+
+    @property
+    def total_endorsements_given(self) -> int:
+        return self.endorsements_given_count
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "user_id": self.user_id,
+            "domain": self.domain,
+            "topic": self.domain,
+            "score": self.score,
+            "reputation_score": self.score,
+            "endorsements_received_count": self.endorsements_received_count,
+            "total_endorsements_received": self.endorsements_received_count,
+            "weighted_endorsements_received": self.weighted_endorsements_received,
+            "endorsements_given_count": self.endorsements_given_count,
+            "total_endorsements_given": self.endorsements_given_count,
+            "discussions_count": self.discussions_count,
+            "resources_count": self.resources_count,
+            "verified_role": self.verified_role,
+            "badge": self.badge,
+            "details": self.details,
+            "updated_at": self.updated_at.isoformat() if isinstance(self.updated_at, datetime) else str(self.updated_at)
+        }
+
+UserDomainReputation = DomainReputation
+ReputationScore = DomainReputation
+UserReputation = DomainReputation
+
+
+@dataclass
+class DomainLeaderboardEntry:
+    user_id: str
+    username: str
+    domain: str
+    score: float
+    badge: str
+    rank: int = 1
+    endorsements_received: int = 0
+    weighted_endorsements: float = 0.0
+    contributions_count: int = 0
+    verified_role: str = "member"
+
+    def __getitem__(self, key):
+        return getattr(self, key)
+
+    @property
+    def reputation_score(self) -> float:
+        return self.score
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "user_id": self.user_id,
+            "username": self.username,
+            "domain": self.domain,
+            "score": self.score,
+            "reputation_score": self.score,
+            "rank": self.rank,
+            "badge": self.badge,
+            "endorsements_received": self.endorsements_received,
+            "weighted_endorsements": self.weighted_endorsements,
+            "contributions_count": self.contributions_count,
+            "verified_role": self.verified_role
+        }
+
+
+@dataclass
+class StudySpaceReputation:
+    target_id: str
+    target_type: str = "course"  # "course" or "study_group"
+    name: str = ""
+    domain: str = ""
+    reputation_score: float = 0.0
+    quality_score: float = 0.0
+    activity_score: float = 0.0
+    total_resources: int = 0
+    total_resource_endorsements: int = 0
+    total_weighted_endorsements: float = 0.0
+    total_discussions: int = 0
+    member_count: int = 0
+    verified_member_count: int = 0
+    top_contributors: List[Dict[str, Any]] = field(default_factory=list)
+
+    def __getitem__(self, key):
+        return getattr(self, key)
+
+    @property
+    def space_id(self) -> str:
+        return self.target_id
+
+    @property
+    def total_endorsements(self) -> int:
+        return self.total_resource_endorsements
+
+    @property
+    def weighted_endorsements(self) -> float:
+        return self.total_weighted_endorsements
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "target_id": self.target_id,
+            "space_id": self.target_id,
+            "target_type": self.target_type,
+            "name": self.name,
+            "title": self.name,
+            "domain": self.domain,
+            "reputation_score": self.reputation_score,
+            "quality_score": self.quality_score,
+            "activity_score": self.activity_score,
+            "total_resources": self.total_resources,
+            "total_resource_endorsements": self.total_resource_endorsements,
+            "total_endorsements": self.total_resource_endorsements,
+            "total_weighted_endorsements": self.total_weighted_endorsements,
+            "weighted_endorsements": self.total_weighted_endorsements,
+            "total_discussions": self.total_discussions,
+            "member_count": self.member_count,
+            "verified_member_count": self.verified_member_count,
+            "top_contributors": self.top_contributors
+        }
+
+CourseReputation = StudySpaceReputation
+StudyGroupReputation = StudySpaceReputation

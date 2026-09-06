@@ -1,0 +1,17 @@
+{
+  "WORKSPACE_BACKUP_STATUS": "SAFE",
+  "LAST_VERIFIED_SNAPSHOT": "/Users/user/Downloads/2026-project-backups/2026-courier/snapshot_20260831_130251",
+  "LAST_VERIFIED_AT": "2026-08-31T13:03:29.547511+00:00",
+  "ACCOUNT_SWITCH_STATUS": "SAFE",
+  "DATA_LOSS_RISK": "NONE_DETECTED",
+  "METRICS": {
+    "snapshot_file_count": 1357,
+    "snapshot_bytes": 4051855088,
+    "hash_match_count": 1357,
+    "hash_mismatch_count": 0,
+    "missing_file_count": 0,
+    "recovery_manifest_match": "PASS",
+    "mission_146c_preserved": true,
+    "mission_146g_preserved": true
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "experiment_id": "EXP-AUDIT-20260901-01",
+  "target_prospect_alias": "CAND-AUDIT-01",
+  "target_offering": "REV-OPP-B2B-AUTONOMY-AUDIT",
+  "price_eur": 99.0,
+  "observed_pain": "Multi-agent workflows suffering from silent loops, unmonitored token burn, and deadlock hangs during multi-step tool calls.",
+  "public_source": "Public AI Engineering Architecture Discourse 2026-Q1 (Agent loop failure patterns & denial-of-wallet risks)",
+  "evidence_date": "2026-09-01",
+  "buyer_role": "Technical Lead / AI Engineering Manager",
+  "evidence_class": "SOURCE_SUPPORTED_PAIN_PATTERN",
+  "confidence": "HIGH",
+  "message_draft": {
+    "subject": "Quick question on multi-agent loop termination & token bounds",
+    "body_copy": "Hi Team,\n\nNoticed the growing production challenge with multi-agent systems entering silent recursive loops or racking up unexpected token bills when tool calls hang.\n\nWe built a 15-Point Black-Box Multi-Agent Safety Audit (€99, 24h SLA) that identifies runaway loop vectors, deadlock risks, and stale lock states.\n\nKey advantage: Zero-Access Security. You do not need to share any repository access, API keys, or private prompts—we only inspect sanitized log schemas or exit code traces.\n\nWould you be open to a 24-hour audit of one agent pipeline for €99 fixed? If so, reply 'AUDIT' and we'll send the onboarding checklist.\n\nBest regards,\n2026-Courier Commercial Engineering"
+  },
+  "external_action_gate": {
+    "technically_executable": true,
+    "authorized": true,
+    "policy_compliant": true,
+    "duplicate_check": "PASSED_UNIQUE",
+    "contact_relevance": "HIGH",
+    "gate_status": "MARKET_EXPERIMENT_READY"
+  }
+}

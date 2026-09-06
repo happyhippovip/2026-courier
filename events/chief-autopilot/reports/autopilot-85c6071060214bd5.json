@@ -1,0 +1,14 @@
+{
+  "active_node": "NODE_A",
+  "duration_minutes": 5,
+  "human_gates_encountered": "NONE",
+  "lease_id": "autopilot-85c6071060214bd5",
+  "model_calls": 0,
+  "money_spent_eur": 0.0,
+  "next_safe_action": "Autonomous session completed cleanly.",
+  "node_b_state": "OFFLINE",
+  "tasks_attempted": 2,
+  "tasks_blocked": 0,
+  "tasks_completed": 2,
+  "tasks_failed": 0
+}

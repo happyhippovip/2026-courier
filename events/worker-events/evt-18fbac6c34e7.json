@@ -1,0 +1,14 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-05T19:21:47.002675+00:00",
+  "event_id": "evt-18fbac6c34e7",
+  "event_type": "WORKER_PROGRESS",
+  "evidence": {},
+  "fingerprint": "83d8e052782372a5",
+  "mission_id": "M212",
+  "recommended_action": null,
+  "session_epoch": "epoch-google-1788636103",
+  "severity": "INFO",
+  "task_id": "TASK-T4-TEST-GAP-apply_memory_update_proposal",
+  "worker_id": "GOOGLE"
+}

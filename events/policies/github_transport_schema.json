@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GitHubCourierTransportEnvelope",
+  "description": "Canonical GitHub Courier Transport Envelope Schema for secure, cost-neutral event routing",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "message_id",
+    "delivery_id",
+    "correlation_id",
+    "task_id",
+    "event_type",
+    "source",
+    "target",
+    "repository",
+    "ref",
+    "payload",
+    "payload_hash",
+    "created_at",
+    "provenance",
+    "chief_delivery",
+    "state"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "enum": [
+        "1.0"
+      ]
+    },
+    "message_id": {
+      "type": "string",
+      "pattern": "^msg-[a-zA-Z0-9_-]+$"
+    },
+    "delivery_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "correlation_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "parent_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "COMMAND",
+        "RESULT",
+        "REVIEW_REQUEST",
+        "REVIEW_RESULT",
+        "ACK",
+        "ERROR"
+      ]
+    },
+    "source": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target": {
+      "type": "string",
+      "minLength": 1
+    },
+    "repository": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "payload": {
+      "type": "object"
+    },
+    "payload_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "provenance": {
+      "type": "object"
+    },
+    "chief_delivery": {
+      "type": "string",
+      "enum": [
+        "PREPARED_NOT_DELIVERED",
+        "DELIVERED"
+      ]
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "RECEIVED",
+        "VERIFIED",
+        "DEDUPED",
+        "DISPATCHABLE",
+        "DISPATCHED",
+        "RESULT_RECEIVED",
+        "ACKED",
+        "DONE",
+        "REJECTED"
+      ]
+    },
+    "rejection_reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

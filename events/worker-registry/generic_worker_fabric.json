@@ -1,0 +1,89 @@
+{
+  "version": "2026.FABRIC.1",
+  "updated_at": "2026-09-01T20:57:22.425948+00:00",
+  "active_worker_count": 2,
+  "workers": {
+    "CLI1": {
+      "worker_id": "CLI1",
+      "provider": "GOOGLE",
+      "surface": "CLI",
+      "account_id": "ACCOUNT_GOOGLE_01",
+      "host": "COMPUTER_A",
+      "role": "HIGH_VOLUME_BUILDER",
+      "capabilities": [
+        "ROUTINE_BUILD",
+        "REGRESSION_TEST",
+        "DATA_PIPELINE",
+        "ASSET_PACKAGING",
+        "CODE_GENERATION"
+      ],
+      "authorization_state": "AUTHORIZED",
+      "availability_state": "ACTIVE",
+      "routing_preference": "PREFERRED_ROUTINE",
+      "cost_class": "MARGINAL_COST_ZERO_OR_PREPAID",
+      "capacity_class": "HIGH_VOLUME",
+      "current_claim": null,
+      "risk_permissions": [
+        "READ",
+        "LOCAL_WRITE"
+      ],
+      "last_heartbeat": "2026-09-01T20:57:22.425935+00:00",
+      "result_channel": "CANONICAL_ENVELOPE",
+      "status": "AVAILABLE"
+    },
+    "ANTIGRAVITY_PRIMARY": {
+      "worker_id": "ANTIGRAVITY_PRIMARY",
+      "provider": "GOOGLE",
+      "surface": "ANTIGRAVITY_APP",
+      "account_id": "ACCOUNT_GOOGLE_01",
+      "host": "COMPUTER_A",
+      "role": "PRIMARY_BUILDER_EXECUTOR",
+      "capabilities": [
+        "PRIMARY_EXECUTION",
+        "SYSTEM_ARCHITECTURE",
+        "CODE_GENERATION",
+        "AUTONOMOUS_DAEMON"
+      ],
+      "authorization_state": "AUTHORIZED",
+      "availability_state": "ACTIVE",
+      "routing_preference": "PREFERRED_ROUTINE",
+      "cost_class": "MARGINAL_COST_ZERO_OR_PREPAID",
+      "capacity_class": "INTERACTIVE",
+      "current_claim": "events/revenue-opportunities/market_research/lane_1",
+      "risk_permissions": [
+        "READ",
+        "LOCAL_WRITE"
+      ],
+      "last_heartbeat": "2026-09-01T16:45:37.128260+00:00",
+      "result_channel": "CANONICAL_ENVELOPE",
+      "status": "BUSY"
+    },
+    "CHATGPT_CHIEF": {
+      "worker_id": "CHATGPT_CHIEF",
+      "provider": "OPENAI",
+      "surface": "CHATGPT",
+      "account_id": "ACCOUNT_OPENAI_01",
+      "host": "COMPUTER_A",
+      "role": "CHIEF_CONTROLLER_REVIEWER",
+      "capabilities": [
+        "STRATEGIC_JUDGMENT",
+        "CHIEF_AMBIGUITY",
+        "CROSS_PROVIDER_REVIEW",
+        "POLICY_VERDICT"
+      ],
+      "authorization_state": "AUTHORIZED",
+      "availability_state": "RESERVE",
+      "routing_preference": "CONSERVE",
+      "cost_class": "EXISTING_SUBSCRIPTION_CAPACITY",
+      "capacity_class": "STRATEGIC_JUDGMENT",
+      "current_claim": null,
+      "risk_permissions": [
+        "READ",
+        "LOCAL_WRITE"
+      ],
+      "last_heartbeat": "2026-09-01T15:22:37.312971+00:00",
+      "result_channel": "CANONICAL_ENVELOPE",
+      "status": "AVAILABLE"
+    }
+  }
+}

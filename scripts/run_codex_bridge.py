@@ -266,11 +266,11 @@ def codex_cli_version() -> str:
     return "UNKNOWN"
 
 
-def parse_real_codex_result(content: str) -> dict:
+def parse_real_codex_result(content: str, expected_identity: Optional[dict[str, str]] = None) -> dict:
     """Accept only the narrow JSON result contract requested from the real worker."""
     candidate = content.strip()
     if candidate.startswith("```"):
-        candidate = re.sub(r"^```(?:json)?\\s*|\\s*```$", "", candidate).strip()
+        candidate = re.sub(r"^```(?:json)?\s*|\s*```$", "", candidate).strip()
 
     data = json.loads(candidate)
     if not isinstance(data, dict):
@@ -278,12 +278,32 @@ def parse_real_codex_result(content: str) -> dict:
 
     verdict = data.get("verdict")
     summary = data.get("summary")
-    if verdict not in {"PASS", "HUMAN_APPROVAL_REQUIRED"} or not isinstance(summary, str):
+    if verdict not in {"PASS", "HUMAN_APPROVAL_REQUIRED"} or not isinstance(summary, str) or not summary.strip():
         raise ValueError("Codex CLI JSON does not satisfy the required verdict/summary contract")
-    return {"verdict": verdict, "summary": summary[:500]}
+
+    if expected_identity:
+        for k, expected_v in expected_identity.items():
+            actual_v = data.get(k)
+            if actual_v != expected_v:
+                raise ValueError(f"Codex CLI identity mismatch for '{k}': expected '{expected_v}', got '{actual_v}'")
+
+    return {
+        "verdict": verdict,
+        "summary": summary[:500],
+        "correlation_id": data.get("correlation_id"),
+        "task_id": data.get("task_id"),
+        "task_hash": data.get("task_hash"),
+        "target_agent": data.get("target_agent", "CODEX"),
+    }
 
 
-def execute_real_codex_cli(instruction: str, allowed_scope: list[str], task_id: str) -> tuple[bool, dict]:
+def execute_real_codex_cli(
+    instruction: str,
+    allowed_scope: list[str],
+    task_id: str,
+    timeout_seconds: float = 90.0,
+    expected_identity: Optional[dict[str, str]] = None,
+) -> tuple[bool, dict]:
     """Invokes the real installed Codex CLI non-interactively."""
     if not CODEX_CLI_PATH.exists():
         return False, {"error": "Codex CLI binary not found"}
@@ -292,10 +312,18 @@ def execute_real_codex_cli(instruction: str, allowed_scope: list[str], task_id: 
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
     scope_str = ", ".join(allowed_scope) if allowed_scope else "read-only workspace"
+    ident = expected_identity or {}
+    corr_id = ident.get("correlation_id", f"corr-{task_id}")
+    t_hash = ident.get("task_hash", task_id)
+    t_agent = ident.get("target_agent", "CODEX")
+    m_id = ident.get("mission_id", "")
     prompt = (
-        f"TASK ID: {task_id}\nSCOPE: {scope_str}\nINSTRUCTION: {instruction}\n"
-        "Perform only read-only repository inspection. Return exactly one JSON object with "
-        "'verdict' ('PASS' or 'HUMAN_APPROVAL_REQUIRED') and a non-sensitive 'summary'."
+        f"CORRELATION_ID: {corr_id}\nTASK_ID: {task_id}\nTASK_HASH: {t_hash}\nTARGET_AGENT: {t_agent}\nMISSION_ID: {m_id}\n"
+        f"SCOPE: {scope_str}\nINSTRUCTION: {instruction}\n"
+        "Perform only read-only repository inspection. Return ONLY a valid JSON object with exact keys: "
+        f"'correlation_id' (must equal '{corr_id}'), 'task_id' (must equal '{task_id}'), "
+        f"'task_hash' (must equal '{t_hash}'), 'target_agent' (must equal '{t_agent}'), "
+        f"'mission_id' (must equal '{m_id}'), 'verdict' ('PASS' or 'HUMAN_APPROVAL_REQUIRED'), and a non-sensitive 'summary'."
     )
 
     cmd = [
@@ -316,7 +344,7 @@ def execute_real_codex_cli(instruction: str, allowed_scope: list[str], task_id: 
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                timeout=30.0,
+                timeout=timeout_seconds,
             )
 
         if proc.returncode == 0 and out_file.exists():
@@ -324,7 +352,7 @@ def execute_real_codex_cli(instruction: str, allowed_scope: list[str], task_id: 
             if out_file.exists():
                 out_file.unlink()
             try:
-                normalized_result = parse_real_codex_result(content)
+                normalized_result = parse_real_codex_result(content, expected_identity=expected_identity)
             except (ValueError, json.JSONDecodeError) as exc:
                 return False, {
                     "verdict": "FAILED",
@@ -366,7 +394,7 @@ def execute_real_codex_cli(instruction: str, allowed_scope: list[str], task_id: 
         return False, {
             "verdict": "FAILED",
             "agent_source": "CODEX_CLI_REAL",
-            "error": "Codex CLI execution timed out after 30s",
+            "error": f"Codex CLI execution timed out after {timeout_seconds}s",
         }
     except Exception as exc:
         if out_file.exists():

@@ -1,0 +1,17 @@
+{
+  "artifacts": {
+    "artifacts_changed": [],
+    "fingerprint": "c870cc8d6e691db178f7889fba85e77b8752c94b91d5a462e357e91e55089305"
+  },
+  "completed_at": "2026-09-01T15:22:37.322637+00:00",
+  "evidence": {
+    "cost_class": "MARGINAL_COST_ZERO_OR_PREPAID",
+    "task_class": "ROUTINE_BUILD"
+  },
+  "findings": "Executed on GOOGLE/CLI on COMPUTER_A. Result: SUCCESS",
+  "opportunity_id": "LIVE-FABRIC-20260901152237",
+  "result_fingerprint": "4b07ad1204aedc30",
+  "result_id": "RES-TASK-LIVE-FABRIC-20260901152237-4b07ad12",
+  "status": "SUCCESS",
+  "task_id": "TASK-LIVE-FABRIC-20260901152237"
+}

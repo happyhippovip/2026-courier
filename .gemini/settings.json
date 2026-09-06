@@ -1,0 +1,39 @@
+{
+  "trustedWorkspaces": [
+    "/Users/user/Downloads/2026-courier"
+  ],
+  "permissions": {
+    "allow": [
+      "command(git diff*)",
+      "command(git status*)",
+      "command(git log*)",
+      "command(git show*)",
+      "command(git branch*)",
+      "command(ls*)",
+      "command(pwd)",
+      "command(cat *)",
+      "command(python3 -m unittest *)",
+      "command(pytest *)",
+      "command(python3 scripts/run_autonomous_supervisor.py*)",
+      "command(python3 scripts/run_local_endurance_supervisor.py*)",
+      "command(python3 scripts/snitch_observer.py*)",
+      "command(python3 scripts/chief_autopilot.py*)",
+      "command(python3 scripts/chief_continuation_controller.py*)",
+      "command(python3 scripts/real_autonomy_runtime.py*)"
+    ],
+    "ask": [
+      "command(git push*)",
+      "command(git reset --hard*)",
+      "command(rm -rf *)",
+      "command(python3 -c *)",
+      "command(pip install *)",
+      "command(npm install *)"
+    ],
+    "deny": [
+      "command(*publish*)",
+      "command(*billing*)",
+      "command(*stripe*)",
+      "command(*gcloud projects delete*)"
+    ]
+  }
+}

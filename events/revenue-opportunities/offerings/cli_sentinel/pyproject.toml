@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "task-sentinel"
+version = "1.0.0"
+description = "Zero-dependency background worker watchdog and POSIX lock lease manager"
+readme = "README.md"
+authors = [{ name = "2026-Courier", email = "happyhippovip@users.noreply.github.com" }]
+license = { text = "MIT" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: POSIX",
+    "Topic :: System :: Monitoring",
+]
+requires-python = ">=3.8"
+
+[project.scripts]
+task-sentinel = "task_sentinel_cli:main"

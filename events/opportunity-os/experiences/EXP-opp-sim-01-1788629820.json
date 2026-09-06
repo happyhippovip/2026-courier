@@ -1,0 +1,22 @@
+{
+  "experience_id": "EXP-opp-sim-01-1788629820",
+  "opportunity_id": "opp-sim-01",
+  "domain": "B2B_AUTOMATION",
+  "hypothesis": "Offer 'Valid B2B Model' maintains positive unit contribution.",
+  "evidence_before": [
+    "Direct feed"
+  ],
+  "action_taken": "Run synthetic unit economics & mechanics verification.",
+  "expected_result": "Net margin > 0, price \u20ac0.0",
+  "actual_result": "Unit economics model passed synthetic validation",
+  "cost_eur": 0.0,
+  "revenue_eur": 0.0,
+  "time_used_hours": 0.5,
+  "success": true,
+  "evidence_type": "SIMULATED",
+  "failure_mode": null,
+  "lesson": "Synthetic model confirmed margin structure; external customer test required before live commitment.",
+  "confidence_delta": 0.05,
+  "reusable_pattern": "MODEL_CHECK_B2B_AUTOMATION",
+  "timestamp": "2026-09-05T17:37:00.311647+00:00"
+}

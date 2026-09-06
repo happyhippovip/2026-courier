@@ -1,0 +1,17 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-01T01:30:15.850202+00:00",
+  "event_id": "evt-265855b59088",
+  "event_type": "WORKER_PROGRESS",
+  "evidence": {
+    "status": "PROGRESSING",
+    "task": "WORKER_REGISTRY_AND_SNITCH"
+  },
+  "fingerprint": "03e30a6fc8757568",
+  "mission_id": "M200",
+  "recommended_action": null,
+  "session_epoch": "epoch-cli1-1788226215",
+  "severity": "INFO",
+  "task_id": "OPP-M200-OPERATIONS",
+  "worker_id": "CLI1"
+}

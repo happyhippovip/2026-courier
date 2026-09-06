@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PROVIDER_RESULT_V1 (transport contract; provider prose is not authority)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "provider", "role", "mission_id", "task_id", "correlation_id", "started_at", "finished_at", "status", "files_changed", "tests", "external_calls", "mutations", "money_spent_eur", "result_hash"],
+  "properties": {
+    "schema_version": {"const": "PROVIDER_RESULT_V1"},
+    "provider": {"type": "string"},
+    "role": {"enum": ["GOOGLE_BUILD", "CODEX_REVIEW", "LOCAL_DETERMINISTIC"]},
+    "mission_id": {"type": "string"}, "task_id": {"type": "string"}, "correlation_id": {"type": "string"},
+    "started_at": {"type": "string", "format": "date-time"}, "finished_at": {"type": "string", "format": "date-time"},
+    "status": {"enum": ["SUCCESS", "BLOCKED", "FAILED", "PARTIAL", "UNKNOWN"]},
+    "files_changed": {"type": "array", "items": {"type": "string"}}, "files_created": {"type": "array", "items": {"type": "string"}},
+    "tests": {"type": "array", "items": {"type": "object"}}, "deterministic_checks": {"type": "array", "items": {"type": "object"}},
+    "external_calls": {"type": "integer", "minimum": 0}, "mutations": {"type": "integer", "minimum": 0}, "money_spent_eur": {"type": "number", "minimum": 0},
+    "security_findings": {"type": "array", "items": {"type": "object"}}, "remaining_blockers": {"type": "array", "items": {"type": "string"}},
+    "next_recommendation": {"type": ["string", "null"]}, "result_hash": {"type": "string", "minLength": 1}
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "schema_version": "OFF_HOST_STATE_CLASSIFICATION_V1",
+  "classified_at": "2026-09-01T04:55:00Z",
+  "categories": {
+    "REPLICATE": {
+      "description": "Essential canonical state required to resume operations on any replacement host without loss.",
+      "items": [
+        "events/chief-brain/memories.json",
+        "events/chief-brain/tasks_continuation.json",
+        "events/chief-brain/open_loops.json",
+        "events/autonomy-orchestrator/safe_queue.json",
+        "events/autonomy-orchestrator/checkpoint.json",
+        "events/host-survival/disaster_recovery_manifest.json",
+        "events/host-survival/host_fencing_token.json",
+        "events/worker-registry/hot_plug_registry.json",
+        "events/standing-objectives/",
+        "scripts/ (All deterministic Python runtime tools and tests)",
+        "config/ (System policies, review contracts, limits)"
+      ],
+      "integrity_check": "SHA-256 Digest Verification in DR Manifest"
+    },
+    "RECONSTRUCT": {
+      "description": "State that can be deterministically recomputed from code and source manifests without external replication.",
+      "items": [
+        "runtime/content/catalog_manifest.json (Reconstructed via CreatorAssetInventoryBuilder)",
+        "runtime/content/qc_batch_report.json (Reconstructed via evaluate_batch_qc)",
+        "events/resource-intelligence/historical_observations_2026-08-31.json (Reconstructed via Canonical Dataset)",
+        "Derived test oracles and QC evaluation caches"
+      ],
+      "integrity_check": "Deterministic code re-execution"
+    },
+    "LOCAL_ONLY": {
+      "description": "Ephemeral or machine-specific device bindings that must remain strictly local to current hardware.",
+      "items": [
+        "Local OS PID files (events/autonomy-runtime/*.pid)",
+        "Local flock lockfiles (events/autonomy-supervisor/supervisor.lock)",
+        "macOS .DS_Store files",
+        "Temporary rendering frame buffers (/tmp or /var/folders)",
+        "Python bytecode caches (__pycache__)"
+      ],
+      "integrity_check": "Purged on new host bootstrap"
+    },
+    "SECRET_DO_NOT_REPLICATE": {
+      "description": "Confidential credentials and secrets strictly excluded from offsite replication bundles.",
+      "items": [
+        "API Keys",
+        "OAuth Tokens and Refresh Tokens",
+        "Browser Cookies and Session Stores",
+        "SSH Private Keys",
+        "Payment Credentials and Credit Card Data"
+      ],
+      "integrity_check": "Automated Secret Scanner (Zero Secrets Allowed)"
+    }
+  }
+}

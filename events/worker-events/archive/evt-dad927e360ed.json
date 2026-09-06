@@ -1,0 +1,16 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-01T12:05:01.573249+00:00",
+  "event_id": "evt-dad927e360ed",
+  "event_type": "WORKER_PROGRESS",
+  "evidence": {
+    "opportunity_executed": "OPP-WAKE-1788264300"
+  },
+  "fingerprint": "d781cd8e2b49ef6a",
+  "mission_id": "M212",
+  "recommended_action": null,
+  "session_epoch": "epoch-google-1788264297",
+  "severity": "INFO",
+  "task_id": "OPP-WAKE-1788264300",
+  "worker_id": "GOOGLE"
+}

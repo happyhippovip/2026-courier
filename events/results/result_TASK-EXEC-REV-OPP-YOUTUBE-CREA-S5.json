@@ -1,0 +1,13 @@
+{
+  "artifacts": {},
+  "completed_at": "2026-09-01T15:06:42.592227+00:00",
+  "evidence": {
+    "requires_publication": true
+  },
+  "findings": "Opportunity REV-OPP-YOUTUBE-CREATOR-AUTOMATION requires human gate approval; parked safely.",
+  "opportunity_id": "REV-OPP-YOUTUBE-CREATOR-AUTOMATION",
+  "result_fingerprint": "717800ca6237dafa",
+  "result_id": "RES-TASK-EXEC-REV-OPP-YOUTUBE-CREA-S5-717800ca",
+  "status": "BLOCKED_GATE",
+  "task_id": "TASK-EXEC-REV-OPP-YOUTUBE-CREA-S5"
+}
