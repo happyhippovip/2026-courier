@@ -10,6 +10,39 @@ A run is not terminal merely because an agent says it is done. Terminal state is
 
 The next agent MUST read the latest canonical handoff record before doing any work. It MUST reuse proven unchanged state and MUST NOT restart completed work unless the repository or canonical state is missing or invalid.
 
+## MASTER TEST-RUNTIME RULE
+
+Fast verification is a permanent system invariant, not an optional optimization.
+
+Every future Courier phase, product milestone, repair cycle, audit, account handoff, and operator session MUST follow `docs/FAST_VERIFICATION_POLICY.md`.
+
+Required invariants:
+
+- `TARGETED_TESTS_FIRST = YES`
+- `FULL_REGRESSION_ONCE_PER_MILESTONE = YES`
+- `DUPLICATE_FULL_REGRESSION = FORBIDDEN`
+- `DUPLICATE_HEAVY_TASKS = FORBIDDEN`
+- `HEAVY_JOB_LIMIT = 1`
+- `UNCHANGED_PROVEN_STATE = REUSE`
+- `STALLED_TEST = ISOLATE_NOT_WAIT`
+- `TEST_RUNTIME_BUDGET = BOUNDED`
+- `NO_NEW_PHASE_WHILE_PREVIOUS_ACTIVE = YES`
+- `RESUME_FROM_LAST_PROVEN_STATE = YES`
+
+Default development loop:
+
+`CHANGE -> SMALLEST RELEVANT TEST -> RELEVANT MODULE TEST -> CONTINUE`
+
+A complete test discovery/regression MUST NOT be used as the default inner development loop. Run one full regression only at a coherent milestone boundary, or earlier when a high-risk change cannot be sufficiently proven by targeted evidence.
+
+Before any heavy regression starts, the operator/agent MUST establish that no equivalent heavy regression is already active. Starting a new prompt, account, model, terminal, or session does not authorize duplicate verification.
+
+If a test run stalls, identify and isolate the exact hanging test/process instead of starting another full suite or waiting indefinitely.
+
+Same relevant fingerprint + previously verified PASS means reuse the evidence unless the dependency/risk surface changed.
+
+This rule exists because redundant, overlapping, and unbounded regression runs have caused major avoidable wall-clock delays. Future agents should optimize for strong evidence per minute, not maximum repeated test execution.
+
 ## Required terminal flags
 
 Every major run must publish at least:
