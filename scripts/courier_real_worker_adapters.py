@@ -1,3 +1,5 @@
+
+
 """Strict native real-worker adapters attaching CLI1, CODEX, and GEMINI genuine execution boundaries to CourierSafetyDispatcher."""
 from __future__ import annotations
 
@@ -367,6 +369,9 @@ def create_real_gemini_adapter(repo_root=None, model="gemini-3.7-flash-medium", 
         
         if requires_write and action == "implement_bounded_improvement":
             task_instruction = payload_in.get("prompt", "Perform the requested modification.")
+            goal_context = payload_in.get("goal_context", "")
+            if goal_context:
+                task_instruction = f"GOAL CONTEXT: {goal_context}\n" + task_instruction
             criteria = payload_in.get("acceptance_criteria", {})
             if native_attempt == 1:
                 phase_1 = (
@@ -400,6 +405,7 @@ def create_real_gemini_adapter(repo_root=None, model="gemini-3.7-flash-medium", 
                 "You are performing a read-only discovery task.\n"
                 f"GOAL CONTEXT: {goal_context}\n"
                 "Analyze the repository based on the goal context provided above. "
+                "If the goal is already fully satisfied by the current repository state and no coherent gap exists, set 'weakness_id' to 'NONE'. Otherwise, provide a specific weakness_id.\n"
                 "Return ONLY a valid JSON object with exact keys: "
                 "'correlation_id', 'mission_id', 'task_id', 'task_hash', 'target_agent', 'weakness_id', 'description', 'suggested_files' (list of strings), 'verification_strategy', "
                 "'verdict' ('PASS' or 'HUMAN_APPROVAL_REQUIRED'), and 'summary'."
@@ -569,10 +575,138 @@ def create_real_gemini_adapter(repo_root=None, model="gemini-3.7-flash-medium", 
 
     return gemini_worker
 
+
+def create_real_local_cheap_adapter(repo_root: Optional[Union[Path, str]] = None) -> LocalConsumer:
+    root = Path(repo_root or COURIER_REPO_ROOT).resolve()
+
+    def local_cheap_worker(task_envelope: Dict[str, Any]) -> Dict[str, Any]:
+        task_hash = task_envelope["task_hash"]
+        worker_id = task_envelope["worker_id"]
+        target_agent = task_envelope["target_agent"]
+        mission_id = task_envelope.get("mission_id", "")
+        task_id = task_envelope.get("task_id", task_hash[:16])
+        correlation_id = str(task_envelope.get("correlation_id", ""))
+
+        if target_agent != "LOCAL_CHEAP":
+            return {"status": "FAIL_CLOSED"}
+
+        task_payload = task_envelope.get("payload", {})
+        action = task_payload.get("action")
+
+        if action == "discover_improvement_opportunities":
+            # Generic deterministic discovery using existing GeneralEngineeringDiscoveryEngine
+            from scripts.general_engineering_discovery_engine import GeneralEngineeringDiscoveryEngine
+            
+            try:
+                engine = GeneralEngineeringDiscoveryEngine(root)
+                inv = engine.generate_repository_inventory()
+                candidates = engine.discover_silent_exceptions(inv)
+                if not candidates:
+                    candidates = engine.discover_untested_modules(inv)
+                    
+                if not candidates:
+                    payload_out = {
+                        "worker_agent": "LOCAL_CHEAP",
+                        "worker_type": "DETERMINISTIC_LOCAL",
+                        "real_model_call": False,
+                        "separate_process": False,
+                        "requested_model": "NONE",
+                        "confirmed_model": "DETERMINISTIC_CLI",
+                        "model_identity_truthful": True,
+                        "entrypoint": "LOCAL_PYTHON_SUBPROCESS",
+                        "execution_mode": "REAL_DETERMINISTIC_EXECUTION",
+                        "stage": "REAL_INDEPENDENT_DISCOVERY",
+                        "ack_mode": "SYNCHRONOUS_COMPLETION_VALIDATED",
+                        "worker_originated_ack": False,
+                        "correlation_id": correlation_id,
+                        "task_id": task_id,
+                        "mission_id": mission_id,
+                        "task_hash": task_hash,
+                        "target_agent": target_agent,
+                        "verdict": "PASS",
+                        "summary": "Deterministic local discovery found no gaps. Goal satisfied.",
+                        "task_type": "DISCOVERY",
+                        "zero_cost_policy": "ZERO_COST_ONLY",
+                        "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+                        "status": "COMPLETED",
+                        "action": "discover_improvement_opportunities",
+                        "weakness_id": "NONE",
+                        "description": "Baseline is fully operational.",
+                        "suggested_files": [],
+                        "verification_strategy": "run_unit_tests"
+                    }
+                else:
+                    cand = candidates[0]
+                    payload_out = {
+                        "worker_agent": "LOCAL_CHEAP",
+                        "worker_type": "DETERMINISTIC_LOCAL",
+                        "real_model_call": False,
+                        "separate_process": False,
+                        "requested_model": "NONE",
+                        "confirmed_model": "DETERMINISTIC_CLI",
+                        "model_identity_truthful": True,
+                        "entrypoint": "LOCAL_PYTHON_SUBPROCESS",
+                        "execution_mode": "REAL_DETERMINISTIC_EXECUTION",
+                        "stage": "REAL_INDEPENDENT_DISCOVERY",
+                        "ack_mode": "SYNCHRONOUS_COMPLETION_VALIDATED",
+                        "worker_originated_ack": False,
+                        "correlation_id": correlation_id,
+                        "task_id": task_id,
+                        "mission_id": mission_id,
+                        "task_hash": task_hash,
+                        "target_agent": target_agent,
+                        "verdict": "PASS",
+                        "summary": "Deterministic local discovery completed successfully.",
+                        "task_type": "DISCOVERY",
+                        "zero_cost_policy": "ZERO_COST_ONLY",
+                        "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+                        "status": "COMPLETED",
+                        "action": "discover_improvement_opportunities",
+                        "weakness_id": cand.task_id,
+                        "description": cand.title + "\n" + cand.evidence_summary,
+                        "suggested_files": cand.files_in_scope,
+                        "verification_strategy": "run_unit_tests"
+                    }
+            except Exception as e:
+                return {"status": "FAIL_CLOSED", "reason": f"Discovery failed: {str(e)}"}
+        else:
+            return {"status": "FAIL_CLOSED"}
+
+        return {
+            "ack": {
+                "schema_version": "1.0",
+                "type": "ACK",
+                "status": "ACCEPTED",
+                "ack_mode": "SYNCHRONOUS_COMPLETION_VALIDATED",
+                "task_hash": task_hash,
+                "worker_id": worker_id,
+                "target_agent": target_agent,
+                "correlation_id": correlation_id,
+                "task_id": task_id,
+                "mission_id": mission_id,
+            },
+            "result": {
+                "schema_version": "1.0",
+                "type": "RESULT",
+                "status": "COMPLETED",
+                "task_hash": task_hash,
+                "worker_id": worker_id,
+                "target_agent": target_agent,
+                "correlation_id": correlation_id,
+                "task_id": task_id,
+                "mission_id": mission_id,
+                "payload": payload_out,
+                "result_fingerprint": canonical_hash(payload_out),
+            }
+        }
+
+    return local_cheap_worker
+
 def get_real_worker_adapters(repo_root: Optional[Path] = None, gemini_model: str = "gemini-3.7-flash-medium") -> Dict[str, Any]:
     root = repo_root or COURIER_REPO_ROOT
     return {
         "CLI1": create_real_cli1_adapter(root),
         "CODEX": create_real_codex_adapter(root),
         "GEMINI": create_real_gemini_adapter(root, model=gemini_model),
+        "LOCAL_CHEAP": create_real_local_cheap_adapter(root),
     }

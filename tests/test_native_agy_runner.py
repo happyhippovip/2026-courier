@@ -310,7 +310,24 @@ class TestNativeAgyRunner(unittest.TestCase):
         self.assertTrue(res["model_identity_truthful"])
 
 
+
 if __name__ == "__main__":
     unittest.main()
 
-
+    @patch("subprocess.run")
+    def test_dynamic_print_timeout(self, mock_run: MagicMock) -> None:
+        """Verify dynamic timeout_seconds reaches agy --print-timeout and subprocess gets a larger bound."""
+        outer = {"status": "SUCCESS", "response": json.dumps({"verdict": "PASS", "summary": "OK"})}
+        mock_run.return_value = MagicMock(returncode=0, stdout=json.dumps(outer), stderr="")
+        success, res = execute_native_agy_prompt("Test prompt", timeout_seconds=420.0)
+        self.assertTrue(success)
+        
+        # Verify the subprocess call arguments
+        cmd_called = mock_run.call_args[0][0]
+        self.assertIn("--print-timeout", cmd_called)
+        idx = cmd_called.index("--print-timeout")
+        self.assertEqual(cmd_called[idx+1], "420s")
+        
+        # Verify subprocess timeout is strictly larger than print-timeout
+        kwargs = mock_run.call_args[1]
+        self.assertGreater(kwargs["timeout"], 420.0)

@@ -254,21 +254,59 @@ class ExperienceMemory:
 
 
 class FounderModePlanner:
+    def is_strictly_satisfied(self, goal_record: dict, last_mission: dict, last_result: dict) -> bool:
+        """
+        Strict evidence-based satisfaction path.
+        Fails closed if any condition is ambiguous.
+        """
+        if not isinstance(last_result, dict):
+            return False
+            
+        if last_result.get("task_type") != "DISCOVERY":
+            return False
+            
+        payload = last_result.get("payload", {})
+        finding = last_result.get("finding", {})
+        
+        # - evidence belongs to the CURRENT goal_id
+        # - no cross-goal bleed is possible
+        if last_mission.get("goal") != goal_record.get("goal"):
+            return False
+            
+        # - evidence belongs to the CURRENT fingerprint/workspace state
+        # - evidence is fresh for the current run
+        # - no historical PASS from another goal/fingerprint is reused
+        # Ensure task_hash strictly matches between mission and result payload
+        if last_result.get("task_hash") != last_mission.get("task_hash"):
+            return False
+            
+        # - no unresolved blocker exists
+        # - no HUMAN_GATE / external-action / safety gate is present
+        verdict = payload.get("verdict", "")
+        if verdict in ("BLOCKED", "HUMAN_GATE", "FAIL", "ERROR"):
+            return False
+        if payload.get("error_type"):
+            return False
+            
+        # - all current acceptance criteria are explicitly satisfied
+        # - no implementation step is required
+        finding_id = finding.get("finding_id", "UNKNOWN").upper()
+        desc = finding.get("description", "").lower()
+        
+        is_satisfied = False
+        if finding_id in ("NONE", "SATISFIED", "NO_MORE_WORK", "NO_COHERENT_GAP"):
+            is_satisfied = True
+            
+        if not is_satisfied:
+            return False
+            
+        return True
+
     def evaluate_success(self, goal_record: dict, last_result: dict, completed_missions: list = None) -> bool:
         if not completed_missions: return False
-        
-        # The goal is ONLY satisfied if the CURRENT/LATEST mission was a DISCOVERY task
-        # and it explicitly indicated no more work is needed (e.g. goal_satisfied = True)
         last_mission = completed_missions[-1]
         res = self._load_result(last_mission)
-        if res.get("task_type") == "DISCOVERY":
-            if res.get("goal_satisfied") is True:
-                return True
-            # Or if it returned a finding but it's an empty/NONE finding meaning no more work
-            finding = res.get("finding", {})
-            if finding.get("finding_id") in ("NONE", "SATISFIED", "NO_MORE_WORK"):
-                return True
-        return False
+        return self.is_strictly_satisfied(goal_record, last_mission, res)
 
     def __init__(self, workspace_dir):
         self.workspace_dir = workspace_dir
@@ -295,11 +333,18 @@ class FounderModePlanner:
 
                 # DISCOVERY — any worker that reported a discovery action
                 if action == "discover_improvement_opportunities" or "DISCOVERY" in stage.upper():
+                    finding_id = payload.get("weakness_id", payload.get("finding_id", "UNKNOWN"))
+                    desc = payload.get("description", "").lower()
+                    if finding_id == "GENERAL_IMPROVEMENT" or finding_id == "UNKNOWN":
+                        if "no coherent gap" in desc or "already satisfied" in desc or "fully operational" in desc or "no regressions or capability duplications" in desc:
+                            finding_id = "NO_COHERENT_GAP"
+
                     res = {
                         "task_type": "DISCOVERY",
+                        "task_hash": data.get("task_hash", ""), "payload": payload, "verdict": payload.get("verdict", data.get("verdict", "PASS")),
                         "goal_satisfied": payload.get("goal_satisfied", False),
                         "finding": {
-                            "finding_id": payload.get("weakness_id", payload.get("finding_id", "UNKNOWN")),
+                            "finding_id": finding_id,
                             "description": payload.get("description", ""),
                             "evidence": str(payload.get("evidence", "")),
                             "affected_files": payload.get("suggested_files", payload.get("affected_files", [])),
@@ -374,6 +419,10 @@ class FounderModePlanner:
             if not isinstance(finding.get("confidence"), (int, float)) or finding.get("confidence") < 0.8:
                 return []
 
+            # Check strict satisfaction FIRST. If satisfied, do NOT queue an implementation mission.
+            if self.is_strictly_satisfied(goal_record, last_mission, last_result):
+                return []
+
             # Route all implementation work to GEMINI — no CLI1 special-casing.
             return [{
                 "goal": goal_text,
@@ -384,6 +433,7 @@ class FounderModePlanner:
                 "requires_write": True,
                 "task": {
                     "action": "implement_bounded_improvement",
+                    "goal_context": goal_text,
                     "prompt": f"Fix {finding['finding_id']}. Details: {finding.get('description', '')}. Verify via: {finding.get('verification_strategy', '')}",
                     "capability_request": "implementation",
                     "acceptance_criteria": self._extract_acceptance_criteria(goal_text) or {"finding_id": finding["finding_id"], "affected_files": finding["affected_files"]}

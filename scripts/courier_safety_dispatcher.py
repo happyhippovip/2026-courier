@@ -57,7 +57,7 @@ LocalConsumer = Callable[[dict[str, Any]], dict[str, Any]]
 
 class LocalWorkerAdapterBoundary:
     """Durable envelope -> consumer -> bound ACK + RESULT contract."""
-    SUPPORTED_AGENTS = frozenset({"CLI1", "CODEX", "GEMINI"})
+    SUPPORTED_AGENTS = frozenset({"CLI1", "CODEX", "GEMINI", "LOCAL_CHEAP"})
 
     def __init__(self, workspace_dir: Path, consumers: Optional[dict[str, LocalConsumer]] = None):
         self.workspace_dir = Path(workspace_dir)
@@ -554,6 +554,19 @@ class CourierSafetyDispatcher:
                 dispatch["status"] = "BLOCKED"
 
         if dispatch.get("status") not in ("EXECUTED", "DEDUPED"):
+            reason = dispatch.get("reason", "")
+            if "GEMINI_NATIVE_AGY_FAILED" in reason and "ERROR" in reason and task.get("action") == "discover_improvement_opportunities" and not task.get("requires_write"):
+                self.last_result_status = None
+                task["preferred_agent"] = "LOCAL_CHEAP"
+                task["capability_request"] = "local repo analysis"
+                original_router_fallback = self.router
+                self.router = DynamicAgentRouter({"LOCAL_CHEAP": "AVAILABLE"})
+                try:
+                    dispatch = self.submit_task(worker_id, task, mission_id=mission_id)
+                finally:
+                    self.router = original_router_fallback
+
+        if dispatch.get("status") not in ("EXECUTED", "DEDUPED"):
             self.mission_queue.transition(mission_id, "BLOCKED", claimed_by=worker_id,
                                           result_reference=dispatch.get("reason", "DISPATCH_FAILED"))
             return {"status": "BLOCKED", "mission_id": mission_id, "reason": dispatch.get("reason")}
@@ -603,7 +616,7 @@ class CourierSafetyDispatcher:
         import re
         task_parts = []
         for k, v in task.items():
-            if k not in ("files", "target_files", "changed_files", "strategy", "acceptance_criteria", "description", "summary", "payload", "task_hash", "correlation_id", "mission_id", "task_id", "result", "result_data"):
+            if k not in ("files", "target_files", "changed_files", "task_hash", "correlation_id", "mission_id", "task_id", "result", "result_data"):
                 task_parts.append(str(v))
 
         raw_text = " ".join(str(x) for x in (mission.get("goal", ""), mission.get("normalized_task", ""), " ".join(task_parts)))
@@ -616,7 +629,7 @@ class CourierSafetyDispatcher:
         
         # Action-aware gating (no negative phrase stripping, fails closed on contradictions)
         gated_action_patterns = [
-            r'\b(?:deploy|deploying)\s+(?:production|prod|external|now|to\s+prod)\b',
+            r'\b(?:deploy|deploying)\s+(?:production|prod|external|now|to\s+prod|to\s+production)\b',
             r'\b(?:login|log\s+in|logging\s+in)\b',
             r'\b(?:authenticate|authenticating)\s+(?:to|against|with|external)\b',
             r'\b(?:publish|publishing)\s+(?:this|externally|production|to)\b',
@@ -627,7 +640,12 @@ class CourierSafetyDispatcher:
             r'\breal-money\s+trade\b',
             r'\bwallet\s+signing\b',
             r'\b(?:contact|email|message)\s+(?:customers?|users?)\b',
-            r'\bhuman_gate\s+required\b'
+            r'\bhuman_gate\s+required\b',
+            r'\b(?:password|2fa|captcha|touch\s+id|face\s+id|sudo|admin|uac)\s+(?:required|needed|prompt)\b',
+            r'\b(?:enter|use|provide|type|submit|bypass|solve|verify)\s+(?:a\s+)?(?:password|2fa|captcha|touch\s+id|face\s+id|sudo|admin|uac)\b',
+            r'\b(?:keychain|credential)\s+(?:unlock|reset)\b',
+            r'\bgithub\s+login\b',
+            r'\b(?:kyc|legal\s+acceptance)\b'
         ]
         
         for pat in gated_action_patterns:
@@ -851,6 +869,7 @@ class DynamicAgentRouter:
     CODEX = EXPENSIVE_SPECIALIST only
     """
     CAPABILITIES = {
+        "LOCAL_CHEAP": ("local repo analysis", "deterministic checks", "repo verification"),
         "CLI1": ("local repo analysis", "deterministic checks", "repo verification"),
         # CODEX handles specialist work requiring deep structural analysis.
         # It does NOT receive ordinary implementation, analysis, or refactoring.

@@ -62,7 +62,7 @@ def execute_native_agy_prompt(
     cmd: List[str] = [
         str(bin_path),
         "-p", prompt,
-        "--output-format", "json", "--print-timeout", "15m",
+        "--output-format", "json", "--print-timeout", f"{int(timeout_seconds)}s",
         "--model", model,
         "--dangerously-skip-permissions",
     ]
@@ -78,7 +78,7 @@ def execute_native_agy_prompt(
                 stderr=subprocess.PIPE,
                 text=True,
                 cwd=str(repo_dir) if repo_dir else None,
-                timeout=timeout_seconds,
+                timeout=timeout_seconds + 30.0,
             )
 
         stdout_raw = proc.stdout.strip()
@@ -158,25 +158,26 @@ def execute_native_agy_prompt(
         except Exception as e:
             parse_err = e
 
-        # 2. Markdown fenced code block
-        if model_payload is None and "```json" in response_text:
-            try:
-                candidate = json.loads(response_text.split("```json")[1].split("```")[0].strip())
-                if isinstance(candidate, dict):
-                    model_payload = candidate
-            except Exception as e:
-                parse_err = e
-
-        if model_payload is None and "```" in response_text:
-            try:
-                candidate = json.loads(response_text.split("```")[1].split("```")[0].strip())
-                if isinstance(candidate, dict):
-                    model_payload = candidate
-            except Exception as e:
-                parse_err = e
-
-        # 3. Outer brace extraction
+        # 2. Markdown fenced code blocks
         if model_payload is None:
+            import re
+            blocks = re.findall(r'```(?:json)?\s*(\{.*?\})\s*```', response_text, re.DOTALL)
+            if blocks:
+                valid_candidates = []
+                for b in blocks:
+                    try:
+                        candidate = json.loads(b.strip())
+                        if isinstance(candidate, dict):
+                            valid_candidates.append(candidate)
+                    except:
+                        pass
+                if len(valid_candidates) > 1:
+                    parse_err = ValueError("Multiple valid JSON envelopes found in markdown blocks. Failing closed.")
+                elif len(valid_candidates) == 1:
+                    model_payload = valid_candidates[0]
+
+        # 3. Outer brace extraction fallback
+        if model_payload is None and parse_err is None:
             first_brace = response_text.find("{")
             last_brace = response_text.rfind("}")
             if first_brace != -1 and last_brace != -1 and last_brace > first_brace:
@@ -188,6 +189,8 @@ def execute_native_agy_prompt(
                     parse_err = e
 
         if model_payload is None or not isinstance(model_payload, dict):
+            with open("scratch/debug_agy_fail.txt", "w") as f:
+                f.write(f"STDOUT:\n{stdout_raw}\nSTDERR:\n{stderr_raw}\n")
             return False, {
                 "error_type": "INVALID_MODEL_PAYLOAD_JSON",
                 "verdict": "FAILED",
