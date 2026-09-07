@@ -57,7 +57,7 @@ LocalConsumer = Callable[[dict[str, Any]], dict[str, Any]]
 
 class LocalWorkerAdapterBoundary:
     """Durable envelope -> consumer -> bound ACK + RESULT contract."""
-    SUPPORTED_AGENTS = frozenset({"CLI1", "CODEX", "GEMINI", "LOCAL_CHEAP"})
+    SUPPORTED_AGENTS = frozenset({"CLI1", "CODEX", "GEMINI"})
 
     def __init__(self, workspace_dir: Path, consumers: Optional[dict[str, LocalConsumer]] = None):
         self.workspace_dir = Path(workspace_dir)
@@ -94,6 +94,10 @@ class LocalWorkerAdapterBoundary:
         response = consumer(json.loads(json.dumps(task)))
         if not isinstance(response, dict):
             raise RuntimeError("MISSING_OR_INVALID_WORKER_RESPONSE")
+        print("DEBUG CONSUMER IS:", type(consumer), getattr(consumer, "__name__", "unknown"))
+        import inspect
+        print("DEBUG CONSUMER FILE:", inspect.getfile(consumer))
+        print("DEBUG RESPONSE:", response)
         ack, result = response.get("ack"), response.get("result")
         self._validate_ack(ack, envelope)
         self._validate_result(result, envelope)
@@ -122,8 +126,13 @@ class LocalWorkerAdapterBoundary:
     @classmethod
     def _validate_ack(cls, ack: Any, envelope: TaskEnvelope) -> None:
         expected = cls._identity("ACK", "ACCEPTED", envelope)
-        if not isinstance(ack, dict) or any(ack.get(k) != v for k, v in expected.items()):
+        if not isinstance(ack, dict):
+            print("DEBUG: ACK NOT DICT")
             raise RuntimeError("MISSING_OR_INVALID_ACK")
+        for k, v in expected.items():
+            if ack.get(k) != v:
+                print(f"DEBUG: ACK MISMATCH {k} expected={v} got={ack.get(k)}")
+                raise RuntimeError("MISSING_OR_INVALID_ACK")
 
     @classmethod
     def _validate_result(cls, result: Any, envelope: TaskEnvelope) -> None:
@@ -481,6 +490,7 @@ class CourierSafetyDispatcher:
         worker_id: str,
         successor_deriver: Optional[Callable[[dict[str, Any]], Optional[dict[str, Any]]]] = None,
         verification_status: str = "PASS",
+        goal: Optional[str] = None,
     ) -> dict[str, Any]:
         """Run one claimed mission through the only supported local lifecycle.
 
@@ -489,7 +499,7 @@ class CourierSafetyDispatcher:
         derive a successor.  A missing/invalid response is a blocked mission, never a
         successful cache entry.
         """
-        mission = self.mission_queue.claim_next(worker_id)
+        mission = self.mission_queue.claim_next(worker_id, goal=goal)
         if mission is None:
             return {"status": "NO_PENDING_MISSION"}
         self.last_result_status = None
@@ -555,12 +565,12 @@ class CourierSafetyDispatcher:
 
         if dispatch.get("status") not in ("EXECUTED", "DEDUPED"):
             reason = dispatch.get("reason", "")
-            if "GEMINI_NATIVE_AGY_FAILED" in reason and "ERROR" in reason and task.get("action") == "discover_improvement_opportunities" and not task.get("requires_write"):
+            if "GEMINI_NATIVE_AGY_FAILED" in reason and ("ERROR" in reason or "Model did not return schema-valid JSON payload" in reason) and task.get("action") == "discover_improvement_opportunities" and not task.get("requires_write"):
                 self.last_result_status = None
-                task["preferred_agent"] = "LOCAL_CHEAP"
+                task["preferred_agent"] = "CLI1"
                 task["capability_request"] = "local repo analysis"
                 original_router_fallback = self.router
-                self.router = DynamicAgentRouter({"LOCAL_CHEAP": "AVAILABLE"})
+                self.router = DynamicAgentRouter({"CLI1": "AVAILABLE"})
                 try:
                     dispatch = self.submit_task(worker_id, task, mission_id=mission_id)
                 finally:
@@ -627,7 +637,7 @@ class CourierSafetyDispatcher:
         raw_text = re.sub(r'\b[\w\.-]+\.(?:py|json|md|txt|mjs|js|ts|sh|yaml|yml)\b', '', raw_text) # strip things like test_deploy.py
         text = raw_text.lower()
         
-        # Action-aware gating (no negative phrase stripping, fails closed on contradictions)
+        # Action-aware gating (fails closed on contradictions)
         gated_action_patterns = [
             r'\b(?:deploy|deploying)\s+(?:production|prod|external|now|to\s+prod|to\s+production)\b',
             r'\b(?:login|log\s+in|logging\s+in)\b',
@@ -645,15 +655,24 @@ class CourierSafetyDispatcher:
             r'\b(?:enter|use|provide|type|submit|bypass|solve|verify)\s+(?:a\s+)?(?:password|2fa|captcha|touch\s+id|face\s+id|sudo|admin|uac)\b',
             r'\b(?:keychain|credential)\s+(?:unlock|reset)\b',
             r'\bgithub\s+login\b',
-            r'\b(?:kyc|legal\s+acceptance)\b'
+            r'\b(?:kyc|legal\s+acceptance)\b',
+            r'\breal\s+spend\b',
+            r'\breal\s+trades?\b',
+            r'\bcustomer\s+contact\b',
+            r'\bexternal\s+send\b',
+            r'\boauth\s+login\b',
+            r'\b(?:connect|use)\s+(?:my\s+|a\s+)?real\s+wallet\b'
         ]
         
+        negation_prefix = r'\b(?:no|not|do\s+not|never|without)\s+(?:a\s+|any\s+|my\s+)?$'
+        
         for pat in gated_action_patterns:
-            if re.search(pat, text):
-                return True
+            for match in re.finditer(pat, text):
+                prefix = text[max(0, match.start() - 15):match.start()]
+                if not re.search(negation_prefix, prefix):
+                    return True
                 
-        fallback_keywords = ["real spend", "real trade", "customer contact", "external send", "kyc", "oauth login"]
-        return any(term in text for term in fallback_keywords)
+        return False
 
 
 @dataclass(frozen=True)
@@ -734,7 +753,16 @@ class MissionQueue:
         fd = self._lock()
         try:
             document = self._document()
+            
+            import copy
+            before = copy.deepcopy(document)
+            
             outcome = fn(document)
+            
+            print(f"DEBUG _mutate fn={fn.__name__} outcome={outcome}")
+            print(f"DEBUG _mutate before missions: {[m.get('mission_id') for m in before.get('missions', [])]}")
+            print(f"DEBUG _mutate after missions: {[m.get('mission_id') for m in document.get('missions', [])]}")
+            
             write_json_atomic(self.queue_file, document)
             return outcome
         finally:
@@ -828,10 +856,12 @@ class MissionQueue:
             self._validate(mission); return dict(mission)
         return self._mutate(apply)
 
-    def claim_next(self, worker_id: str) -> Optional[dict[str, Any]]:
+    def claim_next(self, worker_id: str, goal: Optional[str] = None) -> Optional[dict[str, Any]]:
         def claim(document: dict[str, Any]) -> Optional[dict[str, Any]]:
             for mission in document["missions"]:
                 if mission.get("status") == "PENDING":
+                    if goal is not None and mission.get("goal") != goal:
+                        continue
                     mission["status"], mission["claimed_by"] = "CLAIMED", worker_id
                     return dict(mission)
             return None
@@ -869,7 +899,6 @@ class DynamicAgentRouter:
     CODEX = EXPENSIVE_SPECIALIST only
     """
     CAPABILITIES = {
-        "LOCAL_CHEAP": ("local repo analysis", "deterministic checks", "repo verification"),
         "CLI1": ("local repo analysis", "deterministic checks", "repo verification"),
         # CODEX handles specialist work requiring deep structural analysis.
         # It does NOT receive ordinary implementation, analysis, or refactoring.

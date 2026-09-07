@@ -211,7 +211,7 @@ def execute_native_agy_prompt(
                     }
 
         verdict = model_payload.get("verdict")
-        if verdict not in {"PASS", "HUMAN_APPROVAL_REQUIRED"}:
+        if verdict not in {"PASS", "HUMAN_APPROVAL_REQUIRED", "WORKER_INFORMATION_REQUEST"}:
             return False, {
                 "error_type": "INVALID_OR_MISSING_VERDICT",
                 "verdict": "FAILED",

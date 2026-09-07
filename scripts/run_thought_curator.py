@@ -129,7 +129,24 @@ class ThoughtCurator:
 
         return index, sources
 
-    def curate_idea(self, raw_idea: str, idea_type: str = "IDEA") -> dict:
+    def curate_idea(self, raw_idea: str, idea_type: str = "IDEA", **kwargs) -> dict:
+        # SECRET DETECTION
+        secret_patterns = [
+            r"eyJ[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}",  # JWT
+            r"AIza[0-9A-Za-z-_]{35}",  # GCP Key
+            r"ghp_[0-9a-zA-Z]{36}",  # GitHub
+            r"(?i)(password|secret|api_key|token)[\s=:]+[a-zA-Z0-9_]{8,}" # Generic
+        ]
+        if any(re.search(p, raw_idea) for p in secret_patterns):
+            raise ValueError("SECURITY VIOLATION: Curator input contains secret-like tokens. Blocked.")
+
+        # PROVENANCE GUARD
+        accepted_ref = kwargs.get("accepted_thought_reference")
+        is_unbound = not accepted_ref
+        if is_unbound and not kwargs.get("provenance_guard"):
+            raise ValueError("SECURITY VIOLATION: Curator cannot bypass protected ingestion without explicit provenance_guard.")
+        provenance = accepted_ref or "UNBOUND_INPUT"
+
         """Processes a human idea through the full Thought Curator lifecycle into a Context Delta."""
         normalized = " ".join(raw_idea.strip().lower().split())
         idea_hash = hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:8]
@@ -273,6 +290,10 @@ class ThoughtCurator:
         )
 
         # Final Machine-Readable Context Delta Object
+        if is_unbound:
+            classification = "UNBOUND_UNTRUSTED_INPUT"
+            conflicts.append({"rule": "D-030", "severity": "HUMAN_GATE_REQUIRED", "reason": "Derived Context ohne echte Quellenreferenz (accepted_thought_reference)."})
+        
         context_delta = {
             "idea_id": idea_id,
             "raw_idea": raw_idea,
@@ -307,8 +328,10 @@ class ThoughtCurator:
             human_gate="REQUIRE_EXPLICIT_HUMAN_APPROVAL" if final_state == "BLOCKED" else None,
         )
 
-        # Save thought record
+        # Save thought record - Anti-overwrite protection
         thought_file = THOUGHTS_DIR / f"{idea_id}.json"
+        if thought_file.exists():
+            raise ValueError(f"SECURITY VIOLATION: Silent overwrite of derived record {idea_id} is forbidden.")
         save_json(thought_file, context_delta)
 
         return context_delta
@@ -321,7 +344,7 @@ def main():
     args = parser.parse_args()
 
     curator = ThoughtCurator()
-    res = curator.curate_idea(args.idea, args.type)
+    res = curator.curate_idea(args.idea, args.type, provenance_guard="cli_manual_override_guard")
     print("\n=== CURATION SUMMARY ===")
     print(json.dumps(res, indent=2))
 

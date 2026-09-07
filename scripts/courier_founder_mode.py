@@ -259,6 +259,7 @@ class FounderModePlanner:
         Strict evidence-based satisfaction path.
         Fails closed if any condition is ambiguous.
         """
+        print(f"DEBUG strictly check: result_hash={last_result.get('task_hash')} mission_hash={last_mission.get('task_hash')} type={last_result.get('task_type')} finding_id={last_result.get('finding', {}).get('finding_id')}")
         if not isinstance(last_result, dict):
             return False
             
@@ -322,6 +323,8 @@ class FounderModePlanner:
         from pathlib import Path
         ref = mission.get("result_reference")
         res = mission.get("result_data", {})
+        if ref and isinstance(ref, str):
+            print(f"DEBUG _load_result: ref={ref} exists={Path(ref).exists()} absolute={Path(ref).absolute()}")
         if ref and isinstance(ref, str) and Path(ref).exists():
             try:
                 with open(ref, "r") as f:
@@ -341,7 +344,7 @@ class FounderModePlanner:
 
                     res = {
                         "task_type": "DISCOVERY",
-                        "task_hash": data.get("task_hash", ""), "payload": payload, "verdict": payload.get("verdict", data.get("verdict", "PASS")),
+                        "task_hash": data.get("result", {}).get("task_hash", data.get("task_hash", "")), "payload": payload, "verdict": payload.get("verdict", data.get("verdict", "PASS")),
                         "goal_satisfied": payload.get("goal_satisfied", False),
                         "finding": {
                             "finding_id": finding_id,
@@ -353,6 +356,7 @@ class FounderModePlanner:
                             "confidence": payload.get("confidence", 1.0)
                         }
                     }
+                    print("DEBUG _load_result returning DISCOVERY:", res)
 
                 # VERIFICATION — explicit verification action or stage
                 elif action == "verify_improvement_tests" or "VERIFICATION" in stage.upper() or "ACCEPTANCE_AUDIT" in stage.upper():
@@ -406,6 +410,7 @@ class FounderModePlanner:
 
         last_mission = completed[-1]
         last_result = self._load_result(last_mission)
+        print(f"DEBUG strictly check: result_hash={last_result.get('task_hash')} mission_hash={last_mission.get('task_hash')} type={last_result.get('task_type')} finding_id={last_result.get('finding', {}).get('finding_id')}")
         if not isinstance(last_result, dict):
             return []
 

@@ -93,7 +93,7 @@ def load_recoverable_state(state_path: Path, processed_dir: Path) -> dict[str, A
         record = load_json(run_file, {})
         for item in record.get("completed_ingestions", []):
             state.setdefault("ingestions", {}).setdefault(item["ingestion_id"], item["content_hash"])
-            state.setdefault("source_messages", {}).setdefault(item["source_message_id"], item["thought_payload_hash"])
+            state.setdefault("source_messages", {}).setdefault(item["source_message_id"], item["content_hash"])
         if record.get("coverage_ledger"):
             state["coverage_ledger"] = record["coverage_ledger"]
     return state
@@ -109,7 +109,13 @@ def _run_ingestion(inbox: Path, processed: Path, rejected: Path, memory_repo: Pa
     batch_sources: dict[str, str] = {}
     for input_file in sorted(inbox.glob("*.json")):
         try:
-            raw = load_json(input_file, None)
+            # Force UTF-8 explicitly; fail-closed if invalid
+            raw_text = input_file.read_bytes().decode("utf-8")
+            raw = json.loads(raw_text)
+        except UnicodeDecodeError:
+            safe_rejection(rejected / f"{input_file.stem}-rejected.json", None, "invalid UTF-8 encoding")
+            rejected_count += 1
+            continue
         except json.JSONDecodeError:
             safe_rejection(rejected / f"{input_file.stem}-rejected.json", None, "invalid JSON")
             rejected_count += 1
@@ -137,7 +143,7 @@ def _run_ingestion(inbox: Path, processed: Path, rejected: Path, memory_repo: Pa
                 # Keep one normalized historical message in coverage scans, but never process it as delta again.
                 if thought["message_id"] not in batch_sources:
                     accepted.append((input_file, envelope, thought))
-                    batch_sources[thought["message_id"]] = thought["payload_hash"]
+                    batch_sources[thought["message_id"]] = envelope["content_hash"]
             else:
                 safe_rejection(rejected / f"{input_file.stem}-rejected.json", envelope["ingestion_id"], "ingestion id/hash conflict")
                 conflict_count += 1
@@ -150,27 +156,40 @@ def _run_ingestion(inbox: Path, processed: Path, rejected: Path, memory_repo: Pa
                 conflict_count += 1
             continue
         source_hash = state["source_messages"].get(thought["message_id"])
-        if source_hash is not None and source_hash != thought["payload_hash"]:
+        if source_hash is not None and source_hash != envelope["content_hash"]:
             safe_rejection(rejected / f"{input_file.stem}-rejected.json", envelope["ingestion_id"], "source message id/hash conflict")
             conflict_count += 1
             continue
-        if thought["message_id"] in batch_sources and batch_sources[thought["message_id"]] != thought["payload_hash"]:
+        if thought["message_id"] in batch_sources and batch_sources[thought["message_id"]] != envelope["content_hash"]:
             safe_rejection(rejected / f"{input_file.stem}-rejected.json", envelope["ingestion_id"], "in-batch source message id/hash conflict")
             conflict_count += 1
             continue
         batch_ids[envelope["ingestion_id"]] = envelope["content_hash"]
-        batch_sources[thought["message_id"]] = thought["payload_hash"]
+        batch_sources[thought["message_id"]] = envelope["content_hash"]
         accepted.append((input_file, envelope, thought))
         new_ingestions.append((input_file, envelope, thought))
     if not new_ingestions:
         return {"new_ingestions": 0, "skipped": skipped_count, "rejected": rejected_count, "conflicts": conflict_count, "proposal_created": False, "recovered": bool(state.get("ingestions"))}
     mesh_result = run_mesh([item[2] for item in accepted], state.get("coverage_ledger", {}), memory_repo)
-    completed = [{"ingestion_id": envelope["ingestion_id"], "content_hash": envelope["content_hash"], "source_message_id": thought["message_id"], "thought_payload_hash": thought["payload_hash"], "correlation_id": envelope["correlation_id"]} for _, envelope, thought in new_ingestions]
-    run_id = canonical_hash([(item["ingestion_id"], item["content_hash"]) for item in completed])[:16]
+    import hashlib
+    def robust_hash(data):
+        return hashlib.sha256(json.dumps(data, sort_keys=True).encode("utf-8")).hexdigest()
+
+    completed = [{
+        "ingestion_id": envelope["ingestion_id"], 
+        "content_hash": envelope["content_hash"], 
+        "source_message_id": thought["message_id"], 
+        "thought_payload_hash": thought["payload_hash"], 
+        "correlation_id": envelope["correlation_id"],
+        "source_timestamp": envelope.get("source_timestamp"),
+        "ingestion_timestamp": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "original_envelope": envelope
+    } for _, envelope, thought in new_ingestions]
+    run_id = robust_hash([(item["ingestion_id"], item["content_hash"]) for item in completed])[:16]
     record = {"run_id": run_id, "completed_ingestions": completed, "coverage_ledger": mesh_result["coverage_ledger"], "memory_update_proposal": mesh_result["memory_update_proposal"], "chief_delivery_adapter": mesh_result["chief_delivery_adapter"], "status": "COMPLETED_LOCAL_NOT_DELIVERED"}
     atomic_json_write(processed / f"run-{run_id}.json", record)
     state["ingestions"].update({item["ingestion_id"]: item["content_hash"] for item in completed})
-    state["source_messages"].update({item["source_message_id"]: item["thought_payload_hash"] for item in completed})
+    state["source_messages"].update({item["source_message_id"]: item["content_hash"] for item in completed})
     state["coverage_ledger"] = mesh_result["coverage_ledger"]
     atomic_json_write(state_path, state)
     return {"new_ingestions": len(new_ingestions), "skipped": skipped_count, "rejected": rejected_count, "conflicts": conflict_count, "proposal_created": mesh_result["memory_update_proposal"] is not None, "scene_audit": mesh_result["scene_audit"], "thought_boss_a": mesh_result["thought_boss_a"], "thought_boss_b": mesh_result["thought_boss_b"], "chief_delivery": mesh_result["chief_delivery_adapter"], "run_record": str(processed / f"run-{run_id}.json")}
