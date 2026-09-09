@@ -1,0 +1,552 @@
+[
+  {
+    "event_id": "EVT-1788913361371-07bc67",
+    "timestamp": "2026-09-09T00:22:41.371Z",
+    "event_type": "OPPORTUNITY_CREATED",
+    "opportunity_id": "OPP-SEED-DIGITAL-01",
+    "details": {
+      "reason": "Ingested into warehouse"
+    },
+    "snapshot": {
+      "id": "OPP-SEED-DIGITAL-01",
+      "title": "CLI Developer Config & Token Cost Auditor",
+      "status": "SEED",
+      "created_at": "2026-09-09T00:00:00.000Z",
+      "updated_at": "2026-09-09T00:00:00.000Z",
+      "source": "INTERNAL_HYPOTHESIS",
+      "category": "Digital products / micro-tools",
+      "horizon": "NOW",
+      "revenue_probability": 0.4,
+      "expected_revenue_eur": 1500,
+      "expected_profit_eur": 1400,
+      "time_to_first_euro": 5,
+      "margin_estimate": 0.93,
+      "automation_score": 0.85,
+      "distribution_fit": 0.7,
+      "evidence_score": 0.2,
+      "capital_required_eur": 0,
+      "agent_hours_estimate": 8,
+      "human_minutes_estimate": 30,
+      "model_cost_estimate": 5,
+      "risk_score": 0.3,
+      "confidence": 0.45,
+      "channel_fit": {
+        "web": 0.8,
+        "cli": 0.95,
+        "github": 0.9
+      },
+      "trend_evidence": "High interest in LLM API token budget controls; concrete buyer willingness UNVERIFIED",
+      "source_evidence": "UNKNOWN",
+      "next_test": "Build zero-dependency single-file CLI analyzer; test on 3 local agent project configs.",
+      "human_gates": [
+        "PUBLICATION",
+        "PAYMENT_GATEWAY_SETUP"
+      ],
+      "predicted_revenue_eur": 1500,
+      "predicted_profit_eur": 1400,
+      "actual_revenue_eur": 0,
+      "actual_profit_eur": 0,
+      "prediction_error": "UNKNOWN",
+      "promote_kill_reason": "Awaiting first external tester feedback",
+      "score": {
+        "scalar_score": 88.85,
+        "confidence": 0.45,
+        "evidence_score": 0.2,
+        "speed_multiplier": 1.6,
+        "components": {
+          "revenue_probability": 0.4,
+          "expected_profit_eur": 1400,
+          "automation_score": 0.85,
+          "speed_multiplier": 1.6,
+          "distribution_fit": 0.7,
+          "evidence_score": 0.2,
+          "capital_required_eur": 1,
+          "agent_hours_estimate": 8,
+          "human_hours_estimate": 0.5,
+          "risk_score": 0.3
+        },
+        "evidence_breakdown": {
+          "trend_evidence": "High interest in LLM API token budget controls; concrete buyer willingness UNVERIFIED",
+          "source_evidence": "UNKNOWN",
+          "channel_fit": {
+            "web": 0.8,
+            "cli": 0.95,
+            "github": 0.9
+          },
+          "is_empirically_verified": false
+        }
+      }
+    }
+  },
+  {
+    "event_id": "EVT-1788913361376-bf2227",
+    "timestamp": "2026-09-09T00:22:41.376Z",
+    "event_type": "OPPORTUNITY_CREATED",
+    "opportunity_id": "OPP-SEED-FLYWHEEL-02",
+    "details": {
+      "reason": "Ingested into warehouse"
+    },
+    "snapshot": {
+      "id": "OPP-SEED-FLYWHEEL-02",
+      "title": "Automated Code Architecture Visualizer & Video Explainer Flywheel",
+      "status": "SEED",
+      "created_at": "2026-09-09T00:00:00.000Z",
+      "updated_at": "2026-09-09T00:00:00.000Z",
+      "source": "INTERNAL_HYPOTHESIS",
+      "category": "Product -> YouTube/TikTok -> Product flywheel",
+      "horizon": "30D",
+      "revenue_probability": 0.35,
+      "expected_revenue_eur": 4500,
+      "expected_profit_eur": 4000,
+      "time_to_first_euro": 20,
+      "margin_estimate": 0.88,
+      "automation_score": 0.75,
+      "distribution_fit": 0.85,
+      "evidence_score": 0.25,
+      "capital_required_eur": 0,
+      "agent_hours_estimate": 24,
+      "human_minutes_estimate": 90,
+      "model_cost_estimate": 15,
+      "risk_score": 0.4,
+      "confidence": 0.5,
+      "channel_fit": {
+        "youtube": 0.85,
+        "tiktok": 0.8,
+        "web": 0.75
+      },
+      "trend_evidence": "Explainer reels of repo architectures get viral dev reach; conversion to paid tool UNVERIFIED",
+      "source_evidence": "UNKNOWN",
+      "next_test": "Render 1 sample video using headless tool; verify if human gate approves visual quality.",
+      "human_gates": [
+        "PUBLICATION",
+        "MEDIA_UPLOAD"
+      ],
+      "predicted_revenue_eur": 4500,
+      "predicted_profit_eur": 4000,
+      "actual_revenue_eur": 0,
+      "actual_profit_eur": 0,
+      "prediction_error": "UNKNOWN",
+      "promote_kill_reason": "UNVERIFIED initial conversion thesis",
+      "score": {
+        "scalar_score": 17.04,
+        "confidence": 0.5,
+        "evidence_score": 0.25,
+        "speed_multiplier": 1.1,
+        "components": {
+          "revenue_probability": 0.35,
+          "expected_profit_eur": 4000,
+          "automation_score": 0.75,
+          "speed_multiplier": 1.1,
+          "distribution_fit": 0.85,
+          "evidence_score": 0.25,
+          "capital_required_eur": 1,
+          "agent_hours_estimate": 24,
+          "human_hours_estimate": 1.5,
+          "risk_score": 0.4
+        },
+        "evidence_breakdown": {
+          "trend_evidence": "Explainer reels of repo architectures get viral dev reach; conversion to paid tool UNVERIFIED",
+          "source_evidence": "UNKNOWN",
+          "channel_fit": {
+            "youtube": 0.85,
+            "tiktok": 0.8,
+            "web": 0.75
+          },
+          "is_empirically_verified": false
+        }
+      }
+    }
+  },
+  {
+    "event_id": "EVT-1788913361379-4b905a",
+    "timestamp": "2026-09-09T00:22:41.379Z",
+    "event_type": "OPPORTUNITY_CREATED",
+    "opportunity_id": "OPP-SEED-CONTENT-03",
+    "details": {
+      "reason": "Ingested into warehouse"
+    },
+    "snapshot": {
+      "id": "OPP-SEED-CONTENT-03",
+      "title": "Commercial-Intent Migration Guides (e.g. Supabase to Self-Hosted)",
+      "status": "SEED",
+      "created_at": "2026-09-09T00:00:00.000Z",
+      "updated_at": "2026-09-09T00:00:00.000Z",
+      "source": "INTERNAL_HYPOTHESIS",
+      "category": "Commercial-intent content",
+      "horizon": "NOW",
+      "revenue_probability": 0.45,
+      "expected_revenue_eur": 1200,
+      "expected_profit_eur": 1100,
+      "time_to_first_euro": 7,
+      "margin_estimate": 0.95,
+      "automation_score": 0.8,
+      "distribution_fit": 0.75,
+      "evidence_score": 0.3,
+      "capital_required_eur": 0,
+      "agent_hours_estimate": 10,
+      "human_minutes_estimate": 45,
+      "model_cost_estimate": 6,
+      "risk_score": 0.25,
+      "confidence": 0.55,
+      "channel_fit": {
+        "seo": 0.85,
+        "github_gists": 0.75,
+        "gumroad": 0.7
+      },
+      "trend_evidence": "Search queries for backend cloud egress reduction rising; paid template conversion UNVERIFIED",
+      "source_evidence": "UNKNOWN",
+      "next_test": "Draft verifiable migration script + checklist; measure completeness against official docs.",
+      "human_gates": [
+        "PUBLICATION"
+      ],
+      "predicted_revenue_eur": 1200,
+      "predicted_profit_eur": 1100,
+      "actual_revenue_eur": 0,
+      "actual_profit_eur": 0,
+      "prediction_error": "UNKNOWN",
+      "promote_kill_reason": "Draft state awaiting empirical traffic proof",
+      "score": {
+        "scalar_score": 76.03,
+        "confidence": 0.55,
+        "evidence_score": 0.3,
+        "speed_multiplier": 1.6,
+        "components": {
+          "revenue_probability": 0.45,
+          "expected_profit_eur": 1100,
+          "automation_score": 0.8,
+          "speed_multiplier": 1.6,
+          "distribution_fit": 0.75,
+          "evidence_score": 0.3,
+          "capital_required_eur": 1,
+          "agent_hours_estimate": 10,
+          "human_hours_estimate": 0.75,
+          "risk_score": 0.25
+        },
+        "evidence_breakdown": {
+          "trend_evidence": "Search queries for backend cloud egress reduction rising; paid template conversion UNVERIFIED",
+          "source_evidence": "UNKNOWN",
+          "channel_fit": {
+            "seo": 0.85,
+            "github_gists": 0.75,
+            "gumroad": 0.7
+          },
+          "is_empirically_verified": false
+        }
+      }
+    }
+  },
+  {
+    "event_id": "EVT-1788913361383-22a9f2",
+    "timestamp": "2026-09-09T00:22:41.383Z",
+    "event_type": "OPPORTUNITY_CREATED",
+    "opportunity_id": "OPP-SEED-GODOT-04",
+    "details": {
+      "reason": "Ingested into warehouse"
+    },
+    "snapshot": {
+      "id": "OPP-SEED-GODOT-04",
+      "title": "Godot 4 2D/3D Deterministic Physics & State Machine Template",
+      "status": "SEED",
+      "created_at": "2026-09-09T00:00:00.000Z",
+      "updated_at": "2026-09-09T00:00:00.000Z",
+      "source": "INTERNAL_HYPOTHESIS",
+      "category": "Godot products/templates/tools",
+      "horizon": "30D",
+      "revenue_probability": 0.3,
+      "expected_revenue_eur": 3000,
+      "expected_profit_eur": 2800,
+      "time_to_first_euro": 18,
+      "margin_estimate": 0.9,
+      "automation_score": 0.7,
+      "distribution_fit": 0.8,
+      "evidence_score": 0.2,
+      "capital_required_eur": 0,
+      "agent_hours_estimate": 30,
+      "human_minutes_estimate": 120,
+      "model_cost_estimate": 12,
+      "risk_score": 0.35,
+      "confidence": 0.45,
+      "channel_fit": {
+        "godot_asset_lib": 0.9,
+        "itch_io": 0.85,
+        "github": 0.8
+      },
+      "trend_evidence": "Godot 4 ecosystem expanding post-Unity pricing shifts; commercial template pricing UNVERIFIED",
+      "source_evidence": "UNKNOWN",
+      "next_test": "Generate clean GDScript state-machine boilerplate with 100% test coverage; verify Godot export.",
+      "human_gates": [
+        "PUBLICATION",
+        "STORE_ACCOUNT_SETUP"
+      ],
+      "predicted_revenue_eur": 3000,
+      "predicted_profit_eur": 2800,
+      "actual_revenue_eur": 0,
+      "actual_profit_eur": 0,
+      "prediction_error": "UNKNOWN",
+      "promote_kill_reason": "Template unbuilt; awaiting proof of developer demand",
+      "score": {
+        "scalar_score": 4.93,
+        "confidence": 0.45,
+        "evidence_score": 0.2,
+        "speed_multiplier": 1.1,
+        "components": {
+          "revenue_probability": 0.3,
+          "expected_profit_eur": 2800,
+          "automation_score": 0.7,
+          "speed_multiplier": 1.1,
+          "distribution_fit": 0.8,
+          "evidence_score": 0.2,
+          "capital_required_eur": 1,
+          "agent_hours_estimate": 30,
+          "human_hours_estimate": 2,
+          "risk_score": 0.35
+        },
+        "evidence_breakdown": {
+          "trend_evidence": "Godot 4 ecosystem expanding post-Unity pricing shifts; commercial template pricing UNVERIFIED",
+          "source_evidence": "UNKNOWN",
+          "channel_fit": {
+            "godot_asset_lib": 0.9,
+            "itch_io": 0.85,
+            "github": 0.8
+          },
+          "is_empirically_verified": false
+        }
+      }
+    }
+  },
+  {
+    "event_id": "EVT-1788913361386-739cf7",
+    "timestamp": "2026-09-09T00:22:41.386Z",
+    "event_type": "OPPORTUNITY_CREATED",
+    "opportunity_id": "OPP-SEED-BRAND-05",
+    "details": {
+      "reason": "Ingested into warehouse"
+    },
+    "snapshot": {
+      "id": "OPP-SEED-BRAND-05",
+      "title": "Autonomous Tech Micro-SaaS Breakdown Channel",
+      "status": "SEED",
+      "created_at": "2026-09-09T00:00:00.000Z",
+      "updated_at": "2026-09-09T00:00:00.000Z",
+      "source": "INTERNAL_HYPOTHESIS",
+      "category": "YouTube/TikTok brands",
+      "horizon": "365D",
+      "revenue_probability": 0.25,
+      "expected_revenue_eur": 15000,
+      "expected_profit_eur": 12000,
+      "time_to_first_euro": 90,
+      "margin_estimate": 0.8,
+      "automation_score": 0.65,
+      "distribution_fit": 0.9,
+      "evidence_score": 0.15,
+      "capital_required_eur": 0,
+      "agent_hours_estimate": 80,
+      "human_minutes_estimate": 300,
+      "model_cost_estimate": 40,
+      "risk_score": 0.55,
+      "confidence": 0.4,
+      "channel_fit": {
+        "youtube": 0.95,
+        "tiktok": 0.9,
+        "x_com": 0.8
+      },
+      "trend_evidence": "High algorithmic engagement for business breakdown channels; monetization timeline long",
+      "source_evidence": "UNKNOWN",
+      "next_test": "Create pilot script & storyboard for 1 public case study; submit to human gate for review.",
+      "human_gates": [
+        "ACCOUNT_CREATION",
+        "PUBLICATION"
+      ],
+      "predicted_revenue_eur": 15000,
+      "predicted_profit_eur": 12000,
+      "actual_revenue_eur": 0,
+      "actual_profit_eur": 0,
+      "prediction_error": "UNKNOWN",
+      "promote_kill_reason": "Long-term play; deprioritized against immediate cash opportunities",
+      "score": {
+        "scalar_score": 1.08,
+        "confidence": 0.4,
+        "evidence_score": 0.15,
+        "speed_multiplier": 0.9,
+        "components": {
+          "revenue_probability": 0.25,
+          "expected_profit_eur": 12000,
+          "automation_score": 0.65,
+          "speed_multiplier": 0.9,
+          "distribution_fit": 0.9,
+          "evidence_score": 0.15,
+          "capital_required_eur": 1,
+          "agent_hours_estimate": 80,
+          "human_hours_estimate": 5,
+          "risk_score": 0.55
+        },
+        "evidence_breakdown": {
+          "trend_evidence": "High algorithmic engagement for business breakdown channels; monetization timeline long",
+          "source_evidence": "UNKNOWN",
+          "channel_fit": {
+            "youtube": 0.95,
+            "tiktok": 0.9,
+            "x_com": 0.8
+          },
+          "is_empirically_verified": false
+        }
+      }
+    }
+  },
+  {
+    "event_id": "EVT-1788913361390-e18f41",
+    "timestamp": "2026-09-09T00:22:41.390Z",
+    "event_type": "OPPORTUNITY_CREATED",
+    "opportunity_id": "OPP-SEED-COMMERCE-06",
+    "details": {
+      "reason": "Ingested into warehouse"
+    },
+    "snapshot": {
+      "id": "OPP-SEED-COMMERCE-06",
+      "title": "Agentic Commerce Data Feed / OpenAPI Marketplace Provider",
+      "status": "SEED",
+      "created_at": "2026-09-09T00:00:00.000Z",
+      "updated_at": "2026-09-09T00:00:00.000Z",
+      "source": "INTERNAL_HYPOTHESIS",
+      "category": "Agentic-commerce-ready products",
+      "horizon": "ASYMMETRIC",
+      "revenue_probability": 0.2,
+      "expected_revenue_eur": 50000,
+      "expected_profit_eur": 45000,
+      "time_to_first_euro": 120,
+      "margin_estimate": 0.9,
+      "automation_score": 0.9,
+      "distribution_fit": 0.7,
+      "evidence_score": 0.1,
+      "capital_required_eur": 0,
+      "agent_hours_estimate": 100,
+      "human_minutes_estimate": 180,
+      "model_cost_estimate": 50,
+      "risk_score": 0.7,
+      "confidence": 0.3,
+      "channel_fit": {
+        "agent_protocols": 0.9,
+        "developer_apis": 0.85
+      },
+      "trend_evidence": "Emergence of agentic procurement standards; actual transaction protocol standard UNVERIFIED",
+      "source_evidence": "UNKNOWN",
+      "next_test": "Define OpenAPI 3.1 schema for machine-to-machine checkout query; validate schema syntax.",
+      "human_gates": [
+        "PRODUCTION_DEPLOYMENT",
+        "PAYMENT_GATEWAY_SETUP"
+      ],
+      "predicted_revenue_eur": 50000,
+      "predicted_profit_eur": 45000,
+      "actual_revenue_eur": 0,
+      "actual_profit_eur": 0,
+      "prediction_error": "UNKNOWN",
+      "promote_kill_reason": "Speculative horizon bet; low evidence score",
+      "score": {
+        "scalar_score": 1.89,
+        "confidence": 0.3,
+        "evidence_score": 0.1,
+        "speed_multiplier": 0.7,
+        "components": {
+          "revenue_probability": 0.2,
+          "expected_profit_eur": 45000,
+          "automation_score": 0.9,
+          "speed_multiplier": 0.7,
+          "distribution_fit": 0.7,
+          "evidence_score": 0.1,
+          "capital_required_eur": 1,
+          "agent_hours_estimate": 100,
+          "human_hours_estimate": 3,
+          "risk_score": 0.7
+        },
+        "evidence_breakdown": {
+          "trend_evidence": "Emergence of agentic procurement standards; actual transaction protocol standard UNVERIFIED",
+          "source_evidence": "UNKNOWN",
+          "channel_fit": {
+            "agent_protocols": 0.9,
+            "developer_apis": 0.85
+          },
+          "is_empirically_verified": false
+        }
+      }
+    }
+  },
+  {
+    "event_id": "EVT-1788913361394-962cca",
+    "timestamp": "2026-09-09T00:22:41.394Z",
+    "event_type": "OPPORTUNITY_CREATED",
+    "opportunity_id": "OPP-SEED-COURIER-07",
+    "details": {
+      "reason": "Ingested into warehouse"
+    },
+    "snapshot": {
+      "id": "OPP-SEED-COURIER-07",
+      "title": "Courier Teams Control Plane & Distributed Writer Lock Protocol",
+      "status": "SEED",
+      "created_at": "2026-09-09T00:00:00.000Z",
+      "updated_at": "2026-09-09T00:00:00.000Z",
+      "source": "INTERNAL_HARDENING",
+      "category": "Courier Teams / Control Plane / Trust Layer",
+      "horizon": "30D",
+      "revenue_probability": 0.5,
+      "expected_revenue_eur": 10000,
+      "expected_profit_eur": 9000,
+      "time_to_first_euro": 14,
+      "margin_estimate": 0.9,
+      "automation_score": 0.85,
+      "distribution_fit": 0.85,
+      "evidence_score": 0.45,
+      "capital_required_eur": 0,
+      "agent_hours_estimate": 25,
+      "human_minutes_estimate": 90,
+      "model_cost_estimate": 15,
+      "risk_score": 0.3,
+      "confidence": 0.65,
+      "channel_fit": {
+        "github": 0.95,
+        "enterprise_teams": 0.85,
+        "cli": 0.9
+      },
+      "trend_evidence": "High demand for reliable multi-agent coordination without git worktree corruption.",
+      "source_evidence": "COURIER_COORDINATION_POLICY.md and real cross-device intake test suite pass.",
+      "next_test": "Package standalone lock protocol NPM/Python library; verify zero false-positives under contention.",
+      "human_gates": [
+        "PUBLICATION",
+        "ENTERPRISE_OUTREACH"
+      ],
+      "predicted_revenue_eur": 10000,
+      "predicted_profit_eur": 9000,
+      "actual_revenue_eur": 0,
+      "actual_profit_eur": 0,
+      "prediction_error": "UNKNOWN",
+      "promote_kill_reason": "Strongest internal evidence candidate; waiting for post-freeze packaging",
+      "score": {
+        "scalar_score": 169.06,
+        "confidence": 0.65,
+        "evidence_score": 0.45,
+        "speed_multiplier": 1.3,
+        "components": {
+          "revenue_probability": 0.5,
+          "expected_profit_eur": 9000,
+          "automation_score": 0.85,
+          "speed_multiplier": 1.3,
+          "distribution_fit": 0.85,
+          "evidence_score": 0.45,
+          "capital_required_eur": 1,
+          "agent_hours_estimate": 25,
+          "human_hours_estimate": 1.5,
+          "risk_score": 0.3
+        },
+        "evidence_breakdown": {
+          "trend_evidence": "High demand for reliable multi-agent coordination without git worktree corruption.",
+          "source_evidence": "COURIER_COORDINATION_POLICY.md and real cross-device intake test suite pass.",
+          "channel_fit": {
+            "github": 0.95,
+            "enterprise_teams": 0.85,
+            "cli": 0.9
+          },
+          "is_empirically_verified": false
+        }
+      }
+    }
+  }
+]
