@@ -133,14 +133,18 @@ class MultiChatGoalIntake:
                             g["status"] = "ACTIVE"
                             g["blocker_evidence"]["worker_evidence"] = current_gemini
                             
-                            def _unblock_mission(doc):
-                                changed = False
-                                for m in doc.get("missions", []):
-                                    if m.get("goal") == g["goal"] and m.get("status") == "BLOCKED" and m.get("result_reference") == "WORKER_UNAVAILABLE":
-                                        m["status"] = "PENDING"
+                            # Autonomous supersession/recovery
+                            q = MissionQueue(self.workspace_dir)
+                            changed = False
+                            for m in q.read_all():
+                                if m.get("goal") == g["goal"] and m.get("status") == "BLOCKED" and m.get("result_reference") == "WORKER_UNAVAILABLE":
+                                    from scripts.courier_safety_dispatcher import CourierSafetyDispatcher
+                                    dispatcher = CourierSafetyDispatcher(self.workspace_dir)
+                                    evidence = dispatcher.gather_evidence_for_mission(m["mission_id"])
+                                    recon = dispatcher.reconcile_blocked_attempt(m["mission_id"], "founder_loop_1", evidence)
+                                    if recon.get('status') == 'SUPERSEDED':
                                         changed = True
-                                return changed
-                            q._mutate(_unblock_mission)
+                                        print(f"AUTONOMOUS_RECOVERY: Successfully superseded {m['mission_id']} with {recon['new_mission_id']}")
                             
                             return g
             
@@ -503,90 +507,99 @@ class FounderModeMVP:
         }
 
     def run_autonomous_loop(self):
-        # 1. Take highest priority PENDING goal
-        goal = self.intake.pop_next_goal()
-        if not goal:
-            return
-
-        completed_missions = []
-        # 2 & 3. Iterative Replan and Execution Loop
         while True:
-            # Replan / decompose based on current state
-            pending = [m for m in self.queue.read_all() if m["status"] == "PENDING"]
-            if not pending:
-                next_missions = self.planner.discover_and_plan(goal, completed_missions)
-                if not next_missions:
-                    if self.planner.evaluate_success(goal, {"status": "PASS"}, completed_missions):
-                        self.intake.mark_satisfied(goal["goal_id"])
-                    break
-                    
-                parent_id = completed_missions[-1]["mission_id"] if completed_missions else None
-                for m in next_missions:
-                    if parent_id: m["parent_mission_id"] = parent_id
-                    m["mission_id"] = str(uuid.uuid4())
-                    self.queue.enqueue(m)
-                    parent_id = m["mission_id"]
+            # 1. Take highest priority PENDING goal
+            goal = self.intake.pop_next_goal()
+            if not goal:
+                break
 
-            # Process next mission using Courier dispatcher
-            worker_id = "founder_loop_1"
-            mission_result = self.dispatcher.process_next_mission(worker_id)
+            completed_missions = []
+            # 2 & 3. Iterative Replan and Execution Loop
+            while True:
+                # Replan / decompose based on current state
+                pending = [m for m in self.queue.read_all() if m["status"] == "PENDING"]
+                if not pending:
+                    next_missions = self.planner.discover_and_plan(goal, completed_missions)
+                    if not next_missions:
+                        if self.planner.evaluate_success(goal, {"status": "PASS"}, completed_missions):
+                            self.intake.mark_satisfied(goal["goal_id"])
+                        break
+                    
+                    parent_id = completed_missions[-1]["mission_id"] if completed_missions else None
+                    for m in next_missions:
+                        if parent_id: m["parent_mission_id"] = parent_id
+                        m["mission_id"] = str(uuid.uuid4())
+                        self.queue.enqueue(m)
+                        parent_id = m["mission_id"]
+
+                # Process next mission using Courier dispatcher
+                worker_id = "founder_loop_1"
+                mission_result = self.dispatcher.process_next_mission(worker_id)
             
-            if not mission_result:
-                break # Queue somehow empty
+                if not mission_result:
+                    break # Queue somehow empty
                 
-            status = mission_result.get("status")
-            agent_used = mission_result.get("agent_dispatched")
+                status = mission_result.get("status")
+                agent_used = mission_result.get("agent_dispatched")
             
-            self.stats["autonomous_steps"] += 1
-            if agent_used == "CLI1": self.stats["cli1_tasks"] += 1
-            if agent_used in ["GEMINI", "GOOGLE", "CODEX"]: self.stats["google_tasks"] += 1
+                self.stats["autonomous_steps"] += 1
+                if agent_used == "CLI1": self.stats["cli1_tasks"] += 1
+                if agent_used in ["GEMINI", "GOOGLE", "CODEX"]: self.stats["google_tasks"] += 1
             
-            if status == "HUMAN_GATE":
-                self.stats["human_gates"] += 1
-                self.intake.set_status(goal["goal_id"], "HUMAN_GATE")
-                break
+                if status == "HUMAN_GATE":
+                    self.stats["human_gates"] += 1
+                    self.intake.set_status(goal["goal_id"], "HUMAN_GATE")
+                    break
                 
-            if status in ["BLOCKED", "FAIL", "FAILED", "UNKNOWN"]:
-                self.stats["blockers"] += 1
-                # Record error lesson
-                self.memory.record_lesson(
-                    goal=goal["goal"], task=mission_result.get("mission", {}).get("normalized_task", ""),
-                    result=status, error=mission_result.get("reason", ""), root_cause="Unknown",
-                    lesson="Failed execution on this approach.", reusable_pattern="None"
-                )
+                if status in ["BLOCKED", "FAIL", "FAILED", "UNKNOWN"]:
+                    if status == 'BLOCKED':
+                        evidence = self.dispatcher.gather_evidence_for_mission(mission_result['mission_id'])
+                        recon = self.dispatcher.reconcile_blocked_attempt(mission_result['mission_id'], worker_id, evidence)
+                        if recon.get('status') == 'SUPERSEDED':
+                            print(f"AUTONOMOUS_RECOVERY: Successfully superseded {mission_result['mission_id']} with {recon['new_mission_id']}")
+                            continue
+                        else:
+                            print(f"AUTONOMOUS_RECOVERY: Failed to supersede: {recon}")
+                    self.stats["blockers"] += 1
+                    # Record error lesson
+                    self.memory.record_lesson(
+                        goal=goal["goal"], task=mission_result.get("mission", {}).get("normalized_task", ""),
+                        result=status, error=mission_result.get("reason", ""), root_cause="Unknown",
+                        lesson="Failed execution on this approach.", reusable_pattern="None"
+                    )
                 
-                # Fetch blocker evidence if WORKER_UNAVAILABLE
-                evidence = None
-                if mission_result.get("reason") == "WORKER_UNAVAILABLE":
-                    from scripts.worker_availability import WorkerAvailabilityResolver
-                    resolver = WorkerAvailabilityResolver()
-                    gemini_evidence = resolver.resolve_gemini()
-                    evidence = {"worker_evidence": gemini_evidence.to_dict()}
+                    # Fetch blocker evidence if WORKER_UNAVAILABLE
+                    evidence = None
+                    if mission_result.get("reason") == "WORKER_UNAVAILABLE":
+                        from scripts.worker_availability import WorkerAvailabilityResolver
+                        resolver = WorkerAvailabilityResolver()
+                        gemini_evidence = resolver.resolve_gemini()
+                        evidence = {"worker_evidence": gemini_evidence.to_dict()}
                 
-                    continue
-                from scripts.courier_self_repair import CourierSelfRepair
-                repair = CourierSelfRepair(self.workspace_dir)
-                res = repair.handle_failure(
-                    goal_id=goal["goal_id"],
-                    original_goal=goal["goal"],
-                    failure=mission_result.get("reason", "Unknown failure")
-                )
-                if res.get("status") == "REPAIR_QUEUED":
-                    continue
-                if status == "FAILED":
-                    continue
+                        continue
+                    from scripts.courier_self_repair import CourierSelfRepair
+                    repair = CourierSelfRepair(self.workspace_dir)
+                    res = repair.handle_failure(
+                        goal_id=goal["goal_id"],
+                        original_goal=goal["goal"],
+                        failure=mission_result.get("reason", "Unknown failure")
+                    )
+                    if res.get("status") == "REPAIR_QUEUED":
+                        continue
+                    if status == "FAILED":
+                        continue
                 
-                self.intake.set_status(goal["goal_id"], "BLOCKED", blocker_evidence=evidence)
-                break
+                    self.intake.set_status(goal["goal_id"], "BLOCKED", blocker_evidence=evidence)
+                    break
             
-            if status in ["VERIFIED", "PASS"]:
-                # Record success lesson
-                self.memory.record_lesson(
-                    goal=goal["goal"], task=mission_result.get("mission", {}).get("normalized_task", ""),
-                    result="SUCCESS", error="None", root_cause="None",
-                    lesson="Implementation succeeded.", reusable_pattern="Standard execution"
-                )
-                completed_missions.append(self.queue.get(mission_result["mission_id"]))
+                if status in ["VERIFIED", "PASS"]:
+                    # Record success lesson
+                    self.memory.record_lesson(
+                        goal=goal["goal"], task=mission_result.get("mission", {}).get("normalized_task", ""),
+                        result="SUCCESS", error="None", root_cause="None",
+                        lesson="Implementation succeeded.", reusable_pattern="Standard execution"
+                    )
+                    completed_missions.append(self.queue.get(mission_result["mission_id"]))
                 
 
 

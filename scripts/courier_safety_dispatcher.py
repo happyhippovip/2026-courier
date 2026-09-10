@@ -510,9 +510,23 @@ class CourierSafetyDispatcher:
             self.mission_queue.transition(mission_id, "BLOCKED", claimed_by=worker_id, result_reference=reason)
             return {"status": "BLOCKED", "mission_id": mission_id, "reason": reason}
         if self._requires_human_gate(mission, task):
+            import uuid, datetime
+            gate_id = "GATE-" + str(uuid.uuid4())
+            gate_request = {
+                "gate_id": gate_id,
+                "goal_id": mission.get("goal"),
+                "task_id": task.get("task_id"),
+                "attempt_id": mission_id,
+                "gate_reason": "HUMAN_GATE_REQUIRED_BY_POLICY",
+                "requested_action": task.get("action"),
+                "requested_scope": task.get("goal_context"),
+                "created_at": datetime.datetime.utcnow().isoformat(),
+                "resolution_status": "PENDING"
+            }
             self.mission_queue.transition(mission_id, "HUMAN_GATE", claimed_by=worker_id,
-                                          result_reference="HUMAN_ACTION_REQUIRED")
-            return {"status": "HUMAN_GATE", "mission_id": mission_id}
+                                          result_reference="HUMAN_ACTION_REQUIRED", human_gate_id=gate_id,
+                                          human_gate_request=gate_request)
+            return {"status": "HUMAN_GATE", "mission_id": mission_id, "gate_id": gate_id}
         selected = self.router.select_agent(mission["capability_required"], mission.get("preferred_agent"))
         if selected is None:
             from scripts.worker_availability import WorkerAvailabilityResolver
@@ -618,6 +632,10 @@ class CourierSafetyDispatcher:
 
     @staticmethod
     def _requires_human_gate(mission: dict[str, Any], task: dict[str, Any]) -> bool:
+        res = mission.get("human_gate_resolution")
+        if res and res.get("status") == "APPROVED":
+            if res.get("authorized_action") == task.get("action") and res.get("authorized_scope") == task.get("goal_context"):
+                return False
         if task.get("human_gate_required") or mission.get("human_gate_required"):
             return True
         if task.get("action") == "discover_improvement_opportunities":
@@ -890,6 +908,43 @@ class MissionQueue:
         updates = dict(updates); state = updates.pop("status")
         return self.transition(mission_id, state, **updates)
 
+
+
+    def resolve_human_gate(self, gate_id: str, goal_id: str, task_id: str, attempt_id: str,
+                           authorized_action: str, authorized_scope: str,
+                           resolved_by: str, resolution_status: str, evidence: str = "") -> dict[str, Any]:
+        def apply(document: dict[str, Any]) -> dict[str, Any]:
+            mission = self._mission(document, attempt_id)
+            if mission["status"] != "HUMAN_GATE": raise RuntimeError("GATE_NOT_PENDING")
+            req = mission.get("human_gate_request", {})
+            if not req: raise RuntimeError("MISSING_IMMUTABLE_GATE_REQUEST")
+            if req.get("gate_id") != gate_id: raise RuntimeError("WRONG_GATE_ID")
+            if req.get("goal_id") != goal_id: raise RuntimeError("WRONG_GOAL_ID")
+            if req.get("task_id") != task_id: raise RuntimeError("WRONG_TASK_ID")
+            if req.get("attempt_id") != attempt_id: raise RuntimeError("WRONG_ATTEMPT_ID")
+            
+            if authorized_action != req.get("requested_action"): raise RuntimeError("SCOPE_ESCALATION_REJECTED")
+            if authorized_scope != req.get("requested_scope"): raise RuntimeError("SCOPE_ESCALATION_REJECTED")
+
+            if mission.get("human_gate_resolution"): raise RuntimeError("APPROVAL_REPLAY_SAFE")
+            
+            if resolution_status == "APPROVED":
+                mission["human_gate_resolution"] = {
+                    "gate_id": gate_id, "status": "APPROVED",
+                    "authorized_action": authorized_action, "authorized_scope": authorized_scope,
+                    "resolved_by": resolved_by, "resolved_at": __import__("datetime").datetime.utcnow().isoformat(), "evidence": evidence
+                }
+                mission["status"] = "PENDING"
+            else:
+                mission["human_gate_resolution"] = {
+                    "gate_id": gate_id, "status": "REJECTED",
+                    "resolved_by": resolved_by, "resolved_at": __import__("datetime").datetime.utcnow().isoformat(), "evidence": evidence
+                }
+                mission["status"] = "BLOCKED"
+                mission["result_reference"] = "HUMAN_GATE_REJECTED"
+            self._validate(mission)
+            return dict(mission)
+        return self._mutate(apply)
 
 class DynamicAgentRouter:
     """Explicit compatibility matrix; no arbitrary AVAILABLE-worker fallback.

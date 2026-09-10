@@ -15,3 +15,7 @@
 ## 🚀 NÄCHSTE AUTONOME SCHRITTE (Bereit für den nächsten Zyklus)
 - [ ] **Schritt 10:** Zahlungsüberwachung (Payment Intent) einrichten, die das JSON der Rechnung (z.B. `INV-P-AUDIT-02-20260902-02.json`) auf "PAID" setzt, wenn ein Zahlungseingang registriert wird.
 - [ ] **Schritt 11:** Vollautomatisches Fulfillment: Wenn "PAID", dann das Audit-Dokument / Software-Paket vollautomatisch per Mail an den Kunden ausliefern!
+
+## 🔒 INFRASTRUCTURE STATE
+COURIER_INFRASTRUCTURE_FROZEN
+Reference: docs/COURIER_INFRASTRUCTURE_FREEZE_2026-09-10.md
