@@ -1,60 +1,60 @@
 # 🧠 KÜNSTLICHES GEHIRN (CHIEF & WORKER SYNC)
 
-**Letztes Update:** 2026-09-10
-**Status:** COPY-PASTE EXIT / COURIER FAST-AUTONOMY PRIORITY
+**Letztes Update:** 2026-09-10 08:xx CEST
+**Status:** COPY-PASTE EXIT / COURIER 4 FORWARD-ONLY PRIORITY
 
 ## 🎯 CANONICAL NORTH STAR
 
 **Der Nutzer ist nicht Courier. Chief ist nicht Courier. Courier ist Courier.**
 
-Der Nutzer soll nicht tagelang oder wochenlang Prompts und Reports zwischen ChatGPT, Codex, Google Antigravity/Gemini CLI, CLI1, Mac und Windows kopieren.
-
 Zielzustand:
 
-`USER GOAL -> CHIEF -> COURIER -> DISCOVER -> PLAN -> ROUTE -> EXECUTE -> VERIFY -> PERSIST -> NEXT SAFE STEP -> CONTINUE -> VERIFIED OUTCOME`
+`FOUNDER GOAL -> OUTCOME CONTRACT -> COURIER -> DURABLE TASK/ATTEMPT -> REAL WORKER -> RESULT/EFFECT EVIDENCE -> INDEPENDENT VERIFY -> NEXT SAFE ACTION -> AUTO-CONTINUE -> VERIFIED OUTCOME | HUMAN_GATE`
 
-Der Mensch erscheint nur bei einem echten `HUMAN_GATE`.
+Der Mensch wird nur für echte Human Gates oder die finale Zielentscheidung gebraucht; kein dauernder Relay zwischen ChatGPT, Google/Gemini, Codex, CLI1, Mac und Windows.
 
-## 🚨 HARD ANTI-LOOP
+## 🚨 PERMANENT CANONICAL OPERATING CONTRACT
 
-**STOP BUILDING, START PROVING.**
+**ALLE Worker/Chief/Courier-Sessions müssen vor Courier-Arbeit lesen:**
 
-Keine weitere Courier-Infrastruktur nur weil eine neue Architekturidee attraktiv klingt.
-Neue Infrastruktur nur bei reproduzierbarem realem Defekt, fehlendem Worker-Gateway, konkret unzureichender Recovery/Durability oder ungeschützter Safety-Invariante.
+`docs/COURIER_4_FORWARD_ONLY_OPERATING_CONTRACT.md`
 
-Die besprochenen 20 Proofs sind **keine 20 Copy-Paste-Aufträge**. Sie sind eine Definition of Done und sollen später als **eine interne Finalization Campaign** automatisch laufen, mit Evidence Reuse und `ALREADY_PROVEN?` vor jedem Proof.
+Dieses Dokument ist der neue kanonische Anti-Regression-, Anti-Loop-, No-Stacking-, Process-Hygiene-, Resource/Thermal-, Worker-Gateway-, Verification-, Human-Gate-, Recovery- und Freeze-Vertrag.
 
-## ⚡ FASTEST PATH — MAX 4 BUILD UNITS
+Historische Pläne bleiben Evidenz/History, dürfen den neueren Operating Contract aber nicht überstimmen.
 
-1. **Agent Gateway** — Courier ruft Gemini CLI/CLI1/Codex programmatisch auf; kein GUI-Relay.
-2. **Durable Mission Runtime** — Mission/Task/Lease/Result/Verification/Human-Gate/Event-State überlebt Restart/Contextverlust.
-3. **Verification + Human Gates** — unabhängige Evidenz; Fake/Mock/Simulation kann reale Gates nie schließen; riskante Aktionen pausieren dauerhaft bis Human Approval.
-4. **One Real End-to-End Goal** — Nutzer gibt ein Ziel, Courier erledigt Routing/Execution/Verification/Continuation selbst.
+## ⚡ CURRENT CRITICAL PATH
 
-Danach: **COURIER INFRASTRUCTURE FREEZE** und Kapazität auf Produkt/Money Factory. Neue Courier-Arbeit post-freeze nur bei reproduzierbarem Produkt-/Revenue-Blocker.
+Aktueller Google-Mac Auftrag ist der **COPY-PASTE EXIT VERTICAL SLICE**.
 
-## 📌 CANONICAL DETAIL DOCUMENT
+Jüngster sichtbarer Status vom 2026-09-10:
+- First Real Fixture Proof wurde vom Worker als `100% complete and verified` gemeldet; diese Aussage muss weiterhin an echter Evidenz gemessen werden.
+- Nächster kritischer Schritt: **AUTO-CONTINUE PROOF**.
+- Es waren mehrere Hintergrund-`tail -f scratch/run_final_*.log`/Hilfsprozesse sichtbar; Process Hygiene und Mac-Thermal-Governance sind deshalb unmittelbar relevant.
 
-Siehe:
+Keinen konfliktierenden zweiten Writer-Task stapeln. Sicherheits-/Betriebsanweisungen dürfen den laufenden Task nur als klaren Amendment desselben Scopes präzisieren, nicht einen neuen Scope eröffnen.
 
-`docs/COURIER_COPY_PASTE_EXIT_PLAN.md`
+## 🧭 FORWARD-ONLY EXECUTION
 
-Dieses Dokument enthält vollständig:
-- Long-Run Mission Policy
-- Agent Gateway
-- Durable Mission Runtime
-- Stable Logical Identity
-- Crash/Restart Reconciliation
-- No-Stacking
-- Follow-Up/Safe Backlog
-- Proof Debt
-- Trajectory Watchdog
-- Process Supervisor
-- per-machine Resource Governance
-- Border Guard / Result Customs
-- Evidence Classes
-- 20-Proof Campaign als ein interner Lauf
-- aktuelle Research-Optionen: OpenAI Agents SDK durable integrations, Codex Goal/Automations, Gemini CLI headless, ACP/OpenHands, DBOS/Temporal/LangGraph Referenzmuster
+`ALREADY_PROVEN_WITH_VALID_EVIDENCE?` vor Wiederholungen.
+
+Nur `CURRENT_BLOCKER` darf den Critical Path unterbrechen.
+Neue Gedanken werden `FOLLOW_UP` oder `DEFERRED`, nicht sofort dispatcht.
+
+Fehler:
+`FAIL -> REPRODUCE -> ROOT CAUSE -> MINIMAL REPAIR -> TARGETED TEST -> E2E VERIFY -> CONTINUE`
+
+Keine wiederholten breiten Regressionen während Debugging.
+Keine Fake-/Mock-/Synthetic-PASS-Evidenz.
+Unknown execution -> `EXECUTION_UNCERTAIN_NO_PROOF`, kein Blind-Retry.
+
+## 🖥️ MACHINE POLICY
+
+Mac und Windows werden unabhängig geregelt.
+
+Mac: konservativ `MAX_CONCURRENT_HEAVY_LOCAL_TASKS = 1`; OS-Thermalzustand berücksichtigen. Bei `serious/critical` keine neue schwere lokale Arbeit starten, obsolete Helpers säubern, Evidenz erhalten, Recovery zulassen. Zeit/Hitze allein ist kein Grund, echte fortschreitende Arbeit blind zu töten.
+
+Windows: unabhängig behandeln; ein heißer Mac darf einen gesunden Windows-PC nicht global drosseln.
 
 ## 🔒 SAFETY BASELINE
 
@@ -66,19 +66,30 @@ Dieses Dokument enthält vollständig:
 - `OIL_LIVE = DENY`
 - `BTC_LIVE_CANARY = NOT_AUTHORIZED`
 
-Keine autonomen Käufe, Abos, Veröffentlichung, Production-Deployments, Customer Outreach, externe Nachrichten, reale Trades, Wallet-Signaturen oder Credential-/Account-Änderungen.
+Keine autonomen Käufe/Abos, Veröffentlichung, Production-Deployments, Customer Outreach/externe Nachrichten, reale Trades, Wallet-Signaturen, Credential-/Account-Änderungen oder sudo/admin.
 
-## 🧭 CURRENT EXECUTION DISCIPLINE
+**`happyhippovip/universuX` niemals anfassen.**
 
-Wenn ein Worker `STAMPED/DISPATCHED/IN_FLIGHT` ist, keinen konfliktierenden zweiten Writer-Task stapeln.
-Neue Gedanken als Follow-Up/Next-Task-Kandidat erhalten.
+## 📚 CANONICAL DETAIL DOCUMENTS
 
-Fehler innerhalb einer Long-Run Mission bedeuten standardmäßig:
+1. `docs/COURIER_4_FORWARD_ONLY_OPERATING_CONTRACT.md` — aktuell höchste operative Priorität/Norm.
+2. `docs/COURIER_COPY_PASTE_EXIT_PLAN.md` — historische Detailbasis und frühere Fast-Autonomy-Planung.
 
-`FAIL -> REPRODUCE -> ROOT CAUSE -> MINIMAL REPAIR -> VERIFY -> CONTINUE`
+## 🧊 FREEZE RULE
 
-Nicht nach jedem gewöhnlichen Fehler den Menschen nach `weiter` fragen.
+Sobald der reale Kernel beweist:
+- one goal input
+- real programmatic worker
+- correct goal/task/attempt identity
+- attempt-scoped effects
+- independent verification
+- auto-continue with zero human relay
+- real small coding E2E
+- durable Human Gate pause/resume
+- controlled restart without duplicate execution
+- no production synthetic PASS
+- no unresolved P0 on this path
 
-## 🧾 HISTORICAL NOTE
+=> `COURIER_KERNEL_FREEZE_CANDIDATE = YES` und Infrastrukturentwicklung stoppen.
 
-Frühere Zustände und Money-/Opportunity-Ziele bleiben historisch relevant, dürfen aber diese aktuelle Priorität nicht überstimmen: zuerst die manuelle Relay-Schleife beenden und einen realen autonomen Vertical Slice beweisen; danach Produkt-/Revenue-Arbeit über Courier fortsetzen.
+Post-freeze Courier-Kernel-Änderungen nur bei reproduzierbarem Safety-/Execution-/Durability-/Produkt-/Revenue-Blocker.
