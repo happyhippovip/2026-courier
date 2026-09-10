@@ -1,6 +1,6 @@
 # 🧠 KÜNSTLICHES GEHIRN (CHIEF & WORKER SYNC)
 
-**Letztes Update:** 2026-09-10 08:xx CEST
+**Letztes Update:** 2026-09-10 09:17 CEST
 **Status:** COPY-PASTE EXIT / COURIER 4 FORWARD-ONLY PRIORITY
 
 ## 🎯 CANONICAL NORTH STAR
@@ -19,7 +19,7 @@ Der Mensch wird nur für echte Human Gates oder die finale Zielentscheidung gebr
 
 `docs/COURIER_4_FORWARD_ONLY_OPERATING_CONTRACT.md`
 
-Dieses Dokument ist der neue kanonische Anti-Regression-, Anti-Loop-, No-Stacking-, Process-Hygiene-, Resource/Thermal-, Worker-Gateway-, Verification-, Human-Gate-, Recovery- und Freeze-Vertrag.
+Dieses Dokument ist der kanonische Anti-Regression-, Anti-Loop-, No-Stacking-, Process-Hygiene-, Resource/Thermal-, Worker-Gateway-, Verification-, Human-Gate-, Recovery- und Freeze-Vertrag.
 
 Historische Pläne bleiben Evidenz/History, dürfen den neueren Operating Contract aber nicht überstimmen.
 
@@ -31,40 +31,58 @@ Canonical visibility contract:
 
 This defines a future read-only founder-facing progress beacon showing verified overall %, current phase/state, last real progress evidence, machine/thermal status, human-relay count, proof debt, blockers, cost where available, and next safe action. It also defines LOOP_RISK/SLOW_CHECK/resource-pressure signals.
 
-Important: this is a visibility contract only. It must never become a second scheduler or source of terminal truth, and its implementation must NOT interrupt the current Copy-Paste Exit critical path. The simplest later implementation may be one CLI/status JSON line; a dashboard is optional.
+Important: this is visibility only. It must never become a second scheduler or source of terminal truth, and its implementation must NOT interrupt the current Copy-Paste Exit critical path.
 
-## ⚡ CURRENT CRITICAL PATH
+## ⚡ CURRENT CRITICAL PATH — 2026-09-10 09:17 CEST
 
-Aktueller Google-Mac Auftrag ist der **COPY-PASTE EXIT VERTICAL SLICE**.
+Current accepted Chief estimate: `COURIER_KERNEL_PROGRESS ≈ 82%`.
 
-Jüngster sichtbarer Status vom 2026-09-10:
-- First Real Fixture Proof wurde vom Worker als `100% complete and verified` gemeldet; diese Aussage muss weiterhin an echter Evidenz gemessen werden.
-- Nächster kritischer Schritt: **AUTO-CONTINUE PROOF**.
-- Es waren mehrere Hintergrund-`tail -f scratch/run_final_*.log`/Hilfsprozesse sichtbar; Process Hygiene und Mac-Thermal-Governance sind deshalb unmittelbar relevant.
+Already accepted/reusable progress:
+- real programmatic Gemini worker path exists;
+- auto-continue between two missions was demonstrated with `HUMAN_RELAY_BETWEEN_A_AND_B = 0`;
+- a real coding implementation + real targeted CLI1 test was demonstrated, but the clean durable E2E proof remains incomplete because earlier attempts manually cleared runtime state;
+- process hygiene/thermal guard work has been added and orphaned helpers were cleaned.
 
-Keinen konfliktierenden zweiten Writer-Task stapeln. Sicherheits-/Betriebsanweisungen dürfen den laufenden Task nur als klaren Amendment desselben Scopes präzisieren, nicht einen neuen Scope eröffnen.
+Current exact parked state:
+- Goal: `ec6ea10c-e677-4e0e-9b65-07b4c5e401b5`
+- Mission: `9045349f-54af-4f8f-8a37-ac50ee0fa399`
+- multiplier clean coding proof
+- worker dispatch occurred;
+- no proven Gemini result envelope;
+- code remained in broken pre-proof state;
+- provider quota/block caused the worker to hang/busy-loop;
+- exact owned `run_courier`/`agy` processes were diagnosed and terminated after evidence capture;
+- no durable history was deleted;
+- no replacement attempt was dispatched;
+- durable semantics: `DISPATCH_OCCURRED=TRUE`, `RESULT_PROVEN=FALSE`, `REDISPATCH_AUTHORIZED=FALSE`;
+- current classification: `PROVIDER_BLOCK_CLEANLY_PARKED / BLOCKED_PROVIDER_QUOTA` with execution history preserved.
+
+Next critical boundary remains:
+`REAL_CODING_E2E_CLEAN_VERIFIED`
+
+Do NOT create a new Founder Goal, delete state, blindly retry, or switch accounts/providers merely to bypass quota. First reconcile the same durable identity when a permitted provider path becomes available. If execution side effects remain uncertain, preserve `EXECUTION_UNCERTAIN_NO_PROOF` and require an explicit safe supersession/retry decision.
 
 ## 🧭 FORWARD-ONLY EXECUTION
 
-`ALREADY_PROVEN_WITH_VALID_EVIDENCE?` vor Wiederholungen.
+`ALREADY_PROVEN_WITH_VALID_EVIDENCE?` before repetitions.
 
-Nur `CURRENT_BLOCKER` darf den Critical Path unterbrechen.
-Neue Gedanken werden `FOLLOW_UP` oder `DEFERRED`, nicht sofort dispatcht.
+Only `CURRENT_BLOCKER` may interrupt the critical path.
+New ideas become `FOLLOW_UP` or `DEFERRED`, not immediate writer work.
 
-Fehler:
+Failure discipline:
 `FAIL -> REPRODUCE -> ROOT CAUSE -> MINIMAL REPAIR -> TARGETED TEST -> E2E VERIFY -> CONTINUE`
 
-Keine wiederholten breiten Regressionen während Debugging.
-Keine Fake-/Mock-/Synthetic-PASS-Evidenz.
-Unknown execution -> `EXECUTION_UNCERTAIN_NO_PROOF`, kein Blind-Retry.
+No repeated broad regression during targeted debugging.
+No fake/mock/synthetic PASS evidence.
+Unknown execution -> `EXECUTION_UNCERTAIN_NO_PROOF`; no blind retry.
 
 ## 🖥️ MACHINE POLICY
 
-Mac und Windows werden unabhängig geregelt.
+Mac and Windows are governed independently.
 
-Mac: konservativ `MAX_CONCURRENT_HEAVY_LOCAL_TASKS = 1`; OS-Thermalzustand berücksichtigen. Bei `serious/critical` keine neue schwere lokale Arbeit starten, obsolete Helpers säubern, Evidenz erhalten, Recovery zulassen. Zeit/Hitze allein ist kein Grund, echte fortschreitende Arbeit blind zu töten.
+Mac: conservative `MAX_CONCURRENT_HEAVY_LOCAL_TASKS = 1`; respect OS thermal state. At `serious/critical`, start no new heavy local work, clean obsolete helpers, preserve evidence and allow recovery. Time/heat alone is not proof that progressing work should be killed.
 
-Windows: unabhängig behandeln; ein heißer Mac darf einen gesunden Windows-PC nicht global drosseln.
+Windows: independent; a hot Mac must not globally throttle a healthy Windows PC.
 
 ## 🔒 SAFETY BASELINE
 
@@ -76,19 +94,32 @@ Windows: unabhängig behandeln; ein heißer Mac darf einen gesunden Windows-PC n
 - `OIL_LIVE = DENY`
 - `BTC_LIVE_CANARY = NOT_AUTHORIZED`
 
-Keine autonomen Käufe/Abos, Veröffentlichung, Production-Deployments, Customer Outreach/externe Nachrichten, reale Trades, Wallet-Signaturen, Credential-/Account-Änderungen oder sudo/admin.
+No autonomous purchases/subscriptions, publication, production deployments, customer outreach/external messages, real trades, wallet signatures, credential/account changes or sudo/admin.
 
-**`happyhippovip/universuX` niemals anfassen.**
+**Never touch `happyhippovip/universuX`.**
+
+## 💡 DEFERRED FUTURE PRODUCT / REVENUE FOLLOW-UP
+
+Canonical deferred file:
+
+`docs/DEFERRED_PRODUCT_PLATFORM_AND_REVENUE_PLAYBOOK_2026-09-10.md`
+
+This preserves the founder's future idea for a modern community/social platform inspired by the useful social simplicity of older networks such as SchülerVZ, but redesigned for 2026 privacy, safety, creator/community ownership, utility and ethical monetization.
+
+It also preserves the future economic target that Courier/agents should reason toward lawful, verifiable, repeatable revenue with a target of `> EUR 50/day average`, while treating that number as an outcome target, never a guarantee or authorization for restricted actions.
+
+This item is **DEFERRED until kernel freeze / explicit Founder selection**. It must NOT interrupt the current Copy-Paste Exit path.
 
 ## 📚 CANONICAL DETAIL DOCUMENTS
 
-1. `docs/COURIER_4_FORWARD_ONLY_OPERATING_CONTRACT.md` — aktuell höchste operative Priorität/Norm.
-2. `docs/COURIER_PROGRESS_BEACON_CONTRACT.md` — permanente Founder-Sichtbarkeit/Progress-Warnlogik; Implementierung später, nicht jetzt.
-3. `docs/COURIER_COPY_PASTE_EXIT_PLAN.md` — historische Detailbasis und frühere Fast-Autonomy-Planung.
+1. `docs/COURIER_4_FORWARD_ONLY_OPERATING_CONTRACT.md` — highest current operating norm.
+2. `docs/COURIER_PROGRESS_BEACON_CONTRACT.md` — permanent founder visibility/progress warning contract; implementation later.
+3. `docs/DEFERRED_PRODUCT_PLATFORM_AND_REVENUE_PLAYBOOK_2026-09-10.md` — deferred future platform/revenue hypothesis and economic reasoning contract.
+4. `docs/COURIER_COPY_PASTE_EXIT_PLAN.md` — historical detail basis and earlier fast-autonomy planning.
 
 ## 🧊 FREEZE RULE
 
-Sobald der reale Kernel beweist:
+Freeze candidate requires real evidence for:
 - one goal input
 - real programmatic worker
 - correct goal/task/attempt identity
@@ -96,11 +127,11 @@ Sobald der reale Kernel beweist:
 - independent verification
 - auto-continue with zero human relay
 - real small coding E2E
-- durable Human Gate pause/resume
+- durable Human-Gate pause/resume
 - controlled restart without duplicate execution
 - no production synthetic PASS
-- no unresolved P0 on this path
+- no unresolved P0 affecting this path
 
-=> `COURIER_KERNEL_FREEZE_CANDIDATE = YES` und Infrastrukturentwicklung stoppen.
+=> `COURIER_KERNEL_FREEZE_CANDIDATE = YES` and stop infrastructure development.
 
-Post-freeze Courier-Kernel-Änderungen nur bei reproduzierbarem Safety-/Execution-/Durability-/Produkt-/Revenue-Blocker.
+Post-freeze Courier-kernel changes only for a reproducible safety/execution/durability/product/revenue blocker.
