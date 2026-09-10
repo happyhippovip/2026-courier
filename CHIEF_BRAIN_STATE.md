@@ -23,6 +23,16 @@ Dieses Dokument ist der neue kanonische Anti-Regression-, Anti-Loop-, No-Stackin
 
 Historische Pläne bleiben Evidenz/History, dürfen den neueren Operating Contract aber nicht überstimmen.
 
+## 📡 FOUNDER PROGRESS VISIBILITY
+
+Canonical visibility contract:
+
+`docs/COURIER_PROGRESS_BEACON_CONTRACT.md`
+
+This defines a future read-only founder-facing progress beacon showing verified overall %, current phase/state, last real progress evidence, machine/thermal status, human-relay count, proof debt, blockers, cost where available, and next safe action. It also defines LOOP_RISK/SLOW_CHECK/resource-pressure signals.
+
+Important: this is a visibility contract only. It must never become a second scheduler or source of terminal truth, and its implementation must NOT interrupt the current Copy-Paste Exit critical path. The simplest later implementation may be one CLI/status JSON line; a dashboard is optional.
+
 ## ⚡ CURRENT CRITICAL PATH
 
 Aktueller Google-Mac Auftrag ist der **COPY-PASTE EXIT VERTICAL SLICE**.
@@ -73,7 +83,8 @@ Keine autonomen Käufe/Abos, Veröffentlichung, Production-Deployments, Customer
 ## 📚 CANONICAL DETAIL DOCUMENTS
 
 1. `docs/COURIER_4_FORWARD_ONLY_OPERATING_CONTRACT.md` — aktuell höchste operative Priorität/Norm.
-2. `docs/COURIER_COPY_PASTE_EXIT_PLAN.md` — historische Detailbasis und frühere Fast-Autonomy-Planung.
+2. `docs/COURIER_PROGRESS_BEACON_CONTRACT.md` — permanente Founder-Sichtbarkeit/Progress-Warnlogik; Implementierung später, nicht jetzt.
+3. `docs/COURIER_COPY_PASTE_EXIT_PLAN.md` — historische Detailbasis und frühere Fast-Autonomy-Planung.
 
 ## 🧊 FREEZE RULE
 
