@@ -1,0 +1,12 @@
+{
+  "certificationId": "STANDBY_CERTIFICATION_V285",
+  "phase": 659,
+  "subsystem": "bft_shard_committee_resampling_consensus_engine",
+  "timestamp": "2026-09-11T11:50:57.421Z",
+  "verifiedComponents": [
+    "bft_shard_committee_resampling_engine",
+    "SAMPLE_SHARD_COMMITTEE_RESAMPLING_REPORT.json"
+  ],
+  "integrityHash": "68ea3746811ecfbcc64a7a3a809e57c6499cfdb2e97562dc7e3594128d1f2899",
+  "status": "GREEN_ACTIVE"
+}
