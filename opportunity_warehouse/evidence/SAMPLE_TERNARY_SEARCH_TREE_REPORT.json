@@ -1,6 +1,6 @@
 {
   "experiment": "ternary_search_tree_filter",
-  "timestamp": "2026-09-11T12:02:52.141Z",
+  "timestamp": "2026-09-11T12:03:37.618Z",
   "metrics": {
     "storedKeys": 3,
     "hasRoot": true

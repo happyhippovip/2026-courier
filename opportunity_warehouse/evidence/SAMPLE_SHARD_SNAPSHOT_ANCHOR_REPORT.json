@@ -1,6 +1,6 @@
 {
   "subsystem": "bft_shard_snapshot_anchor_engine",
-  "timestamp": "2026-09-11T12:02:51.166Z",
+  "timestamp": "2026-09-11T12:03:36.569Z",
   "totalValidators": 4,
   "totalWeight": 100,
   "lastCertifiedEpoch": 1,
@@ -8,7 +8,7 @@
   "anchors": [
     {
       "epoch": 1,
-      "anchorHash": "e6a2bacddb43ebd10cf624a83fa8a2c0be4d0809752b180d93f3fbc3c85fb92e",
+      "anchorHash": "a8d552133f7b98bb4fc563ce07877bbf6cc1ba3d41f5cc93079bd46da34d8f3a",
       "shardRoots": {
         "shard_0": "721b9789a773f32bbca0cb4a64e67f855045afce5d506f4058f66f2e1d86f8c1",
         "shard_1": "ef3554b4e6bca51051444928ac025a0ddeb65b87bb37c3fda889beb760389dbe"
@@ -29,7 +29,7 @@
           "sig": "sig_2"
         }
       ],
-      "certifiedAt": "2026-09-11T12:02:51.166Z"
+      "certifiedAt": "2026-09-11T12:03:36.569Z"
     }
   ]
 }

@@ -9,7 +9,7 @@
       "id": "anchor_sys_prompt",
       "priority": "critical",
       "tokens": 300,
-      "timestamp": 1789128172051,
+      "timestamp": 1789128217532,
       "payload": "System Directives",
       "isAnchor": true
     },
@@ -17,7 +17,7 @@
       "id": "event_log_2",
       "priority": "medium",
       "tokens": 250,
-      "timestamp": 1789128172051,
+      "timestamp": 1789128217532,
       "payload": "Ran unit test suite",
       "isAnchor": false
     },
@@ -25,7 +25,7 @@
       "id": "event_security_alert",
       "priority": "critical",
       "tokens": 400,
-      "timestamp": 1789128172051,
+      "timestamp": 1789128217532,
       "payload": "Security gate blocked unauthorized call",
       "isAnchor": false
     }
