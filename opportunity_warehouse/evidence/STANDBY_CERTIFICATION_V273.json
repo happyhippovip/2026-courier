@@ -1,0 +1,12 @@
+{
+  "certificationId": "STANDBY_CERTIFICATION_V273",
+  "phase": 635,
+  "subsystem": "bft_shard_crosslink_consensus_engine",
+  "timestamp": "2026-09-11T11:43:26.265Z",
+  "verifiedComponents": [
+    "bft_shard_crosslink_engine",
+    "SAMPLE_SHARD_CROSSLINK_REPORT.json"
+  ],
+  "integrityHash": "7ae6451bb84b9a7f7223f2fa1d03228d00e35566993e53a3fa910c1c63b6dff8",
+  "status": "GREEN_ACTIVE"
+}

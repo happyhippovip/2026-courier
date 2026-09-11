@@ -1,0 +1,12 @@
+{
+  "certificationId": "STANDBY_CERTIFICATION_V272",
+  "phase": 633,
+  "subsystem": "radix_spline_range_filter_and_zk_cross_rollup",
+  "timestamp": "2026-09-11T11:43:26.265Z",
+  "verifiedComponents": [
+    "radix_spline_range_filter",
+    "ENTERPRISE_ZK_OFFCHAIN_CROSS_ROLLUP_SEQUENCER.md"
+  ],
+  "integrityHash": "95a06bb6e3fdbf6a151089365efac7fa50c633058f7db01783870f3466984276",
+  "status": "GREEN_ACTIVE"
+}
