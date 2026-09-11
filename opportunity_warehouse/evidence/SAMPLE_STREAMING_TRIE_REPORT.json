@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-09-11T12:06:45.307Z",
+  "timestamp": "2026-09-11T12:07:09.491Z",
   "totalWordsIndexed": 16,
   "prefixMatchesForAgent": [
     {
@@ -7,7 +7,7 @@
       "frequency": 3,
       "metadata": {
         "type": "worker",
-        "lastSeen": 1789128405306
+        "lastSeen": 1789128429491
       }
     },
     {
@@ -16,7 +16,7 @@
       "metadata": {
         "type": "class",
         "module": "core/scheduler",
-        "lastSeen": 1789128405306
+        "lastSeen": 1789128429491
       }
     },
     {
@@ -24,7 +24,7 @@
       "frequency": 1,
       "metadata": {
         "type": "dispatcher",
-        "lastSeen": 1789128405306
+        "lastSeen": 1789128429491
       }
     }
   ],

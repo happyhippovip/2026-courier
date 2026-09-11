@@ -1,0 +1,12 @@
+{
+  "certificationId": "STANDBY_CERTIFICATION_V310",
+  "phase": 709,
+  "subsystem": "radix_roaring_bitvector_indexer",
+  "timestamp": "2026-09-11T12:07:08.259Z",
+  "verifiedComponents": [
+    "radix_roaring_bitvector_indexer",
+    "SAMPLE_RADIX_ROARING_REPORT.json"
+  ],
+  "integrityHash": "491978804de6a939122e4c909a465e9fc3932923eb795590eb941058233ec463",
+  "status": "GREEN_ACTIVE"
+}

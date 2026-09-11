@@ -1,0 +1,12 @@
+{
+  "certificationId": "STANDBY_CERTIFICATION_V311",
+  "phase": 711,
+  "subsystem": "bft_shard_slashing_jail_consensus_engine",
+  "timestamp": "2026-09-11T12:07:08.260Z",
+  "verifiedComponents": [
+    "bft_shard_slashing_jail_engine",
+    "SAMPLE_BFT_SLASHING_JAIL_REPORT.json"
+  ],
+  "integrityHash": "0c9cf6d1573cf064e16c31518cc60d722261e32c32e97ed5972571daca1a8084",
+  "status": "GREEN_ACTIVE"
+}

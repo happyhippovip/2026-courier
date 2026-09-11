@@ -1,0 +1,16 @@
+{
+  "experiment": "bft_shard_slashing_jail_engine",
+  "status": "VERIFIED",
+  "testSuite": "test_bft_shard_slashing_jail_engine",
+  "lastIncident": {
+    "incidentId": "INC-1",
+    "validatorId": "val-malicious-01",
+    "view": 12,
+    "slashedAmount": 250,
+    "remainingStake": 750,
+    "jailedUntilEpoch": 4,
+    "timestamp": "2026-09-11T12:07:08.257Z"
+  },
+  "totalIncidents": 1,
+  "timestamp": "2026-09-11T12:07:08.257Z"
+}

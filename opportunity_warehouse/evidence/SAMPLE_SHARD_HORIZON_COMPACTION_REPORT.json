@@ -1,6 +1,6 @@
 {
   "subsystem": "bft_shard_horizon_compaction_engine",
-  "timestamp": "2026-09-11T12:06:44.410Z",
+  "timestamp": "2026-09-11T12:07:08.550Z",
   "currentEpoch": 4,
   "horizonWindow": 2,
   "compactedCount": 1,
@@ -11,7 +11,7 @@
       "signedWeight": 70,
       "quorumRatio": 0.7,
       "prunedPriorEpochs": 1,
-      "certifiedAt": "2026-09-11T12:06:44.410Z"
+      "certifiedAt": "2026-09-11T12:07:08.550Z"
     }
   ]
 }

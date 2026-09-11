@@ -1,0 +1,12 @@
+{
+  "experiment": "radix_roaring_bitvector_indexer",
+  "status": "VERIFIED",
+  "testSuite": "test_radix_roaring_bitvector_indexer",
+  "stats": {
+    "totalContainers": 2,
+    "arrayContainers": 2,
+    "bitmapContainers": 0,
+    "totalCardinality": 4
+  },
+  "timestamp": "2026-09-11T12:07:08.244Z"
+}

@@ -1,6 +1,6 @@
 {
   "subsystem": "bft_shard_slashing_engine",
-  "timestamp": "2026-09-11T12:06:44.434Z",
+  "timestamp": "2026-09-11T12:07:08.576Z",
   "activeValidators": [
     {
       "id": "val_alpha",
@@ -31,13 +31,13 @@
   "slashCount": 1,
   "records": [
     {
-      "slashId": "d4d1fe051df8ee06caa4a4b851657b6b5ef1a64450ca3576949d68b30eee2141",
+      "slashId": "0b3d4045582ba8f98c6c241b3e2b34af5e74bd55ad46e4991280c2df06f7d3cc",
       "validatorId": "val_malicious",
       "type": "EQUIVOCATION",
       "penalty": 1000,
       "remainingStake": 0,
       "newStatus": "EVICTED",
-      "timestamp": "2026-09-11T12:06:44.434Z"
+      "timestamp": "2026-09-11T12:07:08.576Z"
     }
   ]
 }

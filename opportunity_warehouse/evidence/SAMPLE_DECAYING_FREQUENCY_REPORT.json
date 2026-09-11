@@ -1,7 +1,7 @@
 {
   "experiment": "decaying_frequency_estimator",
   "phase": 457,
-  "timestamp": "2026-09-11T12:06:44.718Z",
+  "timestamp": "2026-09-11T12:07:08.872Z",
   "halfLife": 50,
   "scoreAtBurst": 10.273227845950101,
   "scoreAfterHalfLife": 5.136613922975051,

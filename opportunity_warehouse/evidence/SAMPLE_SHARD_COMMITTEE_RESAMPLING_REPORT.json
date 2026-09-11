@@ -1,6 +1,6 @@
 {
   "subsystem": "bft_shard_committee_resampling_engine",
-  "timestamp": "2026-09-11T12:06:44.390Z",
+  "timestamp": "2026-09-11T12:07:08.530Z",
   "currentEpoch": 1,
   "poolSize": 6,
   "committeeSize": 3,
@@ -15,7 +15,7 @@
         "val_5"
       ],
       "quorumRatio": 0.6666666666666666,
-      "certifiedAt": "2026-09-11T12:06:44.390Z"
+      "certifiedAt": "2026-09-11T12:07:08.530Z"
     }
   ]
 }

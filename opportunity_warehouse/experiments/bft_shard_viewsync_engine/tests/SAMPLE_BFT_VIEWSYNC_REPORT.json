@@ -7,7 +7,7 @@
     "currentView": 1,
     "quorumThreshold": 3,
     "totalViewsSynchronized": 1,
-    "lastSynchronizedAt": 1789128404441
+    "lastSynchronizedAt": 1789128428584
   },
   "lastCertificate": {
     "shardId": "shard-alpha-01",
@@ -18,8 +18,8 @@
       "val-1",
       "val-2"
     ],
-    "quorumCertificateHash": "32f51c42ae06eee799f6303b3fd9c042081b5a77800b439f88552442c3c8b0ef",
-    "finalizedAt": "2026-09-11T12:06:44.441Z"
+    "quorumCertificateHash": "4757598321e994cd0954f04a5067af46f194ff3b1b56f6c04cbe1f86824cb002",
+    "finalizedAt": "2026-09-11T12:07:08.584Z"
   },
-  "timestamp": "2026-09-11T12:06:44.441Z"
+  "timestamp": "2026-09-11T12:07:08.584Z"
 }

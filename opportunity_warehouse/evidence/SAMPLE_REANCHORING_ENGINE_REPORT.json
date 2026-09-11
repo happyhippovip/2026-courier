@@ -1,6 +1,6 @@
 {
   "experiment": "bft_reanchoring_engine",
-  "timestamp": "2026-09-11T12:06:44.376Z",
+  "timestamp": "2026-09-11T12:07:08.510Z",
   "anchorEpoch": 10,
   "stateRoot": "0xabcdef1234567890",
   "signaturesCollected": 3,

@@ -1,6 +1,6 @@
 {
   "experiment": "compressed_suffix_array_evaluator",
-  "timestamp": "2026-09-11T12:06:44.583Z",
+  "timestamp": "2026-09-11T12:07:08.732Z",
   "tokenCount": 8,
   "compressionRatio": 0.8056,
   "queries": [

@@ -1,6 +1,6 @@
 {
   "experiment": "radix_spline_range_filter",
-  "timestamp": "2026-09-11T12:06:45.122Z",
+  "timestamp": "2026-09-11T12:07:09.308Z",
   "metrics": {
     "keyCount": 10,
     "splinePointCount": 2,

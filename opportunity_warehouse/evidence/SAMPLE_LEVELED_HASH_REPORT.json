@@ -1,7 +1,7 @@
 {
   "experiment": "leveled_hash_filter",
   "phase": 481,
-  "timestamp": "2026-09-11T12:06:44.901Z",
+  "timestamp": "2026-09-11T12:07:09.073Z",
   "topBuckets": 16,
   "bottomBuckets": 8,
   "bucketCapacity": 4,

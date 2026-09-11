@@ -1,6 +1,6 @@
 {
   "experiment": "hat_trie_filter",
-  "timestamp": "2026-09-11T12:06:44.834Z",
+  "timestamp": "2026-09-11T12:07:08.998Z",
   "metrics": {
     "totalEntries": 4,
     "burstCount": 1,
