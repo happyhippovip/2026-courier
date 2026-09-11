@@ -1,6 +1,6 @@
 {
   "experiment": "bft_snapshot_compression_engine",
-  "timestamp": "2026-09-11T12:06:00.617Z",
+  "timestamp": "2026-09-11T12:06:44.454Z",
   "epoch": 1,
   "compressionStats": {
     "originalSize": 64,

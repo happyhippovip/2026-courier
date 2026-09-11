@@ -1,6 +1,6 @@
 {
   "experiment": "radix_tree_inverted_map_filter",
-  "timestamp": "2026-09-11T12:06:01.313Z",
+  "timestamp": "2026-09-11T12:06:45.128Z",
   "testQueries": [
     {
       "word": "agent",

@@ -1,6 +1,6 @@
 {
   "experiment": "bft_epoch_gas_auction_engine",
-  "timestamp": "2026-09-11T12:06:00.493Z",
+  "timestamp": "2026-09-11T12:06:44.343Z",
   "totalCapacity": 1000,
   "lastClearedEpoch": 1,
   "clearingPrice": 10,

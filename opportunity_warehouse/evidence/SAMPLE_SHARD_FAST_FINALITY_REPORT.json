@@ -1,26 +1,26 @@
 {
   "subsystem": "bft_shard_fast_finality_engine",
-  "timestamp": "2026-09-11T12:06:00.559Z",
+  "timestamp": "2026-09-11T12:06:44.404Z",
   "totalValidators": 4,
   "finalizedBlockCount": 2,
   "history": [
     {
       "shardId": "shard_0",
       "height": 1,
-      "blockHash": "20e18a443c63bceafab6d28b65acc3d7ea83404861f29b51ae91637d13403004",
+      "blockHash": "97a939e198ba623d825e3958aac35f88c07efde8d2bcbc660d9979030fc2aeac",
       "mode": "FAST_PATH_OPTIMISTIC",
       "latencyMs": 150,
       "quorumRatio": 1,
-      "finalizedAt": "2026-09-11T12:06:00.559Z"
+      "finalizedAt": "2026-09-11T12:06:44.404Z"
     },
     {
       "shardId": "shard_0",
       "height": 2,
-      "blockHash": "18d9d86ce93d287ba92f7a80868a3b55947aed442d2542fdf5f816bd07989a5d",
+      "blockHash": "c6b644b74052f3355a399c80050b0ff3ae4d4ff131031c5877948b7b20d1e220",
       "mode": "STANDARD_BFT_FALLBACK",
       "latencyMs": 500,
       "quorumRatio": 0.75,
-      "finalizedAt": "2026-09-11T12:06:00.559Z"
+      "finalizedAt": "2026-09-11T12:06:44.404Z"
     }
   ]
 }

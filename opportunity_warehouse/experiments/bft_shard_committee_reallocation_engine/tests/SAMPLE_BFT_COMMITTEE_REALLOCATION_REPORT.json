@@ -1,0 +1,30 @@
+{
+  "experiment": "bft_shard_committee_reallocation_engine",
+  "status": "VERIFIED",
+  "testSuite": "test_bft_shard_committee_reallocation_engine",
+  "lastAllocation": {
+    "epoch": 2,
+    "epochEntropySeed": "seed-epoch-002-entropy-abc",
+    "assignments": {
+      "shard-0": [
+        "val-7",
+        "val-5",
+        "val-8"
+      ],
+      "shard-1": [
+        "val-2",
+        "val-4",
+        "val-3"
+      ],
+      "shard-2": [
+        "val-0",
+        "val-9",
+        "val-1"
+      ]
+    },
+    "assignmentCommitment": "0dec2837e4aeb5ae48da82f43e442af4bb768d5ac3b3bf38c7c5eb2f95c094fc",
+    "timestamp": "2026-09-11T12:06:44.139Z"
+  },
+  "historyLength": 2,
+  "timestamp": "2026-09-11T12:06:44.139Z"
+}

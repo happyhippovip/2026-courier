@@ -2,8 +2,8 @@
   "performance": {
     "iterations": 500,
     "matchedCount": 252,
-    "totalDurationMs": 12.576,
-    "avgMicrosecondsPerQuery": 25.152
+    "totalDurationMs": 14.909,
+    "avgMicrosecondsPerQuery": 29.817
   },
   "sampleMatches": [
     {

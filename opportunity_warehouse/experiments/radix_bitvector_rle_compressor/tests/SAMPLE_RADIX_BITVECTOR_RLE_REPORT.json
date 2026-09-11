@@ -1,0 +1,14 @@
+{
+  "experiment": "radix_bitvector_rle_compressor",
+  "status": "VERIFIED",
+  "testSuite": "test_radix_bitvector_rle_compressor",
+  "stats": {
+    "totalBits": 811,
+    "totalRuns": 5,
+    "rawBytes": 102,
+    "compressedRuns": 5,
+    "efficiencyPct": 95.1
+  },
+  "encodedLength": 19,
+  "timestamp": "2026-09-11T12:06:44.124Z"
+}

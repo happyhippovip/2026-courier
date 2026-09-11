@@ -16,21 +16,21 @@
       "latencyMs": 200,
       "estimatedLatency": 425,
       "nextTimeoutMs": 850,
-      "timestamp": "2026-09-11T12:06:00.286Z"
+      "timestamp": "2026-09-11T12:06:44.385Z"
     },
     {
       "round": 2,
       "event": "ROUND_TIMEOUT",
       "consecutiveTimeouts": 1,
       "nextTimeoutMs": 1275,
-      "timestamp": "2026-09-11T12:06:00.286Z"
+      "timestamp": "2026-09-11T12:06:44.385Z"
     },
     {
       "round": 3,
       "event": "ROUND_TIMEOUT",
       "consecutiveTimeouts": 2,
       "nextTimeoutMs": 1913,
-      "timestamp": "2026-09-11T12:06:00.286Z"
+      "timestamp": "2026-09-11T12:06:44.385Z"
     },
     {
       "round": 4,
@@ -38,8 +38,8 @@
       "latencyMs": 150,
       "estimatedLatency": 356,
       "nextTimeoutMs": 713,
-      "timestamp": "2026-09-11T12:06:00.286Z"
+      "timestamp": "2026-09-11T12:06:44.385Z"
     }
   ],
-  "timestamp": "2026-09-11T12:06:00.286Z"
+  "timestamp": "2026-09-11T12:06:44.385Z"
 }

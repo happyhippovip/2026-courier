@@ -1,7 +1,7 @@
 {
   "experiment": "dumbo_bft_consensus",
   "phase": 443,
-  "timestamp": "2026-09-11T12:06:00.910Z",
+  "timestamp": "2026-09-11T12:06:44.742Z",
   "totalNodes": 4,
   "committeeSize": 2,
   "quorum": 3,
@@ -21,7 +21,7 @@
         "tx": "settle_eur5_commercial_order"
       }
     ],
-    "finalizedAt": "2026-09-11T12:06:00.910Z"
+    "finalizedAt": "2026-09-11T12:06:44.742Z"
   },
   "verdict": "PASS"
 }
