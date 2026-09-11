@@ -1,0 +1,11 @@
+{
+  "subsystem": "radix_wavelet_huffman_filter",
+  "timestamp": "2026-09-11T11:49:59.654Z",
+  "tokenCount": 15,
+  "distinctTokens": 3,
+  "codes": {
+    "10": "1",
+    "20": "01",
+    "30": "00"
+  }
+}

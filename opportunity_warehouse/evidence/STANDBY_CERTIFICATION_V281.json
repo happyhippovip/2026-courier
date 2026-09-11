@@ -1,0 +1,12 @@
+{
+  "certificationId": "STANDBY_CERTIFICATION_V281",
+  "phase": 651,
+  "subsystem": "bft_shard_regenesis_consensus_engine",
+  "timestamp": "2026-09-11T11:49:58.654Z",
+  "verifiedComponents": [
+    "bft_shard_regenesis_engine",
+    "SAMPLE_SHARD_REGENESIS_REPORT.json"
+  ],
+  "integrityHash": "22155f1676c8803060f8d2bb5f37942c5e0611ef38d7f1c7a971a717ab3b7d5f",
+  "status": "GREEN_ACTIVE"
+}
