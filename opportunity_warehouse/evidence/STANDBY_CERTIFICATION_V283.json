@@ -1,0 +1,12 @@
+{
+  "certificationId": "STANDBY_CERTIFICATION_V283",
+  "phase": 655,
+  "subsystem": "bft_shard_horizon_compaction_consensus_engine",
+  "timestamp": "2026-09-11T11:50:27.144Z",
+  "verifiedComponents": [
+    "bft_shard_horizon_compaction_engine",
+    "SAMPLE_SHARD_HORIZON_COMPACTION_REPORT.json"
+  ],
+  "integrityHash": "151c984a3106a5aade068d6bf65f64e073765eea3822f43dfb5906214f23537d",
+  "status": "GREEN_ACTIVE"
+}

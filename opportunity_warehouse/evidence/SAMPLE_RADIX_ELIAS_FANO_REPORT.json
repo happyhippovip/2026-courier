@@ -1,0 +1,9 @@
+{
+  "subsystem": "radix_elias_fano_filter",
+  "timestamp": "2026-09-11T11:50:28.131Z",
+  "keyCount": 9,
+  "universe": 150,
+  "lowBitWidth": 4,
+  "highBitsLength": 18,
+  "radixBits": 4
+}
