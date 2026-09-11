@@ -1,0 +1,12 @@
+{
+  "certificationId": "STANDBY_CERTIFICATION_V288",
+  "phase": 665,
+  "subsystem": "radix_exp_golomb_filter_and_zk_das",
+  "timestamp": "2026-09-11T11:53:09.975Z",
+  "verifiedComponents": [
+    "radix_exp_golomb_filter",
+    "ENTERPRISE_ZK_OFFCHAIN_DAS_SAMPLING.md"
+  ],
+  "integrityHash": "2d355747627b56f265cf600cb1a051638b6c9588c9892b0355cf8aa75d5551d6",
+  "status": "GREEN_ACTIVE"
+}
