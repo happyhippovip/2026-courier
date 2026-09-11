@@ -1,0 +1,28 @@
+{
+  "subsystem": "bft_shard_rollback_engine",
+  "timestamp": "2026-09-11T11:49:12.525Z",
+  "activeValidators": [
+    {
+      "id": "proposer_good",
+      "stake": 2000,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "proposer_bad",
+      "stake": 0,
+      "status": "EVICTED"
+    }
+  ],
+  "slashedCount": 1,
+  "rollbackCount": 1,
+  "rollbacks": [
+    {
+      "rollbackId": "e15d4c09723dd582d4d1a34a12ad7f769ba7affef3acf8bc2618c1ea412e104e",
+      "shardId": "shard_0",
+      "rolledBackFromHeight": 3,
+      "restoredHeight": 2,
+      "slashedProposer": "proposer_bad",
+      "timestamp": "2026-09-11T11:49:12.525Z"
+    }
+  ]
+}

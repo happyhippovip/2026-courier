@@ -1,0 +1,12 @@
+{
+  "certificationId": "STANDBY_CERTIFICATION_V279",
+  "phase": 647,
+  "subsystem": "bft_shard_rollback_consensus_engine",
+  "timestamp": "2026-09-11T11:49:12.247Z",
+  "verifiedComponents": [
+    "bft_shard_rollback_engine",
+    "SAMPLE_SHARD_ROLLBACK_REPORT.json"
+  ],
+  "integrityHash": "4b22b63e5fbaa55bebde3c2f776c3daad10dd9c5167bb0cd03c2dfd32a0e6fc4",
+  "status": "GREEN_ACTIVE"
+}
