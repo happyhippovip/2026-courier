@@ -1,0 +1,12 @@
+{
+  "certificationId": "STANDBY_CERTIFICATION_V294",
+  "phase": 677,
+  "subsystem": "radix_unary_variable_length_saliency_filter",
+  "timestamp": "2026-09-11T12:01:12.918Z",
+  "verifiedComponents": [
+    "radix_unary_saliency_filter",
+    "SAMPLE_RADIX_UNARY_FILTER_REPORT.json"
+  ],
+  "integrityHash": "447151e24d17bb718aba053935a122d5c3e2afe471f3402a0d32c97af12f54f0",
+  "status": "GREEN_ACTIVE"
+}

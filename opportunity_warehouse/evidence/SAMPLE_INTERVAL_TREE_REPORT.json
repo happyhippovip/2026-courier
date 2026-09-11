@@ -1,7 +1,7 @@
 {
   "experiment": "interval_tree_filter",
   "phase": 393,
-  "timestamp": "2026-09-11T12:00:23.779Z",
+  "timestamp": "2026-09-11T12:01:13.659Z",
   "totalIndexedIntervals": 6,
   "testedQueries": [
     {

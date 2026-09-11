@@ -1,7 +1,7 @@
 {
   "experiment": "sliding_window_hll",
   "phase": 461,
-  "timestamp": "2026-09-11T12:00:24.173Z",
+  "timestamp": "2026-09-11T12:01:14.041Z",
   "precision": 6,
   "registers": 64,
   "windowSize": 50,

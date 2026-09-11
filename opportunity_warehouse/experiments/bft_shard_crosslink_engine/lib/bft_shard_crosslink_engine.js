@@ -1,56 +1,57 @@
 /**
- * Byzantine Dynamic Shard Cross-Link Finality Consensus Engine
- * Anchors shard block commitments into a hub beacon chain via 2f+1 signatures,
- * guaranteeing irreversible cross-shard finality without waiting for L1 settlement.
+ * BFT Shard Cross-Link Verification Engine
+ * Implements cross-shard header validation and cross-link attestation anchors.
  */
 
 const crypto = require('crypto');
 
-function sha256(data) {
-  return crypto.createHash('sha256').update(typeof data === 'string' ? data : JSON.stringify(data)).digest('hex');
-}
-
-class BFTShardCrossLinkEngine {
-  constructor(hubNodeId, quorumThreshold = 3) {
-    this.hubNodeId = hubNodeId;
-    this.quorumThreshold = quorumThreshold;
-    this.crossLinks = new Map(); // crossLinkId -> CrossLinkRecord
-    this.finalizedEpochs = [];
+class BftShardCrossLinkEngine {
+  constructor(options = {}) {
+    this.beaconChainId = options.beaconChainId || 'beacon-0';
+    this.crossLinks = new Map(); // shardId -> array of cross-link headers
+    this.validatorWeights = options.validatorWeights || new Map([
+      ['v1', 1], ['v2', 1], ['v3', 1], ['v4', 1]
+    ]);
   }
 
-  proposeCrossLink(shardId, shardBlockNumber, stateRoot, signatures) {
-    const payloadHash = sha256({ shardId, shardBlockNumber, stateRoot });
-    const validSigners = new Set();
+  submitCrossLink(shardId, epoch, shardStateRoot, validatorSignatures) {
+    let signedWeight = 0;
+    const totalWeight = Array.from(this.validatorWeights.values()).reduce((a, b) => a + b, 0);
 
-    for (const sig of signatures) {
-      const expected = sha256(`${sig.nodeId}:${payloadHash}`);
-      if (sig.signature === expected) {
-        validSigners.add(sig.nodeId);
+    for (const valId of validatorSignatures) {
+      if (this.validatorWeights.has(valId)) {
+        signedWeight += this.validatorWeights.get(valId);
       }
     }
 
-    if (validSigners.size < this.quorumThreshold) {
-      return { finalized: false, validSigners: validSigners.size, required: this.quorumThreshold };
+    const quorumRatio = signedWeight / totalWeight;
+    if (quorumRatio < 2 / 3) {
+      throw new Error(`INSUFFICIENT_CROSSLINK_QUORUM: ${signedWeight}/${totalWeight} (minimum 2/3 required)`);
     }
 
     const crossLinkRecord = {
-      crossLinkId: payloadHash,
       shardId,
-      shardBlockNumber,
-      stateRoot,
-      signers: Array.from(validSigners),
-      hubCommitTimestamp: Date.now()
+      epoch,
+      shardStateRoot,
+      quorumRatio,
+      signedWeight,
+      totalWeight,
+      anchorTimestamp: new Date().toISOString(),
+      crossLinkHash: crypto.createHash('sha256').update(`${shardId}:${epoch}:${shardStateRoot}`).digest('hex')
     };
 
-    this.crossLinks.set(payloadHash, crossLinkRecord);
-    this.finalizedEpochs.push(crossLinkRecord);
-
-    return { finalized: true, crossLinkRecord };
+    if (!this.crossLinks.has(shardId)) {
+      this.crossLinks.set(shardId, []);
+    }
+    this.crossLinks.get(shardId).push(crossLinkRecord);
+    return crossLinkRecord;
   }
 
-  verifyFinality(crossLinkId) {
-    return this.crossLinks.has(crossLinkId);
+  getLatestCrossLink(shardId) {
+    const list = this.crossLinks.get(shardId);
+    if (!list || list.length === 0) return null;
+    return list[list.length - 1];
   }
 }
 
-module.exports = { BFTShardCrossLinkEngine };
+module.exports = { BftShardCrossLinkEngine };

@@ -1,7 +1,7 @@
 {
   "experiment": "treap_interval_union",
   "phase": 401,
-  "timestamp": "2026-09-11T12:00:24.303Z",
+  "timestamp": "2026-09-11T12:01:14.158Z",
   "totalIntervals": 5,
   "mergedUnionCount": 3,
   "totalCoveredTokens": 850,
