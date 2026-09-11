@@ -1,0 +1,8 @@
+{
+  "subsystem": "radix_fibonacci_filter",
+  "timestamp": "2026-09-11T11:52:24.375Z",
+  "tokenCount": 10,
+  "bitstreamLength": 55,
+  "jumpTableEntries": 1,
+  "averageBitsPerToken": 5.5
+}
