@@ -1,0 +1,43 @@
+{
+  "subsystem": "bft_shard_slashing_engine",
+  "timestamp": "2026-09-11T11:45:12.011Z",
+  "activeValidators": [
+    {
+      "id": "val_alpha",
+      "stake": 1000,
+      "status": "ACTIVE",
+      "slashedAmount": 0
+    },
+    {
+      "id": "val_beta",
+      "stake": 1000,
+      "status": "ACTIVE",
+      "slashedAmount": 0
+    },
+    {
+      "id": "val_gamma",
+      "stake": 1000,
+      "status": "ACTIVE",
+      "slashedAmount": 0
+    },
+    {
+      "id": "val_malicious",
+      "stake": 0,
+      "status": "EVICTED",
+      "slashedAmount": 1000
+    }
+  ],
+  "totalBurnedStake": 1000,
+  "slashCount": 1,
+  "records": [
+    {
+      "slashId": "a5d1a16c3c15a46985e88db01f404454d5bc92c4537be06033b0daf816f5d760",
+      "validatorId": "val_malicious",
+      "type": "EQUIVOCATION",
+      "penalty": 1000,
+      "remainingStake": 0,
+      "newStatus": "EVICTED",
+      "timestamp": "2026-09-11T11:45:12.011Z"
+    }
+  ]
+}

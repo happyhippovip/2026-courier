@@ -1,0 +1,12 @@
+{
+  "certificationId": "STANDBY_CERTIFICATION_V275",
+  "phase": 639,
+  "subsystem": "bft_shard_slashing_consensus_engine",
+  "timestamp": "2026-09-11T11:45:11.735Z",
+  "verifiedComponents": [
+    "bft_shard_slashing_engine",
+    "SAMPLE_BFT_SLASHING_REPORT.json"
+  ],
+  "integrityHash": "9c97bace7aec140bb65f59056bd43b3e24e5a5a533e9d1f0541be0103b789e20",
+  "status": "GREEN_ACTIVE"
+}
