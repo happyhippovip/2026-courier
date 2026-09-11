@@ -1,11 +1,11 @@
 {
   "experiment": "interpolation_index_filter",
   "phase": 493,
-  "timestamp": "2026-09-11T12:04:07.358Z",
+  "timestamp": "2026-09-11T12:04:59.410Z",
   "stats": {
     "totalKeys": 150,
-    "minKey": 24,
-    "maxKey": 444,
+    "minKey": 23,
+    "maxKey": 466,
     "maxInterpolationSteps": 3
   },
   "testedLookupsCount": 150,

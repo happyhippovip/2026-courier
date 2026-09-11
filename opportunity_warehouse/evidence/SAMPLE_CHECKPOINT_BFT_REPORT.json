@@ -1,7 +1,7 @@
 {
   "experiment": "checkpoint_bft_engine",
   "phase": 487,
-  "timestamp": "2026-09-11T12:04:07.021Z",
+  "timestamp": "2026-09-11T12:04:59.093Z",
   "replicas": 4,
   "quorum": 3,
   "checkpointInterval": 5,

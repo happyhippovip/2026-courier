@@ -1,0 +1,13 @@
+{
+  "experiment": "radix_vbyte_compressor",
+  "status": "VERIFIED",
+  "testSuite": "test_radix_vbyte_compressor",
+  "stats": {
+    "tokenCount": 8,
+    "rawBytes": 32,
+    "compressedBytes": 15,
+    "compressionRatioPct": 53.13
+  },
+  "encodedSampleLength": 15,
+  "timestamp": "2026-09-11T12:04:58.670Z"
+}

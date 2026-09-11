@@ -1,0 +1,25 @@
+{
+  "experiment": "bft_shard_viewsync_engine",
+  "status": "VERIFIED",
+  "testSuite": "test_bft_shard_viewsync_engine",
+  "viewSyncStatus": {
+    "shardId": "shard-alpha-01",
+    "currentView": 1,
+    "quorumThreshold": 3,
+    "totalViewsSynchronized": 1,
+    "lastSynchronizedAt": 1789128298684
+  },
+  "lastCertificate": {
+    "shardId": "shard-alpha-01",
+    "view": 1,
+    "voterCount": 3,
+    "voterIds": [
+      "val-0",
+      "val-1",
+      "val-2"
+    ],
+    "quorumCertificateHash": "3168debf789e6b1ef8e187295c676c29e5c6deac2b2a459c076c500c4fbcc2b3",
+    "finalizedAt": "2026-09-11T12:04:58.684Z"
+  },
+  "timestamp": "2026-09-11T12:04:58.684Z"
+}

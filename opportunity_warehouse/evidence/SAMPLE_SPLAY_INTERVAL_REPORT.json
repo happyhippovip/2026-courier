@@ -1,7 +1,7 @@
 {
   "experiment": "splay_interval_pruner",
   "phase": 397,
-  "timestamp": "2026-09-11T12:04:07.840Z",
+  "timestamp": "2026-09-11T12:04:59.781Z",
   "totalIntervals": 4,
   "currentRootPayload": "chunk_b",
   "rootAccessCount": 2,

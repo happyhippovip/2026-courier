@@ -1,0 +1,12 @@
+{
+  "certificationId": "STANDBY_CERTIFICATION_V305",
+  "phase": 699,
+  "subsystem": "bft_shard_viewsync_consensus_engine",
+  "timestamp": "2026-09-11T12:04:58.685Z",
+  "verifiedComponents": [
+    "bft_shard_viewsync_engine",
+    "SAMPLE_BFT_VIEWSYNC_REPORT.json"
+  ],
+  "integrityHash": "b3435582d985845a36b9dcd239665cf66371a0070482ea6b285c7f50b8916af9",
+  "status": "GREEN_ACTIVE"
+}

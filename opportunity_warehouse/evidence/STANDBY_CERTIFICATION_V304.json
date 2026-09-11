@@ -1,0 +1,12 @@
+{
+  "certificationId": "STANDBY_CERTIFICATION_V304",
+  "phase": 697,
+  "subsystem": "radix_vbyte_compressor",
+  "timestamp": "2026-09-11T12:04:58.685Z",
+  "verifiedComponents": [
+    "radix_vbyte_compressor",
+    "SAMPLE_RADIX_VBYTE_REPORT.json"
+  ],
+  "integrityHash": "b0ce7480f9619fa705d8facbd351454554d7189e3df4ec662c55b88e92c76dc3",
+  "status": "GREEN_ACTIVE"
+}

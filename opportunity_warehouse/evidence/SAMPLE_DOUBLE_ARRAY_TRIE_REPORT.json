@@ -1,6 +1,6 @@
 {
   "experiment": "double_array_trie_filter",
-  "timestamp": "2026-09-11T12:04:07.206Z",
+  "timestamp": "2026-09-11T12:04:59.267Z",
   "metrics": {
     "capacity": 1024,
     "occupiedSlots": 17,
