@@ -1,7 +1,7 @@
 {
   "experiment": "bullshark_dag_bft",
   "phase": 395,
-  "timestamp": "2026-09-11T12:01:13.293Z",
+  "timestamp": "2026-09-11T12:02:05.382Z",
   "totalNodes": 4,
   "faultTolerance": 1,
   "quorumThreshold": 3,

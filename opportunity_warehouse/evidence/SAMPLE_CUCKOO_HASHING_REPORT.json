@@ -1,7 +1,7 @@
 {
   "experiment": "cuckoo_hashing_evaluator",
   "phase": 437,
-  "timestamp": "2026-09-11T12:01:13.477Z",
+  "timestamp": "2026-09-11T12:02:05.596Z",
   "tableSize": 128,
   "activeItems": 3,
   "testedLookups": [

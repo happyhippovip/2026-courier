@@ -1,7 +1,7 @@
 {
   "experiment": "pgm_index_filter",
   "phase": 489,
-  "timestamp": "2026-09-11T12:01:13.808Z",
+  "timestamp": "2026-09-11T12:02:06.055Z",
   "stats": {
     "totalKeys": 120,
     "segmentCount": 2,

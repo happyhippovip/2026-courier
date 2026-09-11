@@ -1,7 +1,7 @@
 {
   "experiment": "tendermint_core_bft",
   "phase": 439,
-  "timestamp": "2026-09-11T12:01:14.119Z",
+  "timestamp": "2026-09-11T12:02:06.387Z",
   "totalValidators": 4,
   "quorum": 3,
   "committedBlocks": 1,
@@ -10,7 +10,7 @@
     "height": 1,
     "round": 0,
     "blockHash": "e4b51784e253cd718eec06601eedfb45ce0ac126e0a551e4ab918e6898e4669c",
-    "committedAt": "2026-09-11T12:01:14.119Z"
+    "committedAt": "2026-09-11T12:02:06.387Z"
   },
   "verdict": "PASS"
 }

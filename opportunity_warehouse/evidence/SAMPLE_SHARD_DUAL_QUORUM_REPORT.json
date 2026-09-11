@@ -1,19 +1,19 @@
 {
   "subsystem": "bft_shard_dual_quorum_engine",
-  "timestamp": "2026-09-11T12:01:13.181Z",
+  "timestamp": "2026-09-11T12:02:05.257Z",
   "activeShards": 2,
   "totalProposed": 1,
   "totalCommitted": 1,
   "history": [
     {
-      "commitId": "da1f3607fe718b853a9f5044d6700853b24ad37a49263fd7c0afd64a4b662812",
+      "commitId": "f169ee3751cea7905f2a6d84e7c712668024c7bbf5c5816303cabefac63fe8d2",
       "txId": "tx_cross_001",
       "fromShard": "shard_alpha",
       "toShard": "shard_beta",
       "amount": 1000,
       "originRatio": 1,
       "destRatio": 1,
-      "finalizedAt": "2026-09-11T12:01:13.181Z"
+      "finalizedAt": "2026-09-11T12:02:05.257Z"
     }
   ]
 }

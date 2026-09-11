@@ -1,7 +1,7 @@
 {
   "experiment": "radix_spline_filter",
   "phase": 485,
-  "timestamp": "2026-09-11T12:01:13.892Z",
+  "timestamp": "2026-09-11T12:02:06.133Z",
   "stats": {
     "totalKeys": 100,
     "splinePointsCount": 2,

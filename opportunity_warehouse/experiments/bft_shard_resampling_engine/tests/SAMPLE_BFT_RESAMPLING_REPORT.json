@@ -1,0 +1,15 @@
+{
+  "test": "BFT_SHARD_RESAMPLING_ENGINE",
+  "passed": true,
+  "epoch1Committee": [
+    "val-F",
+    "val-C",
+    "val-A"
+  ],
+  "epoch2Committee": [
+    "val-B",
+    "val-E",
+    "val-F"
+  ],
+  "timestamp": "2026-09-11T12:02:05.287Z"
+}

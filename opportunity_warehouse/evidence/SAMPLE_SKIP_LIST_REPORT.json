@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-09-11T12:01:14.035Z",
+  "timestamp": "2026-09-11T12:02:06.292Z",
   "phase": 357,
   "component": "skip_list_ranker",
   "maxLevel": 4,
-  "currentLevel": 1,
+  "currentLevel": 4,
   "elementCount": 4,
   "probabilisticSearchVerified": true,
   "verification": "100% PASS"

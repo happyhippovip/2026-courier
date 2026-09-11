@@ -1,7 +1,7 @@
 {
   "experiment": "wavelet_matrix_topk",
   "phase": 473,
-  "timestamp": "2026-09-11T12:01:14.209Z",
+  "timestamp": "2026-09-11T12:02:06.488Z",
   "sequenceLength": 20,
   "alphabetMax": 127,
   "fullRangeTop3": [
