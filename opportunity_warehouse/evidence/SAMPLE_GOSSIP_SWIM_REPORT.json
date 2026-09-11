@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-09-11T12:04:59.359Z",
+  "timestamp": "2026-09-11T12:06:01.003Z",
   "phase": 315,
   "component": "gossip_swim_membership",
   "clusterSize": 3,

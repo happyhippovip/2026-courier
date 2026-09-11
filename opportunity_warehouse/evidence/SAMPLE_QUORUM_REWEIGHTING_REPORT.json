@@ -1,6 +1,6 @@
 {
   "experiment": "bft_quorum_reweighting_engine",
-  "timestamp": "2026-09-11T12:04:58.914Z",
+  "timestamp": "2026-09-11T12:06:00.519Z",
   "finalEpoch": 1,
   "currentWeights": {
     "node_0": 50,

@@ -1,0 +1,13 @@
+{
+  "experiment": "radix_group_varint_compressor",
+  "status": "VERIFIED",
+  "testSuite": "test_radix_group_varint_compressor",
+  "stats": {
+    "tokenCount": 9,
+    "rawBytes": 36,
+    "compressedBytes": 24,
+    "compressionRatioPct": 33.33
+  },
+  "encodedSampleLength": 24,
+  "timestamp": "2026-09-11T12:06:00.274Z"
+}

@@ -1,0 +1,45 @@
+{
+  "experiment": "bft_shard_adaptive_pacemaker_engine",
+  "status": "VERIFIED",
+  "testSuite": "test_bft_shard_adaptive_pacemaker_engine",
+  "pacemakerStatus": {
+    "currentRound": 4,
+    "currentTimeoutMs": 713,
+    "estimatedRoundLatency": 356,
+    "consecutiveTimeouts": 0,
+    "totalEvents": 4
+  },
+  "eventHistory": [
+    {
+      "round": 1,
+      "event": "ROUND_COMMIT",
+      "latencyMs": 200,
+      "estimatedLatency": 425,
+      "nextTimeoutMs": 850,
+      "timestamp": "2026-09-11T12:06:00.286Z"
+    },
+    {
+      "round": 2,
+      "event": "ROUND_TIMEOUT",
+      "consecutiveTimeouts": 1,
+      "nextTimeoutMs": 1275,
+      "timestamp": "2026-09-11T12:06:00.286Z"
+    },
+    {
+      "round": 3,
+      "event": "ROUND_TIMEOUT",
+      "consecutiveTimeouts": 2,
+      "nextTimeoutMs": 1913,
+      "timestamp": "2026-09-11T12:06:00.286Z"
+    },
+    {
+      "round": 4,
+      "event": "ROUND_COMMIT",
+      "latencyMs": 150,
+      "estimatedLatency": 356,
+      "nextTimeoutMs": 713,
+      "timestamp": "2026-09-11T12:06:00.286Z"
+    }
+  ],
+  "timestamp": "2026-09-11T12:06:00.286Z"
+}

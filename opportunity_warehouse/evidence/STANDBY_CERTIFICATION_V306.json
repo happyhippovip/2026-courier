@@ -1,0 +1,12 @@
+{
+  "certificationId": "STANDBY_CERTIFICATION_V306",
+  "phase": 701,
+  "subsystem": "radix_group_varint_compressor",
+  "timestamp": "2026-09-11T12:06:00.287Z",
+  "verifiedComponents": [
+    "radix_group_varint_compressor",
+    "SAMPLE_RADIX_GROUP_VARINT_REPORT.json"
+  ],
+  "integrityHash": "a5ad5391ede5d45e24cfee32e211fea5c0759e050c902df0100c8b61e5566c53",
+  "status": "GREEN_ACTIVE"
+}
