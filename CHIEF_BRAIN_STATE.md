@@ -1,6 +1,6 @@
 # 🧠 KÜNSTLICHES GEHIRN (CHIEF & WORKER SYNC)
 
-**Letztes Update:** 2026-09-10 09:17 CEST
+**Letztes Update:** 2026-09-11 21:04 CEST
 **Status:** COPY-PASTE EXIT / COURIER 4 FORWARD-ONLY PRIORITY
 
 ## 🎯 CANONICAL NORTH STAR
@@ -110,12 +110,21 @@ It also preserves the future economic target that Courier/agents should reason t
 
 This item is **DEFERRED until kernel freeze / explicit Founder selection**. It must NOT interrupt the current Copy-Paste Exit path.
 
+## 🛡️ RUGCHECK / PROTECTION REFERENCE
+
+Future Rugcheck/protection agents should read:
+
+`docs/RUGCHECK_PROTECTION_KNOWLEDGE_2026-09-11.md`
+
+It contains only compact durable context: evidence hierarchy, verified Musk/Trump network anchors, a Musk/Milei/crypto anti-overreach guard, timestamped oil anomaly baselines, and a minimal Rugcheck checklist. It is **reference-only** and does not authorize real trades, spend, wallets, publication, accusations, or external actions.
+
 ## 📚 CANONICAL DETAIL DOCUMENTS
 
 1. `docs/COURIER_4_FORWARD_ONLY_OPERATING_CONTRACT.md` — highest current operating norm.
 2. `docs/COURIER_PROGRESS_BEACON_CONTRACT.md` — permanent founder visibility/progress warning contract; implementation later.
 3. `docs/DEFERRED_PRODUCT_PLATFORM_AND_REVENUE_PLAYBOOK_2026-09-10.md` — deferred future platform/revenue hypothesis and economic reasoning contract.
-4. `docs/COURIER_COPY_PASTE_EXIT_PLAN.md` — historical detail basis and earlier fast-autonomy planning.
+4. `docs/RUGCHECK_PROTECTION_KNOWLEDGE_2026-09-11.md` — compact reference for future scam/manipulation protection analysis; facts/inference separation required.
+5. `docs/COURIER_COPY_PASTE_EXIT_PLAN.md` — historical detail basis and earlier fast-autonomy planning.
 
 ## 🧊 FREEZE RULE
 
