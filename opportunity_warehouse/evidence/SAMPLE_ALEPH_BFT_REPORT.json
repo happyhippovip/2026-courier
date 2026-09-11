@@ -1,7 +1,7 @@
 {
   "experiment": "aleph_bft_consensus",
   "phase": 407,
-  "timestamp": "2026-09-11T12:02:05.100Z",
+  "timestamp": "2026-09-11T12:02:50.960Z",
   "totalNodes": 4,
   "quorum": 3,
   "decidedLeader": {

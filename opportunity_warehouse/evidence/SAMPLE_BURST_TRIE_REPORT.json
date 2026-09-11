@@ -1,6 +1,6 @@
 {
   "experiment": "burst_trie_filter",
-  "timestamp": "2026-09-11T12:02:05.394Z",
+  "timestamp": "2026-09-11T12:02:51.263Z",
   "metrics": {
     "totalEntries": 4,
     "burstCount": 1,

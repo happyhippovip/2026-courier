@@ -1,7 +1,7 @@
 {
   "experiment": "mir_bft_consensus",
   "phase": 431,
-  "timestamp": "2026-09-11T12:02:05.988Z",
+  "timestamp": "2026-09-11T12:02:51.724Z",
   "totalLeaders": 4,
   "buckets": 4,
   "quorum": 3,

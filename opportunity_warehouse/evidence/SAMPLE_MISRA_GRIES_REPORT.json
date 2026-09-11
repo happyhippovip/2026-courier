@@ -1,7 +1,7 @@
 {
   "experiment": "misra_gries_heavy_hitters",
   "phase": 405,
-  "timestamp": "2026-09-11T12:02:05.993Z",
+  "timestamp": "2026-09-11T12:02:51.731Z",
   "k": 5,
   "capacity": 4,
   "totalProcessedTokens": 1000,

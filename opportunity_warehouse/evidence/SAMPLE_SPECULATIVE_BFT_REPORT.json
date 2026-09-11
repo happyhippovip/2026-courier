@@ -1,7 +1,7 @@
 {
   "experiment": "speculative_bft_engine",
   "phase": 483,
-  "timestamp": "2026-09-11T12:02:06.314Z",
+  "timestamp": "2026-09-11T12:02:52.063Z",
   "replicas": 4,
   "fastPathQuorum": 4,
   "fallbackQuorum": 3,
