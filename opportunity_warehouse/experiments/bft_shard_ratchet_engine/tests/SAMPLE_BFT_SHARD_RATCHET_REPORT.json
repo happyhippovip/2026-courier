@@ -1,0 +1,7 @@
+{
+  "test": "BFT_SHARD_RATCHET_ENGINE",
+  "passed": true,
+  "highestEpoch": 2,
+  "historyLength": 2,
+  "timestamp": "2026-09-11T12:00:23.288Z"
+}

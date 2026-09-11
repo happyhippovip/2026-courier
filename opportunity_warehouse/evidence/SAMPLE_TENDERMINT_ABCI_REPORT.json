@@ -1,7 +1,7 @@
 {
   "experiment": "tendermint_abci_engine",
   "phase": 447,
-  "timestamp": "2026-09-11T11:53:53.875Z",
+  "timestamp": "2026-09-11T12:00:24.244Z",
   "finalHeight": 1,
   "latestAppHash": "5f96fdb128ad03f7c6653cdb8238b0981df0c0fca780eacc44a7f163114bc6e6",
   "settledMerchantBalanceEur": 5,

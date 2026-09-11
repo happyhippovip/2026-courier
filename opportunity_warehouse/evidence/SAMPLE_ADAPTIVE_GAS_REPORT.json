@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-09-11T11:53:52.855Z",
+  "timestamp": "2026-09-11T12:00:23.186Z",
   "phase": 587,
   "stats": {
     "currentBaseFee": 10,
@@ -13,14 +13,14 @@
       "gasUsed": 1800,
       "oldBaseFee": 10,
       "newBaseFee": 11,
-      "timestamp": 1789127632855
+      "timestamp": 1789128023186
     },
     {
       "height": 2,
       "gasUsed": 0,
       "oldBaseFee": 11,
       "newBaseFee": 10,
-      "timestamp": 1789127632855
+      "timestamp": 1789128023186
     }
   ],
   "verdict": "BFT_ADAPTIVE_GAS_PRICING_ENGINE_VERIFIED_100_PERCENT"

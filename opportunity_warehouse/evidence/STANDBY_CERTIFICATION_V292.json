@@ -1,0 +1,12 @@
+{
+  "certificationId": "STANDBY_CERTIFICATION_V292",
+  "phase": 673,
+  "subsystem": "radix_static_huffman_saliency_pruner",
+  "timestamp": "2026-09-11T12:00:22.992Z",
+  "verifiedComponents": [
+    "radix_static_huffman_pruner",
+    "SAMPLE_RADIX_HUFFMAN_PRUNER_REPORT.json"
+  ],
+  "integrityHash": "c271d8da4706c2abbe4aab7abe564b01de03a9767c78dcbfcb2ff13017bfecfd",
+  "status": "GREEN_ACTIVE"
+}

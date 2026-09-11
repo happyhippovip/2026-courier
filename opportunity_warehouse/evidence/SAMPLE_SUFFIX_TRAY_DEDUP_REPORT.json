@@ -1,6 +1,6 @@
 {
   "experiment": "suffix_tray_dedup_filter",
-  "timestamp": "2026-09-11T11:53:53.850Z",
+  "timestamp": "2026-09-11T12:00:24.215Z",
   "metrics": {
     "trayCount": 8,
     "totalEntries": 5,

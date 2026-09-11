@@ -1,0 +1,7 @@
+{
+  "test": "RADIX_STATIC_HUFFMAN_PRUNER",
+  "passed": true,
+  "tokenCount": 10,
+  "retainedCount": 5,
+  "timestamp": "2026-09-11T12:00:24.024Z"
+}
