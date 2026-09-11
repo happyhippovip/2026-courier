@@ -1,0 +1,35 @@
+{
+  "subsystem": "bft_shard_snapshot_anchor_engine",
+  "timestamp": "2026-09-11T11:46:55.581Z",
+  "totalValidators": 4,
+  "totalWeight": 100,
+  "lastCertifiedEpoch": 1,
+  "certifiedAnchorCount": 1,
+  "anchors": [
+    {
+      "epoch": 1,
+      "anchorHash": "46c92121bb47b56d37d17a5959edafcc58e452c3c289acbe67a1802325ee53b3",
+      "shardRoots": {
+        "shard_0": "721b9789a773f32bbca0cb4a64e67f855045afce5d506f4058f66f2e1d86f8c1",
+        "shard_1": "ef3554b4e6bca51051444928ac025a0ddeb65b87bb37c3fda889beb760389dbe"
+      },
+      "accumulatedWeight": 90,
+      "quorumRatio": 0.9,
+      "signatures": [
+        {
+          "validatorId": "node_0",
+          "sig": "sig_0"
+        },
+        {
+          "validatorId": "node_1",
+          "sig": "sig_1"
+        },
+        {
+          "validatorId": "node_2",
+          "sig": "sig_2"
+        }
+      ],
+      "certifiedAt": "2026-09-11T11:46:55.581Z"
+    }
+  ]
+}
