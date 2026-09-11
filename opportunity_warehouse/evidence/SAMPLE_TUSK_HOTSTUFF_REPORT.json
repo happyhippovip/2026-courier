@@ -1,0 +1,11 @@
+{
+  "experiment": "tusk_hotstuff_engine",
+  "phase": 455,
+  "timestamp": "2026-09-11T11:53:53.939Z",
+  "totalNodes": 4,
+  "quorum": 3,
+  "dagCoasPublished": 2,
+  "committedCoasCount": 1,
+  "headView": 3,
+  "verdict": "PASS"
+}

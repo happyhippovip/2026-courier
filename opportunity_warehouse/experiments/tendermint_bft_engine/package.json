@@ -1,0 +1,10 @@
+{
+  "name": "tendermint-bft-engine",
+  "version": "1.0.0",
+  "description": "Multi-Agent Tendermint-Style BFT Consensus Engine",
+  "main": "lib/tendermint_bft_engine.js",
+  "scripts": {
+    "test": "node test_tendermint_bft_engine.js"
+  },
+  "private": true
+}

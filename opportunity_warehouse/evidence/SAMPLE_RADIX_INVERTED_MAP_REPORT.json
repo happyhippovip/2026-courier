@@ -1,0 +1,29 @@
+{
+  "experiment": "radix_tree_inverted_map_filter",
+  "timestamp": "2026-09-11T11:53:53.659Z",
+  "testQueries": [
+    {
+      "word": "agent",
+      "postings": [
+        {
+          "docId": "doc_1",
+          "freq": 1
+        },
+        {
+          "docId": "doc_2",
+          "freq": 1
+        }
+      ]
+    },
+    {
+      "andQuery": [
+        "agent",
+        "loop"
+      ],
+      "result": [
+        "doc_1"
+      ]
+    }
+  ],
+  "status": "VERIFIED"
+}

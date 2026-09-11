@@ -1,0 +1,19 @@
+{
+  "version": "1.0.0",
+  "project_type": "NODE_TYPESCRIPT",
+  "profile": "BALANCED",
+  "settings": {
+    "prune_conversational_preamble": true,
+    "deduplicate_identical_rules": true,
+    "extract_code_blocks_to_refs": true,
+    "strip_redundant_comments": false,
+    "enforce_delimiter_balance": true
+  },
+  "targets": [
+    ".cursorrules",
+    "AGENTS.md",
+    "CLAUDE.md"
+  ],
+  "backup_directory": "./.trimmer_backups",
+  "configured_at": "2026-09-11T09:00:03.508Z"
+}

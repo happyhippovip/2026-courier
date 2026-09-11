@@ -1,0 +1,28 @@
+{
+  "experiment": "speculative_bft_engine",
+  "phase": 483,
+  "timestamp": "2026-09-11T11:53:53.822Z",
+  "replicas": 4,
+  "fastPathQuorum": 4,
+  "fallbackQuorum": 3,
+  "fastPathCommitted": {
+    "path": "FAST_PATH_UNANIMOUS",
+    "latencyRTT": 1,
+    "seq": 1,
+    "key": "settlement_eur5",
+    "value": 5,
+    "matchingResponses": 4,
+    "certificate": "eafc54282c54a2f277dcd405f765971deb32fecddde51afaa964fc14f7b82124"
+  },
+  "fallbackCommitted": {
+    "path": "TWO_PHASE_FALLBACK",
+    "latencyRTT": 2,
+    "seq": 2,
+    "key": "reserve_token",
+    "value": 100,
+    "matchingResponses": 3,
+    "certificate": "0b1c6701f908975ce092449eb1908aca3d53ea90cec8a88dea2ec91b4c8e123c"
+  },
+  "totalCommitted": 2,
+  "verdict": "PASS"
+}

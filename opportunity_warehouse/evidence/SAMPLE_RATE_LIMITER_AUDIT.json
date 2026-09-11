@@ -1,0 +1,15 @@
+{
+  "activeTenants": 1,
+  "timestamp": "2026-09-11T11:53:53.163Z",
+  "tenants": [
+    {
+      "tenantId": "tenant_corp_a",
+      "capacity": 20000,
+      "fillLevel": 15000,
+      "leakRatePerSec": 2000,
+      "totalConsumed": 25000,
+      "totalRejected": 10000,
+      "rejectionRatePercent": 28.6
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "name": "circular-sieve-evictor",
+  "version": "1.0.0",
+  "description": "Adaptive Token Context Window Circular Sieve & Sliding Evictor",
+  "main": "lib/circular_sieve_evictor.js",
+  "scripts": {
+    "test": "node test_circular_sieve_evictor.js"
+  },
+  "private": true
+}

@@ -1,0 +1,17 @@
+{
+  "version": "STANDBY_CERTIFICATION_V240",
+  "timestamp": "2026-09-11T11:28:47.823Z",
+  "phase": 572,
+  "author": "Antigravity Autonomous Engine (Windows Lane)",
+  "scope": "WINDOWS_OFFLINE_VERIFIED",
+  "spendLimit": "EUR_0.00",
+  "componentsCertified": [
+    "range_tree_filter",
+    "ENTERPRISE_ZK_VIRTUAL_HUB_ROUTING.md"
+  ],
+  "propertiesVerified": {
+    "rangeTree2DIndexing": "PRIMARY_BST_SECONDARY_Y_ARRAYS_O_LOG_N_PLUS_K",
+    "virtualHubRouting": "BLINDED_MULTI_HOP_ZERO_COLLATERAL_LOCK_ZERO_SPEND"
+  },
+  "verdict": "CERTIFIED_FAIL_CLOSED_GREEN"
+}

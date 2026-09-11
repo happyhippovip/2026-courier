@@ -1,0 +1,34 @@
+{
+  "experiment": "suffix_tray_dedup_filter",
+  "timestamp": "2026-09-11T11:53:53.850Z",
+  "metrics": {
+    "trayCount": 8,
+    "totalEntries": 5,
+    "totalTokensProcessed": 15,
+    "duplicatesDetected": 4
+  },
+  "testResults": [
+    {
+      "chunkId": "chunk_1",
+      "tokenCount": 5,
+      "duplicateHits": 0,
+      "duplicateRatio": 0,
+      "isDuplicateCandidate": false
+    },
+    {
+      "chunkId": "chunk_2",
+      "tokenCount": 5,
+      "duplicateHits": 3,
+      "duplicateRatio": 1,
+      "isDuplicateCandidate": true
+    },
+    {
+      "chunkId": "chunk_3",
+      "tokenCount": 5,
+      "duplicateHits": 1,
+      "duplicateRatio": 0.3333,
+      "isDuplicateCandidate": false
+    }
+  ],
+  "status": "VERIFIED"
+}

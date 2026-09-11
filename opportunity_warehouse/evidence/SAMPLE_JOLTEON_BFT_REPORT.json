@@ -1,0 +1,20 @@
+{
+  "experiment": "jolteon_bft_consensus",
+  "phase": 423,
+  "timestamp": "2026-09-11T11:53:53.406Z",
+  "totalNodes": 4,
+  "quorum": 3,
+  "latencyRoundTripsToCommit": 2,
+  "totalCommittedBlocks": 2,
+  "committedBlocks": [
+    {
+      "view": 1,
+      "action": "INITIALIZE_LEDGER_EPOCH"
+    },
+    {
+      "view": 2,
+      "action": "SETTLE_CUSTOMER_ORDER_EUR5"
+    }
+  ],
+  "verdict": "PASS"
+}

@@ -1,0 +1,21 @@
+{
+  "elevationEvents": [
+    {
+      "holderId": "agent_low",
+      "elevatedFrom": 1,
+      "elevatedTo": 10,
+      "blockedAgentId": "agent_high",
+      "lockId": "context_buffer_lock"
+    }
+  ],
+  "finalState": {
+    "agentLow": {
+      "base": 1,
+      "effective": 1
+    },
+    "agentHigh": {
+      "base": 10,
+      "effective": 10
+    }
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "model": "Claude 3.5 Sonnet",
+  "maxTokens": 200000,
+  "buckets": [
+    {
+      "depthPercentage": 0,
+      "relativePosition": "START",
+      "estimatedAttentionRetention": 1,
+      "zone": "OPTIMAL_RECALL"
+    },
+    {
+      "depthPercentage": 10,
+      "relativePosition": "DEPTH_10%",
+      "estimatedAttentionRetention": 0.985,
+      "zone": "OPTIMAL_RECALL"
+    },
+    {
+      "depthPercentage": 20,
+      "relativePosition": "DEPTH_20%",
+      "estimatedAttentionRetention": 0.946,
+      "zone": "OPTIMAL_RECALL"
+    },
+    {
+      "depthPercentage": 30,
+      "relativePosition": "DEPTH_30%",
+      "estimatedAttentionRetention": 0.888,
+      "zone": "OPTIMAL_RECALL"
+    },
+    {
+      "depthPercentage": 40,
+      "relativePosition": "DEPTH_40%",
+      "estimatedAttentionRetention": 0.813,
+      "zone": "MODERATE_ATTENTION_FADING"
+    },
+    {
+      "depthPercentage": 50,
+      "relativePosition": "DEPTH_50%",
+      "estimatedAttentionRetention": 0.72,
+      "zone": "CRITICAL_ATTENTION_DEGRADATION"
+    },
+    {
+      "depthPercentage": 60,
+      "relativePosition": "DEPTH_60%",
+      "estimatedAttentionRetention": 0.813,
+      "zone": "MODERATE_ATTENTION_FADING"
+    },
+    {
+      "depthPercentage": 70,
+      "relativePosition": "DEPTH_70%",
+      "estimatedAttentionRetention": 0.888,
+      "zone": "OPTIMAL_RECALL"
+    },
+    {
+      "depthPercentage": 80,
+      "relativePosition": "DEPTH_80%",
+      "estimatedAttentionRetention": 0.946,
+      "zone": "OPTIMAL_RECALL"
+    },
+    {
+      "depthPercentage": 90,
+      "relativePosition": "DEPTH_90%",
+      "estimatedAttentionRetention": 0.985,
+      "zone": "OPTIMAL_RECALL"
+    },
+    {
+      "depthPercentage": 100,
+      "relativePosition": "END",
+      "estimatedAttentionRetention": 1,
+      "zone": "OPTIMAL_RECALL"
+    }
+  ],
+  "timestamp": "2026-09-11T09:26:54.365Z"
+}

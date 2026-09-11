@@ -1,0 +1,14 @@
+{
+  "experiment": "pipelined_hotstuff_engine",
+  "phase": 495,
+  "timestamp": "2026-09-11T11:53:53.587Z",
+  "nodes": 4,
+  "quorum": 3,
+  "pipelineDepth": 3,
+  "totalCommitted": 2,
+  "committedPayloads": [
+    "tx_b1_settlement",
+    "tx_b2_state_sync"
+  ],
+  "verdict": "PASS"
+}

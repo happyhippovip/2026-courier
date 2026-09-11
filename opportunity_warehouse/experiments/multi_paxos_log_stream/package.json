@@ -1,0 +1,10 @@
+{
+  "name": "multi-paxos-log-stream",
+  "version": "1.0.0",
+  "description": "Multi-Agent Distributed Multi-Paxos Consensus Log Stream Engine",
+  "main": "lib/multi_paxos_log_stream.js",
+  "scripts": {
+    "test": "node test_multi_paxos_log_stream.js"
+  },
+  "private": true
+}

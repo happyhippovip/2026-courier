@@ -1,0 +1,37 @@
+{
+  "experiment": "bullshark_dag_bft",
+  "phase": 395,
+  "timestamp": "2026-09-11T11:53:53.045Z",
+  "totalNodes": 4,
+  "faultTolerance": 1,
+  "quorumThreshold": 3,
+  "committedLeader": {
+    "round": 1,
+    "nodeId": "node_1",
+    "hash": "113c2f3da8daa93f3a3eb19ef0ce0b74972d7db3b9d8f63a49cf13da909865cb"
+  },
+  "totalOrderedVertices": 4,
+  "orderedSequence": [
+    {
+      "round": 0,
+      "nodeId": "node_0",
+      "tx": "genesis_tx_0"
+    },
+    {
+      "round": 0,
+      "nodeId": "node_2",
+      "tx": "genesis_tx_2"
+    },
+    {
+      "round": 0,
+      "nodeId": "node_1",
+      "tx": "genesis_tx_1"
+    },
+    {
+      "round": 1,
+      "nodeId": "node_1",
+      "tx": "round1_tx_1"
+    }
+  ],
+  "verdict": "PASS"
+}

@@ -1,0 +1,20 @@
+{
+  "version": "STANDBY_CERTIFICATION_V239",
+  "timestamp": "2026-09-11T11:28:23.926Z",
+  "phase": 568,
+  "author": "Antigravity Autonomous Engine (Windows Lane)",
+  "scope": "WINDOWS_OFFLINE_VERIFIED",
+  "spendLimit": "EUR_0.00",
+  "componentsCertified": [
+    "bft_sharded_commit_engine",
+    "STANDBY_CERTIFICATION_V238"
+  ],
+  "propertiesVerified": {
+    "crossShardAtomicity": "ALL_OR_NOTHING_2F_PLUS_1_SHARD_PREPARE_CONFIRMED",
+    "abortTriggering": "SINGLE_SHARD_ABORT_SAFETY_VERIFIED",
+    "decentralizedCommit": "COORDINATOR_LESS_QUORUM_DECISION_GREEN"
+  },
+  "milestone": "QUINCENTENNIAL_EXPANSION_283_TEST_SUITES",
+  "totalExperimentsTracked": 185,
+  "verdict": "CERTIFIED_FAIL_CLOSED_GREEN"
+}

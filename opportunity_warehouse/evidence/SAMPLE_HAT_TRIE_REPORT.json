@@ -1,0 +1,16 @@
+{
+  "experiment": "hat_trie_filter",
+  "timestamp": "2026-09-11T11:53:53.366Z",
+  "metrics": {
+    "totalEntries": 4,
+    "burstCount": 1,
+    "bucketCapacity": 3
+  },
+  "testKeys": [
+    "token_alpha",
+    "token_beta",
+    "token_gamma",
+    "token_delta"
+  ],
+  "status": "VERIFIED"
+}

@@ -1,0 +1,35 @@
+{
+  "audited_at_utc": "2026-09-11T08:45:31.633Z",
+  "host": "WINDOWS_HOST",
+  "zero_spend_verified": true,
+  "mac_scope_unmodified": true,
+  "assets": {
+    "frozen_product_package_zip": {
+      "path": "money_factory/first_eur5_fast_path/LAUNCH_PACKAGE/PRODUCT_PACKAGE.zip",
+      "sha256": "f54d489390a874bd093eee2cd2268f2fc20768cf386ab90943ad5f33d57b7a2d",
+      "verified": true
+    },
+    "agent_locks_prototype": {
+      "path": "opportunity_warehouse/experiments/agent_locks_prototype/lib/agent_locks.js",
+      "sha256": "61bcc94b6bc30e0eb684a506882bdf15ccad9ebe0ed3b03bfcce689a9909f01c",
+      "verified": true
+    },
+    "pgvector_local_kit_prototype": {
+      "path": "opportunity_warehouse/experiments/pgvector_local_kit_prototype/lib/schema_extractor.js",
+      "sha256": "6a3b3cf1da5cde8f9f68682565608db1274f07c4d5148587097f152de4167ac5",
+      "verified": true
+    },
+    "godot_state_machine_prototype": {
+      "path": "opportunity_warehouse/experiments/godot_state_machine_prototype/lib/state_machine_generator.js",
+      "sha256": "ffeea244ef4f1aad31811a4933e79f7636d82364e9db1b50a60b24cdff631f6a",
+      "verified": true
+    },
+    "revenue_observer_daemon": {
+      "path": "opportunity_warehouse/experiments/revenue_observer/lib/revenue_observer.js",
+      "sha256": "7e68a1dcb44596f121f174424cd0a23464a9c41f440ffcce076f9aa87244b80b",
+      "verified": true
+    }
+  },
+  "tests_passing_total": 124,
+  "status": "ALL_PACKAGES_VERIFIED_IMMUTABLE"
+}

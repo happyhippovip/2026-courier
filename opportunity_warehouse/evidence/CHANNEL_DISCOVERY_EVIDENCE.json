@@ -1,0 +1,76 @@
+{
+  "mission_id": "WINDOWS_COMMERCIAL_INTELLIGENCE_SIDE_MISSION_V1",
+  "timestamp_utc": "2026-09-11T08:21:47.243Z",
+  "channels_evaluated": [
+    {
+      "channel": "Hacker News (Show HN)",
+      "target_audience": "Senior developers, AI agent builders, startup engineers",
+      "rules": "Show HNs are explicitly permitted to share projects and commercial products if work is substantial and technically detailed.",
+      "promotional_content_allowed": true,
+      "moderation_risk": "LOW to MODERATE (Must focus on technical implementation and benchmarks, not marketing hype)",
+      "expected_friction": "LOW (Direct submission)",
+      "trust_level": "VERY HIGH",
+      "likely_buyer_intent": "HIGH (Developers readily pay for good tools)",
+      "zero_spend": true,
+      "recommended_strategy": "Technical post: \"Show HN: We cut 60% token bloat in agent coding logs with a zero-dependency CLI\". Provide the technical breakdown in text, link to Gumroad for convenience bundle."
+    },
+    {
+      "channel": "X / Twitter (Tech / AI Agent Community)",
+      "target_audience": "Developers building with Cursor, Claude Code, Cline, Antigravity",
+      "rules": "Zero promotional restrictions.",
+      "promotional_content_allowed": true,
+      "moderation_risk": "ZERO",
+      "expected_friction": "ZERO",
+      "trust_level": "MODERATE to HIGH (Depends on clean demo / visual token diff)",
+      "likely_buyer_intent": "VERY HIGH",
+      "zero_spend": true,
+      "recommended_strategy": "Direct value tweet: Visual comparison showing a 120k token transcript reduced to 48k tokens with 100% semantic keys preserved. Tag #Cursor #ClaudeAI."
+    },
+    {
+      "channel": "Reddit: r/LocalLLaMA",
+      "target_audience": "Open source LLM hackers, local model power users",
+      "rules": "Strict Rule 4 (1/10th self-promotion rule, mandatory disclosure, anti-spam automod). Direct paid links get banned.",
+      "promotional_content_allowed": false,
+      "moderation_risk": "CRITICAL (Posting raw Gumroad link will trigger immediate Automod removal and possible ban)",
+      "expected_friction": "HIGH",
+      "trust_level": "Skeptical of paid tools",
+      "likely_buyer_intent": "LOW for paid binaries",
+      "zero_spend": true,
+      "recommended_strategy": "DO NOT POST DIRECT GUMROAD LINK. Post educational teardown of where token bloat comes from. Provide link in comments only if requested."
+    },
+    {
+      "channel": "Reddit: r/Cursor",
+      "target_audience": "Cursor IDE power users",
+      "rules": "Rule 6 (10% self-promo limit) AND Rule 7 (\"No Paid Content\" strictly enforced).",
+      "promotional_content_allowed": false,
+      "moderation_risk": "CRITICAL (Rule 7 explicitly bans commercial links)",
+      "expected_friction": "MAXIMUM",
+      "trust_level": "Moderate",
+      "likely_buyer_intent": "High if free, but direct paid link will be deleted in minutes",
+      "zero_spend": true,
+      "recommended_strategy": "AVOID direct commercial posting. Share .cursorrules context hygiene tips instead."
+    },
+    {
+      "channel": "Developer Discord Communities (e.g. LocalLLaMA, Cursor Community, Cline)",
+      "target_audience": "Active agent builders in #tools-showcase channels",
+      "rules": "Most Discords have dedicated #showcase or #tools channels permitting creator links.",
+      "promotional_content_allowed": true,
+      "moderation_risk": "LOW if posted strictly in designated showcase channels",
+      "expected_friction": "LOW",
+      "trust_level": "HIGH",
+      "likely_buyer_intent": "HIGH",
+      "zero_spend": true,
+      "recommended_strategy": "Post short demo clip and link in #showcase channels."
+    }
+  ],
+  "synthesis": {
+    "recommended_primary_channels": [
+      "X / Twitter (Zero friction, no anti-promo automod)",
+      "Hacker News (Show HN format with technical depth)"
+    ],
+    "prohibited_actions": [
+      "Direct Gumroad link spamming on r/Cursor (violates Rule 7)",
+      "Direct link spamming on r/LocalLLaMA (violates Rule 4)"
+    ]
+  }
+}

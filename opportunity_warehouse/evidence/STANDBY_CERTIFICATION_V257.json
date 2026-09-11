@@ -1,0 +1,12 @@
+{
+  "certificationId": "STANDBY_CERTIFICATION_V257",
+  "phase": 603,
+  "subsystem": "bft_snapshot_compression_consensus_engine",
+  "timestamp": "2026-09-11T11:36:09.152Z",
+  "verifiedComponents": [
+    "bft_snapshot_compression_engine",
+    "SAMPLE_SNAPSHOT_COMPRESSION_REPORT.json"
+  ],
+  "integrityHash": "c6ee2787a5d0aa44b14a14eaf0e208844b6c01ac6d71865891d727360a10ea6c",
+  "status": "GREEN_ACTIVE"
+}

@@ -1,0 +1,55 @@
+{
+  "timestamp": "2026-09-11T11:53:53.179Z",
+  "totalBudget": 8192,
+  "totalAllocated": 8192,
+  "allocations": {
+    "system_prompt": 1000,
+    "response_buffer": 2048,
+    "tool_schemas": 1200,
+    "rag_documents": 3444,
+    "history_turns": 500
+  },
+  "componentBreakdown": [
+    {
+      "id": "system_prompt",
+      "priority": 10,
+      "minTokens": 1000,
+      "requestedTokens": 1000,
+      "allocatedTokens": 1000,
+      "satisfiedPercent": 100
+    },
+    {
+      "id": "response_buffer",
+      "priority": 10,
+      "minTokens": 2048,
+      "requestedTokens": 2048,
+      "allocatedTokens": 2048,
+      "satisfiedPercent": 100
+    },
+    {
+      "id": "tool_schemas",
+      "priority": 8,
+      "minTokens": 500,
+      "requestedTokens": 1200,
+      "allocatedTokens": 1200,
+      "satisfiedPercent": 100
+    },
+    {
+      "id": "rag_documents",
+      "priority": 5,
+      "minTokens": 1000,
+      "requestedTokens": 4000,
+      "allocatedTokens": 3444,
+      "satisfiedPercent": 86.1
+    },
+    {
+      "id": "history_turns",
+      "priority": 4,
+      "minTokens": 500,
+      "requestedTokens": 3000,
+      "allocatedTokens": 500,
+      "satisfiedPercent": 16.7
+    }
+  ],
+  "overflowSafeVerified": true
+}

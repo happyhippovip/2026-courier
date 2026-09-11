@@ -1,0 +1,16 @@
+{
+  "timestamp": "2026-09-11T11:53:52.811Z",
+  "phase": 387,
+  "component": "algorand_vrf_engine",
+  "totalNodes": 10,
+  "totalStake": 100,
+  "round1Committee": [
+    "validator-0",
+    "validator-1",
+    "validator-4",
+    "validator-6",
+    "validator-9"
+  ],
+  "secretSortitionVerified": true,
+  "verification": "100% PASS"
+}

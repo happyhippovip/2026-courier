@@ -1,0 +1,10 @@
+{
+  "name": "scuttlebutt-gossip",
+  "version": "1.0.0",
+  "description": "Multi-Agent Distributed Scuttlebutt Gossip Protocol Engine",
+  "main": "lib/scuttlebutt_gossip.js",
+  "scripts": {
+    "test": "node test_scuttlebutt_gossip.js"
+  },
+  "private": true
+}

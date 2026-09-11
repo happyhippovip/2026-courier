@@ -1,0 +1,31 @@
+{
+  "timestamp": "2026-09-11T11:53:52.922Z",
+  "phase": 567,
+  "stats": {
+    "activeShards": [
+      "shard_A",
+      "shard_B",
+      "shard_C"
+    ],
+    "totalTransactions": 2,
+    "totalShardCerts": 4,
+    "finalDecisions": {
+      "tx_cross_01": "GLOBAL_COMMIT",
+      "tx_cross_02": "GLOBAL_ABORT"
+    }
+  },
+  "sampleCommit": {
+    "decision": "GLOBAL_COMMIT",
+    "txId": "tx_cross_01",
+    "participantShards": [
+      "shard_A",
+      "shard_B"
+    ]
+  },
+  "sampleAbort": {
+    "decision": "GLOBAL_ABORT",
+    "txId": "tx_cross_02",
+    "abortReason": "ABORT_IN_SHARD_shard_C"
+  },
+  "verdict": "BFT_SHARDED_COMMIT_ENGINE_VERIFIED_100_PERCENT"
+}

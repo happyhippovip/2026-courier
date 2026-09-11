@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-09-11T11:53:53.291Z",
+  "phase": 301,
+  "component": "ema_latency_estimator",
+  "observations": 22,
+  "finalMetrics": {
+    "currentEMA": 16.9324,
+    "stdDev": 30.5316,
+    "totalObservations": 22
+  },
+  "outlierDampingVerified": true,
+  "verification": "100% PASS"
+}

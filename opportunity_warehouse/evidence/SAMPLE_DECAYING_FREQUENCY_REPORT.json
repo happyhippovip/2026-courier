@@ -1,0 +1,20 @@
+{
+  "experiment": "decaying_frequency_estimator",
+  "phase": 457,
+  "timestamp": "2026-09-11T11:53:53.247Z",
+  "halfLife": 50,
+  "scoreAtBurst": 10.273227845950101,
+  "scoreAfterHalfLife": 5.136613922975051,
+  "decayRatio": 0.5,
+  "topRanked": [
+    {
+      "key": "token_recent_item",
+      "decayedScore": 5.797242409493313
+    },
+    {
+      "key": "token_ancient_burst",
+      "decayedScore": 3.161956767390224
+    }
+  ],
+  "verdict": "PASS"
+}

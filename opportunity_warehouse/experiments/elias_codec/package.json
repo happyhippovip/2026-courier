@@ -1,0 +1,10 @@
+{
+  "name": "elias-codec",
+  "version": "1.0.0",
+  "description": "Quantized Token Frequency Elias Gamma & Delta Codec",
+  "main": "lib/elias_codec.js",
+  "scripts": {
+    "test": "node test_elias_codec.js"
+  },
+  "private": true
+}

@@ -1,0 +1,114 @@
+{
+  "currency": "EUR",
+  "cachedTokens": 60000,
+  "freshInputPerTurn": 1000,
+  "outputPerTurn": 500,
+  "totalTurns": 10,
+  "breakEvenTurn": 2,
+  "totalUnoptimizedCost": 1.905,
+  "totalOptimizedCost": 0.492,
+  "totalNetSavings": 1.413,
+  "netSavingsPercent": 74.17,
+  "schedule": [
+    {
+      "turn": 1,
+      "turnCostUnoptimized": 0.1905,
+      "turnCostOptimized": 0.2355,
+      "turnSavings": -0.045,
+      "cumulativeUnoptimized": 0.1905,
+      "cumulativeOptimized": 0.2355,
+      "cumulativeSavings": -0.045,
+      "cumulativeSavingsPercent": -23.62
+    },
+    {
+      "turn": 2,
+      "turnCostUnoptimized": 0.1905,
+      "turnCostOptimized": 0.0285,
+      "turnSavings": 0.162,
+      "cumulativeUnoptimized": 0.381,
+      "cumulativeOptimized": 0.264,
+      "cumulativeSavings": 0.117,
+      "cumulativeSavingsPercent": 30.71
+    },
+    {
+      "turn": 3,
+      "turnCostUnoptimized": 0.1905,
+      "turnCostOptimized": 0.0285,
+      "turnSavings": 0.162,
+      "cumulativeUnoptimized": 0.5715,
+      "cumulativeOptimized": 0.2925,
+      "cumulativeSavings": 0.279,
+      "cumulativeSavingsPercent": 48.82
+    },
+    {
+      "turn": 4,
+      "turnCostUnoptimized": 0.1905,
+      "turnCostOptimized": 0.0285,
+      "turnSavings": 0.162,
+      "cumulativeUnoptimized": 0.762,
+      "cumulativeOptimized": 0.321,
+      "cumulativeSavings": 0.441,
+      "cumulativeSavingsPercent": 57.87
+    },
+    {
+      "turn": 5,
+      "turnCostUnoptimized": 0.1905,
+      "turnCostOptimized": 0.0285,
+      "turnSavings": 0.162,
+      "cumulativeUnoptimized": 0.9525,
+      "cumulativeOptimized": 0.3495,
+      "cumulativeSavings": 0.603,
+      "cumulativeSavingsPercent": 63.31
+    },
+    {
+      "turn": 6,
+      "turnCostUnoptimized": 0.1905,
+      "turnCostOptimized": 0.0285,
+      "turnSavings": 0.162,
+      "cumulativeUnoptimized": 1.143,
+      "cumulativeOptimized": 0.378,
+      "cumulativeSavings": 0.765,
+      "cumulativeSavingsPercent": 66.93
+    },
+    {
+      "turn": 7,
+      "turnCostUnoptimized": 0.1905,
+      "turnCostOptimized": 0.0285,
+      "turnSavings": 0.162,
+      "cumulativeUnoptimized": 1.3335,
+      "cumulativeOptimized": 0.4065,
+      "cumulativeSavings": 0.927,
+      "cumulativeSavingsPercent": 69.52
+    },
+    {
+      "turn": 8,
+      "turnCostUnoptimized": 0.1905,
+      "turnCostOptimized": 0.0285,
+      "turnSavings": 0.162,
+      "cumulativeUnoptimized": 1.524,
+      "cumulativeOptimized": 0.435,
+      "cumulativeSavings": 1.089,
+      "cumulativeSavingsPercent": 71.46
+    },
+    {
+      "turn": 9,
+      "turnCostUnoptimized": 0.1905,
+      "turnCostOptimized": 0.0285,
+      "turnSavings": 0.162,
+      "cumulativeUnoptimized": 1.7145,
+      "cumulativeOptimized": 0.4635,
+      "cumulativeSavings": 1.251,
+      "cumulativeSavingsPercent": 72.97
+    },
+    {
+      "turn": 10,
+      "turnCostUnoptimized": 0.1905,
+      "turnCostOptimized": 0.0285,
+      "turnSavings": 0.162,
+      "cumulativeUnoptimized": 1.905,
+      "cumulativeOptimized": 0.492,
+      "cumulativeSavings": 1.413,
+      "cumulativeSavingsPercent": 74.17
+    }
+  ]
+}

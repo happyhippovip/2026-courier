@@ -1,0 +1,10 @@
+{
+  "name": "fenwick-frequency-tree",
+  "version": "1.0.0",
+  "description": "Context Window Token Fenwick Tree (BIT) Frequency Accumulator",
+  "main": "lib/fenwick_frequency_tree.js",
+  "scripts": {
+    "test": "node test_fenwick_frequency_tree.js"
+  },
+  "private": true
+}

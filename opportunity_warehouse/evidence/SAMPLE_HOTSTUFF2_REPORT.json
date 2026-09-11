@@ -1,0 +1,20 @@
+{
+  "experiment": "hotstuff2_consensus_engine",
+  "phase": 459,
+  "timestamp": "2026-09-11T11:53:53.375Z",
+  "totalNodes": 4,
+  "quorum": 3,
+  "commitLatencyRoundTrips": 2,
+  "totalCommitted": 2,
+  "committedBlocks": [
+    {
+      "view": 1,
+      "tx": "accumulator_root_sync"
+    },
+    {
+      "view": 2,
+      "tx": "settle_commercial_revenue_eur5"
+    }
+  ],
+  "verdict": "PASS"
+}

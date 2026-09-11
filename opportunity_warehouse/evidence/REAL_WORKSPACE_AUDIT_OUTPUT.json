@@ -1,0 +1,121 @@
+{
+  "workspace_dir": "C:\\Users\\lol\\2026-workspace\\courier",
+  "scanned_at_utc": "2026-09-11T08:45:31.610Z",
+  "files_discovered_count": 2,
+  "total_context_tokens_per_turn": 658,
+  "total_wasted_tokens_per_turn": 664,
+  "optimization_potential_percent": 100.9,
+  "total_issues_detected": 8,
+  "summary": {
+    "files_scanned": 2,
+    "total_tokens_per_turn": 658,
+    "wasted_tokens_per_turn": 664,
+    "optimization_percent": 100.9,
+    "total_issues": 8,
+    "duplicate_rules": 4,
+    "code_blocks": 2,
+    "wasted_tokens": 664
+  },
+  "estimated_savings": {
+    "monthly_cost_usd": 1.59,
+    "annual_cost_usd": 19.08
+  },
+  "cost_breakdown": {
+    "claude-3-5-sonnet": {
+      "rate_per_million": 3,
+      "monthly_total_burn_usd": 1.58,
+      "monthly_wasted_burn_usd": 1.59,
+      "potential_monthly_savings_usd": 1.59
+    },
+    "gpt-4o": {
+      "rate_per_million": 2.5,
+      "monthly_total_burn_usd": 1.32,
+      "monthly_wasted_burn_usd": 1.33,
+      "potential_monthly_savings_usd": 1.33
+    },
+    "gemini-1-5-pro": {
+      "rate_per_million": 1.25,
+      "monthly_total_burn_usd": 0.66,
+      "monthly_wasted_burn_usd": 0.66,
+      "potential_monthly_savings_usd": 0.66
+    }
+  },
+  "files": [
+    {
+      "file": "money_factory/first_eur5_fast_path/DEMO/workspace/.cursorrules",
+      "full_path": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\first_eur5_fast_path\\DEMO\\workspace\\.cursorrules",
+      "bytes": 1210,
+      "line_count": 52,
+      "estimated_tokens": 280,
+      "issues": [
+        {
+          "type": "DUPLICATE_RULE",
+          "line": 8,
+          "severity": "HIGH",
+          "message": "Duplicate or highly redundant rule. Identical to instruction on line 4: \"- All external API calls must pass through the ServiceGatewa...\"",
+          "estimated_tokens_wasted": 19
+        },
+        {
+          "type": "DUPLICATE_RULE",
+          "line": 9,
+          "severity": "HIGH",
+          "message": "Duplicate or highly redundant rule. Identical to instruction on line 5: \"- Ensure strict TypeScript typing with zero any types....\"",
+          "estimated_tokens_wasted": 16
+        },
+        {
+          "type": "GIANT_EMBEDDED_CODE_BLOCK",
+          "line": 48,
+          "severity": "WARNING",
+          "message": "Embedded code block is 35 lines long. Large static code blocks should be referenced as external files rather than permanently injected into system prompts.",
+          "estimated_tokens_wasted": 280
+        }
+      ],
+      "rule_directives_count": 2
+    },
+    {
+      "file": "money_factory/first_eur5_fast_path/product/example/.cursorrules",
+      "full_path": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\first_eur5_fast_path\\product\\example\\.cursorrules",
+      "bytes": 1593,
+      "line_count": 54,
+      "estimated_tokens": 378,
+      "issues": [
+        {
+          "type": "DUPLICATE_RULE",
+          "line": 10,
+          "severity": "HIGH",
+          "message": "Duplicate or highly redundant rule. Identical to instruction on line 4: \"- Always write modular TypeScript code with clean architectu...\"",
+          "estimated_tokens_wasted": 16
+        },
+        {
+          "type": "DUPLICATE_RULE",
+          "line": 11,
+          "severity": "HIGH",
+          "message": "Duplicate or highly redundant rule. Identical to instruction on line 5: \"- Ensure all functions have clear JSDoc comments and return ...\"",
+          "estimated_tokens_wasted": 19
+        },
+        {
+          "type": "VERBOSE_BOILERPLATE",
+          "line": 14,
+          "severity": "LOW",
+          "message": "Generic role preamble adds tokens without steering agent capability: \"You are an AI language model acting as an expert senior engineer.\"",
+          "estimated_tokens_wasted": 20
+        },
+        {
+          "type": "VERBOSE_BOILERPLATE",
+          "line": 15,
+          "severity": "LOW",
+          "message": "Generic role preamble adds tokens without steering agent capability: \"As an expert senior engineer you should think step by step before answering.\"",
+          "estimated_tokens_wasted": 22
+        },
+        {
+          "type": "GIANT_EMBEDDED_CODE_BLOCK",
+          "line": 53,
+          "severity": "WARNING",
+          "message": "Embedded code block is 34 lines long. Large static code blocks should be referenced as external files rather than permanently injected into system prompts.",
+          "estimated_tokens_wasted": 272
+        }
+      ],
+      "rule_directives_count": 4
+    }
+  ]
+}

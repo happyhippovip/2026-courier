@@ -1,0 +1,19 @@
+{
+  "payload": {
+    "license_id": "LIC-ENT-20260911-PROD",
+    "customer": "Acme AI Engineering Inc",
+    "email": "procurement@acme.ai",
+    "tier": "ENTERPRISE_UNLIMITED",
+    "max_seats": 50,
+    "features": [
+      "context_trimmer",
+      "conflict_detector",
+      "secret_sanitizer",
+      "batch_optimizer"
+    ],
+    "expires_at": "2027-09-11T00:00:00.000Z"
+  },
+  "signature": "MEUCIFgstV+HPIbGc2oHA/IiNgqc239VwHDBsI0E8LSrMzJtAiEA4Rbdrs1pagTY6fCLCcf+S+CGSWNK/d47ZsPZU/iGsmk=",
+  "signed_at": "2026-09-11T08:54:27.732Z",
+  "public_verification_key": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEJCPr6fD3Kggu+FA24eYdVbhPDsZ2\nYLWA9LSKmMdCa+nVoAom4OOS4KDx1EXWhfv7/wecgDp+3IasV5+AjiVCRA==\n-----END PUBLIC KEY-----\n"
+}

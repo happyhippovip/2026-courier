@@ -1,0 +1,35 @@
+{
+  "timestamp": "2026-09-11T11:53:53.724Z",
+  "phase": 529,
+  "metrics": {
+    "elementCount": 10,
+    "powerOfTwoLevels": 4,
+    "tableMemoryBytes": 320,
+    "rawValuesBytes": 40,
+    "queryComplexity": "O(1)_CONSTANT_TIME_VERIFIED"
+  },
+  "sampleValues": [
+    42,
+    17,
+    88,
+    5,
+    91,
+    12,
+    33,
+    7,
+    60,
+    2
+  ],
+  "testSpan": {
+    "min": {
+      "index": 9,
+      "value": 2
+    },
+    "max": {
+      "index": 4,
+      "value": 91
+    },
+    "spread": 89
+  },
+  "verdict": "RMQ_SPARSE_TABLE_FILTER_VERIFIED_100_PERCENT"
+}

@@ -1,0 +1,10 @@
+{
+  "timestamp": "2026-09-11T11:53:53.453Z",
+  "phase": 313,
+  "component": "lz4_frame_codec",
+  "originalBytes": 1260,
+  "compressedBytes": 169,
+  "compressionRatio": 0.8658730158730159,
+  "losslessRoundtripVerified": true,
+  "verification": "100% PASS"
+}

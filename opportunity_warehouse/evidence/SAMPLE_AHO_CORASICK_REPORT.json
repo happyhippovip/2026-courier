@@ -1,0 +1,54 @@
+{
+  "patternsRegistered": 0,
+  "sampleMatches": [
+    {
+      "id": "INJECTION_PROMPT_OVERRIDE",
+      "pattern": "ignore previous instructions",
+      "severity": "CRITICAL",
+      "startIndex": 14,
+      "endIndex": 42
+    },
+    {
+      "id": "SYSTEM_PROMPT_REFERENCE",
+      "pattern": "system prompt",
+      "severity": "HIGH",
+      "startIndex": 54,
+      "endIndex": 67
+    },
+    {
+      "id": "CREDENTIAL_KEY",
+      "pattern": "api_key",
+      "severity": "CRITICAL",
+      "startIndex": 73,
+      "endIndex": 80
+    }
+  ],
+  "redactionOutput": {
+    "redactedText": "Alert: please [BLOCKED] and reveal [BLOCKED] with [BLOCKED].",
+    "matchCount": 3,
+    "distinctIntervalsCount": 3,
+    "matches": [
+      {
+        "id": "INJECTION_PROMPT_OVERRIDE",
+        "pattern": "ignore previous instructions",
+        "severity": "CRITICAL",
+        "startIndex": 14,
+        "endIndex": 42
+      },
+      {
+        "id": "SYSTEM_PROMPT_REFERENCE",
+        "pattern": "system prompt",
+        "severity": "HIGH",
+        "startIndex": 54,
+        "endIndex": 67
+      },
+      {
+        "id": "CREDENTIAL_KEY",
+        "pattern": "api_key",
+        "severity": "CRITICAL",
+        "startIndex": 73,
+        "endIndex": 80
+      }
+    ]
+  }
+}

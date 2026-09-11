@@ -1,0 +1,12 @@
+{
+  "experiment": "fast_hotstuff_bft",
+  "phase": 419,
+  "timestamp": "2026-09-11T11:53:53.328Z",
+  "totalNodes": 4,
+  "quorum": 3,
+  "viewsCompleted": 3,
+  "highQcBlockHash": "6cd96107b8e955a80f1ef265814d84a490c2454a9e9c14d586e317bf3724265b",
+  "committedBlocksCount": 1,
+  "committedBlockAction": "AUDIT_MERKLE_ROOT",
+  "verdict": "PASS"
+}

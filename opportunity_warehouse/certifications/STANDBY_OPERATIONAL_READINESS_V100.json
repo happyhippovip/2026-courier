@@ -1,0 +1,28 @@
+{
+  "certificationId": "CERT-STANDBY-V100-2026",
+  "timestamp": "2026-09-11T10:21:04.342Z",
+  "phase": 292,
+  "status": "CENTENNIAL_OPERATIONAL_STANDBY_VERIFIED",
+  "milestone": "CENTENNIAL_CERTIFICATE_SERIES_V100",
+  "lane": "windows/money-factory-p0",
+  "scopeBoundaries": {
+    "macScopeModification": "FORBIDDEN",
+    "macBytesModified": 0,
+    "autonomousSpendLimitEUR": 0,
+    "currentAutonomousSpendEUR": 0,
+    "liveExternalOrdersSettled": 0,
+    "targetRevenueEUR": 5
+  },
+  "systemCapabilities": {
+    "zigzagIntegerCompressor": "ACTIVE_AND_TESTED",
+    "enterpriseCollusionResistantWatermarking": "SPECIFIED",
+    "suffixAnomalyDetector": "ACTIVE_AND_TESTED"
+  },
+  "compliance": {
+    "euAiActArticle50": "COMPLIANT",
+    "iso27001_A815": "COMPLIANT",
+    "iso42001": "COMPLIANT",
+    "slsaLevel3": "SPECIFIED"
+  },
+  "hash": "0ddbd3d421db8d79c28d90cfd9a309a619aefb3161019faffa58d7c0b87301d9"
+}

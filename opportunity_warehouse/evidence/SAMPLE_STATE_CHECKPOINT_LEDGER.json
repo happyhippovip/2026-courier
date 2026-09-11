@@ -1,0 +1,32 @@
+{
+  "totalSnapshots": 3,
+  "history": [
+    {
+      "snapshotId": "SNAP_001",
+      "agentId": "coder_agent",
+      "turnIndex": 1,
+      "hash": "403e7569bcfa",
+      "charCount": 27,
+      "deltaCharCount": 0,
+      "timestamp": "2026-09-11T09:26:54.380Z"
+    },
+    {
+      "snapshotId": "SNAP_002",
+      "agentId": "coder_agent",
+      "turnIndex": 2,
+      "hash": "48b78aa6b549",
+      "charCount": 58,
+      "deltaCharCount": 31,
+      "timestamp": "2026-09-11T09:26:54.380Z"
+    },
+    {
+      "snapshotId": "SNAP_003",
+      "agentId": "reviewer_agent",
+      "turnIndex": 3,
+      "hash": "36ca7b571d56",
+      "charCount": 96,
+      "deltaCharCount": 38,
+      "timestamp": "2026-09-11T09:26:54.380Z"
+    }
+  ]
+}

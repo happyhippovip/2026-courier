@@ -1,0 +1,14 @@
+{
+  "timestamp": "2026-09-11T11:53:53.686Z",
+  "totalTurns": 15,
+  "tierCounts": {
+    "verbatim": 3,
+    "condensed": 5,
+    "historical": 7
+  },
+  "originalTokens": 1106,
+  "balancedTokens": 277,
+  "savingsPct": 75,
+  "sampleContext": "[HISTORICAL STATE: Turns 1..7 verified (7 turns); all safety invariants and state checkpoints hold]\n--- RECENT MILESTONES ---\nTurn 8: Execute automated tool action for step 8 => Status 200 OK with data payloads.\nTurn 9: Execute automated tool action for step 9 => Status 200 OK with data payloads.\nTurn 10: Execute automated tool action for step 10 => Status 200 OK with data payloads.\nTurn 11: Execute automated tool action for step 11 => Status 200 OK with data payloads.\nTurn 12: Execute automated tool action for step 12 => Status 200 OK with data payloads.\n--- ACTIVE CONVERSATION ---\nTurn 13 [USER]: User inquiry for step 13 with detailed context and parameters.\nAssistant: Assistant detailed analytical response explaining results of step 13 thoroughly.\nTurn 14 [ASSISTANT]: User inquiry for step 14 with detailed context and parameters.\nAssistant: Assistant detailed analytical response explaining results of step 14 thoroughly.\nTurn 15 [USER]: User inquiry for step 15 with detailed context and parameters.\nAssistant: Assistant detailed analytical response explaining results of step 15 thoroughly.",
+  "asymptoticBoundVerified": true
+}

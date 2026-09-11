@@ -1,0 +1,10 @@
+{
+  "name": "levenshtein-automaton",
+  "version": "1.0.0",
+  "description": "Context Window Token Levenshtein Automaton & Approximate Keyword Search",
+  "main": "lib/levenshtein_automaton.js",
+  "scripts": {
+    "test": "node test_levenshtein_automaton.js"
+  },
+  "private": true
+}

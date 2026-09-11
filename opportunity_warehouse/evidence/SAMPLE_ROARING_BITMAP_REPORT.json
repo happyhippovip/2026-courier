@@ -1,0 +1,36 @@
+{
+  "timestamp": "2026-09-11T11:53:53.734Z",
+  "phase": 505,
+  "metrics": {
+    "chunkCount": 3,
+    "totalElements": 7,
+    "roaringBytes": 26,
+    "rawArrayBytes": 28,
+    "savingsPercent": "7.14%",
+    "chunks": [
+      {
+        "chunkKey": 0,
+        "type": "ARRAY",
+        "cardinality": 3,
+        "bytes": 10
+      },
+      {
+        "chunkKey": 1,
+        "type": "ARRAY",
+        "cardinality": 2,
+        "bytes": 8
+      },
+      {
+        "chunkKey": 2,
+        "type": "ARRAY",
+        "cardinality": 2,
+        "bytes": 8
+      }
+    ]
+  },
+  "sampleQueries": {
+    "intersectionCardinality": 3,
+    "unionCardinality": 8
+  },
+  "verdict": "ROARING_BITMAP_FILTER_VERIFIED_100_PERCENT"
+}

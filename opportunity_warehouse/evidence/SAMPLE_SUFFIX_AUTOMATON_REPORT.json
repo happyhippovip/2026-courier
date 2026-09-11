@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-09-11T11:53:53.556Z",
+  "phase": 597,
+  "metrics": {
+    "totalStates": 39,
+    "distinctSubstrings": 420,
+    "complexity": "O(|P|)_QUERY_TIME_O_N_SPACE",
+    "automatonModel": "MINIMAL_TRANSITION_DAWG"
+  },
+  "corpusLength": 29,
+  "distinctSubstrings": 420,
+  "verdict": "PERSISTENT_SUFFIX_AUTOMATON_FILTER_VERIFIED_100_PERCENT"
+}

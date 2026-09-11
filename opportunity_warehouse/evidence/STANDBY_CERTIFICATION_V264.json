@@ -1,0 +1,12 @@
+{
+  "certificationId": "STANDBY_CERTIFICATION_V264",
+  "phase": 617,
+  "subsystem": "double_array_trie_filter_and_zk_restaking",
+  "timestamp": "2026-09-11T11:39:56.829Z",
+  "verifiedComponents": [
+    "double_array_trie_filter",
+    "ENTERPRISE_ZK_OFFCHAIN_RESTAKING.md"
+  ],
+  "integrityHash": "aa53ecf2ddeedb4b0488790dd9846c9811d96ae22b7a4fa8987139270380ab1d",
+  "status": "GREEN_ACTIVE"
+}

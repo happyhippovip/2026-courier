@@ -1,0 +1,34 @@
+[
+  {
+    "turnNumber": 1,
+    "category": "system_rules",
+    "originalTokens": 12000,
+    "prunedTokens": 4800,
+    "tokensSaved": 7200,
+    "savingsPercent": 60
+  },
+  {
+    "turnNumber": 2,
+    "category": "code_module",
+    "originalTokens": 24000,
+    "prunedTokens": 9200,
+    "tokensSaved": 14800,
+    "savingsPercent": 61.7
+  },
+  {
+    "turnNumber": 3,
+    "category": "full_history",
+    "originalTokens": 45000,
+    "prunedTokens": 18000,
+    "tokensSaved": 27000,
+    "savingsPercent": 60
+  },
+  {
+    "turnNumber": 4,
+    "category": "deep_context",
+    "originalTokens": 68000,
+    "prunedTokens": 22000,
+    "tokensSaved": 46000,
+    "savingsPercent": 67.6
+  }
+]

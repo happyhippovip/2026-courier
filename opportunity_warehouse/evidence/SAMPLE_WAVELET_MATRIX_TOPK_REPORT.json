@@ -1,0 +1,32 @@
+{
+  "experiment": "wavelet_matrix_topk",
+  "phase": 473,
+  "timestamp": "2026-09-11T11:53:53.972Z",
+  "sequenceLength": 20,
+  "alphabetMax": 127,
+  "fullRangeTop3": [
+    {
+      "value": 120,
+      "count": 3
+    },
+    {
+      "value": 110,
+      "count": 2
+    },
+    {
+      "value": 105,
+      "count": 1
+    }
+  ],
+  "subrangeTop2": [
+    {
+      "value": 120,
+      "count": 1
+    },
+    {
+      "value": 110,
+      "count": 2
+    }
+  ],
+  "verdict": "PASS"
+}

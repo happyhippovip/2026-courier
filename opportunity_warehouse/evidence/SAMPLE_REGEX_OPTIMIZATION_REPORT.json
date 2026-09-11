@@ -1,0 +1,39 @@
+{
+  "optimization": {
+    "originalPattern": "^[a-zA-Z0-9_]+-[0-9]{4}-[abcabc]+$",
+    "optimizedPattern": "^\\w+-\\d{4}-[abc]+$",
+    "tokensSaved": 4,
+    "originalLength": 34,
+    "optimizedLength": 18,
+    "reductionPercent": 47.1
+  },
+  "semantics": {
+    "allEquivalent": true,
+    "results": [
+      {
+        "input": "user_1-2026-abc",
+        "origMatches": true,
+        "optMatches": true,
+        "equivalent": true
+      },
+      {
+        "input": "admin-1234-a",
+        "origMatches": true,
+        "optMatches": true,
+        "equivalent": true
+      },
+      {
+        "input": "invalid-str",
+        "origMatches": false,
+        "optMatches": false,
+        "equivalent": true
+      },
+      {
+        "input": "user-9999-cbab",
+        "origMatches": true,
+        "optMatches": true,
+        "equivalent": true
+      }
+    ]
+  }
+}

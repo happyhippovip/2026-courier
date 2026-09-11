@@ -1,0 +1,49 @@
+{
+  "currentTurn": 7,
+  "pruneReport": {
+    "prunedCount": 1,
+    "tokensSaved": 20,
+    "retainedTokens": 55,
+    "prunedItems": [
+      {
+        "id": "turn_1",
+        "weight": 0.4066,
+        "tokens": 20
+      }
+    ],
+    "retainedItems": [
+      {
+        "id": "pinned_core",
+        "text": "CORE INVARIANT: Spend limit strictly EUR 0.00",
+        "turnCreated": 1,
+        "initialWeight": 1,
+        "currentWeight": 1,
+        "pinned": true,
+        "tags": [],
+        "tokens": 30
+      },
+      {
+        "id": "fresh_turn",
+        "text": "Latest instruction: settle customer transaction",
+        "turnCreated": 7,
+        "initialWeight": 1,
+        "currentWeight": 1,
+        "pinned": false,
+        "tags": [],
+        "tokens": 25
+      }
+    ]
+  },
+  "activeItems": [
+    {
+      "id": "pinned_core",
+      "weight": 1,
+      "pinned": true
+    },
+    {
+      "id": "fresh_turn",
+      "weight": 1,
+      "pinned": false
+    }
+  ]
+}

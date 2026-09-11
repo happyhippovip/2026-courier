@@ -1,0 +1,30 @@
+{
+  "experiment": "ternary_search_tree_filter",
+  "timestamp": "2026-09-11T11:53:53.893Z",
+  "metrics": {
+    "storedKeys": 3,
+    "hasRoot": true
+  },
+  "prefixQuery": "agent_",
+  "matches": [
+    {
+      "key": "agent_gate",
+      "value": {
+        "severity": "SECURITY"
+      }
+    },
+    {
+      "key": "agent_loop",
+      "value": {
+        "severity": "CRITICAL"
+      }
+    },
+    {
+      "key": "agent_step",
+      "value": {
+        "severity": "INFO"
+      }
+    }
+  ],
+  "status": "VERIFIED"
+}

@@ -1,0 +1,10 @@
+{
+  "name": "skip-list-ranker",
+  "version": "1.0.0",
+  "description": "Context Window Token Bounded-Priority Skip List",
+  "main": "lib/skip_list_ranker.js",
+  "scripts": {
+    "test": "node test_skip_list_ranker.js"
+  },
+  "private": true
+}

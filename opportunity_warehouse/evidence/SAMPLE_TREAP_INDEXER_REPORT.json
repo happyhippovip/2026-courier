@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-09-11T11:53:53.923Z",
+  "phase": 365,
+  "component": "treap_indexer",
+  "elementsIndexed": 4,
+  "rootElement": {
+    "key": 3,
+    "priority": 0.95,
+    "token": "token-peak"
+  },
+  "cartesianTreeInvariantsVerified": true,
+  "verification": "100% PASS"
+}

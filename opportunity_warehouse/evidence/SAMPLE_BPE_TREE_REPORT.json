@@ -1,0 +1,73 @@
+{
+  "trainStats": {
+    "totalMerges": 25,
+    "vocabSize": 44
+  },
+  "topMerges": [
+    {
+      "p1": "o",
+      "p2": "n",
+      "merged": "on",
+      "rank": 0
+    },
+    {
+      "p1": "v",
+      "p2": "e",
+      "merged": "ve",
+      "rank": 1
+    },
+    {
+      "p1": "o",
+      "p2": "m",
+      "merged": "om",
+      "rank": 2
+    },
+    {
+      "p1": "l",
+      "p2": "e",
+      "merged": "le",
+      "rank": 3
+    },
+    {
+      "p1": "e",
+      "p2": " ",
+      "merged": "e ",
+      "rank": 4
+    },
+    {
+      "p1": "a",
+      "p2": "u",
+      "merged": "au",
+      "rank": 5
+    },
+    {
+      "p1": "au",
+      "p2": "t",
+      "merged": "aut",
+      "rank": 6
+    },
+    {
+      "p1": "aut",
+      "p2": "on",
+      "merged": "auton",
+      "rank": 7
+    },
+    {
+      "p1": "auton",
+      "p2": "om",
+      "merged": "autonom",
+      "rank": 8
+    },
+    {
+      "p1": "autonom",
+      "p2": "o",
+      "merged": "autonomo",
+      "rank": 9
+    }
+  ],
+  "sampleCompression": {
+    "rawCharacters": 38,
+    "encodedTokens": 11,
+    "compressionRatio": 0.2895
+  }
+}

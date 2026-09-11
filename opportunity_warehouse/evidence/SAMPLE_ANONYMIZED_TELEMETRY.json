@@ -1,0 +1,16 @@
+{
+  "aggregatedAt": "2026-09-11T09:12:07.538Z",
+  "metrics": {
+    "totalEvents": 4,
+    "uniqueMachines": 3,
+    "totalTokensSavedBucketized": 1350,
+    "averageLatencyMsBucketized": 25,
+    "successRate": 1
+  },
+  "privacyGuarantees": {
+    "piiRemoved": true,
+    "identifiersHashed": true,
+    "bucketized": true,
+    "rawTextPreserved": false
+  }
+}

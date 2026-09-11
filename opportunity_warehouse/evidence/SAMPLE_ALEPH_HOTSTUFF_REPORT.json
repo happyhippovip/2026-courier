@@ -1,0 +1,29 @@
+{
+  "timestamp": "2026-09-11T11:53:52.803Z",
+  "phase": 503,
+  "stats": {
+    "nodeCount": 4,
+    "dagUnitsCount": 7,
+    "certifiedWavesCount": 1,
+    "blocksCount": 4,
+    "committedWaves": [
+      0
+    ],
+    "totalCommittedTxs": 5
+  },
+  "sampleCommit": {
+    "committed": true,
+    "committedBlockView": 1,
+    "committedBlockHash": "9044087615027a5bd0bcc8410df77dde0703ef37821f1f239bd3c6d121876c07",
+    "waveIndex": 0,
+    "totalCommittedTxs": 5,
+    "waveTxs": [
+      "tx_p0_001",
+      "tx_p0_002",
+      "tx_p0_003",
+      "tx_p0_004",
+      "tx_p0_005"
+    ]
+  },
+  "verdict": "ALEPH_HOTSTUFF_ENGINE_VERIFIED_100_PERCENT"
+}

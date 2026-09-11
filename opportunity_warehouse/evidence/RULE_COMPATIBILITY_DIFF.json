@@ -1,0 +1,71 @@
+{
+  "timestamp": "2026-09-11T09:12:07.522Z",
+  "summary": {
+    "totalOld": 3,
+    "totalNew": 4,
+    "addedCount": 1,
+    "removedCount": 0,
+    "modifiedCount": 1,
+    "unchangedCount": 2,
+    "breakingCount": 0,
+    "compatibilityScore": 95,
+    "isCompatible": true
+  },
+  "added": [
+    {
+      "id": "rule_pii_cleanse",
+      "name": "Automated PII Cleansing",
+      "pattern": "",
+      "severity": "error",
+      "action": "drop",
+      "description": ""
+    }
+  ],
+  "removed": [],
+  "modified": [
+    {
+      "id": "rule_ast_prune",
+      "oldRule": {
+        "id": "rule_ast_prune",
+        "name": "Prune AST Comments",
+        "pattern": "",
+        "severity": "info",
+        "action": "compress",
+        "description": ""
+      },
+      "newRule": {
+        "id": "rule_ast_prune",
+        "name": "Prune AST Comments",
+        "pattern": "",
+        "severity": "warning",
+        "action": "compress",
+        "description": ""
+      },
+      "changes": {
+        "severity": {
+          "from": "info",
+          "to": "warning"
+        }
+      }
+    }
+  ],
+  "unchanged": [
+    {
+      "id": "rule_no_stack_traces",
+      "name": "Collapse Large Stack Traces",
+      "pattern": "",
+      "severity": "warning",
+      "action": "trim",
+      "description": ""
+    },
+    {
+      "id": "rule_strip_env_vars",
+      "name": "Redact Shell Environment Dumps",
+      "pattern": "",
+      "severity": "error",
+      "action": "drop",
+      "description": ""
+    }
+  ],
+  "breakingChanges": []
+}

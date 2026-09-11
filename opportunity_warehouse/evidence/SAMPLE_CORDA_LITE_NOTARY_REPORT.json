@@ -1,0 +1,15 @@
+{
+  "experiment": "corda_lite_notary_cluster",
+  "phase": 471,
+  "timestamp": "2026-09-11T11:53:53.185Z",
+  "clusterSize": 4,
+  "quorumRequired": 3,
+  "initialTransactionNotarized": true,
+  "consumedStates": [
+    "0x genesis_tx:0",
+    "0x genesis_tx:1"
+  ],
+  "doubleSpendDetected": true,
+  "conflictsReported": 4,
+  "verdict": "PASS"
+}

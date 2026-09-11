@@ -1,0 +1,19 @@
+{
+  "experiment": "tusk_consensus_engine",
+  "phase": 403,
+  "timestamp": "2026-09-11T11:53:53.937Z",
+  "totalNodes": 4,
+  "quorum": 3,
+  "waveCommitted": 0,
+  "leaderNode": "node_0",
+  "orderedVerticesCount": 1,
+  "orderedVertices": [
+    {
+      "hash": "2b84aced89436f33996874b35aaa1d997e625320541ca6fda686f866dfe177a0",
+      "round": 0,
+      "nodeId": "node_0",
+      "batchRef": "batch_node_0_r0"
+    }
+  ],
+  "verdict": "PASS"
+}

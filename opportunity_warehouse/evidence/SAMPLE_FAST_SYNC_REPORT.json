@@ -1,0 +1,23 @@
+{
+  "timestamp": "2026-09-11T11:53:52.882Z",
+  "phase": 575,
+  "stats": {
+    "serverAccounts": 5,
+    "clientAccounts": 5,
+    "syncedHeight": 100,
+    "totalChunks": 3,
+    "downloadedChunks": 3
+  },
+  "manifest": {
+    "height": 100,
+    "totalChunks": 3,
+    "chunkHashes": [
+      "23bc9562dda08fa8774754b32c7d08bafcd194d0de291f34bdb5e42fed60c662",
+      "8a1b36c27d854650f7034a060c7a5edb923f4da9b3507196ef94ef2481f87715",
+      "220e1d0765acfd3146648d0523ab89b2bf09787bd13789b7e7bf7297ee03983e"
+    ],
+    "stateRoot": "5204f3698d415da24fd56035f2daee8a7baa3e31a9e833219dabed99a9a64389",
+    "manifestHash": "bfed2cb552bac6d2991c9b7a10ffb39ed42352c95e4d794aa551d218631c4537"
+  },
+  "verdict": "BFT_FAST_SYNC_ENGINE_VERIFIED_100_PERCENT"
+}

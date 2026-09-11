@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-09-11T11:53:53.908Z",
+  "phase": 297,
+  "component": "token_graph_mst",
+  "nodeCount": 5,
+  "edgesBeforePruning": 7,
+  "edgesAfterMST": 4,
+  "totalMSTWeight": 9,
+  "compressionRatio": 0.4285714285714286,
+  "mstEdges": [
+    {
+      "u": "context",
+      "v": "memory",
+      "weight": 1
+    },
+    {
+      "u": "agent",
+      "v": "memory",
+      "weight": 2
+    },
+    {
+      "u": "storage",
+      "v": "cloud",
+      "weight": 2
+    },
+    {
+      "u": "memory",
+      "v": "storage",
+      "weight": 4
+    }
+  ],
+  "verification": "100% PASS"
+}

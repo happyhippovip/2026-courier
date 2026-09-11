@@ -1,0 +1,6 @@
+└── AgentContextRoot ✔ [KEPT] (2500 tokens)
+    ├── SystemDirectives ✔ [KEPT] (500 tokens)
+    ├── MarkdownInstructions ✔ [KEPT] (1200 tokens)
+    │   ├── DeprecatedPolicies ✂ [PRUNED] (450 tokens)
+    │   └── ActiveExecutionRules ✔ [KEPT] (750 tokens)
+    └── DeadToolSchemas ✂ [PRUNED] (800 tokens)

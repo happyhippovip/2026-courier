@@ -1,0 +1,38 @@
+{
+  "experiment": "persistent_suffix_tree_filter",
+  "timestamp": "2026-09-11T11:53:53.560Z",
+  "tokenCount": 8,
+  "testQueries": [
+    {
+      "query": [
+        "agent",
+        "loop"
+      ],
+      "result": {
+        "found": true,
+        "occurrences": 2,
+        "indices": [
+          0,
+          4
+        ]
+      }
+    },
+    {
+      "query": [
+        "unknown",
+        "token"
+      ],
+      "result": {
+        "found": false,
+        "occurrences": 0,
+        "indices": []
+      }
+    }
+  ],
+  "longestRepeatedSequence": [
+    "agent",
+    "loop",
+    "detect"
+  ],
+  "status": "VERIFIED"
+}

@@ -1,0 +1,23 @@
+{
+  "timestamp": "2026-09-11T11:53:52.901Z",
+  "phase": 543,
+  "stats": {
+    "nodeCount": 4,
+    "microBlocksCount": 3,
+    "streamQCsCount": 3,
+    "committedBlocksCount": 1,
+    "totalCommittedTxs": 2
+  },
+  "sampleCommit": {
+    "committed": true,
+    "mode": "PIPELINED_2CHAIN_STREAMING_COMMIT",
+    "streamSeq": 1,
+    "blockHash": "dd14babb0e5f6a0a3d8fc44d4189f2c0de02b54118128fb1a0fbaa29740b51e2",
+    "txs": [
+      "tx_stream_01",
+      "tx_stream_02"
+    ],
+    "totalCommittedTxs": 2
+  },
+  "verdict": "BFT_PIPELINED_STREAM_ENGINE_VERIFIED_100_PERCENT"
+}

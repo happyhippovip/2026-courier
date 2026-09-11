@@ -1,0 +1,10 @@
+{
+  "name": "treap-indexer",
+  "version": "1.0.0",
+  "description": "Context Window Token Treap Cartesian Indexer",
+  "main": "lib/treap_indexer.js",
+  "scripts": {
+    "test": "node test_treap_indexer.js"
+  },
+  "private": true
+}

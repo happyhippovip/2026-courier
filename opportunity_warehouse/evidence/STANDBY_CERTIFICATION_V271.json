@@ -1,0 +1,12 @@
+{
+  "certificationId": "STANDBY_CERTIFICATION_V271",
+  "phase": 631,
+  "subsystem": "bft_shard_gc_consensus_engine",
+  "timestamp": "2026-09-11T11:42:06.991Z",
+  "verifiedComponents": [
+    "bft_shard_gc_engine",
+    "SAMPLE_SHARD_GC_REPORT.json"
+  ],
+  "integrityHash": "5766a47d609ade75a9b133d6fa96b3bca91042e7d785648f17b31f2cdcb322e3",
+  "status": "GREEN_ACTIVE"
+}

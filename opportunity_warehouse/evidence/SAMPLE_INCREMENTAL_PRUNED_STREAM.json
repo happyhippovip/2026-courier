@@ -1,0 +1,9 @@
+{
+  "timestamp": "2026-09-11T09:19:12.157Z",
+  "originalLength": 413,
+  "prunedLength": 238,
+  "chunksProcessed": 3,
+  "totalSavedChars": 175,
+  "compressionRatioPercent": 42.37,
+  "output": "// Section 1: System Init\n\n----------\nconst app = initializeServer({ port: 8080 });\n\n// Section 2: Middleware Pipeline\n\nconst auth = createAuthMiddleware({ mode: 'strict' });\n\n// Section 3: Data Handlers\n\nconst db = connectDatabasePool();"
+}

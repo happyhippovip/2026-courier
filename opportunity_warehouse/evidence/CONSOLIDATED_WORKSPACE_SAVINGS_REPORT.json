@@ -1,0 +1,41 @@
+{
+  "total_workspaces_scanned": 4,
+  "aggregate_total_tokens": 14800,
+  "aggregate_tokens_saved": 6216,
+  "aggregate_monthly_cost_saved_usd": 27.97,
+  "workspaces": [
+    {
+      "workspace": "apps/web",
+      "files": [
+        ".cursorrules"
+      ],
+      "total_tokens": 4200,
+      "saved_tokens": 1764
+    },
+    {
+      "workspace": "services/api",
+      "files": [
+        "AGENTS.md"
+      ],
+      "total_tokens": 5100,
+      "saved_tokens": 2142
+    },
+    {
+      "workspace": "packages/db",
+      "files": [
+        "CLAUDE.md"
+      ],
+      "total_tokens": 2800,
+      "saved_tokens": 1176
+    },
+    {
+      "workspace": "infra/k8s",
+      "files": [
+        ".cursorrules"
+      ],
+      "total_tokens": 2700,
+      "saved_tokens": 1134
+    }
+  ],
+  "scanned_at": "2026-09-11T08:54:27.718Z"
+}

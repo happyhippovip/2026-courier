@@ -1,0 +1,15 @@
+{
+  "experiment": "splay_interval_pruner",
+  "phase": 397,
+  "timestamp": "2026-09-11T11:53:53.826Z",
+  "totalIntervals": 4,
+  "currentRootPayload": "chunk_b",
+  "rootAccessCount": 2,
+  "overlapHits": [
+    "chunk_a",
+    "chunk_b",
+    "chunk_c",
+    "chunk_d"
+  ],
+  "verdict": "PASS"
+}

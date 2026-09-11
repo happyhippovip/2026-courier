@@ -1,0 +1,10 @@
+{
+  "name": "gossip-swim-membership",
+  "version": "1.0.0",
+  "description": "Multi-Agent Distributed Gossip-Based Membership (SWIM) Engine",
+  "main": "lib/gossip_swim_membership.js",
+  "scripts": {
+    "test": "node test_gossip_swim_membership.js"
+  },
+  "private": true
+}

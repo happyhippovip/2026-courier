@@ -1,0 +1,17 @@
+{
+  "experiment": "double_array_trie_filter",
+  "timestamp": "2026-09-11T11:53:53.263Z",
+  "metrics": {
+    "capacity": 1024,
+    "occupiedSlots": 17,
+    "loadFactor": 0.0166,
+    "storedKeys": 4
+  },
+  "testKeys": [
+    "agent",
+    "age",
+    "action",
+    "actor"
+  ],
+  "status": "VERIFIED"
+}

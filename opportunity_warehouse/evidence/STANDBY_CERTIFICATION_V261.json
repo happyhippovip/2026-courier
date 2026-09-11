@@ -1,0 +1,12 @@
+{
+  "certificationId": "STANDBY_CERTIFICATION_V261",
+  "phase": 611,
+  "subsystem": "bft_reanchoring_consensus_engine",
+  "timestamp": "2026-09-11T11:39:09.652Z",
+  "verifiedComponents": [
+    "bft_reanchoring_engine",
+    "SAMPLE_REANCHORING_ENGINE_REPORT.json"
+  ],
+  "integrityHash": "fb3008962e971be5ec755154f1f96b6c018367c237bdf8fa4ede23904ee8fb15",
+  "status": "GREEN_ACTIVE"
+}

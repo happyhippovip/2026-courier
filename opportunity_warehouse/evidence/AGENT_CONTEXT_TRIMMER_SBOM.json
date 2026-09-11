@@ -1,0 +1,57 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "serialNumber": "urn:uuid:cbf9f465-6c3f-4dbf-9ca4-8c3768f05483",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-09-11T09:02:24.790Z",
+    "component": {
+      "name": "agent-context-trimmer",
+      "version": "1.0.0",
+      "type": "application",
+      "licenses": [
+        {
+          "license": {
+            "id": "Commercial-Perpetual"
+          }
+        }
+      ]
+    },
+    "securityAudit": {
+      "externalRuntimeDependencies": 0,
+      "vulnerabilitiesDetected": 0,
+      "telemetryNetworkCalls": 0,
+      "isolationVerified": true
+    }
+  },
+  "components": [
+    {
+      "name": "HUMAN_LAUNCH_GATE_CARD_EUR5.md",
+      "type": "file",
+      "sizeBytes": 3545,
+      "hashes": [
+        {
+          "algorithm": "SHA-256",
+          "value": "28274b5eea9ffac4bdcd4ebf2763e00bb1d68f56ae7a80f188c564043afa736f"
+        }
+      ],
+      "supplier": "Symphony Autonomous Commercial Division"
+    },
+    {
+      "name": "SYMPHONY_PROGRESS_SNAPSHOT.json",
+      "type": "file",
+      "sizeBytes": 817,
+      "hashes": [
+        {
+          "algorithm": "SHA-256",
+          "value": "6dacc1fc1a0c6ce74d6cd8ee10d35c39679df38a09f3c2ecfc02136f0686c423"
+        }
+      ],
+      "supplier": "Symphony Autonomous Commercial Division"
+    }
+  ],
+  "stats": {
+    "totalComponents": 2,
+    "totalSizeBytes": 4362
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "experiment": "bft_quorum_reweighting_engine",
+  "timestamp": "2026-09-11T11:53:52.905Z",
+  "finalEpoch": 1,
+  "currentWeights": {
+    "node_0": 50,
+    "node_1": 25,
+    "node_2": 25
+  },
+  "totalWeight": 100,
+  "quorumThreshold": 67,
+  "status": "VERIFIED"
+}

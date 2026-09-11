@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-09-11T11:53:53.378Z",
+  "totalSymbols": 11,
+  "totalBits": 20,
+  "avgBitsPerSymbol": 1.82,
+  "codeMap": {
+    "SETTLED": "0",
+    "MUTEX": "10",
+    "ERROR": "110",
+    "EUR5": "111"
+  },
+  "huffmanOptimalVerified": true
+}

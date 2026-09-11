@@ -1,0 +1,10 @@
+{
+  "name": "ricart-agrawala-mutex",
+  "version": "1.0.0",
+  "description": "Multi-Agent Distributed Mutual Exclusion (Ricart-Agrawala) Engine",
+  "main": "lib/ricart_agrawala_mutex.js",
+  "scripts": {
+    "test": "node test_ricart_agrawala_mutex.js"
+  },
+  "private": true
+}

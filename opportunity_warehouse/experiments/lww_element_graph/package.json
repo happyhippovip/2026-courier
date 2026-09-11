@@ -1,0 +1,10 @@
+{
+  "name": "lww-element-graph",
+  "version": "1.0.0",
+  "description": "Multi-Agent Distributed LWW-Element-Graph Engine",
+  "main": "lib/lww_element_graph.js",
+  "scripts": {
+    "test": "node test_lww_element_graph.js"
+  },
+  "private": true
+}

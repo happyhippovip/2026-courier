@@ -1,0 +1,22 @@
+{
+  "routerSummary": {
+    "totalEntries": 3
+  },
+  "sampleRouting": {
+    "totalChars": 153,
+    "matchedChars": 107,
+    "cacheReusePercentage": 69.93,
+    "reusableCacheBlocks": [
+      "kv_block_base_001",
+      "kv_block_settlement_002"
+    ],
+    "unmatchedSuffixChars": 46
+  },
+  "unmatchedRouting": {
+    "totalChars": 46,
+    "matchedChars": 0,
+    "cacheReusePercentage": 0,
+    "reusableCacheBlocks": [],
+    "unmatchedSuffixChars": 46
+  }
+}

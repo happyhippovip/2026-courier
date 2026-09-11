@@ -1,0 +1,37 @@
+{
+  "targetObjective": "Database performance optimization and SQL indexing",
+  "tradeoffBeta": 2,
+  "originalTokens": 600,
+  "retainedTokens": 120,
+  "prunedTokens": 480,
+  "tokenReductionPercent": 80,
+  "evaluatedSections": [
+    {
+      "id": "db_tuning",
+      "label": "db_tuning",
+      "tokens": 120,
+      "entropy": 4.221,
+      "relevance": 0.316,
+      "objectiveScore": 0.572,
+      "retainRecommendation": true
+    },
+    {
+      "id": "sys_contract",
+      "label": "sys_contract",
+      "tokens": 80,
+      "entropy": 4.239,
+      "relevance": 0,
+      "objectiveScore": -0.04,
+      "retainRecommendation": false
+    },
+    {
+      "id": "cake_recipe",
+      "label": "cake_recipe",
+      "tokens": 400,
+      "entropy": 4.171,
+      "relevance": 0,
+      "objectiveScore": -0.2,
+      "retainRecommendation": false
+    }
+  ]
+}

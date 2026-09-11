@@ -1,0 +1,10 @@
+{
+  "name": "splay-tree-ranker",
+  "version": "1.0.0",
+  "description": "Dynamic Token Context Splay Tree & Amortized Self-Balancing Ranker",
+  "main": "lib/splay_tree_ranker.js",
+  "scripts": {
+    "test": "node test_splay_tree_ranker.js"
+  },
+  "private": true
+}

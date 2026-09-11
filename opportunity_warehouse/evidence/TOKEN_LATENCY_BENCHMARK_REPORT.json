@@ -1,0 +1,37 @@
+{
+  "scenario": {
+    "original_tokens": 2400,
+    "optimized_tokens": 1340,
+    "tokens_saved_per_request": 1060,
+    "reduction_percent": 44.2,
+    "requests_per_month": 2000,
+    "total_tokens_saved_monthly": 2120000
+  },
+  "providers": {
+    "claude_3_5_sonnet": {
+      "name": "Anthropic Claude 3.5 Sonnet",
+      "original_latency_ms": 853,
+      "optimized_latency_ms": 618,
+      "latency_saved_ms_per_request": 235,
+      "monthly_cost_saved_usd": 6.36,
+      "monthly_wait_time_saved_seconds": 470
+    },
+    "gpt_4o": {
+      "name": "OpenAI GPT-4o",
+      "original_latency_ms": 742,
+      "optimized_latency_ms": 538,
+      "latency_saved_ms_per_request": 204,
+      "monthly_cost_saved_usd": 5.3,
+      "monthly_wait_time_saved_seconds": 408
+    },
+    "gemini_1_5_flash": {
+      "name": "Google Gemini 1.5 Flash",
+      "original_latency_ms": 490,
+      "optimized_latency_ms": 358,
+      "latency_saved_ms_per_request": 132,
+      "monthly_cost_saved_usd": 0.74,
+      "monthly_wait_time_saved_seconds": 264
+    }
+  },
+  "analyzed_at": "2026-09-11T08:50:47.220Z"
+}

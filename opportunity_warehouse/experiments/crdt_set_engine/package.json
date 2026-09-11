@@ -1,0 +1,10 @@
+{
+  "name": "crdt-set-engine",
+  "version": "1.0.0",
+  "description": "Multi-Agent Conflict-Free Replicated Data Type (CRDT) Engine",
+  "main": "lib/crdt_set_engine.js",
+  "scripts": {
+    "test": "node test_crdt_set_engine.js"
+  },
+  "private": true
+}

@@ -1,0 +1,16 @@
+{
+  "experiment": "mir_bft_consensus",
+  "phase": 431,
+  "timestamp": "2026-09-11T11:53:53.487Z",
+  "totalLeaders": 4,
+  "buckets": 4,
+  "quorum": 3,
+  "committedBatchesCount": 2,
+  "bucketAssignments": {
+    "0": "leader_0",
+    "1": "leader_1",
+    "2": "leader_2",
+    "3": "leader_3"
+  },
+  "verdict": "PASS"
+}

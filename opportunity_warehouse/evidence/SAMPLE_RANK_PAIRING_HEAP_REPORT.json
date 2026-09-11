@@ -1,0 +1,45 @@
+{
+  "timestamp": "2026-09-11T11:53:53.683Z",
+  "phase": 533,
+  "metrics": {
+    "elementCount": 0,
+    "rootTreesCount": 0,
+    "currentMinKey": null,
+    "amortizedComplexity": "O(1)_DECREASE_KEY_O_LOG_N_DELETE_MIN"
+  },
+  "extractedSorted": [
+    {
+      "key": 1,
+      "value": "token_2"
+    },
+    {
+      "key": 5,
+      "value": "token_5"
+    },
+    {
+      "key": 10,
+      "value": "token_3"
+    },
+    {
+      "key": 20,
+      "value": "token_1"
+    },
+    {
+      "key": 30,
+      "value": "token_7"
+    },
+    {
+      "key": 40,
+      "value": "token_4"
+    },
+    {
+      "key": 50,
+      "value": "token_0"
+    },
+    {
+      "key": 90,
+      "value": "token_6"
+    }
+  ],
+  "verdict": "RANK_PAIRING_HEAP_FILTER_VERIFIED_100_PERCENT"
+}

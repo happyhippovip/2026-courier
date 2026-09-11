@@ -1,13 +1,13 @@
 {
   "subsystem": "bft_shard_interlocking_engine",
-  "timestamp": "2026-09-11T11:52:23.720Z",
+  "timestamp": "2026-09-11T11:53:52.952Z",
   "activeShardsWithCheckpoints": 2,
   "interlockedBlockCount": 1,
   "history": [
     {
       "shardId": "shard_0",
       "height": 100,
-      "blockHash": "a029af8617dc79686feba6a4509b1c20e91aef485bcdc8f50861864262385442",
+      "blockHash": "96b1ef9d85d90e9d4b1cb121bc62a07cbed449d59ce9725f04ef6167b80ead35",
       "peerRoots": {
         "shard_1": {
           "epoch": 10,
@@ -20,7 +20,7 @@
       },
       "signedWeight": 70,
       "quorumRatio": 0.7,
-      "certifiedAt": "2026-09-11T11:52:23.720Z"
+      "certifiedAt": "2026-09-11T11:53:52.952Z"
     }
   ]
 }

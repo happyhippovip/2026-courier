@@ -1,0 +1,26 @@
+{
+  "performance": {
+    "iterations": 500,
+    "matchedCount": 252,
+    "totalDurationMs": 13.163,
+    "avgMicrosecondsPerQuery": 26.326
+  },
+  "sampleMatches": [
+    {
+      "id": "c1",
+      "tags": [
+        "system",
+        "urgent"
+      ]
+    },
+    {
+      "id": "c2",
+      "tags": [
+        "tool",
+        "settlement",
+        "urgent"
+      ]
+    }
+  ],
+  "registeredTagsCount": 6
+}

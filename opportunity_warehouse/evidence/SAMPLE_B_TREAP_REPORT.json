@@ -1,0 +1,23 @@
+{
+  "experiment": "b_treap_filter",
+  "phase": 497,
+  "timestamp": "2026-09-11T11:53:53.062Z",
+  "bParameter": 2,
+  "totalItems": 10,
+  "rangeMaxTest": {
+    "range": [
+      20,
+      80
+    ],
+    "maxFound": 0.99
+  },
+  "rangeFilterTest": {
+    "range": [
+      20,
+      80
+    ],
+    "threshold": 0.85,
+    "matched": 3
+  },
+  "verdict": "PASS"
+}

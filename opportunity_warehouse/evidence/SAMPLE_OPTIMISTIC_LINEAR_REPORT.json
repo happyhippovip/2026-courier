@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-09-11T11:53:52.890Z",
+  "phase": 531,
+  "stats": {
+    "nodeCount": 4,
+    "blocksCount": 5,
+    "qcsCount": 4,
+    "committedBlocksCount": 2,
+    "totalCommittedTxs": 3
+  },
+  "sampleFastCommit": {
+    "committed": true,
+    "mode": "OPTIMISTIC_1_ROUND_FAST_PATH",
+    "view": 1,
+    "blockHash": "b22912910ddd6cd0eeb52f7843f6897b4729f0f9c2d94a2851f7a3bfca15ae01",
+    "txs": [
+      "tx_fast_01",
+      "tx_fast_02"
+    ],
+    "totalCommittedTxs": 2
+  },
+  "sampleFallbackCommit": {
+    "committed": true,
+    "mode": "HOTSTUFF_3CHAIN_FALLBACK",
+    "view": 2,
+    "blockHash": "276302523dcc1b09a9ee7a5753d8758bad72c31a572a421a23a39ee395a08c24",
+    "txs": [
+      "tx_slow_01"
+    ],
+    "totalCommittedTxs": 3
+  },
+  "verdict": "OPTIMISTIC_LINEAR_ENGINE_VERIFIED_100_PERCENT"
+}

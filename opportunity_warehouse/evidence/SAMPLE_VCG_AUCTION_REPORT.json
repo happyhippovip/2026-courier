@@ -1,0 +1,53 @@
+{
+  "auctionParameters": {
+    "capacity": 500
+  },
+  "bidsSubmitted": [
+    {
+      "agentId": "agent_A",
+      "tokensRequested": 300,
+      "bidValue": 60
+    },
+    {
+      "agentId": "agent_B",
+      "tokensRequested": 200,
+      "bidValue": 50
+    },
+    {
+      "agentId": "agent_C",
+      "tokensRequested": 300,
+      "bidValue": 40
+    }
+  ],
+  "auctionOutcome": {
+    "capacity": 500,
+    "totalWelfare": 110,
+    "totalTokensAllocated": 500,
+    "allocations": [
+      {
+        "agentId": "agent_A",
+        "won": true,
+        "tokensAllocated": 300,
+        "bidValue": 60,
+        "vcgPayment": 40,
+        "netUtility": 20
+      },
+      {
+        "agentId": "agent_B",
+        "won": true,
+        "tokensAllocated": 200,
+        "bidValue": 50,
+        "vcgPayment": 0,
+        "netUtility": 50
+      },
+      {
+        "agentId": "agent_C",
+        "won": false,
+        "tokensAllocated": 0,
+        "bidValue": 40,
+        "vcgPayment": 0,
+        "netUtility": 0
+      }
+    ]
+  }
+}

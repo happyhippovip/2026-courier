@@ -1,0 +1,18 @@
+{
+  "total_blocks": 2,
+  "valid_blocks": 2,
+  "error_count": 0,
+  "blocks": [
+    {
+      "block_index": 0,
+      "language": "typescript",
+      "status": "VALID"
+    },
+    {
+      "block_index": 1,
+      "language": "json",
+      "status": "VALID"
+    }
+  ],
+  "scanned_at": "2026-09-11T09:00:03.498Z"
+}

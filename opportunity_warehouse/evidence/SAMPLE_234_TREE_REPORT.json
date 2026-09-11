@@ -1,0 +1,30 @@
+{
+  "timestamp": "2026-09-11T11:53:53.944Z",
+  "phase": 585,
+  "metrics": {
+    "size": 7,
+    "maxKeysPerNode": 3,
+    "branchingFactor": 4,
+    "complexity": "O(log N)_WORST_CASE_STRICT",
+    "balancingInvariant": "PERFECT_HEIGHT_EQUILIBRIUM_2_3_4"
+  },
+  "sampleRange": [
+    {
+      "key": 15,
+      "value": "val_15"
+    },
+    {
+      "key": 20,
+      "value": "val_20"
+    },
+    {
+      "key": 25,
+      "value": "val_25"
+    },
+    {
+      "key": 30,
+      "value": "val_30"
+    }
+  ],
+  "verdict": "TWO_THREE_FOUR_TREE_FILTER_VERIFIED_100_PERCENT"
+}

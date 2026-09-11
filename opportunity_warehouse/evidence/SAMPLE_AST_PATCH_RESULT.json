@@ -1,0 +1,23 @@
+{
+  "success": true,
+  "targetName": "processCard",
+  "patchedTree": {
+    "type": "Project",
+    "name": "CommerceEngine",
+    "children": [
+      {
+        "type": "Class",
+        "name": "PaymentProcessor",
+        "children": [
+          {
+            "type": "Method",
+            "name": "processCard",
+            "value": "v2_symphony_zero_friction_eur5",
+            "patchedAt": "2026-09-11T09:29:51.220Z"
+          }
+        ]
+      }
+    ]
+  },
+  "timestamp": "2026-09-11T09:29:51.220Z"
+}

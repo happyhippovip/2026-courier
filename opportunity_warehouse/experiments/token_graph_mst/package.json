@@ -1,0 +1,10 @@
+{
+  "name": "token-graph-mst",
+  "version": "1.0.0",
+  "description": "Token Graph Minimum Spanning Tree (MST) & Pruned Discourse Summarizer",
+  "main": "lib/token_graph_mst.js",
+  "scripts": {
+    "test": "node test_token_graph_mst.js"
+  },
+  "private": true
+}

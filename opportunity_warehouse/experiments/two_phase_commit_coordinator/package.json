@@ -1,0 +1,10 @@
+{
+  "name": "two-phase-commit-coordinator",
+  "version": "1.0.0",
+  "description": "Multi-Agent Distributed Two-Phase Commit (2PC) Coordinator Engine",
+  "main": "lib/two_phase_commit_coordinator.js",
+  "scripts": {
+    "test": "node test_two_phase_commit_coordinator.js"
+  },
+  "private": true
+}

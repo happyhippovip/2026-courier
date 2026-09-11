@@ -1,0 +1,37 @@
+{
+  "timestamp": "2026-09-11T11:53:53.418Z",
+  "phase": 565,
+  "metrics": {
+    "size": 6,
+    "dimensions": 2,
+    "complexity": {
+      "rangeQuery": "O(sqrt(N) + k)",
+      "nearestNeighbor": "O(log N)_AVERAGE"
+    },
+    "partitionModel": "CYCLING_AXIS_MEDIAN_SPLIT"
+  },
+  "sampleRange": [
+    {
+      "x": 7,
+      "y": 2,
+      "data": "token_7_2"
+    },
+    {
+      "x": 5,
+      "y": 4,
+      "data": "token_5_4"
+    },
+    {
+      "x": 8,
+      "y": 1,
+      "data": "token_8_1"
+    }
+  ],
+  "sampleNN": {
+    "x": 8,
+    "y": 1,
+    "data": "token_8_1",
+    "distance": 1.4142135623730951
+  },
+  "verdict": "KD_TREE_FILTER_VERIFIED_100_PERCENT"
+}

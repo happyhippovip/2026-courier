@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-09-11T11:53:53.767Z",
+  "phase": 373,
+  "component": "sdr_token_matcher",
+  "nVectorDimension": 1024,
+  "wActiveBits": 20,
+  "noiseToleranceRatio": 0.85,
+  "orthogonalOverlapRatio": 0.05,
+  "sparseDistributedInvariantsVerified": true,
+  "verification": "100% PASS"
+}

@@ -1,0 +1,10 @@
+{
+  "name": "vrr-consensus-engine",
+  "version": "1.0.0",
+  "description": "Multi-Agent Distributed Viewstamped Replication Revisited (VRR) Engine",
+  "main": "lib/vrr_consensus_engine.js",
+  "scripts": {
+    "test": "node test_vrr_consensus_engine.js"
+  },
+  "private": true
+}

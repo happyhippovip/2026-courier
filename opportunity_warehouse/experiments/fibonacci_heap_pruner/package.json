@@ -1,0 +1,10 @@
+{
+  "name": "fibonacci-heap-pruner",
+  "version": "1.0.0",
+  "description": "Dynamic Token Fibonacci Heap & Ultra-Fast Decrease-Key Pruner",
+  "main": "lib/fibonacci_heap_pruner.js",
+  "scripts": {
+    "test": "node test_fibonacci_heap_pruner.js"
+  },
+  "private": true
+}

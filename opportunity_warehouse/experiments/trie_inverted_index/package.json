@@ -1,0 +1,10 @@
+{
+  "name": "trie-inverted-index",
+  "version": "1.0.0",
+  "description": "Hierarchical Trie-Based Inverted Index & Token Proximity Ranker",
+  "main": "lib/trie_inverted_index.js",
+  "scripts": {
+    "test": "node test_trie_inverted_index.js"
+  },
+  "private": true
+}

@@ -1,0 +1,64 @@
+class SocialCardGenerator {
+  constructor(options = {}) {
+    this.width = options.width || 1200;
+    this.height = options.height || 630;
+  }
+
+  generateSocialCardSvg(data = {}) {
+    const title = data.title || 'agent-context-trimmer v1.0.0';
+    const subtitle = data.subtitle || 'Deterministic AST-Based Prompt Pruning for AI Agents';
+    const stat1 = data.stat1 || '-41.2% Input Tokens';
+    const stat2 = data.stat2 || '5.3-Day ROI Payback';
+    const stat3 = data.stat3 || '€5 Lifetime License';
+
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${this.width} ${this.height}" width="${this.width}" height="${this.height}">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="${this.width}" height="${this.height}" fill="url(#bgGrad)"/>
+
+  <!-- Accent Header Bar -->
+  <rect x="0" y="0" width="${this.width}" height="10" fill="url(#accentGrad)"/>
+
+  <!-- Logo Badge -->
+  <rect x="80" y="80" width="60" height="60" rx="12" fill="#10b981"/>
+  <text x="110" y="122" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="34" font-weight="bold" text-anchor="middle">✂</text>
+
+  <!-- Title & Subtitle -->
+  <text x="160" y="125" fill="#f8fafc" font-family="system-ui, -apple-system, sans-serif" font-size="42" font-weight="800">${title}</text>
+  <text x="80" y="220" fill="#94a3b8" font-family="system-ui, -apple-system, sans-serif" font-size="28" font-weight="400">${subtitle}</text>
+
+  <!-- Stat Cards -->
+  <g transform="translate(80, 320)">
+    <!-- Card 1 -->
+    <rect x="0" y="0" width="320" height="180" rx="16" fill="#1e293b" stroke="#334155" stroke-width="2"/>
+    <text x="160" y="85" fill="#10b981" font-family="system-ui, sans-serif" font-size="36" font-weight="bold" text-anchor="middle">${stat1}</text>
+    <text x="160" y="130" fill="#64748b" font-family="system-ui, sans-serif" font-size="18" text-anchor="middle">Median Token Reduction</text>
+
+    <!-- Card 2 -->
+    <rect x="360" y="0" width="320" height="180" rx="16" fill="#1e293b" stroke="#334155" stroke-width="2"/>
+    <text x="520" y="85" fill="#38bdf8" font-family="system-ui, sans-serif" font-size="36" font-weight="bold" text-anchor="middle">${stat2}</text>
+    <text x="520" y="130" fill="#64748b" font-family="system-ui, sans-serif" font-size="18" text-anchor="middle">At 50 Agent Runs / Day</text>
+
+    <!-- Card 3 -->
+    <rect x="720" y="0" width="320" height="180" rx="16" fill="#1e293b" stroke="#334155" stroke-width="2"/>
+    <text x="880" y="85" fill="#f59e0b" font-family="system-ui, sans-serif" font-size="36" font-weight="bold" text-anchor="middle">${stat3}</text>
+    <text x="880" y="130" fill="#64748b" font-family="system-ui, sans-serif" font-size="18" text-anchor="middle">Perpetual Dev License</text>
+  </g>
+
+  <!-- Footer Brand -->
+  <text x="80" y="570" fill="#475569" font-family="system-ui, sans-serif" font-size="18">Symphony Autonomous Commercial Division • Gumroad Verified</text>
+</svg>`;
+  }
+}
+
+module.exports = { SocialCardGenerator };

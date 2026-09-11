@@ -1,0 +1,10 @@
+{
+  "name": "multi-raft-shards",
+  "version": "1.0.0",
+  "description": "Multi-Agent Distributed Multi-Raft Partitioned Shard Replication Engine",
+  "main": "lib/multi_raft_shards.js",
+  "scripts": {
+    "test": "node test_multi_raft_shards.js"
+  },
+  "private": true
+}

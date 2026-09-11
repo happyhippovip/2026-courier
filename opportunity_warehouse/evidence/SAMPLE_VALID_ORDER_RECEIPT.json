@@ -1,0 +1,17 @@
+{
+  "order_id": "GUMROAD-SAMPLE-RECEIPT-001",
+  "product_id": "agent-context-trimmer-v1",
+  "product_name": "Agent Context Trimmer CLI (v1.0.0)",
+  "gross_amount_eur": 5,
+  "net_amount_eur": 4.2,
+  "platform_fee_eur": 0.8,
+  "currency": "EUR",
+  "payment_processor": "GUMROAD",
+  "purchased_at_utc": "2026-09-11T12:00:00.000Z",
+  "customer_country": "DE",
+  "receipt_url": "https://gumroad.com/receipt?id=SAMPLE-001",
+  "refunded": false,
+  "disputed": false,
+  "verification_source": "HUMAN_OPERATOR_FORWARDED",
+  "note": "Template fixture for human operator when first customer order arrives."
+}

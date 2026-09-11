@@ -1,0 +1,69 @@
+{
+  "experiment": "sharded_smr_engine",
+  "phase": 479,
+  "timestamp": "2026-09-11T11:53:53.787Z",
+  "shardsConfigured": [
+    "shard_alpha",
+    "shard_beta"
+  ],
+  "crossShardTx1": {
+    "success": true,
+    "status": "GLOBAL_COMMITTED",
+    "txId": "tx_cross_settlement_01",
+    "participantShardCount": 2,
+    "preparedQCs": [
+      {
+        "status": "SHARD_PREPARED",
+        "shardId": "shard_alpha",
+        "signatures": [
+          {
+            "nodeId": "node_a0",
+            "sig": "a4adb8734b0202ec89e558f1c2a86f0b2a4fff76cbbb42466a29d0a7069989fe"
+          },
+          {
+            "nodeId": "node_a1",
+            "sig": "9ede2351807baf545778ef8f22145f4886a0372405db72b39ef494d67ef80361"
+          },
+          {
+            "nodeId": "node_a2",
+            "sig": "86c758fa1cb41e10ac8bd7ad3bfa105f8775a9d6ee65635c6bd5799444a4c98e"
+          },
+          {
+            "nodeId": "node_a3",
+            "sig": "643386625f43cc58a49be429d127bb76b5ce21dcbafd785d873fc4062c57c5ef"
+          }
+        ],
+        "qcId": "b231159247d1d1e1223f15f700e0b335a4b320ce304029b07da3dd507608f7db"
+      },
+      {
+        "status": "SHARD_PREPARED",
+        "shardId": "shard_beta",
+        "signatures": [
+          {
+            "nodeId": "node_b0",
+            "sig": "f4417b528ae127e45b9918bdcdaa229b43b7a0714022afd36044c57a49c4b1eb"
+          },
+          {
+            "nodeId": "node_b1",
+            "sig": "2c15a65235d72ef59bff5d4b6fc8094036ce5329c583e07293a6d6b46d65dc76"
+          },
+          {
+            "nodeId": "node_b2",
+            "sig": "c7b0212fd425fcd05aa85280cbc62fd84a6e77e70c8ad49c18ae92a872086347"
+          },
+          {
+            "nodeId": "node_b3",
+            "sig": "95caf180f244a3b0ee9151d8070c3eb44a2410a3054d3d291c9e879bd37eef59"
+          }
+        ],
+        "qcId": "d004d39834d2f1e510be4e576f91371e40b11318391ddca30db557c8410877fd"
+      }
+    ]
+  },
+  "conflictAbortTx": {
+    "success": false,
+    "status": "GLOBAL_ABORTED",
+    "failedShard": "shard_alpha"
+  },
+  "verdict": "PASS"
+}

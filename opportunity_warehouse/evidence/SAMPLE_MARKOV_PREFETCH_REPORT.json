@@ -1,0 +1,36 @@
+{
+  "prefetchPlan": {
+    "prefix": "system verification",
+    "horizon": 3,
+    "prefetchedSequence": "complete all test",
+    "prefetchedTokens": [
+      {
+        "step": 1,
+        "token": "complete",
+        "probability": 1,
+        "order": "trigram"
+      },
+      {
+        "step": 2,
+        "token": "all",
+        "probability": 0.6667,
+        "order": "trigram"
+      },
+      {
+        "step": 3,
+        "token": "test",
+        "probability": 0.5,
+        "order": "trigram"
+      }
+    ],
+    "meanConfidence": 0.7222
+  },
+  "evaluation": {
+    "hitRate": 1,
+    "hits": 5,
+    "evaluatedTransitions": 5,
+    "topK": 3
+  },
+  "vocabularySize": 23,
+  "totalTokensTrained": 31
+}

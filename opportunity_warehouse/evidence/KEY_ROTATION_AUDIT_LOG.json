@@ -1,0 +1,12 @@
+[
+  {
+    "secretHash": "e91bf800252ec202",
+    "timestamp": "2026-09-11T09:08:47.171Z",
+    "event": "INITIALIZED"
+  },
+  {
+    "secretHash": "e36b8cdc6e7411e8",
+    "timestamp": "2026-09-11T09:08:47.171Z",
+    "event": "ROTATED"
+  }
+]

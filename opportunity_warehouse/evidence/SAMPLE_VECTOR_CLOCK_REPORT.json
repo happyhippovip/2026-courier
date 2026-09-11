@@ -1,0 +1,16 @@
+{
+  "messageExchange": {
+    "agentA": {
+      "agent_A": 2
+    },
+    "agentB": {
+      "agent_B": 1,
+      "agent_A": 2
+    }
+  },
+  "concurrencyEvaluation": {
+    "relation": "CONCURRENT",
+    "resolutionWinner": "evt_update_01",
+    "resolutionReason": "DETERMINISTIC_AGENT_ID_TIEBREAK"
+  }
+}

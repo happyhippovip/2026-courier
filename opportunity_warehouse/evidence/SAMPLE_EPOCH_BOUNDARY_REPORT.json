@@ -1,0 +1,23 @@
+{
+  "timestamp": "2026-09-11T11:53:52.875Z",
+  "phase": 599,
+  "stats": {
+    "currentEpoch": 2,
+    "validatorsCount": 4,
+    "quorumSize": 3,
+    "certifiedEpochsCount": 1
+  },
+  "sampleTransition": {
+    "transitioned": true,
+    "certifiedEpoch": 1,
+    "newEpoch": 2,
+    "certHash": "0ea55bb3b1a7f1eacc1d84f5b431a23536c0b8d0e6f1bb2b62e680cf5bbef822",
+    "activeValidators": [
+      "node_0",
+      "node_1",
+      "node_2",
+      "node_3"
+    ]
+  },
+  "verdict": "BFT_EPOCH_BOUNDARY_ENGINE_VERIFIED_100_PERCENT"
+}

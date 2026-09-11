@@ -1,0 +1,20 @@
+{
+  "version": "STANDBY_CERTIFICATION_V247",
+  "timestamp": "2026-09-11T11:30:42.691Z",
+  "phase": 584,
+  "author": "Antigravity Autonomous Engine (Windows Lane)",
+  "scope": "WINDOWS_OFFLINE_VERIFIED",
+  "spendLimit": "EUR_0.00",
+  "componentsCertified": [
+    "bft_tx_pruning_engine",
+    "STANDBY_CERTIFICATION_V246"
+  ],
+  "propertiesVerified": {
+    "transactionPruning": "POST_QC_BODY_REMOVAL_80_PERCENT_SAVINGS_CONFIRMED",
+    "headerIntegrityCheck": "QC_ROOT_VERIFICATION_PRESERVED",
+    "retentionWindowPolicy": "BOUNDED_ACTIVE_HISTORY_GREEN"
+  },
+  "milestone": "QUINCENTENNIAL_EXPANSION_291_TEST_SUITES",
+  "totalExperimentsTracked": 193,
+  "verdict": "CERTIFIED_FAIL_CLOSED_GREEN"
+}

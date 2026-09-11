@@ -1,0 +1,28 @@
+{
+  "certificationVersion": "110.0.0",
+  "phase": 312,
+  "timestamp": "2026-09-11T10:24:04.619Z",
+  "status": "ACTIVE_STANDBY_VERIFIED",
+  "machineId": "WINDOWS_LANE_PRIMARY",
+  "laneRole": "COMMERCIAL_INTELLIGENCE_AND_ORDER_OBSERVATION",
+  "scopeBoundaries": {
+    "sharedWriterScope": "FORBIDDEN",
+    "macFileWrites": "FORBIDDEN",
+    "gitBranch": "windows/money-factory-p0",
+    "autonomousSpendLimitEur": 0,
+    "walletCreation": "FORBIDDEN",
+    "tradingActivity": "FORBIDDEN"
+  },
+  "orderInboxStatus": {
+    "path": "money_factory/inbox/orders",
+    "processedCount": 1,
+    "pendingCount": 0,
+    "settlementDaemon": "STANDBY_READY"
+  },
+  "readinessCheck": {
+    "totalTestSuites": 155,
+    "allPassing": true,
+    "symphonyTargetMet": false,
+    "symphonyTargetPendingCustomerPayment": true
+  }
+}

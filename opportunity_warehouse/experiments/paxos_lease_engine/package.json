@@ -1,0 +1,10 @@
+{
+  "name": "paxos-lease-engine",
+  "version": "1.0.0",
+  "description": "Multi-Agent Distributed Paxos Consensus & Lease Management Engine",
+  "main": "lib/paxos_lease_engine.js",
+  "scripts": {
+    "test": "node test_paxos_lease_engine.js"
+  },
+  "private": true
+}

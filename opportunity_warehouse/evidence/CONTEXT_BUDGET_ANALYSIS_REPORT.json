@@ -1,0 +1,32 @@
+{
+  "context_window_size": 32000,
+  "max_allowed_rules_tokens": 2560,
+  "total_rules_tokens": 85,
+  "percent_of_context_window": 0.3,
+  "is_over_budget": false,
+  "headroom_tokens": 2475,
+  "sections": [
+    {
+      "title": "General Preamble",
+      "estimated_tokens": 0,
+      "percent_of_rules": 0
+    },
+    {
+      "title": "System Architecture",
+      "estimated_tokens": 33,
+      "percent_of_rules": 38.8
+    },
+    {
+      "title": "Code Style Guidelines",
+      "estimated_tokens": 24,
+      "percent_of_rules": 28.2
+    },
+    {
+      "title": "Database Integration",
+      "estimated_tokens": 28,
+      "percent_of_rules": 32.9
+    }
+  ],
+  "recommendation": "Healthy: Rules occupy well within safe context budget limits.",
+  "analyzed_at": "2026-09-11T08:52:55.647Z"
+}

@@ -1,0 +1,21 @@
+{
+  "version": "STANDBY_CERTIFICATION_V207",
+  "timestamp": "2026-09-11T11:10:03.871Z",
+  "phase": 504,
+  "author": "Antigravity Autonomous Engine (Windows Lane)",
+  "scope": "WINDOWS_OFFLINE_VERIFIED",
+  "spendLimit": "EUR_0.00",
+  "componentsCertified": [
+    "aleph_hotstuff_engine",
+    "STANDBY_CERTIFICATION_V206"
+  ],
+  "propertiesVerified": {
+    "consensusTopology": "HYBRID_ALEPH_DAG_HOTSTUFF_3_CHAIN",
+    "byzantineFaultTolerance": "3F_PLUS_1_ASYNC_SAFETY",
+    "deterministicOrdering": "VERIFIED_CAUSAL_AND_CREATOR_SORTED",
+    "equivocationDefense": "FAIL_CLOSED_REJECTION"
+  },
+  "milestone": "QUINCENTENNIAL_PLUS_251_TEST_SUITES",
+  "totalExperimentsTracked": 153,
+  "verdict": "CERTIFIED_FAIL_CLOSED_GREEN"
+}

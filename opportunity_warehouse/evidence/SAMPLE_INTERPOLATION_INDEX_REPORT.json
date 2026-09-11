@@ -1,0 +1,14 @@
+{
+  "experiment": "interpolation_index_filter",
+  "phase": 493,
+  "timestamp": "2026-09-11T11:53:53.399Z",
+  "stats": {
+    "totalKeys": 150,
+    "minKey": 24,
+    "maxKey": 446,
+    "maxInterpolationSteps": 3
+  },
+  "testedLookupsCount": 150,
+  "allLookupsSuccessful": true,
+  "verdict": "PASS"
+}

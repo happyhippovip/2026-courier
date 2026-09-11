@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 290" width="720" height="290">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+  <rect width="720" height="290" rx="10" fill="#0d1117" stroke="#30363d" stroke-width="1" filter="url(#shadow)"/>
+  <path d="M 0 10 C 0 4.477 4.477 0 10 0 L 710 0 C 715.523 0 720 4.477 720 10 L 720 42 L 0 42 Z" fill="#161b22"/>
+  <line x1="0" y1="42" x2="720" y2="42" stroke="#30363d" stroke-width="1"/>
+  
+  <!-- Window Controls -->
+  <circle cx="20" cy="21" r="6" fill="#ff5f56"/>
+  <circle cx="40" cy="21" r="6" fill="#ffbd2e"/>
+  <circle cx="60" cy="21" r="6" fill="#27c93f"/>
+  
+  <!-- Header Title -->
+  <text x="360" y="25" fill="#8b949e" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12" font-weight="600" text-anchor="middle">agent-context-trimmer v1.0.0 — Context Bloat Audit</text>
+  
+  <!-- Terminal Content -->
+  <g>
+    <text x="24" y="86" fill="#58a6ff" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="13">$ npx agent-context-trimmer --audit</text>
+    <text x="24" y="106" fill="#d29922" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="13">=== CONTEXT TOKEN BLOAT AUDIT ===</text>
+    <text x="24" y="126" fill="#c9d1d9" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="13">Scanning workspace: C:\Users\lol\2026-workspace\courier</text>
+    <text x="24" y="146" fill="#c9d1d9" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="13">Found rules file: .cursorrules (14,280 tokens)</text>
+    <text x="24" y="166" fill="#c9d1d9" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="13">  - Framework instructions: 4,800 tokens (Identified duplicate)</text>
+    <text x="24" y="186" fill="#c9d1d9" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="13">  - General coding tips: 2,400 tokens (Standard model knowledge)</text>
+    <text x="24" y="206" fill="#d29922" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="13">Total Redundancy: 5,998 tokens (42.0% BLOAT)</text>
+    <text x="24" y="226" fill="#c9d1d9" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="13">Monthly API Waste: $26.80 / active developer</text>
+    <text x="24" y="246" fill="#c9d1d9" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="13">Amortization: 5.6 working days at €5.00 purchase</text>
+    <text x="24" y="266" fill="#2ea043" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="13">✔ AUDIT COMPLETE: 42% context compaction recommended.</text>
+  </g>
+</svg>

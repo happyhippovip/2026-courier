@@ -1,0 +1,41 @@
+{
+  "timestamp": "2026-09-11T11:53:53.610Z",
+  "phase": 553,
+  "metrics": {
+    "totalPoints": 7,
+    "leafCapacity": 2,
+    "rootBoundingBox": {
+      "minX": 1,
+      "maxX": 15,
+      "minY": 10,
+      "maxY": 95
+    },
+    "queryComplexity": "O(log N + k)_WORST_CASE_OPTIMAL",
+    "spatialIndex": "ORTHOGONAL_2D_PRIORITY_BOUNDED"
+  },
+  "sampleWindowResults": [
+    {
+      "x": 3,
+      "y": 50,
+      "data": "token_3_high_saliency"
+    },
+    {
+      "x": 7,
+      "y": 95,
+      "data": "token_7_peak_saliency"
+    }
+  ],
+  "top2": [
+    {
+      "x": 7,
+      "y": 95,
+      "data": "token_7_peak_saliency"
+    },
+    {
+      "x": 12,
+      "y": 85,
+      "data": "token_12_high_saliency"
+    }
+  ],
+  "verdict": "PR_TREE_FILTER_VERIFIED_100_PERCENT"
+}

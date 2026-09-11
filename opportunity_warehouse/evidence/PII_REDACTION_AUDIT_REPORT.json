@@ -1,0 +1,21 @@
+{
+  "timestamp": "2026-09-11T09:03:35.276Z",
+  "sampleRedactionReport": {
+    "redactedText": "Agent log: User [REDACTED_EMAIL] connected from [REDACTED_IP] with token Bearer [REDACTED_TOKEN]",
+    "redactionCount": 3,
+    "items": [
+      {
+        "type": "EMAIL",
+        "count": 1
+      },
+      {
+        "type": "IPV4",
+        "count": 1
+      },
+      {
+        "type": "BEARER",
+        "count": 1
+      }
+    ]
+  }
+}

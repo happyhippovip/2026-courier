@@ -1,0 +1,9 @@
+{
+  "timestamp": "2026-09-11T11:53:53.775Z",
+  "inputDimension": 4,
+  "projectedDimension": 3,
+  "similarityAB": 0.9941,
+  "similarityAC": 0.6079,
+  "fusedCentroidNorm": 1,
+  "alignmentVerified": true
+}

@@ -1,0 +1,27 @@
+{
+  "timestamp": "2026-09-11T11:53:53.985Z",
+  "phase": 549,
+  "metrics": {
+    "rootWeight": 5,
+    "maxDegree": 3,
+    "totalInserts": 6,
+    "balancingModel": "WEIGHT_BALANCED_B_TREE_INVARIANT",
+    "rebalanceCostAmortized": "O(1)",
+    "lookupComplexity": "O(log_b N)"
+  },
+  "sampleRange": [
+    {
+      "key": 10,
+      "value": "val_10"
+    },
+    {
+      "key": 15,
+      "value": "val_15"
+    },
+    {
+      "key": 20,
+      "value": "val_20"
+    }
+  ],
+  "verdict": "WEIGHT_BALANCED_BTREE_FILTER_VERIFIED_100_PERCENT"
+}

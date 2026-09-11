@@ -1,0 +1,10 @@
+{
+  "name": "raft-leader-election",
+  "version": "1.0.0",
+  "description": "Multi-Agent Raft Consensus Leader Election Engine",
+  "main": "lib/raft_leader_election.js",
+  "scripts": {
+    "test": "node test_raft_leader_election.js"
+  },
+  "private": true
+}

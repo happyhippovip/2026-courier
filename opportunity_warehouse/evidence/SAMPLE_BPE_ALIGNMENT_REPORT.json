@@ -1,0 +1,47 @@
+{
+  "originalLength": 500,
+  "cutOffset": 129,
+  "actualPruneRatio": 25.8,
+  "selectedBoundary": {
+    "lineIndex": 3,
+    "charOffset": 129,
+    "safetyLevel": "HIGH",
+    "reason": "HEADING_BOUNDARY"
+  },
+  "tokenEstimatesBefore": {
+    "gpt-4o": {
+      "estimatedTokens": 130,
+      "charsPerToken": 3.85
+    },
+    "claude-3-5": {
+      "estimatedTokens": 137,
+      "charsPerToken": 3.65
+    },
+    "gemini-1-5": {
+      "estimatedTokens": 122,
+      "charsPerToken": 4.1
+    },
+    "llama-3": {
+      "estimatedTokens": 135,
+      "charsPerToken": 3.7
+    }
+  },
+  "tokenEstimatesAfter": {
+    "gpt-4o": {
+      "estimatedTokens": 96,
+      "charsPerToken": 3.85
+    },
+    "claude-3-5": {
+      "estimatedTokens": 102,
+      "charsPerToken": 3.65
+    },
+    "gemini-1-5": {
+      "estimatedTokens": 90,
+      "charsPerToken": 4.1
+    },
+    "llama-3": {
+      "estimatedTokens": 100,
+      "charsPerToken": 3.7
+    }
+  }
+}

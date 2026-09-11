@@ -1,0 +1,71 @@
+{
+  "mission_id": "WINDOWS_COMMERCIAL_INTELLIGENCE_SIDE_MISSION_V1",
+  "timestamp_utc": "2026-09-11T08:21:47.241Z",
+  "target_capability": "agent-context-trimmer (LLM Context Window Bloat Reduction)",
+  "price_point_eur": 5,
+  "evaluated_segments": [
+    {
+      "segment_id": "BUYER-01-AI-DEV-CURSOR-CLAUDE",
+      "title": "AI-Assisted Power Developers (Cursor, Claude Code, Cline, Antigravity)",
+      "pain": "Exponential context window inflation during multi-turn loops. Logs, test traces, and redundant tool outputs fill 100k+ tokens, costing $0.10-$0.30 per turn and causing reasoning degradation (Lost-in-the-middle).",
+      "urgency": "HIGH (Daily cash drain and productivity drop)",
+      "current_alternatives": [
+        "Manual session restart / wiping context (destroys continuity)",
+        "RTK (Rust Token Killer) - requires Rust toolchain / CLI proxy setup",
+        "Anthropic Prompt Caching (mitigates cost, but does not prevent reasoning degradation)"
+      ],
+      "willingness_to_pay": "VERY_HIGH",
+      "why_eur_5": "€5.00 is an impulse purchase threshold for working developers. It is less than the cost of 2 days of wasted API tokens.",
+      "trust_requirement": "CRITICAL: Must be 100% offline, inspectable, zero external network calls, zero npm supply chain risks.",
+      "purchase_friction": "LOWEST if delivery is single inspectable JS script via Gumroad with zero dependencies.",
+      "verdict": "PRIMARY_RECOMMENDED_BUYER"
+    },
+    {
+      "segment_id": "BUYER-02-FREELANCE-AGENCY-DEVS",
+      "title": "Freelancers & Boutique Agency Developers Billing Against Own API Keys",
+      "pain": "Client projects running agentic coding workflows consume personal OpenAI/Anthropic API budgets directly out of project profit margins.",
+      "urgency": "HIGH",
+      "current_alternatives": [
+        "Billing clients directly or cutting prompt frequency"
+      ],
+      "willingness_to_pay": "HIGH (Immediate deductible expense)",
+      "why_eur_5": "Instant ROI on the very first client session.",
+      "trust_requirement": "HIGH: Privacy compliance for client codebase.",
+      "purchase_friction": "LOW via Gumroad invoice.",
+      "verdict": "STRONG_SECONDARY_BUYER"
+    },
+    {
+      "segment_id": "BUYER-03-LOCAL-LLM-ENTHUSIASTS",
+      "title": "Local LLM / r/LocalLLaMA Developers",
+      "pain": "Context bloat exceeds local GPU VRAM (8GB/16GB VRAM), causing token generation to drop from 40 tok/s to 3 tok/s or OOM crashes.",
+      "urgency": "CRITICAL (Hardware barrier)",
+      "current_alternatives": [
+        "GGUF quantization, strict n_ctx limits, open source python scripts"
+      ],
+      "willingness_to_pay": "LOW to MODERATE (Strong cultural preference for open-source software)",
+      "why_eur_5": "Will pay only if tool is drastically simpler and faster than compiling python/rust packages.",
+      "trust_requirement": "VERY HIGH (Open source scrutiny)",
+      "purchase_friction": "HIGH (Resistance to closed-source Gumroad binaries)",
+      "verdict": "ENGAGEMENT_TARGET_BUT_NOT_FIRST_PAYER"
+    },
+    {
+      "segment_id": "BUYER-04-ENTERPRISE-DEVELOPERS",
+      "title": "Enterprise Software Engineers",
+      "pain": "Context bloat across large monorepo agent sessions.",
+      "urgency": "MODERATE",
+      "current_alternatives": [
+        "Internal platform engineering tools"
+      ],
+      "willingness_to_pay": "HIGH (Company card)",
+      "why_eur_5": "Corporate procurement barrier makes purchasing a €5 Gumroad product on personal expense report difficult.",
+      "trust_requirement": "IMPOSSIBLE (Requires SOC2/Enterprise vendor audit)",
+      "purchase_friction": "MAXIMUM",
+      "verdict": "REJECTED_FOR_FIRST_EUR5"
+    }
+  ],
+  "synthesis": {
+    "primary_target": "BUYER-01-AI-DEV-CURSOR-CLAUDE",
+    "secondary_target": "BUYER-02-FREELANCE-AGENCY-DEVS",
+    "rationale": "Power developers running Claude Code / Cursor have personal financial agency, acute daily token cost pain, and €5 is below their deliberation threshold."
+  }
+}

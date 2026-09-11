@@ -1,0 +1,27 @@
+{
+  "capacity": 500,
+  "leakRate": 100,
+  "totalConsumed": 600,
+  "totalRejected": 1,
+  "finalFillPercentage": 80,
+  "sampleExecutions": [
+    {
+      "allowed": true,
+      "tokensRequested": 300,
+      "currentWater": 300,
+      "waitMs": 0
+    },
+    {
+      "allowed": false,
+      "tokensRequested": 300,
+      "currentWater": 300,
+      "waitMs": 1000
+    },
+    {
+      "allowed": true,
+      "tokensRequested": 300,
+      "currentWater": 400,
+      "waitMs": 0
+    }
+  ]
+}

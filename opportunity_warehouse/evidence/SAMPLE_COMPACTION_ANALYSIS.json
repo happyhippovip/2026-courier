@@ -1,0 +1,11 @@
+{
+  "compactedText": "SYSTEM: Build the microservice.\nError: DB Connection refused\\n    at PGPool.connect (pg.js:42:15)\\n    at Transaction.begin (tx.js:105:8)\nStep 1: Retrying database handshake...\nError: DB Connection refused\\n    at PGPool.connect (pg.js:42:15)\\n    at Transaction.begin (tx.js:105:8)\nStep 2: Checking fallback connection pool...\nError: DB Connection refused\\n    at PGPool.connect (pg.js:42:15)\\n    at Transaction.begin (tx.js:105:8)\nStep 3: Verification complete.",
+  "originalTokens": 117,
+  "compactedTokens": 116,
+  "tokensSaved": 1,
+  "savingsPercentage": 0.85,
+  "initialFragmentation": 0.222,
+  "finalFragmentation": 0.286,
+  "coalescedTracesCount": 0,
+  "tracesSummary": {}
+}

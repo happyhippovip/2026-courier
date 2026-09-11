@@ -1,0 +1,12 @@
+{
+  "certificationId": "STANDBY_CERTIFICATION_V267",
+  "phase": 623,
+  "subsystem": "bft_shard_rebalancing_consensus_engine",
+  "timestamp": "2026-09-11T11:40:22.500Z",
+  "verifiedComponents": [
+    "bft_shard_rebalancing_engine",
+    "SAMPLE_SHARD_REBALANCING_REPORT.json"
+  ],
+  "integrityHash": "269d02da51a9db60b708708836924a0780578bce91c9d2c604ba50e958205882",
+  "status": "GREEN_ACTIVE"
+}

@@ -1,0 +1,52 @@
+{
+  "experiment": "dynamic_resharding_engine",
+  "phase": 491,
+  "timestamp": "2026-09-11T11:53:53.277Z",
+  "initialShard": "shard_genesis",
+  "splitThreshold": 8,
+  "reconfigRecord": {
+    "event": "DYNAMIC_BFT_SPLIT",
+    "originalShard": "shard_genesis",
+    "newShards": [
+      "shard_genesis_left",
+      "shard_genesis_right"
+    ],
+    "newRanges": [
+      [
+        0,
+        500
+      ],
+      [
+        501,
+        1000
+      ]
+    ],
+    "snapshotCertificate": {
+      "shardId": "shard_genesis",
+      "digest": "27b9d0395dae3323d77f225e019bc92abc8aa898654eff0cd62da47fddbc5edc",
+      "signatures": [
+        "b58e1cbd24c2f50e17f6c6f778a9bb53af28297ce4c519612389a8f6948e0c76",
+        "c8d6abb7cb3665ec03ff32c6098fe14cb5c555eab7fc91a07f85689f3b4a7fcd",
+        "9e2872e57b4238c01eac7add5ecd91d7a2a571835534b0ea0c8dda1a3c0dc01c"
+      ]
+    },
+    "timestamp": "2026-09-11T11:53:53.277Z"
+  },
+  "finalRoutingTable": [
+    {
+      "shardId": "shard_genesis_left",
+      "range": [
+        0,
+        500
+      ]
+    },
+    {
+      "shardId": "shard_genesis_right",
+      "range": [
+        501,
+        1000
+      ]
+    }
+  ],
+  "verdict": "PASS"
+}

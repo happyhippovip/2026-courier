@@ -1,0 +1,28 @@
+{
+  "timestamp": "2026-09-11T11:53:52.999Z",
+  "phase": 547,
+  "stats": {
+    "nodeCount": 4,
+    "activeViews": {
+      "node_0": 3,
+      "node_1": 3,
+      "node_2": 3,
+      "node_3": 3
+    },
+    "totalTimeoutsEmitted": 3,
+    "totalTimeoutCertificates": 1,
+    "totalProposals": 2,
+    "totalQCs": 3,
+    "committedBlocksCount": 1
+  },
+  "sampleCommit": {
+    "committed": true,
+    "blockHash": "4721091da14d859a40957bd38a17e69cbbb41e26ac0a60658785a6f08ea4b9fb",
+    "view": 3,
+    "txs": [
+      "tx_recovery_01",
+      "tx_recovery_02"
+    ]
+  },
+  "verdict": "BFT_VIEW_SYNC_ENGINE_VERIFIED_100_PERCENT"
+}

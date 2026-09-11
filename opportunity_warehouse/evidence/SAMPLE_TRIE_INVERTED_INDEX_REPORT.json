@@ -1,0 +1,36 @@
+{
+  "timestamp": "2026-09-11T11:53:53.928Z",
+  "phase": 299,
+  "component": "trie_inverted_index",
+  "indexedDocuments": 3,
+  "query": {
+    "termA": "autonomous",
+    "termB": "agent",
+    "maxDistance": 3
+  },
+  "results": [
+    {
+      "docId": "doc-1",
+      "minDistance": 1,
+      "matches": [
+        {
+          "posA": 1,
+          "posB": 2,
+          "distance": 1
+        }
+      ]
+    },
+    {
+      "docId": "doc-2",
+      "minDistance": 2,
+      "matches": [
+        {
+          "posA": 3,
+          "posB": 5,
+          "distance": 2
+        }
+      ]
+    }
+  ],
+  "verification": "100% PASS"
+}

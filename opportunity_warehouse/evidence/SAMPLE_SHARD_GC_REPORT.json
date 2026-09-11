@@ -1,0 +1,8 @@
+{
+  "experiment": "bft_shard_gc_engine",
+  "timestamp": "2026-09-11T11:53:52.944Z",
+  "shardId": "shard_alpha",
+  "totalPrunedRecords": 1,
+  "lastPruneCount": 2,
+  "status": "VERIFIED"
+}

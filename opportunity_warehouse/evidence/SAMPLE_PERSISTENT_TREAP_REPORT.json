@@ -1,0 +1,30 @@
+{
+  "timestamp": "2026-09-11T11:53:53.567Z",
+  "phase": 545,
+  "metrics": {
+    "totalSnapshots": 2,
+    "nodeAllocations": 17,
+    "persistenceModel": "FUNCTIONAL_IMMUTABLE_STRUCTURAL_SHARING",
+    "complexity": {
+      "search": "O(log N)",
+      "insert": "O(log N)",
+      "splitMerge": "O(log N)",
+      "spacePerVersion": "O(log N)"
+    }
+  },
+  "v1SnapshotSize": 3,
+  "v2SnapshotSize": 4,
+  "rangeResults": [
+    {
+      "key": 10,
+      "value": "token_ten",
+      "priority": 95
+    },
+    {
+      "key": 15,
+      "value": "token_fifteen",
+      "priority": 99
+    }
+  ],
+  "verdict": "PERSISTENT_TREAP_FILTER_VERIFIED_100_PERCENT"
+}

@@ -1,0 +1,12 @@
+{
+  "experiment": "minhash_similarity_estimator",
+  "phase": 429,
+  "timestamp": "2026-09-11T11:53:53.484Z",
+  "dimensionK": 128,
+  "setASize": 100,
+  "setBSize": 100,
+  "estimatedJaccardAB": 0.3984375,
+  "trueJaccardAB": 0.3333333333333333,
+  "estimatedJaccardAC": 0,
+  "verdict": "PASS"
+}

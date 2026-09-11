@@ -1,0 +1,15 @@
+{
+  "timestamp": "2026-09-11T11:53:53.614Z",
+  "sizeBits": 1024,
+  "totalBytes": 128,
+  "itemCount": 5,
+  "falsePositiveRate": 0,
+  "sampleItems": [
+    "tool_call:poll_orders:turn_1",
+    "order_receipt:EUR5:tx_99182",
+    "mutex_lock:0x4910",
+    "user_intent:check_status",
+    "safety_gate:spend_zero"
+  ],
+  "bloomFilterVerified": true
+}

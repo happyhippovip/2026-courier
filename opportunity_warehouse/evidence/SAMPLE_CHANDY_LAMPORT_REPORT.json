@@ -1,0 +1,25 @@
+{
+  "snapshotSummary": {
+    "processCount": 2,
+    "channelCount": 2
+  },
+  "globalSnapshot": {
+    "processStates": {
+      "Agent_A": {
+        "role": "buyer",
+        "balance": 95
+      },
+      "Agent_B": {
+        "role": "seller",
+        "balance": 0,
+        "lastReceived": {
+          "transferEUR": 5
+        }
+      }
+    },
+    "channelStates": {
+      "Agent_B->Agent_A": [],
+      "Agent_A->Agent_B": []
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "total_lines_analyzed": 5,
+  "conflicts_detected": 2,
+  "conflicts": [
+    {
+      "topic": "TypeScript Typing",
+      "description": "Conflict between strict type safety and permissive dynamic typing",
+      "rule_a": "1. Always use strict typing and strict mode in all modules.",
+      "rule_b": "2. For scripts and rapid prototyping, allow any to save time.",
+      "severity": "HIGH_HALLUCINATION_RISK"
+    },
+    {
+      "topic": "Paradigm Preference",
+      "description": "Conflict between functional programming and object-oriented class hierarchies",
+      "rule_a": "3. Always structure code with functional composition and avoid classes.",
+      "rule_b": "4. All services must inherit from BaseService class hierarchy.",
+      "severity": "HIGH_HALLUCINATION_RISK"
+    }
+  ],
+  "analyzed_at": "2026-09-11T08:51:53.446Z"
+}

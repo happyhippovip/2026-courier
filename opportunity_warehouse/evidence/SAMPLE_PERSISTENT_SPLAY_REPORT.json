@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-09-11T11:53:53.552Z",
+  "phase": 573,
+  "metrics": {
+    "totalSnapshots": 2,
+    "nodeAllocations": 5,
+    "amortizedAccess": "O(log N)",
+    "cachingProperty": "SELF_ADJUSTING_FREQUENT_QUERY_LOCALITY"
+  },
+  "v1Size": 3,
+  "v2RootKey": 10,
+  "verdict": "PERSISTENT_SPLAY_TREE_FILTER_VERIFIED_100_PERCENT"
+}

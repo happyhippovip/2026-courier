@@ -1,0 +1,10 @@
+{
+  "name": "raft-joint-consensus",
+  "version": "1.0.0",
+  "description": "Multi-Agent Distributed Raft Joint Consensus Engine",
+  "main": "lib/raft_joint_consensus.js",
+  "scripts": {
+    "test": "node test_raft_joint_consensus.js"
+  },
+  "private": true
+}

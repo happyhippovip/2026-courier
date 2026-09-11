@@ -1,0 +1,30 @@
+{
+  "graphSummary": {
+    "totalEntities": 2,
+    "totalLinks": 2,
+    "antecedentTurns": [
+      0
+    ]
+  },
+  "links": [
+    {
+      "turnIndex": 1,
+      "mention": "the order",
+      "category": "transaction",
+      "antecedentEntity": "€5.00",
+      "antecedentTurn": 0
+    },
+    {
+      "turnIndex": 3,
+      "mention": "it",
+      "category": "singular_concept",
+      "antecedentEntity": "€5.00",
+      "antecedentTurn": 0
+    }
+  ],
+  "safePruneResult": {
+    "originalCount": 4,
+    "retainedCount": 2,
+    "evictedCount": 2
+  }
+}

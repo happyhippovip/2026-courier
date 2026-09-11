@@ -1,0 +1,10 @@
+{
+  "name": "succinct-cst-evaluator",
+  "version": "1.0.0",
+  "description": "Context Window Token Succinct CST LCP-Array Evaluator",
+  "main": "lib/succinct_cst_evaluator.js",
+  "scripts": {
+    "test": "node test_succinct_cst_evaluator.js"
+  },
+  "private": true
+}

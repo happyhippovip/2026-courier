@@ -1,0 +1,27 @@
+{
+  "experiment": "wavelet_tree_quantile",
+  "phase": 465,
+  "timestamp": "2026-09-11T11:53:53.977Z",
+  "sequenceLength": 14,
+  "alphabetMax": 100,
+  "minFound": 5,
+  "maxFound": 99,
+  "medianFound": 34,
+  "subrangeTest": {
+    "range": [
+      2,
+      7
+    ],
+    "k0": 12,
+    "k2": 34,
+    "k5": 99
+  },
+  "rangeCountTest": {
+    "valRange": [
+      10,
+      40
+    ],
+    "occurrences": 6
+  },
+  "verdict": "PASS"
+}

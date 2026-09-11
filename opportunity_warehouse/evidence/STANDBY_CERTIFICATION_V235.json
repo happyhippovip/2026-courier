@@ -1,0 +1,20 @@
+{
+  "version": "STANDBY_CERTIFICATION_V235",
+  "timestamp": "2026-09-11T11:21:19.448Z",
+  "phase": 560,
+  "author": "Antigravity Autonomous Engine (Windows Lane)",
+  "scope": "WINDOWS_OFFLINE_VERIFIED",
+  "spendLimit": "EUR_0.00",
+  "componentsCertified": [
+    "bft_shared_ledger_compaction_engine",
+    "STANDBY_CERTIFICATION_V234"
+  ],
+  "propertiesVerified": {
+    "ledgerCompaction": "PRUNED_CHECKPOINT_2F_PLUS_1_THRESHOLD_CONFIRMED",
+    "storageBound": "CONSTANT_SIZE_HISTORY_BOUNDED_GREEN",
+    "failClosedIneligibleGuard": "NON_CHECKPOINT_HEIGHT_REJECTED"
+  },
+  "milestone": "QUINCENTENNIAL_EXPANSION_279_TEST_SUITES",
+  "totalExperimentsTracked": 181,
+  "verdict": "CERTIFIED_FAIL_CLOSED_GREEN"
+}

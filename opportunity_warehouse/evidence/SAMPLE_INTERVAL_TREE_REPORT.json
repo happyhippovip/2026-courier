@@ -1,0 +1,34 @@
+{
+  "experiment": "interval_tree_filter",
+  "phase": 393,
+  "timestamp": "2026-09-11T11:53:53.402Z",
+  "totalIndexedIntervals": 6,
+  "testedQueries": [
+    {
+      "queryRange": [
+        1000,
+        2600
+      ],
+      "hits": [
+        "dialogue_turn_1",
+        "dialogue_turn_2",
+        "episodic_memory_cache"
+      ]
+    },
+    {
+      "pointQuery": 450,
+      "hits": [
+        "episodic_memory_cache",
+        "system_core_prompt"
+      ]
+    },
+    {
+      "queryRange": [
+        7000,
+        8000
+      ],
+      "hits": []
+    }
+  ],
+  "verdict": "PASS"
+}

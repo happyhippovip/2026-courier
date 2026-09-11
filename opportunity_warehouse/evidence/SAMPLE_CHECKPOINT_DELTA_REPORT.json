@@ -1,0 +1,32 @@
+{
+  "timestamp": "2026-09-11T11:53:53.084Z",
+  "metrics": {
+    "fullTokens": 143,
+    "deltaTokens": 66,
+    "tokensSaved": 77,
+    "savingsPct": 53.8,
+    "deltaSizeRatio": 0.46
+  },
+  "deltaSample": {
+    "agentId": {
+      "$ref": "$.agentId"
+    },
+    "sessionTimestamp": {
+      "$ref": "$.sessionTimestamp"
+    },
+    "userProfile": {
+      "$ref": "$.userProfile"
+    },
+    "systemPromptConfig": {
+      "$ref": "$.systemPromptConfig"
+    },
+    "currentTask": {
+      "stepIndex": 2,
+      "status": "IN_PROGRESS",
+      "completedItems": [
+        "step_1_verified"
+      ]
+    }
+  },
+  "verifiedLossless": true
+}

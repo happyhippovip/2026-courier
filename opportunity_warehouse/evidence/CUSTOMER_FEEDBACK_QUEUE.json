@@ -1,0 +1,24 @@
+[
+  {
+    "ticket_id": "TCK-1789116647229-519",
+    "timestamp_utc": "2026-09-11T08:50:47.229Z",
+    "customer_email": "lead@cursor-ai.dev",
+    "category": "RULE_PARSER",
+    "urgency": "NORMAL",
+    "environment": "macOS Darwin arm64",
+    "summary": "Add support for Claude Code CLAUDE.md multi-section compression",
+    "full_message": "Add support for Claude Code CLAUDE.md multi-section compression",
+    "triage_status": "QUEUED_FOR_INSPECTION"
+  },
+  {
+    "ticket_id": "TCK-1789116647229-417",
+    "timestamp_utc": "2026-09-11T08:50:47.229Z",
+    "customer_email": "director@engineering-firm.com",
+    "category": "INTEGRATION",
+    "urgency": "HIGH_COMMERCIAL_VALUE",
+    "environment": "Ubuntu Linux 24.04",
+    "summary": "We need enterprise B2B team licensing and CI/CD secret scanning integration",
+    "full_message": "We need enterprise B2B team licensing and CI/CD secret scanning integration",
+    "triage_status": "QUEUED_FOR_INSPECTION"
+  }
+]

@@ -1,0 +1,27 @@
+{
+  "experiment": "compressed_suffix_array_evaluator",
+  "timestamp": "2026-09-11T11:53:53.113Z",
+  "tokenCount": 8,
+  "compressionRatio": 0.8056,
+  "queries": [
+    {
+      "pattern": [
+        "tok_a",
+        "tok_b"
+      ],
+      "count": 3,
+      "locations": [
+        0,
+        3,
+        6
+      ]
+    },
+    {
+      "pattern": [
+        "tok_non_existent"
+      ],
+      "count": 0
+    }
+  ],
+  "status": "VERIFIED"
+}

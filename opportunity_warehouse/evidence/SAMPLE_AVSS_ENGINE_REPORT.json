@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-09-11T11:53:52.845Z",
+  "phase": 391,
+  "component": "avss_engine",
+  "primeModulusP": 1019,
+  "fieldOrderQ": 509,
+  "generatorG": 4,
+  "thresholdT": 2,
+  "sharesCount": 5,
+  "shareVerificationVerified": true,
+  "secretReconstructionVerified": true,
+  "verification": "100% PASS"
+}

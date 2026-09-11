@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-09-11T11:53:53.564Z",
+  "phase": 577,
+  "metrics": {
+    "totalSnapshots": 1,
+    "nodeAllocations": 20,
+    "dequeOperations": "O(log N)_MIN_AND_MAX",
+    "structuralPersistence": "FUNCTIONAL_CARTEISAN_TREAP"
+  },
+  "v1Size": 4,
+  "v3Size": 2,
+  "verdict": "PERSISTENT_TREAP_DEQUE_FILTER_VERIFIED_100_PERCENT"
+}

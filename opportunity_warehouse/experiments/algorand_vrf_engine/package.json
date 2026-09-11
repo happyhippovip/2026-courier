@@ -1,0 +1,10 @@
+{
+  "name": "algorand-vrf-engine",
+  "version": "1.0.0",
+  "description": "Multi-Agent Distributed Algorand-Style VRF Consensus Engine",
+  "main": "lib/algorand_vrf_engine.js",
+  "scripts": {
+    "test": "node test_algorand_vrf_engine.js"
+  },
+  "private": true
+}

@@ -1,0 +1,18 @@
+{
+  "timestamp": "2026-09-11T11:53:53.541Z",
+  "phase": 319,
+  "component": "pbft_consensus_coordinator",
+  "clusterSize": 4,
+  "toleratedFailuresF": 1,
+  "byzantineNodes": [
+    "node-3"
+  ],
+  "consensusResult": {
+    "txId": "tx-pbft-900",
+    "clusterSize": 4,
+    "honestNodes": 3,
+    "allHonestCommitted": true,
+    "status": "COMMITTED"
+  },
+  "verification": "100% PASS"
+}

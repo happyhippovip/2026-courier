@@ -1,0 +1,10 @@
+{
+  "timestamp": "2026-09-11T11:53:53.260Z",
+  "phase": 323,
+  "component": "distributed_snapshot_v2",
+  "snapshotId": "snap-101",
+  "nodesParticipating": 3,
+  "globalTokenSumRecorded": 750,
+  "inFlightCapturedCount": 1,
+  "verification": "100% PASS"
+}

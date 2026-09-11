@@ -1,0 +1,61 @@
+{
+  "stats": {
+    "capacityK": 3,
+    "retainedCount": 3,
+    "totalIngested": 5,
+    "totalEvicted": 2,
+    "minSaliencyRetained": 0.9
+  },
+  "retainedItemsSaliency": [
+    {
+      "id": "pinned_invariant",
+      "text": "CORE INVARIANT: Spend strictly EUR 0.00",
+      "saliency": 0.1,
+      "effectiveSaliency": null,
+      "sequenceIndex": 2,
+      "pinned": true
+    },
+    {
+      "id": "item_4",
+      "text": "Very high priority settlement trigger",
+      "saliency": 0.95,
+      "effectiveSaliency": 0.95,
+      "sequenceIndex": 4,
+      "pinned": false
+    },
+    {
+      "id": "item_3",
+      "text": "High priority customer order spec",
+      "saliency": 0.9,
+      "effectiveSaliency": 0.9,
+      "sequenceIndex": 3,
+      "pinned": false
+    }
+  ],
+  "retainedItemsChronological": [
+    {
+      "id": "pinned_invariant",
+      "text": "CORE INVARIANT: Spend strictly EUR 0.00",
+      "saliency": 0.1,
+      "effectiveSaliency": null,
+      "sequenceIndex": 2,
+      "pinned": true
+    },
+    {
+      "id": "item_3",
+      "text": "High priority customer order spec",
+      "saliency": 0.9,
+      "effectiveSaliency": 0.9,
+      "sequenceIndex": 3,
+      "pinned": false
+    },
+    {
+      "id": "item_4",
+      "text": "Very high priority settlement trigger",
+      "saliency": 0.95,
+      "effectiveSaliency": 0.95,
+      "sequenceIndex": 4,
+      "pinned": false
+    }
+  ]
+}

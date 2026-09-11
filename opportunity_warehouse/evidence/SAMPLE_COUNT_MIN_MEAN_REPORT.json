@@ -1,0 +1,23 @@
+{
+  "experiment": "count_min_mean_sketch",
+  "phase": 445,
+  "timestamp": "2026-09-11T11:53:53.219Z",
+  "width": 128,
+  "depth": 5,
+  "totalEvents": 1670,
+  "testedEstimates": {
+    "high": {
+      "actual": 500,
+      "estimated": 500
+    },
+    "med": {
+      "actual": 150,
+      "estimated": 144
+    },
+    "zero": {
+      "actual": 0,
+      "estimated": 0
+    }
+  },
+  "verdict": "PASS"
+}

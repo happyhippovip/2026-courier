@@ -1,0 +1,28 @@
+{
+  "timestamp": "2026-09-11T11:53:52.909Z",
+  "phase": 527,
+  "stats": {
+    "nodeCount": 4,
+    "storedBatches": 1,
+    "certifiedPoAs": 1,
+    "blocksCount": 4,
+    "committedBlocksCount": 1,
+    "totalCommittedTxs": 3
+  },
+  "sampleCommit": {
+    "committed": true,
+    "mode": "QUORUM_STORE_HOTSTUFF_3CHAIN_COMMIT",
+    "view": 1,
+    "blockHash": "4a74585d6191fd626e5c323574da6a81364e1a3ee394b29adc2282a493c0fbd1",
+    "poaBatchIds": [
+      "batch_p0_001"
+    ],
+    "committedTxs": [
+      "tx_qs_01",
+      "tx_qs_02",
+      "tx_qs_03"
+    ],
+    "totalCommittedTxs": 3
+  },
+  "verdict": "BFT_QUORUM_STORE_ENGINE_VERIFIED_100_PERCENT"
+}

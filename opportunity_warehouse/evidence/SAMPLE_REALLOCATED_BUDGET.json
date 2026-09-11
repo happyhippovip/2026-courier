@@ -1,0 +1,37 @@
+{
+  "timestamp": "2026-09-11T09:19:12.168Z",
+  "globalCeilingTokens": 16000,
+  "summary": {
+    "totalInitialAllocated": 13500,
+    "totalFinalAllocated": 12677,
+    "totalConsumed": 10750,
+    "surplusHarvested": 2750,
+    "withinCeiling": true
+  },
+  "tasks": [
+    {
+      "id": "context_setup",
+      "priority": 1,
+      "initialBudget": 3500,
+      "consumedTokens": 950,
+      "reallocatedBudget": 1150,
+      "deltaTokens": -2350
+    },
+    {
+      "id": "ast_code_generation",
+      "priority": 5,
+      "initialBudget": 6000,
+      "consumedTokens": 6000,
+      "reallocatedBudget": 7527,
+      "deltaTokens": 1527
+    },
+    {
+      "id": "test_suite_execution",
+      "priority": 4,
+      "initialBudget": 4000,
+      "consumedTokens": 3800,
+      "reallocatedBudget": 4000,
+      "deltaTokens": 0
+    }
+  ]
+}

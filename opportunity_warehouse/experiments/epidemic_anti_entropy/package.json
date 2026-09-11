@@ -1,0 +1,10 @@
+{
+  "name": "epidemic-anti-entropy",
+  "version": "1.0.0",
+  "description": "Multi-Agent Distributed Epidemic Anti-Entropy Sync Engine",
+  "main": "lib/epidemic_anti_entropy.js",
+  "scripts": {
+    "test": "node test_epidemic_anti_entropy.js"
+  },
+  "private": true
+}

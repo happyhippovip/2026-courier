@@ -1,0 +1,16 @@
+{
+  "originalTokens": 69,
+  "prunedTokens": 32,
+  "tokensSaved": 37,
+  "pruneRatioPercent": 53.6,
+  "totalFunctionsFound": 4,
+  "retainedSymbols": [
+    "formatOutput",
+    "internalSanitize"
+  ],
+  "prunedFunctions": [
+    "obsoleteCsvParser",
+    "unusedLegacyAlgorithm"
+  ],
+  "prunedCode": "function formatOutput(data) {\n  return internalSanitize(data);\n}\n\nfunction internalSanitize(val) {\n  return String(val).trim();\n}"
+}

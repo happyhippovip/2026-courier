@@ -1,0 +1,21 @@
+{
+  "timestamp": "2026-09-11T09:13:51.223Z",
+  "rawMetrics": {
+    "lengthChars": 529,
+    "shannonEntropy": 4.6679,
+    "redundancyRatio": 0.2601,
+    "informationDensityScore": 67.21
+  },
+  "trimmedMetrics": {
+    "lengthChars": 213,
+    "shannonEntropy": 4.6241,
+    "redundancyRatio": 0,
+    "informationDensityScore": 84.07
+  },
+  "improvements": {
+    "charsSaved": 316,
+    "compressionRatioPercent": 59.74,
+    "redundancyReduction": 0.2601,
+    "densityGainPercent": 25.09
+  }
+}

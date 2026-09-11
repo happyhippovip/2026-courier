@@ -1,0 +1,27 @@
+{
+  "experiment": "dumbo_bft_consensus",
+  "phase": 443,
+  "timestamp": "2026-09-11T11:53:53.270Z",
+  "totalNodes": 4,
+  "committeeSize": 2,
+  "quorum": 3,
+  "finalizedEpochsCount": 1,
+  "latestEpoch": {
+    "epoch": 1,
+    "selectedCommittee": [
+      "node_0",
+      "node_1"
+    ],
+    "totalCommittedTxs": 2,
+    "committedTxs": [
+      {
+        "tx": "solvency_audit_check"
+      },
+      {
+        "tx": "settle_eur5_commercial_order"
+      }
+    ],
+    "finalizedAt": "2026-09-11T11:53:53.270Z"
+  },
+  "verdict": "PASS"
+}

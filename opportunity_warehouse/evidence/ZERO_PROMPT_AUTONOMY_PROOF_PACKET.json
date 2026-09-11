@@ -1,0 +1,24 @@
+{
+  "opportunity_id": "OP-ZERO-PROMPT-001",
+  "name": "ZERO_PROMPT_AUTONOMY_FOUNDATION",
+  "verified_on": "Windows",
+  "mac_portable": true,
+  "tools_tested": [
+    "run_command",
+    "read_file",
+    "write_file",
+    "delete_file"
+  ],
+  "verdict": "ZERO_PROMPT_PROVEN",
+  "timestamp_utc": "2026-09-09T07:16:06Z",
+  "components": {
+    "windows_installer": "install_windows_autonomy.ps1",
+    "mac_installer": "install_mac_autonomy.sh",
+    "templates": [
+      "windows_settings_template.json",
+      "mac_settings_template.json",
+      "ide_config_template.json"
+    ],
+    "pc_anchor": "C:\\Users\\lol\\Install-AntigravityZeroPrompt.bat"
+  }
+}

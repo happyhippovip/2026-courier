@@ -1,0 +1,17 @@
+{
+  "experiment": "narwhal_hotstuff2_engine",
+  "phase": 463,
+  "timestamp": "2026-09-11T11:53:53.513Z",
+  "validators": 4,
+  "quorum": 3,
+  "dagCertificatesCreated": 4,
+  "committedBlocks": 1,
+  "orderedTransactionCount": 4,
+  "linearizedTransactions": [
+    "tx_val1_a",
+    "tx_val0_a",
+    "tx_val0_b",
+    "tx_val2_round2"
+  ],
+  "verdict": "PASS"
+}

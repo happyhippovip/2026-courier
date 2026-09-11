@@ -1,0 +1,38 @@
+<svg width="600" height="240" viewBox="0 0 600 240" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100%" height="100%" fill="#0d1117" rx="8"/>
+  <text x="20" y="30" fill="#58a6ff" font-family="monospace" font-size="14" font-weight="bold">Attention Retention Curve: Claude 3.5 Sonnet</text>
+  <rect x="35" y="70" width="45" height="120" fill="#238636" rx="3"/>
+  <text x="57.5" y="206" fill="#8b949e" font-family="monospace" font-size="10" text-anchor="middle">0%</text>
+  <text x="57.5" y="65" fill="#c9d1d9" font-family="monospace" font-size="9" text-anchor="middle">100%</text>
+  <rect x="87" y="72" width="45" height="118" fill="#238636" rx="3"/>
+  <text x="109.5" y="206" fill="#8b949e" font-family="monospace" font-size="10" text-anchor="middle">10%</text>
+  <text x="109.5" y="67" fill="#c9d1d9" font-family="monospace" font-size="9" text-anchor="middle">99%</text>
+  <rect x="139" y="76" width="45" height="114" fill="#238636" rx="3"/>
+  <text x="161.5" y="206" fill="#8b949e" font-family="monospace" font-size="10" text-anchor="middle">20%</text>
+  <text x="161.5" y="71" fill="#c9d1d9" font-family="monospace" font-size="9" text-anchor="middle">95%</text>
+  <rect x="191" y="83" width="45" height="107" fill="#238636" rx="3"/>
+  <text x="213.5" y="206" fill="#8b949e" font-family="monospace" font-size="10" text-anchor="middle">30%</text>
+  <text x="213.5" y="78" fill="#c9d1d9" font-family="monospace" font-size="9" text-anchor="middle">89%</text>
+  <rect x="243" y="92" width="45" height="98" fill="#d29922" rx="3"/>
+  <text x="265.5" y="206" fill="#8b949e" font-family="monospace" font-size="10" text-anchor="middle">40%</text>
+  <text x="265.5" y="87" fill="#c9d1d9" font-family="monospace" font-size="9" text-anchor="middle">81%</text>
+  <rect x="295" y="104" width="45" height="86" fill="#da3633" rx="3"/>
+  <text x="317.5" y="206" fill="#8b949e" font-family="monospace" font-size="10" text-anchor="middle">50%</text>
+  <text x="317.5" y="99" fill="#c9d1d9" font-family="monospace" font-size="9" text-anchor="middle">72%</text>
+  <rect x="347" y="92" width="45" height="98" fill="#d29922" rx="3"/>
+  <text x="369.5" y="206" fill="#8b949e" font-family="monospace" font-size="10" text-anchor="middle">60%</text>
+  <text x="369.5" y="87" fill="#c9d1d9" font-family="monospace" font-size="9" text-anchor="middle">81%</text>
+  <rect x="399" y="83" width="45" height="107" fill="#238636" rx="3"/>
+  <text x="421.5" y="206" fill="#8b949e" font-family="monospace" font-size="10" text-anchor="middle">70%</text>
+  <text x="421.5" y="78" fill="#c9d1d9" font-family="monospace" font-size="9" text-anchor="middle">89%</text>
+  <rect x="451" y="76" width="45" height="114" fill="#238636" rx="3"/>
+  <text x="473.5" y="206" fill="#8b949e" font-family="monospace" font-size="10" text-anchor="middle">80%</text>
+  <text x="473.5" y="71" fill="#c9d1d9" font-family="monospace" font-size="9" text-anchor="middle">95%</text>
+  <rect x="503" y="72" width="45" height="118" fill="#238636" rx="3"/>
+  <text x="525.5" y="206" fill="#8b949e" font-family="monospace" font-size="10" text-anchor="middle">90%</text>
+  <text x="525.5" y="67" fill="#c9d1d9" font-family="monospace" font-size="9" text-anchor="middle">99%</text>
+  <rect x="555" y="70" width="45" height="120" fill="#238636" rx="3"/>
+  <text x="577.5" y="206" fill="#8b949e" font-family="monospace" font-size="10" text-anchor="middle">100%</text>
+  <text x="577.5" y="65" fill="#c9d1d9" font-family="monospace" font-size="9" text-anchor="middle">100%</text>
+  <text x="20" y="225" fill="#8b949e" font-family="monospace" font-size="10">U-Curve Attention Profile | Safe: >88% | Fading: 75-88% | Critical: &lt;75%</text>
+</svg>

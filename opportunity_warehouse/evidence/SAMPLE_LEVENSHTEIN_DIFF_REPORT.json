@@ -1,0 +1,29 @@
+{
+  "timestamp": "2026-09-11T11:53:53.431Z",
+  "hunksCount": 1,
+  "sampleHunk": {
+    "oldStart": 3,
+    "oldLength": 3,
+    "newStart": 3,
+    "newLength": 4,
+    "removed": [
+      "  const status = \"PENDING\";",
+      "  return { orderId, amount, status };",
+      "}"
+    ],
+    "added": [
+      "  const status = \"SETTLED_EUR5\"; // updated to verified settlement",
+      "  const settledAt = 1789128000; // added settlement timestamp",
+      "  return { orderId, amount, status, settledAt };",
+      "}"
+    ]
+  },
+  "efficiency": {
+    "fullFileTokens": 81,
+    "patchTokens": 86,
+    "tokensSaved": 0,
+    "savingsPct": 0,
+    "hunkCount": 1
+  },
+  "reconstructionVerified": true
+}

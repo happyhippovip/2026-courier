@@ -1,0 +1,28 @@
+{
+  "currentTurn": 10,
+  "originalTokens": 30,
+  "finalTokens": 7,
+  "tokensSaved": 23,
+  "savingsPercent": 76.7,
+  "retainedCount": 1,
+  "evictedCount": 2,
+  "retainedMemories": [
+    {
+      "id": "sec_rule",
+      "weight": 1,
+      "content": "Zero spend policy invariant"
+    }
+  ],
+  "evictedMemories": [
+    {
+      "id": "intermediate_draft",
+      "weight": 0,
+      "reason": "SUPERCEDED_BY_NEWER_TURN"
+    },
+    {
+      "id": "user_chat_note",
+      "weight": 0.21,
+      "reason": "TEMPORAL_DECAY_BELOW_THRESHOLD"
+    }
+  ]
+}

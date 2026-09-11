@@ -1,0 +1,26 @@
+{
+  "timestamp": "2026-09-11T11:53:53.679Z",
+  "phase": 569,
+  "metrics": {
+    "size": 6,
+    "dimensions": 2,
+    "complexity": {
+      "build": "O(N log N)",
+      "query": "O(log N + k)"
+    },
+    "structure": "2D_RANGE_TREE_WITH_SORTED_SECONDARY_Y_ARRAYS"
+  },
+  "sampleQueryResults": [
+    {
+      "x": 7,
+      "y": 15,
+      "data": "t7"
+    },
+    {
+      "x": 5,
+      "y": 20,
+      "data": "t5"
+    }
+  ],
+  "verdict": "RANGE_TREE_FILTER_VERIFIED_100_PERCENT"
+}

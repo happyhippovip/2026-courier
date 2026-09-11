@@ -1,0 +1,109 @@
+{
+  "totalNodes": 7,
+  "totalEdges": 4,
+  "totalTokens": 5120,
+  "prunableTokens": 2690,
+  "maxTokenSavingsPercent": 52.54,
+  "isDAG": true,
+  "topologicalOrder": [
+    "tool_browser",
+    "tool_db",
+    "user_persona",
+    "conv_history_turn2",
+    "rule_safety",
+    "conv_history_turn1",
+    "sys_core"
+  ],
+  "pruningCandidates": [
+    {
+      "id": "conv_history_turn2",
+      "tokens": 920,
+      "priority": "low",
+      "inDegree": 0,
+      "outDegree": 1,
+      "safetyScore": 1
+    },
+    {
+      "id": "user_persona",
+      "tokens": 300,
+      "priority": "low",
+      "inDegree": 0,
+      "outDegree": 0,
+      "safetyScore": 1
+    },
+    {
+      "id": "tool_browser",
+      "tokens": 850,
+      "priority": "medium",
+      "inDegree": 0,
+      "outDegree": 1,
+      "safetyScore": 0.8
+    },
+    {
+      "id": "tool_db",
+      "tokens": 620,
+      "priority": "medium",
+      "inDegree": 0,
+      "outDegree": 1,
+      "safetyScore": 0.8
+    }
+  ],
+  "nodeMetrics": [
+    {
+      "id": "sys_core",
+      "label": "System Core Prompt",
+      "type": "system",
+      "tokens": 1200,
+      "inDegree": 1,
+      "outDegree": 0
+    },
+    {
+      "id": "rule_safety",
+      "label": "Safety & Sandbox Gates",
+      "type": "rules",
+      "tokens": 450,
+      "inDegree": 2,
+      "outDegree": 1
+    },
+    {
+      "id": "tool_browser",
+      "label": "Browser Tool Schema",
+      "type": "tool",
+      "tokens": 850,
+      "inDegree": 0,
+      "outDegree": 1
+    },
+    {
+      "id": "tool_db",
+      "label": "Database Tool Schema",
+      "type": "tool",
+      "tokens": 620,
+      "inDegree": 0,
+      "outDegree": 1
+    },
+    {
+      "id": "user_persona",
+      "label": "User Persona Profile",
+      "type": "persona",
+      "tokens": 300,
+      "inDegree": 0,
+      "outDegree": 0
+    },
+    {
+      "id": "conv_history_turn1",
+      "label": "Historical Turn 1",
+      "type": "history",
+      "tokens": 780,
+      "inDegree": 1,
+      "outDegree": 0
+    },
+    {
+      "id": "conv_history_turn2",
+      "label": "Historical Turn 2",
+      "type": "history",
+      "tokens": 920,
+      "inDegree": 0,
+      "outDegree": 1
+    }
+  ]
+}

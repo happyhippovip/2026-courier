@@ -1,0 +1,33 @@
+{
+  "maxBudgetTokens": 1000,
+  "totalTokens": 950,
+  "utilizationPercent": 95,
+  "eventCount": 3,
+  "anchorsCount": 1,
+  "events": [
+    {
+      "id": "anchor_sys_prompt",
+      "priority": "critical",
+      "tokens": 300,
+      "timestamp": 1789127633812,
+      "payload": "System Directives",
+      "isAnchor": true
+    },
+    {
+      "id": "event_log_2",
+      "priority": "medium",
+      "tokens": 250,
+      "timestamp": 1789127633812,
+      "payload": "Ran unit test suite",
+      "isAnchor": false
+    },
+    {
+      "id": "event_security_alert",
+      "priority": "critical",
+      "tokens": 400,
+      "timestamp": 1789127633812,
+      "payload": "Security gate blocked unauthorized call",
+      "isAnchor": false
+    }
+  ]
+}

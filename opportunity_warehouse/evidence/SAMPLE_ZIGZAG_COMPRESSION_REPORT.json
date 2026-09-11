@@ -1,0 +1,19 @@
+{
+  "itemsCount": 200,
+  "rawBytes": 800,
+  "compressedBytes": 201,
+  "savingsPercent": 74.88,
+  "samplePositions": [
+    1004,
+    1006,
+    1007,
+    1010,
+    1012,
+    1013,
+    1015,
+    1016,
+    1020,
+    1024
+  ],
+  "sampleHex": "d80f0402060402040208080808040604"
+}

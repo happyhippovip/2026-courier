@@ -1,0 +1,44 @@
+{
+  "timestamp": "2026-09-11T11:53:53.019Z",
+  "phase": 509,
+  "metrics": {
+    "bitWidth": 8,
+    "elementCount": 12,
+    "bsiBytes": 128,
+    "rawArrayBytes": 48,
+    "compressionRatio": -1.6667,
+    "savingsPercent": "-166.67%"
+  },
+  "sampleValues": [
+    15,
+    200,
+    42,
+    88,
+    150,
+    200,
+    10,
+    5,
+    255,
+    0,
+    77,
+    128
+  ],
+  "results": {
+    "greaterThan100": [
+      1,
+      4,
+      5,
+      8,
+      11
+    ],
+    "range40to160": [
+      2,
+      3,
+      4,
+      10,
+      11
+    ],
+    "totalSum": 1170
+  },
+  "verdict": "BIT_SLICED_INDEX_FILTER_VERIFIED_100_PERCENT"
+}

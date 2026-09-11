@@ -1,0 +1,35 @@
+{
+  "experiment": "stream_summary_evaluator",
+  "phase": 453,
+  "timestamp": "2026-09-11T11:53:53.842Z",
+  "capacityK": 4,
+  "totalEventsProcessed": 6,
+  "trackedItemsCount": 4,
+  "heavyHitters": [
+    {
+      "key": "token_1",
+      "count": 2,
+      "error": 0,
+      "guaranteedCount": 2
+    },
+    {
+      "key": "token_5",
+      "count": 2,
+      "error": 1,
+      "guaranteedCount": 1
+    },
+    {
+      "key": "token_2",
+      "count": 1,
+      "error": 0,
+      "guaranteedCount": 1
+    },
+    {
+      "key": "token_3",
+      "count": 1,
+      "error": 0,
+      "guaranteedCount": 1
+    }
+  ],
+  "verdict": "PASS"
+}

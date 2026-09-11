@@ -1,0 +1,10 @@
+{
+  "name": "honeybadger-bft-engine",
+  "version": "1.0.0",
+  "description": "Multi-Agent HoneyBadgerBFT Asynchronous Consensus Engine",
+  "main": "lib/honeybadger_bft_engine.js",
+  "scripts": {
+    "test": "node test_honeybadger_bft_engine.js"
+  },
+  "private": true
+}

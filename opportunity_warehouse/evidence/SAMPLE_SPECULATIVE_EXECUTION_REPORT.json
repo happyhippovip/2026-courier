@@ -1,0 +1,22 @@
+{
+  "timestamp": "2026-09-11T11:53:52.985Z",
+  "phase": 551,
+  "stats": {
+    "nodeCount": 4,
+    "committedStateSize": 2,
+    "speculativeStateSize": 2,
+    "totalProposals": 1,
+    "totalCommittedBlocks": 1
+  },
+  "sampleCommit": {
+    "committed": true,
+    "blockHash": "bb57904952212ae64f6dc595b6ddee50a59cfa705eceb18f919c923ef2ae5d22",
+    "view": 1,
+    "appliedDeltas": 2,
+    "committedStateSnapshot": {
+      "balance:agent_A": 95,
+      "balance:agent_B": 55
+    }
+  },
+  "verdict": "BFT_SPECULATIVE_EXECUTION_ENGINE_VERIFIED_100_PERCENT"
+}

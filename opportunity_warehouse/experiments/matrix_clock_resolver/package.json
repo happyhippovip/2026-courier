@@ -1,0 +1,10 @@
+{
+  "name": "matrix-clock-resolver",
+  "version": "1.0.0",
+  "description": "Multi-Agent Distributed Logical Matrix Clock Resolver Engine",
+  "main": "lib/matrix_clock_resolver.js",
+  "scripts": {
+    "test": "node test_matrix_clock_resolver.js"
+  },
+  "private": true
+}

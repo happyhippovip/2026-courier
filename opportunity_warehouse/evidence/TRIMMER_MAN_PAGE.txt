@@ -1,0 +1,46 @@
+AGENT-CONTEXT-TRIMMER(1)         General Commands Manual        AGENT-CONTEXT-TRIMMER(1)
+
+NAME
+     agent-context-trimmer - Audit, compress, and prune AI agent instructions
+
+SYNOPSIS
+     node bin/trimmer.js [COMMAND] [OPTIONS]
+
+DESCRIPTION
+     agent-context-trimmer audits developer rulesets (.cursorrules, AGENTS.md,
+     system prompts), identifies token bloat, conflicting instructions, and
+     compresses context overhead by 30-50% while preserving strict instructions.
+
+COMMANDS
+     audit
+             Scan the target directory and display token savings without modifying files.
+
+     fix
+             Apply optimizations, compress verbose rules, and remove duplicate directives.
+
+OPTIONS
+     --dir PATH
+             Specify the root directory of the project to scan. Defaults to current directory.
+
+     --backup
+             Create a timestamped .bak copy before modifying any file (recommended with fix).
+
+     --dry-run
+             Simulate compression and display diff without writing changes to disk.
+
+     --format json|text
+             Select output report format. Defaults to text.
+
+     --version
+             Display tool version (v1.0.0).
+
+EXIT STATUS
+     0       Success. Zero critical conflicts or successful fix applied.
+     1       Execution error, missing permissions, or unparsable configuration.
+     2       Audit discovered critical rule conflicts or token budget overruns.
+
+SEE ALSO
+     agent_context_trimmer_docs.html, SYMPHONY-COMMERCIAL-LADDER(7)
+
+AUTHORS
+     Symphony Autonomous Engineering Team

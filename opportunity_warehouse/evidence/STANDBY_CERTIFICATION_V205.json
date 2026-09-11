@@ -1,0 +1,17 @@
+{
+  "certificationId": "STANDBY_CERTIFICATION_V205",
+  "phase": 500,
+  "timestamp": "2026-09-11T11:08:14.502Z",
+  "status": "FAIL_CLOSED_ACTIVE_STANDBY",
+  "invariants": {
+    "autonomousSpendLimitEur": 0,
+    "realRevenueEur": 0,
+    "macScopeTouchBytes": 0,
+    "sharedScopeWriteAllowed": false,
+    "orderInboxWatcherActive": true,
+    "settlementDaemonReady": true
+  },
+  "milestone": "QUINCENTENNIAL_MILESTONE_249_TEST_SUITES",
+  "totalExperimentsTracked": 151,
+  "verdict": "CERTIFIED_FAIL_CLOSED_GREEN"
+}

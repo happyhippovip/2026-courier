@@ -1,0 +1,16 @@
+{
+  "timestamp": "2026-09-11T11:53:53.962Z",
+  "phase": 347,
+  "component": "virtual_shard_migrator",
+  "splitDetails": {
+    "parentShard": "shard-1",
+    "newShards": [
+      "shard-2",
+      "shard-3"
+    ],
+    "status": "SPLIT_COMPLETED"
+  },
+  "activeShardsCount": 2,
+  "hotspotMitigationVerified": true,
+  "verification": "100% PASS"
+}

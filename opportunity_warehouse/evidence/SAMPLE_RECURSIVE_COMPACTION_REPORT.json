@@ -1,0 +1,42 @@
+{
+  "compacted": true,
+  "originalTokens": 347,
+  "finalTokens": 206,
+  "totalTokensSaved": 141,
+  "savingsPercent": 40.6,
+  "deltaIndex": [
+    {
+      "turnId": 1,
+      "anchors": {
+        "filePaths": [
+          "C:\\repo\\lib\\db.js"
+        ],
+        "errorCodes": [],
+        "hashes": [
+          "abc1234"
+        ]
+      },
+      "tokensSaved": 141
+    }
+  ],
+  "turns": [
+    {
+      "turnId": 1,
+      "role": "engineer",
+      "content": "[Turn 1 Summary]: engineer executed action. Files: C:\\repo\\lib\\db.js | Hashes: abc1234",
+      "isCompacted": true
+    },
+    {
+      "turnId": 2,
+      "role": "reviewer",
+      "content": "Long turn 2 narrative with C:\\repo\\lib\\api.js and code ERR_ASSERTION. Long turn 2 narrative with C:\\repo\\lib\\api.js and code ERR_ASSERTION. Long turn 2 narrative with C:\\repo\\lib\\api.js and code ERR_ASSERTION. Long turn 2 narrative with C:\\repo\\lib\\api.js and code ERR_ASSERTION. Long turn 2 narrative with C:\\repo\\lib\\api.js and code ERR_ASSERTION. Long turn 2 narrative with C:\\repo\\lib\\api.js and code ERR_ASSERTION. Long turn 2 narrative with C:\\repo\\lib\\api.js and code ERR_ASSERTION. Long turn 2 narrative with C:\\repo\\lib\\api.js and code ERR_ASSERTION. Long turn 2 narrative with C:\\repo\\lib\\api.js and code ERR_ASSERTION. Long turn 2 narrative with C:\\repo\\lib\\api.js and code ERR_ASSERTION. ",
+      "isCompacted": false
+    },
+    {
+      "turnId": 3,
+      "role": "supervisor",
+      "content": "Latest turn 3 action instructions.",
+      "isCompacted": false
+    }
+  ]
+}

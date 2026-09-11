@@ -1,0 +1,26 @@
+{
+  "totalSubtrees": 7,
+  "duplicateCount": 1,
+  "duplicates": [
+    {
+      "hash": "7aac786973109c16",
+      "type": "Class",
+      "name": "TelemetryClient",
+      "occurrences": [
+        "root.MultiAgentSystem.ServiceA.TelemetryClient",
+        "root.MultiAgentSystem.ServiceB.TelemetryClient",
+        "root.MultiAgentSystem.ServiceC.TelemetryClient"
+      ],
+      "isDuplicate": true
+    }
+  ],
+  "hoistingSuggestions": [
+    {
+      "hash": "7aac786973109c16",
+      "name": "TelemetryClient",
+      "count": 3,
+      "recommendation": "Hoist structural block \"TelemetryClient\" to shared prelude module. Eliminates 2 redundant AST copies."
+    }
+  ],
+  "timestamp": "2026-09-11T09:25:30.344Z"
+}

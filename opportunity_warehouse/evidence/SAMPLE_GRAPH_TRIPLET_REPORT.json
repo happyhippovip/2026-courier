@@ -1,0 +1,21 @@
+{
+  "timestamp": "2026-09-11T11:53:53.361Z",
+  "extractedTripletsCount": 5,
+  "entitiesIndexedCount": 6,
+  "multiHopPathSample": {
+    "target": "DatabaseCluster",
+    "predicate": "secures",
+    "hop": 3,
+    "path": [
+      "AgentExecutor",
+      "manages",
+      "TaskScheduler",
+      "requires",
+      "RedisLock",
+      "secures",
+      "DatabaseCluster"
+    ]
+  },
+  "compactSyntax": "(AgentExecutor,manages,TaskScheduler);(TaskScheduler,requires,RedisLock);(RedisLock,secures,DatabaseCluster);(DatabaseCluster,contains,FinancialLedger);(SecurityProxy,authorizes,AgentExecutor)",
+  "verifiedAccurate": true
+}

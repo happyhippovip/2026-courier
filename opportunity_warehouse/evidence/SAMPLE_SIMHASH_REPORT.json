@@ -1,0 +1,10 @@
+{
+  "experiment": "simhash_hamming_evaluator",
+  "phase": 433,
+  "timestamp": "2026-09-11T11:53:53.797Z",
+  "bits": 64,
+  "selfDistance": 0,
+  "nearDuplicateDistance": 4,
+  "unrelatedDistance": 29,
+  "verdict": "PASS"
+}

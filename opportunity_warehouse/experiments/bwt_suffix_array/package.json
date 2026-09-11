@@ -1,0 +1,10 @@
+{
+  "name": "bwt-suffix-array",
+  "version": "1.0.0",
+  "description": "Suffix Array & Burrows-Wheeler Transform (BWT) Context Inversion Indexer",
+  "main": "lib/bwt_suffix_array.js",
+  "scripts": {
+    "test": "node test_bwt_suffix_array.js"
+  },
+  "private": true
+}

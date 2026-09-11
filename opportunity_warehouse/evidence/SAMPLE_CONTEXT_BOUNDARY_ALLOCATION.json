@@ -1,0 +1,45 @@
+{
+  "totalCapacity": 100000,
+  "reservedBuffer": 5000,
+  "usableCapacity": 95000,
+  "allocatedTotal": 82748,
+  "freeCapacity": 12252,
+  "agentAllocations": [
+    {
+      "agentId": "agent_supervisor",
+      "role": "supervisor",
+      "priorityWeight": 5,
+      "minTokens": 10000,
+      "requestedTokens": 25000,
+      "allocatedTokens": 25000,
+      "fulfillmentPercent": 100
+    },
+    {
+      "agentId": "agent_coder",
+      "role": "coder",
+      "priorityWeight": 4,
+      "minTokens": 15000,
+      "requestedTokens": 40000,
+      "allocatedTokens": 40000,
+      "fulfillmentPercent": 100
+    },
+    {
+      "agentId": "agent_reviewer",
+      "role": "reviewer",
+      "priorityWeight": 2,
+      "minTokens": 5000,
+      "requestedTokens": 20000,
+      "allocatedTokens": 13957,
+      "fulfillmentPercent": 69.8
+    },
+    {
+      "agentId": "agent_logger",
+      "role": "logger",
+      "priorityWeight": 1,
+      "minTokens": 2000,
+      "requestedTokens": 8000,
+      "allocatedTokens": 3791,
+      "fulfillmentPercent": 47.4
+    }
+  ]
+}

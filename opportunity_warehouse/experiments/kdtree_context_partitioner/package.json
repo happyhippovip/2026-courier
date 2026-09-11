@@ -1,0 +1,10 @@
+{
+  "name": "kdtree-context-partitioner",
+  "version": "1.0.0",
+  "description": "Context Window Token 2D KD-Tree Partitioner",
+  "main": "lib/kdtree_context_partitioner.js",
+  "scripts": {
+    "test": "node test_kdtree_context_partitioner.js"
+  },
+  "private": true
+}

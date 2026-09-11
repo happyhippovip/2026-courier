@@ -1,0 +1,18 @@
+{
+  "timestamp": "2026-09-11T09:07:20.161Z",
+  "alertReport": {
+    "currentTokens": 5200,
+    "baselineTokens": 3100,
+    "maxTokensPerTurn": 4000,
+    "driftPct": 67.74,
+    "exceedsHardBudget": true,
+    "isDriftExceeded": true,
+    "requiresAlert": true,
+    "severity": "CRITICAL",
+    "alertPayload": {
+      "title": "Token Budget Alert [CRITICAL]: 5200 tokens recorded",
+      "details": "Hard cap: 4000, Drift: 67.74%",
+      "recommendation": "Run agent-context-trimmer --prune-redundant --ast-level=aggressive to restore budget compliance."
+    }
+  }
+}

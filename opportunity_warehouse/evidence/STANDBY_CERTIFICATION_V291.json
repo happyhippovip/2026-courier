@@ -1,0 +1,12 @@
+{
+  "certificationId": "STANDBY_CERTIFICATION_V291",
+  "phase": 671,
+  "subsystem": "bft_shard_dual_quorum_consensus_engine",
+  "timestamp": "2026-09-11T11:53:52.670Z",
+  "verifiedComponents": [
+    "bft_shard_dual_quorum_engine",
+    "SAMPLE_SHARD_DUAL_QUORUM_REPORT.json"
+  ],
+  "integrityHash": "55a4718b769e20bd245fcd12be71194744c7971fbc49c5e052f92c4bd2f312c1",
+  "status": "GREEN_ACTIVE"
+}

@@ -1,0 +1,10 @@
+{
+  "name": "lz4-frame-codec",
+  "version": "1.0.0",
+  "description": "Dynamic Context Block LZ4 Frame Encoder & Decompressor",
+  "main": "lib/lz4_frame_codec.js",
+  "scripts": {
+    "test": "node test_lz4_frame_codec.js"
+  },
+  "private": true
+}

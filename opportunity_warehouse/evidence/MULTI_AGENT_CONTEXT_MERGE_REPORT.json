@@ -1,0 +1,17 @@
+{
+  "agents_count": 3,
+  "shared_rules_lines_count": 4,
+  "shared_base_rules": "# Project Base Architecture\nStrict TypeScript enforcement.\nDomain-driven directory design.\nAll database access through local pgvector repository.",
+  "agent_overlays": {
+    "architect": "Role: Design high-level module interfaces and contracts.",
+    "developer": "Role: Implement functions and write unit tests.",
+    "qa_engineer": "Role: Validate edge cases and execution benchmarks."
+  },
+  "metrics": {
+    "original_total_tokens": 150,
+    "optimized_total_tokens": 76,
+    "tokens_saved_per_round": 74,
+    "reduction_percent": 49.3
+  },
+  "merged_at": "2026-09-11T08:58:30.571Z"
+}

@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-09-11T11:53:53.772Z",
+  "phase": 377,
+  "component": "segment_tree_lazy",
+  "arraySize": 8,
+  "initialSumTotal": 36,
+  "postUpdateSumTotal": 76,
+  "rangeUpdatedSlice": "[2, 5] with delta +10",
+  "lazyPropagationVerified": true,
+  "verification": "100% PASS"
+}

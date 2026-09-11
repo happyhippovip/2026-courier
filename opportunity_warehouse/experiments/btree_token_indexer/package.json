@@ -1,0 +1,10 @@
+{
+  "name": "btree-token-indexer",
+  "version": "1.0.0",
+  "description": "Context Window Token B-Tree Range Search & Saliency Indexer",
+  "main": "lib/btree_token_indexer.js",
+  "scripts": {
+    "test": "node test_btree_token_indexer.js"
+  },
+  "private": true
+}

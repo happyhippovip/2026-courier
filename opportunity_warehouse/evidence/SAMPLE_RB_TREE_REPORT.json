@@ -1,0 +1,35 @@
+{
+  "timestamp": "2026-09-11T11:53:53.549Z",
+  "phase": 589,
+  "metrics": {
+    "totalSnapshots": 2,
+    "nodeAllocations": 42,
+    "algorithm": "OKASAKI_FUNCTIONAL_RED_BLACK_TREE",
+    "complexity": "O(log N)_WORST_CASE_STRICT"
+  },
+  "v1Size": 7,
+  "v2Size": 8,
+  "sampleRange": [
+    {
+      "key": 30,
+      "value": "val_30",
+      "color": "B"
+    },
+    {
+      "key": 35,
+      "value": "val_35",
+      "color": "R"
+    },
+    {
+      "key": 40,
+      "value": "val_40",
+      "color": "B"
+    },
+    {
+      "key": 50,
+      "value": "val_50",
+      "color": "B"
+    }
+  ],
+  "verdict": "PERSISTENT_RB_TREE_FILTER_VERIFIED_100_PERCENT"
+}

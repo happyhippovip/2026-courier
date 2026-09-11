@@ -1,0 +1,10 @@
+{
+  "name": "ema-latency-estimator",
+  "version": "1.0.0",
+  "description": "Sliding-Window Exponential Moving Average (EMA) Context Latency Estimator",
+  "main": "lib/ema_latency_estimator.js",
+  "scripts": {
+    "test": "node test_ema_latency_estimator.js"
+  },
+  "private": true
+}

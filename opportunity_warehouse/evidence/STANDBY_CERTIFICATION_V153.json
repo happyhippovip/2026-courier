@@ -1,0 +1,17 @@
+{
+  "certificationId": "STANDBY_CERTIFICATION_V153",
+  "phase": 396,
+  "timestamp": "2026-09-11T10:41:09.483Z",
+  "status": "FAIL_CLOSED_ACTIVE_STANDBY",
+  "invariants": {
+    "autonomousSpendLimitEur": 0,
+    "realRevenueEur": 0,
+    "macScopeTouchBytes": 0,
+    "sharedScopeWriteAllowed": false,
+    "orderInboxWatcherActive": true,
+    "settlementDaemonReady": true
+  },
+  "milestone": "PHASE_396_100_PERCENT_DETERMINISTIC_VERIFIED",
+  "totalExperimentsTracked": 99,
+  "verdict": "CERTIFIED_FAIL_CLOSED_GREEN"
+}

@@ -1,0 +1,27 @@
+{
+  "timestamp": "2026-09-11T09:01:01.182Z",
+  "metadata": {
+    "pipeline": "langchain-ci-canary"
+  },
+  "canaryResult": {
+    "passed": true,
+    "totalTests": 2,
+    "passedTests": 2,
+    "accuracyRate": 1,
+    "minAccuracyThreshold": 0.98,
+    "rollbackRecommended": false,
+    "testResults": [
+      {
+        "name": "Must preserve JSON instruction",
+        "passed": true,
+        "error": null
+      },
+      {
+        "name": "Must prune length",
+        "passed": true,
+        "error": null
+      }
+    ]
+  },
+  "status": "CANARY_PROMOTED_TO_PRODUCTION"
+}

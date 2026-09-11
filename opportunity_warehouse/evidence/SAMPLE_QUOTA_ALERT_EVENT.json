@@ -1,0 +1,16 @@
+{
+  "status": "CIRCUIT_BREAKER_TRIPPED",
+  "isBlocked": true,
+  "usageRatio": 1.04,
+  "remainingTokens": 0,
+  "event": {
+    "eventId": "EVT_003",
+    "agentId": "batch_runner",
+    "tokensUsed": 10000,
+    "cumulativeTokens": 52000,
+    "maxTokens": 50000,
+    "usageRatio": 1.04,
+    "status": "CIRCUIT_BREAKER_TRIPPED",
+    "timestamp": "2026-09-11T09:28:15.117Z"
+  }
+}

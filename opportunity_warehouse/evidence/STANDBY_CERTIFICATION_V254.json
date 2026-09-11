@@ -1,0 +1,17 @@
+{
+  "version": "STANDBY_CERTIFICATION_V254",
+  "timestamp": "2026-09-11T11:32:51.241Z",
+  "phase": 600,
+  "author": "Antigravity Autonomous Engine (Windows Lane)",
+  "scope": "WINDOWS_OFFLINE_VERIFIED",
+  "spendLimit": "EUR_0.00",
+  "componentsCertified": [
+    "persistent_suffix_automaton_filter",
+    "ENTERPRISE_ZK_OFFCHAIN_THRESHOLD_SETTLEMENT.md"
+  ],
+  "propertiesVerified": {
+    "suffixAutomaton": "MINIMAL_TRANSITION_DAWG_O_P_EXACT_SEARCH_CONFIRMED",
+    "thresholdSettlement": "RECURSIVE_QUORUM_PROOF_ZERO_CUSTODY_ZERO_SPEND"
+  },
+  "verdict": "CERTIFIED_FAIL_CLOSED_GREEN"
+}

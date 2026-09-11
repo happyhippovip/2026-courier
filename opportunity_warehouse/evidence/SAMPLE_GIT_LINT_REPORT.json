@@ -1,0 +1,39 @@
+{
+  "timestamp": "2026-09-11T09:15:19.623Z",
+  "summary": {
+    "totalFilesScanned": 2,
+    "totalErrors": 0,
+    "totalWarnings": 1,
+    "totalTokensSavedIfFixed": 0,
+    "passed": true,
+    "exitCode": 0
+  },
+  "fileResults": [
+    {
+      "filename": ".cursorrules",
+      "tokenCount": 40,
+      "fixedTokenCount": 40,
+      "tokensSavedIfFixed": 0,
+      "issues": [
+        {
+          "severity": "warning",
+          "code": "REPETITIVE_SEPARATOR_BLOAT",
+          "message": "Found 3 long repetitive separator lines"
+        }
+      ],
+      "hasErrors": false,
+      "hasWarnings": true,
+      "fixedContent": "You are an autonomous engineering agent.\\n-------------------------------\\n-------------------------------\\n-------------------------------\\nFollow conventions."
+    },
+    {
+      "filename": "prompts/review.md",
+      "tokenCount": 15,
+      "fixedTokenCount": 15,
+      "tokensSavedIfFixed": 0,
+      "issues": [],
+      "hasErrors": false,
+      "hasWarnings": false,
+      "fixedContent": "Review pull request diffs for correctness and performance."
+    }
+  ]
+}

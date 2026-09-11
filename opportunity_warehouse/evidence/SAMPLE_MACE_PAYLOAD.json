@@ -1,0 +1,42 @@
+{
+  "protocol": "MACE",
+  "version": "1.0.0",
+  "timestamp": "2026-09-11T09:17:18.976Z",
+  "header": {
+    "senderAgent": "LeadAgent",
+    "recipientAgent": "ReviewAgent",
+    "messageCount": 2,
+    "toolCount": 2,
+    "duplicateTokensSaved": 10
+  },
+  "state": {
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are an autonomous test orchestrator."
+      },
+      {
+        "role": "user",
+        "content": "Run test coverage on authentication module."
+      }
+    ],
+    "toolOutputs": [
+      {
+        "toolName": "run_tests",
+        "callId": "run_01",
+        "hash": "eb1ee4a35b76",
+        "output": "PASS auth.test.js (4/4 passed in 12ms)"
+      },
+      {
+        "toolName": "run_tests",
+        "callId": "run_02",
+        "hash": "eb1ee4a35b76",
+        "output": "[MACE_REF:eb1ee4a35b76]"
+      }
+    ],
+    "workspaceFlags": {
+      "strictIsolation": true
+    }
+  },
+  "checksum": "4250c916278e2f145d21f6274dd17e4d8b8a9d250214a73ea70bae9a218fa2c7"
+}

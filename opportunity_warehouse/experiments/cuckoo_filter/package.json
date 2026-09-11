@@ -1,0 +1,10 @@
+{
+  "name": "cuckoo-filter",
+  "version": "1.0.0",
+  "description": "Streaming Context Token Cuckoo Filter & Dynamic Deletion",
+  "main": "lib/cuckoo_filter.js",
+  "scripts": {
+    "test": "node test_cuckoo_filter.js"
+  },
+  "private": true
+}

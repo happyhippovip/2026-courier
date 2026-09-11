@@ -1,0 +1,10 @@
+{
+  "name": "count-min-sketch",
+  "version": "1.0.0",
+  "description": "Streaming Context Token Count-Min Sketch & Heavy Hitter Detector",
+  "main": "lib/count_min_sketch.js",
+  "scripts": {
+    "test": "node test_count_min_sketch.js"
+  },
+  "private": true
+}

@@ -1,0 +1,9 @@
+{
+  "timestamp": "2026-09-11T11:53:53.462Z",
+  "originalTokens": 95,
+  "collapsedTokens": 66,
+  "tokensSaved": 29,
+  "savingsPct": 30.5,
+  "sampleCollapsed": "# Financial Ledger Summary\n\n[TABLE_COMPACT:TSV]\nOrder ID\tAmount\tCurrency\tStatus\tTimestamp\nTX_99182\t5.00\tEUR\tSETTLED\t2026-09-11T12:00:00Z\nTX_99183\t9.00\tEUR\tPENDING\t2026-09-11T12:05:00Z\nTX_99184\t15.00\tEUR\tQUEUED\t2026-09-11T12:10:00Z\n[/TABLE_COMPACT]\n\nEnd of report.",
+  "reconstructionVerified": true
+}

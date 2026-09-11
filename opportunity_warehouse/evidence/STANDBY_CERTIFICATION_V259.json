@@ -1,0 +1,12 @@
+{
+  "certificationId": "STANDBY_CERTIFICATION_V259",
+  "phase": 607,
+  "subsystem": "bft_view_interleaving_consensus_engine",
+  "timestamp": "2026-09-11T11:37:23.770Z",
+  "verifiedComponents": [
+    "bft_view_interleaving_engine",
+    "SAMPLE_VIEW_INTERLEAVING_REPORT.json"
+  ],
+  "integrityHash": "deb921c4903d3ed2c79a7f038bf5d111e4d17d79e06f92c28552e0fa35c9aee9",
+  "status": "GREEN_ACTIVE"
+}

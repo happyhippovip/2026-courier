@@ -1,0 +1,30 @@
+{
+  "timestamp": "2026-09-11T11:53:53.428Z",
+  "phase": 293,
+  "component": "levenshtein_automaton",
+  "queryPattern": "symphony",
+  "maxDistance": 2,
+  "vocabularySize": 9,
+  "matchedCount": 3,
+  "matches": [
+    {
+      "token": "symphony",
+      "matches": true,
+      "distance": 0,
+      "similarity": 1
+    },
+    {
+      "token": "sympony",
+      "matches": true,
+      "distance": 1,
+      "similarity": 0.875
+    },
+    {
+      "token": "symphonx",
+      "matches": true,
+      "distance": 1,
+      "similarity": 0.875
+    }
+  ],
+  "verification": "100% PASS"
+}

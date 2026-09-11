@@ -1,0 +1,77 @@
+{
+  "base_currency": "EUR",
+  "base_price": 5,
+  "generated_at": "2026-09-11T08:49:51.566Z",
+  "matrix": {
+    "EUR": {
+      "currency": "EUR",
+      "symbol": "€",
+      "base_eur": 5,
+      "fx_rate": 1,
+      "raw_amount": 5,
+      "charm_price": 4.99,
+      "display_price": "€4.99",
+      "vat_inclusive": true
+    },
+    "USD": {
+      "currency": "USD",
+      "symbol": "$",
+      "base_eur": 5,
+      "fx_rate": 1.08,
+      "raw_amount": 5.4,
+      "charm_price": 5.49,
+      "display_price": "$5.49",
+      "vat_inclusive": false
+    },
+    "GBP": {
+      "currency": "GBP",
+      "symbol": "£",
+      "base_eur": 5,
+      "fx_rate": 0.85,
+      "raw_amount": 4.25,
+      "charm_price": 4.49,
+      "display_price": "£4.49",
+      "vat_inclusive": true
+    },
+    "JPY": {
+      "currency": "JPY",
+      "symbol": "¥",
+      "base_eur": 5,
+      "fx_rate": 165,
+      "raw_amount": 825,
+      "charm_price": 820,
+      "display_price": "¥820",
+      "vat_inclusive": true
+    },
+    "CAD": {
+      "currency": "CAD",
+      "symbol": "C$",
+      "base_eur": 5,
+      "fx_rate": 1.48,
+      "raw_amount": 7.4,
+      "charm_price": 7.49,
+      "display_price": "C$7.49",
+      "vat_inclusive": false
+    },
+    "AUD": {
+      "currency": "AUD",
+      "symbol": "A$",
+      "base_eur": 5,
+      "fx_rate": 1.64,
+      "raw_amount": 8.2,
+      "charm_price": 8.49,
+      "display_price": "A$8.49",
+      "vat_inclusive": true
+    },
+    "CHF": {
+      "currency": "CHF",
+      "symbol": "CHF ",
+      "base_eur": 5,
+      "fx_rate": 0.96,
+      "raw_amount": 4.8,
+      "charm_price": 4.99,
+      "display_price": "CHF 4.99",
+      "vat_inclusive": true
+    }
+  }
+}

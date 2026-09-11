@@ -1,0 +1,10 @@
+{
+  "timestamp": "2026-09-11T11:53:53.285Z",
+  "phase": 333,
+  "component": "elias_codec",
+  "integersEncoded": 12,
+  "rawBits": 384,
+  "compressedBits": 46,
+  "savingsPercent": "88.0",
+  "verification": "100% PASS"
+}

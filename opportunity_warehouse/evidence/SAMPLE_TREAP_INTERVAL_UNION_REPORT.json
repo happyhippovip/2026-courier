@@ -1,0 +1,23 @@
+{
+  "experiment": "treap_interval_union",
+  "phase": 401,
+  "timestamp": "2026-09-11T11:53:53.926Z",
+  "totalIntervals": 5,
+  "mergedUnionCount": 3,
+  "totalCoveredTokens": 850,
+  "unionRanges": [
+    {
+      "low": 100,
+      "high": 400
+    },
+    {
+      "low": 500,
+      "high": 850
+    },
+    {
+      "low": 1000,
+      "high": 1200
+    }
+  ],
+  "verdict": "PASS"
+}

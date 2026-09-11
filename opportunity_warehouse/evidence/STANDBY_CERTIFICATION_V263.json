@@ -1,0 +1,12 @@
+{
+  "certificationId": "STANDBY_CERTIFICATION_V263",
+  "phase": 615,
+  "subsystem": "bft_quorum_reweighting_consensus_engine",
+  "timestamp": "2026-09-11T11:39:32.137Z",
+  "verifiedComponents": [
+    "bft_quorum_reweighting_engine",
+    "SAMPLE_QUORUM_REWEIGHTING_REPORT.json"
+  ],
+  "integrityHash": "3e6ee442ad1ca48d4c28d181b09a617f41f0203f58d649ae8408452f7dcc1d06",
+  "status": "GREEN_ACTIVE"
+}

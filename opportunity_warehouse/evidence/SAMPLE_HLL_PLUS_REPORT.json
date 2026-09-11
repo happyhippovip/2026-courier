@@ -1,0 +1,13 @@
+{
+  "experiment": "hyperloglog_plus_estimator",
+  "phase": 441,
+  "timestamp": "2026-09-11T11:53:53.391Z",
+  "p": 8,
+  "registers": 256,
+  "isSparseNow": false,
+  "totalAddedTokens": 200,
+  "estimatedCardinality": 196,
+  "actualCardinality": 200,
+  "errorPercent": "2.00%",
+  "verdict": "PASS"
+}

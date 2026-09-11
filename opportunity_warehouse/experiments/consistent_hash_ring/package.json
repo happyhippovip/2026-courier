@@ -1,0 +1,10 @@
+{
+  "name": "consistent-hash-ring",
+  "version": "1.0.0",
+  "description": "Multi-Agent Distributed Consistent Hash Ring & Partition Rebalancer",
+  "main": "lib/consistent_hash_ring.js",
+  "scripts": {
+    "test": "node test_consistent_hash_ring.js"
+  },
+  "private": true
+}

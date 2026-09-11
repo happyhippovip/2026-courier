@@ -1,0 +1,24 @@
+{
+  "originalTokens": 90,
+  "prunedTokens": 48,
+  "compressionRatio": 0.533,
+  "tokenSavingsPercent": 46.7,
+  "semanticFidelityScore": 1,
+  "invariantsPreserved": true,
+  "qualityIndex": 1,
+  "isAcceptable": true,
+  "invariantDetails": [
+    {
+      "invariant": "SYSTEM_SECURITY_INVARIANT: ZERO_SPEND_POLICY = TRUE",
+      "inOriginal": true,
+      "preserved": true,
+      "status": "PASS"
+    },
+    {
+      "invariant": "zero regressions",
+      "inOriginal": true,
+      "preserved": true,
+      "status": "PASS"
+    }
+  ]
+}

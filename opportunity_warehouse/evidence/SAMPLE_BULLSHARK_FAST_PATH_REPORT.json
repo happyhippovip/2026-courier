@@ -1,0 +1,11 @@
+{
+  "experiment": "bullshark_fast_path",
+  "phase": 427,
+  "timestamp": "2026-09-11T11:53:53.049Z",
+  "totalNodes": 4,
+  "fastQuorum": 4,
+  "committedLeader": "node_1",
+  "commitMode": "FAST_PATH_2_ROUNDS",
+  "orderedCount": 4,
+  "verdict": "PASS"
+}

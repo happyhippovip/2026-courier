@@ -1,0 +1,12 @@
+{
+  "originalTokens": 79,
+  "minifiedTokens": 53,
+  "tokensSaved": 26,
+  "savingsPercent": 32.9,
+  "renamedSymbolsCount": 2,
+  "mapping": {
+    "temporaryAccumulatorVariable": "a",
+    "totalProcessingStartTime": "b"
+  },
+  "minifiedCode": "function processTransactions(rawTransactionBatch) {\n  const a = [];\n  const b = Date.now();\n  for (const singleTransactionItem of rawTransactionBatch) {\n    a.push(singleTransactionItem.amount);\n  }\n  return a;\n}"
+}

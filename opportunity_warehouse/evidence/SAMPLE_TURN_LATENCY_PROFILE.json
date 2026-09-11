@@ -1,0 +1,105 @@
+{
+  "totalTurnsProfiled": 4,
+  "averageTtftMs": 2413,
+  "averageDurationMs": 5675,
+  "averagePrefillTps": 19884,
+  "projectedSavingsAt40PercentPrune": {
+    "pruneRatio": 0.4,
+    "totalOriginalDurationMs": 22700,
+    "totalProjectedDurationMs": 19419,
+    "netTimeSavedMs": 3281,
+    "netSpeedupPercent": 14.5,
+    "turnBreakdowns": [
+      {
+        "turnId": "turn_1_sys_init",
+        "originalInputTokens": 8000,
+        "prunedInputTokens": 4800,
+        "originalTtftMs": 450,
+        "projectedTtftMs": 297,
+        "ttftReductionPercent": 34,
+        "originalTotalMs": 1800,
+        "projectedTotalMs": 1647,
+        "totalSavingsMs": 153
+      },
+      {
+        "turnId": "turn_2_research",
+        "originalInputTokens": 32000,
+        "prunedInputTokens": 19200,
+        "originalTtftMs": 1600,
+        "projectedTtftMs": 1056,
+        "ttftReductionPercent": 34,
+        "originalTotalMs": 5200,
+        "projectedTotalMs": 4656,
+        "totalSavingsMs": 544
+      },
+      {
+        "turnId": "turn_3_code_gen",
+        "originalInputTokens": 64000,
+        "prunedInputTokens": 38400,
+        "originalTtftMs": 3100,
+        "projectedTtftMs": 2046,
+        "ttftReductionPercent": 34,
+        "originalTotalMs": 8500,
+        "projectedTotalMs": 7446,
+        "totalSavingsMs": 1054
+      },
+      {
+        "turnId": "turn_4_review",
+        "originalInputTokens": 95000,
+        "prunedInputTokens": 57000,
+        "originalTtftMs": 4500,
+        "projectedTtftMs": 2970,
+        "ttftReductionPercent": 34,
+        "originalTotalMs": 7200,
+        "projectedTotalMs": 5670,
+        "totalSavingsMs": 1530
+      }
+    ]
+  },
+  "records": [
+    {
+      "turnId": "turn_1_sys_init",
+      "inputTokens": 8000,
+      "outputTokens": 250,
+      "ttftMs": 450,
+      "totalDurationMs": 1800,
+      "decodeTimeMs": 1350,
+      "decodeTps": 185.2,
+      "prefillTps": 17777.8,
+      "prefillLatencyPer1kMs": 56.25
+    },
+    {
+      "turnId": "turn_2_research",
+      "inputTokens": 32000,
+      "outputTokens": 800,
+      "ttftMs": 1600,
+      "totalDurationMs": 5200,
+      "decodeTimeMs": 3600,
+      "decodeTps": 222.2,
+      "prefillTps": 20000,
+      "prefillLatencyPer1kMs": 50
+    },
+    {
+      "turnId": "turn_3_code_gen",
+      "inputTokens": 64000,
+      "outputTokens": 1200,
+      "ttftMs": 3100,
+      "totalDurationMs": 8500,
+      "decodeTimeMs": 5400,
+      "decodeTps": 222.2,
+      "prefillTps": 20645.2,
+      "prefillLatencyPer1kMs": 48.44
+    },
+    {
+      "turnId": "turn_4_review",
+      "inputTokens": 95000,
+      "outputTokens": 600,
+      "ttftMs": 4500,
+      "totalDurationMs": 7200,
+      "decodeTimeMs": 2700,
+      "decodeTps": 222.2,
+      "prefillTps": 21111.1,
+      "prefillLatencyPer1kMs": 47.37
+    }
+  ]
+}

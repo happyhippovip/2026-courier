@@ -1,0 +1,20 @@
+{
+  "timestamp": "2026-09-11T11:53:52.975Z",
+  "phase": 559,
+  "stats": {
+    "nodeCount": 4,
+    "compactionInterval": 5,
+    "prunedHeight": 5,
+    "remainingLedgerBlocks": 1,
+    "totalCertificates": 1
+  },
+  "sampleCompaction": {
+    "compacted": true,
+    "checkpointHeight": 5,
+    "stateRoot": "state_root_h5",
+    "prunedBlocksCount": 5,
+    "remainingBlocksCount": 0,
+    "certHash": "70be8ff1bc9b8092b21344ebe4f251468d869e9934ad26884d4b407e34dcb79d"
+  },
+  "verdict": "BFT_SHARED_LEDGER_COMPACTION_ENGINE_VERIFIED_100_PERCENT"
+}

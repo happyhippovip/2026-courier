@@ -1,0 +1,39 @@
+{
+  "timestamp": "2026-09-11T09:13:51.238Z",
+  "summary": {
+    "totalFixtures": 2,
+    "averageRiskIndex": 1,
+    "isApproved": false,
+    "authorizationToken": null
+  },
+  "fixturesResults": [
+    {
+      "fixtureName": "order_service.js",
+      "originalLength": 89,
+      "prunedLength": 29,
+      "charsSaved": 60,
+      "riskIndex": 1,
+      "ruleTrace": [
+        {
+          "ruleId": "strip_inline_comments",
+          "matchesCount": 1
+        }
+      ],
+      "passed": false
+    },
+    {
+      "fixtureName": "payment_gateway.js",
+      "originalLength": 83,
+      "prunedLength": 29,
+      "charsSaved": 54,
+      "riskIndex": 1,
+      "ruleTrace": [
+        {
+          "ruleId": "strip_inline_comments",
+          "matchesCount": 1
+        }
+      ],
+      "passed": false
+    }
+  ]
+}

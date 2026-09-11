@@ -1,0 +1,22 @@
+{
+  "timestamp": "2026-09-11T11:53:52.868Z",
+  "phase": 523,
+  "stats": {
+    "nodeCount": 4,
+    "deliveredCount": 1,
+    "blocksCount": 4,
+    "committedBlocksCount": 1,
+    "totalCommittedTxs": 1
+  },
+  "sampleCommit": {
+    "committed": true,
+    "mode": "DISSEMINATION_HOTSTUFF_3CHAIN_COMMIT",
+    "view": 1,
+    "blockHash": "79cbc16fbe5f85de3ee7a604f01849984731a31b5bcd8d4c1b89ae4fc464dce5",
+    "deliveredDigests": [
+      "cd800b3ef56a2cc5b7654b199dfa0b559d29755a0900f6fc7941c6e5fcf9017d"
+    ],
+    "totalCommitted": 1
+  },
+  "verdict": "BFT_DISSEMINATION_ENGINE_VERIFIED_100_PERCENT"
+}

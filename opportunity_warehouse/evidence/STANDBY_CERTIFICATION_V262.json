@@ -1,0 +1,12 @@
+{
+  "certificationId": "STANDBY_CERTIFICATION_V262",
+  "phase": 613,
+  "subsystem": "hat_trie_filter_and_zk_synthetic_assets",
+  "timestamp": "2026-09-11T11:39:32.137Z",
+  "verifiedComponents": [
+    "hat_trie_filter",
+    "ENTERPRISE_ZK_OFFCHAIN_SYNTHETIC_ASSETS.md"
+  ],
+  "integrityHash": "49d942ec66c3fe8f4215f64476c1c51faf517d56e64d943921fa682604d3f07c",
+  "status": "GREEN_ACTIVE"
+}

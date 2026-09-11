@@ -1,0 +1,18 @@
+{
+  "timestamp": "2026-09-11T09:04:45.167Z",
+  "sampleAst": {
+    "type": "Root",
+    "children": [
+      {
+        "type": "Header",
+        "content": "# Agent Rules\\n- MUST enforce zero spend\\n- NEVER modify external repos\\n```js\\nconst a = 1;\\n```"
+      }
+    ]
+  },
+  "sampleDirectives": {
+    "lossless": true,
+    "totalOriginalDirectives": 1,
+    "totalReconstructedDirectives": 1,
+    "missingDirectives": []
+  }
+}

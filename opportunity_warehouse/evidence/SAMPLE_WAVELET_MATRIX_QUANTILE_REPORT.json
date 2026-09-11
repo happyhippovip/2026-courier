@@ -1,0 +1,28 @@
+{
+  "experiment": "wavelet_matrix_quantile",
+  "phase": 469,
+  "timestamp": "2026-09-11T11:53:53.969Z",
+  "sequenceLength": 16,
+  "alphabetMax": 63,
+  "levels": 6,
+  "minFound": 3,
+  "maxFound": 60,
+  "medianFound": 17,
+  "subrangeQuery": {
+    "range": [
+      3,
+      10
+    ],
+    "k0": 8,
+    "k3": 23,
+    "k7": 60
+  },
+  "stats": {
+    "sequenceLength": 16,
+    "bitLevels": 6,
+    "totalBits": 96,
+    "rawInt32Bits": 512,
+    "compressionRatio": "0.1875"
+  },
+  "verdict": "PASS"
+}

@@ -1,0 +1,18 @@
+{
+  "timestamp": "2026-09-11T11:53:52.988Z",
+  "phase": 595,
+  "stats": {
+    "validatorsCount": 1,
+    "slashedCount": 1,
+    "totalDelegationsCount": 2,
+    "pendingUnbondingCount": 1
+  },
+  "sampleSlash": {
+    "slashed": true,
+    "valId": "val_0",
+    "slashedSelf": 1000,
+    "totalDelegatedSlashed": 600,
+    "totalForfeited": 1600
+  },
+  "verdict": "BFT_STAKE_DELEGATION_ENGINE_VERIFIED_100_PERCENT"
+}

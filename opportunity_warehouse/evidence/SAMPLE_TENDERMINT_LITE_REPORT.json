@@ -1,0 +1,21 @@
+{
+  "experiment": "tendermint_lite_bft",
+  "phase": 415,
+  "timestamp": "2026-09-11T11:53:53.883Z",
+  "totalValidators": 4,
+  "quorum": 3,
+  "committedChainLength": 1,
+  "headHeight": 2,
+  "latestCommittedBlock": {
+    "height": 1,
+    "round": 0,
+    "hash": "9b96fade41d22981c3bc5792c5d20ba2e74e7088bf2b5251e83b75471ac339d2",
+    "data": {
+      "action": "SETTLE_TRANSACTION_EUR5",
+      "recipient": "merchant_vault"
+    },
+    "signaturesCount": 3,
+    "committedAt": "2026-09-11T11:53:53.883Z"
+  },
+  "verdict": "PASS"
+}

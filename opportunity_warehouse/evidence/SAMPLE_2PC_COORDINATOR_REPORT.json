@@ -1,0 +1,41 @@
+{
+  "timestamp": "2026-09-11T11:53:53.941Z",
+  "phase": 311,
+  "component": "two_phase_commit_coordinator",
+  "transactionsExecuted": [
+    {
+      "txId": "tx-1001",
+      "status": "COMMITTED",
+      "votes": [
+        {
+          "nodeId": "agent-node-1",
+          "vote": "COMMIT"
+        },
+        {
+          "nodeId": "agent-node-2",
+          "vote": "COMMIT"
+        },
+        {
+          "nodeId": "agent-node-3",
+          "vote": "COMMIT"
+        }
+      ]
+    },
+    {
+      "txId": "tx-1002",
+      "status": "ABORTED",
+      "votes": [
+        {
+          "nodeId": "agent-node-4",
+          "vote": "COMMIT"
+        },
+        {
+          "nodeId": "agent-node-5",
+          "vote": "ABORT"
+        }
+      ]
+    }
+  ],
+  "atomicityGuaranteed": true,
+  "verification": "100% PASS"
+}

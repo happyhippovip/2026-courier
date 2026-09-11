@@ -1,0 +1,12 @@
+{
+  "certificationId": "STANDBY_CERTIFICATION_V265",
+  "phase": 619,
+  "subsystem": "bft_epoch_gas_auction_consensus_engine",
+  "timestamp": "2026-09-11T11:39:56.829Z",
+  "verifiedComponents": [
+    "bft_epoch_gas_auction_engine",
+    "SAMPLE_EPOCH_GAS_AUCTION_REPORT.json"
+  ],
+  "integrityHash": "a44516d5fc67a625c66e01d1ada028fe0948b13c2d74f6a0fb6ba6b19133fba2",
+  "status": "GREEN_ACTIVE"
+}

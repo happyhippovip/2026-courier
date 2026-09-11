@@ -1,0 +1,17 @@
+{
+  "timestamp": "2026-09-11T11:53:52.991Z",
+  "phase": 583,
+  "stats": {
+    "totalBlocks": 5,
+    "fullBlocks": 2,
+    "prunedBlocks": 3,
+    "retentionWindow": 2,
+    "highestHeight": 5
+  },
+  "samplePrune": {
+    "cutoffHeight": 3,
+    "prunedBlocks": 3,
+    "retainedFullBlocks": 2
+  },
+  "verdict": "BFT_TX_PRUNING_ENGINE_VERIFIED_100_PERCENT"
+}

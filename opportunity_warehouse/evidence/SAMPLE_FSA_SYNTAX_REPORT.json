@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-09-11T11:53:53.348Z",
+  "truncatedSample": "{\"orderId\": \"TX_99182\", \"amount\": 5.00, \"items\": [\"pkg_v1",
+  "repairedOutput": "{\"orderId\": \"TX_99182\", \"amount\": 5.00, \"items\": [\"pkg_v1\"]}",
+  "parsedPayload": {
+    "orderId": "TX_99182",
+    "amount": 5,
+    "items": [
+      "pkg_v1"
+    ]
+  },
+  "fsaComplianceVerified": true
+}

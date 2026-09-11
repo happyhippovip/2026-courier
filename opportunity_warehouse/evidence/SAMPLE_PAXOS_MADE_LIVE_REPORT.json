@@ -1,0 +1,19 @@
+{
+  "experiment": "paxos_made_live_engine",
+  "phase": 451,
+  "timestamp": "2026-09-11T11:53:53.538Z",
+  "replicas": 3,
+  "master": "rep_0",
+  "currentTerm": 2,
+  "logEntriesCount": 1,
+  "snapshot": {
+    "lastIndex": 1,
+    "lastTerm": 2,
+    "state": {
+      "balanceEur": 5,
+      "processedOrders": 1
+    },
+    "snapshotHash": "d0076e84bff371a1234391cd15b5e3998d16650afddf4026ef5334c2d1b9ef90"
+  },
+  "verdict": "PASS"
+}

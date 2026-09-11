@@ -1,0 +1,25 @@
+{
+  "certificationId": "STANDBY_CERTIFICATION_V168",
+  "phase": 428,
+  "timestamp": "2026-09-11T10:48:12.381Z",
+  "status": "FAIL_CLOSED_ACTIVE_STANDBY",
+  "invariants": {
+    "autonomousSpendLimitEur": 0,
+    "realRevenueEur": 0,
+    "macScopeTouchBytes": 0,
+    "macFilesForbidden": [
+      "RELEASE_CANDIDATE_V1",
+      "LAUNCH_PACKAGE",
+      "scratch/mac_resource_guard.zip"
+    ],
+    "sharedScopeWriteAllowed": false,
+    "universuXTouchedBytes": 0,
+    "activeBranch": "windows/money-factory-p0"
+  },
+  "componentsVerified": [
+    "hyperloglog_estimator",
+    "ENTERPRISE_BFT_SMR_FORMAL_MODEL.md",
+    "bullshark_fast_path"
+  ],
+  "verdict": "CERTIFIED_FAIL_CLOSED_GREEN"
+}

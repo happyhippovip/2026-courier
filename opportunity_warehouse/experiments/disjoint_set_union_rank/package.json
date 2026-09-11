@@ -1,0 +1,10 @@
+{
+  "name": "disjoint-set-union-rank",
+  "version": "1.0.0",
+  "description": "Context Window Token Disjoint-Set Union-Find with Path Compression & Rank",
+  "main": "lib/disjoint_set_union_rank.js",
+  "scripts": {
+    "test": "node test_disjoint_set_union_rank.js"
+  },
+  "private": true
+}

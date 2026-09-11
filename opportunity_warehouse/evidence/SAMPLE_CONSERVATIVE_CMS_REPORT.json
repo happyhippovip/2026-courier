@@ -1,0 +1,23 @@
+{
+  "experiment": "conservative_count_min_sketch",
+  "phase": 449,
+  "timestamp": "2026-09-11T11:53:53.131Z",
+  "width": 128,
+  "depth": 5,
+  "totalEvents": 900,
+  "testedEstimates": {
+    "core": {
+      "actual": 300,
+      "estimated": 300
+    },
+    "aux": {
+      "actual": 100,
+      "estimated": 100
+    },
+    "unseen": {
+      "actual": 0,
+      "estimated": 1
+    }
+  },
+  "verdict": "PASS"
+}

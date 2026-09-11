@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-09-11T11:53:53.920Z",
+  "totalNodes": 5,
+  "sortedSequence": [
+    "verify_credentials",
+    "fetch_account_balance",
+    "acquire_memory_lock",
+    "settle_order",
+    "release_memory_lock"
+  ],
+  "causalPromptSnippet": "--- CAUSAL EXECUTION TRACE ---\n1. Step verify_credentials => Verify HMAC tokens\n2. Step fetch_account_balance [requires: verify_credentials] => Query database ledger\n3. Step acquire_memory_lock [requires: verify_credentials] => Claim agent mutex\n4. Step settle_order [requires: fetch_account_balance, acquire_memory_lock] => Execute settlement transaction\n5. Step release_memory_lock [requires: settle_order] => Release agent mutex\n--- END TRACE ---",
+  "acyclicVerified": true
+}

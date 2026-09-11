@@ -1,0 +1,110 @@
+{
+  "timestamp": "2026-09-11T09:01:01.084Z",
+  "densityReport": {
+    "gpt-4o": {
+      "modelId": "gpt-4o",
+      "maxContext": 128000,
+      "original": {
+        "tokens": 760,
+        "chars": 3038,
+        "costEstimateEurUsd": 0.0019,
+        "contextUtilizationPct": 0.5938
+      },
+      "trimmed": {
+        "tokens": 17,
+        "chars": 67,
+        "costEstimateEurUsd": 0.000043,
+        "contextUtilizationPct": 0.0133
+      },
+      "savings": {
+        "tokensSaved": 743,
+        "savingsPercent": 97.76,
+        "costSavingsEurUsd": 0.001857
+      }
+    },
+    "claude-3-5-sonnet": {
+      "modelId": "claude-3-5-sonnet",
+      "maxContext": 200000,
+      "original": {
+        "tokens": 798,
+        "chars": 3038,
+        "costEstimateEurUsd": 0.002394,
+        "contextUtilizationPct": 0.399
+      },
+      "trimmed": {
+        "tokens": 18,
+        "chars": 67,
+        "costEstimateEurUsd": 0.000054,
+        "contextUtilizationPct": 0.009
+      },
+      "savings": {
+        "tokensSaved": 780,
+        "savingsPercent": 97.74,
+        "costSavingsEurUsd": 0.00234
+      }
+    },
+    "gemini-1-5-pro": {
+      "modelId": "gemini-1-5-pro",
+      "maxContext": 2000000,
+      "original": {
+        "tokens": 745,
+        "chars": 3038,
+        "costEstimateEurUsd": 0.000931,
+        "contextUtilizationPct": 0.0372
+      },
+      "trimmed": {
+        "tokens": 17,
+        "chars": 67,
+        "costEstimateEurUsd": 0.000021,
+        "contextUtilizationPct": 0.0008
+      },
+      "savings": {
+        "tokensSaved": 728,
+        "savingsPercent": 97.72,
+        "costSavingsEurUsd": 0.00091
+      }
+    },
+    "llama-3-3-70b": {
+      "modelId": "llama-3-3-70b",
+      "maxContext": 128000,
+      "original": {
+        "tokens": 775,
+        "chars": 3038,
+        "costEstimateEurUsd": 0.00062,
+        "contextUtilizationPct": 0.6055
+      },
+      "trimmed": {
+        "tokens": 18,
+        "chars": 67,
+        "costEstimateEurUsd": 0.000014,
+        "contextUtilizationPct": 0.0141
+      },
+      "savings": {
+        "tokensSaved": 757,
+        "savingsPercent": 97.68,
+        "costSavingsEurUsd": 0.000606
+      }
+    },
+    "deepseek-v3": {
+      "modelId": "deepseek-v3",
+      "maxContext": 64000,
+      "original": {
+        "tokens": 722,
+        "chars": 3038,
+        "costEstimateEurUsd": 0.000101,
+        "contextUtilizationPct": 1.1281
+      },
+      "trimmed": {
+        "tokens": 16,
+        "chars": 67,
+        "costEstimateEurUsd": 0.000002,
+        "contextUtilizationPct": 0.025
+      },
+      "savings": {
+        "tokensSaved": 706,
+        "savingsPercent": 97.78,
+        "costSavingsEurUsd": 0.000099
+      }
+    }
+  }
+}

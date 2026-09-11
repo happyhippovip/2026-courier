@@ -1,0 +1,16 @@
+[
+  {
+    "runId": "CI-RUN-104-ALPHA",
+    "timestamp": "2026-09-11T09:06:15.004Z",
+    "originalHash": "3cbd511f7dd9c130c9262e2f8e75b3ecb20c604013dcf2fb40eb5dd97c126f28",
+    "trimmedHash": "ef486d9c2ca28485906cd5a9b935040b10125682ed3fec683e5d0bf17c259a78",
+    "originalBytes": 640,
+    "trimmedBytes": 31,
+    "bytesSaved": 609,
+    "reductionPct": 95.16,
+    "metadata": {
+      "environment": "production-ci",
+      "branch": "main"
+    }
+  }
+]

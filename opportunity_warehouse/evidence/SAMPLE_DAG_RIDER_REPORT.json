@@ -1,0 +1,16 @@
+{
+  "experiment": "dag_rider_consensus",
+  "phase": 467,
+  "timestamp": "2026-09-11T11:53:53.244Z",
+  "validators": 4,
+  "quorum": 3,
+  "waveEvaluated": 0,
+  "leaderCommitted": true,
+  "supportingQuorumCount": 3,
+  "totalVertices": 13,
+  "linearizedCount": 1,
+  "linearizedLog": [
+    "tx_leader_wave0"
+  ],
+  "verdict": "PASS"
+}

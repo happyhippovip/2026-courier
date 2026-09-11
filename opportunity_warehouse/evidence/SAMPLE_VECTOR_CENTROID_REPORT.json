@@ -1,0 +1,30 @@
+{
+  "originalChunksCount": 3,
+  "retainedCentroidsCount": 2,
+  "prunedDuplicatesCount": 1,
+  "originalTokens": 84,
+  "finalTokens": 57,
+  "tokensSaved": 27,
+  "savingsPercent": 32.1,
+  "retainedCentroids": [
+    {
+      "id": "chunk_2",
+      "text": "Using pg_pool connection pooling on PostgreSQL improves performance and limits socket exhaustion substantially.",
+      "tokens": 28,
+      "subsumedChunkCount": 1
+    },
+    {
+      "id": "chunk_3",
+      "text": "CSS flexbox layout alignment using justify-content and align-items handles responsive centering on web interfaces.",
+      "tokens": 29,
+      "subsumedChunkCount": 0
+    }
+  ],
+  "prunedDetails": [
+    {
+      "id": "chunk_1",
+      "tokens": 27,
+      "subsumedByCentroid": "chunk_2"
+    }
+  ]
+}

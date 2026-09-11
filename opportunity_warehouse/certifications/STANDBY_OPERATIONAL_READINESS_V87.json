@@ -1,0 +1,14 @@
+{
+  "certificationId": "CERT-STANDBY-V87-2026",
+  "timestamp": "2026-09-11T10:11:14.040Z",
+  "phase": 264,
+  "status": "FAIL_CLOSED_DAEMON_READINESS_VERIFIED",
+  "lane": "windows/money-factory-p0",
+  "orderInboxState": "POLLING_ACTIVE",
+  "orderInboxDir": "money_factory/inbox/orders",
+  "revenueSettlementTrigger": "ON_GENUINE_EUR5_ORDER_RECEIPT",
+  "memoryLockState": "ZERO_CONTENTION_ZERO_LEASES",
+  "allSuitesPassing": true,
+  "totalTestSuitesExpected": 131,
+  "hash": "21b50af293ff8c6c987308e6d2565def7839424269dc1db930404992d6b0e9c9"
+}

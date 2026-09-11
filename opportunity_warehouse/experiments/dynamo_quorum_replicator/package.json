@@ -1,0 +1,10 @@
+{
+  "name": "dynamo-quorum-replicator",
+  "version": "1.0.0",
+  "description": "Multi-Agent Distributed Multi-Leader Dynamo-Style Quorum Replicator",
+  "main": "lib/dynamo_quorum_replicator.js",
+  "scripts": {
+    "test": "node test_dynamo_quorum_replicator.js"
+  },
+  "private": true
+}

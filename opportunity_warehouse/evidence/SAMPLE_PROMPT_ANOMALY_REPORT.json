@@ -1,0 +1,20 @@
+{
+  "totalTurnsEvaluated": 6,
+  "anomalyCount": 1,
+  "anomalyRatePercent": 16.67,
+  "anomalousTurns": [
+    {
+      "turn": 6,
+      "tokenCount": 18500,
+      "rollingMean": 4225,
+      "rollingStdDev": 64.55,
+      "zScore": 221.15,
+      "isAnomaly": true,
+      "anomalyReason": "Abrupt token volume surge (Z=221.15 > 2)"
+    }
+  ],
+  "recentRollingStats": {
+    "mean": 7800,
+    "stdDev": 7133.61
+  }
+}

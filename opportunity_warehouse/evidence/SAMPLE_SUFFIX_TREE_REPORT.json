@@ -1,0 +1,22 @@
+{
+  "originalBytes": 343,
+  "compactedBytes": 231,
+  "bytesSaved": 112,
+  "compressionRatio": 0.6735,
+  "dictionary": {
+    "[#REF_1]": "=== ENTERPRISE AUDIT HEADER: CONFIDENTIAL AGENT CONTEXT === Turn",
+    "[#REF_2]": "ENTERPRISE AUDIT HEADER: CONFIDENTIAL AGENT CONTEXT === Turn",
+    "[#REF_3]": "AUDIT HEADER: CONFIDENTIAL AGENT CONTEXT === Turn",
+    "[#REF_4]": "HEADER: CONFIDENTIAL AGENT CONTEXT === Turn",
+    "[#REF_5]": "== ENTERPRISE AUDIT HEADER: CONFIDENTIAL AGENT CONTEXT === Turn",
+    "[#REF_6]": "= ENTERPRISE AUDIT HEADER: CONFIDENTIAL AGENT CONTEXT === Turn",
+    "[#REF_7]": "NTERPRISE AUDIT HEADER: CONFIDENTIAL AGENT CONTEXT === Turn",
+    "[#REF_8]": "CONFIDENTIAL AGENT CONTEXT === Turn",
+    "[#REF_9]": "TERPRISE AUDIT HEADER: CONFIDENTIAL AGENT CONTEXT === Turn"
+  },
+  "turnsSample": [
+    "=== ENTERPRISE AUDIT HEADER: CONFIDENTIAL AGENT CONTEXT === Turn 1: User requested financial analysis.",
+    "[#REF_1] 2: Worker fetched database records.",
+    "[#REF_1] 3: Settlement complete with zero errors."
+  ]
+}

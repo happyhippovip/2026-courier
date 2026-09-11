@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-09-11T11:53:53.634Z",
+  "phase": 557,
+  "metrics": {
+    "size": 0,
+    "bitWidth": 32,
+    "lastExtracted": 105,
+    "activeBuckets": 0,
+    "complexity": "O(1)_AMORTIZED_INSERT_EXTRACT",
+    "queueClass": "MONOTONIC_RADIX_HEAP"
+  },
+  "verdict": "RADIX_HEAP_FILTER_VERIFIED_100_PERCENT"
+}

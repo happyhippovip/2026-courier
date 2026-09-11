@@ -1,0 +1,17 @@
+{
+  "experiment": "sliding_window_hll",
+  "phase": 461,
+  "timestamp": "2026-09-11T11:53:53.809Z",
+  "precision": 6,
+  "registers": 64,
+  "windowSize": 50,
+  "batch1Estimate": 53,
+  "combinedEstimate": 78,
+  "postExpirationEstimate": 40,
+  "footprint": {
+    "registers": 64,
+    "totalEntries": 34,
+    "avgEntriesPerRegister": 0.53125
+  },
+  "verdict": "PASS"
+}

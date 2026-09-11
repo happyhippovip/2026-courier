@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-09-11T11:53:53.505Z",
+  "phase": 371,
+  "component": "multi_raft_shards",
+  "activeShardsCount": 2,
+  "sharedPhysicalNodes": [
+    "node-B"
+  ],
+  "throughputLinearScalingVerified": true,
+  "verification": "100% PASS"
+}

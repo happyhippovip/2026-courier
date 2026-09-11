@@ -1,0 +1,27 @@
+{
+  "certificationId": "CERT-STANDBY-V92-2026",
+  "timestamp": "2026-09-11T10:15:49.514Z",
+  "phase": 276,
+  "status": "OPERATIONAL_STANDBY_VERIFIED",
+  "lane": "windows/money-factory-p0",
+  "scopeBoundaries": {
+    "macScopeModification": "FORBIDDEN",
+    "macBytesModified": 0,
+    "autonomousSpendLimitEUR": 0,
+    "currentAutonomousSpendEUR": 0,
+    "liveExternalOrdersSettled": 0,
+    "targetRevenueEUR": 5
+  },
+  "systemCapabilities": {
+    "tokenLeakyBucket": "ACTIVE_AND_TESTED",
+    "enterprisePQCArchitecture": "FIPS203_204_SPECIFIED",
+    "priorityInversionArbiter": "ACTIVE_AND_TESTED"
+  },
+  "compliance": {
+    "nistPQCStandards": "COMPLIANT",
+    "bsiTR02102": "COMPLIANT",
+    "iso42001": "COMPLIANT",
+    "slsaLevel3": "SPECIFIED"
+  },
+  "hash": "7d3aa6ce49850f42f719ecfcad257ba52bcabdb19515f87562896b9a6ceae773"
+}

@@ -1,0 +1,11 @@
+{
+  "experiment": "aleph_zero_finality_gadget",
+  "phase": 435,
+  "timestamp": "2026-09-11T11:53:52.807Z",
+  "totalNodes": 4,
+  "quorum": 3,
+  "authoredBlocks": 3,
+  "finalizedHeight": 2,
+  "finalizedHeadHash": "a4e56811a102fc6f8a39a359a87a3db65e5aaa19a4cbf1ea8ddc2d105f741376",
+  "verdict": "PASS"
+}

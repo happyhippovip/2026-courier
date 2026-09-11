@@ -1,0 +1,10 @@
+{
+  "name": "roaring-bitmap-compressor",
+  "version": "1.0.0",
+  "description": "Context Window Token Roaring Bitmap Compressor",
+  "main": "lib/roaring_bitmap_compressor.js",
+  "scripts": {
+    "test": "node test_roaring_bitmap_compressor.js"
+  },
+  "private": true
+}

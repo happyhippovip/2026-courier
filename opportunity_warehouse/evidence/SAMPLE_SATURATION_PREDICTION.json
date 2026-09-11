@@ -1,0 +1,23 @@
+{
+  "targetModel": "claude-3-5-sonnet",
+  "promptMetrics": {
+    "totalChars": 93050,
+    "estimatedTokens": 23263,
+    "modelCapacityTokens": 200000,
+    "sweetSpotTokens": 140000
+  },
+  "saturationPercentage": 11.63,
+  "degradationRisk": "LOW",
+  "lostInMiddleWarnings": [
+    {
+      "instructionIndex": 1,
+      "characterPosition": 39018,
+      "relativeDepthPercentage": 41.9,
+      "warning": "Critical instruction is located in the attention blind-spot (middle 42% depth). Relocate to top or bottom of prompt."
+    }
+  ],
+  "recommendations": [
+    "Relocate 1 critical instruction(s) out of the middle attention zone."
+  ],
+  "timestamp": "2026-09-11T09:23:58.930Z"
+}

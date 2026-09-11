@@ -1,0 +1,21 @@
+{
+  "version": "STANDBY_CERTIFICATION_V211",
+  "timestamp": "2026-09-11T11:11:27.553Z",
+  "phase": 512,
+  "author": "Antigravity Autonomous Engine (Windows Lane)",
+  "scope": "WINDOWS_OFFLINE_VERIFIED",
+  "spendLimit": "EUR_0.00",
+  "componentsCertified": [
+    "mysticeti_hotstuff_engine",
+    "STANDBY_CERTIFICATION_V210"
+  ],
+  "propertiesVerified": {
+    "consensusTopology": "UNCERTIFIED_DAG_MYSTICETI_HOTSTUFF_HYBRID",
+    "zeroCertificationDelay": "IMPLICIT_VOTING_AND_CERTIFICATION_VERIFIED",
+    "deterministicOrdering": "VERIFIED_CAUSAL_LEADER_FINALIZED",
+    "equivocationDefense": "FAIL_CLOSED_REJECTION"
+  },
+  "milestone": "QUINCENTENNIAL_EXPANSION_255_TEST_SUITES",
+  "totalExperimentsTracked": 157,
+  "verdict": "CERTIFIED_FAIL_CLOSED_GREEN"
+}

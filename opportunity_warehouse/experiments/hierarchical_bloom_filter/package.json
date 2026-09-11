@@ -1,0 +1,10 @@
+{
+  "name": "hierarchical-bloom-filter",
+  "version": "1.0.0",
+  "description": "Multi-Layer Hierarchical Token Bloom Filter & Fast Negative Cache",
+  "main": "lib/hierarchical_bloom_filter.js",
+  "scripts": {
+    "test": "node test_hierarchical_bloom_filter.js"
+  },
+  "private": true
+}

@@ -1,0 +1,24 @@
+{
+  "timestamp": "2026-09-11T11:53:52.841Z",
+  "originalTokens": 116,
+  "prunedTokens": 71,
+  "savingsPercent": 38.8,
+  "retainedSentences": [
+    {
+      "idx": 0,
+      "score": 2.137,
+      "snippet": "SYSTEM MANDATE: All commercial operation..."
+    },
+    {
+      "idx": 3,
+      "score": 2.098,
+      "snippet": "CRITICAL ERROR in module payment_gateway..."
+    },
+    {
+      "idx": 4,
+      "score": 2.15,
+      "snippet": "FINAL INSTRUCTION: Release memory mutex ..."
+    }
+  ],
+  "salienceOptimizationVerified": true
+}

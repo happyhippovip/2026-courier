@@ -1,0 +1,23 @@
+{
+  "model": "claude-3-5-sonnet",
+  "ratePerMillionInput": 3,
+  "teamSize": 15,
+  "promptsPerDevPerDay": 50,
+  "avgTokensPerPrompt": 14000,
+  "workingDaysPerMonth": 21,
+  "monthlyMetrics": {
+    "baselineTokens": 220500000,
+    "trimmedTokens": 136710000,
+    "tokensSaved": 83790000,
+    "baselineCostUsd": 661.5,
+    "trimmedCostUsd": 410.13,
+    "grossSavingsUsd": 251.37
+  },
+  "annualMetrics": {
+    "grossSavingsUsd": 3016.44,
+    "licenseCostEur": 199,
+    "netSavingsUsd": 2817.44,
+    "roiPercentage": 1415.8,
+    "paybackDays": 16.6
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "experiment": "pgm_index_filter",
+  "phase": 489,
+  "timestamp": "2026-09-11T11:53:53.570Z",
+  "stats": {
+    "totalKeys": 120,
+    "segmentCount": 1,
+    "epsilon": 4,
+    "compressionRatio": "0.0083"
+  },
+  "sampleKeyLookupsTested": 120,
+  "allLookupsSuccessful": true,
+  "verdict": "PASS"
+}

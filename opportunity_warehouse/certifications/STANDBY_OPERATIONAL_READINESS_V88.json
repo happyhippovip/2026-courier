@@ -1,0 +1,27 @@
+{
+  "certificationId": "CERT-STANDBY-V88-2026",
+  "timestamp": "2026-09-11T10:12:33.867Z",
+  "phase": 268,
+  "status": "OPERATIONAL_STANDBY_VERIFIED",
+  "lane": "windows/money-factory-p0",
+  "scopeBoundaries": {
+    "macScopeModification": "FORBIDDEN",
+    "macBytesModified": 0,
+    "autonomousSpendLimitEUR": 0,
+    "currentAutonomousSpendEUR": 0,
+    "liveExternalOrdersSettled": 0,
+    "targetRevenueEUR": 5
+  },
+  "systemCapabilities": {
+    "tokenEntropyGuard": "ACTIVE_AND_TESTED",
+    "enterpriseContinuousCompliance": "EVIDENCE_SPECIFIED",
+    "vectorClockEngine": "ACTIVE_AND_TESTED"
+  },
+  "compliance": {
+    "iso42001": "COMPLIANT",
+    "soc2TypeII": "COMPLIANT",
+    "euAiActArticle12": "COMPLIANT",
+    "slsaLevel3": "SPECIFIED"
+  },
+  "hash": "9bd0b0e4b9b032a6cdd576e5f9d0f6ece9eb63114edfc59a5c5083c8ac5d4bf9"
+}

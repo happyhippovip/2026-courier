@@ -1,0 +1,17 @@
+{
+  "timestamp": "2026-09-11T11:53:52.861Z",
+  "phase": 539,
+  "stats": {
+    "nodeCount": 4,
+    "activeBlocksCount": 1,
+    "stableCheckpointsCount": 1,
+    "lastTruncatedHeight": 5
+  },
+  "truncationSummary": {
+    "truncatedToHeight": 5,
+    "prunedBlocks": 5,
+    "activeBlocksRemaining": 1,
+    "stableCheckpointStateRoot": "state_root_5"
+  },
+  "verdict": "BFT_CHECKPOINT_COMPACTION_ENGINE_VERIFIED_100_PERCENT"
+}

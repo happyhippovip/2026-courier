@@ -1,0 +1,32 @@
+{
+  "timestamp": "2026-09-11T11:53:53.837Z",
+  "totalWordsIndexed": 16,
+  "prefixMatchesForAgent": [
+    {
+      "word": "agentworker",
+      "frequency": 3,
+      "metadata": {
+        "type": "worker",
+        "lastSeen": 1789127633837
+      }
+    },
+    {
+      "word": "agentscheduler",
+      "frequency": 2,
+      "metadata": {
+        "type": "class",
+        "module": "core/scheduler",
+        "lastSeen": 1789127633837
+      }
+    },
+    {
+      "word": "agentdispatcher",
+      "frequency": 1,
+      "metadata": {
+        "type": "dispatcher",
+        "lastSeen": 1789127633837
+      }
+    }
+  ],
+  "exactSearchVerified": true
+}

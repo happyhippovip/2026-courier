@@ -1,0 +1,7 @@
+{
+  "timestamp": "2026-09-11T11:53:53.747Z",
+  "dividerSavings": 48.5,
+  "arraySavings": 58.8,
+  "sampleCompressed": "--- AUDIT REPORT ---\n[REPEAT: \"=\" x 50]\nStatus: OK\n[REPEAT: \"=\" x 50]",
+  "losslessRoundtripVerified": true
+}

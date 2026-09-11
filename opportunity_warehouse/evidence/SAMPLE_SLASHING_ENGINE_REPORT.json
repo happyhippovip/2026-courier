@@ -1,0 +1,24 @@
+{
+  "timestamp": "2026-09-11T11:53:52.978Z",
+  "phase": 579,
+  "stats": {
+    "totalValidators": 4,
+    "slashedCount": 1,
+    "activeValidatorsCount": 3,
+    "slashedNodes": [
+      "node_0"
+    ],
+    "totalForfeitedStake": 1000
+  },
+  "sampleSlash": {
+    "slashed": true,
+    "nodeId": "node_0",
+    "forfeitedStake": 1000,
+    "remainingActiveValidators": [
+      "node_1",
+      "node_2",
+      "node_3"
+    ]
+  },
+  "verdict": "BFT_SLASHING_ENGINE_VERIFIED_100_PERCENT"
+}

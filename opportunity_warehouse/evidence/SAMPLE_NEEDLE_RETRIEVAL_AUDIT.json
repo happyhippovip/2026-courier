@@ -1,0 +1,81 @@
+{
+  "totalTokens": 60000,
+  "totalSections": 6,
+  "meanAttentionScore": 0.707,
+  "atRiskCount": 1,
+  "optimizationRequired": true,
+  "evaluations": [
+    {
+      "needleId": "sys_prompt",
+      "label": "System Instructions",
+      "priority": "critical",
+      "positionTokens": 1000,
+      "totalTokens": 60000,
+      "depthPercent": 1.7,
+      "attentionScore": 0.959,
+      "riskScore": 0.062,
+      "needsHoisting": false,
+      "recommendedAction": "MAINTAIN_POSITION"
+    },
+    {
+      "needleId": "user_rules",
+      "label": "Safety Guidelines",
+      "priority": "high",
+      "positionTokens": 2750,
+      "totalTokens": 60000,
+      "depthPercent": 4.6,
+      "attentionScore": 0.892,
+      "riskScore": 0.13,
+      "needsHoisting": false,
+      "recommendedAction": "MAINTAIN_POSITION"
+    },
+    {
+      "needleId": "retrieved_docs_1",
+      "label": "Unchecked PDF Excerpts",
+      "priority": "medium",
+      "positionTokens": 16000,
+      "totalTokens": 60000,
+      "depthPercent": 26.7,
+      "attentionScore": 0.515,
+      "riskScore": 0.485,
+      "needsHoisting": false,
+      "recommendedAction": "MAINTAIN_POSITION"
+    },
+    {
+      "needleId": "critical_constraint",
+      "label": "Zero-Spend Invariant",
+      "priority": "critical",
+      "positionTokens": 28750,
+      "totalTokens": 60000,
+      "depthPercent": 47.9,
+      "attentionScore": 0.381,
+      "riskScore": 0.928,
+      "needsHoisting": true,
+      "recommendedAction": "HOIST_TO_HEAD_OR_TAIL"
+    },
+    {
+      "needleId": "retrieved_docs_2",
+      "label": "Legacy SQL Tables",
+      "priority": "low",
+      "positionTokens": 44000,
+      "totalTokens": 60000,
+      "depthPercent": 73.3,
+      "attentionScore": 0.515,
+      "riskScore": 0.485,
+      "needsHoisting": false,
+      "recommendedAction": "MAINTAIN_POSITION"
+    },
+    {
+      "needleId": "current_turn",
+      "label": "Current User Query",
+      "priority": "high",
+      "positionTokens": 59500,
+      "totalTokens": 60000,
+      "depthPercent": 99.2,
+      "attentionScore": 0.98,
+      "riskScore": 0.024,
+      "needsHoisting": false,
+      "recommendedAction": "MAINTAIN_POSITION"
+    }
+  ]
+}

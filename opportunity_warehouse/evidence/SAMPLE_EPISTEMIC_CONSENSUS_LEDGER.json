@@ -1,0 +1,14 @@
+{
+  "totalDisputesResolved": 1,
+  "totalTokensSaved": 22,
+  "consensusLedger": [
+    {
+      "topic": "cache_strategy",
+      "winningAgent": "agent_sec",
+      "winningRole": "security_gate",
+      "consensusAssertion": "[CONSENSUS_RESOLVED: cache_strategy]: In-memory caching is rejected due to multi-tenant memory leak risks; Redis with TLS must be used. (Affirmed by security_gate)",
+      "prunedCounterClaimsCount": 2,
+      "tokensSaved": 22
+    }
+  ]
+}

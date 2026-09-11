@@ -1,0 +1,10 @@
+{
+  "name": "pbft-consensus-coordinator",
+  "version": "1.0.0",
+  "description": "Multi-Agent Distributed Byzantine Fault Tolerant (PBFT) Consensus Coordinator",
+  "main": "lib/pbft_consensus_coordinator.js",
+  "scripts": {
+    "test": "node test_pbft_consensus_coordinator.js"
+  },
+  "private": true
+}

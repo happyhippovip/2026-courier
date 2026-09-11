@@ -1,0 +1,9 @@
+{
+  "timestamp": "2026-09-11T11:53:53.695Z",
+  "phase": 321,
+  "component": "reservoir_sampler",
+  "reservoirCapacityK": 5,
+  "streamSizeProcessed": 1000,
+  "statisticalUniformityVerified": true,
+  "verification": "100% PASS"
+}

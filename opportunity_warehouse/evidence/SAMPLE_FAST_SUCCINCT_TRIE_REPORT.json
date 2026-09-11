@@ -1,0 +1,32 @@
+{
+  "timestamp": "2026-09-11T11:53:53.332Z",
+  "phase": 501,
+  "metrics": {
+    "nodeCount": 78,
+    "keyCount": 10,
+    "loudsBits": 157,
+    "succinctBytes": 109,
+    "pointerTrieEstimatedBytes": 3744,
+    "compressionRatio": 0.9709,
+    "savingsPercent": "97.09%"
+  },
+  "sampleQueries": {
+    "exactMatchAntigravity": {
+      "found": true,
+      "value": {
+        "tokenRef": "ref_antigravity",
+        "length": 11
+      },
+      "nodeIndex": 69
+    },
+    "lpmCompound": {
+      "match": "antigravity",
+      "length": 11,
+      "value": {
+        "tokenRef": "ref_antigravity",
+        "length": 11
+      }
+    }
+  },
+  "verdict": "FAST_SUCCINCT_TRIE_VERIFIED_100_PERCENT"
+}

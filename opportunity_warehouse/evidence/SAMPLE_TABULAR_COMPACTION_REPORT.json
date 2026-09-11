@@ -1,0 +1,9 @@
+{
+  "originalTokens": 92,
+  "finalTokens": 42,
+  "tokensSaved": 50,
+  "savingsPercent": 54.3,
+  "columnsRetained": 3,
+  "columnsDropped": 1,
+  "compactedTable": "|Metric Name|Value|Notes|\n|---|---|---|\n|Latency TTFT|450ms|Nominal gateway ping|\n|Memory Allocation|128MB|In-memory heap|\n|Token Compaction|68.4%|AST dead code prune|"
+}

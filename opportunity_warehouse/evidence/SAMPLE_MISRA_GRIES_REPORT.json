@@ -1,0 +1,29 @@
+{
+  "experiment": "misra_gries_heavy_hitters",
+  "phase": 405,
+  "timestamp": "2026-09-11T11:53:53.494Z",
+  "k": 5,
+  "capacity": 4,
+  "totalProcessedTokens": 1000,
+  "heavyHitters": [
+    {
+      "token": "symphony",
+      "estimatedCount": 399,
+      "lowerBoundFrequency": 0.399,
+      "guaranteedExceedsThreshold": true
+    },
+    {
+      "token": "autonomous",
+      "estimatedCount": 183,
+      "lowerBoundFrequency": 0.183,
+      "guaranteedExceedsThreshold": false
+    },
+    {
+      "token": "agent",
+      "estimatedCount": 83,
+      "lowerBoundFrequency": 0.083,
+      "guaranteedExceedsThreshold": false
+    }
+  ],
+  "verdict": "PASS"
+}

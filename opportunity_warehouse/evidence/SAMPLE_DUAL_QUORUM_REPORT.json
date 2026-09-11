@@ -1,0 +1,35 @@
+{
+  "timestamp": "2026-09-11T11:53:52.872Z",
+  "phase": 535,
+  "stats": {
+    "nodeCount": 4,
+    "qFast": 4,
+    "qSlow": 3,
+    "blocksCount": 5,
+    "qcsCount": 4,
+    "committedBlocksCount": 2,
+    "totalCommittedTxs": 3
+  },
+  "sampleFastCommit": {
+    "committed": true,
+    "mode": "DUAL_QUORUM_FAST_PATH",
+    "view": 1,
+    "blockHash": "7ab2e20b5e730b3891b905df7900be2cf2c6a1e6efc5e2241eb7e54196c6ca88",
+    "txs": [
+      "tx_dq_fast_01",
+      "tx_dq_fast_02"
+    ],
+    "totalCommittedTxs": 2
+  },
+  "sampleSlowCommit": {
+    "committed": true,
+    "mode": "HOTSTUFF_3CHAIN_FALLBACK",
+    "view": 2,
+    "blockHash": "b2a15444cac07936474758f9b0cc3bee2778e20dd528407545c35cc21f5d44be",
+    "txs": [
+      "tx_dq_slow_01"
+    ],
+    "totalCommittedTxs": 3
+  },
+  "verdict": "BFT_DUAL_QUORUM_ENGINE_VERIFIED_100_PERCENT"
+}

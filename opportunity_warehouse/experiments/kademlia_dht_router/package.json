@@ -1,0 +1,10 @@
+{
+  "name": "kademlia-dht-router",
+  "version": "1.0.0",
+  "description": "Multi-Agent Distributed Hash Table (Kademlia DHT) Routing Engine",
+  "main": "lib/kademlia_dht_router.js",
+  "scripts": {
+    "test": "node test_kademlia_dht_router.js"
+  },
+  "private": true
+}

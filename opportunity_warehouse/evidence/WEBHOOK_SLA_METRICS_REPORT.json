@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-09-11T09:04:45.420Z",
+  "slaMetrics": {
+    "totalPings": 4,
+    "successfulPings": 4,
+    "slaCompliantPings": 4,
+    "uptimePct": 100,
+    "slaCompliancePct": 100,
+    "avgLatencyMs": 29.25
+  }
+}

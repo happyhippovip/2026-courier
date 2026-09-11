@@ -1,0 +1,12 @@
+{
+  "certificationId": "STANDBY_CERTIFICATION_V260",
+  "phase": 609,
+  "subsystem": "burst_trie_filter_and_zk_credit_lines",
+  "timestamp": "2026-09-11T11:39:09.652Z",
+  "verifiedComponents": [
+    "burst_trie_filter",
+    "ENTERPRISE_ZK_OFFCHAIN_CREDIT_LINES.md"
+  ],
+  "integrityHash": "85bac5a1d1dc7a1124bb8c58d816f142a6fb7796f433490cafd52fa6d9e62652",
+  "status": "GREEN_ACTIVE"
+}

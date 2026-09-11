@@ -1,0 +1,29 @@
+{
+  "experiment": "checkpoint_bft_engine",
+  "phase": 487,
+  "timestamp": "2026-09-11T11:53:53.079Z",
+  "replicas": 4,
+  "quorum": 3,
+  "checkpointInterval": 5,
+  "stableCheckpoints": [
+    {
+      "seq": 5,
+      "stateDigest": "6afeca039de67acd05aa08664771d4abb3c1f7625b5d0af860ce54eb3c9d013a",
+      "signers": [
+        "r0",
+        "r1",
+        "r2",
+        "r3"
+      ],
+      "signatures": [
+        "23ac14fd457bb2bd559003c3d00665d5703c5dad9b755e7422265f48690768d8",
+        "39e4fc5004d68f904e23d3d274be271257b1632eeb68e0b6e76baf443c3adf88",
+        "dfcc6e5e64f01d88745614540403187e37389cdccca17ef4848132a89178b4f8",
+        "b9aef1b5aec8ced6095d61e225cc13444d5bedf4e6600706433492b961e08ae6"
+      ],
+      "certId": "81ed4cee46457160ee79e3d245f04c3b46e4636928cabe297931114492e2a8ef"
+    }
+  ],
+  "fastSyncVerified": true,
+  "verdict": "PASS"
+}

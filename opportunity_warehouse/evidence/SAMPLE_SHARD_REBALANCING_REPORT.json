@@ -1,0 +1,40 @@
+{
+  "experiment": "bft_shard_rebalancing_engine",
+  "timestamp": "2026-09-11T11:53:52.956Z",
+  "imbalanceDetected": {
+    "imbalanced": true,
+    "ratio": 5,
+    "hotspot": "shard_0"
+  },
+  "lastRebalance": {
+    "epoch": 1,
+    "proposal": {
+      "epoch": 1,
+      "sourceShard": "shard_0",
+      "targetShard": "shard_1",
+      "migratedPrefixes": [
+        "b"
+      ],
+      "timestamp": 1789127632955,
+      "hash": "13a6218e0fa41c94fb9ea013a948114fbae6edbf51dba5d8fed5edd05ac7e3a6"
+    },
+    "signers": [
+      "node_0",
+      "node_1",
+      "node_2"
+    ],
+    "newRouting": {
+      "a": "shard_0",
+      "b": "shard_1",
+      "c": "shard_1",
+      "d": "shard_1"
+    }
+  },
+  "finalRoutingTable": {
+    "a": "shard_0",
+    "b": "shard_1",
+    "c": "shard_1",
+    "d": "shard_1"
+  },
+  "status": "VERIFIED"
+}

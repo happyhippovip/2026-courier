@@ -1,0 +1,20 @@
+{
+  "timestamp": "2026-09-11T11:53:53.070Z",
+  "phase": 521,
+  "metrics": {
+    "indexedLength": 49,
+    "stateCount": 67,
+    "transitionCount": 97,
+    "estimatedBytes": 4232,
+    "compressionAdvantage": "9.26x"
+  },
+  "sampleQueries": {
+    "lcs": {
+      "length": 13,
+      "substring": "_antigravity_"
+    },
+    "antigravityCount": 2,
+    "gravityCount": 3
+  },
+  "verdict": "CDAWG_FILTER_VERIFIED_100_PERCENT"
+}

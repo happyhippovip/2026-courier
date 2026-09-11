@@ -1,0 +1,20 @@
+{
+  "timestamp": "2026-09-11T11:53:53.255Z",
+  "totalKeysIndexed": 7,
+  "keyMappings": {
+    "customer_account_metadata": "$0",
+    "transaction_reference_id": "$1",
+    "cryptographic_signature": "$2",
+    "timestamp_epoch_millis": "$3",
+    "verification_status": "$4",
+    "country_code": "$5",
+    "tier": "$6"
+  },
+  "efficiency": {
+    "rawTokens": 165,
+    "encodedTokensWithHeader": 126,
+    "tokensSaved": 39,
+    "savingsPct": 23.6
+  },
+  "losslessEqualityVerified": true
+}

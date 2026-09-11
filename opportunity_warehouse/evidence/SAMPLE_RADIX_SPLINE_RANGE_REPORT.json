@@ -1,0 +1,17 @@
+{
+  "experiment": "radix_spline_range_filter",
+  "timestamp": "2026-09-11T11:53:53.655Z",
+  "metrics": {
+    "keyCount": 10,
+    "splinePointCount": 2,
+    "maxError": 2,
+    "compressionFactor": 0.2
+  },
+  "sampleRange": [
+    40,
+    50,
+    60,
+    70
+  ],
+  "status": "VERIFIED"
+}

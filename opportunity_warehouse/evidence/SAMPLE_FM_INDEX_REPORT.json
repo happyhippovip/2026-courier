@@ -1,0 +1,23 @@
+{
+  "timestamp": "2026-09-11T11:53:53.345Z",
+  "phase": 525,
+  "metrics": {
+    "textLength": 49,
+    "alphabetSize": 16,
+    "bwtLength": 49,
+    "sampleRate": 2
+  },
+  "sampleQueries": {
+    "antigravityCount": 2,
+    "antigravityLocs": [
+      0,
+      29
+    ],
+    "gravityLocs": [
+      4,
+      12,
+      33
+    ]
+  },
+  "verdict": "FM_INDEX_FILTER_VERIFIED_100_PERCENT"
+}

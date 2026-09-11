@@ -1,0 +1,30 @@
+{
+  "timestamp": "2026-09-11T11:53:53.897Z",
+  "rootId": "node_root_1789127633897",
+  "pruneStats": {
+    "prunedNodesCount": 2,
+    "prunedTokens": 36
+  },
+  "winningTrace": {
+    "pathSequence": [
+      {
+        "id": "node_root_1789127633897",
+        "action": "Initial prompt: Secure EUR 5.00 revenue",
+        "status": "RESOLVED"
+      },
+      {
+        "id": "node_ookhaz",
+        "action": "Poll inbox directory",
+        "status": "ACTIVE"
+      },
+      {
+        "id": "node_qtk139",
+        "action": "Process verified order",
+        "status": "RESOLVED"
+      }
+    ],
+    "totalSteps": 3,
+    "totalTokens": 54
+  },
+  "branchIsolationVerified": true
+}

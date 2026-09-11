@@ -1,0 +1,30 @@
+{
+  "timestamp": "2026-09-11T11:53:53.761Z",
+  "phase": 593,
+  "metrics": {
+    "size": 8,
+    "alpha": 0.67,
+    "maxNodeCount": 8,
+    "memoryPerNode": "ZERO_BALANCING_METADATA",
+    "complexity": "O(log N)_AMORTIZED_INSERT_STRICT_LOOKUP"
+  },
+  "sampleRange": [
+    {
+      "key": 30,
+      "value": "token_30"
+    },
+    {
+      "key": 40,
+      "value": "token_40"
+    },
+    {
+      "key": 50,
+      "value": "token_50"
+    },
+    {
+      "key": 60,
+      "value": "token_60"
+    }
+  ],
+  "verdict": "SCAPEGOAT_TREE_FILTER_VERIFIED_100_PERCENT"
+}

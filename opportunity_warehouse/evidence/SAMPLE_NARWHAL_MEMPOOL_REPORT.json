@@ -1,0 +1,16 @@
+{
+  "experiment": "narwhal_mempool_engine",
+  "phase": 399,
+  "timestamp": "2026-09-11T11:53:53.516Z",
+  "totalNodes": 4,
+  "quorum": 3,
+  "batchId": "2cc11b0a21b30be34ab251bd2497ab89ec5fe7e86ee03d14ccd477e57c51af26",
+  "certificateId": "fa75ea333f68287d7021f105a2ec3a37762ba319a06f9f0e9cda4060eb59db20",
+  "signers": [
+    "node_0",
+    "node_1",
+    "node_2"
+  ],
+  "retrievedTransactionCount": 3,
+  "verdict": "PASS"
+}

@@ -1,0 +1,18 @@
+{
+  "experiment": "bft_shard_crosslink_engine",
+  "timestamp": "2026-09-11T11:53:52.931Z",
+  "totalCrossLinksFinalized": 1,
+  "lastRecord": {
+    "crossLinkId": "d257b43a64689e1213565cce1a24ca15c4d1f07efc8e2e44cf89167dae0a6c16",
+    "shardId": "shard_0",
+    "shardBlockNumber": 42,
+    "stateRoot": "0xstateroot42",
+    "signers": [
+      "node_0",
+      "node_1",
+      "node_2"
+    ],
+    "hubCommitTimestamp": 1789127632930
+  },
+  "status": "VERIFIED"
+}

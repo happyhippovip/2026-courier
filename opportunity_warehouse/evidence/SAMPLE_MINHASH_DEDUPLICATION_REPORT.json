@@ -1,0 +1,68 @@
+{
+  "retainedCount": 3,
+  "duplicateCount": 2,
+  "deduplicationRatio": 0.4,
+  "clustersCount": 3,
+  "retained": [
+    {
+      "id": "turn_1",
+      "content": "Agent state initialization: loading configuration parameters and memory buffers."
+    },
+    {
+      "id": "turn_3",
+      "content": "Autonomous worker standby cycle: polling customer order mailbox at interval 5000ms."
+    },
+    {
+      "id": "turn_5",
+      "content": "Commercial transaction validation: verified €5.00 incoming bank transfer."
+    }
+  ],
+  "duplicates": [
+    {
+      "index": 1,
+      "item": {
+        "id": "turn_2",
+        "content": "Agent state initialization: loading configuration parameters and memory buffers."
+      },
+      "retainedIndex": 0,
+      "estimatedSimilarity": 1
+    },
+    {
+      "index": 3,
+      "item": {
+        "id": "turn_4",
+        "content": "Agent state initialization: loading configuration parameters and local memory buffers."
+      },
+      "retainedIndex": 0,
+      "estimatedSimilarity": 0.671875
+    }
+  ],
+  "clusters": [
+    {
+      "clusterId": "cluster_0",
+      "representativeIndex": 0,
+      "memberIndices": [
+        0,
+        1,
+        3
+      ],
+      "memberCount": 3
+    },
+    {
+      "clusterId": "cluster_1",
+      "representativeIndex": 2,
+      "memberIndices": [
+        2
+      ],
+      "memberCount": 1
+    },
+    {
+      "clusterId": "cluster_2",
+      "representativeIndex": 4,
+      "memberIndices": [
+        4
+      ],
+      "memberCount": 1
+    }
+  ]
+}

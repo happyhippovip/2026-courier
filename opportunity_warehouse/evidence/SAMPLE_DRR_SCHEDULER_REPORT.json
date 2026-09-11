@@ -1,0 +1,26 @@
+{
+  "jainsFairnessIndex": 1,
+  "stats": {
+    "agent_alpha": {
+      "weight": 1,
+      "quantum": 100,
+      "deficit": 0,
+      "queueLength": 0,
+      "servedTokens": 250,
+      "servedRequests": 5
+    },
+    "agent_beta": {
+      "weight": 1,
+      "quantum": 100,
+      "deficit": 0,
+      "queueLength": 0,
+      "servedTokens": 250,
+      "servedRequests": 5
+    }
+  },
+  "roundExecution": {
+    "totalTokens": 500,
+    "totalRequests": 10,
+    "rounds": 3
+  }
+}

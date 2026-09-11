@@ -1,0 +1,9 @@
+{
+  "timestamp": "2026-09-11T09:20:57.013Z",
+  "formats": {
+    "json": "{\n  \"type\": \"Module\",\n  \"name\": \"OrderProcessingEngine\",\n  \"children\": [\n    {\n      \"type\": \"Function\",\n      \"name\": \"calculateTaxes\",\n      \"value\": \"pure\"\n    },\n    {\n      \"type\": \"Function\",\n      \"name\": \"settlePayment\",\n      \"value\": \"async\"\n    }\n  ]\n}",
+    "yaml": "type: Module\nname: OrderProcessingEngine\nchildren:\n  -\n    type: Function\n    name: calculateTaxes\n    value: \"pure\"\n  -\n    type: Function\n    name: settlePayment\n    value: \"async\"\n",
+    "outline": "- **[Module]** OrderProcessingEngine\n  - **[Function]** calculateTaxes\n  - **[Function]** settlePayment\n",
+    "digest": "M:OrderProcessingEngine(F:calculateTaxes,F:settlePayment)"
+  }
+}

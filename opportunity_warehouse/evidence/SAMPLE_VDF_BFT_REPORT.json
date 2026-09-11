@@ -1,0 +1,12 @@
+{
+  "experiment": "vdf_bft_consensus",
+  "phase": 475,
+  "timestamp": "2026-09-11T11:53:53.951Z",
+  "nodes": 4,
+  "quorum": 3,
+  "delaySteps": 40,
+  "committedBlocksCount": 2,
+  "round1Leader": "node_0",
+  "round2Leader": "node_3",
+  "verdict": "PASS"
+}

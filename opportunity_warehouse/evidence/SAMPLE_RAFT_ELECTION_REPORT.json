@@ -1,0 +1,14 @@
+{
+  "timestamp": "2026-09-11T11:53:53.677Z",
+  "phase": 303,
+  "component": "raft_leader_election",
+  "clusterSize": 3,
+  "nodes": [
+    "node-1",
+    "node-2",
+    "node-3"
+  ],
+  "leaderNode": "node-2",
+  "term": 2,
+  "verification": "100% PASS"
+}

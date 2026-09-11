@@ -1,0 +1,37 @@
+{
+  "timestamp": "2026-09-11T11:53:53.288Z",
+  "phase": 517,
+  "metrics": {
+    "elementCount": 20,
+    "universeBound": 1601,
+    "lowerBitWidth": 6,
+    "totalBits": 165,
+    "compressedBytes": 21,
+    "rawBytes": 80,
+    "compressionRatio": 0.7375,
+    "savingsPercent": "73.75%"
+  },
+  "sampleSequence": [
+    3,
+    8,
+    15,
+    27,
+    44,
+    59,
+    81,
+    105,
+    140,
+    188,
+    245,
+    310,
+    390,
+    480,
+    590,
+    720,
+    890,
+    1050,
+    1280,
+    1600
+  ],
+  "verdict": "ELIAS_FANO_ENCODER_VERIFIED_100_PERCENT"
+}

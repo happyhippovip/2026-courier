@@ -1,0 +1,10 @@
+{
+  "name": "distributed-snapshot-v2",
+  "version": "1.0.0",
+  "description": "Multi-Agent Distributed Consistent Snapshot & Global State Vector Engine",
+  "main": "lib/distributed_snapshot_v2.js",
+  "scripts": {
+    "test": "node test_distributed_snapshot_v2.js"
+  },
+  "private": true
+}

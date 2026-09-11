@@ -1,0 +1,8 @@
+{
+  "experiment": "bft_shard_commit_chaining_engine",
+  "timestamp": "2026-09-11T11:53:52.928Z",
+  "shardId": "shard_A",
+  "certifiedCommitProofs": 1,
+  "chainedBlocksCount": 1,
+  "status": "VERIFIED"
+}

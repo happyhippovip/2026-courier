@@ -1,0 +1,14 @@
+{
+  "experiment": "leveled_hash_filter",
+  "phase": 481,
+  "timestamp": "2026-09-11T11:53:53.425Z",
+  "topBuckets": 16,
+  "bottomBuckets": 8,
+  "bucketCapacity": 4,
+  "stats": {
+    "totalCapacity": 96,
+    "currentSize": 50,
+    "loadFactor": "0.5208"
+  },
+  "verdict": "PASS"
+}

@@ -1,0 +1,11 @@
+{
+  "experiment": "quotient_filter",
+  "phase": 421,
+  "timestamp": "2026-09-11T11:53:53.619Z",
+  "qBits": 8,
+  "rBits": 8,
+  "totalSlots": 256,
+  "loadedItems": 4,
+  "loadFactor": 0.015625,
+  "verdict": "PASS"
+}

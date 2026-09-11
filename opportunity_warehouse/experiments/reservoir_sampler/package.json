@@ -1,0 +1,10 @@
+{
+  "name": "reservoir-sampler",
+  "version": "1.0.0",
+  "description": "Streaming Context Token Reservoir Sampler & Unbiased Estimator",
+  "main": "lib/reservoir_sampler.js",
+  "scripts": {
+    "test": "node test_reservoir_sampler.js"
+  },
+  "private": true
+}

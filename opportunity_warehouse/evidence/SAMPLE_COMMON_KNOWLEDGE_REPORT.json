@@ -1,0 +1,45 @@
+{
+  "timestamp": "2026-09-11T11:53:52.865Z",
+  "phase": 555,
+  "stats": {
+    "nodeCount": 4,
+    "quorumSize": 3,
+    "totalBeaconShares": 3,
+    "totalACKCertificates": 1,
+    "committedEpochs": [
+      1
+    ],
+    "activeEpochs": {
+      "node_0": 2,
+      "node_1": 2,
+      "node_2": 2,
+      "node_3": 2
+    }
+  },
+  "sampleACK": {
+    "epoch": 1,
+    "shares": [
+      {
+        "epoch": 1,
+        "nodeId": "node_0",
+        "entropyShare": "entropy_node_0_seed",
+        "sig": "0d317783a8bc7695fc23709a765decfbad4e8f85425534daced5cbd9022f5463"
+      },
+      {
+        "epoch": 1,
+        "nodeId": "node_1",
+        "entropyShare": "entropy_node_1_seed",
+        "sig": "7b0f144dc8202fc14d32a31aa3fc59785176e46b03697efcec16ee967530fc8a"
+      },
+      {
+        "epoch": 1,
+        "nodeId": "node_2",
+        "entropyShare": "entropy_node_2_seed",
+        "sig": "70f10b0b424545d7b4c925199b02184ec45d21a29562963934b8848465fdee2f"
+      }
+    ],
+    "commonEntropy": "15ce99dbf3147abfa889f72af7a78d80c13b29209a3e112518d9ac03ac7c9f90",
+    "certifiedAt": 1789127632864
+  },
+  "verdict": "BFT_COMMON_KNOWLEDGE_ENGINE_VERIFIED_100_PERCENT"
+}

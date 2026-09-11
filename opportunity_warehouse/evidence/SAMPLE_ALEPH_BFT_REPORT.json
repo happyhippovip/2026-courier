@@ -1,0 +1,36 @@
+{
+  "experiment": "aleph_bft_consensus",
+  "phase": 407,
+  "timestamp": "2026-09-11T11:53:52.780Z",
+  "totalNodes": 4,
+  "quorum": 3,
+  "decidedLeader": {
+    "round": 1,
+    "creator": "node_1",
+    "hash": "dd63f9a003e4d682ed302e19d1c67f7c873f99a86b82918e8a3439b62c78447f"
+  },
+  "linearOrderCount": 4,
+  "orderedCommands": [
+    {
+      "round": 0,
+      "creator": "node_0",
+      "cmd": "genesis_node_0"
+    },
+    {
+      "round": 0,
+      "creator": "node_1",
+      "cmd": "genesis_node_1"
+    },
+    {
+      "round": 0,
+      "creator": "node_2",
+      "cmd": "genesis_node_2"
+    },
+    {
+      "round": 1,
+      "creator": "node_1",
+      "cmd": "turn1_node_1"
+    }
+  ],
+  "verdict": "PASS"
+}

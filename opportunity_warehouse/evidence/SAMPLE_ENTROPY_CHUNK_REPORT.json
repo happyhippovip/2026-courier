@@ -1,0 +1,10 @@
+{
+  "timestamp": "2026-09-11T11:53:53.320Z",
+  "tokenBudget": 60,
+  "usedTokens": 50,
+  "selectedIds": [
+    "c1_security",
+    "c3_payment"
+  ],
+  "verifiedMonotonicOrder": true
+}

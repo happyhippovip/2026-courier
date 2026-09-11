@@ -1,0 +1,10 @@
+{
+  "name": "avss-engine",
+  "version": "1.0.0",
+  "description": "Multi-Agent Distributed Asynchronous Verifiable Secret Sharing Engine",
+  "main": "lib/avss_engine.js",
+  "scripts": {
+    "test": "node test_avss_engine.js"
+  },
+  "private": true
+}

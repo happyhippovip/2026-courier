@@ -1,0 +1,43 @@
+{
+  "probe_id": "PROBE-1789116474647",
+  "timestamp_utc": "2026-09-11T08:47:54.647Z",
+  "overall_status": "HEALTHY",
+  "checks": {
+    "runtime": {
+      "node_version": "v24.20.0",
+      "platform": "win32",
+      "arch": "x64",
+      "pid": 13220,
+      "uptime_sec": 0,
+      "heap_used_mb": 4.96,
+      "heap_total_mb": 6.52,
+      "os_free_mem_mb": 7717.12,
+      "status": "OK"
+    },
+    "directories": {
+      "inbox_orders": {
+        "accessible": true,
+        "writable": true,
+        "status": "OK"
+      },
+      "opportunity_warehouse": {
+        "accessible": true,
+        "writable": true,
+        "status": "OK"
+      },
+      "evidence": {
+        "accessible": true,
+        "writable": true,
+        "status": "OK"
+      }
+    },
+    "leases": {
+      "active_leases_count": 62,
+      "status": "OK"
+    },
+    "orders": {
+      "pending_count": 0,
+      "status": "OK"
+    }
+  }
+}

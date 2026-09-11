@@ -1,0 +1,10 @@
+{
+  "name": "virtual-shard-migrator",
+  "version": "1.0.0",
+  "description": "Multi-Agent Distributed Consistent Hash Ring Virtual Shard Migrator",
+  "main": "lib/virtual_shard_migrator.js",
+  "scripts": {
+    "test": "node test_virtual_shard_migrator.js"
+  },
+  "private": true
+}

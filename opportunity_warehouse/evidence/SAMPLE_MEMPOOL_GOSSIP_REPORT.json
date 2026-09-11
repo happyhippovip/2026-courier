@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-09-11T11:53:52.886Z",
+  "phase": 591,
+  "stats": {
+    "nodeId": "node_0",
+    "currentMempoolSize": 2,
+    "totalSeenHashes": 3,
+    "maxMempoolSize": 5
+  },
+  "verdict": "BFT_MEMPOOL_GOSSIP_ENGINE_VERIFIED_100_PERCENT"
+}

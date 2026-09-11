@@ -1,0 +1,10 @@
+{
+  "name": "wavelet-saliency-transform",
+  "version": "1.0.0",
+  "description": "Multi-Resolution Token Hierarchical Saliency Wavelet Transform",
+  "main": "lib/wavelet_saliency_transform.js",
+  "scripts": {
+    "test": "node test_wavelet_saliency_transform.js"
+  },
+  "private": true
+}

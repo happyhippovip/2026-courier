@@ -1,0 +1,8 @@
+{
+  "isCoherent": true,
+  "coherenceScore": 1,
+  "totalReferencesFound": 5,
+  "danglingReferences": [],
+  "retainedEntitiesCount": 4,
+  "recommendation": "COHERENT_PROCEED"
+}

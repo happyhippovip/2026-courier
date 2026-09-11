@@ -1,0 +1,76 @@
+{
+  "pruneReport": {
+    "totalEvaluated": 3,
+    "retainedCount": 2,
+    "prunedCount": 1,
+    "retained": [
+      {
+        "id": "chunk_1",
+        "text": "System initialized core memory",
+        "embedding": {
+          "quantized": {
+            "0": 16,
+            "1": 79,
+            "2": 127,
+            "3": -32
+          },
+          "scale": 158.75
+        }
+      },
+      {
+        "id": "chunk_3",
+        "text": "Financial transaction settlement record",
+        "embedding": {
+          "quantized": {
+            "0": -113,
+            "1": -28,
+            "2": 14,
+            "3": 127
+          },
+          "scale": 141.11111111111111
+        }
+      }
+    ],
+    "pruned": [
+      {
+        "id": "chunk_2",
+        "similarTo": "chunk_1",
+        "similarity": 1
+      }
+    ]
+  },
+  "mmrResult": [
+    {
+      "id": "chunk_1",
+      "text": "System initialized core memory",
+      "embedding": {
+        "quantized": {
+          "0": 16,
+          "1": 79,
+          "2": 127,
+          "3": -32
+        },
+        "scale": 158.75
+      },
+      "mmrScore": 0.5968
+    },
+    {
+      "id": "chunk_2",
+      "text": "System initialized core memory buffer",
+      "embedding": {
+        "quantized": {
+          "0": 16,
+          "1": 79,
+          "2": 127,
+          "3": -32
+        },
+        "scale": 158.75
+      },
+      "mmrScore": 0.1968
+    }
+  ],
+  "quantizationMetrics": {
+    "scale": 158.75,
+    "int8Length": 4
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "timestamp": "2026-09-11T11:53:52.918Z",
+  "phase": 571,
+  "stats": {
+    "currentEpoch": 2,
+    "activeValidators": [
+      "node_0",
+      "node_1",
+      "node_2",
+      "node_3",
+      "node_4"
+    ],
+    "activeQuorumSize": 3,
+    "totalReconfigurations": 1,
+    "epochHistory": [
+      {
+        "epoch": 1,
+        "validators": [
+          "node_0",
+          "node_1",
+          "node_2",
+          "node_3"
+        ]
+      },
+      {
+        "epoch": 2,
+        "validators": [
+          "node_0",
+          "node_1",
+          "node_2",
+          "node_3",
+          "node_4"
+        ],
+        "qcHash": "e6e792aaccc6dd2468e97f5bee6a01c52e3b4a0d39534ae32f7928cbb3e5c797"
+      }
+    ]
+  },
+  "sampleReconfig": {
+    "reconfigured": true,
+    "newEpoch": 2,
+    "activeValidators": [
+      "node_0",
+      "node_1",
+      "node_2",
+      "node_3",
+      "node_4"
+    ],
+    "quorumSize": 3
+  },
+  "verdict": "BFT_RECONFIGURATION_ENGINE_VERIFIED_100_PERCENT"
+}

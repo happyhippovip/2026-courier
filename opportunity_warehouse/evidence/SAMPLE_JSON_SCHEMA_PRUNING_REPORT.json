@@ -1,0 +1,22 @@
+{
+  "originalTokens": 166,
+  "prunedTokens": 58,
+  "tokensSaved": 108,
+  "savingsPercent": 65.1,
+  "prunedSchema": {
+    "type": "object",
+    "properties": {
+      "query": {
+        "type": "string",
+        "description": "The exact SQL query string to run on the database."
+      },
+      "timeoutMs": {
+        "type": "number",
+        "description": "Query execution timeout in milliseconds."
+      }
+    },
+    "required": [
+      "query"
+    ]
+  }
+}

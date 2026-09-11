@@ -1,0 +1,22 @@
+{
+  "timestamp": "2026-09-11T11:53:53.357Z",
+  "phase": 315,
+  "component": "gossip_swim_membership",
+  "clusterSize": 3,
+  "membershipStates": {
+    "agent-node-a": {
+      "state": "ALIVE",
+      "incarnation": 0
+    },
+    "agent-node-b": {
+      "state": "SUSPECT",
+      "incarnation": 0
+    },
+    "agent-node-c": {
+      "state": "ALIVE",
+      "incarnation": 0
+    }
+  },
+  "failureDetectionVerified": true,
+  "verification": "100% PASS"
+}

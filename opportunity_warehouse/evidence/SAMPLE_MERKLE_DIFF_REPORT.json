@@ -1,0 +1,26 @@
+{
+  "diffSummary": {
+    "identical": false,
+    "baseRootHash": "af084086d77c4be7a6997385089d63122e9570dd267aea2a865e692e7aa67f8e",
+    "targetRootHash": "948565fc3452b50143c9c3b601223efa63199e5f214a43f49e254b3cd4f03e52",
+    "added": {
+      "settlement_status": "EUR5_PENDING"
+    },
+    "modified": {
+      "turns_completed": {
+        "previous": 48,
+        "current": 49
+      }
+    },
+    "deleted": {
+      "spend_limit": 0
+    },
+    "operationsCount": 3
+  },
+  "patchMetadata": {
+    "baseRootHash": "af084086d77c4be7a6997385089d63122e9570dd267aea2a865e692e7aa67f8e",
+    "targetRootHash": "948565fc3452b50143c9c3b601223efa63199e5f214a43f49e254b3cd4f03e52",
+    "operationsCount": 3
+  },
+  "verification": true
+}

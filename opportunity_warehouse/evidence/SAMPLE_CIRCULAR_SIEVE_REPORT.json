@@ -1,0 +1,29 @@
+{
+  "timestamp": "2026-09-11T11:53:53.088Z",
+  "phase": 309,
+  "component": "circular_sieve_evictor",
+  "capacity": 4,
+  "currentEntries": [
+    {
+      "key": "k1",
+      "pinned": false,
+      "visited": true
+    },
+    {
+      "key": "k3",
+      "pinned": true,
+      "visited": true
+    },
+    {
+      "key": "k4",
+      "pinned": false,
+      "visited": false
+    },
+    {
+      "key": "k5",
+      "pinned": false,
+      "visited": true
+    }
+  ],
+  "evictionVerification": "100% PASS"
+}

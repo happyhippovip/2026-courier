@@ -1,0 +1,16 @@
+{
+  "timestamp": "2026-09-11T11:53:52.894Z",
+  "phase": 563,
+  "stats": {
+    "nodeCount": 4,
+    "standardQuorum": 3,
+    "optimisticQuorum": 4,
+    "totalBlocks": 4,
+    "totalCommitted": 2,
+    "commitModes": {
+      "c407b25fa48f45d7f0f61b13d5ff8985d22b1af33f143f4f08b9c488bbf25fb4": "OPTIMISTIC_FAST_PATH",
+      "152ede5be389872c6dc6ffe7b356e0df3b8cf2b96d9006b1b2187a20e22c3c6c": "STANDARD_BFT_PATH"
+    }
+  },
+  "verdict": "BFT_OPTIMISTIC_RESPONSIVE_ENGINE_VERIFIED_100_PERCENT"
+}

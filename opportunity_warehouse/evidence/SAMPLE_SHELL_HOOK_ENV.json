@@ -1,0 +1,15 @@
+{
+  "bashZshConfig": {
+    "shellType": "bash",
+    "targetConfigFile": "~/.zshrc (or ~/.bashrc)",
+    "content": "#!/usr/bin/env bash\n# Symphony Agent Context Trimmer - Automatic Shell Hook\n# Add this snippet to your ~/.bashrc or ~/.zshrc\n\ntrim_context() {\n  local target=\"$1\"\n  if [ -f \"$target\" ]; then\n    npx @symphony/agent-context-trimmer --file \"$target\" --inplace\n  fi\n}\n\nclaude() {\n  # Auto-trim staged prompts before launching claude\n  if [ -f \"PROMPT.md\" ]; then trim_context \"PROMPT.md\"; fi\n  if [ -f \".cursorrules\" ]; then trim_context \".cursorrules\"; fi\n  command claude \"$@\"\n}\n\naider() {\n  # Auto-trim staged prompts before launching aider\n  if [ -f \"PROMPT.md\" ]; then trim_context \"PROMPT.md\"; fi\n  if [ -f \".cursorrules\" ]; then trim_context \".cursorrules\"; fi\n  command aider \"$@\"\n}\n\ncursor() {\n  # Auto-trim staged prompts before launching cursor\n  if [ -f \"PROMPT.md\" ]; then trim_context \"PROMPT.md\"; fi\n  if [ -f \".cursorrules\" ]; then trim_context \".cursorrules\"; fi\n  command cursor \"$@\"\n}\n\n# End Symphony Hook\n",
+    "instructions": "Append the content to ~/.zshrc (or ~/.bashrc) and reload your shell."
+  },
+  "fishConfig": {
+    "shellType": "fish",
+    "targetConfigFile": "~/.config/fish/config.fish",
+    "content": "# Fish Shell Functions for Symphony Context Trimmer\nfunction trim_context\n  set -l target $argv[1]\n  if test -f \"$target\"\n    npx @symphony/agent-context-trimmer --file \"$target\" --inplace\n  end\nend\n\nfunction claude --wraps claude\n  if test -f \"PROMPT.md\"; trim_context \"PROMPT.md\"; end\n  command claude $argv\nend\n\nfunction aider --wraps aider\n  if test -f \"PROMPT.md\"; trim_context \"PROMPT.md\"; end\n  command aider $argv\nend\n\nfunction cursor --wraps cursor\n  if test -f \"PROMPT.md\"; trim_context \"PROMPT.md\"; end\n  command cursor $argv\nend\n\n",
+    "instructions": "Append the content to ~/.config/fish/config.fish and reload your shell."
+  },
+  "generatedAt": "2026-09-11T09:20:57.003Z"
+}

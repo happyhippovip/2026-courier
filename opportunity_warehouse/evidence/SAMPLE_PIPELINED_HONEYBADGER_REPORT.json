@@ -1,0 +1,62 @@
+{
+  "experiment": "pipelined_honeybadger_engine",
+  "phase": 499,
+  "timestamp": "2026-09-11T11:53:53.583Z",
+  "nodes": 4,
+  "quorum": 3,
+  "epochsCommitted": 2,
+  "epoch1Result": {
+    "epoch": 1,
+    "participatingNodes": 4,
+    "batchesIncludedCount": 3,
+    "batches": [
+      {
+        "node": "node_0",
+        "digest": "e03e848b6c23092dd842d82e83f18391cc7a27d02241e2fb39233a55076bf786"
+      },
+      {
+        "node": "node_1",
+        "digest": "813ccd02e3cd1740932b5805960cc399210a89334edd798518877ac1039b5d82"
+      },
+      {
+        "node": "node_2",
+        "digest": "a191fdf903547497034c494a1e6a4b56a18096df53d1c69702a5bc0b7fb65584"
+      }
+    ],
+    "transactionCount": 4,
+    "orderedTransactions": [
+      "tx_settlement_eur5",
+      "tx_token_alpha",
+      "tx_token_beta",
+      "tx_token_gamma"
+    ],
+    "epochCertificate": "61c1c502016096eeff747350fd53b9334e79ea7e03a7fb257d6e97cebe484a8a"
+  },
+  "epoch2Result": {
+    "epoch": 2,
+    "participatingNodes": 4,
+    "batchesIncludedCount": 3,
+    "batches": [
+      {
+        "node": "node_0",
+        "digest": "88378eff7d1e0964f460899168e19503064de22d19647e84c74966de6df3692f"
+      },
+      {
+        "node": "node_1",
+        "digest": "9ddb42aa956af49acb7191d2982de8ea92df382d847fc352d48de3a7311bcb54"
+      },
+      {
+        "node": "node_2",
+        "digest": "6ed79f16a53e2c6ef9074dcfe3f7173d4c12be4f6858d4a918fb14c5adbe7278"
+      }
+    ],
+    "transactionCount": 3,
+    "orderedTransactions": [
+      "tx_epoch2_a",
+      "tx_epoch2_b",
+      "tx_epoch2_c"
+    ],
+    "epochCertificate": "2e2f225c940452c774175fd8c8e5f75ab05c2c23036efe37d50a53ae73fd19d6"
+  },
+  "verdict": "PASS"
+}

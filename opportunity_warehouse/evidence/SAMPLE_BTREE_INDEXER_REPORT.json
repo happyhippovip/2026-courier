@@ -1,0 +1,12 @@
+{
+  "timestamp": "2026-09-11T11:53:53.039Z",
+  "phase": 305,
+  "component": "btree_token_indexer",
+  "order": 4,
+  "totalTokensIndexed": 8,
+  "rangeQueryResults": {
+    "highSaliencyCount": 4,
+    "lowSaliencyCount": 2
+  },
+  "verification": "100% PASS"
+}

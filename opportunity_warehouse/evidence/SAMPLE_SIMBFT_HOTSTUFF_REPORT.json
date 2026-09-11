@@ -1,0 +1,24 @@
+{
+  "timestamp": "2026-09-11T11:53:53.793Z",
+  "phase": 515,
+  "stats": {
+    "nodeCount": 4,
+    "blocksCount": 4,
+    "qcsCount": 4,
+    "committedBlocksCount": 1,
+    "totalCommittedTxs": 2
+  },
+  "sampleCommit": {
+    "committed": true,
+    "mode": "SIMBFT_HOTSTUFF_3CHAIN_COMMIT",
+    "view": 1,
+    "blockHash": "05bd5b71d41ae50ffb271f629511b5e8a46c67a32a9425b842eb0e0808a8bd7f",
+    "leaderId": "node_0",
+    "txs": [
+      "tx_sb_01",
+      "tx_sb_02"
+    ],
+    "totalCommittedTxs": 2
+  },
+  "verdict": "SIMBFT_HOTSTUFF_ENGINE_VERIFIED_100_PERCENT"
+}

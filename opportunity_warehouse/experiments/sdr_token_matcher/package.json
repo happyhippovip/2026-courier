@@ -1,0 +1,10 @@
+{
+  "name": "sdr-token-matcher",
+  "version": "1.0.0",
+  "description": "Context Window Token Sparse Distributed Representation (SDR) Matcher",
+  "main": "lib/sdr_token_matcher.js",
+  "scripts": {
+    "test": "node test_sdr_token_matcher.js"
+  },
+  "private": true
+}

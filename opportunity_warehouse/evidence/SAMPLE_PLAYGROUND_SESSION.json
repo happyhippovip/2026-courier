@@ -1,0 +1,16 @@
+{
+  "timestamp": "2026-09-11T09:08:47.063Z",
+  "simResult": {
+    "activeRules": {
+      "dedupHeaders": true,
+      "pruneComments": true,
+      "minifyWhitespace": true,
+      "stripDecorativeAscii": true
+    },
+    "initialTokens": 21,
+    "finalTokens": 4,
+    "tokensSaved": 17,
+    "savingsPct": 80.95,
+    "previewSnippet": "# Agent Rules\\n"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "segment-tree-lazy",
+  "version": "1.0.0",
+  "description": "Context Window Token Segment Tree with Lazy Propagation",
+  "main": "lib/segment_tree_lazy.js",
+  "scripts": {
+    "test": "node test_segment_tree_lazy.js"
+  },
+  "private": true
+}

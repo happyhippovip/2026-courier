@@ -1,0 +1,70 @@
+{
+  "discord": {
+    "username": "Symphony Commercial Observer",
+    "avatar_url": "https://raw.githubusercontent.com/symphony/assets/main/bot.png",
+    "embeds": [
+      {
+        "title": "🎉 Commercial Sale Verified!",
+        "description": "A new verified purchase of **agent-context-trimmer v1.0.0** has settled.",
+        "color": 3055683,
+        "fields": [
+          {
+            "name": "Order ID",
+            "value": "```ORD-EUR5-LIVE-INITIAL```",
+            "inline": true
+          },
+          {
+            "name": "Revenue",
+            "value": "€5.00 EUR",
+            "inline": true
+          },
+          {
+            "name": "Status",
+            "value": "100% Settled & Delivered",
+            "inline": true
+          }
+        ],
+        "footer": {
+          "text": "Symphony Autonomous Commercial Subsystem"
+        },
+        "timestamp": "2026-09-11T08:56:31.005Z"
+      }
+    ]
+  },
+  "slack": {
+    "blocks": [
+      {
+        "type": "header",
+        "text": {
+          "type": "plain_text",
+          "text": "🎉 Verified Commercial Settlement",
+          "emoji": true
+        }
+      },
+      {
+        "type": "section",
+        "fields": [
+          {
+            "type": "mrkdwn",
+            "text": "*Product:*\nagent-context-trimmer v1.0.0"
+          },
+          {
+            "type": "mrkdwn",
+            "text": "*Revenue:*\n€5.00 EUR"
+          },
+          {
+            "type": "mrkdwn",
+            "text": "*Order ID:*\n`ORD-EUR5-LIVE-INITIAL`"
+          },
+          {
+            "type": "mrkdwn",
+            "text": "*Settlement:*\n100% Attributable"
+          }
+        ]
+      },
+      {
+        "type": "divider"
+      }
+    ]
+  }
+}
