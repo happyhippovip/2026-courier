@@ -1,6 +1,6 @@
 {
   "subsystem": "bft_shard_regenesis_engine",
-  "timestamp": "2026-09-11T12:03:36.548Z",
+  "timestamp": "2026-09-11T12:04:06.887Z",
   "genesisEpoch": 1,
   "genesisRoot": "eb0bf61bf3a3c111065be81f77209adeb9d2bce14f2a99b170432bad936a4796",
   "accountCount": 2,
@@ -14,7 +14,7 @@
       "purgedBlocks": 3,
       "signedWeight": 70,
       "quorumRatio": 0.7,
-      "certifiedAt": "2026-09-11T12:03:36.548Z"
+      "certifiedAt": "2026-09-11T12:04:06.887Z"
     }
   ]
 }

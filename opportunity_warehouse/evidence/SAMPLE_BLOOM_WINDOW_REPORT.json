@@ -1,7 +1,7 @@
 {
   "experiment": "bloom_window_evaluator",
   "phase": 413,
-  "timestamp": "2026-09-11T12:03:36.644Z",
+  "timestamp": "2026-09-11T12:04:06.967Z",
   "windowSize": 200,
   "activeTokensCount": 30,
   "testSamplew3": true,

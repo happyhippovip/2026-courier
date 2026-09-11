@@ -1,6 +1,6 @@
 {
   "experiment": "bft_shard_gc_engine",
-  "timestamp": "2026-09-11T12:03:36.530Z",
+  "timestamp": "2026-09-11T12:04:06.870Z",
   "shardId": "shard_alpha",
   "totalPrunedRecords": 1,
   "lastPruneCount": 2,

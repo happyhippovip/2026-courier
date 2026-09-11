@@ -1,7 +1,7 @@
 {
   "experiment": "bullshark_fast_path",
   "phase": 427,
-  "timestamp": "2026-09-11T12:03:36.666Z",
+  "timestamp": "2026-09-11T12:04:06.989Z",
   "totalNodes": 4,
   "fastQuorum": 4,
   "committedLeader": "node_1",

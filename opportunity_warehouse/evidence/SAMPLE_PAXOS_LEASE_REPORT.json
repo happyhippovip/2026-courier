@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-09-11T12:03:37.220Z",
+  "timestamp": "2026-09-11T12:04:07.501Z",
   "phase": 327,
   "component": "paxos_lease_engine",
   "acceptorsCount": 5,
@@ -7,7 +7,7 @@
   "leaseState": {
     "leaseHolderId": "agent-primary",
     "durationMs": 5000,
-    "grantedAt": 1789128217219
+    "grantedAt": 1789128247500
   },
   "consensusSafetyVerified": true,
   "verification": "100% PASS"

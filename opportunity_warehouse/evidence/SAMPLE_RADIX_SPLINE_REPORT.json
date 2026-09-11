@@ -1,13 +1,13 @@
 {
   "experiment": "radix_spline_filter",
   "phase": 485,
-  "timestamp": "2026-09-11T12:03:37.349Z",
+  "timestamp": "2026-09-11T12:04:07.622Z",
   "stats": {
     "totalKeys": 100,
-    "splinePointsCount": 2,
+    "splinePointsCount": 3,
     "radixBits": 4,
     "epsilon": 4,
-    "compressionRatio": "0.0200"
+    "compressionRatio": "0.0300"
   },
   "sampleKeyLookupsTested": 100,
   "allLookupsSuccessful": true,

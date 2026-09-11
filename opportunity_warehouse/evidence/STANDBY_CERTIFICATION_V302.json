@@ -1,0 +1,12 @@
+{
+  "certificationId": "STANDBY_CERTIFICATION_V302",
+  "phase": 693,
+  "subsystem": "radix_golomb_pot_filter",
+  "timestamp": "2026-09-11T12:04:06.585Z",
+  "verifiedComponents": [
+    "radix_golomb_pot_filter",
+    "SAMPLE_RADIX_GOLOMB_POT_REPORT.json"
+  ],
+  "integrityHash": "22e99a447baf87fc8dce8b9cecf90fa19a777687e5f37a88935fb50b6266ba9f",
+  "status": "GREEN_ACTIVE"
+}

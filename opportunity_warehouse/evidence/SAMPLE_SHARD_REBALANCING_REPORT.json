@@ -1,6 +1,6 @@
 {
   "experiment": "bft_shard_rebalancing_engine",
-  "timestamp": "2026-09-11T12:03:36.544Z",
+  "timestamp": "2026-09-11T12:04:06.884Z",
   "imbalanceDetected": {
     "imbalanced": true,
     "ratio": 5,
@@ -15,8 +15,8 @@
       "migratedPrefixes": [
         "b"
       ],
-      "timestamp": 1789128216543,
-      "hash": "0b6c4d43faf2ea26116d32a0f9e4dcd5c302bcfbafe163a08bcae41d8c58359c"
+      "timestamp": 1789128246884,
+      "hash": "e323efd36eaf0dad822b5776707a183516689f291c86cf23ed79047e32204b5d"
     },
     "signers": [
       "node_0",

@@ -1,0 +1,12 @@
+{
+  "certificationId": "STANDBY_CERTIFICATION_V303",
+  "phase": 695,
+  "subsystem": "bft_shard_checkpoint_chaining_consensus_engine",
+  "timestamp": "2026-09-11T12:04:06.587Z",
+  "verifiedComponents": [
+    "bft_shard_checkpoint_chaining_engine",
+    "SAMPLE_BFT_CHECKPOINT_CHAINING_REPORT.json"
+  ],
+  "integrityHash": "0654af4e5ef9e72a6a71164266ce28e953d317f8bddbd5ffbc9e89c28315aecc",
+  "status": "GREEN_ACTIVE"
+}

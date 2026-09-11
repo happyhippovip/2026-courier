@@ -1,0 +1,6 @@
+{
+  "test": "BFT_SHARD_CHECKPOINT_CHAINING_ENGINE",
+  "passed": true,
+  "chainLength": 2,
+  "timestamp": "2026-09-11T12:04:06.849Z"
+}

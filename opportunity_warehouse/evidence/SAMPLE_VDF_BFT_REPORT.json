@@ -1,7 +1,7 @@
 {
   "experiment": "vdf_bft_consensus",
   "phase": 475,
-  "timestamp": "2026-09-11T12:03:37.693Z",
+  "timestamp": "2026-09-11T12:04:08.043Z",
   "nodes": 4,
   "quorum": 3,
   "delaySteps": 40,
