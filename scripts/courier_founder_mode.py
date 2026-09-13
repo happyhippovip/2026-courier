@@ -169,8 +169,12 @@ class MultiChatGoalIntake:
                         # Remains blocked. Relinquish the single-flight slot.
                         g["status"] = "BLOCKED"
                     else:
-                        # Orphaned ACTIVE goal. Resume it.
-                        return g
+                        has_human_gate = any(m.get("goal") == g["goal"] and m.get("status") == "HUMAN_GATE" for m in missions)
+                        if has_human_gate:
+                            g["status"] = "WAITING_HUMAN_GATE"
+                        else:
+                            # Orphaned ACTIVE goal. Resume it.
+                            return g
 
             # Step 2: Unblock BLOCKED goals if evidence changed
             for g in data:
@@ -189,6 +193,14 @@ class MultiChatGoalIntake:
                         q._mutate(_unblock_mission)
                         return g
             
+            # Step 2b: Unblock WAITING_HUMAN_GATE goals if a mission was resumed
+            for g in data:
+                if g["status"] == "WAITING_HUMAN_GATE":
+                    has_live = any(m.get("goal") == g["goal"] and m.get("status") in ("PENDING", "RUNNING", "PENDING_VERIFY") for m in missions)
+                    if has_live:
+                        g["status"] = "ACTIVE"
+                        return g
+
             # Step 3: Admit a new PENDING goal
             for g in data:
                 if g["status"] == "PENDING":
@@ -536,8 +548,7 @@ class FounderModeMVP:
             
                 if status == "HUMAN_GATE":
                     self.stats["human_gates"] += 1
-                    self.intake.set_status(goal["goal_id"], "HUMAN_GATE")
-                    break
+                    continue
                 
                 if status in ["FAILED", "FAIL_CLOSED"]:
                     self.stats["blockers"] += 1
