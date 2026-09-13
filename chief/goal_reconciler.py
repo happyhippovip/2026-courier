@@ -2374,6 +2374,40 @@ class GoalReconciler:
             "expected_evidence": "B2B VAT invoice engine test suite passed (5/5 tests 100% success)"
         })
 
+        # Candidate BT: Agent Control Plane Framework Integration Matrix, Drop-In Multi-Agent Adapters & Local Diagnostic Doctor CLI
+        candidates.append({
+            "candidate_id": "TASK-WIN-80",
+            "version": 1,
+            "goal_id": "GOAL-03",
+            "title": "Agent Control Plane Framework Integration Matrix, Drop-In Multi-Agent Adapters & Local Diagnostic Doctor CLI",
+            "category": "SUSTAINABLE_COMMERCIAL_DELIVERY",
+            "conflict_domain": "ACP_FRAMEWORK_INTEGRATION",
+            "target_machine": "WINDOWS",
+            "target_worker": "WINDOWS_GOOGLE",
+            "scope": os.path.join(self.project_memory_dir, "data", "distribution_ready", "agent_control_plane"),
+            "script_path": "courier/tests/test_framework_integrations_and_doctor.py",
+            "cwd": self.workspace_root,
+            "is_writer": False,
+            "unresolved_gap": "AUTONOMY_CAPABILITY_GAP",
+            "goal_impact": 10.0,
+            "revenue_impact": 10.0,
+            "info_gain": 10.0,
+            "proof_debt_reduction": 10.0,
+            "autonomy_gain": 10.0,
+            "risk_score": 0.0,
+            "spend_eur": 0.00,
+            "human_requirement": "NONE",
+            "acceptance_criteria": [
+                "Execute courier/tests/test_framework_integrations_and_doctor.py",
+                "Verify FRAMEWORK_INTEGRATIONS.md provides turnkey recipes for LangChain, AutoGen, CrewAI, and Raw REST",
+                "Verify acp_adapter.py drop-in client wraps external agents with autonomous guardrails, kill switch, and license verification",
+                "Verify acp_doctor.py diagnostic utility checks license validity, manifest integrity, and studio connectivity",
+                "Verify doctor CLI exits 0 with --json flag and reports full diagnostic health",
+                "Verify zero external network calls, zero telemetry, and 0.00 EUR automatic spend"
+            ],
+            "expected_evidence": "Framework integrations and doctor test suite passed (5/5 tests 100% success)"
+        })
+
         # Dynamic Candidate Discovery from safe_backlog.json
         if os.path.exists(self.backlog_path):
             try:
