@@ -238,12 +238,16 @@ class CourierSafetyDispatcher:
                         self.mission_queue.transition(mission_id, "PENDING_VERIFY", result_reference=str(result_file))
                         
                         # Populate inflight so verify_result works
+                        prestate_file = self.workspace_dir / "events" / "task-envelopes" / f"prestate_{task_hash}.json"
+                        import json
+                        prestate = json.loads(prestate_file.read_text()) if prestate_file.exists() else {}
                         self._inflight[task_hash] = {
+                            "prestate": prestate, "is_heavy": mission.get("is_heavy", False),
                             "worker_id": "recovery",
                             "result": result_data,
                             "task": mission.get("task", {}),
                             "mission_id": mission_id,
-                            "route": target_agent,
+                            "route": result_data.get("target_agent", target_agent).upper() if result_data.get("target_agent", target_agent) else target_agent,
                             "requires_write": mission.get("task", {}).get("requires_write", False)
                         }
                         try:
@@ -389,6 +393,9 @@ class CourierSafetyDispatcher:
                         except Exception:
                             prestate["content"] = None
 
+            if prestate:
+                import json
+                (self.workspace_dir / "events" / "task-envelopes" / f"prestate_{task_hash}.json").write_text(json.dumps(prestate))
             envelope = TaskEnvelope(
                 task_hash=task_hash,
                 worker_id=worker_id,
@@ -816,7 +823,7 @@ class MissionQueue:
     TRANSITIONS = {
         "PENDING": {"CLAIMED", "BLOCKED", "HUMAN_GATE", "DEDUPED"},
         "CLAIMED": {"RUNNING", "BLOCKED", "HUMAN_GATE", "DEDUPED", "PENDING", "PENDING_VERIFY", "FAILED"},
-        "RUNNING": {"PENDING_VERIFY", "FAILED", "BLOCKED", "HUMAN_GATE"},
+        "RUNNING": {"PENDING_VERIFY", "FAILED", "BLOCKED", "HUMAN_GATE", "PENDING"},
         "PENDING_VERIFY": {"VERIFIED", "FAILED", "BLOCKED", "HUMAN_GATE"},
         "VERIFIED": set(), "FAILED": set(), "BLOCKED": {"PENDING"}, "HUMAN_GATE": set(), "DEDUPED": set(),
     }
