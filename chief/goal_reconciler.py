@@ -1797,6 +1797,36 @@ class GoalReconciler:
             "expected_evidence": "Artifact streaming and diff sync tests passed (100% success)"
         })
 
+        # Candidate BC: Autonomous Two-Level Done Verification & Multi-Host Closure Gate Certification
+        candidates.append({
+            "candidate_id": "TASK-WIN-63",
+            "version": 1,
+            "goal_id": "GOAL-05",
+            "title": "Autonomous Two-Level Done Verification & Multi-Host Closure Gate Certification",
+            "category": "MULTI_HOST_CLOSURE_VERIFICATION",
+            "conflict_domain": "TWO_LEVEL_CLOSURE_GATE",
+            "target_machine": "WINDOWS",
+            "target_worker": "WINDOWS_GOOGLE",
+            "scope": os.path.join(self.workspace_root, "courier"),
+            "script_path": "courier/tests/test_closure_gate.py",
+            "cwd": self.workspace_root,
+            "is_writer": False,
+            "unresolved_gap": "AUTONOMY_CAPABILITY_GAP",
+            "goal_impact": 10.0,
+            "revenue_impact": 9.5,
+            "info_gain": 10.0,
+            "proof_debt_reduction": 10.0,
+            "autonomy_gain": 10.0,
+            "risk_score": 0.0,
+            "spend_eur": 0.00,
+            "human_requirement": "NONE",
+            "acceptance_criteria": [
+                "Execute courier/tests/test_closure_gate.py",
+                "Verify Level 1 local execution vs Level 2 global closure distinction, peer sync blocker handling, human gate isolation, spend firewall rejection, signed receipt generation, and REST evaluation"
+            ],
+            "expected_evidence": "Two-level closure gate tests passed (100% success)"
+        })
+
         # Dynamic Candidate Discovery from safe_backlog.json
         if os.path.exists(self.backlog_path):
             try:
