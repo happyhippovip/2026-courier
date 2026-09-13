@@ -2122,6 +2122,42 @@ class GoalReconciler:
             "expected_evidence": "Cross-runtime commerce bridge test suite passed (7/7 tests 100% success)"
         })
 
+        # Candidate BM: Agent Control Plane Pro Sealed Deliverable Packaging, Clean-Room Extraction Verification & Cryptographic Manifest Integrity
+        candidates.append({
+            "candidate_id": "TASK-WIN-73",
+            "version": 1,
+            "goal_id": "GOAL-03",
+            "title": "Agent Control Plane Pro Sealed Deliverable Packaging, Clean-Room Extraction Verification & Cryptographic Manifest Integrity",
+            "category": "SUSTAINABLE_COMMERCIAL_DELIVERY",
+            "conflict_domain": "SEALED_DELIVERABLE_INTEGRITY",
+            "target_machine": "WINDOWS",
+            "target_worker": "WINDOWS_GOOGLE",
+            "scope": os.path.join(self.project_memory_dir, "data", "distribution_ready", "agent_control_plane"),
+            "script_path": "courier/tests/test_sealed_deliverable_integrity.py",
+            "cwd": self.workspace_root,
+            "is_writer": False,
+            "unresolved_gap": "AUTONOMY_CAPABILITY_GAP",
+            "goal_impact": 10.0,
+            "revenue_impact": 10.0,
+            "info_gain": 10.0,
+            "proof_debt_reduction": 10.0,
+            "autonomy_gain": 10.0,
+            "risk_score": 0.0,
+            "spend_eur": 0.00,
+            "human_requirement": "NONE",
+            "acceptance_criteria": [
+                "Execute courier/tests/test_sealed_deliverable_integrity.py",
+                "Verify SHA-256 of agent_control_plane_pro_v1.0.0.zip matches DISTRIBUTION_MANIFEST_PRO.json and GITHUB_RELEASE_ASSETS.json",
+                "Verify clean-room extraction unpacks all 11 core files including complete license_engine package",
+                "Verify standalone license engine self-tests pass inside unpacked clean-room sandbox",
+                "Verify SpendFirewallPro activates PRO tier from clean-room unpack with valid license",
+                "Verify SpendFirewallPro degrades to FREE tier from clean-room unpack with invalid license",
+                "Verify studio/server.js configured path serves byte-matching sealed zip archive",
+                "Verify zero external network calls, zero telemetry, and 0.00 EUR automatic spend"
+            ],
+            "expected_evidence": "Sealed deliverable integrity test suite passed (7/7 tests 100% success)"
+        })
+
         # Dynamic Candidate Discovery from safe_backlog.json
         if os.path.exists(self.backlog_path):
             try:
