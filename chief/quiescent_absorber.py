@@ -35,15 +35,25 @@ class QuiescentQueueAbsorber:
 
     def __init__(
         self,
-        watermark_file: str = DEFAULT_WATERMARK_FILE,
-        db_path: str = DEFAULT_DB_PATH,
-        workspace_root: str = WORKSPACE_ROOT,
+        watermark_file: Optional[str] = None,
+        db_path: Optional[str] = None,
+        workspace_root: Optional[str] = None,
         cp: Optional[ControlPlane] = None
     ):
-        self.watermark_file = os.path.abspath(watermark_file)
-        self.db_path = os.path.abspath(db_path)
-        self.workspace_root = os.path.abspath(workspace_root)
-        self.cp = cp or ControlPlane(self.db_path)
+        self.workspace_root = os.path.abspath(workspace_root or WORKSPACE_ROOT)
+        if cp:
+            self.cp = cp
+            self.db_path = os.path.abspath(cp.db_path)
+        else:
+            self.db_path = os.path.abspath(db_path or DEFAULT_DB_PATH)
+            self.cp = ControlPlane(self.db_path)
+
+        if watermark_file:
+            self.watermark_file = os.path.abspath(watermark_file)
+        else:
+            self.watermark_file = os.path.join(
+                self.workspace_root, "project-memory", "data", "control_plane", "quiescent_watermark.json"
+            )
 
         os.makedirs(os.path.dirname(self.watermark_file), exist_ok=True)
         self._init_sqlite_watermark()
@@ -75,6 +85,19 @@ class QuiescentQueueAbsorber:
                     updated_at TEXT NOT NULL
                 );
                 """)
+                cur = conn.cursor()
+                cur.execute("PRAGMA table_info(quiescent_watermark);")
+                existing_cols = {row[1] for row in cur.fetchall()}
+                for col, col_type in [
+                    ("last_reevaluation_result", "TEXT"),
+                    ("last_reevaluated_at", "TEXT"),
+                    ("last_reevaluation_fingerprint", "TEXT"),
+                    ("external_signal_generation", "INTEGER DEFAULT 1"),
+                    ("last_evaluated_signal_generation", "INTEGER DEFAULT 0"),
+                ]:
+                    if col not in existing_cols:
+                        conn.execute(f"ALTER TABLE quiescent_watermark ADD COLUMN {col} {col_type};")
+                conn.commit()
         except Exception:
             pass
 
@@ -128,6 +151,7 @@ class QuiescentQueueAbsorber:
                     VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
                     """, (status, state_generation, fingerprint, last_result, now, fingerprint,
                           self.external_signal_generation, self.last_evaluated_signal_generation, now, now))
+                    conn.commit()
             except Exception:
                 pass
 
