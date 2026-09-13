@@ -818,6 +818,13 @@ class TwoComputerDispatcher:
 
     def dispatch_next_task(self, node_id: str) -> Optional[Tuple[TaskRecord, LeaseRecord]]:
         """Selects and leases the highest-priority eligible task for the given node."""
+        try:
+            from scripts.single_flight import is_single_flight_locked
+        except ImportError:
+            from single_flight import is_single_flight_locked
+        if is_single_flight_locked(self.root_dir.parent.parent):
+            return None
+
         with self._transaction():
             ready_tasks = self.list_tasks(status="READY")
             for task in ready_tasks:

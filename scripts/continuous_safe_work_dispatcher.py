@@ -580,6 +580,20 @@ class ContinuousSafeWorkDispatcher:
         runner_fn: Optional[Callable[[DispatchableTask], Tuple[bool, Dict[str, Any]]]] = None,
     ) -> DispatchCycleEvent:
         """Executes one continuous autonomous dispatch cycle."""
+        try:
+            from scripts.single_flight import is_single_flight_locked
+        except ImportError:
+            from single_flight import is_single_flight_locked
+        if is_single_flight_locked(self.repo_dir):
+            return DispatchCycleEvent(
+                cycle_id=f"cycle-{self.cycle_count + 1}",
+                worker_id=worker_id,
+                action="WORKER_INACTIVE_DENIED",
+                task_id=None,
+                fingerprint="",
+                next_action="SINGLE_FLIGHT_LOCKED",
+            )
+            
         self.cycle_count += 1
         now_iso = utc_now()
 

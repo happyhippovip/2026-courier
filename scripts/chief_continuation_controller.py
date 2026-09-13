@@ -390,6 +390,14 @@ class ChiefContinuationController:
         return self.queue.get_opportunity(opportunity.opportunity_id), plan
 
     def _continue(self, state: dict[str, Any]) -> dict[str, Any]:
+        # SINGLE-FLIGHT INVARIANT
+        try:
+            from scripts.single_flight import is_single_flight_locked
+        except ImportError:
+            from single_flight import is_single_flight_locked
+        if is_single_flight_locked(self.repo_dir):
+            return self._phone_status(state, "BLOCKED_BY_SINGLE_FLIGHT")
+
         # Canonical queue files win over a stale controller instance after a
         # restart or a mobile WEITER arriving after another local writer.
         self.queue = OpportunityQueue(self.repo_dir)

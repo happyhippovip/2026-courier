@@ -574,6 +574,13 @@ class UsefulWorkSelectionEngine:
     # =========================================================================
     def select_next_task(self, explicit_queue: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Selects the single best actionable task from explicit queue or grounded discovery."""
+        try:
+            from scripts.single_flight import is_single_flight_locked
+        except ImportError:
+            from single_flight import is_single_flight_locked
+        if is_single_flight_locked(self.repo_dir):
+            return {"status": "BLOCKED", "reason": "SINGLE_FLIGHT_LOCKED"}
+
         evaluated_candidates: List[ScoredCandidateTask] = []
 
         # 1. Evaluate explicit queue candidates

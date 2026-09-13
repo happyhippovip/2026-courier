@@ -283,6 +283,13 @@ class AutonomyOrchestrator:
 
     def _find_next_executable_job(self) -> Optional[SafeJob]:
         """Finds the next queued job whose dependencies are all completed."""
+        try:
+            from scripts.single_flight import is_single_flight_locked
+        except ImportError:
+            from single_flight import is_single_flight_locked
+        if is_single_flight_locked(self.orchestrator_dir.parent.parent):
+            return None
+
         queued = [j for j in self.queue if j.status == "QUEUED"]
         queued.sort(key=lambda j: j.priority)
 
