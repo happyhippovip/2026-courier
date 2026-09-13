@@ -15,10 +15,10 @@
 | **Version** | `1.0.0-rc1` |
 | **Release Tag** | `v1.0.0-rc1` |
 | **Package Archive** | `courier/dist/courier_symphony_v1.0.0-rc1.zip` |
-| **Package Byte Size** | 171,187 bytes compressed |
-| **Package SHA256** | `c87b065b7076eaebf434861f13fc8ff354977b922ce9deb293c48cd0455ced83` |
-| **Manifest Checksum** | `6fbe5780f289810812c8be9dc8cea00e9eea0c1d17f2eaa82ebb66314618d9f4` |
-| **Git Commit (FINAL_HEAD)** | `d42e38ffe237b8d59a9ea6f66b99006145180ebd` |
+| **Package Byte Size** | 172,048 bytes compressed |
+| **Package SHA256** | `1dc0784d550c6ddf52fb0b795e8a8d2db93d77aa241a8468511a747530901b7f` |
+| **Manifest Checksum** | `39ba9d59c4821ef018748a0c0948565925d65aab947146b86fa327ada2d071d8` |
+| **Git Commit (FINAL_HEAD)** | `b2c3403d9c8292c6ecf7b33470e842838560fd2d` |
 | **Operating Constitution** | `WINDOWS_COURIER_OPERATING_CONSTITUTION.json` (34 Articles, ACTIVE) |
 | **State Watermark** | Generation 128 (`NO_REAL_GAP`, `QUIESCENT_WAKEABLE`) |
 
@@ -39,7 +39,7 @@ The release archive was subjected to the complete 10-court automated acceptance 
 | **COURT-07** | **No-Source-Tree Dependency** | Installed package executed from separate working directory with isolated PYTHONPATH. | **PASS** | `working_directory = external_workspace`, `source_tree_referenced = False`, `isolated_health = HEALTHY`. |
 | **COURT-08** | **Corruption & Negative Defense** | Injected path traversal, unauthorized prod write, and duplicate writer mutex collision. | **PASS** | `path_traversal_blocked = True`, `mac_scope_boundary_enforced = True`, `fenced_double_writer_blocked = True`. |
 | **COURT-09** | **Backup & Restore Proof** | Catastrophic DB wipe and restoration of all 7 critical state tuples from snapshot. | **PASS** | `restored_last_verified_task = TASK-WIN-ACCEPT-C`, `restored_goal = GOAL-04`, `restored_state_generation = 128`. |
-| **COURT-10** | **Release Hash Immutability** | Cryptographic verification of SHA256SUMS.txt and RELEASE_MANIFEST.json matching zip. | **PASS** | `artifact_sha256 = c87b065b...`, `manifest_git_commit = d42e38ff...`, `sha256sums_verified = True`. |
+| **COURT-10** | **Release Hash Immutability** | Cryptographic verification of SHA256SUMS.txt and RELEASE_MANIFEST.json matching zip. | **PASS** | `artifact_sha256 = 1dc0784d...`, `manifest_git_commit = b2c3403d...`, `sha256sums_verified = True`. |
 
 ---
 

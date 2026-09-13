@@ -2,8 +2,8 @@
   "product_name": "Courier Symphony Windows",
   "version": "1.0.0-rc1",
   "release_tag": "v1.0.0-rc1",
-  "build_timestamp_utc": "2026-09-13T09:00:49.440024+00:00",
-  "git_commit": "d42e38ffe237b8d59a9ea6f66b99006145180ebd",
+  "build_timestamp_utc": "2026-09-13T09:05:05.632860+00:00",
+  "git_commit": "b2c3403d9c8292c6ecf7b33470e842838560fd2d",
   "schema_version": 1,
   "python_requires": ">=3.10",
   "platform": "Windows (cross-platform compatible chief runtime)",
@@ -206,13 +206,13 @@
     },
     {
       "archive_path": "V1_RELEASE_REPORT.md",
-      "size_bytes": 4436,
-      "sha256": "1c520b12ac7de7ea391cb45c98f301f185a895e2c74a0800a9ff7ea3cbe2e76e"
+      "size_bytes": 5503,
+      "sha256": "3693e2ddf8cf4ffc52359f989238c1e43175a41456a9137571855b797107df65"
     },
     {
       "archive_path": "V1_ACCEPTANCE_MATRIX.json",
-      "size_bytes": 1630,
-      "sha256": "a5bf55ee42b47fb42819ebd09ad2a39916448a2cf4b0de47eb3743b62633db30"
+      "size_bytes": 2813,
+      "sha256": "14d330c6d50d652b72057c8b132edda857b5b8dd220bca41eb7b6f5b5bf9fe13"
     },
     {
       "archive_path": "SELF_TEST.py",
@@ -222,7 +222,7 @@
     {
       "archive_path": "RELEASE_MANIFEST.json",
       "size_bytes": 7880,
-      "sha256": "6fbe5780f289810812c8be9dc8cea00e9eea0c1d17f2eaa82ebb66314618d9f4"
+      "sha256": "39ba9d59c4821ef018748a0c0948565925d65aab947146b86fa327ada2d071d8"
     }
   ]
 }

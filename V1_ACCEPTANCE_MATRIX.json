@@ -1,8 +1,8 @@
 {
-  "timestamp_utc": "2026-09-13T09:01:31.372701+00:00",
+  "timestamp_utc": "2026-09-13T09:05:46.241723+00:00",
   "target_release": "v1.0.0-rc1",
   "archive_path": "C:\\Users\\lol\\2026-workspace\\courier\\dist\\courier_symphony_v1.0.0-rc1.zip",
-  "archive_sha256": "c87b065b7076eaebf434861f13fc8ff354977b922ce9deb293c48cd0455ced83",
+  "archive_sha256": "1dc0784d550c6ddf52fb0b795e8a8d2db93d77aa241a8468511a747530901b7f",
   "courts": {
     "COURT_01_FRESH_INSTALL": {
       "status": "PASS",
@@ -46,7 +46,7 @@
     },
     "COURT_07_NO_SOURCE_TREE_DEPENDENCY": {
       "status": "PASS",
-      "working_directory": "C:\\Users\\lol\\AppData\\Local\\Temp\\tmpzhgnybcn\\external_workspace",
+      "working_directory": "C:\\Users\\lol\\AppData\\Local\\Temp\\tmp2jgsqn57\\external_workspace",
       "source_tree_referenced": false,
       "isolated_health": "HEALTHY"
     },
@@ -67,8 +67,8 @@
     },
     "COURT_10_RELEASE_HASH_FREEZE": {
       "status": "PASS",
-      "artifact_sha256": "c87b065b7076eaebf434861f13fc8ff354977b922ce9deb293c48cd0455ced83",
-      "manifest_git_commit": "d42e38ffe237b8d59a9ea6f66b99006145180ebd",
+      "artifact_sha256": "1dc0784d550c6ddf52fb0b795e8a8d2db93d77aa241a8468511a747530901b7f",
+      "manifest_git_commit": "b2c3403d9c8292c6ecf7b33470e842838560fd2d",
       "manifest_version": "1.0.0-rc1",
       "sha256sums_verified": true
     }
