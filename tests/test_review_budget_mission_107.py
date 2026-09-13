@@ -10,6 +10,7 @@ from pathlib import Path
 
 from scripts.review_budget import (
     ReviewBudgetManager,
+    ReviewLedgerIntegrityError,
     ReviewRiskClassifier,
     ReviewFingerprint,
     ReviewDeltaContextBuilder,
@@ -227,6 +228,33 @@ class TestMission107ReviewBudget(unittest.TestCase):
         self.assertEqual(ResourcePolicyManager.get_default_builder(), "courier-antigravity-bridge")
         self.assertEqual(ResourcePolicyManager.get_default_reviewer(), "courier-codex-bridge")
         self.assertEqual(EXACTLY_ONCE_SEMANTICS, "BOUNDED_LOCAL_REPLAY_PROTECTION")
+
+    def test_corrupt_ledger_blocks_review_instead_of_resetting_durable_history(self):
+        ledger = self.reviews_dir / "ledger.json"
+        ledger.write_text("{truncated", encoding="utf-8")
+        before = ledger.read_bytes()
+
+        decision = self.manager.evaluate_review_requirement(
+            changed_files=["scripts/safe_local_check.py"],
+            diff_str="+def check(): return True",
+        )
+
+        self.assertEqual(decision["decision"], "BLOCKED")
+        self.assertEqual(decision["reason"], "REVIEW_LEDGER_CORRUPT")
+        self.assertTrue(decision["review_fingerprint"]["review_required"])
+        self.assertEqual(ledger.read_bytes(), before)
+
+    def test_record_review_refuses_to_overwrite_corrupt_ledger(self):
+        ledger = self.reviews_dir / "ledger.json"
+        ledger.write_text("[]", encoding="utf-8")
+        before = ledger.read_bytes()
+
+        with self.assertRaises(ReviewLedgerIntegrityError):
+            self.manager.ledger.record_review(
+                "review-1", "commit", "diff", {}, "LOW", "ROUTINE", "APPROVE", "codex", "test"
+            )
+
+        self.assertEqual(ledger.read_bytes(), before)
 
 
 if __name__ == "__main__":

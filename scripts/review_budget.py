@@ -49,6 +49,10 @@ SAME_DIFF_HASH = "REUSE_PREVIOUS_REVIEW"
 MAX_ROUTINE_CODEX_BATCHES_PER_DAY = 1
 
 
+class ReviewLedgerIntegrityError(RuntimeError):
+    """The durable review authority cannot be trusted."""
+
+
 def canonical_json_dumps(data: Any) -> str:
     return json.dumps(data, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
 
@@ -229,15 +233,22 @@ class ReviewLedger:
         self.reviews_dir.mkdir(parents=True, exist_ok=True)
 
     def _load_ledger(self) -> dict:
-        data = load_json(self.ledger_json)
-        if data and isinstance(data, dict):
-            return data
-        return {
-            "reviews": {},
-            "fingerprints": {},
-            "daily_batches": {},
-            "stats": {"total_reviews": 0, "total_reused": 0}
-        }
+        if not self.ledger_json.exists():
+            return {
+                "reviews": {},
+                "fingerprints": {},
+                "daily_batches": {},
+                "stats": {"total_reviews": 0, "total_reused": 0}
+            }
+        try:
+            data = json.loads(self.ledger_json.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+            raise ReviewLedgerIntegrityError("review ledger is unreadable; refusing to replace it") from error
+        if not isinstance(data, dict) or not all(isinstance(data.get(key), dict) for key in (
+            "reviews", "fingerprints", "daily_batches", "stats",
+        )):
+            raise ReviewLedgerIntegrityError("review ledger has invalid structure; refusing to replace it")
+        return data
 
     def get_reviewed_entry(self, diff_hash: str) -> dict | None:
         ledger = self._load_ledger()
@@ -344,7 +355,35 @@ class ReviewBudgetManager:
             }
 
         # 2. Check if identical diff was already reviewed
-        existing_review = self.ledger.get_reviewed_entry(diff_hash)
+        try:
+            existing_review = self.ledger.get_reviewed_entry(diff_hash)
+        except ReviewLedgerIntegrityError as error:
+            risk_class, risk_reasons = ReviewRiskClassifier.classify(files, diff_str)
+            fp = ReviewFingerprint(
+                review_checkpoint_commit=checkpoint_commit,
+                pending_diff_hash=diff_hash,
+                pending_files=files,
+                pending_risk_class="HIGH",
+                review_required=True,
+                review_reason="REVIEW_LEDGER_CORRUPT",
+            )
+            return {
+                "decision": "BLOCKED",
+                "risk_class": "HIGH",
+                "reason": "REVIEW_LEDGER_CORRUPT",
+                "review_fingerprint": fp.to_dict(),
+                "compact_context": ReviewDeltaContextBuilder.build_compact_context(
+                    repo_dir=self.repo_dir,
+                    checkpoint_commit=checkpoint_commit,
+                    changed_files=files,
+                    diff_str=diff_str,
+                    risk_class=risk_class,
+                    reasons=risk_reasons,
+                    test_status=test_status,
+                ),
+                "high_risk_override": False,
+                "integrity_error": str(error),
+            }
         if existing_review:
             fp = ReviewFingerprint(
                 review_checkpoint_commit=checkpoint_commit,
