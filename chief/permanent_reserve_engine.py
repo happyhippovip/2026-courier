@@ -502,8 +502,8 @@ class PermanentReserveEngine:
                 pass
         return False
 
-    def select_next_candidate(self) -> Optional[Dict[str, Any]]:
-        """Selects highest priority eligible task respecting One-Writer leases."""
+    def select_next_candidate(self, do_not_repeat: Optional[Set[str]] = None) -> Optional[Dict[str, Any]]:
+        """Selects highest priority eligible task respecting One-Writer leases and DO_NOT_REPEAT."""
         pending = self.reservoir.get_pending_candidates()
         if not pending:
             # Try refresh
@@ -528,6 +528,10 @@ class PermanentReserveEngine:
 
         for cand in pending:
             c_id = cand["task_id"]
+            if do_not_repeat and c_id in do_not_repeat:
+                continue
+            if c_id in self.reservoir.do_not_repeat:
+                continue
             # Check crash loop
             if self.crash_tracker.get(c_id, 0) >= 3:
                 cand["status"] = "PARKED_CRASH_LOOP"

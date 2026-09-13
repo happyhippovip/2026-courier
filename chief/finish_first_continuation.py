@@ -184,6 +184,7 @@ class FinishFirstContinuationEngine:
                 "task_version": 1,
                 "state_generation": next_state_gen,
                 "result_fingerprint": evidence_hash,
+                "verification_evidence": evidence,
                 "verified_at": now_iso,
                 "status": "VERIFIED"
             }
@@ -430,6 +431,7 @@ class FinishFirstContinuationEngine:
                 "task_version": 1,
                 "state_generation": new_state_generation,
                 "result_fingerprint": evidence_hash,
+                "verification_evidence": stdout[:500] if stdout else "PASS",
                 "verified_at": now_iso,
                 "status": "VERIFIED"
             }

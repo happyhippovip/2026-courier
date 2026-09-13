@@ -637,6 +637,34 @@ class ControlPlane:
         VALUES (?, ?, ?, ?, ?, ?, ?);
         """, (event_type, lane, entity_id, delta_str, now_iso, prev_hash, event_hash))
 
+    @staticmethod
+    def validate_checkpoint_tuple(checkpoint_data: Any) -> Tuple[bool, str]:
+        """
+        Validates the 6-tuple checkpoint authority required by Court J:
+        (TASK_ID, TASK_VERSION, STATE_GENERATION, RESULT_FINGERPRINT, VERIFICATION_EVIDENCE, VERIFIED_AT).
+        Highest numeric task ID is explicitly rejected as authority without evidence.
+        """
+        if not isinstance(checkpoint_data, dict):
+            return False, "CHECKPOINT_DATA_MUST_BE_STRUCTURED_DICT"
+
+        required_keys = [
+            "task_id",
+            "task_version",
+            "state_generation",
+            "result_fingerprint",
+            "verification_evidence",
+            "verified_at"
+        ]
+        for key in required_keys:
+            val = checkpoint_data.get(key)
+            if val is None or (isinstance(val, str) and not val.strip()):
+                return False, f"MISSING_REQUIRED_CHECKPOINT_FIELD: {key}"
+
+        if not isinstance(checkpoint_data.get("state_generation"), int) or checkpoint_data.get("state_generation") < 0:
+            return False, "INVALID_STATE_GENERATION"
+
+        return True, "CHECKPOINT_TUPLE_VALID"
+
     def set_checkpoint(self, checkpoint_key: str, checkpoint_value: Union[str, Dict[str, Any]]) -> None:
         """Persists an authoritative named checkpoint with rich structured metadata."""
         now_iso = datetime.now(timezone.utc).isoformat()
@@ -677,6 +705,14 @@ class ControlPlane:
                         def _num(val: Any) -> int:
                             m = re.match(r"^TASK-WIN-(\d+)$", str(val))
                             return int(m.group(1)) if m and len(m.group(1)) < 8 else -1
+
+                        is_new_valid, _ = self.validate_checkpoint_tuple(val_dict)
+                        is_old_valid, _ = self.validate_checkpoint_tuple(old_dict)
+
+                        # Court J: An unverified or incomplete candidate cannot usurp an authoritative 6-tuple
+                        if is_old_valid and not is_new_valid:
+                            cursor.execute("COMMIT;")
+                            return
 
                         old_gen = old_dict.get("state_generation")
                         new_gen = val_dict.get("state_generation")
