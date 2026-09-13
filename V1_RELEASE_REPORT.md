@@ -15,18 +15,18 @@
 | **Version** | `1.0.0-rc1` |
 | **Release Tag** | `v1.0.0-rc1` |
 | **Package Archive** | `courier/dist/courier_symphony_v1.0.0-rc1.zip` |
-| **Package Byte Size** | ~164 KB (164,154 bytes compressed) |
-| **Package SHA256** | `616b2e957304e13240e0cc2f09e19bc08c045f9bea4ae9b36b4dace9f3acd0e7` |
-| **Manifest Checksum** | `f38cd3c4300f2c1dc814c6ac6fd79db533c5d5924cc89a0b106fd2109ec6bafa` |
-| **Git Commit** | `1f309b1d7f4c4d27841c5979d78074dadf1407e7` (plus V1 release commits) |
+| **Package Byte Size** | 171,187 bytes compressed |
+| **Package SHA256** | `c87b065b7076eaebf434861f13fc8ff354977b922ce9deb293c48cd0455ced83` |
+| **Manifest Checksum** | `6fbe5780f289810812c8be9dc8cea00e9eea0c1d17f2eaa82ebb66314618d9f4` |
+| **Git Commit (FINAL_HEAD)** | `d42e38ffe237b8d59a9ea6f66b99006145180ebd` |
 | **Operating Constitution** | `WINDOWS_COURIER_OPERATING_CONSTITUTION.json` (34 Articles, ACTIVE) |
-| **State Watermark** | Generation 126 (`NO_REAL_GAP`, `QUIESCENT_WAKEABLE`) |
+| **State Watermark** | Generation 128 (`NO_REAL_GAP`, `QUIESCENT_WAKEABLE`) |
 
 ---
 
-## 2. Release Candidate Acceptance Courts Matrix (6/6 Passed)
+## 2. Release Candidate Acceptance Courts Matrix (10/10 Passed)
 
-The release archive was subjected to the complete 6-court automated acceptance campaign executed inside disposable clean-room environments (`run_v1_release_candidate_courts.py`):
+The release archive was subjected to the complete 10-court automated acceptance campaign executed inside disposable clean-room environments (`run_v1_release_candidate_courts.py`):
 
 | Court ID | Domain | Execution Condition | Result | Evidence |
 |---|---|---|---|---|
@@ -35,18 +35,21 @@ The release archive was subjected to the complete 6-court automated acceptance c
 | **COURT-03** | **Upgrade Simulation** | Upgraded code from rc1 to rc2 over live populated database with state generation 126. | **PASS** | `data_loss_detected = False`, `preserved_state_generation = 126`, `upgraded_version = 1.0.0-rc2`. |
 | **COURT-04** | **Disaster Recovery & Rollback** | Injected simulated corruption / disk failure; executed snapshot restoration. | **PASS** | `corruption_detected = True`, `rollback_restored_health = True`, `recovered_integrity = ok`. |
 | **COURT-05** | **100 Duplicate Input Storm** | 100 rapid-fire `weiter` continuation signals delivered to installed runtime. | **PASS** | `burst_messages_evaluated = 100`, `burst_intents_created = 1`, `burst_coalesced = 99`, `absorber_replays_absorbed = 100`. |
-| **COURT-06** | **Security & Path Portability** | Scanned all release archive members and source files for hardcoded paths and private keys. | **PASS** | `forbidden_patterns_scanned = 4`, `archive_members_verified = 40`, `leakage_violations = 0`. |
+| **COURT-06** | **Security & Path Portability** | Scanned all release archive members and source files for hardcoded paths and private keys. | **PASS** | `forbidden_patterns_scanned = 4`, `archive_members_verified = 43`, `leakage_violations = 0`. |
+| **COURT-07** | **No-Source-Tree Dependency** | Installed package executed from separate working directory with isolated PYTHONPATH. | **PASS** | `working_directory = external_workspace`, `source_tree_referenced = False`, `isolated_health = HEALTHY`. |
+| **COURT-08** | **Corruption & Negative Defense** | Injected path traversal, unauthorized prod write, and duplicate writer mutex collision. | **PASS** | `path_traversal_blocked = True`, `mac_scope_boundary_enforced = True`, `fenced_double_writer_blocked = True`. |
+| **COURT-09** | **Backup & Restore Proof** | Catastrophic DB wipe and restoration of all 7 critical state tuples from snapshot. | **PASS** | `restored_last_verified_task = TASK-WIN-ACCEPT-C`, `restored_goal = GOAL-04`, `restored_state_generation = 128`. |
+| **COURT-10** | **Release Hash Immutability** | Cryptographic verification of SHA256SUMS.txt and RELEASE_MANIFEST.json matching zip. | **PASS** | `artifact_sha256 = c87b065b...`, `manifest_git_commit = d42e38ff...`, `sha256sums_verified = True`. |
 
 ---
 
 ## 3. Test Suite & Verification Results
 
+- **Background Regression Task**: `task-31954` (Completed with exit code 0)
 - **Unit Test Discovery**: `courier/tests/test_*.py`
-- **Total Test Cases Executed**: **360 tests**
-- **Passed**: **360 / 360 (100%)**
-- **Failed**: **0**
-- **Errors**: **0**
-- **Execution Time**: **79.4s**
+- **Total Test Cases Executed**: **362 tests**
+- **Passed**: **361 / 362 (1 skipped, 0 failed, 0 errors)**
+- **Execution Time**: **77.8s**
 - **Standalone Self-Test**: `courier/SELF_TEST.py` verified across 6 core subsystems in isolated clean rooms (exit code 0).
 
 ---

@@ -2,8 +2,8 @@
   "product_name": "Courier Symphony Windows",
   "version": "1.0.0-rc1",
   "release_tag": "v1.0.0-rc1",
-  "build_timestamp_utc": "2026-09-13T08:57:46.169120+00:00",
-  "git_commit": "1f309b1d7f4c4d27841c5979d78074dadf1407e7",
+  "build_timestamp_utc": "2026-09-13T09:00:49.440024+00:00",
+  "git_commit": "d42e38ffe237b8d59a9ea6f66b99006145180ebd",
   "schema_version": 1,
   "python_requires": ">=3.10",
   "platform": "Windows (cross-platform compatible chief runtime)",
@@ -31,8 +31,8 @@
     },
     {
       "archive_path": "courier/chief/cli.py",
-      "size_bytes": 32627,
-      "sha256": "6e30bc67fca0f42fdf8e7714d652e002c20fd2d1420a11f70ba627c802e13bc2"
+      "size_bytes": 32758,
+      "sha256": "387e7640588d64e62bd344de5138b72210ce4efa5ac704fe307b6c99f0e840f0"
     },
     {
       "archive_path": "courier/chief/closure_evaluator.py",
@@ -56,8 +56,8 @@
     },
     {
       "archive_path": "courier/chief/coordinator.py",
-      "size_bytes": 24931,
-      "sha256": "6ade4b17d4f00fedb7d6918a975521b366f00fe5d8e6a79f8a67f28f6bea380c"
+      "size_bytes": 24848,
+      "sha256": "6b22414ba26d5e6f93e1a9a5799059a14565f67e21d97b9a97faa704dda3fa9d"
     },
     {
       "archive_path": "courier/chief/crash_proof_recovery.py",
@@ -96,8 +96,8 @@
     },
     {
       "archive_path": "courier/chief/health.py",
-      "size_bytes": 4438,
-      "sha256": "53c166e4086b7c5c6f6feccdf52acf8dc3f741d52c911d1399a96d2cc984be88"
+      "size_bytes": 6641,
+      "sha256": "498c03a3e01644cdc48e2b7723161d4bf93fc6a178939843f4aa0307edd6d119"
     },
     {
       "archive_path": "courier/chief/ingestor.py",
@@ -171,8 +171,8 @@
     },
     {
       "archive_path": "courier/chief/version.py",
-      "size_bytes": 1695,
-      "sha256": "d47540210aaa827217c9f890faab2af5ed585b2c282033484c72fe14f83e99f0"
+      "size_bytes": 1960,
+      "sha256": "1e074ea38a9b5837423c06b37cdb724a96dadb3168a42a6e31171664be51137b"
     },
     {
       "archive_path": "courier/chief/__init__.py",
@@ -212,7 +212,7 @@
     {
       "archive_path": "V1_ACCEPTANCE_MATRIX.json",
       "size_bytes": 1630,
-      "sha256": "16a58fc196658885228243f823cb7849ebf524c33b3ce25840f8379a42adbd4d"
+      "sha256": "a5bf55ee42b47fb42819ebd09ad2a39916448a2cf4b0de47eb3743b62633db30"
     },
     {
       "archive_path": "SELF_TEST.py",
@@ -222,7 +222,7 @@
     {
       "archive_path": "RELEASE_MANIFEST.json",
       "size_bytes": 7880,
-      "sha256": "6d34085806a7db2659c51332fb5c3d57e83589250bb0e5df1fd49aec2684e934"
+      "sha256": "6fbe5780f289810812c8be9dc8cea00e9eea0c1d17f2eaa82ebb66314618d9f4"
     }
   ]
 }

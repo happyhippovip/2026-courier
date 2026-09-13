@@ -1,8 +1,8 @@
 {
-  "timestamp_utc": "2026-09-13T08:57:50.182458+00:00",
+  "timestamp_utc": "2026-09-13T09:01:31.372701+00:00",
   "target_release": "v1.0.0-rc1",
   "archive_path": "C:\\Users\\lol\\2026-workspace\\courier\\dist\\courier_symphony_v1.0.0-rc1.zip",
-  "archive_sha256": "68ca6c316b127ab4a5c0e6466cfb181dc81e3d64e56411769a4e6e61a5e79d6b",
+  "archive_sha256": "c87b065b7076eaebf434861f13fc8ff354977b922ce9deb293c48cd0455ced83",
   "courts": {
     "COURT_01_FRESH_INSTALL": {
       "status": "PASS",
@@ -43,6 +43,34 @@
       "forbidden_patterns_scanned": 4,
       "archive_members_verified": 43,
       "leakage_violations": 0
+    },
+    "COURT_07_NO_SOURCE_TREE_DEPENDENCY": {
+      "status": "PASS",
+      "working_directory": "C:\\Users\\lol\\AppData\\Local\\Temp\\tmpzhgnybcn\\external_workspace",
+      "source_tree_referenced": false,
+      "isolated_health": "HEALTHY"
+    },
+    "COURT_08_CORRUPTION_NEGATIVE_DEFENSE": {
+      "status": "PASS",
+      "path_traversal_blocked": true,
+      "mac_scope_boundary_enforced": true,
+      "prod_write_authority_blocked": true,
+      "fenced_double_writer_blocked": true
+    },
+    "COURT_09_BACKUP_RESTORE_PROOFS": {
+      "status": "PASS",
+      "restored_last_verified_task": "TASK-WIN-ACCEPT-C",
+      "restored_goal": "GOAL-04",
+      "restored_state_generation": 128,
+      "restored_fingerprint": "f437f79d8d69ef160f21a797e63993d7b6f6f0057ab39dd01c07d1dd27560ca9",
+      "restored_do_not_repeat": "TASK-WIN-ACCEPT-C"
+    },
+    "COURT_10_RELEASE_HASH_FREEZE": {
+      "status": "PASS",
+      "artifact_sha256": "c87b065b7076eaebf434861f13fc8ff354977b922ce9deb293c48cd0455ced83",
+      "manifest_git_commit": "d42e38ffe237b8d59a9ea6f66b99006145180ebd",
+      "manifest_version": "1.0.0-rc1",
+      "sha256sums_verified": true
     }
   },
   "overall_status": "ALL_COURTS_PASSED"
