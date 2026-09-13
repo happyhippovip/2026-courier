@@ -46,7 +46,8 @@
   ],
   "reserved_handoffs": {
     "R01-FORGED-HUMAN-GATE-RESUME": "MAC_ACTIVE_PATCH_PARTIAL_UNVERIFIED",
-    "R02-CONCURRENT-REVIEW-LEDGER": "WINDOWS_ACTIVE_OPEN"
+    "R02-CONCURRENT-REVIEW-LEDGER": "WINDOWS_ACTIVE_OPEN",
+    "R03-MEMORY-PROPOSAL-CONCURRENT-CREATE": "WINDOWS_CROSS_PLATFORM_PROCESS_CLAIM_REQUIRED"
   },
   "semantic_fingerprints": [
     "U1_DETERMINISTIC_MESH_ID",
@@ -62,7 +63,8 @@
     "windows": ["review_budget", "windows runtime", "cross-platform qualification", "package/customer validation"]
   },
   "proof_debt_remaining": [
-    "reserved R01/R02 owner verification after stable handoff"
+    "reserved R01/R02 owner verification after stable handoff",
+    "R03 portable atomic create-or-load claim for concurrent memory proposal creation"
   ],
   "payment_scope": "EXCLUDED"
 }
