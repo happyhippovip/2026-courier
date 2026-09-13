@@ -33,7 +33,9 @@ from .fenced_mutex import FencedMutexManager
 from .validator import ChiefRequestValidator, FallbackAssignmentValidator
 from .safewrite import safe_write_json, safe_write_text
 
-WORKSPACE_ROOT_DEFAULT = r"C:\Users\lol\2026-workspace"
+WORKSPACE_ROOT_DEFAULT = os.environ.get("COURIER_WORKSPACE_ROOT") or os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..")
+)
 
 MAC_RESERVED_SCOPES = [
     "supervisor_standalone.py",

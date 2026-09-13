@@ -20,7 +20,16 @@ from .control_plane import ControlPlane
 from .safewrite import safe_write_text, safe_write_json
 
 
-DEFAULT_DISPATCH_BASE_DIR = r"C:\Users\lol\2026-workspace\courier-handoffs\dispatch"
+WORKSPACE_ROOT = os.environ.get("COURIER_WORKSPACE_ROOT") or os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..")
+)
+DEFAULT_DISPATCH_BASE_DIR = os.environ.get("COURIER_DISPATCH_DIR") or os.path.abspath(
+    os.path.join(WORKSPACE_ROOT, "courier-handoffs", "dispatch")
+)
+DEFAULT_HANDOFFS_DIR = os.environ.get("COURIER_HANDOFFS_DIR") or os.path.abspath(
+    os.path.join(WORKSPACE_ROOT, "courier-handoffs", "windows")
+)
+DEFAULT_SCRIPT_PATH = os.path.join(WORKSPACE_ROOT, "Invoke-CourierAgyHeadless.ps1")
 
 
 class ChiefCoordinator:
@@ -208,15 +217,18 @@ class ChiefCoordinator:
     def execute_local_headless_dispatch(
         self,
         dispatch_id: str,
-        script_path: str = r"C:\Users\lol\2026-workspace\Invoke-CourierAgyHeadless.ps1",
+        script_path: Optional[str] = None,
         timeout_seconds: int = 45,
-        handoffs_dir: str = r"C:\Users\lol\2026-workspace\courier-handoffs\windows"
+        handoffs_dir: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Executes an enqueued dispatch locally using the real Windows headless runner (agy.exe).
         Completely autonomous; zero human keystrokes or copy-pasting.
         Writes genuine inspectable results directly to the courier handoffs directory.
         """
+        effective_script = script_path or DEFAULT_SCRIPT_PATH
+        effective_handoffs = handoffs_dir or self.handoffs_dir
+
         pending = self.control_plane.get_pending_dispatches()
         matched = next((p for p in pending if p["dispatch_id"] == dispatch_id), None)
         if not matched:
@@ -227,8 +239,9 @@ class ChiefCoordinator:
         target_lane = matched.get("target_lane") or "WINDOWS_CLI_1"
         target_host = matched.get("target_host") or "WINDOWS"
 
-        agy_exe = r"C:\Users\lol\AppData\Local\agy\bin\agy.exe"
-        alt_profile = r"C:\Users\lol\.gemini_alt"
+        import shutil
+        agy_exe = shutil.which("agy") or shutil.which("agy.exe") or os.path.expanduser(r"~\AppData\Local\agy\bin\agy.exe")
+        alt_profile = os.environ.get("AGY_ALT_PROFILE") or os.path.expanduser(r"~\.gemini_alt")
 
         duration_ms = 0
 
@@ -243,6 +256,7 @@ class ChiefCoordinator:
             }
 
         # Method 1: Direct agy.exe execution with isolated process environment
+        res = None
         if os.path.exists(agy_exe):
             env = os.environ.copy()
             if os.path.exists(alt_profile):
@@ -264,7 +278,7 @@ class ChiefCoordinator:
                 res = subprocess.run(
                     cmd,
                     env=env,
-                    cwd=r"C:\Users\lol\2026-workspace",
+                    cwd=WORKSPACE_ROOT,
                     capture_output=True,
                     text=True,
                     timeout=timeout_seconds + 5
@@ -275,7 +289,7 @@ class ChiefCoordinator:
 
         # Method 2: Fallback to PowerShell script if direct agy.exe failed
         if res is None or res.returncode != 0:
-            if os.path.exists(script_path):
+            if os.path.exists(effective_script):
                 temp_prompt_path = os.path.join(self.dispatch_base_dir, f"PROMPT_{dispatch_id}.txt")
                 try:
                     safe_write_text(temp_prompt_path, prompt_text)
@@ -283,14 +297,14 @@ class ChiefCoordinator:
                         "powershell",
                         "-NoProfile",
                         "-ExecutionPolicy", "Bypass",
-                        "-File", script_path,
+                        "-File", effective_script,
                         "-PromptFile", temp_prompt_path,
                         "-TimeoutSeconds", str(timeout_seconds)
                     ]
                     t0 = time.time()
                     res = subprocess.run(
                         cmd,
-                        cwd=r"C:\Users\lol\2026-workspace",
+                        cwd=WORKSPACE_ROOT,
                         capture_output=True,
                         text=True,
                         timeout=timeout_seconds + 5
@@ -443,7 +457,7 @@ class ChiefCoordinator:
     def execute_deterministic_fallback(
         self,
         dispatch_id: str,
-        handoffs_dir: str = r"C:\Users\lol\2026-workspace\courier-handoffs\windows"
+        handoffs_dir: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Deterministic In-Process / CLI1 Fallback Runner (P6 Compliance).
@@ -461,10 +475,11 @@ class ChiefCoordinator:
         now_iso = now_utc.isoformat()
         ts_compact = now_utc.strftime("%Y%m%dT%H%M%SZ")
 
-        os.makedirs(handoffs_dir, exist_ok=True)
+        effective_handoffs = handoffs_dir or self.handoffs_dir
+        os.makedirs(effective_handoffs, exist_ok=True)
         filename_base = f"{ts_compact}_WINDOWS_CLI1_{assignment_id}"
-        json_path = os.path.join(handoffs_dir, f"{filename_base}.json")
-        md_path = os.path.join(handoffs_dir, f"{filename_base}.md")
+        json_path = os.path.join(effective_handoffs, f"{filename_base}.json")
+        md_path = os.path.join(effective_handoffs, f"{filename_base}.md")
 
         evidence_payload = f"CLI1 deterministic execution verified for {assignment_id}. Dispatch {dispatch_id} fulfilled."
         evidence_sha256 = hashlib.sha256(evidence_payload.encode("utf-8")).hexdigest()
@@ -542,20 +557,23 @@ class ChiefCoordinator:
     def execute_dispatch_with_fallback(
         self,
         dispatch_id: str,
-        script_path: str = r"C:\Users\lol\2026-workspace\Invoke-CourierAgyHeadless.ps1",
+        script_path: Optional[str] = None,
         headless_timeout_seconds: int = 45,
-        handoffs_dir: str = r"C:\Users\lol\2026-workspace\courier-handoffs\windows"
+        handoffs_dir: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Executes an enqueued dispatch. Attempts primary zero-prompt headless runner first.
         If headless runner fails or times out, immediately triggers the deterministic fallback runner.
         Never freezes or requires manual human copy-pasting.
         """
+        effective_script = script_path or DEFAULT_SCRIPT_PATH
+        effective_handoffs = handoffs_dir or self.handoffs_dir
+
         headless_res = self.execute_local_headless_dispatch(
             dispatch_id,
-            script_path=script_path,
+            script_path=effective_script,
             timeout_seconds=headless_timeout_seconds,
-            handoffs_dir=handoffs_dir
+            handoffs_dir=effective_handoffs
         )
         if headless_res.get("success"):
             return headless_res

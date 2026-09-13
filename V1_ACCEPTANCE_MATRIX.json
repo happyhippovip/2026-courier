@@ -1,0 +1,49 @@
+{
+  "timestamp_utc": "2026-09-13T08:57:50.182458+00:00",
+  "target_release": "v1.0.0-rc1",
+  "archive_path": "C:\\Users\\lol\\2026-workspace\\courier\\dist\\courier_symphony_v1.0.0-rc1.zip",
+  "archive_sha256": "68ca6c316b127ab4a5c0e6466cfb181dc81e3d64e56411769a4e6e61a5e79d6b",
+  "courts": {
+    "COURT_01_FRESH_INSTALL": {
+      "status": "PASS",
+      "manual_fixes_required": 0,
+      "version_reported": "1.0.0-rc1",
+      "constitution_valid": true,
+      "health_status": "HEALTHY"
+    },
+    "COURT_02_AUTONOMOUS_ABC_CRASH_RECOVERY": {
+      "status": "PASS",
+      "process_1_injected_crash_code": 42,
+      "process_2_resume_code": 0,
+      "real_physical_effects_task_b": 1,
+      "zero_intermediate_human_signals": true
+    },
+    "COURT_03_UPGRADE_SIMULATION": {
+      "status": "PASS",
+      "upgraded_version": "1.0.0-rc2",
+      "preserved_state_generation": 126,
+      "data_loss_detected": false
+    },
+    "COURT_04_DISASTER_RECOVERY_ROLLBACK": {
+      "status": "PASS",
+      "corruption_detected": true,
+      "rollback_restored_health": true,
+      "recovered_integrity": "ok"
+    },
+    "COURT_05_100_DUPLICATE_STORM": {
+      "status": "PASS",
+      "burst_messages_evaluated": 100,
+      "burst_intents_created": 1,
+      "burst_coalesced": 99,
+      "absorber_replays_absorbed": 100,
+      "conflicting_dispatches": 0
+    },
+    "COURT_06_SECURITY_AND_PATH_PORTABILITY": {
+      "status": "PASS",
+      "forbidden_patterns_scanned": 4,
+      "archive_members_verified": 43,
+      "leakage_violations": 0
+    }
+  },
+  "overall_status": "ALL_COURTS_PASSED"
+}

@@ -20,8 +20,12 @@ import ctypes
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional, List, Tuple
 
-WORKSPACE_ROOT = r"C:\Users\lol\2026-workspace"
-DB_PATH = os.path.join(WORKSPACE_ROOT, "courier", "chief_control_plane.db")
+WORKSPACE_ROOT = os.environ.get("COURIER_WORKSPACE_ROOT") or os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..")
+)
+DB_PATH = os.environ.get("COURIER_DB_PATH") or os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "chief_control_plane.db")
+)
 STATE_FILE = os.path.join(WORKSPACE_ROOT, "project-memory", "data", "control_plane", "durable_continuation.json")
 
 class DurableContinuationManager:

@@ -27,8 +27,12 @@ from typing import Dict, Any, Optional, Tuple, List
 from .types import Lane, Host
 from .process_liveness import is_pid_alive
 
-WORKSPACE_ROOT = r"C:\Users\lol\2026-workspace"
-DEFAULT_DB_PATH = os.path.join(WORKSPACE_ROOT, "courier", "chief_control_plane.db")
+WORKSPACE_ROOT = os.environ.get("COURIER_WORKSPACE_ROOT") or os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..")
+)
+DEFAULT_DB_PATH = os.environ.get("COURIER_DB_PATH") or os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "chief_control_plane.db")
+)
 
 
 class BatchGuardManager:

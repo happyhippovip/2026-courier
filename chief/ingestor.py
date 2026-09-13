@@ -17,7 +17,9 @@ from .control_plane import ControlPlane, DEFAULT_DB_PATH
 from .validator import HandoffValidator
 
 
-DEFAULT_HANDOFFS_DIR = r"C:\Users\lol\2026-workspace\courier-handoffs\windows"
+DEFAULT_HANDOFFS_DIR = os.environ.get("COURIER_HANDOFFS_DIR") or os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..", "courier-handoffs", "windows")
+)
 
 
 class ChiefIngestor:

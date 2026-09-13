@@ -19,9 +19,16 @@ import hashlib
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional, Tuple, List
 
-WORKSPACE_ROOT = r"C:\Users\lol\2026-workspace"
-DB_PATH = os.path.join(WORKSPACE_ROOT, "courier", "chief_control_plane.db")
-COALESCER_STATE_FILE = os.path.join(WORKSPACE_ROOT, "courier", "runtime", "queue_coalescer_state.json")
+WORKSPACE_ROOT = os.environ.get("COURIER_WORKSPACE_ROOT") or os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..")
+)
+DEFAULT_DB_PATH = os.environ.get("COURIER_DB_PATH") or os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "chief_control_plane.db")
+)
+DEFAULT_RUNTIME_DIR = os.environ.get("COURIER_RUNTIME_DIR") or os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "runtime")
+)
+DEFAULT_COALESCER_STATE_FILE = os.path.join(DEFAULT_RUNTIME_DIR, "queue_coalescer_state.json")
 
 BARE_CONTINUATION_KEYWORDS = {
     "weiter", "continue", "go", "weiter.", "weiter!", "weiter...",
@@ -29,7 +36,7 @@ BARE_CONTINUATION_KEYWORDS = {
 }
 
 class QueueCoalescer:
-    def __init__(self, db_path: str = DB_PATH, state_file: str = COALESCER_STATE_FILE):
+    def __init__(self, db_path: str = DEFAULT_DB_PATH, state_file: str = DEFAULT_COALESCER_STATE_FILE):
         self.db_path = os.path.abspath(db_path)
         self.state_file = os.path.abspath(state_file)
         os.makedirs(os.path.dirname(self.state_file), exist_ok=True)

@@ -21,7 +21,9 @@ from .types import Lane, Host, TaskStatus, TwoLevelDone
 from .control_plane import ControlPlane
 from .safewrite import safe_write_json
 
-WORKSPACE_ROOT = r"C:\Users\lol\2026-workspace"
+WORKSPACE_ROOT = os.environ.get("COURIER_WORKSPACE_ROOT") or os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..")
+)
 
 class TwoLevelClosureGate:
     def __init__(self, cp: Optional[ControlPlane] = None, workspace_root: str = WORKSPACE_ROOT):

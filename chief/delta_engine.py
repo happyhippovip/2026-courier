@@ -15,6 +15,14 @@ from .control_plane import ControlPlane
 from .safewrite import safe_write_text, safe_write_json
 
 
+WORKSPACE_ROOT = os.environ.get("COURIER_WORKSPACE_ROOT") or os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..")
+)
+DEFAULT_HANDOFFS_DIR = os.environ.get("COURIER_HANDOFFS_DIR") or os.path.abspath(
+    os.path.join(WORKSPACE_ROOT, "courier-handoffs", "windows")
+)
+
+
 class ChiefDeltaEngine:
     def __init__(self, control_plane: Optional[ControlPlane] = None):
         self.control_plane = control_plane or ControlPlane()
@@ -188,12 +196,14 @@ class ChiefDeltaEngine:
 
         return "\n".join(lines)
 
-    def export_reports(self, output_dir: str = r"C:\Users\lol\2026-workspace\courier-handoffs\windows") -> Dict[str, str]:
+    def export_reports(self, output_dir: Optional[str] = None) -> Dict[str, str]:
+        target_dir = os.path.abspath(output_dir or DEFAULT_HANDOFFS_DIR)
+        os.makedirs(target_dir, exist_ok=True)
         delta_json = self.compute_delta()
         md_text = self.generate_delta_markdown()
 
-        json_path = os.path.join(output_dir, "CHIEF_DELTA_REPORT.json")
-        md_path = os.path.join(output_dir, "CHIEF_DELTA_REPORT.md")
+        json_path = os.path.join(target_dir, "CHIEF_DELTA_REPORT.json")
+        md_path = os.path.join(target_dir, "CHIEF_DELTA_REPORT.md")
 
         safe_write_json(json_path, delta_json)
         safe_write_text(md_path, md_text)

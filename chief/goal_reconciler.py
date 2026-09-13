@@ -42,9 +42,11 @@ from .types import Lane, Host, TaskStatus, TwoLevelDone
 from .control_plane import ControlPlane
 from .safewrite import safe_write_json, safe_write_text
 
-WORKSPACE_ROOT_DEFAULT = r"C:\Users\lol\2026-workspace"
-PROJECT_MEMORY_DEFAULT = os.path.join(WORKSPACE_ROOT_DEFAULT, "project-memory")
-NODE_CMD = shutil.which("node") or r"C:\Users\lol\AppData\Local\agy\bin\node.cmd"
+WORKSPACE_ROOT_DEFAULT = os.environ.get("COURIER_WORKSPACE_ROOT") or os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..")
+)
+PROJECT_MEMORY_DEFAULT = os.environ.get("PROJECT_MEMORY_DIR") or os.path.join(WORKSPACE_ROOT_DEFAULT, "project-memory")
+NODE_CMD = shutil.which("node") or shutil.which("node.cmd") or "node"
 
 
 class GoalReconciler:

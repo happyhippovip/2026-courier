@@ -19,12 +19,15 @@ from datetime import datetime, timezone
 from typing import Dict, Any, Optional, List, Tuple
 from courier.chief.process_liveness import is_pid_alive
 
-WORKSPACE_ROOT = r"C:\Users\lol\2026-workspace"
-RUNTIME_DIR = os.path.join(WORKSPACE_ROOT, "courier", "runtime")
-DB_PATH = os.path.join(WORKSPACE_ROOT, "courier", "chief_control_plane.db")
+WORKSPACE_ROOT = os.environ.get("COURIER_WORKSPACE_ROOT") or os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..")
+)
+COURIER_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+RUNTIME_DIR = os.environ.get("COURIER_RUNTIME_DIR") or os.path.join(COURIER_DIR, "runtime")
+DB_PATH = os.environ.get("COURIER_DB_PATH") or os.path.join(COURIER_DIR, "chief_control_plane.db")
 CANONICAL_STATE_FILE = os.path.join(RUNTIME_DIR, "durable_recovery_state.json")
 BACKUP_STATE_FILE = os.path.join(RUNTIME_DIR, "durable_recovery_state.bak")
-POLICY_FILE = os.path.join(WORKSPACE_ROOT, "courier", "PERMANENT_RECOVERY_POLICY.json")
+POLICY_FILE = os.path.join(COURIER_DIR, "PERMANENT_RECOVERY_POLICY.json")
 
 # Mac-reserved writer scopes that Windows MUST NEVER touch
 MAC_RESERVED_SCOPES = [

@@ -16,7 +16,9 @@ from .types import (
 )
 
 
-DEFAULT_DB_PATH = r"C:\Users\lol\2026-workspace\courier\chief_control_plane.db"
+DEFAULT_DB_PATH = os.environ.get("COURIER_DB_PATH") or os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "chief_control_plane.db")
+)
 
 
 class ControlPlane:

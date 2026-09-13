@@ -1,0 +1,228 @@
+{
+  "product_name": "Courier Symphony Windows",
+  "version": "1.0.0-rc1",
+  "release_tag": "v1.0.0-rc1",
+  "build_timestamp_utc": "2026-09-13T08:57:46.169120+00:00",
+  "git_commit": "1f309b1d7f4c4d27841c5979d78074dadf1407e7",
+  "schema_version": 1,
+  "python_requires": ">=3.10",
+  "platform": "Windows (cross-platform compatible chief runtime)",
+  "total_files": 43,
+  "files": [
+    {
+      "archive_path": "courier/chief/autonomy_campaign.py",
+      "size_bytes": 7405,
+      "sha256": "b6af9607b78833cf8a7f2f39db5a74e2a834bf8d5d416c4d29242b5c9cb666dd"
+    },
+    {
+      "archive_path": "courier/chief/batch_guard.py",
+      "size_bytes": 13801,
+      "sha256": "203ceb69a5e9e57073e5f068a89927cb89f0f42f287cc4d693e8df6ebebd4c13"
+    },
+    {
+      "archive_path": "courier/chief/bootstrap.py",
+      "size_bytes": 1837,
+      "sha256": "9dc6bd32c83145710bd138b87053ef7cb9a9178a57c08a63f26e208769d20be2"
+    },
+    {
+      "archive_path": "courier/chief/campaign_manager.py",
+      "size_bytes": 9647,
+      "sha256": "0b09d644e82a52d00198f0c3e02e43b1acf0a45c0a0941b4566b8ac43794bcb2"
+    },
+    {
+      "archive_path": "courier/chief/cli.py",
+      "size_bytes": 32627,
+      "sha256": "6e30bc67fca0f42fdf8e7714d652e002c20fd2d1420a11f70ba627c802e13bc2"
+    },
+    {
+      "archive_path": "courier/chief/closure_evaluator.py",
+      "size_bytes": 1212,
+      "sha256": "a41d5588d07983bb02893e0b693f3e26b99d5090f3dd6f960097d52996419f46"
+    },
+    {
+      "archive_path": "courier/chief/closure_gate.py",
+      "size_bytes": 6451,
+      "sha256": "482b29c7e2774e0a317a7846d6e3ab3e4d815485e9daceef2797d6aabfcd40bd"
+    },
+    {
+      "archive_path": "courier/chief/constitution.py",
+      "size_bytes": 2339,
+      "sha256": "9e9a5383fa3c2bb12aaec954e9b53a2225e826b0740057e88ab010bacef984f9"
+    },
+    {
+      "archive_path": "courier/chief/control_plane.py",
+      "size_bytes": 40091,
+      "sha256": "9e96fdef86c66efce47c57938b98b1ea40042e3c1293081e1d94fe5aba14cd25"
+    },
+    {
+      "archive_path": "courier/chief/coordinator.py",
+      "size_bytes": 24931,
+      "sha256": "6ade4b17d4f00fedb7d6918a975521b366f00fe5d8e6a79f8a67f28f6bea380c"
+    },
+    {
+      "archive_path": "courier/chief/crash_proof_recovery.py",
+      "size_bytes": 24239,
+      "sha256": "4cf5c1c7f309a54525957846e947b69e8d6c6826ec8890f97a6ce05c0bf85dce"
+    },
+    {
+      "archive_path": "courier/chief/delta_engine.py",
+      "size_bytes": 9506,
+      "sha256": "60898a3a8fb0435cb73a1595ac21e438613359dc2987cfd4af07f82f7d571149"
+    },
+    {
+      "archive_path": "courier/chief/durable_continuation.py",
+      "size_bytes": 13840,
+      "sha256": "d39cad094e38e6f87295dcb4e90c0122727af0a0ec299b89ccfa45f889d5d496"
+    },
+    {
+      "archive_path": "courier/chief/exhaustion_court.py",
+      "size_bytes": 9945,
+      "sha256": "817036ca1825e514ec45746f962350d2dd934f9f69b85dcdb98fbef0af5ab98d"
+    },
+    {
+      "archive_path": "courier/chief/fenced_mutex.py",
+      "size_bytes": 19772,
+      "sha256": "5e7999a5d852efd2068061b812230db8e0484158f3d5fb4d0033a1d73353a594"
+    },
+    {
+      "archive_path": "courier/chief/finish_first_continuation.py",
+      "size_bytes": 29519,
+      "sha256": "206599a89898788531455113ec12fecb3c0bb667f095c681352d7b95cfd55af6"
+    },
+    {
+      "archive_path": "courier/chief/goal_reconciler.py",
+      "size_bytes": 152514,
+      "sha256": "409bc78e1539c361df5550f98e862c7f7737d005937b8b98eb9531dc7df26c54"
+    },
+    {
+      "archive_path": "courier/chief/health.py",
+      "size_bytes": 4438,
+      "sha256": "53c166e4086b7c5c6f6feccdf52acf8dc3f741d52c911d1399a96d2cc984be88"
+    },
+    {
+      "archive_path": "courier/chief/ingestor.py",
+      "size_bytes": 12830,
+      "sha256": "99b1bc62a75bac7db0a8f8f254e6db26ba7b27df8ddf4940c36226ccffa425a2"
+    },
+    {
+      "archive_path": "courier/chief/mutex_runner.py",
+      "size_bytes": 2740,
+      "sha256": "a34beb09ca1e2c9e064dc8b2bf63e785e83e7a5b09d06addb32eef2760366ff5"
+    },
+    {
+      "archive_path": "courier/chief/peer_consensus.py",
+      "size_bytes": 21683,
+      "sha256": "9e134e0a0668a62fe92c9d87657ac9256579460d2dc45ab51a86556176e31dc5"
+    },
+    {
+      "archive_path": "courier/chief/permanent_reserve_engine.py",
+      "size_bytes": 43337,
+      "sha256": "8fdf3e1240dcf8bc75fef9ba7f3072af7807693faecf0d8531a3fd5f9dbf4004"
+    },
+    {
+      "archive_path": "courier/chief/process_liveness.py",
+      "size_bytes": 1122,
+      "sha256": "9388b8b98e5b4d45d16a6f2ce57bf1eff70ed092c998260c1dec783b21181d7a"
+    },
+    {
+      "archive_path": "courier/chief/queue_coalescer.py",
+      "size_bytes": 12156,
+      "sha256": "0dfdb52760cc79ffafc42f9ce02e870aa4bc4021169833140587582297fae877"
+    },
+    {
+      "archive_path": "courier/chief/quiescent_absorber.py",
+      "size_bytes": 18533,
+      "sha256": "cf3270c2aa930666f35dba7cab15d1e987bae5f0bcc4a4788dc809af2460cd93"
+    },
+    {
+      "archive_path": "courier/chief/result_customs.py",
+      "size_bytes": 7080,
+      "sha256": "3f14902c38f039688ffd861d32cd73456f02bd424e28e0a540476af0cfe244e2"
+    },
+    {
+      "archive_path": "courier/chief/safewrite.py",
+      "size_bytes": 3036,
+      "sha256": "c85fb5cf97661e2e6fc6322fd1c2d0541e8a201dc4c40a09953fda20b4d03c9f"
+    },
+    {
+      "archive_path": "courier/chief/scheduled_cycle.py",
+      "size_bytes": 15532,
+      "sha256": "6c3b771638b5dc4a137aeba9b8a73d6a9593087196c56cfe9c04f6514be922d7"
+    },
+    {
+      "archive_path": "courier/chief/test_loop_controller.py",
+      "size_bytes": 3653,
+      "sha256": "5bd9d7753f10dade1a74e633961c60da12ac78f6b0aa7681b9e92fbcfcc08731"
+    },
+    {
+      "archive_path": "courier/chief/types.py",
+      "size_bytes": 4434,
+      "sha256": "79bef528d2afbe023fbbfe857203b9295443ece89840aae72e6e602ba66e7e8b"
+    },
+    {
+      "archive_path": "courier/chief/validator.py",
+      "size_bytes": 9819,
+      "sha256": "e0d6163a4c2f44f77f51c1867f6dc8cea40ddd367389c51fe3375c82532e8cfc"
+    },
+    {
+      "archive_path": "courier/chief/value_governor.py",
+      "size_bytes": 6800,
+      "sha256": "220a9c57856981a62ff0152e1e6dd9d948eacbb5842298e27023a4759a7ad73e"
+    },
+    {
+      "archive_path": "courier/chief/version.py",
+      "size_bytes": 1695,
+      "sha256": "d47540210aaa827217c9f890faab2af5ed585b2c282033484c72fe14f83e99f0"
+    },
+    {
+      "archive_path": "courier/chief/__init__.py",
+      "size_bytes": 519,
+      "sha256": "f8565d2fbfea5942fc822f22325978d06705ab1a48dc481333d5bad1e86dbeb1"
+    },
+    {
+      "archive_path": "courier/WINDOWS_COURIER_OPERATING_CONSTITUTION.json",
+      "size_bytes": 13946,
+      "sha256": "79f8fe9fe81b1555419d9a900d037e3ebcdb5c15d7c7e2faee9759712e266249"
+    },
+    {
+      "archive_path": "WINDOWS_COURIER_OPERATING_CONSTITUTION.json",
+      "size_bytes": 13946,
+      "sha256": "79f8fe9fe81b1555419d9a900d037e3ebcdb5c15d7c7e2faee9759712e266249"
+    },
+    {
+      "archive_path": "courier/WINDOWS_COURIER_OPERATING_CONSTITUTION.md",
+      "size_bytes": 16154,
+      "sha256": "beb5a1323e59b7e6aa3dbbc0bae2547c5ef872f8a2f550208916549e6a1abfdb"
+    },
+    {
+      "archive_path": "README.md",
+      "size_bytes": 6119,
+      "sha256": "ddfec13f2724465346c9e3242be57cf0607e32580c39ff184de61bd85f4b5441"
+    },
+    {
+      "archive_path": "V1_RECOVERY_CARD.md",
+      "size_bytes": 5495,
+      "sha256": "d4d182769b8900b56302c2d1510f05dcd5732492e25d894b40ebfca7ae64c8a4"
+    },
+    {
+      "archive_path": "V1_RELEASE_REPORT.md",
+      "size_bytes": 4436,
+      "sha256": "1c520b12ac7de7ea391cb45c98f301f185a895e2c74a0800a9ff7ea3cbe2e76e"
+    },
+    {
+      "archive_path": "V1_ACCEPTANCE_MATRIX.json",
+      "size_bytes": 1630,
+      "sha256": "16a58fc196658885228243f823cb7849ebf524c33b3ce25840f8379a42adbd4d"
+    },
+    {
+      "archive_path": "SELF_TEST.py",
+      "size_bytes": 6649,
+      "sha256": "292c66736a25cf5b5e3a57c900426d80e1c6e2c8a219568e17fcf0b948178ee0"
+    },
+    {
+      "archive_path": "RELEASE_MANIFEST.json",
+      "size_bytes": 7880,
+      "sha256": "6d34085806a7db2659c51332fb5c3d57e83589250bb0e5df1fd49aec2684e934"
+    }
+  ]
+}

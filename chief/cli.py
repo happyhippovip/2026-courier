@@ -17,6 +17,8 @@ from .ingestor import ChiefIngestor, DEFAULT_HANDOFFS_DIR
 from .delta_engine import ChiefDeltaEngine
 from .coordinator import ChiefCoordinator
 from .validator import ChiefRequestValidator, FallbackAssignmentValidator
+from .version import get_version_info
+from .health import run_health_check
 
 
 def cmd_ingest(args):
@@ -634,11 +636,61 @@ def cmd_reconcile(args):
         print(f"    - Active Assignment: {rec['active_assignment']}")
 
 
+def cmd_version(args):
+    vinfo = get_version_info()
+    if getattr(args, "json", False):
+        print(json.dumps(vinfo, indent=2))
+        return
+    print("=======================================================")
+    print(f"  {vinfo['product_name']} ({vinfo['release_tag']})")
+    print("=======================================================")
+    print(f"Version         : {vinfo['version']}")
+    print(f"Build Date      : {vinfo['build_date']}")
+    print(f"Git Commit      : {vinfo['git_commit']}")
+    print(f"Schema Version  : {vinfo['schema_version']}")
+    print(f"Python Runtime  : {vinfo['python_version']} ({vinfo['platform']})")
+    const = vinfo.get("constitution", {})
+    print(f"Constitution    : {const.get('status', 'NOT_FOUND')} (Policy: {const.get('policy_version', 'N/A')})")
+    print("=======================================================")
+
+
+def cmd_health(args):
+    h = run_health_check(args.db)
+    if getattr(args, "json", False):
+        print(json.dumps(h, indent=2))
+    else:
+        print("=======================================================")
+        print(f"  COURIER SYMPHONY HEALTH CHECK: {h['status']}")
+        print("=======================================================")
+        print(f"Product         : {h['product']} v{h['version']}")
+        print(f"Database        : {h['checks']['database']['path']}")
+        print(f"  - Exists      : {h['checks']['database']['exists']}")
+        print(f"  - Integrity   : {h['checks']['database']['integrity']}")
+        print(f"  - State Gen   : {h['checks']['database']['state_generation']}")
+        const = h['checks']['constitution']
+        print(f"Constitution    : {const['status']}")
+        print(f"  - Valid       : {const['valid']}")
+        print(f"  - Hash        : {const['hash'][:16]}..." if const['hash'] else "  - Hash        : N/A")
+        print(f"Runtime Writable: {h['checks']['runtime']['writable']}")
+        print(f"Schema Compat   : {h['checks']['schema']['compatible']}")
+        print("=======================================================")
+    if not h["healthy"]:
+        sys.exit(1)
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Courier Chief Ingestion & Delta Coordination CLI")
     parser.add_argument("--db", default=None, help="Custom path to chief_control_plane.db")
 
     subparsers = parser.add_subparsers(dest="command", required=True)
+
+    # version
+    p_ver = subparsers.add_parser("version", help="Show product and release version information")
+    p_ver.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+
+    # health
+    p_health = subparsers.add_parser("health", help="Execute non-destructive health and readiness check")
+    p_health.add_argument("--json", action="store_true", help="Output machine-readable JSON")
 
     # step / cycle
     for cmd_name in ("step", "cycle"):
@@ -686,7 +738,11 @@ def main():
     parser = build_parser()
     args = parser.parse_args()
 
-    if args.command in ("step", "cycle"):
+    if args.command == "version":
+        cmd_version(args)
+    elif args.command == "health":
+        cmd_health(args)
+    elif args.command in ("step", "cycle"):
         cmd_step(args)
     elif args.command == "reconcile":
         cmd_reconcile(args)

@@ -1,0 +1,428 @@
+{
+  "policy_version": "1.2.0",
+  "created_at": "2026-09-13T06:42:00Z",
+  "updated_at": "2026-09-13T09:00:00Z",
+  "project": "2026-workspace / money-factory / courier",
+  "machine_role": "WINDOWS",
+  "status": "ACTIVE",
+  "source": "CHIEF_DIRECTIVE",
+  "canonical_authority": "WINDOWS_COURIER_OPERATING_CONSTITUTION",
+  "articles": {
+    "article_01_role": {
+      "human_role": "OWNER",
+      "human_is_clock": false,
+      "chief_role": "PRIORITIZATION_AND_EVIDENCE_EVALUATION",
+      "courier_role": "ORCHESTRATION_SYSTEM",
+      "antigravity_role": "EXECUTION_ENVIRONMENT",
+      "repeated_human_weiter_required": false
+    },
+    "article_02_source_of_truth": {
+      "chat_is_truth": false,
+      "queue_is_truth": false,
+      "latest_prompt_is_truth": false,
+      "authoritative_stores": [
+        "durable_mission_state",
+        "durable_task_state",
+        "durable_result_state",
+        "valid_checkpoints",
+        "resource_leases",
+        "result_fingerprints",
+        "git_state",
+        "verified_effect_evidence"
+      ],
+      "resolution_rule": "DURABLE_VERIFIED_REALITY_WINS"
+    },
+    "article_03_queue_reconciliation": {
+      "blind_execution": false,
+      "classification_categories": [
+        "ACTIVE_CURRENT",
+        "PARTIALLY_DONE",
+        "ALREADY_SATISFIED",
+        "SUPERSEDED",
+        "DUPLICATE",
+        "CONFLICTING",
+        "BLOCKED",
+        "INVALID"
+      ],
+      "older_prompt_cannot_undo_newer_state": true,
+      "equivalent_prompts_map_to_one_intent": true
+    },
+    "article_04_weiter_semantics": {
+      "semantic_meaning": "CONTINUE_INTENT",
+      "means_new_task": false,
+      "means_repeat_previous_work": false,
+      "means_new_writer": false,
+      "coalesce_duplicate_weiter": true,
+      "max_outstanding_continuation_intents": 1,
+      "running_loop_behavior": "NOOP_SUPPRESSED"
+    },
+    "article_05_no_synthetic_human_clock": {
+      "for_loop_weiter_autonomy_proof_allowed": false,
+      "max_external_start_signals": 1,
+      "internal_loop_order": [
+        "RECONCILE",
+        "SELECT",
+        "EXECUTE",
+        "VERIFY",
+        "RESULT",
+        "CHECKPOINT",
+        "CLOSE",
+        "SELECT_SUCCESSOR"
+      ]
+    },
+    "article_06_finish_first_law": {
+      "enforce_finish_first": true,
+      "sequence": [
+        "TASK_A_EXECUTION",
+        "EFFECT_VERIFICATION",
+        "RESULT_CUSTOMS",
+        "DURABLE_RESULT",
+        "CHECKPOINT",
+        "CLOSE",
+        "RELEASE_LEASE",
+        "THEN_TASK_B"
+      ],
+      "start_b_while_a_holds_conflict_scope_allowed": false
+    },
+    "article_07_one_writer_law": {
+      "max_concurrent_conflicting_writers": 1,
+      "pre_write_checks": [
+        "lease",
+        "active_writer",
+        "scope_collision",
+        "duplicate_task_fingerprint"
+      ]
+    },
+    "article_08_exactly_once_logical_execution": {
+      "defense_layers": [
+        "prompt_dedup",
+        "continuation_dedup",
+        "state_generation_guard",
+        "batch_idempotency",
+        "task_semantic_fingerprint",
+        "writer_lease",
+        "effect_detection",
+        "result_fingerprint",
+        "do_not_repeat"
+      ]
+    },
+    "article_09_hang_rule": {
+      "time_alone_is_hang": false,
+      "evidence_inspected": [
+        "process_status",
+        "cpu_activity",
+        "log_growth",
+        "state_changes",
+        "db_writes",
+        "artifact_changes",
+        "child_activity",
+        "lease_heartbeat",
+        "test_activity"
+      ],
+      "allowed_classifications": [
+        "PROGRESSING",
+        "SLOW_BUT_PROGRESSING",
+        "WAITING",
+        "STALE",
+        "HUNG",
+        "CRASHED",
+        "UNKNOWN"
+      ],
+      "kill_healthy_work_allowed": false
+    },
+    "article_10_recovery_law": {
+      "max_safe_recovery_attempts": 1,
+      "pre_retry_check": "DETERMINE_IF_EFFECT_ALREADY_OCCURRED",
+      "prevent_duplicate_effects": true,
+      "crash_loop_threshold": 3,
+      "crash_loop_action": "PARK_BRANCH_AND_CONTINUE_INDEPENDENT_WORK"
+    },
+    "article_11_no_busywork": {
+      "disallowed_categories": [
+        "TASK_COUNT_MILESTONE_ONLY",
+        "REPORT_ONLY",
+        "PERCENTAGE_ONLY",
+        "DUPLICATE",
+        "SPECULATIVE_WITHOUT_EVIDENCE",
+        "OVERENGINEERED_WITHOUT_MEASURED_NEED",
+        "REPETITIVE_ROUND_BENCHMARKS"
+      ]
+    },
+    "article_12_value_governor": {
+      "required_task_fields": [
+        "SOURCE_GAP",
+        "SOURCE_EVIDENCE",
+        "EXPECTED_REAL_DELTA",
+        "WHY_NOW",
+        "VERIFICATION_PLAN",
+        "DO_NOT_REPEAT_PASS",
+        "MAC_CONFLICT_PASS",
+        "HUMAN_GATE_PASS"
+      ],
+      "speculative_potential_sufficient": false
+    },
+    "article_13_task_count_telemetry": {
+      "task_count_proves_autonomy": false,
+      "primary_metrics": [
+        "REAL_GAPS_CLOSED",
+        "REAL_DEFECTS_REMOVED",
+        "AUTONOMY_FAILURES_REMOVED",
+        "RECOVERY_FAILURES_REMOVED",
+        "PROOF_DEBT_REDUCED",
+        "CUSTOMER_FRICTIONS_REMOVED",
+        "SECURITY_RISKS_REMOVED",
+        "DUPLICATES_PREVENTED",
+        "HUMAN_CONTINUATIONS_REQUIRED"
+      ]
+    },
+    "article_14_checkpoint_truth": {
+      "highest_numeric_task_id_is_checkpoint": false,
+      "required_checkpoint_binding": [
+        "TASK_ID",
+        "TASK_VERSION",
+        "STATE_GENERATION",
+        "RESULT_FINGERPRINT",
+        "VERIFICATION_EVIDENCE",
+        "VERIFIED_AT"
+      ]
+    },
+    "article_15_test_replay_policy": {
+      "fingerprint_fields": [
+        "TEST_ID",
+        "CODE_SHA",
+        "STATE_GENERATION",
+        "INPUT_FINGERPRINT",
+        "LAST_RESULT"
+      ],
+      "rerun_identical_successful_allowed": false,
+      "rerun_triggers": [
+        "code_changed",
+        "state_changed",
+        "previous_run_failed",
+        "run_incomplete",
+        "proof_invalidated"
+      ]
+    },
+    "article_16_result_customs": {
+      "self_certification_allowed": false,
+      "exit_code_zero_alone_proves_pass": false,
+      "required_record_fields": [
+        "TASK_ID",
+        "TASK_VERSION",
+        "WORKER",
+        "ORIGINAL_SCOPE",
+        "FINAL_SCOPE",
+        "FILES_MODIFIED",
+        "COMMANDS",
+        "EXIT_CODES",
+        "TESTS",
+        "NEGATIVE_TEST",
+        "OBSERVED_EFFECT",
+        "ARTIFACTS",
+        "GIT_BEFORE",
+        "GIT_AFTER",
+        "RESULT_FINGERPRINT",
+        "KNOWN_DEFECTS",
+        "BLOCKERS",
+        "HUMAN_GATES"
+      ]
+    },
+    "article_17_clean_execution_no_chatter": {
+      "narrative_chatter_allowed": false,
+      "work_first_report_after": true,
+      "reportable_events": [
+        "meaningful_verified_work_block",
+        "true_blocker",
+        "true_human_gate",
+        "final_handover",
+        "decision_requiring_failure"
+      ]
+    },
+    "article_18_autonomous_succession": {
+      "wait_for_human_between_tasks": false,
+      "pipeline": [
+        "DO_NOT_REPEAT",
+        "GAP_MAP",
+        "VALUE_GOVERNOR",
+        "CONFLICT_CHECK",
+        "HUMAN_GATE_CHECK",
+        "SELECT_SUCCESSOR",
+        "EXECUTE",
+        "VERIFY",
+        "CLOSE",
+        "SELECT_NEXT"
+      ]
+    },
+    "article_19_bounded_autonomy": {
+      "default_safe_task_bound": "5_to_10_tasks",
+      "bound_is_human_continuation_requirement": false
+    },
+    "article_20_safe_work_exhaustion": {
+      "single_pass_exhaustion_sufficient": false,
+      "required_discovery_passes": 2,
+      "terminal_status_when_exhausted": "LOCAL_WINDOWS_SAFE_WORK_EXHAUSTED",
+      "invent_work_to_avoid_idle_allowed": false
+    },
+    "article_21_human_gates": {
+      "parked_gate_keys": [
+        "LIVE_PAYMENT",
+        "LIVE_STRIPE",
+        "BANK",
+        "WALLET",
+        "KYC",
+        "PURCHASE",
+        "PUBLIC_DEPLOYMENT",
+        "PUBLICATION",
+        "CUSTOMER_OUTREACH",
+        "HACKER_NEWS_POSTING",
+        "EXTERNAL_SUBMISSION"
+      ],
+      "blocks_independent_safe_work": false
+    },
+    "article_22_economic_accounting": {
+      "tracked_metrics": [
+        "REAL_SPEND_EUR",
+        "REAL_REVENUE_EUR",
+        "SIMULATED_REVENUE_EUR",
+        "TEST_REVENUE_EUR"
+      ],
+      "unattributable_revenue_defaults_to_zero": true,
+      "prompt_human_for_money_during_autonomy_first_allowed": false
+    },
+    "article_23_windows_mac_boundary": {
+      "mac_conflicting_writes_allowed": false,
+      "allowed_windows_labels": [
+        "WINDOWS_DISCOVERED",
+        "WINDOWS_VERIFIED",
+        "HANDOFF_READY"
+      ],
+      "windows_self_certify_mac_accepted_allowed": false
+    },
+    "article_24_windows_role": [
+      "windows_specific_defects",
+      "cross_platform_validation",
+      "recovery",
+      "queue_idempotency",
+      "persistence",
+      "release_qualification",
+      "customer_simulation",
+      "failure_injection",
+      "observability",
+      "resource_hygiene",
+      "security_validation",
+      "measured_performance",
+      "delivery_preparation",
+      "proof_debt_reduction"
+    ],
+    "article_25_resource_safety": {
+      "parallel_writer_storms_allowed": false,
+      "test_storms_allowed": false,
+      "process_storms_allowed": false,
+      "log_storms_allowed": false,
+      "attribute_process_before_termination": true,
+      "mac_thermal_limits_globally_block_windows": false
+    },
+    "article_26_fresh_session_bootstrap": {
+      "requires_chat_history": false,
+      "bootstrap_steps": [
+        "load_constitution",
+        "load_durable_state",
+        "verify_repo_identity",
+        "verify_head_shas",
+        "inspect_worktree",
+        "reconcile_active_task",
+        "reconcile_active_writer_lease",
+        "load_last_verified_checkpoint",
+        "load_do_not_repeat",
+        "inspect_open_gaps",
+        "inspect_queued_directives",
+        "classify_duplicates_and_superseded_intents",
+        "resume_current_legitimate_work",
+        "choose_highest_value_safe_next_task"
+      ]
+    },
+    "article_27_superseded_prompt_law": {
+      "execute_all_queued_prompts_automatically": false,
+      "reconciliation_predicate": "HAS_REQUIRED_EFFECT_ALREADY_BEEN_ACHIEVED",
+      "actions": {
+        "already_achieved": "SATISFIED_SKIP",
+        "partially_achieved": "FINISH_ONLY_MISSING_EFFECT",
+        "obsolete": "SUPERSEDED_SKIP"
+      }
+    },
+    "article_28_permanent_recovery_invariant": {
+      "chat_failure_equals_state_failure": false,
+      "ui_replay_equals_work_replay": false,
+      "prompt_replay_equals_effect_replay": false
+    },
+    "article_29_chief_handover": {
+      "canonical_path": "courier/CANONICAL_WINDOWS_CHIEF_HANDOVER.json",
+      "update_frequency": "MEANINGFUL_VERIFIED_CHECKPOINTS_ONLY",
+      "secrets_allowed": false
+    },
+    "article_30_no_self_certified_100_percent": {
+      "windows_can_declare_symphony_100_percent": false,
+      "symphony_100_percent_authority": "CHIEF_LEVEL_ONLY",
+      "windows_reporting_scope": "WINDOWS_AUTONOMY_ACCEPTANCE_PROVEN"
+    },
+    "article_31_final_windows_operating_loop": [
+      "LOAD_DURABLE_STATE",
+      "RECONCILE",
+      "FINISH_CURRENT_WORK",
+      "VERIFY_EFFECT",
+      "RESULT_CUSTOMS",
+      "CHECKPOINT",
+      "CLOSE",
+      "DO_NOT_REPEAT",
+      "DISCOVER_REAL_GAP",
+      "VALUE_GOVERNOR",
+      "CONFLICT_CHECK",
+      "HUMAN_GATE_CHECK",
+      "SELECT_HIGHEST_VALUE_SAFE_WORK",
+      "EXECUTE",
+      "VERIFY",
+      "CONTINUE"
+    ],
+    "article_32_two_method_exhaustion_court": {
+      "exhaustion_claim_requires_two_methods": true,
+      "method_a": "STATE_TESTS_DEFECTS_PROOF_DEBT_CONTROL_PLANE",
+      "method_b": "REPOSITORY_RUNTIME_FAILURE_PATHS_CUSTOMER_DELIVERY",
+      "action_on_discrepancy": "CONTINUE_CAMPAIGN_AUTOMATICALLY",
+      "premature_end_prohibited": true
+    },
+    "article_33_multi_signal_campaign_autonomy": {
+      "rule": "WHEN MULTIPLE CONTINUATION SIGNALS EXIST: signals do not multiply work. They extend permission to continue useful work. ONE ACTIVE CAMPAIGN MAXIMUM. The campaign owns continuation.",
+      "multi_signal_meaning": "RAW_CONTINUATION_BUDGET",
+      "signals_multiply_work": false,
+      "signals_create_tasks": false,
+      "max_active_campaigns": 1,
+      "campaign_owns_continuation": true,
+      "duplicate_signals_handling": "COALESCED_NOOP",
+      "bounded_windows_tasks": "5_TO_10"
+    },
+    "article_34_quiescent_continuation_rule": {
+      "rule_name": "QUIESCENT_CONTINUATION_RULE",
+      "statement": "QUIESCENCE IS WAKEABLE. Quiescence suppresses duplicate work/storm replays, but does not permanently disable meaningful continuation. Duplicate replay signals silently coalesce. A new human weiter triggers one fresh bounded re-evaluation. Real gap -> autonomous work; No real gap -> return to quiescence.",
+      "applies_when": "CONTINUATION_STATE == QUIESCENT_EXHAUSTION_CERTIFIED",
+      "quiescence_is_wakeable": true,
+      "wake_on_old_weiter": false,
+      "re_run_discovery_allowed": false,
+      "repeated_status_reports_allowed": false,
+      "duplicate_replay_policy": "SILENTLY_COALESCE",
+      "new_human_weiter_policy": "ONE_FRESH_BOUNDED_REEVALUATION",
+      "real_gap_found_action": "EXIT_QUIESCENCE_AUTONOMOUS_WORK",
+      "no_real_gap_action": "RETURN_TO_QUIESCENCE",
+      "permanent_continuation_deadlock_prohibited": true,
+      "wake_conditions": [
+        "NEW_NON_WEITER_CHIEF_DIRECTIVE",
+        "DURABLE_STATE_GENERATION_CHANGED",
+        "NEW_EXTERNAL_HANDOFF_RECEIVED",
+        "HUMAN_GATE_UNPARKED",
+        "NEW_VERIFIED_EVIDENCE_SAFE_GAP",
+        "STATE_INCONSISTENCY_OR_CORRUPTION",
+        "NEW_HUMAN_WEITER_WITH_SAFE_GAP"
+      ],
+      "forced_response_text": "QUIESCENT_NOOP"
+    }
+  }
+}
