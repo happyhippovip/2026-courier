@@ -81,6 +81,23 @@ class MemoryCommitTests(unittest.TestCase):
             saved = json.loads((output_dir / "task-collision-memory-proposal.json").read_text(encoding="utf-8"))
             self.assertEqual(saved["proposal_id"], first["proposal_id"])
 
+    def test_untrusted_result_identity_cannot_escape_output_directory(self):
+        result = {
+            "task_id": "../outside",
+            "message_id": "message-safe",
+            "correlation_id": "correlation-safe",
+            "payload": {"verified_facts": ["Must not write."], "summary": "Invalid identity"},
+        }
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            result_path = root / "result.json"
+            output_dir = root / "output"
+            result_path.write_text(json.dumps(result), encoding="utf-8")
+            with self.assertRaisesRegex(SystemExit, "invalid task_id"):
+                build_proposal_from_result(result_path, memory_repo_path=root / "memory", output_dir=output_dir)
+            self.assertFalse((root / "outside-memory-proposal.json").exists())
+            self.assertFalse(output_dir.exists())
+
     def test_atomic_writer_preserves_previous_artifact_when_replace_fails(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             path = Path(temp_dir) / "proposal.json"

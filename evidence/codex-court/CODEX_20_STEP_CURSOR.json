@@ -54,9 +54,10 @@
     "U3_DETERMINISTIC_BUILDER_ID",
     "U4_WORKTREE_POINTER",
     "E1_FOUR_PROCESS_INGESTION",
-    "E2_TWO_PROCESS_PROPOSAL_CREATE_OR_LOAD"
+    "E2_TWO_PROCESS_PROPOSAL_CREATE_OR_LOAD",
+    "S1_RESULT_IDENTITY_PATH_CONFINEMENT"
   ],
-  "last_checkpoint": "39051c9",
+  "last_checkpoint": "280c98f",
   "next_ranked_work": "NONE_PENDING_NEW_OWNER_DELTA",
   "owner_map": {
     "mac": ["capability_registry", "courier autonomy", "human-gate", "result customs", "successor generation", "process supervision"],

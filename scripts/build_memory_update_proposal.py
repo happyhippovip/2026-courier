@@ -265,8 +265,9 @@ def build_proposal_from_result(
     msg_id = res_data.get("message_id")
     corr_id = res_data.get("correlation_id")
 
-    if not task_id or not msg_id or not corr_id:
-        fail(f"Result envelope missing task_id, message_id, or correlation_id")
+    for field, value in (("task_id", task_id), ("message_id", msg_id), ("correlation_id", corr_id)):
+        if not isinstance(value, str) or not IDENTIFIER_RE.fullmatch(value):
+            fail(f"Result envelope has invalid {field}")
 
     payload = res_data.get("payload", {})
     verified_facts = payload.get("verified_facts", [])
