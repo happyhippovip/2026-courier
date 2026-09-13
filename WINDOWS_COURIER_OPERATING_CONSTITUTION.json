@@ -402,18 +402,25 @@
     },
     "article_34_quiescent_continuation_rule": {
       "rule_name": "QUIESCENT_CONTINUATION_RULE",
-      "statement": "When a durable state generation has certified safe-work exhaustion, duplicate continuation signals for that same generation are SILENT NOOPs. They do not re-run discovery. They do not produce repeated status reports. They do not wake autonomous execution.",
+      "statement": "QUIESCENCE IS WAKEABLE. Quiescence suppresses duplicate work/storm replays, but does not permanently disable meaningful continuation. Duplicate replay signals silently coalesce. A new human weiter triggers one fresh bounded re-evaluation. Real gap -> autonomous work; No real gap -> return to quiescence.",
       "applies_when": "CONTINUATION_STATE == QUIESCENT_EXHAUSTION_CERTIFIED",
+      "quiescence_is_wakeable": true,
       "wake_on_old_weiter": false,
       "re_run_discovery_allowed": false,
       "repeated_status_reports_allowed": false,
+      "duplicate_replay_policy": "SILENTLY_COALESCE",
+      "new_human_weiter_policy": "ONE_FRESH_BOUNDED_REEVALUATION",
+      "real_gap_found_action": "EXIT_QUIESCENCE_AUTONOMOUS_WORK",
+      "no_real_gap_action": "RETURN_TO_QUIESCENCE",
+      "permanent_continuation_deadlock_prohibited": true,
       "wake_conditions": [
         "NEW_NON_WEITER_CHIEF_DIRECTIVE",
         "DURABLE_STATE_GENERATION_CHANGED",
         "NEW_EXTERNAL_HANDOFF_RECEIVED",
         "HUMAN_GATE_UNPARKED",
         "NEW_VERIFIED_EVIDENCE_SAFE_GAP",
-        "STATE_INCONSISTENCY_OR_CORRUPTION"
+        "STATE_INCONSISTENCY_OR_CORRUPTION",
+        "NEW_HUMAN_WEITER_WITH_SAFE_GAP"
       ],
       "forced_response_text": "QUIESCENT_NOOP"
     }

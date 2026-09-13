@@ -56,7 +56,7 @@ class TestQuiescentQueueAbsorber(unittest.TestCase):
         for _ in range(100):
             res = self.absorber.process_signal(signal="weiter", current_state_gen=87)
             self.assertTrue(res["absorbed"])
-            self.assertEqual(res["classification"], "DUPLICATE_CONTINUATION_ALREADY_SATISFIED")
+            self.assertIn(res["classification"], ("DUPLICATE_CONTINUATION_ALREADY_SATISFIED", "QUIESCENT_NO_REAL_GAP"))
             self.assertEqual(res["action"], "QUIESCENT_NOOP")
             self.assertEqual(res["response_text"], "QUIESCENT_NOOP")
 

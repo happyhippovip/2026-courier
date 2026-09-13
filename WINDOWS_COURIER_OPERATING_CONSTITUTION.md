@@ -385,10 +385,10 @@ This Constitution is durably persisted on disk, tracked in version control, and 
 
 ---
 
-## ARTICLE 35 — QUIESCENT CONTINUATION RULE
-1. **Rule**: When a durable state generation has certified safe-work exhaustion, duplicate continuation signals for that same generation are SILENT NOOPs.
-2. They do NOT re-run discovery.
-3. They do NOT produce repeated status reports.
-4. They do NOT wake autonomous execution.
-5. If the runtime forces a textual response, output ONLY QUIESCENT_NOOP.
-6. Quiescent absorption exits ONLY when a genuinely new non-weiter Chief directive arrives, durable state generation changes, external handoff appears, or an external gate is explicitly approved.
+## ARTICLE 35 — QUIESCENT CONTINUATION RULE (WAKEABLE QUIESCENCE)
+1. **Rule**: QUIESCENCE IS WAKEABLE. Quiescence suppresses duplicate work and queue storms, but does NOT permanently disable meaningful continuation.
+2. **Duplicate Replay**: Multiple identical queued replays of the same signal SILENTLY COALESCE into at most 1 logical re-evaluation; duplicate responses output ONLY `QUIESCENT_NOOP` with 0 new tasks, 0 new batches, 0 discovery runs, and 0 repeated status reports.
+3. **New Human `weiter`**: A genuinely new external continuation intent triggers exactly ONE fresh bounded re-evaluation pass across core autonomy areas.
+4. **Real Gap Found**: If re-evaluation finds an unproven, defective, or safe backlog gap, Courier EXITS QUIESCENCE and begins autonomous execution, verifying and checkpointing work and chaining successors without human clocking.
+5. **No Real Gap**: If re-evaluation confirms zero real safe autonomy gaps, Courier persists `LAST_REEVALUATION_RESULT = NO_REAL_GAP` with its proof fingerprint and cleanly returns to quiescence.
+6. **No Continuation Deadlock**: Quiescent exhaustion states never permanently lock or deadlock future continuation. A subsequent human `weiter` remains fully capable of triggering a fresh bounded review.
