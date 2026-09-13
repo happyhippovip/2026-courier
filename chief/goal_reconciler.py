@@ -1857,6 +1857,36 @@ class GoalReconciler:
             "expected_evidence": "Recovery court test suite passed (8/8 tests 100% success)"
         })
 
+        # Candidate BE: End-to-End Cross-Platform Recovery, Fenced Synchronization & Handoff Soak Certification
+        candidates.append({
+            "candidate_id": "TASK-WIN-65",
+            "version": 1,
+            "goal_id": "GOAL-05",
+            "title": "End-to-End Cross-Platform Recovery, Fenced Synchronization & Handoff Soak Certification",
+            "category": "CROSS_PLATFORM_SYNCHRONIZATION",
+            "conflict_domain": "E2E_RESILIENCE_SOAK",
+            "target_machine": "WINDOWS",
+            "target_worker": "WINDOWS_GOOGLE",
+            "scope": os.path.join(self.workspace_root, "courier"),
+            "script_path": "courier/tests/test_e2e_resilience_soak.py",
+            "cwd": self.workspace_root,
+            "is_writer": False,
+            "unresolved_gap": "AUTONOMY_CAPABILITY_GAP",
+            "goal_impact": 10.0,
+            "revenue_impact": 9.5,
+            "info_gain": 10.0,
+            "proof_debt_reduction": 10.0,
+            "autonomy_gain": 10.0,
+            "risk_score": 0.0,
+            "spend_eur": 0.00,
+            "human_requirement": "NONE",
+            "acceptance_criteria": [
+                "Execute courier/tests/test_e2e_resilience_soak.py",
+                "Verify end-to-end integration: write-ahead intent, fenced mutex, two-level closure receipts, 150-event queue storm coalescing, pending customs recovery, Mac scope isolation, and 0 spend firewall"
+            ],
+            "expected_evidence": "E2E resilience soak test suite passed (5/5 tests 100% success)"
+        })
+
         # Dynamic Candidate Discovery from safe_backlog.json
         if os.path.exists(self.backlog_path):
             try:
