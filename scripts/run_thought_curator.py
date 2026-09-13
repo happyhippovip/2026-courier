@@ -343,6 +343,26 @@ class ThoughtCurator:
             "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         }
 
+        # Save the durable derived record before emitting a terminal success
+        # status. A consumer must never observe SENT TO CHIEF for an idea that
+        # failed to persist.
+        thought_file = self.thoughts_dir / f"{idea_id}.json"
+        try:
+            self._write_derived_record_once(thought_file, context_delta)
+        except OSError:
+            self.state_tracker.update_state(
+                state="BLOCKED",
+                task=f"Curated {idea_id}",
+                progress=0.85,
+                workflow=idea_id,
+                last_action="Derived context persistence failed",
+                next_action="Preserve evidence and repair the local persistence boundary",
+                result="PERSISTENCE_FAILED",
+                blocked=True,
+                human_gate=None,
+            )
+            raise
+
         # 5. Final State: SENT TO CHIEF or BLOCKED
         final_state = "BLOCKED" if classification == "CONFLICT" else "SENT TO CHIEF"
         self.state_tracker.update_state(
@@ -356,10 +376,6 @@ class ThoughtCurator:
             blocked=final_state == "BLOCKED",
             human_gate="REQUIRE_EXPLICIT_HUMAN_APPROVAL" if final_state == "BLOCKED" else None,
         )
-
-        # Save thought record - Anti-overwrite protection
-        thought_file = self.thoughts_dir / f"{idea_id}.json"
-        self._write_derived_record_once(thought_file, context_delta)
 
         return context_delta
 

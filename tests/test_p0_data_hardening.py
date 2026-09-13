@@ -5,6 +5,7 @@ import shutil
 from pathlib import Path
 import datetime as dt
 import hashlib
+from unittest.mock import patch
 
 from scripts.run_thought_ingestion import run_ingestion
 from scripts.run_thought_curator import ThoughtCurator
@@ -158,6 +159,19 @@ class TestP0DataHardening(unittest.TestCase):
         finally:
             if other_workspace.exists():
                 shutil.rmtree(other_workspace)
+
+    def test_persistence_failure_never_emits_sent_to_chief(self):
+        curator = ThoughtCurator(repo_dir=self.base_dir, memory_dir=self.memory)
+        with patch.object(ThoughtCurator, "_write_derived_record_once", side_effect=OSError("disk unavailable")):
+            with self.assertRaises(OSError):
+                curator.curate_idea(
+                    "A durable record must exist before this is presented as delivered.",
+                    accepted_thought_reference="source-failure",
+                )
+        state_file = self.base_dir / "events" / "agent-states" / "agent-thought-curator.json"
+        state = json.loads(state_file.read_text(encoding="utf-8"))
+        self.assertEqual(state["state"], "BLOCKED")
+        self.assertEqual(state["result"], "PERSISTENCE_FAILED")
 
 if __name__ == "__main__":
     unittest.main()
