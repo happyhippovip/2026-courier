@@ -2270,6 +2270,42 @@ class GoalReconciler:
             "expected_evidence": "Live store HTTP circuit test suite passed (6/6 tests 100% success)"
         })
 
+        # Candidate BQ: Agent Control Plane PRO Commercial Pilot Automated Session Harness, Offline Store Demonstration & Interactive Sandbox Simulation
+        candidates.append({
+            "candidate_id": "TASK-WIN-77",
+            "version": 1,
+            "goal_id": "GOAL-03",
+            "title": "Agent Control Plane PRO Commercial Pilot Automated Session Harness, Offline Store Demonstration & Interactive Sandbox Simulation",
+            "category": "SUSTAINABLE_COMMERCIAL_DELIVERY",
+            "conflict_domain": "COMMERCIAL_PILOT_HARNESS",
+            "target_machine": "WINDOWS",
+            "target_worker": "WINDOWS_GOOGLE",
+            "scope": os.path.join(self.project_memory_dir, "money_factory"),
+            "script_path": "courier/tests/test_commercial_pilot_harness.py",
+            "cwd": self.workspace_root,
+            "is_writer": False,
+            "unresolved_gap": "AUTONOMY_CAPABILITY_GAP",
+            "goal_impact": 10.0,
+            "revenue_impact": 10.0,
+            "info_gain": 10.0,
+            "proof_debt_reduction": 10.0,
+            "autonomy_gain": 10.0,
+            "risk_score": 0.0,
+            "spend_eur": 0.00,
+            "human_requirement": "NONE",
+            "acceptance_criteria": [
+                "Execute courier/tests/test_commercial_pilot_harness.py",
+                "Verify ACP pilot session enrollment creates structured record with OPP-SEED-04 price target €19.99",
+                "Verify simulation telemetry records runaway loops prevented and simulated spend saved",
+                "Verify neutral WTP evaluation protocol captures rating, willing amount, and full/discounted verdict",
+                "Verify cryptographic evidence certificate is minted with tamper-evident SHA-256 fingerprint",
+                "Verify automated CLI runner scripts/run_acp_pilot_simulation.js executes synchronously",
+                "Verify durable append to data/commercial/pilot_evidence_ledger.json",
+                "Verify zero external network calls, zero telemetry, and 0.00 EUR automatic spend"
+            ],
+            "expected_evidence": "Commercial pilot harness test suite passed (4/4 tests 100% success)"
+        })
+
         # Dynamic Candidate Discovery from safe_backlog.json
         if os.path.exists(self.backlog_path):
             try:
