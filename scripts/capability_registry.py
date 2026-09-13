@@ -697,7 +697,13 @@ class ResumableHumanGateManager:
         "PUBLICATION", "LEGAL", "IDENTITY", "DESTRUCTIVE_ACTION", "PERMISSION_ESCALATION"
     }
     
-    SECRET_KEY = b"strictly_human_only_secret"
+    @staticmethod
+    def _owner_secret() -> bytes:
+        """Authority is injected by the owner; it must never be embedded in source."""
+        secret = os.environ.get("COURIER_HUMAN_GATE_SECRET")
+        if not secret or len(secret) < 32:
+            raise PermissionError("HUMAN_GATE_OWNER_AUTHORITY_UNAVAILABLE")
+        return secret.encode("utf-8")
     
     @staticmethod
     def _get_ledger_path():
@@ -734,7 +740,7 @@ class ResumableHumanGateManager:
     def issue_approval(gate_id: str, task_id: str, correlation_id: str, decision: str, issuer: str) -> dict[str, Any]:
         timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
         payload = f"{gate_id}:{task_id}:{correlation_id}:{decision}:{issuer}:{timestamp}"
-        signature = hmac.new(ResumableHumanGateManager.SECRET_KEY, payload.encode(), hashlib.sha256).hexdigest()
+        signature = hmac.new(ResumableHumanGateManager._owner_secret(), payload.encode(), hashlib.sha256).hexdigest()
         return {
             "gate_id": gate_id,
             "task_id": task_id,
@@ -751,7 +757,7 @@ class ResumableHumanGateManager:
             raise ValueError("Direct bypass attempted without approval proof")
             
         payload = f"{approval['gate_id']}:{approval['task_id']}:{approval['correlation_id']}:{approval['decision']}:{approval['issuer']}:{approval['timestamp']}"
-        expected = hmac.new(ResumableHumanGateManager.SECRET_KEY, payload.encode(), hashlib.sha256).hexdigest()
+        expected = hmac.new(ResumableHumanGateManager._owner_secret(), payload.encode(), hashlib.sha256).hexdigest()
         if not hmac.compare_digest(expected, approval.get('signature', '')):
             raise ValueError("Forged or invalid approval signature")
             
@@ -773,17 +779,20 @@ class ResumableHumanGateManager:
         # Check freshness
         app_time = datetime.datetime.fromisoformat(approval['timestamp'])
         now = datetime.datetime.now(datetime.timezone.utc)
-        if (now - app_time).total_seconds() > 86400: # 1 day
+        age_seconds = (now - app_time).total_seconds()
+        if age_seconds < 0 or age_seconds > 86400: # future timestamps fail closed too
             raise ValueError("Approval is stale/expired")
             
         ResumableHumanGateManager.init_ledger()
-        conn = sqlite3.connect(ResumableHumanGateManager._get_ledger_path())
+        conn = sqlite3.connect(ResumableHumanGateManager._get_ledger_path(), isolation_level=None)
         c = conn.cursor()
         try:
+            c.execute("BEGIN IMMEDIATE")
             c.execute("INSERT INTO consumed_approvals (gate_id, consumed_at) VALUES (?, ?)", 
                       (approval['gate_id'], datetime.datetime.now().timestamp()))
-            conn.commit()
+            c.execute("COMMIT")
         except sqlite3.IntegrityError:
+            c.execute("ROLLBACK")
             conn.close()
             raise ValueError("Approval already consumed")
         conn.close()

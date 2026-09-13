@@ -201,7 +201,9 @@ class TestCapabilityRegistry(unittest.TestCase):
         
         with tempfile.TemporaryDirectory() as tmpdir:
             old_root = os.environ.get("COURIER_REPO_ROOT")
+            old_secret = os.environ.get("COURIER_HUMAN_GATE_SECRET")
             os.environ["COURIER_REPO_ROOT"] = tmpdir
+            os.environ["COURIER_HUMAN_GATE_SECRET"] = "r01-test-owner-secret-with-at-least-thirty-two-bytes"
             
             gate = ResumableHumanGateManager.trigger_gate(
                 gate_type="PAYMENT",
@@ -248,7 +250,7 @@ class TestCapabilityRegistry(unittest.TestCase):
             stale_approval = dict(approval)
             stale_approval["timestamp"] = (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=2)).isoformat()
             payload = f"{stale_approval['gate_id']}:{stale_approval['task_id']}:{stale_approval['correlation_id']}:{stale_approval['decision']}:{stale_approval['issuer']}:{stale_approval['timestamp']}"
-            stale_approval["signature"] = hmac.new(ResumableHumanGateManager.SECRET_KEY, payload.encode(), hashlib.sha256).hexdigest()
+            stale_approval["signature"] = hmac.new(ResumableHumanGateManager._owner_secret(), payload.encode(), hashlib.sha256).hexdigest()
             with self.assertRaises(ValueError):
                 ResumableHumanGateManager.resume_after_gate(gate, stale_approval)
                 
@@ -273,6 +275,10 @@ class TestCapabilityRegistry(unittest.TestCase):
                 os.environ["COURIER_REPO_ROOT"] = old_root
             else:
                 del os.environ["COURIER_REPO_ROOT"]
+            if old_secret:
+                os.environ["COURIER_HUMAN_GATE_SECRET"] = old_secret
+            else:
+                os.environ.pop("COURIER_HUMAN_GATE_SECRET", None)
 
 if __name__ == "__main__":
     unittest.main()
