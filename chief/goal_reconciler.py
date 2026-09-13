@@ -1557,6 +1557,36 @@ class GoalReconciler:
             "expected_evidence": "24/24 acceptance tests passed (100% green)"
         })
 
+        # Candidate AU: Agent Control Plane PRO Self-Test & Distribution Certification
+        candidates.append({
+            "candidate_id": "TASK-WIN-55",
+            "version": 1,
+            "goal_id": "GOAL-01",
+            "title": "Agent Control Plane PRO Self-Test & Distribution Certification",
+            "category": "SUSTAINABLE_COMMERCIAL_DELIVERY",
+            "conflict_domain": "SPEND_FIREWALL_PRO_CORE",
+            "target_machine": "WINDOWS",
+            "target_worker": "WINDOWS_GOOGLE",
+            "scope": os.path.join(self.project_memory_dir, "data", "distribution_ready", "agent_control_plane"),
+            "script_path": "data/distribution_ready/agent_control_plane/test_spend_firewall_pro.py",
+            "cwd": self.project_memory_dir,
+            "is_writer": False,
+            "unresolved_gap": "AUTONOMY_CAPABILITY_GAP",
+            "goal_impact": 10.0,
+            "revenue_impact": 10.0,
+            "info_gain": 9.5,
+            "proof_debt_reduction": 10.0,
+            "autonomy_gain": 10.0,
+            "risk_score": 0.0,
+            "spend_eur": 0.00,
+            "human_requirement": "NONE",
+            "acceptance_criteria": [
+                "Execute data/distribution_ready/agent_control_plane/test_spend_firewall_pro.py",
+                "Verify Pro health status, multi-agent metadata, audit summary, and CSV export"
+            ],
+            "expected_evidence": "Spend firewall Pro tests passed (100% success)"
+        })
+
         # Dynamic Candidate Discovery from safe_backlog.json
         if os.path.exists(self.backlog_path):
             try:
