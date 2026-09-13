@@ -280,6 +280,17 @@ class TestMission107ReviewBudget(unittest.TestCase):
 
         self.assertEqual(ledger.read_bytes(), before)
 
+    def test_public_review_gate_reports_corruption_as_blocked_not_no_review(self):
+        (self.reviews_dir / "ledger.json").write_text("{bad", encoding="utf-8")
+        decision, risk, reason, fingerprint, context = self.manager.should_review(
+            changed_files=["scripts/important_change.py"],
+            diff_str="+def changed(): pass",
+        )
+        self.assertEqual(decision, "BLOCKED")
+        self.assertEqual(risk, "HIGH")
+        self.assertEqual(reason, "REVIEW_LEDGER_CORRUPT")
+        self.assertTrue(fingerprint["review_required"])
+
 
 if __name__ == "__main__":
     unittest.main()
