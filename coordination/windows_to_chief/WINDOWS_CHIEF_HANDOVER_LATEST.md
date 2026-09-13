@@ -1,6 +1,6 @@
 # WINDOWS CHIEF AUTHORITATIVE HANDOVER — GENERATION 4
 **Document Status**: AUTHORITATIVE & CERTIFIED  
-**Generated At**: 2026-09-13T06:56:42.982479+00:00  
+**Generated At**: 2026-09-13T06:57:05.860193+00:00  
 **Platform**: Windows Specialist Node (`WINDOWS_GOOGLE`)  
 **Target Consumer**: Chief Orchestrator (`CHIEF_ORCHESTRATOR`)  
 **Operating Constitution**: v1.1.0 (`ACTIVE`, 33 Articles)  
@@ -9,8 +9,8 @@
 ---
 
 ## 1. REPOSITORY IDENTITY & IMMUTABILITY
-- **courier**: Branch `windows/money-factory-p0` | HEAD SHA `75f0d64fc9e3a6126c0fb4dc78101538bf782c64` | Worktree: `CLEAN_TRACKED`
-- **project-memory**: Branch `feature/money-factory-v3` | HEAD SHA `1362874089bfbbfa49a667b1a2ef076c13f7d190` | Worktree: `CLEAN_DISCIPLINED`
+- **courier**: Branch `windows/money-factory-p0` | HEAD SHA `b152c8fb64cd3731a8916e9abee41db6b52ff791` | Worktree: `CLEAN_TRACKED`
+- **project-memory**: Branch `feature/money-factory-v3` | HEAD SHA `40c642c16a2dc018e55519d626e760b63648ee0e` | Worktree: `CLEAN_DISCIPLINED`
 
 ---
 

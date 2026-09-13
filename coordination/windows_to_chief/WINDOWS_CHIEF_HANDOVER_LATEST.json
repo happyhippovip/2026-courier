@@ -1,7 +1,7 @@
 {
   "handover_generation": 4,
-  "created_at": "2026-09-13T06:56:42.982479+00:00",
-  "updated_at": "2026-09-13T06:56:42.982479+00:00",
+  "created_at": "2026-09-13T06:57:05.860193+00:00",
+  "updated_at": "2026-09-13T06:57:05.860193+00:00",
   "schema_version": "3.0.0",
   "handover_type": "WINDOWS_CHIEF_AUTHORITATIVE_HANDOVER_LATEST",
   "platform_source": "WINDOWS_GOOGLE",
@@ -11,13 +11,13 @@
     "project_memory": {
       "path": "C:\\Users\\lol\\2026-workspace\\project-memory",
       "branch": "feature/money-factory-v3",
-      "head_sha": "1362874089bfbbfa49a667b1a2ef076c13f7d190",
+      "head_sha": "40c642c16a2dc018e55519d626e760b63648ee0e",
       "worktree_status": "CLEAN_DISCIPLINED"
     },
     "courier": {
       "path": "C:\\Users\\lol\\2026-workspace\\courier",
       "branch": "windows/money-factory-p0",
-      "head_sha": "75f0d64fc9e3a6126c0fb4dc78101538bf782c64",
+      "head_sha": "b152c8fb64cd3731a8916e9abee41db6b52ff791",
       "worktree_status": "CLEAN_TRACKED"
     },
     "canonical_source_locations": [
