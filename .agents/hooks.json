@@ -1,0 +1,10 @@
+{
+  "courier-continuation-hook": {
+    "Stop": [
+      {
+        "type": "command",
+        "command": "python3 ../scripts/continuation_hook.py"
+      }
+    ]
+  }
+}
