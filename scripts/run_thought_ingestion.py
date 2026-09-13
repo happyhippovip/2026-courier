@@ -13,6 +13,7 @@ import datetime as dt
 import json
 import os
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -24,17 +25,49 @@ SUPPORTED_REAL_SOURCES = {"CHAT_EXPORT", "COURIER_EVENT", "WORK_RESULT", "GOOGLE
 REQUIRED_FIELDS = {"ingestion_id", "source_type", "source_message_id", "source_timestamp", "received_at", "content_hash", "content", "metadata", "correlation_id", "privacy_class"}
 
 
+class IngestionRecoveryError(RuntimeError):
+    """A durable ingestion record is malformed or contradicts its journal."""
+
+
 def atomic_json_write(path: Path, payload: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_name(f".{path.name}.tmp")
-    temporary.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-    os.replace(temporary, path)
+    fd, temporary_name = tempfile.mkstemp(prefix=f".{path.name}.tmp-", dir=path.parent)
+    temporary = Path(temporary_name)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            json.dump(payload, handle, indent=2)
+            handle.write("\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, path)
+        # Best effort only: Windows does not support opening a directory as a
+        # file descriptor.  The replaced file remains valid either way.
+        try:
+            directory_flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
+            directory_fd = os.open(path.parent, directory_flags)
+            try:
+                os.fsync(directory_fd)
+            finally:
+                os.close(directory_fd)
+        except OSError:
+            pass
+    except Exception:
+        temporary.unlink(missing_ok=True)
+        raise
 
 
 def load_json(path: Path, default: Any) -> Any:
     if not path.exists():
         return default
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def load_recovery_json(path: Path, record_kind: str) -> Any:
+    """Load a recovery authority without turning corruption into an empty state."""
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise IngestionRecoveryError(f"{record_kind} unreadable: {path.name}") from error
 
 
 def safe_rejection(path: Path, ingestion_id: str | None, reason: str) -> None:
@@ -88,13 +121,32 @@ def normalize(envelope: dict[str, Any]) -> dict[str, Any]:
 
 
 def load_recoverable_state(state_path: Path, processed_dir: Path) -> dict[str, Any]:
-    state = load_json(state_path, {"ingestions": {}, "source_messages": {}, "coverage_ledger": {}})
+    state = (
+        {"ingestions": {}, "source_messages": {}, "coverage_ledger": {}}
+        if not state_path.exists()
+        else load_recovery_json(state_path, "ingestion state")
+    )
+    if not isinstance(state, dict) or not all(isinstance(state.get(key), dict) for key in (
+        "ingestions", "source_messages", "coverage_ledger",
+    )):
+        raise IngestionRecoveryError("ingestion state has invalid structure")
     for run_file in sorted(processed_dir.glob("run-*.json")):
-        record = load_json(run_file, {})
-        for item in record.get("completed_ingestions", []):
-            state.setdefault("ingestions", {}).setdefault(item["ingestion_id"], item["content_hash"])
-            state.setdefault("source_messages", {}).setdefault(item["source_message_id"], item["content_hash"])
+        record = load_recovery_json(run_file, "ingestion run record")
+        if not isinstance(record, dict) or not isinstance(record.get("completed_ingestions"), list):
+            raise IngestionRecoveryError(f"ingestion run record has invalid structure: {run_file.name}")
+        for item in record["completed_ingestions"]:
+            if not isinstance(item, dict) or not all(isinstance(item.get(key), str) and item[key] for key in (
+                "ingestion_id", "source_message_id", "content_hash",
+            )):
+                raise IngestionRecoveryError(f"ingestion run record has invalid identity: {run_file.name}")
+            for index_name, identity in (("ingestions", item["ingestion_id"]), ("source_messages", item["source_message_id"])):
+                known = state[index_name].get(identity)
+                if known is not None and known != item["content_hash"]:
+                    raise IngestionRecoveryError(f"conflicting {index_name} recovery identity: {identity}")
+                state[index_name].setdefault(identity, item["content_hash"])
         if record.get("coverage_ledger"):
+            if not isinstance(record["coverage_ledger"], dict):
+                raise IngestionRecoveryError(f"ingestion run record has invalid coverage ledger: {run_file.name}")
             state["coverage_ledger"] = record["coverage_ledger"]
     return state
 
@@ -156,13 +208,25 @@ def _run_ingestion(inbox: Path, processed: Path, rejected: Path, memory_repo: Pa
                 conflict_count += 1
             continue
         source_hash = state["source_messages"].get(thought["message_id"])
-        if source_hash is not None and source_hash != envelope["content_hash"]:
-            safe_rejection(rejected / f"{input_file.stem}-rejected.json", envelope["ingestion_id"], "source message id/hash conflict")
-            conflict_count += 1
+        if source_hash is not None:
+            if source_hash != envelope["content_hash"]:
+                safe_rejection(rejected / f"{input_file.stem}-rejected.json", envelope["ingestion_id"], "source message id/hash conflict")
+                conflict_count += 1
+            else:
+                # A source-message id is the immutable source identity.  A
+                # duplicate envelope may carry a new ingestion id after a
+                # retry/replay, but it must not become a second semantic
+                # thought or trigger another mesh/proposal run.
+                skipped_count += 1
             continue
-        if thought["message_id"] in batch_sources and batch_sources[thought["message_id"]] != envelope["content_hash"]:
-            safe_rejection(rejected / f"{input_file.stem}-rejected.json", envelope["ingestion_id"], "in-batch source message id/hash conflict")
-            conflict_count += 1
+        if thought["message_id"] in batch_sources:
+            if batch_sources[thought["message_id"]] != envelope["content_hash"]:
+                safe_rejection(rejected / f"{input_file.stem}-rejected.json", envelope["ingestion_id"], "in-batch source message id/hash conflict")
+                conflict_count += 1
+            else:
+                # Same source identity and content in one batch is a replay,
+                # not a second new thought.
+                skipped_count += 1
             continue
         batch_ids[envelope["ingestion_id"]] = envelope["content_hash"]
         batch_sources[thought["message_id"]] = envelope["content_hash"]
@@ -205,6 +269,17 @@ def run_ingestion(inbox: Path, processed: Path, rejected: Path, memory_repo: Pat
         return {"status": "LOCKED", "new_ingestions": 0, "proposal_created": False, "retry_safe": True}
     try:
         return _run_ingestion(inbox, processed, rejected, memory_repo)
+    except IngestionRecoveryError as error:
+        # Do not replace a damaged authority or infer its meaning.  The caller
+        # receives a deterministic, retry-safe boundary instead of a traceback
+        # or an accidental fresh state.
+        return {
+            "status": "RECOVERY_STATE_CORRUPT",
+            "new_ingestions": 0,
+            "proposal_created": False,
+            "retry_safe": True,
+            "reason": str(error),
+        }
     finally:
         lock.rmdir()
 

@@ -12,7 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
-from run_thought_ingestion import canonical_hash, run_ingestion
+from run_thought_ingestion import atomic_json_write, canonical_hash, run_ingestion
 
 MEMORY = Path("/Users/user/Downloads/2026-project-memory")
 
@@ -87,6 +87,73 @@ class ThoughtIngestionTests(unittest.TestCase):
             locked = run_ingestion(inbox, processed, rejected, MEMORY)
             self.assertEqual(locked["status"], "LOCKED")
             lock.rmdir()
+
+    def test_same_source_and_content_with_new_ingestion_id_is_not_reprocessed(self):
+        """A transport retry may mint a new envelope id, never a new thought."""
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            inbox, processed, rejected = base / "inbox", base / "processed", base / "rejected"
+            inbox.mkdir()
+            original = envelope("ing-001", "source-immutable-001", "2026-08-30T09:00:00Z", "One immutable source thought.")
+            retry = envelope("ing-002", "source-immutable-001", "2026-08-30T09:00:00Z", "One immutable source thought.")
+            write_json(inbox / "original.json", original)
+            self.assertEqual(run_ingestion(inbox, processed, rejected, MEMORY)["new_ingestions"], 1)
+
+            write_json(inbox / "transport-retry.json", retry)
+            replay = run_ingestion(inbox, processed, rejected, MEMORY)
+            self.assertEqual(replay["new_ingestions"], 0)
+            self.assertGreaterEqual(replay["skipped"], 2)
+            self.assertEqual(replay["conflicts"], 0)
+            records = list(processed.glob("run-*.json"))
+            self.assertEqual(len(records), 1)
+
+    def test_corrupt_recovery_state_fails_closed_without_replacing_evidence(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            inbox, processed, rejected = base / "inbox", base / "processed", base / "rejected"
+            inbox.mkdir()
+            write_json(inbox / "original.json", envelope("ing-001", "source-001", "2026-08-30T09:00:00Z", "A thought with durable evidence."))
+            self.assertEqual(run_ingestion(inbox, processed, rejected, MEMORY)["new_ingestions"], 1)
+            state_file = processed / "ingestion-state.json"
+            state_file.write_text("{broken", encoding="utf-8")
+            before = state_file.read_bytes()
+
+            result = run_ingestion(inbox, processed, rejected, MEMORY)
+
+            self.assertEqual(result["status"], "RECOVERY_STATE_CORRUPT")
+            self.assertEqual(result["new_ingestions"], 0)
+            self.assertTrue(result["retry_safe"])
+            self.assertEqual(state_file.read_bytes(), before)
+            self.assertFalse((processed / ".ingestion.lock").exists())
+
+    def test_conflicting_recovery_journal_identity_fails_closed(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            inbox, processed, rejected = base / "inbox", base / "processed", base / "rejected"
+            inbox.mkdir()
+            write_json(inbox / "original.json", envelope("ing-001", "source-001", "2026-08-30T09:00:00Z", "Original content."))
+            first = run_ingestion(inbox, processed, rejected, MEMORY)
+            run_record = Path(first["run_record"])
+            record = json.loads(run_record.read_text(encoding="utf-8"))
+            record["completed_ingestions"][0]["content_hash"] = "f" * 64
+            run_record.write_text(json.dumps(record), encoding="utf-8")
+
+            result = run_ingestion(inbox, processed, rejected, MEMORY)
+
+            self.assertEqual(result["status"], "RECOVERY_STATE_CORRUPT")
+            self.assertIn("conflicting", result["reason"])
+
+    def test_atomic_write_does_not_damage_previous_record_or_leak_temp_on_failure(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            target = Path(temporary) / "state.json"
+            atomic_json_write(target, {"status": "previous"})
+            before = target.read_bytes()
+
+            with self.assertRaises(TypeError):
+                atomic_json_write(target, {"not_json": {"a", "set"}})
+
+            self.assertEqual(target.read_bytes(), before)
+            self.assertEqual(list(target.parent.glob(".state.json.tmp-*")), [])
 
     def test_thousand_record_ingestion_is_linear_shape(self):
         with tempfile.TemporaryDirectory() as temporary:
