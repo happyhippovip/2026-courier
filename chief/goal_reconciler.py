@@ -2086,6 +2086,42 @@ class GoalReconciler:
             "expected_evidence": "Commercial funnel matrix test suite passed (7/7 tests 100% success)"
         })
 
+        # Candidate BL: End-to-End Autonomous Commerce Fulfillment, Cross-Runtime License Bridge & Revenue Reality Certification
+        candidates.append({
+            "candidate_id": "TASK-WIN-72",
+            "version": 1,
+            "goal_id": "GOAL-03",
+            "title": "End-to-End Autonomous Commerce Fulfillment, Cross-Runtime License Bridge & Revenue Reality Certification",
+            "category": "SUSTAINABLE_COMMERCIAL_DELIVERY",
+            "conflict_domain": "COMMERCE_FULFILLMENT_BRIDGE",
+            "target_machine": "WINDOWS",
+            "target_worker": "WINDOWS_GOOGLE",
+            "scope": os.path.join(self.project_memory_dir, "money_factory"),
+            "script_path": "courier/tests/test_cross_runtime_commerce_bridge.py",
+            "cwd": self.workspace_root,
+            "is_writer": False,
+            "unresolved_gap": "AUTONOMY_CAPABILITY_GAP",
+            "goal_impact": 10.0,
+            "revenue_impact": 10.0,
+            "info_gain": 10.0,
+            "proof_debt_reduction": 10.0,
+            "autonomy_gain": 10.0,
+            "risk_score": 0.0,
+            "spend_eur": 0.00,
+            "human_requirement": "NONE",
+            "acceptance_criteria": [
+                "Execute courier/tests/test_cross_runtime_commerce_bridge.py",
+                "Verify Stripe webhook event handling produces signed ACP-... cryptographic license key",
+                "Verify Node.js minted license validates cleanly in Python offline LicenseValidator",
+                "Verify SpendFirewallPro activates PRO tier and custom budget using Node-minted license",
+                "Verify tampered Node-minted license is rejected and downgraded to FREE tier",
+                "Verify expired Node-minted license is rejected as LICENSE_EXPIRED",
+                "Verify Revenue Reality Firewall confirms realRevenueEur remains strictly 0.00 EUR",
+                "Verify zero external network calls, zero telemetry, and 0.00 EUR automatic spend"
+            ],
+            "expected_evidence": "Cross-runtime commerce bridge test suite passed (7/7 tests 100% success)"
+        })
+
         # Dynamic Candidate Discovery from safe_backlog.json
         if os.path.exists(self.backlog_path):
             try:
