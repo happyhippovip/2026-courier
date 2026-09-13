@@ -192,6 +192,25 @@ class CrashProofMemoryEngine:
                 d["open_gaps"] = json.loads(d["open_gaps_json"])
                 d["parked_human_gates"] = json.loads(d["parked_human_gates_json"])
                 d["mac_reserved_scopes"] = json.loads(d["mac_reserved_scopes_json"])
+
+                # Cross-reconcile with checkpoints table if present
+                try:
+                    cur.execute("SELECT checkpoint_value FROM checkpoints WHERE checkpoint_key = 'LAST_VERIFIED_WINDOWS_CHECKPOINT';")
+                    cp_row = cur.fetchone()
+                    if cp_row and cp_row[0]:
+                        raw_val = cp_row[0]
+                        if isinstance(raw_val, str) and raw_val.strip().startswith("{"):
+                            ckpt_dict = json.loads(raw_val)
+                            ckpt_task = ckpt_dict.get("task_id")
+                        else:
+                            ckpt_task = str(raw_val)
+                        if ckpt_task and ckpt_task != d.get("last_verified_task"):
+                            d["last_verified_task"] = ckpt_task
+                            if ckpt_task not in d["do_not_repeat"]:
+                                d["do_not_repeat"].append(ckpt_task)
+                except Exception:
+                    pass
+
                 return d
 
         # Fallback to JSON state file

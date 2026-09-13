@@ -20,6 +20,7 @@ import sys
 import json
 import time
 import hashlib
+import re
 from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional, Tuple, Set
 
@@ -27,6 +28,7 @@ from .types import Lane, Host, TaskStatus, TwoLevelDone
 from .control_plane import ControlPlane
 from .safewrite import safe_write_json, safe_write_text
 from .value_governor import ValueGovernor
+from .batch_guard import BatchGuardManager
 
 ALLOWED_REAL_DELTAS = {
     "CAPABILITY_GAIN",
@@ -258,6 +260,19 @@ class WorkReservoir:
                 if val > max_num:
                     max_num = val
 
+        if os.path.exists(self.backlog_path):
+            try:
+                with open(self.backlog_path, "r", encoding="utf-8") as f:
+                    b_data = json.load(f)
+                for t in b_data.get("tasks", []):
+                    m = re.match(r"^TASK-WIN-(\d+)$", t.get("task_id", ""))
+                    if m and len(m.group(1)) < 8:
+                        val = int(m.group(1))
+                        if val > max_num:
+                            max_num = val
+            except Exception:
+                pass
+
         catalog_templates = [
             ("GOAL-04", "Runtime Commerce Bridge Autonomy Verification Round", "AUTONOMY_GAIN", "COMMERCE_BRIDGE", 9.5, "courier/tests/test_cross_runtime_commerce_bridge.py", "project-memory/money_factory/inbound_lead_gateway.js"),
             ("GOAL-04", "Continuation Queue Collapse Guard Verification Round", "AUTONOMY_GAIN", "QUEUE_COLLAPSE", 9.4, "courier/tests/test_queue_collapse.py", "courier/chief/types.py"),
@@ -282,8 +297,9 @@ class WorkReservoir:
         ]
 
         uncompleted_count = len([c for c in candidates if c["task_id"] not in self.do_not_repeat])
-        gen_idx = 1
-        while uncompleted_count < 25 and gen_idx <= 5:
+        gen_idx = (max_num // 20) + 1
+        max_gens = gen_idx + 5
+        while uncompleted_count < 25 and gen_idx <= max_gens:
             for gid, title_prefix, delta, domain, prio, script, source in catalog_templates:
                 max_num += 1
                 t_title = f"{title_prefix} {gen_idx}"
@@ -325,8 +341,16 @@ class PermanentReserveEngine:
         self.heartbeat_path = os.path.join(self.pm_dir, "data", "control_plane", "autonomy_heartbeat.json")
         self.crash_tracker: Dict[str, int] = {}
         self.state_generation = 1
+        self.continuation_generation = 1
         self.current_goal = "GOAL-03"
         self._load_state()
+        self.batch_guard = BatchGuardManager(db_path=self.cp.db_path)
+        from courier.chief.finish_first_continuation import FinishFirstContinuationEngine
+        self.continuation_engine = FinishFirstContinuationEngine(
+            workspace_root=self.workspace_root,
+            cp=self.cp,
+            batch_guard=self.batch_guard
+        )
 
     def _load_state(self):
         if os.path.exists(self.heartbeat_path):
@@ -337,15 +361,32 @@ class PermanentReserveEngine:
                 self.current_goal = hb.get("current_goal", "GOAL-03")
             except Exception:
                 pass
+        try:
+            with self.cp.get_connection() as conn:
+                cur = conn.cursor()
+                cur.execute("SELECT MAX(continuation_generation) FROM consumed_continuations;")
+                row = cur.fetchone()
+                if row and row[0] is not None:
+                    self.continuation_generation = int(row[0])
+        except Exception:
+            pass
+
+
+    def weiter(self, signal: str = "weiter") -> Dict[str, Any]:
+        """
+        Canonical Finish-First Continuation:
+        Reconcile current work -> Finish unverified -> Monotonic Checkpoint -> Close -> Next Gap.
+        """
+        self.continuation_generation += 1
+        return self.continuation_engine.process_continuation(
+            signal=signal,
+            continuation_generation=self.continuation_generation,
+            current_goal=self.current_goal
+        )
 
     def signal_continuation(self, signal: str = "weiter") -> Dict[str, Any]:
-        """Coalesces incoming human continuation signals without interrupting active work."""
-        return {
-            "signal": signal,
-            "status": "COALESCED_NOOP",
-            "message": "Permanent Reserve Engine is autonomously active. Additional continuation signals are safely coalesced.",
-            "state_generation": self.state_generation
-        }
+        """Delegates to finish-first continuation engine."""
+        return self.weiter(signal=signal)
 
     def write_heartbeat(
         self,
@@ -435,8 +476,15 @@ class PermanentReserveEngine:
         if not pending:
             return None
 
-        # Sort by priority descending
-        pending.sort(key=lambda x: float(x.get("priority", 0.0)), reverse=True)
+        # Sort by priority descending, then sequential task number ascending
+        def _sort_key(cand: Dict[str, Any]):
+            prio = float(cand.get("priority", 0.0))
+            t_id = str(cand.get("task_id", ""))
+            m = re.match(r"^TASK-WIN-(\d+)$", t_id)
+            num = int(m.group(1)) if m and len(m.group(1)) < 8 else 999999
+            return (-prio, num)
+
+        pending.sort(key=_sort_key)
 
         active_locks = self.cp.get_active_locks()
         locked_resources = {l["resource_id"] for l in active_locks}
@@ -483,16 +531,20 @@ class PermanentReserveEngine:
                 full_script = os.path.join(self.workspace_root, script_path)
                 if os.path.exists(full_script):
                     import subprocess
-                    proc = subprocess.run(
-                        [sys.executable, "-m", "unittest", script_path],
-                        cwd=self.workspace_root,
-                        stdout=subprocess.PIPE,
-                        stderr=subprocess.STDOUT,
-                        text=True,
-                        timeout=60
-                    )
-                    success = (proc.returncode == 0)
-                    stdout = proc.stdout
+                    try:
+                        proc = subprocess.run(
+                            [sys.executable, "-m", "unittest", script_path],
+                            cwd=self.workspace_root,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT,
+                            text=True,
+                            timeout=60
+                        )
+                        success = (proc.returncode == 0)
+                        stdout = proc.stdout
+                    except Exception as exc:
+                        success = False
+                        stdout = f"Execution exception for {c_id}: {exc}"
                 else:
                     success = True
                     stdout = f"Simulated autonomous verification for {c_id}: PASS"
@@ -507,7 +559,17 @@ class PermanentReserveEngine:
                     two_level_done=TwoLevelDone(local_step_erledigt=True, gesamtaufgabe_erledigt=False, blocker="NONE", next_step="CONTINUE"),
                     active_agent=Lane.WINDOWS_GOOGLE.value
                 )
-                self.cp.set_checkpoint("LAST_VERIFIED_WINDOWS_CHECKPOINT", c_id)
+                evidence_hash = hashlib.sha256(stdout.encode("utf-8")).hexdigest()
+                ckpt_record = {
+                    "task_id": c_id,
+                    "task_version": 1,
+                    "state_generation": self.state_generation + 1,
+                    "result_fingerprint": evidence_hash,
+                    "verified_at": datetime.now(timezone.utc).isoformat(),
+                    "status": "VERIFIED"
+                }
+                self.cp.set_checkpoint("LAST_VERIFIED_WINDOWS_CHECKPOINT", ckpt_record)
+
 
                 # 2. Update Do Not Repeat
                 self.reservoir.do_not_repeat.add(c_id)
@@ -548,40 +610,98 @@ class PermanentReserveEngine:
         except Exception:
             pass
 
-    def run_autonomous_batch(self, max_tasks: int = 5) -> Dict[str, Any]:
+    def run_autonomous_batch(
+        self,
+        max_tasks: int = 5,
+        idempotency_key: Optional[str] = None,
+        purpose: str = "AUTONOMOUS_BATCH"
+    ) -> Dict[str, Any]:
         """
         Executes an autonomous succession batch without requiring human 'weiter'.
+        Enforces atomic batch claim and duplicate dispatch prevention.
         Observes: Task A -> Verify A -> Discover B -> Execute B -> Verify B -> ...
         """
-        # 1. Recover any pre-existing interrupted tasks
-        self.recover_from_interruption()
+        # 1. Derive batch idempotency key if not provided
+        if not idempotency_key:
+            idempotency_key = self.batch_guard.compute_idempotency_key(
+                mission_id="MISSION-WIN-VALUE",
+                current_goal=self.current_goal,
+                state_generation=self.state_generation,
+                source_continuation_generation=self.continuation_generation,
+                purpose=purpose
+            )
 
-        # 2. Ensure reservoir depth
-        self.reservoir.refresh_reservoir(self.current_goal)
+        # 2. Atomic Batch Claim
+        claimed, claim_reason, claim_rec = self.batch_guard.claim_batch(
+            idempotency_key=idempotency_key,
+            mission_id="MISSION-WIN-VALUE",
+            current_goal=self.current_goal,
+            state_generation=self.state_generation,
+            source_continuation_generation=self.continuation_generation,
+            owner_lease=f"BATCH_LEASE_{Lane.WINDOWS_GOOGLE.value}"
+        )
 
-        executed = []
-        for i in range(max_tasks):
-            candidate = self.select_next_candidate()
-            if not candidate:
-                # Check goal advancement
-                if self.check_and_advance_goal():
-                    candidate = self.select_next_candidate()
+        if not claimed:
+            # Batch already in flight or already executed for this idempotency key
+            return {
+                "status": claim_reason,
+                "batch_id": claim_rec.get("batch_id"),
+                "existing_status": claim_rec.get("status"),
+                "idempotency_key": idempotency_key,
+                "executed_count": 0,
+                "executed_tasks": [],
+                "current_goal": self.current_goal,
+                "state_generation": self.state_generation,
+                "duplicate_suppressed": True
+            }
+
+        batch_id = claim_rec["batch_id"]
+
+        try:
+            # 3. Recover any pre-existing interrupted tasks
+            self.recover_from_interruption()
+
+            # 4. Ensure reservoir depth
+            self.reservoir.refresh_reservoir(self.current_goal)
+
+            executed = []
+            selected_tasks = []
+            attempts = 0
+            max_attempts = max_tasks * 2
+            while len(executed) < max_tasks and attempts < max_attempts:
+                attempts += 1
+                candidate = self.select_next_candidate()
                 if not candidate:
-                    break
+                    # Check goal advancement
+                    if self.check_and_advance_goal():
+                        candidate = self.select_next_candidate()
+                    if not candidate:
+                        break
 
-            res = self.execute_task(candidate)
-            if res.get("success"):
-                executed.append(res["task_id"])
-            else:
-                break
+                c_id = candidate["task_id"]
+                selected_tasks.append(c_id)
+                self.batch_guard.record_batch_running(batch_id, selected_tasks)
 
-        return {
-            "executed_count": len(executed),
-            "executed_tasks": executed,
-            "current_goal": self.current_goal,
-            "state_generation": self.state_generation,
-            "reservoir_depth": len(self.reservoir.get_pending_candidates())
-        }
+                res = self.execute_task(candidate)
+                if res.get("success"):
+                    executed.append(c_id)
+
+            summary = {
+                "status": "COMPLETED",
+                "batch_id": batch_id,
+                "idempotency_key": idempotency_key,
+                "executed_count": len(executed),
+                "executed_tasks": executed,
+                "current_goal": self.current_goal,
+                "state_generation": self.state_generation,
+                "reservoir_depth": len(self.reservoir.get_pending_candidates())
+            }
+            self.batch_guard.complete_batch(batch_id, summary)
+            return summary
+
+        except Exception as exc:
+            self.batch_guard.fail_batch(batch_id, str(exc))
+            raise
 
     def check_and_advance_goal(self) -> bool:
         """Detects when current goal tasks are satisfied and advances to successor goal."""

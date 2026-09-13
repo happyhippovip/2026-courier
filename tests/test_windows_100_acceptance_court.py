@@ -545,25 +545,47 @@ class TestWindows100AcceptanceCourt(unittest.TestCase):
     # --------------------------------------------------------------------------
     def test_court_21_permanent_reserve_and_zero_human_continuation(self):
         """Prove permanent work reservoir, semantic dedup, 1-writer lease, auto task/goal succession, and crash loop protection."""
-        from courier.chief.permanent_reserve_engine import PermanentReserveEngine
-        engine = PermanentReserveEngine()
-        # Verify reservoir persistence
-        added = engine.reservoir.refresh_reservoir("GOAL-04")
-        pending = engine.reservoir.get_pending_candidates()
-        self.assertGreaterEqual(len(pending), 10, "Permanent reserve must maintain sufficient ranked candidate work")
+        tmp_dir = tempfile.mkdtemp(prefix="test_court_21_")
+        try:
+            tmp_db = os.path.join(tmp_dir, "test_cp.db")
+            cp = ControlPlane(db_path=tmp_db)
+            pm_dir = os.path.join(tmp_dir, "project-memory", "data")
+            os.makedirs(pm_dir, exist_ok=True)
+            backlog_file = os.path.join(pm_dir, "safe_backlog.json")
+            with open(backlog_file, "w", encoding="utf-8") as f:
+                json.dump({
+                    "version": "1.0.0",
+                    "machine_role": "WINDOWS_PARALLEL_COMMERCIAL",
+                    "spend_limit_eur": 0.0,
+                    "verified_real_revenue_eur": 0.0,
+                    "tasks": []
+                }, f, indent=2)
 
-        # Verify auto task succession (>=3 tasks)
-        batch_res = engine.run_autonomous_batch(max_tasks=3)
-        self.assertGreaterEqual(batch_res["executed_count"], 3, "Must execute >=3 tasks autonomously without human continuation")
+            from courier.chief.permanent_reserve_engine import PermanentReserveEngine
+            engine = PermanentReserveEngine(workspace_root=tmp_dir, cp=cp)
+            engine.reservoir.backlog_path = backlog_file
+            engine.heartbeat_path = os.path.join(pm_dir, "control_plane", "autonomy_heartbeat.json")
 
-        # Verify heartbeat health signal exists
-        self.assertTrue(os.path.exists(engine.heartbeat_path), "Autonomy heartbeat must persist to disk")
-        with open(engine.heartbeat_path, "r", encoding="utf-8") as f:
-            hb = json.load(f)
-        self.assertEqual(hb["real_spend_eur"], 0.00)
-        self.assertEqual(hb["real_revenue_eur"], 0.00)
-        self.assertIn("LIVE_PAYMENT", hb["parked_human_gates"])
+            # Verify reservoir persistence
+            added = engine.reservoir.refresh_reservoir("GOAL-04")
+            pending = engine.reservoir.get_pending_candidates()
+            self.assertGreaterEqual(len(pending), 10, "Permanent reserve must maintain sufficient ranked candidate work")
+
+            # Verify auto task succession (>=3 tasks)
+            batch_res = engine.run_autonomous_batch(max_tasks=3)
+            self.assertGreaterEqual(batch_res["executed_count"], 3, "Must execute >=3 tasks autonomously without human continuation")
+
+            # Verify heartbeat health signal exists
+            self.assertTrue(os.path.exists(engine.heartbeat_path), "Autonomy heartbeat must persist to disk")
+            with open(engine.heartbeat_path, "r", encoding="utf-8") as f:
+                hb = json.load(f)
+            self.assertEqual(hb["real_spend_eur"], 0.00)
+            self.assertEqual(hb["real_revenue_eur"], 0.00)
+            self.assertIn("LIVE_PAYMENT", hb["parked_human_gates"])
+        finally:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
 if __name__ == "__main__":
     unittest.main()
+

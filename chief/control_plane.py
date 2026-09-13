@@ -8,7 +8,7 @@ import sqlite3
 import json
 import hashlib
 from datetime import datetime, timezone
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional, Tuple, Union
 
 from .types import (
     Lane, Host, TaskStatus, FindingStatus, FindingSeverity,
@@ -637,9 +637,21 @@ class ControlPlane:
         VALUES (?, ?, ?, ?, ?, ?, ?);
         """, (event_type, lane, entity_id, delta_str, now_iso, prev_hash, event_hash))
 
-    def set_checkpoint(self, checkpoint_key: str, checkpoint_value: str) -> None:
-        """Persists an authoritative named checkpoint."""
+    def set_checkpoint(self, checkpoint_key: str, checkpoint_value: Union[str, Dict[str, Any]]) -> None:
+        """Persists an authoritative named checkpoint with rich structured metadata."""
         now_iso = datetime.now(timezone.utc).isoformat()
+        if isinstance(checkpoint_value, dict):
+            val_dict = dict(checkpoint_value)
+            if "verified_at" not in val_dict:
+                val_dict["verified_at"] = now_iso
+            val_str = json.dumps(val_dict)
+        else:
+            val_str = str(checkpoint_value)
+            try:
+                val_dict = json.loads(val_str) if val_str.startswith("{") else {"task_id": val_str, "verified_at": now_iso}
+            except Exception:
+                val_dict = {"task_id": val_str, "verified_at": now_iso}
+
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("BEGIN IMMEDIATE;")
@@ -651,26 +663,95 @@ class ControlPlane:
                     updated_at TEXT NOT NULL
                 );
                 """)
+                if checkpoint_key == "LAST_VERIFIED_WINDOWS_CHECKPOINT":
+                    import re
+                    cursor.execute("SELECT checkpoint_value FROM checkpoints WHERE checkpoint_key = ?;", (checkpoint_key,))
+                    row = cursor.fetchone()
+                    if row:
+                        old_raw = str(row["checkpoint_value"])
+                        try:
+                            old_dict = json.loads(old_raw) if old_raw.startswith("{") else {"task_id": old_raw}
+                        except Exception:
+                            old_dict = {"task_id": old_raw}
+
+                        def _num(val: Any) -> int:
+                            m = re.match(r"^TASK-WIN-(\d+)$", str(val))
+                            return int(m.group(1)) if m and len(m.group(1)) < 8 else -1
+
+                        old_gen = old_dict.get("state_generation")
+                        new_gen = val_dict.get("state_generation")
+                        old_n = _num(old_dict.get("task_id", old_raw))
+                        new_n = _num(val_dict.get("task_id", val_str))
+
+                        # Monotonic check: state generation first, then task number
+                        if old_gen is not None and new_gen is not None:
+                            if new_gen < old_gen:
+                                cursor.execute("COMMIT;")
+                                return
+                        if new_n != -1 and old_n != -1 and new_n < old_n:
+                            cursor.execute("COMMIT;")
+                            return
+
                 cursor.execute("""
                 INSERT INTO checkpoints (checkpoint_key, checkpoint_value, updated_at)
                 VALUES (?, ?, ?)
                 ON CONFLICT(checkpoint_key) DO UPDATE SET
                     checkpoint_value = excluded.checkpoint_value,
                     updated_at = excluded.updated_at;
-                """, (checkpoint_key, checkpoint_value, now_iso))
+                """, (checkpoint_key, val_str, now_iso))
                 cursor.execute("COMMIT;")
             except Exception:
                 cursor.execute("ROLLBACK;")
                 raise
 
     def get_checkpoint(self, checkpoint_key: str) -> Optional[str]:
-        """Retrieves an authoritative named checkpoint."""
+        """Retrieves an authoritative named checkpoint task ID (string for backward compatibility)."""
         with self.get_connection() as conn:
             cursor = conn.cursor()
             try:
                 cursor.execute("SELECT checkpoint_value FROM checkpoints WHERE checkpoint_key = ?;", (checkpoint_key,))
                 row = cursor.fetchone()
-                return str(row["checkpoint_value"]) if row else None
+                if not row:
+                    return None
+                val = str(row["checkpoint_value"])
+                if val.startswith("{"):
+                    try:
+                        d = json.loads(val)
+                        return d.get("task_id", val)
+                    except Exception:
+                        return val
+                return val
             except sqlite3.OperationalError:
                 return None
+
+    def get_checkpoint_record(self, checkpoint_key: str) -> Optional[Dict[str, Any]]:
+        """Retrieves the full structured checkpoint metadata record."""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            try:
+                cursor.execute("SELECT checkpoint_value, updated_at FROM checkpoints WHERE checkpoint_key = ?;", (checkpoint_key,))
+                row = cursor.fetchone()
+                if not row:
+                    return None
+                val = str(row["checkpoint_value"])
+                updated_at = str(row["updated_at"])
+                if val.startswith("{"):
+                    try:
+                        d = json.loads(val)
+                        if "updated_at" not in d:
+                            d["updated_at"] = updated_at
+                        return d
+                    except Exception:
+                        pass
+                return {
+                    "task_id": val,
+                    "task_version": 1,
+                    "state_generation": None,
+                    "result_fingerprint": None,
+                    "verified_at": updated_at,
+                    "updated_at": updated_at
+                }
+            except sqlite3.OperationalError:
+                return None
+
 
