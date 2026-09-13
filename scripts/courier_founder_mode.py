@@ -517,8 +517,22 @@ class FounderModeMVP:
                 if not pending and not running_or_verify:
                     next_missions = self.planner.discover_and_plan(goal, completed_missions)
                     if not next_missions:
-                        if self.planner.evaluate_success(goal, {"status": "PASS"}, completed_missions):
-                            self.intake.mark_satisfied(goal["goal_id"])
+                        from scripts.courier_goal_satisfaction_engine import GoalSatisfactionEngine
+                    engine = GoalSatisfactionEngine(self.workspace_dir)
+                    all_missions = self.queue.read_all()
+                    goal_missions = [m for m in all_missions if m.get("goal") == goal["goal"]]
+                    decision = engine.recompute(goal["goal"], goal_missions)
+                    
+                    if decision == "VERIFIED_COMPLETE":
+                        self.intake.mark_satisfied(goal["goal_id"])
+                        break
+                    elif decision == "WAIT_BRANCH_LOCAL_GATE":
+                        break
+                    elif decision == "QUIESCENT_WAKEABLE":
+                        break
+                    elif decision == "CONTINUE_SAFE_WORK":
+                        # We just let it continue generating missions if it can, 
+                        # but if discover_and_plan returned nothing, we break.
                         break
                     
                     parent_id = completed_missions[-1]["mission_id"] if completed_missions else None
@@ -532,12 +546,24 @@ class FounderModeMVP:
                 worker_id = "founder_loop_1"
                 mission_result = self.dispatcher.process_next_mission(worker_id)
             
-                if not mission_result or mission_result.get("status") in ("NO_PENDING_MISSION", "DISCOVER_FROM_ACTIVE_ROOT_GOAL_GAPS", "QUIESCENT_WAKEABLE"):
+                status = mission_result.get("status") if mission_result else "NO_PENDING_MISSION"
+                
+                if status == "VERIFIED_COMPLETE":
+                    self.intake.mark_satisfied(goal["goal_id"])
+                    break
+                elif status in ("QUIESCENT_WAKEABLE", "WAIT_BRANCH_LOCAL_GATE"):
                     if running_or_verify:
-                        print("Waiting for running/verifying missions...")
+                        print(f"Waiting for running/verifying missions... (status={status})")
                         time.sleep(5)
                         continue
-                    break # Queue somehow empty
+                    break
+                elif status == "CONTINUE_SAFE_WORK" or status == "DISCOVER_FROM_ACTIVE_ROOT_GOAL_GAPS":
+                    # Let discover_and_plan generate new missions!
+                    # Wait, if we break, discover_and_plan won't be called unless we loop again.
+                    # But discover_and_plan is called at the TOP of the loop if `not pending`.
+                    break
+                elif status == "NO_PENDING_MISSION":
+                    break
                 
                 status = mission_result.get("status")
                 agent_used = mission_result.get("agent_dispatched")

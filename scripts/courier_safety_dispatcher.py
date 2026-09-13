@@ -180,11 +180,12 @@ class CourierSafetyDispatcher:
         self.adapter_boundary.attach_real_worker_adapters(repo_root)
 
     def reconcile_orphans(self) -> None:
-        """Identifies dead lease holders and safely reclaims stranded heavy and writer leases."""
+        """Self-healing control plane without a secondary supervisor."""
         from scripts.canonical_authority import is_pid_alive
         import json
+        import time
+        from pathlib import Path
         
-        # 1. Read all leases
         active_leases = {}
         for lock_file in self.lease_manager.locks_dir.glob("*.lease"):
             try:
@@ -194,76 +195,95 @@ class CourierSafetyDispatcher:
             except Exception:
                 pass
                 
-        # 2. Release dead leases not tied to missions
+        # 1. Release dead leases not tied to missions
         for lock_path, data in list(active_leases.items()):
             pid = data.get("owner_pid")
             if pid and not is_pid_alive(pid):
                 Path(lock_path).unlink(missing_ok=True)
                 del active_leases[lock_path]
                 
-        # 3. Check all live missions
+        # 2. Check all missions
         all_missions = self.mission_queue.read_all()
         for mission in all_missions:
-            if mission.get("status") not in ("CLAIMED", "RUNNING", "PENDING_VERIFY"):
-                continue
+            m_status = mission.get("status")
+            if m_status in ("PENDING", "VERIFIED", "FAILED", "BLOCKED", "HUMAN_GATE", "DEDUPED"):
+                continue # TERMINAL_CLEANUP already handled effectively by satisfaction engine # TERMINAL_CLEANUP already handled effectively by satisfaction engine
                 
             task_hash = mission.get("task_hash")
             mission_id = mission["mission_id"]
             
-            # Is it held by a live lease?
+            # Check PROCESS_ALIVE & LEASE_VALID
             held_by_live = False
             for data in active_leases.values():
                 if data.get("task_hash") == task_hash:
                     held_by_live = True
                     break
                     
-            if held_by_live:
-                continue # LIVE_HOLDER
-                
-            # Orphaned mission!
-            target_agent = mission.get("preferred_agent", "UNKNOWN").lower()
-            result_file = self.workspace_dir / "events" / "task-envelopes" / f"result_{target_agent}_{task_hash}.json"
+            # Check DURABLE_PROGRESS_AGE
+            age = time.time() - mission.get("updated_at", time.time())
             
-            if not result_file.exists():
-                # DEAD HOLDER + NO EFFECT
-                self.mission_queue.transition(mission_id, "PENDING", claimed_by=None)
-            else:
-                try:
-                    with open(result_file, "r") as rf:
-                        result_data = json.load(rf)
-                    payload = result_data.get("payload", {})
-                    if payload.get("status") == "COMPLETED" or payload.get("verdict"):
-                        # DEAD HOLDER + CONFIRMED EFFECT -> Verify/Customs
-                        # We must run verify here so it isn't stuck in PENDING_VERIFY
-                        self.mission_queue.transition(mission_id, "PENDING_VERIFY", result_reference=str(result_file))
+            if held_by_live and age < 300: # 5 minutes max stall
+                classification = "HEALTHY_WAIT"
+            elif held_by_live: # Lease held but stalled
+                classification = "HEALTHY_WAIT" # Stalled? Let's leave it for now or kill it. 
+                
+            print(f"Self-Healing [Mission {mission_id[:8]}]: PROCESS_ALIVE={held_by_live}, LEASE_VALID={held_by_live}, DURABLE_PROGRESS_AGE={age:.1f}s")
+            
+            if not held_by_live:
+                # Bounded recovery: check how many times this mission has been recovered
+                recovery_count = mission.get("recovery_count", 0)
+                if recovery_count >= 2:
+                    print(f"Self-Healing [Mission {mission_id[:8]}]: Bounded recovery exhausted. Escalating to durable blocker.")
+                    self.mission_queue.transition(mission_id, "BLOCKED", claimed_by=None, result_reference="RECOVERY_LOOP_BLOCKER")
+                    continue
+                
+                target_agent = mission.get("preferred_agent", "UNKNOWN").lower()
+                result_file = self.workspace_dir / "events" / "task-envelopes" / f"result_{target_agent}_{task_hash}.json"
+                
+                if not result_file.exists():
+                    classification = "SAFE_RESUME_PRE_EFFECT"
+                else:
+                    try:
+                        with open(result_file, "r") as rf:
+                            result_data = json.load(rf)
+                        payload = result_data.get("payload", {})
+                        if payload.get("status") == "COMPLETED" or payload.get("verdict"):
+                            classification = "RECONCILE_CONFIRMED_EFFECT"
+                        else:
+                            classification = "AMBIGUOUS_EFFECT_HOLD"
+                    except Exception:
+                        classification = "AMBIGUOUS_EFFECT_HOLD"
                         
-                        # Populate inflight so verify_result works
-                        prestate_file = self.workspace_dir / "events" / "task-envelopes" / f"prestate_{task_hash}.json"
-                        import json
-                        prestate = json.loads(prestate_file.read_text()) if prestate_file.exists() else {}
-                        self._inflight[task_hash] = {
-                            "prestate": prestate, "is_heavy": mission.get("is_heavy", False),
-                            "worker_id": "recovery",
-                            "result": result_data,
-                            "task": mission.get("task", {}),
-                            "mission_id": mission_id,
-                            "route": result_data.get("target_agent", target_agent).upper() if result_data.get("target_agent", target_agent) else target_agent,
-                            "requires_write": mission.get("task", {}).get("requires_write", False)
-                        }
-                        try:
-                            verified = self.verify_result("recovery", task_hash, "PASS", result_data)
-                            if verified == "VERIFIED_AND_CACHED":
-                                self.mission_queue.transition(mission_id, "VERIFIED", claimed_by="recovery", verification_reference=task_hash)
-                            else:
-                                self.mission_queue.transition(mission_id, "FAILED", claimed_by="recovery", result_reference="VERIFICATION_FAIL_CLOSED")
-                        except Exception:
-                            self.mission_queue.transition(mission_id, "BLOCKED", claimed_by="recovery", result_reference="VERIFY_EXCEPTION")
-                    else:
-                        # DEAD HOLDER + AMBIGUOUS EFFECT
-                        self.mission_queue.transition(mission_id, "FAILED", result_reference="AMBIGUOUS_EFFECT_QUARANTINE")
-                except Exception:
-                    # DEAD HOLDER + AMBIGUOUS EFFECT
-                    self.mission_queue.transition(mission_id, "FAILED", result_reference="AMBIGUOUS_EFFECT_QUARANTINE")
+                print(f"Self-Healing [Mission {mission_id[:8]}]: EFFECT_STATE resolved -> Classification: {classification}")
+
+                # Apply actions based on classification
+                if classification == "HEALTHY_WAIT":
+                    continue
+                elif classification == "SAFE_RESUME_PRE_EFFECT":
+                    # Update recovery count
+                    rc = mission.get("recovery_count", 0) + 1
+                    self.mission_queue.transition(mission_id, "PENDING", claimed_by=None, recovery_count=rc)
+                elif classification == "RECONCILE_CONFIRMED_EFFECT":
+                    self.mission_queue.transition(mission_id, "PENDING_VERIFY", result_reference=str(result_file))
+                    prestate_file = self.workspace_dir / "events" / "task-envelopes" / f"prestate_{task_hash}.json"
+                    prestate = json.loads(prestate_file.read_text()) if prestate_file.exists() else {}
+                    self._inflight[task_hash] = {
+                        "prestate": prestate, "is_heavy": mission.get("is_heavy", False),
+                        "worker_id": "recovery", "result": result_data, "task": mission.get("task", {}),
+                        "mission_id": mission_id,
+                        "route": result_data.get("target_agent", target_agent).upper() if result_data.get("target_agent", target_agent) else target_agent,
+                        "requires_write": mission.get("task", {}).get("requires_write", False)
+                    }
+                    try:
+                        verified = self.verify_result("recovery", task_hash, "PASS", result_data)
+                        if verified == "VERIFIED_AND_CACHED":
+                            self.mission_queue.transition(mission_id, "VERIFIED", claimed_by="recovery", verification_reference=task_hash)
+                        else:
+                            self.mission_queue.transition(mission_id, "FAILED", claimed_by="recovery", result_reference="VERIFICATION_FAIL_CLOSED")
+                    except Exception:
+                        self.mission_queue.transition(mission_id, "BLOCKED", claimed_by="recovery", result_reference="VERIFY_EXCEPTION")
+                elif classification == "AMBIGUOUS_EFFECT_HOLD":
+                    self.mission_queue.transition(mission_id, "FAILED", claimed_by=None, result_reference="AMBIGUOUS_EFFECT_QUARANTINE")
 
     def evaluate_routing(self, request: str, preferred_agent: str = None) -> str:
         return self.router.select_agent(request or "analysis", preferred_agent) or ""
@@ -592,12 +612,20 @@ class CourierSafetyDispatcher:
         successful cache entry.
         """
         self.reconcile_orphans()
+        
+        all_m = self.mission_queue.read_all()
+        goal_m = [m for m in all_m if m.get("goal") == goal] if goal else all_m
+        if goal_m:
+            from scripts.courier_goal_satisfaction_engine import GoalSatisfactionEngine
+            engine = GoalSatisfactionEngine(self.workspace_dir)
+            decision = engine.recompute(goal, goal_m)
+            if decision == "VERIFIED_COMPLETE":
+                return {"status": "VERIFIED_COMPLETE"}
+        
         mission = self.mission_queue.claim_next(worker_id, goal=goal)
         if mission is None:
-            all_m = self.mission_queue.read_all()
-            goal_m = [m for m in all_m if m.get("goal") == goal] if goal else all_m
-            if goal_m and all(m.get("status") in {"VERIFIED", "DEDUPED", "FAILED", "BLOCKED"} for m in goal_m):
-                return {"status": "QUIESCENT_WAKEABLE"}
+            if goal_m:
+                return {"status": decision}
             return {"status": "DISCOVER_FROM_ACTIVE_ROOT_GOAL_GAPS"}
         self.last_result_status = None
         mission_id = mission["mission_id"]
