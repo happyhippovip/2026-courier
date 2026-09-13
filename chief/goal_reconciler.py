@@ -2194,6 +2194,43 @@ class GoalReconciler:
             "expected_evidence": "Delivery fulfillment circuit test suite passed (7/7 tests 100% success)"
         })
 
+        # Candidate BO: Agent Control Plane Inbound Lead Gateway, Champion Response Templates & Live Store Inquiry Endpoint
+        candidates.append({
+            "candidate_id": "TASK-WIN-75",
+            "version": 1,
+            "goal_id": "GOAL-03",
+            "title": "Agent Control Plane Inbound Lead Gateway, Champion Response Templates & Live Store Inquiry Endpoint",
+            "category": "SUSTAINABLE_COMMERCIAL_DELIVERY",
+            "conflict_domain": "INBOUND_LEAD_GATEWAY",
+            "target_machine": "WINDOWS",
+            "target_worker": "WINDOWS_GOOGLE",
+            "scope": os.path.join(self.project_memory_dir, "money_factory"),
+            "script_path": "courier/tests/test_inbound_lead_gateway_pro.py",
+            "cwd": self.workspace_root,
+            "is_writer": False,
+            "unresolved_gap": "AUTONOMY_CAPABILITY_GAP",
+            "goal_impact": 10.0,
+            "revenue_impact": 10.0,
+            "info_gain": 10.0,
+            "proof_debt_reduction": 10.0,
+            "autonomy_gain": 10.0,
+            "risk_score": 0.0,
+            "spend_eur": 0.00,
+            "human_requirement": "NONE",
+            "acceptance_criteria": [
+                "Execute courier/tests/test_inbound_lead_gateway_pro.py",
+                "Verify INTEREST inquiries receive deterministic response with open-source core repo link",
+                "Verify PRICE_OBJECTION inquiries explain free 5.00 EUR local cap vs €19.99 Pro Fleet Edition",
+                "Verify TRUST_OBJECTION inquiries guarantee 100% offline localhost execution with zero telemetry",
+                "Verify TECHNICAL_QUESTION inquiries explain local forward-proxy and loop circuit breaker",
+                "Verify PURCHASE_INTENT inquiries provide direct 1-click Stripe checkout link",
+                "Verify SUPPORT_REQUEST inquiries are queued for human P0 review with zero robotic deflection",
+                "Verify POST /api/inbound/inquire route contract is operational in studio/server.js",
+                "Verify zero external network calls, zero telemetry, and 0.00 EUR automatic spend"
+            ],
+            "expected_evidence": "Inbound lead gateway pro test suite passed (8/8 tests 100% success)"
+        })
+
         # Dynamic Candidate Discovery from safe_backlog.json
         if os.path.exists(self.backlog_path):
             try:
