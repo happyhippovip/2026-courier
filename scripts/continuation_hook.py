@@ -29,15 +29,14 @@ def main():
             print(json.dumps({"decision": "stop", "reason": "ACTIVE_WRITER lock detected."}))
             return
 
-        c.execute("""
+        c.execute('''
             SELECT t.task_id 
             FROM tasks t
-            LEFT JOIN approved_gates g ON t.gate_id = g.gate_id
             WHERE t.status='PENDING' 
-            AND (t.gate_id IS NULL OR g.gate_id IS NOT NULL)
+            AND t.gate_id IS NULL
             ORDER BY t.priority DESC, t.rowid ASC
             LIMIT 1
-        """)
+        ''')
         row = c.fetchone()
         
         if row:

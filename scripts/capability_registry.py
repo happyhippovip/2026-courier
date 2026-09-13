@@ -671,40 +671,123 @@ class ConnectorRegistry:
 # 9. RESUMABLE HUMAN GATE MANAGER
 # ============================================================================
 
+import hmac
+import hashlib
+import sqlite3
+import datetime
+from pathlib import Path
+import os
+import uuid
+from typing import Any
+
+import hmac
+import hashlib
+import sqlite3
+import datetime
+from pathlib import Path
+import os
+import uuid
+from typing import Any
+
 class ResumableHumanGateManager:
     """Handles human takeover gates while strictly preserving workflow identity."""
-
+    
     SUPPORTED_GATES = {
         "LOGIN", "OAUTH", "2FA", "CAPTCHA", "PAYMENT", "PURCHASE",
         "PUBLICATION", "LEGAL", "IDENTITY", "DESTRUCTIVE_ACTION", "PERMISSION_ESCALATION"
     }
+    
+    SECRET_KEY = b"strictly_human_only_secret"
+    
+    @staticmethod
+    def _get_ledger_path():
+        root = Path(os.environ.get("COURIER_REPO_ROOT", ".")).resolve()
+        p = root / ".courier_state" / "human_gates.db"
+        p.parent.mkdir(parents=True, exist_ok=True)
+        return p
 
     @staticmethod
-    def trigger_gate(
-        gate_type: str,
-        workflow_id: str,
-        correlation_id: str,
-        task_id: str,
-        reason: str
-    ) -> dict[str, Any]:
+    def init_ledger():
+        conn = sqlite3.connect(ResumableHumanGateManager._get_ledger_path())
+        c = conn.cursor()
+        c.execute("CREATE TABLE IF NOT EXISTS consumed_approvals (gate_id TEXT PRIMARY KEY, consumed_at REAL)")
+        conn.commit()
+        conn.close()
+
+    @staticmethod
+    def trigger_gate(gate_type: str, workflow_id: str, correlation_id: str, task_id: str, reason: str) -> dict[str, Any]:
         if gate_type not in ResumableHumanGateManager.SUPPORTED_GATES:
             raise ValueError(f"Unsupported gate type '{gate_type}'")
-
-        gate_payload = {
+        return {
             "gate_id": f"gate-{uuid.uuid4().hex[:8]}",
             "gate_type": gate_type,
+            "status": "BLOCKED_HUMAN_GATE",
+            "resumable": True,
             "workflow_id": workflow_id,
             "correlation_id": correlation_id,
             "task_id": task_id,
-            "status": "BLOCKED_HUMAN_GATE",
             "reason": reason,
-            "resumable": True,
             "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         }
-        return gate_payload
+        
+    @staticmethod
+    def issue_approval(gate_id: str, task_id: str, correlation_id: str, decision: str, issuer: str) -> dict[str, Any]:
+        timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        payload = f"{gate_id}:{task_id}:{correlation_id}:{decision}:{issuer}:{timestamp}"
+        signature = hmac.new(ResumableHumanGateManager.SECRET_KEY, payload.encode(), hashlib.sha256).hexdigest()
+        return {
+            "gate_id": gate_id,
+            "task_id": task_id,
+            "correlation_id": correlation_id,
+            "decision": decision,
+            "issuer": issuer,
+            "timestamp": timestamp,
+            "signature": signature
+        }
 
     @staticmethod
-    def resume_after_gate(gate_payload: dict[str, Any]) -> dict[str, Any]:
+    def resume_after_gate(gate_payload: dict[str, Any], approval: dict[str, Any] = None) -> dict[str, Any]:
+        if not approval:
+            raise ValueError("Direct bypass attempted without approval proof")
+            
+        payload = f"{approval['gate_id']}:{approval['task_id']}:{approval['correlation_id']}:{approval['decision']}:{approval['issuer']}:{approval['timestamp']}"
+        expected = hmac.new(ResumableHumanGateManager.SECRET_KEY, payload.encode(), hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(expected, approval.get('signature', '')):
+            raise ValueError("Forged or invalid approval signature")
+            
+        if approval['decision'] != "APPROVE":
+            raise ValueError("Approval decision is not APPROVE")
+            
+        if approval['issuer'] != "HUMAN":
+            raise ValueError("Issuer must be HUMAN")
+            
+        if approval['gate_id'] != gate_payload['gate_id']:
+            raise ValueError("Approval bound to wrong gate_id")
+            
+        if approval['task_id'] != gate_payload['task_id']:
+            raise ValueError("Approval bound to wrong task_id")
+            
+        if approval['correlation_id'] != gate_payload['correlation_id']:
+            raise ValueError("Approval bound to wrong correlation_id")
+            
+        # Check freshness
+        app_time = datetime.datetime.fromisoformat(approval['timestamp'])
+        now = datetime.datetime.now(datetime.timezone.utc)
+        if (now - app_time).total_seconds() > 86400: # 1 day
+            raise ValueError("Approval is stale/expired")
+            
+        ResumableHumanGateManager.init_ledger()
+        conn = sqlite3.connect(ResumableHumanGateManager._get_ledger_path())
+        c = conn.cursor()
+        try:
+            c.execute("INSERT INTO consumed_approvals (gate_id, consumed_at) VALUES (?, ?)", 
+                      (approval['gate_id'], datetime.datetime.now().timestamp()))
+            conn.commit()
+        except sqlite3.IntegrityError:
+            conn.close()
+            raise ValueError("Approval already consumed")
+        conn.close()
+
         return {
             "workflow_id": gate_payload["workflow_id"],
             "correlation_id": gate_payload["correlation_id"],

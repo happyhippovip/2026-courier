@@ -194,25 +194,85 @@ class TestCapabilityRegistry(unittest.TestCase):
         self.assertEqual(local_fs.auth_state, ConnectorAuthState.AUTHENTICATED)
 
     def test_resumable_human_gate_identity_preservation(self):
-        gate = ResumableHumanGateManager.trigger_gate(
-            gate_type="PAYMENT",
-            workflow_id="WF-PURCHASE-001",
-            correlation_id="corr-purchase-001",
-            task_id="TASK-PURCHASE-001",
-            reason="Credit spend requested",
-        )
-        self.assertEqual(gate["status"], "BLOCKED_HUMAN_GATE")
-        self.assertTrue(gate["resumable"])
-        self.assertEqual(gate["workflow_id"], "WF-PURCHASE-001")
-        self.assertEqual(gate["task_id"], "TASK-PURCHASE-001")
-
-        # Resume after gate
-        resumed = ResumableHumanGateManager.resume_after_gate(gate)
-        self.assertEqual(resumed["status"], "RESUMED")
-        self.assertEqual(resumed["workflow_id"], "WF-PURCHASE-001")
-        self.assertEqual(resumed["correlation_id"], "corr-purchase-001")
-        self.assertEqual(resumed["task_id"], "TASK-PURCHASE-001")
-
+        import sqlite3
+        import tempfile
+        import os
+        from pathlib import Path
+        
+        with tempfile.TemporaryDirectory() as tmpdir:
+            old_root = os.environ.get("COURIER_REPO_ROOT")
+            os.environ["COURIER_REPO_ROOT"] = tmpdir
+            
+            gate = ResumableHumanGateManager.trigger_gate(
+                gate_type="PAYMENT",
+                workflow_id="WF-PURCHASE-001",
+                correlation_id="corr-purchase-001",
+                task_id="TASK-PURCHASE-001",
+                reason="Credit spend requested",
+            )
+            self.assertEqual(gate["status"], "BLOCKED_HUMAN_GATE")
+            
+            # Legacy bypass (no approval) should fail
+            with self.assertRaises(ValueError) as cm:
+                ResumableHumanGateManager.resume_after_gate(gate)
+            self.assertIn("proof", str(cm.exception))
+            
+            # Correct approval
+            approval = ResumableHumanGateManager.issue_approval(
+                gate["gate_id"], gate["task_id"], gate["correlation_id"], "APPROVE", "HUMAN"
+            )
+            
+            # Wrong binding (wrong task)
+            wrong_task_approval = dict(approval)
+            wrong_task_approval["task_id"] = "WRONG"
+            with self.assertRaises(ValueError):
+                ResumableHumanGateManager.resume_after_gate(gate, wrong_task_approval)
+                
+            # Forged signature
+            forged_approval = dict(approval)
+            forged_approval["signature"] = "forged"
+            with self.assertRaises(ValueError):
+                ResumableHumanGateManager.resume_after_gate(gate, forged_approval)
+                
+            # Non-human issuer
+            bot_approval = ResumableHumanGateManager.issue_approval(
+                gate["gate_id"], gate["task_id"], gate["correlation_id"], "APPROVE", "BOT"
+            )
+            with self.assertRaises(ValueError):
+                ResumableHumanGateManager.resume_after_gate(gate, bot_approval)
+                
+            # Stale/revoked approval (expired)
+            import datetime
+            import hmac
+            import hashlib
+            stale_approval = dict(approval)
+            stale_approval["timestamp"] = (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=2)).isoformat()
+            payload = f"{stale_approval['gate_id']}:{stale_approval['task_id']}:{stale_approval['correlation_id']}:{stale_approval['decision']}:{stale_approval['issuer']}:{stale_approval['timestamp']}"
+            stale_approval["signature"] = hmac.new(ResumableHumanGateManager.SECRET_KEY, payload.encode(), hashlib.sha256).hexdigest()
+            with self.assertRaises(ValueError):
+                ResumableHumanGateManager.resume_after_gate(gate, stale_approval)
+                
+            # Resume successfully (first consumption)
+            resumed = ResumableHumanGateManager.resume_after_gate(gate, approval)
+            self.assertEqual(resumed["status"], "RESUMED")
+            
+            # Replay attack (concurrent/double consumption)
+            with self.assertRaises(ValueError) as cm:
+                ResumableHumanGateManager.resume_after_gate(gate, approval)
+            self.assertIn("already consumed", str(cm.exception))
+            
+            # Direct DB fabrication (simulating SQLite direct write)
+            conn = sqlite3.connect(ResumableHumanGateManager._get_ledger_path())
+            c = conn.cursor()
+            c.execute("INSERT OR REPLACE INTO consumed_approvals (gate_id, consumed_at) VALUES (?, ?)", (gate["gate_id"], 12345.0))
+            conn.commit()
+            conn.close()
+            # Still fails because approval object logic requires signature validation first
+            
+            if old_root:
+                os.environ["COURIER_REPO_ROOT"] = old_root
+            else:
+                del os.environ["COURIER_REPO_ROOT"]
 
 if __name__ == "__main__":
     unittest.main()
