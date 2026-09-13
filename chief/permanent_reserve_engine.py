@@ -253,7 +253,7 @@ class WorkReservoir:
         max_num = 340
         for tid in self.do_not_repeat:
             m = re.match(r"^TASK-WIN-(\d+)$", tid)
-            if m:
+            if m and len(m.group(1)) < 8:
                 val = int(m.group(1))
                 if val > max_num:
                     max_num = val
