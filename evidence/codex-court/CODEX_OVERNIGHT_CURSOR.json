@@ -30,6 +30,23 @@
     "R01-FORGED-HUMAN-GATE-RESUME",
     "R02-CONCURRENT-REVIEW-LEDGER"
   ],
+  "owner_refresh": {
+    "R01-FORGED-HUMAN-GATE-RESUME": {
+      "status": "ACTIVE_PATCH_PARTIAL_UNVERIFIED",
+      "evidence": "Current uncommitted Mac patch rejects a missing store entry, mismatched identities, unapproved and consumed gates.",
+      "remaining_risk": "approve_gate has no human-decision authority, store I/O is non-atomic and relative to cwd, and corruption is converted to an empty store."
+    },
+    "R02-CONCURRENT-REVIEW-LEDGER": {
+      "status": "OPEN_RESERVED_WINDOWS",
+      "evidence": "record_review still performs load/dedupe/save without a process-wide transaction lock.",
+      "remaining_risk": "Two processes can both report accepted review while one durable ledger record is lost."
+    }
+  },
+  "latest_fixed_defects": [
+    "unbound_curator_input_cannot_emit_sent_to_chief",
+    "curator_provenance_is_persisted_with_unverified_trust_state",
+    "malformed_claimed_curator_provenance_is_rejected"
+  ],
   "next_ranked_court": "COURT_V_OWNER_FINDING_REFRESH_READ_ONLY",
   "safe_non_reserved_work_remaining": "NONE_CONFIRMED",
   "payment_scope": "EXCLUDED"

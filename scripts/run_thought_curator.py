@@ -159,6 +159,10 @@ class ThoughtCurator:
             temporary.unlink(missing_ok=True)
 
     def curate_idea(self, raw_idea: str, idea_type: str = "IDEA", **kwargs) -> dict:
+        if not isinstance(raw_idea, str) or not raw_idea.strip():
+            raise ValueError("SECURITY VIOLATION: Curator input must be a non-empty text value.")
+        if not isinstance(idea_type, str) or not idea_type:
+            raise ValueError("SECURITY VIOLATION: Curator idea type must be a non-empty text value.")
         # SECRET DETECTION
         secret_patterns = [
             r"eyJ[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}",  # JWT
@@ -171,10 +175,19 @@ class ThoughtCurator:
 
         # PROVENANCE GUARD
         accepted_ref = kwargs.get("accepted_thought_reference")
+        if accepted_ref is not None and (not isinstance(accepted_ref, str) or not accepted_ref.strip()):
+            raise ValueError("SECURITY VIOLATION: accepted_thought_reference must be a non-empty text identifier.")
         is_unbound = not accepted_ref
         if is_unbound and not kwargs.get("provenance_guard"):
             raise ValueError("SECURITY VIOLATION: Curator cannot bypass protected ingestion without explicit provenance_guard.")
-        provenance = accepted_ref or "UNBOUND_INPUT"
+        provenance = {
+            # This component is downstream of ingestion and cannot itself
+            # elevate a caller-supplied string to verified provenance.  Keep
+            # the exact reference for later validation and label its trust
+            # state explicitly instead of losing it or silently trusting it.
+            "source_reference": accepted_ref or None,
+            "provenance_state": "UNBOUND_UNTRUSTED" if is_unbound else "CALLER_DECLARED_UNVERIFIED",
+        }
 
         """Processes a human idea through the full Thought Curator lifecycle into a Context Delta."""
         normalized = " ".join(raw_idea.strip().lower().split())
@@ -332,6 +345,7 @@ class ThoughtCurator:
             "type": idea_type,
             "classification": classification,
             "truth_boundary": "IDEA != VERIFIED | USER_REPORTED != TECHNICALLY_VERIFIED",
+            "provenance": provenance,
             "conflicts": conflicts,
             "related_ideas": related_entries[:3],
             "memory_references": memory_links,
@@ -364,7 +378,10 @@ class ThoughtCurator:
             raise
 
         # 5. Final State: SENT TO CHIEF or BLOCKED
-        final_state = "BLOCKED" if classification == "CONFLICT" else "SENT TO CHIEF"
+        # An unbound thought may be saved for human review, but it is not a
+        # dispatchable Chief handoff.  A terminal success state here would let
+        # a caller bypass the provenance gate merely by omitting the source.
+        final_state = "BLOCKED" if classification == "CONFLICT" or is_unbound else "SENT TO CHIEF"
         self.state_tracker.update_state(
             state=final_state,
             task=f"Curated {idea_id}",

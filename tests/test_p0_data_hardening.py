@@ -101,6 +101,15 @@ class TestP0DataHardening(unittest.TestCase):
         curator = ThoughtCurator(repo_dir=self.base_dir, memory_dir=self.memory)
         res = curator.curate_idea("Normal idea with lots of text to test unbound input classification", provenance_guard="cli")
         self.assertEqual(res["classification"], "UNBOUND_UNTRUSTED_INPUT")
+        self.assertEqual(res["provenance"]["provenance_state"], "UNBOUND_UNTRUSTED")
+        state = json.loads((self.base_dir / "events" / "agent-states" / "agent-thought-curator.json").read_text(encoding="utf-8"))
+        self.assertEqual(state["state"], "BLOCKED")
+        self.assertEqual(state["human_gate"], "REQUIRE_EXPLICIT_HUMAN_APPROVAL")
+
+    def test_curator_rejects_malformed_claimed_provenance(self):
+        curator = ThoughtCurator(repo_dir=self.base_dir, memory_dir=self.memory)
+        with self.assertRaisesRegex(ValueError, "accepted_thought_reference"):
+            curator.curate_idea("A normal idea.", accepted_thought_reference={"forged": "object"})
 
     def test_curator_overwrite(self):
         curator = ThoughtCurator(repo_dir=self.base_dir, memory_dir=self.memory)
@@ -131,6 +140,10 @@ class TestP0DataHardening(unittest.TestCase):
         state_file = self.base_dir / "events" / "agent-states" / "agent-thought-curator.json"
         self.assertTrue(thought_file.exists())
         self.assertTrue(state_file.exists())
+        self.assertEqual(result["provenance"], {
+            "source_reference": "ingestion-run-001",
+            "provenance_state": "CALLER_DECLARED_UNVERIFIED",
+        })
 
     def test_derived_record_write_is_atomic_and_never_replaces_existing_record(self):
         target = self.base_dir / "events" / "thoughts" / "idea-race.json"
