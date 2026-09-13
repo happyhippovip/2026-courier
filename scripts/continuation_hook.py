@@ -3,6 +3,7 @@ import json
 import os
 import hashlib
 from pathlib import Path
+import sqlite3
 
 def main():
     try:
@@ -11,55 +12,68 @@ def main():
         input_data = {}
 
     script_dir = Path(__file__).parent.resolve()
-    repo_root = script_dir.parent
-    state_file = repo_root / ".courier_state" / "mac_autonomy_state.json"
+    repo_root = Path(os.environ.get("COURIER_REPO_ROOT", script_dir.parent))
+    db_path = repo_root / ".courier_state" / "motor.db"
     
-    if not state_file.exists():
-        print(json.dumps({"decision": "stop", "reason": f"No autonomy state found at {state_file}"}))
+    if not db_path.exists():
+        print(json.dumps({"decision": "stop", "reason": f"No motor.db found at {db_path}"}))
         return
 
-    with open(state_file, "r") as f:
-        try:
-            state = json.load(f)
-        except:
-            print(json.dumps({"decision": "stop", "reason": "Malformed autonomy state."}))
-            return
-            
-    # Loop detection
-    history_file = repo_root / ".courier_state" / "hook_history.json"
-    state_str = json.dumps(state, sort_keys=True)
-    state_hash = hashlib.sha256(state_str.encode()).hexdigest()
-    
-    history = []
-    if history_file.exists():
-        try:
-            with open(history_file, "r") as f:
-                history = json.load(f)
-        except:
-            pass
-            
-    if history.count(state_hash) >= 3:
-        print(json.dumps({"decision": "stop", "reason": "Loop detected: Identical state repeated 3 times."}))
-        return
+    try:
+        conn = sqlite3.connect(db_path, timeout=5.0)
+        c = conn.cursor()
         
-    history.append(state_hash)
-    if len(history) > 10:
-        history = history[-10:]
-    with open(history_file, "w") as f:
-        json.dump(history, f)
+        # Check active conflicting writer by looking for a lock file (e.g. .courier_writer.lock)
+        writer_lock = repo_root / ".courier_state" / ".courier_writer.lock"
+        if writer_lock.exists():
+            print(json.dumps({"decision": "stop", "reason": "ACTIVE_WRITER lock detected."}))
+            return
 
-    # Check CONTINUATION_SAFETY_CONDITIONS
-    # We allow continuation if NEXT_SAFE_TASK exists, no ACTIVE_WRITER blocks us, and decision is CONTINUE.
-    # An unrelated parked HUMAN_GATE does NOT stop safe internal work.
-    if state.get("NEXT_SAFE_TASK") and state.get("ACTIVE_WRITER") is None:
-        if state.get("CONTINUATION_DECISION") == "CONTINUE":
+        c.execute("""
+            SELECT t.task_id 
+            FROM tasks t
+            LEFT JOIN approved_gates g ON t.gate_id = g.gate_id
+            WHERE t.status='PENDING' 
+            AND (t.gate_id IS NULL OR g.gate_id IS NOT NULL)
+            ORDER BY t.priority DESC, t.rowid ASC
+            LIMIT 1
+        """)
+        row = c.fetchone()
+        
+        if row:
+            next_task = row[0]
+            
+            history_file = repo_root / ".courier_state" / "hook_history.json"
+            history = []
+            if history_file.exists():
+                try:
+                    with open(history_file, "r") as f:
+                        history = json.load(f)
+                except:
+                    pass
+                    
+            if history.count(next_task) >= 3:
+                print(json.dumps({"decision": "stop", "reason": f"Loop detected: Task {next_task} repeated 3 times without completion."}))
+                return
+                
+            history.append(next_task)
+            if len(history) > 10:
+                history = history[-10:]
+            with open(history_file, "w") as f:
+                json.dump(history, f)
+                
             print(json.dumps({
                 "decision": "continue",
-                "reason": f"Autonomous continuation: {state.get('NEXT_SAFE_TASK')}"
+                "reason": f"Autonomous continuation: {next_task}"
             }))
             return
             
-    print(json.dumps({"decision": "stop", "reason": "No safe tasks or blocked by active writer/gate."}))
+        print(json.dumps({"decision": "stop", "reason": "No safe pending tasks found. TRUE IDLE."}))
+    except Exception as e:
+        print(json.dumps({"decision": "stop", "reason": f"Error: {e}"}))
+    finally:
+        if 'conn' in locals():
+            conn.close()
 
 if __name__ == "__main__":
     main()

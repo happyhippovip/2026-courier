@@ -7,6 +7,7 @@ import result_customs
 
 WORKSPACE = Path.cwd()
 DB_PATH = WORKSPACE / ".courier_state" / "motor.db"
+import os
 ATTEMPTS_DIR = WORKSPACE / ".courier_state" / "attempts"
 MOTOR_ID = str(os.getpid())
 
@@ -132,6 +133,12 @@ def reconcile(conn):
     conn.commit()
 
 def run_loop():
+
+    try:
+        from discovery_bridge import run_discovery_pass
+    except ImportError:
+        run_discovery_pass = None
+
     conn = init_env()
     print(f"Courier Standalone Motor {MOTOR_ID} started. Concurrency: 4")
     reconcile(conn)
@@ -156,6 +163,7 @@ def run_loop():
                     pass
                 proc.kill()
         import sys
+
         sys.exit(0)
 
     sig.signal(sig.SIGINT, cleanup_active_procs)
@@ -171,6 +179,13 @@ def run_loop():
         c = conn.cursor()
 
         made_progress = False
+
+        if idle_cycles % 10 == 3 and run_discovery_pass:
+            try:
+                run_discovery_pass(conn)
+            except Exception as e:
+                print(f"[{MOTOR_ID}] Discovery error: {e}")
+
 
         # 1. REAP PHASE
         finished = []

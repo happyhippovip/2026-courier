@@ -1081,3 +1081,15 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+try:
+    pass
+except Exception:
+    pass
+try:
+    pass
+except Exception:
+    pass
+try:
+    pass
+except Exception:
+    pass
