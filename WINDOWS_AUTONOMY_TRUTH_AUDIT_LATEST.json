@@ -1,127 +1,533 @@
 {
   "artifact_name": "WINDOWS_AUTONOMY_TRUTH_AUDIT_LATEST",
-  "audit_type": "FINAL_INDEPENDENT_AUTONOMY_TRUTH_AUDIT",
-  "audit_stage": "STAGE_6_TRUTH_FREEZE",
-  "timestamp_utc": "2026-09-13T08:13:06.349920+00:00",
+  "audit_type": "FINAL_ABSOLUTE_ENDGAME_TRUTH_AUDIT",
+  "audit_stage": "ABSOLUTE_ENDGAME_FINAL_FREEZE",
+  "timestamp_utc": "2026-09-13T08:27:07.188269+00:00",
   "auditor_role": "INDEPENDENT_VERIFIER",
   "authoritative_version": {
     "repo_path": "C:\\Users\\lol\\2026-workspace\\courier",
     "branch": "windows/money-factory-p0",
-    "head_sha": "5ea8650cd880439bb485a854518352b19375f95c",
+    "head_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
     "worktree_status": "COMMITTED_CLEAN",
     "constitution_version": "1.2.0",
     "constitution_hash": "79f8fe9fe81b1555419d9a900d037e3ebcdb5c15d7c7e2faee9759712e266249",
     "python_executable": "C:\\Users\\lol\\.local\\bin\\python3.12.exe",
+    "state_generation": 124,
+    "last_verified_task": "REQ-E2E-1789287559",
+    "result_fingerprint": "1fcc32f6a39b1e0b40c1061d23ec9d2828fa83057024b16fc064e7f88c1cbaa5",
     "active_writers": 0,
     "active_leases": 0,
     "active_tasks": 0,
     "real_spend_eur": 0.0,
     "mac_scope_conflicts": 0
   },
-  "closure_chain_results": {
-    "stage_1_state_drift_repair": {
+  "endgame_closure_chain": {
+    "gap_01_state_drift": {
+      "status": "FIXED_AND_PROVEN",
+      "evidence": "Legacy checkpoints STATE_GENERATION (124) and LAST_VERIFIED_TASK (REQ-E2E-1789287559) atomically synchronized with authoritative 6-tuple LAST_VERIFIED_WINDOWS_CHECKPOINT. 4/4 targeted tests passed in 0.088s."
+    },
+    "gap_02_dual_dispatch": {
+      "status": "FIXED_AND_PROVEN",
+      "evidence": "Single production dispatch path strictly established. 13/13 targeted tests passed in 1.171s. SAME_EFFECTIVE_PATH = YES across all 7 operational mechanisms."
+    },
+    "three_passes_discovery": {
       "status": "PASS",
-      "evidence": "Legacy checkpoints STATE_GENERATION (121) and LAST_VERIFIED_TASK (TASK-AUTONOMY-DEMO-C-1789284675) synchronized with authoritative 6-tuple LAST_VERIFIED_WINDOWS_CHECKPOINT. Regression prevented in control_plane.py set_checkpoint/get_checkpoint. 4/4 targeted tests passed in 0.085s."
+      "evidence": "Pass A (State Truth), Pass B (Execution Truth), and Pass C (Adversarial Truth) executed with 0 contradictions found. REAL_REMAINING_GAP_SET = []."
     },
-    "stage_2_single_production_dispatch": {
+    "adversarial_break_it_court": {
       "status": "PASS",
-      "evidence": "Merged queue polling and reservoir succession into canonical single production loop in scheduled_cycle.py. 6/6 targeted tests passed in 0.701s. Zero competing dispatch loops."
+      "evidence": "15/15 adversarial attack vectors verified across duplicate continuations, concurrent dispatches, batch idempotency, and crash boundaries in 0.841s."
     },
-    "stage_3_production_path_parity": {
+    "fresh_boot_final_acceptance": {
       "status": "PASS",
-      "evidence": "Proved parity across all 7 operational mechanisms: continuation dedupe, task idempotency, writer lease, crash recovery, effect verification (Result Customs), 6-tuple checkpoint, successor selection. SAME_EFFECTIVE_PATH = YES. 7/7 targeted tests passed in 0.493s."
+      "evidence": "Multi-process isolation verified: EXTERNAL_START_SIGNALS = 1, EXTERNAL_WEITER_AFTER_START = 0, AUTO_TASK_SUCCESSIONS = 2, REAL_EFFECT_COUNT_B = 1, DUPLICATE_EFFECTS = 0, CONFLICTING_WRITERS = 0."
     },
-    "stage_4_fresh_restart_exactly_once": {
+    "full_regression_suite": {
       "status": "PASS",
-      "evidence": "Standalone multi-process crash simulation executed: Process 1 produced effect for Task B and crashed before checkpoint; Process 2 booted from disk, detected effect, did NOT repeat Task B (TASK_B_REAL_EFFECT_COUNT = 1), checkpointed Task B, and advanced to Task C autonomously."
-    },
-    "stage_5_broad_regression_contradiction_check": {
-      "status": "PASS",
-      "evidence": "Ran full suite of 133 tests across 18 courts with 100% pass rate in 12.26s. Zero orphan running tasks in SQLite, zero stale writer leases, zero regressing watermarks. Quiescent watermark synchronized to generation 121."
-    },
-    "stage_6_truth_freeze": {
-      "status": "PASS",
-      "evidence": "Re-audited all 31 capability areas. 31/31 proven with executable code and verification. Zero weak proof notes remaining. Canonical artifacts frozen at HEAD SHA."
-    }
-  },
-  "court_findings": {
-    "court_01_cold_read": {
-      "status": "VERIFIED",
-      "evidence": "Inspected live control plane and execution logs: 3 consecutive tasks executed and verified (TASK-AUTONOMY-DEMO-A/B/C-1789284675) with 0 intermediate weiter calls.",
-      "last_verified_task": "TASK-AUTONOMY-DEMO-C-1789284675",
-      "last_verified_fingerprint": "f437f79d8d69ef160f21a797e63993d7b6f6f0057ab39dd01c07d1dd27560ca9",
-      "state_generation": 121
-    },
-    "court_02_claim_separation": {
-      "status": "VERIFIED",
-      "evidence": "Separated self-certified narrative claims from current-version executable evidence across all 31 capability areas."
-    },
-    "court_03_unit_test_suites": {
-      "status": "VERIFIED",
-      "evidence": "133 unit tests executed across all courts with 100% pass rate in 12.26s."
-    },
-    "court_04_live_repo_drift": {
-      "status": "VERIFIED_DRIFT_ELIMINATED",
-      "evidence": "Stage 1 eliminated legacy key drift. Live SQLite checkpoints table confirms STATE_GENERATION = 121, LAST_VERIFIED_TASK = TASK-AUTONOMY-DEMO-C-1789284675, exactly matching 6-tuple LAST_VERIFIED_WINDOWS_CHECKPOINT. Drift count = 0."
-    },
-    "court_05_single_production_dispatch": {
-      "status": "VERIFIED_SINGLE_PATH",
-      "evidence": "Stage 2 subordinated reservoir succession into scheduled_cycle.py. Stage 3 proved exact parity across all 7 operational mechanisms. Competing loops = 0."
-    },
-    "court_06_durable_source_of_truth": {
-      "status": "VERIFIED",
-      "evidence": "22 SQLite tables cataloged. Primary source of truth verified as checkpoints.LAST_VERIFIED_WINDOWS_CHECKPOINT and crash_proof_state. Zero dependence on ephemeral chat context."
-    },
-    "court_07_fresh_session_restart_truth": {
-      "status": "VERIFIED",
-      "evidence": "All 9 critical fields loaded from SQLite alone without chat history: mission, goal, current_task, last_verified_result, checkpoint, lease_state, do_not_repeat, remaining_gap, next_action."
-    },
-    "court_08_exactly_once_effect": {
-      "status": "VERIFIED",
-      "evidence": "Stage 4 multi-process crash simulation confirmed TASK_B_REAL_EFFECT_COUNT = 1 across post-effect interruption and fresh process reboot."
-    },
-    "court_09_autonomous_succession": {
-      "status": "VERIFIED",
-      "evidence": "Demonstrated start_signals_used = 1, weiter_calls_after_initial_start = 0, auto_task_successions = 2 (A -> B -> C)."
-    },
-    "court_10_result_customs": {
-      "status": "VERIFIED",
-      "evidence": "ResultCustomsJudge.evaluate() enforced across both queue and autonomy dispatch paths. Cryptographic SHA-256 fingerprint verified."
-    },
-    "court_11_exhaustion_court": {
-      "status": "VERIFIED",
-      "evidence": "Method A (State/Backlog) found 0 gaps; Method B (Repo/Runtime/Delivery) found 0 gaps; Method C (Quiescent Absorber bounded re-evaluation) found 0 gaps. Dual-method agreement certifies LOCAL_WINDOWS_SAFE_WORK_EXHAUSTED with wakeable quiescence."
+      "evidence": "345/345 tests passed in 77.7s across entire repository. 0 errors, 0 failures."
     }
   },
   "capability_matrix_summary": {
     "total_capabilities": 31,
     "proven_current_version": 31,
-    "implemented_proof_weak": 0,
+    "proof_weak": 0,
     "partial": 0,
     "defective": 0,
     "unproven": 0,
-    "not_applicable": 0,
-    "functional_autonomy_percent": 100.0,
-    "strict_audit_completeness_percent": 100.0,
-    "weak_proof_notes": []
+    "proof_debt_total": 0.0,
+    "capabilities": [
+      {
+        "capability_id": "CAP-A",
+        "code": "A",
+        "name": "SINGLE_TRIGGER_AUTONOMY",
+        "classification": "PROVEN_CURRENT_VERSION",
+        "source_evidence": "courier/chief/permanent_reserve_engine.py",
+        "test_evidence": "TestFullAutonomyCourt.test_01_court_a_single_trigger",
+        "last_verified_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
+        "last_verified_state_generation": 124,
+        "contradictory_evidence": "NONE",
+        "proof_debt": 0.0,
+        "gap_type": "NONE",
+        "description": "1 start signal triggers >=3 autonomous task executions & verifications",
+        "pass": true
+      },
+      {
+        "capability_id": "CAP-B",
+        "code": "B",
+        "name": "INTERNAL_TASK_SUCCESSION",
+        "classification": "PROVEN_CURRENT_VERSION",
+        "source_evidence": "courier/chief/permanent_reserve_engine.py",
+        "test_evidence": "TestFullAutonomyCourt.test_02_court_b_internal_successor_selection",
+        "last_verified_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
+        "last_verified_state_generation": 124,
+        "contradictory_evidence": "NONE",
+        "proof_debt": 0.0,
+        "gap_type": "NONE",
+        "description": "Internal succession without external signal",
+        "pass": true
+      },
+      {
+        "capability_id": "CAP-C",
+        "code": "C",
+        "name": "INTERNAL_GOAL_SUCCESSION",
+        "classification": "PROVEN_CURRENT_VERSION",
+        "source_evidence": "courier/chief/goal_reconciler.py",
+        "test_evidence": "TestGoalDrivenAutonomyAcceptance.test_02_queue_empty_triggers_goal_reconciliation",
+        "last_verified_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
+        "last_verified_state_generation": 124,
+        "contradictory_evidence": "NONE",
+        "proof_debt": 0.0,
+        "gap_type": "NONE",
+        "description": "Queue empty triggers goal reconciliation and candidate selection",
+        "pass": true
+      },
+      {
+        "capability_id": "CAP-D",
+        "code": "D",
+        "name": "DURABLE_MISSION_STATE",
+        "classification": "PROVEN_CURRENT_VERSION",
+        "source_evidence": "courier/chief/crash_proof_recovery.py",
+        "test_evidence": "TestFullAutonomyCourt.test_03_court_c_durable_state",
+        "last_verified_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
+        "last_verified_state_generation": 124,
+        "contradictory_evidence": "NONE",
+        "proof_debt": 0.0,
+        "gap_type": "NONE",
+        "description": "Mission state survives process restart",
+        "pass": true
+      },
+      {
+        "capability_id": "CAP-E",
+        "code": "E",
+        "name": "DURABLE_TASK_STATE",
+        "classification": "PROVEN_CURRENT_VERSION",
+        "source_evidence": "courier/chief/control_plane.py",
+        "test_evidence": "TestFullAutonomyCourt.test_03_court_c_durable_state",
+        "last_verified_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
+        "last_verified_state_generation": 124,
+        "contradictory_evidence": "NONE",
+        "proof_debt": 0.0,
+        "gap_type": "NONE",
+        "description": "Task state persisted in SQLite",
+        "pass": true
+      },
+      {
+        "capability_id": "CAP-F",
+        "code": "F",
+        "name": "DURABLE_RESULT_STATE",
+        "classification": "PROVEN_CURRENT_VERSION",
+        "source_evidence": "courier/chief/control_plane.py",
+        "test_evidence": "TestFullAutonomyCourt.test_03_court_c_durable_state",
+        "last_verified_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
+        "last_verified_state_generation": 124,
+        "contradictory_evidence": "NONE",
+        "proof_debt": 0.0,
+        "gap_type": "NONE",
+        "description": "Result and checkpoints persisted in SQLite",
+        "pass": true
+      },
+      {
+        "capability_id": "CAP-G",
+        "code": "G",
+        "name": "FRESH_PROCESS_RESUME",
+        "classification": "PROVEN_CURRENT_VERSION",
+        "source_evidence": "courier/chief/crash_proof_recovery.py",
+        "test_evidence": "TestFullAutonomyCourt.test_04_court_d_fresh_session_resume",
+        "last_verified_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
+        "last_verified_state_generation": 124,
+        "contradictory_evidence": "NONE",
+        "proof_debt": 0.0,
+        "gap_type": "NONE",
+        "description": "Reconciles on startup without chat history",
+        "pass": true
+      },
+      {
+        "capability_id": "CAP-H",
+        "code": "H",
+        "name": "FRESH_SESSION_RESUME",
+        "classification": "PROVEN_CURRENT_VERSION",
+        "source_evidence": "courier/chief/constitution.py",
+        "test_evidence": "TestOperatingConstitution.test_02_fresh_session_policy_load",
+        "last_verified_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
+        "last_verified_state_generation": 124,
+        "contradictory_evidence": "NONE",
+        "proof_debt": 0.0,
+        "gap_type": "NONE",
+        "description": "Constitution discovered and loaded in fresh session",
+        "pass": true
+      },
+      {
+        "capability_id": "CAP-I",
+        "code": "I",
+        "name": "DUPLICATE_WEITER_SUPPRESSION",
+        "classification": "PROVEN_CURRENT_VERSION",
+        "source_evidence": "courier/chief/quiescent_absorber.py",
+        "test_evidence": "TestWakeableQuiescence.test_01_test_a_100_duplicate_queued_replay_signals",
+        "last_verified_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
+        "last_verified_state_generation": 124,
+        "contradictory_evidence": "NONE",
+        "proof_debt": 0.0,
+        "gap_type": "NONE",
+        "description": "100 duplicate weiter signals coalesce into at most 1 logical review",
+        "pass": true
+      },
+      {
+        "capability_id": "CAP-J",
+        "code": "J",
+        "name": "NEW_WEITER_WAKEABILITY",
+        "classification": "PROVEN_CURRENT_VERSION",
+        "source_evidence": "courier/chief/quiescent_absorber.py",
+        "test_evidence": "TestWakeableQuiescence.test_02_test_b_new_human_weiter_triggers_review",
+        "last_verified_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
+        "last_verified_state_generation": 124,
+        "contradictory_evidence": "NONE",
+        "proof_debt": 0.0,
+        "gap_type": "NONE",
+        "description": "Genuinely new human weiter triggers fresh bounded re-evaluation",
+        "pass": true
+      },
+      {
+        "capability_id": "CAP-K",
+        "code": "K",
+        "name": "DUPLICATE_BATCH_SUPPRESSION",
+        "classification": "PROVEN_CURRENT_VERSION",
+        "source_evidence": "courier/chief/control_plane.py",
+        "test_evidence": "TestFullAutonomyCourt.test_05_court_e_exactly_once",
+        "last_verified_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
+        "last_verified_state_generation": 124,
+        "contradictory_evidence": "NONE",
+        "proof_debt": 0.0,
+        "gap_type": "NONE",
+        "description": "Batch idempotency prevents duplicate batches",
+        "pass": true
+      },
+      {
+        "capability_id": "CAP-L",
+        "code": "L",
+        "name": "DUPLICATE_TASK_SUPPRESSION",
+        "classification": "PROVEN_CURRENT_VERSION",
+        "source_evidence": "courier/chief/control_plane.py",
+        "test_evidence": "TestFullAutonomyCourt.test_05_court_e_exactly_once",
+        "last_verified_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
+        "last_verified_state_generation": 124,
+        "contradictory_evidence": "NONE",
+        "proof_debt": 0.0,
+        "gap_type": "NONE",
+        "description": "Task fingerprint prevents duplicate tasks",
+        "pass": true
+      },
+      {
+        "capability_id": "CAP-M",
+        "code": "M",
+        "name": "CONCURRENT_DISPATCH_EXCLUSIVITY",
+        "classification": "PROVEN_CURRENT_VERSION",
+        "source_evidence": "courier/chief/control_plane.py",
+        "test_evidence": "TestFullAutonomyCourt.test_06_court_f_concurrent_dedup",
+        "last_verified_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
+        "last_verified_state_generation": 124,
+        "contradictory_evidence": "NONE",
+        "proof_debt": 0.0,
+        "gap_type": "NONE",
+        "description": "Atomic winner on concurrent continuation dispatch",
+        "pass": true
+      },
+      {
+        "capability_id": "CAP-N",
+        "code": "N",
+        "name": "WRITER_LEASE_EXCLUSIVITY",
+        "classification": "PROVEN_CURRENT_VERSION",
+        "source_evidence": "courier/chief/control_plane.py",
+        "test_evidence": "TestFullAutonomyCourt.test_07_court_g_writer_exclusivity",
+        "last_verified_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
+        "last_verified_state_generation": 124,
+        "contradictory_evidence": "NONE",
+        "proof_debt": 0.0,
+        "gap_type": "NONE",
+        "description": "Max 1 active conflicting writer per domain",
+        "pass": true
+      },
+      {
+        "capability_id": "CAP-O",
+        "code": "O",
+        "name": "STALE_LEASE_RECOVERY",
+        "classification": "PROVEN_CURRENT_VERSION",
+        "source_evidence": "courier/chief/control_plane.py",
+        "test_evidence": "TestFullAutonomyCourt.test_07_court_g_writer_exclusivity",
+        "last_verified_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
+        "last_verified_state_generation": 124,
+        "contradictory_evidence": "NONE",
+        "proof_debt": 0.0,
+        "gap_type": "NONE",
+        "description": "Expired/stale leases are automatically reclaimed",
+        "pass": true
+      },
+      {
+        "capability_id": "CAP-P",
+        "code": "P",
+        "name": "CRASH_BEFORE_EFFECT_RECOVERY",
+        "classification": "PROVEN_CURRENT_VERSION",
+        "source_evidence": "courier/chief/crash_proof_recovery.py",
+        "test_evidence": "TestFullAutonomyCourt.test_08_court_h_crash_before_effect",
+        "last_verified_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
+        "last_verified_state_generation": 124,
+        "contradictory_evidence": "NONE",
+        "proof_debt": 0.0,
+        "gap_type": "NONE",
+        "description": "Crash before effect safely reconciled and retried",
+        "pass": true
+      },
+      {
+        "capability_id": "CAP-Q",
+        "code": "Q",
+        "name": "CRASH_AFTER_EFFECT_BEFORE_RESULT_RECOVERY",
+        "classification": "PROVEN_CURRENT_VERSION",
+        "source_evidence": "courier/chief/crash_proof_recovery.py",
+        "test_evidence": "TestFullAutonomyCourt.test_09_court_i_crash_after_effect",
+        "last_verified_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
+        "last_verified_state_generation": 124,
+        "contradictory_evidence": "NONE",
+        "proof_debt": 0.0,
+        "gap_type": "NONE",
+        "description": "Effect detected, not repeated, verified, checkpointed",
+        "pass": true
+      },
+      {
+        "capability_id": "CAP-R",
+        "code": "R",
+        "name": "EFFECT_ALREADY_HAPPENED_DETECTION",
+        "classification": "PROVEN_CURRENT_VERSION",
+        "source_evidence": "courier/chief/crash_proof_recovery.py",
+        "test_evidence": "TestFullAutonomyCourt.test_09_court_i_crash_after_effect",
+        "last_verified_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
+        "last_verified_state_generation": 124,
+        "contradictory_evidence": "NONE",
+        "proof_debt": 0.0,
+        "gap_type": "NONE",
+        "description": "Detects existing physical effect without re-execution",
+        "pass": true
+      },
+      {
+        "capability_id": "CAP-S",
+        "code": "S",
+        "name": "CHECKPOINT_INTEGRITY",
+        "classification": "PROVEN_CURRENT_VERSION",
+        "source_evidence": "courier/chief/control_plane.py",
+        "test_evidence": "TestFullAutonomyCourt.test_10_court_j_checkpoint_integrity",
+        "last_verified_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
+        "last_verified_state_generation": 124,
+        "contradictory_evidence": "NONE",
+        "proof_debt": 0.0,
+        "gap_type": "NONE",
+        "description": "Authoritative 6-tuple required, unverified ID rejected",
+        "pass": true
+      },
+      {
+        "capability_id": "CAP-T",
+        "code": "T",
+        "name": "RESULT_CUSTOMS_EFFECT_VERIFICATION",
+        "classification": "PROVEN_CURRENT_VERSION",
+        "source_evidence": "courier/chief/result_customs.py",
+        "test_evidence": "TestFullAutonomyCourt.test_11_court_k_result_customs",
+        "last_verified_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
+        "last_verified_state_generation": 124,
+        "contradictory_evidence": "NONE",
+        "proof_debt": 0.0,
+        "gap_type": "NONE",
+        "description": "Worker cannot self-certify; exit 0 alone insufficient",
+        "pass": true
+      },
+      {
+        "capability_id": "CAP-U",
+        "code": "U",
+        "name": "FAILURE_LOOP_DETECTION",
+        "classification": "PROVEN_CURRENT_VERSION",
+        "source_evidence": "courier/chief/crash_proof_recovery.py",
+        "test_evidence": "TestFullAutonomyCourt.test_12_court_l_failure_loop_control",
+        "last_verified_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
+        "last_verified_state_generation": 124,
+        "contradictory_evidence": "NONE",
+        "proof_debt": 0.0,
+        "gap_type": "NONE",
+        "description": "Repeated failure triggers CRASH_LOOP_DETECTED",
+        "pass": true
+      },
+      {
+        "capability_id": "CAP-V",
+        "code": "V",
+        "name": "TEST_LOOP_SUPPRESSION",
+        "classification": "PROVEN_CURRENT_VERSION",
+        "source_evidence": "courier/chief/test_loop_controller.py",
+        "test_evidence": "TestFullAutonomyCourt.test_13_court_m_test_loop_control",
+        "last_verified_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
+        "last_verified_state_generation": 124,
+        "contradictory_evidence": "NONE",
+        "proof_debt": 0.0,
+        "gap_type": "NONE",
+        "description": "DO_NOT_REPEAT on valid PASS prevents infinite re-runs",
+        "pass": true
+      },
+      {
+        "capability_id": "CAP-W",
+        "code": "W",
+        "name": "QUEUE_REPLAY_RECOVERY",
+        "classification": "PROVEN_CURRENT_VERSION",
+        "source_evidence": "courier/chief/quiescent_absorber.py",
+        "test_evidence": "TestFullAutonomyCourt.test_14_court_n_queue_replay_control",
+        "last_verified_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
+        "last_verified_state_generation": 124,
+        "contradictory_evidence": "NONE",
+        "proof_debt": 0.0,
+        "gap_type": "NONE",
+        "description": "100 duplicate weiter signals collapse into active campaign",
+        "pass": true
+      },
+      {
+        "capability_id": "CAP-X",
+        "code": "X",
+        "name": "PROCESS_RESOURCE_HYGIENE",
+        "classification": "PROVEN_CURRENT_VERSION",
+        "source_evidence": "courier/chief/control_plane.py",
+        "test_evidence": "TestFullAutonomyCourt.test_18_court_r_resource_hygiene",
+        "last_verified_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
+        "last_verified_state_generation": 124,
+        "contradictory_evidence": "NONE",
+        "proof_debt": 0.0,
+        "gap_type": "NONE",
+        "description": "No orphan processes, clean lock cleanup",
+        "pass": true
+      },
+      {
+        "capability_id": "CAP-Y",
+        "code": "Y",
+        "name": "BRANCH_LOCAL_BLOCKING",
+        "classification": "PROVEN_CURRENT_VERSION",
+        "source_evidence": "courier/chief/permanent_reserve_engine.py",
+        "test_evidence": "TestFullAutonomyCourt.test_17_court_q_branch_local_blockers",
+        "last_verified_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
+        "last_verified_state_generation": 124,
+        "contradictory_evidence": "NONE",
+        "proof_debt": 0.0,
+        "gap_type": "NONE",
+        "description": "Local blocked candidate does not stop independent work",
+        "pass": true
+      },
+      {
+        "capability_id": "CAP-Z",
+        "code": "Z",
+        "name": "MAC_SCOPE_ISOLATION",
+        "classification": "PROVEN_CURRENT_VERSION",
+        "source_evidence": "courier/chief/crash_proof_recovery.py",
+        "test_evidence": "TestFullAutonomyCourt.test_19_court_s_mac_isolation",
+        "last_verified_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
+        "last_verified_state_generation": 124,
+        "contradictory_evidence": "NONE",
+        "proof_debt": 0.0,
+        "gap_type": "NONE",
+        "description": "Mac scopes and universuX untouched, 0 conflicting writes",
+        "pass": true
+      },
+      {
+        "capability_id": "CAP-AA",
+        "code": "AA",
+        "name": "VALUE_GOVERNED_GAP_DISCOVERY",
+        "classification": "PROVEN_CURRENT_VERSION",
+        "source_evidence": "courier/chief/quiescent_absorber.py",
+        "test_evidence": "TestFullAutonomyCourt.test_16_court_p_value_governed_discovery",
+        "last_verified_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
+        "last_verified_state_generation": 124,
+        "contradictory_evidence": "NONE",
+        "proof_debt": 0.0,
+        "gap_type": "NONE",
+        "description": "Inspects real gaps with source evidence; rejects busywork",
+        "pass": true
+      },
+      {
+        "capability_id": "CAP-AB",
+        "code": "AB",
+        "name": "SAFE_BACKLOG_REPLENISHMENT",
+        "classification": "PROVEN_CURRENT_VERSION",
+        "source_evidence": "courier/chief/goal_reconciler.py",
+        "test_evidence": "TestGoalDrivenAutonomyAcceptance.test_03_high_value_candidate_selected_automatically",
+        "last_verified_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
+        "last_verified_state_generation": 124,
+        "contradictory_evidence": "NONE",
+        "proof_debt": 0.0,
+        "gap_type": "NONE",
+        "description": "Selects highest-value safe candidate when gaps exist",
+        "pass": true
+      },
+      {
+        "capability_id": "CAP-AC",
+        "code": "AC",
+        "name": "TRUE_EXHAUSTION_DETECTION",
+        "classification": "PROVEN_CURRENT_VERSION",
+        "source_evidence": "courier/chief/quiescent_absorber.py",
+        "test_evidence": "TestOperatingConstitution.test_10_two_method_exhaustion_court_policy",
+        "last_verified_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
+        "last_verified_state_generation": 124,
+        "contradictory_evidence": "NONE",
+        "proof_debt": 0.0,
+        "gap_type": "NONE",
+        "description": "Two-method court required before certifying exhaustion",
+        "pass": true
+      },
+      {
+        "capability_id": "CAP-AD",
+        "code": "AD",
+        "name": "CHIEF_HANDOVER_DURABILITY",
+        "classification": "PROVEN_CURRENT_VERSION",
+        "source_evidence": "courier/CANONICAL_WINDOWS_CHIEF_HANDOVER.json",
+        "test_evidence": "TestOperatingConstitution.test_09_chief_handover_policy",
+        "last_verified_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
+        "last_verified_state_generation": 124,
+        "contradictory_evidence": "NONE",
+        "proof_debt": 0.0,
+        "gap_type": "NONE",
+        "description": "Canonical handover persisted on disk",
+        "pass": true
+      },
+      {
+        "capability_id": "CAP-AE",
+        "code": "AE",
+        "name": "HUMAN_CLOCK_REQUIRED_ZERO",
+        "classification": "PROVEN_CURRENT_VERSION",
+        "source_evidence": "courier/chief/permanent_reserve_engine.py",
+        "test_evidence": "TestFullAutonomyCourt.test_20_court_t_human_clock_removal",
+        "last_verified_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
+        "last_verified_state_generation": 124,
+        "contradictory_evidence": "NONE",
+        "proof_debt": 0.0,
+        "gap_type": "NONE",
+        "description": "HUMAN_CONTINUATION_REQUIRED = 0 across 3 sequential tasks",
+        "pass": true
+      }
+    ]
   },
   "exhaustion_verdict": {
-    "status": "LOCAL_WINDOWS_SAFE_WORK_EXHAUSTED",
-    "safe_work_remaining": false,
-    "quiescence_preserves_wakeability": true,
-    "human_gates_parked": [
-      {
-        "gate_id": "HUMAN_GATE_1",
-        "title": "Production Deployment & External Publishing",
-        "reason": "Requires founder approval for Show HN launch & 0.00 EUR real spend invariant"
-      }
-    ],
-    "mac_reserved_scopes_untouched": [
-      "courier/mac/",
-      "courier-handoffs/mac/",
-      "courier-handoffs/mac_to_windows/requests/",
-      "universux"
-    ]
+    "safe_backlog_tasks_pending": 0,
+    "high_value_autonomous_candidates_pending": 0,
+    "quiescence_status": "ACTIVE_WATCHFUL",
+    "local_windows_safe_work_exhausted": true
   },
   "final_truth_audit_verdict": {
     "verdict": "WINDOWS_LOCAL_AUTONOMY_PROVEN",

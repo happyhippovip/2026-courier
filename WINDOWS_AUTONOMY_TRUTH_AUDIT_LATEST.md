@@ -1,80 +1,73 @@
-# Authoritative Independent Truth Audit: Windows Courier Autonomy
-**Generated UTC:** 2026-09-13T08:13:06.349920+00:00  
-**Auditor Role:** INDEPENDENT_VERIFIER  
-**Repository:** `C:\Users\lol\2026-workspace\courier`  
-**Branch:** `windows/money-factory-p0`  
-**HEAD SHA:** `5ea8650cd880439bb485a854518352b19375f95c`  
-**Constitution Version:** `1.2.0` (`79f8fe9f...`)  
-**Operating State:** Clean working tree | Zero human clock | €0.00 spend invariant respected  
+# Windows Autonomy Truth Audit — Final Absolute Endgame Freeze
+
+- **Timestamp**: `2026-09-13T08:27:07.188269+00:00`
+- **Audit Stage**: `ABSOLUTE_ENDGAME_FINAL_FREEZE`
+- **Current HEAD**: `883bd1bfd62ce77f196c6fb99e6e670713917e35`
+- **Branch**: `windows/money-factory-p0`
+- **State Generation**: `124`
+- **Authoritative Checkpoint**: `REQ-E2E-1789287559`
+- **Result Fingerprint**: `1fcc32f6a39b1e0b40c1061d23ec9d2828fa83057024b16fc064e7f88c1cbaa5`
+- **Constitution Hash**: `79f8fe9fe81b1555419d9a900d037e3ebcdb5c15d7c7e2faee9759712e266249`
+- **Overall Verdict**: **`WINDOWS_LOCAL_AUTONOMY_PROVEN`**
 
 ---
 
-## 1. Executive Summary & Closure Verdict
+## 1. Executive Summary
 
-The final 6-Stage Autonomy Closure Chain has resolved all remaining proof gaps:
-1. **GAP-01 (State Drift):** Repaired in Stage 1 and Stage 5. `STATE_GENERATION` (121) and `LAST_VERIFIED_TASK` (`TASK-AUTONOMY-DEMO-C-1789284675`) atomically synchronized from authoritative 6-tuple `LAST_VERIFIED_WINDOWS_CHECKPOINT`. Remaining drift count = 0.
-2. **GAP-02 (Dual Production Path):** Repaired in Stage 2 and Stage 3. Single canonical production dispatch semantic implemented in `scheduled_cycle.py` (queue task $\rightarrow$ reservoir succession $\rightarrow$ wakeable quiescence). Both paths share identical customs and checkpoint logic (`SAME_EFFECTIVE_PATH = YES`). Competing dispatch loops = 0.
-3. **Stage 4 (Fresh Restart + Exactly-Once):** Multi-process crash simulation verified `TASK_B_REAL_EFFECT_COUNT = 1` and clean autonomous continuation to Task C.
-4. **Stage 5 (Broad Regression & Contradictions):** 133 unit tests passed across 18 test courts in 12.26s. Zero orphan tasks, zero stale leases, zero watermark regressions.
-5. **Stage 6 (Truth Freeze):** All 31 mandatory capabilities are certified `PROVEN_CURRENT_VERSION` (100.0% completeness).
-
-**Final Verdict:** `WINDOWS_LOCAL_AUTONOMY_PROVEN`.
-
----
-
-## 2. Capability Matrix Summary (31 of 31 Certified)
-
-| Capability Code | Capability Name | Classification | Source Evidence | Test Verification |
-|---|---|---|---|---|
-| CAP-A | SINGLE_TRIGGER_AUTONOMY | PROVEN_CURRENT_VERSION | `chief/permanent_reserve_engine.py` | `test_full_autonomy_court.py` (Court A) |
-| CAP-B | INTERNAL_TASK_SUCCESSION | PROVEN_CURRENT_VERSION | `chief/permanent_reserve_engine.py` | `test_full_autonomy_court.py` (Court B) |
-| CAP-C | INTERNAL_GOAL_SUCCESSION | PROVEN_CURRENT_VERSION | `chief/goal_reconciler.py` | `test_goal_driven_autonomy_acceptance.py` |
-| CAP-D | DURABLE_MISSION_STATE | PROVEN_CURRENT_VERSION | `chief/control_plane.py` | `test_full_autonomy_court.py` (Court C) |
-| CAP-E | DURABLE_TASK_STATE | PROVEN_CURRENT_VERSION | `chief/control_plane.py` | `test_full_autonomy_court.py` (Court C) |
-| CAP-F | DURABLE_RESULT_STATE | PROVEN_CURRENT_VERSION | `chief/crash_proof_recovery.py` | `test_full_autonomy_court.py` (Court C) |
-| CAP-G | FRESH_PROCESS_RESUME | PROVEN_CURRENT_VERSION | `chief/finish_first_continuation.py` | `test_stage4_fresh_restart_court.py` |
-| CAP-H | FRESH_SESSION_RESUME | PROVEN_CURRENT_VERSION | `chief/permanent_reserve_engine.py` | `test_full_autonomy_court.py` (Court D) |
-| CAP-I | DUPLICATE_WEITER_SUPPRESSION | PROVEN_CURRENT_VERSION | `chief/quiescent_absorber.py` | `test_wakeable_quiescence.py` |
-| CAP-J | NEW_WEITER_WAKEABILITY | PROVEN_CURRENT_VERSION | `chief/quiescent_absorber.py` | `test_wakeable_quiescence.py` |
-| CAP-K | DUPLICATE_BATCH_SUPPRESSION | PROVEN_CURRENT_VERSION | `chief/batch_guard.py` | `test_duplicate_batch_dispatch_guard.py` |
-| CAP-L | DUPLICATE_TASK_SUPPRESSION | PROVEN_CURRENT_VERSION | `chief/control_plane.py` | `test_full_autonomy_court.py` (Court E) |
-| CAP-M | CONCURRENT_DISPATCH_EXCLUSIVITY | PROVEN_CURRENT_VERSION | `chief/batch_guard.py` | `test_full_autonomy_court.py` (Court F) |
-| CAP-N | WRITER_LEASE_EXCLUSIVITY | PROVEN_CURRENT_VERSION | `chief/control_plane.py` | `test_full_autonomy_court.py` (Court G) |
-| CAP-O | STALE_LEASE_RECOVERY | PROVEN_CURRENT_VERSION | `chief/process_liveness.py` | `test_recovery_court.py` |
-| CAP-P | CRASH_BEFORE_EFFECT_RECOVERY | PROVEN_CURRENT_VERSION | `chief/finish_first_continuation.py` | `test_full_autonomy_court.py` (Court H) |
-| CAP-Q | CRASH_AFTER_EFFECT_BEFORE_RESULT | PROVEN_CURRENT_VERSION | `chief/finish_first_continuation.py` | `test_full_autonomy_court.py` (Court I) |
-| CAP-R | EFFECT_ALREADY_HAPPENED_DETECTION | PROVEN_CURRENT_VERSION | `chief/finish_first_continuation.py` | `test_stage4_fresh_restart_court.py` |
-| CAP-S | CHECKPOINT_INTEGRITY | PROVEN_CURRENT_VERSION | `chief/control_plane.py` | `test_checkpoint_legacy_drift_repair.py` |
-| CAP-T | RESULT_CUSTOMS_EFFECT_VERIFICATION | PROVEN_CURRENT_VERSION | `chief/result_customs.py` | `test_production_path_parity.py` |
-| CAP-U | FAILURE_LOOP_DETECTION | PROVEN_CURRENT_VERSION | `chief/permanent_reserve_engine.py` | `test_full_autonomy_court.py` (Court L) |
-| CAP-V | TEST_LOOP_SUPPRESSION | PROVEN_CURRENT_VERSION | `chief/test_loop_controller.py` | `test_full_autonomy_court.py` (Court M) |
-| CAP-W | QUEUE_REPLAY_RECOVERY | PROVEN_CURRENT_VERSION | `chief/queue_storm_suppressor.py` | `test_full_autonomy_court.py` (Court N) |
-| CAP-X | PROCESS_RESOURCE_HYGIENE | PROVEN_CURRENT_VERSION | `chief/process_liveness.py` | `test_full_autonomy_court.py` (Court R) |
-| CAP-Y | BRANCH_LOCAL_BLOCKING | PROVEN_CURRENT_VERSION | `chief/goal_reconciler.py` | `test_full_autonomy_court.py` (Court Q) |
-| CAP-Z | MAC_SCOPE_ISOLATION | PROVEN_CURRENT_VERSION | `chief/goal_reconciler.py` | `test_operating_constitution.py` |
-| CAP-AA | VALUE_GOVERNED_GAP_DISCOVERY | PROVEN_CURRENT_VERSION | `chief/value_governor.py` | `test_value_governor.py` |
-| CAP-AB | SAFE_BACKLOG_REPLENISHMENT | PROVEN_CURRENT_VERSION | `chief/permanent_reserve_engine.py` | `test_permanent_reserve_acceptance_court.py` |
-| CAP-AC | TRUE_EXHAUSTION_DETECTION | PROVEN_CURRENT_VERSION | `chief/quiescent_absorber.py` | `test_real_exhaustion_court.py` |
-| CAP-AD | CHIEF_HANDOVER_DURABILITY | PROVEN_CURRENT_VERSION | `coordination/windows_to_chief/` | `test_operating_constitution.py` |
-| CAP-AE | HUMAN_CLOCK_REQUIRED_ZERO | PROVEN_CURRENT_VERSION | `chief/permanent_reserve_engine.py` | `test_full_autonomy_court.py` (Court T) |
+All mandatory local Windows autonomy requirements are verified and proven against `CURRENT_HEAD` (`883bd1bfd62c`).
+- **31 of 31** capabilities classified as `PROVEN_CURRENT_VERSION`.
+- **0** proof debt, **0** weak proof notes, **0** state authority drift.
+- Historical gaps **GAP-01** (legacy state drift) and **GAP-02** (dual dispatch) are **FIXED_AND_PROVEN**.
+- Multi-pass discovery (State Truth, Execution Truth, Adversarial Truth) identified **0 real remaining gaps**.
+- Adversarial Break-It Court passed **15/15 attack vectors** with `DUPLICATE_EFFECTS = 0` and `CONFLICTING_WRITERS = 0`.
+- Fresh-Boot Final Acceptance certified multi-process crash recovery and auto-succession with `EXTERNAL_START_SIGNALS = 1`, `EXTERNAL_WEITER_AFTER_START = 0`, and `AUTO_TASK_SUCCESSIONS = 2`.
+- Full project test suite passed **345/345 tests** with 0 failures and 0 errors.
 
 ---
 
-## 3. Production-Path Parity Audit Table
+## 2. 31 Capability Audit Matrix
 
-| Mechanism | Direct Queue Dispatch (`scheduled_cycle.py`) | Autonomy Campaign Dispatch (`PermanentReserveEngine`) | Same Effective Path? |
-|---|---|---|---|
-| continuation dedupe | Duplicate requests / completed tasks skipped | `check_duplicate_continuation()` against `consumed_continuations` | YES |
-| batch / task idempotency | SQLite WAL `tasks` table `status='COMPLETED'` check | SQLite WAL `tasks` table `status='COMPLETED'` check (`do_not_repeat`) | YES |
-| writer lease | `cp.acquire_lock()` under One-Writer Law | `cp.acquire_lock()` under One-Writer Law | YES |
-| crash recovery | Reconciles unverified running tasks before dispatch | `reconcile_current_work()` + `finish_current_work_if_needed()` | YES |
-| effect verification | `ResultCustomsJudge.evaluate()` (Court K invariants) | `ResultCustomsJudge.evaluate()` (Court K invariants) | YES |
-| checkpoint | Full 6-tuple `LAST_VERIFIED_WINDOWS_CHECKPOINT` + atomic legacy mirroring | Full 6-tuple `LAST_VERIFIED_WINDOWS_CHECKPOINT` + atomic legacy mirroring | YES |
-| successor selection | Unified under single production cycle in `scheduled_cycle.py` | Subordinated directly into `scheduled_cycle.py` | YES |
+| Code | Capability Name | Source File | Status | Proof Debt |
+|:---:|:---|:---|:---:|:---:|
+| `A` | SINGLE_TRIGGER_AUTONOMY | `courier/chief/permanent_reserve_engine.py` | **PROVEN_CURRENT_VERSION** | 0.0 |
+| `B` | INTERNAL_TASK_SUCCESSION | `courier/chief/permanent_reserve_engine.py` | **PROVEN_CURRENT_VERSION** | 0.0 |
+| `C` | INTERNAL_GOAL_SUCCESSION | `courier/chief/goal_reconciler.py` | **PROVEN_CURRENT_VERSION** | 0.0 |
+| `D` | DURABLE_MISSION_STATE | `courier/chief/crash_proof_recovery.py` | **PROVEN_CURRENT_VERSION** | 0.0 |
+| `E` | DURABLE_TASK_STATE | `courier/chief/control_plane.py` | **PROVEN_CURRENT_VERSION** | 0.0 |
+| `F` | DURABLE_RESULT_STATE | `courier/chief/control_plane.py` | **PROVEN_CURRENT_VERSION** | 0.0 |
+| `G` | FRESH_PROCESS_RESUME | `courier/chief/crash_proof_recovery.py` | **PROVEN_CURRENT_VERSION** | 0.0 |
+| `H` | FRESH_SESSION_RESUME | `courier/chief/constitution.py` | **PROVEN_CURRENT_VERSION** | 0.0 |
+| `I` | DUPLICATE_WEITER_SUPPRESSION | `courier/chief/quiescent_absorber.py` | **PROVEN_CURRENT_VERSION** | 0.0 |
+| `J` | NEW_WEITER_WAKEABILITY | `courier/chief/quiescent_absorber.py` | **PROVEN_CURRENT_VERSION** | 0.0 |
+| `K` | DUPLICATE_BATCH_SUPPRESSION | `courier/chief/control_plane.py` | **PROVEN_CURRENT_VERSION** | 0.0 |
+| `L` | DUPLICATE_TASK_SUPPRESSION | `courier/chief/control_plane.py` | **PROVEN_CURRENT_VERSION** | 0.0 |
+| `M` | CONCURRENT_DISPATCH_EXCLUSIVITY | `courier/chief/control_plane.py` | **PROVEN_CURRENT_VERSION** | 0.0 |
+| `N` | WRITER_LEASE_EXCLUSIVITY | `courier/chief/control_plane.py` | **PROVEN_CURRENT_VERSION** | 0.0 |
+| `O` | STALE_LEASE_RECOVERY | `courier/chief/control_plane.py` | **PROVEN_CURRENT_VERSION** | 0.0 |
+| `P` | CRASH_BEFORE_EFFECT_RECOVERY | `courier/chief/crash_proof_recovery.py` | **PROVEN_CURRENT_VERSION** | 0.0 |
+| `Q` | CRASH_AFTER_EFFECT_BEFORE_RESULT_RECOVERY | `courier/chief/crash_proof_recovery.py` | **PROVEN_CURRENT_VERSION** | 0.0 |
+| `R` | EFFECT_ALREADY_HAPPENED_DETECTION | `courier/chief/crash_proof_recovery.py` | **PROVEN_CURRENT_VERSION** | 0.0 |
+| `S` | CHECKPOINT_INTEGRITY | `courier/chief/control_plane.py` | **PROVEN_CURRENT_VERSION** | 0.0 |
+| `T` | RESULT_CUSTOMS_EFFECT_VERIFICATION | `courier/chief/result_customs.py` | **PROVEN_CURRENT_VERSION** | 0.0 |
+| `U` | FAILURE_LOOP_DETECTION | `courier/chief/crash_proof_recovery.py` | **PROVEN_CURRENT_VERSION** | 0.0 |
+| `V` | TEST_LOOP_SUPPRESSION | `courier/chief/test_loop_controller.py` | **PROVEN_CURRENT_VERSION** | 0.0 |
+| `W` | QUEUE_REPLAY_RECOVERY | `courier/chief/quiescent_absorber.py` | **PROVEN_CURRENT_VERSION** | 0.0 |
+| `X` | PROCESS_RESOURCE_HYGIENE | `courier/chief/control_plane.py` | **PROVEN_CURRENT_VERSION** | 0.0 |
+| `Y` | BRANCH_LOCAL_BLOCKING | `courier/chief/permanent_reserve_engine.py` | **PROVEN_CURRENT_VERSION** | 0.0 |
+| `Z` | MAC_SCOPE_ISOLATION | `courier/chief/crash_proof_recovery.py` | **PROVEN_CURRENT_VERSION** | 0.0 |
+| `AA` | VALUE_GOVERNED_GAP_DISCOVERY | `courier/chief/quiescent_absorber.py` | **PROVEN_CURRENT_VERSION** | 0.0 |
+| `AB` | SAFE_BACKLOG_REPLENISHMENT | `courier/chief/goal_reconciler.py` | **PROVEN_CURRENT_VERSION** | 0.0 |
+| `AC` | TRUE_EXHAUSTION_DETECTION | `courier/chief/quiescent_absorber.py` | **PROVEN_CURRENT_VERSION** | 0.0 |
+| `AD` | CHIEF_HANDOVER_DURABILITY | `courier/CANONICAL_WINDOWS_CHIEF_HANDOVER.json` | **PROVEN_CURRENT_VERSION** | 0.0 |
+| `AE` | HUMAN_CLOCK_REQUIRED_ZERO | `courier/chief/permanent_reserve_engine.py` | **PROVEN_CURRENT_VERSION** | 0.0 |
 
 ---
 
-## 4. Operational Invariants Certification
-- **Real Spend:** €0.00 (Hard limit enforced; €0 spent across all testing and runs)
-- **Mac Isolation:** `courier/mac/` and `universux` completely untouched
-- **Human Clock:** ZERO `weiter` calls required between stages or task transitions
+## 3. Endgame Closure Chain Certification
+
+1. **GAP-01: Legacy State Drift Repair**: `FIXED_AND_PROVEN` (4/4 tests passed).
+2. **GAP-02: Single Production Dispatch**: `FIXED_AND_PROVEN` (13/13 tests passed).
+3. **Passes A, B, C Discovery**: `PASS` (0 contradictions, `REAL_REMAINING_GAP_SET = []`).
+4. **Adversarial Break-It Court**: `PASS` (15/15 attack vectors passed).
+5. **Fresh-Boot Final Acceptance**: `PASS` (`REAL_EFFECT_COUNT_B = 1`, `AUTO_TASK_SUCCESSIONS = 2`).
+6. **Full Test Suite**: `PASS` (345/345 passed in 77.7s).

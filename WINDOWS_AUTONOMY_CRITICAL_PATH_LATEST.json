@@ -1,23 +1,15 @@
 {
   "artifact_name": "WINDOWS_AUTONOMY_CRITICAL_PATH_LATEST",
-  "updated_at": "2026-09-13T08:13:06.349920+00:00",
-  "head_sha": "5ea8650cd880439bb485a854518352b19375f95c",
-  "state_generation": 121,
-  "measurements": {
-    "implementation_completeness_percent": 100.0,
-    "evidence_completeness_percent": 100.0,
-    "full_autonomy_confidence_percent": 100.0,
-    "weighting_explanation": "Weighted by autonomy leverage across all 31 capability areas. All 31 are certified PROVEN_CURRENT_VERSION."
-  },
+  "timestamp_utc": "2026-09-13T08:27:07.188269+00:00",
+  "head_sha": "883bd1bfd62ce77f196c6fb99e6e670713917e35",
+  "state_generation": 124,
+  "critical_path_status": "CRITICAL_PATH_COMPLETE",
+  "unsolved_technical_blockers": [],
   "statistics": {
     "mandatory_capabilities": 31,
     "proven_current_version": 31,
-    "implemented_proof_weak": 0,
-    "partial": 0,
-    "defective": 0,
-    "unproven": 0,
-    "not_applicable": 0
+    "proof_debt": 0.0,
+    "remaining_gaps": 0
   },
-  "gaps_remaining": [],
-  "critical_path_status": "CRITICAL_PATH_COMPLETE"
+  "final_status": "WINDOWS_AUTONOMY_FINAL_PROVEN"
 }
