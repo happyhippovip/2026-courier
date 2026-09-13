@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "policy_name": "WINDOWS_COURIER_PERMANENT_CRASH_PROOF_POLICY",
+  "rules": {
+    "chat_source_of_truth": false,
+    "write_ahead_required": true,
+    "weiter_idempotency_required": true,
+    "max_same_task_recovery_attempts": 3,
+    "payment_parked_human_gated": true,
+    "automatic_spend_limit_eur": 0.0,
+    "mac_scope_excluded": true,
+    "mac_reserved_scopes": [
+      "supervisor_standalone.py",
+      "customs_agent.py",
+      "coordination/mac_to_windows",
+      "universuX"
+    ]
+  }
+}

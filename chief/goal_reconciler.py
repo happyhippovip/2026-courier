@@ -1827,6 +1827,36 @@ class GoalReconciler:
             "expected_evidence": "Two-level closure gate tests passed (100% success)"
         })
 
+        # Candidate BD: Automated Conflict Resolution, Resource Mutex Lease Stealing Guard & Crash-Proof Recovery
+        candidates.append({
+            "candidate_id": "TASK-WIN-64",
+            "version": 1,
+            "goal_id": "GOAL-05",
+            "title": "Automated Conflict Resolution, Resource Mutex Lease Stealing Guard & Crash-Proof Recovery",
+            "category": "CRASH_PROOF_AUTONOMY_ARCHITECTURE",
+            "conflict_domain": "MUTEX_LEASE_STEALING_GUARD",
+            "target_machine": "WINDOWS",
+            "target_worker": "WINDOWS_GOOGLE",
+            "scope": os.path.join(self.workspace_root, "courier"),
+            "script_path": "courier/tests/test_recovery_court.py",
+            "cwd": self.workspace_root,
+            "is_writer": False,
+            "unresolved_gap": "AUTONOMY_CAPABILITY_GAP",
+            "goal_impact": 10.0,
+            "revenue_impact": 9.5,
+            "info_gain": 10.0,
+            "proof_debt_reduction": 10.0,
+            "autonomy_gain": 10.0,
+            "risk_score": 0.0,
+            "spend_eur": 0.00,
+            "human_requirement": "NONE",
+            "acceptance_criteria": [
+                "Execute courier/tests/test_recovery_court.py",
+                "Verify 8-point recovery court: crash restart reconstruction, verified task no-repeat, 100x weiter coalescing, post-effect crash recovery, crash loop protection, and fresh session bootstrap"
+            ],
+            "expected_evidence": "Recovery court test suite passed (8/8 tests 100% success)"
+        })
+
         # Dynamic Candidate Discovery from safe_backlog.json
         if os.path.exists(self.backlog_path):
             try:
