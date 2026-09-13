@@ -179,6 +179,54 @@ class CourierSafetyDispatcher:
         """Attaches real CLI1, CODEX, and GEMINI worker adapters to boundary."""
         self.adapter_boundary.attach_real_worker_adapters(repo_root)
 
+    def reconcile_orphans(self) -> None:
+        """Identifies dead lease holders and safely reclaims stranded heavy and writer leases."""
+        from scripts.canonical_authority import is_pid_alive
+        for lock_file in self.lease_manager.locks_dir.glob("*.lease"):
+            try:
+                import json
+                with open(lock_file, "r") as f:
+                    data = json.load(f)
+            except Exception:
+                continue
+
+            pid = data.get("owner_pid")
+            if pid and not is_pid_alive(pid):
+                # HOLDER IS DEAD
+                task_hash = data.get("task_hash")
+                all_missions = self.mission_queue.read_all()
+                mission = next((m for m in all_missions if m.get("task_hash") == task_hash and m.get("status") == "CLAIMED"), None)
+
+                if mission:
+                    target_agent = mission.get("preferred_agent", "UNKNOWN").lower()
+                    result_file = self.workspace_dir / "events" / "task-envelopes" / f"result_{target_agent}_{task_hash}.json"
+                    mission_id = mission["mission_id"]
+
+                    if not result_file.exists():
+                        # DEAD HOLDER + NO EFFECT
+                        lock_file.unlink(missing_ok=True)
+                        self.mission_queue.transition(mission_id, "PENDING", claimed_by=None)
+                    else:
+                        try:
+                            with open(result_file, "r") as rf:
+                                result_data = json.load(rf)
+                            payload = result_data.get("payload", {})
+                            if payload.get("status") == "COMPLETED" or payload.get("verdict"):
+                                # DEAD HOLDER + CONFIRMED EFFECT -> Verify/Customs
+                                lock_file.unlink(missing_ok=True)
+                                self.mission_queue.transition(mission_id, "PENDING_VERIFY", result_reference=str(result_file))
+                            else:
+                                # DEAD HOLDER + AMBIGUOUS EFFECT
+                                lock_file.unlink(missing_ok=True)
+                                self.mission_queue.transition(mission_id, "FAILED", result_reference="AMBIGUOUS_EFFECT_QUARANTINE")
+                        except Exception:
+                            # DEAD HOLDER + AMBIGUOUS EFFECT
+                            lock_file.unlink(missing_ok=True)
+                            self.mission_queue.transition(mission_id, "FAILED", result_reference="AMBIGUOUS_EFFECT_QUARANTINE")
+                else:
+                    # Just an orphan lease with no CLAIMED mission
+                    lock_file.unlink(missing_ok=True)
+
     def evaluate_routing(self, request: str, preferred_agent: str = None) -> str:
         return self.router.select_agent(request or "analysis", preferred_agent) or ""
 
@@ -412,10 +460,13 @@ class CourierSafetyDispatcher:
                                 pre_content = prestate.get("content")
 
                                 req_content = criteria.get("content_matches", "").strip()
+
                                 if was_present:
                                     if "content_matches" in criteria:
+                                        
                                         if pre_content == req_content:
                                             # V6: Stale artifact rejection
+
                                             self.last_result_status = "FAIL"
                                             return "FAIL_CLOSED"
                                     else:
@@ -499,6 +550,7 @@ class CourierSafetyDispatcher:
         derive a successor.  A missing/invalid response is a blocked mission, never a
         successful cache entry.
         """
+        self.reconcile_orphans()
         mission = self.mission_queue.claim_next(worker_id, goal=goal)
         if mission is None:
             return {"status": "NO_PENDING_MISSION"}
@@ -729,7 +781,7 @@ class MissionQueue:
                         "FAILED", "BLOCKED", "HUMAN_GATE", "DEDUPED"})
     TRANSITIONS = {
         "PENDING": {"CLAIMED", "BLOCKED", "HUMAN_GATE", "DEDUPED"},
-        "CLAIMED": {"RUNNING", "BLOCKED", "HUMAN_GATE", "DEDUPED"},
+        "CLAIMED": {"RUNNING", "BLOCKED", "HUMAN_GATE", "DEDUPED", "PENDING", "PENDING_VERIFY", "FAILED"},
         "RUNNING": {"PENDING_VERIFY", "FAILED", "BLOCKED", "HUMAN_GATE"},
         "PENDING_VERIFY": {"VERIFIED", "FAILED", "BLOCKED", "HUMAN_GATE"},
         "VERIFIED": set(), "FAILED": set(), "BLOCKED": {"PENDING"}, "HUMAN_GATE": set(), "DEDUPED": set(),

@@ -173,6 +173,7 @@ class TaskLeaseManager:
             "task_id": task_id,
             "task_hash": task_hash,
             "owner_id": owner_id,
+            "owner_pid": os.getpid(),
             "acquired_at": now_ts,
             "expires_at": now_ts + duration_sec,
             "acquired_iso": datetime.datetime.now(datetime.timezone.utc).isoformat(),
