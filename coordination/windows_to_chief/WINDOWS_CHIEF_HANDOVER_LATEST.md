@@ -1,7 +1,7 @@
 # WINDOWS COURIER — AUTHORITATIVE CHIEF HANDOVER (LATEST)
 
 **Handover Generation**: 3  
-**Timestamp UTC**: 2026-09-13T06:45:24.418903+00:00  
+**Timestamp UTC**: 2026-09-13T06:45:41.706176+00:00  
 **Platform Source**: WINDOWS_GOOGLE  
 **Target Consumer**: CHIEF_ORCHESTRATOR  
 **Status**: TOMORROW_CHIEF_HANDOVER_VERIFIED  
@@ -12,11 +12,11 @@
 - **Machine Role**: `WINDOWS`
 - **Courier Path**: `C:\Users\lol\2026-workspace\courier`
   - **Branch**: `windows/money-factory-p0`
-  - **HEAD SHA**: `0e85cd3fa05ca4868d03ecf4c73c116e1e385ac0`
+  - **HEAD SHA**: `337b1c029fdbcbfc4e0bce892d69944cf50d2e42`
   - **Worktree Status**: `CLEAN_TRACKED`
 - **Project Memory Path**: `C:\Users\lol\2026-workspace\project-memory`
   - **Branch**: `feature/money-factory-v3`
-  - **HEAD SHA**: `dc216fac6f9189744a2800a2a27ff6d014fc5ac8`
+  - **HEAD SHA**: `2bf03bfe77360b488fb41fe8a11191f1744178b6`
   - **Worktree Status**: `UNTRACKED_PAYMENT_PROOFS` (Payment proofs preserved, tracked code clean)
 - **Canonical Source Locations**:
   - `courier/chief/control_plane.py`

@@ -1,7 +1,7 @@
 {
   "handover_generation": 3,
-  "created_at": "2026-09-13T06:45:24.418903+00:00",
-  "updated_at": "2026-09-13T06:45:24.418903+00:00",
+  "created_at": "2026-09-13T06:45:41.706176+00:00",
+  "updated_at": "2026-09-13T06:45:41.706176+00:00",
   "schema_version": "2.1.0",
   "handover_type": "WINDOWS_CHIEF_AUTHORITATIVE_HANDOVER_LATEST",
   "platform_source": "WINDOWS_GOOGLE",
@@ -11,13 +11,13 @@
     "project_memory": {
       "path": "C:\\Users\\lol\\2026-workspace\\project-memory",
       "branch": "feature/money-factory-v3",
-      "head_sha": "dc216fac6f9189744a2800a2a27ff6d014fc5ac8",
+      "head_sha": "2bf03bfe77360b488fb41fe8a11191f1744178b6",
       "worktree_status": "UNTRACKED_PAYMENT_PROOFS"
     },
     "courier": {
       "path": "C:\\Users\\lol\\2026-workspace\\courier",
       "branch": "windows/money-factory-p0",
-      "head_sha": "0e85cd3fa05ca4868d03ecf4c73c116e1e385ac0",
+      "head_sha": "337b1c029fdbcbfc4e0bce892d69944cf50d2e42",
       "worktree_status": "CLEAN_TRACKED"
     },
     "canonical_source_locations": [
@@ -202,7 +202,7 @@
         "WINDOWS_COURIER_OPERATING_CONSTITUTION.json"
       ],
       "git_before": "ab84a505d24d3f9e36477b0e0fa999f5a9cbeb05",
-      "git_after": "0e85cd3fa05ca4868d03ecf4c73c116e1e385ac0",
+      "git_after": "337b1c029fdbcbfc4e0bce892d69944cf50d2e42",
       "result_fingerprint": "d8fbcd705b001ec6c5bd6fca4bbeb9429040284f4cdd0ac8182f01c165807d2e",
       "known_defects": []
     }
@@ -504,7 +504,7 @@
     "bootstrap_command": "python -m courier.chief.bootstrap --json",
     "sequence": [
       "1. LOAD coordination/windows_to_chief/WINDOWS_CHIEF_HANDOVER_LATEST.json",
-      "2. VERIFY HEAD SHAS (courier: 0e85cd3f, pm: dc216fac)",
+      "2. VERIFY HEAD SHAS (courier: 337b1c02, pm: 2bf03bfe)",
       "3. VERIFY STATE FINGERPRINT (Checkpoint: TASK-WIN-961, State Gen: 87)",
       "4. CONFIRM OPERATING CONSTITUTION v1.0.0 [ACTIVE]",
       "5. RECONCILE ACTIVE TASK (Expect NONE)",
