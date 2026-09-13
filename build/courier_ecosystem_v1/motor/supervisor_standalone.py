@@ -576,6 +576,10 @@ def run_loop():
 
                     out_f = open(log_path, "w")
                     env = os.environ.copy()
+                    # A worker never receives the owner authority used to
+                    # issue/validate a human approval.  Passing it through
+                    # would let the worker manufacture its own approval.
+                    env.pop("COURIER_HUMAN_GATE_SECRET", None)
                     env["MOTOR_TASK_ID"] = tid
                     proc = subprocess.Popen(["/bin/sh", "-c", inst], stdout=out_f, stderr=out_f, preexec_fn=os.setpgrp, cwd=str(WORKSPACE), env=env)
                     out_f.close() # CRITICAL: Prevent FD leak in supervisor

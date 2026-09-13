@@ -75,6 +75,10 @@ class MotorSupervisorAuthorityTests(unittest.TestCase):
         self.assertIn("Direct gate approval is retired", source)
         self.assertNotIn("LEFT JOIN approved_gates", source)
 
+    def test_worker_environment_does_not_receive_owner_secret(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        self.assertIn('env.pop("COURIER_HUMAN_GATE_SECRET", None)', source)
+
 
 if __name__ == "__main__":
     unittest.main()
