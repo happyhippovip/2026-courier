@@ -2,6 +2,7 @@
 """Deterministic tests for Mission 113 Capability, Skill, Handoff & Safety Layer."""
 
 import unittest
+import tempfile
 from pathlib import Path
 
 from scripts.capability_registry import (
@@ -25,10 +26,15 @@ from scripts.capability_registry import (
 class TestCapabilityRegistry(unittest.TestCase):
 
     def setUp(self):
-        self.cap_registry = CapabilityRegistry()
-        self.profile_registry = AgentProfileRegistry()
-        self.skill_registry = SkillRegistry()
-        self.connector_registry = ConnectorRegistry()
+        self._temporary = tempfile.TemporaryDirectory()
+        self.repo_dir = Path(self._temporary.name)
+        self.cap_registry = CapabilityRegistry(self.repo_dir)
+        self.profile_registry = AgentProfileRegistry(self.repo_dir)
+        self.skill_registry = SkillRegistry(self.repo_dir)
+        self.connector_registry = ConnectorRegistry(self.repo_dir)
+
+    def tearDown(self):
+        self._temporary.cleanup()
 
     def test_persistent_agent_profile_valid(self):
         profile = self.profile_registry.get_profile("agent-chief-commander")
