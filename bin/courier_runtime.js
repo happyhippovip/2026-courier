@@ -511,6 +511,89 @@ class CourierRuntime {
       final_governor_status: finalGovernorCheck.mission_status
     };
   }
+
+  // --- DIRECT TASK DISPATCH (PEER BRIDGE & HTTP API) ---
+
+  async dispatchDirectTask(taskDef = {}) {
+    if (!taskDef.executable_command && !taskDef.target_file) {
+      throw new Error('[DISPATCH_ERROR] Either executable_command or target_file must be specified');
+    }
+
+    const taskId = taskDef.task_id || `TASK-DISPATCH-${Date.now()}`;
+    const goalId = taskDef.goal_id || 'GOAL-PEER-HTTP-DISPATCH';
+    const scopePaths = (taskDef.scope_paths && taskDef.scope_paths.length > 0)
+      ? taskDef.scope_paths.map(p => path.resolve(p).toLowerCase().replace(/\\/g, '/'))
+      : [path.resolve(this.allowedRoot).toLowerCase().replace(/\\/g, '/')];
+
+    const task = {
+      task_id: taskId,
+      task_version: taskDef.task_version || 1,
+      goal_id: goalId,
+      logical_work_id: taskDef.logical_work_id || `WORK-DISPATCH-${taskId}`,
+      target_file: taskDef.target_file || null,
+      executable_command: taskDef.executable_command || null,
+      working_dir: path.resolve(taskDef.working_dir || this.allowedRoot),
+      timeout_ms: taskDef.timeout_ms || 45000,
+      scope_paths: scopePaths,
+      inconsistency_type: taskDef.inconsistency_type || 'DIRECT_COMMAND_DISPATCH',
+      required_capability: taskDef.required_capability || 'WORKSPACE_WRITE',
+      acceptance_criteria: taskDef.acceptance_criteria || `Execute command cleanly with code 0`,
+      risk_class: taskDef.risk_class || 'LOW',
+      worker_id: taskDef.worker_id || 'WORKER-LOCAL-DISPATCH'
+    };
+
+    let state = this.loadState();
+    if (!state) {
+      state = {
+        mission_id: `MISSION-DIRECT-${Date.now()}`,
+        goal_id: goalId,
+        goal_text: `Direct dispatch: ${task.logical_work_id}`,
+        created_at: new Date().toISOString(),
+        status: 'INITIALIZED',
+        allowed_root: this.allowedRoot,
+        task_queue: [],
+        task_history: [],
+        open_followups: [],
+        resume_count: 0
+      };
+    }
+
+    const passport = TaskPassport.createPassport({
+      task_id: task.task_id,
+      task_version: task.task_version,
+      goal_id: task.goal_id,
+      scope_paths: task.scope_paths,
+      max_capability: task.required_capability
+    });
+
+    const lifecycleRes = await this.runTaskLifecycle(task, passport, state);
+    this.saveState(state);
+
+    const evidenceDir = path.join(this.allowedRoot, 'evidence');
+    const artifactFile = path.join(evidenceDir, `evidence_${task.task_id}.json`);
+    let evidenceData = null;
+    let evidenceSha256 = null;
+
+    if (fs.existsSync(artifactFile)) {
+      try {
+        const raw = fs.readFileSync(artifactFile, 'utf8');
+        evidenceData = JSON.parse(raw);
+        evidenceSha256 = crypto.createHash('sha256').update(raw).digest('hex');
+      } catch (e) {
+        // ignore parse error
+      }
+    }
+
+    return {
+      success: lifecycleRes.status === 'COMPLETED_VERIFIED',
+      task_id: task.task_id,
+      status: lifecycleRes.status,
+      reason: lifecycleRes.reason || null,
+      artifacts: (evidenceData && evidenceData.artifacts) || (fs.existsSync(artifactFile) ? [artifactFile] : []),
+      evidence_sha256: evidenceSha256,
+      evidence: evidenceData
+    };
+  }
 }
 
 // --- CLI ENTRYPOINT ---
@@ -521,6 +604,10 @@ if (require.main === module) {
   let stateDir = null;
   let interruptAfter = null;
   let singleStep = false;
+  let dispatchCmd = null;
+  let taskId = null;
+  let workingDir = null;
+  let timeoutMs = 45000;
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--goal' && args[i + 1]) goal = args[++i];
@@ -528,6 +615,10 @@ if (require.main === module) {
     if (args[i] === '--state-dir' && args[i + 1]) stateDir = path.resolve(args[++i]);
     if (args[i] === '--interrupt-after' && args[i + 1]) interruptAfter = args[++i];
     if (args[i] === '--single-step') singleStep = true;
+    if (args[i] === '--dispatch-command' && args[i + 1]) dispatchCmd = args[++i];
+    if (args[i] === '--task-id' && args[i + 1]) taskId = args[++i];
+    if (args[i] === '--working-dir' && args[i + 1]) workingDir = path.resolve(args[++i]);
+    if (args[i] === '--timeout-ms' && args[i + 1]) timeoutMs = parseInt(args[++i], 10);
   }
 
   const runtime = new CourierRuntime({
@@ -537,14 +628,31 @@ if (require.main === module) {
     singleStep
   });
 
-  runtime.run(goal)
-    .then(result => {
-      process.exit(0);
+  if (dispatchCmd) {
+    runtime.dispatchDirectTask({
+      task_id: taskId,
+      executable_command: dispatchCmd,
+      working_dir: workingDir,
+      timeout_ms: timeoutMs
     })
-    .catch(err => {
-      console.error('[FATAL_ERROR]', err);
-      process.exit(1);
-    });
+      .then(result => {
+        console.log(JSON.stringify(result, null, 2));
+        process.exit(result.success ? 0 : 1);
+      })
+      .catch(err => {
+        console.error('[FATAL_DISPATCH_ERROR]', err);
+        process.exit(1);
+      });
+  } else {
+    runtime.run(goal)
+      .then(result => {
+        process.exit(0);
+      })
+      .catch(err => {
+        console.error('[FATAL_ERROR]', err);
+        process.exit(1);
+      });
+  }
 }
 
 module.exports = {

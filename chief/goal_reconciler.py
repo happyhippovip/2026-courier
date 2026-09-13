@@ -1587,6 +1587,66 @@ class GoalReconciler:
             "expected_evidence": "Spend firewall Pro tests passed (100% success)"
         })
 
+        # Candidate AV: Peer Bridge CLI Command Dispatch Certification
+        candidates.append({
+            "candidate_id": "TASK-WIN-56",
+            "version": 1,
+            "goal_id": "GOAL-05",
+            "title": "Peer Bridge CLI Command Dispatch Certification",
+            "category": "MULTI_HOST_SYMPHONY_CONVERGENCE",
+            "conflict_domain": "PEER_BRIDGE_DISPATCH",
+            "target_machine": "WINDOWS",
+            "target_worker": "WINDOWS_GOOGLE",
+            "scope": os.path.join(self.workspace_root, "courier"),
+            "script_path": "courier/tests/test_peer_bridge_dispatch.py",
+            "cwd": self.workspace_root,
+            "is_writer": False,
+            "unresolved_gap": "AUTONOMY_CAPABILITY_GAP",
+            "goal_impact": 10.0,
+            "revenue_impact": 9.5,
+            "info_gain": 9.5,
+            "proof_debt_reduction": 10.0,
+            "autonomy_gain": 10.0,
+            "risk_score": 0.0,
+            "spend_eur": 0.00,
+            "human_requirement": "NONE",
+            "acceptance_criteria": [
+                "Execute courier/tests/test_peer_bridge_dispatch.py",
+                "Verify courier_runtime --dispatch-command, HTTP peer bridge dispatch, and fail-closed error handling"
+            ],
+            "expected_evidence": "Peer bridge dispatch tests passed (100% success)"
+        })
+
+        # Candidate AW: End-to-End Cross-Device Roundtrip Verification Certification
+        candidates.append({
+            "candidate_id": "TASK-WIN-57",
+            "version": 1,
+            "goal_id": "GOAL-05",
+            "title": "End-to-End Cross-Device Roundtrip Verification Certification",
+            "category": "MULTI_HOST_SYMPHONY_CONVERGENCE",
+            "conflict_domain": "E2E_ROUNDTRIP_VERIFICATION",
+            "target_machine": "WINDOWS",
+            "target_worker": "WINDOWS_GOOGLE",
+            "scope": os.path.join(self.workspace_root, "courier"),
+            "script_path": "courier/tests/test_cross_device_e2e_roundtrip.py",
+            "cwd": self.workspace_root,
+            "is_writer": False,
+            "unresolved_gap": "AUTONOMY_CAPABILITY_GAP",
+            "goal_impact": 10.0,
+            "revenue_impact": 9.5,
+            "info_gain": 10.0,
+            "proof_debt_reduction": 10.0,
+            "autonomy_gain": 10.0,
+            "risk_score": 0.0,
+            "spend_eur": 0.00,
+            "human_requirement": "NONE",
+            "acceptance_criteria": [
+                "Execute courier/tests/test_cross_device_e2e_roundtrip.py",
+                "Verify request intake, synchronous resolution, cryptographic SHA256 evidence, and 0.00 EUR spend"
+            ],
+            "expected_evidence": "Cross-device E2E roundtrip tests passed (100% success)"
+        })
+
         # Dynamic Candidate Discovery from safe_backlog.json
         if os.path.exists(self.backlog_path):
             try:

@@ -11,6 +11,7 @@ Usage:
 import os
 import sys
 import json
+import time
 import urllib.request
 import urllib.error
 import argparse
@@ -25,7 +26,11 @@ def send_request(url, data=None, method="GET"):
             return json.loads(res_body)
     except urllib.error.HTTPError as e:
         err_body = e.read().decode("utf-8")
-        return {"error": f"HTTP {e.code}: {e.reason}", "detail": err_body}
+        try:
+            parsed = json.loads(err_body)
+            return {"error": f"HTTP {e.code}: {e.reason}", "http_code": e.code, **parsed}
+        except Exception:
+            return {"error": f"HTTP {e.code}: {e.reason}", "detail": err_body}
     except Exception as e:
         return {"error": str(e)}
 
@@ -41,6 +46,11 @@ def main():
     parser.add_argument("--submit-thought", type=str, help="Submit a new thought (JSON file, JSON string, or title string) to Gedanken-Lagerhalle")
     parser.add_argument("--money-cycle", action="store_true", help="Trigger an on-demand Money Factory re-ranking with adversarial pass")
     parser.add_argument("--archive-report", action="store_true", help="Retrieve and display the Consolidated Archive Report (DEC-006)")
+    parser.add_argument("--dispatch-command", type=str, help="Dispatch a real bounded worker command via HTTP to remote Courier runtime")
+    parser.add_argument("--task-id", type=str, help="Optional explicit task ID for dispatched command")
+    parser.add_argument("--scope", type=str, help="Optional scope directory or path for dispatched command")
+    parser.add_argument("--working-dir", type=str, help="Optional working directory for dispatched command")
+    parser.add_argument("--timeout-ms", type=int, default=45000, help="Execution timeout in ms (default: 45000)")
 
     args = parser.parse_args()
     base_url = f"http://{args.host}:{args.port}"
@@ -116,6 +126,19 @@ def main():
     if args.trigger_cycle:
         url = f"{base_url}/api/autonomy/cycle"
         res = send_request(url, data={}, method="POST")
+        print(json.dumps(res, indent=2))
+        return
+
+    if args.dispatch_command:
+        url = f"{base_url}/api/courier/dispatch"
+        payload = {
+            "command": args.dispatch_command,
+            "task_id": args.task_id or f"TASK-PEER-DISPATCH-{int(time.time())}",
+            "scope_paths": [args.scope] if args.scope else ["C:\\Users\\lol\\2026-workspace"],
+            "working_dir": args.working_dir or "C:\\Users\\lol\\2026-workspace",
+            "timeout_ms": args.timeout_ms
+        }
+        res = send_request(url, data=payload, method="POST")
         print(json.dumps(res, indent=2))
         return
 
