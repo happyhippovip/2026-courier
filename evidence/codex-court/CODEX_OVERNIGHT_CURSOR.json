@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0",
+  "base_court_cursor": "d9c2c218e9f0160a1826ba10bc06bf8efee543c2",
+  "completed_courts": [
+    "COURT_U_FIX_MUTATION",
+    "COURT_E_INGESTION_CONCURRENCY",
+    "COURT_F_BOUNDED_REPEATABILITY",
+    "COURT_W_TEST_ISOLATION"
+  ],
+  "mutation_cases": [
+    "U1_DETERMINISTIC_MESH_ID",
+    "U2_ATOMIC_MESH_WRITE",
+    "U3_DETERMINISTIC_BUILDER_ID",
+    "U4_WORKTREE_POINTER"
+  ],
+  "mutation_cases_detected": 4,
+  "concurrency_cases": [
+    {
+      "name": "E1_FOUR_PROCESS_INGESTION",
+      "runs": 3,
+      "outcome": "DETERMINISTIC_PASS",
+      "invariant": "40 semantic inputs create exactly one durable run record and one state authority"
+    }
+  ],
+  "test_isolation": [
+    "test_thought_memory_mesh_no_real_project_memory",
+    "test_thought_ingestion_no_real_project_memory"
+  ],
+  "reserved_owner_handoffs": [
+    "R01-FORGED-HUMAN-GATE-RESUME",
+    "R02-CONCURRENT-REVIEW-LEDGER"
+  ],
+  "next_ranked_court": "COURT_V_OWNER_FINDING_REFRESH_READ_ONLY",
+  "safe_non_reserved_work_remaining": "NONE_CONFIRMED",
+  "payment_scope": "EXCLUDED"
+}

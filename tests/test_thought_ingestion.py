@@ -14,7 +14,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 from run_thought_ingestion import atomic_json_write, canonical_hash, run_ingestion
 
-MEMORY = Path("/Users/user/Downloads/2026-project-memory")
+# Tests must not inspect or depend on the user's real Project-Memory checkout.
+MEMORY = ROOT / "tests" / "_isolated_missing_memory_repo"
 
 
 def envelope(ingestion_id, source_message_id, timestamp, content, *, source_type="CHAT_EXPORT", metadata=None, privacy_class="INTERNAL"):
@@ -27,7 +28,6 @@ def write_json(path, data):
 
 class ThoughtIngestionTests(unittest.TestCase):
     def test_real_file_ingestion_dedupe_conflict_secret_and_delta(self):
-        memory_before = subprocess.run(["git", "-C", str(MEMORY), "rev-parse", "HEAD"], check=True, capture_output=True, text=True).stdout.strip()
         with tempfile.TemporaryDirectory() as temporary:
             base = Path(temporary)
             inbox, processed, rejected = base / "inbox", base / "processed", base / "rejected"
@@ -65,8 +65,6 @@ class ThoughtIngestionTests(unittest.TestCase):
             self.assertTrue(delta["proposal_created"])
             self.assertTrue(delta["scene_audit"]["coverage_complete"])
             self.assertTrue(any(rejected.glob("*-rejected.json")))
-        memory_after = subprocess.run(["git", "-C", str(MEMORY), "rev-parse", "HEAD"], check=True, capture_output=True, text=True).stdout.strip()
-        self.assertEqual(memory_before, memory_after)
 
     def test_pre_anchor_privacy_hash_and_lock_boundaries(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -168,6 +166,43 @@ class ThoughtIngestionTests(unittest.TestCase):
             record = json.loads(Path(result["run_record"]).read_text(encoding="utf-8"))
             self.assertEqual(record["coverage_ledger"]["message_counts"]["valid_unique"], 1000)
             self.assertNotIn("message_ids", record["coverage_ledger"]["scanner_ranges"]["THOUGHT_FORWARD_SCANNER"])
+
+    def test_four_concurrent_cli_runs_create_one_durable_semantic_effect(self):
+        """The real CLI must converge under process races, not merely in-process calls."""
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            inbox, processed, rejected = base / "inbox", base / "processed", base / "rejected"
+            inbox.mkdir()
+            for number in range(40):
+                write_json(
+                    inbox / f"concurrent-{number:03d}.json",
+                    envelope(
+                        f"concurrent-ingestion-{number}",
+                        f"concurrent-source-{number}",
+                        f"2026-08-30T{number // 60:02d}:{number % 60:02d}:00Z",
+                        f"Concurrent record {number}.",
+                        source_type="COURIER_EVENT",
+                        metadata={"kind": "TASK", "status_label": "PLANNED"},
+                    ),
+                )
+            command = [
+                sys.executable, str(ROOT / "scripts" / "run_thought_ingestion.py"),
+                "--inbox", str(inbox), "--processed", str(processed),
+                "--rejected", str(rejected), "--memory-repo", str(MEMORY),
+            ]
+            processes = [subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) for _ in range(4)]
+            outcomes = []
+            for process in processes:
+                stdout, stderr = process.communicate(timeout=15)
+                self.assertEqual(process.returncode, 0, stderr)
+                outcomes.append(json.loads(stdout))
+
+            self.assertEqual(sum(outcome.get("new_ingestions", 0) for outcome in outcomes), 40)
+            self.assertEqual(len(list(processed.glob("run-*.json"))), 1)
+            state = json.loads((processed / "ingestion-state.json").read_text(encoding="utf-8"))
+            self.assertEqual(len(state["ingestions"]), 40)
+            self.assertEqual(len(state["source_messages"]), 40)
+            self.assertFalse((processed / ".ingestion.lock").exists())
 
 
 if __name__ == "__main__":
