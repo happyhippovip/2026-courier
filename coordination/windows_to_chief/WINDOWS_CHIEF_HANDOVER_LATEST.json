@@ -1,9 +1,9 @@
 {
   "handover_id": "HANDOVER-WINDOWS-AUTONOMY-FINAL",
-  "timestamp_utc": "2026-09-13T08:08:36.858016+00:00",
+  "timestamp_utc": "2026-09-13T08:11:26.225048+00:00",
   "source_host": "WINDOWS_PC2",
   "target_host": "MAC_CHIEF",
-  "head_sha": "6869e4969c603ef21c2b4c5912a144a875c88365",
+  "head_sha": "c27127d7f87a4d423b016f1fed2a5034876ac8da",
   "state_generation": 121,
   "last_verified_task": "TASK-AUTONOMY-DEMO-C-1789284675",
   "last_result_fingerprint": "f437f79d8d69ef160f21a797e63993d7b6f6f0057ab39dd01c07d1dd27560ca9",
