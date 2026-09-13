@@ -382,3 +382,13 @@ This Constitution is durably persisted on disk, tracked in version control, and 
    - The campaign owns continuation.
 2. Multiple or queued weiter signals coalesce into at most 1 logical continuation intent; duplicates are suppressed as COALESCED_NOOP.
 3. Execution proceeds in bounded autonomous windows (5–10 tasks) with zero intermediate external ticks.
+
+---
+
+## ARTICLE 35 — QUIESCENT CONTINUATION RULE
+1. **Rule**: When a durable state generation has certified safe-work exhaustion, duplicate continuation signals for that same generation are SILENT NOOPs.
+2. They do NOT re-run discovery.
+3. They do NOT produce repeated status reports.
+4. They do NOT wake autonomous execution.
+5. If the runtime forces a textual response, output ONLY QUIESCENT_NOOP.
+6. Quiescent absorption exits ONLY when a genuinely new non-weiter Chief directive arrives, durable state generation changes, external handoff appears, or an external gate is explicitly approved.

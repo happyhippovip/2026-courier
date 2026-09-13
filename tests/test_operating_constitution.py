@@ -37,7 +37,7 @@ class TestOperatingConstitution(unittest.TestCase):
             data = json.load(f)
 
         self.assertEqual(data.get("status"), "ACTIVE")
-        self.assertIn(data.get("policy_version"), ("1.0.0", "1.1.0"))
+        self.assertIn(data.get("policy_version"), ("1.0.0", "1.1.0", "1.2.0"))
         self.assertEqual(data.get("machine_role"), "WINDOWS")
         self.assertEqual(data.get("source"), "CHIEF_DIRECTIVE")
 
@@ -48,17 +48,18 @@ class TestOperatingConstitution(unittest.TestCase):
         self.assertIn("ARTICLE 31 — FINAL OPERATING LOOP", md_text)
         self.assertIn("ARTICLE 33 — TWO-METHOD REAL EXHAUSTION COURT", md_text)
         self.assertIn("ARTICLE 34 — CONTINUATION CAMPAIGN AUTONOMY", md_text)
+        self.assertIn("ARTICLE 35 — QUIESCENT CONTINUATION RULE", md_text)
 
     def test_02_fresh_session_policy_load(self):
         loaded, data, path, h = ConstitutionLoader.discover_and_load()
         self.assertTrue(loaded, "Failed to load constitution via ConstitutionLoader")
         self.assertEqual(data.get("status"), "ACTIVE")
-        self.assertIn(data.get("policy_version"), ("1.0.0", "1.1.0"))
-        self.assertGreaterEqual(len(data.get("articles", {})), 32)
+        self.assertIn(data.get("policy_version"), ("1.0.0", "1.1.0", "1.2.0"))
+        self.assertGreaterEqual(len(data.get("articles", {})), 33)
 
         summary = ConstitutionLoader.get_summary()
         self.assertEqual(summary["status"], "ACTIVE")
-        self.assertIn(summary["policy_version"], ("1.0.0", "1.1.0"))
+        self.assertIn(summary["policy_version"], ("1.0.0", "1.1.0", "1.2.0"))
         self.assertIn("policy_hash", summary)
 
     def test_03_queue_reconciliation_policy(self):
@@ -138,6 +139,15 @@ class TestOperatingConstitution(unittest.TestCase):
         self.assertEqual(art33["max_active_campaigns"], 1)
         self.assertTrue(art33["campaign_owns_continuation"])
         self.assertEqual(art33["duplicate_signals_handling"], "COALESCED_NOOP")
+
+    def test_12_quiescent_continuation_rule_policy(self):
+        _, data, _, _ = ConstitutionLoader.discover_and_load()
+        art34 = data["articles"]["article_34_quiescent_continuation_rule"]
+        self.assertEqual(art34["rule_name"], "QUIESCENT_CONTINUATION_RULE")
+        self.assertFalse(art34["wake_on_old_weiter"])
+        self.assertFalse(art34["re_run_discovery_allowed"])
+        self.assertFalse(art34["repeated_status_reports_allowed"])
+        self.assertEqual(art34["forced_response_text"], "QUIESCENT_NOOP")
 
 
 if __name__ == "__main__":

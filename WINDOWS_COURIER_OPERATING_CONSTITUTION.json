@@ -1,7 +1,7 @@
 {
-  "policy_version": "1.1.0",
+  "policy_version": "1.2.0",
   "created_at": "2026-09-13T06:42:00Z",
-  "updated_at": "2026-09-13T08:52:00Z",
+  "updated_at": "2026-09-13T09:00:00Z",
   "project": "2026-workspace / money-factory / courier",
   "machine_role": "WINDOWS",
   "status": "ACTIVE",
@@ -399,6 +399,23 @@
       "campaign_owns_continuation": true,
       "duplicate_signals_handling": "COALESCED_NOOP",
       "bounded_windows_tasks": "5_TO_10"
+    },
+    "article_34_quiescent_continuation_rule": {
+      "rule_name": "QUIESCENT_CONTINUATION_RULE",
+      "statement": "When a durable state generation has certified safe-work exhaustion, duplicate continuation signals for that same generation are SILENT NOOPs. They do not re-run discovery. They do not produce repeated status reports. They do not wake autonomous execution.",
+      "applies_when": "CONTINUATION_STATE == QUIESCENT_EXHAUSTION_CERTIFIED",
+      "wake_on_old_weiter": false,
+      "re_run_discovery_allowed": false,
+      "repeated_status_reports_allowed": false,
+      "wake_conditions": [
+        "NEW_NON_WEITER_CHIEF_DIRECTIVE",
+        "DURABLE_STATE_GENERATION_CHANGED",
+        "NEW_EXTERNAL_HANDOFF_RECEIVED",
+        "HUMAN_GATE_UNPARKED",
+        "NEW_VERIFIED_EVIDENCE_SAFE_GAP",
+        "STATE_INCONSISTENCY_OR_CORRUPTION"
+      ],
+      "forced_response_text": "QUIESCENT_NOOP"
     }
   }
 }
