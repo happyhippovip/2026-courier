@@ -115,3 +115,16 @@ class CourierServerTestCase(unittest.TestCase):
                 os.remove(cls._runner_file)
             except Exception:
                 pass
+
+
+class TestServerFixtureSelfCheck(CourierServerTestCase):
+    """Verifies that the ephemeral test server fixture successfully starts and cleans up."""
+
+    def test_ephemeral_server_liveness_and_cleanup(self):
+        self.assertTrue(self.base_url.startswith("http://127.0.0.1"))
+        self.assertTrue(is_server_responding(self.base_url, timeout=2.0))
+
+
+if __name__ == "__main__":
+    unittest.main()
+

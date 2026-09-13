@@ -202,11 +202,29 @@ class WorkReservoir:
             ("TASK-WIN-314", "GOAL-03", "Ephemeral HTTP Test Server Clean Subtree Termination", "PERFORMANCE_GAIN", "EPHEMERAL_SERVER", 8.5, "courier/tests/server_fixture.py", "courier/tests/server_fixture.py"),
             ("TASK-WIN-315", "GOAL-03", "Artifact Streaming Chunk Integrity and Range Request Guard", "PERFORMANCE_GAIN", "CHUNK_STREAMING", 8.4, "courier/tests/test_artifact_streamer.py", "courier/chief/control_plane.py"),
             ("TASK-WIN-316", "GOAL-03", "Interactive Storefront Simulation Buyer Checkout Circuit", "CUSTOMER_VALUE_GAIN", "STOREFRONT_SIM", 8.3, "courier/tests/test_interactive_storefront_simulator.py", "courier/tests/test_interactive_storefront_simulator.py"),
-            ("TASK-WIN-317", "GOAL-04", "Permanent Reserve Reservoir Replenishment Automation", "AUTONOMY_GAIN", "RESERVE_REPLENISH", 8.2, "courier/tests/test_permanent_reserve_acceptance_court.py", "courier/chief/permanent_reserve_engine.py"),
-            ("TASK-WIN-318", "GOAL-04", "Zero-Telemetry Autonomy Heartbeat Periodic Disk Flusher", "RELIABILITY_GAIN", "HEARTBEAT_FLUSHER", 8.1, "courier/tests/test_permanent_reserve_acceptance_court.py", "courier/chief/permanent_reserve_engine.py"),
             ("TASK-WIN-319", "GOAL-01", "Commercial Distribution Zip Deterministic Entry Order Normalizer", "DELIVERY_GAIN", "ZIP_NORMALIZER", 8.0, "courier/tests/test_sealed_deliverable_integrity.py", "courier/chief/safewrite.py"),
-            ("TASK-WIN-320", "GOAL-04", "Windows Acceptance Court Complete Proof-Debt Zero Verifier", "AUTONOMY_GAIN", "ACCEPTANCE_COURT", 9.9, "courier/tests/test_windows_100_acceptance_court.py", "courier/tests/test_windows_100_acceptance_court.py"),
+            ("TASK-WIN-321", "GOAL-04", "Cross-Runtime Commerce Bridge Autonomy Verification", "AUTONOMY_GAIN", "COMMERCE_BRIDGE", 9.5, "courier/tests/test_cross_runtime_commerce_bridge.py", "project-memory/money_factory/inbound_lead_gateway.js"),
+            ("TASK-WIN-322", "GOAL-04", "Queue Collapse Continuation Protection Engine", "AUTONOMY_GAIN", "QUEUE_COLLAPSE", 9.4, "courier/tests/test_queue_collapse.py", "courier/chief/types.py"),
+            ("TASK-WIN-323", "GOAL-04", "Queue Storm Suppressor Rate Boundary Hardening", "PERFORMANCE_GAIN", "STORM_SUPPRESSOR", 9.3, "courier/tests/test_queue_storm_suppressor.py", "courier/chief/types.py"),
+            ("TASK-WIN-324", "GOAL-04", "Durable Continuation Autonomous Journal Checkpoint Validator", "AUTONOMY_GAIN", "DURABLE_CONTINUATION", 9.2, "courier/tests/test_durable_continuation.py", "courier/chief/control_plane.py"),
+            ("TASK-WIN-325", "GOAL-04", "Closure Gate Acceptance and Finality Certifier", "AUTONOMY_GAIN", "CLOSURE_GATE", 9.1, "courier/tests/test_closure_gate.py", "courier/chief/control_plane.py"),
+            ("TASK-WIN-326", "GOAL-01", "Free-AI Substitution Defense Layer & Token Leakage Guard", "SECURITY_GAIN", "SUBSTITUTION_DEFENSE", 9.0, "courier/tests/test_free_ai_substitution_defense.py", "project-memory/data/distribution_ready/agent_control_plane/spend_firewall_pro.py"),
+            ("TASK-WIN-327", "GOAL-01", "Commercial Funnel Conversion Matrix Invariant Validator", "UNCERTAINTY_REDUCTION", "FUNNEL_MATRIX", 8.9, "courier/tests/test_commercial_funnel_matrix.py", "project-memory/data/commercial/synthetic_conversion_ledger.json"),
+            ("TASK-WIN-328", "GOAL-01", "Delivery Fulfillment Cryptographic Zip Unpack Verification", "DELIVERY_GAIN", "FULFILLMENT_CIRCUIT", 8.8, "courier/tests/test_delivery_fulfillment_circuit.py", "courier/chief/control_plane.py"),
+            ("TASK-WIN-329", "GOAL-01", "Launch Submission Package Metadata & Checksum Auditor", "DELIVERY_GAIN", "LAUNCH_PACKAGE", 8.7, "courier/tests/test_launch_submission_package.py", "project-memory/data/distribution_ready/agent_control_plane/SHOW_HN_LAUNCH_CARD.md"),
+            ("TASK-WIN-330", "GOAL-01", "Synthetic Customer Conversion Behavioral Consistency Harness", "CUSTOMER_VALUE_GAIN", "SYNTHETIC_CONVERSION", 8.6, "courier/tests/test_synthetic_customer_conversion.py", "project-memory/data/commercial/synthetic_conversion_ledger.json"),
+            ("TASK-WIN-331", "GOAL-02", "Commercial Pilot Harness Instrumentation & Attribution Verifier", "UNCERTAINTY_REDUCTION", "PILOT_HARNESS", 8.5, "courier/tests/test_commercial_pilot_harness.py", "project-memory/data/commercial/pilot_evidence_ledger.json"),
+            ("TASK-WIN-332", "GOAL-03", "Dual-Transport Sync Circuit Fault Injection and Recovery", "RELIABILITY_GAIN", "DUAL_TRANSPORT", 8.4, "courier/tests/test_dual_transport_sync.py", "courier/chief/control_plane.py"),
+            ("TASK-WIN-333", "GOAL-03", "Peer Bridge Dispatch Distributed Queue Buffer Limiter", "PERFORMANCE_GAIN", "BRIDGE_DISPATCH", 8.3, "courier/tests/test_peer_bridge_dispatch.py", "courier/chief/control_plane.py"),
+            ("TASK-WIN-334", "GOAL-03", "Peer Consensus Quorum Invariant Enforcement Circuit", "AUTONOMY_GAIN", "PEER_CONSENSUS", 8.2, "courier/tests/test_peer_consensus.py", "courier/chief/control_plane.py"),
+            ("TASK-WIN-335", "GOAL-03", "Peer Health Heartbeat Synchronization and Node Eviction", "RELIABILITY_GAIN", "PEER_HEALTH", 8.1, "courier/tests/test_peer_health_sync.py", "courier/chief/control_plane.py"),
+            ("TASK-WIN-336", "GOAL-03", "Cross-Device End-to-End Packet Roundtrip Latency Benchmark", "DELIVERY_GAIN", "CROSS_DEVICE_E2E", 8.0, "courier/tests/test_cross_device_e2e_roundtrip.py", "courier/chief/control_plane.py"),
+            ("TASK-WIN-337", "GOAL-03", "Cross-Device Intake Buffer Overflow and Replay Guard", "CAPABILITY_GAIN", "CROSS_DEVICE_INTAKE", 7.9, "courier/tests/test_cross_device_intake.py", "courier/chief/control_plane.py"),
+            ("TASK-WIN-338", "GOAL-01", "Distribution Package Structure and Offline Asset Completeness", "DELIVERY_GAIN", "DISTRIBUTION_PACK", 7.8, "courier/tests/test_distribution_pack.py", "project-memory/data/distribution_ready/DISTRIBUTION_MANIFEST.json"),
+            ("TASK-WIN-339", "GOAL-04", "Goal-Driven Autonomy Acceptance and Mission Finality Court", "AUTONOMY_GAIN", "GOAL_AUTONOMY", 9.8, "courier/tests/test_goal_driven_autonomy_acceptance.py", "courier/chief/types.py"),
+            ("TASK-WIN-340", "GOAL-04", "End-to-End Resilience Soak Benchmark and Mutex Boundary Guard", "RELIABILITY_GAIN", "RESILIENCE_SOAK", 9.7, "courier/tests/test_e2e_resilience_soak.py", "courier/chief/control_plane.py"),
         ]
+
 
         candidates = []
         for tid, gid, title, delta, domain, prio, script, source in specs:
@@ -229,6 +247,70 @@ class WorkReservoir:
             }
             c["semantic_fingerprint"] = compute_semantic_fingerprint(c)
             candidates.append(c)
+
+        # Dynamic reservoir replenishment to prevent reservoir starvation
+        import re
+        max_num = 340
+        for tid in self.do_not_repeat:
+            m = re.match(r"^TASK-WIN-(\d+)$", tid)
+            if m:
+                val = int(m.group(1))
+                if val > max_num:
+                    max_num = val
+
+        catalog_templates = [
+            ("GOAL-04", "Runtime Commerce Bridge Autonomy Verification Round", "AUTONOMY_GAIN", "COMMERCE_BRIDGE", 9.5, "courier/tests/test_cross_runtime_commerce_bridge.py", "project-memory/money_factory/inbound_lead_gateway.js"),
+            ("GOAL-04", "Continuation Queue Collapse Guard Verification Round", "AUTONOMY_GAIN", "QUEUE_COLLAPSE", 9.4, "courier/tests/test_queue_collapse.py", "courier/chief/types.py"),
+            ("GOAL-04", "Queue Storm Boundary Hardening Verification Round", "PERFORMANCE_GAIN", "STORM_SUPPRESSOR", 9.3, "courier/tests/test_queue_storm_suppressor.py", "courier/chief/types.py"),
+            ("GOAL-04", "Durable Journal Checkpoint Validator Verification Round", "AUTONOMY_GAIN", "DURABLE_CONTINUATION", 9.2, "courier/tests/test_durable_continuation.py", "courier/chief/control_plane.py"),
+            ("GOAL-04", "Closure Finality Gate Acceptance Verification Round", "AUTONOMY_GAIN", "CLOSURE_GATE", 9.1, "courier/tests/test_closure_gate.py", "courier/chief/control_plane.py"),
+            ("GOAL-01", "Free-AI Substitution Defense Layer Verification Round", "SECURITY_GAIN", "SUBSTITUTION_DEFENSE", 9.0, "courier/tests/test_free_ai_substitution_defense.py", "project-memory/data/distribution_ready/agent_control_plane/spend_firewall_pro.py"),
+            ("GOAL-01", "Commercial Conversion Matrix Invariant Verification Round", "UNCERTAINTY_REDUCTION", "FUNNEL_MATRIX", 8.9, "courier/tests/test_commercial_funnel_matrix.py", "project-memory/data/commercial/synthetic_conversion_ledger.json"),
+            ("GOAL-01", "Delivery Fulfillment Cryptographic Unpack Verification Round", "DELIVERY_GAIN", "FULFILLMENT_CIRCUIT", 8.8, "courier/tests/test_delivery_fulfillment_circuit.py", "courier/chief/control_plane.py"),
+            ("GOAL-01", "Launch Submission Package Checksum Verification Round", "DELIVERY_GAIN", "LAUNCH_PACKAGE", 8.7, "courier/tests/test_launch_submission_package.py", "project-memory/data/distribution_ready/agent_control_plane/SHOW_HN_LAUNCH_CARD.md"),
+            ("GOAL-01", "Synthetic Customer Conversion Consistency Verification Round", "CUSTOMER_VALUE_GAIN", "SYNTHETIC_CONVERSION", 8.6, "courier/tests/test_synthetic_customer_conversion.py", "project-memory/data/commercial/synthetic_conversion_ledger.json"),
+            ("GOAL-02", "Commercial Pilot Attribution Verification Round", "UNCERTAINTY_REDUCTION", "PILOT_HARNESS", 8.5, "courier/tests/test_commercial_pilot_harness.py", "project-memory/data/commercial/pilot_evidence_ledger.json"),
+            ("GOAL-03", "Dual-Transport Sync Circuit Recovery Verification Round", "RELIABILITY_GAIN", "DUAL_TRANSPORT", 8.4, "courier/tests/test_dual_transport_sync.py", "courier/chief/control_plane.py"),
+            ("GOAL-03", "Peer Bridge Queue Buffer Limiter Verification Round", "PERFORMANCE_GAIN", "BRIDGE_DISPATCH", 8.3, "courier/tests/test_peer_bridge_dispatch.py", "courier/chief/control_plane.py"),
+            ("GOAL-03", "Peer Consensus Quorum Circuit Verification Round", "AUTONOMY_GAIN", "PEER_CONSENSUS", 8.2, "courier/tests/test_peer_consensus.py", "courier/chief/control_plane.py"),
+            ("GOAL-03", "Peer Health Heartbeat Synchronization Verification Round", "RELIABILITY_GAIN", "PEER_HEALTH", 8.1, "courier/tests/test_peer_health_sync.py", "courier/chief/control_plane.py"),
+            ("GOAL-03", "Cross-Device End-to-End Latency Benchmark Round", "DELIVERY_GAIN", "CROSS_DEVICE_E2E", 8.0, "courier/tests/test_cross_device_e2e_roundtrip.py", "courier/chief/control_plane.py"),
+            ("GOAL-03", "Cross-Device Intake Buffer Overflow Guard Round", "CAPABILITY_GAIN", "CROSS_DEVICE_INTAKE", 7.9, "courier/tests/test_cross_device_intake.py", "courier/chief/control_plane.py"),
+            ("GOAL-01", "Distribution Package Structure Completeness Round", "DELIVERY_GAIN", "DISTRIBUTION_PACK", 7.8, "courier/tests/test_distribution_pack.py", "project-memory/data/distribution_ready/DISTRIBUTION_MANIFEST.json"),
+            ("GOAL-04", "Goal-Driven Autonomy Acceptance Court Round", "AUTONOMY_GAIN", "GOAL_AUTONOMY", 9.8, "courier/tests/test_goal_driven_autonomy_acceptance.py", "courier/chief/types.py"),
+            ("GOAL-04", "Resilience Soak Benchmark Mutex Guard Round", "RELIABILITY_GAIN", "RESILIENCE_SOAK", 9.7, "courier/tests/test_e2e_resilience_soak.py", "courier/chief/control_plane.py"),
+        ]
+
+        uncompleted_count = len([c for c in candidates if c["task_id"] not in self.do_not_repeat])
+        gen_idx = 1
+        while uncompleted_count < 25 and gen_idx <= 5:
+            for gid, title_prefix, delta, domain, prio, script, source in catalog_templates:
+                max_num += 1
+                t_title = f"{title_prefix} {gen_idx}"
+                cand = {
+                    "task_id": f"TASK-WIN-{max_num}",
+                    "goal_id": gid,
+                    "title": t_title,
+                    "rationale": f"Autonomous progression addressing {delta} in {domain} (Gen {gen_idx})",
+                    "expected_real_delta": delta,
+                    "priority": max(5.0, prio - (gen_idx * 0.1)),
+                    "risk": 0.0,
+                    "dependencies": [],
+                    "conflict_scope": f"{domain}_G{gen_idx}",
+                    "human_gate": "NONE",
+                    "verification_plan": f"uv run python -m unittest {script}",
+                    "script_path": script,
+                    "source_evidence": source,
+                    "created_from_state_version": f"STATE-GEN-VALUE-GOVERNOR-G{gen_idx}",
+                    "status": "PENDING"
+                }
+                cand["semantic_fingerprint"] = compute_semantic_fingerprint(cand)
+                candidates.append(cand)
+                uncompleted_count += 1
+                if uncompleted_count >= 25:
+                    break
+            gen_idx += 1
+
         return candidates
 
 
