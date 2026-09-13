@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "completed_courts": [
+    "COURT_1_FALSE_PASS",
+    "COURT_2_VERSION_PROOF_COHERENCE",
+    "COURT_3_WORKSPACE_ISOLATION",
+    "COURT_4_IDENTITY_COLLISION",
+    "COURT_6_REPLAY",
+    "COURT_14_CHECKPOINT_REALITY",
+    "COURT_15_RESERVED_OWNER_HANDOFF"
+  ],
+  "active_court": "COURT_5_CROSS_SUBSYSTEM_CRASH_BOUNDARY",
+  "verified_findings": [
+    "review-proof-reuse-must-bind-checkpoint",
+    "curator-workspace-isolation"
+  ],
+  "dismissed_candidates": [],
+  "owner_handoffs": [
+    "R01-FORGED-HUMAN-GATE-RESUME",
+    "R02-CONCURRENT-REVIEW-LEDGER"
+  ],
+  "semantic_fingerprints": [
+    "a23fa27",
+    "1ca6bf0",
+    "a34444d",
+    "a4ce8c6"
+  ],
+  "last_checkpoint": "PENDING_INTEGRATION_COURT_CHECKPOINT",
+  "next_ranked_court": "COURT_5_CROSS_SUBSYSTEM_CRASH_BOUNDARY"
+}

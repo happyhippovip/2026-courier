@@ -54,7 +54,7 @@ class TestMission107ReviewBudget(unittest.TestCase):
         # Record a completed review in ledger
         self.manager.ledger.record_review(
             review_id="rev-001",
-            checkpoint_commit="c9446ff",
+            checkpoint_commit="c9446ff8cf41560eb044a60cede085636e3aaffa",
             diff_hash=diff_hash,
             file_hashes={"test.py": "abc123hash"},
             risk_class="LOW",
@@ -71,6 +71,30 @@ class TestMission107ReviewBudget(unittest.TestCase):
         )
         self.assertEqual(res["decision"], "NO_REVIEW")
         self.assertEqual(res["reason"], "ALREADY_REVIEWED_IDENTICAL_DELTA")
+
+    def test_same_diff_against_different_checkpoint_requires_fresh_review(self):
+        diff_str = "diff --git a/test.py b/test.py\n+print('hello')"
+        self.manager.ledger.record_review(
+            review_id="rev-old-checkpoint",
+            checkpoint_commit="commit-old",
+            diff_hash=compute_sha256(diff_str),
+            file_hashes={"test.py": "old-context"},
+            risk_class="LOW",
+            review_type="ROUTINE",
+            review_result="APPROVE",
+            reviewer="codex",
+            reason="Old checkpoint review",
+        )
+
+        result = self.manager.evaluate_review_requirement(
+            checkpoint_commit="commit-new",
+            changed_files=["test.py"],
+            diff_str=diff_str,
+            force_override=True,
+        )
+
+        self.assertNotEqual(result["reason"], "ALREADY_REVIEWED_IDENTICAL_DELTA")
+        self.assertEqual(result["decision"], "BATCH_REVIEW")
 
     def test_03_docs_and_tests_yield_low_risk_batch_review(self):
         """Prove docs-only delta is classified as LOW risk and BATCH_REVIEW."""

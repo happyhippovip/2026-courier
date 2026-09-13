@@ -250,9 +250,17 @@ class ReviewLedger:
             raise ReviewLedgerIntegrityError("review ledger has invalid structure; refusing to replace it")
         return data
 
-    def get_reviewed_entry(self, diff_hash: str) -> dict | None:
+    def get_reviewed_entry(self, diff_hash: str, checkpoint_commit: str | None = None) -> dict | None:
         ledger = self._load_ledger()
-        return ledger.get("fingerprints", {}).get(diff_hash)
+        entry = ledger.get("fingerprints", {}).get(diff_hash)
+        if entry is None:
+            return None
+        # A patch-shaped diff is not a proof of the codebase it was tested
+        # against.  Reusing it across a different checkpoint can certify code
+        # whose unchanged context has materially changed.
+        if checkpoint_commit is not None and entry.get("checkpoint_commit") != checkpoint_commit:
+            return None
+        return entry
 
     def get_daily_routine_batch_count(self, date_str: str) -> int:
         ledger = self._load_ledger()
@@ -356,7 +364,7 @@ class ReviewBudgetManager:
 
         # 2. Check if identical diff was already reviewed
         try:
-            existing_review = self.ledger.get_reviewed_entry(diff_hash)
+            existing_review = self.ledger.get_reviewed_entry(diff_hash, checkpoint_commit=checkpoint_commit)
         except ReviewLedgerIntegrityError as error:
             risk_class, risk_reasons = ReviewRiskClassifier.classify(files, diff_str)
             fp = ReviewFingerprint(

@@ -1,0 +1,28 @@
+{
+  "R01-FORGED-HUMAN-GATE-RESUME": {
+    "owner": "MAC",
+    "severity": "HIGH",
+    "exact_file": "scripts/capability_registry.py",
+    "exact_function": "ResumableHumanGateManager.resume_after_gate",
+    "precondition": "Caller can construct a mapping that contains gate_id, workflow_id, correlation_id, and task_id.",
+    "reproduction": "Pass a mapping with arbitrary identities and no approval evidence, status, timestamp, gate binding, or decision record.",
+    "expected": "Fail closed unless a persisted approved decision is bound to the current gate, run, task, and unrevoked approval identity.",
+    "actual": "Returns status RESUMED and echoes the forged identities.",
+    "security_or_reliability_effect": "A forged or stale payload can bypass the human-gate boundary.",
+    "minimal_test": "Reject forged, missing, wrong-gate, wrong-task, stale, replayed, revoked, and malformed approvals; accept only the matching persisted approval.",
+    "suggested_fix_boundary": "Validate through the Mac-owned canonical decision store; do not trust a caller-supplied dictionary."
+  },
+  "R02-CONCURRENT-REVIEW-LEDGER": {
+    "owner": "WINDOWS",
+    "severity": "HIGH",
+    "exact_file": "scripts/review_budget.py",
+    "exact_function": "ReviewLedger.record_review",
+    "precondition": "Two processes share one review ledger and synchronize immediately before record_review.",
+    "reproduction": "Two forked workers both record the same diff_hash with distinct review IDs. Both calls return their own accepted entry; only one remains in ledger.json.",
+    "expected": "Exactly one semantic review or an explicit deterministic conflict.",
+    "actual": "Two callers report acceptance, while one durable record is lost by last-writer-wins replacement.",
+    "security_or_reliability_effect": "Duplicate review execution and lost review history can occur across processes.",
+    "minimal_test": "Use two process barriers; assert one accepted record and one conflict/reuse result, with a durable ledger and log that agree.",
+    "suggested_fix_boundary": "Use a cross-platform transaction lock or canonical authority around load, dedupe, append, and replace."
+  }
+}

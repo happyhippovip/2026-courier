@@ -141,5 +141,23 @@ class TestP0DataHardening(unittest.TestCase):
         self.assertEqual(target.read_bytes(), before)
         self.assertEqual(list(target.parent.glob(".idea-race.json.tmp-*")), [])
 
+    def test_two_workspaces_keep_identical_idea_records_separate(self):
+        other_workspace = self.base_dir.parent / "test_hardening_other"
+        other_memory = other_workspace / "memory"
+        other_workspace.mkdir(parents=True, exist_ok=True)
+        other_memory.mkdir(parents=True, exist_ok=True)
+        try:
+            first = ThoughtCurator(repo_dir=self.base_dir, memory_dir=self.memory)
+            second = ThoughtCurator(repo_dir=other_workspace, memory_dir=other_memory)
+            idea = "The same idea is evaluated independently in two isolated workspaces."
+            first_result = first.curate_idea(idea, accepted_thought_reference="source-a")
+            second_result = second.curate_idea(idea, accepted_thought_reference="source-b")
+            self.assertEqual(first_result["idea_id"], second_result["idea_id"])
+            self.assertTrue((self.base_dir / "events" / "thoughts" / f"{first_result['idea_id']}.json").exists())
+            self.assertTrue((other_workspace / "events" / "thoughts" / f"{second_result['idea_id']}.json").exists())
+        finally:
+            if other_workspace.exists():
+                shutil.rmtree(other_workspace)
+
 if __name__ == "__main__":
     unittest.main()
