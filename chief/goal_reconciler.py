@@ -2158,6 +2158,42 @@ class GoalReconciler:
             "expected_evidence": "Sealed deliverable integrity test suite passed (7/7 tests 100% success)"
         })
 
+        # Candidate BN: End-to-End Post-Payment Delivery Fulfillment, Digital Product Payload Resolution & Store Download Circuit
+        candidates.append({
+            "candidate_id": "TASK-WIN-74",
+            "version": 1,
+            "goal_id": "GOAL-03",
+            "title": "End-to-End Post-Payment Delivery Fulfillment, Digital Product Payload Resolution & Store Download Circuit",
+            "category": "SUSTAINABLE_COMMERCIAL_DELIVERY",
+            "conflict_domain": "DELIVERY_FULFILLMENT_CIRCUIT",
+            "target_machine": "WINDOWS",
+            "target_worker": "WINDOWS_GOOGLE",
+            "scope": os.path.join(self.project_memory_dir, "money_factory"),
+            "script_path": "courier/tests/test_delivery_fulfillment_circuit.py",
+            "cwd": self.workspace_root,
+            "is_writer": False,
+            "unresolved_gap": "AUTONOMY_CAPABILITY_GAP",
+            "goal_impact": 10.0,
+            "revenue_impact": 10.0,
+            "info_gain": 10.0,
+            "proof_debt_reduction": 10.0,
+            "autonomy_gain": 10.0,
+            "risk_score": 0.0,
+            "spend_eur": 0.00,
+            "human_requirement": "NONE",
+            "acceptance_criteria": [
+                "Execute courier/tests/test_delivery_fulfillment_circuit.py",
+                "Verify Stripe webhook settlement writes both payment proof and order delivery file atomically",
+                "Verify AgenticCommerceEngine.downloadPayload resolves OPP-SEED-04 with full activation guide and archive URL",
+                "Verify delivered license key validates cleanly as PRO tier in offline Python LicenseValidator",
+                "Verify unauthorized delivery token requests are rejected fail-closed",
+                "Verify unknown order requests return clean error",
+                "Verify studio/server.js declares both /api/webhooks/stripe and /api/agentic/download routes",
+                "Verify zero external network calls, zero telemetry, and 0.00 EUR automatic spend"
+            ],
+            "expected_evidence": "Delivery fulfillment circuit test suite passed (7/7 tests 100% success)"
+        })
+
         # Dynamic Candidate Discovery from safe_backlog.json
         if os.path.exists(self.backlog_path):
             try:
