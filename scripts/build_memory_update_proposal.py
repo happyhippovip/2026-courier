@@ -59,6 +59,57 @@ def atomic_write_json(path: Path, payload: dict) -> None:
             temp_path.unlink()
 
 
+def atomic_create_json(path: Path, payload: dict) -> bool:
+    """Create a new immutable artifact, returning False if it already exists.
+
+    ``os.link`` is an atomic destination-creation primitive when both names are
+    in the same directory.  It prevents two initial creators from each passing
+    an ``exists`` check and silently overwriting one another.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temp_name = tempfile.mkstemp(prefix=f".{path.name}.tmp.", dir=path.parent)
+    temp_path = Path(temp_name)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            json.dump(payload, handle, indent=2)
+            handle.write("\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        try:
+            os.link(temp_path, path)
+        except FileExistsError:
+            return False
+        try:
+            directory_fd = os.open(path.parent, os.O_RDONLY)
+            try:
+                os.fsync(directory_fd)
+            finally:
+                os.close(directory_fd)
+        except OSError:
+            # Creation remains atomic where directory fsync is unavailable.
+            pass
+        return True
+    finally:
+        if temp_path.exists():
+            temp_path.unlink()
+
+
+def load_matching_proposal(path: Path, proposal_id: str, schema_path: Path | None) -> dict:
+    """Load an existing immutable proposal or fail closed on mismatch/corruption."""
+    try:
+        existing_proposal = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        fail(f"Existing proposal artifact is unreadable: {exc}")
+    if not isinstance(existing_proposal, dict):
+        fail("Existing proposal artifact must be a JSON object")
+    if existing_proposal.get("proposal_id") != proposal_id:
+        fail(f"Proposal collision for task_id {path.stem.removesuffix('-memory-proposal')}; existing artifact has a different immutable source")
+    existing_valid, existing_error = validate_proposal_against_schema(existing_proposal, schema_path)
+    if not existing_valid:
+        fail(f"Existing proposal artifact is invalid: {existing_error}")
+    return existing_proposal
+
+
 def get_memory_commit(repo_path: Path) -> str:
     """Read a validated HEAD from either a Git directory or worktree pointer.
 
@@ -278,24 +329,16 @@ def build_proposal_from_result(
     proposal_id = f"prop-mem-{task_id}-{source_fingerprint[:16]}"
     output_dir.mkdir(parents=True, exist_ok=True)
     out_file = output_dir / f"{task_id}-memory-proposal.json"
-    created_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    existing_proposal = None
 
     # A retry of the exact immutable result must be byte-stable.  Conversely,
     # a different result cannot silently replace the existing approval target
     # merely because it reuses the same task id.
     if out_file.exists():
-        try:
-            existing_proposal = json.loads(out_file.read_text(encoding="utf-8"))
-        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
-            fail(f"Existing proposal artifact is unreadable: {exc}")
-        if not isinstance(existing_proposal, dict):
-            fail("Existing proposal artifact must be a JSON object")
-        if existing_proposal.get("proposal_id") != proposal_id:
-            fail(f"Proposal collision for task_id {task_id}; existing artifact has a different immutable source")
-        existing_valid, existing_error = validate_proposal_against_schema(existing_proposal, schema_path)
-        if not existing_valid:
-            fail(f"Existing proposal artifact is invalid: {existing_error}")
-        created_at = existing_proposal["created_at"]
+        existing_proposal = load_matching_proposal(out_file, proposal_id, schema_path)
+        return existing_proposal
+
+    created_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
     canonical_order = [
         "VERIFIED_CURRENT", "EXTERNAL_STATUS", "HISTORICAL_DECISION", "PLANNED",
@@ -325,9 +368,12 @@ def build_proposal_from_result(
     if not is_valid:
         fail(f"Generated proposal failed schema validation: {err}")
 
-    atomic_write_json(out_file, proposal)
+    if atomic_create_json(out_file, proposal):
+        return proposal
 
-    return proposal
+    # Another process won the initial claim after our pre-check.  Its result
+    # must be the exact same immutable proposal, otherwise deny the collision.
+    return load_matching_proposal(out_file, proposal_id, schema_path)
 
 
 def main() -> None:

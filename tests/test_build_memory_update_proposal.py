@@ -11,7 +11,7 @@ from unittest import mock
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from build_memory_update_proposal import ZERO_COMMIT, atomic_write_json, build_proposal_from_result, get_memory_commit, validate_proposal_against_schema
+from build_memory_update_proposal import ZERO_COMMIT, atomic_create_json, atomic_write_json, build_proposal_from_result, get_memory_commit, validate_proposal_against_schema
 
 
 class MemoryCommitTests(unittest.TestCase):
@@ -102,6 +102,14 @@ class MemoryCommitTests(unittest.TestCase):
 
             self.assertGreaterEqual(synced.call_count, 2)
             self.assertEqual(json.loads(path.read_text(encoding="utf-8")), {"status": "durable"})
+
+    def test_atomic_creator_has_one_winner_and_never_overwrites(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = Path(temp_dir) / "proposal.json"
+            self.assertTrue(atomic_create_json(path, {"winner": 1}))
+            self.assertFalse(atomic_create_json(path, {"winner": 2}))
+            self.assertEqual(json.loads(path.read_text(encoding="utf-8")), {"winner": 1})
+            self.assertEqual(list(path.parent.glob(".proposal.json.tmp.*")), [])
 
     def test_proposal_is_scoped_to_explicit_unicode_paths_not_current_directory(self):
         result = {
