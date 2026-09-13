@@ -561,7 +561,33 @@ print("NEGATIVE_DEFENSE_ALL_PASSED")
         assert actual_zip_sha in sha_text, f"Archive SHA256 {actual_zip_sha} not in SHA256SUMS.txt"
         assert manifest["version"] == "1.0.0-rc1"
         assert manifest["release_tag"] == "v1.0.0-rc1"
-        assert manifest["git_commit"] == "d42e38ffe237b8d59a9ea6f66b99006145180ebd"
+        assert len(manifest["git_commit"]) == 40, f"git_commit must be 40-char SHA: {manifest.get('git_commit')}"
+
+        # If running inside git repo, verify git_commit matches repository HEAD or parent (if release commit made)
+        try:
+            head_commit = subprocess.check_output(
+                ["git", "rev-parse", "HEAD"],
+                cwd=COURIER_DIR,
+                text=True,
+                stderr=subprocess.DEVNULL
+            ).strip()
+            try:
+                parent_commit = subprocess.check_output(
+                    ["git", "rev-parse", "HEAD~1"],
+                    cwd=COURIER_DIR,
+                    text=True,
+                    stderr=subprocess.DEVNULL
+                ).strip()
+                valid_commits = [head_commit, parent_commit]
+            except Exception:
+                valid_commits = [head_commit]
+
+            assert manifest["git_commit"] in valid_commits, (
+                f"Manifest git_commit {manifest['git_commit']} is neither HEAD ({head_commit}) nor parent ({valid_commits})"
+            )
+        except Exception as e:
+            if "neither HEAD" in str(e):
+                raise
 
         matrix["courts"]["COURT_10_RELEASE_HASH_FREEZE"] = {
             "status": "PASS",

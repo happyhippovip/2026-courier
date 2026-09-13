@@ -191,7 +191,7 @@ def build_release() -> Dict[str, Any]:
 
     # Copy standalone docs to dist directory
     import shutil
-    for doc in ("README.md", "V1_RECOVERY_CARD.md", "V1_RELEASE_REPORT.md", "WINDOWS_COURIER_OPERATING_CONSTITUTION.json"):
+    for doc in ("README.md", "V1_RECOVERY_CARD.md", "V1_RELEASE_REPORT.md", "V1_ACCEPTANCE_MATRIX.json", "WINDOWS_COURIER_OPERATING_CONSTITUTION.json"):
         src = os.path.join(COURIER_DIR, doc)
         if os.path.exists(src):
             shutil.copy2(src, os.path.join(DIST_DIR, doc))
