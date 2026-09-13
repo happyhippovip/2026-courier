@@ -111,6 +111,17 @@ class TestP0DataHardening(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "accepted_thought_reference"):
             curator.curate_idea("A normal idea.", accepted_thought_reference={"forged": "object"})
 
+    def test_curator_does_not_dispatch_when_canonical_memory_is_unavailable(self):
+        curator = ThoughtCurator(repo_dir=self.base_dir, memory_dir=self.memory)
+        result = curator.curate_idea(
+            "A sourced thought must not bypass a missing memory comparison.",
+            accepted_thought_reference="ingestion-run-memory-missing",
+        )
+        self.assertEqual(result["memory_comparison_state"], "UNAVAILABLE")
+        state = json.loads((self.base_dir / "events" / "agent-states" / "agent-thought-curator.json").read_text(encoding="utf-8"))
+        self.assertEqual(state["state"], "BLOCKED")
+        self.assertIn("reconcile canonical Project Memory", state["next_action"])
+
     def test_curator_overwrite(self):
         curator = ThoughtCurator(repo_dir=self.base_dir, memory_dir=self.memory)
         

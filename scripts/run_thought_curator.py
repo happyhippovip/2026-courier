@@ -237,6 +237,12 @@ class ThoughtCurator:
         related_entries = []
         memory_links = []
         classification = "NEW"
+        memory_available = any(self.sources_available.values())
+        memory_comparison_state = (
+            "UNAVAILABLE" if not memory_available
+            else "PARTIAL" if not all(self.sources_available.values())
+            else "AVAILABLE"
+        )
 
         # Check for policy conflicts
         # Policy D-002: Crypto / speculation forbidden
@@ -354,6 +360,7 @@ class ThoughtCurator:
             "recommended_next_action": rec_action,
             "target_agent_recommendation": target_agent,
             "sources_indexed": self.sources_available,
+            "memory_comparison_state": memory_comparison_state,
             "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         }
 
@@ -381,14 +388,23 @@ class ThoughtCurator:
         # An unbound thought may be saved for human review, but it is not a
         # dispatchable Chief handoff.  A terminal success state here would let
         # a caller bypass the provenance gate merely by omitting the source.
-        final_state = "BLOCKED" if classification == "CONFLICT" or is_unbound else "SENT TO CHIEF"
+        # A comparison against no canonical memory is not a valid successful
+        # handoff. Preserve the record for reconciliation, but never turn a
+        # missing checkout into a positive Chief outcome.
+        final_state = "BLOCKED" if classification == "CONFLICT" or is_unbound or not memory_available else "SENT TO CHIEF"
         self.state_tracker.update_state(
             state=final_state,
             task=f"Curated {idea_id}",
             progress=1.0,
             workflow=idea_id,
             last_action=f"Classified as {classification} -> Recommendation: {rec_action}",
-            next_action=f"Forwarding to Chief Commander (Agent: {target_agent})" if final_state == "SENT TO CHIEF" else "Awaiting human override or reformulation",
+            next_action=(
+                f"Forwarding to Chief Commander (Agent: {target_agent})"
+                if final_state == "SENT TO CHIEF"
+                else "Restore or reconcile canonical Project Memory before dispatch"
+                if not memory_available
+                else "Awaiting human override or reformulation"
+            ),
             result=f"Classification: {classification} | Links: {len(memory_links)}",
             blocked=final_state == "BLOCKED",
             human_gate="REQUIRE_EXPLICIT_HUMAN_APPROVAL" if final_state == "BLOCKED" else None,
