@@ -294,6 +294,10 @@ class AutonomousLevel6Loop:
                     "payload_override": next_step.get("payload_override"),
                 }
 
+            elif payload.get("spawn_followup"):
+                next_task_info = payload.get("spawn_followup")
+            elif payload.get("next_task"):
+                next_task_info = payload.get("next_task")
             if next_task_info:
                 decision = {
                     "schema_version": "2.0",

@@ -90,7 +90,7 @@ class DemoOrchestrator:
 
         # STAGE 1 & 2: Human Idea Ingestion & Thought Curator Memory Indexing
         print("\n[STAGE 1 & 2] IDEA SYNC & MEMORY COMPARISON...")
-        context_delta = self.curator.curate_idea(raw_idea, idea_type)
+        context_delta = self.curator.curate_idea(raw_idea, idea_type, provenance_guard=True)
         idea_id = context_delta["idea_id"]
         save_json(self.evidence_dir / "context_delta.json", context_delta)
         print(f"   -> Idea ID: {idea_id} | Classification: {context_delta['classification']}")

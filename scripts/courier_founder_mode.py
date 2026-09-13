@@ -109,41 +109,61 @@ class MultiChatGoalIntake:
             q = MissionQueue(self.workspace_dir)
             missions = q.read_all()
             
-            for g in data:
-                if g["status"] == "ACTIVE":
-                    # Stale ACTIVE recovery
-                    has_live = any(m.get("goal") == g["goal"] and m.get("status") in ("PENDING", "RUNNING", "PENDING_VERIFY") for m in missions)
-                    if not has_live:
-                        has_blocked = any(m.get("goal") == g["goal"] and m.get("status") == "BLOCKED" and m.get("result_reference") == "WORKER_UNAVAILABLE" for m in missions)
-                        if has_blocked:
-                            g["status"] = "BLOCKED"
+            # Step 1: SINGLE FLIGHT ENFORCEMENT - Enforce MAX_ACTIVE_EXTERNAL_ROOT_GOALS = 1
+            active_goals = [g for g in data if g["status"] == "ACTIVE"]
+            if active_goals:
+                g = active_goals[0]
+                has_live = any(m.get("goal") == g["goal"] and m.get("status") in ("PENDING", "RUNNING", "PENDING_VERIFY") for m in missions)
+                
+                if has_live:
+                    # An active, non-orphaned goal exists. Resume it.
+                    return g
+                else:
+                    has_blocked = any(m.get("goal") == g["goal"] and m.get("status") == "BLOCKED" and m.get("result_reference") == "WORKER_UNAVAILABLE" for m in missions)
+                    if has_blocked:
+                        if "blocker_evidence" in g:
+                            ev = g["blocker_evidence"]
+                            if "worker_evidence" in ev and current_gemini != ev["worker_evidence"]:
+                                g["blocker_evidence"]["worker_evidence"] = current_gemini
+                                def _unblock_mission(doc):
+                                    changed = False
+                                    for m in doc.get("missions", []):
+                                        if m.get("goal") == g["goal"] and m.get("status") == "BLOCKED" and m.get("result_reference") == "WORKER_UNAVAILABLE":
+                                            m["status"] = "PENDING"
+                                            changed = True
+                                    return changed
+                                q._mutate(_unblock_mission)
+                                return g
+                        
+                        # Remains blocked. Relinquish the single-flight slot.
+                        g["status"] = "BLOCKED"
+                    else:
+                        # Orphaned ACTIVE goal. Resume it.
+                        return g
 
-            # Then, check if any BLOCKED goals are now unblocked due to changed evidence
+            # Step 2: Unblock BLOCKED goals if evidence changed
             for g in data:
                 if g["status"] == "BLOCKED" and "blocker_evidence" in g:
                     ev = g["blocker_evidence"]
-                    if "worker_evidence" in ev:
-                        if current_gemini != ev["worker_evidence"]:
-                            # Evidence changed! We can retry.
-                            g["status"] = "ACTIVE"
-                            g["blocker_evidence"]["worker_evidence"] = current_gemini
-                            
-                            def _unblock_mission(doc):
-                                changed = False
-                                for m in doc.get("missions", []):
-                                    if m.get("goal") == g["goal"] and m.get("status") == "BLOCKED" and m.get("result_reference") == "WORKER_UNAVAILABLE":
-                                        m["status"] = "PENDING"
-                                        changed = True
-                                return changed
-                            q._mutate(_unblock_mission)
-                            
-                            return g
+                    if "worker_evidence" in ev and current_gemini != ev["worker_evidence"]:
+                        g["status"] = "ACTIVE"
+                        g["blocker_evidence"]["worker_evidence"] = current_gemini
+                        def _unblock_mission(doc):
+                            changed = False
+                            for m in doc.get("missions", []):
+                                if m.get("goal") == g["goal"] and m.get("status") == "BLOCKED" and m.get("result_reference") == "WORKER_UNAVAILABLE":
+                                    m["status"] = "PENDING"
+                                    changed = True
+                            return changed
+                        q._mutate(_unblock_mission)
+                        return g
             
-            # Then check for PENDING
+            # Step 3: Admit a new PENDING goal
             for g in data:
                 if g["status"] == "PENDING":
                     g["status"] = "ACTIVE"
                     return g
+
             return None
         return self._mutate(_pop)
 
@@ -263,7 +283,7 @@ class FounderModePlanner:
                     }
 
                 # VERIFICATION — explicit verification action or stage
-                elif action == "verify_improvement_tests" or "VERIFICATION" in stage.upper() or "ACCEPTANCE_AUDIT" in stage.upper():
+                elif (action == "verify_improvement_tests" or "VERIFICATION" in stage.upper() or "ACCEPTANCE_AUDIT" in stage.upper()) and mission.get("task", {}).get("capability_request") != "implementation":
                     res = {
                         "task_type": "VERIFICATION",
                         "acceptance_evidence": {"goal_satisfied": payload.get("test_returncode") == 0 or payload.get("verdict") == "PASS"}
@@ -274,6 +294,7 @@ class FounderModePlanner:
                     action in ("implementation", "implement")
                     or "IMPLEMENTATION" in stage.upper()
                     or payload.get("changed_files")
+                    or mission.get("task", {}).get("capability_request") == "implementation"
                 ):
                     changed = payload.get("changed_files") or ["auto_detected_changes"]
                     res = {
@@ -339,9 +360,13 @@ class FounderModePlanner:
                 return []
             if not isinstance(finding.get("confidence"), (int, float)) or finding.get("confidence") < 0.8:
                 return []
+                
+            if finding.get("finding_id") == "NONE":
+                return []
 
             # IMPLEMENTATION MISSION
             task = {
+                "action": "implement_bounded_improvement",
                 "prompt": f"Fix {finding['finding_id']}",
                 "capability_request": "implementation"
             }
@@ -406,6 +431,8 @@ class FounderModePlanner:
         if completed_missions and len(completed_missions) > 0:
             mission = completed_missions[-1]
             res = self._load_result(mission)
+            if res.get("task_type") == "DISCOVERY" and res.get("finding", {}).get("finding_id") == "NONE" and mission.get("status") == "VERIFIED":
+                return True
             if res.get("task_type") == "VERIFICATION":
                 ev = res.get("acceptance_evidence", {})
                 if ev.get("goal_satisfied") is True and has_verified_impl:
@@ -428,80 +455,90 @@ class FounderModeMVP:
         }
 
     def run_autonomous_loop(self):
-        # 1. Take highest priority PENDING goal
-        goal = self.intake.pop_next_goal()
-        if not goal:
-            return
-
-        completed_missions = []
-        # 2 & 3. Iterative Replan and Execution Loop
+        import time
         while True:
-            # Replan / decompose based on current state
-            pending = [m for m in self.queue.read_all() if m["status"] == "PENDING"]
-            if not pending:
-                next_missions = self.planner.discover_and_plan(goal, completed_missions)
-                if not next_missions:
-                    if self.planner.evaluate_success(goal, {"status": "PASS"}, completed_missions):
-                        self.intake.mark_satisfied(goal["goal_id"])
-                    break
-                    
-                parent_id = completed_missions[-1]["mission_id"] if completed_missions else None
-                for m in next_missions:
-                    if parent_id: m["parent_mission_id"] = parent_id
-                    m["mission_id"] = str(uuid.uuid4())
-                    self.queue.enqueue(m)
-                    parent_id = m["mission_id"]
-
-            # Process next mission using Courier dispatcher
-            worker_id = "founder_loop_1"
-            mission_result = self.dispatcher.process_next_mission(worker_id)
-            
-            if not mission_result:
-                break # Queue somehow empty
-                
-            status = mission_result.get("status")
-            agent_used = mission_result.get("agent_dispatched")
-            
-            self.stats["autonomous_steps"] += 1
-            if agent_used == "CLI1": self.stats["cli1_tasks"] += 1
-            if agent_used in ["GEMINI", "GOOGLE", "CODEX"]: self.stats["google_tasks"] += 1
-            
-            if status == "HUMAN_GATE":
-                self.stats["human_gates"] += 1
-                self.intake.set_status(goal["goal_id"], "HUMAN_GATE")
-                break
-                
-            if status in ["FAILED", "FAIL_CLOSED"]:
-                self.stats["blockers"] += 1
+            # 1. Take highest priority PENDING goal
+            goal = self.intake.pop_next_goal()
+            if not goal:
+                print("No safe V1 work or blocked. Sleeping...")
+                time.sleep(10)
                 continue
-            if status in ["BLOCKED", "FAIL", "UNKNOWN"]:
-                self.stats["blockers"] += 1
-                # Record error lesson
-                self.memory.record_lesson(
-                    goal=goal["goal"], task=mission_result.get("mission", {}).get("normalized_task", ""),
-                    result=status, error=mission_result.get("reason", ""), root_cause="Unknown",
-                    lesson="Failed execution on this approach.", reusable_pattern="None"
-                )
+
+            completed_missions = []
+            # 2 & 3. Iterative Replan and Execution Loop
+            while True:
+                all_missions = self.queue.read_all()
+                pending = [m for m in all_missions if m["status"] == "PENDING"]
+                running_or_verify = [m for m in all_missions if m["status"] in ("RUNNING", "PENDING_VERIFY")]
                 
-                # Fetch blocker evidence if WORKER_UNAVAILABLE
-                evidence = None
-                if mission_result.get("reason") == "WORKER_UNAVAILABLE":
-                    from scripts.worker_availability import WorkerAvailabilityResolver
-                    resolver = WorkerAvailabilityResolver()
-                    gemini_evidence = resolver.resolve_gemini()
-                    evidence = {"worker_evidence": gemini_evidence.to_dict()}
-                
-                self.intake.set_status(goal["goal_id"], "BLOCKED", blocker_evidence=evidence)
-                break
+                if not pending and not running_or_verify:
+                    next_missions = self.planner.discover_and_plan(goal, completed_missions)
+                    if not next_missions:
+                        if self.planner.evaluate_success(goal, {"status": "PASS"}, completed_missions):
+                            self.intake.mark_satisfied(goal["goal_id"])
+                        break
+                    
+                    parent_id = completed_missions[-1]["mission_id"] if completed_missions else None
+                    for m in next_missions:
+                        if parent_id: m["parent_mission_id"] = parent_id
+                        m["mission_id"] = str(uuid.uuid4())
+                        self.queue.enqueue(m)
+                        parent_id = m["mission_id"]
+                        
+                # Process next mission using Courier dispatcher
+                worker_id = "founder_loop_1"
+                mission_result = self.dispatcher.process_next_mission(worker_id)
             
-            if status in ["VERIFIED", "PASS"]:
-                # Record success lesson
-                self.memory.record_lesson(
-                    goal=goal["goal"], task=mission_result.get("mission", {}).get("normalized_task", ""),
-                    result="SUCCESS", error="None", root_cause="None",
-                    lesson="Implementation succeeded.", reusable_pattern="Standard execution"
-                )
-                completed_missions.append(self.queue.get(mission_result["mission_id"]))
+                if not mission_result or mission_result.get("status") == "NO_PENDING_MISSION":
+                    if running_or_verify:
+                        print("Waiting for running/verifying missions...")
+                        time.sleep(5)
+                        continue
+                    break # Queue somehow empty
+                
+                status = mission_result.get("status")
+                agent_used = mission_result.get("agent_dispatched")
+            
+                self.stats["autonomous_steps"] += 1
+                if agent_used == "CLI1": self.stats["cli1_tasks"] += 1
+                if agent_used in ["GEMINI", "GOOGLE", "CODEX"]: self.stats["google_tasks"] += 1
+            
+                if status == "HUMAN_GATE":
+                    self.stats["human_gates"] += 1
+                    self.intake.set_status(goal["goal_id"], "HUMAN_GATE")
+                    break
+                
+                if status in ["FAILED", "FAIL_CLOSED"]:
+                    self.stats["blockers"] += 1
+                    continue
+                if status in ["BLOCKED", "FAIL", "UNKNOWN"]:
+                    self.stats["blockers"] += 1
+                    # Record error lesson
+                    self.memory.record_lesson(
+                        goal=goal["goal"], task=mission_result.get("mission", {}).get("normalized_task", ""),
+                        result=status, error=mission_result.get("reason", ""), root_cause="Unknown",
+                        lesson="Failed execution on this approach.", reusable_pattern="None"
+                    )
+                
+                    # Fetch blocker evidence if WORKER_UNAVAILABLE
+                    evidence = None
+                    if mission_result.get("reason") == "WORKER_UNAVAILABLE":
+                        from scripts.worker_availability import WorkerAvailabilityResolver
+                        resolver = WorkerAvailabilityResolver()
+                        gemini_evidence = resolver.resolve_gemini()
+                        evidence = {"worker_evidence": gemini_evidence.to_dict()}
+                
+                    self.intake.set_status(goal["goal_id"], "BLOCKED", blocker_evidence=evidence)
+                    break
+            
+                if status in ["VERIFIED", "PASS"]:
+                    # Record success lesson
+                    self.memory.record_lesson(
+                        goal=goal["goal"], task=mission_result.get("mission", {}).get("normalized_task", ""),
+                        result="SUCCESS", error="None", root_cause="None",
+                        lesson="Implementation succeeded.", reusable_pattern="Standard execution"
+                    )
+                    completed_missions.append(self.queue.get(mission_result["mission_id"]))
                 
 
 

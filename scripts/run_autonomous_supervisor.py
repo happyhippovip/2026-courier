@@ -1502,12 +1502,12 @@ def main():
 
     elif args.long_run_canary:
         budget = SessionWorkBudget(max_wall_clock_seconds=300.0, zero_spend_limit_eur=0.0)
-        res = supervisor.run_long_run_session(budget=budget, max_operations=12, enable_bundling=True)
+        res = supervisor.run_long_run_session(budget=budget, max_operations=12, enable_bundling=False)
         print(json.dumps(res, indent=2))
 
     elif args.sleep:
         budget = SessionWorkBudget(max_wall_clock_seconds=args.max_hours * 3600.0, zero_spend_limit_eur=0.0)
-        res = supervisor.run_long_run_session(budget=budget, max_operations=100, enable_bundling=True)
+        res = supervisor.run_long_run_session(budget=budget, max_operations=100, enable_bundling=False)
         print(json.dumps(res, indent=2))
 
 

@@ -473,6 +473,10 @@ class ChiefCommander:
             }
 
         # Value Gate check: If Value Gate fails and there is no explicit planned next task, complete
+        elif payload.get("spawn_followup"):
+            next_task_info = payload.get("spawn_followup")
+        elif payload.get("next_task"):
+            next_task_info = payload.get("next_task")
         if not value_gate_res["passed"] and not next_task_info:
             decision_obj = ChiefDecisionContract(
                 conversation_id=conversation_id,
