@@ -59,7 +59,10 @@ class SupervisorAuthority:
         birth = self.birth_probe(self.pid)
         boot = self.boot_probe()
         try:
-            pgid = os.getpgid(self.pid)
+            if sys.platform != "win32":
+                pgid = os.getpgid(self.pid)
+            else:
+                pgid = self.pid
         except OSError:
             pgid = None
         if not birth or not boot or pgid is None:
@@ -285,7 +288,8 @@ def owned_process_matches(meta, authority):
     if _process_birth_identity(proc.pid) != meta["pid_lstart"]:
         return False
     try:
-        return os.getpgid(proc.pid) == meta["pgid"]
+        current_pgid = os.getpgid(proc.pid) if sys.platform != "win32" else proc.pid
+        return current_pgid == meta["pgid"]
     except OSError:
         return False
 
@@ -350,8 +354,10 @@ def run_loop():
             if proc.poll() is None and owned_process_matches(meta, authority):
                 print(f"[{MOTOR_ID}] Killing orphaned task {tid} (PID: {proc.pid})")
                 try:
-                    import os
-                    os.killpg(os.getpgid(proc.pid), sig.SIGKILL)
+                    if sys.platform != "win32":
+                        os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+                    else:
+                        subprocess.run(["taskkill", "/F", "/T", "/PID", str(proc.pid)], capture_output=True)
                 except:
                     pass
                 proc.kill()
@@ -401,7 +407,10 @@ def run_loop():
                     continue
                 print(f"[{MOTOR_ID}] Task {t_id} HUNG. Killing process group.")
                 try:
-                    os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+                    if sys.platform != "win32":
+                        os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+                    else:
+                        subprocess.run(["taskkill", "/F", "/T", "/PID", str(proc.pid)], capture_output=True)
                 except:
                     pass
                 try:
@@ -601,18 +610,23 @@ def run_loop():
                     # would let the worker manufacture its own approval.
                     env.pop("COURIER_HUMAN_GATE_SECRET", None)
                     env["MOTOR_TASK_ID"] = tid
-                    proc = subprocess.Popen(["/bin/sh", "-c", inst], stdout=out_f, stderr=out_f, preexec_fn=os.setpgrp, cwd=str(WORKSPACE), env=env)
+                    if sys.platform != "win32":
+                        proc = subprocess.Popen(["/bin/sh", "-c", inst], stdout=out_f, stderr=out_f, preexec_fn=os.setpgrp, cwd=str(WORKSPACE), env=env)
+                    else:
+                        proc = subprocess.Popen(["cmd.exe", "/c", inst], stdout=out_f, stderr=out_f, creationflags=0x00000200, cwd=str(WORKSPACE), env=env)
                     out_f.close() # CRITICAL: Prevent FD leak in supervisor
-
-                    # Grab lstart for PID reuse safety
-                    lstart = None
+                    
                     try:
-                        lstart = subprocess.check_output(["ps", "-p", str(proc.pid), "-o", "lstart="], text=True).strip()
-                    except Exception:
-                        pass
+                        import psutil
+                        lstart = psutil.Process(proc.pid).create_time()
+                    except (ImportError, Exception):
+                        lstart = 0.0
 
                     try:
-                        pgid = os.getpgid(proc.pid)
+                        if sys.platform != "win32":
+                            pgid = os.getpgid(proc.pid)
+                        else:
+                            pgid = proc.pid # On Windows, PID acts as the group ID when creationflags=CREATE_NEW_PROCESS_GROUP
                     except OSError:
                         pgid = None
                     try:
