@@ -11,7 +11,9 @@ import unittest
 
 WORKSPACE_ROOT = r"C:\Users\lol\2026-workspace"
 
-class TestPeerBridgeDispatch(unittest.TestCase):
+from courier.tests.server_fixture import CourierServerTestCase
+
+class TestPeerBridgeDispatch(CourierServerTestCase):
     def test_01_cli_direct_dispatch(self):
         """Verify courier_runtime.js --dispatch-command executes with full supervisor lifecycle."""
         cmd = [
@@ -37,11 +39,14 @@ class TestPeerBridgeDispatch(unittest.TestCase):
 
     def test_02_http_peer_bridge_dispatch(self):
         """Verify peer_bridge.py --dispatch-command dispatches across HTTP to :8088."""
+        port = str(self.base_url.split(":")[-1])
         cmd = [
             "uv",
             "run",
             "python",
             os.path.join(WORKSPACE_ROOT, "courier", "peer_bridge.py"),
+            "--port",
+            port,
             "--dispatch-command",
             'node -e "console.log(\\"PEER_HTTP_DISPATCH_VERIFIED\\");"',
             "--task-id",
@@ -59,11 +64,14 @@ class TestPeerBridgeDispatch(unittest.TestCase):
 
     def test_03_fail_closed_error_handling(self):
         """Verify commands with non-zero exit codes fail-closed and return error envelopes."""
+        port = str(self.base_url.split(":")[-1])
         cmd = [
             "uv",
             "run",
             "python",
             os.path.join(WORKSPACE_ROOT, "courier", "peer_bridge.py"),
+            "--port",
+            port,
             "--dispatch-command",
             'node -e "process.exit(77);"',
             "--task-id",

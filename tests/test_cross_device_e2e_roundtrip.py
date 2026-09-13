@@ -12,10 +12,13 @@ import unittest
 
 WORKSPACE_ROOT = r"C:\Users\lol\2026-workspace"
 
-class TestCrossDeviceE2ERoundtrip(unittest.TestCase):
+from courier.tests.server_fixture import CourierServerTestCase
+
+class TestCrossDeviceE2ERoundtrip(CourierServerTestCase):
     def test_01_request_submission_and_synchronous_resolution(self):
         """Verify submitting structured validation request via peer_bridge and getting completed result."""
         req_id = f"REQ-E2E-{int(time.time())}"
+        port = str(self.base_url.split(":")[-1])
         payload_str = json.dumps({
             "windows_validation_request_id": req_id,
             "validation_type": "WINDOWS_COMPATIBILITY",
@@ -27,6 +30,8 @@ class TestCrossDeviceE2ERoundtrip(unittest.TestCase):
             "run",
             "python",
             os.path.join(WORKSPACE_ROOT, "courier", "peer_bridge.py"),
+            "--port",
+            port,
             "--submit",
             payload_str
         ]
@@ -39,11 +44,14 @@ class TestCrossDeviceE2ERoundtrip(unittest.TestCase):
     def test_02_remote_worker_command_roundtrip_with_evidence_verification(self):
         """Verify remote worker command dispatch returns cryptographically sealed evidence."""
         task_id = f"TASK-E2E-ROUNDTRIP-{int(time.time())}"
+        port = str(self.base_url.split(":")[-1])
         cmd = [
             "uv",
             "run",
             "python",
             os.path.join(WORKSPACE_ROOT, "courier", "peer_bridge.py"),
+            "--port",
+            port,
             "--dispatch-command",
             'node -e "console.log(\\"E2E_ROUNDTRIP_VERIFIED_SHA256\\");"',
             "--task-id",
@@ -59,11 +67,14 @@ class TestCrossDeviceE2ERoundtrip(unittest.TestCase):
 
     def test_03_zero_spend_invariant_preserved(self):
         """Verify autonomous spend remains strictly 0.00 EUR across all operations."""
+        port = str(self.base_url.split(":")[-1])
         status_cmd = [
             "uv",
             "run",
             "python",
             os.path.join(WORKSPACE_ROOT, "courier", "peer_bridge.py"),
+            "--port",
+            port,
             "--status"
         ]
         proc = subprocess.run(status_cmd, cwd=WORKSPACE_ROOT, capture_output=True, text=True, timeout=15, shell=True)

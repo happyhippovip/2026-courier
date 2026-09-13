@@ -27,10 +27,11 @@ if WORKSPACE_ROOT not in sys.path:
     sys.path.insert(0, WORKSPACE_ROOT)
 
 from courier.sync.artifact_streamer import ArtifactStreamer
+from courier.tests.server_fixture import CourierServerTestCase
 
-class TestArtifactStreamer(unittest.TestCase):
+class TestArtifactStreamer(CourierServerTestCase):
     def setUp(self):
-        self.streamer = ArtifactStreamer(peer_url=BASE_URL)
+        self.streamer = ArtifactStreamer(peer_url=self.base_url)
         self.temp_dir = tempfile.mkdtemp(prefix="test_artifact_streamer_")
 
     def tearDown(self):
@@ -87,7 +88,7 @@ class TestArtifactStreamer(unittest.TestCase):
 
     def test_04_path_traversal_confinement(self):
         """Verify path traversal attempts are rejected fail-closed with HTTP 403."""
-        traversal_url = f"{BASE_URL}/api/courier/sync/artifacts/download?scope=distribution_ready&file=../../../../Windows/win.ini"
+        traversal_url = f"{self.base_url}/api/courier/sync/artifacts/download?scope=distribution_ready&file=../../../../Windows/win.ini"
         req = urllib.request.Request(traversal_url)
         with self.assertRaises(urllib.error.HTTPError) as ctx:
             urllib.request.urlopen(req, timeout=5)

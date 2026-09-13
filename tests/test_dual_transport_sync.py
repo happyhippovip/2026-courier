@@ -23,11 +23,12 @@ if WORKSPACE_ROOT not in sys.path:
     sys.path.insert(0, WORKSPACE_ROOT)
 
 from courier.sync.dual_transport import DualTransportClient
+from courier.tests.server_fixture import CourierServerTestCase
 
-class TestDualTransportSync(unittest.TestCase):
+class TestDualTransportSync(CourierServerTestCase):
     def test_01_http_peer_handoff_delivery(self):
         """Verify direct HTTP peer delivery queues handoff into mac_to_windows/requests."""
-        client = DualTransportClient(peer_url=BASE_URL)
+        client = DualTransportClient(peer_url=self.base_url)
         req_id = f"REQ-DUAL-HTTP-TEST-{int(time.time() * 1000)}"
         payload = {
             "schema_version": "1.0",
@@ -88,7 +89,7 @@ class TestDualTransportSync(unittest.TestCase):
 
     def test_04_schema_validation_and_rejection_of_malformed_handoff(self):
         """Verify POST /api/courier/sync/handoff fails-closed with HTTP 400 for payloads without ID."""
-        url = f"{BASE_URL}/api/courier/sync/handoff"
+        url = f"{self.base_url}/api/courier/sync/handoff"
         malformed_payload = json.dumps({"schema_version": "1.0"}).encode("utf-8")
         req = urllib.request.Request(
             url,

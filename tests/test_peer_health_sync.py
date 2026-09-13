@@ -19,18 +19,18 @@ import urllib.parse
 import unittest
 
 WORKSPACE_ROOT = r"C:\Users\lol\2026-workspace"
-BASE_URL = "http://127.0.0.1:8088"
+from courier.tests.server_fixture import CourierServerTestCase
 
-def http_get(endpoint):
-    url = f"{BASE_URL}{endpoint}"
-    req = urllib.request.Request(url, headers={"Accept": "application/json"})
-    with urllib.request.urlopen(req, timeout=10) as resp:
-        return json.loads(resp.read().decode("utf-8"))
+class TestPeerHealthSync(CourierServerTestCase):
+    def http_get(self, endpoint):
+        url = f"{self.base_url}{endpoint}"
+        req = urllib.request.Request(url, headers={"Accept": "application/json"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            return json.loads(resp.read().decode("utf-8"))
 
-class TestPeerHealthSync(unittest.TestCase):
     def test_01_local_ping_endpoint(self):
         """Verify /api/courier/ping returns valid host, supervisor metrics, checkpoint, and zero spend."""
-        res = http_get("/api/courier/ping")
+        res = self.http_get("/api/courier/ping")
         self.assertTrue(res.get("success"), f"Ping failed: {res}")
         self.assertEqual(res.get("host"), "WINDOWS")
         self.assertIn("uptime_seconds", res)
@@ -54,7 +54,7 @@ class TestPeerHealthSync(unittest.TestCase):
 
     def test_02_peer_health_standalone(self):
         """Verify /api/courier/peer-health without peer parameter reports local health and unqueried peer."""
-        res = http_get("/api/courier/peer-health")
+        res = self.http_get("/api/courier/peer-health")
         self.assertTrue(res.get("success"), f"Peer health failed: {res}")
         
         local = res.get("local", {})
@@ -67,8 +67,8 @@ class TestPeerHealthSync(unittest.TestCase):
 
     def test_03_peer_health_loopback(self):
         """Verify /api/courier/peer-health with loopback peer confirms SYNCHRONIZED status and measures latency."""
-        encoded_peer = urllib.parse.quote(BASE_URL)
-        res = http_get(f"/api/courier/peer-health?peer={encoded_peer}")
+        encoded_peer = urllib.parse.quote(self.base_url)
+        res = self.http_get(f"/api/courier/peer-health?peer={encoded_peer}")
         self.assertTrue(res.get("success"), f"Loopback peer health failed: {res}")
         
         peer = res.get("peer", {})
@@ -82,7 +82,7 @@ class TestPeerHealthSync(unittest.TestCase):
     def test_04_peer_health_unreachable_fail_closed(self):
         """Verify peer health handles unreachable/offline peer gracefully without crashing."""
         encoded_peer = urllib.parse.quote("http://127.0.0.1:59999")
-        res = http_get(f"/api/courier/peer-health?peer={encoded_peer}")
+        res = self.http_get(f"/api/courier/peer-health?peer={encoded_peer}")
         self.assertTrue(res.get("success"))
         
         local = res.get("local", {})
@@ -97,7 +97,7 @@ class TestPeerHealthSync(unittest.TestCase):
         """Verify CLI utility peer_health.py --probe --assert-zero-spend returns 0 and valid evidence."""
         cli_script = os.path.join(WORKSPACE_ROOT, "courier", "peer_health.py")
         proc = subprocess.run(
-            [sys.executable, cli_script, "--probe", "--assert-zero-spend", "--json"],
+            [sys.executable, cli_script, "--probe", "--base-url", self.base_url, "--assert-zero-spend", "--json"],
             cwd=os.path.join(WORKSPACE_ROOT, "courier"),
             capture_output=True,
             text=True,
