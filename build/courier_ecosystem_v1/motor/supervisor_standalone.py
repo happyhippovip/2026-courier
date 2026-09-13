@@ -214,10 +214,16 @@ def run_loop():
                         parsed_eff = eff_val # legacy raw string path
 
                     if isinstance(parsed_eff, list) and len(parsed_eff) == 3 and parsed_eff[0] == "REGEX":
-                        eff_path = Path(WORKSPACE / parsed_eff[1])
+                        eff_path = Path(WORKSPACE / parsed_eff[1]).resolve()
+                    else:
+                        eff_path = Path(WORKSPACE / str(parsed_eff)).resolve()
+                    
+                    if not str(eff_path).startswith(str(Path(WORKSPACE).resolve())):
+                        raise ValueError(f"Path escape attempt: {eff_path}")
+
+                    if isinstance(parsed_eff, list) and len(parsed_eff) == 3 and parsed_eff[0] == "REGEX":
                         success, msg = result_customs.ResultCustoms.verify_content_regex(str(eff_path), parsed_eff[2])
                     else:
-                        eff_path = Path(WORKSPACE / str(parsed_eff))
                         success, msg = result_customs.ResultCustoms.verify_file_exists(str(eff_path))
 
                     if success:
