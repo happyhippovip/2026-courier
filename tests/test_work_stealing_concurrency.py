@@ -27,7 +27,15 @@ def http_get(endpoint):
     with urllib.request.urlopen(req, timeout=15) as resp:
         return json.loads(resp.read().decode("utf-8"))
 
-class TestWorkStealingConcurrency(unittest.TestCase):
+from courier.tests.server_fixture import CourierServerTestCase
+
+class TestWorkStealingConcurrency(CourierServerTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        global BASE_URL
+        BASE_URL = cls.base_url
+
     def test_01_enqueue_and_atomic_work_stealing(self):
         """Verify multiple workers steal distinct tasks atomically without double claiming."""
         # Enqueue 3 distinct tasks

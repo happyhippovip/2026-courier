@@ -29,14 +29,19 @@ if WORKSPACE_ROOT not in sys.path:
     sys.path.insert(0, WORKSPACE_ROOT)
 
 from courier.chief.fenced_mutex import FencedMutexManager
+from courier.tests.server_fixture import CourierServerTestCase
 
-class TestFencedMutexGuard(unittest.TestCase):
+class TestFencedMutexGuard(CourierServerTestCase):
     @classmethod
     def setUpClass(cls):
+        super().setUpClass()
+        global BASE_URL
+        BASE_URL = cls.base_url
         cls.mgr = FencedMutexManager()
 
     @classmethod
     def tearDownClass(cls):
+        super().tearDownClass()
         # Clean up test mutexes from SQLite DB
         with cls.mgr._get_connection() as conn:
             cur = conn.cursor()

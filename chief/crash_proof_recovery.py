@@ -17,6 +17,7 @@ import hashlib
 import ctypes
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional, List, Tuple
+from courier.chief.process_liveness import is_pid_alive
 
 WORKSPACE_ROOT = r"C:\Users\lol\2026-workspace"
 RUNTIME_DIR = os.path.join(WORKSPACE_ROOT, "courier", "runtime")
@@ -424,14 +425,8 @@ class CrashProofMemoryEngine:
             return reconcile_report
 
         if status in ("RUNNING", "INTERRUPTED") and active_id:
-            # Check process liveness
-            pid_alive = False
-            if pid:
-                try:
-                    os.kill(pid, 0)
-                    pid_alive = True
-                except (ProcessLookupError, OSError):
-                    pid_alive = False
+            # Check process liveness safely without console signals
+            pid_alive = is_pid_alive(pid) if pid else False
 
             if pid_alive:
                 # Case 1: Process alive + valid lease -> attach, do NOT duplicate

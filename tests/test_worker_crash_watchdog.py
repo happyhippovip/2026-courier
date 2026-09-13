@@ -43,7 +43,15 @@ def http_get(endpoint):
     with urllib.request.urlopen(req, timeout=15) as resp:
         return json.loads(resp.read().decode("utf-8"))
 
-class TestWorkerCrashWatchdog(unittest.TestCase):
+from courier.tests.server_fixture import CourierServerTestCase
+
+class TestWorkerCrashWatchdog(CourierServerTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        global BASE_URL
+        BASE_URL = cls.base_url
+
     def test_01_pid_liveness_detection(self):
         """Verify process.kill(pid, 0) accurately detects live and dead PIDs on Windows."""
         # Current python process PID must be alive

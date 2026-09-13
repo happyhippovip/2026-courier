@@ -19,6 +19,34 @@ from typing import Dict, Any, Optional, Tuple
 WORKSPACE_ROOT = r"C:\Users\lol\2026-workspace"
 DB_PATH = os.path.join(WORKSPACE_ROOT, "courier", "chief_control_plane.db")
 
+def _safe_is_pid_alive(pid: int) -> bool:
+    if not pid or pid <= 0:
+        return False
+    if sys.platform == "win32":
+        try:
+            import ctypes
+            from ctypes import wintypes
+            kernel32 = ctypes.windll.kernel32
+            PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+            handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, int(pid))
+            if not handle:
+                return False
+            try:
+                exit_code = wintypes.DWORD()
+                if kernel32.GetExitCodeProcess(handle, ctypes.byref(exit_code)):
+                    return exit_code.value == 259
+                return False
+            finally:
+                kernel32.CloseHandle(handle)
+        except Exception:
+            return False
+    else:
+        try:
+            os.kill(pid, 0)
+            return True
+        except (ProcessLookupError, OSError):
+            return False
+
 class FencedMutexManager:
     def __init__(self, db_path: str = DB_PATH):
         self.db_path = os.path.abspath(db_path)
@@ -358,8 +386,7 @@ class FencedMutexManager:
                 steal_reason = "LEASE_EXPIRED"
                 
                 if row["holder_host"] == candidate_host and row["holder_pid"]:
-                    try:
-                        os.kill(row["holder_pid"], 0)
+                    if _safe_is_pid_alive(row["holder_pid"]):
                         # Process is alive: must respect grace period
                         if (now_ts - exp_ts) < grace_period_sec:
                             cursor.execute("COMMIT;")
@@ -370,7 +397,7 @@ class FencedMutexManager:
                                 "held_by": row["holder_id"]
                             }
                         steal_reason = "LOCAL_PROCESS_HELD_PAST_GRACE"
-                    except (ProcessLookupError, OSError):
+                    else:
                         holder_dead = True
                         steal_reason = "LOCAL_PROCESS_DEAD_ESRCH"
                 else:

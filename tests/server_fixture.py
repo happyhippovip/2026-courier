@@ -19,7 +19,8 @@ import unittest
 
 WORKSPACE_ROOT = r"C:\Users\lol\2026-workspace"
 PROJECT_MEMORY_DIR = os.path.join(WORKSPACE_ROOT, "project-memory")
-NODE_CMD = shutil.which("node") or r"C:\Users\lol\AppData\Local\agy\bin\node.cmd"
+CUA_NODE_EXE = r"C:\Users\lol\AppData\Local\OpenAI\Codex\runtimes\cua_node\b58ca2eaa616c2da\bin\node.exe"
+NODE_CMD = CUA_NODE_EXE if os.path.exists(CUA_NODE_EXE) else (shutil.which("node") or "node")
 
 def is_server_responding(url: str, timeout: float = 0.5) -> bool:
     """Checks if an HTTP server is responding to ping."""
@@ -44,6 +45,7 @@ server.listen(0, '127.0.0.1', () => {{
     with os.fdopen(fd, "w", encoding="utf-8") as f:
         f.write(runner_content)
 
+    creationflags = subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0
     proc = subprocess.Popen(
         [NODE_CMD, runner_file],
         cwd=PROJECT_MEMORY_DIR,
@@ -51,7 +53,8 @@ server.listen(0, '127.0.0.1', () => {{
         stderr=subprocess.PIPE,
         text=True,
         encoding="utf-8",
-        errors="replace"
+        errors="replace",
+        creationflags=creationflags
     )
 
     port = None
@@ -92,11 +95,21 @@ class CourierServerTestCase(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         if cls._server_proc:
-            cls._server_proc.terminate()
             try:
-                cls._server_proc.wait(timeout=5)
+                if sys.platform == "win32":
+                    subprocess.run(
+                        ["taskkill", "/F", "/T", "/PID", str(cls._server_proc.pid)],
+                        capture_output=True,
+                        check=False
+                    )
+                else:
+                    cls._server_proc.terminate()
             except Exception:
-                cls._server_proc.kill()
+                pass
+            try:
+                cls._server_proc.wait(timeout=2)
+            except Exception:
+                pass
         if cls._runner_file and os.path.exists(cls._runner_file):
             try:
                 os.remove(cls._runner_file)
