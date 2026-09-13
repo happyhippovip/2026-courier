@@ -35,6 +35,7 @@ import json
 import os
 import re
 import sys
+import tempfile
 import time
 import uuid
 from pathlib import Path
@@ -66,10 +67,13 @@ class ThoughtCurator:
     def __init__(self, repo_dir: Path = COURIER_DIR, memory_dir: Path = PROJECT_MEMORY_DIR):
         self.repo_dir = repo_dir
         self.memory_dir = memory_dir
+        self.thoughts_dir = self.repo_dir / "events" / "thoughts"
+        self.thoughts_dir.mkdir(parents=True, exist_ok=True)
         self.state_tracker = AntigravityVisualStateTracker(
             agent_id="agent-thought-curator",
             name="Thought Curator",
             role="Permanent Idea Sync & Memory Curator",
+            repo_dir=self.repo_dir,
         )
         self.memory_index, self.sources_available = self._index_project_memory()
 
@@ -128,6 +132,31 @@ class ThoughtCurator:
                 print(f"[CURATOR] Warning: Could not read PROJECT_STATE.md: {e}")
 
         return index, sources
+
+    @staticmethod
+    def _write_derived_record_once(path: Path, payload: dict) -> None:
+        """Atomically publish a derived record without replacing an existing one.
+
+        A check-then-write sequence permits two curators to both observe a
+        missing idea and silently overwrite each other.  Linking a fully
+        fsynced temporary file claims the final name atomically: precisely one
+        concurrent writer wins and every other writer receives a conflict.
+        """
+        path.parent.mkdir(parents=True, exist_ok=True)
+        fd, temporary_name = tempfile.mkstemp(prefix=f".{path.name}.tmp-", dir=path.parent)
+        temporary = Path(temporary_name)
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as handle:
+                json.dump(payload, handle, indent=2)
+                handle.write("\n")
+                handle.flush()
+                os.fsync(handle.fileno())
+            try:
+                os.link(temporary, path)
+            except FileExistsError as error:
+                raise ValueError("SECURITY VIOLATION: Silent overwrite of derived record is forbidden.") from error
+        finally:
+            temporary.unlink(missing_ok=True)
 
     def curate_idea(self, raw_idea: str, idea_type: str = "IDEA", **kwargs) -> dict:
         # SECRET DETECTION
@@ -329,10 +358,8 @@ class ThoughtCurator:
         )
 
         # Save thought record - Anti-overwrite protection
-        thought_file = THOUGHTS_DIR / f"{idea_id}.json"
-        if thought_file.exists():
-            raise ValueError(f"SECURITY VIOLATION: Silent overwrite of derived record {idea_id} is forbidden.")
-        save_json(thought_file, context_delta)
+        thought_file = self.thoughts_dir / f"{idea_id}.json"
+        self._write_derived_record_once(thought_file, context_delta)
 
         return context_delta
 

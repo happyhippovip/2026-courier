@@ -7,7 +7,7 @@ import datetime as dt
 import hashlib
 
 from scripts.run_thought_ingestion import run_ingestion
-from scripts.run_thought_curator import ThoughtCurator, THOUGHTS_DIR
+from scripts.run_thought_curator import ThoughtCurator
 from scripts.run_thought_memory_mesh import canonical_hash as h
 
 def make_msg(ingestion_id, source_message_id, content_dict):
@@ -38,11 +38,6 @@ class TestP0DataHardening(unittest.TestCase):
                 shutil.rmtree(d)
             d.mkdir(parents=True)
             
-        # Clean up THOUGHTS_DIR
-        if THOUGHTS_DIR.exists():
-            for f in THOUGHTS_DIR.glob("*.json"):
-                f.unlink()
-
     def tearDown(self):
         if self.base_dir.exists():
             shutil.rmtree(self.base_dir)
@@ -124,6 +119,27 @@ class TestP0DataHardening(unittest.TestCase):
             self.assertIn("Silent overwrite", str(cm.exception))
         finally:
             hashlib.sha256 = orig_hash
+
+    def test_curator_keeps_thoughts_and_visual_state_in_its_own_workspace(self):
+        curator = ThoughtCurator(repo_dir=self.base_dir, memory_dir=self.memory)
+        result = curator.curate_idea(
+            "A scoped, traceable idea that is long enough for the test.",
+            accepted_thought_reference="ingestion-run-001",
+        )
+        thought_file = self.base_dir / "events" / "thoughts" / f"{result['idea_id']}.json"
+        state_file = self.base_dir / "events" / "agent-states" / "agent-thought-curator.json"
+        self.assertTrue(thought_file.exists())
+        self.assertTrue(state_file.exists())
+
+    def test_derived_record_write_is_atomic_and_never_replaces_existing_record(self):
+        target = self.base_dir / "events" / "thoughts" / "idea-race.json"
+        ThoughtCurator._write_derived_record_once(target, {"winner": "first"})
+        before = target.read_bytes()
+        with self.assertRaises(ValueError) as raised:
+            ThoughtCurator._write_derived_record_once(target, {"winner": "second"})
+        self.assertIn("Silent overwrite", str(raised.exception))
+        self.assertEqual(target.read_bytes(), before)
+        self.assertEqual(list(target.parent.glob(".idea-race.json.tmp-*")), [])
 
 if __name__ == "__main__":
     unittest.main()
