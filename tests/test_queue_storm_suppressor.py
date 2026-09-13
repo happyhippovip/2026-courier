@@ -33,17 +33,17 @@ class TestQueueStormSuppressor(unittest.TestCase):
         self.cp = ControlPlane()
         self.saved_durable_state = self.crash_engine.load_durable_state()
         self.coalescer_state_path = self.coalescer.state_file
-        self.saved_coalescer_content = None
-        if os.path.exists(self.coalescer_state_path):
-            with open(self.coalescer_state_path, "r", encoding="utf-8") as f:
-                self.saved_coalescer_content = f.read()
+        self.saved_coalescer_metrics = self.coalescer.get_metrics()
+        m_reset = dict(self.saved_coalescer_metrics)
+        m_reset["intent_status"] = "NONE"
+        m_reset["active_logical_intent_id"] = None
+        self.coalescer._save_metrics(m_reset)
 
     def tearDown(self):
         if self.saved_durable_state is not None:
             self.crash_engine.save_durable_state(self.saved_durable_state)
-        if self.saved_coalescer_content is not None:
-            with open(self.coalescer_state_path, "w", encoding="utf-8") as f:
-                f.write(self.saved_coalescer_content)
+        if self.saved_coalescer_metrics is not None:
+            self.coalescer._save_metrics(self.saved_coalescer_metrics)
 
     def test_01_burst_of_250_weiter_collapses_into_one_logical_intent(self):
         """Invariant: 250 identical queued weiter messages represent at most ONE logical intent."""
