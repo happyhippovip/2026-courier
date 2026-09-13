@@ -27,6 +27,7 @@ const { RestartReconciler } = require('./reconciliation');
 const { MachineResourceGovernor } = require('./resource_governor');
 const { NoStackingDetector, ResourceLockManager } = require('./no_stacking');
 const { ChiefEscalationEnvelope } = require('./chief_envelope');
+const { WorkStealingPool } = require('./work_stealing');
 
 class SupervisorPlane {
   constructor(runtimeDir = null) {
@@ -36,6 +37,10 @@ class SupervisorPlane {
     this.leaseManager = new ProcessLeaseManager(path.join(this.runtimeDir, 'leases'), this.auditLedger);
     this.noStacking = new NoStackingDetector(this.leaseManager);
     this.lockManager = this.noStacking.lockManager;
+    this.workStealingPool = new WorkStealingPool({
+      storageDir: path.join(this.runtimeDir, 'work_stealing'),
+      lockManager: this.lockManager
+    });
 
     this.progressTracker = new ProgressTracker(path.join(this.runtimeDir, 'leases'), this.leaseManager, this.auditLedger);
     this.stallPolicy = new StallPolicy();
@@ -100,6 +105,7 @@ module.exports = {
   NoStackingDetector,
   ResourceLockManager,
   ChiefEscalationEnvelope,
+  WorkStealingPool,
   LEASE_STATUS,
   SUPERVISOR_DECISION,
   RESOURCE_STATE,

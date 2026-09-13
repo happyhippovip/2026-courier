@@ -6,4 +6,6 @@ scratch/
 scratch_test_leases_*/
 runtime/leases/
 runtime/diagnostics/
+runtime/work_stealing/
+runtime/audit/
 evidence/

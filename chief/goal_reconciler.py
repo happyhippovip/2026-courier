@@ -1647,6 +1647,36 @@ class GoalReconciler:
             "expected_evidence": "Cross-device E2E roundtrip tests passed (100% success)"
         })
 
+        # Candidate AX: Courier Teams Distributed Work Stealing & Lane Concurrency Certification
+        candidates.append({
+            "candidate_id": "TASK-WIN-58",
+            "version": 1,
+            "goal_id": "GOAL-05",
+            "title": "Courier Teams Distributed Work Stealing & Lane Concurrency Certification",
+            "category": "MULTI_HOST_SYMPHONY_CONVERGENCE",
+            "conflict_domain": "WORK_STEALING_CONCURRENCY",
+            "target_machine": "WINDOWS",
+            "target_worker": "WINDOWS_GOOGLE",
+            "scope": os.path.join(self.workspace_root, "courier"),
+            "script_path": "courier/tests/test_work_stealing_concurrency.py",
+            "cwd": self.workspace_root,
+            "is_writer": False,
+            "unresolved_gap": "AUTONOMY_CAPABILITY_GAP",
+            "goal_impact": 10.0,
+            "revenue_impact": 9.5,
+            "info_gain": 10.0,
+            "proof_debt_reduction": 10.0,
+            "autonomy_gain": 10.0,
+            "risk_score": 0.0,
+            "spend_eur": 0.00,
+            "human_requirement": "NONE",
+            "acceptance_criteria": [
+                "Execute courier/tests/test_work_stealing_concurrency.py",
+                "Verify atomic work stealing, 5-worker lane concurrency limits, telemetry, and 5-worker stress test"
+            ],
+            "expected_evidence": "Work stealing and concurrency tests passed (100% success)"
+        })
+
         # Dynamic Candidate Discovery from safe_backlog.json
         if os.path.exists(self.backlog_path):
             try:
