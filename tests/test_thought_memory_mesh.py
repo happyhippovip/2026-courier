@@ -3,17 +3,19 @@
 
 from __future__ import annotations
 
-import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
-from run_thought_memory_mesh import canonical_hash, run_mesh
+from run_thought_memory_mesh import canonical_hash, persist_mesh_result, run_mesh
 
-MEMORY = Path("/Users/user/Downloads/2026-project-memory")
+# The Mesh itself only reads a commit identity.  Tests must never depend on or
+# inspect the user's real Project-Memory checkout.
+MEMORY = ROOT / "tests" / "_isolated_missing_memory_repo"
 
 
 def message(message_id, timestamp, source, kind, summary, status_label, requested_status=None):
@@ -24,10 +26,45 @@ def message(message_id, timestamp, source, kind, summary, status_label, requeste
 
 
 class ThoughtMeshTests(unittest.TestCase):
+    def test_proposal_identity_is_stable_across_recovery_replays(self):
+        source = message("stable-proposal", "2026-08-25T09:00:00Z", "CHAT_EXPORT", "IDEA", "A traceable idea.", "IDEA")
+        first = run_mesh([source], {}, MEMORY)
+        second = run_mesh([source], {}, MEMORY)
+        self.assertEqual(
+            first["memory_update_proposal"]["proposal_id"],
+            second["memory_update_proposal"]["proposal_id"],
+        )
+
+    def test_output_is_durable_before_cursor_advance_and_replay_is_safe(self):
+        source = message("crash-window", "2026-08-25T09:00:00Z", "CHAT_EXPORT", "IDEA", "Recover without duplicate proposals.", "IDEA")
+        result = run_mesh([source], {}, MEMORY)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            ledger_path, output_path = root / "ledger.json", root / "result.json"
+            import run_thought_memory_mesh as mesh
+            real_writer = mesh.atomic_write_json
+            calls = []
+
+            def fail_on_ledger(path, payload):
+                calls.append(path)
+                if path == ledger_path:
+                    raise OSError("simulated interruption before cursor advance")
+                real_writer(path, payload)
+
+            with mock.patch.object(mesh, "atomic_write_json", side_effect=fail_on_ledger):
+                with self.assertRaisesRegex(OSError, "simulated interruption"):
+                    persist_mesh_result(ledger_path, output_path, result)
+
+            self.assertEqual(calls, [output_path, ledger_path])
+            self.assertTrue(output_path.exists())
+            self.assertFalse(ledger_path.exists())
+            replay = run_mesh([source], {}, MEMORY)
+            self.assertEqual(
+                replay["memory_update_proposal"]["proposal_id"],
+                result["memory_update_proposal"]["proposal_id"],
+            )
+
     def test_coverage_audit_dedupe_delta_and_proposal(self):
-        memory_head_before = subprocess.run(
-            ["git", "-C", str(MEMORY), "rev-parse", "HEAD"], check=True, capture_output=True, text=True
-        ).stdout.strip()
         initial = [
             message("m-20260825", "2026-08-25T09:00:00Z", "CHAT_EXPORT", "INTENT", "Keep historical statements classified.", "USER_INTENT"),
             message("m-20260827", "2026-08-27T09:00:00Z", "COURIER_EVENT", "OPEN_QUESTION", "Verify external status before promotion.", "UNKNOWN", "VERIFIED_CURRENT"),
@@ -56,10 +93,7 @@ class ThoughtMeshTests(unittest.TestCase):
         replay = run_mesh(second_input, second["coverage_ledger"], MEMORY)
         self.assertEqual(replay["coverage_ledger"]["message_counts"]["delta_processed"], 0)
         self.assertIsNone(replay["memory_update_proposal"])
-        memory_head_after = subprocess.run(
-            ["git", "-C", str(MEMORY), "rev-parse", "HEAD"], check=True, capture_output=True, text=True
-        ).stdout.strip()
-        self.assertEqual(memory_head_before, memory_head_after)
+        self.assertEqual(first["memory_update_proposal"]["memory_base_commit"], "0" * 40)
 
     def test_invalid_empty_changed_hash_and_volume_behavior(self):
         empty = run_mesh([], {}, MEMORY)

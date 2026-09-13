@@ -13,9 +13,10 @@ import argparse
 import datetime as dt
 import hashlib
 import json
+import os
 import re
 import sys
-import uuid
+import tempfile
 from collections import Counter
 from pathlib import Path
 from typing import Any
@@ -42,6 +43,32 @@ def utc_now() -> str:
 
 def canonical_hash(payload: Any) -> str:
     return hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+
+
+def atomic_write_json(path: Path, payload: Any) -> None:
+    """Durably replace one JSON artifact without exposing a partial document."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temp_name = tempfile.mkstemp(prefix=f".{path.name}.tmp.", dir=path.parent)
+    temp_path = Path(temp_name)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            json.dump(payload, handle, indent=2)
+            handle.write("\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temp_path, path)
+        try:
+            directory_fd = os.open(path.parent, os.O_RDONLY)
+            try:
+                os.fsync(directory_fd)
+            finally:
+                os.close(directory_fd)
+        except OSError:
+            # The replacement itself is still atomic on the local filesystem.
+            pass
+    finally:
+        if temp_path.exists():
+            temp_path.unlink()
 
 
 def load_json(path: Path, default: Any) -> Any:
@@ -242,9 +269,20 @@ def build_proposal(accepted: list[dict[str, Any]], memory_commit: str) -> dict[s
         })
     task_id = "THOUGHT-MEMORY-MESH"
     corr = "thought-mesh-" + canonical_hash([candidate["message_id"] for candidate in accepted])[:12]
+    proposal_identity = canonical_hash({
+        "task_id": task_id,
+        "memory_base_commit": memory_commit,
+        "accepted": [
+            {"message_id": candidate["message_id"], "payload_hash": candidate["payload_hash"]}
+            for candidate in accepted
+        ],
+    })
     proposal = {
         "schema_version": "2.0",
-        "proposal_id": f"prop-mem-{task_id}-{uuid.uuid4().hex[:8]}",
+        # A retry after a crash must name the same semantic proposal.  A
+        # random UUID here made an output-first checkpoint replay look like a
+        # new proposal to the Chief approval boundary.
+        "proposal_id": f"prop-mem-{task_id}-{proposal_identity[:16]}",
         "source_result_message_id": "thought-mesh-" + canonical_hash([candidate["payload_hash"] for candidate in accepted])[:16],
         "task_id": task_id,
         "correlation_id": corr,
@@ -310,6 +348,17 @@ def run_mesh(messages: list[dict[str, Any]], prior_ledger: dict[str, Any], memor
     return {"coverage_ledger": ledger, "scene_audit": audit, "thought_manager": manager, "thought_boss_a": boss_a, "thought_boss_b": boss_b, "memory_update_proposal": proposal, "chief_delivery_adapter": build_delivery(proposal)}
 
 
+def persist_mesh_result(ledger_path: Path, output_path: Path, result: dict[str, Any]) -> None:
+    """Checkpoint replay-safe output before advancing the source cursor.
+
+    If the second replace is interrupted, the next run recreates the same
+    deterministic proposal identity from the unchanged ledger rather than
+    silently losing the proposal or creating a second semantic proposal.
+    """
+    atomic_write_json(output_path, result)
+    atomic_write_json(ledger_path, result["coverage_ledger"])
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run local channel-neutral Thought Memory Mesh")
     parser.add_argument("--messages", required=True, type=Path)
@@ -318,10 +367,7 @@ def main() -> None:
     parser.add_argument("--memory-repo", type=Path, default=Path("/Users/user/Downloads/2026-project-memory"))
     args = parser.parse_args()
     result = run_mesh(read_messages(args.messages), load_json(args.ledger, {}), args.memory_repo)
-    args.ledger.parent.mkdir(parents=True, exist_ok=True)
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.ledger.write_text(json.dumps(result["coverage_ledger"], indent=2) + "\n", encoding="utf-8")
-    args.output.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
+    persist_mesh_result(args.ledger, args.output, result)
     print(json.dumps({"proposal_created": result["memory_update_proposal"] is not None, "delta_processed": result["coverage_ledger"]["message_counts"]["delta_processed"]}))
 
 
