@@ -115,7 +115,14 @@ class CrashProofMemoryEngine:
                     "payment_parked_human_gated": True,
                     "automatic_spend_limit_eur": 0.00,
                     "mac_scope_excluded": True,
-                    "mac_reserved_scopes": MAC_RESERVED_SCOPES
+                    "mac_reserved_scopes": MAC_RESERVED_SCOPES,
+                    "weiter_mission_commander": {
+                        "definition": "WEITER means reconcile from newest verified state and execute the longest safe chain of highest-value evidence-producing work toward the current north star.",
+                        "maximum_forward_progress_mode": True,
+                        "stop_condition": "GENUINE_HUMAN_GATE_OR_NO_HIGH_VALUE_SAFE_WORK",
+                        "single_small_task_stop_forbidden": True,
+                        "parallel_writer_stacking_forbidden": True
+                    }
                 }
             }
             tmp = POLICY_FILE + ".tmp"

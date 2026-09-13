@@ -14,6 +14,13 @@
       "customs_agent.py",
       "coordination/mac_to_windows",
       "universuX"
-    ]
+    ],
+    "weiter_mission_commander": {
+      "definition": "WEITER means reconcile from newest verified state and execute the longest safe chain of highest-value evidence-producing work toward the current north star.",
+      "maximum_forward_progress_mode": true,
+      "stop_condition": "GENUINE_HUMAN_GATE_OR_NO_HIGH_VALUE_SAFE_WORK",
+      "single_small_task_stop_forbidden": true,
+      "parallel_writer_stacking_forbidden": true
+    }
   }
 }

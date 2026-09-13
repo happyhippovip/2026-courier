@@ -2017,6 +2017,40 @@ class GoalReconciler:
             "expected_evidence": "Distribution pack test suite passed (6/6 tests 100% success)"
         })
 
+        # Candidate BJ: Agent Control Plane Pro Offline Cryptographic Entitlement & Zero-Telemetry License Minting Engine
+        candidates.append({
+            "candidate_id": "TASK-WIN-70",
+            "version": 1,
+            "goal_id": "GOAL-03",
+            "title": "Agent Control Plane Pro Offline Cryptographic Entitlement & Zero-Telemetry License Minting Engine",
+            "category": "SUSTAINABLE_COMMERCIAL_DELIVERY",
+            "conflict_domain": "LICENSE_ENTITLEMENT_ENGINE",
+            "target_machine": "WINDOWS",
+            "target_worker": "WINDOWS_GOOGLE",
+            "scope": os.path.join(self.project_memory_dir, "data", "distribution_ready", "agent_control_plane", "license_engine"),
+            "script_path": "courier/tests/test_license_engine_pro.py",
+            "cwd": self.workspace_root,
+            "is_writer": False,
+            "unresolved_gap": "REAL_MARKET_UNCERTAINTY",
+            "goal_impact": 10.0,
+            "revenue_impact": 10.0,
+            "info_gain": 10.0,
+            "proof_debt_reduction": 10.0,
+            "autonomy_gain": 10.0,
+            "risk_score": 0.0,
+            "spend_eur": 0.00,
+            "human_requirement": "NONE",
+            "acceptance_criteria": [
+                "Execute courier/tests/test_license_engine_pro.py",
+                "Verify offline HMAC-SHA256 license minting and verification",
+                "Verify expired license rejection and graceful downgrade to FREE tier",
+                "Verify tampered payload and forged signature rejection",
+                "Verify server entitlement activation with valid key and degradation with invalid key",
+                "Verify zero telemetry, 0.00 EUR spend, and Mac scope exclusion"
+            ],
+            "expected_evidence": "License engine pro test suite passed (7/7 tests 100% success)"
+        })
+
         # Dynamic Candidate Discovery from safe_backlog.json
         if os.path.exists(self.backlog_path):
             try:
