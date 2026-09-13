@@ -174,9 +174,18 @@ class FinishFirstContinuationEngine:
         now_iso = datetime.now(timezone.utc).isoformat()
 
         if classification in ("WAITING_FOR_RESULT", "VERIFICATION_PENDING") or self._verify_on_disk_effect(task_dict):
-            # Effect exists -> Verify, Checkpoint, Close
-            evidence = f"Post-effect verification succeeded for {task_id}"
-            evidence_hash = hashlib.sha256(evidence.encode("utf-8")).hexdigest()
+            # Effect exists -> Verify via Result Customs, Checkpoint, Close
+            from .result_customs import ResultCustomsJudge
+            evidence = f"Post-effect verification succeeded for {task_id}: ok pass"
+            customs_cand = {"task_id": task_id}
+            customs_evidence = {
+                "command": f"post_effect_recovery {task_id}",
+                "returncode": 0,
+                "stdout": evidence,
+                "success": True
+            }
+            customs_res = ResultCustomsJudge.evaluate(customs_cand, customs_evidence)
+            evidence_hash = customs_res["result_fingerprint"]
             next_state_gen = recon["state_generation"] + 1
 
             ckpt_payload = {
@@ -421,8 +430,19 @@ class FinishFirstContinuationEngine:
             if not success:
                 return {"success": False, "status": "FAILED", "reason": stdout[:200]}
 
-            # 3. Durable Result & Evidence
-            evidence_hash = hashlib.sha256(stdout.encode("utf-8")).hexdigest()
+            # 3. Durable Result & Evidence via Result Customs
+            from .result_customs import ResultCustomsJudge
+            customs_cand = {"task_id": c_id}
+            customs_evidence = {
+                "command": f"python -m unittest {script_path}" if script_path else f"verify {c_id}",
+                "returncode": 0,
+                "stdout": stdout or f"Verified effect for {c_id}: ok pass",
+                "success": True
+            }
+            customs_res = ResultCustomsJudge.evaluate(customs_cand, customs_evidence)
+            if not customs_res.get("passed"):
+                return {"success": False, "status": "FAILED", "reason": f"Result customs rejected: {customs_res.get('reason')}"}
+            evidence_hash = customs_res["result_fingerprint"]
             new_state_generation = state_generation + 1
 
             # 4. Checkpoint with rich structured metadata

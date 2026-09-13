@@ -80,12 +80,19 @@ class QuiescentQueueAbsorber:
 
     def set_quiescent_watermark(
         self,
-        state_generation: int = 88,
+        state_generation: Optional[int] = None,
         fingerprint: str = "f437f79d8d69ef160f21a797e63993d7b6f6f0057ab39dd01c07d1dd27560ca9",
         status: str = "ACTIVE",
         last_result: str = "NO_REAL_GAP"
     ) -> Dict[str, Any]:
         """Sets the durable quiescent watermark signaling safe-work quiescence."""
+        if state_generation is None:
+            try:
+                cur_gen = self.cp.get_checkpoint("STATE_GENERATION")
+                state_generation = int(cur_gen) if cur_gen is not None else 88
+            except Exception:
+                state_generation = 88
+
         now = datetime.now(timezone.utc).isoformat()
         data = {
             "quiescent_continuation_absorber": status,
@@ -216,7 +223,7 @@ class QuiescentQueueAbsorber:
     def process_signal(
         self,
         signal: str = "weiter",
-        current_state_gen: int = 88,
+        current_state_gen: Optional[int] = None,
         signal_id: Optional[str] = None,
         external_gen: Optional[int] = None,
         is_new_intent: Optional[bool] = None
@@ -228,6 +235,13 @@ class QuiescentQueueAbsorber:
           - If real gap exists: EXITS QUIESCENCE, executes work autonomously.
           - If no gap exists: returns cleanly to QUIESCENT, records NO_REAL_GAP.
         """
+        if current_state_gen is None:
+            try:
+                cur_gen = self.cp.get_checkpoint("STATE_GENERATION")
+                current_state_gen = int(cur_gen) if cur_gen is not None else 88
+            except Exception:
+                current_state_gen = 88
+
         norm_sig = signal.strip().lower()
 
         # 1. Non-weiter directives immediately wake the engine

@@ -164,6 +164,37 @@ class ControlPlane:
                 );
                 """)
 
+                # Stage 1: One-time synchronization of legacy compatibility keys with authoritative 6-tuple
+                try:
+                    cursor.execute("SELECT checkpoint_value FROM checkpoints WHERE checkpoint_key = 'LAST_VERIFIED_WINDOWS_CHECKPOINT';")
+                    cp_row = cursor.fetchone()
+                    if cp_row and cp_row["checkpoint_value"]:
+                        raw_val = str(cp_row["checkpoint_value"])
+                        if raw_val.startswith("{"):
+                            data = json.loads(raw_val)
+                            gen = data.get("state_generation")
+                            task = data.get("task_id")
+                            now_sync = datetime.now(timezone.utc).isoformat()
+                            if gen is not None:
+                                cursor.execute("""
+                                INSERT INTO checkpoints (checkpoint_key, checkpoint_value, updated_at)
+                                VALUES ('STATE_GENERATION', ?, ?)
+                                ON CONFLICT(checkpoint_key) DO UPDATE SET
+                                    checkpoint_value = excluded.checkpoint_value,
+                                    updated_at = excluded.updated_at
+                                WHERE cast(checkpoints.checkpoint_value as integer) < ?;
+                                """, (str(gen), now_sync, int(gen)))
+                            if task is not None:
+                                cursor.execute("""
+                                INSERT INTO checkpoints (checkpoint_key, checkpoint_value, updated_at)
+                                VALUES ('LAST_VERIFIED_TASK', ?, ?)
+                                ON CONFLICT(checkpoint_key) DO UPDATE SET
+                                    checkpoint_value = excluded.checkpoint_value,
+                                    updated_at = excluded.updated_at;
+                                """, (str(task), now_sync))
+                except Exception:
+                    pass
+
                 cursor.execute("PRAGMA user_version = 14;")
                 cursor.execute("COMMIT;")
             except Exception:
@@ -728,6 +759,20 @@ class ControlPlane:
                             cursor.execute("COMMIT;")
                             return
 
+                # If setting legacy keys directly, verify they cannot regress behind authoritative tuple
+                if checkpoint_key == "STATE_GENERATION":
+                    cursor.execute("SELECT checkpoint_value FROM checkpoints WHERE checkpoint_key = 'LAST_VERIFIED_WINDOWS_CHECKPOINT';")
+                    cp_row = cursor.fetchone()
+                    if cp_row and cp_row["checkpoint_value"]:
+                        try:
+                            auth_d = json.loads(str(cp_row["checkpoint_value"]))
+                            auth_gen = auth_d.get("state_generation")
+                            if auth_gen is not None and int(val_str) < int(auth_gen):
+                                cursor.execute("COMMIT;")
+                                return
+                        except Exception:
+                            pass
+
                 cursor.execute("""
                 INSERT INTO checkpoints (checkpoint_key, checkpoint_value, updated_at)
                 VALUES (?, ?, ?)
@@ -735,6 +780,29 @@ class ControlPlane:
                     checkpoint_value = excluded.checkpoint_value,
                     updated_at = excluded.updated_at;
                 """, (checkpoint_key, val_str, now_iso))
+
+                # Stage 1: Synchronize legacy compatibility state so legacy STATE_GENERATION
+                # and LAST_VERIFIED_TASK cannot silently disagree with authoritative tuple.
+                if checkpoint_key == "LAST_VERIFIED_WINDOWS_CHECKPOINT":
+                    sync_gen = val_dict.get("state_generation")
+                    sync_task = val_dict.get("task_id")
+                    if sync_gen is not None:
+                        cursor.execute("""
+                        INSERT INTO checkpoints (checkpoint_key, checkpoint_value, updated_at)
+                        VALUES ('STATE_GENERATION', ?, ?)
+                        ON CONFLICT(checkpoint_key) DO UPDATE SET
+                            checkpoint_value = excluded.checkpoint_value,
+                            updated_at = excluded.updated_at;
+                        """, (str(sync_gen), now_iso))
+                    if sync_task is not None:
+                        cursor.execute("""
+                        INSERT INTO checkpoints (checkpoint_key, checkpoint_value, updated_at)
+                        VALUES ('LAST_VERIFIED_TASK', ?, ?)
+                        ON CONFLICT(checkpoint_key) DO UPDATE SET
+                            checkpoint_value = excluded.checkpoint_value,
+                            updated_at = excluded.updated_at;
+                        """, (str(sync_task), now_iso))
+
                 cursor.execute("COMMIT;")
             except Exception:
                 cursor.execute("ROLLBACK;")
@@ -745,6 +813,22 @@ class ControlPlane:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             try:
+                # Stage 1: If querying legacy keys, ensure agreement with authoritative tuple
+                if checkpoint_key in ("STATE_GENERATION", "LAST_VERIFIED_TASK"):
+                    cursor.execute("SELECT checkpoint_value FROM checkpoints WHERE checkpoint_key = 'LAST_VERIFIED_WINDOWS_CHECKPOINT';")
+                    row = cursor.fetchone()
+                    if row and row["checkpoint_value"]:
+                        raw = str(row["checkpoint_value"])
+                        if raw.startswith("{"):
+                            try:
+                                d = json.loads(raw)
+                                if checkpoint_key == "STATE_GENERATION" and "state_generation" in d:
+                                    return str(d["state_generation"])
+                                if checkpoint_key == "LAST_VERIFIED_TASK" and "task_id" in d:
+                                    return str(d["task_id"])
+                            except Exception:
+                                pass
+
                 cursor.execute("SELECT checkpoint_value FROM checkpoints WHERE checkpoint_key = ?;", (checkpoint_key,))
                 row = cursor.fetchone()
                 if not row:

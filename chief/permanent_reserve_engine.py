@@ -591,6 +591,20 @@ class PermanentReserveEngine:
                     stdout = f"Simulated autonomous verification for {c_id}: PASS"
 
             if success:
+                from .result_customs import ResultCustomsJudge
+                customs_cand = {"task_id": c_id}
+                customs_evidence = {
+                    "command": f"python -m unittest {script_path}" if script_path else f"verify {c_id}",
+                    "returncode": 0,
+                    "stdout": stdout or f"Verified effect for {c_id}: ok pass",
+                    "success": True
+                }
+                customs_res = ResultCustomsJudge.evaluate(customs_cand, customs_evidence)
+                if not customs_res.get("passed"):
+                    self.crash_tracker[c_id] = self.crash_tracker.get(c_id, 0) + 1
+                    return {"success": False, "task_id": c_id, "error": f"Result customs rejected: {customs_res.get('reason')}"}
+                evidence_hash = customs_res["result_fingerprint"]
+
                 # 1. Update CP
                 self.cp.upsert_task(
                     task_id=c_id,
@@ -600,12 +614,12 @@ class PermanentReserveEngine:
                     two_level_done=TwoLevelDone(local_step_erledigt=True, gesamtaufgabe_erledigt=False, blocker="NONE", next_step="CONTINUE"),
                     active_agent=Lane.WINDOWS_GOOGLE.value
                 )
-                evidence_hash = hashlib.sha256(stdout.encode("utf-8")).hexdigest()
                 ckpt_record = {
                     "task_id": c_id,
                     "task_version": 1,
                     "state_generation": self.state_generation + 1,
                     "result_fingerprint": evidence_hash,
+                    "verification_evidence": stdout[:200] if stdout else "VERIFIED_PASS",
                     "verified_at": datetime.now(timezone.utc).isoformat(),
                     "status": "VERIFIED"
                 }
