@@ -32,6 +32,7 @@ class TestQueueStormSuppressor(unittest.TestCase):
         self.crash_engine = CrashProofMemoryEngine()
         self.cp = ControlPlane()
         self.saved_durable_state = self.crash_engine.load_durable_state()
+        self.saved_checkpoint = self.cp.get_checkpoint_record("LAST_VERIFIED_WINDOWS_CHECKPOINT")
         self.coalescer_state_path = self.coalescer.state_file
         self.saved_coalescer_metrics = self.coalescer.get_metrics()
         m_reset = dict(self.saved_coalescer_metrics)
@@ -42,6 +43,8 @@ class TestQueueStormSuppressor(unittest.TestCase):
     def tearDown(self):
         if self.saved_durable_state is not None:
             self.crash_engine.save_durable_state(self.saved_durable_state)
+        if self.saved_checkpoint is not None:
+            self.cp.set_checkpoint("LAST_VERIFIED_WINDOWS_CHECKPOINT", self.saved_checkpoint)
         if self.saved_coalescer_metrics is not None:
             self.coalescer._save_metrics(self.saved_coalescer_metrics)
 

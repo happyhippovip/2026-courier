@@ -2949,13 +2949,26 @@ class GoalReconciler:
             active_agent=Lane.WINDOWS_GOOGLE.value
         )
         if customs_res["verified"]:
-            self.cp.set_checkpoint("LAST_VERIFIED_WINDOWS_CHECKPOINT", c_id)
+            next_gen = 88
             try:
                 from .queue_coalescer import QueueCoalescer
                 coalescer = QueueCoalescer()
-                coalescer.advance_state_generation(c_id)
+                next_gen = coalescer.advance_state_generation(c_id)
             except Exception:
                 pass
+
+            now_iso = datetime.now(timezone.utc).isoformat()
+            proof_content = f"{c_id}:{customs_res.get('reason', 'PASS')}:{exec_res.get('stdout', '')[:100]}"
+            res_fp = hashlib.sha256(proof_content.encode("utf-8")).hexdigest()
+            ckpt_dict = {
+                "task_id": c_id,
+                "task_version": candidate.get("task_version", 1),
+                "state_generation": candidate.get("state_generation") or next_gen,
+                "result_fingerprint": res_fp,
+                "verification_evidence": customs_res.get("reason", "VERIFIED_BY_RESULT_CUSTOMS"),
+                "verified_at": now_iso
+            }
+            self.cp.set_checkpoint("LAST_VERIFIED_WINDOWS_CHECKPOINT", ckpt_dict)
             try:
                 from .crash_proof_recovery import CrashProofMemoryEngine
                 crash_engine = CrashProofMemoryEngine()

@@ -410,6 +410,7 @@ class CrashProofMemoryEngine:
         state["next_safe_candidate"] = successor_id
         state["next_automatic_action"] = "EXECUTE_SUCCESSOR" if successor_id else "DISCOVER_CANDIDATE"
         state["same_task_recovery_count"] = 0
+        state["recovery_count"] = 0
 
         # Register in DO_NOT_REPEAT
         if task_id not in state["do_not_repeat"]:
