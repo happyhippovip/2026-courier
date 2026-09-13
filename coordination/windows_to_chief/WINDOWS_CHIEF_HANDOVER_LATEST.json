@@ -1,8 +1,8 @@
 {
-  "handover_generation": 3,
-  "created_at": "2026-09-13T06:45:41.706176+00:00",
-  "updated_at": "2026-09-13T06:45:41.706176+00:00",
-  "schema_version": "2.1.0",
+  "handover_generation": 4,
+  "created_at": "2026-09-13T06:56:42.982479+00:00",
+  "updated_at": "2026-09-13T06:56:42.982479+00:00",
+  "schema_version": "3.0.0",
   "handover_type": "WINDOWS_CHIEF_AUTHORITATIVE_HANDOVER_LATEST",
   "platform_source": "WINDOWS_GOOGLE",
   "target_consumer": "CHIEF_ORCHESTRATOR",
@@ -11,13 +11,13 @@
     "project_memory": {
       "path": "C:\\Users\\lol\\2026-workspace\\project-memory",
       "branch": "feature/money-factory-v3",
-      "head_sha": "2bf03bfe77360b488fb41fe8a11191f1744178b6",
-      "worktree_status": "UNTRACKED_PAYMENT_PROOFS"
+      "head_sha": "1362874089bfbbfa49a667b1a2ef076c13f7d190",
+      "worktree_status": "CLEAN_DISCIPLINED"
     },
     "courier": {
       "path": "C:\\Users\\lol\\2026-workspace\\courier",
       "branch": "windows/money-factory-p0",
-      "head_sha": "337b1c029fdbcbfc4e0bce892d69944cf50d2e42",
+      "head_sha": "75f0d64fc9e3a6126c0fb4dc78101538bf782c64",
       "worktree_status": "CLEAN_TRACKED"
     },
     "canonical_source_locations": [
@@ -28,7 +28,9 @@
       "courier/chief/value_governor.py",
       "courier/chief/batch_guard.py",
       "courier/chief/constitution.py",
-      "courier/chief/bootstrap.py"
+      "courier/chief/bootstrap.py",
+      "courier/chief/campaign_manager.py",
+      "courier/chief/exhaustion_court.py"
     ],
     "build_locations": [
       "courier/runtime/",
@@ -36,497 +38,267 @@
     ],
     "package_locations": [
       "project-memory/data/distribution_ready/agent_control_plane/",
-      "courier/scratch/"
+      "project-memory/data/distribution_ready/agent_control_plane_pro_v1.0.0.zip",
+      "project-memory/data/distribution_ready/courier_supervisor_v1.2.0.zip",
+      "project-memory/data/distribution_ready/pay_and_ship_v1.0.0.zip"
     ],
-    "mac_handoff_location": "courier/coordination/windows_to_chief/"
+    "coordination_locations": [
+      "courier/coordination/windows_to_chief/",
+      "project-memory/coordination/windows_to_chief/"
+    ]
   },
-  "section_2_current_execution_state": {
-    "current_mission": "MISSION-AUTONOMY",
-    "current_goal": "GOAL-05",
-    "current_task": null,
-    "current_task_version": null,
-    "current_task_fingerprint": null,
-    "active_writer": null,
-    "active_writer_scope": null,
-    "active_lease": null,
-    "active_pid": null,
-    "last_progress_at": "2026-09-13T06:34:00.478081+00:00",
-    "last_verified_task": "TASK-WIN-961",
-    "last_verified_result": {
-      "status": "PASS",
-      "certified": true,
-      "evidence": "Event 3442 d8fbcd705b001ec6c5bd6fca4bbeb9429040284f4cdd0ac8182f01c165807d2e"
-    },
-    "next_automatic_action": "REMAIN_CLEAN_IDLE_WATCHFUL_AWAITING_CHIEF_OR_FOUNDER_DIRECTIVE",
-    "reservoir_depth": 0,
-    "state_generation": 87,
-    "valid_checkpoint": {
-      "task_id": "TASK-WIN-961",
-      "task_version": 1,
-      "state_generation": 87,
-      "result_fingerprint": "d8fbcd705b001ec6c5bd6fca4bbeb9429040284f4cdd0ac8182f01c165807d2e",
-      "verified_at": "2026-09-13T06:32:17.220272+00:00",
-      "status": "VERIFIED"
-    }
+  "section_2_operating_constitution": {
+    "constitution_version": "1.1.0",
+    "constitution_status": "ACTIVE",
+    "articles_count": 33,
+    "article_32": "TWO_METHOD_REAL_EXHAUSTION_COURT",
+    "article_33": "CONTINUATION_CAMPAIGN_AUTONOMY_AND_SIGNAL_COALESCING",
+    "canonical_paths": [
+      "courier/WINDOWS_COURIER_OPERATING_CONSTITUTION.json",
+      "courier/WINDOWS_COURIER_OPERATING_CONSTITUTION.md",
+      "project-memory/WINDOWS_COURIER_OPERATING_CONSTITUTION.json",
+      "project-memory/WINDOWS_COURIER_OPERATING_CONSTITUTION.md"
+    ]
   },
-  "section_3_queue_and_weiter_semantics": {
-    "raw_queued_messages_visible": 100,
-    "raw_continuation_events_received": 100,
-    "continuations_coalesced": 99,
-    "stale_continuations_dropped": 99,
+  "section_3_campaign_autonomy_state": {
+    "campaign_id": "CAMP-WIN-FINAL-100X",
+    "campaign_active": false,
+    "campaign_status": "COMPLETE_SAFE_WORK_EXHAUSTED",
+    "raw_weiter_observed": 100,
+    "weiter_absorbed": 99,
     "logical_continuation_intents": 1,
-    "duplicate_tasks_prevented": 99,
-    "duplicate_tasks_created": 0,
-    "verified_task_replays": 0,
-    "weiter_idempotency": "PASS",
-    "justification": "Articles 4 & 5 of Windows Courier Operating Constitution enforced; 100x weiter adversarial court verified with 99 coalesced duplicates."
+    "tasks_executed": 5,
+    "tasks_verified": 5,
+    "duplicate_signals_suppressed": 99,
+    "external_weiter_calls_required_after_start": 0,
+    "internal_campaign_loop": "PASS"
   },
-  "section_4_autonomy_proof": {
-    "auto_task_successions": 7,
-    "auto_goal_successions": 0,
-    "human_continuations_required": 0,
-    "autonomous_chain_evidence": [
-      {
-        "task_id": "TASK-WIN-936",
-        "successor": "TASK-WIN-937",
-        "selection": "INTERNAL_GAP_DISCOVERY",
-        "human_required": false,
-        "evidence": "Event 3418"
-      },
-      {
-        "task_id": "TASK-WIN-937",
-        "successor": "TASK-WIN-938",
-        "selection": "INTERNAL_GAP_DISCOVERY",
-        "human_required": false,
-        "evidence": "Event 3422"
-      },
-      {
-        "task_id": "TASK-WIN-938",
-        "successor": "TASK-WIN-958",
-        "selection": "INTERNAL_GAP_DISCOVERY",
-        "human_required": false,
-        "evidence": "Event 3426"
-      },
-      {
-        "task_id": "TASK-WIN-958",
-        "successor": "TASK-WIN-959",
-        "selection": "INTERNAL_GAP_DISCOVERY",
-        "human_required": false,
-        "evidence": "Event 3430"
-      },
-      {
-        "task_id": "TASK-WIN-959",
-        "successor": "TASK-WIN-960",
-        "selection": "INTERNAL_GAP_DISCOVERY",
-        "human_required": false,
-        "evidence": "Event 3434"
-      },
-      {
-        "task_id": "TASK-WIN-960",
-        "successor": "TASK-WIN-961",
-        "selection": "INTERNAL_GAP_DISCOVERY",
-        "human_required": false,
-        "evidence": "Event 3438"
-      },
-      {
-        "task_id": "TASK-WIN-961",
-        "successor": null,
-        "selection": "PORTFOLIO_EXHAUSTED",
-        "human_required": false,
-        "evidence": "Event 3442"
-      }
-    ]
+  "section_4_dual_method_exhaustion_audit": {
+    "method_a_status": "EXHAUSTED",
+    "method_a_open_gaps": 0,
+    "method_b_status": "EXHAUSTED",
+    "method_b_open_gaps": 0,
+    "both_methods_agree": true,
+    "certified_terminal_state": "LOCAL_WINDOWS_SAFE_WORK_EXHAUSTED"
   },
-  "section_5_crash_recovery": {
-    "crash_during_work_recovery": "PASS (SIMULATED - Court F: Safe retry once)",
-    "post_effect_pre_checkpoint_recovery": "PASS (SIMULATED - Court G: Discovers effect, suppresses duplicate)",
-    "fresh_session_recovery": "PASS (OBSERVED_REAL_INTERRUPTION - bootstrap.py loads durable state from disk)",
-    "stale_lease_recovery": "PASS (SIMULATED - Court H: Clean TTL expiration)",
-    "duplicate_writer_prevention": "PASS (VERIFIED - Single writer mutex lock fencing)",
-    "crash_loop_protection": "PASS (VERIFIED - Threshold 3 failure fingerprint parking)",
-    "hang_recovery": "PASS (VERIFIED - Evidence-based process taxonomy)"
+  "section_5_durable_checkpoint": {
+    "checkpoint_task_id": "TASK-WIN-961",
+    "state_generation": 87,
+    "result_fingerprint": "d8fbcd705b001ec6c5bd6fca4bbeb9429040284f4cdd0ac8182f01c165807d2e",
+    "verified_status": "VERIFIED"
   },
-  "section_6_test_evidence": {
-    "latest_full_regression": {
-      "test_command": "python -m unittest discover -s tests -p 'test_*.py'",
-      "suites_run": 23,
-      "tests_run": 266,
-      "tests_passed": 265,
-      "tests_skipped": 1,
-      "tests_failed": 0,
-      "tests_errored": 0,
-      "duration_seconds": 63.163,
-      "status": "PASS"
-    },
-    "operating_constitution_suite": {
-      "test_command": "python -m unittest tests/test_operating_constitution.py",
-      "tests_run": 9,
-      "tests_passed": 9,
-      "duration_seconds": 0.006,
-      "status": "PASS"
-    },
-    "emergency_autonomy_court": {
-      "test_command": "python -m unittest tests/test_emergency_autonomy_court.py",
-      "tests_run": 11,
-      "tests_passed": 11,
-      "duration_seconds": 3.09,
-      "status": "PASS"
-    },
-    "value_governor_court": {
-      "test_command": "python -m unittest tests/test_value_governor.py",
-      "tests_run": 6,
-      "tests_passed": 6,
-      "duration_seconds": 0.025,
-      "status": "PASS"
-    }
+  "section_6_arithmetic_reconciliation": {
+    "safe_backlog_total": 971,
+    "completed": 507,
+    "retired_repetitive_rounds": 367,
+    "retired_milestone_theatre": 93,
+    "deferred_human_gates": 4,
+    "eligible_pending": 0,
+    "discrepancies": 0
   },
-  "section_7_real_effect_evidence": {
-    "latest_verified_task": {
-      "task_id": "TASK-WIN-961",
-      "original_scope": "AUTONOMY_RESILIENCE",
-      "final_scope": "AUTONOMY_RESILIENCE",
-      "files_modified": [
-        "courier/chief/control_plane.py",
-        "courier/chief/permanent_reserve_engine.py"
-      ],
-      "commands": [
-        "python -m unittest tests/test_cross_device_e2e_roundtrip.py"
-      ],
-      "exit_codes": [
-        0
-      ],
-      "negative_test": "PASSED (Duplicate start rejected)",
-      "observed_effect": "State generation incremented to 87, event ledger hash d8fbcd705b00 persisted.",
-      "artifacts": [
-        "CANONICAL_WINDOWS_CHIEF_HANDOVER.json",
-        "WINDOWS_COURIER_OPERATING_CONSTITUTION.json"
-      ],
-      "git_before": "ab84a505d24d3f9e36477b0e0fa999f5a9cbeb05",
-      "git_after": "337b1c029fdbcbfc4e0bce892d69944cf50d2e42",
-      "result_fingerprint": "d8fbcd705b001ec6c5bd6fca4bbeb9429040284f4cdd0ac8182f01c165807d2e",
-      "known_defects": []
-    }
-  },
-  "section_8_do_not_repeat": {
-    "sqlite_do_not_repeat_count": 190,
-    "safe_backlog_completed_count": 504,
-    "revalidation_triggers": [
-      "code_changed",
-      "state_changed",
-      "proof_invalidated"
-    ],
-    "active_policies": "All 501 completed safe backlog tasks and 712 CP tasks permanently barred from replay."
-  },
-  "section_9_invalidated_proofs": [
-    {
-      "proof_id": "REPETITIVE_ROUND_BENCHMARKS_PROOF",
-      "invalidated_by": "WINDOWS_COURIER_OPERATING_CONSTITUTION Article 11 (Anti-Busywork)",
-      "affected_scope": "Rounds 30..48 repetitive unit test execution",
-      "revalidation_required": false,
-      "revalidation_status": "RETIRED_AS_BUSYWORK"
-    }
-  ],
-  "section_10_open_gap_map": {
-    "p0": [],
-    "p1": [
-      {
-        "gap_id": "GAP-CROSS-HOST-TELEMETRY",
-        "description": "Cross-device telemetry sync between Windows Courier and Mac Chief orchestrator",
-        "evidence": "Mac hardware execution currently offline/waiting on Chief intake",
-        "risk": "LOW (Windows local capabilities fully verified and isolated)",
-        "affected_goal": "GOAL-03",
-        "safe_local": true,
-        "human_gated": false,
-        "mac_conflict": false,
-        "recommended_next_action": "Await Chief intake or Mac coordination signal."
-      }
-    ],
-    "p2": [
-      {
-        "gap_id": "GAP-FOUNDER-PILOT-LAUNCH",
-        "description": "Public posting on Show HN and live customer pilot outreach",
-        "evidence": "Parked human gates (Stripe live keys, Show HN posting)",
-        "risk": "NONE (Protected by spend firewall and human gates)",
-        "affected_goal": "GOAL-05",
-        "safe_local": false,
-        "human_gated": true,
-        "mac_conflict": false,
-        "recommended_next_action": "Keep parked until explicit founder authorization."
-      }
-    ]
-  },
-  "section_11_proof_debt": {
-    "critical_proof_debt": 0.0,
-    "noncritical_proof_debt": 0.0,
-    "unverified_claims": 0,
-    "justification": "All claimed Windows Courier autonomy features have direct, automated, passing unit tests with physical evidence on disk. No unverified claims remain in the Windows scope."
-  },
-  "section_12_claim_court": {
-    "WINDOWS_TEST_SUITE_GREEN": "PROVEN (265 passed, 1 skipped, 0 failed)",
-    "WINDOWS_RECOVERY_VERIFIED": "PROVEN (CrashProofMemoryEngine, bootstrap.py verified)",
-    "WINDOWS_QUEUE_STORM_HARDENED": "PROVEN (100x weiter storm coalesces to 1 intent)",
-    "WINDOWS_AUTO_TASK_SUCCESSION_VERIFIED": "PROVEN (7 consecutive tasks without weiter)",
-    "WINDOWS_AUTO_GOAL_SUCCESSION_VERIFIED": "NOT_APPLICABLE (GOAL-05 human-gated)",
-    "WINDOWS_FRESH_SESSION_RECOVERY_VERIFIED": "PROVEN (Bootstrap loads without chat)",
-    "WINDOWS_AUTONOMY_VERIFIED_CURRENT_VERSION": "PROVEN",
-    "WINDOWS_CUSTOMER_READY": "PROVEN (Agent Control Plane Pro v1.0.0 packaged)",
-    "WINDOWS_RELEASE_READY": "PROVEN (Cryptographic checksums verified)",
-    "WINDOWS_GLOBAL_IDLE": "PROVEN (LOCAL_WINDOWS_SAFE_WORK_EXHAUSTED)",
-    "SYMPHONY_100_PERCENT": "NOT_APPLICABLE (Chief-level conclusion)"
-  },
-  "section_13_money_truth": {
+  "section_7_active_invariants": {
+    "current_task": "NONE",
+    "active_writer": "NONE",
+    "active_locks": 0,
+    "proof_debt": "ZERO",
+    "mac_conflicts": "ZERO",
     "real_spend_eur": 0.0,
     "real_revenue_eur": 0.0,
-    "simulated_revenue_eur": 250.0,
-    "test_revenue_eur": 0.0,
-    "accounting_note": "REAL_REVENUE_EUR remains 0.00 until externally attributable customer payment clears. In AUTONOMY_FIRST phase, spend firewall enforces 0.00 EUR spend."
-  },
-  "section_14_parked_human_gates": {
-    "LIVE_PAYMENT": "PARKED",
-    "LIVE_STRIPE": "PARKED",
-    "BANK": "PARKED",
-    "WALLET": "PARKED",
-    "KYC": "PARKED",
-    "PUBLIC_DEPLOYMENT": "PARKED",
-    "PUBLICATION": "PARKED",
-    "REAL_CUSTOMER_OUTREACH": "PARKED",
-    "REAL_EXTERNAL_SUBMISSION": "PARKED"
-  },
-  "section_15_mac_coordination": {
-    "mac_reserved_scopes": [
-      "supervisor_standalone.py",
-      "customs_agent.py",
-      "coordination/mac_to_windows",
-      "universuX"
+    "parked_human_gates": [
+      "LIVE_PAYMENT",
+      "LIVE_STRIPE",
+      "REAL_BANKING",
+      "REAL_WALLET",
+      "KYC",
+      "PAID_PURCHASE",
+      "PUBLIC_DEPLOYMENT",
+      "PUBLICATION",
+      "REAL_CUSTOMER_OUTREACH",
+      "REAL_HACKER_NEWS_POST",
+      "REAL_EXTERNAL_SUBMISSION"
     ],
-    "windows_shared_core_writes": 0,
-    "mac_conflicting_writes": 0,
-    "handoff_candidates": [
-      "courier/coordination/windows_to_chief/WINDOWS_CHIEF_HANDOVER_LATEST.json",
-      "courier/CANONICAL_WINDOWS_CHIEF_HANDOVER.json"
-    ],
-    "handoff_accepted_by_mac": "UNKNOWN",
-    "handoff_verified_by_mac": "UNKNOWN"
+    "next_automatic_action": "NONE"
   },
-  "section_16_resource_health": {
-    "courier_process_count": 0,
-    "worker_process_count": 0,
-    "suspected_orphan_count": 0,
-    "cpu_pressure": "NORMAL (<5%)",
-    "memory_pressure": "NORMAL (59% load, 6.39 GB available)",
-    "db_size_bytes": 2445312,
-    "active_leases": 0,
-    "thermal_cause": "UNPROVEN"
-  },
-  "section_17_last_20_meaningful_events": [
+  "section_8_event_ledger_recent": [
     {
-      "event_id": 3521,
+      "event_id": 3564,
       "event_type": "TASK_STATE_CHANGED",
       "lane": "WINDOWS_GOOGLE",
       "entity_id": "FAIL-TASK",
       "delta_json": "{\"blocker\": \"NONE\", \"gesamtaufgabe_erledigt\": false, \"local_step_erledigt\": false, \"status\": \"FAILED\"}",
-      "timestamp_utc": "2026-09-13T06:39:50.362677+00:00",
-      "event_hash": "fc052b11b4587477043c4a1ff276c83edb2e7943b77fbad42f99449a6b957ad1"
+      "timestamp_utc": "2026-09-13T06:50:43.264823+00:00",
+      "event_hash": "a13403b5acf2c5b7909bf715f336e0045014c37e1735ca56df5d740f3daf5a2f"
     },
     {
-      "event_id": 3520,
+      "event_id": 3563,
       "event_type": "TASK_STATE_CHANGED",
       "lane": "WINDOWS_GOOGLE",
       "entity_id": "SUCCESSION-TASK-C",
       "delta_json": "{\"blocker\": \"NONE\", \"gesamtaufgabe_erledigt\": true, \"local_step_erledigt\": true, \"status\": \"COMPLETED\"}",
-      "timestamp_utc": "2026-09-13T06:39:49.515851+00:00",
-      "event_hash": "4e33eae6638112eff24bd4fc0dafd3b87e4b3c01a768759dbb570f6a49519c4b"
+      "timestamp_utc": "2026-09-13T06:50:41.876511+00:00",
+      "event_hash": "19caec1b1a89eac25d710c1d64a841a17ca250d4d169aad0bbbc9b51df3a68e1"
     },
     {
-      "event_id": 3519,
+      "event_id": 3562,
       "event_type": "TASK_STATE_CHANGED",
       "lane": "WINDOWS_GOOGLE",
       "entity_id": "SUCCESSION-TASK-B",
       "delta_json": "{\"blocker\": \"NONE\", \"gesamtaufgabe_erledigt\": true, \"local_step_erledigt\": true, \"status\": \"COMPLETED\"}",
-      "timestamp_utc": "2026-09-13T06:39:49.487812+00:00",
-      "event_hash": "5e59aa6c10557b768454d63ab306a915780b3a43021cdc77f59322ae3fe3266e"
+      "timestamp_utc": "2026-09-13T06:50:41.843906+00:00",
+      "event_hash": "9e0953ca5039115dc0d90588fa0a0a4a33edf5025b73e4fcc25514b2cd34f0c4"
     },
     {
-      "event_id": 3518,
+      "event_id": 3561,
       "event_type": "TASK_STATE_CHANGED",
       "lane": "WINDOWS_GOOGLE",
       "entity_id": "SUCCESSION-TASK-A",
       "delta_json": "{\"blocker\": \"NONE\", \"gesamtaufgabe_erledigt\": true, \"local_step_erledigt\": true, \"status\": \"COMPLETED\"}",
-      "timestamp_utc": "2026-09-13T06:39:49.453869+00:00",
-      "event_hash": "d8f412c796009e96a8725ff01de249da952e0e9535816e41d02fc2b84a097072"
+      "timestamp_utc": "2026-09-13T06:50:41.798026+00:00",
+      "event_hash": "401f94d5206b863c26de58dd9174ddc26edd5db254f85c1e25327b657a274e29"
     },
     {
-      "event_id": 3517,
+      "event_id": 3560,
       "event_type": "TASK_STATE_CHANGED",
       "lane": "WINDOWS_GOOGLE",
       "entity_id": "TASK-WIN-TEST-AUTOADVANCE",
       "delta_json": "{\"blocker\": \"NONE\", \"gesamtaufgabe_erledigt\": false, \"local_step_erledigt\": true, \"status\": \"COMPLETED\"}",
-      "timestamp_utc": "2026-09-13T06:39:46.548885+00:00",
-      "event_hash": "3cb3bd94eec36e05625c6183895c2c28dc3cfa8dca26d99c3ba5467c5fa25c73"
+      "timestamp_utc": "2026-09-13T06:50:38.431815+00:00",
+      "event_hash": "fb79e7e1f529960a19e9f9e3489f219215a938377be5ff46019f1ea642de08a7"
     },
     {
-      "event_id": 3516,
+      "event_id": 3559,
       "event_type": "TASK_STATE_CHANGED",
       "lane": "WINDOWS_GOOGLE",
-      "entity_id": "REQ-TEST-SPEND-1789281581555",
+      "entity_id": "REQ-TEST-SPEND-1789282231538",
       "delta_json": "{\"blocker\": \"SPEND_FIREWALL_VIOLATION\", \"gesamtaufgabe_erledigt\": false, \"local_step_erledigt\": false, \"status\": \"FAILED\"}",
-      "timestamp_utc": "2026-09-13T06:39:41.583887+00:00",
-      "event_hash": "4ec428b9eec29ffb99175b5dbcce6c1cefac98582fc175d98f73124587f03bf0"
+      "timestamp_utc": "2026-09-13T06:50:31.578932+00:00",
+      "event_hash": "ecddd7863f0b84e7f0e392b048b8d78fe9be3c1463c81653f8b8ab57f5b43426"
     },
     {
-      "event_id": 3515,
+      "event_id": 3558,
       "event_type": "TASK_STATE_CHANGED",
       "lane": "WINDOWS_GOOGLE",
-      "entity_id": "REQ-TEST-SPEND-1789281581555",
+      "entity_id": "REQ-TEST-SPEND-1789282231538",
       "delta_json": "{\"blocker\": \"NONE\", \"gesamtaufgabe_erledigt\": false, \"local_step_erledigt\": false, \"status\": \"RUNNING\"}",
-      "timestamp_utc": "2026-09-13T06:39:41.575941+00:00",
-      "event_hash": "706198faa94b1e7f8cf8cb14e11e63c251e5a7f16acc9da41253bc3f4db95dd4"
+      "timestamp_utc": "2026-09-13T06:50:31.565966+00:00",
+      "event_hash": "1b72f5697c77d02d3b4900220c7bdb708a6dc871c8e63886f482a70f375aafd2"
     },
     {
-      "event_id": 3514,
+      "event_id": 3557,
       "event_type": "TASK_STATE_CHANGED",
       "lane": "WINDOWS_GOOGLE",
-      "entity_id": "REQ-TEST-BORDERGUARD-1789281581504",
+      "entity_id": "REQ-TEST-BORDERGUARD-1789282231480",
       "delta_json": "{\"blocker\": \"BORDER_GUARD_VIOLATION\", \"gesamtaufgabe_erledigt\": false, \"local_step_erledigt\": false, \"status\": \"FAILED\"}",
-      "timestamp_utc": "2026-09-13T06:39:41.534221+00:00",
-      "event_hash": "9a990e1fd16ffee785ed247f93831bb207bf6785e79f3ae82d24ea7a05d5cfc8"
+      "timestamp_utc": "2026-09-13T06:50:31.517859+00:00",
+      "event_hash": "8a8ed1b680d26b3ad15857f76b00e7779e338e1850a310f1101912f3068deb51"
     },
     {
-      "event_id": 3513,
+      "event_id": 3556,
       "event_type": "TASK_STATE_CHANGED",
       "lane": "WINDOWS_GOOGLE",
-      "entity_id": "REQ-TEST-BORDERGUARD-1789281581504",
+      "entity_id": "REQ-TEST-BORDERGUARD-1789282231480",
       "delta_json": "{\"blocker\": \"NONE\", \"gesamtaufgabe_erledigt\": false, \"local_step_erledigt\": false, \"status\": \"RUNNING\"}",
-      "timestamp_utc": "2026-09-13T06:39:41.524248+00:00",
-      "event_hash": "c2cf744f6ca16d82613e34978bf8600eea4a330cd3784c4d61024e0feb44d091"
+      "timestamp_utc": "2026-09-13T06:50:31.505893+00:00",
+      "event_hash": "8855758336acc6f676b93ccb59727c0cd412d49fdee6f7095dd60efdd33868b7"
     },
     {
-      "event_id": 3512,
+      "event_id": 3555,
       "event_type": "TASK_STATE_CHANGED",
       "lane": "WINDOWS_GOOGLE",
-      "entity_id": "REQ-TEST-IDEMPOTENT-1789281581409",
+      "entity_id": "REQ-TEST-IDEMPOTENT-1789282231347",
       "delta_json": "{\"blocker\": \"NONE\", \"gesamtaufgabe_erledigt\": true, \"local_step_erledigt\": true, \"status\": \"COMPLETED\"}",
-      "timestamp_utc": "2026-09-13T06:39:41.447113+00:00",
-      "event_hash": "6b7419ae5595d92e4789bddb8fd99e6c783db748084d12f3f4e6536372b5c0a5"
+      "timestamp_utc": "2026-09-13T06:50:31.401365+00:00",
+      "event_hash": "43aec7016f4f4614937230a496c2c9d7822145be3dad4f3f8bd37a61916807e4"
     },
     {
-      "event_id": 3511,
+      "event_id": 3554,
       "event_type": "TASK_STATE_CHANGED",
       "lane": "WINDOWS_GOOGLE",
-      "entity_id": "REQ-TEST-IDEMPOTENT-1789281581409",
+      "entity_id": "REQ-TEST-IDEMPOTENT-1789282231347",
       "delta_json": "{\"blocker\": \"NONE\", \"gesamtaufgabe_erledigt\": true, \"local_step_erledigt\": true, \"status\": \"COMPLETED\"}",
-      "timestamp_utc": "2026-09-13T06:39:41.437032+00:00",
-      "event_hash": "f15e233c36c3d9eaab7abde90f5f7a5abf093dc4e78fb746140bee0f566ae4ed"
+      "timestamp_utc": "2026-09-13T06:50:31.389725+00:00",
+      "event_hash": "19361b20459fe16442a4b5e1e1415af3afd6af87c2ab2eb4bfd345c99e7fd779"
     },
     {
-      "event_id": 3510,
+      "event_id": 3553,
       "event_type": "TASK_STATE_CHANGED",
       "lane": "WINDOWS_GOOGLE",
-      "entity_id": "REQ-TEST-IDEMPOTENT-1789281581409",
+      "entity_id": "REQ-TEST-IDEMPOTENT-1789282231347",
       "delta_json": "{\"blocker\": \"NONE\", \"gesamtaufgabe_erledigt\": false, \"local_step_erledigt\": false, \"status\": \"RUNNING\"}",
-      "timestamp_utc": "2026-09-13T06:39:41.431048+00:00",
-      "event_hash": "43c658737e513a784beb362d1e4ee5049fd3f80a46b85cee867b20c5ae375e43"
+      "timestamp_utc": "2026-09-13T06:50:31.379779+00:00",
+      "event_hash": "dae3ad061e25d6d2a3d76d37c6af551c6a12c5a7af0e57e38630cd03f334801a"
     },
     {
-      "event_id": 3509,
+      "event_id": 3552,
       "event_type": "TASK_STATE_CHANGED",
       "lane": "WINDOWS_GOOGLE",
-      "entity_id": "REQ-TEST-CONSENSUS-1789281581310",
+      "entity_id": "REQ-TEST-CONSENSUS-1789282231215",
       "delta_json": "{\"blocker\": \"NONE\", \"gesamtaufgabe_erledigt\": true, \"local_step_erledigt\": true, \"status\": \"COMPLETED\"}",
-      "timestamp_utc": "2026-09-13T06:39:41.342199+00:00",
-      "event_hash": "dc74b0f77d81b7b3768d6d658c8fe9f8fa5ed1d6a2bb7758663eba35a4e23984"
+      "timestamp_utc": "2026-09-13T06:50:31.256781+00:00",
+      "event_hash": "2e2192afe4a4c889548a20019495d096d3ef00ce483693e0cc66963ffc75c845"
     },
     {
-      "event_id": 3508,
+      "event_id": 3551,
       "event_type": "TASK_STATE_CHANGED",
       "lane": "WINDOWS_GOOGLE",
-      "entity_id": "REQ-TEST-CONSENSUS-1789281581310",
+      "entity_id": "REQ-TEST-CONSENSUS-1789282231215",
       "delta_json": "{\"blocker\": \"NONE\", \"gesamtaufgabe_erledigt\": true, \"local_step_erledigt\": true, \"status\": \"COMPLETED\"}",
-      "timestamp_utc": "2026-09-13T06:39:41.335141+00:00",
-      "event_hash": "4b6e3527767e54da1875406cdafa1d92df6f1b680d88753e460337cd8d5eab05"
+      "timestamp_utc": "2026-09-13T06:50:31.246511+00:00",
+      "event_hash": "52cb8ff7d35d005ad679d586d9ea7b3322e15dacd17d7a336735508ce5e4b366"
     },
     {
-      "event_id": 3507,
+      "event_id": 3550,
       "event_type": "TASK_STATE_CHANGED",
       "lane": "WINDOWS_GOOGLE",
-      "entity_id": "REQ-TEST-CONSENSUS-1789281581310",
+      "entity_id": "REQ-TEST-CONSENSUS-1789282231215",
       "delta_json": "{\"blocker\": \"NONE\", \"gesamtaufgabe_erledigt\": false, \"local_step_erledigt\": false, \"status\": \"RUNNING\"}",
-      "timestamp_utc": "2026-09-13T06:39:41.328192+00:00",
-      "event_hash": "856ffa55e01ee0ce2dd0056ef9548016ae3339167131e94fc42a748fb4f2896f"
+      "timestamp_utc": "2026-09-13T06:50:31.239534+00:00",
+      "event_hash": "c63619da1ebd2652fdac374bd28ef42eeab06ba8dcc2300592ee2540ff8158e3"
     },
     {
-      "event_id": 3506,
+      "event_id": 3549,
       "event_type": "TASK_STATE_CHANGED",
       "lane": "WINDOWS_GOOGLE",
-      "entity_id": "TASK-WIN-607",
+      "entity_id": "TASK-WIN-626",
       "delta_json": "{\"blocker\": \"NONE\", \"gesamtaufgabe_erledigt\": false, \"local_step_erledigt\": true, \"status\": \"COMPLETED\"}",
-      "timestamp_utc": "2026-09-13T06:39:36.281806+00:00",
-      "event_hash": "a265af874da19ed2e01c63e9ea6475f4c15c4a82dc8628449e32dc55fafa752c"
+      "timestamp_utc": "2026-09-13T06:50:26.055078+00:00",
+      "event_hash": "d673f00516626f20f9ce057ad9850ec1b973a5bfc8131dd183df770df6f516ac"
     },
     {
-      "event_id": 3505,
+      "event_id": 3548,
       "event_type": "LOCK_RELEASED",
       "lane": "WINDOWS_GOOGLE",
       "entity_id": "DOMAIN_DYNAMIC_BACKLOG",
       "delta_json": "{}",
-      "timestamp_utc": "2026-09-13T06:39:36.278841+00:00",
-      "event_hash": "4708a7f624c09f6851a849e9ef97360660f6c22096cc6f6ca5115ede293eb852"
+      "timestamp_utc": "2026-09-13T06:50:26.051194+00:00",
+      "event_hash": "9ed10989b3851586f93d7eff1339a2994d8b7dae0826157bab4e4a5357646e81"
     },
     {
-      "event_id": 3504,
-      "event_type": "LOCK_ACQUIRED",
-      "lane": "WINDOWS_GOOGLE",
-      "entity_id": "DOMAIN_DYNAMIC_BACKLOG",
-      "delta_json": "{\"expires_at\": \"2026-09-13T06:41:35.868785+00:00\", \"host\": \"WINDOWS\", \"lock_type\": \"READ\"}",
-      "timestamp_utc": "2026-09-13T06:39:35.869788+00:00",
-      "event_hash": "505a8f51da3208fef51c7f57853674697b3dcad37274a2902d27710ea9df05b1"
-    },
-    {
-      "event_id": 3503,
+      "event_id": 3547,
       "event_type": "TASK_STATE_CHANGED",
       "lane": "WINDOWS_GOOGLE",
-      "entity_id": "TASK-WIN-606",
-      "delta_json": "{\"blocker\": \"NONE\", \"gesamtaufgabe_erledigt\": false, \"local_step_erledigt\": true, \"status\": \"COMPLETED\"}",
-      "timestamp_utc": "2026-09-13T06:39:35.736695+00:00",
-      "event_hash": "421ecfe14aa3b86db878f04afdd3fa41ffbd61c58cbf191dacc88f9b51ccf464"
+      "entity_id": "TEST-CG-05-1789282223609",
+      "delta_json": "{\"blocker\": \"NONE\", \"gesamtaufgabe_erledigt\": true, \"local_step_erledigt\": true, \"status\": \"COMPLETED\"}",
+      "timestamp_utc": "2026-09-13T06:50:23.882919+00:00",
+      "event_hash": "5247ea050a5b7bcc89fb553e60342873c0e8ee16c6700fa0a024329fdbd17421"
     },
     {
-      "event_id": 3502,
-      "event_type": "LOCK_RELEASED",
+      "event_id": 3546,
+      "event_type": "TASK_STATE_CHANGED",
       "lane": "WINDOWS_GOOGLE",
-      "entity_id": "DOMAIN_DYNAMIC_BACKLOG",
-      "delta_json": "{}",
-      "timestamp_utc": "2026-09-13T06:39:35.731709+00:00",
-      "event_hash": "d1c3fb34ff3a49d56f5e6c6a63095bed4e9aa32fcaaa504e3e9511a2ad1e045a"
+      "entity_id": "TEST-CG-03-1789282223598",
+      "delta_json": "{\"blocker\": \"HUMAN_GATE_APPROVAL_REQUIRED\", \"gesamtaufgabe_erledigt\": false, \"local_step_erledigt\": true, \"status\": \"BLOCKED\"}",
+      "timestamp_utc": "2026-09-13T06:50:23.605436+00:00",
+      "event_hash": "64aea82d6cb468ad21f1254e67ca4d55deb3e794e35286c1ea6ef83e2c8a09a8"
+    },
+    {
+      "event_id": 3545,
+      "event_type": "TASK_STATE_CHANGED",
+      "lane": "WINDOWS_GOOGLE",
+      "entity_id": "TEST-CG-02-1789282223586",
+      "delta_json": "{\"blocker\": \"NONE\", \"gesamtaufgabe_erledigt\": true, \"local_step_erledigt\": true, \"status\": \"COMPLETED\"}",
+      "timestamp_utc": "2026-09-13T06:50:23.594731+00:00",
+      "event_hash": "3e6cd760ee9f75175cb0f645145e33b486a606ae6d7fbf0d0bff2ec218f7d38c"
     }
-  ],
-  "section_18_tomorrow_start_instruction": {
-    "bootstrap_command": "python -m courier.chief.bootstrap --json",
-    "sequence": [
-      "1. LOAD coordination/windows_to_chief/WINDOWS_CHIEF_HANDOVER_LATEST.json",
-      "2. VERIFY HEAD SHAS (courier: 337b1c02, pm: 2bf03bfe)",
-      "3. VERIFY STATE FINGERPRINT (Checkpoint: TASK-WIN-961, State Gen: 87)",
-      "4. CONFIRM OPERATING CONSTITUTION v1.0.0 [ACTIVE]",
-      "5. RECONCILE ACTIVE TASK (Expect NONE)",
-      "6. CHECK DO_NOT_REPEAT REGISTRY (Expect 190+ entries)",
-      "7. CHECK OPEN GAPS (Expect 0 P0 gaps)",
-      "8. DECIDE NEXT ACTION (Await Chief-level multi-host direction or founder gate approval)"
-    ]
-  },
-  "section_19_next_safe_work": {
-    "recommended_next_task": "NONE (LOCAL_WINDOWS_SAFE_WORK_EXHAUSTED - AWAIT_CHIEF_SYNC)",
-    "next_safe_candidate_1": "Cross-Host Telemetry Bridge (When Mac online)",
-    "next_safe_candidate_2": "Founder Pilot Launch Pack (When human gate authorized)",
-    "next_safe_candidate_3": "Autonomous Drift Observation Daemon",
-    "next_automatic_action": "REMAIN_CLEAN_IDLE_WATCHFUL_AWAITING_CHIEF_OR_FOUNDER_DIRECTIVE"
-  },
-  "section_20_human_summary": {
-    "what_we_know": "Windows Courier has achieved full crash-proof autonomy, single-trigger loop ownership, 100x weiter storm immunity, and persistent operating constitution adherence. All 265 non-skipped unit tests pass. All genuine local safe tasks are 100% completed.",
-    "what_we_do_not_know": "Mac hardware execution status and remote customer payment clearance (parked gates).",
-    "what_changed_today": "Eliminated synthetic weiter clock loops; implemented internal autonomous loop; created and permanently persisted WINDOWS_COURIER_OPERATING_CONSTITUTION (v1.0.0, 32 articles); updated ValueGovernor to reject repetitive test rounds; verified complete 266-test suite.",
-    "what_is_still_running": "Nothing. Zero active background processes, zero active writers, zero active leases.",
-    "what_is_safe_to_trust": "SQLite Control Plane, CrashProofMemoryEngine, Checkpoints table, Operating Constitution, Git HEAD commits.",
-    "what_should_not_be_trusted_yet": "Chat history (never authoritative) and external payment revenue claims (remains 0.00 EUR).",
-    "what_the_chief_should_check_first_tomorrow": "Run 'python -m courier.chief.bootstrap --json' to verify immediate recovery of state gen 87 and checkpoint TASK-WIN-961 without chat context."
-  }
+  ]
 }

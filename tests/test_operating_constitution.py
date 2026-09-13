@@ -37,7 +37,7 @@ class TestOperatingConstitution(unittest.TestCase):
             data = json.load(f)
 
         self.assertEqual(data.get("status"), "ACTIVE")
-        self.assertEqual(data.get("policy_version"), "1.0.0")
+        self.assertIn(data.get("policy_version"), ("1.0.0", "1.1.0"))
         self.assertEqual(data.get("machine_role"), "WINDOWS")
         self.assertEqual(data.get("source"), "CHIEF_DIRECTIVE")
 
@@ -46,17 +46,19 @@ class TestOperatingConstitution(unittest.TestCase):
 
         self.assertIn("ARTICLE 1 — ROLE & AUTHORITY", md_text)
         self.assertIn("ARTICLE 31 — FINAL OPERATING LOOP", md_text)
+        self.assertIn("ARTICLE 33 — TWO-METHOD REAL EXHAUSTION COURT", md_text)
+        self.assertIn("ARTICLE 34 — CONTINUATION CAMPAIGN AUTONOMY", md_text)
 
     def test_02_fresh_session_policy_load(self):
         loaded, data, path, h = ConstitutionLoader.discover_and_load()
         self.assertTrue(loaded, "Failed to load constitution via ConstitutionLoader")
         self.assertEqual(data.get("status"), "ACTIVE")
-        self.assertEqual(data.get("policy_version"), "1.0.0")
-        self.assertGreaterEqual(len(data.get("articles", {})), 30)
+        self.assertIn(data.get("policy_version"), ("1.0.0", "1.1.0"))
+        self.assertGreaterEqual(len(data.get("articles", {})), 32)
 
         summary = ConstitutionLoader.get_summary()
         self.assertEqual(summary["status"], "ACTIVE")
-        self.assertEqual(summary["policy_version"], "1.0.0")
+        self.assertIn(summary["policy_version"], ("1.0.0", "1.1.0"))
         self.assertIn("policy_hash", summary)
 
     def test_03_queue_reconciliation_policy(self):
@@ -120,6 +122,22 @@ class TestOperatingConstitution(unittest.TestCase):
         art29 = data["articles"]["article_29_chief_handover"]
         self.assertEqual(art29["canonical_path"], "courier/CANONICAL_WINDOWS_CHIEF_HANDOVER.json")
         self.assertFalse(art29["secrets_allowed"])
+
+    def test_10_two_method_exhaustion_court_policy(self):
+        _, data, _, _ = ConstitutionLoader.discover_and_load()
+        art32 = data["articles"]["article_32_two_method_exhaustion_court"]
+        self.assertTrue(art32["exhaustion_claim_requires_two_methods"])
+        self.assertEqual(art32["method_a"], "STATE_TESTS_DEFECTS_PROOF_DEBT_CONTROL_PLANE")
+        self.assertEqual(art32["method_b"], "REPOSITORY_RUNTIME_FAILURE_PATHS_CUSTOMER_DELIVERY")
+        self.assertEqual(art32["action_on_discrepancy"], "CONTINUE_CAMPAIGN_AUTOMATICALLY")
+
+    def test_11_multi_signal_campaign_autonomy_policy(self):
+        _, data, _, _ = ConstitutionLoader.discover_and_load()
+        art33 = data["articles"]["article_33_multi_signal_campaign_autonomy"]
+        self.assertFalse(art33["signals_multiply_work"])
+        self.assertEqual(art33["max_active_campaigns"], 1)
+        self.assertTrue(art33["campaign_owns_continuation"])
+        self.assertEqual(art33["duplicate_signals_handling"], "COALESCED_NOOP")
 
 
 if __name__ == "__main__":

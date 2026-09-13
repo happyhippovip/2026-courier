@@ -1,7 +1,7 @@
 {
-  "policy_version": "1.0.0",
+  "policy_version": "1.1.0",
   "created_at": "2026-09-13T06:42:00Z",
-  "updated_at": "2026-09-13T06:42:00Z",
+  "updated_at": "2026-09-13T08:52:00Z",
   "project": "2026-workspace / money-factory / courier",
   "machine_role": "WINDOWS",
   "status": "ACTIVE",
@@ -382,6 +382,23 @@
       "EXECUTE",
       "VERIFY",
       "CONTINUE"
-    ]
+    ],
+    "article_32_two_method_exhaustion_court": {
+      "exhaustion_claim_requires_two_methods": true,
+      "method_a": "STATE_TESTS_DEFECTS_PROOF_DEBT_CONTROL_PLANE",
+      "method_b": "REPOSITORY_RUNTIME_FAILURE_PATHS_CUSTOMER_DELIVERY",
+      "action_on_discrepancy": "CONTINUE_CAMPAIGN_AUTOMATICALLY",
+      "premature_end_prohibited": true
+    },
+    "article_33_multi_signal_campaign_autonomy": {
+      "rule": "WHEN MULTIPLE CONTINUATION SIGNALS EXIST: signals do not multiply work. They extend permission to continue useful work. ONE ACTIVE CAMPAIGN MAXIMUM. The campaign owns continuation.",
+      "multi_signal_meaning": "RAW_CONTINUATION_BUDGET",
+      "signals_multiply_work": false,
+      "signals_create_tasks": false,
+      "max_active_campaigns": 1,
+      "campaign_owns_continuation": true,
+      "duplicate_signals_handling": "COALESCED_NOOP",
+      "bounded_windows_tasks": "5_TO_10"
+    }
   }
 }

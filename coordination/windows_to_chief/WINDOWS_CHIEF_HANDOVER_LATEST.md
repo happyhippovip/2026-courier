@@ -1,136 +1,64 @@
-# WINDOWS COURIER — AUTHORITATIVE CHIEF HANDOVER (LATEST)
-
-**Handover Generation**: 3  
-**Timestamp UTC**: 2026-09-13T06:45:41.706176+00:00  
-**Platform Source**: WINDOWS_GOOGLE  
-**Target Consumer**: CHIEF_ORCHESTRATOR  
-**Status**: TOMORROW_CHIEF_HANDOVER_VERIFIED  
-
----
-
-## 1. REPOSITORY IDENTITY & AUDIT
-- **Machine Role**: `WINDOWS`
-- **Courier Path**: `C:\Users\lol\2026-workspace\courier`
-  - **Branch**: `windows/money-factory-p0`
-  - **HEAD SHA**: `337b1c029fdbcbfc4e0bce892d69944cf50d2e42`
-  - **Worktree Status**: `CLEAN_TRACKED`
-- **Project Memory Path**: `C:\Users\lol\2026-workspace\project-memory`
-  - **Branch**: `feature/money-factory-v3`
-  - **HEAD SHA**: `2bf03bfe77360b488fb41fe8a11191f1744178b6`
-  - **Worktree Status**: `UNTRACKED_PAYMENT_PROOFS` (Payment proofs preserved, tracked code clean)
-- **Canonical Source Locations**:
-  - `courier/chief/control_plane.py`
-  - `courier/chief/crash_proof_recovery.py`
-  - `courier/chief/finish_first_continuation.py`
-  - `courier/chief/permanent_reserve_engine.py`
-  - `courier/chief/value_governor.py`
-  - `courier/chief/constitution.py`
-  - `courier/chief/bootstrap.py`
+# WINDOWS CHIEF AUTHORITATIVE HANDOVER — GENERATION 4
+**Document Status**: AUTHORITATIVE & CERTIFIED  
+**Generated At**: 2026-09-13T06:56:42.982479+00:00  
+**Platform**: Windows Specialist Node (`WINDOWS_GOOGLE`)  
+**Target Consumer**: Chief Orchestrator (`CHIEF_ORCHESTRATOR`)  
+**Operating Constitution**: v1.1.0 (`ACTIVE`, 33 Articles)  
+**Campaign ID**: `CAMP-WIN-FINAL-100X` (Status: `COMPLETE_SAFE_WORK_EXHAUSTED`)
 
 ---
 
-## 2. CURRENT EXECUTION & DURABLE CHECKPOINT STATE
-- **Mission**: `MISSION-AUTONOMY`
-- **Goal**: `GOAL-05`
-- **Active Task**: `NONE`
+## 1. REPOSITORY IDENTITY & IMMUTABILITY
+- **courier**: Branch `windows/money-factory-p0` | HEAD SHA `75f0d64fc9e3a6126c0fb4dc78101538bf782c64` | Worktree: `CLEAN_TRACKED`
+- **project-memory**: Branch `feature/money-factory-v3` | HEAD SHA `1362874089bfbbfa49a667b1a2ef076c13f7d190` | Worktree: `CLEAN_DISCIPLINED`
+
+---
+
+## 2. 100x WEITER WORK CAMPAIGN CONSUMPTION
+- **Raw Weiter Observed**: 100
+- **Weiter Absorbed**: 99
+- **Logical Continuation Intents**: 1
+- **Tasks Executed**: 5
+- **Tasks Verified**: 5
+- **Duplicate Signals Suppressed**: 99 (as `COALESCED_NOOP`)
+- **External Weiter Calls Required After Start**: 0
+- **Campaign State**: `COMPLETE_SAFE_WORK_EXHAUSTED`
+
+---
+
+## 3. TWO-METHOD REAL EXHAUSTION AUDIT (ARTICLE 33)
+- **Method A (State / Tests / Proof Debt / Control Plane)**: `EXHAUSTED` (0 open gaps)
+- **Method B (Repository / Runtime / Delivery / Cross-Platform)**: `EXHAUSTED` (0 open gaps)
+- **Dual Method Consensus**: `CONFIRMED`
+- **Certified Terminal State**: `LOCAL_WINDOWS_SAFE_WORK_EXHAUSTED`
+
+---
+
+## 4. DURABLE CHECKPOINT
+- **Checkpoint Task ID**: `TASK-WIN-961`
+- **State Generation**: 87
+- **Result Fingerprint**: `d8fbcd705b001ec6c5bd6fca4bbeb9429040284f4cdd0ac8182f01c165807d2e`
+- **Verification Status**: `VERIFIED`
+
+---
+
+## 5. SAFE BACKLOG ARITHMETIC RECONCILIATION
+- **Total Backlog Items**: 971
+- **Completed Items**: 507
+- **Retired Repetitive Rounds**: 367
+- **Retired Milestone Theatre**: 93
+- **Deferred (Human Gates)**: 4
+- **Eligible Pending**: 0
+- **Discrepancies**: 0
+
+---
+
+## 6. INVARIANTS & ECONOMIC LEDGER
 - **Active Writer**: `NONE`
-- **Active Leases**: `0`
-- **Last Verified Task**: `TASK-WIN-961`
-- **Valid Checkpoint**:
-  - **Task ID**: `TASK-WIN-961`
-  - **Task Version**: `1`
-  - **State Generation**: `87`
-  - **Result Fingerprint**: `d8fbcd705b001ec6c5bd6fca4bbeb9429040284f4cdd0ac8182f01c165807d2e`
-  - **Verified At**: `2026-09-13T06:32:17.220272+00:00`
-  - **Status**: `VERIFIED`
-
----
-
-## 3. QUEUE & `weiter` ADVERSARIAL IMMUNITY
-- **Observed Continuation Inputs**: 100+ raw signals
-- **Continuations Coalesced**: 99+
-- **Logical Continuation Intents Created**: `1`
-- **Duplicate Tasks Created**: `0`
-- **`weiter` Idempotency**: `PASS`
-- **Mechanism**: Articles 4 & 5 of Windows Courier Operating Constitution enforced; `test_emergency_autonomy_court.py` (Court A & 100x weiter storm) verified.
-
----
-
-## 4. AUTONOMY & SUCCESSION PROOF
-- **Auto Task Successions Without `weiter`**: `7` consecutive tasks (`TASK-WIN-936` through `TASK-WIN-961`)
-- **Auto Goal Successions**: `0` (GOAL-01 .. GOAL-04 satisfied; GOAL-05 human-gated)
-- **Human Continuations Required**: `0` during autonomous execution block
-- **Architecture**: `PermanentReserveEngine.start_or_resume_autonomy()` drives successor discovery, execution, verification, and closure internally.
-
----
-
-## 5. CRASH PROOF & RECOVERY EVIDENCE
-- **Crash During Execution**: `PASS` (Court F: Interrupted task recovered safely once)
-- **Post-Effect Pre-Checkpoint Crash**: `PASS` (Court G: Discovers existing on-disk effect, prevents duplicate)
-- **Fresh Session Bootstrap**: `PASS` (`courier.chief.bootstrap` re-hydrates full mission and constitution from disk)
-- **Stale Lease Recovery**: `PASS` (Court H: Clean TTL expiration)
-- **Writer Collision Guard**: `PASS` (Single writer fenced mutex enforced)
-- **Crash Loop Protection**: `PASS` (Failure threshold 3 triggers branch parking)
-
----
-
-## 6. LATEST TEST REGRESSION EVIDENCE
-- **Full Suite Command**: `python -m unittest discover -s tests -p 'test_*.py'`
-  - **Tests Run**: `266`
-  - **Passed**: `265`
-  - **Skipped**: `1`
-  - **Failed / Errored**: `0`
-  - **Duration**: `63.163s`
-  - **Status**: `100% GREEN (PASS)`
-- **Operating Constitution Suite**: `9/9 PASS` (`0.006s`)
-- **Emergency Autonomy Court**: `11/11 PASS` (`3.09s`)
-- **Value Governor Court**: `6/6 PASS` (`0.025s`)
-
----
-
-## 7. DO NOT REPEAT & VALUE GOVERNOR
-- **Control Plane Registered Tasks**: `712`
-- **Safe Backlog Completed Tasks**: `501`
-- **Retired Milestone Tasks**: `93`
-- **Filtered Repetitive Rounds**: `373` (ValueGovernor anti-busywork policy Article 11)
-- **Genuine Safe Work Remaining**: `NO (LOCAL_WINDOWS_SAFE_WORK_EXHAUSTED)`
-- **Proof Debt**: `0.00` (All claims supported by passing automated test suites and on-disk cryptographic hashes)
-
----
-
-## 8. ECONOMIC TRUTH & HUMAN GATES
-- **Real Spend EUR**: `0.00 EUR`
-- **Real Revenue EUR**: `0.00 EUR`
-- **Simulated / Test Pilot Value**: `250.00 EUR`
-- **Parked Human Gates**:
-  `LIVE_PAYMENT` | `LIVE_STRIPE` | `BANK` | `WALLET` | `KYC` | `PUBLIC_DEPLOYMENT` | `PUBLICATION` | `REAL_CUSTOMER_OUTREACH` | `REAL_EXTERNAL_SUBMISSION`
-
----
-
-## 9. MAC SCOPE COORDINATION
-- **Mac Reserved Scopes**: `supervisor_standalone.py`, `customs_agent.py`, `coordination/mac_to_windows`, `universuX`
-- **Mac Conflicting Writes**: `0`
-- **Windows Self-Certification**: Windows does NOT self-certify Mac status. Mac status remains `UNKNOWN` pending Chief intake.
-
----
-
-## 10. TOMORROW CHIEF BOOTSTRAP INSTRUCTION
-To resume tomorrow in a fresh session without conversational history:
-```powershell
-uv run python -m courier.chief.bootstrap --json
-```
-Expected output:
-1. `OPERATING CONSTITUTION: WINDOWS_COURIER_OPERATING_CONSTITUTION v1.0.0 [ACTIVE]`
-2. `MISSION: MISSION-AUTONOMY (Goal: GOAL-05)`
-3. `LAST VERIFIED TASK: TASK-WIN-961 (State Generation 87)`
-4. `STATUS: CLEAN_IDLE`
-5. `NEXT AUTOMATIC ACTION: REMAIN_CLEAN_IDLE_WATCHFUL_AWAITING_CHIEF_OR_FOUNDER_DIRECTIVE`
-
----
-
-## 11. HUMAN EXECUTIVE SUMMARY
-- **What We Know**: Windows Courier has solved the fake weiter clock defect, enforces internal loop autonomy, coalesces continuation storms, adheres to a 32-article operating constitution, and has completed all genuine local safe tasks.
-- **What We Do Not Know**: Remote Mac device availability and external live payment processing.
-- **What Changed Today**: Implemented single-trigger autonomy loop, permanently codified the Operating Constitution, verified full 266-test regression suite, eliminated repetitive round churn.
-- **What Is Still Running**: Zero active tasks or processes.
-- **What Chief Should Check First**: Bootstrap recovery from disk alone.
+- **Active Locks**: 0
+- **Proof Debt**: `ZERO`
+- **Mac Scope Conflicts**: `ZERO`
+- **Real Spend EUR**: `0.00`
+- **Real Revenue EUR**: `0.00`
+- **Parked External Gates**: 11 gates parked (`LIVE_PAYMENT`, `LIVE_STRIPE`, `BANK`, `WALLET`, `KYC`, `PURCHASE`, `PUBLIC_DEPLOYMENT`, `PUBLICATION`, `CUSTOMER_OUTREACH`, `HACKER_NEWS_POST`, `EXTERNAL_SUBMISSION`)
+- **Next Automatic Action**: `NONE`

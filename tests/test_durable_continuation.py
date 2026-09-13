@@ -25,7 +25,15 @@ from courier.chief.durable_continuation import DurableContinuationManager
 class TestDurableContinuation(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.mgr = DurableContinuationManager()
+        import tempfile
+        cls.temp_dir = tempfile.mkdtemp()
+        cls.state_file = os.path.join(cls.temp_dir, "test_durable_continuation.json")
+        cls.mgr = DurableContinuationManager(state_file=cls.state_file)
+
+    @classmethod
+    def tearDownClass(cls):
+        import shutil
+        shutil.rmtree(cls.temp_dir, ignore_errors=True)
 
     def setUp(self):
         # Reset test metrics
@@ -53,7 +61,7 @@ class TestDurableContinuation(unittest.TestCase):
         self.assertEqual(state["verification_state"], "UNVERIFIED")
 
         # Re-instantiate manager (simulating fresh agent session / restart)
-        new_mgr = DurableContinuationManager()
+        new_mgr = DurableContinuationManager(state_file=self.state_file)
         with new_mgr._get_connection() as conn:
             cur = conn.cursor()
             cur.execute("SELECT * FROM durable_continuation_state WHERE task_id = ?", (task_id,))

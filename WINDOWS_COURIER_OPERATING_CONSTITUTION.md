@@ -362,3 +362,23 @@ LOAD DURABLE STATE
 
 ## ARTICLE 32 — PERSISTENCE & BOOTSTRAP VALIDATION
 This Constitution is durably persisted on disk, tracked in version control, and dynamically discovered by `courier.chief.bootstrap` on every fresh session.
+
+---
+
+## ARTICLE 33 — TWO-METHOD REAL EXHAUSTION COURT
+1. Only claim LOCAL_WINDOWS_SAFE_WORK_EXHAUSTED after TWO independent discovery methods both confirm no legitimate real-delta work remains:
+   - **Discovery Method A**: State / tests / known defects / proof debt / control plane.
+   - **Discovery Method B**: Repository / runtime / failure paths / customer/release / cross-platform inspection.
+2. If either method discovers unresolved, high-value, safe work, the campaign continues automatically.
+3. Premature cessation based solely on zero reservoir depth or green tests is prohibited.
+
+---
+
+## ARTICLE 34 — CONTINUATION CAMPAIGN AUTONOMY & SIGNAL COALESCING
+1. **Rule**: WHEN MULTIPLE CONTINUATION SIGNALS EXIST:
+   - Signals do not multiply work.
+   - They extend permission to continue useful work (raw continuation capacity).
+   - ONE ACTIVE CAMPAIGN MAXIMUM.
+   - The campaign owns continuation.
+2. Multiple or queued weiter signals coalesce into at most 1 logical continuation intent; duplicates are suppressed as COALESCED_NOOP.
+3. Execution proceeds in bounded autonomous windows (5–10 tasks) with zero intermediate external ticks.
