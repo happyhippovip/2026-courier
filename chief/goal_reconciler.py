@@ -1982,6 +1982,41 @@ class GoalReconciler:
             "expected_evidence": "Commercial reality hardening test suite passed (7/7 tests 100% success)"
         })
 
+        # Candidate BI: Autonomous Multi-Channel Distribution Pack & Zero-Prompt Handoff Staging
+        candidates.append({
+            "candidate_id": "TASK-WIN-69",
+            "version": 1,
+            "goal_id": "GOAL-03",
+            "title": "Autonomous Multi-Channel Distribution Pack & Zero-Prompt Handoff Staging",
+            "category": "SUSTAINABLE_COMMERCIAL_DELIVERY",
+            "conflict_domain": "DISTRIBUTION_PACK_STAGING",
+            "target_machine": "WINDOWS",
+            "target_worker": "WINDOWS_GOOGLE",
+            "scope": os.path.join(self.project_memory_dir, "data", "distribution_ready", "agent_control_plane"),
+            "script_path": "courier/tests/test_distribution_pack.py",
+            "cwd": self.workspace_root,
+            "is_writer": False,
+            "unresolved_gap": "REAL_MARKET_UNCERTAINTY",
+            "goal_impact": 10.0,
+            "revenue_impact": 10.0,
+            "info_gain": 10.0,
+            "proof_debt_reduction": 10.0,
+            "autonomy_gain": 10.0,
+            "risk_score": 0.0,
+            "spend_eur": 0.00,
+            "human_requirement": "NONE",
+            "acceptance_criteria": [
+                "Execute courier/tests/test_distribution_pack.py",
+                "Verify multi-channel distribution assets staged for Show HN, Reddit, and GitHub",
+                "Verify cryptographic integrity of release assets against disk binaries",
+                "Verify zero-telemetry guarantee on local spend firewall (0 tracking endpoints)",
+                "Verify offline 60-second value demo execution (budget trip HTTP 402)",
+                "Verify HUMAN_GATE_1 remains parked with 0.00 EUR autonomous spend",
+                "Verify 48-hour falsification thresholds codified"
+            ],
+            "expected_evidence": "Distribution pack test suite passed (6/6 tests 100% success)"
+        })
+
         # Dynamic Candidate Discovery from safe_backlog.json
         if os.path.exists(self.backlog_path):
             try:
@@ -2505,21 +2540,22 @@ class GoalReconciler:
                 )
             except Exception:
                 pass
-            try:
-                cand_path = os.path.join(self.coord_mac_handoff_dir, "MAC_HANDOFF_CANDIDATE.json")
-                if os.path.exists(cand_path):
-                    with open(cand_path, "r", encoding="utf-8") as cf:
-                        m_data = json.load(cf)
-                    m_data["safe_backlog_checkpoint"] = c_id
-                    m_data["timestamp_utc"] = datetime.now(timezone.utc).isoformat()
-                    completed_count = len([t for t in self.cp.get_all_tasks() if t.get("status") == "COMPLETED"])
-                    m_data["evidence"]["certified_tasks_count"] = max(m_data["evidence"].get("certified_tasks_count", 0), completed_count)
-                    safe_write_json(cand_path, m_data)
-            except Exception:
-                pass
+            if not c_id.startswith("TASK-WIN-TEST-"):
+                try:
+                    cand_path = os.path.join(self.coord_mac_handoff_dir, "MAC_HANDOFF_CANDIDATE.json")
+                    if os.path.exists(cand_path):
+                        with open(cand_path, "r", encoding="utf-8") as cf:
+                            m_data = json.load(cf)
+                        m_data["safe_backlog_checkpoint"] = c_id
+                        m_data["timestamp_utc"] = datetime.now(timezone.utc).isoformat()
+                        completed_count = len([t for t in self.cp.get_all_tasks() if t.get("status") == "COMPLETED"])
+                        m_data["evidence"]["certified_tasks_count"] = max(m_data["evidence"].get("certified_tasks_count", 0), completed_count)
+                        safe_write_json(cand_path, m_data)
+                except Exception:
+                    pass
 
         # Update safe_backlog.json if candidate is tracked there
-        if os.path.exists(self.backlog_path):
+        if not c_id.startswith("TASK-WIN-TEST-") and os.path.exists(self.backlog_path):
             try:
                 with open(self.backlog_path, "r", encoding="utf-8") as f:
                     b_data = json.load(f)
