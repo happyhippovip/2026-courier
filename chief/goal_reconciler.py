@@ -2306,6 +2306,39 @@ class GoalReconciler:
             "expected_evidence": "Commercial pilot harness test suite passed (4/4 tests 100% success)"
         })
 
+        # Candidate BR: Agent Control Plane PRO Show HN & External Launch Dossier, Quickstart Install Scripts & Turnkey Community Distribution Pack
+        candidates.append({
+            "candidate_id": "TASK-WIN-78",
+            "version": 1,
+            "goal_id": "GOAL-03",
+            "title": "Agent Control Plane PRO Show HN & External Launch Dossier, Quickstart Install Scripts & Turnkey Community Distribution Pack",
+            "category": "SUSTAINABLE_COMMERCIAL_DELIVERY",
+            "conflict_domain": "LAUNCH_SUBMISSION_PACKAGE",
+            "target_machine": "WINDOWS",
+            "target_worker": "WINDOWS_GOOGLE",
+            "scope": os.path.join(self.project_memory_dir, "data", "distribution_ready", "agent_control_plane"),
+            "script_path": "courier/tests/test_launch_submission_package.py",
+            "cwd": self.workspace_root,
+            "is_writer": False,
+            "unresolved_gap": "AUTONOMY_CAPABILITY_GAP",
+            "goal_impact": 10.0,
+            "revenue_impact": 10.0,
+            "info_gain": 10.0,
+            "proof_debt_reduction": 10.0,
+            "autonomy_gain": 10.0,
+            "risk_score": 0.0,
+            "spend_eur": 0.00,
+            "human_requirement": "NONE",
+            "acceptance_criteria": [
+                "Execute courier/tests/test_launch_submission_package.py",
+                "Verify SHOW_HN_LAUNCH_CARD.md specifies OPP-SEED-04, 0.00 EUR spend, and 48-hour falsification gate",
+                "Verify install.ps1 and install.sh exist and declare exact SHA-256 matching DISTRIBUTION_MANIFEST_PRO.json",
+                "Verify COMMUNITY_FAQ.md addresses all 10 canonical developer and security objections",
+                "Verify zero external network calls, zero telemetry, and 0.00 EUR automatic spend"
+            ],
+            "expected_evidence": "Launch submission package test suite passed (4/4 tests 100% success)"
+        })
+
         # Dynamic Candidate Discovery from safe_backlog.json
         if os.path.exists(self.backlog_path):
             try:
