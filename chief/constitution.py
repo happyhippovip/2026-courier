@@ -48,3 +48,13 @@ class ConstitutionLoader:
             "canonical_authority": data.get("canonical_authority"),
             "article_count": len(data.get("articles", {}))
         }
+
+    @classmethod
+    def load_constitution(cls) -> Tuple[bool, Dict[str, Any], str, str]:
+        """Convenience alias for discover_and_load."""
+        return cls.discover_and_load()
+
+    @classmethod
+    def get_constitution(cls) -> Dict[str, Any]:
+        """Convenience alias for get_summary."""
+        return cls.get_summary()

@@ -27,10 +27,14 @@ class ChiefCoordinator:
     def __init__(
         self,
         control_plane: Optional[ControlPlane] = None,
-        dispatch_base_dir: str = DEFAULT_DISPATCH_BASE_DIR
+        dispatch_base_dir: str = DEFAULT_DISPATCH_BASE_DIR,
+        cp: Optional[ControlPlane] = None,
+        handoffs_dir: Optional[str] = None
     ):
-        self.control_plane = control_plane or ControlPlane()
-        self.dispatch_base_dir = os.path.abspath(dispatch_base_dir)
+        self.control_plane = control_plane or cp or ControlPlane()
+        effective_dir = handoffs_dir or dispatch_base_dir
+        self.dispatch_base_dir = os.path.abspath(effective_dir)
+        self.handoffs_dir = self.dispatch_base_dir
         os.makedirs(self.dispatch_base_dir, exist_ok=True)
 
     # --- SINGLE WRITER GOVERNOR ---

@@ -85,6 +85,38 @@ class HandoffValidator:
             base_dir = os.path.dirname(filepath)
             # Only check if artifacts are listed as relative paths in a local bundle
             # Non-blocking warning only
+
+        # 6. Mac Reserved Scopes & Directory Traversal Boundary Defense
+        mac_reserved_patterns = [
+            "supervisor_standalone.py",
+            "customs_agent.py",
+            "coordination/mac_to_windows",
+            "coordination\\mac_to_windows",
+            "universux",
+            "courier/mac",
+            "courier\\mac",
+        ]
+        target_files = []
+        for k in ("target_files", "modified_files", "files"):
+            val = payload.get(k)
+            if isinstance(val, list):
+                target_files.extend(str(v) for v in val)
+            elif isinstance(val, str):
+                target_files.append(val)
+        for k in ("target_file", "modified_file", "file", "path"):
+            val = payload.get(k)
+            if isinstance(val, str):
+                target_files.append(val)
+
+        for f in target_files:
+            f_norm = f.replace("\\", "/")
+            if ".." in f_norm.split("/"):
+                errors.append(f"PATH_TRAVERSAL_VIOLATION: '{f}' contains forbidden directory traversal (..)")
+            f_lower = f_norm.lower()
+            for pattern in mac_reserved_patterns:
+                if pattern.replace("\\", "/").lower() in f_lower:
+                    errors.append(f"MAC_RESERVED_SCOPE_VIOLATION: Inbound handoff targets Mac-reserved scope '{f}'")
+
         return len(errors) == 0, errors
 
 
@@ -172,6 +204,12 @@ class ChiefRequestValidator:
                 return False, [f"OUTSIDE_WINDOWS_CAPABILITY: '{val_type}' belongs to Mac lane"]
 
         return True, []
+
+    @classmethod
+    def validate(cls, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Convenience validation method returning dict with valid flag and errors."""
+        is_valid, errors = cls.validate_request_dict(data)
+        return {"valid": is_valid, "errors": errors}
 
 
 class FallbackAssignmentValidator:

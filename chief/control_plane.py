@@ -419,7 +419,8 @@ class ControlPlane:
         lane: Lane,
         host: Host,
         lock_type: str = "WRITE",
-        ttl_seconds: int = 300
+        ttl_seconds: int = 300,
+        allow_renewal: bool = True
     ) -> Tuple[bool, str]:
         now_dt = datetime.now(timezone.utc)
         now_iso = now_dt.isoformat()
@@ -439,10 +440,14 @@ class ControlPlane:
                     # Check if expired
                     if exp_iso > now_iso:
                         if held_lane == lane.value and held_host == host.value:
-                            # Renew lock
-                            cursor.execute("UPDATE resource_locks SET expires_at = ? WHERE resource_id = ?", (expires_iso, resource_id))
-                            cursor.execute("COMMIT;")
-                            return True, "LOCK_RENEWED"
+                            if allow_renewal:
+                                # Renew lock
+                                cursor.execute("UPDATE resource_locks SET expires_at = ? WHERE resource_id = ?", (expires_iso, resource_id))
+                                cursor.execute("COMMIT;")
+                                return True, "LOCK_RENEWED"
+                            else:
+                                cursor.execute("COMMIT;")
+                                return False, f"LOCK_ALREADY_HELD: Resource {resource_id} is already held by {held_lane}"
                         cursor.execute("COMMIT;")
                         return False, f"SINGLE_WRITER_CONFLICT: Held by {held_lane} on {held_host} until {exp_iso}"
                     else:

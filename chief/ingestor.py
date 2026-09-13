@@ -21,8 +21,13 @@ DEFAULT_HANDOFFS_DIR = r"C:\Users\lol\2026-workspace\courier-handoffs\windows"
 
 
 class ChiefIngestor:
-    def __init__(self, control_plane: Optional[ControlPlane] = None, handoffs_dir: str = DEFAULT_HANDOFFS_DIR):
-        self.control_plane = control_plane or ControlPlane()
+    def __init__(
+        self,
+        control_plane: Optional[ControlPlane] = None,
+        handoffs_dir: str = DEFAULT_HANDOFFS_DIR,
+        cp: Optional[ControlPlane] = None
+    ):
+        self.control_plane = control_plane or cp or ControlPlane()
         self.handoffs_dir = os.path.abspath(handoffs_dir)
 
     def compute_sha256(self, filepath: str) -> str:

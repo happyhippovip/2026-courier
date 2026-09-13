@@ -16,6 +16,17 @@ import hashlib
 from typing import Dict, Any, Tuple, Optional
 
 
+MAC_RESERVED_PATTERNS = [
+    "supervisor_standalone.py",
+    "customs_agent.py",
+    "coordination/mac_to_windows",
+    "coordination\\mac_to_windows",
+    "universux",
+    "courier/mac",
+    "courier\\mac",
+]
+
+
 class ResultCustomsJudge:
     """Enforces Court K Result Customs on all task outcomes."""
 
@@ -37,6 +48,57 @@ class ResultCustomsJudge:
             }
         """
         task_id = candidate.get("task_id", "UNKNOWN_TASK")
+
+        # Boundary Invariant 1: Reject directory traversal in task_id
+        if ".." in str(task_id):
+            return {
+                "passed": False,
+                "reason": f"SECURITY_PATH_TRAVERSAL_DISALLOWED: task_id contains directory traversal: {task_id}",
+                "result_fingerprint": None,
+                "commands": [],
+                "exit_code": -1,
+                "evidence_length": 0
+            }
+
+        # Boundary Invariant 2: Collect and check target/modified files
+        target_files = []
+        for src in (candidate, execution_evidence):
+            if isinstance(src, dict):
+                for k in ("target_files", "modified_files", "files", "paths"):
+                    val = src.get(k)
+                    if isinstance(val, list):
+                        target_files.extend(str(v) for v in val)
+                    elif isinstance(val, str):
+                        target_files.append(val)
+                for k in ("target_file", "modified_file", "file", "path"):
+                    val = src.get(k)
+                    if isinstance(val, str):
+                        target_files.append(val)
+
+        for f in target_files:
+            f_norm = f.replace("\\", "/")
+            parts = f_norm.split("/")
+            if ".." in parts:
+                return {
+                    "passed": False,
+                    "reason": f"SECURITY_PATH_TRAVERSAL_DISALLOWED: Target path contains directory traversal: {f}",
+                    "result_fingerprint": None,
+                    "commands": [],
+                    "exit_code": -1,
+                    "evidence_length": 0
+                }
+
+            f_lower = f_norm.lower()
+            for pattern in MAC_RESERVED_PATTERNS:
+                if pattern.replace("\\", "/").lower() in f_lower:
+                    return {
+                        "passed": False,
+                        "reason": f"MAC_RESERVED_SCOPE_VIOLATION: Execution cannot modify Mac-reserved scope: {f}",
+                        "result_fingerprint": None,
+                        "commands": [],
+                        "exit_code": -1,
+                        "evidence_length": 0
+                    }
 
         # 1. Reject self-certification without execution evidence
         if not execution_evidence or not isinstance(execution_evidence, dict):
