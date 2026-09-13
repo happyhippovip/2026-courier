@@ -65,6 +65,17 @@ class MemoryCommitTests(unittest.TestCase):
             self.assertEqual(json.loads(path.read_text(encoding="utf-8")), {"status": "previous"})
             self.assertEqual(list(path.parent.glob(".proposal.json.tmp.*")), [])
 
+    def test_atomic_writer_syncs_directory_after_replace(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = Path(temp_dir) / "proposal.json"
+            import build_memory_update_proposal as builder
+
+            with mock.patch.object(builder.os, "fsync", wraps=builder.os.fsync) as synced:
+                atomic_write_json(path, {"status": "durable"})
+
+            self.assertGreaterEqual(synced.call_count, 2)
+            self.assertEqual(json.loads(path.read_text(encoding="utf-8")), {"status": "durable"})
+
 
 if __name__ == "__main__":
     unittest.main()

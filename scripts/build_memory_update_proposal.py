@@ -44,6 +44,15 @@ def atomic_write_json(path: Path, payload: dict) -> None:
             handle.flush()
             os.fsync(handle.fileno())
         os.replace(temp_path, path)
+        try:
+            directory_fd = os.open(path.parent, os.O_RDONLY)
+            try:
+                os.fsync(directory_fd)
+            finally:
+                os.close(directory_fd)
+        except OSError:
+            # The replacement remains atomic even where directory fsync is unavailable.
+            pass
     finally:
         if temp_path.exists():
             temp_path.unlink()

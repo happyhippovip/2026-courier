@@ -7,7 +7,8 @@
     "COURT_F_BOUNDED_REPEATABILITY",
     "COURT_W_TEST_ISOLATION",
     "COURT_V_OWNER_FINDING_REFRESH_READ_ONLY",
-    "COURT_X_TWO_PASS_DISCOVERY"
+    "COURT_X_TWO_PASS_DISCOVERY",
+    "COURT_Y_PROPOSAL_CRASH_DURABILITY"
   ],
   "mutation_cases": [
     "U1_DETERMINISTIC_MESH_ID",
@@ -48,9 +49,10 @@
     "unbound_curator_input_cannot_emit_sent_to_chief",
     "curator_provenance_is_persisted_with_unverified_trust_state",
     "malformed_claimed_curator_provenance_is_rejected",
-    "missing_canonical_memory_cannot_emit_sent_to_chief"
+    "missing_canonical_memory_cannot_emit_sent_to_chief",
+    "proposal_replace_is_followed_by_best_effort_directory_fsync"
   ],
   "next_ranked_court": "NONE_PENDING_NEW_OWNER_DELTA",
-  "safe_non_reserved_work_remaining": "NONE_CONFIRMED_AFTER_TWO_PASSES",
+  "safe_non_reserved_work_remaining": "NONE_CONFIRMED_AFTER_THREE_PASSES",
   "payment_scope": "EXCLUDED"
 }
