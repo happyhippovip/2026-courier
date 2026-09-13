@@ -1917,6 +1917,41 @@ class GoalReconciler:
             "expected_evidence": "Peer consensus test suite passed (7/7 tests 100% success)"
         })
 
+        # Candidate BG: Autonomous Queue Storm Suppressor, Monotonic Generation Fence & In-Flight Continuation Gate
+        candidates.append({
+            "candidate_id": "TASK-WIN-67",
+            "version": 1,
+            "goal_id": "GOAL-05",
+            "title": "Autonomous Queue Storm Suppressor, Monotonic Generation Fence & In-Flight Continuation Gate",
+            "category": "CRASH_PROOF_AUTONOMY_ARCHITECTURE",
+            "conflict_domain": "QUEUE_STORM_SUPPRESSION",
+            "target_machine": "WINDOWS",
+            "target_worker": "WINDOWS_GOOGLE",
+            "scope": os.path.join(self.workspace_root, "courier"),
+            "script_path": "courier/tests/test_queue_storm_suppressor.py",
+            "cwd": self.workspace_root,
+            "is_writer": False,
+            "unresolved_gap": "AUTONOMY_CAPABILITY_GAP",
+            "goal_impact": 10.0,
+            "revenue_impact": 9.5,
+            "info_gain": 10.0,
+            "proof_debt_reduction": 10.0,
+            "autonomy_gain": 10.0,
+            "risk_score": 0.0,
+            "spend_eur": 0.00,
+            "human_requirement": "NONE",
+            "acceptance_criteria": [
+                "Execute courier/tests/test_queue_storm_suppressor.py",
+                "Verify 250-message queue storm coalescing to exactly 1 intent (0 duplicate tasks created)",
+                "Verify in-flight RUNNING task duplicate weiter suppression as harmless NOOP",
+                "Verify stale generation weiter suppression without replaying verified tasks (0 replayed)",
+                "Verify genuine new human goals are preserved and incorporated",
+                "Verify automatic succession without waiting for human input",
+                "Verify spend remains strictly 0.00 EUR and Mac scopes excluded"
+            ],
+            "expected_evidence": "Queue storm suppressor test suite passed (6/6 tests 100% success)"
+        })
+
         # Dynamic Candidate Discovery from safe_backlog.json
         if os.path.exists(self.backlog_path):
             try:
@@ -2425,6 +2460,33 @@ class GoalReconciler:
         )
         if customs_res["verified"]:
             self.cp.set_checkpoint("LAST_VERIFIED_WINDOWS_CHECKPOINT", c_id)
+            try:
+                from .queue_coalescer import QueueCoalescer
+                coalescer = QueueCoalescer()
+                coalescer.advance_state_generation(c_id)
+            except Exception:
+                pass
+            try:
+                from .crash_proof_recovery import CrashProofMemoryEngine
+                crash_engine = CrashProofMemoryEngine()
+                crash_engine.commit_verified(
+                    c_id,
+                    {"status": "PASS", "certified": True, "evidence": exec_res.get("stdout", "")[:200]}
+                )
+            except Exception:
+                pass
+            try:
+                cand_path = os.path.join(self.coord_mac_handoff_dir, "MAC_HANDOFF_CANDIDATE.json")
+                if os.path.exists(cand_path):
+                    with open(cand_path, "r", encoding="utf-8") as cf:
+                        m_data = json.load(cf)
+                    m_data["safe_backlog_checkpoint"] = c_id
+                    m_data["timestamp_utc"] = datetime.now(timezone.utc).isoformat()
+                    completed_count = len([t for t in self.cp.get_all_tasks() if t.get("status") == "COMPLETED"])
+                    m_data["evidence"]["certified_tasks_count"] = max(m_data["evidence"].get("certified_tasks_count", 0), completed_count)
+                    safe_write_json(cand_path, m_data)
+            except Exception:
+                pass
 
         # Update safe_backlog.json if candidate is tracked there
         if os.path.exists(self.backlog_path):
