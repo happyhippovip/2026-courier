@@ -1887,6 +1887,36 @@ class GoalReconciler:
             "expected_evidence": "E2E resilience soak test suite passed (5/5 tests 100% success)"
         })
 
+        # Candidate BF: Cross-Host Autonomous Peer Consensus & Handoff Inbox Ingestion
+        candidates.append({
+            "candidate_id": "TASK-WIN-66",
+            "version": 1,
+            "goal_id": "GOAL-05",
+            "title": "Cross-Host Autonomous Peer Consensus & Handoff Inbox Ingestion",
+            "category": "CROSS_PLATFORM_SYNCHRONIZATION",
+            "conflict_domain": "PEER_CONSENSUS_INBOX",
+            "target_machine": "WINDOWS",
+            "target_worker": "WINDOWS_GOOGLE",
+            "scope": os.path.join(self.workspace_root, "courier"),
+            "script_path": "courier/tests/test_peer_consensus.py",
+            "cwd": self.workspace_root,
+            "is_writer": False,
+            "unresolved_gap": "AUTONOMY_CAPABILITY_GAP",
+            "goal_impact": 10.0,
+            "revenue_impact": 9.5,
+            "info_gain": 10.0,
+            "proof_debt_reduction": 10.0,
+            "autonomy_gain": 10.0,
+            "risk_score": 0.0,
+            "spend_eur": 0.00,
+            "human_requirement": "NONE",
+            "acceptance_criteria": [
+                "Execute courier/tests/test_peer_consensus.py",
+                "Verify cross-host peer consensus: bidirectional mailbox queues, schema validation quarantine, monotonic epoch fenced claims, two-level closure receipts, strict idempotency (0 duplicates), Border Guard Mac scope protection, and 0 spend firewall"
+            ],
+            "expected_evidence": "Peer consensus test suite passed (7/7 tests 100% success)"
+        })
+
         # Dynamic Candidate Discovery from safe_backlog.json
         if os.path.exists(self.backlog_path):
             try:
