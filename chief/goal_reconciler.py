@@ -2339,6 +2339,41 @@ class GoalReconciler:
             "expected_evidence": "Launch submission package test suite passed (4/4 tests 100% success)"
         })
 
+        # Candidate BS: Cryptographic B2B VAT Invoice & Receipt Engine, Corporate Procurement Invoicing Gateway & Storefront Invoice Generation Circuit
+        candidates.append({
+            "candidate_id": "TASK-WIN-79",
+            "version": 1,
+            "goal_id": "GOAL-03",
+            "title": "Cryptographic B2B VAT Invoice & Receipt Engine, Corporate Procurement Invoicing Gateway & Storefront Invoice Generation Circuit",
+            "category": "SUSTAINABLE_COMMERCIAL_DELIVERY",
+            "conflict_domain": "B2B_INVOICE_ENGINE",
+            "target_machine": "WINDOWS",
+            "target_worker": "WINDOWS_GOOGLE",
+            "scope": os.path.join(self.project_memory_dir, "money_factory"),
+            "script_path": "courier/tests/test_b2b_invoice_engine.py",
+            "cwd": self.workspace_root,
+            "is_writer": False,
+            "unresolved_gap": "AUTONOMY_CAPABILITY_GAP",
+            "goal_impact": 10.0,
+            "revenue_impact": 10.0,
+            "info_gain": 10.0,
+            "proof_debt_reduction": 10.0,
+            "autonomy_gain": 10.0,
+            "risk_score": 0.0,
+            "spend_eur": 0.00,
+            "human_requirement": "NONE",
+            "acceptance_criteria": [
+                "Execute courier/tests/test_b2b_invoice_engine.py",
+                "Verify domestic German VAT (19%), EU reverse-charge (0% Art. 196), and non-EU export supply (0%) calculations",
+                "Verify cryptographic SHA-256 digital tamper seal generation over invoice fiscal records",
+                "Verify POST /api/commerce/invoice creates official B2B tax invoice and stores printable HTML",
+                "Verify GET /api/commerce/invoice/:num?format=html serves clean, responsive printable invoice HTML",
+                "Verify POST /api/commerce/proforma generates compliant pre-payment pro-forma record with SEPA IBAN",
+                "Verify zero external network calls, zero telemetry, and 0.00 EUR automatic spend"
+            ],
+            "expected_evidence": "B2B VAT invoice engine test suite passed (5/5 tests 100% success)"
+        })
+
         # Dynamic Candidate Discovery from safe_backlog.json
         if os.path.exists(self.backlog_path):
             try:
