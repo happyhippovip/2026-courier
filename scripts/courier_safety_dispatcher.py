@@ -594,7 +594,11 @@ class CourierSafetyDispatcher:
         self.reconcile_orphans()
         mission = self.mission_queue.claim_next(worker_id, goal=goal)
         if mission is None:
-            return {"status": "NO_PENDING_MISSION"}
+            all_m = self.mission_queue.read_all()
+            goal_m = [m for m in all_m if m.get("goal") == goal] if goal else all_m
+            if goal_m and all(m.get("status") in {"VERIFIED", "DEDUPED", "FAILED", "BLOCKED"} for m in goal_m):
+                return {"status": "QUIESCENT_WAKEABLE"}
+            return {"status": "DISCOVER_FROM_ACTIVE_ROOT_GOAL_GAPS"}
         self.last_result_status = None
         mission_id = mission["mission_id"]
         task = dict(mission.get("task", {}))
@@ -870,9 +874,9 @@ class MissionQueue:
             
             outcome = fn(document)
             
-            print(f"DEBUG _mutate fn={fn.__name__} outcome={outcome}")
-            print(f"DEBUG _mutate before missions: {[m.get('mission_id') for m in before.get('missions', [])]}")
-            print(f"DEBUG _mutate after missions: {[m.get('mission_id') for m in document.get('missions', [])]}")
+            # print(f"DEBUG _mutate fn={fn.__name__} outcome={outcome}")
+            # print(f"DEBUG _mutate before missions: {[m.get('mission_id') for m in before.get('missions', [])]}")
+            # print(f"DEBUG _mutate after missions: {[m.get('mission_id') for m in document.get('missions', [])]}")
             
             write_json_atomic(self.queue_file, document)
             return outcome
@@ -969,12 +973,60 @@ class MissionQueue:
 
     def claim_next(self, worker_id: str, goal: Optional[str] = None) -> Optional[dict[str, Any]]:
         def claim(document: dict[str, Any]) -> Optional[dict[str, Any]]:
+            import os
+            v1_closed = os.environ.get("V1_CLOSED", "FALSE").upper() == "TRUE"
+            
+            ranks = {
+                "RELEASE_CRITICAL": 0,
+                "ACTIVE_ROOT_GOAL_CRITICAL": 1,
+                "DEFECT_REMOVAL": 2,
+                "AUTONOMY_CRITICAL": 3,
+                "SAFE_PRODUCT_DELTA": 4,
+                "PROOF_DEBT_WITH_DECISION_VALUE": 5,
+                "POST_V1": 6,
+                "HUMAN_GATED": 7,
+                "DUPLICATE_WASTE": 8
+            }
+            
+            def classify(m):
+                r = str(m.get("risk_class", "")).upper()
+                if r == "HUMAN_GATED": return "HUMAN_GATED"
+                g = (str(m.get("goal", "")) + " " + str(m.get("task", {}).get("action", "")) + " " + str(m.get("normalized_task", ""))).lower()
+                if "duplicate" in g or "waste" in g: return "DUPLICATE_WASTE"
+                if any(k in g for k in ["v2", "company", "invoice", "revenue", "market", "economic", "post-v1"]): return "POST_V1"
+                if "release critical" in g or "release_critical" in g: return "RELEASE_CRITICAL"
+                if "v1 critical" in g or "v1-critical" in g or "active root" in g or "root goal" in g: return "ACTIVE_ROOT_GOAL_CRITICAL"
+                if "defect" in g or "fix" in g or "bug" in g: return "DEFECT_REMOVAL"
+                if "autonomy" in g: return "AUTONOMY_CRITICAL"
+                if "proof" in g or "debt" in g: return "PROOF_DEBT_WITH_DECISION_VALUE"
+                return "SAFE_PRODUCT_DELTA"
+
+            best_mission = None
+            best_rank = 999
+            
             for mission in document["missions"]:
                 if mission.get("status") == "PENDING":
+                    c = classify(mission)
+                    if c == "HUMAN_GATED":
+                        mission["status"] = "HUMAN_GATE"
+                        continue
+                    if c == "DUPLICATE_WASTE":
+                        mission["status"] = "DEDUPED"
+                        continue
+                    if c == "POST_V1" and not v1_closed:
+                        continue
+                        
                     if goal is not None and mission.get("goal") != goal:
                         continue
-                    mission["status"], mission["claimed_by"] = "CLAIMED", worker_id
-                    return dict(mission)
+                        
+                    r = ranks.get(c, 99)
+                    if r < best_rank:
+                        best_rank = r
+                        best_mission = mission
+                        
+            if best_mission:
+                best_mission["status"], best_mission["claimed_by"] = "CLAIMED", worker_id
+                return dict(best_mission)
             return None
         return self._mutate(claim)
 

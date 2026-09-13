@@ -532,7 +532,7 @@ class FounderModeMVP:
                 worker_id = "founder_loop_1"
                 mission_result = self.dispatcher.process_next_mission(worker_id)
             
-                if not mission_result or mission_result.get("status") == "NO_PENDING_MISSION":
+                if not mission_result or mission_result.get("status") in ("NO_PENDING_MISSION", "DISCOVER_FROM_ACTIVE_ROOT_GOAL_GAPS", "QUIESCENT_WAKEABLE"):
                     if running_or_verify:
                         print("Waiting for running/verifying missions...")
                         time.sleep(5)
