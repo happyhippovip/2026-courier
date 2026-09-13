@@ -47,6 +47,15 @@ class MotorSupervisorAuthorityTests(unittest.TestCase):
         self.assertEqual(second.acquire()[0], True)
         self.assertGreater(second.generation, first.generation)
 
+    def test_expired_but_live_owner_cannot_be_taken_over(self):
+        first = self.authority("first")
+        self.assertTrue(first.acquire()[0])
+        conn = sqlite3.connect(self.db)
+        conn.execute("UPDATE supervisor_authority SET expires_at=0")
+        conn.commit(); conn.close()
+        second = self.authority("second")
+        self.assertEqual(second.acquire(), (False, "EXPIRED_OWNER_NOT_PROVABLY_RETIRED"))
+
     def test_reused_pid_is_not_old_owner_and_never_signaled(self):
         first = self.authority("first")
         self.assertTrue(first.acquire()[0])
@@ -62,10 +71,11 @@ class MotorSupervisorAuthorityTests(unittest.TestCase):
         first = self.authority("first")
         self.assertTrue(first.acquire()[0])
         conn = sqlite3.connect(self.db)
-        conn.execute("UPDATE supervisor_authority SET expires_at=0")
+        conn.execute("UPDATE supervisor_authority SET expires_at=0, pid=99999999")
         conn.commit(); conn.close()
         second = self.authority("second")
         self.assertTrue(second.acquire()[0])
+
         self.assertFalse(first.renew())
         self.assertFalse(first.release())
 
