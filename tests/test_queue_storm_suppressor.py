@@ -26,27 +26,35 @@ from courier.chief.crash_proof_recovery import CrashProofMemoryEngine, MAC_RESER
 from courier.chief.control_plane import ControlPlane
 from courier.chief.goal_reconciler import GoalReconciler
 
+import tempfile
+import shutil
+
 class TestQueueStormSuppressor(unittest.TestCase):
     def setUp(self):
-        self.coalescer = QueueCoalescer()
-        self.crash_engine = CrashProofMemoryEngine()
-        self.cp = ControlPlane()
-        self.saved_durable_state = self.crash_engine.load_durable_state()
-        self.saved_checkpoint = self.cp.get_checkpoint_record("LAST_VERIFIED_WINDOWS_CHECKPOINT")
-        self.coalescer_state_path = self.coalescer.state_file
-        self.saved_coalescer_metrics = self.coalescer.get_metrics()
-        m_reset = dict(self.saved_coalescer_metrics)
-        m_reset["intent_status"] = "NONE"
-        m_reset["active_logical_intent_id"] = None
-        self.coalescer._save_metrics(m_reset)
+        self.test_dir = tempfile.mkdtemp(prefix="queue_storm_test_")
+        self.test_db = os.path.join(self.test_dir, "test_cp.db")
+        self.test_state = os.path.join(self.test_dir, "coalescer.json")
+        self.test_crash_state = os.path.join(self.test_dir, "crash_state.json")
+
+        self.coalescer = QueueCoalescer(db_path=self.test_db, state_file=self.test_state)
+        self.crash_engine = CrashProofMemoryEngine(db_path=self.test_db, state_file=self.test_crash_state)
+        self.cp = ControlPlane(db_path=self.test_db)
+        self.crash_engine.load_durable_state()
+        curr_gen = self.coalescer.get_metrics()["current_state_generation"]
+        self.cp.set_checkpoint("LAST_VERIFIED_WINDOWS_CHECKPOINT", {
+            "task_id": "TASK-WIN-63",
+            "task_version": 1,
+            "state_generation": curr_gen,
+            "result_fingerprint": "init_fp",
+            "verification_evidence": "INITIAL",
+            "verified_at": "2026-09-13T00:00:00Z"
+        })
 
     def tearDown(self):
-        if self.saved_durable_state is not None:
-            self.crash_engine.save_durable_state(self.saved_durable_state)
-        if self.saved_checkpoint is not None:
-            self.cp.set_checkpoint("LAST_VERIFIED_WINDOWS_CHECKPOINT", self.saved_checkpoint)
-        if self.saved_coalescer_metrics is not None:
-            self.coalescer._save_metrics(self.saved_coalescer_metrics)
+        try:
+            shutil.rmtree(self.test_dir, ignore_errors=True)
+        except Exception:
+            pass
 
     def test_01_burst_of_250_weiter_collapses_into_one_logical_intent(self):
         """Invariant: 250 identical queued weiter messages represent at most ONE logical intent."""
@@ -108,7 +116,7 @@ class TestQueueStormSuppressor(unittest.TestCase):
 
     def test_05_goal_reconciler_checkpoint_advances_coalescer_and_crash_engine(self):
         """Invariant: Verification automatically checkpoints and advances without human input."""
-        reconciler = GoalReconciler(cp=self.cp, workspace_root=WORKSPACE_ROOT)
+        reconciler = GoalReconciler(cp=self.cp, coalescer=self.coalescer, crash_engine=self.crash_engine, workspace_root=WORKSPACE_ROOT)
         gen_before = self.coalescer.get_metrics()["current_state_generation"]
 
         # Simulate customs verification and checkpoint_and_persist
@@ -132,6 +140,9 @@ class TestQueueStormSuppressor(unittest.TestCase):
 
     def test_06_full_observability_and_zero_spend_invariants(self):
         """Invariant: Report all required observability counters; spend remains 0.00 EUR."""
+        if self.coalescer.get_metrics()["duplicate_tasks_prevented"] < 250:
+            burst = ["weiter", "continue", "go"] * 85
+            self.coalescer.process_queue_burst(burst, active_task_status="IDLE")
         report = self.coalescer.get_observability_report(current_task="TASK-WIN-67", current_goal="GOAL-05")
         required_keys = [
             "RAW_CONTINUATION_EVENTS_RECEIVED",

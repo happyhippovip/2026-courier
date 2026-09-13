@@ -80,7 +80,9 @@ class GoalReconciler:
         self,
         cp: Optional[ControlPlane] = None,
         handoffs_dir: Optional[str] = None,
-        workspace_root: str = WORKSPACE_ROOT_DEFAULT
+        workspace_root: str = WORKSPACE_ROOT_DEFAULT,
+        coalescer: Optional[Any] = None,
+        crash_engine: Optional[Any] = None
     ):
         self.cp = cp or ControlPlane()
         self.workspace_root = os.path.abspath(workspace_root)
@@ -89,6 +91,8 @@ class GoalReconciler:
         self.backlog_path = os.path.join(self.project_memory_dir, "data", "safe_backlog.json")
         self.state_file_path = os.path.join(self.project_memory_dir, "data", "autonomy_cycle_state.json")
         self.coord_mac_handoff_dir = os.path.join(self.workspace_root, "coordination", "windows_to_mac")
+        self.coalescer = coalescer
+        self.crash_engine = crash_engine
 
         os.makedirs(self.handoffs_dir, exist_ok=True)
         os.makedirs(self.coord_mac_handoff_dir, exist_ok=True)
@@ -2951,8 +2955,11 @@ class GoalReconciler:
         if customs_res["verified"]:
             next_gen = 88
             try:
-                from .queue_coalescer import QueueCoalescer
-                coalescer = QueueCoalescer()
+                if self.coalescer is not None:
+                    coalescer = self.coalescer
+                else:
+                    from .queue_coalescer import QueueCoalescer
+                    coalescer = QueueCoalescer(db_path=self.cp.db_path)
                 next_gen = coalescer.advance_state_generation(c_id)
             except Exception:
                 pass
@@ -2970,8 +2977,11 @@ class GoalReconciler:
             }
             self.cp.set_checkpoint("LAST_VERIFIED_WINDOWS_CHECKPOINT", ckpt_dict)
             try:
-                from .crash_proof_recovery import CrashProofMemoryEngine
-                crash_engine = CrashProofMemoryEngine()
+                if self.crash_engine is not None:
+                    crash_engine = self.crash_engine
+                else:
+                    from .crash_proof_recovery import CrashProofMemoryEngine
+                    crash_engine = CrashProofMemoryEngine(db_path=self.cp.db_path)
                 crash_engine.commit_verified(
                     c_id,
                     {"status": "PASS", "certified": True, "evidence": exec_res.get("stdout", "")[:200]}
