@@ -472,6 +472,22 @@ class ControlPlane:
             """, (now_iso,))
             return [dict(r) for r in cursor.fetchall()]
 
+    def clean_expired_locks(self) -> int:
+        """Prunes expired resource locks from the database."""
+        now_iso = datetime.now(timezone.utc).isoformat()
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("BEGIN IMMEDIATE;")
+            try:
+                cursor.execute("DELETE FROM resource_locks WHERE expires_at <= ?;", (now_iso,))
+                pruned = cursor.rowcount
+                cursor.execute("COMMIT;")
+                return pruned
+            except Exception:
+                cursor.execute("ROLLBACK;")
+                raise
+
+
     def enqueue_dispatch(
         self,
         dispatch_id: str,

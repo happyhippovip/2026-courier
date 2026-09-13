@@ -2408,6 +2408,40 @@ class GoalReconciler:
             "expected_evidence": "Framework integrations and doctor test suite passed (5/5 tests 100% success)"
         })
 
+        # Candidate BU: Automated Synthetic Customer Conversion Rehearsal & E2E Revenue Smoke Trial
+        candidates.append({
+            "candidate_id": "TASK-WIN-81",
+            "version": 1,
+            "goal_id": "GOAL-03",
+            "title": "Automated Synthetic Customer Conversion Rehearsal & E2E Revenue Smoke Trial",
+            "category": "SUSTAINABLE_COMMERCIAL_DELIVERY",
+            "conflict_domain": "SYNTHETIC_CONVERSION_TRIAL",
+            "target_machine": "WINDOWS",
+            "target_worker": "WINDOWS_GOOGLE",
+            "scope": os.path.join(self.project_memory_dir, "money_factory"),
+            "script_path": "courier/tests/test_synthetic_customer_conversion.py",
+            "cwd": self.workspace_root,
+            "is_writer": False,
+            "unresolved_gap": "AUTONOMY_CAPABILITY_GAP",
+            "goal_impact": 10.0,
+            "revenue_impact": 10.0,
+            "info_gain": 10.0,
+            "proof_debt_reduction": 10.0,
+            "autonomy_gain": 10.0,
+            "risk_score": 0.0,
+            "spend_eur": 0.00,
+            "human_requirement": "NONE",
+            "acceptance_criteria": [
+                "Execute courier/tests/test_synthetic_customer_conversion.py",
+                "Verify full 6-stage funnel from Discovery to Guardrail Activation succeeds offline",
+                "Verify strict commercial invariants: 0.00 EUR spend, 0.00 proof debt, zero network calls",
+                "Verify B2B VAT reverse-charge and SHA-256 sealed tax invoices generated in flow",
+                "Verify distribution binary ZIP SHA-256 matches DISTRIBUTION_MANIFEST_PRO.json exactly",
+                "Verify durable append to data/commercial/synthetic_conversion_ledger.json"
+            ],
+            "expected_evidence": "Synthetic customer conversion test suite passed (5/5 tests 100% success)"
+        })
+
         # Dynamic Candidate Discovery from safe_backlog.json
         if os.path.exists(self.backlog_path):
             try:

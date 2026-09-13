@@ -540,6 +540,30 @@ class TestWindows100AcceptanceCourt(unittest.TestCase):
         self.assertEqual(proof_debt, 0.0, "Critical proof debt for Windows autonomy target must be 0.00")
         self.assertEqual(state.get("recovery_count", 0), 0, "Zero unhandled recovery loops")
 
+    # --------------------------------------------------------------------------
+    # COURT 21: PERMANENT RESERVE & ZERO-HUMAN-CONTINUATION ACCEPTANCE
+    # --------------------------------------------------------------------------
+    def test_court_21_permanent_reserve_and_zero_human_continuation(self):
+        """Prove permanent work reservoir, semantic dedup, 1-writer lease, auto task/goal succession, and crash loop protection."""
+        from courier.chief.permanent_reserve_engine import PermanentReserveEngine
+        engine = PermanentReserveEngine()
+        # Verify reservoir persistence
+        added = engine.reservoir.refresh_reservoir("GOAL-04")
+        pending = engine.reservoir.get_pending_candidates()
+        self.assertGreaterEqual(len(pending), 10, "Permanent reserve must maintain sufficient ranked candidate work")
+
+        # Verify auto task succession (>=3 tasks)
+        batch_res = engine.run_autonomous_batch(max_tasks=3)
+        self.assertGreaterEqual(batch_res["executed_count"], 3, "Must execute >=3 tasks autonomously without human continuation")
+
+        # Verify heartbeat health signal exists
+        self.assertTrue(os.path.exists(engine.heartbeat_path), "Autonomy heartbeat must persist to disk")
+        with open(engine.heartbeat_path, "r", encoding="utf-8") as f:
+            hb = json.load(f)
+        self.assertEqual(hb["real_spend_eur"], 0.00)
+        self.assertEqual(hb["real_revenue_eur"], 0.00)
+        self.assertIn("LIVE_PAYMENT", hb["parked_human_gates"])
+
 
 if __name__ == "__main__":
     unittest.main()
