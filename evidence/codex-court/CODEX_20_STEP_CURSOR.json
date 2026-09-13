@@ -51,7 +51,7 @@
     "U4_WORKTREE_POINTER",
     "E1_FOUR_PROCESS_INGESTION"
   ],
-  "last_checkpoint": "PENDING_SCHEMA_BOUNDARY_CHECKPOINT",
+  "last_checkpoint": "2c3c693",
   "next_ranked_work": "NONE_PENDING_NEW_OWNER_DELTA",
   "owner_map": {
     "mac": ["capability_registry", "courier autonomy", "human-gate", "result customs", "successor generation", "process supervision"],
