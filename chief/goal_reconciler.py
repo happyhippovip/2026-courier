@@ -2231,6 +2231,45 @@ class GoalReconciler:
             "expected_evidence": "Inbound lead gateway pro test suite passed (8/8 tests 100% success)"
         })
 
+        # Candidate BP: End-to-End Live Store HTTP Ingestion, Cryptographic Webhook Settlement & Multi-Asset Binary Download Circuit
+        candidates.append({
+            "candidate_id": "TASK-WIN-76",
+            "version": 1,
+            "goal_id": "GOAL-03",
+            "title": "End-to-End Live Store HTTP Ingestion, Cryptographic Webhook Settlement & Multi-Asset Binary Download Circuit",
+            "category": "SUSTAINABLE_COMMERCIAL_DELIVERY",
+            "conflict_domain": "LIVE_STORE_HTTP_CIRCUIT",
+            "target_machine": "WINDOWS",
+            "target_worker": "WINDOWS_GOOGLE",
+            "scope": os.path.join(self.project_memory_dir, "studio"),
+            "script_path": "courier/tests/test_live_store_http_circuit.py",
+            "cwd": self.workspace_root,
+            "is_writer": False,
+            "unresolved_gap": "AUTONOMY_CAPABILITY_GAP",
+            "goal_impact": 10.0,
+            "revenue_impact": 10.0,
+            "info_gain": 10.0,
+            "proof_debt_reduction": 10.0,
+            "autonomy_gain": 10.0,
+            "risk_score": 0.0,
+            "spend_eur": 0.00,
+            "human_requirement": "NONE",
+            "acceptance_criteria": [
+                "Execute courier/tests/test_live_store_http_circuit.py",
+                "Verify GET /store and GET /distribution serve data/distribution_ready/index.html with UTF-8 HTML",
+                "Verify GET /downloads/<pkg> streams distribution zip packages with Content-Disposition and matching SHA-256",
+                "Verify GET /downloads/../../etc/passwd is blocked fail-closed with HTTP 400",
+                "Verify GET /api/agentic/download returns structured delivery metadata and verified_zero_telemetry flag",
+                "Verify GET /api/agentic/download?format=binary streams sealed .zip deliverable matching distribution archive byte-for-byte",
+                "Verify POST /api/commerce/webhook ingests HMAC-signed checkout events and mints offline cryptographic licenses",
+                "Verify POST /api/commerce/webhook rejects tampered or expired signatures fail-closed",
+                "Verify GET /api/commerce/order resolves fulfilled order details and rejects unauthorized tokens",
+                "Verify POST /api/inbound/inquire provides deterministic architectural and trust answers",
+                "Verify zero external network calls, zero telemetry, and 0.00 EUR automatic spend"
+            ],
+            "expected_evidence": "Live store HTTP circuit test suite passed (6/6 tests 100% success)"
+        })
+
         # Dynamic Candidate Discovery from safe_backlog.json
         if os.path.exists(self.backlog_path):
             try:
