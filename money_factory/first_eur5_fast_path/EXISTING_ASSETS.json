@@ -1,0 +1,85 @@
+{
+  "version": "1.0.0",
+  "mission_id": "WINDOWS_FIRST_EUR5_PRODUCT_FACTORY_FAST_PATH_V1",
+  "timestamp_utc": "2026-09-10T06:42:39.918Z",
+  "total_assets_inspected": 7,
+  "assets": [
+    {
+      "asset_id": "ASSET-MF-CHEAPEST-TEST",
+      "path": "money_factory/cheapest_test.js",
+      "what_it_does": "Deterministic decision engine that selects the lowest-cost, lowest-risk test proposal for digital opportunities with strictly €0 capital required.",
+      "who_it_helps": "Developers, indie hackers, and autonomous agents validating project viability before spending money.",
+      "remaining_work": "Package as a standalone CLI / library without Courier internal imports; add user-facing CLI flags and markdown report output.",
+      "delivery_format": "Single-file zero-dependency Node.js CLI / npm-ready package",
+      "human_gate_count": 2,
+      "reuse_value": "HIGH: Reusable for any digital product evaluation or hypothesis testing.",
+      "economic_unknowns": "Whether indie hackers will pay €5 for a local CLI analyzer vs using free prompt templates."
+    },
+    {
+      "asset_id": "ASSET-MF-EVIDENCE-LEDGER",
+      "path": "money_factory/evidence_ledger.js",
+      "what_it_does": "Cryptographically chained, append-only JSONL ledger verifying settlement evidence, rejecting vanity metrics (views, clicks, draft invoices) and recording idempotency hashes.",
+      "who_it_helps": "Freelancers, digital creators, and solo founders tracking verifiable receipts, deliverables, and payments.",
+      "remaining_work": "Wrap in simple CLI interface (init, record, verify, export audit certificate); add standalone HTML audit receipt generator.",
+      "delivery_format": "CLI utility + HTML certificate generator (ZIP / GitHub / Gumroad)",
+      "human_gate_count": 2,
+      "reuse_value": "HIGH: Provides tamper-evident proof of delivery for digital services and bounties.",
+      "economic_unknowns": "Buyer willingness to pay for standalone audit receipts outside existing invoice platforms."
+    },
+    {
+      "asset_id": "ASSET-CONTENT-OS-TEMPLATE-ENGINE",
+      "path": "content_os/template_engine.py",
+      "what_it_does": "Deterministic 4-phase technical script and visual cue generator for technical developer shorts, video explainers, and feature announcements.",
+      "who_it_helps": "Open-source maintainers, dev-tool creators, and indie developers who want to produce engaging 30-60s video demo scripts without marketing expertise.",
+      "remaining_work": "Port/package into a standalone CLI; add Markdown/JSON output format; bundle with 5 high-converting developer demo templates.",
+      "delivery_format": "Zero-dependency CLI tool + template bundle in ZIP",
+      "human_gate_count": 2,
+      "reuse_value": "MEDIUM: Solves developer marketing anxiety, but video creation still requires creator effort.",
+      "economic_unknowns": "Conversion rate from free template users to €5 paid script engine."
+    },
+    {
+      "asset_id": "ASSET-GOVERNANCE-RESULT-CUSTOMS",
+      "path": "governance/ResultCustoms.js",
+      "what_it_does": "Independent cryptographic verification engine that validates physical disk artifact existence, file sizes, exit codes, and SHA-256 manifest integrity before clearing output.",
+      "who_it_helps": "CI/CD pipeline engineers, AI agent builders, and data pipeline operators needing tamper-evident artifact validation.",
+      "remaining_work": "Extract from supervisor into a standalone CLI/action tool (`artifact-customs verify <manifest.json>`); add GitHub Actions runner mode.",
+      "delivery_format": "Zero-dependency standalone binary / Node.js CLI tool",
+      "human_gate_count": 2,
+      "reuse_value": "VERY_HIGH: Clean, tested, high-reliability primitive with zero external dependencies.",
+      "economic_unknowns": "Whether developers will buy a €5 utility vs writing a 10-line bash/python sha256sum check."
+    },
+    {
+      "asset_id": "ASSET-GOVERNANCE-RESOURCE-LOCK",
+      "path": "governance/ResourceLockManager.js",
+      "what_it_does": "Hierarchical, case-insensitive NTFS/POSIX file and directory mutex engine preventing race conditions and concurrent write corruption.",
+      "who_it_helps": "Multi-process CLI script authors, local automation builders, and developer toolkits running parallel tasks on Windows.",
+      "remaining_work": "Expose as clean standalone command-line mutex (`file-lock run --lock <path> -- <cmd>`); add timeout and stale lock recovery.",
+      "delivery_format": "Zero-dependency Node CLI or npm module",
+      "human_gate_count": 2,
+      "reuse_value": "HIGH: Cross-platform case-safe mutexing is notoriously error-prone on Windows.",
+      "economic_unknowns": "Developers expect OS-level locking to be free."
+    },
+    {
+      "asset_id": "ASSET-OPP-TOKEN-COST-AUDITOR",
+      "path": "opportunity_warehouse/opportunities.json (OPP-SEED-DIGITAL-01)",
+      "what_it_does": "Analyzes AI agent project configurations, system prompts, tool schemas, and local workspace contexts to calculate exact token budgets, context bloat, and cost leaks.",
+      "who_it_helps": "AI developers, agent engineers, and startups using Gemini/OpenAI/Anthropic APIs who suffer from runaway context costs and token waste.",
+      "remaining_work": "Implement static scanner for prompt files, system rules, tool definitions, and git commit history; output interactive visual HTML report and CLI summary.",
+      "delivery_format": "Standalone zero-dependency CLI tool (`agent-token-auditor`) + downloadable HTML report generator",
+      "human_gate_count": 2,
+      "reuse_value": "VERY_HIGH: Directly addresses widespread pain of runaway LLM API token costs.",
+      "economic_unknowns": "Pricing tolerance for micro-audits (€5 one-time vs free open-source scripts)."
+    },
+    {
+      "asset_id": "ASSET-AGY-DOCTOR-HEALTHCHECK",
+      "path": "Get-CourierAgyDoctor.ps1",
+      "what_it_does": "Automated environment audit diagnosing shell profiles, permission flags, CLI tool configurations, and local execution paths.",
+      "who_it_helps": "Windows developers troubleshooting Node/Python/CLI automation environments and PATH issues.",
+      "remaining_work": "Generalize beyond Antigravity to audit Node.js, Python, Git, and PATH hygiene; bundle as portable diagnostic script.",
+      "delivery_format": "PowerShell / Bash script package",
+      "human_gate_count": 2,
+      "reuse_value": "MEDIUM: Helpful diagnostic tool, but low direct monetization appeal.",
+      "economic_unknowns": "Most developers expect diagnostic scripts to be open source."
+    }
+  ]
+}

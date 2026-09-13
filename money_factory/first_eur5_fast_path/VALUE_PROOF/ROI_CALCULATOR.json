@@ -1,0 +1,49 @@
+{
+  "pricing_tier": {
+    "product_price_eur": 5,
+    "product_price_usd": 5.4,
+    "payment_type": "one_time_purchase",
+    "subscription_fee": 0
+  },
+  "assumptions": {
+    "turns_per_day_per_developer": 40,
+    "working_days_per_month": 20,
+    "turns_per_month_per_developer": 800,
+    "conservative_tokens_trimmed_per_turn": 500,
+    "moderate_tokens_trimmed_per_turn": 1200,
+    "aggressive_tokens_trimmed_per_turn": 2500
+  },
+  "scenarios": {
+    "solo_developer_conservative": {
+      "tokens_saved_per_month": 400000,
+      "monthly_savings_claude_sonnet_usd": 1.2,
+      "monthly_savings_gpt4o_usd": 1,
+      "monthly_savings_claude_opus_usd": 6,
+      "days_to_full_payback_on_opus": 18,
+      "days_to_full_payback_on_sonnet": 90,
+      "one_year_net_roi_percent_sonnet": 166.7,
+      "one_year_net_roi_percent_opus": 1233.3
+    },
+    "solo_developer_moderate": {
+      "tokens_saved_per_month": 960000,
+      "monthly_savings_claude_sonnet_usd": 2.88,
+      "monthly_savings_gpt4o_usd": 2.4,
+      "monthly_savings_claude_opus_usd": 14.4,
+      "days_to_full_payback_on_opus": 7.5,
+      "days_to_full_payback_on_sonnet": 37.5,
+      "one_year_net_roi_percent_sonnet": 540,
+      "one_year_net_roi_percent_opus": 3100
+    },
+    "team_4_devs_moderate": {
+      "tokens_saved_per_month": 3840000,
+      "monthly_savings_claude_sonnet_usd": 11.52,
+      "monthly_savings_gpt4o_usd": 9.6,
+      "monthly_savings_claude_opus_usd": 57.6,
+      "days_to_full_payback_on_opus": 1.9,
+      "days_to_full_payback_on_sonnet": 9.4,
+      "one_year_net_roi_percent_sonnet": 2460,
+      "one_year_net_roi_percent_opus": 12700
+    }
+  },
+  "summary": "A one-time €5 investment breaks even in 7 to 37 working days for a solo developer and within 2 to 9 days for a small team, generating an annual ROI between 540% and 12,700%."
+}

@@ -1,0 +1,27 @@
+{
+  "name": "agent-context-trimmer",
+  "version": "1.0.0",
+  "description": "Zero-dependency CLI tool that audits AI agent system prompts and rules, detecting token bloat, duplicate instructions, and runaway API costs.",
+  "main": "lib/analyzer.js",
+  "bin": {
+    "agent-context-trimmer": "bin/agent-context-trimmer.js"
+  },
+  "scripts": {
+    "test": "node tests/test_analyzer.js",
+    "start": "node bin/agent-context-trimmer.js"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "cursorrules",
+    "token-cost",
+    "context-window",
+    "prompt-optimizer",
+    "llm"
+  ],
+  "author": "Courier Product Factory",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

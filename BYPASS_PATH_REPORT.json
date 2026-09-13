@@ -1,0 +1,55 @@
+{
+  "timestamp_utc": "2026-09-10T06:11:23.497Z",
+  "target_repo": "C:\\Users\\lol\\2026-workspace\\courier",
+  "audit_verdict": "NO_BYPASS_DETECTED",
+  "inspections": [
+    {
+      "choke_point": "DISPATCH_WITHOUT_BORDER_GUARD",
+      "tested_path": "supervisor/decision_engine.js:evaluatePreDispatchAdmission",
+      "bypass_possible": false,
+      "enforcement": "admitForDispatch rejects tasks missing passport or failing BorderGuard check with DISPATCH_BLOCKED_BORDER_GUARD."
+    },
+    {
+      "choke_point": "EXECUTION_WITHOUT_STAMPED_PASSPORT",
+      "tested_path": "governance/BorderGuard.js:evaluatePreDispatch",
+      "bypass_possible": false,
+      "enforcement": "Missing or forged passport signature results in MISSING_SIGNATURE and allowed=false."
+    },
+    {
+      "choke_point": "WORKER_COMPLETION_WITHOUT_GOVERNOR",
+      "tested_path": "supervisor/decision_engine.js:evaluateWorkerReport",
+      "bypass_possible": false,
+      "enforcement": "Worker claims of status=DONE are stripped of global completion authority and admitted=false."
+    },
+    {
+      "choke_point": "RESULT_WITHOUT_RESULT_CUSTOMS",
+      "tested_path": "supervisor/progress_tracker.js:evaluateAndRecordResultEnvelope",
+      "bypass_possible": false,
+      "enforcement": "Envelopes with exit_code != 0, missing artifacts, or checksum mismatch are rejected."
+    },
+    {
+      "choke_point": "REDISPATCH_EXECUTION_UNCERTAIN",
+      "tested_path": "supervisor/stall_policy.js & no_stacking.js",
+      "bypass_possible": false,
+      "enforcement": "EXECUTION_UNCERTAIN states strictly block redispatch and retry (SUPERVISOR_DECISION.BLOCK_EXECUTION_UNCERTAIN)."
+    },
+    {
+      "choke_point": "FALLBACK_DURING_UNCERTAINTY",
+      "tested_path": "supervisor/no_stacking.js:evaluateHeavyTaskSubmission",
+      "bypass_possible": false,
+      "enforcement": "Uncoordinated fallback tasks with equivalent work signatures are blocked by active leases."
+    },
+    {
+      "choke_point": "PROCESS_DESTRUCTION_BY_PID_ALONE",
+      "tested_path": "supervisor/lease_manager.js:safeTerminateProcess",
+      "bypass_possible": false,
+      "enforcement": "Requires (PID, START_TIME, TASK_TOKEN). Recycled PIDs or UNKNOWN identities return can_terminate=false."
+    },
+    {
+      "choke_point": "HIERARCHICAL_RESOURCE_LOCK_BYPASS",
+      "tested_path": "governance/ResourceLockManager.js:canAcquire",
+      "bypass_possible": false,
+      "enforcement": "NTFS case-folded normalization blocks parent when child locked, and blocks child when parent locked."
+    }
+  ]
+}

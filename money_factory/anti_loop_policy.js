@@ -111,6 +111,83 @@ class AntiLoopPolicy {
     };
   }
 
+  static validateExperimentDispatch({
+    opportunity_id,
+    prior_experiments = [],
+    previous_experiments = [],
+    proposed_experiment,
+    hypothesis,
+    signal_to_measure,
+    new_angle_or_evidence = false
+  }) {
+    if (!opportunity_id) {
+      throw new Error('[ANTI_LOOP_ERROR] opportunity_id is required');
+    }
+
+    const effectivePriors = (prior_experiments && prior_experiments.length > 0) ? prior_experiments : previous_experiments;
+    const effectiveHypothesis = proposed_experiment ? proposed_experiment.hypothesis : hypothesis;
+    const effectiveSignal = proposed_experiment ? proposed_experiment.signal_to_measure : (signal_to_measure || 'EXTERNAL_DEMAND_SIGNAL');
+
+    if (!effectiveHypothesis) {
+      throw new Error('[ANTI_LOOP_ERROR] hypothesis or proposed_experiment is required');
+    }
+
+    if (new_angle_or_evidence) {
+      return {
+        allowed: true,
+        is_zero_info_loop: false,
+        reason: 'Valid experiment proposal: introduces new angle, hypothesis, or external evidence vector.'
+      };
+    }
+
+    // Check for duplicate/repeated zero-information experiments
+    for (const prior of effectivePriors) {
+      const priorMatchesHypothesis = (prior.hypothesis === effectiveHypothesis);
+      const priorYieldedEvidence = (prior.new_external_evidence_found === true || (prior.evidence_yielded && prior.evidence_yielded > 0));
+
+      if (priorMatchesHypothesis && !priorYieldedEvidence) {
+        return {
+          allowed: false,
+          is_zero_info_loop: true,
+          reason: `ANTI_LOOP_VIOLATION: Repeated zero-information experiment blocked for ${opportunity_id}. Prior test yielded no external evidence.`
+        };
+      }
+    }
+
+    return {
+      allowed: true,
+      is_zero_info_loop: false,
+      reason: 'Valid non-redundant experiment proposal.'
+    };
+  }
+
+  static evaluateStagnantOpportunity({
+    opportunity_id = 'UNKNOWN',
+    failed_experiment_count = 0,
+    consecutive_zero_info_runs = 0,
+    has_external_evidence = false,
+    lifecycle = 'ACTIVE',
+    days_in_lifecycle = 0
+  }) {
+    const runs = Math.max(Number(failed_experiment_count) || 0, Number(consecutive_zero_info_runs) || 0);
+
+    if (runs >= 2 && !has_external_evidence) {
+      return {
+        is_stagnant: true,
+        should_retire: true,
+        recommended_action: 'DEMOTE_OR_KILL',
+        reason: `Opportunity ${opportunity_id} is stagnant after ${runs} zero-evidence tests. Demote to SEED, Mutate, or Kill.`
+      };
+    }
+
+    return {
+      is_stagnant: false,
+      should_retire: false,
+      recommended_action: 'CONTINUE_ACTIVE',
+      reason: 'Opportunity active within acceptable trial bounds.'
+    };
+  }
+
   static validateAccountAction(actionType) {
     const prohibited = ['ACCOUNT_FARMING', 'AUTO_2FA_BYPASS', 'FAKE_IDENTITY_CREATION'];
     if (prohibited.includes(actionType)) {

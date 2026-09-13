@@ -22,6 +22,7 @@ const LIFECYCLES = Object.freeze({
 
 const REQUIRED_FIELDS = [
   'id',
+  'version',
   'title',
   'status',
   'created_at',
@@ -126,6 +127,7 @@ class OpportunityWarehouse {
         const raw = JSON.parse(fs.readFileSync(this.jsonFile, 'utf8'));
         if (Array.isArray(raw)) {
           for (const item of raw) {
+            if (item.version === undefined) item.version = 1;
             this.opportunities.set(item.id, item);
           }
         }
@@ -203,12 +205,16 @@ class OpportunityWarehouse {
     if (!opp.created_at) opp.created_at = new Date().toISOString();
     if (!opp.updated_at) opp.updated_at = new Date().toISOString();
     if (!opp.status) opp.status = LIFECYCLES.SEED;
+    if (opp.version === undefined) opp.version = 1;
 
     this.validateSchema(opp);
 
     // Idempotency: If exact same ID and same core content exists, no-op
     if (this.opportunities.has(opp.id)) {
       const existing = this.opportunities.get(opp.id);
+      if (!rawOpp.created_at) opp.created_at = existing.created_at;
+      if (!rawOpp.updated_at) opp.updated_at = existing.updated_at;
+      if (rawOpp.version === undefined) opp.version = existing.version;
       const existingClone = { ...existing };
       delete existingClone.score;
       const oppClone = { ...opp };
@@ -248,10 +254,12 @@ class OpportunityWarehouse {
     if (!existing) throw new Error(`[WAREHOUSE_ERROR] Cannot mutate '${id}': not found.`);
 
     const priorSnapshot = JSON.parse(JSON.stringify(existing));
+    const nextVersion = (existing.version || 1) + 1;
     const updated = {
       ...existing,
       ...patch,
       id, // Cannot change ID
+      version: nextVersion,
       created_at: existing.created_at, // Preserve created_at
       updated_at: new Date().toISOString()
     };

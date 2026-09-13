@@ -1,0 +1,99 @@
+{
+  "timestamp_utc": "2026-09-10T05:47:41.386Z",
+  "environment": {
+    "platform": "win32",
+    "arch": "x64",
+    "node_version": "v24.20.0",
+    "execution_directory": "C:\\Users\\lol\\2026-workspace\\courier"
+  },
+  "classification": "ALL_PASS",
+  "total_suites": 6,
+  "total_tests_executed": 114,
+  "passed_tests": 114,
+  "failed_tests": 0,
+  "skipped_tests": 0,
+  "suites": [
+    {
+      "suite_name": "tests/test_supervisor_plane_p0.js",
+      "category": "Supervisor Plane P0 Regression Suite",
+      "tests_run": 45,
+      "passed": 45,
+      "failed": 0,
+      "status": "PASS"
+    },
+    {
+      "suite_name": "tests/test_mandatory_scenarios_suite.js",
+      "category": "Mandatory Production-Readiness 19 Scenarios",
+      "tests_run": 19,
+      "passed": 19,
+      "failed": 0,
+      "status": "PASS",
+      "scenarios_summary": {
+        "scenario_1": "parent/child filesystem conflict - PASS",
+        "scenario_2": "Windows path case variants - PASS",
+        "scenario_3": "independent resources concurrency - PASS",
+        "scenario_4": "PID reuse start-time mismatch - PASS",
+        "scenario_5": "unknown process identity blocks kill - PASS",
+        "scenario_6": "stale task token mismatch - PASS",
+        "scenario_7": "uncertain execution blocks retry - PASS",
+        "scenario_8": "uncertain execution blocks fallback - PASS",
+        "scenario_9": "unstamped dispatch rejected - PASS",
+        "scenario_10": "stale TaskPassport rejected - PASS",
+        "scenario_11": "malformed result envelope rejected - PASS",
+        "scenario_12": "stale result rejected - PASS",
+        "scenario_13": "wrong task version / empty manifest rejected - PASS",
+        "scenario_14": "worker claims DONE revoked; global mission preserved - PASS",
+        "scenario_15": "delayed result after newer version rejected - PASS",
+        "scenario_16": "crash after persistence fences mid-flight task - PASS",
+        "scenario_17": "restart and deterministic reconciliation replay - PASS",
+        "scenario_18": "Human Gate fail-closed - PASS",
+        "scenario_19": "zero-spend / zero-trade invariant intact - PASS"
+      }
+    },
+    {
+      "suite_name": "tests/test_money_factory_p0.js",
+      "category": "Money Factory P0 Suite",
+      "tests_run": 18,
+      "passed": 18,
+      "failed": 0,
+      "status": "PASS"
+    },
+    {
+      "suite_name": "tests/test_money_factory_closure.js",
+      "category": "Money Factory Closure & Simulator Suite",
+      "tests_run": 13,
+      "passed": 13,
+      "failed": 0,
+      "status": "PASS"
+    },
+    {
+      "suite_name": "tests/test_cross_device_intake.js",
+      "category": "Cross-Device Intake Verification Suite",
+      "tests_run": 8,
+      "passed": 8,
+      "failed": 0,
+      "status": "PASS"
+    },
+    {
+      "suite_name": "tests/rc3_hardening",
+      "category": "RC3 Hardening Regression Suite",
+      "tests_run": 11,
+      "passed": 11,
+      "failed": 0,
+      "status": "PASS",
+      "test_files": [
+        "test_border_guard.js",
+        "test_crash_restart_chaos.js",
+        "test_deterministic_soak.js",
+        "test_event_ledger_invariants.js",
+        "test_follow_up_inbox.js",
+        "test_money_factory_adversarial.js",
+        "test_rc3_adversarial_validation.js",
+        "test_resource_governor_adversarial.js",
+        "test_result_customs.js",
+        "test_supervisor_adversarial.js",
+        "test_task_stamp_contracts.js"
+      ]
+    }
+  ]
+}

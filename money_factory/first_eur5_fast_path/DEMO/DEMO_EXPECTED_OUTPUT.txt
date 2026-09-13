@@ -1,0 +1,27 @@
+================================================================
+         AGENT CONTEXT & TOKEN COST AUDIT REPORT               
+================================================================
+Target Workspace : DEMO/workspace
+Files Discovered : 2
+Tokens Per Turn  : 327 tokens
+Token Waste/Turn : 329 tokens (100.6% reducible)
+Issues Detected  : 4
+----------------------------------------------------------------
+PROJECTED MONTHLY COST (40 turns/day x 20 working days):
+  - claude-3-5-sonnet  : Total: $0.78 | Waste: $0.79 (Save: $0.79/mo)
+  - gpt-4o             : Total: $0.65 | Waste: $0.66 (Save: $0.66/mo)
+  - gemini-1-5-pro     : Total: $0.33 | Waste: $0.33 (Save: $0.33/mo)
+----------------------------------------------------------------
+DISCOVERED RULE FILES:
+  * .cursorrules (280 tokens, 3 issues)
+      [HIGH] Line 8: Duplicate or highly redundant rule. Identical to instruction on line 4: "- All external API calls must pass through the ServiceGatewa..."
+      [HIGH] Line 9: Duplicate or highly redundant rule. Identical to instruction on line 5: "- Ensure strict TypeScript typing with zero any types...."
+      [WARNING] Line 48: Embedded code block is 35 lines long. Large static code blocks should be referenced as external files rather than permanently injected into system prompts.
+  * .gemini/rules/coding_style.md (47 tokens, 1 issues)
+      [HIGH] Line 3: Duplicate or highly redundant rule. Identical to instruction on line 2: "- Format all code with Prettier before committing...."
+================================================================
+RECOMMENDATION:
+Trim redundant rules and move embedded code blocks out of system prompts
+to save an estimated $0.79/month immediately.
+================================================================
+

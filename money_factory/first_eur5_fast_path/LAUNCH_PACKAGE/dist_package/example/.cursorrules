@@ -1,0 +1,53 @@
+# Example Bloated Cursor Rules
+# Instruction set for React/Node Fullstack Development
+
+- Always write modular TypeScript code with clean architecture.
+- Ensure all functions have clear JSDoc comments and return types.
+- Follow clean coding principles and avoid writing code smells.
+- Always use async/await rather than raw promise chains.
+
+# DUPLICATE INSTRUCTIONS (Wasteful tokens)
+- Always write modular TypeScript code with clean architecture.
+- Ensure all functions have clear JSDoc comments and return types.
+
+# VERBOSE BOILERPLATE (Adds tokens without capability guidance)
+You are an AI language model acting as an expert senior engineer.
+As an expert senior engineer you should think step by step before answering.
+
+# GIANT EMBEDDED CODE SAMPLE (Should be in docs or referenced files)
+```typescript
+export interface UserPayload {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl: string;
+  role: 'admin' | 'editor' | 'viewer';
+  permissions: string[];
+  createdAt: string;
+  updatedAt: string;
+  lastLoginIp: string;
+  twoFactorEnabled: boolean;
+  metadata: Record<string, any>;
+  sessionTokens: string[];
+  billingAddress: {
+    line1: string;
+    line2: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    country: string;
+  };
+  invoices: Array<{
+    invoiceId: string;
+    amountCents: number;
+    currency: string;
+    paidAt: string;
+    pdfUrl: string;
+  }>;
+  subscriptionTier: 'free' | 'pro' | 'enterprise';
+  subscriptionPeriodEnd: string;
+  featuresEnabled: string[];
+  accountStatus: 'active' | 'suspended' | 'pending';
+  notes: string;
+}
+```

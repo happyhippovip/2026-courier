@@ -1,0 +1,64 @@
+{
+  "timestamp": "2026-09-10T06:55:55.071Z",
+  "candidate_tested": "RELEASE_CANDIDATE_V1",
+  "total_checks": 7,
+  "passed_count": 7,
+  "failed_count": 0,
+  "overall_verdict": "PASS",
+  "checks": [
+    {
+      "check": "MANIFEST_AND_HASH_INTEGRITY",
+      "passed": true,
+      "details": {
+        "total_files": 12,
+        "all_hashes_match": true
+      }
+    },
+    {
+      "check": "ZIP_EXTRACTION",
+      "passed": true,
+      "details": {
+        "extracted_to": "C:\\Users\\lol\\AppData\\Local\\Temp\\recheck_sandbox_1789023353669\\extracted_product"
+      }
+    },
+    {
+      "check": "CUSTOMER_README_INSTRUCTIONS",
+      "passed": true,
+      "details": {
+        "version_out": "agent-context-trimmer v1.0.0",
+        "help_displayed": true
+      }
+    },
+    {
+      "check": "CORE_USE_ANALYSIS",
+      "passed": true,
+      "details": {
+        "files_scanned": 1,
+        "duplicates_found": 1
+      }
+    },
+    {
+      "check": "DEMO_VERIFICATION",
+      "passed": true,
+      "details": {
+        "files_scanned": 2,
+        "duplicate_rules": 3,
+        "code_blocks": 1
+      }
+    },
+    {
+      "check": "PACKAGE_PRIVACY_VERIFICATION",
+      "passed": true,
+      "details": {
+        "no_forbidden_strings_found": true
+      }
+    },
+    {
+      "check": "ZERO_HIDDEN_COURIER_DEPENDENCY",
+      "passed": true,
+      "details": {
+        "standalone_execution_in_isolation": true
+      }
+    }
+  ]
+}

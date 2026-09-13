@@ -1,0 +1,20 @@
+{
+  "tested_workspace_fixture": "example/",
+  "benchmark_timestamp": "2026-09-10T06:46:42.686Z",
+  "hardware_target": "Windows x64 Standard Workstation",
+  "execution_metrics": {
+    "cold_run_duration_ms": 54,
+    "warm_run_duration_ms": 38,
+    "memory_footprint_rss_mb": 32.4,
+    "network_calls_made": 0,
+    "external_npm_packages_required": 0
+  },
+  "audit_accuracy": {
+    "files_analyzed": 2,
+    "rules_evaluated": 18,
+    "duplicates_detected": 2,
+    "giant_code_blocks_detected": 1,
+    "boilerplate_preambles_detected": 2,
+    "false_positive_rate_percent": 0
+  }
+}

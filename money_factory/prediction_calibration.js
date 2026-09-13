@@ -68,13 +68,18 @@ class PredictionCalibrator {
 
     const snapshot = {
       prediction_id: `PRED-${Date.now()}-${existing.prediction_history.length + 1}`,
+      opportunity_id: opportunityId,
+      experiment_id: predictionData.experiment_id || 'UNKNOWN',
       cycle_id: cycleId,
+      predicted_at: new Date().toISOString(),
       recorded_at: new Date().toISOString(),
       predicted_revenue_eur: predictionData.predicted_revenue_eur,
       predicted_profit_eur: predictionData.predicted_profit_eur,
+      predicted_probability: predictionData.predicted_probability !== undefined ? predictionData.predicted_probability : (predictionData.confidence || 0.5),
       confidence: predictionData.confidence,
       evidence_quality: predictionData.evidence_quality,
-      decision_made: predictionData.decision_made,
+      decision: predictionData.decision || predictionData.decision_made,
+      decision_made: predictionData.decision_made || predictionData.decision || 'BUILD_PROTOTYPE',
       hypothesis: predictionData.hypothesis || 'UNKNOWN'
     };
 
@@ -108,6 +113,11 @@ class PredictionCalibrator {
     }
 
     const latestPred = existing.latest_prediction;
+    const alreadyResolved = existing.actual_outcomes.find(o => o.matched_prediction_id === latestPred.prediction_id);
+    if (alreadyResolved) {
+      throw new Error(`[CALIBRATION_ERROR] Prediction '${latestPred.prediction_id}' is already resolved and immutable.`);
+    }
+
     const actualRev = Number(actualsData.actual_revenue_eur) || 0;
     const predRev = Number(latestPred.predicted_revenue_eur) || 0;
 
@@ -122,11 +132,15 @@ class PredictionCalibrator {
 
     const outcomeRecord = {
       outcome_id: `OUTCOME-${Date.now()}-${existing.actual_outcomes.length + 1}`,
+      opportunity_id: opportunityId,
+      experiment_id: latestPred.experiment_id || 'UNKNOWN',
       reconciled_at: new Date().toISOString(),
       matched_prediction_id: latestPred.prediction_id,
       actual_revenue_eur: actualRev,
       actual_profit_eur: actualProfit,
       actual_outcome: actualsData.actual_outcome,
+      absolute_error: parseFloat(absErrorRevenue.toFixed(2)),
+      relative_error_if_meaningful: parseFloat(relErrorRevenue.toFixed(4)),
       lesson: actualsData.lesson,
       metrics: {
         absolute_error_revenue: parseFloat(absErrorRevenue.toFixed(2)),
@@ -152,6 +166,79 @@ class PredictionCalibrator {
 
   getCalibration(opportunityId) {
     return this.records.get(opportunityId) || null;
+  }
+
+  recordForecast({
+    opportunity_id,
+    experiment_id = 'UNKNOWN',
+    cycle_id = 'CYCLE-DEFAULT',
+    predicted_probability = 0.5,
+    confidence = 0.5,
+    predicted_revenue_eur = 0.0,
+    predicted_profit_eur = 0.0,
+    evidence_quality = 0.5,
+    decision_made = 'TEST'
+  }) {
+    const pred = this.recordPrediction(opportunity_id, cycle_id, {
+      experiment_id,
+      predicted_probability,
+      confidence: confidence || predicted_probability,
+      predicted_revenue_eur,
+      predicted_profit_eur: predicted_profit_eur || (predicted_revenue_eur * 0.9),
+      evidence_quality,
+      decision_made
+    });
+    return {
+      forecast_id: pred.prediction_id,
+      prediction_id: pred.prediction_id,
+      opportunity_id: pred.opportunity_id,
+      experiment_id: pred.experiment_id,
+      predicted_probability: pred.predicted_probability,
+      predicted_at: pred.predicted_at
+    };
+  }
+
+  resolveForecast(forecastOrPredictionId, {
+    actual_outcome = true,
+    actual_revenue_eur = 0.0,
+    actual_profit_eur = 0.0,
+    lesson = 'Reconciled in calibration test'
+  }) {
+    let targetOppId = null;
+    let targetPred = null;
+    for (const [oppId, record] of this.records.entries()) {
+      const found = record.prediction_history.find(p => p.prediction_id === forecastOrPredictionId);
+      if (found) {
+        targetOppId = oppId;
+        targetPred = found;
+        break;
+      }
+    }
+
+    if (!targetOppId) {
+      targetOppId = forecastOrPredictionId;
+    }
+
+    const outcome = this.recordActualOutcome(targetOppId, {
+      actual_outcome,
+      actual_revenue_eur,
+      actual_profit_eur,
+      lesson
+    });
+
+    const predProb = targetPred ? targetPred.predicted_probability : 0.5;
+    const actualNum = actual_outcome ? 1.0 : 0.0;
+    const absProbError = Math.abs(predProb - actualNum);
+    const brier = Math.pow(predProb - actualNum, 2);
+
+    return {
+      ...outcome,
+      forecast_id: forecastOrPredictionId,
+      status: 'RESOLVED',
+      actual_outcome,
+      absolute_error: parseFloat(absProbError.toFixed(4)),
+      brier_contribution: parseFloat(brier.toFixed(4))
+    };
   }
 }
 

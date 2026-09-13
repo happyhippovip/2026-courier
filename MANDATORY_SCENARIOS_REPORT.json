@@ -1,0 +1,124 @@
+{
+  "suite": "MANDATORY_SCENARIOS_SUITE",
+  "total_scenarios": 19,
+  "passed_count": 19,
+  "failed_count": 0,
+  "all_passed": true,
+  "timestamp_utc": "2026-09-13T01:17:07.563Z",
+  "results": [
+    {
+      "scenario": 1,
+      "name": "parent/child filesystem conflict",
+      "passed": true,
+      "details": "Parent lock blocks child subpath lock"
+    },
+    {
+      "scenario": 2,
+      "name": "Windows path case variants",
+      "passed": true,
+      "details": "Case-insensitive NTFS path collision detected"
+    },
+    {
+      "scenario": 3,
+      "name": "independent resources may still run concurrently",
+      "passed": true,
+      "details": "Non-overlapping sibling subpaths run in parallel"
+    },
+    {
+      "scenario": 4,
+      "name": "PID reuse",
+      "passed": true,
+      "details": "RECYCLED_PID_START_TIME_MISMATCH (delta 5000ms > 2000ms)"
+    },
+    {
+      "scenario": 5,
+      "name": "unknown process identity",
+      "passed": true,
+      "details": "UNKNOWN_PROCESS_IDENTITY_NEVER_AUTHORIZES_KILL"
+    },
+    {
+      "scenario": 6,
+      "name": "stale task token",
+      "passed": true,
+      "details": "RECYCLED_PID_START_TIME_MISMATCH (delta 241457121ms > 2000ms)"
+    },
+    {
+      "scenario": 7,
+      "name": "uncertain execution + retry",
+      "passed": true,
+      "details": "Execution uncertain blocks retry"
+    },
+    {
+      "scenario": 8,
+      "name": "uncertain execution + fallback",
+      "passed": true,
+      "details": "Uncoordinated fallback blocked during uncertain execution"
+    },
+    {
+      "scenario": 9,
+      "name": "unstamped dispatch",
+      "passed": true,
+      "details": "MISSING_SIGNATURE"
+    },
+    {
+      "scenario": 10,
+      "name": "stale TaskPassport",
+      "passed": true,
+      "details": "Passport version mismatch rejected"
+    },
+    {
+      "scenario": 11,
+      "name": "malformed result envelope",
+      "passed": true,
+      "details": "NON_ZERO_EXIT_CODE"
+    },
+    {
+      "scenario": 12,
+      "name": "stale result",
+      "passed": true,
+      "details": "Stale result rejected"
+    },
+    {
+      "scenario": 13,
+      "name": "wrong task version",
+      "passed": true,
+      "details": "EMPTY_ARTIFACT_MANIFEST"
+    },
+    {
+      "scenario": 14,
+      "name": "worker claims DONE while goal evidence incomplete",
+      "passed": true,
+      "details": "Worker global completion revoked; mission continues"
+    },
+    {
+      "scenario": 15,
+      "name": "delayed result after newer task version",
+      "passed": true,
+      "details": "Older version rejected after newer dispatched"
+    },
+    {
+      "scenario": 16,
+      "name": "crash after result persistence but before verification",
+      "passed": true,
+      "details": "Mid-flight task fenced as EXECUTION_UNCERTAIN"
+    },
+    {
+      "scenario": 17,
+      "name": "restart and deterministic reconciliation",
+      "passed": true,
+      "details": "Identical replay across multiple process runs"
+    },
+    {
+      "scenario": 18,
+      "name": "Human Gate remains fail-closed",
+      "passed": true,
+      "details": "High-privilege actions strictly held for Human Gate"
+    },
+    {
+      "scenario": 19,
+      "name": "zero-spend invariants remain intact",
+      "passed": true,
+      "details": "Spend and real trade strictly blocked (limit €0)"
+    }
+  ]
+}

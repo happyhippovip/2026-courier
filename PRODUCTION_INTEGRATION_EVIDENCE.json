@@ -1,0 +1,83 @@
+{
+  "evidence_id": "PRODUCTION_INTEGRATION_EVIDENCE_V1",
+  "timestamp_utc": "2026-09-10T05:47:41.404Z",
+  "classification": "PRODUCTION_INTEGRATION_VERIFIED",
+  "git_head": "aa5c01d21c7e055c7e3b5117ded5eddc6793dde4",
+  "gaps_integrated": [
+    {
+      "gap_id": "GAP-001",
+      "name": "ResourceLockManager / Hierarchical NTFS Case-Safe No-Stacking",
+      "production_target": "supervisor/no_stacking.js",
+      "layer": 0,
+      "status": "INTEGRATED_AND_VERIFIED",
+      "verification_tests": [
+        "Scenario 1",
+        "Scenario 2",
+        "Scenario 3",
+        "P0 Test 36",
+        "P0 Test 37"
+      ]
+    },
+    {
+      "gap_id": "GAP-002",
+      "name": "Process Lease Identity (PID, START_TIME, TASK_TOKEN) & Fail-Closed Termination",
+      "production_target": "supervisor/lease_manager.js",
+      "layer": 0,
+      "status": "INTEGRATED_AND_VERIFIED",
+      "verification_tests": [
+        "Scenario 4",
+        "Scenario 5",
+        "Scenario 6",
+        "P0 Test 1",
+        "P0 Test 16"
+      ]
+    },
+    {
+      "gap_id": "GAP-004",
+      "name": "Authoritative BorderGuard Pre-Dispatch Gate & TaskPassport Stamping",
+      "production_target": "supervisor/decision_engine.js",
+      "layer": 1,
+      "status": "INTEGRATED_AND_VERIFIED",
+      "verification_tests": [
+        "Scenario 9",
+        "Scenario 10",
+        "Scenario 18",
+        "RC3 BorderGuard tests"
+      ]
+    },
+    {
+      "gap_id": "GAP-005",
+      "name": "ResultCustoms Post-Execution Envelope & EvidenceVerifier Hashing",
+      "production_target": "supervisor/progress_tracker.js",
+      "layer": 2,
+      "status": "INTEGRATED_AND_VERIFIED",
+      "verification_tests": [
+        "Scenario 11",
+        "Scenario 12",
+        "Scenario 13",
+        "Scenario 15",
+        "RC3 ResultCustoms tests"
+      ]
+    },
+    {
+      "gap_id": "GAP-003",
+      "name": "CompletionGovernor Revocation of Worker Global DONE Authority",
+      "production_target": "supervisor/decision_engine.js",
+      "layer": 3,
+      "status": "INTEGRATED_AND_VERIFIED",
+      "verification_tests": [
+        "Scenario 14",
+        "P0 Test 8",
+        "P0 Test 9"
+      ]
+    }
+  ],
+  "test_suites_summary": {
+    "total_suites": 6,
+    "total_tests": 114,
+    "passed": 114,
+    "failed": 0,
+    "errors": 0
+  },
+  "git_status_state": "LOCAL_INTEGRATED_UNCOMMITTED"
+}

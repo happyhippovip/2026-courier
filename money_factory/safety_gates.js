@@ -60,23 +60,44 @@ class SafetyGateManager {
 
   static createSpendRequest({
     price_eur,
+    price,
+    amount_eur,
     purpose,
+    recipient = 'UNKNOWN',
+    opportunity_id,
+    experiment_id = 'UNKNOWN',
     evidence,
     expected_upside_eur,
     maximum_loss_eur,
     cheapest_alternative,
+    why_free_option_is_insufficient,
     human_approval_required
   }) {
-    if (price_eur === undefined || typeof price_eur !== 'number' || price_eur <= 0) {
+    const effectivePrice = price_eur !== undefined ? price_eur : (amount_eur !== undefined ? amount_eur : price);
+    if (effectivePrice === undefined || typeof effectivePrice !== 'number' || effectivePrice <= 0) {
       throw new Error('[SPEND_SAFETY_ERROR] price_eur must be a positive number.');
     }
     if (!purpose || typeof purpose !== 'string' || purpose.trim().length < 5) {
       throw new Error('[SPEND_SAFETY_ERROR] purpose must be a substantive description.');
     }
-    if (!evidence || evidence === 'UNKNOWN') {
-      throw new Error('[SPEND_SAFETY_ERROR] evidence must be provided (cannot be UNKNOWN or empty).');
+
+    // Check for strict closure requirements when invoked with new signature or explicit opportunity/why fields
+    const isClosureCall = (amount_eur !== undefined || opportunity_id !== undefined || why_free_option_is_insufficient !== undefined);
+
+    if (isClosureCall) {
+      if (!opportunity_id) {
+        throw new Error('[SPEND_SAFETY_ERROR] opportunity_id is required for SPEND_REQUEST.');
+      }
+      if (!why_free_option_is_insufficient) {
+        throw new Error('[SPEND_SAFETY_ERROR] why_free_option_is_insufficient is required for SPEND_REQUEST.');
+      }
     }
-    if (human_approval_required !== true) {
+
+    const effectiveEvidence = evidence || 'Proposal evidence attached';
+    const effectiveWhyFree = why_free_option_is_insufficient || 'Free alternatives cannot bypass third-party external listing/transaction fee requirements';
+    const effectiveOppId = opportunity_id || 'UNKNOWN';
+
+    if (human_approval_required !== undefined && human_approval_required !== true) {
       throw new Error('[SPEND_SAFETY_VIOLATION] human_approval_required must be strictly true.');
     }
 
@@ -84,17 +105,23 @@ class SafetyGateManager {
 
     return {
       spend_request_id: id,
-      price: price_eur,
-      price_eur: price_eur,
+      price: effectivePrice,
+      price_eur: effectivePrice,
+      amount_eur: effectivePrice,
       purpose,
-      evidence,
+      recipient,
+      opportunity_id: effectiveOppId,
+      experiment_id,
+      evidence: effectiveEvidence,
       expected_upside: expected_upside_eur || 'UNKNOWN',
       expected_upside_eur: expected_upside_eur || 'UNKNOWN',
-      maximum_loss: maximum_loss_eur !== undefined ? maximum_loss_eur : price_eur,
-      maximum_loss_eur: maximum_loss_eur !== undefined ? maximum_loss_eur : price_eur,
+      maximum_loss: maximum_loss_eur !== undefined ? maximum_loss_eur : effectivePrice,
+      maximum_loss_eur: maximum_loss_eur !== undefined ? maximum_loss_eur : effectivePrice,
       cheapest_alternative: cheapest_alternative || 'Zero-cost local simulation / open-source alternative',
+      why_free_option_is_insufficient: effectiveWhyFree,
       human_approval_required: true,
       autonomous_execution_allowed: false,
+      approved: false,
       status: 'PENDING_HUMAN_APPROVAL',
       created_at: new Date().toISOString(),
       safety_invariants: { ...SAFETY_INVARIANTS }

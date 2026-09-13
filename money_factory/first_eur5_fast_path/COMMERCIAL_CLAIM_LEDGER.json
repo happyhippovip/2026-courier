@@ -1,0 +1,205 @@
+{
+  "mission_id": "WINDOWS_FIRST_EUR5_COMMERCIAL_TRUTH_GATE_V1",
+  "created_at_utc": "2026-09-10T06:52:32.190Z",
+  "product_audited": "agent-context-trimmer v1.0.0",
+  "classification_taxonomy": [
+    "DIRECTLY_MEASURED",
+    "DERIVED_FROM_MEASURED_DATA",
+    "ASSUMPTION",
+    "CURRENT_EXTERNAL_FACT_REQUIRES_VERIFICATION",
+    "MARKETING_HYPOTHESIS",
+    "UNSUPPORTED",
+    "OUTDATED_RISK"
+  ],
+  "summary_counts": {
+    "DIRECTLY_MEASURED": 10,
+    "DERIVED_FROM_MEASURED_DATA": 5,
+    "ASSUMPTION": 6,
+    "CURRENT_EXTERNAL_FACT_REQUIRES_VERIFICATION": 6,
+    "MARKETING_HYPOTHESIS": 7,
+    "UNSUPPORTED": 4,
+    "OUTDATED_RISK": 3
+  },
+  "claims": [
+    {
+      "claim_id": "CLAIM-PERF-01",
+      "source_file": "LAUNCH_PACKAGE/SHORT_DESCRIPTION.md",
+      "claim_text": "audits your workspace rules in 45 milliseconds",
+      "classification": "DIRECTLY_MEASURED",
+      "evidence_reference": "VALUE_PROOF/BENCHMARK_EVIDENCE.json",
+      "factual_basis": "Measured cold run duration: 54ms, warm run duration: 38ms on Windows host workstation using example/ fixture (2 files, 441 tokens).",
+      "caveat_or_truth_adjustment": "Applies to local measured test fixtures; larger repos with thousands of files or deep hierarchies will take proportionally longer."
+    },
+    {
+      "claim_id": "CLAIM-PERF-02",
+      "source_file": "product/package.json",
+      "claim_text": "Zero external npm dependencies",
+      "classification": "DIRECTLY_MEASURED",
+      "evidence_reference": "ADVERSARIAL_REVIEW.json (Attack 1)",
+      "factual_basis": "Inspected package.json: dependencies object is absent; 0 node_modules present on disk; uses only standard Node.js built-ins (fs, path, crypto).",
+      "caveat_or_truth_adjustment": "Completely verified and factual."
+    },
+    {
+      "claim_id": "CLAIM-PERF-03",
+      "source_file": "LAUNCH_PACKAGE/FAQ.md",
+      "claim_text": "100% offline and local. It makes zero HTTP requests, includes zero tracking or telemetry",
+      "classification": "DIRECTLY_MEASURED",
+      "evidence_reference": "ADVERSARIAL_REVIEW.json & code inspection of bin/ and lib/",
+      "factual_basis": "Codebase contains zero calls to http, https, fetch, net, dgram, or external network libraries.",
+      "caveat_or_truth_adjustment": "Completely verified and factual."
+    },
+    {
+      "claim_id": "CLAIM-PLAT-01",
+      "source_file": "LAUNCH_PACKAGE/FAQ.md",
+      "claim_text": "Windows (x64 / ARM), macOS (Apple Silicon / Intel), and Linux. Standard cross-platform Node.js.",
+      "classification": "UNSUPPORTED",
+      "evidence_reference": "CAPABILITY_MATRIX.md",
+      "factual_basis": "Only Windows 11 x64 with Node.js v24.20.0 has been physically tested. macOS and Linux have NOT been tested on this machine because Mac is busy and Linux host is not active.",
+      "caveat_or_truth_adjustment": "Overclaim. Must state that Windows x64 is verified; macOS and Linux are expected based on Node.js standard API portability, but have not been directly verified."
+    },
+    {
+      "claim_id": "CLAIM-RULE-01",
+      "source_file": "LAUNCH_PACKAGE/FAQ.md",
+      "claim_text": "automatically detects rules for Cursor (.cursorrules, .cursor/rules/*.mdc), Google Antigravity / Gemini (.gemini/**/*.md), Windsurf (.windsurfrules), Cline (.clinerules, CLINEmode.md), GitHub Copilot Workspace (.copilot-instructions.md), and generic agent manifests (AGENTS.md)",
+      "classification": "DIRECTLY_MEASURED",
+      "evidence_reference": "product/lib/analyzer.js & test_analyzer.js",
+      "factual_basis": "AGENT_FILE_PATTERNS regexes match these exact file paths and extensions, verified in unit and adversarial test suites.",
+      "caveat_or_truth_adjustment": "Verified for pattern matching; does not claim to parse proprietary binary formats (all targeted files are markdown/text)."
+    },
+    {
+      "claim_id": "CLAIM-TOKEN-01",
+      "source_file": "LAUNCH_PACKAGE/FAQ.md",
+      "claim_text": "It uses a calibrated Byte-Pair Encoding (BPE) length-and-word heuristic calibrated against tokenizer benchmarks",
+      "classification": "DERIVED_FROM_MEASURED_DATA",
+      "evidence_reference": "product/lib/analyzer.js (ContextAnalyzer.estimateTokens)",
+      "factual_basis": "Uses heuristic formula Math.round((words.length * 1.3) + (charCount / 14)) which yields ~2-4 tokens for short sentences and ~4 chars/token on prose.",
+      "caveat_or_truth_adjustment": "It is an approximation/heuristic, NOT an exact byte-pair tokenizer (like tiktoken or tokenizers library). Must clarify that token counts are estimates."
+    },
+    {
+      "claim_id": "CLAIM-TURN-01",
+      "source_file": "LAUNCH_PACKAGE/LONG_DESCRIPTION.md",
+      "claim_text": "coding agents operate in multi-turn conversations (often 30–60 turns per session), every single rule token is re-sent on every single turn",
+      "classification": "CURRENT_EXTERNAL_FACT_REQUIRES_VERIFICATION",
+      "evidence_reference": "Anthropic / OpenAI / Cursor documentation",
+      "factual_basis": "Standard LLM chat completions and agent loops send conversation history + system prompt on each request. However, some newer platforms use prompt caching (e.g., Anthropic Prompt Caching, OpenAI Prompt Caching) which discounts cached prompt tokens by 50% to 90% after the first turn.",
+      "caveat_or_truth_adjustment": "Critical nuance. If a user or IDE leverages Anthropic/OpenAI prompt caching, the marginal cost of un-cached repeated tokens is lower than full baseline input pricing."
+    },
+    {
+      "claim_id": "CLAIM-PRICE-01",
+      "source_file": "product/lib/analyzer.js",
+      "claim_text": "Claude 3.5 Sonnet: $3.00 / 1M input tokens",
+      "classification": "CURRENT_EXTERNAL_FACT_REQUIRES_VERIFICATION",
+      "evidence_reference": "Anthropic published pricing (as of mid-2024 to 2026)",
+      "factual_basis": "Matches Anthropic public rate card for Claude 3.5 Sonnet input tokens.",
+      "caveat_or_truth_adjustment": "Provider pricing is subject to revision; tool hardcodes these rates unless updated."
+    },
+    {
+      "claim_id": "CLAIM-PRICE-02",
+      "source_file": "product/lib/analyzer.js",
+      "claim_text": "GPT-4o: $2.50 / 1M input tokens",
+      "classification": "CURRENT_EXTERNAL_FACT_REQUIRES_VERIFICATION",
+      "evidence_reference": "OpenAI published pricing",
+      "factual_basis": "Matches OpenAI public pricing for GPT-4o input tokens ($2.50 / 1M input as of August 2024).",
+      "caveat_or_truth_adjustment": "OpenAI frequently adjusts API prices."
+    },
+    {
+      "claim_id": "CLAIM-PRICE-03",
+      "source_file": "product/lib/analyzer.js",
+      "claim_text": "Gemini 1.5 Pro: $1.25 / 1M input tokens",
+      "classification": "CURRENT_EXTERNAL_FACT_REQUIRES_VERIFICATION",
+      "evidence_reference": "Google Cloud Vertex AI / Gemini Developer API pricing",
+      "factual_basis": "Matches Google published rate for Gemini 1.5 Pro prompt tokens (under 128k context).",
+      "caveat_or_truth_adjustment": "Prompts over 128k context tier at higher rate ($2.50 / 1M)."
+    },
+    {
+      "claim_id": "CLAIM-PRICE-04",
+      "source_file": "VALUE_PROOF/BEFORE_VS_AFTER.md",
+      "claim_text": "Claude 3 Opus: $15.00 / 1M input tokens",
+      "classification": "OUTDATED_RISK",
+      "evidence_reference": "Anthropic pricing table",
+      "factual_basis": "Original Claude 3 Opus launched at $15/1M input. However, most developers coding in Cursor have shifted to Claude 3.5 Sonnet or Claude 3.7 Sonnet.",
+      "caveat_or_truth_adjustment": "Using Opus as the primary anchor exaggerates potential savings for typical developers who predominantly use Sonnet."
+    },
+    {
+      "claim_id": "CLAIM-ASSUME-01",
+      "source_file": "product/lib/analyzer.js",
+      "claim_text": "Default session turns = 40, sessions per month = 20 (800 turns/month)",
+      "classification": "ASSUMPTION",
+      "evidence_reference": "ContextAnalyzer constructor defaults",
+      "factual_basis": "Reasonable engineering heuristic for an active full-time developer using agentic chat/edit cycles.",
+      "caveat_or_truth_adjustment": "Individual developer volume varies wildly (some do 10 turns/day, power users do 100+ turns). Must be clearly labeled as a configurable baseline assumption."
+    },
+    {
+      "claim_id": "CLAIM-ASSUME-02",
+      "source_file": "VALUE_PROOF/ROI_CALCULATOR.json",
+      "claim_text": "Conservative tokens trimmed = 500, moderate = 1200, aggressive = 2500",
+      "classification": "ASSUMPTION",
+      "evidence_reference": "ROI_CALCULATOR.json scenarios",
+      "factual_basis": "Observed bloat in sample repos ranges from 300 to 1,500 tokens.",
+      "caveat_or_truth_adjustment": "Hypothetical projection based on unoptimized rule files; repos with already lean rules will see 0 tokens saved."
+    },
+    {
+      "claim_id": "CLAIM-ROI-01",
+      "source_file": "LAUNCH_PACKAGE/SHORT_DESCRIPTION.md",
+      "claim_text": "pays for itself in less than two weeks of solo coding—or on day two for a small engineering team",
+      "classification": "UNSUPPORTED",
+      "evidence_reference": "VALUE_PROOF/ROI_CALCULATOR.json",
+      "factual_basis": "Derived from model assuming 1,200 wasted tokens, 40 turns/day, Claude 3 Opus ($15/M) or un-cached Sonnet ($3/M). If a user uses cached tokens or has only 50 tokens wasted, payback takes months or never happens.",
+      "caveat_or_truth_adjustment": "Overclaim. Must be reworded from a guaranteed statement of fact to a conditional projection: 'Based on our moderate model (1,200 trimmed tokens at 40 turns/day on standard Sonnet pricing), estimated break-even is reached in ~37 days solo or ~9 days for a 4-person team.'"
+    },
+    {
+      "claim_id": "CLAIM-ROI-02",
+      "source_file": "VALUE_PROOF/ROI_CALCULATOR.json",
+      "claim_text": "Year 1 Net ROI: +540% to +12,700%",
+      "classification": "UNSUPPORTED",
+      "evidence_reference": "ROI_CALCULATOR.json",
+      "factual_basis": "Compounded mathematical extrapolation assuming perpetual daily usage and zero prompt caching.",
+      "caveat_or_truth_adjustment": "Unverifiable marketing extrapolation. Should be removed or strictly framed as an illustrative spreadsheet model."
+    },
+    {
+      "claim_id": "CLAIM-SAVINGS-01",
+      "source_file": "LAUNCH_PACKAGE/ONE_SENTENCE_VALUE.txt",
+      "claim_text": "instantly eliminate $30+/month in silent input token burn",
+      "classification": "UNSUPPORTED",
+      "evidence_reference": "LAUNCH_PACKAGE/ONE_SENTENCE_VALUE.txt",
+      "factual_basis": "$30/month assumes a team or heavy Opus usage or 10,000+ token waste.",
+      "caveat_or_truth_adjustment": "Overclaim for a typical solo user. Should be replaced with: 'identify and eliminate redundant rule tokens that repeatedly burn context on every conversational turn.'"
+    },
+    {
+      "claim_id": "CLAIM-MKT-01",
+      "source_file": "LAUNCH_PACKAGE/PRICING_HYPOTHESIS.md",
+      "claim_text": "Expected conversion rate of 1.5% to 3.0%",
+      "classification": "MARKETING_HYPOTHESIS",
+      "evidence_reference": "Industry benchmarks for digital dev products",
+      "factual_basis": "Standard developer e-commerce landing page conversion rates.",
+      "caveat_or_truth_adjustment": "Unvalidated hypothesis until live traffic is observed."
+    },
+    {
+      "claim_id": "CLAIM-MKT-02",
+      "source_file": "LAUNCH_PACKAGE/PRICING_HYPOTHESIS.md",
+      "claim_text": "Developers strongly prefer a €5 one-time purchase over yet another $2/month recurring SaaS subscription",
+      "classification": "MARKETING_HYPOTHESIS",
+      "evidence_reference": "Developer community sentiment / 'subscription fatigue'",
+      "factual_basis": "Widespread public commentary regarding micro-tool fatigue.",
+      "caveat_or_truth_adjustment": "Qualitative sentiment, not an empirical commercial measurement for this specific tool."
+    },
+    {
+      "claim_id": "CLAIM-STORE-01",
+      "source_file": "PRIMARY_LAUNCH_CHANNEL.md",
+      "claim_text": "Gumroad acts as Merchant of Record, handling all global VAT/sales tax liabilities autonomously",
+      "classification": "CURRENT_EXTERNAL_FACT_REQUIRES_VERIFICATION",
+      "evidence_reference": "Gumroad terms of service and help documentation",
+      "factual_basis": "Gumroad officially states it operates as Merchant of Record and collects/remits sales tax and VAT for digital goods.",
+      "caveat_or_truth_adjustment": "Subject to platform policy changes, country restrictions, and payout eligibility requirements."
+    },
+    {
+      "claim_id": "CLAIM-STORE-02",
+      "source_file": "PRIMARY_LAUNCH_CHANNEL.md",
+      "claim_text": "Gumroad fee is 10% flat + $0.30 per transaction",
+      "classification": "CURRENT_EXTERNAL_FACT_REQUIRES_VERIFICATION",
+      "evidence_reference": "Gumroad public pricing (revised January 2023 to 10% flat fee)",
+      "factual_basis": "Gumroad simplified its pricing to 10% flat + credit card processing fees.",
+      "caveat_or_truth_adjustment": "Accurate as of public records, but payment processing fees (typically 2.9% + $0.30) apply on top of the 10% platform fee."
+    }
+  ]
+}

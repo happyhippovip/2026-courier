@@ -1,0 +1,51 @@
+# Project Architecture & Development Guidelines
+
+## Core Services
+- All external API calls must pass through the ServiceGateway layer.
+- Ensure strict TypeScript typing with zero any types.
+
+## Architecture Directives
+- All external API calls must pass through the ServiceGateway layer.
+- Ensure strict TypeScript typing with zero any types.
+
+## Database Contract Schema
+```typescript
+export interface UserAccountRecord {
+  id: string;
+  uuid: string;
+  username: string;
+  email: string;
+  passwordHash: string;
+  salt: string;
+  roles: string[];
+  permissions: {
+    canRead: boolean;
+    canWrite: boolean;
+    canDelete: boolean;
+    canAdmin: boolean;
+  };
+  organizationId: string;
+  billingTier: 'free' | 'pro' | 'enterprise';
+  createdAt: string;
+  updatedAt: string;
+  lastLoginAt: string;
+  isSuspended: boolean;
+  mfaEnabled: boolean;
+  profile: {
+    displayName: string;
+    avatarUrl: string;
+    bio: string;
+    timezone: string;
+    locale: string;
+  };
+  auditTrail: Array<{
+    action: string;
+    timestamp: string;
+    ipAddress: string;
+    userAgent: string;
+  }>;
+}
+```
+
+## System Persona
+You are an expert senior software engineer with 20 years of experience. Always write clean code.

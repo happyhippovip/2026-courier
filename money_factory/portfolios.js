@@ -8,8 +8,11 @@
 
 const HORIZONS = Object.freeze({
   NOW: 'NOW',
+  NOW_THIS_WEEK: 'NOW_THIS_WEEK',
   HORIZON_30D: '30D',
+  NEXT_30_DAYS: 'NEXT_30_DAYS',
   HORIZON_365D: '365D',
+  NEXT_365_DAYS: 'NEXT_365_DAYS',
   ASYMMETRIC: 'ASYMMETRIC'
 });
 
@@ -43,15 +46,26 @@ class PortfolioManager {
     if (horizon === HORIZONS.ASYMMETRIC || risk >= 0.75) {
       return STRATEGY_CATEGORIES.MOONSHOTS;
     }
-    if (horizon === HORIZONS.NOW || timeToEuro <= 7) {
+    if (horizon === HORIZONS.NOW || horizon === HORIZONS.NOW_THIS_WEEK || timeToEuro <= 7) {
       return STRATEGY_CATEGORIES.CASH_NOW;
     }
     return STRATEGY_CATEGORIES.GROWTH;
   }
 
   rankByHorizon(opportunities, horizon) {
+    const isNow = (h) => h === 'NOW' || h === 'NOW_THIS_WEEK';
+    const is30d = (h) => h === '30D' || h === 'NEXT_30_DAYS';
+    const is365d = (h) => h === '365D' || h === 'NEXT_365_DAYS';
+    const isAsym = (h) => h === 'ASYMMETRIC';
+
     return opportunities
-      .filter(o => o.horizon === horizon)
+      .filter(o => {
+        if (isNow(horizon)) return isNow(o.horizon);
+        if (is30d(horizon)) return is30d(o.horizon);
+        if (is365d(horizon)) return is365d(o.horizon);
+        if (isAsym(horizon)) return isAsym(o.horizon);
+        return o.horizon === horizon;
+      })
       .sort((a, b) => {
         const scoreA = (a.score && a.score.scalar_score) || 0;
         const scoreB = (b.score && b.score.scalar_score) || 0;
@@ -60,11 +74,19 @@ class PortfolioManager {
   }
 
   rankAllHorizons(opportunities) {
+    const nowList = this.rankByHorizon(opportunities, HORIZONS.NOW);
+    const list30 = this.rankByHorizon(opportunities, HORIZONS.HORIZON_30D);
+    const list365 = this.rankByHorizon(opportunities, HORIZONS.HORIZON_365D);
+    const asymList = this.rankByHorizon(opportunities, HORIZONS.ASYMMETRIC);
+
     return {
-      [HORIZONS.NOW]: this.rankByHorizon(opportunities, HORIZONS.NOW),
-      [HORIZONS.HORIZON_30D]: this.rankByHorizon(opportunities, HORIZONS.HORIZON_30D),
-      [HORIZONS.HORIZON_365D]: this.rankByHorizon(opportunities, HORIZONS.HORIZON_365D),
-      [HORIZONS.ASYMMETRIC]: this.rankByHorizon(opportunities, HORIZONS.ASYMMETRIC)
+      [HORIZONS.NOW]: nowList,
+      [HORIZONS.NOW_THIS_WEEK]: nowList,
+      [HORIZONS.HORIZON_30D]: list30,
+      [HORIZONS.NEXT_30_DAYS]: list30,
+      [HORIZONS.HORIZON_365D]: list365,
+      [HORIZONS.NEXT_365_DAYS]: list365,
+      [HORIZONS.ASYMMETRIC]: asymList
     };
   }
 
@@ -115,6 +137,15 @@ class PortfolioManager {
         }
       }
     };
+  }
+
+  allocateBudget(warehouseOrOpportunities, budgetEur = 0) {
+    const opps = Array.isArray(warehouseOrOpportunities)
+      ? warehouseOrOpportunities
+      : (warehouseOrOpportunities.getAllOpportunities ? warehouseOrOpportunities.getAllOpportunities() : []);
+
+    const ranked = this.rankAllHorizons(opps);
+    return ranked;
   }
 }
 

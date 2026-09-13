@@ -1,0 +1,124 @@
+{
+  "suite": "BYPASS_ATTACK_SUITE",
+  "total_attacks": 19,
+  "failed_closed_count": 19,
+  "bypassed_count": 0,
+  "all_failed_closed": true,
+  "timestamp_utc": "2026-09-10T09:01:31.474Z",
+  "attacks": [
+    {
+      "attack_number": 1,
+      "name": "unstamped dispatch",
+      "passed": true,
+      "details": "MISSING_SIGNATURE"
+    },
+    {
+      "attack_number": 2,
+      "name": "stale passport",
+      "passed": true,
+      "details": "TASK_PASSPORT_VERSION_MISMATCH"
+    },
+    {
+      "attack_number": 3,
+      "name": "wrong task version on result",
+      "passed": true,
+      "details": "INVALID_RESULT_PASSPORT"
+    },
+    {
+      "attack_number": 4,
+      "name": "duplicate writer",
+      "passed": true,
+      "details": "Second writer blocked by TASK-A"
+    },
+    {
+      "attack_number": 5,
+      "name": "parent/child resource collision",
+      "passed": true,
+      "details": "Parent lock blocks child subpath lock"
+    },
+    {
+      "attack_number": 6,
+      "name": "NTFS case variant collision",
+      "passed": true,
+      "details": "Case-insensitive collision detected and blocked"
+    },
+    {
+      "attack_number": 7,
+      "name": "PID reuse start-time mismatch",
+      "passed": true,
+      "details": "RECYCLED_PID_START_TIME_MISMATCH (delta 10000ms > 2000ms)"
+    },
+    {
+      "attack_number": 8,
+      "name": "wrong task token",
+      "passed": true,
+      "details": "STALE_OR_FORGED_TASK_TOKEN_MISMATCH"
+    },
+    {
+      "attack_number": 9,
+      "name": "unknown process identity cleanup",
+      "passed": true,
+      "details": "UNKNOWN_LEASE_DENIED_KILL"
+    },
+    {
+      "attack_number": 10,
+      "name": "worker false DONE",
+      "passed": true,
+      "details": "ILLEGAL_WORKER_STATUS: Worker reported 'DONE'. Workers are forbidden from claiming global mission status."
+    },
+    {
+      "attack_number": 11,
+      "name": "stale delayed result",
+      "passed": true,
+      "details": "INVALID_RESULT_PASSPORT"
+    },
+    {
+      "attack_number": 12,
+      "name": "malformed result non-zero exit code",
+      "passed": true,
+      "details": "NON_ZERO_EXIT_CODE"
+    },
+    {
+      "attack_number": 13,
+      "name": "result with wrong checksum",
+      "passed": true,
+      "details": "CHECKSUM_MISMATCH"
+    },
+    {
+      "attack_number": 14,
+      "name": "execution uncertain blocks retry",
+      "passed": true,
+      "details": "Execution outcome uncertain; duplicate execution and retry strictly blocked"
+    },
+    {
+      "attack_number": 15,
+      "name": "execution uncertain blocks fallback",
+      "passed": true,
+      "details": "Equivalent heavy work (TEST_SUITE) already active on machine WINDOWS_LOCAL under lease LEASE-1789022964322-02A254. Stacking prevented."
+    },
+    {
+      "attack_number": 16,
+      "name": "crash fences mid-flight task as EXECUTION_UNCERTAIN",
+      "passed": true,
+      "details": "Mid-flight unconfirmed task fenced"
+    },
+    {
+      "attack_number": 17,
+      "name": "replay after restart",
+      "passed": true,
+      "details": "Audit events replayed deterministically"
+    },
+    {
+      "attack_number": 18,
+      "name": "Human Gate negation",
+      "passed": true,
+      "details": "High-privilege actions strictly held for Human Gate"
+    },
+    {
+      "attack_number": 19,
+      "name": "spend capability attempt",
+      "passed": true,
+      "details": "Autonomous spend and real trades strictly blocked (limit €0)"
+    }
+  ]
+}

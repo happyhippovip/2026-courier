@@ -1,0 +1,110 @@
+{
+  "contract_name": "SYMPHONY_KERNEL_CONTRACT",
+  "contract_version": "1.0.0",
+  "mission_id": "WINDOWS_SYMPHONY_CONVERGENCE_RC_V1",
+  "timestamp_utc": "2026-09-10T06:30:52.259Z",
+  "target_host": "WINDOWS_LOCAL",
+  "invariants": {
+    "duplicate_authorities_detected": false,
+    "spend_limit_eur": 0,
+    "real_trades_permitted": false,
+    "real_wallets_permitted": false,
+    "external_messages_permitted": false,
+    "cross_device_access": "LOCAL_ONLY",
+    "time_alone_never_terminates": true,
+    "worker_done_cannot_close_mission": true
+  },
+  "authorities": {
+    "goal_task_ownership": {
+      "responsibility": "Goal and task ownership, assignment, and lifecycle coordination",
+      "authoritative_file": "cross_device_intake.js",
+      "authoritative_class": "CrossDeviceIntake",
+      "sha256": "5028b74800379734425ce6b090c534a0879f1eefbd996a83d056c5c716664775",
+      "duplicate_candidates": []
+    },
+    "resource_locking": {
+      "responsibility": "Hierarchical, case-safe NTFS path and file mutexes",
+      "authoritative_file": "governance/ResourceLockManager.js",
+      "authoritative_class": "ResourceLockManager",
+      "sha256": "2a22fb024c321a4aab963527f90f220edf9797382f385e716183f82a94b724e8",
+      "duplicate_candidates": []
+    },
+    "process_identity": {
+      "responsibility": "Authoritative process identity tuple (PID + start_time + task_token)",
+      "authoritative_file": "supervisor/lease_manager.js",
+      "authoritative_class": "ProcessLeaseManager",
+      "sha256": "be00e5333d59c6d86e0a6a8d46bc66c01666ca62a2775e1534d8ae475aaf4647",
+      "duplicate_candidates": []
+    },
+    "task_passport": {
+      "responsibility": "Task passport issuance, digital signing, and token minting",
+      "authoritative_file": "governance/TaskPassport.js",
+      "authoritative_class": "PassportOffice",
+      "sha256": "378fec6d346b8673061d9426add4a42a9dc7ca1bccf889b547d19e66e677ae15",
+      "duplicate_candidates": []
+    },
+    "border_guard": {
+      "responsibility": "Pre-execution admission control and capability verification",
+      "authoritative_file": "governance/BorderGuard.js",
+      "authoritative_class": "BorderGuard",
+      "sha256": "87968421efad74a8c877bed902ad091500e4e8f99eaec873f96b467a9750bae1",
+      "duplicate_candidates": []
+    },
+    "dispatch_authorization": {
+      "responsibility": "Dispatch decision logic combining BorderGuard, leases, and anti-stacking",
+      "authoritative_file": "supervisor/decision_engine.js",
+      "authoritative_class": "DecisionEngine",
+      "sha256": "e9986e65da558bfc83c010e6fa6df7465ca368b673127fb2a73a6382a6d02119",
+      "duplicate_candidates": []
+    },
+    "result_customs": {
+      "responsibility": "Post-execution envelope validation (exit codes, tokens, signatures)",
+      "authoritative_file": "governance/ResultCustoms.js",
+      "authoritative_class": "ResultCustoms",
+      "sha256": "8f3306f96f13b1048d63af571e80e88726d90fcafc320bc9c7f4419b14258783",
+      "duplicate_candidates": []
+    },
+    "evidence_verification": {
+      "responsibility": "Verification of physical disk artifact existence and SHA-256 checksums",
+      "authoritative_file": "governance/ResultCustoms.js",
+      "authoritative_class": "ResultCustoms.validateArtifactIntegrity",
+      "sha256": "8f3306f96f13b1048d63af571e80e88726d90fcafc320bc9c7f4419b14258783",
+      "duplicate_candidates": []
+    },
+    "completion_governor": {
+      "responsibility": "Enforcement of ACTIVE_CONTINUUM; worker DONE authority revocation",
+      "authoritative_file": "governance/CompletionGovernor.js",
+      "authoritative_class": "CompletionGovernor",
+      "sha256": "00b9c8fe7a2b6441f855fd5422bc74142871a4bae6405044382020d7f8a0c45f",
+      "duplicate_candidates": []
+    },
+    "execution_uncertainty": {
+      "responsibility": "Crash fencing mid-flight tasks and blocking uncoordinated retries/fallbacks",
+      "authoritative_file": "supervisor/lease_manager.js",
+      "authoritative_class": "ProcessLeaseManager (status: LEASE_STATUS.EXECUTION_UNCERTAIN)",
+      "sha256": "be00e5333d59c6d86e0a6a8d46bc66c01666ca62a2775e1534d8ae475aaf4647",
+      "duplicate_candidates": []
+    },
+    "human_gate": {
+      "responsibility": "Fail-closed enforcement of human approval on privileged/external actions",
+      "authoritative_file": "governance/TaskPassport.js",
+      "authoritative_class": "PassportOffice.validateHumanGateRequirement",
+      "sha256": "378fec6d346b8673061d9426add4a42a9dc7ca1bccf889b547d19e66e677ae15",
+      "duplicate_candidates": []
+    },
+    "financial_capability_boundary": {
+      "responsibility": "Strict enforcement of €0.00 autonomous spend limit and zero live trades",
+      "authoritative_file": "money_factory/safety_gates.js",
+      "authoritative_class": "SafetyGateManager",
+      "sha256": "c00ed53b4f0f1fd4ff6160413abeb26a2e6057921e586aa31af373fb3addff19",
+      "duplicate_candidates": []
+    },
+    "audit_evidence": {
+      "responsibility": "Append-only tamper-evident audit ledger and state event projection",
+      "authoritative_file": "supervisor/audit_ledger.js",
+      "authoritative_class": "AuditLedger",
+      "sha256": "d848c138266c32cf1d51a968a746094af6ea75e74a10afcdd1f9238402689784",
+      "duplicate_candidates": []
+    }
+  }
+}

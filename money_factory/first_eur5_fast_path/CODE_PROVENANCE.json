@@ -1,0 +1,106 @@
+{
+  "audit_timestamp_utc": "2026-09-10T06:54:17.706Z",
+  "product_name": "agent-context-trimmer",
+  "version": "1.0.0",
+  "total_files_audited": 11,
+  "third_party_dependencies_count": 0,
+  "provenance_summary": {
+    "ORIGINAL_PROJECT_CODE": 11,
+    "STANDARD_LIBRARY_ONLY": 5,
+    "THIRD_PARTY": 0,
+    "UNKNOWN": 0
+  },
+  "human_review_required": false,
+  "files": [
+    {
+      "file": "bin/agent-context-trimmer.js",
+      "provenance": "ORIGINAL_PROJECT_CODE",
+      "runtime_dependencies": [
+        "fs (standard library)",
+        "path (standard library)"
+      ],
+      "third_party_libraries": [],
+      "notes": "Custom CLI orchestrator implementing command-line argument parsing and report generation dispatch."
+    },
+    {
+      "file": "lib/analyzer.js",
+      "provenance": "ORIGINAL_PROJECT_CODE",
+      "runtime_dependencies": [
+        "fs (standard library)",
+        "path (standard library)"
+      ],
+      "third_party_libraries": [],
+      "notes": "Custom AST and token-estimation analyzer engine; implements duplicate rule heuristics and code block detection."
+    },
+    {
+      "file": "lib/reporter.js",
+      "provenance": "ORIGINAL_PROJECT_CODE",
+      "runtime_dependencies": [
+        "fs (standard library)",
+        "path (standard library)"
+      ],
+      "third_party_libraries": [],
+      "notes": "Custom terminal formatter and self-contained HTML report template generator."
+    },
+    {
+      "file": "example/.cursorrules",
+      "provenance": "ORIGINAL_PROJECT_CODE",
+      "runtime_dependencies": [],
+      "third_party_libraries": [],
+      "notes": "Locally authored synthetic fixture demonstrating redundant architecture rules."
+    },
+    {
+      "file": "example/.gemini/config/rules/coding_style.md",
+      "provenance": "ORIGINAL_PROJECT_CODE",
+      "runtime_dependencies": [],
+      "third_party_libraries": [],
+      "notes": "Locally authored synthetic fixture demonstrating duplicate formatting instructions."
+    },
+    {
+      "file": "tests/test_analyzer.js",
+      "provenance": "ORIGINAL_PROJECT_CODE",
+      "runtime_dependencies": [
+        "assert (standard library)",
+        "path (standard library)",
+        "fs (standard library)"
+      ],
+      "third_party_libraries": [],
+      "notes": "Deterministic unit test suite."
+    },
+    {
+      "file": "package.json",
+      "provenance": "ORIGINAL_PROJECT_CODE",
+      "runtime_dependencies": [],
+      "third_party_libraries": [],
+      "notes": "Package metadata; dependencies object is empty."
+    },
+    {
+      "file": "README.md",
+      "provenance": "ORIGINAL_PROJECT_CODE",
+      "runtime_dependencies": [],
+      "third_party_libraries": [],
+      "notes": "Locally authored user instructions and documentation."
+    },
+    {
+      "file": "LICENSE_NOTES.md",
+      "provenance": "ORIGINAL_PROJECT_CODE",
+      "runtime_dependencies": [],
+      "third_party_libraries": [],
+      "notes": "Standard permissive MIT license grant authored for this release."
+    },
+    {
+      "file": "VERSION.txt",
+      "provenance": "ORIGINAL_PROJECT_CODE",
+      "runtime_dependencies": [],
+      "third_party_libraries": [],
+      "notes": "Plain text version identifier."
+    },
+    {
+      "file": "SHA256SUMS.txt",
+      "provenance": "ORIGINAL_PROJECT_CODE",
+      "runtime_dependencies": [],
+      "third_party_libraries": [],
+      "notes": "Cryptographic hash manifest calculated over local files."
+    }
+  ]
+}

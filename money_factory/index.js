@@ -11,6 +11,10 @@ const { PredictionCalibrator } = require('./prediction_calibration');
 const { SafetyGateManager, SAFETY_INVARIANTS, HUMAN_GATE_OPERATIONS } = require('./safety_gates');
 const { AntiLoopPolicy, ECONOMIC_LOOP_STAGES } = require('./anti_loop_policy');
 const { LeaderboardGenerator } = require('./leaderboard_generator');
+const { EvidenceLedger, SIGNAL_CLASSES } = require('./evidence_ledger');
+const { CheapestTestSelector } = require('./cheapest_test');
+const { SupervisorCompatibility } = require('./supervisor_compat');
+const { First5EuroSimulator } = require('./first_5_euro_simulator');
 
 class MoneyFactory {
   constructor(customWarehouseDir = null) {
@@ -19,6 +23,7 @@ class MoneyFactory {
     this.portfolioManager = new PortfolioManager();
     this.cycleLedger = new CycleLedger(path.join(this.warehouseDir, 'research', '2026'));
     this.predictionCalibrator = new PredictionCalibrator(path.join(this.warehouseDir, 'evidence'));
+    this.evidenceLedger = new EvidenceLedger(path.join(this.warehouseDir, 'evidence'));
 
     this._initializeSeedsIfEmpty();
   }
@@ -48,6 +53,10 @@ class MoneyFactory {
   getPredictionCalibrator() {
     return this.predictionCalibrator;
   }
+
+  getEvidenceLedger() {
+    return this.evidenceLedger;
+  }
 }
 
 module.exports = {
@@ -68,5 +77,10 @@ module.exports = {
   HUMAN_GATE_OPERATIONS,
   AntiLoopPolicy,
   ECONOMIC_LOOP_STAGES,
-  LeaderboardGenerator
+  LeaderboardGenerator,
+  EvidenceLedger,
+  SIGNAL_CLASSES,
+  CheapestTestSelector,
+  SupervisorCompatibility,
+  First5EuroSimulator
 };

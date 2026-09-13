@@ -1,0 +1,46 @@
+{
+  "timestamp_utc": "2026-09-10T05:47:41.403Z",
+  "snapshot_directory": "C:\\Users\\lol\\2026-workspace\\courier\\scratch\\pre_integration_snapshot_1789019104451",
+  "git_head_at_snapshot": "aa5c01d21c7e055c7e3b5117ded5eddc6793dde4",
+  "rollback_readiness": "READY_AND_VERIFIED",
+  "estimated_recovery_seconds": 0.25,
+  "files_checked": [
+    {
+      "file": "supervisor/no_stacking.js",
+      "snapshot_file": "C:\\Users\\lol\\2026-workspace\\courier\\scratch\\pre_integration_snapshot_1789019104451\\supervisor_no_stacking.js",
+      "snapshot_file_exists": true,
+      "sha256_match": true,
+      "status": "VERIFIED_RESTORABLE"
+    },
+    {
+      "file": "supervisor/lease_manager.js",
+      "snapshot_file": "C:\\Users\\lol\\2026-workspace\\courier\\scratch\\pre_integration_snapshot_1789019104451\\supervisor_lease_manager.js",
+      "snapshot_file_exists": true,
+      "sha256_match": true,
+      "status": "VERIFIED_RESTORABLE"
+    },
+    {
+      "file": "supervisor/decision_engine.js",
+      "snapshot_file": "C:\\Users\\lol\\2026-workspace\\courier\\scratch\\pre_integration_snapshot_1789019104451\\supervisor_decision_engine.js",
+      "snapshot_file_exists": true,
+      "sha256_match": true,
+      "status": "VERIFIED_RESTORABLE"
+    },
+    {
+      "file": "supervisor/progress_tracker.js",
+      "snapshot_file": "C:\\Users\\lol\\2026-workspace\\courier\\scratch\\pre_integration_snapshot_1789019104451\\supervisor_progress_tracker.js",
+      "snapshot_file_exists": true,
+      "sha256_match": true,
+      "status": "VERIFIED_RESTORABLE"
+    },
+    {
+      "file": "supervisor/index.js",
+      "snapshot_file": "C:\\Users\\lol\\2026-workspace\\courier\\scratch\\pre_integration_snapshot_1789019104451\\supervisor_index.js",
+      "snapshot_file_exists": true,
+      "sha256_match": true,
+      "status": "VERIFIED_RESTORABLE"
+    }
+  ],
+  "rollback_command": "cd C:\\Users\\lol\\2026-workspace\\courier && git checkout HEAD -- supervisor/no_stacking.js supervisor/lease_manager.js supervisor/decision_engine.js supervisor/progress_tracker.js supervisor/index.js && Remove-Item -Recurse -Force governance, core, supervisor/governance, supervisor/core, tests/test_mandatory_scenarios_suite.js",
+  "safety_guarantee": "All original byte sequences preserved with verified SHA-256 signatures. Rollback is atomic and non-destructive."
+}

@@ -1,0 +1,77 @@
+{
+  "timestamp": "2026-09-10T06:54:00.918Z",
+  "target_archive": "LAUNCH_PACKAGE/PRODUCT_PACKAGE.zip",
+  "archive_size_bytes": 12724,
+  "total_files_audited": 11,
+  "total_violations": 0,
+  "unwanted_hidden_files_count": 0,
+  "overall_status": "PASS_CLEAN",
+  "files": [
+    {
+      "file": "bin\\agent-context-trimmer.js",
+      "size_bytes": 2537,
+      "violations_detected": [],
+      "is_clean": true
+    },
+    {
+      "file": "example\\.cursorrules",
+      "size_bytes": 1593,
+      "violations_detected": [],
+      "is_clean": true
+    },
+    {
+      "file": "example\\.gemini\\config\\rules\\coding_style.md",
+      "size_bytes": 229,
+      "violations_detected": [],
+      "is_clean": true
+    },
+    {
+      "file": "lib\\analyzer.js",
+      "size_bytes": 9206,
+      "violations_detected": [],
+      "is_clean": true
+    },
+    {
+      "file": "lib\\reporter.js",
+      "size_bytes": 6753,
+      "violations_detected": [],
+      "is_clean": true
+    },
+    {
+      "file": "LICENSE_NOTES.md",
+      "size_bytes": 1088,
+      "violations_detected": [],
+      "is_clean": true
+    },
+    {
+      "file": "package.json",
+      "size_bytes": 684,
+      "violations_detected": [],
+      "is_clean": true
+    },
+    {
+      "file": "README.md",
+      "size_bytes": 1526,
+      "violations_detected": [],
+      "is_clean": true
+    },
+    {
+      "file": "SHA256SUMS.txt",
+      "size_bytes": 862,
+      "violations_detected": [],
+      "is_clean": true
+    },
+    {
+      "file": "tests\\test_analyzer.js",
+      "size_bytes": 3984,
+      "violations_detected": [],
+      "is_clean": true
+    },
+    {
+      "file": "VERSION.txt",
+      "size_bytes": 6,
+      "violations_detected": [],
+      "is_clean": true
+    }
+  ]
+}

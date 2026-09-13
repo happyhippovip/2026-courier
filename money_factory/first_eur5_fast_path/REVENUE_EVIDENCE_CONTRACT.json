@@ -1,0 +1,111 @@
+{
+  "contract_name": "COURIER_FIRST_EUR5_REVENUE_EVIDENCE_CONTRACT",
+  "version": "1.0.0",
+  "created_at_utc": "2026-09-10T06:48:47.619Z",
+  "target_amount_eur": 5,
+  "currency": "EUR",
+  "product": {
+    "name": "agent-context-trimmer",
+    "version": "1.0.0",
+    "package_zip": "LAUNCH_PACKAGE/PRODUCT_PACKAGE.zip"
+  },
+  "lifecycle_stages": [
+    {
+      "stage_number": 1,
+      "stage_name": "PRODUCT_READY",
+      "description": "Local product package built, zero dependencies verified, unit and customer tests 100% PASS, adversarial attacks survived, launch package assembled and hashed.",
+      "current_status": "VERIFIED",
+      "evidence": {
+        "product_dir": "courier/money_factory/first_eur5_fast_path/product",
+        "launch_package_dir": "courier/money_factory/first_eur5_fast_path/LAUNCH_PACKAGE",
+        "unit_tests_pass": true,
+        "clean_customer_test_pass": true,
+        "adversarial_review_pass": true,
+        "package_zip_sha256": "verified_in_sha256sums"
+      },
+      "validation_rule": "All tests, checksums, and package artifacts present and verified on Windows host."
+    },
+    {
+      "stage_number": 2,
+      "stage_name": "HUMAN_APPROVED",
+      "description": "Human operator (Chief / Product Owner) formally signs launch approval card.",
+      "current_status": "PENDING_HUMAN_GATE",
+      "evidence": {
+        "operator_signature_file": "money_factory/first_eur5_fast_path/APPROVAL_SIGNATURE.json",
+        "signed_at_utc": null,
+        "operator_handle": null,
+        "authorized_channel": "GUMROAD"
+      },
+      "validation_rule": "Operator signature file exists with valid non-null timestamp and explicit approval flag."
+    },
+    {
+      "stage_number": 3,
+      "stage_name": "LISTING_LIVE",
+      "description": "Listing is publicly available on primary channel at a valid URL, visible without credentials.",
+      "current_status": "PENDING_HUMAN_GATE",
+      "evidence": {
+        "public_url": null,
+        "http_status": null,
+        "page_title_matches": null,
+        "price_verified_eur": null
+      },
+      "validation_rule": "Unauthenticated HTTP GET on public_url returns status 200 with matching title and price €5.00."
+    },
+    {
+      "stage_number": 4,
+      "stage_name": "FIRST_VISIT_OBSERVED",
+      "description": "At least one external visitor or referral has navigated to the public listing.",
+      "current_status": "PENDING_HUMAN_GATE",
+      "evidence": {
+        "visitor_count": null,
+        "observed_at_utc": null,
+        "referral_source": null
+      },
+      "validation_rule": "Public visit count >= 1 recorded in platform analytics or access log."
+    },
+    {
+      "stage_number": 5,
+      "stage_name": "FIRST_CHECKOUT_ATTEMPT",
+      "description": "A customer initiates checkout on the platform.",
+      "current_status": "PENDING_HUMAN_GATE",
+      "evidence": {
+        "checkout_initiated_at_utc": null,
+        "cart_total_eur": null
+      },
+      "validation_rule": "Checkout event recorded with cart total >= €5.00."
+    },
+    {
+      "stage_number": 6,
+      "stage_name": "FIRST_PAYMENT_CONFIRMED",
+      "description": "Transaction settles successfully with a valid receipt and payment confirmation ID.",
+      "current_status": "PENDING_HUMAN_GATE",
+      "evidence": {
+        "order_id": null,
+        "gross_amount_eur": null,
+        "net_amount_eur": null,
+        "payment_processor_fee_eur": null,
+        "tax_collected_eur": null,
+        "confirmed_at_utc": null
+      },
+      "validation_rule": "Verified gross_amount_eur >= €5.00 with unique order identifier and zero chargeback/refund flags."
+    },
+    {
+      "stage_number": 7,
+      "stage_name": "SETTLED_REVENUE",
+      "description": "Funds are cleared in the Merchant of Record balance, ready for bank payout.",
+      "current_status": "PENDING_HUMAN_GATE",
+      "evidence": {
+        "cleared_balance_eur": null,
+        "settlement_date_utc": null,
+        "payout_reference": null
+      },
+      "validation_rule": "Cleared balance shows net positive revenue >= €4.00 (gross €5.00 minus platform fee)."
+    }
+  ],
+  "governance": {
+    "autonomous_spend_limit_eur": 0,
+    "credential_extraction_permitted": false,
+    "automated_login_permitted": false,
+    "external_messaging_permitted": false
+  }
+}

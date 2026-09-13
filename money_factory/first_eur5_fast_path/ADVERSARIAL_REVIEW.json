@@ -1,0 +1,76 @@
+{
+  "timestamp": "2026-09-10T06:47:44.405Z",
+  "tool": "agent-context-trimmer",
+  "version": "1.0.0",
+  "total_adversarial_tests": 8,
+  "passed_count": 8,
+  "failed_count": 0,
+  "all_passed": true,
+  "attacks": [
+    {
+      "attack_id": "ZERO_DEPENDENCY_CHECK",
+      "description": "Verify package has strictly 0 external npm dependencies and 0 node_modules",
+      "passed": true,
+      "details": {
+        "dependencies": {},
+        "node_modules_present": false
+      }
+    },
+    {
+      "attack_id": "EMPTY_FILE_INPUT",
+      "description": "Verify handling of 0-byte rules files without crash or NaN",
+      "passed": true,
+      "details": {
+        "output_snippet": "{\n  \"workspace_dir\": \"C:\\\\Users\\\\lol\\\\AppData\\\\Local\\\\Temp\\\\adv_review_sandbox_1789022863598\\\\empty_file_repo\",\n  \"scanned_at_utc\": \"2026-09-10T06:47:43.702Z\",\n  \"files_discovered_count\": 1,\n  \"total_"
+      }
+    },
+    {
+      "attack_id": "SPACES_AND_SPECIAL_CHARS_IN_PATH",
+      "description": "Target workspace path with spaces, parentheses, ampersands, and exclamation marks",
+      "passed": true,
+      "details": {
+        "path_tested": "C:\\Users\\lol\\AppData\\Local\\Temp\\adv_review_sandbox_1789022863598\\Special Workspace (With Spaces & Symbols! #1)"
+      }
+    },
+    {
+      "attack_id": "UNICODE_AND_EMOJI_RESILIENCE",
+      "description": "Verify character encodings (UTF-8, emojis, CJK, Cyrillic, zero-width chars) do not crash analyzer",
+      "passed": true,
+      "details": {
+        "unicode_handled_cleanly": true
+      }
+    },
+    {
+      "attack_id": "UNCLOSED_CODE_BLOCK_MALFORMED_MD",
+      "description": "Verify unclosed markdown code blocks do not throw or enter infinite loops",
+      "passed": true,
+      "details": {
+        "handled_safely": true
+      }
+    },
+    {
+      "attack_id": "BINARY_PAYLOAD_HANDLING",
+      "description": "Verify files containing null bytes and non-printable control chars are handled without crash",
+      "passed": true,
+      "details": {
+        "handled_safely": true
+      }
+    },
+    {
+      "attack_id": "WINDOWS_VS_POSIX_PATH_SEPARATORS",
+      "description": "Verify both Windows backslashes and POSIX forward slashes resolve correctly and display cleanly",
+      "passed": true,
+      "details": {
+        "cross_platform_path_support": true
+      }
+    },
+    {
+      "attack_id": "SINGLE_FILE_TARGET_ARGUMENT",
+      "description": "Check how tool handles a direct file path passed as argument",
+      "passed": true,
+      "details": {
+        "behavior": "Handled gracefully"
+      }
+    }
+  ]
+}

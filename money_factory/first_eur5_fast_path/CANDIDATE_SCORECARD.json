@@ -1,0 +1,267 @@
+{
+  "version": "1.0.0",
+  "mission_id": "WINDOWS_FIRST_EUR5_PRODUCT_FACTORY_FAST_PATH_V1",
+  "timestamp_utc": "2026-09-10T06:43:04.048Z",
+  "candidate_count": 7,
+  "ranking": [
+    {
+      "rank": 1,
+      "id": "CANDIDATE-01",
+      "name": "agent-context-trimmer (LLM Agent Context & Token Cost Auditor)",
+      "composite_score": 86.9,
+      "likely_5_eur_plausibility": 9,
+      "time_to_ready": 9,
+      "customer_problem_clarity": 9.5,
+      "value_demonstrability": 9.5
+    },
+    {
+      "rank": 2,
+      "id": "CANDIDATE-02",
+      "name": "artifact-customs (Cryptographic Delivery & SHA-256 Manifest Verifier)",
+      "composite_score": 74.95,
+      "likely_5_eur_plausibility": 6.5,
+      "time_to_ready": 9.5,
+      "customer_problem_clarity": 8,
+      "value_demonstrability": 8.5
+    },
+    {
+      "rank": 3,
+      "id": "CANDIDATE-07",
+      "name": "godot4-deterministic-state-machine (Game Dev Component)",
+      "composite_score": 70.4,
+      "likely_5_eur_plausibility": 8,
+      "time_to_ready": 7,
+      "customer_problem_clarity": 8,
+      "value_demonstrability": 8.5
+    },
+    {
+      "rank": 4,
+      "id": "CANDIDATE-03",
+      "name": "dev-short-script-generator (Technical Video Script & Asset Planner)",
+      "composite_score": 69.85,
+      "likely_5_eur_plausibility": 7.5,
+      "time_to_ready": 8,
+      "customer_problem_clarity": 8,
+      "value_demonstrability": 8
+    },
+    {
+      "rank": 5,
+      "id": "CANDIDATE-04",
+      "name": "ntfs-file-mutex (Cross-Platform Case-Safe Lock & Run)",
+      "composite_score": 66,
+      "likely_5_eur_plausibility": 5.5,
+      "time_to_ready": 8.5,
+      "customer_problem_clarity": 7.5,
+      "value_demonstrability": 7.5
+    },
+    {
+      "rank": 6,
+      "id": "CANDIDATE-05",
+      "name": "supabase-to-postgres-migration-kit (Self-Hosting Blueprint)",
+      "composite_score": 63.25,
+      "likely_5_eur_plausibility": 8,
+      "time_to_ready": 6,
+      "customer_problem_clarity": 8.5,
+      "value_demonstrability": 8
+    },
+    {
+      "rank": 7,
+      "id": "CANDIDATE-06",
+      "name": "freelance-delivery-escrow-ledger (Milestone Proof Package)",
+      "composite_score": 61.45,
+      "likely_5_eur_plausibility": 6,
+      "time_to_ready": 7.5,
+      "customer_problem_clarity": 7,
+      "value_demonstrability": 7.5
+    }
+  ],
+  "candidates": [
+    {
+      "id": "CANDIDATE-01",
+      "name": "agent-context-trimmer (LLM Agent Context & Token Cost Auditor)",
+      "archetype": "micro-tool / developer utility",
+      "summary": "Zero-dependency Node CLI tool that scans AI coding agent configs (.cursorrules, .gemini/rules, CLINEmode, system prompts), identifies redundant instructions, measures token burn, and generates an actionable optimization report showing monthly cost savings.",
+      "scores": {
+        "TIME_TO_READY": 9,
+        "CUSTOMER_PROBLEM_CLARITY": 9.5,
+        "VALUE_DEMONSTRABILITY": 9.5,
+        "BUILD_RISK": 9,
+        "HUMAN_GATE_COUNT": 2,
+        "DELIVERY_SIMPLICITY": 10,
+        "SUPPORT_BURDEN": 9,
+        "REUSE_POTENTIAL": 9.5,
+        "LIKELY_5_EUR_PLAUSIBILITY": 9,
+        "MARKET_UNCERTAINTY": 4
+      },
+      "pros": [
+        "Addresses massive current pain point in AI developer community",
+        "Zero external API dependencies, €0 build cost, runs 100% offline",
+        "Demonstrable instant ROI: saving 5,000 tokens/turn saves €5 in hours of coding",
+        "Can be packaged as a single zero-dependency file or portable zip"
+      ],
+      "cons": [
+        "Token counting algorithms vary slightly across models (approximation needed)",
+        "Free simple alternatives exist, but lack automated rule consolidation and visual report"
+      ],
+      "composite_score": 86.9
+    },
+    {
+      "id": "CANDIDATE-02",
+      "name": "artifact-customs (Cryptographic Delivery & SHA-256 Manifest Verifier)",
+      "archetype": "developer utility / security choke point",
+      "summary": "Standalone CLI tool extracted from Courier ResultCustoms that verifies physical build outputs against a cryptographic manifest, detecting silent truncation, missing files, and corrupted binaries.",
+      "scores": {
+        "TIME_TO_READY": 9.5,
+        "CUSTOMER_PROBLEM_CLARITY": 8,
+        "VALUE_DEMONSTRABILITY": 8.5,
+        "BUILD_RISK": 9.5,
+        "HUMAN_GATE_COUNT": 2,
+        "DELIVERY_SIMPLICITY": 9.5,
+        "SUPPORT_BURDEN": 9.5,
+        "REUSE_POTENTIAL": 8,
+        "LIKELY_5_EUR_PLAUSIBILITY": 6.5,
+        "MARKET_UNCERTAINTY": 6
+      },
+      "pros": [
+        "Code already 100% proven in Courier governance plane",
+        "Extremely high reliability, 0 external dependencies"
+      ],
+      "cons": [
+        "Many developers write quick 5-line bash/python scripts instead of paying €5",
+        "Less urgent emotional buying impulse than runaway token costs"
+      ],
+      "composite_score": 74.95
+    },
+    {
+      "id": "CANDIDATE-07",
+      "name": "godot4-deterministic-state-machine (Game Dev Component)",
+      "archetype": "Godot tool / template",
+      "summary": "Clean, production-ready Hierarchical Finite State Machine (HFSM) GDScript template for Godot 4 with visual debug overlay, transition events, and unit tests.",
+      "scores": {
+        "TIME_TO_READY": 7,
+        "CUSTOMER_PROBLEM_CLARITY": 8,
+        "VALUE_DEMONSTRABILITY": 8.5,
+        "BUILD_RISK": 7.5,
+        "HUMAN_GATE_COUNT": 2,
+        "DELIVERY_SIMPLICITY": 8.5,
+        "SUPPORT_BURDEN": 7.5,
+        "REUSE_POTENTIAL": 8,
+        "LIKELY_5_EUR_PLAUSIBILITY": 8,
+        "MARKET_UNCERTAINTY": 5.5
+      },
+      "pros": [
+        "Active commercial ecosystem on Itch.io and Godot Asset Library ($3-$5 standard pricing)",
+        "Highly valued by indie game developers"
+      ],
+      "cons": [
+        "No Godot engine binary currently installed in local Windows environment to run automated tests",
+        "Requires headless Godot engine for verified testing"
+      ],
+      "composite_score": 70.4
+    },
+    {
+      "id": "CANDIDATE-03",
+      "name": "dev-short-script-generator (Technical Video Script & Asset Planner)",
+      "archetype": "creator utility / automation asset",
+      "summary": "CLI + template engine that parses repository features and generates structured 4-phase 30-60s video demo scripts with spoken text, visual cues, and on-screen overlays.",
+      "scores": {
+        "TIME_TO_READY": 8,
+        "CUSTOMER_PROBLEM_CLARITY": 8,
+        "VALUE_DEMONSTRABILITY": 8,
+        "BUILD_RISK": 8.5,
+        "HUMAN_GATE_COUNT": 2,
+        "DELIVERY_SIMPLICITY": 9,
+        "SUPPORT_BURDEN": 8,
+        "REUSE_POTENTIAL": 7.5,
+        "LIKELY_5_EUR_PLAUSIBILITY": 7.5,
+        "MARKET_UNCERTAINTY": 6.5
+      },
+      "pros": [
+        "High perceived value for indie hackers wanting marketing scripts",
+        "Derived directly from content_os/template_engine.py"
+      ],
+      "cons": [
+        "Still leaves the user with the work of recording/voicing the video",
+        "Subjective evaluation of script quality"
+      ],
+      "composite_score": 69.85
+    },
+    {
+      "id": "CANDIDATE-04",
+      "name": "ntfs-file-mutex (Cross-Platform Case-Safe Lock & Run)",
+      "archetype": "developer utility",
+      "summary": "CLI wrapper that executes long-running commands under an exclusive case-safe file mutex on Windows and POSIX systems.",
+      "scores": {
+        "TIME_TO_READY": 8.5,
+        "CUSTOMER_PROBLEM_CLARITY": 7.5,
+        "VALUE_DEMONSTRABILITY": 7.5,
+        "BUILD_RISK": 9,
+        "HUMAN_GATE_COUNT": 2,
+        "DELIVERY_SIMPLICITY": 9.5,
+        "SUPPORT_BURDEN": 9,
+        "REUSE_POTENTIAL": 7,
+        "LIKELY_5_EUR_PLAUSIBILITY": 5.5,
+        "MARKET_UNCERTAINTY": 7
+      },
+      "pros": [
+        "Directly leverages proven ResourceLockManager.js",
+        "Solves obscure concurrency race conditions on Windows"
+      ],
+      "cons": [
+        "Niche developer pain point; difficult to market as a standalone commercial product"
+      ],
+      "composite_score": 66
+    },
+    {
+      "id": "CANDIDATE-05",
+      "name": "supabase-to-postgres-migration-kit (Self-Hosting Blueprint)",
+      "archetype": "template / migration package",
+      "summary": "Complete SQL schema extractor, auth mock, and Docker-compose self-hosting template to migrate workloads off Supabase.",
+      "scores": {
+        "TIME_TO_READY": 6,
+        "CUSTOMER_PROBLEM_CLARITY": 8.5,
+        "VALUE_DEMONSTRABILITY": 8,
+        "BUILD_RISK": 6.5,
+        "HUMAN_GATE_COUNT": 2,
+        "DELIVERY_SIMPLICITY": 7.5,
+        "SUPPORT_BURDEN": 5.5,
+        "REUSE_POTENTIAL": 7,
+        "LIKELY_5_EUR_PLAUSIBILITY": 8,
+        "MARKET_UNCERTAINTY": 6
+      },
+      "pros": [
+        "High willingness to pay when a company is facing big cloud bills"
+      ],
+      "cons": [
+        "High support burden: every customer has custom extensions/functions",
+        "Takes significantly longer to build and verify reliably"
+      ],
+      "composite_score": 63.25
+    },
+    {
+      "id": "CANDIDATE-06",
+      "name": "freelance-delivery-escrow-ledger (Milestone Proof Package)",
+      "archetype": "reusable automation asset",
+      "summary": "Cryptographic milestone delivery ledger generating client-verifiable delivery certificates and SHA-256 asset manifests.",
+      "scores": {
+        "TIME_TO_READY": 7.5,
+        "CUSTOMER_PROBLEM_CLARITY": 7,
+        "VALUE_DEMONSTRABILITY": 7.5,
+        "BUILD_RISK": 8,
+        "HUMAN_GATE_COUNT": 2,
+        "DELIVERY_SIMPLICITY": 8.5,
+        "SUPPORT_BURDEN": 7.5,
+        "REUSE_POTENTIAL": 7,
+        "LIKELY_5_EUR_PLAUSIBILITY": 6,
+        "MARKET_UNCERTAINTY": 7
+      },
+      "pros": [
+        "Directly uses money_factory/evidence_ledger.js"
+      ],
+      "cons": [
+        "Requires both freelancer and client to participate in verification flow"
+      ],
+      "composite_score": 61.45
+    }
+  ]
+}

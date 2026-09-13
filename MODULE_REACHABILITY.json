@@ -1,0 +1,172 @@
+{
+  "timestamp_utc": "2026-09-10T06:11:23.494Z",
+  "target_repo": "C:\\Users\\lol\\2026-workspace\\courier",
+  "modules": [
+    {
+      "module": "governance/ResourceLockManager.js",
+      "classification": "REQUIRED_AUTHORITATIVE_PATH",
+      "imported_by": [
+        "supervisor/no_stacking.js"
+      ],
+      "justification": "Enforces GAP-001 hierarchical NTFS case-safe mutex. Canonical resource lock authority."
+    },
+    {
+      "module": "governance/TaskPassport.js",
+      "classification": "REQUIRED_AUTHORITATIVE_PATH",
+      "imported_by": [
+        "governance/BorderGuard.js",
+        "governance/ResultCustoms.js",
+        "supervisor/decision_engine.js"
+      ],
+      "justification": "Generates and validates HMAC-signed capability tokens binding tasks to scopes."
+    },
+    {
+      "module": "governance/BorderGuard.js",
+      "classification": "REQUIRED_AUTHORITATIVE_PATH",
+      "imported_by": [
+        "supervisor/decision_engine.js"
+      ],
+      "justification": "Enforces GAP-004 authoritative pre-dispatch gate."
+    },
+    {
+      "module": "governance/CapabilityEngine.js",
+      "classification": "REQUIRED_SUPPORTING",
+      "imported_by": [
+        "governance/BorderGuard.js"
+      ],
+      "justification": "Provides capability level lattice (0=READ_ONLY, 1=LOCAL_WORKSPACE, 2=SANDBOX_TEST, 3=NETWORK, 4=SECRETS, 5=FINANCIAL). Fail-closed on high privileges."
+    },
+    {
+      "module": "governance/ResultCustoms.js",
+      "classification": "REQUIRED_AUTHORITATIVE_PATH",
+      "imported_by": [
+        "supervisor/progress_tracker.js"
+      ],
+      "justification": "Enforces GAP-005 result envelope verification and disk SHA-256 checksums."
+    },
+    {
+      "module": "governance/CompletionGovernor.js",
+      "classification": "REQUIRED_AUTHORITATIVE_PATH",
+      "imported_by": [
+        "supervisor/decision_engine.js"
+      ],
+      "justification": "Enforces GAP-003 revoking worker global completion authority."
+    },
+    {
+      "module": "governance/PolicyValidator.js",
+      "classification": "DEAD",
+      "imported_by": [],
+      "justification": "Zero references in production code or tests. Unused speculative policy validation."
+    },
+    {
+      "module": "core/CheckpointStore.js",
+      "classification": "DEAD",
+      "imported_by": [],
+      "justification": "Zero references in production code or tests. Unused redundant checkpoint store."
+    },
+    {
+      "module": "core/DurableEventLog.js",
+      "classification": "TEST_ONLY",
+      "imported_by": [
+        "tests/test_mandatory_scenarios_suite.js"
+      ],
+      "justification": "Used only by test scenario 17. Production uses supervisor/audit_ledger.js."
+    },
+    {
+      "module": "core/ReplayEngine.js",
+      "classification": "TEST_ONLY",
+      "imported_by": [
+        "tests/test_mandatory_scenarios_suite.js"
+      ],
+      "justification": "Used only by test scenarios 16 & 17. Production uses supervisor/reconciliation.js."
+    },
+    {
+      "module": "core/StateProjector.js",
+      "classification": "TEST_ONLY",
+      "imported_by": [
+        "core/ReplayEngine.js"
+      ],
+      "justification": "Supporting module for core/ReplayEngine.js; not used by production supervisor."
+    },
+    {
+      "module": "core/SchemaRegistry.js",
+      "classification": "TEST_ONLY",
+      "imported_by": [
+        "core/DurableEventLog.js"
+      ],
+      "justification": "Supporting module for core/DurableEventLog.js; not used by production supervisor."
+    },
+    {
+      "module": "supervisor/governance/BorderGuard.js",
+      "classification": "DUPLICATE",
+      "imported_by": [],
+      "justification": "100% byte-for-byte duplicate of governance/BorderGuard.js. Production imports ../governance."
+    },
+    {
+      "module": "supervisor/governance/CapabilityEngine.js",
+      "classification": "DUPLICATE",
+      "imported_by": [],
+      "justification": "100% byte-for-byte duplicate of governance/CapabilityEngine.js."
+    },
+    {
+      "module": "supervisor/governance/CompletionGovernor.js",
+      "classification": "DUPLICATE",
+      "imported_by": [],
+      "justification": "100% byte-for-byte duplicate of governance/CompletionGovernor.js."
+    },
+    {
+      "module": "supervisor/governance/PolicyValidator.js",
+      "classification": "DUPLICATE",
+      "imported_by": [],
+      "justification": "100% byte-for-byte duplicate of governance/PolicyValidator.js."
+    },
+    {
+      "module": "supervisor/governance/ResourceLockManager.js",
+      "classification": "DUPLICATE",
+      "imported_by": [],
+      "justification": "100% byte-for-byte duplicate of governance/ResourceLockManager.js."
+    },
+    {
+      "module": "supervisor/governance/ResultCustoms.js",
+      "classification": "DUPLICATE",
+      "imported_by": [],
+      "justification": "100% byte-for-byte duplicate of governance/ResultCustoms.js."
+    },
+    {
+      "module": "supervisor/governance/TaskPassport.js",
+      "classification": "DUPLICATE",
+      "imported_by": [],
+      "justification": "100% byte-for-byte duplicate of governance/TaskPassport.js."
+    },
+    {
+      "module": "supervisor/core/CheckpointStore.js",
+      "classification": "DUPLICATE",
+      "imported_by": [],
+      "justification": "100% byte-for-byte duplicate of core/CheckpointStore.js."
+    },
+    {
+      "module": "supervisor/core/DurableEventLog.js",
+      "classification": "DUPLICATE",
+      "imported_by": [],
+      "justification": "100% byte-for-byte duplicate of core/DurableEventLog.js."
+    },
+    {
+      "module": "supervisor/core/ReplayEngine.js",
+      "classification": "DUPLICATE",
+      "imported_by": [],
+      "justification": "100% byte-for-byte duplicate of core/ReplayEngine.js."
+    },
+    {
+      "module": "supervisor/core/SchemaRegistry.js",
+      "classification": "DUPLICATE",
+      "imported_by": [],
+      "justification": "100% byte-for-byte duplicate of core/SchemaRegistry.js."
+    },
+    {
+      "module": "supervisor/core/StateProjector.js",
+      "classification": "DUPLICATE",
+      "imported_by": [],
+      "justification": "100% byte-for-byte duplicate of core/StateProjector.js."
+    }
+  ]
+}

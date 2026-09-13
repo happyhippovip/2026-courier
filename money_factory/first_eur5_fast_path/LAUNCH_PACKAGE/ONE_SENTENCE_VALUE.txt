@@ -1,0 +1,1 @@
+Audit workspace rules files (Cursor, Windsurf, Cline, Gemini) to spot duplicate instructions, flag large embedded code blocks, and estimate repeated context overhead across LLM sessions.

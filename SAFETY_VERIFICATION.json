@@ -1,0 +1,78 @@
+{
+  "timestamp_utc": "2026-09-10T05:47:41.404Z",
+  "target_repo": "C:\\Users\\lol\\2026-workspace\\courier",
+  "overall_verdict": "SAFETY_COMPLIANT",
+  "invariants": {
+    "autonomous_spend_limit_eur": {
+      "limit": 0,
+      "actual": 0,
+      "status": "PASS"
+    },
+    "real_trades": {
+      "limit": 0,
+      "actual": 0,
+      "status": "PASS"
+    },
+    "real_funds_touched": {
+      "allowed": false,
+      "actual": false,
+      "status": "PASS"
+    },
+    "real_wallets_connected": {
+      "allowed": false,
+      "actual": false,
+      "status": "PASS"
+    },
+    "external_messages_sent": {
+      "limit": 0,
+      "actual": 0,
+      "status": "PASS"
+    },
+    "mac_host_access": {
+      "allowed": false,
+      "actual": false,
+      "status": "PASS"
+    },
+    "universux_touch": {
+      "allowed": false,
+      "actual": false,
+      "bytes": 0,
+      "status": "PASS"
+    },
+    "production_deployment": {
+      "allowed": false,
+      "actual": false,
+      "status": "PASS"
+    },
+    "publication": {
+      "allowed": false,
+      "actual": false,
+      "status": "PASS"
+    },
+    "purchases_subscriptions": {
+      "allowed": false,
+      "actual": false,
+      "status": "PASS"
+    },
+    "active_writer_leases": {
+      "expected": 0,
+      "actual": 0,
+      "status": "PASS"
+    },
+    "active_process_leases": {
+      "expected": 0,
+      "actual": 0,
+      "status": "PASS"
+    },
+    "background_helpers": {
+      "expected": 0,
+      "actual": 0,
+      "status": "PASS"
+    },
+    "git_working_tree": {
+      "committed": false,
+      "pushed": false,
+      "status": "UNCOMMITTED_FOR_CHIEF_REVIEW"
+    }
+  }
+}

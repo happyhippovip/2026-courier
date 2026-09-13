@@ -1,0 +1,88 @@
+{
+  "graph_version": "1.0.0",
+  "name": "COURIER_AUTHORITATIVE_RUNTIME_EXECUTION_GRAPH",
+  "pipeline_flow": [
+    {
+      "stage": 1,
+      "name": "USER_OR_GOAL_INTAKE",
+      "canonical_entry_point": "cross_device_intake.js / money_factory/index.js",
+      "description": "Incoming user directive or autonomous economic goal ingestion",
+      "guard": "CrossDeviceIntakeEngine (rejects unverified worker claims, enforces HUMAN_GATE)"
+    },
+    {
+      "stage": 2,
+      "name": "OPPORTUNITY_AND_TASK_PLANNER",
+      "canonical_entry_point": "money_factory/warehouse.js & cheapest_test.js",
+      "description": "Selects highest-ranked opportunity and defines minimal €0 test envelope",
+      "guard": "SafetyGateManager & AntiLoopPolicy (blocks loop & €0 spend limit)"
+    },
+    {
+      "stage": 3,
+      "name": "TASK_NEGOTIATION_AND_RESOURCE_LOCK",
+      "canonical_entry_point": "supervisor/no_stacking.js (ResourceLockManager)",
+      "description": "Hierarchical NTFS case-safe mutex acquisition for target paths and task signature",
+      "choke_point": "GAP-001 (ResourceLockManager.acquireResource)"
+    },
+    {
+      "stage": 4,
+      "name": "PROCESS_LEASE_ACQUISITION",
+      "canonical_entry_point": "supervisor/lease_manager.js (ProcessLeaseManager)",
+      "description": "Issues process lease with composite identity tuple (PID, START_TIME, TASK_TOKEN)",
+      "choke_point": "GAP-002 (ProcessLeaseManager.acquireLease)"
+    },
+    {
+      "stage": 5,
+      "name": "TASK_PASSPORT_STAMPING",
+      "canonical_entry_point": "governance/TaskPassport.js",
+      "description": "Generates HMAC-signed capability passport binding task_id, version, and scope_paths",
+      "choke_point": "GAP-004 (TaskPassport.createPassport)"
+    },
+    {
+      "stage": 6,
+      "name": "BORDER_GUARD_PRE_DISPATCH",
+      "canonical_entry_point": "supervisor/decision_engine.js (BorderGuard)",
+      "description": "Authoritative pre-dispatch gate verifying lease, resource lock, and passport signature",
+      "choke_point": "GAP-004 (SupervisorPlane.admitForDispatch / BorderGuard.evaluatePreDispatch)"
+    },
+    {
+      "stage": 7,
+      "name": "WORKER_EXECUTION",
+      "canonical_entry_point": "Worker Subprocess / Chief Runner",
+      "description": "Executes sandboxed task and emits output artifacts and exit code",
+      "invariants": "Zero spend (€0), Zero real trades, Local workspace only"
+    },
+    {
+      "stage": 8,
+      "name": "RESULT_ENVELOPE_SUBMISSION",
+      "canonical_entry_point": "Worker output payload",
+      "description": "Contains passport, task_id, exit_code, and artifact manifest"
+    },
+    {
+      "stage": 9,
+      "name": "RESULT_CUSTOMS_AND_INDEPENDENT_VERIFICATION",
+      "canonical_entry_point": "supervisor/progress_tracker.js (ResultCustoms & EvidenceVerifier)",
+      "description": "Verifies HMAC signature, exit code 0, non-empty artifacts, and disk SHA-256 hashes",
+      "choke_point": "GAP-005 (SupervisorPlane.evaluateResultEnvelope / ResultCustoms.evaluateResultEnvelope)"
+    },
+    {
+      "stage": 10,
+      "name": "COMPLETION_GOVERNOR_ADMISSION",
+      "canonical_entry_point": "supervisor/decision_engine.js (CompletionGovernor)",
+      "description": "Revokes worker global DONE claims; admits completion only with verified evidence",
+      "choke_point": "GAP-003 (SupervisorPlane.evaluateWorkerReport / CompletionGovernor.evaluateMissionStatus)"
+    },
+    {
+      "stage": 11,
+      "name": "TERMINAL_EVIDENCE_AND_NEXT_TASK",
+      "canonical_entry_point": "supervisor/audit_ledger.js (AuditLedger)",
+      "description": "Appends SHA-256 fingerprinted audit event to durable ledger and advances state"
+    }
+  ],
+  "authoritative_choke_points": [
+    "GAP-001: ResourceLockManager (supervisor/no_stacking.js -> governance/ResourceLockManager.js)",
+    "GAP-002: ProcessLeaseManager (supervisor/lease_manager.js)",
+    "GAP-004: BorderGuard & TaskPassport (supervisor/decision_engine.js -> governance/BorderGuard.js)",
+    "GAP-005: ResultCustoms & EvidenceVerifier (supervisor/progress_tracker.js -> governance/ResultCustoms.js)",
+    "GAP-003: CompletionGovernor (supervisor/decision_engine.js -> governance/CompletionGovernor.js)"
+  ]
+}

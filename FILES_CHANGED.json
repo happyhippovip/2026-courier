@@ -1,0 +1,249 @@
+{
+  "timestamp_utc": "2026-09-10T05:47:41.350Z",
+  "target_repo": "C:\\Users\\lol\\2026-workspace\\courier",
+  "base_commit": "aa5c01d21c7e055c7e3b5117ded5eddc6793dde4",
+  "total_files_modified": 5,
+  "total_files_added": 25,
+  "files": [
+    {
+      "file_path": "supervisor/no_stacking.js",
+      "action": "MODIFIED",
+      "before_sha256": "27bc27a3f06866a83d6d95a86457bd0cffadb7900b885cc9f9180e10a7ac49c4",
+      "after_sha256": "be956d4870814604fbc91dfc4df663359355391c9469c71bc5b08b1dd765e8e3",
+      "bytes": 3779,
+      "lines": 107
+    },
+    {
+      "file_path": "supervisor/lease_manager.js",
+      "action": "MODIFIED",
+      "before_sha256": "c6bb08fe79fbdd0ce135089d784722cc4a943c857f73c6591f89831ecff5036a",
+      "after_sha256": "666bb6f6162073156b6cb16655ac1c3b37ff30c49577fffdcb9245f2a6735e9d",
+      "bytes": 9493,
+      "lines": 315
+    },
+    {
+      "file_path": "supervisor/decision_engine.js",
+      "action": "MODIFIED",
+      "before_sha256": "ab42069fd4c5a613833c9bf9c8ed6511176575c5702451b5c04bd15b9756001d",
+      "after_sha256": "2e9b7224130ee9845e266d7c3ecb25ab8cafc616a847937637779a7cab7bdf8a",
+      "bytes": 3983,
+      "lines": 107
+    },
+    {
+      "file_path": "supervisor/progress_tracker.js",
+      "action": "MODIFIED",
+      "before_sha256": "ee3a03906b147e1cecc0d7bed85db76c4740171f0bc697a6a37ad1afbdb4ec89",
+      "after_sha256": "a7a2d21dea62a970117bee45158ac8e5e8bb6710bce73fd3aaf0dd6b7894b30c",
+      "bytes": 6116,
+      "lines": 192
+    },
+    {
+      "file_path": "supervisor/index.js",
+      "action": "MODIFIED",
+      "before_sha256": "2ace305a58f03695a2518aac8bbb172ca349fce359c48aa9c882f904f9c554ed",
+      "after_sha256": "d95f3ab1c556060f78088113dbdded09362587a8b1eb5011f5ee285870b5bc19",
+      "bytes": 4098,
+      "lines": 111
+    },
+    {
+      "file_path": "governance/BorderGuard.js",
+      "action": "ADDED",
+      "before_sha256": null,
+      "after_sha256": "87968421efad74a8c877bed902ad091500e4e8f99eaec873f96b467a9750bae1",
+      "bytes": 2152,
+      "lines": 51
+    },
+    {
+      "file_path": "governance/CapabilityEngine.js",
+      "action": "ADDED",
+      "before_sha256": null,
+      "after_sha256": "c39c46cfd26625b7531b729c7473b73a3e630c8431f07289656629022b868ec5",
+      "bytes": 1325,
+      "lines": 42
+    },
+    {
+      "file_path": "governance/CompletionGovernor.js",
+      "action": "ADDED",
+      "before_sha256": null,
+      "after_sha256": "37d2f4c7d22976b81f80f9ae1213f9ab818bc2fd467c679edd2076801fa9f1a2",
+      "bytes": 1567,
+      "lines": 40
+    },
+    {
+      "file_path": "governance/PolicyValidator.js",
+      "action": "ADDED",
+      "before_sha256": null,
+      "after_sha256": "6b7380964d3782de9fb39b8bea445f19cbefbb5c0c58331314fdac9b082e224e",
+      "bytes": 3808,
+      "lines": 111
+    },
+    {
+      "file_path": "governance/ResourceLockManager.js",
+      "action": "ADDED",
+      "before_sha256": null,
+      "after_sha256": "2a22fb024c321a4aab963527f90f220edf9797382f385e716183f82a94b724e8",
+      "bytes": 1907,
+      "lines": 62
+    },
+    {
+      "file_path": "governance/ResultCustoms.js",
+      "action": "ADDED",
+      "before_sha256": null,
+      "after_sha256": "8f3306f96f13b1048d63af571e80e88726d90fcafc320bc9c7f4419b14258783",
+      "bytes": 1502,
+      "lines": 40
+    },
+    {
+      "file_path": "governance/TaskPassport.js",
+      "action": "ADDED",
+      "before_sha256": null,
+      "after_sha256": "378fec6d346b8673061d9426add4a42a9dc7ca1bccf889b547d19e66e677ae15",
+      "bytes": 1421,
+      "lines": 34
+    },
+    {
+      "file_path": "core/CheckpointStore.js",
+      "action": "ADDED",
+      "before_sha256": null,
+      "after_sha256": "4444bf191c1269e19425236486fd4470611091ac4e6b6e668ff379f5c672d1bb",
+      "bytes": 1596,
+      "lines": 45
+    },
+    {
+      "file_path": "core/DurableEventLog.js",
+      "action": "ADDED",
+      "before_sha256": null,
+      "after_sha256": "2b25ed56104019f94f3fea8dd3beed98e9fc86b4d01a68be0a113b100c27bea7",
+      "bytes": 2373,
+      "lines": 75
+    },
+    {
+      "file_path": "core/ReplayEngine.js",
+      "action": "ADDED",
+      "before_sha256": null,
+      "after_sha256": "226528a534aa924bbf4acc3d8bd4f428bfb16dbc025cd2f1588e58e60e37b230",
+      "bytes": 1422,
+      "lines": 49
+    },
+    {
+      "file_path": "core/SchemaRegistry.js",
+      "action": "ADDED",
+      "before_sha256": null,
+      "after_sha256": "0a1a9f944e9ff63949b03d77a00c9968f2ab0463bc9139cf057c51ac36084a6e",
+      "bytes": 1163,
+      "lines": 48
+    },
+    {
+      "file_path": "core/StateProjector.js",
+      "action": "ADDED",
+      "before_sha256": null,
+      "after_sha256": "db6e0468b1c58c60b4b9b5dceb668919236b3602d55a0c566c3c41c28ff6bd24",
+      "bytes": 2976,
+      "lines": 93
+    },
+    {
+      "file_path": "supervisor/governance/BorderGuard.js",
+      "action": "ADDED",
+      "before_sha256": null,
+      "after_sha256": "87968421efad74a8c877bed902ad091500e4e8f99eaec873f96b467a9750bae1",
+      "bytes": 2152,
+      "lines": 51
+    },
+    {
+      "file_path": "supervisor/governance/CapabilityEngine.js",
+      "action": "ADDED",
+      "before_sha256": null,
+      "after_sha256": "c39c46cfd26625b7531b729c7473b73a3e630c8431f07289656629022b868ec5",
+      "bytes": 1325,
+      "lines": 42
+    },
+    {
+      "file_path": "supervisor/governance/CompletionGovernor.js",
+      "action": "ADDED",
+      "before_sha256": null,
+      "after_sha256": "37d2f4c7d22976b81f80f9ae1213f9ab818bc2fd467c679edd2076801fa9f1a2",
+      "bytes": 1567,
+      "lines": 40
+    },
+    {
+      "file_path": "supervisor/governance/PolicyValidator.js",
+      "action": "ADDED",
+      "before_sha256": null,
+      "after_sha256": "6b7380964d3782de9fb39b8bea445f19cbefbb5c0c58331314fdac9b082e224e",
+      "bytes": 3808,
+      "lines": 111
+    },
+    {
+      "file_path": "supervisor/governance/ResourceLockManager.js",
+      "action": "ADDED",
+      "before_sha256": null,
+      "after_sha256": "2a22fb024c321a4aab963527f90f220edf9797382f385e716183f82a94b724e8",
+      "bytes": 1907,
+      "lines": 62
+    },
+    {
+      "file_path": "supervisor/governance/ResultCustoms.js",
+      "action": "ADDED",
+      "before_sha256": null,
+      "after_sha256": "8f3306f96f13b1048d63af571e80e88726d90fcafc320bc9c7f4419b14258783",
+      "bytes": 1502,
+      "lines": 40
+    },
+    {
+      "file_path": "supervisor/governance/TaskPassport.js",
+      "action": "ADDED",
+      "before_sha256": null,
+      "after_sha256": "378fec6d346b8673061d9426add4a42a9dc7ca1bccf889b547d19e66e677ae15",
+      "bytes": 1421,
+      "lines": 34
+    },
+    {
+      "file_path": "supervisor/core/CheckpointStore.js",
+      "action": "ADDED",
+      "before_sha256": null,
+      "after_sha256": "4444bf191c1269e19425236486fd4470611091ac4e6b6e668ff379f5c672d1bb",
+      "bytes": 1596,
+      "lines": 45
+    },
+    {
+      "file_path": "supervisor/core/DurableEventLog.js",
+      "action": "ADDED",
+      "before_sha256": null,
+      "after_sha256": "2b25ed56104019f94f3fea8dd3beed98e9fc86b4d01a68be0a113b100c27bea7",
+      "bytes": 2373,
+      "lines": 75
+    },
+    {
+      "file_path": "supervisor/core/ReplayEngine.js",
+      "action": "ADDED",
+      "before_sha256": null,
+      "after_sha256": "226528a534aa924bbf4acc3d8bd4f428bfb16dbc025cd2f1588e58e60e37b230",
+      "bytes": 1422,
+      "lines": 49
+    },
+    {
+      "file_path": "supervisor/core/SchemaRegistry.js",
+      "action": "ADDED",
+      "before_sha256": null,
+      "after_sha256": "0a1a9f944e9ff63949b03d77a00c9968f2ab0463bc9139cf057c51ac36084a6e",
+      "bytes": 1163,
+      "lines": 48
+    },
+    {
+      "file_path": "supervisor/core/StateProjector.js",
+      "action": "ADDED",
+      "before_sha256": null,
+      "after_sha256": "db6e0468b1c58c60b4b9b5dceb668919236b3602d55a0c566c3c41c28ff6bd24",
+      "bytes": 2976,
+      "lines": 93
+    },
+    {
+      "file_path": "tests/test_mandatory_scenarios_suite.js",
+      "action": "ADDED",
+      "before_sha256": null,
+      "after_sha256": "ba71a26f0e3949fbb49f395677a1658fd0a3c98af9ec2bd3fe492c73c2e39378",
+      "bytes": 10245,
+      "lines": 218
+    }
+  ]
+}
