@@ -240,8 +240,8 @@ class ChiefCoordinator:
         target_host = matched.get("target_host") or "WINDOWS"
 
         import shutil
-        agy_exe = shutil.which("agy") or shutil.which("agy.exe") or os.path.expanduser(r"~\AppData\Local\agy\bin\agy.exe")
-        alt_profile = os.environ.get("AGY_ALT_PROFILE") or os.path.expanduser(r"~\.gemini_alt")
+        agy_exe = shutil.which("agy") or shutil.which("agy.exe") or "agy"
+        alt_profile = os.environ.get("AGY_ALT_PROFILE") or ""
 
         duration_ms = 0
 

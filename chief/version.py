@@ -45,15 +45,22 @@ def get_git_commit() -> str:
 def get_version_info() -> Dict[str, Any]:
     from .constitution import ConstitutionLoader
     const_info = ConstitutionLoader.get_summary()
+    git_sha = get_git_commit()
+    build_id = f"BUILD-{BUILD_DATE}-{git_sha[:8]}"
+    const_ver = const_info.get("policy_version", "1.2.0")
 
     return {
+        "product": PRODUCT_NAME,
         "product_name": PRODUCT_NAME,
         "version": __version__,
         "release_tag": RELEASE_TAG,
+        "build_id": build_id,
         "build_date": BUILD_DATE,
-        "schema_version": SCHEMA_VERSION,
-        "git_commit": get_git_commit(),
+        "git_sha": git_sha,
+        "git_commit": git_sha,
         "python_version": sys.version.split()[0],
+        "schema_version": SCHEMA_VERSION,
+        "constitution_version": const_ver,
         "platform": platform.platform(),
         "architecture": platform.machine(),
         "constitution": const_info
