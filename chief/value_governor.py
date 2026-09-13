@@ -82,6 +82,10 @@ class ValueGovernor:
             if bw in title:
                 return False, f"REJECTED_BUSYWORK_DETECTED: '{bw}' in title"
 
+        # Check for repetitive test/benchmark rounds
+        if re.search(r"\bround\s+\d+\b", title, re.IGNORECASE):
+            return False, "REJECTED_REPETITIVE_TEST_ROUND: repetitive test execution without code diff"
+
         # 4. Real Delta Requirement
         delta = candidate.get("expected_real_delta")
         if not delta or delta not in ALLOWED_REAL_DELTAS:

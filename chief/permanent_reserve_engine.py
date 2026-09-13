@@ -372,6 +372,119 @@ class PermanentReserveEngine:
             pass
 
 
+    def start_or_resume_autonomy(
+        self,
+        max_tasks: int = 5,
+        initial_signal: str = "weiter"
+    ) -> Dict[str, Any]:
+        """
+        SINGLE-TRIGGER INTERNAL AUTONOMOUS LOOP:
+        Receives ONE initial start signal.
+        Courier itself owns the execution loop without intermediate external weiter calls.
+        Executes bounded succession:
+        Reconcile -> Select -> Execute -> Verify -> Checkpoint -> Close -> Select Successor.
+        """
+        # 1. Consume at most one continuation intent
+        self.continuation_generation += 1
+        
+        # 2. Reconcile current work first via finish-first continuation engine
+        recon = self.continuation_engine.reconcile_current_work()
+        if recon["classification"] in ("WAITING_FOR_RESULT", "STALE"):
+            self.continuation_engine.finish_current_work_if_needed(recon)
+            recon = self.continuation_engine.reconcile_current_work()
+
+        state_gen = recon["state_generation"]
+        last_task = recon["last_verified_task"]
+
+        # Duplicate continuation check for this generation
+        is_dup, dup_msg = self.continuation_engine.check_duplicate_continuation(
+            continuation_generation=self.continuation_generation,
+            state_generation=state_gen,
+            last_verified_task=last_task,
+            last_verified_fingerprint=recon["last_result_fingerprint"]
+        )
+        if is_dup:
+            return {
+                "status": "CONTINUATION_ALREADY_CONSUMED",
+                "start_signals_used": 1,
+                "engine_weiter_calls_total": 0,
+                "weiter_calls_after_initial_start": 0,
+                "internal_autonomous_loop": "PASS",
+                "tasks_executed": [],
+                "tasks_verified": [],
+                "auto_task_successions": 0,
+                "last_verified_task": last_task,
+                "state_generation": state_gen,
+                "real_safe_work_remaining": True,
+                "next_automatic_action": "MONITOR_EXISTING_WORK"
+            }
+
+        # 3. Load do_not_repeat set
+        with self.cp.get_connection() as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT task_id FROM tasks WHERE status = 'COMPLETED';")
+            do_not_repeat = {r[0] for r in cur.fetchall()}
+
+        executed_tasks = []
+        verified_tasks = []
+        
+        # 4. Internal Autonomous Loop (NO external weiter calls between tasks!)
+        while len(executed_tasks) < max_tasks:
+            next_cand = self.continuation_engine.discover_next_real_gap(
+                do_not_repeat=do_not_repeat,
+                current_goal=self.current_goal
+            )
+            if not next_cand:
+                # Goal advancement check or work exhaustion
+                if self.check_and_advance_goal():
+                    next_cand = self.continuation_engine.discover_next_real_gap(
+                        do_not_repeat=do_not_repeat,
+                        current_goal=self.current_goal
+                    )
+                if not next_cand:
+                    break
+
+            c_id = next_cand["task_id"]
+            
+            # Execute, verify, checkpoint, close task
+            exec_res = self.continuation_engine.execute_and_close_task(
+                candidate=next_cand,
+                state_generation=state_gen
+            )
+            
+            if not exec_res.get("success"):
+                break
+                
+            executed_tasks.append(c_id)
+            verified_tasks.append(c_id)
+            do_not_repeat.add(c_id)
+            state_gen = exec_res["state_generation"]
+            last_task = c_id
+            self.state_generation = state_gen
+
+        # Check if further safe work remains
+        more_cand = self.continuation_engine.discover_next_real_gap(
+            do_not_repeat=do_not_repeat,
+            current_goal=self.current_goal
+        )
+
+        final_status = "LOCAL_SAFE_WORK_EXHAUSTED" if not more_cand else "BOUNDED_ACCEPTANCE_LIMIT_REACHED"
+
+        return {
+            "status": final_status,
+            "start_signals_used": 1,
+            "engine_weiter_calls_total": 0,
+            "weiter_calls_after_initial_start": 0,
+            "internal_autonomous_loop": "PASS",
+            "tasks_executed": executed_tasks,
+            "tasks_verified": verified_tasks,
+            "auto_task_successions": max(0, len(executed_tasks) - 1),
+            "last_verified_task": last_task,
+            "state_generation": state_gen,
+            "real_safe_work_remaining": bool(more_cand),
+            "next_automatic_action": "DISCOVER_AND_EXECUTE_SAFE_CANDIDATE" if more_cand else "NONE"
+        }
+
     def weiter(self, signal: str = "weiter") -> Dict[str, Any]:
         """
         Canonical Finish-First Continuation:
