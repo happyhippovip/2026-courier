@@ -23,6 +23,8 @@ from pathlib import Path
 
 DEFAULT_MEMORY_REPO_PATH = Path("/Users/user/Downloads/2026-project-memory")
 DEFAULT_SCHEMA_PATH = Path(__file__).resolve().parent.parent / "schemas/memory_update_proposal.schema.json"
+ZERO_COMMIT = "0" * 40
+FULL_COMMIT_RE = re.compile(r"^[0-9a-fA-F]{40}$")
 
 
 def fail(message: str) -> None:
@@ -30,28 +32,52 @@ def fail(message: str) -> None:
 
 
 def get_memory_commit(repo_path: Path) -> str:
-    """Reads git commit hash directly from .git directory without requiring external git CLI execution."""
+    """Read a validated HEAD from either a Git directory or worktree pointer.
+
+    Git worktrees use a ``.git`` *file* that points to their real gitdir.  The
+    old directory-only implementation crashed in that ordinary layout, which
+    left a proposal without a trustworthy base checkpoint.
+    """
     git_dir = repo_path / ".git"
     if not git_dir.exists():
-        return "0000000000000000000000000000000000000000"
+        return ZERO_COMMIT
 
-    head_file = git_dir / "HEAD"
-    if not head_file.exists():
-        return "0000000000000000000000000000000000000000"
+    try:
+        if git_dir.is_file():
+            pointer = git_dir.read_text(encoding="utf-8").strip()
+            if not pointer.startswith("gitdir:"):
+                return ZERO_COMMIT
+            location = pointer[len("gitdir:"):].strip()
+            if not location:
+                return ZERO_COMMIT
+            candidate = Path(location)
+            git_dir = (git_dir.parent / candidate).resolve() if not candidate.is_absolute() else candidate.resolve()
+        if not git_dir.is_dir():
+            return ZERO_COMMIT
 
-    head_content = head_file.read_text(encoding="utf-8").strip()
-    if head_content.startswith("ref:"):
-        ref_path = head_content[4:].strip()
-        ref_file = git_dir / ref_path
-        if ref_file.exists():
-            return ref_file.read_text(encoding="utf-8").strip()
-        packed_refs_file = git_dir / "packed-refs"
-        if packed_refs_file.exists():
-            for line in packed_refs_file.read_text(encoding="utf-8").splitlines():
-                if line.endswith(ref_path):
-                    return line.split()[0].strip()
-        return "0000000000000000000000000000000000000000"
-    return head_content
+        head_file = git_dir / "HEAD"
+        if not head_file.is_file():
+            return ZERO_COMMIT
+
+        head_content = head_file.read_text(encoding="utf-8").strip()
+        if head_content.startswith("ref:"):
+            ref_path = head_content[4:].strip()
+            if not ref_path or Path(ref_path).is_absolute() or ".." in Path(ref_path).parts:
+                return ZERO_COMMIT
+            ref_file = git_dir / ref_path
+            if ref_file.is_file():
+                candidate_commit = ref_file.read_text(encoding="utf-8").strip()
+                return candidate_commit.lower() if FULL_COMMIT_RE.fullmatch(candidate_commit) else ZERO_COMMIT
+            packed_refs_file = git_dir / "packed-refs"
+            if packed_refs_file.is_file():
+                for line in packed_refs_file.read_text(encoding="utf-8").splitlines():
+                    parts = line.split()
+                    if len(parts) == 2 and parts[1] == ref_path and FULL_COMMIT_RE.fullmatch(parts[0]):
+                        return parts[0].lower()
+            return ZERO_COMMIT
+        return head_content.lower() if FULL_COMMIT_RE.fullmatch(head_content) else ZERO_COMMIT
+    except (OSError, UnicodeDecodeError):
+        return ZERO_COMMIT
 
 
 def validate_proposal_against_schema(proposal_data: dict, schema_path: Path | None = None) -> tuple[bool, str]:
