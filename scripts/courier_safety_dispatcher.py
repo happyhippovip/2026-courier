@@ -558,7 +558,7 @@ class CourierSafetyDispatcher:
                     "dispatched_route": executing_agent,
                     "effect_verified": "True",
                     "freshness_verified": "True",
-                    "result_fingerprint": canonical_hash(result_data),
+                    "result_fingerprint": canonical_hash({"path": str(fpath), "content": post_content}) if state.get("requires_write") else canonical_hash(result_data.get("payload", {})),
                     "native_attempt": str(attempts),
                 }, risk_class="SAFE", review_type="TASK_VERIFICATION", review_result="APPROVED",
                 reviewer=executing_agent, reason="Verified identity-bound local task result")
