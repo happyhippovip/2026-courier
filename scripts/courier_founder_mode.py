@@ -433,7 +433,7 @@ class FounderModeMVP:
                 self.intake.set_status(goal["goal_id"], "HUMAN_GATE")
                 break
                 
-            if status in ["BLOCKED", "FAIL", "UNKNOWN"]:
+            if status in ["BLOCKED", "FAIL", "UNKNOWN", "FAILED", "FAIL_CLOSED"]:
                 self.stats["blockers"] += 1
                 # Record error lesson
                 self.memory.record_lesson(

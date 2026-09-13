@@ -66,6 +66,22 @@ class SupervisorAuthority:
             return None
         return birth, boot, pgid
 
+    def _old_owner_is_retired(self, pid, recorded_birth):
+        """Return true only when the recorded owner is provably not alive.
+
+        A live PID with a different birth is a reused unrelated PID: it is
+        safe to take over without signalling it.  A live PID whose birth
+        cannot be probed is ambiguous and must block takeover.
+        """
+        try:
+            os.kill(int(pid), 0)
+        except OSError:
+            return True
+        observed_birth = self.birth_probe(int(pid))
+        if observed_birth is None:
+            return False
+        return observed_birth != recorded_birth
+
     def acquire(self):
         identity = self._identity()
         if identity is None:
@@ -79,9 +95,13 @@ class SupervisorAuthority:
             if row:
                 lease_id, generation, old_instance, old_pid, old_birth, old_boot, expires_at, state = row
                 same_owner = old_instance == self.instance_id and old_pid == self.pid and old_birth == self.birth_identity and old_boot == self.boot_id
-                if state == "ACTIVE" and expires_at > now and not same_owner:
-                    conn.execute("ROLLBACK")
-                    return False, "ACTIVE_OWNER_PRESENT"
+                if state == "ACTIVE" and not same_owner:
+                    if expires_at > now:
+                        conn.execute("ROLLBACK")
+                        return False, "ACTIVE_OWNER_PRESENT"
+                    if not self._old_owner_is_retired(old_pid, old_birth):
+                        conn.execute("ROLLBACK")
+                        return False, "EXPIRED_OWNER_NOT_PROVABLY_RETIRED"
                 # An expired lease can be retired only by taking a higher
                 # generation.  PID reuse is harmless: no signal is issued and
                 # a different birth identity is never treated as the owner.

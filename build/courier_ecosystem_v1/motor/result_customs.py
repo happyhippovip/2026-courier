@@ -65,3 +65,4 @@ if __name__ == "__main__":
         print(f"FAILED: {msg1} | {msg2}")
         import sys
         sys.exit(1)
+WORKSPACE = Path.cwd()
