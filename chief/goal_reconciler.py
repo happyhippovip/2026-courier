@@ -1952,6 +1952,36 @@ class GoalReconciler:
             "expected_evidence": "Queue storm suppressor test suite passed (6/6 tests 100% success)"
         })
 
+        # Candidate BH: Commercial Reality Hardening & Adversarial Red-Team Certification (Rules 9-22)
+        candidates.append({
+            "candidate_id": "TASK-WIN-68",
+            "version": 1,
+            "goal_id": "GOAL-03",
+            "title": "Commercial Reality Hardening & Adversarial Red-Team Certification (Rules 9-22)",
+            "category": "SUSTAINABLE_COMMERCIAL_DELIVERY",
+            "conflict_domain": "COMMERCIAL_REALITY_HARDENING",
+            "target_machine": "WINDOWS",
+            "target_worker": "WINDOWS_GOOGLE",
+            "scope": os.path.join(self.project_memory_dir, "data", "commercial"),
+            "script_path": "courier/tests/test_commercial_reality_hardening.py",
+            "cwd": self.workspace_root,
+            "is_writer": False,
+            "unresolved_gap": "REAL_MARKET_UNCERTAINTY",
+            "goal_impact": 10.0,
+            "revenue_impact": 10.0,
+            "info_gain": 10.0,
+            "proof_debt_reduction": 10.0,
+            "autonomy_gain": 10.0,
+            "risk_score": 0.0,
+            "spend_eur": 0.00,
+            "human_requirement": "NONE",
+            "acceptance_criteria": [
+                "Execute courier/tests/test_commercial_reality_hardening.py",
+                "Verify Rules 9-22: Buyer pain mining, competitor failure wedge, free-AI substitution defense, 1-sentence offer compression, 60-second value demo execution, launch failure tree branches, and EUR 50/day conversion mathematics"
+            ],
+            "expected_evidence": "Commercial reality hardening test suite passed (7/7 tests 100% success)"
+        })
+
         # Dynamic Candidate Discovery from safe_backlog.json
         if os.path.exists(self.backlog_path):
             try:
