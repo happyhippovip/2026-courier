@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import uuid
 
-import sqlite3, time, subprocess, os, sys, signal
+import sqlite3, time, subprocess, os, sys, signal, socket
 from pathlib import Path
 import result_customs
 
@@ -10,6 +10,143 @@ DB_PATH = WORKSPACE / ".courier_state" / "motor.db"
 import os
 ATTEMPTS_DIR = WORKSPACE / ".courier_state" / "attempts"
 MOTOR_ID = str(os.getpid())
+
+
+def _process_birth_identity(pid):
+    """Return an OS start identity; absence is unsafe for ownership decisions."""
+    try:
+        return subprocess.check_output(
+            ["ps", "-p", str(pid), "-o", "lstart="], text=True
+        ).strip() or None
+    except Exception:
+        return None
+
+
+def _boot_identity():
+    """Best-effort host boot epoch. It is persisted as context, never guessed."""
+    try:
+        out = subprocess.check_output(["sysctl", "-n", "kern.boottime"], text=True).strip()
+        return f"{socket.gethostname()}:{out}" if out else None
+    except Exception:
+        return None
+
+
+class SupervisorAuthority:
+    """Single-row, generation-fenced authority for the Motor SQLite store.
+
+    A lease is authority only when its PID *and* birth identity match.  This
+    class deliberately never signals a process; it only grants/renews write
+    authority.  Process termination must make its own complete ownership
+    decision from task/attempt/lease-generation/PID/birth/PGID.
+    """
+    ROLE = "MOTOR_SUPERVISOR"
+    TTL_SECONDS = 15.0
+
+    def __init__(self, db_path, instance_id=None, now_fn=time.time, birth_probe=_process_birth_identity, boot_probe=_boot_identity):
+        self.db_path = db_path
+        self.instance_id = instance_id or f"motor-{os.getpid()}-{uuid.uuid4().hex[:8]}"
+        self.now_fn = now_fn
+        self.birth_probe = birth_probe
+        self.boot_probe = boot_probe
+        self.lease_id = None
+        self.generation = None
+        self.pid = os.getpid()
+        self.birth_identity = None
+        self.boot_id = None
+        self.pgid = None
+
+    def _identity(self):
+        birth = self.birth_probe(self.pid)
+        boot = self.boot_probe()
+        try:
+            pgid = os.getpgid(self.pid)
+        except OSError:
+            pgid = None
+        if not birth or not boot or pgid is None:
+            return None
+        return birth, boot, pgid
+
+    def acquire(self):
+        identity = self._identity()
+        if identity is None:
+            return False, "IDENTITY_PROBE_UNAVAILABLE"
+        self.birth_identity, self.boot_id, self.pgid = identity
+        now = self.now_fn()
+        conn = sqlite3.connect(self.db_path, timeout=10.0, isolation_level=None)
+        try:
+            conn.execute("BEGIN IMMEDIATE")
+            row = conn.execute("SELECT lease_id, generation, instance_id, pid, process_birth_identity, host_boot_id, expires_at, state FROM supervisor_authority WHERE singleton=1").fetchone()
+            if row:
+                lease_id, generation, old_instance, old_pid, old_birth, old_boot, expires_at, state = row
+                same_owner = old_instance == self.instance_id and old_pid == self.pid and old_birth == self.birth_identity and old_boot == self.boot_id
+                if state == "ACTIVE" and expires_at > now and not same_owner:
+                    conn.execute("ROLLBACK")
+                    return False, "ACTIVE_OWNER_PRESENT"
+                # An expired lease can be retired only by taking a higher
+                # generation.  PID reuse is harmless: no signal is issued and
+                # a different birth identity is never treated as the owner.
+                if state == "ACTIVE" and expires_at > now and same_owner:
+                    self.lease_id, self.generation = lease_id, generation
+                    conn.execute("COMMIT")
+                    return True, "ALREADY_OWNER"
+                next_generation = int(generation) + 1
+            else:
+                next_generation = 1
+            lease_id = uuid.uuid4().hex
+            conn.execute("""INSERT INTO supervisor_authority
+                (singleton, lease_id, generation, owner_role, instance_id, pid,
+                 process_birth_identity, pgid, host_boot_id, acquired_at,
+                 heartbeat_at, expires_at, state)
+                VALUES (1,?,?,?,?,?,?,?,?,?,?,?, 'ACTIVE')
+                ON CONFLICT(singleton) DO UPDATE SET
+                 lease_id=excluded.lease_id, generation=excluded.generation,
+                 owner_role=excluded.owner_role, instance_id=excluded.instance_id,
+                 pid=excluded.pid, process_birth_identity=excluded.process_birth_identity,
+                 pgid=excluded.pgid, host_boot_id=excluded.host_boot_id,
+                 acquired_at=excluded.acquired_at, heartbeat_at=excluded.heartbeat_at,
+                 expires_at=excluded.expires_at, state='ACTIVE'""",
+                (lease_id, next_generation, self.ROLE, self.instance_id, self.pid,
+                 self.birth_identity, self.pgid, self.boot_id, now, now, now + self.TTL_SECONDS))
+            conn.execute("COMMIT")
+            self.lease_id, self.generation = lease_id, next_generation
+            return True, "ACQUIRED"
+        except Exception:
+            try: conn.execute("ROLLBACK")
+            except Exception: pass
+            return False, "LEASE_TRANSACTION_FAILED"
+        finally:
+            conn.close()
+
+    def renew(self):
+        if not self.lease_id or self.generation is None or self._identity() is None:
+            return False
+        now = self.now_fn()
+        conn = sqlite3.connect(self.db_path, timeout=10.0)
+        try:
+            cur = conn.execute("""UPDATE supervisor_authority SET heartbeat_at=?, expires_at=?
+                WHERE singleton=1 AND state='ACTIVE' AND lease_id=? AND generation=?
+                AND instance_id=? AND pid=? AND process_birth_identity=? AND host_boot_id=?""",
+                (now, now + self.TTL_SECONDS, self.lease_id, self.generation,
+                 self.instance_id, self.pid, self.birth_identity, self.boot_id))
+            conn.commit()
+            return cur.rowcount == 1
+        finally:
+            conn.close()
+
+    def release(self):
+        if not self.lease_id:
+            return False
+        conn = sqlite3.connect(self.db_path, timeout=10.0)
+        try:
+            cur = conn.execute("""UPDATE supervisor_authority SET state='RELEASED', expires_at=?
+                WHERE singleton=1 AND lease_id=? AND generation=? AND instance_id=?
+                AND pid=? AND process_birth_identity=?""",
+                (self.now_fn(), self.lease_id, self.generation, self.instance_id,
+                 self.pid, self.birth_identity))
+            conn.commit()
+            return cur.rowcount == 1
+        finally:
+            conn.close()
 
 def init_env():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -64,8 +201,21 @@ def init_env():
         c.execute("ALTER TABLE tasks ADD COLUMN gate_id TEXT")
     except sqlite3.OperationalError:
         pass
-    c.execute('''CREATE TABLE IF NOT EXISTS attempts (attempt_id TEXT PRIMARY KEY, task_id TEXT, pid INTEGER, start_time REAL, end_time REAL, exit_code INTEGER)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS attempts (attempt_id TEXT PRIMARY KEY, task_id TEXT, pid INTEGER, start_time REAL, end_time REAL, exit_code INTEGER, pid_lstart TEXT, pgid INTEGER, lease_generation INTEGER)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS supervisor_authority (
+        singleton INTEGER PRIMARY KEY CHECK(singleton=1), lease_id TEXT NOT NULL,
+        generation INTEGER NOT NULL, owner_role TEXT NOT NULL, instance_id TEXT NOT NULL,
+        pid INTEGER NOT NULL, process_birth_identity TEXT NOT NULL, pgid INTEGER NOT NULL,
+        host_boot_id TEXT NOT NULL, acquired_at REAL NOT NULL, heartbeat_at REAL NOT NULL,
+        expires_at REAL NOT NULL, state TEXT NOT NULL)''')
+    # Legacy rows are never authority. Retain the table only to avoid a
+    # destructive migration of existing local state.
     c.execute('''CREATE TABLE IF NOT EXISTS approved_gates (gate_id TEXT PRIMARY KEY)''')
+    for column, decl in (("pid_lstart", "TEXT"), ("pgid", "INTEGER"), ("lease_generation", "INTEGER")):
+        try:
+            c.execute(f"ALTER TABLE attempts ADD COLUMN {column} {decl}")
+        except sqlite3.OperationalError:
+            pass
     conn.commit()
     return conn
 
@@ -99,6 +249,23 @@ def is_pid_alive(pid, expected_lstart=None):
                 pass # If ps fails, fallback to simple os.kill
 
         return True
+    except OSError:
+        return False
+
+
+def owned_process_matches(meta, authority):
+    """A signal is allowed only for the exact Motor-owned attempt identity."""
+    proc = meta.get("proc")
+    if not proc or not meta.get("task_id") or not meta.get("att_id"):
+        return False
+    if meta.get("lease_generation") != authority.generation:
+        return False
+    if meta.get("pid") != proc.pid or meta.get("pgid") is None or not meta.get("pid_lstart"):
+        return False
+    if _process_birth_identity(proc.pid) != meta["pid_lstart"]:
+        return False
+    try:
+        return os.getpgid(proc.pid) == meta["pgid"]
     except OSError:
         return False
 
@@ -140,6 +307,12 @@ def run_loop():
         run_discovery_pass = None
 
     conn = init_env()
+    authority = SupervisorAuthority(DB_PATH)
+    acquired, reason = authority.acquire()
+    if not acquired:
+        conn.close()
+        print(f"[{MOTOR_ID}] Authority denied: {reason}")
+        return
     print(f"Courier Standalone Motor {MOTOR_ID} started. Concurrency: 4")
     reconcile(conn)
 
@@ -154,7 +327,7 @@ def run_loop():
         print(f"[{MOTOR_ID}] Shutting down. Reaping orphaned tasks...")
         for tid, meta in list(active_procs.items()):
             proc = meta["proc"]
-            if proc.poll() is None:
+            if proc.poll() is None and owned_process_matches(meta, authority):
                 print(f"[{MOTOR_ID}] Killing orphaned task {tid} (PID: {proc.pid})")
                 try:
                     import os
@@ -175,6 +348,9 @@ def run_loop():
 
     while True:
         now = time.time()
+        if not authority.renew():
+            print(f"[{MOTOR_ID}] Authority renewal failed; stopping dispatch fail-closed.")
+            break
         conn.commit() # keep connection fresh
         c = conn.cursor()
 
@@ -197,6 +373,12 @@ def run_loop():
                 finished.append((t_id, poll, meta))
             elif now - meta["start_time"] > meta["timeout"]:
                 # Timeout
+                if not owned_process_matches(meta, authority):
+                    print(f"[{MOTOR_ID}] Task {t_id} ownership ambiguous; refusing to signal.")
+                    c.execute("UPDATE tasks SET status='BLOCKED', lease_owner=NULL, results=? WHERE task_id=?", ("OWNERSHIP_AMBIGUOUS_DO_NOT_SIGNAL", t_id))
+                    conn.commit()
+                    del active_procs[t_id]
+                    continue
                 print(f"[{MOTOR_ID}] Task {t_id} HUNG. Killing process group.")
                 try:
                     os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
@@ -338,9 +520,8 @@ def run_loop():
             else:
                 c.execute("""SELECT t.task_id, t.instruction, t.expected_effects, t.dependencies, t.timeout
                  FROM tasks t
-                 LEFT JOIN approved_gates g ON t.gate_id = g.gate_id
                  WHERE t.status='PENDING' AND (t.next_run_at IS NULL OR t.next_run_at <= ?)
-                 AND (t.gate_id IS NULL OR g.gate_id IS NOT NULL)
+                 AND t.gate_id IS NULL
                  ORDER BY t.priority DESC, t.rowid ASC""", (now,))
                 pending_tasks = c.fetchall()
 
@@ -407,7 +588,11 @@ def run_loop():
                         pass
 
                     try:
-                        c.execute("INSERT INTO attempts (attempt_id, task_id, pid, start_time, pid_lstart) VALUES (?, ?, ?, ?, ?)", (att_id, tid, proc.pid, now, lstart))
+                        pgid = os.getpgid(proc.pid)
+                    except OSError:
+                        pgid = None
+                    try:
+                        c.execute("INSERT INTO attempts (attempt_id, task_id, pid, start_time, pid_lstart, pgid, lease_generation) VALUES (?, ?, ?, ?, ?, ?, ?)", (att_id, tid, proc.pid, now, lstart, pgid, authority.generation))
                     except sqlite3.OperationalError:
                         # Fallback if DB column doesn't exist
                         c.execute("INSERT INTO attempts (attempt_id, task_id, pid, start_time) VALUES (?, ?, ?, ?)", (att_id, tid, proc.pid, now))
@@ -415,13 +600,18 @@ def run_loop():
 
                     active_procs[tid] = {
                         "proc": proc,
+                        "task_id": tid,
                         "att_id": att_id,
                         "start_time": now,
                         "timeout": timeout_val if timeout_val else 300,
                         "inst": inst,
                         "exp_eff": exp_eff,
                         "log": log_path,
-                        "file_obj": out_f
+                        "file_obj": out_f,
+                        "pid": proc.pid,
+                        "pid_lstart": lstart,
+                        "pgid": pgid,
+                        "lease_generation": authority.generation,
                     }
                     made_progress = True
 
@@ -439,6 +629,8 @@ def run_loop():
                 time.sleep(1)
         else:
             idle_cycles = 0
+    authority.release()
+    conn.close()
 def print_usage():
     print("Usage: python3 supervisor_standalone.py [command]")
     print("Commands: init, run, add, status, block, approve_gate, unblock, cancel, logs, pause, resume, retry, cleanup")
@@ -561,14 +753,8 @@ if __name__ == "__main__":
             conn.commit()
             print(f"Blocked {sys.argv[2]}")
         elif sys.argv[1] == "approve_gate":
-            if len(sys.argv) <= 2:
-                print("Usage: ./courier-cli approve_gate <id>")
-                sys.exit(1)
-            conn = init_env()
-            conn.execute("INSERT OR IGNORE INTO approved_gates (gate_id) VALUES (?)", (sys.argv[2],))
-            conn.commit()
-            print(f"Approved gate {sys.argv[2]}")
-            sys.exit(0)
+            print("Direct gate approval is retired; use the canonical human-gate authority bridge.")
+            sys.exit(2)
         elif sys.argv[1] == "unblock":
             if len(sys.argv) <= 2:
                 print("Usage: ./courier-cli unblock <id>")
