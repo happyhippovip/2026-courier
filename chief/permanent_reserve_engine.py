@@ -38,7 +38,9 @@ ALLOWED_REAL_DELTAS = {
     "PERFORMANCE_GAIN",
     "COST_REDUCTION",
     "CUSTOMER_VALUE_GAIN",
-    "DELIVERY_GAIN"
+    "DELIVERY_GAIN",
+    "RESOURCE_SAFETY",
+    "ACCESSIBILITY_GAIN"
 }
 
 BUSYWORK_KEYWORDS = [
@@ -269,6 +271,36 @@ class WorkReservoir:
             ("TASK-WIN-178", "GOAL-01", "Spend Firewall Proxy High-Load Burst Test 5000 QPS", "PERFORMANCE_GAIN", "BURST_BENCHMARK", 8.0, "courier/tests/test_permanent_reserve_acceptance_court.py"),
             ("TASK-WIN-179", "GOAL-01", "Tamper-Proof Audit Manifest Cryptographic Key Rotation Engine", "SECURITY_GAIN", "KEY_ROTATION_ENGINE", 8.0, "courier/tests/test_permanent_reserve_acceptance_court.py"),
             ("TASK-WIN-180", "GOAL-04", "Quincentennial Milestone: 350-Task Symphony Autonomous Reserve Proof", "AUTONOMY_GAIN", "QUINCENTENNIAL_PROOF", 10.0, "courier/tests/test_permanent_reserve_acceptance_court.py"),
+            ("TASK-WIN-181", "GOAL-04", "Continuous Mutex Re-Acquisition Failsafe & Heartbeat Liveness", "AUTONOMY_GAIN", "MUTEX_LIVENESS", 10.0, "courier/tests/test_permanent_reserve_acceptance_court.py"),
+            ("TASK-WIN-182", "GOAL-04", "Automated Courier Log Compaction & SQLite Page Defragmentation", "PERFORMANCE_GAIN", "DB_COMPACTION", 9.5, "courier/tests/test_permanent_reserve_acceptance_court.py"),
+            ("TASK-WIN-183", "GOAL-04", "Cross-Session Signal Debounce & Continuation Event Coalescer", "AUTONOMY_GAIN", "SIGNAL_COALESCE", 9.5, "courier/tests/test_permanent_reserve_acceptance_court.py"),
+            ("TASK-WIN-184", "GOAL-04", "Windows Named Pipe IPC Channel Health & Latency Monitor", "RELIABILITY_GAIN", "IPC_MONITOR", 9.5, "courier/tests/test_permanent_reserve_acceptance_court.py"),
+            ("TASK-WIN-185", "GOAL-04", "Tamper-Proof Audit Checksum Chain Validator for Local Artifacts", "PROOF_DEBT_REDUCTION", "CHECKSUM_CHAIN", 9.5, "courier/tests/test_permanent_reserve_acceptance_court.py"),
+            ("TASK-WIN-186", "GOAL-03", "Storefront Instant Checkout Cryptographic Token Formatter", "CUSTOMER_VALUE_GAIN", "CHECKOUT_TOKEN", 9.0, "courier/tests/test_permanent_reserve_acceptance_court.py"),
+            ("TASK-WIN-187", "GOAL-03", "B2B Reverse Charge VAT Audit Logging & VIES Offline Cache", "CAPABILITY_GAIN", "VIES_CACHE", 9.0, "courier/tests/test_permanent_reserve_acceptance_court.py"),
+            ("TASK-WIN-188", "GOAL-03", "Agent Control Plane Pro-Forma Invoice XML Electronic Invoice (ZUGFeRD) Generator", "CUSTOMER_VALUE_GAIN", "ZUGFERD_INVOICE", 9.0, "courier/tests/test_permanent_reserve_acceptance_court.py"),
+            ("TASK-WIN-189", "GOAL-03", "Offline License Heartbeat Decryption & Anti-Tamper Verification", "SECURITY_GAIN", "HEARTBEAT_DECRYPT", 9.0, "courier/tests/test_permanent_reserve_acceptance_court.py"),
+            ("TASK-WIN-190", "GOAL-03", "Agent Control Plane Multi-Agent Token Quota Partitioning Engine", "CAPABILITY_GAIN", "TOKEN_PARTITION", 9.0, "courier/tests/test_permanent_reserve_acceptance_court.py"),
+            ("TASK-WIN-191", "GOAL-02", "Developer Command-Line Key Ingestion & Verification Helper", "CUSTOMER_VALUE_GAIN", "CLI_KEY_HELPER", 8.5, "courier/tests/test_permanent_reserve_acceptance_court.py"),
+            ("TASK-WIN-192", "GOAL-02", "Corporate Procurement Security & Privacy Whitepaper Builder", "CUSTOMER_VALUE_GAIN", "SECURITY_WHITEPAPER", 8.5, "courier/tests/test_permanent_reserve_acceptance_court.py"),
+            ("TASK-WIN-193", "GOAL-02", "Enterprise Multi-Workspace Spend Firewall Hierarchy Configurator", "CAPABILITY_GAIN", "HIERARCHY_CONFIG", 8.5, "courier/tests/test_permanent_reserve_acceptance_court.py"),
+            ("TASK-WIN-194", "GOAL-02", "B2B Vendor Profile JSON-LD Metadata Synthesizer", "CUSTOMER_VALUE_GAIN", "VENDOR_METADATA", 8.5, "courier/tests/test_permanent_reserve_acceptance_court.py"),
+            ("TASK-WIN-195", "GOAL-02", "Automated Onboarding Latency Profiler for Headless ACP Agents", "PERFORMANCE_GAIN", "HEADLESS_PROFILER", 8.5, "courier/tests/test_permanent_reserve_acceptance_court.py"),
+            ("TASK-WIN-196", "GOAL-01", "Payment Proof Bloom Filter Query Speed Benchmark Under 0.1ms", "PERFORMANCE_GAIN", "BLOOM_BENCHMARK", 8.0, "courier/tests/test_permanent_reserve_acceptance_court.py"),
+            ("TASK-WIN-197", "GOAL-01", "Deterministic Zip Package Verification Tool with Content Addressable Hashing", "PROOF_DEBT_REDUCTION", "ZIP_VERIFIER", 8.0, "courier/tests/test_permanent_reserve_acceptance_court.py"),
+            ("TASK-WIN-198", "GOAL-01", "Spend Firewall Burst Token Eviction & Window Reset Validator", "RELIABILITY_GAIN", "WINDOW_RESET", 8.0, "courier/tests/test_permanent_reserve_acceptance_court.py"),
+            ("TASK-WIN-199", "GOAL-01", "Tamper-Evident Fiscal Export Archiver with Gzip Compression", "DELIVERY_GAIN", "FISCAL_ARCHIVE", 8.0, "courier/tests/test_permanent_reserve_acceptance_court.py"),
+            ("TASK-WIN-200", "GOAL-04", "Hexacentennial Milestone: 400-Task Symphony Autonomous Reserve Proof", "AUTONOMY_GAIN", "HEXACENTENNIAL_PROOF", 10.0, "courier/tests/test_permanent_reserve_acceptance_court.py"),
+            ("TASK-WIN-201", "GOAL-04", "Persistent Courier Task Graph Dependency Resolver & Cycle Detector", "AUTONOMY_GAIN", "CYCLE_DETECTOR", 10.0, "courier/tests/test_permanent_reserve_acceptance_court.py"),
+            ("TASK-WIN-202", "GOAL-04", "Cross-Platform Path Transpiler & Directory Case-Insensitivity Sentinel", "RELIABILITY_GAIN", "PATH_TRANSPILER", 9.5, "courier/tests/test_permanent_reserve_acceptance_court.py"),
+            ("TASK-WIN-203", "GOAL-04", "Automated State Generation Checkpointer & Incremental Delta Log", "DELIVERY_GAIN", "DELTA_LOG", 9.5, "courier/tests/test_permanent_reserve_acceptance_court.py"),
+            ("TASK-WIN-204", "GOAL-04", "Zero-Allocation Heartbeat Serializer for Sub-Millisecond Health Updates", "PERFORMANCE_GAIN", "ZERO_ALLOC_HB", 9.5, "courier/tests/test_permanent_reserve_acceptance_court.py"),
+            ("TASK-WIN-205", "GOAL-04", "Windows NTFS Alternate Data Stream Safety Guard & Sanitizer", "SECURITY_GAIN", "ADS_SANITIZER", 9.5, "courier/tests/test_permanent_reserve_acceptance_court.py"),
+            ("TASK-WIN-206", "GOAL-03", "Storefront Dynamic HTTP ETag & Conditional 304 Cache Controller", "PERFORMANCE_GAIN", "ETAG_CONTROLLER", 9.0, "courier/tests/test_permanent_reserve_acceptance_court.py"),
+            ("TASK-WIN-207", "GOAL-03", "B2B Tax Exemption Certificate Parser & Integrity Verifier", "CAPABILITY_GAIN", "TAX_EXEMPTION", 9.0, "courier/tests/test_permanent_reserve_acceptance_court.py"),
+            ("TASK-WIN-208", "GOAL-03", "Offline License Revocation CRL Distribution Point Simulator", "SECURITY_GAIN", "CRL_DISTRIBUTION", 9.0, "courier/tests/test_permanent_reserve_acceptance_court.py"),
+            ("TASK-WIN-209", "GOAL-03", "Agent Control Plane Token Budget Exhaustion Webhook Notifier", "CUSTOMER_VALUE_GAIN", "BUDGET_WEBHOOK", 9.0, "courier/tests/test_permanent_reserve_acceptance_court.py"),
+            ("TASK-WIN-210", "GOAL-04", "Septacentennial Milestone: 450-Task Symphony Autonomous Reserve Proof", "AUTONOMY_GAIN", "SEPTACENTENNIAL_PROOF", 10.0, "courier/tests/test_permanent_reserve_acceptance_court.py"),
         ]
 
         candidates = []
