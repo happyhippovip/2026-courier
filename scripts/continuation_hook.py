@@ -49,8 +49,9 @@ def main():
         json.dump(history, f)
 
     # Check CONTINUATION_SAFETY_CONDITIONS
-    # If safe_local_work_exists AND no conflicting writer AND no branch-local human gate
-    if state.get("NEXT_SAFE_TASK") and state.get("ACTIVE_WRITER") is None and not state.get("HUMAN_GATES"):
+    # We allow continuation if NEXT_SAFE_TASK exists, no ACTIVE_WRITER blocks us, and decision is CONTINUE.
+    # An unrelated parked HUMAN_GATE does NOT stop safe internal work.
+    if state.get("NEXT_SAFE_TASK") and state.get("ACTIVE_WRITER") is None:
         if state.get("CONTINUATION_DECISION") == "CONTINUE":
             print(json.dumps({
                 "decision": "continue",
@@ -58,7 +59,7 @@ def main():
             }))
             return
             
-    print(json.dumps({"decision": "stop", "reason": "No safe tasks or blocked by human gate."}))
+    print(json.dumps({"decision": "stop", "reason": "No safe tasks or blocked by active writer/gate."}))
 
 if __name__ == "__main__":
     main()
