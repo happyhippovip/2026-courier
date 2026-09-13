@@ -14,11 +14,12 @@ from __future__ import annotations
 
 import argparse
 import datetime
+import hashlib
 import json
 import os
 import re
 import sys
-import uuid
+import tempfile
 from pathlib import Path
 
 DEFAULT_MEMORY_REPO_PATH = Path("/Users/user/Downloads/2026-project-memory")
@@ -29,6 +30,23 @@ FULL_COMMIT_RE = re.compile(r"^[0-9a-fA-F]{40}$")
 
 def fail(message: str) -> None:
     raise SystemExit(f"MEMORY_PROPOSAL_ERROR: {message}")
+
+
+def atomic_write_json(path: Path, payload: dict) -> None:
+    """Replace a proposal artifact without leaving a truncated JSON file."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temp_name = tempfile.mkstemp(prefix=f".{path.name}.tmp.", dir=path.parent)
+    temp_path = Path(temp_name)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            json.dump(payload, handle, indent=2)
+            handle.write("\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temp_path, path)
+    finally:
+        if temp_path.exists():
+            temp_path.unlink()
 
 
 def get_memory_commit(repo_path: Path) -> str:
@@ -227,7 +245,12 @@ def build_proposal_from_result(
         })
 
     reason = custom_reason or f"Record verified facts from Antigravity task execution {task_id} ({summary})"
-    proposal_id = f"prop-mem-{task_id}-{uuid.uuid4().hex[:8]}"
+    # Replays of the same immutable result must have one semantic proposal,
+    # rather than creating fresh approval targets through a random UUID.
+    source_fingerprint = hashlib.sha256(
+        json.dumps(res_data, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    proposal_id = f"prop-mem-{task_id}-{source_fingerprint[:16]}"
     created_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
     canonical_order = [
@@ -260,7 +283,7 @@ def build_proposal_from_result(
 
     output_dir.mkdir(parents=True, exist_ok=True)
     out_file = output_dir / f"{task_id}-memory-proposal.json"
-    out_file.write_text(json.dumps(proposal, indent=2) + "\n", encoding="utf-8")
+    atomic_write_json(out_file, proposal)
 
     return proposal
 
