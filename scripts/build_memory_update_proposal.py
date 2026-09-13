@@ -276,7 +276,26 @@ def build_proposal_from_result(
         json.dumps(res_data, sort_keys=True, separators=(",", ":")).encode("utf-8")
     ).hexdigest()
     proposal_id = f"prop-mem-{task_id}-{source_fingerprint[:16]}"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    out_file = output_dir / f"{task_id}-memory-proposal.json"
     created_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+    # A retry of the exact immutable result must be byte-stable.  Conversely,
+    # a different result cannot silently replace the existing approval target
+    # merely because it reuses the same task id.
+    if out_file.exists():
+        try:
+            existing_proposal = json.loads(out_file.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+            fail(f"Existing proposal artifact is unreadable: {exc}")
+        if not isinstance(existing_proposal, dict):
+            fail("Existing proposal artifact must be a JSON object")
+        if existing_proposal.get("proposal_id") != proposal_id:
+            fail(f"Proposal collision for task_id {task_id}; existing artifact has a different immutable source")
+        existing_valid, existing_error = validate_proposal_against_schema(existing_proposal, schema_path)
+        if not existing_valid:
+            fail(f"Existing proposal artifact is invalid: {existing_error}")
+        created_at = existing_proposal["created_at"]
 
     canonical_order = [
         "VERIFIED_CURRENT", "EXTERNAL_STATUS", "HISTORICAL_DECISION", "PLANNED",
@@ -306,8 +325,6 @@ def build_proposal_from_result(
     if not is_valid:
         fail(f"Generated proposal failed schema validation: {err}")
 
-    output_dir.mkdir(parents=True, exist_ok=True)
-    out_file = output_dir / f"{task_id}-memory-proposal.json"
     atomic_write_json(out_file, proposal)
 
     return proposal

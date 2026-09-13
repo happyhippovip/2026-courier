@@ -52,7 +52,33 @@ class MemoryCommitTests(unittest.TestCase):
             first = build_proposal_from_result(result_path, memory_repo_path=root / "memory", output_dir=root / "proposals")
             second = build_proposal_from_result(result_path, memory_repo_path=root / "memory", output_dir=root / "proposals")
             self.assertEqual(first["proposal_id"], second["proposal_id"])
+            self.assertEqual(first["created_at"], second["created_at"])
             saved = json.loads((root / "proposals" / "task-stable-memory-proposal.json").read_text(encoding="utf-8"))
+            self.assertEqual(saved["proposal_id"], first["proposal_id"])
+
+    def test_different_result_cannot_overwrite_same_task_proposal(self):
+        first_result = {
+            "task_id": "task-collision",
+            "message_id": "message-one",
+            "correlation_id": "correlation-one",
+            "payload": {"verified_facts": ["First immutable result."], "summary": "First"},
+        }
+        second_result = {
+            "task_id": "task-collision",
+            "message_id": "message-two",
+            "correlation_id": "correlation-two",
+            "payload": {"verified_facts": ["Different immutable result."], "summary": "Second"},
+        }
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            first_path, second_path = root / "first.json", root / "second.json"
+            first_path.write_text(json.dumps(first_result), encoding="utf-8")
+            second_path.write_text(json.dumps(second_result), encoding="utf-8")
+            output_dir = root / "proposals"
+            first = build_proposal_from_result(first_path, memory_repo_path=root / "memory", output_dir=output_dir)
+            with self.assertRaisesRegex(SystemExit, "Proposal collision"):
+                build_proposal_from_result(second_path, memory_repo_path=root / "memory", output_dir=output_dir)
+            saved = json.loads((output_dir / "task-collision-memory-proposal.json").read_text(encoding="utf-8"))
             self.assertEqual(saved["proposal_id"], first["proposal_id"])
 
     def test_atomic_writer_preserves_previous_artifact_when_replace_fails(self):
