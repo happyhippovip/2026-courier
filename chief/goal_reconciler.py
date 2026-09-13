@@ -2051,6 +2051,41 @@ class GoalReconciler:
             "expected_evidence": "License engine pro test suite passed (7/7 tests 100% success)"
         })
 
+        # Candidate BK: Agent Control Plane €50/Day Conversion Funnel, Second-Customer Repeatability & Pricing Adversary Matrix
+        candidates.append({
+            "candidate_id": "TASK-WIN-71",
+            "version": 1,
+            "goal_id": "GOAL-03",
+            "title": "Agent Control Plane €50/Day Conversion Funnel, Second-Customer Repeatability & Pricing Adversary Matrix",
+            "category": "SUSTAINABLE_COMMERCIAL_DELIVERY",
+            "conflict_domain": "COMMERCIAL_FUNNEL_AUDIT",
+            "target_machine": "WINDOWS",
+            "target_worker": "WINDOWS_GOOGLE",
+            "scope": os.path.join(self.project_memory_dir, "data", "commercial", "funnel_matrix"),
+            "script_path": "courier/tests/test_commercial_funnel_matrix.py",
+            "cwd": self.workspace_root,
+            "is_writer": False,
+            "unresolved_gap": "REAL_MARKET_UNCERTAINTY",
+            "goal_impact": 10.0,
+            "revenue_impact": 10.0,
+            "info_gain": 10.0,
+            "proof_debt_reduction": 10.0,
+            "autonomy_gain": 10.0,
+            "risk_score": 0.0,
+            "spend_eur": 0.00,
+            "human_requirement": "NONE",
+            "acceptance_criteria": [
+                "Execute courier/tests/test_commercial_funnel_matrix.py",
+                "Verify second-customer independence criteria (0 founder bias, 0 manual persuasion)",
+                "Verify pricing adversary matrix and €19.99 champion selection justification",
+                "Verify €50/day conversion mathematics across conservative, base, and optimistic scenarios",
+                "Verify launch failure tree completeness across 4 operational branches",
+                "Verify unit economics (100% gross margin, 0.00 EUR CAC, < 0.1 hr/sale support)",
+                "Verify automated funnel simulator execution and operating invariants"
+            ],
+            "expected_evidence": "Commercial funnel matrix test suite passed (7/7 tests 100% success)"
+        })
+
         # Dynamic Candidate Discovery from safe_backlog.json
         if os.path.exists(self.backlog_path):
             try:
