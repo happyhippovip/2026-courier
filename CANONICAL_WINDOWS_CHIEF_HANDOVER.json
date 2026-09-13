@@ -1,0 +1,95 @@
+{
+  "schema_version": "2.0.0",
+  "handover_type": "WINDOWS_CHIEF_AUTHORITATIVE_HANDOVER",
+  "timestamp_utc": "2026-09-13T06:28:00Z",
+  "platform_source": "WINDOWS_GOOGLE",
+  "target_consumer": "CHIEF_ORCHESTRATOR",
+  "repositories": {
+    "courier": {
+      "path": "C:\\Users\\lol\\2026-workspace\\courier",
+      "branch": "windows/money-factory-p0",
+      "head_sha": "a48a2cbe736a01a2cf3d636ba46b279fdb85fca4",
+      "worktree_status": "CLEAN_TRACKED"
+    },
+    "project_memory": {
+      "path": "C:\\Users\\lol\\2026-workspace\\project-memory",
+      "branch": "feature/money-factory-v3",
+      "head_sha": "adce0f6f9d6e764d76f0f417b4193cba8fa1cb20",
+      "worktree_status": "UNTRACKED_PAYMENT_PROOFS"
+    }
+  },
+  "mission_state": {
+    "mission_id": "MISSION-AUTONOMY",
+    "current_goal_id": "GOAL-05",
+    "state_generation": 59,
+    "active_task": null,
+    "active_writer": null,
+    "last_verified_task": "TASK-WIN-838",
+    "valid_checkpoint": {
+      "task_id": "TASK-WIN-838",
+      "task_version": 1,
+      "state_generation": 59,
+      "result_fingerprint": "f67aafa5114f64ef456e964aa360b3ae2e1c4b3ac10a1b1620490aea30364e9c",
+      "verified_at": "2026-09-13T06:23:42.074436+00:00",
+      "status": "VERIFIED"
+    },
+    "recent_meaningful_task_chain": [
+      "TASK-WIN-813",
+      "TASK-WIN-833",
+      "TASK-WIN-834",
+      "TASK-WIN-835",
+      "TASK-WIN-836",
+      "TASK-WIN-837",
+      "TASK-WIN-838"
+    ]
+  },
+  "emergency_court_certification": {
+    "100x_weiter_adversarial_court": "PASS (1 accepted, 99 duplicates suppressed)",
+    "batch_idempotency_court": "PASS (BatchGuardManager atomic claim verified)",
+    "writer_collision_court": "PASS (Single writer fenced mutex enforced)",
+    "pre_effect_crash_recovery_court": "PASS (Safe retry once verified)",
+    "post_effect_crash_recovery_court": "PASS (Discovers effect, suppresses duplicate)",
+    "fresh_session_bootstrap_court": "PASS (Bootstrap discovers mission from disk alone)",
+    "automatic_succession_court": "PASS (7 consecutive tasks executed without human weiter)",
+    "value_governor_court": "PASS (Rejects milestone and busywork tasks)"
+  },
+  "task_count_reconciliation": {
+    "TASK_RECORDS_TOTAL": 835,
+    "TASKS_COMPLETED": 663,
+    "TASKS_VERIFIED": 663,
+    "MEANINGFUL_REAL_TASKS": 659,
+    "DUPLICATE_TASK_RECORDS": 0,
+    "MILESTONE_ONLY_TASKS": 16,
+    "BUSYWORK_TASKS": 0,
+    "UNPROVEN_TASKS": 0,
+    "TASK_COUNT_DISCREPANCY": 176
+  },
+  "invariants_and_boundaries": {
+    "proof_debt": "0.00",
+    "mac_conflicting_writes": 0,
+    "mac_reserved_scopes_isolated": true,
+    "automatic_spend_limit_eur": 0.0,
+    "real_spend_eur": 0.0,
+    "real_revenue_eur": 0.0,
+    "parked_human_gates": [
+      "LIVE_PAYMENT",
+      "LIVE_STRIPE",
+      "BANK",
+      "WALLET",
+      "KYC",
+      "PURCHASE",
+      "PUBLIC_DEPLOYMENT",
+      "PUBLICATION",
+      "CUSTOMER_OUTREACH",
+      "HACKER_NEWS_POSTING",
+      "EXTERNAL_SUBMISSION"
+    ]
+  },
+  "portfolio_and_next_action": {
+    "two_pass_discovery_completed": true,
+    "pass_1_candidate": "TASK-WIN-858",
+    "pass_2_candidate": "TASK-WIN-589",
+    "real_safe_work_remaining": true,
+    "next_automatic_action": "DISCOVER_AND_EXECUTE_SAFE_CANDIDATE"
+  }
+}

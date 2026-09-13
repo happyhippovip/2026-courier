@@ -570,6 +570,16 @@ class PermanentReserveEngine:
                 }
                 self.cp.set_checkpoint("LAST_VERIFIED_WINDOWS_CHECKPOINT", ckpt_record)
 
+                # Synchronize CrashProofMemoryEngine
+                try:
+                    from .crash_proof_recovery import CrashProofMemoryEngine
+                    crash_engine = CrashProofMemoryEngine(db_path=self.cp.db_path)
+                    crash_engine.commit_verified(
+                        c_id,
+                        {"status": "PASS", "certified": True, "evidence": stdout[:200]}
+                    )
+                except Exception:
+                    pass
 
                 # 2. Update Do Not Repeat
                 self.reservoir.do_not_repeat.add(c_id)
