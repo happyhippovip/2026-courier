@@ -1,0 +1,127 @@
+{
+  "artifact_name": "WINDOWS_SYMPHONY_ENDGAME_ASSURANCE_LATEST",
+  "campaign_type": "WINDOWS_SYMPHONY_MULTI_HOUR_ENDGAME_ASSURANCE",
+  "timestamp_utc": "2026-09-13T08:41:39.234011+00:00",
+  "auditor_role": "INDEPENDENT_ENDGAME_ASSURANCE_DIRECTOR",
+  "authoritative_version": {
+    "repo_path": "C:\\Users\\lol\\2026-workspace\\courier",
+    "branch": "windows/money-factory-p0",
+    "head_sha": "bc4316a63ee2bc94a51fd9e821ae066457185ba0",
+    "worktree_status": "COMMITTED_CLEAN",
+    "constitution_version": "1.2.0",
+    "constitution_hash": "79f8fe9fe81b1555419d9a900d037e3ebcdb5c15d7c7e2faee9759712e266249",
+    "python_executable": "C:\\Users\\lol\\.local\\bin\\python3.12.exe",
+    "state_generation": 126,
+    "last_verified_task": "REQ-E2E-1789287559",
+    "result_fingerprint": "1fcc32f6a39b1e0b40c1061d23ec9d2828fa83057024b16fc064e7f88c1cbaa5",
+    "active_writers": 0,
+    "active_leases": 0,
+    "active_tasks": 0,
+    "real_spend_eur": 0.0,
+    "mac_scope_conflicts": 0,
+    "total_unit_tests": 353,
+    "unit_tests_passed": 353,
+    "unit_tests_failed": 0
+  },
+  "defects_identified_and_repaired": [
+    {
+      "defect_id": "DEFECT-01-RESULT-CUSTOMS-TRAVERSAL",
+      "domain": "DOMAIN_G_SECURITY_NEGATIVE_PATH",
+      "description": "ResultCustomsJudge permitted candidate task_id and target_files containing directory traversal (..).",
+      "resolution": "Enforced strict path traversal rejection in ResultCustomsJudge.evaluate() for both task_id and target_files.",
+      "status": "FIXED_AND_VERIFIED",
+      "verified_by": "test_windows_symphony_assurance.py::test_01_result_customs_rejects_path_traversal"
+    },
+    {
+      "defect_id": "DEFECT-02-RESULT-CUSTOMS-MAC-SCOPE",
+      "domain": "DOMAIN_A_CROSS_HOST_CONTRACT_SAFETY",
+      "description": "ResultCustomsJudge and HandoffValidator did not reject tasks claiming modification of Mac-reserved scopes.",
+      "resolution": "Added MAC_RESERVED_PATTERNS validation rejecting any target_files referencing supervisor_standalone.py, customs_agent.py, coordination/mac_to_windows, or universux.",
+      "status": "FIXED_AND_VERIFIED",
+      "verified_by": "test_windows_symphony_assurance.py::test_02_result_customs_rejects_mac_reserved_scopes"
+    },
+    {
+      "defect_id": "DEFECT-03-CONSTRUCTOR-PARAMETER-ALIASES",
+      "domain": "DOMAIN_B_CLEAN_ROOM_BOOTSTRAP",
+      "description": "ChiefIngestor and ChiefCoordinator threw TypeError when passed 'cp' or 'handoffs_dir' aliases; ConstitutionLoader lacked instance aliases.",
+      "resolution": "Added support for cp and handoffs_dir aliases, and load_constitution / get_constitution aliases.",
+      "status": "FIXED_AND_VERIFIED",
+      "verified_by": "test_windows_symphony_assurance.py::test_04_constructor_aliases_ingestor_and_coordinator"
+    },
+    {
+      "defect_id": "DEFECT-04-LOCK-MUTEX-EXCLUSIVITY",
+      "domain": "DOMAIN_H_RESOURCE_STABILITY",
+      "description": "Lock acquisition did not allow caller to prevent automatic same-lane re-entrancy / renewal when strict non-re-entrant mutex required.",
+      "resolution": "Added allow_renewal parameter (defaulting to True for backward compatibility) and enforced strict rejection when renewal is disallowed.",
+      "status": "FIXED_AND_VERIFIED",
+      "verified_by": "test_windows_symphony_assurance.py::test_06_lock_exclusivity_against_competing_workers"
+    }
+  ],
+  "courts_evaluated": {
+    "COURT_04_CLEAN_ROOM_BOOTSTRAP": {
+      "status": "PASS",
+      "description": "Zero-prior-state clean-room bootstrap in isolated disposable directory",
+      "evidence": "SQLite schema bootstrap, ConstitutionLoader discovery, and CrashProofMemoryEngine initialization verified with 0 external dependencies."
+    },
+    "COURT_05_RESTART_DISASTER_RECOVERY": {
+      "status": "PASS",
+      "description": "Corrupted state file fallback and dead worker process startup reconciliation",
+      "evidence": "Corrupted primary state recovered cleanly from write-ahead backup file (.bak). Dead worker PID 99999999 detected and classified STALE for clean restart."
+    },
+    "COURT_06_CROSS_HOST_HANDOFF": {
+      "status": "PASS",
+      "description": "Inbound Mac handoff parsing, idempotency, and poison-pill defense",
+      "evidence": "Valid Mac Chief handoff ingested and hashed. Duplicate handoff idempotently skipped (SKIPPED_ALREADY_INGESTED). Poison traversal and Mac-scope handoffs rejected fail-closed."
+    },
+    "COURT_07_REPRODUCIBLE_BUILD_RELEASE": {
+      "status": "PASS",
+      "description": "Agent Control Plane PRO distribution package extraction and self-test",
+      "evidence": "Extracted agent_control_plane_pro_v1.0.0.zip in clean room. Verified spend_firewall_pro.py, test_spend_firewall_pro.py, README.md, acp_adapter.py. Packaged self-test passed 100%."
+    },
+    "COURT_08_STATE_AUTHORITY_CONSISTENCY": {
+      "status": "PASS",
+      "description": "SQLite WAL mode, checkpoint integrity, and watermark synchronization",
+      "evidence": "PRAGMA journal_mode verified as WAL. 154 authoritative checkpoints verified. Watermark aligned with STATE_GENERATION 126. 0 orphaned locks."
+    },
+    "COURT_09_SECURITY_NEGATIVE_PATH": {
+      "status": "PASS",
+      "description": "Fail-closed enforcement against path traversal, Mac scopes, hollow claims",
+      "evidence": "Rejections verified for task_id traversal, target_file traversal, all Mac-reserved patterns, hollow self-certification ({'success': True}), and empty stdout on exit 0."
+    },
+    "COURT_10_RESOURCE_LEASE_SOAK": {
+      "status": "PASS",
+      "description": "Single-writer lock exclusivity and automatic stale lease reclamation",
+      "evidence": "Competing worker rejected with SINGLE_WRITER_CONFLICT. Stale lease reclaimed after 1.2s TTL expiry."
+    },
+    "COURT_11_QUEUE_REPLAY_SOAK": {
+      "status": "PASS",
+      "description": "100 duplicate continuation signals through QuiescentQueueAbsorber",
+      "evidence": "100/100 duplicate signals coalesced and absorbed as QUIESCENT_NOOP. 0 duplicate tasks created, 0 status reports repeated."
+    },
+    "COURT_12_RESULT_CUSTOMS_FORENSICS": {
+      "status": "PASS",
+      "description": "Audit of past verified tasks in SQLite control plane",
+      "evidence": "Audited 20 completed tasks and 50 ledger events. All possess valid cryptographic fingerprints and verified execution records."
+    },
+    "COURT_20_INTEGRATED_E2E_MULTIPROCESS": {
+      "status": "PASS",
+      "description": "Multi-process fresh boot acceptance with physical crash and auto-succession",
+      "evidence": "run_fresh_boot_final_acceptance.py executed: EXTERNAL_START_SIGNALS = 1, EXTERNAL_WEITER_AFTER_START = 0, AUTO_TASK_SUCCESSIONS = 2, REAL_EFFECT_COUNT_B = 1, STATUS = PASS."
+    },
+    "COURT_21_THREE_PASS_FINAL_VERIFICATION": {
+      "status": "PASS",
+      "description": "Three sequential audit passes (Pass A, Pass B, Pass C)",
+      "evidence": "Pass A (Read-Only), Pass B (Active Courts), Pass C (Freeze Contradiction Sweep) passed with 0 contradictions."
+    }
+  },
+  "verification_metrics": {
+    "critical_proof_debt": 0.0,
+    "total_courts_evaluated": 11,
+    "courts_passed": 11,
+    "courts_failed": 0,
+    "real_spend_eur": 0.0,
+    "mac_scope_conflicts": 0,
+    "working_tree_clean": true,
+    "overall_status": "PASS"
+  }
+}
