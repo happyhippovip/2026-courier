@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0",
+  "current_step": 20,
+  "completed_steps": {
+    "01": "R01 reproduced read-only; Mac owner handoff retained",
+    "02": "R02 cross-process lost-update reproduction; Windows owner handoff retained",
+    "03": "False-pass defects in curator handoff and missing memory comparison closed",
+    "04": "Four targeted implementation mutations detected by existing properties",
+    "05": "Thought-ingestion corrupt state/journal cases fail closed",
+    "06": "Replay/idempotency covered for ingestion, mesh and memory proposals",
+    "07": "Thought runtime artifacts are workspace-scoped and isolated",
+    "08": "Durable writers use atomic replace; proposal directory durability added",
+    "09": "Ingestion has bounded four-process concurrency proof",
+    "10": "Mesh checkpoint recovery converges without duplicate proposal effects",
+    "11": "Explicit Unicode/space paths remain authoritative despite an unrelated cwd",
+    "12": "Proposal test proves import resolves to the canonical repository module",
+    "14": "Stable proposal and mesh identities survive retry/replay and recovery",
+    "16": "Proposal schema boundary rejects invalid correlation and required field types",
+    "17": "Bounded ingestion concurrency proof repeated three times without flakiness",
+    "18": "All targeted thought/memory tests pass after the recent fail-closed fixes",
+    "19": "R01 and R02 refreshed read-only; both remain owner-reserved",
+    "20": "Three non-repeating discovery passes found and closed only non-reserved defects"
+  },
+  "skipped_steps": {
+    "13": "No independent cleanup authority exists beyond the already-tested atomic temporary-file cleanup.",
+    "15": "No versioned migration format exists in the non-reserved thought/proposal modules; no migration claim is made."
+  },
+  "active_finding": null,
+  "verified_findings": [
+    "R01-FORGED-HUMAN-GATE-RESUME",
+    "R02-CONCURRENT-REVIEW-LEDGER",
+    "CURATOR-UNBOUND-HANDOFF",
+    "CURATOR-MEMORY-UNAVAILABLE-HANDOFF",
+    "MEMORY-PROPOSAL-DIRECTORY-DURABILITY",
+    "MEMORY-PROPOSAL-SCHEMA-BOUNDARY"
+  ],
+  "fixed_findings": [
+    "CURATOR-UNBOUND-HANDOFF",
+    "CURATOR-MEMORY-UNAVAILABLE-HANDOFF",
+    "MEMORY-PROPOSAL-DIRECTORY-DURABILITY",
+    "MEMORY-PROPOSAL-SCHEMA-BOUNDARY"
+  ],
+  "reserved_handoffs": {
+    "R01-FORGED-HUMAN-GATE-RESUME": "MAC_ACTIVE_PATCH_PARTIAL_UNVERIFIED",
+    "R02-CONCURRENT-REVIEW-LEDGER": "WINDOWS_ACTIVE_OPEN"
+  },
+  "semantic_fingerprints": [
+    "U1_DETERMINISTIC_MESH_ID",
+    "U2_ATOMIC_MESH_WRITE",
+    "U3_DETERMINISTIC_BUILDER_ID",
+    "U4_WORKTREE_POINTER",
+    "E1_FOUR_PROCESS_INGESTION"
+  ],
+  "last_checkpoint": "PENDING_SCHEMA_BOUNDARY_CHECKPOINT",
+  "next_ranked_work": "NONE_PENDING_NEW_OWNER_DELTA",
+  "owner_map": {
+    "mac": ["capability_registry", "courier autonomy", "human-gate", "result customs", "successor generation", "process supervision"],
+    "windows": ["review_budget", "windows runtime", "cross-platform qualification", "package/customer validation"]
+  },
+  "proof_debt_remaining": [
+    "reserved R01/R02 owner verification after stable handoff"
+  ],
+  "payment_scope": "EXCLUDED"
+}

@@ -26,6 +26,7 @@ DEFAULT_MEMORY_REPO_PATH = Path("/Users/user/Downloads/2026-project-memory")
 DEFAULT_SCHEMA_PATH = Path(__file__).resolve().parent.parent / "schemas/memory_update_proposal.schema.json"
 ZERO_COMMIT = "0" * 40
 FULL_COMMIT_RE = re.compile(r"^[0-9a-fA-F]{40}$")
+IDENTIFIER_RE = re.compile(r"^[A-Za-z0-9_.-]+$")
 
 
 def fail(message: str) -> None:
@@ -138,8 +139,10 @@ def validate_proposal_against_schema(proposal_data: dict, schema_path: Path | No
     if not re.match(r"^prop-mem-[A-Za-z0-9_.-]+$", str(proposal_data.get("proposal_id", ""))):
         return False, f"Invalid proposal_id pattern: {proposal_data.get('proposal_id')}"
 
-    if not re.match(r"^[A-Za-z0-9_.-]+$", str(proposal_data.get("source_result_message_id", ""))):
-        return False, f"Invalid source_result_message_id pattern: {proposal_data.get('source_result_message_id')}"
+    for field in ("source_result_message_id", "task_id", "correlation_id"):
+        value = proposal_data.get(field)
+        if not isinstance(value, str) or not IDENTIFIER_RE.fullmatch(value):
+            return False, f"Invalid {field} pattern: {value}"
 
     if not re.match(r"^[0-9a-fA-F]{7,40}$", str(proposal_data.get("memory_base_commit", ""))):
         return False, f"Invalid memory_base_commit: {proposal_data.get('memory_base_commit')}"
@@ -150,6 +153,15 @@ def validate_proposal_against_schema(proposal_data: dict, schema_path: Path | No
     target_files = proposal_data.get("target_files")
     if not isinstance(target_files, list) or not target_files or not all(isinstance(x, str) for x in target_files):
         return False, "target_files must be a non-empty list of strings"
+
+    for field in ("reason", "created_at"):
+        if not isinstance(proposal_data.get(field), str) or not proposal_data[field]:
+            return False, f"{field} must be a non-empty string"
+
+    for field in ("status_labels", "source_references"):
+        value = proposal_data.get(field)
+        if not isinstance(value, list) or not value or not all(isinstance(item, str) and item for item in value):
+            return False, f"{field} must be a non-empty list of non-empty strings"
 
     changes = proposal_data.get("proposed_changes")
     if not isinstance(changes, list) or not changes:
@@ -172,6 +184,10 @@ def validate_proposal_against_schema(proposal_data: dict, schema_path: Path | No
             return False, f"Change #{idx} invalid action: {ch.get('action')}"
         if ch.get("status_label") not in allowed_status:
             return False, f"Change #{idx} invalid status_label: {ch.get('status_label')}"
+        if not isinstance(ch.get("file"), str) or not ch["file"]:
+            return False, f"Change #{idx} file must be a non-empty string"
+        if not isinstance(ch.get("section"), str) or not ch["section"]:
+            return False, f"Change #{idx} section must be a non-empty string"
         if not ch.get("proposed_text") or not isinstance(ch.get("proposed_text"), str):
             return False, f"Change #{idx} proposed_text must be a non-empty string"
 

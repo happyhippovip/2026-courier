@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 import tempfile
 import unittest
@@ -10,7 +11,7 @@ from unittest import mock
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from build_memory_update_proposal import ZERO_COMMIT, atomic_write_json, build_proposal_from_result, get_memory_commit
+from build_memory_update_proposal import ZERO_COMMIT, atomic_write_json, build_proposal_from_result, get_memory_commit, validate_proposal_against_schema
 
 
 class MemoryCommitTests(unittest.TestCase):
@@ -75,6 +76,72 @@ class MemoryCommitTests(unittest.TestCase):
 
             self.assertGreaterEqual(synced.call_count, 2)
             self.assertEqual(json.loads(path.read_text(encoding="utf-8")), {"status": "durable"})
+
+    def test_proposal_is_scoped_to_explicit_unicode_paths_not_current_directory(self):
+        result = {
+            "task_id": "task-context",
+            "message_id": "message-context",
+            "correlation_id": "correlation-context",
+            "payload": {"verified_facts": ["Explicit paths remain authoritative."], "summary": "Context test"},
+        }
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            artifact_root = root / "Äußeres Verzeichnis" / "mit Leerzeichen"
+            artifact_root.mkdir(parents=True)
+            result_path = artifact_root / "result.json"
+            result_path.write_text(json.dumps(result), encoding="utf-8")
+            output_dir = artifact_root / "Proposals ✓"
+            unrelated_cwd = root / "unrelated-cwd"
+            unrelated_cwd.mkdir()
+            old_cwd = Path.cwd()
+            try:
+                os.chdir(unrelated_cwd)
+                proposal = build_proposal_from_result(
+                    result_path,
+                    memory_repo_path=artifact_root / "memory",
+                    output_dir=output_dir,
+                )
+            finally:
+                os.chdir(old_cwd)
+
+            self.assertEqual(proposal["task_id"], "task-context")
+            self.assertTrue((output_dir / "task-context-memory-proposal.json").is_file())
+            self.assertFalse((unrelated_cwd / "events" / "proposals").exists())
+
+    def test_import_resolves_to_the_canonical_repository_module(self):
+        import build_memory_update_proposal as builder
+
+        self.assertEqual(Path(builder.__file__).resolve(), ROOT / "scripts" / "build_memory_update_proposal.py")
+
+    def test_schema_boundary_rejects_invalid_correlation_and_required_types(self):
+        proposal = {
+            "schema_version": "2.0",
+            "proposal_id": "prop-mem-task-0123456789abcdef",
+            "source_result_message_id": "message",
+            "task_id": "task",
+            "correlation_id": "correlation",
+            "memory_base_commit": "a" * 40,
+            "target_files": ["TECHNICAL_CONTEXT.md"],
+            "proposed_changes": [{"file": "TECHNICAL_CONTEXT.md", "action": "APPEND", "section": "State", "proposed_text": "Verified", "status_label": "VERIFIED_CURRENT"}],
+            "reason": "A reason",
+            "status_labels": ["VERIFIED_CURRENT"],
+            "source_references": ["result.json"],
+            "requires_chief_approval": True,
+            "created_at": "2026-09-13T00:00:00+00:00",
+        }
+        valid, reason = validate_proposal_against_schema(proposal)
+        self.assertTrue(valid, reason)
+
+        proposal["correlation_id"] = {"wrong": "type"}
+        valid, reason = validate_proposal_against_schema(proposal)
+        self.assertFalse(valid)
+        self.assertIn("correlation_id", reason)
+
+        proposal["correlation_id"] = "correlation"
+        proposal["source_references"] = [None]
+        valid, reason = validate_proposal_against_schema(proposal)
+        self.assertFalse(valid)
+        self.assertIn("source_references", reason)
 
 
 if __name__ == "__main__":
