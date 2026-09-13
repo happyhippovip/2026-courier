@@ -172,110 +172,22 @@ class AutonomySupervisor:
         self.heartbeats_dir.mkdir(parents=True, exist_ok=True)
 
     # --------------------------------------------------------------------------
-    # Leader Election & Lease Management (flock + Monotonic Generation Fencing)
+    # Legacy compatibility boundary.  Production authority is the canonical
+    # Motor SQLite lease; this module is observer/restart-policy only.
     # --------------------------------------------------------------------------
 
     def try_acquire_leader_lease(self) -> bool:
-        """Attempts to acquire active supervisor lease via OS flock and lease TTL."""
-        try:
-            fd = os.open(str(self.lock_file), os.O_CREAT | os.O_RDWR, 0o644)
-            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except (OSError, IOError):
-            # Another process holds OS lock
-            self.is_active_leader = False
-            return False
-
-        # Read existing lease record
-        existing_lease = self._read_lease_safe()
-        now = dt.datetime.now(dt.timezone.utc)
-        now_iso = now.isoformat()
-
-        if existing_lease is not None:
-            # Check if existing lease is corrupt (Fail-Closed)
-            if existing_lease.get("state") == "CORRUPT":
-                # Do not promote authority on corrupt lease without explicit cleanup
-                os.close(fd)
-                self.is_active_leader = False
-                return False
-
-            exp_dt = parse_iso(existing_lease.get("lease_expires_at"))
-            old_pid = existing_lease.get("process_id")
-            old_gen = int(existing_lease.get("generation", 0))
-
-            is_stale = False
-            if exp_dt and now > exp_dt:
-                is_stale = True
-            elif old_pid and old_pid != os.getpid():
-                # Check if old process is actually dead
-                try:
-                    os.kill(old_pid, 0)
-                except OSError:
-                    is_stale = True
-
-            if not is_stale and existing_lease.get("supervisor_id") != self.supervisor_id:
-                # Active valid leader exists
-                os.close(fd)
-                self.is_active_leader = False
-                return False
-
-            new_generation = old_gen + 1
-            if existing_lease.get("supervisor_id") != self.supervisor_id:
-                self.metrics.failovers += 1
-        else:
-            new_generation = 1
-
-        # Write new lease
-        self.current_generation = new_generation
-        lease = SupervisorLease(
-            supervisor_id=self.supervisor_id,
-            generation=new_generation,
-            lease_acquired_at=now_iso,
-            lease_expires_at=utc_now_plus(LEASE_TTL_SECONDS),
-            last_heartbeat=now_iso,
-            process_id=os.getpid(),
-            process_start_identity=f"proc-{os.getpid()}-{self.supervisor_id}",
-            state="ACTIVE",
-        )
-        self._write_lease(lease)
-        self._lock_fd = fd
-        self.is_active_leader = True
-        self.save_checkpoint()
-        return True
+        """Fail closed: this legacy entry point cannot own production work."""
+        self.legacy_lease_diagnostic = self._read_lease_safe()
+        self.is_active_leader = False
+        return False
 
     def renew_lease(self) -> bool:
-        """Renews leadership heartbeat if active leader."""
-        if not self.is_active_leader or not self._lock_fd:
-            return False
-
-        now_iso = utc_now()
-        lease = SupervisorLease(
-            supervisor_id=self.supervisor_id,
-            generation=self.current_generation,
-            lease_acquired_at=now_iso,
-            lease_expires_at=utc_now_plus(LEASE_TTL_SECONDS),
-            last_heartbeat=now_iso,
-            process_id=os.getpid(),
-            process_start_identity=f"proc-{os.getpid()}-{self.supervisor_id}",
-            state="ACTIVE",
-        )
-        self._write_lease(lease)
-        return True
+        return False
 
     def release_lease(self) -> None:
-        """Cleanly releases supervisor leadership lease."""
-        if self._lock_fd:
-            try:
-                fcntl.flock(self._lock_fd, fcntl.LOCK_UN)
-                os.close(self._lock_fd)
-            except OSError:
-                pass
-            self._lock_fd = None
+        """Preserve historical lease evidence; never mutate production authority."""
         self.is_active_leader = False
-        if self.lease_file.exists():
-            try:
-                self.lease_file.unlink()
-            except OSError:
-                pass
 
     def _read_lease_safe(self) -> Optional[Dict[str, Any]]:
         if not self.lease_file.exists():
@@ -283,13 +195,13 @@ class AutonomySupervisor:
         try:
             text = self.lease_file.read_text(encoding="utf-8").strip()
             if not text:
-                return {"state": "CORRUPT"}
+                return {"state": "LEGACY_NON_AUTHORITATIVE", "diagnostic": "EMPTY_LEGACY_LEASE"}
             data = json.loads(text)
             if not isinstance(data, dict) or "generation" not in data or "supervisor_id" not in data:
-                return {"state": "CORRUPT"}
-            return data
+                return {"state": "LEGACY_NON_AUTHORITATIVE", "diagnostic": "MALFORMED_LEGACY_LEASE"}
+            return {"state": "LEGACY_NON_AUTHORITATIVE", "legacy_record": data}
         except Exception:
-            return {"state": "CORRUPT"}
+            return {"state": "LEGACY_NON_AUTHORITATIVE", "diagnostic": "UNREADABLE_LEGACY_LEASE"}
 
     def _write_lease(self, lease: SupervisorLease) -> None:
         temp = self.lease_file.with_suffix(".tmp")
@@ -465,10 +377,9 @@ class AutonomySupervisor:
 
 def init_supervisor() -> AutonomySupervisor:
     sup = AutonomySupervisor()
-    sup.try_acquire_leader_lease()
     return sup
 
 
 if __name__ == "__main__":
     sup = init_supervisor()
-    print(f"✅ Autonomy Supervisor Active: Leader={sup.is_active_leader}, Gen={sup.current_generation}")
+    print("AutonomySupervisor is legacy/non-authoritative; use canonical Motor runtime.")

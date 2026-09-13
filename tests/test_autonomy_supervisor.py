@@ -28,12 +28,12 @@ class TestAutonomySupervisor(unittest.TestCase):
         self.sup1.release_lease()
         shutil.rmtree(self.test_dir, ignore_errors=True)
 
-    def test_01_single_active_leader_across_instances(self):
-        """Exactly one active supervisor leader is elected across competing instances."""
+    def test_01_legacy_supervisor_never_becomes_production_leader(self):
+        """Legacy callers fail closed instead of creating a second authority."""
         res1 = self.sup1.try_acquire_leader_lease()
-        self.assertTrue(res1)
-        self.assertTrue(self.sup1.is_active_leader)
-        self.assertEqual(self.sup1.current_generation, 1)
+        self.assertFalse(res1)
+        self.assertFalse(self.sup1.is_active_leader)
+        self.assertFalse(self.sup1.lease_file.exists())
 
         # Competing instance should fail while sup1 holds active lease
         sup2 = AutonomySupervisor(supervisor_id="sup-instance-02", repo_dir=self.test_dir)
@@ -41,21 +41,14 @@ class TestAutonomySupervisor(unittest.TestCase):
         self.assertFalse(res2)
         self.assertFalse(sup2.is_active_leader)
 
-    def test_02_monotonic_generation_fencing_on_failover(self):
-        """When old leader releases, follower acquires lease with incremented generation."""
-        self.sup1.try_acquire_leader_lease()
-        self.assertEqual(self.sup1.current_generation, 1)
-
-        # sup1 releases lease
+    def test_02_legacy_release_cannot_delete_diagnostic_lease(self):
+        """Historical lease evidence is diagnostic-only and never cleaned manually."""
+        self.sup1.lease_file.parent.mkdir(parents=True, exist_ok=True)
+        self.sup1.lease_file.write_text('{"generation": 7, "supervisor_id": "old"}')
         self.sup1.release_lease()
-
-        # sup2 acquires
-        sup2 = AutonomySupervisor(supervisor_id="sup-instance-02", repo_dir=self.test_dir)
-        res2 = sup2.try_acquire_leader_lease()
-        self.assertTrue(res2)
-        self.assertTrue(sup2.is_active_leader)
-        self.assertGreaterEqual(sup2.current_generation, 1)
-        sup2.release_lease()
+        self.assertTrue(self.sup1.lease_file.exists())
+        self.assertEqual(self.sup1.try_acquire_leader_lease(), False)
+        self.assertEqual(self.sup1.legacy_lease_diagnostic["state"], "LEGACY_NON_AUTHORITATIVE")
 
     def test_03_corrupt_lease_fails_closed(self):
         """Malformed or corrupt lease file prevents leadership promotion."""
