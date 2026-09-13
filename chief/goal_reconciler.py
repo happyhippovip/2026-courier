@@ -1677,6 +1677,36 @@ class GoalReconciler:
             "expected_evidence": "Work stealing and concurrency tests passed (100% success)"
         })
 
+        # Candidate AY: Automated Worker Crash Watchdog & Hot-Reload Lease Revocation Certification
+        candidates.append({
+            "candidate_id": "TASK-WIN-59",
+            "version": 1,
+            "goal_id": "GOAL-04",
+            "title": "Automated Worker Crash Watchdog & Hot-Reload Lease Revocation Certification",
+            "category": "WINDOWS_PROCESS_SUPERVISION",
+            "conflict_domain": "CRASH_WATCHDOG_REVOCATION",
+            "target_machine": "WINDOWS",
+            "target_worker": "WINDOWS_GOOGLE",
+            "scope": os.path.join(self.workspace_root, "courier"),
+            "script_path": "courier/tests/test_worker_crash_watchdog.py",
+            "cwd": self.workspace_root,
+            "is_writer": False,
+            "unresolved_gap": "AUTONOMY_CAPABILITY_GAP",
+            "goal_impact": 10.0,
+            "revenue_impact": 9.5,
+            "info_gain": 10.0,
+            "proof_debt_reduction": 10.0,
+            "autonomy_gain": 10.0,
+            "risk_score": 0.0,
+            "spend_eur": 0.00,
+            "human_requirement": "NONE",
+            "acceptance_criteria": [
+                "Execute courier/tests/test_worker_crash_watchdog.py",
+                "Verify PID liveness detection, dead worker lease/lock revocation, zero-loss task reclaim, and telemetry"
+            ],
+            "expected_evidence": "Worker crash watchdog tests passed (100% success)"
+        })
+
         # Dynamic Candidate Discovery from safe_backlog.json
         if os.path.exists(self.backlog_path):
             try:
@@ -2054,9 +2084,11 @@ class GoalReconciler:
                 exec_cwd = cwd or self.project_memory_dir
 
         if script_full.endswith(".py"):
-            cmd = ["uv", "run", "python", script_full]
+            cmd = [sys.executable, script_full]
+            use_shell = False
         else:
             cmd = [NODE_CMD, script_full]
+            use_shell = True
 
         run_res = subprocess.run(
             cmd,
@@ -2065,10 +2097,12 @@ class GoalReconciler:
             text=True,
             encoding="utf-8",
             errors="replace",
-            shell=True,
+            shell=use_shell,
             timeout=90
         )
-        stdout = run_res.stdout or ""
+        stdout = (run_res.stdout or "") + ("\n" + run_res.stderr if run_res.stderr else "")
+        if not stdout.strip():
+            stdout = f"Command completed with returncode {run_res.returncode}"
         evidence_hash = hashlib.sha256(stdout.encode("utf-8")).hexdigest()
 
         return {

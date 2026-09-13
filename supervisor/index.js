@@ -28,6 +28,7 @@ const { MachineResourceGovernor } = require('./resource_governor');
 const { NoStackingDetector, ResourceLockManager } = require('./no_stacking');
 const { ChiefEscalationEnvelope } = require('./chief_envelope');
 const { WorkStealingPool } = require('./work_stealing');
+const { WorkerCrashWatchdog } = require('./crash_watchdog');
 
 class SupervisorPlane {
   constructor(runtimeDir = null) {
@@ -40,6 +41,12 @@ class SupervisorPlane {
     this.workStealingPool = new WorkStealingPool({
       storageDir: path.join(this.runtimeDir, 'work_stealing'),
       lockManager: this.lockManager
+    });
+    this.crashWatchdog = new WorkerCrashWatchdog({
+      leaseManager: this.leaseManager,
+      lockManager: this.lockManager,
+      workStealingPool: this.workStealingPool,
+      auditLedger: this.auditLedger
     });
 
     this.progressTracker = new ProgressTracker(path.join(this.runtimeDir, 'leases'), this.leaseManager, this.auditLedger);
@@ -106,6 +113,7 @@ module.exports = {
   ResourceLockManager,
   ChiefEscalationEnvelope,
   WorkStealingPool,
+  WorkerCrashWatchdog,
   LEASE_STATUS,
   SUPERVISOR_DECISION,
   RESOURCE_STATE,
