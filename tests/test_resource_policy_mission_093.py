@@ -10,6 +10,7 @@ import tempfile
 import time
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from scripts.resource_policy import (
     ResourcePolicyManager,
@@ -19,6 +20,7 @@ from scripts.resource_policy import (
     FileManifestTracker,
     ChiefContextPackageBuilder,
     ReviewDedupeTracker,
+    save_json,
 )
 from scripts.run_chief_commander import SmartResourceRouter
 from scripts.run_autonomous_loop import AutonomousLevel6Loop
@@ -142,6 +144,47 @@ class TestMission093And095And097HardenedPolicy(unittest.TestCase):
         with open(lease_path, "r", encoding="utf-8") as f:
             final_data = json.load(f)
         self.assertEqual(final_data.get("owner_id"), winner_owner, "Final lease file must contain winner as owner")
+
+    def test_03c_corrupt_existing_lease_fails_closed_without_overwrite(self):
+        task_id = "TASK-CORRUPT-LEASE-001"
+        mgr = TaskLeaseManager(repo_dir=self.test_dir)
+        lease_path = mgr._get_lease_path(task_id)
+        lease_path.write_text('{"owner_id":', encoding="utf-8")
+        original = lease_path.read_bytes()
+
+        acquired, reason, lease = mgr.acquire_lease(
+            task_id, "new-hash", owner_id="new-owner", duration_sec=60
+        )
+
+        self.assertFalse(acquired)
+        self.assertEqual(reason, "TASK_LEASE_CORRUPT_FAIL_CLOSED")
+        self.assertEqual(lease, {})
+        self.assertTrue(mgr.is_task_claimed(task_id))
+        self.assertFalse(mgr.release_lease(task_id, "new-owner"))
+        self.assertEqual(lease_path.read_bytes(), original)
+
+    def test_03d_atomic_save_failure_preserves_canonical_file_and_cleans_temp(self):
+        target = self.events_dir / "atomic-state.json"
+        target.write_text('{"state":"old"}', encoding="utf-8")
+
+        with patch("scripts.resource_policy.os.replace", side_effect=OSError("injected replace failure")):
+            with self.assertRaisesRegex(OSError, "injected replace failure"):
+                save_json(target, {"state": "new"})
+
+        self.assertEqual(target.read_text(encoding="utf-8"), '{"state":"old"}')
+        self.assertEqual(list(target.parent.glob(f"{target.name}.tmp.*")), [])
+
+    def test_03e_initial_lease_publish_failure_never_exposes_partial_canonical_state(self):
+        task_id = "TASK-LEASE-PUBLISH-FAILURE"
+        mgr = TaskLeaseManager(repo_dir=self.test_dir)
+        lease_path = mgr._get_lease_path(task_id)
+
+        with patch("scripts.resource_policy.os.link", side_effect=OSError("injected publish failure")):
+            with self.assertRaisesRegex(OSError, "injected publish failure"):
+                mgr.acquire_lease(task_id, "hash", "owner", duration_sec=60)
+
+        self.assertFalse(lease_path.exists())
+        self.assertEqual(list(lease_path.parent.glob(f"{lease_path.name}.claim.*")), [])
 
     def test_04_cached_result_integrity_and_fail_closed_checks(self):
         """Prove untampered result is reused, while tampered, missing, or empty hash is blocked."""

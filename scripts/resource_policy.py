@@ -10,6 +10,7 @@ import datetime
 import hashlib
 import json
 import os
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -35,10 +36,15 @@ def load_json(path: Path) -> dict | None:
 
 def save_json(path: Path, data: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    temp_path = path.with_suffix(path.suffix + f".tmp.{os.getpid()}")
-    with open(temp_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
-    os.replace(temp_path, path)
+    temp_path = path.with_suffix(path.suffix + f".tmp.{os.getpid()}.{uuid.uuid4().hex}")
+    try:
+        with open(temp_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(temp_path, path)
+    finally:
+        temp_path.unlink(missing_ok=True)
 
 
 class ResourcePolicyManager:
@@ -158,6 +164,25 @@ class TaskLeaseManager:
         clean_id = task_id.replace("/", "_").replace("\\", "_")
         return self.locks_dir / f"task_{clean_id}.lease"
 
+    @staticmethod
+    def _load_lease(path: Path) -> dict | None:
+        if not path.exists():
+            return None
+        try:
+            with open(path, "r", encoding="utf-8") as handle:
+                lease = json.load(handle)
+        except Exception as error:
+            raise RuntimeError("TASK_LEASE_CORRUPT_FAIL_CLOSED") from error
+        if (
+            not isinstance(lease, dict)
+            or not isinstance(lease.get("owner_id"), str)
+            or not lease.get("owner_id")
+            or isinstance(lease.get("expires_at"), bool)
+            or not isinstance(lease.get("expires_at"), (int, float))
+        ):
+            raise RuntimeError("TASK_LEASE_CORRUPT_FAIL_CLOSED")
+        return lease
+
     def acquire_lease(
         self,
         task_id: str,
@@ -180,19 +205,29 @@ class TaskLeaseManager:
         }
         payload_bytes = json.dumps(lease_data, indent=2).encode("utf-8")
 
-        # 1. Attempt atomic creation for new lease
+        # 1. Fully persist a private candidate, then atomically publish it with a
+        # hard link. Writing directly into the canonical O_EXCL file would expose
+        # a truncated lease if the claimant crashed between create and fsync.
+        claim_temp = lease_path.with_suffix(
+            lease_path.suffix + f".claim.{os.getpid()}.{uuid.uuid4().hex}"
+        )
         try:
-            fd = os.open(lease_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
-            with os.fdopen(fd, "wb") as f:
+            with open(claim_temp, "xb") as f:
                 f.write(payload_bytes)
                 f.flush()
                 os.fsync(f.fileno())
+            os.link(claim_temp, lease_path)
             return True, "LEASE_ACQUIRED", lease_data
         except FileExistsError:
             pass
+        finally:
+            claim_temp.unlink(missing_ok=True)
 
         # 2. Inspect existing lease for renewal or active ownership
-        existing = load_json(lease_path)
+        try:
+            existing = self._load_lease(lease_path)
+        except RuntimeError:
+            return False, "TASK_LEASE_CORRUPT_FAIL_CLOSED", {}
         if existing:
             expires_at = existing.get("expires_at", 0)
             current_owner = existing.get("owner_id")
@@ -212,12 +247,18 @@ class TaskLeaseManager:
             lock_fd = os.open(reclaim_lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
         except FileExistsError:
             # Another competing process is currently in the middle of reclaiming this expired lease
-            current_existing = load_json(lease_path) or existing or {}
+            try:
+                current_existing = self._load_lease(lease_path) or existing or {}
+            except RuntimeError:
+                current_existing = {}
             return False, "TASK_ALREADY_CLAIMED_BY_ANOTHER_BUILDER", current_existing
 
         try:
             # Re-read lease under reclaim lock to ensure it is still expired
-            current_existing = load_json(lease_path)
+            try:
+                current_existing = self._load_lease(lease_path)
+            except RuntimeError:
+                return False, "TASK_LEASE_CORRUPT_FAIL_CLOSED", {}
             if current_existing:
                 current_expires = current_existing.get("expires_at", 0)
                 if current_expires > now_ts:
@@ -240,7 +281,10 @@ class TaskLeaseManager:
         lease_path = self._get_lease_path(task_id)
         if not lease_path.exists():
             return True
-        existing = load_json(lease_path)
+        try:
+            existing = self._load_lease(lease_path)
+        except RuntimeError:
+            return False
         if existing and existing.get("owner_id") == owner_id:
             try:
                 lease_path.unlink(missing_ok=True)
@@ -253,7 +297,10 @@ class TaskLeaseManager:
         lease_path = self._get_lease_path(task_id)
         if not lease_path.exists():
             return False
-        existing = load_json(lease_path)
+        try:
+            existing = self._load_lease(lease_path)
+        except RuntimeError:
+            return True
         if not existing:
             return False
         now_ts = datetime.datetime.now(datetime.timezone.utc).timestamp()
