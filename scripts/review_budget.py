@@ -11,6 +11,8 @@
 from __future__ import annotations
 
 import datetime
+import contextlib
+import fcntl
 import hashlib
 import json
 import os
@@ -230,7 +232,17 @@ class ReviewLedger:
         self.reviews_dir = self.repo_dir / "events" / "reviews"
         self.ledger_json = self.reviews_dir / "ledger.json"
         self.ledger_log = self.reviews_dir / "review_ledger.jsonl"
+        self.ledger_lock = self.reviews_dir / "ledger.lock"
         self.reviews_dir.mkdir(parents=True, exist_ok=True)
+
+    @contextlib.contextmanager
+    def _exclusive_write(self):
+        with open(self.ledger_lock, "a+", encoding="utf-8") as lock:
+            fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+            try:
+                yield
+            finally:
+                fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
 
     def _load_ledger(self) -> dict:
         if not self.ledger_json.exists():
@@ -267,6 +279,31 @@ class ReviewLedger:
         return ledger.get("daily_batches", {}).get(date_str, 0)
 
     def record_review(
+        self,
+        review_id: str,
+        checkpoint_commit: str,
+        diff_hash: str,
+        file_hashes: dict[str, str],
+        risk_class: str,
+        review_type: str,
+        review_result: str,
+        reviewer: str,
+        reason: str,
+    ) -> dict[str, Any]:
+        with self._exclusive_write():
+            return self._record_review_unlocked(
+                review_id=review_id,
+                checkpoint_commit=checkpoint_commit,
+                diff_hash=diff_hash,
+                file_hashes=file_hashes,
+                risk_class=risk_class,
+                review_type=review_type,
+                review_result=review_result,
+                reviewer=reviewer,
+                reason=reason,
+            )
+
+    def _record_review_unlocked(
         self,
         review_id: str,
         checkpoint_commit: str,

@@ -2,9 +2,13 @@
 """Unit and integration tests for Mission 107: Review Budget Manager & Delta Review Gate."""
 
 import json
+import fcntl
+import multiprocessing
 import os
 import shutil
 import tempfile
+import threading
+import time
 import unittest
 from pathlib import Path
 
@@ -19,6 +23,14 @@ from scripts.review_budget import (
 )
 from scripts.resource_policy import ResourcePolicyManager
 from scripts.github_transport import EXACTLY_ONCE_SEMANTICS
+
+
+def _hold_review_ledger_lock(lock_path: str, ready, release):
+    with open(lock_path, "a+", encoding="utf-8") as lock:
+        fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+        ready.set()
+        release.wait(5)
+        fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
 
 
 class TestMission107ReviewBudget(unittest.TestCase):
@@ -235,6 +247,33 @@ class TestMission107ReviewBudget(unittest.TestCase):
         ledger_data = json.loads((self.reviews_dir / "ledger.json").read_text(encoding="utf-8"))
         self.assertEqual(ledger_data["stats"]["total_reviews"], 1)
         self.assertEqual(ledger_data["stats"]["total_reused"], 1)
+
+    def test_11b_review_record_waits_for_existing_writer_lock(self):
+        ready = multiprocessing.Event()
+        release = multiprocessing.Event()
+        holder = multiprocessing.Process(
+            target=_hold_review_ledger_lock,
+            args=(str(self.manager.ledger.ledger_lock), ready, release),
+        )
+        holder.start()
+        self.assertTrue(ready.wait(5))
+
+        outcome = []
+        writer = threading.Thread(
+            target=lambda: outcome.append(self.manager.ledger.record_review(
+                "locked-review", "commit", "locked-diff", {}, "LOW",
+                "ROUTINE", "APPROVE", "codex", "serialized",
+            ))
+        )
+        writer.start()
+        time.sleep(0.1)
+        self.assertTrue(writer.is_alive(), "second ledger writer must wait for the active lock")
+
+        release.set()
+        writer.join(5)
+        holder.join(5)
+        self.assertFalse(writer.is_alive())
+        self.assertEqual(outcome[0]["review_id"], "locked-review")
 
     def test_12_no_model_calls_and_no_memory_writes(self):
         """Prove all review budget evaluations run 100% deterministically with 0 model calls and 0 memory writes."""
