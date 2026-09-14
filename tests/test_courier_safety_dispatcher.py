@@ -12,7 +12,8 @@ import multiprocessing, tempfile, unittest
 from pathlib import Path
 
 from scripts.courier_safety_dispatcher import (
-    CourierSafetyDispatcher, LocalWorkerAdapterBoundary, TaskEnvelope, canonical_hash,
+    CourierSafetyDispatcher, LocalWorkerAdapterBoundary, MissionQueue, TaskEnvelope, canonical_hash,
+    write_json_atomic,
 )
 from scripts.resource_policy import TaskLeaseManager
 
@@ -54,6 +55,31 @@ class TestCourierSafetyDispatcher(unittest.TestCase):
     def tearDown(self): self.temp.cleanup()
 
     def result(self, submission): return submission["dispatch_info"]["result"]
+
+    def test_atomic_json_publish_preserves_prior_state_on_replace_failure(self):
+        target = self.root / "events" / "task-envelopes" / "prestate.json"
+        write_json_atomic(target, {"state": "old"})
+
+        with patch(
+            "scripts.courier_safety_dispatcher.os.replace",
+            side_effect=OSError("DISPOSABLE_REPLACE_FAILURE"),
+        ):
+            with self.assertRaisesRegex(OSError, "DISPOSABLE_REPLACE_FAILURE"):
+                write_json_atomic(target, {"state": "new"})
+
+        self.assertEqual(target.read_text(encoding="utf-8"), '{\n  "state": "old"\n}')
+        self.assertEqual(list(target.parent.glob(f".{target.name}.tmp.*")), [])
+
+    def test_corrupt_lease_state_blocks_recovery(self):
+        corrupt = self.dispatcher.lease_manager.locks_dir / "writer.lease"
+        corrupt.parent.mkdir(parents=True, exist_ok=True)
+        corrupt.write_text('{"owner_pid":', encoding="utf-8")
+
+        with self.assertRaisesRegex(
+            RuntimeError,
+            "CORRUPT_LEASE_STATE_FAIL_CLOSED: writer.lease",
+        ):
+            self.dispatcher.reconcile_orphans()
 
     @patch('scripts.courier_safety_dispatcher.DynamicAgentRouter._worker_executable_available', return_value=True)
     def test_routes_have_real_local_consumer_contract(self, mock_avail):
@@ -182,6 +208,21 @@ class TestCourierSafetyDispatcher(unittest.TestCase):
 
         mission_ambiguous = {"goal": "I need you to handle publication of the new module."}
         self.assertTrue(CourierSafetyDispatcher._requires_human_gate(mission_ambiguous, {}))
+
+    def test_mission_queue_lock_is_exclusive_and_crash_stale_marker_is_reusable(self):
+        queue = MissionQueue(self.root)
+        lock_fd = queue._lock()
+        try:
+            with self.assertRaisesRegex(RuntimeError, "MISSION_QUEUE_BUSY_FAIL_CLOSED"):
+                MissionQueue(self.root).enqueue({"mission_id": "busy", "goal": "must not race"})
+        finally:
+            queue._unlock(lock_fd)
+
+        # The rendezvous file deliberately survives. A crashed process cannot leave
+        # stale authority because the kernel releases its flock on process exit.
+        self.assertTrue(queue.lock_file.exists())
+        stored = MissionQueue(self.root).enqueue({"mission_id": "recovered", "goal": "resume safely"})
+        self.assertEqual(stored["status"], "PENDING")
 
 if __name__ == "__main__":
     unittest.main()

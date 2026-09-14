@@ -1,7 +1,7 @@
 """Fail-closed local Courier dispatcher (no cloud invocation)."""
 from __future__ import annotations
 
-import hashlib, json, math, os, time, uuid
+import fcntl, hashlib, json, math, os, time, uuid
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Optional
@@ -25,10 +25,13 @@ def canonical_task_hash(task_spec: dict[str, Any]) -> str:
 def write_json_atomic(path: Path, value: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_name(f".{path.name}.tmp.{os.getpid()}")
-    with open(tmp, "w", encoding="utf-8") as handle:
-        json.dump(value, handle, indent=2, sort_keys=True)
-        handle.flush(); os.fsync(handle.fileno())
-    os.replace(tmp, path)
+    try:
+        with open(tmp, "w", encoding="utf-8") as handle:
+            json.dump(value, handle, indent=2, sort_keys=True)
+            handle.flush(); os.fsync(handle.fileno())
+        os.replace(tmp, path)
+    finally:
+        tmp.unlink(missing_ok=True)
 
 
 @dataclass(frozen=True)
@@ -78,7 +81,8 @@ class LocalWorkerAdapterBoundary:
             from courier_real_worker_adapters import get_real_worker_adapters
         adapters = get_real_worker_adapters(repo_root)
         for agent, consumer in adapters.items():
-            self.register_consumer(agent, consumer)
+            if agent in self.SUPPORTED_AGENTS:
+                self.register_consumer(agent, consumer)
 
     def dispatch(self, agent: str, envelope: TaskEnvelope, adapters: dict[str, str]) -> dict[str, Any]:
         del adapters  # metadata is never treated as execution evidence
@@ -192,8 +196,10 @@ class CourierSafetyDispatcher:
                 with open(lock_file, "r") as f:
                     data = json.load(f)
                 active_leases[str(lock_file)] = data
-            except Exception:
-                pass
+            except Exception as error:
+                raise RuntimeError(
+                    f"CORRUPT_LEASE_STATE_FAIL_CLOSED: {lock_file.name}"
+                ) from error
                 
         # 1. Release dead leases not tied to missions
         for lock_path, data in list(active_leases.items()):
@@ -414,8 +420,10 @@ class CourierSafetyDispatcher:
                             prestate["content"] = None
 
             if prestate:
-                import json
-                (self.workspace_dir / "events" / "task-envelopes" / f"prestate_{task_hash}.json").write_text(json.dumps(prestate))
+                write_json_atomic(
+                    self.workspace_dir / "events" / "task-envelopes" / f"prestate_{task_hash}.json",
+                    prestate,
+                )
             envelope = TaskEnvelope(
                 task_hash=task_hash,
                 worker_id=worker_id,
@@ -765,6 +773,11 @@ class CourierSafetyDispatcher:
             return True
         if task.get("action") == "discover_improvement_opportunities":
             return False
+        structured_action = str(task.get("action", "")).strip().lower().replace("-", "_")
+        if structured_action in {
+            "oauth_login", "execute_trade", "publish_release", "request_2fa",
+        }:
+            return True
 
         import re
         task_parts = []
@@ -778,7 +791,19 @@ class CourierSafetyDispatcher:
         import re
         raw_text = re.sub(r'\b[\w\.-]+/[\w\.-]+\.(?:py|json|md|txt|mjs|js|ts|sh|yaml|yml)\b', '', raw_text) # strip things like tests/test_deploy.py
         raw_text = re.sub(r'\b[\w\.-]+\.(?:py|json|md|txt|mjs|js|ts|sh|yaml|yml)\b', '', raw_text) # strip things like test_deploy.py
-        text = raw_text.lower()
+        # A policy declaration names actions that would require a future gate; it
+        # does not request those actions now. Explicit structured gate fields above
+        # remain authoritative for the current task.
+        raw_text = re.sub(
+            r'\bhuman[_ ]gate\s+(?:remains\s+)?required\s+for\s*:[^.]*\.?',
+            '',
+            raw_text,
+            flags=re.IGNORECASE,
+        )
+        # Structured actions conventionally use tokens such as ``oauth_login``
+        # and ``publish-release``. Classify their semantic words exactly like
+        # equivalent natural-language requests.
+        text = re.sub(r"[_-]+", " ", raw_text.lower())
         
         # Action-aware gating (fails closed on contradictions)
         gated_action_patterns = [
@@ -786,6 +811,7 @@ class CourierSafetyDispatcher:
             r'\b(?:login|log\s+in|logging\s+in)\b',
             r'\b(?:authenticate|authenticating)\s+(?:to|against|with|external)\b',
             r'\b(?:publish|publishing)\s+(?:this|externally|production|to)\b',
+            r'\bpublication\b',
             r'\b(?:purchase|purchasing|buy|buying|pay|paying|upgrade)[\s/]+(?:paid|capacity|subscription|billing)\b',
             r'\b(?:enable|setup)\s+(?:billing|purchases)\b',
             r'\b(?:sign|signing)\s+(?:wallet|transaction)\b',
@@ -846,9 +872,9 @@ class MissionRecord:
 class MissionQueue:
     """A small persistent, single-writer lifecycle queue.
 
-    Queue mutations hold an O_EXCL lock and replace the complete JSON document.  The
-    lock is intentionally fail-closed: a busy or malformed queue cannot be guessed
-    through as a successful claim.
+    Queue mutations hold an OS lock and replace the complete JSON document. The
+    kernel releases the lock if a writer crashes; the persistent lock file is only
+    a rendezvous point and never becomes stale authority.
     """
     STATES = frozenset({"PENDING", "CLAIMED", "RUNNING", "PENDING_VERIFY", "VERIFIED",
                         "FAILED", "BLOCKED", "HUMAN_GATE", "DEDUPED"})
@@ -872,14 +898,19 @@ class MissionQueue:
             write_json_atomic(self.queue_file, {"schema_version": "1.0", "missions": []})
 
     def _lock(self) -> int:
+        fd = os.open(self.lock_file, os.O_CREAT | os.O_RDWR, 0o600)
         try:
-            return os.open(self.lock_file, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
-        except FileExistsError as error:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except (BlockingIOError, OSError) as error:
+            os.close(fd)
             raise RuntimeError("MISSION_QUEUE_BUSY_FAIL_CLOSED") from error
+        return fd
 
     def _unlock(self, fd: int) -> None:
-        try: os.close(fd)
-        finally: self.lock_file.unlink(missing_ok=True)
+        try:
+            fcntl.flock(fd, fcntl.LOCK_UN)
+        finally:
+            os.close(fd)
 
     def _document(self) -> dict[str, Any]:
         try:
