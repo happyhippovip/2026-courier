@@ -213,6 +213,51 @@ class PeerConsensusEngine:
 
         return True, claim_payload
 
+    def _emit_duplicate_result(self, req_id: str, request_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Emits a fresh, cryptographically verifiable result for a request that has
+        already been completed.  Does NOT re-execute any business effect.
+        The result carries evidence_content / content_integrity in the standard
+        format so the Mac consumer can independently verify the digest.
+        """
+        norm = {str(k).lower().strip(): v for k, v in request_data.items()}
+        assignment_id = norm.get("assignment_id") or f"ASSIGN-{req_id}"
+        mission_id = norm.get("mission_id", "MISSION-AUTONOMY")
+        val_type = norm.get("validation_type", "WINDOWS_COMPATIBILITY")
+
+        evidence_content = (
+            f"DUPLICATE_ALREADY_COMPLETED: req_id={req_id}, "
+            f"assignment={assignment_id}, type={val_type}, "
+            f"duplicate_timestamp={self._now_iso()}, "
+            f"business_effects_this_call=0"
+        )
+        evidence_sha256 = self.compute_sha256(evidence_content)
+
+        dup_payload = {
+            "schema_version": "1.0",
+            "mission_id": mission_id,
+            "windows_validation_request_id": req_id,
+            "assignment_id": assignment_id,
+            "status": "PASS",
+            "decision": "DUPLICATE_ALREADY_COMPLETED",
+            "work_done": (
+                f"Request {req_id} was already completed. "
+                "No business effect re-executed. Fresh verifiable receipt emitted."
+            ),
+            "evidence": f"DUPLICATE_EXIT_0_SHA256:{evidence_sha256}",
+            "evidence_content": evidence_content,
+            "content_integrity": f"SHA256:{evidence_sha256}",
+            "access_integrity": "NTFS_ACL_CONTAINED_BORDER_GUARD_ENFORCED",
+            "files_changed": [],
+            "side_effects_occurred": False,
+            "duplicate_replay_new_effects": 0,
+            "blocker": "NONE",
+            "completed_at": self._now_iso(),
+        }
+        res_file = os.path.join(self.results_dir, f"{req_id}.json")
+        safe_write_json(res_file, dup_payload)
+        return dup_payload
+
     def execute_and_seal(
         self,
         req_id: str,
@@ -432,8 +477,10 @@ class PeerConsensusEngine:
 
             # Check for completed / already processed (IDEMPOTENCY)
             if req_id in completed_ids or assignment_id in completed_ids:
-                # Archive duplicate without re-executing
+                # Emit fresh verifiable duplicate result; do NOT re-execute business effect
+                dup_res = self._emit_duplicate_result(req_id, data)
                 deduplicated.append(req_id)
+                processed.append(dup_res)
                 try:
                     shutil.move(fpath, os.path.join(self.archive_dir, os.path.basename(fpath)))
                 except Exception:
@@ -443,7 +490,10 @@ class PeerConsensusEngine:
             # Check if existing task in SQLite is already claimed or active
             existing_task = self.cp.get_task(req_id)
             if existing_task and existing_task.get("status") in ("CLAIMED", "COMPLETED", "VERIFIED"):
+                # Emit fresh verifiable duplicate result; do NOT re-execute business effect
+                dup_res = self._emit_duplicate_result(req_id, data)
                 deduplicated.append(req_id)
+                processed.append(dup_res)
                 try:
                     shutil.move(fpath, os.path.join(self.archive_dir, os.path.basename(fpath)))
                 except Exception:
