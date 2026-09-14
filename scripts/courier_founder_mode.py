@@ -498,11 +498,14 @@ class FounderModeMVP:
         }
 
     def run_autonomous_loop(self):
+        import os
         import time
         while True:
             # 1. Take highest priority PENDING goal
             goal = self.intake.pop_next_goal()
             if not goal:
+                if os.environ.get("COURIER_FAST_TEST_MODE") == "1":
+                    break
                 print("No safe V1 work or blocked. Sleeping...")
                 time.sleep(10)
                 continue
@@ -518,22 +521,22 @@ class FounderModeMVP:
                     next_missions = self.planner.discover_and_plan(goal, completed_missions)
                     if not next_missions:
                         from scripts.courier_goal_satisfaction_engine import GoalSatisfactionEngine
-                    engine = GoalSatisfactionEngine(self.workspace_dir)
-                    all_missions = self.queue.read_all()
-                    goal_missions = [m for m in all_missions if m.get("goal") == goal["goal"]]
-                    decision = engine.recompute(goal["goal"], goal_missions)
-                    
-                    if decision == "VERIFIED_COMPLETE":
-                        self.intake.mark_satisfied(goal["goal_id"])
-                        break
-                    elif decision == "WAIT_BRANCH_LOCAL_GATE":
-                        break
-                    elif decision == "QUIESCENT_WAKEABLE":
-                        break
-                    elif decision == "CONTINUE_SAFE_WORK":
-                        # We just let it continue generating missions if it can, 
-                        # but if discover_and_plan returned nothing, we break.
-                        break
+                        engine = GoalSatisfactionEngine(self.workspace_dir)
+                        all_missions = self.queue.read_all()
+                        goal_missions = [m for m in all_missions if m.get("goal") == goal["goal"]]
+                        decision = engine.recompute(goal["goal"], goal_missions)
+
+                        if decision == "VERIFIED_COMPLETE":
+                            self.intake.mark_satisfied(goal["goal_id"])
+                            break
+                        elif decision == "WAIT_BRANCH_LOCAL_GATE":
+                            break
+                        elif decision == "QUIESCENT_WAKEABLE":
+                            break
+                        elif decision == "CONTINUE_SAFE_WORK":
+                            # With no newly discovered mission, return control so a
+                            # later wake can retry from the durable active root.
+                            break
                     
                     parent_id = completed_missions[-1]["mission_id"] if completed_missions else None
                     for m in next_missions:
@@ -589,12 +592,15 @@ class FounderModeMVP:
                     )
                 
                     # Fetch blocker evidence if WORKER_UNAVAILABLE
-                    evidence = None
+                    blocker_reason = mission_result.get("reason", "UNKNOWN_BLOCKER")
+                    if blocker_reason == "SECOND_WRITER_BLOCKED":
+                        blocker_reason = "WRITER_CONFLICT"
+                    evidence = {"reason": blocker_reason}
                     if mission_result.get("reason") == "WORKER_UNAVAILABLE":
                         from scripts.worker_availability import WorkerAvailabilityResolver
                         resolver = WorkerAvailabilityResolver()
                         gemini_evidence = resolver.resolve_gemini()
-                        evidence = {"worker_evidence": gemini_evidence.to_dict()}
+                        evidence["worker_evidence"] = gemini_evidence.to_dict()
                 
                     self.intake.set_status(goal["goal_id"], "BLOCKED", blocker_evidence=evidence)
                     break
