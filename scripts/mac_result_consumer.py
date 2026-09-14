@@ -18,13 +18,17 @@ def verify_fingerprint(result_data: dict) -> bool:
         calc = hashlib.sha256(f"{req_id}{status}{obs}".encode("utf-8")).hexdigest()
         return calc == expected
         
-    # Windows schema support
+    # Windows schema: strong recompute — sha256(evidence_content) must equal content_integrity digest.
+    # Do NOT accept merely because the digest text appears in evidence.
     ci = result_data.get("content_integrity")
     if ci and ci.startswith("SHA256:"):
-        ev = result_data.get("evidence", "")
-        if ci in ev:
-            return True
-    
+        declared_digest = ci[len("SHA256:"):]
+        evidence_content = result_data.get("evidence_content")
+        if not evidence_content or not isinstance(evidence_content, str):
+            return False  # fail closed: evidence_content missing or malformed
+        computed_digest = hashlib.sha256(evidence_content.encode("utf-8")).hexdigest()
+        return computed_digest == declared_digest  # fail closed on mismatch
+
     return False
 
 def consume_results():
@@ -52,18 +56,22 @@ def consume_results():
                 continue
                 
             ack_file = ACKS_DIR / f"{req_id}.ack.json"
-            if ack_file.exists():
-                continue # Already acknowledged
-                
+
             print(f"Discovered result for {req_id}")
-            
-            # Verify Independent Customs
+
+            # Verify Independent Customs — ALWAYS verify before deciding on ACK.
             if not data.get("schema_version"):
                 print("Missing schema_version, rejecting")
                 continue
-                
+
             if not verify_fingerprint(data):
-                print("FINGERPRINT INVALID")
+                print(f"FINGERPRINT INVALID for {req_id}")
+                continue
+
+            # Idempotent ACK: result has been strongly verified above.
+            # If ACK already exists, do not emit a duplicate — log and move on.
+            if ack_file.exists():
+                print(f"Result for {req_id} verified OK; ACK already exists — idempotent skip.")
                 continue
                 
             # Write Ack
