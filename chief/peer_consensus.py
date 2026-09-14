@@ -357,6 +357,7 @@ class PeerConsensusEngine:
             "decision": "ACCEPTED_VERIFIED",
             "work_done": f"Bounded validation for {val_type} completed autonomously via {self.WORKER_ID}",
             "evidence": f"EXECUTION_EXIT_0_SHA256:{evidence_sha256}",
+            "evidence_content": evidence_content,
             "content_integrity": f"SHA256:{evidence_sha256}",
             "access_integrity": "NTFS_ACL_CONTAINED_BORDER_GUARD_ENFORCED",
             "files_changed": [req_fpath] if req_fpath else [],
