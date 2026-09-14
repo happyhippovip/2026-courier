@@ -3,7 +3,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 from scripts.courier_safety_dispatcher import CourierSafetyDispatcher
-from scripts.courier_real_worker_adapters import get_real_worker_adapters, create_real_cli1_adapter
+from scripts.courier_real_worker_adapters import create_real_cli1_adapter
 
 class TestCourierFallback(unittest.TestCase):
     def setUp(self):
@@ -17,9 +17,7 @@ class TestCourierFallback(unittest.TestCase):
         scripts_dir.mkdir(parents=True, exist_ok=True)
         (scripts_dir / "autonomy_supervisor.py").write_text("def run(): pass\n")
 
-        self.adapters = get_real_worker_adapters(self.tmp.name)
-        for agent, adapter in self.adapters.items():
-            self.dispatcher.adapter_boundary.register_consumer(agent, adapter)
+        self.dispatcher.adapter_boundary.attach_real_worker_adapters(self.tmp.name)
 
     def tearDown(self):
         self.tmp.cleanup()

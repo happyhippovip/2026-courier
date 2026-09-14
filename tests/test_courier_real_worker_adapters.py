@@ -52,6 +52,13 @@ class TestCourierRealWorkerAdapters(unittest.TestCase):
     def tearDown(self) -> None:
         self.temp_dir.cleanup()
 
+    def test_local_boundary_excludes_remote_windows_adapter(self) -> None:
+        self.assertEqual(
+            set(self.boundary.consumers),
+            set(self.boundary.SUPPORTED_AGENTS),
+        )
+        self.assertNotIn("WINDOWS", self.boundary.consumers)
+
     def test_real_cli1_adapter_execution(self) -> None:
         """Verify truthful CLI1 deterministic local adapter execution (0 model calls)."""
         adapter = create_real_cli1_adapter(REPO_ROOT)
@@ -920,4 +927,3 @@ class TestCourierRealWorkerAdapters(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

@@ -18,6 +18,9 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import contextlib
+import fcntl
+import uuid
 from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -29,6 +32,10 @@ _DEFAULT_AGY_PATH = Path("/Users/user/.local/bin/agy")
 class WorkerState:
     AVAILABLE = "AVAILABLE"
     UNAVAILABLE = "UNAVAILABLE"
+
+
+class AvailabilityStoreIntegrityError(RuntimeError):
+    """Persisted availability history is malformed and cannot be trusted."""
 
 
 @dataclass(frozen=True)
@@ -181,24 +188,44 @@ class AvailabilityStore:
 
     def __init__(self, workspace_dir: Path) -> None:
         self._path = workspace_dir / "events" / "worker-availability" / "fingerprints.json"
+        self._lock_path = self._path.with_suffix(".lock")
         self._path.parent.mkdir(parents=True, exist_ok=True)
-        if not self._path.exists():
-            self._write({})
+        with self._locked():
+            if not self._path.exists():
+                self._write({})
+
+    @contextlib.contextmanager
+    def _locked(self):
+        with open(self._lock_path, "a+", encoding="utf-8") as lock:
+            fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+            try:
+                yield
+            finally:
+                fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
 
     def _read(self) -> Dict[str, Any]:
         try:
             with open(self._path, encoding="utf-8") as fh:
-                return json.load(fh)
-        except Exception:
-            return {}
+                data = json.load(fh)
+        except Exception as error:
+            raise AvailabilityStoreIntegrityError("WORKER_AVAILABILITY_CORRUPT_FAIL_CLOSED") from error
+        if not isinstance(data, dict) or not all(
+            isinstance(worker, str) and isinstance(fingerprint, str)
+            for worker, fingerprint in data.items()
+        ):
+            raise AvailabilityStoreIntegrityError("WORKER_AVAILABILITY_CORRUPT_FAIL_CLOSED")
+        return data
 
     def _write(self, data: Dict[str, Any]) -> None:
-        tmp = self._path.with_suffix(".tmp")
-        with open(tmp, "w", encoding="utf-8") as fh:
-            json.dump(data, fh, indent=2, sort_keys=True)
-            fh.flush()
-            os.fsync(fh.fileno())
-        os.replace(tmp, self._path)
+        tmp = self._path.with_name(f".{self._path.name}.tmp.{os.getpid()}.{uuid.uuid4().hex}")
+        try:
+            with open(tmp, "w", encoding="utf-8") as fh:
+                json.dump(data, fh, indent=2, sort_keys=True)
+                fh.flush()
+                os.fsync(fh.fileno())
+            os.replace(tmp, self._path)
+        finally:
+            tmp.unlink(missing_ok=True)
 
     def get_last(self, worker: str) -> Optional[str]:
         """Return last persisted fingerprint for ``worker``, or None."""
@@ -206,15 +233,19 @@ class AvailabilityStore:
 
     def update(self, worker: str, fingerprint: str) -> None:
         """Persist the latest availability fingerprint for ``worker``."""
-        data = self._read()
-        data[worker] = fingerprint
-        self._write(data)
+        with self._locked():
+            data = self._read()
+            data[worker] = fingerprint
+            self._write(data)
 
     def classify_transition(self, worker: str, current: AvailabilityEvidence) -> str:
         """Return one of: AVAILABLE, UNAVAILABLE, CHANGED_SINCE_LAST_CHECK, UNCHANGED."""
         current_fp = current.fingerprint()
-        last_fp = self.get_last(worker)
-        self.update(worker, current_fp)
+        with self._locked():
+            data = self._read()
+            last_fp = data.get(worker)
+            data[worker] = current_fp
+            self._write(data)
 
         if last_fp is None:
             return current.state

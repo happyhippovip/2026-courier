@@ -19,6 +19,7 @@ from unittest.mock import MagicMock, patch
 from scripts.worker_availability import (
     AvailabilityEvidence,
     AvailabilityStore,
+    AvailabilityStoreIntegrityError,
     WorkerAvailabilityResolver,
     WorkerState,
     _find_in_PATH,
@@ -178,6 +179,20 @@ class TestNoRetryOnUnchangedUnavailability(unittest.TestCase):
         store.classify_transition("GEMINI", evidence)
         second = store.classify_transition("GEMINI", evidence)
         self.assertEqual(second, "UNCHANGED")
+
+    def test_corrupt_availability_history_fails_closed_and_is_not_overwritten(self):
+        store = AvailabilityStore(self.ws)
+        store._path.write_text('{"GEMINI":', encoding="utf-8")
+        before = store._path.read_bytes()
+        evidence = AvailabilityEvidence(
+            worker="GEMINI", state=WorkerState.AVAILABLE,
+            executable="/usr/local/bin/agy", resolution_method="PATH_DISCOVERY",
+            detail="found",
+        )
+
+        with self.assertRaisesRegex(AvailabilityStoreIntegrityError, "CORRUPT_FAIL_CLOSED"):
+            store.classify_transition("GEMINI", evidence)
+        self.assertEqual(store._path.read_bytes(), before)
 
 
 class TestAvailabilityChangeTriggersRetry(unittest.TestCase):
