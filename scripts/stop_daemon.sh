@@ -1,9 +1,8 @@
 #!/bin/bash
 if [ -f logs/courier_daemon.pid ]; then
-    PID=$(cat logs/courier_daemon.pid)
-    kill $PID
+    kill $(cat logs/courier_daemon.pid)
     rm logs/courier_daemon.pid
-    echo "Daemon stopped."
+    echo "Courier Server stopped."
 else
-    echo "Daemon not running."
+    echo "No running daemon found."
 fi
