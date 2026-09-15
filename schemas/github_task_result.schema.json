@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Courier GitHub bounded TaskPacket terminal result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "task_id",
+    "attempt_id",
+    "dispatch_id",
+    "result_id",
+    "operation",
+    "github_run_id",
+    "github_run_attempt",
+    "status",
+    "terminal"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "task_id": { "$ref": "#/$defs/identity" },
+    "attempt_id": { "$ref": "#/$defs/identity" },
+    "dispatch_id": { "$ref": "#/$defs/identity" },
+    "result_id": { "$ref": "#/$defs/identity" },
+    "operation": { "type": "string" },
+    "github_run_id": { "type": "string", "pattern": "^[1-9][0-9]{0,19}$" },
+    "github_run_attempt": { "type": "integer", "minimum": 1, "maximum": 100 },
+    "status": { "enum": ["SUCCEEDED", "REJECTED"] },
+    "terminal": { "const": true },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "ref", "sha"],
+      "properties": {
+        "repository": { "type": "string" },
+        "ref": { "type": "string" },
+        "sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+      }
+    },
+    "error": { "type": "string", "minLength": 1, "maxLength": 256 }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "SUCCEEDED" } } },
+      "then": { "required": ["result"], "not": { "required": ["error"] } },
+      "else": { "required": ["error"], "not": { "required": ["result"] } }
+    }
+  ],
+  "$defs": {
+    "identity": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+    }
+  }
+}

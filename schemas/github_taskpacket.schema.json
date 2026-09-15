@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Courier GitHub bounded TaskPacket",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "task_id",
+    "attempt_id",
+    "dispatch_id",
+    "result_id",
+    "operation",
+    "github_run_id",
+    "github_run_attempt",
+    "repository",
+    "ref",
+    "sha"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "task_id": { "$ref": "#/$defs/identity" },
+    "attempt_id": { "$ref": "#/$defs/identity" },
+    "dispatch_id": { "$ref": "#/$defs/identity" },
+    "result_id": { "$ref": "#/$defs/identity" },
+    "operation": { "const": "repository-metadata-v1" },
+    "github_run_id": { "type": "string", "pattern": "^[1-9][0-9]{0,19}$" },
+    "github_run_attempt": { "type": "integer", "minimum": 1, "maximum": 100 },
+    "repository": { "type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$" },
+    "ref": { "type": "string", "minLength": 1, "maxLength": 512 },
+    "sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+  },
+  "$defs": {
+    "identity": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+    }
+  }
+}

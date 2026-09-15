@@ -1,0 +1,108 @@
+name: Courier bounded TaskPacket
+
+on:
+  workflow_dispatch:
+    inputs:
+      task_id:
+        description: "Courier task identity"
+        required: true
+        type: string
+      attempt_id:
+        description: "Courier attempt identity"
+        required: true
+        type: string
+      dispatch_id:
+        description: "Courier dispatch identity"
+        required: true
+        type: string
+      result_id:
+        description: "Courier result identity"
+        required: true
+        type: string
+      operation:
+        description: "Bounded read-only operation"
+        required: true
+        type: choice
+        options:
+          - repository-metadata-v1
+
+permissions: {}
+
+jobs:
+  execute-bounded-taskpacket:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout contract implementation
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Build and execute bounded TaskPacket
+        env:
+          TASK_ID: ${{ inputs.task_id }}
+          ATTEMPT_ID: ${{ inputs.attempt_id }}
+          DISPATCH_ID: ${{ inputs.dispatch_id }}
+          RESULT_ID: ${{ inputs.result_id }}
+          OPERATION: ${{ inputs.operation }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: python3 scripts/run_github_taskpacket.py execute --output-dir taskpacket-output
+
+      - name: Upload terminal TaskPacket result
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: courier-taskpacket-result-${{ inputs.task_id }}-${{ inputs.attempt_id }}-${{ inputs.dispatch_id }}
+          path: taskpacket-output/result.json
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Fail rejected TaskPackets
+        if: ${{ always() }}
+        run: |
+          test -f taskpacket-output/result.json
+          test "$(python3 -c "import json; print(json.load(open('taskpacket-output/result.json', encoding='utf-8'))['status'])")" = "SUCCEEDED"
+
+  independently-verify-terminal-result:
+    if: ${{ always() }}
+    needs: execute-bounded-taskpacket
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout verifier implementation
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Download exact executor result
+        uses: actions/download-artifact@v4
+        with:
+          name: courier-taskpacket-result-${{ inputs.task_id }}-${{ inputs.attempt_id }}-${{ inputs.dispatch_id }}
+          path: taskpacket-output
+
+      - name: Independently verify identity and terminal result
+        env:
+          TASK_ID: ${{ inputs.task_id }}
+          ATTEMPT_ID: ${{ inputs.attempt_id }}
+          DISPATCH_ID: ${{ inputs.dispatch_id }}
+          RESULT_ID: ${{ inputs.result_id }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: python3 scripts/verify_github_taskpacket_result.py --result taskpacket-output/result.json --output taskpacket-verification/verification.json
+
+      - name: Upload verified terminal result package
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: courier-taskpacket-verified-result-${{ inputs.task_id }}-${{ inputs.attempt_id }}-${{ inputs.dispatch_id }}
+          path: |
+            taskpacket-output/result.json
+            taskpacket-verification/verification.json
+          if-no-files-found: error
+          retention-days: 14
