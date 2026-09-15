@@ -1,7 +1,7 @@
 {
   "attempt_id": "attempt-001",
   "cost_or_quota_if_known": null,
-  "durable_ref": "revenue_v1/taskpackets/task-c14849380a8b4051.json",
+  "durable_ref": "revenue_v1/taskpackets/task-c14849380a8b4051.json@7f7c5a3f1f26e11aabdf759878bb2af3624b3899",
   "goal_id": "rev-v1-customer-job",
   "last_transition": "PRE_DISPATCH_ADMISSION",
   "next_explicit_transition": "DISPATCH_REVENUE_V1",
