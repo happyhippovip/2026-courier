@@ -88,3 +88,10 @@ runtime/content/*
 !events/context-snapshots/.gitkeep
 !events/context-snapshots/snapshot-current.json
 !events/academy/economics.json
+
+# Mac worker runtime
+scripts/mac_worker/config.json
+scripts/mac_worker/logs/
+scripts/mac_worker/state/
+scripts/mac_worker/inbox/
+scripts/mac_worker/outbox/
