@@ -502,7 +502,19 @@ class HeavyProcessSupervisor:
                 f"UPDATE heavy_jobs SET {', '.join(columns)} WHERE job_id = ? AND attempt = ?",
                 values,
             )
-            evidence = json.dumps(updates) if updates else ""
+            sanitized = {}
+            for k, v in updates.items():
+                if isinstance(v, str):
+                    v_up = v.upper()
+                    if any(s in v_up for s in ["SECRET", "TOKEN", "KEY", "PASS", "CRED"]):
+                        sanitized[k] = "***REDACTED***"
+                    else:
+                        sanitized[k] = v
+                else:
+                    sanitized[k] = v
+            evidence = json.dumps(sanitized) if sanitized else ""
+            if len(evidence) > 1024:
+                evidence = evidence[:1021] + "..."
             self._conn.execute(
                 "INSERT INTO event_log (job_id, attempt, owner_context, state, timestamp, evidence) VALUES (?, ?, ?, ?, ?, ?)",
                 (job_id, attempt, self.owner_id, state, _utcnow(), evidence)
@@ -773,20 +785,45 @@ class HeavyProcessSupervisor:
     def register_service(self, service_id: str, pid: int, pgid: int) -> None:
         self._conn.execute("BEGIN IMMEDIATE")
         try:
-            self._conn.execute("INSERT OR IGNORE INTO managed_services (service_id, owner_id, pid, pgid, state) VALUES (?, ?, ?, ?, 'REGISTERED')", (service_id, self.owner_id, pid, pgid))
+            row = self._conn.execute("SELECT owner_id, pid, pgid, state FROM managed_services WHERE service_id = ?", (service_id,)).fetchone()
+            if not row:
+                self._conn.execute("INSERT INTO managed_services (service_id, owner_id, pid, pgid, state) VALUES (?, ?, ?, ?, 'REGISTERED')", (service_id, self.owner_id, pid, pgid))
+            else:
+                if row[0] == self.owner_id and row[1] == pid and row[2] == pgid:
+                    pass
+                else:
+                    self._conn.execute("UPDATE managed_services SET state = 'AMBIGUOUS' WHERE service_id = ?", (service_id,))
             self._conn.execute("COMMIT")
         except Exception:
             self._conn.execute("ROLLBACK")
             raise
+        
+        if row and not (row[0] == self.owner_id and row[1] == pid and row[2] == pgid):
+            raise HeavyProcessError(f"SERVICE_OWNERSHIP_CONFLICT:{service_id}")
 
     def register_listener(self, listener_id: str, service_id: str) -> None:
         self._conn.execute("BEGIN IMMEDIATE")
+        conflict = False
         try:
-            self._conn.execute("INSERT OR REPLACE INTO managed_listeners (listener_id, service_id, owner_id, state) VALUES (?, ?, ?, 'OPEN')", (listener_id, service_id, self.owner_id))
+            row = self._conn.execute("SELECT service_id, owner_id, state FROM managed_listeners WHERE listener_id = ?", (listener_id,)).fetchone()
+            if not row:
+                self._conn.execute("INSERT INTO managed_listeners (listener_id, service_id, owner_id, state) VALUES (?, ?, ?, 'OPEN')", (listener_id, service_id, self.owner_id))
+            else:
+                if row[2] == 'OPEN':
+                    if row[0] == service_id and row[1] == self.owner_id:
+                        pass
+                    else:
+                        self._conn.execute("UPDATE managed_listeners SET state = 'AMBIGUOUS' WHERE listener_id = ?", (listener_id,))
+                        conflict = True
+                else:
+                    self._conn.execute("UPDATE managed_listeners SET service_id = ?, owner_id = ?, state = 'OPEN' WHERE listener_id = ?", (service_id, self.owner_id, listener_id))
             self._conn.execute("COMMIT")
         except Exception:
             self._conn.execute("ROLLBACK")
             raise
+            
+        if conflict:
+            raise HeavyProcessError(f"LISTENER_OWNERSHIP_CONFLICT:{listener_id}")
 
     def release_listener(self, listener_id: str) -> None:
         if self._conn is None:
