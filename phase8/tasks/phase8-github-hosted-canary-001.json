@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "goal_id": "phase8-github-canary-001",
+  "task_id": "phase8-task-canary-001",
+  "attempt_id": "phase8-attempt-canary-001",
+  "idempotency_key": "phase8-idempotency-0001",
+  "capability": "repository-policy-digest-v1",
+  "scope": ".github/github-actions-policy.json",
+  "budget": {
+    "max_files": 1,
+    "max_bytes": 65536
+  },
+  "result_contract": "sha256-of-scope-v1",
+  "proposal_mode": "PR_ONLY"
+}
