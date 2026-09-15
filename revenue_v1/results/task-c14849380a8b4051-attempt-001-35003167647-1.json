@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "task_id": "task-c14849380a8b4051",
+  "attempt_id": "attempt-001",
+  "idempotency_key": "rev-v1-c14849380a8b4051",
+  "github_run_id": "35003167647",
+  "github_run_attempt": "1",
+  "worker_result_id": "worker-attempt-001",
+  "customer_reference": "NONCUSTOMER-PHYSICAL-PROOF-002",
+  "report_json_sha256": "ac6e675796f5a9419fb06afeae525aff83f772fd6a08e6e55556252682cc82df",
+  "report_md_sha256": "67194d1bb94c54e7aa0cfb8338b234a347f51b7f6e5c25a066b900e3a3459894",
+  "effect_classification": "SAFE_READ_ONLY",
+  "worker_status": "PASS",
+  "proposal_mode": "PR_ONLY",
+  "verifier_id": "revenue-v1-independent-verifier",
+  "verifier_status": "PASS",
+  "next_safe_state": "HUMAN_REVIEW_REQUIRED"
+}
