@@ -1,7 +1,7 @@
 name: Revenue V1 Baseline
 
 on:
-  workflow_dispatch:
+  push:
     inputs:
       task_json:
         description: 'Task JSON payload'
