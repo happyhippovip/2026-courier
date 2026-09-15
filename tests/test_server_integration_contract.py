@@ -1,5 +1,7 @@
 import hashlib
 import json
+import threading
+from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 
@@ -176,3 +178,108 @@ def test_retry_gets_new_attempt_and_dispatch_identity(tmp_path, monkeypatch):
     assert retried["attempt_id"] == "task-1:attempt:2"
     assert retried["dispatch_id"] != task["dispatch_id"]
     assert retried["status"] == "DISPATCHED"
+
+
+def test_worker_cannot_claim_second_task_while_first_is_active(tmp_path, monkeypatch):
+    http = client(tmp_path, monkeypatch)
+    assert http.post(
+        "/workers/register",
+        headers=auth(),
+        json={"worker_id": "MAC-01", "platform": "mac", "capabilities": ["macos"]},
+    ).status_code == 200
+    for number in (1, 2):
+        assert http.post(
+            "/goals",
+            headers=auth(),
+            json={
+                "goal_text": f"bounded goal {number}",
+                "workflow_plan": [{
+                    "task_id": f"task-{number}",
+                    "target_agent": "mac",
+                    "artifacts": [f"artifact-{number}.txt"],
+                }],
+            },
+        ).status_code == 200
+
+    first = http.post("/tasks/claim", headers=auth(), json={"worker_id": "MAC-01"})
+    second = http.post("/tasks/claim", headers=auth(), json={"worker_id": "MAC-01"})
+
+    assert first.get_json()["task"]["task_id"] == "task-1"
+    assert second.get_json() == {"task": None, "reason": "WORKER_BUSY"}
+    state = server_app.load_state()
+    assert state["workers"]["MAC-01"]["current_task"] == "task-1"
+    assert state["goals"][next(
+        goal_id for goal_id, goal in state["goals"].items() if goal["goal_text"] == "bounded goal 2"
+    )]["workflow_plan"][0]["status"] == "QUEUED"
+
+
+def test_reregister_does_not_erase_active_worker_claim(tmp_path, monkeypatch):
+    http, _, task = setup_claimed_task(tmp_path, monkeypatch)
+
+    response = http.post(
+        "/workers/register",
+        headers=auth(),
+        json={"worker_id": "MAC-01", "platform": "mac", "capabilities": ["macos"]},
+    )
+
+    assert response.status_code == 200
+    worker = server_app.load_state()["workers"]["MAC-01"]
+    assert worker["current_task"] == task["task_id"]
+    assert worker["available"] is False
+
+
+def test_concurrent_claims_have_exactly_one_winner(tmp_path, monkeypatch):
+    http = client(tmp_path, monkeypatch)
+    assert http.post(
+        "/workers/register",
+        headers=auth(),
+        json={"worker_id": "MAC-01", "platform": "mac", "capabilities": ["macos"]},
+    ).status_code == 200
+    assert http.post(
+        "/goals",
+        headers=auth(),
+        json={
+            "goal_text": "one concurrent claim",
+            "workflow_plan": [{
+                "task_id": "task-concurrent",
+                "target_agent": "mac",
+                "artifacts": ["concurrent.txt"],
+            }],
+        },
+    ).status_code == 200
+
+    original_save = server_app.save_state
+    first_save_waiting = threading.Event()
+    second_save_arrived = threading.Event()
+    arrival_lock = threading.Lock()
+    arrivals = 0
+
+    def coordinated_save(state):
+        nonlocal arrivals
+        with arrival_lock:
+            arrivals += 1
+            arrival = arrivals
+        if arrival == 1:
+            first_save_waiting.set()
+            second_save_arrived.wait(timeout=0.5)
+        elif first_save_waiting.is_set():
+            second_save_arrived.set()
+        original_save(state)
+
+    monkeypatch.setattr(server_app, "save_state", coordinated_save)
+
+    def claim():
+        with server_app.app.test_client() as concurrent_http:
+            return concurrent_http.post(
+                "/tasks/claim", headers=auth(), json={"worker_id": "MAC-01"}
+            ).get_json()
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        responses = list(executor.map(lambda _: claim(), range(2)))
+
+    claimed = [response["task"] for response in responses if response.get("task")]
+    assert len(claimed) == 1
+    assert claimed[0]["task_id"] == "task-concurrent"
+    assert sorted(response.get("reason", "CLAIMED") for response in responses) == [
+        "CLAIMED", "WORKER_BUSY"
+    ]

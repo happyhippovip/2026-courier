@@ -1,4 +1,5 @@
-import os, json, uuid, time
+import os, json, uuid, time, threading
+from functools import wraps
 from flask import Flask, request, jsonify
 
 from scripts.integration_contract import ContractError, prepare_task, validate_durable_result
@@ -9,6 +10,7 @@ app = Flask(__name__)
 STATE_FILE = os.environ.get("COURIER_STATE_FILE", "server/state/central_state.json")
 API_KEY = os.environ.get("COURIER_API_KEY", "dev-secret-key")
 INSECURE_API_KEYS = {"", "dev-secret-key", "your_secure_api_key_here"}
+STATE_LOCK = threading.RLock()
 
 def require_auth(f):
     def wrapper(*args, **kwargs):
@@ -19,6 +21,15 @@ def require_auth(f):
             return jsonify({"error": "Unauthorized"}), 401
         return f(*args, **kwargs)
     wrapper.__name__ = f.__name__
+    return wrapper
+
+
+def serialize_state_mutation(f):
+    """Keep each JSON-state read/check/write transition atomic in this process."""
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        with STATE_LOCK:
+            return f(*args, **kwargs)
     return wrapper
 
 def load_state():
@@ -57,6 +68,7 @@ def status():
 
 @app.route("/goals", methods=["POST"])
 @require_auth
+@serialize_state_mutation
 def submit_goal():
     data = request.get_json(silent=True) or {}
     if not isinstance(data.get("goal_text"), str) or not data["goal_text"].strip():
@@ -141,6 +153,7 @@ def list_walls():
 
 @app.route("/workers/register", methods=["POST"])
 @require_auth
+@serialize_state_mutation
 def register_worker():
     data = request.get_json(silent=True) or {}
     worker_id = data.get("worker_id")
@@ -148,13 +161,15 @@ def register_worker():
         return jsonify({"error": "worker_id is required"}), 400
     state = load_state()
     
+    existing = state["workers"].get(worker_id, {})
+    current_task = existing.get("current_task")
     state["workers"][worker_id] = {
         "worker_id": worker_id,
         "platform": data.get("platform", "unknown"),
         "capabilities": data.get("capabilities", []),
         "last_seen": time.time(),
-        "available": True,
-        "current_task": None,
+        "available": current_task is None,
+        "current_task": current_task,
         "cost_class": data.get("cost_class", "unknown")
     }
     
@@ -163,6 +178,7 @@ def register_worker():
 
 @app.route("/workers/heartbeat", methods=["POST"])
 @require_auth
+@serialize_state_mutation
 def heartbeat():
     data = request.get_json(silent=True) or {}
     worker_id = data.get("worker_id")
@@ -180,6 +196,7 @@ def heartbeat():
 
 @app.route("/tasks/claim", methods=["POST"])
 @require_auth
+@serialize_state_mutation
 def claim_task():
     data = request.get_json(silent=True) or {}
     worker_id = data.get("worker_id")
@@ -190,6 +207,9 @@ def claim_task():
         
     worker = state["workers"][worker_id]
     worker["last_seen"] = time.time()
+    if worker.get("current_task") or not worker.get("available", False):
+        save_state(state)
+        return jsonify({"task": None, "reason": "WORKER_BUSY"})
     
     for goal_id, goal in state["goals"].items():
         if goal["status"] == "ACTIVE" and "workflow_plan" in goal:
@@ -268,6 +288,7 @@ def claim_task():
 
 @app.route("/tasks/result", methods=["POST"])
 @require_auth
+@serialize_state_mutation
 def task_result():
     data = request.get_json(silent=True) or {}
     task_id = data.get("task_id")
@@ -326,6 +347,7 @@ def task_result():
 
 @app.route("/tasks/reclaim_stale", methods=["POST"])
 @require_auth
+@serialize_state_mutation
 def reclaim_stale():
     state = load_state()
     now = time.time()
@@ -371,6 +393,7 @@ def pending_verification():
 
 @app.route("/tasks/verify", methods=["POST"])
 @require_auth
+@serialize_state_mutation
 def verify_task_result():
     data = request.get_json(silent=True) or {}
     task_id = data.get("task_id")
