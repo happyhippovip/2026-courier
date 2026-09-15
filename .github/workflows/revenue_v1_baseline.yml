@@ -1,0 +1,204 @@
+name: Revenue V1 Baseline
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_owner:
+        description: 'Target GitHub Repository Owner'
+        required: true
+        type: string
+      target_repo:
+        description: 'Target GitHub Repository Name'
+        required: true
+        type: string
+      target_sha:
+        description: 'Immutable Target Commit SHA'
+        required: true
+        type: string
+      customer_reference:
+        description: 'Customer or Order Reference'
+        required: true
+        type: string
+      price_currency:
+        description: 'Agreed Price and Currency (e.g. USD 500.00)'
+        required: true
+        type: string
+      delivery_destination:
+        description: 'Delivery Destination (Email, Slack ID, Portal ID)'
+        required: true
+        type: string
+
+jobs:
+  worker:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Courier
+        uses: actions/checkout@v4
+        
+      - name: Write Task Payload
+        env:
+          TARGET_OWNER: ${{ inputs.target_owner }}
+          TARGET_REPO: ${{ inputs.target_repo }}
+          TARGET_SHA: ${{ inputs.target_sha }}
+          CUSTOMER_REFERENCE: ${{ inputs.customer_reference }}
+          PRICE_CURRENCY: ${{ inputs.price_currency }}
+          DELIVERY_DESTINATION: ${{ inputs.delivery_destination }}
+        run: |
+          if [[ ! "$TARGET_OWNER" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+            echo "Invalid target_owner"
+            exit 1
+          fi
+          if [[ ! "$TARGET_REPO" =~ ^[a-zA-Z0-9_.-]+$ ]]; then
+            echo "Invalid target_repo"
+            exit 1
+          fi
+          if [[ ! "$TARGET_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo "Invalid target_sha"
+            exit 1
+          fi
+
+          jq -n \
+            --arg owner "$TARGET_OWNER" \
+            --arg repo "$TARGET_REPO" \
+            --arg sha "$TARGET_SHA" \
+            --arg customer "$CUSTOMER_REFERENCE" \
+            --arg price "$PRICE_CURRENCY" \
+            --arg dest "$DELIVERY_DESTINATION" \
+            --arg run_id "${GITHUB_RUN_ID}" \
+            '{
+              "schema_version": "1.0",
+              "goal_id": "rev-v1-customer-job",
+              "task_id": ("task-" + $run_id),
+              "attempt_id": "attempt-001",
+              "idempotency_key": ("rev-v1-idem-" + $run_id),
+              "capability": "github-actions-safety-baseline-v1",
+              "scope": "public-repo-inspection",
+              "target_owner": $owner,
+              "target_repo": $repo,
+              "target_sha": $sha,
+              "customer_reference": $customer,
+              "price_currency": $price,
+              "delivery_destination": $dest,
+              "budget": {"max_files": 100, "max_bytes": 1048576},
+              "result_contract": "revenue-v1-report",
+              "proposal_mode": "PR_ONLY",
+              "cost_tracking": {"compute_cost": "TBD"},
+              "human_minutes": 0
+            }' > task.json
+          
+      - name: Execute Revenue V1 Worker
+        run: |
+          python3 scripts/revenue_v1_safety_baseline.py worker task.json work_dir > result.json
+          
+      - name: Upload Worker Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: worker-artifacts
+          path: |
+            task.json
+            work_dir/report.json
+            work_dir/report.md
+            result.json
+
+  verifier:
+    needs: worker
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Courier
+        uses: actions/checkout@v4
+        
+      - name: Download Worker Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: worker-artifacts
+          
+      - name: Execute Independent Verifier
+        run: |
+          python3 scripts/revenue_v1_safety_baseline.py verify task.json work_dir result.json > verified.json
+          
+      - name: Upload Verified Result
+        uses: actions/upload-artifact@v4
+        with:
+          name: verified-artifacts
+          path: |
+            verified.json
+
+  handoff:
+    needs: verifier
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout Courier
+        uses: actions/checkout@v4
+        
+      - name: Download Worker Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: worker-artifacts
+          
+      - name: Download Verified Result
+        uses: actions/download-artifact@v4
+        with:
+          name: verified-artifacts
+          
+      - name: Create PR and Handoff
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PROPOSAL_HEAD="revenue/result-proposal-${GITHUB_RUN_ID}"
+          
+          # 1. Setup git and branch
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$PROPOSAL_HEAD" origin/main
+          
+          # 2. Add durable result
+          mkdir -p revenue_v1/results
+          TASK_ID=$(jq -r .task_id task.json)
+          ATTEMPT_ID=$(jq -r .attempt_id task.json)
+          RESULT_PATH="revenue_v1/results/${TASK_ID}-${ATTEMPT_ID}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.json"
+          cp verified.json "$RESULT_PATH"
+          
+          git add "$RESULT_PATH"
+          git commit -m "Propose Revenue V1 Result for ${TASK_ID}"
+          git push origin "$PROPOSAL_HEAD"
+          
+          RESULT_COMMIT=$(git rev-parse HEAD)
+          
+          # 3. Create PR
+          PR_URL=$(gh pr create --title "Revenue V1: $TASK_ID" --body "Automated result handoff." --base main --head "$PROPOSAL_HEAD")
+          PR_NUMBER=$(echo "$PR_URL" | awk -F'/' '{print $NF}')
+          
+          # 4. Construct handoff JSON
+          cat << HANDOFFEOF > handoff.json
+          {
+            "task_id": "$TASK_ID",
+            "attempt_id": "$ATTEMPT_ID",
+            "result_path": "$RESULT_PATH",
+            "verifier_id": "revenue-v1-independent-verifier",
+            "result_commit": "$RESULT_COMMIT",
+            "proposal_branch": "$PROPOSAL_HEAD",
+            "proposal_pr": "$PR_URL",
+            "human_merge_required": true
+          }
+          HANDOFFEOF
+          
+          # 5. Run Reconciler
+          python3 scripts/revenue_v1_safety_baseline.py reconcile task.json work_dir verified.json handoff.json "$PR_NUMBER" "$PROPOSAL_HEAD" "main" > reconciliation.json
+          
+          # 6. Output for artifacts
+          cat reconciliation.json
+          
+      - name: Upload Reconciliation
+        uses: actions/upload-artifact@v4
+        with:
+          name: handoff-artifacts
+          path: |
+            handoff.json
+            reconciliation.json
