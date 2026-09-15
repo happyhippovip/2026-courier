@@ -73,6 +73,7 @@ jobs:
     outputs:
       result_path: ${{ steps.verify.outputs.result_path }}
       verifier_id: phase8-independent-verifier-v1
+      verifier_result: ${{ steps.verify.outputs.verifier_result }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -87,6 +88,12 @@ jobs:
           result_path="phase8/results/${{ needs.validate-task.outputs.task_id }}-${{ needs.validate-task.outputs.attempt_id }}-${{ github.run_id }}-${{ github.run_attempt }}.json"
           python3 scripts/phase8_workforce.py verify --task "${{ needs.validate-task.outputs.task_path }}" --candidate "$candidate" --existing-dir phase8/results --output "$result_path" --run-id "${{ github.run_id }}" --run-attempt "${{ github.run_attempt }}"
           printf 'result_path=%s\n' "$result_path" >> "$GITHUB_OUTPUT"
+          python3 - "$result_path" "$GITHUB_OUTPUT" <<'PY'
+          import json, sys
+          result = json.load(open(sys.argv[1], encoding="utf-8"))
+          with open(sys.argv[2], "a", encoding="utf-8") as output:
+              output.write("verifier_result=" + json.dumps(result, sort_keys=True, separators=(",", ":")) + "\n")
+          PY
 
   propose-result:
     needs: [validate-task, verify-result]
@@ -102,6 +109,8 @@ jobs:
       ATTEMPT_ID: ${{ needs.validate-task.outputs.attempt_id }}
       RESULT_PATH: ${{ needs.verify-result.outputs.result_path }}
       VERIFIER_ID: ${{ needs.verify-result.outputs.verifier_id }}
+      TASK_PATH: ${{ needs.validate-task.outputs.task_path }}
+      VERIFIED_RESULT: ${{ needs.verify-result.outputs.verifier_result }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -109,8 +118,12 @@ jobs:
       - name: Create reviewable durable result proposal
         run: |
           set -eu
-          test -n "$TASK_ID"; test -n "$ATTEMPT_ID"; test -n "$RESULT_PATH"; test -n "$VERIFIER_ID"
-          test -f "$RESULT_PATH"
+          test -n "$TASK_ID"; test -n "$ATTEMPT_ID"; test -n "$RESULT_PATH"; test -n "$VERIFIER_ID"; test -n "$VERIFIED_RESULT"
+          candidate="$(mktemp)"
+          printf '%s' "$VERIFIED_RESULT" > "$candidate"
+          python3 scripts/phase8_workforce.py validate-result --task "$TASK_PATH" --candidate "$candidate" --run-id "${{ github.run_id }}" --run-attempt "${{ github.run_attempt }}"
+          mkdir -p "$(dirname "$RESULT_PATH")"
+          cp "$candidate" "$RESULT_PATH"
           gh auth setup-git
           git switch -c "$PROPOSAL_BRANCH"
           git add "$RESULT_PATH"

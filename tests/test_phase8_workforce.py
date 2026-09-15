@@ -46,6 +46,16 @@ class Phase8WorkforceTests(unittest.TestCase):
         with TemporaryDirectory() as directory, self.assertRaises(SystemExit):
             workforce.verify(task(), result, ROOT, Path(directory), "1", "1")
 
+    def test_unfenced_or_mismatched_verifier_result_is_rejected(self) -> None:
+        worker_result = workforce.worker(task(), ROOT, "1", "1")
+        with self.assertRaises(SystemExit):
+            workforce.validate_verified_result(task(), worker_result, ROOT, "1", "1")
+        with TemporaryDirectory() as directory:
+            verified = workforce.verify(task(), worker_result, ROOT, Path(directory), "1", "1")
+        verified["verifier_id"] = "worker-says-pass"
+        with self.assertRaises(SystemExit):
+            workforce.validate_verified_result(task(), verified, ROOT, "1", "1")
+
     def test_verifier_digest_mismatch_is_rejected(self) -> None:
         result = workforce.worker(task(), ROOT, "1", "1")
         result["digest_sha256"] = "0" * 64

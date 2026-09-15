@@ -88,10 +88,20 @@ def verify(task: dict[str, object], candidate: dict[str, object], root: Path, ex
     return {**candidate, "verifier_id": VERIFIER_ID, "verifier_status": "PASS"}
 
 
+def validate_verified_result(task: dict[str, object], result: dict[str, object], root: Path, run_id: str, run_attempt: str) -> None:
+    expected = {
+        **worker(task, root, run_id, run_attempt),
+        "verifier_id": VERIFIER_ID,
+        "verifier_status": "PASS",
+    }
+    if set(result) != set(expected) or result != expected:
+        fail("verifier-approved result does not satisfy the fenced contract")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     commands = parser.add_subparsers(dest="command", required=True)
-    for name in ("validate", "worker", "verify"):
+    for name in ("validate", "worker", "verify", "validate-result"):
         sub = commands.add_parser(name)
         sub.add_argument("--task", type=Path, required=True)
     worker_parser = commands.choices["worker"]
@@ -105,6 +115,11 @@ def main() -> None:
     verify_parser.add_argument("--output", type=Path, required=True)
     verify_parser.add_argument("--run-id", required=True)
     verify_parser.add_argument("--run-attempt", required=True)
+    result_parser = commands.choices["validate-result"]
+    result_parser.add_argument("--candidate", type=Path, required=True)
+    result_parser.add_argument("--root", type=Path, default=Path("."))
+    result_parser.add_argument("--run-id", required=True)
+    result_parser.add_argument("--run-attempt", required=True)
     args = parser.parse_args()
     task = load(args.task)
     if args.command == "validate":
@@ -112,6 +127,9 @@ def main() -> None:
         return
     if args.command == "worker":
         print(json.dumps(worker(task, args.root, args.run_id, args.run_attempt), sort_keys=True))
+        return
+    if args.command == "validate-result":
+        validate_verified_result(task, load(args.candidate), args.root, args.run_id, args.run_attempt)
         return
     result = verify(task, load(args.candidate), args.root, args.existing_dir, args.run_id, args.run_attempt)
     args.output.parent.mkdir(parents=True, exist_ok=True)
