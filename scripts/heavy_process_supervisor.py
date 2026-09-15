@@ -150,9 +150,17 @@ class GlobalAdmissionRecovery:
         self.min_available_memory_bytes = min_available_memory_bytes
         self.resource_probe = resource_probe
         self.min_available_disk_bytes = min_available_disk_bytes
-        self.disk_probe = disk_probe or self._available_memory
+        self.disk_probe = disk_probe or (lambda: self._available_disk(ledger_path.parent))
         if max_running < 1 or max_pending < 0 or min_available_memory_bytes < 0:
             raise ValueError("admission limits must be non-negative and max_running positive")
+
+    @staticmethod
+    def _available_disk(path) -> int | None:
+        import shutil
+        try:
+            return shutil.disk_usage(str(path)).free
+        except (OSError, ValueError):
+            return None
 
     @staticmethod
     def _available_memory() -> int | None:
@@ -678,25 +686,22 @@ class HeavyProcessSupervisor:
             merged_env = {k: v for k, v in os.environ.items() if k in safe_keys}
             if env:
                 for k, v in env.items():
-                    k_up = k.upper()
-                    if "SECRET" in k_up or "TOKEN" in k_up or "KEY" in k_up or "PASS" in k_up or "CRED" in k_up:
+                    if k not in safe_keys:
                         self._transition(job_id, attempt, "SPAWN_FAILED", finished_at=_utcnow(), error=f"forbidden env key: {k}")
                         raise HeavyProcessError(f"FORBIDDEN_ENV_KEY_PROCESS_STARTED=NO:{k}")
                     merged_env[k] = v
             
-            preexec_fn = None
+            kwargs = {}
             if run_as_uid is not None:
-                if hasattr(os, "setresuid"):
-                    def demote():
-                        os.setresuid(run_as_uid, run_as_uid, run_as_uid)
-                    preexec_fn = demote
-                else:
-                    self._transition(job_id, attempt, "SPAWN_FAILED", finished_at=_utcnow(), error="uid demotion not supported")
-                    raise HeavyProcessError("UID_DEMOTION_UNSUPPORTED_PROCESS_STARTED=NO")
+                if run_as_uid != os.getuid() and os.getuid() != 0:
+                    self._transition(job_id, attempt, "SPAWN_FAILED", finished_at=_utcnow(), error="privilege elevation forbidden")
+                    raise HeavyProcessError("FORBIDDEN_ELEVATION_PROCESS_STARTED=NO")
+                kwargs["user"] = run_as_uid
+
             self._transition(job_id, attempt, 'STARTING')
             proc = subprocess.Popen(
                 list(command), stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                start_new_session=True, env=merged_env, preexec_fn=preexec_fn
+                start_new_session=True, env=merged_env, **kwargs
             )
         except OSError as exc:
             self._transition(job_id, attempt, "SPAWN_FAILED", finished_at=_utcnow(), error=str(exc))
