@@ -1,4 +1,4 @@
-import os, json, uuid, time
+import os, json, uuid, time, threading
 from flask import Flask, request, jsonify
 
 from scripts.integration_contract import ContractError, prepare_task, validate_durable_result
@@ -22,12 +22,15 @@ def require_auth(f):
 
 def load_state():
     if os.path.exists(STATE_FILE):
-        with open(STATE_FILE, 'r') as f:
-            state = json.load(f)
-            state.setdefault("goals", {})
-            state.setdefault("tasks", {})
-            state.setdefault("workers", {})
-            return state
+        try:
+            with open(STATE_FILE, 'r') as f:
+                state = json.load(f)
+                state.setdefault("goals", {})
+                state.setdefault("tasks", {})
+                state.setdefault("workers", {})
+                return state
+        except json.JSONDecodeError:
+            pass
     return {"goals": {}, "tasks": {}, "workers": {}}
 
 def save_state(state):
@@ -38,6 +41,21 @@ def save_state(state):
         f.flush()
         os.fsync(f.fileno())
     os.replace(temp_path, STATE_FILE)
+
+@app.route("/health", methods=["GET"])
+def health():
+    return jsonify({"status": "healthy", "time": time.time()})
+
+@app.route("/status", methods=["GET"])
+@require_auth
+def status():
+    state = load_state()
+    return jsonify({
+        "goals": len(state["goals"]),
+        "active_goals": len([g for g in state["goals"].values() if g["status"] == "ACTIVE"]),
+        "tasks": len(state["tasks"]),
+        "workers": len(state["workers"])
+    })
 
 @app.route("/goals", methods=["POST"])
 @require_auth
@@ -54,19 +72,28 @@ def submit_goal():
         "status": "ACTIVE"
     }
     
-    # If the user explicitly provided a workflow plan (for canary)
     if "workflow_plan" in data:
         goal["workflow_plan"] = data["workflow_plan"]
         goal["current_step_index"] = 0
         for step in goal["workflow_plan"]:
             step["goal_id"] = goal_id
             step["status"] = "QUEUED"
+            step["attempts"] = 0
             if "task_id" not in step:
                 step["task_id"] = f"task-{uuid.uuid4().hex[:8]}"
     else:
-        # Here we'd call ChiefCommander to formulate a plan
-        # but for this server boundary simulation, we'll just queue a generic task if none provided.
-        pass
+        # Without ChiefCommander directly linked, we create a single generic task
+        # Ideally, we'd dispatch a PLANNING task, but for the deterministic server router:
+        task_id = f"task-{uuid.uuid4().hex[:8]}"
+        goal["workflow_plan"] = [{
+            "task_id": task_id,
+            "goal_id": goal_id,
+            "instruction": data.get("goal_text"),
+            "target_agent": "linux",
+            "status": "QUEUED",
+            "attempts": 0
+        }]
+        goal["current_step_index"] = 0
         
     state["goals"][goal_id] = goal
     save_state(state)
@@ -103,7 +130,9 @@ def heartbeat():
     
     if worker_id in state["workers"]:
         state["workers"][worker_id]["last_seen"] = time.time()
-        state["workers"][worker_id]["available"] = True
+        # Only mark available if not currently working
+        if not state["workers"][worker_id].get("current_task"):
+            state["workers"][worker_id]["available"] = True
         save_state(state)
         return jsonify({"status": "OK"})
     else:
@@ -122,29 +151,25 @@ def claim_task():
     worker = state["workers"][worker_id]
     worker["last_seen"] = time.time()
     
-    # Find next eligible task
     for goal_id, goal in state["goals"].items():
         if goal["status"] == "ACTIVE" and "workflow_plan" in goal:
             idx = goal.get("current_step_index", 0)
             if idx < len(goal["workflow_plan"]):
                 next_task = goal["workflow_plan"][idx]
                 if next_task["status"] == "QUEUED":
-                    # Check routing capability
-                    target = next_task.get("target_agent", "linux")
+                    target = next_task.get("target_agent", "linux").lower()
                     
-                    # Routing logic
                     matched = False
-                    if target == "github" and "github" in worker["capabilities"]:
-                        matched = True
-                    elif target == "mac" and "macos" in worker["capabilities"]:
-                        matched = True
-                    elif target == "windows" and "windows" in worker["capabilities"]:
-                        matched = True
-                    elif target == "linux" and "linux" in worker["capabilities"]:
-                        matched = True
+                    if "github" in target and "github" in worker["capabilities"]: matched = True
+                    elif "mac" in target and "macos" in worker["capabilities"]: matched = True
+                    elif "windows" in target and "windows" in worker["capabilities"]: matched = True
+                    elif "linux" in target and "linux" in worker["capabilities"]: matched = True
+                    elif "antigravity" in target and "antigravity" in worker["capabilities"]: matched = True
                     
                     if matched:
                         next_task["worker_id"] = worker_id
+                        next_task["dispatch_id"] = str(uuid.uuid4())
+                        next_task["attempts"] = next_task.get("attempts", 0) + 1
                         next_task["target_capability"] = target
                         try:
                             next_task = prepare_task(next_task)
@@ -157,6 +182,13 @@ def claim_task():
                         worker["available"] = False
                         
                         state["tasks"][next_task["task_id"]] = next_task
+                        # If target is github, trigger the adapter locally
+                        if "github" in target:
+                            import subprocess, os
+                            task_file = f"server/state/dispatched_{next_task['task_id']}.json"
+                            with open(task_file, 'w') as tf:
+                                json.dump(next_task, tf)
+                            subprocess.Popen(["python3", "scripts/github_worker_adapter.py", task_file])
                         save_state(state)
                         return jsonify({"task": next_task})
                         
@@ -173,6 +205,11 @@ def task_result():
     
     if task_id in state["tasks"]:
         task = state["tasks"][task_id]
+        
+        # Duplicate protection
+        if task["status"] in ["RECONCILED", "FAILED_TERMINAL", "RESULT_RECEIVED"]:
+            return jsonify({"status": "IGNORED", "reason": "DUPLICATE_OR_ALREADY_PROCESSED"})
+            
         if task.get("worker_id") == worker_id:
             if task.get("status") == "RESULT_RECEIVED" and task.get("result", {}).get("result_id") == data.get("result_id"):
                 return jsonify({"status": "ACK_DUPLICATE"})
@@ -184,6 +221,27 @@ def task_result():
                 return jsonify({"error": str(exc)}), 400
             task["status"] = "RESULT_RECEIVED"
             task["result"] = durable_result
+            
+            if durable_result.get("status") == "SUCCESS":
+                task["status"] = "RESULT_RECEIVED" # wait for independent /verify
+            else:
+                if task.get("attempts", 1) < 3:
+                    task["status"] = "QUEUED" # Retry
+                    task["worker_id"] = None
+                else:
+                    task["status"] = "FAILED_TERMINAL"
+                
+            goal_id = task["goal_id"]
+            if goal_id in state["goals"]:
+                goal = state["goals"][goal_id]
+                # Sync status back to workflow plan
+                for step in goal.get("workflow_plan", []):
+                    if step.get("task_id") == task_id:
+                        step["status"] = task["status"]
+                        step["worker_id"] = task.get("worker_id")
+                        step["attempts"] = task.get("attempts")
+                if task["status"] == "FAILED_TERMINAL":
+                    goal["status"] = "FAILED"""".replace('FAILED"""', 'FAILED')
 
             if worker_id in state["workers"]:
                 state["workers"][worker_id]["current_task"] = None
