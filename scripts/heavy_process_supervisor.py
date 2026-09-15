@@ -376,21 +376,40 @@ class HeavyProcessSupervisor:
             self._lock_file.close()
             self._lock_file = None
             raise HeavyProcessBusy("RESOURCE_GUARD_BUSY") from exc
-        self._conn = sqlite3.connect(self.ledger_path, timeout=2, isolation_level=None)
+        self._conn = sqlite3.connect(self.ledger_path, timeout=5, isolation_level=None)
         self._conn.execute("PRAGMA journal_mode=WAL")
-        self._conn.execute(
-            """CREATE TABLE IF NOT EXISTS heavy_jobs (
-                job_id TEXT NOT NULL, attempt INTEGER NOT NULL, owner_id TEXT NOT NULL,
-                pid INTEGER, pgid INTEGER, command_fingerprint TEXT NOT NULL,
-                observed_fingerprint TEXT, process_start TEXT, started_at TEXT NOT NULL,
-                heartbeat TEXT NOT NULL, state TEXT NOT NULL, metadata_json TEXT NOT NULL,
-                deadline_at TEXT, term_at TEXT, kill_at TEXT, finished_at TEXT,
-                exit_code INTEGER, cleanup_result TEXT, error TEXT,
-                PRIMARY KEY (job_id, attempt)
-            )"""
-        )
-        self.admission.initialize(self._conn)
-        self.retry_fanout.initialize(self._conn)
+        self._conn.execute("BEGIN EXCLUSIVE")
+        try:
+            version = self._conn.execute("PRAGMA user_version").fetchone()[0]
+            if version == 0:
+                self._conn.execute(
+                    """CREATE TABLE IF NOT EXISTS heavy_jobs (
+                        job_id TEXT NOT NULL, attempt INTEGER NOT NULL, owner_id TEXT NOT NULL,
+                        pid INTEGER, pgid INTEGER, command_fingerprint TEXT NOT NULL,
+                        observed_fingerprint TEXT, process_start TEXT, started_at TEXT NOT NULL,
+                        heartbeat TEXT NOT NULL, state TEXT NOT NULL, metadata_json TEXT NOT NULL,
+                        deadline_at TEXT, term_at TEXT, kill_at TEXT, finished_at TEXT,
+                        exit_code INTEGER, cleanup_result TEXT, error TEXT,
+                        PRIMARY KEY (job_id, attempt)
+                    )"""
+                )
+                self.admission.initialize(self._conn)
+                self.retry_fanout.initialize(self._conn)
+                self._conn.execute(
+                    """CREATE TABLE IF NOT EXISTS event_log (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT, job_id TEXT, attempt INTEGER,
+                        owner_context TEXT, state TEXT, timestamp TEXT, evidence TEXT
+                    )"""
+                )
+                self._conn.execute("PRAGMA user_version = 1")
+            elif version == 1:
+                pass
+            else:
+                raise HeavyProcessError(f"UNSUPPORTED_SCHEMA_VERSION_PROCESS_STARTED=NO:{version}")
+            self._conn.execute("COMMIT")
+        except Exception:
+            self._conn.execute("ROLLBACK")
+            raise
         self.admission.reconcile_startup(self._conn, self.owner_id)
         self._reconcile_stale()
 
@@ -456,6 +475,11 @@ class HeavyProcessSupervisor:
                 f"UPDATE heavy_jobs SET {', '.join(columns)} WHERE job_id = ? AND attempt = ?",
                 values,
             )
+            evidence = json.dumps(updates) if updates else ""
+            self._conn.execute(
+                "INSERT INTO event_log (job_id, attempt, owner_context, state, timestamp, evidence) VALUES (?, ?, ?, ?, ?, ?)",
+                (job_id, attempt, self.owner_id, state, _utcnow(), evidence)
+            )
             self._conn.execute("COMMIT")
         except Exception:
             self._conn.execute("ROLLBACK")
@@ -475,6 +499,10 @@ class HeavyProcessSupervisor:
                     json.dumps(metadata, sort_keys=True),
                     dt.datetime.fromtimestamp(deadline, dt.timezone.utc).isoformat(),
                 ),
+            )
+            self._conn.execute(
+                "INSERT INTO event_log (job_id, attempt, owner_context, state, timestamp, evidence) VALUES (?, ?, ?, ?, ?, ?)",
+                (job_id, attempt, self.owner_id, 'CLAIMED', now, "")
             )
             self._conn.execute("COMMIT")
         except Exception:
@@ -641,6 +669,7 @@ class HeavyProcessSupervisor:
                 else:
                     self._transition(job_id, attempt, "SPAWN_FAILED", finished_at=_utcnow(), error="uid demotion not supported")
                     raise HeavyProcessError("UID_DEMOTION_UNSUPPORTED_PROCESS_STARTED=NO")
+            self._transition(job_id, attempt, 'STARTING')
             proc = subprocess.Popen(
                 list(command), stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 start_new_session=True, env=merged_env, preexec_fn=preexec_fn
