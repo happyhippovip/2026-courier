@@ -1,0 +1,37 @@
+{
+  "opportunity_id": "plan-imp-dff2ec79",
+  "source": "COURIER_GOAL_PLANNER",
+  "objective_id": "2928050f-72e0-4ee2-b882-1699bb63b97f",
+  "project": "IDEA_INBOX_GOALS",
+  "description": "Direct implementation of requested artifact: Direct implementation of requested artifact: Windows must write a file to C:\\test.txt. [Run: Sept 15 Fresh Windows Integration]",
+  "priority": 6,
+  "expected_value": "Evidence-backed output",
+  "evidence": {},
+  "required_capabilities": [],
+  "risk": "SAFE",
+  "estimated_cost": 0.0,
+  "model_need": false,
+  "external_action_units": 0,
+  "project_id": "",
+  "source_artifact": "",
+  "source_hash": "",
+  "evidence_type": "",
+  "production_stage": "",
+  "problem_or_goal": "",
+  "expected_output": "",
+  "risk_class": "LOW",
+  "cost_class": "ZERO_COST_LOCAL",
+  "dedupe_fingerprint": "3c106fc6c0a4797e",
+  "heavy_job": false,
+  "status": "READY",
+  "target_agent": "WINDOWS_PC2",
+  "allowed_scope": [
+    "UNKNOWN_WRITE"
+  ],
+  "allowed_actions": [
+    "implement_bounded_improvement"
+  ],
+  "created_at": "2026-09-15T02:51:22.429788+00:00",
+  "updated_at": "2026-09-15T02:51:22.429798+00:00",
+  "dedupe_hash": "3c106fc6c0a4797e"
+}

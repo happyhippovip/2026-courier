@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "request_id": "REQ-MAC-9D7245AA",
+  "mission_id": "COMMERCIAL_PILOT_STEP_2",
+  "status": "COMPLETED",
+  "worker": "WINDOWS_SPECIALIST_VALIDATOR",
+  "start_time": "2026-09-14T16:20:38.659295+00:00",
+  "finish_time": "2026-09-14T16:20:38.717685+00:00",
+  "commands": [
+    "verify_windows_compatibility"
+  ],
+  "exit_codes": [
+    0
+  ],
+  "observed_behavior": "WINDOWS_ALIVE_AND_READY: Windows node WINDOWS_PC2 operational. V1 frozen reference intact. Relay operational.",
+  "verified_assertions": 3,
+  "result_fingerprint": "435d1022fb2bd23cd03257020fb15706bced7d68b2c42b6051e7701c96f8efac",
+  "artifact_references": [
+    "demo_pilot/data_processor.py"
+  ],
+  "checkpoint_reference": "CHECKPOINT-REQ-MAC-9D7245AA",
+  "known_defects": [],
+  "blockers": [],
+  "human_gates": []
+}

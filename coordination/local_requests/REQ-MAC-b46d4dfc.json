@@ -1,0 +1,1 @@
+{"timeout_seconds": 60, "task_hash": "b46d4dfc5f13c041", "worker_id": "WINDOWS", "target_agent": "WINDOWS", "task_id": "task-a-proof", "payload": {"action": "WRITE_PROOF", "prompt": "Initial task A for integration proof", "allowed_scope": ["C:\\Dev\\Windows-AI-OS"]}}

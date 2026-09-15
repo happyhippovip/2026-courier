@@ -1,0 +1,8 @@
+{
+  "request_id": "REQ-MAC-AC660276",
+  "mission_id": "MAC_AUTONOMOUS_OPERATIONS",
+  "owner_node": "WINDOWS_PC2",
+  "process_instance_id": "d75f1177-ca4f-4db6-ac2f-b6d28336992e",
+  "lease_epoch": 1,
+  "claimed_at": "2026-09-13T10:35:35.816805+00:00"
+}

@@ -1,0 +1,37 @@
+{
+  "opportunity_id": "plan-ver-37b30e6d",
+  "source": "COURIER_GOAL_PLANNER",
+  "objective_id": "492fad49-d2f1-4d0c-8943-006966f5007c",
+  "project": "IDEA_INBOX_GOALS",
+  "description": "Execute verification strategy (run_unit_tests) on tests/test_continuous_safe_work_dispatcher.py",
+  "priority": 6,
+  "expected_value": "Evidence-backed output",
+  "evidence": {},
+  "required_capabilities": [],
+  "risk": "LOW",
+  "estimated_cost": 0.0,
+  "model_need": false,
+  "external_action_units": 0,
+  "project_id": "",
+  "source_artifact": "",
+  "source_hash": "",
+  "evidence_type": "",
+  "production_stage": "",
+  "problem_or_goal": "",
+  "expected_output": "",
+  "risk_class": "LOW",
+  "cost_class": "ZERO_COST_LOCAL",
+  "dedupe_fingerprint": "ad30c31bed93d339",
+  "heavy_job": false,
+  "status": "COMPLETED",
+  "target_agent": "CLI1",
+  "allowed_scope": [
+    "SAFE_LOCAL_VALIDATION"
+  ],
+  "allowed_actions": [
+    "verify_improvement_tests"
+  ],
+  "created_at": "2026-09-14T19:25:32.976262+00:00",
+  "updated_at": "2026-09-14T19:25:36.938349+00:00",
+  "dedupe_hash": "ad30c31bed93d339"
+}

@@ -1,0 +1,22 @@
+{
+  "RESULT": "READY",
+  "FAILURE_LAYER": "NONE",
+  "timestamp": "2026-09-14T23:04:35.337449+00:00",
+  "TCP22": "READY",
+  "SSH": "READY",
+  "REMOTE_PROJECT": "READY",
+  "attempts": [
+    {
+      "attempt": 1,
+      "timestamp": "2026-09-14T23:04:35.337449+00:00",
+      "healthy": true,
+      "TCP22": "READY",
+      "SSH": "READY",
+      "REMOTE_PROJECT": "READY",
+      "RESULT": "READY",
+      "FAILURE_LAYER": "NONE"
+    }
+  ],
+  "local_platform": "Darwin",
+  "native_windows_diagnostics_executed": false
+}

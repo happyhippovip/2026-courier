@@ -1,0 +1,8 @@
+{
+  "schema_version": "2.0",
+  "decision_id": "dec-chief-ae914ab52b",
+  "task_id": "WF-AUTO-TEST-1",
+  "workflow_id": "WF-AUTO-TEST",
+  "next_task_id": null,
+  "consumed_at": "2026-09-13T18:47:44.970288+00:00"
+}

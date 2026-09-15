@@ -1,0 +1,8 @@
+{
+  "request_id": "REQ-AUTONOMY-TASK-PROD-02-COMMERCIAL-GATEWAY-HEALTH-1789330790",
+  "mission_id": "POST_V1_PRODUCTIVE_AUTONOMY",
+  "owner_node": "WINDOWS_PC2",
+  "process_instance_id": "aad22505-9fba-417d-b94d-03066d9c0964",
+  "lease_epoch": 1,
+  "claimed_at": "2026-09-13T20:19:51.291806+00:00"
+}

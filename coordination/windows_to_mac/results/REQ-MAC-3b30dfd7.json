@@ -1,0 +1,24 @@
+{
+  "request_id": "REQ-MAC-3b30dfd7",
+  "mission_id": "win-health-check-periodic",
+  "schema_version": "1.0",
+  "status": "COMPLETED",
+  "observed_behavior": "Auto task completed",
+  "result_fingerprint": "809b10e3df0c837e546337763f8d03924009be52b3994bd61689deac4c7af59d",
+  "payload": {
+    "worker_agent": "WINDOWS",
+    "worker_type": "NATIVE_WINDOWS",
+    "real_model_call": false,
+    "separate_process": true,
+    "target_agent": "WINDOWS",
+    "task_id": "win-health-check-periodic",
+    "mission_id": "",
+    "task_hash": "3b30dfd76bd7c788",
+    "status": "FAILED",
+    "verdict": "FAIL",
+    "summary": "Windows execution. stdout: Dispatching task win-health-check-periodic\nExecutor output: \nFAIL: Returned TASK_ID does not match. stderr: ",
+    "zero_cost_policy": "ZERO_COST_ONLY",
+    "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+    "action": "HEALTH_CHECK"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "request_id": "REQ-MAC-c4b34e11",
+  "mission_id": "win-health-daemon",
+  "schema_version": "1.0",
+  "status": "COMPLETED",
+  "observed_behavior": "Auto task completed",
+  "result_fingerprint": "47ba45133fd414ac658984d20ce8010060958db6ed8a6c7a0776846000b3e735",
+  "payload": {
+    "worker_agent": "WINDOWS",
+    "worker_type": "NATIVE_WINDOWS",
+    "real_model_call": false,
+    "separate_process": true,
+    "target_agent": "WINDOWS",
+    "task_id": "win-health-daemon",
+    "mission_id": "",
+    "task_hash": "c4b34e11ee8d8bed",
+    "status": "FAILED",
+    "verdict": "FAIL",
+    "summary": "Windows execution. stdout: ",
+    "zero_cost_policy": "ZERO_COST_ONLY",
+    "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+    "action": "RUN_SCRIPT"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "quarantined_at": "2026-09-13T18:39:57.659719+00:00",
+  "original_file": "\\\\192.168.178.162\\coordination\\mac_to_windows\\requests\\REQ-AUTONOMY-TASK-GOAL-AUTO-1789324788-54F60B-01-1789324791.json",
+  "reason": "CUSTOMS_FAILED: EXECUTION_FAILED: Exit code 1",
+  "node_id": "WINDOWS_PC2"
+}

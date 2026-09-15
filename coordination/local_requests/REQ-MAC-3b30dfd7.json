@@ -1,0 +1,1 @@
+{"task_hash": "3b30dfd76bd7c788", "worker_id": "WINDOWS", "target_agent": "WINDOWS", "task_id": "win-health-check-periodic", "payload": {"action": "HEALTH_CHECK", "prompt": "Trigger a periodic health check on the Windows remote executor to ensure environment stability.", "allowed_scope": ["C:\\Dev\\Windows-AI-OS"]}}

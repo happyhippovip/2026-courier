@@ -1,0 +1,1 @@
+{"task_hash": "254bed4e22e21a9d", "worker_id": "CLI1", "target_agent": "CLI1", "task_id": "plan-ver-870a7021", "payload": {"action": "verify_improvement_tests", "prompt": "Execute verification strategy (run_unit_tests) on plan-imp-8230c59b.txt", "allowed_scope": ["SAFE_LOCAL_VALIDATION"]}}

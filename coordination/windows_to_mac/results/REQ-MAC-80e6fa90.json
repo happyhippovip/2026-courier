@@ -1,0 +1,24 @@
+{
+  "request_id": "REQ-MAC-80e6fa90",
+  "mission_id": "win-health-check-real",
+  "schema_version": "1.0",
+  "status": "COMPLETED",
+  "observed_behavior": "Auto task completed",
+  "result_fingerprint": "c62d137ca8f209dabdabc183df8285c5257b445c604632d8107209c282b1ada8",
+  "payload": {
+    "worker_agent": "WINDOWS",
+    "worker_type": "NATIVE_WINDOWS",
+    "real_model_call": false,
+    "separate_process": true,
+    "target_agent": "WINDOWS",
+    "task_id": "win-health-check-real",
+    "mission_id": "",
+    "task_hash": "80e6fa90c31ca4dd",
+    "status": "FAILED",
+    "verdict": "FAIL",
+    "summary": "Windows execution. stdout: ",
+    "zero_cost_policy": "ZERO_COST_ONLY",
+    "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+    "action": "HEALTH_CHECK"
+  }
+}

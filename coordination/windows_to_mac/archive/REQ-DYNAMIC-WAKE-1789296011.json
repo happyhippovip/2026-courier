@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "request_id": "REQ-DYNAMIC-WAKE-1789296011",
+  "mission_id": "SYMPHONY_AUTONOMOUS_OPERATIONS",
+  "status": "COMPLETED",
+  "worker": "WINDOWS_SPECIALIST_VALIDATOR",
+  "start_time": "2026-09-13T10:40:11.498013+00:00",
+  "finish_time": "2026-09-13T10:40:11.570795+00:00",
+  "commands": [
+    "verify_windows_compatibility"
+  ],
+  "exit_codes": [
+    0
+  ],
+  "observed_behavior": "WINDOWS_ALIVE_AND_READY: Windows node WINDOWS_PC2 operational. V1 frozen reference intact. Relay operational.",
+  "verified_assertions": 3,
+  "result_fingerprint": "c42065a57d197c6489ec3fdbb4ccbbef31482c143f939d0289ea30650d9d6d95",
+  "artifact_references": [
+    "none"
+  ],
+  "checkpoint_reference": "CHECKPOINT-REQ-DYNAMIC-WAKE-1789296011",
+  "known_defects": [],
+  "blockers": [],
+  "human_gates": []
+}

@@ -1,0 +1,19 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-14T21:32:52.926430+00:00",
+  "event_id": "evt-safe-a56725fe31",
+  "event_type": "NEXT_SAFE_WORK_AVAILABLE",
+  "evidence": {
+    "priority": 5,
+    "project": "Courier",
+    "task_fingerprint": "80e6fa90c31ca4dd",
+    "task_id": "win-health-check-real",
+    "worker_id": "WINDOWS"
+  },
+  "fingerprint": "f4bc62cd4c05be47",
+  "recommended_action": "CLAIM_OPPORTUNITY_win-health-check-real",
+  "schema_version": "3.0",
+  "severity": "INFO",
+  "task_id": "win-health-check-real",
+  "worker_id": "WINDOWS"
+}

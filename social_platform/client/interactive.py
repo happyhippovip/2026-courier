@@ -163,6 +163,30 @@ class InteractiveConsole:
             print(f"\n--- Registered Push Devices ({len(subs)}) ---")
             for s in subs:
                 print(f"[{s.get('id')}] Platform: {s.get('platform')} | Endpoint: {s.get('endpoint')}")
+        elif cmd == "genesis-registry":
+            blocks = self.client.get_genesis_registry()
+            print(f"\n--- POW-001 Genesis Sponsorship Blocks ---")
+            for block_id in range(1, 22):
+                block_id_str = str(block_id)
+                data = blocks.get(block_id_str)
+                if data is None:
+                    print(f"[{block_id_str}] AVAILABLE (499 EUR)")
+                else:
+                    print(f"[{block_id_str}] RESERVED by {data.get('company_name')} (Status: {data.get('status')})")
+        elif cmd == "genesis-reserve":
+            if len(args) < 1:
+                print("Usage: genesis-reserve <company_name> [logo_url]")
+                return
+            company_name = args[0]
+            logo_url = args[1] if len(args) > 1 else ""
+            res = self.client.reserve_genesis_block(company_name, logo_url)
+            if res.get("status") == "success":
+                inv = res.get("invoice", {})
+                print(f"Success! Block {res.get('block_id')} reserved for {company_name}.")
+                print(f"Invoice ID: {inv.get('invoice_id')}")
+                print(f"Send {inv.get('amount_btc')} BTC to {inv.get('btc_address')}")
+            else:
+                print(f"Error: {res.get('message')}")
         else:
             print(f"Unknown command: {cmd}. Type 'help' for available commands.")
 
@@ -181,4 +205,6 @@ class InteractiveConsole:
         print("  push-reg <endpoint>           - Register push notification device")
         print("  push-list                     - List registered push devices")
         print("  communities                   - List communities")
+        print("  genesis-registry              - View 21 POW-001 Genesis blocks")
+        print("  genesis-reserve <company>     - Reserve next available Genesis block")
         print("  exit                          - Exit console\n")

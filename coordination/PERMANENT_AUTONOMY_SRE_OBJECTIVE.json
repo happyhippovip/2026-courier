@@ -1,0 +1,172 @@
+{
+  "schema_version": "1.0",
+  "objective_id": "OBJ-SYMPHONY-PERMANENT-AUTONOMY-SRE-2026",
+  "title": "Courier Symphony Permanent Autonomy & SRE Objective",
+  "issued_by": "FOUNDER",
+  "created_at_utc": "2026-09-13T16:04:00Z",
+  "status": "PERMANENT_ACTIVE",
+  "optimization_function": {
+    "priorities": [
+      {
+        "dimension": "HUMAN_TOIL",
+        "direction": "DECREASE",
+        "target": "MINIMAL_TOIL"
+      },
+      {
+        "dimension": "RELIABILITY",
+        "direction": "INCREASE",
+        "target": "HIGH_AVAILABILITY_SLO"
+      },
+      {
+        "dimension": "RECOVERY_RESILIENCE",
+        "direction": "INCREASE",
+        "target": "AUTONOMOUS_MTTR_LE_30S"
+      },
+      {
+        "dimension": "VERIFIED_USEFUL_OUTPUT",
+        "direction": "INCREASE",
+        "target": "EVIDENCE_BACKED_VALUE"
+      },
+      {
+        "dimension": "RESOURCE_EFFICIENCY",
+        "direction": "INCREASE",
+        "target": "BOUNDED_O1_USAGE"
+      },
+      {
+        "dimension": "SAFETY",
+        "direction": "STRICT_INVARIANT",
+        "target": "ZERO_SPEND_ZERO_V1_MUTATION"
+      }
+    ],
+    "principles": {
+      "evidence_backed_value": true,
+      "reject_busywork_when_idle": true,
+      "quiescence_over_low_value": true
+    }
+  },
+  "toil_engine": {
+    "metrics_tracked": [
+      "human_intervention_count",
+      "human_operational_minutes",
+      "manual_recovery_count",
+      "manual_routing_count",
+      "manual_queue_manipulation_count",
+      "manual_evidence_transport_count",
+      "manual_cross_host_transport_count",
+      "manual_restart_count",
+      "manual_state_reconciliation_count",
+      "avoidable_human_gate_encounters"
+    ],
+    "ranking_criteria": [
+      "frequency",
+      "human_minutes_consumed",
+      "autonomy_interruption",
+      "failure_risk",
+      "expected_future_recurrence",
+      "cost_of_elimination"
+    ],
+    "policy": "ELIMINATE_HIGHEST_VALUE_TOIL_PERMANENTLY_WITHOUT_BYPASSING_LEGITIMATE_GATES"
+  },
+  "reliability_slo_engine": {
+    "slos": {
+      "goal_supervisor_availability_pct": 99.9,
+      "relay_availability_pct": 99.9,
+      "mac_coordination_health_pct": 99.0,
+      "task_completion_rate_pct": 99.0,
+      "result_customs_completion_rate_pct": 100.0,
+      "exactly_once_effects_pct": 100.0,
+      "recovery_time_seconds_max": 30.0,
+      "queue_depth_max": 10,
+      "cross_host_latency_seconds_max": 10.0,
+      "stale_lease_rate_max": 0.0,
+      "duplicate_effect_rate_max": 0.0,
+      "failed_goals_rate_max": 1.0
+    },
+    "error_budget_policy": "CONSUME_BUDGET_FOR_INNOVATION_THROTTLE_ON_EXHAUSTION"
+  },
+  "observability": {
+    "correlation_dimensions": [
+      "GOAL",
+      "TASK",
+      "LEASE",
+      "NODE",
+      "WINDOWS_MAC_ROUTE",
+      "EXECUTION",
+      "RESULT",
+      "RESULT_CUSTOMS",
+      "RECOVERY",
+      "HUMAN_GATE"
+    ],
+    "trace_identifier_format": "TRC-{epoch}-{uuid6}",
+    "telemetry_destination": "project-memory/data/commercial/SYMPHONY_TELEMETRY_LEDGER.json"
+  },
+  "improvement_economics": {
+    "evaluation_factors": [
+      "expected_value",
+      "implementation_cost",
+      "resource_cost",
+      "failure_risk",
+      "reversibility",
+      "human_time_saved_minutes",
+      "reliability_gain",
+      "reuse_value"
+    ],
+    "rejection_rules": [
+      "cosmetic_work",
+      "duplicate_evidence",
+      "proof_theater",
+      "busywork",
+      "unnecessary_documentation",
+      "repeated_validation_of_already_proven_facts",
+      "tasks_created_only_to_keep_nodes_busy"
+    ]
+  },
+  "cross_host_compute_pool": {
+    "nodes": [
+      "WINDOWS_PC2",
+      "MAC_CHIEF_01"
+    ],
+    "routing_factors": [
+      "capability",
+      "current_load",
+      "data_locality",
+      "risk",
+      "expected_execution_time",
+      "writer_independence"
+    ],
+    "parallelism_policy": "PARALLEL_ONLY_WHEN_LOGICALLY_INDEPENDENT",
+    "lock_policy": "SINGLE_ACTIVE_WRITER_PER_RESOURCE",
+    "idle_policy": "MAC_IDLE_PERMITTED_WHEN_NO_VALUABLE_WORK_EXISTS"
+  },
+  "learning_loop": {
+    "lifecycle": [
+      "OBSERVE",
+      "HYPOTHESIS",
+      "BASELINE",
+      "IMPLEMENT",
+      "VERIFY",
+      "RESULT_CUSTOMS",
+      "COMPARE_BEFORE_AFTER",
+      "RETAIN_OR_ROLLBACK",
+      "RECORD_LEARNING",
+      "DISCOVER_NEXT"
+    ],
+    "ledger_destination": "project-memory/data/commercial/SYMPHONY_LEARNING_LEDGER.json"
+  },
+  "human_attention_policy": {
+    "founder_attention_is_scarce": true,
+    "escalation_threshold": "GENUINE_HUMAN_GATE_OR_CONCRETE_BLOCKED_CONDITION_ONLY",
+    "suppress_routine_success_interruptions": true,
+    "suppress_routine_quiescence_interruptions": true,
+    "human_gate_isolation": "BRANCH_LOCAL_PRESERVE_UNRELATED_SAFE_WORK"
+  },
+  "safety_invariants": {
+    "autonomous_spend_eur": 0.0,
+    "preserve_frozen_v1": true,
+    "v1_commit": "dee6c76",
+    "unauthorized_banking_permitted": false,
+    "unauthorized_publication_permitted": false,
+    "credential_disclosure_permitted": false,
+    "result_customs_relaxation_permitted": false
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "mission_id": "COMMERCIAL_PILOT_STEP_2",
+  "windows_validation_request_id": "REQ-MAC-77B165B2",
+  "created_by": "MAC_CHIEF",
+  "artifact_reference": "demo_pilot/data_processor.py",
+  "exact_question": "python -c \"import subprocess; print(subprocess.run(['pytest', 'demo_pilot/test_data_processor.py'], capture_output=True, text=True).stdout); print('passed')\"",
+  "expected_evidence": "passed",
+  "allowed_scope": "SAFE_LOCAL_VALIDATION",
+  "validation_type": "WINDOWS_COMPATIBILITY",
+  "timestamp_utc": "2026-09-14T16:20:02.586223+00:00"
+}

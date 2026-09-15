@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "mission_id": "COMMERCIAL_PILOT_STEP_2",
+  "windows_validation_request_id": "REQ-MAC-3DE724ED",
+  "created_by": "MAC_CHIEF",
+  "artifact_reference": "demo_pilot/data_processor.py",
+  "exact_question": "echo passed",
+  "expected_evidence": "passed",
+  "allowed_scope": "SAFE_LOCAL_VALIDATION",
+  "validation_type": "WINDOWS_COMPATIBILITY",
+  "timestamp_utc": "2026-09-14T16:19:07.652537+00:00"
+}

@@ -1,0 +1,8 @@
+{
+  "request_id": "REQ-AUTONOMY-TASK-PROD-03-ACP-DOCTOR-AUDIT-1789311161",
+  "mission_id": "POST_V1_PRODUCTIVE_AUTONOMY",
+  "owner_node": "WINDOWS_PC2",
+  "process_instance_id": "3ebceae8-a02f-4996-b16a-ffb826b4bbbe",
+  "lease_epoch": 1,
+  "claimed_at": "2026-09-13T14:53:20.582316+00:00"
+}

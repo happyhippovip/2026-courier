@@ -1,0 +1,6 @@
+{
+  "quarantined_at": "2026-09-13T14:54:14.440060+00:00",
+  "original_file": "\\\\192.168.178.162\\coordination\\mac_to_windows\\requests\\REQ-AUTONOMY-TASK-PROD-03-ACP-TEST-SUITE-1789311252.json",
+  "reason": "CUSTOMS_FAILED: EXPECTED_EVIDENCE_NOT_OBSERVED: Expected 'Ran 4 tests in' (missing tokens: ['ran', 'tests']) in stdout",
+  "node_id": "WINDOWS_PC2"
+}

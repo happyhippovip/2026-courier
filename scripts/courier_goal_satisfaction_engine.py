@@ -1,9 +1,15 @@
 import json
 import time
 import os
+import logging
+import re
 from pathlib import Path
 from dataclasses import dataclass, asdict
 from typing import Dict, List, Any
+
+
+class GoalSatisfactionStateIntegrityError(RuntimeError):
+    """Durable goal satisfaction state is malformed and cannot be trusted."""
 
 @dataclass
 class GoalSatisfactionState:
@@ -27,37 +33,57 @@ class GoalSatisfactionEngine:
         if not self.db_file.exists():
             return {}
         try:
-            with open(self.db_file, "r") as f:
-                return json.load(f)
-        except Exception:
-            return {}
+            with open(self.db_file, "r", encoding="utf-8") as f:
+                state = json.load(f)
+        except Exception as error:
+            raise GoalSatisfactionStateIntegrityError(
+                "GOAL_SATISFACTION_STATE_CORRUPT_FAIL_CLOSED"
+            ) from error
+        if not isinstance(state, dict):
+            raise GoalSatisfactionStateIntegrityError(
+                "GOAL_SATISFACTION_STATE_CORRUPT_FAIL_CLOSED"
+            )
+        return state
             
     def _write_all(self, state: Dict[str, dict]):
-        with open(self.db_file, "w") as f:
-            json.dump(state, f, indent=2)
+        temp = self.db_file.with_name(f".{self.db_file.name}.tmp.{os.getpid()}.{time.time_ns()}")
+        try:
+            with open(temp, "w", encoding="utf-8") as f:
+                json.dump(state, f, indent=2)
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(temp, self.db_file)
+        finally:
+            temp.unlink(missing_ok=True)
 
-    def _extract_contract(self, goal: str) -> Dict[str, str]:
+    def _extract_contract(self, goal: Any) -> Dict[str, str]:
         import re
         criteria = {}
         # Simple extraction for demo:
-        match = re.search(r"file named (\S+) containing exactly:\s*(.*)", goal, re.IGNORECASE | re.DOTALL)
+        goal_text = goal.get("goal", str(goal)) if isinstance(goal, dict) else str(goal)
+        match = re.search(r"file named (\S+) containing exactly:\s*(.*)", goal_text, re.IGNORECASE | re.DOTALL)
         if match:
             criteria["file_exists"] = match.group(1).strip()
             criteria["content_matches"] = match.group(2).strip()
         else:
             # Fallback simple extraction
-            if "customer contact" in goal.lower():
+            if "customer contact" in goal_text.lower():
                 criteria["action"] = "customer_contact"
             else:
                 criteria["implied"] = "improve_codebase"
         return criteria
 
-    def recompute(self, root_goal: str, all_missions_for_goal: List[Dict[str, Any]]) -> str:
+    def recompute(self, root_goal: Any, all_missions_for_goal: List[Dict[str, Any]]) -> str:
         # Recompute from EFFECT EVIDENCE, not task counts.
         # Effect evidence is in result_reference or result_data for VERIFIED missions.
         # Human gates are in HUMAN_GATE missions.
         
-        contract = self._extract_contract(root_goal)
+        goal_text = root_goal.get("goal", str(root_goal)) if isinstance(root_goal, dict) else str(root_goal)
+        goal_id = root_goal.get("goal_id", goal_text) if isinstance(root_goal, dict) else goal_text
+
+        contract = self._extract_contract(goal_text)
+        state_dict = self._read_all()
+        existing = state_dict.get(goal_id)
         
         verified_effects = []
         human_gates = []
@@ -72,10 +98,6 @@ class GoalSatisfactionEngine:
                     if isinstance(files, str): files = [files]
                     for f in files:
                         verified_effects.append(f"modified_{f}")
-                # If there's an explicit physical effect
-                if m.get("result_reference") and isinstance(m.get("result_reference"), str):
-                    if m["result_reference"].endswith(".json"):
-                        verified_effects.append("verified_physical_effect")
             elif m.get("status") == "HUMAN_GATE":
                 human_gates.append(m.get("mission_id"))
             elif m.get("status") in ("BLOCKED", "FAILED"):
@@ -98,7 +120,7 @@ class GoalSatisfactionEngine:
             if not has_evidence:
                 open_gaps.append(f"missing_file_{f}")
                 
-        if not contract and not verified_effects:
+        if (not contract or contract.get("implied") == "improve_codebase") and not verified_effects:
             open_gaps.append("no_verified_improvements")
             
         # Decision logic
@@ -122,7 +144,7 @@ class GoalSatisfactionEngine:
         
         # Persist satisfaction across restart. A restart must not reopen a VERIFIED_COMPLETE goal 
         # unless new contradictory authoritative evidence exists.
-        existing = state_dict.get(root_goal)
+        existing = state_dict.get(goal_id)
         if existing and existing.get("satisfaction_state") == "VERIFIED_COMPLETE":
             if not open_gaps:
                 decision = "VERIFIED_COMPLETE" # stay complete
@@ -139,8 +161,7 @@ class GoalSatisfactionEngine:
             last_evaluated_at=time.time()
         )
         
-        state_dict[root_goal] = asdict(new_state)
+        state_dict[goal_id] = asdict(new_state)
         self._write_all(state_dict)
         
         return decision
-

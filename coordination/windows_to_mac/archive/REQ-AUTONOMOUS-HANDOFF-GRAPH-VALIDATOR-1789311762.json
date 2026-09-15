@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "request_id": "REQ-AUTONOMOUS-HANDOFF-GRAPH-VALIDATOR-1789311762",
+  "mission_id": "SYNAPSE_POST_V1_PRODUCT_MISSION",
+  "status": "COMPLETED",
+  "worker": "WINDOWS_SPECIALIST_VALIDATOR",
+  "start_time": "2026-09-13T15:02:42.888527+00:00",
+  "finish_time": "2026-09-13T15:02:42.888527+00:00",
+  "commands": [
+    "symphony_handoff_supervisor.scan_and_process_handoffs"
+  ],
+  "exit_codes": [
+    0
+  ],
+  "observed_behavior": "PASS: MAC-TASK-GRAPH-TOPOLOGY-VALIDATOR verified autonomously with all 5 client UX invariants passing. Artifact SHA256: beff8dd95479d108eb1eaffbb8c05757537d6b5c0c34308deb9e2696d5c3854c",
+  "verified_assertions": 5,
+  "result_fingerprint": "421a7759b0f0997676506b89b5fc970d4b345231fb76c5db09d4ccb87cab76c1",
+  "artifact_references": [
+    "\\\\192.168.178.162\\coordination\\windows_to_mac\\handoffs\\client\\index.html"
+  ],
+  "checkpoint_reference": "CHECKPOINT-REQ-AUTONOMOUS-HANDOFF-GRAPH-VALIDATOR-1789311762",
+  "known_defects": [],
+  "blockers": [],
+  "human_gates": []
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "mission_id": "MISSION-MAC-COURIER-PHYSICAL-ROUNDTRIP",
+  "windows_validation_request_id": "REQ-MAC-7B6D8CA4",
+  "assignment_id": "ASSIGN-MAC-7B6D8CA4",
+  "status": "PASS",
+  "decision": "DUPLICATE_ALREADY_COMPLETED",
+  "work_done": "Request REQ-MAC-7B6D8CA4 was already completed. No business effect re-executed. Fresh verifiable receipt emitted.",
+  "evidence": "DUPLICATE_EXIT_0_SHA256:12f000218deaee6c27d9833a32c8f4c80b7d1d932393cb78c639b7df1278272a",
+  "evidence_content": "DUPLICATE_ALREADY_COMPLETED: req_id=REQ-MAC-7B6D8CA4, assignment=ASSIGN-MAC-7B6D8CA4, type=CROSS_PLATFORM_VALIDATION, duplicate_timestamp=2026-09-14T06:33:57.747302+00:00, business_effects_this_call=0",
+  "content_integrity": "SHA256:12f000218deaee6c27d9833a32c8f4c80b7d1d932393cb78c639b7df1278272a",
+  "access_integrity": "NTFS_ACL_CONTAINED_BORDER_GUARD_ENFORCED",
+  "files_changed": [],
+  "side_effects_occurred": false,
+  "duplicate_replay_new_effects": 0,
+  "blocker": "NONE",
+  "completed_at": "2026-09-14T06:33:57.747397+00:00"
+}

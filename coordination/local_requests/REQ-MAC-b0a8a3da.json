@@ -1,0 +1,1 @@
+{"task_hash": "b0a8a3dae051d181", "worker_id": "WINDOWS", "target_agent": "WINDOWS", "task_id": "win-health-check-real2", "payload": {"action": "HEALTH_CHECK", "prompt": "Perform a HEALTH_CHECK on Windows via the established executor contract.", "allowed_scope": ["C:\\Dev\\Windows-AI-OS"]}}

@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "mission_id": "COMMERCIAL_PILOT_STEP_2",
+  "windows_validation_request_id": "REQ-MAC-9B61E889",
+  "created_by": "MAC_CHIEF",
+  "artifact_reference": "demo_pilot/data_processor.py",
+  "exact_question": "pytest demo_pilot/test_data_processor.py && echo WINDOWS_PYTEST_RESULT",
+  "expected_evidence": "WINDOWS_PYTEST_RESULT",
+  "allowed_scope": "SAFE_LOCAL_VALIDATION",
+  "validation_type": "WINDOWS_COMPATIBILITY",
+  "timestamp_utc": "2026-09-14T16:15:38.386900+00:00"
+}

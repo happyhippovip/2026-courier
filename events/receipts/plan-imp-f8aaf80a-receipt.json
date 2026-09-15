@@ -1,0 +1,10 @@
+{
+  "task_id": "plan-imp-f8aaf80a",
+  "source_agent": "GOOGLE_ANTIGRAVITY",
+  "target_agent": "CODEX",
+  "target_host": null,
+  "project_path": "UNKNOWN_WRITE",
+  "created_at": "2026-09-14T23:04:02.436562+00:00",
+  "description": "Derived task: Execute native Windows health check diagnostics and collect logs for local Mac agent validation",
+  "artifact_sha256": "4585d6cf38bac310ed0631ee0f653d2b0479ccb12e2e4da3fd4105d9b3689eeb"
+}

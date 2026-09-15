@@ -1,0 +1,24 @@
+{
+  "request_id": "REQ-MAC-a727dd71",
+  "mission_id": "win-static-analysis",
+  "schema_version": "1.0",
+  "status": "COMPLETED",
+  "observed_behavior": "Auto task completed",
+  "result_fingerprint": "69b55529c85a6918cd428a7185c8ca74f563753267b1d34af9a419bda0e82bc6",
+  "payload": {
+    "worker_agent": "WINDOWS",
+    "worker_type": "NATIVE_WINDOWS",
+    "real_model_call": false,
+    "separate_process": true,
+    "target_agent": "WINDOWS",
+    "task_id": "win-static-analysis",
+    "mission_id": "",
+    "task_hash": "a727dd71ec2f3300",
+    "status": "FAILED",
+    "verdict": "FAIL",
+    "summary": "Windows execution. stdout: ",
+    "zero_cost_policy": "ZERO_COST_ONLY",
+    "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+    "action": "RUN_TESTS"
+  }
+}

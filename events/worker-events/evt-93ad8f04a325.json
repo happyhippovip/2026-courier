@@ -1,0 +1,17 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-14T08:04:21.400366+00:00",
+  "event_id": "evt-93ad8f04a325",
+  "event_type": "WORKER_STARTED",
+  "evidence": {
+    "availability_class": "TEMPORARY_30_DAY",
+    "initial_registration": true
+  },
+  "fingerprint": "c82a6a28773794a7",
+  "mission_id": null,
+  "recommended_action": null,
+  "session_epoch": "epoch-test_busy_worker-1789373061",
+  "severity": "INFO",
+  "task_id": null,
+  "worker_id": "TEST_BUSY_WORKER"
+}

@@ -1,0 +1,8 @@
+{
+  "request_id": "REQ-POST-RECOVERY-1789299106",
+  "mission_id": "MAC_DURABILITY_LIVE_RECOVERY_COURT",
+  "owner_node": "WINDOWS_PC2",
+  "process_instance_id": "a4b99752-94ba-4e83-a33c-cdebdcaece24",
+  "lease_epoch": 1,
+  "claimed_at": "2026-09-13T11:32:31.808296+00:00"
+}

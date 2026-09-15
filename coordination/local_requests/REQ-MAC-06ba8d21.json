@@ -1,0 +1,1 @@
+{"task_hash": "06ba8d21fc5b74d0", "worker_id": "WINDOWS", "target_agent": "WINDOWS", "task_id": "WINDOWS_CONTRACT_PROOF_3", "payload": {"action": "HEALTH_CHECK", "prompt": "Prove that ACTION and SCOPE are derived from the routed task", "allowed_scope": ["C:\\\\Dev\\\\Windows-AI-OS"]}}

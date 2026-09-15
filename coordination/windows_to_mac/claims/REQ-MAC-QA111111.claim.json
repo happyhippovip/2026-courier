@@ -1,0 +1,8 @@
+{
+  "request_id": "REQ-MAC-QA111111",
+  "mission_id": "COMMERCIAL_QA",
+  "owner_node": "WINDOWS_PC2",
+  "process_instance_id": "71b556d7-2d8b-4bc3-a00d-6299ad73985c",
+  "lease_epoch": 1,
+  "claimed_at": "2026-09-14T16:46:06.462345+00:00"
+}

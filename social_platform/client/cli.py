@@ -781,3 +781,4 @@ def main(argv: Optional[List[str]] = None) -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
+from social_platform.client.pow001_cli import reserve_genesis_block

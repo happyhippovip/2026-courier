@@ -1,0 +1,6 @@
+{
+  "quarantined_at": "2026-09-13T20:19:54.111906+00:00",
+  "original_file": "\\\\192.168.178.162\\coordination\\mac_to_windows\\requests\\REQ-AUTONOMY-TASK-PROD-02-COMMERCIAL-GATEWAY-HEALTH-1789330790.json",
+  "reason": "CUSTOMS_FAILED: EXECUTION_FAILED: Exit code 1",
+  "node_id": "WINDOWS_PC2"
+}

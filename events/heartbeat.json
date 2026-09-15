@@ -4,12 +4,12 @@
   "chief_presence": "AWAKE",
   "active_task": null,
   "queue_ready": 0,
-  "queue_blocked": 0,
+  "queue_blocked": 1,
   "completed_this_session": 0,
-  "last_progress_at": "2026-08-31T01:32:34.151378+00:00",
-  "last_result_at": "2026-08-31T01:32:34.151378+00:00",
+  "last_progress_at": "2026-09-13T18:49:35.219060+00:00",
+  "last_result_at": "2026-09-13T18:49:35.219060+00:00",
   "circuit_breakers": [],
   "money_spent": 0.0,
   "model_jobs": 0,
-  "timestamp": "2026-08-31T07:04:31.741998+00:00"
+  "timestamp": "2026-09-13T18:49:49.936237+00:00"
 }

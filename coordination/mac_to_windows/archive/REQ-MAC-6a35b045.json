@@ -1,0 +1,1 @@
+{"task_hash": "6a35b0454c27da9d", "worker_id": "CLI1", "target_agent": "CLI1", "task_id": "plan-ver-b8b5e229", "payload": {"action": "verify_improvement_tests", "prompt": "Autonomous continuation", "allowed_scope": ["SAFE_LOCAL_VALIDATION"]}}

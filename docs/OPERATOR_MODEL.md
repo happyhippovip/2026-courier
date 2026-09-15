@@ -26,3 +26,40 @@ Autonomous agents are strictly blocked and must yield to humans at all times for
 2. **Financial Operations**: Real spend (`AUTONOMOUS_SPEND_LIMIT_EUR = 0`), payment activation, live trading, wallet transaction signing.
 3. **External Communications**: Public posting, social publication, customer contact, outbound email/SMS campaigns.
 4. **Legal & Governance**: Terms of service acceptance, KYC compliance, account registration or deletion.
+
+## 5. Computer-Does-The-Work Policy
+
+**CORE PRINCIPLE:** The human must NOT become the terminal operator. For normal safe technical work, the computer does the work.
+
+1. HUMAN_IS_NOT_TERMINAL_OPERATOR
+2. SAFE_TERMINAL_COMMANDS_RUN_BY_AGENT=YES
+3. SAFE_DIAGNOSTICS_RUN_BY_AGENT=YES
+4. SAFE_REMOTE_COMMANDS_RUN_BY_AGENT=YES
+5. SAFE_TESTS_RUN_BY_AGENT=YES
+6. SAFE_RECOVERY_RUN_BY_AGENT=YES
+7. RESULTS_RETURNED_TO_CONTROL_PLANE=YES
+8. HUMAN_ACTION_ONLY_FOR_REAL_HUMAN_GATE=YES
+9. NO_PROMPT_TRANSPORT_WHEN_AUTOMATION_CAN_DO_IT=YES
+10. NO_MANUAL_WORKER_SELECTION_WHEN_ROUTER_CAN_DECIDE=YES
+
+### Continuation Model
+TASK
+→ COMPUTER HEALTH CHECK
+→ COMPUTER EXECUTION
+→ COMPUTER VERIFY
+→ COMPUTER RESULT
+→ COMPUTER NEXT SAFE TASK
+
+### Blocker Resolution
+If a temporary technical blocker occurs:
+→ computer diagnoses
+→ performs bounded safe recovery
+→ retries
+→ checkpoints if unresolved
+→ reports exact blocker
+
+## 6. Multi-Agent Orchestration Plan
+MULTI_AGENT_ORCHESTRATION_PLAN=8_STEPS
+CURRENT_STEP=1
+COMPUTER_DOES_THE_WORK=YES
+HUMAN_PROMPT_TRANSPORT=NO

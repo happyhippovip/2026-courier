@@ -1,0 +1,19 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-14T20:04:12.205599+00:00",
+  "event_id": "evt-safe-147a844af4",
+  "event_type": "NEXT_SAFE_WORK_AVAILABLE",
+  "evidence": {
+    "priority": 6,
+    "project": "IDEA_INBOX_GOALS",
+    "task_fingerprint": "3993981d46b60b28",
+    "task_id": "plan-imp-f2420328",
+    "worker_id": "GEMINI"
+  },
+  "fingerprint": "811bf096a224a93e",
+  "recommended_action": "CLAIM_OPPORTUNITY_plan-imp-f2420328",
+  "schema_version": "3.0",
+  "severity": "INFO",
+  "task_id": "plan-imp-f2420328",
+  "worker_id": "GEMINI"
+}

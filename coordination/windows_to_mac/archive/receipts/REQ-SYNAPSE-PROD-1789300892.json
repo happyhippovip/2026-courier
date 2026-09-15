@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "request_id": "REQ-SYNAPSE-PROD-1789300892",
+  "mission_id": "SYNAPSE_POST_V1_PRODUCT_MISSION",
+  "status": "COMPLETED",
+  "worker": "WINDOWS_SPECIALIST_VALIDATOR",
+  "start_time": "2026-09-13T12:01:33.459460+00:00",
+  "finish_time": "2026-09-13T12:01:33.585320+00:00",
+  "commands": [
+    "verify_windows_compatibility"
+  ],
+  "exit_codes": [
+    0
+  ],
+  "observed_behavior": "WINDOWS_ALIVE_AND_READY: Windows node WINDOWS_PC2 operational. V1 frozen reference intact. Relay operational.",
+  "verified_assertions": 3,
+  "result_fingerprint": "d07dfafa8e07911a911426d51b9af203aa15ce058e7d76e6b657c71506fb2b28",
+  "artifact_references": [
+    "synapse_core/synapse_dialectic.py"
+  ],
+  "checkpoint_reference": "CHECKPOINT-REQ-SYNAPSE-PROD-1789300892",
+  "known_defects": [],
+  "blockers": [],
+  "human_gates": []
+}

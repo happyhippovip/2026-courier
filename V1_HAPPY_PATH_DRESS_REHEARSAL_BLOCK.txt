@@ -1,0 +1,9 @@
+==================================================
+V1_HAPPY_PATH_DRESS_REHEARSAL
+==================================================
+
+TOMORROW_PREFLIGHT_COMMAND: None
+TOMORROW_START_COMMAND: PYTHONPATH=. python3 scripts/run_chief_commander.py --idea "Create a file at /tmp/visible_artifact.txt containing the word TRUTH"
+EXPECTED_VISIBLE_RESULT: A file appears at /tmp/visible_artifact.txt containing the word TRUTH
+SUCCESS_INDICATOR: "=== LEVEL 6 LOOP FINISHED: COMPLETED (ALL_STEPS_ACCEPTED) ==="
+==================================================

@@ -1,0 +1,8 @@
+{
+  "request_id": "REQ-CLOSURE-VERIFY-1789297426",
+  "mission_id": "CLOSURE_AUDIT_FINAL",
+  "owner_node": "WINDOWS_PC2",
+  "process_instance_id": "3344858c-8701-423d-96cb-cd493705d059",
+  "lease_epoch": 1,
+  "claimed_at": "2026-09-13T11:03:48.078680+00:00"
+}

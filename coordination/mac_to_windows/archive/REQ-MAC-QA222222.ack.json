@@ -1,0 +1,7 @@
+{
+  "request_id": "REQ-MAC-QA222222",
+  "result_id": "unknown",
+  "fingerprint": "98bbf5f1f48c1b0bb930207c75f1b69aecaa5549e4d5da3cf15508a8a64f2d22",
+  "timestamp": 1789404463.571303,
+  "state": "RESULT_CONSUMED, RESULT_VERIFIED, RESULT_ACKNOWLEDGED"
+}

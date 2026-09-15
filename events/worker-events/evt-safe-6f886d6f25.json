@@ -1,0 +1,19 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-14T18:47:00.735361+00:00",
+  "event_id": "evt-safe-6f886d6f25",
+  "event_type": "NEXT_SAFE_WORK_AVAILABLE",
+  "evidence": {
+    "priority": 7,
+    "project": "WINDOWS_AI_OS",
+    "task_fingerprint": "4fe8e618a7d32add",
+    "task_id": "TASK_PRIMARY_5E",
+    "worker_id": "CODEX"
+  },
+  "fingerprint": "4385db251d259512",
+  "recommended_action": "CLAIM_OPPORTUNITY_TASK_PRIMARY_5E",
+  "schema_version": "3.0",
+  "severity": "INFO",
+  "task_id": "TASK_PRIMARY_5E",
+  "worker_id": "CODEX"
+}

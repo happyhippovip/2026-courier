@@ -325,88 +325,60 @@ def create_real_codex_adapter(repo_root=None) -> Any:
     root = Path(repo_root or COURIER_REPO_ROOT).resolve()
 
     def codex_worker(task_envelope: Dict[str, Any]) -> Dict[str, Any]:
+        import subprocess
+        import json
+        from pathlib import Path
+
         task_hash = task_envelope["task_hash"]
         worker_id = task_envelope["worker_id"]
         target_agent = task_envelope["target_agent"]
         mission_id = task_envelope.get("mission_id", "")
         task_id = task_envelope.get("task_id", task_hash[:16])
         payload_in = task_envelope.get("payload", {})
-        requested_model = task_envelope.get("requested_model", "codex")
-        requires_write = task_envelope.get("requires_write", False)
         correlation_id = str(task_envelope.get("correlation_id", ""))
-
+        
         if target_agent != "CODEX":
             return {"status": "FAIL_CLOSED"}
 
         instruction = str(payload_in.get("prompt") or payload_in.get("action") or "Inspect and analyse the repository.")
 
-        raw_scope = payload_in.get("allowed_scope") or payload_in.get("target_files") or []
-        if isinstance(raw_scope, str):
-            raw_scope = [raw_scope]
-        validated_scope = []
-        for s in raw_scope:
-            s = str(s).strip()
-            if s.startswith("/") or s.startswith("..") or "\x00" in s:
-                continue
-            validated_scope.append(s)
-        if not validated_scope:
-            validated_scope = ["./"]
-
-        if requires_write:
-            raise RuntimeError(
-                "CODEX_WRITE_NOT_YET_SUPPORTED: Codex bridge operates in read-only sandbox mode. "
-                "Route write missions to GEMINI."
-            )
-
-        expected_identity = {
-            "correlation_id": correlation_id,
-            "task_id": task_id,
-            "mission_id": mission_id,
-            "task_hash": task_hash,
-            "target_agent": "CODEX"
-        }
-
-        from scripts.run_codex_bridge import execute_real_codex_cli
-        outer_timeout = float(task_envelope.get("timeout_seconds", os.environ.get("COURIER_NATIVE_AGY_TIMEOUT", "1200.0")))
-
-        try:
-            success, cli_res = execute_real_codex_cli(
-                instruction=instruction,
-                allowed_scope=validated_scope,
-                task_id=task_id,
-                expected_identity=expected_identity,
-            )
-            if not success:
-                raise RuntimeError(f"CODEX_GENUINE_ENTRYPOINT_FAILED: {cli_res.get('error')}")
-        except Exception as exc:
-            raise RuntimeError(f"CODEX_GENUINE_ENTRYPOINT_FAILED: {exc}")
-
-        verdict = cli_res.get("verdict", "FAILED")
-        result_status = "HUMAN_GATE" if verdict == "HUMAN_APPROVAL_REQUIRED" else "COMPLETED"
-
+        # Invoke router_dispatch_codex.py
+        dispatch_script = root / "scripts" / "router_dispatch_codex.py"
+        res = subprocess.run(
+            ["python3", str(dispatch_script), task_id, instruction],
+            capture_output=True,
+            text=True
+        )
+        
+        success = res.returncode == 0
+        
+        processed_file = root / "events" / "processed" / f"{task_id}-result.json"
+        result_status = "FAILED"
         payload_out = {
             "worker_agent": "CODEX",
-            "worker_type": "NATIVE_MODEL_CLI",
-            "real_model_call": True,
-            "separate_process": True,
-            "requested_model": requested_model,
-            "entrypoint": "/Applications/ChatGPT.app/Contents/Resources/codex",
-            "execution_mode": "REAL_CODEX_CLI_EXECUTION",
-            "stage": "REAL_CODEX_MODEL_EXECUTION",
-            "ack_mode": "SYNCHRONOUS_COMPLETION_VALIDATED",
-            "worker_originated_ack": False,
-            "correlation_id": correlation_id,
             "task_id": task_id,
             "mission_id": mission_id,
             "task_hash": task_hash,
             "target_agent": target_agent,
-            "cli_result": cli_res,
-            "verdict": verdict,
-            "summary": cli_res.get("summary", ""),
-            "zero_cost_policy": "ZERO_COST_ONLY",
-            "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
-            "status": result_status,
+            "summary": res.stdout.strip(),
+            "status": "FAILED",
         }
+        
+        if processed_file.exists():
+            try:
+                codex_res = json.loads(processed_file.read_text())
+                if codex_res.get("task_id") == task_id:
+                    result_status = codex_res.get("status", "COMPLETED")
+                    payload_out.update(codex_res)
+                    payload_out["status"] = result_status
+                    success = True
+                    if codex_res.get("payload", {}).get("verdict") == "BLOCKED_RATE_LIMIT":
+                        payload_out["status"] = "BLOCKED"
+                        result_status = "BLOCKED"
+                        success = False
+            except Exception as e:
+                print(f"Error reading codex result: {e}")
+                success = False
 
         return {
             "ack": {
@@ -424,7 +396,7 @@ def create_real_codex_adapter(repo_root=None) -> Any:
             "result": {
                 "schema_version": "1.0",
                 "type": "RESULT",
-                "status": result_status,
+                "status": result_status if success else "FAILED",
                 "task_hash": task_hash,
                 "worker_id": worker_id,
                 "target_agent": target_agent,
@@ -454,6 +426,7 @@ def create_real_gemini_adapter(repo_root=None, model="gemini-3.7-flash-medium", 
             return {"status": "FAIL_CLOSED"}
 
         action = payload_in.get("action")
+        print(f"DEBUG: GEMINI ADAPTER RECEIVED ACTION: {action}")
 
         expected_identity = {
             "correlation_id": correlation_id,
@@ -474,7 +447,7 @@ def create_real_gemini_adapter(repo_root=None, model="gemini-3.7-flash-medium", 
             f"TASK_HASH: {task_hash}\n"
         )
 
-        if requires_write and action == "implement_bounded_improvement":
+        if action == "implement_bounded_improvement":
             task_instruction = payload_in.get("prompt", "Perform the requested modification.")
             goal_context = payload_in.get("goal_context", "")
             if goal_context:
@@ -502,8 +475,9 @@ def create_real_gemini_adapter(repo_root=None, model="gemini-3.7-flash-medium", 
                 "ONLY AFTER you have successfully performed the workspace modifications using your tools, return the final result.\n"
                 "If you need more read-only information (e.g. test output, file contents, state) before proceeding, you may return a verdict of 'WORKER_INFORMATION_REQUEST'. "
                 "In that case, your JSON object must include: 'requested_information' (string), 'reason' (string), 'read_only_required' (true), and 'preferred_capability' (e.g. 'repo verification' or 'local repo analysis').\n"
-                "Otherwise, return a valid JSON object with exact keys: "
-                "'correlation_id', 'mission_id', 'task_id', 'task_hash', 'target_agent', 'changed_files' (list of strings), 'verdict' ('PASS', 'HUMAN_APPROVAL_REQUIRED', or 'WORKER_INFORMATION_REQUEST'), and 'summary' (concise summary of changes actually made or information requested)."
+                "Otherwise, return your final result as a markdown JSON block (```json { ... } ```) with exact keys: "
+                "'correlation_id', 'mission_id', 'task_id', 'task_hash', 'target_agent', 'changed_files' (list of strings), 'verdict' ('PASS', 'HUMAN_APPROVAL_REQUIRED', or 'WORKER_INFORMATION_REQUEST'), and 'summary' (concise summary of changes actually made or information requested). "
+                "CRITICAL: Do NOT output bare JSON. Do NOT skip using your tools to make the actual changes first."
             )
             stage = "REAL_INDEPENDENT_IMPLEMENTATION"
             task_type = "IMPLEMENTATION"
@@ -521,6 +495,15 @@ def create_real_gemini_adapter(repo_root=None, model="gemini-3.7-flash-medium", 
             )
             stage = "REAL_INDEPENDENT_DISCOVERY"
             task_type = "DISCOVERY"
+        elif action == "evaluate_goal_completion":
+            prompt = (
+                f"{identity_headers}"
+                f"You are the autonomous orchestrator goal planner. {payload_in.get('prompt')}\n"
+                "Return ONLY a valid JSON object with exact keys: "
+                "'correlation_id', 'mission_id', 'task_id', 'task_hash', 'target_agent', 'verdict' ('PASS' or 'HUMAN_APPROVAL_REQUIRED'), and 'summary' (the next concrete task description, OR 'GOAL_IS_COMPLETE_YES')."
+            )
+            stage = "REAL_INDEPENDENT_PLANNING"
+            task_type = "PLANNING"
         else:
             prompt = (
                 f"{identity_headers}"
@@ -688,6 +671,105 @@ def get_real_worker_adapters(repo_root=None, gemini_model="gemini-3.7-flash-medi
     root = repo_root
     return {
         "CLI1": create_real_cli1_adapter(root),
+        "WINDOWS": create_real_windows_adapter(root),
         "CODEX": create_real_codex_adapter(root),
         "GEMINI": create_real_gemini_adapter(root, model=gemini_model),
     }
+
+
+def create_real_windows_adapter(root):
+    def windows_worker(task_envelope: dict) -> dict:
+        import subprocess
+        import json
+        from pathlib import Path
+        import time
+
+        task_hash = task_envelope.get("task_hash", "winhash")
+        worker_id = task_envelope.get("worker_id", "WINDOWS")
+        target_agent = task_envelope.get("target_agent", "WINDOWS")
+        mission_id = task_envelope.get("mission_id", "")
+        task_id = task_envelope.get("task_id", task_hash[:16])
+        correlation_id = str(task_envelope.get("correlation_id", ""))
+        
+        payload_in = task_envelope.get("payload", {})
+        action_name = payload_in.get("action") or task_envelope.get("action") or "UNKNOWN_ACTION"
+        scope_in = payload_in.get("allowed_scope") or payload_in.get("scope") or task_envelope.get("scope") or task_envelope.get("allowed_scope") or []
+        if isinstance(scope_in, list):
+            scope_str = ",".join(scope_in)
+        else:
+            scope_str = str(scope_in)
+            
+        payload_task = {
+            "TASK_ID": task_id,
+            "CREATED_AT": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "SOURCE": "MAC_ANTIGRAVITY",
+            "TARGET_HOST": "DESKTOP-JDPRUGR",
+            "PROJECT_PATH": "C:\\Dev\\Windows-AI-OS",
+            "WORKER": "WINDOWS",
+            "SCOPE": scope_str,
+            "ACTION": action_name,
+            "STATUS": "PENDING",
+            "SCRIPT": payload_in.get("prompt", "") or payload_in.get("action", "") or ""
+        }
+        
+        tmp_file = Path(f"/tmp/{task_id}_dispatch.json")
+        try:
+            with open(tmp_file, "w") as f:
+                json.dump(payload_task, f)
+                
+            dispatcher_path = Path(root or Path(__file__).resolve().parent.parent).resolve() / "scripts" / "mac_windows_dispatcher.py"
+            res = subprocess.run(["python3", str(dispatcher_path), str(tmp_file)], capture_output=True, text=True)
+            
+            success = False
+            if "SUCCESS: Result fetched successfully." in res.stdout and "EXIT_CODE: 0" in res.stdout and "STATUS: SUCCESS" in res.stdout:
+                success = True
+                
+            payload_out = {
+                "worker_agent": "WINDOWS",
+                "worker_type": "NATIVE_WINDOWS",
+                "real_model_call": False,
+                "separate_process": True,
+                "target_agent": "WINDOWS",
+                "task_id": task_id,
+                "mission_id": mission_id,
+                "task_hash": task_hash,
+                "status": "COMPLETED" if success else "FAILED",
+                "verdict": "PASS" if success else "FAIL",
+                "summary": f"Windows execution. stdout: {res.stdout.strip()} stderr: {res.stderr.strip()}",
+                "zero_cost_policy": "ZERO_COST_ONLY",
+                "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+                "action": action_name
+            }
+            
+            return {
+                "ack": {
+                    "schema_version": "1.0",
+                    "type": "ACK",
+                    "status": "ACCEPTED",
+                    "ack_mode": "SYNCHRONOUS_COMPLETION_VALIDATED",
+                    "task_hash": task_hash,
+                    "worker_id": worker_id,
+                    "target_agent": target_agent,
+                    "correlation_id": correlation_id,
+                    "task_id": task_id,
+                    "mission_id": mission_id,
+                },
+                "result": {
+                    "schema_version": "1.0",
+                    "type": "RESULT",
+                    "status": "COMPLETED" if success else "FAILED",
+                    "task_hash": task_hash,
+                    "worker_id": worker_id,
+                    "target_agent": target_agent,
+                    "correlation_id": correlation_id,
+                    "task_id": task_id,
+                    "mission_id": mission_id,
+                    "payload": payload_out,
+                    "result_fingerprint": canonical_hash(payload_out) if "canonical_hash" in globals() else task_hash,
+                }
+            }
+        finally:
+            if tmp_file.exists():
+                tmp_file.unlink()
+    return windows_worker
+

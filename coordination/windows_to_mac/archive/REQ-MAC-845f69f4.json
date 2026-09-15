@@ -1,0 +1,46 @@
+{
+  "request_id": "REQ-MAC-845f69f4",
+  "mission_id": "plan-imp-1d5585ac",
+  "schema_version": "1.0",
+  "status": "COMPLETED",
+  "observed_behavior": "Auto task completed",
+  "result_fingerprint": "14405b60aaffdda345714bd05ab22c06139139f666816e2ee329f270fc46f601",
+  "payload": {
+    "worker_agent": "GEMINI",
+    "worker_type": "NATIVE_AGY_MODEL",
+    "real_model_call": true,
+    "separate_process": true,
+    "requested_model": "gemini-3.7-flash-medium",
+    "confirmed_model": "UNKNOWN",
+    "model_identity_truthful": "UNKNOWN",
+    "entrypoint": "/Users/user/.local/bin/agy",
+    "execution_mode": "REAL_GEMINI_NATIVE_AGY_EXECUTION",
+    "stage": "REAL_INDEPENDENT_IMPLEMENTATION",
+    "ack_mode": "SYNCHRONOUS_COMPLETION_VALIDATED",
+    "worker_originated_ack": false,
+    "correlation_id": "",
+    "task_id": "plan-imp-1d5585ac",
+    "mission_id": "",
+    "task_hash": "845f69f460b25d8e",
+    "target_agent": "GEMINI",
+    "conversation_id": "c263c7aa-47f8-47ab-b8e1-7b4f2549ab27",
+    "duration_seconds": 26.483506,
+    "output_sha256": "4802aa74f0533100279905d20530788ba56d1bcde04ba822194c673339552e22",
+    "verdict": "PASS",
+    "summary": "Created demo_pilot/PILOT_INTAKE_FORM.md (structured template for customer repository, task, and test submission) and demo_pilot/COMMERCIAL_ONE_PAGER.md (executive summary of CUSTOMER_DEMO.md tailored for CTOs and engineering leadership).",
+    "task_type": "IMPLEMENTATION",
+    "zero_cost_policy": "ZERO_COST_ONLY",
+    "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+    "status": "COMPLETED",
+    "action": "implement_bounded_improvement",
+    "changed_files": [
+      "demo_pilot/PILOT_INTAKE_FORM.md",
+      "demo_pilot/COMMERCIAL_ONE_PAGER.md"
+    ],
+    "files_modified": [
+      "demo_pilot/PILOT_INTAKE_FORM.md",
+      "demo_pilot/COMMERCIAL_ONE_PAGER.md"
+    ],
+    "verification_strategy": "run_unit_tests"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "request_id": "REQ-MAC-15dc6589",
+  "mission_id": "TASK-CODEX-TEST-cd76d9",
+  "schema_version": "1.0",
+  "status": "COMPLETED",
+  "observed_behavior": "Codex check completed",
+  "result_fingerprint": "99124481e3cadb92fb7bfc4b1adab15e3ca7b40db27dce02b200ea0ab4f14f3e",
+  "payload": {
+    "worker_agent": "CODEX",
+    "worker_type": "NATIVE_MODEL_CLI",
+    "real_model_call": true,
+    "separate_process": true,
+    "requested_model": "codex",
+    "entrypoint": "/Applications/ChatGPT.app/Contents/Resources/codex",
+    "execution_mode": "REAL_CODEX_CLI_EXECUTION",
+    "stage": "REAL_CODEX_MODEL_EXECUTION",
+    "ack_mode": "SYNCHRONOUS_COMPLETION_VALIDATED",
+    "worker_originated_ack": false,
+    "correlation_id": "",
+    "task_id": "TASK-CODEX-TEST-bb514a",
+    "mission_id": "",
+    "task_hash": "15dc65891a0b0497",
+    "target_agent": "CODEX",
+    "cli_result": {
+      "verdict": "PASS",
+      "summary": "Completed read-only inspection of scripts/run_codex_bridge.py without executing it or modifying files. Observed unvalidated task IDs in output paths, omitted identity validation at the CLI call site, and deterministic PASS results without actual syntax validation. PASS indicates inspection completion, not security certification.",
+      "correlation_id": "",
+      "task_id": "TASK-CODEX-TEST-bb514a",
+      "task_hash": "15dc65891a0b0497",
+      "target_agent": "CODEX",
+      "agent_source": "CODEX_CLI_REAL",
+      "execution_mode": "REAL_CODEX_CLI_EXECUTION",
+      "cli_process_returncode": 0,
+      "cli_output_sha256": "64f9d04d5f1d739b4aef3aa7fbe6a61ac605a06b67fb67addc6c6c2ef969fa70",
+      "cli_version": "codex-cli 0.153.4"
+    },
+    "verdict": "PASS",
+    "summary": "Completed read-only inspection of scripts/run_codex_bridge.py without executing it or modifying files. Observed unvalidated task IDs in output paths, omitted identity validation at the CLI call site, and deterministic PASS results without actual syntax validation. PASS indicates inspection completion, not security certification.",
+    "zero_cost_policy": "ZERO_COST_ONLY",
+    "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+    "status": "COMPLETED"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "mission_id": "MAC_AUTONOMOUS_OPERATIONS",
+  "request_id": "REQ-MAC-7B6D8CA4",
+  "attempt_id": 1,
+  "windows_worker": "WINDOWS_GOOGLE",
+  "fencing_epoch": 1,
+  "fencing_token": "7a2173fb5764473faad1a1cb38011669272be4942503de3848bbb6bc8334ff4c",
+  "claim_state": "CLAIMED",
+  "claimed_at": "2026-09-14T05:58:07.587438+00:00",
+  "expires_at": "2026-09-14T06:03:07.585290+00:00"
+}

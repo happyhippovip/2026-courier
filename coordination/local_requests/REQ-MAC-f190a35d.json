@@ -1,0 +1,1 @@
+{"task_hash": "f190a35d4692cc6f", "worker_id": "WINDOWS", "target_agent": "WINDOWS", "task_id": "win-test-reboot-idempotency", "payload": {"action": "RUN_TESTS", "prompt": "Trigger a persistent autonomy test on the Windows remote executor.", "allowed_scope": ["C:\\Dev\\Windows-AI-OS"]}}

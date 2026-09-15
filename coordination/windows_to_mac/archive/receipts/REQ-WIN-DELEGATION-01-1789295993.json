@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "request_id": "REQ-WIN-DELEGATION-01-1789295993",
+  "mission_id": "SYMPHONY_AUTONOMOUS_OPERATIONS",
+  "status": "COMPLETED",
+  "worker": "WINDOWS_SPECIALIST_VALIDATOR",
+  "start_time": "2026-09-13T10:39:53.585815+00:00",
+  "finish_time": "2026-09-13T10:39:53.684537+00:00",
+  "commands": [
+    "verify_package_integrity C:\\Users\\lol\\2026-workspace\\courier\\dist\\courier_symphony_v1.0.0-rc1.zip"
+  ],
+  "exit_codes": [
+    0
+  ],
+  "observed_behavior": "Package integrity verified. Archive SHA256: 1dc0784d550c6ddf52fb0b795e8a8d2db93d77aa241a8468511a747530901b7f. Files in archive: 43. Manifest commit: b2c3403d9c8292c6ecf7b33470e842838560fd2d.",
+  "verified_assertions": 43,
+  "result_fingerprint": "d32c7a3e4e9c30f2bac9bd4035b539f914317a697957608f505459cf26b4e34f",
+  "artifact_references": [
+    "courier/dist/courier_symphony_v1.0.0-rc1.zip"
+  ],
+  "checkpoint_reference": "CHECKPOINT-REQ-WIN-DELEGATION-01-1789295993",
+  "known_defects": [],
+  "blockers": [],
+  "human_gates": []
+}

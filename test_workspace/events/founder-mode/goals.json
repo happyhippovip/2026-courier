@@ -1,0 +1,920 @@
+[
+  {
+    "constraints": [],
+    "created_at": 1789334411.109921,
+    "goal": "V1 Finish Tests",
+    "goal_id": "f8a3990a-c98f-47ef-8982-9bc18eaae1bd",
+    "priority": 1,
+    "source": "CLI",
+    "status": "ACTIVE"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.349022,
+    "goal": "Distinct task 0",
+    "goal_id": "ea9e90b8-b608-4887-ad44-156e908d367c",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.350355,
+    "goal": "Distinct task 1",
+    "goal_id": "25825bde-3b3b-4c49-b972-72215bf66ed3",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.351789,
+    "goal": "Distinct task 2",
+    "goal_id": "33a0555e-69ec-4687-aca5-e08d58e4c1ea",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.3532732,
+    "goal": "Distinct task 3",
+    "goal_id": "ec8a5405-5443-4283-810c-db0f1c29c660",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.354899,
+    "goal": "Distinct task 4",
+    "goal_id": "6e8ebbbf-dfbd-454d-a838-57fc479576d8",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.3564742,
+    "goal": "Distinct task 5",
+    "goal_id": "ba7a1cba-8299-4e81-bb6a-89af34858fe8",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.358023,
+    "goal": "Distinct task 6",
+    "goal_id": "20c949b7-5ef9-4f49-81ec-292bc18c331e",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.359607,
+    "goal": "Distinct task 7",
+    "goal_id": "0671a8cc-e186-48fd-8bb3-e43ca101dcd4",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.3612,
+    "goal": "Distinct task 8",
+    "goal_id": "c371a9dd-3791-4d8f-989f-d10778b760b8",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.3629382,
+    "goal": "Distinct task 9",
+    "goal_id": "31d80738-b33d-49f1-840b-f2fb170318eb",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.364646,
+    "goal": "Distinct task 10",
+    "goal_id": "0ee0827e-9024-4c24-a865-388a95405d69",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.3663201,
+    "goal": "Distinct task 11",
+    "goal_id": "13b1a309-79f8-40c7-8823-332b732c7cec",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.3680809,
+    "goal": "Distinct task 12",
+    "goal_id": "26abe87a-70b6-471b-aafd-e3f1b7fb1e4c",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.369843,
+    "goal": "Distinct task 13",
+    "goal_id": "82df83e6-fa5f-4c26-9797-21ea118ce72c",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.371719,
+    "goal": "Distinct task 14",
+    "goal_id": "4f7a5cbb-1048-4db6-93f7-a5262445c250",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.373732,
+    "goal": "Distinct task 15",
+    "goal_id": "442437ab-86da-4559-af45-1ebcd95bc78e",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.375666,
+    "goal": "Distinct task 16",
+    "goal_id": "9e19b0ee-a05b-4238-8acf-00dc449af9f0",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.3775308,
+    "goal": "Distinct task 17",
+    "goal_id": "a9f6ae47-cfa4-4b9f-8937-54b00ff33230",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.379554,
+    "goal": "Distinct task 18",
+    "goal_id": "2b64ad36-0238-4131-b90f-9bd2b116ac6f",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.381737,
+    "goal": "Distinct task 19",
+    "goal_id": "409ef53a-561e-4c09-8f36-59370c664fba",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.383717,
+    "goal": "Distinct task 20",
+    "goal_id": "31fb757f-98ab-493a-b47d-8ad943033d14",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.3857532,
+    "goal": "Distinct task 21",
+    "goal_id": "699fd4f4-b629-4171-9c1d-a9d0313579da",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.387975,
+    "goal": "Distinct task 22",
+    "goal_id": "083e561c-264b-4373-b624-23afd6bc3fdc",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.390115,
+    "goal": "Distinct task 23",
+    "goal_id": "50267131-b8af-44ea-9776-7c988115ee3a",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.392256,
+    "goal": "Distinct task 24",
+    "goal_id": "f3acd79e-119a-44e9-af0b-f93ba283c9e8",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.3942988,
+    "goal": "Distinct task 25",
+    "goal_id": "642a1f1c-d651-4b61-94b0-1ddf579d44bf",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.39643,
+    "goal": "Distinct task 26",
+    "goal_id": "2bf83acb-07da-4125-85bf-69a0b27c13e0",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.398689,
+    "goal": "Distinct task 27",
+    "goal_id": "c93a1b9c-3c03-44e9-aded-b47e6d80a6ae",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.400979,
+    "goal": "Distinct task 28",
+    "goal_id": "bd6bbb63-a1d8-4d6a-ad42-5f07445cf01c",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.4032938,
+    "goal": "Distinct task 29",
+    "goal_id": "6d26bf0a-27fa-40d2-9bea-0f5083be33ee",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.4055731,
+    "goal": "Distinct task 30",
+    "goal_id": "153b6f78-2cb9-4813-b15a-ec20d267cdd9",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.407861,
+    "goal": "Distinct task 31",
+    "goal_id": "1c4e5596-c743-4372-b2b0-73468d215bf4",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.410271,
+    "goal": "Distinct task 32",
+    "goal_id": "5d61865f-8a1e-4e03-8f0b-1a249823e0a3",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.412549,
+    "goal": "Distinct task 33",
+    "goal_id": "40a76580-a175-4019-b998-002ef31ef4b1",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.4149451,
+    "goal": "Distinct task 34",
+    "goal_id": "e3a602e4-4fb1-49ac-bae5-53c27a68e6da",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.417363,
+    "goal": "Distinct task 35",
+    "goal_id": "3d221efe-844e-4c9f-ba68-cc4663bca2de",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.419919,
+    "goal": "Distinct task 36",
+    "goal_id": "91821381-16c8-4686-977b-5edd6c83b993",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.422524,
+    "goal": "Distinct task 37",
+    "goal_id": "79d0ffa5-fbe5-4abf-b3c1-7d84e141abfb",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.425108,
+    "goal": "Distinct task 38",
+    "goal_id": "01833a6a-741d-46bb-ab78-54378102b186",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.427657,
+    "goal": "Distinct task 39",
+    "goal_id": "ca4b111f-a9ec-47ae-a824-e706a5f1a55a",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.430225,
+    "goal": "Distinct task 40",
+    "goal_id": "f56cb157-5d16-448e-b130-da51e4e1ece3",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.432887,
+    "goal": "Distinct task 41",
+    "goal_id": "cdb4613b-ac63-47ce-9168-75339e10aad6",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.4355981,
+    "goal": "Distinct task 42",
+    "goal_id": "eb92a5fa-1378-4e15-bb06-11ce7ba72e5c",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.438366,
+    "goal": "Distinct task 43",
+    "goal_id": "c06f9a52-12c9-4655-9205-a55ea991ea15",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.441011,
+    "goal": "Distinct task 44",
+    "goal_id": "c6d19af1-2edb-426b-a6ea-a5621385bdca",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.4437492,
+    "goal": "Distinct task 45",
+    "goal_id": "757e760b-69fb-4630-87f2-2dcc4934f4b4",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.4483998,
+    "goal": "Distinct task 46",
+    "goal_id": "104c33ed-32db-44fd-8bc9-177c92b473da",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.451332,
+    "goal": "Distinct task 47",
+    "goal_id": "38054f08-b3d6-4375-a4f9-1f3ebdef8d5f",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.454369,
+    "goal": "Distinct task 48",
+    "goal_id": "d210277e-3836-4a5c-ae27-34d885d1810c",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.4572318,
+    "goal": "Distinct task 49",
+    "goal_id": "ee90f964-9e8e-484b-a6b3-98d737e657dc",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.460159,
+    "goal": "Distinct task 50",
+    "goal_id": "51d10b0a-c7f8-4d1c-a0b5-e6c942322a64",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.463022,
+    "goal": "Distinct task 51",
+    "goal_id": "3fe31f3c-31d7-4278-943e-4caf10c91dc4",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.466093,
+    "goal": "Distinct task 52",
+    "goal_id": "584c8eee-da5a-4be6-bc74-129a1954ffab",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.4691699,
+    "goal": "Distinct task 53",
+    "goal_id": "614716f2-5e0b-44b4-96a7-e78c6511bfe2",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.4721549,
+    "goal": "Distinct task 54",
+    "goal_id": "3a1e5ebd-e328-4ea8-9ef4-a839fb1e3599",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.475269,
+    "goal": "Distinct task 55",
+    "goal_id": "fcb80abf-6d0b-429b-895c-b1a0007dc5a4",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.4783309,
+    "goal": "Distinct task 56",
+    "goal_id": "d63b9f0a-f638-406b-825c-e271d761378c",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.481514,
+    "goal": "Distinct task 57",
+    "goal_id": "17f3ef6b-2046-4c36-92d3-3b2051356668",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.48486,
+    "goal": "Distinct task 58",
+    "goal_id": "86947909-3e81-4442-b93d-9d2ba1b8dc2c",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.488149,
+    "goal": "Distinct task 59",
+    "goal_id": "7185775a-a6b2-4bca-925e-193ddb817bf4",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.4914129,
+    "goal": "Distinct task 60",
+    "goal_id": "43f745a0-faf5-4a86-ad02-6bb899647c00",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.4946282,
+    "goal": "Distinct task 61",
+    "goal_id": "4245fea5-8e65-46f0-9aaf-5fb20d9d1531",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.4983869,
+    "goal": "Distinct task 62",
+    "goal_id": "d4b8a918-de38-4eb2-a045-08f1eeebd0cb",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.501908,
+    "goal": "Distinct task 63",
+    "goal_id": "d75925c7-55f8-4ce2-b269-4439819b855d",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.505344,
+    "goal": "Distinct task 64",
+    "goal_id": "f0cd30e1-3fbe-4a82-a5fe-8d5246e6349e",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.50877,
+    "goal": "Distinct task 65",
+    "goal_id": "915e94e7-3a5b-4511-9ea0-372597eba989",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.51215,
+    "goal": "Distinct task 66",
+    "goal_id": "8699ff6d-701d-4a2a-8de8-878cd802ac62",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.515693,
+    "goal": "Distinct task 67",
+    "goal_id": "6260a668-8d19-4ed6-a55b-54c0f2e889d6",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.519465,
+    "goal": "Distinct task 68",
+    "goal_id": "82437820-d738-42f8-8f44-f3e10636cbad",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.523006,
+    "goal": "Distinct task 69",
+    "goal_id": "a5375f4c-9617-4cdc-bca2-fb9dba523455",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.526633,
+    "goal": "Distinct task 70",
+    "goal_id": "6e261cef-230a-4869-97c5-046a0715bdc5",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.5301151,
+    "goal": "Distinct task 71",
+    "goal_id": "667922d1-357e-42a7-98f1-629ecf6f6ea1",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.533679,
+    "goal": "Distinct task 72",
+    "goal_id": "ae9c997d-40fc-4e0b-886d-c4db4f2786d2",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.537214,
+    "goal": "Distinct task 73",
+    "goal_id": "e08bbb6f-2a52-43f0-a828-575ce1e4c489",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.540902,
+    "goal": "Distinct task 74",
+    "goal_id": "e519c91a-ba5c-41f2-9abe-3f7a93026796",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.5449228,
+    "goal": "Distinct task 75",
+    "goal_id": "4746426a-594e-44df-8380-58ffedf41e21",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.548796,
+    "goal": "Distinct task 76",
+    "goal_id": "af1e48b2-760c-467a-aef6-a7e9bd44b4e4",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.552557,
+    "goal": "Distinct task 77",
+    "goal_id": "aa907680-bd2f-4deb-90f9-d36c1c7310d0",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.5563672,
+    "goal": "Distinct task 78",
+    "goal_id": "997b93f0-c08c-45bd-9351-aef41001fa02",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.560169,
+    "goal": "Distinct task 79",
+    "goal_id": "d271edfb-e233-421f-b2c7-2bcb3a075dd2",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.5639942,
+    "goal": "Distinct task 80",
+    "goal_id": "53904b84-c371-4335-bc78-b43237568742",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.567959,
+    "goal": "Distinct task 81",
+    "goal_id": "7bf7be40-e4c1-4eee-9b37-352cd699885b",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.571903,
+    "goal": "Distinct task 82",
+    "goal_id": "6e89d908-bfbd-454f-929a-8f3313540731",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.576072,
+    "goal": "Distinct task 83",
+    "goal_id": "9b166309-715e-4a5f-bcc7-83c9111846e5",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.580087,
+    "goal": "Distinct task 84",
+    "goal_id": "5b540830-517d-4502-b900-64ee8079058d",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.584129,
+    "goal": "Distinct task 85",
+    "goal_id": "958cd40a-1b00-4e3b-bb38-769acefe22ef",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.588313,
+    "goal": "Distinct task 86",
+    "goal_id": "39ff1a37-c998-4906-9820-d7e0bfdeab52",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.592772,
+    "goal": "Distinct task 87",
+    "goal_id": "0aa5d2ef-27ab-47ae-aae1-f8381ec78233",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.596854,
+    "goal": "Distinct task 88",
+    "goal_id": "2c917095-eb4f-47b0-b40a-b1b76d52cd72",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.601116,
+    "goal": "Distinct task 89",
+    "goal_id": "a0328314-700a-4ef6-ab12-8d76bc9391c9",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.605403,
+    "goal": "Distinct task 90",
+    "goal_id": "66467441-242f-4499-b126-f49fe51f5673",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.609899,
+    "goal": "Distinct task 91",
+    "goal_id": "82c7e7a2-49fa-4ca5-b279-c3c7eec478f3",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.614072,
+    "goal": "Distinct task 92",
+    "goal_id": "dfa28d40-791b-48e9-815e-bd48262310e1",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.6188319,
+    "goal": "Distinct task 93",
+    "goal_id": "093de96c-9fe1-4bd4-ba7e-0d68b673bc52",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.623242,
+    "goal": "Distinct task 94",
+    "goal_id": "b0f8a086-aead-4df0-ade6-23ccef2c6c39",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.627594,
+    "goal": "Distinct task 95",
+    "goal_id": "9806d1c6-00d2-443d-8f62-dcfb4e189609",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.631816,
+    "goal": "Distinct task 96",
+    "goal_id": "db11b99f-b810-45e4-a5f3-d44e95dc3799",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.636178,
+    "goal": "Distinct task 97",
+    "goal_id": "57ea7d19-b67f-4617-b463-9443fab9417d",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.64079,
+    "goal": "Distinct task 98",
+    "goal_id": "8225c03c-6be8-4239-a0eb-e2d30974f22e",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.6451972,
+    "goal": "Distinct task 99",
+    "goal_id": "6fc54a98-7f27-4771-a0c6-689caf83393e",
+    "priority": 1,
+    "source": "CLI",
+    "status": "PENDING"
+  },
+  {
+    "constraints": [],
+    "created_at": 1789334411.6498702,
+    "goal": "Run V2 Revenue Engine",
+    "goal_id": "4eb06726-9b82-42ea-af64-814c0a850e03",
+    "priority": 1,
+    "source": "CLI",
+    "status": "POST_V1_PARKED"
+  }
+]

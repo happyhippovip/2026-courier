@@ -19,13 +19,17 @@ import enum
 import fcntl
 import hashlib
 import json
+import logging
 import os
 import re
+import subprocess
 import sys
 import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Dict, Generator, List, Optional, Set, Tuple
+
+logger = logging.getLogger("canonical_authority")
 
 COURIER_DIR = Path(__file__).resolve().parent.parent
 EVENTS_DIR = COURIER_DIR / "events"
@@ -58,11 +62,23 @@ def get_process_start_time(pid: Optional[int]) -> Optional[float]:
             parts = stat_path.read_text(encoding="utf-8").split()
             if len(parts) > 21:
                 return float(parts[21])
-    except (IOError, OSError, ValueError, IndexError):
-        pass
+    except (IOError, OSError, ValueError, IndexError) as exc:
+        logger.debug("Failed to read procfs stat for pid %s: %s", pid, exc)
 
-    # 2. Fallback cross-platform process identity verification
-    return float(pid) if pid is not None else None
+    # 2. Darwin/BSD process birth time. PID existence alone is not identity:
+    # the kernel can reuse a PID after the original owner exits.
+    try:
+        started = subprocess.check_output(
+            ["/bin/ps", "-o", "lstart=", "-p", str(pid)],
+            text=True,
+            timeout=2,
+        ).strip()
+        if started:
+            parsed = dt.datetime.strptime(started, "%a %b %d %H:%M:%S %Y")
+            return parsed.timestamp()
+    except (OSError, subprocess.SubprocessError, ValueError) as exc:
+        logger.debug("Failed to read process birth time for pid %s: %s", pid, exc)
+    return None
 
 
 class LockStatus(str, enum.Enum):
@@ -130,8 +146,8 @@ class CanonicalAuthority:
         finally:
             try:
                 fcntl.flock(f_handle.fileno(), fcntl.LOCK_UN)
-            except (IOError, OSError):
-                pass
+            except (IOError, OSError) as exc:
+                logger.debug("Failed to release flock: %s", exc)
             f_handle.close()
 
     def _scope_file_path(self, scope: str) -> Path:
@@ -147,9 +163,24 @@ class CanonicalAuthority:
                 data = json.loads(self.gen_counter_file.read_text(encoding="utf-8"))
                 if isinstance(data, dict) and isinstance(data.get("generation"), int):
                     current_gen = max(1, data["generation"])
-            except Exception:
+            except Exception as exc:
+                logger.warning("Generation counter file corrupted (%s); falling back to timestamp generation", exc)
                 # If counter corrupted, jump ahead based on timestamp to ensure monotonicity
                 current_gen = int(time.time() * 1000)
+
+        # Recovery must also dominate every already-persisted fencing token. The
+        # counter can lag after restore or interrupted migration even when the
+        # individual authority records remain valid.
+        for scope_file in self.locks_dir.glob("scope_*.json"):
+            try:
+                persisted = json.loads(scope_file.read_text(encoding="utf-8"))
+                persisted_gen = persisted.get("generation") if isinstance(persisted, dict) else None
+                if isinstance(persisted_gen, int) and not isinstance(persisted_gen, bool):
+                    current_gen = max(current_gen, persisted_gen)
+            except Exception:
+                # Corrupt authority records are rejected before allocation by
+                # acquire_scopes; never reinterpret them as generation evidence.
+                continue
 
         next_gen = current_gen + 1
         payload = {"generation": next_gen, "updated_at": utc_now()}
@@ -215,8 +246,23 @@ class CanonicalAuthority:
         alive = is_pid_alive(record.pid)
         lease_expired = lease_dt <= now
 
-        if not alive and lease_expired:
-            return LockStatus.STALE_RECOVERABLE, record, "Owner PID is dead and lease expired"
+        # An expired fencing lease has no authority even if its PID still exists.
+        if lease_expired:
+            return LockStatus.STALE_RECOVERABLE, record, "Authority lease expired"
+
+        if alive:
+            current_start = get_process_start_time(record.pid)
+            stored_start = record.process_start_time
+            if (
+                isinstance(stored_start, (int, float))
+                and not isinstance(stored_start, bool)
+                and current_start is not None
+                # Legacy records used float(pid) as a placeholder. Treat them as
+                # unknown/fail-closed until lease expiry, never as proof to signal.
+                and stored_start != float(record.pid)
+                and stored_start != current_start
+            ):
+                return LockStatus.STALE_RECOVERABLE, record, "PID birth identity mismatch"
 
         return LockStatus.VALID_OWNED, record, None
 
@@ -282,12 +328,13 @@ class CanonicalAuthority:
                         if self._check_scope_overlap(req_scope, record.scope):
                             stale_files_to_reclaim.append(lock_file)
 
-            # 2. Reclaim verified stale files atomically before allocating generation
+            # 2. Allocate while stale records are still visible so the new fence
+            # necessarily dominates the generations being reclaimed.
+            gen = self._allocate_generation()
+
+            # 3. Reclaim verified stale files atomically.
             for stale_file in stale_files_to_reclaim:
                 stale_file.unlink(missing_ok=True)
-
-            # 3. Allocate next monotonic generation fencing token
-            gen = self._allocate_generation()
 
             # 4. Write all requested scope authority records atomically
             for req_scope in clean_scopes:

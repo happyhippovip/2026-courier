@@ -1,0 +1,8 @@
+{
+  "request_id": "REQ-AUTONOMY-SUCCESSION-1789298920",
+  "mission_id": "POST_V1_AUTONOMY_CAMPAIGN",
+  "owner_node": "WINDOWS_PC2",
+  "process_instance_id": "4032e580-6493-4628-b580-bbe9e8756cb0",
+  "lease_epoch": 1,
+  "claimed_at": "2026-09-13T11:28:42.878108+00:00"
+}

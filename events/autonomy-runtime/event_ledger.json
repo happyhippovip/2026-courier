@@ -1,4 +1,1520 @@
 {
+  "completion_stamps": {
+    "REQ-MAC-0171b397": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-0171b397",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-01cd98a9": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-01cd98a9",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-055bbce2": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-055bbce2",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-05c181e1": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-05c181e1",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-060d33d9": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-060d33d9",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-06847ff4": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-06847ff4",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-06ba8d21": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-06ba8d21",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-071af295": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-071af295",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-082b922c": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-082b922c",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-08ea2c45": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-08ea2c45",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-0a229566": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": "coordination/windows_to_mac/results/REQ-MAC-0a229566.json",
+      "goal_ref": "",
+      "reason": null,
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "DONE",
+      "task_id": "REQ-MAC-0a229566",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-0b78db06": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-0b78db06",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-0c193f4e": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-0c193f4e",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-0ee072c3": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-0ee072c3",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-0f435a69": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-0f435a69",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-14c0a816": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-14c0a816",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-15584f6f": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-15584f6f",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-176e75c3": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-176e75c3",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-1a9bb333": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-1a9bb333",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-1b62e9fa": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-1b62e9fa",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-1c8cbc80": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-1c8cbc80",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-1f8096d4": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-1f8096d4",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-207188b5": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-207188b5",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-230022b5": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-230022b5",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-23a9f151": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-23a9f151",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-25049947": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-25049947",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-254bed4e": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-254bed4e",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-27feb012": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-27feb012",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-28b0b948": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-28b0b948",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-34e8a462": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-34e8a462",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-357e6985": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-357e6985",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-384f6ad9": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-384f6ad9",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-3993981d": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-3993981d",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-3a11a280": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-3a11a280",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-3c84e3cf": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-3c84e3cf",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-3e5c622f": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-3e5c622f",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-3f40853b": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-3f40853b",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-437c22e2": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-437c22e2",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-4471a5fd": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-4471a5fd",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-48f7fff5": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-48f7fff5",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-4aa4b29d": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-4aa4b29d",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-4cf68f5f": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-4cf68f5f",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-4f8e1844": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-4f8e1844",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-52e6404e": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-52e6404e",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-582bb77e": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-582bb77e",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-5a028bb8": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-5a028bb8",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-5c0bd2b5": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-5c0bd2b5",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-5c60d80f": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-5c60d80f",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-5d0694a9": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-5d0694a9",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-604f8af7": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-604f8af7",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-617acb31": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-617acb31",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-629743cf": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-629743cf",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-63197584": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-63197584",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-6612c4b4": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-6612c4b4",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-6759507b": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-6759507b",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-6a35b045": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-6a35b045",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-6d632563": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-6d632563",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-6df15e64": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-6df15e64",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-6e6b83e9": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-6e6b83e9",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-6ea8b670": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-6ea8b670",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-74efa33e": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-74efa33e",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-772665b9": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-772665b9",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-79808feb": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-79808feb",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-7CFF05F4": {
+      "claims": [
+        "WINDOWS_SPECIALIST_VALIDATOR"
+      ],
+      "evidence_reference": "coordination/windows_to_mac/results/REQ-MAC-7CFF05F4.json",
+      "goal_ref": "",
+      "reason": null,
+      "semantic_fingerprint": "13fbd7228ed8eaa9",
+      "status": "DONE",
+      "task_id": "REQ-MAC-7CFF05F4",
+      "worker": "WINDOWS_SPECIALIST_VALIDATOR"
+    },
+    "REQ-MAC-7d6c61a0": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": "coordination/windows_to_mac/results/REQ-MAC-7d6c61a0.json",
+      "goal_ref": "",
+      "reason": null,
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "DONE",
+      "task_id": "REQ-MAC-7d6c61a0",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-7fe5d12f": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-7fe5d12f",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-82dc6c65": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-82dc6c65",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-845f69f4": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-845f69f4",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-85e30b7e": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-85e30b7e",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-85e97b65": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-85e97b65",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-8b3fa3a4": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-8b3fa3a4",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-8d7de77d": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-8d7de77d",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-8fc847bd": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-8fc847bd",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-90d7b65b": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-90d7b65b",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-91cfcac3": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-91cfcac3",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-964b845c": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-964b845c",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-97cc87bb": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-97cc87bb",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-9bd4fbc4": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-9bd4fbc4",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-9c0c84f2": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-9c0c84f2",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-9c2869a1": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-9c2869a1",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-9d09688d": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-9d09688d",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-9fe0adab": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-9fe0adab",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-9ffd1ceb": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-9ffd1ceb",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-QA222222": {
+      "claims": [
+        "WINDOWS_SPECIALIST_VALIDATOR"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "13fbd7228ed8eaa9",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-QA222222",
+      "worker": "WINDOWS_SPECIALIST_VALIDATOR"
+    },
+    "REQ-MAC-TASK-AUTO1-e4703c": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": "/Users/user/Downloads/2026-courier/coordination/windows_to_mac/results/REQ-MAC-TASK-AUTO1-e4703c.json",
+      "goal_ref": "",
+      "reason": null,
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "DONE",
+      "task_id": "REQ-MAC-TASK-AUTO1-e4703c",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-a7e2705d": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-a7e2705d",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-a9d9a1a0": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-a9d9a1a0",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-aa6b44d1": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-aa6b44d1",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-acdec749": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-acdec749",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-b95c7df0": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-b95c7df0",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-bf13f5fe": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-bf13f5fe",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-c29adb45": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-c29adb45",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-c52f2cd2": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-c52f2cd2",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-c87a3b49": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": "coordination/windows_to_mac/results/REQ-MAC-c87a3b49.json",
+      "goal_ref": "",
+      "reason": null,
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "DONE",
+      "task_id": "REQ-MAC-c87a3b49",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-ca8fd570": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-ca8fd570",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-cbba46ee": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-cbba46ee",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-cea37aa3": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-cea37aa3",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-d01a0e5a": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-d01a0e5a",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-d05d764e": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-d05d764e",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-d14b4c0d": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-d14b4c0d",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-d1f05fdf": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-d1f05fdf",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-d221f2cd": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-d221f2cd",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-d277b217": {
+      "claims": [
+        "UNKNOWN",
+        "UNKNOWN",
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-d277b217",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-d6549eb0": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-d6549eb0",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-d9122345": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-d9122345",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-d9f2831b": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-d9f2831b",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-da8502a9": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-da8502a9",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-db3ac616": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-db3ac616",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-dc4d5ba2": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-dc4d5ba2",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-e07a70e3": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-e07a70e3",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-e4dcba76": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": "coordination/windows_to_mac/results/REQ-MAC-e4dcba76.json",
+      "goal_ref": "",
+      "reason": null,
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "DONE",
+      "task_id": "REQ-MAC-e4dcba76",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-e56f21fb": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-e56f21fb",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-e5cdfc9d": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-e5cdfc9d",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-eaa96aa2": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-eaa96aa2",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-eb4107fd": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-eb4107fd",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-ec392bcf": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-ec392bcf",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-ef1592ef": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-ef1592ef",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-f173f616": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-f173f616",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-f8aa3efc": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-f8aa3efc",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-f8fb1359": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": "coordination/windows_to_mac/results/REQ-MAC-f8fb1359.json",
+      "goal_ref": "",
+      "reason": null,
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "DONE",
+      "task_id": "REQ-MAC-f8fb1359",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-fb9b2396": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-fb9b2396",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-fe9a9dea": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-fe9a9dea",
+      "worker": "UNKNOWN"
+    },
+    "REQ-MAC-ffcf6cb2": {
+      "claims": [
+        "UNKNOWN"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "8cbb894b9554a959",
+      "status": "BLOCKED",
+      "task_id": "REQ-MAC-ffcf6cb2",
+      "worker": "UNKNOWN"
+    },
+    "TASK-AUTO-A-269c51": {
+      "claims": [
+        "GEMINI"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "c2687a1a251da3ae",
+      "status": "BLOCKED",
+      "task_id": "TASK-AUTO-A-269c51",
+      "worker": "GEMINI"
+    },
+    "TASK-AUTO-A-35e227": {
+      "claims": [
+        "GEMINI"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "c2687a1a251da3ae",
+      "status": "BLOCKED",
+      "task_id": "TASK-AUTO-A-35e227",
+      "worker": "GEMINI"
+    },
+    "TASK-AUTO-A-7c5316": {
+      "claims": [
+        "GEMINI"
+      ],
+      "evidence_reference": null,
+      "goal_ref": "",
+      "reason": "UNKNOWN_BLOCKER",
+      "semantic_fingerprint": "c2687a1a251da3ae",
+      "status": "BLOCKED",
+      "task_id": "TASK-AUTO-A-7c5316",
+      "worker": "GEMINI"
+    }
+  },
   "events": [
     {
       "artifact_path": null,

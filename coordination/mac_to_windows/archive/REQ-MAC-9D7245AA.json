@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "mission_id": "COMMERCIAL_PILOT_STEP_2",
+  "windows_validation_request_id": "REQ-MAC-9D7245AA",
+  "created_by": "MAC_CHIEF",
+  "artifact_reference": "demo_pilot/data_processor.py",
+  "exact_question": "Validate Windows relay connectivity",
+  "expected_evidence": "WINDOWS_ALIVE_AND_READY",
+  "allowed_scope": "SAFE_LOCAL_VALIDATION",
+  "validation_type": "WINDOWS_COMPATIBILITY",
+  "timestamp_utc": "2026-09-14T16:20:36.581573+00:00"
+}

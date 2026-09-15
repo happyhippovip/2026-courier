@@ -1,0 +1,10 @@
+{
+  "task_id": "plan-imp-pow001",
+  "source_agent": "GOOGLE_ANTIGRAVITY",
+  "target_agent": "CODEX",
+  "target_host": null,
+  "project_path": "GLOBAL",
+  "created_at": "2026-09-14T23:15:34.719844+00:00",
+  "description": "Implement the POW-001 Genesis Sponsorship Reservation Interface API (Bitcoin invoicing stub) in social_platform/api",
+  "artifact_sha256": "7e2b83ba82abb3e931a470cb6e4b3eff7aff24143d28a75b2def5f6c0654b8f9"
+}

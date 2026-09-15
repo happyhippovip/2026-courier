@@ -1,0 +1,44 @@
+{
+  "request_id": "REQ-MAC-97901ae9",
+  "mission_id": "COMMERCIAL-63ceca",
+  "schema_version": "1.0",
+  "status": "COMPLETED",
+  "observed_behavior": "Commercial artifact generated",
+  "result_fingerprint": "29a2c20d6d8dcbfd7586790467c4e09d9b46b0b6295af6a6234c8aa0943e3350",
+  "payload": {
+    "worker_agent": "GEMINI",
+    "worker_type": "NATIVE_AGY_MODEL",
+    "real_model_call": true,
+    "separate_process": true,
+    "requested_model": "gemini-3.7-flash-medium",
+    "confirmed_model": "UNKNOWN",
+    "model_identity_truthful": "UNKNOWN",
+    "entrypoint": "/Users/user/.local/bin/agy",
+    "execution_mode": "REAL_GEMINI_NATIVE_AGY_EXECUTION",
+    "stage": "REAL_INDEPENDENT_IMPLEMENTATION",
+    "ack_mode": "SYNCHRONOUS_COMPLETION_VALIDATED",
+    "worker_originated_ack": false,
+    "correlation_id": "",
+    "task_id": "COMMERCIAL-63ceca",
+    "mission_id": "",
+    "task_hash": "97901ae997f079dd",
+    "target_agent": "GEMINI",
+    "conversation_id": "a1406dcf-1b60-48a0-b80f-8543f7290c66",
+    "duration_seconds": 17.730166,
+    "output_sha256": "bfda08fc503d96a9de37d29d758401a6320b1757b62c1ee1bef58af9c2ec92e7",
+    "verdict": "PASS",
+    "summary": "Created the customer pilot project intake form template at demo_pilot/PILOT_INTAKE_FORM.md, requesting an isolated repository link, a single bounded remediation task description, the exact deterministic acceptance test command (e.g., pytest), and including an explicit warning that no production deployment will occur along with mandatory Human Gate approval.",
+    "task_type": "IMPLEMENTATION",
+    "zero_cost_policy": "ZERO_COST_ONLY",
+    "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+    "status": "COMPLETED",
+    "action": "implement_bounded_improvement",
+    "changed_files": [
+      "demo_pilot/PILOT_INTAKE_FORM.md"
+    ],
+    "files_modified": [
+      "demo_pilot/PILOT_INTAKE_FORM.md"
+    ],
+    "verification_strategy": "run_unit_tests"
+  }
+}

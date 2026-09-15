@@ -1,0 +1,1 @@
+{"task_hash": "9f37c3fd0b98fc32", "worker_id": "GEMINI_TEST_AUTO", "target_agent": "GEMINI_TEST_AUTO", "task_id": "TASK-AUTO2-e64cc9", "payload": {"action": "acceptance_review", "prompt": "Auto-dispatched via continuation hook", "allowed_scope": ["scripts/some_safe_scope.py"]}}

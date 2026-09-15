@@ -527,6 +527,13 @@ class SocialPlatformClient:
         """Gets community metadata."""
         return self._request("GET", f"/communities/{community_id}")
 
+    def get_genesis_registry(self):
+        res = self._request("GET", "/pow001/registry")
+        return res.get("blocks", {})
+
+    def reserve_genesis_block(self, company_name, logo_url):
+        return self._request("POST", "/pow001/reserve", json_data={"company_name": company_name, "logo_url": logo_url})
+
     def get_all_communities(self) -> List[Dict[str, Any]]:
         """Lists all communities."""
         return self._request("GET", "/communities")

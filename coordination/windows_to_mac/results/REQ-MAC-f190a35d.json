@@ -1,0 +1,24 @@
+{
+  "request_id": "REQ-MAC-f190a35d",
+  "mission_id": "win-test-reboot-idempotency",
+  "schema_version": "1.0",
+  "status": "COMPLETED",
+  "observed_behavior": "Auto task completed",
+  "result_fingerprint": "5211b5f6bd2b27ccbf5a385369463eac181dea5303b0dcf3ef7f30f1db47387d",
+  "payload": {
+    "worker_agent": "WINDOWS",
+    "worker_type": "NATIVE_WINDOWS",
+    "real_model_call": false,
+    "separate_process": true,
+    "target_agent": "WINDOWS",
+    "task_id": "win-test-reboot-idempotency",
+    "mission_id": "",
+    "task_hash": "f190a35d4692cc6f",
+    "status": "FAILED",
+    "verdict": "FAIL",
+    "summary": "Windows execution. stdout: Dispatching task win-test-reboot-idempotency\nExecutor output: \nFAIL: Returned TASK_ID does not match. stderr: ",
+    "zero_cost_policy": "ZERO_COST_ONLY",
+    "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+    "action": "RUN_TESTS"
+  }
+}

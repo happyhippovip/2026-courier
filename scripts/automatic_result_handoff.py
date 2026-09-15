@@ -305,6 +305,25 @@ class AutomaticResultHandoff:
             self.bridge.compile_hq_telemetry()
             return HandoffSignal.NO_ACTION, "CLI1_COMPLETED"
 
+        # Ensure Courier state/completion handoff
+        try:
+            from scripts.completion_handoff_engine import CompletionHandoffEngine
+            engine = CompletionHandoffEngine(repo_dir=self.repo_dir)
+            task_id = result_dict.get("request_id", res.result_id)
+            
+            # Ensure the task is opened and claimed so record_result doesn't return UNKNOWN
+            engine.open(task_id, fp)
+            engine.claim(task_id, res.worker)
+            
+            engine.record_result(
+                task_id=task_id,
+                semantic_fingerprint=fp,
+                evidence_reference=str(source_file) if source_file else None,
+                acceptance_satisfied=(res.state == "COMPLETED")
+            )
+        except Exception as e:
+            print(f"Handoff engine error: {e}")
+
         return HandoffSignal.NO_ACTION, "UNCLASSIFIED_RESULT"
 
     def _emit_handoff_event(

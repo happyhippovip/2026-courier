@@ -1,0 +1,6 @@
+{
+  "quarantined_at": "2026-09-14T16:46:06.679378+00:00",
+  "original_file": "\\\\192.168.178.162\\coordination\\mac_to_windows\\requests\\REQ-MAC-QA111111.json",
+  "reason": "CUSTOMS_FAILED: EXPECTED_EVIDENCE_NOT_OBSERVED: Expected 'autonomous orchestration with Human Gates' (missing tokens: ['autonomous', 'orchestration', 'with', 'human', 'gates']) in stdout",
+  "node_id": "WINDOWS_PC2"
+}

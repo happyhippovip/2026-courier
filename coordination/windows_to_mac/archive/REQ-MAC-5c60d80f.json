@@ -1,0 +1,46 @@
+{
+  "request_id": "REQ-MAC-5c60d80f",
+  "mission_id": "CODEX_INTEGRATION_PROOF_1",
+  "schema_version": "1.0",
+  "status": "COMPLETED",
+  "observed_behavior": "Auto task completed",
+  "result_fingerprint": "8742e9b72aae459a6ef6c9d895ece910559a9bc5c4cb9653fce86de5efd62ae4",
+  "payload": {
+    "worker_agent": "CODEX",
+    "task_id": "CODEX_INTEGRATION_PROOF_1",
+    "mission_id": "",
+    "task_hash": "5c60d80ff94fd12c",
+    "target_agent": "CODEX",
+    "summary": "[STEP 1] CODEX worker registered: SAFE_IDLE\n[STEP 2] Opportunity injected: CODEX_INTEGRATION_PROOF_1\n[STEP 3] Router selected: CODEX \u2192 DESKTOP-JDPRUGR\n[STEP 3b] Running Windows health check (route/TCP22/SSH/project) ...\n[STEP 3b] Windows link READY \u2014 route=READY_en0, TCP22=READY, SSH=READY, project=READY\n[STEP 4] CanonicalAuthority scope lease acquired: gen=2, owner=agent-codex-bridge, scope=C:\\Dev\\Windows-AI-OS, record=events/locks/scope_C__Dev_Windows-AI-OS_4ad19eab.json\n[STEP 5] Envelope built with provenance receipt + authority lease binding\n[STEP 6] Dispatched to CODEX_INTEGRATION_PROOF_1-worker-job.json\n[STEP 7] Invoking run_codex_bridge.py --auto-discover --real-codex ...\n=== RUNNING CODEX AUTOMATION BRIDGE: CODEX_INTEGRATION_PROOF_1-worker-job.json ===\n[CODEX_HOOK: ON_TASK_START] Task CODEX_INTEGRATION_PROOF_1 started (Correlation: corr-cdx-d519d820)\n[CODEX_HOOK: AFTER_ACTION] Task CODEX_INTEGRATION_PROOF_1 -> Action: Validating Codex scope and parameters (Progress: 30%)\n[CODEX_HOOK: AFTER_ACTION] Task CODEX_INTEGRATION_PROOF_1 -> Action: Verifying the approved Windows project over SSH (Progress: 60%)\n[CODEX_HOOK: AFTER_ACTION] Task CODEX_INTEGRATION_PROOF_1 -> Action: Formatting structured Codex result payload (Progress: 90%)\n[CODEX_HOOK: ON_COMPLETION] Task CODEX_INTEGRATION_PROOF_1 completed successfully. Writing RESULT_READY...\n[CODEX_HOOK: RESULT_READY] Codex result written to CODEX_INTEGRATION_PROOF_1-result.json\n[CODEX_HOOK: ON_STOP] Result file verified for CODEX_INTEGRATION_PROOF_1: True\n\n\n============================================================\nRESULT VERIFICATION\n============================================================\nTASK_ID_MATCH=YES\nSTATUS=COMPLETED\nPROVENANCE_ORIGIN=GOOGLE_ANTIGRAVITY\nPROVENANCE_TASK_IDENTITY_MATCH=YES\nHUMAN_TRANSPORT_REQUIRED=NO\nFINAL_STATUS=PASS",
+    "status": "COMPLETED",
+    "schema_version": "2.0",
+    "message_id": "msg-res-cdx-47341ddbd8dd",
+    "correlation_id": "corr-cdx-d519d820",
+    "parent_id": null,
+    "source": "codex",
+    "destination": "courier",
+    "type": "RESULT",
+    "created_at": "2026-09-14T20:18:59.069057+00:00",
+    "payload": {
+      "verdict": "PASS",
+      "agent_source": "CODEX_WINDOWS_SSH",
+      "action_executed": "READ_ONLY_REMOTE_PROJECT_IDENTITY",
+      "remote_host": "DESKTOP-JDPRUGR",
+      "remote_project": "C:\\Dev\\Windows-AI-OS",
+      "execution_mode": "SSH_READ_ONLY",
+      "zero_cost_policy": "ZERO_COST_ONLY",
+      "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+      "context_version_seen": null,
+      "context_snapshot_hash_seen": null
+    },
+    "payload_hash": "a6f328a7a2763d7d0002b1b19fadf9275d1c6f0f387416fa4439411294933877",
+    "max_iterations": 1,
+    "provenance": {
+      "origin": "GOOGLE_ANTIGRAVITY",
+      "task_identity": "CODEX_INTEGRATION_PROOF_1",
+      "source_artifact": "events/receipts/CODEX_INTEGRATION_PROOF_1-receipt.json",
+      "source_sha256": "7289528e0923b9eae33466e8df7712d5c178a6d531d0de9331b770eaa8cd274d"
+    },
+    "action": "HEALTH_CHECK"
+  }
+}

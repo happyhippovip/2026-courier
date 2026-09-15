@@ -1,0 +1,24 @@
+{
+  "request_id": "REQ-MAC-bd5a194b",
+  "mission_id": "plan-imp-d7525bcb",
+  "schema_version": "1.0",
+  "status": "COMPLETED",
+  "observed_behavior": "Auto task completed",
+  "result_fingerprint": "621666ec25401385c83aa9fd6864ca94ea9a298a3670a221e6e9e2d29e776a90",
+  "payload": {
+    "worker_agent": "WINDOWS",
+    "worker_type": "NATIVE_WINDOWS",
+    "real_model_call": false,
+    "separate_process": true,
+    "target_agent": "WINDOWS",
+    "task_id": "plan-imp-d7525bcb",
+    "mission_id": "",
+    "task_hash": "bd5a194b8305c588",
+    "status": "FAILED",
+    "verdict": "FAIL",
+    "summary": "Windows execution. stdout: Dispatching task plan-imp-d7525bcb\n{\"STATE\": \"FAILED\", \"REASON\": \"SCP failed: ssh: connect to host 192.168.178.87 port 22: Operation timed out\\r\\nscp: Connection closed\\r\\n\"} stderr: ",
+    "zero_cost_policy": "ZERO_COST_ONLY",
+    "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+    "action": "implement_bounded_improvement"
+  }
+}

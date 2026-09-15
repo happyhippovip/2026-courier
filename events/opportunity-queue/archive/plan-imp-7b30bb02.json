@@ -1,0 +1,37 @@
+{
+  "opportunity_id": "plan-imp-7b30bb02",
+  "source": "COURIER_GOAL_PLANNER",
+  "objective_id": "OBJ-OVERNIGHT",
+  "project": "Courier",
+  "description": "Derived task: All schemas and repository structure checks have passed successfully. Acceptance criteria verified.",
+  "priority": 5,
+  "expected_value": "Progress towards goal",
+  "evidence": {},
+  "required_capabilities": [],
+  "risk": "LOW",
+  "estimated_cost": 0.0,
+  "model_need": false,
+  "external_action_units": 0,
+  "project_id": "",
+  "source_artifact": "",
+  "source_hash": "",
+  "evidence_type": "",
+  "production_stage": "",
+  "problem_or_goal": "",
+  "expected_output": "",
+  "risk_class": "LOW",
+  "cost_class": "ZERO_COST_LOCAL",
+  "dedupe_fingerprint": "8e0350df2d2befbd",
+  "heavy_job": false,
+  "status": "COMPLETED",
+  "target_agent": "GEMINI",
+  "allowed_scope": [
+    "UNKNOWN_WRITE"
+  ],
+  "allowed_actions": [
+    "implement_bounded_improvement"
+  ],
+  "created_at": "2026-09-14T21:40:36.304503+00:00",
+  "updated_at": "2026-09-14T21:40:43.184859+00:00",
+  "dedupe_hash": "8e0350df2d2befbd"
+}

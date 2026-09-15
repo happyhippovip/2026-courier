@@ -1,0 +1,21 @@
+{
+  "request_id": null,
+  "mission_id": "COMMERCIAL_PILOT_STEP_2",
+  "schema_version": "1.0",
+  "status": "COMPLETED",
+  "observed_behavior": "Windows worker successfully wrote C:\\test.txt",
+  "result_fingerprint": "d0f89f2bd5632cb6c56f01819ac5aac64fc33b457940b5e383eab37e5dbfb2a6",
+  "payload": {
+    "worker_agent": "WINDOWS_PC2",
+    "worker_type": "REMOTE_POWERSHELL",
+    "real_model_call": true,
+    "action": "implement_bounded_improvement",
+    "verdict": "PASS",
+    "summary": "File written successfully.",
+    "files_modified": [
+      "C:\\test.txt"
+    ],
+    "task_hash": "hash",
+    "target_agent": "WINDOWS_PC2"
+  }
+}

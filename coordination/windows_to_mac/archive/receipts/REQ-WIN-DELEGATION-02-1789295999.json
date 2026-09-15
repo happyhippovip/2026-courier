@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "request_id": "REQ-WIN-DELEGATION-02-1789295999",
+  "mission_id": "SYMPHONY_AUTONOMOUS_OPERATIONS",
+  "status": "COMPLETED",
+  "worker": "WINDOWS_SPECIALIST_VALIDATOR",
+  "start_time": "2026-09-13T10:40:00.177028+00:00",
+  "finish_time": "2026-09-13T10:40:03.968967+00:00",
+  "commands": [
+    "C:\\Users\\lol\\AppData\\Roaming\\uv\\python\\cpython-3.12-windows-x86_64-none\\python.exe -u C:\\Users\\lol\\2026-workspace\\courier\\tests\\test_windows_100_acceptance_court.py"
+  ],
+  "exit_codes": [
+    0
+  ],
+  "observed_behavior": "COURT_VERIFICATION_PASS: .....................\n----------------------------------------------------------------------\nRan 21 tests in 3.390s\n\nOK",
+  "verified_assertions": 21,
+  "result_fingerprint": "4ce1a0176dbdae5e9b2c20f5de34176d5383d973139e546d74c56d46e8f16319",
+  "artifact_references": [
+    "none"
+  ],
+  "checkpoint_reference": "CHECKPOINT-REQ-WIN-DELEGATION-02-1789295999",
+  "known_defects": [],
+  "blockers": [],
+  "human_gates": []
+}

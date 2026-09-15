@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "scope": "scripts",
+  "owner_id": "agent-codex-bridge",
+  "task_id": "TASK_FOUNDATION_1789426699",
+  "session_id": null,
+  "generation": 20,
+  "pid": 61810,
+  "process_start_time": 1789426793.0,
+  "acquired_at": "2026-09-14T22:59:54.077440+00:00",
+  "heartbeat_at": "2026-09-14T22:59:54.077440+00:00",
+  "lease_expires_at": "2026-09-14T23:04:54.077440+00:00",
+  "metadata": {}
+}

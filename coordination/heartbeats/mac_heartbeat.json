@@ -1,0 +1,11 @@
+{
+  "node_id": "MAC_CHIEF_01",
+  "host": "MAC",
+  "timestamp_utc": "2026-09-13T18:43:00.175057+00:00",
+  "state_generation": 1754,
+  "process_instance_id": "5da9ad9c-ebd2-4417-8999-f5664347b4e4",
+  "active_request_id": null,
+  "writer_state": "IDLE",
+  "lease_epoch": 1,
+  "last_verified_result": null
+}

@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "request_id": "REQ-AUTONOMY-SUCCESSION-1789298920",
+  "mission_id": "POST_V1_AUTONOMY_CAMPAIGN",
+  "status": "COMPLETED",
+  "worker": "WINDOWS_SPECIALIST_VALIDATOR",
+  "start_time": "2026-09-13T11:28:42.947453+00:00",
+  "finish_time": "2026-09-13T11:28:43.041095+00:00",
+  "commands": [
+    "verify_windows_compatibility"
+  ],
+  "exit_codes": [
+    0
+  ],
+  "observed_behavior": "WINDOWS_ALIVE_AND_READY: Windows node WINDOWS_PC2 operational. V1 frozen reference intact. Relay operational.",
+  "verified_assertions": 3,
+  "result_fingerprint": "45c99bc504fbd9d4d9563240250c0b4a9f8a6ca2eddd14b01857689ccb2c5610",
+  "artifact_references": [
+    "none"
+  ],
+  "checkpoint_reference": "CHECKPOINT-REQ-AUTONOMY-SUCCESSION-1789298920",
+  "known_defects": [],
+  "blockers": [],
+  "human_gates": []
+}

@@ -1,0 +1,44 @@
+{
+  "request_id": "REQ-MAC-97cc87bb",
+  "mission_id": "plan-imp-9fc29c29",
+  "schema_version": "1.0",
+  "status": "COMPLETED",
+  "observed_behavior": "Auto task completed",
+  "result_fingerprint": "5612ee5ea5c24b08baa39673a27b4385423261ee3b824f5f8f31dc531b034b1f",
+  "payload": {
+    "worker_agent": "GEMINI",
+    "worker_type": "NATIVE_AGY_MODEL",
+    "real_model_call": true,
+    "separate_process": true,
+    "requested_model": "gemini-3.7-flash-medium",
+    "confirmed_model": "UNKNOWN",
+    "model_identity_truthful": "UNKNOWN",
+    "entrypoint": "/Users/user/.local/bin/agy",
+    "execution_mode": "REAL_GEMINI_NATIVE_AGY_EXECUTION",
+    "stage": "REAL_INDEPENDENT_IMPLEMENTATION",
+    "ack_mode": "SYNCHRONOUS_COMPLETION_VALIDATED",
+    "worker_originated_ack": false,
+    "correlation_id": "",
+    "task_id": "plan-imp-9fc29c29",
+    "mission_id": "",
+    "task_hash": "97cc87bbbbe24d48",
+    "target_agent": "GEMINI",
+    "conversation_id": "5a40b82b-c723-4904-870d-d43d5df40859",
+    "duration_seconds": 4.887176,
+    "output_sha256": "14960767416074376481c522db91c7f83fa2bbf9246fa096aa3703a93f18d174",
+    "verdict": "PASS",
+    "summary": "Created COURIER_DEMO_HELLO.md containing 'Hallo vom Courier Symphony Worker-Netzwerk.'",
+    "task_type": "IMPLEMENTATION",
+    "zero_cost_policy": "ZERO_COST_ONLY",
+    "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+    "status": "COMPLETED",
+    "action": "implement_bounded_improvement",
+    "changed_files": [
+      "COURIER_DEMO_HELLO.md"
+    ],
+    "files_modified": [
+      "COURIER_DEMO_HELLO.md"
+    ],
+    "verification_strategy": "run_unit_tests"
+  }
+}

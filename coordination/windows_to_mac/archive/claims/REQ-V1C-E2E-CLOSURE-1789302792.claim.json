@@ -1,0 +1,8 @@
+{
+  "request_id": "REQ-V1C-E2E-CLOSURE-1789302792",
+  "mission_id": "V1_FINAL_WINDOWS_CLOSURE",
+  "owner_node": "WINDOWS_PC2",
+  "process_instance_id": "0669df3c-84f3-484e-a270-c1aeae928ede",
+  "lease_epoch": 1,
+  "claimed_at": "2026-09-13T12:33:14.510055+00:00"
+}

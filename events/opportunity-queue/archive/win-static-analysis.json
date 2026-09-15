@@ -1,0 +1,37 @@
+{
+  "opportunity_id": "win-static-analysis",
+  "source": "MAC_CHIEF",
+  "objective_id": "OBJ-REGRESSION",
+  "project": "Courier",
+  "description": "Run basic health checks on the Windows worker to ensure it is healthy. Use the RUN_TESTS action.",
+  "priority": 8,
+  "expected_value": "Ensures Windows remote continues to function.",
+  "evidence": {},
+  "required_capabilities": [],
+  "risk": "LOW",
+  "estimated_cost": 0.0,
+  "model_need": false,
+  "external_action_units": 0,
+  "project_id": "",
+  "source_artifact": "",
+  "source_hash": "",
+  "evidence_type": "",
+  "production_stage": "",
+  "problem_or_goal": "",
+  "expected_output": "",
+  "risk_class": "LOW",
+  "cost_class": "ZERO_COST_LOCAL",
+  "dedupe_fingerprint": "win-static-analysis",
+  "heavy_job": false,
+  "status": "COMPLETED",
+  "target_agent": "WINDOWS",
+  "allowed_scope": [
+    "C:\\Dev\\Windows-AI-OS"
+  ],
+  "allowed_actions": [
+    "RUN_TESTS"
+  ],
+  "created_at": "2026-09-14T21:19:08.129903+00:00",
+  "updated_at": "2026-09-14T21:19:08.136424+00:00",
+  "dedupe_hash": "win-static-analysis"
+}

@@ -1,0 +1,17 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-15T01:12:42.747729+00:00",
+  "event_id": "evt-bfaf4f3573ec",
+  "event_type": "WORKER_STARTED",
+  "evidence": {
+    "availability_class": "TEMPORARY_30_DAY",
+    "initial_registration": true
+  },
+  "fingerprint": "b1d3fd0cf8c3e593",
+  "mission_id": null,
+  "recommended_action": null,
+  "session_epoch": "epoch-windows-1789434762",
+  "severity": "INFO",
+  "task_id": null,
+  "worker_id": "WINDOWS"
+}

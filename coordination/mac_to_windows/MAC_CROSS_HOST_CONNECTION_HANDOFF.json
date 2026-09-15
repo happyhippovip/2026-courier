@@ -1,0 +1,19 @@
+{
+  "MAC_NODE_ID": "MAC_CHIEF_01",
+  "MAC_IP": "192.168.178.162",
+  "MAC_HOSTNAME": "MacBook-Pro-von-user",
+  "SMB_ENABLED": "YES",
+  "SMB_SHARE_NAME": "coordination",
+  "WINDOWS_UNC_ROOT": "\\\\192.168.178.162\\coordination",
+  "WINDOWS_COORDINATION_UNC": "\\\\192.168.178.162\\coordination",
+  "AUTH_REQUIRED": "YES",
+  "GUEST_ACCESS": "DISABLED",
+  "READ_WRITE_READY": "PASS",
+  "ATOMIC_WRITE_TEST": "PASS",
+  "SCHEMA_VERSION": "1.0",
+  "HEARTBEAT_PATH": "\\\\192.168.178.162\\coordination\\heartbeats\\mac_heartbeat.json",
+  "REQUEST_PATH": "\\\\192.168.178.162\\coordination\\mac_to_windows\\requests\\",
+  "RESULT_PATH": "\\\\192.168.178.162\\coordination\\windows_to_mac\\results\\",
+  "ACK_PATH": "\\\\192.168.178.162\\coordination\\mac_to_windows\\acks\\",
+  "CANONICAL_REQUEST_ID": "REQ-MAC-AC660276"
+}

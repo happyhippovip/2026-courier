@@ -1,0 +1,46 @@
+{
+  "request_id": "REQ-MAC-0f435a69",
+  "mission_id": "plan-imp-5a24e7fb",
+  "schema_version": "1.0",
+  "status": "COMPLETED",
+  "observed_behavior": "Auto task completed",
+  "result_fingerprint": "e7295b8b23f09470845689a6dd3f0295207f71a433eb6021b5a52822b6dd7892",
+  "payload": {
+    "worker_agent": "GEMINI",
+    "worker_type": "NATIVE_AGY_MODEL",
+    "real_model_call": true,
+    "separate_process": true,
+    "requested_model": "gemini-3.7-flash-medium",
+    "confirmed_model": "UNKNOWN",
+    "model_identity_truthful": "UNKNOWN",
+    "entrypoint": "/Users/user/.local/bin/agy",
+    "execution_mode": "REAL_GEMINI_NATIVE_AGY_EXECUTION",
+    "stage": "REAL_INDEPENDENT_IMPLEMENTATION",
+    "ack_mode": "SYNCHRONOUS_COMPLETION_VALIDATED",
+    "worker_originated_ack": false,
+    "correlation_id": "",
+    "task_id": "plan-imp-5a24e7fb",
+    "mission_id": "",
+    "task_hash": "0f435a69fc7306d4",
+    "target_agent": "GEMINI",
+    "conversation_id": "0d20b777-052a-470f-94cd-723aa1900ad3",
+    "duration_seconds": 43.305403,
+    "output_sha256": "a0d620459121dac344fc9c64235c9dd1a81edea1c3bbb66ed053751eaf060247",
+    "verdict": "FAILED",
+    "summary": "MATERIALIZATION FAILED: Worker claimed to modify COURIER_SYMPHONY_COMMERCIAL_STRATEGY_ENTERPRISE_DEPLOYMENT.md but it does not exist.",
+    "task_type": "IMPLEMENTATION",
+    "zero_cost_policy": "ZERO_COST_ONLY",
+    "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+    "status": "COMPLETED",
+    "action": "implement_bounded_improvement",
+    "changed_files": [
+      "COURIER_SYMPHONY_COMMERCIAL_STRATEGY_ENTERPRISE_DEPLOYMENT.md",
+      "plan-imp-5a24e7fb.txt"
+    ],
+    "files_modified": [
+      "COURIER_SYMPHONY_COMMERCIAL_STRATEGY_ENTERPRISE_DEPLOYMENT.md",
+      "plan-imp-5a24e7fb.txt"
+    ],
+    "verification_strategy": "run_unit_tests"
+  }
+}

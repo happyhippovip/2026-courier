@@ -1,0 +1,17 @@
+{
+  "created_at": "2026-09-14T16:09:56.440316+00:00",
+  "details": {
+    "mission_id": "TASK-OPP-OPP-ENDURANCE-WAKE-1788265115-10",
+    "opportunity_id": "OPP-ENDURANCE-WAKE-1788265115",
+    "result": "SUCCESS",
+    "result_fingerprint": "a8b7c4880f34e102ada618d6909f5767b7a0cb044cbb75a264c7a644afd15216",
+    "status": "SUCCESS",
+    "timestamp": "2026-09-02T11:34:52.523582+00:00",
+    "worker_id": "DETERMINISTIC_LOCAL_VALIDATION"
+  },
+  "event_id": "alert-chief-9468718a",
+  "event_type": "MISSION_RESULT_DETECTED",
+  "fingerprint": "78769da60d7b65d6",
+  "schema_version": "3.0",
+  "severity": "INFO"
+}

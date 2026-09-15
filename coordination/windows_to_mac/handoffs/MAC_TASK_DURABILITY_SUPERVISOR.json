@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0",
+  "handoff_id": "HANDOFF-MAC-DURABILITY-01",
+  "task_id": "MAC-TASK-DURABILITY-SUPERVISOR",
+  "mission": "SYMPHONY_POST_V1_AUTONOMY_CAMPAIGN",
+  "dispatched_by": "WINDOWS_PC2_CHIEF",
+  "assigned_to": "MAC_CHIEF_01",
+  "created_at_utc": "2026-09-13T11:28:00Z",
+  "target_subsystem": "macOS Persistent Supervision (LaunchAgent / KeepAlive Daemon)",
+  "objective": "Implement and prove the smallest native persistent supervision solution appropriate to macOS for Mac Chief heartbeat and result monitor.",
+  "concrete_specifications": {
+    "supervisor_mechanism": "launchd LaunchAgent plist (~/Library/LaunchAgents/com.symphony.mac_chief.plist) or persistent supervisor script with respawn loop",
+    "heartbeat_payload_fix": "Dynamically evaluate datetime.now(timezone.utc).isoformat() inside the 15s pulse loop (do not reuse static payload dictionary instantiated at boot)",
+    "verification_requirements": [
+      "Heartbeat resumes automatically on process exit or reboot",
+      "Result monitor consumer resumes automatically",
+      "Single instance enforced (no competing writers)",
+      "Zero duplicate ACKs and zero duplicate effects",
+      "Durable state reload across crash/restart",
+      "Continuous cross-host SMB reconnection",
+      "Quiescent wakeability when queue is empty"
+    ]
+  },
+  "constraints": {
+    "frozen_v1_immutable": true,
+    "windows_v1_mutations": 0,
+    "autonomous_spend_eur": 0.0,
+    "transport": "\\\\192.168.178.162\\coordination"
+  },
+  "classification_status": {
+    "current_verified": "LIVE_SESSION_PROVEN",
+    "target_hardening": "RESTART_PERSISTENCE_PROVEN",
+    "nature": "POST_V1_AUTONOMY_HARDENING"
+  },
+  "status": "VERIFIED_AUTONOMOUSLY",
+  "verified_at_utc": "2026-09-13T15:02:02.090840+00:00",
+  "verified_by": "SYMPHONY_AUTONOMOUS_HANDOFF_SUPERVISOR",
+  "durability_mechanism": "MAC_HEARTBEAT_PRODUCER_AND_RESULT_CONSUMER_ACTIVE"
+}

@@ -1,0 +1,37 @@
+{
+  "opportunity_id": "win-health-daemon",
+  "source": "MAC_CHIEF",
+  "objective_id": "OBJ-REGRESSION",
+  "project": "Courier",
+  "description": "Create a simple PowerShell script on Windows that writes 'Alive' and the current timestamp to C:\\Dev\\Windows-AI-OS\\health.log every 5 seconds. Run it in the background.",
+  "priority": 7,
+  "expected_value": "Ensures Windows remote continues to function in the background.",
+  "evidence": {},
+  "required_capabilities": [],
+  "risk": "LOW",
+  "estimated_cost": 0.0,
+  "model_need": false,
+  "external_action_units": 0,
+  "project_id": "",
+  "source_artifact": "",
+  "source_hash": "",
+  "evidence_type": "",
+  "production_stage": "",
+  "problem_or_goal": "",
+  "expected_output": "",
+  "risk_class": "LOW",
+  "cost_class": "ZERO_COST_LOCAL",
+  "dedupe_fingerprint": "win-health-daemon",
+  "heavy_job": false,
+  "status": "COMPLETED",
+  "target_agent": "WINDOWS",
+  "allowed_scope": [
+    "C:\\Dev\\Windows-AI-OS"
+  ],
+  "allowed_actions": [
+    "RUN_SCRIPT"
+  ],
+  "created_at": "2026-09-14T21:24:42.521505+00:00",
+  "updated_at": "2026-09-14T21:24:42.527317+00:00",
+  "dedupe_hash": "win-health-daemon"
+}

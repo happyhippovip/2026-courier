@@ -1,0 +1,37 @@
+{
+  "opportunity_id": "win-test-reboot-idempotency",
+  "source": "MAC_CHIEF",
+  "objective_id": "OBJ-REGRESSION",
+  "project": "Courier",
+  "description": "Trigger a persistent autonomy test on the Windows remote executor.",
+  "priority": 5,
+  "expected_value": "Ensures Windows tests pass autonomously.",
+  "evidence": {},
+  "required_capabilities": [],
+  "risk": "LOW",
+  "estimated_cost": 0.0,
+  "model_need": false,
+  "external_action_units": 0,
+  "project_id": "",
+  "source_artifact": "",
+  "source_hash": "",
+  "evidence_type": "",
+  "production_stage": "",
+  "problem_or_goal": "",
+  "expected_output": "",
+  "risk_class": "LOW",
+  "cost_class": "ZERO_COST_LOCAL",
+  "dedupe_fingerprint": "win-test-reboot-idempotency",
+  "heavy_job": false,
+  "status": "COMPLETED",
+  "target_agent": "WINDOWS",
+  "allowed_scope": [
+    "C:\\Dev\\Windows-AI-OS"
+  ],
+  "allowed_actions": [
+    "RUN_TESTS"
+  ],
+  "created_at": "2026-09-14T21:40:40.926462+00:00",
+  "updated_at": "2026-09-14T21:40:40.935566+00:00",
+  "dedupe_hash": "win-test-reboot-idempotency"
+}

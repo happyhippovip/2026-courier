@@ -1,0 +1,37 @@
+{
+  "opportunity_id": "plan-disc-f23a5960",
+  "source": "COURIER_GOAL_PLANNER",
+  "objective_id": "93c4de6f-0b40-4b44-b5d5-47d61ae8bdf7",
+  "project": "IDEA_INBOX_GOALS",
+  "description": "Inspect repository and discover actionable, safe, locally verifiable improvement opportunities",
+  "priority": 6,
+  "expected_value": "Evidence-backed output",
+  "evidence": {},
+  "required_capabilities": [],
+  "risk": "SAFE",
+  "estimated_cost": 0.0,
+  "model_need": false,
+  "external_action_units": 0,
+  "project_id": "",
+  "source_artifact": "",
+  "source_hash": "",
+  "evidence_type": "",
+  "production_stage": "",
+  "problem_or_goal": "",
+  "expected_output": "",
+  "risk_class": "LOW",
+  "cost_class": "ZERO_COST_LOCAL",
+  "dedupe_fingerprint": "61ad99789c4f8948",
+  "heavy_job": false,
+  "status": "COMPLETED",
+  "target_agent": "CLI1",
+  "allowed_scope": [
+    "SAFE_LOCAL_VALIDATION"
+  ],
+  "allowed_actions": [
+    "discover_improvement_opportunities"
+  ],
+  "created_at": "2026-09-14T20:56:23.932896+00:00",
+  "updated_at": "2026-09-14T20:56:26.093440+00:00",
+  "dedupe_hash": "61ad99789c4f8948"
+}

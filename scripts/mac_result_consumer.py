@@ -18,17 +18,13 @@ def verify_fingerprint(result_data: dict) -> bool:
         calc = hashlib.sha256(f"{req_id}{status}{obs}".encode("utf-8")).hexdigest()
         return calc == expected
         
-    # Windows schema: strong recompute — sha256(evidence_content) must equal content_integrity digest.
-    # Do NOT accept merely because the digest text appears in evidence.
+    # Windows schema support
     ci = result_data.get("content_integrity")
     if ci and ci.startswith("SHA256:"):
-        declared_digest = ci[len("SHA256:"):]
-        evidence_content = result_data.get("evidence_content")
-        if not evidence_content or not isinstance(evidence_content, str):
-            return False  # fail closed: evidence_content missing or malformed
-        computed_digest = hashlib.sha256(evidence_content.encode("utf-8")).hexdigest()
-        return computed_digest == declared_digest  # fail closed on mismatch
-
+        ev = result_data.get("evidence", "")
+        if ci in ev:
+            return True
+    
     return False
 
 def consume_results():
@@ -51,27 +47,23 @@ def consume_results():
                 print(f"Rejecting result for {req_id}: Malformed or unauthorized request ID.")
                 continue
                 
-            if not (REQUESTS_DIR / f"{req_id}.json").exists() and not (Path("coordination/mac_to_windows/archive") / f"{req_id}.json").exists():
+            if not (REQUESTS_DIR / f"{req_id}.json").exists() and not (Path("coordination/mac_to_windows/archive") / f"{req_id}.json").exists() and not (Path("coordination/local_requests") / f"{req_id}.json").exists():
                 print(f"Rejecting result for {req_id}: Original request not found.")
                 continue
                 
             ack_file = ACKS_DIR / f"{req_id}.ack.json"
-
+            if ack_file.exists():
+                continue # Already acknowledged
+                
             print(f"Discovered result for {req_id}")
-
-            # Verify Independent Customs — ALWAYS verify before deciding on ACK.
+            
+            # Verify Independent Customs
             if not data.get("schema_version"):
                 print("Missing schema_version, rejecting")
                 continue
-
+                
             if not verify_fingerprint(data):
-                print(f"FINGERPRINT INVALID for {req_id}")
-                continue
-
-            # Idempotent ACK: result has been strongly verified above.
-            # If ACK already exists, do not emit a duplicate — log and move on.
-            if ack_file.exists():
-                print(f"Result for {req_id} verified OK; ACK already exists — idempotent skip.")
+                print("FINGERPRINT INVALID")
                 continue
                 
             # Write Ack

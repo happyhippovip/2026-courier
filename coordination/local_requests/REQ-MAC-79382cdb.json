@@ -1,0 +1,1 @@
+{"timeout_seconds": 60, "task_hash": "79382cdb53595287", "worker_id": "WINDOWS", "target_agent": "WINDOWS", "task_id": "task-b-6e37b9", "payload": {"action": "WRITE_PROOF", "prompt": "Follow-up proof after task-b-d27080", "allowed_scope": ["C:\\Dev\\Windows-AI-OS"]}}

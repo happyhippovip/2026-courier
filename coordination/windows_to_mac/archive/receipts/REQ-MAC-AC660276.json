@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "request_id": "REQ-MAC-AC660276",
+  "mission_id": "MAC_AUTONOMOUS_OPERATIONS",
+  "status": "COMPLETED",
+  "worker": "WINDOWS_SPECIALIST_VALIDATOR",
+  "start_time": "2026-09-13T10:35:35.877523+00:00",
+  "finish_time": "2026-09-13T10:35:35.947083+00:00",
+  "commands": [
+    "verify_windows_compatibility"
+  ],
+  "exit_codes": [
+    0
+  ],
+  "observed_behavior": "WINDOWS_ALIVE_AND_READY: Windows node WINDOWS_PC2 operational. V1 frozen reference intact. Relay operational.",
+  "verified_assertions": 3,
+  "result_fingerprint": "3d4ec448ffa44bb1c7fc814758803bf874815e238fd549b0fb50102408afdfd9",
+  "artifact_references": [
+    "none"
+  ],
+  "checkpoint_reference": "CHECKPOINT-REQ-MAC-AC660276",
+  "known_defects": [],
+  "blockers": [],
+  "human_gates": []
+}

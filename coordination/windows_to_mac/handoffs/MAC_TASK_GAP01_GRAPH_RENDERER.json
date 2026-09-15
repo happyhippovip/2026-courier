@@ -1,0 +1,42 @@
+{
+  "task_id": "MAC-TASK-GAP01-GRAPH-RENDERER",
+  "mission": "SYNAPSE_V0_FAST_SPRINT",
+  "assigned_to": "MAC_CHIEF",
+  "dispatched_by": "WINDOWS_CHIEF",
+  "created_at": "2026-09-13T10:48:53.204772+00:00",
+  "target_component": "synapse_core/static/index.html (Client UX)",
+  "requirements": {
+    "graph_type": "Client-side SVG force-directed physics graph",
+    "zero_paid_libraries": true,
+    "nodes": [
+      "SEED",
+      "STANCE",
+      "SYNTHESIS",
+      "USER"
+    ],
+    "edges": [
+      "CHALLENGES",
+      "EXTENDS",
+      "SYNTHESIS_OF",
+      "EVIDENCE_FOR"
+    ],
+    "features": [
+      "Zoom/Pan",
+      "Node Selection",
+      "Detail Drawer",
+      "Live API Integration",
+      "Graceful Empty State"
+    ]
+  },
+  "status": "VERIFIED_AUTONOMOUSLY",
+  "verified_at_utc": "2026-09-13T15:04:54.766995+00:00",
+  "verified_by": "SYMPHONY_AUTONOMOUS_HANDOFF_SUPERVISOR",
+  "artifact_sha256": "2984d802feed155bae5155881a0b2c318a0fdada095b68ab3e4e2ac6fe67c36e",
+  "verification_details": {
+    "svg_force_physics": true,
+    "zero_paid_libraries": true,
+    "required_node_types": true,
+    "required_edge_types": true,
+    "ux_features": true
+  }
+}

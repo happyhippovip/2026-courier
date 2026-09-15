@@ -80,9 +80,22 @@ class WorkerRecommendation:
     heavy_job: bool = False
     block_reason: Optional[str] = None
     recommended_action: str = "STANDBY_SAFE_IDLE"
+    target_host: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
-        return asdict(self)
+        return {
+            "worker_id": self.worker_id,
+            "available": self.available,
+            "safe_task_available": self.safe_task_available,
+            "task_id": self.task_id,
+            "task_fingerprint": self.task_fingerprint,
+            "scope": self.scope,
+            "risk": self.risk,
+            "heavy_job": self.heavy_job,
+            "block_reason": self.block_reason,
+            "recommended_action": self.recommended_action,
+            "target_host": self.target_host,
+        }
 
 
 class NextSafeWorkRouter:
@@ -174,6 +187,10 @@ class NextSafeWorkRouter:
                 if candidate.opportunity_id in assigned_tasks_this_cycle:
                     continue
 
+                # 0. Target Agent match check
+                if candidate.target_agent and candidate.target_agent != wid:
+                    continue
+
                 # 1. Historical completed fingerprint check
                 if self.queue_manager.is_task_completed_in_history(candidate.opportunity_id):
                     continue
@@ -198,6 +215,15 @@ class NextSafeWorkRouter:
                 # Safe candidate found!
                 task_fp = hashlib.sha256(f"{candidate.opportunity_id}|{candidate.priority}|{json.dumps(sorted(list(cand_scopes)))}".encode()).hexdigest()[:16]
 
+                req_caps = set(candidate.required_capabilities or [])
+                req_windows = "WINDOWS_EXECUTION" in req_caps or "WINDOWS_RELAY_VALIDATOR" in req_caps
+
+                # Automatically direct Windows tasks to CODEX
+                if req_windows and wid != "CODEX":
+                    continue
+                
+                target_host = "DESKTOP-JDPRUGR" if req_windows else None
+
                 recommendation = WorkerRecommendation(
                     worker_id=wid,
                     available=True,
@@ -209,6 +235,7 @@ class NextSafeWorkRouter:
                     heavy_job=candidate.heavy_job,
                     block_reason=None,
                     recommended_action=f"DISPATCH_TASK_{candidate.opportunity_id}",
+                    target_host=target_host,
                 )
                 recommendations[wid] = recommendation.to_dict()
 

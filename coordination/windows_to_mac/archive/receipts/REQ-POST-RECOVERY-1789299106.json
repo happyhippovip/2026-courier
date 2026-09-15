@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "request_id": "REQ-POST-RECOVERY-1789299106",
+  "mission_id": "MAC_DURABILITY_LIVE_RECOVERY_COURT",
+  "status": "COMPLETED",
+  "worker": "WINDOWS_SPECIALIST_VALIDATOR",
+  "start_time": "2026-09-13T11:32:31.872791+00:00",
+  "finish_time": "2026-09-13T11:32:32.038998+00:00",
+  "commands": [
+    "verify_windows_compatibility"
+  ],
+  "exit_codes": [
+    0
+  ],
+  "observed_behavior": "WINDOWS_ALIVE_AND_READY: Windows node WINDOWS_PC2 operational. V1 frozen reference intact. Relay operational.",
+  "verified_assertions": 3,
+  "result_fingerprint": "42983bcccda5dd9f08f0954dc475f46f8977dda043d6cbebc00d5f100daf756f",
+  "artifact_references": [
+    "none"
+  ],
+  "checkpoint_reference": "CHECKPOINT-REQ-POST-RECOVERY-1789299106",
+  "known_defects": [],
+  "blockers": [],
+  "human_gates": []
+}

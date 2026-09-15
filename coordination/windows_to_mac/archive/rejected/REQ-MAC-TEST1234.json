@@ -1,0 +1,1 @@
+{"task_hash": "TEST1234", "worker_id": "WINDOWS_PC2", "target_agent": "WINDOWS_PC2", "task_id": "plan-ver-test1234", "payload": {"action": "verify_improvement_tests", "prompt": "pytest demo_pilot/test_data_processor.py", "allowed_scope": ["SAFE_LOCAL_VALIDATION"]}}

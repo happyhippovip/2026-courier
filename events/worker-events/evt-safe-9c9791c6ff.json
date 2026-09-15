@@ -1,0 +1,19 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-14T16:48:41.851424+00:00",
+  "event_id": "evt-safe-9c9791c6ff",
+  "event_type": "NEXT_SAFE_WORK_AVAILABLE",
+  "evidence": {
+    "priority": 9,
+    "project": "COMMERCIAL",
+    "task_fingerprint": "c627e16022aab3da",
+    "task_id": "COMMERCIAL-63ceca",
+    "worker_id": "GEMINI"
+  },
+  "fingerprint": "6a5367016c4b650d",
+  "recommended_action": "CLAIM_OPPORTUNITY_COMMERCIAL-63ceca",
+  "schema_version": "3.0",
+  "severity": "INFO",
+  "task_id": "COMMERCIAL-63ceca",
+  "worker_id": "GEMINI"
+}

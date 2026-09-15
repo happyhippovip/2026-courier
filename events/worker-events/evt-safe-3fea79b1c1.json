@@ -1,0 +1,19 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-14T22:05:16.735029+00:00",
+  "event_id": "evt-safe-3fea79b1c1",
+  "event_type": "NEXT_SAFE_WORK_AVAILABLE",
+  "evidence": {
+    "priority": 6,
+    "project": "IDEA_INBOX_GOALS",
+    "task_fingerprint": "9a8af624be055934",
+    "task_id": "plan-disc-72e1b6bd",
+    "worker_id": "CLI1"
+  },
+  "fingerprint": "b837234a72b5d2a9",
+  "recommended_action": "CLAIM_OPPORTUNITY_plan-disc-72e1b6bd",
+  "schema_version": "3.0",
+  "severity": "INFO",
+  "task_id": "plan-disc-72e1b6bd",
+  "worker_id": "CLI1"
+}

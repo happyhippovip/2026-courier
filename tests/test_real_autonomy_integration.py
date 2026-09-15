@@ -26,7 +26,8 @@ class TestRealAutonomyIntegration(unittest.TestCase):
         dispatcher = CourierSafetyDispatcher(str(self.workspace))
         adapters = get_real_worker_adapters(self.workspace)
         for agent, adapter in adapters.items():
-            dispatcher.adapter_boundary.register_consumer(agent, adapter)
+            if agent in dispatcher.adapter_boundary.SUPPORTED_AGENTS:
+                dispatcher.adapter_boundary.register_consumer(agent, adapter)
         mvp = FounderModeMVP(str(self.workspace), dispatcher)
         return mvp
 
@@ -34,6 +35,14 @@ class TestRealAutonomyIntegration(unittest.TestCase):
         with open(self.intake.db_file, "r") as f:
             goals = json.load(f)
         return next((g for g in goals if g["goal_id"] == goal_id), None)
+
+    def test_00_setup_registers_only_supported_local_consumers(self):
+        mvp = self._setup_mvp()
+        registered = set(mvp.dispatcher.adapter_boundary.consumers)
+        supported = set(mvp.dispatcher.adapter_boundary.SUPPORTED_AGENTS)
+
+        self.assertEqual(registered, supported)
+        self.assertNotIn("WINDOWS", registered)
 
     # 1. REAL HAPPY PATH
     def test_01_real_happy_path(self):
@@ -85,6 +94,17 @@ class TestRealAutonomyIntegration(unittest.TestCase):
         # Need discovery to find a gap so implementation (writer) is scheduled.
         (self.workspace / "test_target.py").write_text("def hello(): pass")
         mvp = self._setup_mvp()
+        mvp.queue.enqueue({
+            "mission_id": "writer-conflict-mission",
+            "goal": "Write some code",
+            "normalized_task": "Modify test_target.py",
+            "capability_required": "implementation",
+            "preferred_agent": "GEMINI",
+            "requires_write": True,
+            "is_heavy": False,
+            "verification_required": True,
+            "task": {"action": "modify_file", "path": "test_target.py", "requires_write": True},
+        })
         mvp.run_autonomous_loop()
         self.assertEqual(self._get_goal(goal_id)["status"], "BLOCKED")
         self.assertEqual(self._get_goal(goal_id).get("blocker_evidence", {}).get("reason"), "WRITER_CONFLICT")
@@ -118,5 +138,3 @@ class TestRealAutonomyIntegration(unittest.TestCase):
         self.assertFalse(safe)
         safe, reason = dispatcher.is_safe_action({"action": "TRANSFER"})
         self.assertFalse(safe)
-
-

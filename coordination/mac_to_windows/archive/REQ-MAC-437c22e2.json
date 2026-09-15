@@ -1,0 +1,1 @@
+{"task_hash": "437c22e2a5bc702b", "worker_id": "WINDOWS", "target_agent": "WINDOWS", "task_id": "WINDOWS_OVERNIGHT_TEST_3", "payload": {"action": "RUN_POWERSHELL", "prompt": "C:\\Dev\\Windows-AI-OS\\scripts\\Test-WindowsAIHost.ps1", "allowed_scope": ["C:\\Dev\\Windows-AI-OS"]}}

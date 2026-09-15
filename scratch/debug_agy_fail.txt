@@ -1,0 +1,4 @@
+STDOUT:
+{"conversation_id":"5a1d4fe7-580c-445e-8f86-838719ea92db","status":"SUCCESS","response":"","duration_seconds":3.856193,"num_turns":1,"usage":{"input_tokens":34035,"output_tokens":315,"thinking_tokens":223,"cache_read_tokens":24474,"total_tokens":34350}}
+STDERR:
+

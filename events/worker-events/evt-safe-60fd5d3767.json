@@ -1,0 +1,19 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-14T21:51:28.670945+00:00",
+  "event_id": "evt-safe-60fd5d3767",
+  "event_type": "NEXT_SAFE_WORK_AVAILABLE",
+  "evidence": {
+    "priority": 5,
+    "project": "Courier",
+    "task_fingerprint": "3b30dfd76bd7c788",
+    "task_id": "win-health-check-periodic",
+    "worker_id": "WINDOWS"
+  },
+  "fingerprint": "6d0e4e8941d44f9f",
+  "recommended_action": "CLAIM_OPPORTUNITY_win-health-check-periodic",
+  "schema_version": "3.0",
+  "severity": "INFO",
+  "task_id": "win-health-check-periodic",
+  "worker_id": "WINDOWS"
+}

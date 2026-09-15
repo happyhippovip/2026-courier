@@ -1,0 +1,19 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-14T20:55:05.123250+00:00",
+  "event_id": "evt-safe-a0ca64c09a",
+  "event_type": "NEXT_SAFE_WORK_AVAILABLE",
+  "evidence": {
+    "priority": 10,
+    "project": "Courier",
+    "task_fingerprint": "be90784926d4c86a",
+    "task_id": "fix-hardcoded-agent",
+    "worker_id": "CODEX"
+  },
+  "fingerprint": "63820140d6723b36",
+  "recommended_action": "CLAIM_OPPORTUNITY_fix-hardcoded-agent",
+  "schema_version": "3.0",
+  "severity": "INFO",
+  "task_id": "fix-hardcoded-agent",
+  "worker_id": "CODEX"
+}

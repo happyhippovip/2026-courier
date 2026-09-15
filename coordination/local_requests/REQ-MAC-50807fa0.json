@@ -1,0 +1,1 @@
+{"task_hash": "50807fa0a6a3956a", "worker_id": "WINDOWS", "target_agent": "WINDOWS", "task_id": "win-run-tests-periodic5", "payload": {"action": "RUN_TESTS", "prompt": "Trigger a periodic test run on the Windows remote executor.", "allowed_scope": ["C:\\Dev\\Windows-AI-OS"]}}

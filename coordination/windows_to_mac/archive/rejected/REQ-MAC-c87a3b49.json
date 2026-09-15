@@ -1,0 +1,1 @@
+{"task_hash": "c87a3b4906ff1b9e", "worker_id": "CLI1", "target_agent": "CLI1", "task_id": "plan-disc-025349e1", "payload": {"action": "READ", "prompt": "Inspect repository and discover actionable, safe, locally verifiable improvement opportunities", "allowed_scope": ["SAFE_LOCAL_VALIDATION"]}}

@@ -1,0 +1,247 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pow001.network/schemas/POW_001_GENESIS_DATA_MODEL.json",
+  "title": "POW-001 Genesis Block Archive & Sponsor Data Model",
+  "description": "Concrete JSON Schema data model for the POW-001 Genesis Block archive, enforcing canonical constraints: exactly 21 blocks, physical placement matching digital positions 1-21, Bitcoin payment (499 EUR base price, minimum 1 BTC confirmation), company branding assets, TXID, reservation timestamp, and SHA-256 Genesis record hash.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "archive_id",
+    "project_name",
+    "total_supply",
+    "base_price_eur",
+    "settlement_currency",
+    "required_btc_confirmations",
+    "genesis_archive_hash",
+    "created_at",
+    "blocks"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Semantic version of the POW-001 data model schema."
+    },
+    "archive_id": {
+      "type": "string",
+      "pattern": "^POW-001-GENESIS-[A-Za-z0-9_-]+$",
+      "description": "Unique identifier for the Genesis archive instance."
+    },
+    "project_name": {
+      "type": "string",
+      "const": "POW-001 Genesis Sponsorship",
+      "description": "Canonical project name."
+    },
+    "total_supply": {
+      "type": "integer",
+      "const": 21,
+      "description": "Total immutable supply of Genesis blocks, strictly constrained to exactly 21."
+    },
+    "base_price_eur": {
+      "type": "number",
+      "const": 499,
+      "description": "Fixed pricing per Genesis block in EUR (499 EUR)."
+    },
+    "settlement_currency": {
+      "type": "string",
+      "const": "BTC",
+      "description": "Settlement currency exclusively denominated in Bitcoin."
+    },
+    "required_btc_confirmations": {
+      "type": "integer",
+      "const": 1,
+      "description": "Minimum Bitcoin on-chain confirmations required for finality (1 confirmation)."
+    },
+    "genesis_archive_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "Root SHA-256 cryptographic hash of the entire 21 Genesis block cohort archive."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 timestamp of Genesis archive compilation."
+    },
+    "blocks": {
+      "type": "array",
+      "description": "The complete cohort of exactly 21 Genesis sponsor blocks.",
+      "minItems": 21,
+      "maxItems": 21,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/GenesisBlockRecord"
+      }
+    }
+  },
+  "$defs": {
+    "GenesisBlockRecord": {
+      "type": "object",
+      "description": "Data record representing an individual POW-001 Genesis sponsor block.",
+      "additionalProperties": false,
+      "required": [
+        "block_number",
+        "digital_position",
+        "physical_placement",
+        "company_name",
+        "logo_asset",
+        "payment",
+        "reservation_timestamp",
+        "genesis_record_hash",
+        "status"
+      ],
+      "properties": {
+        "block_number": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 21,
+          "description": "Sequential block index from 1 to 21."
+        },
+        "digital_position": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 21,
+          "description": "Digital archive index corresponding strictly to positions 1 through 21."
+        },
+        "physical_placement": {
+          "type": "object",
+          "description": "Physical chassis grid placement mapped directly to digital position.",
+          "additionalProperties": false,
+          "required": [
+            "grid_slot",
+            "matching_digital_position",
+            "chassis_id"
+          ],
+          "properties": {
+            "grid_slot": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 21,
+              "description": "Physical grid coordinate slot (1-21) on the hardware chassis."
+            },
+            "matching_digital_position": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 21,
+              "description": "Digital position counterpart (1-21), ensuring exact 1:1 physical-to-digital mapping."
+            },
+            "chassis_id": {
+              "type": "string",
+              "description": "Identifier of the physical machine chassis."
+            }
+          }
+        },
+        "company_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Legal or brand name of the sponsoring company."
+        },
+        "canonical_url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Official canonical URL / website of the sponsoring company."
+        },
+        "logo_asset": {
+          "type": "object",
+          "description": "Vector or high-resolution branding asset for physical engraving and digital display.",
+          "additionalProperties": false,
+          "required": [
+            "asset_url",
+            "asset_type",
+            "sha256_hash"
+          ],
+          "properties": {
+            "asset_url": {
+              "type": "string",
+              "format": "uri",
+              "description": "Permanent URL or IPFS/storage URI of the logo asset."
+            },
+            "asset_type": {
+              "type": "string",
+              "enum": ["SVG", "VECTOR_PDF", "PNG_HIGHRES", "EPS"],
+              "description": "MIME format or vector type of the logo asset."
+            },
+            "sha256_hash": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$",
+              "description": "SHA-256 checksum of the logo asset file."
+            }
+          }
+        },
+        "payment": {
+          "type": "object",
+          "description": "Bitcoin payment settlement record for the block.",
+          "additionalProperties": false,
+          "required": [
+            "amount_eur",
+            "amount_btc",
+            "settlement_currency",
+            "payment_method",
+            "txid",
+            "confirmations",
+            "confirmed"
+          ],
+          "properties": {
+            "amount_eur": {
+              "type": "number",
+              "const": 499,
+              "description": "Fixed base price in EUR (499 EUR)."
+            },
+            "amount_btc": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "description": "Amount paid in Bitcoin based on spot exchange lock."
+            },
+            "settlement_currency": {
+              "type": "string",
+              "const": "BTC",
+              "description": "Settlement currency (BTC)."
+            },
+            "payment_method": {
+              "type": "string",
+              "enum": ["ON_CHAIN", "LIGHTNING"],
+              "description": "Bitcoin payment method used for settlement."
+            },
+            "txid": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "description": "Bitcoin Transaction ID (TXID) for on-chain settlement or payment preimage / invoice hash for Lightning."
+            },
+            "confirmations": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Number of Bitcoin network confirmations (minimum 1 confirmation required for on-chain settlement finality)."
+            },
+            "confirmed": {
+              "type": "boolean",
+              "const": true,
+              "description": "Settlement confirmation status flag."
+            },
+            "settlement_timestamp": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO-8601 timestamp when the Bitcoin transaction achieved confirmation."
+            }
+          }
+        },
+        "reservation_timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO-8601 timestamp when the sponsor claim/reservation was initiated."
+        },
+        "genesis_record_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "Cryptographic SHA-256 hash of the canonical Genesis block record."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["CONFIRMED", "ARCHIVED"],
+          "description": "Final lifecycle status of the Genesis sponsor block in the archive."
+        }
+      }
+    }
+  }
+}

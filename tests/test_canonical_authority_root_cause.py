@@ -313,6 +313,31 @@ class TestCanonicalAuthorityRootCause(unittest.TestCase):
         self.assertEqual(audited.state, WorkerState.ORPHANED.value)
         self.assertEqual(audited.blocked_reason, "PID_DEAD_WITH_ACTIVE_STATE")
 
+    def test_11_reused_pid_birth_identity_cannot_retain_authority(self):
+        scope = "src/reused-pid-target.py"
+        path = self.auth._scope_file_path(scope)
+        future = (dt.datetime.now(dt.timezone.utc) + dt.timedelta(minutes=5)).isoformat()
+        record = AuthorityRecord(
+            scope=scope,
+            owner_id="departed-owner",
+            task_id="departed-task",
+            generation=7,
+            pid=os.getpid(),
+            process_start_time=-1.0,
+            lease_expires_at=future,
+        )
+        path.write_text(json.dumps(record.to_dict()), encoding="utf-8")
+
+        status, _, reason = self.auth.parse_authority_record(path)
+        self.assertEqual(status, LockStatus.STALE_RECOVERABLE)
+        self.assertIn("birth identity mismatch", reason)
+
+        acquired, generation, error = self.auth.acquire_scopes(
+            owner_id="new-owner", task_id="new-task", scopes=[scope]
+        )
+        self.assertTrue(acquired, error)
+        self.assertGreater(generation, record.generation)
+
 
 if __name__ == "__main__":
     unittest.main()

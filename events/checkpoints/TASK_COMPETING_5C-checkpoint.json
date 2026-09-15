@@ -1,0 +1,32 @@
+{
+  "task_id": "TASK_COMPETING_5C",
+  "checkpoint_reason": "WINDOWS_HEALTH_CHECK_FAILED",
+  "failure_layer": "SCOPE_CONTENTION",
+  "checkpointed_at": "2026-09-14T18:46:20.783808+00:00",
+  "health_report": {
+    "FAILURE_LAYER": "SCOPE_CONTENTION",
+    "RESULT": "LEASE_DENIED"
+  },
+  "envelope": {
+    "task_id": "TASK_COMPETING_5C",
+    "target_host": "DESKTOP-JDPRUGR",
+    "description": "Compete for Windows-AI-OS",
+    "dedupe_hash": "0bf9543ed90847a7",
+    "router_recommendation": {
+      "worker_id": "CODEX",
+      "available": true,
+      "safe_task_available": true,
+      "task_id": "TASK_COMPETING_5C",
+      "task_fingerprint": "b881027522eaedec",
+      "scope": [
+        "C:\\Dev\\Windows-AI-OS"
+      ],
+      "risk": "SAFE",
+      "heavy_job": false,
+      "block_reason": null,
+      "recommended_action": "DISPATCH_TASK_TASK_COMPETING_5C",
+      "target_host": "DESKTOP-JDPRUGR"
+    }
+  },
+  "status": "CHECKPOINTED_BLOCKED"
+}

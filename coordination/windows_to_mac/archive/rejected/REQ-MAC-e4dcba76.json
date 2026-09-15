@@ -1,0 +1,1 @@
+{"task_hash": "e4dcba76932fd90a", "worker_id": "GEMINI", "target_agent": "GEMINI", "task_id": "TASK-GEMINI-TEST-cb7d27", "payload": {"action": "acceptance_review", "prompt": "Inspect run_antigravity_bridge.py safely.", "allowed_scope": ["scripts/run_antigravity_bridge.py"]}}

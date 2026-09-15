@@ -1,0 +1,1 @@
+{"task_hash": "a727dd71ec2f3300", "worker_id": "WINDOWS", "target_agent": "WINDOWS", "task_id": "win-static-analysis", "payload": {"action": "RUN_TESTS", "prompt": "Run basic health checks on the Windows worker to ensure it is healthy. Use the RUN_TESTS action.", "allowed_scope": ["C:\\Dev\\Windows-AI-OS"]}}

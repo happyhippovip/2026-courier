@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "request_id": "REQ-SYNAPSE-SPRINT-01-1789296715",
+  "mission_id": "SYNAPSE_V0_FAST_SPRINT",
+  "status": "COMPLETED",
+  "worker": "WINDOWS_SPECIALIST_VALIDATOR",
+  "start_time": "2026-09-13T10:51:56.616435+00:00",
+  "finish_time": "2026-09-13T10:51:56.768189+00:00",
+  "commands": [
+    "validate_target_artifact \\\\192.168.178.162\\coordination\\windows_to_mac\\handoffs\\client\\index.html"
+  ],
+  "exit_codes": [
+    0
+  ],
+  "observed_behavior": "Validated artifact '\\\\192.168.178.162\\coordination\\windows_to_mac\\handoffs\\client\\index.html' exists: True. Size: 26788 bytes. SHA256: df01a4967df8230de943aa2efb89e3c88a0829c2af4e0baa2788296b7a02cbe6. Cross-platform check: OK.",
+  "verified_assertions": 3,
+  "result_fingerprint": "5a6bf2a665803b4c5b9e2f8397d701f4516b04691acffd49f1ac31e06dd6f712",
+  "artifact_references": [
+    "\\\\192.168.178.162\\coordination\\windows_to_mac\\handoffs\\client\\index.html"
+  ],
+  "checkpoint_reference": "CHECKPOINT-REQ-SYNAPSE-SPRINT-01-1789296715",
+  "known_defects": [],
+  "blockers": [],
+  "human_gates": []
+}

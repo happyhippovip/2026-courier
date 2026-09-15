@@ -1,0 +1,70 @@
+{
+  "task_id": "TASK_FOUNDATION_1789426096",
+  "checkpoint_reason": "WINDOWS_HEALTH_CHECK_FAILED",
+  "failure_layer": "TCP22_UNREACHABLE",
+  "checkpointed_at": "2026-09-14T22:48:38.796657+00:00",
+  "health_report": {
+    "RESULT": "UNAVAILABLE",
+    "FAILURE_LAYER": "TCP22_UNREACHABLE",
+    "attempts": [
+      {
+        "attempt": 1,
+        "timestamp": "2026-09-14T22:48:28.102204+00:00",
+        "healthy": false,
+        "WINDOWS_AI_LINK_STATUS": "UNAVAILABLE",
+        "TIMESTAMP": "2026-09-14T22:48:18Z",
+        "TARGET_HOST": "windows-ai",
+        "EXPECTED_IP": "192.168.178.87",
+        "NETWORK_ROUTE": "READY_en0",
+        "TCP22": "UNREACHABLE_ATTEMPT_3",
+        "SSH": "NOT_ATTEMPTED",
+        "REMOTE_HOSTNAME": "NOT_TESTED",
+        "REMOTE_PROJECT": "NOT_TESTED",
+        "RESULT": "UNAVAILABLE",
+        "FAILURE_LAYER": "TCP22_UNREACHABLE",
+        "RECOMMENDED_ACTION": "Windows may be unavailable, asleep, or using a changed LAN address. Check power and the DHCP reservation; do not change router or SSH settings automatically."
+      },
+      {
+        "attempt": 2,
+        "timestamp": "2026-09-14T22:48:38.792335+00:00",
+        "healthy": false,
+        "WINDOWS_AI_LINK_STATUS": "UNAVAILABLE",
+        "TIMESTAMP": "2026-09-14T22:48:33Z",
+        "TARGET_HOST": "windows-ai",
+        "EXPECTED_IP": "192.168.178.87",
+        "NETWORK_ROUTE": "READY_en0",
+        "TCP22": "UNREACHABLE_ATTEMPT_3",
+        "SSH": "NOT_ATTEMPTED",
+        "REMOTE_HOSTNAME": "NOT_TESTED",
+        "REMOTE_PROJECT": "NOT_TESTED",
+        "RESULT": "UNAVAILABLE",
+        "FAILURE_LAYER": "TCP22_UNREACHABLE",
+        "RECOMMENDED_ACTION": "Windows may be unavailable, asleep, or using a changed LAN address. Check power and the DHCP reservation; do not change router or SSH settings automatically."
+      }
+    ],
+    "timestamp": "2026-09-14T22:48:38.792335+00:00",
+    "RECOMMENDED_ACTION": "Windows may be unavailable, asleep, or using a changed LAN address. Check power and the DHCP reservation; do not change router or SSH settings automatically."
+  },
+  "envelope": {
+    "task_id": "TASK_FOUNDATION_1789426096",
+    "target_host": "DESKTOP-JDPRUGR",
+    "description": "Inspect Windows-AI-OS project structure and report one harmless fact.",
+    "dedupe_hash": "ce5199f34ba42e3f",
+    "router_recommendation": {
+      "worker_id": "CODEX",
+      "available": true,
+      "safe_task_available": true,
+      "task_id": "TASK_FOUNDATION_1789426096",
+      "task_fingerprint": "b34d8e325e1b7067",
+      "scope": [
+        "C:\\Dev\\Windows-AI-OS"
+      ],
+      "risk": "SAFE",
+      "heavy_job": false,
+      "block_reason": null,
+      "recommended_action": "DISPATCH_TASK_TASK_FOUNDATION_1789426096",
+      "target_host": "DESKTOP-JDPRUGR"
+    }
+  },
+  "status": "CHECKPOINTED_BLOCKED"
+}

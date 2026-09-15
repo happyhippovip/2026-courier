@@ -1,0 +1,19 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-14T21:40:38.850987+00:00",
+  "event_id": "evt-safe-9cdee09736",
+  "event_type": "NEXT_SAFE_WORK_AVAILABLE",
+  "evidence": {
+    "priority": 5,
+    "project": "Courier",
+    "task_fingerprint": "f190a35d4692cc6f",
+    "task_id": "win-test-reboot-idempotency",
+    "worker_id": "WINDOWS"
+  },
+  "fingerprint": "82e61a7c040c3b8d",
+  "recommended_action": "CLAIM_OPPORTUNITY_win-test-reboot-idempotency",
+  "schema_version": "3.0",
+  "severity": "INFO",
+  "task_id": "win-test-reboot-idempotency",
+  "worker_id": "WINDOWS"
+}

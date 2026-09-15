@@ -1,20 +1,37 @@
 {
-  "idea_id": "idea-5138f1d9",
-  "raw_idea": "Optimiere FruitKI 3D Video-Render Pipeline und erstelle Release-Metadaten",
-  "normalized_idea": "optimiere fruitki 3d video-render pipeline und erstelle release-metadaten",
-  "normalized_summary": "Optimiere FruitKI 3D Video-Render Pipeline und erstelle Release-Metadaten",
+  "idea_id": "idea-f176caa6",
+  "raw_idea": "Create a file at /tmp/test_c.txt and then create a file at /tmp/test_d.txt",
+  "normalized_idea": "create a file at /tmp/test_c.txt and then create a file at /tmp/test_d.txt",
+  "normalized_summary": "Create a file at /tmp/test_c.txt and then create a file at /tmp/test_d.txt",
   "idea_status": "PROPOSED",
   "type": "GOAL",
-  "classification": "NEW",
+  "classification": "UNBOUND_UNTRUSTED_INPUT",
   "truth_boundary": "IDEA != VERIFIED | USER_REPORTED != TECHNICALLY_VERIFIED",
-  "conflicts": [],
+  "provenance": {
+    "source_reference": null,
+    "provenance_state": "UNBOUND_UNTRUSTED"
+  },
+  "conflicts": [
+    {
+      "rule": "D-030",
+      "severity": "HUMAN_GATE_REQUIRED",
+      "reason": "Derived Context ohne echte Quellenreferenz (accepted_thought_reference)."
+    }
+  ],
   "related_ideas": [],
-  "memory_references": [],
+  "memory_references": [
+    {
+      "type": "PROJECT_STATE",
+      "id": "STATE_PRINCIPLE",
+      "title": "- **WAIT/RESUME OPEN DEFECT:** On 2026-09-06, a Chief-chat g",
+      "status": "MATCHED"
+    }
+  ],
   "affected_agents": [
-    "antigravity"
+    "codex"
   ],
   "affected_workflows": [
-    "3D Shorts Pipeline (Antigravity Media Studio)"
+    "Code Verification & QA (Codex Lab)"
   ],
   "recommended_next_action": "ROUTE_TO_ANTIGRAVITY_PRIMARY",
   "target_agent_recommendation": "antigravity",
@@ -23,5 +40,6 @@
     "ideas": true,
     "project_state": true
   },
-  "timestamp": "2026-08-30T17:22:41.293196+00:00"
+  "memory_comparison_state": "AVAILABLE",
+  "timestamp": "2026-09-13T19:10:28.974163+00:00"
 }

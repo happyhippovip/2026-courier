@@ -1,0 +1,19 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-14T21:34:46.373215+00:00",
+  "event_id": "evt-safe-3087aa2873",
+  "event_type": "NEXT_SAFE_WORK_AVAILABLE",
+  "evidence": {
+    "priority": 7,
+    "project": "COURIER_V1_RELAY",
+    "task_fingerprint": "171942a0618e40d8",
+    "task_id": "WINDOWS-RELAY-CONNECTIVITY-VALIDATION",
+    "worker_id": "WINDOWS_PC2"
+  },
+  "fingerprint": "09d27d0855421872",
+  "recommended_action": "CLAIM_OPPORTUNITY_WINDOWS-RELAY-CONNECTIVITY-VALIDATION",
+  "schema_version": "3.0",
+  "severity": "INFO",
+  "task_id": "WINDOWS-RELAY-CONNECTIVITY-VALIDATION",
+  "worker_id": "WINDOWS_PC2"
+}

@@ -1,0 +1,6 @@
+{
+    "TASK_ID": "test-continuous-1",
+    "TARGET_HOST": "windows-ai",
+    "PROJECT_PATH": "C:\\Dev\\Windows-AI-OS",
+    "ACTION": "TEST_AUTO_CONSUMPTION"
+}

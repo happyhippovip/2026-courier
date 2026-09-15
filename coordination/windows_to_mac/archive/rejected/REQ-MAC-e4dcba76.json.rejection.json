@@ -1,0 +1,6 @@
+{
+  "quarantined_at": "2026-09-14T08:01:43.530233+00:00",
+  "original_file": "\\\\192.168.178.162\\coordination\\mac_to_windows\\requests\\REQ-MAC-e4dcba76.json",
+  "reason": "MISSING_REQUIRED_FIELD: 'windows_validation_request_id' is required; MISSING_REQUIRED_FIELD: 'mission_id' is required; MISSING_REQUIRED_FIELD: 'artifact_reference' is required; MISSING_REQUIRED_FIELD: 'exact_question' is required; MISSING_REQUIRED_FIELD: 'expected_evidence' is required",
+  "node_id": "WINDOWS_PC2"
+}

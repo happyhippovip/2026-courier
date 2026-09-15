@@ -1,0 +1,19 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-15T01:06:25.114599+00:00",
+  "event_id": "evt-safe-3c5fd53b94",
+  "event_type": "NEXT_SAFE_WORK_AVAILABLE",
+  "evidence": {
+    "priority": 41,
+    "project": "Courier",
+    "task_fingerprint": "85dbdad67cf5c8c5",
+    "task_id": "task-b-4ef467",
+    "worker_id": "WINDOWS"
+  },
+  "fingerprint": "f9426cb327f985c5",
+  "recommended_action": "CLAIM_OPPORTUNITY_task-b-4ef467",
+  "schema_version": "3.0",
+  "severity": "INFO",
+  "task_id": "task-b-4ef467",
+  "worker_id": "WINDOWS"
+}

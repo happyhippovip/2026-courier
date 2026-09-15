@@ -1,0 +1,19 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-14T21:24:47.153484+00:00",
+  "event_id": "evt-safe-c64497fd7a",
+  "event_type": "NEXT_SAFE_WORK_AVAILABLE",
+  "evidence": {
+    "priority": 10,
+    "project": "Courier",
+    "task_fingerprint": "762d793985a8705e",
+    "task_id": "fix-spin-loop3",
+    "worker_id": "CODEX"
+  },
+  "fingerprint": "99442b419ae7e99a",
+  "recommended_action": "CLAIM_OPPORTUNITY_fix-spin-loop3",
+  "schema_version": "3.0",
+  "severity": "INFO",
+  "task_id": "fix-spin-loop3",
+  "worker_id": "CODEX"
+}

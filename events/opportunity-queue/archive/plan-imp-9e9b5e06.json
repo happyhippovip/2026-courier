@@ -1,0 +1,37 @@
+{
+  "opportunity_id": "plan-imp-9e9b5e06",
+  "source": "MAC_CHIEF",
+  "objective_id": "OBJ-EVAL",
+  "project": "Courier",
+  "description": "Check for and populate events/knowledge-base/distilled_lessons.json from existing event logs, then generate the markdown lessons report.",
+  "priority": 5,
+  "expected_value": "Evidence-backed output",
+  "evidence": {},
+  "required_capabilities": [],
+  "risk": "LOW",
+  "estimated_cost": 0.0,
+  "model_need": false,
+  "external_action_units": 0,
+  "project_id": "",
+  "source_artifact": "",
+  "source_hash": "",
+  "evidence_type": "",
+  "production_stage": "",
+  "problem_or_goal": "",
+  "expected_output": "",
+  "risk_class": "LOW",
+  "cost_class": "ZERO_COST_LOCAL",
+  "dedupe_fingerprint": "d335a7676f7bfde9",
+  "heavy_job": false,
+  "status": "BLOCKED",
+  "target_agent": "CODEX",
+  "allowed_scope": [
+    "GLOBAL"
+  ],
+  "allowed_actions": [
+    "implement_bounded_improvement"
+  ],
+  "created_at": "2026-09-14T23:13:19.668796+00:00",
+  "updated_at": "2026-09-14T23:13:19.669671+00:00",
+  "dedupe_hash": "d335a7676f7bfde9"
+}

@@ -1,0 +1,17 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-14T23:03:49.606378+00:00",
+  "event_id": "evt-ed2b7e0a540b",
+  "event_type": "WORKER_STARTED",
+  "evidence": {
+    "availability_class": "TEMPORARY_30_DAY",
+    "initial_registration": true
+  },
+  "fingerprint": "c0ea65bd0a0c0f2a",
+  "mission_id": null,
+  "recommended_action": null,
+  "session_epoch": "epoch-codex-1789427029",
+  "severity": "INFO",
+  "task_id": null,
+  "worker_id": "CODEX"
+}

@@ -1,0 +1,10 @@
+{
+  "task_id": "fix-founder-mode2",
+  "source_agent": "GOOGLE_ANTIGRAVITY",
+  "target_agent": "CODEX",
+  "target_host": null,
+  "project_path": "C:\\Dev\\Windows-AI-OS",
+  "created_at": "2026-09-14T21:16:32.142953+00:00",
+  "description": "Minimally fix FounderModeMVP.run_autonomous_loop (in scripts/courier_founder_mode.py) for the UnboundLocalError / writer-conflict regression (the GoalSatisfactionEngine variable is not instantiated properly when next_missions is populated). Then run pytest tests/test_m233_founder_mode.py.",
+  "artifact_sha256": "f30d7f4a5066e5fd5085e4db34a34eabd42baccbdeaaeeab6973ac0222854e6a"
+}

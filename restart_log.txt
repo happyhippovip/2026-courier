@@ -1,0 +1,2 @@
+usage: courier_founder_mode.py [-h] --goal GOAL
+courier_founder_mode.py: error: the following arguments are required: --goal

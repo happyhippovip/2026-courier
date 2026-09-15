@@ -1,0 +1,10 @@
+{
+  "task_id": "plan-imp-ea791415",
+  "source_agent": "GOOGLE_ANTIGRAVITY",
+  "target_agent": "CODEX",
+  "target_host": null,
+  "project_path": "GLOBAL",
+  "created_at": "2026-09-15T01:11:08.338529+00:00",
+  "description": "Create the POW-001 Genesis Sponsorship Reservation Frontend component in social_platform/client allowing users to view and select from the 21 Genesis blocks.",
+  "artifact_sha256": "2bb68dbf0ce57c3bd9abfa0d79ce25b13aa1208c0f28f17023f0e852c6f3707b"
+}

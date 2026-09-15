@@ -1,0 +1,24 @@
+{
+  "request_id": "REQ-MAC-67a9f6a5",
+  "mission_id": "win-run-tests-periodic3",
+  "schema_version": "1.0",
+  "status": "COMPLETED",
+  "observed_behavior": "Auto task completed",
+  "result_fingerprint": "8b6ed3f0481d68a8ec7cbbfdde2f9e07c2bdc400085a9f0118cb82c68ce9c317",
+  "payload": {
+    "worker_agent": "WINDOWS",
+    "worker_type": "NATIVE_WINDOWS",
+    "real_model_call": false,
+    "separate_process": true,
+    "target_agent": "WINDOWS",
+    "task_id": "win-run-tests-periodic3",
+    "mission_id": "",
+    "task_hash": "67a9f6a555ca8f0c",
+    "status": "FAILED",
+    "verdict": "FAIL",
+    "summary": "Windows execution. stdout: Dispatching task win-run-tests-periodic3\nExecutor output: WINDOWS AI HOST HEALTH\n\nHostname:\nDESKTOP-JDPRUGR\n\nUser:\nlol\n\nIP:\n192.168.178.87\n\nOpenSSH:\nInstalled\n\nsshd:\nRunning\n\nStartup:\nAuto\n\nPort 22:\nLISTENING\n\nAuthorized Keys:\nREADY\n\nGit:\nINSTALLED\n\nPython:\nINSTALLED\n\n.NET:\nMISSING\n\nRAM Free:\n4.74 GB\n\nDisk Free:\n850.46 GB\n\nProject:\nREADY\n\nREMOTE READY:\nYES\nSUCCESS: Result fetched successfully.\nEXIT_CODE: None\nSTATUS: COMPLETED\nOUTPUT: stderr: ",
+    "zero_cost_policy": "ZERO_COST_ONLY",
+    "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+    "action": "RUN_TESTS"
+  }
+}

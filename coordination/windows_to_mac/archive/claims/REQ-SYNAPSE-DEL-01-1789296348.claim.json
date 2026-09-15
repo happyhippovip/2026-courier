@@ -1,0 +1,8 @@
+{
+  "request_id": "REQ-SYNAPSE-DEL-01-1789296348",
+  "mission_id": "SYNAPSE_PRODUCT_MISSION",
+  "owner_node": "WINDOWS_PC2",
+  "process_instance_id": "3344858c-8701-423d-96cb-cd493705d059",
+  "lease_epoch": 1,
+  "claimed_at": "2026-09-13T10:45:51.313405+00:00"
+}

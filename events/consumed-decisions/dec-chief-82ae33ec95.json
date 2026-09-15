@@ -1,0 +1,8 @@
+{
+  "schema_version": "2.0",
+  "decision_id": "dec-chief-82ae33ec95",
+  "task_id": "WF-AUTO-6f2582-CANARY-B",
+  "workflow_id": "WF-AUTO-6f2582",
+  "next_task_id": null,
+  "consumed_at": "2026-09-13T18:45:31.639357+00:00"
+}

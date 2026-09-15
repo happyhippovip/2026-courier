@@ -1,0 +1,8 @@
+{
+  "request_id": "REQ-WIN-DELEGATION-01-1789295993",
+  "mission_id": "SYMPHONY_AUTONOMOUS_OPERATIONS",
+  "owner_node": "WINDOWS_PC2",
+  "process_instance_id": "5cadb557-6de8-4873-ae04-0ea9ca9b3e34",
+  "lease_epoch": 1,
+  "claimed_at": "2026-09-13T10:39:53.519066+00:00"
+}

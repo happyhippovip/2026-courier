@@ -1,0 +1,8 @@
+{
+  "request_id": "REQ-AUTONOMY-TASK-GOAL-AUTO-1789316512-5DE7BB-01-1789316514",
+  "mission_id": "POST_V1_PRODUCTIVE_AUTONOMY",
+  "owner_node": "WINDOWS_PC2",
+  "process_instance_id": "668bdbb6-a658-40ad-a742-23472129e4b7",
+  "lease_epoch": 1,
+  "claimed_at": "2026-09-13T16:21:54.428159+00:00"
+}

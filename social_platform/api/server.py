@@ -1,3 +1,4 @@
+from social_platform.api.pow001_sponsorship import reserve_block, get_genesis_registry
 import json
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -573,6 +574,10 @@ class SocialAPIHandler(BaseHTTPRequestHandler):
             else:
                 self._send_error("Not found", 404)
 
+        # /pow001/registry
+        elif path_parts[0] == "pow001" and len(path_parts) == 2 and path_parts[1] == "registry":
+            return self._send_json({"status": "success", "blocks": get_genesis_registry()})
+
         # /communities/...
         elif path_parts[0] == "communities":
             if len(path_parts) == 1:
@@ -984,6 +989,9 @@ class SocialAPIHandler(BaseHTTPRequestHandler):
             return
 
         # POST /users
+        if parsed.path == "/pow001/reserve":
+            return self._send_json(reserve_block(body.get("company_name", "Anonymous"), body.get("logo_url", "")))
+
         if parsed.path == "/users":
             if "username" not in body:
                 return self._send_error("username required")

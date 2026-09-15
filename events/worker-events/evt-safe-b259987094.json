@@ -1,0 +1,19 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-14T21:40:00.470587+00:00",
+  "event_id": "evt-safe-b259987094",
+  "event_type": "NEXT_SAFE_WORK_AVAILABLE",
+  "evidence": {
+    "priority": 5,
+    "project": "Courier",
+    "task_fingerprint": "73fab393dcce25a9",
+    "task_id": "plan-imp-0f959d0b",
+    "worker_id": "GEMINI"
+  },
+  "fingerprint": "b7cb5c865e370b71",
+  "recommended_action": "CLAIM_OPPORTUNITY_plan-imp-0f959d0b",
+  "schema_version": "3.0",
+  "severity": "INFO",
+  "task_id": "plan-imp-0f959d0b",
+  "worker_id": "GEMINI"
+}

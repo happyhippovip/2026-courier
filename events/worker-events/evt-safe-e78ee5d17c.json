@@ -1,0 +1,19 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-14T08:08:27.101119+00:00",
+  "event_id": "evt-safe-e78ee5d17c",
+  "event_type": "NEXT_SAFE_WORK_AVAILABLE",
+  "evidence": {
+    "priority": 6,
+    "project": "GEMINI_INTEGRATION",
+    "task_fingerprint": "cf81a2105e24b86f",
+    "task_id": "TASK-GEMINI-TEST-cb7d27",
+    "worker_id": "GEMINI"
+  },
+  "fingerprint": "b1ea0d9b16eee652",
+  "recommended_action": "CLAIM_OPPORTUNITY_TASK-GEMINI-TEST-cb7d27",
+  "schema_version": "3.0",
+  "severity": "INFO",
+  "task_id": "TASK-GEMINI-TEST-cb7d27",
+  "worker_id": "GEMINI"
+}

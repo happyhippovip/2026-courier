@@ -1,0 +1,6 @@
+{
+  "quarantined_at": "2026-09-14T16:22:11.960900+00:00",
+  "original_file": "\\\\192.168.178.162\\coordination\\mac_to_windows\\requests\\REQ-MAC-F544E1EA.json",
+  "reason": "CUSTOMS_FAILED: EXPECTED_EVIDENCE_NOT_OBSERVED: Expected 'WINDOWS_PASSED' (missing tokens: ['windows_passed']) in stdout",
+  "node_id": "WINDOWS_PC2"
+}

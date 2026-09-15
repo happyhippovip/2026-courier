@@ -1,0 +1,6 @@
+{
+  "quarantined_at": "2026-09-14T16:17:53.788948+00:00",
+  "original_file": "\\\\192.168.178.162\\coordination\\mac_to_windows\\requests\\REQ-MAC-CF8875F6.json",
+  "reason": "CUSTOMS_FAILED: EXPECTED_EVIDENCE_NOT_OBSERVED: Expected 'passed' (missing tokens: ['passed']) in stdout",
+  "node_id": "WINDOWS_PC2"
+}

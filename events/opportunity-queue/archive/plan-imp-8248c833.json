@@ -1,0 +1,37 @@
+{
+  "opportunity_id": "plan-imp-8248c833",
+  "source": "COURIER_GOAL_PLANNER",
+  "objective_id": "2f77c8fa-fcce-4721-817e-b546d4383024",
+  "project": "IDEA_INBOX_GOALS",
+  "description": "Direct implementation of requested artifact: Inspect the current Courier repository and produce a verified AUTONOMY_LIVE_REPORT.md that summarizes the actual current autonomous worker architecture, identifies the Windows, Codex and Google worker paths from current repository evidence, and records that the report was produced through the autonomous Courier workflow.",
+  "priority": 6,
+  "expected_value": "Evidence-backed output",
+  "evidence": {},
+  "required_capabilities": [],
+  "risk": "SAFE",
+  "estimated_cost": 0.0,
+  "model_need": false,
+  "external_action_units": 0,
+  "project_id": "",
+  "source_artifact": "",
+  "source_hash": "",
+  "evidence_type": "",
+  "production_stage": "",
+  "problem_or_goal": "",
+  "expected_output": "",
+  "risk_class": "LOW",
+  "cost_class": "ZERO_COST_LOCAL",
+  "dedupe_fingerprint": "cccea8e12aa3a9e1",
+  "heavy_job": false,
+  "status": "COMPLETED",
+  "target_agent": "GEMINI",
+  "allowed_scope": [
+    "UNKNOWN_WRITE"
+  ],
+  "allowed_actions": [
+    "implement_bounded_improvement"
+  ],
+  "created_at": "2026-09-15T01:13:55.264032+00:00",
+  "updated_at": "2026-09-15T01:14:02.446629+00:00",
+  "dedupe_hash": "cccea8e12aa3a9e1"
+}

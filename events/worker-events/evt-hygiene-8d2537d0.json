@@ -1,0 +1,17 @@
+{
+  "created_at": "2026-09-13T20:33:37.189199+00:00",
+  "event_id": "evt-hygiene-8d2537d0",
+  "event_type": "HYGIENE_RECONCILIATION_COMPLETED",
+  "evidence": {
+    "false_running_records": 1,
+    "hygiene_items_blocked": 0,
+    "hygiene_items_found": 1,
+    "hygiene_items_recovered": 1,
+    "last_reconciliation_at": "2026-09-13T20:33:37.181682+00:00",
+    "last_reconciliation_result": "PASS",
+    "orphaned_workers": 0,
+    "stale_claims": 0,
+    "stale_locks": 0
+  },
+  "schema_version": "3.0"
+}

@@ -1,0 +1,24 @@
+{
+  "request_id": "REQ-MAC-a776dd12",
+  "mission_id": "win-run-tests-periodic2",
+  "schema_version": "1.0",
+  "status": "COMPLETED",
+  "observed_behavior": "Auto task completed",
+  "result_fingerprint": "c212d50b589f5c4c940590d6cee8f080c42c0e0e286735a3f0ac22463b58fbbc",
+  "payload": {
+    "worker_agent": "WINDOWS",
+    "worker_type": "NATIVE_WINDOWS",
+    "real_model_call": false,
+    "separate_process": true,
+    "target_agent": "WINDOWS",
+    "task_id": "win-run-tests-periodic2",
+    "mission_id": "",
+    "task_hash": "a776dd1293b66060",
+    "status": "FAILED",
+    "verdict": "FAIL",
+    "summary": "Windows execution. stdout: ",
+    "zero_cost_policy": "ZERO_COST_ONLY",
+    "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+    "action": "RUN_TESTS"
+  }
+}

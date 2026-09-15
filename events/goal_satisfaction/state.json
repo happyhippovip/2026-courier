@@ -1,0 +1,86 @@
+{
+  "Create a file named satisfied.txt containing exactly: SUCCESS 100": {
+    "root_goal": "Create a file named satisfied.txt containing exactly: SUCCESS 100",
+    "goal_acceptance_contract": {
+      "file_exists": "satisfied.txt",
+      "content_matches": "SUCCESS 100"
+    },
+    "required_outcomes": [
+      "file_exists",
+      "content_matches"
+    ],
+    "verified_effects": [
+      "modified_satisfied.txt"
+    ],
+    "open_real_gaps": [],
+    "branch_local_human_gates": [],
+    "blockers": [],
+    "satisfaction_state": "VERIFIED_COMPLETE",
+    "last_evaluated_at": 1789422530.7775528
+  },
+  "Create a file named missing.txt containing exactly: FAILED 0": {
+    "root_goal": "Create a file named missing.txt containing exactly: FAILED 0",
+    "goal_acceptance_contract": {
+      "file_exists": "missing.txt",
+      "content_matches": "FAILED 0"
+    },
+    "required_outcomes": [
+      "file_exists",
+      "content_matches"
+    ],
+    "verified_effects": [
+      "modified_other.txt"
+    ],
+    "open_real_gaps": [
+      "missing_file_missing.txt"
+    ],
+    "branch_local_human_gates": [],
+    "blockers": [],
+    "satisfaction_state": "CONTINUE_SAFE_WORK",
+    "last_evaluated_at": 1789422530.773503
+  },
+  "Create a file named human_gated.txt containing exactly: PENDING": {
+    "root_goal": "Create a file named human_gated.txt containing exactly: PENDING",
+    "goal_acceptance_contract": {
+      "file_exists": "human_gated.txt",
+      "content_matches": "PENDING"
+    },
+    "required_outcomes": [
+      "file_exists",
+      "content_matches"
+    ],
+    "verified_effects": [],
+    "open_real_gaps": [
+      "missing_file_human_gated.txt"
+    ],
+    "branch_local_human_gates": [
+      "7dc58a35-9cf4-4741-b80c-3f4bb1728a3d"
+    ],
+    "blockers": [],
+    "satisfaction_state": "CONTINUE_SAFE_WORK",
+    "last_evaluated_at": 1789422530.7752588
+  },
+  "Create a file named dict_satisfied.txt containing exactly: SUCCESS 100": {
+    "root_goal": {
+      "goal": "Create a file named dict_satisfied.txt containing exactly: SUCCESS 100",
+      "status": "ACTIVE"
+    },
+    "goal_acceptance_contract": {
+      "file_exists": "dict_satisfied.txt",
+      "content_matches": "SUCCESS 100"
+    },
+    "required_outcomes": [
+      "file_exists",
+      "content_matches"
+    ],
+    "verified_effects": [
+      "modified_satisfied.txt",
+      "physical_existence_dict_satisfied.txt"
+    ],
+    "open_real_gaps": [],
+    "branch_local_human_gates": [],
+    "blockers": [],
+    "satisfaction_state": "VERIFIED_COMPLETE",
+    "last_evaluated_at": 1789422530.779549
+  }
+}

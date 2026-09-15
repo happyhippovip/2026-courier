@@ -1,0 +1,8 @@
+{
+  "request_id": "REQ-AUTONOMY-TASK-PROD-03-ACP-TEST-SUITE-1789311252",
+  "mission_id": "POST_V1_PRODUCTIVE_AUTONOMY",
+  "owner_node": "WINDOWS_PC2",
+  "process_instance_id": "739369d6-1a74-408f-9de3-ffc63e6273ab",
+  "lease_epoch": 1,
+  "claimed_at": "2026-09-13T14:54:12.872055+00:00"
+}

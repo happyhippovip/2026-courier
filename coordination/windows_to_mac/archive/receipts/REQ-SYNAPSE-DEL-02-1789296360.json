@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "request_id": "REQ-SYNAPSE-DEL-02-1789296360",
+  "mission_id": "SYNAPSE_PRODUCT_MISSION",
+  "status": "COMPLETED",
+  "worker": "WINDOWS_SPECIALIST_VALIDATOR",
+  "start_time": "2026-09-13T10:46:02.997138+00:00",
+  "finish_time": "2026-09-13T10:46:03.083354+00:00",
+  "commands": [
+    "validate_target_artifact synapse_core/static/index.html"
+  ],
+  "exit_codes": [
+    0
+  ],
+  "observed_behavior": "Validated artifact 'synapse_core/static/index.html' exists: True. Size: 15799 bytes. SHA256: 84b6863731364f004ea7da015d468f5b5f7c3ada875222a2fb54199ab4d8bfdf. Cross-platform check: OK.",
+  "verified_assertions": 3,
+  "result_fingerprint": "ff72773c72bdb1d15afd33e081fb28d09c60aebb260c36bd381ac1e378793ef0",
+  "artifact_references": [
+    "synapse_core/static/index.html"
+  ],
+  "checkpoint_reference": "CHECKPOINT-REQ-SYNAPSE-DEL-02-1789296360",
+  "known_defects": [],
+  "blockers": [],
+  "human_gates": []
+}

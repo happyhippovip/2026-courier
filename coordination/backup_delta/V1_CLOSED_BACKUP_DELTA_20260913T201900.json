@@ -1,0 +1,18 @@
+﻿{
+    "schema_version":  "1.0",
+    "created_utc":  "2026-09-13T18:19:00Z",
+    "action":  "MAC_RELAY_REQUIRED",
+    "description":  "Windows final V1-closed backup delta. Mac must push listed files to WD + Transcend external drives.",
+    "project_memory_head":  "3d7e12aec27a3ee7d9e916bdd09689f589e88445",
+    "courier_head_frozen":  "dee6c76b04b22d52aadc8d09d80e1236e5e04f38",
+    "desktop_snapshot_dir":  "C:\\Users\\lol\\Desktop\\COURIER-SYMPHONY_V1_CLOSED_BACKUP_FINAL_2026-09-13",
+    "snapshot_manifest_sha256":  null,
+    "mac_target_paths":  [
+                             "/Volumes/WD ELEMENTS TIME MACHINE/2026-09-13_COURIER-SYMPHONY_V1_BACKUP_ChatGPT-Codex-Google-Antigravity",
+                             "/Volumes/Transcend/2026-09-13_COURIER-SYMPHONY_V1_BACKUP_ChatGPT-Codex-Google-Antigravity"
+                         ],
+    "files_to_relay":  null,
+    "relay_status":  "PENDING_MAC_ACTION",
+    "secret_scan":  "CLEAN",
+    "private_keys_copied":  0
+}

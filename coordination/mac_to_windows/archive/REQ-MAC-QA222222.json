@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "mission_id": "COMMERCIAL_PACKAGE_REVIEW",
+  "windows_validation_request_id": "REQ-MAC-QA222222",
+  "created_by": "MAC_CHIEF",
+  "artifact_reference": "demo_pilot/CUSTOMER_DEMO.md,demo_pilot/COMMERCIAL_ONE_PAGER.md,demo_pilot/PILOT_INTAKE_FORM.md",
+  "exact_question": "Validate Windows relay connectivity",
+  "expected_evidence": "WINDOWS_ALIVE_AND_READY",
+  "allowed_scope": "SAFE_LOCAL_VALIDATION",
+  "validation_type": "WINDOWS_COMPATIBILITY",
+  "timestamp_utc": "2026-09-14T16:00:00Z"
+}

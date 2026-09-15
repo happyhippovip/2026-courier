@@ -1,0 +1,19 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-15T02:53:04.631200+00:00",
+  "event_id": "evt-safe-4f7c9260d8",
+  "event_type": "NEXT_SAFE_WORK_AVAILABLE",
+  "evidence": {
+    "priority": 6,
+    "project": "IDEA_INBOX_GOALS",
+    "task_fingerprint": "bd5a194b8305c588",
+    "task_id": "plan-imp-d7525bcb",
+    "worker_id": "WINDOWS"
+  },
+  "fingerprint": "68e77fe451062323",
+  "recommended_action": "CLAIM_OPPORTUNITY_plan-imp-d7525bcb",
+  "schema_version": "3.0",
+  "severity": "INFO",
+  "task_id": "plan-imp-d7525bcb",
+  "worker_id": "WINDOWS"
+}

@@ -1,0 +1,1 @@
+{"timeout_seconds": 60, "task_hash": "cced5d6a0182c503", "worker_id": "CLI1", "target_agent": "CLI1", "task_id": "plan-disc-a6aa6b0e", "payload": {"action": "discover_improvement_opportunities", "prompt": "Inspect repository and discover actionable, safe, locally verifiable improvement opportunities", "allowed_scope": ["SAFE_LOCAL_VALIDATION"]}}

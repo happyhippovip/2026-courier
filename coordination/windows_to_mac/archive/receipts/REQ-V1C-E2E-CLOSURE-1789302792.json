@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "request_id": "REQ-V1C-E2E-CLOSURE-1789302792",
+  "mission_id": "V1_FINAL_WINDOWS_CLOSURE",
+  "status": "COMPLETED",
+  "worker": "WINDOWS_SPECIALIST_VALIDATOR",
+  "start_time": "2026-09-13T12:33:14.593943+00:00",
+  "finish_time": "2026-09-13T12:33:14.730963+00:00",
+  "commands": [
+    "verify_package_integrity C:\\Users\\lol\\2026-workspace\\courier\\dist\\courier_symphony_v1.0.0-rc1.zip"
+  ],
+  "exit_codes": [
+    0
+  ],
+  "observed_behavior": "Package integrity verified. Archive SHA256: 1dc0784d550c6ddf52fb0b795e8a8d2db93d77aa241a8468511a747530901b7f. Files in archive: 43. Manifest commit: b2c3403d9c8292c6ecf7b33470e842838560fd2d.",
+  "verified_assertions": 43,
+  "result_fingerprint": "b0bd0356aadf34d1576d5639ed8b310295fdf84df35b6877774c2f3a6b10efc5",
+  "artifact_references": [
+    "courier/dist/courier_symphony_v1.0.0-rc1.zip"
+  ],
+  "checkpoint_reference": "CHECKPOINT-REQ-V1C-E2E-CLOSURE-1789302792",
+  "known_defects": [],
+  "blockers": [],
+  "human_gates": []
+}

@@ -1,0 +1,19 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-14T20:01:37.080257+00:00",
+  "event_id": "evt-safe-2bf4745219",
+  "event_type": "NEXT_SAFE_WORK_AVAILABLE",
+  "evidence": {
+    "priority": 7,
+    "project": "Windows-AI-OS",
+    "task_fingerprint": "d01a0e5a4a7d14c6",
+    "task_id": "MAC_WINDOWS_INTEGRATION_PROOF_1",
+    "worker_id": "WINDOWS"
+  },
+  "fingerprint": "9f22d9ce6e2dceec",
+  "recommended_action": "CLAIM_OPPORTUNITY_MAC_WINDOWS_INTEGRATION_PROOF_1",
+  "schema_version": "3.0",
+  "severity": "INFO",
+  "task_id": "MAC_WINDOWS_INTEGRATION_PROOF_1",
+  "worker_id": "WINDOWS"
+}

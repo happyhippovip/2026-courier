@@ -1,0 +1,13 @@
+{
+  "node_id": "WINDOWS_PC2",
+  "host": "WINDOWS",
+  "timestamp_utc": "2026-09-14T20:47:07.089997+00:00",
+  "state_generation": 128,
+  "active_request_id": null,
+  "writer_state": "IDLE",
+  "lease_epoch": 1,
+  "last_verified_result": null,
+  "process_instance_id": "71b556d7-2d8b-4bc3-a00d-6299ad73985c",
+  "pulse_sequence": 1623,
+  "ttl_seconds": 60
+}

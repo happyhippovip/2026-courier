@@ -1,0 +1,8 @@
+{
+  "request_id": "REQ-AUTONOMY-TASK-PROD-01-MARKET-EVIDENCE-1789312006",
+  "mission_id": "POST_V1_PRODUCTIVE_AUTONOMY",
+  "owner_node": "WINDOWS_PC2",
+  "process_instance_id": "005f7a92-39c9-4e28-9492-8206e5338463",
+  "lease_epoch": 1,
+  "claimed_at": "2026-09-13T15:06:46.796717+00:00"
+}

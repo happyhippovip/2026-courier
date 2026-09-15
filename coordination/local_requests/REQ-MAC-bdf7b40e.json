@@ -1,0 +1,1 @@
+{"task_hash": "bdf7b40e4a9b70ed", "worker_id": "GEMINI", "target_agent": "GEMINI", "task_id": "plan-imp-6a7d0639", "payload": {"action": "implement_bounded_improvement", "prompt": "Follow-up", "allowed_scope": ["SAFE_LOCAL_VALIDATION"]}}

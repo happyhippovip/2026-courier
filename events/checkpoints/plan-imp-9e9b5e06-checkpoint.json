@@ -1,0 +1,32 @@
+{
+  "task_id": "plan-imp-9e9b5e06",
+  "checkpoint_reason": "WINDOWS_HEALTH_CHECK_FAILED",
+  "failure_layer": "SCOPE_CONTENTION",
+  "checkpointed_at": "2026-09-14T23:13:21.546067+00:00",
+  "health_report": {
+    "FAILURE_LAYER": "SCOPE_CONTENTION",
+    "RESULT": "LEASE_DENIED"
+  },
+  "envelope": {
+    "task_id": "plan-imp-9e9b5e06",
+    "target_host": null,
+    "description": "Check for and populate events/knowledge-base/distilled_lessons.json from existing event logs, then generate the markdown lessons report.",
+    "dedupe_hash": "d335a7676f7bfde9",
+    "router_recommendation": {
+      "worker_id": "CODEX",
+      "available": true,
+      "safe_task_available": true,
+      "task_id": "plan-imp-9e9b5e06",
+      "task_fingerprint": "41a14ebb858ae1d4",
+      "scope": [
+        "GLOBAL"
+      ],
+      "risk": "LOW",
+      "heavy_job": false,
+      "block_reason": null,
+      "recommended_action": "DISPATCH_TASK_plan-imp-9e9b5e06",
+      "target_host": null
+    }
+  },
+  "status": "CHECKPOINTED_BLOCKED"
+}

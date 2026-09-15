@@ -1,0 +1,44 @@
+{
+  "request_id": "REQ-MAC-0c193f4e",
+  "mission_id": "COMMERCIAL-2c0d92",
+  "schema_version": "1.0",
+  "status": "COMPLETED",
+  "observed_behavior": "Commercial artifact generated",
+  "result_fingerprint": "d87be2bf99fad4c17b33faae0a13fd811a885b4b1eeb3e6c6dc288cd6f8ed2a9",
+  "payload": {
+    "worker_agent": "GEMINI",
+    "worker_type": "NATIVE_AGY_MODEL",
+    "real_model_call": true,
+    "separate_process": true,
+    "requested_model": "gemini-3.7-flash-medium",
+    "confirmed_model": "UNKNOWN",
+    "model_identity_truthful": "UNKNOWN",
+    "entrypoint": "/Users/user/.local/bin/agy",
+    "execution_mode": "REAL_GEMINI_NATIVE_AGY_EXECUTION",
+    "stage": "REAL_INDEPENDENT_IMPLEMENTATION",
+    "ack_mode": "SYNCHRONOUS_COMPLETION_VALIDATED",
+    "worker_originated_ack": false,
+    "correlation_id": "",
+    "task_id": "COMMERCIAL-2c0d92",
+    "mission_id": "",
+    "task_hash": "0c193f4e93bbab31",
+    "target_agent": "GEMINI",
+    "conversation_id": "2d46388d-b874-401a-84f7-1bbbf4642a90",
+    "duration_seconds": 13.34986,
+    "output_sha256": "1248871a980f497914bf59b7034aacd6a689598ee66c4463d3c001660ac238ff",
+    "verdict": "PASS",
+    "summary": "Generated a concise 1-page executive summary targeting CTOs and Engineering Directors in demo_pilot/COMMERCIAL_ONE_PAGER.md. The summary highlights the drain of bounded backlogs on senior developer velocity, explains how Courier Symphony orchestrates secure, zero-touch verification and deterministic testing across isolated environments, emphasizes human-in-the-loop governance, and omits pricing or deployment specifics.",
+    "task_type": "IMPLEMENTATION",
+    "zero_cost_policy": "ZERO_COST_ONLY",
+    "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+    "status": "COMPLETED",
+    "action": "implement_bounded_improvement",
+    "changed_files": [
+      "demo_pilot/COMMERCIAL_ONE_PAGER.md"
+    ],
+    "files_modified": [
+      "demo_pilot/COMMERCIAL_ONE_PAGER.md"
+    ],
+    "verification_strategy": "run_unit_tests"
+  }
+}

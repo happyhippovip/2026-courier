@@ -1,0 +1,10 @@
+{
+  "task_id": "CODEX_INTEGRATION_PROOF_1",
+  "source_agent": "GOOGLE_ANTIGRAVITY",
+  "target_agent": "CODEX",
+  "target_host": "DESKTOP-JDPRUGR",
+  "project_path": "C:\\Dev\\Windows-AI-OS",
+  "created_at": "2026-09-14T20:18:57.949616+00:00",
+  "description": "Echo test for Codex integration proof",
+  "artifact_sha256": "7289528e0923b9eae33466e8df7712d5c178a6d531d0de9331b770eaa8cd274d"
+}

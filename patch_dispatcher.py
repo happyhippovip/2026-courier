@@ -1,10 +1,10 @@
-with open("scripts/courier_safety_dispatcher.py", "r") as f:
-    text = f.read()
+import sys
+with open('scripts/mac_windows_dispatcher.py', 'r') as f:
+    code = f.read()
 
-text = text.replace(
-    'if k not in ("files", "strategy", "acceptance_criteria", "description", "summary", "payload", "task_hash", "correlation_id", "mission_id", "task_id", "result", "result_data"):',
-    'if k not in ("files", "target_files", "strategy", "acceptance_criteria", "description", "summary", "payload", "task_hash", "correlation_id", "mission_id", "task_id", "result", "result_data"):'
-)
+code = code.replace("result_json.get('EXIT_CODE')", "result_json.get('ExitCode', result_json.get('EXIT_CODE'))")
+code = code.replace("result_json.get('STATUS')", "result_json.get('Status', result_json.get('STATUS'))")
+code = code.replace("result_json.get('OUTPUT')", "result_json.get('Output', result_json.get('OUTPUT'))")
 
-with open("scripts/courier_safety_dispatcher.py", "w") as f:
-    f.write(text)
+with open('scripts/mac_windows_dispatcher.py', 'w') as f:
+    f.write(code)

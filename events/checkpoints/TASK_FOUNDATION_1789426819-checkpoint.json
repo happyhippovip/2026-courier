@@ -1,0 +1,32 @@
+{
+  "task_id": "TASK_FOUNDATION_1789426819",
+  "checkpoint_reason": "WINDOWS_HEALTH_CHECK_FAILED",
+  "failure_layer": "SCOPE_CONTENTION",
+  "checkpointed_at": "2026-09-14T23:00:19.603052+00:00",
+  "health_report": {
+    "FAILURE_LAYER": "SCOPE_CONTENTION",
+    "RESULT": "LEASE_DENIED"
+  },
+  "envelope": {
+    "task_id": "TASK_FOUNDATION_1789426819",
+    "target_host": null,
+    "description": "Create a python script `scripts/analyze_agent_performance.py` that parses the events in `events/worker-events` to identify which workers have the highest failure rates, contributing to the Founder goal of building better agents.",
+    "dedupe_hash": "067bb4f3cb801456",
+    "router_recommendation": {
+      "worker_id": "CODEX",
+      "available": true,
+      "safe_task_available": true,
+      "task_id": "TASK_FOUNDATION_1789426819",
+      "task_fingerprint": "e2d48333fa3e5553",
+      "scope": [
+        "scripts"
+      ],
+      "risk": "SAFE",
+      "heavy_job": false,
+      "block_reason": null,
+      "recommended_action": "DISPATCH_TASK_TASK_FOUNDATION_1789426819",
+      "target_host": null
+    }
+  },
+  "status": "CHECKPOINTED_BLOCKED"
+}

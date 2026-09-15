@@ -1,0 +1,26 @@
+{
+  "task_id": "MAC-TASK-GRAPH-TOPOLOGY-VALIDATOR",
+  "mission": "SYNAPSE_POST_V1_PRODUCT_MISSION",
+  "assigned_to": "MAC_CHIEF",
+  "dispatched_by": "WINDOWS_CHIEF",
+  "created_at": "2026-09-13T12:01:32.149370+00:00",
+  "target_component": "synapse_core/static/index.html (SVG Visualizer & Epistemic Badges)",
+  "requirements": {
+    "consensus_scoring_ui": "Display quadratic consensus score and polarization index on synthesis nodes",
+    "epistemic_convergence_badge": "Render special glowing badge for EPISTEMIC_CONVERGENCE status",
+    "doi_citation_drawer": "Show resolved APA citation and clickable DOI links",
+    "zero_paid_libraries": true,
+    "browser_rendering": "Verified responsive rendering in Safari and Chrome on macOS"
+  },
+  "status": "VERIFIED_AUTONOMOUSLY",
+  "verified_at_utc": "2026-09-13T15:02:42.888527+00:00",
+  "verified_by": "SYMPHONY_AUTONOMOUS_HANDOFF_SUPERVISOR",
+  "artifact_sha256": "beff8dd95479d108eb1eaffbb8c05757537d6b5c0c34308deb9e2696d5c3854c",
+  "verification_details": {
+    "consensus_scoring_ui": true,
+    "epistemic_convergence_badge": true,
+    "doi_citation_drawer": true,
+    "zero_paid_libraries": true,
+    "svg_physics_graph": true
+  }
+}

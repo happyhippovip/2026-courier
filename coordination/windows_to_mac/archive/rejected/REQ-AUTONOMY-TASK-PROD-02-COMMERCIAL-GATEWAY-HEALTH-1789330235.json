@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "mission_id": "POST_V1_PRODUCTIVE_AUTONOMY",
+  "windows_validation_request_id": "REQ-AUTONOMY-TASK-PROD-02-COMMERCIAL-GATEWAY-HEALTH-1789330235",
+  "created_by": "SYMPHONY_AUTONOMOUS_RESERVOIR",
+  "artifact_reference": "none",
+  "exact_question": "Commercial Leitstand Gateway Liveness Diagnostic (Port 8088)",
+  "expected_evidence": "GATEWAY_LIVENESS_HTTP_200",
+  "allowed_scope": "SAFE_LOCAL_VALIDATION",
+  "validation_type": "CMD_POWERSHELL_BEHAVIOR",
+  "command": "\"C:\\Users\\lol\\.local\\bin\\python3.12.exe\" -c \"import urllib.request; resp = urllib.request.urlopen('http://127.0.0.1:8088/health', timeout=5); print('GATEWAY_LIVENESS_HTTP_' + str(resp.status))\"",
+  "timestamp_utc": "2026-09-13T20:10:35.680478+00:00"
+}

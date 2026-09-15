@@ -1,0 +1,8 @@
+{
+  "request_id": "REQ-AUTONOMY-TASK-PROD-04-COMMERCIAL-LEDGER-RECONCILIATION-1789311273",
+  "mission_id": "POST_V1_PRODUCTIVE_AUTONOMY",
+  "owner_node": "WINDOWS_PC2",
+  "process_instance_id": "5d30a6fb-8f2f-42e7-abed-4c9b3c1094f2",
+  "lease_epoch": 1,
+  "claimed_at": "2026-09-13T14:54:33.963952+00:00"
+}

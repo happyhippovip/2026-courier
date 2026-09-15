@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "request_id": "REQ-HANDOFF-MAC-TASK-GAP03-CITATIONS-CLIENT-1789311879",
+  "mission_id": "SYNAPSE_V0_FAST_SPRINT",
+  "status": "COMPLETED",
+  "worker": "WINDOWS_SPECIALIST_VALIDATOR",
+  "start_time": "2026-09-13T15:04:39.810935+00:00",
+  "finish_time": "2026-09-13T15:04:39.810935+00:00",
+  "commands": [
+    "symphony_handoff_supervisor.verify_mac_task_gap03_citations_client"
+  ],
+  "exit_codes": [
+    0
+  ],
+  "observed_behavior": "PASS: MAC-TASK-GAP03-CITATIONS-CLIENT verified with DOI citation drawer and evidence badges. SHA256: 2984d802feed155bae5155881a0b2c318a0fdada095b68ab3e4e2ac6fe67c36e",
+  "verified_assertions": 4,
+  "result_fingerprint": "fe09d27fe019e7ed13466e801c99ff9c020c39383a9cabf4a478036f44919b0b",
+  "artifact_references": [
+    "\\\\192.168.178.162\\coordination\\windows_to_mac\\handoffs\\client\\index.html"
+  ],
+  "checkpoint_reference": "CHECKPOINT-REQ-HANDOFF-MAC-TASK-GAP03-CITATIONS-CLIENT-1789311879",
+  "known_defects": [],
+  "blockers": [],
+  "human_gates": []
+}

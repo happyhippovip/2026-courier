@@ -1,0 +1,19 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-14T07:49:24.665368+00:00",
+  "event_id": "evt-safe-87aa6cdd25",
+  "event_type": "NEXT_SAFE_WORK_AVAILABLE",
+  "evidence": {
+    "priority": 6,
+    "project": "CODEX_INTEGRATION",
+    "task_fingerprint": "fe2982f13d25121c",
+    "task_id": "TASK-CODEX-TEST-bb514a",
+    "worker_id": "CODEX"
+  },
+  "fingerprint": "d4825f6e11865847",
+  "recommended_action": "CLAIM_OPPORTUNITY_TASK-CODEX-TEST-bb514a",
+  "schema_version": "3.0",
+  "severity": "INFO",
+  "task_id": "TASK-CODEX-TEST-bb514a",
+  "worker_id": "CODEX"
+}

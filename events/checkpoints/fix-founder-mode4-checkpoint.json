@@ -1,0 +1,33 @@
+{
+  "task_id": "fix-founder-mode4",
+  "checkpoint_reason": "WINDOWS_HEALTH_CHECK_FAILED",
+  "failure_layer": "SCOPE_CONTENTION",
+  "checkpointed_at": "2026-09-14T21:17:49.144561+00:00",
+  "health_report": {
+    "FAILURE_LAYER": "SCOPE_CONTENTION",
+    "RESULT": "LEASE_DENIED"
+  },
+  "envelope": {
+    "task_id": "fix-founder-mode4",
+    "target_host": null,
+    "description": "Minimally fix FounderModeMVP.run_autonomous_loop (in scripts/courier_founder_mode.py) for the UnboundLocalError / writer-conflict regression (the GoalSatisfactionEngine variable is not instantiated properly when next_missions is populated). Then run pytest tests/test_m233_founder_mode.py.",
+    "dedupe_hash": "fix-founder-mode4",
+    "router_recommendation": {
+      "worker_id": "CODEX",
+      "available": true,
+      "safe_task_available": true,
+      "task_id": "fix-founder-mode4",
+      "task_fingerprint": "f2bae3005386e6a9",
+      "scope": [
+        "tests/test_m233_founder_mode.py",
+        "scripts/courier_founder_mode.py"
+      ],
+      "risk": "LOW",
+      "heavy_job": false,
+      "block_reason": null,
+      "recommended_action": "DISPATCH_TASK_fix-founder-mode4",
+      "target_host": null
+    }
+  },
+  "status": "CHECKPOINTED_BLOCKED"
+}

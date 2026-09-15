@@ -1,0 +1,10 @@
+{
+  "task_id": "TASK_FOUNDATION_1789426699",
+  "source_agent": "GOOGLE_ANTIGRAVITY",
+  "target_agent": "CODEX",
+  "target_host": null,
+  "project_path": "scripts",
+  "created_at": "2026-09-14T22:59:54.050323+00:00",
+  "description": "Inspect Windows-AI-OS project structure and report one harmless fact.",
+  "artifact_sha256": "88b86b6d2e8f2a70e44a9a7d0116b887c231b3a3a0857d1d28831fe1ca8917ff"
+}

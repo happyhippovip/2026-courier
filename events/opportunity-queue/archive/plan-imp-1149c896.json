@@ -1,0 +1,37 @@
+{
+  "opportunity_id": "plan-imp-1149c896",
+  "source": "MAC_CHIEF",
+  "objective_id": "OBJ-EVAL",
+  "project": "Courier",
+  "description": "Read events/knowledge-base/distilled_lessons.json and generate the markdown report summarizing the distilled lessons.",
+  "priority": 5,
+  "expected_value": "Evidence-backed output",
+  "evidence": {},
+  "required_capabilities": [],
+  "risk": "LOW",
+  "estimated_cost": 0.0,
+  "model_need": false,
+  "external_action_units": 0,
+  "project_id": "",
+  "source_artifact": "",
+  "source_hash": "",
+  "evidence_type": "",
+  "production_stage": "",
+  "problem_or_goal": "",
+  "expected_output": "",
+  "risk_class": "LOW",
+  "cost_class": "ZERO_COST_LOCAL",
+  "dedupe_fingerprint": "120b76d23a83e7f4",
+  "heavy_job": false,
+  "status": "COMPLETED",
+  "target_agent": "CODEX",
+  "allowed_scope": [
+    "GLOBAL"
+  ],
+  "allowed_actions": [
+    "implement_bounded_improvement"
+  ],
+  "created_at": "2026-09-14T23:12:32.352735+00:00",
+  "updated_at": "2026-09-14T23:13:07.362669+00:00",
+  "dedupe_hash": "120b76d23a83e7f4"
+}

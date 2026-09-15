@@ -1,0 +1,8 @@
+{
+  "request_id": "REQ-AUTONOMY-TASK-PROD-05-PEER-NODE-INTEGRITY-1789311942",
+  "mission_id": "POST_V1_PRODUCTIVE_AUTONOMY",
+  "owner_node": "WINDOWS_PC2",
+  "process_instance_id": "d25f49a9-c7e6-4e8f-9c03-d527ad994340",
+  "lease_epoch": 1,
+  "claimed_at": "2026-09-13T15:05:42.452630+00:00"
+}

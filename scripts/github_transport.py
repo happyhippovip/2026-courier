@@ -59,14 +59,11 @@ def compute_sha256(data: Any) -> str:
         return hashlib.sha256(str(data).encode("utf-8")).hexdigest()
 
 
-def load_json(path: Path) -> dict | None:
-    if not path.exists():
+def load_json(filepath: Path) -> dict | None:
+    if not filepath.exists():
         return None
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        return None
+    with open(filepath, "r", encoding="utf-8") as f:
+        return json.load(f)
 
 
 def save_json_atomic(path: Path, data: Any) -> None:
@@ -805,13 +802,15 @@ class TransportResultReturnAdapter:
         }
         content_hash = canonical_hash(content_dict)
 
+        clean_task_id = envelope.task_id.replace("/", "_").replace("\\", "_").replace("..", "_")
+        
         # Deterministic content-addressed artifact filename
-        deterministic_filename = f"ingest-gh-res-{envelope.task_id}-{content_hash[:12]}.json"
+        deterministic_filename = f"ingest-gh-res-{clean_task_id}-{content_hash[:12]}.json"
         target_file = thought_incoming / deterministic_filename
         if target_file.exists():
             return {
                 "status": "IDEMPOTENT_ALREADY_INGESTED",
-                "ingestion_id": f"ingest-gh-res-{envelope.task_id}-{content_hash[:12]}",
+                "ingestion_id": f"ingest-gh-res-{clean_task_id}-{content_hash[:12]}",
                 "file": str(target_file),
                 "memory_write": "NONE",
                 "chief_delivery": "PREPARED_NOT_DELIVERED"

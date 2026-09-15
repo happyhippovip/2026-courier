@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "mission_id": "POST_V1_PRODUCTIVE_AUTONOMY",
+  "windows_validation_request_id": "REQ-AUTONOMY-TASK-PROD-03-ACP-TEST-SUITE-1789311229",
+  "created_by": "SYMPHONY_AUTONOMOUS_RESERVOIR",
+  "artifact_reference": "none",
+  "exact_question": "Agent Control Plane PRO Integration Test Suite (test_spend_firewall_pro)",
+  "expected_evidence": "Ran 4 tests in",
+  "allowed_scope": "SAFE_LOCAL_VALIDATION",
+  "validation_type": "CMD_POWERSHELL_BEHAVIOR",
+  "command": "\"C:\\Users\\lol\\.local\\bin\\python3.12.exe\" \"C:\\Users\\lol\\2026-workspace\\project-memory\\data\\distribution_ready\\agent_control_plane\\test_spend_firewall_pro.py\"",
+  "timestamp_utc": "2026-09-13T14:53:49.658816+00:00"
+}

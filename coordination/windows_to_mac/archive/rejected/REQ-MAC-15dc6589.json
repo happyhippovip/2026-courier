@@ -1,0 +1,1 @@
+{"task_hash": "15dc65891a0b0497", "worker_id": "CODEX", "target_agent": "CODEX", "task_id": "TASK-CODEX-TEST-bb514a", "payload": {"prompt": "Inspect run_codex_bridge.py safely.", "allowed_scope": ["scripts/run_codex_bridge.py"]}}

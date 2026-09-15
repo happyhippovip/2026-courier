@@ -1,0 +1,10 @@
+{
+  "task_id": "fix-spin-loop3",
+  "source_agent": "GOOGLE_ANTIGRAVITY",
+  "target_agent": "CODEX",
+  "target_host": null,
+  "project_path": "scripts/run_live_production_goal.py",
+  "created_at": "2026-09-14T21:24:27.378152+00:00",
+  "description": "In scripts/run_live_production_goal.py, prevent the orchestrator from spinning in an infinite loop of creating identical GEMINI derived tasks. Add logic to sleep for 30 seconds if the derived task string has already been seen recently, or if the queue is empty after quiescence. Then run the tests.",
+  "artifact_sha256": "2673bb4b1fe6c77e9a99135b099d4dadad7a9152684541eef50909a69e922bfd"
+}

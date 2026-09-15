@@ -1,0 +1,17 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-14T08:11:55.407182+00:00",
+  "event_id": "evt-c702331b5d3a",
+  "event_type": "WORKER_STARTED",
+  "evidence": {
+    "availability_class": "TEMPORARY_30_DAY",
+    "initial_registration": true
+  },
+  "fingerprint": "7cf8a6cb6dd3218c",
+  "mission_id": null,
+  "recommended_action": null,
+  "session_epoch": "epoch-gemini_test_auto-1789373515",
+  "severity": "INFO",
+  "task_id": null,
+  "worker_id": "GEMINI_TEST_AUTO"
+}

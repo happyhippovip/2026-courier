@@ -1,0 +1,19 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-14T18:18:55.938742+00:00",
+  "event_id": "evt-safe-0452e3d3d8",
+  "event_type": "NEXT_SAFE_WORK_AVAILABLE",
+  "evidence": {
+    "priority": 7,
+    "project": "WINDOWS_AI_OS",
+    "task_fingerprint": "136115989499186e",
+    "task_id": "TASK_WINDOWS_AUTO_ROUTING_PROOF_1",
+    "worker_id": "CODEX"
+  },
+  "fingerprint": "88c39b971e97bde7",
+  "recommended_action": "CLAIM_OPPORTUNITY_TASK_WINDOWS_AUTO_ROUTING_PROOF_1",
+  "schema_version": "3.0",
+  "severity": "INFO",
+  "task_id": "TASK_WINDOWS_AUTO_ROUTING_PROOF_1",
+  "worker_id": "CODEX"
+}

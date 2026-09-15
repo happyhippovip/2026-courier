@@ -1,0 +1,19 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-14T20:56:57.979843+00:00",
+  "event_id": "evt-safe-af46e9a3c0",
+  "event_type": "NEXT_SAFE_WORK_AVAILABLE",
+  "evidence": {
+    "priority": 7,
+    "project": "WINDOWS_AI_OS",
+    "task_fingerprint": "4564a1ca8dc4d27d",
+    "task_id": "fix-hardcoded-agent",
+    "worker_id": "CODEX"
+  },
+  "fingerprint": "382969848ef02a31",
+  "recommended_action": "CLAIM_OPPORTUNITY_fix-hardcoded-agent",
+  "schema_version": "3.0",
+  "severity": "INFO",
+  "task_id": "fix-hardcoded-agent",
+  "worker_id": "CODEX"
+}

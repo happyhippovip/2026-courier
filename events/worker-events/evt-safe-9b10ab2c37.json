@@ -1,0 +1,19 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-14T08:08:56.248617+00:00",
+  "event_id": "evt-safe-9b10ab2c37",
+  "event_type": "NEXT_SAFE_WORK_AVAILABLE",
+  "evidence": {
+    "priority": 5,
+    "project": "AUTO_DISPATCH",
+    "task_fingerprint": "9519ebcdf62fe7a0",
+    "task_id": "TASK-AUTO-B-f3fab4",
+    "worker_id": "GEMINI"
+  },
+  "fingerprint": "c71d9bddfa7bcfd3",
+  "recommended_action": "CLAIM_OPPORTUNITY_TASK-AUTO-B-f3fab4",
+  "schema_version": "3.0",
+  "severity": "INFO",
+  "task_id": "TASK-AUTO-B-f3fab4",
+  "worker_id": "GEMINI"
+}

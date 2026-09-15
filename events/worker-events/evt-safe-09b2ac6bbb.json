@@ -1,0 +1,19 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-14T21:24:40.474986+00:00",
+  "event_id": "evt-safe-09b2ac6bbb",
+  "event_type": "NEXT_SAFE_WORK_AVAILABLE",
+  "evidence": {
+    "priority": 7,
+    "project": "Courier",
+    "task_fingerprint": "c4b34e11ee8d8bed",
+    "task_id": "win-health-daemon",
+    "worker_id": "WINDOWS"
+  },
+  "fingerprint": "87b3b25d3f4c3ff1",
+  "recommended_action": "CLAIM_OPPORTUNITY_win-health-daemon",
+  "schema_version": "3.0",
+  "severity": "INFO",
+  "task_id": "win-health-daemon",
+  "worker_id": "WINDOWS"
+}

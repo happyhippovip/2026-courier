@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "mission_id": "MAC_AUTONOMOUS_OPERATIONS",
+  "windows_validation_request_id": "REQ-MAC-7405254D",
+  "assignment_id": "ASSIGN-REQ-MAC-7405254D",
+  "status": "PASS",
+  "decision": "ACCEPTED_VERIFIED",
+  "work_done": "Bounded validation for WINDOWS_COMPATIBILITY completed autonomously via WINDOWS_GOOGLE",
+  "evidence": "EXECUTION_EXIT_0_SHA256:ad13f98269ba49f3d83128a9208dc9a1d88f39904ecb789e961b0db1d03170e4",
+  "content_integrity": "SHA256:ad13f98269ba49f3d83128a9208dc9a1d88f39904ecb789e961b0db1d03170e4",
+  "access_integrity": "NTFS_ACL_CONTAINED_BORDER_GUARD_ENFORCED",
+  "files_changed": [
+    "\\\\192.168.178.162\\coordination\\mac_to_windows\\requests\\REQ-MAC-7405254D.json"
+  ],
+  "side_effects_occurred": false,
+  "blocker": "NONE",
+  "receipt_id": "RCPT-REQ-MAC-7405254D-1789365487416",
+  "receipt_hash": "",
+  "two_level_done": {
+    "local_step_erledigt": true,
+    "gesamtaufgabe_erledigt": true,
+    "blocker": "NONE",
+    "next_step": "TASK_FULLY_CLOSED"
+  },
+  "completed_at": "2026-09-14T05:58:07.432214+00:00"
+}

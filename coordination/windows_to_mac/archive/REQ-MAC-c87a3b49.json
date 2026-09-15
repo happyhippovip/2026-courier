@@ -1,0 +1,35 @@
+{
+  "request_id": "REQ-MAC-c87a3b49",
+  "mission_id": "plan-disc-025349e1",
+  "schema_version": "1.0",
+  "status": "COMPLETED",
+  "observed_behavior": "Auto task completed",
+  "result_fingerprint": "36e558b5284c4a458b94d36dd2c5e4f9438b858fce9458e7bf30819bfe4b7878",
+  "payload": {
+    "worker_agent": "CLI1",
+    "worker_type": "DETERMINISTIC_LOCAL",
+    "real_model_call": false,
+    "separate_process": false,
+    "entrypoint": "scripts/cli_operations_autopilot.py",
+    "execution_mode": "REAL_CLI1_LOCAL_EXECUTION",
+    "stage": "REAL_ORGANIZATIONAL_AND_REPO_OBSERVATION",
+    "ack_mode": "SYNCHRONOUS_COMPLETION_VALIDATED",
+    "worker_originated_ack": false,
+    "correlation_id": "",
+    "task_id": "plan-disc-025349e1",
+    "mission_id": "",
+    "task_hash": "c87a3b4906ff1b9e",
+    "target_agent": "CLI1",
+    "organization_observation": {
+      "active_workers_count": 7,
+      "active_locks_count": 0,
+      "heavy_job_active": false,
+      "daemon_alive": false
+    },
+    "zero_cost_policy": "ZERO_COST_ONLY",
+    "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+    "verdict": "PASS",
+    "status": "ANALYSIS_COMPLETE",
+    "action": "READ"
+  }
+}

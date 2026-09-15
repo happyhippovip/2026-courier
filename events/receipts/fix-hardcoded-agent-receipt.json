@@ -1,0 +1,10 @@
+{
+  "task_id": "fix-hardcoded-agent",
+  "source_agent": "GOOGLE_ANTIGRAVITY",
+  "target_agent": "CODEX",
+  "target_host": "DESKTOP-JDPRUGR",
+  "project_path": "C:\\Dev\\Windows-AI-OS",
+  "created_at": "2026-09-14T20:56:24.214494+00:00",
+  "description": "In scripts/run_live_production_goal.py, around line 125, the 'target_agent' is hardcoded to 'GEMINI' for newly derived tasks. Modify it to intelligently select target_agent='CODEX' if the derived steps mention 'Mac', 'local', 'python', 'script', or 'code', target_agent='WINDOWS' if they mention 'Windows', 'PowerShell', or 'remote', and otherwise default to 'GEMINI'.",
+  "artifact_sha256": "86538e9338831c806474cc1a2f8baeb60577e1a6455f0dd6e678133b4d1f6bd0"
+}

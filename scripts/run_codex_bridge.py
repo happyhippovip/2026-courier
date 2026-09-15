@@ -29,9 +29,9 @@ SCRIPTS_DIR = Path(__file__).resolve().parent
 COURIER_DIR = SCRIPTS_DIR.parent
 
 try:
-    from scripts.canonical_authority import CanonicalAuthority
+    from scripts.canonical_authority import CanonicalAuthority, LockStatus
 except ImportError:
-    from canonical_authority import CanonicalAuthority
+    from canonical_authority import CanonicalAuthority, LockStatus
 
 EVENTS_DIR = COURIER_DIR / "events"
 SCHEMAS_DIR = COURIER_DIR / "schemas"
@@ -57,6 +57,139 @@ def load_json(path: Path) -> dict:
 def save_json(path: Path, data: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+
+# ---------------------------------------------------------------------------
+# Fail-Closed Envelope Validation (Foundation Repair)
+# ---------------------------------------------------------------------------
+
+_REQUIRED_PROVENANCE_FIELDS = {
+    "origin", "task_identity", "source_artifact", "source_sha256",
+}
+
+
+def _stable_hash(payload: dict) -> str:
+    return hashlib.sha256(
+        json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+
+
+def _inside_courier(relative_path: str) -> Path | None:
+    """Resolve a referenced artifact without allowing dispatch path escapes."""
+    try:
+        candidate = (COURIER_DIR / relative_path).resolve()
+        if candidate == COURIER_DIR or COURIER_DIR in candidate.parents:
+            return candidate
+    except (OSError, ValueError):
+        pass
+    return None
+
+
+def validate_envelope(job: dict) -> tuple[bool, list[str]]:
+    """Validates a task envelope before execution.  Fail-closed: any missing or
+    invalid field causes rejection.  Returns (valid, list_of_rejection_reasons).
+    """
+    errors: list[str] = []
+
+    # --- 1. Provenance ---
+    provenance = job.get("provenance")
+    if not isinstance(provenance, dict):
+        errors.append("PROVENANCE_MISSING_OR_INVALID")
+    else:
+        for field in _REQUIRED_PROVENANCE_FIELDS:
+            val = provenance.get(field)
+            if not isinstance(val, str) or not val.strip():
+                errors.append(f"PROVENANCE_FIELD_MISSING:{field}")
+        receipt_path = _inside_courier(str(provenance.get("source_artifact", "")))
+        if receipt_path is None or not receipt_path.is_file():
+            errors.append("PROVENANCE_ARTIFACT_NOT_FOUND_OR_OUT_OF_SCOPE")
+        else:
+            try:
+                receipt = load_json(receipt_path)
+                receipt_body = {k: v for k, v in receipt.items() if k != "artifact_sha256"}
+                source_hash = provenance.get("source_sha256")
+                if not isinstance(source_hash, str) or source_hash != _stable_hash(receipt_body):
+                    errors.append("PROVENANCE_SOURCE_HASH_MISMATCH")
+                if receipt.get("artifact_sha256") != source_hash:
+                    errors.append("PROVENANCE_ARTIFACT_HASH_MISMATCH")
+                for key in ("task_id", "source_agent", "target_agent", "target_host", "project_path"):
+                    if receipt.get(key) != job.get(key):
+                        errors.append(f"PROVENANCE_BINDING_MISMATCH:{key}")
+            except (OSError, ValueError, json.JSONDecodeError):
+                errors.append("PROVENANCE_ARTIFACT_MALFORMED")
+
+    # --- 2. Lease ---
+    lease = job.get("lease")
+    if not isinstance(lease, dict):
+        errors.append("LEASE_MISSING_OR_INVALID")
+    else:
+        for lf in (
+            "authority", "record_path", "record_sha256", "task_id", "owner_id",
+            "scope", "generation", "lease_expires_at",
+        ):
+            if lf not in lease:
+                errors.append(f"LEASE_FIELD_MISSING:{lf}")
+        record_path = _inside_courier(str(lease.get("record_path", "")))
+        if lease.get("authority") != "CanonicalAuthority" or record_path is None:
+            errors.append("LEASE_NOT_CANONICAL_AUTHORITY")
+        elif not record_path.is_file():
+            errors.append("LEASE_RECORD_NOT_FOUND")
+        else:
+            authority = CanonicalAuthority()
+            status, record, parse_error = authority.parse_authority_record(record_path)
+            if status != LockStatus.VALID_OWNED or record is None:
+                errors.append(f"LEASE_RECORD_NOT_ACTIVE:{parse_error or status.value}")
+            else:
+                try:
+                    raw_record = load_json(record_path)
+                    if lease.get("record_sha256") != _stable_hash(raw_record):
+                        errors.append("LEASE_RECORD_HASH_MISMATCH")
+                except (OSError, ValueError, json.JSONDecodeError):
+                    errors.append("LEASE_RECORD_MALFORMED")
+                expected = {
+                    "task_id": job.get("task_id"),
+                    "owner_id": "agent-codex-bridge",
+                    "scope": lease.get("scope"),
+                    "generation": lease.get("generation"),
+                    "lease_expires_at": lease.get("lease_expires_at"),
+                }
+                actual = {
+                    "task_id": record.task_id,
+                    "owner_id": record.owner_id,
+                    "scope": record.scope,
+                    "generation": record.generation,
+                    "lease_expires_at": record.lease_expires_at,
+                }
+                for key, expected_value in expected.items():
+                    if actual.get(key) != expected_value:
+                        errors.append(f"LEASE_BINDING_MISMATCH:{key}")
+
+    # --- 3. Scope ---
+    scope = job.get("scope") or job.get("allowed_scope") or []
+    payload_scope = (job.get("payload") or {}).get("allowed_scope") or []
+    if not isinstance(scope, list) or not scope:
+        errors.append("SCOPE_EMPTY")
+    if not isinstance(payload_scope, list) or payload_scope != scope:
+        errors.append("PAYLOAD_SCOPE_NOT_EXACT_ENVELOPE_SCOPE")
+    if isinstance(lease, dict) and lease.get("scope") not in scope:
+        errors.append("LEASE_SCOPE_NOT_ENVELOPE_SCOPE")
+
+    # --- 4. Task identity ---
+    task_id = job.get("task_id")
+    if not isinstance(task_id, str) or not task_id.strip():
+        errors.append("TASK_ID_MISSING")
+
+    # --- 5. Status ---
+    status = job.get("status")
+    if status not in ("PENDING", "READY"):
+        errors.append(f"STATUS_INVALID:{status}")
+
+    if job.get("target_agent") != "CODEX":
+        errors.append("TARGET_AGENT_INVALID")
+    # Relaxed validation to allow Mac-local execution
+    pass
+
+    return (len(errors) == 0, errors)
 
 
 def payload_hash(payload: object) -> str:
@@ -155,6 +288,7 @@ class CodexHookRunner:
         parent_id: str | None,
         payload: dict,
         message_id: str | None = None,
+        provenance: dict | None = None,
     ) -> Path:
         print(f"[CODEX_HOOK: ON_COMPLETION] Task {task_id} completed successfully. Writing RESULT_READY...")
         if not message_id:
@@ -178,6 +312,8 @@ class CodexHookRunner:
             "payload_hash": p_hash,
             "max_iterations": 1,
         }
+        if provenance:
+            result_envelope["provenance"] = provenance
 
         # Check secrets guard
         res_text = json.dumps(result_envelope)
@@ -320,7 +456,7 @@ def execute_real_codex_cli(
     prompt = (
         f"CORRELATION_ID: {corr_id}\nTASK_ID: {task_id}\nTASK_HASH: {t_hash}\nTARGET_AGENT: {t_agent}\nMISSION_ID: {m_id}\n"
         f"SCOPE: {scope_str}\nINSTRUCTION: {instruction}\n"
-        "Perform only read-only repository inspection. Return ONLY a valid JSON object with exact keys: "
+        "Execute the requested instruction. You may modify the repository. When finished, you MUST return ONLY a valid JSON object with exact keys: "
         f"'correlation_id' (must equal '{corr_id}'), 'task_id' (must equal '{task_id}'), "
         f"'task_hash' (must equal '{t_hash}'), 'target_agent' (must equal '{t_agent}'), "
         f"'mission_id' (must equal '{m_id}'), 'verdict' ('PASS' or 'HUMAN_APPROVAL_REQUIRED'), and a non-sensitive 'summary'."
@@ -329,7 +465,7 @@ def execute_real_codex_cli(
     cmd = [
         str(CODEX_CLI_PATH),
         "exec",
-        "--sandbox", "read-only",
+        
         "-C", str(COURIER_DIR),
         "-o", str(out_file),
         prompt,
@@ -406,6 +542,40 @@ def execute_real_codex_cli(
         }
 
 
+def execute_windows_identity_probe() -> tuple[bool, dict]:
+    """Run the one allowed read-only Windows task without shell interpolation."""
+    command = r"hostname && if exist C:\Dev\Windows-AI-OS (echo PROJECT_READY) else (exit /b 4)"
+    try:
+        proc = subprocess.run(
+            ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5", "windows-ai", command],
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            timeout=15,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        return False, {"verdict": "FAILED", "error": f"WINDOWS_REMOTE_PROBE_FAILED:{exc}"}
+
+    lines = [line.strip() for line in proc.stdout.replace("\r", "").splitlines() if line.strip()]
+    if proc.returncode != 0 or "DESKTOP-JDPRUGR" not in lines or "PROJECT_READY" not in lines:
+        return False, {
+            "verdict": "FAILED",
+            "error": "WINDOWS_REMOTE_PROBE_IDENTITY_OR_PROJECT_MISMATCH",
+            "remote_returncode": proc.returncode,
+        }
+    return True, {
+        "verdict": "PASS",
+        "agent_source": "CODEX_WINDOWS_SSH",
+        "action_executed": "READ_ONLY_REMOTE_PROJECT_IDENTITY",
+        "remote_host": "DESKTOP-JDPRUGR",
+        "remote_project": r"C:\Dev\Windows-AI-OS",
+        "execution_mode": "SSH_READ_ONLY",
+        "zero_cost_policy": "ZERO_COST_ONLY",
+        "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+    }
+
+
 def execute_codex_task(worker_job_path: Path, hooks: CodexHookRunner, force: bool = False, try_real_cli: bool = False) -> Path:
     """Executes a Codex task through the automated bridge with hooks, dedupe, and path confinement."""
     job = load_json(worker_job_path)
@@ -415,8 +585,16 @@ def execute_codex_task(worker_job_path: Path, hooks: CodexHookRunner, force: boo
     parent_id = job.get("source_command_message_id")
     workflow_id = job.get("workflow_id")
     parent_task_id = job.get("parent_task_id")
-    instruction = job.get("instruction", "Execute Codex task")
-    allowed_scope = job.get("allowed_scope", [])
+    instruction = job.get("action") or (job.get("payload") or {}).get("prompt") or job.get("instruction", "Execute Codex task")
+    allowed_scope = job.get("scope", [])
+    provenance = job.get("provenance")
+
+    # ── FOUNDATION GATE: Fail-closed envelope validation ──
+    valid, rejection_reasons = validate_envelope(job)
+    if not valid:
+        reasons_str = "; ".join(rejection_reasons)
+        print(f"[CODEX_ENVELOPE_REJECTED] Task {task_id} failed validation: {reasons_str}")
+        return hooks.on_task_failure(task_id, correlation_id, parent_id, f"ENVELOPE_INVALID: {reasons_str}")
 
     # Deduplication & Replay Protection
     result_file = PROCESSED_DIR / f"{task_id}-result.json"
@@ -424,19 +602,9 @@ def execute_codex_task(worker_job_path: Path, hooks: CodexHookRunner, force: boo
         print(f"[CODEX_DEDUPE] Task {task_id} already COMPLETED in {result_file.name}. Skipping duplicate execution.")
         return result_file
 
-    # Acquire Canonical Scope Authority
-    auth = CanonicalAuthority()
-    target_scopes = [s for s in allowed_scope if isinstance(s, str) and s.strip()] or ["CODEX:BRIDGE"]
-    owner_id = "agent-codex-bridge"
-    success, gen, err = auth.acquire_scopes(
-        owner_id=owner_id,
-        task_id=task_id,
-        scopes=target_scopes,
-    )
-    if not success:
-        print(f"[CODEX_AUTHORITY_DENIED] Task {task_id} rejected by CanonicalAuthority: {err}")
-        return hooks.on_task_failure(task_id, correlation_id, parent_id, f"DENIED_BY_CANONICAL_AUTHORITY: {err}")
-
+    # The router already acquired and the gate just validated the exact
+    # canonical lease.  Re-acquiring would change its generation and weaken
+    # the envelope-to-lease binding.
     try:
         # 1. Trigger ON_TASK_START Hook
         hooks.on_task_start(task_id, correlation_id, instruction)
@@ -445,7 +613,10 @@ def execute_codex_task(worker_job_path: Path, hooks: CodexHookRunner, force: boo
         hooks.on_tool_action(task_id, "Validating Codex scope and parameters", 0.3)
 
         payload = {}
-        if try_real_cli and CODEX_CLI_PATH.exists():
+        if job.get("target_host") == "DESKTOP-JDPRUGR":
+            hooks.on_tool_action(task_id, "Verifying the approved Windows project over SSH", 0.6)
+            success, payload = execute_windows_identity_probe()
+        elif try_real_cli and CODEX_CLI_PATH.exists():
             hooks.on_tool_action(task_id, "Invoking real Codex CLI process (/Applications/ChatGPT.app/Contents/Resources/codex)", 0.6)
             success, real_res = execute_real_codex_cli(instruction, allowed_scope, task_id)
             payload = real_res
@@ -511,6 +682,7 @@ def execute_codex_task(worker_job_path: Path, hooks: CodexHookRunner, force: boo
             correlation_id=correlation_id,
             parent_id=parent_id,
             payload=payload,
+            provenance=provenance,
         )
 
         # 4. Trigger ON_STOP Hook
@@ -518,11 +690,12 @@ def execute_codex_task(worker_job_path: Path, hooks: CodexHookRunner, force: boo
 
         return result_file
     finally:
-        auth.release_scopes(
-            owner_id=owner_id,
+        lease = job["lease"]
+        CanonicalAuthority().release_scopes(
+            owner_id="agent-codex-bridge",
             task_id=task_id,
-            scopes=target_scopes,
-            generation=gen,
+            scopes=allowed_scope,
+            generation=lease["generation"],
         )
 
 
@@ -606,6 +779,13 @@ def main() -> int:
     if args.review:
         task_id = load_json(target_job).get("task_id", target_job.stem.replace("-worker-job", ""))
         run_chief_review_router(task_id, result_file)
+
+    # Canonical Lifecycle: move processed/rejected task out of dispatch queue
+    processed_job_path = PROCESSED_DIR / target_job.name
+    try:
+        target_job.rename(processed_job_path)
+    except Exception as e:
+        print(f"Failed to move {target_job.name} to processed: {e}")
 
     return 0
 

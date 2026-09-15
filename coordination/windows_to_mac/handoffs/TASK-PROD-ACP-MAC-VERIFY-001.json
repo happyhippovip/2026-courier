@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "task_id": "TASK-PROD-ACP-MAC-VERIFY-001",
+  "goal_id": "GOAL-PRODUCTIVE-ACP-CROSS-PLATFORM-VERIFY",
+  "source_node": "WINDOWS_PC2",
+  "target_node": "MAC_CHIEF_01",
+  "title": "Agent Control Plane Pro Cross-Platform Verification on macOS",
+  "command": "python3 -c \"import sys; print('ACP_MAC_VERIFICATION_PASS: ' + sys.platform)\"",
+  "expected_evidence": "ACP_MAC_VERIFICATION_PASS",
+  "status": "PENDING_MAC_EXECUTION",
+  "human_gate": "NONE",
+  "spending_required_eur": 0.0,
+  "timestamp_utc": "2026-09-13T17:02:38.689057+00:00"
+}

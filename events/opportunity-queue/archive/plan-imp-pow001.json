@@ -1,0 +1,20 @@
+{
+  "opportunity_id": "plan-imp-pow001",
+  "source": "MAC_CHIEF",
+  "objective_id": "POW-001",
+  "project": "Courier",
+  "description": "Implement the POW-001 Genesis Sponsorship Reservation Interface API (Bitcoin invoicing stub) in social_platform/api",
+  "priority": 10,
+  "risk": "LOW",
+  "target_agent": "CODEX",
+  "allowed_actions": [
+    "implement_bounded_improvement"
+  ],
+  "allowed_scope": [
+    "GLOBAL"
+  ],
+  "status": "COMPLETED",
+  "heavy_job": false,
+  "cost_class": "ZERO_COST_LOCAL",
+  "dedupe_fingerprint": "pow001_res_api_v1"
+}

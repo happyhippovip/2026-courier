@@ -1,0 +1,17 @@
+{
+  "created_at": "2026-09-14T16:31:07.932136+00:00",
+  "details": {
+    "mission_id": "TASK-OPP-plan-ver-1670e535-37",
+    "opportunity_id": "plan-ver-1670e535",
+    "result": "SUCCESS",
+    "result_fingerprint": "3c82668d45245cb3a2860dd8e0eb7bedc4c488465edfff7411a975a370adc4c6",
+    "status": "SUCCESS",
+    "timestamp": "2026-09-14T16:09:56.466630+00:00",
+    "worker_id": "DETERMINISTIC_LOCAL_VALIDATION"
+  },
+  "event_id": "alert-chief-18626646",
+  "event_type": "MISSION_RESULT_DETECTED",
+  "fingerprint": "3a1527ca859632e3",
+  "schema_version": "3.0",
+  "severity": "INFO"
+}

@@ -1,0 +1,17 @@
+{
+  "acknowledged": false,
+  "created_at": "2026-09-14T08:08:22.131503+00:00",
+  "event_id": "evt-7b0b4ed8d8a0",
+  "event_type": "WORKER_STARTED",
+  "evidence": {
+    "availability_class": "TEMPORARY_30_DAY",
+    "initial_registration": true
+  },
+  "fingerprint": "333598a31a6207ef",
+  "mission_id": null,
+  "recommended_action": null,
+  "session_epoch": "epoch-gemini-1789373302",
+  "severity": "INFO",
+  "task_id": null,
+  "worker_id": "GEMINI"
+}

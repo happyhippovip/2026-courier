@@ -1,0 +1,24 @@
+{
+  "request_id": "REQ-MAC-b46d4dfc",
+  "mission_id": "task-a-proof",
+  "schema_version": "1.0",
+  "status": "COMPLETED",
+  "observed_behavior": "Auto task completed",
+  "result_fingerprint": "acb8188709f1b55fdb41208b4df91875fb1f0e6f3196c45aba86b6f48be401e0",
+  "payload": {
+    "worker_agent": "WINDOWS",
+    "worker_type": "NATIVE_WINDOWS",
+    "real_model_call": false,
+    "separate_process": true,
+    "target_agent": "WINDOWS",
+    "task_id": "task-a-proof",
+    "mission_id": "",
+    "task_hash": "b46d4dfc5f13c041",
+    "status": "FAILED",
+    "verdict": "FAIL",
+    "summary": "Windows execution. stdout: Dispatching task task-a-proof\n{\"STATE\": \"SUBMITTED\", \"REASON\": \"Task submitted to Windows inbox. Waiting for automatic consumption and result...\"}\n{\"STATE\": \"RESULT_RECEIVED\", \"EXIT_CODE\": 0, \"STATUS\": \"SUCCESS\", \"OUTPUT\": \"PROOF_WRITTEN file=C:\\\\Dev\\\\Windows-AI-OS\\\\runtime\\\\remote-proofs\\\\task-a-proof.txt size=90 timestamp=2026-09-15T03:00:48.8736222+02:00\"} stderr: ",
+    "zero_cost_policy": "ZERO_COST_ONLY",
+    "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+    "action": "WRITE_PROOF"
+  }
+}

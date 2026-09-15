@@ -1,0 +1,37 @@
+{
+  "opportunity_id": "WINDOWS_OVERNIGHT_TEST_3",
+  "source": "MAC_ANTIGRAVITY",
+  "objective_id": "OBJ-OVERNIGHT",
+  "project": "Courier",
+  "description": "C:\\Dev\\Windows-AI-OS\\scripts\\Test-WindowsAIHost.ps1",
+  "priority": 7,
+  "expected_value": "Evidence-backed output",
+  "evidence": {},
+  "required_capabilities": [],
+  "risk": "LOW",
+  "estimated_cost": 0.0,
+  "model_need": false,
+  "external_action_units": 0,
+  "project_id": "",
+  "source_artifact": "",
+  "source_hash": "",
+  "evidence_type": "",
+  "production_stage": "",
+  "problem_or_goal": "",
+  "expected_output": "",
+  "risk_class": "LOW",
+  "cost_class": "ZERO_COST_LOCAL",
+  "dedupe_fingerprint": "overnighthash3",
+  "heavy_job": false,
+  "status": "COMPLETED",
+  "target_agent": "WINDOWS",
+  "allowed_scope": [
+    "C:\\Dev\\Windows-AI-OS"
+  ],
+  "allowed_actions": [
+    "RUN_POWERSHELL"
+  ],
+  "created_at": "2026-09-14T20:20:00.000000+00:00",
+  "updated_at": "2026-09-14T20:42:47.412091+00:00",
+  "dedupe_hash": "overnighthash3"
+}

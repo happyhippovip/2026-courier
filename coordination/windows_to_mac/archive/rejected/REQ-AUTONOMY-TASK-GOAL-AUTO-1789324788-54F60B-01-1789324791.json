@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "mission_id": "POST_V1_PRODUCTIVE_AUTONOMY",
+  "windows_validation_request_id": "REQ-AUTONOMY-TASK-GOAL-AUTO-1789324788-54F60B-01-1789324791",
+  "created_by": "SYMPHONY_AUTONOMOUS_RESERVOIR",
+  "artifact_reference": "none",
+  "exact_question": "Commercial Leitstand Endpoint & Human Gates API Liveness",
+  "expected_evidence": "LEITSTAND_GATES_API_PROBED_HTTP_200",
+  "allowed_scope": "SAFE_LOCAL_VALIDATION",
+  "validation_type": "CMD_POWERSHELL_BEHAVIOR",
+  "command": "\"C:\\Users\\lol\\AppData\\Roaming\\uv\\python\\cpython-3.12-windows-x86_64-none\\python.exe\" -c \"import urllib.request; resp = urllib.request.urlopen('http://127.0.0.1:8088/api/human-gates', timeout=5); assert resp.status == 200; print('LEITSTAND_GATES_API_PROBED_HTTP_200')\"",
+  "timestamp_utc": "2026-09-13T18:39:51.503622+00:00"
+}

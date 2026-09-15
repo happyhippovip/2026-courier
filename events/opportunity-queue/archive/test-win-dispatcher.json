@@ -1,0 +1,18 @@
+{
+  "opportunity_id": "test-win-dispatcher",
+  "source": "MAC_CHIEF",
+  "objective_id": "OBJ-REGRESSION",
+  "project": "Courier",
+  "description": "Write a unit test for scripts/windows_work_dispatcher.py. The test should be saved as tests/test_windows_work_dispatcher.py and should test the basic initialization and maybe mock the SSH call. Just ensure the file exists and has a basic pytest structure.",
+  "priority": 10,
+  "expected_value": "Improves Windows routing/contracts regression coverage.",
+  "status": "COMPLETED",
+  "target_agent": "CODEX",
+  "allowed_actions": [
+    "implement_bounded_improvement"
+  ],
+  "dedupe_hash": "test-win-dispatcher",
+  "allowed_scope": [
+    "tests/test_windows_work_dispatcher.py"
+  ]
+}

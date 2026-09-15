@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "request_id": "REQ-SYNAPSE-SPRINT-02-1789296724",
+  "mission_id": "SYNAPSE_V0_FAST_SPRINT",
+  "status": "COMPLETED",
+  "worker": "WINDOWS_SPECIALIST_VALIDATOR",
+  "start_time": "2026-09-13T10:52:06.869641+00:00",
+  "finish_time": "2026-09-13T10:52:09.092332+00:00",
+  "commands": [
+    "C:\\Users\\lol\\.local\\bin\\python3.12.exe -m unittest discover -s synapse_core/tests"
+  ],
+  "exit_codes": [
+    0
+  ],
+  "observed_behavior": "127.0.0.1 - - [13/Sep/2026 12:52:07] \"GET /api/v0/health HTTP/1.1\" 200 -\n.127.0.0.1 - - [13/Sep/2026 12:52:07] \"POST /api/v0/users HTTP/1.1\" 201 -\n127.0.0.1 - - [13/Sep/2026 12:52:07] \"POST /api/v0/users HTTP/1.1\" 201 -\n.127.0.0.1 - - [13/Sep/2026 12:52:07] \"POST /api/v0/seeds HTTP/1.1\" 201 -\n127.0.0.1 - - [13/Sep/2026 12:52:07] \"GET /api/v0/seeds HTTP/1.1\" 200 -\n.127.0.0.1 - - [13/Sep/2026 12:52:07] \"POST /api/v0/stances HTTP/1.1\" 201 -\n.127.0.0.1 - - [13/Sep/2026 12:52:07] \"POST /api/v0/syntheses/generate HTTP/1.1\" 201 -\n127.0.0.1 - - [13/Sep/2026 12:52:07] \"POST /api/v0/syntheses/ratify HTTP/1.1\" 200 -\n127.0.0.1 - - [13/Sep/2026 12:52:07] \"POST /api/v0/syntheses/ratify HTTP/1.1\" 200 -\n127.0.0.1 - - [13/Sep/2026 12:52:07] \"GET /api/v0/users/U-ALICE HTTP/1.1\" 200 -\n127.0.0.1 - - [13/Sep/2026 12:52:07] \"GET /api/v0/users/U-BOB HTTP/1.1\" 200 -\n.127.0.0.1 - - [13/Sep/2026 12:52:07] \"GET /api/v0/graph HTTP/1.1\" 200 -\n.127.0.0.1 - - [13/Sep/2026 12:52:07] \"POST /api/v0/stances HTTP/1.1\" 422 -\n..............\n----------------------------------------------------------------------\nRan 20 tests in 1.775s\n\nOK",
+  "verified_assertions": 1,
+  "result_fingerprint": "702b2a8dc1bcb5bc41efd45d48a97c7870e68b7bd4663e65e64c25d6eb6df739",
+  "artifact_references": [
+    "synapse_core/synapse_server.py"
+  ],
+  "checkpoint_reference": "CHECKPOINT-REQ-SYNAPSE-SPRINT-02-1789296724",
+  "known_defects": [],
+  "blockers": [],
+  "human_gates": []
+}

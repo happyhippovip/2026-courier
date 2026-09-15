@@ -619,13 +619,48 @@ class UsefulWorkSelectionEngine:
             actionable = [c for c in discovery_candidates if c.is_actionable]
 
         if not actionable:
-            # Genuinely NO SAFE USEFUL WORK available
+            all_evaluated = evaluated_candidates + (discovery_candidates if 'discovery_candidates' in locals() else [])
+            if not all_evaluated:
+                return {
+                    "lifecycle_state": AutonomyLifecycleState.QUEUE_EMPTY.value,
+                    "action": "WAIT_FOR_NEW_GOAL",
+                    "reason": "QUEUE_EMPTY_NOT_COMPLETE",
+                    "all_evaluated_count": 0,
+                }
+                
+            has_human = any(c.readiness_state in (WorkReadinessState.HUMAN_GATE, WorkReadinessState.MONEY_GATE, WorkReadinessState.PUBLICATION_GATE) for c in all_evaluated)
+            if has_human:
+                return {
+                    "lifecycle_state": AutonomyLifecycleState.HUMAN_GATE.value,
+                    "action": "WAITING_FOR_HUMAN_GATE",
+                    "reason": "ONLY_HUMAN_GATED_WORK_REMAINS",
+                    "all_evaluated_count": len(all_evaluated),
+                }
+                
+            has_blocked = any(c.readiness_state in (WorkReadinessState.BLOCKED_EXTERNAL, WorkReadinessState.PROTECTED_BOUNDARY_GATED) for c in all_evaluated)
+            if has_blocked:
+                return {
+                    "lifecycle_state": AutonomyLifecycleState.TASK_BLOCKED.value,
+                    "action": "WAITING_FOR_DEPENDENCIES",
+                    "reason": "ONLY_DEPENDENCY_BLOCKED_WORK_REMAINS",
+                    "all_evaluated_count": len(all_evaluated),
+                }
+                
+            has_quarantine = any(c.readiness_state in (WorkReadinessState.STALE, WorkReadinessState.DUPLICATE, WorkReadinessState.NO_INFORMATION_GAIN) for c in all_evaluated)
+            if has_quarantine:
+                return {
+                    "lifecycle_state": "UNRESOLVED_QUARANTINE",
+                    "action": "UNRESOLVED_QUARANTINE",
+                    "reason": "ONLY_QUARANTINED_WORK_REMAINS",
+                    "all_evaluated_count": len(all_evaluated),
+                }
+                
             return {
                 "lifecycle_state": AutonomyLifecycleState.SAFE_IDLE.value,
                 "action": "ENTER_SAFE_IDLE",
                 "selected_task": None,
                 "reason": "NO_SAFE_USEFUL_WORK_AVAILABLE",
-                "all_evaluated_count": len(evaluated_candidates),
+                "all_evaluated_count": len(all_evaluated),
             }
 
         # Deterministic winner selection: score descending, then task_id string

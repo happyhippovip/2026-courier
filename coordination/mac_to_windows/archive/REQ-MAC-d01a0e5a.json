@@ -1,0 +1,1 @@
+{"task_hash": "d01a0e5a4a7d14c6", "worker_id": "WINDOWS", "target_agent": "WINDOWS", "task_id": "MAC_WINDOWS_INTEGRATION_PROOF_1", "payload": {"action": "HEALTH_CHECK", "prompt": "Windows integration test task", "allowed_scope": ["C:\\Dev\\Windows-AI-OS"]}}

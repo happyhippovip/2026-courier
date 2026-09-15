@@ -1,0 +1,24 @@
+{
+  "request_id": "REQ-MAC-e56f21fb",
+  "mission_id": "WINDOWS_OVERNIGHT_TEST_2",
+  "schema_version": "1.0",
+  "status": "COMPLETED",
+  "observed_behavior": "Auto task completed",
+  "result_fingerprint": "d920d205f9b9907d5b995634d157e497e9a3a6f509efefea65b017a30c32cd9c",
+  "payload": {
+    "worker_agent": "WINDOWS",
+    "worker_type": "NATIVE_WINDOWS",
+    "real_model_call": false,
+    "separate_process": true,
+    "target_agent": "WINDOWS",
+    "task_id": "WINDOWS_OVERNIGHT_TEST_2",
+    "mission_id": "",
+    "task_hash": "e56f21fbd2d7155c",
+    "status": "FAILED",
+    "verdict": "FAIL",
+    "summary": "Windows execution. stdout: Dispatching task WINDOWS_OVERNIGHT_TEST_2\nExecutor output: \nSUCCESS: Result fetched successfully.\nEXIT_CODE: 1\nSTATUS: FAILED\nOUTPUT: MISSING_SCRIPT_CONTENT",
+    "zero_cost_policy": "ZERO_COST_ONLY",
+    "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+    "action": "RUN_POWERSHELL"
+  }
+}

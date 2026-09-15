@@ -1,0 +1,8 @@
+{
+  "request_id": "REQ-DYNAMIC-WAKE-1789296011",
+  "mission_id": "SYMPHONY_AUTONOMOUS_OPERATIONS",
+  "owner_node": "WINDOWS_PC2",
+  "process_instance_id": "f1a6b2c5-2146-4b2a-b789-cf440d5c25c8",
+  "lease_epoch": 1,
+  "claimed_at": "2026-09-13T10:40:11.436351+00:00"
+}

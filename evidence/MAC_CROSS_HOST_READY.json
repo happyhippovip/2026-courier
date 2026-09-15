@@ -1,0 +1,15 @@
+{
+  "MAC_HEAD": "fef2036ecc971412dbdce7b3500db50819f5e46d",
+  "WORKTREE_STATUS": "DIRTY_BUT_VERIFIED_LOCAL",
+  "MAC_NODE_ID": "MAC_CHIEF_01",
+  "COORDINATION_ROOT": "/Users/user/Downloads/2026-courier/coordination",
+  "HEARTBEAT_READY": "PASS",
+  "REQUEST_PRODUCER_READY": "PASS",
+  "RESULT_CONSUMER_READY": "PASS",
+  "ACK_READY": "PASS",
+  "CANONICAL_REQUEST_ID": "REQ-MAC-AC660276",
+  "TRANSPORT_CONNECTED": "NO",
+  "WINDOWS_LIVENESS": "UNKNOWN",
+  "HUMAN_GATE_REQUIRED": "Ensure Mac File Sharing (SMB) is enabled in System Settings and grant Windows user read/write access to /Users/user/Downloads/2026-courier",
+  "NEXT_EXPECTED_EXTERNAL_EVENT": "WINDOWS_TRANSPORT_CONNECTION"
+}

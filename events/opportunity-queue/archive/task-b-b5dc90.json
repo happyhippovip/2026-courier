@@ -1,0 +1,37 @@
+{
+  "opportunity_id": "task-b-b5dc90",
+  "source": "MAC_CONTINUOUS_CONTROLLER",
+  "objective_id": "OBJ-CHAIN",
+  "project": "Courier",
+  "description": "Follow-up proof after task-b-920361",
+  "priority": 29,
+  "expected_value": "Evidence-backed output",
+  "evidence": {},
+  "required_capabilities": [],
+  "risk": "LOW",
+  "estimated_cost": 0.0,
+  "model_need": false,
+  "external_action_units": 0,
+  "project_id": "",
+  "source_artifact": "",
+  "source_hash": "",
+  "evidence_type": "",
+  "production_stage": "",
+  "problem_or_goal": "",
+  "expected_output": "",
+  "risk_class": "LOW",
+  "cost_class": "ZERO_COST_LOCAL",
+  "dedupe_fingerprint": "67f8bdf6e6391093",
+  "heavy_job": false,
+  "status": "COMPLETED",
+  "target_agent": "WINDOWS",
+  "allowed_scope": [
+    "C:\\Dev\\Windows-AI-OS"
+  ],
+  "allowed_actions": [
+    "WRITE_PROOF"
+  ],
+  "created_at": "2026-09-15T01:05:17.931631+00:00",
+  "updated_at": "2026-09-15T01:05:24.177385+00:00",
+  "dedupe_hash": "67f8bdf6e6391093"
+}

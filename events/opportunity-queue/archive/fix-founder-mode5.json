@@ -1,0 +1,14 @@
+{
+  "opportunity_id": "fix-founder-mode5",
+  "source": "MAC_CHIEF",
+  "objective_id": "OBJ-REGRESSION",
+  "project": "Courier",
+  "description": "Minimally fix FounderModeMVP.run_autonomous_loop (in scripts/courier_founder_mode.py) for the UnboundLocalError / writer-conflict regression (the GoalSatisfactionEngine variable is not instantiated properly when next_missions is populated). Then run pytest tests/test_m233_founder_mode.py.",
+  "priority": 10,
+  "expected_value": "Fixes autonomous loop crash.",
+  "status": "COMPLETED",
+  "target_agent": "CODEX",
+  "allowed_actions": ["implement_bounded_improvement"],
+  "dedupe_hash": "fix-founder-mode5",
+  "allowed_scope": ["scripts/courier_founder_mode.py", "tests/test_m233_founder_mode.py"]
+}

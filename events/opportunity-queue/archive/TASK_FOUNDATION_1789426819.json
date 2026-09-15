@@ -1,0 +1,23 @@
+{
+  "opportunity_id": "TASK_FOUNDATION_1789426819",
+  "source": "MAC_CHIEF",
+  "objective_id": "OBJ-COMPOUND-INTELLIGENCE",
+  "project": "COURIER",
+  "description": "Create a python script `scripts/analyze_agent_performance.py` that parses the events in `events/worker-events` to identify which workers have the highest failure rates, contributing to the Founder goal of building better agents.",
+  "priority": 10,
+  "expected_value": "New capability for continuous agent improvement",
+  "evidence": {},
+  "required_capabilities": [
+    "MAC_LOCAL"
+  ],
+  "risk": "SAFE",
+  "heavy_job": false,
+  "status": "BLOCKED",
+  "target_agent": "CODEX",
+  "allowed_scope": [
+    "scripts"
+  ],
+  "allowed_actions": [
+    "WRITE"
+  ]
+}
