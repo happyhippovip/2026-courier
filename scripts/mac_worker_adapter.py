@@ -45,7 +45,10 @@ def run(task_file):
         
     print(f"[Mac Transport] Received result for {task['task_id']} from Mac Worker!")
     os.makedirs("results/incoming", exist_ok=True)
-    shutil.copy(target_outbox_file, f"results/incoming/{task['task_id']}_result.json")
+    incoming = Path(f"results/incoming/{task['task_id']}_result.json")
+    incoming_tmp = incoming.with_suffix(".json.tmp")
+    shutil.copy(target_outbox_file, incoming_tmp)
+    os.replace(incoming_tmp, incoming)
     os.remove(target_outbox_file)
 
 if __name__ == "__main__":
