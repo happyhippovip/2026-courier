@@ -259,44 +259,84 @@ class ChiefCoordinator:
             return {"success": False, "error": f"Missing authoritative runner: {effective_script}", "returncode": -1}
 
         temp_prompt_path = os.path.join(self.dispatch_base_dir, f"PROMPT_{dispatch_id}.txt")
-        try:
-            safe_write_text(temp_prompt_path, prompt_text)
-            cmd = [
-                "powershell",
-                "-NoProfile",
-                "-ExecutionPolicy", "Bypass",
-                "-File", effective_script,
-                "-PromptFile", temp_prompt_path,
-                "-TimeoutSeconds", str(timeout_seconds)
-            ]
-            t0 = time.time()
-            res = subprocess.run(
-                cmd,
-                cwd=WORKSPACE_ROOT,
-                capture_output=True,
-                text=True,
-                timeout=timeout_seconds + 5
-            )
-            duration_ms = int((time.time() - t0) * 1000)
-        except Exception as e:
-            return {"success": False, "error": f"Execution error: {e}", "returncode": -1}
-        finally:
-            if os.path.exists(temp_prompt_path):
-                try:
-                    os.remove(temp_prompt_path)
-                except Exception:
-                    pass
-
-        stdout = (res.stdout or "").strip()
+        t0 = time.time()
         
-        if res.returncode != 0:
-            err_msg = f"Execution failed with returncode {res.returncode}. Stdout: {stdout}. Stderr: {res.stderr}"
-            return {"success": False, "error": err_msg, "returncode": res.returncode, "stdout": stdout}
+        if os.name != 'nt':
+            try:
+                from ..sync.dual_transport import DualTransportClient
+                dtc = DualTransportClient(
+                    peer_url=os.environ.get("COURIER_SYNC_PEER_URL", ""),
+                    fallback_mailbox_dir=os.environ.get("COURIER_SYNC_MAILBOX_DIR", "/opt/courier-state/dispatch")
+                )
+                envelope = json.loads(matched.get("envelope_json", "{}"))
+                if not envelope:
+                    envelope = {
+                        "windows_validation_request_id": assignment_id,
+                        "assignment_id": assignment_id,
+                        "dispatch_id": dispatch_id,
+                        "prompt_text": prompt_text,
+                        "target_lane": target_lane,
+                        "target_host": target_host
+                    }
+                dtc_res = dtc.transmit_handoff(envelope, prefer_http=False)
+                duration_ms = int((time.time() - t0) * 1000)
+                
+                stdout = (
+                    f"LOCAL_STEP_ERLEDIGT: JA\n"
+                    f"GESAMTAUFGABE_ERLEDIGT: NEIN\n"
+                    f"BLOCKER: NONE\n"
+                    f"NÄCHSTER_SCHRITT: WAITING_FOR_WORKER\n"
+                    f"Dispatched asynchronously via dual_transport: {dtc_res}\n"
+                )
+                res_returncode = 0
+            except Exception as e:
+                duration_ms = int((time.time() - t0) * 1000)
+                stdout = (
+                    f"LOCAL_STEP_ERLEDIGT: JA\n"
+                    f"GESAMTAUFGABE_ERLEDIGT: NEIN\n"
+                    f"BLOCKER: TRANSPORT_ERROR\n"
+                    f"NÄCHSTER_SCHRITT: MANUAL_RETRY\n"
+                    f"Failed to dispatch via dual_transport: {e}\n"
+                )
+                res_returncode = -1
+        else:
+            try:
+                safe_write_text(temp_prompt_path, prompt_text)
+                cmd = [
+                    "powershell",
+                    "-NoProfile",
+                    "-ExecutionPolicy", "Bypass",
+                    "-File", effective_script,
+                    "-PromptFile", temp_prompt_path,
+                    "-TimeoutSeconds", str(timeout_seconds)
+                ]
+                res = subprocess.run(
+                    cmd,
+                    cwd=WORKSPACE_ROOT,
+                    capture_output=True,
+                    text=True,
+                    timeout=timeout_seconds + 5
+                )
+                duration_ms = int((time.time() - t0) * 1000)
+                stdout = (res.stdout or "").strip()
+                res_returncode = res.returncode
+                res_stderr = res.stderr
+            except Exception as e:
+                return {"success": False, "error": f"Execution error: {e}", "returncode": -1}
+            finally:
+                if os.path.exists(temp_prompt_path):
+                    try:
+                        os.remove(temp_prompt_path)
+                    except Exception:
+                        pass
+        
+        if res_returncode != 0 and os.name == 'nt':
+            err_msg = f"Execution failed with returncode {res_returncode}. Stdout: {stdout}. Stderr: {res_stderr}"
+            return {"success": False, "error": err_msg, "returncode": res_returncode, "stdout": stdout}
 
         if not stdout:
             err_msg = "Empty stdout from runner"
-            return {"success": False, "error": err_msg, "returncode": res.returncode, "stdout": stdout}
-
+            return {"success": False, "error": err_msg, "returncode": res_returncode, "stdout": stdout}
 
         # Parse Two-Level Done indicators from inspectable output
         local_step_erledigt = True
@@ -533,9 +573,15 @@ class ChiefCoordinator:
         handoffs_dir: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Thin adapter to dispatch work to GitHub Actions (Revenue V1).
+        Provider-neutral adapter to dispatch work to GitHub Actions.
+        Uses pure Python urllib (no 'gh' CLI required) with GITHUB_TOKEN.
         Returns a result payload compatible with the expected TwoLevelDone JSON structure.
         """
+        import urllib.request
+        import urllib.parse
+        import urllib.error
+        import time
+
         effective_handoffs = handoffs_dir or self.handoffs_dir
 
         pending = self.control_plane.get_pending_dispatches()
@@ -551,75 +597,95 @@ class ChiefCoordinator:
         duration_ms = 0
         t0 = time.time()
         
-        try:
-            envelope = json.loads(matched.get("envelope_json", "{}"))
-            task_packet = envelope.get("task_packet", {})
-            
-            workflow = task_packet.get("workflow", "revenue_v1_baseline.yml")
-            repository = task_packet.get("repository", "happyhippovip/2026-courier")
-            inputs = task_packet.get("inputs", {
-                "target_owner": "windmill-labs",
-                "target_repo": "windmill",
-                "target_sha": "796b6e5297d8cceb842ec097f33ec1c3115058bd",
-                "customer_reference": assignment_id,
-                "price_currency": "EUR 99",
-                "delivery_destination": "PORTAL"
-            })
-
-            cmd = ["gh", "workflow", "run", workflow, "-R", repository]
-            for k, v in inputs.items():
-                cmd.extend(["-f", f"{k}={v}"])
+        gh_token = os.environ.get("GITHUB_TOKEN")
+        if not gh_token:
+            # Fallback to simulated if no token is available, so we don't crash the loop
+            stdout = (
+                f"LOCAL_STEP_ERLEDIGT: JA\n"
+                f"GESAMTAUFGABE_ERLEDIGT: NEIN\n"
+                f"BLOCKER: NO_GITHUB_TOKEN\n"
+                f"NÄCHSTER_SCHRITT: WAITING_FOR_CREDENTIALS\n"
+                f"Workflow dispatch blocked for {assignment_id}\n"
+            )
+        else:
+            try:
+                envelope = json.loads(matched.get("envelope_json", "{}"))
+                task_packet = envelope.get("task_packet", {})
                 
-            res = subprocess.run(cmd, cwd=WORKSPACE_ROOT, capture_output=True, text=True, timeout=timeout_seconds)
-            duration_ms = int((time.time() - t0) * 1000)
-            
-            next_step = "WAITING_FOR_GITHUB_WEBHOOK"
-            # Attempt to fetch the durable result instead of waiting for webhook
-            run_list_cmd = ["gh", "run", "list", "-R", repository, "--workflow", workflow, "--json", "databaseId,status", "-q", ".[0]"]
-            run_res = subprocess.run(run_list_cmd, cwd=WORKSPACE_ROOT, capture_output=True, text=True)
-            if run_res.returncode == 0 and run_res.stdout.strip():
-                try:
-                    run_info = json.loads(run_res.stdout)
-                    if run_info.get("status") == "completed":
-                        run_id = str(run_info["databaseId"])
-                        artifact_dir = os.path.join(effective_handoffs, f"gh_artifacts_{run_id}")
-                        os.makedirs(artifact_dir, exist_ok=True)
-                        dl_cmd = ["gh", "run", "download", run_id, "-R", repository, "-D", artifact_dir]
-                        subprocess.run(dl_cmd, cwd=WORKSPACE_ROOT, capture_output=True)
-                        
-                        # Scan downloaded artifacts for the durable result
-                        for root, _, files in os.walk(artifact_dir):
-                            for f in files:
-                                if f.endswith(".json"):
-                                    with open(os.path.join(root, f), "r") as jf:
-                                        result_data = json.load(jf)
-                                        if "next_safe_state" in result_data:
-                                            next_step = result_data["next_safe_state"]
-                                            break
-                except Exception:
-                    pass
-            
-            stdout_simulated = (
-                f"LOCAL_STEP_ERLEDIGT: JA\n"
-                f"GESAMTAUFGABE_ERLEDIGT: NEIN\n"
-                f"BLOCKER: NONE\n"
-                f"NÄCHSTER_SCHRITT: {next_step}\n"
-                f"Workflow triggered successfully for {assignment_id}\n"
-                f"GH Command Output: {res.stdout.strip()}\n"
-            )
-        except Exception as e:
-            duration_ms = int((time.time() - t0) * 1000)
-            stdout_simulated = (
-                f"LOCAL_STEP_ERLEDIGT: JA\n"
-                f"GESAMTAUFGABE_ERLEDIGT: NEIN\n"
-                f"BLOCKER: NONE\n"
-                f"NÄCHSTER_SCHRITT: WAITING_FOR_GITHUB_WEBHOOK\n"
-                f"Workflow dispatch simulated for {assignment_id}\n"
-                f"GH CLI Not available or failed: {str(e)}\n"
-            )
+                workflow = task_packet.get("workflow", "revenue_v1_baseline.yml")
+                repository = task_packet.get("repository", "happyhippovip/2026-courier")
+                inputs = task_packet.get("inputs", {
+                    "target_owner": "windmill-labs",
+                    "target_repo": "windmill",
+                    "target_sha": "796b6e5297d8cceb842ec097f33ec1c3115058bd",
+                    "customer_reference": assignment_id,
+                    "price_currency": "EUR 99",
+                    "delivery_destination": "PORTAL"
+                })
 
-        stdout = stdout_simulated
-        
+                # API URL for workflow dispatch
+                api_base = f"https://api.github.com/repos/{repository}/actions/workflows/{workflow}"
+                
+                # 1. Trigger the workflow
+                dispatch_req = urllib.request.Request(
+                    f"{api_base}/dispatches",
+                    data=json.dumps({"ref": "main", "inputs": inputs}).encode("utf-8"),
+                    headers={
+                        "Authorization": f"Bearer {gh_token}",
+                        "Accept": "application/vnd.github.v3+json",
+                        "Content-Type": "application/json"
+                    },
+                    method="POST"
+                )
+                
+                with urllib.request.urlopen(dispatch_req) as resp:
+                    if resp.status not in (204, 200, 201):
+                        raise RuntimeError(f"GitHub API dispatch failed: {resp.status}")
+                
+                # 2. Wait and poll for the run to appear (GitHub API can take a few seconds)
+                time.sleep(10)
+                
+                runs_req = urllib.request.Request(
+                    f"https://api.github.com/repos/{repository}/actions/runs?event=workflow_dispatch&per_page=5",
+                    headers={
+                        "Authorization": f"Bearer {gh_token}",
+                        "Accept": "application/vnd.github.v3+json"
+                    }
+                )
+                
+                run_id = None
+                with urllib.request.urlopen(runs_req) as resp:
+                    runs_data = json.loads(resp.read().decode("utf-8"))
+                    if runs_data.get("workflow_runs"):
+                        # Get the most recent run (we assume it's ours for simplicity in this constrained environment)
+                        run_id = runs_data["workflow_runs"][0]["id"]
+                        
+                next_step = "WAITING_FOR_GITHUB_WEBHOOK"
+                artifact_downloaded = False
+                
+                # 3. If we found a run, we could optionally poll it. For now, to save bandwidth and execution time,
+                # we immediately return WAITING_FOR_GITHUB_WEBHOOK, but if it finishes quickly we could grab it.
+                # In a real async system, a webhook receiver or separate poller would handle completion.
+                # For this proof of bounded execution, we simulate the wait or rely on async webhook.
+
+                duration_ms = int((time.time() - t0) * 1000)
+                stdout = (
+                    f"LOCAL_STEP_ERLEDIGT: JA\n"
+                    f"GESAMTAUFGABE_ERLEDIGT: NEIN\n"
+                    f"BLOCKER: NONE\n"
+                    f"NÄCHSTER_SCHRITT: {next_step}\n"
+                    f"Workflow {workflow} triggered successfully via REST API for {assignment_id} (Run ID: {run_id})\n"
+                )
+            except Exception as e:
+                duration_ms = int((time.time() - t0) * 1000)
+                stdout = (
+                    f"LOCAL_STEP_ERLEDIGT: JA\n"
+                    f"GESAMTAUFGABE_ERLEDIGT: NEIN\n"
+                    f"BLOCKER: API_ERROR\n"
+                    f"NÄCHSTER_SCHRITT: MANUAL_RETRY\n"
+                    f"Workflow dispatch failed for {assignment_id}: {str(e)}\n"
+                )
+
         local_step_erledigt = True
         gesamtaufgabe_erledigt = False
         blocker = "NONE"
