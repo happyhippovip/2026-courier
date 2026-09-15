@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import uuid
 from pathlib import Path
 
@@ -110,3 +111,47 @@ def verify_result(task: dict, raw_result: dict, workspace: Path) -> dict:
     }
     identity["result_id"] = f"result-{_canonical_hash(identity)}"
     return identity
+
+
+def validate_durable_result(task: dict, result: dict) -> dict:
+    """Validate a remote DurableResult without trusting worker-only success.
+
+    This validates identity and evidence shape. A separate verifier must still
+    observe the effect and approve the evidence before workflow advancement.
+    """
+    required = {
+        "goal_id",
+        "task_id",
+        "attempt_id",
+        "dispatch_id",
+        "worker_id",
+        "run_id",
+        "result_id",
+        "status",
+        "artifacts",
+    }
+    missing = sorted(required - set(result))
+    if missing:
+        raise ContractError(f"result is missing: {', '.join(missing)}")
+    for field in ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id"):
+        if result[field] != task.get(field):
+            raise ContractError(f"{field} mismatch")
+    for field in ("run_id", "result_id"):
+        if not isinstance(result[field], str) or not result[field]:
+            raise ContractError(f"{field} is required")
+    if result["status"] not in RESULT_STATES:
+        raise ContractError("invalid result status")
+    if not isinstance(result["artifacts"], list):
+        raise ContractError("artifacts must be a list")
+    if result["status"] == "SUCCESS" and not result["artifacts"]:
+        raise ContractError("successful result requires artifact evidence")
+    for artifact in result["artifacts"]:
+        if not isinstance(artifact, dict) or set(artifact) != {"path", "sha256"}:
+            raise ContractError("invalid artifact evidence")
+        path = artifact["path"]
+        digest = artifact["sha256"]
+        if not isinstance(path, str) or not path or Path(path).is_absolute() or ".." in Path(path).parts:
+            raise ContractError("unsafe artifact path")
+        if not isinstance(digest, str) or not re.fullmatch(r"[a-f0-9]{64}", digest):
+            raise ContractError("invalid artifact fingerprint")
+    return {field: result[field] for field in required}
