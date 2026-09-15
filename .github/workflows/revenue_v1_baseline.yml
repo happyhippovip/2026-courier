@@ -86,15 +86,68 @@ jobs:
       - name: Checkout Courier
         uses: actions/checkout@v4
         
+      - name: Download Worker Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: worker-artifacts
+          
       - name: Download Verified Result
         uses: actions/download-artifact@v4
         with:
           name: verified-artifacts
           
-      - name: Phase-8 PR Proposal Handoff
+      - name: Create PR and Handoff
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [ ! -f "scripts/phase8_workforce.py" ]; then
-            echo "REAL WALL: scripts/phase8_workforce.py is required for Phase-8 PR proposal but exists only in unmerged PR #8."
-            echo "Stopping here rather than simulating handoff."
-            exit 1
-          fi
+          PROPOSAL_HEAD="revenue/result-proposal-${GITHUB_RUN_ID}"
+          
+          # 1. Setup git and branch
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$PROPOSAL_HEAD"
+          
+          # 2. Add durable result
+          mkdir -p revenue_v1/results
+          TASK_ID=$(jq -r .task_id task.json)
+          ATTEMPT_ID=$(jq -r .attempt_id task.json)
+          RESULT_PATH="revenue_v1/results/${TASK_ID}-${ATTEMPT_ID}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.json"
+          cp verified.json "$RESULT_PATH"
+          
+          git add "$RESULT_PATH"
+          git commit -m "Propose Revenue V1 Result for ${TASK_ID}"
+          git push origin "$PROPOSAL_HEAD"
+          
+          RESULT_COMMIT=$(git rev-parse HEAD)
+          
+          # 3. Create PR
+          PR_URL=$(gh pr create --title "Revenue V1: $TASK_ID" --body "Automated result handoff." --base main --head "$PROPOSAL_HEAD")
+          PR_NUMBER=$(echo "$PR_URL" | awk -F'/' '{print $NF}')
+          
+          # 4. Construct handoff JSON
+          cat << HANDOFFEOF > handoff.json
+          {
+            "task_id": "$TASK_ID",
+            "attempt_id": "$ATTEMPT_ID",
+            "result_path": "$RESULT_PATH",
+            "verifier_id": "revenue-v1-independent-verifier",
+            "result_commit": "$RESULT_COMMIT",
+            "proposal_branch": "$PROPOSAL_HEAD",
+            "proposal_pr": "$PR_URL",
+            "human_merge_required": true
+          }
+          HANDOFFEOF
+          
+          # 5. Run Reconciler
+          python3 scripts/revenue_v1_safety_baseline.py reconcile task.json verified.json handoff.json work_dir "$PR_NUMBER" "$PROPOSAL_HEAD" "main" > reconciliation.json
+          
+          # 6. Output for artifacts
+          cat reconciliation.json
+          
+      - name: Upload Reconciliation
+        uses: actions/upload-artifact@v4
+        with:
+          name: handoff-artifacts
+          path: |
+            handoff.json
+            reconciliation.json
