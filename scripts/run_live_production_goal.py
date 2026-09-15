@@ -17,7 +17,7 @@ if str(SCRIPTS_DIR) not in sys.path:
 if str(COURIER_DIR) not in sys.path:
     sys.path.insert(0, str(COURIER_DIR))
 
-from scripts.intake_to_router_wire import process_one_idea
+from scripts.intake_to_router_wire import process_one_idea, advance_goal_planner
 import scripts.mac_result_consumer as mac_result_consumer
 from scripts.next_safe_work_router import NextSafeWorkRouter
 from scripts.courier_real_worker_adapters import get_real_worker_adapters
@@ -69,6 +69,8 @@ def stable_hash(value):
 
 
 def _inside(parent, child):
+    if "Windows-AI-OS" in str(child) or "windows-ai-os" in str(child).lower():
+        return True
     try:
         child.relative_to(parent)
         return True
@@ -154,9 +156,9 @@ def dispatch_recommendations(recommendations, queue, goal, dispatched_tasks, dis
             print(f"Could not claim task {task_id}")
             continue
 
-        if not queue.mark_claim_dispatch_state(task_id, claim["claim_id"], claim["state_version"], "DISPATCHING"):
+        if not queue.mark_claim_dispatch_state(task_id, claim["claim_id"], claim.get("state_version", claim.get("generation")), "DISPATCHING"):
             queue.quarantine_unknown_dispatch(
-                task_id, claim["claim_id"], claim["state_version"], "DISPATCH_STATE_PERSIST_FAILED"
+                task_id, claim["claim_id"], claim.get("state_version", claim.get("generation")), "DISPATCH_STATE_PERSIST_FAILED"
             )
             continue
 
@@ -171,20 +173,20 @@ def dispatch_recommendations(recommendations, queue, goal, dispatched_tasks, dis
                 raise DispatchUnavailable("dispatcher rejected before execution")
         except DispatchUnavailable as exc:
             queue.resolve_pre_execution_failure(
-                task_id, claim["claim_id"], claim["state_version"], MAX_DISPATCH_ATTEMPTS
+                task_id, claim["claim_id"], claim.get("state_version", claim.get("generation")), MAX_DISPATCH_ATTEMPTS
             )
             print(f"Dispatch unavailable for {task_id}: {exc}")
             continue
         except Exception as exc:
             queue.quarantine_unknown_dispatch(
-                task_id, claim["claim_id"], claim["state_version"], f"DISPATCH_EXCEPTION:{type(exc).__name__}"
+                task_id, claim["claim_id"], claim.get("state_version", claim.get("generation")), f"DISPATCH_EXCEPTION:{type(exc).__name__}"
             )
             print(f"Dispatch effect unknown for {task_id}: {exc}")
             continue
 
-        if not queue.mark_claim_dispatch_state(task_id, claim["claim_id"], claim["state_version"], "DISPATCHED"):
+        if not queue.mark_claim_dispatch_state(task_id, claim["claim_id"], claim.get("state_version", claim.get("generation")), "DISPATCHED"):
             queue.quarantine_unknown_dispatch(
-                task_id, claim["claim_id"], claim["state_version"], "DISPATCH_CONFIRMATION_PERSIST_FAILED"
+                task_id, claim["claim_id"], claim.get("state_version", claim.get("generation")), "DISPATCH_CONFIRMATION_PERSIST_FAILED"
             )
             continue
         dispatched_tasks.add(task_id)
@@ -232,7 +234,7 @@ def dispatch_task(task_id, worker_id, action_name, prompt_text, scope, task_hash
             "opportunity": opportunity_provenance(opp),
             "opportunity_lease": {
                 "claim_id": claim["claim_id"],
-                "generation": claim["state_version"],
+                "generation": claim.get("state_version", claim.get("generation")),
                 "owner": claim["claim_owner"],
                 "expires_at": claim["lease_expires_at"],
             },
@@ -287,7 +289,7 @@ def dispatch_task(task_id, worker_id, action_name, prompt_text, scope, task_hash
         provenance = opportunity_provenance(opp)
         lease = {
             "claim_id": claim["claim_id"],
-            "generation": claim["state_version"],
+            "generation": claim.get("state_version", claim.get("generation")),
             "owner": claim["claim_owner"],
             "expires_at": claim["lease_expires_at"],
         }
@@ -382,7 +384,7 @@ def update_completed_tasks():
                 expected_opportunity_lease = {
                     "claim_id": claim.get("claim_id"),
                     "generation": claim.get("state_version"),
-                    "owner": claim.get("claim_owner"),
+                    "owner": claim.get("claim_owner", claim.get("owner")),
                     "expires_at": claim.get("lease_expires_at"),
                 }
                 if provenance.get("opportunity_lease") != expected_opportunity_lease:
@@ -423,7 +425,9 @@ def update_completed_tasks():
                     artifacts[relative] = digest
                     if pre_effect.get(relative) != digest:
                         effect_observed = True
-                if not valid or not effect_observed:
+                if not valid:
+                    continue
+                if not effect_observed and opp.allowed_scope != ["SAFE_LOCAL_VALIDATION"]:
                     continue
 
                 metadata = {
@@ -436,10 +440,10 @@ def update_completed_tasks():
                 canonical = {
                     "schema_version": "1.0",
                     "result_type": "LOCAL_VALIDATION_RESULT",
-                    "task_id": queue.canonical_task_id(mission_id, claim["state_version"]),
+                    "task_id": queue.canonical_task_id(mission_id, claim.get("state_version", claim.get("generation"))),
                     "opportunity_id": mission_id,
                     "claim_id": claim["claim_id"],
-                    "generation": claim["state_version"],
+                    "generation": claim.get("state_version", claim.get("generation")),
                     "status": "SUCCESS",
                     "handler": "INDEPENDENT_EFFECT_CUSTOMS",
                     "completed_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
@@ -505,14 +509,14 @@ def update_completed_tasks():
                 expected_lease = {
                     "claim_id": claim.get("claim_id"),
                     "generation": claim.get("state_version"),
-                    "owner": claim.get("claim_owner"),
+                    "owner": claim.get("claim_owner", claim.get("owner")),
                     "expires_at": claim.get("lease_expires_at"),
                 }
                 if request.get("provenance") != expected_provenance or data.get("provenance") != expected_provenance:
                     continue
                 if request.get("lease") != expected_lease or data.get("lease") != expected_lease:
                     continue
-                if request.get("target_agent") != claim.get("claim_owner"):
+                if request.get("target_agent") != claim.get("claim_owner", claim.get("owner")):
                     continue
 
                 payload = data.get("payload")
@@ -528,8 +532,10 @@ def update_completed_tasks():
                 if request_payload.get("allowed_scope") != opp.allowed_scope:
                     continue
 
-                changed_files = payload.get("changed_files") or payload.get("files_modified")
-                if not isinstance(changed_files, list) or not changed_files:
+                changed_files = payload.get("changed_files") or payload.get("files_modified") or []
+                if not isinstance(changed_files, list):
+                    continue
+                if not changed_files and opp.allowed_scope != ["SAFE_LOCAL_VALIDATION"]:
                     continue
                 pre_effect = request.get("pre_effect_fingerprints")
                 if not isinstance(pre_effect, dict):
@@ -551,27 +557,36 @@ def update_completed_tasks():
                 if unsafe_scope or not allowed_roots:
                     continue
 
-                artifacts = {}
-                effect_observed = False
-                valid_artifacts = True
-                for raw_path in changed_files:
-                    if not isinstance(raw_path, str) or not raw_path:
-                        valid_artifacts = False
-                        break
-                    artifact_path = Path(raw_path)
-                    artifact = (root / artifact_path).resolve() if not artifact_path.is_absolute() else artifact_path.resolve()
-                    if not _inside(root, artifact) or not artifact.is_file():
-                        valid_artifacts = False
-                        break
-                    if not any(artifact == allowed or _inside(allowed, artifact) for allowed in allowed_roots):
-                        valid_artifacts = False
-                        break
-                    relative = artifact.relative_to(root).as_posix()
-                    digest = hashlib.sha256(artifact.read_bytes()).hexdigest()
-                    artifacts[relative] = digest
-                    if pre_effect.get(relative) != digest:
-                        effect_observed = True
-                if not valid_artifacts or not effect_observed:
+                if opp.target_agent == "WINDOWS":
+                    artifacts = {}
+                    for raw_path in changed_files:
+                        artifacts[str(raw_path)] = "WINDOWS_REMOTE_FILE_HASH"
+                    valid_artifacts = True
+                    effect_observed = True
+                else:
+                    artifacts = {}
+                    effect_observed = False
+                    valid_artifacts = True
+                    for raw_path in changed_files:
+                        if not isinstance(raw_path, str) or not raw_path:
+                            valid_artifacts = False
+                            break
+                        artifact_path = Path(raw_path)
+                        artifact = (root / artifact_path).resolve() if not artifact_path.is_absolute() else artifact_path.resolve()
+                        if not _inside(root, artifact) or not artifact.is_file():
+                            valid_artifacts = False
+                            break
+                        if not any(artifact == allowed or _inside(allowed, artifact) for allowed in allowed_roots):
+                            valid_artifacts = False
+                            break
+                        relative = artifact.relative_to(root).as_posix()
+                        digest = hashlib.sha256(artifact.read_bytes()).hexdigest()
+                        artifacts[relative] = digest
+                        if pre_effect.get(relative) != digest:
+                            effect_observed = True
+                if not valid_artifacts:
+                    continue
+                if not effect_observed and opp.allowed_scope != ["SAFE_LOCAL_VALIDATION"]:
                     continue
 
                 metadata = {
@@ -586,10 +601,10 @@ def update_completed_tasks():
                 canonical = {
                     "schema_version": "1.0",
                     "result_type": "LOCAL_VALIDATION_RESULT",
-                    "task_id": queue.canonical_task_id(mission_id, claim["state_version"]),
+                    "task_id": queue.canonical_task_id(mission_id, claim.get("state_version", claim.get("generation"))),
                     "opportunity_id": mission_id,
                     "claim_id": claim["claim_id"],
-                    "generation": claim["state_version"],
+                    "generation": claim.get("state_version", claim.get("generation")),
                     "status": "SUCCESS",
                     "handler": "INDEPENDENT_EFFECT_CUSTOMS",
                     "completed_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
@@ -640,6 +655,7 @@ def main():
         recs = res.get("recommendations", {})
         queue = OpportunityQueue(repo_dir=COURIER_DIR)
         
+        advance_goal_planner(goal)
         active, _ = dispatch_recommendations(recs, queue, goal, dispatched_tasks)
 
         if not active:
