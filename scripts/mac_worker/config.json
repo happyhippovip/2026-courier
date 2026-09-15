@@ -1,6 +1,6 @@
 {
-  "COURIER_SERVER": "local",
   "WORKER_ID": "MAC-01",
-  "WORKER_CAPABILITIES": ["macos", "shell", "python", "git", "filesystem", "antigravity"],
-  "POLL_INTERVAL_SECONDS": 5
+  "POLL_INTERVAL_SECONDS": 5,
+  "COURIER_SERVER": "http://127.0.0.1:8080",
+  "COURIER_API_KEY": "prod-secret-12345"
 }
