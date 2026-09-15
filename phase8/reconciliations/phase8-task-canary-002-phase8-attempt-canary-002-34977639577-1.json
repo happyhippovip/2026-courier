@@ -1,0 +1,13 @@
+{
+  "attempt_id": "phase8-attempt-canary-002",
+  "github_run_attempt": "1",
+  "github_run_id": "34977639577",
+  "idempotency_key": "phase8-idempotency-0002",
+  "next_safe_state": "HUMAN_REVIEW_REQUIRED",
+  "proposal_head": "phase8/result-proposal-34977639577-1",
+  "proposal_pr": "8",
+  "status": "HANDOFF_RECONCILED",
+  "task_id": "phase8-task-canary-002",
+  "verifier_id": "phase8-independent-verifier-v1",
+  "worker_result_id": "worker-phase8-attempt-canary-002"
+}
