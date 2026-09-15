@@ -290,7 +290,10 @@ class HeavyProcessSupervisorTests(unittest.TestCase):
             with self.assertRaisesRegex(AdmissionRejected, "QUEUE_FULL"):
                 supervisor.admission.admit(supervisor._conn, "overflow", 1, "owner")
             supervisor.admission.release(supervisor._conn, "active", 1)
-            self.assertEqual(supervisor.admission.admit(supervisor._conn, "next", 1, "owner"), "ADMITTED")
+            self.assertEqual(supervisor.admission.admit(supervisor._conn, "pending", 1, "owner"), "ADMITTED")
+            self.assertEqual(
+                supervisor._conn.execute("SELECT COUNT(*) FROM admission_work WHERE job_id='pending' AND attempt=1").fetchone()[0], 1
+            )
 
     def test_startup_nonterminal_quarantines_without_killing_foreign_process(self) -> None:
         foreign = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(5)"])
@@ -303,6 +306,24 @@ class HeavyProcessSupervisorTests(unittest.TestCase):
         finally:
             foreign.terminate()
             foreign.wait(timeout=2)
+
+    def test_pending_survives_restart_without_safe_mode(self) -> None:
+        with self.supervisor(max_pending=1).ownership() as supervisor:
+            supervisor.admission.admit(supervisor._conn, "active", 1, "owner")
+            self.assertEqual(supervisor.admission.admit(supervisor._conn, "pending", 1, "owner"), "PENDING")
+            supervisor.admission.release(supervisor._conn, "active", 1)
+        with self.supervisor(max_pending=1).ownership() as supervisor:
+            self.assertEqual(
+                supervisor._conn.execute("SELECT state FROM admission_work WHERE job_id='pending'").fetchone()[0], "PENDING"
+            )
+            self.assertEqual(supervisor._conn.execute("SELECT enabled FROM safety_mode").fetchone()[0], 0)
+
+    def test_known_memory_pressure_blocks_without_safe_mode(self) -> None:
+        supervisor = self.supervisor(min_available_memory_bytes=100, resource_probe=lambda: 99)
+        with self.assertRaisesRegex(AdmissionRejected, "MEMORY_PRESSURE"):
+            supervisor.run("pressure", [sys.executable, "-c", ""], timeout_seconds=1)
+        with sqlite3.connect(self.runtime / "heavy_jobs.sqlite3") as conn:
+            self.assertEqual(conn.execute("SELECT enabled FROM safety_mode").fetchone()[0], 0)
 
     def test_safe_mode_clear_requires_no_recovery_required_work(self) -> None:
         with self.supervisor().ownership() as supervisor:

@@ -182,7 +182,6 @@ class GlobalAdmissionRecovery:
                 self._enter_safe_mode(conn, "AMBIGUOUS_RESOURCE_STATE", owner_id)
                 raise AdmissionRejected("AMBIGUOUS_RESOURCE_STATE_PROCESS_STARTED=NO")
             if available < self.min_available_memory_bytes:
-                self._enter_safe_mode(conn, "MEMORY_PRESSURE", owner_id)
                 raise AdmissionRejected("MEMORY_PRESSURE_PROCESS_STARTED=NO")
         conn.execute("BEGIN IMMEDIATE")
         try:
@@ -193,6 +192,15 @@ class GlobalAdmissionRecovery:
                 if existing[0] == "ADMITTED":
                     conn.execute("COMMIT")
                     return "ADMITTED"
+                if existing[0] == "PENDING":
+                    running = conn.execute("SELECT COUNT(*) FROM admission_work WHERE state='ADMITTED'").fetchone()[0]
+                    if running < self.max_running:
+                        conn.execute(
+                            "UPDATE admission_work SET state='ADMITTED', evidence=? WHERE job_id=? AND attempt=?",
+                            (f"available_memory={available if available is not None else 'not-required'}", job_id, attempt),
+                        )
+                        conn.execute("COMMIT")
+                        return "ADMITTED"
                 conn.execute("COMMIT")
                 return existing[0]
             running = conn.execute("SELECT COUNT(*) FROM admission_work WHERE state='ADMITTED'").fetchone()[0]
@@ -224,7 +232,7 @@ class GlobalAdmissionRecovery:
         )
 
     def reconcile_startup(self, conn: sqlite3.Connection, owner_context: str) -> None:
-        nonterminal = ("ADMITTED", "STARTING", "RUNNING", "CANCELLING", "TIMEOUT", "IDLE_TIMEOUT", "UNKNOWN", "AMBIGUOUS", "RECOVERY_REQUIRED", "PENDING")
+        nonterminal = ("ADMITTED", "STARTING", "RUNNING", "CANCELLING", "TIMEOUT", "IDLE_TIMEOUT", "UNKNOWN", "AMBIGUOUS", "RECOVERY_REQUIRED")
         placeholders = ",".join("?" for _ in nonterminal)
         rows = conn.execute(
             f"SELECT job_id, attempt FROM admission_work WHERE state IN ({placeholders})", nonterminal
