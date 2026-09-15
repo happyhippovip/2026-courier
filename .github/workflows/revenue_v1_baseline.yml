@@ -8,7 +8,58 @@ on:
         required: true
 
 jobs:
-  baseline_scan:
+  worker:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Courier
+        uses: actions/checkout@v4
+        
+      - name: Write Task Payload
+        run: echo '${{ inputs.task_json }}' > task.json
+          
+      - name: Execute Revenue V1 Worker
+        run: |
+          python3 scripts/revenue_v1_safety_baseline.py worker task.json work_dir > result.json
+          
+      - name: Upload Worker Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: worker-artifacts
+          path: |
+            task.json
+            work_dir/report.json
+            work_dir/report.md
+            result.json
+
+  verifier:
+    needs: worker
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Courier
+        uses: actions/checkout@v4
+        
+      - name: Download Worker Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: worker-artifacts
+          
+      - name: Execute Independent Verifier
+        run: |
+          python3 scripts/revenue_v1_safety_baseline.py verify task.json work_dir result.json > verified.json
+          
+      - name: Upload Verified Result
+        uses: actions/upload-artifact@v4
+        with:
+          name: verified-artifacts
+          path: |
+            verified.json
+
+  handoff:
+    needs: verifier
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -17,29 +68,16 @@ jobs:
       - name: Checkout Courier
         uses: actions/checkout@v4
         
-      - name: Write Task Payload
-        run: |
-          echo '${{ inputs.task_json }}' > task.json
-          
-      - name: Execute Revenue V1 Worker
-        run: |
-          python3 scripts/revenue_v1_safety_baseline.py worker task.json work_dir > result.json
-          
-      - name: Execute Independent Verifier
-        run: |
-          python3 scripts/revenue_v1_safety_baseline.py verify task.json work_dir result.json > verified.json
-          
-      - name: Create PR Proposal
-        run: |
-          # Normally this uses gh pr create to fulfill the PR_ONLY contract
-          # For now, we simulate the durable result artifact upload
-          echo "Verified result generated, terminating at HUMAN_REVIEW_REQUIRED."
-          
-      - name: Upload Report Artifacts
-        uses: actions/upload-artifact@v4
+      - name: Download Verified Result
+        uses: actions/download-artifact@v4
         with:
-          name: revenue-v1-report
-          path: |
-            work_dir/report.json
-            work_dir/report.md
-            verified.json
+          name: verified-artifacts
+          
+      - name: Phase-8 PR Proposal Handoff
+        run: |
+          if [ ! -f "scripts/phase8_workforce.py" ]; then
+            echo "REAL WALL: scripts/phase8_workforce.py is required for Phase-8 PR proposal but exists only in unmerged PR #8."
+            echo "Stopping here rather than simulating handoff."
+            exit 1
+          fi
+          # If it were here, we would run the reconciler and gh pr create
