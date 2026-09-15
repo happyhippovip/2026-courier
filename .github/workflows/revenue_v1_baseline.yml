@@ -1,0 +1,45 @@
+name: Revenue V1 Baseline
+
+on:
+  workflow_dispatch:
+    inputs:
+      task_json:
+        description: 'Task JSON payload'
+        required: true
+
+jobs:
+  baseline_scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout Courier
+        uses: actions/checkout@v4
+        
+      - name: Write Task Payload
+        run: |
+          echo '${{ inputs.task_json }}' > task.json
+          
+      - name: Execute Revenue V1 Worker
+        run: |
+          python3 scripts/revenue_v1_safety_baseline.py worker task.json work_dir > result.json
+          
+      - name: Execute Independent Verifier
+        run: |
+          python3 scripts/revenue_v1_safety_baseline.py verify task.json work_dir result.json > verified.json
+          
+      - name: Create PR Proposal
+        run: |
+          # Normally this uses gh pr create to fulfill the PR_ONLY contract
+          # For now, we simulate the durable result artifact upload
+          echo "Verified result generated, terminating at HUMAN_REVIEW_REQUIRED."
+          
+      - name: Upload Report Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: revenue-v1-report
+          path: |
+            work_dir/report.json
+            work_dir/report.md
+            verified.json
