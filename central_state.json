@@ -27,6 +27,28 @@
         }
       ],
       "current_step_index": 3
+    },
+    "goal-canary-multi": {
+      "goal_id": "goal-canary-multi",
+      "goal_text": "[\n  {\n    \"target_agent\": \"github\",\n    \"instruction\": \"echo SUCCESS > courier_canary_{task_id}.txt\"\n  },\n  {\n    \"target_agent\": \"mac\",\n    \"instruction\": \"echo SUCCESS > courier_canary_{task_id}.txt\"\n  }\n]",
+      "status": "ACTIVE",
+      "workflow_plan": [
+        {
+          "task_id": "WF-CHIEF-e74953-STEP-1",
+          "goal_id": "goal-canary-multi",
+          "description": "echo SUCCESS > courier_canary_WF-CHIEF-e74953-STEP-1.txt",
+          "target_capability": "github",
+          "status": "DISPATCHED"
+        },
+        {
+          "task_id": "WF-CHIEF-e74953-STEP-2",
+          "goal_id": "goal-canary-multi",
+          "description": "echo SUCCESS > courier_canary_WF-CHIEF-e74953-STEP-2.txt",
+          "target_capability": "mac",
+          "status": "DISPATCHED"
+        }
+      ],
+      "current_step_index": 2
     }
   },
   "tasks": {
@@ -78,6 +100,37 @@
         "worker_id": "MAC-AGY-01",
         "provider": "antigravity",
         "run_id": "46682"
+      }
+    },
+    "WF-CHIEF-e74953-STEP-1": {
+      "task_id": "WF-CHIEF-e74953-STEP-1",
+      "goal_id": "goal-canary-multi",
+      "description": "echo SUCCESS > courier_canary_WF-CHIEF-e74953-STEP-1.txt",
+      "target_capability": "github",
+      "status": "RECONCILED",
+      "result": {
+        "task_id": "WF-CHIEF-e74953-STEP-1",
+        "goal_id": "goal-canary-multi",
+        "status": "SUCCESS",
+        "provider": "github",
+        "worker_id": "GITHUB-HOSTED",
+        "exit_code": 0
+      }
+    },
+    "WF-CHIEF-e74953-STEP-2": {
+      "task_id": "WF-CHIEF-e74953-STEP-2",
+      "goal_id": "goal-canary-multi",
+      "description": "echo SUCCESS > courier_canary_WF-CHIEF-e74953-STEP-2.txt",
+      "target_capability": "mac",
+      "status": "FAILED_VERIFICATION",
+      "result": {
+        "status": "SUCCESS",
+        "stdout_summary": "Executed instruction: created file courier_canary_WF-CHIEF-e74953-STEP-2.txt with content 'SUCCESS'.",
+        "goal_id": "goal-canary-multi",
+        "task_id": "WF-CHIEF-e74953-STEP-2",
+        "worker_id": "MAC-AGY-01",
+        "provider": "antigravity",
+        "run_id": "50247"
       }
     }
   }
