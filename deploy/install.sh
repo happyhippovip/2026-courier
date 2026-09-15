@@ -47,5 +47,5 @@ if [[ ! -e "$config_dir/courier.secrets" ]]; then
 fi
 
 systemctl daemon-reload
-systemctl enable --now courier.service
-echo "Courier is installed. Configure $config_dir/courier.env and $config_dir/courier.secrets before enabling external workers."
+systemctl enable courier.service
+echo "Courier is installed but not started. Configure $config_dir/courier.env and $config_dir/courier.secrets, then run: systemctl start courier.service"

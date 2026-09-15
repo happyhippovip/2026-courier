@@ -14,7 +14,7 @@ cd /opt/courier
 sudo deploy/install.sh
 sudoedit /etc/courier/courier.env
 sudoedit /etc/courier/courier.secrets
-sudo systemctl restart courier
+sudo systemctl start courier
 ```
 
 `install.sh` is also safe to re-run to shallow-fetch the configured
@@ -23,12 +23,17 @@ unprivileged `courier` account, initializes state, and replaces the checkout's
 `events` path with a symlink to durable state, preserving the checkout's
 tracked event structure on first install. Configure workers and providers in
 the two `/etc/courier` files; do not add credentials to the checkout.
+`install.sh` enables but intentionally does not start the service, preventing
+an incomplete configuration from creating a restart loop.
 
 The service starts and polls an empty durable queue without contacting Google,
-ChatGPT, Codex, Windows, or macOS. Existing tasks decide whether to use an
-available worker. Any existing GitHub-hosted bounded work remains configured
-by its own task/provider environment; this service does not create a broker or
-network dependency.
+ChatGPT, Codex, Windows, or macOS. Before each poll, the wrapper holds queued
+work fail-closed unless its `target_agent` is explicitly listed in
+`COURIER_ALLOWED_TARGET_AGENTS`; tasks with no `target_agent` are never passed
+to the supervisor's internal default. Set that allow-list only for workers
+actually provisioned on this host. Any existing GitHub-hosted bounded work
+remains configured by its own task/provider environment; this service does not
+create a broker or network dependency.
 
 Courier's logs use a dedicated systemd journal namespace bounded to 200 MiB
 with 100 MiB host free space reserved. Read them with:
