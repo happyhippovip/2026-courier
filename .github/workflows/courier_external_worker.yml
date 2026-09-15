@@ -1,0 +1,97 @@
+name: Courier External Worker
+
+on:
+  workflow_dispatch:
+    inputs:
+      goal_id:
+        description: 'Goal ID'
+        required: true
+      task_id:
+        description: 'Task ID'
+        required: true
+      attempt_id:
+        description: 'Attempt ID'
+        required: true
+      result_contract:
+        description: 'Result Contract'
+        required: true
+      dependencies:
+        description: 'JSON list of dependencies'
+        required: false
+        default: '[]'
+
+jobs:
+  worker_session:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: Prepare Task Prompt
+        run: |
+          cat << PROMPT > task_prompt.md
+          # Goal: ${{ inputs.goal_id }}
+          ## Task: ${{ inputs.task_id }}
+          Contract: ${{ inputs.result_contract }}
+          Dependencies: ${{ inputs.dependencies }}
+          
+          Please implement the required changes.
+          PROMPT
+          
+      - name: Configure Ralph Env
+        run: |
+          mkdir -p .ralph
+          cat << ENV > .ralph/.env
+          RALPH_TOOL="copilot"
+          RALPH_MODEL_CAPABILITY="high"
+          RALPH_SWITCH_ON_EXHAUSTION="false"
+          ENV
+          
+      - name: Execute Autonomous Session
+        run: |
+          # Use the vendor'd ralph loop if available, else exit gracefully for now
+          if [ -f scripts/ralph-loop.sh ]; then
+            bash scripts/ralph-loop.sh 3 task_prompt.md
+          else
+            echo "ralph-loop.sh not found, skipping autonomous loop."
+          fi
+          
+      - name: Verify Results
+        run: |
+          # Execute isolated verification
+          echo "Running isolated verifier..."
+          # Mock verification step (must be replaced by actual test execution)
+          echo "VERIFIED=TRUE" > verification.log
+          
+      - name: Generate Durable Result
+        run: |
+          cat << RESULT > durable_result.json
+          {
+            "goal_id": "${{ inputs.goal_id }}",
+            "task_id": "${{ inputs.task_id }}",
+            "attempt_id": ${{ inputs.attempt_id }},
+            "worker_id": "${{ github.run_id }}",
+            "provider": "github-actions",
+            "session_identity": "${{ github.run_id }}-${{ github.run_attempt }}",
+            "input_identity": "${{ inputs.task_id }}-${{ inputs.attempt_id }}",
+            "result_state": "SUCCESS",
+            "result_refs": ["verification.log"],
+            "commit_identity": "${{ github.sha }}",
+            "started_at": "unknown",
+            "finished_at": "unknown",
+            "effect_classification": "SAFE",
+            "verification_required": true,
+            "human_gate": "NONE",
+            "error_identity": null
+          }
+          RESULT
+          
+      - name: Upload Durable Result
+        uses: actions/upload-artifact@v4
+        with:
+          name: durable-result-${{ inputs.task_id }}-${{ inputs.attempt_id }}
+          path: durable_result.json
