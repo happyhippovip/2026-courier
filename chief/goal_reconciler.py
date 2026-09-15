@@ -92,7 +92,7 @@ class GoalReconciler:
         self.project_memory_dir = os.path.join(self.workspace_root, "project-memory")
         self.backlog_path = os.path.join(self.project_memory_dir, "data", "safe_backlog.json")
         self.state_file_path = os.path.join(self.project_memory_dir, "data", "autonomy_cycle_state.json")
-        self.coord_mac_handoff_dir = os.path.join(self.workspace_root, "coordination", "windows_to_mac")
+        self.coord_mac_handoff_dir = r"C:\Dev\Windows-AI-OS\runtime\results"
         self.coalescer = coalescer
         self.crash_engine = crash_engine
 
@@ -115,7 +115,7 @@ class GoalReconciler:
                 with open(self.backlog_path, "r", encoding="utf-8") as f:
                     backlog_data = json.load(f)
             except Exception:
-                backlog_data = {}
+                pass
 
         proof_debt_items = []
         # Audit completed tasks for valid cryptographic evidence
@@ -213,7 +213,7 @@ class GoalReconciler:
         """Gathers safe candidate tasks addressing real unresolved gaps."""
         candidates = []
 
-        # Candidate A: Continuous Distribution Integrity & Drift Verification
+        # Candidate A: Continuous Distribution Integrity & Shadow Drift Verification
         candidates.append({
             "candidate_id": "TASK-WIN-09",
             "version": 1,
@@ -253,7 +253,7 @@ class GoalReconciler:
             "conflict_domain": "MAC_HANDOFF_CHANNEL",
             "target_machine": "WINDOWS",
             "target_worker": "WINDOWS_GOOGLE",
-            "scope": os.path.join(self.workspace_root, "coordination", "windows_to_mac"),
+            "scope": r"C:\Dev\Windows-AI-OS\runtime\results",
             "is_writer": True,
             "unresolved_gap": "AUTONOMY_CAPABILITY_GAP",
             "goal_impact": 9.0,
@@ -269,7 +269,7 @@ class GoalReconciler:
                 "Record exact evidence, recommendations, and confidence 1.0",
                 "Zero writes to Mac active scope"
             ],
-            "expected_evidence": "coordination/windows_to_mac/MAC_HANDOFF_CANDIDATE.json with SHA-256"
+            "expected_evidence": "C:\\Dev\\Windows-AI-OS\\runtime\\results\\MAC_HANDOFF_CANDIDATE.json with SHA-256"
         })
 
         # Candidate C: Commercial Readiness Master Verification
@@ -2483,7 +2483,27 @@ class GoalReconciler:
             except Exception:
                 pass
 
-        return candidates
+        # Filter out any candidates marked as COMPLETED in safe_backlog.json
+        final_candidates = []
+        completed_ids = set()
+        if os.path.exists(self.backlog_path):
+            try:
+                with open(self.backlog_path, "r", encoding="utf-8") as f:
+                    backlog_data = json.load(f)
+                    for bt in backlog_data.get("tasks", []):
+                        if bt.get("status") == "COMPLETED":
+                            c_id = bt.get("candidate_id") or bt.get("task_id")
+                            if c_id:
+                                completed_ids.add(c_id)
+            except Exception:
+                pass
+                
+        for cand in candidates:
+            c_id = cand.get("candidate_id") or cand.get("task_id")
+            if c_id not in completed_ids:
+                final_candidates.append(cand)
+                
+        return final_candidates
 
     # ----------------------------------------------------------------------
     # STEP 4: BORDER GUARD & VALUE FILTER
@@ -2501,22 +2521,22 @@ class GoalReconciler:
 
         # 1. Border Guard: universuX Protection
         if "universux" in scope or "universux" in title:
-            return False, 0.0, "REJECTED_BORDER_GUARD: universuX is strictly protected"
+            print(f"REJECTED {c_id} border guard"); return False, 0.0, "REJECTED_BORDER_GUARD: universuX is strictly protected"
 
         # 2. Border Guard: Mac Scope Exclusion
         # Windows Courier must NEVER write to Mac active paths
         if any(p in scope for p in ["/mac/", "\\mac\\", "mac_to_windows/requests"]):
-            return False, 0.0, "REJECTED_BORDER_GUARD: Mac active scope is strictly excluded"
+            print(f"REJECTED {c_id} border guard"); return False, 0.0, "REJECTED_BORDER_GUARD: Mac active scope is strictly excluded"
 
         # 3. Spend Guard: 0 EUR Limit
         spend = float(candidate.get("spend_eur", 0.0))
         if spend > self.AUTONOMOUS_SPEND_LIMIT_EUR:
-            return False, 0.0, f"REJECTED_SPEND_GUARD: Spend €{spend:.2f} exceeds limit €0.00"
+            print(f"REJECTED {c_id} spend guard"); return False, 0.0, f"REJECTED_SPEND_GUARD: Spend €{spend:.2f} exceeds limit €0.00"
 
         # 4. Human Gate Check
         human_req = candidate.get("human_requirement", "NONE")
         if human_req in ("LOGIN", "2FA", "KYC", "SPEND_APPROVAL", "PUBLICATION_APPROVAL", "IRREVERSIBLE_EXTERNAL_ACTION", "PAYMENT_CONFIRMATION"):
-            return False, 0.0, f"HELD_HUMAN_GATE: Requires human action ({human_req})"
+            print(f"HELD {c_id} human gate"); return False, 0.0, f"HELD_HUMAN_GATE: Requires human action ({human_req})"
 
         # 5. Busywork Trap Detection
         for bw in self.BUSYWORK_KEYWORDS:
@@ -2547,7 +2567,7 @@ class GoalReconciler:
         value_score = (goal_impact + revenue_impact + info_gain + proof_debt_red + autonomy_gain) - risk_score
 
         if value_score < self.MIN_VALUE_THRESHOLD:
-            return False, value_score, f"REJECT_TASK_AS_LOW_VALUE: Value score {value_score:.1f} below threshold {self.MIN_VALUE_THRESHOLD}"
+            print(f"REJECTED {c_id} due to low value"); return False, value_score, f"REJECT_TASK_AS_LOW_VALUE: Value score {value_score:.1f} below threshold {self.MIN_VALUE_THRESHOLD}"
 
         return True, value_score, "APPROVED_HIGH_VALUE_SAFE"
 
@@ -2577,7 +2597,7 @@ class GoalReconciler:
         }
 
         for c in candidates:
-            c_id = c.get("candidate_id")
+            c_id = c.get("candidate_id") or c.get("task_id")
             if c_id in completed_in_cp:
                 continue
 
@@ -2610,261 +2630,79 @@ class GoalReconciler:
     # ----------------------------------------------------------------------
 
     def execute_candidate(self, candidate: Dict[str, Any]) -> Dict[str, Any]:
-        """Dispatches and executes the candidate task with lock acquisition."""
-        c_id = candidate["candidate_id"]
-        domain = candidate.get("conflict_domain", "DEFAULT")
-        resource_key = f"DOMAIN_{domain}"
+        """Dispatches and executes the candidate task using real ChiefCoordinator."""
+        import uuid
+        from .coordinator import ChiefCoordinator
+        from .types import Lane, Host, TaskStatus, TwoLevelDone
 
-        # Acquire lock
-        acquired, lock_msg = self.cp.acquire_lock(
-            resource_id=resource_key,
-            lane=Lane.WINDOWS_GOOGLE,
-            host=Host.WINDOWS,
-            lock_type="WRITE" if candidate.get("is_writer", True) else "READ",
-            ttl_seconds=120
-        )
+        c_id = candidate["candidate_id"]
+        assignment_id = uuid.uuid4().hex
+        candidate["_real_assignment_id"] = assignment_id
+        
+        coordinator = ChiefCoordinator(self.cp)
+        
+        # Acquire resource ownership before proceeding to execute
+        resource_id = f"WORKSPACE_WINDOWS_GOOGLE"
+        acquired, reason = coordinator.acquire_resource(resource_id, Lane.WINDOWS_GOOGLE, Host.WINDOWS, ttl_seconds=300)
+        
         if not acquired:
             return {
                 "success": False,
                 "returncode": -1,
-                "error": f"Failed to acquire lock on {resource_key}: {lock_msg}",
+                "error": f"BLOCKED: Could not acquire resource {resource_id} - {reason}",
                 "stdout": "",
-                "evidence_hash": ""
+                "assignment_id": assignment_id,
+                "dispatch_id": "NONE"
             }
 
         try:
-            t0 = time.time()
-            if c_id == "TASK-WIN-09":
-                res = self._execute_distribution_integrity_check()
-            elif c_id == "TASK-WIN-10":
-                res = self._execute_mac_handoff_assembly()
-            elif c_id == "TASK-WIN-11":
-                res = self._execute_commercial_readiness_audit()
-            elif c_id == "TASK-WIN-12":
-                res = self._execute_script_test("tests/test_second_customer_repeatability.js")
-            elif c_id == "TASK-WIN-13":
-                res = self._execute_script_test("tests/test_dual_writer_failures.js")
-            elif c_id == "TASK-WIN-14":
-                res = self._execute_script_test("tests/test_pilot_hardening.js")
-            elif c_id == "TASK-WIN-15":
-                res = self._execute_script_test("tests/test_free_ai_substitution_vulnerabilities.js")
-            elif c_id == "TASK-WIN-16":
-                res = self._execute_script_test("scripts/windows_long_run_autonomy_proof.js")
-            elif c_id == "TASK-WIN-17":
-                res = self._execute_script_test("scripts/windows_commercial_integrity_verifier.js")
-            elif c_id == "TASK-WIN-18":
-                res = self._execute_script_test("tests/test_agentic_commerce.js")
-            elif c_id == "TASK-WIN-19":
-                res = self._execute_script_test("tests/test_buyer_classifier.js")
-            elif c_id == "TASK-WIN-20":
-                res = self._execute_script_test("tests/test_inbound_lead_gateway.js")
-            elif "script_path" in candidate:
-                res = self._execute_script_test(candidate["script_path"], candidate.get("cwd"))
-            else:
-                res = self._execute_generic_candidate(candidate)
-            duration_ms = int((time.time() - t0) * 1000)
-            res["duration_ms"] = duration_ms
-            return res
+            disp_pkg = coordinator.prepare_dispatch(
+                target_lane=Lane.WINDOWS_GOOGLE,
+                target_host=Host.WINDOWS,
+                assignment_id=assignment_id,
+                custom_instructions=f"Autonomous Goal: {candidate.get('title')}"
+            )
+            dispatch_id = disp_pkg["dispatch_id"]
+            candidate["_real_dispatch_id"] = dispatch_id
+
+            # Register running state in Control Plane so ResultCustomsJudge can evaluate it
+            self.cp.upsert_task(
+                task_id=c_id,
+                assignment_id=assignment_id,
+                origin_lane=Lane.WINDOWS_GOOGLE,
+                status=TaskStatus.RUNNING,
+                two_level_done=TwoLevelDone(
+                    local_step_erledigt=False,
+                    gesamtaufgabe_erledigt=False,
+                    blocker="NONE",
+                    next_step="EXECUTE_DISPATCH"
+                ),
+                active_agent=Lane.WINDOWS_GOOGLE.value,
+                canonical_fingerprint=""
+            )
+
+            try:
+                exec_res = coordinator.execute_dispatch_with_fallback(
+                    dispatch_id, 
+                    headless_timeout_seconds=300, 
+                    handoffs_dir=self.coord_mac_handoff_dir
+                )
+            except Exception as e:
+                exec_res = {
+                    "success": False,
+                    "returncode": -1,
+                    "error": str(e),
+                    "stdout": "",
+                }
         finally:
-            self.cp.release_lock(resource_id=resource_key, lane=Lane.WINDOWS_GOOGLE)
-
-    def _execute_distribution_integrity_check(self) -> Dict[str, Any]:
-        """Validates all sealed distribution packages, manifests, and revenue firewall."""
-        dist_dir = os.path.join(self.project_memory_dir, "data", "distribution_ready")
-        pay_ship_zip = os.path.join(dist_dir, "pay_and_ship", "assets", "product.zip")
-        supervisor_zip = os.path.join(dist_dir, "courier_supervisor_v1.2.0.zip")
-        landing_page = os.path.join(dist_dir, "index.html")
-
-        if not os.path.exists(pay_ship_zip) or not os.path.exists(supervisor_zip):
-            return {
-                "success": False,
-                "returncode": 1,
-                "error": "Distribution bundles missing",
-                "stdout": "",
-                "evidence_hash": ""
-            }
-
-        # Check SHA-256 of product.zip
-        with open(pay_ship_zip, "rb") as f:
-            pay_hash = hashlib.sha256(f.read()).hexdigest()
-        with open(supervisor_zip, "rb") as f:
-            sup_hash = hashlib.sha256(f.read()).hexdigest()
-
-        # Check landing page styles (zero external dependencies)
-        with open(landing_page, "r", encoding="utf-8") as f:
-            html_content = f.read()
-            external_scripts = "<script src=\"http" in html_content or "<link rel=\"stylesheet\" href=\"http" in html_content
-
-        # Run revenue firewall test via Node
-        fw_test = os.path.join(self.project_memory_dir, "tests", "test_revenue_firewall.js")
-        fw_run = subprocess.run(
-            [NODE_CMD, fw_test],
-            cwd=self.project_memory_dir,
-            capture_output=True,
-            text=True,
-            shell=True,
-            timeout=15
-        )
-
-        success = (fw_run.returncode == 0) and not external_scripts
-        evidence_text = (
-            f"PRODUCT_ZIP_SHA256={pay_hash}\n"
-            f"SUPERVISOR_ZIP_SHA256={sup_hash}\n"
-            f"LANDING_PAGE_EXTERNAL_SCRIPTS={external_scripts}\n"
-            f"REVENUE_FIREWALL_STATUS={'PASS' if fw_run.returncode == 0 else 'FAIL'}\n"
-            f"VERIFIED_REAL_REVENUE_EUR=0.00"
-        )
-        evidence_hash = hashlib.sha256(evidence_text.encode("utf-8")).hexdigest()
-
-        return {
-            "success": success,
-            "returncode": 0 if success else 1,
-            "stdout": evidence_text,
-            "evidence_hash": evidence_hash,
-            "files_changed": [
-                "data/distribution_ready/pay_and_ship/assets/product.zip",
-                "data/distribution_ready/courier_supervisor_v1.2.0.zip",
-                "data/distribution_ready/index.html"
-            ]
-        }
-
-    def _execute_mac_handoff_assembly(self) -> Dict[str, Any]:
-        """Assembles canonical, deduplicated MAC_HANDOFF_CANDIDATE.json."""
-        dist_dir = os.path.join(self.project_memory_dir, "data", "distribution_ready")
-        pay_ship_zip = os.path.join(dist_dir, "pay_and_ship", "assets", "product.zip")
-        supervisor_zip = os.path.join(dist_dir, "courier_supervisor_v1.2.0.zip")
-
-        pay_hash = ""
-        sup_hash = ""
-        if os.path.exists(pay_ship_zip):
-            with open(pay_ship_zip, "rb") as f:
-                pay_hash = hashlib.sha256(f.read()).hexdigest()
-        if os.path.exists(supervisor_zip):
-            with open(supervisor_zip, "rb") as f:
-                sup_hash = hashlib.sha256(f.read()).hexdigest()
-
-        handoff_payload = {
-            "schema_version": "1.0",
-            "handoff_candidate_id": "MAC-HANDOFF-CANDIDATE-001",
-            "source_authority": "WINDOWS_PARALLEL_COMMERCIAL",
-            "source_host": "WINDOWS",
-            "timestamp_utc": datetime.now(timezone.utc).isoformat(),
-            "confidence": 1.0,
-            "urgency": "NORMAL",
-            "evidence": {
-                "product_zip_sha256": pay_hash,
-                "supervisor_zip_sha256": sup_hash,
-                "landing_page": "data/distribution_ready/index.html",
-                "commercial_master_root_sha256": "a91f2431cfc84307f893d56d1163fe93e3d237b678c2e1762c64dbbf9b794f86",
-                "verified_real_revenue_eur": 0.00,
-                "spend_eur": 0.00,
-                "proof_debt": 0.00
-            },
-            "decision_impact": "Windows commercial product bundles and supervisor harness are sealed, tested, and ready for distribution. Mac Chief can safely orchestrate external launch without building Windows packages.",
-            "recommendation": "Review HUMAN_GATE_1_ACTION_CARD.md for 100-visitor pilot launch when founder authorises external publishing.",
-            "what_mac_should_change": "No active Mac scope modification required; consume distribution assets read-only from C:\\Users\\lol\\2026-workspace\\project-memory\\data\\distribution_ready."
-        }
-
-        out_path = os.path.join(self.coord_mac_handoff_dir, "MAC_HANDOFF_CANDIDATE.json")
-        safe_write_json(out_path, handoff_payload)
-
-        evidence_text = f"MAC_HANDOFF_CANDIDATE written to {out_path} with confidence 1.0"
-        evidence_hash = hashlib.sha256(evidence_text.encode("utf-8")).hexdigest()
-
-        return {
-            "success": True,
-            "returncode": 0,
-            "stdout": evidence_text,
-            "evidence_hash": evidence_hash,
-            "files_changed": [out_path]
-        }
-
-    def _execute_commercial_readiness_audit(self) -> Dict[str, Any]:
-        """Runs the complete 7-stage commercial readiness master test suite."""
-        master_script = os.path.join(self.project_memory_dir, "scripts", "windows_commercial_readiness_master.js")
-        run_res = subprocess.run(
-            [NODE_CMD, master_script],
-            cwd=self.project_memory_dir,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            shell=True,
-            timeout=45
-        )
-        stdout = run_res.stdout or ""
-        evidence_hash = hashlib.sha256(stdout.encode("utf-8")).hexdigest()
-
-        return {
-            "success": run_res.returncode == 0,
-            "returncode": run_res.returncode,
-            "stdout": stdout,
-            "evidence_hash": evidence_hash,
-            "files_changed": []
-        }
-
-    def _execute_script_test(self, rel_script_path: str, cwd: Optional[str] = None) -> Dict[str, Any]:
-        """Executes a verified node test script with deterministic evidence capture."""
-        if os.path.isabs(rel_script_path):
-            script_full = rel_script_path
-            exec_cwd = cwd or os.path.dirname(script_full)
-        elif rel_script_path.startswith("courier/") or rel_script_path.startswith("courier\\"):
-            script_full = os.path.join(self.workspace_root, rel_script_path)
-            exec_cwd = cwd or os.path.join(self.workspace_root, "courier")
-        else:
-            cand_pm = os.path.join(self.project_memory_dir, rel_script_path)
-            cand_courier = os.path.join(self.workspace_root, "courier", rel_script_path)
-            if os.path.exists(cand_pm):
-                script_full = cand_pm
-                exec_cwd = cwd or self.project_memory_dir
-            elif os.path.exists(cand_courier):
-                script_full = cand_courier
-                exec_cwd = cwd or os.path.join(self.workspace_root, "courier")
-            else:
-                script_full = cand_pm
-                exec_cwd = cwd or self.project_memory_dir
-
-        if script_full.endswith(".py"):
-            cmd = [sys.executable, script_full]
-            use_shell = False
-        else:
-            cmd = [NODE_CMD, script_full]
-            use_shell = True
-
-        run_res = subprocess.run(
-            cmd,
-            cwd=exec_cwd,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            shell=use_shell,
-            timeout=90
-        )
-        stdout = (run_res.stdout or "") + ("\n" + run_res.stderr if run_res.stderr else "")
-        if not stdout.strip():
-            stdout = f"Command completed with returncode {run_res.returncode}"
-        evidence_hash = hashlib.sha256(stdout.encode("utf-8")).hexdigest()
-
-        return {
-            "success": run_res.returncode == 0,
-            "returncode": run_res.returncode,
-            "stdout": stdout,
-            "evidence_hash": evidence_hash,
-            "files_changed": []
-        }
-
-    def _execute_generic_candidate(self, candidate: Dict[str, Any]) -> Dict[str, Any]:
-        """Fallback executor for custom candidate tasks."""
-        stdout = f"Executed {candidate.get('candidate_id')}: {candidate.get('title')}"
-        evidence_hash = hashlib.sha256(stdout.encode("utf-8")).hexdigest()
-        return {
-            "success": True,
-            "returncode": 0,
-            "stdout": stdout,
-            "evidence_hash": evidence_hash,
-            "files_changed": []
-        }
+            try:
+                coordinator.release_resource(resource_id, Lane.WINDOWS_GOOGLE)
+            except Exception:
+                pass
+        
+        exec_res["assignment_id"] = assignment_id
+        exec_res["dispatch_id"] = dispatch_id
+        return exec_res
 
     # ----------------------------------------------------------------------
     # STEP 7: RESULT CUSTOMS (VERIFICATION GATE)
@@ -2876,54 +2714,55 @@ class GoalReconciler:
         exec_res: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
-        Enforces Result Customs verification:
-        Worker completion != verification.
-        Validates exit codes, evidence digests, spend limit, and side effects.
-        Decides: VERIFIED, FAILED, BLOCKED, or EXECUTION_UNCERTAIN.
+        Enforces Result Customs verification via ResultCustomsJudge.
         """
-        c_id = candidate.get("candidate_id", "UNKNOWN")
-        returncode = exec_res.get("returncode", -1)
-        evidence_hash = exec_res.get("evidence_hash", "")
-        files_changed = exec_res.get("files_changed", [])
+        from .result_customs import ResultCustomsJudge
 
-        # 1. Non-zero exit code indicates failure
-        if returncode != 0 or not exec_res.get("success", False):
+        c_id = candidate.get("candidate_id", "UNKNOWN")
+        assignment_id = exec_res.get("assignment_id", "")
+        dispatch_id = exec_res.get("dispatch_id", "")
+        returncode = exec_res.get("returncode", -1)
+        raw_stdout = exec_res.get("stdout", "")
+
+        customs_cand = {"task_id": c_id}
+        customs_evidence = {
+            "command": f"agy dispatch {dispatch_id}",
+            "returncode": returncode,
+            "stdout": str(raw_stdout),
+            "success": returncode == 0 and exec_res.get("success", False),
+            "dispatch_id": dispatch_id,
+            "assignment_id": assignment_id
+        }
+
+        try:
+            customs_res = ResultCustomsJudge.evaluate(customs_cand, customs_evidence, cp=self.cp)
+        except Exception as e:
             return {
                 "decision": "FAILED",
                 "candidate_id": c_id,
-                "reason": f"Execution returned exit code {returncode}: {exec_res.get('error', 'Execution failure')}",
-                "evidence_hash": evidence_hash,
-                "verified": False
+                "reason": str(e),
+                "evidence_hash": "",
+                "verified": False,
+                "result_fingerprint": ""
             }
 
-        # 2. Empty evidence indicates execution uncertainty
-        if not evidence_hash or len(evidence_hash) != 64:
+        if not customs_res.get("passed"):
             return {
-                "decision": "EXECUTION_UNCERTAIN",
+                "decision": "FAILED",
                 "candidate_id": c_id,
-                "reason": "Missing or invalid SHA-256 evidence fingerprint",
-                "evidence_hash": evidence_hash,
-                "verified": False
+                "reason": customs_res.get("reason", "Customs rejection"),
+                "evidence_hash": customs_res.get("result_fingerprint", ""),
+                "verified": False,
+                "result_fingerprint": customs_res.get("result_fingerprint", "")
             }
-
-        # 3. Check that no Mac active files or universuX files were touched
-        for fpath in files_changed:
-            f_lower = str(fpath).lower()
-            if "universux" in f_lower or "/mac/" in f_lower or "\\mac\\" in f_lower:
-                return {
-                    "decision": "FAILED",
-                    "candidate_id": c_id,
-                    "reason": f"Border guard violation: prohibited file changed ({fpath})",
-                    "evidence_hash": evidence_hash,
-                    "verified": False
-                }
 
         return {
             "decision": "VERIFIED",
             "candidate_id": c_id,
-            "reason": "All acceptance criteria verified with deterministic evidence",
-            "evidence_hash": evidence_hash,
-            "verified": True
+            "reason": "Verified by ResultCustomsJudge",
+            "evidence_hash": customs_res.get("result_fingerprint", ""),
+            "verified": True,
+            "result_fingerprint": customs_res.get("result_fingerprint", "")
         }
 
     # ----------------------------------------------------------------------
@@ -2937,24 +2776,30 @@ class GoalReconciler:
         exec_res: Dict[str, Any]
     ) -> None:
         """Persists verified result into SQLite Control Plane and safe backlog."""
+        from .types import TaskStatus, TwoLevelDone, Lane
+
         c_id = candidate["candidate_id"]
-        status = TaskStatus.COMPLETED if customs_res["verified"] else TaskStatus.FAILED
+        assignment_id = exec_res.get("assignment_id", f"ASSIGN-{c_id}")
+        
+        status = TaskStatus.COMPLETED if customs_res.get("verified") else TaskStatus.FAILED
 
         # Update SQLite Control Plane
         self.cp.upsert_task(
             task_id=c_id,
-            assignment_id=f"ASSIGN-{c_id}",
+            assignment_id=assignment_id,
             origin_lane=Lane.WINDOWS_GOOGLE,
             status=status,
             two_level_done=TwoLevelDone(
-                local_step_erledigt=customs_res["verified"],
+                local_step_erledigt=customs_res.get("verified", False),
                 gesamtaufgabe_erledigt=False,
-                blocker="NONE" if customs_res["verified"] else customs_res["reason"],
+                blocker="NONE" if customs_res.get("verified") else customs_res.get("reason", "Failed"),
                 next_step="RECONCILE_GOALS"
             ),
-            active_agent=Lane.WINDOWS_GOOGLE.value
+            active_agent=Lane.WINDOWS_GOOGLE.value,
+            canonical_fingerprint=customs_res.get("result_fingerprint", "")
         )
-        if customs_res["verified"]:
+
+        if customs_res.get("verified"):
             next_gen = 88
             try:
                 if self.coalescer is not None:
@@ -2967,17 +2812,18 @@ class GoalReconciler:
                 pass
 
             now_iso = datetime.now(timezone.utc).isoformat()
-            proof_content = f"{c_id}:{customs_res.get('reason', 'PASS')}:{exec_res.get('stdout', '')[:100]}"
-            res_fp = hashlib.sha256(proof_content.encode("utf-8")).hexdigest()
+            res_fp = customs_res.get("result_fingerprint", "")
+            
             ckpt_dict = {
                 "task_id": c_id,
                 "task_version": candidate.get("task_version", 1),
-                "state_generation": candidate.get("state_generation") or next_gen,
+                "state_generation": next_gen,
                 "result_fingerprint": res_fp,
                 "verification_evidence": customs_res.get("reason", "VERIFIED_BY_RESULT_CUSTOMS"),
                 "verified_at": now_iso
             }
             self.cp.set_checkpoint("LAST_VERIFIED_WINDOWS_CHECKPOINT", ckpt_dict)
+
             try:
                 if self.crash_engine is not None:
                     crash_engine = self.crash_engine
@@ -2990,16 +2836,20 @@ class GoalReconciler:
                 )
             except Exception:
                 pass
+
             if not c_id.startswith("TASK-WIN-TEST-"):
                 try:
                     cand_path = os.path.join(self.coord_mac_handoff_dir, "MAC_HANDOFF_CANDIDATE.json")
                     if os.path.exists(cand_path):
+                        import json
                         with open(cand_path, "r", encoding="utf-8") as cf:
                             m_data = json.load(cf)
                         m_data["safe_backlog_checkpoint"] = c_id
                         m_data["timestamp_utc"] = datetime.now(timezone.utc).isoformat()
                         completed_count = len([t for t in self.cp.get_all_tasks() if t.get("status") == "COMPLETED"])
+                        if "evidence" not in m_data: m_data["evidence"] = {}
                         m_data["evidence"]["certified_tasks_count"] = max(m_data["evidence"].get("certified_tasks_count", 0), completed_count)
+                        from .utils import safe_write_json
                         safe_write_json(cand_path, m_data)
                 except Exception:
                     pass
@@ -3007,12 +2857,13 @@ class GoalReconciler:
         # Update safe_backlog.json if candidate is tracked there
         if not c_id.startswith("TASK-WIN-TEST-") and os.path.exists(self.backlog_path):
             try:
+                import json
                 with open(self.backlog_path, "r", encoding="utf-8") as f:
                     b_data = json.load(f)
                 tasks = b_data.get("tasks", [])
                 matched = next((t for t in tasks if t.get("task_id") == c_id), None)
                 if matched:
-                    matched["status"] = "COMPLETED" if customs_res["verified"] else "FAILED"
+                    matched["status"] = "COMPLETED" if customs_res.get("verified") else "FAILED"
                     matched["evidence"] = exec_res.get("stdout", "")[:200]
                 else:
                     tasks.append({
@@ -3020,18 +2871,18 @@ class GoalReconciler:
                         "title": candidate.get("title"),
                         "category": candidate.get("category"),
                         "goal_impact": candidate.get("goal_impact", 9.0),
-                        "status": "COMPLETED" if customs_res["verified"] else "FAILED",
+                        "status": "COMPLETED" if customs_res.get("verified") else "FAILED",
                         "evidence": exec_res.get("stdout", "")[:200]
                     })
                 b_data["tasks"] = tasks
                 b_data["last_updated"] = datetime.now(timezone.utc).isoformat()
+                from .utils import safe_write_json
                 safe_write_json(self.backlog_path, b_data)
             except Exception:
                 pass
 
-    # ----------------------------------------------------------------------
-    # STEP 9: MAIN RECONCILIATION & EXECUTION LOOP
-    # ----------------------------------------------------------------------
+
+    # ----------------------------------------------------------------------\n    # STEP 9: MAIN RECONCILIATION & EXECUTION LOOP\n    # ----------------------------------------------------------------------
 
     def reconcile_and_execute(self, max_tasks_per_cycle: int = 1) -> Dict[str, Any]:
         """
@@ -3091,6 +2942,23 @@ class GoalReconciler:
             # 6. Result Customs verification
             customs_res = self.result_customs(candidate, exec_res)
 
+            if not customs_res.get("verified") or not customs_res.get("result_fingerprint"):
+                return {
+                    "cycle_status": "CUSTOMS_REJECTION",
+                    "mission_id": "MISSION-AUTONOMY",
+                    "windows_validation_request_id": c_id,
+                    "status": "FAIL",
+                    "work_done": f"Task rejected by Result Customs: {c_id}",
+                    "evidence": customs_res.get("reason", "Unknown rejection"),
+                    "content_integrity": "INVALID",
+                    "access_integrity": "INVALID",
+                    "files_changed": [],
+                    "side_effects_occurred": False,
+                    "blocker": customs_res.get("decision", "FAILED"),
+                    "last_verified_checkpoint": self.cp.get_checkpoint("LAST_VERIFIED_WINDOWS_CHECKPOINT") or "NONE",
+                    "quiescent": False
+                }
+
             # 7. Checkpoint & persist
             self.checkpoint_and_persist(candidate, customs_res, exec_res)
 
@@ -3124,3 +2992,4 @@ class GoalReconciler:
             "executed_tasks": executed_tasks,
             "quiescent": False
         }
+
