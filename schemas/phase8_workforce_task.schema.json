@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Phase 8 External Workforce V1 task",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "goal_id", "task_id", "attempt_id", "idempotency_key", "capability", "scope", "budget", "result_contract", "proposal_mode"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "goal_id": { "type": "string", "pattern": "^[A-Za-z0-9._-]{1,128}$" },
+    "task_id": { "type": "string", "pattern": "^[A-Za-z0-9._-]{1,128}$" },
+    "attempt_id": { "type": "string", "pattern": "^[A-Za-z0-9._-]{1,128}$" },
+    "idempotency_key": { "type": "string", "pattern": "^[A-Za-z0-9._-]{16,128}$" },
+    "capability": { "const": "repository-policy-digest-v1" },
+    "scope": { "const": ".github/github-actions-policy.json" },
+    "budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_files", "max_bytes"],
+      "properties": {
+        "max_files": { "const": 1 },
+        "max_bytes": { "type": "integer", "minimum": 1, "maximum": 65536 }
+      }
+    },
+    "result_contract": { "const": "sha256-of-scope-v1" },
+    "proposal_mode": { "const": "PR_ONLY" }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Phase 8 External Workforce V1 result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "goal_id", "task_id", "attempt_id", "idempotency_key", "capability", "scope", "budget", "result_contract", "github_run_id", "github_run_attempt", "worker_result_id", "worker_status", "verifier_id", "verifier_status", "proposal_mode", "digest_sha256"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "goal_id": { "type": "string" },
+    "task_id": { "type": "string" },
+    "attempt_id": { "type": "string" },
+    "idempotency_key": { "type": "string" },
+    "capability": { "const": "repository-policy-digest-v1" },
+    "scope": { "const": ".github/github-actions-policy.json" },
+    "budget": { "type": "object" },
+    "result_contract": { "const": "sha256-of-scope-v1" },
+    "github_run_id": { "type": "string", "pattern": "^[0-9]+$" },
+    "github_run_attempt": { "type": "string", "pattern": "^[0-9]+$" },
+    "worker_result_id": { "type": "string", "pattern": "^worker-[A-Za-z0-9._-]{1,128}$" },
+    "worker_status": { "const": "PASS" },
+    "verifier_id": { "const": "phase8-independent-verifier-v1" },
+    "verifier_status": { "const": "PASS" },
+    "proposal_mode": { "const": "PR_ONLY" },
+    "digest_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}
