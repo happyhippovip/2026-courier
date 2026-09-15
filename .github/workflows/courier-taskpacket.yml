@@ -1,5 +1,7 @@
 name: Courier bounded TaskPacket
 
+run-name: Courier TaskPacket ${{ inputs.dispatch_id }}
+
 on:
   workflow_dispatch:
     inputs:
