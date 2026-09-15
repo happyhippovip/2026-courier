@@ -401,8 +401,27 @@ class HeavyProcessSupervisor:
                         owner_context TEXT, state TEXT, timestamp TEXT, evidence TEXT
                     )"""
                 )
-                self._conn.execute("PRAGMA user_version = 1")
-            elif version == 1:
+                version = 1
+            if version == 1:
+                self._conn.execute(
+                    """CREATE TABLE IF NOT EXISTS managed_services (
+                        service_id TEXT PRIMARY KEY,
+                        owner_id TEXT NOT NULL,
+                        pid INTEGER,
+                        pgid INTEGER,
+                        state TEXT NOT NULL
+                    )"""
+                )
+                self._conn.execute(
+                    """CREATE TABLE IF NOT EXISTS managed_listeners (
+                        listener_id TEXT PRIMARY KEY,
+                        service_id TEXT NOT NULL,
+                        owner_id TEXT NOT NULL,
+                        state TEXT NOT NULL
+                    )"""
+                )
+                self._conn.execute("PRAGMA user_version = 2")
+            elif version == 2:
                 pass
             else:
                 raise HeavyProcessError(f"UNSUPPORTED_SCHEMA_VERSION_PROCESS_STARTED=NO:{version}")
@@ -528,6 +547,11 @@ class HeavyProcessSupervisor:
         self, job_id: str, attempt: int, proc: subprocess.Popen[bytes], pid: int, pgid: int,
         observed_fingerprint: str, process_start: str, cleanup_deadline: float,
     ) -> str:
+        open_listeners = self._conn.execute("SELECT listener_id FROM managed_listeners WHERE service_id = ? AND state = 'OPEN'", (job_id,)).fetchall()
+        if open_listeners:
+            self._transition(job_id, attempt, "UNRESOLVED_LISTENER_BLOCKS_DRAIN", cleanup_result="FAIL_CLOSED")
+            raise HeavyProcessError(f"unresolved listener blocks drain for {job_id}")
+            
         if not self._group_exists(pgid):
             return "CLEAN"
         if not self._identity_is_valid(pid, pgid, observed_fingerprint, process_start):
@@ -715,6 +739,10 @@ class HeavyProcessSupervisor:
                 self._transition(job_id, attempt, "ORPHANS_REMAIN", cleanup_result=cleanup)
                 raise HeavyProcessError("owned descendants remain after bounded cleanup")
         else:
+            open_listeners = self._conn.execute("SELECT listener_id FROM managed_listeners WHERE service_id = ? AND state = 'OPEN'", (job_id,)).fetchall()
+            if open_listeners:
+                self._transition(job_id, attempt, "UNRESOLVED_LISTENER_BLOCKS_DRAIN", cleanup_result="FAIL_CLOSED")
+                raise HeavyProcessError(f"unresolved listener blocks drain for {job_id}")
             cleanup = "NORMAL_COMPLETION"
         try:
             returncode = proc.wait(timeout=max(0.0, total_deadline - time.monotonic()))
@@ -735,6 +763,36 @@ class HeavyProcessSupervisor:
         self._transition(job_id, attempt, result.state, finished_at=_utcnow(), exit_code=returncode, cleanup_result=cleanup)
         return result
 
+
+
+    def register_service(self, service_id: str, pid: int, pgid: int) -> None:
+        self._conn.execute("BEGIN IMMEDIATE")
+        try:
+            self._conn.execute("INSERT OR IGNORE INTO managed_services (service_id, owner_id, pid, pgid, state) VALUES (?, ?, ?, ?, 'REGISTERED')", (service_id, self.owner_id, pid, pgid))
+            self._conn.execute("COMMIT")
+        except Exception:
+            self._conn.execute("ROLLBACK")
+            raise
+
+    def register_listener(self, listener_id: str, service_id: str) -> None:
+        self._conn.execute("BEGIN IMMEDIATE")
+        try:
+            self._conn.execute("INSERT OR REPLACE INTO managed_listeners (listener_id, service_id, owner_id, state) VALUES (?, ?, ?, 'OPEN')", (listener_id, service_id, self.owner_id))
+            self._conn.execute("COMMIT")
+        except Exception:
+            self._conn.execute("ROLLBACK")
+            raise
+
+    def release_listener(self, listener_id: str) -> None:
+        if self._conn is None:
+            raise RuntimeError("release_listener called but self._conn is None")
+        self._conn.execute("BEGIN IMMEDIATE")
+        try:
+            self._conn.execute("UPDATE managed_listeners SET state = 'CLOSED' WHERE listener_id = ?", (listener_id,))
+            self._conn.execute("COMMIT")
+        except Exception:
+            self._conn.execute("ROLLBACK")
+            raise
 
 class AgentDrainBarrier:
     """Blocks terminal success only from unresolved work owned by one task attempt."""
