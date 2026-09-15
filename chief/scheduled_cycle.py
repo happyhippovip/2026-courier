@@ -292,6 +292,36 @@ def execute_windows_validation_cycle(
     try:
         exec_res = coordinator.execute_dispatch_with_fallback(dispatch_id, headless_timeout_seconds=300, handoffs_dir=handoffs_dir)
 
+        if exec_res.get("async_dispatched"):
+            cp.upsert_task(
+                task_id=req_id,
+                assignment_id=assignment_id,
+                origin_lane=Lane.WINDOWS_GOOGLE,
+                status=TaskStatus.RUNNING,
+                two_level_done=TwoLevelDone(
+                    local_step_erledigt=True,
+                    gesamtaufgabe_erledigt=False,
+                    blocker="NONE",
+                    next_step="WAITING_FOR_WORKER"
+                ),
+                active_agent=Lane.WINDOWS_GOOGLE.value
+            )
+            coordinator.release_resource(resource_id, Lane.WINDOWS_GOOGLE)
+            return {
+                "cycle_status": "ASYNC_DISPATCH_COMPLETED",
+                "mission_id": mission_id,
+                "windows_validation_request_id": req_id,
+                "status": "WAITING_FOR_WORKER",
+                "work_done": f"Bounded validation for {val_type} asynchronously dispatched",
+                "evidence": f"Dispatch ID {dispatch_id} staged for remote worker",
+                "content_integrity": "PENDING",
+                "access_integrity": "PENDING",
+                "files_changed": [req_file_path] if req_file_path else [],
+                "side_effects_occurred": False,
+                "blocker": "NONE",
+                "last_verified_checkpoint": assignment_id
+            }
+
         # Capture real evidence & evaluate Result Customs
         from .result_customs import ResultCustomsJudge
         

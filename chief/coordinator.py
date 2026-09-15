@@ -279,26 +279,15 @@ class ChiefCoordinator:
                         "target_host": target_host
                     }
                 dtc_res = dtc.transmit_handoff(envelope, prefer_http=False)
-                duration_ms = int((time.time() - t0) * 1000)
-                
-                stdout = (
-                    f"LOCAL_STEP_ERLEDIGT: JA\n"
-                    f"GESAMTAUFGABE_ERLEDIGT: NEIN\n"
-                    f"BLOCKER: NONE\n"
-                    f"NÄCHSTER_SCHRITT: WAITING_FOR_WORKER\n"
-                    f"Dispatched asynchronously via dual_transport: {dtc_res}\n"
-                )
-                res_returncode = 0
+                self.control_plane.mark_dispatched(dispatch_id)
+                return {
+                    "success": True,
+                    "async_dispatched": True,
+                    "dispatch_id": dispatch_id,
+                    "assignment_id": assignment_id
+                }
             except Exception as e:
-                duration_ms = int((time.time() - t0) * 1000)
-                stdout = (
-                    f"LOCAL_STEP_ERLEDIGT: JA\n"
-                    f"GESAMTAUFGABE_ERLEDIGT: NEIN\n"
-                    f"BLOCKER: TRANSPORT_ERROR\n"
-                    f"NÄCHSTER_SCHRITT: MANUAL_RETRY\n"
-                    f"Failed to dispatch via dual_transport: {e}\n"
-                )
-                res_returncode = -1
+                return {"success": False, "error": f"Failed to dispatch via dual_transport: {e}", "returncode": -1}
         else:
             try:
                 safe_write_text(temp_prompt_path, prompt_text)
@@ -663,147 +652,15 @@ class ChiefCoordinator:
                 next_step = "WAITING_FOR_GITHUB_WEBHOOK"
                 artifact_downloaded = False
                 
-                # 3. If we found a run, we could optionally poll it. For now, to save bandwidth and execution time,
-                # we immediately return WAITING_FOR_GITHUB_WEBHOOK, but if it finishes quickly we could grab it.
-                # In a real async system, a webhook receiver or separate poller would handle completion.
-                # For this proof of bounded execution, we simulate the wait or rely on async webhook.
-
-                duration_ms = int((time.time() - t0) * 1000)
-                stdout = (
-                    f"LOCAL_STEP_ERLEDIGT: JA\n"
-                    f"GESAMTAUFGABE_ERLEDIGT: NEIN\n"
-                    f"BLOCKER: NONE\n"
-                    f"NÄCHSTER_SCHRITT: {next_step}\n"
-                    f"Workflow {workflow} triggered successfully via REST API for {assignment_id} (Run ID: {run_id})\n"
-                )
+                self.control_plane.mark_dispatched(dispatch_id)
+                return {
+                    "success": True,
+                    "async_dispatched": True,
+                    "dispatch_id": dispatch_id,
+                    "assignment_id": assignment_id
+                }
             except Exception as e:
-                duration_ms = int((time.time() - t0) * 1000)
-                stdout = (
-                    f"LOCAL_STEP_ERLEDIGT: JA\n"
-                    f"GESAMTAUFGABE_ERLEDIGT: NEIN\n"
-                    f"BLOCKER: API_ERROR\n"
-                    f"NÄCHSTER_SCHRITT: MANUAL_RETRY\n"
-                    f"Workflow dispatch failed for {assignment_id}: {str(e)}\n"
-                )
-
-        local_step_erledigt = True
-        gesamtaufgabe_erledigt = False
-        blocker = "NONE"
-        next_step = "WAITING_FOR_GITHUB_WEBHOOK"
-        
-        for line in stdout.splitlines():
-            line_clean = line.strip()
-            if line_clean.startswith("BLOCKER:"):
-                b_val = line_clean.split(":", 1)[1].strip()
-                if b_val and b_val.upper() not in ("NONE", "KEINER", "NEIN"):
-                    blocker = b_val
-            elif line_clean.startswith("NÄCHSTER_SCHRITT:") or line_clean.startswith("NAECHSTER_SCHRITT:"):
-                n_val = line_clean.split(":", 1)[1].strip()
-                if n_val:
-                    next_step = n_val
-
-        evidence_sha256 = hashlib.sha256(stdout.encode("utf-8")).hexdigest()
-        now_utc = datetime.now(timezone.utc)
-        now_iso = now_utc.isoformat()
-        ts_compact = now_utc.strftime("%Y%m%dT%H%M%SZ")
-
-        os.makedirs(effective_handoffs, exist_ok=True)
-        filename_base = f"{ts_compact}_{target_lane}_{assignment_id}"
-        json_path = os.path.join(effective_handoffs, f"{filename_base}.json")
-        md_path = os.path.join(effective_handoffs, f"{filename_base}.md")
-
-        runner_name = "GITHUB_ACTIONS_DISPATCHER"
-
-        win_status = "PASS" if local_step_erledigt else "FAIL"
-        payload = {
-            "mission_id": "MISSION-WINDOWS-AUTONOMY-FINAL",
-            "windows_validation_request_id": assignment_id,
-            "assignment_id": assignment_id,
-            "attempt_id": "ATTEMPT-1",
-            "windows_status": win_status,
-            "work_done": f"Autonomous verification of {assignment_id} via {runner_name}",
-            "evidence": stdout,
-            "content_integrity": f"SHA256:{evidence_sha256}",
-            "access_integrity": "GH_OAUTH_TOKEN",
-            "files_changed": [os.path.basename(json_path), os.path.basename(md_path)],
-            "side_effects_occurred": True,
-            "blocker": blocker,
-            "completed_at": now_iso,
-            "origin": target_lane,
-            "role": "PRIMARY_WINDOWS_COURIER_ENGINEER",
-            "timestamp_utc": now_iso,
-            "host_os": target_host,
-            "mac_host_access": False,
-            "production_write_authority": False,
-            "status": "DONE" if win_status == "PASS" else "BLOCKED",
-            "local_step_erledigt": local_step_erledigt,
-            "gesamtaufgabe_erledigt": gesamtaufgabe_erledigt,
-            "two_level_done": {
-                "local_step_erledigt": local_step_erledigt,
-                "gesamtaufgabe_erledigt": gesamtaufgabe_erledigt,
-                "blocker": blocker,
-                "next_step": next_step
-            },
-            "metrics": {
-                "execution_runner": runner_name,
-                "fallback_used": False,
-                "real_target_runner_executed": True,
-                "duration_ms": duration_ms,
-                "stdout_sha256": evidence_sha256,
-                "pure_factory_suites_verified": 1,
-                "pure_factory_reproduced_cases": 1
-            },
-            "artifacts_generated": [
-                os.path.basename(json_path),
-                os.path.basename(md_path)
-            ],
-            "evidence_sha256": evidence_sha256
-        }
-
-        md_content = f"""# COURIER HANDOFF REPORT (GITHUB ACTIONS RUNNER)
-**Assignment ID**: `{assignment_id}`
-**Dispatch ID**: `{dispatch_id}`
-**Origin**: `{target_lane}`
-**Timestamp UTC**: `{now_iso}`
-**Runner**: `{runner_name}`
-
-## Two-Level Done Status
-- **LOCAL_STEP_ERLEDIGT**: {'JA' if local_step_erledigt else 'NEIN'}
-- **GESAMTAUFGABE_ERLEDIGT**: {'JA' if gesamtaufgabe_erledigt else 'NEIN'}
-- **STATUS**: {'DONE' if win_status == 'PASS' else 'BLOCKED'}
-- **BLOCKER**: {blocker}
-- **BEWEIS**: `{evidence_sha256}`
-- **NÄCHSTER_SCHRITT**: {next_step}
-
-## Inspectable Runner Output
-```text
-{stdout}
-```
-"""
-
-        safe_write_json(json_path, payload)
-        safe_write_text(md_path, md_content)
-
-        latest_json = os.path.join(effective_handoffs, f"LATEST_{target_lane}.json")
-        latest_md = os.path.join(effective_handoffs, f"LATEST_{target_lane}.md")
-        safe_write_json(latest_json, payload)
-        safe_write_text(latest_md, md_content)
-
-        self.control_plane.mark_dispatched(dispatch_id)
-
-        return {
-            "success": True,
-            "runner": runner_name,
-            "fallback_used": False,
-            "real_target_runner_executed": True,
-            "returncode": 0,
-            "dispatch_id": dispatch_id,
-            "assignment_id": assignment_id,
-            "json_path": json_path,
-            "evidence_sha256": evidence_sha256,
-            "stdout": stdout,
-            "duration_ms": duration_ms
-        }
+                return {"success": False, "error": f"Failed to dispatch via GitHub Actions: {e}", "returncode": -1}
 
     def execute_dispatch_with_fallback(
         self,
