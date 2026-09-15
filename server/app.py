@@ -289,6 +289,41 @@ def task_result():
     return jsonify({"error": "Invalid task or worker"}), 400
 
 
+@app.route("/tasks/reclaim_stale", methods=["POST"])
+@require_auth
+def reclaim_stale():
+    state = load_state()
+    now = time.time()
+    stale_threshold = 300  # 5 minutes
+    
+    stale_workers = set()
+    for w_id, w in state.get("workers", {}).items():
+        if now - w.get("last_seen", 0) > stale_threshold:
+            stale_workers.add(w_id)
+            w["available"] = False
+            
+    reclaimed_count = 0
+    # Find any DISPATCHED tasks assigned to stale workers, and requeue them.
+    for goal in state.get("goals", {}).values():
+        if goal.get("status") == "ACTIVE" and "workflow_plan" in goal:
+            for step in goal["workflow_plan"]:
+                if step.get("status") == "DISPATCHED" and step.get("worker_id") in stale_workers:
+                    step["status"] = "QUEUED"
+                    step["worker_id"] = None
+                    step["run_id"] = None
+                    step["result_id"] = None
+                    step["dispatch_id"] = None
+                    reclaimed_count += 1
+                    
+                    # Update tasks map too
+                    if step.get("task_id") in state.get("tasks", {}):
+                        del state["tasks"][step["task_id"]]
+    
+    if reclaimed_count > 0:
+        save_state(state)
+        
+    return jsonify({"reclaimed_tasks": reclaimed_count})
+
 @app.route("/tasks/pending_verification", methods=["GET"])
 @require_auth
 def pending_verification():

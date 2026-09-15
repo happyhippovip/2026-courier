@@ -18,3 +18,9 @@ if [ -f logs/courier_github_dispatcher.pid ]; then
     rm logs/courier_github_dispatcher.pid
     echo "Courier GitHub Dispatcher stopped."
 fi
+
+if [ -f logs/courier_watchdog.pid ]; then
+    kill $(cat logs/courier_watchdog.pid)
+    rm logs/courier_watchdog.pid
+    echo "Courier Watchdog stopped."
+fi

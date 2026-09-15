@@ -18,3 +18,7 @@ echo "Courier Verifier started in background (PID $(cat logs/courier_verifier.pi
 nohup python3 scripts/courier_github_dispatcher.py > logs/courier_github_dispatcher.log 2>&1 &
 echo $! > logs/courier_github_dispatcher.pid
 echo "Courier GitHub Dispatcher started in background (PID $(cat logs/courier_github_dispatcher.pid))."
+
+nohup python3 scripts/courier_watchdog.py > logs/courier_watchdog.log 2>&1 &
+echo $! > logs/courier_watchdog.pid
+echo "Courier Watchdog started in background (PID $(cat logs/courier_watchdog.pid))."
