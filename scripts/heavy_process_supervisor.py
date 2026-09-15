@@ -96,8 +96,8 @@ class _BoundedCapture:
     def start(self) -> None:
         self._thread.start()
 
-    def join(self) -> bytes:
-        self._thread.join(timeout=2)
+    def join(self, timeout_seconds: float) -> bytes:
+        self._thread.join(timeout=max(0.0, timeout_seconds))
         return bytes(self._data)
 
     def _read(self) -> None:
@@ -125,6 +125,7 @@ class HeavyProcessSupervisor:
         poll_interval_seconds: float = 0.05,
         term_grace_seconds: float = 1.0,
         kill_grace_seconds: float = 1.0,
+        cleanup_reserve_seconds: float | None = None,
     ) -> None:
         if os.name == "nt":
             raise NotImplementedError("Windows Job Object supervision is not implemented")
@@ -134,6 +135,12 @@ class HeavyProcessSupervisor:
         self.poll_interval_seconds = poll_interval_seconds
         self.term_grace_seconds = term_grace_seconds
         self.kill_grace_seconds = kill_grace_seconds
+        minimum_cleanup_reserve = term_grace_seconds + kill_grace_seconds + 4.25
+        self.cleanup_reserve_seconds = (
+            minimum_cleanup_reserve if cleanup_reserve_seconds is None else cleanup_reserve_seconds
+        )
+        if self.cleanup_reserve_seconds < minimum_cleanup_reserve:
+            raise ValueError("cleanup_reserve_seconds cannot be less than TERM/KILL/proof reserve")
         self._lock_file: object | None = None
         self._conn: sqlite3.Connection | None = None
 
@@ -260,20 +267,18 @@ class HeavyProcessSupervisor:
         return False
 
     def _group_exists(self, pgid: int) -> bool:
-        result = subprocess.run(
-            ["ps", "-axo", "pgid=,stat="],
-            check=False,
-            capture_output=True,
-            text=True,
-            timeout=2,
-        )
-        return any(
-            parts[0] == str(pgid) and not parts[1].startswith("Z")
-            for line in result.stdout.splitlines()
-            if len(parts := line.split()) == 2
-        )
+        try:
+            os.killpg(pgid, 0)
+        except ProcessLookupError:
+            return False
+        except PermissionError:
+            return True
+        return True
 
-    def _cleanup(self, job_id: str, attempt: int, pid: int, pgid: int, observed_fingerprint: str, process_start: str) -> str:
+    def _cleanup(
+        self, job_id: str, attempt: int, proc: subprocess.Popen[bytes], pid: int, pgid: int,
+        observed_fingerprint: str, process_start: str, cleanup_deadline: float,
+    ) -> str:
         if not self._group_exists(pgid):
             return "CLEAN"
         if not self._identity_is_valid(pid, pgid, observed_fingerprint, process_start):
@@ -281,18 +286,24 @@ class HeavyProcessSupervisor:
             raise HeavyProcessIdentityError("PID/PGID/command/start identity cannot be proven")
         os.killpg(pgid, signal.SIGTERM)
         self._transition(job_id, attempt, "TERM_SENT", term_at=_utcnow())
-        if self._wait_for_group_exit(pgid, self.term_grace_seconds):
+        if self._wait_for_group_exit(
+            proc, pgid, min(self.term_grace_seconds, max(0.0, cleanup_deadline - time.monotonic()))
+        ):
             return "TERM_CLEAN"
         os.killpg(pgid, signal.SIGKILL)
         self._transition(job_id, attempt, "KILL_SENT", kill_at=_utcnow())
-        return "KILL_CLEAN" if self._wait_for_group_exit(pgid, self.kill_grace_seconds) else "ORPHANS_REMAIN"
+        return "KILL_CLEAN" if self._wait_for_group_exit(
+            proc, pgid, min(self.kill_grace_seconds, max(0.0, cleanup_deadline - time.monotonic()))
+        ) else "ORPHANS_REMAIN"
 
-    def _wait_for_group_exit(self, pgid: int, grace: float) -> bool:
+    def _wait_for_group_exit(self, proc: subprocess.Popen[bytes], pgid: int, grace: float) -> bool:
         deadline = time.monotonic() + grace
         while time.monotonic() < deadline:
+            proc.poll()
             if not self._group_exists(pgid):
                 return True
             time.sleep(self.poll_interval_seconds)
+        proc.poll()
         return not self._group_exists(pgid)
 
     def run(
@@ -308,22 +319,41 @@ class HeavyProcessSupervisor:
         if timeout_seconds <= 0 or max_attempts <= 0:
             raise ValueError("timeout_seconds and max_attempts must be positive")
         started = time.monotonic()
-        budget = wall_clock_budget_seconds if wall_clock_budget_seconds is not None else timeout_seconds * max_attempts
+        budget = (
+            wall_clock_budget_seconds
+            if wall_clock_budget_seconds is not None
+            else (timeout_seconds + self.cleanup_reserve_seconds) * max_attempts
+        )
         if budget <= 0:
             raise ValueError("wall_clock_budget_seconds must be positive")
+        if budget < self.cleanup_reserve_seconds * max_attempts:
+            raise HeavyProcessError("WALL_CLOCK_BUDGET_TOO_SMALL_PROCESS_STARTED=NO")
+        total_deadline = started + budget
         with self.ownership():
             for attempt in range(1, max_attempts + 1):
-                remaining = budget - (time.monotonic() - started)
+                cleanup_reserve = self.cleanup_reserve_seconds * (max_attempts - attempt + 1)
+                execution_deadline = total_deadline - cleanup_reserve
+                remaining = execution_deadline - time.monotonic()
                 if remaining <= 0:
                     raise HeavyProcessError("WALL_CLOCK_BUDGET_EXHAUSTED")
-                result = self._run_once(job_id, command, min(timeout_seconds, remaining), metadata or {}, attempt)
+                result = self._run_once(
+                    job_id, command, min(timeout_seconds, remaining), metadata or {}, attempt,
+                    execution_deadline, total_deadline,
+                )
                 if result.returncode == 0 or attempt == max_attempts:
                     return result
             raise AssertionError("unreachable")
 
-    def _run_once(self, job_id: str, command: Sequence[str], timeout: float, metadata: dict[str, object], attempt: int) -> HeavyProcessResult:
-        deadline = time.time() + timeout
-        self._claim(job_id, attempt, command, metadata, deadline)
+    def _run_once(
+        self, job_id: str, command: Sequence[str], timeout: float, metadata: dict[str, object],
+        attempt: int, execution_deadline: float, total_deadline: float,
+    ) -> HeavyProcessResult:
+        if time.monotonic() >= execution_deadline:
+            raise HeavyProcessError("WALL_CLOCK_BUDGET_TOO_SMALL_PROCESS_STARTED=NO")
+        self._claim(
+            job_id, attempt, command, metadata,
+            time.time() + max(0.0, execution_deadline - time.monotonic()),
+        )
         try:
             proc = subprocess.Popen(
                 list(command), stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -345,24 +375,32 @@ class HeavyProcessSupervisor:
         observed_fingerprint = _fingerprint([row[3]])
         self._transition(job_id, attempt, "RUNNING", pid=pid, pgid=pgid, observed_fingerprint=observed_fingerprint, process_start=row[2])
         timed_out = False
-        while proc.poll() is None and time.time() < deadline:
+        while proc.poll() is None and time.monotonic() < execution_deadline:
             self._transition(job_id, attempt, "RUNNING")
             time.sleep(self.poll_interval_seconds)
         if proc.poll() is None:
             timed_out = True
             self._transition(job_id, attempt, "TIMEOUT")
-            cleanup = self._cleanup(job_id, attempt, pid, pgid, observed_fingerprint, row[2])
+            cleanup = self._cleanup(job_id, attempt, proc, pid, pgid, observed_fingerprint, row[2], total_deadline)
             if cleanup == "ORPHANS_REMAIN":
                 self._transition(job_id, attempt, "ORPHANS_REMAIN", cleanup_result=cleanup)
                 raise HeavyProcessError("owned descendants remain after bounded cleanup")
         else:
             cleanup = "NORMAL_COMPLETION"
         try:
-            returncode = proc.wait(timeout=max(self.kill_grace_seconds, 1.0))
+            returncode = proc.wait(timeout=max(0.0, total_deadline - time.monotonic()))
         except subprocess.TimeoutExpired as exc:
             raise HeavyProcessError("owned process did not reap after cleanup") from exc
         output_suffix = "\n[output truncated]" if stdout.truncated or stderr.truncated else ""
-        result = HeavyProcessResult(returncode, stdout.join().decode(errors="replace"), stderr.join().decode(errors="replace") + output_suffix, timed_out, attempt, "TIMED_OUT" if timed_out else "COMPLETED")
+        remaining = max(0.0, total_deadline - time.monotonic())
+        result = HeavyProcessResult(
+            returncode,
+            stdout.join(remaining).decode(errors="replace"),
+            stderr.join(remaining).decode(errors="replace") + output_suffix,
+            timed_out,
+            attempt,
+            "TIMED_OUT" if timed_out else "COMPLETED",
+        )
         proc.stdout.close()
         proc.stderr.close()
         self._transition(job_id, attempt, result.state, finished_at=_utcnow(), exit_code=returncode, cleanup_result=cleanup)

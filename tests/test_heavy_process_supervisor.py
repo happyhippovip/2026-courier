@@ -169,11 +169,73 @@ class HeavyProcessSupervisorTests(unittest.TestCase):
             foreign.wait(timeout=2)
 
     def test_retry_and_wall_clock_budgets_are_bounded(self) -> None:
-        result = self.supervisor().run("retry", [sys.executable, "-c", "raise SystemExit(3)"], timeout_seconds=1, max_attempts=2, wall_clock_budget_seconds=2)
+        result = self.supervisor().run("retry", [sys.executable, "-c", "raise SystemExit(3)"], timeout_seconds=1, max_attempts=2, wall_clock_budget_seconds=11)
         self.assertEqual(result.attempt, 2)
         self.assertEqual(len(self.rows()), 2)
         with self.assertRaises(HeavyProcessError):
             self.supervisor().run("wall", [sys.executable, "-c", "import time; time.sleep(1)"], timeout_seconds=1, max_attempts=2, wall_clock_budget_seconds=0.1)
+
+    def test_wall_clock_budget_reserves_and_contains_term_cleanup(self) -> None:
+        total_budget = 5.0
+        tolerance = 0.15
+        marker = Path(self.tmp.name) / "term-started"
+        supervisor = HeavyProcessSupervisor(
+            self.runtime, poll_interval_seconds=0.01, term_grace_seconds=0.1, kill_grace_seconds=0.1,
+        )
+        code = (
+            "import pathlib,signal,time; "
+            f"signal.signal(signal.SIGTERM, lambda *_: (pathlib.Path({str(marker)!r}).write_text(str(time.monotonic())), exit())); time.sleep(10)"
+        )
+        started = time.monotonic()
+        result = supervisor.run("term-budget", [sys.executable, "-c", code], timeout_seconds=1, wall_clock_budget_seconds=total_budget)
+        duration = time.monotonic() - started
+        self.assertTrue(result.timed_out)
+        self.assertTrue(marker.exists())
+        self.assertLess(float(marker.read_text()), started + total_budget)
+        self.assertLess(duration, total_budget + tolerance)
+        self.assertEqual(self.rows()[0][6], "TERM_CLEAN")
+
+    def test_wall_clock_budget_allows_normal_process_within_total(self) -> None:
+        total_budget = 5.0
+        tolerance = 0.15
+        supervisor = HeavyProcessSupervisor(
+            self.runtime, poll_interval_seconds=0.01, term_grace_seconds=0.1, kill_grace_seconds=0.1,
+        )
+        started = time.monotonic()
+        result = supervisor.run(
+            "normal-budget", [sys.executable, "-c", "import time; time.sleep(0.05)"],
+            timeout_seconds=1, wall_clock_budget_seconds=total_budget,
+        )
+        self.assertEqual(result.returncode, 0)
+        self.assertLess(time.monotonic() - started, total_budget + tolerance)
+
+    def test_wall_clock_budget_contains_forced_kill_and_descendant_cleanup(self) -> None:
+        total_budget = 5.0
+        tolerance = 0.15
+        supervisor = HeavyProcessSupervisor(
+            self.runtime, poll_interval_seconds=0.01, term_grace_seconds=0.1, kill_grace_seconds=0.1,
+        )
+        started = time.monotonic()
+        result = supervisor.run(
+            "kill-budget",
+            [sys.executable, "-c", "import signal,time; signal.signal(signal.SIGTERM, signal.SIG_IGN); time.sleep(10)"],
+            timeout_seconds=1, wall_clock_budget_seconds=total_budget,
+        )
+        duration = time.monotonic() - started
+        self.assertTrue(result.timed_out)
+        self.assertLess(duration, total_budget + tolerance)
+        self.assertEqual(self.rows()[0][6], "KILL_CLEAN")
+
+    def test_impossibly_small_total_budget_rejects_before_spawn(self) -> None:
+        marker = Path(self.tmp.name) / "process-started"
+        with self.assertRaisesRegex(HeavyProcessError, "PROCESS_STARTED=NO"):
+            self.supervisor().run(
+                "too-small",
+                [sys.executable, "-c", f"open({str(marker)!r}, 'w').close()"],
+                timeout_seconds=1, wall_clock_budget_seconds=0.1,
+            )
+        self.assertFalse(marker.exists())
+        self.assertFalse((self.runtime / "heavy_jobs.sqlite3").exists())
 
     def test_relay_wrapper_uses_supervisor_and_propagates_metadata(self) -> None:
         task_id = f"relay-task-{uuid.uuid4().hex}"
