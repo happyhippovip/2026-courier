@@ -69,12 +69,9 @@ def verify_result(task: dict, raw_result: dict, workspace: Path) -> dict:
         if not task.get(field):
             raise ContractError(f"dispatched task is missing {field}")
 
-    if raw_result.get("goal_id") != task["goal_id"]:
-        raise ContractError("goal_id mismatch")
-    if raw_result.get("task_id") != task["task_id"]:
-        raise ContractError("task_id mismatch")
-    if raw_result.get("worker_id") != task["worker_id"]:
-        raise ContractError("worker_id mismatch")
+    for field in ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id"):
+        if raw_result.get(field) != task[field]:
+            raise ContractError(f"{field} mismatch")
     if raw_result.get("status") not in RESULT_STATES:
         raise ContractError("invalid result status")
 
