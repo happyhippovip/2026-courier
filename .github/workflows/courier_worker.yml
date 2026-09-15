@@ -1,7 +1,5 @@
 name: Courier Worker
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
     inputs:
       task_id:
@@ -9,59 +7,13 @@ on:
         required: true
         type: string
       instruction:
-        description: "Task Instruction/Payload"
+        description: "Instruction"
         required: true
-        type: string
-      goal_id:
-        description: "Goal ID"
-        required: false
         type: string
 jobs:
   execute:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Execute Task
-        id: exec
-        run: |
-          echo "Executing task $TASK_ID"
-          cat << 'PY_EOF' > run_task.py
-import os, sys, json
-task_id = os.environ.get("TASK_ID", "")
-goal_id = os.environ.get("GOAL_ID", "")
-instruction = os.environ.get("INSTRUCTION", "")
-
-print(f"Executing: {instruction}")
-
-# Write a wrapper script for the instruction to safely execute it
-with open("task_script.sh", "w") as f:
-    f.write(instruction)
-os.chmod("task_script.sh", 0o755)
-
-exit_code = os.system("./task_script.sh")
-
-res = {
-    "task_id": task_id,
-    "goal_id": goal_id,
-    "status": "SUCCESS" if exit_code == 0 else "FAILED",
-    "provider": "github",
-    "worker_id": "GITHUB-HOSTED",
-    "exit_code": exit_code
-}
-with open(f"{task_id}_result.json", "w") as f:
-    json.dump(res, f)
-PY_EOF
-          python3 run_task.py
+      - run: echo "Task $TASK_ID"
         env:
-          TASK_ID: ${{ github.event.inputs.task_id || 'dummy-task-id' }}
-          GOAL_ID: ${{ github.event.inputs.goal_id || 'dummy-goal-id' }}
-          INSTRUCTION: ${{ github.event.inputs.instruction || 'echo NO_INSTRUCTION' }}
-      
-      - name: Upload Result
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: courier-result-${{ github.event.inputs.task_id || 'dummy-task-id' }}
-          path: |
-            ${{ github.event.inputs.task_id || 'dummy-task-id' }}_result.json
-            courier_canary_*.txt
+          TASK_ID: ${{ github.event.inputs.task_id }}
