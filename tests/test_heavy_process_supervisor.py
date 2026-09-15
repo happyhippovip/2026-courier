@@ -226,6 +226,58 @@ class HeavyProcessSupervisorTests(unittest.TestCase):
         with self.assertRaisesRegex(RetryFanoutRejected, "RETRY_BUDGET"):
             self.supervisor().run("budget", [sys.executable, "-c", "raise SystemExit(3)"], timeout_seconds=1, max_attempts=2, wall_clock_budget_seconds=12, retryable_returncodes={3}, backoff_seconds=7, sleeper=lambda _: None)
 
+    def test_retry_circuit_rejection_releases_admission_before_spawn(self) -> None:
+        marker = Path(self.tmp.name) / "starts"
+        command = [
+            sys.executable, "-c",
+            f"from pathlib import Path; Path({str(marker)!r}).open('a').write('x'); raise SystemExit(3)",
+        ]
+        supervisor = self.supervisor(max_running=1, max_fanout=3, circuit_threshold=2)
+        with self.assertRaisesRegex(RetryFanoutRejected, "CIRCUIT_OPEN_PROCESS_STARTED=NO"):
+            supervisor.run(
+                "circuit", command, timeout_seconds=1, max_attempts=3, wall_clock_budget_seconds=16,
+                retryable_returncodes={3}, sleeper=lambda _: None,
+            )
+        self.assertEqual(marker.read_text(), "xx")
+        with sqlite3.connect(self.runtime / "heavy_jobs.sqlite3") as conn:
+            self.assertEqual(
+                conn.execute("SELECT COUNT(*) FROM admission_work WHERE job_id='circuit' AND state='ADMITTED'").fetchone()[0],
+                0,
+            )
+        self.assertEqual(
+            supervisor.run("unrelated", [sys.executable, "-c", ""], timeout_seconds=1).returncode,
+            0,
+        )
+
+    def test_fanout_rejection_releases_admission_before_spawn(self) -> None:
+        marker = Path(self.tmp.name) / "spawned"
+        rejected = self.supervisor(max_running=1, max_fanout=0)
+        with self.assertRaisesRegex(RetryFanoutRejected, "FANOUT_LIMIT_PROCESS_STARTED=NO"):
+            rejected.run("fanout", [sys.executable, "-c", f"open({str(marker)!r}, 'w').close()"], timeout_seconds=1)
+        self.assertFalse(marker.exists())
+        with sqlite3.connect(self.runtime / "heavy_jobs.sqlite3") as conn:
+            self.assertEqual(
+                conn.execute("SELECT COUNT(*) FROM admission_work WHERE job_id='fanout' AND state='ADMITTED'").fetchone()[0],
+                0,
+            )
+        self.assertEqual(
+            self.supervisor(max_running=1).run("usable", [sys.executable, "-c", ""], timeout_seconds=1).returncode,
+            0,
+        )
+
+    def test_retry_delay_rejects_invalid_backoff_and_jitter_before_sleep(self) -> None:
+        command = [sys.executable, "-c", "raise SystemExit(3)"]
+        for backoff in (-1.0, float("inf")):
+            with self.assertRaisesRegex(ValueError, "backoff_seconds"):
+                self.supervisor().run("invalid-backoff", command, timeout_seconds=1, backoff_seconds=backoff)
+        for jitter in (lambda: -0.1, lambda: float("inf"), lambda: 0.2):
+            with self.assertRaisesRegex(RetryFanoutRejected, "INVALID_RETRY_JITTER"):
+                self.supervisor().run(
+                    f"invalid-jitter-{id(jitter)}", command, timeout_seconds=1, max_attempts=2,
+                    wall_clock_budget_seconds=11, retryable_returncodes={3}, jitter=jitter,
+                    max_jitter_seconds=0.1, sleeper=lambda _: self.fail("invalid jitter slept"),
+                )
+
     def test_wall_clock_budget_allows_normal_process_within_total(self) -> None:
         total_budget = 5.0
         tolerance = 0.15

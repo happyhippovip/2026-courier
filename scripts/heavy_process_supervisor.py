@@ -7,6 +7,7 @@ import datetime as dt
 import fcntl
 import hashlib
 import json
+import math
 import os
 import signal
 import sqlite3
@@ -284,7 +285,7 @@ class RetryFanoutGuard:
             row = conn.execute("SELECT starts, circuit_open FROM retry_fanout WHERE job_id=?", (job_id,)).fetchone()
             if row and row[1]:
                 raise RetryFanoutRejected("CIRCUIT_OPEN_PROCESS_STARTED=NO")
-            if row and row[0] >= self.max_fanout:
+            if (row[0] if row else 0) >= self.max_fanout:
                 raise RetryFanoutRejected("FANOUT_LIMIT_PROCESS_STARTED=NO")
             if row:
                 conn.execute("UPDATE retry_fanout SET starts=starts+1 WHERE job_id=?", (job_id,))
@@ -529,10 +530,15 @@ class HeavyProcessSupervisor:
         retryable_returncodes: set[int] | None = None,
         backoff_seconds: float = 0.0,
         jitter: Callable[[], float] | None = None,
+        max_jitter_seconds: float = 60.0,
         sleeper: Callable[[float], None] = time.sleep,
     ) -> HeavyProcessResult:
         if timeout_seconds <= 0 or max_attempts <= 0:
             raise ValueError("timeout_seconds and max_attempts must be positive")
+        if not isinstance(backoff_seconds, (int, float)) or not math.isfinite(backoff_seconds) or backoff_seconds < 0:
+            raise ValueError("backoff_seconds must be a finite non-negative number")
+        if not isinstance(max_jitter_seconds, (int, float)) or not math.isfinite(max_jitter_seconds) or max_jitter_seconds < 0:
+            raise ValueError("max_jitter_seconds must be a finite non-negative number")
         if liveness_source not in LIVENESS_SOURCES:
             raise ValueError(f"unsupported liveness_source: {liveness_source}")
         if idle_timeout_seconds is not None and idle_timeout_seconds <= 0:
@@ -554,13 +560,13 @@ class HeavyProcessSupervisor:
                 admission = self.admission.admit(self._conn, job_id, attempt, self.owner_id)
                 if admission == "PENDING":
                     raise AdmissionRejected("ADMISSION_BACKPRESSURE_PROCESS_STARTED=NO")
-                self.retry_fanout.before_spawn(self._conn, job_id)
-                cleanup_reserve = self.cleanup_reserve_seconds * (max_attempts - attempt + 1)
-                execution_deadline = total_deadline - cleanup_reserve
-                remaining = execution_deadline - time.monotonic()
-                if remaining <= 0:
-                    raise HeavyProcessError("WALL_CLOCK_BUDGET_EXHAUSTED")
                 try:
+                    self.retry_fanout.before_spawn(self._conn, job_id)
+                    cleanup_reserve = self.cleanup_reserve_seconds * (max_attempts - attempt + 1)
+                    execution_deadline = total_deadline - cleanup_reserve
+                    remaining = execution_deadline - time.monotonic()
+                    if remaining <= 0:
+                        raise HeavyProcessError("WALL_CLOCK_BUDGET_EXHAUSTED")
                     result = self._run_once(
                         job_id, command, min(timeout_seconds, remaining), metadata or {}, attempt,
                         execution_deadline, total_deadline, idle_timeout_seconds, liveness_source, liveness_callback,
@@ -573,7 +579,15 @@ class HeavyProcessSupervisor:
                 self.retry_fanout.record_failure(self._conn, job_id, retryable)
                 if not retryable:
                     return result
-                delay = backoff_seconds + (jitter() if jitter else 0.0)
+                jitter_seconds = jitter() if jitter else 0.0
+                if (
+                    not isinstance(jitter_seconds, (int, float))
+                    or not math.isfinite(jitter_seconds)
+                    or jitter_seconds < 0
+                    or jitter_seconds > max_jitter_seconds
+                ):
+                    raise RetryFanoutRejected("INVALID_RETRY_JITTER_PROCESS_STARTED=NO")
+                delay = backoff_seconds + jitter_seconds
                 next_reserve = self.cleanup_reserve_seconds * (max_attempts - attempt)
                 if time.monotonic() + delay + next_reserve >= total_deadline:
                     raise RetryFanoutRejected("RETRY_BUDGET_EXHAUSTED_PROCESS_STARTED=NO")
