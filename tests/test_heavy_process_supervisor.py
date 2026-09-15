@@ -21,6 +21,8 @@ from heavy_process_supervisor import (
     HeavyProcessError,
     HeavyProcessIdentityError,
     HeavyProcessSupervisor,
+    AdmissionRejected,
+    SafeModeBlocked,
 )
 import check_process_safety_bypass
 import run_autonomous_supervisor
@@ -263,6 +265,51 @@ class HeavyProcessSupervisorTests(unittest.TestCase):
         with self.assertRaisesRegex(AgentDrainBlocked, "UNRESOLVED_OWNED_WORK"):
             barrier.require_drained("drain", 1)
         barrier.require_drained("unowned", 1)
+
+    def test_admission_rejects_memory_pressure_before_spawn(self) -> None:
+        marker = Path(self.tmp.name) / "spawned"
+        supervisor = self.supervisor(min_available_memory_bytes=100, resource_probe=lambda: 99)
+        with self.assertRaisesRegex(AdmissionRejected, "MEMORY_PRESSURE"):
+            supervisor.run("memory", [sys.executable, "-c", f"open({str(marker)!r}, 'w').close()"], timeout_seconds=1)
+        self.assertFalse(marker.exists())
+
+    def test_ambiguous_resource_enters_durable_safe_mode_and_blocks_spawn(self) -> None:
+        marker = Path(self.tmp.name) / "spawned"
+        supervisor = self.supervisor(min_available_memory_bytes=1, resource_probe=lambda: None)
+        with self.assertRaisesRegex(AdmissionRejected, "AMBIGUOUS"):
+            supervisor.run("unknown-memory", [sys.executable, "-c", f"open({str(marker)!r}, 'w').close()"], timeout_seconds=1)
+        with self.assertRaises(SafeModeBlocked):
+            self.supervisor().run("blocked", [sys.executable, "-c", ""], timeout_seconds=1)
+        self.assertFalse(marker.exists())
+
+    def test_capacity_pending_is_durable_bounded_and_idempotent(self) -> None:
+        with self.supervisor(max_pending=1, min_available_memory_bytes=1, resource_probe=lambda: 100).ownership() as supervisor:
+            self.assertEqual(supervisor.admission.admit(supervisor._conn, "active", 1, "owner"), "ADMITTED")
+            self.assertEqual(supervisor.admission.admit(supervisor._conn, "pending", 1, "owner"), "PENDING")
+            self.assertEqual(supervisor.admission.admit(supervisor._conn, "pending", 1, "owner"), "PENDING")
+            with self.assertRaisesRegex(AdmissionRejected, "QUEUE_FULL"):
+                supervisor.admission.admit(supervisor._conn, "overflow", 1, "owner")
+            supervisor.admission.release(supervisor._conn, "active", 1)
+            self.assertEqual(supervisor.admission.admit(supervisor._conn, "next", 1, "owner"), "ADMITTED")
+
+    def test_startup_nonterminal_quarantines_without_killing_foreign_process(self) -> None:
+        foreign = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(5)"])
+        try:
+            with self.supervisor().ownership() as supervisor:
+                supervisor.admission.admit(supervisor._conn, "prior", 1, "old-owner")
+            with self.assertRaises((SafeModeBlocked, AdmissionRejected)):
+                self.supervisor().run("successor", [sys.executable, "-c", ""], timeout_seconds=1)
+            self.assertIsNone(foreign.poll())
+        finally:
+            foreign.terminate()
+            foreign.wait(timeout=2)
+
+    def test_safe_mode_clear_requires_no_recovery_required_work(self) -> None:
+        with self.supervisor().ownership() as supervisor:
+            supervisor.admission.admit(supervisor._conn, "prior", 1, "old-owner")
+        with self.supervisor().ownership() as supervisor:
+            with self.assertRaisesRegex(SafeModeBlocked, "CLEAR_BLOCKED"):
+                supervisor.admission.clear_safe_mode(supervisor._conn)
 
     def test_static_bypass_guard_rejects_forbidden_fixture(self) -> None:
         with TemporaryDirectory() as temporary:

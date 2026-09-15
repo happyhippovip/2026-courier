@@ -49,6 +49,14 @@ class AgentDrainBlocked(HeavyProcessError):
     """A task attempt still has unresolved durable owned work."""
 
 
+class AdmissionRejected(HeavyProcessError):
+    """The durable global admission policy rejected work before spawn."""
+
+
+class SafeModeBlocked(HeavyProcessError):
+    """Durable safe mode prevents new managed work."""
+
+
 @dataclass(frozen=True)
 class HeavyProcessResult:
     returncode: int
@@ -123,6 +131,125 @@ class _BoundedCapture:
                 self.truncated = True
 
 
+class GlobalAdmissionRecovery:
+    """Admission, pending backpressure, startup quarantine, and safe mode in one ledger."""
+
+    def __init__(
+        self, ledger_path: Path, *, max_running: int = 1, max_pending: int = 10,
+        min_available_memory_bytes: int = 0, resource_probe: Callable[[], int | None] | None = None,
+    ) -> None:
+        self.ledger_path = ledger_path
+        self.max_running = max_running
+        self.max_pending = max_pending
+        self.min_available_memory_bytes = min_available_memory_bytes
+        self.resource_probe = resource_probe or self._available_memory
+        if max_running < 1 or max_pending < 0 or min_available_memory_bytes < 0:
+            raise ValueError("admission limits must be non-negative and max_running positive")
+
+    @staticmethod
+    def _available_memory() -> int | None:
+        try:
+            page_size = os.sysconf("SC_PAGE_SIZE")
+            available_pages = os.sysconf("SC_AVPHYS_PAGES")
+            return page_size * available_pages if page_size > 0 and available_pages >= 0 else None
+        except (AttributeError, OSError, ValueError):
+            return None
+
+    def initialize(self, conn: sqlite3.Connection) -> None:
+        conn.execute(
+            """CREATE TABLE IF NOT EXISTS admission_work (
+                job_id TEXT NOT NULL, attempt INTEGER NOT NULL, owner_id TEXT NOT NULL,
+                state TEXT NOT NULL, evidence TEXT NOT NULL, PRIMARY KEY(job_id, attempt)
+            )"""
+        )
+        conn.execute(
+            """CREATE TABLE IF NOT EXISTS safety_mode (
+                singleton INTEGER PRIMARY KEY CHECK(singleton = 1), enabled INTEGER NOT NULL,
+                reason TEXT NOT NULL, owner_context TEXT NOT NULL, updated_at TEXT NOT NULL
+            )"""
+        )
+        conn.execute(
+            "INSERT OR IGNORE INTO safety_mode VALUES (1, 0, '', '', ?)", (_utcnow(),)
+        )
+
+    def admit(self, conn: sqlite3.Connection, job_id: str, attempt: int, owner_id: str) -> str:
+        safe_mode = conn.execute("SELECT enabled FROM safety_mode WHERE singleton=1").fetchone()[0]
+        if safe_mode:
+            raise SafeModeBlocked("SAFE_MODE_PROCESS_STARTED=NO")
+        available = self.resource_probe() if self.min_available_memory_bytes else None
+        if self.min_available_memory_bytes:
+            if not isinstance(available, int) or available < 0:
+                self._enter_safe_mode(conn, "AMBIGUOUS_RESOURCE_STATE", owner_id)
+                raise AdmissionRejected("AMBIGUOUS_RESOURCE_STATE_PROCESS_STARTED=NO")
+            if available < self.min_available_memory_bytes:
+                self._enter_safe_mode(conn, "MEMORY_PRESSURE", owner_id)
+                raise AdmissionRejected("MEMORY_PRESSURE_PROCESS_STARTED=NO")
+        conn.execute("BEGIN IMMEDIATE")
+        try:
+            existing = conn.execute(
+                "SELECT state FROM admission_work WHERE job_id=? AND attempt=?", (job_id, attempt)
+            ).fetchone()
+            if existing:
+                if existing[0] == "ADMITTED":
+                    conn.execute("COMMIT")
+                    return "ADMITTED"
+                conn.execute("COMMIT")
+                return existing[0]
+            running = conn.execute("SELECT COUNT(*) FROM admission_work WHERE state='ADMITTED'").fetchone()[0]
+            if running < self.max_running:
+                conn.execute(
+                    "INSERT INTO admission_work VALUES (?, ?, ?, 'ADMITTED', ?)",
+                    (job_id, attempt, owner_id, f"available_memory={available if available is not None else 'not-required'}"),
+                )
+                conn.execute("COMMIT")
+                return "ADMITTED"
+            pending = conn.execute("SELECT COUNT(*) FROM admission_work WHERE state='PENDING'").fetchone()[0]
+            if pending >= self.max_pending:
+                raise AdmissionRejected("QUEUE_FULL_PROCESS_STARTED=NO")
+            conn.execute(
+                "INSERT INTO admission_work VALUES (?, ?, ?, 'PENDING', ?)",
+                (job_id, attempt, owner_id, f"available_memory={available if available is not None else 'not-required'}"),
+            )
+            conn.execute("COMMIT")
+            return "PENDING"
+        except Exception:
+            if conn.in_transaction:
+                conn.execute("ROLLBACK")
+            raise
+
+    def release(self, conn: sqlite3.Connection, job_id: str, attempt: int) -> None:
+        conn.execute(
+            "UPDATE admission_work SET state='TERMINAL' WHERE job_id=? AND attempt=?",
+            (job_id, attempt),
+        )
+
+    def reconcile_startup(self, conn: sqlite3.Connection, owner_context: str) -> None:
+        nonterminal = ("ADMITTED", "STARTING", "RUNNING", "CANCELLING", "TIMEOUT", "IDLE_TIMEOUT", "UNKNOWN", "AMBIGUOUS", "RECOVERY_REQUIRED", "PENDING")
+        placeholders = ",".join("?" for _ in nonterminal)
+        rows = conn.execute(
+            f"SELECT job_id, attempt FROM admission_work WHERE state IN ({placeholders})", nonterminal
+        ).fetchall()
+        if rows:
+            conn.execute(
+                f"UPDATE admission_work SET state='RECOVERY_REQUIRED' WHERE state IN ({placeholders})", nonterminal
+            )
+            self._enter_safe_mode(conn, "STARTUP_UNRESOLVED_OWNERSHIP", owner_context)
+
+    def _enter_safe_mode(self, conn: sqlite3.Connection, reason: str, owner_context: str) -> None:
+        conn.execute(
+            "UPDATE safety_mode SET enabled=1, reason=?, owner_context=?, updated_at=? WHERE singleton=1",
+            (reason, owner_context, _utcnow()),
+        )
+
+    def clear_safe_mode(self, conn: sqlite3.Connection) -> None:
+        unresolved = conn.execute(
+            "SELECT COUNT(*) FROM admission_work WHERE state='RECOVERY_REQUIRED'"
+        ).fetchone()[0]
+        if unresolved:
+            raise SafeModeBlocked("SAFE_MODE_CLEAR_BLOCKED_UNRESOLVED_WORK")
+        conn.execute("UPDATE safety_mode SET enabled=0, reason='', owner_context='', updated_at=? WHERE singleton=1", (_utcnow(),))
+
+
 class HeavyProcessSupervisor:
     """Owns exactly one POSIX process group while holding a durable Courier lock."""
 
@@ -136,6 +263,10 @@ class HeavyProcessSupervisor:
         term_grace_seconds: float = 1.0,
         kill_grace_seconds: float = 1.0,
         cleanup_reserve_seconds: float | None = None,
+        max_running: int = 1,
+        max_pending: int = 10,
+        min_available_memory_bytes: int = 0,
+        resource_probe: Callable[[], int | None] | None = None,
     ) -> None:
         if os.name == "nt":
             raise NotImplementedError("Windows Job Object supervision is not implemented")
@@ -153,6 +284,10 @@ class HeavyProcessSupervisor:
             raise ValueError("cleanup_reserve_seconds cannot be less than TERM/KILL/proof reserve")
         self._lock_file: object | None = None
         self._conn: sqlite3.Connection | None = None
+        self.admission = GlobalAdmissionRecovery(
+            self.ledger_path, max_running=max_running, max_pending=max_pending,
+            min_available_memory_bytes=min_available_memory_bytes, resource_probe=resource_probe,
+        )
 
     @property
     def ledger_path(self) -> Path:
@@ -181,6 +316,8 @@ class HeavyProcessSupervisor:
                 PRIMARY KEY (job_id, attempt)
             )"""
         )
+        self.admission.initialize(self._conn)
+        self.admission.reconcile_startup(self._conn, self.owner_id)
         self._reconcile_stale()
 
     def _close(self) -> None:
@@ -348,15 +485,22 @@ class HeavyProcessSupervisor:
         total_deadline = started + budget
         with self.ownership():
             for attempt in range(1, max_attempts + 1):
+                assert self._conn is not None
+                admission = self.admission.admit(self._conn, job_id, attempt, self.owner_id)
+                if admission == "PENDING":
+                    raise AdmissionRejected("ADMISSION_BACKPRESSURE_PROCESS_STARTED=NO")
                 cleanup_reserve = self.cleanup_reserve_seconds * (max_attempts - attempt + 1)
                 execution_deadline = total_deadline - cleanup_reserve
                 remaining = execution_deadline - time.monotonic()
                 if remaining <= 0:
                     raise HeavyProcessError("WALL_CLOCK_BUDGET_EXHAUSTED")
-                result = self._run_once(
-                    job_id, command, min(timeout_seconds, remaining), metadata or {}, attempt,
-                    execution_deadline, total_deadline, idle_timeout_seconds, liveness_source, liveness_callback,
-                )
+                try:
+                    result = self._run_once(
+                        job_id, command, min(timeout_seconds, remaining), metadata or {}, attempt,
+                        execution_deadline, total_deadline, idle_timeout_seconds, liveness_source, liveness_callback,
+                    )
+                finally:
+                    self.admission.release(self._conn, job_id, attempt)
                 if result.returncode == 0 or attempt == max_attempts:
                     return result
             raise AssertionError("unreachable")
