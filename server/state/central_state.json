@@ -1,0 +1,43 @@
+{
+  "goals": {
+    "goal-18f1355e": {
+      "goal_id": "goal-18f1355e",
+      "goal_text": "Test AWS API",
+      "status": "ACTIVE",
+      "workflow_plan": [
+        {
+          "target_agent": "linux",
+          "instruction": "echo AWS_SUCCESS",
+          "goal_id": "goal-18f1355e",
+          "status": "DISPATCHED",
+          "task_id": "task-d22a68d6",
+          "worker_id": "test-worker-linux"
+        }
+      ],
+      "current_step_index": 0
+    }
+  },
+  "tasks": {
+    "task-d22a68d6": {
+      "target_agent": "linux",
+      "instruction": "echo AWS_SUCCESS",
+      "goal_id": "goal-18f1355e",
+      "status": "DISPATCHED",
+      "task_id": "task-d22a68d6",
+      "worker_id": "test-worker-linux"
+    }
+  },
+  "workers": {
+    "test-worker-linux": {
+      "worker_id": "test-worker-linux",
+      "platform": "linux",
+      "capabilities": [
+        "linux"
+      ],
+      "last_seen": 1789510903.8026218,
+      "available": true,
+      "current_task": "task-d22a68d6",
+      "cost_class": "unknown"
+    }
+  }
+}
