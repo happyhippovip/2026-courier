@@ -1,0 +1,32 @@
+name: Deploy static validation
+
+on:
+  pull_request:
+    paths:
+      - "deploy/**"
+      - ".github/workflows/deploy-static.yml"
+  push:
+    branches: [main]
+    paths:
+      - "deploy/**"
+      - ".github/workflows/deploy-static.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Validate deployment scripts and systemd unit
+        run: |
+          set -eu
+          bash -n deploy/install.sh deploy/run-supervisor.sh
+          root="$RUNNER_TEMP/systemd-root"
+          install -d "$root/etc/systemd/system" "$root/opt/courier/deploy"
+          cp deploy/courier.service "$root/etc/systemd/system/"
+          install -m 0755 deploy/run-supervisor.sh "$root/opt/courier/deploy/run-supervisor.sh"
+          systemd-analyze verify --root="$root" /etc/systemd/system/courier.service
