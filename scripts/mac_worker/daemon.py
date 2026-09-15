@@ -14,6 +14,19 @@ def load_config():
     with open(CONFIG_PATH, "r") as f:
         config = json.load(f)
     
+    # Try reading from macOS keychain
+    try:
+        pw = subprocess.check_output(["security", "find-generic-password", "-a", "courier_worker", "-s", "courier_api_key", "-w"], stderr=subprocess.DEVNULL)
+        config["COURIER_API_KEY"] = pw.decode("utf-8").strip()
+    except subprocess.CalledProcessError:
+        pass
+        
+    try:
+        srv = subprocess.check_output(["security", "find-generic-password", "-a", "courier_worker", "-s", "courier_server_url", "-w"], stderr=subprocess.DEVNULL)
+        config["COURIER_SERVER"] = srv.decode("utf-8").strip()
+    except subprocess.CalledProcessError:
+        pass
+    
     # Environment overrides
     if "COURIER_SERVER" in os.environ:
         config["COURIER_SERVER"] = os.environ["COURIER_SERVER"]
