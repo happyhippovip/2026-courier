@@ -23,26 +23,26 @@ jobs:
         id: exec
         run: |
           cat << 'PY_EOF' > run_task.py
-import os, sys, json
-task_id = os.environ.get("TASK_ID", "unknown")
-goal_id = os.environ.get("GOAL_ID", "")
-instruction = os.environ.get("INSTRUCTION", "echo 'No instruction'")
-print(f"Executing: {instruction}")
-with open("task_script.sh", "w") as f:
-    f.write(instruction)
-os.chmod("task_script.sh", 0o755)
-exit_code = os.system("./task_script.sh")
-res = {
-    "task_id": task_id,
-    "goal_id": goal_id,
-    "status": "SUCCESS" if exit_code == 0 else "FAILED",
-    "provider": "github",
-    "worker_id": "GITHUB-HOSTED",
-    "exit_code": exit_code
-}
-with open("result.json", "w") as f:
-    json.dump(res, f)
-PY_EOF
+          import os, sys, json
+          task_id = os.environ.get("TASK_ID", "unknown")
+          goal_id = os.environ.get("GOAL_ID", "")
+          instruction = os.environ.get("INSTRUCTION", "echo 'No instruction'")
+          print(f"Executing: {instruction}")
+          with open("task_script.sh", "w") as f:
+              f.write(instruction)
+          os.chmod("task_script.sh", 0o755)
+          exit_code = os.system("./task_script.sh")
+          res = {
+              "task_id": task_id,
+              "goal_id": goal_id,
+              "status": "SUCCESS" if exit_code == 0 else "FAILED",
+              "provider": "github",
+              "worker_id": "GITHUB-HOSTED",
+              "exit_code": exit_code
+          }
+          with open("result.json", "w") as f:
+              json.dump(res, f)
+          PY_EOF
           python3 run_task.py
         env:
           TASK_ID: ${{ github.event.inputs.task_id }}
