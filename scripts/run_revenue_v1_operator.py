@@ -97,6 +97,19 @@ def packet_for(args: argparse.Namespace) -> dict[str, Any]:
     }
 
 
+def validate_public_target(packet: dict[str, Any]) -> None:
+    repository = f"{packet['target_owner']}/{packet['target_repo']}"
+    details = json.loads(run(["gh", "api", f"repos/{repository}"], capture=True))
+    if details.get("private") is not False:
+        fail("Revenue V1 accepts only a publicly readable target repository")
+    resolved_sha = run(
+        ["gh", "api", f"repos/{repository}/commits/{packet['target_sha']}", "--jq", ".sha"],
+        capture=True,
+    ).lower()
+    if resolved_sha != packet["target_sha"]:
+        fail("target_sha is not a readable immutable commit in the public target")
+
+
 def initial_state(packet: dict[str, Any], task_path: Path) -> dict[str, Any]:
     return {
         "goal_id": packet["goal_id"],
@@ -135,6 +148,8 @@ def reconcile(state: dict[str, Any], reconciliation: dict[str, Any], result_path
 def start(args: argparse.Namespace) -> None:
     root = args.root.resolve()
     packet = packet_for(args)
+    if not args.dry_run:
+        validate_public_target(packet)
     task_path = root / "revenue_v1" / "taskpackets" / f"{packet['task_id']}.json"
     state_path = root / "revenue_v1" / "operator_state.json"
     if state_path.exists():
@@ -180,7 +195,17 @@ def start(args: argparse.Namespace) -> None:
     ], capture=True)
     if not run_id.isdecimal():
         fail("GitHub did not return a workflow run identity")
-    run(["gh", "run", "watch", run_id, "--repo", args.repository, "--exit-status"])
+    watch = subprocess.run(["gh", "run", "watch", run_id, "--repo", args.repository, "--exit-status"])
+    if watch.returncode != 0:
+        state.update({
+            "state": "REAL_WALL",
+            "last_transition": "EXECUTION_FAILED",
+            "next_explicit_transition": "HUMAN_REQUIRED",
+            "real_wall": f"GitHub Actions run {run_id} failed; inspect the durable run before retrying",
+        })
+        write_json(state_path, state)
+        commit_paths(root, [state_path], f"Revenue V1: record failed {packet['task_id']}", args.no_git)
+        fail(f"GitHub Actions run {run_id} failed and was recorded as a real wall")
     with tempfile.TemporaryDirectory(prefix="revenue-v1-artifacts-") as temporary:
         artifact_root = Path(temporary)
         run([
