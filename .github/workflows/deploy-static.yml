@@ -33,4 +33,8 @@ jobs:
           [Socket]
           ListenDatagram=/run/systemd/journal.courier/socket
           EOF
+          cat > "$root/etc/systemd/system/systemd-journald-varlink@courier.socket" <<'EOF'
+          [Socket]
+          ListenStream=/run/systemd/journal.courier/io.systemd.journal
+          EOF
           systemd-analyze verify --root="$root" /etc/systemd/system/courier.service
