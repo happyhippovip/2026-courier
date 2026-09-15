@@ -1,0 +1,18 @@
+name: Process safety guard
+
+on:
+  pull_request:
+  push:
+    branches:
+      - courier/heavy-process-supervisor
+
+permissions:
+  contents: read
+
+jobs:
+  bypass-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: python3 scripts/check_process_safety_bypass.py
+      - run: python3 -m unittest tests/test_heavy_process_supervisor.py

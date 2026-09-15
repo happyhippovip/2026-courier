@@ -15,11 +15,14 @@ if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
 from heavy_process_supervisor import (
+    AgentDrainBarrier,
+    AgentDrainBlocked,
     HeavyProcessBusy,
     HeavyProcessError,
     HeavyProcessIdentityError,
     HeavyProcessSupervisor,
 )
+import check_process_safety_bypass
 import run_autonomous_supervisor
 import run_chief_relay_cycle
 
@@ -236,6 +239,42 @@ class HeavyProcessSupervisorTests(unittest.TestCase):
             )
         self.assertFalse(marker.exists())
         self.assertFalse((self.runtime / "heavy_jobs.sqlite3").exists())
+
+    def test_idle_timeout_uses_selected_output_activity(self) -> None:
+        result = self.supervisor().run(
+            "idle", [sys.executable, "-c", "import time; time.sleep(10)"], timeout_seconds=2,
+            idle_timeout_seconds=0.1, liveness_source="OUTPUT_ACTIVITY",
+        )
+        self.assertEqual(result.state, "IDLE_TIMED_OUT")
+
+    def test_progress_liveness_callback_prevents_idle_timeout(self) -> None:
+        pulses = iter([True] * 20)
+        result = self.supervisor().run(
+            "progress", [sys.executable, "-c", "import time; time.sleep(.15)"], timeout_seconds=1,
+            idle_timeout_seconds=0.05, liveness_source="PROGRESS_EVENT",
+            liveness_callback=lambda: next(pulses, True),
+        )
+        self.assertEqual(result.returncode, 0)
+
+    def test_drain_barrier_blocks_only_unresolved_owned_attempt(self) -> None:
+        with self.supervisor().ownership() as supervisor:
+            supervisor._claim("drain", 1, ["expected"], {}, time.time() + 1)
+        barrier = AgentDrainBarrier(self.runtime)
+        with self.assertRaisesRegex(AgentDrainBlocked, "UNRESOLVED_OWNED_WORK"):
+            barrier.require_drained("drain", 1)
+        barrier.require_drained("unowned", 1)
+
+    def test_static_bypass_guard_rejects_forbidden_fixture(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            scripts = root / "scripts"
+            scripts.mkdir()
+            (scripts / "unsafe.py").write_text("import subprocess\nsubprocess.Popen(['x'])\n")
+            self.assertEqual(
+                check_process_safety_bypass.violations(root),
+                ["scripts/unsafe.py:2:subprocess.Popen"],
+            )
+        self.assertEqual(check_process_safety_bypass.violations(Path(__file__).resolve().parents[1]), [])
 
     def test_relay_wrapper_uses_supervisor_and_propagates_metadata(self) -> None:
         task_id = f"relay-task-{uuid.uuid4().hex}"

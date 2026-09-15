@@ -17,7 +17,7 @@ import time
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Sequence
+from typing import Callable, Sequence
 
 
 ACTIVE_STATES = (
@@ -29,6 +29,8 @@ ACTIVE_STATES = (
     "AMBIGUOUS_OWNER",
     "PID_IDENTITY_MISMATCH",
 )
+UNRESOLVED_STATES = ACTIVE_STATES + ("TIMEOUT", "IDLE_TIMEOUT", "ORPHANS_REMAIN")
+LIVENESS_SOURCES = ("HEARTBEAT", "PROGRESS_EVENT", "OUTPUT_ACTIVITY", "NONE")
 
 
 class HeavyProcessError(RuntimeError):
@@ -41,6 +43,10 @@ class HeavyProcessBusy(HeavyProcessError):
 
 class HeavyProcessIdentityError(HeavyProcessError):
     """Recorded process identity cannot be proven safe to operate on."""
+
+
+class AgentDrainBlocked(HeavyProcessError):
+    """A task attempt still has unresolved durable owned work."""
 
 
 @dataclass(frozen=True)
@@ -99,6 +105,10 @@ class _BoundedCapture:
     def join(self, timeout_seconds: float) -> bytes:
         self._thread.join(timeout=max(0.0, timeout_seconds))
         return bytes(self._data)
+
+    @property
+    def size(self) -> int:
+        return len(self._data)
 
     def _read(self) -> None:
         assert hasattr(self._stream, "read")
@@ -315,9 +325,16 @@ class HeavyProcessSupervisor:
         metadata: dict[str, object] | None = None,
         max_attempts: int = 1,
         wall_clock_budget_seconds: float | None = None,
+        idle_timeout_seconds: float | None = None,
+        liveness_source: str = "NONE",
+        liveness_callback: Callable[[], bool] | None = None,
     ) -> HeavyProcessResult:
         if timeout_seconds <= 0 or max_attempts <= 0:
             raise ValueError("timeout_seconds and max_attempts must be positive")
+        if liveness_source not in LIVENESS_SOURCES:
+            raise ValueError(f"unsupported liveness_source: {liveness_source}")
+        if idle_timeout_seconds is not None and idle_timeout_seconds <= 0:
+            raise ValueError("idle_timeout_seconds must be positive")
         started = time.monotonic()
         budget = (
             wall_clock_budget_seconds
@@ -338,7 +355,7 @@ class HeavyProcessSupervisor:
                     raise HeavyProcessError("WALL_CLOCK_BUDGET_EXHAUSTED")
                 result = self._run_once(
                     job_id, command, min(timeout_seconds, remaining), metadata or {}, attempt,
-                    execution_deadline, total_deadline,
+                    execution_deadline, total_deadline, idle_timeout_seconds, liveness_source, liveness_callback,
                 )
                 if result.returncode == 0 or attempt == max_attempts:
                     return result
@@ -347,6 +364,7 @@ class HeavyProcessSupervisor:
     def _run_once(
         self, job_id: str, command: Sequence[str], timeout: float, metadata: dict[str, object],
         attempt: int, execution_deadline: float, total_deadline: float,
+        idle_timeout_seconds: float | None, liveness_source: str, liveness_callback: Callable[[], bool] | None,
     ) -> HeavyProcessResult:
         if time.monotonic() >= execution_deadline:
             raise HeavyProcessError("WALL_CLOCK_BUDGET_TOO_SMALL_PROCESS_STARTED=NO")
@@ -375,12 +393,26 @@ class HeavyProcessSupervisor:
         observed_fingerprint = _fingerprint([row[3]])
         self._transition(job_id, attempt, "RUNNING", pid=pid, pgid=pgid, observed_fingerprint=observed_fingerprint, process_start=row[2])
         timed_out = False
+        idle_timed_out = False
+        last_liveness = time.monotonic()
+        output_size = stdout.size + stderr.size
         while proc.poll() is None and time.monotonic() < execution_deadline:
+            now = time.monotonic()
+            if liveness_source == "OUTPUT_ACTIVITY":
+                current_output_size = stdout.size + stderr.size
+                if current_output_size != output_size:
+                    last_liveness = now
+                    output_size = current_output_size
+            elif liveness_source in ("HEARTBEAT", "PROGRESS_EVENT") and liveness_callback and liveness_callback():
+                last_liveness = now
+            if idle_timeout_seconds is not None and now - last_liveness >= idle_timeout_seconds:
+                idle_timed_out = True
+                break
             self._transition(job_id, attempt, "RUNNING")
             time.sleep(self.poll_interval_seconds)
         if proc.poll() is None:
             timed_out = True
-            self._transition(job_id, attempt, "TIMEOUT")
+            self._transition(job_id, attempt, "IDLE_TIMEOUT" if idle_timed_out else "TIMEOUT")
             cleanup = self._cleanup(job_id, attempt, proc, pid, pgid, observed_fingerprint, row[2], total_deadline)
             if cleanup == "ORPHANS_REMAIN":
                 self._transition(job_id, attempt, "ORPHANS_REMAIN", cleanup_result=cleanup)
@@ -399,9 +431,27 @@ class HeavyProcessSupervisor:
             stderr.join(remaining).decode(errors="replace") + output_suffix,
             timed_out,
             attempt,
-            "TIMED_OUT" if timed_out else "COMPLETED",
+            "IDLE_TIMED_OUT" if idle_timed_out else ("TIMED_OUT" if timed_out else "COMPLETED"),
         )
         proc.stdout.close()
         proc.stderr.close()
         self._transition(job_id, attempt, result.state, finished_at=_utcnow(), exit_code=returncode, cleanup_result=cleanup)
         return result
+
+
+class AgentDrainBarrier:
+    """Blocks terminal success only from unresolved work owned by one task attempt."""
+
+    def __init__(self, runtime_dir: Path) -> None:
+        self.ledger_path = runtime_dir / "heavy_jobs.sqlite3"
+
+    def require_drained(self, job_id: str, attempt: int) -> None:
+        if not self.ledger_path.exists():
+            return
+        with sqlite3.connect(f"file:{self.ledger_path}?mode=ro", uri=True) as conn:
+            row = conn.execute(
+                "SELECT state FROM heavy_jobs WHERE job_id = ? AND attempt = ?",
+                (job_id, attempt),
+            ).fetchone()
+        if row and row[0] in UNRESOLVED_STATES:
+            raise AgentDrainBlocked(f"UNRESOLVED_OWNED_WORK:{job_id}:{attempt}:{row[0]}")
