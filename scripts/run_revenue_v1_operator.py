@@ -16,6 +16,7 @@ from typing import Any
 LANE = "github-actions-revenue-v1"
 WORKFLOW = "revenue_v1_baseline.yml"
 TASK_PATTERN = re.compile(r"^task-[a-z0-9-]+$")
+ADAPTER_REF = "revenue_v1/worker_adapters/github-actions-revenue-v1.json"
 
 
 def fail(message: str) -> None:
@@ -82,6 +83,7 @@ def packet_for(args: argparse.Namespace) -> dict[str, Any]:
         "idempotency_key": f"rev-v1-{digest}",
         "capability": "github-actions-safety-baseline-v1",
         "execution_lane": LANE,
+        "worker_adapter_ref": ADAPTER_REF,
         "scope": "public-repo-inspection",
         "target_owner": args.target_owner,
         "target_repo": args.target_repo,
@@ -117,12 +119,16 @@ def initial_state(packet: dict[str, Any], task_path: Path) -> dict[str, Any]:
         "attempt_id": packet["attempt_id"],
         "state": "PRE_DISPATCH_ADMITTED",
         "owner": "operator",
+        "worker_id": LANE,
         "platform": "github-actions",
+        "dispatch_ref": None,
+        "execution_ref": None,
+        "result_ref": None,
         "last_transition": "PRE_DISPATCH_ADMISSION",
         "durable_ref": str(task_path),
         "next_explicit_transition": "DISPATCH_REVENUE_V1",
         "real_wall": None,
-        "cost_or_quota_if_known": packet["cost_tracking"]["compute_cost"],
+        "cost_or_quota_if_known": "GitHub Actions quota: unknown",
         "revenue_if_known": packet["price_currency"],
     }
 
@@ -138,7 +144,10 @@ def reconcile(state: dict[str, Any], reconciliation: dict[str, Any], result_path
     return {
         **state,
         "state": "HUMAN_REQUIRED",
+        "worker_id": LANE,
+        "platform": "github-actions",
         "last_transition": "HANDOFF_RECONCILED",
+        "result_ref": result_path,
         "durable_ref": result_path,
         "next_explicit_transition": "HUMAN_REVIEW_REQUIRED",
         "real_wall": "HUMAN_REVIEW_REQUIRED: review the proposal before customer delivery or payment action",
@@ -150,7 +159,7 @@ def start(args: argparse.Namespace) -> None:
     packet = packet_for(args)
     if not args.dry_run:
         validate_public_target(packet)
-    task_path = root / "revenue_v1" / "taskpackets" / f"{packet['task_id']}.json"
+    task_path = root / "revenue_v1" / "inbox" / f"{packet['task_id']}.json"
     state_path = root / "revenue_v1" / "operator_state.json"
     if state_path.exists():
         existing = read_json(state_path)
@@ -181,6 +190,7 @@ def start(args: argparse.Namespace) -> None:
     state.update({
         "state": "EXECUTION_DISPATCHED",
         "last_transition": "EXECUTE_REVENUE_V1",
+        "dispatch_ref": f"{args.repository}/{WORKFLOW}@{courier_ref}",
         "next_explicit_transition": "CONSUME_DURABLE_RESULT",
     })
     write_json(state_path, state)
@@ -195,6 +205,9 @@ def start(args: argparse.Namespace) -> None:
     ], capture=True)
     if not run_id.isdecimal():
         fail("GitHub did not return a workflow run identity")
+    state["execution_ref"] = f"github-actions-run:{run_id}"
+    write_json(state_path, state)
+    commit_paths(root, [state_path], f"Revenue V1: start {packet['task_id']}", args.no_git)
     watch = subprocess.run(["gh", "run", "watch", run_id, "--repo", args.repository, "--exit-status"])
     if watch.returncode != 0:
         state.update({

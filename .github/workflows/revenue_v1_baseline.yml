@@ -32,7 +32,7 @@ jobs:
             echo "courier_ref must be an immutable commit SHA"
             exit 1
           fi
-          if [[ ! "$TASK_PACKET_PATH" =~ ^revenue_v1/taskpackets/[a-z0-9-]+\.json$ ]]; then
+          if [[ ! "$TASK_PACKET_PATH" =~ ^revenue_v1/inbox/[a-z0-9-]+\.json$ ]]; then
             echo "Invalid task_packet_path"
             exit 1
           fi

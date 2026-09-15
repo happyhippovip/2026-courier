@@ -1,0 +1,17 @@
+{
+  "worker_id": "github-actions-revenue-v1",
+  "capabilities": [
+    "github-actions-safety-baseline-v1"
+  ],
+  "platform": "github-actions",
+  "availability": "CALLABLE",
+  "known_cost_or_quota": "GitHub Actions quota: unknown",
+  "dispatch": {
+    "kind": "workflow_dispatch",
+    "workflow": ".github/workflows/revenue_v1_baseline.yml",
+    "task_packet_source": "immutable Courier commit plus revenue_v1/inbox TaskPacket"
+  },
+  "execution_identity": "GitHub Actions run database ID",
+  "result_location": "workflow handoff-artifacts/reconciliation.json and PR-only revenue_v1/results DurableResult",
+  "terminal_state": "HUMAN_REVIEW_REQUIRED"
+}
