@@ -1,0 +1,10 @@
+{
+  "attempt_id": "phase8-attempt-canary-002",
+  "human_merge_required": true,
+  "proposal_branch": "phase8/result-proposal-34977639577-1",
+  "proposal_pr": "https://github.com/happyhippovip/2026-courier/pull/8",
+  "result_commit": "bf455f4f769a5b17d9fca30942fc5909e7057c84",
+  "result_path": "phase8/results/phase8-task-canary-002-phase8-attempt-canary-002-34977639577-1.json",
+  "task_id": "phase8-task-canary-002",
+  "verifier_id": "phase8-independent-verifier-v1"
+}
