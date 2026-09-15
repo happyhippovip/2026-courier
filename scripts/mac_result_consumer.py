@@ -2,6 +2,7 @@ import json
 import os
 import time
 import hashlib
+import uuid
 from pathlib import Path
 
 RESULTS_DIR = Path("coordination/windows_to_mac/results")
@@ -18,12 +19,16 @@ def verify_fingerprint(result_data: dict) -> bool:
         calc = hashlib.sha256(f"{req_id}{status}{obs}".encode("utf-8")).hexdigest()
         return calc == expected
         
-    # Windows schema support
+    # Windows schema: recompute the declared digest from independently read
+    # evidence content. Merely echoing the digest in an evidence string is not
+    # proof of an effect.
     ci = result_data.get("content_integrity")
     if ci and ci.startswith("SHA256:"):
-        ev = result_data.get("evidence", "")
-        if ci in ev:
-            return True
+        evidence_content = result_data.get("evidence_content")
+        if not isinstance(evidence_content, str) or not evidence_content:
+            return False
+        declared = ci[len("SHA256:"):]
+        return hashlib.sha256(evidence_content.encode("utf-8")).hexdigest() == declared
     
     return False
 
@@ -52,9 +57,6 @@ def consume_results():
                 continue
                 
             ack_file = ACKS_DIR / f"{req_id}.ack.json"
-            if ack_file.exists():
-                continue # Already acknowledged
-                
             print(f"Discovered result for {req_id}")
             
             # Verify Independent Customs
@@ -64,6 +66,10 @@ def consume_results():
                 
             if not verify_fingerprint(data):
                 print("FINGERPRINT INVALID")
+                continue
+
+            if ack_file.exists():
+                print(f"Result for {req_id} verified OK; ACK already exists — idempotent skip.")
                 continue
                 
             # Write Ack
@@ -75,9 +81,11 @@ def consume_results():
                 "state": "RESULT_CONSUMED, RESULT_VERIFIED, RESULT_ACKNOWLEDGED"
             }
             
-            tmp = ack_file.with_suffix(".tmp")
+            tmp = ack_file.with_suffix(f".tmp.{os.getpid()}.{uuid.uuid4().hex}")
             with open(tmp, "w") as f:
                 json.dump(ack, f, indent=2)
+                f.flush()
+                os.fsync(f.fileno())
             os.replace(tmp, ack_file)
             print(f"Successfully verified and acknowledged result for {req_id}")
             

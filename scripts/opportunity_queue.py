@@ -39,6 +39,7 @@ LOCAL_RESULT_TYPE = "LOCAL_VALIDATION_RESULT"
 LOCAL_RESULT_HANDLER_STATUSES = {
     "DETERMINISTIC_LOCAL_VALIDATION": {"SUCCESS"},
     "DETERMINISTIC_LOCAL_NOOP": {"NOOP"},
+    "INDEPENDENT_EFFECT_CUSTOMS": {"SUCCESS"},
 }
 LOCAL_RESULT_REQUIRED_FIELDS = {
     "schema_version",
@@ -66,7 +67,21 @@ def load_json(path: Path) -> dict | None:
 
 def save_json(path: Path, data: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    tmp = path.with_suffix(f"{path.suffix}.tmp.{os.getpid()}.{uuid.uuid4().hex}")
+    with tmp.open("w", encoding="utf-8") as handle:
+        json.dump(data, handle, indent=2)
+        handle.write("\n")
+        handle.flush()
+        os.fsync(handle.fileno())
+    os.replace(tmp, path)
+    try:
+        directory_fd = os.open(path.parent, os.O_RDONLY)
+        try:
+            os.fsync(directory_fd)
+        finally:
+            os.close(directory_fd)
+    except OSError:
+        pass
 
 
 def is_pid_alive(pid: int) -> bool:
@@ -109,7 +124,7 @@ class Opportunity:
     required_capabilities: list[str] = field(default_factory=list)
     dedupe_fingerprint: str = ""
     heavy_job: bool = False
-    status: str = "READY"  # READY, ACTIVE, RESULT, EVALUATED, SUCCEEDED, RETRYABLE, BLOCKED, UNSUPPORTED
+    status: str = "READY"  # CANDIDATE, READY, RUNNING, COMPLETED, NO_VALUE, BLOCKED, WAITING_FOR_HUMAN, CIRCUIT_OPEN, DEFERRED
     target_agent: str = "antigravity"
     allowed_scope: list[str] = field(default_factory=list)
     allowed_actions: list[str] = field(default_factory=lambda: ["READ"])
@@ -202,21 +217,61 @@ class OpportunityQueue:
     def _load_all(self):
         for f in self.queue_dir.glob("*.json"):
             data = load_json(f)
-            if data and isinstance(data, dict) and "opportunity_id" in data:
-                try:
-                    self.opportunities[data["opportunity_id"]] = Opportunity(**data)
-                except Exception:
-                    pass
+            if not isinstance(data, dict) or not isinstance(data.get("opportunity_id"), str):
+                raise RuntimeError(f"Corrupt authoritative opportunity state: {f}")
+            try:
+                opportunity = Opportunity(**data)
+            except (TypeError, ValueError) as exc:
+                raise RuntimeError(f"Invalid authoritative opportunity state: {f}") from exc
+            if f.stem != opportunity.opportunity_id:
+                raise RuntimeError(f"Opportunity identity/path mismatch: {f}")
+            self.opportunities[opportunity.opportunity_id] = opportunity
 
     def add_opportunity(self, opp: Opportunity) -> bool:
         """Adds opportunity if not duplicate by dedupe_hash."""
         for existing in self.opportunities.values():
-            if existing.dedupe_hash == opp.dedupe_hash and existing.status in ("READY", "RUNNING", "COMPLETED"):
+            if existing.opportunity_id == opp.opportunity_id or (
+                existing.dedupe_hash == opp.dedupe_hash
+                and existing.status not in ("NO_VALUE", "REJECTED")
+            ):
                 return False
+
+        if opp.status == "READY":
+            ready = [item for item in self.opportunities.values() if item.status == "READY"]
+            if len(ready) >= 5:
+                lowest = min(ready, key=lambda item: (item.priority, item.created_at))
+                if opp.priority > lowest.priority:
+                    lowest.status = "DEFERRED"
+                    self.save_opportunity(lowest)
+                else:
+                    opp.status = "DEFERRED"
 
         self.opportunities[opp.opportunity_id] = opp
         save_json(self.queue_dir / f"{opp.opportunity_id}.json", opp.to_dict())
         return True
+
+    def promote_deferred(self, ready_limit: int = 5) -> list[str]:
+        """Enforce the READY bound, then fill free slots without dropping backlog work."""
+        ready = sorted(
+            (item for item in self.opportunities.values() if item.status == "READY"),
+            key=lambda item: (-item.priority, item.created_at, item.opportunity_id),
+        )
+        for item in ready[ready_limit:]:
+            item.status = "DEFERRED"
+            self.save_opportunity(item)
+        ready_count = min(len(ready), ready_limit)
+        if ready_count >= ready_limit:
+            return []
+        deferred = sorted(
+            (item for item in self.opportunities.values() if item.status == "DEFERRED"),
+            key=lambda item: (-item.priority, item.created_at, item.opportunity_id),
+        )
+        promoted: list[str] = []
+        for item in deferred[: max(0, ready_limit - ready_count)]:
+            item.status = "READY"
+            self.save_opportunity(item)
+            promoted.append(item.opportunity_id)
+        return promoted
 
     def get_opportunity(self, opp_id: str) -> Opportunity | None:
         return self.opportunities.get(opp_id)
@@ -351,6 +406,9 @@ class OpportunityQueue:
             ttl_seconds=lease_seconds,
         )
         if not acquired or generation is None:
+            existing_claim = load_json(claim_path) if claim_path.exists() else None
+            if existing_claim:
+                return False, "ALREADY_CLAIMED", existing_claim
             return False, "AUTHORITY_DENIED", {"opportunity_id": opportunity_id, "error": authority_error}
 
         now = datetime.datetime.now(datetime.timezone.utc)
@@ -363,6 +421,7 @@ class OpportunityQueue:
             "state_version": generation,
             "authority_generation": generation,
             "pid": os.getpid(),
+            "dispatch_state": "CLAIMED",
         }
 
         existing_claim = load_json(claim_path) if claim_path.exists() else None
@@ -396,7 +455,7 @@ class OpportunityQueue:
                         json.dump(claim, handle, indent=2)
                         handle.flush()
                         os.fsync(handle.fileno())
-                    current.status = "ACTIVE"
+                    current.status = "RUNNING"
                     self.save_opportunity(current)
                     return True, "CLAIMED", claim
                 except OSError:
@@ -404,9 +463,87 @@ class OpportunityQueue:
             self.authority.release_scopes(claim_owner, [authority_scope], generation, task_id)
             return False, "ALREADY_CLAIMED", existing
 
-        current.status = "ACTIVE"
+        current.status = "RUNNING"
         self.save_opportunity(current)
         return True, "CLAIMED", claim
+
+    def mark_claim_dispatch_state(
+        self,
+        opportunity_id: str,
+        claim_id: str,
+        generation: int,
+        state: str,
+    ) -> bool:
+        """Persist the dispatch crash boundary under the current fence."""
+        if state not in {"DISPATCHING", "DISPATCHED"}:
+            return False
+        claim_path = self._claim_path(opportunity_id)
+        claim = load_json(claim_path)
+        if not claim or claim.get("claim_id") != claim_id or claim.get("state_version") != generation:
+            return False
+        previous = claim.get("dispatch_state", "CLAIMED")
+        if (previous, state) not in {("CLAIMED", "DISPATCHING"), ("DISPATCHING", "DISPATCHED")}:
+            return False
+        authority_record = self.authority.list_active_locks().get(self._authority_scope(opportunity_id))
+        if (
+            not authority_record
+            or authority_record.get("owner_id") != claim.get("claim_owner")
+            or authority_record.get("generation") != generation
+        ):
+            return False
+        claim["dispatch_state"] = state
+        claim[f"{state.lower()}_at"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        save_json(claim_path, claim)
+        return True
+
+    def resolve_pre_execution_failure(
+        self,
+        opportunity_id: str,
+        claim_id: str,
+        generation: int,
+        max_attempts: int = 3,
+    ) -> str:
+        """Retry only a dispatch that explicitly proved no execution started."""
+        claim = load_json(self._claim_path(opportunity_id))
+        current = self.get_opportunity(opportunity_id)
+        if (
+            not claim
+            or not current
+            or claim.get("claim_id") != claim_id
+            or claim.get("state_version") != generation
+            or claim.get("dispatch_state") != "DISPATCHING"
+        ):
+            return "BLOCKED_UNKNOWN_EFFECT"
+        evidence = dict(current.evidence) if isinstance(current.evidence, dict) else {}
+        attempts = int(evidence.get("dispatch_attempts", 0)) + 1
+        evidence["dispatch_attempts"] = attempts
+        evidence["last_dispatch_failure"] = "PROVEN_PRE_EXECUTION_FAILURE"
+        current.evidence = evidence
+        current.status = "READY" if attempts < max_attempts else "BLOCKED"
+        self.save_opportunity(current)
+        if not self.release_opportunity_claim(opportunity_id, claim_id):
+            return "BLOCKED_RELEASE"
+        return "RETRYABLE" if current.status == "READY" else "RETRY_BUDGET_EXHAUSTED"
+
+    def quarantine_unknown_dispatch(
+        self,
+        opportunity_id: str,
+        claim_id: str,
+        generation: int,
+        reason: str,
+    ) -> bool:
+        """Prevent replay when a dispatch may already have produced an effect."""
+        claim = load_json(self._claim_path(opportunity_id))
+        current = self.get_opportunity(opportunity_id)
+        if not claim or not current or claim.get("claim_id") != claim_id or claim.get("state_version") != generation:
+            return False
+        evidence = dict(current.evidence) if isinstance(current.evidence, dict) else {}
+        evidence["lifecycle_failure"] = reason
+        evidence["effect_state"] = "UNKNOWN_FAIL_CLOSED"
+        current.evidence = evidence
+        current.status = "BLOCKED"
+        self.save_opportunity(current)
+        return True
 
     def release_opportunity_claim(self, opportunity_id: str, claim_id: str) -> bool:
         """Release only the exact claim owned by this caller; never unlink a newer claim."""
@@ -555,7 +692,7 @@ class OpportunityQueue:
             return False
 
         current = self.get_opportunity(opportunity_id)
-        if not current or current.status != "ACTIVE":
+        if not current or current.status != "RUNNING":
             return False
         valid, mismatch, expected = self.validate_durable_result(current, claim, result)
         if not valid:
@@ -580,7 +717,7 @@ class OpportunityQueue:
             tmp.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
             os.replace(tmp, result_path)
 
-        current.status = "SUCCEEDED"
+        current.status = "COMPLETED"
         self.save_opportunity(current)
         return self.release_opportunity_claim(opportunity_id, claim_id)
 
@@ -611,7 +748,7 @@ class OpportunityQueue:
 
             current = self.get_opportunity(opportunity_id)
             claim = load_json(self._claim_path(opportunity_id))
-            if current and current.status == "SUCCEEDED":
+            if current and current.status == "COMPLETED":
                 # Completion was durably applied before a crash but release was
                 # interrupted.  Validate the same canonical result binding as
                 # normal reconciliation before releasing the remaining fence.
@@ -634,7 +771,7 @@ class OpportunityQueue:
                     released = self.release_opportunity_claim(opportunity_id, claim_id)
                     outcomes.append({"status": "RELEASE_RECONCILED" if released else "BLOCKED_RELEASE", "opportunity_id": opportunity_id})
                 continue
-            if not current or current.status != "ACTIVE":
+            if not current or current.status != "RUNNING":
                 outcomes.append({"status": "BLOCKED_NON_RUNNING_RESULT", "opportunity_id": opportunity_id})
                 continue
             if not claim or claim.get("claim_id") != claim_id or claim.get("state_version") != generation:
@@ -659,6 +796,81 @@ class OpportunityQueue:
 
             reconciled = self.complete_claimed_opportunity(opportunity_id, claim_id, generation, result)
             outcomes.append({"status": "RESULT_RECONCILED" if reconciled else "BLOCKED_RECONCILIATION", "opportunity_id": opportunity_id})
+        return outcomes
+
+    def recover_expired_claims(self, now: datetime.datetime | None = None) -> list[dict[str, Any]]:
+        """Reclaim stale leases while refusing to replay an ambiguous effect."""
+        now = now or datetime.datetime.now(datetime.timezone.utc)
+        outcomes: list[dict[str, Any]] = []
+        for claim_path in sorted(self.claims_dir.glob("*.claim.json")):
+            claim = load_json(claim_path)
+            if not isinstance(claim, dict):
+                outcomes.append({"status": "BLOCKED_CORRUPT_CLAIM", "path": claim_path.name})
+                continue
+            try:
+                expires = datetime.datetime.fromisoformat(str(claim["lease_expires_at"]).replace("Z", "+00:00"))
+                if expires.tzinfo is None:
+                    expires = expires.replace(tzinfo=datetime.timezone.utc)
+            except (KeyError, TypeError, ValueError):
+                outcomes.append({"status": "BLOCKED_CORRUPT_CLAIM", "path": claim_path.name})
+                continue
+            if expires > now:
+                continue
+
+            opportunity_id = claim.get("opportunity_id")
+            current = self.get_opportunity(str(opportunity_id))
+            if not current:
+                outcomes.append({"status": "BLOCKED_ORPHAN_CLAIM", "path": claim_path.name})
+                continue
+
+            result_path = self.queue_dir / "results" / f"{opportunity_id}.result.json"
+            result = load_json(result_path) if result_path.exists() else None
+            confirmed = False
+            if isinstance(result, dict):
+                confirmed, _, _ = self.validate_durable_result(current, claim, result)
+
+            recovery_owner = f"recovery-{os.getpid()}"
+            acquired, recovery_generation, error = self.authority.acquire_scopes(
+                owner_id=recovery_owner,
+                task_id=f"RECOVER:{opportunity_id}",
+                scopes=[self._authority_scope(str(opportunity_id))],
+                ttl_seconds=60,
+            )
+            if not acquired or recovery_generation is None:
+                outcomes.append({"status": "BLOCKED_RECOVERY_AUTHORITY", "opportunity_id": opportunity_id, "error": error})
+                continue
+
+            try:
+                latest = load_json(claim_path)
+                if not latest or latest.get("claim_id") != claim.get("claim_id"):
+                    outcomes.append({"status": "FENCED_BY_NEWER_CLAIM", "opportunity_id": opportunity_id})
+                    continue
+                if confirmed:
+                    current.status = "COMPLETED"
+                    self.save_opportunity(current)
+                    claim_path.unlink(missing_ok=True)
+                    outcomes.append({"status": "CONFIRMED_EFFECT_RECOVERED", "opportunity_id": opportunity_id})
+                elif claim.get("dispatch_state", "CLAIMED") == "CLAIMED":
+                    current.status = "READY"
+                    self.save_opportunity(current)
+                    claim_path.unlink(missing_ok=True)
+                    outcomes.append({"status": "PRE_DISPATCH_REQUEUED", "opportunity_id": opportunity_id})
+                else:
+                    evidence = dict(current.evidence) if isinstance(current.evidence, dict) else {}
+                    evidence["lifecycle_failure"] = "STALE_LEASE_UNKNOWN_EFFECT"
+                    evidence["effect_state"] = "UNKNOWN_FAIL_CLOSED"
+                    current.evidence = evidence
+                    current.status = "BLOCKED"
+                    self.save_opportunity(current)
+                    claim_path.unlink(missing_ok=True)
+                    outcomes.append({"status": "UNKNOWN_EFFECT_QUARANTINED", "opportunity_id": opportunity_id})
+            finally:
+                self.authority.release_scopes(
+                    recovery_owner,
+                    [self._authority_scope(str(opportunity_id))],
+                    recovery_generation,
+                    f"RECOVER:{opportunity_id}",
+                )
         return outcomes
 
     def bundle_opportunities(
@@ -865,9 +1077,9 @@ class OpportunityQueue:
         all_opps = list(self.opportunities.values())
         return {
             "READY": len([o for o in all_opps if o.status == "READY"]),
-            "RUNNING": len([o for o in all_opps if o.status == "RUNNING"]),
+            "RUNNING": len([o for o in all_opps if o.status in ("RUNNING", "ACTIVE")]),
             "BLOCKED": len([o for o in all_opps if o.status in ("BLOCKED", "CIRCUIT_OPEN")]),
             "WAITING_FOR_HUMAN": len([o for o in all_opps if o.status == "WAITING_FOR_HUMAN"]),
-            "COMPLETED": len([o for o in all_opps if o.status == "COMPLETED"]),
+            "COMPLETED": len([o for o in all_opps if o.status in ("COMPLETED", "SUCCEEDED")]),
             "TOTAL": len(all_opps),
         }

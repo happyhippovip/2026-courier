@@ -4,11 +4,12 @@ import json
 
 def test_compatibility():
     # A. current real Windows result schema -> accepted
+    evidence_content = "EXIT_0_WITH_OBSERVED_LOCAL_EFFECT"
     windows_res = {
         "windows_validation_request_id": "TEST-1",
         "status": "PASS",
-        "content_integrity": "SHA256:abcd",
-        "evidence": "EXIT_0_SHA256:abcd"
+        "content_integrity": "SHA256:" + hashlib.sha256(evidence_content.encode()).hexdigest(),
+        "evidence_content": evidence_content,
     }
     assert verify_fingerprint(windows_res) == True
 
@@ -33,8 +34,8 @@ def test_compatibility():
     # D. malformed/wrong fingerprint/integrity -> rejected
     bad_windows = {
         "windows_validation_request_id": "TEST-1",
-        "content_integrity": "SHA256:abcd",
-        "evidence": "EXIT_0_SHA256:bad"
+        "content_integrity": "SHA256:" + hashlib.sha256(b"expected").hexdigest(),
+        "evidence_content": "different"
     }
     assert verify_fingerprint(bad_windows) == False
 

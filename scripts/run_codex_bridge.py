@@ -423,6 +423,10 @@ def parse_real_codex_result(content: str, expected_identity: Optional[dict[str, 
             if actual_v != expected_v:
                 raise ValueError(f"Codex CLI identity mismatch for '{k}': expected '{expected_v}', got '{actual_v}'")
 
+    changed_files = data.get("changed_files")
+    if not isinstance(changed_files, list) or not all(isinstance(item, str) and item for item in changed_files):
+        raise ValueError("Codex CLI result must provide a changed_files list")
+
     return {
         "verdict": verdict,
         "summary": summary[:500],
@@ -430,6 +434,7 @@ def parse_real_codex_result(content: str, expected_identity: Optional[dict[str, 
         "task_id": data.get("task_id"),
         "task_hash": data.get("task_hash"),
         "target_agent": data.get("target_agent", "CODEX"),
+        "changed_files": changed_files,
     }
 
 
@@ -459,7 +464,8 @@ def execute_real_codex_cli(
         "Execute the requested instruction. You may modify the repository. When finished, you MUST return ONLY a valid JSON object with exact keys: "
         f"'correlation_id' (must equal '{corr_id}'), 'task_id' (must equal '{task_id}'), "
         f"'task_hash' (must equal '{t_hash}'), 'target_agent' (must equal '{t_agent}'), "
-        f"'mission_id' (must equal '{m_id}'), 'verdict' ('PASS' or 'HUMAN_APPROVAL_REQUIRED'), and a non-sensitive 'summary'."
+        f"'mission_id' (must equal '{m_id}'), 'verdict' ('PASS' or 'HUMAN_APPROVAL_REQUIRED'), "
+        "'changed_files' (repository-relative paths actually changed; empty for no effect), and a non-sensitive 'summary'."
     )
 
     cmd = [
@@ -618,7 +624,19 @@ def execute_codex_task(worker_job_path: Path, hooks: CodexHookRunner, force: boo
             success, payload = execute_windows_identity_probe()
         elif try_real_cli and CODEX_CLI_PATH.exists():
             hooks.on_tool_action(task_id, "Invoking real Codex CLI process (/Applications/ChatGPT.app/Contents/Resources/codex)", 0.6)
-            success, real_res = execute_real_codex_cli(instruction, allowed_scope, task_id)
+            expected_identity = {
+                "correlation_id": correlation_id,
+                "task_id": task_id,
+                "task_hash": job.get("task_hash", task_id),
+                "target_agent": job.get("target_agent", "CODEX"),
+                "mission_id": job.get("mission_id", ""),
+            }
+            success, real_res = execute_real_codex_cli(
+                instruction,
+                allowed_scope,
+                task_id,
+                expected_identity=expected_identity,
+            )
             payload = real_res
             payload.update({
                 "zero_cost_policy": "ZERO_COST_ONLY",

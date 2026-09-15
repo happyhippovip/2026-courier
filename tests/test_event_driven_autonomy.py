@@ -34,6 +34,29 @@ class FakeQueue:
     def add_opportunity(self, _opportunity):
         self.add_calls += 1
 
+    def claim_opportunity(self, task_id, owner, lease_seconds=180):
+        opportunity = self.opportunities.get(task_id)
+        if not opportunity or opportunity.status != "READY":
+            return False, "NOT_READY", {}
+        opportunity.status = "RUNNING"
+        return True, "CLAIMED", {
+            "claim_id": f"claim-{task_id}",
+            "state_version": 1,
+            "claim_owner": owner,
+            "lease_expires_at": "2099-01-01T00:00:00+00:00",
+        }
+
+    def mark_claim_dispatch_state(self, *_args):
+        return True
+
+    def resolve_pre_execution_failure(self, task_id, *_args):
+        self.opportunities[task_id].status = "READY"
+        return "RETRYABLE"
+
+    def quarantine_unknown_dispatch(self, task_id, *_args):
+        self.opportunities[task_id].status = "BLOCKED"
+        return True
+
 
 def dispatch_recording(recommendations, opportunities=()):
     calls = []
@@ -135,7 +158,7 @@ def test_real_next_work_is_routed_immediately_when_available():
     )
     assert active is True
     assert count == 1
-    assert calls[0] == (
+    assert calls[0][:6] == (
         "real-next-task",
         "CODEX",
         "VALIDATE",
