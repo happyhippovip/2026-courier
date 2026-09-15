@@ -209,6 +209,7 @@ def run_supervisor_session(
                 memory_dry_run=memory_dry_run,
                 pull=False,
                 push=push_events,
+                supervisor_owner_id=session_id,
             )
 
             if cycle_result.get("status") == "COMPLETED":

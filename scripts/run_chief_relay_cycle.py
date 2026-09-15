@@ -24,6 +24,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from heavy_process_supervisor import HeavyProcessError, HeavyProcessSupervisor
+
 DEFAULT_MEMORY_REPO = Path("/Users/user/Downloads/2026-project-memory")
 
 
@@ -72,6 +74,32 @@ def discover_pending_command(incoming_dir: Path, processed_dir: Path) -> Path | 
     return None
 
 
+def run_relay_subprocess(
+    repo_dir: Path,
+    task_id: str,
+    stage: str,
+    command: list[str],
+    *,
+    timeout_seconds: float = 300.0,
+    owner_id: str | None = None,
+) -> subprocess.CompletedProcess[str]:
+    """Run a Relay stage under the canonical cross-process process supervisor."""
+    supervisor = HeavyProcessSupervisor(
+        repo_dir / "runtime" / "resource_guard",
+        owner_id=owner_id,
+    )
+    try:
+        result = supervisor.run(
+            f"{task_id}:{stage}",
+            command,
+            timeout_seconds=timeout_seconds,
+            metadata={"relay_stage": stage, "task_id": task_id},
+        )
+    except HeavyProcessError as exc:
+        raise RuntimeError(f"Heavy process supervisor refused {stage}: {exc}") from exc
+    return subprocess.CompletedProcess(command, result.returncode, result.stdout, result.stderr)
+
+
 def run_cycle(
     repo_dir: Path,
     incoming_dir: Path,
@@ -85,6 +113,7 @@ def run_cycle(
     memory_dry_run: bool = False,
     pull: bool = False,
     push: bool = False,
+    supervisor_owner_id: str | None = None,
 ) -> dict:
     # 1. Optional Pull
     if pull:
@@ -120,7 +149,7 @@ def run_cycle(
     if memory_repo and memory_repo.exists():
         build_cmd.extend(["--memory-repo", str(memory_repo)])
 
-    build_res = subprocess.run(build_cmd, capture_output=True, text=True)
+    build_res = run_relay_subprocess(repo_dir, task_id, "build-worker-job", build_cmd, owner_id=supervisor_owner_id)
     if build_res.returncode != 0:
         fail(f"Worker job builder failed: {build_res.stderr.strip()}")
 
@@ -129,36 +158,26 @@ def run_cycle(
         fail(f"Worker job file was not created: {worker_job_file}")
 
     # 3b. Validate Worker Job against JSON Schema
-    val_job_res = subprocess.run(
+    val_job_res = run_relay_subprocess(
+        repo_dir, task_id, "validate-worker-job",
         [
-            sys.executable,
-            str(build_job_script),
-            "--validate-job",
-            str(worker_job_file),
-            "--schema",
-            str(repo_dir / "schemas/antigravity_worker_job.schema.json"),
+            sys.executable, str(build_job_script), "--validate-job", str(worker_job_file),
+            "--schema", str(repo_dir / "schemas/antigravity_worker_job.schema.json"),
         ],
-        capture_output=True,
-        text=True,
+        owner_id=supervisor_owner_id,
     )
     if val_job_res.returncode != 0:
         fail(f"Worker job JSON Schema validation failed: {val_job_res.stderr.strip()}")
 
     # 3c. Consume command -> Generate RESULT
     consume_script = repo_dir / "scripts/consume_chief_command.py"
-    res = subprocess.run(
+    res = run_relay_subprocess(
+        repo_dir, task_id, "consume-command",
         [
-            sys.executable,
-            str(consume_script),
-            "--command",
-            str(pending_cmd),
-            "--incoming-dir",
-            str(incoming_dir),
-            "--processed-dir",
-            str(processed_dir),
+            sys.executable, str(consume_script), "--command", str(pending_cmd),
+            "--incoming-dir", str(incoming_dir), "--processed-dir", str(processed_dir),
         ],
-        capture_output=True,
-        text=True,
+        owner_id=supervisor_owner_id,
     )
     if res.returncode != 0:
         fail(f"Consumer failed: {res.stderr.strip()}")
@@ -169,19 +188,13 @@ def run_cycle(
 
     # 4. Validate generated result
     val_script = repo_dir / "scripts/validate_chief_relay.py"
-    val_res = subprocess.run(
+    val_res = run_relay_subprocess(
+        repo_dir, task_id, "validate-result",
         [
-            sys.executable,
-            str(val_script),
-            "--file",
-            str(result_file),
-            "--incoming-dir",
-            str(incoming_dir),
-            "--processed-dir",
-            str(processed_dir),
+            sys.executable, str(val_script), "--file", str(result_file),
+            "--incoming-dir", str(incoming_dir), "--processed-dir", str(processed_dir),
         ],
-        capture_output=True,
-        text=True,
+        owner_id=supervisor_owner_id,
     )
     if val_res.returncode != 0:
         fail(f"Result validation failed: {val_res.stderr.strip()}")
@@ -201,7 +214,7 @@ def run_cycle(
             "--output-dir",
             str(proposals_dir),
         ]
-        prop_res = subprocess.run(prop_cmd, capture_output=True, text=True)
+        prop_res = run_relay_subprocess(repo_dir, task_id, "build-memory-proposal", prop_cmd, owner_id=supervisor_owner_id)
         if prop_res.returncode != 0:
             fail(f"Memory proposal builder failed: {prop_res.stderr.strip()}")
 
@@ -223,7 +236,7 @@ def run_cycle(
             "--output-approvals",
             str(approvals_dir),
         ]
-        eval_res = subprocess.run(eval_cmd, capture_output=True, text=True)
+        eval_res = run_relay_subprocess(repo_dir, task_id, "evaluate-memory-policy", eval_cmd, owner_id=supervisor_owner_id)
         if eval_res.returncode != 0:
             fail(f"Autonomous Chief Policy evaluation failed: {eval_res.stderr.strip()}")
 
@@ -255,7 +268,7 @@ def run_cycle(
             if memory_dry_run:
                 apply_cmd.append("--dry-run")
 
-            apply_res = subprocess.run(apply_cmd, capture_output=True, text=True)
+            apply_res = run_relay_subprocess(repo_dir, task_id, "apply-memory-update", apply_cmd, owner_id=supervisor_owner_id)
             if apply_res.returncode != 0:
                 fail(f"Memory write handler failed: {apply_res.stderr.strip()}")
             write_result = json.loads(apply_res.stdout.strip())

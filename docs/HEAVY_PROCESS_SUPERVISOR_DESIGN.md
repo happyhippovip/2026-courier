@@ -105,3 +105,15 @@ The same planner/availability/error state may not revive work forever.
 If any ownership or cleanup proof is missing:
 
 `FAIL_CLOSED / NO NEW HEAVY JOB`
+
+## Current implementation boundary
+
+`scripts/heavy_process_supervisor.py` is the canonical POSIX implementation.
+It stores the lock and SQLite ledger under `runtime/resource_guard/`, exposes
+an explicit future Windows adapter boundary, and does not implement Windows
+Job Object support.
+
+Relay subprocess stages use `run_relay_subprocess()` in
+`scripts/run_chief_relay_cycle.py`; Night Supervisor propagates its session ID
+as the supervisor owner. No planner, intake, queue, Customs, terminal-state,
+or Windows-AI-OS behavior is changed.
