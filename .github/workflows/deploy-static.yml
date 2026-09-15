@@ -29,4 +29,8 @@ jobs:
           install -d "$root/etc/systemd/system" "$root/opt/courier/deploy"
           cp deploy/courier.service "$root/etc/systemd/system/"
           install -m 0755 deploy/run-supervisor.sh "$root/opt/courier/deploy/run-supervisor.sh"
+          cat > "$root/etc/systemd/system/systemd-journald@courier.socket" <<'EOF'
+          [Socket]
+          ListenDatagram=/run/systemd/journal.courier/socket
+          EOF
           systemd-analyze verify --root="$root" /etc/systemd/system/courier.service
