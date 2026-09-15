@@ -3,12 +3,12 @@
   "cost_or_quota_if_known": null,
   "durable_ref": "revenue_v1/taskpackets/task-c14849380a8b4051.json@7f7c5a3f1f26e11aabdf759878bb2af3624b3899",
   "goal_id": "rev-v1-customer-job",
-  "last_transition": "PRE_DISPATCH_ADMISSION",
-  "next_explicit_transition": "DISPATCH_REVENUE_V1",
+  "last_transition": "EXECUTE_REVENUE_V1",
+  "next_explicit_transition": "CONSUME_DURABLE_RESULT",
   "owner": "operator",
   "platform": "github-actions",
   "real_wall": null,
   "revenue_if_known": "EUR 0.00",
-  "state": "PRE_DISPATCH_ADMITTED",
+  "state": "EXECUTION_DISPATCHED",
   "task_id": "task-c14849380a8b4051"
 }
