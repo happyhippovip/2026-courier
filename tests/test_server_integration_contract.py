@@ -1,6 +1,7 @@
 import hashlib
 import json
 import threading
+import time
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
@@ -283,3 +284,53 @@ def test_concurrent_claims_have_exactly_one_winner(tmp_path, monkeypatch):
     assert sorted(response.get("reason", "CLAIMED") for response in responses) == [
         "CLAIMED", "WORKER_BUSY"
     ]
+
+
+def test_stale_claim_is_quarantined_without_replay_and_other_goal_continues(tmp_path, monkeypatch):
+    http = client(tmp_path, monkeypatch)
+    for worker_id in ("MAC-STALE", "MAC-HEALTHY"):
+        assert http.post(
+            "/workers/register",
+            headers=auth(),
+            json={"worker_id": worker_id, "platform": "mac", "capabilities": ["macos"]},
+        ).status_code == 200
+    goal_ids = []
+    for number in (1, 2):
+        response = http.post(
+            "/goals",
+            headers=auth(),
+            json={
+                "goal_text": f"independent goal {number}",
+                "workflow_plan": [{
+                    "task_id": f"stale-test-{number}",
+                    "target_agent": "mac",
+                    "artifacts": [f"stale-test-{number}.txt"],
+                }],
+            },
+        )
+        goal_ids.append(response.get_json()["goal_id"])
+
+    claimed = http.post(
+        "/tasks/claim", headers=auth(), json={"worker_id": "MAC-STALE"}
+    ).get_json()["task"]
+    state = server_app.load_state()
+    state["workers"]["MAC-STALE"]["last_seen"] = time.time() - 600
+    server_app.save_state(state)
+
+    recovered = http.post("/tasks/reclaim_stale", headers=auth())
+
+    assert recovered.get_json() == {"reclaimed_tasks": 0, "quarantined_tasks": 1}
+    state = server_app.load_state()
+    assert state["tasks"][claimed["task_id"]]["status"] == "HUMAN_REQUIRED"
+    assert state["tasks"][claimed["task_id"]]["dispatch_id"] == claimed["dispatch_id"]
+    assert state["goals"][goal_ids[0]]["status"] == "BLOCKED"
+    assert state["workers"]["MAC-STALE"]["current_task"] is None
+
+    independent = http.post(
+        "/tasks/claim", headers=auth(), json={"worker_id": "MAC-HEALTHY"}
+    ).get_json()["task"]
+    assert independent["task_id"] == "stale-test-2"
+
+    late_result = durable_result(claimed)
+    assert http.post("/tasks/result", headers=auth(), json=late_result).status_code == 409
+    assert server_app.load_state()["tasks"][claimed["task_id"]]["status"] == "HUMAN_REQUIRED"
