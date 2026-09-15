@@ -139,7 +139,7 @@ jobs:
           HANDOFFEOF
           
           # 5. Run Reconciler
-          python3 scripts/revenue_v1_safety_baseline.py reconcile task.json verified.json handoff.json work_dir "$PR_NUMBER" "$PROPOSAL_HEAD" "main" > reconciliation.json
+          python3 scripts/revenue_v1_safety_baseline.py reconcile task.json work_dir verified.json handoff.json "$PR_NUMBER" "$PROPOSAL_HEAD" "main" > reconciliation.json
           
           # 6. Output for artifacts
           cat reconciliation.json
