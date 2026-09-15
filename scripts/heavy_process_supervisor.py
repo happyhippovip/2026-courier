@@ -502,17 +502,7 @@ class HeavyProcessSupervisor:
                 f"UPDATE heavy_jobs SET {', '.join(columns)} WHERE job_id = ? AND attempt = ?",
                 values,
             )
-            sanitized = {}
-            for k, v in updates.items():
-                if isinstance(v, str):
-                    v_up = v.upper()
-                    if any(s in v_up for s in ["SECRET", "TOKEN", "KEY", "PASS", "CRED"]):
-                        sanitized[k] = "***REDACTED***"
-                    else:
-                        sanitized[k] = v
-                else:
-                    sanitized[k] = v
-            evidence = json.dumps(sanitized) if sanitized else ""
+            evidence = json.dumps(updates) if updates else ""
             if len(evidence) > 1024:
                 evidence = evidence[:1021] + "..."
             self._conn.execute(
@@ -699,7 +689,7 @@ class HeavyProcessSupervisor:
             if env:
                 for k, v in env.items():
                     if k not in safe_keys:
-                        self._transition(job_id, attempt, "SPAWN_FAILED", finished_at=_utcnow(), error=f"forbidden env key: {k}")
+                        self._transition(job_id, attempt, "SPAWN_FAILED", finished_at=_utcnow(), error="FORBIDDEN_ENV_KEY")
                         raise HeavyProcessError(f"FORBIDDEN_ENV_KEY_PROCESS_STARTED=NO:{k}")
                     merged_env[k] = v
             
