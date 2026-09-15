@@ -1,19 +1,13 @@
-import json, sys, os, uuid
+import json, sys, os
+
 def run(task_file):
     with open(task_file, 'r') as f:
         task = json.load(f)
-    print(f"[Windows Worker] Loading canonical context and executing task {task['task_id']}")
-    res = {
-        "goal_id": task.get("goal_id"),
-        "task_id": task["task_id"],
-        "worker_id": "WINDOWS-01",
-        "provider": "antigravity",
-        "run_id": str(uuid.uuid4()),
-        "status": "SUCCESS",
-        "stdout_summary": f"Executed {task['description']} on Windows successfully"
-    }
-    os.makedirs("results/incoming", exist_ok=True)
-    with open(f"results/incoming/{task['task_id']}_result.json", 'w') as f:
-        json.dump(res, f)
+    print(f"[Windows Worker] Execution blocked: No authorized remote connection to Windows available.")
+    print(f"Task {task['task_id']} remains WAITING_FOR_WORKER on the connection wall.")
+    
+    # We do NOT generate a fake SUCCESS result.
+    # The task will remain DISPATCHED/WAITING_FOR_WORKER in central state.
+
 if __name__ == "__main__":
     run(sys.argv[1])
