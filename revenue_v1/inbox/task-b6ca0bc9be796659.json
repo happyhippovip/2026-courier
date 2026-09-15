@@ -1,0 +1,27 @@
+{
+  "attempt_id": "attempt-001",
+  "budget": {
+    "max_bytes": 1048576,
+    "max_files": 100
+  },
+  "capability": "github-actions-safety-baseline-v1",
+  "cost_tracking": {
+    "compute_cost": null
+  },
+  "customer_reference": "NONCUSTOMER-ACCEPTANCE-001",
+  "delivery_destination": "operator-proof@example.invalid",
+  "execution_lane": "github-actions-revenue-v1",
+  "goal_id": "rev-v1-customer-job",
+  "human_minutes": 0,
+  "idempotency_key": "rev-v1-b6ca0bc9be796659",
+  "price_currency": "EUR 0.00",
+  "proposal_mode": "PR_ONLY",
+  "result_contract": "revenue-v1-report",
+  "schema_version": "1.0",
+  "scope": "public-repo-inspection",
+  "target_owner": "actions",
+  "target_repo": "checkout",
+  "target_sha": "f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a",
+  "task_id": "task-b6ca0bc9be796659",
+  "worker_adapter_ref": "revenue_v1/worker_adapters/github-actions-revenue-v1.json"
+}
