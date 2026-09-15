@@ -347,44 +347,5 @@ def verify_task_result():
     return jsonify({"status": task["status"]})
 
 
-import threading
-import subprocess
-
-def dispatch_github_tasks():
-    while True:
-        time.sleep(5)
-        try:
-            state = load_state()
-            changed = False
-            for goal_id, goal in state.get("goals", {}).items():
-                if goal.get("status") == "ACTIVE" and "workflow_plan" in goal:
-                    idx = goal.get("current_step_index", 0)
-                    if idx < len(goal["workflow_plan"]):
-                        next_task = goal["workflow_plan"][idx]
-                        if next_task.get("status") == "QUEUED" and next_task.get("target_agent") == "github":
-                            # Dispatch to github
-                            next_task["worker_id"] = "GITHUB-HOSTED"
-                            next_task["attempts"] = next_task.get("attempts", 0) + 1
-                            next_task["attempt_id"] = f"{next_task['task_id']}:attempt:{next_task['attempts']}"
-                            next_task["dispatch_id"] = f"dispatch-{uuid.uuid4().hex}"
-                            next_task["status"] = "DISPATCHED"
-                            changed = True
-                            
-                            # Write task to a temp file for adapter
-                            task_file = f"/tmp/{next_task['task_id']}.json"
-                            with open(task_file, "w") as tf:
-                                json.dump(next_task, tf)
-                            
-                            # Fire and forget adapter
-                            python_bin = "venv/bin/python3" if os.path.exists("venv/bin/python3") else "python3"
-                            subprocess.Popen([python_bin, "scripts/github_worker_adapter.py", task_file])
-            if changed:
-                save_state(state)
-        except Exception as e:
-            print(f"Error in github dispatcher: {e}")
-
-threading.Thread(target=dispatch_github_tasks, daemon=True).start()
-
-
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)

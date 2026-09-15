@@ -14,3 +14,7 @@ echo "Courier Server (HTTP) started in background (PID $(cat logs/courier_daemon
 nohup python3 scripts/courier_verifier.py > logs/courier_verifier.log 2>&1 &
 echo $! > logs/courier_verifier.pid
 echo "Courier Verifier started in background (PID $(cat logs/courier_verifier.pid))."
+
+nohup python3 scripts/courier_github_dispatcher.py > logs/courier_github_dispatcher.log 2>&1 &
+echo $! > logs/courier_github_dispatcher.pid
+echo "Courier GitHub Dispatcher started in background (PID $(cat logs/courier_github_dispatcher.pid))."

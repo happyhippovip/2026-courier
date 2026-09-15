@@ -12,3 +12,9 @@ if [ -f logs/courier_verifier.pid ]; then
     rm logs/courier_verifier.pid
     echo "Courier Verifier stopped."
 fi
+
+if [ -f logs/courier_github_dispatcher.pid ]; then
+    kill $(cat logs/courier_github_dispatcher.pid)
+    rm logs/courier_github_dispatcher.pid
+    echo "Courier GitHub Dispatcher stopped."
+fi
