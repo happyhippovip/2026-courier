@@ -105,7 +105,7 @@ jobs:
           # 1. Setup git and branch
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout -b "$PROPOSAL_HEAD"
+          git checkout -b "$PROPOSAL_HEAD" origin/main
           
           # 2. Add durable result
           mkdir -p revenue_v1/results
