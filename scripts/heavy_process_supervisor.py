@@ -57,6 +57,10 @@ class SafeModeBlocked(HeavyProcessError):
     """Durable safe mode prevents new managed work."""
 
 
+class RetryFanoutRejected(HeavyProcessError):
+    """A durable retry, fanout, or circuit policy blocked work before spawn."""
+
+
 @dataclass(frozen=True)
 class HeavyProcessResult:
     returncode: int
@@ -258,6 +262,49 @@ class GlobalAdmissionRecovery:
         conn.execute("UPDATE safety_mode SET enabled=0, reason='', owner_context='', updated_at=? WHERE singleton=1", (_utcnow(),))
 
 
+class RetryFanoutGuard:
+    """Persistent retry/fanout circuit controls in the canonical ownership ledger."""
+
+    def __init__(self, ledger_path: Path, *, max_fanout: int = 1, circuit_threshold: int = 3) -> None:
+        self.ledger_path = ledger_path
+        self.max_fanout = max_fanout
+        self.circuit_threshold = circuit_threshold
+
+    def initialize(self, conn: sqlite3.Connection) -> None:
+        conn.execute(
+            """CREATE TABLE IF NOT EXISTS retry_fanout (
+                job_id TEXT PRIMARY KEY, starts INTEGER NOT NULL, failures INTEGER NOT NULL,
+                circuit_open INTEGER NOT NULL, evidence TEXT NOT NULL
+            )"""
+        )
+
+    def before_spawn(self, conn: sqlite3.Connection, job_id: str) -> None:
+        conn.execute("BEGIN IMMEDIATE")
+        try:
+            row = conn.execute("SELECT starts, circuit_open FROM retry_fanout WHERE job_id=?", (job_id,)).fetchone()
+            if row and row[1]:
+                raise RetryFanoutRejected("CIRCUIT_OPEN_PROCESS_STARTED=NO")
+            if row and row[0] >= self.max_fanout:
+                raise RetryFanoutRejected("FANOUT_LIMIT_PROCESS_STARTED=NO")
+            if row:
+                conn.execute("UPDATE retry_fanout SET starts=starts+1 WHERE job_id=?", (job_id,))
+            else:
+                conn.execute("INSERT INTO retry_fanout VALUES (?, 1, 0, 0, '')", (job_id,))
+            conn.execute("COMMIT")
+        except Exception:
+            if conn.in_transaction:
+                conn.execute("ROLLBACK")
+            raise
+
+    def record_failure(self, conn: sqlite3.Connection, job_id: str, retryable: bool) -> None:
+        if not retryable:
+            return
+        conn.execute(
+            "UPDATE retry_fanout SET failures=failures+1, circuit_open=CASE WHEN failures+1>=? THEN 1 ELSE 0 END, evidence='retryable_failure' WHERE job_id=?",
+            (self.circuit_threshold, job_id),
+        )
+
+
 class HeavyProcessSupervisor:
     """Owns exactly one POSIX process group while holding a durable Courier lock."""
 
@@ -275,6 +322,8 @@ class HeavyProcessSupervisor:
         max_pending: int = 10,
         min_available_memory_bytes: int = 0,
         resource_probe: Callable[[], int | None] | None = None,
+        max_fanout: int = 10,
+        circuit_threshold: int = 3,
     ) -> None:
         if os.name == "nt":
             raise NotImplementedError("Windows Job Object supervision is not implemented")
@@ -295,6 +344,9 @@ class HeavyProcessSupervisor:
         self.admission = GlobalAdmissionRecovery(
             self.ledger_path, max_running=max_running, max_pending=max_pending,
             min_available_memory_bytes=min_available_memory_bytes, resource_probe=resource_probe,
+        )
+        self.retry_fanout = RetryFanoutGuard(
+            self.ledger_path, max_fanout=max_fanout, circuit_threshold=circuit_threshold
         )
 
     @property
@@ -325,6 +377,7 @@ class HeavyProcessSupervisor:
             )"""
         )
         self.admission.initialize(self._conn)
+        self.retry_fanout.initialize(self._conn)
         self.admission.reconcile_startup(self._conn, self.owner_id)
         self._reconcile_stale()
 
@@ -473,6 +526,10 @@ class HeavyProcessSupervisor:
         idle_timeout_seconds: float | None = None,
         liveness_source: str = "NONE",
         liveness_callback: Callable[[], bool] | None = None,
+        retryable_returncodes: set[int] | None = None,
+        backoff_seconds: float = 0.0,
+        jitter: Callable[[], float] | None = None,
+        sleeper: Callable[[float], None] = time.sleep,
     ) -> HeavyProcessResult:
         if timeout_seconds <= 0 or max_attempts <= 0:
             raise ValueError("timeout_seconds and max_attempts must be positive")
@@ -497,6 +554,7 @@ class HeavyProcessSupervisor:
                 admission = self.admission.admit(self._conn, job_id, attempt, self.owner_id)
                 if admission == "PENDING":
                     raise AdmissionRejected("ADMISSION_BACKPRESSURE_PROCESS_STARTED=NO")
+                self.retry_fanout.before_spawn(self._conn, job_id)
                 cleanup_reserve = self.cleanup_reserve_seconds * (max_attempts - attempt + 1)
                 execution_deadline = total_deadline - cleanup_reserve
                 remaining = execution_deadline - time.monotonic()
@@ -511,6 +569,15 @@ class HeavyProcessSupervisor:
                     self.admission.release(self._conn, job_id, attempt)
                 if result.returncode == 0 or attempt == max_attempts:
                     return result
+                retryable = result.returncode in (retryable_returncodes or set())
+                self.retry_fanout.record_failure(self._conn, job_id, retryable)
+                if not retryable:
+                    return result
+                delay = backoff_seconds + (jitter() if jitter else 0.0)
+                next_reserve = self.cleanup_reserve_seconds * (max_attempts - attempt)
+                if time.monotonic() + delay + next_reserve >= total_deadline:
+                    raise RetryFanoutRejected("RETRY_BUDGET_EXHAUSTED_PROCESS_STARTED=NO")
+                sleeper(delay)
             raise AssertionError("unreachable")
 
     def _run_once(

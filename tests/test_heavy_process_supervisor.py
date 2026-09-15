@@ -23,6 +23,8 @@ from heavy_process_supervisor import (
     HeavyProcessSupervisor,
     AdmissionRejected,
     SafeModeBlocked,
+    RetryFanoutGuard,
+    RetryFanoutRejected,
 )
 import check_process_safety_bypass
 import run_autonomous_supervisor
@@ -174,7 +176,7 @@ class HeavyProcessSupervisorTests(unittest.TestCase):
             foreign.wait(timeout=2)
 
     def test_retry_and_wall_clock_budgets_are_bounded(self) -> None:
-        result = self.supervisor().run("retry", [sys.executable, "-c", "raise SystemExit(3)"], timeout_seconds=1, max_attempts=2, wall_clock_budget_seconds=11)
+        result = self.supervisor().run("retry", [sys.executable, "-c", "raise SystemExit(3)"], timeout_seconds=1, max_attempts=2, wall_clock_budget_seconds=11, retryable_returncodes={3})
         self.assertEqual(result.attempt, 2)
         self.assertEqual(len(self.rows()), 2)
         with self.assertRaises(HeavyProcessError):
@@ -199,6 +201,30 @@ class HeavyProcessSupervisorTests(unittest.TestCase):
         self.assertLess(float(marker.read_text()), started + total_budget)
         self.assertLess(duration, total_budget + tolerance)
         self.assertEqual(self.rows()[0][6], "TERM_CLEAN")
+
+    def test_retry_policy_fanout_and_circuit_are_durable(self) -> None:
+        with self.supervisor().ownership() as supervisor:
+            guard = RetryFanoutGuard(supervisor.ledger_path, max_fanout=2, circuit_threshold=2)
+            guard.initialize(supervisor._conn)
+            guard.before_spawn(supervisor._conn, "fanout")
+            guard.before_spawn(supervisor._conn, "fanout")
+            with self.assertRaisesRegex(RetryFanoutRejected, "FANOUT"):
+                guard.before_spawn(supervisor._conn, "fanout")
+            guard.before_spawn(supervisor._conn, "circuit")
+            guard.record_failure(supervisor._conn, "circuit", True)
+            guard.record_failure(supervisor._conn, "circuit", True)
+        with self.supervisor().ownership() as supervisor:
+            with self.assertRaisesRegex(RetryFanoutRejected, "CIRCUIT"):
+                supervisor.retry_fanout.before_spawn(supervisor._conn, "circuit")
+
+    def test_nonretryable_and_budget_exhausted_backoff_do_not_spawn_again(self) -> None:
+        marker = Path(self.tmp.name) / "starts"
+        code = f"import pathlib; p=pathlib.Path({str(marker)!r}); p.write_text((p.read_text() if p.exists() else '')+'x'); raise SystemExit(7)"
+        result = self.supervisor().run("nonretry", [sys.executable, "-c", code], timeout_seconds=1, max_attempts=2, wall_clock_budget_seconds=11)
+        self.assertEqual(result.attempt, 1)
+        self.assertEqual(marker.read_text(), "x")
+        with self.assertRaisesRegex(RetryFanoutRejected, "RETRY_BUDGET"):
+            self.supervisor().run("budget", [sys.executable, "-c", "raise SystemExit(3)"], timeout_seconds=1, max_attempts=2, wall_clock_budget_seconds=12, retryable_returncodes={3}, backoff_seconds=7, sleeper=lambda _: None)
 
     def test_wall_clock_budget_allows_normal_process_within_total(self) -> None:
         total_budget = 5.0
