@@ -64,9 +64,14 @@ def run(task_file):
                     result_json_path = tmp_dir / "result.json"
                     
                     if result_json_path.exists():
-                        # Copy result JSON
+                        # Bind the downloaded result to the observable GitHub run.
                         os.makedirs("results/incoming", exist_ok=True)
-                        shutil.copy(result_json_path, f"results/incoming/{task_id}_result.json")
+                        result_payload = json.loads(result_json_path.read_text(encoding="utf-8"))
+                        result_payload["run_id"] = run_id
+                        incoming = Path(f"results/incoming/{task_id}_result.json")
+                        incoming_tmp = incoming.with_suffix(".json.tmp")
+                        incoming_tmp.write_text(json.dumps(result_payload), encoding="utf-8")
+                        os.replace(incoming_tmp, incoming)
                         
                         # Also copy any canary files to workspace root for verification
                         for canary in tmp_dir.glob("courier_canary_*.txt"):

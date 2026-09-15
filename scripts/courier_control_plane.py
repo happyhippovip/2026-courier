@@ -1,7 +1,9 @@
 import os, json, glob, time, uuid, subprocess, sys
+from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__)))); sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from run_chief_commander import ChiefCommander
+from integration_contract import ContractError, prepare_task, verify_result
 
 STATE_FILE = 'central_state.json'
 
@@ -15,8 +17,12 @@ def load_state():
     return {"goals": {}, "tasks": {}}
 
 def save_state(state):
-    with open(STATE_FILE, 'w') as f:
+    temp_path = f"{STATE_FILE}.tmp"
+    with open(temp_path, 'w') as f:
         json.dump(state, f, indent=2)
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(temp_path, STATE_FILE)
 
 def ingest_goals(state):
     os.makedirs("goals/pending", exist_ok=True)
@@ -77,16 +83,22 @@ def determine_next_task(goal_id, state):
         goal["status"] = "DONE"
         return None
 
-def dispatch_task(task):
+def dispatch_task(task, state=None):
+    task.update(prepare_task(task))
     target = task["target_capability"]
     print(f"Dispatching {task['task_id']} to {target}")
+    task["status"] = "DISPATCHED"
     
     os.makedirs("tasks/dispatched", exist_ok=True)
     task_file = f"tasks/dispatched/{task['task_id']}.json"
     with open(task_file, 'w') as f:
         json.dump(task, f)
-        
-    task["status"] = "DISPATCHED"
+        f.flush()
+        os.fsync(f.fileno())
+
+    # Persist DISPATCHED before an external worker can observe the packet.
+    if state is not None:
+        save_state(state)
     
     if target == "mac":
         subprocess.Popen(["python3", "scripts/mac_worker_adapter.py", task_file])
@@ -99,32 +111,60 @@ def dispatch_task(task):
         
 def process_results(state):
     os.makedirs("results/incoming", exist_ok=True)
+    os.makedirs("results/processed", exist_ok=True)
+    os.makedirs("results/rejected", exist_ok=True)
+    workspace = Path.cwd()
     for res_file in glob.glob("results/incoming/*.json"):
-        with open(res_file, 'r') as f:
-            res = json.load(f)
-        task_id = res["task_id"]
-        if task_id in state["tasks"]:
+        source_path = Path(res_file)
+        accepted = False
+        try:
+            res = json.loads(source_path.read_text(encoding="utf-8"))
+            task_id = res.get("task_id")
+            if task_id not in state["tasks"]:
+                raise ContractError("result references unknown task")
             task = state["tasks"][task_id]
+            if task.get("status") in {"RECONCILED", "FAILED_TERMINAL", "FAILED_VERIFICATION"}:
+                raise ContractError("duplicate terminal result")
             task["status"] = "RESULT_RECEIVED"
-            task["result"] = res
-            
-            if res.get("status") == "SUCCESS":
-                # TASK-SPECIFIC VERIFICATION
-                # We expect the generic task to create a file named courier_canary_{task_id}.txt 
-                expected_artifact = f"courier_canary_{task_id}.txt"
-                if os.path.exists(expected_artifact):
-                    print(f"Verification PASS: Found expected artifact {expected_artifact}")
-                    task["status"] = "RECONCILED"
-                else:
-                    print(f"Verification FAIL: Missing expected artifact {expected_artifact}")
-                    task["status"] = "FAILED_VERIFICATION"
+            durable_result = verify_result(task, res, workspace)
+            task["result"] = durable_result
+            task["run_id"] = durable_result["run_id"]
+            task["result_id"] = durable_result["result_id"]
+            if durable_result["status"] == "SUCCESS":
+                task["status"] = "RECONCILED"
+                print(f"Verification PASS: {durable_result['result_id']}")
             else:
                 task["status"] = "FAILED_TERMINAL"
-
-
-                
-            print(f"Task {task_id} reconciled to {task['status']}")
-        os.remove(res_file)
+                state["goals"][task["goal_id"]]["status"] = "BLOCKED"
+            target = Path("results/processed") / f"{durable_result['result_id']}.json"
+            temp_target = target.with_suffix(".json.tmp")
+            temp_target.write_text(json.dumps(durable_result, sort_keys=True, indent=2) + "\n", encoding="utf-8")
+            os.replace(temp_target, target)
+            # Persist reconciliation before acknowledging/removing the inbox item.
+            save_state(state)
+            accepted = True
+        except (OSError, json.JSONDecodeError, ContractError) as exc:
+            task_id = None
+            try:
+                task_id = json.loads(source_path.read_text(encoding="utf-8")).get("task_id")
+            except (OSError, json.JSONDecodeError):
+                pass
+            if task_id in state["tasks"] and state["tasks"][task_id].get("status") not in {
+                "RECONCILED", "FAILED_TERMINAL", "FAILED_VERIFICATION"
+            }:
+                task = state["tasks"][task_id]
+                task["status"] = "FAILED_VERIFICATION"
+                state["goals"][task["goal_id"]]["status"] = "BLOCKED"
+                save_state(state)
+            print(f"Verification FAIL: {exc}")
+        finally:
+            if accepted:
+                source_path.unlink(missing_ok=True)
+            elif source_path.exists():
+                rejected = Path("results/rejected") / source_path.name
+                if rejected.exists():
+                    rejected = rejected.with_name(f"{rejected.stem}-{uuid.uuid4().hex}{rejected.suffix}")
+                os.replace(source_path, rejected)
 
 def loop():
     state = load_state()
@@ -138,8 +178,9 @@ def loop():
             if not active_tasks:
                 next_task = determine_next_task(goal_id, state)
                 if next_task:
+                    next_task = prepare_task(next_task)
                     state["tasks"][next_task["task_id"]] = next_task
-                    dispatch_task(next_task)
+                    dispatch_task(next_task, state)
             
     save_state(state)
 
