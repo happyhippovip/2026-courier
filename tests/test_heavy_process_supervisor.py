@@ -6,6 +6,7 @@ import subprocess
 import sys
 import time
 import unittest
+import uuid
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -19,6 +20,8 @@ from heavy_process_supervisor import (
     HeavyProcessIdentityError,
     HeavyProcessSupervisor,
 )
+import run_autonomous_supervisor
+import run_chief_relay_cycle
 
 
 def hold_lock(runtime_dir: str, ready: multiprocessing.Queue) -> None:
@@ -112,7 +115,44 @@ class HeavyProcessSupervisorTests(unittest.TestCase):
         with sqlite3.connect(self.runtime / "heavy_jobs.sqlite3") as conn:
             conn.execute("UPDATE heavy_jobs SET state = 'RUNNING' WHERE job_id = 'old'")
         self.assertEqual(self.supervisor().run("new", [sys.executable, "-c", ""], timeout_seconds=1).returncode, 0)
-        self.assertEqual(self.rows()[0][4], "STALE_OWNER_RECOVERED")
+        self.assertEqual(self.rows()[0][4], "STALE_PROVEN_DEAD_OWNER")
+
+    def test_running_record_without_pid_or_pgid_fails_closed_before_successor_executes(self) -> None:
+        with self.supervisor().ownership() as supervisor:
+            supervisor._claim("unknown", 1, ["expected"], {}, time.time() + 1)
+            supervisor._transition("unknown", 1, "RUNNING")
+        marker = Path(self.tmp.name) / "successor-executed"
+        with self.assertRaisesRegex(HeavyProcessIdentityError, "AMBIGUOUS_OWNER"):
+            self.supervisor().run("successor", [sys.executable, "-c", f"open({str(marker)!r}, 'w').close()"], timeout_seconds=1)
+        self.assertFalse(marker.exists())
+        self.assertEqual(self.rows()[0][4], "AMBIGUOUS_OWNER")
+
+    def test_malformed_running_identity_fails_closed_before_successor_executes(self) -> None:
+        with self.supervisor().ownership() as supervisor:
+            supervisor._claim("malformed", 1, ["expected"], {}, time.time() + 1)
+            supervisor._transition("malformed", 1, "RUNNING", pid=0, pgid=-1, observed_fingerprint="", process_start="")
+        marker = Path(self.tmp.name) / "successor-executed"
+        with self.assertRaisesRegex(HeavyProcessIdentityError, "AMBIGUOUS_OWNER"):
+            self.supervisor().run("successor", [sys.executable, "-c", f"open({str(marker)!r}, 'w').close()"], timeout_seconds=1)
+        self.assertFalse(marker.exists())
+        self.assertEqual(self.rows()[0][4], "AMBIGUOUS_OWNER")
+
+    def test_valid_live_owner_is_protected_before_successor_executes(self) -> None:
+        owner = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(5)"], start_new_session=True)
+        try:
+            with self.supervisor().ownership() as supervisor:
+                supervisor._claim("live", 1, ["expected"], {}, time.time() + 1)
+                row = next(row for row in __import__("heavy_process_supervisor")._ps_rows() if row[0] == owner.pid)
+                supervisor._transition("live", 1, "RUNNING", pid=owner.pid, pgid=os.getpgid(owner.pid), observed_fingerprint=__import__("heavy_process_supervisor")._fingerprint([row[3]]), process_start=row[2])
+            marker = Path(self.tmp.name) / "successor-executed"
+            with self.assertRaisesRegex(HeavyProcessBusy, "LIVE_VALID_OWNER"):
+                self.supervisor().run("successor", [sys.executable, "-c", f"open({str(marker)!r}, 'w').close()"], timeout_seconds=1)
+            self.assertIsNone(owner.poll())
+            self.assertFalse(marker.exists())
+            self.assertEqual(self.rows()[0][4], "LIVE_VALID_OWNER")
+        finally:
+            os.killpg(os.getpgid(owner.pid), signal.SIGTERM)
+            owner.wait(timeout=2)
 
     def test_identity_mismatch_fails_closed_without_killing_foreign_process(self) -> None:
         foreign = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(5)"], start_new_session=True)
@@ -134,6 +174,37 @@ class HeavyProcessSupervisorTests(unittest.TestCase):
         self.assertEqual(len(self.rows()), 2)
         with self.assertRaises(HeavyProcessError):
             self.supervisor().run("wall", [sys.executable, "-c", "import time; time.sleep(1)"], timeout_seconds=1, max_attempts=2, wall_clock_budget_seconds=0.1)
+
+    def test_relay_wrapper_uses_supervisor_and_propagates_metadata(self) -> None:
+        task_id = f"relay-task-{uuid.uuid4().hex}"
+        result = run_chief_relay_cycle.run_relay_subprocess(
+            Path(__file__).resolve().parents[1], task_id, "relay-test",
+            [sys.executable, "-c", "print('relay')"], owner_id="night-owner",
+        )
+        self.assertEqual(result.stdout.strip(), "relay")
+        with sqlite3.connect(Path(__file__).resolve().parents[1] / "runtime/resource_guard/heavy_jobs.sqlite3") as conn:
+            metadata = conn.execute("SELECT metadata_json FROM heavy_jobs WHERE job_id = ?", (f"{task_id}:relay-test",)).fetchone()[0]
+        self.assertIn('"relay_stage": "relay-test"', metadata)
+
+    def test_night_supervisor_propagates_session_owner_to_relay(self) -> None:
+        queue_dir = Path(self.tmp.name) / "queue"
+        task_id = f"night-test-{uuid.uuid4().hex}"
+        task = {
+            "schema_version": "2.0", "task_id": task_id, "priority": 1, "instruction": "Run test",
+            "project": "2026-courier", "status": "QUEUED", "created_at": "2026-01-01T00:00:00Z",
+            "attempt_count": 0, "max_attempts": 1, "requires_human": False,
+        }
+        queue_dir.mkdir()
+        (queue_dir / f"{task_id}.json").write_text(__import__("json").dumps(task))
+        report = run_autonomous_supervisor.run_supervisor_session(
+            repo_dir=Path(__file__).resolve().parents[1], queue_dir=queue_dir,
+            reports_dir=Path(self.tmp.name) / "reports", events_dir=Path(self.tmp.name) / "events",
+            memory_repo=Path(self.tmp.name) / "missing-memory", max_tasks=1,
+        )
+        self.assertEqual(report["tasks_completed"], 1)
+        with sqlite3.connect(Path(__file__).resolve().parents[1] / "runtime/resource_guard/heavy_jobs.sqlite3") as conn:
+            owner_id = conn.execute("SELECT owner_id FROM heavy_jobs WHERE job_id = ?", (f"{task_id}:build-worker-job",)).fetchone()[0]
+        self.assertEqual(owner_id, report["session_id"])
 
 
 if __name__ == "__main__":

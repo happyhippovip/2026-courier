@@ -20,7 +20,15 @@ from pathlib import Path
 from typing import Sequence
 
 
-ACTIVE_STATES = ("CLAIMED", "RUNNING", "TERM_SENT", "KILL_SENT")
+ACTIVE_STATES = (
+    "CLAIMED",
+    "RUNNING",
+    "TERM_SENT",
+    "KILL_SENT",
+    "LIVE_VALID_OWNER",
+    "AMBIGUOUS_OWNER",
+    "PID_IDENTITY_MISMATCH",
+)
 
 
 class HeavyProcessError(RuntimeError):
@@ -187,14 +195,24 @@ class HeavyProcessSupervisor:
             ACTIVE_STATES,
         ).fetchall()
         for job_id, attempt, pid, pgid, fingerprint, start in rows:
+            if not (
+                isinstance(pid, int) and pid > 0
+                and isinstance(pgid, int) and pgid > 0
+                and isinstance(fingerprint, str) and fingerprint
+                and isinstance(start, str) and start
+            ):
+                self._transition(job_id, attempt, "AMBIGUOUS_OWNER", cleanup_result="MISSING_OR_MALFORMED_IDENTITY")
+                raise HeavyProcessIdentityError(f"AMBIGUOUS_OWNER:{job_id}")
             group = [row for row in _ps_rows() if row[1] == pgid]
             if not group:
-                self._transition(job_id, attempt, "STALE_OWNER_RECOVERED", cleanup_result="GROUP_GONE")
+                self._transition(job_id, attempt, "STALE_PROVEN_DEAD_OWNER", cleanup_result="GROUP_GONE")
                 continue
             exact = next((row for row in group if row[0] == pid), None)
             if exact and exact[2] == start and _fingerprint([exact[3]]) == fingerprint:
-                raise HeavyProcessBusy(f"ORPHAN_PROCESS_DETECTED:{job_id}")
-            raise HeavyProcessIdentityError(f"ORPHAN_IDENTITY_MISMATCH:{job_id}")
+                self._transition(job_id, attempt, "LIVE_VALID_OWNER", cleanup_result="LIVE_VALID_OWNER")
+                raise HeavyProcessBusy(f"LIVE_VALID_OWNER:{job_id}")
+            self._transition(job_id, attempt, "PID_IDENTITY_MISMATCH", cleanup_result="PID_IDENTITY_MISMATCH")
+            raise HeavyProcessIdentityError(f"PID_IDENTITY_MISMATCH:{job_id}")
 
     def _transition(self, job_id: str, attempt: int, state: str, **updates: object) -> None:
         assert self._conn is not None
