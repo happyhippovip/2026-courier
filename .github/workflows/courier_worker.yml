@@ -5,12 +5,15 @@ on:
       task_id:
         description: "Task ID"
         required: true
+        type: string
       instruction:
         description: "Task Instruction/Payload"
         required: true
+        type: string
       goal_id:
         description: "Goal ID"
         required: false
+        type: string
 jobs:
   execute:
     runs-on: ubuntu-latest
@@ -48,15 +51,15 @@ with open(f"{task_id}_result.json", "w") as f:
 PY_EOF
           python3 run_task.py
         env:
-          TASK_ID: ${{ github.event.inputs.task_id }}
-          GOAL_ID: ${{ github.event.inputs.goal_id }}
-          INSTRUCTION: ${{ github.event.inputs.instruction }}
+          TASK_ID: ${{ inputs.task_id }}
+          GOAL_ID: ${{ inputs.goal_id }}
+          INSTRUCTION: ${{ inputs.instruction }}
       
       - name: Upload Result
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: courier-result-${{ github.event.inputs.task_id }}
+          name: courier-result-${{ inputs.task_id }}
           path: |
-            ${{ github.event.inputs.task_id }}_result.json
+            ${{ inputs.task_id }}_result.json
             courier_canary_*.txt
