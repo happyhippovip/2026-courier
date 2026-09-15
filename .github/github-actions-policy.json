@@ -1,0 +1,16 @@
+{
+  "approved_runners": ["ubuntu-latest"],
+  "maximum_timeout_minutes": 30,
+  "approved_actions": ["actions/checkout@v5", "openai/codex-action@v1"],
+  "workflow_roles": {
+    "courier-codex.yml": {
+      "validate-task": "verifier",
+      "codex-worker": "worker",
+      "verify-result": "verifier",
+      "propose-result": "proposer"
+    },
+    "process-safety.yml": {
+      "bypass-guard": "verifier"
+    }
+  }
+}

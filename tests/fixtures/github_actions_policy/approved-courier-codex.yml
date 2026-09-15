@@ -1,0 +1,50 @@
+name: Approved Courier policy fixture
+
+concurrency:
+  group: courier-codex-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  validate-task:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+
+  codex-worker:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: openai/codex-action@v1
+
+  verify-result:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+
+  propose-result:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      TASK_ID: task
+      ATTEMPT_ID: attempt
+      RESULT_PATH: events/processed/result.json
+      VERIFIER_ID: verifier
+    steps:
+      - uses: actions/checkout@v5
+      - run: |
+          git push origin "HEAD:$PROPOSAL_BRANCH"
+          gh pr create --base main --head "$PROPOSAL_BRANCH"

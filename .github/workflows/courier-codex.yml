@@ -1,4 +1,4 @@
-name: Courier Codex one-time test 073
+name: Courier Codex one-time result proposal
 
 on:
   push:
@@ -6,11 +6,16 @@ on:
     paths:
       - "events/incoming/**"
 
+concurrency:
+  group: courier-codex-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: read
 
 jobs:
   validate-task:
+    timeout-minutes: 10
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -44,10 +49,10 @@ jobs:
               output.write(f"message_id={task['message_id']}\n")
           PY
 
-  codex-and-publish-result:
-    # Exact one-time guard: no other TASK can invoke Codex through this workflow.
+  codex-worker:
     if: ${{ needs.validate-task.outputs.task_id == 'COURIER-CODEX-AUTO-E2E-073' && needs.validate-task.outputs.message_id == 'msg-cgca-073-task-6eb40334-9ce1-4af1-bf0a-20eb47f5cb86' }}
     needs: validate-task
+    timeout-minutes: 10
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -75,30 +80,71 @@ jobs:
             result_request. Do not create files, commands, commits, network
             calls, messages, or any additional task.
 
-  publish-result:
-    # Same exact one-time guard, in a fresh job with schema-bound output only.
+  verify-result:
     if: ${{ needs.validate-task.outputs.task_id == 'COURIER-CODEX-AUTO-E2E-073' && needs.validate-task.outputs.message_id == 'msg-cgca-073-task-6eb40334-9ce1-4af1-bf0a-20eb47f5cb86' }}
-    needs: [validate-task, codex-and-publish-result]
+    needs: [validate-task, codex-worker]
+    timeout-minutes: 10
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
+    outputs:
+      result_path: ${{ steps.verify.outputs.result_path }}
+      verifier_id: courier-result-verifier-v1
     steps:
       - uses: actions/checkout@v5
-      - id: publish
-        name: Validate and create the one RESULT file
+        with:
+          persist-credentials: false
+      - id: verify
+        name: Bind and verify task attempt result
         env:
-          CODEX_RESULT_JSON: ${{ needs.codex-and-publish-result.outputs.final_message }}
+          CODEX_RESULT_JSON: ${{ needs.codex-worker.outputs.final_message }}
         run: |
           python3 scripts/publish_courier_result.py \
             --task "${{ needs.validate-task.outputs.task_path }}" \
             --processed-dir events/processed \
             --github-output "$GITHUB_OUTPUT"
-      - name: Commit the validated RESULT only
-        env:
-          RESULT_PATH: ${{ steps.publish.outputs.result_path }}
+
+  propose-result:
+    if: ${{ needs.validate-task.outputs.task_id == 'COURIER-CODEX-AUTO-E2E-073' && needs.validate-task.outputs.message_id == 'msg-cgca-073-task-6eb40334-9ce1-4af1-bf0a-20eb47f5cb86' }}
+    needs: [validate-task, verify-result]
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PROPOSAL_BRANCH: courier/result-proposal-${{ github.run_id }}-${{ github.run_attempt }}
+      TASK_ID: ${{ needs.validate-task.outputs.task_id }}
+      ATTEMPT_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+      RESULT_PATH: ${{ needs.verify-result.outputs.result_path }}
+      VERIFIER_ID: ${{ needs.verify-result.outputs.verifier_id }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Create a reviewable result proposal
         run: |
           set -eu
+          test -n "$TASK_ID"
+          test -n "$ATTEMPT_ID"
+          test -n "$RESULT_PATH"
+          test -n "$VERIFIER_ID"
+          test -f "$RESULT_PATH"
+          gh auth setup-git
+          git switch -c "$PROPOSAL_BRANCH"
           git add -f "$RESULT_PATH"
           git diff --cached --quiet && exit 1
-          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "Record courier Codex result"
-          git push origin HEAD:main
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "Propose courier Codex result"
+          git push origin "HEAD:$PROPOSAL_BRANCH"
+          gh pr create --base main --head "$PROPOSAL_BRANCH" \
+            --title "Propose courier result for $TASK_ID" \
+            --body "Task: $TASK_ID
+
+          Attempt: $ATTEMPT_ID
+
+          Result: $RESULT_PATH
+
+          Verifier: $VERIFIER_ID
+
+          This proposal must be reviewed and merged by a human."

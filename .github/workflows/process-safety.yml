@@ -6,13 +6,22 @@ on:
     branches:
       - courier/heavy-process-supervisor
 
+concurrency:
+  group: process-safety-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: read
 
 jobs:
   bypass-guard:
+    timeout-minutes: 10
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v5
       - run: python3 scripts/check_process_safety_bypass.py
+      - run: python3 scripts/validate_github_workflow_policy.py
+      - run: python3 -m unittest tests/test_github_workflow_policy.py
       - run: python3 -m unittest tests/test_heavy_process_supervisor.py
