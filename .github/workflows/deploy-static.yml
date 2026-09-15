@@ -25,16 +25,6 @@ jobs:
         run: |
           set -eu
           bash -n deploy/install.sh deploy/run-supervisor.sh
-          root="$RUNNER_TEMP/systemd-root"
-          install -d "$root/etc/systemd/system" "$root/opt/courier/deploy"
-          cp deploy/courier.service "$root/etc/systemd/system/"
-          install -m 0755 deploy/run-supervisor.sh "$root/opt/courier/deploy/run-supervisor.sh"
-          cat > "$root/etc/systemd/system/systemd-journald@courier.socket" <<'EOF'
-          [Socket]
-          ListenDatagram=/run/systemd/journal.courier/socket
-          EOF
-          cat > "$root/etc/systemd/system/systemd-journald-varlink@courier.socket" <<'EOF'
-          [Socket]
-          ListenStream=/run/systemd/journal.courier/io.systemd.journal
-          EOF
-          systemd-analyze verify --root="$root" /etc/systemd/system/courier.service
+          sudo install -d /opt/courier/deploy
+          sudo install -m 0755 deploy/run-supervisor.sh /opt/courier/deploy/run-supervisor.sh
+          systemd-analyze verify "$GITHUB_WORKSPACE/deploy/courier.service"
