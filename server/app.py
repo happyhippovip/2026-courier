@@ -289,6 +289,16 @@ def task_result():
     return jsonify({"error": "Invalid task or worker"}), 400
 
 
+@app.route("/tasks/pending_verification", methods=["GET"])
+@require_auth
+def pending_verification():
+    state = load_state()
+    pending = []
+    for task in state.get("tasks", {}).values():
+        if task.get("status") == "RESULT_RECEIVED":
+            pending.append(task)
+    return jsonify({"tasks": pending})
+
 @app.route("/tasks/verify", methods=["POST"])
 @require_auth
 def verify_task_result():

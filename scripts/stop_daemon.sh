@@ -6,3 +6,9 @@ if [ -f logs/courier_daemon.pid ]; then
 else
     echo "No running daemon found."
 fi
+
+if [ -f logs/courier_verifier.pid ]; then
+    kill $(cat logs/courier_verifier.pid)
+    rm logs/courier_verifier.pid
+    echo "Courier Verifier stopped."
+fi
