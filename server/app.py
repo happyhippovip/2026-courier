@@ -207,6 +207,41 @@ def claim_task():
                     elif "antigravity" in target and "antigravity" in worker["capabilities"]: matched = True
                     
                     if matched:
+                        # Cost-based routing check:
+                        # If this worker is expensive, and a cheaper qualified worker is currently active and available,
+                        # decline this claim so the cheaper worker can grab it.
+                        worker_cost = worker.get("cost_class", "high")
+                        if worker_cost in ("high", "medium"):
+                            cheaper_available = False
+                            now = time.time()
+                            for other_id, other_w in state["workers"].items():
+                                if other_id == worker_id: continue
+                                if not other_w.get("available", False): continue
+                                if now - other_w.get("last_seen", 0) > 300: continue
+                                
+                                other_cost = other_w.get("cost_class", "high")
+                                # is other cheaper?
+                                if worker_cost == "high" and other_cost in ("free", "low", "medium"):
+                                    is_cheaper = True
+                                elif worker_cost == "medium" and other_cost in ("free", "low"):
+                                    is_cheaper = True
+                                else:
+                                    is_cheaper = False
+                                    
+                                if is_cheaper:
+                                    # Is other qualified?
+                                    if "github" in target and "github" in other_w["capabilities"]: cheaper_available = True
+                                    elif "mac" in target and "macos" in other_w["capabilities"]: cheaper_available = True
+                                    elif "windows" in target and "windows" in other_w["capabilities"]: cheaper_available = True
+                                    elif "linux" in target and "linux" in other_w["capabilities"]: cheaper_available = True
+                                    elif "antigravity" in target and "antigravity" in other_w["capabilities"]: cheaper_available = True
+                                
+                            if cheaper_available:
+                                # We decline this claim to let the cheaper worker grab it.
+                                # But we can't return error, we just skip this task and let it return empty.
+                                matched = False
+
+                    if matched:
                         next_task["worker_id"] = worker_id
                         next_task["attempts"] = next_task.get("attempts", 0) + 1
                         next_task["attempt_id"] = f"{next_task['task_id']}:attempt:{next_task['attempts']}"
