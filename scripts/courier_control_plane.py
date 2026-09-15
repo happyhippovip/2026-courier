@@ -92,6 +92,8 @@ def dispatch_task(task):
         subprocess.Popen(["python3", "scripts/mac_worker_adapter.py", task_file])
     elif target == "windows":
         subprocess.Popen(["python3", "scripts/windows_worker_adapter.py", task_file])
+    elif target == "github":
+        subprocess.Popen(["python3", "scripts/github_worker_adapter.py", task_file])
     else:
         task["status"] = "HUMAN_REQUIRED"
         

@@ -598,14 +598,39 @@ class ChiefCommander:
         correlation_id: str | None = None
     ) -> tuple[str, list[dict]]:
         """Converts a human idea and Context Delta into a multi-step bounded workflow plan using SmartResourceRouter."""
+        import json
+        import uuid
         workflow_id = f"WF-CHIEF-{uuid.uuid4().hex[:6]}"
         idea_lower = idea_text.lower()
 
         # Update Steward compiles snapshot
         snapshot = self.steward.generate_context_snapshot(context_delta=context_delta)
 
+        # Support explicit JSON plans for generic testing without a full LLM pass
+        if idea_text.strip().startswith("[") and idea_text.strip().endswith("]"):
+            try:
+                explicit_steps = json.loads(idea_text.strip())
+                plan = []
+                for i, step in enumerate(explicit_steps):
+                    task_id = f"{workflow_id}-STEP-{i+1}"
+                    s = {
+                        "task_id": task_id,
+                        "target_agent": step.get("target_agent", "antigravity"),
+                        "instruction": step.get("instruction", "").replace("{task_id}", task_id),
+
+                        "allowed_scope": step.get("allowed_scope", []),
+                        "context_delta": context_delta,
+                        "routing_reason": "Explicit goal parsing"
+                    }
+                    self.steward.attach_task_context(s, snapshot)
+                    plan.append(s)
+                return workflow_id, plan
+            except Exception as e:
+                pass # fallback to generic 3-step
+
         # Step 1: Strategy & Discovery
         step1_desc = f"Formulate execution strategy and inspect context for: {idea_text[:120]}"
+
         step1_scope = ["config/local_tools.json", "config/teamwork_policy.json"]
         target_1, reason_1, exec_class_1 = SmartResourceRouter.classify_and_route(step1_desc, step1_scope, context_delta)
 
