@@ -25,6 +25,10 @@ import sys
 import time
 import uuid
 from pathlib import Path
+try:
+    from worker_router import route_worker_job
+except ImportError:
+    from scripts.worker_router import route_worker_job
 
 SCRIPTS_DIR = Path(__file__).resolve().parent
 COURIER_DIR = SCRIPTS_DIR.parent
@@ -386,7 +390,7 @@ class AutonomousLevel6Loop:
                 target_agent_raw = current_task_info.get("target_agent", "antigravity").lower()
 
                 is_codex = "codex" in target_agent_raw
-                target_agent_name = "courier-codex-bridge" if is_codex else "courier-antigravity-bridge"
+                target_agent_name = target_agent_raw
                 active_tracker = self.codex_state_tracker if is_codex else self.state_tracker
                 active_hooks = self.codex_hooks if is_codex else self.hooks
 
@@ -498,14 +502,42 @@ class AutonomousLevel6Loop:
                         break
 
                     try:
-                        if is_codex:
-                            result_file = execute_codex_task(
-                                dispatch_file,
-                                active_hooks,
-                                try_real_cli=try_real_codex,
-                            )
-                        else:
-                            result_file = execute_bridge_task(dispatch_file, active_hooks)
+                        active_tracker.update_state(
+                            state="WAITING_FOR_WORKER",
+                            task=task_id,
+                            progress=float(iteration) / float(len(workflow_plan)),
+                            workflow=workflow_id,
+                            last_action=f"Dispatched task to worker: {target_agent_name}",
+                            next_action="Waiting for durable result",
+                            blocked=True,
+                            human_gate=None,
+                        )
+
+                        route_res = route_worker_job(dispatch_file)
+                        if not route_res.get("success"):
+                            raise RuntimeError(f"Router failed to dispatch to {target_agent_name}: {route_res.get('error')}")
+
+                        result_file = self.repo_dir / f"events/processed/{task_id}-result.json"
+                        poll_start = time.time()
+                        
+                        while not result_file.exists():
+                            if time.time() - poll_start > 300:
+                                raise RuntimeError("Timeout waiting for DurableResult from worker")
+                            if time.time() - start_time > self.timeout_seconds:
+                                raise RuntimeError("Loop timeout exceeded while waiting for worker")
+                            time.sleep(1)
+
+                        active_tracker.update_state(
+                            state="RUNNING",
+                            task=task_id,
+                            progress=float(iteration) / float(len(workflow_plan)),
+                            workflow=workflow_id,
+                            last_action=f"Received durable result from worker: {target_agent_name}",
+                            next_action="Evaluating chief decision",
+                            blocked=False,
+                            human_gate=None,
+                        )
+
                     finally:
                         self.lease_manager.release_lease(task_id, target_agent_name)
 
