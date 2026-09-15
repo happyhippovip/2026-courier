@@ -1,7 +1,8 @@
-import os, json, uuid, time, threading
+import os, json, uuid, time
 from flask import Flask, request, jsonify
 
 from scripts.integration_contract import ContractError, prepare_task, validate_durable_result
+from scripts.run_chief_commander import ChiefCommander
 
 app = Flask(__name__)
 
@@ -22,15 +23,12 @@ def require_auth(f):
 
 def load_state():
     if os.path.exists(STATE_FILE):
-        try:
-            with open(STATE_FILE, 'r') as f:
-                state = json.load(f)
-                state.setdefault("goals", {})
-                state.setdefault("tasks", {})
-                state.setdefault("workers", {})
-                return state
-        except json.JSONDecodeError:
-            pass
+        with open(STATE_FILE, 'r') as f:
+            state = json.load(f)
+            state.setdefault("goals", {})
+            state.setdefault("tasks", {})
+            state.setdefault("workers", {})
+            return state
     return {"goals": {}, "tasks": {}, "workers": {}}
 
 def save_state(state):
@@ -82,22 +80,49 @@ def submit_goal():
             if "task_id" not in step:
                 step["task_id"] = f"task-{uuid.uuid4().hex[:8]}"
     else:
-        # Without ChiefCommander directly linked, we create a single generic task
-        # Ideally, we'd dispatch a PLANNING task, but for the deterministic server router:
-        task_id = f"task-{uuid.uuid4().hex[:8]}"
-        goal["workflow_plan"] = [{
-            "task_id": task_id,
-            "goal_id": goal_id,
-            "instruction": data.get("goal_text"),
-            "target_agent": "linux",
-            "status": "QUEUED",
-            "attempts": 0
-        }]
+        try:
+            _, planned_steps = ChiefCommander().formulate_workflow_plan(
+                data["goal_text"], idea_type="GOAL"
+            )
+        except Exception as exc:
+            return jsonify({"error": f"planner failed: {exc}"}), 503
+        if not isinstance(planned_steps, list) or not planned_steps:
+            return jsonify({"error": "planner returned no actionable tasks"}), 503
+        goal["workflow_plan"] = []
         goal["current_step_index"] = 0
+        for step in planned_steps:
+            target_agent = str(step.get("target_agent", "linux")).lower()
+            if "github" in target_agent:
+                target_agent = "github"
+            elif "windows" in target_agent or "codex" in target_agent:
+                target_agent = "windows"
+            elif "mac" in target_agent or "antigravity" in target_agent or "gemini" in target_agent:
+                target_agent = "mac"
+            else:
+                target_agent = "linux"
+            goal["workflow_plan"].append({
+                "task_id": step.get("task_id", f"task-{uuid.uuid4().hex[:8]}"),
+                "goal_id": goal_id,
+                "instruction": step.get("instruction", "Next bounded step"),
+                "target_agent": target_agent,
+                "status": "QUEUED",
+                "attempts": 0,
+            })
         
     state["goals"][goal_id] = goal
     save_state(state)
     return jsonify({"goal_id": goal_id, "status": "ACTIVE"})
+
+
+@app.route("/goals/<goal_id>", methods=["GET"])
+@require_auth
+def get_goal(goal_id):
+    state = load_state()
+    goal = state["goals"].get(goal_id)
+    if not goal:
+        return jsonify({"error": "Unknown goal"}), 404
+    tasks = [task for task in state["tasks"].values() if task.get("goal_id") == goal_id]
+    return jsonify({"goal": goal, "tasks": tasks})
 
 @app.route("/workers/register", methods=["POST"])
 @require_auth
@@ -168,8 +193,11 @@ def claim_task():
                     
                     if matched:
                         next_task["worker_id"] = worker_id
-                        next_task["dispatch_id"] = str(uuid.uuid4())
                         next_task["attempts"] = next_task.get("attempts", 0) + 1
+                        next_task["attempt_id"] = f"{next_task['task_id']}:attempt:{next_task['attempts']}"
+                        next_task["dispatch_id"] = f"dispatch-{uuid.uuid4().hex}"
+                        next_task["run_id"] = None
+                        next_task["result_id"] = None
                         next_task["target_capability"] = target
                         try:
                             next_task = prepare_task(next_task)
@@ -182,13 +210,6 @@ def claim_task():
                         worker["available"] = False
                         
                         state["tasks"][next_task["task_id"]] = next_task
-                        # If target is github, trigger the adapter locally
-                        if "github" in target:
-                            import subprocess, os
-                            task_file = f"server/state/dispatched_{next_task['task_id']}.json"
-                            with open(task_file, 'w') as tf:
-                                json.dump(next_task, tf)
-                            subprocess.Popen(["python3", "scripts/github_worker_adapter.py", task_file])
                         save_state(state)
                         return jsonify({"task": next_task})
                         
@@ -241,15 +262,11 @@ def task_result():
                         step["worker_id"] = task.get("worker_id")
                         step["attempts"] = task.get("attempts")
                 if task["status"] == "FAILED_TERMINAL":
-                    goal["status"] = "FAILED"""".replace('FAILED"""', 'FAILED')
+                    goal["status"] = "BLOCKED"
 
             if worker_id in state["workers"]:
                 state["workers"][worker_id]["current_task"] = None
                 state["workers"][worker_id]["available"] = True
-
-            if durable_result["status"] == "FAILED":
-                task["status"] = "FAILED_TERMINAL"
-                state["goals"][task["goal_id"]]["status"] = "BLOCKED"
 
             save_state(state)
             return jsonify({"status": "ACK_RESULT_RECEIVED"})

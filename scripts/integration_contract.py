@@ -27,6 +27,7 @@ WORKER_IDS = {
     "github": "GITHUB-HOSTED",
     "mac": "MAC-01",
     "windows": "WINDOWS-01",
+    "linux": "AWS-LINUX-01",
 }
 
 
