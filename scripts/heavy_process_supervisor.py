@@ -142,12 +142,15 @@ class GlobalAdmissionRecovery:
     def __init__(
         self, ledger_path: Path, *, max_running: int = 1, max_pending: int = 10,
         min_available_memory_bytes: int = 0, resource_probe: Callable[[], int | None] | None = None,
+        min_available_disk_bytes: int = 0, disk_probe: Callable[[], int | None] | None = None,
     ) -> None:
         self.ledger_path = ledger_path
         self.max_running = max_running
         self.max_pending = max_pending
         self.min_available_memory_bytes = min_available_memory_bytes
-        self.resource_probe = resource_probe or self._available_memory
+        self.resource_probe = resource_probe
+        self.min_available_disk_bytes = min_available_disk_bytes
+        self.disk_probe = disk_probe or self._available_memory
         if max_running < 1 or max_pending < 0 or min_available_memory_bytes < 0:
             raise ValueError("admission limits must be non-negative and max_running positive")
 
@@ -181,6 +184,12 @@ class GlobalAdmissionRecovery:
         safe_mode = conn.execute("SELECT enabled FROM safety_mode WHERE singleton=1").fetchone()[0]
         if safe_mode:
             raise SafeModeBlocked("SAFE_MODE_PROCESS_STARTED=NO")
+        available_disk = self.disk_probe() if self.min_available_disk_bytes else None
+        if self.min_available_disk_bytes:
+            if not isinstance(available_disk, int) or available_disk < 0:
+                raise AdmissionRejected("AMBIGUOUS_DISK_STATE_PROCESS_STARTED=NO")
+            if available_disk < self.min_available_disk_bytes:
+                raise AdmissionRejected("DISK_PRESSURE_PROCESS_STARTED=NO")
         available = self.resource_probe() if self.min_available_memory_bytes else None
         if self.min_available_memory_bytes:
             if not isinstance(available, int) or available < 0:
@@ -323,6 +332,8 @@ class HeavyProcessSupervisor:
         max_pending: int = 10,
         min_available_memory_bytes: int = 0,
         resource_probe: Callable[[], int | None] | None = None,
+        min_available_disk_bytes: int = 0,
+        disk_probe: Callable[[], int | None] | None = None,
         max_fanout: int = 10,
         circuit_threshold: int = 3,
     ) -> None:
@@ -345,6 +356,7 @@ class HeavyProcessSupervisor:
         self.admission = GlobalAdmissionRecovery(
             self.ledger_path, max_running=max_running, max_pending=max_pending,
             min_available_memory_bytes=min_available_memory_bytes, resource_probe=resource_probe,
+            min_available_disk_bytes=min_available_disk_bytes, disk_probe=disk_probe,
         )
         self.retry_fanout = RetryFanoutGuard(
             self.ledger_path, max_fanout=max_fanout, circuit_threshold=circuit_threshold
@@ -522,6 +534,8 @@ class HeavyProcessSupervisor:
         *,
         timeout_seconds: float,
         metadata: dict[str, object] | None = None,
+        env: dict[str, str] | None = None,
+        run_as_uid: int | None = None,
         max_attempts: int = 1,
         wall_clock_budget_seconds: float | None = None,
         idle_timeout_seconds: float | None = None,
@@ -569,7 +583,7 @@ class HeavyProcessSupervisor:
                         raise HeavyProcessError("WALL_CLOCK_BUDGET_EXHAUSTED")
                     result = self._run_once(
                         job_id, command, min(timeout_seconds, remaining), metadata or {}, attempt,
-                        execution_deadline, total_deadline, idle_timeout_seconds, liveness_source, liveness_callback,
+                        execution_deadline, total_deadline, idle_timeout_seconds, liveness_source, liveness_callback, env=env, run_as_uid=run_as_uid
                     )
                 finally:
                     self.admission.release(self._conn, job_id, attempt)
@@ -598,6 +612,7 @@ class HeavyProcessSupervisor:
         self, job_id: str, command: Sequence[str], timeout: float, metadata: dict[str, object],
         attempt: int, execution_deadline: float, total_deadline: float,
         idle_timeout_seconds: float | None, liveness_source: str, liveness_callback: Callable[[], bool] | None,
+        env: dict[str, str] | None = None, run_as_uid: int | None = None,
     ) -> HeavyProcessResult:
         if time.monotonic() >= execution_deadline:
             raise HeavyProcessError("WALL_CLOCK_BUDGET_TOO_SMALL_PROCESS_STARTED=NO")
@@ -606,9 +621,29 @@ class HeavyProcessSupervisor:
             time.time() + max(0.0, execution_deadline - time.monotonic()),
         )
         try:
+
+            safe_keys = {"PATH", "LANG", "TZ", "USER", "HOME", "LOGNAME"}
+            merged_env = {k: v for k, v in os.environ.items() if k in safe_keys}
+            if env:
+                for k, v in env.items():
+                    k_up = k.upper()
+                    if "SECRET" in k_up or "TOKEN" in k_up or "KEY" in k_up or "PASS" in k_up or "CRED" in k_up:
+                        self._transition(job_id, attempt, "SPAWN_FAILED", finished_at=_utcnow(), error=f"forbidden env key: {k}")
+                        raise HeavyProcessError(f"FORBIDDEN_ENV_KEY_PROCESS_STARTED=NO:{k}")
+                    merged_env[k] = v
+            
+            preexec_fn = None
+            if run_as_uid is not None:
+                if hasattr(os, "setresuid"):
+                    def demote():
+                        os.setresuid(run_as_uid, run_as_uid, run_as_uid)
+                    preexec_fn = demote
+                else:
+                    self._transition(job_id, attempt, "SPAWN_FAILED", finished_at=_utcnow(), error="uid demotion not supported")
+                    raise HeavyProcessError("UID_DEMOTION_UNSUPPORTED_PROCESS_STARTED=NO")
             proc = subprocess.Popen(
                 list(command), stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                start_new_session=True,
+                start_new_session=True, env=merged_env, preexec_fn=preexec_fn
             )
         except OSError as exc:
             self._transition(job_id, attempt, "SPAWN_FAILED", finished_at=_utcnow(), error=str(exc))
