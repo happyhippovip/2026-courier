@@ -61,14 +61,14 @@ class PeerConsensusEngine:
         self.closure_gate = closure_gate or TwoLevelClosureGate(cp=self.cp, workspace_root=self.workspace_root)
 
         # Mailbox Directories
-        self.mac_to_win_dir = os.path.join(self.workspace_root, "coordination", "mac_to_windows")
-        self.inbox_dir = os.path.join(self.mac_to_win_dir, "requests")
+        self.mac_to_win_dir = r"C:\Users\lol\2026-workspace\courier-handoffs"
+        self.inbox_dir = os.path.join(self.mac_to_win_dir, "dispatch")
         self.archive_dir = os.path.join(self.mac_to_win_dir, "archive")
 
-        self.win_to_mac_dir = os.path.join(self.workspace_root, "coordination", "windows_to_mac")
-        self.claims_dir = os.path.join(self.win_to_mac_dir, "claims")
+        self.win_to_mac_dir = r"C:\Dev\Windows-AI-OS\runtime"
+        self.claims_dir = os.path.join(self.win_to_mac_dir, "processing")
         self.results_dir = os.path.join(self.win_to_mac_dir, "results")
-        self.receipts_dir = os.path.join(self.win_to_mac_dir, "receipts")
+        self.receipts_dir = os.path.join(self.win_to_mac_dir, "completed")
         self.handoff_candidate_path = os.path.join(self.win_to_mac_dir, "MAC_HANDOFF_CANDIDATE.json")
 
         # Ensure all mailbox directories exist

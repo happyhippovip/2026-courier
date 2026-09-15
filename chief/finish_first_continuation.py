@@ -305,255 +305,6 @@ class FinishFirstContinuationEngine:
                 raise
 
 
-    def discover_next_real_gap(self, do_not_repeat: Set[str], current_goal: str = "GOAL-03") -> Optional[Dict[str, Any]]:
-        """
-        Phase 8: Two-pass portfolio discovery.
-        Selects genuine, justified gaps matching Value Governor, anti-busywork, and Mac scope invariants.
-        Returns None if safe local work is truly exhausted.
-        """
-        backlog_path = os.path.join(self.workspace_root, "project-memory", "data", "safe_backlog.json")
-        if not os.path.exists(backlog_path):
-            return None
-
-        with open(backlog_path, "r", encoding="utf-8") as f:
-            b_data = json.load(f)
-
-        all_tasks = b_data.get("tasks", [])
-
-        # Pass 1: Eligible tasks for current goal
-        pass_1_candidates = []
-        for t in all_tasks:
-            t_id = t.get("task_id")
-            if not t_id or t_id in do_not_repeat:
-                continue
-            if t.get("status") not in ("PENDING", "READY", "OPEN"):
-                continue
-            if t.get("goal_id") != current_goal:
-                continue
-
-            # Mac scope check
-            scope = str(t.get("conflict_scope", "")).lower()
-            if any(m in scope for m in ["/mac/", "mac_to_windows", "universux"]):
-                continue
-
-            # Value Governor audit
-            valid, _ = ValueGovernor.audit_candidate(t, self.workspace_root)
-            if valid:
-                pass_1_candidates.append(t)
-
-        if pass_1_candidates:
-            # Sort by priority descending
-            pass_1_candidates.sort(key=lambda x: float(x.get("priority", 0.0)), reverse=True)
-            return pass_1_candidates[0]
-
-        # Pass 2: Search successor goals across the entire safe portfolio
-        goal_sequence = ["GOAL-01", "GOAL-02", "GOAL-03", "GOAL-04"]
-        pass_2_candidates = []
-        for g in goal_sequence:
-            for t in all_tasks:
-                t_id = t.get("task_id")
-                if not t_id or t_id in do_not_repeat:
-                    continue
-                if t.get("status") not in ("PENDING", "READY", "OPEN"):
-                    continue
-                if t.get("goal_id") != g:
-                    continue
-
-                scope = str(t.get("conflict_scope", "")).lower()
-                if any(m in scope for m in ["/mac/", "mac_to_windows", "universux"]):
-                    continue
-
-                valid, _ = ValueGovernor.audit_candidate(t, self.workspace_root)
-                if valid:
-                    pass_2_candidates.append(t)
-
-        if pass_2_candidates:
-            pass_2_candidates.sort(key=lambda x: float(x.get("priority", 0.0)), reverse=True)
-            return pass_2_candidates[0]
-
-        # Both passes exhausted
-        return None
-
-    def execute_and_close_task(
-        self,
-        candidate: Dict[str, Any],
-        state_generation: int
-    ) -> Dict[str, Any]:
-        """
-        Phase 7 & 9: Strict execution order:
-        Task Effect -> Verification -> Durable Result -> Checkpoint -> Close.
-        """
-        c_id = candidate["task_id"]
-        domain = candidate.get("conflict_scope", "DEFAULT")
-        res_key = f"DOMAIN_{domain}"
-
-        # 1. Acquire One-Writer Lease
-        acquired, msg = self.cp.acquire_lock(
-            resource_id=res_key,
-            lane=Lane.WINDOWS_GOOGLE,
-            host=Host.WINDOWS,
-            lock_type="WRITE",
-            ttl_seconds=180
-        )
-        if not acquired:
-            return {"success": False, "status": "BLOCKED", "reason": f"ONE_WRITER_LOCK_HELD: {msg}"}
-
-        now_iso = datetime.now(timezone.utc).isoformat()
-        try:
-            # 2. Produce Effect & Verify
-            script_path = candidate.get("script_path")
-            success = True
-            stdout = ""
-            if script_path:
-                full_script = os.path.join(self.workspace_root, script_path)
-                if os.path.exists(full_script):
-                    import subprocess
-                    try:
-                        proc = subprocess.run(
-                            [sys.executable, "-m", "unittest", script_path],
-                            cwd=self.workspace_root,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT,
-                            text=True,
-                            timeout=60
-                        )
-                        success = (proc.returncode == 0)
-                        stdout = proc.stdout
-                    except Exception as exc:
-                        success = False
-                        stdout = f"Execution exception: {exc}"
-                else:
-                    success = True
-                    stdout = f"Simulated verification for {c_id}: PASS"
-            else:
-                success = True
-                stdout = f"Effect verified for {c_id}: PASS"
-
-            if not success:
-                return {"success": False, "status": "FAILED", "reason": stdout[:200]}
-
-            # 3. Durable Result & Evidence via Result Customs
-            from .result_customs import ResultCustomsJudge
-            customs_cand = {"task_id": c_id}
-            customs_evidence = {
-                "command": f"python -m unittest {script_path}" if script_path else f"verify {c_id}",
-                "returncode": 0,
-                "stdout": stdout or f"Verified effect for {c_id}: ok pass",
-                "success": True
-            }
-            customs_res = ResultCustomsJudge.evaluate(customs_cand, customs_evidence)
-            if not customs_res.get("passed"):
-                return {"success": False, "status": "FAILED", "reason": f"Result customs rejected: {customs_res.get('reason')}"}
-            evidence_hash = customs_res["result_fingerprint"]
-            new_state_generation = state_generation + 1
-
-            # 4. Checkpoint with rich structured metadata
-            ckpt_record = {
-                "task_id": c_id,
-                "task_version": 1,
-                "state_generation": new_state_generation,
-                "result_fingerprint": evidence_hash,
-                "verification_evidence": stdout[:500] if stdout else "PASS",
-                "verified_at": now_iso,
-                "status": "VERIFIED"
-            }
-            self.cp.set_checkpoint("LAST_VERIFIED_WINDOWS_CHECKPOINT", ckpt_record)
-
-            # Synchronize CrashProofMemoryEngine
-            try:
-                from .crash_proof_recovery import CrashProofMemoryEngine
-                crash_engine = CrashProofMemoryEngine(db_path=self.cp.db_path)
-                crash_engine.commit_verified(
-                    c_id,
-                    {"status": "PASS", "certified": True, "evidence": stdout[:200]}
-                )
-            except Exception:
-                pass
-
-            # 5. Mark Task COMPLETED / CLOSED
-            self.cp.upsert_task(
-                task_id=c_id,
-                assignment_id=f"ASSIGN-{c_id}",
-                origin_lane=Lane.WINDOWS_GOOGLE,
-                status=TaskStatus.COMPLETED,
-                two_level_done=TwoLevelDone(local_step_erledigt=True, gesamtaufgabe_erledigt=True, blocker="NONE", next_step="CONTINUE"),
-                active_agent=Lane.WINDOWS_GOOGLE.value
-            )
-
-            # 6. Update Backlog
-            self._update_backlog_completed(c_id, stdout[:200])
-
-            return {
-                "success": True,
-                "status": "CLOSED",
-                "task_id": c_id,
-                "checkpoint": ckpt_record,
-                "evidence_hash": evidence_hash,
-                "state_generation": new_state_generation
-            }
-
-        finally:
-            self.cp.release_lock(res_key, Lane.WINDOWS_GOOGLE)
-
-    def _verify_on_disk_effect(self, task: Dict[str, Any]) -> bool:
-        """Checks whether task result or deliverable exists on disk."""
-        t_id = task.get("task_id", "")
-        # 1. Direct done file in workspace root
-        if os.path.exists(os.path.join(self.workspace_root, f"{t_id}.done")):
-            return True
-        # 2. Source evidence from task
-        source_evidence = task.get("source_evidence")
-        if source_evidence:
-            full_p = os.path.join(self.workspace_root, source_evidence)
-            if os.path.exists(full_p):
-                return True
-        script_path = task.get("script_path")
-        if script_path:
-            full_s = os.path.join(self.workspace_root, script_path)
-            if os.path.exists(full_s):
-                return True
-        # 3. Check backlog metadata
-        backlog_path = os.path.join(self.workspace_root, "project-memory", "data", "safe_backlog.json")
-        if os.path.exists(backlog_path):
-            try:
-                with open(backlog_path, "r", encoding="utf-8") as f:
-                    b_data = json.load(f)
-                for t in b_data.get("tasks", []):
-                    if t.get("task_id") == t_id:
-                        src = t.get("source_evidence")
-                        if src and os.path.exists(os.path.join(self.workspace_root, src)):
-                            return True
-                        scp = t.get("script_path")
-                        if scp and os.path.exists(os.path.join(self.workspace_root, scp)):
-                            return True
-            except Exception:
-                pass
-        return False
-
-
-    def _update_backlog_completed(self, task_id: str, evidence: str):
-        backlog_path = os.path.join(self.workspace_root, "project-memory", "data", "safe_backlog.json")
-        if not os.path.exists(backlog_path):
-            return
-        try:
-            with open(backlog_path, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            modified = False
-            for t in data.get("tasks", []):
-                if t.get("task_id") == task_id:
-                    t["status"] = "COMPLETED"
-                    t["completed_at"] = datetime.now(timezone.utc).isoformat()
-                    t["evidence"] = evidence
-                    modified = True
-                    break
-            if modified:
-                tmp = backlog_path + ".tmp"
-                with open(tmp, "w", encoding="utf-8") as f:
-                    json.dump(data, f, indent=2)
-                os.replace(tmp, backlog_path)
-        except Exception:
-            pass
-
     def process_continuation(
         self,
         signal: str = "weiter",
@@ -613,13 +364,16 @@ class FinishFirstContinuationEngine:
                 "real_safe_work_remaining": True
             }
 
-        # 4. Discover next real gap
-        with self._get_connection() as conn:
-            cur = conn.cursor()
-            cur.execute("SELECT task_id FROM tasks WHERE status = 'COMPLETED';")
-            do_not_repeat = {r[0] for r in cur.fetchall()}
+        # 4. Discover, Filter, Score, Select next real gap via canonical GoalReconciler
+        from .goal_reconciler import GoalReconciler
+        reconciler = GoalReconciler(workspace_root=self.workspace_root, cp=self.cp)
+        candidates = reconciler.discover_candidates()
+        next_candidate, _ = reconciler.select_next_candidate(candidates)
 
-        next_candidate = self.discover_next_real_gap(do_not_repeat, current_goal=current_goal)
+        if next_candidate and last_task and last_fp:
+            next_candidate["creator"] = "COURIER"
+            next_candidate["parent_task_id"] = last_task
+            next_candidate["parent_result_fingerprint"] = last_fp
 
         if not next_candidate:
             # Phase 10: Two independent passes confirmed zero pending safe local work
@@ -661,34 +415,37 @@ class FinishFirstContinuationEngine:
 
         batch_id = claim_rec["batch_id"]
 
-        # 6. Execute, Verify, Checkpoint, and Close Task
-        exec_res = self.execute_and_close_task(next_candidate, state_generation=state_gen)
+        # 6. Execute, Verify, Checkpoint, and Close Task via GoalReconciler (canonical P6-P8)
+        exec_res_raw = reconciler.execute_candidate(next_candidate)
+        customs_res = reconciler.result_customs(next_candidate, exec_res_raw)
 
-        if exec_res.get("success"):
+        if customs_res.get("verified"):
+            reconciler.checkpoint_and_persist(next_candidate, customs_res, exec_res_raw)
+            ckpt = self.cp.get_checkpoint("LAST_VERIFIED_WINDOWS_CHECKPOINT") or {}
             self.batch_guard.complete_batch(batch_id, {
                 "status": "COMPLETED",
                 "batch_id": batch_id,
-                "executed_task": next_candidate["task_id"],
-                "state_generation": exec_res["state_generation"]
+                "executed_task": next_candidate.get("candidate_id", ""),
+                "state_generation": ckpt.get("state_generation", state_gen + 1)
             })
             return {
                 "status": "CURRENT_WORK_VERIFIED_NEXT_REAL_TASK_RUNNING",
                 "classification": "VERIFIED",
                 "active_batch_id": batch_id,
-                "executed_task": next_candidate["task_id"],
-                "checkpoint": exec_res["checkpoint"],
-                "checkpoint_task": next_candidate["task_id"],
-                "checkpoint_state_generation": exec_res["state_generation"],
-                "result_fingerprint": exec_res["evidence_hash"],
+                "executed_task": next_candidate.get("candidate_id", ""),
+                "checkpoint": ckpt,
+                "checkpoint_task": next_candidate.get("candidate_id", ""),
+                "checkpoint_state_generation": ckpt.get("state_generation", state_gen + 1),
+                "result_fingerprint": customs_res.get("evidence_hash"),
                 "real_safe_work_remaining": True
             }
         else:
-            self.batch_guard.fail_batch(batch_id, exec_res.get("reason", "TASK_EXECUTION_FAILED"))
+            self.batch_guard.fail_batch(batch_id, customs_res.get("reason", "TASK_EXECUTION_FAILED"))
             return {
                 "status": "FAILED",
                 "classification": "FAILED",
                 "active_batch_id": batch_id,
-                "failed_task": next_candidate["task_id"],
-                "reason": exec_res.get("reason"),
+                "failed_task": next_candidate.get("candidate_id", ""),
+                "reason": customs_res.get("reason"),
                 "real_safe_work_remaining": True
             }

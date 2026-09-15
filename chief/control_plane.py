@@ -109,6 +109,7 @@ class ControlPlane:
                     blocker TEXT NOT NULL,
                     next_step TEXT NOT NULL,
                     active_agent TEXT NOT NULL,
+                    canonical_fingerprint TEXT,
                     created_at TEXT NOT NULL,
                     updated_at TEXT NOT NULL
                 );
@@ -365,43 +366,66 @@ class ControlPlane:
         origin_lane: Lane,
         status: TaskStatus,
         two_level_done: TwoLevelDone,
-        active_agent: str = "CHIEF"
+        active_agent: str = "CHIEF",
+        canonical_fingerprint: str = ""
     ):
         now_iso = datetime.now(timezone.utc).isoformat()
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("BEGIN IMMEDIATE;")
             try:
-                cursor.execute("SELECT task_id FROM tasks WHERE task_id = ? OR assignment_id = ?", (task_id, assignment_id))
+                # Ensure canonical_fingerprint column exists for testing environment migrations
+                cursor.execute("PRAGMA table_info(tasks)")
+                columns = [info["name"] for info in cursor.fetchall()]
+                if "canonical_fingerprint" not in columns:
+                    cursor.execute("ALTER TABLE tasks ADD COLUMN canonical_fingerprint TEXT;")
+                    
+                cursor.execute("SELECT task_id, assignment_id, status, canonical_fingerprint FROM tasks WHERE task_id = ? OR assignment_id = ?", (task_id, assignment_id))
                 existing = cursor.fetchone()
                 if existing:
                     resolved_task_id = existing["task_id"]
+                    
+                    if not existing["canonical_fingerprint"] and canonical_fingerprint:
+                        if existing["status"] in (TaskStatus.COMPLETED.value, TaskStatus.FAILED.value):
+                            raise RuntimeError(f"Terminal Legacy Mutation Rejected: Task {resolved_task_id} is in terminal state {existing['status']} but lacks a fingerprint.")
+                            
+                    if existing["canonical_fingerprint"] and canonical_fingerprint:
+                        if existing["canonical_fingerprint"] != canonical_fingerprint:
+                            if existing["status"] in (TaskStatus.COMPLETED.value, TaskStatus.FAILED.value):
+                                raise RuntimeError(f"Terminal Mutation Rejected: Task {resolved_task_id} is in terminal state {existing['status']} and cannot be mutated.")
+                            else:
+                                raise RuntimeError(f"Conflict: Task {resolved_task_id} already exists with a different canonical payload (Fail Closed).")
+                        elif existing["assignment_id"] != assignment_id:
+                            raise RuntimeError(f"Conflict: Task {resolved_task_id} already exists with a different assignment ID (Fail Closed).")
+                        elif existing["status"] in (TaskStatus.COMPLETED.value, TaskStatus.FAILED.value) and existing["status"] != status.value:
+                            raise RuntimeError(f"Conflict: Task {resolved_task_id} is in terminal state {existing['status']} and cannot change status to {status.value} (Fail Closed).")
+                                
                     cursor.execute("""
                     UPDATE tasks SET
                         assignment_id = ?, status = ?, local_step_erledigt = ?,
                         gesamtaufgabe_erledigt = ?, blocker = ?, next_step = ?,
-                        active_agent = ?, updated_at = ?
+                        active_agent = ?, canonical_fingerprint = ?, updated_at = ?
                     WHERE task_id = ?;
                     """, (
                         assignment_id, status.value,
                         1 if two_level_done.local_step_erledigt else 0,
                         1 if two_level_done.gesamtaufgabe_erledigt else 0,
                         two_level_done.blocker, two_level_done.next_step,
-                        active_agent, now_iso, resolved_task_id
+                        active_agent, canonical_fingerprint, now_iso, resolved_task_id
                     ))
                 else:
                     cursor.execute("""
                     INSERT INTO tasks (
                         task_id, assignment_id, origin_lane, status,
                         local_step_erledigt, gesamtaufgabe_erledigt,
-                        blocker, next_step, active_agent, created_at, updated_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                        blocker, next_step, active_agent, canonical_fingerprint, created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
                     """, (
                         task_id, assignment_id, origin_lane.value, status.value,
                         1 if two_level_done.local_step_erledigt else 0,
                         1 if two_level_done.gesamtaufgabe_erledigt else 0,
                         two_level_done.blocker, two_level_done.next_step,
-                        active_agent, now_iso, now_iso
+                        active_agent, canonical_fingerprint, now_iso, now_iso
                     ))
 
                 self._record_event_tx(cursor, "TASK_STATE_CHANGED", origin_lane.value, task_id, {

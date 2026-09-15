@@ -552,26 +552,58 @@ class ChiefCoordinator:
         t0 = time.time()
         
         try:
-            # Note: For full dynamic support, these parameters should be extracted from the envelope.
-            # We hardcode the baseline values for this implementation milestone.
-            cmd = [
-                "gh", "workflow", "run", "revenue_v1_baseline.yml", 
-                "-R", "happyhippovip/2026-courier",
-                "-f", f"target_owner=windmill-labs",
-                "-f", f"target_repo=windmill",
-                "-f", f"target_sha=796b6e5297d8cceb842ec097f33ec1c3115058bd",
-                "-f", f"customer_reference={assignment_id}",
-                "-f", f"price_currency=EUR 99",
-                "-f", f"delivery_destination=PORTAL"
-            ]
+            envelope = json.loads(matched.get("envelope_json", "{}"))
+            task_packet = envelope.get("task_packet", {})
+            
+            workflow = task_packet.get("workflow", "revenue_v1_baseline.yml")
+            repository = task_packet.get("repository", "happyhippovip/2026-courier")
+            inputs = task_packet.get("inputs", {
+                "target_owner": "windmill-labs",
+                "target_repo": "windmill",
+                "target_sha": "796b6e5297d8cceb842ec097f33ec1c3115058bd",
+                "customer_reference": assignment_id,
+                "price_currency": "EUR 99",
+                "delivery_destination": "PORTAL"
+            })
+
+            cmd = ["gh", "workflow", "run", workflow, "-R", repository]
+            for k, v in inputs.items():
+                cmd.extend(["-f", f"{k}={v}"])
+                
             res = subprocess.run(cmd, cwd=WORKSPACE_ROOT, capture_output=True, text=True, timeout=timeout_seconds)
             duration_ms = int((time.time() - t0) * 1000)
+            
+            next_step = "WAITING_FOR_GITHUB_WEBHOOK"
+            # Attempt to fetch the durable result instead of waiting for webhook
+            run_list_cmd = ["gh", "run", "list", "-R", repository, "--workflow", workflow, "--json", "databaseId,status", "-q", ".[0]"]
+            run_res = subprocess.run(run_list_cmd, cwd=WORKSPACE_ROOT, capture_output=True, text=True)
+            if run_res.returncode == 0 and run_res.stdout.strip():
+                try:
+                    run_info = json.loads(run_res.stdout)
+                    if run_info.get("status") == "completed":
+                        run_id = str(run_info["databaseId"])
+                        artifact_dir = os.path.join(effective_handoffs, f"gh_artifacts_{run_id}")
+                        os.makedirs(artifact_dir, exist_ok=True)
+                        dl_cmd = ["gh", "run", "download", run_id, "-R", repository, "-D", artifact_dir]
+                        subprocess.run(dl_cmd, cwd=WORKSPACE_ROOT, capture_output=True)
+                        
+                        # Scan downloaded artifacts for the durable result
+                        for root, _, files in os.walk(artifact_dir):
+                            for f in files:
+                                if f.endswith(".json"):
+                                    with open(os.path.join(root, f), "r") as jf:
+                                        result_data = json.load(jf)
+                                        if "next_safe_state" in result_data:
+                                            next_step = result_data["next_safe_state"]
+                                            break
+                except Exception:
+                    pass
             
             stdout_simulated = (
                 f"LOCAL_STEP_ERLEDIGT: JA\n"
                 f"GESAMTAUFGABE_ERLEDIGT: NEIN\n"
                 f"BLOCKER: NONE\n"
-                f"NÄCHSTER_SCHRITT: WAITING_FOR_GITHUB_WEBHOOK\n"
+                f"NÄCHSTER_SCHRITT: {next_step}\n"
                 f"Workflow triggered successfully for {assignment_id}\n"
                 f"GH Command Output: {res.stdout.strip()}\n"
             )

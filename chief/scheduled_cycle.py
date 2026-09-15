@@ -70,7 +70,7 @@ def execute_windows_validation_cycle(
 
     # Also check coordination/mac_to_windows/requests/ if present
     workspace_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-    coord_req_dir = os.path.join(workspace_root, "coordination", "mac_to_windows", "requests")
+    coord_req_dir = os.environ.get("COURIER_HANDOFFS_DISPATCH_DIR", os.path.join(workspace_root, "..", "courier-handoffs", "dispatch"))
     if os.path.exists(coord_req_dir):
         for fname in sorted(os.listdir(coord_req_dir)):
             if fname.endswith(".json"):
@@ -95,7 +95,7 @@ def execute_windows_validation_cycle(
             # Invalid request payload: record rejection and archive to prevent inbox clogging
             norm = {str(k).lower().strip(): v for k, v in data.items()}
             err_req_id = norm.get("windows_validation_request_id") or norm.get("assignment_id") or os.path.splitext(os.path.basename(fpath))[0]
-            coord_res_dir = os.path.join(workspace_root, "coordination", "windows_to_mac", "results")
+            coord_res_dir = os.environ.get("COURIER_RUNTIME_RESULTS_DIR", os.path.join(workspace_root, "..", "Windows-AI-OS", "runtime", "results"))
             os.makedirs(coord_res_dir, exist_ok=True)
             rej_payload = {
                 "schema_version": "1.0",
@@ -123,7 +123,35 @@ def execute_windows_validation_cycle(
 
         norm = {str(k).lower().strip(): v for k, v in data.items()}
         req_id = norm.get("windows_validation_request_id") or norm.get("assignment_id")
-        assignment_id = norm.get("assignment_id") or f"ASSIGN-{req_id}"
+        assignment_id = norm.get("assignment_id")
+        
+        if not assignment_id:
+            # FAIL CLOSED: Missing assignment identity
+            err_req_id = req_id or os.path.splitext(os.path.basename(fpath))[0]
+            coord_res_dir = os.environ.get("COURIER_RUNTIME_RESULTS_DIR", os.path.join(workspace_root, "..", "Windows-AI-OS", "runtime", "results"))
+            os.makedirs(coord_res_dir, exist_ok=True)
+            rej_payload = {
+                "schema_version": "1.0",
+                "mission_id": norm.get("mission_id", "UNKNOWN"),
+                "windows_validation_request_id": err_req_id,
+                "status": "REJECTED",
+                "work_done": "Validation request rejected due to missing assignment identity",
+                "evidence": "ASSIGNMENT_IDENTITY_MISSING",
+                "content_integrity": "INVALID",
+                "access_integrity": "VALID",
+                "files_changed": [],
+                "side_effects_occurred": False,
+                "blocker": "MISSING_ASSIGNMENT_ID",
+                "completed_at": datetime.now(timezone.utc).isoformat()
+            }
+            safe_write_json(os.path.join(coord_res_dir, f"{err_req_id}.json"), rej_payload)
+            archive_dir = os.path.join(os.path.dirname(fpath), "..", "archive")
+            os.makedirs(archive_dir, exist_ok=True)
+            try:
+                os.replace(fpath, os.path.join(archive_dir, os.path.basename(fpath)))
+            except Exception:
+                pass
+            continue
 
         # Exactly-Once: Ignore already completed requests
         if req_id in completed_ids or assignment_id in completed_ids:
@@ -145,29 +173,21 @@ def execute_windows_validation_cycle(
     # ELSE:
     #    Quiescent/watchful (return safe work exhausted without inventing busywork).
     if not valid_request:
-        from .permanent_reserve_engine import PermanentReserveEngine
-        engine = PermanentReserveEngine(workspace_root=workspace_root, cp=cp)
-
-        with cp.get_connection() as conn:
-            cur = conn.cursor()
-            cur.execute("SELECT task_id FROM tasks WHERE status = 'COMPLETED';")
-            do_not_repeat = {r[0] for r in cur.fetchall()}
-
-        next_cand = engine.select_next_candidate(do_not_repeat=do_not_repeat)
-        if next_cand:
-            # Real safe work exists in autonomous reservoir: execute bounded succession
-            res = engine.start_or_resume_autonomy(max_tasks=1)
+        from .goal_reconciler import GoalReconciler
+        reconciler = GoalReconciler(cp=cp, handoffs_dir=handoffs_dir)
+        res = reconciler.reconcile_and_execute(max_tasks_per_cycle=1)
+        if res.get("cycle_status") == "GOAL_TASK_EXECUTED":
             return {
                 "cycle_status": "GOAL_TASK_EXECUTED",
-                "dispatch_source": "PERMANENT_RESERVE_RESERVOIR",
+                "dispatch_source": "GOAL_RECONCILER",
                 "status": "PASS",
                 "autonomous_result": res,
-                "work_done": f"Executed autonomous candidate {res.get('tasks_executed', [])}",
-                "evidence": f"AUTONOMOUS_SUCCESSION_COMPLETED: {res.get('tasks_verified', [])}",
+                "work_done": f"Executed autonomous candidate {res.get('executed_tasks', [])}",
+                "evidence": f"AUTONOMOUS_SUCCESSION_COMPLETED: {res.get('executed_tasks', [])}",
                 "content_integrity": "VALID",
                 "access_integrity": "VALID",
                 "files_changed": [],
-                "side_effects_occurred": bool(res.get("tasks_executed")),
+                "side_effects_occurred": True,
                 "blocker": "NONE",
                 "quiescent": False
             }
@@ -176,6 +196,26 @@ def execute_windows_validation_cycle(
         from .quiescent_absorber import QuiescentQueueAbsorber
         absorber = QuiescentQueueAbsorber(workspace_root=workspace_root, cp=cp)
         absorb_res = absorber.process_signal(signal="weiter")
+        
+        if absorb_res and absorb_res.get("action") == "WAKE_ENGINE":
+            from .permanent_reserve_engine import PermanentReserveEngine
+            engine = PermanentReserveEngine(workspace_root=workspace_root, cp=cp)
+            res = engine.start_or_resume_autonomy(initial_signal="weiter")
+            return {
+                "cycle_status": "AUTONOMOUS_CONTINUATION",
+                "dispatch_source": "WAKE_ENGINE_SIGNAL",
+                "status": "PASS",
+                "autonomous_result": res,
+                "work_done": f"Executed continuation batch {res.get('tasks_executed', [])}",
+                "evidence": f"AUTONOMOUS_SUCCESSION_COMPLETED: {res.get('tasks_executed', [])}",
+                "content_integrity": "VALID",
+                "access_integrity": "VALID",
+                "files_changed": [],
+                "side_effects_occurred": True,
+                "blocker": "NONE",
+                "quiescent": False
+            }
+
         return {
             "cycle_status": "QUIESCENT_WAITING_FOR_NEW_EVIDENCE",
             "dispatch_source": "NONE_QUIESCENT",
@@ -195,7 +235,9 @@ def execute_windows_validation_cycle(
     # 5. Process Valid READY Request
     norm = {str(k).lower().strip(): v for k, v in valid_request.items()}
     req_id = norm.get("windows_validation_request_id") or norm.get("assignment_id")
-    assignment_id = norm.get("assignment_id") or f"ASSIGN-{req_id}"
+    assignment_id = norm.get("assignment_id")
+    if not assignment_id:
+        raise RuntimeError(f"Fail Closed: Missing assignment identity for request {req_id}")
     mission_id = norm.get("mission_id", "MISSION-AUTONOMY")
     val_type = norm.get("validation_type", "WINDOWS_COMPATIBILITY")
     exact_q = norm.get("exact_question", "Validate bounded Windows integrity")
@@ -221,7 +263,7 @@ def execute_windows_validation_cycle(
     )
 
     # Publish claim file if coordination channel exists
-    coord_claim_dir = os.path.join(os.path.dirname(handoffs_dir), "coordination", "windows_to_mac", "claims")
+    coord_claim_dir = os.environ.get("COURIER_RUNTIME_CLAIMS_DIR", os.path.join(workspace_root, "..", "Windows-AI-OS", "runtime", "results", "claims"))
     if os.path.exists(coord_claim_dir):
         claim_payload = {
             "mission_id": mission_id,
@@ -247,22 +289,49 @@ def execute_windows_validation_cycle(
     )
     dispatch_id = disp_pkg["dispatch_id"]
 
-    exec_res = coordinator.execute_dispatch_with_fallback(dispatch_id, headless_timeout_seconds=45, handoffs_dir=handoffs_dir)
-    coordinator.release_resource(resource_id, Lane.WINDOWS_GOOGLE)
+    try:
+        exec_res = coordinator.execute_dispatch_with_fallback(dispatch_id, headless_timeout_seconds=300, handoffs_dir=handoffs_dir)
 
-    # Capture real evidence & evaluate Result Customs
-    from .result_customs import ResultCustomsJudge
-    raw_stdout = exec_res.get("details", {}).get("stdout", "") or f"Dispatched {req_id} exit code {exec_res.get('returncode', 0)} completed ok pass"
-    customs_cand = {"task_id": req_id}
-    customs_evidence = {
-        "command": exec_res.get("details", {}).get("command", f"agy dispatch {dispatch_id}"),
-        "returncode": exec_res.get("returncode", 0),
-        "stdout": raw_stdout,
-        "success": exec_res.get("returncode", 0) == 0
-    }
-    customs_res = ResultCustomsJudge.evaluate(customs_cand, customs_evidence)
-    if not customs_res.get("passed"):
-        raise RuntimeError(f"Result Customs rejected dispatch for {req_id}: {customs_res.get('reason')}")
+        # Capture real evidence & evaluate Result Customs
+        from .result_customs import ResultCustomsJudge
+        
+        if "returncode" not in exec_res:
+            raise RuntimeError(f"Fail Closed: Real execution evidence lacks an explicit return code for {req_id}")
+            
+        raw_stdout = exec_res.get("stdout")
+        if not raw_stdout or not str(raw_stdout).strip():
+            raise RuntimeError(f"Fail Closed: Real worker stdout/evidence is missing for {req_id}")
+
+        customs_cand = {"task_id": req_id}
+        customs_evidence = {
+            "command": f"agy dispatch {dispatch_id}",
+            "returncode": exec_res["returncode"],
+            "stdout": str(raw_stdout),
+            "success": exec_res["returncode"] == 0,
+            "dispatch_id": dispatch_id,
+            "assignment_id": assignment_id
+        }
+        customs_res = ResultCustomsJudge.evaluate(customs_cand, customs_evidence, cp=cp)
+        if not customs_res.get("passed"):
+            raise RuntimeError(f"Result Customs rejected dispatch for {req_id}: {customs_res.get('reason')}")
+    except Exception as e:
+        cp.upsert_task(
+            task_id=req_id,
+            assignment_id=assignment_id,
+            origin_lane=Lane.WINDOWS_GOOGLE,
+            status=TaskStatus.FAILED,
+            two_level_done=TwoLevelDone(
+                local_step_erledigt=False,
+                gesamtaufgabe_erledigt=False,
+                blocker=str(e),
+                next_step="TERMINAL_FAILURE"
+            ),
+            active_agent=Lane.WINDOWS_GOOGLE.value
+        )
+        coordinator.release_resource(resource_id, Lane.WINDOWS_GOOGLE)
+        raise
+
+    coordinator.release_resource(resource_id, Lane.WINDOWS_GOOGLE)
 
     stdout_sha256 = customs_res["result_fingerprint"]
     evidence_str = f"Execution exit code {exec_res.get('returncode', 0)}; SHA256: {stdout_sha256}; Runner: {exec_res.get('runner', 'REAL_WINDOWS_GOOGLE_RUNNER')}"
@@ -279,7 +348,8 @@ def execute_windows_validation_cycle(
             blocker="NONE",
             next_step="WAITING_FOR_CHIEF_REQUEST"
         ),
-        active_agent=Lane.WINDOWS_GOOGLE.value
+        active_agent=Lane.WINDOWS_GOOGLE.value,
+        canonical_fingerprint=stdout_sha256
     )
     cur_gen = int(cp.get_checkpoint("STATE_GENERATION") or 121) + 1
     now_ckpt_iso = datetime.now(timezone.utc).isoformat()
@@ -294,7 +364,7 @@ def execute_windows_validation_cycle(
     cp.set_checkpoint("LAST_VERIFIED_WINDOWS_CHECKPOINT", ckpt_tuple)
 
     # Write structured result to coordination/windows_to_mac/results/
-    coord_res_dir = os.path.join(workspace_root, "coordination", "windows_to_mac", "results")
+    coord_res_dir = os.environ.get("COURIER_RUNTIME_RESULTS_DIR", os.path.join(workspace_root, "..", "Windows-AI-OS", "runtime", "results"))
     os.makedirs(coord_res_dir, exist_ok=True)
     res_payload = {
         "schema_version": "1.0",
@@ -311,6 +381,14 @@ def execute_windows_validation_cycle(
         "completed_at": datetime.now(timezone.utc).isoformat()
     }
     safe_write_json(os.path.join(coord_res_dir, f"{req_id}.json"), res_payload)
+
+    if req_file_path and os.path.exists(req_file_path):
+        archive_dir = os.path.join(os.path.dirname(req_file_path), "..", "archive")
+        os.makedirs(archive_dir, exist_ok=True)
+        try:
+            os.replace(req_file_path, os.path.join(archive_dir, os.path.basename(req_file_path)))
+        except Exception:
+            pass
 
     # Refresh ingestor & delta report
     ingestor.scan_and_ingest(handoffs_dir)

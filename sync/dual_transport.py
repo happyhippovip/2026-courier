@@ -31,9 +31,7 @@ class DualTransportClient:
         timeout: float = 3.0
     ):
         self.peer_url = peer_url.rstrip("/") if peer_url else None
-        self.fallback_mailbox_dir = fallback_mailbox_dir or os.path.join(
-            WORKSPACE_ROOT, "coordination", "windows_to_mac", "results"
-        )
+        self.fallback_mailbox_dir = fallback_mailbox_dir or r"C:\Dev\Windows-AI-OS\runtime\results"
         self.timeout = timeout
         os.makedirs(self.fallback_mailbox_dir, exist_ok=True)
 

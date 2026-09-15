@@ -29,7 +29,7 @@ class TwoLevelClosureGate:
     def __init__(self, cp: Optional[ControlPlane] = None, workspace_root: str = WORKSPACE_ROOT):
         self.workspace_root = os.path.abspath(workspace_root)
         self.cp = cp or ControlPlane()
-        self.receipts_dir = os.path.join(self.workspace_root, "coordination", "windows_to_mac", "receipts")
+        self.receipts_dir = r"C:\Dev\Windows-AI-OS\runtime\results\receipts"
         os.makedirs(self.receipts_dir, exist_ok=True)
 
     def evaluate_task_closure(
@@ -65,7 +65,7 @@ class TwoLevelClosureGate:
         evidence_str = ""
 
         if execution_evidence:
-            returncode = execution_evidence.get("returncode", 0)
+            returncode = execution_evidence.get("returncode")
             local_step_ok = (returncode == 0) and execution_evidence.get("success", True)
             evidence_str = execution_evidence.get("stdout", "") or execution_evidence.get("evidence", "")
         elif existing_task:

@@ -54,7 +54,7 @@ class ChiefIngestor:
 
         # Inbound requests and dispatch envelopes are handled by the coordinator/resolver
         base_name = os.path.basename(filepath)
-        if base_name.startswith("REQUEST_") or base_name.startswith("DISPATCH_") or base_name.startswith("ASSIGN_"):
+        if base_name.startswith("REQUEST_") or base_name.startswith("DISPATCH_") or base_name.startswith("ASSIGN_") or base_name.startswith("RESULT_"):
             return {"success": True, "status": "REQUEST_ENVELOPE_RESERVED", "filepath": filepath}
 
         sha256_hash = self.compute_sha256(filepath)
@@ -247,7 +247,18 @@ class ChiefIngestor:
         return count
 
     def _extract_task(self, payload: Dict[str, Any], origin_lane: Lane, assignment_id: str):
-        task_id = f"TASK-{assignment_id}"
+        task_id = payload.get("windows_validation_request_id") or payload.get("task_id")
+        if not task_id:
+            task_id = assignment_id if str(assignment_id).startswith("TASK-") else f"TASK-{assignment_id}"
+
+        existing_task = self.control_plane.get_task(task_id)
+        if not existing_task:
+            all_tasks = self.control_plane.get_all_tasks()
+            existing_task = next((t for t in all_tasks if t.get("assignment_id") == assignment_id), None)
+            
+        if existing_task and existing_task.get("status") in ("COMPLETED", "VERIFIED", "FAILED", "REJECTED"):
+            return
+
         two_level = payload.get("two_level_done") or {}
 
         # Check for explicit two_level_done block first
@@ -272,6 +283,10 @@ class ChiefIngestor:
 
         is_completed = local_step_done and (blocker in ("NONE", "", "AWAITING_CHIEF_REQUEST") or not blocker)
 
+        import hashlib
+        fp_str = f"{task_id}:{assignment_id}:{local_step_done}:{gesamtaufgabe_done}:{blocker}:{next_task}"
+        canonical_fingerprint = hashlib.sha256(fp_str.encode('utf-8')).hexdigest()
+
         self.control_plane.upsert_task(
             task_id=task_id,
             assignment_id=assignment_id,
@@ -283,7 +298,8 @@ class ChiefIngestor:
                 blocker=blocker,
                 next_step=next_task
             ),
-            active_agent=origin_lane.value
+            active_agent=origin_lane.value,
+            canonical_fingerprint=canonical_fingerprint
         )
 
     def scan_and_ingest(self, target_dir: Optional[str] = None) -> Dict[str, Any]:

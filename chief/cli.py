@@ -425,7 +425,7 @@ def cmd_step(args):
             ))
             return
 
-        if state in ("WAITING_FOR_CHIEF_REQUEST", "TERMINAL_WINDOWS_IDLE"):
+        if state in ("WAITING_FOR_CHIEF_REQUEST", "TERMINAL_WINDOWS_IDLE") and is_recovery:
             print("\n[+] WINDOWS_STATE: WAITING_FOR_CHIEF_REQUEST")
             print("    All local tasks completed. Queue is empty. No runner execution required.")
             print("\n" + coordinator.format_terminal_status(
@@ -528,7 +528,7 @@ def cmd_step(args):
 
         # Step 6: Autonomous Execution
         print(f"[*] Phase 4: Autonomous Dispatch Execution ({dispatch_id})...")
-        exec_res = coordinator.execute_dispatch_with_fallback(dispatch_id, headless_timeout_seconds=45, handoffs_dir=handoffs_dir)
+        exec_res = coordinator.execute_dispatch_with_fallback(dispatch_id, headless_timeout_seconds=300, handoffs_dir=handoffs_dir)
         runner_str = exec_res.get('runner', 'UNKNOWN')
         fallback_used = exec_res.get('fallback_used', False)
         print(f"[+] Execution completed via: {runner_str}")
@@ -538,6 +538,7 @@ def cmd_step(args):
                 print(f"    [!] Headless runner note: {exec_res['primary_failure']}")
         else:
             print(f"    [+] REAL RUNNER PROVEN: Genuine autonomous execution succeeded (fallback_used=False).")
+            print(f"    [+] STDOUT:\n{exec_res.get('stdout', '')}\n    [+] STDERR:\n{exec_res.get('stderr', '')}")
 
         # Step 7: Post-Execution Ingestion, Ownership Release & Verification
         coordinator.release_resource(resource_id, target_lane)

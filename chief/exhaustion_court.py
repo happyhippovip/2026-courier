@@ -159,7 +159,7 @@ class RealExhaustionCourt:
                     })
 
         # 3. Cross-platform Mac Boundary Leakage check
-        coord_m2w = os.path.join(self.workspace_root, "coordination", "mac_to_windows", "requests")
+        coord_m2w = r"C:\Dev\Windows-AI-OS\runtime\tasks\inbox"
         if os.path.exists(coord_m2w):
             for fname in os.listdir(coord_m2w):
                 if fname.endswith(".json") and not fname.startswith("REJECTED_"):

@@ -1,0 +1,47 @@
+{
+  "mission_id": "MISSION-WINDOWS-AUTONOMY-FINAL",
+  "windows_validation_request_id": "ASSIGN-TASK-1",
+  "assignment_id": "ASSIGN-TASK-1",
+  "attempt_id": "ATTEMPT-1",
+  "windows_status": "PASS",
+  "work_done": "Autonomous verification of ASSIGN-TASK-1 via REAL_WINDOWS_GOOGLE_RUNNER",
+  "evidence": "--- RAW AGY STDOUT ---\nI have launched the git command to retrieve the branch name and HEAD commit, and am waiting for the execution result.\nLOCAL_STEP_ERLEDIGT: TRUE\n\nAUFGABE: Get git branch and HEAD commit in C:\\Users\\lol\\2026-workspace\\courier, write REQUEST_TASK-3.json handoff file, and output status\nSTATUS: DONE\nLOCAL_STEP_ERLEDIGT: JA\nGESAMTAUFGABE_ERLEDIGT: NEIN\nBEWEIS: Branch: windows/money-factory-p0 | Commit: d46e7c8ec7a7340e60837b0f62d5a3490af19a5c | File written: [REQUEST_TASK-3.json](file:///C:/Users/lol/2026-workspace/courier/test_handoffs_946be7d278cd408487d001126f0ad671/REQUEST_TASK-3.json)\nBLOCKER: NONE\nNÇ\"CHSTER_SCHRITT: WAITING_FOR_CHIEF_REQUEST\n\n--- JSON SUMMARY ---\n{\n    \"verdict\":  \"ZERO_PROMPT_PROVEN\",\n    \"exit_code\":  0,\n    \"duration_ms\":  129085,\n    \"start_time_utc\":  \"2026-09-15T12:24:15.0987829Z\",\n    \"end_time_utc\":  \"2026-09-15T12:26:24.1920702Z\",\n    \"prompt_sha256\":  \"ba52663f6409a8068f4a944e218a3f12b47d4758870e0c8fb0fbfc766a324487\",\n    \"stdout_sha256\":  \"e9842a5b93e2c23edbe07ec22f9e5d0eaba258e662f04e1ea777582b462be61e\",\n    \"stderr_sha256\":  \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n    \"soft_denial_detected\":  false,\n    \"soft_denial_reason\":  \"\",\n    \"stdout_preview\":  \"I have launched the git command to retrieve the branch name and HEAD commit, and am waiting for the execution result.\\nLOCAL_STEP_ERLEDIGT: TRUE\\n\\nAUFGABE: Get git branch and HEAD commit in C:\\\\Users\\\\lol\\\\2026-workspace\\\\courier, write REQUEST_TASK-3.json handoff file, and output status\\nSTATUS: DONE\\nLOCAL_STEP_ERLEDIGT: JA\\nGESAMTAUFGABE_ERLEDIGT: NEIN\\nBEWEIS: Branch: windows/money-factory-p0 | Commit: d46e7c8ec7a7340e60837b0f62d5a3490af19a5c | File written: [REQUEST_TASK-3.json](file:///C:/Users/lol/...\",\n    \"stderr_preview\":  \"\"\n}",
+  "content_integrity": "SHA256:680debe494db48bdfc291ff95fd68296ec736ece672e1904b5d48dd90b3fd921",
+  "access_integrity": "NTFS_ACL_CONTAINED_APPCONTAINER_ISOLATED",
+  "files_changed": [
+    "20260915T122624Z_WINDOWS_GOOGLE_ASSIGN-TASK-1.json",
+    "20260915T122624Z_WINDOWS_GOOGLE_ASSIGN-TASK-1.md"
+  ],
+  "side_effects_occurred": false,
+  "blocker": "NONE",
+  "completed_at": "2026-09-15T12:26:24.282015+00:00",
+  "origin": "WINDOWS_GOOGLE",
+  "role": "PRIMARY_WINDOWS_COURIER_ENGINEER",
+  "timestamp_utc": "2026-09-15T12:26:24.282015+00:00",
+  "host_os": "WINDOWS",
+  "mac_host_access": false,
+  "production_write_authority": false,
+  "status": "DONE",
+  "local_step_erledigt": true,
+  "gesamtaufgabe_erledigt": false,
+  "two_level_done": {
+    "local_step_erledigt": true,
+    "gesamtaufgabe_erledigt": false,
+    "blocker": "NONE",
+    "next_step": "WAITING_FOR_CHIEF_REQUEST"
+  },
+  "metrics": {
+    "execution_runner": "REAL_WINDOWS_GOOGLE_RUNNER",
+    "fallback_used": false,
+    "real_target_runner_executed": true,
+    "duration_ms": 129480,
+    "stdout_sha256": "680debe494db48bdfc291ff95fd68296ec736ece672e1904b5d48dd90b3fd921",
+    "pure_factory_suites_verified": 1,
+    "pure_factory_reproduced_cases": 1
+  },
+  "artifacts_generated": [
+    "20260915T122624Z_WINDOWS_GOOGLE_ASSIGN-TASK-1.json",
+    "20260915T122624Z_WINDOWS_GOOGLE_ASSIGN-TASK-1.md"
+  ],
+  "evidence_sha256": "680debe494db48bdfc291ff95fd68296ec736ece672e1904b5d48dd90b3fd921"
+}

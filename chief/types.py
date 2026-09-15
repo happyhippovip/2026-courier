@@ -17,6 +17,7 @@ class Lane(Enum):
     CODEX = "CODEX"
     CHIEF = "CHIEF"
     HUMAN = "HUMAN"
+    GITHUB_ACTIONS = "GITHUB_ACTIONS"
     UNKNOWN = "UNKNOWN"
 
     @classmethod
@@ -32,6 +33,7 @@ class Host(Enum):
     WINDOWS = "WINDOWS"
     MAC = "MAC"
     REMOTE = "REMOTE"
+    GITHUB = "GITHUB"
     UNKNOWN = "UNKNOWN"
 
     @classmethod

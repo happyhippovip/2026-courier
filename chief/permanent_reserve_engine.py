@@ -587,16 +587,20 @@ class PermanentReserveEngine:
                         success = False
                         stdout = f"Execution exception for {c_id}: {exc}"
                 else:
-                    success = True
-                    stdout = f"Simulated autonomous verification for {c_id}: PASS"
+                    success = False
+                    stdout = f"Fail Closed: Simulated autonomous verification for {c_id}: REJECTED"
 
+            if not script_path:
+                success = False
+                stdout = f"Fail Closed: Missing script path for {c_id}: REJECTED"
+                
             if success:
                 from .result_customs import ResultCustomsJudge
                 customs_cand = {"task_id": c_id}
                 customs_evidence = {
-                    "command": f"python -m unittest {script_path}" if script_path else f"verify {c_id}",
+                    "command": f"python -m unittest {script_path}",
                     "returncode": 0,
-                    "stdout": stdout or f"Verified effect for {c_id}: ok pass",
+                    "stdout": stdout,
                     "success": True
                 }
                 customs_res = ResultCustomsJudge.evaluate(customs_cand, customs_evidence)

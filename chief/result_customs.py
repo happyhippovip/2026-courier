@@ -33,7 +33,8 @@ class ResultCustomsJudge:
     @staticmethod
     def evaluate(
         candidate: Dict[str, Any],
-        execution_evidence: Dict[str, Any]
+        execution_evidence: Dict[str, Any],
+        cp: Optional[Any] = None
     ) -> Dict[str, Any]:
         """
         Evaluates task execution evidence against Court K invariants.
@@ -49,6 +50,17 @@ class ResultCustomsJudge:
         """
         task_id = candidate.get("task_id", "UNKNOWN_TASK")
 
+        # 1. Reject self-certification without execution evidence
+        if not execution_evidence or not isinstance(execution_evidence, dict):
+            return {
+                "passed": False,
+                "reason": "SELF_CERTIFICATION_DISALLOWED: Missing execution evidence object",
+                "result_fingerprint": None,
+                "commands": [],
+                "exit_code": -1,
+                "evidence_length": 0
+            }
+
         # Boundary Invariant 1: Reject directory traversal in task_id
         if ".." in str(task_id):
             return {
@@ -59,6 +71,65 @@ class ResultCustomsJudge:
                 "exit_code": -1,
                 "evidence_length": 0
             }
+
+        if cp is not None:
+            assignment_id = execution_evidence.get("assignment_id")
+            dispatch_id = execution_evidence.get("dispatch_id")
+
+            if not assignment_id or not dispatch_id:
+                return {
+                    "passed": False,
+                    "reason": "CAUSAL_CHAIN_BROKEN: Missing assignment_id or dispatch_id",
+                    "result_fingerprint": None,
+                    "commands": [],
+                    "exit_code": -1,
+                    "evidence_length": 0
+                }
+            
+            task = cp.get_task(task_id)
+            if not task:
+                return {
+                    "passed": False,
+                    "reason": f"CAUSAL_CHAIN_BROKEN: Task {task_id} does not exist",
+                    "result_fingerprint": None,
+                    "commands": [],
+                    "exit_code": -1,
+                    "evidence_length": 0
+                }
+            if task.get("assignment_id") != assignment_id:
+                return {
+                    "passed": False,
+                    "reason": "CAUSAL_CHAIN_BROKEN: Task assignment_id mismatch",
+                    "result_fingerprint": None,
+                    "commands": [],
+                    "exit_code": -1,
+                    "evidence_length": 0
+                }
+
+            with cp.get_connection() as conn:
+                cur = conn.cursor()
+                cur.execute("SELECT assignment_id FROM dispatch_queue WHERE dispatch_id = ?;", (dispatch_id,))
+                row = cur.fetchone()
+                dispatch = dict(row) if row else None
+
+            if not dispatch:
+                return {
+                    "passed": False,
+                    "reason": f"CAUSAL_CHAIN_BROKEN: Dispatch {dispatch_id} does not exist",
+                    "result_fingerprint": None,
+                    "commands": [],
+                    "exit_code": -1,
+                    "evidence_length": 0
+                }
+            if dispatch.get("assignment_id") != assignment_id:
+                return {
+                    "passed": False,
+                    "reason": "CAUSAL_CHAIN_BROKEN: Dispatch assignment_id mismatch",
+                    "result_fingerprint": None,
+                    "commands": [],
+                    "exit_code": -1,
+                    "evidence_length": 0
+                }
 
         # Boundary Invariant 2: Collect and check target/modified files
         target_files = []
@@ -163,7 +234,9 @@ class ResultCustomsJudge:
             }
 
         # 4. Compute cryptographic result fingerprint from actual observed behavior
-        canonical_content = f"{task_id}:{raw_cmd}:{raw_exit}:{raw_stdout}"
+        dispatch_id = execution_evidence.get("dispatch_id", "UNKNOWN_DISPATCH")
+        assignment_id = execution_evidence.get("assignment_id", "UNKNOWN_ASSIGNMENT")
+        canonical_content = f"{task_id}:{assignment_id}:{dispatch_id}:{raw_cmd}:{raw_exit}:{raw_stdout}"
         result_fp = hashlib.sha256(canonical_content.encode("utf-8")).hexdigest()
 
         return {

@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "receipt_id": "RCPT-REQ-MAC-FB0847D7-1789367638029",
+  "task_id": "REQ-MAC-FB0847D7",
+  "local_step_erledigt": true,
+  "gesamtaufgabe_erledigt": true,
+  "blocker": "NONE",
+  "next_step": "TASK_FULLY_CLOSED",
+  "spend_eur": 0.0,
+  "timestamp_utc": "2026-09-14T06:33:58.029933+00:00",
+  "signature_sha256": "a04532f3e7d007ebfba68e2728a654c51b21cad5d0ff16e56b1a292e9b205a17",
+  "evidence_digest": "f9fcc454e0c599aef80f98aa07439b044cc1bf1af2e1213b14c8c7cf622c4023"
+}

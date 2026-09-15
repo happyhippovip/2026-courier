@@ -1,0 +1,1 @@
+{"mission_id": "MISSION-AUTONOMY", "windows_validation_request_id": "TASK-2", "artifact_reference": "README.md", "exact_question": "Read C:\\Users\\lol\\2026-workspace\\courier\\START-HERE.md. Output its first word. Then output LOCAL_STEP_ERLEDIGT: TRUE", "expected_evidence": "First word", "allowed_scope": "C:\\Users\\lol\\2026-workspace"}

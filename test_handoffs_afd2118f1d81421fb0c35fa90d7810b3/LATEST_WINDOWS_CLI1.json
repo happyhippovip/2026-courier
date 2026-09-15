@@ -1,0 +1,31 @@
+{
+  "assignment_id": "ASSIGN-TASK-1",
+  "origin": "WINDOWS_CLI_1",
+  "role": "PRIMARY_WINDOWS_COURIER_ENGINEER",
+  "timestamp_utc": "2026-09-15T11:50:31.856422+00:00",
+  "host_os": "WINDOWS",
+  "mac_host_access": false,
+  "production_write_authority": false,
+  "status": "FAILED",
+  "local_step_erledigt": false,
+  "gesamtaufgabe_erledigt": false,
+  "two_level_done": {
+    "local_step_erledigt": false,
+    "gesamtaufgabe_erledigt": false,
+    "blocker": "PRIMARY_RUNNER_FAILED",
+    "next_step": "MANUAL_INTERVENTION_REQUIRED"
+  },
+  "metrics": {
+    "execution_runner": "DETERMINISTIC_CLI1_FALLBACK",
+    "fallback_used": true,
+    "real_target_runner_executed": false,
+    "pure_factory_suites_verified": 0,
+    "pure_factory_reproduced_cases": 0
+  },
+  "artifacts_generated": [
+    "20260915T115031Z_WINDOWS_CLI1_ASSIGN-TASK-1.json",
+    "20260915T115031Z_WINDOWS_CLI1_ASSIGN-TASK-1.md"
+  ],
+  "evidence": "CLI1 deterministic fallback triggered for ASSIGN-TASK-1 due to primary failure. Real target runner did not execute.",
+  "evidence_sha256": "19a9e59d40bb32165146b48bdd290305fef357843bac13e926236136a2b3528e"
+}
