@@ -1,3 +1,18 @@
 #!/bin/bash
 source venv/bin/activate
-exec gunicorn -w 4 -b 0.0.0.0:8080 server.app:app
+
+echo "Starting Courier background daemons..."
+python3 scripts/courier_verifier.py > logs/courier_verifier.log 2>&1 &
+VERIFIER_PID=$!
+
+python3 scripts/courier_github_dispatcher.py > logs/courier_github_dispatcher.log 2>&1 &
+DISPATCHER_PID=$!
+
+python3 scripts/courier_watchdog.py > logs/courier_watchdog.log 2>&1 &
+WATCHDOG_PID=$!
+
+trap "echo 'Stopping daemons...'; kill $VERIFIER_PID $DISPATCHER_PID $WATCHDOG_PID" EXIT
+
+echo "Starting Gunicorn server..."
+# Using -w 1 --threads 4 to avoid file locking issues with state.json
+exec gunicorn -w 1 --threads 4 -b 0.0.0.0:8080 server.app:app
