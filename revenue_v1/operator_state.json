@@ -1,18 +1,18 @@
 {
   "attempt_id": "attempt-001",
   "cost_or_quota_if_known": "GitHub Actions quota: unknown",
-  "dispatch_ref": null,
+  "dispatch_ref": "happyhippovip/2026-courier/revenue_v1_baseline.yml@a62e9508ab2feda641b855591ef39a7d226dc1de",
   "durable_ref": "revenue_v1/inbox/task-b6ca0bc9be796659.json@a62e9508ab2feda641b855591ef39a7d226dc1de",
   "execution_ref": null,
   "goal_id": "rev-v1-customer-job",
-  "last_transition": "PRE_DISPATCH_ADMISSION",
-  "next_explicit_transition": "DISPATCH_REVENUE_V1",
+  "last_transition": "EXECUTE_REVENUE_V1",
+  "next_explicit_transition": "CONSUME_DURABLE_RESULT",
   "owner": "operator",
   "platform": "github-actions",
   "real_wall": null,
   "result_ref": null,
   "revenue_if_known": "EUR 0.00",
-  "state": "PRE_DISPATCH_ADMITTED",
+  "state": "EXECUTION_DISPATCHED",
   "task_id": "task-b6ca0bc9be796659",
   "worker_id": "github-actions-revenue-v1"
 }
