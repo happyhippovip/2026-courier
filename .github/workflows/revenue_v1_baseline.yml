@@ -2,10 +2,8 @@ name: Revenue V1 Baseline
 
 on:
   push:
-    inputs:
-      task_json:
-        description: 'Task JSON payload'
-        required: true
+    branches:
+      - courier/heavy-process-supervisor
 
 jobs:
   worker:
@@ -17,7 +15,27 @@ jobs:
         uses: actions/checkout@v4
         
       - name: Write Task Payload
-        run: echo '${{ inputs.task_json }}' > task.json
+        run: |
+          cat << 'TASKEOF' > task.json
+          {
+            "schema_version": "1.0",
+            "goal_id": "rev-v1-proof",
+            "task_id": "task-002",
+            "attempt_id": "attempt-001",
+            "idempotency_key": "rev-v1-idem-0002",
+            "capability": "github-actions-safety-baseline-v1",
+            "scope": "public-repo-inspection",
+            "target_owner": "happyhippovip",
+            "target_repo": "2026-courier",
+            "target_sha": "5a9d421f476139a36a6650825c4f7874117426ef",
+            "customer_reference": "CUST-002",
+            "price_currency": "USD 0.00",
+            "delivery_destination": "none",
+            "budget": {"max_files": 100, "max_bytes": 1048576},
+            "result_contract": "revenue-v1-report",
+            "proposal_mode": "PR_ONLY"
+          }
+          TASKEOF
           
       - name: Execute Revenue V1 Worker
         run: |
@@ -80,4 +98,3 @@ jobs:
             echo "Stopping here rather than simulating handoff."
             exit 1
           fi
-          # If it were here, we would run the reconciler and gh pr create
