@@ -1,0 +1,13 @@
+{
+  "status": "HANDOFF_RECONCILED",
+  "task_id": "task-003",
+  "attempt_id": "attempt-001",
+  "idempotency_key": "rev-v1-idem-0003",
+  "github_run_id": "34992018378",
+  "github_run_attempt": "1",
+  "worker_result_id": "worker-attempt-001",
+  "verifier_id": "revenue-v1-independent-verifier",
+  "proposal_pr": "10",
+  "proposal_head": "revenue/result-proposal-34992018378",
+  "next_safe_state": "HUMAN_REVIEW_REQUIRED"
+}

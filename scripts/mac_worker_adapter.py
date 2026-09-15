@@ -1,20 +1,22 @@
-import json, sys, os, subprocess, uuid
+import json, sys, os, subprocess
 
 def run(task_file):
     with open(task_file, 'r') as f:
         task = json.load(f)
         
     print(f"[Mac Worker] Executing task {task['task_id']} via Antigravity headless CLI...")
-    prompt = f"Task: {task['task_id']}\nInstruction: {task['description']}\nReturn ONLY a valid JSON object in a markdown codeblock with a 'status' string field set to 'SUCCESS' and 'stdout_summary' summarizing what you did."
+    expected_artifact = f"courier_canary_{task['task_id']}.txt"
+    
+    prompt = f"Task ID: {task['task_id']}\nInstruction: {task['description']}\n\nYou are a headless worker. IMPORTANT: You MUST physically execute the following observable effect using your tools: Create a file named '{expected_artifact}' containing the text 'SUCCESS'.\nAfter you have successfully executed the instruction and created the file, you MUST output a final JSON object in a markdown codeblock. The JSON must contain a 'status' field set to 'SUCCESS' and a 'stdout_summary' field explaining what you did. Do NOT just output the JSON without doing the work!"
     
     cmd = [
         "agy", 
         "-p", prompt,
-        "--disable-slash-commands" 
+        "--dangerously-skip-permissions"
     ]
     
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    stdout, stderr = process.communicate(timeout=120)
+    stdout, stderr = process.communicate(timeout=180)
     out = stdout.strip()
     
     parsed = False

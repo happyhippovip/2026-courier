@@ -1,0 +1,18 @@
+{
+  "task_id": "task-harmless-producer-73522b31",
+  "goal_id": "goal-73522b31",
+  "title": "Harmless Producer Task",
+  "description": "Erzeuge eine harmlose Staging-Datei zur Überprüfung der Workflow-Abhängigkeit.",
+  "target_capability": "mac",
+  "status": "VALIDATED",
+  "safety_classification": "HARMLESS_READ_WRITE_LOCAL",
+  "action": {
+    "type": "create_marker",
+    "target_file": "runtime/harmless_staging_marker.json",
+    "payload": {
+      "marker_id": "marker-73522b31-01",
+      "created_at": "2026-09-15T22:36:00+02:00",
+      "status": "STAGED_READY"
+    }
+  }
+}

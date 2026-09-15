@@ -107,9 +107,19 @@ def process_results(state):
             task["result"] = res
             
             if res.get("status") == "SUCCESS":
-                task["status"] = "RECONCILED"
+                # TASK-SPECIFIC VERIFICATION
+                # We expect the generic task to create a file named courier_canary_{task_id}.txt 
+                expected_artifact = f"courier_canary_{task_id}.txt"
+                if os.path.exists(expected_artifact):
+                    print(f"Verification PASS: Found expected artifact {expected_artifact}")
+                    task["status"] = "RECONCILED"
+                else:
+                    print(f"Verification FAIL: Missing expected artifact {expected_artifact}")
+                    task["status"] = "FAILED_VERIFICATION"
             else:
                 task["status"] = "FAILED_TERMINAL"
+
+
                 
             print(f"Task {task_id} reconciled to {task['status']}")
         os.remove(res_file)

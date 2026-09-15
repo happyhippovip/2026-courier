@@ -29,9 +29,9 @@ SCRIPTS_DIR = Path(__file__).resolve().parent
 COURIER_DIR = SCRIPTS_DIR.parent
 
 try:
-    from scripts.canonical_authority import CanonicalAuthority
+    CanonicalAuthority = None
 except ImportError:
-    from canonical_authority import CanonicalAuthority
+    pass
 
 EVENTS_DIR = COURIER_DIR / "events"
 SCHEMAS_DIR = COURIER_DIR / "schemas"
@@ -397,14 +397,18 @@ def execute_codex_task(worker_job_path: Path, hooks: CodexHookRunner, force: boo
         return result_file
 
     # Acquire Canonical Scope Authority
-    auth = CanonicalAuthority()
+    auth = CanonicalAuthority() if CanonicalAuthority else None
     target_scopes = [s for s in allowed_scope if isinstance(s, str) and s.strip()] or ["CODEX:BRIDGE"]
     owner_id = "agent-codex-bridge"
-    success, gen, err = auth.acquire_scopes(
-        owner_id=owner_id,
-        task_id=task_id,
-        scopes=target_scopes,
-    )
+    if auth:
+        success, gen, err = auth.acquire_scopes(
+            owner_id=owner_id,
+            task_id=task_id,
+            scopes=target_scopes,
+        )
+    else:
+        success, gen, err = False, 0, 'CanonicalAuthority is missing; failing closed as required.'
+
     if not success:
         print(f"[CODEX_AUTHORITY_DENIED] Task {task_id} rejected by CanonicalAuthority: {err}")
         return hooks.on_task_failure(task_id, correlation_id, parent_id, f"DENIED_BY_CANONICAL_AUTHORITY: {err}")

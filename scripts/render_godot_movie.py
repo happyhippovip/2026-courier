@@ -18,10 +18,9 @@ import sys
 from pathlib import Path
 
 try:
-    from scripts.canonical_authority import CanonicalAuthority
+    CanonicalAuthority = None
 except ImportError:
-    from canonical_authority import CanonicalAuthority
-
+    pass
 
 def _required_constant(script: Path, name: str) -> float:
     match = re.search(rf"^\s*const\s+{re.escape(name)}\s*:=\s*([0-9]+(?:\.[0-9]+)?)", script.read_text(encoding="utf-8"), re.MULTILINE)
@@ -88,7 +87,7 @@ def main() -> int:
     if args.dry_run:
         return 0
 
-    auth = CanonicalAuthority()
+    auth = CanonicalAuthority() if CanonicalAuthority else None
     owner_id = "render_godot_movie"
     task_id = f"godot_render_{output_dir.name}"
     success, gen, err = auth.acquire_heavy_authority(

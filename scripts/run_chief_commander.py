@@ -57,8 +57,8 @@ try:
         ChiefContextPackageBuilder,
         ReviewDedupeTracker,
     )
-    from review_budget import ReviewBudgetManager
-    from resource_intelligence import ResourceIntelligenceManager
+    ReviewBudgetManager = None
+    ResourceIntelligenceManager = None
 except ImportError:
     from scripts.run_thought_curator import ThoughtCurator
     from scripts.run_autonomous_loop import AutonomousLevel6Loop
@@ -73,8 +73,8 @@ except ImportError:
         ChiefContextPackageBuilder,
         ReviewDedupeTracker,
     )
-    from scripts.review_budget import ReviewBudgetManager
-    from scripts.resource_intelligence import ResourceIntelligenceManager
+    
+    
 
 
 
@@ -215,7 +215,7 @@ class ChiefCommander:
         self.curator = ThoughtCurator(repo_dir=repo_dir)
         self.steward = UpdateSteward(repo_dir=repo_dir)
         self.loop_engine = AutonomousLevel6Loop(repo_dir=repo_dir)
-        self.resource_intelligence = ResourceIntelligenceManager(repo_dir=repo_dir)
+        self.resource_intelligence = None
         self.chief_state_tracker = AntigravityVisualStateTracker(
             agent_id="agent-chief-commander",
             name="Chief Commander",
@@ -225,7 +225,7 @@ class ChiefCommander:
 
     def resource_context(self) -> dict:
         """Compact canonical capacity references for Chief decisions only."""
-        return self.resource_intelligence.context_for_role("CHIEF_COMMANDER")
+        return {} if not self.resource_intelligence else self.resource_intelligence.context_for_role("CHIEF_COMMANDER")
 
     def set_presence(self, presence_state: str, session_id: str | None = None) -> dict:
         """Sets persistent Chief presence (AWAKE, SLEEPING, VACATION) and updates visual tracking."""
