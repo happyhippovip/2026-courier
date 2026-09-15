@@ -40,7 +40,7 @@ res = {
     "worker_id": "GITHUB-HOSTED",
     "exit_code": exit_code
 }
-with open(f"{task_id}_result.json", "w") as f:
+with open("result.json", "w") as f:
     json.dump(res, f)
 PY_EOF
           python3 run_task.py
@@ -55,5 +55,5 @@ PY_EOF
         with:
           name: courier-result-${{ github.event.inputs.task_id }}
           path: |
-            ${{ github.event.inputs.task_id }}_result.json
+            result.json
             courier_canary_*.txt
