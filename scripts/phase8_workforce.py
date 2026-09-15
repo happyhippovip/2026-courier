@@ -98,10 +98,55 @@ def validate_verified_result(task: dict[str, object], result: dict[str, object],
         fail("verifier-approved result does not satisfy the fenced contract")
 
 
+def reconcile_handoff(
+    task: dict[str, object],
+    result: dict[str, object],
+    handoff: dict[str, object],
+    root: Path,
+    proposal_number: str,
+    proposal_head: str,
+    proposal_base: str,
+) -> dict[str, object]:
+    run_id = result.get("github_run_id")
+    run_attempt = result.get("github_run_attempt")
+    if not isinstance(run_id, str) or not isinstance(run_attempt, str):
+        fail("verified result has no valid GitHub run identity")
+    validate_verified_result(task, result, root, run_id, run_attempt)
+    if not proposal_number.isdecimal() or proposal_base != "main" or not proposal_head.startswith("phase8/result-proposal-"):
+        fail("proposal identity is not a human-reviewable Phase 8 PR")
+    expected_handoff = {
+        "task_id": result["task_id"],
+        "attempt_id": result["attempt_id"],
+        "result_path": f"phase8/results/{result['task_id']}-{result['attempt_id']}-{result['github_run_id']}-{result['github_run_attempt']}.json",
+        "verifier_id": VERIFIER_ID,
+        "result_commit": handoff.get("result_commit"),
+        "proposal_branch": proposal_head,
+        "proposal_pr": f"https://github.com/happyhippovip/2026-courier/pull/{proposal_number}",
+        "human_merge_required": True,
+    }
+    if not isinstance(expected_handoff["result_commit"], str) or not re.fullmatch(r"[0-9a-f]{40}", expected_handoff["result_commit"]):
+        fail("handoff has no valid durable result commit")
+    if handoff != expected_handoff:
+        fail("handoff does not bind the verified result to the proposal")
+    return {
+        "status": "HANDOFF_RECONCILED",
+        "task_id": result["task_id"],
+        "attempt_id": result["attempt_id"],
+        "idempotency_key": result["idempotency_key"],
+        "github_run_id": result["github_run_id"],
+        "github_run_attempt": result["github_run_attempt"],
+        "worker_result_id": result["worker_result_id"],
+        "verifier_id": VERIFIER_ID,
+        "proposal_pr": proposal_number,
+        "proposal_head": proposal_head,
+        "next_safe_state": "HUMAN_REVIEW_REQUIRED",
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     commands = parser.add_subparsers(dest="command", required=True)
-    for name in ("validate", "worker", "verify", "validate-result"):
+    for name in ("validate", "worker", "verify", "validate-result", "reconcile"):
         sub = commands.add_parser(name)
         sub.add_argument("--task", type=Path, required=True)
     worker_parser = commands.choices["worker"]
@@ -120,6 +165,14 @@ def main() -> None:
     result_parser.add_argument("--root", type=Path, default=Path("."))
     result_parser.add_argument("--run-id", required=True)
     result_parser.add_argument("--run-attempt", required=True)
+    reconcile_parser = commands.choices["reconcile"]
+    reconcile_parser.add_argument("--result", type=Path, required=True)
+    reconcile_parser.add_argument("--handoff", type=Path, required=True)
+    reconcile_parser.add_argument("--root", type=Path, default=Path("."))
+    reconcile_parser.add_argument("--proposal-number", required=True)
+    reconcile_parser.add_argument("--proposal-head", required=True)
+    reconcile_parser.add_argument("--proposal-base", required=True)
+    reconcile_parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     task = load(args.task)
     if args.command == "validate":
@@ -130,6 +183,14 @@ def main() -> None:
         return
     if args.command == "validate-result":
         validate_verified_result(task, load(args.candidate), args.root, args.run_id, args.run_attempt)
+        return
+    if args.command == "reconcile":
+        reconciliation = reconcile_handoff(
+            task, load(args.result), load(args.handoff), args.root,
+            args.proposal_number, args.proposal_head, args.proposal_base,
+        )
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(json.dumps(reconciliation, sort_keys=True, indent=2) + "\n", encoding="utf-8")
         return
     result = verify(task, load(args.candidate), args.root, args.existing_dir, args.run_id, args.run_attempt)
     args.output.parent.mkdir(parents=True, exist_ok=True)

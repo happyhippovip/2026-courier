@@ -75,6 +75,24 @@ class Phase8WorkforceTests(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 workforce.verify(task(), result, ROOT, Path(directory), "1", "1")
 
+    def test_reconcile_requires_the_bound_human_review_pr(self) -> None:
+        worker_result = workforce.worker(task(), ROOT, "1", "1")
+        with TemporaryDirectory() as directory:
+            verified = workforce.verify(task(), worker_result, ROOT, Path(directory), "1", "1")
+        handoff = {
+            "task_id": "task-1", "attempt_id": "attempt-1",
+            "result_path": "phase8/results/task-1-attempt-1-1-1.json",
+            "verifier_id": workforce.VERIFIER_ID, "result_commit": "a" * 40,
+            "proposal_branch": "phase8/result-proposal-1-1",
+            "proposal_pr": "https://github.com/happyhippovip/2026-courier/pull/1",
+            "human_merge_required": True,
+        }
+        reconciled = workforce.reconcile_handoff(task(), verified, handoff, ROOT, "1", "phase8/result-proposal-1-1", "main")
+        self.assertEqual("HANDOFF_RECONCILED", reconciled["status"])
+        handoff["proposal_pr"] = "https://github.com/happyhippovip/2026-courier/pull/2"
+        with self.assertRaises(SystemExit):
+            workforce.reconcile_handoff(task(), verified, handoff, ROOT, "1", "phase8/result-proposal-1-1", "main")
+
 
 if __name__ == "__main__":
     unittest.main()
