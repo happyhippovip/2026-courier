@@ -49,3 +49,29 @@ class RemoteArtifactIsolationTests(unittest.TestCase):
         self.artifacts.write(final, "task", 2, b"stale")
         with self.assertRaisesRegex(ArtifactLifecycleError, "FENCE"):
             self.artifacts.promote(final, "task", 2, "g2", "other")
+
+    def test_prepared_temp_resumes_and_renamed_effect_recovers(self):
+        final = Path(self.tmp.name) / "result.bin"
+        self.artifacts.write(final, "task", 1, b"complete")
+        self.artifacts.promote(final, "task", 1, "g1", "effect", crash_after="PREPARED")
+        self.assertEqual(self.artifacts.reconcile(final, "task", 1, "g1", "effect"), "PREPARED_RESUME_ALLOWED")
+        self.artifacts.promote(final, "task", 1, "g1", "effect")
+        self.assertEqual(final.read_bytes(), b"complete")
+        other = Path(self.tmp.name) / "renamed.bin"
+        self.artifacts.write(other, "task2", 1, b"done")
+        self.artifacts.promote(other, "task2", 1, "g1", "effect", crash_after="RENAMED")
+        self.assertEqual(self.artifacts.reconcile(other, "task2", 1, "g1", "effect"), "RENAMED_EFFECT_RECOVERED")
+
+    def test_completed_missing_mutated_and_prepared_both_fail_closed(self):
+        final = Path(self.tmp.name) / "result.bin"
+        self.artifacts.write(final, "task", 1, b"complete")
+        self.artifacts.promote(final, "task", 1, "g1", "effect")
+        final.unlink()
+        with self.assertRaisesRegex(ArtifactLifecycleError, "FINGERPRINT"):
+            self.artifacts.reconcile(final, "task", 1, "g1", "effect")
+        both = Path(self.tmp.name) / "both.bin"
+        self.artifacts.write(both, "task2", 1, b"complete")
+        self.artifacts.promote(both, "task2", 1, "g1", "effect", crash_after="PREPARED")
+        both.write_bytes(b"foreign")
+        with self.assertRaisesRegex(ArtifactLifecycleError, "BOTH"):
+            self.artifacts.reconcile(both, "task2", 1, "g1", "effect")

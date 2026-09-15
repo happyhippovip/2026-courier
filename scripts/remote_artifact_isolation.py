@@ -118,7 +118,8 @@ class AtomicArtifactStore:
             conn.execute(
                 """CREATE TABLE IF NOT EXISTS artifact_promotions (
                     destination TEXT PRIMARY KEY, task_id TEXT NOT NULL, attempt INTEGER NOT NULL,
-                    owner_generation TEXT NOT NULL, effect_fingerprint TEXT NOT NULL, state TEXT NOT NULL
+                    owner_generation TEXT NOT NULL, effect_fingerprint TEXT NOT NULL,
+                    artifact_fingerprint TEXT NOT NULL, state TEXT NOT NULL
                 )"""
             )
 
@@ -134,30 +135,83 @@ class AtomicArtifactStore:
             os.fsync(artifact.fileno())
         return path
 
-    def promote(self, destination: Path, task_id: str, attempt: int, generation: str, effect: str, *, allow_replace: bool = False) -> None:
+    def promote(
+        self, destination: Path, task_id: str, attempt: int, generation: str, effect: str,
+        *, allow_replace: bool = False, crash_after: str | None = None,
+    ) -> None:
         temp = self.temp_path(destination, task_id, attempt)
         with sqlite3.connect(self.ledger_path) as conn:
-            current = conn.execute("SELECT task_id, attempt, owner_generation, effect_fingerprint FROM artifact_promotions WHERE destination=?", (str(destination),)).fetchone()
+            content_fingerprint = _fingerprint(temp.read_bytes()) if temp.exists() else None
+            current = conn.execute(
+                "SELECT task_id, attempt, owner_generation, effect_fingerprint, artifact_fingerprint, state "
+                "FROM artifact_promotions WHERE destination=?", (str(destination),)
+            ).fetchone()
             if current:
-                if current == (task_id, attempt, generation, _fingerprint(effect)):
-                    return
-                if not allow_replace:
+                if current[:4] == (task_id, attempt, generation, _fingerprint(effect)):
+                    if current[5] == "COMPLETED":
+                        self._verify_final(destination, current[4])
+                        return
+                    if self.reconcile(destination, task_id, attempt, generation, effect) != "PREPARED_RESUME_ALLOWED":
+                        raise ArtifactLifecycleError("PREPARED_RECONCILIATION_REJECTED")
+                elif not allow_replace:
                     raise ArtifactLifecycleError("ARTIFACT_PROMOTION_FENCE_REJECTED")
             if not temp.exists():
                 raise ArtifactLifecycleError("TEMP_ARTIFACT_MISSING")
             if destination.exists() and not allow_replace:
                 raise ArtifactLifecycleError("DESTINATION_EXISTS_QUARANTINED")
+            conn.execute(
+                "INSERT OR REPLACE INTO artifact_promotions VALUES (?, ?, ?, ?, ?, ?, 'PREPARED')",
+                (str(destination), task_id, attempt, generation, _fingerprint(effect), content_fingerprint),
+            )
+            if crash_after == "PREPARED":
+                return
             os.replace(temp, destination)
             directory = os.open(destination.parent, os.O_RDONLY)
             try:
                 os.fsync(directory)
             finally:
                 os.close(directory)
+            if crash_after == "RENAMED":
+                return
+            self._verify_final(destination, content_fingerprint)
             conn.execute(
-                "INSERT OR REPLACE INTO artifact_promotions VALUES (?, ?, ?, ?, ?, 'COMPLETED')",
-                (str(destination), task_id, attempt, generation, _fingerprint(effect)),
+                "UPDATE artifact_promotions SET state='COMPLETED' WHERE destination=?",
+                (str(destination),),
             )
 
-    def reconcile_temp(self, destination: Path, task_id: str, attempt: int) -> str:
+    def reconcile(self, destination: Path, task_id: str, attempt: int, generation: str, effect: str) -> str:
         temp = self.temp_path(destination, task_id, attempt)
-        return "STALE_TEMP_PRESERVED_QUARANTINED" if temp.exists() else "NO_OWNED_TEMP"
+        with sqlite3.connect(self.ledger_path) as conn:
+            row = conn.execute(
+                "SELECT task_id, attempt, owner_generation, effect_fingerprint, artifact_fingerprint, state "
+                "FROM artifact_promotions WHERE destination=?", (str(destination),)
+            ).fetchone()
+            expected = (task_id, attempt, generation, _fingerprint(effect))
+            if not row or row[:4] != expected:
+                raise ArtifactLifecycleError("UNKNOWN_ARTIFACT_QUARANTINED")
+            if row[5] == "COMPLETED":
+                self._verify_final(destination, row[4])
+                return "COMPLETED_VERIFIED"
+            if temp.exists() and destination.exists():
+                self._quarantine(conn, destination)
+                raise ArtifactLifecycleError("PREPARED_BOTH_PRESENT_QUARANTINED")
+            if temp.exists() and not destination.exists():
+                return "PREPARED_RESUME_ALLOWED"
+            if not temp.exists() and destination.exists():
+                self._verify_final(destination, row[4])
+                conn.execute("UPDATE artifact_promotions SET state='COMPLETED' WHERE destination=?", (str(destination),))
+                return "RENAMED_EFFECT_RECOVERED"
+            self._quarantine(conn, destination)
+            raise ArtifactLifecycleError("PREPARED_ARTIFACT_MISSING_QUARANTINED")
+
+    def reconcile_temp(self, destination: Path, task_id: str, attempt: int) -> str:
+        return "STALE_TEMP_PRESERVED_QUARANTINED" if self.temp_path(destination, task_id, attempt).exists() else "NO_OWNED_TEMP"
+
+    @staticmethod
+    def _verify_final(destination: Path, expected_fingerprint: str) -> None:
+        if not destination.exists() or _fingerprint(destination.read_bytes()) != expected_fingerprint:
+            raise ArtifactLifecycleError("FINAL_ARTIFACT_FINGERPRINT_MISMATCH_QUARANTINED")
+
+    @staticmethod
+    def _quarantine(conn: sqlite3.Connection, destination: Path) -> None:
+        conn.execute("UPDATE artifact_promotions SET state='QUARANTINED' WHERE destination=?", (str(destination),))
