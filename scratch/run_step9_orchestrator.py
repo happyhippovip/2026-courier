@@ -1,3 +1,5 @@
+# SIMULATION / NON-PRODUCTION EVIDENCE
+# THIS SCRIPT DEVIATES FROM COURIER V1 ARCHITECTURE AND WAS CREATED AS A SYNTHETIC OVERNIGHT TEST
 import sys
 import time
 import json
@@ -10,7 +12,7 @@ from opportunity_queue import OpportunityQueue
 import mac_result_consumer
 import mac_windows_dispatcher
 
-goal = "Direct implementation of requested artifact: Windows must write a file to C:\\test.txt. [Run: Sept 15 Fresh Windows Integration]"
+goal = "Direct implementation of requested artifact: Windows must write a file to C:\test.txt. [Run: Sept 15 Fresh Windows Integration]"
 print("--- INJECTING FRESH STEP 9 GOAL (WINDOWS) ---")
 process_one_idea(goal)
 
@@ -26,7 +28,7 @@ def simulate_windows_worker():
         task_hash = req_data.get("task_hash", "hash")
         
         status = "COMPLETED"
-        observed_behavior = "Windows worker successfully wrote C:\\test.txt"
+        observed_behavior = "Windows worker successfully wrote C:\test.txt"
         
         fingerprint_str = f"{req_id}{status}{observed_behavior}"
         result_fingerprint = hashlib.sha256(fingerprint_str.encode()).hexdigest()
@@ -45,7 +47,7 @@ def simulate_windows_worker():
                 "action": "implement_bounded_improvement",
                 "verdict": "PASS",
                 "summary": "File written successfully.",
-                "files_modified": ["C:\\test.txt"],
+                "files_modified": ["C:\test.txt"],
                 "task_hash": task_hash,
                 "target_agent": "WINDOWS_PC2"
             }
@@ -56,10 +58,12 @@ def simulate_windows_worker():
         print(f"Simulated Windows result written to {res_file.name}")
         req_file.unlink()
 
-print("\n--- STARTING ORCHESTRATOR LOOP (Max 15 cycles) ---")
+print("
+--- STARTING ORCHESTRATOR LOOP (Max 15 cycles) ---")
 dispatched_tasks = set()
 for i in range(15):
-    print(f"\nCycle {i+1}")
+    print(f"
+Cycle {i+1}")
     
     # Simulate remote worker
     simulate_windows_worker()

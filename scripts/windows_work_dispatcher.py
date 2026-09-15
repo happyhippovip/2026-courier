@@ -1,3 +1,5 @@
+# SIMULATION / NON-PRODUCTION EVIDENCE
+# THIS SCRIPT DEVIATES FROM COURIER V1 ARCHITECTURE AND WAS CREATED AS A SYNTHETIC OVERNIGHT TEST
 #!/usr/bin/env python3
 """Minimal WINDOWS work dispatcher — wires NextSafeWorkRouter to mac_request_producer.
 
@@ -140,8 +142,10 @@ def dispatch_one_windows_task() -> str:
 if __name__ == "__main__":
     try:
         req_id = dispatch_one_windows_task()
-        print(f"\nDISPATCHED_REQUEST_ID={req_id}")
+        print(f"
+DISPATCHED_REQUEST_ID={req_id}")
         sys.exit(0)
     except Exception as exc:
-        print(f"\nDISPATCH_FAILED: {exc}", file=sys.stderr)
+        print(f"
+DISPATCH_FAILED: {exc}", file=sys.stderr)
         sys.exit(1)

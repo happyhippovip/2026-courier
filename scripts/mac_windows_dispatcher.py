@@ -1,3 +1,5 @@
+# SIMULATION / NON-PRODUCTION EVIDENCE
+# THIS SCRIPT DEVIATES FROM COURIER V1 ARCHITECTURE AND WAS CREATED AS A SYNTHETIC OVERNIGHT TEST
 import json
 import sys
 import subprocess
@@ -21,7 +23,7 @@ def dispatch_task(task_payload):
     print(f"Dispatching task {task_id}")
     
     # Check duplicate on Windows
-    check_dup_cmd = f"if ((Test-Path '{project_path}\\runtime\\tasks\\completed\\{task_id}.json') -or (Test-Path '{project_path}\\runtime\\results\\{task_id}.json')) {{ Write-Output 'DUPLICATE' }}"
+    check_dup_cmd = f"if ((Test-Path '{project_path}\runtime\tasks\completed\{task_id}.json') -or (Test-Path '{project_path}\runtime\results\{task_id}.json')) {{ Write-Output 'DUPLICATE' }}"
     rc, out, err = run_ssh(check_dup_cmd)
     if "DUPLICATE" in out:
         print(json.dumps({"STATE": "COMPLETED_EXISTING", "REASON": "Task already completed or resulted on Windows."}))
@@ -33,7 +35,7 @@ def dispatch_task(task_payload):
         with open(tmp_file, "w") as f:
             json.dump(task_payload, f)
             
-        scp_res = subprocess.run(["scp", str(tmp_file), f"windows-ai:{project_path}\\runtime\\tasks\\inbox\\{task_id}.json"], capture_output=True)
+        scp_res = subprocess.run(["scp", str(tmp_file), f"windows-ai:{project_path}\runtime\tasks\inbox\{task_id}.json"], capture_output=True)
         if scp_res.returncode != 0:
             print(json.dumps({"STATE": "FAILED", "REASON": f"SCP failed: {scp_res.stderr.decode()}"}))
             return "FAILED"
@@ -44,7 +46,7 @@ def dispatch_task(task_payload):
     print(json.dumps({"STATE": "SUBMITTED", "REASON": "Task submitted to Windows inbox. Waiting for automatic consumption and result..."}))
     
     # Poll for result
-    read_res_cmd = f"Get-Content -Path {project_path}\\runtime\\results\\{task_id}.json -Raw"
+    read_res_cmd = f"Get-Content -Path {project_path}\runtime\results\{task_id}.json -Raw"
     
     max_retries = 30
     rc = 1

@@ -1,3 +1,5 @@
+# SIMULATION / NON-PRODUCTION EVIDENCE
+# THIS SCRIPT DEVIATES FROM COURIER V1 ARCHITECTURE AND WAS CREATED AS A SYNTHETIC OVERNIGHT TEST
 #!/usr/bin/env python3
 """Windows link health check with bounded recovery and fail-closed semantics.
 
@@ -126,7 +128,8 @@ def checkpoint_task(task_id: str, envelope: dict, health_report: dict) -> Path:
     }
     path = CHECKPOINT_DIR / f"{task_id}-checkpoint.json"
     tmp = path.with_suffix(f".tmp.{os.getpid()}")
-    tmp.write_text(json.dumps(checkpoint, indent=2) + "\n", encoding="utf-8")
+    tmp.write_text(json.dumps(checkpoint, indent=2) + "
+", encoding="utf-8")
     os.replace(tmp, path)
     print(f"[CHECKPOINT] Task {task_id} checkpointed to {path.name}")
     return path
@@ -136,6 +139,8 @@ if __name__ == "__main__":
     healthy, report = check_windows_health()
     print(json.dumps(report, indent=2))
     if healthy:
-        print("\nWINDOWS_LINK=READY")
+        print("
+WINDOWS_LINK=READY")
     else:
-        print(f"\nWINDOWS_LINK=BLOCKED (layer: {report.get('FAILURE_LAYER')})")
+        print(f"
+WINDOWS_LINK=BLOCKED (layer: {report.get('FAILURE_LAYER')})")

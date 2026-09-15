@@ -105,35 +105,6 @@ class CourierGoalPlanner:
 
         # 3. Phase 0: No verified history -> Initial Open Discovery Mission
         if not verified_history:
-            if "produce" in root_goal.lower() or "write" in root_goal.lower() or "create" in root_goal.lower():
-                m_id = f"plan-imp-{uuid.uuid4().hex[:8]}"
-                mission = {
-                    "mission_id": m_id,
-                    "goal": root_goal,
-                    "normalized_task": f"Direct implementation of requested artifact: {root_goal}",
-                    "capability_required": "architecture",
-                    "preferred_agent": "WINDOWS" if "windows" in root_goal.lower() else "GEMINI",
-                    "requires_write": True,
-                    "is_heavy": False,
-                    "risk_class": "SAFE",
-                    "task": {
-                        "action": "implement_bounded_improvement",
-                        "weakness_id": "direct_request",
-                        "description": root_goal,
-                        "target_files": [],
-                        "verification_strategy": "verify_artifact_exists",
-                        "requires_write": True,
-                        "correlation_id": f"corr-{m_id}",
-                        "task_id": m_id,
-                        "acceptance_criteria": self._extract_acceptance_criteria(root_goal),
-                    }
-                }
-                return PlannerDecision(
-                    decision="CONTINUE",
-                    next_mission=mission,
-                    reason="Direct request bypasses discovery."
-                )
-            
             m_id = f"plan-disc-{uuid.uuid4().hex[:8]}"
             mission = {
                 "mission_id": m_id,
@@ -214,41 +185,14 @@ class CourierGoalPlanner:
 
         # Phase 2: Implementation completed -> Derive Verification Mission from Modified Files
         if action == "implement_bounded_improvement" or "files_modified" in latest_payload:
-            has_implementation = any(m.get("task_type") == "IMPLEMENTATION" or m.get("action") == "implement_bounded_improvement" for m in verified_history) or action == "implement_bounded_improvement"
-            has_verification = any(m.get("task_type") == "VERIFICATION" or m.get("action") == "verify_improvement_tests" for m in verified_history)
-            if has_implementation and not has_verification:
-                implementation_result = next((item for item in reversed(verified_history) if item.get("task_type") == "IMPLEMENTATION"), latest_payload)
-                if not implementation_result or not implementation_result.get("files_modified") or implementation_result.get("verdict") == "WORKER_INFORMATION_REQUEST":
-                    # Re-issue implementation task
-                    m_id = f"plan-imp-{uuid.uuid4().hex[:8]}"
-                    mission = {
-                        "mission_id": m_id,
-                        "action": "implement_bounded_improvement",
-                        "target_agent": "GEMINI",
-                        "description": f"Goal: {root_goal}. Previous attempt needed more info or failed to modify files. Please execute the requested changes.",
-                    }
-                    return PlannerDecision(
-                        decision="NEW_MISSION_ENQUEUED",
-                        next_mission=mission,
-                        reason="RETRY_IMPLEMENTATION: Previous implementation lacked files_modified or requested information.",
-                    )
-
             modified_files = latest_payload.get("files_modified")
             verification_strategy = latest_payload.get("verification_strategy", "run_unit_tests")
 
             if not modified_files or not isinstance(modified_files, list) or len(modified_files) == 0:
-                # Retry instead of blocking
-                m_id = f"plan-imp-{uuid.uuid4().hex[:8]}"
-                mission = {
-                    "mission_id": m_id,
-                    "action": "implement_bounded_improvement",
-                    "target_agent": "GEMINI",
-                    "description": f"Goal: {root_goal}. Previous attempt needed more info or failed to modify files. Please execute the requested changes.",
-                }
                 return PlannerDecision(
-                    decision="NEW_MISSION_ENQUEUED",
-                    next_mission=mission,
-                    reason="RETRY_IMPLEMENTATION: Missing verified files_modified list from implementation result",
+                    decision="BLOCKED",
+                    next_mission=None,
+                    reason="IMPLEMENTATION_EVIDENCE_INSUFFICIENT: Missing verified files_modified list from implementation result",
                 )
 
             m_id = f"plan-ver-{uuid.uuid4().hex[:8]}"
