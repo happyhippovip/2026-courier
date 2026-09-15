@@ -53,15 +53,15 @@ with open(f"{task_id}_result.json", "w") as f:
 PY_EOF
           python3 run_task.py
         env:
-          TASK_ID: ${{ inputs.task_id || 'dummy-task-id' }}
-          GOAL_ID: ${{ inputs.goal_id || 'dummy-goal-id' }}
-          INSTRUCTION: ${{ inputs.instruction || 'echo NO_INSTRUCTION' }}
+          TASK_ID: ${{ github.event.inputs.task_id || 'dummy-task-id' }}
+          GOAL_ID: ${{ github.event.inputs.goal_id || 'dummy-goal-id' }}
+          INSTRUCTION: ${{ github.event.inputs.instruction || 'echo NO_INSTRUCTION' }}
       
       - name: Upload Result
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: courier-result-${{ inputs.task_id || 'dummy-task-id' }}
+          name: courier-result-${{ github.event.inputs.task_id || 'dummy-task-id' }}
           path: |
-            ${{ inputs.task_id || 'dummy-task-id' }}_result.json
+            ${{ github.event.inputs.task_id || 'dummy-task-id' }}_result.json
             courier_canary_*.txt
