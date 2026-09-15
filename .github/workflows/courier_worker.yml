@@ -1,5 +1,7 @@
 name: Courier Worker
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       task_id:
