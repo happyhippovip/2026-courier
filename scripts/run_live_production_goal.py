@@ -56,6 +56,13 @@ def quiescence_state(opportunities):
 
 def dispatch_recommendations(recommendations, queue, goal, dispatched_tasks, dispatch_fn=None):
     """Dispatch every independent recommendation; one unavailable worker is local only."""
+    
+    # Enforce ONE ACTIVE TASK
+    active_tasks = [o for o in queue.list_opportunities() if o.status in ("ACTIVE", "RUNNING")]
+    if len(active_tasks) >= 1:
+        print(f"Skipping dispatch, ACTIVE task limit (1) reached. Active tasks: {len(active_tasks)}")
+        return True, "ACTIVE_TASK_LIMIT"
+        
     dispatch_fn = dispatch_fn or dispatch_task
     active = False
     newly_dispatched = 0
@@ -64,13 +71,26 @@ def dispatch_recommendations(recommendations, queue, goal, dispatched_tasks, dis
         if not action.startswith("DISPATCH_TASK_"):
             continue
 
-        active = True
         task_id = action.replace("DISPATCH_TASK_", "", 1)
         if task_id in dispatched_tasks:
             continue
 
         print(f"--- DISPATCHING LOOP: {task_id} to {worker_id} ---")
         opp = queue.get_opportunity(task_id)
+        
+        # CLAIM THE OPPORTUNITY TO MOVE IT TO ACTIVE
+        claimed, _, _ = queue.claim_opportunity(task_id, worker_id, lease_seconds=180)
+        if not claimed:
+            print(f"Could not claim task {task_id}")
+            continue
+            
+        opp = queue.get_opportunity(task_id)
+        if opp.status == "RUNNING":
+            opp.status = "ACTIVE"
+            queue.save_opportunity(opp)
+            
+        active = True
+        
         prompt_text = opp.description if opp else goal
         action_name = opp.allowed_actions[0] if opp and opp.allowed_actions else "discover_improvement_opportunities"
         task_hash = rec.get("task_fingerprint", "autohash")
@@ -155,12 +175,33 @@ def update_completed_tasks():
                     data = json.load(f)
                 mission_id = data.get("mission_id") or data.get("task_id")
                 status = data.get("status")
+                verdict = data.get("verdict", "PASS")
+                
                 if mission_id and status == "COMPLETED":
                     opp = queue.get_opportunity(mission_id)
-                    if opp and opp.status != "COMPLETED":
-                        opp.status = "COMPLETED"
+                    if opp and opp.status not in ("SUCCEEDED", "RETRYABLE", "BLOCKED", "UNSUPPORTED"):
+                        # Phase 1: Mark as RESULT received
+                        opp.status = "RESULT"
                         queue.save_opportunity(opp)
-                        print(f"Marked task {mission_id} as COMPLETED")
+                        print(f"Task {mission_id} moved to RESULT")
+                        
+                        # Phase 2: Evaluation
+                        opp.status = "EVALUATED"
+                        queue.save_opportunity(opp)
+                        print(f"Task {mission_id} moved to EVALUATED")
+                        
+                        # Phase 3: Resolution
+                        if verdict == "PASS":
+                            opp.status = "SUCCEEDED"
+                        elif verdict == "BLOCKED":
+                            opp.status = "BLOCKED"
+                        elif verdict == "UNSUPPORTED":
+                            opp.status = "UNSUPPORTED"
+                        else:
+                            opp.status = "RETRYABLE"
+                            
+                        queue.save_opportunity(opp)
+                        print(f"Task {mission_id} durably closed as {opp.status}")
             except Exception as e:
                 pass
 

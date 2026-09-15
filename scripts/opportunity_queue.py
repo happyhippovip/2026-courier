@@ -109,7 +109,7 @@ class Opportunity:
     required_capabilities: list[str] = field(default_factory=list)
     dedupe_fingerprint: str = ""
     heavy_job: bool = False
-    status: str = "READY"  # CANDIDATE, READY, RUNNING, COMPLETED, NO_VALUE, BLOCKED, WAITING_FOR_HUMAN, CIRCUIT_OPEN, DEFERRED
+    status: str = "READY"  # READY, ACTIVE, RESULT, EVALUATED, SUCCEEDED, RETRYABLE, BLOCKED, UNSUPPORTED
     target_agent: str = "antigravity"
     allowed_scope: list[str] = field(default_factory=list)
     allowed_actions: list[str] = field(default_factory=lambda: ["READ"])
@@ -396,7 +396,7 @@ class OpportunityQueue:
                         json.dump(claim, handle, indent=2)
                         handle.flush()
                         os.fsync(handle.fileno())
-                    current.status = "RUNNING"
+                    current.status = "ACTIVE"
                     self.save_opportunity(current)
                     return True, "CLAIMED", claim
                 except OSError:
@@ -404,7 +404,7 @@ class OpportunityQueue:
             self.authority.release_scopes(claim_owner, [authority_scope], generation, task_id)
             return False, "ALREADY_CLAIMED", existing
 
-        current.status = "RUNNING"
+        current.status = "ACTIVE"
         self.save_opportunity(current)
         return True, "CLAIMED", claim
 
@@ -555,7 +555,7 @@ class OpportunityQueue:
             return False
 
         current = self.get_opportunity(opportunity_id)
-        if not current or current.status != "RUNNING":
+        if not current or current.status != "ACTIVE":
             return False
         valid, mismatch, expected = self.validate_durable_result(current, claim, result)
         if not valid:
@@ -580,7 +580,7 @@ class OpportunityQueue:
             tmp.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
             os.replace(tmp, result_path)
 
-        current.status = "COMPLETED"
+        current.status = "SUCCEEDED"
         self.save_opportunity(current)
         return self.release_opportunity_claim(opportunity_id, claim_id)
 
@@ -611,7 +611,7 @@ class OpportunityQueue:
 
             current = self.get_opportunity(opportunity_id)
             claim = load_json(self._claim_path(opportunity_id))
-            if current and current.status == "COMPLETED":
+            if current and current.status == "SUCCEEDED":
                 # Completion was durably applied before a crash but release was
                 # interrupted.  Validate the same canonical result binding as
                 # normal reconciliation before releasing the remaining fence.
@@ -634,7 +634,7 @@ class OpportunityQueue:
                     released = self.release_opportunity_claim(opportunity_id, claim_id)
                     outcomes.append({"status": "RELEASE_RECONCILED" if released else "BLOCKED_RELEASE", "opportunity_id": opportunity_id})
                 continue
-            if not current or current.status != "RUNNING":
+            if not current or current.status != "ACTIVE":
                 outcomes.append({"status": "BLOCKED_NON_RUNNING_RESULT", "opportunity_id": opportunity_id})
                 continue
             if not claim or claim.get("claim_id") != claim_id or claim.get("state_version") != generation:
