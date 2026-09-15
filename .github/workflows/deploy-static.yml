@@ -1,0 +1,45 @@
+name: Deploy static validation
+
+on:
+  pull_request:
+    paths:
+      - "deploy/**"
+      - ".github/workflows/deploy-static.yml"
+  push:
+    branches: [main]
+    paths:
+      - "deploy/**"
+      - ".github/workflows/deploy-static.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Validate deployment scripts and systemd unit
+        run: |
+          set -eu
+          bash -n deploy/install.sh deploy/run-supervisor.sh
+          state_dir="$RUNNER_TEMP/courier-state"
+          mkdir -p "$state_dir/events/night-queue"
+          printf '%s\n' '{"task_id":"missing-target","status":"QUEUED"}' \
+            > "$state_dir/events/night-queue/missing-target.json"
+          if timeout 2s env \
+            COURIER_STATE_DIR="$state_dir" \
+            COURIER_MEMORY_REPO="$state_dir/memory" \
+            COURIER_POLL_SECONDS=60 \
+            COURIER_ALLOWED_TARGET_AGENTS=GITHUB \
+            deploy/run-supervisor.sh > "$RUNNER_TEMP/wrapper.log" 2>&1; then
+            echo "wrapper unexpectedly accepted an unspecified task target" >&2
+            exit 1
+          fi
+          grep -F "queued task has no target_agent" "$RUNNER_TEMP/wrapper.log"
+          grep -Fx "systemctl enable courier.service" deploy/install.sh
+          sudo install -d /opt/courier/deploy
+          sudo install -m 0755 deploy/run-supervisor.sh /opt/courier/deploy/run-supervisor.sh
+          systemd-analyze verify "$GITHUB_WORKSPACE/deploy/courier.service"
