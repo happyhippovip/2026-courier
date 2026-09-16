@@ -1,84 +1,33 @@
 {
   "goals": {
-    "goal-73522b31": {
-      "goal_text": "Erzeuge zwei harmlose abh\u00e4ngige Tasks.",
+    "goal-canary-s8": {
+      "goal_text": "Verify bounded A->B canary",
       "status": "ACTIVE",
+      "current_step_index": 0,
       "workflow_plan": [
         {
-          "task_id": "WF-CHIEF-776ab2-STEP-1-DISCOVER",
-          "goal_id": "goal-73522b31",
-          "description": "Formulate execution strategy and inspect context for: Erzeuge zwei harmlose abh\u00e4ngige Tasks.",
-          "target_capability": "mac",
-          "status": "DISPATCHED"
+          "task_id": "WF-CANARY-STEP-1",
+          "goal_id": "goal-canary-s8",
+          "instruction": "Transform canary A",
+          "target_agent": "github",
+          "status": "QUEUED",
+          "attempts": 0,
+          "task_type": "deterministic_transform",
+          "input": "canary_A"
         },
         {
-          "task_id": "WF-CHIEF-776ab2-STEP-2-IMPLEMENT",
-          "goal_id": "goal-73522b31",
-          "description": "Execute core implementation and asset validation for: Erzeuge zwei harmlose abh\u00e4ngige Tasks.",
-          "target_capability": "mac",
-          "status": "DISPATCHED"
-        },
-        {
-          "task_id": "WF-CHIEF-776ab2-STEP-3-SYNTHESIZE",
-          "goal_id": "goal-73522b31",
-          "description": "Finalize results, verify invariants, and assemble completion package for: Erzeuge zwei harmlose abh\u00e4ngige Tasks.",
-          "target_capability": "mac",
-          "status": "DISPATCHED"
+          "task_id": "WF-CANARY-STEP-2",
+          "goal_id": "goal-canary-s8",
+          "instruction": "Transform canary B",
+          "target_agent": "github",
+          "status": "QUEUED",
+          "attempts": 0,
+          "task_type": "deterministic_transform",
+          "input": "canary_B"
         }
-      ],
-      "current_step_index": 3
+      ]
     }
   },
-  "tasks": {
-    "WF-CHIEF-776ab2-STEP-1-DISCOVER": {
-      "task_id": "WF-CHIEF-776ab2-STEP-1-DISCOVER",
-      "goal_id": "goal-73522b31",
-      "description": "Formulate execution strategy and inspect context for: Erzeuge zwei harmlose abh\u00e4ngige Tasks.",
-      "target_capability": "mac",
-      "status": "FAILED_TERMINAL",
-      "result": {
-        "status": "FAILED",
-        "reason": "INVALID_RESULT",
-        "raw_diagnostic": "",
-        "stderr": "",
-        "goal_id": "goal-73522b31",
-        "task_id": "WF-CHIEF-776ab2-STEP-1-DISCOVER",
-        "worker_id": "MAC-AGY-01",
-        "provider": "antigravity",
-        "run_id": "46468"
-      }
-    },
-    "WF-CHIEF-776ab2-STEP-2-IMPLEMENT": {
-      "task_id": "WF-CHIEF-776ab2-STEP-2-IMPLEMENT",
-      "goal_id": "goal-73522b31",
-      "description": "Execute core implementation and asset validation for: Erzeuge zwei harmlose abh\u00e4ngige Tasks.",
-      "target_capability": "mac",
-      "status": "RECONCILED",
-      "result": {
-        "status": "SUCCESS",
-        "stdout_summary": "Created courier_canary_WF-CHIEF-776ab2-STEP-2-IMPLEMENT.txt containing SUCCESS, generated and validated two harmless dependent task specifications (task-harmless-producer-73522b31 and task-harmless-consumer-73522b31 with explicit dependency on producer), and staged verified runtime marker.",
-        "goal_id": "goal-73522b31",
-        "task_id": "WF-CHIEF-776ab2-STEP-2-IMPLEMENT",
-        "worker_id": "MAC-AGY-01",
-        "provider": "antigravity",
-        "run_id": "46491"
-      }
-    },
-    "WF-CHIEF-776ab2-STEP-3-SYNTHESIZE": {
-      "task_id": "WF-CHIEF-776ab2-STEP-3-SYNTHESIZE",
-      "goal_id": "goal-73522b31",
-      "description": "Finalize results, verify invariants, and assemble completion package for: Erzeuge zwei harmlose abh\u00e4ngige Tasks.",
-      "target_capability": "mac",
-      "status": "FAILED_VERIFICATION",
-      "result": {
-        "status": "SUCCESS",
-        "stdout_summary": "Verified invariants, synthesized results for task 'Erzeuge zwei harmlose abh\u00e4ngige Tasks', and created courier_canary_WF-CHIEF-776ab2-STEP-3-SYNTHESIZE.txt containing 'SUCCESS'.",
-        "goal_id": "goal-73522b31",
-        "task_id": "WF-CHIEF-776ab2-STEP-3-SYNTHESIZE",
-        "worker_id": "MAC-AGY-01",
-        "provider": "antigravity",
-        "run_id": "46682"
-      }
-    }
-  }
+  "tasks": {},
+  "workers": {}
 }
