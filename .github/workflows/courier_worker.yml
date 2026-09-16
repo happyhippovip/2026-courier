@@ -63,17 +63,20 @@ jobs:
               Copy-Item -Path $outFile -Destination "result.json"
           }
           elseif ($runnerOs -eq "Windows") {
-              $daemonDir = "C:/Users/lol/2026-workspace/courier/scripts/windows_worker"
-              New-Item -ItemType Directory -Force -Path "$daemonDir/inbox" | Out-Null
-              New-Item -ItemType Directory -Force -Path "$daemonDir/outbox" | Out-Null
-              $taskJson | Set-Content -Path "$daemonDir/inbox/$taskId.json" -Encoding utf8
-              
-              Write-Host "Waiting for Windows daemon to finish task..."
-              $outFile = "$daemonDir/outbox/${taskId}_result.json"
-              while (-not (Test-Path $outFile)) {
-                  Start-Sleep -Seconds 2
+              Write-Host "Executing on Windows Cloud Runner: $instruction"
+              $instruction | Set-Content -Path "task_script.ps1"
+              powershell.exe -File .\task_script.ps1
+              $exitCode = $LASTEXITCODE
+              $status = if ($exitCode -eq 0) { "SUCCESS" } else { "FAILED" }
+              $res = @{
+                  task_id = $taskId
+                  goal_id = $goalId
+                  status = $status
+                  provider = "github"
+                  worker_id = "GITHUB-HOSTED-WINDOWS"
+                  exit_code = $exitCode
               }
-              Copy-Item -Path $outFile -Destination "result.json"
+              $res | ConvertTo-Json | Set-Content -Path "result.json" -Encoding utf8
           }
           else {
               Write-Host "Executing: $instruction"
