@@ -15,6 +15,10 @@ DISPATCHER_PID=$!
 python3 scripts/courier_watchdog.py > logs/courier_watchdog.log 2>&1 &
 WATCHDOG_PID=$!
 
+python3 scripts/mac_worker/daemon.py > logs/mac_worker.log 2>&1 &
+MAC_WORKER_PID=$!
+
+
 
 
 echo "Starting Gunicorn server..."
@@ -23,6 +27,6 @@ echo "Starting Gunicorn server..."
 gunicorn -w 1 --threads 4 -b 0.0.0.0:8080 server.app:app &
 GUNICORN_PID=$!
 
-trap "echo 'Stopping all...'; kill $VERIFIER_PID $DISPATCHER_PID $WATCHDOG_PID $GUNICORN_PID 2>/dev/null; exit 0" EXIT SIGINT SIGTERM
+trap "echo 'Stopping all...'; kill $VERIFIER_PID $DISPATCHER_PID $WATCHDOG_PID $MAC_WORKER_PID $GUNICORN_PID 2>/dev/null; exit 0" EXIT SIGINT SIGTERM
 
 wait $GUNICORN_PID
