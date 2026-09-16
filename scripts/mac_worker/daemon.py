@@ -102,13 +102,13 @@ def run_agy(task, config):
     write_log(f"Running AI task {task['task_id']} via agy")
     instruction = task.get('instruction', task.get('description', ''))
     
-    prompt = f"Task ID: {task['task_id']}\nInstruction: {instruction}\n\nYou are a headless worker on Mac. You MUST execute the instruction. After you have successfully executed the instruction, you MUST output a final JSON object in a markdown codeblock. The JSON must contain a 'status' field set to 'SUCCESS' and a 'stdout_summary' field explaining what you did."
-    
+    prompt = f"Task ID: {task['task_id']}\nInstruction: {instruction}\n\nYou are a headless worker on Mac. You MUST execute the instruction. After you have successfully executed the instruction, you MUST output a final JSON object in a markdown codeblock. The JSON must contain a 'status' field set to 'SUCCESS' and a 'stdout_summary' field explaining what you did. IMPORTANT: Your current working directory is {os.getcwd()}. Any file artifacts you create MUST be relative to this directory."
     agy_bin = shutil.which("agy") or shutil.which("agy", path=os.environ.get("PATH", "") + ":/Users/user/.local/bin:/usr/local/bin:/opt/homebrew/bin")
     if not agy_bin:
         return {"status": "FAILED", "reason": "AGY_NOT_FOUND", "execution_mode": "ANTIGRAVITY"}
         
-    cmd = [agy_bin, "-p", prompt, "--dangerously-skip-permissions"]
+    wrapper = os.path.join(os.path.dirname(__file__), "limit_wrapper.sh")
+    cmd = [wrapper, agy_bin, "-p", prompt, "--dangerously-skip-permissions"]
     
     try:
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
@@ -208,16 +208,16 @@ def loop():
                     expected_arts = task.get("artifacts", [])
                     import hashlib
                     for expected in expected_arts:
-                        p = Path(expected)
+                        expected_path = expected.get('path') if isinstance(expected, dict) else expected
+                        p = Path(expected_path)
                         if p.exists():
                             artifact_evidence.append({
-                                "path": expected,
+                                "path": expected_path,
                                 "sha256": hashlib.sha256(p.read_bytes()).hexdigest()
                             })
                         else:
-                            # Generate a fake one for canary if not explicitly found? No, canary creates it!
-                            pass
-
+                            result['status'] = 'FAILED'
+                            result['stderr'] = result.get('stderr', '') + f'\nMissing artifact: {expected_path}'
                 payload = {
                     "worker_id": config["WORKER_ID"],
                     "goal_id": task.get("goal_id"),
