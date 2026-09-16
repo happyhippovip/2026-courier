@@ -28,42 +28,65 @@ def run(task_file):
     
     task_type = task.get('task_type', 'run_tests')
     
-    # Generate unique attempt_id for exact dispatch tracking
-    attempt_id = str(uuid.uuid4())
-    
-    print(f"[GitHub Transport] Routing task {task_id} (Attempt: {attempt_id}) to GitHub Actions ({runner_label})...")
-    
-    # Trigger workflow
-    cmd = [
-        "gh", "workflow", "run", "courier_worker.yml",
-        "--ref", "courier/windows-phase-15-completion",
-        "-f", f"task_id={task_id}",
-        "-f", f"attempt_id={attempt_id}",
-        "-f", f"task_type={task_type}",
-        "-f", f"instruction={instruction}",
-        "-f", f"goal_id={goal_id}",
-        "-f", f"runner_label={runner_label}",
-        "-f", f"mode={mode}"
-    ]
-    rc, out, err = run_cmd(cmd)
-    if rc != 0:
-        print(f"[GitHub Transport] Failed to trigger workflow: {err}")
-        res = {
-            "status": "WAITING_FOR_WORKER", 
-            "reason": "DISPATCH_FAILED", 
-            "task_id": task_id, 
-            "goal_id": goal_id,
-            "worker_id": task.get("worker_id", ""),
-            "attempt_id": attempt_id,
-            "run_id": "failed",
-            "stderr": err
-        }
-        os.makedirs("results/incoming", exist_ok=True)
-        with open(f"results/incoming/{task_id}_result.json", 'w') as f:
-            json.dump(res, f)
+    result_file = Path(f"results/incoming/{task_id}_result.json")
+    if result_file.exists():
+        print(f"[GitHub Transport] Result already exists for {task_id}. Skipping dispatch.")
         return
+
+    dispatch_file = Path(f"results/incoming/{task_id}_dispatch.json")
+    attempt_id = None
+    
+    if dispatch_file.exists():
+        try:
+            with open(dispatch_file, 'r') as df:
+                dinfo = json.load(df)
+                attempt_id = dinfo['attempt_id']
+            print(f"[GitHub Transport] Recovered existing dispatch for task {task_id} (Attempt: {attempt_id}). Resuming poll...")
+        except Exception as e:
+            print(f"[GitHub Transport] Failed to read dispatch file, generating new attempt. Error: {e}")
+            attempt_id = None
+            
+    if not attempt_id:
+        # Use attempt_id/dispatch_id from task payload if provided, else generate new
+        attempt_id = task.get('attempt_id', task.get('dispatch_id', str(uuid.uuid4())))
         
-    print(f"[GitHub Transport] Workflow triggered. Polling for artifact...")
+        print(f"[GitHub Transport] Routing task {task_id} (Attempt: {attempt_id}) to GitHub Actions ({runner_label})...")
+        
+        # Trigger workflow
+        cmd = [
+            "gh", "workflow", "run", "courier_worker.yml",
+            "--ref", "courier/windows-phase-15-completion",
+            "-f", f"task_id={task_id}",
+            "-f", f"attempt_id={attempt_id}",
+            "-f", f"task_type={task_type}",
+            "-f", f"instruction={instruction}",
+            "-f", f"goal_id={goal_id}",
+            "-f", f"runner_label={runner_label}",
+            "-f", f"mode={mode}"
+        ]
+        rc, out, err = run_cmd(cmd)
+        if rc != 0:
+            print(f"[GitHub Transport] Failed to trigger workflow: {err}")
+            res = {
+                "status": "WAITING_FOR_WORKER", 
+                "reason": "DISPATCH_FAILED", 
+                "task_id": task_id, 
+                "goal_id": goal_id,
+                "worker_id": task.get("worker_id", ""),
+                "attempt_id": attempt_id,
+                "run_id": "failed",
+                "stderr": err
+            }
+            os.makedirs("results/incoming", exist_ok=True)
+            with open(result_file, 'w') as f:
+                json.dump(res, f)
+            return
+            
+        os.makedirs("results/incoming", exist_ok=True)
+        with open(dispatch_file, 'w') as df:
+            json.dump({"attempt_id": attempt_id, "task_id": task_id, "timestamp": time.time()}, df)
+            
+        print(f"[GitHub Transport] Workflow triggered. Polling for artifact...")
     
     # Poll for completion. To avoid spamming, we list runs matching this workflow.
     # It takes time for the run to appear, then finish.
