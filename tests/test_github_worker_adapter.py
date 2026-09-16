@@ -1,3 +1,4 @@
+import base64
 import hashlib
 import json
 from pathlib import Path
@@ -65,4 +66,5 @@ def test_dispatch_preserves_taskpacket_as_raw_json(tmp_path: Path, monkeypatch):
     assert adapter.run(str(task_file)) == 0
     dispatch = next(command for command in commands if command[:3] == ["gh", "workflow", "run"])
     assert "--raw-field" in dispatch
-    assert json.loads(dispatch[dispatch.index("--raw-field") + 1].removeprefix("task_payload="))["dispatch_id"] == "dispatch-1"
+    encoded = dispatch[dispatch.index("--raw-field") + 1].removeprefix("task_payload_base64=")
+    assert json.loads(base64.b64decode(encoded))["dispatch_id"] == "dispatch-1"

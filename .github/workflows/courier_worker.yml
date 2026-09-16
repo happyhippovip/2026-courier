@@ -4,8 +4,8 @@ run-name: Courier dispatch ${{ inputs.dispatch_id }}
 on:
   workflow_dispatch:
     inputs:
-      task_payload:
-        description: Compact bounded Courier TaskPacket JSON
+      task_payload_base64:
+        description: Base64-encoded compact bounded Courier TaskPacket JSON
         required: true
         type: string
       dispatch_id:
@@ -33,18 +33,19 @@ jobs:
             server
       - name: Execute allow-listed TaskPacket operation
         env:
-          TASK_PAYLOAD: ${{ github.event.inputs.task_payload }}
+          TASK_PAYLOAD_BASE64: ${{ inputs.task_payload_base64 }}
           DISPATCH_ID: ${{ inputs.dispatch_id }}
         run: |
           cat > "$RUNNER_TEMP/courier_task.py" <<'PY'
           import hashlib
+          import base64
           import json
           import os
           import subprocess
           import sys
           from pathlib import Path, PurePosixPath
 
-          task = json.loads(os.environ["TASK_PAYLOAD"])
+          task = json.loads(base64.b64decode(os.environ["TASK_PAYLOAD_BASE64"], validate=True))
           required = ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id")
           if not all(isinstance(task.get(field), str) and task[field] for field in required):
               raise ValueError("TaskPacket is missing required identity fields")
@@ -105,9 +106,9 @@ jobs:
           status=$?
           if [ "$status" -ne 0 ]; then
             python3 - <<'PY'
-          import json, os
+          import base64, json, os
           from pathlib import Path
-          task = json.loads(os.environ["TASK_PAYLOAD"])
+          task = json.loads(base64.b64decode(os.environ["TASK_PAYLOAD_BASE64"], validate=True))
           fields = ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id")
           if all(isinstance(task.get(field), str) and task[field] for field in fields):
               Path(f"result_{task['dispatch_id']}.json").write_text(json.dumps({

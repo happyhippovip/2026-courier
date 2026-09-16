@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import hashlib
+import base64
 import json
 import os
 import shutil
@@ -132,7 +133,8 @@ def run(task_file_name: str) -> int:
         if not ref:
             raise RuntimeError("cannot determine dispatch ref")
         rc, _, error = run_cmd(["gh", "workflow", "run", WORKFLOW, "--repo", REPOSITORY, "--ref", ref,
-                                "--raw-field", f"task_payload={json.dumps(task, separators=(',', ':'))}",
+                                "--raw-field", "task_payload_base64=" + base64.b64encode(
+                                    json.dumps(task, separators=(",", ":")).encode("utf-8")).decode("ascii"),
                                 "--field", f"dispatch_id={task['dispatch_id']}"])
         if rc:
             raise RuntimeError(f"workflow dispatch failed: {error}")
