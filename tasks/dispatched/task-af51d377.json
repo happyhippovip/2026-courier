@@ -1,1 +1,0 @@
-{"task_id": "task-af51d377", "goal_id": "goal-9478485e", "description": "Task B: Zweite abh\u00e4ngige harmlose Aktion", "target_capability": "windows", "status": "QUEUED", "dependencies": ["task-9f406084"]}
