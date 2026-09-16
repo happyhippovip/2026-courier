@@ -1,5 +1,5 @@
 name: Courier Worker
-run-name: Courier dispatch ${{ fromJson(inputs.task_payload).dispatch_id }}
+run-name: Courier dispatch ${{ fromJson(github.event.inputs.task_payload).dispatch_id }}
 
 on:
   workflow_dispatch:
@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: courier-dispatch-${{ fromJson(inputs.task_payload).dispatch_id }}
+  group: courier-dispatch-${{ fromJson(github.event.inputs.task_payload).dispatch_id }}
   cancel-in-progress: false
 
 jobs:
@@ -29,7 +29,7 @@ jobs:
             server
       - name: Execute allow-listed TaskPacket operation
         env:
-          TASK_PAYLOAD: ${{ inputs.task_payload }}
+          TASK_PAYLOAD: ${{ github.event.inputs.task_payload }}
         run: |
           cat > "$RUNNER_TEMP/courier_task.py" <<'PY'
           import hashlib
@@ -115,7 +115,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: courier-result-${{ fromJson(inputs.task_payload).dispatch_id }}
+          name: courier-result-${{ fromJson(github.event.inputs.task_payload).dispatch_id }}
           path: |
             result_*.json
             courier_output_*.json
