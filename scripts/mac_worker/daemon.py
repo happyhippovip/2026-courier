@@ -58,44 +58,54 @@ def http_post(config, endpoint, data):
         return None, str(e)
 
 def run_native(task, config):
+    import signal, os, subprocess, json
     write_log(f"Running NATIVE task {task['task_id']}")
     instruction = task.get('instruction', task.get('description', ''))
     
-    # ALLOWLIST CHECK
-    action = task.get("action", "").lower()
-    allowed_actions = ["create_file", "read_file_metadata", "git_status", "run_known_test", "hash_file", "echo"]
-    
-    # For backward compatibility with the canary, we parse "echo" if it's the first word of instruction
-    if not action:
-        first_word = instruction.split()[0].lower() if instruction else ""
-        if first_word in allowed_actions:
-            action = first_word
-            
-    if action not in allowed_actions:
-        write_log(f"NATIVE action '{action}' rejected. Not in allowlist.")
-        return {
-            "status": "FAILED",
-            "stderr": f"Native action '{action}' is not allowed for security reasons.",
-            "execution_mode": "NATIVE"
-        }
-        
-    # Safe bounded execution
+    action = extract_intent(instruction)
+    pid_file = STATE_DIR / "current_task_pid.json"
+    process = None
     try:
         if action == "echo":
-            result = subprocess.run(instruction, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, executable="/bin/bash")
+            process = subprocess.Popen(instruction, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, executable="/bin/bash", preexec_fn=os.setsid)
         elif action == "git_status":
-            result = subprocess.run(["git", "status"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            process = subprocess.Popen(["git", "status"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, preexec_fn=os.setsid)
         else:
             return {"status": "FAILED", "stderr": f"Action '{action}' is allowed but handler is not implemented yet.", "execution_mode": "NATIVE"}
             
+        with open(pid_file, "w") as f:
+            json.dump({"pid": process.pid, "pgid": os.getpgid(process.pid)}, f)
+            
+        stdout, stderr = process.communicate(timeout=300)
+        
+        if pid_file.exists():
+            os.remove(pid_file)
+            
         return {
-            "status": "SUCCESS" if result.returncode == 0 else "FAILED",
-            "stdout": result.stdout,
-            "stderr": result.stderr,
-            "exit_code": result.returncode,
+            "status": "SUCCESS" if process.returncode == 0 else "FAILED",
+            "stdout": stdout,
+            "stderr": stderr,
+            "exit_code": process.returncode,
             "execution_mode": "NATIVE"
         }
+    except subprocess.TimeoutExpired as e:
+        write_log(f"Task {task['task_id']} timed out. Cleaning up exact process group.")
+        if process:
+            try:
+                os.killpg(os.getpgid(process.pid), signal.SIGKILL)
+            except:
+                pass
+        if pid_file.exists():
+            os.remove(pid_file)
+        return {"status": "FAILED", "stderr": "TimeoutExpired - Process killed.", "execution_mode": "NATIVE"}
     except Exception as e:
+        if process:
+            try:
+                os.killpg(os.getpgid(process.pid), signal.SIGKILL)
+            except:
+                pass
+        if pid_file.exists():
+            os.remove(pid_file)
         return {"status": "FAILED", "stderr": str(e), "execution_mode": "NATIVE"}
 
 def run_agy(task, config):
