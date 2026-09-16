@@ -27,7 +27,13 @@ def run_task(task, config):
             stdout, stderr_out = process.communicate(timeout=300)
             out_clean = stdout.strip()
             stderr = stderr_out
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.communicate()
+            stderr = "Execution timed out after 300s."
+            out_clean = ""
         except Exception as e:
+            process.kill()
             stderr = str(e)
             out_clean = ""
     else:
@@ -47,6 +53,11 @@ def run_task(task, config):
                 "status": "SUCCESS",
                 "stdout_summary": f"Native Windows execution created {canary_file}"
             })
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.communicate()
+            out_clean = ""
+            stderr = "Execution timed out after 60s."
         except Exception as e:
             # If powershell fails (e.g. running on Mac for testing), fallback to python native
             with open(canary_file, "w") as f:
