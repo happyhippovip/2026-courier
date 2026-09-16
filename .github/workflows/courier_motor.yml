@@ -32,6 +32,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_WORKER_LOCAL_WAIT_SECONDS: "60"
         run: |
+          export PYTHONPATH="$PWD:$PYTHONPATH"
           echo "[Motor] Starting internal state server..."
           python3 server/app.py &
           SERVER_PID=$!
