@@ -1,4 +1,4 @@
-name: Courier Worker
+﻿name: Courier Worker
 run-name: "Courier Task ${{ inputs.task_id }} (Attempt ${{ inputs.attempt_id }})"
 on:
   workflow_dispatch:
@@ -42,6 +42,8 @@ jobs:
   execute:
     runs-on: ${{ fromJSON(github.event.inputs.runner_label) }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Bridge Task to Native Daemon
         shell: powershell
         run: |
