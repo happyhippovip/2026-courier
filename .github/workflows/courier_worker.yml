@@ -47,6 +47,7 @@ jobs:
       - name: Bridge Task to Native Daemon
         shell: pwsh
         run: |
+          $ErrorActionPreference = 'Continue'
           $taskId = $env:TASK_ID
           $goalId = $env:GOAL_ID
           $taskType = $env:TASK_TYPE
