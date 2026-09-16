@@ -31,6 +31,19 @@ if (!workflow.includes("\nconcurrency:")) {
 if (app.includes("STATE_LOCK = threading.RLock()") && !app.includes("fcntl.flock")) {
   failures.push("central state mutation lock is process-local only");
 }
+if (
+  app.includes('if "task_id" not in step:') &&
+  !app.includes("duplicate task_id") &&
+  !app.includes("Duplicate task_id")
+) {
+  failures.push("submitted workflow plans have no duplicate task_id rejection");
+}
+if (
+  app.includes('set_task_status(task, "DISPATCHED")') &&
+  app.includes('if candidate["status"] == "QUEUED":')
+) {
+  failures.push("provider resume leaves a released task DISPATCHED and unclaimable");
+}
 
 const runtimeDebris = [
   "central_state.json",
