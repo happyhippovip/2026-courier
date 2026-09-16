@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+PROJECT_ROOT=$(cd "$(dirname "$0")/.." && pwd)
+
 echo "1. Creating runtime directory out of protected Downloads folder..."
 RUNTIME_DIR="$HOME/.courier_runtime"
 mkdir -p "$RUNTIME_DIR"
@@ -17,7 +19,8 @@ fi
 
 echo "2. Copying files to runtime..."
 # Use rsync to update files without destroying untracked files like state/logs if possible, but cp -r will overwrite
-cp -R ../2026-courier/* "$RUNTIME_DIR/"
+mkdir -p "$RUNTIME_DIR/scripts"
+cp -R "$PROJECT_ROOT/scripts/mac_worker" "$RUNTIME_DIR/scripts/"
 
 # Restore state and logs
 if [ -d "/tmp/courier_state_backup" ]; then
@@ -36,7 +39,7 @@ if [ ! -d "venv" ]; then
     python3 -m venv venv
 fi
 source venv/bin/activate
-pip install flask gunicorn requests keyring >/dev/null 2>&1
+pip install requests keyring >/dev/null 2>&1
 
 echo "4. Setting up Mac LaunchAgents with new paths..."
 
