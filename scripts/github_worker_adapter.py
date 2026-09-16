@@ -13,14 +13,27 @@ def run(task_file):
     goal_id = task.get('goal_id', '')
     instruction = task['description'] if 'description' in task else task.get('instruction', '')
     
-    print(f"[GitHub Transport] Routing task {task_id} to GitHub Actions...")
+    # Map Courier target to GitHub Runner labels
+    target = task.get('target_capability', 'github')
+    if target == 'windows':
+        runner_label = "self-hosted, windows"
+    elif target == 'mac':
+        runner_label = "self-hosted, macOS"
+    else:
+        runner_label = "ubuntu-latest"
+        
+    mode = task.get('mode', 'ANTIGRAVITY')
+    
+    print(f"[GitHub Transport] Routing task {task_id} to GitHub Actions ({runner_label})...")
     
     # Trigger workflow
     cmd = [
         "gh", "workflow", "run", "courier_worker.yml",
         "-f", f"task_id={task_id}",
         "-f", f"instruction={instruction}",
-        "-f", f"goal_id={goal_id}"
+        "-f", f"goal_id={goal_id}",
+        "-f", f"runner_label={runner_label}",
+        "-f", f"mode={mode}"
     ]
     rc, out, err = run_cmd(cmd)
     if rc != 0:

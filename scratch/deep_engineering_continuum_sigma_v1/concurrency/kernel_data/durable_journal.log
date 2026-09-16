@@ -1,4 +1,0 @@
-FRAME:334:9743ba0ed1e744b5
-{"type":"TASK_STAGED","task":{"task_id":"TASK-CAS-RACE-001","title":"High Contention Task","work_category":"HEAVY_BUILD","command":"node build.js","working_dir":"C:/Users/lol/2026-workspace/courier/scratch/build","version":1,"state":"STAGED","claimed_by":null,"claimed_at":null,"dispatched_at":null,"completed_at":null,"result":null}}
-FRAME:139:4ea09a21f71e6d7a
-{"type":"TASK_CLAIMED_ATOMIC","task_id":"TASK-CAS-RACE-001","worker_id":"WORKER-1","new_version":2,"claimed_at":"2026-09-10T03:55:06.048Z"}

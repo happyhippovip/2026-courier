@@ -175,6 +175,56 @@
         }
       ],
       "current_step_index": 3
+    },
+    "goal_1b510b7b": {
+      "goal_id": "goal_1b510b7b",
+      "goal_text": "PHYSICAL ACCEPTANCE CANARY: Write a SUCCESS string to courier_canary_test1.txt",
+      "status": "DONE",
+      "created_at": "2026-09-16T08:16:34.024783",
+      "workflow_plan": [
+        {
+          "task_id": "WF-CHIEF-93ceca-STEP-1-DISCOVER",
+          "goal_id": "goal_1b510b7b",
+          "description": "Formulate execution strategy and inspect context for: PHYSICAL ACCEPTANCE CANARY: Write a SUCCESS string to courier_canary_test1.txt",
+          "target_capability": "windows",
+          "status": "QUEUED"
+        },
+        {
+          "task_id": "WF-CHIEF-93ceca-STEP-2-QA",
+          "goal_id": "goal_1b510b7b",
+          "description": "Perform independent technical QA audit and syntax verification for: PHYSICAL ACCEPTANCE CANARY: Write a SUCCESS string to courier_canary_test1.txt",
+          "target_capability": "windows",
+          "status": "QUEUED"
+        },
+        {
+          "task_id": "WF-CHIEF-93ceca-STEP-3-SYNTHESIZE",
+          "goal_id": "goal_1b510b7b",
+          "description": "Finalize results, verify invariants, and assemble completion package for: PHYSICAL ACCEPTANCE CANARY: Write a SUCCESS string to courier_canary_test1.txt",
+          "target_capability": "windows",
+          "status": "QUEUED"
+        }
+      ],
+      "current_step_index": 3
+    },
+    "goal-canary-01": {
+      "workflow_plan": [
+        {
+          "target_capability": "windows",
+          "task_id": "task-canary-01",
+          "goal_id": "goal-canary-01",
+          "description": "native canary step A"
+        },
+        {
+          "target_capability": "windows",
+          "task_id": "task-canary-02",
+          "goal_id": "goal-canary-01",
+          "description": "native canary step B"
+        }
+      ],
+      "goal_id": "goal-canary-01",
+      "goal_text": "Run two step canary",
+      "status": "DONE",
+      "current_step_index": 2
     }
   },
   "tasks": {
@@ -452,6 +502,161 @@
           }
         ],
         "result_id": "result-134ad252121762393d71c4ef892268ee38269964e7d4f20a54df518ef8ef0a0d"
+      }
+    },
+    "WF-CHIEF-93ceca-STEP-1-DISCOVER": {
+      "task_id": "WF-CHIEF-93ceca-STEP-1-DISCOVER",
+      "goal_id": "goal_1b510b7b",
+      "description": "Formulate execution strategy and inspect context for: PHYSICAL ACCEPTANCE CANARY: Write a SUCCESS string to courier_canary_test1.txt",
+      "target_capability": "windows",
+      "status": "RECONCILED",
+      "attempt_id": "WF-CHIEF-93ceca-STEP-1-DISCOVER:attempt:1",
+      "dispatch_id": "dispatch-9c764b5b02b543a89bd6932645b51a73",
+      "worker_id": "WINDOWS-01",
+      "run_id": "12896",
+      "result_id": "result-da0033677ebad3e9bca92d1356b7c8b50060332e9ea8d2f403ec5e0db72f75af",
+      "artifacts": [
+        "courier_canary_WF-CHIEF-93ceca-STEP-1-DISCOVER.txt"
+      ],
+      "result": {
+        "goal_id": "goal_1b510b7b",
+        "task_id": "WF-CHIEF-93ceca-STEP-1-DISCOVER",
+        "attempt_id": "WF-CHIEF-93ceca-STEP-1-DISCOVER:attempt:1",
+        "dispatch_id": "dispatch-9c764b5b02b543a89bd6932645b51a73",
+        "worker_id": "WINDOWS-01",
+        "run_id": "12896",
+        "status": "SUCCESS",
+        "artifacts": [
+          {
+            "path": "courier_canary_WF-CHIEF-93ceca-STEP-1-DISCOVER.txt",
+            "sha256": "421a244564c34296e185cdcf70d2269227ae102f2e7eeef94afddd495c4e06c2"
+          }
+        ],
+        "result_id": "result-da0033677ebad3e9bca92d1356b7c8b50060332e9ea8d2f403ec5e0db72f75af"
+      }
+    },
+    "WF-CHIEF-93ceca-STEP-2-QA": {
+      "task_id": "WF-CHIEF-93ceca-STEP-2-QA",
+      "goal_id": "goal_1b510b7b",
+      "description": "Perform independent technical QA audit and syntax verification for: PHYSICAL ACCEPTANCE CANARY: Write a SUCCESS string to courier_canary_test1.txt",
+      "target_capability": "windows",
+      "status": "RECONCILED",
+      "attempt_id": "WF-CHIEF-93ceca-STEP-2-QA:attempt:1",
+      "dispatch_id": "dispatch-8ee13a35773f42919e3d8b740c2cf7b3",
+      "worker_id": "WINDOWS-01",
+      "run_id": "18688",
+      "result_id": "result-8ff694c146d32ac027c9dd64794f04a29733f3e831f95be2626f3f9e5ad9c15a",
+      "artifacts": [
+        "courier_canary_WF-CHIEF-93ceca-STEP-2-QA.txt"
+      ],
+      "result": {
+        "goal_id": "goal_1b510b7b",
+        "task_id": "WF-CHIEF-93ceca-STEP-2-QA",
+        "attempt_id": "WF-CHIEF-93ceca-STEP-2-QA:attempt:1",
+        "dispatch_id": "dispatch-8ee13a35773f42919e3d8b740c2cf7b3",
+        "worker_id": "WINDOWS-01",
+        "run_id": "18688",
+        "status": "SUCCESS",
+        "artifacts": [
+          {
+            "path": "courier_canary_WF-CHIEF-93ceca-STEP-2-QA.txt",
+            "sha256": "421a244564c34296e185cdcf70d2269227ae102f2e7eeef94afddd495c4e06c2"
+          }
+        ],
+        "result_id": "result-8ff694c146d32ac027c9dd64794f04a29733f3e831f95be2626f3f9e5ad9c15a"
+      }
+    },
+    "WF-CHIEF-93ceca-STEP-3-SYNTHESIZE": {
+      "task_id": "WF-CHIEF-93ceca-STEP-3-SYNTHESIZE",
+      "goal_id": "goal_1b510b7b",
+      "description": "Finalize results, verify invariants, and assemble completion package for: PHYSICAL ACCEPTANCE CANARY: Write a SUCCESS string to courier_canary_test1.txt",
+      "target_capability": "windows",
+      "status": "RECONCILED",
+      "attempt_id": "WF-CHIEF-93ceca-STEP-3-SYNTHESIZE:attempt:1",
+      "dispatch_id": "dispatch-ebb037b813674ef5b7531d0dd8f73c3f",
+      "worker_id": "WINDOWS-01",
+      "run_id": "7476",
+      "result_id": "result-23a714135997f481b8fa59e941984a4694e0689d0be51c91040b7e9be66167ec",
+      "artifacts": [
+        "courier_canary_WF-CHIEF-93ceca-STEP-3-SYNTHESIZE.txt"
+      ],
+      "result": {
+        "goal_id": "goal_1b510b7b",
+        "task_id": "WF-CHIEF-93ceca-STEP-3-SYNTHESIZE",
+        "attempt_id": "WF-CHIEF-93ceca-STEP-3-SYNTHESIZE:attempt:1",
+        "dispatch_id": "dispatch-ebb037b813674ef5b7531d0dd8f73c3f",
+        "worker_id": "WINDOWS-01",
+        "run_id": "7476",
+        "status": "SUCCESS",
+        "artifacts": [
+          {
+            "path": "courier_canary_WF-CHIEF-93ceca-STEP-3-SYNTHESIZE.txt",
+            "sha256": "421a244564c34296e185cdcf70d2269227ae102f2e7eeef94afddd495c4e06c2"
+          }
+        ],
+        "result_id": "result-23a714135997f481b8fa59e941984a4694e0689d0be51c91040b7e9be66167ec"
+      }
+    },
+    "task-canary-01": {
+      "target_capability": "windows",
+      "task_id": "task-canary-01",
+      "goal_id": "goal-canary-01",
+      "description": "native canary step A",
+      "attempt_id": "task-canary-01:attempt:1",
+      "dispatch_id": "dispatch-621b9e585f274a9389aa3474fe69db39",
+      "worker_id": "WINDOWS-01",
+      "run_id": "5496",
+      "result_id": "result-f8517a52d2e9901a4672c4298413b8331887da4576760d4aee5814f27f65ebf5",
+      "artifacts": [
+        "courier_canary_task-canary-01.txt"
+      ],
+      "status": "RECONCILED",
+      "result": {
+        "goal_id": "goal-canary-01",
+        "task_id": "task-canary-01",
+        "attempt_id": "task-canary-01:attempt:1",
+        "dispatch_id": "dispatch-621b9e585f274a9389aa3474fe69db39",
+        "worker_id": "WINDOWS-01",
+        "run_id": "5496",
+        "status": "SUCCESS",
+        "artifacts": [
+          {
+            "path": "courier_canary_task-canary-01.txt",
+            "sha256": "421a244564c34296e185cdcf70d2269227ae102f2e7eeef94afddd495c4e06c2"
+          }
+        ],
+        "result_id": "result-f8517a52d2e9901a4672c4298413b8331887da4576760d4aee5814f27f65ebf5"
+      }
+    },
+    "task-canary-02": {
+      "target_capability": "windows",
+      "task_id": "task-canary-02",
+      "goal_id": "goal-canary-01",
+      "description": "native canary step B",
+      "attempt_id": "task-canary-02:attempt:1",
+      "dispatch_id": "dispatch-3a363c06918c43e7abeb8501c12e0196",
+      "worker_id": "WINDOWS-01",
+      "run_id": "5496",
+      "result_id": "result-31c695941da98262b6a4b8d52dbf534a5aeab0c24041b211ab43bef930647b44",
+      "artifacts": [
+        "courier_canary_task-canary-02.txt"
+      ],
+      "status": "RECONCILED",
+      "result": {
+        "goal_id": "goal-canary-01",
+        "task_id": "task-canary-02",
+        "attempt_id": "task-canary-02:attempt:1",
+        "dispatch_id": "dispatch-3a363c06918c43e7abeb8501c12e0196",
+        "worker_id": "WINDOWS-01",
+        "run_id": "5496",
+        "status": "SUCCESS",
+        "artifacts": [
+          {
+            "path": "courier_canary_task-canary-02.txt",
+            "sha256": "421a244564c34296e185cdcf70d2269227ae102f2e7eeef94afddd495c4e06c2"
+          }
+        ],
+        "result_id": "result-31c695941da98262b6a4b8d52dbf534a5aeab0c24041b211ab43bef930647b44"
       }
     }
   }

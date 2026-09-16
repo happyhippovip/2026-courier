@@ -1,0 +1,16 @@
+{
+  "artifacts": [
+    {
+      "path": "courier_canary_WF-CHIEF-93ceca-STEP-1-DISCOVER.txt",
+      "sha256": "421a244564c34296e185cdcf70d2269227ae102f2e7eeef94afddd495c4e06c2"
+    }
+  ],
+  "attempt_id": "WF-CHIEF-93ceca-STEP-1-DISCOVER:attempt:1",
+  "dispatch_id": "dispatch-9c764b5b02b543a89bd6932645b51a73",
+  "goal_id": "goal_1b510b7b",
+  "result_id": "result-da0033677ebad3e9bca92d1356b7c8b50060332e9ea8d2f403ec5e0db72f75af",
+  "run_id": "12896",
+  "status": "SUCCESS",
+  "task_id": "WF-CHIEF-93ceca-STEP-1-DISCOVER",
+  "worker_id": "WINDOWS-01"
+}

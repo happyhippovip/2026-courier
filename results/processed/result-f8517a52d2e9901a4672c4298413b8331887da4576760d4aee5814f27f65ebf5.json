@@ -1,0 +1,16 @@
+{
+  "artifacts": [
+    {
+      "path": "courier_canary_task-canary-01.txt",
+      "sha256": "421a244564c34296e185cdcf70d2269227ae102f2e7eeef94afddd495c4e06c2"
+    }
+  ],
+  "attempt_id": "task-canary-01:attempt:1",
+  "dispatch_id": "dispatch-621b9e585f274a9389aa3474fe69db39",
+  "goal_id": "goal-canary-01",
+  "result_id": "result-f8517a52d2e9901a4672c4298413b8331887da4576760d4aee5814f27f65ebf5",
+  "run_id": "5496",
+  "status": "SUCCESS",
+  "task_id": "task-canary-01",
+  "worker_id": "WINDOWS-01"
+}

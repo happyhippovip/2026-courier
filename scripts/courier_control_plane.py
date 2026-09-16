@@ -100,11 +100,7 @@ def dispatch_task(task, state=None):
     if state is not None:
         save_state(state)
     
-    if target == "mac":
-        subprocess.Popen([sys.executable, "scripts/mac_worker_adapter.py", task_file])
-    elif target == "windows":
-        subprocess.Popen([sys.executable, "scripts/windows_worker_adapter.py", task_file])
-    elif target == "github":
+    if target in ["mac", "windows", "github"]:
         subprocess.Popen([sys.executable, "scripts/github_worker_adapter.py", task_file])
     else:
         task["status"] = "HUMAN_REQUIRED"
@@ -173,8 +169,9 @@ def process_results(state):
                 os.replace(source_path, rejected)
 
 def ingest_adapters():
-    subprocess.run([sys.executable, "scripts/windows_worker_adapter.py", "--ingest"])
-    # Mac/Github adapters can be added here if needed
+    # Legacy manual ingestion (e.g. windows_worker_adapter.py --ingest) is removed.
+    # The github_worker_adapter pulls artifacts and places them directly into results/incoming/
+    pass
 
 def loop():
     state = load_state()

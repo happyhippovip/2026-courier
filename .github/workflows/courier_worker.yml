@@ -14,15 +14,63 @@ on:
         description: "Goal ID"
         required: false
         type: string
+      runner_label:
+        description: "Target Runner OS/Label (windows, macos, ubuntu-latest)"
+        required: true
+        type: string
+        default: "ubuntu-latest"
+      mode:
+        description: "Execution Mode (ANTIGRAVITY or NATIVE)"
+        required: false
+        type: string
+        default: "ANTIGRAVITY"
+
 jobs:
   execute:
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event.inputs.runner_label }}
     steps:
-      - uses: actions/checkout@v4
-      - name: Execute Task
-        id: exec
+      - name: Bridge Task to Native Daemon
+        shell: bash
         run: |
-          cat << 'PY_EOF' > run_task.py
+          echo "Processing task: ${{ github.event.inputs.task_id }}"
+          echo "Target Runner: ${{ github.event.inputs.runner_label }}"
+          
+          TASK_JSON=$(cat <<EOF
+          {
+            "task_id": "${{ github.event.inputs.task_id }}",
+            "instruction": $(echo "${{ github.event.inputs.instruction }}" | jq -R -s '.'),
+            "goal_id": "${{ github.event.inputs.goal_id }}",
+            "mode": "${{ github.event.inputs.mode }}"
+          }
+          EOF
+          )
+          
+          if [ "${{ runner.os }}" == "macOS" ]; then
+             DAEMON_DIR="$HOME/courier/scripts/mac_worker"
+             mkdir -p "$DAEMON_DIR/inbox" "$DAEMON_DIR/outbox"
+             echo "$TASK_JSON" > "$DAEMON_DIR/inbox/${{ github.event.inputs.task_id }}.json"
+             
+             echo "Waiting for Mac daemon to finish task..."
+             while [ ! -f "$DAEMON_DIR/outbox/${{ github.event.inputs.task_id }}_result.json" ]; do
+                 sleep 2
+             done
+             cp "$DAEMON_DIR/outbox/${{ github.event.inputs.task_id }}_result.json" ./result.json
+             
+          elif [ "${{ runner.os }}" == "Windows" ]; then
+             # Ensure path exists for Windows daemon
+             DAEMON_DIR="C:/Users/lol/2026-workspace/courier/scripts/windows_worker"
+             mkdir -p "$DAEMON_DIR/inbox" "$DAEMON_DIR/outbox"
+             echo "$TASK_JSON" > "$DAEMON_DIR/inbox/${{ github.event.inputs.task_id }}.json"
+             
+             echo "Waiting for Windows daemon to finish task..."
+             while [ ! -f "$DAEMON_DIR/outbox/${{ github.event.inputs.task_id }}_result.json" ]; do
+                 sleep 2
+             done
+             cp "$DAEMON_DIR/outbox/${{ github.event.inputs.task_id }}_result.json" ./result.json
+             
+          else
+             # Default Ubuntu Cloud Mode
+             cat << 'PY_EOF' > run_task.py
           import os, sys, json
           task_id = os.environ.get("TASK_ID", "unknown")
           goal_id = os.environ.get("GOAL_ID", "")
@@ -43,7 +91,8 @@ jobs:
           with open("result.json", "w") as f:
               json.dump(res, f)
           PY_EOF
-          python3 run_task.py
+             python3 run_task.py
+          fi
         env:
           TASK_ID: ${{ github.event.inputs.task_id }}
           GOAL_ID: ${{ github.event.inputs.goal_id }}

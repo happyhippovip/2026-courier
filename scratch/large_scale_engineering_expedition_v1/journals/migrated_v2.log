@@ -1,4 +1,0 @@
-FRAME:98:b118d7017158c7cd
-{"task_id":"LEGACY-01","state":"SUCCESS","exit_code":0,"schema_version":2,"migrated_from_v1":true}
-FRAME:98:0bdbb27bc84b18c4
-{"task_id":"LEGACY-02","state":"FAILURE","exit_code":1,"schema_version":2,"migrated_from_v1":true}
