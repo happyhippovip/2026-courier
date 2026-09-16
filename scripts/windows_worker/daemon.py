@@ -23,12 +23,12 @@ try:
 except Exception:
     API_KEY = os.environ.get("COURIER_API_KEY")
 
-if not API_KEY:
+if not API_KEY and __name__ == "__main__":
     print("[Windows Worker] FATAL: No COURIER_API_KEY found in environment or OS keyring.", flush=True)
     print("[Windows Worker] Set via: $env:COURIER_API_KEY or keyring.set_password('courier_worker','courier_api_key','<key>')", flush=True)
     sys.exit(1)
 HEADERS = {
-    "Authorization": f"Bearer {API_KEY}",
+    "Authorization": f"Bearer {API_KEY or ''}",
     "Content-Type": "application/json"
 }
 
@@ -51,13 +51,54 @@ def http_post_result(res):
     for attempt in range(5):
         try:
             urllib.request.urlopen(req, data=data, timeout=10)
-            return
+            return True
+        except urllib.error.HTTPError as e:
+            if e.code in [400, 404, 409]:
+                print(f"[Windows Worker] Permanent server decision HTTP {e.code}: Courier server remains authority. Discarding local state.")
+                return False
+            print(f"[Windows Worker] Transient HTTP {e.code} posting result: {e}")
+            time.sleep(2 ** attempt)
         except Exception as e:
             print(f"[Windows Worker] Failed to post result: {e}")
             time.sleep(2 ** attempt)
+    return False
+
+def kill_process_tree(pid):
+    if not pid:
+        return
+    try:
+        if sys.platform == "win32":
+            subprocess.run(["taskkill", "/F", "/T", "/PID", str(pid)], capture_output=True)
+        else:
+            import signal
+            # Kill child processes first if any
+            try:
+                children = subprocess.check_output(["pgrep", "-P", str(pid)], text=True, stderr=subprocess.DEVNULL).split()
+                for c in children:
+                    try:
+                        os.kill(int(c), signal.SIGKILL)
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+
+            # If it is its own process group leader, kill process group; otherwise kill pid
+            try:
+                pgid = os.getpgid(pid)
+                if pgid == pid:
+                    os.killpg(pgid, signal.SIGKILL)
+                else:
+                    os.kill(pid, signal.SIGKILL)
+            except Exception:
+                try:
+                    os.kill(pid, signal.SIGKILL)
+                except Exception:
+                    pass
+    except Exception as e:
+        print(f"Failed to kill process tree for PID {pid}: {e}", flush=True)
 
 def run_task(task, config):
-    print(f"[{config['WORKER_ID']}] Running task {task['task_id']}...")
+    print(f"[{config['WORKER_ID']}] Running task {task['task_id']}...", flush=True)
     
     instruction = task.get("instruction", "")
     
@@ -65,10 +106,26 @@ def run_task(task, config):
     stderr = ""
     run_id = "win-native"
     
-    print(f"[{config['WORKER_ID']}] Executing native PowerShell instruction.")
+    print(f"[{config['WORKER_ID']}] Executing native PowerShell instruction.", flush=True)
     cmd = ["powershell", "-Command", instruction]
+    process = None
     try:
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if sys.platform == "win32":
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP
+            )
+        else:
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                preexec_fn=os.setsid if hasattr(os, "setsid") else None
+            )
         run_id = str(process.pid)
         stdout, stderr_out = process.communicate(timeout=600)
         out_clean = stdout.strip()
@@ -77,10 +134,23 @@ def run_task(task, config):
     except subprocess.TimeoutExpired:
         status = "FAILED"
         stderr = "Timeout of 600s exceeded. Exact child process tree terminated."
-        subprocess.run(["taskkill", "/F", "/T", "/PID", str(process.pid)], capture_output=True)
+        out_clean = ""
+        if process:
+            kill_process_tree(process.pid)
+            try:
+                process.communicate(timeout=5)
+            except Exception:
+                pass
     except Exception as e:
         status = "FAILED"
         stderr = str(e)
+        out_clean = ""
+        if process:
+            kill_process_tree(process.pid)
+            try:
+                process.communicate(timeout=5)
+            except Exception:
+                pass
             
     artifacts = []
     if status == "SUCCESS":
@@ -126,40 +196,75 @@ def is_resource_pressure_high():
         # Defaults to safe (no pressure) if check fails to prevent starvation, but we could also back off
         return False
 
+def is_pid_running(pid):
+    try:
+        pid = int(pid)
+        if sys.platform == "win32":
+            out = subprocess.check_output(["tasklist", "/FI", f"PID eq {pid}"], text=True, stderr=subprocess.DEVNULL)
+            return str(pid) in out
+        else:
+            os.kill(pid, 0)
+            return True
+    except (OSError, ValueError, subprocess.SubprocessError):
+        return False
+
 def acquire_lock(worker_id):
     lock_file = Path(tempfile.gettempdir()) / f"courier_worker_{worker_id}.lock"
+    pid_file = Path(__file__).parent / "daemon.pid"
+    
+    if lock_file.exists():
+        try:
+            old_pid = int(lock_file.read_text().strip())
+            if is_pid_running(old_pid):
+                return None
+            else:
+                try:
+                    lock_file.unlink()
+                except OSError:
+                    pass
+        except Exception:
+            pass
+
     try:
-        # Try to open file in exclusive creation mode.
         fd = os.open(str(lock_file), os.O_CREAT | os.O_EXCL | os.O_RDWR)
         os.write(fd, str(os.getpid()).encode())
         os.close(fd)
-        return lock_file
-    except FileExistsError:
-        # Check if the process is actually running
         try:
-            with open(lock_file, "r") as f:
-                pid = int(f.read().strip())
-            # In Windows, we can check if PID exists using tasklist
-            out = subprocess.check_output(["tasklist", "/FI", f"PID eq {pid}"], text=True)
-            if str(pid) not in out:
-                # Stale lock
-                os.remove(lock_file)
-                return acquire_lock(worker_id)
+            pid_file.write_text(str(os.getpid()))
         except Exception:
             pass
+        return lock_file
+    except FileExistsError:
         return None
 
 def loop():
     config = load_config()
     worker_id = os.environ.get("COURIER_WORKER_ID") or config.get("WORKER_ID", "default-win-worker")
     
+    if not API_KEY:
+        print("[Windows Worker] FATAL: No COURIER_API_KEY found in environment or OS keyring.", flush=True)
+        print("[Windows Worker] Set via: $env:COURIER_API_KEY or keyring.set_password('courier_worker','courier_api_key','<key>')", flush=True)
+        sys.exit(1)
+        
     lock_path = acquire_lock(worker_id)
     if not lock_path:
-        print(f"[{worker_id}] Another instance is already running. Exiting to prevent duplicates.")
+        print(f"[{worker_id}] Another instance is already running. Exiting to prevent duplicates.", flush=True)
         sys.exit(0)
     
+    pid_file = Path(__file__).parent / "daemon.pid"
+    state_dir = Path(__file__).parent / "state"
+    state_dir.mkdir(parents=True, exist_ok=True)
+    checkpoint_file = state_dir / "current_task.json"
+    
+    if checkpoint_file.exists():
+        print(f"[{worker_id}] Found uncompleted task checkpoint from previous crash. Deferring to Courier server as canonical authority.", flush=True)
+        try:
+            checkpoint_file.unlink()
+        except OSError:
+            pass
+            
     try:
-        print(f"[{worker_id}] Windows Worker HTTP Daemon started. PID={os.getpid()}")
+        print(f"[{worker_id}] Windows Worker HTTP Daemon started. PID={os.getpid()}", flush=True)
         
         backoff = 10
         max_backoff = 300
@@ -178,7 +283,7 @@ def loop():
                 
                 # 2. Resource Pressure Check
                 if is_resource_pressure_high():
-                    print(f"[{worker_id}] Resource pressure high. Pausing claims.")
+                    print(f"[{worker_id}] Resource pressure high. Pausing claims.", flush=True)
                     time.sleep(60)
                     continue
                 
@@ -190,16 +295,27 @@ def loop():
                 
                 task = res_data.get("task")
                 if task:
+                    try:
+                        checkpoint_file.write_text(json.dumps(task))
+                    except Exception:
+                        pass
+                        
                     result = run_task(task, config)
                     http_post_result(result)
-                    print(f"[{worker_id}] Task {task['task_id']} completed. Result posted.")
+                    print(f"[{worker_id}] Task {task['task_id']} completed. Result posted.", flush=True)
+                    
+                    if checkpoint_file.exists():
+                        try:
+                            checkpoint_file.unlink()
+                        except OSError:
+                            pass
                     backoff = 10 # reset backoff on success
                 else:
                     # Idle, reset backoff
                     backoff = 10
                     
             except Exception as e:
-                print(f"[{worker_id}] Loop error: {e}. Backing off {backoff}s.")
+                print(f"[{worker_id}] Loop error: {e}. Backing off {backoff}s.", flush=True)
                 time.sleep(backoff)
                 backoff = min(max_backoff, backoff * 2)
                 continue
@@ -207,8 +323,16 @@ def loop():
             time.sleep(10)
             
     finally:
-        if os.path.exists(lock_path):
-            os.remove(lock_path)
+        if lock_path and os.path.exists(lock_path):
+            try:
+                os.remove(lock_path)
+            except OSError:
+                pass
+        if pid_file.exists():
+            try:
+                pid_file.unlink()
+            except OSError:
+                pass
 
 if __name__ == "__main__":
     loop()

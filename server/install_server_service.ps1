@@ -4,13 +4,16 @@ $apiPlain = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Ru
 $verifierKey = Read-Host "Enter COURIER_VERIFIER_API_KEY for Server" -AsSecureString
 $verifierPlain = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($verifierKey))
 
+$uvCmd = Get-Command "uv" -ErrorAction SilentlyContinue
+$uvPath = if ($uvCmd) { $uvCmd.Source } else { "uv" }
+
 if (-not [string]::IsNullOrWhiteSpace($apiPlain) -and -not [string]::IsNullOrWhiteSpace($verifierPlain)) {
     Write-Host "Storing Keys in SYSTEM Credential Manager..."
     $tempFile = Join-Path $env:TEMP "courier_server_keys.txt"
     "$apiPlain`n$verifierPlain" | Out-File -FilePath $tempFile -Encoding utf8 -NoNewline
     
     $storeCmd = "import keyring; lines=open(r'$tempFile', encoding='utf-8').read().splitlines(); keyring.set_password('courier_worker', 'courier_api_key', lines[0]); keyring.set_password('courier_worker', 'courier_verifier_api_key', lines[1])"
-    $storeAction = New-ScheduledTaskAction -Execute "uv" -Argument "run python -c `"$storeCmd`"" -WorkingDirectory $PSScriptRoot
+    $storeAction = New-ScheduledTaskAction -Execute $uvPath -Argument "run python -c `"$storeCmd`"" -WorkingDirectory $PSScriptRoot
     $storePrincipal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
     $taskNameStore = "CourierSystemKeyStore_ServerTemp"
     
@@ -37,7 +40,7 @@ $action = New-ScheduledTaskAction -Execute $scriptPath
 
 $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
 
-$settings = New-ScheduledTaskSettingsSet -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1) -ExecutionTimeLimit (New-TimeSpan -Days 0)
+$settings = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1) -ExecutionTimeLimit (New-TimeSpan -Days 0)
 
 Register-ScheduledTask -TaskName $taskName -Trigger $trigger -Action $action -Principal $principal -Settings $settings
-Write-Host "Courier Server scheduled task registered to start on boot as SYSTEM with restart throttling."
+Write-Host "Courier Server scheduled task registered to start on boot as SYSTEM with restart throttling and duplicate prevention."

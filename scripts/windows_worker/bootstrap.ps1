@@ -72,8 +72,11 @@ if ($apiKey -ne "__CREDENTIAL_MANAGER__" -and -not [string]::IsNullOrWhiteSpace(
     $tempFile = Join-Path $env:TEMP "courier_key.txt"
     $apiKey | Out-File -FilePath $tempFile -Encoding utf8 -NoNewline
     
+    $uvCmd = Get-Command "uv" -ErrorAction SilentlyContinue
+    $uvPath = if ($uvCmd) { $uvCmd.Source } else { "uv" }
+    
     $storeCmd = "import keyring; key=open(r'$tempFile', encoding='utf-8').read(); keyring.set_password('courier_worker', 'courier_api_key', key)"
-    $storeAction = New-ScheduledTaskAction -Execute "uv" -Argument "run python -c `"$storeCmd`"" -WorkingDirectory $workerDir
+    $storeAction = New-ScheduledTaskAction -Execute $uvPath -Argument "run python -c `"$storeCmd`"" -WorkingDirectory $workerDir
     $storePrincipal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
     $taskName = "CourierSystemKeyStore_Temp"
     
