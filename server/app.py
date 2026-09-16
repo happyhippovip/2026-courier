@@ -405,8 +405,9 @@ def reclaim_stale():
         if goal.get("status") == "ACTIVE" and "workflow_plan" in goal:
             for step in goal["workflow_plan"]:
                 if step.get("status") == "DISPATCHED" and step.get("worker_id") in stale_workers:
-                    step["status"] = "HUMAN_REQUIRED"
-                    step["recovery_reason"] = "STALE_WORKER_EFFECT_AMBIGUOUS"
+                    step["status"] = "QUEUED"
+                    step["worker_id"] = None
+                    step["attempts"] = step.get("attempts", 0) + 1
                     quarantined_count += 1
 
                     task = state.get("tasks", {}).get(step.get("task_id"))
