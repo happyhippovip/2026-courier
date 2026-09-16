@@ -183,7 +183,26 @@ def register_worker():
     state = load_state()
     
     existing = state["workers"].get(worker_id, {})
-    current_task = existing.get("current_task")
+    server_task = existing.get("current_task")
+    worker_task = data.get("current_task")
+    
+    if "current_task" in data:
+        current_task = worker_task
+        if server_task and worker_task != server_task:
+            task = state.get("tasks", {}).get(server_task)
+            if task:
+                task["status"] = "HUMAN_REQUIRED"
+                task["recovery_reason"] = "WORKER_RESTARTED_AND_LOST_STATE"
+            for goal in state.get("goals", {}).values():
+                if goal.get("status") == "ACTIVE" and "workflow_plan" in goal:
+                    for step in goal["workflow_plan"]:
+                        if step.get("task_id") == server_task:
+                            step["status"] = "HUMAN_REQUIRED"
+                            step["recovery_reason"] = "WORKER_RESTARTED_AND_LOST_STATE"
+                            goal["status"] = "BLOCKED"
+    else:
+        current_task = server_task
+
     state["workers"][worker_id] = {
         "worker_id": worker_id,
         "platform": data.get("platform", "unknown"),
@@ -196,6 +215,20 @@ def register_worker():
     
     save_state(state)
     return jsonify({"status": "REGISTERED"})
+
+@app.route("/workers/unregister", methods=["POST"])
+@require_auth
+@serialize_state_mutation
+def unregister_worker():
+    data = request.get_json(silent=True) or {}
+    worker_id = data.get("worker_id")
+    state = load_state()
+    
+    if worker_id in state["workers"]:
+        state["workers"][worker_id]["available"] = False
+        save_state(state)
+        return jsonify({"status": "UNREGISTERED"})
+    return jsonify({"error": "Unknown worker"}), 404
 
 @app.route("/workers/heartbeat", methods=["POST"])
 @require_auth
