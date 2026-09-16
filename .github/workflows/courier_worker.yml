@@ -64,17 +64,26 @@ jobs:
           $taskJson = $taskPayload | ConvertTo-Json
           
           if ($runnerOs -eq "macOS") {
-              $daemonDir = "$HOME/courier/scripts/mac_worker"
-              New-Item -ItemType Directory -Force -Path "$daemonDir/inbox" | Out-Null
-              New-Item -ItemType Directory -Force -Path "$daemonDir/outbox" | Out-Null
-              $taskJson | Set-Content -Path "$daemonDir/inbox/$taskId.json" -Encoding utf8
-              
-              Write-Host "Waiting for Mac daemon to finish task..."
-              $outFile = "$daemonDir/outbox/${taskId}_result.json"
-              while (-not (Test-Path $outFile)) {
-                  Start-Sleep -Seconds 2
+              Write-Host "Executing natively on macOS Runner. Task: $taskType"
+              switch ($taskType) {
+                  "run_tests" { pytest tests/ *>&1 | Tee-Object -FilePath "execution.log" }
+                  "lint" { flake8 . *>&1 | Tee-Object -FilePath "execution.log" }
+                  "hash_artifact" { shasum -a 256 $instruction *>&1 | Tee-Object -FilePath "execution.log" }
+                  "deterministic_transform" { python3 scripts/transform.py --input $instruction *>&1 | Tee-Object -FilePath "execution.log" }
+                  default { Write-Error "Unknown task type: $taskType"; exit 1 }
               }
-              Copy-Item -Path $outFile -Destination "result.json"
+              $exitCode = $LASTEXITCODE
+              $status = if ($exitCode -eq 0) { "SUCCESS" } else { "FAILED" }
+              $res = @{
+                  task_id = $taskId
+                  attempt_id = $env:ATTEMPT_ID
+                  goal_id = $goalId
+                  status = $status
+                  provider = "github"
+                  worker_id = "MAC-HOSTED"
+                  exit_code = $exitCode
+              }
+              $res | ConvertTo-Json | Set-Content -Path "result.json" -Encoding utf8
           }
           elseif ($runnerOs -eq "Windows") {
               Write-Host "Executing on Windows Runner (Cloud or Desktop). Task: $taskType"
