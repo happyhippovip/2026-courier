@@ -9,21 +9,21 @@
           "goal_id": "goal-73522b31",
           "description": "Formulate execution strategy and inspect context for: Erzeuge zwei harmlose abh\u00e4ngige Tasks.",
           "target_capability": "mac",
-          "status": "DISPATCHED"
+          "status": "QUEUED"
         },
         {
           "task_id": "WF-CHIEF-776ab2-STEP-2-IMPLEMENT",
           "goal_id": "goal-73522b31",
           "description": "Execute core implementation and asset validation for: Erzeuge zwei harmlose abh\u00e4ngige Tasks.",
           "target_capability": "mac",
-          "status": "DISPATCHED"
+          "status": "QUEUED"
         },
         {
           "task_id": "WF-CHIEF-776ab2-STEP-3-SYNTHESIZE",
           "goal_id": "goal-73522b31",
           "description": "Finalize results, verify invariants, and assemble completion package for: Erzeuge zwei harmlose abh\u00e4ngige Tasks.",
           "target_capability": "mac",
-          "status": "DISPATCHED"
+          "status": "QUEUED"
         }
       ],
       "current_step_index": 3
@@ -225,6 +225,26 @@
       "goal_text": "Run two step canary",
       "status": "DONE",
       "current_step_index": 2
+    },
+    "goal-canary-02": {
+      "workflow_plan": [
+        {
+          "target_capability": "windows",
+          "task_id": "task-canary-03",
+          "goal_id": "goal-canary-02",
+          "description": "native canary step C (Windows)"
+        },
+        {
+          "target_capability": "mac",
+          "task_id": "task-canary-04",
+          "goal_id": "goal-canary-02",
+          "description": "native canary step D (Mac)"
+        }
+      ],
+      "goal_id": "goal-canary-02",
+      "goal_text": "Run two step cross-machine canary",
+      "status": "ACTIVE",
+      "current_step_index": 1
     }
   },
   "tasks": {
@@ -658,6 +678,21 @@
         ],
         "result_id": "result-31c695941da98262b6a4b8d52dbf534a5aeab0c24041b211ab43bef930647b44"
       }
+    },
+    "task-canary-03": {
+      "target_capability": "windows",
+      "task_id": "task-canary-03",
+      "goal_id": "goal-canary-02",
+      "description": "native canary step C (Windows)",
+      "attempt_id": "task-canary-03:attempt:1",
+      "dispatch_id": "dispatch-b31a30f348ec4fae81a41e14e6e963e7",
+      "worker_id": "WINDOWS-01",
+      "run_id": null,
+      "result_id": null,
+      "artifacts": [
+        "courier_canary_task-canary-03.txt"
+      ],
+      "status": "DISPATCHED"
     }
   }
 }

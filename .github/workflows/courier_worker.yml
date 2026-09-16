@@ -30,73 +30,75 @@ jobs:
     runs-on: ${{ fromJSON(github.event.inputs.runner_label) }}
     steps:
       - name: Bridge Task to Native Daemon
-        shell: bash
+        shell: python
         run: |
-          echo "Processing task: ${{ github.event.inputs.task_id }}"
-          echo "Target Runner: ${{ github.event.inputs.runner_label }}"
+          import os, sys, json, time, shutil
           
-          TASK_JSON=$(cat <<EOF
-          {
-            "task_id": "${{ github.event.inputs.task_id }}",
-            "instruction": $(echo "${{ github.event.inputs.instruction }}" | jq -R -s '.'),
-            "goal_id": "${{ github.event.inputs.goal_id }}",
-            "mode": "${{ github.event.inputs.mode }}"
-          }
-          EOF
-          )
-          
-          if [ "${{ runner.os }}" == "macOS" ]; then
-             DAEMON_DIR="$HOME/courier/scripts/mac_worker"
-             mkdir -p "$DAEMON_DIR/inbox" "$DAEMON_DIR/outbox"
-             echo "$TASK_JSON" > "$DAEMON_DIR/inbox/${{ github.event.inputs.task_id }}.json"
-             
-             echo "Waiting for Mac daemon to finish task..."
-             while [ ! -f "$DAEMON_DIR/outbox/${{ github.event.inputs.task_id }}_result.json" ]; do
-                 sleep 2
-             done
-             cp "$DAEMON_DIR/outbox/${{ github.event.inputs.task_id }}_result.json" ./result.json
-             
-          elif [ "${{ runner.os }}" == "Windows" ]; then
-             # Ensure path exists for Windows daemon
-             DAEMON_DIR="C:/Users/lol/2026-workspace/courier/scripts/windows_worker"
-             mkdir -p "$DAEMON_DIR/inbox" "$DAEMON_DIR/outbox"
-             echo "$TASK_JSON" > "$DAEMON_DIR/inbox/${{ github.event.inputs.task_id }}.json"
-             
-             echo "Waiting for Windows daemon to finish task..."
-             while [ ! -f "$DAEMON_DIR/outbox/${{ github.event.inputs.task_id }}_result.json" ]; do
-                 sleep 2
-             done
-             cp "$DAEMON_DIR/outbox/${{ github.event.inputs.task_id }}_result.json" ./result.json
-             
-          else
-             # Default Ubuntu Cloud Mode
-             cat << 'PY_EOF' > run_task.py
-          import os, sys, json
-          task_id = os.environ.get("TASK_ID", "unknown")
+          task_id = os.environ.get("TASK_ID", "")
           goal_id = os.environ.get("GOAL_ID", "")
-          instruction = os.environ.get("INSTRUCTION", "echo 'No instruction'")
-          print(f"Executing: {instruction}")
-          with open("task_script.sh", "w") as f:
-              f.write(instruction)
-          os.chmod("task_script.sh", 0o755)
-          exit_code = os.system("./task_script.sh")
-          res = {
+          instruction = os.environ.get("INSTRUCTION", "")
+          mode = os.environ.get("MODE", "ANTIGRAVITY")
+          runner_os = os.environ.get("RUNNER_OS", "")
+          
+          print(f"Processing task: {task_id}")
+          print(f"Runner OS: {runner_os}")
+          
+          task_payload = {
               "task_id": task_id,
+              "instruction": instruction,
               "goal_id": goal_id,
-              "status": "SUCCESS" if exit_code == 0 else "FAILED",
-              "provider": "github",
-              "worker_id": "GITHUB-HOSTED",
-              "exit_code": exit_code
+              "mode": mode
           }
-          with open("result.json", "w") as f:
-              json.dump(res, f)
-          PY_EOF
-             python3 run_task.py
-          fi
+          
+          if runner_os == "macOS":
+              daemon_dir = os.path.expanduser("~/courier/scripts/mac_worker")
+              os.makedirs(f"{daemon_dir}/inbox", exist_ok=True)
+              os.makedirs(f"{daemon_dir}/outbox", exist_ok=True)
+              with open(f"{daemon_dir}/inbox/{task_id}.json", "w") as f:
+                  json.dump(task_payload, f)
+                  
+              print("Waiting for Mac daemon to finish task...")
+              out_file = f"{daemon_dir}/outbox/{task_id}_result.json"
+              while not os.path.exists(out_file):
+                  time.sleep(2)
+              shutil.copy(out_file, "result.json")
+              
+          elif runner_os == "Windows":
+              daemon_dir = "C:/Users/lol/2026-workspace/courier/scripts/windows_worker"
+              os.makedirs(f"{daemon_dir}/inbox", exist_ok=True)
+              os.makedirs(f"{daemon_dir}/outbox", exist_ok=True)
+              with open(f"{daemon_dir}/inbox/{task_id}.json", "w") as f:
+                  json.dump(task_payload, f)
+                  
+              print("Waiting for Windows daemon to finish task...")
+              out_file = f"{daemon_dir}/outbox/{task_id}_result.json"
+              while not os.path.exists(out_file):
+                  time.sleep(2)
+              shutil.copy(out_file, "result.json")
+              
+          else:
+              # Ubuntu cloud mode
+              print(f"Executing: {instruction}")
+              with open("task_script.sh", "w") as f:
+                  f.write(instruction)
+              os.chmod("task_script.sh", 0o755)
+              exit_code = os.system("./task_script.sh")
+              res = {
+                  "task_id": task_id,
+                  "goal_id": goal_id,
+                  "status": "SUCCESS" if exit_code == 0 else "FAILED",
+                  "provider": "github",
+                  "worker_id": "GITHUB-HOSTED",
+                  "exit_code": exit_code
+              }
+              with open("result.json", "w") as f:
+                  json.dump(res, f)
         env:
           TASK_ID: ${{ github.event.inputs.task_id }}
           GOAL_ID: ${{ github.event.inputs.goal_id }}
           INSTRUCTION: ${{ github.event.inputs.instruction }}
+          MODE: ${{ github.event.inputs.mode }}
+          RUNNER_OS: ${{ runner.os }}
       
       - name: Upload Result
         if: always()
