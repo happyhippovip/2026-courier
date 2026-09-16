@@ -77,7 +77,7 @@ jobs:
                   "deterministic_transform" { python3 scripts/transform.py --input $instruction *>&1 | Tee-Object -FilePath "execution.log" }
                   default { Write-Error "Unknown task type: $taskType"; exit 1 }
               }
-              $exitCode = $LASTEXITCODE
+              $exitCode = if ($LASTEXITCODE -ne $null) { $LASTEXITCODE } elseif ($?) { 0 } else { 1 }
               $status = if ($exitCode -eq 0) { "SUCCESS" } else { "FAILED" }
               $res = @{
                   task_id = $taskId
@@ -99,7 +99,7 @@ jobs:
                   "deterministic_transform" { python scripts/transform.py --input $instruction *>&1 | Tee-Object -FilePath "execution.log" }
                   default { Write-Error "Unknown task type: $taskType"; exit 1 }
               }
-              $exitCode = $LASTEXITCODE
+              $exitCode = if ($LASTEXITCODE -ne $null) { $LASTEXITCODE } elseif ($?) { 0 } else { 1 }
               $status = if ($exitCode -eq 0) { "SUCCESS" } else { "FAILED" }
               $res = @{
                   task_id = $taskId
