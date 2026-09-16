@@ -140,6 +140,7 @@ def loop():
     write_log("Starting Mac Worker HTTP Daemon...")
     config = load_config()
     current_task_state_file = STATE_DIR / "current_task.json"
+    current_result_state_file = STATE_DIR / "current_result.json"
     
     # Load previously claimed task for duplicate protection
     task = None
@@ -148,6 +149,13 @@ def loop():
         with open(current_task_state_file, 'r') as f:
             task = json.load(f)
             
+    # Load pending result if execution finished but delivery failed
+    pending_result = None
+    if current_result_state_file.exists():
+        write_log("Found pending result from previous run, resuming delivery...")
+        with open(current_result_state_file, 'r') as f:
+            pending_result = json.load(f)
+
     registered = False
     
     while True:
@@ -174,7 +182,7 @@ def loop():
                 time.sleep(5)
                 continue
                 
-            if not task:
+            if not task and not pending_result:
                 # Claim Task
                 res, err = http_post(config, "/tasks/claim", {"worker_id": config["WORKER_ID"]})
                 if err:
@@ -190,7 +198,7 @@ def loop():
                     time.sleep(config.get('IDLE_POLL_INTERVAL_SECONDS', 30))
                     continue
                         
-            if task:
+            if task and not pending_result:
                 write_log(f"Processing task {task['task_id']}")
                 keep_awake = subprocess.Popen(["caffeinate", "-s", "-i"])
                 try:
@@ -237,24 +245,29 @@ def loop():
                         "raw_result": result
                     }
                     
-                    # Backoff loop for posting result
-                    retries = 0
-                    while retries < 8: # Up to 8 retries (~ 255 seconds)
-                        res, err = http_post(config, "/tasks/result", payload)
-                        if err:
-                            write_log(f"Result post failed: {err}. Retrying in {2**retries}s...")
-                            time.sleep(2 ** retries)
-                            retries += 1
-                        else:
-                            write_log(f"Result posted successfully: {res}")
-                            break
-                            
-                    if current_task_state_file.exists():
-                        os.remove(current_task_state_file)
-                        
-                    task = None
+                    # Persist pending result before attempting to send
+                    with open(current_result_state_file, 'w') as f:
+                        json.dump(payload, f)
+                    pending_result = payload
+                    
                 finally:
                     keep_awake.terminate()
+            
+            if pending_result:
+                # Backoff loop for posting result
+                res, err = http_post(config, "/tasks/result", pending_result)
+                if err:
+                    write_log(f"Result post failed: {err}. Will retry on next loop.")
+                    time.sleep(5)
+                    continue
+                else:
+                    write_log(f"Result posted successfully: {res}")
+                    if current_result_state_file.exists():
+                        os.remove(current_result_state_file)
+                    if current_task_state_file.exists():
+                        os.remove(current_task_state_file)
+                    pending_result = None
+                    task = None
                 
         except Exception as e:
             write_log(f"Error in HTTP poll loop: {e}\n{traceback.format_exc()}")
