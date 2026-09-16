@@ -239,13 +239,16 @@ def claim_task():
                 next_task = goal["workflow_plan"][idx]
                 if next_task["status"] == "QUEUED":
                     target = next_task.get("target_agent", "linux").lower()
-                    
-                    matched = False
-                    if "github" in target and "github" in worker["capabilities"]: matched = True
-                    elif "mac" in target and "macos" in worker["capabilities"]: matched = True
-                    elif "windows" in target and "windows" in worker["capabilities"]: matched = True
-                    elif "linux" in target and "linux" in worker["capabilities"]: matched = True
-                    elif "antigravity" in target and "antigravity" in worker["capabilities"]: matched = True
+                    req_caps = next_task.get("capabilities", [])
+                    if req_caps:
+                        matched = all(c in worker.get("capabilities", []) for c in req_caps)
+                    else:
+                        matched = False
+                        if "github" in target and "github" in worker["capabilities"]: matched = True
+                        elif "mac" in target and "macos" in worker["capabilities"]: matched = True
+                        elif "windows" in target and "windows" in worker["capabilities"]: matched = True
+                        elif "linux" in target and "linux" in worker["capabilities"]: matched = True
+                        elif "antigravity" in target and "antigravity" in worker["capabilities"]: matched = True
                     
                     if matched:
                         # Cost-based routing check:
@@ -338,11 +341,8 @@ def task_result():
             if durable_result.get("status") == "SUCCESS":
                 task["status"] = "RESULT_RECEIVED" # wait for independent /verify
             else:
-                if task.get("attempts", 1) < 3:
-                    task["status"] = "QUEUED" # Retry
-                    task["worker_id"] = None
-                else:
-                    task["status"] = "FAILED_TERMINAL"
+                task["status"] = "HUMAN_REQUIRED"
+                task["recovery_reason"] = "WORKER_FAILED_AMBIGUOUS_EFFECT"
                 
             goal_id = task["goal_id"]
             if goal_id in state["goals"]:
@@ -353,7 +353,9 @@ def task_result():
                         step["status"] = task["status"]
                         step["worker_id"] = task.get("worker_id")
                         step["attempts"] = task.get("attempts")
-                if task["status"] == "FAILED_TERMINAL":
+                        if "recovery_reason" in task:
+                            step["recovery_reason"] = task["recovery_reason"]
+                if task["status"] in ("FAILED_TERMINAL", "HUMAN_REQUIRED"):
                     goal["status"] = "BLOCKED"
 
             if worker_id in state["workers"]:
@@ -461,12 +463,15 @@ def verify_task_result():
     else:
         task["status"] = "FAILED_VERIFICATION"
         goal["status"] = "BLOCKED"
+        
+    for step in goal.get("workflow_plan", []):
+        if step.get("task_id") == task_id:
+            step["status"] = task["status"]
+            
     save_state(state)
     return jsonify({"status": task["status"]})
 
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
 
 @app.route('/tasks/<task_id>/resume', methods=['POST'])
 @require_auth
@@ -501,3 +506,7 @@ def resume_task(task_id):
                     return jsonify({"error": "Unknown action"}), 400
                     
     return jsonify({"error": "Task not found"}), 404
+
+if __name__ == "__main__":
+    print("CANONICAL_LOCAL_URL = http://127.0.0.1:8080")
+    app.run(host="127.0.0.1", port=8080)

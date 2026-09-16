@@ -92,8 +92,8 @@ def main():
                 "capabilities": ["revenue_safety_audit"]
             })
             
-            if claim_resp and "task_id" in claim_resp:
-                task = claim_resp
+            if claim_resp and "task" in claim_resp and claim_resp["task"]:
+                task = claim_resp["task"]
                 task_id = task["task_id"]
                 attempt_id = task.get("attempt_id", task_id)
                 write_log(f"Claimed task {task_id}")
@@ -110,7 +110,7 @@ def main():
                 write_log("Executing revenue_v1_safety_baseline.py worker...")
                 cmd = [sys.executable, str(BASE_DIR / "revenue_v1_safety_baseline.py"), "worker", str(task_file), str(work_dir)]
                 try:
-                    result_raw = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+                    result_raw = subprocess.check_output(cmd, stderr=subprocess.STDOUT, timeout=300)
                     result_data = json.loads(result_raw.decode("utf-8"))
                     
                     # Package artifacts
@@ -129,23 +129,61 @@ def main():
                     artifact_b64 = base64.b64encode(artifact_bytes).decode('utf-8')
                     
                     # Post result
+                    dispatch_id = task.get("dispatch_id", f"dispatch-{task_id}")
+                    result_id = f"res-{uuid.uuid4().hex[:8]}"
+                    
+                    # Copy artifacts to root for local verifier
+                    if (work_dir / "report.md").exists():
+                        shutil.copy(work_dir / "report.md", "report.md")
+                    if (work_dir / "report.json").exists():
+                        shutil.copy(work_dir / "report.json", "report.json")
+                        
                     res_payload = {
+                        "status": "SUCCESS",
+                        "goal_id": task.get("goal_id", "goal-UNKNOWN"),
                         "task_id": task_id,
                         "attempt_id": attempt_id,
+                        "dispatch_id": dispatch_id,
+                        "result_id": result_id,
+                        "run_id": f"run-{uuid.uuid4().hex[:8]}",
                         "worker_id": worker_id,
                         "result_data": result_data,
-                        "artifact_name": "revenue_artifacts.zip",
-                        "artifact_sha256": artifact_sha,
-                        "artifact_content_base64": artifact_b64
+                        "artifacts": [
+                            {"path": "report.md", "sha256": result_data.get("report_md_sha256")},
+                            {"path": "report.json", "sha256": result_data.get("report_json_sha256")}
+                        ]
                     }
                     
                     write_log("Posting result...")
                     http_post(config, "/tasks/result", res_payload)
                     write_log(f"Task {task_id} completed.")
                     
+                except subprocess.TimeoutExpired as e:
+                    write_log(f"Task execution timed out for {task_id}")
+                    err_payload = {
+                        "status": "FAILED",
+                        "goal_id": task.get("goal_id"),
+                        "task_id": task_id,
+                        "attempt_id": attempt_id,
+                        "dispatch_id": task.get("dispatch_id", f"dispatch-{task_id}"),
+                        "worker_id": worker_id,
+                        "reason": "TIMEOUT",
+                        "stderr": "Execution timed out."
+                    }
+                    http_post(config, "/tasks/result", err_payload)
                 except subprocess.CalledProcessError as e:
                     write_log(f"Task execution failed: {e.output.decode('utf-8', errors='ignore')}")
-                    # Could implement fail endpoint here if one existed
+                    err_payload = {
+                        "status": "FAILED",
+                        "goal_id": task.get("goal_id"),
+                        "task_id": task_id,
+                        "attempt_id": attempt_id,
+                        "dispatch_id": task.get("dispatch_id", f"dispatch-{task_id}"),
+                        "worker_id": worker_id,
+                        "reason": "ERROR",
+                        "stderr": e.output.decode('utf-8', errors='ignore')
+                    }
+                    http_post(config, "/tasks/result", err_payload)
                     
         except Exception as e:
             write_log(f"Error in main loop: {traceback.format_exc()}")
