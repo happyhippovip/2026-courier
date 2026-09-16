@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from scripts import github_worker_adapter as adapter
+from scripts.integration_contract import validate_durable_result
 
 
 def packet(**changes):
@@ -68,3 +69,12 @@ def test_dispatch_preserves_taskpacket_as_raw_json(tmp_path: Path, monkeypatch):
     assert "--raw-field" in dispatch
     encoded = dispatch[dispatch.index("--raw-field") + 1].removeprefix("task_payload_base64=")
     assert json.loads(base64.b64decode(encoded))["dispatch_id"] == "dispatch-1"
+
+
+def test_durable_result_preserves_github_run_attempt():
+    task = packet()
+    result = {
+        **packet(), "run_id": "99", "run_attempt": "1", "result_id": "result-dispatch-1",
+        "status": "SUCCESS", "artifacts": [{"path": "courier_output_dispatch-1.json", "sha256": "a" * 64}],
+    }
+    assert validate_durable_result(task, result)["run_attempt"] == "1"
