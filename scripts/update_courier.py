@@ -1,4 +1,5 @@
-﻿#!/usr/bin/env python3
+﻿import stat
+#!/usr/bin/env python3
 import os
 import sys
 import shutil
@@ -42,6 +43,10 @@ def health_check(app_dir):
         if res.returncode == 0 and b"HEALTHY" in res.stdout:
             return True
     return False
+
+def remove_readonly(func, path, exc_info):
+    os.chmod(path, stat.S_IWRITE)
+    func(path)
 
 def main():
     parser = argparse.ArgumentParser(description="Courier Product Updater")
@@ -103,15 +108,27 @@ def main():
 
             print("\n[SUCCESS] Update applied successfully!")
 
+
         except Exception as e:
             print(f"\n[ERROR] Update failed: {e}")
             print("[8] Rolling back to previous state...")
             # Rollback
-            shutil.rmtree(app_dir)
-            shutil.copytree(backup_dir, app_dir)
+            for item in os.listdir(app_dir):
+                item_path = os.path.join(app_dir, item)
+                try:
+                    if os.path.isdir(item_path):
+                        shutil.rmtree(item_path, onerror=remove_readonly)
+                    else:
+                        os.remove(item_path)
+                except Exception:
+                    pass
+            shutil.copytree(backup_dir, app_dir, dirs_exist_ok=True)
             restart_service()
             print("    Rollback complete.")
             sys.exit(1)
 
 if __name__ == "__main__":
     main()
+
+
+
