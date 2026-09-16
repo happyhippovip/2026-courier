@@ -138,7 +138,6 @@ def run(task_file_name: str) -> int:
                 for art in result.get("artifacts", []):
                     art_path = download_dir / art.get("path", "")
                     if art_path.exists():
-                        import shutil
                         shutil.copy(art_path, ".")
                 post_result(result)
                 write_state(task_file, {"dispatch_id": task["dispatch_id"], "run_id": run_id, "status": "POSTED",
