@@ -239,10 +239,24 @@ def claim_task():
     
     for goal_id, goal in state["goals"].items():
         if goal["status"] == "ACTIVE" and "workflow_plan" in goal:
-            idx = goal.get("current_step_index", 0)
-            if idx < len(goal["workflow_plan"]):
-                next_task = goal["workflow_plan"][idx]
+            for next_task in goal["workflow_plan"]:
                 if next_task["status"] in ("QUEUED", "WAITING_PROVIDER", "BLOCKED_TRANSIENT"):
+                    # Check dependencies first before considering for cost/dispatch
+                    deps_met = True
+                    for dep_id in next_task.get("dependencies", []):
+                        dep_found = False
+                        for prior_step in goal["workflow_plan"]:
+                            if prior_step["task_id"] == dep_id:
+                                if prior_step.get("status") != "RECONCILED":
+                                    deps_met = False
+                                dep_found = True
+                                break
+                        if not dep_found or not deps_met:
+                            deps_met = False
+                            break
+                    if not deps_met:
+                        continue
+
                     target = next_task.get("target_agent", "linux").lower()
                     req_caps = next_task.get("capabilities", [])
                     if req_caps:
@@ -259,8 +273,9 @@ def claim_task():
                         # Cost-based routing check:
                         # If this worker is expensive, and a cheaper qualified worker is currently active and available,
                         # decline this claim so the cheaper worker can grab it.
-                        worker_cost = worker.get("cost_class", "high")
-                        if worker_cost in ("high", "medium"):
+                        worker_cost = worker.get("cost_class", "unknown")
+                        wc = "high" if worker_cost == "unknown" else worker_cost
+                        if wc in ("high", "medium"):
                             cheaper_available = False
                             now = time.time()
                             for other_id, other_w in state["workers"].items():
@@ -268,22 +283,29 @@ def claim_task():
                                 if not other_w.get("available", False): continue
                                 if now - other_w.get("last_seen", 0) > 300: continue
                                 
-                                other_cost = other_w.get("cost_class", "high")
+                                other_cost = other_w.get("cost_class", "unknown")
+                                oc = "high" if other_cost == "unknown" else other_cost
+                                
                                 # is other cheaper?
-                                if worker_cost == "high" and other_cost in ("free", "low", "medium"):
+                                if wc == "high" and oc in ("free", "low", "medium"):
                                     is_cheaper = True
-                                elif worker_cost == "medium" and other_cost in ("free", "low"):
+                                elif wc == "medium" and oc in ("free", "low"):
                                     is_cheaper = True
                                 else:
                                     is_cheaper = False
                                     
                                 if is_cheaper:
                                     # Is other qualified?
-                                    if "github" in target and "github" in other_w["capabilities"]: cheaper_available = True
-                                    elif "mac" in target and "macos" in other_w["capabilities"]: cheaper_available = True
-                                    elif "windows" in target and "windows" in other_w["capabilities"]: cheaper_available = True
-                                    elif "linux" in target and "linux" in other_w["capabilities"]: cheaper_available = True
-                                    elif "antigravity" in target and "antigravity" in other_w["capabilities"]: cheaper_available = True
+                                    if req_caps:
+                                        cheaper_available = all(c in other_w.get("capabilities", []) for c in req_caps)
+                                    else:
+                                        if "github" in target and "github" in other_w["capabilities"]: cheaper_available = True
+                                        elif "mac" in target and "macos" in other_w["capabilities"]: cheaper_available = True
+                                        elif "windows" in target and "windows" in other_w["capabilities"]: cheaper_available = True
+                                        elif "linux" in target and "linux" in other_w["capabilities"]: cheaper_available = True
+                                        elif "antigravity" in target and "antigravity" in other_w["capabilities"]: cheaper_available = True
+                                    if cheaper_available:
+                                        break
                                 
                             if cheaper_available:
                                 # We decline this claim to let the cheaper worker grab it.
@@ -304,12 +326,11 @@ def claim_task():
                         except ContractError as exc:
                             return jsonify({"error": str(exc)}), 400
                         next_task["status"] = "DISPATCHED"
-                        goal["workflow_plan"][idx] = next_task
                         
+                        state["tasks"][next_task["task_id"]] = next_task
                         worker["current_task"] = next_task["task_id"]
                         worker["available"] = False
                         
-                        state["tasks"][next_task["task_id"]] = next_task
                         save_state(state)
                         return jsonify({"task": next_task})
                         
@@ -370,8 +391,9 @@ def task_result():
                     goal["status"] = "BLOCKED"
 
             if worker_id in state["workers"]:
-                state["workers"][worker_id]["current_task"] = None
-                state["workers"][worker_id]["available"] = True
+                if task["status"] != "RESULT_RECEIVED":
+                    state["workers"][worker_id]["current_task"] = None
+                    state["workers"][worker_id]["available"] = True
 
             save_state(state)
             return jsonify({"status": "ACK_RESULT_RECEIVED"})
@@ -418,6 +440,15 @@ def reclaim_stale():
         save_state(state)
 
     return jsonify({"reclaimed_tasks": 0, "quarantined_tasks": quarantined_count})
+
+@app.route("/tasks/<task_id>", methods=["GET"])
+@require_auth
+def get_task(task_id):
+    state = load_state()
+    task = state["tasks"].get(task_id)
+    if not task:
+        return jsonify({"error": "Unknown task"}), 404
+    return jsonify(task)
 
 @app.route("/tasks/pending_verification", methods=["GET"])
 @require_verifier_auth
@@ -468,12 +499,24 @@ def verify_task_result():
     goal = state["goals"][task["goal_id"]]
     if verdict == "PASS":
         task["status"] = "RECONCILED"
-        goal["current_step_index"] = goal.get("current_step_index", 0) + 1
-        if goal["current_step_index"] >= len(goal["workflow_plan"]):
+        # Sync back to workflow plan
+        for step in goal.get("workflow_plan", []):
+            if step["task_id"] == task_id:
+                step["status"] = "RECONCILED"
+        # Check if all tasks in goal are reconciled
+        all_reconciled = all(s.get("status") == "RECONCILED" for s in goal.get("workflow_plan", []))
+        if all_reconciled:
             goal["status"] = "DONE"
     else:
         task["status"] = "FAILED_VERIFICATION"
         goal["status"] = "BLOCKED"
+        
+    # Release worker ownership now that lifecycle is terminal
+    worker_id = task.get("worker_id")
+    if worker_id and worker_id in state["workers"]:
+        state["workers"][worker_id]["current_task"] = None
+        state["workers"][worker_id]["available"] = True
+        
     save_state(state)
     return jsonify({"status": task["status"]})
 

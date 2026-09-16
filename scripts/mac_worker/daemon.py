@@ -59,9 +59,23 @@ def http_post(config, endpoint, data):
             return json.loads(response.read().decode("utf-8")), None
     except urllib.error.HTTPError as e:
         err_msg = e.read().decode("utf-8")
-        return None, f"HTTP Error {e.code}: {err_msg}"
+        return None, {"status": e.code, "message": err_msg}
     except Exception as e:
-        return None, str(e)
+        return None, {"status": 500, "message": str(e)}
+
+def http_get(config, endpoint):
+    url = config["COURIER_SERVER"].rstrip("/") + endpoint
+    req = urllib.request.Request(url, method="GET")
+    req.add_header("Authorization", f"Bearer {config.get('COURIER_API_KEY', '')}")
+    
+    try:
+        with urllib.request.urlopen(req, timeout=10) as response:
+            return json.loads(response.read().decode("utf-8")), None
+    except urllib.error.HTTPError as e:
+        err_msg = e.read().decode("utf-8")
+        return None, {"status": e.code, "message": err_msg}
+    except Exception as e:
+        return None, {"status": 500, "message": str(e)}
 
 def write_json_atomic(path, data):
     tmp_path = path.with_suffix(".tmp")
@@ -289,7 +303,8 @@ def loop():
                 reg_payload = {
                     "worker_id": config["WORKER_ID"],
                     "platform": "macos",
-                    "capabilities": ["macos", "linux", "antigravity"]
+                    "capabilities": ["macos", "linux", "antigravity"],
+                    "cost_class": "high"
                 }
                 res, err = http_post(config, "/workers/register", reg_payload)
                 if err:
@@ -389,11 +404,53 @@ def loop():
                 while retries < 3:
                     res, err = http_post(config, "/tasks/result", payload)
                     if err:
+                        if isinstance(err, dict) and err.get("status") in [404, 409]:
+                            write_log(f"Server rejected result with {err['status']}, likely a STALE_UI_HANDLE. Dropping task.")
+                            if current_task_state_file.exists(): os.remove(current_task_state_file)
+                            if result_state_file.exists(): os.remove(result_state_file)
+                            task = None
+                            pending_result = None
+                            success = True
+                            break
                         write_log(f"Result post failed: {err}. Retrying in 10s...")
                         time.sleep(10)
                         retries += 1
                     else:
                         write_log(f"Result posted successfully: {res}")
+                        
+                        # Wait for verification and then cleanup exactly the task-owned transient processes
+                        if task and "process_group_id" in task:
+                            write_log("Waiting for task lifecycle to terminate before releasing transient processes...")
+                            terminal = False
+                            while not terminal:
+                                t_res, t_err = http_get(config, f"/tasks/{task['task_id']}")
+                                if t_err:
+                                    if isinstance(t_err, dict) and t_err.get("status") in [404, 409]:
+                                        write_log("Task no longer exists on server (STALE_UI_HANDLE). Terminating polling.")
+                                        terminal = True
+                                    else:
+                                        time.sleep(5)
+                                    continue
+                                t_status = t_res.get("status")
+                                if t_status in ["RECONCILED", "FAILED_VERIFICATION", "FAILED_TERMINAL", "QUEUED", "HUMAN_REQUIRED", "WAITING_PROVIDER", "BLOCKED_TRANSIENT"]:
+                                    terminal = True
+                                else:
+                                    time.sleep(5)
+                                    
+                            pgid = task["process_group_id"]
+                            import signal
+                            try:
+                                os.killpg(pgid, 0)
+                                write_log(f"Cleaning up exact transient process group {pgid} after terminal state...")
+                                os.killpg(pgid, signal.SIGTERM)
+                                time.sleep(2)
+                                try:
+                                    os.killpg(pgid, signal.SIGKILL)
+                                except OSError:
+                                    pass
+                            except OSError:
+                                pass
+                                
                         if current_task_state_file.exists():
                             os.remove(current_task_state_file)
                         if result_state_file.exists():
