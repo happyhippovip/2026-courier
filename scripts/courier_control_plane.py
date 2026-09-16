@@ -172,9 +172,14 @@ def process_results(state):
                     rejected = rejected.with_name(f"{rejected.stem}-{uuid.uuid4().hex}{rejected.suffix}")
                 os.replace(source_path, rejected)
 
+def ingest_adapters():
+    subprocess.run([sys.executable, "scripts/windows_worker_adapter.py", "--ingest"])
+    # Mac/Github adapters can be added here if needed
+
 def loop():
     state = load_state()
     ingest_goals(state)
+    ingest_adapters()
     process_results(state)
     
     for task_id, task in state["tasks"].items():
