@@ -1,4 +1,5 @@
 #!/bin/bash
+cd "$(dirname "$0")" || exit 1
 TARGET_DIR=$(cd ../.. && pwd)
 sed -e "s|TARGET_DIR|$TARGET_DIR|g" com.courier.mac_worker.plist > ~/Library/LaunchAgents/com.courier.mac_worker.plist
 launchctl unload ~/Library/LaunchAgents/com.courier.mac_worker.plist 2>/dev/null

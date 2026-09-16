@@ -1,78 +1,180 @@
 {
   "goals": {
-    "goal-62911b5d": {
-      "goal_id": "goal-62911b5d",
-      "goal_text": "Native Test",
-      "status": "ACTIVE",
+    "goal-a4e3e3ae": {
+      "goal_id": "goal-a4e3e3ae",
+      "goal_text": "Restart P7 Proof",
+      "status": "DONE",
       "workflow_plan": [
         {
-          "target_agent": "mac",
-          "instruction": "echo NATIVE_SUCCESS > courier_canary_mac-native-2.txt",
-          "task_id": "mac-native-2",
+          "task_id": "task-restart-a",
+          "type": "metadata",
+          "target_agent": "github",
           "mode": "NATIVE",
-          "goal_id": "goal-62911b5d",
+          "instruction": "Run github metadata",
+          "artifacts": [
+            "courier_canary_task-restart-a.txt"
+          ],
+          "dependencies": [],
+          "goal_id": "goal-a4e3e3ae",
+          "status": "RESULT_RECEIVED",
+          "attempts": 1,
+          "worker_id": "GITHUB-DISPATCHER",
+          "attempt_id": "task-restart-a:attempt:1",
+          "dispatch_id": "dispatch-6ef5d16bad174d3e9bb231aefc74fb6c",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "github"
+        },
+        {
+          "task_id": "task-restart-b",
+          "type": "native_command",
+          "target_agent": "mac",
+          "mode": "NATIVE",
+          "instruction": "echo 'mac_done2' > mac_artifact_2.txt",
+          "artifacts": [
+            "mac_artifact_2.txt"
+          ],
+          "dependencies": [
+            "task-restart-a"
+          ],
+          "goal_id": "goal-a4e3e3ae",
           "status": "RESULT_RECEIVED",
           "attempts": 1,
           "worker_id": "MAC-01",
-          "dispatch_id": "7c9e5127-76c2-4c98-9b1a-af9267e0bf8b",
-          "target_capability": "mac",
-          "attempt_id": "mac-native-2:attempt:1",
+          "attempt_id": "task-restart-b:attempt:1",
+          "dispatch_id": "dispatch-6c66bf655bed4ebab5948adfc8c35b8c",
           "run_id": null,
           "result_id": null,
-          "artifacts": [
-            "courier_canary_mac-native-2.txt"
-          ]
+          "target_capability": "mac"
         }
       ],
-      "current_step_index": 0
+      "current_step_index": 2
     },
-    "goal-26691886": {
-      "goal_id": "goal-26691886",
-      "goal_text": "AI Test",
+    "goal-ff504283": {
+      "goal_id": "goal-ff504283",
+      "goal_text": "Revenue Safety Audit for happyhippovip/2026-courier",
       "status": "ACTIVE",
       "workflow_plan": [
         {
+          "task_id": "WF-CHIEF-5e9c82-STEP-1-DISCOVER",
+          "goal_id": "goal-ff504283",
+          "instruction": "Formulate execution strategy and inspect context for: Revenue Safety Audit for happyhippovip/2026-courier",
           "target_agent": "mac",
-          "instruction": "echo AI_SUCCESS > courier_canary_mac-ai-2.txt",
-          "task_id": "mac-ai-2",
-          "mode": "ANTIGRAVITY",
-          "goal_id": "goal-26691886",
-          "status": "RESULT_RECEIVED",
-          "attempts": 1,
-          "worker_id": "MAC-01",
-          "dispatch_id": "ce4b5fd9-cf72-4d52-889e-0cdb214c7592",
-          "target_capability": "mac",
-          "attempt_id": "mac-ai-2:attempt:1",
-          "run_id": null,
-          "result_id": null,
-          "artifacts": [
-            "courier_canary_mac-ai-2.txt"
-          ]
-        }
-      ],
-      "current_step_index": 0
-    },
-    "goal-823476c0": {
-      "goal_id": "goal-823476c0",
-      "goal_text": "AI Real Test",
-      "status": "ACTIVE",
-      "workflow_plan": [
-        {
-          "target_agent": "mac",
-          "instruction": "Print the current date to courier_canary_mac-ai-real.txt",
-          "task_id": "mac-ai-real",
-          "mode": "ANTIGRAVITY",
-          "goal_id": "goal-823476c0",
           "status": "DISPATCHED",
           "attempts": 1,
           "worker_id": "MAC-01",
-          "dispatch_id": "559b7402-0f6e-496f-b57f-8936cf759d58",
-          "target_capability": "mac",
-          "attempt_id": "mac-ai-real:attempt:1",
+          "attempt_id": "WF-CHIEF-5e9c82-STEP-1-DISCOVER:attempt:1",
+          "dispatch_id": "dispatch-608d258c88ff4ef2ac1efebc8e9ea1d1",
           "run_id": null,
           "result_id": null,
+          "target_capability": "mac",
           "artifacts": [
-            "courier_canary_mac-ai-real.txt"
+            "courier_canary_WF-CHIEF-5e9c82-STEP-1-DISCOVER.txt"
+          ]
+        },
+        {
+          "task_id": "WF-CHIEF-5e9c82-STEP-2-QA",
+          "goal_id": "goal-ff504283",
+          "instruction": "Perform independent technical QA audit and syntax verification for: Revenue Safety Audit for happyhippovip/2026-courier",
+          "target_agent": "windows",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "WF-CHIEF-5e9c82-STEP-3-SYNTHESIZE",
+          "goal_id": "goal-ff504283",
+          "instruction": "Finalize results, verify invariants, and assemble completion package for: Revenue Safety Audit for happyhippovip/2026-courier",
+          "target_agent": "mac",
+          "status": "QUEUED",
+          "attempts": 0
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-b2a2f0ef": {
+      "goal_id": "goal-b2a2f0ef",
+      "goal_text": "Revenue Safety Audit for happyhippovip/2026-courier",
+      "status": "BLOCKED",
+      "workflow_plan": [
+        {
+          "task_id": "REV-9D5B3AB2",
+          "type": "revenue_safety_audit",
+          "capabilities": [
+            "revenue_safety_audit"
+          ],
+          "target_owner": "happyhippovip",
+          "target_repo": "2026-courier",
+          "target_sha": "138254829285cbc218778117976234623ed8c570",
+          "customer_reference": "Customer-001",
+          "dependencies": [],
+          "goal_id": "goal-b2a2f0ef",
+          "status": "FAILED_VERIFICATION",
+          "attempts": 9,
+          "worker_id": "REVENUE-MAC-82431C",
+          "attempt_id": "REV-9D5B3AB2:attempt:9",
+          "dispatch_id": "dispatch-71f6b4cf81ec4057a7c839cf7ad6ec5c",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "linux",
+          "artifacts": [
+            "courier_canary_REV-9D5B3AB2.txt"
+          ]
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-1e18b5fa": {
+      "goal_id": "goal-1e18b5fa",
+      "goal_text": "Write SUCCESS to courier_canary_intake.txt using linux capability",
+      "status": "ACTIVE",
+      "workflow_plan": [
+        {
+          "task_id": "WF-CHIEF-03505a-STEP-1-DISCOVER",
+          "goal_id": "goal-1e18b5fa",
+          "instruction": "Formulate execution strategy and inspect context for: Write SUCCESS to courier_canary_intake.txt using linux capability",
+          "target_agent": "mac",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "WF-CHIEF-03505a-STEP-2-IMPLEMENT",
+          "goal_id": "goal-1e18b5fa",
+          "instruction": "Execute core implementation and asset validation for: Write SUCCESS to courier_canary_intake.txt using linux capability",
+          "target_agent": "mac",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "WF-CHIEF-03505a-STEP-3-SYNTHESIZE",
+          "goal_id": "goal-1e18b5fa",
+          "instruction": "Finalize results, verify invariants, and assemble completion package for: Write SUCCESS to courier_canary_intake.txt using linux capability",
+          "target_agent": "mac",
+          "status": "QUEUED",
+          "attempts": 0
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-9aa9b788": {
+      "goal_id": "goal-9aa9b788",
+      "goal_text": "[{\"target_agent\": \"github\", \"instruction\": \"echo hello\"}]",
+      "status": "BLOCKED",
+      "workflow_plan": [
+        {
+          "task_id": "WF-CHIEF-ced357-STEP-1",
+          "goal_id": "goal-9aa9b788",
+          "instruction": "echo hello",
+          "target_agent": "github",
+          "status": "FAILED_TERMINAL",
+          "attempts": 3,
+          "worker_id": "GITHUB-DISPATCHER",
+          "attempt_id": "WF-CHIEF-ced357-STEP-1:attempt:3",
+          "dispatch_id": "dispatch-a329ef57339b4798a727706681959cc3",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "github",
+          "artifacts": [
+            "courier_canary_WF-CHIEF-ced357-STEP-1.txt"
           ]
         }
       ],
@@ -80,90 +182,204 @@
     }
   },
   "tasks": {
-    "mac-native-2": {
-      "target_agent": "mac",
-      "instruction": "echo NATIVE_SUCCESS > courier_canary_mac-native-2.txt",
-      "task_id": "mac-native-2",
+    "task-restart-a": {
+      "task_id": "task-restart-a",
+      "type": "metadata",
+      "target_agent": "github",
       "mode": "NATIVE",
-      "goal_id": "goal-62911b5d",
-      "status": "RESULT_RECEIVED",
+      "instruction": "Run github metadata",
+      "artifacts": [
+        "courier_canary_task-restart-a.txt"
+      ],
+      "dependencies": [],
+      "goal_id": "goal-a4e3e3ae",
+      "status": "RECONCILED",
       "attempts": 1,
-      "worker_id": "MAC-01",
-      "dispatch_id": "7c9e5127-76c2-4c98-9b1a-af9267e0bf8b",
-      "target_capability": "mac",
-      "attempt_id": "mac-native-2:attempt:1",
+      "worker_id": "GITHUB-DISPATCHER",
+      "attempt_id": "task-restart-a:attempt:1",
+      "dispatch_id": "dispatch-6ef5d16bad174d3e9bb231aefc74fb6c",
       "run_id": null,
       "result_id": null,
-      "artifacts": [
-        "courier_canary_mac-native-2.txt"
-      ],
+      "target_capability": "github",
       "result": {
-        "run_id": "54f9dbf8-2e2e-4727-9d54-1156ac8b4479",
-        "dispatch_id": "7c9e5127-76c2-4c98-9b1a-af9267e0bf8b",
-        "worker_id": "MAC-01",
-        "result_id": "7648283f-bdb5-4c65-882f-1c5a3a07099f",
-        "goal_id": "goal-62911b5d",
+        "dispatch_id": "dispatch-6ef5d16bad174d3e9bb231aefc74fb6c",
         "artifacts": [
           {
-            "path": "courier_canary_mac-native-2.txt",
-            "sha256": "70f318b11f1159bf9ba1f92bdd9388efeed487664da0388964db7451e108b884"
+            "path": "courier_canary_task-restart-a.txt",
+            "sha256": "832aeca2d520d7cf44f0069a1030fac2bbaec2568ecd4d8d531d8efe9d4ae13f"
           }
         ],
-        "attempt_id": "mac-native-2:attempt:1",
+        "worker_id": "GITHUB-DISPATCHER",
+        "goal_id": "goal-a4e3e3ae",
         "status": "SUCCESS",
-        "task_id": "mac-native-2"
+        "result_id": "result-608e36018d6840bea97962977c451225",
+        "run_id": "35064585050",
+        "attempt_id": "task-restart-a:attempt:1",
+        "task_id": "task-restart-a"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "result-608e36018d6840bea97962977c451225",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "courier_canary_task-restart-a.txt",
+            "sha256": "832aeca2d520d7cf44f0069a1030fac2bbaec2568ecd4d8d531d8efe9d4ae13f"
+          }
+        ]
       }
     },
-    "mac-ai-2": {
+    "task-restart-b": {
+      "task_id": "task-restart-b",
+      "type": "native_command",
       "target_agent": "mac",
-      "instruction": "echo AI_SUCCESS > courier_canary_mac-ai-2.txt",
-      "task_id": "mac-ai-2",
-      "mode": "ANTIGRAVITY",
-      "goal_id": "goal-26691886",
-      "status": "RESULT_RECEIVED",
+      "mode": "NATIVE",
+      "instruction": "echo 'mac_done2' > mac_artifact_2.txt",
+      "artifacts": [
+        "mac_artifact_2.txt"
+      ],
+      "dependencies": [
+        "task-restart-a"
+      ],
+      "goal_id": "goal-a4e3e3ae",
+      "status": "RECONCILED",
       "attempts": 1,
       "worker_id": "MAC-01",
-      "dispatch_id": "ce4b5fd9-cf72-4d52-889e-0cdb214c7592",
-      "target_capability": "mac",
-      "attempt_id": "mac-ai-2:attempt:1",
+      "attempt_id": "task-restart-b:attempt:1",
+      "dispatch_id": "dispatch-6c66bf655bed4ebab5948adfc8c35b8c",
       "run_id": null,
       "result_id": null,
-      "artifacts": [
-        "courier_canary_mac-ai-2.txt"
-      ],
+      "target_capability": "mac",
       "result": {
-        "run_id": "df7de97a-ec36-4116-8b8a-8078604e407f",
-        "dispatch_id": "ce4b5fd9-cf72-4d52-889e-0cdb214c7592",
-        "worker_id": "MAC-01",
-        "result_id": "09f2ea96-1fb8-4b12-aa94-f18acd97b7c8",
-        "goal_id": "goal-26691886",
+        "dispatch_id": "dispatch-6c66bf655bed4ebab5948adfc8c35b8c",
         "artifacts": [
           {
-            "path": "courier_canary_mac-ai-2.txt",
-            "sha256": "7f5d7b74e215a877d252b9966ef11692aace3e7cd1f055205549dc04afd1ac8c"
+            "path": "mac_artifact_2.txt",
+            "sha256": "92f67d64eb47191c38849549d8c8cc3cf057a1bdc76950b87b6f2f6642ac77e2"
           }
         ],
-        "attempt_id": "mac-ai-2:attempt:1",
+        "worker_id": "MAC-01",
+        "goal_id": "goal-a4e3e3ae",
         "status": "SUCCESS",
-        "task_id": "mac-ai-2"
+        "result_id": "49fb0f85-2f84-4e30-9d9b-c1e7faf5de96",
+        "run_id": "0027cf6d-518a-4eec-a38b-4d78c24ada2e",
+        "attempt_id": "task-restart-b:attempt:1",
+        "task_id": "task-restart-b"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "49fb0f85-2f84-4e30-9d9b-c1e7faf5de96",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "mac_artifact_2.txt",
+            "sha256": "92f67d64eb47191c38849549d8c8cc3cf057a1bdc76950b87b6f2f6642ac77e2"
+          }
+        ]
       }
     },
-    "mac-ai-real": {
+    "REV-9D5B3AB2": {
+      "task_id": "REV-9D5B3AB2",
+      "type": "revenue_safety_audit",
+      "capabilities": [
+        "revenue_safety_audit"
+      ],
+      "target_owner": "happyhippovip",
+      "target_repo": "2026-courier",
+      "target_sha": "138254829285cbc218778117976234623ed8c570",
+      "customer_reference": "Customer-001",
+      "dependencies": [],
+      "goal_id": "goal-b2a2f0ef",
+      "status": "FAILED_VERIFICATION",
+      "attempts": 9,
+      "worker_id": "REVENUE-MAC-82431C",
+      "attempt_id": "REV-9D5B3AB2:attempt:9",
+      "dispatch_id": "dispatch-71f6b4cf81ec4057a7c839cf7ad6ec5c",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "linux",
+      "artifacts": [
+        "courier_canary_REV-9D5B3AB2.txt"
+      ],
+      "result": {
+        "result_id": "res-c86281db",
+        "artifacts": [
+          {
+            "path": "report.md",
+            "sha256": "1f57b0be4164f62c07814c0b59a10d46905b641b47bc69b5a3fcbaf2530a6e22"
+          },
+          {
+            "path": "report.json",
+            "sha256": "1c28d76c6df1c0694e563fa3aef44cd5399b42481258e66c83461df6998beee8"
+          }
+        ],
+        "goal_id": "goal-b2a2f0ef",
+        "task_id": "REV-9D5B3AB2",
+        "worker_id": "REVENUE-MAC-82431C",
+        "attempt_id": "REV-9D5B3AB2:attempt:9",
+        "run_id": "run-847b6af0",
+        "dispatch_id": "dispatch-71f6b4cf81ec4057a7c839cf7ad6ec5c",
+        "status": "SUCCESS"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "res-c86281db",
+        "verdict": "FAIL",
+        "artifacts": [
+          {
+            "path": "report.md",
+            "sha256": "1f57b0be4164f62c07814c0b59a10d46905b641b47bc69b5a3fcbaf2530a6e22"
+          },
+          {
+            "path": "report.json",
+            "sha256": "1c28d76c6df1c0694e563fa3aef44cd5399b42481258e66c83461df6998beee8"
+          }
+        ]
+      }
+    },
+    "WF-CHIEF-ced357-STEP-1": {
+      "task_id": "WF-CHIEF-ced357-STEP-1",
+      "goal_id": "goal-9aa9b788",
+      "instruction": "echo hello",
+      "target_agent": "github",
+      "status": "FAILED_TERMINAL",
+      "attempts": 3,
+      "worker_id": "GITHUB-DISPATCHER",
+      "attempt_id": "WF-CHIEF-ced357-STEP-1:attempt:3",
+      "dispatch_id": "dispatch-a329ef57339b4798a727706681959cc3",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "github",
+      "artifacts": [
+        "courier_canary_WF-CHIEF-ced357-STEP-1.txt"
+      ],
+      "result": {
+        "run_id": "failed-early",
+        "result_id": "failed-early",
+        "attempt_id": "WF-CHIEF-ced357-STEP-1:attempt:3",
+        "status": "FAILED",
+        "artifacts": [],
+        "dispatch_id": "dispatch-a329ef57339b4798a727706681959cc3",
+        "goal_id": "goal-9aa9b788",
+        "worker_id": "GITHUB-DISPATCHER",
+        "task_id": "WF-CHIEF-ced357-STEP-1"
+      }
+    },
+    "WF-CHIEF-5e9c82-STEP-1-DISCOVER": {
+      "task_id": "WF-CHIEF-5e9c82-STEP-1-DISCOVER",
+      "goal_id": "goal-ff504283",
+      "instruction": "Formulate execution strategy and inspect context for: Revenue Safety Audit for happyhippovip/2026-courier",
       "target_agent": "mac",
-      "instruction": "Print the current date to courier_canary_mac-ai-real.txt",
-      "task_id": "mac-ai-real",
-      "mode": "ANTIGRAVITY",
-      "goal_id": "goal-823476c0",
       "status": "DISPATCHED",
       "attempts": 1,
       "worker_id": "MAC-01",
-      "dispatch_id": "559b7402-0f6e-496f-b57f-8936cf759d58",
-      "target_capability": "mac",
-      "attempt_id": "mac-ai-real:attempt:1",
+      "attempt_id": "WF-CHIEF-5e9c82-STEP-1-DISCOVER:attempt:1",
+      "dispatch_id": "dispatch-608d258c88ff4ef2ac1efebc8e9ea1d1",
       "run_id": null,
       "result_id": null,
+      "target_capability": "mac",
       "artifacts": [
-        "courier_canary_mac-ai-real.txt"
+        "courier_canary_WF-CHIEF-5e9c82-STEP-1-DISCOVER.txt"
       ]
     }
   },
@@ -176,7 +392,30 @@
         "linux",
         "antigravity"
       ],
-      "last_seen": 1789511925.155294,
+      "last_seen": 1789568699.601005,
+      "available": false,
+      "current_task": "WF-CHIEF-5e9c82-STEP-1-DISCOVER",
+      "cost_class": "unknown"
+    },
+    "GITHUB-DISPATCHER": {
+      "worker_id": "GITHUB-DISPATCHER",
+      "platform": "linux",
+      "capabilities": [
+        "github"
+      ],
+      "last_seen": 1789568769.9332852,
+      "available": true,
+      "current_task": null,
+      "cost_class": "free"
+    },
+    "REVENUE-MAC-82431C": {
+      "worker_id": "REVENUE-MAC-82431C",
+      "platform": "unknown",
+      "capabilities": [
+        "revenue_safety_audit",
+        "linux"
+      ],
+      "last_seen": 1789568771.003947,
       "available": true,
       "current_task": null,
       "cost_class": "unknown"

@@ -15,8 +15,8 @@ def submit_intake(owner: str, repo: str, sha: str, customer_ref: str):
     
     goal_payload = {
         "goal_id": goal_id,
-        "description": f"Revenue Safety Audit for {owner}/{repo}",
-        "tasks": [
+        "goal_text": f"Revenue Safety Audit for {owner}/{repo}",
+        "workflow_plan": [
             {
                 "task_id": task_id,
                 "type": "revenue_safety_audit",

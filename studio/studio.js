@@ -100,6 +100,18 @@ export class LivingHQController {
     this.agentsLayer = document.getElementById("living-agents-layer");
     this.courierPacket = document.getElementById("courier-packet");
     this.courierPacketLabel = document.getElementById("courier-packet-label");
+    this.platformElements = {
+      mac: {
+        dot: document.getElementById("mac-host-dot"),
+        status: document.getElementById("mac-host-status"),
+        task: document.getElementById("mac-host-task"),
+      },
+      windows: {
+        dot: document.getElementById("windows-host-dot"),
+        status: document.getElementById("windows-host-status"),
+        task: document.getElementById("windows-host-task"),
+      },
+    };
 
     // Chief Alert Bar
     this.chiefAlertBar = document.getElementById("chief-alert-bar");
@@ -888,8 +900,72 @@ export class LivingHQController {
     const taskBoardItems = stateData?.task_board || [];
     this.renderTaskBoard(taskBoardItems);
 
+    // 3.9 Update the Mac/Windows host rails from canonical runtime state.
+    this.updatePlatformRails(stateData, agents);
+
     // 4. Update Telemetry Panels & Human Gate
     this.updateTelemetryAndGate(stateData, metrics);
+  }
+
+  updatePlatformRails(stateData, agents) {
+    const runtime = stateData?.platform_runtime || {};
+    const workers = runtime.workers || {};
+    const tasks = Array.isArray(runtime.tasks) ? runtime.tasks : [];
+    const agentMap = {
+      ...(stateData?.agents || {}),
+      ...Object.fromEntries((agents || []).map(agent => [agent.id, agent])),
+    };
+    const activeStatuses = new Set(["CLAIMED", "RUNNING", "ACTIVE", "WAITING_PROVIDER", "VERIFYING"]);
+
+    const updateHost = (key, workerId) => {
+      const host = this.platformElements?.[key];
+      if (!host) return;
+      const worker = workers[workerId];
+      const status = worker?.status || "UNKNOWN";
+      if (host.status) host.status.textContent = status.replaceAll("_", " ");
+      if (host.dot) host.dot.className = `platform-status-dot ${status.toLowerCase().replaceAll("_", "-")}`;
+      if (host.task) {
+        host.task.textContent = worker?.current_task
+          ? `CURRENT: ${worker.current_task}`
+          : (worker ? `HOST: ${workerId} • NO ACTIVE TASK` : `HOST: ${workerId} • NO CURRENT MACHINE EVIDENCE`);
+      }
+    };
+
+    const updateSystem = (prefix, status, activity) => {
+      const statusEl = document.getElementById(`${prefix}-status`);
+      const activityEl = document.getElementById(`${prefix}-activity`);
+      if (statusEl) statusEl.textContent = String(status || "UNKNOWN").replaceAll("_", " ");
+      if (activityEl) activityEl.textContent = activity || "No current machine evidence";
+    };
+
+    const activeTaskFor = (workerId, providerNames = []) => tasks.find(task => {
+      if (task.worker_id !== workerId || !activeStatuses.has(String(task.status || "").toUpperCase())) return false;
+      const identity = `${task.target_agent || ""} ${task.target_capability || ""} ${task.mode || ""}`.toLowerCase();
+      return providerNames.length === 0 || providerNames.some(name => identity.includes(name));
+    });
+
+    updateHost("mac", "MAC-01");
+    updateHost("windows", "WINDOWS-01");
+
+    const codex = agentMap["worker-codex"];
+    updateSystem("mac-codex", codex?.state, codex?.task);
+
+    const github = workers["GITHUB-DISPATCHER"];
+    updateSystem("mac-github", github?.status, github?.current_task || "No active GitHub task");
+
+    const google = agentMap["worker-google"] || agentMap["agent-antigravity-bridge"];
+    updateSystem("mac-google", google?.state, google?.task);
+
+    const windowsHost = workers["WINDOWS-01"];
+    const windowsStatus = windowsHost?.status || "UNKNOWN";
+    for (const [name, providers] of [
+      ["windows-codex", ["codex"]],
+      ["windows-github", ["github"]],
+      ["windows-google", ["google", "gemini", "antigravity"]],
+    ]) {
+      const task = activeTaskFor("WINDOWS-01", providers);
+      updateSystem(name, task ? task.status : windowsStatus, task?.task_id || "No active Windows task");
+    }
   }
 
   updateNeedsYouBanner(autoRuntime, busState, gateTruth) {

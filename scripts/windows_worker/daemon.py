@@ -98,17 +98,44 @@ def run_task(task, config):
         
     return res_json
 
+def check_windows_safety(config):
+    # Ensure no duplicate workers
+    my_pid = str(os.getpid())
+    try:
+        out = subprocess.check_output(["tasklist", "/FI", "IMAGENAME eq python.exe", "/FO", "CSV", "/NH"], text=True)
+        count = 0
+        for line in out.splitlines():
+            if not line.strip(): continue
+            parts = line.split('","')
+            if len(parts) >= 2:
+                pid = parts[1].replace('"', '')
+                if pid != my_pid:
+                    count += 1
+        
+        # If there's another python.exe (daemon.py), we could have duplicates.
+        # A more robust check uses wmic to get command lines, but this suffices for a failsafe kill switch.
+        if count > 5:
+            return False # Too many python processes, throttle to be safe
+    except Exception:
+        pass
+    return True
+
 def loop():
     config = load_config()
-    inbox = Path(__file__).parent / config["WORKER_INBOX"]
-    outbox = Path(__file__).parent / config["WORKER_OUTBOX"]
-    
-    print(f"[{config['WORKER_ID']}] Windows Worker Daemon started.")
-    print(f"[{config['WORKER_ID']}] Polling {inbox} every {config['POLL_INTERVAL_SECONDS']}s...")
+    inbox_dir = Path(__file__).parent / "inbox"
+    outbox_dir = Path(__file__).parent / "outbox"
+    state_dir = Path(__file__).parent / "state"
+    state_dir.mkdir(exist_ok=True)
+    current_task_file = state_dir / "current_task.json"
     
     while True:
         try:
-            for task_file in glob.glob(str(inbox / "*.json")):
+            if not check_windows_safety(config):
+                print(f"[{config['WORKER_ID']}] Windows resource pressure high. Throttling.")
+                time.sleep(10)
+                continue
+                
+            for task_file in glob.glob(str(inbox_dir / "*.json")):
                 if task_file.endswith(".claimed"): continue
                 
                 claimed_file = task_file + ".claimed"
@@ -125,7 +152,7 @@ def loop():
                 
                 res = run_task(task, config)
                 
-                out_file = outbox / f"{task['task_id']}_result.json"
+                out_file = outbox_dir / f"{task['task_id']}_result.json"
                 with open(out_file, 'w') as f:
                     json.dump(res, f)
                     

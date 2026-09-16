@@ -4,9 +4,9 @@
     {
       "classification": "ALREADY_ALLOWED",
       "family": "LOCALHOST_HEALTH_CHECKS",
-      "pattern": "^curl\\s+(-[a-zA-Z]+\\s+)?https?://(127\\.0\\.0\\.1|localhost):8088(/api/state)?",
+      "pattern": "^curl\\s+(-[a-zA-Z]+\\s+)?https?://(127\\.0\\.0\\.1|localhost):8080(/api/state)?",
       "persistable": true,
-      "prefix": "curl http://127.0.0.1:8088/api/state",
+      "prefix": "curl http://127.0.0.1:8080/api/state",
       "reason": "Local Visual Studio health and state query",
       "risk_class": "SAFE",
       "safer_equivalent": null
@@ -14,9 +14,9 @@
     {
       "classification": "ALREADY_ALLOWED",
       "family": "LOCALHOST_HEALTH_CHECKS",
-      "pattern": "^open\\s+https?://(127\\.0\\.0\\.1|localhost):8088",
+      "pattern": "^open\\s+https?://(127\\.0\\.0\\.1|localhost):8080",
       "persistable": true,
-      "prefix": "open http://localhost:8088",
+      "prefix": "open http://localhost:8080",
       "reason": "Local browser launch for Studio visual inspection",
       "risk_class": "SAFE",
       "safer_equivalent": null

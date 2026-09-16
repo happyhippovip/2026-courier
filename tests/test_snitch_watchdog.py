@@ -72,7 +72,7 @@ class SnitchWatchdogTests(unittest.TestCase):
     def test_03_studio_server_over_five_minutes_expected_long_running(self):
         """3. Studio server >5 min -> EXPECTED_LONG_RUNNING, no false incident."""
         res = self.watchdog.scan(self.observation(
-            process="python3 scripts/run_visual_studio_server.py --port 8088",
+            process="python3 scripts/run_visual_studio_server.py --port 8080",
             process_type="PERSISTENT_SERVICE",
             elapsed_seconds=3600,
             persistent_service=True,
@@ -194,8 +194,8 @@ class PermissionGuardTests(unittest.TestCase):
 
     def test_01_known_localhost_curl_already_allowed(self):
         """1. Known localhost curl -> ALREADY_ALLOWED."""
-        res_ip = self.guard.audit("curl -s http://127.0.0.1:8088/api/state")
-        res_host = self.guard.audit("curl http://localhost:8088/api/state")
+        res_ip = self.guard.audit("curl -s http://127.0.0.1:8080/api/state")
+        res_host = self.guard.audit("curl http://localhost:8080/api/state")
         self.assertEqual(res_ip["classification"], "ALREADY_ALLOWED")
         self.assertEqual(res_host["classification"], "ALREADY_ALLOWED")
         self.assertEqual(res_ip["existing_rule_match"], "LOCALHOST_HEALTH_CHECKS")

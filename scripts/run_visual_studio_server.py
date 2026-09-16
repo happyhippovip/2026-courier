@@ -34,20 +34,31 @@ APPROVALS_DIR.mkdir(parents=True, exist_ok=True)
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
+from run_chief_commander import ChiefCommander
+from run_bodyguards import BodyguardPoolManager
+
+# These registries enrich the cockpit but are not required to serve it.  Some
+# production deployments intentionally omit them, so their absence must not
+# prevent the core UI and its canonical state views from starting.
 try:
-    from run_chief_commander import ChiefCommander
-    from run_bodyguards import BodyguardPoolManager
     from capability_registry import CapabilityRegistry, SkillRegistry, ConnectorRegistry
+except ImportError:
+    CapabilityRegistry = SkillRegistry = ConnectorRegistry = None
+
+try:
     from standing_objectives import StandingObjectivesRegistry
+except ImportError:
+    StandingObjectivesRegistry = None
+
+try:
     from resource_intelligence import ResourceIntelligenceManager
+except ImportError:
+    ResourceIntelligenceManager = None
+
+try:
     from live_operations_truth_contract import LiveOperationsTruthContract
 except ImportError:
-    from scripts.run_chief_commander import ChiefCommander
-    from scripts.run_bodyguards import BodyguardPoolManager
-    from scripts.capability_registry import CapabilityRegistry, SkillRegistry, ConnectorRegistry
-    from scripts.standing_objectives import StandingObjectivesRegistry
-    from scripts.resource_intelligence import ResourceIntelligenceManager
-    from scripts.live_operations_truth_contract import LiveOperationsTruthContract
+    LiveOperationsTruthContract = None
 
 
 
@@ -56,6 +67,71 @@ def load_json_safe(path: Path) -> dict:
         return json.loads(path.read_text(encoding="utf-8"))
     except Exception:
         return {}
+
+
+def summarize_platform_runtime(data: dict, now: float | None = None) -> dict:
+    """Expose a minimal, read-only host view without task instructions/secrets."""
+    now = time.time() if now is None else now
+    workers = {}
+    for worker_id, raw in (data.get("workers") or {}).items():
+        if not isinstance(raw, dict):
+            continue
+        last_seen = raw.get("last_seen")
+        try:
+            heartbeat_age = max(0.0, now - float(last_seen))
+        except (TypeError, ValueError):
+            heartbeat_age = None
+        current_task = _nonempty_text(raw.get("current_task"))
+        if heartbeat_age is None:
+            status = "UNKNOWN"
+        elif heartbeat_age > 300:
+            status = "STALE"
+        elif current_task:
+            status = "ONLINE_BUSY"
+        elif raw.get("available") is True:
+            status = "ONLINE_IDLE"
+        else:
+            status = "OFFLINE"
+        workers[worker_id] = {
+            "worker_id": worker_id,
+            "platform": _nonempty_text(raw.get("platform")) or "unknown",
+            "capabilities": [str(item) for item in raw.get("capabilities", []) if item],
+            "status": status,
+            "available": raw.get("available") is True,
+            "current_task": current_task,
+            "heartbeat_age_seconds": round(heartbeat_age, 1) if heartbeat_age is not None else None,
+        }
+
+    tasks = []
+    for task_id, raw in (data.get("tasks") or {}).items():
+        if not isinstance(raw, dict):
+            continue
+        tasks.append({
+            "task_id": _nonempty_text(raw.get("task_id")) or str(task_id),
+            "status": _nonempty_text(raw.get("status")) or "UNKNOWN",
+            "worker_id": _nonempty_text(raw.get("worker_id")),
+            "target_agent": _nonempty_text(raw.get("target_agent")),
+            "target_capability": _nonempty_text(raw.get("target_capability")),
+            "mode": _nonempty_text(raw.get("mode")),
+        })
+    return {"workers": workers, "tasks": tasks}
+
+
+def load_platform_runtime_state() -> dict:
+    """Read the canonical installed runtime first, then the repository fixture."""
+    candidates = []
+    configured = os.environ.get("COURIER_RUNTIME_STATE")
+    if configured:
+        candidates.append((Path(configured).expanduser(), "CONFIGURED_RUNTIME"))
+    candidates.extend([
+        (Path.home() / ".courier_runtime/server/state/central_state.json", "INSTALLED_RUNTIME"),
+        (COURIER_DIR / "server/state/central_state.json", "REPOSITORY_FALLBACK"),
+    ])
+    for path, source in candidates:
+        data = load_json_safe(path)
+        if isinstance(data.get("workers"), dict):
+            return {"source": source, **summarize_platform_runtime(data)}
+    return {"source": "UNAVAILABLE", "workers": {}, "tasks": []}
 
 
 def save_json_safe(path: Path, data: dict) -> None:
@@ -713,6 +789,7 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             "schema_version": "2.0",
             "server_time": datetime.datetime.now(datetime.timezone.utc).isoformat(),
             "agents": agents_data,
+            "platform_runtime": load_platform_runtime_state(),
             "snitch_observer": snitch_readiness,
             "snitch_workers": snitch_worker_observations,
             "autonomy_runtime": autonomy_runtime_data,

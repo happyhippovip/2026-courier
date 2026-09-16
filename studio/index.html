@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>2026 Courier // Living Agent HQ Operations Cockpit</title>
-  <link rel="stylesheet" href="style.css?v=110j_live">
+  <link rel="stylesheet" href="style.css?v=112_platform_rails">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -107,6 +107,58 @@
       <button id="btn-zoom-in" class="btn-zoom" title="Zoom In (Scroll Up)">+</button>
       <button id="btn-zoom-reset" class="btn-zoom-reset" title="Reset Camera Overview">RESET</button>
     </div>
+
+    <aside class="platform-rail platform-rail-mac" aria-label="MacBook control plane">
+      <div class="platform-device">
+        <div class="platform-device-icon">⌘</div>
+        <div>
+          <div class="platform-eyebrow">CONTROL PLANE</div>
+          <div class="platform-title">MACBOOK</div>
+          <div class="platform-host-line"><span class="platform-status-dot" id="mac-host-dot"></span><span id="mac-host-status">UNKNOWN</span></div>
+        </div>
+      </div>
+      <div class="platform-host-task" id="mac-host-task">No current machine evidence</div>
+      <div class="platform-system-list">
+        <div class="platform-system-card">
+          <span class="platform-system-icon codex-icon">&lt;/&gt;</span>
+          <div><b>CODEX</b><span id="mac-codex-status">UNKNOWN</span><small id="mac-codex-activity">No current machine evidence</small></div>
+        </div>
+        <div class="platform-system-card">
+          <span class="platform-system-icon github-icon">◆</span>
+          <div><b>GITHUB</b><span id="mac-github-status">UNKNOWN</span><small id="mac-github-activity">No current machine evidence</small></div>
+        </div>
+        <div class="platform-system-card">
+          <span class="platform-system-icon google-icon">✦</span>
+          <div><b>ANTIGRAVITY</b><span id="mac-google-status">UNKNOWN</span><small id="mac-google-activity">No current machine evidence</small></div>
+        </div>
+      </div>
+    </aside>
+
+    <aside class="platform-rail platform-rail-windows" aria-label="Windows execution host">
+      <div class="platform-device">
+        <div class="platform-device-icon windows-device-icon">⊞</div>
+        <div>
+          <div class="platform-eyebrow">EXECUTION HOST</div>
+          <div class="platform-title">WINDOWS PC</div>
+          <div class="platform-host-line"><span class="platform-status-dot" id="windows-host-dot"></span><span id="windows-host-status">UNKNOWN</span></div>
+        </div>
+      </div>
+      <div class="platform-host-task" id="windows-host-task">No current machine evidence</div>
+      <div class="platform-system-list">
+        <div class="platform-system-card">
+          <span class="platform-system-icon codex-icon">&lt;/&gt;</span>
+          <div><b>CODEX</b><span id="windows-codex-status">UNKNOWN</span><small id="windows-codex-activity">No active Windows task</small></div>
+        </div>
+        <div class="platform-system-card">
+          <span class="platform-system-icon github-icon">◆</span>
+          <div><b>GITHUB</b><span id="windows-github-status">UNKNOWN</span><small id="windows-github-activity">No active Windows task</small></div>
+        </div>
+        <div class="platform-system-card">
+          <span class="platform-system-icon google-icon">✦</span>
+          <div><b>GEMINI</b><span id="windows-google-status">UNKNOWN</span><small id="windows-google-activity">No active Windows task</small></div>
+        </div>
+      </div>
+    </aside>
 
     <div class="living-hq-stage view-overview" id="living-hq-stage">
 
@@ -370,6 +422,6 @@
   </div>
 
   <!-- Script Import -->
-  <script type="module" src="studio.js?v=110j_live"></script>
+  <script type="module" src="studio.js?v=112_platform_rails"></script>
 </body>
 </html>

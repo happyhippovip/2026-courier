@@ -42,8 +42,8 @@ PERSISTENT_SERVICE_MARKERS = (
 DEFAULT_MASTERLIST_RULES: list[dict[str, Any]] = [
     # 1. Localhost Health Checks & Studio Lifecycle
     {
-        "pattern": r"^curl\s+(-[a-zA-Z]+\s+)?https?://(127\.0\.0\.1|localhost):8088(/api/state)?",
-        "prefix": "curl http://127.0.0.1:8088/api/state",
+        "pattern": r"^curl\s+(-[a-zA-Z]+\s+)?https?://(127\.0\.0\.1|localhost):8080(/api/state)?",
+        "prefix": "curl http://127.0.0.1:8080/api/state",
         "family": "LOCALHOST_HEALTH_CHECKS",
         "classification": "ALREADY_ALLOWED",
         "risk_class": "SAFE",
@@ -52,8 +52,8 @@ DEFAULT_MASTERLIST_RULES: list[dict[str, Any]] = [
         "reason": "Local Visual Studio health and state query",
     },
     {
-        "pattern": r"^open\s+https?://(127\.0\.0\.1|localhost):8088",
-        "prefix": "open http://localhost:8088",
+        "pattern": r"^open\s+https?://(127\.0\.0\.1|localhost):8080",
+        "prefix": "open http://localhost:8080",
         "family": "LOCALHOST_HEALTH_CHECKS",
         "classification": "ALREADY_ALLOWED",
         "risk_class": "SAFE",

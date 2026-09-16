@@ -29,7 +29,7 @@ def run(task_file):
     payload = json.dumps(task)
     
     # Check for recovery
-    print(f"[GitHub Transport] Checking for existing run with artifact result-{dispatch_id}...")
+    print(f"[GitHub Transport] Checking for existing run with artifact courier-result-{dispatch_id}...")
     rc, out, err = run_cmd(["gh", "run", "list", "--workflow=courier_worker.yml", "--json", "databaseId,status"])
     
     already_triggered = False
@@ -42,7 +42,7 @@ def run(task_file):
                     rc_art, out_art, err_art = run_cmd(["gh", "api", f"/repos/happyhippovip/2026-courier/actions/runs/{rid}/artifacts"])
                     if rc_art == 0:
                         arts = json.loads(out_art).get("artifacts", [])
-                        if any(a["name"] == f"result-{dispatch_id}" for a in arts):
+                        if any(a["name"] == f"courier-result-{dispatch_id}" for a in arts):
                             print(f"[GitHub Transport] Found existing run {rid} for dispatch {dispatch_id}. Skipping trigger.")
                             already_triggered = True
                             break
@@ -63,7 +63,7 @@ def run(task_file):
             return
         print(f"[GitHub Transport] Workflow triggered.")
 
-    print(f"[GitHub Transport] Polling for exact artifact result-{dispatch_id}...")
+    print(f"[GitHub Transport] Polling for exact artifact courier-result-{dispatch_id}...")
     
     timeout = 300
     start = time.time()
@@ -81,7 +81,7 @@ def run(task_file):
         for r in runs:
             if r['status'] in ['completed', 'in_progress']:
                 rid = str(r['databaseId'])
-                dl_cmd = ["gh", "run", "download", rid, "-n", f"result-{dispatch_id}", "-D", f"tmp_artifact_{dispatch_id}"]
+                dl_cmd = ["gh", "run", "download", rid, "-n", f"courier-result-{dispatch_id}", "-D", f"tmp_artifact_{dispatch_id}"]
                 rc_dl, out_dl, err_dl = run_cmd(dl_cmd)
                 
                 if rc_dl == 0:
@@ -92,12 +92,13 @@ def run(task_file):
                     
                     if result_json_path.exists():
                         result_payload = json.loads(result_json_path.read_text(encoding="utf-8"))
+                        result_payload["worker_id"] = task.get("worker_id", "GITHUB-DISPATCHER")
                         http_post_result(result_payload)
                         
                         # Copy canary files to root so the verifier can see them locally
                         # Note: if verifier runs remotely, it needs them downloaded. We download them here.
-                        for canary in tmp_dir.glob("courier_canary_*.txt"):
-                            shutil.copy(canary, ".")
+                        for art_file in tmp_dir.iterdir():
+                            if art_file.is_file(): shutil.copy(art_file, ".")
                             
                         shutil.rmtree(tmp_dir)
                         return

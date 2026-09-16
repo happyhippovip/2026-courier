@@ -9,7 +9,7 @@ import subprocess
 API_URL = os.environ.get("COURIER_SERVER", "http://127.0.0.1:8080").rstrip("/")
 API_KEY = os.environ.get("COURIER_API_KEY")
 HEADERS = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
-WORKER_ID = "GITHUB-DISPATCHER"
+WORKER_ID = os.environ.get("GITHUB_WORKER_ID", "GITHUB-DISPATCHER")
 
 def log(msg):
     print(f"[GitHub Dispatcher] {msg}", flush=True)

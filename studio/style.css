@@ -393,6 +393,151 @@ body.mode-cinematic .living-hq-wrapper {
   transform-origin: center center;
 }
 
+/* Host rails use the side space without resizing or moving the HQ stage. */
+.platform-rail {
+  position: absolute;
+  top: 18px;
+  bottom: 18px;
+  width: clamp(154px, 16vw, 232px);
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  overflow: hidden;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(8, 16, 27, 0.96), rgba(3, 8, 15, 0.90));
+  border: 1px solid rgba(0, 210, 255, 0.36);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.62), inset 0 0 28px rgba(0, 210, 255, 0.05);
+  backdrop-filter: blur(14px);
+}
+
+.platform-rail-mac { left: 14px; border-radius: 4px 14px 14px 4px; }
+.platform-rail-windows { right: 14px; border-radius: 14px 4px 4px 14px; }
+
+.platform-device {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.platform-device-icon {
+  flex: 0 0 48px;
+  width: 48px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #bfeeff;
+  border-radius: 5px 5px 8px 8px;
+  color: #eafaff;
+  font: 800 22px/1 var(--font-sans);
+  background: linear-gradient(145deg, #243443, #090f16);
+  box-shadow: 0 0 18px rgba(0, 210, 255, 0.28);
+}
+
+.windows-device-icon {
+  color: #63b8ff;
+  border-color: #2f9fff;
+  font-size: 27px;
+}
+
+.platform-eyebrow {
+  font: 600 7px/1.2 var(--font-mono);
+  color: var(--text-muted);
+  letter-spacing: 1px;
+}
+
+.platform-title {
+  margin-top: 3px;
+  font: 800 clamp(11px, 1vw, 15px)/1.15 var(--font-orbitron);
+  color: #fff;
+}
+
+.platform-host-line {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 4px;
+  font: 700 8px/1 var(--font-mono);
+  color: var(--text-muted);
+}
+
+.platform-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #66717d;
+  box-shadow: 0 0 7px currentColor;
+}
+
+.platform-status-dot.online-idle { background: var(--border-green); color: var(--border-green); }
+.platform-status-dot.online-busy { background: var(--border-cyan); color: var(--border-cyan); animation: pulse-live 1.2s infinite alternate; }
+.platform-status-dot.stale { background: var(--border-orange); color: var(--border-orange); }
+.platform-status-dot.offline, .platform-status-dot.unknown { background: #65717e; color: #65717e; }
+
+.platform-host-task {
+  min-height: 30px;
+  padding: 7px 8px;
+  border-radius: 5px;
+  background: rgba(0, 210, 255, 0.07);
+  color: #c9eaff;
+  font: 600 8px/1.35 var(--font-mono);
+  overflow-wrap: anywhere;
+}
+
+.platform-system-list { display: flex; flex-direction: column; gap: 7px; }
+
+.platform-system-card {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.platform-system-icon {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  color: #fff;
+  font: 800 10px/1 var(--font-mono);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.codex-icon { background: linear-gradient(145deg, #193f45, #071518); color: #5fffd3; }
+.github-icon { background: linear-gradient(145deg, #2e3340, #090b10); color: #f4f5f7; }
+.google-icon { background: linear-gradient(145deg, #283a82, #131935); color: #8ab4ff; }
+
+.platform-system-card b {
+  display: block;
+  font: 800 9px/1.15 var(--font-orbitron);
+  letter-spacing: 0.4px;
+}
+
+.platform-system-card span:not(.platform-system-icon) {
+  display: block;
+  margin-top: 3px;
+  color: var(--border-cyan);
+  font: 700 7px/1.2 var(--font-mono);
+}
+
+.platform-system-card small {
+  display: -webkit-box;
+  margin-top: 4px;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  color: #a9b8c7;
+  font: 500 7px/1.35 var(--font-sans);
+}
+
 /* 1:1 Reference Artwork Background */
 .room-canvas-art {
   position: absolute;
@@ -585,8 +730,8 @@ body.mode-cinematic .living-hq-wrapper {
 /* Avatar Sprite Icon (2.0x Scaled Characters) */
 .agent-avatar-body {
   position: relative;
-  width: 48px;
-  height: 48px;
+  width: 34px;
+  height: 34px;
   background: radial-gradient(circle, #1c2e3d 0%, #080f16 100%);
   border: 2px solid var(--border-cyan);
   border-radius: 50%;
@@ -598,7 +743,7 @@ body.mode-cinematic .living-hq-wrapper {
 }
 
 .avatar-icon {
-  font-size: 24px;
+  font-size: 17px;
   line-height: 1;
 }
 
@@ -606,8 +751,8 @@ body.mode-cinematic .living-hq-wrapper {
   position: absolute;
   top: -3px;
   left: -3px;
-  width: 48px;
-  height: 48px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   border: 2px solid transparent;
 }
@@ -635,19 +780,19 @@ body.mode-cinematic .living-hq-wrapper {
 
 /* Bodyguards in Leisure Area Styling (1.8x Scale) */
 .living-agent-node.is-bodyguard .agent-avatar-body {
-  width: 44px;
-  height: 44px;
+  width: 31px;
+  height: 31px;
   border-color: var(--border-orange);
   box-shadow: 0 0 14px rgba(255, 153, 0, 0.45);
 }
 
 .living-agent-node.is-bodyguard .avatar-icon {
-  font-size: 20px;
+  font-size: 15px;
 }
 
 .living-agent-node.is-bodyguard .avatar-status-ring {
-  width: 44px;
-  height: 44px;
+  width: 31px;
+  height: 31px;
 }
 
 .living-agent-node.is-bodyguard .agent-nameplate {
@@ -664,19 +809,19 @@ body.mode-cinematic .living-hq-wrapper {
   z-index: 35 !important;
 }
 #node-agent-chief-commander .agent-avatar-body {
-  width: 58px;
-  height: 58px;
+  width: 42px;
+  height: 42px;
   border-color: #ffd700 !important;
   box-shadow: 0 0 22px rgba(255, 215, 0, 0.85) !important;
 }
 #node-agent-chief-commander .avatar-icon {
-  font-size: 30px;
+  font-size: 22px;
 }
 #node-agent-chief-commander .avatar-status-ring {
   top: -4px;
   left: -4px;
-  width: 58px;
-  height: 58px;
+  width: 42px;
+  height: 42px;
 }
 #node-agent-chief-commander .nameplate-title {
   font-size: 8.5px;
@@ -688,19 +833,19 @@ body.mode-cinematic .living-hq-wrapper {
   z-index: 35 !important;
 }
 #node-agent-courier-relay .agent-avatar-body {
-  width: 54px;
-  height: 54px;
+  width: 39px;
+  height: 39px;
   border-color: #00ffff !important;
   box-shadow: 0 0 22px rgba(0, 255, 255, 0.85) !important;
 }
 #node-agent-courier-relay .avatar-icon {
-  font-size: 28px;
+  font-size: 20px;
 }
 #node-agent-courier-relay .avatar-status-ring {
   top: -4px;
   left: -4px;
-  width: 54px;
-  height: 54px;
+  width: 39px;
+  height: 39px;
 }
 #node-agent-courier-relay .nameplate-title {
   font-size: 8px;
@@ -712,19 +857,19 @@ body.mode-cinematic .living-hq-wrapper {
   z-index: 35 !important;
 }
 #node-agent-antigravity-bridge .agent-avatar-body {
-  width: 54px;
-  height: 54px;
+  width: 39px;
+  height: 39px;
   border-color: #00ff88 !important;
   box-shadow: 0 0 22px rgba(0, 255, 136, 0.85) !important;
 }
 #node-agent-antigravity-bridge .avatar-icon {
-  font-size: 28px;
+  font-size: 20px;
 }
 #node-agent-antigravity-bridge .avatar-status-ring {
   top: -4px;
   left: -4px;
-  width: 54px;
-  height: 54px;
+  width: 39px;
+  height: 39px;
 }
 #node-agent-antigravity-bridge .nameplate-title {
   font-size: 8px;
