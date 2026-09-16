@@ -126,6 +126,15 @@ def run_native(task, config):
                 parts = instruction.lower().split(" to ", 1)
                 text_to_echo = instruction[:len(parts[0])].replace("Echo", "").replace("echo", "").strip()
                 filename = instruction[len(parts[0])+4:].split()[0].strip()
+            elif " > " in instruction:
+                parts = instruction.split(" > ", 1)
+                text_to_echo = parts[0].replace("Echo", "").replace("echo", "").strip()
+                # Remove quotes from text_to_echo if they exist
+                if text_to_echo.startswith('"') and text_to_echo.endswith('"'):
+                    text_to_echo = text_to_echo[1:-1]
+                elif text_to_echo.startswith("'") and text_to_echo.endswith("'"):
+                    text_to_echo = text_to_echo[1:-1]
+                filename = parts[1].strip()
             
             if filename:
                 with open(filename, "w") as f:

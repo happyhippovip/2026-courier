@@ -17,7 +17,7 @@ import requests
 REPOSITORY = os.environ.get("GITHUB_REPOSITORY", "happyhippovip/2026-courier")
 WORKFLOW = "courier_worker.yml"
 POLL_SECONDS = 10
-LOCAL_WAIT_SECONDS = int(os.environ.get("GITHUB_WORKER_LOCAL_WAIT_SECONDS", "60"))
+LOCAL_WAIT_SECONDS = int(os.environ.get("GITHUB_WORKER_LOCAL_WAIT_SECONDS", "300"))
 TRANSIENT_HTTP_STATUSES = {408, 429, 500, 502, 503, 504}
 IDENTITY_FIELDS = ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id")
 
@@ -178,5 +178,7 @@ if __name__ == "__main__":
     try:
         raise SystemExit(run(sys.argv[1]))
     except (RuntimeError, ValueError, json.JSONDecodeError) as exc:
+        import traceback
+        traceback.print_exc()
         print(f"GITHUB_WORKER_ERROR={exc}", file=sys.stderr)
         raise SystemExit(1)
