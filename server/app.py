@@ -1,6 +1,7 @@
 import os, json, uuid, time, threading
 from functools import wraps
 from flask import Flask, request, jsonify
+import portalocker
 
 from scripts.integration_contract import ContractError, prepare_task, validate_durable_result
 from scripts.run_chief_commander import ChiefCommander
@@ -101,9 +102,11 @@ def serialize_state_mutation(f):
     return wrapper
 
 def load_state():
-    if os.path.exists(STATE_FILE):
-        for i in range(20):
-            try:
+    LOCK_FILE = STATE_FILE + ".lock"
+    os.makedirs(os.path.dirname(STATE_FILE), exist_ok=True)
+    try:
+        with portalocker.Lock(LOCK_FILE, 'w', timeout=10):
+            if os.path.exists(STATE_FILE):
                 with open(STATE_FILE, 'r') as f:
                     state = json.load(f)
                     
@@ -119,33 +122,32 @@ def load_state():
                 elif schema_version > 2:
                     # Fail closed on unknown future schema
                     print(f"FATAL: Unknown future schema_version {schema_version}. Failing closed to prevent destructive silent reset.")
+                    import sys
                     sys.exit(1)
                     
                 state.setdefault("goals", {})
                 state.setdefault("tasks", {})
                 state.setdefault("workers", {})
                 return state
-            except (PermissionError, IOError, json.JSONDecodeError) as e:
-                if i == 19:
-                    raise
-                time.sleep(0.05)
+    except (portalocker.exceptions.LockException, IOError, json.JSONDecodeError) as e:
+        print(f"Error loading state: {e}")
+        raise
     return {"schema_version": 2, "goals": {}, "tasks": {}, "workers": {}}
 
 def save_state(state):
+    LOCK_FILE = STATE_FILE + ".lock"
     os.makedirs(os.path.dirname(STATE_FILE), exist_ok=True)
     temp_path = f"{STATE_FILE}.tmp"
-    with open(temp_path, 'w') as f:
-        json.dump(state, f, indent=2)
-        f.flush()
-        os.fsync(f.fileno())
-    for i in range(20):
-        try:
+    try:
+        with portalocker.Lock(LOCK_FILE, 'w', timeout=10):
+            with open(temp_path, 'w') as f:
+                json.dump(state, f, indent=2)
+                f.flush()
+                os.fsync(f.fileno())
             os.replace(temp_path, STATE_FILE)
-            break
-        except PermissionError:
-            if i == 19:
-                raise
-            time.sleep(0.05)
+    except portalocker.exceptions.LockException as e:
+        print(f"Error saving state: {e}")
+        raise
 
 @app.route("/health", methods=["GET"])
 def health():
