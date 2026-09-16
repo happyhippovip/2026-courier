@@ -351,6 +351,11 @@ def claim_task():
                         next_task["run_id"] = None
                         next_task["result_id"] = None
                         next_task["target_capability"] = target
+                        # Structured checkpoint fields (Prompt 2) — resume-safe, no CoT
+                        next_task["last_completed_step"] = next_task.get("last_completed_step")
+                        next_task["next_action"] = "EXECUTE"
+                        next_task["blocker"] = None
+                        next_task["artifact_refs"] = next_task.get("artifact_refs", [])
                         try:
                             next_task = prepare_task(next_task)
                         except ContractError as exc:
@@ -398,12 +403,22 @@ def task_result():
             
             if durable_result.get("status") == "SUCCESS":
                 task["status"] = "RESULT_RECEIVED" # wait for independent /verify
+                # Update checkpoint fields on success
+                task["last_completed_step"] = task.get("task_id")
+                task["next_action"] = "VERIFY"
+                task["blocker"] = None
+                task["artifact_refs"] = durable_result.get("artifacts", task.get("artifact_refs", []))
             else:
+                failure_reason = durable_result.get("stderr", "unknown")
                 if task.get("attempts", 1) < 3:
                     task["status"] = "QUEUED" # Retry
                     task["worker_id"] = None
+                    task["next_action"] = "RETRY"
+                    task["blocker"] = failure_reason[:200] if failure_reason else None
                 else:
                     task["status"] = "FAILED_TERMINAL"
+                    task["next_action"] = None
+                    task["blocker"] = f"MAX_ATTEMPTS_REACHED: {failure_reason[:200]}" if failure_reason else "MAX_ATTEMPTS_REACHED"
                 
             goal_id = task["goal_id"]
             if goal_id in state["goals"]:
@@ -541,7 +556,7 @@ def resume_task(task_id):
         if "workflow_plan" not in goal: continue
         for step in goal["workflow_plan"]:
             if step["task_id"] == task_id:
-                if step["status"] not in ["HUMAN_REQUIRED", "FAILED_VERIFICATION", "FAILED_TERMINAL"]:
+                if step["status"] not in ["HUMAN_REQUIRED", "FAILED_VERIFICATION", "FAILED_TERMINAL", "WAITING_PROVIDER", "BLOCKED_TRANSIENT"]:
                     return jsonify({"error": f"Task cannot be resumed from status {step['status']}"}), 400
                 
                 if action == "retry":
@@ -562,3 +577,58 @@ def resume_task(task_id):
                     return jsonify({"error": "Unknown action"}), 400
                     
     return jsonify({"error": "Task not found"}), 404
+
+@app.route('/tasks/<task_id>/provider_wait', methods=['POST'])
+@require_auth
+@serialize_state_mutation
+def provider_wait(task_id):
+    """Worker reports a provider/rate-limit interruption.
+
+    Maps to WAITING_PROVIDER (transient, auto-resumable) or BLOCKED_TRANSIENT.
+    Does NOT increment attempt_id — the same dispatch resumes when provider returns.
+    """
+    data = request.get_json(silent=True) or {}
+    reason = data.get("reason", "PROVIDER_UNAVAILABLE")
+    wait_type = data.get("wait_type", "WAITING_PROVIDER")
+    worker_id = data.get("worker_id")
+    state = load_state()
+
+    task = state["tasks"].get(task_id)
+    if not task:
+        return jsonify({"error": "Task not found"}), 404
+    if task.get("status") != "DISPATCHED":
+        return jsonify({"error": f"Task not in DISPATCHED state (is {task.get('status')})"}), 409
+    if task.get("worker_id") != worker_id:
+        return jsonify({"error": "Worker mismatch"}), 403
+
+    # Only allow canonical transient wait states
+    if wait_type not in ("WAITING_PROVIDER", "BLOCKED_TRANSIENT"):
+        wait_type = "WAITING_PROVIDER"
+
+    task["status"] = wait_type
+    task["blocker"] = reason[:200] if reason else "PROVIDER_UNAVAILABLE"
+    task["next_action"] = "WAIT_THEN_RESUME"
+    # Preserve attempt_id and dispatch_id — no new attempt
+    task["provider_wait_since"] = time.time()
+
+    # Sync to workflow_plan
+    goal = state["goals"].get(task.get("goal_id"))
+    if goal and "workflow_plan" in goal:
+        for step in goal["workflow_plan"]:
+            if step.get("task_id") == task_id:
+                step["status"] = task["status"]
+                step["blocker"] = task["blocker"]
+
+    # Release worker so other tasks can proceed
+    if worker_id in state["workers"]:
+        state["workers"][worker_id]["current_task"] = None
+        state["workers"][worker_id]["available"] = True
+
+    save_state(state)
+    return jsonify({
+        "status": task["status"],
+        "task_id": task_id,
+        "attempt_id": task.get("attempt_id"),
+        "dispatch_id": task.get("dispatch_id"),
+        "blocker": task["blocker"],
+    })
