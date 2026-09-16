@@ -106,7 +106,11 @@ def load_state():
                 with open(STATE_FILE, 'r') as f:
                     state = json.load(f)
                     
-                schema_version = state.get("schema_version", 1)
+                schema_version_val = state.get("schema_version", 1)
+                try:
+                    schema_version = int(float(schema_version_val))
+                except (ValueError, TypeError):
+                    schema_version = 1
                 
                 if schema_version == 1:
                     # Migrate 1 -> 2 preserving task identity/state
