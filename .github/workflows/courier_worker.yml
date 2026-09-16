@@ -30,7 +30,7 @@ jobs:
     runs-on: ${{ fromJSON(github.event.inputs.runner_label) }}
     steps:
       - name: Bridge Task to Native Daemon
-        shell: pwsh
+        shell: powershell
         run: |
           $taskId = $env:TASK_ID
           $goalId = $env:GOAL_ID
