@@ -35,7 +35,8 @@ HEADERS = {
 def register_worker(worker_id):
     req = urllib.request.Request(f"{API_URL}/workers/register", method="POST")
     for k, v in HEADERS.items(): req.add_header(k, v)
-    data = json.dumps({"worker_id": worker_id, "platform": "windows", "capabilities": ["windows"]}).encode("utf-8")
+    cost_class = os.environ.get("WORKER_COST_CLASS", "low")
+    data = json.dumps({"worker_id": worker_id, "platform": "windows", "capabilities": ["windows"], "cost_class": cost_class}).encode("utf-8")
     try:
         urllib.request.urlopen(req, data=data, timeout=10)
         return True

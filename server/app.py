@@ -43,6 +43,9 @@ def set_task_status(task, new_status):
         raise ValueError(f"Invalid task status: {new_status!r}. Valid: {sorted(VALID_TASK_STATUSES)}")
     task["status"] = new_status
 
+# P13 — Canonical cost ordering for cheapest-qualified routing.
+COST_ORDER = {"free": 0, "low": 1, "medium": 2, "high": 3}
+
 STATE_LOCK = threading.RLock()
 
 def require_auth(f):
@@ -296,9 +299,29 @@ def claim_task():
     for goal_id, goal in state["goals"].items():
         if goal["status"] == "ACTIVE" and "workflow_plan" in goal:
             idx = goal.get("current_step_index", 0)
-            if idx < len(goal["workflow_plan"]):
-                next_task = goal["workflow_plan"][idx]
-                if next_task["status"] == "QUEUED":
+            # P12 — Ready-set recomputation: if the step at current_step_index
+            # is blocked (WAITING_PROVIDER/BLOCKED_TRANSIENT), scan forward to
+            # find a QUEUED step with a *different* target_agent so unrelated
+            # work is not frozen by a provider wait.
+            next_task = None
+            scan_idx = idx
+            blocked_target = None
+            while scan_idx < len(goal["workflow_plan"]):
+                candidate = goal["workflow_plan"][scan_idx]
+                if candidate["status"] == "QUEUED":
+                    cand_target = candidate.get("target_agent", "linux").lower()
+                    if blocked_target is None or cand_target != blocked_target:
+                        next_task = candidate
+                        idx = scan_idx
+                        break
+                elif candidate["status"] in ("WAITING_PROVIDER", "BLOCKED_TRANSIENT"):
+                    blocked_target = candidate.get("target_agent", "linux").lower()
+                    scan_idx += 1
+                    continue
+                else:
+                    break  # DISPATCHED or other active status → cannot skip
+                scan_idx += 1
+            if next_task is not None and next_task["status"] == "QUEUED":
                     target = next_task.get("target_agent", "linux").lower()
                     
                     matched = False
@@ -322,13 +345,8 @@ def claim_task():
                                 if now - other_w.get("last_seen", 0) > 300: continue
                                 
                                 other_cost = other_w.get("cost_class", "high")
-                                # is other cheaper?
-                                if worker_cost == "high" and other_cost in ("free", "low", "medium"):
-                                    is_cheaper = True
-                                elif worker_cost == "medium" and other_cost in ("free", "low"):
-                                    is_cheaper = True
-                                else:
-                                    is_cheaper = False
+                                # P13 — use COST_ORDER for clean comparison
+                                is_cheaper = COST_ORDER.get(other_cost, 3) < COST_ORDER.get(worker_cost, 3)
                                     
                                 if is_cheaper:
                                     # Is other qualified?
@@ -586,27 +604,49 @@ def resume_task(task_id):
                 
                 # Also update the canonical task in state["tasks"]
                 task = state["tasks"].get(task_id, step)
+                prior_status = task.get("status", step["status"])
 
                 if action == "retry":
-                    set_task_status(task, "QUEUED")
-                    step["status"] = "QUEUED"
+                    # P11/P14 — Transport-retry vs real re-execution:
+                    # WAITING_PROVIDER / BLOCKED_TRANSIENT = same attempt, preserve identity
+                    # HUMAN_REQUIRED / FAILED_* = real re-execution, new attempt via claim
+                    if prior_status in ("WAITING_PROVIDER", "BLOCKED_TRANSIENT"):
+                        # Transport retry: same attempt_id, same dispatch_id
+                        # Go back to DISPATCHED so the same worker (or another) can resume
+                        set_task_status(task, "DISPATCHED")
+                        step["status"] = "DISPATCHED"
+                        task["next_action"] = "EXECUTE"
+                        task["blocker"] = None
+                        task.pop("provider_wait_since", None)
+                    else:
+                        # Real re-execution: clear identity, will get new attempt on claim
+                        set_task_status(task, "QUEUED")
+                        step["status"] = "QUEUED"
+                        task["worker_id"] = None
+                        step["worker_id"] = None
+                        task["next_action"] = "DISPATCH"
+                        task["blocker"] = None
+                        # Release previous worker ownership
+                        prev_worker = task.get("worker_id")
+                        if prev_worker and prev_worker in state["workers"]:
+                            w = state["workers"][prev_worker]
+                            if w.get("current_task") == task_id:
+                                w["current_task"] = None
+                                w["available"] = True
+
                     goal["status"] = "ACTIVE"
                     if "instruction_override" in data:
                         step["instruction"] = data["instruction_override"]
                         task["instruction"] = data["instruction_override"]
-                    # Release previous worker ownership
-                    prev_worker = task.get("worker_id")
-                    task["worker_id"] = None
-                    step["worker_id"] = None
-                    task["next_action"] = "DISPATCH"
-                    task["blocker"] = None
-                    if prev_worker and prev_worker in state["workers"]:
-                        w = state["workers"][prev_worker]
-                        if w.get("current_task") == task_id:
-                            w["current_task"] = None
-                            w["available"] = True
                     save_state(state)
-                    return jsonify({"status": "RESUMED", "task_id": task_id, "goal_id": goal_id})
+                    return jsonify({
+                        "status": "RESUMED",
+                        "task_id": task_id,
+                        "goal_id": goal_id,
+                        "attempt_id": task.get("attempt_id"),
+                        "dispatch_id": task.get("dispatch_id"),
+                        "resume_type": "TRANSPORT_RETRY" if prior_status in ("WAITING_PROVIDER", "BLOCKED_TRANSIENT") else "RE_EXECUTION",
+                    })
                 elif action == "force_success":
                     set_task_status(task, "RESULT_RECEIVED")
                     step["status"] = "RESULT_RECEIVED"
