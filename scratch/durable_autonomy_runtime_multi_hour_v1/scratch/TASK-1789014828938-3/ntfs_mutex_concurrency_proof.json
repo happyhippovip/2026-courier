@@ -1,0 +1,9 @@
+{
+  "test": "NTFS_MUTEX_CONCURRENCY",
+  "workers": 4,
+  "increments_per_worker": 10,
+  "expected_total": 40,
+  "actual_total": 40,
+  "lost_updates": 0,
+  "status": "PASSED"
+}

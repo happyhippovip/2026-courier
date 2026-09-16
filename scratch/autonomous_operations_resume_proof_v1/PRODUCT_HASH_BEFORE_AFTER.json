@@ -1,0 +1,81 @@
+{
+  "timestamp": "2026-09-10T07:16:30.910Z",
+  "candidate_dir": "money_factory/first_eur5_fast_path/RELEASE_CANDIDATE_V1",
+  "total_files_checked": 12,
+  "all_hashes_identical": true,
+  "product_mutated_by_autonomous_mission": false,
+  "files": [
+    {
+      "file": "DEMO/DEMO_EXPECTED_OUTPUT.txt",
+      "recorded_sha256": "a07aa75201da8bbbaece7d690902cb93530c150929a39b00d44497f3c7f2f88b",
+      "current_sha256": "a07aa75201da8bbbaece7d690902cb93530c150929a39b00d44497f3c7f2f88b",
+      "matches": true
+    },
+    {
+      "file": "DEMO/DEMO_README.md",
+      "recorded_sha256": "272d1034bcbaac36615b7bee4ef28eee10585f9ba4f13948b98234ac64bd013a",
+      "current_sha256": "272d1034bcbaac36615b7bee4ef28eee10585f9ba4f13948b98234ac64bd013a",
+      "matches": true
+    },
+    {
+      "file": "DEMO/workspace/.cursorrules",
+      "recorded_sha256": "240540ce7f71b6f22a3229e673db93863972dc156ec5d5656e39a5f2835cafc4",
+      "current_sha256": "240540ce7f71b6f22a3229e673db93863972dc156ec5d5656e39a5f2835cafc4",
+      "matches": true
+    },
+    {
+      "file": "DEMO/workspace/.gemini/rules/coding_style.md",
+      "recorded_sha256": "52c6b932cfef38e1210b66291d988e02501402b484733161da06ea9e1fe3b6c1",
+      "current_sha256": "52c6b932cfef38e1210b66291d988e02501402b484733161da06ea9e1fe3b6c1",
+      "matches": true
+    },
+    {
+      "file": "FAQ.md",
+      "recorded_sha256": "ba8be196bf5d9c320201603c271f9222b624345a7cec8bbb5112eb9bb11851ba",
+      "current_sha256": "ba8be196bf5d9c320201603c271f9222b624345a7cec8bbb5112eb9bb11851ba",
+      "matches": true
+    },
+    {
+      "file": "FINAL_HUMAN_GATE_CARD.md",
+      "recorded_sha256": "28274b5eea9ffac4bdcd4ebf2763e00bb1d68f56ae7a80f188c564043afa736f",
+      "current_sha256": "28274b5eea9ffac4bdcd4ebf2763e00bb1d68f56ae7a80f188c564043afa736f",
+      "matches": true
+    },
+    {
+      "file": "LONG_DESCRIPTION.md",
+      "recorded_sha256": "153e4a102578817d4aab8d87fb2f8d8adf9656ec3afc8777caedbdf848e194f5",
+      "current_sha256": "153e4a102578817d4aab8d87fb2f8d8adf9656ec3afc8777caedbdf848e194f5",
+      "matches": true
+    },
+    {
+      "file": "PRICE_EXPERIMENT.md",
+      "recorded_sha256": "df7dccf4ca65a2d9672501ad4587ab291c996a42432f43f94970e5848a68fb22",
+      "current_sha256": "df7dccf4ca65a2d9672501ad4587ab291c996a42432f43f94970e5848a68fb22",
+      "matches": true
+    },
+    {
+      "file": "PRODUCT_PACKAGE.zip",
+      "recorded_sha256": "f54d489390a874bd093eee2cd2268f2fc20768cf386ab90943ad5f33d57b7a2d",
+      "current_sha256": "f54d489390a874bd093eee2cd2268f2fc20768cf386ab90943ad5f33d57b7a2d",
+      "matches": true
+    },
+    {
+      "file": "PRODUCT_TITLE.txt",
+      "recorded_sha256": "5ccb5d5016d7e22ab8e8b30be087eceb752dfdfba375e59d371ca6379697380e",
+      "current_sha256": "5ccb5d5016d7e22ab8e8b30be087eceb752dfdfba375e59d371ca6379697380e",
+      "matches": true
+    },
+    {
+      "file": "SHORT_DESCRIPTION.md",
+      "recorded_sha256": "31d31493cee783b5a7986fa2bb074f6bf8cfabfaecce7bbc9ff93374a4b2e26f",
+      "current_sha256": "31d31493cee783b5a7986fa2bb074f6bf8cfabfaecce7bbc9ff93374a4b2e26f",
+      "matches": true
+    },
+    {
+      "file": "SHA256SUMS.txt",
+      "recorded_sha256": "71fff6a82dc7b64530ff40c2cce8b4ca2fe5c2dc04e6639793f73f9cb891e9db",
+      "current_sha256": "71fff6a82dc7b64530ff40c2cce8b4ca2fe5c2dc04e6639793f73f9cb891e9db",
+      "matches": true
+    }
+  ]
+}

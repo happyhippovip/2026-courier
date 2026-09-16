@@ -1,0 +1,6 @@
+{
+  "test": "MUTATION_BORDER_GUARD_BYPASS",
+  "unstamped_rejected": true,
+  "illegal_capability_rejected": true,
+  "status": "PASSED"
+}

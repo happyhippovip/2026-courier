@@ -1,0 +1,44 @@
+[
+  {
+    "process_lease_id": "LEASE-1789029986710-F33219",
+    "task_id": "TASK-AUTO-001-RESOLVE",
+    "task_version": 1,
+    "goal_id": "GOAL-1789029986706",
+    "worker_id": "WORKER-LOCAL-DETERMINISTIC",
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 608,
+    "command": "courier_runtime --execute-task",
+    "process_fingerprint": "2be6d32a46bd1aff1f1e8f059627cc2affff9274d618d7e79c05f14c11c651a3",
+    "command_fingerprint": "aac9a78be1f71f6fbbc1a1928fe0c034d30acd57bf8d4e289aa8658d693d5da6",
+    "task_token": "TOKEN-TASK-AUTO-001-RESOLVE-1789029986710",
+    "start_time_epoch": 1789029986710,
+    "purpose": "WORK-RESOLVE-audit.txt",
+    "started_at": "2026-09-10T08:46:26.710Z",
+    "last_heartbeat_at": "2026-09-10T08:46:26.710Z",
+    "last_progress_at": "2026-09-10T08:46:26.717Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "Task executed and verified clean",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T08:46:26.710Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T08:46:26.718Z",
+        "status": "PROGRESSING",
+        "note": "Progress confirmed via RESULT_CUSTOMS_ACCEPTED"
+      },
+      {
+        "timestamp": "2026-09-10T08:46:26.723Z",
+        "status": "COMPLETED",
+        "note": "Task executed and verified clean"
+      }
+    ]
+  }
+]

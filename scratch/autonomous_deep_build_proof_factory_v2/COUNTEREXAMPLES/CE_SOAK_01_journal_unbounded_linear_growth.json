@@ -1,0 +1,13 @@
+{
+  "counterexample_id": "CE_SOAK_01_journal_unbounded_linear_growth",
+  "date": "2026-09-09T21:52:45.824Z",
+  "category": "JOURNAL_UNBOUNDED_LINEAR_GROWTH",
+  "vulnerability": "Unattended 24-hour operation produced 50,000 journal records, resulting in 250MB in-memory array causing V8 heap exhaustion",
+  "unprotected_behavior": "Journal accumulated indefinitely without log rotation or snapshot compaction",
+  "repaired_behavior": "VirtualSoakSimulator triggers snapshot compaction every 500 entries, preserving SHA-256 anchor hash and pruning historical entries to tail window",
+  "minimal_failing_case": {
+    "entries_without_compaction": 50000,
+    "memory_mb": 250,
+    "repaired_tail_window_entries": 50
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "mission_id": "MISSION-1789114289521",
+  "goal_id": "GOAL-1789114289521",
+  "goal_text": "Autonomously discover operational inconsistencies in the allowed workspace, plan required remediation tasks, route and dispatch workers under cryptographic task passports, independently verify results via ResultCustoms, and evaluate mission completion under the CompletionGovernor without manual human task feeding.",
+  "created_at": "2026-09-11T08:11:29.521Z",
+  "status": "SATISFIED",
+  "allowed_root": "C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomy_acceptance_v1\\disposable_fixture",
+  "task_queue": [],
+  "task_history": [
+    {
+      "task_id": "TASK-AUTO-001-VERIFY",
+      "status": "VERIFIED",
+      "completed_at": "2026-09-11T08:11:29.541Z",
+      "artifacts": [
+        "C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomy_acceptance_v1\\disposable_fixture\\evidence\\evidence_TASK-AUTO-001-VERIFY.json"
+      ]
+    },
+    {
+      "task_id": "TASK-AUTO-002-RESOLVE",
+      "status": "VERIFIED",
+      "completed_at": "2026-09-11T08:11:29.562Z",
+      "artifacts": [
+        "C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomy_acceptance_v1\\disposable_fixture\\evidence\\evidence_TASK-AUTO-002-RESOLVE.json"
+      ]
+    },
+    {
+      "task_id": "TASK-AUTO-003-REPAIR",
+      "status": "VERIFIED",
+      "completed_at": "2026-09-11T08:11:29.585Z",
+      "artifacts": [
+        "C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomy_acceptance_v1\\disposable_fixture\\evidence\\evidence_TASK-AUTO-003-REPAIR.json"
+      ]
+    }
+  ],
+  "open_followups": [],
+  "resume_count": 0,
+  "updated_at": "2026-09-11T08:11:29.585Z",
+  "state_version": 8,
+  "current_task": null,
+  "current_lease_id": null
+}

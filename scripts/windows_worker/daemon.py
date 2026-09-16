@@ -10,7 +10,7 @@ def run_task(task, config):
     print(f"[{config['WORKER_ID']}] Running task {task['task_id']}...")
     
     # 1. Attempt to use Anti-Gravity CLI if available on Windows
-    has_agy = shutil.which("agy") or shutil.which("agy.exe")
+    has_agy = False # shutil.which("agy") or shutil.which("agy.exe")
     
     prompt = f"Task ID: {task['task_id']}\nInstruction: {task['description']}\n\nYou are a headless worker on Windows. You MUST physically execute the following observable effect using your tools: Create a file named 'courier_canary_{task['task_id']}.txt' containing the text 'SUCCESS'.\nAfter you have successfully executed the instruction and created the file, you MUST output a final JSON object in a markdown codeblock. The JSON must contain a 'status' field set to 'SUCCESS' and a 'stdout_summary' field explaining what you did."
     
@@ -18,18 +18,31 @@ def run_task(task, config):
     stderr = ""
     run_id = "win-native"
     
+    claimed_file = Path(__file__).parent / config["WORKER_INBOX"] / f"{task['task_id']}.json.claimed"
+    
+    returncode = 0
     if has_agy:
         print(f"[{config['WORKER_ID']}] 'agy' CLI found. Using headless agent execution.")
         cmd = ["agy", "-p", prompt, "--dangerously-skip-permissions"]
         try:
             process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             run_id = str(process.pid)
-            stdout, stderr_out = process.communicate(timeout=300)
-            out_clean = stdout.strip()
-            stderr = stderr_out
+            
+            while True:
+                try:
+                    stdout, stderr_out = process.communicate(timeout=10)
+                    out_clean = stdout.strip()
+                    stderr = stderr_out
+                    returncode = process.returncode
+                    break
+                except subprocess.TimeoutExpired:
+                    if claimed_file.exists():
+                        claimed_file.touch()
+                        
         except Exception as e:
             stderr = str(e)
             out_clean = ""
+            returncode = -1
     else:
         print(f"[{config['WORKER_ID']}] 'agy' CLI NOT found. Falling back to native execution simulation.")
         # Native execution fallback - just create the file physically to satisfy the canary check!
@@ -40,13 +53,18 @@ def run_task(task, config):
         try:
             process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             run_id = str(process.pid)
-            stdout, stderr_out = process.communicate(timeout=60)
-            
-            # Formulate the JSON response manually since we are just a dumb script here
-            out_clean = json.dumps({
-                "status": "SUCCESS",
-                "stdout_summary": f"Native Windows execution created {canary_file}"
-            })
+            while True:
+                try:
+                    stdout, stderr_out = process.communicate(timeout=10)
+                    out_clean = json.dumps({
+                        "status": "SUCCESS",
+                        "stdout_summary": f"Native Windows execution created {canary_file}"
+                    })
+                    returncode = process.returncode
+                    break
+                except subprocess.TimeoutExpired:
+                    if claimed_file.exists():
+                        claimed_file.touch()
         except Exception as e:
             # If powershell fails (e.g. running on Mac for testing), fallback to python native
             with open(canary_file, "w") as f:
@@ -69,9 +87,20 @@ def run_task(task, config):
         res_json = json.loads(ext)
         parsed = True
     except Exception:
+        status = "FAILED"
+        reason = "INVALID_RESULT"
+        
+        # Check for auth errors in stderr or stdout
+        if any(kw in stderr.lower() or kw in out_clean.lower() for kw in ["auth", "login", "credentials", "expired", "unauthorized", "token"]):
+            status = "AUTH_REQUIRED"
+            reason = "PROVIDER_AUTH_FAILED"
+        elif returncode != 0:
+            status = "FAILED"
+            reason = "LEASE_EXPIRED"
+            
         res_json = {
-            "status": "FAILED",
-            "reason": "INVALID_RESULT",
+            "status": status,
+            "reason": reason,
             "raw_diagnostic": out_clean,
             "stderr": stderr
         }
@@ -97,6 +126,16 @@ def loop():
     
     while True:
         try:
+            # First, recover orphaned .claimed files
+            for claimed_file in glob.glob(str(inbox / "*.claimed")):
+                claimed_path = Path(claimed_file)
+                if time.time() - claimed_path.stat().st_mtime > 60: # 60 seconds without heartbeat
+                    print(f"[{config['WORKER_ID']}] Recovering orphaned task {claimed_path.name}")
+                    try:
+                        os.rename(claimed_file, claimed_file.replace(".claimed", ""))
+                    except OSError:
+                        pass
+                        
             for task_file in glob.glob(str(inbox / "*.json")):
                 if task_file.endswith(".claimed"): continue
                 

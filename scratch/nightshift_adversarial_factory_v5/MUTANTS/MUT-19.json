@@ -1,0 +1,5 @@
+{
+  "id": "MUT-19",
+  "name": "allow double execution under restart",
+  "status": "KILLED"
+}

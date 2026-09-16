@@ -1,0 +1,52 @@
+[
+  {
+    "claim_id": "CX-SIGMA-AUDIT-001",
+    "omega_claim": "Decision engine stall bypass due to telemetry drop",
+    "file": "supervisor/decision_engine.js",
+    "lines": "42-43",
+    "evidence": "stallPolicy.evaluateProcessState is invoked with hardcoded hasActiveSubprocesses: false and cpuActivityDetected: false",
+    "classification": "CONFIRMED_IN_CURRENT_SOURCE",
+    "reproducible_in_test": true,
+    "severity": "P1"
+  },
+  {
+    "claim_id": "CX-SIGMA-AUDIT-002",
+    "omega_claim": "Path-only writer collision between different task IDs",
+    "file": "supervisor/no_stacking.js",
+    "lines": "31-32",
+    "evidence": "Loop checks exclusively lease.task_id === task_id, omitting working path, resource locks, or file tree boundaries",
+    "classification": "CONFIRMED_IN_CURRENT_SOURCE",
+    "reproducible_in_test": true,
+    "severity": "P0"
+  },
+  {
+    "claim_id": "CX-SIGMA-AUDIT-003",
+    "omega_claim": "Capability lattice absence in safety interceptor",
+    "file": "money_factory/safety_gates.js",
+    "lines": "21-58",
+    "evidence": "SafetyGateManager uses a flat list of 14 string literals; operations outside this set bypass interceptor with allowed: true",
+    "classification": "CONFIRMED_IN_CURRENT_SOURCE",
+    "reproducible_in_test": true,
+    "severity": "P0"
+  },
+  {
+    "claim_id": "CX-SIGMA-AUDIT-004",
+    "omega_claim": "Wrapper process orphaning and single-PID tracking",
+    "file": "supervisor/reconciliation.js",
+    "lines": "43-79",
+    "evidence": "livePids.includes(lease.pid) only tests the registered wrapper PID, losing track of active grandchild worker processes on Windows",
+    "classification": "CONFIRMED_IN_CURRENT_SOURCE",
+    "reproducible_in_test": true,
+    "severity": "P1"
+  },
+  {
+    "claim_id": "CX-SIGMA-AUDIT-005",
+    "omega_claim": "TOCTOU dispatch race in coordinator execution",
+    "file": "chief/coordinator.py",
+    "lines": "212-237",
+    "evidence": "execute_local_headless_dispatch inspects pending dispatches but only marks dispatched AFTER 120s subprocess completes",
+    "classification": "CONFIRMED_IN_CURRENT_SOURCE",
+    "reproducible_in_test": true,
+    "severity": "P1"
+  }
+]

@@ -1,0 +1,10 @@
+{
+  "test": "HIERARCHICAL_SUBPATH_COLLISION",
+  "parent_lock": {
+    "acquired": false,
+    "conflicting_task_id": "TASK-1789015730751-25",
+    "conflicting_path": "c:/users/lol/2026-workspace/courier/scratch/durable_autonomy_runtime_multi_hour_v1/scratch/task-1789015730751-25"
+  },
+  "child_collision_prevented": false,
+  "status": "FAILED"
+}

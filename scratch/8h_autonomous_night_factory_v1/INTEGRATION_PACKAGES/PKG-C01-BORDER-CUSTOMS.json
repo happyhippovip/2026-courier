@@ -1,0 +1,25 @@
+{
+  "package_id": "PKG-C01-BORDER-CUSTOMS",
+  "title": "Border Guard & Result Customs Deliverable Gates",
+  "problem": "Tasks and deliverables lack tamper-evident cryptographic binding, risking scope creep and fabricated test passes.",
+  "evidence": "Verified in WS6 (EXP-WS6-BG-001) and WS7 (EXP-WS7-CUSTOMS-001). Mutants MUT-09 and MUT-10 killed.",
+  "current_source_location": "chief/control_plane.py, chief/coordinator.py",
+  "proposed_change_boundary": "Add HMAC passport sealing outbound and deliverable artifact verification inbound.",
+  "files_likely_affected": [
+    "chief/control_plane.py",
+    "chief/validator.py",
+    "supervisor/chief_envelope.js"
+  ],
+  "migration_impact": "New HMAC key generation required; unsigned legacy tasks must be re-dispatched.",
+  "rollback": "Accept legacy unsigned passports with warning.",
+  "targeted_tests": [
+    "test_border_guard.js",
+    "test_result_customs.js"
+  ],
+  "independent_verifier": "Cryptographic HMAC validator.",
+  "known_risks": "Network clock skew > 5s may invalidate time-bound tokens.",
+  "mac_dependency": false,
+  "human_gate_dependency": false,
+  "recommended_integration_order": 5,
+  "stop_condition": "Acceptance of any deliverable with mismatched task version or non-zero exit code."
+}

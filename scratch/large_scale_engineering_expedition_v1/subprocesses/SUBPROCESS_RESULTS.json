@@ -1,0 +1,11 @@
+{
+  "test": "SUBPROCESS_TREE_ORPHAN_RECOVERY",
+  "wrapper_pid": 768,
+  "grandchild_pid": 14164,
+  "descendants_tracked": [
+    14164
+  ],
+  "orphan_detected": true,
+  "cleanly_reaped": true,
+  "status": "PASSED"
+}

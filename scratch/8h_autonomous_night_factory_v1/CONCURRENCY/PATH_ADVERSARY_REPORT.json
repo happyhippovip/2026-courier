@@ -1,0 +1,64 @@
+[
+  {
+    "name": "Dim 1: Exact Path Clashing",
+    "passed": true,
+    "detail": {
+      "acquired": false,
+      "reason": "EXACT_COLLISION",
+      "conflictPath": "c:\\workspace\\data\\file.txt"
+    }
+  },
+  {
+    "name": "Dim 2: Windows Case Folding Collision",
+    "passed": true,
+    "detail": {
+      "acquired": false,
+      "reason": "EXACT_COLLISION",
+      "conflictPath": "c:\\workspace\\data\\repo"
+    }
+  },
+  {
+    "name": "Dim 3: Relative Dot Segment Bypass Attempt",
+    "passed": true,
+    "detail": {
+      "acquired": false,
+      "reason": "EXACT_COLLISION",
+      "conflictPath": "c:\\workspace\\data\\sub"
+    }
+  },
+  {
+    "name": "Dim 4: Trailing Slash Divergence",
+    "passed": true,
+    "detail": {
+      "acquired": false,
+      "reason": "EXACT_COLLISION",
+      "conflictPath": "c:\\workspace\\data\\dir"
+    }
+  },
+  {
+    "name": "Dim 5: Parent Locking Blocks Child Writing",
+    "passed": true,
+    "detail": {
+      "acquired": false,
+      "reason": "ANCESTOR_COLLISION",
+      "conflictPath": "c:\\workspace\\courier"
+    }
+  },
+  {
+    "name": "Dim 6: Child Locking Blocks Parent Exclusive Lock",
+    "passed": true,
+    "detail": {
+      "acquired": false,
+      "reason": "DESCENDANT_COLLISION",
+      "conflictPath": "c:\\workspace\\project\\src\\index.js"
+    }
+  },
+  {
+    "name": "Dim 7: Unrelated Parallel Workspaces Permitted",
+    "passed": true,
+    "detail": {
+      "acquired": true,
+      "canonicalPath": "c:\\workspace\\moduleb"
+    }
+  }
+]

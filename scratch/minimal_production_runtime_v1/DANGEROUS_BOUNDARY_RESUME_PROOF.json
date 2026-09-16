@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-09-10T08:53:55.920Z",
+  "target_entrypoint": "bin/courier_runtime.js",
+  "dangerous_breakpoint": "DISPATCH_EVIDENCE (lease granted, lock acquired, worker not closed)",
+  "process_1_interrupted": true,
+  "process_2_reconciliation": {
+    "reconcile_boot_executed": true,
+    "orphan_lease_fenced": true,
+    "blind_duplicate_redispatch_prevented": true,
+    "exit_clean": true
+  },
+  "verdict": "DANGEROUS_BOUNDARY_RESUME_PROVEN"
+}

@@ -1,0 +1,176 @@
+{
+  "total_packages": 20,
+  "acyclic": true,
+  "packages": [
+    {
+      "id": "PKG-001",
+      "name": "TASK_STAMP",
+      "deps": []
+    },
+    {
+      "id": "PKG-006",
+      "name": "BORDER_GUARD",
+      "deps": [
+        "PKG-001"
+      ]
+    },
+    {
+      "id": "PKG-002",
+      "name": "WORKER_LEASE",
+      "deps": [
+        "PKG-001",
+        "PKG-006"
+      ]
+    },
+    {
+      "id": "PKG-003",
+      "name": "PROCESS_LEASE",
+      "deps": [
+        "PKG-002"
+      ]
+    },
+    {
+      "id": "PKG-004",
+      "name": "NO_STACKING",
+      "deps": [
+        "PKG-001",
+        "PKG-002"
+      ]
+    },
+    {
+      "id": "PKG-005",
+      "name": "FOLLOW_UP_INBOX",
+      "deps": [
+        "PKG-001"
+      ]
+    },
+    {
+      "id": "PKG-013",
+      "name": "LOGICAL_WORK_IDENTITY",
+      "deps": [
+        "PKG-001"
+      ]
+    },
+    {
+      "id": "PKG-007",
+      "name": "RESULT_CUSTOMS",
+      "deps": [
+        "PKG-001",
+        "PKG-006"
+      ]
+    },
+    {
+      "id": "PKG-012",
+      "name": "TERMINAL_SATISFACTION",
+      "deps": [
+        "PKG-007",
+        "PKG-013"
+      ]
+    },
+    {
+      "id": "PKG-009",
+      "name": "EXECUTION_UNCERTAINTY",
+      "deps": [
+        "PKG-002",
+        "PKG-003"
+      ]
+    },
+    {
+      "id": "PKG-014",
+      "name": "FALLBACK_ROUTING",
+      "deps": [
+        "PKG-009",
+        "PKG-013"
+      ]
+    },
+    {
+      "id": "PKG-008",
+      "name": "CRASH_RECONCILIATION",
+      "deps": [
+        "PKG-003",
+        "PKG-009"
+      ]
+    },
+    {
+      "id": "PKG-010",
+      "name": "RESOURCE_GOVERNOR",
+      "deps": []
+    },
+    {
+      "id": "PKG-020",
+      "name": "CROSS_MACHINE_ORIGIN",
+      "deps": [
+        "PKG-010"
+      ]
+    },
+    {
+      "id": "PKG-011",
+      "name": "TASK_HYGIENE",
+      "deps": [
+        "PKG-003",
+        "PKG-010"
+      ]
+    },
+    {
+      "id": "PKG-015",
+      "name": "EVENT_LEDGER",
+      "deps": [
+        "PKG-001"
+      ]
+    },
+    {
+      "id": "PKG-016",
+      "name": "DIAGNOSTIC_BUNDLE",
+      "deps": [
+        "PKG-003",
+        "PKG-011"
+      ]
+    },
+    {
+      "id": "PKG-017",
+      "name": "CHIEF_ESCALATION_ENVELOPE",
+      "deps": [
+        "PKG-016"
+      ]
+    },
+    {
+      "id": "PKG-019",
+      "name": "HUMAN_GATE_CLASSIFIER",
+      "deps": [
+        "PKG-006"
+      ]
+    },
+    {
+      "id": "PKG-018",
+      "name": "MONEY_FACTORY_COMPATIBILITY",
+      "deps": [
+        "PKG-001",
+        "PKG-006",
+        "PKG-015",
+        "PKG-019"
+      ]
+    }
+  ],
+  "topological_order": [
+    "PKG-001",
+    "PKG-010",
+    "PKG-006",
+    "PKG-005",
+    "PKG-013",
+    "PKG-015",
+    "PKG-020",
+    "PKG-002",
+    "PKG-007",
+    "PKG-019",
+    "PKG-003",
+    "PKG-004",
+    "PKG-012",
+    "PKG-018",
+    "PKG-009",
+    "PKG-011",
+    "PKG-014",
+    "PKG-008",
+    "PKG-016",
+    "PKG-017"
+  ]
+}

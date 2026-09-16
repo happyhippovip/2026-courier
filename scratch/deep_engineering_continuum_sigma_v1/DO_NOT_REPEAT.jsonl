@@ -1,0 +1,3 @@
+{"pattern_id":"DNR-001","anti_pattern":"Time-only process termination without diagnostic evidence capture","reason":"Causes destructive data loss on quiet compilations or large file hashing","recorded_at":"2026-09-10T03:56:32.741Z"}
+{"pattern_id":"DNR-002","anti_pattern":"Path equality check using string comparison rather than normalized prefix overlap","reason":"Allows concurrent tasks to collide inside parent/child directory trees","recorded_at":"2026-09-10T03:56:32.741Z"}
+{"pattern_id":"DNR-003","anti_pattern":"Simulating virtual hours and claiming real autonomous runtime","reason":"Violates wall-clock honesty assertion and fails rapid-closure tripwire","recorded_at":"2026-09-10T03:56:32.741Z"}

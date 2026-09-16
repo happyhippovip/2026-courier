@@ -1,0 +1,1 @@
+{"event":"NEXT_WORK_SELECTION_FAILED","timestamp":"2026-09-10T07:21:52.171Z","selected_action":"NONE","reason":"AUTONOMY_GAP: No production orchestrator exists to query frontier or select next work without harness."}

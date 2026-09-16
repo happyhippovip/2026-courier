@@ -1,0 +1,32 @@
+{
+  "opp1": {
+    "opportunity_id": "OPP-cd2784f0",
+    "domain": "Developer Tooling Automated Codec Audits",
+    "potentialValueSimulatedEur": 5000,
+    "discovered_at": "2026-09-09T23:23:12.810Z"
+  },
+  "hyp1": {
+    "hypothesis_id": "HYP-7b94a592",
+    "opportunity_id": "OPP-cd2784f0",
+    "description": "Autonomous AST test weakening detection provides high commercial value for CI pipelines.",
+    "status": "FORMULATED"
+  },
+  "test1": {
+    "executed": true,
+    "result": {
+      "test_id": "TEST-2e628e5b",
+      "hypothesis_id": "HYP-7b94a592",
+      "cost_eur": 0,
+      "mode": "LOCAL_SYNTHESIS_AND_PROPERTY_TEST",
+      "simulated_demand_score": 0.88,
+      "is_simulated_label": true,
+      "passed": true
+    }
+  },
+  "test2": {
+    "executed": false,
+    "action": "HUMAN_GATE_DIVERT",
+    "reason": "Real financial spend > 0.00 EUR requires explicit human gate."
+  },
+  "econVerified": true
+}

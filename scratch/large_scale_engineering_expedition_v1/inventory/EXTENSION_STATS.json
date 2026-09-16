@@ -1,0 +1,110 @@
+{
+  ".py": {
+    "count": 275,
+    "bytes": 2339775
+  },
+  ".pyc": {
+    "count": 25,
+    "bytes": 217906
+  },
+  ".md": {
+    "count": 1288,
+    "bytes": 6734468
+  },
+  ".json": {
+    "count": 498,
+    "bytes": 2726653
+  },
+  ".js": {
+    "count": 238,
+    "bytes": 2096124
+  },
+  ".yaml": {
+    "count": 1,
+    "bytes": 13479
+  },
+  ".jsonl": {
+    "count": 123,
+    "bytes": 418426
+  },
+  ".txt": {
+    "count": 16,
+    "bytes": 853805
+  },
+  ".log": {
+    "count": 2,
+    "bytes": 848
+  },
+  ".db": {
+    "count": 3,
+    "bytes": 212992
+  },
+  ".yml": {
+    "count": 1,
+    "bytes": 1685
+  },
+  ".no_ext": {
+    "count": 288,
+    "bytes": 1141878
+  },
+  ".ps1": {
+    "count": 3,
+    "bytes": 9542
+  },
+  ".sh": {
+    "count": 1,
+    "bytes": 2081
+  },
+  ".html": {
+    "count": 1,
+    "bytes": 49054
+  },
+  ".migrated": {
+    "count": 1,
+    "bytes": 4096
+  },
+  ".ts": {
+    "count": 3,
+    "bytes": 14312
+  },
+  ".jsx": {
+    "count": 3,
+    "bytes": 27970
+  },
+  ".orig": {
+    "count": 3,
+    "bytes": 5312
+  },
+  ".gitignore": {
+    "count": 1,
+    "bytes": 4096
+  },
+  ".resolved": {
+    "count": 3,
+    "bytes": 6248
+  },
+  ".swift": {
+    "count": 6,
+    "bytes": 27318
+  },
+  ".toml": {
+    "count": 8,
+    "bytes": 9478
+  },
+  ".bib": {
+    "count": 102,
+    "bytes": 302986
+  },
+  ".png": {
+    "count": 66,
+    "bytes": 3088838
+  },
+  ".tsv": {
+    "count": 3,
+    "bytes": 30512
+  },
+  ".bak": {
+    "count": 1,
+    "bytes": 1085
+  }
+}

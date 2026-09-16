@@ -1,0 +1,21 @@
+{
+  "manifest_version": "1.0",
+  "fingerprint": "81bff14a3af3a34dfcb8a04f046b8000d9d2a381d4faaed1ca71f1d0ed6acbab",
+  "certified_at": "2026-09-09T20:04:16.610Z",
+  "package_id": "PKG-007",
+  "subsystem": "COURIER_CORE",
+  "target_invariant": "RESULT_CUSTOMS_INTEGRITY",
+  "files": [
+    "src/result_customs.js"
+  ],
+  "tests": [
+    "test_customs.js"
+  ],
+  "oracle_version": "1.0",
+  "mutation_score": 1,
+  "dependencies": [],
+  "risk": "MEDIUM",
+  "mac_native_requirement": false,
+  "codex_review_requirement": false,
+  "human_gate_requirement": false
+}

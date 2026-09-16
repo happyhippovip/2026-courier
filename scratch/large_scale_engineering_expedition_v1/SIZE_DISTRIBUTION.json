@@ -1,0 +1,8 @@
+{
+  "under_1kb": 405,
+  "from_1kb_to_10kb": 2184,
+  "from_10kb_to_100kb": 358,
+  "from_100kb_to_1mb": 16,
+  "from_1mb_to_10mb": 0,
+  "above_10mb": 0
+}

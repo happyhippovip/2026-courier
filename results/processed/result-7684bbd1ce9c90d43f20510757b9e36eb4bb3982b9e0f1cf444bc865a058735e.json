@@ -1,0 +1,11 @@
+{
+  "artifacts": [],
+  "attempt_id": "WF-CHIEF-92f7f8-STEP-2-IMPLEMENT:attempt:1",
+  "dispatch_id": "dispatch-8c9bc7f5d9264d289a2e95ba7cb6ae67",
+  "goal_id": "goal_b35190bd",
+  "result_id": "result-7684bbd1ce9c90d43f20510757b9e36eb4bb3982b9e0f1cf444bc865a058735e",
+  "run_id": "3668",
+  "status": "FAILED",
+  "task_id": "WF-CHIEF-92f7f8-STEP-2-IMPLEMENT",
+  "worker_id": "WINDOWS-01"
+}

@@ -1,0 +1,5 @@
+{"step":1,"timestamp":"2026-09-10T07:21:52.171Z","event":"ENTRYPOINT_DISCOVERY","candidate":"cross_device_intake.js","status":"FAILED","reason":"Class library only; no runnable CLI or dispatch logic"}
+{"step":2,"timestamp":"2026-09-10T07:21:52.171Z","event":"ENTRYPOINT_DISCOVERY","candidate":"money_factory/index.js","status":"FAILED","reason":"Warehouse library only; no autonomous execution loop"}
+{"step":3,"timestamp":"2026-09-10T07:21:52.171Z","event":"ENTRYPOINT_DISCOVERY","candidate":"supervisor/index.js","status":"FAILED","reason":"Supervisor plane only; explicitly unowned orchestrator"}
+{"step":4,"timestamp":"2026-09-10T07:21:52.171Z","event":"ENTRYPOINT_DISCOVERY","candidate":"chief/cli.py","status":"FAILED","reason":"Cross-lane handoff packager; does not execute Windows supervisor pipeline"}
+{"step":5,"timestamp":"2026-09-10T07:21:52.171Z","event":"LIFECYCLE_HALTED","status":"AUTONOMY_GAP_FOUND","reason":"No production orchestrator exists to connect intake to execution"}

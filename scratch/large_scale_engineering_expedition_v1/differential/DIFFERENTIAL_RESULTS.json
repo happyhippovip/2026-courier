@@ -1,0 +1,49 @@
+{
+  "epoch": "EPOCH_05_DIFFERENTIAL_SCALE",
+  "timestamp_utc": "2026-09-10T04:22:40.935Z",
+  "total_events": 26000,
+  "total_comparisons": 7871,
+  "total_matches": 7871,
+  "total_divergences": 0,
+  "match_rate": 1,
+  "ladder_runs": [
+    {
+      "ladder": "STANDARD_LADDER_1K",
+      "seed": 1001,
+      "events": 1000,
+      "comparisons": 291,
+      "matches": 291,
+      "divergences": 0,
+      "match_rate_pct": "100.00"
+    },
+    {
+      "ladder": "STANDARD_LADDER_5K",
+      "seed": 2002,
+      "events": 5000,
+      "comparisons": 1508,
+      "matches": 1508,
+      "divergences": 0,
+      "match_rate_pct": "100.00"
+    },
+    {
+      "ladder": "SCALE_LADDER_10K",
+      "seed": 3003,
+      "events": 10000,
+      "comparisons": 2967,
+      "matches": 2967,
+      "divergences": 0,
+      "match_rate_pct": "100.00"
+    },
+    {
+      "ladder": "ADVERSARIAL_INJECTION_10K",
+      "seed": 4004,
+      "events": 10000,
+      "comparisons": 3105,
+      "matches": 3105,
+      "divergences": 0,
+      "match_rate_pct": "100.00"
+    }
+  ],
+  "divergences": [],
+  "status": "PASSED"
+}

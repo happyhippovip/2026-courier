@@ -1,0 +1,14 @@
+{
+  "defect_id": "CE_SPEND_01",
+  "name": "Deferred Recurring Subscription Spend Bypass",
+  "vulnerability_description": "An autonomous agent creates a 30-day \"free trial\" cloud instance or paid API subscription with 0.00 EUR immediate charge, but with an auto-renewing credit card obligation of 45.00 EUR/month. Without deferred liability fencing, immediate-only spend guards consider this 0.00 EUR and approve, violating AUTONOMOUS_SPEND_LIMIT_EUR = 0 in future cycles.",
+  "minimal_trigger_payload": {
+    "action": "PROVISION_CLOUD_RESOURCE",
+    "immediate_spend_eur": 0,
+    "auto_renew": true,
+    "recurring_cost_eur": 45,
+    "billing_period": "monthly"
+  },
+  "invariant_violated": "AUTONOMOUS_SPEND_LIMIT_EUR = 0.00 (encompasses immediate, future, and deferred liabilities)",
+  "resolution_proven": "ZeroSpendBoundaryGovernor inspects isDeferredLiability, isAutoRenew, and recurringDetails, throwing FatalSpendBoundaryViolation even if immediate charge is 0.00 EUR."
+}

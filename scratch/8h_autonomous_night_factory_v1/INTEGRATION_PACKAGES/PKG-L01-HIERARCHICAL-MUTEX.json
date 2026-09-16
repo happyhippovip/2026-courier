@@ -1,0 +1,24 @@
+{
+  "package_id": "PKG-L01-HIERARCHICAL-MUTEX",
+  "title": "Hierarchical Canonical Path Mutex",
+  "problem": "Production no_stacking uses string equality and misses parent/child directory collisions, Windows case differences, and dot segments.",
+  "evidence": "Verified in WS5 (EXP-WS5-CONCURR-001). Mutants MUT-06 and MUT-07 killed.",
+  "current_source_location": "supervisor/no_stacking.js",
+  "proposed_change_boundary": "Replace exact string match with HierarchicalPathMutex canonical prefix tree.",
+  "files_likely_affected": [
+    "supervisor/no_stacking.js",
+    "supervisor/lease_manager.js"
+  ],
+  "migration_impact": "Active locks re-canonicalized on startup.",
+  "rollback": "Revert to exact string matching via configuration toggle.",
+  "targeted_tests": [
+    "test_path_concurrency.js",
+    "test_compositional_failures.js"
+  ],
+  "independent_verifier": "Filesystem watcher verifying zero overlapping writer leases.",
+  "known_risks": "Sub-directory workers will be blocked if root directory lock is held.",
+  "mac_dependency": false,
+  "human_gate_dependency": false,
+  "recommended_integration_order": 2,
+  "stop_condition": "Acquisition failure on non-overlapping independent workspaces."
+}

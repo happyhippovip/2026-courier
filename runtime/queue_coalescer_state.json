@@ -1,0 +1,14 @@
+{
+  "singleton_id": 1,
+  "current_state_generation": 10,
+  "active_logical_intent_id": null,
+  "intent_status": "SATISFIED",
+  "intent_generation": 1,
+  "raw_continuation_events_received": 0,
+  "continuations_coalesced": 0,
+  "stale_continuations_dropped": 0,
+  "logical_continuation_intents": 0,
+  "duplicate_tasks_prevented": 0,
+  "verified_tasks_replayed": 0,
+  "last_event_timestamp": "2026-09-15T19:04:43.679651+00:00"
+}

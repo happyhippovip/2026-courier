@@ -1,0 +1,10 @@
+{
+  "test": "EXCLUSIVE_NTFS_LOCK_CONTENTION",
+  "num_workers": 6,
+  "iterations_per_worker": 20,
+  "expected_total": 120,
+  "actual_total": 120,
+  "lost_updates": 0,
+  "elapsed_ms": 3822,
+  "status": "PASSED"
+}

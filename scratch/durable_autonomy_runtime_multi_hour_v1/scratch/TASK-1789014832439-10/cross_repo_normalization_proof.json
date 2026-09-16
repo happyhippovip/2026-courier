@@ -1,0 +1,16 @@
+{
+  "test": "CROSS_REPO_CONTRACT_NORMALIZATION",
+  "normalization_map": {
+    "states": {
+      "INBOX": "PROPOSED",
+      "IN_PROGRESS": "DISPATCHED",
+      "DONE": "CLOSED"
+    },
+    "host_truth": {
+      "PC2": "MEMORY_RIGHT_ARM",
+      "MAC": "PRODUCT_SINGLE_WRITER"
+    }
+  },
+  "host_truth_aligned": true,
+  "status": "PASSED"
+}

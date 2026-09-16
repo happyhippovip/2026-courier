@@ -1,0 +1,25 @@
+{
+  "id": "CE-007",
+  "defect_class": "UNSAFE_FALLBACK_ON_UNCERTAIN_EFFECT",
+  "description": "When worker process drops mid-write, naive orchestrator immediately dispatches fallback, causing duplicate file modification and race conditions.",
+  "prior_attempt": {
+    "attempt_id": "ATT-CRASH-WRITE",
+    "worker_id": "PRIMARY_A",
+    "effect_status": "POSSIBLE_EFFECT"
+  },
+  "naive_behavior": {
+    "decision": "ALLOW_FALLBACK",
+    "selected_candidate": {
+      "worker_id": "CANDIDATE_B",
+      "priority": 1,
+      "transport": "IN_PROCESS"
+    }
+  },
+  "hardened_behavior": {
+    "decision": "BLOCK_EXECUTION_UNCERTAIN",
+    "effect_status": "POSSIBLE_EFFECT",
+    "reason": "Prior worker 'PRIMARY_A' outcome is uncertain. Fallback dispatch forbidden to prevent duplicate side-effects.",
+    "selected_candidate": null
+  },
+  "invariant_proven": "Fallback dispatch strictly blocked under EFFECT_STATUS.POSSIBLE_EFFECT or UNCERTAIN."
+}

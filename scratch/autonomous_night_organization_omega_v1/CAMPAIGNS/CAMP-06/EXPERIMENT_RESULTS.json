@@ -1,0 +1,9 @@
+{
+  "experiment_id": "EXP-CAMP-06-001",
+  "campaign_id": "CAMP-06",
+  "timestamp": "2026-09-09T23:39:41.035Z",
+  "passport_minimality_achieved": true,
+  "clean_dispatch_verified": true,
+  "toctou_mutation_blocked": true,
+  "verdict": "BORDER_GUARD_TOCTOU_PROVED"
+}

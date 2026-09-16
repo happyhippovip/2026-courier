@@ -1,0 +1,7 @@
+{
+  "idea_id": "IDEA-002",
+  "title": "Differential State Replay Engine with In-Memory Checkpointing",
+  "resolved_at_utc": "2026-09-10T04:49:09.336Z",
+  "execution_proof": "Executed through FailureFollowUpGenerator durable pipeline",
+  "status": "VERIFIED"
+}

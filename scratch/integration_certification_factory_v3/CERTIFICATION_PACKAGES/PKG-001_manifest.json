@@ -1,0 +1,21 @@
+{
+  "manifest_version": "1.0",
+  "fingerprint": "2f1e27c1161a917d05a4bf5db5b05c0e4951f03776a7870f47932bec59d6a754",
+  "certified_at": "2026-09-09T20:04:16.587Z",
+  "package_id": "PKG-001",
+  "subsystem": "COURIER_CORE",
+  "target_invariant": "TASK_STAMP_INTEGRITY",
+  "files": [
+    "src/task_stamp.js"
+  ],
+  "tests": [
+    "test_stamp.js"
+  ],
+  "oracle_version": "1.0",
+  "mutation_score": 1,
+  "dependencies": [],
+  "risk": "MEDIUM",
+  "mac_native_requirement": false,
+  "codex_review_requirement": false,
+  "human_gate_requirement": false
+}

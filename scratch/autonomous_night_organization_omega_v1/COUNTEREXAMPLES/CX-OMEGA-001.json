@@ -1,0 +1,39 @@
+{
+  "id": "CX-OMEGA-001",
+  "campaign_id": "CAMP-01",
+  "title": "Predecessor Saturation Overclaiming Counterexample",
+  "finding": "Predecessor declared global saturation across 17 dimensions, but production source exhibits 5 critical unaddressed failure classes.",
+  "gaps": [
+    {
+      "vector": "V1_DECISION_ENGINE_STALL_BYPASS",
+      "severity": "P0",
+      "source_file": "supervisor/decision_engine.js",
+      "finding": "Supervisor decision engine manages stalls and fallbacks without consulting a centralized DispatcherUncertaintyFence, allowing duplicate executions when worker heartbeat pauses but process is alive."
+    },
+    {
+      "vector": "V2_SEMANTIC_RESOURCE_COLLISIONS",
+      "severity": "P0",
+      "source_file": "supervisor/no_stacking.js",
+      "finding": "Resource concurrency in production is strictly filesystem path based. It lacks semantic locking for shared Git index (.git/index.lock), SQLite database files, or shared append ledgers, allowing concurrent writer corruption."
+    },
+    {
+      "vector": "V3_COMPOUND_CAPABILITY_ESCALATION",
+      "severity": "P1",
+      "source_file": "money_factory/safety_gates.js",
+      "finding": "Safety gates enforce flat monetary thresholds rather than fine-grained capability tokens. A worker granted WRITE_LOCAL_SCRATCH can escalate to WRITE_PRODUCTION or NETWORK_WRITE if planner parameters change."
+    },
+    {
+      "vector": "V4_PROCESS_TREE_ORPHANING",
+      "severity": "P1",
+      "source_file": "supervisor/lease_manager.js",
+      "finding": "Lease manager tracks a single PID. On Windows, tasks launched via npm/npx/powershell/cmd spawn wrapper processes. Terminating the tracked wrapper PID leaves orphaned worker child processes writing in background."
+    },
+    {
+      "vector": "V5_BORDER_GUARD_TOCTOU",
+      "severity": "P1",
+      "source_file": "chief/coordinator.py",
+      "finding": "Task approval and passport inspection occur before dispatch, but dispatch does not execute an atomic compare-and-swap on task_version, allowing concurrent planner mutations to alter task parameters post-approval."
+    }
+  ],
+  "verdict": "GLOBAL_SATURATION_INVALIDATED"
+}

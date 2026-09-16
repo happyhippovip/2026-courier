@@ -1,0 +1,192 @@
+[
+  {
+    "process_lease_id": "LEASE-1789024446921-699A7C",
+    "task_id": "TASK-WRITER-ALPHA",
+    "task_version": 1,
+    "goal_id": "GOAL-WIN-AUTONOMOUS-OPS-PROOF-001",
+    "worker_id": "WORKER-ALPHA",
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 12488,
+    "command": "node worker_alpha.js",
+    "process_fingerprint": "6dedbdede45599251df5ba535b4666e27df3fb67f2b42f00a17efa70e38fa499",
+    "command_fingerprint": "705ef2ea6eb6e3b318613544848e17267d1844a2e8b2c7b3f0382308263d5b80",
+    "task_token": "TOKEN-TASK-WRITER-ALPHA-62997115D14C",
+    "start_time_epoch": 1789024446920,
+    "purpose": "EXCLUSIVE_ISOLATED_WRITE",
+    "started_at": "2026-09-10T07:14:06.920Z",
+    "last_heartbeat_at": "2026-09-10T07:14:06.920Z",
+    "last_progress_at": "2026-09-10T07:14:06.920Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "STARTING",
+    "termination_reason": null,
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T07:14:06.920Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789024480226-D6C6D5",
+    "task_id": "TASK-WRITER-ALPHA",
+    "task_version": 1,
+    "goal_id": "GOAL-WIN-AUTONOMOUS-OPS-PROOF-001",
+    "worker_id": "WORKER-ALPHA",
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 10440,
+    "command": "node worker_alpha.js",
+    "process_fingerprint": "cc71c34ec92648fc7c16a378df74e3f69d80767bd30b69314950beaca52033a8",
+    "command_fingerprint": "705ef2ea6eb6e3b318613544848e17267d1844a2e8b2c7b3f0382308263d5b80",
+    "task_token": "TOKEN-TASK-WRITER-ALPHA-902FC64B3C5F",
+    "start_time_epoch": 1789024480226,
+    "purpose": "EXCLUSIVE_ISOLATED_WRITE",
+    "started_at": "2026-09-10T07:14:40.226Z",
+    "last_heartbeat_at": "2026-09-10T07:14:40.226Z",
+    "last_progress_at": "2026-09-10T07:14:40.226Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "WORK_COMPLETED_AND_VERIFIED",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T07:14:40.226Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T07:14:40.238Z",
+        "status": "COMPLETED",
+        "note": "WORK_COMPLETED_AND_VERIFIED"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789024480280-30C05E",
+    "task_id": "TASK-UNCERT-001",
+    "task_version": 1,
+    "goal_id": "GOAL-WIN-AUTONOMOUS-OPS-PROOF-001",
+    "worker_id": "WORKER-UNCERT-TEST",
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 999999,
+    "command": "node uncert_worker.js",
+    "process_fingerprint": "db00ec167231ae4224dc0c8b2f7cfad50d935ea834f6be8933cfd897c064222b",
+    "command_fingerprint": "6ea8c13c84e47bccd570cf3efceb81716136ffb27a249638ea53bd1253804982",
+    "task_token": "TOKEN-UNCERT-1789024480280",
+    "start_time_epoch": 1789024480280,
+    "purpose": "EXECUTION_UNCERTAINTY_VERIFICATION",
+    "started_at": "2026-09-10T07:14:40.280Z",
+    "last_heartbeat_at": "2026-09-10T07:14:40.280Z",
+    "last_progress_at": "2026-09-10T07:14:40.280Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "RECONCILED_UPON_DURABLE_EVIDENCE",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T07:14:40.280Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T07:14:40.282Z",
+        "status": "EXECUTION_UNCERTAIN",
+        "note": "PROCESS_COMMUNICATION_LOST_NO_RESULT_ENVELOPE"
+      },
+      {
+        "timestamp": "2026-09-10T07:14:40.286Z",
+        "status": "COMPLETED",
+        "note": "RECONCILED_UPON_DURABLE_EVIDENCE"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789024590729-CFD38C",
+    "task_id": "TASK-WRITER-ALPHA",
+    "task_version": 1,
+    "goal_id": "GOAL-WIN-AUTONOMOUS-OPS-PROOF-001",
+    "worker_id": "WORKER-ALPHA",
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 9232,
+    "command": "node worker_alpha.js",
+    "process_fingerprint": "8de16094739db3729e64338853966b86113720e464ee7e0a21ba744a09b282de",
+    "command_fingerprint": "705ef2ea6eb6e3b318613544848e17267d1844a2e8b2c7b3f0382308263d5b80",
+    "task_token": "TOKEN-TASK-WRITER-ALPHA-B3E373A15435",
+    "start_time_epoch": 1789024590729,
+    "purpose": "EXCLUSIVE_ISOLATED_WRITE",
+    "started_at": "2026-09-10T07:16:30.729Z",
+    "last_heartbeat_at": "2026-09-10T07:16:30.729Z",
+    "last_progress_at": "2026-09-10T07:16:30.729Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "WORK_COMPLETED_AND_VERIFIED",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T07:16:30.729Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T07:16:30.740Z",
+        "status": "COMPLETED",
+        "note": "WORK_COMPLETED_AND_VERIFIED"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789024590783-957CE3",
+    "task_id": "TASK-UNCERT-001",
+    "task_version": 1,
+    "goal_id": "GOAL-WIN-AUTONOMOUS-OPS-PROOF-001",
+    "worker_id": "WORKER-UNCERT-TEST",
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 999999,
+    "command": "node uncert_worker.js",
+    "process_fingerprint": "a64be8be80db14a021bca05c815c3bdacde0059ec47870c36a06efedba2ead40",
+    "command_fingerprint": "6ea8c13c84e47bccd570cf3efceb81716136ffb27a249638ea53bd1253804982",
+    "task_token": "TOKEN-UNCERT-1789024590783",
+    "start_time_epoch": 1789024590783,
+    "purpose": "EXECUTION_UNCERTAINTY_VERIFICATION",
+    "started_at": "2026-09-10T07:16:30.783Z",
+    "last_heartbeat_at": "2026-09-10T07:16:30.783Z",
+    "last_progress_at": "2026-09-10T07:16:30.783Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "RECONCILED_UPON_DURABLE_EVIDENCE",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T07:16:30.783Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T07:16:30.784Z",
+        "status": "EXECUTION_UNCERTAIN",
+        "note": "PROCESS_COMMUNICATION_LOST_NO_RESULT_ENVELOPE"
+      },
+      {
+        "timestamp": "2026-09-10T07:16:30.789Z",
+        "status": "COMPLETED",
+        "note": "RECONCILED_UPON_DURABLE_EVIDENCE"
+      }
+    ]
+  }
+]

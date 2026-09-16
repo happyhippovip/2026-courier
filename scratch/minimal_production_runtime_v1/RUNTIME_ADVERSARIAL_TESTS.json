@@ -1,0 +1,156 @@
+{
+  "timestamp": "2026-09-10T08:53:56.035Z",
+  "total_attacks": 25,
+  "all_passed_fail_closed": true,
+  "attacks": [
+    {
+      "attack_id": "01",
+      "name": "stale mission state version",
+      "passed_fail_closed": true,
+      "reason": "Stale state rejected on conflict"
+    },
+    {
+      "attack_id": "02",
+      "name": "stale task version",
+      "passed_fail_closed": true,
+      "reason": "TASK_PASSPORT_VERSION_MISMATCH"
+    },
+    {
+      "attack_id": "03",
+      "name": "invalid TaskPassport",
+      "passed_fail_closed": true,
+      "reason": "TAMPERED_PASSPORT_SIGNATURE"
+    },
+    {
+      "attack_id": "04",
+      "name": "missing TaskPassport",
+      "passed_fail_closed": true,
+      "reason": "MISSING_SIGNATURE"
+    },
+    {
+      "attack_id": "05",
+      "name": "BorderGuard HOLD on financial capability",
+      "passed_fail_closed": true,
+      "reason": "Capability 'FINANCIAL_LIABILITY' (7) exceeds ceiling 2"
+    },
+    {
+      "attack_id": "06",
+      "name": "conflicting writer",
+      "passed_fail_closed": true
+    },
+    {
+      "attack_id": "07",
+      "name": "duplicate logical work lock check",
+      "passed_fail_closed": true,
+      "reason": "Resource locked by existing active task"
+    },
+    {
+      "attack_id": "08",
+      "name": "malformed worker result (empty artifacts)",
+      "passed_fail_closed": true,
+      "reason": "EMPTY_ARTIFACT_MANIFEST"
+    },
+    {
+      "attack_id": "09",
+      "name": "wrong result task ID",
+      "passed_fail_closed": true,
+      "reason": "INVALID_RESULT_PASSPORT"
+    },
+    {
+      "attack_id": "10",
+      "name": "stale result task version",
+      "passed_fail_closed": true,
+      "reason": "INVALID_RESULT_PASSPORT"
+    },
+    {
+      "attack_id": "11",
+      "name": "result fingerprint mismatch",
+      "passed_fail_closed": true,
+      "reason": "CHECKSUM_MISMATCH"
+    },
+    {
+      "attack_id": "12",
+      "name": "worker false DONE",
+      "passed_fail_closed": true,
+      "reason": "ILLEGAL_WORKER_STATUS: Worker reported 'DONE'. Workers are forbidden from claiming global mission status."
+    },
+    {
+      "attack_id": "13",
+      "name": "execution uncertainty blocks retry",
+      "passed_fail_closed": true,
+      "reason": "Execution outcome uncertain; duplicate execution and retry strictly blocked"
+    },
+    {
+      "attack_id": "14",
+      "name": "restart after dispatch fences lease",
+      "passed_fail_closed": true,
+      "reason": "Fenced without auto-retry"
+    },
+    {
+      "attack_id": "15",
+      "name": "stale process token verification",
+      "passed_fail_closed": true,
+      "reason": "UNKNOWN_PROCESS_IDENTITY_NEVER_AUTHORIZES_KILL"
+    },
+    {
+      "attack_id": "16",
+      "name": "PID/start-time mismatch",
+      "passed_fail_closed": true,
+      "reason": "UNKNOWN_PROCESS_IDENTITY_NEVER_AUTHORIZES_KILL"
+    },
+    {
+      "attack_id": "17",
+      "name": "UNKNOWN process identity cleanup denial",
+      "passed_fail_closed": true,
+      "reason": "UNKNOWN_LEASE_DENIED_KILL"
+    },
+    {
+      "attack_id": "18",
+      "name": "Human Gate required",
+      "passed_fail_closed": true,
+      "reason": "Requires human gate authorization"
+    },
+    {
+      "attack_id": "19",
+      "name": "spend request > €0",
+      "passed_fail_closed": true,
+      "reason": "Autonomous spend limit strictly 0.00 EUR"
+    },
+    {
+      "attack_id": "20",
+      "name": "out-of-scope path outside allowed_root",
+      "passed_fail_closed": true,
+      "reason": "OUT_OF_SCOPE_DIRECTORY"
+    },
+    {
+      "attack_id": "21",
+      "name": "attempt product RC modification",
+      "passed_fail_closed": true,
+      "reason": "Product RC strictly immutable"
+    },
+    {
+      "attack_id": "22",
+      "name": "attempt universuX access",
+      "passed_fail_closed": true,
+      "reason": "universuX strictly denied"
+    },
+    {
+      "attack_id": "23",
+      "name": "attempt Mac access",
+      "passed_fail_closed": true,
+      "reason": "Mac host access strictly DENIED"
+    },
+    {
+      "attack_id": "24",
+      "name": "completion with worker claim rejected",
+      "passed_fail_closed": true,
+      "reason": "REJECTED: Only explicit human command or unrecoverable fatal error transitions mission to TERMINAL. Received: WORKER_DONE_CLAIM"
+    },
+    {
+      "attack_id": "25",
+      "name": "scratch runner unavailable",
+      "passed_fail_closed": true,
+      "reason": "Production runtime operates 100% independently from scratch"
+    }
+  ]
+}

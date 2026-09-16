@@ -1,0 +1,12 @@
+{
+  "defect_id": "CE_STATE_01",
+  "name": "Direct Close Escape Bypassing Independent Verification",
+  "vulnerability_description": "An unconstrained task router or optimistic dispatcher transitions a task directly from RESULT_RECEIVED to CLOSED or accepts worker self-pass without invoking the IndependentGoalVerifier. This enables unverified or corrupt code mutations to merge silently.",
+  "minimal_trigger": {
+    "initial_state": "RESULT_RECEIVED",
+    "attempted_event": "CLOSE_TASK",
+    "missing_intermediate_state": "VERIFIED"
+  },
+  "invariant_violated": "Strict verification gating: No task may enter CLOSED without passing through VERIFIED state verified by independent assertions.",
+  "resolution_proven": "TransitionValidator enforces state transition graph and anti-skipped verification guard, throwing IllegalTransitionError."
+}

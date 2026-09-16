@@ -22,7 +22,7 @@ TASK_STATES = {
     "FAILED_TERMINAL",
     "HUMAN_REQUIRED",
 }
-RESULT_STATES = {"SUCCESS", "FAILED"}
+RESULT_STATES = {"SUCCESS", "FAILED", "AUTH_REQUIRED"}
 WORKER_IDS = {
     "github": "GITHUB-HOSTED",
     "mac": "MAC-01",
@@ -110,6 +110,12 @@ def verify_result(task: dict, raw_result: dict, workspace: Path) -> dict:
         "status": raw_result["status"],
         "artifacts": artifacts,
     }
+    
+    if raw_result["status"] != "SUCCESS":
+        for field in ["raw_diagnostic", "stderr", "reason"]:
+            if field in raw_result:
+                identity[field] = raw_result[field]
+                
     identity["result_id"] = f"result-{_canonical_hash(identity)}"
     return identity
 

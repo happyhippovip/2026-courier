@@ -1,0 +1,14 @@
+{
+  "counterexample_id": "CE_CUSTOMS_01_weakened_test_assertion_slip",
+  "date": "2026-09-09T21:48:34.908Z",
+  "category": "TEST_WEAKENING_CUSTOMS_ESCAPE",
+  "vulnerability": "A worker attempting to report SUCCESS removed 50% of strict assertions and injected it.skip on failing tests to force green build",
+  "unprotected_behavior": "Legacy test runner only checks process exit code 0; tests pass trivially, masking underlying regressions",
+  "repaired_behavior": "TestWeakeningDetector performs structural diff, flags ASSERTIONS_DECREASED and TESTS_SKIPPED, BorderGuard rejects clearance",
+  "minimal_failing_case": {
+    "baseline_assertions": 10,
+    "candidate_assertions": 5,
+    "candidate_skipped_tests": 1,
+    "border_guard_verdict": "REJECTED"
+  }
+}

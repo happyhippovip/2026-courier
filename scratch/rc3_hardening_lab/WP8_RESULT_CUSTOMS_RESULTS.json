@@ -1,0 +1,83 @@
+{
+  "totalTests": 15,
+  "passed": 15,
+  "failed": 0,
+  "timestamp": "2026-09-13T00:01:08.090Z",
+  "results": [
+    {
+      "testId": "ADV_RC_01_VALID_ENVELOPE_ACCEPTED",
+      "description": "Valid complete envelope accepted with goal_state unchanged",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_RC_02_WRONG_TASK_ID",
+      "description": "Wrong task ID rejected fail-closed",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_RC_03_WRONG_VERSION",
+      "description": "Wrong version rejected fail-closed",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_RC_04_WRONG_GOAL",
+      "description": "Wrong goal ID rejected fail-closed",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_RC_05_WRONG_WORKER",
+      "description": "Wrong worker ID rejected fail-closed",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_RC_06_STALE_RESULT",
+      "description": "Result timestamped before dispatch rejected",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_RC_07_REPLAYED_RESULT",
+      "description": "Duplicate submission with same result fingerprint rejected",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_RC_08_SCOPE_MISMATCH",
+      "description": "Scope fingerprint mismatch rejected",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_RC_09_MISSING_RESULT_FINGERPRINT",
+      "description": "Missing or tampered result fingerprint rejected",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_RC_10_CLAIMED_TESTS_WITHOUT_EVIDENCE",
+      "description": "Claiming tests run without commands, exit codes, or logs rejected",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_RC_11_CLAIMED_FILES_WITHOUT_EVIDENCE",
+      "description": "Claiming created file without path and sha256 hash rejected",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_RC_12_UNEXPECTED_EXTERNAL_ACTION",
+      "description": "Result containing external actions rejected fail-closed",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_RC_13_UNEXPECTED_SPEND",
+      "description": "Spend greater than 0 rejected fail-closed",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_RC_14_UNEXPECTED_DEPLOYMENT",
+      "description": "Deployments detected in result rejected fail-closed",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_RC_15_PROSE_PASS_WITHOUT_VERIFICATION",
+      "description": "Worker claims PASS but test exit code is non-zero or failures exist",
+      "status": "PASS"
+    }
+  ]
+}

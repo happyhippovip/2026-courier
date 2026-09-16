@@ -1,0 +1,6 @@
+{
+  "test": "MUTATION_CUSTOMS_CHECKSUM_TAMPER",
+  "customs_envelope_accepted": true,
+  "tampered_checksum_rejected": true,
+  "status": "PASSED"
+}

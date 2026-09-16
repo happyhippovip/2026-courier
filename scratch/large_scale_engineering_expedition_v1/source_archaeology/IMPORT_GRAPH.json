@@ -1,0 +1,314 @@
+{
+  "chief/cli.py": [
+    "os",
+    "sys",
+    "time",
+    "argparse",
+    "typing",
+    ".types",
+    ".control_plane",
+    ".ingestor",
+    ".delta_engine",
+    ".coordinator"
+  ],
+  "chief/control_plane.py": [
+    "os",
+    "sqlite3",
+    "json",
+    "hashlib",
+    "datetime",
+    "typing",
+    ".types"
+  ],
+  "chief/coordinator.py": [
+    "os",
+    "json",
+    "subprocess",
+    "typing",
+    "datetime",
+    ".types",
+    ".control_plane",
+    ".safewrite"
+  ],
+  "chief/delta_engine.py": [
+    "typing",
+    "datetime",
+    ".types",
+    ".control_plane",
+    ".safewrite"
+  ],
+  "chief/ingestor.py": [
+    "os",
+    "json",
+    "hashlib",
+    "typing",
+    "datetime",
+    ".types",
+    ".control_plane",
+    ".validator"
+  ],
+  "chief/safewrite.py": [
+    "os",
+    "sys",
+    "json",
+    "time",
+    "random",
+    "tempfile",
+    "typing"
+  ],
+  "chief/types.py": [
+    "dataclasses",
+    "enum",
+    "typing",
+    "datetime"
+  ],
+  "chief/validator.py": [
+    "os",
+    "math",
+    "typing"
+  ],
+  "chief/__init__.py": [
+    ".types"
+  ],
+  "content_os/candidate_queue.json": [],
+  "content_os/lane4_data_renderer.py": [
+    "os",
+    "typing",
+    "PIL"
+  ],
+  "content_os/opportunity_evaluator.py": [
+    "dataclasses",
+    "enum",
+    "typing"
+  ],
+  "content_os/template_engine.py": [
+    "dataclasses",
+    "typing"
+  ],
+  "content_os/tests/test_content_os.py": [
+    "os",
+    "sys",
+    "unittest",
+    "PIL",
+    "opportunity_evaluator",
+    "template_engine",
+    "lane4_data_renderer"
+  ],
+  "cross_device_intake.js": [],
+  "cross_device_intake.py": [
+    "dataclasses",
+    "enum",
+    "re",
+    "typing"
+  ],
+  "money_factory/anti_loop_policy.js": [],
+  "money_factory/cheapest_test.js": [
+    "crypto"
+  ],
+  "money_factory/first_5_euro_simulator.js": [
+    "./scoring",
+    "./cheapest_test",
+    "./safety_gates",
+    "./evidence_ledger"
+  ],
+  "money_factory/index.js": [
+    "path",
+    "./warehouse",
+    "./scoring",
+    "./portfolios",
+    "./seed_classes",
+    "./cycle_ledger",
+    "./prediction_calibration",
+    "./safety_gates",
+    "./anti_loop_policy",
+    "./leaderboard_generator",
+    "./evidence_ledger",
+    "./cheapest_test",
+    "./supervisor_compat",
+    "./first_5_euro_simulator"
+  ],
+  "money_factory/leaderboard_generator.js": [
+    "fs",
+    "path",
+    "./portfolios"
+  ],
+  "money_factory/portfolios.js": [],
+  "money_factory/prediction_calibration.js": [
+    "fs",
+    "path"
+  ],
+  "money_factory/safety_gates.js": [
+    "crypto"
+  ],
+  "money_factory/scoring.js": [],
+  "money_factory/seed_classes.js": [],
+  "money_factory/supervisor_compat.js": [],
+  "money_factory/warehouse.js": [
+    "fs",
+    "path",
+    "crypto",
+    "./scoring"
+  ],
+  "opportunity_warehouse/opportunities.json": [],
+  "opportunity_warehouse/opportunities.yaml": [],
+  "supervisor/chief_envelope.js": [
+    "crypto"
+  ],
+  "supervisor/decision_engine.js": [
+    "./types",
+    "./stall_policy"
+  ],
+  "supervisor/diagnostic_bundle.js": [
+    "fs",
+    "path",
+    "crypto"
+  ],
+  "supervisor/index.js": [
+    "path",
+    "./types",
+    "./audit_ledger",
+    "./lease_manager",
+    "./progress_tracker",
+    "./stall_policy",
+    "./diagnostic_bundle",
+    "./screenshot_spec",
+    "./decision_engine",
+    "./task_hygiene",
+    "./reconciliation",
+    "./resource_governor",
+    "./no_stacking",
+    "./chief_envelope"
+  ],
+  "supervisor/lease_manager.js": [
+    "fs",
+    "path",
+    "crypto",
+    "./types"
+  ],
+  "supervisor/no_stacking.js": [
+    "crypto",
+    "./types"
+  ],
+  "supervisor/progress_tracker.js": [
+    "fs",
+    "path",
+    "crypto",
+    "./types"
+  ],
+  "supervisor/reconciliation.js": [
+    "./types"
+  ],
+  "supervisor/resource_governor.js": [
+    "./types"
+  ],
+  "supervisor/screenshot_spec.js": [
+    "crypto"
+  ],
+  "supervisor/stall_policy.js": [
+    "./types"
+  ],
+  "supervisor/task_hygiene.js": [
+    "./types"
+  ],
+  "supervisor/types.js": [],
+  "tests/rc3_hardening/test_border_guard.js": [
+    "assert",
+    "fs",
+    "path",
+    "../../scratch/rc3_hardening_lab/border_guard_contract"
+  ],
+  "tests/rc3_hardening/test_crash_restart_chaos.js": [
+    "assert",
+    "fs",
+    "path",
+    "crypto",
+    "../../supervisor",
+    "../../scratch/rc3_hardening_lab/task_stamp_contract",
+    "../../scratch/rc3_hardening_lab/follow_up_inbox",
+    "../../scratch/rc3_hardening_lab/result_customs_contract"
+  ],
+  "tests/rc3_hardening/test_deterministic_soak.js": [
+    "fs",
+    "path",
+    "crypto",
+    "../../scratch/rc3_hardening_lab/task_stamp_contract",
+    "../../scratch/rc3_hardening_lab/follow_up_inbox",
+    "../../scratch/rc3_hardening_lab/border_guard_contract",
+    "../../scratch/rc3_hardening_lab/result_customs_contract",
+    "../../supervisor/audit_ledger"
+  ],
+  "tests/rc3_hardening/test_follow_up_inbox.js": [
+    "assert",
+    "fs",
+    "path",
+    "../../scratch/rc3_hardening_lab/follow_up_inbox"
+  ],
+  "tests/rc3_hardening/test_money_factory_adversarial.js": [
+    "assert",
+    "fs",
+    "path",
+    "../../money_factory"
+  ],
+  "tests/rc3_hardening/test_rc3_adversarial_validation.js": [
+    "fs",
+    "path",
+    "crypto",
+    "child_process"
+  ],
+  "tests/rc3_hardening/test_resource_governor_adversarial.js": [
+    "assert",
+    "fs",
+    "path",
+    "../../supervisor"
+  ],
+  "tests/rc3_hardening/test_result_customs.js": [
+    "assert",
+    "fs",
+    "path",
+    "../../scratch/rc3_hardening_lab/result_customs_contract"
+  ],
+  "tests/rc3_hardening/test_supervisor_adversarial.js": [
+    "assert",
+    "fs",
+    "path",
+    "os",
+    "../../supervisor"
+  ],
+  "tests/rc3_hardening/test_task_stamp_contracts.js": [
+    "assert",
+    "fs",
+    "path",
+    "../../scratch/rc3_hardening_lab/task_stamp_contract"
+  ],
+  "tests/test_cross_device_intake.js": [
+    "assert",
+    "../cross_device_intake"
+  ],
+  "tests/test_cross_device_intake.py": [
+    "sys",
+    "os",
+    "unittest",
+    "cross_device_intake"
+  ],
+  "tests/test_money_factory_closure.js": [
+    "assert",
+    "fs",
+    "path",
+    "os",
+    "../money_factory"
+  ],
+  "tests/test_money_factory_p0.js": [
+    "assert",
+    "fs",
+    "path",
+    "os",
+    "../money_factory"
+  ],
+  "tests/test_supervisor_plane_p0.js": [
+    "assert",
+    "fs",
+    "path",
+    "os",
+    "../supervisor"
+  ]
+}

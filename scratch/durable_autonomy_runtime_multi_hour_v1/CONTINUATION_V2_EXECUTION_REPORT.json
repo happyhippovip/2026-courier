@@ -1,0 +1,13 @@
+{
+  "mission_id": "WINDOWS_COURIER_DURABLE_AUTONOMY_RUNTIME_MULTI_HOUR_V1",
+  "continuation_version": 2,
+  "continuation_id": "WINDOWS_COURIER_DURABLE_AUTONOMY_RUNTIME_MULTI_HOUR_V1_CONTINUATION_OMEGA_DEEP_V2",
+  "resumed_from_checkpoint_units": 35,
+  "final_completed_work_units": 50,
+  "newly_executed_units": 15,
+  "status": "PAUSED_CAPACITY",
+  "goal_satisfied": false,
+  "goal_id": "GOAL-OMEGA-DEEP-CONTINUATION-V2",
+  "real_elapsed_seconds": 0,
+  "executed_at_utc": "2026-09-10T04:49:09.394Z"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "CE-01-uncertain-fallback-redispatch",
+  "attackFamily": "A",
+  "triggerPathsTested": [
+    "SUPERVISOR_ROUTER",
+    "HYGIENE_ROUTER",
+    "RESTART_RECONCILIATION",
+    "GOVERNOR_REROUTE",
+    "WORKER_UNAVAILABLE",
+    "LEASE_EXPIRY",
+    "BORDER_HOLD",
+    "RESULT_TIMEOUT"
+  ],
+  "state": {
+    "taskId": "TASK-A-001",
+    "executionUncertain": true,
+    "sideEffectPotential": "POSSIBLE"
+  },
+  "naiveOutcome": "REDISPATCH_FALLBACK (Duplicate writer spawned)",
+  "hardenedOutcome": "HOLD_UNCERTAIN (Strict uncertainty lock enforced)"
+}

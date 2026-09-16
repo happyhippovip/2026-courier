@@ -1,0 +1,11 @@
+{
+  "defect_id": "DEFECT-B01",
+  "title": "PID Recycling Causes Conflation With New OS Process and Dangerous Kill",
+  "minimized_scenario": {
+    "lease": { "pid": 4120, "command": "node worker.js", "started_at": "2026-09-09T20:00:00Z" },
+    "active_system_process": { "pid": 4120, "command": "node daemon.js", "start_time_epoch_ms": 1788985000000 },
+    "failure_mode": "Reconciler saw PID 4120 in process table, assumed worker was hung, and issued SIGKILL terminating innocent daemon",
+    "expected_safe_outcome": "DEFINITE_MISMATCH (PID recycled; lease closed, no kill issued)",
+    "invariant_violated_without_repair": "PID alone is not process identity; multi-factor tuple (PID + StartTime + Token) required"
+  }
+}

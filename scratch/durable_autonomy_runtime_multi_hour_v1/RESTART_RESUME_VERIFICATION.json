@@ -1,0 +1,11 @@
+{
+  "test": "FRESH_PROCESS_RESTART_AND_RESUME",
+  "checkpoint_status": "PAUSED_CAPACITY",
+  "completed_units": 11,
+  "total_historical_tasks": 26,
+  "replayed_events": 127,
+  "goal_status": "SATISFIED",
+  "active_leases_after_reconcile": 0,
+  "context_free_resumption_proven": true,
+  "status": "PASSED"
+}

@@ -1,0 +1,25 @@
+{
+  "mission_id": "MISSION-1789029986706",
+  "goal_id": "GOAL-1789029986706",
+  "goal_text": "Execute autonomous mission without scratch runner",
+  "created_at": "2026-09-10T08:46:26.706Z",
+  "status": "SATISFIED",
+  "allowed_root": "C:\\Users\\lol\\2026-workspace\\courier\\scratch\\minimal_production_runtime_v1\\scratch_indep_fixture",
+  "task_queue": [],
+  "task_history": [
+    {
+      "task_id": "TASK-AUTO-001-RESOLVE",
+      "status": "VERIFIED",
+      "completed_at": "2026-09-10T08:46:26.726Z",
+      "artifacts": [
+        "C:\\Users\\lol\\2026-workspace\\courier\\scratch\\minimal_production_runtime_v1\\scratch_indep_fixture\\evidence\\evidence_TASK-AUTO-001-RESOLVE.json"
+      ]
+    }
+  ],
+  "open_followups": [],
+  "resume_count": 0,
+  "updated_at": "2026-09-10T08:53:56.004Z",
+  "state_version": 6,
+  "current_task": null,
+  "current_lease_id": null
+}

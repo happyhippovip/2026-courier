@@ -1,0 +1,6 @@
+{
+  "id": "CE-013",
+  "defect_class": "BORDER_GUARD_UNAUTHORIZED_EGRESS_OR_SPEND",
+  "description": "Worker attempting undeclared spend or network egress without explicit task permissions.",
+  "proven_invariant": "All outbound actions strictly filtered through envelope permissions fail-closed."
+}

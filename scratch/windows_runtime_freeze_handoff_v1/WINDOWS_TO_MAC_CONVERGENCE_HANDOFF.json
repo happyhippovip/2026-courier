@@ -1,0 +1,114 @@
+{
+  "schema_version": "1.0.0",
+  "mission_id": "WINDOWS_PRODUCTION_RUNTIME_FREEZE_HANDOFF_V1",
+  "generated_at": "2026-09-10T09:01:31.485Z",
+  "platform_source": "WINDOWS_HOST",
+  "target_consumer": "CHIEF_CONVERGENCE_ORCHESTRATOR",
+  "windows_runtime_entrypoint": "bin/courier_runtime.js",
+  "windows_runtime_sha256": "3458d4590fb84bb3b2a7cc687163fe4b468c44c95bfd84855b58ef153424fcb8",
+  "windows_kernel_baseline": {
+    "git_head": "aa5c01d21c7e055c7e3b5117ded5eddc6793dde4",
+    "branch": "windows/money-factory-p0",
+    "regression_suites_passed": "114 / 114",
+    "authoritative_canary_stages": "12 / 12",
+    "bypass_attacks_fail_closed": "19 / 19",
+    "runtime_adversarial_attacks_fail_closed": "25 / 25",
+    "product_rc1_hashes_matched": "12 / 12"
+  },
+  "canonical_authorities": {
+    "intake_and_routing": "cross_device_intake.js (CrossDeviceIntakeEngine)",
+    "passport_and_capabilities": "governance/TaskPassport.js & governance/CapabilityEngine.js",
+    "pre_dispatch_choke": "governance/BorderGuard.js (BorderGuard.inspect)",
+    "resource_concurrency": "governance/ResourceLockManager.js",
+    "result_envelope_intake": "governance/ResultCustoms.js & supervisor/progress_tracker.js",
+    "physical_evidence_verification": "governance/ResultCustoms.js (EvidenceVerifier)",
+    "saturation_and_status": "governance/CompletionGovernor.js",
+    "process_lifecycle_and_identity": "supervisor/lease_manager.js (ProcessLeaseManager)",
+    "boot_reconciliation": "supervisor/reconciliation.js (RestartReconciler)",
+    "stall_detection": "supervisor/stall_policy.js (StallPolicy)",
+    "financial_and_human_gates": "money_factory/safety_gates.js (SafetyGateManager)"
+  },
+  "expected_task_passport_contract": {
+    "algorithm": "HMAC_SHA256",
+    "payload_fields": [
+      "task_id",
+      "task_version",
+      "goal_id",
+      "scope_paths",
+      "max_capability",
+      "secret_salt"
+    ],
+    "scope_confinement": "Must contain normalized lowercase working_dir and target_file paths",
+    "capability_ceiling": "Strictly WORKSPACE_WRITE or lower; FINANCIAL_LIABILITY / SECRETS_ACCESS require HUMAN_GATE"
+  },
+  "expected_result_envelope_contract": {
+    "validation_authority": "ResultCustoms.evaluateResultEnvelope",
+    "invariants": [
+      "exit_code must be 0",
+      "artifacts array must be non-empty",
+      "checksum_map must contain SHA-256 for all artifacts",
+      "passport signature must be cryptographically valid",
+      "envelope task_id must match passport task_id",
+      "worker DONE claim is strictly revoked and fails closed"
+    ]
+  },
+  "expected_process_identity_fields": {
+    "identity_tuple": [
+      "PID",
+      "START_TIME_EPOCH",
+      "TASK_TOKEN"
+    ],
+    "start_time_drift_tolerance_ms": 2000,
+    "kill_authorization_policy": "UNKNOWN or recycled process identities strictly deny kill"
+  },
+  "expected_execution_uncertainty_behavior": {
+    "trigger": "Process termination between dispatch evidence and result verification",
+    "boot_action": "Orphaned lease fenced as EXECUTION_UNCERTAIN; task deferred to open_followups",
+    "redispatch_policy": "Strictly no automatic blind redispatch"
+  },
+  "expected_no_stacking_behavior": {
+    "mutex_type": "Hierarchical prefix lock on working directory",
+    "collision_policy": "Second writer denied immediately and deferred to follow-up inbox"
+  },
+  "expected_completion_governor_behavior": {
+    "principle": "Workers possess ZERO global mission completion authority",
+    "allowed_worker_statuses": [
+      "WORK_UNIT_COMPLETE",
+      "NO_MORE_WORK_KNOWN_TO_THIS_WORKER",
+      "TASK_BLOCKED",
+      "TASK_FAILED"
+    ],
+    "prohibited_worker_statuses": [
+      "DONE",
+      "SATISFIED",
+      "MISSION_COMPLETE"
+    ]
+  },
+  "expected_human_gate_behavior": {
+    "boundary": "Hard-locked at €0.00 spend, commercial publication, live payments, or external credentials",
+    "enforcement": "SafetyGateManager & BorderGuard HUMAN_GATE escalation"
+  },
+  "expected_financial_boundary": {
+    "autonomous_spend_limit_eur": 0,
+    "live_trades": 0,
+    "live_wallets": 0,
+    "external_messages": 0
+  },
+  "windows_path_semantics": "Case-folded lowercase forward-slash normalized NTFS paths (e.g. c:/...)",
+  "known_windows_only_assumptions": [
+    "Case-insensitive filesystem path matching",
+    "Windows process table start-time polling via Node process runtime"
+  ],
+  "mac_proofs_still_required": [
+    "POSIX vs NTFS path and lock case-sensitivity semantics",
+    "Darwin process telemetry (process start-time extraction via ps/proc)",
+    "Darwin PID reuse and start-time delta verification",
+    "TaskPassport HMAC verification compatibility across platforms",
+    "Execution uncertainty boot fencing on macOS",
+    "Real production entrypoint execution on macOS node environment",
+    "Real OS restart/resume scenario on macOS (PID1 -> PID2 continuity)",
+    "Prohibition of duplicate redispatch under POSIX filesystem behavior"
+  ],
+  "mac_pass_claimed": false,
+  "mac_writer_status": "BUSY_WAITING_CLOSURE"
+}

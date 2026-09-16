@@ -1,0 +1,104 @@
+[
+  {
+    "dim": 1,
+    "name": "Resolution of Windows-Resolvable P0/P1 Defects",
+    "status": "SATURATED",
+    "evidence": "All 8 identified gaps (A01, L01, G01, B01, C01, W01, M01, S01) addressed and verified in shadow."
+  },
+  {
+    "dim": 2,
+    "name": "Compound Compositional Failures",
+    "status": "SATURATED",
+    "evidence": "5 compound attack scenarios (uncertainty+fallback+lease, token+migration, pid+hygiene, hierarchical+retry, trial+recurrence) tested and counterexamples minimized."
+  },
+  {
+    "dim": 3,
+    "name": "Formal State-Space & Model-Checking",
+    "status": "SATURATED",
+    "evidence": "10 lifecycle objects modeled (including 17-state TASK). Proved 0 deadlocks, 100% reachability, 100% forbidden transition rejection."
+  },
+  {
+    "dim": 4,
+    "name": "Crash-Point Exhaustion Across Durable Boundaries",
+    "status": "SATURATED",
+    "evidence": "12 durable boundaries tested with crash injection and replay recovery idempotence."
+  },
+  {
+    "dim": 5,
+    "name": "Hierarchical Concurrency & Path Aliasing",
+    "status": "SATURATED",
+    "evidence": "7 path collision dimensions tested (exact, case folding, dot segments, trailing slash, parent-child, child-parent, isolated)."
+  },
+  {
+    "dim": 6,
+    "name": "Border Guard Outbound Gatekeeping",
+    "status": "SATURATED",
+    "evidence": "6 outbound passport attacks tested (stale goal, stale version, scope drift, forged signature, worker mismatch, legitimate clear)."
+  },
+  {
+    "dim": 7,
+    "name": "Result Customs Deliverable Auditing",
+    "status": "SATURATED",
+    "evidence": "5 inbound deliverable attacks tested (nonzero exit code, test count inflation, stale version replay, artifact checksum mismatch, legitimate clear)."
+  },
+  {
+    "dim": 8,
+    "name": "Test-Weakening Structural AST Detection",
+    "status": "SATURATED",
+    "evidence": "5 worker test-weakening attacks blocked (deleting tests, adding it.skip, removing assertions, silent catch suppression, hostile mocking)."
+  },
+  {
+    "dim": 9,
+    "name": "Invariant Mutation Factory",
+    "status": "SATURATED",
+    "evidence": "10 targeted invariant mutants generated and 100% killed (0 surviving mutants)."
+  },
+  {
+    "dim": 10,
+    "name": "Metamorphic Safety Invariants",
+    "status": "SATURATED",
+    "evidence": "9 metamorphic properties proved (read-only reordering, label renaming, restart replay, result deduplication, stale monotonicity, uncertainty monotonicity, evidence monotonicity, liability monotonicity, path alias collision)."
+  },
+  {
+    "dim": 11,
+    "name": "Legacy State Migration & Derivation Rules",
+    "status": "SATURATED",
+    "evidence": "Missing field derivation rules verified (safe derivation, HOLD on missing goal_id, UNKNOWN on missing start-time)."
+  },
+  {
+    "dim": 12,
+    "name": "Atomic Multi-Step Rollback",
+    "status": "SATURATED",
+    "evidence": "LIFO compensating actions and snapshot recovery proved with zero data corruption."
+  },
+  {
+    "dim": 13,
+    "name": "Virtual Long-Horizon Soak",
+    "status": "SATURATED",
+    "evidence": "Accelerated virtual soak completed across 8h, 24h, 7d, 30d, and 365d horizons with periodic compaction and lease reclamation."
+  },
+  {
+    "dim": 14,
+    "name": "Economic Autonomy Boundaries (Simulation Only)",
+    "status": "SATURATED",
+    "evidence": "Economic pipeline verified; zero real spend enforced; simulated revenue labeled; non-zero diverted to Human Gate."
+  },
+  {
+    "dim": 15,
+    "name": "Goal Satisfaction Adversary",
+    "status": "SATURATED",
+    "evidence": "5 goal satisfaction attacks tested (self-reported claim rejected, stale commit rejected, P0 blocker blocked, simulated revenue masquerading blocked, legitimate cleared)."
+  },
+  {
+    "dim": 16,
+    "name": "Mac-Native Queue Separation",
+    "status": "SATURATED",
+    "evidence": "Darwin-specific requirements isolated into MAC_NATIVE_PROOF_QUEUE.jsonl with minimum proof specifications."
+  },
+  {
+    "dim": 17,
+    "name": "Human-Gate Queue Separation",
+    "status": "SATURATED",
+    "evidence": "Financial and external deployment actions isolated into HUMAN_GATE_QUEUE.jsonl without stalling the autonomous night factory."
+  }
+]

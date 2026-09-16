@@ -1,0 +1,27 @@
+{
+  "mission_id": "WINDOWS_MINIMAL_PRODUCTION_COURIER_RUNTIME_V1",
+  "timestamp": "2026-09-10T08:41:26.027Z",
+  "total_new_production_files": 1,
+  "total_new_production_loc": 515,
+  "files": [
+    {
+      "path": "bin/courier_runtime.js",
+      "loc": 515,
+      "responsibility": "Canonical production orchestrator entrypoint & autonomous continuum loop",
+      "why_required": "Needed to close the gap where governance and supervisor modules existed in isolation without a canonical entrypoint to accept goals and run the lifecycle",
+      "existing_authority_reused": [
+        "cross_device_intake.js (CrossDeviceIntakeEngine)",
+        "governance/TaskPassport.js (TaskPassport)",
+        "governance/BorderGuard.js (BorderGuard)",
+        "governance/ResourceLockManager.js (ResourceLockManager)",
+        "governance/ResultCustoms.js (ResultCustoms)",
+        "governance/CompletionGovernor.js (CompletionGovernor)",
+        "supervisor/lease_manager.js (ProcessLeaseManager)",
+        "supervisor/decision_engine.js (DecisionEngine)",
+        "supervisor/reconciliation.js (RestartReconciler)",
+        "money_factory/safety_gates.js (SafetyGateManager)"
+      ],
+      "new_authority_created": false
+    }
+  ]
+}

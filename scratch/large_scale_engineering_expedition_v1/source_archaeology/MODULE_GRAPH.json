@@ -1,0 +1,1007 @@
+{
+  "chief/cli.py": {
+    "lines": 219,
+    "bytes": 8587,
+    "classes": [],
+    "functions": [
+      "cmd_ingest",
+      "cmd_delta",
+      "cmd_dispatch",
+      "cmd_status",
+      "cmd_watch",
+      "build_parser",
+      "main"
+    ],
+    "imports": [
+      "os",
+      "sys",
+      "time",
+      "argparse",
+      "typing",
+      ".types",
+      ".control_plane",
+      ".ingestor",
+      ".delta_engine",
+      ".coordinator"
+    ]
+  },
+  "chief/control_plane.py": {
+    "lines": 606,
+    "bytes": 26009,
+    "classes": [
+      "ControlPlane"
+    ],
+    "functions": [
+      "__init__",
+      "get_connection",
+      "init_db",
+      "record_handoff",
+      "upsert_finding",
+      "upsert_patch",
+      "upsert_task",
+      "acquire_lock",
+      "release_lock",
+      "get_active_locks",
+      "enqueue_dispatch",
+      "get_pending_dispatches",
+      "mark_dispatched",
+      "get_all_findings",
+      "get_all_patches",
+      "get_all_tasks",
+      "get_recent_events",
+      "_record_event_tx"
+    ],
+    "imports": [
+      "os",
+      "sqlite3",
+      "json",
+      "hashlib",
+      "datetime",
+      "typing",
+      ".types"
+    ]
+  },
+  "chief/coordinator.py": {
+    "lines": 257,
+    "bytes": 10055,
+    "classes": [
+      "ChiefCoordinator"
+    ],
+    "functions": [
+      "__init__",
+      "acquire_resource",
+      "release_resource",
+      "prepare_dispatch",
+      "execute_local_headless_dispatch",
+      "format_terminal_status"
+    ],
+    "imports": [
+      "os",
+      "json",
+      "subprocess",
+      "typing",
+      "datetime",
+      ".types",
+      ".control_plane",
+      ".safewrite"
+    ]
+  },
+  "chief/delta_engine.py": {
+    "lines": 204,
+    "bytes": 8876,
+    "classes": [
+      "ChiefDeltaEngine"
+    ],
+    "functions": [
+      "__init__",
+      "compute_delta",
+      "generate_delta_markdown",
+      "export_reports"
+    ],
+    "imports": [
+      "typing",
+      "datetime",
+      ".types",
+      ".control_plane",
+      ".safewrite"
+    ]
+  },
+  "chief/ingestor.py": {
+    "lines": 298,
+    "bytes": 11631,
+    "classes": [
+      "ChiefIngestor"
+    ],
+    "functions": [
+      "__init__",
+      "compute_sha256",
+      "ingest_file",
+      "_extract_findings",
+      "_extract_patches",
+      "_extract_task",
+      "scan_and_ingest"
+    ],
+    "imports": [
+      "os",
+      "json",
+      "hashlib",
+      "typing",
+      "datetime",
+      ".types",
+      ".control_plane",
+      ".validator"
+    ]
+  },
+  "chief/safewrite.py": {
+    "lines": 95,
+    "bytes": 3036,
+    "classes": [],
+    "functions": [
+      "safe_write_text",
+      "safe_write_json"
+    ],
+    "imports": [
+      "os",
+      "sys",
+      "json",
+      "time",
+      "random",
+      "tempfile",
+      "typing"
+    ]
+  },
+  "chief/types.py": {
+    "lines": 163,
+    "bytes": 4329,
+    "classes": [
+      "Lane",
+      "Host",
+      "TaskStatus",
+      "FindingStatus",
+      "FindingSeverity",
+      "PatchStatus",
+      "AuthorityTier",
+      "TwoLevelDone",
+      "IngestedHandoff",
+      "RegisteredFinding",
+      "RegisteredPatch",
+      "DispatchEnvelope"
+    ],
+    "functions": [
+      "from_str",
+      "from_str",
+      "validate_invariants"
+    ],
+    "imports": [
+      "dataclasses",
+      "enum",
+      "typing",
+      "datetime"
+    ]
+  },
+  "chief/validator.py": {
+    "lines": 89,
+    "bytes": 3717,
+    "classes": [
+      "IngestionValidationError",
+      "HandoffValidator"
+    ],
+    "functions": [
+      "validate_handoff_payload"
+    ],
+    "imports": [
+      "os",
+      "math",
+      "typing"
+    ]
+  },
+  "chief/__init__.py": {
+    "lines": 25,
+    "bytes": 519,
+    "classes": [],
+    "functions": [],
+    "imports": [
+      ".types"
+    ]
+  },
+  "content_os/candidate_queue.json": {
+    "lines": 122,
+    "bytes": 4851,
+    "classes": [],
+    "functions": [],
+    "imports": []
+  },
+  "content_os/lane4_data_renderer.py": {
+    "lines": 106,
+    "bytes": 4134,
+    "classes": [
+      "Lane4DataCardRenderer"
+    ],
+    "functions": [
+      "__init__",
+      "_get_font",
+      "render_ranking_card"
+    ],
+    "imports": [
+      "os",
+      "typing",
+      "PIL"
+    ]
+  },
+  "content_os/opportunity_evaluator.py": {
+    "lines": 149,
+    "bytes": 5000,
+    "classes": [
+      "EvidenceType",
+      "EvidenceEntry",
+      "OpportunityDimensions",
+      "EvaluationResult",
+      "ContentOpportunityEvaluator"
+    ],
+    "functions": [
+      "summary",
+      "clamp",
+      "evaluate"
+    ],
+    "imports": [
+      "dataclasses",
+      "enum",
+      "typing"
+    ]
+  },
+  "content_os/template_engine.py": {
+    "lines": 132,
+    "bytes": 4316,
+    "classes": [
+      "ScriptPhase",
+      "AssetManifest",
+      "ContentPackage",
+      "ShortFormTemplateEngine"
+    ],
+    "functions": [
+      "formatted_script",
+      "generate_short_package"
+    ],
+    "imports": [
+      "dataclasses",
+      "typing"
+    ]
+  },
+  "content_os/tests/test_content_os.py": {
+    "lines": 145,
+    "bytes": 6118,
+    "classes": [
+      "TestContentOSPhase0"
+    ],
+    "functions": [
+      "setUp",
+      "test_opportunity_evaluator_ready_candidate",
+      "test_opportunity_evaluator_policy_risk_penalty",
+      "test_template_engine_script_phases",
+      "test_lane4_data_card_rendering"
+    ],
+    "imports": [
+      "os",
+      "sys",
+      "unittest",
+      "PIL",
+      "opportunity_evaluator",
+      "template_engine",
+      "lane4_data_renderer"
+    ]
+  },
+  "cross_device_intake.js": {
+    "lines": 201,
+    "bytes": 6691,
+    "classes": [
+      "CrossDeviceIntakeEngine"
+    ],
+    "functions": [
+      "constructor",
+      "classifyAndRoute",
+      "formatTerminalOutput"
+    ],
+    "imports": []
+  },
+  "cross_device_intake.py": {
+    "lines": 326,
+    "bytes": 13159,
+    "classes": [
+      "Host",
+      "Agent",
+      "MessageClass",
+      "TaskStatus",
+      "ActionDomain",
+      "IntakeResult",
+      "CrossMachineResourceManager",
+      "CrossDeviceIntakeEngine"
+    ],
+    "functions": [
+      "to_terminal_format",
+      "detect_host_and_agent",
+      "__init__",
+      "request_access",
+      "release_access",
+      "__init__",
+      "classify_and_route"
+    ],
+    "imports": [
+      "dataclasses",
+      "enum",
+      "re",
+      "typing"
+    ]
+  },
+  "money_factory/anti_loop_policy.js": {
+    "lines": 204,
+    "bytes": 6823,
+    "classes": [
+      "AntiLoopPolicy"
+    ],
+    "functions": [
+      "validateAccountAction"
+    ],
+    "imports": []
+  },
+  "money_factory/cheapest_test.js": {
+    "lines": 85,
+    "bytes": 3545,
+    "classes": [
+      "CheapestTestSelector"
+    ],
+    "functions": [
+      "selectCheapestTestForOpportunity",
+      "generateTestProposal"
+    ],
+    "imports": [
+      "crypto"
+    ]
+  },
+  "money_factory/first_5_euro_simulator.js": {
+    "lines": 185,
+    "bytes": 6623,
+    "classes": [
+      "First5EuroSimulator"
+    ],
+    "functions": [
+      "simulateEndToEndFlow"
+    ],
+    "imports": [
+      "./scoring",
+      "./cheapest_test",
+      "./safety_gates",
+      "./evidence_ledger"
+    ]
+  },
+  "money_factory/index.js": {
+    "lines": 87,
+    "bytes": 2739,
+    "classes": [
+      "MoneyFactory"
+    ],
+    "functions": [
+      "constructor",
+      "_initializeSeedsIfEmpty",
+      "refreshLeaderboard",
+      "getWarehouse",
+      "getCycleLedger",
+      "getPredictionCalibrator",
+      "getEvidenceLedger"
+    ],
+    "imports": [
+      "path",
+      "./warehouse",
+      "./scoring",
+      "./portfolios",
+      "./seed_classes",
+      "./cycle_ledger",
+      "./prediction_calibration",
+      "./safety_gates",
+      "./anti_loop_policy",
+      "./leaderboard_generator",
+      "./evidence_ledger",
+      "./cheapest_test",
+      "./supervisor_compat",
+      "./first_5_euro_simulator"
+    ]
+  },
+  "money_factory/leaderboard_generator.js": {
+    "lines": 92,
+    "bytes": 4143,
+    "classes": [
+      "LeaderboardGenerator"
+    ],
+    "functions": [
+      "generateMarkdown"
+    ],
+    "imports": [
+      "fs",
+      "path",
+      "./portfolios"
+    ]
+  },
+  "money_factory/portfolios.js": {
+    "lines": 157,
+    "bytes": 5206,
+    "classes": [
+      "PortfolioManager"
+    ],
+    "functions": [
+      "constructor",
+      "getWeights",
+      "suggestCategory",
+      "rankByHorizon",
+      "rankAllHorizons",
+      "calculateAllocation",
+      "allocateBudget"
+    ],
+    "imports": []
+  },
+  "money_factory/prediction_calibration.js": {
+    "lines": 248,
+    "bytes": 8515,
+    "classes": [
+      "PredictionCalibrator"
+    ],
+    "functions": [
+      "constructor",
+      "_load",
+      "_persist",
+      "recordPrediction",
+      "recordActualOutcome",
+      "getCalibration"
+    ],
+    "imports": [
+      "fs",
+      "path"
+    ]
+  },
+  "money_factory/safety_gates.js": {
+    "lines": 159,
+    "bytes": 5244,
+    "classes": [
+      "SafetyGateManager"
+    ],
+    "functions": [
+      "getInvariants",
+      "checkOperation",
+      "executeSpend",
+      "executeTrade",
+      "signWithWallet"
+    ],
+    "imports": [
+      "crypto"
+    ]
+  },
+  "money_factory/scoring.js": {
+    "lines": 85,
+    "bytes": 3720,
+    "classes": [
+      "MoneyScorer"
+    ],
+    "functions": [
+      "computeSpeedMultiplier",
+      "parseNumeric",
+      "computeScore"
+    ],
+    "imports": []
+  },
+  "money_factory/seed_classes.js": {
+    "lines": 294,
+    "bytes": 10033,
+    "classes": [],
+    "functions": [],
+    "imports": []
+  },
+  "money_factory/supervisor_compat.js": {
+    "lines": 90,
+    "bytes": 2537,
+    "classes": [
+      "SupervisorCompatibility"
+    ],
+    "functions": [
+      "bindProcessLease"
+    ],
+    "imports": []
+  },
+  "money_factory/warehouse.js": {
+    "lines": 364,
+    "bytes": 11959,
+    "classes": [
+      "OpportunityWarehouse"
+    ],
+    "functions": [
+      "stringifyYaml",
+      "stringifyYamlItem",
+      "constructor",
+      "_load",
+      "_persist",
+      "_recordEvent",
+      "validateSchema",
+      "addOpportunity",
+      "getOpportunity",
+      "getAllOpportunities",
+      "getHistory",
+      "mutateOpportunity",
+      "promoteOpportunity",
+      "demoteOpportunity",
+      "mergeOpportunities",
+      "archiveOpportunity",
+      "killOpportunity"
+    ],
+    "imports": [
+      "fs",
+      "path",
+      "crypto",
+      "./scoring"
+    ]
+  },
+  "opportunity_warehouse/opportunities.json": {
+    "lines": 497,
+    "bytes": 16934,
+    "classes": [],
+    "functions": [],
+    "imports": []
+  },
+  "opportunity_warehouse/opportunities.yaml": {
+    "lines": 431,
+    "bytes": 13479,
+    "classes": [],
+    "functions": [],
+    "imports": []
+  },
+  "supervisor/chief_envelope.js": {
+    "lines": 67,
+    "bytes": 1701,
+    "classes": [
+      "ChiefEscalationEnvelope"
+    ],
+    "functions": [],
+    "imports": [
+      "crypto"
+    ]
+  },
+  "supervisor/decision_engine.js": {
+    "lines": 79,
+    "bytes": 2578,
+    "classes": [
+      "DecisionEngine"
+    ],
+    "functions": [
+      "constructor"
+    ],
+    "imports": [
+      "./types",
+      "./stall_policy"
+    ]
+  },
+  "supervisor/diagnostic_bundle.js": {
+    "lines": 104,
+    "bytes": 3888,
+    "classes": [
+      "DiagnosticBundleManager"
+    ],
+    "functions": [
+      "constructor",
+      "getBundle"
+    ],
+    "imports": [
+      "fs",
+      "path",
+      "crypto"
+    ]
+  },
+  "supervisor/index.js": {
+    "lines": 77,
+    "bytes": 2692,
+    "classes": [
+      "SupervisorPlane"
+    ],
+    "functions": [
+      "constructor",
+      "getSafetyInvariants"
+    ],
+    "imports": [
+      "path",
+      "./types",
+      "./audit_ledger",
+      "./lease_manager",
+      "./progress_tracker",
+      "./stall_policy",
+      "./diagnostic_bundle",
+      "./screenshot_spec",
+      "./decision_engine",
+      "./task_hygiene",
+      "./reconciliation",
+      "./resource_governor",
+      "./no_stacking",
+      "./chief_envelope"
+    ]
+  },
+  "supervisor/lease_manager.js": {
+    "lines": 232,
+    "bytes": 7077,
+    "classes": [
+      "ProcessLeaseManager"
+    ],
+    "functions": [
+      "constructor",
+      "_load",
+      "_persist",
+      "computeProcessFingerprint",
+      "computeCommandFingerprint",
+      "getLease",
+      "getAllLeases",
+      "getActiveLeasesForMachine",
+      "recordHeartbeat",
+      "updateStatus",
+      "reconcileChildrenOnParentCompletion"
+    ],
+    "imports": [
+      "fs",
+      "path",
+      "crypto",
+      "./types"
+    ]
+  },
+  "supervisor/no_stacking.js": {
+    "lines": 65,
+    "bytes": 2208,
+    "classes": [
+      "NoStackingDetector"
+    ],
+    "functions": [
+      "constructor",
+      "computeTaskWorkSignature"
+    ],
+    "imports": [
+      "crypto",
+      "./types"
+    ]
+  },
+  "supervisor/progress_tracker.js": {
+    "lines": 116,
+    "bytes": 3674,
+    "classes": [
+      "ProgressTracker"
+    ],
+    "functions": [
+      "constructor",
+      "_load",
+      "getEvidenceForProcess",
+      "getLatestProgressForProcess"
+    ],
+    "imports": [
+      "fs",
+      "path",
+      "crypto",
+      "./types"
+    ]
+  },
+  "supervisor/reconciliation.js": {
+    "lines": 153,
+    "bytes": 5880,
+    "classes": [
+      "RestartReconciler"
+    ],
+    "functions": [
+      "constructor"
+    ],
+    "imports": [
+      "./types"
+    ]
+  },
+  "supervisor/resource_governor.js": {
+    "lines": 162,
+    "bytes": 5883,
+    "classes": [
+      "MachineResourceGovernor"
+    ],
+    "functions": [
+      "constructor",
+      "_initializeDefaultStates",
+      "getMachineState",
+      "findHealthyRerouteTarget"
+    ],
+    "imports": [
+      "./types"
+    ]
+  },
+  "supervisor/screenshot_spec.js": {
+    "lines": 123,
+    "bytes": 3450,
+    "classes": [
+      "ScreenshotSpec"
+    ],
+    "functions": [],
+    "imports": [
+      "crypto"
+    ]
+  },
+  "supervisor/stall_policy.js": {
+    "lines": 181,
+    "bytes": 7222,
+    "classes": [
+      "StallPolicy"
+    ],
+    "functions": [
+      "constructor"
+    ],
+    "imports": [
+      "./types"
+    ]
+  },
+  "supervisor/task_hygiene.js": {
+    "lines": 120,
+    "bytes": 3711,
+    "classes": [
+      "TaskHygiene"
+    ],
+    "functions": [
+      "constructor",
+      "runTaskHygiene"
+    ],
+    "imports": [
+      "./types"
+    ]
+  },
+  "supervisor/types.js": {
+    "lines": 100,
+    "bytes": 2677,
+    "classes": [],
+    "functions": [],
+    "imports": []
+  },
+  "tests/rc3_hardening/test_border_guard.js": {
+    "lines": 238,
+    "bytes": 8516,
+    "classes": [],
+    "functions": [
+      "runTest"
+    ],
+    "imports": [
+      "assert",
+      "fs",
+      "path",
+      "../../scratch/rc3_hardening_lab/border_guard_contract"
+    ]
+  },
+  "tests/rc3_hardening/test_crash_restart_chaos.js": {
+    "lines": 436,
+    "bytes": 17397,
+    "classes": [],
+    "functions": [
+      "runScenario",
+      "reconcileGoal"
+    ],
+    "imports": [
+      "assert",
+      "fs",
+      "path",
+      "crypto",
+      "../../supervisor",
+      "../../scratch/rc3_hardening_lab/task_stamp_contract",
+      "../../scratch/rc3_hardening_lab/follow_up_inbox",
+      "../../scratch/rc3_hardening_lab/result_customs_contract"
+    ]
+  },
+  "tests/rc3_hardening/test_deterministic_soak.js": {
+    "lines": 479,
+    "bytes": 19263,
+    "classes": [],
+    "functions": [
+      "cleanupDir",
+      "runDeterministicSoak"
+    ],
+    "imports": [
+      "fs",
+      "path",
+      "crypto",
+      "../../scratch/rc3_hardening_lab/task_stamp_contract",
+      "../../scratch/rc3_hardening_lab/follow_up_inbox",
+      "../../scratch/rc3_hardening_lab/border_guard_contract",
+      "../../scratch/rc3_hardening_lab/result_customs_contract",
+      "../../supervisor/audit_ledger"
+    ]
+  },
+  "tests/rc3_hardening/test_follow_up_inbox.js": {
+    "lines": 198,
+    "bytes": 7334,
+    "classes": [],
+    "functions": [
+      "runTest"
+    ],
+    "imports": [
+      "assert",
+      "fs",
+      "path",
+      "../../scratch/rc3_hardening_lab/follow_up_inbox"
+    ]
+  },
+  "tests/rc3_hardening/test_money_factory_adversarial.js": {
+    "lines": 433,
+    "bytes": 15814,
+    "classes": [
+      "strictly"
+    ],
+    "functions": [
+      "runTest",
+      "createValidOpp"
+    ],
+    "imports": [
+      "assert",
+      "fs",
+      "path",
+      "../../money_factory"
+    ]
+  },
+  "tests/rc3_hardening/test_rc3_adversarial_validation.js": {
+    "lines": 563,
+    "bytes": 20944,
+    "classes": [],
+    "functions": [
+      "copyDirSync",
+      "runValidatorA",
+      "runValidatorB",
+      "runValidatorHardened",
+      "scanPhysical",
+      "verifyLedgerIntegrity"
+    ],
+    "imports": [
+      "fs",
+      "path",
+      "crypto",
+      "child_process"
+    ]
+  },
+  "tests/rc3_hardening/test_resource_governor_adversarial.js": {
+    "lines": 334,
+    "bytes": 12349,
+    "classes": [],
+    "functions": [
+      "runTest"
+    ],
+    "imports": [
+      "assert",
+      "fs",
+      "path",
+      "../../supervisor"
+    ]
+  },
+  "tests/rc3_hardening/test_result_customs.js": {
+    "lines": 271,
+    "bytes": 9647,
+    "classes": [],
+    "functions": [
+      "runTest",
+      "getValidEnvelope"
+    ],
+    "imports": [
+      "assert",
+      "fs",
+      "path",
+      "../../scratch/rc3_hardening_lab/result_customs_contract"
+    ]
+  },
+  "tests/rc3_hardening/test_supervisor_adversarial.js": {
+    "lines": 520,
+    "bytes": 20243,
+    "classes": [],
+    "functions": [
+      "runTest"
+    ],
+    "imports": [
+      "assert",
+      "fs",
+      "path",
+      "os",
+      "../../supervisor"
+    ]
+  },
+  "tests/rc3_hardening/test_task_stamp_contracts.js": {
+    "lines": 259,
+    "bytes": 10050,
+    "classes": [],
+    "functions": [
+      "runTest"
+    ],
+    "imports": [
+      "assert",
+      "fs",
+      "path",
+      "../../scratch/rc3_hardening_lab/task_stamp_contract"
+    ]
+  },
+  "tests/test_cross_device_intake.js": {
+    "lines": 74,
+    "bytes": 3289,
+    "classes": [],
+    "functions": [],
+    "imports": [
+      "assert",
+      "../cross_device_intake"
+    ]
+  },
+  "tests/test_cross_device_intake.py": {
+    "lines": 189,
+    "bytes": 9876,
+    "classes": [
+      "TestCrossDeviceIntakeAndTeamModel"
+    ],
+    "functions": [
+      "setUp",
+      "test_case_1_windows_github_login_required",
+      "test_case_2_delegation_to_chief",
+      "test_case_3_verified_completion",
+      "test_case_4_worker_claim_without_evidence",
+      "test_case_5_task_still_running",
+      "test_case_6_blocked_by_oauth",
+      "test_case_7_continuation_directive_weiter",
+      "test_case_8_partial_success",
+      "test_a_gemini_on_windows_path",
+      "test_b_gemini_on_mac_path",
+      "test_c_gemini_without_host_evidence",
+      "test_d_local_step_done_vs_gesamtaufgabe_blocked",
+      "test_e_cross_machine_single_writer_serialization",
+      "test_f_machine_gate_isolation",
+      "test_g_connected_capability_routed_to_chief",
+      "test_h_unpushed_local_bytes_never_claimed_by_chief"
+    ],
+    "imports": [
+      "sys",
+      "os",
+      "unittest",
+      "cross_device_intake"
+    ]
+  },
+  "tests/test_money_factory_closure.js": {
+    "lines": 476,
+    "bytes": 21090,
+    "classes": [
+      "append",
+      "rejected",
+      "strictly"
+    ],
+    "functions": [
+      "runClosureTestSuite"
+    ],
+    "imports": [
+      "assert",
+      "fs",
+      "path",
+      "os",
+      "../money_factory"
+    ]
+  },
+  "tests/test_money_factory_p0.js": {
+    "lines": 448,
+    "bytes": 20669,
+    "classes": [],
+    "functions": [
+      "runTestSuite"
+    ],
+    "imports": [
+      "assert",
+      "fs",
+      "path",
+      "os",
+      "../money_factory"
+    ]
+  },
+  "tests/test_supervisor_plane_p0.js": {
+    "lines": 596,
+    "bytes": 23152,
+    "classes": [],
+    "functions": [
+      "runAllTests",
+      "test"
+    ],
+    "imports": [
+      "assert",
+      "fs",
+      "path",
+      "os",
+      "../supervisor"
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "test": "MONEY_FACTORY_CONTRACT_VERIFICATION",
+  "truth_ladder": [
+    {
+      "level": "VIEWS",
+      "isRevenue": false
+    },
+    {
+      "level": "CLICKS",
+      "isRevenue": false
+    },
+    {
+      "level": "CARTS",
+      "isRevenue": false
+    },
+    {
+      "level": "SETTLED_FUNDS_IN_BANK",
+      "isRevenue": true
+    }
+  ],
+  "spend_ceiling_eur": 0,
+  "real_trades": 0,
+  "status": "PASSED"
+}

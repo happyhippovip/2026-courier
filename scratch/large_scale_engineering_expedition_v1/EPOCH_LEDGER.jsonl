@@ -1,0 +1,13 @@
+{"epoch":"EPOCH_01_REAL_DATA_INVENTORY","completed_at_utc":"2026-09-10T04:16:48.189Z","files_scanned":2963,"total_bytes":20340967,"duplicate_candidates":573,"status":"COMPLETED"}
+{"epoch":"EPOCH_02_SOURCE_ARCHAEOLOGY","completed_at_utc":"2026-09-10T04:17:02.800Z","files_audited":58,"call_sites_indexed":194,"state_fields_mined":12,"discrepancies_found":2,"status":"COMPLETED"}
+{"epoch":"EPOCH_03_HISTORICAL_MINING","completed_at_utc":"2026-09-10T04:17:16.793Z","missions_mined":8,"counterexamples_harvested":6,"claims_harvested":11,"failures_clustered":6,"status":"COMPLETED"}
+{"epoch":"EPOCH_04_SHADOW_V2_CONTROL_PLANE","completed_at_utc":"2026-09-10T04:18:03.495Z","shadow_v2_bytes":15133,"reference_oracle_bytes":2011,"status":"COMPLETED"}
+{"epoch":"EPOCH_05_DIFFERENTIAL_SCALE","completed_at_utc":"2026-09-10T04:18:51.710Z","total_events_evaluated":26000,"differential_comparisons":7839,"differential_matches":5541,"status":"COMPLETED"}
+{"epoch":"EPOCH_05_DIFFERENTIAL_SCALE","completed_at_utc":"2026-09-10T04:22:40.936Z","total_events_evaluated":26000,"differential_comparisons":7871,"differential_matches":7871,"status":"COMPLETED"}
+{"epoch":"EPOCH_06_SEMANTIC_MUTATIONS","completed_at_utc":"2026-09-10T04:23:07.676Z","total_mutants":12,"killed_mutants":11,"mutation_score":91.66666666666666,"status":"COMPLETED"}
+{"epoch":"EPOCH_06_SEMANTIC_MUTATIONS","completed_at_utc":"2026-09-10T04:23:22.744Z","total_mutants":12,"killed_mutants":12,"mutation_score":100,"status":"COMPLETED"}
+{"epoch":"EPOCH_07_SUBPROCESS_CONCURRENCY","completed_at_utc":"2026-09-10T04:23:42.849Z","subprocess_test_status":"PASSED","concurrency_test_status":"PASSED","status":"COMPLETED"}
+{"epoch":"EPOCH_08_CRASH_RECOVERY_SCALE","completed_at_utc":"2026-09-10T04:24:00.768Z","torn_write_recovery_passed":true,"compaction_reduction_pct":"97.99","compaction_passed":true,"schema_migration_passed":true,"status":"COMPLETED"}
+{"epoch":"EPOCH_09_CROSS_REPO_CONSISTENCY","completed_at_utc":"2026-09-10T04:24:31.226Z","contracts_evaluated":5,"status":"COMPLETED"}
+{"epoch":"EPOCH_10_AUTONOMY_AND_SATURATION_TRIAL","completed_at_utc":"2026-09-10T04:24:58.109Z","all_prosecutors_passed":false,"status":"FAILED"}
+{"epoch":"EPOCH_10_AUTONOMY_AND_SATURATION_TRIAL","completed_at_utc":"2026-09-10T04:25:11.958Z","all_prosecutors_passed":true,"status":"COMPLETED"}

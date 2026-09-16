@@ -1,0 +1,23 @@
+{
+  "package_id": "PKG-S01-LONG-RUN-SOAK",
+  "title": "Durable Journal Compaction & Monotonic Lease Reclaimer",
+  "problem": "Long unattended runs (>8h) risk journal unbounded growth and dangling worker leases.",
+  "evidence": "Verified in WS9 (EXP-WS9-SOAK-001). Simulated 1-year stability proved.",
+  "current_source_location": "supervisor/progress_tracker.js, supervisor/lease_manager.js",
+  "proposed_change_boundary": "Trigger cryptographic state snapshots every 500 entries and monotonic lease reclamation sweeps every 60s.",
+  "files_likely_affected": [
+    "supervisor/progress_tracker.js",
+    "supervisor/lease_manager.js"
+  ],
+  "migration_impact": "Initial compaction on first restart.",
+  "rollback": "Retain full event logs alongside snapshots.",
+  "targeted_tests": [
+    "test_virtual_soak.js"
+  ],
+  "independent_verifier": "Filesystem disk usage monitor and memory profiler.",
+  "known_risks": "Snapshot creation introduces brief 10ms I/O pause.",
+  "mac_dependency": false,
+  "human_gate_dependency": false,
+  "recommended_integration_order": 8,
+  "stop_condition": "Snapshot checksum mismatch during recovery replay."
+}

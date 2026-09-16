@@ -1,0 +1,13 @@
+{
+  "counterexample_id": "CE_SUPERSEDE_01_zombie_task_on_superseded_goal",
+  "date": "2026-09-09T21:49:57.765Z",
+  "category": "ZOMBIE_TASK_SUPERSEDED_GOAL",
+  "vulnerability": "When goal was superseded from V1 to V2, in-flight V1 tasks continued running, clobbering V2 files upon late completion",
+  "unprotected_behavior": "Superseded goals remained open for task status updates; in-flight tasks were not cancelled",
+  "repaired_behavior": "supersedeGoal() transitions in-flight tasks to SUPERSEDED_CANCELLED and marks deliverables SUPERSEDED_HISTORICAL",
+  "minimal_failing_case": {
+    "old_goal": "SUPERSEDED",
+    "in_flight_task": "SUPERSEDED_CANCELLED",
+    "late_execution_attempt": "REJECTED"
+  }
+}

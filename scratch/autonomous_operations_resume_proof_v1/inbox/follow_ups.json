@@ -1,0 +1,37 @@
+[
+  {
+    "id": "FUP-001",
+    "type": "CANDIDATE",
+    "title": "Cache BPE token approximations for static .cursorrules files",
+    "created_at_utc": "2026-09-10T07:16:30.793Z",
+    "priority": "MEDIUM"
+  },
+  {
+    "id": "FUP-002",
+    "type": "NEEDS_DISCUSSION",
+    "title": "Should the pre-commit hook auto-fail if wasted tokens exceed 20%?",
+    "created_at_utc": "2026-09-10T07:16:30.793Z",
+    "priority": "HIGH"
+  },
+  {
+    "id": "FUP-003",
+    "type": "DEPENDENCY_BLOCKED",
+    "title": "Verify Mac Darwin ARM64 binary once Mac host finishes busy run",
+    "created_at_utc": "2026-09-10T07:16:30.793Z",
+    "blocked_by": "MAC_HOST_BUSY"
+  },
+  {
+    "id": "FUP-004",
+    "type": "DUPLICATE",
+    "title": "Check node_modules size in shipping product",
+    "created_at_utc": "2026-09-10T07:16:30.793Z",
+    "resolution": "DUPLICATE_OF_ZERO_DEPENDENCY_AUDIT"
+  },
+  {
+    "id": "FUP-005",
+    "type": "SUPERSEDED",
+    "title": "Support legacy Node.js 14 runtimes",
+    "created_at_utc": "2026-09-10T07:16:30.793Z",
+    "resolution": "SUPERSEDED_BY_NODE_18_BASELINE"
+  }
+]

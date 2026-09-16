@@ -1,0 +1,12 @@
+FRAME:74:4fe9a3d6fd77f3f8
+{"type":"TASK_HEARTBEAT","index":0,"timestamp":"2026-09-10T04:48:50.762Z"}
+FRAME:74:b059e12971780f2a
+{"type":"TASK_HEARTBEAT","index":1,"timestamp":"2026-09-10T04:48:50.763Z"}
+FRAME:74:f0fee752b66006d7
+{"type":"TASK_HEARTBEAT","index":2,"timestamp":"2026-09-10T04:48:50.763Z"}
+FRAME:74:bd1b7e57aa906fd9
+{"type":"TASK_HEARTBEAT","index":3,"timestamp":"2026-09-10T04:48:50.763Z"}
+FRAME:74:ebbc06ba643be867
+{"type":"TASK_HEARTBEAT","index":4,"timestamp":"2026-09-10T04:48:50.763Z"}
+FRAME:250:abcdef0123456789
+{"incomplete_event":true, "data":

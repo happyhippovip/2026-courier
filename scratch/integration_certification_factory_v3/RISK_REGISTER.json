@@ -1,0 +1,41 @@
+{
+  "version": "1.0",
+  "failure_modes": [
+    {
+      "package_id": "PKG-001",
+      "component": "TaskStamp",
+      "failure_mode": "FAIL_CLOSED",
+      "degraded_behavior": "Refuse dispatch"
+    },
+    {
+      "package_id": "PKG-002",
+      "component": "WorkerLease",
+      "failure_mode": "FAIL_CLOSED",
+      "degraded_behavior": "Deny lease acquisition"
+    },
+    {
+      "package_id": "PKG-006",
+      "component": "BorderGuard",
+      "failure_mode": "FAIL_CLOSED",
+      "degraded_behavior": "Block all outbound actions"
+    },
+    {
+      "package_id": "PKG-007",
+      "component": "ResultCustoms",
+      "failure_mode": "FAIL_CLOSED",
+      "degraded_behavior": "Quarantine unverified results"
+    },
+    {
+      "package_id": "PKG-011",
+      "component": "TaskHygiene",
+      "failure_mode": "DEGRADED",
+      "degraded_behavior": "Diagnostic capture only; no kill"
+    },
+    {
+      "package_id": "PKG-016",
+      "component": "DiagnosticBundle",
+      "failure_mode": "DEGRADED",
+      "degraded_behavior": "Omit telemetry; keep core state"
+    }
+  ]
+}

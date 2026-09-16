@@ -1,0 +1,7 @@
+{
+  "test": "SUBPROCESS_TREE_ORPHAN_GUARD",
+  "grandchild_pid": 15748,
+  "orphan_detected": true,
+  "cleanly_reaped": true,
+  "status": "PASSED"
+}

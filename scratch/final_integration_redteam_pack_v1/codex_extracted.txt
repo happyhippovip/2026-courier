@@ -1,0 +1,187 @@
+### INDEPENDENT CODEX READ-ONLY ARCHITECTURAL REVIEW
+
+**Auditor**: Codex (Read-Only Independent Architecture & Adversarial Verification)  
+**Mode**: `STRICT READ-ONLY ARCHITECTURAL / ADVERSARIAL REVIEW`  
+**Target Repository**: `C:\Users\lol\2026-workspace\courier`  
+**Evidence Root**: `C:\Users\lol\2026-workspace\courier\scratch\final_4pct_adversarial_intervention_v1`  
+**Operational Invariants Verified**:
+- Zero files modified across repository, release packages, or scratch labs
+- Zero commits, pushes, merges, deployments, or external transmissions
+- `universuX` untouched; Mac host and active Mac lifecycle untouched
+- `AUTONOMOUS_SPEND_LIMIT_EUR = 0`, `REAL_TRADES = 0`, `REAL_REVENUE_EUR = 0.00`
+
+---
+
+### DETAILED CANDIDATE EVALUATIONS
+
+```
+======================================================================
+DEFECT_ID: DEFECT-A01
+TITLE: Indirect Uncertain Fallback Redispatch
+======================================================================
+```
+
+- **CLASSIFICATION**: `LIKELY_PRODUCTION_DEFECT` (and `CONFIRMED_ARCHITECTURAL_REQUIREMENT`)
+- **SEVERITY_IF_REAL**: `P0`
+- **WHY**:
+  While the high-level architecture document ([`SUPERVISOR_PLANE_ARCHITECTURE.md`](file:///C:/Users/lol/2026-workspace/courier/SUPERVISOR_PLANE_ARCHITECTURE.md#L59-L64)) establishes that `EXECUTION_UNCERTAIN` tasks must never be retried or duplicate-dispatched without human proof, individual subsystems (Supervisor stall detection, Task Hygiene lease reclamation, Resource Governor rerouting, and Router timeout handlers) fire decentralized triggers. If retry/fallback logic is evaluated at the trigger source or if the Router only checks `!task.isCompleted() && lease.isFree()`, an indirect path triggers a fallback worker while the previous worker's side-effects remain in-flight or uncommitted. This causes dual concurrent writers, duplicate financial transactions, and unrecoverable worktree clobbering.
+- **MINIMAL_INVARIANT**:
+  $$\text{task.state} \in \{\text{EXECUTION\_UNCERTAIN}, \text{POSSIBLE\_SIDE\_EFFECT}\} \implies \text{AUTO\_REDISPATCH} = \text{BLOCKED}$$
+  This invariant must be enforced as an absolute choke-point assertion in the central Courier Dispatcher, regardless of what upstream subsystem requested fallback.
+- **WINDOWS_REPAIR_QUALITY**: `GOOD`
+  The Windows isolated repair ([`REPAIR-01-uncertain-router-lock.js`](file:///C:/Users/lol/2026-workspace/courier/scratch/final_4pct_adversarial_intervention_v1/REPAIRS/REPAIR-01-uncertain-router-lock.js)) cleanly intercepts all 8 indirect triggers (`SUPERVISOR_ROUTER`, `HYGIENE_ROUTER`, `RESTART_RECONCILIATION`, `GOVERNOR_REROUTE`, etc.) and forces `HOLD_UNCERTAIN`.
+- **MISSING_CASES**:
+  - Dependent downstream follow-ups: A task $T_2$ that declares a dependency on $T_1$ must also be held if $T_1$ enters `EXECUTION_UNCERTAIN`.
+  - External state verification timeout: A watchdog that checks whether external state can be queried to resolve uncertainty must itself fail closed to `HOLD` if the query times out.
+- **MAC_NATIVE_PROOF_REQUIRED**: `NO`
+  Pure deterministic control-plane state machine logic. Completely testable and verifiable in the Node.js test harness.
+- **MINIMUM_MAC_TEST_IF_REQUIRED**: None.
+- **SAFE_TO_INTEGRATE_AFTER_FREEZE**: `YES`
+- **RECOMMENDED_MINIMAL_CHANGE**:
+  Insert an unconditional, single-point guard at the entrance of `CourierDispatcher.dispatch()`:
+  ```javascript
+  if (task.executionUncertain || task.sideEffectPotential === 'POSSIBLE') {
+    throw new SecurityBoundaryViolation(`[CHOKE_POINT_BLOCKED] Cannot dispatch task ${task.id} under execution uncertainty.`);
+  }
+  ```
+- **DO_NOT_CHANGE**:
+  Do not create distributed uncertainty tracking inside individual supervisor components; keep the fence centralized in the Dispatcher.
+
+---
+
+```
+======================================================================
+DEFECT_ID: DEFECT-B01
+TITLE: PID Recycling / Multi-Factor Process Identity
+======================================================================
+```
+
+- **CLASSIFICATION**: `CONFIRMED_ARCHITECTURAL_REQUIREMENT` (and `CONTRACT_AMBIGUITY`)
+- **SEVERITY_IF_REAL**: `P1`
+- **WHY**:
+  Single-factor PID checks (e.g. `kill(pid, 0)` or checking OS process table for PID existence) are provably unsound across all modern operating systems due to PID wrap-around and rapid PID recycling. On Windows, PID reuse happens in seconds; on Darwin/Linux, daemon churn causes frequent rollover. A naive check results in two fatal bugs:
+  1. *False Liveness*: An unrelated system daemon receives the recycled PID, Courier assumes the dead worker is alive, and the task deadlocks indefinitely.
+  2. *Illegal Termination*: Courier assumes the worker is hung and issues `kill(pid, SIGKILL)`, terminating an innocent operating system process.
+- **MINIMAL_INVARIANT**:
+  A process match is confirmed if and only if the multi-factor tuple matches:
+  $$\text{Tuple} = \langle \text{PID}, \text{StartTime}, \text{TaskToken} \rangle$$
+  $$\text{Identity} = \text{UNKNOWN} \implies (\text{KILL\_ALLOWED} = \text{FALSE} \land \text{ASSUME\_ALIVE} = \text{FALSE})$$
+- **WINDOWS_REPAIR_QUALITY**: `GOOD`
+  [`REPAIR-02-multifactor-process-tracker.js`](file:///C:/Users/lol/2026-workspace/courier/scratch/final_4pct_adversarial_intervention_v1/REPAIRS/REPAIR-02-multifactor-process-tracker.js) implements the three-way state machine (`MATCH_CONFIRMED`, `NOT_MATCH`, `UNKNOWN`) and enforces fail-closed behavior on `UNKNOWN`.
+- **MISSING_CASES**:
+  - Process start-time granularity: OS clock skew or low-resolution tick count on certain POSIX kernels where two short-lived processes spawn within the same jiffy.
+  - Inaccessible process metadata due to macOS Sandbox or SIP: Must cleanly evaluate to `UNKNOWN` rather than throwing an unhandled exception.
+- **MAC_NATIVE_PROOF_REQUIRED**: `YES`
+- **MINIMUM_MAC_TEST_IF_REQUIRED**:
+  Verify Darwin `proc_pidinfo(pid, PROC_PIDTASKINFO, ...)` or `sysctl KERN_PROC_PID` under non-root permissions and inside the App Sandbox to prove that `pbi_start_tvsec` / `pbi_start_tvusec` can be read reliably without permission errors.
+- **SAFE_TO_INTEGRATE_AFTER_FREEZE**: `CONDITIONAL`
+  The state machine and lease tuple schema can be integrated immediately; the OS-specific adapter for Darwin process inspection must be validated on physical Mac hardware after freeze.
+- **RECOMMENDED_MINIMAL_CHANGE**:
+  Update the durable `ProcessLease` schema to require `process_start_time` and `task_token` alongside `pid`. Require all reconcilers to verify `start_time` before asserting liveness or issuing termination.
+- **DO_NOT_CHANGE**:
+  Do not rely on `ppid` (parent PID) as a required identifier, because parent termination reparents orphans to `launchd` (PID 1) on Darwin, causing false negative identity checks.
+
+---
+
+```
+======================================================================
+DEFECT_ID: DEFECT-L01
+TITLE: Hierarchical Scope Collision / No-Stacking
+======================================================================
+```
+
+- **CLASSIFICATION**: `LIKELY_PRODUCTION_DEFECT`
+- **SEVERITY_IF_REAL**: `P0`
+- **WHY**:
+  The existing Courier lease manager used exact string comparison on scope arrays (`scope.sort().join('|')`). This creates a blind spot for directory hierarchy: a worker claiming `src/` and a concurrent worker claiming `src/core/auth/` do not match exact strings, allowing both writers to acquire write leases simultaneously. They write to the same repository tree concurrently, resulting in silent clobbering, race conditions, and corrupted test baselines.
+- **MINIMAL_INVARIANT**:
+  $$\forall S_1, S_2 \in \text{WriteScopes}: \text{CanonicalPrefix}(S_1) \cap \text{CanonicalPrefix}(S_2) \neq \emptyset \implies \text{MUTEX\_CONFLICT}$$
+- **WINDOWS_REPAIR_QUALITY**: `PARTIAL`
+  [`REPAIR-03-hierarchical-scope-checker.js`](file:///C:/Users/lol/2026-workspace/courier/scratch/final_4pct_adversarial_intervention_v1/REPAIRS/REPAIR-03-hierarchical-scope-checker.js) correctly normalizes slashes, resolves relative paths, and adds a trailing slash to prevent `src/core` from colliding with `src/core_v2`. However, it lacks filesystem case-folding normalization (Windows and macOS APFS are case-preserving but case-insensitive by default: `src/Core/` equals `src/core/`).
+- **MISSING_CASES**:
+  - Case-insensitivity: `toLowerCase()` path canonicalization on case-insensitive filesystems (Windows and Darwin default APFS).
+  - Non-filesystem semantic resource keys: Scopes representing database tables (`db:users`), ports (`net:port:8080`), or git references (`git:refs/heads/main`).
+- **MAC_NATIVE_PROOF_REQUIRED**: `NO`
+  Pure path manipulation logic. APFS case-folding can be verified with synthetic string comparison.
+- **MINIMUM_MAC_TEST_IF_REQUIRED**: None.
+- **SAFE_TO_INTEGRATE_AFTER_FREEZE**: `YES`
+- **RECOMMENDED_MINIMAL_CHANGE**:
+  Upgrade the scope conflict evaluator to canonicalize paths:
+  ```javascript
+  function isScopeConflicting(s1, s2, isCaseInsensitive = true) {
+    let p1 = path.normalize(s1).replace(/\\/g, '/').replace(/\/$/, '') + '/';
+    let p2 = path.normalize(s2).replace(/\\/g, '/').replace(/\/$/, '') + '/';
+    if (isCaseInsensitive) { p1 = p1.toLowerCase(); p2 = p2.toLowerCase(); }
+    return p1 === p2 || p1.startsWith(p2) || p2.startsWith(p1);
+  }
+  ```
+- **DO_NOT_CHANGE**:
+  Do not implement an overly complex file-level AST parser; directory-level and declared resource-level prefix locking provides clean, robust protection without overengineering.
+
+---
+
+```
+======================================================================
+DEFECT_ID: DEFECT-G01
+TITLE: Deferred Billing / Auto-Renew Human Gate Bypasses
+======================================================================
+```
+
+- **CLASSIFICATION**: `CONFIRMED_ARCHITECTURAL_REQUIREMENT` (and `LIKELY_PRODUCTION_DEFECT`)
+- **SEVERITY_IF_REAL**: `P0`
+- **WHY**:
+  Courier maintains an absolute safety invariant: `AUTONOMOUS_SPEND_LIMIT_EUR = 0`. Traditional spend gate checks only inspect `spend_amount > 0` or trigger on explicit payment API calls. This creates a severe loophole for deferred liability:
+  - `"Start 14-day free trial with auto-renew at €50/month"`
+  - `"€0 due today with billing agreement on file"`
+  - `"Subscription upgrade with deferred invoice"`
+  In all these cases, `amount_today === 0`, but legal or financial recurring liability is created. An autonomous agent could enter into recurring financial commitments without violating a naive `price > 0` assertion. Furthermore, naive keyword filters that trigger on the substring `deploy` or `trade` create crippling false positives on harmless prompts like `"do not deploy"` or `"deployment analysis only"`.
+- **MINIMAL_INVARIANT**:
+  $$\text{Intent} \in \{\text{RECURRING\_LIABILITY}, \text{SUBSCRIPTION}, \text{TERMS\_BINDING}, \text{EXTERNAL\_EFFECT}\} \implies \text{HUMAN\_GATE\_REQUIRED}$$
+  $$\text{Grammar}(\text{InformationalPrefix} + \text{ProhibitedAction}) \land \text{NoDeferredLiability} \implies \text{PASS\_WITHOUT\_GATE}$$
+- **WINDOWS_REPAIR_QUALITY**: `GOOD`
+  [`REPAIR-04-fail-closed-intent-classifier.js`](file:///C:/Users/lol/2026-workspace/courier/scratch/final_4pct_adversarial_intervention_v1/REPAIRS/REPAIR-04-fail-closed-intent-classifier.js) correctly parses negative intent qualifiers (`analysis only`, `simulate`, `prepare draft`, `do not`) while detecting deferred liability triggers (`auto-renew`, `future charge`, `upgrade execution`) with zero false negatives across the 20 adversarial prompts.
+- **MISSING_CASES**:
+  - Token-level API gating: Regex text filtering is defense-in-depth; the primary barrier must be a hardened, capability-based gate inside the HTTP/Tool client that intercepts any HTTP request containing `subscription`, `stripe`, `billing`, or `checkout` endpoints regardless of agent prompt text.
+- **MAC_NATIVE_PROOF_REQUIRED**: `NO`
+- **MINIMUM_MAC_TEST_IF_REQUIRED**: None.
+- **SAFE_TO_INTEGRATE_AFTER_FREEZE**: `YES`
+- **RECOMMENDED_MINIMAL_CHANGE**:
+  Integrate the semantic classifier into `SafetyGateManager.checkOperation()` and bind it to the outbound tool executor, ensuring that recurring commitments and auto-renews are classified under `HUMAN_GATE_OPERATIONS` alongside `payment` and `real_spend`.
+- **DO_NOT_CHANGE**:
+  Do not allow natural language "weiter" or loose prompt text to satisfy the Human Gate; human authorization requires an explicit single-use cryptographic approval token.
+
+---
+
+### SUMMARY CLASSIFICATION
+
+=== CODEX INDEPENDENT FOUR-CANDIDATE REVIEW ===
+
+A01: LIKELY_PRODUCTION_DEFECT (Centralized uncertainty fence required across all fallback triggers)  
+B01: CONFIRMED_ARCHITECTURAL_REQUIREMENT (PID + StartTime + Token tuple required; UNKNOWN fails closed)  
+L01: LIKELY_PRODUCTION_DEFECT (Hierarchical path-prefix containment required to prevent overlapping writers)  
+G01: CONFIRMED_ARCHITECTURAL_REQUIREMENT (Deferred liability / auto-renew must be gated even when today's charge is €0)  
+
+CONFIRMED_DEFECTS: 2 (A01, L01)  
+ARCHITECTURAL_REQUIREMENTS: 2 (B01, G01)  
+LAB_ONLY_FINDINGS: 0  
+CONTRACT_AMBIGUITIES: 1 (B01 - cross-platform process retrieval contract)  
+MAC_NATIVE_PROOFS_REQUIRED: 1 (B01 - Darwin proc_pidinfo start-time resolution under Sandbox)  
+
+P0: 3 (A01, L01, G01)  
+P1: 1 (B01)  
+P2: 0  
+P3: 0  
+
+INTEGRATION_ORDER_IF_ANY:
+1. **DEFECT-A01**: Centralized Dispatcher Uncertainty Fence (Prevents catastrophic double-execution)
+2. **DEFECT-L01**: Hierarchical Path-Prefix Scope Checker (Prevents worktree clobbering across parent/child directories)
+3. **DEFECT-G01**: Semantic Intent & Deferred Billing Gate (Prevents unauthorized subscription / financial liability)
+4. **DEFECT-B01**: Multi-Factor Process Lease Schema & Adapter (Integrates after Darwin Mac-native validation)
+
+HIGHEST_RISK_WRONG_ASSUMPTION:
+The assumption that **exact string equality on scope arrays (`scopeA === scopeB`) prevents writer collisions**. In production, directory hierarchies (`src/` vs `src/core/auth/`) represent the primary concurrency pattern of nested autonomous agents; exact equality leaves parent-child directory collisions completely unguarded.
+
+RECOMMENDED_NEXT_ACTION:
+Maintain the frozen status of RC3 and the active Mac Courier lifecycle. Queue these four minimal, targeted changes for sequential post-freeze integration into the Courier mainline. Conduct Darwin-native verification of `proc_pidinfo` on the Mac host only after the active Mac mission has officially closed.
+
+=== END ===

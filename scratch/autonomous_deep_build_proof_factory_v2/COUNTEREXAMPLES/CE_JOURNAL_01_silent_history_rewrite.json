@@ -1,0 +1,21 @@
+{
+  "defect_id": "CE_JOURNAL_01",
+  "name": "Silent History Rewriting Without Cryptographic Hash Chaining",
+  "vulnerability_description": "In an append-only log without cryptographic SHA-256 hash chaining, an actor or disk glitch can rewrite line N in place (e.g. changing task status or approval scope) without causing subsequent lines to fail validation. Downstream replays project compromised state without detection.",
+  "minimal_trigger": {
+    "original_line_10": {
+      "seq": 10,
+      "status": "BLOCKED"
+    },
+    "tampered_line_10": {
+      "seq": 10,
+      "status": "APPROVED"
+    },
+    "line_11_unmodified": {
+      "seq": 11,
+      "prev_hash": "ignored"
+    }
+  },
+  "invariant_violated": "Append-only ledger immutability and verifiable historical integrity",
+  "resolution_proven": "DurableJournal binds entry seq, previous hash, and JSON payload into SHA-256 entry_hash. Any single bit flip invalidates all downstream hash chains."
+}

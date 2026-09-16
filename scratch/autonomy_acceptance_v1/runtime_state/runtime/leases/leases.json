@@ -1,0 +1,128 @@
+[
+  {
+    "process_lease_id": "LEASE-1789114289525-D47438",
+    "task_id": "TASK-AUTO-001-VERIFY",
+    "task_version": 1,
+    "goal_id": "GOAL-1789114289521",
+    "worker_id": "WORKER-LOCAL-DETERMINISTIC",
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 8256,
+    "command": "courier_runtime --execute-task",
+    "process_fingerprint": "7c9130b9b98b05af54a7f13587f17d292c75ae4b599ee2f364c249df75b9a448",
+    "command_fingerprint": "aac9a78be1f71f6fbbc1a1928fe0c034d30acd57bf8d4e289aa8658d693d5da6",
+    "task_token": "TOKEN-TASK-AUTO-001-VERIFY-1789114289525",
+    "start_time_epoch": 1789114289525,
+    "purpose": "WORK-VERIFY-node_topology_c.txt",
+    "started_at": "2026-09-11T08:11:29.525Z",
+    "last_heartbeat_at": "2026-09-11T08:11:29.525Z",
+    "last_progress_at": "2026-09-11T08:11:29.533Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "Task executed and verified clean",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-11T08:11:29.525Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-11T08:11:29.533Z",
+        "status": "PROGRESSING",
+        "note": "Progress confirmed via RESULT_CUSTOMS_ACCEPTED"
+      },
+      {
+        "timestamp": "2026-09-11T08:11:29.538Z",
+        "status": "COMPLETED",
+        "note": "Task executed and verified clean"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789114289543-E5699C",
+    "task_id": "TASK-AUTO-002-RESOLVE",
+    "task_version": 1,
+    "goal_id": "GOAL-1789114289521",
+    "worker_id": "WORKER-LOCAL-DETERMINISTIC",
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 8256,
+    "command": "courier_runtime --execute-task",
+    "process_fingerprint": "7cc619ae09dece1d192b551edc6edc773c69b30baf4c7fa5e413cb7ae133ff14",
+    "command_fingerprint": "aac9a78be1f71f6fbbc1a1928fe0c034d30acd57bf8d4e289aa8658d693d5da6",
+    "task_token": "TOKEN-TASK-AUTO-002-RESOLVE-1789114289543",
+    "start_time_epoch": 1789114289543,
+    "purpose": "WORK-RESOLVE-runtime_config_a.txt",
+    "started_at": "2026-09-11T08:11:29.543Z",
+    "last_heartbeat_at": "2026-09-11T08:11:29.543Z",
+    "last_progress_at": "2026-09-11T08:11:29.551Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "Task executed and verified clean",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-11T08:11:29.543Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-11T08:11:29.553Z",
+        "status": "PROGRESSING",
+        "note": "Progress confirmed via RESULT_CUSTOMS_ACCEPTED"
+      },
+      {
+        "timestamp": "2026-09-11T08:11:29.559Z",
+        "status": "COMPLETED",
+        "note": "Task executed and verified clean"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789114289564-4AFFA1",
+    "task_id": "TASK-AUTO-003-REPAIR",
+    "task_version": 1,
+    "goal_id": "GOAL-1789114289521",
+    "worker_id": "WORKER-LOCAL-DETERMINISTIC",
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 8256,
+    "command": "courier_runtime --execute-task",
+    "process_fingerprint": "4b32f7be943aa5463079431d501ff40458169a119a74e11b5d6a84abf35a6c12",
+    "command_fingerprint": "aac9a78be1f71f6fbbc1a1928fe0c034d30acd57bf8d4e289aa8658d693d5da6",
+    "task_token": "TOKEN-TASK-AUTO-003-REPAIR-1789114289564",
+    "start_time_epoch": 1789114289564,
+    "purpose": "WORK-REPAIR-service_manifest_b.txt",
+    "started_at": "2026-09-11T08:11:29.564Z",
+    "last_heartbeat_at": "2026-09-11T08:11:29.564Z",
+    "last_progress_at": "2026-09-11T08:11:29.571Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "Task executed and verified clean",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-11T08:11:29.564Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-11T08:11:29.573Z",
+        "status": "PROGRESSING",
+        "note": "Progress confirmed via RESULT_CUSTOMS_ACCEPTED"
+      },
+      {
+        "timestamp": "2026-09-11T08:11:29.581Z",
+        "status": "COMPLETED",
+        "note": "Task executed and verified clean"
+      }
+    ]
+  }
+]

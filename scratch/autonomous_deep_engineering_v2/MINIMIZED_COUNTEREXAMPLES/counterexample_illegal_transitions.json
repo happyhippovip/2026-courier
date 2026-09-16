@@ -1,0 +1,46 @@
+{
+  "campaign_id": "CAMPAIGN_002",
+  "count": 5,
+  "counterexamples": [
+    {
+      "id": "CE-001",
+      "name": "PROPOSED_TO_CLOSED_SHORTCUT",
+      "from": "PROPOSED",
+      "to": "CLOSED",
+      "violation_code": "ERR_ILLEGAL_TRANSITION",
+      "reason": "Direct transition from PROPOSED to CLOSED is strictly forbidden by formal lifecycle grammar"
+    },
+    {
+      "id": "CE-002",
+      "name": "STAMPED_TO_VERIFIED_WITHOUT_EXECUTION",
+      "from": "STAMPED",
+      "to": "VERIFIED",
+      "violation_code": "ERR_ILLEGAL_TRANSITION",
+      "reason": "Direct transition from STAMPED to VERIFIED is strictly forbidden by formal lifecycle grammar"
+    },
+    {
+      "id": "CE-003",
+      "name": "BLIND_REDISPATCH_UNDER_EXECUTION_UNCERTAIN",
+      "from": "STAMPED",
+      "to": "DISPATCHED",
+      "violation_code": "ERR_EXECUTION_UNCERTAIN",
+      "reason": "Task marked EXECUTION_UNCERTAIN: redispatch forbidden"
+    },
+    {
+      "id": "CE-004",
+      "name": "RESULT_RECEIVED_TO_CLOSED_WITHOUT_VERIFIED",
+      "from": "RESULT_RECEIVED",
+      "to": "CLOSED",
+      "violation_code": "ERR_ILLEGAL_TRANSITION",
+      "reason": "Direct transition from RESULT_RECEIVED to CLOSED is strictly forbidden by formal lifecycle grammar"
+    },
+    {
+      "id": "CE-005",
+      "name": "HUMAN_GATE_BYPASS_WITHOUT_SIGNATURE",
+      "from": "HUMAN_GATE",
+      "to": "APPROVED_FOR_DISPATCH",
+      "violation_code": "ERR_GATE_NOT_CLEARED",
+      "reason": "Human gate requires explicit approval signature"
+    }
+  ]
+}

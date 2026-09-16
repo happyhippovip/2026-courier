@@ -1,0 +1,7 @@
+{
+  "id": "CE-02-pid-recycle-illegal-kill",
+  "attackFamily": "B",
+  "permutationsTested": 12,
+  "naiveFalseMatches": 10,
+  "hardenedCorrect": 12
+}

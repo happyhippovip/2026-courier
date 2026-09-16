@@ -1,0 +1,9 @@
+{
+  "experiment_id": "EXP-CAMP-05-001",
+  "campaign_id": "CAMP-05",
+  "timestamp": "2026-09-09T23:39:28.789Z",
+  "clean_tree_termination_verified": true,
+  "recycled_child_pid_protected": true,
+  "exit_race_handled_cleanly": true,
+  "verdict": "PROCESS_TREE_IDENTITY_PROVED"
+}

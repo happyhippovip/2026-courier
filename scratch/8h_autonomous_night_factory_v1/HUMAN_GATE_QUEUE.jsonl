@@ -1,0 +1,1 @@
+{"gate_id":"GATE-001","candidate_id":"CAND-006","queued_at":"2026-09-09T23:23:12.797Z","action":"Live External Deployment / Real Affiliate Link Canary","reason":"Violates autonomous boundary (REAL_TRADES=0, Spend=0.00, No external deployment). Held until human explicitly signs approval token.","status":"PENDING_HUMAN_REVIEW"}

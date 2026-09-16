@@ -1,0 +1,23 @@
+{
+  "package_id": "PKG-G01-SPEND-GOVERNOR",
+  "title": "Multi-Vector Zero-Spend Boundary Governor",
+  "problem": "Safety gates check only immediate spend; recurring trial subscriptions and pre-auth holds pass unchecked.",
+  "evidence": "Verified in WS2 (EXP-WS2-COMP-001) and WS9 (EXP-WS9-GOAL-001). Mutant MUT-08 killed.",
+  "current_source_location": "money_factory/safety_gates.js",
+  "proposed_change_boundary": "Add multi-vector liability inspection for recurring, deferred, and pre-auth charges.",
+  "files_likely_affected": [
+    "money_factory/safety_gates.js",
+    "money_factory/index.js"
+  ],
+  "migration_impact": "None; immediate fail-safe default.",
+  "rollback": "Fall back to immediate transaction amount check.",
+  "targeted_tests": [
+    "test_human_gates_and_zero_spend.js"
+  ],
+  "independent_verifier": "Financial ledger auditor asserting real spend == 0.00 EUR.",
+  "known_risks": "Zero-dollar trials with recurring terms will be rejected without human approval.",
+  "mac_dependency": false,
+  "human_gate_dependency": true,
+  "recommended_integration_order": 3,
+  "stop_condition": "Spend > 0.00 EUR attempted without human gate signature."
+}

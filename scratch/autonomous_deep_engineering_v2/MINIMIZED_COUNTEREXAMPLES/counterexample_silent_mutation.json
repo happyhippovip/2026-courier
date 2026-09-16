@@ -1,0 +1,18 @@
+{
+  "id": "CE-008",
+  "defect_class": "SILENT_IN_FLIGHT_MUTATION",
+  "description": "If an orchestrator mutates scope or acceptance criteria while worker is in-flight, returned result verification fails or executes unauthorized side-effects.",
+  "attempted_mutations_blocked": [
+    "goal_id",
+    "scope_paths",
+    "acceptance_criteria",
+    "assigned_worker_id",
+    "is_writer",
+    "risk_class",
+    "human_gates",
+    "required_evidence",
+    "command",
+    "version"
+  ],
+  "proven_behavior": "10/10 in-place mutations blocked fail-closed; explicit superseding version required."
+}

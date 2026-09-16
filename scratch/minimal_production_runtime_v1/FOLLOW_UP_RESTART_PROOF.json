@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-09-10T08:53:55.920Z",
+  "target_entrypoint": "bin/courier_runtime.js",
+  "follow_up_mechanism": "state.open_followups persisted to durable mission_state.json",
+  "scenario": "Task deferred due to simulated lock conflict preserved across OS process boundary",
+  "verified_attributes": {
+    "survives_process_termination": true,
+    "promoted_when_frontier_clears": true,
+    "history_preserved": true,
+    "duplicate_dispatch_prevented": true
+  },
+  "verdict": "FOLLOW_UP_RESTART_PROVEN"
+}

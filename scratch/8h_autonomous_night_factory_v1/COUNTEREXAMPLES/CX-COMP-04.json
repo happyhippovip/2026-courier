@@ -1,0 +1,30 @@
+{
+  "id": "CX-COMP-04",
+  "compound_id": "COMP-04",
+  "title": "Parent/Child Workspace Lock Clobber",
+  "trace": [
+    {
+      "step": 1,
+      "action": "TASK_PARENT_LOCK",
+      "path": "C:\\workspace\\courier\\scratch",
+      "status": "ACQUIRED"
+    },
+    {
+      "step": 2,
+      "action": "TASK_CHILD_LOCK",
+      "path": "c:\\workspace\\courier\\scratch\\8h_...\\subfile.js",
+      "status": "ATTEMPTED"
+    },
+    {
+      "step": 3,
+      "evaluation": "ANCESTOR_PATH_LOCKED",
+      "status": "BLOCKED"
+    },
+    {
+      "step": 4,
+      "result": "COLLISION_PREVENTED",
+      "invariant": "L01_HIERARCHICAL_MUTEX"
+    }
+  ],
+  "mitigation": "Canonical prefix containment checking with Windows case-folding normalization."
+}

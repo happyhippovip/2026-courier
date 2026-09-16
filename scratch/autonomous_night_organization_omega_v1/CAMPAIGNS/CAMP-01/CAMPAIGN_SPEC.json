@@ -1,0 +1,23 @@
+{
+  "campaign_id": "CAMP-01-FALSIFY-SATURATION",
+  "parent_frontier_item": "FRONTIER-ROOT-001",
+  "goal": "Test and falsify H0: \"No materially valuable Windows-only research remains.\"",
+  "hypothesis": "Predecessor saturation claim was premature; real production source contains unaddressed execution, semantic collision, capability, process-tree, and TOCTOU vulnerabilities.",
+  "why_now": "Mandatory first step to justify recursive organization and establish real research frontier.",
+  "production_relation": "Inspects supervisor/decision_engine.js, supervisor/stall_policy.js, money_factory/safety_gates.js, and chief/coordinator.py.",
+  "expected_information_gain": "VERY_HIGH",
+  "expected_cost": "0.00 EUR",
+  "risk": "NONE_READ_ONLY_AND_SHADOW",
+  "scope": "Production archaeology and gap verification across 5 dimensions",
+  "write_scope": "scratch/autonomous_night_organization_omega_v1/CAMPAIGNS/CAMP-01/",
+  "dependencies": [],
+  "acceptance_criteria": "Discovery of at least 3 concrete Windows-safe, unaddressed high-value architectural vulnerabilities.",
+  "falsification_criteria": "If all 5 dimensions are already completely proven in production or impossible on Windows, H0 stands.",
+  "evidence_required": "Code analysis, test execution traces, and counterexamples.",
+  "oracle": "Source AST inspector and adversarial simulation",
+  "mutation_strategy": "N/A_DISCOVERY",
+  "stop_condition": "All 5 gap dimensions evaluated",
+  "status": "CLOSED_SUPPORTED",
+  "completed_at": "2026-09-09T23:38:15.190Z",
+  "gaps_uncovered": 5
+}

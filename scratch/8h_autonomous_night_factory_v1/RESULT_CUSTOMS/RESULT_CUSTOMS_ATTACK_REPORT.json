@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Attack 1: Claims PASS but Nonzero Exit Code",
+    "passed": true,
+    "detail": {
+      "accepted": false,
+      "reason": "NONZERO_EXIT_CODE_IN_PASSING_ENVELOPE"
+    }
+  },
+  {
+    "name": "Attack 2: Test Count Inflation (Claims 100, evidence has 97)",
+    "passed": true,
+    "detail": {
+      "accepted": false,
+      "reason": "TEST_COUNT_DISCREPANCY_BETWEEN_CLAIM_AND_EVIDENCE"
+    }
+  },
+  {
+    "name": "Attack 3: Stale Task Version Deliverable Replay",
+    "passed": true,
+    "detail": {
+      "accepted": false,
+      "reason": "STALE_TASK_VERSION_DELIVERABLE"
+    }
+  },
+  {
+    "name": "Attack 4: Tampered Artifact Hash",
+    "passed": true,
+    "detail": {
+      "accepted": false,
+      "reason": "ARTIFACT_CHECKSUM_MISMATCH_AUDIT.md"
+    }
+  },
+  {
+    "name": "Legitimate Envelope Clearance",
+    "passed": true,
+    "detail": {
+      "accepted": true,
+      "reason": "RESULT_CUSTOMS_CLEARED"
+    }
+  }
+]

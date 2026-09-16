@@ -1,0 +1,7 @@
+{
+  "test": "MUTATION_WORKER_SATURATION_FORGERY",
+  "admitted": false,
+  "violation_flagged": true,
+  "reason": "ILLEGAL_WORKER_STATUS: Worker reported 'MISSION_SATURATED'. Workers are forbidden from claiming global mission status.",
+  "status": "PASSED"
+}

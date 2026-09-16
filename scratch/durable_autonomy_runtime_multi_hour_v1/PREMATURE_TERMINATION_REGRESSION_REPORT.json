@@ -1,0 +1,55 @@
+{
+  "suite": "PREMATURE_AUTONOMY_TERMINATION_REGRESSION_SUITE",
+  "verified_at_utc": "2026-09-10T04:47:47.681Z",
+  "all_passed": true,
+  "results": [
+    {
+      "test": "REGRESSION_1_AUTONOMOUS_CONTINUATION_BEYOND_INITIAL_LIST",
+      "section": 627,
+      "passed": true,
+      "details": "Ready candidates available to continue after initial 3 completed: 13"
+    },
+    {
+      "test": "REGRESSION_2_LOW_WATER_DYNAMIC_REPOPULATION",
+      "section": 628,
+      "passed": true,
+      "details": "Repopulated 13 candidates from dynamic generators"
+    },
+    {
+      "test": "REGRESSION_3_HUMAN_GATE_BRANCH_QUEUED_OTHERS_CONTINUE",
+      "section": 629,
+      "passed": true,
+      "details": "Human gate queued; 13 parallel safe candidates remain available"
+    },
+    {
+      "test": "REGRESSION_4_BACKGROUND_TASK_PREVENTS_GLOBAL_COMPLETION",
+      "section": 630,
+      "passed": true,
+      "details": "Status evaluated to: PAUSED_CAPACITY"
+    },
+    {
+      "test": "REGRESSION_5_WORKER_NO_MORE_WORK_AUTHORITY_REVOKED",
+      "section": 631,
+      "passed": true,
+      "details": "Rogue report admitted: false (Reason: ILLEGAL_WORKER_STATUS: Worker reported 'NO_MORE_WORK'. Workers are forbidden from claiming global mission status.)"
+    },
+    {
+      "test": "REGRESSION_6_GREEN_TESTS_TRIGGER_MUTATION_GENERATION",
+      "section": 632,
+      "passed": true,
+      "details": "Generated 3 mutation verification candidates"
+    },
+    {
+      "test": "REGRESSION_7_CAPACITY_LIMIT_EMITS_PAUSED_CAPACITY",
+      "section": 633,
+      "passed": true,
+      "details": "Checkpoint status: PAUSED_CAPACITY"
+    },
+    {
+      "test": "REGRESSION_8_FRESH_SESSION_RESUME_VERIFIED",
+      "section": 634,
+      "passed": true,
+      "details": "Replayed 127 events, loaded checkpoint status: PAUSED_CAPACITY"
+    }
+  ]
+}

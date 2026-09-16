@@ -1,0 +1,33 @@
+{
+  "id": "CX-COMP-01",
+  "compound_id": "COMP-01",
+  "title": "Uncertain Dispatch Secondary Fallback Clobber",
+  "trace": [
+    {
+      "step": 1,
+      "action": "DISPATCH_TO_W1",
+      "status": "IN_FLIGHT"
+    },
+    {
+      "step": 2,
+      "action": "NETWORK_TIMEOUT",
+      "status": "DISPATCH_UNCERTAIN"
+    },
+    {
+      "step": 3,
+      "action": "LEASE_EXPIRY",
+      "status": "LEASE_EXPIRED"
+    },
+    {
+      "step": 4,
+      "action": "SUPERVISOR_RECONCILE",
+      "decision": "FALLBACK_TO_W2"
+    },
+    {
+      "step": 5,
+      "failure": "DUAL_EXECUTION_CONCURRENT_WRITES",
+      "impact": "P0_DATA_CORRUPTION"
+    }
+  ],
+  "mitigation": "DominantUncertaintyFence prevents fallback until W1 termination is definitively proved."
+}

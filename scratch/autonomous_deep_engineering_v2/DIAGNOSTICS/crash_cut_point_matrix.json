@@ -1,0 +1,185 @@
+{
+  "campaign_id": "CAMPAIGN_005",
+  "total_cut_points": 22,
+  "pre_dispatch_count": 5,
+  "execution_uncertain_count": 8,
+  "post_result_persisted_count": 3,
+  "recovery_matrix": [
+    {
+      "index": 1,
+      "cut_point": "before_task_stamp",
+      "injected_error": "SIMULATED_CRASH:before_task_stamp",
+      "reconstructed_state": "NOT_STARTED",
+      "safe_action": "SAFE_TO_START",
+      "reason": "Task was in initial uncommitted state"
+    },
+    {
+      "index": 2,
+      "cut_point": "after_stamp_persistence",
+      "injected_error": "SIMULATED_CRASH:after_stamp_persistence",
+      "reconstructed_state": "STARTED_NO_EXTERNAL_EFFECT",
+      "safe_action": "PROCEED_DISPATCH_OR_RELEASE_LEASE",
+      "reason": "No dispatch intent was committed and no external effect exists"
+    },
+    {
+      "index": 3,
+      "cut_point": "before_worker_lease",
+      "injected_error": "SIMULATED_CRASH:before_worker_lease",
+      "reconstructed_state": "STARTED_NO_EXTERNAL_EFFECT",
+      "safe_action": "PROCEED_DISPATCH_OR_RELEASE_LEASE",
+      "reason": "No dispatch intent was committed and no external effect exists"
+    },
+    {
+      "index": 4,
+      "cut_point": "after_worker_lease",
+      "injected_error": "SIMULATED_CRASH:after_worker_lease",
+      "reconstructed_state": "STARTED_NO_EXTERNAL_EFFECT",
+      "safe_action": "PROCEED_DISPATCH_OR_RELEASE_LEASE",
+      "reason": "No dispatch intent was committed and no external effect exists"
+    },
+    {
+      "index": 5,
+      "cut_point": "before_dispatch_intent",
+      "injected_error": "SIMULATED_CRASH:before_dispatch_intent",
+      "reconstructed_state": "STARTED_NO_EXTERNAL_EFFECT",
+      "safe_action": "PROCEED_DISPATCH_OR_RELEASE_LEASE",
+      "reason": "No dispatch intent was committed and no external effect exists"
+    },
+    {
+      "index": 6,
+      "cut_point": "after_dispatch_intent",
+      "injected_error": "SIMULATED_CRASH:after_dispatch_intent",
+      "reconstructed_state": "EXECUTION_UNCERTAIN",
+      "safe_action": "BLOCK_REDISPATCH_REQUIRE_COORDINATOR_RECONCILIATION",
+      "reason": "Execution was in-flight or side-effects may exist without durable result confirmation. Blind retry forbidden."
+    },
+    {
+      "index": 7,
+      "cut_point": "before_worker_ack",
+      "injected_error": "SIMULATED_CRASH:before_worker_ack",
+      "reconstructed_state": "EXECUTION_UNCERTAIN",
+      "safe_action": "BLOCK_REDISPATCH_REQUIRE_COORDINATOR_RECONCILIATION",
+      "reason": "Execution was in-flight or side-effects may exist without durable result confirmation. Blind retry forbidden."
+    },
+    {
+      "index": 8,
+      "cut_point": "after_worker_ack",
+      "injected_error": "SIMULATED_CRASH:after_worker_ack",
+      "reconstructed_state": "EXECUTION_UNCERTAIN",
+      "safe_action": "BLOCK_REDISPATCH_REQUIRE_COORDINATOR_RECONCILIATION",
+      "reason": "Execution was in-flight or side-effects may exist without durable result confirmation. Blind retry forbidden."
+    },
+    {
+      "index": 9,
+      "cut_point": "during_worker_execution",
+      "injected_error": "SIMULATED_CRASH:during_worker_execution",
+      "reconstructed_state": "EXECUTION_UNCERTAIN",
+      "safe_action": "BLOCK_REDISPATCH_REQUIRE_COORDINATOR_RECONCILIATION",
+      "reason": "Execution was in-flight or side-effects may exist without durable result confirmation. Blind retry forbidden."
+    },
+    {
+      "index": 10,
+      "cut_point": "after_output_creation",
+      "injected_error": "SIMULATED_CRASH:after_output_creation",
+      "reconstructed_state": "EXECUTION_UNCERTAIN",
+      "safe_action": "BLOCK_REDISPATCH_REQUIRE_COORDINATOR_RECONCILIATION",
+      "reason": "Execution was in-flight or side-effects may exist without durable result confirmation. Blind retry forbidden."
+    },
+    {
+      "index": 11,
+      "cut_point": "before_result_envelope",
+      "injected_error": "SIMULATED_CRASH:before_result_envelope",
+      "reconstructed_state": "EXECUTION_UNCERTAIN",
+      "safe_action": "BLOCK_REDISPATCH_REQUIRE_COORDINATOR_RECONCILIATION",
+      "reason": "Execution was in-flight or side-effects may exist without durable result confirmation. Blind retry forbidden."
+    },
+    {
+      "index": 12,
+      "cut_point": "after_result_envelope",
+      "injected_error": "SIMULATED_CRASH:after_result_envelope",
+      "reconstructed_state": "EXECUTION_UNCERTAIN",
+      "safe_action": "BLOCK_REDISPATCH_REQUIRE_COORDINATOR_RECONCILIATION",
+      "reason": "Execution was in-flight or side-effects may exist without durable result confirmation. Blind retry forbidden."
+    },
+    {
+      "index": 13,
+      "cut_point": "before_result_persistence",
+      "injected_error": "SIMULATED_CRASH:before_result_persistence",
+      "reconstructed_state": "EXECUTION_UNCERTAIN",
+      "safe_action": "BLOCK_REDISPATCH_REQUIRE_COORDINATOR_RECONCILIATION",
+      "reason": "Execution was in-flight or side-effects may exist without durable result confirmation. Blind retry forbidden."
+    },
+    {
+      "index": 14,
+      "cut_point": "after_result_persistence",
+      "injected_error": "SIMULATED_CRASH:after_result_persistence",
+      "reconstructed_state": "RESULT_PERSISTED",
+      "safe_action": "PROCEED_TO_INDEPENDENT_VERIFICATION",
+      "reason": "Worker result persisted; do NOT re-execute; perform independent verification"
+    },
+    {
+      "index": 15,
+      "cut_point": "before_verification",
+      "injected_error": "SIMULATED_CRASH:before_verification",
+      "reconstructed_state": "RESULT_PERSISTED",
+      "safe_action": "PROCEED_TO_INDEPENDENT_VERIFICATION",
+      "reason": "Worker result persisted; do NOT re-execute; perform independent verification"
+    },
+    {
+      "index": 16,
+      "cut_point": "during_verification",
+      "injected_error": "SIMULATED_CRASH:during_verification",
+      "reconstructed_state": "RESULT_PERSISTED",
+      "safe_action": "PROCEED_TO_INDEPENDENT_VERIFICATION",
+      "reason": "Worker result persisted; do NOT re-execute; perform independent verification"
+    },
+    {
+      "index": 17,
+      "cut_point": "after_verification",
+      "injected_error": "SIMULATED_CRASH:after_verification",
+      "reconstructed_state": "VERIFIED",
+      "safe_action": "COMPLETE_TERMINAL_TRANSITION",
+      "reason": "Task verification passed; proceed directly to close without re-executing"
+    },
+    {
+      "index": 18,
+      "cut_point": "before_terminal_transition",
+      "injected_error": "SIMULATED_CRASH:before_terminal_transition",
+      "reconstructed_state": "VERIFIED",
+      "safe_action": "COMPLETE_TERMINAL_TRANSITION",
+      "reason": "Task verification passed; proceed directly to close without re-executing"
+    },
+    {
+      "index": 19,
+      "cut_point": "after_terminal_transition",
+      "injected_error": "SIMULATED_CRASH:after_terminal_transition",
+      "reconstructed_state": "VERIFIED",
+      "safe_action": "NO_ACTION_REQUIRED_TASK_TERMINAL",
+      "reason": "Task reached verified terminal state prior to interruption"
+    },
+    {
+      "index": 20,
+      "cut_point": "before_cleanup",
+      "injected_error": "SIMULATED_CRASH:before_cleanup",
+      "reconstructed_state": "VERIFIED",
+      "safe_action": "NO_ACTION_REQUIRED_TASK_TERMINAL",
+      "reason": "Task reached verified terminal state prior to interruption"
+    },
+    {
+      "index": 21,
+      "cut_point": "during_cleanup",
+      "injected_error": "SIMULATED_CRASH:during_cleanup",
+      "reconstructed_state": "VERIFIED",
+      "safe_action": "NO_ACTION_REQUIRED_TASK_TERMINAL",
+      "reason": "Task reached verified terminal state prior to interruption"
+    },
+    {
+      "index": 22,
+      "cut_point": "after_cleanup",
+      "injected_error": "SIMULATED_CRASH:after_cleanup",
+      "reconstructed_state": "VERIFIED",
+      "safe_action": "NO_ACTION_REQUIRED_TASK_TERMINAL",
+      "reason": "Task reached verified terminal state prior to interruption"
+    }
+  ]
+}

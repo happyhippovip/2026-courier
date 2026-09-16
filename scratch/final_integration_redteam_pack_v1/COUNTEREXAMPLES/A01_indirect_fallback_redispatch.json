@@ -1,0 +1,13 @@
+{
+  "defect_id": "DEFECT-A01",
+  "title": "Indirect Fallback Redispatch Under Execution Uncertainty",
+  "minimized_scenario": {
+    "task_id": "TASK-A01-MIN",
+    "pre_crash_state": "DISPATCHED",
+    "post_crash_reconciliation": "EXECUTION_UNCERTAIN",
+    "trigger": "ROUTER_WORKER_TIMEOUT_FALLBACK",
+    "failure_mode": "Secondary worker dispatched while primary worker side-effects remain uncommitted",
+    "expected_safe_outcome": "HOLD_UNCERTAIN (Dispatch blocked)",
+    "invariant_violated_without_fence": "task.state == EXECUTION_UNCERTAIN => NO_AUTO_REDISPATCH"
+  }
+}

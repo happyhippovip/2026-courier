@@ -1,0 +1,1 @@
+{"failure_class":"DISK_TORN_WRITE_CORRUPTION","simulated":true,"handling":"FRAMED_CHECKSUM_ISOLATION","recovery_verdict":"100% CLEAN RECOVERY","timestamp_utc":"2026-09-10T03:54:51.960Z"}

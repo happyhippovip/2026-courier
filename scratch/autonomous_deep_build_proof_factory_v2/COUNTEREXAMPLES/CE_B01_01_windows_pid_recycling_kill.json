@@ -1,0 +1,18 @@
+{
+  "defect_id": "CE_B01_01",
+  "name": "Windows PID Recycling Terminating Unrelated Process",
+  "vulnerability_description": "When a worker process crashes, Windows quickly reallocates its PID (e.g. 4120) to a system process or user application. An autonomous supervisor executing process.kill(4120) without start-time verification terminates the innocent process, causing host instability.",
+  "minimal_trigger": {
+    "lease": {
+      "pid": 4120,
+      "started_at_ms": 1000
+    },
+    "os_process": {
+      "pid": 4120,
+      "start_time_ms": 5000,
+      "name": "system_service.exe"
+    }
+  },
+  "invariant_violated": "Strict process ownership: Only kill owned process with proven identity.",
+  "resolution_proven": "ProcessIdentityOracle compares lease started_at with OS start_time. If OS start_time is newer, verdict is MISMATCH, throwing FatalProcessTerminationViolation."
+}

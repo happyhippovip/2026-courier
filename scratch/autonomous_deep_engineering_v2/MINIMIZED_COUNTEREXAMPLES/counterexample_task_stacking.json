@@ -1,0 +1,9 @@
+{
+  "id": "CE-009",
+  "defect_class": "UNPROTECTED_SCOPE_STACKING",
+  "description": "When two writers targeting the same file scope are concurrently dispatched, file race conditions cause corrupt overwrites.",
+  "arrivals_tested": 8,
+  "conflicts_held": 5,
+  "stacking_escaped": 0,
+  "proven_invariant": "Conflicting second writer placed strictly on HOLD (STACKING_ESCAPED = 0)."
+}

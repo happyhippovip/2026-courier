@@ -1,0 +1,6 @@
+{
+  "id": "CE-022",
+  "defect_class": "POLICY_PRECEDENCE_INVERSION_HAZARD",
+  "description": "System allowing worker rights request to bypass border guard spend limits.",
+  "proven_invariant": "Border guard security policies take absolute precedence over worker accommodations."
+}

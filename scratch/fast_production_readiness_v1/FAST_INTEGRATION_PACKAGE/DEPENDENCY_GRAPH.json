@@ -1,0 +1,68 @@
+{
+  "graph_version": "1.0.0",
+  "name": "COURIER_AUTONOMOUS_PRODUCTION_INTEGRATION_DEPENDENCY_GRAPH",
+  "description": "Strict acyclic dependency graph for the 5 core autonomy choke points",
+  "nodes": [
+    {
+      "gap_id": "GAP-001",
+      "canonical_name": "RESOURCE_LOCK_MANAGER",
+      "target_file": "courier/supervisor/no_stacking.js",
+      "layer": 0,
+      "tier": "CORE_MUTEX",
+      "description": "Hierarchical NTFS case-safe resource locks preventing conflicting subpath locks and duplicate heavy task execution",
+      "dependencies": []
+    },
+    {
+      "gap_id": "GAP-002",
+      "canonical_name": "PROCESS_LEASE_IDENTITY",
+      "target_file": "courier/supervisor/lease_manager.js",
+      "layer": 0,
+      "tier": "PROCESS_IDENTITY",
+      "description": "Composite identity tuple (PID, START_TIME, TASK_TOKEN) with fail-closed termination blocking kills of recycled PIDs or unknown processes",
+      "dependencies": []
+    },
+    {
+      "gap_id": "GAP-004",
+      "canonical_name": "BORDER_GUARD_DISPATCH_GATE",
+      "target_file": "courier/supervisor/decision_engine.js",
+      "layer": 1,
+      "tier": "PRE_DISPATCH",
+      "description": "Authoritative pre-dispatch gate verifying resource lock acquisition, valid process lease, and stamping cryptographic TaskPassport",
+      "dependencies": [
+        "GAP-001",
+        "GAP-002"
+      ]
+    },
+    {
+      "gap_id": "GAP-005",
+      "canonical_name": "RESULT_CUSTOMS_EVIDENCE_VERIFIER",
+      "target_file": "courier/supervisor/progress_tracker.js",
+      "layer": 2,
+      "tier": "POST_EXECUTION",
+      "description": "Post-execution gate validating result envelope, passport signature, and verifying SHA-256 hashes of declared output artifacts on disk",
+      "dependencies": [
+        "GAP-004"
+      ]
+    },
+    {
+      "gap_id": "GAP-003",
+      "canonical_name": "COMPLETION_GOVERNOR",
+      "target_file": "courier/supervisor/decision_engine.js",
+      "layer": 3,
+      "tier": "MISSION_GOVERNANCE",
+      "description": "Revokes worker global completion authority; enforces that mission completion requires ResultCustoms verified evidence manifest",
+      "dependencies": [
+        "GAP-005"
+      ]
+    }
+  ],
+  "execution_order": [
+    "GAP-001",
+    "GAP-002",
+    "GAP-004",
+    "GAP-005",
+    "GAP-003"
+  ],
+  "acyclic": true,
+  "verified": true
+}

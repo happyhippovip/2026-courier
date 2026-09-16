@@ -1,0 +1,107 @@
+{
+  "timestamp": "2026-09-10T07:16:47.747Z",
+  "courier_full_regression_114_pass": true,
+  "regression_tests_total": 114,
+  "regression_tests_passed": 114,
+  "authoritative_canary_12_pass": true,
+  "bypass_attacks_19_fail_closed": true,
+  "overall_integrity_pass": true,
+  "suite_results": [
+    {
+      "suite": "test_supervisor_plane_p0.js",
+      "status": "PASS",
+      "count": 45,
+      "duration_ms": 292
+    },
+    {
+      "suite": "test_mandatory_scenarios_suite.js",
+      "status": "PASS",
+      "count": 19,
+      "duration_ms": 122
+    },
+    {
+      "suite": "test_money_factory_p0.js",
+      "status": "PASS",
+      "count": 18,
+      "duration_ms": 151
+    },
+    {
+      "suite": "test_money_factory_closure.js",
+      "status": "PASS",
+      "count": 13,
+      "duration_ms": 136
+    },
+    {
+      "suite": "test_cross_device_intake.js",
+      "status": "PASS",
+      "count": 8,
+      "duration_ms": 77
+    },
+    {
+      "suite": "rc3_hardening/test_border_guard.js",
+      "status": "PASS",
+      "count": 1,
+      "duration_ms": 90
+    },
+    {
+      "suite": "rc3_hardening/test_crash_restart_chaos.js",
+      "status": "PASS",
+      "count": 1,
+      "duration_ms": 144
+    },
+    {
+      "suite": "rc3_hardening/test_deterministic_soak.js",
+      "status": "PASS",
+      "count": 1,
+      "duration_ms": 2595
+    },
+    {
+      "suite": "rc3_hardening/test_event_ledger_invariants.js",
+      "status": "PASS",
+      "count": 1,
+      "duration_ms": 158
+    },
+    {
+      "suite": "rc3_hardening/test_follow_up_inbox.js",
+      "status": "PASS",
+      "count": 1,
+      "duration_ms": 117
+    },
+    {
+      "suite": "rc3_hardening/test_money_factory_adversarial.js",
+      "status": "PASS",
+      "count": 1,
+      "duration_ms": 120
+    },
+    {
+      "suite": "rc3_hardening/test_rc3_adversarial_validation.js",
+      "status": "PASS",
+      "count": 1,
+      "duration_ms": 11531
+    },
+    {
+      "suite": "rc3_hardening/test_resource_governor_adversarial.js",
+      "status": "PASS",
+      "count": 1,
+      "duration_ms": 110
+    },
+    {
+      "suite": "rc3_hardening/test_result_customs.js",
+      "status": "PASS",
+      "count": 1,
+      "duration_ms": 91
+    },
+    {
+      "suite": "rc3_hardening/test_supervisor_adversarial.js",
+      "status": "PASS",
+      "count": 1,
+      "duration_ms": 695
+    },
+    {
+      "suite": "rc3_hardening/test_task_stamp_contracts.js",
+      "status": "PASS",
+      "count": 1,
+      "duration_ms": 97
+    }
+  ]
+}

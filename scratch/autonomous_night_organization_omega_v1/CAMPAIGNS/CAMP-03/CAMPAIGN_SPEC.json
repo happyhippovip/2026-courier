@@ -1,0 +1,24 @@
+{
+  "campaign_id": "CAMP-03-SEMANTIC-RESOURCE-COLLISIONS",
+  "parent_frontier_item": "FRONTIER-L01-SEMANTIC",
+  "goal": "Model and enforce non-path semantic resource locks (Git index, DB, Ledger) and prove concurrency liveness without false conflicts.",
+  "hypothesis": "Extending no-stacking with semantic resource URIs and multi-mode locks (SHARED_APPEND vs EXCLUSIVE_COMPACTION) eliminates non-filesystem writer collisions while maintaining 100% liveness for disjoint work.",
+  "why_now": "Addresses Vector 2 discovered in Campaign 01 archaeology.",
+  "production_relation": "Directly hardens supervisor/no_stacking.js and lease_manager.js.",
+  "expected_information_gain": "VERY_HIGH",
+  "expected_cost": "0.00 EUR",
+  "risk": "NONE_ISOLATED_SHADOW",
+  "scope": "Path canonicalization, Git index locking, SQLite locking, shared ledger compaction, liveness metrics",
+  "write_scope": "scratch/autonomous_night_organization_omega_v1/CAMPAIGNS/CAMP-03/",
+  "dependencies": [
+    "CAMP-01-FALSIFY-SATURATION"
+  ],
+  "acceptance_criteria": "Zero semantic collision leakage; fail-closed on path uncertainty; 0 false conflicts for disjoint workers.",
+  "falsification_criteria": "Concurrent writes to Git index allowed, or disjoint independent workers blocked.",
+  "evidence_required": "Semantic collision test matrix and concurrency liveness measurements.",
+  "oracle": "Multi-resource conflict detector",
+  "mutation_strategy": "Mutate mode compatibility table; bypass semantic URI hashing",
+  "stop_condition": "All semantic classes and liveness metrics evaluated",
+  "status": "CLOSED_SUPPORTED",
+  "completed_at": "2026-09-09T23:38:49.119Z"
+}

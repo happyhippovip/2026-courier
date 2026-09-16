@@ -1,0 +1,38 @@
+{
+  "migratedRecords": [
+    {
+      "id": "rec-1",
+      "goal_id": "goal-1",
+      "command": "test",
+      "task_version": 1,
+      "_task_version_derived": true,
+      "scope_fingerprint": "RESTRICTED_READ_ONLY_FALLBACK",
+      "_scope_restricted": true,
+      "migration_status": "SUCCESSFULLY_MIGRATED",
+      "schema_version": 2
+    },
+    {
+      "id": "rec-2",
+      "command": "test",
+      "task_version": 1,
+      "_task_version_derived": true,
+      "migration_status": "HOLD_MISSING_GOAL_ID",
+      "executable": false
+    },
+    {
+      "id": "rec-3",
+      "goal_id": "goal-2",
+      "pid": 1234,
+      "task_version": 1,
+      "_task_version_derived": true,
+      "process_identity_status": "UNKNOWN",
+      "kill_allowed": false,
+      "scope_fingerprint": "RESTRICTED_READ_ONLY_FALLBACK",
+      "_scope_restricted": true,
+      "migration_status": "SUCCESSFULLY_MIGRATED",
+      "schema_version": 2
+    }
+  ],
+  "migrationSafe": true,
+  "rollbackVerified": true
+}

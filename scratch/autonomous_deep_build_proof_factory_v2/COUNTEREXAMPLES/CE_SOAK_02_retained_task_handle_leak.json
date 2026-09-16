@@ -1,0 +1,13 @@
+{
+  "counterexample_id": "CE_SOAK_02_retained_task_handle_leak",
+  "date": "2026-09-09T21:52:45.826Z",
+  "category": "RETAINED_TASK_HANDLE_LEAK",
+  "vulnerability": "Worker process completion callbacks held closures referencing outer task objects, preventing garbage collection across 10,000 tasks",
+  "unprotected_behavior": "Tasks registered in global map without explicit lifecycle deletion on CLOSED_SUCCESS",
+  "repaired_behavior": "Strict lifecycle teardown dereferences all task objects upon result clearance, holding O(1) active heap",
+  "minimal_failing_case": {
+    "tasks_run": 10000,
+    "unrepaired_retained_tasks": 10000,
+    "repaired_retained_tasks": 0
+  }
+}

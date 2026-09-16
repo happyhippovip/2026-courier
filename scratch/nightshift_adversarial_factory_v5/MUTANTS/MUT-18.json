@@ -1,0 +1,5 @@
+{
+  "id": "MUT-18",
+  "name": "allow payment when price is 0 but auto-renew true",
+  "status": "KILLED"
+}

@@ -21,23 +21,33 @@ def run(task_file):
     
     print(f"[Windows Transport] Task {task['task_id']} dropped in {target_inbox_file}. Waiting for result...")
     
-    # 2. Wait for outbox result
+    # 2. Wait for outbox result using heartbeats
     target_outbox_file = outbox / f"{task['task_id']}_result.json"
-    
-    timeout = 300
-    start = time.time()
+    claimed_inbox_file = inbox / f"{task['task_id']}.json.claimed"
+    target_inbox_file = inbox / f"{task['task_id']}.json"
     
     while True:
         if target_outbox_file.exists():
             break
-        if time.time() - start > timeout:
-            print(f"[Windows Transport] Timeout waiting for Windows worker to complete task {task['task_id']}.")
-            # Write a failed result
+            
+        # Check if daemon is still working on it (lease)
+        is_working = False
+        if claimed_inbox_file.exists():
+            if time.time() - claimed_inbox_file.stat().st_mtime < 120:
+                is_working = True
+        elif target_inbox_file.exists():
+            is_working = True # Still waiting to be picked up
+            
+        if not is_working:
+            print(f"[Windows Transport] Lease expired or task lost for {task['task_id']}.")
+            # Write a failed result with worker_id so it doesn't crash verification
             res = {
                 "status": "FAILED",
-                "reason": "TIMEOUT",
+                "reason": "LEASE_EXPIRED",
                 "goal_id": task.get("goal_id"),
-                "task_id": task["task_id"]
+                "task_id": task["task_id"],
+                "worker_id": "WINDOWS-01",  # Need to include worker_id for contract
+                "run_id": "adapter-lease-expiry"
             }
             with open(f"results/incoming/{task['task_id']}_result.json", 'w') as f:
                 json.dump(res, f)

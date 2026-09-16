@@ -1,0 +1,10 @@
+{
+  "case_id": "FC_SOAK_01_quarterly_rollover_overflow",
+  "duration_simulated_days": 90,
+  "metrics": {
+    "completed": 360,
+    "memory_leaks": 0,
+    "handles_leaked": 0
+  },
+  "status": "VERIFIED_STABLE"
+}

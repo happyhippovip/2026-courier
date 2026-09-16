@@ -1,0 +1,13 @@
+{
+  "counterexample_id": "CE_CHAOS_02_cascading_disk_full_crash_hang",
+  "date": "2026-09-09T21:52:16.506Z",
+  "category": "CASCADING_FAULT_RECOVERY_HANG",
+  "vulnerability": "Worker encountering ENOSPC while writing crashed, but cleanup handler also attempted to write error log to the same full disk, causing infinite unhandled rejection loop",
+  "unprotected_behavior": "Crash reconciliation tried to write crash diagnostic before checking storage writeability",
+  "repaired_behavior": "CrashReconciliationEngine isolates emergency memory dump and fails gracefully with in-memory fallback buffer",
+  "minimal_failing_case": {
+    "primary_fault": "ENOSPC",
+    "secondary_fault": "ENOSPC_IN_ERROR_HANDLER",
+    "repaired_outcome": "FALLBACK_MEMORY_DUMP_CLEAN_EXIT"
+  }
+}

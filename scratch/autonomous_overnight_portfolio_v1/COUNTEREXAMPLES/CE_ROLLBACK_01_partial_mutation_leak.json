@@ -1,0 +1,15 @@
+{
+  "defect_id": "CE_ROLLBACK_01",
+  "name": "Uncompensated Partial Mutation on Mid-Flight Task Failure",
+  "vulnerability_description": "When a composite multi-step task (e.g. 1: create scratch file, 2: acquire mutex, 3: update database index) fails at step 3, uncoordinated aborts leave steps 1 and 2 dangling. The scratch file remains in place and the mutex remains locked, permanently preventing subsequent runs.",
+  "minimal_trigger_payload": {
+    "steps_executed": [
+      "create_scratch_file",
+      "acquire_mutex"
+    ],
+    "step_failed": "update_database_index",
+    "error": "Disk full"
+  },
+  "invariant_violated": "Strict atomic transactionality: either all effects commit or all partial effects are compensated in LIFO order",
+  "resolution_proven": "AtomicRollbackEngine snapshots pre-state, registers compensating lambdas, and executes strict LIFO rollback upon any forward failure."
+}

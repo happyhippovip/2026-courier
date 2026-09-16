@@ -1,0 +1,11 @@
+{"id":"WORK-001","campaign":"C01_FORENSIC_SOURCE_AUDIT","title":"Production Source Inspection & Exact Call Graph Mapping","priority":"P0","depth":["D1"],"status":"IN_PROGRESS"}
+{"id":"WORK-002","campaign":"C02_COHERENT_SHADOW_KERNEL","title":"Implement Executable Shadow Kernel with Unified Choke Points","priority":"P0","depth":["D2","D4"],"status":"READY"}
+{"id":"WORK-003","campaign":"C03_REFERENCE_ORACLE_DIFFERENTIAL","title":"Independent Reference Model & State Differential Testing","priority":"P0","depth":["D3","D4","D15"],"status":"READY"}
+{"id":"WORK-004","campaign":"C04_REAL_SUBPROCESS_PROCESS_TREE_LAB","title":"Real Windows Subprocess Trees, PID/Start-Time Identity & Exit Races","priority":"P0","depth":["D6","D8"],"status":"READY"}
+{"id":"WORK-005","campaign":"C05_REAL_CRASH_TORN_JOURNAL_RECOVERY","title":"Durable Disk Journal with Torn Writes, Mid-Stream Crash & Compaction","priority":"P0","depth":["D8","D9"],"status":"READY"}
+{"id":"WORK-006","campaign":"C06_REAL_CONCURRENCY_FILE_LOCKING_LAB","title":"NTFS File Locks, Multi-Process CAS Dispatch & Resource Contention","priority":"P0","depth":["D7","D10"],"status":"READY"}
+{"id":"WORK-007","campaign":"C07_AST_MUTATION_TEST_WEAKENING_LAB","title":"Mutation Engine for Safety Contracts & Assertion Stripping Detection","priority":"P0","depth":["D5"],"status":"READY"}
+{"id":"WORK-008","campaign":"C08_SCALE_BENCHMARKS_MEMORY_SOAK","title":"Event Soak Ladder, Disk File Growth & Allocation Soak","priority":"P1","depth":["D12"],"status":"READY"}
+{"id":"WORK-009","campaign":"C09_CHAOS_MATRIX_MULTI_FAULT_COMPOSITION","title":"Pairwise and Triple Subsystem Fault Injections","priority":"P1","depth":["D10","D11"],"status":"READY"}
+{"id":"WORK-010","campaign":"C10_HUMAN_BURDEN_AUTONOMY_OPTIMIZATION","title":"Human Interruption Minimization & Dynamic Autonomous Follow-Up Flow","priority":"P1","depth":["D13","D14"],"status":"READY"}
+{"id":"WORK-011","campaign":"C11_SATURATION_TRIAL_PROSECUTORS","title":"Rigorous 10-Prosecutor Executable Probes for Windows Saturation","priority":"P0","depth":["D1","D15"],"status":"WAITING_PRECEDING"}

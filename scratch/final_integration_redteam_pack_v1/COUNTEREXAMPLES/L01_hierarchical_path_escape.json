@@ -1,0 +1,11 @@
+{
+  "defect_id": "DEFECT-L01",
+  "title": "Hierarchical Scope Concurrency Collision Across Parent/Child Directories",
+  "minimized_scenario": {
+    "task_1": { "id": "TASK-L01-PARENT", "declared_resources": ["tree:src/"] },
+    "task_2": { "id": "TASK-L01-CHILD", "declared_resources": ["tree:src/core/auth/"] },
+    "failure_mode": "Naive string equality treated 'tree:src/' and 'tree:src/core/auth/' as disjoint, granting concurrent write leases to both workers",
+    "expected_safe_outcome": "MUTEX_CONFLICT (Second task blocked/queued)",
+    "invariant_violated_without_repair": "CanonicalPrefix(S1) overlaps CanonicalPrefix(S2) => MUTEX_CONFLICT"
+  }
+}

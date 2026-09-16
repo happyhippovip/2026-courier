@@ -1,0 +1,16 @@
+{
+  "fenced_count": 1,
+  "fenced_items": [
+    {
+      "taskId": "TASK-1789015730725-23",
+      "reason": {
+        "task_id": "TASK-1789015730725-23",
+        "fenced_at": "2026-09-10T04:48:50.730Z",
+        "reason": "NON_ZERO_EXIT_CODE",
+        "state": "EXECUTION_UNCERTAIN_NO_PROOF",
+        "auto_redispatch_allowed": false
+      }
+    }
+  ],
+  "status": "AUDITED"
+}

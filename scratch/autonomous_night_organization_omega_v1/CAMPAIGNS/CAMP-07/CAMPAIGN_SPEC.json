@@ -1,0 +1,20 @@
+{
+  "campaign_id": "CAMP-07-RESULT-CUSTOMS-PARTIALITY-REPLAY",
+  "parent_frontier_item": "FRONTIER-CUSTOMS-PARTIALITY",
+  "goal": "Prove truthful partial deliverable auditing and eliminate old result replay attacks across task version boundaries.",
+  "hypothesis": "Structured deliverable matrices allow truthful partial progress recording without false overall PASS, and cryptographic task_version nonces prevent result replay.",
+  "why_now": "Core Section 41-44 requirement for autonomous long-run workflows.",
+  "production_relation": "Hardens supervisor/progress_tracker.js and chief/validator.py.",
+  "expected_information_gain": "HIGH",
+  "expected_cost": "0.00 EUR",
+  "risk": "NONE_ISOLATED_SHADOW",
+  "scope": "Partial deliverable matrices, task version binding, result replay attack simulation",
+  "write_scope": "scratch/autonomous_night_organization_omega_v1/CAMPAIGNS/CAMP-07/",
+  "dependencies": [
+    "CAMP-06-BORDER-GUARD-TOCTOU"
+  ],
+  "acceptance_criteria": "Partial deliverables yield PARTIAL_PROGRESS with exact sub-deliverable bitmap; result replay across versions rejected.",
+  "falsification_criteria": "Partial deliverable marked COMPLETE, or old result satisfies new task.",
+  "status": "CLOSED_SUPPORTED",
+  "completed_at": "2026-09-09T23:39:58.475Z"
+}

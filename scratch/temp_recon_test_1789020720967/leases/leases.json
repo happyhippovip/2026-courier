@@ -1,0 +1,39 @@
+[
+  {
+    "process_lease_id": "LEASE-1789020720971-36512E",
+    "task_id": "TASK-CRASHED",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 999999,
+    "command": "node worker.js",
+    "process_fingerprint": "a2804840630190ea5c12ca4a5ce32923df7a17230a223b104d279354311663b6",
+    "command_fingerprint": "992b336b051c8baa6f354b6bf9643ee73808833d673a5bf8582aa87518a3e575",
+    "task_token": "TOKEN-TASK-CRASHED-1912FF122446",
+    "start_time_epoch": 1789020720971,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T06:12:00.970Z",
+    "last_heartbeat_at": "2026-09-10T06:12:00.970Z",
+    "last_progress_at": "2026-09-10T06:12:00.970Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "EXECUTION_UNCERTAIN",
+    "termination_reason": "Process disappeared during restart without result proof",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:12:00.970Z",
+        "status": "RUNNING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T06:12:00.974Z",
+        "status": "EXECUTION_UNCERTAIN",
+        "note": "Process disappeared during restart without result proof"
+      }
+    ]
+  }
+]

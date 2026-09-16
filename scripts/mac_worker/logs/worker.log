@@ -107,3 +107,4 @@ OSError: [Errno 8] Exec format error: '/Users/user/Downloads/2026-courier/script
 [2026-09-16 00:01:54] Processing task canary-mac-restart
 [2026-09-16 00:01:54] Running NATIVE task canary-mac-restart
 [2026-09-16 00:01:55] Result written to /Users/user/Downloads/2026-courier/scripts/mac_worker/outbox/canary-mac-restart_result.json
+[2026-09-16 00:52:29] Starting Mac Worker Daemon...

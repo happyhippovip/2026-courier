@@ -1,0 +1,34 @@
+{
+  "task_states": {
+    "INBOX": "STAGED",
+    "TRIAGE": "STAGED",
+    "READY": "STAGED",
+    "QUEUED": "STAGED",
+    "IN_PROGRESS": "DISPATCHED",
+    "RUNNING": "DISPATCHED",
+    "VERIFYING": "DISPATCHED",
+    "DONE": "COMPLETED",
+    "SUCCESS": "COMPLETED",
+    "FAILED": "FAILED",
+    "CONFLICT": "FENCED",
+    "DEFERRED": "FENCED",
+    "ARCHIVED": "SATURATED"
+  },
+  "field_mappings": {
+    "taskId": "task_id",
+    "taskVersion": "task_version",
+    "workingDir": "working_dir",
+    "taskDir": "working_dir",
+    "exitCode": "exit_code",
+    "fencingToken": "fencing_token",
+    "scopePaths": "scope_paths",
+    "createdAt": "created_at",
+    "dispatchedAt": "dispatched_at",
+    "completedAt": "completed_at"
+  },
+  "project_identities": {
+    "2026-PROJECT-MEMORY": "C:/Users/lol/2026-workspace/project-memory",
+    "2026-COURIER": "C:/Users/lol/2026-workspace/courier",
+    "UNIVERSUX": "PROTECTED_SINGLE_WRITER_MAC_ONLY"
+  }
+}

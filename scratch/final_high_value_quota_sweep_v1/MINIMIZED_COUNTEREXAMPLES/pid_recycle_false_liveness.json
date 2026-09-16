@@ -1,0 +1,11 @@
+{
+  "id": "CE-02",
+  "name": "pid_recycle_false_liveness",
+  "input": {
+    "pid": 4102,
+    "leaseStartTime": 1000,
+    "osStartTime": 1100
+  },
+  "naiveBehavior": "ALIVE (Worker falsely assumed alive; task orphaned forever)",
+  "hardenedBehavior": "DEAD (PID_RECYCLED detected; task safely reclaimed)"
+}

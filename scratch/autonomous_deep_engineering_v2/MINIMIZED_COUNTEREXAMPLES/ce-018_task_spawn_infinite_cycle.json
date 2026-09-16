@@ -1,0 +1,6 @@
+{
+  "id": "CE-018",
+  "defect_class": "TASK_SPAWN_INFINITE_CYCLE",
+  "description": "Recursive parent-child task creation leading to unbounded supervisor memory leak.",
+  "proven_invariant": "DAG cycle detection identifies and aborts transitive loops at spawn boundary."
+}

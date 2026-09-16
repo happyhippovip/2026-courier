@@ -1,0 +1,328 @@
+{
+  "package": "MINIMUM_KERNEL_SYMPHONY_RC_V1",
+  "patch_file": "MINIMUM_KERNEL.patch",
+  "patch_sha256": "5805ac8cd64140919bb7af320a6bb2bea95aa54cc2bc9295be79dd6f998cdf60",
+  "patch_size_bytes": 401092,
+  "base_commit": "aa5c01d21c7e055c7e3b5117ded5eddc6793dde4",
+  "total_files": 53,
+  "files": [
+    {
+      "path": "governance/BorderGuard.js",
+      "sha256": "87968421efad74a8c877bed902ad091500e4e8f99eaec873f96b467a9750bae1",
+      "bytes": 2154,
+      "lines": 51
+    },
+    {
+      "path": "governance/CapabilityEngine.js",
+      "sha256": "c39c46cfd26625b7531b729c7473b73a3e630c8431f07289656629022b868ec5",
+      "bytes": 1325,
+      "lines": 42
+    },
+    {
+      "path": "governance/CompletionGovernor.js",
+      "sha256": "00b9c8fe7a2b6441f855fd5422bc74142871a4bae6405044382020d7f8a0c45f",
+      "bytes": 2550,
+      "lines": 58
+    },
+    {
+      "path": "governance/ResourceLockManager.js",
+      "sha256": "2a22fb024c321a4aab963527f90f220edf9797382f385e716183f82a94b724e8",
+      "bytes": 1907,
+      "lines": 62
+    },
+    {
+      "path": "governance/ResultCustoms.js",
+      "sha256": "8f3306f96f13b1048d63af571e80e88726d90fcafc320bc9c7f4419b14258783",
+      "bytes": 1502,
+      "lines": 40
+    },
+    {
+      "path": "governance/TaskPassport.js",
+      "sha256": "378fec6d346b8673061d9426add4a42a9dc7ca1bccf889b547d19e66e677ae15",
+      "bytes": 1421,
+      "lines": 34
+    },
+    {
+      "path": "supervisor/audit_ledger.js",
+      "sha256": "d848c138266c32cf1d51a968a746094af6ea75e74a10afcdd1f9238402689784",
+      "bytes": 3080,
+      "lines": 116
+    },
+    {
+      "path": "supervisor/chief_envelope.js",
+      "sha256": "0d97c3254ef413c8fb155b517bb81aaa9baa1158849eced74fa29823a9c3bdce",
+      "bytes": 1701,
+      "lines": 67
+    },
+    {
+      "path": "supervisor/decision_engine.js",
+      "sha256": "e9986e65da558bfc83c010e6fa6df7465ca368b673127fb2a73a6382a6d02119",
+      "bytes": 4344,
+      "lines": 118
+    },
+    {
+      "path": "supervisor/diagnostic_bundle.js",
+      "sha256": "0237147d3bb5ca03a80cb7fb9235ec488812f01136c9d635d522d10f8ff79f8b",
+      "bytes": 3888,
+      "lines": 104
+    },
+    {
+      "path": "supervisor/index.js",
+      "sha256": "d95f3ab1c556060f78088113dbdded09362587a8b1eb5011f5ee285870b5bc19",
+      "bytes": 4100,
+      "lines": 111
+    },
+    {
+      "path": "supervisor/lease_manager.js",
+      "sha256": "be00e5333d59c6d86e0a6a8d46bc66c01666ca62a2775e1534d8ae475aaf4647",
+      "bytes": 10136,
+      "lines": 334
+    },
+    {
+      "path": "supervisor/no_stacking.js",
+      "sha256": "be956d4870814604fbc91dfc4df663359355391c9469c71bc5b08b1dd765e8e3",
+      "bytes": 3779,
+      "lines": 107
+    },
+    {
+      "path": "supervisor/progress_tracker.js",
+      "sha256": "a7a2d21dea62a970117bee45158ac8e5e8bb6710bce73fd3aaf0dd6b7894b30c",
+      "bytes": 6116,
+      "lines": 192
+    },
+    {
+      "path": "supervisor/reconciliation.js",
+      "sha256": "6f65fdf1958ad956b58df6be05430aa0ebfca442db033359a0779953bfa245af",
+      "bytes": 5880,
+      "lines": 153
+    },
+    {
+      "path": "supervisor/resource_governor.js",
+      "sha256": "628a80ff1a770ea87c8b86df17e166c4d7c3060b2ba334bdbd76ed9c5ea2c938",
+      "bytes": 5883,
+      "lines": 162
+    },
+    {
+      "path": "supervisor/screenshot_spec.js",
+      "sha256": "c67e08d75a3f35d401d7af66a2a3c5a73b6846d0a73802bd457685f176d7b971",
+      "bytes": 3450,
+      "lines": 123
+    },
+    {
+      "path": "supervisor/stall_policy.js",
+      "sha256": "70dd2334d86364a8bfdb2e56013f2ef5aceaf569ec149517b94cf7d49bbbb5e8",
+      "bytes": 7222,
+      "lines": 181
+    },
+    {
+      "path": "supervisor/task_hygiene.js",
+      "sha256": "2a97867b762b3499e35c57ca32d0f7d8a45d7d2e4c40a5a69f6830bdd2ed6970",
+      "bytes": 3711,
+      "lines": 120
+    },
+    {
+      "path": "supervisor/types.js",
+      "sha256": "4efb9f42ca216b75d9097ac871fee5b572cda6dc58068d73dab6b6239155f0d1",
+      "bytes": 2677,
+      "lines": 100
+    },
+    {
+      "path": "DAILY_IMPROVEMENT_CONTRACT.md",
+      "sha256": "f55f8fc7d2cc6072e9ec2cd746c2f4dded77f8c86dd27898a6d2b3ad696080f5",
+      "bytes": 4725,
+      "lines": 79
+    },
+    {
+      "path": "BRANCH_TRANSITION_PLAN.md",
+      "sha256": "2a51f204e62a53d9fb5b20e7b40fda47a077d61e9e507476ed210f2de24e9912",
+      "bytes": 4503,
+      "lines": 101
+    },
+    {
+      "path": "POST_CANARY_FIRST_EUR5_MISSION.md",
+      "sha256": "eb2947de81ac08366626da9ba8e96c6020907e77328caeddf98ab73d93cbb07d",
+      "bytes": 4151,
+      "lines": 70
+    },
+    {
+      "path": "money_factory/anti_loop_policy.js",
+      "sha256": "6770e9d066cb85038c53fb19cd78c1ebec9581858a940d22a3942a122f59c32e",
+      "bytes": 6823,
+      "lines": 204
+    },
+    {
+      "path": "money_factory/index.js",
+      "sha256": "c1dffb9cf20ee8af8a3328e29ace12d91ff494a5663b58403e1b0df41c487c18",
+      "bytes": 2739,
+      "lines": 87
+    },
+    {
+      "path": "money_factory/portfolios.js",
+      "sha256": "96894faf4557857e52dc592888e5c2041b5975a3715fb598a14066199a6efec7",
+      "bytes": 5206,
+      "lines": 157
+    },
+    {
+      "path": "money_factory/prediction_calibration.js",
+      "sha256": "3c21e1a95fc9941ebb533a072ede3f0ba57857e08a7a04ae6f4129e63562143f",
+      "bytes": 8515,
+      "lines": 248
+    },
+    {
+      "path": "money_factory/safety_gates.js",
+      "sha256": "c00ed53b4f0f1fd4ff6160413abeb26a2e6057921e586aa31af373fb3addff19",
+      "bytes": 5244,
+      "lines": 159
+    },
+    {
+      "path": "money_factory/warehouse.js",
+      "sha256": "848e97240fa921b9ca61a64046a0bd1b37a894d517878d2e3d305a327c91e599",
+      "bytes": 11959,
+      "lines": 364
+    },
+    {
+      "path": "money_factory/cheapest_test.js",
+      "sha256": "2e27dc9083e8d5e22373ba6842bb47f839e796f1fbb1dfcaf9adfccd36fd314c",
+      "bytes": 3545,
+      "lines": 85
+    },
+    {
+      "path": "money_factory/evidence_ledger.js",
+      "sha256": "5cb070ed0496224a85b76b91ea8dec8eb51da91c225b61a8529890362b4b4b10",
+      "bytes": 7515,
+      "lines": 209
+    },
+    {
+      "path": "money_factory/first_5_euro_simulator.js",
+      "sha256": "de63f6f0cba5a4f42b9656b728ab7a13a5f212913e647bc4e7f4cd8091e72dad",
+      "bytes": 6623,
+      "lines": 185
+    },
+    {
+      "path": "money_factory/supervisor_compat.js",
+      "sha256": "cabd83b93dbdb95b0051ac01d995943de2c4a4a62b4727ea8258dc1556a8789f",
+      "bytes": 2537,
+      "lines": 90
+    },
+    {
+      "path": "opportunity_warehouse/opportunities.json",
+      "sha256": "5431e2a1a11f82fc2a8a721bfe5b8a94af3ec5bebda93a0510654a1f58950b55",
+      "bytes": 16934,
+      "lines": 497
+    },
+    {
+      "path": "tests/test_supervisor_plane_p0.js",
+      "sha256": "9362a30c79bdb34262f0b72377282913639a366dc57d18ba6cbad6cd792bc06c",
+      "bytes": 23152,
+      "lines": 596
+    },
+    {
+      "path": "tests/test_mandatory_scenarios_suite.js",
+      "sha256": "39643389792c3aeddf646e163efe609e7f5cc1bd4127401e09b99246df66e192",
+      "bytes": 10751,
+      "lines": 232
+    },
+    {
+      "path": "tests/test_money_factory_closure.js",
+      "sha256": "0c0e988c38091c46c6a61a2d3f3502b77a3d7c234e7d49d5ca15b8816f70ff4b",
+      "bytes": 21090,
+      "lines": 476
+    },
+    {
+      "path": "fixtures/immutable_proof_fixture.txt",
+      "sha256": "69e974d103cc8ca88bba36eb2f526f10fed777cc6fe85bf915af5aa84b218179",
+      "bytes": 70,
+      "lines": 2
+    },
+    {
+      "path": "tests/rc3_hardening/contracts/border_guard_contract.js",
+      "sha256": "538214176aa4a8669fc39c7c20b5d4c444e2c37f1ff8d9b8708a2fd435f55c9c",
+      "bytes": 9365,
+      "lines": 227
+    },
+    {
+      "path": "tests/rc3_hardening/contracts/follow_up_inbox.js",
+      "sha256": "e1536d35252622cbc2528cfe19e05ff7d4782b1c2308014e0f71f32440adf67e",
+      "bytes": 8774,
+      "lines": 271
+    },
+    {
+      "path": "tests/rc3_hardening/contracts/result_customs_contract.js",
+      "sha256": "0775ec400739cc435f504c614bbca55362de24f4d4474086b4caadbf56736473",
+      "bytes": 9797,
+      "lines": 269
+    },
+    {
+      "path": "tests/rc3_hardening/contracts/task_stamp_contract.js",
+      "sha256": "6d2dcf41423c02f55f0cc271d20690c719a164401a9860653a2f5580a87a9bfd",
+      "bytes": 11160,
+      "lines": 332
+    },
+    {
+      "path": "tests/rc3_hardening/test_border_guard.js",
+      "sha256": "5587b53a032915fb6ff5c0fb2cabf61777cdba63dcbae367a779d6f64dba18b7",
+      "bytes": 8578,
+      "lines": 239
+    },
+    {
+      "path": "tests/rc3_hardening/test_crash_restart_chaos.js",
+      "sha256": "c7d98b94430838e1566bd2aa967190a62b7ffe9ae4349f95b405a61c6f9723dd",
+      "bytes": 17419,
+      "lines": 437
+    },
+    {
+      "path": "tests/rc3_hardening/test_deterministic_soak.js",
+      "sha256": "1d33d9eb3768f03afe2d697bdc79f8675f9b05bba2e3fbbb51d54481c0f8280e",
+      "bytes": 19258,
+      "lines": 480
+    },
+    {
+      "path": "tests/rc3_hardening/test_event_ledger_invariants.js",
+      "sha256": "c75d41c0aadd6b3b83a319bdd2e0fa7546033559ddc91030e59354e9a6ccdd8d",
+      "bytes": 15864,
+      "lines": 415
+    },
+    {
+      "path": "tests/rc3_hardening/test_follow_up_inbox.js",
+      "sha256": "b220b2c226d97379f82c0932b7d5307b8950ca311d7f7b55f8825376d4cc243e",
+      "bytes": 7396,
+      "lines": 199
+    },
+    {
+      "path": "tests/rc3_hardening/test_money_factory_adversarial.js",
+      "sha256": "52de1392bc0b00bdfed57c1af972fef681d4668ca060ab181883bea83047df89",
+      "bytes": 15896,
+      "lines": 434
+    },
+    {
+      "path": "tests/rc3_hardening/test_rc3_adversarial_validation.js",
+      "sha256": "30ed2b8f09513efe8cb1299e9d0d4ab93f3e7b2a1212baf759c9e2903fc78581",
+      "bytes": 21026,
+      "lines": 564
+    },
+    {
+      "path": "tests/rc3_hardening/test_resource_governor_adversarial.js",
+      "sha256": "64ced905c0fff3c9d99dad5cf52fc3f7a564f024e52063f44620eba8376815a8",
+      "bytes": 12431,
+      "lines": 335
+    },
+    {
+      "path": "tests/rc3_hardening/test_result_customs.js",
+      "sha256": "bd8dcd518dbb7c8a5a22b92e126c9955c80111a72a4788cfe01c87266de48459",
+      "bytes": 9709,
+      "lines": 272
+    },
+    {
+      "path": "tests/rc3_hardening/test_supervisor_adversarial.js",
+      "sha256": "cfd39c4a5eb1442214b24f67782270e941683950df95a893e96cd56dbc03a41c",
+      "bytes": 20325,
+      "lines": 521
+    },
+    {
+      "path": "tests/rc3_hardening/test_task_stamp_contracts.js",
+      "sha256": "0977c5990958915c1a9da6b171785e5f4277d6bf1ad104daba6ebfe404106ca5",
+      "bytes": 10112,
+      "lines": 260
+    }
+  ]
+}

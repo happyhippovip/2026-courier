@@ -1,0 +1,9 @@
+{
+  "counterexample_id": "CE-GOAL-01",
+  "title": "Worker False Completion Self-Declaration",
+  "scenario": "Worker script encounters fatal assertion, writes partial output file, catches error, and prints \"TASK DONE\" with exit code 0.",
+  "vulnerability_without_customs": "Naive orchestrator checks exit code 0 and logs string \"TASK DONE\", erroneously transitioning goal to SATISFIED.",
+  "remedy_implemented": "IndependentGoalVerifier requiring explicit acceptance criteria pattern match and cryptographic terminal satisfaction envelope.",
+  "reproduced": true,
+  "minimized": true
+}

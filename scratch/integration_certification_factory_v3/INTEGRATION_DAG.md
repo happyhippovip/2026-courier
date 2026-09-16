@@ -1,0 +1,57 @@
+# INTEGRATION DAG — V3
+
+```mermaid
+graph TD
+  PKG-001 --> PKG-006
+  PKG-001 --> PKG-002
+  PKG-006 --> PKG-002
+  PKG-002 --> PKG-003
+  PKG-001 --> PKG-004
+  PKG-002 --> PKG-004
+  PKG-001 --> PKG-005
+  PKG-001 --> PKG-013
+  PKG-001 --> PKG-007
+  PKG-006 --> PKG-007
+  PKG-007 --> PKG-012
+  PKG-013 --> PKG-012
+  PKG-002 --> PKG-009
+  PKG-003 --> PKG-009
+  PKG-009 --> PKG-014
+  PKG-013 --> PKG-014
+  PKG-003 --> PKG-008
+  PKG-009 --> PKG-008
+  PKG-010 --> PKG-020
+  PKG-003 --> PKG-011
+  PKG-010 --> PKG-011
+  PKG-001 --> PKG-015
+  PKG-003 --> PKG-016
+  PKG-011 --> PKG-016
+  PKG-016 --> PKG-017
+  PKG-006 --> PKG-019
+  PKG-001 --> PKG-018
+  PKG-006 --> PKG-018
+  PKG-015 --> PKG-018
+  PKG-019 --> PKG-018
+```
+
+### Topological Order:
+1. **PKG-001**
+2. **PKG-010**
+3. **PKG-006**
+4. **PKG-005**
+5. **PKG-013**
+6. **PKG-015**
+7. **PKG-020**
+8. **PKG-002**
+9. **PKG-007**
+10. **PKG-019**
+11. **PKG-003**
+12. **PKG-004**
+13. **PKG-012**
+14. **PKG-018**
+15. **PKG-009**
+16. **PKG-011**
+17. **PKG-014**
+18. **PKG-008**
+19. **PKG-016**
+20. **PKG-017**

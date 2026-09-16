@@ -1,0 +1,18 @@
+{
+  "mission_id": "WINDOWS_COURIER_DURABLE_AUTONOMY_RUNTIME_MULTI_HOUR_V1",
+  "status": "PAUSED_CAPACITY",
+  "why_stopped": "Current turn execution capacity reached with safe frontier preserved; global saturation intentionally revoked per constitution.",
+  "real_start": "2026-09-10T04:30:47.322Z",
+  "real_end": "2026-09-10T04:34:51.247Z",
+  "real_elapsed": "244s",
+  "architecture_constitution_version": "1.0.0",
+  "runtime_modules_built": 17,
+  "lines_of_runtime_code": 1728,
+  "completed_work_units": 11,
+  "active_leases": 0,
+  "owned_helpers": 0,
+  "spend_eur": 0,
+  "universux_touched": false,
+  "mac_accessed": false,
+  "rc3_mutated": false
+}

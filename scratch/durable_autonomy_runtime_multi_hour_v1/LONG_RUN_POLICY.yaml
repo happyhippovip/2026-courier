@@ -1,0 +1,63 @@
+# COURIER DURABLE AUTONOMY RUNTIME — LONG RUN POLICY V2
+# inviolable runtime continuation policy for Windows autonomous continuum.
+
+meta:
+  policy_id: "COURIER_LONG_RUN_POLICY_V2"
+  policy_version: "2.0.0"
+  mission_id: "WINDOWS_COURIER_DURABLE_AUTONOMY_RUNTIME_MULTI_HOUR_V1"
+  continuation_id: "WINDOWS_COURIER_DURABLE_AUTONOMY_RUNTIME_MULTI_HOUR_V1_CONTINUATION_OMEGA_DEEP_V2"
+  ratified_at_utc: "2026-09-10T04:45:00.000Z"
+  host_platform: "PC2_WINDOWS_10_X64"
+
+core_continuation_contract:
+  long_run_by_default: true
+  frontier_low_water: 5
+  worker_global_completion_authority: false
+  completion_governor_required: true
+  capacity_end_state: "PAUSED_CAPACITY"
+  human_interrupt_policy: "ZERO_ROUTINE"
+  filler_policy: "DENY_DUPLICATE_GREEN_TESTS"
+  repeat_policy: "DENY_IDENTICAL_WORK_UNIT"
+  checkpoint_policy: "ATOMIC_AFTER_EVERY_WORK_UNIT"
+  resume_policy: "REPLAY_EVENT_LOG_AND_RECONCILE"
+  concurrency_policy: "EXCLUSIVE_PATH_MUTEX_AND_PID_STARTTIME"
+  saturation_policy: "MULTI_LANE_ROTATION_NEVER_PREMATURE_TERMINATION"
+
+operational_flags:
+  autonomous_spend_limit_eur: 0
+  real_trading_allowed: false
+  wallet_signing_allowed: false
+  mac_host_access_allowed: false
+  universux_touch_allowed: false
+  production_courier_write_allowed: false
+  production_branch_freeze_asserted: true
+  human_babysitting_required: false
+  routine_human_questions_allowed: false
+  premature_autonomy_termination_defect: true
+
+lane_rotation_policy:
+  max_consecutive_units_per_lane: 3
+  minimum_active_lanes_in_reservoir: 5
+  total_reservoir_lanes_count: 40
+
+discovery_methods:
+  - SOURCE_ARCHAEOLOGY
+  - CALL_GRAPH_MINING
+  - AUTHORITY_PATH_DISCOVERY
+  - DURABLE_SCHEMA_MINING
+  - HISTORICAL_EVIDENES_REVALIDATION
+  - COUNTEREXAMPLE_CORPUS_MINING
+  - ASSUMPTION_INVERSION
+  - MUTATION_SURVIVOR_ANALYSIS
+  - CATASTROPHE_FIRST_FAULT_TREE
+  - CROSS_COMPONENT_COMPOSITION
+  - CRASH_BOUNDARY_ENUMERATION
+  - CONCURRENCY_RACE_GENERATION
+  - MIGRATION_VERSION_SKEW_SEARCH
+  - LIVENESS_ANALYSIS
+  - PERFORMANCE_PROFILE
+  - HUMAN_BURDEN_ANALYSIS
+  - ECONOMIC_GOAL_ALIGNMENT
+  - ARCHITECTURE_SIMPLIFICATION
+  - CLEAN_ROOM_REVIEW
+  - STRONGEST_CLAIM_FALSIFICATION

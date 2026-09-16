@@ -1,0 +1,48 @@
+{
+  "totalTests": 8,
+  "passed": 8,
+  "failed": 0,
+  "timestamp": "2026-09-12T23:59:54.639Z",
+  "results": [
+    {
+      "testId": "ADV_TASK_01_CANONICAL_PROGRESSION",
+      "description": "PROPOSED -> NEGOTIATING -> APPROVED_FOR_DISPATCH -> STAMPED -> DISPATCHED -> IN_FLIGHT -> RESULT_RECEIVED -> VERIFIED -> CLOSED",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_TASK_02_ALTERNATIVE_LIFECYCLE_PATHS",
+      "description": "Alternative states (QUESTION, CONFLICT, BLOCKED, HUMAN_GATE, CANCEL) work correctly",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_TASK_03_WRITER_LEASE_EXCLUSIVITY",
+      "description": "First task acquires writer lease on scope path",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_TASK_04_SECOND_WRITER_HOLD",
+      "description": "Second task overlapping scope is placed on HOLD, not dispatched",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_TASK_05_FOLLOW_UP_PRESERVED_NO_IN_FLIGHT_MUTATION",
+      "description": "Follow-up arriving while task is IN_FLIGHT cannot mutate in-flight task",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_TASK_06_TASK_IMMUTABILITY_POST_DISPATCH",
+      "description": "Task fingerprint and command cannot be tampered with after STAMPED/DISPATCHED",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_TASK_07_EXPLICIT_VERSION_SUPERSEDING",
+      "description": "Version increment explicitly links supersedes and superseded_by",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_TASK_08_UNCERTAIN_EXECUTION_BLOCKS_REPLACEMENT",
+      "description": "EXECUTION_UNCERTAIN blocks automated replacement dispatch",
+      "status": "PASS"
+    }
+  ]
+}

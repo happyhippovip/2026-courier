@@ -1,0 +1,9 @@
+{
+  "counterexample_id": "CE-CUSTOMS-01",
+  "title": "Scope Escalation Drift Bypasses Local Task Scope",
+  "scenario": "Task granted scope `src/core/` modifies `package.json` to install a dependency without declaring root manifest scope.",
+  "vulnerability_without_border_guard": "Git commit records dirty root modification outside task boundary, corrupting parallel lanes.",
+  "remedy_implemented": "Border Guard inspects target paths of all tool payloads against declared scope before granting GREEN_CARD.",
+  "reproduced": true,
+  "minimized": true
+}

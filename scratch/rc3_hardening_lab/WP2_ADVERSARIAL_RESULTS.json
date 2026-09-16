@@ -1,0 +1,281 @@
+{
+  "totalTests": 25,
+  "frozenPassedRejections": 23,
+  "frozenFailedRejections": 2,
+  "hardenedAllFailClosed": true,
+  "defectsExposed": [
+    {
+      "defectId": "DEFECT-WP2-001",
+      "title": "UNMANIFESTED_PHYSICAL_ARTIFACT_ADMISSIBILITY",
+      "affected": [
+        "ValidatorA",
+        "ValidatorB"
+      ],
+      "reproductionTest": "MUT_03_EXTRA_UNEXPECTED_DELIVERABLE",
+      "repairedIn": "runValidatorHardened (Post-Freeze candidate for Mac Intake)"
+    },
+    {
+      "defectId": "DEFECT-WP2-002",
+      "title": "MANIFEST_RELEASE_ID_UNCHECKED",
+      "affected": [
+        "ValidatorA",
+        "ValidatorB"
+      ],
+      "reproductionTest": "MUT_08_WRONG_RELEASE_ID",
+      "repairedIn": "runValidatorHardened (Post-Freeze candidate for Mac Intake)"
+    }
+  ],
+  "timestamp": "2026-09-13T00:00:59.630Z",
+  "results": [
+    {
+      "testId": "MUT_01_SINGLE_BYTE_CORRUPTION",
+      "description": "Flip 1 byte in reference/ACTIVE_ARTIFACT_REGISTRY.md",
+      "frozenRejected": true,
+      "hardenedRejected": true,
+      "validatorAFailed": true,
+      "validatorBFailed": true,
+      "hardenedValidatorFailed": true,
+      "ledgerOracleFailed": false
+    },
+    {
+      "testId": "MUT_02_MISSING_DELIVERABLE",
+      "description": "Delete mandatory deliverable reference/ACTIVE_ARTIFACT_REGISTRY.md",
+      "frozenRejected": true,
+      "hardenedRejected": true,
+      "validatorAFailed": true,
+      "validatorBFailed": true,
+      "hardenedValidatorFailed": true,
+      "ledgerOracleFailed": false
+    },
+    {
+      "testId": "MUT_03_EXTRA_UNEXPECTED_DELIVERABLE",
+      "description": "Inject prohibited unauthorized script into reference/",
+      "frozenRejected": false,
+      "hardenedRejected": true,
+      "validatorAFailed": false,
+      "validatorBFailed": false,
+      "hardenedValidatorFailed": true,
+      "ledgerOracleFailed": false
+    },
+    {
+      "testId": "MUT_04_LEDGER_TRUNCATION",
+      "description": "Truncate RC3_EXECUTION_LEDGER.jsonl by 10 lines",
+      "frozenRejected": true,
+      "hardenedRejected": true,
+      "validatorAFailed": true,
+      "validatorBFailed": true,
+      "hardenedValidatorFailed": true,
+      "ledgerOracleFailed": true
+    },
+    {
+      "testId": "MUT_05_LEDGER_DUPLICATE_LINE",
+      "description": "Duplicate first line in RC3_EXECUTION_LEDGER.jsonl",
+      "frozenRejected": true,
+      "hardenedRejected": true,
+      "validatorAFailed": true,
+      "validatorBFailed": true,
+      "hardenedValidatorFailed": true,
+      "ledgerOracleFailed": true
+    },
+    {
+      "testId": "MUT_06_LEDGER_REORDERED_EVENT",
+      "description": "Swap two events in RC3_EXECUTION_LEDGER.jsonl",
+      "frozenRejected": true,
+      "hardenedRejected": true,
+      "validatorAFailed": true,
+      "validatorBFailed": true,
+      "hardenedValidatorFailed": true,
+      "ledgerOracleFailed": true
+    },
+    {
+      "testId": "MUT_07_WRONG_HASH",
+      "description": "Tamper with sha256 of first artifact in manifest",
+      "frozenRejected": true,
+      "hardenedRejected": true,
+      "validatorAFailed": true,
+      "validatorBFailed": true,
+      "hardenedValidatorFailed": true,
+      "ledgerOracleFailed": false
+    },
+    {
+      "testId": "MUT_08_WRONG_RELEASE_ID",
+      "description": "Set release_id in manifest to RC99",
+      "frozenRejected": false,
+      "hardenedRejected": true,
+      "validatorAFailed": false,
+      "validatorBFailed": false,
+      "hardenedValidatorFailed": true,
+      "ledgerOracleFailed": false
+    },
+    {
+      "testId": "MUT_09_WRONG_CAMPAIGN_ID",
+      "description": "Alter campaign script reference in ledger line 1",
+      "frozenRejected": true,
+      "hardenedRejected": true,
+      "validatorAFailed": true,
+      "validatorBFailed": true,
+      "hardenedValidatorFailed": true,
+      "ledgerOracleFailed": false
+    },
+    {
+      "testId": "MUT_10_WRONG_PHASE_ID",
+      "description": "Corrupt phase_id in ledger line 10",
+      "frozenRejected": true,
+      "hardenedRejected": true,
+      "validatorAFailed": true,
+      "validatorBFailed": true,
+      "hardenedValidatorFailed": true,
+      "ledgerOracleFailed": true
+    },
+    {
+      "testId": "MUT_11_DUPLICATE_PHASE",
+      "description": "Duplicate an entire phase record in ledger",
+      "frozenRejected": true,
+      "hardenedRejected": true,
+      "validatorAFailed": true,
+      "validatorBFailed": true,
+      "hardenedValidatorFailed": true,
+      "ledgerOracleFailed": true
+    },
+    {
+      "testId": "MUT_12_MISSING_PHASE",
+      "description": "Remove phase 5 from ledger",
+      "frozenRejected": true,
+      "hardenedRejected": true,
+      "validatorAFailed": true,
+      "validatorBFailed": true,
+      "hardenedValidatorFailed": true,
+      "ledgerOracleFailed": true
+    },
+    {
+      "testId": "MUT_13_UNEXPECTED_PHASE",
+      "description": "Insert phantom phase into ledger",
+      "frozenRejected": true,
+      "hardenedRejected": true,
+      "validatorAFailed": true,
+      "validatorBFailed": true,
+      "hardenedValidatorFailed": true,
+      "ledgerOracleFailed": true
+    },
+    {
+      "testId": "MUT_14_MANIFEST_MISMATCH",
+      "description": "Point manifest artifact path to non-existent file",
+      "frozenRejected": true,
+      "hardenedRejected": true,
+      "validatorAFailed": true,
+      "validatorBFailed": true,
+      "hardenedValidatorFailed": true,
+      "ledgerOracleFailed": false
+    },
+    {
+      "testId": "MUT_15_VALIDATOR_INPUT_PATH_CONFUSION",
+      "description": "Provide empty or non-existent path to validator",
+      "frozenRejected": true,
+      "hardenedRejected": true,
+      "validatorAFailed": true,
+      "validatorBFailed": true,
+      "hardenedValidatorFailed": true,
+      "ledgerOracleFailed": true
+    },
+    {
+      "testId": "MUT_16_STALE_ARTIFACT_SUBSTITUTION",
+      "description": "Inject prohibited PowerShell execution into a reference file",
+      "frozenRejected": true,
+      "hardenedRejected": true,
+      "validatorAFailed": true,
+      "validatorBFailed": true,
+      "hardenedValidatorFailed": true,
+      "ledgerOracleFailed": false
+    },
+    {
+      "testId": "MUT_17_REPLAY_OLDER_VALID_ARTIFACT",
+      "description": "Substitute canonical schema with obsolete text",
+      "frozenRejected": true,
+      "hardenedRejected": true,
+      "validatorAFailed": true,
+      "validatorBFailed": true,
+      "hardenedValidatorFailed": true,
+      "ledgerOracleFailed": false
+    },
+    {
+      "testId": "MUT_18_CASE_PATH_NORMALIZATION_HAZARD",
+      "description": "Inject directory traversal into manifest artifact path",
+      "frozenRejected": true,
+      "hardenedRejected": true,
+      "validatorAFailed": true,
+      "validatorBFailed": true,
+      "hardenedValidatorFailed": true,
+      "ledgerOracleFailed": false
+    },
+    {
+      "testId": "MUT_19_WINDOWS_SEPARATOR_HAZARD",
+      "description": "Inject absolute Windows drive path into manifest relative path",
+      "frozenRejected": true,
+      "hardenedRejected": true,
+      "validatorAFailed": true,
+      "validatorBFailed": true,
+      "hardenedValidatorFailed": true,
+      "ledgerOracleFailed": false
+    },
+    {
+      "testId": "MUT_20_PARTIAL_WRITE",
+      "description": "Truncate JSON deliverable mid-object",
+      "frozenRejected": true,
+      "hardenedRejected": true,
+      "validatorAFailed": true,
+      "validatorBFailed": true,
+      "hardenedValidatorFailed": true,
+      "ledgerOracleFailed": false
+    },
+    {
+      "testId": "MUT_21_EMPTY_FILE_REPLACEMENT",
+      "description": "Replace mandatory deliverable with 0-byte file",
+      "frozenRejected": true,
+      "hardenedRejected": true,
+      "validatorAFailed": true,
+      "validatorBFailed": true,
+      "hardenedValidatorFailed": true,
+      "ledgerOracleFailed": false
+    },
+    {
+      "testId": "MUT_22_TIMESTAMP_PRODUCTION_RESUME_MUTATION",
+      "description": "Set production_resume_candidate to true in manifest",
+      "frozenRejected": true,
+      "hardenedRejected": true,
+      "validatorAFailed": true,
+      "validatorBFailed": true,
+      "hardenedValidatorFailed": true,
+      "ledgerOracleFailed": false
+    },
+    {
+      "testId": "MUT_23_UNKNOWN_FIELD_INJECTION",
+      "description": "Inject duplicate artifact ID in manifest",
+      "frozenRejected": true,
+      "hardenedRejected": true,
+      "validatorAFailed": true,
+      "validatorBFailed": true,
+      "hardenedValidatorFailed": true,
+      "ledgerOracleFailed": false
+    },
+    {
+      "testId": "MUT_24_MALFORMED_JSON_MANIFEST",
+      "description": "Corrupt JSON syntax in manifest file",
+      "frozenRejected": true,
+      "hardenedRejected": true,
+      "validatorAFailed": true,
+      "validatorBFailed": true,
+      "hardenedValidatorFailed": true,
+      "ledgerOracleFailed": false
+    },
+    {
+      "testId": "MUT_25_WRONG_ENCODING_BOM",
+      "description": "Write UTF-16LE with BOM into manifest",
+      "frozenRejected": true,
+      "hardenedRejected": true,
+      "validatorAFailed": true,
+      "validatorBFailed": true,
+      "hardenedValidatorFailed": true,
+      "ledgerOracleFailed": false
+    }
+  ]
+}

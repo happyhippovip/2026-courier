@@ -1,0 +1,14 @@
+{
+  "timestamp": "2026-09-10T07:16:30.796Z",
+  "inbox_storage_path": "C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_operations_resume_proof_v1\\inbox\\follow_ups.json",
+  "items_saved_count": 5,
+  "items_reloaded_count": 5,
+  "durability_verified": true,
+  "item_status_counts": {
+    "CANDIDATE": 1,
+    "NEEDS_DISCUSSION": 1,
+    "DEPENDENCY_BLOCKED": 1,
+    "DUPLICATE": 1,
+    "SUPERSEDED": 1
+  }
+}

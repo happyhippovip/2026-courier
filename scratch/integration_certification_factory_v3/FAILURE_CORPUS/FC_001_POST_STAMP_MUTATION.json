@@ -1,0 +1,7 @@
+{
+  "id": "FC_001",
+  "name": "POST_STAMP_MUTATION",
+  "payload": {
+    "mutate": "risk"
+  }
+}

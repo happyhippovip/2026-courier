@@ -1,0 +1,27 @@
+{
+  "goal_id": "GOAL-WIN-AUTONOMOUS-OPS-PROOF-001",
+  "created_at_utc": "2026-09-10T07:16:30.687Z",
+  "statement": "Assess the Windows Courier workspace for locally provable operational weaknesses that could prevent reliable unattended operation, improve only issues supported by deterministic evidence inside an isolated allowed scope, independently verify the results, preserve all safety boundaries, and stop only when the goal is evidenced or remaining work is low-value.",
+  "parameters": {
+    "target_scope": "courier_local_runtime",
+    "isolated_scratch_scope": "scratch/autonomous_operations_resume_proof_v1",
+    "autonomous_spend_limit_eur": 0,
+    "allow_external_network": false,
+    "allow_mac_access": false,
+    "allow_universux_access": false,
+    "require_independent_verification": true,
+    "require_saturation_prosecution": true
+  },
+  "acceptance_criteria": [
+    "AC1: Discover and evaluate at least 3 discrete operational workstreams.",
+    "AC2: Enforce zero writer stacking on concurrent and overlapping resources.",
+    "AC3: Resolve worker negotiations across 6 distinct lifecycle responses.",
+    "AC4: Block auto-retry on execution uncertainty and require cryptographic proof for completion.",
+    "AC5: Verify process identity using composite PID + start_time + task_token.",
+    "AC6: Prove restart/resume across all 4 operational boundaries (A, B, C, D).",
+    "AC7: Prove follow-up inbox persistence across process termination.",
+    "AC8: Demonstrate multi-attribute autonomous next-best-work selection without micro-prompting.",
+    "AC9: Require CompletionGovernor to rule on mission satisfaction without worker self-DONE.",
+    "AC10: Maintain 100% hash integrity of RELEASE_CANDIDATE_V1 and Courier regressions."
+  ]
+}

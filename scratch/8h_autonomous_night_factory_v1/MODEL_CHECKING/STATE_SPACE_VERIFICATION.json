@@ -1,0 +1,202 @@
+{
+  "TASK": {
+    "states_count": 17,
+    "reachability": {
+      "allReachable": true,
+      "unreachable": []
+    },
+    "deadlocks": {
+      "hasDeadlocks": false,
+      "deadlocks": []
+    },
+    "liveness": {
+      "canTerminate": true,
+      "trappedStates": []
+    },
+    "forbidden_enforcement": {
+      "safe": true,
+      "violations": []
+    },
+    "verdict": "VERIFIED_SAFE"
+  },
+  "WORKER_LEASE": {
+    "states_count": 5,
+    "reachability": {
+      "allReachable": true,
+      "unreachable": []
+    },
+    "deadlocks": {
+      "hasDeadlocks": false,
+      "deadlocks": []
+    },
+    "liveness": {
+      "canTerminate": true,
+      "trappedStates": []
+    },
+    "forbidden_enforcement": {
+      "safe": true,
+      "violations": []
+    },
+    "verdict": "VERIFIED_SAFE"
+  },
+  "PROCESS_LEASE": {
+    "states_count": 5,
+    "reachability": {
+      "allReachable": true,
+      "unreachable": []
+    },
+    "deadlocks": {
+      "hasDeadlocks": false,
+      "deadlocks": []
+    },
+    "liveness": {
+      "canTerminate": true,
+      "trappedStates": []
+    },
+    "forbidden_enforcement": {
+      "safe": true,
+      "violations": []
+    },
+    "verdict": "VERIFIED_SAFE"
+  },
+  "GOAL": {
+    "states_count": 7,
+    "reachability": {
+      "allReachable": true,
+      "unreachable": []
+    },
+    "deadlocks": {
+      "hasDeadlocks": false,
+      "deadlocks": []
+    },
+    "liveness": {
+      "canTerminate": true,
+      "trappedStates": []
+    },
+    "forbidden_enforcement": {
+      "safe": true,
+      "violations": []
+    },
+    "verdict": "VERIFIED_SAFE"
+  },
+  "APPROVAL_TOKEN": {
+    "states_count": 5,
+    "reachability": {
+      "allReachable": true,
+      "unreachable": []
+    },
+    "deadlocks": {
+      "hasDeadlocks": false,
+      "deadlocks": []
+    },
+    "liveness": {
+      "canTerminate": true,
+      "trappedStates": []
+    },
+    "forbidden_enforcement": {
+      "safe": true,
+      "violations": []
+    },
+    "verdict": "VERIFIED_SAFE"
+  },
+  "RESULT": {
+    "states_count": 6,
+    "reachability": {
+      "allReachable": true,
+      "unreachable": []
+    },
+    "deadlocks": {
+      "hasDeadlocks": false,
+      "deadlocks": []
+    },
+    "liveness": {
+      "canTerminate": true,
+      "trappedStates": []
+    },
+    "forbidden_enforcement": {
+      "safe": true,
+      "violations": []
+    },
+    "verdict": "VERIFIED_SAFE"
+  },
+  "VERIFICATION": {
+    "states_count": 5,
+    "reachability": {
+      "allReachable": true,
+      "unreachable": []
+    },
+    "deadlocks": {
+      "hasDeadlocks": false,
+      "deadlocks": []
+    },
+    "liveness": {
+      "canTerminate": true,
+      "trappedStates": []
+    },
+    "forbidden_enforcement": {
+      "safe": true,
+      "violations": []
+    },
+    "verdict": "VERIFIED_SAFE"
+  },
+  "FOLLOW_UP": {
+    "states_count": 5,
+    "reachability": {
+      "allReachable": true,
+      "unreachable": []
+    },
+    "deadlocks": {
+      "hasDeadlocks": false,
+      "deadlocks": []
+    },
+    "liveness": {
+      "canTerminate": true,
+      "trappedStates": []
+    },
+    "forbidden_enforcement": {
+      "safe": true,
+      "violations": []
+    },
+    "verdict": "VERIFIED_SAFE"
+  },
+  "MIGRATION": {
+    "states_count": 5,
+    "reachability": {
+      "allReachable": true,
+      "unreachable": []
+    },
+    "deadlocks": {
+      "hasDeadlocks": false,
+      "deadlocks": []
+    },
+    "liveness": {
+      "canTerminate": true,
+      "trappedStates": []
+    },
+    "forbidden_enforcement": {
+      "safe": true,
+      "violations": []
+    },
+    "verdict": "VERIFIED_SAFE"
+  },
+  "MISSION": {
+    "states_count": 7,
+    "reachability": {
+      "allReachable": true,
+      "unreachable": []
+    },
+    "deadlocks": {
+      "hasDeadlocks": false,
+      "deadlocks": []
+    },
+    "liveness": {
+      "canTerminate": true,
+      "trappedStates": []
+    },
+    "forbidden_enforcement": {
+      "safe": true,
+      "violations": []
+    },
+    "verdict": "VERIFIED_SAFE"
+  }
+}

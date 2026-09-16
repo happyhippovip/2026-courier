@@ -1,0 +1,19 @@
+{
+  "defect_id": "CE_A01_01",
+  "name": "Indirect Fallback Worker Uncertainty Redispatch",
+  "vulnerability_description": "When primary worker crashes mid-flight without confirming effect, a naive supervisor spawns a fallback worker with a new task_id. Without logical_work_id binding in the Dispatcher Uncertainty Fence, the fallback executes identical mutations, leading to catastrophic duplicate transactions.",
+  "minimal_trigger": {
+    "primary_task": {
+      "task_id": "task_001",
+      "logical_work_id": "work_pay_1",
+      "status": "EXECUTION_UNCERTAIN"
+    },
+    "fallback_task": {
+      "task_id": "task_002_fallback",
+      "logical_work_id": "work_pay_1",
+      "trigger": "FALLBACK"
+    }
+  },
+  "invariant_violated": "Execution-uncertainty fence must dominate ALL retry, fallback, replan, and reroute paths across 14 trigger families.",
+  "resolution_proven": "DispatcherUncertaintyFence tracks both task_id and logical_work_id, blocking fallback workers with FatalExecutionUncertaintyBlocked."
+}

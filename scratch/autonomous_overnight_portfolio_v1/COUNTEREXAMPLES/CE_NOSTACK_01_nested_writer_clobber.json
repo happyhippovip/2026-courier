@@ -1,0 +1,9 @@
+{
+  "counterexample_id": "CE-NOSTACK-01",
+  "title": "Nested Writer Dispatch Causes In-Flight Worktree Clobbering",
+  "scenario": "A worker optimizing a database query spawns a sub-agent to update the database schema concurrently while the original query optimization task is still executing.",
+  "vulnerability_without_inbox": "Nested tasks spawn directly as concurrent writers, destroying working tree state and corrupting local databases.",
+  "remedy_implemented": "FollowUpInbox routes all emergent mutative tasks into a durable inbox for deferred execution after primary lease release.",
+  "reproduced": true,
+  "minimized": true
+}

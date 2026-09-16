@@ -1,0 +1,41 @@
+{
+  "mission_id": "MISSION-1789030435546",
+  "goal_id": "GOAL-1789030435546",
+  "goal_text": "Inspect the allowed fixture workspace for operational inconsistencies, autonomously determine and execute the highest-value safe local work, independently verify results, preserve unresolved follow-ups durably, and continue until the Completion Governor determines the bounded goal is satisfied or blocked.",
+  "created_at": "2026-09-10T08:53:55.546Z",
+  "status": "SATISFIED",
+  "allowed_root": "C:\\Users\\lol\\2026-workspace\\courier\\scratch\\minimal_production_runtime_v1\\disposable_fixture",
+  "task_queue": [],
+  "task_history": [
+    {
+      "task_id": "TASK-AUTO-001-RESOLVE",
+      "status": "VERIFIED",
+      "completed_at": "2026-09-10T08:53:55.568Z",
+      "artifacts": [
+        "C:\\Users\\lol\\2026-workspace\\courier\\scratch\\minimal_production_runtime_v1\\disposable_fixture\\evidence\\evidence_TASK-AUTO-001-RESOLVE.json"
+      ]
+    },
+    {
+      "task_id": "TASK-AUTO-002-REPAIR",
+      "status": "VERIFIED",
+      "completed_at": "2026-09-10T08:53:55.686Z",
+      "artifacts": [
+        "C:\\Users\\lol\\2026-workspace\\courier\\scratch\\minimal_production_runtime_v1\\disposable_fixture\\evidence\\evidence_TASK-AUTO-002-REPAIR.json"
+      ]
+    },
+    {
+      "task_id": "TASK-AUTO-003-VERIFY",
+      "status": "VERIFIED",
+      "completed_at": "2026-09-10T08:53:55.707Z",
+      "artifacts": [
+        "C:\\Users\\lol\\2026-workspace\\courier\\scratch\\minimal_production_runtime_v1\\disposable_fixture\\evidence\\evidence_TASK-AUTO-003-VERIFY.json"
+      ]
+    }
+  ],
+  "open_followups": [],
+  "resume_count": 0,
+  "updated_at": "2026-09-10T08:53:55.708Z",
+  "state_version": 8,
+  "current_task": null,
+  "current_lease_id": null
+}

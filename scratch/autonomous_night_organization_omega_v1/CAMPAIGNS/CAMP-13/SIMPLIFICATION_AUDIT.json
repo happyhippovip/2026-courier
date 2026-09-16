@@ -1,0 +1,20 @@
+[
+  {
+    "domain": "EXECUTION_DISPATCH",
+    "bloated_design": "Dispatcher checks, Reconciler checks, Supervisor checks, Worker pre-check, Worker post-check (5 points)",
+    "authoritative_choke_point": "DispatcherUncertaintyFence dominating all dispatch paths at dispatch boundary (1 single choke point)",
+    "reduction": "Eliminated 4 redundant checks; unified in centralized fence."
+  },
+  {
+    "domain": "WRITER_CONCURRENCY",
+    "bloated_design": "Filesystem lock + Process lock + Table lock + Queue lock maintained separately without hierarchy",
+    "authoritative_choke_point": "SemanticResourceManager with canonical URI prefix tree and shared/exclusive lock modes (1 unified manager)",
+    "reduction": "Unified path and semantic resources under single canonical prefix manager."
+  },
+  {
+    "domain": "FINANCIAL_SAFETY",
+    "bloated_design": "Amount check in UI, amount check in planner, spend check in router, card verification in worker",
+    "authoritative_choke_point": "NarrowCapabilityGovernor with single-use cryptographic tokens (1 gate at boundary)",
+    "reduction": "Replaced multi-stage natural language checks with single cryptographic capability gate."
+  }
+]

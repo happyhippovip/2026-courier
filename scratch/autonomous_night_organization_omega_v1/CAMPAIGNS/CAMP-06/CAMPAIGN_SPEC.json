@@ -1,0 +1,24 @@
+{
+  "campaign_id": "CAMP-06-BORDER-GUARD-TOCTOU",
+  "parent_frontier_item": "FRONTIER-C01-TOCTOU",
+  "goal": "Prove minimal task passport schema and eliminate TOCTOU races between task approval and worker dispatch via atomic CAS version checks.",
+  "hypothesis": "Stripping non-essential cryptographic fields while enforcing atomic Compare-And-Swap on task_version during dispatch guarantees scope integrity and prevents TOCTOU drift without adding orchestration complexity.",
+  "why_now": "Addresses Vector 5 discovered in Campaign 01 archaeology.",
+  "production_relation": "Hardens chief/coordinator.py and control_plane.py.",
+  "expected_information_gain": "HIGH",
+  "expected_cost": "0.00 EUR",
+  "risk": "NONE_ISOLATED_SHADOW",
+  "scope": "Passport schema minimality audit, atomic CAS dispatch engine, TOCTOU concurrent mutation attacks",
+  "write_scope": "scratch/autonomous_night_organization_omega_v1/CAMPAIGNS/CAMP-06/",
+  "dependencies": [
+    "CAMP-01-FALSIFY-SATURATION"
+  ],
+  "acceptance_criteria": "Minimal passport identified; TOCTOU concurrent version bump reliably aborts dispatch.",
+  "falsification_criteria": "Dispatch succeeds when task_version was mutated post-approval.",
+  "evidence_required": "Minimality audit report and TOCTOU concurrency race test results.",
+  "oracle": "Atomic CAS dispatch verifier",
+  "mutation_strategy": "Remove CAS version equality check; accept stale approval passport",
+  "stop_condition": "Minimality audit and TOCTOU attack scenarios completed",
+  "status": "CLOSED_SUPPORTED",
+  "completed_at": "2026-09-09T23:39:41.037Z"
+}

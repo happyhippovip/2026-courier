@@ -1,0 +1,255 @@
+{
+  "freeze_id": "FREEZE_WINDOWS_SYMPHONY_RC_V1",
+  "timestamp_utc": "2026-09-10T06:29:55.552Z",
+  "target_repo": "C:\\Users\\lol\\2026-workspace\\courier",
+  "git": {
+    "branch": "windows/money-factory-p0",
+    "head": "aa5c01d21c7e055c7e3b5117ded5eddc6793dde4",
+    "is_clean": false,
+    "status_summary": {
+      "modified_count": 7,
+      "untracked_count": 38
+    },
+    "modified_files": [
+      "money_factory/anti_loop_policy.js",
+      "money_factory/index.js",
+      "money_factory/portfolios.js",
+      "money_factory/prediction_calibration.js",
+      "money_factory/safety_gates.js",
+      "money_factory/warehouse.js",
+      "opportunity_warehouse/opportunities.json"
+    ],
+    "untracked_files": [
+      "AUTHORITATIVE_RUNTIME_GRAPH.json",
+      "BRANCH_TRANSITION_PLAN.md",
+      "BYPASS_ATTACK_REPORT.json",
+      "BYPASS_PATH_REPORT.json",
+      "COMPLETION_SEMANTICS_PROOF.json",
+      "DAILY_IMPROVEMENT_CONTRACT.md",
+      "FILES_CHANGED.json",
+      "MANDATORY_SCENARIOS_REPORT.json",
+      "MODULE_REACHABILITY.json",
+      "MONEY_FACTORY_WINDOWS_HANDOFF.md",
+      "NEXT_CANARY_PLAN.md",
+      "POST_CANARY_FIRST_EUR5_MISSION.md",
+      "PRODUCTION_INTEGRATION_EVIDENCE.json",
+      "PRODUCTION_INTEGRATION_REPORT.md",
+      "REAL_PATH_TRACE.jsonl",
+      "ROLLBACK_VERIFICATION.json",
+      "SAFETY_VERIFICATION.json",
+      "SUPERVISOR_PLANE_ARCHITECTURE.md",
+      "TEST_RESULTS.json",
+      "WINDOWS_RESUME_CHECKPOINT.md",
+      "chief/",
+      "fixtures/",
+      "governance/",
+      "money_factory/cheapest_test.js",
+      "money_factory/evidence_ledger.js",
+      "money_factory/first_5_euro_simulator.js",
+      "money_factory/supervisor_compat.js",
+      "opportunity_warehouse/evidence/",
+      "opportunity_warehouse/research/",
+      "runtime/",
+      "scratch/",
+      "scratch_test_leases_1/",
+      "scratch_test_leases_3/",
+      "supervisor/",
+      "tests/rc3_hardening/",
+      "tests/test_mandatory_scenarios_suite.js",
+      "tests/test_money_factory_closure.js",
+      "tests/test_supervisor_plane_p0.js"
+    ]
+  },
+  "key_evidence_hashes": {
+    "REAL_PATH_TRACE": {
+      "path": "REAL_PATH_TRACE.jsonl",
+      "sha256": "7e8a824b7acfc42365d22550c3f5ed7ba598fca188af17f34adbe9ed9d4519d6"
+    },
+    "BYPASS_ATTACK_REPORT": {
+      "path": "BYPASS_ATTACK_REPORT.json",
+      "sha256": "bf952c3d7d42d5174b282490d7ece413558a3f6972253648f1b2bc6699bc0b04"
+    },
+    "COMPLETION_SEMANTICS_PROOF": {
+      "path": "COMPLETION_SEMANTICS_PROOF.json",
+      "sha256": "b0e0a78e68c45014c7dd32f0bdfb89e6d1ae9d188e8473dc9178c32daee21bf3"
+    },
+    "TEST_RESULTS": {
+      "path": "TEST_RESULTS.json",
+      "sha256": "df8f5b769934a59f16a036ebb9a87bca5def7b5d4cfd89d55dcce26fefdaaf9c"
+    },
+    "AUTHORITATIVE_RUNTIME_GRAPH": {
+      "path": "AUTHORITATIVE_RUNTIME_GRAPH.json",
+      "sha256": "e6d99c603faccfcceea8992c0a7d5f5c04bdf393b85ad549224afd9ba8d29cbe"
+    },
+    "DAILY_IMPROVEMENT_CONTRACT": {
+      "path": "DAILY_IMPROVEMENT_CONTRACT.md",
+      "sha256": "f55f8fc7d2cc6072e9ec2cd746c2f4dded77f8c86dd27898a6d2b3ad696080f5"
+    },
+    "BRANCH_TRANSITION_PLAN": {
+      "path": "BRANCH_TRANSITION_PLAN.md",
+      "sha256": "2a51f204e62a53d9fb5b20e7b40fda47a077d61e9e507476ed210f2de24e9912"
+    },
+    "POST_CANARY_FIRST_EUR5_MISSION": {
+      "path": "POST_CANARY_FIRST_EUR5_MISSION.md",
+      "sha256": "eb2947de81ac08366626da9ba8e96c6020907e77328caeddf98ab73d93cbb07d"
+    }
+  },
+  "integration_file_hashes": {
+    "governance/BorderGuard.js": {
+      "sha256": "87968421efad74a8c877bed902ad091500e4e8f99eaec873f96b467a9750bae1",
+      "size": 2154
+    },
+    "governance/CapabilityEngine.js": {
+      "sha256": "c39c46cfd26625b7531b729c7473b73a3e630c8431f07289656629022b868ec5",
+      "size": 1325
+    },
+    "governance/CompletionGovernor.js": {
+      "sha256": "00b9c8fe7a2b6441f855fd5422bc74142871a4bae6405044382020d7f8a0c45f",
+      "size": 2550
+    },
+    "governance/ResourceLockManager.js": {
+      "sha256": "2a22fb024c321a4aab963527f90f220edf9797382f385e716183f82a94b724e8",
+      "size": 1907
+    },
+    "governance/ResultCustoms.js": {
+      "sha256": "8f3306f96f13b1048d63af571e80e88726d90fcafc320bc9c7f4419b14258783",
+      "size": 1502
+    },
+    "governance/TaskPassport.js": {
+      "sha256": "378fec6d346b8673061d9426add4a42a9dc7ca1bccf889b547d19e66e677ae15",
+      "size": 1421
+    },
+    "supervisor/audit_ledger.js": {
+      "sha256": "d848c138266c32cf1d51a968a746094af6ea75e74a10afcdd1f9238402689784",
+      "size": 3080
+    },
+    "supervisor/chief_envelope.js": {
+      "sha256": "0d97c3254ef413c8fb155b517bb81aaa9baa1158849eced74fa29823a9c3bdce",
+      "size": 1701
+    },
+    "supervisor/decision_engine.js": {
+      "sha256": "e9986e65da558bfc83c010e6fa6df7465ca368b673127fb2a73a6382a6d02119",
+      "size": 4344
+    },
+    "supervisor/diagnostic_bundle.js": {
+      "sha256": "0237147d3bb5ca03a80cb7fb9235ec488812f01136c9d635d522d10f8ff79f8b",
+      "size": 3888
+    },
+    "supervisor/index.js": {
+      "sha256": "d95f3ab1c556060f78088113dbdded09362587a8b1eb5011f5ee285870b5bc19",
+      "size": 4100
+    },
+    "supervisor/lease_manager.js": {
+      "sha256": "be00e5333d59c6d86e0a6a8d46bc66c01666ca62a2775e1534d8ae475aaf4647",
+      "size": 10136
+    },
+    "supervisor/no_stacking.js": {
+      "sha256": "be956d4870814604fbc91dfc4df663359355391c9469c71bc5b08b1dd765e8e3",
+      "size": 3779
+    },
+    "supervisor/progress_tracker.js": {
+      "sha256": "a7a2d21dea62a970117bee45158ac8e5e8bb6710bce73fd3aaf0dd6b7894b30c",
+      "size": 6116
+    },
+    "supervisor/reconciliation.js": {
+      "sha256": "6f65fdf1958ad956b58df6be05430aa0ebfca442db033359a0779953bfa245af",
+      "size": 5880
+    },
+    "supervisor/resource_governor.js": {
+      "sha256": "628a80ff1a770ea87c8b86df17e166c4d7c3060b2ba334bdbd76ed9c5ea2c938",
+      "size": 5883
+    },
+    "supervisor/screenshot_spec.js": {
+      "sha256": "c67e08d75a3f35d401d7af66a2a3c5a73b6846d0a73802bd457685f176d7b971",
+      "size": 3450
+    },
+    "supervisor/stall_policy.js": {
+      "sha256": "70dd2334d86364a8bfdb2e56013f2ef5aceaf569ec149517b94cf7d49bbbb5e8",
+      "size": 7222
+    },
+    "supervisor/task_hygiene.js": {
+      "sha256": "2a97867b762b3499e35c57ca32d0f7d8a45d7d2e4c40a5a69f6830bdd2ed6970",
+      "size": 3711
+    },
+    "supervisor/types.js": {
+      "sha256": "4efb9f42ca216b75d9097ac871fee5b572cda6dc58068d73dab6b6239155f0d1",
+      "size": 2677
+    },
+    "tests/rc3_hardening/test_border_guard.js": {
+      "sha256": "fc8e535c3e477803276d09226b9ede5e9ec687df86cbf18f260a8a5fe53718bd",
+      "size": 8516
+    },
+    "tests/rc3_hardening/test_crash_restart_chaos.js": {
+      "sha256": "91d29251095339cc31f755d0c36cc73f5ea3fa3405860add8555aa03e4f754e1",
+      "size": 17397
+    },
+    "tests/rc3_hardening/test_deterministic_soak.js": {
+      "sha256": "88b982a9b17a5ac728983f974c4037b6d83934f1b84fd98568588825328dfb8c",
+      "size": 19263
+    },
+    "tests/rc3_hardening/test_event_ledger_invariants.js": {
+      "sha256": "1eeab9c74c12998bdda257097348a18250c4c27661e1daaec2af0ebe02ef5ca4",
+      "size": 15802
+    },
+    "tests/rc3_hardening/test_follow_up_inbox.js": {
+      "sha256": "808167b3a4fdc381f9d96930ba12c92ee95fb0b26956674c737296b709ff2f9e",
+      "size": 7334
+    },
+    "tests/rc3_hardening/test_money_factory_adversarial.js": {
+      "sha256": "e63bb3bb788b845eacc36a5a026f3d8f5ebabe43d9587413bd3d35dea19c56f1",
+      "size": 15814
+    },
+    "tests/rc3_hardening/test_rc3_adversarial_validation.js": {
+      "sha256": "9f7129967ab74b438ae98941b30546012e7625f885a61c8f939ee6f4a4aa9480",
+      "size": 20944
+    },
+    "tests/rc3_hardening/test_resource_governor_adversarial.js": {
+      "sha256": "4a897e80965c6727e11cb0c1ffdaee3cd2f920e562b1ba827b872222cd9db4d1",
+      "size": 12349
+    },
+    "tests/rc3_hardening/test_result_customs.js": {
+      "sha256": "9f6333a1b3a91ff8d004c6b10ae2cf4079914aa529a0843f01aba83d24227256",
+      "size": 9647
+    },
+    "tests/rc3_hardening/test_supervisor_adversarial.js": {
+      "sha256": "fae5254715c164e70967dc48bb0970d978eb3f64a6dac04a42fdc8e48caae8c3",
+      "size": 20243
+    },
+    "tests/rc3_hardening/test_task_stamp_contracts.js": {
+      "sha256": "9cb5a4f03cf618f815ba7bfab0d8e1c8a6220d3a2c6e65ecba7d73a6642ba259",
+      "size": 10050
+    },
+    "tests/test_cross_device_intake.js": {
+      "sha256": "af128b43c07d4ce12505edac902358b3254aac60c80f09ad4edd2bce60508d57",
+      "size": 3289
+    },
+    "tests/test_cross_device_intake.py": {
+      "sha256": "520d2ffccf4b64598ccda4f781ec7598567e643d391ea0ed4c419a90a9965c84",
+      "size": 9876
+    },
+    "tests/test_mandatory_scenarios_suite.js": {
+      "sha256": "39643389792c3aeddf646e163efe609e7f5cc1bd4127401e09b99246df66e192",
+      "size": 10751
+    },
+    "tests/test_money_factory_closure.js": {
+      "sha256": "0c0e988c38091c46c6a61a2d3f3502b77a3d7c234e7d49d5ca15b8816f70ff4b",
+      "size": 21090
+    },
+    "tests/test_money_factory_p0.js": {
+      "sha256": "cf3fb327908997c24702d6b19f7f5ef27f2f7dcea2fd7870e90bcf3672a29024",
+      "size": 20669
+    },
+    "tests/test_supervisor_plane_p0.js": {
+      "sha256": "9362a30c79bdb34262f0b72377282913639a366dc57d18ba6cbad6cd792bc06c",
+      "size": 23152
+    },
+    "tests/__pycache__/test_cross_device_intake.cpython-312.pyc": {
+      "sha256": "5e4174ae1241a81c324ad3556941c05c34c43293129aa0f6453baf13a821fdc7",
+      "size": 16060
+    },
+    "fixtures/immutable_proof_fixture.txt": {
+      "sha256": "69e974d103cc8ca88bba36eb2f526f10fed777cc6fe85bf915af5aa84b218179",
+      "size": 70
+    }
+  }
+}

@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Attack 1: Self-reported satisfaction without verifier",
+    "passed": true,
+    "detail": {
+      "satisfied": false,
+      "reason": "SELF_REPORTED_SATISFACTION_REJECTED_WITHOUT_INDEPENDENT_VERIFIER"
+    }
+  },
+  {
+    "name": "Attack 2: Verification on stale commit",
+    "passed": true,
+    "detail": {
+      "satisfied": false,
+      "reason": "VERIFICATION_EXECUTED_ON_STALE_WORKSPACE"
+    }
+  },
+  {
+    "name": "Attack 3: Satisfaction claimed while P0 blocker exists",
+    "passed": true,
+    "detail": {
+      "satisfied": false,
+      "reason": "CANNOT_SATISFY_GOAL_WITH_UNRESOLVED_P0_BLOCKERS"
+    }
+  },
+  {
+    "name": "Attack 4: Simulated revenue passed as real",
+    "passed": true,
+    "detail": {
+      "satisfied": false,
+      "reason": "SIMULATED_REVENUE_MASQUERADING_AS_REAL_SETTLEMENT"
+    }
+  },
+  {
+    "name": "Legitimate Goal Satisfaction Clearance",
+    "passed": true,
+    "detail": {
+      "satisfied": true,
+      "reason": "GOAL_SATISFACTION_INDEPENDENTLY_PROVED"
+    }
+  }
+]

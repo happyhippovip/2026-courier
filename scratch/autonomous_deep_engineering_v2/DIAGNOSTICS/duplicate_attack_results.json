@@ -1,0 +1,95 @@
+{
+  "stats": {
+    "campaign_id": "CAMPAIGN_006",
+    "duplicate_effect_attempts": 14,
+    "duplicate_effects_prevented": 14,
+    "duplicate_effects_escaped": 0,
+    "all_attacks_prevented": true
+  },
+  "attack_results": [
+    {
+      "vector": "VEC_01_RETRY_AFTER_UNPROVEN_OUTCOME",
+      "blocked": true,
+      "action": "BLOCK_EXECUTION_UNCERTAIN",
+      "reason": "Prior execution is in uncertain state. Blind retry/fallback strictly blocked."
+    },
+    {
+      "vector": "VEC_02_FALLBACK_ON_UNCERTAIN_EFFECT",
+      "blocked": true,
+      "action": "BLOCK_EXECUTION_UNCERTAIN",
+      "reason": "Prior execution is in uncertain state. Blind retry/fallback strictly blocked."
+    },
+    {
+      "vector": "VEC_03_RESTART_INTERRUPTION_OF_COMPLETED",
+      "blocked": true,
+      "action": "BLOCK_DUPLICATE_ALREADY_COMPLETED",
+      "reason": "Logical work 'WORK-ITEM-ALPHA' is already terminal. Duplicate effect prevented."
+    },
+    {
+      "vector": "VEC_04_STALE_QUEUE_ITEM_COMPLETED_TASK",
+      "blocked": true,
+      "action": "BLOCK_DUPLICATE_ALREADY_COMPLETED",
+      "reason": "Logical work 'WORK-ITEM-ALPHA' is already terminal. Duplicate effect prevented."
+    },
+    {
+      "vector": "VEC_05_DUPLICATE_QUEUE_ITEM_CONCURRENT",
+      "blocked": true,
+      "action": "HOLD_SCOPE_COLLISION",
+      "reason": "Scope 'src/core/router.js' is currently locked by active task 'TASK-IN-FLIGHT-001'. Second writer placed on HOLD."
+    },
+    {
+      "vector": "VEC_06_LEASE_EXPIRY_COLLISION",
+      "blocked": true,
+      "action": "HOLD_SCOPE_COLLISION",
+      "reason": "Scope 'src/core/router.js' is currently locked by active task 'TASK-IN-FLIGHT-001'. Second writer placed on HOLD."
+    },
+    {
+      "vector": "VEC_07_WORKER_RECONNECT_ON_COMPLETED",
+      "blocked": true,
+      "action": "BLOCK_DUPLICATE_ALREADY_COMPLETED",
+      "reason": "Logical work 'WORK-ITEM-ALPHA' is already terminal. Duplicate effect prevented."
+    },
+    {
+      "vector": "VEC_08_RESULT_DELAY_CONCURRENT_DISPATCH",
+      "blocked": true,
+      "action": "HOLD_SCOPE_COLLISION",
+      "reason": "Scope 'src/core/router.js' is currently locked by active task 'TASK-IN-FLIGHT-001'. Second writer placed on HOLD."
+    },
+    {
+      "vector": "VEC_09_VERIFICATION_DELAY_CONCURRENT_DISPATCH",
+      "blocked": true,
+      "action": "HOLD_SCOPE_COLLISION",
+      "reason": "Scope 'src/core/router.js' is currently locked by active task 'TASK-IN-FLIGHT-001'. Second writer placed on HOLD."
+    },
+    {
+      "vector": "VEC_10_MANUAL_WEITER_REPLAY_ON_COMPLETED",
+      "blocked": true,
+      "action": "BLOCK_DUPLICATE_ALREADY_COMPLETED",
+      "reason": "Logical work 'WORK-ITEM-ALPHA' is already terminal. Duplicate effect prevented."
+    },
+    {
+      "vector": "VEC_11_CHECKPOINT_REPLAY_STALE_SEQ",
+      "blocked": true,
+      "action": "BLOCK_STALE_CHECKPOINT_REPLAY",
+      "reason": "Checkpoint sequence 1 is stale (latest known: 5). Replay rejected."
+    },
+    {
+      "vector": "VEC_12_PROCESS_PID_REUSE_UNCERTAIN_STATE",
+      "blocked": true,
+      "action": "BLOCK_EXECUTION_UNCERTAIN",
+      "reason": "Prior execution is in uncertain state. Blind retry/fallback strictly blocked."
+    },
+    {
+      "vector": "VEC_13_OLD_ACK_REPLAY",
+      "blocked": true,
+      "action": "BLOCK_DUPLICATE_ACK",
+      "reason": "ACK 'ACK-ALREADY-SEEN' has already been processed. Replay rejected."
+    },
+    {
+      "vector": "VEC_14_DUPLICATE_ACK_SAME_SESSION",
+      "blocked": true,
+      "action": "BLOCK_DUPLICATE_ACK",
+      "reason": "ACK 'ACK-DUPLICATE-SESSION' has already been processed. Replay rejected."
+    }
+  ]
+}

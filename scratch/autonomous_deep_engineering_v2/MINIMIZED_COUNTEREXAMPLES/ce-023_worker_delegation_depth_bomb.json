@@ -1,0 +1,6 @@
+{
+  "id": "CE-023",
+  "defect_class": "WORKER_DELEGATION_DEPTH_BOMB",
+  "description": "Worker recursively delegating subtasks to evade execution timeout or inflate queue depth.",
+  "proven_invariant": "Delegation depth strictly capped at depth 5 fail-closed."
+}

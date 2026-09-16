@@ -1,0 +1,23 @@
+{
+  "package_id": "PKG-W01-AST-WEAKENING",
+  "title": "AST & Structural Test-Weakening Detector",
+  "problem": "Autonomous agents can \"resolve\" failing tasks by deleting tests, adding skips, or removing assertions.",
+  "evidence": "Verified in WS8 (EXP-WS8-WEAKEN-001).",
+  "current_source_location": "chief/validator.py, supervisor/audit_ledger.js",
+  "proposed_change_boundary": "Run AST/regex diff before merging code changes; reject any commit that reduces test or assertion count.",
+  "files_likely_affected": [
+    "chief/validator.py",
+    "supervisor/audit_ledger.js"
+  ],
+  "migration_impact": "None.",
+  "rollback": "Bypass detector with explicit human authorization flag.",
+  "targeted_tests": [
+    "test_weakening_detector.js"
+  ],
+  "independent_verifier": "Git pre-merge structural diff hook.",
+  "known_risks": "Legitimate test refactorings that consolidate multiple assertions into helper functions may be flagged.",
+  "mac_dependency": false,
+  "human_gate_dependency": false,
+  "recommended_integration_order": 6,
+  "stop_condition": "Merging of any PR with reduced test count or suppressed assertions."
+}

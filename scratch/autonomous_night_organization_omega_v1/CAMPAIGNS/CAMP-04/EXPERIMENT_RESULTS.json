@@ -1,0 +1,8 @@
+{
+  "experiment_id": "EXP-CAMP-04-001",
+  "campaign_id": "CAMP-04",
+  "timestamp": "2026-09-09T23:39:13.168Z",
+  "prompt_override_immunity_verified": true,
+  "token_attacks_blocked": true,
+  "verdict": "CAPABILITY_LATTICE_PROVED"
+}

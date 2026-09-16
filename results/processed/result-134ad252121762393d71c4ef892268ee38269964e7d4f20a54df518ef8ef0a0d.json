@@ -1,0 +1,16 @@
+{
+  "artifacts": [
+    {
+      "path": "courier_canary_WF-CHIEF-c076f4-STEP-3-SYNTHESIZE.txt",
+      "sha256": "421a244564c34296e185cdcf70d2269227ae102f2e7eeef94afddd495c4e06c2"
+    }
+  ],
+  "attempt_id": "WF-CHIEF-c076f4-STEP-3-SYNTHESIZE:attempt:1",
+  "dispatch_id": "dispatch-52e60983714b4723b439f7292e567db7",
+  "goal_id": "goal_test5",
+  "result_id": "result-134ad252121762393d71c4ef892268ee38269964e7d4f20a54df518ef8ef0a0d",
+  "run_id": "16084",
+  "status": "SUCCESS",
+  "task_id": "WF-CHIEF-c076f4-STEP-3-SYNTHESIZE",
+  "worker_id": "WINDOWS-01"
+}

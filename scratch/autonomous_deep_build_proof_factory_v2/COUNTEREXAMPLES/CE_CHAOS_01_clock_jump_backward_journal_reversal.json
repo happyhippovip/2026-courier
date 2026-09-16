@@ -1,0 +1,14 @@
+{
+  "counterexample_id": "CE_CHAOS_01_clock_jump_backward_journal_reversal",
+  "date": "2026-09-09T21:52:16.506Z",
+  "category": "CLOCK_JUMP_NON_MONOTONIC_JOURNAL",
+  "vulnerability": "NTP sync stepped system clock backward by 30 minutes, causing new journal entries to receive timestamps earlier than existing entries, breaking time-ordered queries",
+  "unprotected_behavior": "Journal stamped Date.now() directly into records without monotonic clamp",
+  "repaired_behavior": "DurableJournal enforces Math.max(lastMonotonicTime + 1, Date.now()) preserving strict temporal monotonicity",
+  "minimal_failing_case": {
+    "entry_1_time": 1700000000000,
+    "ntp_jump_ms": -1800000,
+    "raw_date_now": 1699998200000,
+    "clamped_monotonic_time": 1700000000001
+  }
+}

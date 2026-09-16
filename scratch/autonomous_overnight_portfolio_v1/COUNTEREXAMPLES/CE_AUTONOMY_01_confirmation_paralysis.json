@@ -1,0 +1,9 @@
+{
+  "counterexample_id": "CE-AUTONOMY-01",
+  "title": "Confirmation Paralysis Stalls Overnight Mission",
+  "scenario": "Agent encounters a normal refactor decision, emits \"Should I proceed with renaming function X?\", and blocks on stdin for 7 hours while user is asleep.",
+  "vulnerability_without_ace": "Naive interactive prompts block unattended overnight runs, collapsing 8 hours of productive capacity to 5 minutes.",
+  "remedy_implemented": "AutonomousContinuityEngine eliminates avoidable confirmations, reserving interruptions strictly for REAL_HUMAN_GATES.",
+  "reproduced": true,
+  "minimized": true
+}

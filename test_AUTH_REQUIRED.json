@@ -1,0 +1,1 @@
+{"status": "AUTH_REQUIRED", "worker_id": "WINDOWS-01", "task_id": "task-AUTH_REQUIRED", "stdout": "", "stderr": "Test AUTH_REQUIRED stderr", "reason": "Test AUTH_REQUIRED reason", "raw_diagnostic": "Diagnostic info"}

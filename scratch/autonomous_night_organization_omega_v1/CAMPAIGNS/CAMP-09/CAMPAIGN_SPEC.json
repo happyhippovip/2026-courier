@@ -1,0 +1,20 @@
+{
+  "campaign_id": "CAMP-09-GOAL-SATISFACTION-AND-DRIFT-DETECTOR",
+  "parent_frontier_item": "FRONTIER-GOAL-EVIDENCE",
+  "goal": "Implement Goal Satisfaction Evidence Graph mapping criteria to verified artifacts, and enforce Campaign Drift Detector against North Star deviation.",
+  "hypothesis": "Graph-based acceptance criteria verification eliminates unverified goal completion claims, and lexical-semantic drift checking filters out irrelevant autonomous backlog drift.",
+  "why_now": "Addresses Section 50-55 requirements for autonomous goal governance.",
+  "production_relation": "Hardens chief/coordinator.py and money_factory/warehouse.js.",
+  "expected_information_gain": "HIGH",
+  "expected_cost": "0.00 EUR",
+  "risk": "NONE_ISOLATED_SHADOW",
+  "scope": "Evidence graph verification, goal evolution artifact preservation, drift detector scoring",
+  "write_scope": "scratch/autonomous_night_organization_omega_v1/CAMPAIGNS/CAMP-09/",
+  "dependencies": [
+    "CAMP-08-ADVANCED-TEST-WEAKENING-PRECISION"
+  ],
+  "acceptance_criteria": "All criteria mapped to valid artifacts; drift detector rejects off-mission tasks; goal evolution preserves valid prior work.",
+  "falsification_criteria": "Goal satisfied with missing criterion artifact, or off-mission task cleared.",
+  "status": "CLOSED_SUPPORTED",
+  "completed_at": "2026-09-09T23:40:13.561Z"
+}

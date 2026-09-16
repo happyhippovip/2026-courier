@@ -1,0 +1,14 @@
+{
+  "counterexample_id": "CE_GOAL_01_self_satisfaction_premature_close",
+  "date": "2026-09-09T21:49:57.763Z",
+  "category": "PREMATURE_GOAL_SELF_SATISFACTION",
+  "vulnerability": "A worker completing sub-task 1 of 3 wrote status: SATISFIED directly to parent goal, prematurely halting execution of remaining 2 tasks",
+  "unprotected_behavior": "Legacy supervisor allowed tasks to write state directly to parent goal without independent verifier barrier",
+  "repaired_behavior": "GoalSatisfactionEngine delegates satisfaction verdicts exclusively to GoalVerifier; tasks can only report task-level status",
+  "minimal_failing_case": {
+    "total_tasks": 3,
+    "tasks_completed": 1,
+    "attempted_goal_status": "SATISFIED",
+    "actual_repaired_status": "PARTIALLY_SATISFIED"
+  }
+}

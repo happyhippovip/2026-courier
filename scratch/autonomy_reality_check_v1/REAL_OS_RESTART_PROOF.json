@@ -1,0 +1,6 @@
+{
+  "timestamp": "2026-09-10T07:21:52.172Z",
+  "verdict": "ACTUAL_OS_RESTART_UNTESTABLE_WITHOUT_ENTRYPOINT",
+  "finding": "ProcessLeaseManager and RestartReconciler correctly implement lease fencing and audit replay in unit tests, but there is no production daemon process to terminate and restart.",
+  "kernel_readiness": "The kernel modules are crash-reconciliation ready, but have no daemon wrapper."
+}

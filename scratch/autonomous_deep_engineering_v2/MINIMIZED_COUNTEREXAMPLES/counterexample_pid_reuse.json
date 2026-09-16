@@ -1,0 +1,7 @@
+{
+  "id": "CE-011",
+  "defect_class": "PID_ONLY_PROCESS_OWNERSHIP_MISIDENTIFICATION",
+  "description": "When process ownership is tracked purely by PID, OS PID recycling causes the orchestrator to misidentify an unrelated system process (e.g. chrome.exe) as its worker, risking accidental process termination or false progress claims.",
+  "flawed_pid_only_result": "Innocent process killed or assumed healthy",
+  "hardened_multi_factor_result": "ERR_PID_RECYCLED and ERR_PROCESS_COMMAND_MISMATCH detect recycling 100% fail-closed."
+}

@@ -1,0 +1,10 @@
+{
+  "id": "CE-03-hierarchical-scope-stacking",
+  "attackFamily": "L",
+  "testPair": {
+    "scopeA": "src/",
+    "scopeB": "src/core/auth/"
+  },
+  "naiveResult": "NO_CONFLICT (Dual writers dispatched)",
+  "hardenedResult": "CONFLICT_DETECTED (Hierarchical prefix containment enforced)"
+}

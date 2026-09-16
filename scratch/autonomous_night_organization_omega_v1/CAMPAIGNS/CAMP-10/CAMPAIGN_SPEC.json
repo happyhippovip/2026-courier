@@ -1,0 +1,20 @@
+{
+  "campaign_id": "CAMP-10-JOURNAL-CONSISTENCY-AND-TORN-FRAMES",
+  "parent_frontier_item": "FRONTIER-JOURNAL-CONSISTENCY",
+  "goal": "Prove durable journal consistency under simulated mid-record torn writes, framing validation, and compaction crash replay.",
+  "hypothesis": "Framed journal records with length headers and CRC32/SHA-256 checksums allow atomic recovery of valid prefix while cleanly truncating corrupted torn tails without state loss.",
+  "why_now": "Addresses Section 66-78 durable journal consistency requirements.",
+  "production_relation": "Hardens supervisor/audit_ledger.js and reconciliation.js.",
+  "expected_information_gain": "VERY_HIGH",
+  "expected_cost": "0.00 EUR",
+  "risk": "NONE_ISOLATED_SHADOW",
+  "scope": "Framed record serialization, mid-record crash simulation, torn frame truncation, compaction replay",
+  "write_scope": "scratch/autonomous_night_organization_omega_v1/CAMPAIGNS/CAMP-10/",
+  "dependencies": [
+    "CAMP-09-GOAL-SATISFACTION-AND-DRIFT-DETECTOR"
+  ],
+  "acceptance_criteria": "Torn tail cleanly discarded; valid preceding records 100% recovered; compaction checkpoint + tail equivalence verified.",
+  "falsification_criteria": "Corrupted record parsed as valid, or valid records lost on recovery.",
+  "status": "CLOSED_SUPPORTED",
+  "completed_at": "2026-09-09T23:40:13.581Z"
+}

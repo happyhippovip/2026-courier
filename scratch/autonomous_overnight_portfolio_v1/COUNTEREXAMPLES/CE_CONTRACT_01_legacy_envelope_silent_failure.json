@@ -1,0 +1,21 @@
+{
+  "defect_id": "CE_CONTRACT_01",
+  "name": "Legacy RC3 Event Log Ingestion Without Typed Goal Reference",
+  "vulnerability_description": "When replaying historical release RC3 runs through a modernized Courier engine, legacy tasks that lacked formal satisfaction criteria or goal envelopes either cause fatal parser crashes or are silently treated as auto-satisfied without evaluation.",
+  "minimal_trigger_payload": {
+    "legacy_event": {
+      "id": "step_392",
+      "type": "APPLY_PATCH",
+      "target_paths": [
+        "core.js"
+      ]
+    },
+    "missing_fields": [
+      "goal_id",
+      "satisfaction_criteria",
+      "customs_policy"
+    ]
+  },
+  "invariant_violated": "Full backwards compatibility with RC3 without creating false satisfaction escapes",
+  "resolution_proven": "CourierOperatingContracts.ingestLegacyRC3Event wraps legacy events in a formal TaskEnvelope with an explicit goal_legacy_rc3_unspecified reference and default strict customs policy."
+}

@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-09-10T08:53:56.388Z",
+  "active_leases": 0,
+  "active_background_helpers": 0,
+  "autonomous_spend_limit_eur": 0,
+  "real_spend_eur": 0,
+  "real_trades_count": 0,
+  "real_wallets_count": 0,
+  "external_messages_count": 0,
+  "mac_host_touched": false,
+  "universux_touched": false,
+  "git_status_uncommitted": true
+}

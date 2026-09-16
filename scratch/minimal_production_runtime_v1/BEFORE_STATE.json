@@ -1,0 +1,47 @@
+{
+  "mission_id": "WINDOWS_MINIMAL_PRODUCTION_COURIER_RUNTIME_V1",
+  "timestamp": "2026-09-10T08:39:37.875Z",
+  "branch": "windows/money-factory-p0",
+  "git_head": "aa5c01d",
+  "git_status": "M money_factory/anti_loop_policy.js\n M money_factory/index.js\n M money_factory/portfolios.js\n M money_factory/prediction_calibration.js\n M money_factory/safety_gates.js\n M money_factory/warehouse.js\n M opportunity_warehouse/opportunities.json\n?? AUTHORITATIVE_RUNTIME_GRAPH.json\n?? BRANCH_TRANSITION_PLAN.md\n?? BYPASS_ATTACK_REPORT.json\n?? BYPASS_PATH_REPORT.json\n?? COMPLETION_SEMANTICS_PROOF.json\n?? DAILY_IMPROVEMENT_CONTRACT.md\n?? FILES_CHANGED.json\n?? MAC_CONVERGENCE_CHECKLIST.md\n?? MANDATORY_SCENARIOS_REPORT.json\n?? MODULE_REACHABILITY.json\n?? MONEY_FACTORY_WINDOWS_HANDOFF.md\n?? NEXT_CANARY_PLAN.md\n?? POST_CANARY_FIRST_EUR5_MISSION.md\n?? PRODUCTION_INTEGRATION_EVIDENCE.json\n?? PRODUCTION_INTEGRATION_REPORT.md\n?? REAL_PATH_TRACE.jsonl\n?? RELEASE_FILE_MANIFEST.json\n?? ROLLBACK_VERIFICATION.json\n?? SAFETY_VERIFICATION.json\n?? SUPERVISOR_PLANE_ARCHITECTURE.md\n?? SYMPHONY_KERNEL_CONTRACT.json\n?? TEST_RESULTS.json\n?? WINDOWS_RESUME_CHECKPOINT.md\n?? chief/\n?? fixtures/\n?? governance/\n?? money_factory/cheapest_test.js\n?? money_factory/evidence_ledger.js\n?? money_factory/first_5_euro_simulator.js\n?? money_factory/first_eur5_fast_path/\n?? money_factory/supervisor_compat.js\n?? opportunity_warehouse/evidence/\n?? opportunity_warehouse/research/\n?? runtime/\n?? scratch/\n?? scratch_test_leases_1/\n?? scratch_test_leases_3/\n?? supervisor/\n?? tests/rc3_hardening/\n?? tests/test_mandatory_scenarios_suite.js\n?? tests/test_money_factory_closure.js\n?? tests/test_supervisor_plane_p0.js",
+  "pre_existing_tracked_modified_files": [
+    "money_factory/anti_loop_policy.js",
+    "money_factory/index.js",
+    "money_factory/portfolios.js",
+    "money_factory/prediction_calibration.js",
+    "money_factory/safety_gates.js",
+    "money_factory/warehouse.js",
+    "opportunity_warehouse/opportunities.json"
+  ],
+  "tracked_file_fingerprints_before_mission": {
+    "money_factory/anti_loop_policy.js": "6770e9d066cb85038c53fb19cd78c1ebec9581858a940d22a3942a122f59c32e",
+    "money_factory/index.js": "c1dffb9cf20ee8af8a3328e29ace12d91ff494a5663b58403e1b0df41c487c18",
+    "money_factory/portfolios.js": "96894faf4557857e52dc592888e5c2041b5975a3715fb598a14066199a6efec7",
+    "money_factory/prediction_calibration.js": "3c21e1a95fc9941ebb533a072ede3f0ba57857e08a7a04ae6f4129e63562143f",
+    "money_factory/safety_gates.js": "c00ed53b4f0f1fd4ff6160413abeb26a2e6057921e586aa31af373fb3addff19",
+    "money_factory/warehouse.js": "848e97240fa921b9ca61a64046a0bd1b37a894d517878d2e3d305a327c91e599",
+    "opportunity_warehouse/opportunities.json": "5431e2a1a11f82fc2a8a721bfe5b8a94af3ec5bebda93a0510654a1f58950b55"
+  },
+  "rc1_all_hashes_match": true,
+  "rc1_hashes": {
+    "DEMO/DEMO_EXPECTED_OUTPUT.txt": "a07aa75201da8bbbaece7d690902cb93530c150929a39b00d44497f3c7f2f88b",
+    "DEMO/DEMO_README.md": "272d1034bcbaac36615b7bee4ef28eee10585f9ba4f13948b98234ac64bd013a",
+    "DEMO/workspace/.cursorrules": "240540ce7f71b6f22a3229e673db93863972dc156ec5d5656e39a5f2835cafc4",
+    "DEMO/workspace/.gemini/rules/coding_style.md": "52c6b932cfef38e1210b66291d988e02501402b484733161da06ea9e1fe3b6c1",
+    "FAQ.md": "ba8be196bf5d9c320201603c271f9222b624345a7cec8bbb5112eb9bb11851ba",
+    "FINAL_HUMAN_GATE_CARD.md": "28274b5eea9ffac4bdcd4ebf2763e00bb1d68f56ae7a80f188c564043afa736f",
+    "LONG_DESCRIPTION.md": "153e4a102578817d4aab8d87fb2f8d8adf9656ec3afc8777caedbdf848e194f5",
+    "PRICE_EXPERIMENT.md": "df7dccf4ca65a2d9672501ad4587ab291c996a42432f43f94970e5848a68fb22",
+    "PRODUCT_PACKAGE.zip": "f54d489390a874bd093eee2cd2268f2fc20768cf386ab90943ad5f33d57b7a2d",
+    "PRODUCT_TITLE.txt": "5ccb5d5016d7e22ab8e8b30be087eceb752dfdfba375e59d371ca6379697380e",
+    "SHORT_DESCRIPTION.md": "31d31493cee783b5a7986fa2bb074f6bf8cfabfaecce7bbc9ff93374a4b2e26f",
+    "SHA256SUMS.txt": "71fff6a82dc7b64530ff40c2cce8b4ca2fe5c2dc04e6639793f73f9cb891e9db"
+  },
+  "active_leases": 0,
+  "active_owned_processes": 0,
+  "baseline_check": {
+    "regression_expected_pass": 114,
+    "canary_expected_pass": 12,
+    "bypass_expected_fail_closed": 19
+  }
+}

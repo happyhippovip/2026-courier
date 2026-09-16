@@ -1,0 +1,17 @@
+{
+  "defect_id": "CE_L01_01",
+  "name": "Hierarchical Directory Prefix Collision Clobber",
+  "vulnerability_description": "An exact-match string lock allows Task A to acquire exclusive write lock on \"repo\" and Task B to simultaneously acquire exclusive write lock on \"repo/src/app.js\". Both workers mutate the same tree concurrently, corrupting Git working state.",
+  "minimal_trigger": {
+    "task_A_lock": {
+      "uri": "courier/repo",
+      "mode": "EXCLUSIVE"
+    },
+    "task_B_lock": {
+      "uri": "courier/repo/src/app.js",
+      "mode": "EXCLUSIVE"
+    }
+  },
+  "invariant_violated": "No two writers may hold overlapping hierarchical directory scopes concurrently.",
+  "resolution_proven": "PathNormalizer.isPrefixCollision detects ancestor/descendant relationships and blocks acquisition with ResourceConflictError."
+}

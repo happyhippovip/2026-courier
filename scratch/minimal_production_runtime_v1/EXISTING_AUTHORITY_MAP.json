@@ -1,0 +1,227 @@
+{
+  "mission_id": "WINDOWS_MINIMAL_PRODUCTION_COURIER_RUNTIME_V1",
+  "timestamp": "2026-09-10T08:40:15.384Z",
+  "rule": "Reuse existing canonical authorities; 95% wiring, 5% loop control. Zero new authorities.",
+  "authorities": [
+    {
+      "responsibility": "GOAL_INTAKE",
+      "canonical_module": "cross_device_intake.js",
+      "canonical_export": "CrossDeviceIntakeEngine",
+      "currently_production_reachable": true,
+      "adapter_required": false,
+      "missing_wiring": "Call classifyAndRoute to classify goal and parse actionDomain",
+      "missing_behavior": "None",
+      "new_code_required": "Wiring only"
+    },
+    {
+      "responsibility": "MISSION_IDENTITY",
+      "canonical_module": "supervisor/chief_envelope.js",
+      "canonical_export": "ChiefEscalationEnvelope / SHA-256 tuple",
+      "currently_production_reachable": true,
+      "adapter_required": false,
+      "missing_wiring": "Bind goal_id + state_version + allowed_root to mission identity",
+      "missing_behavior": "None",
+      "new_code_required": "Wiring only"
+    },
+    {
+      "responsibility": "MISSION_STATE",
+      "canonical_module": "supervisor/audit_ledger.js",
+      "canonical_export": "AuditLedger",
+      "currently_production_reachable": true,
+      "adapter_required": false,
+      "missing_wiring": "Persist state snapshots atomically to runtime/mission_state.json",
+      "missing_behavior": "None",
+      "new_code_required": "Wiring only"
+    },
+    {
+      "responsibility": "TASK_DERIVATION",
+      "canonical_module": "money_factory/warehouse.js",
+      "canonical_export": "OpportunityWarehouse",
+      "currently_production_reachable": true,
+      "adapter_required": false,
+      "missing_wiring": "Query warehouse opportunities or scan allowed fixture workspace for inconsistencies",
+      "missing_behavior": "None",
+      "new_code_required": "Wiring only"
+    },
+    {
+      "responsibility": "ROUTING",
+      "canonical_module": "cross_device_intake.js",
+      "canonical_export": "CrossDeviceIntakeEngine",
+      "currently_production_reachable": true,
+      "adapter_required": false,
+      "missing_wiring": "Route LOCAL_MACHINE actions to local worker adapter",
+      "missing_behavior": "None",
+      "new_code_required": "Wiring only"
+    },
+    {
+      "responsibility": "WORKER_NEGOTIATION",
+      "canonical_module": "supervisor/no_stacking.js",
+      "canonical_export": "NoStackingDetector",
+      "currently_production_reachable": true,
+      "adapter_required": false,
+      "missing_wiring": "Check lock conflicts before staging tasks; defer conflicting tasks to inbox",
+      "missing_behavior": "None",
+      "new_code_required": "Wiring only"
+    },
+    {
+      "responsibility": "TASK_PASSPORT",
+      "canonical_module": "governance/TaskPassport.js",
+      "canonical_export": "TaskPassport",
+      "currently_production_reachable": true,
+      "adapter_required": false,
+      "missing_wiring": "Call TaskPassport.createPassport with HMAC capability signature",
+      "missing_behavior": "None",
+      "new_code_required": "Wiring only"
+    },
+    {
+      "responsibility": "BORDER_GUARD",
+      "canonical_module": "governance/BorderGuard.js",
+      "canonical_export": "BorderGuard",
+      "currently_production_reachable": true,
+      "adapter_required": false,
+      "missing_wiring": "Call BorderGuard.evaluatePreDispatch before any worker launch",
+      "missing_behavior": "None",
+      "new_code_required": "Wiring only"
+    },
+    {
+      "responsibility": "RESOURCE_LOCK",
+      "canonical_module": "governance/ResourceLockManager.js",
+      "canonical_export": "ResourceLockManager",
+      "currently_production_reachable": true,
+      "adapter_required": false,
+      "missing_wiring": "Call ResourceLockManager.acquire and release for task target path",
+      "missing_behavior": "None",
+      "new_code_required": "Wiring only"
+    },
+    {
+      "responsibility": "PROCESS_LEASE",
+      "canonical_module": "supervisor/lease_manager.js",
+      "canonical_export": "ProcessLeaseManager",
+      "currently_production_reachable": true,
+      "adapter_required": false,
+      "missing_wiring": "Call createLease with composite identity (PID + start_time + task_token)",
+      "missing_behavior": "None",
+      "new_code_required": "Wiring only"
+    },
+    {
+      "responsibility": "DISPATCH_AUTHORIZATION",
+      "canonical_module": "supervisor/decision_engine.js",
+      "canonical_export": "DecisionEngine",
+      "currently_production_reachable": true,
+      "adapter_required": false,
+      "missing_wiring": "Evaluate dispatch readiness via DecisionEngine.evaluatePreDispatchAdmission",
+      "missing_behavior": "None",
+      "new_code_required": "Wiring only"
+    },
+    {
+      "responsibility": "WORKER_EXECUTION",
+      "canonical_module": "bin/courier_runtime.js (LocalWorkerAdapter)",
+      "canonical_export": "LocalWorkerAdapter",
+      "currently_production_reachable": false,
+      "adapter_required": true,
+      "missing_wiring": "Execute sandboxed synchronous local worker bounded strictly to allowed_root",
+      "missing_behavior": "None",
+      "new_code_required": "Small deterministic worker adapter inside bin/courier_runtime.js"
+    },
+    {
+      "responsibility": "RESULT_ENVELOPE",
+      "canonical_module": "governance/ResultCustoms.js",
+      "canonical_export": "ResultCustoms",
+      "currently_production_reachable": true,
+      "adapter_required": false,
+      "missing_wiring": "Assemble result envelope with task_id, passport, exit_code, artifacts, checksum_map",
+      "missing_behavior": "None",
+      "new_code_required": "Wiring only"
+    },
+    {
+      "responsibility": "RESULT_CUSTOMS",
+      "canonical_module": "governance/ResultCustoms.js",
+      "canonical_export": "ResultCustoms",
+      "currently_production_reachable": true,
+      "adapter_required": false,
+      "missing_wiring": "Call ResultCustoms.evaluateResultEnvelope",
+      "missing_behavior": "None",
+      "new_code_required": "Wiring only"
+    },
+    {
+      "responsibility": "INDEPENDENT_VERIFICATION",
+      "canonical_module": "governance/ResultCustoms.js",
+      "canonical_export": "ResultCustoms.validateArtifactIntegrity",
+      "currently_production_reachable": true,
+      "adapter_required": false,
+      "missing_wiring": "Verify physical disk artifact existence and SHA-256 hashes against checksum_map",
+      "missing_behavior": "None",
+      "new_code_required": "Wiring only"
+    },
+    {
+      "responsibility": "FOLLOW_UP_INBOX",
+      "canonical_module": "supervisor/task_hygiene.js",
+      "canonical_export": "TaskHygiene / FollowUpInbox",
+      "currently_production_reachable": true,
+      "adapter_required": false,
+      "missing_wiring": "Record and drain follow-up queue in runtime/inbox/",
+      "missing_behavior": "None",
+      "new_code_required": "Wiring only"
+    },
+    {
+      "responsibility": "COMPLETION_GOVERNOR",
+      "canonical_module": "governance/CompletionGovernor.js",
+      "canonical_export": "CompletionGovernor",
+      "currently_production_reachable": true,
+      "adapter_required": false,
+      "missing_wiring": "Call evaluateWorkerReport and evaluateMissionStatus; enforce ACTIVE_CONTINUUM until saturation",
+      "missing_behavior": "None",
+      "new_code_required": "Wiring only"
+    },
+    {
+      "responsibility": "NEXT_WORK_SELECTION",
+      "canonical_module": "money_factory/scoring.js",
+      "canonical_export": "MoneyScorer",
+      "currently_production_reachable": true,
+      "adapter_required": false,
+      "missing_wiring": "Rank remaining candidates and deferred follow-ups by impact, risk, and readiness",
+      "missing_behavior": "None",
+      "new_code_required": "Wiring only"
+    },
+    {
+      "responsibility": "RESTART_RECONCILIATION",
+      "canonical_module": "supervisor/reconciliation.js",
+      "canonical_export": "RestartReconciler",
+      "currently_production_reachable": true,
+      "adapter_required": false,
+      "missing_wiring": "Call RestartReconciler.reconcileAfterRestart upon process boot",
+      "missing_behavior": "None",
+      "new_code_required": "Wiring only"
+    },
+    {
+      "responsibility": "HUMAN_GATE",
+      "canonical_module": "money_factory/safety_gates.js",
+      "canonical_export": "SafetyGateManager",
+      "currently_production_reachable": true,
+      "adapter_required": false,
+      "missing_wiring": "Check human gate requirements before executing sensitive actions",
+      "missing_behavior": "None",
+      "new_code_required": "Wiring only"
+    },
+    {
+      "responsibility": "FINANCIAL_BOUNDARY",
+      "canonical_module": "money_factory/safety_gates.js",
+      "canonical_export": "SafetyGateManager",
+      "currently_production_reachable": true,
+      "adapter_required": false,
+      "missing_wiring": "Enforce AUTONOMOUS_SPEND_LIMIT_EUR = 0; fail-closed on spend > 0",
+      "missing_behavior": "None",
+      "new_code_required": "Wiring only"
+    },
+    {
+      "responsibility": "AUDIT_LEDGER",
+      "canonical_module": "supervisor/audit_ledger.js",
+      "canonical_export": "AuditLedger",
+      "currently_production_reachable": true,
+      "adapter_required": false,
+      "missing_wiring": "Log all lifecycle state transitions with SHA-256 event fingerprints",
+      "missing_behavior": "None",
+      "new_code_required": "Wiring only"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "REAL_STARTED_AT_UTC": "2026-09-10T03:52:12.278Z",
+  "REAL_STARTED_AT_LOCAL": "Thu Sep 10 2026 05:52:12 GMT+0200 (Mitteleuropäische Sommerzeit)",
+  "MONOTONIC_START": "42476215446100",
+  "omegaPathExists": true,
+  "omegaStatus": "GENUINELY_SATURATED",
+  "omegaTerminal": true,
+  "gitBranch": "windows/money-factory-p0",
+  "gitHead": "aa5c01d21c7e055c7e3b5117ded5eddc6793dde4",
+  "gitDirtyEntriesCount": 22,
+  "activeWriterLeases": 0,
+  "ownedHelpers": 0,
+  "universuxProtected": true,
+  "safety": {
+    "AUTONOMOUS_SPEND_LIMIT_EUR": 0,
+    "REAL_TRADES": 0,
+    "REAL_FUNDS_TOUCHED": "NO",
+    "REAL_POSITIONS_CHANGED": 0,
+    "REAL_WALLETS_CONNECTED": "NO",
+    "WALLET_SIGNING": "NO",
+    "OIL_LIVE": "DENY",
+    "BTC_LIVE_CANARY": "NOT_AUTHORIZED",
+    "REAL_REVENUE_EUR": 0
+  },
+  "verdict": "PASS"
+}

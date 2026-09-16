@@ -27,6 +27,154 @@
         }
       ],
       "current_step_index": 3
+    },
+    "goal_38e4ee43": {
+      "goal_id": "goal_38e4ee43",
+      "goal_text": "Test goal to ensure routing works",
+      "status": "ACTIVE",
+      "created_at": "2026-09-16T00:41:03.978470",
+      "workflow_plan": [
+        {
+          "task_id": "WF-CHIEF-c9eaa1-STEP-1-DISCOVER",
+          "goal_id": "goal_38e4ee43",
+          "description": "Formulate execution strategy and inspect context for: Test goal to ensure routing works",
+          "target_capability": "mac",
+          "status": "QUEUED"
+        },
+        {
+          "task_id": "WF-CHIEF-c9eaa1-STEP-2-QA",
+          "goal_id": "goal_38e4ee43",
+          "description": "Perform independent technical QA audit and syntax verification for: Test goal to ensure routing works",
+          "target_capability": "windows",
+          "status": "QUEUED"
+        },
+        {
+          "task_id": "WF-CHIEF-c9eaa1-STEP-3-SYNTHESIZE",
+          "goal_id": "goal_38e4ee43",
+          "description": "Finalize results, verify invariants, and assemble completion package for: Test goal to ensure routing works",
+          "target_capability": "mac",
+          "status": "QUEUED"
+        }
+      ],
+      "current_step_index": 1
+    },
+    "goal_541c2da6": {
+      "goal_id": "goal_541c2da6",
+      "goal_text": "Erzeuge zwei harmlose abh\u00e4ngige Tasks (Attempt 2).",
+      "status": "ACTIVE",
+      "created_at": "2026-09-16T00:50:20.498665",
+      "workflow_plan": [
+        {
+          "task_id": "WF-CHIEF-b37c49-STEP-1-DISCOVER",
+          "goal_id": "goal_541c2da6",
+          "description": "Formulate execution strategy and inspect context for: Erzeuge zwei harmlose abh\u00e4ngige Tasks (Attempt 2).",
+          "target_capability": "mac",
+          "status": "QUEUED"
+        },
+        {
+          "task_id": "WF-CHIEF-b37c49-STEP-2-IMPLEMENT",
+          "goal_id": "goal_541c2da6",
+          "description": "Execute core implementation and asset validation for: Erzeuge zwei harmlose abh\u00e4ngige Tasks (Attempt 2).",
+          "target_capability": "mac",
+          "status": "QUEUED"
+        },
+        {
+          "task_id": "WF-CHIEF-b37c49-STEP-3-SYNTHESIZE",
+          "goal_id": "goal_541c2da6",
+          "description": "Finalize results, verify invariants, and assemble completion package for: Erzeuge zwei harmlose abh\u00e4ngige Tasks (Attempt 2).",
+          "target_capability": "mac",
+          "status": "QUEUED"
+        }
+      ],
+      "current_step_index": 1
+    },
+    "goal_b35190bd": {
+      "goal_id": "goal_b35190bd",
+      "goal_text": "Erzeuge drei harmlose abh\u00e4ngige Tasks (Attempt 3).",
+      "status": "BLOCKED",
+      "created_at": "2026-09-16T00:52:40.121381",
+      "workflow_plan": [
+        {
+          "task_id": "WF-CHIEF-92f7f8-STEP-1-DISCOVER",
+          "goal_id": "goal_b35190bd",
+          "description": "Formulate execution strategy and inspect context for: Erzeuge drei harmlose abh\u00e4ngige Tasks (Attempt 3).",
+          "target_capability": "windows",
+          "status": "QUEUED"
+        },
+        {
+          "task_id": "WF-CHIEF-92f7f8-STEP-2-IMPLEMENT",
+          "goal_id": "goal_b35190bd",
+          "description": "Execute core implementation and asset validation for: Erzeuge drei harmlose abh\u00e4ngige Tasks (Attempt 3).",
+          "target_capability": "windows",
+          "status": "QUEUED"
+        },
+        {
+          "task_id": "WF-CHIEF-92f7f8-STEP-3-SYNTHESIZE",
+          "goal_id": "goal_b35190bd",
+          "description": "Finalize results, verify invariants, and assemble completion package for: Erzeuge drei harmlose abh\u00e4ngige Tasks (Attempt 3).",
+          "target_capability": "windows",
+          "status": "QUEUED"
+        }
+      ],
+      "current_step_index": 2
+    },
+    "goal_test4": {
+      "goal_id": "goal_test4",
+      "goal_text": "Erzeuge drei harmlose abh\u00e4ngige Tasks (Attempt 4).",
+      "status": "BLOCKED",
+      "workflow_plan": [
+        {
+          "task_id": "WF-CHIEF-0f0b0a-STEP-1-DISCOVER",
+          "goal_id": "goal_test4",
+          "description": "Formulate execution strategy and inspect context for: Erzeuge drei harmlose abh\u00e4ngige Tasks (Attempt 4).",
+          "target_capability": "windows",
+          "status": "QUEUED"
+        },
+        {
+          "task_id": "WF-CHIEF-0f0b0a-STEP-2-IMPLEMENT",
+          "goal_id": "goal_test4",
+          "description": "Execute core implementation and asset validation for: Erzeuge drei harmlose abh\u00e4ngige Tasks (Attempt 4).",
+          "target_capability": "windows",
+          "status": "QUEUED"
+        },
+        {
+          "task_id": "WF-CHIEF-0f0b0a-STEP-3-SYNTHESIZE",
+          "goal_id": "goal_test4",
+          "description": "Finalize results, verify invariants, and assemble completion package for: Erzeuge drei harmlose abh\u00e4ngige Tasks (Attempt 4).",
+          "target_capability": "windows",
+          "status": "QUEUED"
+        }
+      ],
+      "current_step_index": 2
+    },
+    "goal_test5": {
+      "goal_id": "goal_test5",
+      "goal_text": "Final Phase 15 End-to-End Test",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "WF-CHIEF-c076f4-STEP-1-DISCOVER",
+          "goal_id": "goal_test5",
+          "description": "Formulate execution strategy and inspect context for: Final Phase 15 End-to-End Test",
+          "target_capability": "windows",
+          "status": "QUEUED"
+        },
+        {
+          "task_id": "WF-CHIEF-c076f4-STEP-2-QA",
+          "goal_id": "goal_test5",
+          "description": "Perform independent technical QA audit and syntax verification for: Final Phase 15 End-to-End Test",
+          "target_capability": "windows",
+          "status": "QUEUED"
+        },
+        {
+          "task_id": "WF-CHIEF-c076f4-STEP-3-SYNTHESIZE",
+          "goal_id": "goal_test5",
+          "description": "Finalize results, verify invariants, and assemble completion package for: Final Phase 15 End-to-End Test",
+          "target_capability": "windows",
+          "status": "QUEUED"
+        }
+      ],
+      "current_step_index": 3
     }
   },
   "tasks": {
@@ -78,6 +226,232 @@
         "worker_id": "MAC-AGY-01",
         "provider": "antigravity",
         "run_id": "46682"
+      }
+    },
+    "WF-CHIEF-c9eaa1-STEP-1-DISCOVER": {
+      "task_id": "WF-CHIEF-c9eaa1-STEP-1-DISCOVER",
+      "goal_id": "goal_38e4ee43",
+      "description": "Formulate execution strategy and inspect context for: Test goal to ensure routing works",
+      "target_capability": "mac",
+      "status": "DISPATCHED",
+      "attempt_id": "WF-CHIEF-c9eaa1-STEP-1-DISCOVER:attempt:1",
+      "dispatch_id": "dispatch-f3623bd8463c4596baf3cae64cd4822b",
+      "worker_id": "MAC-01",
+      "run_id": null,
+      "result_id": null,
+      "artifacts": [
+        "courier_canary_WF-CHIEF-c9eaa1-STEP-1-DISCOVER.txt"
+      ]
+    },
+    "WF-CHIEF-b37c49-STEP-1-DISCOVER": {
+      "task_id": "WF-CHIEF-b37c49-STEP-1-DISCOVER",
+      "goal_id": "goal_541c2da6",
+      "description": "Formulate execution strategy and inspect context for: Erzeuge zwei harmlose abh\u00e4ngige Tasks (Attempt 2).",
+      "target_capability": "mac",
+      "status": "DISPATCHED",
+      "attempt_id": "WF-CHIEF-b37c49-STEP-1-DISCOVER:attempt:1",
+      "dispatch_id": "dispatch-44f6ee6ab1dd4f27870d2d44b936e79e",
+      "worker_id": "MAC-01",
+      "run_id": null,
+      "result_id": null,
+      "artifacts": [
+        "courier_canary_WF-CHIEF-b37c49-STEP-1-DISCOVER.txt"
+      ]
+    },
+    "WF-CHIEF-92f7f8-STEP-1-DISCOVER": {
+      "task_id": "WF-CHIEF-92f7f8-STEP-1-DISCOVER",
+      "goal_id": "goal_b35190bd",
+      "description": "Formulate execution strategy and inspect context for: Erzeuge drei harmlose abh\u00e4ngige Tasks (Attempt 3).",
+      "target_capability": "windows",
+      "status": "RECONCILED",
+      "attempt_id": "WF-CHIEF-92f7f8-STEP-1-DISCOVER:attempt:1",
+      "dispatch_id": "dispatch-5171187bd841429a86a13d036787a171",
+      "worker_id": "WINDOWS-01",
+      "run_id": "5380",
+      "result_id": "result-75d6bf5e412c55843c9d40c494e6dd856d868e5478ca00e5d6eea6123932a9ce",
+      "artifacts": [
+        "courier_canary_WF-CHIEF-92f7f8-STEP-1-DISCOVER.txt"
+      ],
+      "result": {
+        "goal_id": "goal_b35190bd",
+        "task_id": "WF-CHIEF-92f7f8-STEP-1-DISCOVER",
+        "attempt_id": "WF-CHIEF-92f7f8-STEP-1-DISCOVER:attempt:1",
+        "dispatch_id": "dispatch-5171187bd841429a86a13d036787a171",
+        "worker_id": "WINDOWS-01",
+        "run_id": "5380",
+        "status": "SUCCESS",
+        "artifacts": [
+          {
+            "path": "courier_canary_WF-CHIEF-92f7f8-STEP-1-DISCOVER.txt",
+            "sha256": "1f513d4ecec4e91ddd48da1a59b6d96f1b76c374dc1da641980782a34f43b102"
+          }
+        ],
+        "result_id": "result-75d6bf5e412c55843c9d40c494e6dd856d868e5478ca00e5d6eea6123932a9ce"
+      }
+    },
+    "WF-CHIEF-92f7f8-STEP-2-IMPLEMENT": {
+      "task_id": "WF-CHIEF-92f7f8-STEP-2-IMPLEMENT",
+      "goal_id": "goal_b35190bd",
+      "description": "Execute core implementation and asset validation for: Erzeuge drei harmlose abh\u00e4ngige Tasks (Attempt 3).",
+      "target_capability": "windows",
+      "status": "FAILED_TERMINAL",
+      "attempt_id": "WF-CHIEF-92f7f8-STEP-2-IMPLEMENT:attempt:1",
+      "dispatch_id": "dispatch-8c9bc7f5d9264d289a2e95ba7cb6ae67",
+      "worker_id": "WINDOWS-01",
+      "run_id": "3668",
+      "result_id": "result-7684bbd1ce9c90d43f20510757b9e36eb4bb3982b9e0f1cf444bc865a058735e",
+      "artifacts": [
+        "courier_canary_WF-CHIEF-92f7f8-STEP-2-IMPLEMENT.txt"
+      ],
+      "result": {
+        "goal_id": "goal_b35190bd",
+        "task_id": "WF-CHIEF-92f7f8-STEP-2-IMPLEMENT",
+        "attempt_id": "WF-CHIEF-92f7f8-STEP-2-IMPLEMENT:attempt:1",
+        "dispatch_id": "dispatch-8c9bc7f5d9264d289a2e95ba7cb6ae67",
+        "worker_id": "WINDOWS-01",
+        "run_id": "3668",
+        "status": "FAILED",
+        "artifacts": [],
+        "result_id": "result-7684bbd1ce9c90d43f20510757b9e36eb4bb3982b9e0f1cf444bc865a058735e"
+      }
+    },
+    "WF-CHIEF-0f0b0a-STEP-1-DISCOVER": {
+      "task_id": "WF-CHIEF-0f0b0a-STEP-1-DISCOVER",
+      "goal_id": "goal_test4",
+      "description": "Formulate execution strategy and inspect context for: Erzeuge drei harmlose abh\u00e4ngige Tasks (Attempt 4).",
+      "target_capability": "windows",
+      "status": "RECONCILED",
+      "attempt_id": "WF-CHIEF-0f0b0a-STEP-1-DISCOVER:attempt:1",
+      "dispatch_id": "dispatch-1881bcb38038430088367ba01b0fd6d3",
+      "worker_id": "WINDOWS-01",
+      "run_id": "18528",
+      "result_id": "result-8602ff810ae1321664d1ab77d1c2663c4a06abd7064ab0a79d46272914176350",
+      "artifacts": [
+        "courier_canary_WF-CHIEF-0f0b0a-STEP-1-DISCOVER.txt"
+      ],
+      "result": {
+        "goal_id": "goal_test4",
+        "task_id": "WF-CHIEF-0f0b0a-STEP-1-DISCOVER",
+        "attempt_id": "WF-CHIEF-0f0b0a-STEP-1-DISCOVER:attempt:1",
+        "dispatch_id": "dispatch-1881bcb38038430088367ba01b0fd6d3",
+        "worker_id": "WINDOWS-01",
+        "run_id": "18528",
+        "status": "SUCCESS",
+        "artifacts": [
+          {
+            "path": "courier_canary_WF-CHIEF-0f0b0a-STEP-1-DISCOVER.txt",
+            "sha256": "1f513d4ecec4e91ddd48da1a59b6d96f1b76c374dc1da641980782a34f43b102"
+          }
+        ],
+        "result_id": "result-8602ff810ae1321664d1ab77d1c2663c4a06abd7064ab0a79d46272914176350"
+      }
+    },
+    "WF-CHIEF-0f0b0a-STEP-2-IMPLEMENT": {
+      "task_id": "WF-CHIEF-0f0b0a-STEP-2-IMPLEMENT",
+      "goal_id": "goal_test4",
+      "description": "Execute core implementation and asset validation for: Erzeuge drei harmlose abh\u00e4ngige Tasks (Attempt 4).",
+      "target_capability": "windows",
+      "status": "FAILED_VERIFICATION",
+      "attempt_id": "WF-CHIEF-0f0b0a-STEP-2-IMPLEMENT:attempt:1",
+      "dispatch_id": "dispatch-55d17ab255d348e7a442de81d926c9ed",
+      "worker_id": "WINDOWS-01",
+      "run_id": null,
+      "result_id": null,
+      "artifacts": [
+        "courier_canary_WF-CHIEF-0f0b0a-STEP-2-IMPLEMENT.txt"
+      ]
+    },
+    "WF-CHIEF-c076f4-STEP-1-DISCOVER": {
+      "task_id": "WF-CHIEF-c076f4-STEP-1-DISCOVER",
+      "goal_id": "goal_test5",
+      "description": "Formulate execution strategy and inspect context for: Final Phase 15 End-to-End Test",
+      "target_capability": "windows",
+      "status": "RECONCILED",
+      "attempt_id": "WF-CHIEF-c076f4-STEP-1-DISCOVER:attempt:1",
+      "dispatch_id": "dispatch-232a3b9116cf40078e22d9a7b2d16d34",
+      "worker_id": "WINDOWS-01",
+      "run_id": "7296",
+      "result_id": "result-1f36acf5f6710b619ac5ba90ec431595ed940bab1f564ad3d5d585477e5eb75f",
+      "artifacts": [
+        "courier_canary_WF-CHIEF-c076f4-STEP-1-DISCOVER.txt"
+      ],
+      "result": {
+        "goal_id": "goal_test5",
+        "task_id": "WF-CHIEF-c076f4-STEP-1-DISCOVER",
+        "attempt_id": "WF-CHIEF-c076f4-STEP-1-DISCOVER:attempt:1",
+        "dispatch_id": "dispatch-232a3b9116cf40078e22d9a7b2d16d34",
+        "worker_id": "WINDOWS-01",
+        "run_id": "7296",
+        "status": "SUCCESS",
+        "artifacts": [
+          {
+            "path": "courier_canary_WF-CHIEF-c076f4-STEP-1-DISCOVER.txt",
+            "sha256": "421a244564c34296e185cdcf70d2269227ae102f2e7eeef94afddd495c4e06c2"
+          }
+        ],
+        "result_id": "result-1f36acf5f6710b619ac5ba90ec431595ed940bab1f564ad3d5d585477e5eb75f"
+      }
+    },
+    "WF-CHIEF-c076f4-STEP-2-QA": {
+      "task_id": "WF-CHIEF-c076f4-STEP-2-QA",
+      "goal_id": "goal_test5",
+      "description": "Perform independent technical QA audit and syntax verification for: Final Phase 15 End-to-End Test",
+      "target_capability": "windows",
+      "status": "RECONCILED",
+      "attempt_id": "WF-CHIEF-c076f4-STEP-2-QA:attempt:1",
+      "dispatch_id": "dispatch-7b87849a68f5448baa119bd8e7f4b20f",
+      "worker_id": "WINDOWS-01",
+      "run_id": "10356",
+      "result_id": "result-1f09f09772deb67f14d292f37e5225e7f27aa795f812ba72964535c050bd237b",
+      "artifacts": [
+        "courier_canary_WF-CHIEF-c076f4-STEP-2-QA.txt"
+      ],
+      "result": {
+        "goal_id": "goal_test5",
+        "task_id": "WF-CHIEF-c076f4-STEP-2-QA",
+        "attempt_id": "WF-CHIEF-c076f4-STEP-2-QA:attempt:1",
+        "dispatch_id": "dispatch-7b87849a68f5448baa119bd8e7f4b20f",
+        "worker_id": "WINDOWS-01",
+        "run_id": "10356",
+        "status": "SUCCESS",
+        "artifacts": [
+          {
+            "path": "courier_canary_WF-CHIEF-c076f4-STEP-2-QA.txt",
+            "sha256": "421a244564c34296e185cdcf70d2269227ae102f2e7eeef94afddd495c4e06c2"
+          }
+        ],
+        "result_id": "result-1f09f09772deb67f14d292f37e5225e7f27aa795f812ba72964535c050bd237b"
+      }
+    },
+    "WF-CHIEF-c076f4-STEP-3-SYNTHESIZE": {
+      "task_id": "WF-CHIEF-c076f4-STEP-3-SYNTHESIZE",
+      "goal_id": "goal_test5",
+      "description": "Finalize results, verify invariants, and assemble completion package for: Final Phase 15 End-to-End Test",
+      "target_capability": "windows",
+      "status": "RECONCILED",
+      "attempt_id": "WF-CHIEF-c076f4-STEP-3-SYNTHESIZE:attempt:1",
+      "dispatch_id": "dispatch-52e60983714b4723b439f7292e567db7",
+      "worker_id": "WINDOWS-01",
+      "run_id": "16084",
+      "result_id": "result-134ad252121762393d71c4ef892268ee38269964e7d4f20a54df518ef8ef0a0d",
+      "artifacts": [
+        "courier_canary_WF-CHIEF-c076f4-STEP-3-SYNTHESIZE.txt"
+      ],
+      "result": {
+        "goal_id": "goal_test5",
+        "task_id": "WF-CHIEF-c076f4-STEP-3-SYNTHESIZE",
+        "attempt_id": "WF-CHIEF-c076f4-STEP-3-SYNTHESIZE:attempt:1",
+        "dispatch_id": "dispatch-52e60983714b4723b439f7292e567db7",
+        "worker_id": "WINDOWS-01",
+        "run_id": "16084",
+        "status": "SUCCESS",
+        "artifacts": [
+          {
+            "path": "courier_canary_WF-CHIEF-c076f4-STEP-3-SYNTHESIZE.txt",
+            "sha256": "421a244564c34296e185cdcf70d2269227ae102f2e7eeef94afddd495c4e06c2"
+          }
+        ],
+        "result_id": "result-134ad252121762393d71c4ef892268ee38269964e7d4f20a54df518ef8ef0a0d"
       }
     }
   }

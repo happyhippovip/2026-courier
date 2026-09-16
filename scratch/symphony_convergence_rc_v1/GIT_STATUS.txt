@@ -1,0 +1,45 @@
+ M money_factory/anti_loop_policy.js
+ M money_factory/index.js
+ M money_factory/portfolios.js
+ M money_factory/prediction_calibration.js
+ M money_factory/safety_gates.js
+ M money_factory/warehouse.js
+ M opportunity_warehouse/opportunities.json
+?? AUTHORITATIVE_RUNTIME_GRAPH.json
+?? BRANCH_TRANSITION_PLAN.md
+?? BYPASS_ATTACK_REPORT.json
+?? BYPASS_PATH_REPORT.json
+?? COMPLETION_SEMANTICS_PROOF.json
+?? DAILY_IMPROVEMENT_CONTRACT.md
+?? FILES_CHANGED.json
+?? MANDATORY_SCENARIOS_REPORT.json
+?? MODULE_REACHABILITY.json
+?? MONEY_FACTORY_WINDOWS_HANDOFF.md
+?? NEXT_CANARY_PLAN.md
+?? POST_CANARY_FIRST_EUR5_MISSION.md
+?? PRODUCTION_INTEGRATION_EVIDENCE.json
+?? PRODUCTION_INTEGRATION_REPORT.md
+?? REAL_PATH_TRACE.jsonl
+?? ROLLBACK_VERIFICATION.json
+?? SAFETY_VERIFICATION.json
+?? SUPERVISOR_PLANE_ARCHITECTURE.md
+?? TEST_RESULTS.json
+?? WINDOWS_RESUME_CHECKPOINT.md
+?? chief/
+?? fixtures/
+?? governance/
+?? money_factory/cheapest_test.js
+?? money_factory/evidence_ledger.js
+?? money_factory/first_5_euro_simulator.js
+?? money_factory/supervisor_compat.js
+?? opportunity_warehouse/evidence/
+?? opportunity_warehouse/research/
+?? runtime/
+?? scratch/
+?? scratch_test_leases_1/
+?? scratch_test_leases_3/
+?? supervisor/
+?? tests/rc3_hardening/
+?? tests/test_mandatory_scenarios_suite.js
+?? tests/test_money_factory_closure.js
+?? tests/test_supervisor_plane_p0.js

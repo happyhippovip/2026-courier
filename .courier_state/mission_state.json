@@ -1,0 +1,25 @@
+{
+  "mission_id": "MISSION-1789115380459",
+  "goal_id": "GOAL-1789115380459",
+  "goal_text": "Execute bounded autonomous workspace consistency remediation",
+  "created_at": "2026-09-11T08:29:40.459Z",
+  "status": "SATISFIED",
+  "allowed_root": "C:\\Users\\lol\\2026-workspace\\courier",
+  "task_queue": [],
+  "task_history": [
+    {
+      "task_id": "TASK-AUTO-001-VERIFY",
+      "status": "VERIFIED",
+      "completed_at": "2026-09-11T08:29:40.529Z",
+      "artifacts": [
+        "C:\\Users\\lol\\2026-workspace\\courier\\evidence\\evidence_TASK-AUTO-001-VERIFY.json"
+      ]
+    }
+  ],
+  "open_followups": [],
+  "resume_count": 0,
+  "updated_at": "2026-09-13T01:19:13.363Z",
+  "state_version": 6,
+  "current_task": null,
+  "current_lease_id": null
+}

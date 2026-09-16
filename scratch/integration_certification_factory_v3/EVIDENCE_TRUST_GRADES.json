@@ -1,0 +1,407 @@
+{
+  "LIFECYCLE_TRANSITION_INTEGRITY": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "FormalLifecycleModel",
+    "mapped_package": "PKG_SHARED"
+  },
+  "LOGICAL_IDENTITY_ROUTE_INVARIANCE": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "LogicalIdentityEngine",
+    "mapped_package": "PKG-013"
+  },
+  "FALLBACK_ONLY_ON_DEFINITE_NO_EFFECT": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "FallbackPolicyEngine",
+    "mapped_package": "PKG-009"
+  },
+  "CRASH_CUTPOINT_RECOVERY_INTEGRITY": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "CrashCutPointEngine",
+    "mapped_package": "PKG-008"
+  },
+  "EXACTLY_ONCE_EFFECT_ENFORCEMENT": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "ExactlyOnceGuard",
+    "mapped_package": "PKG-009"
+  },
+  "TASK_STAMP_POST_STAMP_IMMUTABILITY": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "TaskStampEngine",
+    "mapped_package": "PKG-001"
+  },
+  "NO_STACKING_SCOPE_CONCURRENCY": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "NoStackingScheduler",
+    "mapped_package": "PKG-004"
+  },
+  "WORKER_LEASE_INTEGRITY": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "WorkerLeaseEngine",
+    "mapped_package": "PKG-002"
+  },
+  "PROCESS_OWNERSHIP_MULTI_FACTOR_IDENTIFICATION": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "ProcessLeaseEngine",
+    "mapped_package": "PKG-003"
+  },
+  "PROGRESS_EVIDENCE_SCIENCE": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "SupervisorTelemetryEngine",
+    "mapped_package": "PKG-011"
+  },
+  "SUPERVISOR_5M_15M_POLICY": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "SupervisorTelemetryEngine",
+    "mapped_package": "PKG-011"
+  },
+  "DIAGNOSTIC_BUNDLE_INTEGRITY": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "SupervisorTelemetryEngine",
+    "mapped_package": "PKG-016"
+  },
+  "SCREENSHOT_PRIVACY_PROTECTION": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "SupervisorTelemetryEngine",
+    "mapped_package": "PKG-016"
+  },
+  "MULTI_MACHINE_GOVERNOR_ISOLATION": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "SupervisorTelemetryEngine",
+    "mapped_package": "PKG-010"
+  },
+  "BORDER_GUARD_OUTBOUND_ENFORCEMENT": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "BorderAndCustomsEngine",
+    "mapped_package": "PKG-006"
+  },
+  "TOCTOU_ATOMIC_EXECUTION_INTEGRITY": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "BorderAndCustomsEngine",
+    "mapped_package": "PKG-006"
+  },
+  "WORKER_RIGHTS_NEGOTIATION_PROTOCOL": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "BorderAndCustomsEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "BOUNDED_APPEAL_ANTI_LOOP": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "BorderAndCustomsEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "42_FIELD_PASSPORT_TAMPER_RESISTANCE": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "BorderAndCustomsEngine",
+    "mapped_package": "PKG-007"
+  },
+  "PROSE_AS_PROOF_REJECTION": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "BorderAndCustomsEngine",
+    "mapped_package": "PKG-007"
+  },
+  "TEST_WEAKENING_DETECTION": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "BorderAndCustomsEngine",
+    "mapped_package": "PKG-007"
+  },
+  "FALSE_TERMINAL_SATISFACTION_REJECTION": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "BorderAndCustomsEngine",
+    "mapped_package": "PKG-012"
+  },
+  "MULTI_GOAL_STATE_ISOLATION": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "MoneyFactoryAndLedgerEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "BOUNDED_QUEUE_BACKPRESSURE": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "MoneyFactoryAndLedgerEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "APPEND_ONLY_LEDGER_IMMUTABILITY": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "MoneyFactoryAndLedgerEngine",
+    "mapped_package": "PKG-015"
+  },
+  "SNAPSHOT_VS_LEDGER_RECONCILIATION": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "MoneyFactoryAndLedgerEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "MONEY_FACTORY_REVENUE_TRUTH": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "MoneyFactoryAndLedgerEngine",
+    "mapped_package": "PKG-018"
+  },
+  "COST_ACCOUNTING_PRECISION_NON_NEGATIVE": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "MoneyFactoryAndLedgerEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "OPPORTUNITY_RANKING_ADVERSARY_DEFENSE": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "MoneyFactoryAndLedgerEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "SELF_IMPROVEMENT_BOUNDARY_DEFENSE": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "MoneyFactoryAndLedgerEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "ANTI_LOOP_SPAWN_CYCLE_DETECTION": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "MoneyFactoryAndLedgerEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "SAFE_BACKLOG_PRIORITY_SCHEDULING": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "MoneyFactoryAndLedgerEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "HUMAN_GATE_NATURAL_LANGUAGE_STAMP": {
+    "grade": "GENERATIVE_EVIDENCE",
+    "component": "HumanGateLanguageEngine",
+    "mapped_package": "PKG-019"
+  },
+  "MINIMAL_COUNTEREXAMPLE_DELTA_DEBUGGING": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "MinimalCounterexampleReducer",
+    "mapped_package": "PKG_SHARED"
+  },
+  "MUTATION_TESTING_100_PERCENT_KILL": {
+    "grade": "MUTATION_EVIDENCE",
+    "component": "MutationTestingHarness",
+    "mapped_package": "PKG_SHARED"
+  },
+  "COMPOSITE_TRIPLE_FAULT_RESILIENCE": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "SystemResilienceGuard",
+    "mapped_package": "PKG-008"
+  },
+  "ZOMBIE_PROCESS_PID_REUSE_DEFENSE": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "SystemResilienceGuard",
+    "mapped_package": "PKG_SHARED"
+  },
+  "TRUNCATED_EVIDENCE_FAIL_CLOSED": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "SystemResilienceGuard",
+    "mapped_package": "PKG_SHARED"
+  },
+  "MONOTONIC_CLOCK_DRIFT_INVARIANCE": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "SystemResilienceGuard",
+    "mapped_package": "PKG_SHARED"
+  },
+  "PARTIAL_ACK_DEDUPLICATION": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "SystemResilienceGuard",
+    "mapped_package": "PKG_SHARED"
+  },
+  "CONCURRENT_WORKER_RACE_RESOLUTION": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "SystemResilienceGuard",
+    "mapped_package": "PKG_SHARED"
+  },
+  "CORRUPT_CHECKPOINT_ROLLBACK": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "SystemResilienceGuard",
+    "mapped_package": "PKG_SHARED"
+  },
+  "POISON_PILL_PAYLOAD_CEILING": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "SystemResilienceGuard",
+    "mapped_package": "PKG_SHARED"
+  },
+  "TRANSPORT_DOWNGRADE_PREVENTION": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "SystemResilienceGuard",
+    "mapped_package": "PKG_SHARED"
+  },
+  "EXPIRED_LEASE_REPLAY_DEFENSE": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "SystemResilienceGuard",
+    "mapped_package": "PKG_SHARED"
+  },
+  "SYMLINK_SANDBOX_TRAVERSAL_DEFENSE": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "SystemResilienceGuard",
+    "mapped_package": "PKG_SHARED"
+  },
+  "WORKER_MACHINE_ID_SPOOFING_DEFENSE": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "SystemResilienceGuard",
+    "mapped_package": "PKG_SHARED"
+  },
+  "LEDGER_FORK_CRYPTOGRAPHIC_AUTHORITY": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "SystemResilienceGuard",
+    "mapped_package": "PKG_SHARED"
+  },
+  "MID_PROGRAM_PROOF_SATURATION": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "ProgramMilestone",
+    "mapped_package": "PKG_SHARED"
+  },
+  "LONG_HORIZON_SYSTEM_EVOLUTION": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "EvolutionAndPrecedenceEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "POLICY_PRECEDENCE_CONFLICT_RESOLUTION": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "EvolutionAndPrecedenceEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "REPLAY_FLOOD_TOKEN_DEFENSE": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "EvolutionAndPrecedenceEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "ERROR_TAXONOMY_COMPREHENSIVE_CLASSIFICATION": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "EvolutionAndPrecedenceEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "DEAD_LETTER_QUEUE_QUARANTINE": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "EvolutionAndPrecedenceEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "DYNAMIC_WORKER_HEALTH_DEMOTION": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "EvolutionAndPrecedenceEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "EXTERNAL_PROVIDER_CIRCUIT_BREAKER": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "EvolutionAndPrecedenceEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "ADAPTIVE_BACKOFF_WITH_JITTER": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "EvolutionAndPrecedenceEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "ZERO_TRUST_IPC_AUTHENTICATION": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "EvolutionAndPrecedenceEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "SYSTEMS_RESILIENCE_CORE_SUITE": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "EvolutionAndPrecedenceEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "TERMINAL_ANSI_INJECTION_STRIPPING": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "EvolutionAndPrecedenceEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "IMMUTABLE_MANIFEST_BIT_FOR_BIT_INTEGRITY": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "EvolutionAndPrecedenceEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "OUT_OF_ORDER_ACK_SEQUENCING": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "EvolutionAndPrecedenceEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "MULTI_HOP_DELEGATION_DEPTH_LIMIT": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "EvolutionAndPrecedenceEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "ENVIRONMENT_VARIABLE_SECRET_PURGE": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "EvolutionAndPrecedenceEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "HIGH_LOAD_GRACEFUL_DEGRADATION": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "EvolutionAndPrecedenceEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "MAC_NATIVE_PROOF_QUEUE_FORMALIZATION": {
+    "grade": "NEEDS_MAC",
+    "component": "FinalSynthesisEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "CODEX_INDEPENDENT_REVIEW_FORMALIZATION": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "FinalSynthesisEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "HUMAN_GATE_POLICY_FORMALIZATION": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "FinalSynthesisEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "CROSS_PLATFORM_PATH_NORMALIZATION": {
+    "grade": "WINDOWS_ONLY",
+    "component": "FinalSynthesisEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "CASELESS_ENVIRONMENT_VARIABLE_LOOKUP": {
+    "grade": "WINDOWS_ONLY",
+    "component": "FinalSynthesisEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "LONG_PATH_PREFIX_PRESERVATION": {
+    "grade": "WINDOWS_ONLY",
+    "component": "FinalSynthesisEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "CRLF_LF_CANONICAL_HASH_INVARIANCE": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "FinalSynthesisEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "SAFE_POST_RC3_BACKLOG_POPULATION": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "FinalSynthesisEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "DEFECT_REGISTER_ALL_MITIGATED": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "FinalSynthesisEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "MULTI_TENANT_TENANT_ISOLATION": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "FinalSynthesisEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "EPHEMERAL_CREDENTIAL_IN_MEMORY_SCRUB": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "FinalSynthesisEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "DEADLOCK_FREE_LOCK_HIERARCHY": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "FinalSynthesisEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "AUDIT_LEDGER_MERKLE_ROOT_VERIFICATION": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "FinalSynthesisEngine",
+    "mapped_package": "PKG-015"
+  },
+  "PROOF_GAP_MAP_FULL_CLOSURE": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "FinalSynthesisEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "INFORMATION_GAIN_SATURATION_CONFIRMED": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "FinalSynthesisEngine",
+    "mapped_package": "PKG_SHARED"
+  },
+  "PROGRAM_COMPLETION_META_REVIEW_SEAL": {
+    "grade": "STRONG_DETERMINISTIC",
+    "component": "FinalSynthesisEngine",
+    "mapped_package": "PKG_SHARED"
+  }
+}

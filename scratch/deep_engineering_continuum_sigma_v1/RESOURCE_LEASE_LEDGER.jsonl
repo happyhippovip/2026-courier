@@ -1,0 +1,1 @@
+{"event":"EXCLUSIVE_LOCK_CONTENTION_TEST","lock_path":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\deep_engineering_continuum_sigma_v1\\concurrency\\exclusive_resource.lock","mode":"EXCLUSIVE_NTFS_WX","contenders":4,"deadlocks_detected":0,"timestamp_utc":"2026-09-10T03:55:06.377Z"}

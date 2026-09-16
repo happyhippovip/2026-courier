@@ -1,0 +1,789 @@
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier","entries_count":17}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\chief","entries_count":10}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\chief\\__pycache__","entries_count":9}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\content_os","entries_count":8}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\content_os\\tests","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\content_os\\__pycache__","entries_count":3}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\money_factory","entries_count":14}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\opportunity_warehouse","entries_count":10}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\opportunity_warehouse\\archive","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\opportunity_warehouse\\evidence","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\opportunity_warehouse\\experiments","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\opportunity_warehouse\\research","entries_count":2}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\opportunity_warehouse\\research\\2026","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\opportunity_warehouse\\winners","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\runtime","entries_count":3}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\runtime\\audit","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\runtime\\diagnostics","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\runtime\\leases","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch","entries_count":15}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\8h_autonomous_night_factory_v1","entries_count":51}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\8h_autonomous_night_factory_v1\\BENCHMARKS","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\8h_autonomous_night_factory_v1\\BORDER_GUARD","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\8h_autonomous_night_factory_v1\\CHAOS","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\8h_autonomous_night_factory_v1\\CONCURRENCY","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\8h_autonomous_night_factory_v1\\COUNTEREXAMPLES","entries_count":5}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\8h_autonomous_night_factory_v1\\CRASH_RECOVERY","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\8h_autonomous_night_factory_v1\\DISCOVERY","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\8h_autonomous_night_factory_v1\\ECONOMIC_SIMULATION","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\8h_autonomous_night_factory_v1\\GOAL_SATISFACTION","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\8h_autonomous_night_factory_v1\\INTEGRATION_PACKAGES","entries_count":8}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\8h_autonomous_night_factory_v1\\LONG_RUN","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\8h_autonomous_night_factory_v1\\METAMORPHIC_TESTS","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\8h_autonomous_night_factory_v1\\MIGRATION","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\8h_autonomous_night_factory_v1\\MODELS","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\8h_autonomous_night_factory_v1\\MODEL_CHECKING","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\8h_autonomous_night_factory_v1\\MUTANTS","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\8h_autonomous_night_factory_v1\\ORACLES","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\8h_autonomous_night_factory_v1\\PROOF_PACKAGES","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\8h_autonomous_night_factory_v1\\PROPERTY_TESTS","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\8h_autonomous_night_factory_v1\\REPLAY","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\8h_autonomous_night_factory_v1\\REPORTS","entries_count":2}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\8h_autonomous_night_factory_v1\\RESULT_CUSTOMS","entries_count":2}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\8h_autonomous_night_factory_v1\\ROLLBACK","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\8h_autonomous_night_factory_v1\\SAFETY","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\8h_autonomous_night_factory_v1\\SECURITY","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\8h_autonomous_night_factory_v1\\SHADOW_IMPLEMENTATION","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\8h_autonomous_night_factory_v1\\SOURCE_MAP","entries_count":2}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\8h_autonomous_night_factory_v1\\SUPERVISOR","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2","entries_count":37}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\BENCHMARKS","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\CHAOS","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\COUNTEREXAMPLES","entries_count":20}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\FAILURE_CORPUS","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\INTEGRATION_PACKAGES","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\LONG_HORIZON","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\MIGRATION","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\MODEL_CHECKING","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\MUTANTS","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\ORACLES","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\PROOF_PACKAGES","entries_count":10}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\REPLAY","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\REPORTS","entries_count":3}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\ROLLBACK","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\runtime_test","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\runtime_test\\journal","entries_count":12}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\scratch","entries_count":3}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\scratch\\integrated_test_tmp","entries_count":16}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\scratch\\test_chaos_tmp","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\scratch\\test_migration_tmp","entries_count":2}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\SHADOW_IMPLEMENTATION","entries_count":2}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\SHADOW_IMPLEMENTATION\\core","entries_count":13}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\SHADOW_IMPLEMENTATION\\core\\chaos","entries_count":2}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\SHADOW_IMPLEMENTATION\\core\\crash","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\SHADOW_IMPLEMENTATION\\core\\customs","entries_count":3}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\SHADOW_IMPLEMENTATION\\core\\dispatch","entries_count":3}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\SHADOW_IMPLEMENTATION\\core\\gates","entries_count":2}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\SHADOW_IMPLEMENTATION\\core\\goal","entries_count":2}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\SHADOW_IMPLEMENTATION\\core\\journal","entries_count":2}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\SHADOW_IMPLEMENTATION\\core\\migration","entries_count":3}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\SHADOW_IMPLEMENTATION\\core\\process","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\SHADOW_IMPLEMENTATION\\core\\resources","entries_count":3}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\SHADOW_IMPLEMENTATION\\core\\soak","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\SHADOW_IMPLEMENTATION\\core\\state_machine","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\SHADOW_IMPLEMENTATION\\core\\supervisor","entries_count":2}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_build_proof_factory_v2\\STATE_MACHINES","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_engineering_v2","entries_count":42}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_engineering_v2\\DIAGNOSTICS","entries_count":3}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_engineering_v2\\DIAGNOSTICS\\cut_point_run","entries_count":3}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_engineering_v2\\FAILURE_CORPUS","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_engineering_v2\\GENERATED_CASES","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_engineering_v2\\MINIMIZED_COUNTEREXAMPLES","entries_count":20}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_engineering_v2\\MODELS","entries_count":15}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_engineering_v2\\MUTATIONS","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_engineering_v2\\REPORTS","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_deep_engineering_v2\\SEEDS","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1","entries_count":43}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1\\CAMPAIGNS","entries_count":13}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1\\CAMPAIGNS\\CAMP-01","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1\\CAMPAIGNS\\CAMP-02","entries_count":2}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1\\CAMPAIGNS\\CAMP-03","entries_count":2}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1\\CAMPAIGNS\\CAMP-04","entries_count":2}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1\\CAMPAIGNS\\CAMP-05","entries_count":2}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1\\CAMPAIGNS\\CAMP-06","entries_count":2}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1\\CAMPAIGNS\\CAMP-07","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1\\CAMPAIGNS\\CAMP-08","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1\\CAMPAIGNS\\CAMP-09","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1\\CAMPAIGNS\\CAMP-10","entries_count":2}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1\\CAMPAIGNS\\CAMP-11","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1\\CAMPAIGNS\\CAMP-12","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1\\CAMPAIGNS\\CAMP-13","entries_count":2}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1\\CHAOS","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1\\CHECKPOINTS","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1\\CONCURRENCY","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1\\COUNTEREXAMPLES","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1\\CRASH","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1\\EXPERIMENTS","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1\\INTEGRATION","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1\\LONG_HORIZON","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1\\MIGRATION","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1\\MODELS","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1\\MUTANTS","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1\\ORACLES","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1\\PERFORMANCE","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1\\REPLAY","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1\\REPORTS","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1\\ROLLBACK","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1\\SECURITY","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_night_organization_omega_v1\\SHADOW","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_overnight_portfolio_v1","entries_count":31}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_overnight_portfolio_v1\\ARTIFACTS","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_overnight_portfolio_v1\\COUNTEREXAMPLES","entries_count":10}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_overnight_portfolio_v1\\engine","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_overnight_portfolio_v1\\FAILURE_CORPUS","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_overnight_portfolio_v1\\MUTANTS","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_overnight_portfolio_v1\\ORACLES","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\autonomous_overnight_portfolio_v1\\REPORTS","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\deep_engineering_continuum_sigma_v1","entries_count":60}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\deep_engineering_continuum_sigma_v1\\benchmarks","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\deep_engineering_continuum_sigma_v1\\chaos","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\deep_engineering_continuum_sigma_v1\\checkpoints","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\deep_engineering_continuum_sigma_v1\\concurrency","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\deep_engineering_continuum_sigma_v1\\concurrency\\kernel_data","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\deep_engineering_continuum_sigma_v1\\counterexamples","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\deep_engineering_continuum_sigma_v1\\crash","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\deep_engineering_continuum_sigma_v1\\diagnostics","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\deep_engineering_continuum_sigma_v1\\differential","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\deep_engineering_continuum_sigma_v1\\failure_corpus","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\deep_engineering_continuum_sigma_v1\\integration","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\deep_engineering_continuum_sigma_v1\\journals","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\deep_engineering_continuum_sigma_v1\\metamorphic","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\deep_engineering_continuum_sigma_v1\\migration","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\deep_engineering_continuum_sigma_v1\\models","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\deep_engineering_continuum_sigma_v1\\mutation","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\deep_engineering_continuum_sigma_v1\\oracles","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\deep_engineering_continuum_sigma_v1\\processes","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\deep_engineering_continuum_sigma_v1\\proofs","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\deep_engineering_continuum_sigma_v1\\property","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\deep_engineering_continuum_sigma_v1\\replay","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\deep_engineering_continuum_sigma_v1\\reports","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\deep_engineering_continuum_sigma_v1\\restart","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\deep_engineering_continuum_sigma_v1\\rollback","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\deep_engineering_continuum_sigma_v1\\scratch","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\deep_engineering_continuum_sigma_v1\\shadow","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\deep_engineering_continuum_sigma_v1\\source_maps","entries_count":2}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\deep_engineering_continuum_sigma_v1\\source_snapshots","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\deep_engineering_continuum_sigma_v1\\tests","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\deep_engineering_continuum_sigma_v1\\version_skew","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\final_4pct_adversarial_intervention_v1","entries_count":15}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\final_4pct_adversarial_intervention_v1\\COUNTEREXAMPLES","entries_count":4}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\final_4pct_adversarial_intervention_v1\\MUTATIONS","entries_count":15}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\final_4pct_adversarial_intervention_v1\\REPAIRS","entries_count":4}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\final_high_value_quota_sweep_v1","entries_count":10}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\final_high_value_quota_sweep_v1\\MINIMIZED_COUNTEREXAMPLES","entries_count":2}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\final_integration_redteam_pack_v1","entries_count":30}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\final_integration_redteam_pack_v1\\COUNTEREXAMPLES","entries_count":4}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\final_integration_redteam_pack_v1\\MUTANTS","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\final_integration_redteam_pack_v1\\ORACLES","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\final_integration_redteam_pack_v1\\SIMULATION","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\integration_certification_factory_v3","entries_count":39}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\integration_certification_factory_v3\\CERTIFICATION_PACKAGES","entries_count":5}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\integration_certification_factory_v3\\DIFFERENTIAL_TESTS","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\integration_certification_factory_v3\\FAILURE_CORPUS","entries_count":4}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\integration_certification_factory_v3\\INDEPENDENT_ORACLES","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\integration_certification_factory_v3\\MIGRATION_FIXTURES","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\integration_certification_factory_v3\\PATCH_CANDIDATES","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\integration_certification_factory_v3\\ROLLBACK_FIXTURES","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\integration_certification_factory_v3\\SHADOW_IMPLEMENTATIONS","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\nightshift_adversarial_factory_v5","entries_count":51}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\nightshift_adversarial_factory_v5\\A01","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\nightshift_adversarial_factory_v5\\B01","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\nightshift_adversarial_factory_v5\\BORDER_GUARD","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\nightshift_adversarial_factory_v5\\COUNTEREXAMPLES","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\nightshift_adversarial_factory_v5\\CRASH_RESTART","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\nightshift_adversarial_factory_v5\\CROSS_COMPONENT","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\nightshift_adversarial_factory_v5\\DIAGNOSTICS","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\nightshift_adversarial_factory_v5\\FAILURE_CORPUS","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\nightshift_adversarial_factory_v5\\G01","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\nightshift_adversarial_factory_v5\\GENERATORS","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\nightshift_adversarial_factory_v5\\HUMAN_GATE","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\nightshift_adversarial_factory_v5\\L01","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\nightshift_adversarial_factory_v5\\LONG_HORIZON","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\nightshift_adversarial_factory_v5\\MODELS","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\nightshift_adversarial_factory_v5\\MONEY_FACTORY","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\nightshift_adversarial_factory_v5\\MUTANTS","entries_count":20}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\nightshift_adversarial_factory_v5\\NO_STACKING","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\nightshift_adversarial_factory_v5\\ORACLES","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\nightshift_adversarial_factory_v5\\PROCESS_IDENTITY","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\nightshift_adversarial_factory_v5\\REPAIRS","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\nightshift_adversarial_factory_v5\\REPORTS","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\nightshift_adversarial_factory_v5\\RESOURCE_GOVERNOR","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\nightshift_adversarial_factory_v5\\RESULT_CUSTOMS","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\nightshift_adversarial_factory_v5\\SCENARIOS","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\nightshift_adversarial_factory_v5\\SUPERVISOR","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\rc3_hardening_lab","entries_count":27}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\rc3_hardening_lab\\fixtures","entries_count":0}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\rc3_hardening_lab\\soak_run","entries_count":3}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\rc3_hardening_lab\\soak_run\\follow_up","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\scratch\\rc3_hardening_lab\\soak_run\\task_stamps","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\supervisor","entries_count":14}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\tests","entries_count":7}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening","entries_count":11}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\tests\\__pycache__","entries_count":1}
+{"repo":"courier","dir":"C:\\Users\\lol\\2026-workspace\\courier\\__pycache__","entries_count":1}
+{"repo":"project-memory","dir":"C:\\Users\\lol\\2026-workspace\\project-memory","entries_count":40}
+{"repo":"project-memory","dir":"C:\\Users\\lol\\2026-workspace\\project-memory\\.github","entries_count":1}
+{"repo":"project-memory","dir":"C:\\Users\\lol\\2026-workspace\\project-memory\\.github\\workflows","entries_count":1}
+{"repo":"project-memory","dir":"C:\\Users\\lol\\2026-workspace\\project-memory\\alerts","entries_count":1}
+{"repo":"project-memory","dir":"C:\\Users\\lol\\2026-workspace\\project-memory\\architecture","entries_count":4}
+{"repo":"project-memory","dir":"C:\\Users\\lol\\2026-workspace\\project-memory\\autonomy_proof_lab","entries_count":15}
+{"repo":"project-memory","dir":"C:\\Users\\lol\\2026-workspace\\project-memory\\autonomy_proof_lab\\zero_prompt_universal","entries_count":11}
+{"repo":"project-memory","dir":"C:\\Users\\lol\\2026-workspace\\project-memory\\autonomy_proof_lab\\__pycache__","entries_count":11}
+{"repo":"project-memory","dir":"C:\\Users\\lol\\2026-workspace\\project-memory\\backups","entries_count":1}
+{"repo":"project-memory","dir":"C:\\Users\\lol\\2026-workspace\\project-memory\\backups\\backup_cli_manual_2026-09-07T05-17-57-177Z","entries_count":3}
+{"repo":"project-memory","dir":"C:\\Users\\lol\\2026-workspace\\project-memory\\backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\thoughts","entries_count":14}
+{"repo":"project-memory","dir":"C:\\Users\\lol\\2026-workspace\\project-memory\\benchmarks","entries_count":1}
+{"repo":"project-memory","dir":"C:\\Users\\lol\\2026-workspace\\project-memory\\CHAT_CONTRIBUTIONS","entries_count":1}
+{"repo":"project-memory","dir":"C:\\Users\\lol\\2026-workspace\\project-memory\\company_os","entries_count":4}
+{"repo":"project-memory","dir":"C:\\Users\\lol\\2026-workspace\\project-memory\\data","entries_count":1}
+{"repo":"project-memory","dir":"C:\\Users\\lol\\2026-workspace\\project-memory\\data\\warehouse","entries_count":5}
+{"repo":"project-memory","dir":"C:\\Users\\lol\\2026-workspace\\project-memory\\dossiers","entries_count":31}
+{"repo":"project-memory","dir":"C:\\Users\\lol\\2026-workspace\\project-memory\\engine","entries_count":15}
+{"repo":"project-memory","dir":"C:\\Users\\lol\\2026-workspace\\project-memory\\exports","entries_count":3}
+{"repo":"project-memory","dir":"C:\\Users\\lol\\2026-workspace\\project-memory\\metrics","entries_count":2}
+{"repo":"project-memory","dir":"C:\\Users\\lol\\2026-workspace\\project-memory\\money_factory","entries_count":12}
+{"repo":"project-memory","dir":"C:\\Users\\lol\\2026-workspace\\project-memory\\parallel_writer","entries_count":10}
+{"repo":"project-memory","dir":"C:\\Users\\lol\\2026-workspace\\project-memory\\scripts","entries_count":7}
+{"repo":"project-memory","dir":"C:\\Users\\lol\\2026-workspace\\project-memory\\studio","entries_count":2}
+{"repo":"project-memory","dir":"C:\\Users\\lol\\2026-workspace\\project-memory\\temp_test_wt","entries_count":0}
+{"repo":"project-memory","dir":"C:\\Users\\lol\\2026-workspace\\project-memory\\temp_verify_wt","entries_count":0}
+{"repo":"project-memory","dir":"C:\\Users\\lol\\2026-workspace\\project-memory\\tests","entries_count":11}
+{"repo":"project-memory","dir":"C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts","entries_count":78}
+{"repo":"project-memory","dir":"C:\\Users\\lol\\2026-workspace\\project-memory\\validation","entries_count":9}
+{"repo":"project-memory","dir":"C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\package","entries_count":8}
+{"repo":"project-memory","dir":"C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions","entries_count":52}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026","entries_count":5}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP","entries_count":10}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config","entries_count":14}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins","entries_count":20}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\android-cli-plugin","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\android-cli-plugin\\skills","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\android-cli-plugin\\skills\\references","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\chrome-devtools-plugin","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\chrome-devtools-plugin\\skills","entries_count":10}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\chrome-devtools-plugin\\skills\\a11y-debugging","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\chrome-devtools-plugin\\skills\\a11y-debugging\\references","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\chrome-devtools-plugin\\skills\\chrome-devtools","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\chrome-devtools-plugin\\skills\\debug-optimize-lcp","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\chrome-devtools-plugin\\skills\\debug-optimize-lcp\\references","entries_count":8}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\chrome-devtools-plugin\\skills\\memory-leak-debugging","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\chrome-devtools-plugin\\skills\\memory-leak-debugging\\references","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\chrome-devtools-plugin\\skills\\troubleshooting","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin","entries_count":8}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills","entries_count":50}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\accidental_data_loss_prevention","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\bigquery_ai_ml","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\bigquery_ai_ml\\references","entries_count":34}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\bigquery_bigframes","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\bigquery_bigframes\\references","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\bigquery_data_transfer_service","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\bigquery_data_transfer_service\\scripts","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\bigquery_graph","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\bigquery_graph\\references","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\bigquery_graph\\references\\graph-schema","entries_count":8}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\bigquery_sql","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\building_data_apps","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\building_data_apps\\examples","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\building_data_apps\\references","entries_count":8}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\dataform_bigquery","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\data_autocleaning","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\data_autocleaning\\scripts","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\dbt_bigquery","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\discovering_gcp_data_assets","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\enforcing_resource_attribution","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\federate_lakehouse_catalog","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\gcloud_auth_verification","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\gcp_composer_troubleshooting","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\gcp_dataflow","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\gcp_dataflow\\references","entries_count":18}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\gcp_data_pipelines","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\gcp_managed_airflow_migrations","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\gcp_managed_airflow_migrations\\references","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\gcp_pipeline_orchestration","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\gcp_pipeline_orchestration\\references","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\gcp_pipeline_orchestration\\scripts","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\gcp_pipeline_orchestration\\scripts\\trigger","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\gcp_pipeline_resource_provisioning","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\gcp_pipeline_resource_provisioning\\references","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\gcp_spark","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\gcp_spark\\references","entries_count":10}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\gcs_security_assessment","entries_count":8}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\gcs_security_assessment\\examples","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\gcs_security_assessment\\references","entries_count":12}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\gcs_security_assessment\\references\\phases","entries_count":10}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\gcs_security_assessment\\scripts","entries_count":14}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\managing_python_dependencies","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\ml_best_practices","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\data-agent-kit-plugin\\skills\\notebook_guidance","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\firebase","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\firebase\\skills","entries_count":22}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\firebase\\skills\\firebase_ai_logic_basics","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\firebase\\skills\\firebase_ai_logic_basics\\references","entries_count":8}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\firebase\\skills\\firebase_app_hosting_basics","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\firebase\\skills\\firebase_app_hosting_basics\\references","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\firebase\\skills\\firebase_auth_basics","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\firebase\\skills\\firebase_auth_basics\\references","entries_count":10}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\firebase\\skills\\firebase_basics","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\firebase\\skills\\firebase_basics\\references","entries_count":18}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\firebase\\skills\\firebase_basics\\references\\refresh","entries_count":10}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\firebase\\skills\\firebase_basics\\references\\setup","entries_count":14}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\firebase\\skills\\firebase_crashlytics","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\firebase\\skills\\firebase_crashlytics\\references","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\firebase\\skills\\firebase_data_connect_basics","entries_count":10}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\firebase\\skills\\firebase_data_connect_basics\\reference","entries_count":24}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\firebase\\skills\\firebase_firestore","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\firebase\\skills\\firebase_firestore\\references","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\firebase\\skills\\firebase_firestore\\references\\enterprise","entries_count":18}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\firebase\\skills\\firebase_firestore\\references\\standard","entries_count":14}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\firebase\\skills\\firebase_hosting_basics","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\firebase\\skills\\firebase_hosting_basics\\references","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\firebase\\skills\\firebase_remote_config_basics","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\firebase\\skills\\firebase_remote_config_basics\\references","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\firebase\\skills\\firebase_security_rules_auditor","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\firebase\\skills\\xcode_project_setup","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\firebase\\skills\\xcode_project_setup\\scripts","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\firebase\\skills\\xcode_project_setup\\scripts\\xcode_spm_setup","entries_count":8}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\firebase\\skills\\xcode_project_setup\\scripts\\xcode_spm_setup\\Sources","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\flutter","entries_count":12}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\flutter\\agents","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\flutter\\rules","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\flutter\\skills","entries_count":46}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\flutter\\skills\\dart-add-unit-test","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\flutter\\skills\\dart-build-cli-app","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\flutter\\skills\\dart-collect-coverage","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\flutter\\skills\\dart-fix-runtime-errors","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\flutter\\skills\\dart-generate-test-mocks","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\flutter\\skills\\dart-migrate-to-checks-package","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\flutter\\skills\\dart-resolve-package-conflicts","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\flutter\\skills\\dart-run-static-analysis","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\flutter\\skills\\dart-setup-ffi-assets","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\flutter\\skills\\dart-use-ffigen","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\flutter\\skills\\dart-use-pattern-matching","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\flutter\\skills\\dart-use-primary-constructors","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\flutter\\skills\\dart-write-documentation","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\flutter\\skills\\flutter-add-integration-test","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\flutter\\skills\\flutter-add-widget-preview","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\flutter\\skills\\flutter-add-widget-test","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\flutter\\skills\\flutter-apply-architecture-best-practices","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\flutter\\skills\\flutter-build-responsive-layout","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\flutter\\skills\\flutter-fix-layout-issues","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\flutter\\skills\\flutter-implement-json-serialization","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\flutter\\skills\\flutter-setup-declarative-routing","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\flutter\\skills\\flutter-setup-localization","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\flutter\\skills\\flutter-use-http-package","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\gemini-api","entries_count":8}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\gemini-api\\skills","entries_count":8}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\gemini-api\\skills\\gemini-api-dev","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\gemini-api\\skills\\gemini-interactions-api","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\gemini-api\\skills\\gemini-interactions-api\\references","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\gemini-api\\skills\\gemini-live-api-dev","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\gemini-api\\skills\\gemini-omni-flash-api","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\gemini-api\\skills\\gemini-omni-flash-api\\scripts","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\gemini-api\\skills\\gemini-omni-flash-api\\scripts\\video","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\google-antigravity-sdk","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\google-antigravity-sdk\\skills","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\google-antigravity-sdk\\skills\\google-antigravity-sdk","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\google-antigravity-sdk\\skills\\google-antigravity-sdk\\examples","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\google-antigravity-sdk\\skills\\google-antigravity-sdk\\examples\\getting_started","entries_count":34}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\google-antigravity-sdk\\skills\\google-antigravity-sdk\\references","entries_count":16}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\google_maps_platform","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\google_maps_platform\\skills","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\modern-web-guidance-plugin","entries_count":12}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\modern-web-guidance-plugin\\policies","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\modern-web-guidance-plugin\\skills","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\modern-web-guidance-plugin\\skills\\chrome-extensions","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\modern-web-guidance-plugin\\skills\\chrome-extensions\\references","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\modern-web-guidance-plugin\\skills\\chrome-extensions\\references\\extensions","entries_count":34}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\modern-web-guidance-plugin\\skills\\chrome-extensions\\references\\webstore","entries_count":8}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\modern-web-guidance-plugin\\skills\\modern-web-guidance","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science","entries_count":14}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills","entries_count":76}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\alphafold_database_fetch_and_analyze","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\alphafold_database_fetch_and_analyze\\references","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\alphafold_database_fetch_and_analyze\\scripts","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\alphagenome_single_variant_analysis","entries_count":10}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\alphagenome_single_variant_analysis\\docs","entries_count":8}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\alphagenome_single_variant_analysis\\docs\\examples","entries_count":12}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\alphagenome_single_variant_analysis\\docs\\examples\\model_limitation_RNU4ATAC","entries_count":12}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\alphagenome_single_variant_analysis\\docs\\examples\\negative_result_GATA4","entries_count":12}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\alphagenome_single_variant_analysis\\docs\\examples\\negative_result_TGFB3","entries_count":14}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\alphagenome_single_variant_analysis\\docs\\examples\\polyadenylation_HBA2","entries_count":10}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\alphagenome_single_variant_analysis\\docs\\examples\\regulatory","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\alphagenome_single_variant_analysis\\docs\\examples\\regulatory\\apoa1_promoter","entries_count":10}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\alphagenome_single_variant_analysis\\docs\\examples\\splicing","entries_count":10}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\alphagenome_single_variant_analysis\\references","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\alphagenome_single_variant_analysis\\scripts","entries_count":14}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\chembl_database","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\chembl_database\\references","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\chembl_database\\scripts","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\clinical_trials_database","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\clinical_trials_database\\references","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\clinical_trials_database\\scripts","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\clinvar_database","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\clinvar_database\\references","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\clinvar_database\\scripts","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\credentials","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\dbsnp_database","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\dbsnp_database\\references","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\dbsnp_database\\scripts","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\embl_ebi_ols","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\embl_ebi_ols\\references","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\embl_ebi_ols\\scripts","entries_count":16}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\encode_ccres_database","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\encode_ccres_database\\references","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\encode_ccres_database\\scripts","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\ensembl_database","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\ensembl_database\\references","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\ensembl_database\\scripts","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\foldseek_structural_search","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\foldseek_structural_search\\references","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\foldseek_structural_search\\scripts","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\gnomad_database","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\gnomad_database\\references","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\gnomad_database\\scripts","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\gtex_database","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\gtex_database\\references","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\gtex_database\\scripts","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\human_protein_atlas_database","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\human_protein_atlas_database\\references","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\human_protein_atlas_database\\scripts","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\interpro_database","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\interpro_database\\references","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\interpro_database\\scripts","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\jaspar_database","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\jaspar_database\\references","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\jaspar_database\\scripts","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\literature_search_arxiv","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\literature_search_arxiv\\references","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\literature_search_arxiv\\scripts","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\literature_search_biorxiv","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\literature_search_biorxiv\\references","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\literature_search_biorxiv\\scripts","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\literature_search_europepmc","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\literature_search_europepmc\\references","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\literature_search_europepmc\\scripts","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\literature_search_openalex","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\literature_search_openalex\\references","entries_count":20}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\literature_search_openalex\\scripts","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\ncbi_sequence_fetch","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\ncbi_sequence_fetch\\references","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\ncbi_sequence_fetch\\scripts","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\openfda_database","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\openfda_database\\references","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\openfda_database\\scripts","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\opentargets_database","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\opentargets_database\\references","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\opentargets_database\\scripts","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\pdb_database","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\pdb_database\\references","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\pdb_database\\scripts","entries_count":8}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\predictingthepast","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\predictingthepast\\references","entries_count":12}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\predictingthepast\\scripts","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\protein_sequence_msa","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\protein_sequence_msa\\references","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\protein_sequence_msa\\scripts","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\protein_sequence_similarity_search","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\protein_sequence_similarity_search\\references","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\protein_sequence_similarity_search\\scripts","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\pubchem_database","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\pubchem_database\\references","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\pubchem_database\\scripts","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\pubmed_database","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\pubmed_database\\references","entries_count":18}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\pubmed_database\\scripts","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\pymol","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\pymol\\references","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\quickgo_database","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\quickgo_database\\references","entries_count":10}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\quickgo_database\\scripts","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\reactome_database","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\reactome_database\\references","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\reactome_database\\scripts","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\string_database","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\string_database\\references","entries_count":10}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\string_database\\scripts","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\ucsc_conservation_and_tfbs","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\ucsc_conservation_and_tfbs\\references","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\ucsc_conservation_and_tfbs\\scripts","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\unibind_database","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\unibind_database\\references","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\unibind_database\\scripts","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\uniprot_database","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\uniprot_database\\references","entries_count":8}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\uniprot_database\\scripts","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\uv","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\workflow_skill_creator","entries_count":4}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\plugins\\science\\skills\\workflow_skill_creator\\references","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\projects","entries_count":6}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\rules","entries_count":2}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\NEW_ACCOUNT_BACKUP\\config\\sidecars","entries_count":0}
+{"repo":"documents_project","dir":"C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026\\SETUP_TRANSFER","entries_count":48}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config","entries_count":7}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins","entries_count":10}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\android-cli-plugin","entries_count":6}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\android-cli-plugin\\skills","entries_count":4}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\android-cli-plugin\\skills\\references","entries_count":4}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\chrome-devtools-plugin","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\chrome-devtools-plugin\\skills","entries_count":5}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\chrome-devtools-plugin\\skills\\a11y-debugging","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\chrome-devtools-plugin\\skills\\a11y-debugging\\references","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\chrome-devtools-plugin\\skills\\chrome-devtools","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\chrome-devtools-plugin\\skills\\debug-optimize-lcp","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\chrome-devtools-plugin\\skills\\debug-optimize-lcp\\references","entries_count":4}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\chrome-devtools-plugin\\skills\\memory-leak-debugging","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\chrome-devtools-plugin\\skills\\memory-leak-debugging\\references","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\chrome-devtools-plugin\\skills\\troubleshooting","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin","entries_count":4}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills","entries_count":25}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\accidental_data_loss_prevention","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\bigquery_ai_ml","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\bigquery_ai_ml\\references","entries_count":17}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\bigquery_bigframes","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\bigquery_bigframes\\references","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\bigquery_data_transfer_service","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\bigquery_data_transfer_service\\scripts","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\bigquery_graph","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\bigquery_graph\\references","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\bigquery_graph\\references\\graph-schema","entries_count":4}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\bigquery_sql","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\building_data_apps","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\building_data_apps\\examples","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\building_data_apps\\references","entries_count":4}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\dataform_bigquery","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\data_autocleaning","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\data_autocleaning\\scripts","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\dbt_bigquery","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\discovering_gcp_data_assets","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\enforcing_resource_attribution","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\federate_lakehouse_catalog","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\gcloud_auth_verification","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\gcp_composer_troubleshooting","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\gcp_dataflow","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\gcp_dataflow\\references","entries_count":9}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\gcp_data_pipelines","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\gcp_managed_airflow_migrations","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\gcp_managed_airflow_migrations\\references","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\gcp_pipeline_orchestration","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\gcp_pipeline_orchestration\\references","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\gcp_pipeline_orchestration\\scripts","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\gcp_pipeline_orchestration\\scripts\\trigger","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\gcp_pipeline_resource_provisioning","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\gcp_pipeline_resource_provisioning\\references","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\gcp_spark","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\gcp_spark\\references","entries_count":5}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\gcs_security_assessment","entries_count":4}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\gcs_security_assessment\\examples","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\gcs_security_assessment\\references","entries_count":6}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\gcs_security_assessment\\references\\phases","entries_count":5}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\gcs_security_assessment\\scripts","entries_count":7}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\managing_python_dependencies","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\ml_best_practices","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\data-agent-kit-plugin\\skills\\notebook_guidance","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\firebase","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\firebase\\skills","entries_count":11}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\firebase\\skills\\firebase_ai_logic_basics","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\firebase\\skills\\firebase_ai_logic_basics\\references","entries_count":4}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\firebase\\skills\\firebase_app_hosting_basics","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\firebase\\skills\\firebase_app_hosting_basics\\references","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\firebase\\skills\\firebase_auth_basics","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\firebase\\skills\\firebase_auth_basics\\references","entries_count":5}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\firebase\\skills\\firebase_basics","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\firebase\\skills\\firebase_basics\\references","entries_count":9}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\firebase\\skills\\firebase_basics\\references\\refresh","entries_count":5}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\firebase\\skills\\firebase_basics\\references\\setup","entries_count":7}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\firebase\\skills\\firebase_crashlytics","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\firebase\\skills\\firebase_crashlytics\\references","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\firebase\\skills\\firebase_data_connect_basics","entries_count":5}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\firebase\\skills\\firebase_data_connect_basics\\reference","entries_count":12}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\firebase\\skills\\firebase_firestore","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\firebase\\skills\\firebase_firestore\\references","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\firebase\\skills\\firebase_firestore\\references\\enterprise","entries_count":9}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\firebase\\skills\\firebase_firestore\\references\\standard","entries_count":7}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\firebase\\skills\\firebase_hosting_basics","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\firebase\\skills\\firebase_hosting_basics\\references","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\firebase\\skills\\firebase_remote_config_basics","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\firebase\\skills\\firebase_remote_config_basics\\references","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\firebase\\skills\\firebase_security_rules_auditor","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\firebase\\skills\\xcode_project_setup","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\firebase\\skills\\xcode_project_setup\\scripts","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\firebase\\skills\\xcode_project_setup\\scripts\\xcode_spm_setup","entries_count":4}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\firebase\\skills\\xcode_project_setup\\scripts\\xcode_spm_setup\\Sources","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\flutter","entries_count":6}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\flutter\\agents","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\flutter\\rules","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\flutter\\skills","entries_count":23}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\flutter\\skills\\dart-add-unit-test","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\flutter\\skills\\dart-build-cli-app","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\flutter\\skills\\dart-collect-coverage","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\flutter\\skills\\dart-fix-runtime-errors","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\flutter\\skills\\dart-generate-test-mocks","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\flutter\\skills\\dart-migrate-to-checks-package","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\flutter\\skills\\dart-resolve-package-conflicts","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\flutter\\skills\\dart-run-static-analysis","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\flutter\\skills\\dart-setup-ffi-assets","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\flutter\\skills\\dart-use-ffigen","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\flutter\\skills\\dart-use-pattern-matching","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\flutter\\skills\\dart-use-primary-constructors","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\flutter\\skills\\dart-write-documentation","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\flutter\\skills\\flutter-add-integration-test","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\flutter\\skills\\flutter-add-widget-preview","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\flutter\\skills\\flutter-add-widget-test","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\flutter\\skills\\flutter-apply-architecture-best-practices","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\flutter\\skills\\flutter-build-responsive-layout","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\flutter\\skills\\flutter-fix-layout-issues","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\flutter\\skills\\flutter-implement-json-serialization","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\flutter\\skills\\flutter-setup-declarative-routing","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\flutter\\skills\\flutter-setup-localization","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\flutter\\skills\\flutter-use-http-package","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\gemini-api","entries_count":4}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\gemini-api\\skills","entries_count":4}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\gemini-api\\skills\\gemini-api-dev","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\gemini-api\\skills\\gemini-interactions-api","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\gemini-api\\skills\\gemini-interactions-api\\references","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\gemini-api\\skills\\gemini-live-api-dev","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\gemini-api\\skills\\gemini-omni-flash-api","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\gemini-api\\skills\\gemini-omni-flash-api\\scripts","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\gemini-api\\skills\\gemini-omni-flash-api\\scripts\\video","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\google-antigravity-sdk","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\google-antigravity-sdk\\skills","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\google-antigravity-sdk\\skills\\google-antigravity-sdk","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\google-antigravity-sdk\\skills\\google-antigravity-sdk\\examples","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\google-antigravity-sdk\\skills\\google-antigravity-sdk\\examples\\getting_started","entries_count":17}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\google-antigravity-sdk\\skills\\google-antigravity-sdk\\references","entries_count":8}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\google_maps_platform","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\google_maps_platform\\skills","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\modern-web-guidance-plugin","entries_count":6}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\modern-web-guidance-plugin\\policies","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\modern-web-guidance-plugin\\skills","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\modern-web-guidance-plugin\\skills\\chrome-extensions","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\modern-web-guidance-plugin\\skills\\chrome-extensions\\references","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\modern-web-guidance-plugin\\skills\\chrome-extensions\\references\\extensions","entries_count":17}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\modern-web-guidance-plugin\\skills\\chrome-extensions\\references\\webstore","entries_count":4}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\modern-web-guidance-plugin\\skills\\modern-web-guidance","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science","entries_count":7}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills","entries_count":40}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\alphafold_database_fetch_and_analyze","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\alphafold_database_fetch_and_analyze\\references","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\alphafold_database_fetch_and_analyze\\scripts","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\alphagenome_atlas_website_links","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\alphagenome_atlas_website_links\\scripts","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\alphagenome_single_variant_analysis","entries_count":5}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\alphagenome_single_variant_analysis\\docs","entries_count":4}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\alphagenome_single_variant_analysis\\docs\\examples","entries_count":6}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\alphagenome_single_variant_analysis\\docs\\examples\\model_limitation_RNU4ATAC","entries_count":6}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\alphagenome_single_variant_analysis\\docs\\examples\\negative_result_GATA4","entries_count":6}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\alphagenome_single_variant_analysis\\docs\\examples\\negative_result_TGFB3","entries_count":7}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\alphagenome_single_variant_analysis\\docs\\examples\\polyadenylation_HBA2","entries_count":5}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\alphagenome_single_variant_analysis\\docs\\examples\\regulatory","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\alphagenome_single_variant_analysis\\docs\\examples\\regulatory\\apoa1_promoter","entries_count":5}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\alphagenome_single_variant_analysis\\docs\\examples\\splicing","entries_count":5}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\alphagenome_single_variant_analysis\\references","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\alphagenome_single_variant_analysis\\scripts","entries_count":7}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\alphagenome_variant_impact_score","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\alphagenome_variant_impact_score\\scripts","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\chembl_database","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\chembl_database\\references","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\chembl_database\\scripts","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\clinical_trials_database","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\clinical_trials_database\\references","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\clinical_trials_database\\scripts","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\clinvar_database","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\clinvar_database\\references","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\clinvar_database\\scripts","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\credentials","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\dbsnp_database","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\dbsnp_database\\references","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\dbsnp_database\\scripts","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\embl_ebi_ols","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\embl_ebi_ols\\references","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\embl_ebi_ols\\scripts","entries_count":8}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\encode_ccres_database","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\encode_ccres_database\\references","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\encode_ccres_database\\scripts","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\ensembl_database","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\ensembl_database\\references","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\ensembl_database\\scripts","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\foldseek_structural_search","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\foldseek_structural_search\\references","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\foldseek_structural_search\\scripts","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\gnomad_database","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\gnomad_database\\references","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\gnomad_database\\scripts","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\gtex_database","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\gtex_database\\references","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\gtex_database\\scripts","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\human_protein_atlas_database","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\human_protein_atlas_database\\references","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\human_protein_atlas_database\\scripts","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\interpro_database","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\interpro_database\\references","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\interpro_database\\scripts","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\jaspar_database","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\jaspar_database\\references","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\jaspar_database\\scripts","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\literature_search_arxiv","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\literature_search_arxiv\\references","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\literature_search_arxiv\\scripts","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\literature_search_biorxiv","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\literature_search_biorxiv\\references","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\literature_search_biorxiv\\scripts","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\literature_search_europepmc","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\literature_search_europepmc\\references","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\literature_search_europepmc\\scripts","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\literature_search_openalex","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\literature_search_openalex\\references","entries_count":10}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\literature_search_openalex\\scripts","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\ncbi_sequence_fetch","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\ncbi_sequence_fetch\\references","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\ncbi_sequence_fetch\\scripts","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\openfda_database","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\openfda_database\\references","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\openfda_database\\scripts","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\opentargets_database","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\opentargets_database\\references","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\opentargets_database\\scripts","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\pdb_database","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\pdb_database\\references","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\pdb_database\\scripts","entries_count":4}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\predictingthepast","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\predictingthepast\\references","entries_count":6}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\predictingthepast\\scripts","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\protein_sequence_msa","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\protein_sequence_msa\\references","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\protein_sequence_msa\\scripts","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\protein_sequence_similarity_search","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\protein_sequence_similarity_search\\references","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\protein_sequence_similarity_search\\scripts","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\pubchem_database","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\pubchem_database\\references","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\pubchem_database\\scripts","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\pubmed_database","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\pubmed_database\\references","entries_count":9}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\pubmed_database\\scripts","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\pymol","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\pymol\\references","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\quickgo_database","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\quickgo_database\\references","entries_count":5}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\quickgo_database\\scripts","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\reactome_database","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\reactome_database\\references","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\reactome_database\\scripts","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\string_database","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\string_database\\references","entries_count":5}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\string_database\\scripts","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\ucsc_conservation_and_tfbs","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\ucsc_conservation_and_tfbs\\references","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\ucsc_conservation_and_tfbs\\scripts","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\unibind_database","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\unibind_database\\references","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\unibind_database\\scripts","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\uniprot_database","entries_count":3}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\uniprot_database\\references","entries_count":4}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\uniprot_database\\scripts","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\uv","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\workflow_skill_creator","entries_count":2}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\plugins\\science\\skills\\workflow_skill_creator\\references","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\projects","entries_count":5}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\rules","entries_count":1}
+{"repo":"gemini_config","dir":"C:\\Users\\lol\\.gemini\\config\\sidecars","entries_count":0}

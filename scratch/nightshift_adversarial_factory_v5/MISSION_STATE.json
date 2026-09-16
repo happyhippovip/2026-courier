@@ -1,0 +1,32 @@
+{
+  "mission_id": "WINDOWS_COURIER_NIGHTSHIFT_ADVERSARIAL_FACTORY_V5",
+  "status": "COMPLETE",
+  "started_at": "2026-09-09T21:03:45.211Z",
+  "last_updated_at": "2026-09-09T21:08:10.863Z",
+  "current_campaign": "NONE (ALL CAMPAIGNS COMPLETE)",
+  "current_experiment": "EXP_INIT",
+  "current_seed": "SEED_INITIAL_000",
+  "last_verified_action": "All 7 V5 campaigns executed; saturation adversary passed; 0 open defects.",
+  "tests_run": 133,
+  "tests_pass": 133,
+  "tests_fail": 0,
+  "mutations_created": 20,
+  "mutations_killed": 20,
+  "mutations_survived": 0,
+  "counterexamples_found": 0,
+  "counterexamples_minimized": 0,
+  "open_p0": 0,
+  "open_p1": 0,
+  "open_p2": 0,
+  "open_p3": 0,
+  "information_gain_recent": "V5 factory framework initialized. Evidence imported.",
+  "saturation_score": 1,
+  "exact_next_action": "NONE (MISSION COMPLETE & PARKED)",
+  "do_not_repeat": [
+    "RC3 Hardening (315 tests)",
+    "V2 Deep Engineering (498 tests)",
+    "V3 Certification Factory (130 tests)",
+    "Sweep V1 (10 scenarios)",
+    "Final 4PCT (69 tests)"
+  ]
+}

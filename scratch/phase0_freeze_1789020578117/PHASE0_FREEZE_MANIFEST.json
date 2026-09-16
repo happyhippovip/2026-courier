@@ -1,0 +1,794 @@
+{
+  "timestamp_utc": "2026-09-10T06:09:38.118Z",
+  "branch": "windows/money-factory-p0",
+  "head": "aa5c01d21c7e055c7e3b5117ded5eddc6793dde4",
+  "status_lines": [
+    "M money_factory/anti_loop_policy.js",
+    " M money_factory/index.js",
+    " M money_factory/portfolios.js",
+    " M money_factory/prediction_calibration.js",
+    " M money_factory/safety_gates.js",
+    " M money_factory/warehouse.js",
+    " M opportunity_warehouse/opportunities.json",
+    "?? FILES_CHANGED.json",
+    "?? MANDATORY_SCENARIOS_REPORT.json",
+    "?? MONEY_FACTORY_WINDOWS_HANDOFF.md",
+    "?? NEXT_CANARY_PLAN.md",
+    "?? PRODUCTION_INTEGRATION_EVIDENCE.json",
+    "?? PRODUCTION_INTEGRATION_REPORT.md",
+    "?? ROLLBACK_VERIFICATION.json",
+    "?? SAFETY_VERIFICATION.json",
+    "?? SUPERVISOR_PLANE_ARCHITECTURE.md",
+    "?? TEST_RESULTS.json",
+    "?? WINDOWS_RESUME_CHECKPOINT.md",
+    "?? chief/",
+    "?? core/",
+    "?? governance/",
+    "?? money_factory/cheapest_test.js",
+    "?? money_factory/evidence_ledger.js",
+    "?? money_factory/first_5_euro_simulator.js",
+    "?? money_factory/supervisor_compat.js",
+    "?? opportunity_warehouse/evidence/",
+    "?? opportunity_warehouse/research/",
+    "?? scratch/",
+    "?? supervisor/",
+    "?? tests/rc3_hardening/",
+    "?? tests/test_mandatory_scenarios_suite.js",
+    "?? tests/test_money_factory_closure.js",
+    "?? tests/test_supervisor_plane_p0.js"
+  ],
+  "diff_stat": " money_factory/anti_loop_policy.js        | 77 +++++++++++++++++++++++++++\n money_factory/index.js                   | 16 +++++-\n money_factory/portfolios.js              | 43 ++++++++++++---\n money_factory/prediction_calibration.js  | 89 +++++++++++++++++++++++++++++++-\n money_factory/safety_gates.js            | 45 ++++++++++++----\n money_factory/warehouse.js               |  8 +++\n opportunity_warehouse/opportunities.json |  8 +++\n 7 files changed, 269 insertions(+), 17 deletions(-)\n",
+  "active_leases_count": 0,
+  "total_files": 107,
+  "files": [
+    {
+      "relPath": "chief/cli.py",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\chief\\cli.py",
+      "size": 8587,
+      "lines": 219,
+      "sha256": "72e0ed3d4e7f003f27d94f1e5c43b26885f053ac4f40bc890fae114818b825f5"
+    },
+    {
+      "relPath": "chief/control_plane.py",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\chief\\control_plane.py",
+      "size": 26009,
+      "lines": 606,
+      "sha256": "1a34fe44e8d815654c52cb674bd96a60701f16444d7d9582b2d4b48a0733535b"
+    },
+    {
+      "relPath": "chief/coordinator.py",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\chief\\coordinator.py",
+      "size": 10055,
+      "lines": 257,
+      "sha256": "bb755d93faa564e66f210d6913e15a01e4893a59a06b24617454c2e04e7eeeda"
+    },
+    {
+      "relPath": "chief/delta_engine.py",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\chief\\delta_engine.py",
+      "size": 8876,
+      "lines": 204,
+      "sha256": "3229ca5a1f43e56835e4bde7230988964a151d144e6f14d0fe10f604194b83f6"
+    },
+    {
+      "relPath": "chief/ingestor.py",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\chief\\ingestor.py",
+      "size": 11631,
+      "lines": 298,
+      "sha256": "e3526a1aef50f3a70cf80ede72e650e2934a023edba49d450551e3ca254044ec"
+    },
+    {
+      "relPath": "chief/safewrite.py",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\chief\\safewrite.py",
+      "size": 3036,
+      "lines": 95,
+      "sha256": "c85fb5cf97661e2e6fc6322fd1c2d0541e8a201dc4c40a09953fda20b4d03c9f"
+    },
+    {
+      "relPath": "chief/types.py",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\chief\\types.py",
+      "size": 4329,
+      "lines": 163,
+      "sha256": "9f5470fd0983cf4ccb509645845d4dce36c41490411b8847514cb93494015c37"
+    },
+    {
+      "relPath": "chief/validator.py",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\chief\\validator.py",
+      "size": 3717,
+      "lines": 89,
+      "sha256": "5528dee7820fd7830c428b9d87818c117c12251d1bf23f328794fbf6f759e7cd"
+    },
+    {
+      "relPath": "chief/__init__.py",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\chief\\__init__.py",
+      "size": 519,
+      "lines": 25,
+      "sha256": "f8565d2fbfea5942fc822f22325978d06705ab1a48dc481333d5bad1e86dbeb1"
+    },
+    {
+      "relPath": "content_os/ACCOUNT_SETUP_REQUESTS.md",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\content_os\\ACCOUNT_SETUP_REQUESTS.md",
+      "size": 10526,
+      "lines": 193,
+      "sha256": "0025828f384cdc5e26ee14551024b9c96cf02830728d802b3f653cb29e89af3f"
+    },
+    {
+      "relPath": "content_os/candidate_queue.json",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\content_os\\candidate_queue.json",
+      "size": 4851,
+      "lines": 122,
+      "sha256": "52e0b02ea4b7029434eb2424ec4e59053032599bb7f96a24e07e75593a893154"
+    },
+    {
+      "relPath": "content_os/lane4_data_renderer.py",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\content_os\\lane4_data_renderer.py",
+      "size": 4134,
+      "lines": 106,
+      "sha256": "43325ff591ee50a4a7f3c43d745193b54ed7d15ccc038b78819c4d2b59a71217"
+    },
+    {
+      "relPath": "content_os/opportunity_evaluator.py",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\content_os\\opportunity_evaluator.py",
+      "size": 5000,
+      "lines": 149,
+      "sha256": "e61a4d7434fbce68ab0558a74e007685eba493d65620f4ee626b68931014eb07"
+    },
+    {
+      "relPath": "content_os/PHASE1_EVIDENCE_AND_PILOT_QUEUE.md",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\content_os\\PHASE1_EVIDENCE_AND_PILOT_QUEUE.md",
+      "size": 22217,
+      "lines": 290,
+      "sha256": "776e5d87cd3e39b36b2d1a479afa64ea0bd32b26db937022df1836ffa754c716"
+    },
+    {
+      "relPath": "content_os/template_engine.py",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\content_os\\template_engine.py",
+      "size": 4316,
+      "lines": 132,
+      "sha256": "01b01aaee6f0487364ba6e6ef7ebc9b946e45afe2cb0002c3264276a5441f4b9"
+    },
+    {
+      "relPath": "content_os/tests/test_content_os.py",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\content_os\\tests\\test_content_os.py",
+      "size": 6118,
+      "lines": 145,
+      "sha256": "f0945cc88819de3997e18d62886895023fb58172ddec609ceb81b29f0e283b44"
+    },
+    {
+      "relPath": "core/CheckpointStore.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\core\\CheckpointStore.js",
+      "size": 1598,
+      "lines": 45,
+      "sha256": "4444bf191c1269e19425236486fd4470611091ac4e6b6e668ff379f5c672d1bb"
+    },
+    {
+      "relPath": "core/DurableEventLog.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\core\\DurableEventLog.js",
+      "size": 2373,
+      "lines": 75,
+      "sha256": "2b25ed56104019f94f3fea8dd3beed98e9fc86b4d01a68be0a113b100c27bea7"
+    },
+    {
+      "relPath": "core/ReplayEngine.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\core\\ReplayEngine.js",
+      "size": 1422,
+      "lines": 49,
+      "sha256": "226528a534aa924bbf4acc3d8bd4f428bfb16dbc025cd2f1588e58e60e37b230"
+    },
+    {
+      "relPath": "core/SchemaRegistry.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\core\\SchemaRegistry.js",
+      "size": 1163,
+      "lines": 48,
+      "sha256": "0a1a9f944e9ff63949b03d77a00c9968f2ab0463bc9139cf057c51ac36084a6e"
+    },
+    {
+      "relPath": "core/StateProjector.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\core\\StateProjector.js",
+      "size": 2976,
+      "lines": 93,
+      "sha256": "db6e0468b1c58c60b4b9b5dceb668919236b3602d55a0c566c3c41c28ff6bd24"
+    },
+    {
+      "relPath": "COURIER_COORDINATION_POLICY.md",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\COURIER_COORDINATION_POLICY.md",
+      "size": 3511,
+      "lines": 73,
+      "sha256": "fe700dcf928335a5120635d418859629cd3aa4db9f1f259f844e7c57b95b9b88"
+    },
+    {
+      "relPath": "cross_device_intake.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\cross_device_intake.js",
+      "size": 6691,
+      "lines": 201,
+      "sha256": "5028b74800379734425ce6b090c534a0879f1eefbd996a83d056c5c716664775"
+    },
+    {
+      "relPath": "cross_device_intake.py",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\cross_device_intake.py",
+      "size": 13159,
+      "lines": 326,
+      "sha256": "db7b1bdb65e5bd40888a4daed53ea1abddb8e07a0ff13785fc586ffe1cd27613"
+    },
+    {
+      "relPath": "FILES_CHANGED.json",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\FILES_CHANGED.json",
+      "size": 8072,
+      "lines": 249,
+      "sha256": "7e5efd31c259d629e2c87f87a268100ceeed754c2797456c7bc19b1ce0e73ddd"
+    },
+    {
+      "relPath": "governance/BorderGuard.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\governance\\BorderGuard.js",
+      "size": 2154,
+      "lines": 51,
+      "sha256": "87968421efad74a8c877bed902ad091500e4e8f99eaec873f96b467a9750bae1"
+    },
+    {
+      "relPath": "governance/CapabilityEngine.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\governance\\CapabilityEngine.js",
+      "size": 1325,
+      "lines": 42,
+      "sha256": "c39c46cfd26625b7531b729c7473b73a3e630c8431f07289656629022b868ec5"
+    },
+    {
+      "relPath": "governance/CompletionGovernor.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\governance\\CompletionGovernor.js",
+      "size": 1567,
+      "lines": 40,
+      "sha256": "37d2f4c7d22976b81f80f9ae1213f9ab818bc2fd467c679edd2076801fa9f1a2"
+    },
+    {
+      "relPath": "governance/PolicyValidator.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\governance\\PolicyValidator.js",
+      "size": 3810,
+      "lines": 111,
+      "sha256": "6b7380964d3782de9fb39b8bea445f19cbefbb5c0c58331314fdac9b082e224e"
+    },
+    {
+      "relPath": "governance/ResourceLockManager.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\governance\\ResourceLockManager.js",
+      "size": 1907,
+      "lines": 62,
+      "sha256": "2a22fb024c321a4aab963527f90f220edf9797382f385e716183f82a94b724e8"
+    },
+    {
+      "relPath": "governance/ResultCustoms.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\governance\\ResultCustoms.js",
+      "size": 1502,
+      "lines": 40,
+      "sha256": "8f3306f96f13b1048d63af571e80e88726d90fcafc320bc9c7f4419b14258783"
+    },
+    {
+      "relPath": "governance/TaskPassport.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\governance\\TaskPassport.js",
+      "size": 1421,
+      "lines": 34,
+      "sha256": "378fec6d346b8673061d9426add4a42a9dc7ca1bccf889b547d19e66e677ae15"
+    },
+    {
+      "relPath": "MANDATORY_SCENARIOS_REPORT.json",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\MANDATORY_SCENARIOS_REPORT.json",
+      "size": 3300,
+      "lines": 124,
+      "sha256": "5383e5c1895e588144daad9365ca7f37a3353f75bc019c459d12f2ee23907e61"
+    },
+    {
+      "relPath": "money_factory/anti_loop_policy.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\anti_loop_policy.js",
+      "size": 6823,
+      "lines": 204,
+      "sha256": "6770e9d066cb85038c53fb19cd78c1ebec9581858a940d22a3942a122f59c32e"
+    },
+    {
+      "relPath": "money_factory/cheapest_test.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\cheapest_test.js",
+      "size": 3545,
+      "lines": 85,
+      "sha256": "2e27dc9083e8d5e22373ba6842bb47f839e796f1fbb1dfcaf9adfccd36fd314c"
+    },
+    {
+      "relPath": "money_factory/cycle_ledger.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\cycle_ledger.js",
+      "size": 6221,
+      "lines": 183,
+      "sha256": "03370a0aeffcb640b63b11079514053b89d07f3d4b69647a5ddbcb67000330cf"
+    },
+    {
+      "relPath": "money_factory/evidence_ledger.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\evidence_ledger.js",
+      "size": 7515,
+      "lines": 209,
+      "sha256": "5cb070ed0496224a85b76b91ea8dec8eb51da91c225b61a8529890362b4b4b10"
+    },
+    {
+      "relPath": "money_factory/first_5_euro_simulator.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\first_5_euro_simulator.js",
+      "size": 6623,
+      "lines": 185,
+      "sha256": "de63f6f0cba5a4f42b9656b728ab7a13a5f212913e647bc4e7f4cd8091e72dad"
+    },
+    {
+      "relPath": "money_factory/index.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\index.js",
+      "size": 2739,
+      "lines": 87,
+      "sha256": "c1dffb9cf20ee8af8a3328e29ace12d91ff494a5663b58403e1b0df41c487c18"
+    },
+    {
+      "relPath": "money_factory/leaderboard_generator.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\leaderboard_generator.js",
+      "size": 4143,
+      "lines": 92,
+      "sha256": "c153f1acb25f9000463d0560458d2ae21832e3951046d9691e791a97f0d81c99"
+    },
+    {
+      "relPath": "money_factory/portfolios.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\portfolios.js",
+      "size": 5206,
+      "lines": 157,
+      "sha256": "96894faf4557857e52dc592888e5c2041b5975a3715fb598a14066199a6efec7"
+    },
+    {
+      "relPath": "money_factory/prediction_calibration.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\prediction_calibration.js",
+      "size": 8515,
+      "lines": 248,
+      "sha256": "3c21e1a95fc9941ebb533a072ede3f0ba57857e08a7a04ae6f4129e63562143f"
+    },
+    {
+      "relPath": "money_factory/safety_gates.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\safety_gates.js",
+      "size": 5244,
+      "lines": 159,
+      "sha256": "c00ed53b4f0f1fd4ff6160413abeb26a2e6057921e586aa31af373fb3addff19"
+    },
+    {
+      "relPath": "money_factory/scoring.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\scoring.js",
+      "size": 3720,
+      "lines": 85,
+      "sha256": "53e138db73bc08469b1ad93992e3ce0b4fc5c31314dd1b2a6176e54af658d259"
+    },
+    {
+      "relPath": "money_factory/seed_classes.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\seed_classes.js",
+      "size": 10033,
+      "lines": 294,
+      "sha256": "799a0dd3b816c35b8f7f9d4ffdf21228f31b198f1b34c9f204bd233e9b5f4281"
+    },
+    {
+      "relPath": "money_factory/supervisor_compat.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\supervisor_compat.js",
+      "size": 2537,
+      "lines": 90,
+      "sha256": "cabd83b93dbdb95b0051ac01d995943de2c4a4a62b4727ea8258dc1556a8789f"
+    },
+    {
+      "relPath": "money_factory/warehouse.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\warehouse.js",
+      "size": 11959,
+      "lines": 364,
+      "sha256": "848e97240fa921b9ca61a64046a0bd1b37a894d517878d2e3d305a327c91e599"
+    },
+    {
+      "relPath": "MONEY_FACTORY_ARCHITECTURE.md",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\MONEY_FACTORY_ARCHITECTURE.md",
+      "size": 5940,
+      "lines": 79,
+      "sha256": "77d1e9118de5b6daf368d436b486fe70360fe35add5f4983a79e5b92b6d4be04"
+    },
+    {
+      "relPath": "MONEY_FACTORY_WINDOWS_HANDOFF.md",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\MONEY_FACTORY_WINDOWS_HANDOFF.md",
+      "size": 3771,
+      "lines": 80,
+      "sha256": "1fddd6e0bfca5b7c5c9bc14ebf41eb9fd3c69a169c7491a831ffff580b465c5e"
+    },
+    {
+      "relPath": "NEXT_CANARY_PLAN.md",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\NEXT_CANARY_PLAN.md",
+      "size": 2317,
+      "lines": 47,
+      "sha256": "21dab225fd1a1796e14ec8e0c8539127426346986f0ecb95763d29f59213bea7"
+    },
+    {
+      "relPath": "opportunity_warehouse/evidence/ZERO_PROMPT_AUTONOMY_PROOF_PACKET.json",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\opportunity_warehouse\\evidence\\ZERO_PROMPT_AUTONOMY_PROOF_PACKET.json",
+      "size": 671,
+      "lines": 24,
+      "sha256": "b2c41f995b7f82cc8f515e82bf5eca9eb10685d14cad1b26c33f7d4a07f785a2"
+    },
+    {
+      "relPath": "opportunity_warehouse/history_ledger.json",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\opportunity_warehouse\\history_ledger.json",
+      "size": 18934,
+      "lines": 552,
+      "sha256": "ea913d35da29ceeb0c472a34e4fa00d3a1bafb0085e66dbf7b114f16f4f722e8"
+    },
+    {
+      "relPath": "opportunity_warehouse/LEADERBOARD.md",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\opportunity_warehouse\\LEADERBOARD.md",
+      "size": 4502,
+      "lines": 63,
+      "sha256": "d68531f514ad7a49cd57e908d82433422764983ff79813cb69fd2ad597c8c67e"
+    },
+    {
+      "relPath": "opportunity_warehouse/MONEY_FACTORY_POLICY.md",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\opportunity_warehouse\\MONEY_FACTORY_POLICY.md",
+      "size": 3038,
+      "lines": 84,
+      "sha256": "b86307d74afd8866731a7e5f14863df3476c6d60466faa04a84dbf9e3272a73c"
+    },
+    {
+      "relPath": "opportunity_warehouse/opportunities.json",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\opportunity_warehouse\\opportunities.json",
+      "size": 16934,
+      "lines": 497,
+      "sha256": "5431e2a1a11f82fc2a8a721bfe5b8a94af3ec5bebda93a0510654a1f58950b55"
+    },
+    {
+      "relPath": "opportunity_warehouse/opportunities.yaml",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\opportunity_warehouse\\opportunities.yaml",
+      "size": 13479,
+      "lines": 431,
+      "sha256": "337a4e14e54d6ef033c03c491a0947b398b3cd3378c8a41ed3aa943ef593c49e"
+    },
+    {
+      "relPath": "opportunity_warehouse/research/ZERO_PROMPT_AUTONOMY_SYSTEM.md",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\opportunity_warehouse\\research\\ZERO_PROMPT_AUTONOMY_SYSTEM.md",
+      "size": 1187,
+      "lines": 18,
+      "sha256": "973c96cc258a76f16a50eb619f58bb681a9606869c58fc88a9ec3c969612bd6d"
+    },
+    {
+      "relPath": "PRODUCTION_INTEGRATION_EVIDENCE.json",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\PRODUCTION_INTEGRATION_EVIDENCE.json",
+      "size": 2347,
+      "lines": 83,
+      "sha256": "568be8f77dca6bc7bbf65f966328ae2a7e0e37ad95a67cd6a8ea6864442762ef"
+    },
+    {
+      "relPath": "PRODUCTION_INTEGRATION_REPORT.md",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\PRODUCTION_INTEGRATION_REPORT.md",
+      "size": 4498,
+      "lines": 93,
+      "sha256": "7307eb75d5dd5b15e2c0408b43e2d588f358d44593ba47bb9ea7b45c74611ae1"
+    },
+    {
+      "relPath": "ROLLBACK_VERIFICATION.json",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\ROLLBACK_VERIFICATION.json",
+      "size": 2347,
+      "lines": 46,
+      "sha256": "6b09770ebac08cfefb716c987a75a075fe7bef99d55e1a9f15a55b414a9bc89c"
+    },
+    {
+      "relPath": "SAFETY_VERIFICATION.json",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\SAFETY_VERIFICATION.json",
+      "size": 1642,
+      "lines": 78,
+      "sha256": "f6f0553aeb9e5bc3936dbb4e3b9c5a335d4d5da8b06cda2e1e3dca51c1f2989a"
+    },
+    {
+      "relPath": "supervisor/audit_ledger.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\audit_ledger.js",
+      "size": 3080,
+      "lines": 116,
+      "sha256": "d848c138266c32cf1d51a968a746094af6ea75e74a10afcdd1f9238402689784"
+    },
+    {
+      "relPath": "supervisor/chief_envelope.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\chief_envelope.js",
+      "size": 1701,
+      "lines": 67,
+      "sha256": "0d97c3254ef413c8fb155b517bb81aaa9baa1158849eced74fa29823a9c3bdce"
+    },
+    {
+      "relPath": "supervisor/core/CheckpointStore.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\core\\CheckpointStore.js",
+      "size": 1598,
+      "lines": 45,
+      "sha256": "4444bf191c1269e19425236486fd4470611091ac4e6b6e668ff379f5c672d1bb"
+    },
+    {
+      "relPath": "supervisor/core/DurableEventLog.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\core\\DurableEventLog.js",
+      "size": 2373,
+      "lines": 75,
+      "sha256": "2b25ed56104019f94f3fea8dd3beed98e9fc86b4d01a68be0a113b100c27bea7"
+    },
+    {
+      "relPath": "supervisor/core/ReplayEngine.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\core\\ReplayEngine.js",
+      "size": 1422,
+      "lines": 49,
+      "sha256": "226528a534aa924bbf4acc3d8bd4f428bfb16dbc025cd2f1588e58e60e37b230"
+    },
+    {
+      "relPath": "supervisor/core/SchemaRegistry.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\core\\SchemaRegistry.js",
+      "size": 1163,
+      "lines": 48,
+      "sha256": "0a1a9f944e9ff63949b03d77a00c9968f2ab0463bc9139cf057c51ac36084a6e"
+    },
+    {
+      "relPath": "supervisor/core/StateProjector.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\core\\StateProjector.js",
+      "size": 2976,
+      "lines": 93,
+      "sha256": "db6e0468b1c58c60b4b9b5dceb668919236b3602d55a0c566c3c41c28ff6bd24"
+    },
+    {
+      "relPath": "supervisor/decision_engine.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\decision_engine.js",
+      "size": 3985,
+      "lines": 107,
+      "sha256": "2e9b7224130ee9845e266d7c3ecb25ab8cafc616a847937637779a7cab7bdf8a"
+    },
+    {
+      "relPath": "supervisor/diagnostic_bundle.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\diagnostic_bundle.js",
+      "size": 3888,
+      "lines": 104,
+      "sha256": "0237147d3bb5ca03a80cb7fb9235ec488812f01136c9d635d522d10f8ff79f8b"
+    },
+    {
+      "relPath": "supervisor/governance/BorderGuard.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\governance\\BorderGuard.js",
+      "size": 2154,
+      "lines": 51,
+      "sha256": "87968421efad74a8c877bed902ad091500e4e8f99eaec873f96b467a9750bae1"
+    },
+    {
+      "relPath": "supervisor/governance/CapabilityEngine.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\governance\\CapabilityEngine.js",
+      "size": 1325,
+      "lines": 42,
+      "sha256": "c39c46cfd26625b7531b729c7473b73a3e630c8431f07289656629022b868ec5"
+    },
+    {
+      "relPath": "supervisor/governance/CompletionGovernor.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\governance\\CompletionGovernor.js",
+      "size": 1567,
+      "lines": 40,
+      "sha256": "37d2f4c7d22976b81f80f9ae1213f9ab818bc2fd467c679edd2076801fa9f1a2"
+    },
+    {
+      "relPath": "supervisor/governance/PolicyValidator.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\governance\\PolicyValidator.js",
+      "size": 3810,
+      "lines": 111,
+      "sha256": "6b7380964d3782de9fb39b8bea445f19cbefbb5c0c58331314fdac9b082e224e"
+    },
+    {
+      "relPath": "supervisor/governance/ResourceLockManager.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\governance\\ResourceLockManager.js",
+      "size": 1907,
+      "lines": 62,
+      "sha256": "2a22fb024c321a4aab963527f90f220edf9797382f385e716183f82a94b724e8"
+    },
+    {
+      "relPath": "supervisor/governance/ResultCustoms.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\governance\\ResultCustoms.js",
+      "size": 1502,
+      "lines": 40,
+      "sha256": "8f3306f96f13b1048d63af571e80e88726d90fcafc320bc9c7f4419b14258783"
+    },
+    {
+      "relPath": "supervisor/governance/TaskPassport.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\governance\\TaskPassport.js",
+      "size": 1421,
+      "lines": 34,
+      "sha256": "378fec6d346b8673061d9426add4a42a9dc7ca1bccf889b547d19e66e677ae15"
+    },
+    {
+      "relPath": "supervisor/index.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\index.js",
+      "size": 4100,
+      "lines": 111,
+      "sha256": "d95f3ab1c556060f78088113dbdded09362587a8b1eb5011f5ee285870b5bc19"
+    },
+    {
+      "relPath": "supervisor/lease_manager.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\lease_manager.js",
+      "size": 9495,
+      "lines": 315,
+      "sha256": "666bb6f6162073156b6cb16655ac1c3b37ff30c49577fffdcb9245f2a6735e9d"
+    },
+    {
+      "relPath": "supervisor/no_stacking.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\no_stacking.js",
+      "size": 3779,
+      "lines": 107,
+      "sha256": "be956d4870814604fbc91dfc4df663359355391c9469c71bc5b08b1dd765e8e3"
+    },
+    {
+      "relPath": "supervisor/progress_tracker.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\progress_tracker.js",
+      "size": 6116,
+      "lines": 192,
+      "sha256": "a7a2d21dea62a970117bee45158ac8e5e8bb6710bce73fd3aaf0dd6b7894b30c"
+    },
+    {
+      "relPath": "supervisor/reconciliation.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\reconciliation.js",
+      "size": 5880,
+      "lines": 153,
+      "sha256": "6f65fdf1958ad956b58df6be05430aa0ebfca442db033359a0779953bfa245af"
+    },
+    {
+      "relPath": "supervisor/resource_governor.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\resource_governor.js",
+      "size": 5883,
+      "lines": 162,
+      "sha256": "628a80ff1a770ea87c8b86df17e166c4d7c3060b2ba334bdbd76ed9c5ea2c938"
+    },
+    {
+      "relPath": "supervisor/screenshot_spec.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\screenshot_spec.js",
+      "size": 3450,
+      "lines": 123,
+      "sha256": "c67e08d75a3f35d401d7af66a2a3c5a73b6846d0a73802bd457685f176d7b971"
+    },
+    {
+      "relPath": "supervisor/stall_policy.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\stall_policy.js",
+      "size": 7222,
+      "lines": 181,
+      "sha256": "70dd2334d86364a8bfdb2e56013f2ef5aceaf569ec149517b94cf7d49bbbb5e8"
+    },
+    {
+      "relPath": "supervisor/task_hygiene.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\task_hygiene.js",
+      "size": 3711,
+      "lines": 120,
+      "sha256": "2a97867b762b3499e35c57ca32d0f7d8a45d7d2e4c40a5a69f6830bdd2ed6970"
+    },
+    {
+      "relPath": "supervisor/types.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\types.js",
+      "size": 2677,
+      "lines": 100,
+      "sha256": "4efb9f42ca216b75d9097ac871fee5b572cda6dc58068d73dab6b6239155f0d1"
+    },
+    {
+      "relPath": "SUPERVISOR_PLANE_ARCHITECTURE.md",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\SUPERVISOR_PLANE_ARCHITECTURE.md",
+      "size": 6157,
+      "lines": 89,
+      "sha256": "cdb90a75114ffcef3829c406b94ac0e8f8a7f4264fe2531099deabb1b255ad70"
+    },
+    {
+      "relPath": "tests/rc3_hardening/test_border_guard.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening\\test_border_guard.js",
+      "size": 8516,
+      "lines": 238,
+      "sha256": "fc8e535c3e477803276d09226b9ede5e9ec687df86cbf18f260a8a5fe53718bd"
+    },
+    {
+      "relPath": "tests/rc3_hardening/test_crash_restart_chaos.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening\\test_crash_restart_chaos.js",
+      "size": 17397,
+      "lines": 436,
+      "sha256": "91d29251095339cc31f755d0c36cc73f5ea3fa3405860add8555aa03e4f754e1"
+    },
+    {
+      "relPath": "tests/rc3_hardening/test_deterministic_soak.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening\\test_deterministic_soak.js",
+      "size": 19263,
+      "lines": 479,
+      "sha256": "88b982a9b17a5ac728983f974c4037b6d83934f1b84fd98568588825328dfb8c"
+    },
+    {
+      "relPath": "tests/rc3_hardening/test_event_ledger_invariants.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening\\test_event_ledger_invariants.js",
+      "size": 15802,
+      "lines": 414,
+      "sha256": "1eeab9c74c12998bdda257097348a18250c4c27661e1daaec2af0ebe02ef5ca4"
+    },
+    {
+      "relPath": "tests/rc3_hardening/test_follow_up_inbox.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening\\test_follow_up_inbox.js",
+      "size": 7334,
+      "lines": 198,
+      "sha256": "808167b3a4fdc381f9d96930ba12c92ee95fb0b26956674c737296b709ff2f9e"
+    },
+    {
+      "relPath": "tests/rc3_hardening/test_money_factory_adversarial.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening\\test_money_factory_adversarial.js",
+      "size": 15814,
+      "lines": 433,
+      "sha256": "e63bb3bb788b845eacc36a5a026f3d8f5ebabe43d9587413bd3d35dea19c56f1"
+    },
+    {
+      "relPath": "tests/rc3_hardening/test_rc3_adversarial_validation.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening\\test_rc3_adversarial_validation.js",
+      "size": 20944,
+      "lines": 563,
+      "sha256": "9f7129967ab74b438ae98941b30546012e7625f885a61c8f939ee6f4a4aa9480"
+    },
+    {
+      "relPath": "tests/rc3_hardening/test_resource_governor_adversarial.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening\\test_resource_governor_adversarial.js",
+      "size": 12349,
+      "lines": 334,
+      "sha256": "4a897e80965c6727e11cb0c1ffdaee3cd2f920e562b1ba827b872222cd9db4d1"
+    },
+    {
+      "relPath": "tests/rc3_hardening/test_result_customs.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening\\test_result_customs.js",
+      "size": 9647,
+      "lines": 271,
+      "sha256": "9f6333a1b3a91ff8d004c6b10ae2cf4079914aa529a0843f01aba83d24227256"
+    },
+    {
+      "relPath": "tests/rc3_hardening/test_supervisor_adversarial.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening\\test_supervisor_adversarial.js",
+      "size": 20243,
+      "lines": 520,
+      "sha256": "fae5254715c164e70967dc48bb0970d978eb3f64a6dac04a42fdc8e48caae8c3"
+    },
+    {
+      "relPath": "tests/rc3_hardening/test_task_stamp_contracts.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening\\test_task_stamp_contracts.js",
+      "size": 10050,
+      "lines": 259,
+      "sha256": "9cb5a4f03cf618f815ba7bfab0d8e1c8a6220d3a2c6e65ecba7d73a6642ba259"
+    },
+    {
+      "relPath": "tests/test_cross_device_intake.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\test_cross_device_intake.js",
+      "size": 3289,
+      "lines": 74,
+      "sha256": "af128b43c07d4ce12505edac902358b3254aac60c80f09ad4edd2bce60508d57"
+    },
+    {
+      "relPath": "tests/test_cross_device_intake.py",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\test_cross_device_intake.py",
+      "size": 9876,
+      "lines": 189,
+      "sha256": "520d2ffccf4b64598ccda4f781ec7598567e643d391ea0ed4c419a90a9965c84"
+    },
+    {
+      "relPath": "tests/test_mandatory_scenarios_suite.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\test_mandatory_scenarios_suite.js",
+      "size": 10247,
+      "lines": 218,
+      "sha256": "ba71a26f0e3949fbb49f395677a1658fd0a3c98af9ec2bd3fe492c73c2e39378"
+    },
+    {
+      "relPath": "tests/test_money_factory_closure.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\test_money_factory_closure.js",
+      "size": 21090,
+      "lines": 476,
+      "sha256": "0c0e988c38091c46c6a61a2d3f3502b77a3d7c234e7d49d5ca15b8816f70ff4b"
+    },
+    {
+      "relPath": "tests/test_money_factory_p0.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\test_money_factory_p0.js",
+      "size": 20669,
+      "lines": 448,
+      "sha256": "cf3fb327908997c24702d6b19f7f5ef27f2f7dcea2fd7870e90bcf3672a29024"
+    },
+    {
+      "relPath": "tests/test_supervisor_plane_p0.js",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\test_supervisor_plane_p0.js",
+      "size": 23152,
+      "lines": 596,
+      "sha256": "9362a30c79bdb34262f0b72377282913639a366dc57d18ba6cbad6cd792bc06c"
+    },
+    {
+      "relPath": "TEST_RESULTS.json",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\TEST_RESULTS.json",
+      "size": 3443,
+      "lines": 99,
+      "sha256": "df8f5b769934a59f16a036ebb9a87bca5def7b5d4cfd89d55dcce26fefdaaf9c"
+    },
+    {
+      "relPath": "WINDOWS_RESUME_CHECKPOINT.md",
+      "fullPath": "C:\\Users\\lol\\2026-workspace\\courier\\WINDOWS_RESUME_CHECKPOINT.md",
+      "size": 2597,
+      "lines": 79,
+      "sha256": "1836f29c22563ee45886f0fd47c2322a0dd032d274c5ce57438232202f96c51d"
+    }
+  ]
+}

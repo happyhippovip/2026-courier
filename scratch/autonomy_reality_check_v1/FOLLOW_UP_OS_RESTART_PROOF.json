@@ -1,0 +1,5 @@
+{
+  "timestamp": "2026-09-10T07:21:52.173Z",
+  "verdict": "FOLLOW_UP_OS_RESTART_UNTESTABLE_WITHOUT_ENTRYPOINT",
+  "finding": "FollowUpInbox is implemented and verified in tests/rc3_hardening/test_follow_up_inbox.js (7/7 PASS), but is not wired into any production entrypoint."
+}

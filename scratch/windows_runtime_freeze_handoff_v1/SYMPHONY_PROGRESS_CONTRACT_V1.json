@@ -1,0 +1,122 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-09-10T09:01:31.486Z",
+  "overall": {
+    "current_percent": 91,
+    "remaining_percent_to_v1": 9,
+    "estimate_owner": "CHIEF",
+    "estimate_type": "OPERATIONAL_ESTIMATE"
+  },
+  "subsystems": {
+    "windows_courier": {
+      "percent": 99,
+      "status": "PROVEN_STABLE",
+      "estimate_owner": "CHIEF",
+      "estimate_type": "OPERATIONAL_ESTIMATE",
+      "evidence_reference": "114/114 regression PASS, 12/12 canary PASS, 19/19 bypass FAIL_CLOSED"
+    },
+    "windows_production_runtime": {
+      "percent": 97,
+      "status": "PROVEN_ENTRYPOINT_FROZEN",
+      "estimate_owner": "CHIEF",
+      "estimate_type": "OPERATIONAL_ESTIMATE",
+      "evidence_reference": "bin/courier_runtime.js, 25/25 adversarial PASS, real OS restart proven"
+    },
+    "safety_governance": {
+      "percent": 97,
+      "status": "PROVEN_HARDENED",
+      "estimate_owner": "CHIEF",
+      "estimate_type": "OPERATIONAL_ESTIMATE",
+      "evidence_reference": "EUR 0 spend limit, BorderGuard, TaskPassport, ResultCustoms"
+    },
+    "restart_resume": {
+      "percent": 97,
+      "status": "PROVEN_DURABLE",
+      "estimate_owner": "CHIEF",
+      "estimate_type": "OPERATIONAL_ESTIMATE",
+      "evidence_reference": "REAL_OS_RESTART_PROOF.json (PID 5308 -> 8836), DANGEROUS_BOUNDARY_RESUME_PROOF.json"
+    },
+    "long_run_operations": {
+      "percent": 80,
+      "status": "PROVEN_LOCAL_CONTINUUM",
+      "estimate_owner": "CHIEF",
+      "estimate_type": "OPERATIONAL_ESTIMATE",
+      "evidence_reference": "NEXT_WORK_TRACE.jsonl, CompletionGovernor active continuum"
+    },
+    "money_factory": {
+      "percent": 93,
+      "status": "FROZEN_RC1_VERIFIED",
+      "estimate_owner": "CHIEF",
+      "estimate_type": "OPERATIONAL_ESTIMATE",
+      "evidence_reference": "RELEASE_CANDIDATE_V1 12/12 hash match, customer demo 7/7 PASS"
+    },
+    "launch_readiness": {
+      "percent": 95,
+      "status": "HUMAN_GATE_LOCKED",
+      "estimate_owner": "CHIEF",
+      "estimate_type": "OPERATIONAL_ESTIMATE",
+      "evidence_reference": "FINAL_HUMAN_GATE_CARD.md frozen, ready for operator action"
+    },
+    "mac_windows_convergence": {
+      "percent": 70,
+      "status": "WAITING_MAC_WRITER_CLOSURE",
+      "estimate_owner": "CHIEF",
+      "estimate_type": "OPERATIONAL_ESTIMATE",
+      "evidence_reference": "WINDOWS_TO_MAC_CONVERGENCE_HANDOFF.json emitted; Mac host untouched"
+    },
+    "revenue_proof": {
+      "percent": 0,
+      "proven_eur": 0,
+      "status": "EUR_0_TRUTH",
+      "estimate_owner": "CHIEF",
+      "estimate_type": "OPERATIONAL_ESTIMATE",
+      "evidence_reference": "No live sales conducted; EUR 0 revenue strictly reported"
+    }
+  },
+  "next_gate": {
+    "name": "MAC_CLOSURE_CONVERGENCE_JOINT_CANARY",
+    "current_percent": 91,
+    "target_percent": 95,
+    "remaining_percent": 4,
+    "blockers": [
+      "Mac writer active",
+      "Cross-platform proof reconciliation pending"
+    ],
+    "human_gate_required": false,
+    "estimate_owner": "CHIEF",
+    "estimate_type": "OPERATIONAL_ESTIMATE"
+  },
+  "next_task": {
+    "status": "WAITING_FOR_MAC",
+    "description": "Receive and review Mac writer result upon completion; compare Windows and Mac kernels for canonical convergence.",
+    "dispatch_allowed": false,
+    "reason": "Mac writer currently busy; strictly zero Mac access or concurrent Mac dispatch permitted."
+  },
+  "active_work": {
+    "windows": "IDLE_FROZEN",
+    "mac": "BUSY_EXTERNAL_WRITER",
+    "other": "NONE"
+  },
+  "human_gates": {
+    "open_count": 1,
+    "items": [
+      {
+        "gate_id": "GATE-EUR5-FIRST-SALE",
+        "description": "Human decision to manually publish agent-context-trimmer v1.0.0 to Gumroad and connect payment details",
+        "status": "AWAITING_HUMAN_OPERATOR",
+        "spend_required_eur": 0
+      }
+    ]
+  },
+  "safety": {
+    "spend_eur": 0,
+    "trades": 0,
+    "wallets": 0,
+    "external_messages": 0
+  },
+  "last_verified_mission": {
+    "mission_id": "WINDOWS_MINIMAL_PRODUCTION_COURIER_RUNTIME_V1",
+    "classification": "PRODUCTION_COURIER_RUNTIME_PROVEN",
+    "evidence_reference": "scratch/minimal_production_runtime_v1/FINAL_REPORT.md"
+  }
+}

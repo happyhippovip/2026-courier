@@ -1,0 +1,24 @@
+{
+  "campaign_id": "CAMP-02-EXECUTION-AUTHORITY-GRAPH",
+  "parent_frontier_item": "FRONTIER-A01-GRAPH",
+  "goal": "Map all 13 execution authority paths, implement taint-based uncertainty propagation, and prove resolution proofs.",
+  "hypothesis": "Taint tracking across the task dependency DAG prevents child and fallback execution while allowing independent work to proceed without global freeze.",
+  "why_now": "Directly addresses Vector 1 uncovered in Campaign 01.",
+  "production_relation": "Hardens supervisor/decision_engine.js, supervisor/reconciliation.js, and chief/coordinator.py.",
+  "expected_information_gain": "VERY_HIGH",
+  "expected_cost": "0.00 EUR",
+  "risk": "NONE_ISOLATED_SHADOW",
+  "scope": "13 execution trigger paths, taint propagation, 5 resolution proof types",
+  "write_scope": "scratch/autonomous_night_organization_omega_v1/CAMPAIGNS/CAMP-02/",
+  "dependencies": [
+    "CAMP-01-FALSIFY-SATURATION"
+  ],
+  "acceptance_criteria": "All 13 paths dominated by uncertainty fence; taint propagates to dependents only; 5 resolution proofs verified.",
+  "falsification_criteria": "Any path allows fallback while parent is uncertain, or taint halts independent sibling tasks.",
+  "evidence_required": "Execution graph analysis, taint propagation test results, and resolution proof verifications.",
+  "oracle": "DAG uncertainty analyzer and resolution validator",
+  "mutation_strategy": "Mutate taint inheritance; mutate resolution proof checks",
+  "stop_condition": "All 13 trigger paths and taint scenarios evaluated",
+  "status": "CLOSED_SUPPORTED",
+  "completed_at": "2026-09-09T23:38:32.946Z"
+}

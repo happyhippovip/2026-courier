@@ -49,9 +49,9 @@ def determine_next_task(goal_id, state):
             mapped_plan = []
             for step in plan:
                 target_agent = step.get("target_agent", "antigravity").lower()
-                target_cap = "mac"
-                if "codex" in target_agent or "windows" in target_agent:
-                    target_cap = "windows"
+                target_cap = "windows"
+                if "mac" in target_agent:
+                    target_cap = "mac"
                 elif "github" in target_agent:
                     target_cap = "github"
                 
@@ -101,11 +101,11 @@ def dispatch_task(task, state=None):
         save_state(state)
     
     if target == "mac":
-        subprocess.Popen(["python3", "scripts/mac_worker_adapter.py", task_file])
+        subprocess.Popen([sys.executable, "scripts/mac_worker_adapter.py", task_file])
     elif target == "windows":
-        subprocess.Popen(["python3", "scripts/windows_worker_adapter.py", task_file])
+        subprocess.Popen([sys.executable, "scripts/windows_worker_adapter.py", task_file])
     elif target == "github":
-        subprocess.Popen(["python3", "scripts/github_worker_adapter.py", task_file])
+        subprocess.Popen([sys.executable, "scripts/github_worker_adapter.py", task_file])
     else:
         task["status"] = "HUMAN_REQUIRED"
         
@@ -133,6 +133,12 @@ def process_results(state):
             if durable_result["status"] == "SUCCESS":
                 task["status"] = "RECONCILED"
                 print(f"Verification PASS: {durable_result['result_id']}")
+            elif durable_result["status"] == "AUTH_REQUIRED":
+                task["status"] = "WAITING_FOR_PROVIDER"
+                print(f"Task {task['task_id']} WAITING_FOR_PROVIDER (Auth required)")
+            elif durable_result.get("reason") == "LEASE_EXPIRED":
+                task["status"] = "LEASE_EXPIRED"
+                print(f"Task {task['task_id']} LEASE_EXPIRED (Process/OS restart or crash)")
             else:
                 task["status"] = "FAILED_TERMINAL"
                 state["goals"][task["goal_id"]]["status"] = "BLOCKED"
@@ -171,6 +177,12 @@ def loop():
     ingest_goals(state)
     process_results(state)
     
+    for task_id, task in state["tasks"].items():
+        if task.get("status") in ["WAITING_FOR_PROVIDER", "LEASE_EXPIRED", "QUEUED"]:
+            print(f"Dispatching task {task_id} from state {task.get('status')}...")
+            task["status"] = "QUEUED"
+            dispatch_task(task, state)
+            
     for goal_id, goal in state["goals"].items():
         if goal["status"] in ["NEW", "ACTIVE"]:
             goal["status"] = "ACTIVE"
@@ -185,4 +197,10 @@ def loop():
     save_state(state)
 
 if __name__ == "__main__":
-    loop()
+    if "--daemon" in sys.argv:
+        print("Starting Courier Control Plane Daemon...")
+        while True:
+            loop()
+            time.sleep(5)
+    else:
+        loop()

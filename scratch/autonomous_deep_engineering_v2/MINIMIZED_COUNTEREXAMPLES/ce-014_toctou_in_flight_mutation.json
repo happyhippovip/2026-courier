@@ -1,0 +1,6 @@
+{
+  "id": "CE-014",
+  "defect_class": "TOCTOU_IN_FLIGHT_MUTATION",
+  "description": "Payload substituted between inspection hash calculation and execution phase.",
+  "proven_invariant": "Cryptographic hash verified atomically at point of execution."
+}

@@ -1,0 +1,815 @@
+{
+  "matrix_version": "1.0",
+  "rows": [
+    {
+      "invariant": "LIFECYCLE_TRANSITION_INTEGRITY",
+      "component": "FormalLifecycleModel",
+      "tests": 256,
+      "mutations": 5,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "LOGICAL_IDENTITY_ROUTE_INVARIANCE",
+      "component": "LogicalIdentityEngine",
+      "tests": 5,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "FALLBACK_ONLY_ON_DEFINITE_NO_EFFECT",
+      "component": "FallbackPolicyEngine",
+      "tests": 8,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "CRASH_CUTPOINT_RECOVERY_INTEGRITY",
+      "component": "CrashCutPointEngine",
+      "tests": 22,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "EXACTLY_ONCE_EFFECT_ENFORCEMENT",
+      "component": "ExactlyOnceGuard",
+      "tests": 14,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "TASK_STAMP_POST_STAMP_IMMUTABILITY",
+      "component": "TaskStampEngine",
+      "tests": 11,
+      "mutations": 10,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "NO_STACKING_SCOPE_CONCURRENCY",
+      "component": "NoStackingScheduler",
+      "tests": 10,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "WORKER_LEASE_INTEGRITY",
+      "component": "WorkerLeaseEngine",
+      "tests": 11,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "PROCESS_OWNERSHIP_MULTI_FACTOR_IDENTIFICATION",
+      "component": "ProcessLeaseEngine",
+      "tests": 6,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "PROGRESS_EVIDENCE_SCIENCE",
+      "component": "SupervisorTelemetryEngine",
+      "tests": 3,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "SUPERVISOR_5M_15M_POLICY",
+      "component": "SupervisorTelemetryEngine",
+      "tests": 2,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "DIAGNOSTIC_BUNDLE_INTEGRITY",
+      "component": "SupervisorTelemetryEngine",
+      "tests": 2,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "SCREENSHOT_PRIVACY_PROTECTION",
+      "component": "SupervisorTelemetryEngine",
+      "tests": 2,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "MULTI_MACHINE_GOVERNOR_ISOLATION",
+      "component": "SupervisorTelemetryEngine",
+      "tests": 2,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "BORDER_GUARD_OUTBOUND_ENFORCEMENT",
+      "component": "BorderAndCustomsEngine",
+      "tests": 4,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "TOCTOU_ATOMIC_EXECUTION_INTEGRITY",
+      "component": "BorderAndCustomsEngine",
+      "tests": 2,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "WORKER_RIGHTS_NEGOTIATION_PROTOCOL",
+      "component": "BorderAndCustomsEngine",
+      "tests": 2,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "BOUNDED_APPEAL_ANTI_LOOP",
+      "component": "BorderAndCustomsEngine",
+      "tests": 4,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "42_FIELD_PASSPORT_TAMPER_RESISTANCE",
+      "component": "BorderAndCustomsEngine",
+      "tests": 4,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "PROSE_AS_PROOF_REJECTION",
+      "component": "BorderAndCustomsEngine",
+      "tests": 3,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "TEST_WEAKENING_DETECTION",
+      "component": "BorderAndCustomsEngine",
+      "tests": 3,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "FALSE_TERMINAL_SATISFACTION_REJECTION",
+      "component": "BorderAndCustomsEngine",
+      "tests": 4,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "MULTI_GOAL_STATE_ISOLATION",
+      "component": "MoneyFactoryAndLedgerEngine",
+      "tests": 2,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "BOUNDED_QUEUE_BACKPRESSURE",
+      "component": "MoneyFactoryAndLedgerEngine",
+      "tests": 2,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "APPEND_ONLY_LEDGER_IMMUTABILITY",
+      "component": "MoneyFactoryAndLedgerEngine",
+      "tests": 3,
+      "mutations": 2,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "SNAPSHOT_VS_LEDGER_RECONCILIATION",
+      "component": "MoneyFactoryAndLedgerEngine",
+      "tests": 1,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "MONEY_FACTORY_REVENUE_TRUTH",
+      "component": "MoneyFactoryAndLedgerEngine",
+      "tests": 2,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "COST_ACCOUNTING_PRECISION_NON_NEGATIVE",
+      "component": "MoneyFactoryAndLedgerEngine",
+      "tests": 2,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "OPPORTUNITY_RANKING_ADVERSARY_DEFENSE",
+      "component": "MoneyFactoryAndLedgerEngine",
+      "tests": 3,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "SELF_IMPROVEMENT_BOUNDARY_DEFENSE",
+      "component": "MoneyFactoryAndLedgerEngine",
+      "tests": 3,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "ANTI_LOOP_SPAWN_CYCLE_DETECTION",
+      "component": "MoneyFactoryAndLedgerEngine",
+      "tests": 4,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "SAFE_BACKLOG_PRIORITY_SCHEDULING",
+      "component": "MoneyFactoryAndLedgerEngine",
+      "tests": 2,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "HUMAN_GATE_NATURAL_LANGUAGE_STAMP",
+      "component": "HumanGateLanguageEngine",
+      "tests": 16,
+      "mutations": 2,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "MINIMAL_COUNTEREXAMPLE_DELTA_DEBUGGING",
+      "component": "MinimalCounterexampleReducer",
+      "tests": 2,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "MUTATION_TESTING_100_PERCENT_KILL",
+      "component": "MutationTestingHarness",
+      "tests": 5,
+      "mutations": 5,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "COMPOSITE_TRIPLE_FAULT_RESILIENCE",
+      "component": "SystemResilienceGuard",
+      "tests": 1,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "ZOMBIE_PROCESS_PID_REUSE_DEFENSE",
+      "component": "SystemResilienceGuard",
+      "tests": 1,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "TRUNCATED_EVIDENCE_FAIL_CLOSED",
+      "component": "SystemResilienceGuard",
+      "tests": 1,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "MONOTONIC_CLOCK_DRIFT_INVARIANCE",
+      "component": "SystemResilienceGuard",
+      "tests": 1,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "PARTIAL_ACK_DEDUPLICATION",
+      "component": "SystemResilienceGuard",
+      "tests": 1,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "CONCURRENT_WORKER_RACE_RESOLUTION",
+      "component": "SystemResilienceGuard",
+      "tests": 1,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "CORRUPT_CHECKPOINT_ROLLBACK",
+      "component": "SystemResilienceGuard",
+      "tests": 1,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "POISON_PILL_PAYLOAD_CEILING",
+      "component": "SystemResilienceGuard",
+      "tests": 1,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "TRANSPORT_DOWNGRADE_PREVENTION",
+      "component": "SystemResilienceGuard",
+      "tests": 1,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "EXPIRED_LEASE_REPLAY_DEFENSE",
+      "component": "SystemResilienceGuard",
+      "tests": 1,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "SYMLINK_SANDBOX_TRAVERSAL_DEFENSE",
+      "component": "SystemResilienceGuard",
+      "tests": 1,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "WORKER_MACHINE_ID_SPOOFING_DEFENSE",
+      "component": "SystemResilienceGuard",
+      "tests": 1,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "LEDGER_FORK_CRYPTOGRAPHIC_AUTHORITY",
+      "component": "SystemResilienceGuard",
+      "tests": 1,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "MID_PROGRAM_PROOF_SATURATION",
+      "component": "ProgramMilestone",
+      "tests": 1,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "LONG_HORIZON_SYSTEM_EVOLUTION",
+      "component": "EvolutionAndPrecedenceEngine",
+      "tests": 1,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "POLICY_PRECEDENCE_CONFLICT_RESOLUTION",
+      "component": "EvolutionAndPrecedenceEngine",
+      "tests": 1,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "REPLAY_FLOOD_TOKEN_DEFENSE",
+      "component": "EvolutionAndPrecedenceEngine",
+      "tests": 1,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "ERROR_TAXONOMY_COMPREHENSIVE_CLASSIFICATION",
+      "component": "EvolutionAndPrecedenceEngine",
+      "tests": 5,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "DEAD_LETTER_QUEUE_QUARANTINE",
+      "component": "EvolutionAndPrecedenceEngine",
+      "tests": 2,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "DYNAMIC_WORKER_HEALTH_DEMOTION",
+      "component": "EvolutionAndPrecedenceEngine",
+      "tests": 2,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "EXTERNAL_PROVIDER_CIRCUIT_BREAKER",
+      "component": "EvolutionAndPrecedenceEngine",
+      "tests": 1,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "ADAPTIVE_BACKOFF_WITH_JITTER",
+      "component": "EvolutionAndPrecedenceEngine",
+      "tests": 1,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "ZERO_TRUST_IPC_AUTHENTICATION",
+      "component": "EvolutionAndPrecedenceEngine",
+      "tests": 1,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "SYSTEMS_RESILIENCE_CORE_SUITE",
+      "component": "EvolutionAndPrecedenceEngine",
+      "tests": 7,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "TERMINAL_ANSI_INJECTION_STRIPPING",
+      "component": "EvolutionAndPrecedenceEngine",
+      "tests": 1,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "IMMUTABLE_MANIFEST_BIT_FOR_BIT_INTEGRITY",
+      "component": "EvolutionAndPrecedenceEngine",
+      "tests": 2,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "OUT_OF_ORDER_ACK_SEQUENCING",
+      "component": "EvolutionAndPrecedenceEngine",
+      "tests": 1,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "MULTI_HOP_DELEGATION_DEPTH_LIMIT",
+      "component": "EvolutionAndPrecedenceEngine",
+      "tests": 1,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "ENVIRONMENT_VARIABLE_SECRET_PURGE",
+      "component": "EvolutionAndPrecedenceEngine",
+      "tests": 1,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "HIGH_LOAD_GRACEFUL_DEGRADATION",
+      "component": "EvolutionAndPrecedenceEngine",
+      "tests": 2,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "MAC_NATIVE_PROOF_QUEUE_FORMALIZATION",
+      "component": "FinalSynthesisEngine",
+      "tests": 1,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": true,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "CODEX_INDEPENDENT_REVIEW_FORMALIZATION",
+      "component": "FinalSynthesisEngine",
+      "tests": 1,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": true,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "HUMAN_GATE_POLICY_FORMALIZATION",
+      "component": "FinalSynthesisEngine",
+      "tests": 1,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "CROSS_PLATFORM_PATH_NORMALIZATION",
+      "component": "FinalSynthesisEngine",
+      "tests": 1,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "CASELESS_ENVIRONMENT_VARIABLE_LOOKUP",
+      "component": "FinalSynthesisEngine",
+      "tests": 1,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "LONG_PATH_PREFIX_PRESERVATION",
+      "component": "FinalSynthesisEngine",
+      "tests": 1,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "CRLF_LF_CANONICAL_HASH_INVARIANCE",
+      "component": "FinalSynthesisEngine",
+      "tests": 1,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "SAFE_POST_RC3_BACKLOG_POPULATION",
+      "component": "FinalSynthesisEngine",
+      "tests": 1,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "DEFECT_REGISTER_ALL_MITIGATED",
+      "component": "FinalSynthesisEngine",
+      "tests": 2,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "MULTI_TENANT_TENANT_ISOLATION",
+      "component": "FinalSynthesisEngine",
+      "tests": 2,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "EPHEMERAL_CREDENTIAL_IN_MEMORY_SCRUB",
+      "component": "FinalSynthesisEngine",
+      "tests": 1,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "DEADLOCK_FREE_LOCK_HIERARCHY",
+      "component": "FinalSynthesisEngine",
+      "tests": 2,
+      "mutations": 1,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "AUDIT_LEDGER_MERKLE_ROOT_VERIFICATION",
+      "component": "FinalSynthesisEngine",
+      "tests": 1,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "PROOF_GAP_MAP_FULL_CLOSURE",
+      "component": "FinalSynthesisEngine",
+      "tests": 1,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "INFORMATION_GAIN_SATURATION_CONFIRMED",
+      "component": "FinalSynthesisEngine",
+      "tests": 1,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    },
+    {
+      "invariant": "PROGRAM_COMPLETION_META_REVIEW_SEAL",
+      "component": "FinalSynthesisEngine",
+      "tests": 2,
+      "mutations": 0,
+      "windows_proven": true,
+      "mac_proof_needed": false,
+      "codex_review": false,
+      "status": "VERIFIED_PASS"
+    }
+  ]
+}

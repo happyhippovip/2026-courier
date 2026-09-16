@@ -1,0 +1,8 @@
+{
+  "test": "CONFINEMENT_INVARIANTS",
+  "host_os": "win32",
+  "mac_access_prohibited": true,
+  "working_dir_confined": true,
+  "universux_touches": 0,
+  "status": "PASSED"
+}

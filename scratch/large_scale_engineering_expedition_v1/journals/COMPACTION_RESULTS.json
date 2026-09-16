@@ -1,0 +1,10 @@
+{
+  "test": "SNAPSHOT_COMPACTION_SCALE",
+  "total_events": 10000,
+  "uncompacted_bytes": 1292640,
+  "compacted_bytes": 26033,
+  "reduction_percentage": "97.99%",
+  "compaction_duration_ms": 4,
+  "state_equivalence": true,
+  "status": "PASSED"
+}

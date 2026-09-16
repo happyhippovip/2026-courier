@@ -1,0 +1,97 @@
+Created At: 2026-09-09T22:58:43+02:00
+Completed At: 2026-09-09T22:58:43+02:00
+File Path: `file:///C:/Users/lol/2026-workspace/courier/SUPERVISOR_PLANE_ARCHITECTURE.md`
+Total Lines: 89
+Total Bytes: 6157
+Showing lines 1 to 89
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1: # Courier Supervisor Plane P0 — Architecture & Runtime Blueprint
+2: 
+3: ## 1. What Problem This Solves
+4: Long-running autonomous agent tasks, test suites, and worker processes frequently encounter quiet periods, slow compilation steps, network waits, or deadlocks. Without supervisor discipline, systems fall into two failure modes:
+5: 1. **Premature Kill**: A naive timeout aborts a progressing 20-minute compile or test suite simply because time elapsed.
+6: 2. **Silent Zombie Accumulation**: Stalled or deadlocked processes, obsolete `tail -f` / `lldb` helpers, and duplicate test suites stack up, exhausting system memory, file handles, and causing thermal runaway (as seen on the Mac).
+7: 
+8: The **Supervisor Plane** provides deterministic, evidence-based runtime supervision. It diagnoses stalls, captures forensic bundles without human intervention, cleans obsolete helper processes, prevents duplicate work, protects against thermal exhaustion, and preserves uncertain execution state across restarts.
+9: 
+10: ---
+11: 
+12: ## 2. Canonical Pipeline
+13: 
+14: ```text
+15: TASK STAMP
+16: → WORKER LEASE
+17: → PROCESS LEASE
+18: → HEARTBEAT
+19: → PROGRESS EVIDENCE
+20: → RESOURCE GOVERNOR
+21: → STALL DETECTION
+22: → DIAGNOSTIC
+23: → SUPERVISOR DECISION
+24: → TASK HYGIENE
+25: → RESULT CUSTOMS
+26: → CLOSE
+27: ```
+28: 
+29: 1. **TASK STAMP**: Canonical task identity stamped by Courier.
+30: 2. **WORKER LEASE**: Machine & worker allocation.
+31: 3. **PROCESS LEASE**: Durable attribution of OS process (PID, command fingerprint, cleanup policy).
+32: 4. **HEARTBEAT**: Periodic liveness ping.
+33: 5. **PROGRESS EVIDENCE**: Verifiable external artifacts (log growth, test completion, file writes).
+34: 6. **RESOURCE GOVERNOR**: Per-machine thermal and heavy-concurrency admission control.
+35: 7. **STALL DETECTION**: 5-min soft check (`CHECK_PROGRESS`), 15-min threshold (`CAPTURE_DIAGNOSTIC`).
+36: 8. **DIAGNOSTIC**: Isolated bundle creation (`runtime/diagnostics/<id>/`).
+37: 9. **SUPERVISOR DECISION**: Deterministic classification (`KEEP_RUNNING`, `WAIT`, `CAPTURE_DIAGNOSTIC`, `TERMINATE_ORPHAN`, etc.).
+38: 10. **TASK HYGIENE**: Automatic cleanup of obsolete helper processes at task completion.
+39: 11. **RESULT CUSTOMS**: Formal validation of deliverable artifacts before closing the lease.
+40: 12. **CLOSE**: Final append-only audit event and lease archiving.
+41: 
+42: ---
+43: 
+44: ## 3. Core Invariants & Epistemology
+45: 
+46: ### Why Elapsed Time Alone Cannot Define "Hung"
+47: A quiet process is not necessarily hung. A heavy compile, large dataset export, or neural model inference may emit zero stdout lines for several minutes while actively utilizing CPU or waiting on an OS lock. Time alone **must never cause termination**. A process can only be classified as `HUNG` and terminated if:
+48: 1. Diagnostic threshold (900s) has been exceeded;
+49: 2. Diagnostic bundle has been captured;
+50: 3. Zero CPU utilization is verified;
+51: 4. Unresponsive process ping is confirmed.
+52: 
+53: ### Why Screenshots Are Secondary Fallback Only
+54: Screenshots are expensive, opaque to machine diffs, and pose severe privacy and security risks (accidental leakage of API keys, OTP codes, wallet secrets, or private tabs). The Supervisor Plane prioritizes deterministic text evidence (process exit codes, log deltas, git diffs, resource metrics). A screenshot spec is triggered only if text evidence is completely unavailable, and the target window is strictly scanned by the **Privacy Guard** (`SCREENSHOT_BLOCKED_PRIVACY`).
+55: 
+56: ### How PROCESS_LEASE Works
+57: Every long-running command acquired by a worker creates a durable lease record in `runtime/leases/leases.json`. Leases track parent-child relationships, command fingerprints, started timestamps, and explicit cleanup policies (`TERMINATE_ON_TASK_END` vs. `PRESERVE_BACKGROUND`). Leases persist across restarts.
+58: 
+59: ### How Restart Recovery & EXECUTION_UNCERTAIN Work
+60: On system reboot or agent restart, the `RestartReconciler` compares active system PIDs against durable leases:
+61: - Known live progressing processes resume supervision.
+62: - Unowned live processes are marked `UNATTRIBUTED_NEVER_BLINDLY_KILL` to prevent killing critical system tools.
+63: - **The Uncertainty Invariant**: If a task was dispatched before the restart but lacks durable proof of either completion or non-dispatch, it is marked `EXECUTION_UNCERTAIN`. Under this state, **NO redispatch, NO retry, and NO duplicate execution** is permitted until manual human verification or external settlement proof is provided.
+64: 
+65: ### Per-Machine Resource Isolation (Why a Hot Mac Does Not Throttle Healthy Windows)
+66: Resource governance is strictly **per-machine**, never global:
+67: - The Mac environment is constrained by hardware thermals and uses `MAX_CONCURRENT_HEAVY_LOCAL_TASKS = 1`. Under thermal pressure, the Mac halts **new** heavy tasks and emits `RECOMMEND_REROUTE`.
+68: - The Windows environment is healthy and independently configured (`MAX_CONCURRENT_HEAVY_LOCAL_TASKS = 4`). It continues accepting and executing heavy tasks without being throttled by Mac's thermal state.
+69: 
+70: ---
+71: 
+72: ## 4. Integration Boundary (Courier & Chief)
+73: 
+74: The Supervisor Plane is an auxiliary domain layer, **NOT a second orchestrator**. Courier remains the sole canonical orchestrator.
+75: 
+76: ### Future Integration Points:
+77: - **Courier Task Dispatch**: Acquires lease via `ProcessLeaseManager.createLease()` and checks `MachineResourceGovernor.evaluateTaskAdmission()`.
+78: - **Worker Execution**: Emits periodic progress via `ProgressTracker.recordProgress()`.
+79: - **Task Completion**: Calls `TaskHygiene.runTaskHygiene()` to terminate obsolete watchers (`tail`, `lldb`) while preserving background services (`PRESERVE_BACKGROUND`).
+80: - **Escalation**: When an autonomous decision cannot be safely reached, Courier generates a `ChiefEscalationEnvelope` (`SUPERVISOR_REVIEW_REQUEST`) containing diagnostic bundle pointers for review.
+81: 
+82: ---
+83: 
+84: ## 5. What Remains Intentionally Unbuilt
+85: - **Invasive OS Window Automation**: GUI click/capture drivers intentionally omitted.
+86: - **External Network Dispatchers**: Cloud telemetry and external HTTP webhooks intentionally omitted.
+87: - **Automatic System Power / Sudo Tweaks**: Sudo, admin elevation, or altering OS power plans are strictly forbidden.
+88: - **Second Task Queue**: Courier retains exclusive ownership of mission scheduling.
+89: 
+The above content shows the entire, complete file contents of the requested file.

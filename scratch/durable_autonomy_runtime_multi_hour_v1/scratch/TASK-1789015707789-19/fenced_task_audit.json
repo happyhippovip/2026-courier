@@ -1,0 +1,26 @@
+{
+  "fenced_count": 2,
+  "fenced_items": [
+    {
+      "taskId": "TASK-1789015707722-12",
+      "reason": {
+        "task_id": "TASK-1789015707722-12",
+        "fenced_at": "2026-09-10T04:48:27.729Z",
+        "reason": "NON_ZERO_EXIT_CODE",
+        "state": "EXECUTION_UNCERTAIN_NO_PROOF",
+        "auto_redispatch_allowed": false
+      }
+    },
+    {
+      "taskId": "TASK-1789015707756-15",
+      "reason": {
+        "task_id": "TASK-1789015707756-15",
+        "fenced_at": "2026-09-10T04:48:27.760Z",
+        "reason": "NON_ZERO_EXIT_CODE",
+        "state": "EXECUTION_UNCERTAIN_NO_PROOF",
+        "auto_redispatch_allowed": false
+      }
+    }
+  ],
+  "status": "AUDITED"
+}

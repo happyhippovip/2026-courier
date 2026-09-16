@@ -1,0 +1,51 @@
+{
+  "test_suite": "WP12: LONG-RUN DETERMINISTIC SOAK",
+  "status": "PASS",
+  "total_iterations": 100,
+  "total_events": 271,
+  "leases_granted": 95,
+  "leases_held": 7,
+  "leases_released": 95,
+  "diagnostics_generated": 25,
+  "reconciliations_completed": 9,
+  "duplicates_prevented": 82,
+  "uncertain_executions_blocked": 6,
+  "human_gates_detected": 6,
+  "system_failures": 0,
+  "duration_ms": 3513,
+  "avg_iteration_ms": "35.13",
+  "memory_initial_heap_mb": "5.54",
+  "memory_final_heap_mb": "7.10",
+  "memory_heap_delta_mb": "1.56",
+  "memory_samples": [
+    {
+      "iteration": 0,
+      "heapUsedMB": "5.54",
+      "rssMB": "41.92"
+    },
+    {
+      "iteration": 25,
+      "heapUsedMB": "7.31",
+      "rssMB": "46.44"
+    },
+    {
+      "iteration": 50,
+      "heapUsedMB": "7.24",
+      "rssMB": "48.51"
+    },
+    {
+      "iteration": 75,
+      "heapUsedMB": "6.68",
+      "rssMB": "48.03"
+    }
+  ],
+  "invariants_proven": {
+    "zero_duplicate_side_effects": true,
+    "single_writer_scope_exclusivity": true,
+    "execution_uncertain_fail_closed": true,
+    "human_gates_fail_closed": true,
+    "result_replay_prevention": true,
+    "bounded_resource_usage": true,
+    "zero_deadlocks": true
+  }
+}

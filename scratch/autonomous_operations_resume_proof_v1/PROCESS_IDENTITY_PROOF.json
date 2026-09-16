@@ -1,0 +1,51 @@
+{
+  "timestamp": "2026-09-10T07:16:30.791Z",
+  "enforcement_rule": "Process ownership requires PID + START_TIME + TASK_TOKEN. PID alone is strictly insufficient.",
+  "test_results": [
+    {
+      "scenario": "EXACT_COMPOSITE_MATCH",
+      "input": {
+        "pid": 9232,
+        "start_time": 1789024590791,
+        "token": "TOKEN-PID-PROOF-1789024590791"
+      },
+      "expected": "OWNED_PROCESS_VALIDATED",
+      "verified": true,
+      "action": "SAFE_TO_MONITOR_OR_TERMINATE"
+    },
+    {
+      "scenario": "RECYCLED_PID_START_TIME_MISMATCH",
+      "input": {
+        "pid": 9232,
+        "start_time": 1789024490791,
+        "token": "TOKEN-PID-PROOF-1789024590791"
+      },
+      "expected": "RECYCLED_PID_DETECTED",
+      "verified": true,
+      "action": "DO_NOT_KILL_PROTECT_RECYCLED_PID"
+    },
+    {
+      "scenario": "FORGED_OR_STALE_TASK_TOKEN",
+      "input": {
+        "pid": 9232,
+        "start_time": 1789024590791,
+        "token": "FORGED_TOKEN_XYZ"
+      },
+      "expected": "TOKEN_MISMATCH",
+      "verified": true,
+      "action": "DO_NOT_KILL_ALERT_SECURITY"
+    },
+    {
+      "scenario": "CORRUPT_OR_MISSING_LEASE_IDENTITY",
+      "input": {
+        "pid": null,
+        "start_time": null,
+        "token": null
+      },
+      "expected": "UNKNOWN_IDENTITY",
+      "verified": true,
+      "action": "DO_NOT_KILL_FAIL_CLOSED"
+    }
+  ],
+  "all_passed": true
+}

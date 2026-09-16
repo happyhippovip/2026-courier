@@ -1,0 +1,98 @@
+[
+  {
+    "crash_point": "BEFORE_STAMP",
+    "last_durable_point": "UNINITIALIZED",
+    "quarantined": false,
+    "safe_to_resume": true,
+    "requires_reconciliation": false,
+    "passed": true
+  },
+  {
+    "crash_point": "AFTER_STAMP",
+    "last_durable_point": "BEFORE_STAMP",
+    "quarantined": false,
+    "safe_to_resume": true,
+    "requires_reconciliation": false,
+    "passed": true
+  },
+  {
+    "crash_point": "BEFORE_DISPATCH",
+    "last_durable_point": "AFTER_STAMP",
+    "quarantined": false,
+    "safe_to_resume": true,
+    "requires_reconciliation": false,
+    "passed": true
+  },
+  {
+    "crash_point": "DURING_DISPATCH",
+    "last_durable_point": "BEFORE_DISPATCH",
+    "quarantined": false,
+    "safe_to_resume": true,
+    "requires_reconciliation": false,
+    "passed": true
+  },
+  {
+    "crash_point": "AFTER_POSSIBLE_DISPATCH",
+    "last_durable_point": "DURING_DISPATCH",
+    "quarantined": true,
+    "safe_to_resume": false,
+    "requires_reconciliation": true,
+    "passed": true
+  },
+  {
+    "crash_point": "BEFORE_RESULT_PERSISTENCE",
+    "last_durable_point": "AFTER_POSSIBLE_DISPATCH",
+    "quarantined": true,
+    "safe_to_resume": false,
+    "requires_reconciliation": true,
+    "passed": true
+  },
+  {
+    "crash_point": "AFTER_RESULT_PERSISTENCE",
+    "last_durable_point": "BEFORE_RESULT_PERSISTENCE",
+    "quarantined": false,
+    "safe_to_resume": false,
+    "requires_reconciliation": true,
+    "passed": true
+  },
+  {
+    "crash_point": "BEFORE_VERIFICATION",
+    "last_durable_point": "AFTER_RESULT_PERSISTENCE",
+    "quarantined": false,
+    "safe_to_resume": true,
+    "requires_reconciliation": false,
+    "passed": true
+  },
+  {
+    "crash_point": "DURING_VERIFICATION",
+    "last_durable_point": "BEFORE_VERIFICATION",
+    "quarantined": false,
+    "safe_to_resume": true,
+    "requires_reconciliation": false,
+    "passed": true
+  },
+  {
+    "crash_point": "AFTER_VERIFICATION",
+    "last_durable_point": "DURING_VERIFICATION",
+    "quarantined": false,
+    "safe_to_resume": true,
+    "requires_reconciliation": false,
+    "passed": true
+  },
+  {
+    "crash_point": "BEFORE_CLEANUP",
+    "last_durable_point": "AFTER_VERIFICATION",
+    "quarantined": false,
+    "safe_to_resume": true,
+    "requires_reconciliation": false,
+    "passed": true
+  },
+  {
+    "crash_point": "AFTER_CLEANUP",
+    "last_durable_point": "BEFORE_CLEANUP",
+    "quarantined": false,
+    "safe_to_resume": true,
+    "requires_reconciliation": false,
+    "passed": true
+  }
+]

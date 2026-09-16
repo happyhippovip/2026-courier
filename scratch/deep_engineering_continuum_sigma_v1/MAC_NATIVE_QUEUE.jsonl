@@ -1,0 +1,1 @@
+{"id":"FOLLOW-001","category":"POST_FREEZE_DARWIN","title":"Darwin APFS atomic directory swap verification on Mac host","priority":"P2","gated_by":"MAC_NATIVE_HOST","actionable_on_windows":false,"auto_resumable":true}

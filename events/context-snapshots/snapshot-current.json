@@ -1,10 +1,10 @@
 {
   "schema_version": "2.0",
-  "context_version": 59,
-  "generated_at": "2026-09-15T20:35:15.668223+00:00",
+  "context_version": 60,
+  "generated_at": "2026-09-15T22:50:50.115777+00:00",
   "repositories": {
-    "courier_head": "a7e1b6e6707de83c7c81fbd209494520f4174a7b",
-    "memory_head": "3098d0c09c20de0c002f92af73ede44c021d8876",
+    "courier_head": "6497170370e0128ca2885b8ef8e10c8a76729e7c",
+    "memory_head": "NOT_CONNECTED",
     "godot_head": "NOT_CONNECTED"
   },
   "workflow_state": {
@@ -13,12 +13,19 @@
     "current_task_id": "NONE",
     "is_locked": false,
     "agent_states": {
+      "agent-antigravity-bridge": {
+        "state": "WAITING_FOR_WORKER",
+        "task": "step-1",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-15T19:47:47.272429+00:00"
+      },
       "agent-update-steward": {
         "state": "CHECKING",
         "task": "Compiling Project Context Snapshot",
         "progress": 0.1,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-09-15T20:35:15.668593+00:00"
+        "updated_at": "2026-09-15T22:50:50.115805+00:00"
       }
     },
     "total_decisions": 0,
@@ -27,55 +34,16 @@
     "total_adoptions": 12
   },
   "memory_truth": {
-    "latest_verified_milestone": "**VERIFIED_CURRENT** | Source: direct GitHub fetch/API readback for `happyhippovip/2026-project-memory` | Verified: 2026-09-06. The earlier repository-inaccessible/404 conclusion is **SUPERSEDED**. Remote `main` is readable, and prior same-chat commit `4b6c93ed0675ed0b6218beaf14c3340f438dcbf5` was successfully pushed and remotely read back. This proves the canonical Memory read/write path at that time; it does not authorize access to other repositories or secret values.",
-    "latest_decisions": [
-      "D-035 \u2014 Courier Normal Operations and evidence-triggered repair",
-      "D-036 \u2014 Single-writer and cheapest-sufficient worker routing",
-      "D-037 \u2014 Original healthy social platform is the first real product direction",
-      "D-038 \u2014 Wait/resume interactions require an exact handoff contract",
-      "D-001 \u2014 Revenue first, conservative capital",
-      "D-002 \u2014 Crypto and speculative recovery blocked",
-      "D-003 \u2014 Protected and private assets excluded",
-      "D-004 \u2014 No paid or irreversible action by default",
-      "D-005 \u2014 Separate project memory repository",
-      "D-006 \u2014 Courier evidence must be staged",
-      "D-007 \u2014 Postiz legacy preservation",
-      "D-008 \u2014 Direct social paths, no new publication by default",
-      "D-009 \u2014 Sensitive data boundary",
-      "D-010 \u2014 Compact memory, not history deletion",
-      "D-011 \u2014 Configured-secret autonomy without value retention",
-      "D-012 \u2014 Chief Relay Protocol & Handoff Standard",
-      "D-013 \u2014 Antigravity Consumer & Result Publisher Architecture",
-      "D-014 \u2014 Chief Relay Cycle Runner (GitHub Intake & Publish Bridge)",
-      "D-015 \u2014 Truth Audit & Exact Automation Boundary Definition",
-      "D-016 \u2014 Antigravity Worker Dispatch Contract & Handoff Point",
-      "D-017 \u2014 Permanent Zero-UI-Confirmation & Unattended Autonomy Policy",
-      "D-018 \u2014 Worker Job Contract Hardening & Strict JSON Schema Validation",
-      "D-019 \u2014 Sync current state before technical work",
-      "D-020 \u2014 Bounded Godot Movie Maker render contract",
-      "D-021 \u2014 Dedicated Godot short source repository",
-      "D-022 \u2014 Scoped permissions and safe cleanup",
-      "D-023 \u2014 Native local Codex CLI attachment is a distinct evidence stage",
-      "D-024 \u2014 Autonomous Chief Commander & Visual Multi-Agent Operations Cockpit",
-      "D-025 \u2014 Idea Sync & Thought Curator memory comparison layer",
-      "D-026 \u2014 Truth-grounded operations cockpit and human gate persistence",
-      "D-027 \u2014 Context Sync & Update Steward state snapshotting",
-      "D-028 \u2014 Update Steward Studio workstation and task thread context integration",
-      "D-029 \u2014 AI Academy Layer (Teacher + Director) and Evidence Evaluation Architecture",
-      "D-030 \u2014 AI Academy visual workstation and dual-loop process integration",
-      "D-031 \u2014 Live Agent HQ / Operations World, Master TV Wall and Facility Matrix",
-      "D-032 \u2014 SNITCH 2.0 Operations Watchdog & Eight Bodyguards Reserve Worker Pool Architecture",
-      "D-033 \u2014 SNITCH 3.0 Permission Guard & Sandbox Masterlist Architecture",
-      "D-034 \u2014 Living Agent HQ Operations Room Visual Architecture"
-    ],
+    "latest_verified_milestone": "NOT_RECORDED",
+    "latest_decisions": [],
     "open_blockers": [],
     "relevant_ideas": [],
     "human_gates": [],
     "files_available": {
-      "project_state": true,
-      "decisions": true,
-      "ideas": true,
-      "changelog": true
+      "project_state": false,
+      "decisions": false,
+      "ideas": false,
+      "changelog": false
     }
   },
   "latest_idea_delta": {
@@ -117,9 +85,11 @@
     "truth_invariants": "IDEA != IMPLEMENTED | USER_REPORTED != VERIFIED | DETERMINISTIC != REAL_EXTERNAL"
   },
   "changed_since_previous_snapshot": [
-    "courier_head"
+    "courier_head",
+    "memory_head",
+    "decisions"
   ],
-  "previous_snapshot_version": 58,
-  "previous_snapshot_hash": "a1fb83704fd6da06d69ca6eaed70b9aa3e83e8a55e28d7b438ac352a53a22896",
-  "snapshot_hash": "4ced48b4d34481c6918462e91714a6da512f32ed5ba1854f423692c05d7a2d25"
+  "previous_snapshot_version": 59,
+  "previous_snapshot_hash": "4ced48b4d34481c6918462e91714a6da512f32ed5ba1854f423692c05d7a2d25",
+  "snapshot_hash": "fbbb96cc43f9ca56102bd0247b69d2ed09161b5d838b715d2bb6049ab55581c5"
 }

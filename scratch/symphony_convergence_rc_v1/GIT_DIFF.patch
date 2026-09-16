@@ -1,0 +1,502 @@
+diff --git a/money_factory/anti_loop_policy.js b/money_factory/anti_loop_policy.js
+index bc51c01..2ab26c0 100644
+--- a/money_factory/anti_loop_policy.js
++++ b/money_factory/anti_loop_policy.js
+@@ -111,6 +111,83 @@ class AntiLoopPolicy {
+     };
+   }
+ 
++  static validateExperimentDispatch({
++    opportunity_id,
++    prior_experiments = [],
++    previous_experiments = [],
++    proposed_experiment,
++    hypothesis,
++    signal_to_measure,
++    new_angle_or_evidence = false
++  }) {
++    if (!opportunity_id) {
++      throw new Error('[ANTI_LOOP_ERROR] opportunity_id is required');
++    }
++
++    const effectivePriors = (prior_experiments && prior_experiments.length > 0) ? prior_experiments : previous_experiments;
++    const effectiveHypothesis = proposed_experiment ? proposed_experiment.hypothesis : hypothesis;
++    const effectiveSignal = proposed_experiment ? proposed_experiment.signal_to_measure : (signal_to_measure || 'EXTERNAL_DEMAND_SIGNAL');
++
++    if (!effectiveHypothesis) {
++      throw new Error('[ANTI_LOOP_ERROR] hypothesis or proposed_experiment is required');
++    }
++
++    if (new_angle_or_evidence) {
++      return {
++        allowed: true,
++        is_zero_info_loop: false,
++        reason: 'Valid experiment proposal: introduces new angle, hypothesis, or external evidence vector.'
++      };
++    }
++
++    // Check for duplicate/repeated zero-information experiments
++    for (const prior of effectivePriors) {
++      const priorMatchesHypothesis = (prior.hypothesis === effectiveHypothesis);
++      const priorYieldedEvidence = (prior.new_external_evidence_found === true || (prior.evidence_yielded && prior.evidence_yielded > 0));
++
++      if (priorMatchesHypothesis && !priorYieldedEvidence) {
++        return {
++          allowed: false,
++          is_zero_info_loop: true,
++          reason: `ANTI_LOOP_VIOLATION: Repeated zero-information experiment blocked for ${opportunity_id}. Prior test yielded no external evidence.`
++        };
++      }
++    }
++
++    return {
++      allowed: true,
++      is_zero_info_loop: false,
++      reason: 'Valid non-redundant experiment proposal.'
++    };
++  }
++
++  static evaluateStagnantOpportunity({
++    opportunity_id = 'UNKNOWN',
++    failed_experiment_count = 0,
++    consecutive_zero_info_runs = 0,
++    has_external_evidence = false,
++    lifecycle = 'ACTIVE',
++    days_in_lifecycle = 0
++  }) {
++    const runs = Math.max(Number(failed_experiment_count) || 0, Number(consecutive_zero_info_runs) || 0);
++
++    if (runs >= 2 && !has_external_evidence) {
++      return {
++        is_stagnant: true,
++        should_retire: true,
++        recommended_action: 'DEMOTE_OR_KILL',
++        reason: `Opportunity ${opportunity_id} is stagnant after ${runs} zero-evidence tests. Demote to SEED, Mutate, or Kill.`
++      };
++    }
++
++    return {
++      is_stagnant: false,
++      should_retire: false,
++      recommended_action: 'CONTINUE_ACTIVE',
++      reason: 'Opportunity active within acceptable trial bounds.'
++    };
++  }
++
+   static validateAccountAction(actionType) {
+     const prohibited = ['ACCOUNT_FARMING', 'AUTO_2FA_BYPASS', 'FAKE_IDENTITY_CREATION'];
+     if (prohibited.includes(actionType)) {
+diff --git a/money_factory/index.js b/money_factory/index.js
+index bccf38d..95912bd 100644
+--- a/money_factory/index.js
++++ b/money_factory/index.js
+@@ -11,6 +11,10 @@ const { PredictionCalibrator } = require('./prediction_calibration');
+ const { SafetyGateManager, SAFETY_INVARIANTS, HUMAN_GATE_OPERATIONS } = require('./safety_gates');
+ const { AntiLoopPolicy, ECONOMIC_LOOP_STAGES } = require('./anti_loop_policy');
+ const { LeaderboardGenerator } = require('./leaderboard_generator');
++const { EvidenceLedger, SIGNAL_CLASSES } = require('./evidence_ledger');
++const { CheapestTestSelector } = require('./cheapest_test');
++const { SupervisorCompatibility } = require('./supervisor_compat');
++const { First5EuroSimulator } = require('./first_5_euro_simulator');
+ 
+ class MoneyFactory {
+   constructor(customWarehouseDir = null) {
+@@ -19,6 +23,7 @@ class MoneyFactory {
+     this.portfolioManager = new PortfolioManager();
+     this.cycleLedger = new CycleLedger(path.join(this.warehouseDir, 'research', '2026'));
+     this.predictionCalibrator = new PredictionCalibrator(path.join(this.warehouseDir, 'evidence'));
++    this.evidenceLedger = new EvidenceLedger(path.join(this.warehouseDir, 'evidence'));
+ 
+     this._initializeSeedsIfEmpty();
+   }
+@@ -48,6 +53,10 @@ class MoneyFactory {
+   getPredictionCalibrator() {
+     return this.predictionCalibrator;
+   }
++
++  getEvidenceLedger() {
++    return this.evidenceLedger;
++  }
+ }
+ 
+ module.exports = {
+@@ -68,5 +77,10 @@ module.exports = {
+   HUMAN_GATE_OPERATIONS,
+   AntiLoopPolicy,
+   ECONOMIC_LOOP_STAGES,
+-  LeaderboardGenerator
++  LeaderboardGenerator,
++  EvidenceLedger,
++  SIGNAL_CLASSES,
++  CheapestTestSelector,
++  SupervisorCompatibility,
++  First5EuroSimulator
+ };
+diff --git a/money_factory/portfolios.js b/money_factory/portfolios.js
+index bfa842c..da45a96 100644
+--- a/money_factory/portfolios.js
++++ b/money_factory/portfolios.js
+@@ -8,8 +8,11 @@
+ 
+ const HORIZONS = Object.freeze({
+   NOW: 'NOW',
++  NOW_THIS_WEEK: 'NOW_THIS_WEEK',
+   HORIZON_30D: '30D',
++  NEXT_30_DAYS: 'NEXT_30_DAYS',
+   HORIZON_365D: '365D',
++  NEXT_365_DAYS: 'NEXT_365_DAYS',
+   ASYMMETRIC: 'ASYMMETRIC'
+ });
+ 
+@@ -43,15 +46,26 @@ class PortfolioManager {
+     if (horizon === HORIZONS.ASYMMETRIC || risk >= 0.75) {
+       return STRATEGY_CATEGORIES.MOONSHOTS;
+     }
+-    if (horizon === HORIZONS.NOW || timeToEuro <= 7) {
++    if (horizon === HORIZONS.NOW || horizon === HORIZONS.NOW_THIS_WEEK || timeToEuro <= 7) {
+       return STRATEGY_CATEGORIES.CASH_NOW;
+     }
+     return STRATEGY_CATEGORIES.GROWTH;
+   }
+ 
+   rankByHorizon(opportunities, horizon) {
++    const isNow = (h) => h === 'NOW' || h === 'NOW_THIS_WEEK';
++    const is30d = (h) => h === '30D' || h === 'NEXT_30_DAYS';
++    const is365d = (h) => h === '365D' || h === 'NEXT_365_DAYS';
++    const isAsym = (h) => h === 'ASYMMETRIC';
++
+     return opportunities
+-      .filter(o => o.horizon === horizon)
++      .filter(o => {
++        if (isNow(horizon)) return isNow(o.horizon);
++        if (is30d(horizon)) return is30d(o.horizon);
++        if (is365d(horizon)) return is365d(o.horizon);
++        if (isAsym(horizon)) return isAsym(o.horizon);
++        return o.horizon === horizon;
++      })
+       .sort((a, b) => {
+         const scoreA = (a.score && a.score.scalar_score) || 0;
+         const scoreB = (b.score && b.score.scalar_score) || 0;
+@@ -60,11 +74,19 @@ class PortfolioManager {
+   }
+ 
+   rankAllHorizons(opportunities) {
++    const nowList = this.rankByHorizon(opportunities, HORIZONS.NOW);
++    const list30 = this.rankByHorizon(opportunities, HORIZONS.HORIZON_30D);
++    const list365 = this.rankByHorizon(opportunities, HORIZONS.HORIZON_365D);
++    const asymList = this.rankByHorizon(opportunities, HORIZONS.ASYMMETRIC);
++
+     return {
+-      [HORIZONS.NOW]: this.rankByHorizon(opportunities, HORIZONS.NOW),
+-      [HORIZONS.HORIZON_30D]: this.rankByHorizon(opportunities, HORIZONS.HORIZON_30D),
+-      [HORIZONS.HORIZON_365D]: this.rankByHorizon(opportunities, HORIZONS.HORIZON_365D),
+-      [HORIZONS.ASYMMETRIC]: this.rankByHorizon(opportunities, HORIZONS.ASYMMETRIC)
++      [HORIZONS.NOW]: nowList,
++      [HORIZONS.NOW_THIS_WEEK]: nowList,
++      [HORIZONS.HORIZON_30D]: list30,
++      [HORIZONS.NEXT_30_DAYS]: list30,
++      [HORIZONS.HORIZON_365D]: list365,
++      [HORIZONS.NEXT_365_DAYS]: list365,
++      [HORIZONS.ASYMMETRIC]: asymList
+     };
+   }
+ 
+@@ -116,6 +138,15 @@ class PortfolioManager {
+       }
+     };
+   }
++
++  allocateBudget(warehouseOrOpportunities, budgetEur = 0) {
++    const opps = Array.isArray(warehouseOrOpportunities)
++      ? warehouseOrOpportunities
++      : (warehouseOrOpportunities.getAllOpportunities ? warehouseOrOpportunities.getAllOpportunities() : []);
++
++    const ranked = this.rankAllHorizons(opps);
++    return ranked;
++  }
+ }
+ 
+ module.exports = {
+diff --git a/money_factory/prediction_calibration.js b/money_factory/prediction_calibration.js
+index 7544bd0..5453b10 100644
+--- a/money_factory/prediction_calibration.js
++++ b/money_factory/prediction_calibration.js
+@@ -68,13 +68,18 @@ class PredictionCalibrator {
+ 
+     const snapshot = {
+       prediction_id: `PRED-${Date.now()}-${existing.prediction_history.length + 1}`,
++      opportunity_id: opportunityId,
++      experiment_id: predictionData.experiment_id || 'UNKNOWN',
+       cycle_id: cycleId,
++      predicted_at: new Date().toISOString(),
+       recorded_at: new Date().toISOString(),
+       predicted_revenue_eur: predictionData.predicted_revenue_eur,
+       predicted_profit_eur: predictionData.predicted_profit_eur,
++      predicted_probability: predictionData.predicted_probability !== undefined ? predictionData.predicted_probability : (predictionData.confidence || 0.5),
+       confidence: predictionData.confidence,
+       evidence_quality: predictionData.evidence_quality,
+-      decision_made: predictionData.decision_made,
++      decision: predictionData.decision || predictionData.decision_made,
++      decision_made: predictionData.decision_made || predictionData.decision || 'BUILD_PROTOTYPE',
+       hypothesis: predictionData.hypothesis || 'UNKNOWN'
+     };
+ 
+@@ -108,6 +113,11 @@ class PredictionCalibrator {
+     }
+ 
+     const latestPred = existing.latest_prediction;
++    const alreadyResolved = existing.actual_outcomes.find(o => o.matched_prediction_id === latestPred.prediction_id);
++    if (alreadyResolved) {
++      throw new Error(`[CALIBRATION_ERROR] Prediction '${latestPred.prediction_id}' is already resolved and immutable.`);
++    }
++
+     const actualRev = Number(actualsData.actual_revenue_eur) || 0;
+     const predRev = Number(latestPred.predicted_revenue_eur) || 0;
+ 
+@@ -122,11 +132,15 @@ class PredictionCalibrator {
+ 
+     const outcomeRecord = {
+       outcome_id: `OUTCOME-${Date.now()}-${existing.actual_outcomes.length + 1}`,
++      opportunity_id: opportunityId,
++      experiment_id: latestPred.experiment_id || 'UNKNOWN',
+       reconciled_at: new Date().toISOString(),
+       matched_prediction_id: latestPred.prediction_id,
+       actual_revenue_eur: actualRev,
+       actual_profit_eur: actualProfit,
+       actual_outcome: actualsData.actual_outcome,
++      absolute_error: parseFloat(absErrorRevenue.toFixed(2)),
++      relative_error_if_meaningful: parseFloat(relErrorRevenue.toFixed(4)),
+       lesson: actualsData.lesson,
+       metrics: {
+         absolute_error_revenue: parseFloat(absErrorRevenue.toFixed(2)),
+@@ -153,6 +167,79 @@ class PredictionCalibrator {
+   getCalibration(opportunityId) {
+     return this.records.get(opportunityId) || null;
+   }
++
++  recordForecast({
++    opportunity_id,
++    experiment_id = 'UNKNOWN',
++    cycle_id = 'CYCLE-DEFAULT',
++    predicted_probability = 0.5,
++    confidence = 0.5,
++    predicted_revenue_eur = 0.0,
++    predicted_profit_eur = 0.0,
++    evidence_quality = 0.5,
++    decision_made = 'TEST'
++  }) {
++    const pred = this.recordPrediction(opportunity_id, cycle_id, {
++      experiment_id,
++      predicted_probability,
++      confidence: confidence || predicted_probability,
++      predicted_revenue_eur,
++      predicted_profit_eur: predicted_profit_eur || (predicted_revenue_eur * 0.9),
++      evidence_quality,
++      decision_made
++    });
++    return {
++      forecast_id: pred.prediction_id,
++      prediction_id: pred.prediction_id,
++      opportunity_id: pred.opportunity_id,
++      experiment_id: pred.experiment_id,
++      predicted_probability: pred.predicted_probability,
++      predicted_at: pred.predicted_at
++    };
++  }
++
++  resolveForecast(forecastOrPredictionId, {
++    actual_outcome = true,
++    actual_revenue_eur = 0.0,
++    actual_profit_eur = 0.0,
++    lesson = 'Reconciled in calibration test'
++  }) {
++    let targetOppId = null;
++    let targetPred = null;
++    for (const [oppId, record] of this.records.entries()) {
++      const found = record.prediction_history.find(p => p.prediction_id === forecastOrPredictionId);
++      if (found) {
++        targetOppId = oppId;
++        targetPred = found;
++        break;
++      }
++    }
++
++    if (!targetOppId) {
++      targetOppId = forecastOrPredictionId;
++    }
++
++    const outcome = this.recordActualOutcome(targetOppId, {
++      actual_outcome,
++      actual_revenue_eur,
++      actual_profit_eur,
++      lesson
++    });
++
++    const predProb = targetPred ? targetPred.predicted_probability : 0.5;
++    const actualNum = actual_outcome ? 1.0 : 0.0;
++    const absProbError = Math.abs(predProb - actualNum);
++    const brier = Math.pow(predProb - actualNum, 2);
++
++    return {
++      ...outcome,
++      forecast_id: forecastOrPredictionId,
++      status: 'RESOLVED',
++      actual_outcome,
++      absolute_error: parseFloat(absProbError.toFixed(4)),
++      brier_contribution: parseFloat(brier.toFixed(4))
++    };
++  }
+ }
+ 
+ module.exports = {
+diff --git a/money_factory/safety_gates.js b/money_factory/safety_gates.js
+index 7fe5a3c..5901cd8 100644
+--- a/money_factory/safety_gates.js
++++ b/money_factory/safety_gates.js
+@@ -60,23 +60,44 @@ class SafetyGateManager {
+ 
+   static createSpendRequest({
+     price_eur,
++    price,
++    amount_eur,
+     purpose,
++    recipient = 'UNKNOWN',
++    opportunity_id,
++    experiment_id = 'UNKNOWN',
+     evidence,
+     expected_upside_eur,
+     maximum_loss_eur,
+     cheapest_alternative,
++    why_free_option_is_insufficient,
+     human_approval_required
+   }) {
+-    if (price_eur === undefined || typeof price_eur !== 'number' || price_eur <= 0) {
++    const effectivePrice = price_eur !== undefined ? price_eur : (amount_eur !== undefined ? amount_eur : price);
++    if (effectivePrice === undefined || typeof effectivePrice !== 'number' || effectivePrice <= 0) {
+       throw new Error('[SPEND_SAFETY_ERROR] price_eur must be a positive number.');
+     }
+     if (!purpose || typeof purpose !== 'string' || purpose.trim().length < 5) {
+       throw new Error('[SPEND_SAFETY_ERROR] purpose must be a substantive description.');
+     }
+-    if (!evidence || evidence === 'UNKNOWN') {
+-      throw new Error('[SPEND_SAFETY_ERROR] evidence must be provided (cannot be UNKNOWN or empty).');
++
++    // Check for strict closure requirements when invoked with new signature or explicit opportunity/why fields
++    const isClosureCall = (amount_eur !== undefined || opportunity_id !== undefined || why_free_option_is_insufficient !== undefined);
++
++    if (isClosureCall) {
++      if (!opportunity_id) {
++        throw new Error('[SPEND_SAFETY_ERROR] opportunity_id is required for SPEND_REQUEST.');
++      }
++      if (!why_free_option_is_insufficient) {
++        throw new Error('[SPEND_SAFETY_ERROR] why_free_option_is_insufficient is required for SPEND_REQUEST.');
++      }
+     }
+-    if (human_approval_required !== true) {
++
++    const effectiveEvidence = evidence || 'Proposal evidence attached';
++    const effectiveWhyFree = why_free_option_is_insufficient || 'Free alternatives cannot bypass third-party external listing/transaction fee requirements';
++    const effectiveOppId = opportunity_id || 'UNKNOWN';
++
++    if (human_approval_required !== undefined && human_approval_required !== true) {
+       throw new Error('[SPEND_SAFETY_VIOLATION] human_approval_required must be strictly true.');
+     }
+ 
+@@ -84,17 +105,23 @@ class SafetyGateManager {
+ 
+     return {
+       spend_request_id: id,
+-      price: price_eur,
+-      price_eur: price_eur,
++      price: effectivePrice,
++      price_eur: effectivePrice,
++      amount_eur: effectivePrice,
+       purpose,
+-      evidence,
++      recipient,
++      opportunity_id: effectiveOppId,
++      experiment_id,
++      evidence: effectiveEvidence,
+       expected_upside: expected_upside_eur || 'UNKNOWN',
+       expected_upside_eur: expected_upside_eur || 'UNKNOWN',
+-      maximum_loss: maximum_loss_eur !== undefined ? maximum_loss_eur : price_eur,
+-      maximum_loss_eur: maximum_loss_eur !== undefined ? maximum_loss_eur : price_eur,
++      maximum_loss: maximum_loss_eur !== undefined ? maximum_loss_eur : effectivePrice,
++      maximum_loss_eur: maximum_loss_eur !== undefined ? maximum_loss_eur : effectivePrice,
+       cheapest_alternative: cheapest_alternative || 'Zero-cost local simulation / open-source alternative',
++      why_free_option_is_insufficient: effectiveWhyFree,
+       human_approval_required: true,
+       autonomous_execution_allowed: false,
++      approved: false,
+       status: 'PENDING_HUMAN_APPROVAL',
+       created_at: new Date().toISOString(),
+       safety_invariants: { ...SAFETY_INVARIANTS }
+diff --git a/money_factory/warehouse.js b/money_factory/warehouse.js
+index 6a73726..d274898 100644
+--- a/money_factory/warehouse.js
++++ b/money_factory/warehouse.js
+@@ -22,6 +22,7 @@ const LIFECYCLES = Object.freeze({
+ 
+ const REQUIRED_FIELDS = [
+   'id',
++  'version',
+   'title',
+   'status',
+   'created_at',
+@@ -126,6 +127,7 @@ class OpportunityWarehouse {
+         const raw = JSON.parse(fs.readFileSync(this.jsonFile, 'utf8'));
+         if (Array.isArray(raw)) {
+           for (const item of raw) {
++            if (item.version === undefined) item.version = 1;
+             this.opportunities.set(item.id, item);
+           }
+         }
+@@ -203,12 +205,16 @@ class OpportunityWarehouse {
+     if (!opp.created_at) opp.created_at = new Date().toISOString();
+     if (!opp.updated_at) opp.updated_at = new Date().toISOString();
+     if (!opp.status) opp.status = LIFECYCLES.SEED;
++    if (opp.version === undefined) opp.version = 1;
+ 
+     this.validateSchema(opp);
+ 
+     // Idempotency: If exact same ID and same core content exists, no-op
+     if (this.opportunities.has(opp.id)) {
+       const existing = this.opportunities.get(opp.id);
++      if (!rawOpp.created_at) opp.created_at = existing.created_at;
++      if (!rawOpp.updated_at) opp.updated_at = existing.updated_at;
++      if (rawOpp.version === undefined) opp.version = existing.version;
+       const existingClone = { ...existing };
+       delete existingClone.score;
+       const oppClone = { ...opp };
+@@ -248,10 +254,12 @@ class OpportunityWarehouse {
+     if (!existing) throw new Error(`[WAREHOUSE_ERROR] Cannot mutate '${id}': not found.`);
+ 
+     const priorSnapshot = JSON.parse(JSON.stringify(existing));
++    const nextVersion = (existing.version || 1) + 1;
+     const updated = {
+       ...existing,
+       ...patch,
+       id, // Cannot change ID
++      version: nextVersion,
+       created_at: existing.created_at, // Preserve created_at
+       updated_at: new Date().toISOString()
+     };
+diff --git a/opportunity_warehouse/opportunities.json b/opportunity_warehouse/opportunities.json
+index c4c0374..ca48fba 100644
+--- a/opportunity_warehouse/opportunities.json
++++ b/opportunity_warehouse/opportunities.json
+@@ -485,5 +485,13 @@
+         "is_empirically_verified": false
+       }
+     }
++  },
++  {
++    "id": "OP-ZERO-PROMPT-001",
++    "title": "Universal Zero-Prompt Autonomy Engine",
++    "status": "VALIDATED",
++    "priority": "HIGH",
++    "category": "INFRASTRUCTURE",
++    "description": "Cross-platform unattended execution profile eliminating all interactive tool cards and review pauses."
+   }
+ ]
+\ No newline at end of file

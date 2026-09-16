@@ -1,0 +1,1421 @@
+--- a/supervisor/no_stacking.js
++++ b/supervisor/no_stacking.js
+@@ -1,65 +1,107 @@
+-// No-Stacking & Duplicate Heavy Work Detector
+-// Invariant: Equivalent heavy work on the SAME machine must not stack.
+-// Different machines or different tasks must NOT conflict.
+-
+-const crypto = require('crypto');
+-const { LEASE_STATUS } = require('./types');
+-
+-class NoStackingDetector {
+-  constructor(leaseManager) {
+-    if (!leaseManager) throw new Error('[NO_STACKING_ERROR] leaseManager is required');
+-    this.leaseManager = leaseManager;
+-  }
+-
+-  static computeTaskWorkSignature(taskId, workCategory, command = '') {
+-    // Canonical signature representing equivalent heavy work
+-    const normCmd = (command || '').trim().toLowerCase();
+-    const raw = `${taskId}:${workCategory}:${normCmd}`;
+-    return crypto.createHash('sha256').update(raw).digest('hex');
+-  }
+-
+-  evaluateHeavyTaskSubmission({
+-    task_id,
+-    work_category = 'TEST_SUITE',
+-    command = '',
+-    machine_id = 'WINDOWS_LOCAL'
+-  }) {
+-    const signature = NoStackingDetector.computeTaskWorkSignature(task_id, work_category, command);
+-    const activeLeases = this.leaseManager.getActiveLeasesForMachine(machine_id);
+-
+-    // Look for duplicate active equivalent work on the SAME machine
+-    for (const lease of activeLeases) {
+-      if (lease.task_id === task_id) {
+-        const existingSig = NoStackingDetector.computeTaskWorkSignature(
+-          lease.task_id,
+-          lease.purpose || work_category,
+-          lease.command
+-        );
+-
+-        if (existingSig === signature || lease.command === command) {
+-          // Found active canonical work
+-          return {
+-            allowed: false,
+-            is_duplicate_heavy_work: true,
+-            status: 'DUPLICATE_HEAVY_WORK_BLOCKED',
+-            canonical_lease_id: lease.process_lease_id,
+-            canonical_status: lease.status,
+-            reason: `Equivalent heavy work (${work_category}) already active on machine ${machine_id} under lease ${lease.process_lease_id}. Stacking prevented.`
+-          };
+-        }
+-      }
+-    }
+-
+-    return {
+-      allowed: true,
+-      is_duplicate_heavy_work: false,
+-      status: 'ADMISSION_PERMITTED',
+-      reason: `No conflicting equivalent heavy work on machine ${machine_id}`
+-    };
+-  }
+-}
+-
+-module.exports = {
+-  NoStackingDetector
+-};
+-
++// No-Stacking & Hierarchical Resource Collision Detector
++// Invariants:
++// 1. Equivalent heavy work on the SAME machine must not stack.
++// 2. Overlapping NTFS resource paths (parent/child, case variants) must not be concurrently locked.
++// 3. Different machines or independent resources must NOT conflict.
++
++const crypto = require('crypto');
++const path = require('path');
++const { LEASE_STATUS } = require('./types');
++const { ResourceLockManager } = require('../governance/ResourceLockManager');
++
++class NoStackingDetector {
++  constructor(leaseManager, lockManager = null) {
++    if (!leaseManager) throw new Error('[NO_STACKING_ERROR] leaseManager is required');
++    this.leaseManager = leaseManager;
++    this.lockManager = lockManager || new ResourceLockManager();
++  }
++
++  static computeTaskWorkSignature(taskId, workCategory, command = '') {
++    const normCmd = (command || '').trim().toLowerCase();
++    const raw = `${taskId}:${workCategory}:${normCmd}`;
++    return crypto.createHash('sha256').update(raw).digest('hex');
++  }
++
++  evaluateHeavyTaskSubmission({
++    task_id,
++    work_category = 'TEST_SUITE',
++    command = '',
++    machine_id = 'WINDOWS_LOCAL',
++    resource_path = null,
++    working_dir = null
++  }) {
++    // 1. Check Hierarchical Resource Lock Overlap if a path is specified
++    const targetPath = resource_path || working_dir;
++    if (targetPath) {
++      const lockCheck = this.lockManager.canAcquire(targetPath, task_id);
++      if (!lockCheck.available) {
++        return {
++          allowed: false,
++          is_duplicate_heavy_work: true,
++          status: 'RESOURCE_LOCK_CONFLICT',
++          conflicting_task_id: lockCheck.conflicting_task_id,
++          conflicting_path: lockCheck.conflicting_path,
++          reason: `Resource conflict on '${targetPath}'. Overlaps with held lock '${lockCheck.conflicting_path}' by task '${lockCheck.conflicting_task_id}'. Stacking prevented.`
++        };
++      }
++    }
++
++    // 2. Command and Equivalent Work Duplicate Check on SAME Machine
++    const signature = NoStackingDetector.computeTaskWorkSignature(task_id, work_category, command);
++    const activeLeases = this.leaseManager.getActiveLeasesForMachine(machine_id);
++
++    for (const lease of activeLeases) {
++      if (lease.task_id === task_id) {
++        const existingSig = NoStackingDetector.computeTaskWorkSignature(
++          lease.task_id,
++          lease.purpose || work_category,
++          lease.command
++        );
++
++        if (existingSig === signature || lease.command === command) {
++          return {
++            allowed: false,
++            is_duplicate_heavy_work: true,
++            status: 'DUPLICATE_HEAVY_WORK_BLOCKED',
++            canonical_lease_id: lease.process_lease_id,
++            canonical_status: lease.status,
++            reason: `Equivalent heavy work (${work_category}) already active on machine ${machine_id} under lease ${lease.process_lease_id}. Stacking prevented.`
++          };
++        }
++      }
++    }
++
++    return {
++      allowed: true,
++      is_duplicate_heavy_work: false,
++      status: 'ADMISSION_PERMITTED',
++      reason: `No conflicting equivalent heavy work on machine ${machine_id}`
++    };
++  }
++
++  // Direct Resource Lock API delegating to ResourceLockManager
++  acquireResource(resourcePath, taskId, mode = 'EXCL') {
++    return this.lockManager.acquire(resourcePath, taskId, mode);
++  }
++
++  releaseResource(resourcePath, taskId) {
++    return this.lockManager.release(resourcePath, taskId);
++  }
++
++  releaseAllForTask(taskId) {
++    return this.lockManager.releaseAllForTask(taskId);
++  }
++
++  canAcquireResource(resourcePath, taskId) {
++    return this.lockManager.canAcquire(resourcePath, taskId);
++  }
++
++  activeResourceLocks() {
++    return this.lockManager.activeLocks();
++  }
++}
++
++module.exports = {
++  NoStackingDetector,
++  ResourceLockManager
++};
+
+--- a/supervisor/lease_manager.js
++++ b/supervisor/lease_manager.js
+@@ -1,232 +1,315 @@
+-// Process Lease Manager — Durable Process Ownership & Parent-Child Reconciliation
+-// Invariant: Historical lease records must not be silently deleted.
+-
+-const fs = require('fs');
+-const path = require('path');
+-const crypto = require('crypto');
+-const { LEASE_STATUS, EVENT_TYPE } = require('./types');
+-
+-class ProcessLeaseManager {
+-  constructor(storageDir = null, auditLedger = null) {
+-    this.storageDir = storageDir || path.join(__dirname, '..', 'runtime', 'leases');
+-    if (!fs.existsSync(this.storageDir)) {
+-      fs.mkdirSync(this.storageDir, { recursive: true });
+-    }
+-    this.leasesFile = path.join(this.storageDir, 'leases.json');
+-    this.auditLedger = auditLedger;
+-
+-    this.leases = new Map();
+-    this._load();
+-  }
+-
+-  _load() {
+-    if (fs.existsSync(this.leasesFile)) {
+-      try {
+-        const raw = JSON.parse(fs.readFileSync(this.leasesFile, 'utf8'));
+-        if (Array.isArray(raw)) {
+-          for (const l of raw) {
+-            this.leases.set(l.process_lease_id, l);
+-          }
+-        }
+-      } catch (err) {
+-        console.error(`[LEASE_MANAGER] Warning: could not parse ${this.leasesFile}:`, err.message);
+-      }
+-    }
+-  }
+-
+-  _persist() {
+-    const list = Array.from(this.leases.values());
+-    const tmp = `${this.leasesFile}.tmp`;
+-    fs.writeFileSync(tmp, JSON.stringify(list, null, 2), 'utf8');
+-    fs.renameSync(tmp, this.leasesFile);
+-  }
+-
+-  static computeProcessFingerprint(command, pid, machineId, startedAt) {
+-    const raw = `${machineId}:${pid}:${startedAt}:${command}`;
+-    return crypto.createHash('sha256').update(raw).digest('hex');
+-  }
+-
+-  static computeCommandFingerprint(command) {
+-    return crypto.createHash('sha256').update(command || '').digest('hex');
+-  }
+-
+-  createLease({
+-    task_id,
+-    task_version = 1,
+-    goal_id = null,
+-    worker_id = null,
+-    owner = 'COURIER_WORKER',
+-    machine_id = 'WINDOWS_LOCAL',
+-    pid = process.pid,
+-    command = '',
+-    purpose = 'GENERAL_WORK',
+-    expected_completion_condition = 'EXIT_ZERO',
+-    cleanup_policy = 'TERMINATE_ON_TASK_END',
+-    parent_process_id = null,
+-    status = LEASE_STATUS.STARTING
+-  }) {
+-    if (!task_id) throw new Error('[LEASE_ERROR] task_id is required');
+-
+-    const startedAt = new Date().toISOString();
+-    const leaseId = `LEASE-${Date.now()}-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
+-    const pFp = ProcessLeaseManager.computeProcessFingerprint(command, pid, machine_id, startedAt);
+-    const cFp = ProcessLeaseManager.computeCommandFingerprint(command);
+-
+-    const lease = {
+-      process_lease_id: leaseId,
+-      task_id,
+-      task_version,
+-      goal_id,
+-      worker_id,
+-      owner,
+-      machine_id,
+-      pid,
+-      command,
+-      process_fingerprint: pFp,
+-      command_fingerprint: cFp,
+-      purpose,
+-      started_at: startedAt,
+-      last_heartbeat_at: startedAt,
+-      last_progress_at: startedAt,
+-      expected_completion_condition,
+-      cleanup_policy,
+-      parent_process_id,
+-      status,
+-      termination_reason: null,
+-      result_reference: null,
+-      history: [
+-        {
+-          timestamp: startedAt,
+-          status,
+-          note: 'Lease created'
+-        }
+-      ]
+-    };
+-
+-    this.leases.set(leaseId, lease);
+-    this._persist();
+-
+-    if (this.auditLedger) {
+-      this.auditLedger.recordEvent({
+-        task_id,
+-        task_version,
+-        goal_id,
+-        worker_id,
+-        process_lease_id: leaseId,
+-        machine_id,
+-        event_type: EVENT_TYPE.PROCESS_REGISTERED,
+-        new_state: status,
+-        reason_codes: ['LEASE_ACQUIRED']
+-      });
+-    }
+-
+-    return lease;
+-  }
+-
+-  getLease(leaseId) {
+-    return this.leases.get(leaseId) || null;
+-  }
+-
+-  getAllLeases() {
+-    return Array.from(this.leases.values());
+-  }
+-
+-  getActiveLeasesForMachine(machineId) {
+-    const activeStatuses = [
+-      LEASE_STATUS.STARTING,
+-      LEASE_STATUS.RUNNING,
+-      LEASE_STATUS.WAITING_VALID,
+-      LEASE_STATUS.PROGRESSING,
+-      LEASE_STATUS.STALLED
+-    ];
+-    return this.getAllLeases().filter(l => l.machine_id === machineId && activeStatuses.includes(l.status));
+-  }
+-
+-  recordHeartbeat(leaseId, timestamp = null) {
+-    const lease = this.leases.get(leaseId);
+-    if (!lease) throw new Error(`[LEASE_ERROR] Lease '${leaseId}' not found`);
+-
+-    const ts = timestamp || new Date().toISOString();
+-    lease.last_heartbeat_at = ts;
+-    this._persist();
+-
+-    if (this.auditLedger) {
+-      this.auditLedger.recordEvent({
+-        task_id: lease.task_id,
+-        task_version: lease.task_version,
+-        goal_id: lease.goal_id,
+-        worker_id: lease.worker_id,
+-        process_lease_id: leaseId,
+-        machine_id: lease.machine_id,
+-        event_type: EVENT_TYPE.HEARTBEAT,
+-        new_state: lease.status,
+-        reason_codes: ['HEARTBEAT_RECORDED']
+-      });
+-    }
+-
+-    return lease;
+-  }
+-
+-  updateStatus(leaseId, newStatus, reason = null, resultRef = null) {
+-    const lease = this.leases.get(leaseId);
+-    if (!lease) throw new Error(`[LEASE_ERROR] Lease '${leaseId}' not found`);
+-
+-    const prevStatus = lease.status;
+-    lease.status = newStatus;
+-    if (reason) lease.termination_reason = reason;
+-    if (resultRef) lease.result_reference = resultRef;
+-
+-    const now = new Date().toISOString();
+-    lease.history.push({
+-      timestamp: now,
+-      status: newStatus,
+-      note: reason || 'Status transition'
+-    });
+-
+-    this._persist();
+-
+-    if (this.auditLedger) {
+-      this.auditLedger.recordEvent({
+-        task_id: lease.task_id,
+-        task_version: lease.task_version,
+-        goal_id: lease.goal_id,
+-        worker_id: lease.worker_id,
+-        process_lease_id: leaseId,
+-        machine_id: lease.machine_id,
+-        event_type: EVENT_TYPE.STATE_CLASSIFIED,
+-        previous_state: prevStatus,
+-        new_state: newStatus,
+-        reason_codes: reason ? [reason] : []
+-      });
+-    }
+-
+-    return lease;
+-  }
+-
+-  reconcileChildrenOnParentCompletion(parentLeaseId, completionReason = 'PARENT_COMPLETED') {
+-    const parent = this.leases.get(parentLeaseId);
+-    if (!parent) return [];
+-
+-    const children = this.getAllLeases().filter(l => l.parent_process_id === parentLeaseId);
+-    const reconciled = [];
+-
+-    for (const child of children) {
+-      // If child is marked as terminate on task end, terminate it cleanly
+-      if (child.cleanup_policy === 'TERMINATE_ON_TASK_END' && child.status !== LEASE_STATUS.COMPLETED && child.status !== LEASE_STATUS.TERMINATED) {
+-        this.updateStatus(child.process_lease_id, LEASE_STATUS.TERMINATED, `Parent ${parentLeaseId} completed: ${completionReason}`);
+-        reconciled.push({ child_id: child.process_lease_id, action: 'TERMINATED', reason: completionReason });
+-      } else if (child.cleanup_policy === 'PRESERVE_BACKGROUND') {
+-        // Genuinely required background work retained
+-        this.updateStatus(child.process_lease_id, LEASE_STATUS.WAITING_VALID, `Retained background task after parent ${parentLeaseId} completed`);
+-        reconciled.push({ child_id: child.process_lease_id, action: 'PRESERVED', reason: 'PRESERVE_BACKGROUND policy' });
+-      }
+-    }
+-
+-    return reconciled;
+-  }
+-}
+-
+-module.exports = {
+-  ProcessLeaseManager
+-};
+-
++// Process Lease Manager — Durable Process Ownership & Parent-Child Reconciliation
++// Invariants:
++// 1. Process identity = PID + START_TIME + TASK_TOKEN.
++// 2. UNKNOWN process identity must NEVER authorize destructive cleanup.
++// 3. Historical lease records must not be silently deleted.
++
++const fs = require('fs');
++const path = require('path');
++const crypto = require('crypto');
++const { LEASE_STATUS, EVENT_TYPE } = require('./types');
++
++class ProcessLeaseManager {
++  constructor(storageDir = null, auditLedger = null) {
++    this.storageDir = storageDir || path.join(__dirname, '..', 'runtime', 'leases');
++    if (!fs.existsSync(this.storageDir)) {
++      fs.mkdirSync(this.storageDir, { recursive: true });
++    }
++    this.leasesFile = path.join(this.storageDir, 'leases.json');
++    this.auditLedger = auditLedger;
++
++    this.leases = new Map();
++    this._load();
++  }
++
++  _load() {
++    if (fs.existsSync(this.leasesFile)) {
++      try {
++        const raw = JSON.parse(fs.readFileSync(this.leasesFile, 'utf8'));
++        if (Array.isArray(raw)) {
++          for (const l of raw) {
++            this.leases.set(l.process_lease_id, l);
++          }
++        }
++      } catch (err) {
++        console.error(`[LEASE_MANAGER] Warning: could not parse ${this.leasesFile}:`, err.message);
++      }
++    }
++  }
++
++  _persist() {
++    const list = Array.from(this.leases.values());
++    const tmp = `${this.leasesFile}.tmp`;
++    fs.writeFileSync(tmp, JSON.stringify(list, null, 2), 'utf8');
++    fs.renameSync(tmp, this.leasesFile);
++  }
++
++  static computeProcessFingerprint(command, pid, machineId, startedAt, taskToken = '') {
++    const raw = `${machineId}:${pid}:${startedAt}:${command}:${taskToken}`;
++    return crypto.createHash('sha256').update(raw).digest('hex');
++  }
++
++  static computeCommandFingerprint(command) {
++    return crypto.createHash('sha256').update(command || '').digest('hex');
++  }
++
++  createLease({
++    task_id,
++    task_version = 1,
++    goal_id = null,
++    worker_id = null,
++    owner = 'COURIER_WORKER',
++    machine_id = 'WINDOWS_LOCAL',
++    pid = process.pid,
++    command = '',
++    purpose = 'GENERAL_WORK',
++    expected_completion_condition = 'EXIT_ZERO',
++    cleanup_policy = 'TERMINATE_ON_TASK_END',
++    parent_process_id = null,
++    status = LEASE_STATUS.STARTING,
++    task_token = null,
++    start_time_epoch = null
++  }) {
++    if (!task_id) throw new Error('[LEASE_ERROR] task_id is required');
++
++    const startedAt = new Date().toISOString();
++    const startTimeEpoch = start_time_epoch || Date.now();
++    const token = task_token || `TOKEN-${task_id}-${crypto.randomBytes(6).toString('hex').toUpperCase()}`;
++    const leaseId = `LEASE-${Date.now()}-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
++    const pFp = ProcessLeaseManager.computeProcessFingerprint(command, pid, machine_id, startedAt, token);
++    const cFp = ProcessLeaseManager.computeCommandFingerprint(command);
++
++    const lease = {
++      process_lease_id: leaseId,
++      task_id,
++      task_version,
++      goal_id,
++      worker_id,
++      owner,
++      machine_id,
++      pid,
++      command,
++      process_fingerprint: pFp,
++      command_fingerprint: cFp,
++      task_token: token,
++      start_time_epoch: startTimeEpoch,
++      purpose,
++      started_at: startedAt,
++      last_heartbeat_at: startedAt,
++      last_progress_at: startedAt,
++      expected_completion_condition,
++      cleanup_policy,
++      parent_process_id,
++      status,
++      termination_reason: null,
++      result_reference: null,
++      history: [
++        {
++          timestamp: startedAt,
++          status,
++          note: 'Lease created'
++        }
++      ]
++    };
++
++    this.leases.set(leaseId, lease);
++    this._persist();
++
++    if (this.auditLedger) {
++      this.auditLedger.recordEvent({
++        task_id,
++        task_version,
++        goal_id,
++        worker_id,
++        process_lease_id: leaseId,
++        machine_id,
++        event_type: EVENT_TYPE.PROCESS_REGISTERED,
++        new_state: status,
++        reason_codes: ['LEASE_ACQUIRED']
++      });
++    }
++
++    return lease;
++  }
++
++  getLease(leaseId) {
++    return this.leases.get(leaseId) || null;
++  }
++
++  getLeaseByPid(pid) {
++    for (const l of this.leases.values()) {
++      if (l.pid === pid) return l;
++    }
++    return null;
++  }
++
++  getAllLeases() {
++    return Array.from(this.leases.values());
++  }
++
++  getActiveLeasesForMachine(machineId) {
++    const activeStatuses = [
++      LEASE_STATUS.STARTING,
++      LEASE_STATUS.RUNNING,
++      LEASE_STATUS.WAITING_VALID,
++      LEASE_STATUS.PROGRESSING,
++      LEASE_STATUS.STALLED
++    ];
++    return this.getAllLeases().filter(l => l.machine_id === machineId && activeStatuses.includes(l.status));
++  }
++
++  recordHeartbeat(leaseId, timestamp = null) {
++    const lease = this.leases.get(leaseId);
++    if (!lease) throw new Error(`[LEASE_ERROR] Lease '${leaseId}' not found`);
++
++    const ts = timestamp || new Date().toISOString();
++    lease.last_heartbeat_at = ts;
++    this._persist();
++
++    if (this.auditLedger) {
++      this.auditLedger.recordEvent({
++        task_id: lease.task_id,
++        task_version: lease.task_version,
++        goal_id: lease.goal_id,
++        worker_id: lease.worker_id,
++        process_lease_id: leaseId,
++        machine_id: lease.machine_id,
++        event_type: EVENT_TYPE.HEARTBEAT,
++        new_state: lease.status,
++        reason_codes: ['HEARTBEAT_RECORDED']
++      });
++    }
++
++    return lease;
++  }
++
++  updateStatus(leaseId, newStatus, reason = null, resultRef = null) {
++    const lease = this.leases.get(leaseId);
++    if (!lease) throw new Error(`[LEASE_ERROR] Lease '${leaseId}' not found`);
++
++    const prevStatus = lease.status;
++    lease.status = newStatus;
++    if (reason) lease.termination_reason = reason;
++    if (resultRef) lease.result_reference = resultRef;
++
++    const now = new Date().toISOString();
++    lease.history.push({
++      timestamp: now,
++      status: newStatus,
++      note: reason || 'Status transition'
++    });
++
++    this._persist();
++
++    if (this.auditLedger) {
++      this.auditLedger.recordEvent({
++        task_id: lease.task_id,
++        task_version: lease.task_version,
++        goal_id: lease.goal_id,
++        worker_id: lease.worker_id,
++        process_lease_id: leaseId,
++        machine_id: lease.machine_id,
++        event_type: EVENT_TYPE.STATE_CLASSIFIED,
++        previous_state: prevStatus,
++        new_state: newStatus,
++        reason_codes: reason ? [reason] : []
++      });
++    }
++
++    return lease;
++  }
++
++  // Authoritative Process Identity Verification (GAP-002 / B01)
++  verifyProcessIdentity(pid, expectedStartTimeEpoch = null, expectedTaskToken = null) {
++    const lease = this.getLeaseByPid(pid);
++    if (!lease) {
++      return {
++        valid: false,
++        can_terminate: false,
++        reason: 'UNKNOWN_PROCESS_IDENTITY_NEVER_AUTHORIZES_KILL',
++        status: 'UNVERIFIED'
++      };
++    }
++
++    // Check Start Time Tolerance to catch recycled PIDs
++    if (expectedStartTimeEpoch !== null && lease.start_time_epoch) {
++      const deltaMs = Math.abs(lease.start_time_epoch - expectedStartTimeEpoch);
++      if (deltaMs > 2000) {
++        return {
++          valid: false,
++          can_terminate: false,
++          reason: `RECYCLED_PID_START_TIME_MISMATCH (delta ${deltaMs}ms > 2000ms)`,
++          status: 'PID_REUSED'
++        };
++      }
++    }
++
++    // Check Task Token
++    if (expectedTaskToken !== null && lease.task_token !== expectedTaskToken) {
++      return {
++        valid: false,
++        can_terminate: false,
++        reason: 'STALE_OR_FORGED_TASK_TOKEN_MISMATCH',
++        status: 'TOKEN_MISMATCH'
++      };
++    }
++
++    return {
++      valid: true,
++      can_terminate: true,
++      lease,
++      status: 'VERIFIED_OWNED_PROCESS'
++    };
++  }
++
++  // Safe Termination: UNKNOWN or unverified process identity must NEVER authorize kill
++  safeTerminateProcess(leaseId, expectedToken = null) {
++    const lease = this.getLease(leaseId);
++    if (!lease) {
++      return {
++        terminated: false,
++        reason: 'UNKNOWN_LEASE_DENIED_KILL',
++        can_terminate: false
++      };
++    }
++
++    if (expectedToken && lease.task_token !== expectedToken) {
++      return {
++        terminated: false,
++        reason: 'TASK_TOKEN_MISMATCH_DENIED_KILL',
++        can_terminate: false
++      };
++    }
++
++    this.updateStatus(leaseId, LEASE_STATUS.TERMINATED, 'SAFE_VERIFIED_TERMINATION');
++    return {
++      terminated: true,
++      leaseId,
++      status: LEASE_STATUS.TERMINATED
++    };
++  }
++
++  reconcileChildrenOnParentCompletion(parentLeaseId, completionReason = 'PARENT_COMPLETED') {
++    const parent = this.leases.get(parentLeaseId);
++    if (!parent) return [];
++
++    const children = this.getAllLeases().filter(l => l.parent_process_id === parentLeaseId);
++    const reconciled = [];
++
++    for (const child of children) {
++      if (child.cleanup_policy === 'TERMINATE_ON_TASK_END' && child.status !== LEASE_STATUS.COMPLETED && child.status !== LEASE_STATUS.TERMINATED) {
++        this.updateStatus(child.process_lease_id, LEASE_STATUS.TERMINATED, `Parent ${parentLeaseId} completed: ${completionReason}`);
++        reconciled.push({ child_id: child.process_lease_id, action: 'TERMINATED', reason: completionReason });
++      } else if (child.cleanup_policy === 'PRESERVE_BACKGROUND') {
++        this.updateStatus(child.process_lease_id, LEASE_STATUS.WAITING_VALID, `Retained background task after parent ${parentLeaseId} completed`);
++        reconciled.push({ child_id: child.process_lease_id, action: 'PRESERVED', reason: 'PRESERVE_BACKGROUND policy' });
++      }
++    }
++
++    return reconciled;
++  }
++}
++
++module.exports = {
++  ProcessLeaseManager
++};
+
+--- a/supervisor/decision_engine.js
++++ b/supervisor/decision_engine.js
+@@ -1,79 +1,107 @@
+-// Supervisor Decision Engine — Deterministic Runtime State Evaluation
+-// Invariant: This engine supervises runtime execution. It must NEVER become a second planner/orchestrator.
+-
+-const { LEASE_STATUS, SUPERVISOR_DECISION } = require('./types');
+-const { StallPolicy } = require('./stall_policy');
+-
+-class DecisionEngine {
+-  constructor(stallPolicy = null) {
+-    this.stallPolicy = stallPolicy || new StallPolicy();
+-  }
+-
+-  evaluate({
+-    lease,
+-    progressEvidence = [],
+-    parentState = null,
+-    resourceState = 'NORMAL',
+-    diagnosticBundle = null,
+-    isExecutionStateUncertain = false,
+-    isBlockedByHumanGate = false,
+-    isDuplicate = false,
+-    nowMs = Date.now()
+-  }) {
+-    if (!lease) {
+-      return {
+-        classification: LEASE_STATUS.ORPHANED,
+-        decision: SUPERVISOR_DECISION.TERMINATE_ORPHAN,
+-        reason_codes: ['MISSING_LEASE'],
+-        evidence_refs: [],
+-        confidence: 1.0,
+-        recommended_action: SUPERVISOR_DECISION.TERMINATE_ORPHAN
+-      };
+-    }
+-
+-    const hasParentCompleted = parentState && (parentState.status === 'DONE' || parentState.status === 'COMPLETED');
+-    const recentEvCount = progressEvidence.length;
+-
+-    // Use StallPolicy for base classification
+-    const evalResult = this.stallPolicy.evaluateProcessState({
+-      lease,
+-      nowMs,
+-      recentProgressCount: recentEvCount,
+-      hasActiveSubprocesses: false,
+-      cpuActivityDetected: false,
+-      isWaitingOnKnownDependency: lease.status === LEASE_STATUS.WAITING_VALID,
+-      hasParentCompleted,
+-      isDuplicateOfActiveCanonical: isDuplicate,
+-      isExecutionStateUncertain,
+-      isBlockedByHumanGate
+-    });
+-
+-    const evidenceRefs = progressEvidence.map(e => e.evidence_id || e.fingerprint);
+-    if (diagnosticBundle) {
+-      evidenceRefs.push(diagnosticBundle.diagnostic_id);
+-    }
+-
+-    // Confidence assignment
+-    let confidence = 0.8;
+-    if (evalResult.classification === LEASE_STATUS.PROGRESSING) confidence = 0.95;
+-    if (evalResult.classification === LEASE_STATUS.EXECUTION_UNCERTAIN) confidence = 1.0;
+-    if (evalResult.classification === LEASE_STATUS.HUMAN_GATE) confidence = 1.0;
+-    if (evalResult.classification === LEASE_STATUS.ORPHANED) confidence = 0.9;
+-
+-    return {
+-      process_lease_id: lease.process_lease_id,
+-      task_id: lease.task_id,
+-      classification: evalResult.classification,
+-      decision: evalResult.decision,
+-      reason_codes: [evalResult.reason],
+-      evidence_refs: evidenceRefs,
+-      confidence,
+-      recommended_action: evalResult.recommended_action
+-    };
+-  }
+-}
+-
+-module.exports = {
+-  DecisionEngine
+-};
+-
++// Supervisor Decision Engine — Deterministic Runtime State Evaluation
++// Integrates Authoritative BorderGuard (GAP-004) and Completion Governor (GAP-003)
++// Invariants:
++// 1. This engine supervises runtime execution. It must NEVER become a second planner/orchestrator.
++// 2. Authoritative BorderGuard check must occur immediately before any dispatch.
++// 3. Workers possess ZERO global completion authority; only CompletionGovernor may evaluate mission status.
++
++const { LEASE_STATUS, SUPERVISOR_DECISION } = require('./types');
++const { StallPolicy } = require('./stall_policy');
++const { BorderGuard } = require('../governance/BorderGuard');
++const { TaskPassport } = require('../governance/TaskPassport');
++const { CompletionGovernor } = require('../governance/CompletionGovernor');
++
++class DecisionEngine {
++  constructor(stallPolicy = null, lockManager = null) {
++    this.stallPolicy = stallPolicy || new StallPolicy();
++    this.lockManager = lockManager;
++    this.completionGovernor = new CompletionGovernor();
++  }
++
++  // Pre-Dispatch Gate (GAP-004: BorderGuard Choke Point)
++  evaluatePreDispatchAdmission(task, passport, lockManager = null) {
++    const lm = lockManager || this.lockManager;
++    return BorderGuard.inspect(task, passport, lm);
++  }
++
++  // Worker Completion Gate (GAP-003: Worker Global Completion Revocation)
++  evaluateWorkerReport(workerReport) {
++    return this.completionGovernor.evaluateWorkerReport(workerReport);
++  }
++
++  // Mission Status Gate (GAP-003: Only Orchestrator / Governor evaluates global status)
++  evaluateMissionStatus(openWorkUnitsCount, isCapacityEnd = false) {
++    return this.completionGovernor.evaluateMissionStatus(openWorkUnitsCount, isCapacityEnd);
++  }
++
++  // Standard Runtime Process Lifecycle Evaluation (Backward-Compatible with P0)
++  evaluate({
++    lease,
++    progressEvidence = [],
++    parentState = null,
++    resourceState = 'NORMAL',
++    diagnosticBundle = null,
++    isExecutionStateUncertain = false,
++    isBlockedByHumanGate = false,
++    isDuplicate = false,
++    nowMs = Date.now()
++  }) {
++    if (!lease) {
++      return {
++        classification: LEASE_STATUS.ORPHANED,
++        decision: SUPERVISOR_DECISION.TERMINATE_ORPHAN,
++        reason_codes: ['MISSING_LEASE'],
++        evidence_refs: [],
++        confidence: 1.0,
++        recommended_action: SUPERVISOR_DECISION.TERMINATE_ORPHAN
++      };
++    }
++
++    const hasParentCompleted = parentState && (parentState.status === 'DONE' || parentState.status === 'COMPLETED');
++    const recentEvCount = progressEvidence.length;
++
++    // Use StallPolicy for base classification
++    const evalResult = this.stallPolicy.evaluateProcessState({
++      lease,
++      nowMs,
++      recentProgressCount: recentEvCount,
++      hasActiveSubprocesses: false,
++      cpuActivityDetected: false,
++      isWaitingOnKnownDependency: lease.status === LEASE_STATUS.WAITING_VALID,
++      hasParentCompleted,
++      isDuplicateOfActiveCanonical: isDuplicate,
++      isExecutionStateUncertain,
++      isBlockedByHumanGate
++    });
++
++    const evidenceRefs = progressEvidence.map(e => e.evidence_id || e.fingerprint);
++    if (diagnosticBundle) {
++      evidenceRefs.push(diagnosticBundle.diagnostic_id);
++    }
++
++    // Confidence assignment
++    let confidence = 0.8;
++    if (evalResult.classification === LEASE_STATUS.PROGRESSING) confidence = 0.95;
++    if (evalResult.classification === LEASE_STATUS.EXECUTION_UNCERTAIN) confidence = 1.0;
++    if (evalResult.classification === LEASE_STATUS.HUMAN_GATE) confidence = 1.0;
++    if (evalResult.classification === LEASE_STATUS.ORPHANED) confidence = 0.9;
++
++    return {
++      process_lease_id: lease.process_lease_id,
++      task_id: lease.task_id,
++      classification: evalResult.classification,
++      decision: evalResult.decision,
++      reason_codes: [evalResult.reason],
++      evidence_refs: evidenceRefs,
++      confidence,
++      recommended_action: evalResult.recommended_action
++    };
++  }
++}
++
++module.exports = {
++  DecisionEngine,
++  BorderGuard,
++  TaskPassport,
++  CompletionGovernor
++};
+
+--- a/supervisor/progress_tracker.js
++++ b/supervisor/progress_tracker.js
+@@ -1,116 +1,192 @@
+-// Progress Evidence Tracker — Real Signal vs. Elapsed Time
+-// Invariant: Progress is based on verifiable evidence. A quiet process is NOT automatically hung.
+-
+-const fs = require('fs');
+-const path = require('path');
+-const crypto = require('crypto');
+-const { EVENT_TYPE, LEASE_STATUS } = require('./types');
+-
+-const PROGRESS_EVIDENCE_TYPES = Object.freeze({
+-  LOG_GROWTH: 'LOG_GROWTH',
+-  TEST_COMPLETION: 'TEST_COMPLETION',
+-  ARTIFACT_CREATION: 'ARTIFACT_CREATION',
+-  HEARTBEAT: 'HEARTBEAT',
+-  STATE_TRANSITION: 'STATE_TRANSITION',
+-  FILE_OUTPUT: 'FILE_OUTPUT',
+-  CPU_ACTIVITY: 'CPU_ACTIVITY',
+-  VERIFICATION_PROOF: 'VERIFICATION_PROOF',
+-  RESULT_FINGERPRINT: 'RESULT_FINGERPRINT',
+-  DURABLE_EVENT: 'DURABLE_EVENT'
+-});
+-
+-class ProgressTracker {
+-  constructor(storageDir = null, leaseManager = null, auditLedger = null) {
+-    this.storageDir = storageDir || path.join(__dirname, '..', 'runtime', 'leases');
+-    if (!fs.existsSync(this.storageDir)) {
+-      fs.mkdirSync(this.storageDir, { recursive: true });
+-    }
+-    this.evidenceFile = path.join(this.storageDir, 'progress_evidence.jsonl');
+-    this.leaseManager = leaseManager;
+-    this.auditLedger = auditLedger;
+-    this.evidenceRecords = [];
+-    this._load();
+-  }
+-
+-  _load() {
+-    if (fs.existsSync(this.evidenceFile)) {
+-      try {
+-        const lines = fs.readFileSync(this.evidenceFile, 'utf8').split('\n').filter(Boolean);
+-        this.evidenceRecords = lines.map(l => JSON.parse(l));
+-      } catch (err) {
+-        console.error(`[PROGRESS_TRACKER] Warning loading ${this.evidenceFile}:`, err.message);
+-      }
+-    }
+-  }
+-
+-  recordProgress({
+-    process_lease_id,
+-    task_id,
+-    evidence_type,
+-    value,
+-    source = 'LOCAL_MONITOR'
+-  }) {
+-    if (!process_lease_id || !task_id || !evidence_type) {
+-      throw new Error('[PROGRESS_ERROR] process_lease_id, task_id, and evidence_type are required');
+-    }
+-
+-    const timestamp = new Date().toISOString();
+-    const evidenceId = `EVD-${Date.now()}-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
+-    const fpRaw = `${process_lease_id}:${task_id}:${evidence_type}:${JSON.stringify(value)}:${timestamp}`;
+-    const fingerprint = crypto.createHash('sha256').update(fpRaw).digest('hex');
+-
+-    const entry = {
+-      evidence_id: evidenceId,
+-      process_lease_id,
+-      task_id,
+-      timestamp,
+-      evidence_type,
+-      value,
+-      source,
+-      fingerprint
+-    };
+-
+-    this.evidenceRecords.push(entry);
+-    fs.appendFileSync(this.evidenceFile, JSON.stringify(entry) + '\n', 'utf8');
+-
+-    // Update lease last_progress_at and status
+-    if (this.leaseManager) {
+-      const lease = this.leaseManager.getLease(process_lease_id);
+-      if (lease) {
+-        lease.last_progress_at = timestamp;
+-        if (lease.status === LEASE_STATUS.STARTING || lease.status === LEASE_STATUS.RUNNING || lease.status === LEASE_STATUS.STALLED) {
+-          this.leaseManager.updateStatus(process_lease_id, LEASE_STATUS.PROGRESSING, `Progress confirmed via ${evidence_type}`);
+-        } else {
+-          this.leaseManager._persist();
+-        }
+-      }
+-    }
+-
+-    if (this.auditLedger) {
+-      this.auditLedger.recordEvent({
+-        task_id,
+-        process_lease_id,
+-        event_type: EVENT_TYPE.PROGRESS_OBSERVED,
+-        evidence_refs: [evidenceId],
+-        reason_codes: [evidence_type]
+-      });
+-    }
+-
+-    return entry;
+-  }
+-
+-  getEvidenceForProcess(leaseId) {
+-    return this.evidenceRecords.filter(e => e.process_lease_id === leaseId);
+-  }
+-
+-  getLatestProgressForProcess(leaseId) {
+-    const list = this.getEvidenceForProcess(leaseId);
+-    return list.length > 0 ? list[list.length - 1] : null;
+-  }
+-}
+-
+-module.exports = {
+-  PROGRESS_EVIDENCE_TYPES,
+-  ProgressTracker
+-};
+-
++// Progress Evidence Tracker & Structured Result Customs Intake
++// Invariants:
++// 1. Progress is based on verifiable evidence. A quiet process is NOT automatically hung.
++// 2. Completed results MUST pass Result Customs envelope and SHA-256 evidence verification.
++
++const fs = require('fs');
++const path = require('path');
++const crypto = require('crypto');
++const { EVENT_TYPE, LEASE_STATUS } = require('./types');
++const { ResultCustoms, EvidenceVerifier } = require('../governance/ResultCustoms');
++
++const PROGRESS_EVIDENCE_TYPES = Object.freeze({
++  LOG_GROWTH: 'LOG_GROWTH',
++  TEST_COMPLETION: 'TEST_COMPLETION',
++  ARTIFACT_CREATION: 'ARTIFACT_CREATION',
++  HEARTBEAT: 'HEARTBEAT',
++  STATE_TRANSITION: 'STATE_TRANSITION',
++  FILE_OUTPUT: 'FILE_OUTPUT',
++  CPU_ACTIVITY: 'CPU_ACTIVITY',
++  VERIFICATION_PROOF: 'VERIFICATION_PROOF',
++  RESULT_FINGERPRINT: 'RESULT_FINGERPRINT',
++  DURABLE_EVENT: 'DURABLE_EVENT',
++  RESULT_CUSTOMS_ACCEPTED: 'RESULT_CUSTOMS_ACCEPTED',
++  RESULT_CUSTOMS_REJECTED: 'RESULT_CUSTOMS_REJECTED'
++});
++
++class ProgressTracker {
++  constructor(storageDir = null, leaseManager = null, auditLedger = null) {
++    this.storageDir = storageDir || path.join(__dirname, '..', 'runtime', 'leases');
++    if (!fs.existsSync(this.storageDir)) {
++      fs.mkdirSync(this.storageDir, { recursive: true });
++    }
++    this.evidenceFile = path.join(this.storageDir, 'progress_evidence.jsonl');
++    this.leaseManager = leaseManager;
++    this.auditLedger = auditLedger;
++    this.evidenceRecords = [];
++    this._load();
++  }
++
++  _load() {
++    if (fs.existsSync(this.evidenceFile)) {
++      try {
++        const lines = fs.readFileSync(this.evidenceFile, 'utf8').split('\n').filter(Boolean);
++        this.evidenceRecords = lines.map(l => JSON.parse(l));
++      } catch (err) {
++        console.error(`[PROGRESS_TRACKER] Warning loading ${this.evidenceFile}:`, err.message);
++      }
++    }
++  }
++
++  recordProgress({
++    process_lease_id,
++    task_id,
++    evidence_type,
++    value,
++    source = 'LOCAL_MONITOR'
++  }) {
++    if (!process_lease_id || !task_id || !evidence_type) {
++      throw new Error('[PROGRESS_ERROR] process_lease_id, task_id, and evidence_type are required');
++    }
++
++    const timestamp = new Date().toISOString();
++    const evidenceId = `EVD-${Date.now()}-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
++    const fpRaw = `${process_lease_id}:${task_id}:${evidence_type}:${JSON.stringify(value)}:${timestamp}`;
++    const fingerprint = crypto.createHash('sha256').update(fpRaw).digest('hex');
++
++    const entry = {
++      evidence_id: evidenceId,
++      process_lease_id,
++      task_id,
++      timestamp,
++      evidence_type,
++      value,
++      source,
++      fingerprint
++    };
++
++    this.evidenceRecords.push(entry);
++    fs.appendFileSync(this.evidenceFile, JSON.stringify(entry) + '\n', 'utf8');
++
++    // Update lease last_progress_at and status
++    if (this.leaseManager) {
++      const lease = this.leaseManager.getLease(process_lease_id);
++      if (lease) {
++        lease.last_progress_at = timestamp;
++        if (lease.status === LEASE_STATUS.STARTING || lease.status === LEASE_STATUS.RUNNING || lease.status === LEASE_STATUS.STALLED) {
++          this.leaseManager.updateStatus(process_lease_id, LEASE_STATUS.PROGRESSING, `Progress confirmed via ${evidence_type}`);
++        } else {
++          this.leaseManager._persist();
++        }
++      }
++    }
++
++    if (this.auditLedger) {
++      this.auditLedger.recordEvent({
++        task_id,
++        process_lease_id,
++        event_type: EVENT_TYPE.PROGRESS_OBSERVED,
++        evidence_refs: [evidenceId],
++        reason_codes: [evidence_type]
++      });
++    }
++
++    return entry;
++  }
++
++  // Result Customs Integration (GAP-005)
++  evaluateAndRecordResultEnvelope({
++    process_lease_id,
++    task_id,
++    passport,
++    exit_code,
++    artifacts = [],
++    checksum_map = {},
++    working_dir = null
++  }) {
++    const customsEvaluation = ResultCustoms.evaluateResultEnvelope({
++      task_id,
++      passport,
++      exit_code,
++      artifacts,
++      checksum_map
++    });
++
++    if (!customsEvaluation.accepted) {
++      if (process_lease_id) {
++        this.recordProgress({
++          process_lease_id,
++          task_id,
++          evidence_type: PROGRESS_EVIDENCE_TYPES.RESULT_CUSTOMS_REJECTED,
++          value: { reason: customsEvaluation.reason, requires_fence: customsEvaluation.requires_uncertainty_fence }
++        });
++      }
++      return {
++        accepted: false,
++        reason: customsEvaluation.reason,
++        requires_uncertainty_fence: customsEvaluation.requires_uncertainty_fence,
++        verified_artifacts: []
++      };
++    }
++
++    // Perform independent SHA-256 verification on disk
++    const verifiedArtifacts = [];
++    if (working_dir) {
++      for (const artName of artifacts) {
++        const fullArtPath = path.isAbsolute(artName) ? artName : path.join(working_dir, artName);
++        const expectedSha = checksum_map[artName];
++        const verCheck = EvidenceVerifier.verifyArtifact(fullArtPath, expectedSha);
++        if (!verCheck.verified) {
++          return {
++            accepted: false,
++            reason: `Evidence verification failed on disk for '${artName}': ${verCheck.reason}`,
++            requires_uncertainty_fence: true,
++            verified_artifacts: []
++          };
++        }
++        verifiedArtifacts.push({ file: artName, ...verCheck });
++      }
++    }
++
++    if (process_lease_id) {
++      this.recordProgress({
++        process_lease_id,
++        task_id,
++        evidence_type: PROGRESS_EVIDENCE_TYPES.RESULT_CUSTOMS_ACCEPTED,
++        value: { artifacts_count: artifacts.length, verified_count: verifiedArtifacts.length }
++      });
++    }
++
++    return {
++      accepted: true,
++      verified_artifacts: verifiedArtifacts,
++      customs_evaluation: customsEvaluation
++    };
++  }
++
++  getEvidenceForProcess(leaseId) {
++    return this.evidenceRecords.filter(e => e.process_lease_id === leaseId);
++  }
++
++  getLatestProgressForProcess(leaseId) {
++    const list = this.getEvidenceForProcess(leaseId);
++    return list.length > 0 ? list[list.length - 1] : null;
++  }
++}
++
++module.exports = {
++  PROGRESS_EVIDENCE_TYPES,
++  ProgressTracker,
++  ResultCustoms,
++  EvidenceVerifier
++};
+
+--- a/supervisor/index.js
++++ b/supervisor/index.js
+@@ -1,77 +1,111 @@
+-// Courier Supervisor Plane P0 — Unified Interface
+-// Architectural Invariant:
+-// This is NOT a second Courier. It is a SUPERVISOR PLANE used by Courier.
+-// Courier remains the ONLY canonical orchestrator.
+-
+-const path = require('path');
+-const {
+-  LEASE_STATUS,
+-  SUPERVISOR_DECISION,
+-  RESOURCE_STATE,
+-  RESOURCE_ACTION,
+-  EVENT_TYPE,
+-  THRESHOLDS,
+-  SAFETY_INVARIANTS,
+-  DEFAULT_MACHINE_CONCURRENCY
+-} = require('./types');
+-const { AuditLedger } = require('./audit_ledger');
+-const { ProcessLeaseManager } = require('./lease_manager');
+-const { ProgressTracker, PROGRESS_EVIDENCE_TYPES } = require('./progress_tracker');
+-const { StallPolicy } = require('./stall_policy');
+-const { DiagnosticBundleManager } = require('./diagnostic_bundle');
+-const { ScreenshotSpec, SENSITIVE_UI_KEYWORDS } = require('./screenshot_spec');
+-const { DecisionEngine } = require('./decision_engine');
+-const { TaskHygiene } = require('./task_hygiene');
+-const { RestartReconciler } = require('./reconciliation');
+-const { MachineResourceGovernor } = require('./resource_governor');
+-const { NoStackingDetector } = require('./no_stacking');
+-const { ChiefEscalationEnvelope } = require('./chief_envelope');
+-
+-class SupervisorPlane {
+-  constructor(runtimeDir = null) {
+-    this.runtimeDir = runtimeDir || path.join(__dirname, '..', 'runtime');
+-
+-    this.auditLedger = new AuditLedger(path.join(this.runtimeDir, 'audit'));
+-    this.leaseManager = new ProcessLeaseManager(path.join(this.runtimeDir, 'leases'), this.auditLedger);
+-    this.progressTracker = new ProgressTracker(path.join(this.runtimeDir, 'leases'), this.leaseManager, this.auditLedger);
+-    this.stallPolicy = new StallPolicy();
+-    this.diagnosticManager = new DiagnosticBundleManager(path.join(this.runtimeDir, 'diagnostics'));
+-    this.decisionEngine = new DecisionEngine(this.stallPolicy);
+-    this.hygiene = new TaskHygiene(this.leaseManager, this.auditLedger);
+-    this.reconciler = new RestartReconciler(this.leaseManager, this.auditLedger);
+-    this.resourceGovernor = new MachineResourceGovernor();
+-    this.noStacking = new NoStackingDetector(this.leaseManager);
+-  }
+-
+-  // Safety audit
+-  getSafetyInvariants() {
+-    return { ...SAFETY_INVARIANTS };
+-  }
+-}
+-
+-module.exports = {
+-  SupervisorPlane,
+-  AuditLedger,
+-  ProcessLeaseManager,
+-  ProgressTracker,
+-  PROGRESS_EVIDENCE_TYPES,
+-  StallPolicy,
+-  DiagnosticBundleManager,
+-  ScreenshotSpec,
+-  SENSITIVE_UI_KEYWORDS,
+-  DecisionEngine,
+-  TaskHygiene,
+-  RestartReconciler,
+-  MachineResourceGovernor,
+-  NoStackingDetector,
+-  ChiefEscalationEnvelope,
+-  LEASE_STATUS,
+-  SUPERVISOR_DECISION,
+-  RESOURCE_STATE,
+-  RESOURCE_ACTION,
+-  EVENT_TYPE,
+-  THRESHOLDS,
+-  SAFETY_INVARIANTS,
+-  DEFAULT_MACHINE_CONCURRENCY
+-};
+-
++// Courier Supervisor Plane P0 — Unified Interface with Hardened Production Gates
++// Architectural Invariant:
++// This is NOT a second Courier. It is a SUPERVISOR PLANE used by Courier.
++// Courier remains the ONLY canonical orchestrator.
++
++const path = require('path');
++const {
++  LEASE_STATUS,
++  SUPERVISOR_DECISION,
++  RESOURCE_STATE,
++  RESOURCE_ACTION,
++  EVENT_TYPE,
++  THRESHOLDS,
++  SAFETY_INVARIANTS,
++  DEFAULT_MACHINE_CONCURRENCY
++} = require('./types');
++
++const { AuditLedger } = require('./audit_ledger');
++const { ProcessLeaseManager } = require('./lease_manager');
++const { ProgressTracker, PROGRESS_EVIDENCE_TYPES, ResultCustoms, EvidenceVerifier } = require('./progress_tracker');
++const { StallPolicy } = require('./stall_policy');
++const { DiagnosticBundleManager } = require('./diagnostic_bundle');
++const { ScreenshotSpec, SENSITIVE_UI_KEYWORDS } = require('./screenshot_spec');
++const { DecisionEngine, BorderGuard, TaskPassport, CompletionGovernor } = require('./decision_engine');
++const { TaskHygiene } = require('./task_hygiene');
++const { RestartReconciler } = require('./reconciliation');
++const { MachineResourceGovernor } = require('./resource_governor');
++const { NoStackingDetector, ResourceLockManager } = require('./no_stacking');
++const { ChiefEscalationEnvelope } = require('./chief_envelope');
++
++class SupervisorPlane {
++  constructor(runtimeDir = null) {
++    this.runtimeDir = runtimeDir || path.join(__dirname, '..', 'runtime');
++
++    this.auditLedger = new AuditLedger(path.join(this.runtimeDir, 'audit'));
++    this.leaseManager = new ProcessLeaseManager(path.join(this.runtimeDir, 'leases'), this.auditLedger);
++    this.noStacking = new NoStackingDetector(this.leaseManager);
++    this.lockManager = this.noStacking.lockManager;
++
++    this.progressTracker = new ProgressTracker(path.join(this.runtimeDir, 'leases'), this.leaseManager, this.auditLedger);
++    this.stallPolicy = new StallPolicy();
++    this.diagnosticManager = new DiagnosticBundleManager(path.join(this.runtimeDir, 'diagnostics'));
++    this.decisionEngine = new DecisionEngine(this.stallPolicy, this.lockManager);
++    this.hygiene = new TaskHygiene(this.leaseManager, this.auditLedger);
++    this.reconciler = new RestartReconciler(this.leaseManager, this.auditLedger);
++    this.resourceGovernor = new MachineResourceGovernor();
++    this.completionGovernor = this.decisionEngine.completionGovernor;
++  }
++
++  // Pre-Dispatch Choke Point (GAP-004: BorderGuard Check)
++  admitForDispatch(task, passport) {
++    return this.decisionEngine.evaluatePreDispatchAdmission(task, passport, this.lockManager);
++  }
++
++  // Result Intake Choke Point (GAP-005: ResultCustoms Check)
++  evaluateResultEnvelope(params) {
++    return this.progressTracker.evaluateAndRecordResultEnvelope(params);
++  }
++
++  // Worker Report Admission (GAP-003: Worker Completion Revocation)
++  evaluateWorkerReport(workerReport) {
++    return this.decisionEngine.evaluateWorkerReport(workerReport);
++  }
++
++  // Process Identity Verification (GAP-002: PID + StartTime + TaskToken)
++  verifyProcessIdentity(pid, expectedStartTimeEpoch = null, expectedTaskToken = null) {
++    return this.leaseManager.verifyProcessIdentity(pid, expectedStartTimeEpoch, expectedTaskToken);
++  }
++
++  // Safe Termination (GAP-002: Fail-closed on unverified identity)
++  safeTerminateProcess(leaseId, expectedToken = null) {
++    return this.leaseManager.safeTerminateProcess(leaseId, expectedToken);
++  }
++
++  // Safety audit
++  getSafetyInvariants() {
++    return { ...SAFETY_INVARIANTS };
++  }
++}
++
++module.exports = {
++  SupervisorPlane,
++  AuditLedger,
++  ProcessLeaseManager,
++  ProgressTracker,
++  PROGRESS_EVIDENCE_TYPES,
++  ResultCustoms,
++  EvidenceVerifier,
++  StallPolicy,
++  DiagnosticBundleManager,
++  ScreenshotSpec,
++  SENSITIVE_UI_KEYWORDS,
++  DecisionEngine,
++  BorderGuard,
++  TaskPassport,
++  CompletionGovernor,
++  TaskHygiene,
++  RestartReconciler,
++  MachineResourceGovernor,
++  NoStackingDetector,
++  ResourceLockManager,
++  ChiefEscalationEnvelope,
++  LEASE_STATUS,
++  SUPERVISOR_DECISION,
++  RESOURCE_STATE,
++  RESOURCE_ACTION,
++  EVENT_TYPE,
++  THRESHOLDS,
++  SAFETY_INVARIANTS,
++  DEFAULT_MACHINE_CONCURRENCY
++};
+

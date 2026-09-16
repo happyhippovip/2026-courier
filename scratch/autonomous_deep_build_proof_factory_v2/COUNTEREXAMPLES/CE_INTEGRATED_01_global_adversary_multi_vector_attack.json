@@ -1,0 +1,13 @@
+{
+  "counterexample_id": "CE_INTEGRATED_01_global_adversary_multi_vector_attack",
+  "date": "2026-09-09T21:56:26.156Z",
+  "category": "GLOBAL_ADVERSARY_MULTI_VECTOR_RESILIENCE",
+  "vulnerability": "Simultaneous combination of unmetered spend, directory traversal deliverable, AST assertion reduction, and recycled PID kill",
+  "unprotected_behavior": "Independent components failed when executed concurrently under multi-vector attack",
+  "repaired_behavior": "IntegratedAutonomousCourier enforces layered Defense-in-Depth pipeline where each guard functions autonomously and deterministically",
+  "minimal_failing_case": {
+    "attack_vectors_injected": 4,
+    "attack_vectors_repelled": 4,
+    "system_integrity": "100% PRESERVED"
+  }
+}

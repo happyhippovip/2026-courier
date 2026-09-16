@@ -1,0 +1,14 @@
+{
+  "defect_id": "CE_CRASH_02",
+  "name": "Silent Uncertainty Reset to Ready on Crash Restart",
+  "vulnerability_description": "On supervisor restart, tasks found in-flight are naively marked READY and queued for immediate dispatch. If the worker actually executed its mutation before crashing, this causes double execution of irreversible operations.",
+  "minimal_trigger": {
+    "persisted_task": {
+      "task_id": "task_wire_transfer",
+      "status": "DISPATCHED"
+    },
+    "crash_event": "host_power_loss"
+  },
+  "invariant_violated": "Execution uncertainty must be treated as a first-class fence and never silently converted to READY or RETRY.",
+  "resolution_proven": "CrashReconciliationEngine explicitly transitions crash location 2 to EXECUTION_UNCERTAIN with canDispatchFresh: false."
+}

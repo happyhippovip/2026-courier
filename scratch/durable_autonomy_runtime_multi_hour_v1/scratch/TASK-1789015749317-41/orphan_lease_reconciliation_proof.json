@@ -1,0 +1,7 @@
+{
+  "test": "ORPHAN_LEASE_RECONCILER",
+  "actions_count": 2,
+  "reconciled_task_state": "EXECUTION_UNCERTAIN",
+  "uncertainty_reason": "CRASH_MID_EXECUTION",
+  "status": "PASSED"
+}

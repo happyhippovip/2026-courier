@@ -1,0 +1,98 @@
+{
+  "epoch": "EPOCH_09_CROSS_REPO_CONSISTENCY",
+  "timestamp_utc": "2026-09-10T04:24:31.222Z",
+  "contracts_evaluated": 5,
+  "contracts": [
+    {
+      "contract": "TASK_LIFECYCLE_STATES",
+      "courier_convention": [
+        "STAGED",
+        "DISPATCHED",
+        "COMPLETED",
+        "FAILED",
+        "SATURATED"
+      ],
+      "pm_convention": [
+        "INBOX",
+        "TRIAGE",
+        "QUEUED",
+        "IN_PROGRESS",
+        "VERIFYING",
+        "DONE",
+        "DEFERRED",
+        "ARCHIVED",
+        "CONFLICT"
+      ],
+      "shadow_v2_unification": [
+        "STAGED",
+        "DISPATCHED",
+        "COMPLETED",
+        "FAILED",
+        "FENCED"
+      ],
+      "alignment": "MAPPING_REQUIRED",
+      "normalization_map": {
+        "INBOX": "STAGED",
+        "TRIAGE": "STAGED",
+        "QUEUED": "STAGED",
+        "IN_PROGRESS": "DISPATCHED",
+        "VERIFYING": "DISPATCHED",
+        "DONE": "COMPLETED",
+        "CONFLICT": "FENCED",
+        "DEFERRED": "FENCED"
+      }
+    },
+    {
+      "contract": "LEASE_MANAGEMENT_AND_FENCING",
+      "courier_convention": {
+        "type": "RAW_FILE_LEASE",
+        "fencing_token": false,
+        "ttl_enforced": false,
+        "hierarchical_overlap": false,
+        "heartbeat_renewal": false
+      },
+      "pm_convention": {
+        "type": "DETERMINISTIC_LEASE_V2",
+        "fencing_token": true,
+        "ttl_enforced": true,
+        "hierarchical_overlap": true,
+        "heartbeat_renewal": true
+      },
+      "shadow_v2_unification": {
+        "type": "RESOURCE_LOCK_MANAGER_V2",
+        "fencing_token": true,
+        "ttl_enforced": true,
+        "hierarchical_overlap": true,
+        "heartbeat_renewal": true
+      },
+      "alignment": "CRITICAL_DRIFT_DETECTED",
+      "drift_notes": "Production Courier supervisor checks only lease.task_id === task_id without hierarchical path overlap or monotonic fencing tokens. Project-memory parallel_writer correctly implements prefix containment and fencing tokens."
+    },
+    {
+      "contract": "FIELD_CASING_CONVENTION",
+      "courier_convention": "MIXED (camelCase in supervisor APIs, snake_case in ledger manifests)",
+      "pm_convention": "STRICT_SNAKE_CASE (in SQL schemas, SQLite tables, and JSON manifests)",
+      "shadow_v2_unification": "BIDIRECTIONAL_ADAPTER (accepts both, serializes canonical snake_case)",
+      "alignment": "STANDARDIZED"
+    },
+    {
+      "contract": "AUTHORITY_AND_CAPABILITY_LATTICE",
+      "courier_convention": "IMPLICIT (hardcoded check in decision_engine.js:42)",
+      "pm_convention": "EXPLICIT (spend_safety.js, money_truth_ladder.js, device_truth.json)",
+      "shadow_v2_unification": "CAPABILITY_ENGINE_LATTICE (Levels 1 to 7 with hard Human-Gate ceilings)",
+      "alignment": "UNIFIED"
+    },
+    {
+      "contract": "MULTI_HOST_ROLES",
+      "courier_convention": "ASSUMES_SINGLE_MACHINE (Win/Mac divergence uncoordinated in legacy code)",
+      "pm_convention": {
+        "PC2_WINDOWS": "MEMORY_RIGHT_ARM (Research, Engineering Continuum, Heavy Compute)",
+        "RECHNER_1_MAC": "PRODUCT_SINGLE_WRITER (universuX, Courier core, Financial Signing)"
+      },
+      "shadow_v2_unification": {
+        "ENFORCED_BOUNDARY": "Windows engine strictly disallows Mac SSH/RDP/writes; queues Mac tasks in MAC_NATIVE_QUEUE.jsonl; queues financial/signing tasks in HUMAN_GATE_QUEUE.jsonl"
+      },
+      "alignment": "SYNCHRONIZED"
+    }
+  ]
+}

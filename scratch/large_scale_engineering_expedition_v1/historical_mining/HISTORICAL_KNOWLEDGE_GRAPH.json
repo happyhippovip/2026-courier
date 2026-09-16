@@ -1,0 +1,15 @@
+{
+  "total_mined_missions": 8,
+  "mined_counterexamples_count": 6,
+  "mined_claims_count": 11,
+  "mined_failures_count": 6,
+  "root_cause_clusters": {
+    "AUTHORITY_LATTICE_DEFECT": 1,
+    "RESOURCE_LOCK_COLLISION": 1,
+    "PROCESS_TREE_ORPHANING": 1,
+    "JOURNAL_TORN_PERSISTENCE": 1,
+    "TELEMETRY_STALL_DROP": 1,
+    "TOCTOU_DISPATCH_RACE": 1,
+    "OTHER": 0
+  }
+}

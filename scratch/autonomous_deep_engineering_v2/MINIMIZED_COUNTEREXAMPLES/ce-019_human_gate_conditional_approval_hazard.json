@@ -1,0 +1,6 @@
+{
+  "id": "CE-019",
+  "defect_class": "HUMAN_GATE_CONDITIONAL_APPROVAL_HAZARD",
+  "description": "System treating conditional or ambiguous human response (\"maybe proceed later\") as affirmative authorization.",
+  "proven_invariant": "Human gate requires unequivocal stamped keywords; ambiguous responses fail closed."
+}

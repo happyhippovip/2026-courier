@@ -1,0 +1,41 @@
+======================================================================
+               AGENT CONTEXT & TOKEN COST AUDITOR v1.0.0
+======================================================================
+Scan Target : /Users/developer/projects/nextjs-agent-saas
+Mode        : Deterministic Rule & Prompt Audit (100% Offline)
+
+[1/3] SCANNING CONFIGURATION FILES...
+  ✓ .cursorrules .................................... (6,410 tokens)
+  ✓ CLAUDE.md ....................................... (4,820 tokens)
+  ✓ .gemini/rules/coding_standards.md ............... (3,150 tokens)
+  Total Injected Rules: 14,380 tokens per turn
+
+[2/3] AUDITING SEMANTIC INCONSISTENCIES & REDUNDANCIES...
+  [!] DETECTED DUPLICATE INSTRUCTION:
+      • .cursorrules (lines 18-34): "Always use TypeScript strict mode..."
+      • CLAUDE.md (lines 42-58):    "TypeScript strict must be enabled..."
+      -> Redundant Waste: 420 tokens
+
+  [!] DETECTED VERBOSE NEGATIVE PROMPT BLOAT:
+      • coding_standards.md (lines 80-115): 8 duplicate "do not" clauses
+      -> Redundant Waste: 1,840 tokens
+
+  [!] OBSOLETE JSON TOOL SPECIFICATION PADDING:
+      • .cursorrules: Legacy schema definitions superseded by current API
+      -> Redundant Waste: 2,890 tokens
+
+----------------------------------------------------------------------
+AUDIT SUMMARY:
+  Total System Rule Tokens : 14,380
+  Clean Optimized Baseline :  9,230
+  Wasted Tokens Per Prompt :  5,150 (-35.8%)
+
+PROJECTED RUNAWAY COST SAVINGS (at 80 turns/day):
+  Daily Token Savings      : 412,000 tokens / day
+  Estimated Monthly Waste  : $37.08 / month (€34.20)
+  
+RECOMMENDATION:
+  Audit report and optimized clean rule files exported to:
+  -> ./context_audit_report.html
+  -> ./clean_rules_preview/
+======================================================================

@@ -1,0 +1,8 @@
+{
+  "timestamp": "2026-09-10T07:21:52.175Z",
+  "test_executed": "Temporarily rename scratch runner to test production independence",
+  "runner_exists_in_scratch": false,
+  "production_entrypoint_exists_without_scratch": false,
+  "result": "AUTONOMY_GAP_FOUND",
+  "explanation": "When scratch/run_autonomous_operations_mission.js is absent, Courier cannot execute an autonomous mission because no production entrypoint exists."
+}

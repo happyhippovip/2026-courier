@@ -1,0 +1,34 @@
+{
+  "id": "CX-COMP-05",
+  "compound_id": "COMP-05",
+  "title": "Zero-Euro Auto-Renewing Subscription Trap",
+  "trace": [
+    {
+      "step": 1,
+      "action": "MARKET_OFFER_DETECTED",
+      "cost": "0.00 EUR",
+      "terms": "Auto-renews at 99 EUR/mo"
+    },
+    {
+      "step": 2,
+      "action": "NAIVE_CHECK",
+      "check": "cost <= 0.00",
+      "result": "ALLOW (VULNERABILITY)"
+    },
+    {
+      "step": 3,
+      "action": "SHADOW_GOVERNOR_EVALUATE",
+      "check": "isRecurring || deferredSpendEur > 0"
+    },
+    {
+      "step": 4,
+      "decision": "HUMAN_GATE_REQUIRED",
+      "queued_to": "HUMAN_GATE_QUEUE.jsonl"
+    },
+    {
+      "step": 5,
+      "invariant_maintained": "AUTONOMOUS_SPEND_LIMIT_EUR == 0.00"
+    }
+  ],
+  "mitigation": "Multi-vector liability governor scrutinizing recurring terms and pre-auth holds."
+}

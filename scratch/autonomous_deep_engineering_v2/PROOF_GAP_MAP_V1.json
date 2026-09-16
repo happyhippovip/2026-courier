@@ -1,0 +1,186 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-09-09T19:46:48.849Z",
+  "baseline_modules": {
+    "supervisor_modules_count": 14,
+    "money_factory_modules_count": 14,
+    "rc3_hardening_test_files_count": 11
+  },
+  "baseline_tests_summary": {
+    "total_previous_tests": 315,
+    "total_previous_pass": 315,
+    "suites": [
+      {
+        "name": "RC3 Adversarial Validation",
+        "count": 25,
+        "status": "PASS",
+        "scope": "Release packaging & manifest integrity"
+      },
+      {
+        "name": "Supervisor Plane Adversarial",
+        "count": 21,
+        "status": "PASS",
+        "scope": "Process leases, PID reuse, progress heartbeats"
+      },
+      {
+        "name": "Resource Governor Adversarial",
+        "count": 12,
+        "status": "PASS",
+        "scope": "Swap pressure, cross-machine thermal decoupling"
+      },
+      {
+        "name": "Task Stamp Contracts",
+        "count": 8,
+        "status": "PASS",
+        "scope": "Monotonic transitions, single-writer scope exclusivity"
+      },
+      {
+        "name": "Follow-Up Inbox",
+        "count": 7,
+        "status": "PASS",
+        "scope": "Append-only idea capture during execution, merge provenance"
+      },
+      {
+        "name": "Border Guard Contract",
+        "count": 11,
+        "status": "PASS",
+        "scope": "Outbound dispatch safety bounds, single-round appeal"
+      },
+      {
+        "name": "Result Customs Contract",
+        "count": 15,
+        "status": "PASS",
+        "scope": "42 fields, checksums, logs, replay rejection"
+      },
+      {
+        "name": "Money Factory Adversarial",
+        "count": 19,
+        "status": "PASS",
+        "scope": "Positive claims, duplicate settlement block, prediction immutability"
+      },
+      {
+        "name": "Crash Restart Chaos",
+        "count": 12,
+        "status": "PASS",
+        "scope": "12 lifecycle crash boundaries, idempotent state restore"
+      },
+      {
+        "name": "State Event Ledger Invariants",
+        "count": 9,
+        "status": "PASS",
+        "scope": "Append-only, corruption recovery, newline safeguards"
+      },
+      {
+        "name": "Deterministic Soak",
+        "count": 100,
+        "status": "PASS",
+        "scope": "100 full iterations, bounded memory, 0 leaks"
+      },
+      {
+        "name": "Baseline Supervisor Plane P0",
+        "count": 45,
+        "status": "PASS",
+        "scope": "Core supervisor regression"
+      },
+      {
+        "name": "Baseline Money Factory P0",
+        "count": 18,
+        "status": "PASS",
+        "scope": "Core money factory regression"
+      },
+      {
+        "name": "Baseline Money Factory Closure",
+        "count": 13,
+        "status": "PASS",
+        "scope": "Closure rules regression"
+      }
+    ]
+  },
+  "proof_gaps_identified": 12,
+  "proof_gaps": [
+    {
+      "gap_id": "GAP-001",
+      "campaign_target": "CAMPAIGN_002",
+      "area": "Lifecycle State Machine",
+      "unproven_claim": "Exhaustive exploration of alternative state transitions (QUESTION, CONFLICT, BLOCKED, HUMAN_GATE, CANCELLED, FAILED) and detection of illegal bypass paths.",
+      "status": "OPEN"
+    },
+    {
+      "gap_id": "GAP-002",
+      "campaign_target": "CAMPAIGN_003",
+      "area": "Logical Identity",
+      "unproven_claim": "Decoupling of logical task identity from worker routing changes (GEMINI -> CLI1 -> LOCAL_CHEAP). Route changes must not alter logical work fingerprint.",
+      "status": "OPEN"
+    },
+    {
+      "gap_id": "GAP-003",
+      "campaign_target": "CAMPAIGN_004",
+      "area": "Fallback Adversary",
+      "unproven_claim": "Fallback candidate dispatch must be strictly blocked if prior worker execution state is EXECUTION_UNCERTAIN.",
+      "status": "OPEN"
+    },
+    {
+      "gap_id": "GAP-004",
+      "campaign_target": "CAMPAIGN_005",
+      "area": "Crash Cut-Points",
+      "unproven_claim": "Granular crash injection across 20+ distinct micro-boundaries in execution pipeline with deterministic recovery reconstruction.",
+      "status": "OPEN"
+    },
+    {
+      "gap_id": "GAP-005",
+      "campaign_target": "CAMPAIGN_006",
+      "area": "Exactly-Once Execution",
+      "unproven_claim": "Adversarial attack attempting duplicate logical effect via race conditions, lease expiry, and checkpoint replays.",
+      "status": "OPEN"
+    },
+    {
+      "gap_id": "GAP-006",
+      "campaign_target": "CAMPAIGN_007",
+      "area": "Task Stamp Immutability",
+      "unproven_claim": "Attempting to mutate instructions, risk class, or scope after STAMPED state must be proven impossible.",
+      "status": "OPEN"
+    },
+    {
+      "gap_id": "GAP-007",
+      "campaign_target": "CAMPAIGN_008_TO_010",
+      "area": "Concurrency & Lease Integrity",
+      "unproven_claim": "PID reuse under rapid churn, child orphan process tracking, and cross-machine lease claim isolation.",
+      "status": "OPEN"
+    },
+    {
+      "gap_id": "GAP-008",
+      "campaign_target": "CAMPAIGN_011_TO_015",
+      "area": "Progress Science & Multi-Machine Telemetry",
+      "unproven_claim": "Distinguishing CPU busy-wait vs genuine progress without relying on time, and proving bidirectional thermal decoupling between Mac and Windows.",
+      "status": "OPEN"
+    },
+    {
+      "gap_id": "GAP-009",
+      "campaign_target": "CAMPAIGN_016_TO_023",
+      "area": "Border Guard & Result Customs Hardening",
+      "unproven_claim": "TOCTOU state shifts between approval and dispatch, result passport forgery, test-weakening detection, and false terminal satisfaction attacks.",
+      "status": "OPEN"
+    },
+    {
+      "gap_id": "GAP-010",
+      "campaign_target": "CAMPAIGN_024_TO_039",
+      "area": "Multi-Goal & Evidence Integrity",
+      "unproven_claim": "Goal-scoped pending isolation, follow-up storm deduplication, Money Factory revenue truth, and human-gate linguistic fuzzing.",
+      "status": "OPEN"
+    },
+    {
+      "gap_id": "GAP-011",
+      "campaign_target": "CAMPAIGN_040_TO_050",
+      "area": "Counterexample Generation & Composite Chaos",
+      "unproven_claim": "Minimal counterexample reduction engine, safety mutation testing, and bounded 3-fault simultaneous chaos scenarios.",
+      "status": "OPEN"
+    },
+    {
+      "gap_id": "GAP-012",
+      "campaign_target": "CAMPAIGN_051_TO_100",
+      "area": "Long-Horizon Evolution & Meta-Review",
+      "unproven_claim": "Long-horizon follow-up evolution, recovery decision table, queue population (Mac-native, Codex, Human gate), and meta-review saturation assessment.",
+      "status": "OPEN"
+    }
+  ]
+}

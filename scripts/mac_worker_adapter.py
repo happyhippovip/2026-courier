@@ -23,7 +23,7 @@ def run(task_file):
     print(f"[Mac Transport] Task {task['task_id']} dropped in {target_inbox_file}. Waiting for result...")
     
     target_outbox_file = outbox / f"{task['task_id']}_result.json"
-    timeout = 300
+    timeout = 3600
     start = time.time()
     
     while True:

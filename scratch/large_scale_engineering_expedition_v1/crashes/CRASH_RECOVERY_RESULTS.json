@@ -1,0 +1,7 @@
+{
+  "test": "POWER_LOSS_AND_TORN_WRITE_RECOVERY",
+  "valid_written": 20,
+  "valid_recovered": 20,
+  "torn_isolated": 4,
+  "passed": true
+}

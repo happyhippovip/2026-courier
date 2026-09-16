@@ -1,0 +1,36 @@
+{
+  "id": "CX-COMP-03",
+  "compound_id": "COMP-03",
+  "title": "PID Recycling Innocent Process Termination Attempt",
+  "trace": [
+    {
+      "step": 1,
+      "action": "WORKER_SPAWN",
+      "pid": 9944,
+      "start_time": 1700000000000
+    },
+    {
+      "step": 2,
+      "action": "WORKER_CRASH",
+      "pid": 9944
+    },
+    {
+      "step": 3,
+      "action": "OS_REUSE_PID",
+      "pid": 9944,
+      "new_start_time": 1700005000000,
+      "innocent_target": "editor_agent"
+    },
+    {
+      "step": 4,
+      "action": "SUPERVISOR_SWEEP",
+      "check": "verifyIdentity"
+    },
+    {
+      "step": 5,
+      "result": "MISMATCH_DETECTED_KILL_FORBIDDEN",
+      "status": "SAFE"
+    }
+  ],
+  "mitigation": "Tri-state process verification requiring start-time matching within 2000ms tolerance."
+}

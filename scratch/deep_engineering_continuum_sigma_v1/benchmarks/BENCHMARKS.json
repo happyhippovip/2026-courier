@@ -1,0 +1,46 @@
+{
+  "benchmarked_at_utc": "2026-09-10T03:56:03.843Z",
+  "scale_ladder": [
+    {
+      "event_count": 10,
+      "append_time_ms": 6,
+      "append_throughput_ev_sec": 1667,
+      "recovery_time_ms": 0.78,
+      "file_size_bytes": 1724,
+      "bytes_per_entry": 172.4,
+      "heap_delta_mb": 0.06
+    },
+    {
+      "event_count": 100,
+      "append_time_ms": 29.27,
+      "append_throughput_ev_sec": 3416,
+      "recovery_time_ms": 1.49,
+      "file_size_bytes": 17484,
+      "bytes_per_entry": 174.8,
+      "heap_delta_mb": -0.41
+    },
+    {
+      "event_count": 1000,
+      "append_time_ms": 225.18,
+      "append_throughput_ev_sec": 4441,
+      "recovery_time_ms": 7.1,
+      "file_size_bytes": 176786,
+      "bytes_per_entry": 176.8,
+      "heap_delta_mb": 0.14
+    },
+    {
+      "event_count": 5000,
+      "append_time_ms": 1074.62,
+      "append_throughput_ev_sec": 4653,
+      "recovery_time_ms": 33.62,
+      "file_size_bytes": 892786,
+      "bytes_per_entry": 178.6,
+      "heap_delta_mb": -0.03
+    }
+  ],
+  "compaction": {
+    "pre_compact_bytes": 167493,
+    "post_compact_bytes": 4290,
+    "reduction_percent": 97.4
+  }
+}

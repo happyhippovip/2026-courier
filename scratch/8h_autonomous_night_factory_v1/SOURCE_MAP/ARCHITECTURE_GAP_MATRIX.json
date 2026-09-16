@@ -1,0 +1,74 @@
+[
+  {
+    "gap_id": "GAP-A01",
+    "name": "Uncertain Dispatch Dominance & Secondary Redispatch Bypass",
+    "subsystem": "Supervisor / Reconciler / Dispatcher",
+    "production_reality": "Supervisor and Reconciler retry paths can spawn fallback workers or redispatch tasks without consulting the central execution-uncertainty fence, allowing duplicated side effects if original worker is slow or unreachable.",
+    "shadow_requirement": "A single execution-uncertainty fence must strictly dominate ALL 12 dispatch/retry/fallback/reroute triggers, indexed by both task_id and logical_work_id.",
+    "severity": "P0",
+    "verification_status": "REQUIRES_COMPOSITIONAL_ATTACK"
+  },
+  {
+    "gap_id": "GAP-L01",
+    "name": "Hierarchical & Non-Canonical Path Clashing in Writer Mutex",
+    "subsystem": "Supervisor / No-Stacking",
+    "production_reality": "Production no_stacking checks exact string equality of workspace paths. Ignores parent/child containment (e.g. locking courier/ vs courier/scratch/), Windows case-folding (courier vs COURIER), trailing slashes, and relative dot segments.",
+    "shadow_requirement": "Hybrid resource lock manager resolving canonical paths, verifying prefix/containment trees, and enforcing shared/exclusive lock hierarchies.",
+    "severity": "P0",
+    "verification_status": "REQUIRES_COMPOSITIONAL_ATTACK"
+  },
+  {
+    "gap_id": "GAP-G01",
+    "name": "Deferred Financial Liabilities & Auto-Renew Trial Traps",
+    "subsystem": "Money Factory / Safety Gates",
+    "production_reality": "Production safety gates inspect immediate transaction amounts against AUTONOMOUS_SPEND_LIMIT_EUR (0.00). They lack visibility into deferred recurring obligations (e.g., $0 trial with $50/mo auto-renew or credit card pre-auth holds).",
+    "shadow_requirement": "Multi-vector ZeroSpendBoundaryGovernor evaluating immediate spend, deferred liabilities, recurring cadence, and trial renewal clauses. Any potential liability must divert to Human Gate.",
+    "severity": "P0",
+    "verification_status": "REQUIRES_COMPOSITIONAL_ATTACK"
+  },
+  {
+    "gap_id": "GAP-B01",
+    "name": "Windows PID Recycling & Process Identity Confusion",
+    "subsystem": "Supervisor / Lease Manager / Process Hygiene",
+    "production_reality": "Production process management issues SIGTERM/SIGKILL based solely on PID recorded in lease file. Under high process churn on Windows, PIDs recycle within seconds, risking killing innocent OS or IDE processes.",
+    "shadow_requirement": "Tri-state process verification (MATCH, MISMATCH, UNKNOWN) comparing PID + CreationStartTimeMs + MachineId. Under UNKNOWN, SIGKILL is strictly forbidden.",
+    "severity": "P0",
+    "verification_status": "REQUIRES_COMPOSITIONAL_ATTACK"
+  },
+  {
+    "gap_id": "GAP-C01",
+    "name": "Border Guard Scope Creep & Acceptance Criteria Drift",
+    "subsystem": "Chief / Border Guard / Customs",
+    "production_reality": "Dispatches lack tamper-evident cryptographic sealing of the approved scope and acceptance criteria. A compromised or buggy planner can alter subtask definitions after human or policy approval.",
+    "shadow_requirement": "Outbound task passport sealed with SHA-256 fingerprint of (goal_id, task_version, scope_hash, criteria_hash, approval_token). Inbound deliverable checked at Customs before merging.",
+    "severity": "P1",
+    "verification_status": "REQUIRES_BORDER_GUARD_REDTEAM"
+  },
+  {
+    "gap_id": "GAP-W01",
+    "name": "Test-Weakening Worker Fix Exploitation",
+    "subsystem": "Result Customs / Test Verifier",
+    "production_reality": "A worker reporting \"ALL TESTS PASSED\" may achieve this by deleting test files, skipping assertions, catching errors silently, or modifying thresholds.",
+    "shadow_requirement": "Structural AST diff inspector verifying that test count, assertion count, and strict equality constraints did not decrease between pre-state and post-state.",
+    "severity": "P1",
+    "verification_status": "REQUIRES_AST_DETECTOR"
+  },
+  {
+    "gap_id": "GAP-M01",
+    "name": "Durable Journal Migration Missing Field Uncertainty",
+    "subsystem": "Storage / Journal Compaction / Migration",
+    "production_reality": "Loading legacy journals or event logs lacking task_version, process_start_time, or approval_token risks fabricating certainty or defaulting to unsafe states.",
+    "shadow_requirement": "Deterministic migration adapter with explicit derivation rules: safely derivable fields populated; uncertain fields labeled UNKNOWN; hazardous operations placed on HOLD.",
+    "severity": "P1",
+    "verification_status": "REQUIRES_MIGRATION_ATTACK"
+  },
+  {
+    "gap_id": "GAP-S01",
+    "name": "Autonomous Long-Horizon Drift & Memory Leaking",
+    "subsystem": "Autonomous Runtime / Long-Run Engine",
+    "production_reality": "Unattended long runs (>8h) risk journal unbounded growth, dangling leases from dead workers, and recurring task loops without progress.",
+    "shadow_requirement": "Durable journal compaction with cryptographic anchor hashing, periodic monotonic lease sweep, anti-loop cycle detector, and autonomous self-generating backlog.",
+    "severity": "P1",
+    "verification_status": "REQUIRES_VIRTUAL_SOAK"
+  }
+]

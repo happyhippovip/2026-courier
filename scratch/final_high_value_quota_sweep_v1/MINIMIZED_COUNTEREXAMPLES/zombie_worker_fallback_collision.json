@@ -1,0 +1,11 @@
+{
+  "id": "CE-01",
+  "name": "zombie_worker_fallback_collision",
+  "input": {
+    "leaseState": "EXPIRED",
+    "taskState": "EXECUTION_UNCERTAIN",
+    "trigger": "HEARTBEAT_TIMEOUT"
+  },
+  "naiveBehavior": "REDISPATCH (Worker W2 spawned while W1 running)",
+  "hardenedBehavior": "HOLD (Redirection prevented until cut-point proven)"
+}

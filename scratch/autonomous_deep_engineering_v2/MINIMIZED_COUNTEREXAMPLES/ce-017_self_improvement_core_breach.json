@@ -1,0 +1,6 @@
+{
+  "id": "CE-017",
+  "defect_class": "SELF_IMPROVEMENT_CORE_BREACH",
+  "description": "Autonomous optimization targeting frozen release or core security modules.",
+  "proven_invariant": "Protected security paths immune to automated modification fail-closed."
+}

@@ -1,0 +1,113 @@
+{
+  "timestamp": "2026-09-10T07:21:52.166Z",
+  "verdict": "NO_SINGLE_PRODUCTION_ENTRYPOINT_EXISTS",
+  "candidate_audits": [
+    {
+      "candidate": "cross_device_intake.js",
+      "type": "CLASS_LIBRARY",
+      "has_cli_or_main": false,
+      "has_execution_loop": false,
+      "accepted_input": "raw string (e.g. 'weiter')",
+      "reaches_supervisor": false,
+      "reaches_workers": false,
+      "reaches_governor": false,
+      "role": "Regular expression message classifier and state formatter"
+    },
+    {
+      "candidate": "money_factory/index.js",
+      "type": "CLASS_LIBRARY",
+      "has_cli_or_main": false,
+      "has_execution_loop": false,
+      "accepted_input": "Opportunity objects / seeds",
+      "reaches_supervisor": false,
+      "reaches_workers": false,
+      "reaches_governor": false,
+      "role": "Opportunity warehouse, scoring, and cycle ledger store"
+    },
+    {
+      "candidate": "supervisor/index.js",
+      "type": "CLASS_LIBRARY",
+      "has_cli_or_main": false,
+      "has_execution_loop": false,
+      "accepted_input": "Task and passport objects passed to individual methods",
+      "reaches_supervisor": true,
+      "reaches_workers": false,
+      "reaches_governor": true,
+      "role": "Supervisor plane checks and lease/lock managers; explicitly states: 'Courier remains the ONLY canonical orchestrator'"
+    },
+    {
+      "candidate": "chief/cli.py",
+      "type": "CLI_TOOL (Python)",
+      "has_cli_or_main": true,
+      "has_execution_loop": true,
+      "accepted_input": "CLI flags (--dir, --target, --instructions)",
+      "reaches_supervisor": false,
+      "reaches_workers": false,
+      "reaches_governor": false,
+      "role": "Cross-lane delta coordinator and handoff packager; does not invoke Windows JS supervisor plane"
+    }
+  ],
+  "lifecycle_stages": {
+    "entrypoint": {
+      "status": "BYPASSED",
+      "detail": "No production file exists that serves as an autonomous goal entrypoint"
+    },
+    "caller": {
+      "status": "UNKNOWN",
+      "detail": "No production caller exists; only tests and scratch scripts invoke components"
+    },
+    "accepted_input": {
+      "status": "TEST_ONLY",
+      "detail": "Components accept discrete parameters; no high-level goal processor exists"
+    },
+    "state_store": {
+      "status": "PRODUCTION_REACHABLE",
+      "detail": "runtime/leases, runtime/audit, and opportunity_warehouse exist on disk"
+    },
+    "planner": {
+      "status": "TEST_ONLY",
+      "detail": "money_factory/warehouse.js and cheapest_test.js exist as libraries without autonomous trigger"
+    },
+    "router": {
+      "status": "TEST_ONLY",
+      "detail": "cross_device_intake.js classifies strings but does not dispatch"
+    },
+    "passport": {
+      "status": "TEST_ONLY",
+      "detail": "governance/TaskPassport.js mints HMAC passports when called by harness"
+    },
+    "border_guard": {
+      "status": "TEST_ONLY",
+      "detail": "governance/BorderGuard.js checks capability when called by harness"
+    },
+    "dispatcher": {
+      "status": "BYPASSED",
+      "detail": "No production worker dispatcher exists in Windows Courier"
+    },
+    "worker_adapter": {
+      "status": "BYPASSED",
+      "detail": "No production worker execution adapter exists"
+    },
+    "result_customs": {
+      "status": "TEST_ONLY",
+      "detail": "governance/ResultCustoms.js validates envelopes when called by harness"
+    },
+    "verifier": {
+      "status": "TEST_ONLY",
+      "detail": "governance/ResultCustoms.js checks artifact SHA-256 when called by harness"
+    },
+    "completion_governor": {
+      "status": "TEST_ONLY",
+      "detail": "governance/CompletionGovernor.js evaluates mission status when called by harness"
+    },
+    "next_work_selector": {
+      "status": "BYPASSED",
+      "detail": "No production loop queries the warehouse or frontier for next work"
+    },
+    "resume_path": {
+      "status": "TEST_ONLY",
+      "detail": "supervisor/reconciliation.js provides crash recovery logic, but lacks an entrypoint"
+    }
+  },
+  "gap_summary": "Windows Courier possesses thoroughly tested governance, supervisor, and money-factory modules, but lacks a canonical production orchestration entrypoint tying them together into an autonomous pipeline."
+}

@@ -1,0 +1,7 @@
+{
+  "id": "FC_002",
+  "name": "WRITER_LEASE_COLLISION",
+  "payload": {
+    "duplicate_scope": "a.js"
+  }
+}

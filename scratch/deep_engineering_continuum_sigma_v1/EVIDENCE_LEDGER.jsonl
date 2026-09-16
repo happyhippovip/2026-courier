@@ -1,0 +1,5 @@
+{"evidence_id":"EV-CX-SIGMA-AUDIT-001","claim_id":"CX-SIGMA-AUDIT-001","type":"SOURCE_CODE_INSPECTION","path":"supervisor/decision_engine.js","lines":"42-43","verified_at":"2026-09-10T03:53:21.533Z"}
+{"evidence_id":"EV-CX-SIGMA-AUDIT-002","claim_id":"CX-SIGMA-AUDIT-002","type":"SOURCE_CODE_INSPECTION","path":"supervisor/no_stacking.js","lines":"31-32","verified_at":"2026-09-10T03:53:21.533Z"}
+{"evidence_id":"EV-CX-SIGMA-AUDIT-003","claim_id":"CX-SIGMA-AUDIT-003","type":"SOURCE_CODE_INSPECTION","path":"money_factory/safety_gates.js","lines":"21-58","verified_at":"2026-09-10T03:53:21.533Z"}
+{"evidence_id":"EV-CX-SIGMA-AUDIT-004","claim_id":"CX-SIGMA-AUDIT-004","type":"SOURCE_CODE_INSPECTION","path":"supervisor/reconciliation.js","lines":"43-79","verified_at":"2026-09-10T03:53:21.533Z"}
+{"evidence_id":"EV-CX-SIGMA-AUDIT-005","claim_id":"CX-SIGMA-AUDIT-005","type":"SOURCE_CODE_INSPECTION","path":"chief/coordinator.py","lines":"212-237","verified_at":"2026-09-10T03:53:21.533Z"}

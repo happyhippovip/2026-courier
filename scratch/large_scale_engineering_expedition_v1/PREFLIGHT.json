@@ -1,0 +1,61 @@
+{
+  "mission_id": "WINDOWS_COURIER_LARGE_SCALE_ENGINEERING_EXPEDITION_V1",
+  "status": "PREFLIGHT_PASSED",
+  "REAL_STARTED_AT_UTC": "2026-09-10T04:16:15.404Z",
+  "REAL_STARTED_AT_LOCAL": "Thu Sep 10 2026 06:16:15 GMT+0200 (Mitteleuropäische Sommerzeit)",
+  "MONOTONIC_START": "43919300572500",
+  "predecessor": {
+    "mission_id": "WINDOWS_COURIER_DEEP_ENGINEERING_CONTINUUM_SIGMA_V1",
+    "status": "GENUINELY_SATURATED_WINDOWS_PHASE",
+    "terminal": true,
+    "active_leases": 0,
+    "owned_helpers": 0
+  },
+  "git": {
+    "branch": "windows/money-factory-p0",
+    "head": "aa5c01d21c7e055c7e3b5117ded5eddc6793dde4",
+    "status_clean": false
+  },
+  "hardware": {
+    "logical_cpus": 8,
+    "cpu_model": "Intel(R) Core(TM) i7-10510U CPU @ 1.80GHz",
+    "ram_free_gb": "7.49",
+    "ram_total_gb": "15.84",
+    "disk_free_gb": "852.99",
+    "disk_total_gb": "937.72"
+  },
+  "runtimes": {
+    "node": "v24.20.0",
+    "python": "NOT_INSTALLED"
+  },
+  "root_availability": {
+    "courier": {
+      "path": "C:\\Users\\lol\\2026-workspace\\courier",
+      "exists": true
+    },
+    "project_memory": {
+      "path": "C:\\Users\\lol\\2026-workspace\\project-memory",
+      "exists": true
+    },
+    "documents_project": {
+      "path": "C:\\Users\\lol\\Documents\\google antigravity setting mein projekt zentral 2026",
+      "exists": true
+    },
+    "gemini_config": {
+      "path": "C:\\Users\\lol\\.gemini\\config",
+      "exists": true
+    }
+  },
+  "safety_invariants": {
+    "AUTONOMOUS_SPEND_LIMIT_EUR": 0,
+    "REAL_TRADES": 0,
+    "REAL_FUNDS_TOUCHED": "NO",
+    "REAL_POSITIONS_CHANGED": 0,
+    "REAL_WALLETS_CONNECTED": "NO",
+    "WALLET_SIGNING": "NO",
+    "OIL_LIVE": "DENY",
+    "BTC_LIVE_CANARY": "NOT_AUTHORIZED",
+    "REAL_REVENUE_EUR": 0
+  },
+  "verdict": "READY_TO_PROCEED"
+}

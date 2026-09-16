@@ -1,0 +1,23 @@
+{
+  "package_id": "PKG-M01-MIGRATION-ADAPTER",
+  "title": "Legacy Journal Migration Adapter with Safe Derivation Rules",
+  "problem": "Migrating legacy journals lacking required fields risks fabricating false certainty or crashing replay.",
+  "evidence": "Verified in WS11 (EXP-WS11-MIG-001).",
+  "current_source_location": "supervisor/audit_ledger.js",
+  "proposed_change_boundary": "Implement formal derivation rules: default safe task_version=1; HOLD missing goal_id; UNKNOWN missing start-time.",
+  "files_likely_affected": [
+    "supervisor/audit_ledger.js",
+    "supervisor/reconciliation.js"
+  ],
+  "migration_impact": "One-time upgrade script on startup.",
+  "rollback": "Restore pre-migration journal backup snapshot.",
+  "targeted_tests": [
+    "test_migration_adapter.js"
+  ],
+  "independent_verifier": "Schema validator asserting 0 un-migrated records.",
+  "known_risks": "Corrupt legacy records will be placed on HOLD, requiring operator inspection.",
+  "mac_dependency": false,
+  "human_gate_dependency": false,
+  "recommended_integration_order": 7,
+  "stop_condition": "Execution of any legacy task whose goal_id was fabricated."
+}

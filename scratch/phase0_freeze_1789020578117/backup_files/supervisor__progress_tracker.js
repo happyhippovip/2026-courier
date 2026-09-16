@@ -1,0 +1,192 @@
+// Progress Evidence Tracker & Structured Result Customs Intake
+// Invariants:
+// 1. Progress is based on verifiable evidence. A quiet process is NOT automatically hung.
+// 2. Completed results MUST pass Result Customs envelope and SHA-256 evidence verification.
+
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+const { EVENT_TYPE, LEASE_STATUS } = require('./types');
+const { ResultCustoms, EvidenceVerifier } = require('../governance/ResultCustoms');
+
+const PROGRESS_EVIDENCE_TYPES = Object.freeze({
+  LOG_GROWTH: 'LOG_GROWTH',
+  TEST_COMPLETION: 'TEST_COMPLETION',
+  ARTIFACT_CREATION: 'ARTIFACT_CREATION',
+  HEARTBEAT: 'HEARTBEAT',
+  STATE_TRANSITION: 'STATE_TRANSITION',
+  FILE_OUTPUT: 'FILE_OUTPUT',
+  CPU_ACTIVITY: 'CPU_ACTIVITY',
+  VERIFICATION_PROOF: 'VERIFICATION_PROOF',
+  RESULT_FINGERPRINT: 'RESULT_FINGERPRINT',
+  DURABLE_EVENT: 'DURABLE_EVENT',
+  RESULT_CUSTOMS_ACCEPTED: 'RESULT_CUSTOMS_ACCEPTED',
+  RESULT_CUSTOMS_REJECTED: 'RESULT_CUSTOMS_REJECTED'
+});
+
+class ProgressTracker {
+  constructor(storageDir = null, leaseManager = null, auditLedger = null) {
+    this.storageDir = storageDir || path.join(__dirname, '..', 'runtime', 'leases');
+    if (!fs.existsSync(this.storageDir)) {
+      fs.mkdirSync(this.storageDir, { recursive: true });
+    }
+    this.evidenceFile = path.join(this.storageDir, 'progress_evidence.jsonl');
+    this.leaseManager = leaseManager;
+    this.auditLedger = auditLedger;
+    this.evidenceRecords = [];
+    this._load();
+  }
+
+  _load() {
+    if (fs.existsSync(this.evidenceFile)) {
+      try {
+        const lines = fs.readFileSync(this.evidenceFile, 'utf8').split('\n').filter(Boolean);
+        this.evidenceRecords = lines.map(l => JSON.parse(l));
+      } catch (err) {
+        console.error(`[PROGRESS_TRACKER] Warning loading ${this.evidenceFile}:`, err.message);
+      }
+    }
+  }
+
+  recordProgress({
+    process_lease_id,
+    task_id,
+    evidence_type,
+    value,
+    source = 'LOCAL_MONITOR'
+  }) {
+    if (!process_lease_id || !task_id || !evidence_type) {
+      throw new Error('[PROGRESS_ERROR] process_lease_id, task_id, and evidence_type are required');
+    }
+
+    const timestamp = new Date().toISOString();
+    const evidenceId = `EVD-${Date.now()}-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
+    const fpRaw = `${process_lease_id}:${task_id}:${evidence_type}:${JSON.stringify(value)}:${timestamp}`;
+    const fingerprint = crypto.createHash('sha256').update(fpRaw).digest('hex');
+
+    const entry = {
+      evidence_id: evidenceId,
+      process_lease_id,
+      task_id,
+      timestamp,
+      evidence_type,
+      value,
+      source,
+      fingerprint
+    };
+
+    this.evidenceRecords.push(entry);
+    fs.appendFileSync(this.evidenceFile, JSON.stringify(entry) + '\n', 'utf8');
+
+    // Update lease last_progress_at and status
+    if (this.leaseManager) {
+      const lease = this.leaseManager.getLease(process_lease_id);
+      if (lease) {
+        lease.last_progress_at = timestamp;
+        if (lease.status === LEASE_STATUS.STARTING || lease.status === LEASE_STATUS.RUNNING || lease.status === LEASE_STATUS.STALLED) {
+          this.leaseManager.updateStatus(process_lease_id, LEASE_STATUS.PROGRESSING, `Progress confirmed via ${evidence_type}`);
+        } else {
+          this.leaseManager._persist();
+        }
+      }
+    }
+
+    if (this.auditLedger) {
+      this.auditLedger.recordEvent({
+        task_id,
+        process_lease_id,
+        event_type: EVENT_TYPE.PROGRESS_OBSERVED,
+        evidence_refs: [evidenceId],
+        reason_codes: [evidence_type]
+      });
+    }
+
+    return entry;
+  }
+
+  // Result Customs Integration (GAP-005)
+  evaluateAndRecordResultEnvelope({
+    process_lease_id,
+    task_id,
+    passport,
+    exit_code,
+    artifacts = [],
+    checksum_map = {},
+    working_dir = null
+  }) {
+    const customsEvaluation = ResultCustoms.evaluateResultEnvelope({
+      task_id,
+      passport,
+      exit_code,
+      artifacts,
+      checksum_map
+    });
+
+    if (!customsEvaluation.accepted) {
+      if (process_lease_id) {
+        this.recordProgress({
+          process_lease_id,
+          task_id,
+          evidence_type: PROGRESS_EVIDENCE_TYPES.RESULT_CUSTOMS_REJECTED,
+          value: { reason: customsEvaluation.reason, requires_fence: customsEvaluation.requires_uncertainty_fence }
+        });
+      }
+      return {
+        accepted: false,
+        reason: customsEvaluation.reason,
+        requires_uncertainty_fence: customsEvaluation.requires_uncertainty_fence,
+        verified_artifacts: []
+      };
+    }
+
+    // Perform independent SHA-256 verification on disk
+    const verifiedArtifacts = [];
+    if (working_dir) {
+      for (const artName of artifacts) {
+        const fullArtPath = path.isAbsolute(artName) ? artName : path.join(working_dir, artName);
+        const expectedSha = checksum_map[artName];
+        const verCheck = EvidenceVerifier.verifyArtifact(fullArtPath, expectedSha);
+        if (!verCheck.verified) {
+          return {
+            accepted: false,
+            reason: `Evidence verification failed on disk for '${artName}': ${verCheck.reason}`,
+            requires_uncertainty_fence: true,
+            verified_artifacts: []
+          };
+        }
+        verifiedArtifacts.push({ file: artName, ...verCheck });
+      }
+    }
+
+    if (process_lease_id) {
+      this.recordProgress({
+        process_lease_id,
+        task_id,
+        evidence_type: PROGRESS_EVIDENCE_TYPES.RESULT_CUSTOMS_ACCEPTED,
+        value: { artifacts_count: artifacts.length, verified_count: verifiedArtifacts.length }
+      });
+    }
+
+    return {
+      accepted: true,
+      verified_artifacts: verifiedArtifacts,
+      customs_evaluation: customsEvaluation
+    };
+  }
+
+  getEvidenceForProcess(leaseId) {
+    return this.evidenceRecords.filter(e => e.process_lease_id === leaseId);
+  }
+
+  getLatestProgressForProcess(leaseId) {
+    const list = this.getEvidenceForProcess(leaseId);
+    return list.length > 0 ? list[list.length - 1] : null;
+  }
+}
+
+module.exports = {
+  PROGRESS_EVIDENCE_TYPES,
+  ProgressTracker,
+  ResultCustoms,
+  EvidenceVerifier
+};

@@ -1,0 +1,20 @@
+{
+  "campaign_id": "CAMP-13-ARCHITECTURE-SIMPLIFICATION-AND-ANTI-BUREAUCRACY",
+  "parent_frontier_item": "FRONTIER-SIMPLIFICATION",
+  "goal": "Audit proposed shadow architectures for administrative bloat, eliminate duplicate choke points, and preserve single authoritative enforcement points.",
+  "hypothesis": "Streamlining decision authorities from multi-tier redundant checks to single authoritative choke points reduces state-space complexity by >30% while preserving all safety invariants.",
+  "why_now": "Addresses Section 158-165 requirements; prevents safety system from becoming unusable bureaucracy.",
+  "production_relation": "Audits entire supervisor/ plane and chief/ control plane.",
+  "expected_information_gain": "HIGH",
+  "expected_cost": "0.00 EUR",
+  "risk": "NONE_ANALYSIS_AND_AUDIT",
+  "scope": "Choke point authority deduplication, record minimization, simplicity ratio analysis",
+  "write_scope": "scratch/autonomous_night_organization_omega_v1/CAMPAIGNS/CAMP-13/",
+  "dependencies": [
+    "CAMP-12-ECONOMIC-AUTONOMY-SIMULATION"
+  ],
+  "acceptance_criteria": "Identified single authoritative choke points for dispatch, resources, and spend; removed redundant intermediate checks.",
+  "falsification_criteria": "Simplification compromises any of the 4 core invariants (A01, L01, G01, B01).",
+  "status": "CLOSED_SUPPORTED",
+  "completed_at": "2026-09-09T23:40:32.197Z"
+}

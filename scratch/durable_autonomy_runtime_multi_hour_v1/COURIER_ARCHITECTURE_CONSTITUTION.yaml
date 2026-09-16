@@ -1,0 +1,298 @@
+# ==============================================================================
+# CANONICAL COURIER ARCHITECTURE CONSTITUTION (VERSION 1.0.0)
+# Machine-readable architectural invariants for autonomous Courier engineering.
+# ==============================================================================
+version: "1.0.0"
+ratified_at_utc: "2026-09-10T04:31:00Z"
+host_role: "PC2_MEMORY_RIGHT_ARM"
+primary_product_writer: "RECHNER_1_MAC_PRODUCT_SINGLE_WRITER"
+immutable_rule_count: 41
+
+invariants:
+
+  # 1. USER ROLE
+  - id: "INV-001"
+    name: "USER_ROLE"
+    classification: "ARCHITECTURAL_REQUIREMENT"
+    description: "User defines outcome ('I want this outcome'). Human never micromanages, loops 'weiter', or acts as Courier."
+    enforcement_rule: "Courier runtime autonomously generates plans, handles errors, and selects next work without human prompting."
+
+  # 2. CHIEF ROLE
+  - id: "INV-002"
+    name: "CHIEF_ROLE"
+    classification: "ARCHITECTURAL_REQUIREMENT"
+    description: "Chief translates user outcome into exactly one canonical high-level goal. Chief does not play Courier."
+    enforcement_rule: "Chief creates Goal object; Courier controls discovery, planning, dispatch, execution, and verification."
+
+  # 3. COURIER ROLE
+  - id: "INV-003"
+    name: "COURIER_ROLE"
+    classification: "ARCHITECTURAL_REQUIREMENT"
+    description: "Courier operates the autonomous control loop: discover -> plan -> negotiate -> border check -> stamp -> dispatch -> execute -> verify -> customs -> update state -> next."
+    enforcement_rule: "The executable Courier runtime loop drives all sub-components."
+
+  # 4. WORKER ROLE
+  - id: "INV-004"
+    name: "WORKER_ROLE"
+    classification: "ARCHITECTURAL_REQUIREMENT"
+    description: "Worker executes bounded work unit; reports WORK_UNIT_COMPLETE or NO_MORE_WORK_KNOWN_TO_THIS_WORKER. Worker NEVER declares global mission saturation."
+    enforcement_rule: "Global completion authority is revoked from Worker and held only by CompletionGovernor."
+
+  # 5. NO STACKING
+  - id: "INV-005"
+    name: "NO_STACKING"
+    classification: "VERIFIED_WINDOWS_LAB"
+    description: "Resource-aware NTFS writer mutex enforcing hierarchical path containment and case-folding."
+    enforcement_rule: "ResourceLockManager rejects locks if requested path is equal to or a subpath/parent of any currently held lock."
+
+  # 6. TASK LIFECYCLE
+  - id: "INV-006"
+    name: "TASK_LIFECYCLE"
+    classification: "ARCHITECTURAL_REQUIREMENT"
+    description: "Canonical 9-phase linear lifecycle: PROPOSED -> NEGOTIATING -> APPROVED_FOR_DISPATCH -> STAMPED -> DISPATCHED -> IN_FLIGHT -> RESULT_RECEIVED -> VERIFIED -> CLOSED."
+    enforcement_rule: "TaskStore strictly enforces valid state machine transitions; invalid jumps throw StateTransitionError."
+
+  # 7. PRE-DISPATCH NEGOTIATION
+  - id: "INV-007"
+    name: "PRE_DISPATCH_NEGOTIATION"
+    classification: "ARCHITECTURAL_REQUIREMENT"
+    description: "Worker inspects task proposal before dispatch and may respond: ACCEPT, QUESTION, CONFLICT, NEEDS_SCOPE_CHANGE, BETTER_ALTERNATIVE, INSUFFICIENT_EVIDENCE, UNSAFE, DUPLICATE_WORK, ALREADY_DONE, UNAVAILABLE."
+    enforcement_rule: "TaskNegotiator evaluates worker response; disagreement is treated as information, not failure."
+
+  # 8. TASK PASSPORT
+  - id: "INV-008"
+    name: "TASK_PASSPORT"
+    classification: "VERIFIED_WINDOWS_LAB"
+    description: "Cryptographic token binding task_id, version, goal_id, scope_paths, and max_capability with SHA-256 signature."
+    enforcement_rule: "BorderGuard refuses dispatch if signature is invalid or tampered."
+
+  # 9. BORDER GUARD
+  - id: "INV-009"
+    name: "BORDER_GUARD"
+    classification: "VERIFIED_WINDOWS_LAB"
+    description: "Pre-dispatch admissibility gate producing GREEN_CARD, REVISE, HOLD, BLOCK, or ESCALATE."
+    enforcement_rule: "Validates task against passport, active locks, capability boundaries, spend limits, and Human Gates."
+
+  # 10. RESULT CUSTOMS
+  - id: "INV-010"
+    name: "RESULT_CUSTOMS"
+    classification: "VERIFIED_WINDOWS_LAB"
+    description: "Post-execution gate validating completion envelope: exit code 0, artifact manifest, SHA-256 checksums, and zero prose proof."
+    enforcement_rule: "ResultCustoms rejects empty manifests, missing checksums, or non-zero exits without uncertainty fencing."
+
+  # 11. WORKER LEASE
+  - id: "INV-011"
+    name: "WORKER_LEASE"
+    classification: "ARCHITECTURAL_REQUIREMENT"
+    description: "Durable binding of worker_id to active_task_id, task_version, acquired_at, heartbeat, and lease_type."
+    enforcement_rule: "Lease persists in durable state; restart preserves or reconciles active worker lease."
+
+  # 12. PROCESS LEASE
+  - id: "INV-012"
+    name: "PROCESS_LEASE"
+    classification: "VERIFIED_WINDOWS_LAB"
+    description: "Process tracking identity bound by (PID, START_TIME_EPOCH, TASK_TOKEN)."
+    enforcement_rule: "ProcessLeaseManager rejects operations if process start time differs from registration epoch by > 1500ms."
+
+  # 13. RESOURCE LEASE
+  - id: "INV-013"
+    name: "RESOURCE_LEASE"
+    classification: "VERIFIED_WINDOWS_LAB"
+    description: "Exclusive lease over filesystem hierarchies, git worktrees, ledgers, or external interfaces."
+    enforcement_rule: "Managed by ResourceLockManager with TTL, heartbeat, and automatic cleanup on worker termination."
+
+  # 14. FOLLOW-UP INBOX
+  - id: "INV-014"
+    name: "FOLLOW_UP_INBOX"
+    classification: "ARCHITECTURAL_REQUIREMENT"
+    description: "Durable inbox capturing emergent ideas while workers are busy: CAPTURED, CANDIDATE, APPROVED_NEXT, MERGED, DISPATCHED."
+    enforcement_rule: "Follow-up items are never silently deleted; merged or superseded items preserve history."
+
+  # 15. GOAL SATISFACTION
+  - id: "INV-015"
+    name: "GOAL_SATISFACTION"
+    classification: "VERIFIED_WINDOWS_LAB"
+    description: "Goal is satisfied only when 100% of defined acceptance criteria possess matching VERIFIED evidence records."
+    enforcement_rule: "GoalVerifier rejects partial evidence; GoalCompletionGovernor requires totality."
+
+  # 16. CRASH RECONCILIATION
+  - id: "INV-016"
+    name: "CRASH_RECONCILIATION"
+    classification: "VERIFIED_WINDOWS_LAB"
+    description: "On system restart: verified evidence -> VERIFIED; persisted result -> PENDING_VERIFY; in-flight without proof -> EXECUTION_UNCERTAIN; proven unstarted -> REDISPATCHABLE."
+    enforcement_rule: "CrashReconciler replays event log to state snapshot and reconciles ambiguous leases."
+
+  # 17. EXECUTION UNCERTAINTY
+  - id: "INV-017"
+    name: "EXECUTION_UNCERTAINTY"
+    classification: "ARCHITECTURAL_REQUIREMENT"
+    description: "If dispatch may have occurred and side-effects cannot be proven absent: transition to EXECUTION_UNCERTAIN_NO_PROOF. Never auto-redispatch."
+    enforcement_rule: "Prevents duplicate external calls, duplicate file mutations, or split-brain operations."
+
+  # 18. PROCESS IDENTITY
+  - id: "INV-018"
+    name: "PROCESS_IDENTITY"
+    classification: "VERIFIED_WINDOWS_LAB"
+    description: "Windows integer PIDs are insufficient. Identity requires PID + StartTime + TaskToken."
+    enforcement_rule: "ProcessTreeManager / ProcessLeaseManager verify all three dimensions before kill or telemetry action."
+
+  # 19. SUPERVISOR PLANE
+  - id: "INV-019"
+    name: "SUPERVISOR_PLANE"
+    classification: "VERIFIED_CURRENT_SOURCE"
+    description: "12-state monitor: STARTING, RUNNING, WAITING_VALID, PROGRESSING, STALLED, HUNG, ORPHANED, DUPLICATE, EXECUTION_UNCERTAIN, COMPLETED, TERMINATED, HUMAN_GATE. 5m progress check, 15m diagnostic capture. Time alone never terminates."
+    enforcement_rule: "SupervisorPlane drives continuous health checking and process tree inspection."
+
+  # 20. RESOURCE GOVERNOR
+  - id: "INV-020"
+    name: "RESOURCE_GOVERNOR"
+    classification: "VERIFIED_WINDOWS_LAB"
+    description: "Host-specific throttling. PC2 Windows 10 Home (8 cores, 16GB RAM) allows up to 6 concurrent subprocesses. Mac hot-machine rules do not apply."
+    enforcement_rule: "ResourceGovernor caps worker concurrency and checks memory/disk thresholds."
+
+  # 21. HUMAN GATES
+  - id: "INV-021"
+    name: "HUMAN_GATES"
+    classification: "VERIFIED_WINDOWS_LAB"
+    description: "Explicit gating for 2FA, biometric tokens, legal spend, external deploy, or protected repo pushes."
+    enforcement_rule: "HumanGateEngine parks task in HUMAN_GATE_QUEUE.jsonl and continues autonomous work."
+
+  # 22. CAPABILITY BOUNDARIES
+  - id: "INV-022"
+    name: "CAPABILITY_BOUNDARIES"
+    classification: "VERIFIED_WINDOWS_LAB"
+    description: "7-level hierarchical lattice: READ_ONLY(1) -> WORKSPACE_WRITE(2) -> EXTERNAL_FS(3) -> NET_INSPECT(4) -> NET_CALL(5) -> SECRETS(6) -> FINANCIAL_LIABILITY(7)."
+    enforcement_rule: "CapabilityEngine blocks any request exceeding the assigned ceiling."
+
+  # 23. ZERO-SPEND DEFAULT
+  - id: "INV-023"
+    name: "ZERO_SPEND_DEFAULT"
+    classification: "HISTORICAL_REQUIREMENT"
+    description: "Autonomous spend ceiling is hard-locked at €0.00 EUR. Zero external billing permitted."
+    enforcement_rule: "SpendGovernor denies any transaction with cost > 0."
+
+  # 24. NO REAL TRADING
+  - id: "INV-024"
+    name: "NO_REAL_TRADING"
+    classification: "HISTORICAL_REQUIREMENT"
+    description: "Real trading, financial market orders, and exchange execution are strictly DENIED."
+    enforcement_rule: "REAL_TRADES=0, OIL_LIVE=DENY, BTC_LIVE_CANARY=NOT_AUTHORIZED."
+
+  # 25. NO WALLET SIGNING
+  - id: "INV-025"
+    name: "NO_WALLET_SIGNING"
+    classification: "HISTORICAL_REQUIREMENT"
+    description: "Cryptographic wallet connection, private key loading, and transaction signing are forbidden."
+    enforcement_rule: "REAL_WALLETS_CONNECTED=NO, WALLET_SIGNING=NO."
+
+  # 26. NO PUBLICATION
+  - id: "INV-026"
+    name: "NO_PUBLICATION"
+    classification: "HISTORICAL_REQUIREMENT"
+    description: "No public publishing of content, packages, social posts, or blog entries."
+    enforcement_rule: "CapabilityEngine blocks publication capabilities."
+
+  # 27. NO DEPLOYMENT
+  - id: "INV-027"
+    name: "NO_DEPLOYMENT"
+    classification: "HISTORICAL_REQUIREMENT"
+    description: "No deploying code to production servers, cloud clusters, or staging infrastructure."
+    enforcement_rule: "Deployment actions trigger Human Gate."
+
+  # 28. NO CUSTOMER OUTREACH
+  - id: "INV-028"
+    name: "NO_CUSTOMER_OUTREACH"
+    classification: "HISTORICAL_REQUIREMENT"
+    description: "No external emails, SMS, API contact, or sales outreach to real humans."
+    enforcement_rule: "Outreach actions trigger Human Gate."
+
+  # 29. NO TEST WEAKENING
+  - id: "INV-029"
+    name: "NO_TEST_WEAKENING"
+    classification: "VERIFIED_WINDOWS_LAB"
+    description: "Refactoring must not skip tests, remove assertions, or swallow exceptions to manufacture green status."
+    enforcement_rule: "TestWeakeningDetector flags any test diff that reduces assertion count or introduces .skip."
+
+  # 30. INDEPENDENT VERIFICATION
+  - id: "INV-030"
+    name: "INDEPENDENT_VERIFICATION"
+    classification: "VERIFIED_WINDOWS_LAB"
+    description: "Worker prose is not proof. All completions must be independently verified by EvidenceVerifier and ResultCustoms."
+    enforcement_rule: "Verifier inspects disk artifacts and re-runs property checks."
+
+  # 31. LONG-RUN BY DEFAULT
+  - id: "INV-031"
+    name: "LONG_RUN_BY_DEFAULT"
+    classification: "ARCHITECTURAL_REQUIREMENT"
+    description: "Autonomous runtime is configured to execute indefinitely across the dynamic frontier until capacity or human interrupt."
+    enforcement_rule: "Engine does not shut down after finishing a static list; it triggers frontier replenishment."
+
+  # 32. DYNAMIC FRONTIER
+  - id: "INV-032"
+    name: "DYNAMIC_FRONTIER"
+    classification: "ARCHITECTURAL_REQUIREMENT"
+    description: "Continuously discovered and scored candidate tasks based on expected information gain and goal relevance."
+    enforcement_rule: "ResearchFrontier maintains candidate queue and replenishes from ResearchReservoir."
+
+  # 33. CHECKPOINT / RESUME
+  - id: "INV-033"
+    name: "CHECKPOINT_RESUME"
+    classification: "VERIFIED_WINDOWS_LAB"
+    description: "Machine-readable checkpoint file containing complete state allows immediate, context-free resumption by a fresh process or model session."
+    enforcement_rule: "CURRENT_CHECKPOINT.json and CURRENT_CHECKPOINT.md written at every durable boundary."
+
+  # 34. NO FILLER
+  - id: "INV-034"
+    name: "NO_FILLER"
+    classification: "ARCHITECTURAL_REQUIREMENT"
+    description: "Anti-filler contract: reject duplicate green tests, arbitrary test count inflation, sleep loops, busy loops, fake GB."
+    enforcement_rule: "AntiFillerGuard validates that each work unit generates non-zero new information or proofs."
+
+  # 35. NO ARTIFICIAL WAIT
+  - id: "INV-035"
+    name: "NO_ARTIFICIAL_WAIT"
+    classification: "ARCHITECTURAL_REQUIREMENT"
+    description: "Fast code must not be slowed down; no sleep loops to simulate time passage."
+    enforcement_rule: "Time tracking reflects honest physical wall-clock seconds."
+
+  # 36. EVIDENCE-BASED COMPLETION
+  - id: "INV-036"
+    name: "EVIDENCE_BASED_COMPLETION"
+    classification: "VERIFIED_WINDOWS_LAB"
+    description: "Work units complete only upon emission of durable evidence records with cryptographic hashes."
+    enforcement_rule: "EvidenceLedger stores verified records."
+
+  # 37. SAFE PARALLELISM
+  - id: "INV-037"
+    name: "SAFE_PARALLELISM"
+    classification: "VERIFIED_WINDOWS_LAB"
+    description: "Subprocess concurrency is permitted only under disjoint resource leases verified by ResourceLockManager."
+    enforcement_rule: "Conflicting paths are queued or serialized."
+
+  # 38. NOTIFICATION POLICY
+  - id: "INV-038"
+    name: "NOTIFICATION_POLICY"
+    classification: "ARCHITECTURAL_REQUIREMENT"
+    description: "Only surface major milestone completions, blockers, Human Gates, or safety events. Normal heartbeats are quiet."
+    enforcement_rule: "NotificationEngine suppresses routine ticks."
+
+  # 39. MONEY FACTORY BOUNDARIES
+  - id: "INV-039"
+    name: "MONEY_FACTORY_BOUNDARIES"
+    classification: "VERIFIED_CURRENT_SOURCE"
+    description: "Offline research and simulation only; views != revenue, clicks != revenue, simulation != revenue; €0 ceiling strictly maintained."
+    enforcement_rule: "Spend safety gates and truth ladder enforced."
+
+  # 40. POST-FREEZE INTEGRATION RULES
+  - id: "INV-040"
+    name: "POST_FREEZE_INTEGRATION_RULES"
+    classification: "ARCHITECTURAL_REQUIREMENT"
+    description: "Shadow modifications must be packaged as post-freeze integration packages with rollback plans and Mac proof gates. Production files are read-only."
+    enforcement_rule: "IntegrationPackageManager emits packets under integration_packages/."
+
+  # 41. GLOBAL SATURATION REVOCATION
+  - id: "INV-041"
+    name: "GLOBAL_SATURATION_REVOCATION"
+    classification: "ARCHITECTURAL_REQUIREMENT"
+    description: "Worker may not declare global saturation. Terminal saturation authority is disabled during active Windows capacity; preferred end state is PAUSED_CAPACITY."
+    enforcement_rule: "CompletionGovernor blocks global saturated transitions."

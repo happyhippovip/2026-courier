@@ -1,0 +1,177 @@
+<USER_REQUEST>
+======================================================================
+GOOGLE WINDOWS — FINAL 3-4% INTEGRATION RED-TEAM PACK V1
+======================================================================
+
+MISSION_ID:
+WINDOWS_FINAL_INTEGRATION_REDTEAM_PACK_V1
+
+MISSION_CLASS:
+BOUNDED_HIGH_INFORMATION_WINDOWS_ONLY_FINAL_MISSION
+
+TARGET:
+Use the remaining useful Windows capacity to produce and adversarially
+validate the strongest possible POST-FREEZE integration package for:
+
+A01 — Execution-Uncertainty Fence
+L01 — Writer/Resource Conflict Protection
+G01 — Human-Gate / Deferred Financial Liability
+B01 — Process Identity / PID Recycling
+
+IMPORTANT:
+Previous missions are CLOSED and SEALED.
+
+DO NOT reopen:
+RC3
+V2
+V3
+FINAL_HIGH_VALUE_QUOTA_SWEEP_V1
+WINDOWS_FINAL_4PCT_ADVERSARIAL_INTERVENTION_V1
+WINDOWS_COURIER_NIGHTSHIFT_ADVERSARIAL_FACTORY_V5
+
+DO NOT merely rerun their tests.
+
+======================================================================
+1. HARD BOUNDARIES
+======================================================================
+
+WINDOWS ONLY.
+
+DO NOT ACCESS MAC.
+DO NOT WRITE MAC FILES.
+DO NOT EXECUTE MAC COMMANDS.
+
+DO NOT TOUCH universuX.
+
+DO NOT MODIFY:
+- frozen RC3
+- active production Courier lifecycle
+- historical V2/V3/V5 evidence
+- previous sweep evidence.
+
+NO:
+commit
+push
+merge
+deploy
+publish
+external message
+purchase
+subscription
+billing action
+trade
+wallet action
+real financial action.
+
+AUTONOMOUS_SPEND_LIMIT_EUR = 0
+REAL_TRADES = 0
+REAL_FUNDS_TOUCHED = NO
+REAL_WALLETS_CONNECTED = NO
+REAL_REVENUE_EUR = 0
+
+======================================================================
+2. NEW ISOLATED ROOT
+======================================================================
+
+Create:
+
+C:\Users\lol\2026-workspace\courier\scratch\final_integration_redteam_pack_v1
+
+Create:
+
+MISSION_STATE.json
+CURRENT_RESUME_CHECKPOINT.md
+SOURCE_EVIDENCE_INDEX.md
+INTEGRATION_PLAN.md
+INTEGRATION_DEPENDENCY_GRAPH.md
+PATCH_SPEC_A01.md
+<truncated 18317 bytes>
+TICAL_MUTANTS_SURVIVED:
+
+MINIMAL_POST_FREEZE_TEST_COUNT:
+
+PRODUCTION_CONFIRMED_DEFECTS:
+LIKELY_PRODUCTION_DEFECTS:
+ARCHITECTURAL_REQUIREMENTS:
+ALREADY_IMPLEMENTED:
+INSUFFICIENT_EVIDENCE:
+
+MAC_NATIVE_PROOFS_REQUIRED:
+MAC_MINIMUM_TEST:
+
+RECOMMENDED_INTEGRATION_ORDER:
+ORDER_CHANGED_FROM_A01_L01_G01_B01:
+WHY:
+
+OPEN_P0:
+OPEN_P1:
+OPEN_P2:
+OPEN_P3:
+
+MAC_HOST_ACCESSED:
+ACTIVE_MAC_FILES_TOUCHED:
+universuX_TOUCHED:
+RC3_UNMODIFIED:
+V5_UNMODIFIED:
+
+COMMIT:
+PUSH:
+DEPLOY:
+PUBLICATION:
+SPEND:
+EXTERNAL_MESSAGES:
+REAL_TRADES:
+REAL_FUNDS_TOUCHED:
+REAL_WALLETS_CONNECTED:
+REAL_REVENUE_EUR:
+
+OWNED_HELPERS_LEFT_RUNNING:
+
+STRONGEST_NEW_INFORMATION:
+WEAKEST_REMAINING_ASSUMPTION:
+WHY_STOPPED:
+NEXT_RECOMMENDED_ACTION:
+
+ARTIFACT_ROOT:
+CHECKPOINT:
+POST_FREEZE_EXECUTION_PLAN:
+MAC_NATIVE_MINIMUM_TEST:
+
+=== END ===
+
+======================================================================
+35. START
+======================================================================
+
+START NOW.
+
+First:
+1. prove V5 is COMPLETE/PARKED
+2. prove Windows has no active writer
+3. initialize isolated lab
+4. index sealed evidence
+5. inspect current Windows Courier source READ-ONLY
+6. build A01 real integration spec
+7. red-team it
+8. build L01 spec and red-team it
+9. build G01 spec and red-team it
+10. build B01 spec and red-team it
+11. attack migration / rollback / partial integration
+12. mutation-test the proposed plan
+13. minimize the future test pack
+14. produce exact post-freeze execution plan
+15. final adversarial review
+16. checkpoint and stop when complete.
+
+DO NOT ASK HUMAN FOR NORMAL PROGRESS.
+DO NOT TOUCH MAC.
+DO NOT PATCH PRODUCTION.
+DO NOT START ANOTHER MISSION AFTER COMPLETION.
+
+======================================================================
+END WINDOWS_FINAL_INTEGRATION_REDTEAM_PACK_V1
+======================================================================
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-09-09T23:12:52+02:00.
+</ADDITIONAL_METADATA>

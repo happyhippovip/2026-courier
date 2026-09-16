@@ -1,0 +1,113 @@
+[
+  {
+    "process_lease_id": "LEASE-1789029986751-57770F",
+    "task_id": "T-14",
+    "task_version": 1,
+    "goal_id": "G",
+    "worker_id": "W",
+    "owner": "COURIER_WORKER",
+    "machine_id": "M",
+    "pid": 999999,
+    "command": "c",
+    "process_fingerprint": "d9accfee20f41a2afa67ee400b54a4c030da8d5381360a4ae52ca25555348460",
+    "command_fingerprint": "2e7d2c03a9507ae265ecf5b5356885a53393a2029d241394997265a1a25aefc6",
+    "task_token": "TOK-14",
+    "start_time_epoch": 1789029986751,
+    "purpose": "p",
+    "started_at": "2026-09-10T08:46:26.751Z",
+    "last_heartbeat_at": "2026-09-10T08:46:26.751Z",
+    "last_progress_at": "2026-09-10T08:46:26.751Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "EXECUTION_UNCERTAIN",
+    "termination_reason": "Orphaned process detected",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T08:46:26.751Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T08:46:26.753Z",
+        "status": "EXECUTION_UNCERTAIN",
+        "note": "Orphaned process detected"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789030396945-C57ACE",
+    "task_id": "T-14",
+    "task_version": 1,
+    "goal_id": "G",
+    "worker_id": "W",
+    "owner": "COURIER_WORKER",
+    "machine_id": "M",
+    "pid": 999999,
+    "command": "c",
+    "process_fingerprint": "1bbf1940cdf88547b4184713ac4eea9840414793d10ec06d405e7208a213e9ea",
+    "command_fingerprint": "2e7d2c03a9507ae265ecf5b5356885a53393a2029d241394997265a1a25aefc6",
+    "task_token": "TOK-14",
+    "start_time_epoch": 1789030396945,
+    "purpose": "p",
+    "started_at": "2026-09-10T08:53:16.945Z",
+    "last_heartbeat_at": "2026-09-10T08:53:16.945Z",
+    "last_progress_at": "2026-09-10T08:53:16.945Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "EXECUTION_UNCERTAIN",
+    "termination_reason": "Orphaned process detected",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T08:53:16.945Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T08:53:16.947Z",
+        "status": "EXECUTION_UNCERTAIN",
+        "note": "Orphaned process detected"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789030436030-A992C1",
+    "task_id": "T-14",
+    "task_version": 1,
+    "goal_id": "G",
+    "worker_id": "W",
+    "owner": "COURIER_WORKER",
+    "machine_id": "M",
+    "pid": 999999,
+    "command": "c",
+    "process_fingerprint": "5a1510b24d286fdad731b88db59729d87a385c1f6eb59165442a56b3444a0405",
+    "command_fingerprint": "2e7d2c03a9507ae265ecf5b5356885a53393a2029d241394997265a1a25aefc6",
+    "task_token": "TOK-14",
+    "start_time_epoch": 1789030436030,
+    "purpose": "p",
+    "started_at": "2026-09-10T08:53:56.030Z",
+    "last_heartbeat_at": "2026-09-10T08:53:56.030Z",
+    "last_progress_at": "2026-09-10T08:53:56.030Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "EXECUTION_UNCERTAIN",
+    "termination_reason": "Orphaned process detected",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T08:53:56.030Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T08:53:56.032Z",
+        "status": "EXECUTION_UNCERTAIN",
+        "note": "Orphaned process detected"
+      }
+    ]
+  }
+]

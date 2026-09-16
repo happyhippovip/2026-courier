@@ -1,0 +1,7 @@
+{
+  "id": "FC_003",
+  "name": "UNAUTHORIZED_SPEND",
+  "payload": {
+    "spend_eur": 50
+  }
+}

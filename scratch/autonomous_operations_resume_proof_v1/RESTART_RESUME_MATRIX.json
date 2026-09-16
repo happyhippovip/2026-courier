@@ -1,0 +1,60 @@
+{
+  "timestamp": "2026-09-10T07:16:30.792Z",
+  "boundaries_tested": [
+    {
+      "boundary": "BOUNDARY_A",
+      "description": "Crash after task creation, before dispatch evidence",
+      "initial_state": {
+        "task_created": true,
+        "passport_issued": true,
+        "dispatch_started": false
+      },
+      "crash_simulation": "Simulated runtime crash before lease creation.",
+      "restart_behavior": "State inspection discovers task stamped but no active lease and no started_at timestamp.",
+      "resumed_action": "SAFE_DISPATCH_CONTINUES",
+      "duplicate_work_executed": false,
+      "status": "PASS"
+    },
+    {
+      "boundary": "BOUNDARY_B",
+      "description": "Crash after dispatch evidence, before result persistence",
+      "initial_state": {
+        "lease_created": true,
+        "dispatch_started": true,
+        "result_persisted": false
+      },
+      "crash_simulation": "Simulated worker exit / communication loss mid-execution.",
+      "restart_behavior": "State inspection finds running lease without result envelope; fences lease as EXECUTION_UNCERTAIN.",
+      "resumed_action": "STRICT_BLOCK_REDISPATCH_AND_AWAIT_EVIDENCE",
+      "duplicate_work_executed": false,
+      "status": "PASS"
+    },
+    {
+      "boundary": "BOUNDARY_C",
+      "description": "Crash after result persistence, before independent verification",
+      "initial_state": {
+        "result_file_written": true,
+        "verified_by_customs": false
+      },
+      "crash_simulation": "Worker exited 0 and wrote result, but crash occurred before ResultCustoms stamped accept.",
+      "restart_behavior": "State inspection discovers unverified result file; resumes at PENDING_VERIFICATION.",
+      "resumed_action": "INVOKE_RESULT_CUSTOMS_AND_VERIFY_HASH",
+      "duplicate_work_executed": false,
+      "status": "PASS"
+    },
+    {
+      "boundary": "BOUNDARY_D",
+      "description": "Crash after verification, before next-task selection",
+      "initial_state": {
+        "result_verified": true,
+        "next_task_selected": false
+      },
+      "crash_simulation": "Crash occurred immediately after ResultCustoms verified artifact.",
+      "restart_behavior": "State inspection discovers verified artifact; does NOT rerun task; advances state machine to autonomous frontier evaluation.",
+      "resumed_action": "ADVANCE_TO_NEXT_BEST_WORK_SELECTION",
+      "duplicate_work_executed": false,
+      "status": "PASS"
+    }
+  ],
+  "overall_verdict": "ALL_4_BOUNDARIES_RESUMED_DETERMINISTICALLY"
+}

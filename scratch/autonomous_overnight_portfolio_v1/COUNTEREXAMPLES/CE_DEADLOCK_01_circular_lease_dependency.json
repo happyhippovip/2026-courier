@@ -1,0 +1,17 @@
+{
+  "defect_id": "CE_DEADLOCK_01",
+  "name": "Cross-Workstream Circular Lease Deadlock in Autonomous Mission",
+  "vulnerability_description": "During long-running multi-workstream execution, Task A acquires exclusive lock on Resource 1 and waits for satisfaction deliverable from Task B. Simultaneously, Task B acquires exclusive lock on Resource 2 and waits for Task A. Without graph cycle detection, both tasks hang forever without crashing, causing complete mission stall.",
+  "minimal_trigger_payload": {
+    "taskA": {
+      "holds_lease": "mutex_res1",
+      "waits_for_deliverable": "taskB"
+    },
+    "taskB": {
+      "holds_lease": "mutex_res2",
+      "waits_for_deliverable": "taskA"
+    }
+  },
+  "invariant_violated": "Strict liveness and forward progress: no circular wait can persist indefinitely without preemption",
+  "resolution_proven": "DependencyCycleAndDeadlockResolver detects cycle in wait-for graph, preempts the lower-priority task, triggers its LIFO rollback and lease release, allowing the higher-priority task to proceed to completion."
+}

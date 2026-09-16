@@ -1,0 +1,6 @@
+{"defect_id":"CEX-001","name":"Hierarchical NTFS Lock Collision","status":"RESOLVED_IN_SHADOW_V2"}
+{"defect_id":"CEX-002","name":"Subprocess Tree Orphaning","status":"RESOLVED_IN_SHADOW_V2"}
+{"defect_id":"CEX-003","name":"Recycled PID Collisions","status":"RESOLVED_IN_SHADOW_V2"}
+{"defect_id":"CEX-004","name":"Torn Disk Journal Replay Corruption","status":"RESOLVED_IN_SHADOW_V2"}
+{"defect_id":"CEX-005","name":"P1/P2 Scheduler Starvation under P0 Churn","status":"RESOLVED_IN_SHADOW_V2"}
+{"defect_id":"CEX-006","name":"Telemetry Hardcoded Stall Drops","status":"RESOLVED_IN_SHADOW_V2"}

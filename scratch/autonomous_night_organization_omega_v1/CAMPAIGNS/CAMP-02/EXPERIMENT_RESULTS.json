@@ -1,0 +1,10 @@
+{
+  "experiment_id": "EXP-CAMP-02-001",
+  "campaign_id": "CAMP-02",
+  "timestamp": "2026-09-09T23:38:32.943Z",
+  "trigger_paths_tested": 13,
+  "all_13_triggers_dominated": true,
+  "dag_taint_propagation_verified": true,
+  "resolution_proofs_verified": true,
+  "verdict": "AUTHORITY_GRAPH_AND_TAINT_PROVED"
+}

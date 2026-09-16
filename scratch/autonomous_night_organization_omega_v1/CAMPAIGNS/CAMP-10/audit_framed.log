@@ -1,0 +1,4 @@
+00000031:ad1087f1dd3876b2:{"seq":1,"action":"ACQUIRE_LEASE","taskId":"t-1"}
+00000033:3f98946fa76a8b16:{"seq":2,"action":"DISPATCH_WORKER","taskId":"t-1"}
+00000037:37c0b1120ab28427:{"seq":3,"action":"RECEIVE_DELIVERABLE","taskId":"t-1"}
+00000051:53cccb496b9123a2:{"seq":4,"action":"MUTATE_STATE_FATAL","taskId":"t-1","da

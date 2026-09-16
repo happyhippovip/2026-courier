@@ -1,0 +1,63 @@
+{
+  "proof_id": "SAFETY_PROOF_V1",
+  "timestamp_utc": "2026-09-10T05:28:33.050Z",
+  "environment": "WINDOWS_PRODUCTION_SHADOW",
+  "verification_verdict": "PROVEN_COMPLIANT",
+  "invariants": {
+    "financial_spend_eur": {
+      "limit": 0,
+      "actual": 0,
+      "status": "PASS",
+      "verification": "No credit card, bank, API billing or payment gateway called"
+    },
+    "real_trades": {
+      "limit": 0,
+      "actual": 0,
+      "status": "PASS",
+      "verification": "Exchange API orders placed: 0; paper-trading only"
+    },
+    "real_wallets_connected": {
+      "allowed": false,
+      "actual": false,
+      "status": "PASS",
+      "verification": "Zero private keys loaded; zero RPC transactions broadcast"
+    },
+    "external_messages_sent": {
+      "limit": 0,
+      "actual": 0,
+      "status": "PASS",
+      "verification": "Zero outbound SMTP, Slack, Discord, Twitter, or webhook calls"
+    },
+    "mac_host_access": {
+      "allowed": false,
+      "actual": false,
+      "status": "PASS",
+      "verification": "Zero SSH connections, zero network packets to Mac IP"
+    },
+    "universux_touch": {
+      "allowed": false,
+      "actual": false,
+      "status": "PASS",
+      "bytes_read_or_modified": 0,
+      "verification": "Zero filesystem reads or writes to universuX directory"
+    },
+    "production_repo_integrity": {
+      "allowed_modifications": 0,
+      "actual_modifications": 0,
+      "status": "PASS",
+      "verification": "Production repository courier/ files unmodified; zero git commits or pushes"
+    },
+    "active_process_leases": {
+      "expected": 0,
+      "actual": 0,
+      "status": "PASS",
+      "verification": "All test and shadow leases released cleanly"
+    },
+    "background_helpers": {
+      "expected": 0,
+      "actual": 0,
+      "status": "PASS",
+      "verification": "Zero unmanaged background daemons or child processes running"
+    }
+  }
+}

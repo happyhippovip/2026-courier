@@ -1,0 +1,6 @@
+{
+  "id": "CE-021",
+  "defect_class": "SYMLINK_DIRECTORY_TRAVERSAL_ESCAPE",
+  "description": "Worker using symlink or relative path components to write outside designated workspace sandbox.",
+  "proven_invariant": "Normalized path prefix check blocks any traversal outside sandbox."
+}

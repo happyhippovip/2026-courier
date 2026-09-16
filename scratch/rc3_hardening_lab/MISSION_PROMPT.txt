@@ -1,0 +1,910 @@
+<USER_REQUEST>
+GOOGLE WINDOWS — COURIER RC3 LONG-RUN HARDENING LAB
+
+MODE:
+LONG-RUN AUTONOMOUS WINDOWS-ONLY READ/TEST/HARDENING MISSION.
+
+WORKSPACE:
+C:\Users\lol\2026-workspace\courier
+
+FROZEN RELEASE:
+C:\Users\lol\2026-workspace\handoffs\COURIER_HANDOFF_RC3
+
+CURRENT FACTS:
+
+COURIER_HANDOFF_RC3 is already reported as:
+
+FROZEN_FOR_MAC_HANDOFF
+26 campaigns
+260 execution phases
+111 deliverables
+Validator A PASS
+Validator B PASS
+Validator C PASS
+
+DO NOT repeat completed validation merely to consume time.
+
+PRIMARY GOAL:
+
+Use the healthy Windows machine as a long-running independent
+Courier HARDENING LAB.
+
+Find real defects, unsafe assumptions, restart/recovery weaknesses,
+state-machine inconsistencies, duplicate-execution risks,
+resource-supervision weaknesses, evidence/fingerprint weaknesses,
+Money Factory control-plane weaknesses, and integration hazards
+BEFORE anything is later integrated into the Mac Courier.
+
+This is intentionally a LARGE autonomous mission.
+
+DO NOT stop after one small successful task.
+
+Continue autonomously through the work packages below until:
+
+A. all work packages are completed and verified,
+
+OR
+
+B. a genuine HUMAN_GATE exists,
+
+OR
+
+C. continuing would require touching the active Mac lifecycle,
+production, universuX, external systems, spend, deployment,
+publication, credentials, or another prohibited boundary.
+
+DO NOT ask the human to type "weiter" between work packages.
+
+==================================================
+ABSOLUTE ISOLATION
+==================================================
+
+WINDOWS ONLY.
+
+MAC_HOST_ACCESS = NO
+PRODUCTION_WRITE_AUTHORITY = NO
+
+DO NOT:
+
+touch Mac filesystem
+transfer RC3 to Mac
+execute DEP_MAC_A
+modify Mac FounderMode
+modify Mac Dispatcher
+modify active Mac lifecycle
+touch universuX
+commit
+push
+deploy
+publish
+spend
+send external messages
+contact customers
+trade
+connect wallets
+handle credentials
+perform account/login operations
+
+Do NOT mutate the frozen:
+
+C:\Users\lol\2026-workspace\handoffs\COURIER_HANDOFF_RC3
+
+Treat RC3 as immutable evidence.
+
+If additional artifacts are needed, create them OUTSIDE the frozen RC3 directory.
+
+==================================================
+NO SECOND ORCHESTRATOR
+==================================================
+
+Courier remains the ONLY canonical orchestrator.
+
+Supervisor Plane is runtime supervision.
+
+Money Factory is economic-domain/state logic.
+
+This mission must NOT create:
+
+another planner
+another mission queue
+another Courier
+another autonomous scheduler
+another competing source of truth
+
+==================================================
+WORKING AREA
+==================================================
+
+Create/use an isolated Windows-only laboratory area such as:
+
+scratch/rc3_hardening_lab/
+
+and isolated tests such as:
+
+tests/rc3_hardening/
+
+Do not modify frozen RC3 evidence.
+
+Before changing existing non-frozen source files:
+
+1. determine whether change is actually necessary,
+2. prefer new isolated adversarial tests first,
+3. record the defect and reproduction,
+4. make the smallest general repair only if safe on Windows,
+5. rerun affected tests,
+6. record before/after evidence.
+
+Do not weaken tests to obtain PASS.
+
+==================================================
+AUTONOMOUS WORK PACKAGE 1
+BASELINE / INVENTORY
+==================================================
+
+Record:
+
+branch
+HEAD
+git status
+RC3 release fingerprint if available
+current relevant tests
+Supervisor Plane modules
+Money Factory modules
+cross-device/handoff modules
+
+Classify:
+
+FROZEN
+ACTIVE_WINDOWS_SOURCE
+TEST_ONLY
+SCRATCH
+UNKNOWN
+
+Do not rewrite completed RC3 artifacts.
+
+==================================================
+AUTONOMOUS WORK PACKAGE 2
+RC3 ADVERSARIAL VALIDATION
+==================================================
+
+Do more than simply rerun the three existing validators.
+
+Build isolated negative/adversarial tests against COPIES or synthetic fixtures.
+
+Test at least:
+
+single-byte deliverable corruption
+missing deliverable
+extra unexpected deliverable
+ledger truncation
+ledger duplicate line
+ledger reordered event
+wrong hash
+wrong release ID
+wrong campaign ID
+wrong phase ID
+duplicate phase
+missing phase
+unexpected phase
+manifest mismatch
+validator input path confusion
+stale artifact substitution
+replay of older valid artifact
+case/path normalization hazard
+Windows separator normalization
+partial write
+empty file replacement
+timestamp-only mutation
+unknown field injection where relevant
+malformed JSON/JSONL
+wrong encoding where relevant
+
+Prove corrupted/synthetic releases are rejected.
+
+Never corrupt frozen RC3 itself.
+
+==================================================
+AUTONOMOUS WORK PACKAGE 3
+SUPERVISOR PLANE ADVERSARIAL TESTING
+==================================================
+
+Use the existing Supervisor Plane P0.
+
+Do NOT redesign it unless a reproducible defect exists.
+
+Attack invariants around:
+
+PROCESS_LEASE
+HEARTBEAT
+PROGRESS_EVIDENCE
+STALL_DETECTION
+DIAGNOSTIC_BUNDLE
+TASK_HYGIENE
+CRASH_RECONCILIATION
+EXECUTION_UNCERTAIN
+RESOURCE_GOVERNOR
+NO_STACKING
+AUDIT_LEDGER
+CHIEF_ESCALATION_ENVELOPE
+
+Test scenarios including:
+
+stale heartbeat but active progress
+heartbeat without real progress
+quiet valid wait
+PID reuse
+same PID different fingerprint
+parent dies before child
+child finishes before parent
+duplicate helper
+duplicate heavy test
+unknown live process
+known process missing after restart
+result exists but verification missing
+dispatch may have happened but no proof
+restart during diagnostic creation
+restart during hygiene
+duplicate cleanup attempt
+idempotent hygiene
+append-only event preservation
+malformed lease
+stale lease
+cross-machine lease confusion
+
+Critical invariant:
+
+EXECUTION_UNCERTAIN
+→ NO REDISPATCH
+→ NO RETRY
+→ NO DUPLICATE EFFECT
+
+==================================================
+AUTONOMOUS WORK PACKAGE 4
+RESOURCE / THERMAL GOVERNOR ADVERSARIAL TESTING
+==================================================
+
+The Mac heat incident must not globally throttle Windows.
+
+Test:
+
+MAC = THERMAL_PRESSURE
+WINDOWS = NORMAL
+
+Expected:
+
+new heavy Mac work held
+healthy Windows work remains eligible
+
+Also test:
+
+Windows PRESSURE only affects Windows
+Mac recovery
+unknown thermal state
+high CPU with genuine progress
+low CPU with valid wait
+high memory pressure
+swap pressure
+multiple heavy jobs
+one canonical heavy job + duplicate
+lightweight diagnostics during pressure
+reroute recommendation
+
+TIME OR TEMPERATURE ALONE MUST NEVER KILL A PROGRESSING PROCESS.
+
+Do not alter OS power settings.
+
+==================================================
+AUTONOMOUS WORK PACKAGE 5
+TASK STAMP / NO-STACKING MODEL
+==================================================
+
+Without integrating into Mac lifecycle, build/test isolated contracts for:
+
+PROPOSED
+NEGOTIATING
+APPROVED_FOR_DISPATCH
+STAMPED
+DISPATCHED
+IN_FLIGHT
+RESULT_RECEIVED
+VERIFIED
+CLOSED
+
+Alternative:
+
+QUESTION
+CONFLICT
+BLOCKED
+HUMAN_GATE
+CANCEL_REQUESTED
+CANCELLED
+FAILED
+
+Prove:
+
+one active writer lease per conflicting scope
+second writer is HOLD, not dispatched
+follow-up idea is preserved, not lost
+follow-up does not mutate IN_FLIGHT task
+task version is immutable after dispatch
+new version supersedes old version explicitly
+restart preserves active worker relationship
+uncertain execution cannot create replacement dispatch
+
+Create isolated contracts/tests only.
+
+Do NOT wire into active Mac Courier yet.
+
+==================================================
+AUTONOMOUS WORK PACKAGE 6
+FOLLOW-UP INBOX
+==================================================
+
+Build/test an isolated append-only follow-up inbox if not already present.
+
+Fields:
+
+follow_up_id
+created_at
+source
+goal_id
+related_task_id
+worker_id
+thought
+reason
+priority
+dependency
+status
+
+Statuses:
+
+CAPTURED
+NEEDS_DISCUSSION
+CANDIDATE
+APPROVED_NEXT
+MERGED
+SUPERSEDED
+REJECTED
+DISPATCHED
+
+Prove:
+
+new idea while worker busy is preserved
+not automatically dispatched
+history not deleted
+merge preserves provenance
+supersede preserves old record
+restart preserves inbox
+duplicate thought can be recognized without deleting history
+
+==================================================
+AUTONOMOUS WORK PACKAGE 7
+BORDER GUARD / MESSAGE CUSTOMS CONTRACT
+==================================================
+
+Build an ISOLATED P0 contract/test layer only.
+
+Do not wire into live dispatch yet.
+
+Outbound decisions:
+
+GREEN_CARD
+REVISE
+HOLD
+BLOCK
+ESCALATE
+
+Check:
+
+worker conflict
+duplicate task
+stale task
+wrong version
+insufficient acceptance criteria
+missing evidence requirement
+unsafe action
+spend
+deploy
+publication
+external message
+trade
+wallet
+credential/human gate
+test weakening request
+scope mutation
+uncertain execution
+duplicate dispatch
+better/cheaper safe route indication
+
+Support worker responses:
+
+ACCEPT
+QUESTION
+CONFLICT
+NEEDS_SCOPE_CHANGE
+BETTER_ALTERNATIVE
+INSUFFICIENT_EVIDENCE
+UNSAFE
+DUPLICATE_WORK
+ALREADY_DONE
+UNAVAILABLE
+
+One bounded appeal/reconsideration only.
+
+No appeal loop.
+
+==================================================
+AUTONOMOUS WORK PACKAGE 8
+RESULT CUSTOMS
+==================================================
+
+Create/test isolated result validation contract.
+
+Result envelope should support:
+
+TASK_ID
+TASK_VERSION
+GOAL_ID
+WORKER_ID
+STARTED_AT
+FINISHED_AT
+STATUS
+ORIGINAL_SCOPE_FINGERPRINT
+FINAL_SCOPE_FINGERPRINT
+SCOPE_CHANGED
+EXACT_ACTIONS_PERFORMED
+COMMANDS_EXECUTED
+FILES_CREATED
+FILES_MODIFIED
+FILES_DELETED
+GIT_HEAD_BEFORE
+GIT_HEAD_AFTER
+GIT_STATUS_AFTER
+TEST_COMMANDS
+TESTS_RUN
+TESTS_PASS
+TESTS_FAIL
+TESTS_ERROR
+TESTS_SKIP
+TEST_EXIT_CODES
+ARTIFACTS
+LOG_PATHS
+ASSUMPTIONS_MADE
+DECISIONS_MADE
+INVARIANTS_CHECKED
+KNOWN_DEFECTS
+UNRESOLVED_QUESTIONS
+BLOCKERS
+HUMAN_GATES
+SAFETY_RELEVANT_ACTIONS
+EXTERNAL_ACTIONS_PERFORMED
+SPEND_PERFORMED
+DEPLOYMENTS_PERFORMED
+MESSAGES_SENT
+RESULT_REFERENCE
+RESULT_FINGERPRINT
+RECOMMENDED_NEXT_ACTION
+
+UNKNOWN values must remain explicit UNKNOWN.
+
+Test rejection of:
+
+wrong task ID
+wrong version
+wrong goal
+wrong worker
+stale result
+replayed result
+scope fingerprint mismatch
+missing result fingerprint
+claimed test without evidence
+claimed file without evidence
+unexpected external action
+unexpected spend
+unexpected deployment
+worker prose claiming PASS without independent verification
+
+Result Customs may reject/hold a result.
+
+It must NOT itself mark the entire goal SATISFIED.
+
+==================================================
+AUTONOMOUS WORK PACKAGE 9
+MONEY FACTORY ADVERSARIAL TESTING
+==================================================
+
+Existing Money Factory control flow is SIMULATION_ONLY.
+
+REAL_REVENUE_EUR must remain 0 unless genuine externally verified settlement exists.
+
+Attack:
+
+fake revenue
+synthetic revenue
+model assertion as revenue
+duplicate settlement
+stale settlement
+wrong opportunity settlement
+negative/invalid values
+currency confusion
+prediction rewritten after actual
+evidence-free WINNER
+score gaming
+high score with weak evidence
+portfolio quota forcing bad opportunity
+endless research
+repeated zero-information experiment
+spend bypass
+publication bypass
+outreach bypass
+trade/wallet bypass
+
+Prove:
+
+synthetic signals never become REAL_REVENUE
+human gates remain fail-closed
+historical predictions remain immutable
+bad opportunity can be killed/demoted
+no protected idea exists
+
+==================================================
+AUTONOMOUS WORK PACKAGE 10
+CRASH / RESTART CHAOS SIMULATION
+==================================================
+
+Use deterministic simulated state.
+
+Do NOT crash/reboot the actual Windows PC.
+
+Simulate restart at boundaries such as:
+
+before dispatch
+after stamp
+after dispatch intent
+after dispatch may have happened
+during worker execution
+after result persistence
+before verification
+during verification
+after verification
+before close
+during diagnostic bundle
+during cleanup
+
+Expected:
+
+no duplicate effect
+no silent loss
+no blind redispatch
+no false SATISFIED
+no false FAILED where evidence is merely uncertain
+EXECUTION_UNCERTAIN when effect cannot be proven
+
+==================================================
+AUTONOMOUS WORK PACKAGE 11
+STATE / EVENT LEDGER INVARIANTS
+==================================================
+
+Adversarially test:
+
+append-only history
+event ordering
+duplicate event ID
+missing event
+stale state snapshot
+snapshot vs ledger disagreement
+corrupt final line
+partial write
+recovery from last valid event
+fingerprint mismatch
+cross-goal contamination
+cross-machine contamination
+cross-worker contamination
+
+Do not silently repair evidence in a way that hides corruption.
+
+==================================================
+AUTONOMOUS WORK PACKAGE 12
+LONG-RUN DETERMINISTIC SOAK
+==================================================
+
+Create a bounded Windows-only deterministic soak.
+
+NO external APIs.
+NO browser automation.
+NO spend.
+NO deployment.
+NO production.
+NO Mac access.
+
+Exercise many state transitions using synthetic fixtures.
+
+Target:
+
+at least 100 deterministic lifecycle iterations if cheap,
+but stop earlier if runtime/resource pressure becomes meaningful.
+
+Track:
+
+iterations
+events
+leases
+diagnostics
+reconciliations
+duplicates prevented
+uncertain executions blocked
+human gates detected
+failures
+memory/resource growth if cheaply observable
+
+Do NOT turn this into a CPU stress test.
+
+==================================================
+AUTONOMOUS WORK PACKAGE 13
+DEFECT REPAIR LOOP
+==================================================
+
+For every real defect:
+
+DEFECT
+→ MINIMAL REPRODUCTION
+→ CLASSIFY
+→ MINIMAL GENERAL REPAIR
+→ TARGETED TEST
+→ RELEVANT REGRESSION
+→ RECORD EVIDENCE
+→ CONTINUE ORIGINAL WORK PACKAGE
+
+Do not redesign working architecture because of style preference.
+
+Do not weaken tests.
+
+If repair would touch frozen RC3 or active Mac lifecycle:
+
+DO NOT APPLY.
+
+Record:
+
+POST_FREEZE_INTEGRATION_CANDIDATE
+
+==================================================
+AUTONOMOUS WORK PACKAGE 14
+FINAL CROSS-SUITE REGRESSION
+==================================================
+
+Run relevant Windows suites once after hardening.
+
+Include where applicable:
+
+RC3 adversarial suite
+Supervisor Plane suite
+Money Factory suite
+cross-device intake suite
+new task coordination suite
+Border Guard suite
+Result Customs suite
+restart/chaos suite
+
+Report exact:
+
+commands
+tests run
+pass
+fail
+error
+skip
+exit codes
+
+Do not call an interrupted suite PASS.
+
+==================================================
+AUTONOMOUS WORK PACKAGE 15
+INTEGRATION MAP — NO INTEGRATION
+==================================================
+
+Produce a precise post-Mac-freeze integration map.
+
+Classify every component:
+
+READY_TO_INTEGRATE
+NEEDS_CODEX_REVIEW
+NEEDS_MAC_NATIVE_PROOF
+NEEDS_HUMAN_GATE
+DO_NOT_INTEGRATE
+SUPERSEDED
+
+Identify exact future integration points but DO NOT execute them.
+
+Especially:
+
+Task Stamp
+Worker Lease
+Process Lease
+Follow-up Inbox
+Border Guard
+Resource Governor
+Result Customs
+Task Hygiene
+Crash Reconciliation
+Money Factory compatibility
+
+==================================================
+CONTINUATION RULE
+==================================================
+
+After completing a work package:
+
+DO NOT ask:
+"continue?"
+"weiter?"
+"what next?"
+
+Automatically proceed to the next safe work package.
+
+A successful work package is NOT mission completion.
+
+Continue until all packages are exhausted or a genuine blocker occurs.
+
+If you discover another SAFE, HIGH-INFORMATION,
+WINDOWS-ONLY adversarial test that directly supports the primary goal,
+you may add it to SAFE_BACKLOG and execute it after the defined packages.
+
+Do not invent unrelated features.
+
+==================================================
+RESOURCE HYGIENE
+==================================================
+
+This Windows machine is healthy.
+
+Keep it healthy.
+
+Do not stack multiple equivalent heavy test suites.
+
+Prefer one heavy process at a time.
+
+Clean obsolete:
+
+tail
+grep
+wait
+debugger
+test watcher
+duplicate test processes
+
+after their purpose ends.
+
+Time alone is not evidence of a hang.
+
+If resource pressure appears:
+
+checkpoint
+stop launching new heavy work
+finish/diagnose current owned work
+preserve evidence
+
+==================================================
+DURABLE CHECKPOINT
+==================================================
+
+Maintain:
+
+scratch/rc3_hardening_lab/CURRENT_RESUME_CHECKPOINT.md
+
+Update after every work package with:
+
+CURRENT_MISSION
+CURRENT_WORK_PACKAGE
+LAST_COMPLETED_WORK_PACKAGE
+LAST_VERIFIED_STEP
+CURRENT_IN_FLIGHT_STEP
+FILES_CREATED
+FILES_MODIFIED
+TESTS_ALREADY_PASSED
+TESTS_NOT_YET_RUN
+DEFECTS_FOUND
+DEFECTS_REPAIRED
+POST_FREEZE_INTEGRATION_CANDIDATES
+SAFE_BACKLOG
+REMAINING_WORK
+EXACT_NEXT_ACTION
+DO_NOT_REPEAT
+
+If session/account/network crashes:
+
+resume from this checkpoint and filesystem truth.
+
+DO NOT START OVER.
+
+==================================================
+FINAL RETURN
+==================================================
+
+Only after all possible safe Windows work packages are complete return:
+
+=== WINDOWS RC3 LONG-RUN HARDENING LAB ===
+
+STATUS:
+
+WORKSPACE:
+BRANCH:
+HEAD:
+
+RC3_FROZEN_UNMODIFIED:
+
+WORK_PACKAGES_COMPLETED:
+WORK_PACKAGES_BLOCKED:
+
+DEFECTS_FOUND:
+DEFECTS_REPAIRED:
+DEFECTS_DEFERRED:
+
+RC3_ADVERSARIAL_TESTS:
+SUPERVISOR_ADVERSARIAL_TESTS:
+RESOURCE_GOVERNOR_TESTS:
+TASK_STAMP_TESTS:
+FOLLOW_UP_INBOX_TESTS:
+BORDER_GUARD_TESTS:
+RESULT_CUSTOMS_TESTS:
+MONEY_FACTORY_ADVERSARIAL_TESTS:
+CRASH_RESTART_TESTS:
+EVENT_LEDGER_TESTS:
+SOAK_RESULT:
+
+DUPLICATE_EXECUTION_PREVENTION:
+EXECUTION_UNCERTAIN_FAIL_CLOSED:
+NO_STACKING_PROVEN:
+APPEND_ONLY_HISTORY_PROVEN:
+HUMAN_GATES_FAIL_CLOSED:
+REAL_REVENUE_EUR:
+
+TOTAL_TESTS_RUN:
+TOTAL_PASS:
+TOTAL_FAIL:
+TOTAL_ERROR:
+TOTAL_SKIP:
+
+EXACT_TEST_COMMANDS:
+EXIT_CODES:
+
+FILES_CREATED:
+FILES_MODIFIED:
+
+ACTIVE_MAC_FILES_TOUCHED:
+MAC_HOST_ACCESSED:
+universuX_TOUCHED:
+
+COMMIT:
+PUSH:
+DEPLOY:
+SPEND:
+EXTERNAL_MESSAGES:
+REAL_TRADES:
+
+POST_FREEZE_INTEGRATION_CANDIDATES:
+NEEDS_CODEX_REVIEW:
+NEEDS_MAC_NATIVE_PROOF:
+
+CHECKPOINT_FINALIZED:
+
+NEXT_RECOMMENDED_ACTION:
+
+=== END ===
+
+Expected safety values:
+
+RC3_FROZEN_UNMODIFIED = YES
+ACTIVE_MAC_FILES_TOUCHED = NO
+MAC_HOST_ACCESSED = NO
+universuX_TOUCHED = NO
+COMMIT = NO
+PUSH = NO
+DEPLOY = NO
+SPEND = NO
+EXTERNAL_MESSAGES = NO
+REAL_TRADES = 0
+REAL_REVENUE_EUR = 0 unless genuine verified external settlement exists
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-09-09T19:58:05+02:00.
+</ADDITIONAL_METADATA>

@@ -1,0 +1,8 @@
+{
+  "timestamp": "2026-09-10T08:53:56.013Z",
+  "test_conducted": "Reversible rename of scratch/run_autonomous_operations_mission.js",
+  "canonical_production_runtime_path": "bin/courier_runtime.js",
+  "runs_without_scratch_runner": true,
+  "imports_from_scratch": false,
+  "verdict": "SCRATCH_INDEPENDENCE_PROVEN"
+}

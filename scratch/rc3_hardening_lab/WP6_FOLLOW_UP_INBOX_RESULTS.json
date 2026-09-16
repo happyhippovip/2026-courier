@@ -1,0 +1,43 @@
+{
+  "totalTests": 7,
+  "passed": 7,
+  "failed": 0,
+  "timestamp": "2026-09-13T00:01:25.297Z",
+  "results": [
+    {
+      "testId": "ADV_INBOX_01_PRESERVE_WHILE_WORKER_BUSY",
+      "description": "Capturing new idea while worker is busy in flight preserves record",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_INBOX_02_NOT_AUTOMATICALLY_DISPATCHED",
+      "description": "New ideas are held in CAPTURED, never auto-dispatched",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_INBOX_03_HISTORY_NOT_DELETED",
+      "description": "Ledger is strictly append-only; line count monotonically increases",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_INBOX_04_MERGE_PRESERVES_PROVENANCE",
+      "description": "Merging items retains full historical links on both source and target",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_INBOX_05_SUPERSEDE_PRESERVES_OLD_RECORD",
+      "description": "Superseded record remains in inbox with status SUPERSEDED",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_INBOX_06_RESTART_PRESERVES_INBOX",
+      "description": "Fresh instance loads all historical items without loss",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_INBOX_07_DUPLICATE_THOUGHT_RECOGNITION",
+      "description": "Re-capturing same thought marks duplicate while preserving both records",
+      "status": "PASS"
+    }
+  ]
+}

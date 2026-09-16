@@ -1,0 +1,5 @@
+{"claim_id":"CX-SIGMA-AUDIT-001","source":"C01_FORENSIC_SOURCE_AUDIT","status":"CONFIRMED_IN_CURRENT_SOURCE","file":"supervisor/decision_engine.js","severity":"P1"}
+{"claim_id":"CX-SIGMA-AUDIT-002","source":"C01_FORENSIC_SOURCE_AUDIT","status":"CONFIRMED_IN_CURRENT_SOURCE","file":"supervisor/no_stacking.js","severity":"P0"}
+{"claim_id":"CX-SIGMA-AUDIT-003","source":"C01_FORENSIC_SOURCE_AUDIT","status":"CONFIRMED_IN_CURRENT_SOURCE","file":"money_factory/safety_gates.js","severity":"P0"}
+{"claim_id":"CX-SIGMA-AUDIT-004","source":"C01_FORENSIC_SOURCE_AUDIT","status":"CONFIRMED_IN_CURRENT_SOURCE","file":"supervisor/reconciliation.js","severity":"P1"}
+{"claim_id":"CX-SIGMA-AUDIT-005","source":"C01_FORENSIC_SOURCE_AUDIT","status":"CONFIRMED_IN_CURRENT_SOURCE","file":"chief/coordinator.py","severity":"P1"}

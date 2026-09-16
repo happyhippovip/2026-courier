@@ -1,0 +1,5 @@
+{
+  "timestamp": "2026-09-10T07:21:52.173Z",
+  "verdict": "DANGEROUS_BOUNDARY_RESUME_UNTESTABLE_WITHOUT_ENTRYPOINT",
+  "finding": "In unit tests (test_mandatory_scenarios_suite.js scenario 14 & 15), BorderGuard and StallPolicy fail-closed on EXECUTION_UNCERTAIN. However, in production, there is no running process to crash at this boundary."
+}

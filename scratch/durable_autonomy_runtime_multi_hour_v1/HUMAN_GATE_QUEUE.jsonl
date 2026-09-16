@@ -1,0 +1,5 @@
+{"gate_id":"GATE-001","title":"Bank / Stripe OAuth & Hardware Token MFA","liability":"L7_FINANCIAL","status":"PARKED_UNTIL_HUMAN_WAKES"}
+{"gate_id":"GATE-002","title":"Autonomous Cloud Spend Ceiling Elevation (€0 -> €50)","liability":"L7_FINANCIAL","status":"PARKED_UNTIL_HUMAN_WAKES"}
+{"gate_id":"GATE-003","title":"Protected Repository UniversuX Review & Push Approval","liability":"L6_CORE_IP","status":"PARKED_UNTIL_HUMAN_WAKES"}
+{"gate_id":"GATE-1789015639226","type":"HUMAN_APPROVAL_EXTERNAL_ACTION","task_id":"TASK-EXTERNAL-ACTION","queued_at_utc":"2026-09-10T04:47:19.226Z","status":"QUEUED"}
+{"gate_id":"GATE-1789015667665","type":"HUMAN_APPROVAL_EXTERNAL_ACTION","task_id":"TASK-EXTERNAL-ACTION","queued_at_utc":"2026-09-10T04:47:47.665Z","status":"QUEUED"}

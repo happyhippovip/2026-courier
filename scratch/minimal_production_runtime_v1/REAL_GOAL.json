@@ -1,0 +1,8 @@
+{
+  "goal_id": "GOAL-PROD-RUNTIME-1789030435451",
+  "timestamp": "2026-09-10T08:53:55.451Z",
+  "goal_text": "Inspect the allowed fixture workspace for operational inconsistencies, autonomously determine and execute the highest-value safe local work, independently verify results, preserve unresolved follow-ups durably, and continue until the Completion Governor determines the bounded goal is satisfied or blocked.",
+  "allowed_root": "C:\\Users\\lol\\2026-workspace\\courier\\scratch\\minimal_production_runtime_v1\\disposable_fixture",
+  "submission_channel": "CLI --goal",
+  "entrypoint": "bin/courier_runtime.js"
+}

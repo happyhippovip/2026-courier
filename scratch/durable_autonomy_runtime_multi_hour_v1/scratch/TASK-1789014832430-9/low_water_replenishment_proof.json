@@ -1,0 +1,8 @@
+{
+  "test": "LOW_WATER_FRONTIER_REPLENISHMENT",
+  "ready_count": 2,
+  "low_water_threshold": 4,
+  "replenishment_triggered": true,
+  "inbox_items_captured": 1,
+  "status": "PASSED"
+}

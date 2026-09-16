@@ -1,0 +1,25 @@
+{
+  "snapshot_version": "1.0.0",
+  "captured_at": "2026-09-10T09:01:31.488Z",
+  "baseline": "CHIEF_ACCEPTED_BASELINE_2026_09_10",
+  "symphony_overall": {
+    "percent": 91,
+    "remaining_to_v1": 9,
+    "estimate_owner": "CHIEF",
+    "estimate_type": "OPERATIONAL_ESTIMATE"
+  },
+  "subsystems": {
+    "windows_courier": 99,
+    "windows_production_runtime": 97,
+    "safety_governance": 97,
+    "restart_resume": 97,
+    "long_run_operations": 80,
+    "money_factory": 93,
+    "launch_readiness": 95,
+    "mac_windows_convergence": 70,
+    "revenue_proof": 0
+  },
+  "proven_revenue_eur": 0,
+  "next_major_technical_gate": "MAC CLOSURE → CROSS-PLATFORM CONVERGENCE → JOINT CANARY",
+  "disclaimer": "Percentages represent Chief's operational estimates based on verified proof artifacts, not speculative or time-based progress."
+}

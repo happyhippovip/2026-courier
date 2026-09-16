@@ -1,0 +1,103 @@
+{
+  "totalTests": 19,
+  "passed": 19,
+  "failed": 0,
+  "timestamp": "2026-09-13T00:00:43.793Z",
+  "results": [
+    {
+      "testId": "ADV_MF_01_FAKE_REVENUE_REJECTED",
+      "description": "MOCK / simulated revenue rejected from counting as real revenue",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_MF_02_SYNTHETIC_REVENUE_REJECTED",
+      "description": "Synthetic test signal cannot count toward REAL_REVENUE",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_MF_03_MODEL_ASSERTION_REJECTED",
+      "description": "LLM internal reasoning claiming revenue strictly rejected",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_MF_04_DUPLICATE_SETTLEMENT_REJECTED",
+      "description": "Verified settlement records only once",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_MF_05_STALE_UNVERIFIED_SETTLEMENT_REJECTED",
+      "description": "Unverified settlement or missing external artifact rejected",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_MF_06_WRONG_OPPORTUNITY_SETTLEMENT",
+      "description": "Settlement targeting non-existent opportunity throws error",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_MF_07_NEGATIVE_INVALID_REVENUE",
+      "description": "Negative or invalid revenue claim throws error",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_MF_08_CURRENCY_CONFUSION_REJECTED",
+      "description": "Non-EUR currency without exchange validation rejected",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_MF_09_PREDICTION_IMMUTABLE_AFTER_ACTUAL",
+      "description": "Forecast cannot be resolved twice or overwritten",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_MF_10_EVIDENCE_FREE_WINNER_BLOCKED",
+      "description": "Opportunity cannot promote to WINNER without real revenue verified",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_MF_11_SCORE_GAMING_PENALIZED",
+      "description": "Opportunities with zero evidence receive score penalty",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_MF_12_WEAK_EVIDENCE_CANNOT_ADVANCE",
+      "description": "Opportunity with evidence_score < 0.5 cannot reach PROVING status",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_MF_13_PORTFOLIO_QUOTA_NO_FORCE",
+      "description": "Soft allocation never forces sub-threshold opportunities",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_MF_14_ENDLESS_RESEARCH_DETECTION",
+      "description": "Stagnant opportunity evaluated as DEMOTE_OR_KILL",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_MF_15_REPEATED_ZERO_INFO_EXPERIMENT_BLOCKED",
+      "description": "Repeating identical test without new evidence angle blocked",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_MF_16_SPEND_BYPASS_BLOCKED",
+      "description": "Spend requests require human coordinator approval",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_MF_17_PUBLICATION_BYPASS_BLOCKED",
+      "description": "Publication requires human coordinator approval",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_MF_18_OUTREACH_BYPASS_BLOCKED",
+      "description": "Customer outreach requires human coordinator approval",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_MF_19_TRADE_WALLET_BYPASS_BLOCKED",
+      "description": "Financial trading / wallet signing strictly prohibited",
+      "status": "PASS"
+    }
+  ]
+}

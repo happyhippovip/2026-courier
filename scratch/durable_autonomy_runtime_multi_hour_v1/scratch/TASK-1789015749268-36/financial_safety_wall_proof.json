@@ -1,0 +1,9 @@
+{
+  "test": "FINANCIAL_SPEND_HARD_WALL",
+  "financial_transaction_denied": true,
+  "secrets_access_denied": true,
+  "workspace_write_allowed": true,
+  "spend_limit_eur": 0,
+  "real_trading": false,
+  "status": "PASSED"
+}

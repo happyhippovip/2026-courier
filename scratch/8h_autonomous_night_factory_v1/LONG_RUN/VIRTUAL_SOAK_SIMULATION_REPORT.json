@@ -1,0 +1,52 @@
+[
+  {
+    "horizon": "8-Hour Virtual Horizon",
+    "hours": 8,
+    "tasks": 200,
+    "virtual_hours_advanced": 8,
+    "total_virtual_time_iso": "2026-09-10T07:23:12.797Z",
+    "active_leases_remaining": 20,
+    "compactions_performed": 1,
+    "last_snapshot_hash": "f4c330ba38680ceea0a8f64f154a48f804048062d6b5208b3860e58357b43731"
+  },
+  {
+    "horizon": "24-Hour Virtual Horizon",
+    "hours": 24,
+    "tasks": 600,
+    "virtual_hours_advanced": 24,
+    "total_virtual_time_iso": "2026-09-11T07:23:12.797Z",
+    "active_leases_remaining": 20,
+    "compactions_performed": 6,
+    "last_snapshot_hash": "e8cd16359b0446a6a4207f20343c5ad4d92629d2a9ee226eaeb38f7a13330389"
+  },
+  {
+    "horizon": "7-Day Virtual Horizon",
+    "hours": 168,
+    "tasks": 2500,
+    "virtual_hours_advanced": 168,
+    "total_virtual_time_iso": "2026-09-18T07:23:12.797Z",
+    "active_leases_remaining": 20,
+    "compactions_performed": 26,
+    "last_snapshot_hash": "39550812b6d66958488f6d12b1a8fab75ab2a1a3ff8721bf8369c318691ee871"
+  },
+  {
+    "horizon": "30-Day Virtual Horizon",
+    "hours": 720,
+    "tasks": 5000,
+    "virtual_hours_advanced": 720,
+    "total_virtual_time_iso": "2026-10-18T07:23:12.797Z",
+    "active_leases_remaining": 20,
+    "compactions_performed": 66,
+    "last_snapshot_hash": "5433600bf2d4706a7771b80df704154295bb39de595bb32dfa6301ec2b61190c"
+  },
+  {
+    "horizon": "1-Year Virtual Horizon",
+    "hours": 8760,
+    "tasks": 12000,
+    "virtual_hours_advanced": 8760,
+    "total_virtual_time_iso": "2027-10-18T07:23:12.797Z",
+    "active_leases_remaining": 20,
+    "compactions_performed": 162,
+    "last_snapshot_hash": "531e14a232890682549d5525c5f20d65c5fcfcb64f90c711824671d6238151ea"
+  }
+]

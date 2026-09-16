@@ -1,0 +1,3 @@
+{"unknown_id":"UNK-001","area":"Darwin APFS clonefile() Performance under High Concurrency","impact":"Affects Mac fast branch worktree creation; cannot be proved on Windows NTFS.","assigned_queue":"MAC_NATIVE_QUEUE","status":"NEEDS_MAC_PROOF"}
+{"unknown_id":"UNK-002","area":"Codex Host Safety Sandboxing Flags across Windows vs POSIX","impact":"Affects CLI flags (--dangerously-skip-permissions vs sandbox_bypass).","assigned_queue":"CODEX_REVIEW_QUEUE","status":"NEEDS_CODEX_REVIEW"}
+{"unknown_id":"UNK-003","area":"Live Banking / Stripe Webhook Handshake Protocol","impact":"First €5 revenue validation; requires human credentials and active endpoint.","assigned_queue":"HUMAN_GATE_QUEUE","status":"NEEDS_HUMAN_DECISION"}

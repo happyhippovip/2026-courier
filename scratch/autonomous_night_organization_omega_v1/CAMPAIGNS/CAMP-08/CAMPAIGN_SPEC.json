@@ -1,0 +1,20 @@
+{
+  "campaign_id": "CAMP-08-ADVANCED-TEST-WEAKENING-PRECISION",
+  "parent_frontier_item": "FRONTIER-AST-WEAKENING",
+  "goal": "Detect advanced test weakening (impossible branches, truncated fixtures) while proving 0 false-positive rejections on legitimate refactorings.",
+  "hypothesis": "Analyzing AST branch conditions and assertion reachability catches evasive test-weakening attacks without penalizing clean code refactoring.",
+  "why_now": "Addresses Section 48-49 requirements; prevents worker gaming of green test suites.",
+  "production_relation": "Hardens chief/validator.py and supervisor/task_hygiene.js.",
+  "expected_information_gain": "HIGH",
+  "expected_cost": "0.00 EUR",
+  "risk": "NONE_ISOLATED_SHADOW",
+  "scope": "Impossible branch detection, empty fixture detection, legitimate refactoring precision tests",
+  "write_scope": "scratch/autonomous_night_organization_omega_v1/CAMPAIGNS/CAMP-08/",
+  "dependencies": [
+    "CAMP-07-RESULT-CUSTOMS-PARTIALITY-REPLAY"
+  ],
+  "acceptance_criteria": "All 3 sophisticated weakening vectors blocked; legitimate parameterized refactoring passed with 0 false rejections.",
+  "falsification_criteria": "Impossible branch evasion passes, or legitimate refactoring blocked.",
+  "status": "CLOSED_SUPPORTED",
+  "completed_at": "2026-09-09T23:39:58.492Z"
+}

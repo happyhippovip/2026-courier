@@ -1,0 +1,9 @@
+{
+  "timestamp": "2026-09-10T07:21:52.507Z",
+  "courier_full_regression_114_pass": true,
+  "authoritative_canary_12_pass": true,
+  "bypass_attacks_19_fail_closed": true,
+  "overall_integrity_pass": true,
+  "active_leases": 0,
+  "active_background_helpers": 0
+}

@@ -1,0 +1,3394 @@
+[
+  {
+    "process_lease_id": "LEASE-1789020836811-51460C",
+    "task_id": "TASK-CANARY-VERIFY-FIXTURE-001",
+    "task_version": 1,
+    "goal_id": "GOAL-CANARY-LOCAL-OFFLINE-V1",
+    "worker_id": "WORKER-LOCAL-CANARY",
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 6908,
+    "command": "node -e \"verify-fixture\"",
+    "process_fingerprint": "d7ff694e80a4b2f2eca290248e4737bff421e532f0f645844a053dd42a54ce7d",
+    "command_fingerprint": "57eecb0a7ad4d8df0efd311df705c38fbe667ee974a08824f7194e83ec6aceb5",
+    "task_token": "TOKEN-TASK-CANARY-VERIFY-FIXTURE-001-1789020836810",
+    "start_time_epoch": 1789020836811,
+    "purpose": "IMMUTABLE_FIXTURE_VERIFICATION",
+    "started_at": "2026-09-10T06:13:56.811Z",
+    "last_heartbeat_at": "2026-09-10T06:13:56.811Z",
+    "last_progress_at": "2026-09-10T06:13:56.811Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "PROCESS_EXITED_CONFIRMED",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:13:56.811Z",
+        "status": "RUNNING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T06:18:51.359Z",
+        "status": "COMPLETED",
+        "note": "PROCESS_EXITED_CONFIRMED"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789020854626-6EBF08",
+    "task_id": "TASK-CANARY-VERIFY-FIXTURE-001",
+    "task_version": 1,
+    "goal_id": "GOAL-CANARY-LOCAL-OFFLINE-V1",
+    "worker_id": "WORKER-LOCAL-CANARY",
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 1264,
+    "command": "node -e \"verify-fixture\"",
+    "process_fingerprint": "323aeed0099e9d196ae71d4a9148af65a4d6f4ec8bbdb5e8407fb8dd8c90366a",
+    "command_fingerprint": "57eecb0a7ad4d8df0efd311df705c38fbe667ee974a08824f7194e83ec6aceb5",
+    "task_token": "TOKEN-TASK-CANARY-VERIFY-FIXTURE-001-1789020854626",
+    "start_time_epoch": 1789020854626,
+    "purpose": "IMMUTABLE_FIXTURE_VERIFICATION",
+    "started_at": "2026-09-10T06:14:14.626Z",
+    "last_heartbeat_at": "2026-09-10T06:14:14.626Z",
+    "last_progress_at": "2026-09-10T06:14:14.626Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "PROCESS_EXITED_CONFIRMED",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:14:14.626Z",
+        "status": "RUNNING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T06:18:51.362Z",
+        "status": "COMPLETED",
+        "note": "PROCESS_EXITED_CONFIRMED"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789020871962-FF77B9",
+    "task_id": "TASK-CANARY-VERIFY-FIXTURE-001",
+    "task_version": 1,
+    "goal_id": "GOAL-CANARY-LOCAL-OFFLINE-V1",
+    "worker_id": "WORKER-LOCAL-CANARY",
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 2744,
+    "command": "node -e \"verify-fixture\"",
+    "process_fingerprint": "e39c96e57772d541de961e1024753a89cd7b55f3d840a639b6e35f770478eb9a",
+    "command_fingerprint": "57eecb0a7ad4d8df0efd311df705c38fbe667ee974a08824f7194e83ec6aceb5",
+    "task_token": "TOKEN-TASK-CANARY-VERIFY-FIXTURE-001-1789020871962",
+    "start_time_epoch": 1789020871962,
+    "purpose": "IMMUTABLE_FIXTURE_VERIFICATION",
+    "started_at": "2026-09-10T06:14:31.962Z",
+    "last_heartbeat_at": "2026-09-10T06:14:31.962Z",
+    "last_progress_at": "2026-09-10T06:14:31.969Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "PROCESS_EXITED_CONFIRMED",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:14:31.962Z",
+        "status": "RUNNING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T06:14:31.970Z",
+        "status": "PROGRESSING",
+        "note": "Progress confirmed via RESULT_CUSTOMS_REJECTED"
+      },
+      {
+        "timestamp": "2026-09-10T06:18:51.363Z",
+        "status": "COMPLETED",
+        "note": "PROCESS_EXITED_CONFIRMED"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789020893478-2D5828",
+    "task_id": "TASK-CANARY-VERIFY-FIXTURE-001",
+    "task_version": 1,
+    "goal_id": "GOAL-CANARY-LOCAL-OFFLINE-V1",
+    "worker_id": "WORKER-LOCAL-CANARY",
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 16996,
+    "command": "node -e \"verify-fixture\"",
+    "process_fingerprint": "7f803d81198e55a0827fd69d5ae5a346c20927dbe8181c5e0c62ab6c24e67fba",
+    "command_fingerprint": "57eecb0a7ad4d8df0efd311df705c38fbe667ee974a08824f7194e83ec6aceb5",
+    "task_token": "TOKEN-TASK-CANARY-VERIFY-FIXTURE-001-1789020893478",
+    "start_time_epoch": 1789020893478,
+    "purpose": "IMMUTABLE_FIXTURE_VERIFICATION",
+    "started_at": "2026-09-10T06:14:53.478Z",
+    "last_heartbeat_at": "2026-09-10T06:14:53.478Z",
+    "last_progress_at": "2026-09-10T06:14:53.488Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "PROCESS_EXITED_CONFIRMED",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:14:53.478Z",
+        "status": "RUNNING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T06:14:53.489Z",
+        "status": "PROGRESSING",
+        "note": "Progress confirmed via RESULT_CUSTOMS_ACCEPTED"
+      },
+      {
+        "timestamp": "2026-09-10T06:18:51.364Z",
+        "status": "COMPLETED",
+        "note": "PROCESS_EXITED_CONFIRMED"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789020908377-6054D2",
+    "task_id": "TASK-CANARY-VERIFY-FIXTURE-001",
+    "task_version": 1,
+    "goal_id": "GOAL-CANARY-LOCAL-OFFLINE-V1",
+    "worker_id": "WORKER-LOCAL-CANARY",
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 15924,
+    "command": "node -e \"verify-fixture\"",
+    "process_fingerprint": "f2723885606115cfadef737b778f228f0a16a95248ee2735d689244b244aaeeb",
+    "command_fingerprint": "57eecb0a7ad4d8df0efd311df705c38fbe667ee974a08824f7194e83ec6aceb5",
+    "task_token": "TOKEN-TASK-CANARY-VERIFY-FIXTURE-001-1789020908377",
+    "start_time_epoch": 1789020908377,
+    "purpose": "IMMUTABLE_FIXTURE_VERIFICATION",
+    "started_at": "2026-09-10T06:15:08.377Z",
+    "last_heartbeat_at": "2026-09-10T06:15:08.377Z",
+    "last_progress_at": "2026-09-10T06:15:08.385Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "Canary completed normally",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:15:08.377Z",
+        "status": "RUNNING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T06:15:08.386Z",
+        "status": "PROGRESSING",
+        "note": "Progress confirmed via RESULT_CUSTOMS_ACCEPTED"
+      },
+      {
+        "timestamp": "2026-09-10T06:15:08.397Z",
+        "status": "COMPLETED",
+        "note": "Canary completed normally"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789020928070-147747",
+    "task_id": "ATK-07",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 8888,
+    "command": "node test",
+    "process_fingerprint": "c4faa5d635b13c8ffa1e873db8b0ed0e4d9ce9ec9293ff5b9dbbd7c66d5392b8",
+    "command_fingerprint": "e808ac21b1208662e2ccd088cdb3b895ec3dcfc75d10ccb56edcb821241092a3",
+    "task_token": "TOKEN-CORRECT",
+    "start_time_epoch": 1789020918070,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T06:15:28.070Z",
+    "last_heartbeat_at": "2026-09-10T06:15:28.070Z",
+    "last_progress_at": "2026-09-10T06:15:28.070Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "PROCESS_EXITED_CONFIRMED",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:15:28.070Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T06:18:51.365Z",
+        "status": "COMPLETED",
+        "note": "PROCESS_EXITED_CONFIRMED"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789020928074-F10495",
+    "task_id": "ATK-08",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 7777,
+    "command": "node test",
+    "process_fingerprint": "4323f59df78b6d694228cb0973fc0f65d7dae023a065c1e4fe283833a050bbfc",
+    "command_fingerprint": "e808ac21b1208662e2ccd088cdb3b895ec3dcfc75d10ccb56edcb821241092a3",
+    "task_token": "TOKEN-REAL",
+    "start_time_epoch": 1789020928074,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T06:15:28.074Z",
+    "last_heartbeat_at": "2026-09-10T06:15:28.074Z",
+    "last_progress_at": "2026-09-10T06:15:28.074Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "PROCESS_EXITED_CONFIRMED",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:15:28.074Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T06:18:51.366Z",
+        "status": "COMPLETED",
+        "note": "PROCESS_EXITED_CONFIRMED"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789020928083-ACFE64",
+    "task_id": "ATK-15",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 12368,
+    "command": "run-job",
+    "process_fingerprint": "c5c4c35629cedb96c67153356cc28dcd953316adf5e4baf96ed8a6fa9a816374",
+    "command_fingerprint": "d3bb73cc034fb2b0bbe47179229c92cb3bf513bc1e3a88c5b4b81280b1bfe4f7",
+    "task_token": "TOKEN-ATK-15-E7FD7992B69A",
+    "start_time_epoch": 1789020928083,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T06:15:28.083Z",
+    "last_heartbeat_at": "2026-09-10T06:15:28.083Z",
+    "last_progress_at": "2026-09-10T06:15:28.083Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "PROCESS_EXITED_CONFIRMED",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:15:28.083Z",
+        "status": "EXECUTION_UNCERTAIN",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T06:18:51.367Z",
+        "status": "COMPLETED",
+        "note": "PROCESS_EXITED_CONFIRMED"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789020952427-AF703E",
+    "task_id": "ATK-07",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 8888,
+    "command": "node test",
+    "process_fingerprint": "18be1fdba9a2c7e27b7673473424d40e6038c740b5ba24486d8de5e7760f6c1e",
+    "command_fingerprint": "e808ac21b1208662e2ccd088cdb3b895ec3dcfc75d10ccb56edcb821241092a3",
+    "task_token": "TOKEN-CORRECT",
+    "start_time_epoch": 1789020942426,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T06:15:52.427Z",
+    "last_heartbeat_at": "2026-09-10T06:15:52.427Z",
+    "last_progress_at": "2026-09-10T06:15:52.427Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "PROCESS_EXITED_CONFIRMED",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:15:52.427Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T06:18:51.368Z",
+        "status": "COMPLETED",
+        "note": "PROCESS_EXITED_CONFIRMED"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789020952431-C178DF",
+    "task_id": "ATK-08",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 7777,
+    "command": "node test",
+    "process_fingerprint": "087081999a8c697fccf0d28d0451b29c7cb76acc311e50469a7778eef1345be0",
+    "command_fingerprint": "e808ac21b1208662e2ccd088cdb3b895ec3dcfc75d10ccb56edcb821241092a3",
+    "task_token": "TOKEN-REAL",
+    "start_time_epoch": 1789020952431,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T06:15:52.431Z",
+    "last_heartbeat_at": "2026-09-10T06:15:52.431Z",
+    "last_progress_at": "2026-09-10T06:15:52.431Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "PROCESS_EXITED_CONFIRMED",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:15:52.431Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T06:18:51.369Z",
+        "status": "COMPLETED",
+        "note": "PROCESS_EXITED_CONFIRMED"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789020952441-5748D3",
+    "task_id": "ATK-15",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 14500,
+    "command": "run-job",
+    "process_fingerprint": "cb85f27398dec98a46c307a68424ea8606742a64fbb828b100bb4a4eb069a5e7",
+    "command_fingerprint": "d3bb73cc034fb2b0bbe47179229c92cb3bf513bc1e3a88c5b4b81280b1bfe4f7",
+    "task_token": "TOKEN-ATK-15-DB6D55459703",
+    "start_time_epoch": 1789020952441,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T06:15:52.441Z",
+    "last_heartbeat_at": "2026-09-10T06:15:52.441Z",
+    "last_progress_at": "2026-09-10T06:15:52.441Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "PROCESS_EXITED_CONFIRMED",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:15:52.441Z",
+        "status": "EXECUTION_UNCERTAIN",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T06:18:51.370Z",
+        "status": "COMPLETED",
+        "note": "PROCESS_EXITED_CONFIRMED"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789020978166-3689AE",
+    "task_id": "ATK-07",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 751460,
+    "command": "node test",
+    "process_fingerprint": "3670417aa308f0aec93282919ad9c33856ef05ce7268042163590d1fe3982e35",
+    "command_fingerprint": "e808ac21b1208662e2ccd088cdb3b895ec3dcfc75d10ccb56edcb821241092a3",
+    "task_token": "TOKEN-CORRECT",
+    "start_time_epoch": 1789020968166,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T06:16:18.166Z",
+    "last_heartbeat_at": "2026-09-10T06:16:18.166Z",
+    "last_progress_at": "2026-09-10T06:16:18.166Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "PROCESS_EXITED_CONFIRMED",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:16:18.166Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T06:18:51.371Z",
+        "status": "COMPLETED",
+        "note": "PROCESS_EXITED_CONFIRMED"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789020978170-2E902E",
+    "task_id": "ATK-08",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 849992,
+    "command": "node test",
+    "process_fingerprint": "e8151d39810d37ce11f4b89c5d7e9f1504207ac890580b14867a925a8ebad661",
+    "command_fingerprint": "e808ac21b1208662e2ccd088cdb3b895ec3dcfc75d10ccb56edcb821241092a3",
+    "task_token": "TOKEN-REAL",
+    "start_time_epoch": 1789020978170,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T06:16:18.170Z",
+    "last_heartbeat_at": "2026-09-10T06:16:18.170Z",
+    "last_progress_at": "2026-09-10T06:16:18.170Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "PROCESS_EXITED_CONFIRMED",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:16:18.170Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T06:18:51.374Z",
+        "status": "COMPLETED",
+        "note": "PROCESS_EXITED_CONFIRMED"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789020978180-F379B7",
+    "task_id": "ATK-15",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 8788,
+    "command": "run-job",
+    "process_fingerprint": "add2f81f9d780049007651b929cf0aca22d4f63d4fd64b25d311942934b340b8",
+    "command_fingerprint": "d3bb73cc034fb2b0bbe47179229c92cb3bf513bc1e3a88c5b4b81280b1bfe4f7",
+    "task_token": "TOKEN-ATK-15-0BC7FFB772DA",
+    "start_time_epoch": 1789020978179,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T06:16:18.179Z",
+    "last_heartbeat_at": "2026-09-10T06:16:18.179Z",
+    "last_progress_at": "2026-09-10T06:16:18.179Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "PROCESS_EXITED_CONFIRMED",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:16:18.179Z",
+        "status": "EXECUTION_UNCERTAIN",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T06:18:51.375Z",
+        "status": "COMPLETED",
+        "note": "PROCESS_EXITED_CONFIRMED"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789021134543-6D1996",
+    "task_id": "ATK-07",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 766459,
+    "command": "node test",
+    "process_fingerprint": "cfa5801c52edd26fbc8a723857dcc7434a531fdc7ae20d8fe09e562db8e33764",
+    "command_fingerprint": "e808ac21b1208662e2ccd088cdb3b895ec3dcfc75d10ccb56edcb821241092a3",
+    "task_token": "TOKEN-CORRECT",
+    "start_time_epoch": 1789021124543,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T06:18:54.543Z",
+    "last_heartbeat_at": "2026-09-10T06:18:54.543Z",
+    "last_progress_at": "2026-09-10T06:18:54.543Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "PROCESS_EXITED_CONFIRMED",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:18:54.543Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T06:18:59.519Z",
+        "status": "COMPLETED",
+        "note": "PROCESS_EXITED_CONFIRMED"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789021134546-F9622D",
+    "task_id": "ATK-08",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 879224,
+    "command": "node test",
+    "process_fingerprint": "fe572abeadbfebe9d106411a83ad778c319ae3f139618e30987e79342ad74b5b",
+    "command_fingerprint": "e808ac21b1208662e2ccd088cdb3b895ec3dcfc75d10ccb56edcb821241092a3",
+    "task_token": "TOKEN-REAL",
+    "start_time_epoch": 1789021134546,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T06:18:54.546Z",
+    "last_heartbeat_at": "2026-09-10T06:18:54.546Z",
+    "last_progress_at": "2026-09-10T06:18:54.546Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "PROCESS_EXITED_CONFIRMED",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:18:54.546Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T06:18:59.522Z",
+        "status": "COMPLETED",
+        "note": "PROCESS_EXITED_CONFIRMED"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789021134555-7B0102",
+    "task_id": "ATK-15",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 2256,
+    "command": "run-job",
+    "process_fingerprint": "5de7c59485fcafefac300e454720001a6c80712a2d4484757a9b7e5f20b47aae",
+    "command_fingerprint": "d3bb73cc034fb2b0bbe47179229c92cb3bf513bc1e3a88c5b4b81280b1bfe4f7",
+    "task_token": "TOKEN-ATK-15-68154A4039CB",
+    "start_time_epoch": 1789021134555,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T06:18:54.555Z",
+    "last_heartbeat_at": "2026-09-10T06:18:54.555Z",
+    "last_progress_at": "2026-09-10T06:18:54.555Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "PROCESS_EXITED_CONFIRMED",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:18:54.555Z",
+        "status": "EXECUTION_UNCERTAIN",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T06:18:59.523Z",
+        "status": "COMPLETED",
+        "note": "PROCESS_EXITED_CONFIRMED"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789021936663-F60A07",
+    "task_id": "TASK-CANARY-VERIFY-FIXTURE-001",
+    "task_version": 1,
+    "goal_id": "GOAL-CANARY-LOCAL-OFFLINE-V1",
+    "worker_id": "WORKER-LOCAL-CANARY",
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 16148,
+    "command": "node -e \"verify-fixture\"",
+    "process_fingerprint": "1a8917cce36c5d5d0ab3cc9581e0bc2e63e6202875073230d41ccd4f68a411e5",
+    "command_fingerprint": "57eecb0a7ad4d8df0efd311df705c38fbe667ee974a08824f7194e83ec6aceb5",
+    "task_token": "TOKEN-TASK-CANARY-VERIFY-FIXTURE-001-1789021936662",
+    "start_time_epoch": 1789021936663,
+    "purpose": "IMMUTABLE_FIXTURE_VERIFICATION",
+    "started_at": "2026-09-10T06:32:16.663Z",
+    "last_heartbeat_at": "2026-09-10T06:32:16.663Z",
+    "last_progress_at": "2026-09-10T06:32:16.672Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "Canary completed normally",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:32:16.663Z",
+        "status": "RUNNING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T06:32:16.672Z",
+        "status": "PROGRESSING",
+        "note": "Progress confirmed via RESULT_CUSTOMS_ACCEPTED"
+      },
+      {
+        "timestamp": "2026-09-10T06:32:16.688Z",
+        "status": "COMPLETED",
+        "note": "Canary completed normally"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789022059317-B3A3E1",
+    "task_id": "ATK-07",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 703714,
+    "command": "node test",
+    "process_fingerprint": "5becba7b8071b039dd759824a517cccf2d5df88ee26acc5fbe62b96b3177ce13",
+    "command_fingerprint": "e808ac21b1208662e2ccd088cdb3b895ec3dcfc75d10ccb56edcb821241092a3",
+    "task_token": "TOKEN-CORRECT",
+    "start_time_epoch": 1789022049317,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T06:34:19.317Z",
+    "last_heartbeat_at": "2026-09-10T06:34:19.317Z",
+    "last_progress_at": "2026-09-10T06:34:19.317Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "PROCESS_EXITED_CONFIRMED",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:34:19.317Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T06:34:28.854Z",
+        "status": "COMPLETED",
+        "note": "PROCESS_EXITED_CONFIRMED"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789022059321-96DC1F",
+    "task_id": "ATK-08",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 804271,
+    "command": "node test",
+    "process_fingerprint": "d93a94fa548771d95789b8e8cc3b96fbdb66dc0db17cf8e66150396c6ec7a8b8",
+    "command_fingerprint": "e808ac21b1208662e2ccd088cdb3b895ec3dcfc75d10ccb56edcb821241092a3",
+    "task_token": "TOKEN-REAL",
+    "start_time_epoch": 1789022059321,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T06:34:19.321Z",
+    "last_heartbeat_at": "2026-09-10T06:34:19.321Z",
+    "last_progress_at": "2026-09-10T06:34:19.321Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "PROCESS_EXITED_CONFIRMED",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:34:19.321Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T06:34:28.856Z",
+        "status": "COMPLETED",
+        "note": "PROCESS_EXITED_CONFIRMED"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789022059331-E48DC5",
+    "task_id": "ATK-15",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 7156,
+    "command": "run-job",
+    "process_fingerprint": "ac33c66d5cf79cef9240abe8c24564ae5a7f1587e07d847b355a75a8b4370b5a",
+    "command_fingerprint": "d3bb73cc034fb2b0bbe47179229c92cb3bf513bc1e3a88c5b4b81280b1bfe4f7",
+    "task_token": "TOKEN-ATK-15-72C1DDDDD70F",
+    "start_time_epoch": 1789022059331,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T06:34:19.331Z",
+    "last_heartbeat_at": "2026-09-10T06:34:19.331Z",
+    "last_progress_at": "2026-09-10T06:34:19.331Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "PROCESS_EXITED_CONFIRMED",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:34:19.331Z",
+        "status": "EXECUTION_UNCERTAIN",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T06:34:28.857Z",
+        "status": "COMPLETED",
+        "note": "PROCESS_EXITED_CONFIRMED"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789022062721-9089EF",
+    "task_id": "TASK-CANARY-VERIFY-FIXTURE-001",
+    "task_version": 1,
+    "goal_id": "GOAL-CANARY-LOCAL-OFFLINE-V1",
+    "worker_id": "WORKER-LOCAL-CANARY",
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 9436,
+    "command": "node -e \"verify-fixture\"",
+    "process_fingerprint": "a398595c045d5a066a8a1540b050e0f86045de2d0c8884b1c620f8f90053632e",
+    "command_fingerprint": "57eecb0a7ad4d8df0efd311df705c38fbe667ee974a08824f7194e83ec6aceb5",
+    "task_token": "TOKEN-TASK-CANARY-VERIFY-FIXTURE-001-1789022062721",
+    "start_time_epoch": 1789022062721,
+    "purpose": "IMMUTABLE_FIXTURE_VERIFICATION",
+    "started_at": "2026-09-10T06:34:22.721Z",
+    "last_heartbeat_at": "2026-09-10T06:34:22.721Z",
+    "last_progress_at": "2026-09-10T06:34:22.734Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "Canary completed normally",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:34:22.721Z",
+        "status": "RUNNING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T06:34:22.735Z",
+        "status": "PROGRESSING",
+        "note": "Progress confirmed via RESULT_CUSTOMS_ACCEPTED"
+      },
+      {
+        "timestamp": "2026-09-10T06:34:22.755Z",
+        "status": "COMPLETED",
+        "note": "Canary completed normally"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789022961751-B16CEE",
+    "task_id": "TASK-CANARY-VERIFY-FIXTURE-001",
+    "task_version": 1,
+    "goal_id": "GOAL-CANARY-LOCAL-OFFLINE-V1",
+    "worker_id": "WORKER-LOCAL-CANARY",
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 15700,
+    "command": "node -e \"verify-fixture\"",
+    "process_fingerprint": "5a2550f7b73aa779962f137405e16ffe81c4ac23e856c646ffdaa676ae6af73c",
+    "command_fingerprint": "57eecb0a7ad4d8df0efd311df705c38fbe667ee974a08824f7194e83ec6aceb5",
+    "task_token": "TOKEN-TASK-CANARY-VERIFY-FIXTURE-001-1789022961751",
+    "start_time_epoch": 1789022961751,
+    "purpose": "IMMUTABLE_FIXTURE_VERIFICATION",
+    "started_at": "2026-09-10T06:49:21.751Z",
+    "last_heartbeat_at": "2026-09-10T06:49:21.751Z",
+    "last_progress_at": "2026-09-10T06:49:21.759Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "Canary completed normally",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:49:21.751Z",
+        "status": "RUNNING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T06:49:21.759Z",
+        "status": "PROGRESSING",
+        "note": "Progress confirmed via RESULT_CUSTOMS_ACCEPTED"
+      },
+      {
+        "timestamp": "2026-09-10T06:49:21.783Z",
+        "status": "COMPLETED",
+        "note": "Canary completed normally"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789022964300-DFC9E8",
+    "task_id": "ATK-07",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 781010,
+    "command": "node test",
+    "process_fingerprint": "e343ebd3b19f5a7260e6f985bcdcb4baf0692206c75b1641e3460c9fee92cada",
+    "command_fingerprint": "e808ac21b1208662e2ccd088cdb3b895ec3dcfc75d10ccb56edcb821241092a3",
+    "task_token": "TOKEN-CORRECT",
+    "start_time_epoch": 1789022954300,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T06:49:24.300Z",
+    "last_heartbeat_at": "2026-09-10T06:49:24.300Z",
+    "last_progress_at": "2026-09-10T06:49:24.300Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 781010 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:49:24.300Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T01:34:19.317Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 781010 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789022964309-0CEC47",
+    "task_id": "ATK-08",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 836521,
+    "command": "node test",
+    "process_fingerprint": "c5075aa7ff57596e2c0ea6db0cb413451af3e76e830cf3f26012e42c32949ef3",
+    "command_fingerprint": "e808ac21b1208662e2ccd088cdb3b895ec3dcfc75d10ccb56edcb821241092a3",
+    "task_token": "TOKEN-REAL",
+    "start_time_epoch": 1789022964309,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T06:49:24.309Z",
+    "last_heartbeat_at": "2026-09-10T06:49:24.309Z",
+    "last_progress_at": "2026-09-10T06:49:24.309Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 836521 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:49:24.309Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T01:34:19.330Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 836521 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789022964322-02A254",
+    "task_id": "ATK-15",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 1256,
+    "command": "run-job",
+    "process_fingerprint": "fc89b0f3cecc09b67095ca04d99a693da2136cea64e136b7f63f5e7c62b37a33",
+    "command_fingerprint": "d3bb73cc034fb2b0bbe47179229c92cb3bf513bc1e3a88c5b4b81280b1bfe4f7",
+    "task_token": "TOKEN-ATK-15-5642AB894615",
+    "start_time_epoch": 1789022964322,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T06:49:24.322Z",
+    "last_heartbeat_at": "2026-09-10T06:49:24.322Z",
+    "last_progress_at": "2026-09-10T06:49:24.322Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "EXECUTION_UNCERTAIN",
+    "termination_reason": null,
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:49:24.322Z",
+        "status": "EXECUTION_UNCERTAIN",
+        "note": "Lease created"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789023389357-843567",
+    "task_id": "TASK-CANARY-VERIFY-FIXTURE-001",
+    "task_version": 1,
+    "goal_id": "GOAL-CANARY-LOCAL-OFFLINE-V1",
+    "worker_id": "WORKER-LOCAL-CANARY",
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 11712,
+    "command": "node -e \"verify-fixture\"",
+    "process_fingerprint": "6fed627a8e2cb6394b34e30b3857a98f8b0537bbcc0e9db8d77c8e7ba7bddcaf",
+    "command_fingerprint": "57eecb0a7ad4d8df0efd311df705c38fbe667ee974a08824f7194e83ec6aceb5",
+    "task_token": "TOKEN-TASK-CANARY-VERIFY-FIXTURE-001-1789023389357",
+    "start_time_epoch": 1789023389357,
+    "purpose": "IMMUTABLE_FIXTURE_VERIFICATION",
+    "started_at": "2026-09-10T06:56:29.357Z",
+    "last_heartbeat_at": "2026-09-10T06:56:29.357Z",
+    "last_progress_at": "2026-09-10T06:56:29.373Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "Canary completed normally",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:56:29.357Z",
+        "status": "RUNNING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T06:56:29.374Z",
+        "status": "PROGRESSING",
+        "note": "Progress confirmed via RESULT_CUSTOMS_ACCEPTED"
+      },
+      {
+        "timestamp": "2026-09-10T06:56:29.399Z",
+        "status": "COMPLETED",
+        "note": "Canary completed normally"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789023393251-5FD14E",
+    "task_id": "ATK-07",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 753739,
+    "command": "node test",
+    "process_fingerprint": "d9a22faa1dfafb2e45cc04881b53f02e1526a38263ba4023a658c887e9eb7c42",
+    "command_fingerprint": "e808ac21b1208662e2ccd088cdb3b895ec3dcfc75d10ccb56edcb821241092a3",
+    "task_token": "TOKEN-CORRECT",
+    "start_time_epoch": 1789023383251,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T06:56:33.251Z",
+    "last_heartbeat_at": "2026-09-10T06:56:33.251Z",
+    "last_progress_at": "2026-09-10T06:56:33.251Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 753739 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:56:33.251Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T01:34:19.351Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 753739 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789023393261-A165B6",
+    "task_id": "ATK-08",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 888494,
+    "command": "node test",
+    "process_fingerprint": "e07ccb7b59eda5ec21bb2d53dc85feaf57a26074e19c8e9086534e285dfce336",
+    "command_fingerprint": "e808ac21b1208662e2ccd088cdb3b895ec3dcfc75d10ccb56edcb821241092a3",
+    "task_token": "TOKEN-REAL",
+    "start_time_epoch": 1789023393261,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T06:56:33.261Z",
+    "last_heartbeat_at": "2026-09-10T06:56:33.261Z",
+    "last_progress_at": "2026-09-10T06:56:33.261Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 888494 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:56:33.261Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T01:34:19.371Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 888494 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789023393276-F6EC28",
+    "task_id": "ATK-15",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 3780,
+    "command": "run-job",
+    "process_fingerprint": "a1f7fbdbc41f694ee928190331efeec30a74da437de7062f9be21f839dd1d2b1",
+    "command_fingerprint": "d3bb73cc034fb2b0bbe47179229c92cb3bf513bc1e3a88c5b4b81280b1bfe4f7",
+    "task_token": "TOKEN-ATK-15-A1F615AFC40F",
+    "start_time_epoch": 1789023393276,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T06:56:33.276Z",
+    "last_heartbeat_at": "2026-09-10T06:56:33.276Z",
+    "last_progress_at": "2026-09-10T06:56:33.276Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "EXECUTION_UNCERTAIN",
+    "termination_reason": null,
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:56:33.276Z",
+        "status": "EXECUTION_UNCERTAIN",
+        "note": "Lease created"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789024607533-E71818",
+    "task_id": "TASK-CANARY-VERIFY-FIXTURE-001",
+    "task_version": 1,
+    "goal_id": "GOAL-CANARY-LOCAL-OFFLINE-V1",
+    "worker_id": "WORKER-LOCAL-CANARY",
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 10128,
+    "command": "node -e \"verify-fixture\"",
+    "process_fingerprint": "905c2d2ba7d81e05c3e5d96ccfbd7993042f5547eaaea531ad50f76710655216",
+    "command_fingerprint": "57eecb0a7ad4d8df0efd311df705c38fbe667ee974a08824f7194e83ec6aceb5",
+    "task_token": "TOKEN-TASK-CANARY-VERIFY-FIXTURE-001-1789024607533",
+    "start_time_epoch": 1789024607533,
+    "purpose": "IMMUTABLE_FIXTURE_VERIFICATION",
+    "started_at": "2026-09-10T07:16:47.533Z",
+    "last_heartbeat_at": "2026-09-10T07:16:47.533Z",
+    "last_progress_at": "2026-09-10T07:16:47.540Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "Canary completed normally",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T07:16:47.533Z",
+        "status": "RUNNING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T07:16:47.540Z",
+        "status": "PROGRESSING",
+        "note": "Progress confirmed via RESULT_CUSTOMS_ACCEPTED"
+      },
+      {
+        "timestamp": "2026-09-10T07:16:47.560Z",
+        "status": "COMPLETED",
+        "note": "Canary completed normally"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789024607691-3C4841",
+    "task_id": "ATK-07",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 789850,
+    "command": "node test",
+    "process_fingerprint": "44c1d837cae50665234dc4d7aaacc16cfa26418d5ff07577094cda029b944cdd",
+    "command_fingerprint": "e808ac21b1208662e2ccd088cdb3b895ec3dcfc75d10ccb56edcb821241092a3",
+    "task_token": "TOKEN-CORRECT",
+    "start_time_epoch": 1789024597691,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T07:16:47.691Z",
+    "last_heartbeat_at": "2026-09-10T07:16:47.691Z",
+    "last_progress_at": "2026-09-10T07:16:47.691Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 789850 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T07:16:47.691Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T01:34:19.391Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 789850 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789024607698-ED9059",
+    "task_id": "ATK-08",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 863364,
+    "command": "node test",
+    "process_fingerprint": "1b749b674851d81933541b55e3bc9ac333421e3cb0c015ae6a7068085f7daccc",
+    "command_fingerprint": "e808ac21b1208662e2ccd088cdb3b895ec3dcfc75d10ccb56edcb821241092a3",
+    "task_token": "TOKEN-REAL",
+    "start_time_epoch": 1789024607698,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T07:16:47.698Z",
+    "last_heartbeat_at": "2026-09-10T07:16:47.698Z",
+    "last_progress_at": "2026-09-10T07:16:47.698Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 863364 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T07:16:47.698Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T01:34:19.412Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 863364 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789024607709-42DF09",
+    "task_id": "ATK-15",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 9156,
+    "command": "run-job",
+    "process_fingerprint": "4870a54bc7b5834cda42da982f6600530b309cc77a97053192c70ebacfc7143f",
+    "command_fingerprint": "d3bb73cc034fb2b0bbe47179229c92cb3bf513bc1e3a88c5b4b81280b1bfe4f7",
+    "task_token": "TOKEN-ATK-15-E3D4291C0B0B",
+    "start_time_epoch": 1789024607709,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T07:16:47.709Z",
+    "last_heartbeat_at": "2026-09-10T07:16:47.709Z",
+    "last_progress_at": "2026-09-10T07:16:47.709Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "EXECUTION_UNCERTAIN",
+    "termination_reason": null,
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T07:16:47.709Z",
+        "status": "EXECUTION_UNCERTAIN",
+        "note": "Lease created"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789024870680-204D3B",
+    "task_id": "TASK-CANARY-VERIFY-FIXTURE-001",
+    "task_version": 1,
+    "goal_id": "GOAL-CANARY-LOCAL-OFFLINE-V1",
+    "worker_id": "WORKER-LOCAL-CANARY",
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 17392,
+    "command": "node -e \"verify-fixture\"",
+    "process_fingerprint": "63c4eab95c81c106a79bd5d71c3363a47eb56f42aa802d0bd3463c9347bab4a2",
+    "command_fingerprint": "57eecb0a7ad4d8df0efd311df705c38fbe667ee974a08824f7194e83ec6aceb5",
+    "task_token": "TOKEN-TASK-CANARY-VERIFY-FIXTURE-001-1789024870679",
+    "start_time_epoch": 1789024870680,
+    "purpose": "IMMUTABLE_FIXTURE_VERIFICATION",
+    "started_at": "2026-09-10T07:21:10.680Z",
+    "last_heartbeat_at": "2026-09-10T07:21:10.680Z",
+    "last_progress_at": "2026-09-10T07:21:10.688Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "Canary completed normally",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T07:21:10.680Z",
+        "status": "RUNNING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T07:21:10.689Z",
+        "status": "PROGRESSING",
+        "note": "Progress confirmed via RESULT_CUSTOMS_ACCEPTED"
+      },
+      {
+        "timestamp": "2026-09-10T07:21:10.715Z",
+        "status": "COMPLETED",
+        "note": "Canary completed normally"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789024873794-E89FCF",
+    "task_id": "ATK-07",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 770991,
+    "command": "node test",
+    "process_fingerprint": "28c39953cb8d98e0bf4d68e4dc94c345d15f4c68d9f7cde24bbe2c86034741c4",
+    "command_fingerprint": "e808ac21b1208662e2ccd088cdb3b895ec3dcfc75d10ccb56edcb821241092a3",
+    "task_token": "TOKEN-CORRECT",
+    "start_time_epoch": 1789024863794,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T07:21:13.794Z",
+    "last_heartbeat_at": "2026-09-10T07:21:13.794Z",
+    "last_progress_at": "2026-09-10T07:21:13.794Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 770991 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T07:21:13.794Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T01:34:19.434Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 770991 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789024873806-C4FF59",
+    "task_id": "ATK-08",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 807275,
+    "command": "node test",
+    "process_fingerprint": "1155b2ae6be920f98296414dcbc1aa982522126ec89a2a8cf1c93b2c4e54c876",
+    "command_fingerprint": "e808ac21b1208662e2ccd088cdb3b895ec3dcfc75d10ccb56edcb821241092a3",
+    "task_token": "TOKEN-REAL",
+    "start_time_epoch": 1789024873806,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T07:21:13.806Z",
+    "last_heartbeat_at": "2026-09-10T07:21:13.806Z",
+    "last_progress_at": "2026-09-10T07:21:13.806Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 807275 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T07:21:13.806Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T01:34:19.454Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 807275 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789024873820-1C5D2B",
+    "task_id": "ATK-15",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 3444,
+    "command": "run-job",
+    "process_fingerprint": "0baece34e8e69f4bd054f61f036735600fc4375cbe995ef074821e47c3bd4b55",
+    "command_fingerprint": "d3bb73cc034fb2b0bbe47179229c92cb3bf513bc1e3a88c5b4b81280b1bfe4f7",
+    "task_token": "TOKEN-ATK-15-DC37BC54E715",
+    "start_time_epoch": 1789024873820,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T07:21:13.820Z",
+    "last_heartbeat_at": "2026-09-10T07:21:13.820Z",
+    "last_progress_at": "2026-09-10T07:21:13.820Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "EXECUTION_UNCERTAIN",
+    "termination_reason": null,
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T07:21:13.820Z",
+        "status": "EXECUTION_UNCERTAIN",
+        "note": "Lease created"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789024912288-E8D549",
+    "task_id": "TASK-CANARY-VERIFY-FIXTURE-001",
+    "task_version": 1,
+    "goal_id": "GOAL-CANARY-LOCAL-OFFLINE-V1",
+    "worker_id": "WORKER-LOCAL-CANARY",
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 10160,
+    "command": "node -e \"verify-fixture\"",
+    "process_fingerprint": "b93791dcfaa1d78a866344d02ca2b4f2abcab07d7e1f31793cdef8e31e089dd1",
+    "command_fingerprint": "57eecb0a7ad4d8df0efd311df705c38fbe667ee974a08824f7194e83ec6aceb5",
+    "task_token": "TOKEN-TASK-CANARY-VERIFY-FIXTURE-001-1789024912288",
+    "start_time_epoch": 1789024912288,
+    "purpose": "IMMUTABLE_FIXTURE_VERIFICATION",
+    "started_at": "2026-09-10T07:21:52.288Z",
+    "last_heartbeat_at": "2026-09-10T07:21:52.288Z",
+    "last_progress_at": "2026-09-10T07:21:52.301Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "Canary completed normally",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T07:21:52.288Z",
+        "status": "RUNNING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T07:21:52.302Z",
+        "status": "PROGRESSING",
+        "note": "Progress confirmed via RESULT_CUSTOMS_ACCEPTED"
+      },
+      {
+        "timestamp": "2026-09-10T07:21:52.326Z",
+        "status": "COMPLETED",
+        "note": "Canary completed normally"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789024912446-EB8A40",
+    "task_id": "ATK-07",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 757398,
+    "command": "node test",
+    "process_fingerprint": "aac3f8ebb3b0a463c5548a95d70a9e3fcd0cf9d2ae6141ff43b26f60116f3f6a",
+    "command_fingerprint": "e808ac21b1208662e2ccd088cdb3b895ec3dcfc75d10ccb56edcb821241092a3",
+    "task_token": "TOKEN-CORRECT",
+    "start_time_epoch": 1789024902446,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T07:21:52.446Z",
+    "last_heartbeat_at": "2026-09-10T07:21:52.446Z",
+    "last_progress_at": "2026-09-10T07:21:52.446Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 757398 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T07:21:52.446Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T01:34:19.474Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 757398 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789024912456-723E8B",
+    "task_id": "ATK-08",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 878280,
+    "command": "node test",
+    "process_fingerprint": "edd852905fc54f44f60d86fcca6f6600fb545d707ee442f7089b0515744a87a8",
+    "command_fingerprint": "e808ac21b1208662e2ccd088cdb3b895ec3dcfc75d10ccb56edcb821241092a3",
+    "task_token": "TOKEN-REAL",
+    "start_time_epoch": 1789024912456,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T07:21:52.456Z",
+    "last_heartbeat_at": "2026-09-10T07:21:52.456Z",
+    "last_progress_at": "2026-09-10T07:21:52.456Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 878280 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T07:21:52.456Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T01:34:19.495Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 878280 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789024912468-850F95",
+    "task_id": "ATK-15",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 16224,
+    "command": "run-job",
+    "process_fingerprint": "17a0d6b2c88492d97077d4217091274175bb4713ed901d11d9193a89eef723e0",
+    "command_fingerprint": "d3bb73cc034fb2b0bbe47179229c92cb3bf513bc1e3a88c5b4b81280b1bfe4f7",
+    "task_token": "TOKEN-ATK-15-5615DA2A63C3",
+    "start_time_epoch": 1789024912468,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T07:21:52.468Z",
+    "last_heartbeat_at": "2026-09-10T07:21:52.468Z",
+    "last_progress_at": "2026-09-10T07:21:52.468Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "EXECUTION_UNCERTAIN",
+    "termination_reason": null,
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T07:21:52.468Z",
+        "status": "EXECUTION_UNCERTAIN",
+        "note": "Lease created"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789029986858-9D7D6C",
+    "task_id": "TASK-CANARY-VERIFY-FIXTURE-001",
+    "task_version": 1,
+    "goal_id": "GOAL-CANARY-LOCAL-OFFLINE-V1",
+    "worker_id": "WORKER-LOCAL-CANARY",
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 7780,
+    "command": "node -e \"verify-fixture\"",
+    "process_fingerprint": "ebe4836835d275c26ccd191ec199d625dc8f76d790548de1c10dee18a2821a55",
+    "command_fingerprint": "57eecb0a7ad4d8df0efd311df705c38fbe667ee974a08824f7194e83ec6aceb5",
+    "task_token": "TOKEN-TASK-CANARY-VERIFY-FIXTURE-001-1789029986858",
+    "start_time_epoch": 1789029986858,
+    "purpose": "IMMUTABLE_FIXTURE_VERIFICATION",
+    "started_at": "2026-09-10T08:46:26.858Z",
+    "last_heartbeat_at": "2026-09-10T08:46:26.858Z",
+    "last_progress_at": "2026-09-10T08:46:26.865Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "Canary completed normally",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T08:46:26.858Z",
+        "status": "RUNNING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T08:46:26.866Z",
+        "status": "PROGRESSING",
+        "note": "Progress confirmed via RESULT_CUSTOMS_ACCEPTED"
+      },
+      {
+        "timestamp": "2026-09-10T08:46:26.890Z",
+        "status": "COMPLETED",
+        "note": "Canary completed normally"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789029987016-EAA41F",
+    "task_id": "ATK-07",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 741967,
+    "command": "node test",
+    "process_fingerprint": "1865ea1c8866ed9a8529841c655bda730eb8d540a4c14c90c85030d9b25c74f7",
+    "command_fingerprint": "e808ac21b1208662e2ccd088cdb3b895ec3dcfc75d10ccb56edcb821241092a3",
+    "task_token": "TOKEN-CORRECT",
+    "start_time_epoch": 1789029977016,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T08:46:27.016Z",
+    "last_heartbeat_at": "2026-09-10T08:46:27.016Z",
+    "last_progress_at": "2026-09-10T08:46:27.016Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 741967 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T08:46:27.016Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T01:34:19.517Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 741967 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789029987024-24B935",
+    "task_id": "ATK-08",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 862538,
+    "command": "node test",
+    "process_fingerprint": "fc5bdd8dab0a5323da503761aece0bdf49847f8cfca15383a4ca5f08f72afd22",
+    "command_fingerprint": "e808ac21b1208662e2ccd088cdb3b895ec3dcfc75d10ccb56edcb821241092a3",
+    "task_token": "TOKEN-REAL",
+    "start_time_epoch": 1789029987024,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T08:46:27.024Z",
+    "last_heartbeat_at": "2026-09-10T08:46:27.024Z",
+    "last_progress_at": "2026-09-10T08:46:27.024Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 862538 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T08:46:27.024Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T01:34:19.539Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 862538 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789029987037-37895F",
+    "task_id": "ATK-15",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 14440,
+    "command": "run-job",
+    "process_fingerprint": "b87391a706ca2ba78d4f863cc1125dc9c8eac878e12ddcaf6e3f48fe7cee5763",
+    "command_fingerprint": "d3bb73cc034fb2b0bbe47179229c92cb3bf513bc1e3a88c5b4b81280b1bfe4f7",
+    "task_token": "TOKEN-ATK-15-3E32A32ABDC7",
+    "start_time_epoch": 1789029987036,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T08:46:27.036Z",
+    "last_heartbeat_at": "2026-09-10T08:46:27.036Z",
+    "last_progress_at": "2026-09-10T08:46:27.036Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "EXECUTION_UNCERTAIN",
+    "termination_reason": null,
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T08:46:27.036Z",
+        "status": "EXECUTION_UNCERTAIN",
+        "note": "Lease created"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789030397064-E02CFE",
+    "task_id": "TASK-CANARY-VERIFY-FIXTURE-001",
+    "task_version": 1,
+    "goal_id": "GOAL-CANARY-LOCAL-OFFLINE-V1",
+    "worker_id": "WORKER-LOCAL-CANARY",
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 15052,
+    "command": "node -e \"verify-fixture\"",
+    "process_fingerprint": "188b5125e2d843616ecda45191373ed9b9b7012eef545c92de90c9aec8eaed82",
+    "command_fingerprint": "57eecb0a7ad4d8df0efd311df705c38fbe667ee974a08824f7194e83ec6aceb5",
+    "task_token": "TOKEN-TASK-CANARY-VERIFY-FIXTURE-001-1789030397064",
+    "start_time_epoch": 1789030397064,
+    "purpose": "IMMUTABLE_FIXTURE_VERIFICATION",
+    "started_at": "2026-09-10T08:53:17.064Z",
+    "last_heartbeat_at": "2026-09-10T08:53:17.064Z",
+    "last_progress_at": "2026-09-10T08:53:17.070Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "Canary completed normally",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T08:53:17.064Z",
+        "status": "RUNNING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T08:53:17.071Z",
+        "status": "PROGRESSING",
+        "note": "Progress confirmed via RESULT_CUSTOMS_ACCEPTED"
+      },
+      {
+        "timestamp": "2026-09-10T08:53:17.134Z",
+        "status": "COMPLETED",
+        "note": "Canary completed normally"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789030397276-CE316D",
+    "task_id": "ATK-07",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 753956,
+    "command": "node test",
+    "process_fingerprint": "a9bd26b640c5819cc3d666c772dbbee0e737ffdbcd806eb61094ce48dbaf8d01",
+    "command_fingerprint": "e808ac21b1208662e2ccd088cdb3b895ec3dcfc75d10ccb56edcb821241092a3",
+    "task_token": "TOKEN-CORRECT",
+    "start_time_epoch": 1789030387275,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T08:53:17.276Z",
+    "last_heartbeat_at": "2026-09-10T08:53:17.276Z",
+    "last_progress_at": "2026-09-10T08:53:17.276Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 753956 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T08:53:17.276Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T01:34:19.560Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 753956 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789030397284-B73FF9",
+    "task_id": "ATK-08",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 807939,
+    "command": "node test",
+    "process_fingerprint": "dd4b713348e9e80c9f58da3e9f63cf0ca4e97fd976dc576c44e9233e132f3306",
+    "command_fingerprint": "e808ac21b1208662e2ccd088cdb3b895ec3dcfc75d10ccb56edcb821241092a3",
+    "task_token": "TOKEN-REAL",
+    "start_time_epoch": 1789030397284,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T08:53:17.284Z",
+    "last_heartbeat_at": "2026-09-10T08:53:17.284Z",
+    "last_progress_at": "2026-09-10T08:53:17.284Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 807939 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T08:53:17.284Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T01:34:19.584Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 807939 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789030397298-8A6CDB",
+    "task_id": "ATK-15",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 14820,
+    "command": "run-job",
+    "process_fingerprint": "b2b38fab19ffc68215e281093639e3e4abae1a0b79259e9feadf64ccf67c45a6",
+    "command_fingerprint": "d3bb73cc034fb2b0bbe47179229c92cb3bf513bc1e3a88c5b4b81280b1bfe4f7",
+    "task_token": "TOKEN-ATK-15-0C6E30755417",
+    "start_time_epoch": 1789030397298,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T08:53:17.298Z",
+    "last_heartbeat_at": "2026-09-10T08:53:17.298Z",
+    "last_progress_at": "2026-09-10T08:53:17.298Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "EXECUTION_UNCERTAIN",
+    "termination_reason": null,
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T08:53:17.298Z",
+        "status": "EXECUTION_UNCERTAIN",
+        "note": "Lease created"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789030436147-059FC3",
+    "task_id": "TASK-CANARY-VERIFY-FIXTURE-001",
+    "task_version": 1,
+    "goal_id": "GOAL-CANARY-LOCAL-OFFLINE-V1",
+    "worker_id": "WORKER-LOCAL-CANARY",
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 7140,
+    "command": "node -e \"verify-fixture\"",
+    "process_fingerprint": "1d093f627980e18daaa723d2cec7e5bab62bf445ee0c46d9a8aa317fcfbe5143",
+    "command_fingerprint": "57eecb0a7ad4d8df0efd311df705c38fbe667ee974a08824f7194e83ec6aceb5",
+    "task_token": "TOKEN-TASK-CANARY-VERIFY-FIXTURE-001-1789030436147",
+    "start_time_epoch": 1789030436147,
+    "purpose": "IMMUTABLE_FIXTURE_VERIFICATION",
+    "started_at": "2026-09-10T08:53:56.147Z",
+    "last_heartbeat_at": "2026-09-10T08:53:56.147Z",
+    "last_progress_at": "2026-09-10T08:53:56.167Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "Canary completed normally",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T08:53:56.147Z",
+        "status": "RUNNING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T08:53:56.168Z",
+        "status": "PROGRESSING",
+        "note": "Progress confirmed via RESULT_CUSTOMS_ACCEPTED"
+      },
+      {
+        "timestamp": "2026-09-10T08:53:56.195Z",
+        "status": "COMPLETED",
+        "note": "Canary completed normally"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789030436325-9808C1",
+    "task_id": "ATK-07",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 765347,
+    "command": "node test",
+    "process_fingerprint": "f99eb20c112e4e4afcb9a2e98e955d54ad359df1745f3328500d84e66040c618",
+    "command_fingerprint": "e808ac21b1208662e2ccd088cdb3b895ec3dcfc75d10ccb56edcb821241092a3",
+    "task_token": "TOKEN-CORRECT",
+    "start_time_epoch": 1789030426324,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T08:53:56.325Z",
+    "last_heartbeat_at": "2026-09-10T08:53:56.325Z",
+    "last_progress_at": "2026-09-10T08:53:56.325Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 765347 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T08:53:56.325Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T01:34:19.617Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 765347 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789030436336-5A7706",
+    "task_id": "ATK-08",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 819828,
+    "command": "node test",
+    "process_fingerprint": "b854549a142c058009b4d2353b52f3c369300e3bac6f19d898932d141a245a75",
+    "command_fingerprint": "e808ac21b1208662e2ccd088cdb3b895ec3dcfc75d10ccb56edcb821241092a3",
+    "task_token": "TOKEN-REAL",
+    "start_time_epoch": 1789030436336,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T08:53:56.336Z",
+    "last_heartbeat_at": "2026-09-10T08:53:56.336Z",
+    "last_progress_at": "2026-09-10T08:53:56.336Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 819828 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T08:53:56.336Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T01:34:19.645Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 819828 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789030436349-C12164",
+    "task_id": "ATK-15",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 13564,
+    "command": "run-job",
+    "process_fingerprint": "a85a87844ebc5da744e6c016e68c30c78d814ea38bc5abd0eea66c8f7b72b4bf",
+    "command_fingerprint": "d3bb73cc034fb2b0bbe47179229c92cb3bf513bc1e3a88c5b4b81280b1bfe4f7",
+    "task_token": "TOKEN-ATK-15-02DFF00DA4E5",
+    "start_time_epoch": 1789030436349,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T08:53:56.349Z",
+    "last_heartbeat_at": "2026-09-10T08:53:56.349Z",
+    "last_progress_at": "2026-09-10T08:53:56.349Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "EXECUTION_UNCERTAIN",
+    "termination_reason": null,
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T08:53:56.349Z",
+        "status": "EXECUTION_UNCERTAIN",
+        "note": "Lease created"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789030833382-161BFA",
+    "task_id": "TASK-CANARY-VERIFY-FIXTURE-001",
+    "task_version": 1,
+    "goal_id": "GOAL-CANARY-LOCAL-OFFLINE-V1",
+    "worker_id": "WORKER-LOCAL-CANARY",
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 8344,
+    "command": "node -e \"verify-fixture\"",
+    "process_fingerprint": "1994c39d158e2bd286dab5b02f88ba1fbc2ce88b4521ddebb339e6229485838c",
+    "command_fingerprint": "57eecb0a7ad4d8df0efd311df705c38fbe667ee974a08824f7194e83ec6aceb5",
+    "task_token": "TOKEN-TASK-CANARY-VERIFY-FIXTURE-001-1789030833382",
+    "start_time_epoch": 1789030833382,
+    "purpose": "IMMUTABLE_FIXTURE_VERIFICATION",
+    "started_at": "2026-09-10T09:00:33.382Z",
+    "last_heartbeat_at": "2026-09-10T09:00:33.382Z",
+    "last_progress_at": "2026-09-10T09:00:33.392Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "Canary completed normally",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T09:00:33.382Z",
+        "status": "RUNNING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T09:00:33.393Z",
+        "status": "PROGRESSING",
+        "note": "Progress confirmed via RESULT_CUSTOMS_ACCEPTED"
+      },
+      {
+        "timestamp": "2026-09-10T09:00:33.422Z",
+        "status": "COMPLETED",
+        "note": "Canary completed normally"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789030837127-DB39EF",
+    "task_id": "ATK-07",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 721808,
+    "command": "node test",
+    "process_fingerprint": "ac2f85481a6dbf9d7a51efee1e35e9f12f48b51acb28f42480be962ba487d7d4",
+    "command_fingerprint": "e808ac21b1208662e2ccd088cdb3b895ec3dcfc75d10ccb56edcb821241092a3",
+    "task_token": "TOKEN-CORRECT",
+    "start_time_epoch": 1789030827127,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T09:00:37.127Z",
+    "last_heartbeat_at": "2026-09-10T09:00:37.127Z",
+    "last_progress_at": "2026-09-10T09:00:37.127Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 721808 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T09:00:37.127Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T01:34:19.666Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 721808 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789030837139-29581D",
+    "task_id": "ATK-08",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 847495,
+    "command": "node test",
+    "process_fingerprint": "d97389f08c23a548ff904d96f267044452c8ab1ea25231b457c1383e4001b071",
+    "command_fingerprint": "e808ac21b1208662e2ccd088cdb3b895ec3dcfc75d10ccb56edcb821241092a3",
+    "task_token": "TOKEN-REAL",
+    "start_time_epoch": 1789030837139,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T09:00:37.139Z",
+    "last_heartbeat_at": "2026-09-10T09:00:37.139Z",
+    "last_progress_at": "2026-09-10T09:00:37.139Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 847495 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T09:00:37.139Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T01:34:19.687Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 847495 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789030837157-30E2EF",
+    "task_id": "ATK-15",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 7384,
+    "command": "run-job",
+    "process_fingerprint": "d07bf3569ecac13116889537850a86d39328c79abcd584ed3fe8f09f7c4b3b64",
+    "command_fingerprint": "d3bb73cc034fb2b0bbe47179229c92cb3bf513bc1e3a88c5b4b81280b1bfe4f7",
+    "task_token": "TOKEN-ATK-15-D13EC8D3A549",
+    "start_time_epoch": 1789030837157,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T09:00:37.157Z",
+    "last_heartbeat_at": "2026-09-10T09:00:37.157Z",
+    "last_progress_at": "2026-09-10T09:00:37.157Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "EXECUTION_UNCERTAIN",
+    "termination_reason": null,
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T09:00:37.157Z",
+        "status": "EXECUTION_UNCERTAIN",
+        "note": "Lease created"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789030891245-C4E65D",
+    "task_id": "TASK-CANARY-VERIFY-FIXTURE-001",
+    "task_version": 1,
+    "goal_id": "GOAL-CANARY-LOCAL-OFFLINE-V1",
+    "worker_id": "WORKER-LOCAL-CANARY",
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 14508,
+    "command": "node -e \"verify-fixture\"",
+    "process_fingerprint": "7ab4ad809b620a065160511cbaa003bbff8cec59882d5e6359c378bfddca9e00",
+    "command_fingerprint": "57eecb0a7ad4d8df0efd311df705c38fbe667ee974a08824f7194e83ec6aceb5",
+    "task_token": "TOKEN-TASK-CANARY-VERIFY-FIXTURE-001-1789030891244",
+    "start_time_epoch": 1789030891245,
+    "purpose": "IMMUTABLE_FIXTURE_VERIFICATION",
+    "started_at": "2026-09-10T09:01:31.245Z",
+    "last_heartbeat_at": "2026-09-10T09:01:31.245Z",
+    "last_progress_at": "2026-09-10T09:01:31.261Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "Canary completed normally",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T09:01:31.245Z",
+        "status": "RUNNING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T09:01:31.262Z",
+        "status": "PROGRESSING",
+        "note": "Progress confirmed via RESULT_CUSTOMS_ACCEPTED"
+      },
+      {
+        "timestamp": "2026-09-10T09:01:31.291Z",
+        "status": "COMPLETED",
+        "note": "Canary completed normally"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789030891417-1E62A1",
+    "task_id": "ATK-07",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 788267,
+    "command": "node test",
+    "process_fingerprint": "74b71b2eb63fdf7501e1793026775a97a8fe4a80681a027c13844a995780f00f",
+    "command_fingerprint": "e808ac21b1208662e2ccd088cdb3b895ec3dcfc75d10ccb56edcb821241092a3",
+    "task_token": "TOKEN-CORRECT",
+    "start_time_epoch": 1789030881417,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T09:01:31.417Z",
+    "last_heartbeat_at": "2026-09-10T09:01:31.417Z",
+    "last_progress_at": "2026-09-10T09:01:31.417Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 788267 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T09:01:31.417Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T01:34:19.708Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 788267 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789030891430-21790E",
+    "task_id": "ATK-08",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 880620,
+    "command": "node test",
+    "process_fingerprint": "0920cb41a5697320bbdd1f617783d9feb780d0f3bcf0a929cf4590b1418bbf8c",
+    "command_fingerprint": "e808ac21b1208662e2ccd088cdb3b895ec3dcfc75d10ccb56edcb821241092a3",
+    "task_token": "TOKEN-REAL",
+    "start_time_epoch": 1789030891430,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T09:01:31.430Z",
+    "last_heartbeat_at": "2026-09-10T09:01:31.430Z",
+    "last_progress_at": "2026-09-10T09:01:31.430Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 880620 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T09:01:31.430Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T01:34:19.731Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 880620 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789030891443-18788A",
+    "task_id": "ATK-15",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 9880,
+    "command": "run-job",
+    "process_fingerprint": "37caceb7e9af9a6f404746f18e643b09a3c0f565494c0c75da8e51b24c4a3bac",
+    "command_fingerprint": "d3bb73cc034fb2b0bbe47179229c92cb3bf513bc1e3a88c5b4b81280b1bfe4f7",
+    "task_token": "TOKEN-ATK-15-0B96AA584D36",
+    "start_time_epoch": 1789030891443,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T09:01:31.443Z",
+    "last_heartbeat_at": "2026-09-10T09:01:31.443Z",
+    "last_progress_at": "2026-09-10T09:01:31.443Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "EXECUTION_UNCERTAIN",
+    "termination_reason": null,
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T09:01:31.443Z",
+        "status": "EXECUTION_UNCERTAIN",
+        "note": "Lease created"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789263266235-9AE49A",
+    "task_id": "TASK-WATCHDOG-CRASH-1789263266",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 6436,
+    "command": "node worker_process.js",
+    "process_fingerprint": "d7b97948cd66dc5b80e48532f7d9cf82a3ccd44e9cb600d550db35a324553bb5",
+    "command_fingerprint": "c6bbbbbee06dcc9cae3c8b165da1a8c38d6b62e5076e0888411eeca8759c9a26",
+    "task_token": "TOKEN-TASK-WATCHDOG-CRASH-1789263266-0D5F42B5915E",
+    "start_time_epoch": 1789263266235,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-13T01:34:26.235Z",
+    "last_heartbeat_at": "2026-09-13T01:34:26.235Z",
+    "last_progress_at": "2026-09-13T01:34:26.235Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 6436 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-13T01:34:26.235Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T01:34:26.306Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 6436 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789263278112-923012",
+    "task_id": "TASK-WATCHDOG-CRASH-1789263278",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 1956,
+    "command": "node worker_process.js",
+    "process_fingerprint": "6ccaa1dc2a1ced971deb4918a93b7e0e235ce884d3726a14f6614184c16bd808",
+    "command_fingerprint": "c6bbbbbee06dcc9cae3c8b165da1a8c38d6b62e5076e0888411eeca8759c9a26",
+    "task_token": "TOKEN-TASK-WATCHDOG-CRASH-1789263278-07F3BC02E095",
+    "start_time_epoch": 1789263278112,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-13T01:34:38.112Z",
+    "last_heartbeat_at": "2026-09-13T01:34:38.112Z",
+    "last_progress_at": "2026-09-13T01:34:38.112Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 1956 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-13T01:34:38.112Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T01:34:38.181Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 1956 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789263306645-559522",
+    "task_id": "TASK-WATCHDOG-CRASH-1789263306",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 3652,
+    "command": "node worker_process.js",
+    "process_fingerprint": "311c387e93aed3f03fcdcd328e40b35f508f4ab368bd6d564597e6624041f970",
+    "command_fingerprint": "c6bbbbbee06dcc9cae3c8b165da1a8c38d6b62e5076e0888411eeca8759c9a26",
+    "task_token": "TOKEN-TASK-WATCHDOG-CRASH-1789263306-E8853B5C95B8",
+    "start_time_epoch": 1789263306645,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-13T01:35:06.645Z",
+    "last_heartbeat_at": "2026-09-13T01:35:06.645Z",
+    "last_progress_at": "2026-09-13T01:35:06.645Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 3652 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-13T01:35:06.645Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T01:35:06.719Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 3652 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789263416151-89F47E",
+    "task_id": "TASK-WATCHDOG-CRASH-1789263416",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 8332,
+    "command": "node worker_process.js",
+    "process_fingerprint": "9e4c5f3509d369924331b2991f4d0d36693a994cdfdf423488fdcd4d9ef68377",
+    "command_fingerprint": "c6bbbbbee06dcc9cae3c8b165da1a8c38d6b62e5076e0888411eeca8759c9a26",
+    "task_token": "TOKEN-TASK-WATCHDOG-CRASH-1789263416-19C4965D1D1F",
+    "start_time_epoch": 1789263416151,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-13T01:36:56.151Z",
+    "last_heartbeat_at": "2026-09-13T01:36:56.151Z",
+    "last_progress_at": "2026-09-13T01:36:56.151Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 8332 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-13T01:36:56.151Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T01:36:56.229Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 8332 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789263442001-C70B5F",
+    "task_id": "TASK-WATCHDOG-CRASH-1789263441",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 5704,
+    "command": "node worker_process.js",
+    "process_fingerprint": "245225963ac00a604d4178b582f9376433f9d5b1b52c665f5ff2a6dc7ae9d831",
+    "command_fingerprint": "c6bbbbbee06dcc9cae3c8b165da1a8c38d6b62e5076e0888411eeca8759c9a26",
+    "task_token": "TOKEN-TASK-WATCHDOG-CRASH-1789263441-40FCD5BA63FE",
+    "start_time_epoch": 1789263442001,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-13T01:37:22.001Z",
+    "last_heartbeat_at": "2026-09-13T01:37:22.001Z",
+    "last_progress_at": "2026-09-13T01:37:22.001Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 5704 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-13T01:37:22.001Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T01:37:22.072Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 5704 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789263456612-754CF8",
+    "task_id": "TASK-WATCHDOG-CRASH-1789263456",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 19764,
+    "command": "node worker_process.js",
+    "process_fingerprint": "6d19c07d706a8911946dea25c70f264c2425343a1bb638842f8d7425cf19abb3",
+    "command_fingerprint": "c6bbbbbee06dcc9cae3c8b165da1a8c38d6b62e5076e0888411eeca8759c9a26",
+    "task_token": "TOKEN-TASK-WATCHDOG-CRASH-1789263456-5D740A4F637E",
+    "start_time_epoch": 1789263456612,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-13T01:37:36.612Z",
+    "last_heartbeat_at": "2026-09-13T01:37:36.612Z",
+    "last_progress_at": "2026-09-13T01:37:36.612Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 19764 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-13T01:37:36.612Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T01:37:36.694Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 19764 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789263524015-671EB9",
+    "task_id": "TASK-WATCHDOG-CRASH-1789263523",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 3592,
+    "command": "node worker_process.js",
+    "process_fingerprint": "99177daa9e2c48466b248cd4ae654be7ad1e42f8147dfadc3971be10d3a24a84",
+    "command_fingerprint": "c6bbbbbee06dcc9cae3c8b165da1a8c38d6b62e5076e0888411eeca8759c9a26",
+    "task_token": "TOKEN-TASK-WATCHDOG-CRASH-1789263523-1875429BF1B4",
+    "start_time_epoch": 1789263524015,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-13T01:38:44.015Z",
+    "last_heartbeat_at": "2026-09-13T01:38:44.015Z",
+    "last_progress_at": "2026-09-13T01:38:44.015Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 3592 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-13T01:38:44.015Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T01:38:44.077Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 3592 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789263527604-98AAE1",
+    "task_id": "TASK-WATCHDOG-CRASH-1789263527",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 4176,
+    "command": "node worker_process.js",
+    "process_fingerprint": "4d4433e68fd620899345593c9b3ad50f845fd1d9f616eac37dbbb969322fa846",
+    "command_fingerprint": "c6bbbbbee06dcc9cae3c8b165da1a8c38d6b62e5076e0888411eeca8759c9a26",
+    "task_token": "TOKEN-TASK-WATCHDOG-CRASH-1789263527-38753C7ACC0E",
+    "start_time_epoch": 1789263527604,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-13T01:38:47.604Z",
+    "last_heartbeat_at": "2026-09-13T01:38:47.604Z",
+    "last_progress_at": "2026-09-13T01:38:47.604Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 4176 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-13T01:38:47.604Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T01:38:47.705Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 4176 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789263749433-4D9DE4",
+    "task_id": "TASK-WATCHDOG-CRASH-1789263749",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 20192,
+    "command": "node worker_process.js",
+    "process_fingerprint": "a740be7e5c54d29fa4c0dd52ec2f6a45a4174c9a328b1732d62e512f78d383aa",
+    "command_fingerprint": "c6bbbbbee06dcc9cae3c8b165da1a8c38d6b62e5076e0888411eeca8759c9a26",
+    "task_token": "TOKEN-TASK-WATCHDOG-CRASH-1789263749-A38AA525DE57",
+    "start_time_epoch": 1789263749433,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-13T01:42:29.433Z",
+    "last_heartbeat_at": "2026-09-13T01:42:29.433Z",
+    "last_progress_at": "2026-09-13T01:42:29.433Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 20192 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-13T01:42:29.433Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T01:42:29.483Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 20192 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789263866916-A6498D",
+    "task_id": "TASK-WATCHDOG-CRASH-1789263866",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 19592,
+    "command": "node worker_process.js",
+    "process_fingerprint": "9d8e932269ba967b7aec55168e9f67f5b6ab3b8ef91657b1db9e16933ed887dc",
+    "command_fingerprint": "c6bbbbbee06dcc9cae3c8b165da1a8c38d6b62e5076e0888411eeca8759c9a26",
+    "task_token": "TOKEN-TASK-WATCHDOG-CRASH-1789263866-F24E9EEB0184",
+    "start_time_epoch": 1789263866916,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-13T01:44:26.916Z",
+    "last_heartbeat_at": "2026-09-13T01:44:26.916Z",
+    "last_progress_at": "2026-09-13T01:44:26.916Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 19592 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-13T01:44:26.916Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T01:44:26.959Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 19592 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789264011173-41204C",
+    "task_id": "TASK-WATCHDOG-CRASH-1789264011",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 19852,
+    "command": "node worker_process.js",
+    "process_fingerprint": "801ee5b74880729bca5e699e3466165faab95a6e601cfa8c9454983c68c21ac4",
+    "command_fingerprint": "c6bbbbbee06dcc9cae3c8b165da1a8c38d6b62e5076e0888411eeca8759c9a26",
+    "task_token": "TOKEN-TASK-WATCHDOG-CRASH-1789264011-FD99FE8C34F2",
+    "start_time_epoch": 1789264011173,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-13T01:46:51.173Z",
+    "last_heartbeat_at": "2026-09-13T01:46:51.173Z",
+    "last_progress_at": "2026-09-13T01:46:51.173Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 19852 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-13T01:46:51.173Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T01:46:51.216Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 19852 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789274175856-921CCB",
+    "task_id": "TASK-WATCHDOG-CRASH-1789274175",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 19548,
+    "command": "node worker_process.js",
+    "process_fingerprint": "ec66b4ec650342af1bdde990634662e48d3f0e4b39285dfe6b2cfc1014a515b2",
+    "command_fingerprint": "c6bbbbbee06dcc9cae3c8b165da1a8c38d6b62e5076e0888411eeca8759c9a26",
+    "task_token": "TOKEN-TASK-WATCHDOG-CRASH-1789274175-15DB6B51293C",
+    "start_time_epoch": 1789274175856,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-13T04:36:15.856Z",
+    "last_heartbeat_at": "2026-09-13T04:36:15.856Z",
+    "last_progress_at": "2026-09-13T04:36:15.856Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 19548 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-13T04:36:15.856Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T04:36:15.912Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 19548 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789275775105-558B10",
+    "task_id": "TASK-WATCHDOG-CRASH-1789275774",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 7192,
+    "command": "node worker_process.js",
+    "process_fingerprint": "4abc60c82587d5e17cfcee3d5eb74c2a33db2eb0df329e82dc7a4995314cb4cb",
+    "command_fingerprint": "c6bbbbbee06dcc9cae3c8b165da1a8c38d6b62e5076e0888411eeca8759c9a26",
+    "task_token": "TOKEN-TASK-WATCHDOG-CRASH-1789275774-8698979DA460",
+    "start_time_epoch": 1789275775105,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-13T05:02:55.105Z",
+    "last_heartbeat_at": "2026-09-13T05:02:55.105Z",
+    "last_progress_at": "2026-09-13T05:02:55.105Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 7192 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-13T05:02:55.105Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T05:02:55.292Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 7192 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789275896480-C41CB9",
+    "task_id": "TASK-WATCHDOG-CRASH-1789275896",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 12384,
+    "command": "node worker_process.js",
+    "process_fingerprint": "22d10fa0939e9aff0acd746456e18c4e8fa643259665bfc80edcaa58ce9cd491",
+    "command_fingerprint": "c6bbbbbee06dcc9cae3c8b165da1a8c38d6b62e5076e0888411eeca8759c9a26",
+    "task_token": "TOKEN-TASK-WATCHDOG-CRASH-1789275896-C1ECB8FF972F",
+    "start_time_epoch": 1789275896480,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-13T05:04:56.480Z",
+    "last_heartbeat_at": "2026-09-13T05:04:56.480Z",
+    "last_progress_at": "2026-09-13T05:04:56.480Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 12384 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-13T05:04:56.480Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T05:04:56.547Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 12384 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789277116424-BBE469",
+    "task_id": "TASK-WATCHDOG-CRASH-1789277116",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 11176,
+    "command": "node worker_process.js",
+    "process_fingerprint": "3489d4f3b185646b86c45d0b47baa6ea7eb474d741b68ab06f3c9714116f5918",
+    "command_fingerprint": "c6bbbbbee06dcc9cae3c8b165da1a8c38d6b62e5076e0888411eeca8759c9a26",
+    "task_token": "TOKEN-TASK-WATCHDOG-CRASH-1789277116-F74DF84B984F",
+    "start_time_epoch": 1789277116423,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-13T05:25:16.423Z",
+    "last_heartbeat_at": "2026-09-13T05:25:16.423Z",
+    "last_progress_at": "2026-09-13T05:25:16.423Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 11176 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-13T05:25:16.423Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T05:25:16.479Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 11176 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789277758323-C2B5F4",
+    "task_id": "TASK-WATCHDOG-CRASH-1789277758",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 18788,
+    "command": "node worker_process.js",
+    "process_fingerprint": "16296e11e5c267e40e8434840d83708cd699058fec5ec7ee2e9feec2bb889052",
+    "command_fingerprint": "c6bbbbbee06dcc9cae3c8b165da1a8c38d6b62e5076e0888411eeca8759c9a26",
+    "task_token": "TOKEN-TASK-WATCHDOG-CRASH-1789277758-4B9B712340FD",
+    "start_time_epoch": 1789277758323,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-13T05:35:58.323Z",
+    "last_heartbeat_at": "2026-09-13T05:35:58.323Z",
+    "last_progress_at": "2026-09-13T05:35:58.323Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 18788 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-13T05:35:58.323Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T05:35:58.382Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 18788 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789278027795-C19DD0",
+    "task_id": "TASK-WATCHDOG-CRASH-1789278027",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 13980,
+    "command": "node worker_process.js",
+    "process_fingerprint": "b6a7ef290e381387a8b8fd782c98fbaef0f0d0b4197b5adcccf28b1ad72ba6a1",
+    "command_fingerprint": "c6bbbbbee06dcc9cae3c8b165da1a8c38d6b62e5076e0888411eeca8759c9a26",
+    "task_token": "TOKEN-TASK-WATCHDOG-CRASH-1789278027-9972EAC5FACD",
+    "start_time_epoch": 1789278027795,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-13T05:40:27.795Z",
+    "last_heartbeat_at": "2026-09-13T05:40:27.795Z",
+    "last_progress_at": "2026-09-13T05:40:27.795Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 13980 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-13T05:40:27.795Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T05:40:27.858Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 13980 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789278259645-3CD226",
+    "task_id": "TASK-WATCHDOG-CRASH-1789278259",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 6860,
+    "command": "node worker_process.js",
+    "process_fingerprint": "22833b727b9e624df4a3615a1d804c24ad72360e239106e5da777c958c9c890e",
+    "command_fingerprint": "c6bbbbbee06dcc9cae3c8b165da1a8c38d6b62e5076e0888411eeca8759c9a26",
+    "task_token": "TOKEN-TASK-WATCHDOG-CRASH-1789278259-2260FB7E7F2C",
+    "start_time_epoch": 1789278259645,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-13T05:44:19.645Z",
+    "last_heartbeat_at": "2026-09-13T05:44:19.645Z",
+    "last_progress_at": "2026-09-13T05:44:19.645Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 6860 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-13T05:44:19.645Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T05:44:19.764Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 6860 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789279041533-478020",
+    "task_id": "TASK-WATCHDOG-CRASH-1789279041",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 1040,
+    "command": "node worker_process.js",
+    "process_fingerprint": "a11e68134639d0613c655c3d09d131ee8084bc028613243b6da484ddf9ea9b42",
+    "command_fingerprint": "c6bbbbbee06dcc9cae3c8b165da1a8c38d6b62e5076e0888411eeca8759c9a26",
+    "task_token": "TOKEN-TASK-WATCHDOG-CRASH-1789279041-F32BACFF9AFF",
+    "start_time_epoch": 1789279041532,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-13T05:57:21.532Z",
+    "last_heartbeat_at": "2026-09-13T05:57:21.532Z",
+    "last_progress_at": "2026-09-13T05:57:21.532Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 1040 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-13T05:57:21.532Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T05:57:21.618Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 1040 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789281260169-47A68E",
+    "task_id": "TASK-WATCHDOG-CRASH-1789281260",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 16220,
+    "command": "node worker_process.js",
+    "process_fingerprint": "dd4ee48a4ba275b6f8ff971452b3ac4d742590b9edd5a320e7e80d8e55100b41",
+    "command_fingerprint": "c6bbbbbee06dcc9cae3c8b165da1a8c38d6b62e5076e0888411eeca8759c9a26",
+    "task_token": "TOKEN-TASK-WATCHDOG-CRASH-1789281260-18AE131E5D37",
+    "start_time_epoch": 1789281260169,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-13T06:34:20.169Z",
+    "last_heartbeat_at": "2026-09-13T06:34:20.169Z",
+    "last_progress_at": "2026-09-13T06:34:20.169Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 16220 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-13T06:34:20.169Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T06:34:20.229Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 16220 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789281595475-448901",
+    "task_id": "TASK-WATCHDOG-CRASH-1789281595",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 11132,
+    "command": "node worker_process.js",
+    "process_fingerprint": "0823d59ce5ff14a360057ec9c23bbcde8ff40e965cfe75317aa9dcd374272a4d",
+    "command_fingerprint": "c6bbbbbee06dcc9cae3c8b165da1a8c38d6b62e5076e0888411eeca8759c9a26",
+    "task_token": "TOKEN-TASK-WATCHDOG-CRASH-1789281595-9B66F5F13933",
+    "start_time_epoch": 1789281595475,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-13T06:39:55.475Z",
+    "last_heartbeat_at": "2026-09-13T06:39:55.475Z",
+    "last_progress_at": "2026-09-13T06:39:55.475Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 11132 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-13T06:39:55.475Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T06:39:55.531Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 11132 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789282249714-B709DE",
+    "task_id": "TASK-WATCHDOG-CRASH-1789282249",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 8488,
+    "command": "node worker_process.js",
+    "process_fingerprint": "de841e4bb1c051970f597d3806b9ef52d9224e16f28fb520edf0f9f2abb69d8d",
+    "command_fingerprint": "c6bbbbbee06dcc9cae3c8b165da1a8c38d6b62e5076e0888411eeca8759c9a26",
+    "task_token": "TOKEN-TASK-WATCHDOG-CRASH-1789282249-B38CD1EDF039",
+    "start_time_epoch": 1789282249714,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-13T06:50:49.714Z",
+    "last_heartbeat_at": "2026-09-13T06:50:49.714Z",
+    "last_progress_at": "2026-09-13T06:50:49.714Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 8488 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-13T06:50:49.714Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T06:50:49.822Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 8488 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789284244366-9BADA9",
+    "task_id": "TASK-WATCHDOG-CRASH-1789284244",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 3796,
+    "command": "node worker_process.js",
+    "process_fingerprint": "d76da46ae4c65fa633aab5ddecc6573f1a6b3ba1a5b4da965446cd77d6d451e9",
+    "command_fingerprint": "c6bbbbbee06dcc9cae3c8b165da1a8c38d6b62e5076e0888411eeca8759c9a26",
+    "task_token": "TOKEN-TASK-WATCHDOG-CRASH-1789284244-2808E3F1A388",
+    "start_time_epoch": 1789284244365,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-13T07:24:04.365Z",
+    "last_heartbeat_at": "2026-09-13T07:24:04.365Z",
+    "last_progress_at": "2026-09-13T07:24:04.365Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 3796 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-13T07:24:04.365Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T07:24:04.455Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 3796 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789287346161-967C8C",
+    "task_id": "TASK-WATCHDOG-CRASH-1789287346",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 17460,
+    "command": "node worker_process.js",
+    "process_fingerprint": "07831c17b460b28fbf4831ebb5a4233cf233871d030679ffd17e5596f2d18d30",
+    "command_fingerprint": "c6bbbbbee06dcc9cae3c8b165da1a8c38d6b62e5076e0888411eeca8759c9a26",
+    "task_token": "TOKEN-TASK-WATCHDOG-CRASH-1789287346-58BC700B4900",
+    "start_time_epoch": 1789287346161,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-13T08:15:46.161Z",
+    "last_heartbeat_at": "2026-09-13T08:15:46.161Z",
+    "last_progress_at": "2026-09-13T08:15:46.161Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 17460 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-13T08:15:46.161Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T08:15:46.261Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 17460 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789287629012-B06094",
+    "task_id": "TASK-WATCHDOG-CRASH-1789287628",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 13676,
+    "command": "node worker_process.js",
+    "process_fingerprint": "7fdb14d1a6b93c216dbfeb9e1c58fa0333b42e7418831974c2d0c10d790adcd4",
+    "command_fingerprint": "c6bbbbbee06dcc9cae3c8b165da1a8c38d6b62e5076e0888411eeca8759c9a26",
+    "task_token": "TOKEN-TASK-WATCHDOG-CRASH-1789287628-62C03A3CA578",
+    "start_time_epoch": 1789287629012,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-13T08:20:29.012Z",
+    "last_heartbeat_at": "2026-09-13T08:20:29.012Z",
+    "last_progress_at": "2026-09-13T08:20:29.012Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 13676 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-13T08:20:29.012Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T08:20:29.099Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 13676 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789288440709-89617C",
+    "task_id": "TASK-WATCHDOG-CRASH-1789288440",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 11020,
+    "command": "node worker_process.js",
+    "process_fingerprint": "ef3b1c9b56289b84c3fd7d458086ecb2845dc15b755fa0f875f49736229b368a",
+    "command_fingerprint": "c6bbbbbee06dcc9cae3c8b165da1a8c38d6b62e5076e0888411eeca8759c9a26",
+    "task_token": "TOKEN-TASK-WATCHDOG-CRASH-1789288440-A337DDFD7F68",
+    "start_time_epoch": 1789288440709,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-13T08:34:00.709Z",
+    "last_heartbeat_at": "2026-09-13T08:34:00.709Z",
+    "last_progress_at": "2026-09-13T08:34:00.709Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 11020 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-13T08:34:00.709Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T08:34:00.789Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 11020 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789288838544-B31E91",
+    "task_id": "TASK-WATCHDOG-CRASH-1789288838",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 6928,
+    "command": "node worker_process.js",
+    "process_fingerprint": "7258a022854541751fb9cf7af4861cb741b5d2785d067739895ecf8bfc50914c",
+    "command_fingerprint": "c6bbbbbee06dcc9cae3c8b165da1a8c38d6b62e5076e0888411eeca8759c9a26",
+    "task_token": "TOKEN-TASK-WATCHDOG-CRASH-1789288838-6A3ECFC1D4A1",
+    "start_time_epoch": 1789288838544,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-13T08:40:38.544Z",
+    "last_heartbeat_at": "2026-09-13T08:40:38.544Z",
+    "last_progress_at": "2026-09-13T08:40:38.544Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 6928 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-13T08:40:38.544Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T08:40:38.610Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 6928 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789289549696-3C7D40",
+    "task_id": "TASK-WATCHDOG-CRASH-1789289549",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 18720,
+    "command": "node worker_process.js",
+    "process_fingerprint": "8d5b44ec06c69d486d1370715245e3f91813f2ceacc18bfec47076615ba98406",
+    "command_fingerprint": "c6bbbbbee06dcc9cae3c8b165da1a8c38d6b62e5076e0888411eeca8759c9a26",
+    "task_token": "TOKEN-TASK-WATCHDOG-CRASH-1789289549-1DE5FC550CD3",
+    "start_time_epoch": 1789289549696,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-13T08:52:29.695Z",
+    "last_heartbeat_at": "2026-09-13T08:52:29.695Z",
+    "last_progress_at": "2026-09-13T08:52:29.695Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 18720 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-13T08:52:29.695Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T08:52:29.778Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 18720 detected by crash watchdog"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789289855614-DF3031",
+    "task_id": "TASK-WATCHDOG-CRASH-1789289855",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 16528,
+    "command": "node worker_process.js",
+    "process_fingerprint": "fb8c69bc7541a3b5464977a9a743a3abd381f7634fc769a4182df762566dfa37",
+    "command_fingerprint": "c6bbbbbee06dcc9cae3c8b165da1a8c38d6b62e5076e0888411eeca8759c9a26",
+    "task_token": "TOKEN-TASK-WATCHDOG-CRASH-1789289855-9C8C182B3701",
+    "start_time_epoch": 1789289855614,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-13T08:57:35.614Z",
+    "last_heartbeat_at": "2026-09-13T08:57:35.614Z",
+    "last_progress_at": "2026-09-13T08:57:35.614Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "TERMINATED",
+    "termination_reason": "Dead worker PID 16528 detected by crash watchdog",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-13T08:57:35.614Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-13T08:57:35.731Z",
+        "status": "TERMINATED",
+        "note": "Dead worker PID 16528 detected by crash watchdog"
+      }
+    ]
+  }
+]

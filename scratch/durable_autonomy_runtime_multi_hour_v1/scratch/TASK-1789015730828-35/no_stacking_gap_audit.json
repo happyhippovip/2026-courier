@@ -1,0 +1,8 @@
+{
+  "file": "courier/core/no_stacking.js",
+  "exists": false,
+  "has_case_insensitive_handling": false,
+  "has_subpath_containment": false,
+  "defect_risk": "HIGH",
+  "recommendation": "Use ResourceLockManager hierarchical NTFS path prefix containment"
+}

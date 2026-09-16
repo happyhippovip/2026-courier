@@ -1,0 +1,23 @@
+{
+  "package_id": "PKG-B01-PROCESS-ORACLE",
+  "title": "Tri-State Process Identity & Recycling Oracle",
+  "problem": "Process killing relies on PID alone; recycled PIDs on Windows risk terminating innocent OS/IDE processes.",
+  "evidence": "Verified in WS2 (EXP-WS2-COMP-001) and WS10 (EXP-WS10-MUT-001, MUT-02).",
+  "current_source_location": "supervisor/lease_manager.js, supervisor/task_hygiene.js",
+  "proposed_change_boundary": "Require start-time metadata comparison before any process termination; fail closed on UNKNOWN.",
+  "files_likely_affected": [
+    "supervisor/lease_manager.js",
+    "supervisor/task_hygiene.js"
+  ],
+  "migration_impact": "Legacy leases lacking start time treated as UNKNOWN (kill forbidden).",
+  "rollback": "Revert to PID liveness check with manual operator confirmation.",
+  "targeted_tests": [
+    "test_process_identity.js"
+  ],
+  "independent_verifier": "OS process creation log auditor.",
+  "known_risks": "Processes with inaccessible metadata cannot be automatically cleaned up; requires operator alert.",
+  "mac_dependency": true,
+  "human_gate_dependency": false,
+  "recommended_integration_order": 4,
+  "stop_condition": "Termination of any process whose start time mismatches lease record."
+}

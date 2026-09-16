@@ -1,0 +1,6 @@
+{
+  "id": "CE-016",
+  "defect_class": "MONEY_FACTORY_UNVERIFIED_REAL_REVENUE_HAZARD",
+  "description": "System attempting to book simulation profits as real EUR balance without settlement.",
+  "proven_invariant": "REAL_REVENUE_EUR strictly equals 0.00 until cryptographic bank settlement."
+}

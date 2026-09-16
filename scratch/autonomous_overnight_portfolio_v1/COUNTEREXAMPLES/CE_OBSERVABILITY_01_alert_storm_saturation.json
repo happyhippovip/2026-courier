@@ -1,0 +1,12 @@
+{
+  "defect_id": "CE_OBSERVABILITY_01",
+  "name": "Unbounded Notification Storm Under Flapping Worker Failures",
+  "vulnerability_description": "When a worker encounters flapping transient errors (e.g. socket reconnects 50 times in 10 seconds), un-debounced notification pipelines flood the human operator with 50 high-priority notifications, creating alert fatigue and obscuring genuine fatal defects.",
+  "minimal_trigger_payload": {
+    "error_burst_count": 50,
+    "burst_window_ms": 10000,
+    "raw_notifications_generated_without_filter": 50
+  },
+  "invariant_violated": "Strict high-signal notification policy: at most 1 summarized alert per root defect signature within cooldown window",
+  "resolution_proven": "HighSignalNotificationReducer fingerprints templates, suppresses duplicates within cooldownMs, aggregates counts, and guarantees 0 duplicate interruptions while instantly emitting CRITICAL human-gate alerts."
+}

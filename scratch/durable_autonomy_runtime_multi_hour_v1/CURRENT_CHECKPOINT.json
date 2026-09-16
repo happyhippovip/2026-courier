@@ -1,0 +1,14 @@
+{
+  "mission_id": "WINDOWS_COURIER_DURABLE_AUTONOMY_RUNTIME_MULTI_HOUR_V1",
+  "status": "PAUSED_BY_HUMAN_PRIORITY_CHANGE",
+  "goal_id": "GOAL-DURABLE-AUTONOMY-V1",
+  "completed_work_units": 52,
+  "open_work_units": 13,
+  "active_leases_count": 0,
+  "fenced_tasks_count": 0,
+  "real_elapsed_seconds": 570,
+  "last_action": "PAUSED_BY_HUMAN_PRIORITY_CHANGE",
+  "pause_reason": "USER_EXPLICIT_EARLY_CHECKPOINT_AND_HANDOFF",
+  "reconciliation_status": "CLEAN_ZERO_ACTIVE_LEASES",
+  "saved_at_utc": "2026-09-10T05:20:44.722Z"
+}

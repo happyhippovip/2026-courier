@@ -1,0 +1,3462 @@
+<USER_REQUEST>
+######################################################################
+######################################################################
+#                                                                    #
+#   COURIER — DEEP AUTONOMOUS ENGINEERING CONTINUUM SIGMA V1        #
+#                                                                    #
+#   REAL ENGINEERING. REAL ARTIFACTS. REAL EXECUTION.                #
+#   NO SYNTHETIC CAMPAIGN COMPLETION.                                #
+#   NO FAKE ELAPSED TIME.                                            #
+#   NO CHECKLIST SATURATION.                                         #
+#                                                                    #
+######################################################################
+######################################################################
+
+MISSION_ID:
+WINDOWS_COURIER_DEEP_ENGINEERING_CONTINUUM_SIGMA_V1
+
+MISSION_MODE:
+AUTONOMOUS
+LONG_RUN_BY_DEFAULT
+REAL_EXECUTION_REQUIRED
+REAL_ARTIFACTS_REQUIRED
+SOURCE_GROUNDED
+EVIDENCE_GROUNDED
+SELF_EXTENDING
+CHECKPOINTED
+NO_HUMAN_BABYSITTING
+NO_FILLER
+NO_FAKE_DURATION
+NO_SYNTHETIC_SATURATION
+
+======================================================================
+0. READ THIS BEFORE DOING ANYTHING
+======================================================================
+
+A previous autonomous mission failed an important meta-requirement.
+
+It claimed an approximately eight-hour operational horizon even though
+its own durable timestamps covered only approximately three minutes.
+
+It generated a finite sequence of campaign scripts:
+
+run_campaign_01
+run_campaign_02
+...
+run_campaign_13
+
+and then immediately executed a saturation/seal script.
+
+That pattern is FORBIDDEN in this mission.
+
+The previous engineering findings remain useful evidence.
+
+The previous LONG-RUN claim does not.
+
+THIS MISSION MUST DISTINGUISH:
+
+REAL WALL-CLOCK ELAPSED TIME
+
+from
+
+VIRTUAL/SIMULATED HORIZON.
+
+Never write:
+
+"8 hours autonomous"
+
+unless actual UTC timestamps prove approximately eight real hours elapsed.
+
+Never count:
+
+365-day virtual simulation
+
+as
+
+365 days of agent operation.
+
+Virtual simulation is useful evidence for algorithms.
+
+It is NOT evidence of autonomous runtime.
+
+======================================================================
+1. WHAT THE HUMAN WANTS
+======================================================================
+
+The human wants to sleep.
+
+The human does NOT want to feed an AI agent every 10–15 minutes.
+
+The desired system is:
+
+HUMAN
+→ gives high-level goal
+
+COURIER
+→ discovers work
+→ decomposes work
+→ negotiates work
+→ dispatches workers
+→ supervises processes
+→ verifies results
+→ preserves ideas
+→ chooses next useful work
+→ continues autonomously
+
+HUMAN
+→ returns much later
+→ sees durable verified progress.
+
+The human should only be interrupted for a REAL Human Gate.
+
+Examples:
+
+password
+2FA
+CAPTCHA
+OAuth/login
+sudo/admin/UAC
+billing
+purchase
+subscription
+financial liability
+real trade
+wallet signing
+production publication
+production deployment
+customer outreach
+legal/KYC.
+
+Everything else that can safely be investigated locally should proceed
+without human interaction.
+
+======================================================================
+2. THIS IS NOT A PROMPT-COMPLETION EXERCISE
+======================================================================
+
+Do NOT treat every numbered section below as an item to mark PASS.
+
+The sections define:
+
+constraints
+research directions
+engineering standards
+failure modes
+and autonomous continuation rules.
+
+They are NOT:
+
+"finish section 1 through section N, then declare complete."
+
+Do NOT generate one script per heading.
+
+Do NOT generate:
+
+run_section_1.js
+run_section_2.js
+...
+finalize.js
+
+and call that long-running autonomy.
+
+Do NOT manufacture JSON stating that an experiment happened when no
+corresponding executable evidence exists.
+
+Do NOT generate a report describing tests that were never executed.
+
+Do NOT generate simulated timestamps pretending work occurred over hours.
+
+======================================================================
+3. ACTUAL WORK STANDARD
+======================================================================
+
+A substantial engineering campaign should normally contain some
+combination of:
+
+actual source inspection
+actual executable code
+actual test implementation
+actual test execution
+actual independent oracle
+actual mutation
+actual counterexample
+actual fault injection
+actual subprocess execution
+actual restart/replay experiment
+actual benchmark
+actual artifact inspection
+actual source comparison
+actual failure minimization
+actual re-verification.
+
+A campaign consisting only of:
+
+writing JSON
+writing Markdown
+declaring properties
+and marking them PASS
+
+is NOT sufficient.
+
+======================================================================
+4. TARGET
+======================================================================
+
+Primary target:
+
+C:\Users\lol\2026-workspace\courier
+
+Mission workspace:
+
+C:\Users\lol\2026-workspace\courier\scratch\deep_engineering_continuum_sigma_v1
+
+All experimental writes must remain isolated in the mission workspace
+unless an already-authorized safe local mechanism explicitly permits
+otherwise.
+
+Do not mutate production Courier.
+
+Do not commit.
+
+Do not push.
+
+======================================================================
+5. ABSOLUTE SAFETY
+======================================================================
+
+WINDOWS ONLY.
+
+DO NOT access Mac.
+
+DO NOT SSH/RDP/remote-control Mac.
+
+DO NOT touch:
+
+happyhippovip/universuX
+
+DO NOT mutate frozen RC3.
+
+DO NOT overwrite sealed historical evidence.
+
+DO NOT:
+
+commit
+push
+merge
+deploy
+publish
+send external messages
+contact customers
+buy anything
+subscribe
+activate trial
+accept billing
+create financial liability
+trade
+touch funds
+connect wallet
+sign wallet operation
+rotate account
+modify credentials.
+
+PERMANENT:
+
+AUTONOMOUS_SPEND_LIMIT_EUR=0
+REAL_TRADES=0
+REAL_FUNDS_TOUCHED=NO
+REAL_POSITIONS_CHANGED=0
+REAL_WALLETS_CONNECTED=NO
+WALLET_SIGNING=NO
+OIL_LIVE=DENY
+BTC_LIVE_CANARY=NOT_AUTHORIZED
+REAL_REVENUE_EUR=0 unless independent real settlement evidence already exists.
+
+Human silence grants no authority.
+
+======================================================================
+6. PRE-FLIGHT
+======================================================================
+
+Verify:
+
+predecessor Omega is terminal
+active Windows writer leases = 0
+owned predecessor helpers = 0
+no EXECUTION_UNCERTAIN predecessor action exists
+git branch
+git HEAD
+git status
+protected evidence intact.
+
+If another conflicting writer is genuinely running:
+
+BLOCKED_CONFLICTING_WRITER
+
+and do not start.
+
+Do not kill legitimate work.
+
+======================================================================
+7. RECORD REAL TIME CORRECTLY
+======================================================================
+
+At mission start record:
+
+REAL_STARTED_AT_UTC
+REAL_STARTED_AT_LOCAL_IF_AVAILABLE
+MONOTONIC_START_IF_AVAILABLE.
+
+At checkpoints record:
+
+REAL_CHECKPOINT_AT_UTC.
+
+At termination compute actual elapsed time from real timestamps.
+
+Maintain separate fields:
+
+REAL_ELAPSED_SECONDS
+VIRTUAL_TIME_SIMULATED
+EVENTS_SIMULATED.
+
+NEVER combine them.
+
+Example:
+
+REAL_ELAPSED_SECONDS = 843
+VIRTUAL_TIME_SIMULATED = 365 days
+
+does NOT mean:
+
+"mission ran one year."
+
+======================================================================
+8. DURABLE OPERATING STATE
+======================================================================
+
+Create:
+
+MISSION_STATE.json
+CURRENT_CHECKPOINT.md
+REAL_TIME_LEDGER.jsonl
+WORK_QUEUE.jsonl
+CAMPAIGN_LEDGER.jsonl
+EXPERIMENT_LEDGER.jsonl
+EXECUTION_LEDGER.jsonl
+TEST_LEDGER.jsonl
+ORACLE_LEDGER.jsonl
+MUTATION_LEDGER.jsonl
+COUNTEREXAMPLE_LEDGER.jsonl
+FAILURE_LEDGER.jsonl
+CLAIM_LEDGER.jsonl
+ASSUMPTION_LEDGER.jsonl
+EVIDENCE_LEDGER.jsonl
+SOURCE_OBSERVATION_LEDGER.jsonl
+FOLLOW_UP_INBOX.jsonl
+PROCESS_LEASE_LEDGER.jsonl
+RESOURCE_LEASE_LEDGER.jsonl
+HUMAN_GATE_QUEUE.jsonl
+MAC_NATIVE_QUEUE.jsonl
+CODEX_REVIEW_QUEUE.jsonl
+POST_FREEZE_QUEUE.jsonl
+DO_NOT_REPEAT.jsonl
+MORNING_REPORT.md.
+
+======================================================================
+9. ARTIFACT TREE
+======================================================================
+
+Create as needed:
+
+source_snapshots/
+source_maps/
+models/
+shadow/
+shadow_v1/
+shadow_v2/
+shadow_v3/
+oracles/
+tests/
+property/
+metamorphic/
+differential/
+mutation/
+chaos/
+crash/
+restart/
+replay/
+concurrency/
+processes/
+journals/
+migration/
+rollback/
+version_skew/
+benchmarks/
+counterexamples/
+failure_corpus/
+integration/
+proofs/
+reports/
+checkpoints/
+diagnostics/
+
+Do not create empty directories just to claim progress.
+
+======================================================================
+10. FIRST REAL CAMPAIGN — FORENSIC SOURCE AUDIT
+======================================================================
+
+Do not trust Omega's source conclusions automatically.
+
+Inspect actual relevant production/current source.
+
+Map real functions and call sites for:
+
+dispatch
+retry
+fallback
+requeue
+reconciliation
+worker lease
+process lease
+no-stacking
+stall handling
+task hygiene
+chief coordination
+control plane
+validation
+Money Factory safety
+warehouse settlement
+goal satisfaction
+persistence.
+
+Produce a SOURCE CALL GRAPH based on actual source.
+
+For each important claim from Omega:
+
+locate exact source evidence.
+
+Classify:
+
+CONFIRMED_IN_CURRENT_SOURCE
+PARTIALLY_PRESENT
+ABSENT
+SHADOW_ONLY
+STALE
+CONTRADICTED
+UNKNOWN.
+
+======================================================================
+11. SOURCE CLAIM DIFFERENTIAL
+======================================================================
+
+Omega claimed likely production issues involving:
+
+decision engine stall bypass
+path-only writer collision
+capability lattice absence
+wrapper process orphaning
+TOCTOU dispatch race.
+
+Do not repeat those labels.
+
+For each:
+
+find exact current code path.
+
+Construct minimum executable reproduction where possible.
+
+If not reproducible:
+
+downgrade claim.
+
+If reproducible:
+
+preserve exact evidence.
+
+======================================================================
+12. BUILD A REAL SHADOW COURIER KERNEL
+======================================================================
+
+Instead of writing tiny one-off scripts for each campaign, build a
+coherent executable shadow kernel.
+
+Suggested conceptual modules:
+
+TaskStore
+GoalStore
+DispatchAuthority
+UncertaintyFence
+WorkerLeaseManager
+ProcessLeaseManager
+ResourceLockManager
+BorderGuard
+ResultCustoms
+ApprovalTokenStore
+HumanGate
+Journal
+Reconciler
+Supervisor
+GoalVerifier
+FollowUpInbox
+MissionScheduler.
+
+Use language/runtime appropriate to existing repository.
+
+Prefer compatibility with existing code.
+
+The shadow kernel should be executable as a coherent system.
+
+======================================================================
+13. DO NOT DECLARE SHADOW == PRODUCTION
+======================================================================
+
+Shadow code is an executable specification.
+
+It does not prove production fixed.
+
+Maintain differential mapping.
+
+======================================================================
+14. BUILD A REFERENCE MODEL
+======================================================================
+
+Create an independent simpler model of expected behavior.
+
+Do not copy implementation logic line-for-line.
+
+The reference model should decide:
+
+may_dispatch
+may_retry
+resource_conflict
+process_identity
+approval_valid
+result_valid
+goal_satisfied.
+
+======================================================================
+15. DIFFERENTIAL HARNESS
+======================================================================
+
+Generate event sequences.
+
+Run them through:
+
+shadow implementation
+
+and
+
+independent reference model.
+
+Compare outcomes.
+
+Every disagreement:
+
+create frontier item.
+
+======================================================================
+16. STATEFUL PROPERTY TESTING
+======================================================================
+
+Generate sequences including:
+
+create goal
+create task
+negotiate
+approve
+stamp
+dispatch
+lease
+heartbeat
+result
+verify
+close
+cancel
+retry
+fallback
+restart
+migrate
+supersede.
+
+Check invariants after every event.
+
+======================================================================
+17. DO NOT FAKE PROPERTY TESTS
+======================================================================
+
+Actually execute generated cases.
+
+Record seed.
+
+Record case count.
+
+Record failures.
+
+Record exit code.
+
+======================================================================
+18. SHRINK FAILURES
+======================================================================
+
+When random/stateful sequence fails:
+
+minimize event sequence.
+
+Do not keep only huge trace.
+
+======================================================================
+19. FAILURE CORPUS
+======================================================================
+
+Every minimized meaningful failure becomes permanent mission-local
+regression fixture.
+
+======================================================================
+20. A01 — ACTUAL EXECUTION AUTHORITY
+======================================================================
+
+Build actual execution-authority map from source.
+
+Search all possible paths leading toward worker execution.
+
+Do not assume exactly 13 because Omega said 13.
+
+Discover actual number.
+
+======================================================================
+21. A01 — DOMINANCE
+======================================================================
+
+Determine whether one enforceable choke point can dominate all paths.
+
+If not:
+
+document why.
+
+======================================================================
+22. A01 — UNCERTAINTY
+======================================================================
+
+Inject:
+
+dispatch returns unknown
+worker disappears
+lease expires
+result delayed
+result duplicated
+restart occurs
+fallback requested.
+
+Prove no unsafe redispatch.
+
+======================================================================
+23. A01 — CHILD TAINT
+======================================================================
+
+Parent uncertain.
+
+Test descendants and independent siblings.
+
+======================================================================
+24. A01 — RESOLUTION
+======================================================================
+
+Test what evidence legitimately resolves uncertainty.
+
+======================================================================
+25. L01 — REAL RESOURCE GRAPH
+======================================================================
+
+Inspect actual repository resources.
+
+Do not invent semantic resources with no current relevance.
+
+======================================================================
+26. L01 — FILESYSTEM
+======================================================================
+
+Test:
+
+absolute paths
+relative paths
+case variants
+parent/child
+dot segments
+future nonexistent paths
+canonicalization failure.
+
+======================================================================
+27. L01 — SEMANTIC
+======================================================================
+
+Test actual shared resources such as:
+
+git index
+state ledger
+queue
+database/file
+goal ownership
+
+where current architecture genuinely uses them.
+
+======================================================================
+28. L01 — SAFE PARALLELISM
+======================================================================
+
+Measure over-serialization.
+
+Safety is not enough.
+
+Courier must remain useful.
+
+======================================================================
+29. LOCK MANAGER BENCHMARK
+======================================================================
+
+Create thousands of realistic lock requests.
+
+Measure:
+
+latency
+memory
+false conflict rate
+true conflict detection.
+
+======================================================================
+30. DEADLOCK CAMPAIGN
+======================================================================
+
+Create multi-resource acquisition scenarios.
+
+Find cycles.
+
+======================================================================
+31. STARVATION CAMPAIGN
+======================================================================
+
+Long-running low-priority work versus stream of small high-priority work.
+
+======================================================================
+32. PRIORITY INVERSION
+======================================================================
+
+Model high-value campaign blocked by low-value holder.
+
+======================================================================
+33. G01 — CAPABILITY ENFORCEMENT
+======================================================================
+
+Inspect actual Money Factory safety architecture.
+
+Build executable capability-policy shadow.
+
+======================================================================
+34. G01 — CAPABILITY CLASSES
+======================================================================
+
+Do not blindly use 13 tiers.
+
+Derive minimum meaningful capabilities from actual operations.
+
+======================================================================
+35. G01 — DEFERRED LIABILITY
+======================================================================
+
+Test:
+
+€0 trial
+free first month
+auto-renew
+stored payment method
+usage billing
+future charge
+negative wording
+hypothetical discussion
+analysis-only text.
+
+Avoid both false negatives and absurd false positives.
+
+======================================================================
+36. G01 — TOKEN
+======================================================================
+
+Build executable approval token prototype.
+
+Test:
+
+single use
+scope binding
+task binding
+version binding
+operation binding
+expiry
+nonce
+supersession
+replay.
+
+======================================================================
+37. G01 — LOWER-LEVEL ENFORCEMENT
+======================================================================
+
+Prove prompt prose cannot elevate capability.
+
+======================================================================
+38. B01 — WINDOWS PROCESS LAB
+======================================================================
+
+Actually spawn controlled child processes.
+
+Record:
+
+PID
+creation time
+parent
+executable
+task token.
+
+======================================================================
+39. B01 — PROCESS TREE
+======================================================================
+
+Spawn wrapper → child → grandchild.
+
+Test ownership.
+
+======================================================================
+40. B01 — EXIT RACE
+======================================================================
+
+Process exits during inspection.
+
+======================================================================
+41. B01 — UNKNOWN
+======================================================================
+
+Metadata inaccessible or incomplete.
+
+Must not authorize kill.
+
+======================================================================
+42. B01 — SAFE CLEANUP
+======================================================================
+
+Create owned controlled helpers.
+
+Prove bottom-up cleanup.
+
+Verify unrelated processes survive.
+
+======================================================================
+43. PROCESS LAB SAFETY
+======================================================================
+
+Only terminate processes created and positively owned by the mission.
+
+Never experiment on unrelated user processes.
+
+======================================================================
+44. SUPERVISOR REAL PROCESS EXPERIMENTS
+======================================================================
+
+Create controlled processes exhibiting:
+
+progress
+valid wait
+stall
+hang
+child activity
+silent computation
+buffered logs.
+
+Test classifier.
+
+======================================================================
+45. TIME ALONE NEVER KILLS
+======================================================================
+
+Prove executable policy.
+
+======================================================================
+46. PROGRESS EVIDENCE
+======================================================================
+
+Compare:
+
+heartbeat
+log growth
+artifact growth
+test completion
+CPU activity
+state transition.
+
+======================================================================
+47. FALSE HEARTBEAT
+======================================================================
+
+Process emits heartbeat forever but accomplishes nothing.
+
+Supervisor should not confuse liveness with progress.
+
+======================================================================
+48. QUIET VALID WORK
+======================================================================
+
+Process legitimately works without logs.
+
+Avoid false HUNG.
+
+======================================================================
+49. JOURNAL IMPLEMENTATION
+======================================================================
+
+Build real mission-local journal.
+
+======================================================================
+50. JOURNAL CRASH TEST
+======================================================================
+
+Use subprocess termination at controlled write boundaries.
+
+Do not merely simulate a variable saying "crashed."
+
+======================================================================
+51. TORN WRITE
+======================================================================
+
+Produce truncated frame.
+
+Recover.
+
+======================================================================
+52. DUPLICATE RECORD
+======================================================================
+
+Replay.
+
+======================================================================
+53. CORRUPT RECORD
+======================================================================
+
+Detect.
+
+======================================================================
+54. COMPACTION
+======================================================================
+
+Implement and compare before/after logical state.
+
+======================================================================
+55. COMPACTION CRASH
+======================================================================
+
+Kill subprocess at multiple actual phases.
+
+======================================================================
+56. RESTART HARNESS
+======================================================================
+
+Persist state.
+
+Terminate process.
+
+Start fresh process.
+
+Recover from disk.
+
+Do not keep hidden in-memory state.
+
+======================================================================
+57. CLEAN-ROOM RESUME
+======================================================================
+
+A new process receives only mission artifacts.
+
+It must reconstruct next action.
+
+======================================================================
+58. CRASH AFTER STAMP
+======================================================================
+
+Test.
+
+======================================================================
+59. CRASH DURING DISPATCH
+======================================================================
+
+Test uncertainty.
+
+======================================================================
+60. CRASH AFTER RESULT
+======================================================================
+
+Result exists, verification absent.
+
+PENDING_VERIFY.
+
+======================================================================
+61. CRASH DURING VERIFY
+======================================================================
+
+Test idempotence.
+
+======================================================================
+62. CRASH AFTER VERIFY
+======================================================================
+
+Avoid duplicate effects.
+
+======================================================================
+63. CRASH DURING CLOSE
+======================================================================
+
+Goal state consistency.
+
+======================================================================
+64. MIGRATION IMPLEMENTATION
+======================================================================
+
+Create multiple legacy schema fixtures.
+
+======================================================================
+65. MIGRATION PROPERTY
+======================================================================
+
+Never fabricate missing certainty.
+
+======================================================================
+66. MIGRATION RESTART
+======================================================================
+
+Actually interrupt and resume migration subprocess.
+
+======================================================================
+67. MIGRATION IDEMPOTENCE
+======================================================================
+
+Run twice.
+
+Compare.
+
+======================================================================
+68. ROLLBACK
+======================================================================
+
+Build actual mission-local rollback experiment.
+
+======================================================================
+69. MIXED VERSION
+======================================================================
+
+Old and new records coexist.
+
+======================================================================
+70. VERSION SKEW
+======================================================================
+
+Create v1 worker envelope vs v2 verifier and reverse.
+
+======================================================================
+71. BORDER GUARD IMPLEMENTATION
+======================================================================
+
+Build minimal executable gate.
+
+Do not overengineer.
+
+======================================================================
+72. BORDER GUARD TOCTOU
+======================================================================
+
+Approval at state version N.
+
+Mutate to N+1.
+
+Attempt dispatch.
+
+======================================================================
+73. BORDER GUARD STALE TASK
+======================================================================
+
+Test.
+
+======================================================================
+74. BORDER GUARD SCOPE CHANGE
+======================================================================
+
+Test.
+
+======================================================================
+75. BORDER GUARD HUMAN GATE
+======================================================================
+
+Test.
+
+======================================================================
+76. BORDER GUARD BUSY WORKER
+======================================================================
+
+Must HOLD and capture follow-up.
+
+======================================================================
+77. RESULT CUSTOMS IMPLEMENTATION
+======================================================================
+
+Executable verifier.
+
+======================================================================
+78. RESULT CUSTOMS FALSE PASS
+======================================================================
+
+Worker claims PASS, exit code nonzero.
+
+======================================================================
+79. RESULT CUSTOMS TEST COUNT
+======================================================================
+
+Claimed count differs.
+
+======================================================================
+80. RESULT CUSTOMS STALE VERSION
+======================================================================
+
+Reject.
+
+======================================================================
+81. RESULT CUSTOMS WRONG GOAL
+======================================================================
+
+Reject.
+
+======================================================================
+82. RESULT CUSTOMS MISSING ARTIFACT
+======================================================================
+
+Reject/partial truthfully.
+
+======================================================================
+83. RESULT CUSTOMS WORKSPACE DRIFT
+======================================================================
+
+Detect.
+
+======================================================================
+84. RESULT CUSTOMS UNKNOWN
+======================================================================
+
+UNKNOWN stays UNKNOWN.
+
+======================================================================
+85. TEST-WEAKENING ADVERSARY
+======================================================================
+
+Create real before/after test files.
+
+Attempt evasions.
+
+======================================================================
+86. WEAKENING — SKIP
+======================================================================
+
+Detect.
+
+======================================================================
+87. WEAKENING — ASSERTION REMOVAL
+======================================================================
+
+Detect.
+
+======================================================================
+88. WEAKENING — DOMAIN NARROWING
+======================================================================
+
+Detect if feasible.
+
+======================================================================
+89. WEAKENING — MOCK TARGET
+======================================================================
+
+Detect/flag.
+
+======================================================================
+90. WEAKENING — SWALLOWED ERROR
+======================================================================
+
+Detect.
+
+======================================================================
+91. WEAKENING — FALSE POSITIVES
+======================================================================
+
+Legitimate refactor must remain possible.
+
+======================================================================
+92. GOAL VERIFIER IMPLEMENTATION
+======================================================================
+
+Build independent goal-evidence graph.
+
+======================================================================
+93. FALSE GOAL SATISFACTION
+======================================================================
+
+All tasks PASS, criterion missing.
+
+Reject.
+
+======================================================================
+94. STALE EVIDENCE
+======================================================================
+
+Reject.
+
+======================================================================
+95. PARTIAL GOAL
+======================================================================
+
+Represent truthfully.
+
+======================================================================
+96. HUMAN GATE PENDING
+======================================================================
+
+Goal cannot falsely close if criterion depends on it.
+
+======================================================================
+97. FOLLOW-UP INBOX IMPLEMENTATION
+======================================================================
+
+Append-only.
+
+======================================================================
+98. FOLLOW-UP WHILE WRITER BUSY
+======================================================================
+
+Capture, do not dispatch.
+
+======================================================================
+99. FOLLOW-UP DEDUPE
+======================================================================
+
+Preserve historical records.
+
+======================================================================
+100. FOLLOW-UP FALSE DEDUPE
+======================================================================
+
+Distinct ideas survive.
+
+======================================================================
+101. TASK LEASE RACE
+======================================================================
+
+Use actual concurrent processes where safe.
+
+Two contenders attempt same task.
+
+Exactly one writer lease wins.
+
+======================================================================
+102. RESOURCE LEASE RACE
+======================================================================
+
+Test actual atomic acquisition.
+
+======================================================================
+103. STALE LEASE
+======================================================================
+
+Restart and reconcile.
+
+======================================================================
+104. EXECUTION UNCERTAIN LEASE
+======================================================================
+
+Expiry cannot imply safe retry.
+
+======================================================================
+105. CAS DISPATCH
+======================================================================
+
+Build executable comparison-and-swap style prototype.
+
+======================================================================
+106. CAS CONTENTION
+======================================================================
+
+Concurrent dispatch attempts.
+
+======================================================================
+107. CAS VERSION DRIFT
+======================================================================
+
+Reject stale approval.
+
+======================================================================
+108. MULTI-PROCESS ADVERSARIAL HARNESS
+======================================================================
+
+Create safe local processes representing:
+
+Chief
+Courier
+Worker A
+Worker B
+Verifier
+Supervisor.
+
+Use IPC/files as appropriate.
+
+======================================================================
+109. REAL CONCURRENCY
+======================================================================
+
+Actually run selected races concurrently.
+
+Do not replace every race with sequential mocked events.
+
+======================================================================
+110. MESSAGE DUPLICATION
+======================================================================
+
+Deliver twice.
+
+======================================================================
+111. MESSAGE DELAY
+======================================================================
+
+Delay controlled message.
+
+======================================================================
+112. MESSAGE REORDER
+======================================================================
+
+Permute.
+
+======================================================================
+113. MESSAGE LOSS
+======================================================================
+
+Drop.
+
+======================================================================
+114. OLD WORKER WAKES UP
+======================================================================
+
+Stale worker tries result after supersession.
+
+======================================================================
+115. TWO COURIER INSTANCES
+======================================================================
+
+Model two instances racing for same durable goal.
+
+======================================================================
+116. SPLIT-BRAIN
+======================================================================
+
+Find authority boundary.
+
+======================================================================
+117. MACHINE IDENTITY
+======================================================================
+
+Determine what must be host-bound.
+
+======================================================================
+118. MONOTONICITY
+======================================================================
+
+Adding uncertainty must never grant more permission.
+
+Property-test this broadly.
+
+======================================================================
+119. SAFETY LATTICE
+======================================================================
+
+If useful, formalize:
+
+PASS < HOLD < BLOCK/HUMAN_GATE
+
+according to appropriate semantics.
+
+======================================================================
+120. PERMISSION METAMORPHISM
+======================================================================
+
+Remove evidence.
+
+Permission cannot increase.
+
+======================================================================
+121. LIABILITY METAMORPHISM
+======================================================================
+
+Increase financial liability.
+
+Human Gate requirement cannot decrease.
+
+======================================================================
+122. VERSION METAMORPHISM
+======================================================================
+
+Stale version cannot become current through replay.
+
+======================================================================
+123. PATH METAMORPHISM
+======================================================================
+
+Equivalent path spelling cannot remove conflict.
+
+======================================================================
+124. PROSE METAMORPHISM
+======================================================================
+
+Persuasive worker prose cannot alter evidence verdict.
+
+======================================================================
+125. MUTATION ENGINE
+======================================================================
+
+Mutate real shadow implementation.
+
+======================================================================
+126. MUTANT: UNCERTAIN → SAFE
+======================================================================
+
+Must die.
+
+======================================================================
+127. MUTANT: REMOVE VERSION CHECK
+======================================================================
+
+Must die.
+
+======================================================================
+128. MUTANT: PID ONLY
+======================================================================
+
+Must die.
+
+======================================================================
+129. MUTANT: €0 = SAFE
+======================================================================
+
+Must die.
+
+======================================================================
+130. MUTANT: PATH STRING EQUALITY
+======================================================================
+
+Must die.
+
+======================================================================
+131. MUTANT: TRUST WORKER PASS
+======================================================================
+
+Must die.
+
+======================================================================
+132. MUTANT: RESULT REPLAY
+======================================================================
+
+Must die.
+
+======================================================================
+133. MUTANT: APPROVAL REUSE
+======================================================================
+
+Must die.
+
+======================================================================
+134. MUTANT: LEASE EXPIRY RETRY
+======================================================================
+
+Must die.
+
+======================================================================
+135. MUTANT: TIME-ONLY KILL
+======================================================================
+
+Must die.
+
+======================================================================
+136. MUTATION QUALITY
+======================================================================
+
+Do not create trivial syntax mutants merely to raise count.
+
+======================================================================
+137. MUTATION SURVIVOR
+======================================================================
+
+Becomes high-priority frontier item.
+
+======================================================================
+138. BENCHMARK REAL SYSTEM COMPONENTS
+======================================================================
+
+Where applicable measure:
+
+task-store operations
+journal replay
+lock acquisition
+goal verification
+result customs
+frontier scoring.
+
+======================================================================
+139. SCALE LADDER
+======================================================================
+
+Use increasing realistic event counts.
+
+Example:
+
+100
+1,000
+10,000
+100,000
+
+only while adding useful information.
+
+======================================================================
+140. PERFORMANCE REGRESSION
+======================================================================
+
+Identify nonlinear behavior.
+
+======================================================================
+141. MEMORY
+======================================================================
+
+Measure obvious growth where feasible.
+
+======================================================================
+142. FILE GROWTH
+======================================================================
+
+Measure journals/checkpoints.
+
+======================================================================
+143. COMPACTION THRESHOLD
+======================================================================
+
+Derive from evidence rather than arbitrary number.
+
+======================================================================
+144. LONG-RUN EVENT SOAK
+======================================================================
+
+Run substantial event-based soak.
+
+Again:
+
+virtual event horizon != actual runtime.
+
+======================================================================
+145. RANDOM SEEDS
+======================================================================
+
+Use multiple deterministic seeds.
+
+Record them.
+
+======================================================================
+146. DO NOT RUN ONLY ONE SEED
+======================================================================
+
+Rotate seeds until information gain drops.
+
+======================================================================
+147. CHAOS MATRIX
+======================================================================
+
+Combine selected failures.
+
+======================================================================
+148. PAIRWISE
+======================================================================
+
+Systematic critical pair combinations.
+
+======================================================================
+149. TRIPLE
+======================================================================
+
+Risk-selected.
+
+======================================================================
+150. HIGHER ORDER
+======================================================================
+
+Only plausible combinations.
+
+======================================================================
+151. CRASH + CONCURRENCY
+======================================================================
+
+Especially valuable.
+
+======================================================================
+152. MIGRATION + STALE RESULT
+======================================================================
+
+Test.
+
+======================================================================
+153. HUMAN GATE + RETRY
+======================================================================
+
+Test.
+
+======================================================================
+154. PROCESS REUSE + CLEANUP
+======================================================================
+
+Test safely.
+
+======================================================================
+155. COMPACTION + RESTART
+======================================================================
+
+Test.
+
+======================================================================
+156. RESULT + WORKSPACE DRIFT
+======================================================================
+
+Test.
+
+======================================================================
+157. GOAL CLOSE + PENDING FOLLOW-UP
+======================================================================
+
+Determine semantics.
+
+======================================================================
+158. SATURATION IS A CLAIM
+======================================================================
+
+Never trust it automatically.
+
+======================================================================
+159. SATURATION REQUIRES SOURCE COVERAGE
+======================================================================
+
+Important execution paths mapped.
+
+======================================================================
+160. SATURATION REQUIRES EXECUTABLE EVIDENCE
+======================================================================
+
+Markdown alone insufficient.
+
+======================================================================
+161. SATURATION REQUIRES MUTATION EVIDENCE
+======================================================================
+
+Critical invariants attacked.
+
+======================================================================
+162. SATURATION REQUIRES INDEPENDENT ORACLE
+======================================================================
+
+Critical logic not self-confirmed.
+
+======================================================================
+163. SATURATION REQUIRES COUNTEREXAMPLE SEARCH
+======================================================================
+
+Active falsification performed.
+
+======================================================================
+164. SATURATION REQUIRES NEW-FRONTIER SEARCH
+======================================================================
+
+Not just completion of old frontier.
+
+======================================================================
+165. SATURATION REQUIRES CLEAN-ROOM REVIEW
+======================================================================
+
+Review actual source again.
+
+======================================================================
+166. SATURATION REQUIRES BUREAUCRACY REVIEW
+======================================================================
+
+Architecture not becoming unusable.
+
+======================================================================
+167. SATURATION REQUIRES LIVENESS REVIEW
+======================================================================
+
+Safety cannot freeze system.
+
+======================================================================
+168. SATURATION REQUIRES HUMAN-BURDEN REVIEW
+======================================================================
+
+System must reduce babysitting.
+
+======================================================================
+169. SATURATION REQUIRES ECONOMIC-UTILITY REVIEW
+======================================================================
+
+Courier should eventually do useful outcome-oriented work.
+
+Simulation only tonight.
+
+======================================================================
+170. ECONOMIC PIPELINE
+======================================================================
+
+Model:
+
+opportunity
+hypothesis
+cheap test
+artifact
+verification
+Human Gate
+distribution
+settlement
+learning.
+
+======================================================================
+171. DO NOT PERFORM DISTRIBUTION
+======================================================================
+
+No external side effects.
+
+======================================================================
+172. FAKE REVENUE
+======================================================================
+
+Reject:
+
+views
+clicks
+likes
+cart
+draft invoice
+simulation
+hypothetical sale.
+
+======================================================================
+173. REAL SETTLEMENT
+======================================================================
+
+Would require independent evidence and is outside tonight's authority.
+
+======================================================================
+174. HUMAN INTERRUPTION BURDEN
+======================================================================
+
+Instrument simulated mission decisions.
+
+Count:
+
+routine questions avoided
+real Human Gates
+avoidable Human Gates
+blocked branches that could have continued elsewhere.
+
+======================================================================
+175. AUTONOMY SCORECARD
+======================================================================
+
+Measure behavior, not self-description.
+
+======================================================================
+176. SCHEDULER IMPLEMENTATION
+======================================================================
+
+Build executable next-best-work scheduler prototype.
+
+======================================================================
+177. SCHEDULER INPUT
+======================================================================
+
+Candidate work with:
+
+information gain
+risk
+uncertainty
+cost
+dependency
+goal relevance
+safety
+host availability.
+
+======================================================================
+178. SCHEDULER OUTPUT
+======================================================================
+
+Highest-value safe work.
+
+======================================================================
+179. SCHEDULER STARVATION
+======================================================================
+
+Attack.
+
+======================================================================
+180. SCHEDULER GAMING
+======================================================================
+
+Task cannot inflate its own score cheaply.
+
+======================================================================
+181. BACKLOG EXPLOSION
+======================================================================
+
+Bound generated candidates.
+
+======================================================================
+182. BACKLOG COLLAPSE
+======================================================================
+
+Prevent premature empty frontier.
+
+======================================================================
+183. FOLLOW-UP GENERATOR
+======================================================================
+
+Each meaningful finding can generate follow-up.
+
+======================================================================
+184. FOLLOW-UP QUALITY
+======================================================================
+
+Require reason and expected information gain.
+
+======================================================================
+185. DO-NOT-REPEAT
+======================================================================
+
+Record saturated experiment families.
+
+======================================================================
+186. REOPEN RULE
+======================================================================
+
+New evidence may reopen previously saturated family.
+
+======================================================================
+187. SOURCE CHANGE INVALIDATION
+======================================================================
+
+If source fingerprint changes, identify stale proofs.
+
+======================================================================
+188. CLAIM-EVIDENCE GRAPH
+======================================================================
+
+Every major claim points to concrete evidence.
+
+======================================================================
+189. CLAIM CONFIDENCE
+======================================================================
+
+Do not use fake numerical certainty.
+
+Use categories.
+
+======================================================================
+190. EVIDENCE TYPES
+======================================================================
+
+SOURCE
+EXECUTION
+TEST
+ORACLE
+MUTATION
+COUNTEREXAMPLE
+HOST_NATIVE
+SIMULATION.
+
+======================================================================
+191. HOST-NATIVE DISCIPLINE
+======================================================================
+
+Windows proof cannot become Darwin proof.
+
+======================================================================
+192. MAC QUEUE
+======================================================================
+
+Keep minimal.
+
+Do not access Mac.
+
+======================================================================
+193. CODEX QUEUE
+======================================================================
+
+Only questions where expensive independent reasoning adds information.
+
+======================================================================
+194. HUMAN GATE QUEUE
+======================================================================
+
+Do not block independent work.
+
+======================================================================
+195. POST-FREEZE QUEUE
+======================================================================
+
+Create mature integration packages only.
+
+======================================================================
+196. PACKAGE QUALITY
+======================================================================
+
+Include:
+
+source location
+problem
+reproduction
+invariant
+minimal proposed change
+dependencies
+migration
+rollback
+targeted tests
+independent verification
+risk
+Mac dependency
+Human dependency.
+
+======================================================================
+197. PACKAGE INTERACTION TESTING
+======================================================================
+
+Test shadow combinations.
+
+======================================================================
+198. A01 + L01
+======================================================================
+
+Test.
+
+======================================================================
+199. A01 + G01
+======================================================================
+
+Especially financial uncertain retry.
+
+======================================================================
+200. A01 + B01
+======================================================================
+
+Uncertain process/execution.
+
+======================================================================
+201. L01 + JOURNAL
+======================================================================
+
+Shared append vs compaction.
+
+======================================================================
+202. G01 + RESULT CUSTOMS
+======================================================================
+
+Worker cannot fake approval.
+
+======================================================================
+203. BORDER + DISPATCH
+======================================================================
+
+TOCTOU.
+
+======================================================================
+204. RESULT + GOAL
+======================================================================
+
+False satisfaction.
+
+======================================================================
+205. SUPERVISOR + RECONCILER
+======================================================================
+
+No duplicate authority.
+
+======================================================================
+206. SIMPLIFICATION CAMPAIGN
+======================================================================
+
+After building protections:
+
+try deleting complexity.
+
+======================================================================
+207. MINIMUM SAFE ARCHITECTURE
+======================================================================
+
+Find smallest authority structure preserving invariants.
+
+======================================================================
+208. SECOND-ORCHESTRATOR DETECTOR
+======================================================================
+
+Border Guard/Supervisor must not become alternate Courier.
+
+======================================================================
+209. AUTHORITY MAP
+======================================================================
+
+Who may:
+
+plan
+dispatch
+kill
+verify
+close goal
+authorize Human Gate.
+
+======================================================================
+210. SINGLE-WRITER AUTHORITY
+======================================================================
+
+No accidental duplicates.
+
+======================================================================
+211. ACTUAL RUNTIME CONTINUATION
+======================================================================
+
+After every substantial campaign:
+
+DO NOT FINALIZE.
+
+Instead:
+
+checkpoint
+re-read frontier
+re-read source changes if relevant
+generate new candidates
+score
+select next.
+
+======================================================================
+212. CAMPAIGN COMPLETION DOES NOT END MISSION
+======================================================================
+
+Absolute.
+
+======================================================================
+213. TEN CAMPAIGNS DO NOT END MISSION
+======================================================================
+
+Absolute.
+
+======================================================================
+214. FIFTY CAMPAIGNS DO NOT AUTOMATICALLY END MISSION
+======================================================================
+
+Absolute.
+
+======================================================================
+215. GREEN TESTS DO NOT END MISSION
+======================================================================
+
+Absolute.
+
+======================================================================
+216. 100% MUTANT KILL DOES NOT END MISSION
+======================================================================
+
+Absolute.
+
+======================================================================
+217. EMPTY CURRENT FRONTIER
+======================================================================
+
+Triggers frontier regeneration.
+
+======================================================================
+218. FRONTIER REGENERATION MODE A
+======================================================================
+
+Fresh source review.
+
+======================================================================
+219. MODE B
+======================================================================
+
+Assumption inversion.
+
+======================================================================
+220. MODE C
+======================================================================
+
+Catastrophe fault tree.
+
+======================================================================
+221. MODE D
+======================================================================
+
+Composition matrix.
+
+======================================================================
+222. MODE E
+======================================================================
+
+Crash boundary review.
+
+======================================================================
+223. MODE F
+======================================================================
+
+Migration/version skew.
+
+======================================================================
+224. MODE G
+======================================================================
+
+Liveness/performance.
+
+======================================================================
+225. MODE H
+======================================================================
+
+Human burden.
+
+======================================================================
+226. MODE I
+======================================================================
+
+Economic usefulness.
+
+======================================================================
+227. MODE J
+======================================================================
+
+Architecture simplification.
+
+======================================================================
+228. MODE K
+======================================================================
+
+Verifier skepticism.
+
+======================================================================
+229. MODE L
+======================================================================
+
+Try to falsify strongest claim.
+
+======================================================================
+230. MODE M
+======================================================================
+
+Try to reproduce likely production defects directly.
+
+======================================================================
+231. MODE N
+======================================================================
+
+Search for unknown execution authority.
+
+======================================================================
+232. MODE O
+======================================================================
+
+Search for unmodeled shared resource.
+
+======================================================================
+233. MODE P
+======================================================================
+
+Search for state that survives restart incorrectly.
+
+======================================================================
+234. MODE Q
+======================================================================
+
+Search for false certainty from missing evidence.
+
+======================================================================
+235. MODE R
+======================================================================
+
+Search for accidental external capability.
+
+======================================================================
+236. MODE S
+======================================================================
+
+Search for work that requires unnecessary human interaction.
+
+======================================================================
+237. MODE T
+======================================================================
+
+Clean-room review.
+
+======================================================================
+238. FRONTIER STILL EMPTY
+======================================================================
+
+Now begin SATURATION TRIAL.
+
+======================================================================
+239. SATURATION TRIAL IS NOT A SCRIPT THAT WRITES PASS
+======================================================================
+
+It must execute new probes.
+
+======================================================================
+240. SATURATION TRIAL — PROSECUTOR 1
+======================================================================
+
+Source adversary.
+
+======================================================================
+241. PROSECUTOR 2
+======================================================================
+
+State adversary.
+
+======================================================================
+242. PROSECUTOR 3
+======================================================================
+
+Concurrency adversary.
+
+======================================================================
+243. PROSECUTOR 4
+======================================================================
+
+Crash adversary.
+
+======================================================================
+244. PROSECUTOR 5
+======================================================================
+
+Evidence adversary.
+
+======================================================================
+245. PROSECUTOR 6
+======================================================================
+
+Safety adversary.
+
+======================================================================
+246. PROSECUTOR 7
+======================================================================
+
+Liveness adversary.
+
+======================================================================
+247. PROSECUTOR 8
+======================================================================
+
+Migration adversary.
+
+======================================================================
+248. PROSECUTOR 9
+======================================================================
+
+Human-burden adversary.
+
+======================================================================
+249. PROSECUTOR 10
+======================================================================
+
+Simplification adversary.
+
+======================================================================
+250. ANY PROSECUTOR FINDS EXECUTABLE HIGH-VALUE EXPERIMENT
+======================================================================
+
+Mission returns to OPERATING.
+
+======================================================================
+251. REAL SATURATION
+======================================================================
+
+Only claim if no high-value safe Windows-local experiment remains.
+
+But:
+
+do NOT intentionally delay completion merely to consume time.
+
+If genuinely saturated, report it honestly.
+
+======================================================================
+252. HOWEVER — SATURATION MUST BE REAL
+======================================================================
+
+A report generated 3 minutes after start claiming:
+
+"8-hour autonomous horizon complete"
+
+is explicitly invalid.
+
+======================================================================
+253. WALL-CLOCK HONESTY ASSERTION
+======================================================================
+
+Before final report execute an actual timestamp calculation.
+
+Store raw timestamps.
+
+If:
+
+REAL_ELAPSED_SECONDS < 3600
+
+do not describe the mission as an hours-long autonomous run.
+
+If:
+
+REAL_ELAPSED_SECONDS < 1800
+
+and you claim broad global saturation,
+
+perform an EXTRA CLEAN-ROOM SATURATION REVIEW because extremely rapid
+closure is evidence that the mission may have been reduced to synthetic
+checklist generation.
+
+This does NOT require waiting.
+
+It requires stronger skepticism and more actual executable work.
+
+======================================================================
+254. RAPID-CLOSURE TRIPWIRE
+======================================================================
+
+If mission appears ready to globally saturate unusually quickly:
+
+STOP FINALIZATION.
+
+Ask:
+
+Did I actually inspect production source?
+
+Did I actually build executable implementation?
+
+Did I actually run tests?
+
+Did I actually run subprocess crash experiments?
+
+Did I actually run concurrent races?
+
+Did I actually mutate implementation?
+
+Did I actually use independent oracle?
+
+Did I actually minimize failures?
+
+Did I actually benchmark?
+
+Did I actually test clean restart from disk?
+
+If several answers are NO:
+
+mission is NOT saturated.
+
+======================================================================
+255. NO REPORT-FIRST ENGINEERING
+======================================================================
+
+Artifacts and evidence first.
+
+Report second.
+
+======================================================================
+256. NO BULK PASS GENERATION
+======================================================================
+
+Do not programmatically emit hundreds of PASS records without executing
+corresponding tests.
+
+======================================================================
+257. TEST EVIDENCE
+======================================================================
+
+For tests preserve:
+
+command
+timestamp
+exit code
+stdout/stderr summary
+seed if relevant
+target
+source fingerprint.
+
+======================================================================
+258. PROCESS EXPERIMENT EVIDENCE
+======================================================================
+
+Preserve:
+
+owned process identity
+start time
+parent
+command fingerprint
+expected behavior
+observed behavior
+cleanup evidence.
+
+======================================================================
+259. CRASH EXPERIMENT EVIDENCE
+======================================================================
+
+Preserve:
+
+pre-state
+crash point
+termination mechanism
+persisted bytes/state
+restart command
+recovered state
+oracle verdict.
+
+======================================================================
+260. CONCURRENCY EVIDENCE
+======================================================================
+
+Preserve:
+
+contenders
+resource
+timing/order
+winner
+loser
+durable state
+invariant.
+
+======================================================================
+261. BENCHMARK EVIDENCE
+======================================================================
+
+Preserve input scale and result.
+
+======================================================================
+262. COUNTEREXAMPLE EVIDENCE
+======================================================================
+
+Preserve minimal reproduction.
+
+======================================================================
+263. PRODUCTION CLAIM
+======================================================================
+
+Must point to source/reproduction.
+
+======================================================================
+264. DO NOT PATCH PRODUCTION
+======================================================================
+
+Tonight is still isolated engineering/proof work.
+
+======================================================================
+265. SHADOW REPAIR LOOP
+======================================================================
+
+For defect:
+
+reproduce
+minimize
+repair shadow
+targeted test
+mutation
+independent oracle
+regression
+composition reattack.
+
+======================================================================
+266. REPAIR DOES NOT ERASE FAILURE
+======================================================================
+
+Preserve original counterexample.
+
+======================================================================
+267. REGRESSION SUITE GROWS
+======================================================================
+
+New failure becomes fixture.
+
+======================================================================
+268. INFORMATION GAIN
+======================================================================
+
+After each campaign ask:
+
+What do we know now that we did not know before?
+
+If answer is nothing:
+
+lower priority of that family.
+
+======================================================================
+269. NO BUSYWORK
+======================================================================
+
+Do not consume compute just because human is sleeping.
+
+======================================================================
+270. NO ARTIFICIAL SLEEP
+======================================================================
+
+Do not `sleep` for hours to satisfy duration.
+
+======================================================================
+271. NO INFINITE FUZZ
+======================================================================
+
+Fuzzing must have stop criteria.
+
+======================================================================
+272. ADAPTIVE FUZZ
+======================================================================
+
+Increase depth only when new behavior appears.
+
+======================================================================
+273. COVERAGE
+======================================================================
+
+Use coverage only if available/useful.
+
+Do not install paid/external tooling.
+
+======================================================================
+274. SOURCE HOTSPOTS
+======================================================================
+
+Prioritize code with:
+
+authority
+side effects
+state transitions
+recovery
+concurrency
+Human Gates.
+
+======================================================================
+275. LOW-RISK CODE
+======================================================================
+
+Do not spend hours polishing cosmetic helpers.
+
+======================================================================
+276. CURRENT PRODUCTION REALITY
+======================================================================
+
+The ultimate purpose is integration readiness.
+
+Shadow perfection alone is insufficient.
+
+======================================================================
+277. DIFFERENTIAL PACKAGE
+======================================================================
+
+For each mature shadow feature compare current source vs desired behavior.
+
+======================================================================
+278. MINIMAL PATCH PLAN
+======================================================================
+
+Generate precise future patch plan.
+
+======================================================================
+279. DEPENDENCY ORDER
+======================================================================
+
+Reevaluate:
+
+A01
+L01
+G01
+B01
+Border Customs
+weakening detector
+migration
+long-run.
+
+Do not blindly preserve old order.
+
+======================================================================
+280. CROSS-PACKAGE RISK
+======================================================================
+
+Find interactions.
+
+======================================================================
+281. ROLLBACK PLAN
+======================================================================
+
+Per package.
+
+======================================================================
+282. CANARY PLAN
+======================================================================
+
+Future only.
+
+No real canary tonight unless already explicitly authorized by existing
+contract and safe; otherwise queue.
+
+======================================================================
+283. MAC PROOF
+======================================================================
+
+Queue minimum experiment.
+
+Do not access Mac.
+
+======================================================================
+284. WINDOWS EXHAUSTION
+======================================================================
+
+If Windows-native useful work eventually runs out:
+
+do not fake Mac proof.
+
+======================================================================
+285. CODEX REVIEW
+======================================================================
+
+Queue only precise unresolved architecture questions.
+
+======================================================================
+286. MORNING HANDOFF
+======================================================================
+
+Human should not need to read huge logs.
+
+Maintain compact MORNING_REPORT.
+
+======================================================================
+287. MORNING REPORT — TRUTHFUL TIME
+======================================================================
+
+Include:
+
+REAL_STARTED_AT
+REAL_FINISHED_AT
+REAL_ELAPSED_SECONDS
+REAL_ELAPSED_HUMAN_READABLE
+
+separately from:
+
+VIRTUAL_HORIZONS_TESTED.
+
+======================================================================
+288. MORNING REPORT — OUTPUT
+======================================================================
+
+Include:
+
+what actually changed
+what was learned
+what failed
+what remains
+what requires Mac
+what requires Codex
+what requires Human
+exact next action.
+
+======================================================================
+289. CHECKPOINT FREQUENCY
+======================================================================
+
+Checkpoint after meaningful evidence and before risky subprocess
+experiments.
+
+======================================================================
+290. RESUME
+======================================================================
+
+A new agent must resume without chat transcript.
+
+======================================================================
+291. INTERRUPTION
+======================================================================
+
+If capacity/context ends:
+
+PAUSED_CAPACITY
+
+not SATURATED.
+
+======================================================================
+292. PAUSED CAPACITY
+======================================================================
+
+Include exact executable resume point.
+
+======================================================================
+293. HUMAN GATE
+======================================================================
+
+If one branch blocked:
+
+queue it
+continue others.
+
+======================================================================
+294. GLOBAL HUMAN BLOCK
+======================================================================
+
+Only stop if all remaining high-value work genuinely requires human.
+
+======================================================================
+295. PROCESS HYGIENE
+======================================================================
+
+At campaign boundaries inspect mission-owned processes.
+
+======================================================================
+296. OWNERSHIP
+======================================================================
+
+Never kill process without evidence it belongs to mission.
+
+======================================================================
+297. END HYGIENE
+======================================================================
+
+Owned helpers = 0 at clean terminal state.
+
+======================================================================
+298. GIT HYGIENE
+======================================================================
+
+Verify no production mutation.
+
+======================================================================
+299. PROTECTED HYGIENE
+======================================================================
+
+Verify universuX untouched.
+
+======================================================================
+300. FINANCIAL HYGIENE
+======================================================================
+
+Verify spend/trade/wallet zero.
+
+======================================================================
+301. CONTINUATION ENGINE — PSEUDOCODE
+======================================================================
+
+initialize()
+
+while true:
+
+    reconcile_durable_state()
+
+    verify_no_conflicting_writer()
+
+    if active_campaign:
+        resume_active_campaign()
+        continue
+
+    frontier = build_frontier_from(
+        current_source,
+        evidence,
+        failures,
+        counterexamples,
+        mutations,
+        oracle_disagreements,
+        assumptions,
+        performance,
+        liveness,
+        human_burden,
+        integration_gaps
+    )
+
+    frontier = dedupe(frontier)
+
+    frontier = remove_forbidden(frontier)
+
+    queue_mac_only(frontier)
+    queue_human_only(frontier)
+    queue_codex_only(frontier)
+
+    candidates = windows_safe_high_information(frontier)
+
+    if candidates:
+        campaign = choose_best(candidates)
+        acquire_scope_lease(campaign)
+        execute_real_campaign(campaign)
+        verify_independently(campaign)
+        adversarially_attack(campaign)
+        preserve_failures(campaign)
+        generate_followups(campaign)
+        checkpoint()
+        release_scope_lease(campaign)
+        continue
+
+    regenerate_frontier_using_new_method()
+
+    if new_candidates:
+        continue
+
+    run_saturation_trial_with_real_probes()
+
+    if saturation_trial_finds_candidate:
+        continue
+
+    if capacity_low_or_context_limit:
+        checkpoint_as_PAUSED_CAPACITY
+        stop
+
+    if genuinely_no_high_value_safe_work:
+        checkpoint_as_GENUINELY_SATURATED
+        stop
+
+======================================================================
+302. IMPORTANT: DO NOT IMPLEMENT THE LOOP AS A FAKE LOOP
+======================================================================
+
+Do not write:
+
+for campaign in 1..13:
+    write_json("PASS")
+
+That is not autonomous engineering.
+
+The loop must select based on evidence produced by previous execution.
+
+======================================================================
+303. CAMPAIGN MUST CHANGE KNOWLEDGE STATE
+======================================================================
+
+A campaign should normally:
+
+prove
+disprove
+discover
+measure
+or reduce uncertainty.
+
+======================================================================
+304. DYNAMIC BRANCHING
+======================================================================
+
+If campaign finds unexpected defect:
+
+prioritize descendants.
+
+======================================================================
+305. DYNAMIC MERGING
+======================================================================
+
+If multiple failures share root cause:
+
+merge.
+
+======================================================================
+306. DYNAMIC PRUNING
+======================================================================
+
+If hypothesis low-value:
+
+archive.
+
+======================================================================
+307. DYNAMIC REOPEN
+======================================================================
+
+New source evidence may reopen.
+
+======================================================================
+308. CLEAN-ROOM ITERATIONS
+======================================================================
+
+Periodically ignore previous conclusions and inspect critical code fresh.
+
+======================================================================
+309. ADVERSARIAL PERSONAS
+======================================================================
+
+Rotate logical review modes:
+
+Builder
+Verifier
+Attacker
+Crash Analyst
+Concurrency Analyst
+Safety Analyst
+Liveness Analyst
+Simplifier
+Integrator.
+
+======================================================================
+310. PERSONAS DO NOT REQUIRE PARALLEL WRITERS
+======================================================================
+
+Logical roles may execute sequentially.
+
+======================================================================
+311. BUILDER CANNOT SELF-CERTIFY
+======================================================================
+
+Use independent logic/tests where practical.
+
+======================================================================
+312. VERIFIER SHOULD TRY TO FAIL BUILD
+======================================================================
+
+Not merely confirm.
+
+======================================================================
+313. ATTACKER SHOULD TARGET ASSUMPTIONS
+======================================================================
+
+Not random noise.
+
+======================================================================
+314. SIMPLIFIER SHOULD DELETE UNNECESSARY COMPLEXITY
+======================================================================
+
+In shadow only.
+
+======================================================================
+315. INTEGRATOR SHOULD THINK ABOUT REAL SOURCE
+======================================================================
+
+Without modifying it.
+
+======================================================================
+316. NIGHT GOAL
+======================================================================
+
+Maximize:
+
+VERIFIED_USEFUL_INFORMATION
+
+not:
+
+NUMBER_OF_FILES
+NUMBER_OF_TESTS
+NUMBER_OF_CAMPAIGNS
+TOKEN_USAGE
+CPU_USAGE
+WALL_TIME.
+
+======================================================================
+317. LONG RUN BY DEFAULT
+======================================================================
+
+Meaning:
+
+do not unnecessarily stop.
+
+It does NOT mean:
+
+artificially delay.
+
+======================================================================
+318. SUCCESS
+======================================================================
+
+Success is waking the human with a substantial body of:
+
+real executable artifacts
+real tests
+real source findings
+real minimized counterexamples
+real independent evidence
+real integration readiness.
+
+======================================================================
+319. FAILURE
+======================================================================
+
+Failure includes:
+
+asking human routine questions
+closing after synthetic checklist
+fake elapsed time
+fake tests
+fake campaign evidence
+repeating previous work without information gain
+unsafe writer stacking
+touching protected systems
+financial/external action.
+
+======================================================================
+320. SPECIAL ANTI-14-MINUTE RULE
+======================================================================
+
+The previous prompt was effectively consumed in roughly minutes.
+
+Therefore:
+
+if this mission reaches proposed global saturation very rapidly,
+treat RAPID_COMPLETION itself as a signal that the research process may
+have collapsed into checklist execution.
+
+Do NOT wait artificially.
+
+Instead increase DEPTH.
+
+Depth escalation:
+
+D1 source reading
+D2 unit reproduction
+D3 independent oracle
+D4 stateful properties
+D5 mutation
+D6 real subprocess
+D7 real concurrency
+D8 crash/restart from disk
+D9 migration/version skew
+D10 pairwise composition
+D11 triple fault
+D12 benchmark/scale
+D13 clean-room review
+D14 architecture simplification
+D15 integration differential.
+
+Do not globally saturate while major critical domains have only D1/D2
+evidence and deeper safe evidence is practical.
+
+======================================================================
+321. DEPTH MATRIX
+======================================================================
+
+Maintain:
+
+DEPTH_MATRIX.md
+
+Rows:
+
+A01
+L01
+G01
+B01
+Border Guard
+Result Customs
+Goal Satisfaction
+Journal
+Migration
+Rollback
+Supervisor
+Follow-Up
+Scheduler
+Economic Safety.
+
+Columns D1-D15.
+
+Mark only actual executed evidence.
+
+This is NOT a requirement to fill every cell.
+
+It exposes shallow evidence.
+
+======================================================================
+322. CROSS-DOMAIN MATRIX
+======================================================================
+
+Maintain:
+
+COMPOSITION_MATRIX.md
+
+Track which critical components have actually been tested together.
+
+Again:
+
+do not fill cosmetically.
+
+======================================================================
+323. FAILURE SURFACE MAP
+======================================================================
+
+Maintain:
+
+FAILURE_SURFACE.md
+
+Map:
+
+authority
+persistence
+concurrency
+recovery
+verification
+safety
+liveness.
+
+======================================================================
+324. HUMAN FREEDOM MAP
+======================================================================
+
+Maintain:
+
+HUMAN_FREEDOM.md
+
+Identify where human is still unnecessarily in loop.
+
+======================================================================
+325. REAL COURIER END STATE
+======================================================================
+
+Target architecture:
+
+USER:
+"I want X."
+
+CHIEF:
+understands strategic goal.
+
+COURIER:
+creates durable goal
+creates candidate tasks
+negotiates
+Border Guard checks
+stamps
+dispatches
+supervises
+verifies
+captures follow-ups
+selects next safe task
+continues.
+
+WORKERS:
+execute.
+
+HUMAN:
+only real gates.
+
+======================================================================
+326. DO NOT MAKE CHIEF COURIER
+======================================================================
+
+Architecture must preserve this.
+
+======================================================================
+327. DO NOT MAKE HUMAN COURIER
+======================================================================
+
+Critical.
+
+======================================================================
+328. DO NOT MAKE BORDER GUARD COURIER
+======================================================================
+
+Critical.
+
+======================================================================
+329. DO NOT MAKE SUPERVISOR COURIER
+======================================================================
+
+Critical.
+
+======================================================================
+330. ONE AUTHORITY PER DECISION
+======================================================================
+
+Map it.
+
+======================================================================
+331. DURABLE STATE OVER CHAT
+======================================================================
+
+Required.
+
+======================================================================
+332. CRASH RESUME OVER HUMAN PROMPT
+======================================================================
+
+Required.
+
+======================================================================
+333. FOLLOW-UP CAPTURE OVER TASK STACKING
+======================================================================
+
+Required.
+
+======================================================================
+334. EVIDENCE OVER LABELS
+======================================================================
+
+Required.
+
+======================================================================
+335. UNKNOWN OVER FABRICATED CERTAINTY
+======================================================================
+
+Required.
+
+======================================================================
+336. HUMAN GATE OVER UNSAFE AUTONOMY
+======================================================================
+
+Required.
+
+======================================================================
+337. AUTONOMY OVER ROUTINE BABYSITTING
+======================================================================
+
+Required.
+
+======================================================================
+338. USEFUL WORK OVER QUOTA CONSUMPTION
+======================================================================
+
+Required.
+
+======================================================================
+339. MORNING TERMINAL STATES
+======================================================================
+
+Allowed:
+
+PAUSED_CAPACITY
+GENUINELY_SATURATED
+BLOCKED_GLOBAL_HUMAN_GATE
+BLOCKED_ENVIRONMENT
+BLOCKED_EXECUTION_UNCERTAIN
+FAILED_WITH_EVIDENCE.
+
+======================================================================
+340. DO NOT USE COMPLETE_AND_SATURATED CASUALLY
+======================================================================
+
+Prefer precise state.
+
+======================================================================
+341. FINAL REPORT FORMAT
+======================================================================
+
+=== SIGMA REAL ENGINEERING CONTINUUM ===
+
+MISSION_ID:
+STATUS:
+WHY_STOPPED:
+
+REAL_STARTED_AT_UTC:
+REAL_FINISHED_AT_UTC:
+REAL_ELAPSED_SECONDS:
+REAL_ELAPSED_HUMAN:
+
+VIRTUAL_HORIZONS_TESTED:
+EVENTS_SIMULATED:
+
+PREDECESSOR_STATE:
+CONFLICTING_WRITER_AT_START:
+
+BRANCH:
+HEAD_BEFORE:
+HEAD_AFTER:
+GIT_STATUS:
+
+CURRENT_SOURCE_FILES_ACTUALLY_READ:
+SOURCE_FUNCTIONS_MAPPED:
+EXECUTION_AUTHORITY_PATHS_DISCOVERED:
+
+SHADOW_FILES_IMPLEMENTED:
+SHADOW_LINES_IF_MEASURED:
+ORACLE_IMPLEMENTATIONS:
+
+TEST_COMMANDS_ACTUALLY_EXECUTED:
+TESTS_RUN:
+PASS:
+FAIL:
+ERROR:
+SKIP:
+
+PROPERTY_SEQUENCES:
+SEEDS:
+METAMORPHIC_CASES:
+DIFFERENTIAL_CASES:
+
+REAL_SUBPROCESS_EXPERIMENTS:
+REAL_CONCURRENCY_EXPERIMENTS:
+REAL_CRASH_RESTART_EXPERIMENTS:
+
+MUTANTS_CREATED:
+MUTANTS_ACTUALLY_EXECUTED:
+MUTANTS_KILLED:
+MUTANTS_SURVIVED:
+EQUIVALENT_MUTANTS:
+
+COUNTEREXAMPLES:
+MINIMIZED:
+FAILURE_CLASSES:
+REGRESSION_FIXTURES:
+
+BENCHMARKS_RUN:
+LARGEST_REAL_EVENT_SET:
+PERFORMANCE_FINDINGS:
+
+JOURNAL_CRASH_CASES:
+MIGRATION_CASES:
+ROLLBACK_CASES:
+VERSION_SKEW_CASES:
+
+A01_EVIDENCE_DEPTH:
+L01_EVIDENCE_DEPTH:
+G01_EVIDENCE_DEPTH:
+B01_EVIDENCE_DEPTH:
+
+BORDER_GUARD_DEPTH:
+RESULT_CUSTOMS_DEPTH:
+GOAL_VERIFIER_DEPTH:
+SUPERVISOR_DEPTH:
+JOURNAL_DEPTH:
+MIGRATION_DEPTH:
+SCHEDULER_DEPTH:
+
+CONFIRMED_CURRENT_SOURCE_DEFECTS:
+LIKELY_CURRENT_SOURCE_DEFECTS:
+SHADOW_ONLY_DEFECTS:
+ARCHITECTURAL_REQUIREMENTS:
+CONTRACT_AMBIGUITIES:
+
+OPEN_P0:
+OPEN_P1:
+OPEN_P2:
+OPEN_P3:
+
+NEW_INFORMATION_NOT_PRESENT_IN_OMEGA:
+OMEGA_CLAIMS_CONFIRMED:
+OMEGA_CLAIMS_DOWNGRADED:
+OMEGA_CLAIMS_CONTRADICTED:
+
+POST_FREEZE_PACKAGES:
+MAC_NATIVE_QUEUE:
+CODEX_REVIEW_QUEUE:
+HUMAN_GATE_QUEUE:
+
+HUMAN_INTERRUPTION_BURDEN:
+AVOIDABLE_HUMAN_INTERRUPTS_FOUND:
+AUTONOMY_IMPROVEMENTS:
+
+TOP_10_NEW_FINDINGS:
+TOP_10_COUNTEREXAMPLES:
+TOP_10_REMAINING_ASSUMPTIONS:
+TOP_10_NEXT_INTEGRATION_ACTIONS:
+
+SATURATION_TRIAL_REAL_PROBES:
+RAPID_CLOSURE_TRIPWIRE_TRIGGERED:
+WHY_GLOBAL_SATURATION_IS_OR_IS_NOT_JUSTIFIED:
+
+MAC_ACCESSED:
+UNIVERSUX_TOUCHED:
+RC3_MUTATED:
+
+COMMITS:
+PUSHES:
+MERGES:
+DEPLOYMENTS:
+PUBLICATIONS:
+EXTERNAL_MESSAGES:
+
+AUTONOMOUS_SPEND_EUR:
+REAL_TRADES:
+REAL_FUNDS_TOUCHED:
+REAL_POSITIONS_CHANGED:
+REAL_WALLETS_CONNECTED:
+REAL_REVENUE_EUR:
+
+OWNED_BACKGROUND_HELPERS:
+ACTIVE_WRITER_LEASES:
+
+MISSION_ROOT:
+CURRENT_CHECKPOINT:
+FAILURE_CORPUS:
+DEPTH_MATRIX:
+COMPOSITION_MATRIX:
+MORNING_REPORT:
+
+EXACT_NEXT_ACTION:
+
+=== END SIGMA ===
+
+======================================================================
+342. FINAL COMMAND
+======================================================================
+
+BEGIN.
+
+First:
+
+PRE-FLIGHT.
+
+Second:
+
+record honest real start time.
+
+Third:
+
+inspect actual source.
+
+Fourth:
+
+build the coherent executable shadow/reference/differential framework.
+
+Fifth:
+
+begin real campaigns selected from evidence.
+
+After every campaign:
+
+VERIFY
+ATTACK
+CHECKPOINT
+GENERATE NEXT
+CONTINUE.
+
+Do not ask the sleeping human for routine decisions.
+
+Do not stop because a predetermined list is finished.
+
+Do not manufacture eight hours.
+
+Do not claim eight hours.
+
+Do not artificially wait eight hours.
+
+Instead:
+
+KEEP DOING REAL HIGH-INFORMATION ENGINEERING
+UNTIL
+
+CAPACITY ACTUALLY ENDS,
+
+A REAL GLOBAL BLOCKER EXISTS,
+
+OR
+
+REPEATED EXECUTABLE SATURATION PROBES SHOW THAT NO MATERIAL
+WINDOWS-SAFE HIGH-INFORMATION WORK REMAINS.
+
+If capacity ends while useful work remains:
+
+PAUSED_CAPACITY.
+
+That is better and more truthful than fake saturation.
+
+If a branch needs Mac:
+
+QUEUE IT.
+
+If a branch needs Codex:
+
+QUEUE IT.
+
+If a branch needs Human Gate:
+
+QUEUE IT.
+
+THEN CONTINUE SOMEWHERE ELSE.
+
+THE HUMAN IS SLEEPING.
+
+DO NOT MAKE THE HUMAN COURIER.
+
+######################################################################
+# END OF INITIAL CONTRACT.                                           #
+# THE MISSION CONTINUES FROM ITS OWN DURABLE FRONTIER.                #
+######################################################################
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-09-10T05:50:20+02:00.
+</ADDITIONAL_METADATA>

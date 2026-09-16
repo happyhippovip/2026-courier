@@ -1,0 +1,332 @@
+{
+  "mission_id": "WINDOWS_PRODUCTION_RUNTIME_FREEZE_HANDOFF_V1",
+  "timestamp": "2026-09-10T09:01:31.133Z",
+  "git_head": "aa5c01d21c7e055c7e3b5117ded5eddc6793dde4",
+  "branch": "windows/money-factory-p0",
+  "git_status_clean_uncommitted": true,
+  "baseline_pre_existing_uncommitted_files": [
+    "money_factory/anti_loop_policy.js",
+    "money_factory/index.js",
+    "money_factory/portfolios.js",
+    "money_factory/prediction_calibration.js",
+    "money_factory/safety_gates.js",
+    "money_factory/warehouse.js",
+    "opportunity_warehouse/opportunities.json"
+  ],
+  "baseline_pre_existing_note": "These 7 pre-existing uncommitted modifications existed prior to the runtime mission and are part of the baseline working tree. They are NOT modifications made by the runtime or freeze missions.",
+  "total_frozen_items": 39,
+  "items": [
+    {
+      "path": "bin/courier_runtime.js",
+      "size": 19191,
+      "sha256": "3458d4590fb84bb3b2a7cc687163fe4b468c44c95bfd84855b58ef153424fcb8",
+      "role": "CANONICAL_PRODUCTION_RUNTIME_ENTRYPOINT",
+      "production_or_evidence": "PRODUCTION",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "cross_device_intake.js",
+      "size": 6691,
+      "sha256": "5028b74800379734425ce6b090c534a0879f1eefbd996a83d056c5c716664775",
+      "role": "GOAL_INTAKE_AND_CLASSIFICATION",
+      "production_or_evidence": "PRODUCTION",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "governance/TaskPassport.js",
+      "size": 1421,
+      "sha256": "378fec6d346b8673061d9426add4a42a9dc7ca1bccf889b547d19e66e677ae15",
+      "role": "TASK_PASSPORT_HMAC_SIGNING",
+      "production_or_evidence": "PRODUCTION",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "governance/BorderGuard.js",
+      "size": 2154,
+      "sha256": "87968421efad74a8c877bed902ad091500e4e8f99eaec873f96b467a9750bae1",
+      "role": "BORDER_GUARD_PRE_DISPATCH_GATE",
+      "production_or_evidence": "PRODUCTION",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "governance/ResourceLockManager.js",
+      "size": 1907,
+      "sha256": "2a22fb024c321a4aab963527f90f220edf9797382f385e716183f82a94b724e8",
+      "role": "RESOURCE_MUTEX_LOCK_MANAGER",
+      "production_or_evidence": "PRODUCTION",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "governance/ResultCustoms.js",
+      "size": 1502,
+      "sha256": "8f3306f96f13b1048d63af571e80e88726d90fcafc320bc9c7f4419b14258783",
+      "role": "RESULT_CUSTOMS_AND_EVIDENCE_VERIFIER",
+      "production_or_evidence": "PRODUCTION",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "governance/CompletionGovernor.js",
+      "size": 2550,
+      "sha256": "00b9c8fe7a2b6441f855fd5422bc74142871a4bae6405044382020d7f8a0c45f",
+      "role": "COMPLETION_GOVERNOR_AND_STATUS_AUTHORITY",
+      "production_or_evidence": "PRODUCTION",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "governance/CapabilityEngine.js",
+      "size": 1325,
+      "sha256": "c39c46cfd26625b7531b729c7473b73a3e630c8431f07289656629022b868ec5",
+      "role": "CAPABILITY_LATTICE_AND_CEILINGS",
+      "production_or_evidence": "PRODUCTION",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "supervisor/index.js",
+      "size": 4100,
+      "sha256": "d95f3ab1c556060f78088113dbdded09362587a8b1eb5011f5ee285870b5bc19",
+      "role": "SUPERVISOR_PLANE_INTEGRATION_SURFACE",
+      "production_or_evidence": "PRODUCTION",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "supervisor/types.js",
+      "size": 2677,
+      "sha256": "4efb9f42ca216b75d9097ac871fee5b572cda6dc58068d73dab6b6239155f0d1",
+      "role": "SUPERVISOR_TYPES_AND_SAFETY_INVARIANTS",
+      "production_or_evidence": "PRODUCTION",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "supervisor/audit_ledger.js",
+      "size": 3080,
+      "sha256": "d848c138266c32cf1d51a968a746094af6ea75e74a10afcdd1f9238402689784",
+      "role": "DURABLE_AUDIT_LEDGER",
+      "production_or_evidence": "PRODUCTION",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "supervisor/lease_manager.js",
+      "size": 10136,
+      "sha256": "be00e5333d59c6d86e0a6a8d46bc66c01666ca62a2775e1534d8ae475aaf4647",
+      "role": "PROCESS_LEASE_COMPOSITE_IDENTITY_MANAGER",
+      "production_or_evidence": "PRODUCTION",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "supervisor/decision_engine.js",
+      "size": 4344,
+      "sha256": "e9986e65da558bfc83c010e6fa6df7465ca368b673127fb2a73a6382a6d02119",
+      "role": "PRE_DISPATCH_DECISION_ENGINE",
+      "production_or_evidence": "PRODUCTION",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "supervisor/reconciliation.js",
+      "size": 5880,
+      "sha256": "6f65fdf1958ad956b58df6be05430aa0ebfca442db033359a0779953bfa245af",
+      "role": "BOOT_AND_CRASH_RESTART_RECONCILER",
+      "production_or_evidence": "PRODUCTION",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "supervisor/stall_policy.js",
+      "size": 7222,
+      "sha256": "70dd2334d86364a8bfdb2e56013f2ef5aceaf569ec149517b94cf7d49bbbb5e8",
+      "role": "STALL_POLICY_AND_PROGRESS_EVALUATOR",
+      "production_or_evidence": "PRODUCTION",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "supervisor/progress_tracker.js",
+      "size": 6116,
+      "sha256": "a7a2d21dea62a970117bee45158ac8e5e8bb6710bce73fd3aaf0dd6b7894b30c",
+      "role": "PROGRESS_TRACKER_AND_CUSTOMS_INTAKE",
+      "production_or_evidence": "PRODUCTION",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "money_factory/safety_gates.js",
+      "size": 5244,
+      "sha256": "c00ed53b4f0f1fd4ff6160413abeb26a2e6057921e586aa31af373fb3addff19",
+      "role": "FINANCIAL_AND_HUMAN_SAFETY_GATES",
+      "production_or_evidence": "PRODUCTION",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "SYMPHONY_KERNEL_CONTRACT.json",
+      "size": 5262,
+      "sha256": "ae6a5f76e39c349de90a6fb47e5ea2b7acba6e95039c0cffa659968bc8b730aa",
+      "role": "SYMPHONY_KERNEL_CONTRACT",
+      "production_or_evidence": "SPEC",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "AUTHORITATIVE_RUNTIME_GRAPH.json",
+      "size": 4211,
+      "sha256": "e6d99c603faccfcceea8992c0a7d5f5c04bdf393b85ad549224afd9ba8d29cbe",
+      "role": "AUTHORITATIVE_RUNTIME_GRAPH",
+      "production_or_evidence": "SPEC",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "DAILY_IMPROVEMENT_CONTRACT.md",
+      "size": 4803,
+      "sha256": "3a0df11ed2dc372b97babf44de6ab768ed331c4a039e33e5d11c07f54849b73c",
+      "role": "DAILY_IMPROVEMENT_CONTRACT",
+      "production_or_evidence": "SPEC",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "SUPERVISOR_PLANE_ARCHITECTURE.md",
+      "size": 6157,
+      "sha256": "cdb90a75114ffcef3829c406b94ac0e8f8a7f4264fe2531099deabb1b255ad70",
+      "role": "SUPERVISOR_PLANE_ARCHITECTURE",
+      "production_or_evidence": "SPEC",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "scratch/minimal_production_runtime_v1/BEFORE_STATE.json",
+      "size": 4259,
+      "sha256": "f97fdded95da5effe15bb261d5200d49776be684126ba6b0cb0202e85aed03d4",
+      "role": "PROOF_ARTIFACT_BEFORE_STATE",
+      "production_or_evidence": "EVIDENCE",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "scratch/minimal_production_runtime_v1/EXISTING_AUTHORITY_MAP.json",
+      "size": 9360,
+      "sha256": "11be3314ab47843da500cd2f165178c9afa8ceb202dcf6a78056fc06d26ff87d",
+      "role": "PROOF_ARTIFACT_EXISTING_AUTHORITY_MAP",
+      "production_or_evidence": "EVIDENCE",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "scratch/minimal_production_runtime_v1/RUNTIME_DESIGN.md",
+      "size": 4124,
+      "sha256": "622e44bd464f3146713175dba8d185bb5c3bd834c9b0a3a82c50c389a26e4c34",
+      "role": "PROOF_ARTIFACT_RUNTIME_DESIGN",
+      "production_or_evidence": "EVIDENCE",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "scratch/minimal_production_runtime_v1/NEW_PRODUCTION_FILES.json",
+      "size": 1220,
+      "sha256": "b8034f7faa863af0e4cd8728919934b5c1baa024706d1984b503bb73ca9675dd",
+      "role": "PROOF_ARTIFACT_NEW_PRODUCTION_FILES",
+      "production_or_evidence": "EVIDENCE",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "scratch/minimal_production_runtime_v1/REAL_GOAL.json",
+      "size": 619,
+      "sha256": "449a0558069625293018895a293f5ddcd29649577bc52fb41e1ad74ce2ffbdea",
+      "role": "PROOF_ARTIFACT_REAL_GOAL",
+      "production_or_evidence": "EVIDENCE",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "scratch/minimal_production_runtime_v1/GENERATED_TASKS.jsonl",
+      "size": 1768,
+      "sha256": "8cf1d09052b4cd2d5bfe20824f3dc057920a66d144a5fbddfcaadd4e4f4000ae",
+      "role": "PROOF_ARTIFACT_GENERATED_TASKS",
+      "production_or_evidence": "EVIDENCE",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "scratch/minimal_production_runtime_v1/REAL_PRODUCTION_RUNTIME_TRACE.jsonl",
+      "size": 1417,
+      "sha256": "e1106cf4af66b4736b58c250c9dc9b2a1026a2936924d6330ce5345d7167984b",
+      "role": "PROOF_ARTIFACT_REAL_PRODUCTION_RUNTIME_TRACE",
+      "production_or_evidence": "EVIDENCE",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "scratch/minimal_production_runtime_v1/NEXT_WORK_TRACE.jsonl",
+      "size": 750,
+      "sha256": "989a69d867cf4421f9e09b3a5845e989776eff2b48e87f3b57549a1fd9718bc1",
+      "role": "PROOF_ARTIFACT_NEXT_WORK_TRACE",
+      "production_or_evidence": "EVIDENCE",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "scratch/minimal_production_runtime_v1/REAL_OS_RESTART_PROOF.json",
+      "size": 691,
+      "sha256": "595fc8625f1e59a3a23eae21e691f70acc22799c05c1cd03560a8b7d552188b2",
+      "role": "PROOF_ARTIFACT_REAL_OS_RESTART_PROOF",
+      "production_or_evidence": "EVIDENCE",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "scratch/minimal_production_runtime_v1/DANGEROUS_BOUNDARY_RESUME_PROOF.json",
+      "size": 453,
+      "sha256": "5862a2847b8a6fc74d33315d651a1ffc55395d60cb483b3007f261f4f6f00ee7",
+      "role": "PROOF_ARTIFACT_DANGEROUS_BOUNDARY_RESUME_PROOF",
+      "production_or_evidence": "EVIDENCE",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "scratch/minimal_production_runtime_v1/FOLLOW_UP_RESTART_PROOF.json",
+      "size": 512,
+      "sha256": "30a4b3aca8a857d12153af7120dcbad8df2c6b8fabe3b1d55a2d52f122baf66e",
+      "role": "PROOF_ARTIFACT_FOLLOW_UP_RESTART_PROOF",
+      "production_or_evidence": "EVIDENCE",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "scratch/minimal_production_runtime_v1/COMPLETION_GOVERNOR_RUNTIME_PROOF.json",
+      "size": 444,
+      "sha256": "2d20a522f1810862e068ab306d9e25752c206b5e9d41a339ccc37e5865258a22",
+      "role": "PROOF_ARTIFACT_COMPLETION_GOVERNOR_RUNTIME_PROOF",
+      "production_or_evidence": "EVIDENCE",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "scratch/minimal_production_runtime_v1/SCRATCH_INDEPENDENCE_PROOF.json",
+      "size": 315,
+      "sha256": "a0a5c0756929db9255ae942618a7e9b1d3d365a6104d6e09cf3f7eb822133a8a",
+      "role": "PROOF_ARTIFACT_SCRATCH_INDEPENDENCE_PROOF",
+      "production_or_evidence": "EVIDENCE",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "scratch/minimal_production_runtime_v1/RUNTIME_ADVERSARIAL_TESTS.json",
+      "size": 4481,
+      "sha256": "629638cb9e47540e7e3e221ab63b9872a51258e5035c49285cb11399394e2e02",
+      "role": "PROOF_ARTIFACT_RUNTIME_ADVERSARIAL_TESTS",
+      "production_or_evidence": "EVIDENCE",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "scratch/minimal_production_runtime_v1/PRODUCT_HASH_BEFORE_AFTER.json",
+      "size": 3359,
+      "sha256": "05717fd3f532a17df86adae8589b8585fff2369d61380644fc08daa832ba1cea",
+      "role": "PROOF_ARTIFACT_PRODUCT_HASH_BEFORE_AFTER",
+      "production_or_evidence": "EVIDENCE",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "scratch/minimal_production_runtime_v1/FINAL_REGRESSION.json",
+      "size": 254,
+      "sha256": "d2c32bb8814b53aa91b475084121addc3b53b04da639b86b1484a207fe45caf9",
+      "role": "PROOF_ARTIFACT_FINAL_REGRESSION",
+      "production_or_evidence": "EVIDENCE",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "scratch/minimal_production_runtime_v1/FINAL_STATE.json",
+      "size": 337,
+      "sha256": "75d420ab6492c51446643b9edfceaa64fbe84528c8575f457ffd91921f840fc4",
+      "role": "PROOF_ARTIFACT_FINAL_STATE",
+      "production_or_evidence": "EVIDENCE",
+      "must_match_for_convergence": true
+    },
+    {
+      "path": "scratch/minimal_production_runtime_v1/FINAL_REPORT.md",
+      "size": 9978,
+      "sha256": "74046da6b4f46135bc11e7c9d672b2edc999f6ad1c47de3d956a26eb534fe2be",
+      "role": "PROOF_ARTIFACT_FINAL_REPORT",
+      "production_or_evidence": "EVIDENCE",
+      "must_match_for_convergence": true
+    }
+  ]
+}

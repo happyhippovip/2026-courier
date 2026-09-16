@@ -1,0 +1,1019 @@
+<USER_REQUEST>
+======================================================================
+GOOGLE WINDOWS — FINAL 3-4% INTEGRATION RED-TEAM PACK V1
+======================================================================
+
+MISSION_ID:
+WINDOWS_FINAL_INTEGRATION_REDTEAM_PACK_V1
+
+MISSION_CLASS:
+BOUNDED_HIGH_INFORMATION_WINDOWS_ONLY_FINAL_MISSION
+
+TARGET:
+Use the remaining useful Windows capacity to produce and adversarially
+validate the strongest possible POST-FREEZE integration package for:
+
+A01 — Execution-Uncertainty Fence
+L01 — Writer/Resource Conflict Protection
+G01 — Human-Gate / Deferred Financial Liability
+B01 — Process Identity / PID Recycling
+
+IMPORTANT:
+Previous missions are CLOSED and SEALED.
+
+DO NOT reopen:
+RC3
+V2
+V3
+FINAL_HIGH_VALUE_QUOTA_SWEEP_V1
+WINDOWS_FINAL_4PCT_ADVERSARIAL_INTERVENTION_V1
+WINDOWS_COURIER_NIGHTSHIFT_ADVERSARIAL_FACTORY_V5
+
+DO NOT merely rerun their tests.
+
+======================================================================
+1. HARD BOUNDARIES
+======================================================================
+
+WINDOWS ONLY.
+
+DO NOT ACCESS MAC.
+DO NOT WRITE MAC FILES.
+DO NOT EXECUTE MAC COMMANDS.
+
+DO NOT TOUCH universuX.
+
+DO NOT MODIFY:
+- frozen RC3
+- active production Courier lifecycle
+- historical V2/V3/V5 evidence
+- previous sweep evidence.
+
+NO:
+commit
+push
+merge
+deploy
+publish
+external message
+purchase
+subscription
+billing action
+trade
+wallet action
+real financial action.
+
+AUTONOMOUS_SPEND_LIMIT_EUR = 0
+REAL_TRADES = 0
+REAL_FUNDS_TOUCHED = NO
+REAL_WALLETS_CONNECTED = NO
+REAL_REVENUE_EUR = 0
+
+======================================================================
+2. NEW ISOLATED ROOT
+======================================================================
+
+Create:
+
+C:\Users\lol\2026-workspace\courier\scratch\final_integration_redteam_pack_v1
+
+Create:
+
+MISSION_STATE.json
+CURRENT_RESUME_CHECKPOINT.md
+SOURCE_EVIDENCE_INDEX.md
+INTEGRATION_PLAN.md
+INTEGRATION_DEPENDENCY_GRAPH.md
+PATCH_SPEC_A01.md
+PATCH_SPEC_L01.md
+PATCH_SPEC_G01.md
+PATCH_SPEC_B01.md
+MIGRATION_SPEC.md
+ROLLBACK_SPEC.md
+REDTEAM_LEDGER.jsonl
+COUNTEREXAMPLES/
+MUTANTS/
+ORACLES/
+SIMULATION/
+PROOF_GAPS.md
+MAC_NATIVE_MINIMUM_TEST.md
+POST_FREEZE_EXECUTION_PLAN.md
+FINAL_REPORT.md
+
+======================================================================
+3. FIRST VERIFY IDLE STATE
+======================================================================
+
+Before creating work verify:
+
+V5 = COMPLETE & PARKED
+V5 exact_next_action = NONE
+Windows active writers = 0
+owned helper processes = 0
+
+If not:
+
+STOP with BLOCKED_WRITER_ALREADY_ACTIVE.
+
+Do not stack.
+
+======================================================================
+4. PURPOSE
+======================================================================
+
+This mission is NOT another generic test factory.
+
+Its purpose is:
+
+TURN THE EXISTING WINDOWS + CODEX EVIDENCE INTO AN EXECUTABLE,
+MINIMAL, RED-TEAMED POST-FREEZE INTEGRATION PLAN.
+
+We already know the candidate invariants.
+
+Now answer:
+
+WHAT EXACTLY WOULD WE CHANGE?
+WHERE WOULD THE CHANGE BELONG?
+WHAT IS THE MINIMUM CHANGE?
+WHAT CAN BREAK WHEN WE INTEGRATE IT?
+HOW DO WE PROVE IT?
+HOW DO WE ROLL IT BACK?
+HOW DO WE MIGRATE EXISTING DURABLE STATE?
+WHICH CLAIM STILL REQUIRES PHYSICAL MAC EVIDENCE?
+
+No production patch is authorized.
+
+======================================================================
+5. SOURCE EVIDENCE
+======================================================================
+
+Read relevant evidence from the sealed Windows labs.
+
+Use only as READ-ONLY evidence.
+
+Build SOURCE_EVIDENCE_INDEX.md containing:
+
+candidate
+source artifact
+counterexample
+proven invariant
+Windows repair concept
+Codex classification if locally available
+remaining proof gap.
+
+Never silently promote a synthetic lab result into production truth.
+
+Distinguish:
+
+PROVEN_IN_WINDOWS_LAB
+ARCHITECTURAL_REQUIREMENT
+LIKELY_PRODUCTION_DEFECT
+PRODUCTION_CODE_CONFIRMED
+MAC_NATIVE_PROOF_REQUIRED
+UNKNOWN.
+
+======================================================================
+6. INSPECT CURRENT COURIER STRUCTURE READ-ONLY
+======================================================================
+
+Inspect the CURRENT Windows Courier source tree READ-ONLY.
+
+Goal:
+
+identify likely real integration boundaries for A01/L01/G01/B01.
+
+Do not edit them.
+
+For each candidate identify:
+
+likely module
+likely entry point
+likely state object
+likely persistence boundary
+likely tests
+likely migration impact.
+
+If current production implementation cannot be established from
+evidence:
+
+mark UNKNOWN.
+
+DO NOT GUESS.
+
+======================================================================
+7. A01 PATCH SPEC
+======================================================================
+
+Produce PATCH_SPEC_A01.md.
+
+Required invariant:
+
+EXECUTION_UNCERTAIN
+OR POSSIBLE_UNSETTLED_SIDE_EFFECT
+
+=> NO AUTOMATIC REDISPATCH.
+
+Find every real Windows-visible code path that could eventually cause:
+
+dispatch
+retry
+fallback
+reroute
+replan
+restart dispatch.
+
+Build a call-path inventory.
+
+Determine the narrowest enforcement point.
+
+Preferred architecture:
+
+central dispatch authorization choke point.
+
+But challenge that assumption.
+
+Question:
+
+Can any worker/effect begin without passing that choke point?
+
+If YES:
+
+record gap.
+
+Patch spec must include:
+
+CURRENT_BEHAVIOR
+TARGET_BEHAVIOR
+MINIMAL_CHANGE
+FILES_LIKELY_AFFECTED
+STATE_FIELDS_REQUIRED
+PERSISTENCE_REQUIREMENT
+CALLERS
+FAIL_CLOSED_BEHAVIOR
+TESTS
+MIGRATION
+ROLLBACK
+RISKS
+UNKNOWN.
+
+======================================================================
+8. A01 RED TEAM
+======================================================================
+
+Attack the proposed patch spec.
+
+Try:
+
+direct dispatch
+fallback dispatch
+retry
+restart
+worker reconnect
+delayed result
+lease expiry
+Supervisor
+Resource Governor
+manual weiter
+planner requeue.
+
+Produce at least one independent oracle.
+
+If patch design has a bypass:
+
+revise the SPEC.
+
+Do not patch production.
+
+======================================================================
+9. L01 PATCH SPEC
+======================================================================
+
+Produce PATCH_SPEC_L01.md.
+
+Do NOT settle for:
+
+string equality.
+
+Do NOT automatically settle for:
+
+path prefix only.
+
+Build minimum hybrid resource model.
+
+Candidate resource forms:
+
+file:<canonical-resource>
+tree:<canonical-resource>
+db:<resource>
+port:<resource>
+artifact:<resource>
+gitref:<resource>
+service:<resource>
+external:<resource>
+
+Determine which are actually justified by Courier's current design.
+
+Avoid speculative taxonomy.
+
+Required property:
+
+two writers that can mutate the same logical resource cannot execute
+concurrently.
+
+Required counter-property:
+
+unrelated writers should not be globally serialized.
+
+======================================================================
+10. L01 PLATFORM SEMANTICS
+======================================================================
+
+Explicitly model:
+
+Windows case semantics
+macOS case-sensitive possibility
+macOS case-insensitive possibility
+path separators
+relative paths
+.. normalization
+symlink ambiguity
+repository root binding.
+
+Do NOT assume lowercase-everything is universally correct.
+
+If filesystem behavior must be runtime-derived:
+
+say so.
+
+======================================================================
+11. L01 RED TEAM
+======================================================================
+
+Attack:
+
+parent/child
+same generated artifact
+different source paths → same state
+same database resource
+same external resource
+prefix lookalikes
+case variants
+relative/absolute aliases.
+
+Record minimized bypasses.
+
+Revise SPEC if needed.
+
+======================================================================
+12. G01 PATCH SPEC
+======================================================================
+
+Produce PATCH_SPEC_G01.md.
+
+Separate three layers:
+
+1. semantic intent detection
+2. capability enforcement
+3. scoped Human approval.
+
+NLP alone must NOT be sole safety barrier.
+
+Financial commitment includes:
+
+immediate charge
+future charge
+subscription
+auto-renew
+paid upgrade
+usage billing
+deferred invoice
+binding payment authorization.
+
+At current policy:
+
+AUTONOMOUS_SPEND_LIMIT_EUR = 0.
+
+Execution creating financial liability requires Human Gate.
+
+======================================================================
+13. G01 ANALYSIS VS EXECUTION
+======================================================================
+
+Avoid false gates for harmless work.
+
+Examples:
+
+analyze pricing
+compare plans
+draft purchase plan
+simulate checkout
+prepare deployment instructions
+paper trade
+research subscription.
+
+These may remain analysis/preparation.
+
+But:
+
+actual checkout
+actual subscription activation
+actual upgrade
+actual payment authorization
+
+must gate.
+
+Model the transition:
+
+PREPARE → EXECUTE
+
+as explicit authority boundary.
+
+======================================================================
+14. G01 APPROVAL TOKEN
+======================================================================
+
+Specify minimum durable approval binding.
+
+Consider:
+
+approval_id
+goal_id
+task_id
+task_version
+operation
+amount
+currency
+recipient/provider
+scope
+expiry
+nonce
+single_use
+state_version.
+
+Determine what is mandatory vs optional.
+
+Prevent replay and scope expansion.
+
+"weiter" MUST NOT become payment approval.
+
+======================================================================
+15. G01 RED TEAM
+======================================================================
+
+Attack:
+
+€0 today / €50 later
+free trial / auto-renew
+existing card
+changed amount
+changed provider
+changed task version
+replayed approval
+expired approval
+tool args contradict harmless prose
+ambiguous "set it all up"
+negative instructions.
+
+Revise SPEC if bypass exists.
+
+======================================================================
+16. B01 PATCH SPEC
+======================================================================
+
+Produce PATCH_SPEC_B01.md.
+
+Portable invariant:
+
+PID ALONE IS NOT PROCESS IDENTITY.
+
+Candidate identity:
+
+machine_id
+pid
+start_time
+task/process lease token.
+
+Evaluate:
+
+command fingerprint
+worker id
+PPID
+
+as additional evidence, not automatically identity.
+
+UNKNOWN:
+
+must not authorize kill
+must not authorize unsafe redispatch
+must not silently become MATCH.
+
+======================================================================
+17. B01 WINDOWS PROOF VS MAC PROOF
+======================================================================
+
+Separate exactly:
+
+WHAT WINDOWS CAN PROVE
+
+from
+
+WHAT DARWIN MUST PROVE.
+
+Create MAC_NATIVE_MINIMUM_TEST.md.
+
+It must be SMALL.
+
+Do not create another giant Mac campaign.
+
+Target only irreducible questions such as:
+
+Can intended Courier runtime obtain reliable process start identity
+using Darwin APIs under actual permissions?
+
+What happens if process disappears during inspection?
+
+What happens on permission failure?
+
+Can PID reuse be distinguished safely?
+
+Expected safe result for uncertainty:
+
+UNKNOWN / HOLD.
+
+======================================================================
+18. MIGRATION SPEC
+======================================================================
+
+This is critical.
+
+Assume future integration occurs while durable state may contain:
+
+PROPOSED
+STAMPED
+DISPATCHED
+IN_FLIGHT
+PENDING_VERIFY
+BLOCKED
+HUMAN_GATE
+EXECUTION_UNCERTAIN
+COMPLETE.
+
+For every new field/invariant determine migration behavior.
+
+Never mutate historical task identity.
+
+Never convert UNKNOWN to safe.
+
+Never convert EXECUTION_UNCERTAIN to retryable.
+
+Never create approval from absence.
+
+Never release writer lease merely because new identity data is absent.
+
+======================================================================
+19. LEGACY STATE
+======================================================================
+
+Model old records lacking:
+
+process start time
+resource locks
+state version
+approval nonce
+side-effect uncertainty marker.
+
+Determine safe defaults.
+
+Security-relevant missing data should generally become:
+
+UNKNOWN / HOLD / NEEDS_RECONCILIATION
+
+not fabricated values.
+
+But avoid blocking already terminal immutable historical evidence
+unnecessarily.
+
+======================================================================
+20. ROLLBACK SPEC
+======================================================================
+
+Create ROLLBACK_SPEC.md.
+
+For each A01/L01/G01/B01:
+
+what can be rolled back
+what state migration cannot simply be erased
+how to preserve evidence
+how to avoid re-enabling unsafe behavior during rollback.
+
+A rollback must not turn:
+
+EXECUTION_UNCERTAIN → retryable
+
+or:
+
+UNKNOWN process → killable.
+
+======================================================================
+21. INTEGRATION DEPENDENCY GRAPH
+======================================================================
+
+Challenge current order:
+
+A01 → L01 → G01 → B01.
+
+Determine dependencies.
+
+Questions:
+
+Does L01 depend on new task-state versioning?
+
+Does G01 depend on A01 because uncertain financial effects cannot retry?
+
+Does B01 affect release of L01 leases?
+
+Could integration order temporarily weaken safety?
+
+Find safest order.
+
+Do not change order without evidence.
+
+======================================================================
+22. PARTIAL-INTEGRATION STATES
+======================================================================
+
+This is a major attack family.
+
+Simulate:
+
+A01 installed, L01 old
+A01+L01 installed, G01 old
+G01 installed before A01
+B01 installed without migration
+new writer locks with legacy tasks
+new approval schema with old Human Gates.
+
+Find unsafe transitional combinations.
+
+======================================================================
+23. ATOMICITY
+======================================================================
+
+Determine whether integration must be:
+
+single atomic change
+
+or safely staged.
+
+Prefer smaller independently verifiable stages when safe.
+
+If staging creates unsafe mixed versions:
+
+say so.
+
+======================================================================
+24. CRASH DURING MIGRATION
+======================================================================
+
+Simulate crash:
+
+before migration
+mid migration
+after migration before code activation
+after code activation before verification.
+
+Recovery must be deterministic.
+
+======================================================================
+25. MUTATION ATTACK THE SPECS
+======================================================================
+
+Create mutants of proposed integration rules:
+
+remove A01 central fence
+allow fallback around A01
+remove resource parent-child check
+remove semantic lock
+assume case-insensitive universally
+allow deferred €0 commitment
+trust NLP alone
+reuse approval nonce
+remove task version binding
+PID-only match
+UNKNOWN→MATCH
+UNKNOWN→KILL
+legacy missing field→SAFE.
+
+Every critical mutant must be detected by the planned tests/oracles.
+
+If not:
+
+the integration test plan is insufficient.
+
+Improve it.
+
+======================================================================
+26. TEST PLAN MINIMIZATION
+======================================================================
+
+Do NOT create 500 redundant tests.
+
+Find the smallest high-information set that kills all critical mutants
+and covers all four invariants.
+
+Build:
+
+SMOKE
+TARGETED
+CROSS-COMPONENT
+MIGRATION
+ROLLBACK
+MAC-NATIVE.
+
+Rank each test by information gain.
+
+======================================================================
+27. POST-FREEZE EXECUTION PLAN
+======================================================================
+
+Create POST_FREEZE_EXECUTION_PLAN.md.
+
+It should be executable later by Courier after freeze.
+
+For each stage:
+
+PRECONDITIONS
+FILES
+CHANGE
+MIGRATION
+TARGETED_TEST
+INDEPENDENT_VERIFICATION
+ROLLBACK_POINT
+STOP_CONDITION
+NEXT_STAGE.
+
+NO vague prose.
+
+======================================================================
+28. HUMAN GATES FOR FUTURE INTEGRATION
+======================================================================
+
+Normal local source changes/tests do not automatically require Human
+Gate.
+
+But preserve gates for:
+
+sudo/admin
+credentials
+billing
+external deployment
+publication
+real external action.
+
+If Mac-native proof requires a human-only permission action:
+
+mark exact gate.
+
+Do not invent one unless required.
+
+======================================================================
+29. PRODUCTION DEFECT CLAIM DISCIPLINE
+======================================================================
+
+For every candidate return one:
+
+CONFIRMED_IN_CURRENT_SOURCE
+LIKELY_BUT_NOT_CONFIRMED
+ARCHITECTURAL_REQUIREMENT
+ALREADY_IMPLEMENTED
+WINDOWS_LAB_ONLY
+NEEDS_MAC_NATIVE_PROOF
+INSUFFICIENT_EVIDENCE.
+
+This is mandatory.
+
+Do not call something fixed merely because lab code passes.
+
+======================================================================
+30. FINAL ADVERSARIAL REVIEW
+======================================================================
+
+Before completion ask:
+
+"If we applied these four specs tomorrow, what could cause us to make
+Courier LESS safe?"
+
+Attack the 10 strongest answers.
+
+Examples:
+
+overlocking
+deadlock
+permanent HOLD
+approval false positives
+lost historical tasks
+lease never released
+migration ambiguity
+process identity false negatives
+central dispatcher bypass
+rollback restoring unsafe semantics.
+
+======================================================================
+31. COMPLETION STANDARD
+======================================================================
+
+COMPLETE only if:
+
+A01 spec red-teamed
+L01 spec red-teamed
+G01 spec red-teamed
+B01 spec red-teamed
+
+migration spec exists
+rollback spec exists
+dependency graph exists
+partial-integration states attacked
+critical mutants all killed by proposed tests
+Mac-native proof reduced to minimum irreducible test
+production-vs-lab classifications explicit
+post-freeze execution plan exists
+no Windows-resolvable P0/P1 integration-plan gap remains.
+
+======================================================================
+32. CAPACITY / INTERRUPTION
+======================================================================
+
+This is deliberately bounded.
+
+DO NOT game quota.
+DO NOT loop.
+DO NOT repeat green work.
+
+If session/capacity ends:
+
+checkpoint immediately.
+
+Persist:
+
+last completed section
+open defect
+current mutant
+exact next action.
+
+Then STOP.
+
+======================================================================
+33. PERMANENT WEITER CONTRACT
+======================================================================
+
+If human sends only:
+
+weiter
+
+resume ONLY:
+
+WINDOWS_FINAL_INTEGRATION_REDTEAM_PACK_V1
+
+from its durable checkpoint.
+
+It does NOT authorize a new mission or any prohibited action.
+
+======================================================================
+34. FINAL REPORT
+======================================================================
+
+Return exactly:
+
+=== WINDOWS FINAL INTEGRATION REDTEAM PACK V1 ===
+
+MISSION_ID:
+STATUS:
+
+START_BRANCH:
+START_HEAD:
+FINAL_HEAD:
+GIT_STATUS:
+
+V5_CONFIRMED_CLOSED:
+ACTIVE_WINDOWS_WRITERS_AT_START:
+
+A01_CLASSIFICATION:
+A01_MINIMAL_CHANGE:
+A01_BYPASSES_FOUND:
+A01_SPEC_STATUS:
+
+L01_CLASSIFICATION:
+L01_MINIMAL_CHANGE:
+L01_BYPASSES_FOUND:
+L01_SPEC_STATUS:
+
+G01_CLASSIFICATION:
+G01_MINIMAL_CHANGE:
+G01_BYPASSES_FOUND:
+G01_SPEC_STATUS:
+
+B01_CLASSIFICATION:
+B01_MINIMAL_CHANGE:
+B01_BYPASSES_FOUND:
+B01_SPEC_STATUS:
+
+CURRENT_SOURCE_FILES_INSPECTED:
+
+MIGRATION_CASES:
+MIGRATION_DEFECTS:
+ROLLBACK_CASES:
+ROLLBACK_DEFECTS:
+PARTIAL_INTEGRATION_CASES:
+PARTIAL_INTEGRATION_DEFECTS:
+
+MUTANTS_CREATED:
+MUTANTS_KILLED:
+CRITICAL_MUTANTS_SURVIVED:
+
+MINIMAL_POST_FREEZE_TEST_COUNT:
+
+PRODUCTION_CONFIRMED_DEFECTS:
+LIKELY_PRODUCTION_DEFECTS:
+ARCHITECTURAL_REQUIREMENTS:
+ALREADY_IMPLEMENTED:
+INSUFFICIENT_EVIDENCE:
+
+MAC_NATIVE_PROOFS_REQUIRED:
+MAC_MINIMUM_TEST:
+
+RECOMMENDED_INTEGRATION_ORDER:
+ORDER_CHANGED_FROM_A01_L01_G01_B01:
+WHY:
+
+OPEN_P0:
+OPEN_P1:
+OPEN_P2:
+OPEN_P3:
+
+MAC_HOST_ACCESSED:
+ACTIVE_MAC_FILES_TOUCHED:
+universuX_TOUCHED:
+RC3_UNMODIFIED:
+V5_UNMODIFIED:
+
+COMMIT:
+PUSH:
+DEPLOY:
+PUBLICATION:
+SPEND:
+EXTERNAL_MESSAGES:
+REAL_TRADES:
+REAL_FUNDS_TOUCHED:
+REAL_WALLETS_CONNECTED:
+REAL_REVENUE_EUR:
+
+OWNED_HELPERS_LEFT_RUNNING:
+
+STRONGEST_NEW_INFORMATION:
+WEAKEST_REMAINING_ASSUMPTION:
+WHY_STOPPED:
+NEXT_RECOMMENDED_ACTION:
+
+ARTIFACT_ROOT:
+CHECKPOINT:
+POST_FREEZE_EXECUTION_PLAN:
+MAC_NATIVE_MINIMUM_TEST:
+
+=== END ===
+
+======================================================================
+35. START
+======================================================================
+
+START NOW.
+
+First:
+1. prove V5 is COMPLETE/PARKED
+2. prove Windows has no active writer
+3. initialize isolated lab
+4. index sealed evidence
+5. inspect current Windows Courier source READ-ONLY
+6. build A01 real integration spec
+7. red-team it
+8. build L01 spec and red-team it
+9. build G01 spec and red-team it
+10. build B01 spec and red-team it
+11. attack migration / rollback / partial integration
+12. mutation-test the proposed plan
+13. minimize the future test pack
+14. produce exact post-freeze execution plan
+15. final adversarial review
+16. checkpoint and stop when complete.
+
+DO NOT ASK HUMAN FOR NORMAL PROGRESS.
+DO NOT TOUCH MAC.
+DO NOT PATCH PRODUCTION.
+DO NOT START ANOTHER MISSION AFTER COMPLETION.
+
+======================================================================
+END WINDOWS_FINAL_INTEGRATION_REDTEAM_PACK_V1
+======================================================================
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-09-09T23:12:52+02:00.
+</ADDITIONAL_METADATA>

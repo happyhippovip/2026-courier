@@ -1,0 +1,6 @@
+{
+  "id": "CE-020",
+  "defect_class": "TRIPLE_FAULT_CASCADING_COLLAPSE",
+  "description": "Simultaneous process crash, lost ACK, and disk fill causing supervisor to blindly redispatch and corrupt state.",
+  "proven_invariant": "Triple fault safely converges to EXECUTION_UNCERTAIN with redispatch strictly blocked."
+}

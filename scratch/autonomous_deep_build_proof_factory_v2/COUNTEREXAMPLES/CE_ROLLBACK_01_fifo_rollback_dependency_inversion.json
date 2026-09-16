@@ -1,0 +1,16 @@
+{
+  "counterexample_id": "CE_ROLLBACK_01_fifo_rollback_dependency_inversion",
+  "date": "2026-09-09T21:50:35.964Z",
+  "category": "FIFO_ROLLBACK_DEPENDENCY_INVERSION",
+  "vulnerability": "Rollback executed in FIFO order attempted to delete parent directory before deleting nested child files created during migration, causing ENOTEMPTY fatal crash",
+  "unprotected_behavior": "Compensating actions array traversed with forEach / shift from index 0",
+  "repaired_behavior": "RollbackEngine maintains stack and pops actions in strict LIFO order, reverting child dependencies before parents",
+  "minimal_failing_case": {
+    "actions": [
+      "create_dir",
+      "write_child_file"
+    ],
+    "fifo_rollback_result": "ENOTEMPTY_ERROR",
+    "lifo_rollback_result": "SUCCESS"
+  }
+}

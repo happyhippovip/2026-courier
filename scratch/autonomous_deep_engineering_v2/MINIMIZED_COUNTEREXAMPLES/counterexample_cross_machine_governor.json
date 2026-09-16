@@ -1,0 +1,6 @@
+{
+  "id": "CE-012",
+  "defect_class": "GLOBAL_THERMAL_COUPLING_HAZARD",
+  "description": "If resource manager applies a global lock when one machine overheats, healthy remote workers are starved of work.",
+  "proven_invariant": "Resource governor decouples MAC_HOST and WINDOWS_HOST states completely."
+}

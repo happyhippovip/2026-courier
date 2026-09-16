@@ -1,0 +1,9 @@
+{"timestamp":"2026-09-09T19:48:14.940Z","event":"TASK_STAMPED","data":{"taskId":"TASK-CP-22"}}
+{"timestamp":"2026-09-09T19:48:14.940Z","event":"LEASE_ACQUIRED","data":{"taskId":"TASK-CP-22"}}
+{"timestamp":"2026-09-09T19:48:14.943Z","event":"DISPATCH_INTENT","data":{"taskId":"TASK-CP-22"}}
+{"timestamp":"2026-09-09T19:48:14.946Z","event":"WORKER_ACKNOWLEDGED","data":{"taskId":"TASK-CP-22"}}
+{"timestamp":"2026-09-09T19:48:14.949Z","event":"OUTPUT_WRITTEN","data":{"taskId":"TASK-CP-22"}}
+{"timestamp":"2026-09-09T19:48:14.951Z","event":"RESULT_PERSISTED","data":{"taskId":"TASK-CP-22","hash":"542743a79a4035ceaba78b2799a4b91c7cc0482e84811463898f4da329a58564"}}
+{"timestamp":"2026-09-09T19:48:14.953Z","event":"VERIFICATION_COMPLETE","data":{"taskId":"TASK-CP-22"}}
+{"timestamp":"2026-09-09T19:48:14.955Z","event":"TASK_CLOSED","data":{"taskId":"TASK-CP-22"}}
+{"timestamp":"2026-09-09T19:48:14.957Z","event":"CLEANUP_COMPLETE","data":{"taskId":"TASK-CP-22"}}

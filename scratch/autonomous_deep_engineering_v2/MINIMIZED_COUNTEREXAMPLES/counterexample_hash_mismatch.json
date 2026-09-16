@@ -1,0 +1,13 @@
+{
+  "id": "CE-006",
+  "defect_class": "ROUTE_IDENTITY_CONFLATION",
+  "description": "When worker_id is factored into logical task hash, route fallback creates a different hash, causing deduplication failure and customs rejection",
+  "canonical_hash": "7b727a6f133964d3c8d4ab1bcc64bdccf35ecee7c3c05df8f652284ebc14b31d",
+  "flawed_hashes_per_route": {
+    "GEMINI": "ae2009f2dd456c4efc436e429fb10237de514c872315567049d3e38dd8510372",
+    "CLI1": "5a0f2bcfe3470568a0eec5796f26992b8d630895cbc36f45acc57d3b4d196a78",
+    "LOCAL_CHEAP": "a9d075471e19d9795524ce8798610b34cebb3601148bb24e6226f693bc7db85c",
+    "FALLBACK": "af28bd87664b4814c204dbb9f8aa6a9e1d99be0d64ab554228902a7a341ae82b"
+  },
+  "proof_of_defect": "Flawed hash diverges across routes; canonical hash remains strictly invariant."
+}

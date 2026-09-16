@@ -64,7 +64,7 @@ def run_agy(task, config):
     
     try:
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        stdout, stderr = process.communicate(timeout=300)
+        stdout, stderr = process.communicate(timeout=3600)
         
         out_clean = stdout.strip()
         parsed = False

@@ -1,0 +1,23 @@
+{
+  "mission_id": "WINDOWS_COURIER_DURABLE_AUTONOMY_RUNTIME_MULTI_HOUR_V1",
+  "predecessor_terminal": true,
+  "predecessor_status": "COMPLETED",
+  "active_writer_leases": 0,
+  "owned_helpers": 0,
+  "execution_uncertain_side_effects": 0,
+  "host": {
+    "os": "Windows_NT 10.0.19045 (win32 x64)",
+    "cpus": 8,
+    "cpu_model": "Intel(R) Core(TM) i7-10510U CPU @ 1.80GHz",
+    "ram_total_gb": "15.84",
+    "ram_free_gb": "7.42",
+    "node_version": "v24.20.0",
+    "python_version": "unknown",
+    "git_branch": "windows/money-factory-p0",
+    "git_head": "aa5c01d21c7e055c7e3b5117ded5eddc6793dde4"
+  },
+  "started_at_utc": "2026-09-10T04:30:47.322Z",
+  "started_at_local": "2026-09-10T06:30:36+02:00",
+  "monotonic_start": "44791200084100",
+  "status": "INITIALIZING"
+}

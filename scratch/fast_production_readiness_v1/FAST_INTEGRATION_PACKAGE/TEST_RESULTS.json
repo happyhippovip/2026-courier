@@ -1,0 +1,193 @@
+{
+  "test_run_metadata": {
+    "runtime": "v24.20.0",
+    "platform": "win32",
+    "arch": "x64",
+    "execution_time_utc": "2026-09-10T05:28:33.048Z",
+    "total_suites": 2,
+    "total_tests": 64,
+    "passed_tests": 64,
+    "failed_tests": 0,
+    "errors": 0,
+    "status": "ALL_PASS"
+  },
+  "suites": [
+    {
+      "suite_name": "test_supervisor_plane_p0.js",
+      "description": "Production backward-compatibility regression test suite",
+      "total": 45,
+      "passed": 45,
+      "failed": 0,
+      "tests": [
+        "process lease creation",
+        "process lease durability",
+        "heartbeat update",
+        "progress evidence update",
+        "5 minute soft check",
+        "15 minute diagnostic trigger",
+        "time alone never kills",
+        "progressing process preserved",
+        "valid wait preserved",
+        "stalled process does not auto-kill",
+        "hung process requires evidence",
+        "parent completion cleanup & orphan cleanup",
+        "tail helper cleanup",
+        "debugger helper cleanup",
+        "duplicate cleanup",
+        "unknown process reconciliation",
+        "restart reconciliation",
+        "execution uncertain blocks redispatch",
+        "execution uncertain blocks retry",
+        "no duplicate execution after uncertain state",
+        "diagnostic bundle creation",
+        "diagnostic bundle fingerprint",
+        "append-only audit history",
+        "screenshot fallback only after evidence insufficiency",
+        "privacy-sensitive screenshot blocked",
+        "CHIEF review envelope creation",
+        "hot Mac does not throttle healthy Windows",
+        "Mac PRESSURE holds only new Mac heavy tasks",
+        "Mac THERMAL_PRESSURE holds only new Mac heavy tasks",
+        "healthy Windows continues accepting work",
+        "healthy-machine reroute recommendation",
+        "heavy-task limit isolated per machine",
+        "resource state survives restart/reconciliation",
+        "unknown thermal state handled conservatively",
+        "temperature/time alone never kills progressing work",
+        "duplicate equivalent heavy task detected",
+        "canonical active heavy task preserved",
+        "obsolete duplicate helper terminates",
+        "different machines do not incorrectly conflict",
+        "different non-equivalent tasks do not incorrectly conflict",
+        "completed parent cleans obsolete child helper",
+        "required child is preserved",
+        "unowned process not blindly killed",
+        "helper cleanup produces audit event",
+        "hygiene runs idempotently"
+      ]
+    },
+    {
+      "suite_name": "test_mandatory_scenarios_suite.js",
+      "description": "The 19 mandatory production readiness scenarios testing all 5 gaps",
+      "total": 19,
+      "passed": 19,
+      "failed": 0,
+      "scenarios": [
+        {
+          "scenario": 1,
+          "name": "parent/child filesystem conflict",
+          "passed": true,
+          "details": "Parent lock blocks child subpath lock"
+        },
+        {
+          "scenario": 2,
+          "name": "Windows path case variants",
+          "passed": true,
+          "details": "Case-insensitive NTFS path collision detected"
+        },
+        {
+          "scenario": 3,
+          "name": "independent resources may still run concurrently",
+          "passed": true,
+          "details": "Non-overlapping sibling subpaths run in parallel"
+        },
+        {
+          "scenario": 4,
+          "name": "PID reuse",
+          "passed": true,
+          "details": "RECYCLED_PID_START_TIME_MISMATCH (delta 5000ms > 2000ms)"
+        },
+        {
+          "scenario": 5,
+          "name": "unknown process identity",
+          "passed": true,
+          "details": "UNKNOWN_PROCESS_IDENTITY_NEVER_AUTHORIZES_KILL"
+        },
+        {
+          "scenario": 6,
+          "name": "stale task token",
+          "passed": true,
+          "details": "RECYCLED_PID_START_TIME_MISMATCH (delta 59349ms > 2000ms)"
+        },
+        {
+          "scenario": 7,
+          "name": "uncertain execution + retry",
+          "passed": true,
+          "details": "Execution uncertain blocks retry"
+        },
+        {
+          "scenario": 8,
+          "name": "uncertain execution + fallback",
+          "passed": true,
+          "details": "Uncoordinated fallback blocked during uncertain execution"
+        },
+        {
+          "scenario": 9,
+          "name": "unstamped dispatch",
+          "passed": true,
+          "details": "MISSING_SIGNATURE"
+        },
+        {
+          "scenario": 10,
+          "name": "stale TaskPassport",
+          "passed": true,
+          "details": "Passport version mismatch rejected"
+        },
+        {
+          "scenario": 11,
+          "name": "malformed result envelope",
+          "passed": true,
+          "details": "NON_ZERO_EXIT_CODE"
+        },
+        {
+          "scenario": 12,
+          "name": "stale result",
+          "passed": true,
+          "details": "Stale result rejected"
+        },
+        {
+          "scenario": 13,
+          "name": "wrong task version",
+          "passed": true,
+          "details": "EMPTY_ARTIFACT_MANIFEST"
+        },
+        {
+          "scenario": 14,
+          "name": "worker claims DONE while goal evidence incomplete",
+          "passed": true,
+          "details": "Worker global completion revoked; mission continues"
+        },
+        {
+          "scenario": 15,
+          "name": "delayed result after newer task version",
+          "passed": true,
+          "details": "Older version rejected after newer dispatched"
+        },
+        {
+          "scenario": 16,
+          "name": "crash after result persistence but before verification",
+          "passed": true,
+          "details": "Mid-flight task fenced as EXECUTION_UNCERTAIN"
+        },
+        {
+          "scenario": 17,
+          "name": "restart and deterministic reconciliation",
+          "passed": true,
+          "details": "Identical replay across multiple process runs"
+        },
+        {
+          "scenario": 18,
+          "name": "Human Gate remains fail-closed",
+          "passed": true,
+          "details": "High-privilege actions strictly held for Human Gate"
+        },
+        {
+          "scenario": 19,
+          "name": "zero-spend invariants remain intact",
+          "passed": true,
+          "details": "Spend and real trade strictly blocked (limit €0)"
+        }
+      ]
+    }
+  ]
+}

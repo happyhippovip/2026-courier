@@ -1,0 +1,34 @@
+{
+  "id": "CX-COMP-02",
+  "compound_id": "COMP-02",
+  "title": "Stale Approval Replay Under Migrated Scope",
+  "trace": [
+    {
+      "step": 1,
+      "action": "HUMAN_APPROVAL_MINTED",
+      "scope": "READ_ONLY_AUDIT",
+      "schema": "v1"
+    },
+    {
+      "step": 2,
+      "action": "SYSTEM_MIGRATION",
+      "new_schema": "v2"
+    },
+    {
+      "step": 3,
+      "action": "WORKER_MUTATES_SCOPE",
+      "new_scope": "WRITE_PRODUCTION_MUTATION"
+    },
+    {
+      "step": 4,
+      "action": "WORKER_SUBMITS_STALE_TOKEN",
+      "token_id": "TOK-661cac4b340f"
+    },
+    {
+      "step": 5,
+      "expected_rejection": "SCOPE_FINGERPRINT_MISMATCH",
+      "enforced": true
+    }
+  ],
+  "mitigation": "Cryptographic binding of token to scope fingerprint, task version, and schema version."
+}

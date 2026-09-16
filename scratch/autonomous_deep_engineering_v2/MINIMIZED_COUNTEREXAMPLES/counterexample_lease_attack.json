@@ -1,0 +1,8 @@
+{
+  "id": "CE-010",
+  "defect_class": "UNAUTHORIZED_WORKER_LEASE_THEFT",
+  "description": "When worker identity, machine identity, or lease permissions are not verified on each execution call, rogue workers or secondary machines execute unauthorized writes.",
+  "vectors_tested": 11,
+  "vectors_rejected": 11,
+  "proven_invariant": "Worker lease capability token strictly enforces (task, version, goal, worker, machine, permissions)."
+}

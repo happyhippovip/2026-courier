@@ -1,0 +1,2 @@
+{"raw":null,"error":"Malformed record structure"}
+{"raw":{"missing_id":true},"error":"Legacy record missing required task identifier (id/task_id)"}

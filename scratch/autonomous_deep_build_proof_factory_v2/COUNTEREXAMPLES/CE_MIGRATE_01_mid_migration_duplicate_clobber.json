@@ -1,0 +1,14 @@
+{
+  "counterexample_id": "CE_MIGRATE_01_mid_migration_duplicate_clobber",
+  "date": "2026-09-09T21:50:35.963Z",
+  "category": "CRASH_MIGRATION_DUPLICATION",
+  "vulnerability": "Process killed at 50% migration caused subsequent restart to re-migrate from record 0, creating duplicate V2 tasks and overwriting partial worker outputs",
+  "unprotected_behavior": "Migration script processed arrays without persisting progress checkpoint to disk before processing records",
+  "repaired_behavior": "MigrationEngine writes atomic checkpoint per batch; crash recovery resumes strictly from last_seq",
+  "minimal_failing_case": {
+    "total_records": 4,
+    "crash_at_index": 2,
+    "restarted_migrated_count": 2,
+    "total_final_migrated": 4
+  }
+}

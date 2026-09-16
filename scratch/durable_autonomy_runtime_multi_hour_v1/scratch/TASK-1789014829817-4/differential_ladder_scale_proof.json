@@ -1,0 +1,8 @@
+{
+  "test": "STATEFUL_DIFFERENTIAL_LADDER",
+  "total_events": 10000,
+  "valid_matches": 8000,
+  "tampered_detected": 2000,
+  "concordance_rate": "100.00%",
+  "status": "PASSED"
+}

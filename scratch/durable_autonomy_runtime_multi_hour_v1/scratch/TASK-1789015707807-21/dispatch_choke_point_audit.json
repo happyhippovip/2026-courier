@@ -1,0 +1,12 @@
+{
+  "test": "SINGLE_CHOKE_POINT_DISPATCH",
+  "components": {
+    "has_border_guard": true,
+    "has_passport": true,
+    "has_lock_manager": true,
+    "has_result_customs": true,
+    "has_completion_governor": true
+  },
+  "choke_point_status": "UNIFIED_VIA_BORDER_GUARD_AND_PASSPORT",
+  "status": "PASSED"
+}

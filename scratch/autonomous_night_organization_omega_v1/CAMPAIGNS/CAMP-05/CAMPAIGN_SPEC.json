@@ -1,0 +1,24 @@
+{
+  "campaign_id": "CAMP-05-PROCESS-TREE-IDENTITY",
+  "parent_frontier_item": "FRONTIER-B01-TREE",
+  "goal": "Model Windows process tree ownership (shell wrappers + child workers), handle exit races, and prove tree-wide process identity oracles.",
+  "hypothesis": "Tracking recursive process trees with start-time fingerprints and handling exit races prevents orphaned background workers and avoids killing recycled innocent processes.",
+  "why_now": "Addresses Vector 4 discovered in Campaign 01.",
+  "production_relation": "Directly hardens supervisor/lease_manager.js and task_hygiene.js.",
+  "expected_information_gain": "VERY_HIGH",
+  "expected_cost": "0.00 EUR",
+  "risk": "NONE_ISOLATED_SHADOW",
+  "scope": "Process tree enumeration, child orphan prevention, exit race handling, UNKNOWN fail-closed invariants",
+  "write_scope": "scratch/autonomous_night_organization_omega_v1/CAMPAIGNS/CAMP-05/",
+  "dependencies": [
+    "CAMP-01-FALSIFY-SATURATION"
+  ],
+  "acceptance_criteria": "Zero orphaned children on wrapper termination; zero innocent kills on recycled child PID; clean exit race handling.",
+  "falsification_criteria": "Child worker survives untracked, or kill issued on mismatched child process.",
+  "evidence_required": "Process tree test execution traces and exit race simulation logs.",
+  "oracle": "Process tree verifier and identity oracle",
+  "mutation_strategy": "Mutate tree traversal; ignore child PID start-time check",
+  "stop_condition": "All process tree and race scenarios evaluated",
+  "status": "CLOSED_SUPPORTED",
+  "completed_at": "2026-09-09T23:39:28.796Z"
+}

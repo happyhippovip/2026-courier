@@ -1,0 +1,1060 @@
+{"file":"chief/cli.py","line":115,"field":"status","line_snippet":"def cmd_status(args):"}
+{"file":"chief/cli.py","line":128,"field":"status","line_snippet":"print(f\"  - [{f.status.value}] {f.finding_id} ({f.severity.value}) - from {f.origin_lane.value}\")"}
+{"file":"chief/cli.py","line":132,"field":"status","line_snippet":"print(f\"  - [{p.status.value}] {p.patch_id}: {p.batch_name} - {p.description}\")"}
+{"file":"chief/cli.py","line":138,"field":"status","line_snippet":"print(f\"  - {t['assignment_id']} ({t['origin_lane']}): STATUS={t['status']} | LOCAL={loc} | GESAMT={ges}\")"}
+{"file":"chief/cli.py","line":190,"field":"status","line_snippet":"# status"}
+{"file":"chief/cli.py","line":191,"field":"status","line_snippet":"p_status = subparsers.add_parser(\"status\", help=\"Show unified control plane status\")"}
+{"file":"chief/cli.py","line":191,"field":"status","line_snippet":"p_status = subparsers.add_parser(\"status\", help=\"Show unified control plane status\")"}
+{"file":"chief/cli.py","line":191,"field":"status","line_snippet":"p_status = subparsers.add_parser(\"status\", help=\"Show unified control plane status\")"}
+{"file":"chief/cli.py","line":211,"field":"status","line_snippet":"elif args.command == \"status\":"}
+{"file":"chief/cli.py","line":212,"field":"status","line_snippet":"cmd_status(args)"}
+{"file":"chief/control_plane.py","line":60,"field":"status","line_snippet":"validation_status TEXT NOT NULL,"}
+{"file":"chief/control_plane.py","line":73,"field":"status","line_snippet":"status TEXT NOT NULL,"}
+{"file":"chief/control_plane.py","line":82,"field":"status","line_snippet":"cursor.execute(\"CREATE INDEX IF NOT EXISTS idx_findings_status ON findings(status);\")"}
+{"file":"chief/control_plane.py","line":82,"field":"status","line_snippet":"cursor.execute(\"CREATE INDEX IF NOT EXISTS idx_findings_status ON findings(status);\")"}
+{"file":"chief/control_plane.py","line":89,"field":"status","line_snippet":"status TEXT NOT NULL,"}
+{"file":"chief/control_plane.py","line":101,"field":"task_id","line_snippet":"task_id TEXT PRIMARY KEY,"}
+{"file":"chief/control_plane.py","line":104,"field":"status","line_snippet":"status TEXT NOT NULL,"}
+{"file":"chief/control_plane.py","line":137,"field":"status","line_snippet":"status TEXT NOT NULL,"}
+{"file":"chief/control_plane.py","line":142,"field":"status","line_snippet":"cursor.execute(\"CREATE INDEX IF NOT EXISTS idx_dispatch_status ON dispatch_queue(status);\")"}
+{"file":"chief/control_plane.py","line":142,"field":"status","line_snippet":"cursor.execute(\"CREATE INDEX IF NOT EXISTS idx_dispatch_status ON dispatch_queue(status);\")"}
+{"file":"chief/control_plane.py","line":158,"field":"version","line_snippet":"cursor.execute(\"PRAGMA user_version = 13;\")"}
+{"file":"chief/control_plane.py","line":177,"field":"status","line_snippet":"validation_status: str = \"VERIFIED\""}
+{"file":"chief/control_plane.py","line":198,"field":"status","line_snippet":"validation_status, ingested_at"}
+{"file":"chief/control_plane.py","line":204,"field":"status","line_snippet":"validation_status, now_iso"}
+{"file":"chief/control_plane.py","line":224,"field":"status","line_snippet":"status: FindingStatus,"}
+{"file":"chief/control_plane.py","line":235,"field":"status","line_snippet":"cursor.execute(\"SELECT status FROM findings WHERE finding_id = ?\", (finding_id,))"}
+{"file":"chief/control_plane.py","line":240,"field":"status","line_snippet":"status = ?, severity = ?, description = ?,"}
+{"file":"chief/control_plane.py","line":245,"field":"status","line_snippet":"\"\"\", (status.value, severity.value, description, reproduction_ref, evidence_hash, now_iso, finding_id))"}
+{"file":"chief/control_plane.py","line":250,"field":"status","line_snippet":"finding_id, origin_lane, title, status, severity,"}
+{"file":"chief/control_plane.py","line":255,"field":"status","line_snippet":"finding_id, origin_lane.value, title, status.value, severity.value,"}
+{"file":"chief/control_plane.py","line":261,"field":"status","line_snippet":"\"status\": status.value,"}
+{"file":"chief/control_plane.py","line":261,"field":"status","line_snippet":"\"status\": status.value,"}
+{"file":"chief/control_plane.py","line":275,"field":"status","line_snippet":"status: PatchStatus,"}
+{"file":"chief/control_plane.py","line":288,"field":"status","line_snippet":"cursor.execute(\"SELECT status FROM patches WHERE patch_id = ?\", (patch_id,))"}
+{"file":"chief/control_plane.py","line":293,"field":"status","line_snippet":"batch_name = ?, status = ?, description = ?,"}
+{"file":"chief/control_plane.py","line":297,"field":"status","line_snippet":"\"\"\", (batch_name, status.value, description, target_json, repro_json, now_iso, patch_id))"}
+{"file":"chief/control_plane.py","line":302,"field":"status","line_snippet":"patch_id, batch_name, status, description,"}
+{"file":"chief/control_plane.py","line":306,"field":"status","line_snippet":"\"\"\", (patch_id, batch_name, status.value, description, target_json, repro_json, now_iso, now_iso))"}
+{"file":"chief/control_plane.py","line":311,"field":"status","line_snippet":"\"status\": status.value"}
+{"file":"chief/control_plane.py","line":311,"field":"status","line_snippet":"\"status\": status.value"}
+{"file":"chief/control_plane.py","line":321,"field":"task_id","line_snippet":"task_id: str,"}
+{"file":"chief/control_plane.py","line":324,"field":"status","line_snippet":"status: TaskStatus,"}
+{"file":"chief/control_plane.py","line":333,"field":"task_id","line_snippet":"cursor.execute(\"SELECT task_id FROM tasks WHERE task_id = ?\", (task_id,))"}
+{"file":"chief/control_plane.py","line":333,"field":"task_id","line_snippet":"cursor.execute(\"SELECT task_id FROM tasks WHERE task_id = ?\", (task_id,))"}
+{"file":"chief/control_plane.py","line":333,"field":"task_id","line_snippet":"cursor.execute(\"SELECT task_id FROM tasks WHERE task_id = ?\", (task_id,))"}
+{"file":"chief/control_plane.py","line":338,"field":"status","line_snippet":"assignment_id = ?, status = ?, local_step_erledigt = ?,"}
+{"file":"chief/control_plane.py","line":341,"field":"task_id","line_snippet":"WHERE task_id = ?;"}
+{"file":"chief/control_plane.py","line":343,"field":"status","line_snippet":"assignment_id, status.value,"}
+{"file":"chief/control_plane.py","line":347,"field":"task_id","line_snippet":"active_agent, now_iso, task_id"}
+{"file":"chief/control_plane.py","line":352,"field":"task_id","line_snippet":"task_id, assignment_id, origin_lane, status,"}
+{"file":"chief/control_plane.py","line":352,"field":"status","line_snippet":"task_id, assignment_id, origin_lane, status,"}
+{"file":"chief/control_plane.py","line":357,"field":"task_id","line_snippet":"task_id, assignment_id, origin_lane.value, status.value,"}
+{"file":"chief/control_plane.py","line":357,"field":"status","line_snippet":"task_id, assignment_id, origin_lane.value, status.value,"}
+{"file":"chief/control_plane.py","line":364,"field":"task_id","line_snippet":"self._record_event_tx(cursor, \"TASK_STATE_CHANGED\", origin_lane.value, task_id, {"}
+{"file":"chief/control_plane.py","line":365,"field":"status","line_snippet":"\"status\": status.value,"}
+{"file":"chief/control_plane.py","line":365,"field":"status","line_snippet":"\"status\": status.value,"}
+{"file":"chief/control_plane.py","line":484,"field":"status","line_snippet":"source_lane, prompt_text, envelope_json, status,"}
+{"file":"chief/control_plane.py","line":506,"field":"status","line_snippet":"SELECT * FROM dispatch_queue WHERE status = 'STAGED' AND target_lane = ?"}
+{"file":"chief/control_plane.py","line":511,"field":"status","line_snippet":"SELECT * FROM dispatch_queue WHERE status = 'STAGED'"}
+{"file":"chief/control_plane.py","line":523,"field":"status","line_snippet":"UPDATE dispatch_queue SET status = 'DISPATCHED', dispatched_at = ?"}
+{"file":"chief/control_plane.py","line":542,"field":"status","line_snippet":"status=FindingStatus(r[\"status\"]),"}
+{"file":"chief/control_plane.py","line":542,"field":"status","line_snippet":"status=FindingStatus(r[\"status\"]),"}
+{"file":"chief/control_plane.py","line":561,"field":"status","line_snippet":"status=PatchStatus(r[\"status\"]),"}
+{"file":"chief/control_plane.py","line":561,"field":"status","line_snippet":"status=PatchStatus(r[\"status\"]),"}
+{"file":"chief/coordinator.py","line":75,"field":"status","line_snippet":"confirmed = [f for f in findings if f.status == FindingStatus.CONFIRMED]"}
+{"file":"chief/coordinator.py","line":114,"field":"status","line_snippet":"prompt_lines.append(f\"| `{p.patch_id}` | `{p.batch_name}` | `{p.status.value}` | {p.description} |\")"}
+{"file":"chief/coordinator.py","line":177,"field":"status","line_snippet":"\"status\": \"STAGED\""}
+{"file":"chief/coordinator.py","line":247,"field":"status","line_snippet":"def format_terminal_status(self, task_description: str, local_done: bool, gesamtaufgabe_done: bool, evidence: str, blocker: str, next_step: str) -> str:"}
+{"file":"chief/delta_engine.py","line":3,"field":"state","line_snippet":"Computes exact state differentials across all agent lanes and reconciles split-brain claims."}
+{"file":"chief/delta_engine.py","line":32,"field":"status","line_snippet":"confirmed_findings = [f for f in findings if f.status == FindingStatus.CONFIRMED]"}
+{"file":"chief/delta_engine.py","line":33,"field":"status","line_snippet":"retracted_findings = [f for f in findings if f.status == FindingStatus.RETRACTED]"}
+{"file":"chief/delta_engine.py","line":34,"field":"status","line_snippet":"wrong_scope_findings = [f for f in findings if f.status == FindingStatus.WRONG_SCOPE]"}
+{"file":"chief/delta_engine.py","line":35,"field":"status","line_snippet":"reported_findings = [f for f in findings if f.status == FindingStatus.REPORTED]"}
+{"file":"chief/delta_engine.py","line":40,"field":"status","line_snippet":"proposed_patches = [p for p in patches if p.status == PatchStatus.PROPOSED]"}
+{"file":"chief/delta_engine.py","line":41,"field":"status","line_snippet":"staged_mac_patches = [p for p in patches if p.status == PatchStatus.STAGED_FOR_MAC]"}
+{"file":"chief/delta_engine.py","line":42,"field":"status","line_snippet":"verified_patches = [p for p in patches if p.status == PatchStatus.VERIFIED_LOCAL]"}
+{"file":"chief/delta_engine.py","line":82,"field":"status","line_snippet":"\"findings_by_status\": {"}
+{"file":"chief/delta_engine.py","line":97,"field":"status","line_snippet":"{\"id\": p.patch_id, \"batch\": p.batch_name, \"status\": p.status.value, \"desc\": p.description}"}
+{"file":"chief/delta_engine.py","line":97,"field":"status","line_snippet":"{\"id\": p.patch_id, \"batch\": p.batch_name, \"status\": p.status.value, \"desc\": p.description}"}
+{"file":"chief/delta_engine.py","line":100,"field":"status","line_snippet":"\"tasks_status\": ["}
+{"file":"chief/delta_engine.py","line":104,"field":"status","line_snippet":"\"status\": t[\"status\"],"}
+{"file":"chief/delta_engine.py","line":104,"field":"status","line_snippet":"\"status\": t[\"status\"],"}
+{"file":"chief/delta_engine.py","line":145,"field":"status","line_snippet":"for status_key, items in delta[\"findings_by_status\"].items():"}
+{"file":"chief/delta_engine.py","line":164,"field":"status","line_snippet":"lines.append(f\"| `{p['id']}` | `{p['batch']}` | `{p['status']}` | {p['desc']} |\")"}
+{"file":"chief/ingestor.py","line":38,"field":"status","line_snippet":"return {\"success\": False, \"error\": f\"File not found: {filepath}\", \"status\": \"NOT_FOUND\"}"}
+{"file":"chief/ingestor.py","line":42,"field":"status","line_snippet":"return {\"success\": False, \"error\": \"Unsupported file format (must be .json or .md)\", \"status\": \"IGNORED\"}"}
+{"file":"chief/ingestor.py","line":46,"field":"status","line_snippet":"return {\"success\": True, \"status\": \"MD_COMPANION_ACKNOWLEDGED\", \"filepath\": filepath}"}
+{"file":"chief/ingestor.py","line":57,"field":"status","line_snippet":"\"status\": \"REJECTED_MALFORMED\","}
+{"file":"chief/ingestor.py","line":68,"field":"status","line_snippet":"\"status\": \"REJECTED_VALIDATION\","}
+{"file":"chief/ingestor.py","line":97,"field":"status","line_snippet":"validation_status=\"VERIFIED\""}
+{"file":"chief/ingestor.py","line":103,"field":"status","line_snippet":"\"status\": \"SKIPPED_ALREADY_INGESTED\","}
+{"file":"chief/ingestor.py","line":120,"field":"status","line_snippet":"\"status\": \"INGESTED\","}
+{"file":"chief/ingestor.py","line":152,"field":"status","line_snippet":"# Determine status"}
+{"file":"chief/ingestor.py","line":153,"field":"status","line_snippet":"status = FindingStatus.REPORTED"}
+{"file":"chief/ingestor.py","line":155,"field":"status","line_snippet":"status = FindingStatus.CONFIRMED"}
+{"file":"chief/ingestor.py","line":157,"field":"status","line_snippet":"status = FindingStatus.RETRACTED"}
+{"file":"chief/ingestor.py","line":159,"field":"status","line_snippet":"status = FindingStatus.WRONG_SCOPE"}
+{"file":"chief/ingestor.py","line":173,"field":"status","line_snippet":"status=status,"}
+{"file":"chief/ingestor.py","line":173,"field":"status","line_snippet":"status=status,"}
+{"file":"chief/ingestor.py","line":186,"field":"status","line_snippet":"status=FindingStatus.CONFIRMED,"}
+{"file":"chief/ingestor.py","line":198,"field":"status","line_snippet":"status=FindingStatus.RETRACTED,"}
+{"file":"chief/ingestor.py","line":218,"field":"status","line_snippet":"status=PatchStatus.PROPOSED,"}
+{"file":"chief/ingestor.py","line":229,"field":"status","line_snippet":"status=PatchStatus.PROPOSED,"}
+{"file":"chief/ingestor.py","line":238,"field":"task_id","line_snippet":"task_id = f\"TASK-{assignment_id}\""}
+{"file":"chief/ingestor.py","line":255,"field":"task_id","line_snippet":"task_id=task_id,"}
+{"file":"chief/ingestor.py","line":255,"field":"task_id","line_snippet":"task_id=task_id,"}
+{"file":"chief/ingestor.py","line":258,"field":"status","line_snippet":"status=TaskStatus.COMPLETED if local_step_done else TaskStatus.RUNNING,"}
+{"file":"chief/ingestor.py","line":282,"field":"status","line_snippet":"if res.get(\"status\") == \"INGESTED\":"}
+{"file":"chief/ingestor.py","line":284,"field":"status","line_snippet":"elif res.get(\"status\") == \"SKIPPED_ALREADY_INGESTED\":"}
+{"file":"chief/types.py","line":120,"field":"status","line_snippet":"validation_status: str = \"VERIFIED\""}
+{"file":"chief/types.py","line":129,"field":"status","line_snippet":"status: FindingStatus"}
+{"file":"chief/types.py","line":142,"field":"status","line_snippet":"status: PatchStatus"}
+{"file":"chief/types.py","line":161,"field":"status","line_snippet":"status: str = \"STAGED\""}
+{"file":"chief/validator.py","line":3,"field":"status","line_snippet":"Validates incoming handoffs, envelopes, and status reports against known adversarial vectors:"}
+{"file":"cross_device_intake.js","line":50,"field":"status","line_snippet":"status: TaskStatus.BLOCKED,"}
+{"file":"cross_device_intake.js","line":68,"field":"status","line_snippet":"status: TaskStatus.RUNNING,"}
+{"file":"cross_device_intake.js","line":80,"field":"status","line_snippet":"status: TaskStatus.BLOCKED,"}
+{"file":"cross_device_intake.js","line":96,"field":"status","line_snippet":"status: TaskStatus.PARTIAL,"}
+{"file":"cross_device_intake.js","line":111,"field":"status","line_snippet":"status: TaskStatus.RUNNING,"}
+{"file":"cross_device_intake.js","line":126,"field":"status","line_snippet":"status: TaskStatus.RUNNING,"}
+{"file":"cross_device_intake.js","line":144,"field":"status","line_snippet":"status: TaskStatus.BLOCKED,"}
+{"file":"cross_device_intake.js","line":159,"field":"status","line_snippet":"status: TaskStatus.DONE,"}
+{"file":"cross_device_intake.js","line":173,"field":"status","line_snippet":"status: TaskStatus.PARTIAL,"}
+{"file":"cross_device_intake.js","line":177,"field":"status","line_snippet":"nextStep: 'Inspect status and define next action',"}
+{"file":"cross_device_intake.js","line":186,"field":"status","line_snippet":"`STATUS: ${res.status}`,"}
+{"file":"cross_device_intake.py","line":49,"field":"status","line_snippet":"status: TaskStatus"}
+{"file":"cross_device_intake.py","line":64,"field":"status","line_snippet":"f\"STATUS: {self.status.value}\\n\""}
+{"file":"cross_device_intake.py","line":164,"field":"status","line_snippet":"status=TaskStatus.BLOCKED,"}
+{"file":"cross_device_intake.py","line":186,"field":"status","line_snippet":"status=TaskStatus.RUNNING,"}
+{"file":"cross_device_intake.py","line":204,"field":"status","line_snippet":"status=TaskStatus.RUNNING,"}
+{"file":"cross_device_intake.py","line":222,"field":"status","line_snippet":"status=TaskStatus.PARTIAL,"}
+{"file":"cross_device_intake.py","line":240,"field":"status","line_snippet":"status=TaskStatus.RUNNING,"}
+{"file":"cross_device_intake.py","line":258,"field":"status","line_snippet":"status=TaskStatus.RUNNING,"}
+{"file":"cross_device_intake.py","line":279,"field":"status","line_snippet":"status=TaskStatus.BLOCKED,"}
+{"file":"cross_device_intake.py","line":297,"field":"status","line_snippet":"status=TaskStatus.DONE,"}
+{"file":"cross_device_intake.py","line":314,"field":"status","line_snippet":"status=TaskStatus.PARTIAL,"}
+{"file":"cross_device_intake.py","line":318,"field":"status","line_snippet":"next_step=\"Inspect status and define next action\","}
+{"file":"money_factory/anti_loop_policy.js","line":110,"field":"state","line_snippet":"reason: 'Valid leading market indicator, but insufficient for final WINNER state without settled revenue.'"}
+{"file":"money_factory/cheapest_test.js","line":49,"field":"status","line_snippet":"status: 'PROPOSED'"}
+{"file":"money_factory/first_5_euro_simulator.js","line":12,"field":"goal_id","line_snippet":"static simulateEndToEndFlow(warehouse, evidenceLedger = null, goal_id = 'GOAL-PROVE-FIRST-5-EURO-AUTONOMOUS') {"}
+{"file":"money_factory/first_5_euro_simulator.js","line":16,"field":"goal_id","line_snippet":"return this.runControlFlowSimulation({ warehouse, evidenceLedger, goal_id });"}
+{"file":"money_factory/first_5_euro_simulator.js","line":22,"field":"goal_id","line_snippet":"goal_id = 'GOAL-PROVE-FIRST-5-EURO-AUTONOMOUS'"}
+{"file":"money_factory/first_5_euro_simulator.js","line":33,"field":"goal_id","line_snippet":"goal_id,"}
+{"file":"money_factory/first_5_euro_simulator.js","line":43,"field":"status","line_snippet":"status: 'SEED',"}
+{"file":"money_factory/first_5_euro_simulator.js","line":153,"field":"version","line_snippet":"version: updatedOpp.version"}
+{"file":"money_factory/first_5_euro_simulator.js","line":153,"field":"version","line_snippet":"version: updatedOpp.version"}
+{"file":"money_factory/first_5_euro_simulator.js","line":171,"field":"status","line_snippet":"simulation_status: 'SIMULATION_ONLY',"}
+{"file":"money_factory/leaderboard_generator.js","line":38,"field":"status","line_snippet":"`| ${idx + 1} | \\`${opp.id}\\` | ${opp.title} | \\`${opp.status}\\` | \\`${opp.horizon}\\` | **${s.scalar_score}** | ${s.confidence} | ${s.evidence_score} | ${opp.time_to_first_euro}d | €${opp.expected_profit_eur} | ${gates} |`"}
+{"file":"money_factory/prediction_calibration.js","line":237,"field":"status","line_snippet":"status: 'RESOLVED',"}
+{"file":"money_factory/safety_gates.js","line":125,"field":"status","line_snippet":"status: 'PENDING_HUMAN_APPROVAL',"}
+{"file":"money_factory/seed_classes.js","line":20,"field":"status","line_snippet":"status: 'SEED',"}
+{"file":"money_factory/seed_classes.js","line":59,"field":"status","line_snippet":"status: 'SEED',"}
+{"file":"money_factory/seed_classes.js","line":84,"field":"version","line_snippet":"trend_evidence: 'Explainer reels of repo architectures get viral dev reach; conversion to paid tool UNVERIFIED',"}
+{"file":"money_factory/seed_classes.js","line":93,"field":"version","line_snippet":"promote_kill_reason: 'UNVERIFIED initial conversion thesis'"}
+{"file":"money_factory/seed_classes.js","line":98,"field":"status","line_snippet":"status: 'SEED',"}
+{"file":"money_factory/seed_classes.js","line":123,"field":"version","line_snippet":"trend_evidence: 'Search queries for backend cloud egress reduction rising; paid template conversion UNVERIFIED',"}
+{"file":"money_factory/seed_classes.js","line":132,"field":"state","line_snippet":"promote_kill_reason: 'Draft state awaiting empirical traffic proof'"}
+{"file":"money_factory/seed_classes.js","line":137,"field":"status","line_snippet":"status: 'SEED',"}
+{"file":"money_factory/seed_classes.js","line":164,"field":"state","line_snippet":"next_test: 'Generate clean GDScript state-machine boilerplate with 100% test coverage; verify Godot export.',"}
+{"file":"money_factory/seed_classes.js","line":176,"field":"status","line_snippet":"status: 'SEED',"}
+{"file":"money_factory/seed_classes.js","line":215,"field":"status","line_snippet":"status: 'SEED',"}
+{"file":"money_factory/seed_classes.js","line":253,"field":"status","line_snippet":"status: 'SEED',"}
+{"file":"money_factory/supervisor_compat.js","line":8,"field":"goal_id","line_snippet":"goal_id = 'GOAL-ECONOMIC-FIRST-5-EURO',"}
+{"file":"money_factory/supervisor_compat.js","line":9,"field":"task_id","line_snippet":"task_id,"}
+{"file":"money_factory/supervisor_compat.js","line":10,"field":"task_version","line_snippet":"task_version = 1,"}
+{"file":"money_factory/supervisor_compat.js","line":15,"field":"process_lease_id","line_snippet":"process_lease_id = null,"}
+{"file":"money_factory/supervisor_compat.js","line":18,"field":"task_id","line_snippet":"if (!task_id) throw new Error('[SUPERVISOR_COMPAT_ERROR] task_id is required');"}
+{"file":"money_factory/supervisor_compat.js","line":18,"field":"task_id","line_snippet":"if (!task_id) throw new Error('[SUPERVISOR_COMPAT_ERROR] task_id is required');"}
+{"file":"money_factory/supervisor_compat.js","line":21,"field":"goal_id","line_snippet":"goal_id,"}
+{"file":"money_factory/supervisor_compat.js","line":22,"field":"task_id","line_snippet":"task_id,"}
+{"file":"money_factory/supervisor_compat.js","line":23,"field":"task_version","line_snippet":"task_version,"}
+{"file":"money_factory/supervisor_compat.js","line":28,"field":"process_lease_id","line_snippet":"process_lease_id: process_lease_id || 'PENDING_LEASE_ACQUISITION',"}
+{"file":"money_factory/supervisor_compat.js","line":28,"field":"process_lease_id","line_snippet":"process_lease_id: process_lease_id || 'PENDING_LEASE_ACQUISITION',"}
+{"file":"money_factory/supervisor_compat.js","line":31,"field":"version","line_snippet":"compatibility_version: 'P0_COMPATIBLE',"}
+{"file":"money_factory/supervisor_compat.js","line":44,"field":"goal_id","line_snippet":"goal_id = 'GOAL-ECONOMIC-FIRST-5-EURO',"}
+{"file":"money_factory/supervisor_compat.js","line":45,"field":"task_id","line_snippet":"task_id,"}
+{"file":"money_factory/supervisor_compat.js","line":46,"field":"task_version","line_snippet":"task_version = 1,"}
+{"file":"money_factory/supervisor_compat.js","line":51,"field":"process_lease_id","line_snippet":"process_lease_id = null,"}
+{"file":"money_factory/supervisor_compat.js","line":56,"field":"goal_id","line_snippet":"goal_id,"}
+{"file":"money_factory/supervisor_compat.js","line":57,"field":"task_id","line_snippet":"task_id,"}
+{"file":"money_factory/supervisor_compat.js","line":58,"field":"task_version","line_snippet":"task_version,"}
+{"file":"money_factory/supervisor_compat.js","line":63,"field":"process_lease_id","line_snippet":"process_lease_id,"}
+{"file":"money_factory/supervisor_compat.js","line":67,"field":"version","line_snippet":"supervisor_envelope_version: 'v1',"}
+{"file":"money_factory/supervisor_compat.js","line":79,"field":"process_lease_id","line_snippet":"process_lease_id: processLease.process_lease_id,"}
+{"file":"money_factory/supervisor_compat.js","line":79,"field":"process_lease_id","line_snippet":"process_lease_id: processLease.process_lease_id,"}
+{"file":"money_factory/warehouse.js","line":25,"field":"version","line_snippet":"'version',"}
+{"file":"money_factory/warehouse.js","line":27,"field":"status","line_snippet":"'status',"}
+{"file":"money_factory/warehouse.js","line":130,"field":"version","line_snippet":"if (item.version === undefined) item.version = 1;"}
+{"file":"money_factory/warehouse.js","line":130,"field":"version","line_snippet":"if (item.version === undefined) item.version = 1;"}
+{"file":"money_factory/warehouse.js","line":192,"field":"status","line_snippet":"if (!Object.values(LIFECYCLES).includes(opp.status)) {"}
+{"file":"money_factory/warehouse.js","line":193,"field":"status","line_snippet":"throw new Error(`[WAREHOUSE_SCHEMA_ERROR] Invalid status '${opp.status}' for opportunity '${opp.id}'. Must be one of: ${Object.values(LIFECYCLES).join(', ')}`);"}
+{"file":"money_factory/warehouse.js","line":193,"field":"status","line_snippet":"throw new Error(`[WAREHOUSE_SCHEMA_ERROR] Invalid status '${opp.status}' for opportunity '${opp.id}'. Must be one of: ${Object.values(LIFECYCLES).join(', ')}`);"}
+{"file":"money_factory/warehouse.js","line":207,"field":"status","line_snippet":"if (!opp.status) opp.status = LIFECYCLES.SEED;"}
+{"file":"money_factory/warehouse.js","line":207,"field":"status","line_snippet":"if (!opp.status) opp.status = LIFECYCLES.SEED;"}
+{"file":"money_factory/warehouse.js","line":208,"field":"version","line_snippet":"if (opp.version === undefined) opp.version = 1;"}
+{"file":"money_factory/warehouse.js","line":208,"field":"version","line_snippet":"if (opp.version === undefined) opp.version = 1;"}
+{"file":"money_factory/warehouse.js","line":217,"field":"version","line_snippet":"if (rawOpp.version === undefined) opp.version = existing.version;"}
+{"file":"money_factory/warehouse.js","line":217,"field":"version","line_snippet":"if (rawOpp.version === undefined) opp.version = existing.version;"}
+{"file":"money_factory/warehouse.js","line":217,"field":"version","line_snippet":"if (rawOpp.version === undefined) opp.version = existing.version;"}
+{"file":"money_factory/warehouse.js","line":223,"field":"status","line_snippet":"return { status: 'IDEMPOTENT_NOOP', opportunity: existing };"}
+{"file":"money_factory/warehouse.js","line":234,"field":"status","line_snippet":"return { status: 'CREATED', opportunity: opp };"}
+{"file":"money_factory/warehouse.js","line":257,"field":"version","line_snippet":"const nextVersion = (existing.version || 1) + 1;"}
+{"file":"money_factory/warehouse.js","line":262,"field":"version","line_snippet":"version: nextVersion,"}
+{"file":"money_factory/warehouse.js","line":281,"field":"status","line_snippet":"if (existing.status === LIFECYCLES.KILLED) {"}
+{"file":"money_factory/warehouse.js","line":301,"field":"status","line_snippet":"status: targetLifecycle,"}
+{"file":"money_factory/warehouse.js","line":312,"field":"status","line_snippet":"status: targetLifecycle,"}
+{"file":"money_factory/warehouse.js","line":326,"field":"status","line_snippet":"status: LIFECYCLES.ARCHIVED,"}
+{"file":"money_factory/warehouse.js","line":352,"field":"status","line_snippet":"status: LIFECYCLES.KILLED,"}
+{"file":"opportunity_warehouse/opportunities.json","line":5,"field":"status","line_snippet":"\"status\": \"SEED\","}
+{"file":"opportunity_warehouse/opportunities.json","line":75,"field":"status","line_snippet":"\"status\": \"SEED\","}
+{"file":"opportunity_warehouse/opportunities.json","line":100,"field":"version","line_snippet":"\"trend_evidence\": \"Explainer reels of repo architectures get viral dev reach; conversion to paid tool UNVERIFIED\","}
+{"file":"opportunity_warehouse/opportunities.json","line":112,"field":"version","line_snippet":"\"promote_kill_reason\": \"UNVERIFIED initial conversion thesis\","}
+{"file":"opportunity_warehouse/opportunities.json","line":131,"field":"version","line_snippet":"\"trend_evidence\": \"Explainer reels of repo architectures get viral dev reach; conversion to paid tool UNVERIFIED\","}
+{"file":"opportunity_warehouse/opportunities.json","line":145,"field":"status","line_snippet":"\"status\": \"SEED\","}
+{"file":"opportunity_warehouse/opportunities.json","line":170,"field":"version","line_snippet":"\"trend_evidence\": \"Search queries for backend cloud egress reduction rising; paid template conversion UNVERIFIED\","}
+{"file":"opportunity_warehouse/opportunities.json","line":181,"field":"state","line_snippet":"\"promote_kill_reason\": \"Draft state awaiting empirical traffic proof\","}
+{"file":"opportunity_warehouse/opportunities.json","line":200,"field":"version","line_snippet":"\"trend_evidence\": \"Search queries for backend cloud egress reduction rising; paid template conversion UNVERIFIED\","}
+{"file":"opportunity_warehouse/opportunities.json","line":214,"field":"status","line_snippet":"\"status\": \"SEED\","}
+{"file":"opportunity_warehouse/opportunities.json","line":241,"field":"state","line_snippet":"\"next_test\": \"Generate clean GDScript state-machine boilerplate with 100% test coverage; verify Godot export.\","}
+{"file":"opportunity_warehouse/opportunities.json","line":284,"field":"status","line_snippet":"\"status\": \"SEED\","}
+{"file":"opportunity_warehouse/opportunities.json","line":354,"field":"status","line_snippet":"\"status\": \"SEED\","}
+{"file":"opportunity_warehouse/opportunities.json","line":422,"field":"status","line_snippet":"\"status\": \"SEED\","}
+{"file":"opportunity_warehouse/opportunities.json","line":492,"field":"status","line_snippet":"\"status\": \"VALIDATED\","}
+{"file":"opportunity_warehouse/opportunities.yaml","line":3,"field":"status","line_snippet":"status: SEED"}
+{"file":"opportunity_warehouse/opportunities.yaml","line":65,"field":"status","line_snippet":"status: SEED"}
+{"file":"opportunity_warehouse/opportunities.yaml","line":89,"field":"version","line_snippet":"trend_evidence: Explainer reels of repo architectures get viral dev reach; conversion to paid tool UNVERIFIED"}
+{"file":"opportunity_warehouse/opportunities.yaml","line":100,"field":"version","line_snippet":"promote_kill_reason: UNVERIFIED initial conversion thesis"}
+{"file":"opportunity_warehouse/opportunities.yaml","line":118,"field":"version","line_snippet":"trend_evidence: Explainer reels of repo architectures get viral dev reach; conversion to paid tool UNVERIFIED"}
+{"file":"opportunity_warehouse/opportunities.yaml","line":127,"field":"status","line_snippet":"status: SEED"}
+{"file":"opportunity_warehouse/opportunities.yaml","line":151,"field":"version","line_snippet":"trend_evidence: Search queries for backend cloud egress reduction rising; paid template conversion UNVERIFIED"}
+{"file":"opportunity_warehouse/opportunities.yaml","line":161,"field":"state","line_snippet":"promote_kill_reason: Draft state awaiting empirical traffic proof"}
+{"file":"opportunity_warehouse/opportunities.yaml","line":179,"field":"version","line_snippet":"trend_evidence: Search queries for backend cloud egress reduction rising; paid template conversion UNVERIFIED"}
+{"file":"opportunity_warehouse/opportunities.yaml","line":188,"field":"status","line_snippet":"status: SEED"}
+{"file":"opportunity_warehouse/opportunities.yaml","line":214,"field":"state","line_snippet":"next_test: Generate clean GDScript state-machine boilerplate with 100% test coverage; verify Godot export."}
+{"file":"opportunity_warehouse/opportunities.yaml","line":250,"field":"status","line_snippet":"status: SEED"}
+{"file":"opportunity_warehouse/opportunities.yaml","line":312,"field":"status","line_snippet":"status: SEED"}
+{"file":"opportunity_warehouse/opportunities.yaml","line":372,"field":"status","line_snippet":"status: SEED"}
+{"file":"supervisor/chief_envelope.js","line":8,"field":"task_id","line_snippet":"task_id,"}
+{"file":"supervisor/chief_envelope.js","line":9,"field":"task_version","line_snippet":"task_version = 1,"}
+{"file":"supervisor/chief_envelope.js","line":10,"field":"goal_id","line_snippet":"goal_id = null,"}
+{"file":"supervisor/chief_envelope.js","line":22,"field":"task_id","line_snippet":"if (!task_id || !reason || !classification) {"}
+{"file":"supervisor/chief_envelope.js","line":23,"field":"task_id","line_snippet":"throw new Error('[CHIEF_ENVELOPE_ERROR] task_id, reason, and classification are required');"}
+{"file":"supervisor/chief_envelope.js","line":31,"field":"task_id","line_snippet":"task_id,"}
+{"file":"supervisor/chief_envelope.js","line":32,"field":"task_version","line_snippet":"task_version,"}
+{"file":"supervisor/chief_envelope.js","line":39,"field":"fingerprint","line_snippet":"const fingerprint = crypto.createHash('sha256').update(JSON.stringify(canonical)).digest('hex');"}
+{"file":"supervisor/chief_envelope.js","line":44,"field":"task_id","line_snippet":"task_id,"}
+{"file":"supervisor/chief_envelope.js","line":45,"field":"task_version","line_snippet":"task_version,"}
+{"file":"supervisor/chief_envelope.js","line":46,"field":"goal_id","line_snippet":"goal_id,"}
+{"file":"supervisor/chief_envelope.js","line":58,"field":"fingerprint","line_snippet":"fingerprint,"}
+{"file":"supervisor/chief_envelope.js","line":59,"field":"status","line_snippet":"status: 'AWAITING_CHIEF_REVIEW'"}
+{"file":"supervisor/decision_engine.js","line":34,"field":"status","line_snippet":"const hasParentCompleted = parentState && (parentState.status === 'DONE' || parentState.status === 'COMPLETED');"}
+{"file":"supervisor/decision_engine.js","line":34,"field":"status","line_snippet":"const hasParentCompleted = parentState && (parentState.status === 'DONE' || parentState.status === 'COMPLETED');"}
+{"file":"supervisor/decision_engine.js","line":44,"field":"status","line_snippet":"isWaitingOnKnownDependency: lease.status === LEASE_STATUS.WAITING_VALID,"}
+{"file":"supervisor/decision_engine.js","line":51,"field":"fingerprint","line_snippet":"const evidenceRefs = progressEvidence.map(e => e.evidence_id || e.fingerprint);"}
+{"file":"supervisor/decision_engine.js","line":64,"field":"process_lease_id","line_snippet":"process_lease_id: lease.process_lease_id,"}
+{"file":"supervisor/decision_engine.js","line":64,"field":"process_lease_id","line_snippet":"process_lease_id: lease.process_lease_id,"}
+{"file":"supervisor/decision_engine.js","line":65,"field":"task_id","line_snippet":"task_id: lease.task_id,"}
+{"file":"supervisor/decision_engine.js","line":65,"field":"task_id","line_snippet":"task_id: lease.task_id,"}
+{"file":"supervisor/diagnostic_bundle.js","line":18,"field":"task_id","line_snippet":"task_id,"}
+{"file":"supervisor/diagnostic_bundle.js","line":20,"field":"state","line_snippet":"task_state = {},"}
+{"file":"supervisor/diagnostic_bundle.js","line":22,"field":"status","line_snippet":"git_status = '',"}
+{"file":"supervisor/diagnostic_bundle.js","line":29,"field":"task_id","line_snippet":"if (!task_id) throw new Error('[DIAGNOSTIC_ERROR] task_id is required');"}
+{"file":"supervisor/diagnostic_bundle.js","line":29,"field":"task_id","line_snippet":"if (!task_id) throw new Error('[DIAGNOSTIC_ERROR] task_id is required');"}
+{"file":"supervisor/diagnostic_bundle.js","line":37,"field":"state","line_snippet":"fs.writeFileSync(path.join(bundleDir, 'task_state.json'), JSON.stringify(task_state, null, 2), 'utf8');"}
+{"file":"supervisor/diagnostic_bundle.js","line":37,"field":"state","line_snippet":"fs.writeFileSync(path.join(bundleDir, 'task_state.json'), JSON.stringify(task_state, null, 2), 'utf8');"}
+{"file":"supervisor/diagnostic_bundle.js","line":38,"field":"state","line_snippet":"fs.writeFileSync(path.join(bundleDir, 'process_state.json'), JSON.stringify(process_lease || {}, null, 2), 'utf8');"}
+{"file":"supervisor/diagnostic_bundle.js","line":40,"field":"status","line_snippet":"fs.writeFileSync(path.join(bundleDir, 'git_status.txt'), git_status || '(git clean or untracked)', 'utf8');"}
+{"file":"supervisor/diagnostic_bundle.js","line":40,"field":"status","line_snippet":"fs.writeFileSync(path.join(bundleDir, 'git_status.txt'), git_status || '(git clean or untracked)', 'utf8');"}
+{"file":"supervisor/diagnostic_bundle.js","line":49,"field":"fingerprint","line_snippet":"// 2. Compute canonical SHA-256 fingerprint across artifacts"}
+{"file":"supervisor/diagnostic_bundle.js","line":52,"field":"task_id","line_snippet":"task_id,"}
+{"file":"supervisor/diagnostic_bundle.js","line":54,"field":"process_lease_id","line_snippet":"process_lease_id: process_lease?.process_lease_id || 'NONE',"}
+{"file":"supervisor/diagnostic_bundle.js","line":54,"field":"process_lease_id","line_snippet":"process_lease_id: process_lease?.process_lease_id || 'NONE',"}
+{"file":"supervisor/diagnostic_bundle.js","line":56,"field":"status","line_snippet":"git_sha: crypto.createHash('sha256').update(git_status).digest('hex')"}
+{"file":"supervisor/diagnostic_bundle.js","line":58,"field":"fingerprint","line_snippet":"const fingerprint = crypto.createHash('sha256').update(JSON.stringify(canonicalHashPayload)).digest('hex');"}
+{"file":"supervisor/diagnostic_bundle.js","line":63,"field":"task_id","line_snippet":"task_id,"}
+{"file":"supervisor/diagnostic_bundle.js","line":66,"field":"fingerprint","line_snippet":"fingerprint,"}
+{"file":"supervisor/diagnostic_bundle.js","line":68,"field":"state","line_snippet":"'task_state.json',"}
+{"file":"supervisor/diagnostic_bundle.js","line":69,"field":"state","line_snippet":"'process_state.json',"}
+{"file":"supervisor/diagnostic_bundle.js","line":71,"field":"status","line_snippet":"'git_status.txt',"}
+{"file":"supervisor/diagnostic_bundle.js","line":77,"field":"status","line_snippet":"process_status: process_lease?.status || 'UNKNOWN',"}
+{"file":"supervisor/diagnostic_bundle.js","line":77,"field":"status","line_snippet":"process_status: process_lease?.status || 'UNKNOWN',"}
+{"file":"supervisor/diagnostic_bundle.js","line":80,"field":"state","line_snippet":"resource_state: resource_usage.resource_state || 'NORMAL'"}
+{"file":"supervisor/diagnostic_bundle.js","line":80,"field":"state","line_snippet":"resource_state: resource_usage.resource_state || 'NORMAL'"}
+{"file":"supervisor/diagnostic_bundle.js","line":89,"field":"fingerprint","line_snippet":"fingerprint,"}
+{"file":"supervisor/lease_manager.js","line":28,"field":"process_lease_id","line_snippet":"this.leases.set(l.process_lease_id, l);"}
+{"file":"supervisor/lease_manager.js","line":54,"field":"task_id","line_snippet":"task_id,"}
+{"file":"supervisor/lease_manager.js","line":55,"field":"task_version","line_snippet":"task_version = 1,"}
+{"file":"supervisor/lease_manager.js","line":56,"field":"goal_id","line_snippet":"goal_id = null,"}
+{"file":"supervisor/lease_manager.js","line":66,"field":"status","line_snippet":"status = LEASE_STATUS.STARTING"}
+{"file":"supervisor/lease_manager.js","line":68,"field":"task_id","line_snippet":"if (!task_id) throw new Error('[LEASE_ERROR] task_id is required');"}
+{"file":"supervisor/lease_manager.js","line":68,"field":"task_id","line_snippet":"if (!task_id) throw new Error('[LEASE_ERROR] task_id is required');"}
+{"file":"supervisor/lease_manager.js","line":76,"field":"process_lease_id","line_snippet":"process_lease_id: leaseId,"}
+{"file":"supervisor/lease_manager.js","line":77,"field":"task_id","line_snippet":"task_id,"}
+{"file":"supervisor/lease_manager.js","line":78,"field":"task_version","line_snippet":"task_version,"}
+{"file":"supervisor/lease_manager.js","line":79,"field":"goal_id","line_snippet":"goal_id,"}
+{"file":"supervisor/lease_manager.js","line":85,"field":"fingerprint","line_snippet":"process_fingerprint: pFp,"}
+{"file":"supervisor/lease_manager.js","line":86,"field":"fingerprint","line_snippet":"command_fingerprint: cFp,"}
+{"file":"supervisor/lease_manager.js","line":94,"field":"status","line_snippet":"status,"}
+{"file":"supervisor/lease_manager.js","line":96,"field":"result_reference","line_snippet":"result_reference: null,"}
+{"file":"supervisor/lease_manager.js","line":100,"field":"status","line_snippet":"status,"}
+{"file":"supervisor/lease_manager.js","line":111,"field":"task_id","line_snippet":"task_id,"}
+{"file":"supervisor/lease_manager.js","line":112,"field":"task_version","line_snippet":"task_version,"}
+{"file":"supervisor/lease_manager.js","line":113,"field":"goal_id","line_snippet":"goal_id,"}
+{"file":"supervisor/lease_manager.js","line":115,"field":"process_lease_id","line_snippet":"process_lease_id: leaseId,"}
+{"file":"supervisor/lease_manager.js","line":118,"field":"state","line_snippet":"new_state: status,"}
+{"file":"supervisor/lease_manager.js","line":118,"field":"status","line_snippet":"new_state: status,"}
+{"file":"supervisor/lease_manager.js","line":142,"field":"status","line_snippet":"return this.getAllLeases().filter(l => l.machine_id === machineId && activeStatuses.includes(l.status));"}
+{"file":"supervisor/lease_manager.js","line":155,"field":"task_id","line_snippet":"task_id: lease.task_id,"}
+{"file":"supervisor/lease_manager.js","line":155,"field":"task_id","line_snippet":"task_id: lease.task_id,"}
+{"file":"supervisor/lease_manager.js","line":156,"field":"task_version","line_snippet":"task_version: lease.task_version,"}
+{"file":"supervisor/lease_manager.js","line":156,"field":"task_version","line_snippet":"task_version: lease.task_version,"}
+{"file":"supervisor/lease_manager.js","line":157,"field":"goal_id","line_snippet":"goal_id: lease.goal_id,"}
+{"file":"supervisor/lease_manager.js","line":157,"field":"goal_id","line_snippet":"goal_id: lease.goal_id,"}
+{"file":"supervisor/lease_manager.js","line":159,"field":"process_lease_id","line_snippet":"process_lease_id: leaseId,"}
+{"file":"supervisor/lease_manager.js","line":162,"field":"state","line_snippet":"new_state: lease.status,"}
+{"file":"supervisor/lease_manager.js","line":162,"field":"status","line_snippet":"new_state: lease.status,"}
+{"file":"supervisor/lease_manager.js","line":174,"field":"status","line_snippet":"const prevStatus = lease.status;"}
+{"file":"supervisor/lease_manager.js","line":175,"field":"status","line_snippet":"lease.status = newStatus;"}
+{"file":"supervisor/lease_manager.js","line":177,"field":"result_reference","line_snippet":"if (resultRef) lease.result_reference = resultRef;"}
+{"file":"supervisor/lease_manager.js","line":182,"field":"status","line_snippet":"status: newStatus,"}
+{"file":"supervisor/lease_manager.js","line":190,"field":"task_id","line_snippet":"task_id: lease.task_id,"}
+{"file":"supervisor/lease_manager.js","line":190,"field":"task_id","line_snippet":"task_id: lease.task_id,"}
+{"file":"supervisor/lease_manager.js","line":191,"field":"task_version","line_snippet":"task_version: lease.task_version,"}
+{"file":"supervisor/lease_manager.js","line":191,"field":"task_version","line_snippet":"task_version: lease.task_version,"}
+{"file":"supervisor/lease_manager.js","line":192,"field":"goal_id","line_snippet":"goal_id: lease.goal_id,"}
+{"file":"supervisor/lease_manager.js","line":192,"field":"goal_id","line_snippet":"goal_id: lease.goal_id,"}
+{"file":"supervisor/lease_manager.js","line":194,"field":"process_lease_id","line_snippet":"process_lease_id: leaseId,"}
+{"file":"supervisor/lease_manager.js","line":197,"field":"state","line_snippet":"previous_state: prevStatus,"}
+{"file":"supervisor/lease_manager.js","line":198,"field":"state","line_snippet":"new_state: newStatus,"}
+{"file":"supervisor/lease_manager.js","line":215,"field":"status","line_snippet":"if (child.cleanup_policy === 'TERMINATE_ON_TASK_END' && child.status !== LEASE_STATUS.COMPLETED && child.status !== LEASE_STATUS.TERMINATED) {"}
+{"file":"supervisor/lease_manager.js","line":215,"field":"status","line_snippet":"if (child.cleanup_policy === 'TERMINATE_ON_TASK_END' && child.status !== LEASE_STATUS.COMPLETED && child.status !== LEASE_STATUS.TERMINATED) {"}
+{"file":"supervisor/lease_manager.js","line":216,"field":"process_lease_id","line_snippet":"this.updateStatus(child.process_lease_id, LEASE_STATUS.TERMINATED, `Parent ${parentLeaseId} completed: ${completionReason}`);"}
+{"file":"supervisor/lease_manager.js","line":217,"field":"process_lease_id","line_snippet":"reconciled.push({ child_id: child.process_lease_id, action: 'TERMINATED', reason: completionReason });"}
+{"file":"supervisor/lease_manager.js","line":220,"field":"process_lease_id","line_snippet":"this.updateStatus(child.process_lease_id, LEASE_STATUS.WAITING_VALID, `Retained background task after parent ${parentLeaseId} completed`);"}
+{"file":"supervisor/lease_manager.js","line":221,"field":"process_lease_id","line_snippet":"reconciled.push({ child_id: child.process_lease_id, action: 'PRESERVED', reason: 'PRESERVE_BACKGROUND policy' });"}
+{"file":"supervisor/no_stacking.js","line":14,"field":"taskId","line_snippet":"static computeTaskWorkSignature(taskId, workCategory, command = '') {"}
+{"file":"supervisor/no_stacking.js","line":17,"field":"taskId","line_snippet":"const raw = `${taskId}:${workCategory}:${normCmd}`;"}
+{"file":"supervisor/no_stacking.js","line":22,"field":"task_id","line_snippet":"task_id,"}
+{"file":"supervisor/no_stacking.js","line":27,"field":"task_id","line_snippet":"const signature = NoStackingDetector.computeTaskWorkSignature(task_id, work_category, command);"}
+{"file":"supervisor/no_stacking.js","line":32,"field":"task_id","line_snippet":"if (lease.task_id === task_id) {"}
+{"file":"supervisor/no_stacking.js","line":32,"field":"task_id","line_snippet":"if (lease.task_id === task_id) {"}
+{"file":"supervisor/no_stacking.js","line":34,"field":"task_id","line_snippet":"lease.task_id,"}
+{"file":"supervisor/no_stacking.js","line":44,"field":"status","line_snippet":"status: 'DUPLICATE_HEAVY_WORK_BLOCKED',"}
+{"file":"supervisor/no_stacking.js","line":45,"field":"lease_id","line_snippet":"canonical_lease_id: lease.process_lease_id,"}
+{"file":"supervisor/no_stacking.js","line":45,"field":"process_lease_id","line_snippet":"canonical_lease_id: lease.process_lease_id,"}
+{"file":"supervisor/no_stacking.js","line":46,"field":"status","line_snippet":"canonical_status: lease.status,"}
+{"file":"supervisor/no_stacking.js","line":46,"field":"status","line_snippet":"canonical_status: lease.status,"}
+{"file":"supervisor/no_stacking.js","line":47,"field":"process_lease_id","line_snippet":"reason: `Equivalent heavy work (${work_category}) already active on machine ${machine_id} under lease ${lease.process_lease_id}. Stacking prevented.`"}
+{"file":"supervisor/no_stacking.js","line":56,"field":"status","line_snippet":"status: 'ADMISSION_PERMITTED',"}
+{"file":"supervisor/progress_tracker.js","line":47,"field":"process_lease_id","line_snippet":"process_lease_id,"}
+{"file":"supervisor/progress_tracker.js","line":48,"field":"task_id","line_snippet":"task_id,"}
+{"file":"supervisor/progress_tracker.js","line":53,"field":"process_lease_id","line_snippet":"if (!process_lease_id || !task_id || !evidence_type) {"}
+{"file":"supervisor/progress_tracker.js","line":53,"field":"task_id","line_snippet":"if (!process_lease_id || !task_id || !evidence_type) {"}
+{"file":"supervisor/progress_tracker.js","line":54,"field":"process_lease_id","line_snippet":"throw new Error('[PROGRESS_ERROR] process_lease_id, task_id, and evidence_type are required');"}
+{"file":"supervisor/progress_tracker.js","line":54,"field":"task_id","line_snippet":"throw new Error('[PROGRESS_ERROR] process_lease_id, task_id, and evidence_type are required');"}
+{"file":"supervisor/progress_tracker.js","line":59,"field":"process_lease_id","line_snippet":"const fpRaw = `${process_lease_id}:${task_id}:${evidence_type}:${JSON.stringify(value)}:${timestamp}`;"}
+{"file":"supervisor/progress_tracker.js","line":59,"field":"task_id","line_snippet":"const fpRaw = `${process_lease_id}:${task_id}:${evidence_type}:${JSON.stringify(value)}:${timestamp}`;"}
+{"file":"supervisor/progress_tracker.js","line":60,"field":"fingerprint","line_snippet":"const fingerprint = crypto.createHash('sha256').update(fpRaw).digest('hex');"}
+{"file":"supervisor/progress_tracker.js","line":64,"field":"process_lease_id","line_snippet":"process_lease_id,"}
+{"file":"supervisor/progress_tracker.js","line":65,"field":"task_id","line_snippet":"task_id,"}
+{"file":"supervisor/progress_tracker.js","line":70,"field":"fingerprint","line_snippet":"fingerprint"}
+{"file":"supervisor/progress_tracker.js","line":76,"field":"status","line_snippet":"// Update lease last_progress_at and status"}
+{"file":"supervisor/progress_tracker.js","line":78,"field":"process_lease_id","line_snippet":"const lease = this.leaseManager.getLease(process_lease_id);"}
+{"file":"supervisor/progress_tracker.js","line":81,"field":"status","line_snippet":"if (lease.status === LEASE_STATUS.STARTING || lease.status === LEASE_STATUS.RUNNING || lease.status === LEASE_STATUS.STALLED) {"}
+{"file":"supervisor/progress_tracker.js","line":81,"field":"status","line_snippet":"if (lease.status === LEASE_STATUS.STARTING || lease.status === LEASE_STATUS.RUNNING || lease.status === LEASE_STATUS.STALLED) {"}
+{"file":"supervisor/progress_tracker.js","line":81,"field":"status","line_snippet":"if (lease.status === LEASE_STATUS.STARTING || lease.status === LEASE_STATUS.RUNNING || lease.status === LEASE_STATUS.STALLED) {"}
+{"file":"supervisor/progress_tracker.js","line":82,"field":"process_lease_id","line_snippet":"this.leaseManager.updateStatus(process_lease_id, LEASE_STATUS.PROGRESSING, `Progress confirmed via ${evidence_type}`);"}
+{"file":"supervisor/progress_tracker.js","line":91,"field":"task_id","line_snippet":"task_id,"}
+{"file":"supervisor/progress_tracker.js","line":92,"field":"process_lease_id","line_snippet":"process_lease_id,"}
+{"file":"supervisor/progress_tracker.js","line":103,"field":"process_lease_id","line_snippet":"return this.evidenceRecords.filter(e => e.process_lease_id === leaseId);"}
+{"file":"supervisor/reconciliation.js","line":38,"field":"status","line_snippet":"if (lease.status === LEASE_STATUS.COMPLETED || lease.status === LEASE_STATUS.TERMINATED) {"}
+{"file":"supervisor/reconciliation.js","line":38,"field":"status","line_snippet":"if (lease.status === LEASE_STATUS.COMPLETED || lease.status === LEASE_STATUS.TERMINATED) {"}
+{"file":"supervisor/reconciliation.js","line":39,"field":"process_lease_id","line_snippet":"results.known_completed.push(lease.process_lease_id);"}
+{"file":"supervisor/reconciliation.js","line":47,"field":"fingerprint","line_snippet":"// Verify fingerprint if command is inspectable"}
+{"file":"supervisor/reconciliation.js","line":55,"field":"status","line_snippet":"if (lease.status === LEASE_STATUS.PROGRESSING || lease.status === LEASE_STATUS.RUNNING) {"}
+{"file":"supervisor/reconciliation.js","line":55,"field":"status","line_snippet":"if (lease.status === LEASE_STATUS.PROGRESSING || lease.status === LEASE_STATUS.RUNNING) {"}
+{"file":"supervisor/reconciliation.js","line":56,"field":"process_lease_id","line_snippet":"results.known_live_progressing.push(lease.process_lease_id);"}
+{"file":"supervisor/reconciliation.js","line":58,"field":"process_lease_id","line_snippet":"results.known_live_waiting.push(lease.process_lease_id);"}
+{"file":"supervisor/reconciliation.js","line":62,"field":"process_lease_id","line_snippet":"this.leaseManager.updateStatus(lease.process_lease_id, LEASE_STATUS.STALLED, 'PID recycled by another process');"}
+{"file":"supervisor/reconciliation.js","line":63,"field":"process_lease_id","line_snippet":"results.known_missing.push(lease.process_lease_id);"}
+{"file":"supervisor/reconciliation.js","line":68,"field":"result_reference","line_snippet":"if (lease.expected_completion_condition && !lease.result_reference) {"}
+{"file":"supervisor/reconciliation.js","line":69,"field":"process_lease_id","line_snippet":"this.leaseManager.updateStatus(lease.process_lease_id, LEASE_STATUS.EXECUTION_UNCERTAIN, 'Process disappeared during restart without result proof');"}
+{"file":"supervisor/reconciliation.js","line":71,"field":"task_id","line_snippet":"task_id: lease.task_id,"}
+{"file":"supervisor/reconciliation.js","line":71,"field":"task_id","line_snippet":"task_id: lease.task_id,"}
+{"file":"supervisor/reconciliation.js","line":72,"field":"process_lease_id","line_snippet":"process_lease_id: lease.process_lease_id,"}
+{"file":"supervisor/reconciliation.js","line":72,"field":"process_lease_id","line_snippet":"process_lease_id: lease.process_lease_id,"}
+{"file":"supervisor/reconciliation.js","line":76,"field":"process_lease_id","line_snippet":"this.leaseManager.updateStatus(lease.process_lease_id, LEASE_STATUS.TERMINATED, 'Process gone on restart');"}
+{"file":"supervisor/reconciliation.js","line":77,"field":"process_lease_id","line_snippet":"results.known_missing.push(lease.process_lease_id);"}
+{"file":"supervisor/reconciliation.js","line":84,"field":"status","line_snippet":"if (parent && (parent.status === LEASE_STATUS.COMPLETED || parent.status === LEASE_STATUS.TERMINATED)) {"}
+{"file":"supervisor/reconciliation.js","line":84,"field":"status","line_snippet":"if (parent && (parent.status === LEASE_STATUS.COMPLETED || parent.status === LEASE_STATUS.TERMINATED)) {"}
+{"file":"supervisor/reconciliation.js","line":86,"field":"process_lease_id","line_snippet":"this.leaseManager.updateStatus(lease.process_lease_id, LEASE_STATUS.ORPHANED, `Parent ${lease.parent_process_id} completed`);"}
+{"file":"supervisor/reconciliation.js","line":87,"field":"process_lease_id","line_snippet":"results.orphaned_children.push(lease.process_lease_id);"}
+{"file":"supervisor/reconciliation.js","line":99,"field":"status","line_snippet":"status: 'UNATTRIBUTED_NEVER_BLINDLY_KILL'"}
+{"file":"supervisor/reconciliation.js","line":106,"field":"task_id","line_snippet":"const existingLease = allLeases.find(l => l.task_id === pending.task_id);"}
+{"file":"supervisor/reconciliation.js","line":106,"field":"task_id","line_snippet":"const existingLease = allLeases.find(l => l.task_id === pending.task_id);"}
+{"file":"supervisor/reconciliation.js","line":113,"field":"task_id","line_snippet":"task_id: pending.task_id,"}
+{"file":"supervisor/reconciliation.js","line":113,"field":"task_id","line_snippet":"task_id: pending.task_id,"}
+{"file":"supervisor/reconciliation.js","line":114,"field":"status","line_snippet":"status: LEASE_STATUS.EXECUTION_UNCERTAIN,"}
+{"file":"supervisor/reconciliation.js","line":116,"field":"state","line_snippet":"reason: 'Dispatched state uncertain without proof of effect or non-effect'"}
+{"file":"supervisor/reconciliation.js","line":120,"field":"process_lease_id","line_snippet":"this.leaseManager.updateStatus(existingLease.process_lease_id, LEASE_STATUS.EXECUTION_UNCERTAIN, 'Pending task dispatch outcome unproven');"}
+{"file":"supervisor/reconciliation.js","line":125,"field":"task_id","line_snippet":"task_id: pending.task_id,"}
+{"file":"supervisor/reconciliation.js","line":125,"field":"task_id","line_snippet":"task_id: pending.task_id,"}
+{"file":"supervisor/reconciliation.js","line":126,"field":"process_lease_id","line_snippet":"process_lease_id: existingLease?.process_lease_id || null,"}
+{"file":"supervisor/reconciliation.js","line":126,"field":"process_lease_id","line_snippet":"process_lease_id: existingLease?.process_lease_id || null,"}
+{"file":"supervisor/reconciliation.js","line":136,"field":"task_id","line_snippet":"task_id: 'SYSTEM_RESTART',"}
+{"file":"supervisor/resource_governor.js","line":43,"field":"state","line_snippet":"resource_state: RESOURCE_STATE.NORMAL,"}
+{"file":"supervisor/resource_governor.js","line":60,"field":"state","line_snippet":"thermal_state = null"}
+{"file":"supervisor/resource_governor.js","line":70,"field":"state","line_snippet":"if (thermal_state !== null) s.thermal_state_if_available = thermal_state;"}
+{"file":"supervisor/resource_governor.js","line":70,"field":"state","line_snippet":"if (thermal_state !== null) s.thermal_state_if_available = thermal_state;"}
+{"file":"supervisor/resource_governor.js","line":75,"field":"state","line_snippet":"// Classify machine resource state"}
+{"file":"supervisor/resource_governor.js","line":77,"field":"state","line_snippet":"s.resource_state = RESOURCE_STATE.THERMAL_PRESSURE;"}
+{"file":"supervisor/resource_governor.js","line":79,"field":"state","line_snippet":"s.resource_state = RESOURCE_STATE.PRESSURE;"}
+{"file":"supervisor/resource_governor.js","line":81,"field":"state","line_snippet":"s.resource_state = RESOURCE_STATE.BUSY;"}
+{"file":"supervisor/resource_governor.js","line":83,"field":"state","line_snippet":"s.resource_state = RESOURCE_STATE.UNKNOWN;"}
+{"file":"supervisor/resource_governor.js","line":85,"field":"state","line_snippet":"s.resource_state = RESOURCE_STATE.NORMAL;"}
+{"file":"supervisor/resource_governor.js","line":98,"field":"status","line_snippet":"// 1. Lightweight task check (read-only, inspection, status checks)"}
+{"file":"supervisor/resource_governor.js","line":100,"field":"state","line_snippet":"if (s.resource_state === RESOURCE_STATE.THERMAL_PRESSURE && s.cpu_load > 0.95) {"}
+{"file":"supervisor/resource_governor.js","line":116,"field":"state","line_snippet":"if (s.resource_state === RESOURCE_STATE.THERMAL_PRESSURE || s.resource_state === RESOURCE_STATE.PRESSURE) {"}
+{"file":"supervisor/resource_governor.js","line":116,"field":"state","line_snippet":"if (s.resource_state === RESOURCE_STATE.THERMAL_PRESSURE || s.resource_state === RESOURCE_STATE.PRESSURE) {"}
+{"file":"supervisor/resource_governor.js","line":123,"field":"state","line_snippet":"reason: `Machine ${machine_id} is under ${s.resource_state} (heavy tasks: ${s.active_heavy_tasks}/${s.max_concurrent_heavy}). New heavy tasks held.`"}
+{"file":"supervisor/resource_governor.js","line":146,"field":"state","line_snippet":"for (const [id, state] of this.states.entries()) {"}
+{"file":"supervisor/resource_governor.js","line":148,"field":"state","line_snippet":"if (state.resource_state === RESOURCE_STATE.NORMAL || state.resource_state === RESOURCE_STATE.BUSY) {"}
+{"file":"supervisor/resource_governor.js","line":148,"field":"state","line_snippet":"if (state.resource_state === RESOURCE_STATE.NORMAL || state.resource_state === RESOURCE_STATE.BUSY) {"}
+{"file":"supervisor/resource_governor.js","line":148,"field":"state","line_snippet":"if (state.resource_state === RESOURCE_STATE.NORMAL || state.resource_state === RESOURCE_STATE.BUSY) {"}
+{"file":"supervisor/resource_governor.js","line":148,"field":"state","line_snippet":"if (state.resource_state === RESOURCE_STATE.NORMAL || state.resource_state === RESOURCE_STATE.BUSY) {"}
+{"file":"supervisor/resource_governor.js","line":149,"field":"state","line_snippet":"if (state.active_heavy_tasks < state.max_concurrent_heavy) {"}
+{"file":"supervisor/resource_governor.js","line":149,"field":"state","line_snippet":"if (state.active_heavy_tasks < state.max_concurrent_heavy) {"}
+{"file":"supervisor/screenshot_spec.js","line":4,"field":"state","line_snippet":"// 2. Trigger ONLY when logs/state/process evidence is insufficient AND diagnostic threshold is reached."}
+{"file":"supervisor/screenshot_spec.js","line":68,"field":"status","line_snippet":"status: 'SCREENSHOT_BLOCKED_PRIVACY',"}
+{"file":"supervisor/screenshot_spec.js","line":83,"field":"task_id","line_snippet":"task_id,"}
+{"file":"supervisor/screenshot_spec.js","line":84,"field":"process_lease_id","line_snippet":"process_lease_id,"}
+{"file":"supervisor/screenshot_spec.js","line":92,"field":"status","line_snippet":"const status = is_blocked_by_privacy ? 'SCREENSHOT_BLOCKED_PRIVACY' : (path_or_reference ? 'CAPTURED' : 'SPEC_REFERENCE');"}
+{"file":"supervisor/screenshot_spec.js","line":95,"field":"task_id","line_snippet":"task_id,"}
+{"file":"supervisor/screenshot_spec.js","line":96,"field":"process_lease_id","line_snippet":"process_lease_id,"}
+{"file":"supervisor/screenshot_spec.js","line":100,"field":"status","line_snippet":"status"}
+{"file":"supervisor/screenshot_spec.js","line":102,"field":"fingerprint","line_snippet":"const fingerprint = crypto.createHash('sha256').update(JSON.stringify(canonical)).digest('hex');"}
+{"file":"supervisor/screenshot_spec.js","line":107,"field":"task_id","line_snippet":"task_id,"}
+{"file":"supervisor/screenshot_spec.js","line":108,"field":"process_lease_id","line_snippet":"process_lease_id,"}
+{"file":"supervisor/screenshot_spec.js","line":112,"field":"status","line_snippet":"status,"}
+{"file":"supervisor/screenshot_spec.js","line":114,"field":"fingerprint","line_snippet":"fingerprint"}
+{"file":"supervisor/stall_policy.js","line":7,"field":"state","line_snippet":"// - Hung requires verified lack of progress + unresponsive state."}
+{"file":"supervisor/stall_policy.js","line":39,"field":"status","line_snippet":"if (isBlockedByHumanGate || lease.status === LEASE_STATUS.HUMAN_GATE) {"}
+{"file":"supervisor/stall_policy.js","line":49,"field":"status","line_snippet":"if (isExecutionStateUncertain || lease.status === LEASE_STATUS.EXECUTION_UNCERTAIN) {"}
+{"file":"supervisor/stall_policy.js","line":59,"field":"status","line_snippet":"if (isDuplicateOfActiveCanonical || lease.status === LEASE_STATUS.DUPLICATE) {"}
+{"file":"supervisor/stall_policy.js","line":79,"field":"status","line_snippet":"if (isWaitingOnKnownDependency || lease.status === LEASE_STATUS.WAITING_VALID) {"}
+{"file":"supervisor/stall_policy.js","line":83,"field":"state","line_snippet":"reason: 'Process in valid waiting state for external dependency or worker dispatch',"}
+{"file":"supervisor/task_hygiene.js","line":24,"field":"taskId","line_snippet":"runTaskHygiene(taskId, reason = 'TASK_COMPLETED') {"}
+{"file":"supervisor/task_hygiene.js","line":25,"field":"taskId","line_snippet":"if (!taskId) throw new Error('[HYGIENE_ERROR] taskId is required');"}
+{"file":"supervisor/task_hygiene.js","line":25,"field":"taskId","line_snippet":"if (!taskId) throw new Error('[HYGIENE_ERROR] taskId is required');"}
+{"file":"supervisor/task_hygiene.js","line":28,"field":"task_id","line_snippet":"const taskLeases = allLeases.filter(l => l.task_id === taskId);"}
+{"file":"supervisor/task_hygiene.js","line":28,"field":"taskId","line_snippet":"const taskLeases = allLeases.filter(l => l.task_id === taskId);"}
+{"file":"supervisor/task_hygiene.js","line":35,"field":"status","line_snippet":"if (lease.status === LEASE_STATUS.COMPLETED || lease.status === LEASE_STATUS.TERMINATED) {"}
+{"file":"supervisor/task_hygiene.js","line":35,"field":"status","line_snippet":"if (lease.status === LEASE_STATUS.COMPLETED || lease.status === LEASE_STATUS.TERMINATED) {"}
+{"file":"supervisor/task_hygiene.js","line":36,"field":"process_lease_id","line_snippet":"skippedAlreadyTerminated.push(lease.process_lease_id);"}
+{"file":"supervisor/task_hygiene.js","line":43,"field":"process_lease_id","line_snippet":"lease.process_lease_id,"}
+{"file":"supervisor/task_hygiene.js","line":45,"field":"taskId","line_snippet":"`Retained background service after task ${taskId} completion`"}
+{"file":"supervisor/task_hygiene.js","line":48,"field":"process_lease_id","line_snippet":"process_lease_id: lease.process_lease_id,"}
+{"file":"supervisor/task_hygiene.js","line":48,"field":"process_lease_id","line_snippet":"process_lease_id: lease.process_lease_id,"}
+{"file":"supervisor/task_hygiene.js","line":56,"field":"task_id","line_snippet":"task_id: taskId,"}
+{"file":"supervisor/task_hygiene.js","line":56,"field":"taskId","line_snippet":"task_id: taskId,"}
+{"file":"supervisor/task_hygiene.js","line":57,"field":"process_lease_id","line_snippet":"process_lease_id: lease.process_lease_id,"}
+{"file":"supervisor/task_hygiene.js","line":57,"field":"process_lease_id","line_snippet":"process_lease_id: lease.process_lease_id,"}
+{"file":"supervisor/task_hygiene.js","line":71,"field":"process_lease_id","line_snippet":"lease.process_lease_id,"}
+{"file":"supervisor/task_hygiene.js","line":73,"field":"taskId","line_snippet":"`Task ${taskId} finished: ${reason}`"}
+{"file":"supervisor/task_hygiene.js","line":76,"field":"process_lease_id","line_snippet":"process_lease_id: lease.process_lease_id,"}
+{"file":"supervisor/task_hygiene.js","line":76,"field":"process_lease_id","line_snippet":"process_lease_id: lease.process_lease_id,"}
+{"file":"supervisor/task_hygiene.js","line":85,"field":"task_id","line_snippet":"task_id: taskId,"}
+{"file":"supervisor/task_hygiene.js","line":85,"field":"taskId","line_snippet":"task_id: taskId,"}
+{"file":"supervisor/task_hygiene.js","line":86,"field":"process_lease_id","line_snippet":"process_lease_id: lease.process_lease_id,"}
+{"file":"supervisor/task_hygiene.js","line":86,"field":"process_lease_id","line_snippet":"process_lease_id: lease.process_lease_id,"}
+{"file":"supervisor/task_hygiene.js","line":95,"field":"task_id","line_snippet":"task_id: taskId,"}
+{"file":"supervisor/task_hygiene.js","line":95,"field":"taskId","line_snippet":"task_id: taskId,"}
+{"file":"supervisor/task_hygiene.js","line":106,"field":"task_id","line_snippet":"task_id: taskId,"}
+{"file":"supervisor/task_hygiene.js","line":106,"field":"taskId","line_snippet":"task_id: taskId,"}
+{"file":"tests/rc3_hardening/test_border_guard.js","line":32,"field":"status","line_snippet":"results.push({ testId, description, status: 'PASS' });"}
+{"file":"tests/rc3_hardening/test_border_guard.js","line":36,"field":"status","line_snippet":"results.push({ testId, description, status: 'FAIL', error: err.message });"}
+{"file":"tests/rc3_hardening/test_border_guard.js","line":46,"field":"task_id","line_snippet":"task_id: 'TASK-CLEAN-01',"}
+{"file":"tests/rc3_hardening/test_border_guard.js","line":53,"field":"fingerprint","line_snippet":"assert.strictEqual(res.fingerprint.length, 64);"}
+{"file":"tests/rc3_hardening/test_border_guard.js","line":60,"field":"task_id","line_snippet":"task_id: 'TASK-SPEND-01',"}
+{"file":"tests/rc3_hardening/test_border_guard.js","line":74,"field":"task_id","line_snippet":"task_id: 'TASK-DEPLOY-01',"}
+{"file":"tests/rc3_hardening/test_border_guard.js","line":87,"field":"task_id","line_snippet":"task_id: 'TASK-MSG-01',"}
+{"file":"tests/rc3_hardening/test_border_guard.js","line":100,"field":"task_id","line_snippet":"task_id: 'TASK-WEAKEN-01',"}
+{"file":"tests/rc3_hardening/test_border_guard.js","line":113,"field":"task_id","line_snippet":"task_id: 'TASK-UNCERTAIN-01',"}
+{"file":"tests/rc3_hardening/test_border_guard.js","line":126,"field":"task_id","line_snippet":"task_id: 'TASK-AUTH-01',"}
+{"file":"tests/rc3_hardening/test_border_guard.js","line":139,"field":"task_id","line_snippet":"task_id: 'TASK-VAGUE-01',"}
+{"file":"tests/rc3_hardening/test_border_guard.js","line":153,"field":"task_id","line_snippet":"task_id: 'TASK-WORKER-02',"}
+{"file":"tests/rc3_hardening/test_border_guard.js","line":170,"field":"status","line_snippet":"assert.strictEqual(rAccept.status, 'IN_FLIGHT');"}
+{"file":"tests/rc3_hardening/test_border_guard.js","line":173,"field":"status","line_snippet":"assert.strictEqual(rQuestion.status, 'NEGOTIATING');"}
+{"file":"tests/rc3_hardening/test_border_guard.js","line":176,"field":"status","line_snippet":"assert.strictEqual(rUnsafe.status, 'BLOCKED');"}
+{"file":"tests/rc3_hardening/test_border_guard.js","line":179,"field":"status","line_snippet":"assert.strictEqual(rConflict.status, 'HOLD');"}
+{"file":"tests/rc3_hardening/test_border_guard.js","line":185,"field":"taskId","line_snippet":"const taskId = 'TASK-APPEAL-01';"}
+{"file":"tests/rc3_hardening/test_border_guard.js","line":189,"field":"task_id","line_snippet":"task_id: taskId,"}
+{"file":"tests/rc3_hardening/test_border_guard.js","line":189,"field":"taskId","line_snippet":"task_id: taskId,"}
+{"file":"tests/rc3_hardening/test_border_guard.js","line":202,"field":"taskId","line_snippet":"const appeal1 = bg.processAppeal(taskId, revisedEnvelope, 'Added explicit acceptance criteria');"}
+{"file":"tests/rc3_hardening/test_border_guard.js","line":208,"field":"taskId","line_snippet":"const appeal2 = bg.processAppeal(taskId, revisedEnvelope, 'Second attempt to appeal');"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":23,"field":"state","line_snippet":"* - Idempotent state rebuild from disk"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":63,"field":"status","line_snippet":"results.push({ boundaryId, description, status: 'PASS' });"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":67,"field":"status","line_snippet":"results.push({ boundaryId, description, status: 'FAIL', error: err.message });"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":80,"field":"task_id","line_snippet":"task_id: 'TASK-CHAOS-01',"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":81,"field":"goal_id","line_snippet":"goal_id: 'GOAL-CHAOS-01',"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":88,"field":"state","line_snippet":"assert.strictEqual(task.state, TASK_STATE.STAMPED);"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":95,"field":"state","line_snippet":"assert.strictEqual(reloaded.state, TASK_STATE.STAMPED);"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":106,"field":"task_id","line_snippet":"task_id: 'TASK-CHAOS-02',"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":107,"field":"goal_id","line_snippet":"goal_id: 'GOAL-CHAOS-02',"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":121,"field":"task_id","line_snippet":"task_id: 'TASK-CHAOS-02-B',"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":122,"field":"goal_id","line_snippet":"goal_id: 'GOAL-CHAOS-02',"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":129,"field":"task_id","line_snippet":"assert.strictEqual(lease2.conflicting_task_id, 'TASK-CHAOS-02');"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":142,"field":"task_id","line_snippet":"task_id: 'TASK-CHAOS-03',"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":155,"field":"status","line_snippet":"assert.strictEqual(reconResult.execution_uncertain_tasks[0].status, LEASE_STATUS.EXECUTION_UNCERTAIN);"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":167,"field":"task_id","line_snippet":"task_id: 'TASK-CHAOS-04',"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":170,"field":"status","line_snippet":"status: LEASE_STATUS.RUNNING"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":179,"field":"process_lease_id","line_snippet":"assert.ok(aliveResult.known_live_progressing.includes(lease.process_lease_id));"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":187,"field":"process_lease_id","line_snippet":"const updatedLease = leaseMgr.getLease(lease.process_lease_id);"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":188,"field":"status","line_snippet":"assert.strictEqual(updatedLease.status, LEASE_STATUS.EXECUTION_UNCERTAIN);"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":199,"field":"task_id","line_snippet":"task_id: 'TASK-CHAOS-05',"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":202,"field":"status","line_snippet":"status: LEASE_STATUS.PROGRESSING"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":211,"field":"process_lease_id","line_snippet":"assert.ok(recon.known_live_progressing.includes(lease.process_lease_id));"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":223,"field":"task_id","line_snippet":"task_id: 'TASK-CHAOS-06',"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":226,"field":"status","line_snippet":"status: LEASE_STATUS.STALLED"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":236,"field":"process_lease_id","line_snippet":"const currentLease = leaseMgr.getLease(lease.process_lease_id);"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":237,"field":"status","line_snippet":"assert.strictEqual(currentLease.status, LEASE_STATUS.EXECUTION_UNCERTAIN);"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":271,"field":"task_id","line_snippet":"const inspected = customs.validateResult(recovered, { task_id: 'TASK-CHAOS-07', version: 1 });"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":271,"field":"version","line_snippet":"const inspected = customs.validateResult(recovered, { task_id: 'TASK-CHAOS-07', version: 1 });"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":273,"field":"status","line_snippet":"assert.strictEqual(inspected.result_status, 'ACCEPTED');"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":290,"field":"status","line_snippet":"assert.strictEqual(res.result_status, 'REJECTED');"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":301,"field":"task_id","line_snippet":"task_id: 'TASK-CHAOS-09',"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":302,"field":"goal_id","line_snippet":"goal_id: 'GOAL-09',"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":309,"field":"task_id","line_snippet":"assert.strictEqual(lines[0].task_id, 'TASK-CHAOS-09');"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":334,"field":"status","line_snippet":"status: 'IN_FLIGHT',"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":335,"field":"task_id","line_snippet":"task_id: 'TASK-CHAOS-10',"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":336,"field":"goal_id","line_snippet":"goal_id: 'GOAL-10',"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":341,"field":"status","line_snippet":"assert.strictEqual(txn.status, 'IN_FLIGHT');"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":343,"field":"status","line_snippet":"txn.status = 'COMMITTED';"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":348,"field":"status","line_snippet":"assert.strictEqual(rechecked.status, 'COMMITTED');"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":358,"field":"task_id","line_snippet":"task_id: 'TASK-CHAOS-11',"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":359,"field":"goal_id","line_snippet":"goal_id: 'GOAL-CHAOS-11',"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":369,"field":"state","line_snippet":"// Reconciler recovers state after dead process"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":386,"field":"goal_id","line_snippet":"goal_id: 'GOAL-CHAOS-12',"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":388,"field":"version","line_snippet":"reason: 'Conversion uplift',"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":390,"field":"task_id","line_snippet":"related_task_id: 'TASK-CHAOS-12'"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":393,"field":"status","line_snippet":"assert.strictEqual(item1.status, 'CAPTURED');"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":401,"field":"status","line_snippet":"assert.strictEqual(items[0].status, 'CAPTURED');"}
+{"file":"tests/rc3_hardening/test_crash_restart_chaos.js","line":403,"field":"status","line_snippet":"const captured = items.filter(i => i.status === 'CAPTURED');"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":11,"field":"fingerprint","line_snippet":"*   - Result customs 42-field envelope validation and fingerprint verification"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":72,"field":"taskId","line_snippet":"const taskId = `task-soak-${String(i).padStart(3, '0')}`;"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":73,"field":"goalId","line_snippet":"const goalId = `goal-soak-${Math.floor(i / 10)}`;"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":79,"field":"task_id","line_snippet":"task_id: taskId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":79,"field":"taskId","line_snippet":"task_id: taskId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":80,"field":"goal_id","line_snippet":"goal_id: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":80,"field":"goalId","line_snippet":"goal_id: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":92,"field":"state","line_snippet":"if (!holder || holder.state === TASK_STATE.CLOSED || holder.state === TASK_STATE.CANCELLED) {"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":92,"field":"state","line_snippet":"if (!holder || holder.state === TASK_STATE.CLOSED || holder.state === TASK_STATE.CANCELLED) {"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":98,"field":"task_id","line_snippet":"task_id: taskId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":98,"field":"taskId","line_snippet":"task_id: taskId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":99,"field":"goal_id","line_snippet":"goal_id: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":99,"field":"goalId","line_snippet":"goal_id: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":114,"field":"taskId","line_snippet":"const holderTaskId = `${taskId}-holder`;"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":116,"field":"task_id","line_snippet":"task_id: holderTaskId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":117,"field":"goal_id","line_snippet":"goal_id: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":117,"field":"goalId","line_snippet":"goal_id: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":132,"field":"taskId","line_snippet":"const waiterTaskId = `${taskId}-waiter`;"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":134,"field":"task_id","line_snippet":"task_id: waiterTaskId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":135,"field":"goal_id","line_snippet":"goal_id: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":135,"field":"goalId","line_snippet":"goal_id: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":176,"field":"task_id","line_snippet":"task_id: `${taskId}-hostile`,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":176,"field":"taskId","line_snippet":"task_id: `${taskId}-hostile`,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":177,"field":"goal_id","line_snippet":"goal_id: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":177,"field":"goalId","line_snippet":"goal_id: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":189,"field":"task_id","line_snippet":"task_id: hostileEnvelope.task_id,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":189,"field":"task_id","line_snippet":"task_id: hostileEnvelope.task_id,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":190,"field":"goal_id","line_snippet":"goal_id: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":190,"field":"goalId","line_snippet":"goal_id: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":202,"field":"task_id","line_snippet":"task_id: `${taskId}-humangate`,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":202,"field":"taskId","line_snippet":"task_id: `${taskId}-humangate`,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":203,"field":"goal_id","line_snippet":"goal_id: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":203,"field":"goalId","line_snippet":"goal_id: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":215,"field":"state","line_snippet":"// Also test task stamp transition to HUMAN_GATE state"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":217,"field":"task_id","line_snippet":"task_id: `${taskId}-humangate`,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":217,"field":"taskId","line_snippet":"task_id: `${taskId}-humangate`,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":218,"field":"goal_id","line_snippet":"goal_id: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":218,"field":"goalId","line_snippet":"goal_id: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":222,"field":"taskId","line_snippet":"taskRegistry.transition(`${taskId}-humangate`, TASK_STATE.NEGOTIATING);"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":223,"field":"taskId","line_snippet":"taskRegistry.transition(`${taskId}-humangate`, TASK_STATE.APPROVED_FOR_DISPATCH);"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":224,"field":"taskId","line_snippet":"taskRegistry.transition(`${taskId}-humangate`, TASK_STATE.HUMAN_GATE);"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":229,"field":"taskId","line_snippet":"taskRegistry.transition(`${taskId}-humangate`, TASK_STATE.DISPATCHED);"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":240,"field":"task_id","line_snippet":"task_id: gateEnvelope.task_id,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":240,"field":"task_id","line_snippet":"task_id: gateEnvelope.task_id,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":241,"field":"goal_id","line_snippet":"goal_id: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":241,"field":"goalId","line_snippet":"goal_id: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":252,"field":"task_id","line_snippet":"task_id: taskId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":252,"field":"taskId","line_snippet":"task_id: taskId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":253,"field":"goal_id","line_snippet":"goal_id: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":253,"field":"goalId","line_snippet":"goal_id: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":257,"field":"taskId","line_snippet":"taskRegistry.transition(taskId, TASK_STATE.NEGOTIATING);"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":258,"field":"taskId","line_snippet":"taskRegistry.transition(taskId, TASK_STATE.APPROVED_FOR_DISPATCH);"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":259,"field":"taskId","line_snippet":"taskRegistry.transition(taskId, TASK_STATE.STAMPED);"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":260,"field":"taskId","line_snippet":"taskRegistry.transition(taskId, TASK_STATE.DISPATCHED);"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":261,"field":"taskId","line_snippet":"taskRegistry.transition(taskId, TASK_STATE.IN_FLIGHT);"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":262,"field":"taskId","line_snippet":"taskRegistry.acquireWriterLease(taskId);"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":266,"field":"taskId","line_snippet":"taskRegistry.markExecutionUncertain(taskId, 'SIMULATED_CRASH_DURING_IN_FLIGHT');"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":267,"field":"taskId","line_snippet":"const canRedispatch = taskRegistry.canCreateReplacementDispatch(taskId);"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":274,"field":"taskId","line_snippet":"taskRegistry.transition(taskId, TASK_STATE.FAILED);"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":283,"field":"task_id","line_snippet":"task_id: taskId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":283,"field":"taskId","line_snippet":"task_id: taskId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":284,"field":"goal_id","line_snippet":"goal_id: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":284,"field":"goalId","line_snippet":"goal_id: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":285,"field":"version","line_snippet":"version: 1,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":290,"field":"taskId","line_snippet":"taskRegistry.transition(taskId, TASK_STATE.NEGOTIATING);"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":291,"field":"taskId","line_snippet":"taskRegistry.transition(taskId, TASK_STATE.APPROVED_FOR_DISPATCH);"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":292,"field":"taskId","line_snippet":"taskRegistry.transition(taskId, TASK_STATE.STAMPED);"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":295,"field":"taskId","line_snippet":"const lease = taskRegistry.acquireWriterLease(taskId);"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":296,"field":"taskId","line_snippet":"if (!lease.acquired) throw new Error(`Failed to acquire lease for nominal task ${taskId}`);"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":300,"field":"taskId","line_snippet":"taskRegistry.transition(taskId, TASK_STATE.DISPATCHED, { worker_id: 'WORKER_SOAK' });"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":304,"field":"task_id","line_snippet":"task_id: taskId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":304,"field":"taskId","line_snippet":"task_id: taskId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":305,"field":"goal_id","line_snippet":"goal_id: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":305,"field":"goalId","line_snippet":"goal_id: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":318,"field":"taskId","line_snippet":"taskRegistry.transition(taskId, TASK_STATE.IN_FLIGHT);"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":321,"field":"goal_id","line_snippet":"goal_id: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":321,"field":"goalId","line_snippet":"goal_id: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":322,"field":"task_id","line_snippet":"related_task_id: taskId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":322,"field":"taskId","line_snippet":"related_task_id: taskId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":331,"field":"taskId","line_snippet":"TASK_ID: taskId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":333,"field":"goalId","line_snippet":"GOAL_ID: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":350,"field":"task_id","line_snippet":"task_id: taskId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":350,"field":"taskId","line_snippet":"task_id: taskId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":351,"field":"version","line_snippet":"version: 1,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":352,"field":"goal_id","line_snippet":"goal_id: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":352,"field":"goalId","line_snippet":"goal_id: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":361,"field":"task_id","line_snippet":"task_id: taskId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":361,"field":"taskId","line_snippet":"task_id: taskId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":362,"field":"version","line_snippet":"version: 1,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":363,"field":"goal_id","line_snippet":"goal_id: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":363,"field":"goalId","line_snippet":"goal_id: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":372,"field":"taskId","line_snippet":"taskRegistry.transition(taskId, TASK_STATE.RESULT_RECEIVED);"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":373,"field":"taskId","line_snippet":"taskRegistry.transition(taskId, TASK_STATE.VERIFIED);"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":374,"field":"taskId","line_snippet":"taskRegistry.transition(taskId, TASK_STATE.CLOSED);"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":379,"field":"task_id","line_snippet":"task_id: taskId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":379,"field":"taskId","line_snippet":"task_id: taskId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":380,"field":"goal_id","line_snippet":"goal_id: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":380,"field":"goalId","line_snippet":"goal_id: goalId,"}
+{"file":"tests/rc3_hardening/test_deterministic_soak.js","line":422,"field":"status","line_snippet":"status: 'PASS',"}
+{"file":"tests/rc3_hardening/test_follow_up_inbox.js","line":38,"field":"status","line_snippet":"results.push({ testId, description, status: 'PASS' });"}
+{"file":"tests/rc3_hardening/test_follow_up_inbox.js","line":42,"field":"status","line_snippet":"results.push({ testId, description, status: 'FAIL', error: err.message });"}
+{"file":"tests/rc3_hardening/test_follow_up_inbox.js","line":53,"field":"goal_id","line_snippet":"goal_id: 'GOAL-CANARY',"}
+{"file":"tests/rc3_hardening/test_follow_up_inbox.js","line":54,"field":"task_id","line_snippet":"related_task_id: 'TASK-IN-FLIGHT-44',"}
+{"file":"tests/rc3_hardening/test_follow_up_inbox.js","line":62,"field":"status","line_snippet":"assert.strictEqual(item.status, FOLLOW_UP_STATUS.CAPTURED);"}
+{"file":"tests/rc3_hardening/test_follow_up_inbox.js","line":72,"field":"status","line_snippet":"assert.notStrictEqual(it.status, FOLLOW_UP_STATUS.DISPATCHED, 'Item must NOT be automatically dispatched');"}
+{"file":"tests/rc3_hardening/test_follow_up_inbox.js","line":83,"field":"goal_id","line_snippet":"goal_id: 'GOAL-CANARY',"}
+{"file":"tests/rc3_hardening/test_follow_up_inbox.js","line":96,"field":"goal_id","line_snippet":"goal_id: 'GOAL-CANARY',"}
+{"file":"tests/rc3_hardening/test_follow_up_inbox.js","line":101,"field":"goal_id","line_snippet":"goal_id: 'GOAL-CANARY',"}
+{"file":"tests/rc3_hardening/test_follow_up_inbox.js","line":111,"field":"status","line_snippet":"assert.strictEqual(source.status, FOLLOW_UP_STATUS.MERGED);"}
+{"file":"tests/rc3_hardening/test_follow_up_inbox.js","line":117,"field":"status","line_snippet":"runTest('ADV_INBOX_05_SUPERSEDE_PRESERVES_OLD_RECORD', 'Superseded record remains in inbox with status SUPERSEDED', () => {"}
+{"file":"tests/rc3_hardening/test_follow_up_inbox.js","line":120,"field":"goal_id","line_snippet":"goal_id: 'GOAL-CANARY',"}
+{"file":"tests/rc3_hardening/test_follow_up_inbox.js","line":124,"field":"goal_id","line_snippet":"goal_id: 'GOAL-CANARY',"}
+{"file":"tests/rc3_hardening/test_follow_up_inbox.js","line":130,"field":"status","line_snippet":"assert.strictEqual(inbox.getItem(oldItem.follow_up_id).status, FOLLOW_UP_STATUS.SUPERSEDED);"}
+{"file":"tests/rc3_hardening/test_follow_up_inbox.js","line":139,"field":"status","line_snippet":"const merged = all.filter(i => i.status === FOLLOW_UP_STATUS.MERGED);"}
+{"file":"tests/rc3_hardening/test_follow_up_inbox.js","line":140,"field":"status","line_snippet":"const superseded = all.filter(i => i.status === FOLLOW_UP_STATUS.SUPERSEDED);"}
+{"file":"tests/rc3_hardening/test_follow_up_inbox.js","line":150,"field":"goal_id","line_snippet":"goal_id: 'GOAL-02',"}
+{"file":"tests/rc3_hardening/test_follow_up_inbox.js","line":157,"field":"goal_id","line_snippet":"goal_id: 'GOAL-02',"}
+{"file":"tests/rc3_hardening/test_money_factory_adversarial.js","line":69,"field":"status","line_snippet":"results.push({ testId, description, status: 'PASS' });"}
+{"file":"tests/rc3_hardening/test_money_factory_adversarial.js","line":73,"field":"status","line_snippet":"results.push({ testId, description, status: 'FAIL', error: err.message });"}
+{"file":"tests/rc3_hardening/test_money_factory_adversarial.js","line":88,"field":"status","line_snippet":"status: 'SEED',"}
+{"file":"tests/rc3_hardening/test_money_factory_adversarial.js","line":271,"field":"status","line_snippet":"assert.strictEqual(res1.status, 'RESOLVED');"}
+{"file":"tests/rc3_hardening/test_money_factory_adversarial.js","line":285,"field":"status","line_snippet":"assert.notStrictEqual(opp.status, 'WINNER');"}
+{"file":"tests/rc3_hardening/test_money_factory_adversarial.js","line":315,"field":"status","line_snippet":"runTest('ADV_MF_12_WEAK_EVIDENCE_CANNOT_ADVANCE', 'Opportunity with evidence_score < 0.5 cannot reach PROVING status', () => {"}
+{"file":"tests/rc3_hardening/test_money_factory_adversarial.js","line":319,"field":"status","line_snippet":"assert.ok(opp.status === 'SEED' || opp.status === 'EXPLORING');"}
+{"file":"tests/rc3_hardening/test_money_factory_adversarial.js","line":319,"field":"status","line_snippet":"assert.ok(opp.status === 'SEED' || opp.status === 'EXPLORING');"}
+{"file":"tests/rc3_hardening/test_rc3_adversarial_validation.js","line":58,"field":"status","line_snippet":"return { passed: false, exitCode: err.status, output: err.stdout + '\\n' + err.stderr };"}
+{"file":"tests/rc3_hardening/test_rc3_adversarial_validation.js","line":71,"field":"status","line_snippet":"return { passed: false, exitCode: err.status, output: err.stdout + '\\n' + err.stderr };"}
+{"file":"tests/rc3_hardening/test_rc3_adversarial_validation.js","line":91,"field":"lease_id","line_snippet":"if (manifest.release_id !== 'RC3') {"}
+{"file":"tests/rc3_hardening/test_rc3_adversarial_validation.js","line":92,"field":"lease_id","line_snippet":"issues.push(`HARDENED_003_WRONG_RELEASE_ID: expected 'RC3', found '${manifest.release_id}'`);"}
+{"file":"tests/rc3_hardening/test_rc3_adversarial_validation.js","line":159,"field":"status","line_snippet":"if (!entry.phase_id || !entry.status || !entry.output_artifacts) {"}
+{"file":"tests/rc3_hardening/test_rc3_adversarial_validation.js","line":173,"field":"status","line_snippet":"if (!['PASS', 'FAIL', 'SKIPPED'].includes(entry.status)) {"}
+{"file":"tests/rc3_hardening/test_rc3_adversarial_validation.js","line":174,"field":"status","line_snippet":"return { passed: false, error: `Invalid status in ledger at line ${i + 1}: ${entry.status}` };"}
+{"file":"tests/rc3_hardening/test_rc3_adversarial_validation.js","line":174,"field":"status","line_snippet":"return { passed: false, error: `Invalid status in ledger at line ${i + 1}: ${entry.status}` };"}
+{"file":"tests/rc3_hardening/test_rc3_adversarial_validation.js","line":276,"field":"lease_id","line_snippet":"description: 'Set release_id in manifest to RC99',"}
+{"file":"tests/rc3_hardening/test_rc3_adversarial_validation.js","line":280,"field":"lease_id","line_snippet":"manifest.release_id = 'RC99';"}
+{"file":"tests/rc3_hardening/test_rc3_adversarial_validation.js","line":339,"field":"status","line_snippet":"lines.splice(15, 0, JSON.stringify({ phase_id: 'PHASE_PHANTOM', status: 'PASS', output_artifacts: [] }));"}
+{"file":"tests/rc3_hardening/test_rc3_adversarial_validation.js","line":452,"field":"lease_id","line_snippet":"fs.writeFileSync(p, '{\"release_id\": \"RC3\", unquoted_key: error');"}
+{"file":"tests/rc3_hardening/test_resource_governor_adversarial.js","line":44,"field":"status","line_snippet":"results.push({ testId, description, status: 'PASS' });"}
+{"file":"tests/rc3_hardening/test_resource_governor_adversarial.js","line":48,"field":"status","line_snippet":"results.push({ testId, description, status: 'FAIL', error: err.message });"}
+{"file":"tests/rc3_hardening/test_resource_governor_adversarial.js","line":64,"field":"state","line_snippet":"thermal_state: 'THERMAL_PRESSURE',"}
+{"file":"tests/rc3_hardening/test_resource_governor_adversarial.js","line":70,"field":"state","line_snippet":"thermal_state: 'NORMAL',"}
+{"file":"tests/rc3_hardening/test_resource_governor_adversarial.js","line":91,"field":"state","line_snippet":"thermal_state: 'NORMAL',"}
+{"file":"tests/rc3_hardening/test_resource_governor_adversarial.js","line":97,"field":"state","line_snippet":"thermal_state: 'NORMAL',"}
+{"file":"tests/rc3_hardening/test_resource_governor_adversarial.js","line":114,"field":"state","line_snippet":"thermal_state: 'THERMAL_PRESSURE'"}
+{"file":"tests/rc3_hardening/test_resource_governor_adversarial.js","line":116,"field":"state","line_snippet":"assert.strictEqual(governor.getMachineState('MAC_CHIEF').resource_state, RESOURCE_STATE.THERMAL_PRESSURE);"}
+{"file":"tests/rc3_hardening/test_resource_governor_adversarial.js","line":121,"field":"state","line_snippet":"thermal_state: 'NORMAL',"}
+{"file":"tests/rc3_hardening/test_resource_governor_adversarial.js","line":125,"field":"state","line_snippet":"assert.strictEqual(governor.getMachineState('MAC_CHIEF').resource_state, RESOURCE_STATE.NORMAL);"}
+{"file":"tests/rc3_hardening/test_resource_governor_adversarial.js","line":132,"field":"state","line_snippet":"// SCENARIO 4: Unknown thermal state"}
+{"file":"tests/rc3_hardening/test_resource_governor_adversarial.js","line":133,"field":"state","line_snippet":"runTest('ADV_GOV_04_UNKNOWN_THERMAL_STATE', 'Unknown thermal state is handled conservatively without crashing', () => {"}
+{"file":"tests/rc3_hardening/test_resource_governor_adversarial.js","line":137,"field":"state","line_snippet":"thermal_state: 'UNKNOWN',"}
+{"file":"tests/rc3_hardening/test_resource_governor_adversarial.js","line":141,"field":"state","line_snippet":"assert.strictEqual(st.resource_state, RESOURCE_STATE.UNKNOWN);"}
+{"file":"tests/rc3_hardening/test_resource_governor_adversarial.js","line":147,"field":"process_lease_id","line_snippet":"process_lease_id: 'LEASE-HIGH-CPU',"}
+{"file":"tests/rc3_hardening/test_resource_governor_adversarial.js","line":148,"field":"task_id","line_snippet":"task_id: 'TASK-COMPUTE',"}
+{"file":"tests/rc3_hardening/test_resource_governor_adversarial.js","line":149,"field":"status","line_snippet":"status: LEASE_STATUS.PROGRESSING,"}
+{"file":"tests/rc3_hardening/test_resource_governor_adversarial.js","line":165,"field":"state","line_snippet":"runTest('ADV_GOV_06_LOW_CPU_VALID_WAIT', 'Low CPU in valid wait state is preserved', () => {"}
+{"file":"tests/rc3_hardening/test_resource_governor_adversarial.js","line":167,"field":"process_lease_id","line_snippet":"process_lease_id: 'LEASE-WAITING',"}
+{"file":"tests/rc3_hardening/test_resource_governor_adversarial.js","line":168,"field":"task_id","line_snippet":"task_id: 'TASK-POLL',"}
+{"file":"tests/rc3_hardening/test_resource_governor_adversarial.js","line":169,"field":"status","line_snippet":"status: LEASE_STATUS.WAITING_VALID,"}
+{"file":"tests/rc3_hardening/test_resource_governor_adversarial.js","line":196,"field":"state","line_snippet":"assert.strictEqual(st.resource_state, RESOURCE_STATE.PRESSURE);"}
+{"file":"tests/rc3_hardening/test_resource_governor_adversarial.js","line":214,"field":"state","line_snippet":"assert.strictEqual(st.resource_state, RESOURCE_STATE.PRESSURE, 'High swap pressure must set resource_state to PRESSURE');"}
+{"file":"tests/rc3_hardening/test_resource_governor_adversarial.js","line":214,"field":"state","line_snippet":"assert.strictEqual(st.resource_state, RESOURCE_STATE.PRESSURE, 'High swap pressure must set resource_state to PRESSURE');"}
+{"file":"tests/rc3_hardening/test_resource_governor_adversarial.js","line":254,"field":"task_id","line_snippet":"task_id: 'TASK-CANONICAL-01',"}
+{"file":"tests/rc3_hardening/test_resource_governor_adversarial.js","line":258,"field":"status","line_snippet":"status: LEASE_STATUS.RUNNING"}
+{"file":"tests/rc3_hardening/test_resource_governor_adversarial.js","line":262,"field":"task_id","line_snippet":"task_id: 'TASK-CANONICAL-01',"}
+{"file":"tests/rc3_hardening/test_resource_governor_adversarial.js","line":269,"field":"status","line_snippet":"assert.strictEqual(dupCheck.status, 'DUPLICATE_HEAVY_WORK_BLOCKED');"}
+{"file":"tests/rc3_hardening/test_resource_governor_adversarial.js","line":277,"field":"state","line_snippet":"thermal_state: 'THERMAL_PRESSURE',"}
+{"file":"tests/rc3_hardening/test_resource_governor_adversarial.js","line":289,"field":"process_lease_id","line_snippet":"process_lease_id: 'LEASE-HOT-M1',"}
+{"file":"tests/rc3_hardening/test_resource_governor_adversarial.js","line":290,"field":"task_id","line_snippet":"task_id: 'TASK-BIG-BUILD',"}
+{"file":"tests/rc3_hardening/test_resource_governor_adversarial.js","line":291,"field":"status","line_snippet":"status: LEASE_STATUS.PROGRESSING,"}
+{"file":"tests/rc3_hardening/test_result_customs.js","line":34,"field":"status","line_snippet":"results.push({ testId, description, status: 'PASS' });"}
+{"file":"tests/rc3_hardening/test_result_customs.js","line":38,"field":"status","line_snippet":"results.push({ testId, description, status: 'FAIL', error: err.message });"}
+{"file":"tests/rc3_hardening/test_result_customs.js","line":69,"field":"task_id","line_snippet":"task_id: 'TASK-VALID-01',"}
+{"file":"tests/rc3_hardening/test_result_customs.js","line":70,"field":"version","line_snippet":"version: 1,"}
+{"file":"tests/rc3_hardening/test_result_customs.js","line":71,"field":"goal_id","line_snippet":"goal_id: 'GOAL-MAIN-01',"}
+{"file":"tests/rc3_hardening/test_result_customs.js","line":74,"field":"fingerprint","line_snippet":"scope_fingerprint: 'abc123scope'"}
+{"file":"tests/rc3_hardening/test_result_customs.js","line":78,"field":"state","line_snippet":"runTest('ADV_RC_01_VALID_ENVELOPE_ACCEPTED', 'Valid complete envelope accepted with goal_state unchanged', () => {"}
+{"file":"tests/rc3_hardening/test_result_customs.js","line":84,"field":"status","line_snippet":"assert.strictEqual(res.result_status, 'ACCEPTED');"}
+{"file":"tests/rc3_hardening/test_result_customs.js","line":85,"field":"state","line_snippet":"assert.strictEqual(res.goal_state, 'UNCHANGED', 'Result Customs must NEVER satisfy goal');"}
+{"file":"tests/rc3_hardening/test_result_customs.js","line":98,"field":"version","line_snippet":"// 3. Wrong version rejected"}
+{"file":"tests/rc3_hardening/test_result_customs.js","line":99,"field":"version","line_snippet":"runTest('ADV_RC_03_WRONG_VERSION', 'Wrong version rejected fail-closed', () => {"}
+{"file":"tests/rc3_hardening/test_result_customs.js","line":139,"field":"fingerprint","line_snippet":"runTest('ADV_RC_07_REPLAYED_RESULT', 'Duplicate submission with same result fingerprint rejected', () => {"}
+{"file":"tests/rc3_hardening/test_result_customs.js","line":151,"field":"fingerprint","line_snippet":"// 8. Scope fingerprint mismatch rejected"}
+{"file":"tests/rc3_hardening/test_result_customs.js","line":152,"field":"fingerprint","line_snippet":"runTest('ADV_RC_08_SCOPE_MISMATCH', 'Scope fingerprint mismatch rejected', () => {"}
+{"file":"tests/rc3_hardening/test_result_customs.js","line":161,"field":"fingerprint","line_snippet":"// 9. Missing result fingerprint rejected"}
+{"file":"tests/rc3_hardening/test_result_customs.js","line":162,"field":"fingerprint","line_snippet":"runTest('ADV_RC_09_MISSING_RESULT_FINGERPRINT', 'Missing or tampered result fingerprint rejected', () => {"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":9,"field":"fingerprint","line_snippet":"* 5. Same PID different fingerprint (fingerprint mismatch -> detached)"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":9,"field":"fingerprint","line_snippet":"* 5. Same PID different fingerprint (fingerprint mismatch -> detached)"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":21,"field":"state","line_snippet":"* 17. Idempotent hygiene (repeated hygiene -> stable state)"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":74,"field":"status","line_snippet":"results.push({ testId, description, status: 'PASS' });"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":78,"field":"status","line_snippet":"results.push({ testId, description, status: 'FAIL', error: err.message });"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":102,"field":"task_id","line_snippet":"task_id: 'TASK-ADV-01',"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":112,"field":"status","line_snippet":"l.status = LEASE_STATUS.PROGRESSING;"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":117,"field":"process_lease_id","line_snippet":"process_lease_id: l.process_lease_id,"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":117,"field":"process_lease_id","line_snippet":"process_lease_id: l.process_lease_id,"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":118,"field":"task_id","line_snippet":"task_id: l.task_id,"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":118,"field":"task_id","line_snippet":"task_id: l.task_id,"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":134,"field":"task_id","line_snippet":"task_id: 'TASK-ADV-02',"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":144,"field":"status","line_snippet":"l.status = LEASE_STATUS.RUNNING;"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":154,"field":"task_id","line_snippet":"task_id: 'TASK-ADV-03',"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":162,"field":"status","line_snippet":"l.status = LEASE_STATUS.EXPECTED_WAIT;"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":172,"field":"task_id","line_snippet":"task_id: 'TASK-ADV-04',"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":176,"field":"status","line_snippet":"l.status = LEASE_STATUS.RUNNING;"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":187,"field":"process_lease_id","line_snippet":"const updated = leaseManager.getLease(l.process_lease_id);"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":188,"field":"status","line_snippet":"assert.strictEqual(updated.status, LEASE_STATUS.STALLED, 'Recycled PID must cause lease to be marked STALLED');"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":189,"field":"process_lease_id","line_snippet":"assert.ok(rec.known_missing.includes(l.process_lease_id));"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":192,"field":"fingerprint","line_snippet":"// SCENARIO 5: Same PID different fingerprint"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":193,"field":"fingerprint","line_snippet":"runTest('ADV_SUP_05_SAME_PID_DIFFERENT_FINGERPRINT', 'Same PID but mismatched command fingerprint -> rejected', () => {"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":195,"field":"task_id","line_snippet":"task_id: 'TASK-ADV-05',"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":199,"field":"status","line_snippet":"l.status = LEASE_STATUS.RUNNING;"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":209,"field":"process_lease_id","line_snippet":"assert.ok(rec.known_missing.includes(l.process_lease_id));"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":215,"field":"task_id","line_snippet":"task_id: 'TASK-PARENT-01',"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":220,"field":"task_id","line_snippet":"task_id: 'TASK-CHILD-01',"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":223,"field":"process_lease_id","line_snippet":"parent_process_id: parent.process_lease_id,"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":228,"field":"process_lease_id","line_snippet":"leaseManager.updateStatus(parent.process_lease_id, LEASE_STATUS.COMPLETED);"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":237,"field":"process_lease_id","line_snippet":"assert.ok(rec.orphaned_children.includes(child.process_lease_id));"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":238,"field":"process_lease_id","line_snippet":"const updatedChild = leaseManager.getLease(child.process_lease_id);"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":239,"field":"status","line_snippet":"assert.strictEqual(updatedChild.status, LEASE_STATUS.ORPHANED);"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":245,"field":"task_id","line_snippet":"task_id: 'TASK-PARENT-02',"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":250,"field":"task_id","line_snippet":"task_id: 'TASK-CHILD-02',"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":253,"field":"process_lease_id","line_snippet":"parent_process_id: parent.process_lease_id"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":257,"field":"process_lease_id","line_snippet":"leaseManager.updateStatus(child.process_lease_id, LEASE_STATUS.COMPLETED);"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":266,"field":"process_lease_id","line_snippet":"assert.ok(rec.known_live_progressing.includes(parent.process_lease_id) || rec.known_live_waiting.includes(parent.process_lease_id));"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":266,"field":"process_lease_id","line_snippet":"assert.ok(rec.known_live_progressing.includes(parent.process_lease_id) || rec.known_live_waiting.includes(parent.process_lease_id));"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":267,"field":"process_lease_id","line_snippet":"assert.strictEqual(leaseManager.getLease(parent.process_lease_id).status, LEASE_STATUS.STARTING);"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":267,"field":"status","line_snippet":"assert.strictEqual(leaseManager.getLease(parent.process_lease_id).status, LEASE_STATUS.STARTING);"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":273,"field":"task_id","line_snippet":"task_id: 'TASK-DUP-HELP',"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":279,"field":"task_id","line_snippet":"task_id: 'TASK-DUP-HELP',"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":284,"field":"status","line_snippet":"h1.status = LEASE_STATUS.RUNNING;"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":285,"field":"status","line_snippet":"h2.status = LEASE_STATUS.RUNNING;"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":290,"field":"process_lease_id","line_snippet":"assert.strictEqual(leaseManager.getLease(h1.process_lease_id).status, LEASE_STATUS.TERMINATED);"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":290,"field":"status","line_snippet":"assert.strictEqual(leaseManager.getLease(h1.process_lease_id).status, LEASE_STATUS.TERMINATED);"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":291,"field":"process_lease_id","line_snippet":"assert.strictEqual(leaseManager.getLease(h2.process_lease_id).status, LEASE_STATUS.TERMINATED);"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":291,"field":"status","line_snippet":"assert.strictEqual(leaseManager.getLease(h2.process_lease_id).status, LEASE_STATUS.TERMINATED);"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":297,"field":"task_id","line_snippet":"task_id: 'TASK-HEAVY-01',"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":303,"field":"status","line_snippet":"j1.status = LEASE_STATUS.RUNNING;"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":307,"field":"task_id","line_snippet":"task_id: 'TASK-HEAVY-01',"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":314,"field":"status","line_snippet":"assert.strictEqual(j2Check.status, 'DUPLICATE_HEAVY_WORK_BLOCKED');"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":328,"field":"status","line_snippet":"assert.strictEqual(rec.unknown_live_processes[0].status, 'UNATTRIBUTED_NEVER_BLINDLY_KILL');"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":334,"field":"task_id","line_snippet":"task_id: 'TASK-UNFINISHED',"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":339,"field":"status","line_snippet":"l.status = LEASE_STATUS.PROGRESSING;"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":340,"field":"result_reference","line_snippet":"l.result_reference = null;"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":348,"field":"process_lease_id","line_snippet":"const updated = leaseManager.getLease(l.process_lease_id);"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":349,"field":"status","line_snippet":"assert.strictEqual(updated.status, LEASE_STATUS.EXECUTION_UNCERTAIN);"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":350,"field":"task_id","line_snippet":"assert.ok(rec.execution_uncertain_tasks.some(u => u.task_id === 'TASK-UNFINISHED'));"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":356,"field":"task_id","line_snippet":"task_id: 'TASK-UNVERIFIED',"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":360,"field":"status","line_snippet":"l.status = LEASE_STATUS.COMPLETED;"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":361,"field":"result_reference","line_snippet":"l.result_reference = { file: 'output/report.json', verified: false };"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":365,"field":"result_reference","line_snippet":"const isVerified = l.result_reference && l.result_reference.verified === true;"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":365,"field":"result_reference","line_snippet":"const isVerified = l.result_reference && l.result_reference.verified === true;"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":375,"field":"task_id","line_snippet":"{ task_id: 'TASK-DISPATCH-UNCERTAIN', hasDurableProofOfEffect: false, hasDurableProofOfNonEffect: false }"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":379,"field":"task_id","line_snippet":"const unc = rec.execution_uncertain_tasks.find(u => u.task_id === 'TASK-DISPATCH-UNCERTAIN');"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":381,"field":"status","line_snippet":"assert.strictEqual(unc.status, LEASE_STATUS.EXECUTION_UNCERTAIN);"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":396,"field":"state","line_snippet":"runTest('ADV_SUP_15_RESTART_DURING_HYGIENE', 'Hygiene state recovers cleanly on restart', () => {"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":398,"field":"task_id","line_snippet":"task_id: 'TASK-HYGIENE-INTERRUPT',"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":406,"field":"process_lease_id","line_snippet":"const updated = leaseManager.getLease(l.process_lease_id);"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":407,"field":"status","line_snippet":"assert.strictEqual(updated.status, LEASE_STATUS.TERMINATED);"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":413,"field":"task_id","line_snippet":"task_id: 'TASK-DOUBLE-CLEAN',"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":437,"field":"task_id","line_snippet":"auditLedger.recordEvent({ task_id: 'TASK-AUDIT-1', event_type: EVENT_TYPE.PROCESS_REGISTERED });"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":438,"field":"task_id","line_snippet":"auditLedger.recordEvent({ task_id: 'TASK-AUDIT-2', event_type: EVENT_TYPE.PROCESS_TERMINATED });"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":441,"field":"task_id","line_snippet":"assert.strictEqual(events[events.length - 2].task_id, 'TASK-AUDIT-1');"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":442,"field":"task_id","line_snippet":"assert.strictEqual(events[events.length - 1].task_id, 'TASK-AUDIT-2');"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":446,"field":"task_id","line_snippet":"runTest('ADV_SUP_19_MALFORMED_LEASE', 'Creating lease without mandatory task_id throws error fail-closed', () => {"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":449,"field":"task_id","line_snippet":"}, /task_id is required/);"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":455,"field":"task_id","line_snippet":"task_id: 'TASK-OLD',"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":462,"field":"process_lease_id","line_snippet":"leaseManager.updateStatus(l.process_lease_id, LEASE_STATUS.TERMINATED, 'TTL_EXPIRED');"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":463,"field":"process_lease_id","line_snippet":"assert.strictEqual(leaseManager.getLease(l.process_lease_id).status, LEASE_STATUS.TERMINATED);"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":463,"field":"status","line_snippet":"assert.strictEqual(leaseManager.getLease(l.process_lease_id).status, LEASE_STATUS.TERMINATED);"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":469,"field":"task_id","line_snippet":"task_id: 'TASK-CROSS-01',"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":475,"field":"task_id","line_snippet":"task_id: 'TASK-CROSS-01',"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":481,"field":"process_lease_id","line_snippet":"assert.notStrictEqual(winLease.process_lease_id, macLease.process_lease_id);"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":481,"field":"process_lease_id","line_snippet":"assert.notStrictEqual(winLease.process_lease_id, macLease.process_lease_id);"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":482,"field":"fingerprint","line_snippet":"assert.notStrictEqual(winLease.process_fingerprint, macLease.process_fingerprint);"}
+{"file":"tests/rc3_hardening/test_supervisor_adversarial.js","line":482,"field":"fingerprint","line_snippet":"assert.notStrictEqual(winLease.process_fingerprint, macLease.process_fingerprint);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":32,"field":"status","line_snippet":"results.push({ testId, description, status: 'PASS' });"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":36,"field":"status","line_snippet":"results.push({ testId, description, status: 'FAIL', error: err.message });"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":46,"field":"task_id","line_snippet":"task_id: 'TASK-LIFECYCLE-01',"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":47,"field":"goal_id","line_snippet":"goal_id: 'GOAL-01',"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":51,"field":"state","line_snippet":"assert.strictEqual(t.state, TASK_STATE.PROPOSED);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":53,"field":"task_id","line_snippet":"reg.transition(t.task_id, TASK_STATE.NEGOTIATING);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":54,"field":"state","line_snippet":"assert.strictEqual(t.state, TASK_STATE.NEGOTIATING);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":56,"field":"task_id","line_snippet":"reg.transition(t.task_id, TASK_STATE.APPROVED_FOR_DISPATCH);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":57,"field":"state","line_snippet":"assert.strictEqual(t.state, TASK_STATE.APPROVED_FOR_DISPATCH);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":59,"field":"task_id","line_snippet":"reg.transition(t.task_id, TASK_STATE.STAMPED);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":60,"field":"state","line_snippet":"assert.strictEqual(t.state, TASK_STATE.STAMPED);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":61,"field":"fingerprint","line_snippet":"assert.ok(t.task_fingerprint, 'STAMPED task must compute immutable fingerprint');"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":61,"field":"fingerprint","line_snippet":"assert.ok(t.task_fingerprint, 'STAMPED task must compute immutable fingerprint');"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":63,"field":"task_id","line_snippet":"reg.transition(t.task_id, TASK_STATE.DISPATCHED, { worker_id: 'WORKER-ALPHA' });"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":64,"field":"state","line_snippet":"assert.strictEqual(t.state, TASK_STATE.DISPATCHED);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":68,"field":"task_id","line_snippet":"reg.transition(t.task_id, TASK_STATE.IN_FLIGHT);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":69,"field":"state","line_snippet":"assert.strictEqual(t.state, TASK_STATE.IN_FLIGHT);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":71,"field":"task_id","line_snippet":"reg.transition(t.task_id, TASK_STATE.RESULT_RECEIVED);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":72,"field":"state","line_snippet":"assert.strictEqual(t.state, TASK_STATE.RESULT_RECEIVED);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":74,"field":"task_id","line_snippet":"reg.transition(t.task_id, TASK_STATE.VERIFIED);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":75,"field":"state","line_snippet":"assert.strictEqual(t.state, TASK_STATE.VERIFIED);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":77,"field":"task_id","line_snippet":"reg.transition(t.task_id, TASK_STATE.CLOSED);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":78,"field":"state","line_snippet":"assert.strictEqual(t.state, TASK_STATE.CLOSED);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":86,"field":"task_id","line_snippet":"const tQ = reg.proposeTask({ task_id: 'TASK-ALT-Q', goal_id: 'GOAL-01' });"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":86,"field":"goal_id","line_snippet":"const tQ = reg.proposeTask({ task_id: 'TASK-ALT-Q', goal_id: 'GOAL-01' });"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":87,"field":"task_id","line_snippet":"reg.transition(tQ.task_id, TASK_STATE.QUESTION);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":88,"field":"state","line_snippet":"assert.strictEqual(tQ.state, TASK_STATE.QUESTION);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":89,"field":"task_id","line_snippet":"reg.transition(tQ.task_id, TASK_STATE.NEGOTIATING);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":90,"field":"state","line_snippet":"assert.strictEqual(tQ.state, TASK_STATE.NEGOTIATING);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":93,"field":"task_id","line_snippet":"const tHG = reg.proposeTask({ task_id: 'TASK-ALT-HG', goal_id: 'GOAL-01' });"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":93,"field":"goal_id","line_snippet":"const tHG = reg.proposeTask({ task_id: 'TASK-ALT-HG', goal_id: 'GOAL-01' });"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":94,"field":"task_id","line_snippet":"reg.transition(tHG.task_id, TASK_STATE.NEGOTIATING);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":95,"field":"task_id","line_snippet":"reg.transition(tHG.task_id, TASK_STATE.APPROVED_FOR_DISPATCH);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":96,"field":"task_id","line_snippet":"reg.transition(tHG.task_id, TASK_STATE.HUMAN_GATE);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":97,"field":"state","line_snippet":"assert.strictEqual(tHG.state, TASK_STATE.HUMAN_GATE);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":98,"field":"task_id","line_snippet":"reg.transition(tHG.task_id, TASK_STATE.APPROVED_FOR_DISPATCH);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":99,"field":"state","line_snippet":"assert.strictEqual(tHG.state, TASK_STATE.APPROVED_FOR_DISPATCH);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":102,"field":"task_id","line_snippet":"const tConf = reg.proposeTask({ task_id: 'TASK-ALT-CONF', goal_id: 'GOAL-01' });"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":102,"field":"goal_id","line_snippet":"const tConf = reg.proposeTask({ task_id: 'TASK-ALT-CONF', goal_id: 'GOAL-01' });"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":103,"field":"task_id","line_snippet":"reg.transition(tConf.task_id, TASK_STATE.CONFLICT);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":104,"field":"state","line_snippet":"assert.strictEqual(tConf.state, TASK_STATE.CONFLICT);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":105,"field":"task_id","line_snippet":"reg.transition(tConf.task_id, TASK_STATE.BLOCKED);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":106,"field":"state","line_snippet":"assert.strictEqual(tConf.state, TASK_STATE.BLOCKED);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":109,"field":"task_id","line_snippet":"const tCan = reg.proposeTask({ task_id: 'TASK-ALT-CAN', goal_id: 'GOAL-01' });"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":109,"field":"goal_id","line_snippet":"const tCan = reg.proposeTask({ task_id: 'TASK-ALT-CAN', goal_id: 'GOAL-01' });"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":110,"field":"task_id","line_snippet":"reg.transition(tCan.task_id, TASK_STATE.CANCELLED);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":111,"field":"state","line_snippet":"assert.strictEqual(tCan.state, TASK_STATE.CANCELLED);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":118,"field":"task_id","line_snippet":"task_id: 'TASK-WRITER-01',"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":119,"field":"goal_id","line_snippet":"goal_id: 'GOAL-01',"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":122,"field":"task_id","line_snippet":"const acq = reg.acquireWriterLease(t1.task_id);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":131,"field":"task_id","line_snippet":"task_id: 'TASK-WRITER-01',"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":132,"field":"goal_id","line_snippet":"goal_id: 'GOAL-01',"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":135,"field":"task_id","line_snippet":"reg.acquireWriterLease(t1.task_id);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":138,"field":"task_id","line_snippet":"task_id: 'TASK-WRITER-02',"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":139,"field":"goal_id","line_snippet":"goal_id: 'GOAL-01',"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":143,"field":"task_id","line_snippet":"const acq2 = reg.acquireWriterLease(t2.task_id);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":146,"field":"task_id","line_snippet":"assert.strictEqual(acq2.conflicting_task_id, 'TASK-WRITER-01');"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":154,"field":"task_id","line_snippet":"task_id: 'TASK-INFLIGHT-01',"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":155,"field":"goal_id","line_snippet":"goal_id: 'GOAL-01',"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":159,"field":"task_id","line_snippet":"reg.transition(t1.task_id, TASK_STATE.NEGOTIATING);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":160,"field":"task_id","line_snippet":"reg.transition(t1.task_id, TASK_STATE.APPROVED_FOR_DISPATCH);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":161,"field":"task_id","line_snippet":"reg.transition(t1.task_id, TASK_STATE.STAMPED);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":162,"field":"task_id","line_snippet":"reg.transition(t1.task_id, TASK_STATE.DISPATCHED, { worker_id: 'WORKER-1' });"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":163,"field":"task_id","line_snippet":"reg.transition(t1.task_id, TASK_STATE.IN_FLIGHT);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":167,"field":"task_id","line_snippet":"reg.mutateTaskDefinition(t1.task_id, { command: 'node compile.js --optimize' });"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":175,"field":"fingerprint","line_snippet":"runTest('ADV_TASK_06_TASK_IMMUTABILITY_POST_DISPATCH', 'Task fingerprint and command cannot be tampered with after STAMPED/DISPATCHED', () => {"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":178,"field":"task_id","line_snippet":"task_id: 'TASK-IMMUTABLE-01',"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":179,"field":"goal_id","line_snippet":"goal_id: 'GOAL-01',"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":183,"field":"task_id","line_snippet":"reg.transition(t.task_id, TASK_STATE.NEGOTIATING);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":184,"field":"task_id","line_snippet":"reg.transition(t.task_id, TASK_STATE.APPROVED_FOR_DISPATCH);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":185,"field":"task_id","line_snippet":"reg.transition(t.task_id, TASK_STATE.STAMPED);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":187,"field":"fingerprint","line_snippet":"const initialFp = t.task_fingerprint;"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":189,"field":"task_id","line_snippet":"reg.mutateTaskDefinition(t.task_id, { scope_paths: ['Cargo.toml', 'Cargo.lock'] });"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":191,"field":"fingerprint","line_snippet":"assert.strictEqual(t.task_fingerprint, initialFp);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":198,"field":"task_id","line_snippet":"task_id: 'TASK-REVISE',"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":199,"field":"goal_id","line_snippet":"goal_id: 'GOAL-01',"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":200,"field":"version","line_snippet":"version: 1,"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":204,"field":"task_id","line_snippet":"const v2 = reg.createSupersedingVersion(v1.task_id, { command: 'npm run test:v2' });"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":206,"field":"task_id","line_snippet":"assert.strictEqual(v2.task_id, 'TASK-REVISE_v2');"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":207,"field":"version","line_snippet":"assert.strictEqual(v2.version, 2);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":216,"field":"task_id","line_snippet":"task_id: 'TASK-CRASH-01',"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":217,"field":"goal_id","line_snippet":"goal_id: 'GOAL-01',"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":220,"field":"task_id","line_snippet":"reg.transition(t.task_id, TASK_STATE.NEGOTIATING);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":221,"field":"task_id","line_snippet":"reg.transition(t.task_id, TASK_STATE.APPROVED_FOR_DISPATCH);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":222,"field":"task_id","line_snippet":"reg.transition(t.task_id, TASK_STATE.STAMPED);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":223,"field":"task_id","line_snippet":"reg.transition(t.task_id, TASK_STATE.DISPATCHED, { worker_id: 'WORKER-1' });"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":224,"field":"task_id","line_snippet":"reg.transition(t.task_id, TASK_STATE.IN_FLIGHT);"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":227,"field":"task_id","line_snippet":"reg.markExecutionUncertain(t.task_id, 'Process crashed mid-migration without proof of effect');"}
+{"file":"tests/rc3_hardening/test_task_stamp_contracts.js","line":229,"field":"task_id","line_snippet":"const check = reg.canCreateReplacementDispatch(t.task_id);"}
+{"file":"tests/test_cross_device_intake.js","line":11,"field":"status","line_snippet":"assert.strictEqual(c1.status, TaskStatus.BLOCKED);"}
+{"file":"tests/test_cross_device_intake.js","line":28,"field":"status","line_snippet":"assert.strictEqual(c3.status, TaskStatus.DONE);"}
+{"file":"tests/test_cross_device_intake.js","line":37,"field":"status","line_snippet":"assert.notStrictEqual(c4.status, TaskStatus.DONE);"}
+{"file":"tests/test_cross_device_intake.js","line":43,"field":"status","line_snippet":"assert.strictEqual(c5.status, TaskStatus.RUNNING);"}
+{"file":"tests/test_cross_device_intake.js","line":52,"field":"status","line_snippet":"assert.strictEqual(c6.status, TaskStatus.BLOCKED);"}
+{"file":"tests/test_cross_device_intake.js","line":68,"field":"status","line_snippet":"assert.strictEqual(c8.status, TaskStatus.PARTIAL);"}
+{"file":"tests/test_cross_device_intake.py","line":28,"field":"status","line_snippet":"self.assertEqual(res.status, TaskStatus.BLOCKED)"}
+{"file":"tests/test_cross_device_intake.py","line":48,"field":"status","line_snippet":"self.assertEqual(res.status, TaskStatus.DONE)"}
+{"file":"tests/test_cross_device_intake.py","line":57,"field":"status","line_snippet":"self.assertNotEqual(res.status, TaskStatus.DONE)"}
+{"file":"tests/test_cross_device_intake.py","line":63,"field":"status","line_snippet":"self.assertEqual(res.status, TaskStatus.RUNNING)"}
+{"file":"tests/test_cross_device_intake.py","line":72,"field":"status","line_snippet":"self.assertEqual(res.status, TaskStatus.BLOCKED)"}
+{"file":"tests/test_cross_device_intake.py","line":88,"field":"status","line_snippet":"self.assertEqual(res.status, TaskStatus.PARTIAL)"}
+{"file":"tests/test_cross_device_intake.py","line":124,"field":"status","line_snippet":"self.assertEqual(res.status, TaskStatus.BLOCKED)"}
+{"file":"tests/test_cross_device_intake.py","line":156,"field":"status","line_snippet":"self.assertEqual(win_task.status, TaskStatus.BLOCKED)"}
+{"file":"tests/test_cross_device_intake.py","line":164,"field":"status","line_snippet":"self.assertEqual(mac_read_task.status, TaskStatus.DONE)"}
+{"file":"tests/test_money_factory_closure.js","line":53,"field":"status","line_snippet":"status: 'SEED',"}
+{"file":"tests/test_money_factory_closure.js","line":84,"field":"status","line_snippet":"assert.strictEqual(added1.status, 'CREATED');"}
+{"file":"tests/test_money_factory_closure.js","line":86,"field":"version","line_snippet":"assert.strictEqual(added1.opportunity.version, 1, 'Initial version must be 1');"}
+{"file":"tests/test_money_factory_closure.js","line":86,"field":"version","line_snippet":"assert.strictEqual(added1.opportunity.version, 1, 'Initial version must be 1');"}
+{"file":"tests/test_money_factory_closure.js","line":90,"field":"status","line_snippet":"assert.strictEqual(added2.status, 'IDEMPOTENT_NOOP');"}
+{"file":"tests/test_money_factory_closure.js","line":92,"field":"version","line_snippet":"assert.strictEqual(added2.opportunity.version, 1, 'Duplicate ingestion must not increment version');"}
+{"file":"tests/test_money_factory_closure.js","line":92,"field":"version","line_snippet":"assert.strictEqual(added2.opportunity.version, 1, 'Duplicate ingestion must not increment version');"}
+{"file":"tests/test_money_factory_closure.js","line":110,"field":"version","line_snippet":"assert.strictEqual(mutated1.version, 2, 'First mutation must increment version to 2');"}
+{"file":"tests/test_money_factory_closure.js","line":110,"field":"version","line_snippet":"assert.strictEqual(mutated1.version, 2, 'First mutation must increment version to 2');"}
+{"file":"tests/test_money_factory_closure.js","line":114,"field":"status","line_snippet":"status: 'PROVING'"}
+{"file":"tests/test_money_factory_closure.js","line":116,"field":"version","line_snippet":"assert.strictEqual(mutated2.version, 3, 'Second mutation must increment version to 3');"}
+{"file":"tests/test_money_factory_closure.js","line":116,"field":"version","line_snippet":"assert.strictEqual(mutated2.version, 3, 'Second mutation must increment version to 3');"}
+{"file":"tests/test_money_factory_closure.js","line":117,"field":"status","line_snippet":"assert.strictEqual(mutated2.status, 'PROVING');"}
+{"file":"tests/test_money_factory_closure.js","line":120,"field":"version","line_snippet":"assert.strictEqual(reloadedOpp.version, 3, 'Persisted version must be 3');"}
+{"file":"tests/test_money_factory_closure.js","line":120,"field":"version","line_snippet":"assert.strictEqual(reloadedOpp.version, 3, 'Persisted version must be 3');"}
+{"file":"tests/test_money_factory_closure.js","line":121,"field":"version","line_snippet":"console.log('PASS [Test 2]: Opportunity version increments monotonically on mutation.');"}
+{"file":"tests/test_money_factory_closure.js","line":143,"field":"fingerprint","line_snippet":"assert.strictEqual(validEvidence.fingerprint.length, 64, 'Must have valid SHA-256 fingerprint');"}
+{"file":"tests/test_money_factory_closure.js","line":143,"field":"fingerprint","line_snippet":"assert.strictEqual(validEvidence.fingerprint.length, 64, 'Must have valid SHA-256 fingerprint');"}
+{"file":"tests/test_money_factory_closure.js","line":330,"field":"status","line_snippet":"assert.strictEqual(resolved.status, 'RESOLVED');"}
+{"file":"tests/test_money_factory_closure.js","line":401,"field":"goal_id","line_snippet":"goal_id: 'GOAL-FIRST-5-EURO',"}
+{"file":"tests/test_money_factory_closure.js","line":402,"field":"task_id","line_snippet":"task_id: 'TASK-ECONOMIC-EXP-01',"}
+{"file":"tests/test_money_factory_closure.js","line":403,"field":"task_version","line_snippet":"task_version: 1,"}
+{"file":"tests/test_money_factory_closure.js","line":413,"field":"version","line_snippet":"assert.strictEqual(economicEnvelope.supervisor_envelope_version, 'v1');"}
+{"file":"tests/test_money_factory_closure.js","line":414,"field":"goal_id","line_snippet":"assert.strictEqual(economicEnvelope.goal_id, 'GOAL-FIRST-5-EURO');"}
+{"file":"tests/test_money_factory_closure.js","line":415,"field":"task_id","line_snippet":"assert.strictEqual(economicEnvelope.task_id, 'TASK-ECONOMIC-EXP-01');"}
+{"file":"tests/test_money_factory_closure.js","line":420,"field":"process_lease_id","line_snippet":"process_lease_id: 'LEASE-PROC-999',"}
+{"file":"tests/test_money_factory_closure.js","line":424,"field":"process_lease_id","line_snippet":"assert.strictEqual(boundEnvelope.process_lease_id, 'LEASE-PROC-999');"}
+{"file":"tests/test_money_factory_closure.js","line":439,"field":"status","line_snippet":"assert.strictEqual(simResult.simulation_status, 'SIMULATION_ONLY');"}
+{"file":"tests/test_money_factory_p0.js","line":44,"field":"status","line_snippet":"status: 'SEED',"}
+{"file":"tests/test_money_factory_p0.js","line":78,"field":"status","line_snippet":"assert.strictEqual(res1.status, 'CREATED');"}
+{"file":"tests/test_money_factory_p0.js","line":82,"field":"status","line_snippet":"assert.strictEqual(res2.status, 'IDEMPOTENT_NOOP');"}
+{"file":"tests/test_money_factory_p0.js","line":165,"field":"status","line_snippet":"assert.strictEqual(warehouse.getOpportunity('OPP-TEST-01').status, LIFECYCLES.ACTIVE);"}
+{"file":"tests/test_money_factory_p0.js","line":169,"field":"status","line_snippet":"assert.strictEqual(warehouse.getOpportunity('OPP-TEST-01').status, LIFECYCLES.PROVING);"}
+{"file":"tests/test_money_factory_p0.js","line":179,"field":"status","line_snippet":"assert.strictEqual(warehouse.getOpportunity('OPP-TEST-01').status, LIFECYCLES.WINNER);"}
+{"file":"tests/test_money_factory_p0.js","line":183,"field":"status","line_snippet":"assert.strictEqual(warehouse.getOpportunity('OPP-TEST-01').status, LIFECYCLES.KILLED);"}
+{"file":"tests/test_money_factory_p0.js","line":184,"field":"state","line_snippet":"console.log('PASS [Test 6]: Lifecycle state transitions enforce evidence gates at every step.');"}
+{"file":"tests/test_money_factory_p0.js","line":218,"field":"version","line_snippet":"lesson: 'Conversion was 15% higher than original estimate'"}
+{"file":"tests/test_money_factory_p0.js","line":243,"field":"status","line_snippet":"assert.strictEqual(cRes1.status, CYCLE_STATUS.VERIFIED);"}
+{"file":"tests/test_money_factory_p0.js","line":247,"field":"status","line_snippet":"assert.strictEqual(cRes2.status, 'IDEMPOTENT_NOOP');"}
+{"file":"tests/test_money_factory_p0.js","line":272,"field":"status","line_snippet":"assert.strictEqual(catchupRes.status, CYCLE_STATUS.VERIFIED);"}
+{"file":"tests/test_money_factory_p0.js","line":273,"field":"state","line_snippet":"console.log('PASS [Test 9]: Missed cycles detected and recovered into VERIFIED state.');"}
+{"file":"tests/test_money_factory_p0.js","line":290,"field":"status","line_snippet":"assert.strictEqual(incRes.status, CYCLE_STATUS.REJECTED);"}
+{"file":"tests/test_money_factory_p0.js","line":291,"field":"status","line_snippet":"console.log('PASS [Test 10]: Cycles lacking required evidence are rejected from VERIFIED status.');"}
+{"file":"tests/test_money_factory_p0.js","line":319,"field":"status","line_snippet":"assert.strictEqual(req.status, 'PENDING_HUMAN_APPROVAL');"}
+{"file":"tests/test_supervisor_plane_p0.js","line":72,"field":"task_id","line_snippet":"task_id: 'TASK-CORE-01',"}
+{"file":"tests/test_supervisor_plane_p0.js","line":73,"field":"task_version","line_snippet":"task_version: 1,"}
+{"file":"tests/test_supervisor_plane_p0.js","line":74,"field":"goal_id","line_snippet":"goal_id: 'GOAL-CANARY',"}
+{"file":"tests/test_supervisor_plane_p0.js","line":80,"field":"process_lease_id","line_snippet":"assert.ok(l1.process_lease_id.startsWith('LEASE-'));"}
+{"file":"tests/test_supervisor_plane_p0.js","line":81,"field":"task_id","line_snippet":"assert.strictEqual(l1.task_id, 'TASK-CORE-01');"}
+{"file":"tests/test_supervisor_plane_p0.js","line":82,"field":"status","line_snippet":"assert.strictEqual(l1.status, LEASE_STATUS.STARTING);"}
+{"file":"tests/test_supervisor_plane_p0.js","line":87,"field":"process_lease_id","line_snippet":"const reloaded = reloadedManager.getLease(l1.process_lease_id);"}
+{"file":"tests/test_supervisor_plane_p0.js","line":95,"field":"process_lease_id","line_snippet":"leaseManager.recordHeartbeat(l1.process_lease_id, futureTs);"}
+{"file":"tests/test_supervisor_plane_p0.js","line":96,"field":"process_lease_id","line_snippet":"assert.strictEqual(leaseManager.getLease(l1.process_lease_id).last_heartbeat_at, futureTs);"}
+{"file":"tests/test_supervisor_plane_p0.js","line":102,"field":"process_lease_id","line_snippet":"process_lease_id: l1.process_lease_id,"}
+{"file":"tests/test_supervisor_plane_p0.js","line":102,"field":"process_lease_id","line_snippet":"process_lease_id: l1.process_lease_id,"}
+{"file":"tests/test_supervisor_plane_p0.js","line":103,"field":"task_id","line_snippet":"task_id: 'TASK-CORE-01',"}
+{"file":"tests/test_supervisor_plane_p0.js","line":108,"field":"process_lease_id","line_snippet":"assert.strictEqual(leaseManager.getLease(l1.process_lease_id).status, LEASE_STATUS.PROGRESSING);"}
+{"file":"tests/test_supervisor_plane_p0.js","line":108,"field":"status","line_snippet":"assert.strictEqual(leaseManager.getLease(l1.process_lease_id).status, LEASE_STATUS.PROGRESSING);"}
+{"file":"tests/test_supervisor_plane_p0.js","line":114,"field":"status","line_snippet":"const quiet = { ...l1, last_progress_at: l1.started_at, status: LEASE_STATUS.RUNNING };"}
+{"file":"tests/test_supervisor_plane_p0.js","line":126,"field":"status","line_snippet":"const quiet = { ...l1, last_progress_at: l1.started_at, status: LEASE_STATUS.RUNNING };"}
+{"file":"tests/test_supervisor_plane_p0.js","line":157,"field":"status","line_snippet":"const waitL = { ...l1, status: LEASE_STATUS.WAITING_VALID };"}
+{"file":"tests/test_supervisor_plane_p0.js","line":167,"field":"status","line_snippet":"const quiet = { ...l1, last_progress_at: l1.started_at, status: LEASE_STATUS.RUNNING };"}
+{"file":"tests/test_supervisor_plane_p0.js","line":179,"field":"status","line_snippet":"const quiet = { ...l1, last_progress_at: l1.started_at, status: LEASE_STATUS.RUNNING };"}
+{"file":"tests/test_supervisor_plane_p0.js","line":205,"field":"task_id","line_snippet":"task_id: 'TASK-SUITE-99',"}
+{"file":"tests/test_supervisor_plane_p0.js","line":211,"field":"task_id","line_snippet":"task_id: 'TASK-SUITE-99',"}
+{"file":"tests/test_supervisor_plane_p0.js","line":214,"field":"process_lease_id","line_snippet":"parent_process_id: pParent.process_lease_id,"}
+{"file":"tests/test_supervisor_plane_p0.js","line":219,"field":"task_id","line_snippet":"task_id: 'TASK-SUITE-99',"}
+{"file":"tests/test_supervisor_plane_p0.js","line":222,"field":"process_lease_id","line_snippet":"parent_process_id: pParent.process_lease_id,"}
+{"file":"tests/test_supervisor_plane_p0.js","line":227,"field":"task_id","line_snippet":"task_id: 'TASK-SUITE-99',"}
+{"file":"tests/test_supervisor_plane_p0.js","line":230,"field":"process_lease_id","line_snippet":"parent_process_id: pParent.process_lease_id,"}
+{"file":"tests/test_supervisor_plane_p0.js","line":235,"field":"process_lease_id","line_snippet":"leaseManager.updateStatus(pParent.process_lease_id, LEASE_STATUS.COMPLETED, 'Tests finished');"}
+{"file":"tests/test_supervisor_plane_p0.js","line":238,"field":"process_lease_id","line_snippet":"const reconciled = leaseManager.reconcileChildrenOnParentCompletion(pParent.process_lease_id);"}
+{"file":"tests/test_supervisor_plane_p0.js","line":240,"field":"process_lease_id","line_snippet":"assert.strictEqual(leaseManager.getLease(cTail.process_lease_id).status, LEASE_STATUS.TERMINATED);"}
+{"file":"tests/test_supervisor_plane_p0.js","line":240,"field":"status","line_snippet":"assert.strictEqual(leaseManager.getLease(cTail.process_lease_id).status, LEASE_STATUS.TERMINATED);"}
+{"file":"tests/test_supervisor_plane_p0.js","line":241,"field":"process_lease_id","line_snippet":"assert.strictEqual(leaseManager.getLease(cDebugger.process_lease_id).status, LEASE_STATUS.TERMINATED);"}
+{"file":"tests/test_supervisor_plane_p0.js","line":241,"field":"status","line_snippet":"assert.strictEqual(leaseManager.getLease(cDebugger.process_lease_id).status, LEASE_STATUS.TERMINATED);"}
+{"file":"tests/test_supervisor_plane_p0.js","line":242,"field":"process_lease_id","line_snippet":"assert.strictEqual(leaseManager.getLease(cBg.process_lease_id).status, LEASE_STATUS.WAITING_VALID);"}
+{"file":"tests/test_supervisor_plane_p0.js","line":242,"field":"status","line_snippet":"assert.strictEqual(leaseManager.getLease(cBg.process_lease_id).status, LEASE_STATUS.WAITING_VALID);"}
+{"file":"tests/test_supervisor_plane_p0.js","line":246,"field":"process_lease_id","line_snippet":"assert.strictEqual(leaseManager.getLease(cTail.process_lease_id).status, LEASE_STATUS.TERMINATED);"}
+{"file":"tests/test_supervisor_plane_p0.js","line":246,"field":"status","line_snippet":"assert.strictEqual(leaseManager.getLease(cTail.process_lease_id).status, LEASE_STATUS.TERMINATED);"}
+{"file":"tests/test_supervisor_plane_p0.js","line":250,"field":"process_lease_id","line_snippet":"assert.strictEqual(leaseManager.getLease(cDebugger.process_lease_id).status, LEASE_STATUS.TERMINATED);"}
+{"file":"tests/test_supervisor_plane_p0.js","line":250,"field":"status","line_snippet":"assert.strictEqual(leaseManager.getLease(cDebugger.process_lease_id).status, LEASE_STATUS.TERMINATED);"}
+{"file":"tests/test_supervisor_plane_p0.js","line":254,"field":"process_lease_id","line_snippet":"const dupLease = { ...l1, process_lease_id: 'LEASE-DUP-01', status: LEASE_STATUS.DUPLICATE };"}
+{"file":"tests/test_supervisor_plane_p0.js","line":254,"field":"status","line_snippet":"const dupLease = { ...l1, process_lease_id: 'LEASE-DUP-01', status: LEASE_STATUS.DUPLICATE };"}
+{"file":"tests/test_supervisor_plane_p0.js","line":273,"field":"status","line_snippet":"assert.strictEqual(res.unknown_live_processes[0].status, 'UNATTRIBUTED_NEVER_BLINDLY_KILL');"}
+{"file":"tests/test_supervisor_plane_p0.js","line":288,"field":"task_id","line_snippet":"{ task_id: 'TASK-DISPATCH-01', hasDurableProofOfEffect: false, hasDurableProofOfNonEffect: false }"}
+{"file":"tests/test_supervisor_plane_p0.js","line":292,"field":"task_id","line_snippet":"const target = res.execution_uncertain_tasks.find(t => t.task_id === 'TASK-DISPATCH-01');"}
+{"file":"tests/test_supervisor_plane_p0.js","line":298,"field":"process_lease_id","line_snippet":"lease: { process_lease_id: 'LEASE-UNCERT', task_id: 'TASK-DISPATCH-01', status: LEASE_STATUS.EXECUTION_UNCERTAIN },"}
+{"file":"tests/test_supervisor_plane_p0.js","line":298,"field":"task_id","line_snippet":"lease: { process_lease_id: 'LEASE-UNCERT', task_id: 'TASK-DISPATCH-01', status: LEASE_STATUS.EXECUTION_UNCERTAIN },"}
+{"file":"tests/test_supervisor_plane_p0.js","line":298,"field":"status","line_snippet":"lease: { process_lease_id: 'LEASE-UNCERT', task_id: 'TASK-DISPATCH-01', status: LEASE_STATUS.EXECUTION_UNCERTAIN },"}
+{"file":"tests/test_supervisor_plane_p0.js","line":305,"field":"state","line_snippet":"test('no duplicate execution after uncertain state', () => {"}
+{"file":"tests/test_supervisor_plane_p0.js","line":307,"field":"task_id","line_snippet":"task_id: 'TASK-DISPATCH-01',"}
+{"file":"tests/test_supervisor_plane_p0.js","line":312,"field":"state","line_snippet":"// Invariant ensures no retry dispatch can proceed while task is in uncertain state"}
+{"file":"tests/test_supervisor_plane_p0.js","line":320,"field":"task_id","line_snippet":"task_id: 'TASK-CORE-01',"}
+{"file":"tests/test_supervisor_plane_p0.js","line":322,"field":"state","line_snippet":"task_state: { phase: 'BUILDING' },"}
+{"file":"tests/test_supervisor_plane_p0.js","line":324,"field":"status","line_snippet":"git_status: 'M Cargo.toml',"}
+{"file":"tests/test_supervisor_plane_p0.js","line":332,"field":"fingerprint","line_snippet":"test('diagnostic bundle fingerprint', () => {"}
+{"file":"tests/test_supervisor_plane_p0.js","line":333,"field":"fingerprint","line_snippet":"assert.strictEqual(typeof bundle.fingerprint, 'string');"}
+{"file":"tests/test_supervisor_plane_p0.js","line":334,"field":"fingerprint","line_snippet":"assert.strictEqual(bundle.fingerprint.length, 64);"}
+{"file":"tests/test_supervisor_plane_p0.js","line":342,"field":"fingerprint","line_snippet":"assert.strictEqual(e.decision_fingerprint.length, 64);"}
+{"file":"tests/test_supervisor_plane_p0.js","line":371,"field":"status","line_snippet":"assert.strictEqual(privCheck.status, 'SCREENSHOT_BLOCKED_PRIVACY');"}
+{"file":"tests/test_supervisor_plane_p0.js","line":376,"field":"task_id","line_snippet":"task_id: 'TASK-AMBIGUOUS-02',"}
+{"file":"tests/test_supervisor_plane_p0.js","line":382,"field":"status","line_snippet":"assert.strictEqual(env.status, 'AWAITING_CHIEF_REVIEW');"}
+{"file":"tests/test_supervisor_plane_p0.js","line":383,"field":"fingerprint","line_snippet":"assert.strictEqual(env.fingerprint.length, 64);"}
+{"file":"tests/test_supervisor_plane_p0.js","line":390,"field":"state","line_snippet":"thermal_state: 'THERMAL_PRESSURE',"}
+{"file":"tests/test_supervisor_plane_p0.js","line":396,"field":"state","line_snippet":"thermal_state: 'NORMAL',"}
+{"file":"tests/test_supervisor_plane_p0.js","line":412,"field":"state","line_snippet":"thermal_state: 'NORMAL',"}
+{"file":"tests/test_supervisor_plane_p0.js","line":423,"field":"state","line_snippet":"thermal_state: 'THERMAL_PRESSURE'"}
+{"file":"tests/test_supervisor_plane_p0.js","line":445,"field":"state","line_snippet":"test('resource state survives restart/reconciliation', () => {"}
+{"file":"tests/test_supervisor_plane_p0.js","line":447,"field":"state","line_snippet":"assert.ok(st.resource_state);"}
+{"file":"tests/test_supervisor_plane_p0.js","line":451,"field":"state","line_snippet":"test('unknown thermal state handled conservatively', () => {"}
+{"file":"tests/test_supervisor_plane_p0.js","line":454,"field":"state","line_snippet":"thermal_state: 'UNKNOWN',"}
+{"file":"tests/test_supervisor_plane_p0.js","line":458,"field":"state","line_snippet":"assert.strictEqual(st.resource_state, RESOURCE_STATE.UNKNOWN);"}
+{"file":"tests/test_supervisor_plane_p0.js","line":463,"field":"status","line_snippet":"const activeProgressingLease = { ...l1, status: LEASE_STATUS.PROGRESSING };"}
+{"file":"tests/test_supervisor_plane_p0.js","line":475,"field":"task_id","line_snippet":"task_id: 'TASK-DUPLICATE-HEAVY',"}
+{"file":"tests/test_supervisor_plane_p0.js","line":479,"field":"status","line_snippet":"status: LEASE_STATUS.RUNNING"}
+{"file":"tests/test_supervisor_plane_p0.js","line":483,"field":"task_id","line_snippet":"task_id: 'TASK-DUPLICATE-HEAVY',"}
+{"file":"tests/test_supervisor_plane_p0.js","line":489,"field":"status","line_snippet":"assert.strictEqual(check.status, 'DUPLICATE_HEAVY_WORK_BLOCKED');"}
+{"file":"tests/test_supervisor_plane_p0.js","line":493,"field":"task_id","line_snippet":"const active = leaseManager.getActiveLeasesForMachine('WINDOWS_WORKER').find(l => l.task_id === 'TASK-DUPLICATE-HEAVY');"}
+{"file":"tests/test_supervisor_plane_p0.js","line":495,"field":"status","line_snippet":"assert.strictEqual(active.status, LEASE_STATUS.RUNNING);"}
+{"file":"tests/test_supervisor_plane_p0.js","line":500,"field":"task_id","line_snippet":"task_id: 'TASK-DUPLICATE-HEAVY',"}
+{"file":"tests/test_supervisor_plane_p0.js","line":504,"field":"status","line_snippet":"status: LEASE_STATUS.DUPLICATE"}
+{"file":"tests/test_supervisor_plane_p0.js","line":506,"field":"process_lease_id","line_snippet":"leaseManager.updateStatus(dupLease.process_lease_id, LEASE_STATUS.TERMINATED, 'Redundant duplicate terminated');"}
+{"file":"tests/test_supervisor_plane_p0.js","line":507,"field":"process_lease_id","line_snippet":"assert.strictEqual(leaseManager.getLease(dupLease.process_lease_id).status, LEASE_STATUS.TERMINATED);"}
+{"file":"tests/test_supervisor_plane_p0.js","line":507,"field":"status","line_snippet":"assert.strictEqual(leaseManager.getLease(dupLease.process_lease_id).status, LEASE_STATUS.TERMINATED);"}
+{"file":"tests/test_supervisor_plane_p0.js","line":512,"field":"task_id","line_snippet":"task_id: 'TASK-DUPLICATE-HEAVY',"}
+{"file":"tests/test_supervisor_plane_p0.js","line":522,"field":"task_id","line_snippet":"task_id: 'TASK-COMPLETELY-DIFFERENT',"}
+{"file":"tests/test_supervisor_plane_p0.js","line":532,"field":"task_id","line_snippet":"const p = leaseManager.createLease({ task_id: 'TASK-CLEANUP-2', command: 'node main.js' });"}
+{"file":"tests/test_supervisor_plane_p0.js","line":534,"field":"task_id","line_snippet":"task_id: 'TASK-CLEANUP-2',"}
+{"file":"tests/test_supervisor_plane_p0.js","line":536,"field":"process_lease_id","line_snippet":"parent_process_id: p.process_lease_id,"}
+{"file":"tests/test_supervisor_plane_p0.js","line":539,"field":"process_lease_id","line_snippet":"leaseManager.updateStatus(p.process_lease_id, LEASE_STATUS.COMPLETED, 'Main exited');"}
+{"file":"tests/test_supervisor_plane_p0.js","line":542,"field":"process_lease_id","line_snippet":"assert.strictEqual(leaseManager.getLease(c.process_lease_id).status, LEASE_STATUS.TERMINATED);"}
+{"file":"tests/test_supervisor_plane_p0.js","line":542,"field":"status","line_snippet":"assert.strictEqual(leaseManager.getLease(c.process_lease_id).status, LEASE_STATUS.TERMINATED);"}
+{"file":"tests/test_supervisor_plane_p0.js","line":546,"field":"task_id","line_snippet":"const p = leaseManager.createLease({ task_id: 'TASK-PRESERVE-2', command: 'node server.js' });"}
+{"file":"tests/test_supervisor_plane_p0.js","line":548,"field":"task_id","line_snippet":"task_id: 'TASK-PRESERVE-2',"}
+{"file":"tests/test_supervisor_plane_p0.js","line":550,"field":"process_lease_id","line_snippet":"parent_process_id: p.process_lease_id,"}
+{"file":"tests/test_supervisor_plane_p0.js","line":553,"field":"process_lease_id","line_snippet":"leaseManager.updateStatus(p.process_lease_id, LEASE_STATUS.COMPLETED, 'Server script finished');"}
+{"file":"tests/test_supervisor_plane_p0.js","line":556,"field":"process_lease_id","line_snippet":"assert.strictEqual(leaseManager.getLease(c.process_lease_id).status, LEASE_STATUS.WAITING_VALID);"}
+{"file":"tests/test_supervisor_plane_p0.js","line":556,"field":"status","line_snippet":"assert.strictEqual(leaseManager.getLease(c.process_lease_id).status, LEASE_STATUS.WAITING_VALID);"}
+{"file":"tests/test_supervisor_plane_p0.js","line":565,"field":"status","line_snippet":"assert.strictEqual(rec.unknown_live_processes[0].status, 'UNATTRIBUTED_NEVER_BLINDLY_KILL');"}

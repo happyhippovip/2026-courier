@@ -1,0 +1,39 @@
+{
+  "mission_id": "MISSION-1789030435805",
+  "goal_id": "GOAL-1789030435805",
+  "goal_text": "Remediate critical inconsistency at dangerous boundary",
+  "created_at": "2026-09-10T08:53:55.805Z",
+  "status": "CONTINUING",
+  "allowed_root": "C:\\Users\\lol\\2026-workspace\\courier\\scratch\\minimal_production_runtime_v1\\dangerous_fixture",
+  "task_queue": [],
+  "task_history": [],
+  "open_followups": [
+    {
+      "follow_up_id": "FOLLOWUP-TASK-AUTO-001-REPAIR",
+      "task": {
+        "task_id": "TASK-AUTO-001-REPAIR",
+        "task_version": 1,
+        "goal_id": "GOAL-1789030435805",
+        "logical_work_id": "WORK-REPAIR-critical_item.txt",
+        "target_file": "critical_item.txt",
+        "working_dir": "C:\\Users\\lol\\2026-workspace\\courier\\scratch\\minimal_production_runtime_v1\\dangerous_fixture",
+        "scope_paths": [
+          "c:/users/lol/2026-workspace/courier/scratch/minimal_production_runtime_v1/dangerous_fixture",
+          "c:/users/lol/2026-workspace/courier/scratch/minimal_production_runtime_v1/dangerous_fixture/critical_item.txt"
+        ],
+        "inconsistency_type": "DATA_CORRUPTION",
+        "required_capability": "WORKSPACE_WRITE",
+        "acceptance_criteria": "File critical_item.txt operational inconsistency resolved and SHA-256 verified",
+        "risk_class": "LOW",
+        "worker_id": "WORKER-LOCAL-DETERMINISTIC"
+      },
+      "reason": "EXECUTION_UNCERTAIN",
+      "created_at": "2026-09-10T08:53:55.911Z"
+    }
+  ],
+  "resume_count": 1,
+  "updated_at": "2026-09-10T08:53:55.912Z",
+  "state_version": 4,
+  "current_task": null,
+  "current_lease_id": null
+}

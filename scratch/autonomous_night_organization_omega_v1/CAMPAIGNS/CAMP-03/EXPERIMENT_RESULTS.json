@@ -1,0 +1,9 @@
+{
+  "experiment_id": "EXP-CAMP-03-001",
+  "campaign_id": "CAMP-03",
+  "timestamp": "2026-09-09T23:38:49.110Z",
+  "semantic_attacks_passed": true,
+  "concurrency_liveness_verified": true,
+  "false_conflicts_measured": 0,
+  "verdict": "SEMANTIC_LOCKING_AND_LIVENESS_PROVED"
+}

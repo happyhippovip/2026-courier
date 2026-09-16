@@ -1,0 +1,17 @@
+{
+  "defect_id": "CE_DEADLOCK_02",
+  "name": "Reader-to-Writer Lock Upgrade Circular Deadlock",
+  "vulnerability_description": "Tasks A and B both acquire SHARED read locks on a configuration file. Both then attempt to upgrade their lock to EXCLUSIVE to write updates. Neither can acquire EXCLUSIVE until the other releases SHARED, freezing both tasks permanently.",
+  "minimal_trigger": {
+    "shared_holders": [
+      "task_A",
+      "task_B"
+    ],
+    "upgrade_requested": [
+      "task_A",
+      "task_B"
+    ]
+  },
+  "invariant_violated": "Liveness guarantee: Lock upgrade cycles must be detected and preempted rather than hanging indefinitely.",
+  "resolution_proven": "WaitForDeadlockDetector.detectUpgradeDeadlock detects concurrent upgrade requests on shared locks and forces lowest-priority task to yield."
+}

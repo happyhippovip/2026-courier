@@ -1,0 +1,234 @@
+[
+  {
+    "stage": 1,
+    "package_id": "PKG-001",
+    "package_name": "TASK_STAMP",
+    "preconditions": [
+      "ROOT_STAGE_NONE"
+    ],
+    "risk": "MEDIUM_LOW",
+    "rollback_trigger": "INVARIANT_VIOLATION_OR_TEST_FAILURE",
+    "rollback_action": "REVERT_PATCH_AND_RESTORE_PRIOR_STATE"
+  },
+  {
+    "stage": 2,
+    "package_id": "PKG-010",
+    "package_name": "RESOURCE_GOVERNOR",
+    "preconditions": [
+      "ROOT_STAGE_NONE"
+    ],
+    "risk": "MEDIUM_LOW",
+    "rollback_trigger": "INVARIANT_VIOLATION_OR_TEST_FAILURE",
+    "rollback_action": "REVERT_PATCH_AND_RESTORE_PRIOR_STATE"
+  },
+  {
+    "stage": 3,
+    "package_id": "PKG-006",
+    "package_name": "BORDER_GUARD",
+    "preconditions": [
+      "PKG-001"
+    ],
+    "risk": "HIGH",
+    "rollback_trigger": "INVARIANT_VIOLATION_OR_TEST_FAILURE",
+    "rollback_action": "REVERT_PATCH_AND_RESTORE_PRIOR_STATE"
+  },
+  {
+    "stage": 4,
+    "package_id": "PKG-005",
+    "package_name": "FOLLOW_UP_INBOX",
+    "preconditions": [
+      "PKG-001"
+    ],
+    "risk": "MEDIUM_LOW",
+    "rollback_trigger": "INVARIANT_VIOLATION_OR_TEST_FAILURE",
+    "rollback_action": "REVERT_PATCH_AND_RESTORE_PRIOR_STATE"
+  },
+  {
+    "stage": 5,
+    "package_id": "PKG-013",
+    "package_name": "LOGICAL_WORK_IDENTITY",
+    "preconditions": [
+      "PKG-001"
+    ],
+    "risk": "MEDIUM_LOW",
+    "rollback_trigger": "INVARIANT_VIOLATION_OR_TEST_FAILURE",
+    "rollback_action": "REVERT_PATCH_AND_RESTORE_PRIOR_STATE"
+  },
+  {
+    "stage": 6,
+    "package_id": "PKG-015",
+    "package_name": "EVENT_LEDGER",
+    "preconditions": [
+      "PKG-001"
+    ],
+    "risk": "MEDIUM_LOW",
+    "rollback_trigger": "INVARIANT_VIOLATION_OR_TEST_FAILURE",
+    "rollback_action": "REVERT_PATCH_AND_RESTORE_PRIOR_STATE"
+  },
+  {
+    "stage": 7,
+    "package_id": "PKG-020",
+    "package_name": "CROSS_MACHINE_ORIGIN",
+    "preconditions": [
+      "PKG-010"
+    ],
+    "risk": "MEDIUM_LOW",
+    "rollback_trigger": "INVARIANT_VIOLATION_OR_TEST_FAILURE",
+    "rollback_action": "REVERT_PATCH_AND_RESTORE_PRIOR_STATE"
+  },
+  {
+    "stage": 8,
+    "package_id": "PKG-002",
+    "package_name": "WORKER_LEASE",
+    "preconditions": [
+      "PKG-001",
+      "PKG-006"
+    ],
+    "risk": "MEDIUM_LOW",
+    "rollback_trigger": "INVARIANT_VIOLATION_OR_TEST_FAILURE",
+    "rollback_action": "REVERT_PATCH_AND_RESTORE_PRIOR_STATE"
+  },
+  {
+    "stage": 9,
+    "package_id": "PKG-007",
+    "package_name": "RESULT_CUSTOMS",
+    "preconditions": [
+      "PKG-001",
+      "PKG-006"
+    ],
+    "risk": "MEDIUM_LOW",
+    "rollback_trigger": "INVARIANT_VIOLATION_OR_TEST_FAILURE",
+    "rollback_action": "REVERT_PATCH_AND_RESTORE_PRIOR_STATE"
+  },
+  {
+    "stage": 10,
+    "package_id": "PKG-019",
+    "package_name": "HUMAN_GATE_CLASSIFIER",
+    "preconditions": [
+      "PKG-006"
+    ],
+    "risk": "MEDIUM_LOW",
+    "rollback_trigger": "INVARIANT_VIOLATION_OR_TEST_FAILURE",
+    "rollback_action": "REVERT_PATCH_AND_RESTORE_PRIOR_STATE"
+  },
+  {
+    "stage": 11,
+    "package_id": "PKG-003",
+    "package_name": "PROCESS_LEASE",
+    "preconditions": [
+      "PKG-002"
+    ],
+    "risk": "MEDIUM_LOW",
+    "rollback_trigger": "INVARIANT_VIOLATION_OR_TEST_FAILURE",
+    "rollback_action": "REVERT_PATCH_AND_RESTORE_PRIOR_STATE"
+  },
+  {
+    "stage": 12,
+    "package_id": "PKG-004",
+    "package_name": "NO_STACKING",
+    "preconditions": [
+      "PKG-001",
+      "PKG-002"
+    ],
+    "risk": "MEDIUM_LOW",
+    "rollback_trigger": "INVARIANT_VIOLATION_OR_TEST_FAILURE",
+    "rollback_action": "REVERT_PATCH_AND_RESTORE_PRIOR_STATE"
+  },
+  {
+    "stage": 13,
+    "package_id": "PKG-012",
+    "package_name": "TERMINAL_SATISFACTION",
+    "preconditions": [
+      "PKG-007",
+      "PKG-013"
+    ],
+    "risk": "MEDIUM_LOW",
+    "rollback_trigger": "INVARIANT_VIOLATION_OR_TEST_FAILURE",
+    "rollback_action": "REVERT_PATCH_AND_RESTORE_PRIOR_STATE"
+  },
+  {
+    "stage": 14,
+    "package_id": "PKG-018",
+    "package_name": "MONEY_FACTORY_COMPATIBILITY",
+    "preconditions": [
+      "PKG-001",
+      "PKG-006",
+      "PKG-015",
+      "PKG-019"
+    ],
+    "risk": "HIGH",
+    "rollback_trigger": "INVARIANT_VIOLATION_OR_TEST_FAILURE",
+    "rollback_action": "REVERT_PATCH_AND_RESTORE_PRIOR_STATE"
+  },
+  {
+    "stage": 15,
+    "package_id": "PKG-009",
+    "package_name": "EXECUTION_UNCERTAINTY",
+    "preconditions": [
+      "PKG-002",
+      "PKG-003"
+    ],
+    "risk": "HIGH",
+    "rollback_trigger": "INVARIANT_VIOLATION_OR_TEST_FAILURE",
+    "rollback_action": "REVERT_PATCH_AND_RESTORE_PRIOR_STATE"
+  },
+  {
+    "stage": 16,
+    "package_id": "PKG-011",
+    "package_name": "TASK_HYGIENE",
+    "preconditions": [
+      "PKG-003",
+      "PKG-010"
+    ],
+    "risk": "MEDIUM_LOW",
+    "rollback_trigger": "INVARIANT_VIOLATION_OR_TEST_FAILURE",
+    "rollback_action": "REVERT_PATCH_AND_RESTORE_PRIOR_STATE"
+  },
+  {
+    "stage": 17,
+    "package_id": "PKG-014",
+    "package_name": "FALLBACK_ROUTING",
+    "preconditions": [
+      "PKG-009",
+      "PKG-013"
+    ],
+    "risk": "MEDIUM_LOW",
+    "rollback_trigger": "INVARIANT_VIOLATION_OR_TEST_FAILURE",
+    "rollback_action": "REVERT_PATCH_AND_RESTORE_PRIOR_STATE"
+  },
+  {
+    "stage": 18,
+    "package_id": "PKG-008",
+    "package_name": "CRASH_RECONCILIATION",
+    "preconditions": [
+      "PKG-003",
+      "PKG-009"
+    ],
+    "risk": "HIGH",
+    "rollback_trigger": "INVARIANT_VIOLATION_OR_TEST_FAILURE",
+    "rollback_action": "REVERT_PATCH_AND_RESTORE_PRIOR_STATE"
+  },
+  {
+    "stage": 19,
+    "package_id": "PKG-016",
+    "package_name": "DIAGNOSTIC_BUNDLE",
+    "preconditions": [
+      "PKG-003",
+      "PKG-011"
+    ],
+    "risk": "MEDIUM_LOW",
+    "rollback_trigger": "INVARIANT_VIOLATION_OR_TEST_FAILURE",
+    "rollback_action": "REVERT_PATCH_AND_RESTORE_PRIOR_STATE"
+  },
+  {
+    "stage": 20,
+    "package_id": "PKG-017",
+    "package_name": "CHIEF_ESCALATION_ENVELOPE",
+    "preconditions": [
+      "PKG-016"
+    ],
+    "risk": "MEDIUM_LOW",
+    "rollback_trigger": "INVARIANT_VIOLATION_OR_TEST_FAILURE",
+    "rollback_action": "REVERT_PATCH_AND_RESTORE_PRIOR_STATE"
+  }
+]

@@ -1,0 +1,68 @@
+{
+  "totalBoundaries": 12,
+  "passed": 12,
+  "failed": 0,
+  "timestamp": "2026-09-13T01:17:34.387Z",
+  "results": [
+    {
+      "boundaryId": "BOUNDARY_01_BEFORE_DISPATCH",
+      "description": "State restored cleanly from disk before worker dispatch; zero side effects",
+      "status": "PASS"
+    },
+    {
+      "boundaryId": "BOUNDARY_02_AFTER_TASK_STAMP_CREATED",
+      "description": "Task stamp envelope verified on disk; scope locked; second writer placed on HOLD",
+      "status": "PASS"
+    },
+    {
+      "boundaryId": "BOUNDARY_03_AFTER_DISPATCH_INTENT_RECORDED",
+      "description": "Pending dispatch intent without proof reconciles to EXECUTION_UNCERTAIN",
+      "status": "PASS"
+    },
+    {
+      "boundaryId": "BOUNDARY_04_WHILE_WORKER_ACTIVE",
+      "description": "Active worker reconnected if PID matches; if dead, marked EXECUTION_UNCERTAIN",
+      "status": "PASS"
+    },
+    {
+      "boundaryId": "BOUNDARY_05_WHILE_WORKER_MAKING_PROGRESS",
+      "description": "Progressing worker preserved and never killed on restart",
+      "status": "PASS"
+    },
+    {
+      "boundaryId": "BOUNDARY_06_WHILE_WORKER_UNRESPONSIVE",
+      "description": "Unresponsive worker missing on restart marked EXECUTION_UNCERTAIN; no duplicate retry",
+      "status": "PASS"
+    },
+    {
+      "boundaryId": "BOUNDARY_07_AFTER_RESULT_EMITTED_BEFORE_CUSTOMS",
+      "description": "Result detected on disk on restart; worker NOT re-run, proceeds to customs",
+      "status": "PASS"
+    },
+    {
+      "boundaryId": "BOUNDARY_08_DURING_CUSTOMS_INSPECTION",
+      "description": "Idempotent customs re-inspection on restart; fail-closed on corrupt result",
+      "status": "PASS"
+    },
+    {
+      "boundaryId": "BOUNDARY_09_AFTER_CUSTOMS_PASS_BEFORE_GOAL_RECON",
+      "description": "Customs pass journaled; goal reconciles idempotently on reboot",
+      "status": "PASS"
+    },
+    {
+      "boundaryId": "BOUNDARY_10_DURING_GOAL_RECONCILIATION",
+      "description": "Transaction journal detects incomplete reconciliation and recovers cleanly",
+      "status": "PASS"
+    },
+    {
+      "boundaryId": "BOUNDARY_11_WHILE_SCOPE_LOCK_ACTIVE",
+      "description": "Expired or dead lease released on restart without uncoordinated concurrent write",
+      "status": "PASS"
+    },
+    {
+      "boundaryId": "BOUNDARY_12_WHILE_FOLLOW_UP_ITEM_IN_QUEUE",
+      "description": "Follow-up items preserved in append-only inbox; 0 lost ideas, 0 duplicate dispatches",
+      "status": "PASS"
+    }
+  ]
+}

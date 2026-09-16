@@ -1,0 +1,322 @@
+[
+  {
+    "process_lease_id": "LEASE-1789020770405-EB1D3E",
+    "task_id": "TASK-PID",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 12345,
+    "command": "",
+    "process_fingerprint": "5dafb19caad2e0201fd422211c858a006c8c36515fc57476b37e3f574ac38c9c",
+    "command_fingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "task_token": "TOKEN-VALID",
+    "start_time_epoch": 100000,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T06:12:50.405Z",
+    "last_heartbeat_at": "2026-09-10T06:12:50.405Z",
+    "last_progress_at": "2026-09-10T06:12:50.405Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "STARTING",
+    "termination_reason": null,
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:12:50.405Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789021073904-8B3B52",
+    "task_id": "TASK-PID",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 12345,
+    "command": "",
+    "process_fingerprint": "b72d8d904094396d462299b5bbefdd09385dcb15d971993ce1d48cd0665e9923",
+    "command_fingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "task_token": "TOKEN-VALID",
+    "start_time_epoch": 100000,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T06:17:53.904Z",
+    "last_heartbeat_at": "2026-09-10T06:17:53.904Z",
+    "last_progress_at": "2026-09-10T06:17:53.904Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "STARTING",
+    "termination_reason": null,
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:17:53.904Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789021142508-E1AEB0",
+    "task_id": "TASK-PID",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 12345,
+    "command": "",
+    "process_fingerprint": "2e5d10d1b3bcda2fe4c2e61dc4e46b426f0ef5066c8537ef594e215534fda36d",
+    "command_fingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "task_token": "TOKEN-VALID",
+    "start_time_epoch": 100000,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T06:19:02.508Z",
+    "last_heartbeat_at": "2026-09-10T06:19:02.508Z",
+    "last_progress_at": "2026-09-10T06:19:02.508Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "STARTING",
+    "termination_reason": null,
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:19:02.508Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789022074711-051BD7",
+    "task_id": "TASK-PID",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 12345,
+    "command": "",
+    "process_fingerprint": "f7c2cdf9b6fc4f8b38c3042293516e831cc5728b786d6b498aea11e5b3deb57c",
+    "command_fingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "task_token": "TOKEN-VALID",
+    "start_time_epoch": 100000,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T06:34:34.711Z",
+    "last_heartbeat_at": "2026-09-10T06:34:34.711Z",
+    "last_progress_at": "2026-09-10T06:34:34.711Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "STARTING",
+    "termination_reason": null,
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:34:34.711Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789022939005-81150F",
+    "task_id": "TASK-PID",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 12345,
+    "command": "",
+    "process_fingerprint": "33ebf7620b8f342e0cc95488cbc2faeccfe0d888e1a4ebbe4da6dc67b764e948",
+    "command_fingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "task_token": "TOKEN-VALID",
+    "start_time_epoch": 100000,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T06:48:59.005Z",
+    "last_heartbeat_at": "2026-09-10T06:48:59.005Z",
+    "last_progress_at": "2026-09-10T06:48:59.005Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "STARTING",
+    "termination_reason": null,
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:48:59.005Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789023363736-C9ECE8",
+    "task_id": "TASK-PID",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 12345,
+    "command": "",
+    "process_fingerprint": "ce8ab31873b67da2761dc56e436bd035477400ddf11dd28d263a1130be927473",
+    "command_fingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "task_token": "TOKEN-VALID",
+    "start_time_epoch": 100000,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T06:56:03.736Z",
+    "last_heartbeat_at": "2026-09-10T06:56:03.736Z",
+    "last_progress_at": "2026-09-10T06:56:03.736Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "STARTING",
+    "termination_reason": null,
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T06:56:03.736Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789024591289-BABC5F",
+    "task_id": "TASK-PID",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 12345,
+    "command": "",
+    "process_fingerprint": "0864b63353590a1db86894f8f0a7711f53f4d367cbeada122eee99b3b141b31d",
+    "command_fingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "task_token": "TOKEN-VALID",
+    "start_time_epoch": 100000,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-10T07:16:31.289Z",
+    "last_heartbeat_at": "2026-09-10T07:16:31.289Z",
+    "last_progress_at": "2026-09-10T07:16:31.289Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "STARTING",
+    "termination_reason": null,
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T07:16:31.289Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789115374728-B7395C",
+    "task_id": "TASK-PID",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 12345,
+    "command": "",
+    "process_fingerprint": "bd7303b1e19cf1e99c52d4af8788ab931e5b7d0aa66e665ecbe0e02fedd8ba3d",
+    "command_fingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "task_token": "TOKEN-VALID",
+    "start_time_epoch": 100000,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-11T08:29:34.728Z",
+    "last_heartbeat_at": "2026-09-11T08:29:34.728Z",
+    "last_progress_at": "2026-09-11T08:29:34.728Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "STARTING",
+    "termination_reason": null,
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-11T08:29:34.728Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789257574144-173F86",
+    "task_id": "TASK-PID",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 12345,
+    "command": "",
+    "process_fingerprint": "313d4792b04ac055dbca64184cc3eb2e63c2ee1b4182c48756ff8cf216474628",
+    "command_fingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "task_token": "TOKEN-VALID",
+    "start_time_epoch": 100000,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-12T23:59:34.144Z",
+    "last_heartbeat_at": "2026-09-12T23:59:34.144Z",
+    "last_progress_at": "2026-09-12T23:59:34.144Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "STARTING",
+    "termination_reason": null,
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-12T23:59:34.144Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      }
+    ]
+  },
+  {
+    "process_lease_id": "LEASE-1789262227524-8F359F",
+    "task_id": "TASK-PID",
+    "task_version": 1,
+    "goal_id": null,
+    "worker_id": null,
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 12345,
+    "command": "",
+    "process_fingerprint": "76c016c1598138eb8bb995dbaa5c0ed55d31623332763c5013a09e80945c03c0",
+    "command_fingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "task_token": "TOKEN-VALID",
+    "start_time_epoch": 100000,
+    "purpose": "GENERAL_WORK",
+    "started_at": "2026-09-13T01:17:07.524Z",
+    "last_heartbeat_at": "2026-09-13T01:17:07.524Z",
+    "last_progress_at": "2026-09-13T01:17:07.524Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "STARTING",
+    "termination_reason": null,
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-13T01:17:07.524Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      }
+    ]
+  }
+]

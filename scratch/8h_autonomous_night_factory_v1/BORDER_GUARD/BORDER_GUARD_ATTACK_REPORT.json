@@ -1,0 +1,50 @@
+[
+  {
+    "name": "Attack 1: Stale Goal ID",
+    "passed": true,
+    "detail": {
+      "allowed": false,
+      "reason": "UNKNOWN_OR_EXPIRED_GOAL"
+    }
+  },
+  {
+    "name": "Attack 2: Stale Goal Version",
+    "passed": true,
+    "detail": {
+      "allowed": false,
+      "reason": "STALE_GOAL_VERSION"
+    }
+  },
+  {
+    "name": "Attack 3: Scope Tampering After Seal",
+    "passed": true,
+    "detail": {
+      "allowed": false,
+      "reason": "SCOPE_DRIFT_AFTER_APPROVAL"
+    }
+  },
+  {
+    "name": "Attack 4: Signature Forgery",
+    "passed": true,
+    "detail": {
+      "allowed": false,
+      "reason": "FORGED_OR_TAMPERED_PASSPORT_SIGNATURE"
+    }
+  },
+  {
+    "name": "Attack 5: Unauthorized Worker Substitution",
+    "passed": true,
+    "detail": {
+      "allowed": false,
+      "reason": "WORKER_IDENTITY_MISMATCH"
+    }
+  },
+  {
+    "name": "Legitimate Passport Clear",
+    "passed": true,
+    "detail": {
+      "allowed": true,
+      "reason": "BORDER_GUARD_PASSPORT_CLEARED"
+    }
+  }
+]

@@ -1,0 +1,524 @@
+[
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\chief\\cli.py",
+    "name": "cli.py",
+    "ext": ".py",
+    "size": 8587,
+    "mtime": "2026-09-09T09:43:05.343Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\chief\\control_plane.py",
+    "name": "control_plane.py",
+    "ext": ".py",
+    "size": 26009,
+    "mtime": "2026-09-09T09:43:18.175Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\chief\\coordinator.py",
+    "name": "coordinator.py",
+    "ext": ".py",
+    "size": 10055,
+    "mtime": "2026-09-09T09:42:55.401Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\chief\\delta_engine.py",
+    "name": "delta_engine.py",
+    "ext": ".py",
+    "size": 8876,
+    "mtime": "2026-09-09T09:42:43.519Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\chief\\ingestor.py",
+    "name": "ingestor.py",
+    "ext": ".py",
+    "size": 11631,
+    "mtime": "2026-09-09T09:42:34.077Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\chief\\safewrite.py",
+    "name": "safewrite.py",
+    "ext": ".py",
+    "size": 3036,
+    "mtime": "2026-09-09T09:41:58.947Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\chief\\types.py",
+    "name": "types.py",
+    "ext": ".py",
+    "size": 4329,
+    "mtime": "2026-09-09T09:41:49.860Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\chief\\validator.py",
+    "name": "validator.py",
+    "ext": ".py",
+    "size": 3717,
+    "mtime": "2026-09-09T09:42:22.414Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\chief\\__init__.py",
+    "name": "__init__.py",
+    "ext": ".py",
+    "size": 519,
+    "mtime": "2026-09-09T09:41:53.588Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\content_os\\candidate_queue.json",
+    "name": "candidate_queue.json",
+    "ext": ".json",
+    "size": 4851,
+    "mtime": "2026-09-07T05:58:23.008Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\content_os\\lane4_data_renderer.py",
+    "name": "lane4_data_renderer.py",
+    "ext": ".py",
+    "size": 4134,
+    "mtime": "2026-09-07T05:55:14.122Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\content_os\\opportunity_evaluator.py",
+    "name": "opportunity_evaluator.py",
+    "ext": ".py",
+    "size": 5000,
+    "mtime": "2026-09-07T05:55:02.701Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\content_os\\template_engine.py",
+    "name": "template_engine.py",
+    "ext": ".py",
+    "size": 4316,
+    "mtime": "2026-09-07T05:55:08.332Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\content_os\\tests\\test_content_os.py",
+    "name": "test_content_os.py",
+    "ext": ".py",
+    "size": 6118,
+    "mtime": "2026-09-07T05:55:20.923Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\cross_device_intake.js",
+    "name": "cross_device_intake.js",
+    "ext": ".js",
+    "size": 6691,
+    "mtime": "2026-09-07T05:35:53.446Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\cross_device_intake.py",
+    "name": "cross_device_intake.py",
+    "ext": ".py",
+    "size": 13159,
+    "mtime": "2026-09-07T05:50:02.262Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\anti_loop_policy.js",
+    "name": "anti_loop_policy.js",
+    "ext": ".js",
+    "size": 6823,
+    "mtime": "2026-09-09T00:58:55.682Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\cheapest_test.js",
+    "name": "cheapest_test.js",
+    "ext": ".js",
+    "size": 3545,
+    "mtime": "2026-09-09T00:57:40.155Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\first_5_euro_simulator.js",
+    "name": "first_5_euro_simulator.js",
+    "ext": ".js",
+    "size": 6623,
+    "mtime": "2026-09-09T01:00:41.529Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\index.js",
+    "name": "index.js",
+    "ext": ".js",
+    "size": 2739,
+    "mtime": "2026-09-09T00:56:23.439Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\leaderboard_generator.js",
+    "name": "leaderboard_generator.js",
+    "ext": ".js",
+    "size": 4143,
+    "mtime": "2026-09-09T00:22:35.903Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\portfolios.js",
+    "name": "portfolios.js",
+    "ext": ".js",
+    "size": 5206,
+    "mtime": "2026-09-09T00:59:25.088Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\prediction_calibration.js",
+    "name": "prediction_calibration.js",
+    "ext": ".js",
+    "size": 8515,
+    "mtime": "2026-09-09T18:10:55.525Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\safety_gates.js",
+    "name": "safety_gates.js",
+    "ext": ".js",
+    "size": 5244,
+    "mtime": "2026-09-09T01:00:03.086Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\scoring.js",
+    "name": "scoring.js",
+    "ext": ".js",
+    "size": 3720,
+    "mtime": "2026-09-09T00:21:42.408Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\seed_classes.js",
+    "name": "seed_classes.js",
+    "ext": ".js",
+    "size": 10033,
+    "mtime": "2026-09-09T00:22:20.092Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\supervisor_compat.js",
+    "name": "supervisor_compat.js",
+    "ext": ".js",
+    "size": 2537,
+    "mtime": "2026-09-09T01:00:26.477Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\warehouse.js",
+    "name": "warehouse.js",
+    "ext": ".js",
+    "size": 11959,
+    "mtime": "2026-09-09T00:58:28.255Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\opportunity_warehouse\\opportunities.json",
+    "name": "opportunities.json",
+    "ext": ".json",
+    "size": 16934,
+    "mtime": "2026-09-09T07:16:06.144Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\opportunity_warehouse\\opportunities.yaml",
+    "name": "opportunities.yaml",
+    "ext": ".yaml",
+    "size": 13479,
+    "mtime": "2026-09-09T00:22:41.396Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\chief_envelope.js",
+    "name": "chief_envelope.js",
+    "ext": ".js",
+    "size": 1701,
+    "mtime": "2026-09-09T00:46:41.697Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\decision_engine.js",
+    "name": "decision_engine.js",
+    "ext": ".js",
+    "size": 2578,
+    "mtime": "2026-09-09T00:46:11.156Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\diagnostic_bundle.js",
+    "name": "diagnostic_bundle.js",
+    "ext": ".js",
+    "size": 3888,
+    "mtime": "2026-09-09T00:46:00.942Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\index.js",
+    "name": "index.js",
+    "ext": ".js",
+    "size": 2692,
+    "mtime": "2026-09-09T00:46:46.774Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\lease_manager.js",
+    "name": "lease_manager.js",
+    "ext": ".js",
+    "size": 7077,
+    "mtime": "2026-09-09T00:47:11.182Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\no_stacking.js",
+    "name": "no_stacking.js",
+    "ext": ".js",
+    "size": 2208,
+    "mtime": "2026-09-09T00:46:35.344Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\progress_tracker.js",
+    "name": "progress_tracker.js",
+    "ext": ".js",
+    "size": 3674,
+    "mtime": "2026-09-09T00:45:48.592Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\reconciliation.js",
+    "name": "reconciliation.js",
+    "ext": ".js",
+    "size": 5880,
+    "mtime": "2026-09-09T00:46:22.458Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\resource_governor.js",
+    "name": "resource_governor.js",
+    "ext": ".js",
+    "size": 5883,
+    "mtime": "2026-09-09T18:05:40.921Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\screenshot_spec.js",
+    "name": "screenshot_spec.js",
+    "ext": ".js",
+    "size": 3450,
+    "mtime": "2026-09-09T00:46:07.364Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\stall_policy.js",
+    "name": "stall_policy.js",
+    "ext": ".js",
+    "size": 7222,
+    "mtime": "2026-09-09T00:45:55.858Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\task_hygiene.js",
+    "name": "task_hygiene.js",
+    "ext": ".js",
+    "size": 3711,
+    "mtime": "2026-09-09T00:46:16.130Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\types.js",
+    "name": "types.js",
+    "ext": ".js",
+    "size": 2677,
+    "mtime": "2026-09-09T00:45:29.959Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening\\test_border_guard.js",
+    "name": "test_border_guard.js",
+    "ext": ".js",
+    "size": 8516,
+    "mtime": "2026-09-09T18:07:29.407Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening\\test_crash_restart_chaos.js",
+    "name": "test_crash_restart_chaos.js",
+    "ext": ".js",
+    "size": 17397,
+    "mtime": "2026-09-09T18:14:37.231Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening\\test_deterministic_soak.js",
+    "name": "test_deterministic_soak.js",
+    "ext": ".js",
+    "size": 19263,
+    "mtime": "2026-09-09T18:22:13.008Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening\\test_follow_up_inbox.js",
+    "name": "test_follow_up_inbox.js",
+    "ext": ".js",
+    "size": 7334,
+    "mtime": "2026-09-09T18:06:47.437Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening\\test_money_factory_adversarial.js",
+    "name": "test_money_factory_adversarial.js",
+    "ext": ".js",
+    "size": 15814,
+    "mtime": "2026-09-09T18:11:18.797Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening\\test_rc3_adversarial_validation.js",
+    "name": "test_rc3_adversarial_validation.js",
+    "ext": ".js",
+    "size": 20944,
+    "mtime": "2026-09-09T18:02:37.891Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening\\test_resource_governor_adversarial.js",
+    "name": "test_resource_governor_adversarial.js",
+    "ext": ".js",
+    "size": 12349,
+    "mtime": "2026-09-09T18:05:32.166Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening\\test_result_customs.js",
+    "name": "test_result_customs.js",
+    "ext": ".js",
+    "size": 9647,
+    "mtime": "2026-09-09T18:08:02.772Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening\\test_supervisor_adversarial.js",
+    "name": "test_supervisor_adversarial.js",
+    "ext": ".js",
+    "size": 20243,
+    "mtime": "2026-09-09T18:04:59.646Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening\\test_task_stamp_contracts.js",
+    "name": "test_task_stamp_contracts.js",
+    "ext": ".js",
+    "size": 10050,
+    "mtime": "2026-09-09T18:06:18.310Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\test_cross_device_intake.js",
+    "name": "test_cross_device_intake.js",
+    "ext": ".js",
+    "size": 3289,
+    "mtime": "2026-09-07T05:35:53.446Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\test_cross_device_intake.py",
+    "name": "test_cross_device_intake.py",
+    "ext": ".py",
+    "size": 9876,
+    "mtime": "2026-09-07T05:49:51.858Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\test_money_factory_closure.js",
+    "name": "test_money_factory_closure.js",
+    "ext": ".js",
+    "size": 21090,
+    "mtime": "2026-09-09T01:00:46.080Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\test_money_factory_p0.js",
+    "name": "test_money_factory_p0.js",
+    "ext": ".js",
+    "size": 20669,
+    "mtime": "2026-09-09T00:22:59.975Z",
+    "classification": "SOURCE"
+  },
+  {
+    "repo": "courier",
+    "path": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\test_supervisor_plane_p0.js",
+    "name": "test_supervisor_plane_p0.js",
+    "ext": ".js",
+    "size": 23152,
+    "mtime": "2026-09-09T00:47:56.233Z",
+    "classification": "SOURCE"
+  }
+]

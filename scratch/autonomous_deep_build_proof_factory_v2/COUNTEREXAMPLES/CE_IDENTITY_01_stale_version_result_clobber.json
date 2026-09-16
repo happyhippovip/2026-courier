@@ -1,0 +1,17 @@
+{
+  "defect_id": "CE_IDENTITY_01",
+  "name": "Stale Version Result Overwrites Superseded Task State",
+  "vulnerability_description": "Worker executing Task V1 hangs, task is superseded by Task V2 with different requirements. Late arriving V1 result is accepted and marks Task V2 as completed, introducing obsolete or corrupted deliverables into the build.",
+  "minimal_trigger": {
+    "active_task": {
+      "task_id": "task_build",
+      "task_version": 2
+    },
+    "late_result": {
+      "target_task_id": "task_build",
+      "target_task_version": 1
+    }
+  },
+  "invariant_violated": "Task identity and result scope version binding",
+  "resolution_proven": "TaskIdentityManager.validateResultSubmission strictly rejects target_task_version !== task_version with IdentityConflationError."
+}

@@ -1,0 +1,36 @@
+{"type":"DECISION","id":"DEC-001-SINGLE-WRITER-PARTITIONING","date":"2026-09-08","summary":"Strict Physical Multi-Host Single-Writer Partitioning","classification":"VERIFIED_CURRENT_SOURCE"}
+{"type":"DECISION","id":"DEC-002-NO-STACKING-HIERARCHICAL-MUTEX","date":"2026-09-09","summary":"Hierarchical NTFS Resource Locking over Simple TaskID Equality","classification":"VERIFIED_WINDOWS_LAB"}
+{"type":"DECISION","id":"DEC-003-TASK-PASSPORT-CRYPTOGRAPHIC-BINDING","date":"2026-09-09","summary":"Pre-Dispatch Cryptographic Passport Binding","classification":"VERIFIED_WINDOWS_LAB"}
+{"type":"DECISION","id":"DEC-004-PROCESS-IDENTITY-PID-START-TIME","date":"2026-09-09","summary":"Process Identity Bound by PID + Start Time + Token","classification":"VERIFIED_WINDOWS_LAB"}
+{"type":"DECISION","id":"DEC-005-FRAMED-JOURNAL-PERSISTENCE","date":"2026-09-10","summary":"Length-Prefixed SHA-256 Checksum Framed Append Log","classification":"VERIFIED_WINDOWS_LAB"}
+{"type":"DECISION","id":"DEC-006-INDEPENDENT-COMPLETION-AUTHORITY","date":"2026-09-10","summary":"Worker Disallowed from Setting Global Mission Saturation","classification":"ARCHITECTURAL_REQUIREMENT"}
+{"type":"DECISION","id":"DEC-007-DYNAMIC-FRONTIER-LOW-WATER-MARK","date":"2026-09-10","summary":"Automatic Low-Water Mark Replenishment of Research Frontier","classification":"ARCHITECTURAL_REQUIREMENT"}
+{"type":"DECISION","id":"DEC-008-EXECUTION-UNCERTAINTY-NEVER-BLIND-RETRY","date":"2026-09-10","summary":"Execution Uncertainty Blocks Auto-Redispatch","classification":"ARCHITECTURAL_REQUIREMENT"}
+{"type":"DECISION","id":"DEC-009-ZERO-SPEND-DEFAULT","date":"2026-09-08","summary":"Strict €0.00 Autonomous Spend Ceiling","classification":"HISTORICAL_REQUIREMENT"}
+{"type":"DECISION","id":"DEC-010-RESULT-CUSTOMS-ZERO-PROSE-PROOF","date":"2026-09-10","summary":"Result Customs Requires Verifiable Artifacts and Checksums","classification":"VERIFIED_WINDOWS_LAB"}
+{"type":"REQUIREMENT","id":"REQ-001","topic":"User Role","summary":"Human sets high-level outcome (\"I want this outcome\"). Does not micromanage or babysit.","classification":"ARCHITECTURAL_REQUIREMENT"}
+{"type":"REQUIREMENT","id":"REQ-002","topic":"Chief Role","summary":"Chief translates outcome into 1 canonical high-level goal. Does not play Courier.","classification":"ARCHITECTURAL_REQUIREMENT"}
+{"type":"REQUIREMENT","id":"REQ-003","topic":"Courier Role","summary":"Courier discovers, plans, negotiates, stamps, dispatches, executes, verifies, and updates state.","classification":"ARCHITECTURAL_REQUIREMENT"}
+{"type":"REQUIREMENT","id":"REQ-004","topic":"Worker Role","summary":"Worker executes bounded work unit; reports work_unit_complete; never sets global saturation.","classification":"ARCHITECTURAL_REQUIREMENT"}
+{"type":"REQUIREMENT","id":"REQ-005","topic":"No Stacking","summary":"Resource-aware NTFS writer mutex with hierarchical path containment and case-folding.","classification":"VERIFIED_WINDOWS_LAB"}
+{"type":"REQUIREMENT","id":"REQ-006","topic":"Task Lifecycle","summary":"PROPOSED -> NEGOTIATING -> APPROVED_FOR_DISPATCH -> STAMPED -> DISPATCHED -> IN_FLIGHT -> RESULT_RECEIVED -> VERIFIED -> CLOSED.","classification":"ARCHITECTURAL_REQUIREMENT"}
+{"type":"REQUIREMENT","id":"REQ-007","topic":"Worker Negotiation","summary":"Pre-dispatch dialogue: ACCEPT, QUESTION, CONFLICT, NEEDS_SCOPE_CHANGE, BETTER_ALTERNATIVE, UNSAFE, ALREADY_DONE.","classification":"ARCHITECTURAL_REQUIREMENT"}
+{"type":"REQUIREMENT","id":"REQ-008","topic":"Task Passport","summary":"Signed token SHA-256(taskId:version:goalId:scopePaths:maxCap).","classification":"VERIFIED_WINDOWS_LAB"}
+{"type":"REQUIREMENT","id":"REQ-009","topic":"Border Guard","summary":"Admissibility choke point: GREEN_CARD, REVISE, HOLD, BLOCK, ESCALATE.","classification":"VERIFIED_WINDOWS_LAB"}
+{"type":"REQUIREMENT","id":"REQ-010","topic":"Result Customs","summary":"Exit code 0, artifact manifest, SHA-256 checksums, zero prose proof.","classification":"VERIFIED_WINDOWS_LAB"}
+{"type":"REQUIREMENT","id":"REQ-011","topic":"Process Identity","summary":"PID + start time epoch + task token to prevent recycled PID collisions.","classification":"VERIFIED_WINDOWS_LAB"}
+{"type":"REQUIREMENT","id":"REQ-012","topic":"Supervisor Plane","summary":"12-state process monitor; 5m progress check; 15m diagnostics; time alone never terminates.","classification":"VERIFIED_CURRENT_SOURCE"}
+{"type":"REQUIREMENT","id":"REQ-013","topic":"Crash Reconciliation","summary":"On startup: verified evidence -> VERIFIED; in-flight -> EXECUTION_UNCERTAIN; no start proof -> consider retry.","classification":"ARCHITECTURAL_REQUIREMENT"}
+{"type":"REQUIREMENT","id":"REQ-014","topic":"Follow-Up Inbox","summary":"Capture ideas while worker busy: CAPTURED, CANDIDATE, APPROVED_NEXT, MERGED, DISPATCHED.","classification":"ARCHITECTURAL_REQUIREMENT"}
+{"type":"REQUIREMENT","id":"REQ-015","topic":"Dynamic Frontier","summary":"ResearchFrontier, WorkGenerator, WorkScorer, WorkScheduler, FrontierReplenisher.","classification":"ARCHITECTURAL_REQUIREMENT"}
+{"type":"REQUIREMENT","id":"REQ-016","topic":"Low-Water Mark","summary":"When ready high-value work < 5, automatically trigger discovery and replenish.","classification":"ARCHITECTURAL_REQUIREMENT"}
+{"type":"REQUIREMENT","id":"REQ-017","topic":"Multi-Objective Scoring","summary":"Score by goal relevance, risk, uncertainty reduction, info gain, dependency unlock, economic value, cost, machine suitability, novelty.","classification":"ARCHITECTURAL_REQUIREMENT"}
+{"type":"REQUIREMENT","id":"REQ-018","topic":"Anti-Filler Guard","summary":"Reject duplicate green tests, arbitrary test count inflation, sleep loops, busy loops, fake gigabytes.","classification":"ARCHITECTURAL_REQUIREMENT"}
+{"type":"REQUIREMENT","id":"REQ-019","topic":"Human Gate Engine","summary":"Explicit gating for 2FA, biometric signing, legal spend, external publish/deploy.","classification":"VERIFIED_WINDOWS_LAB"}
+{"type":"REQUIREMENT","id":"REQ-020","topic":"Money Factory Boundary","summary":"Evidence-first simulation only; views != revenue, clicks != revenue, simulation != revenue; €0 ceiling.","classification":"VERIFIED_CURRENT_SOURCE"}
+{"type":"COUNTEREXAMPLE","id":"CEX-001","summary":"Hierarchical NTFS Lock Collision","classification":"VERIFIED_WINDOWS_LAB"}
+{"type":"COUNTEREXAMPLE","id":"CEX-002","summary":"Subprocess Tree Orphaning","classification":"VERIFIED_WINDOWS_LAB"}
+{"type":"COUNTEREXAMPLE","id":"CEX-003","summary":"Recycled PID Collisions","classification":"VERIFIED_WINDOWS_LAB"}
+{"type":"COUNTEREXAMPLE","id":"CEX-004","summary":"Torn Disk Journal Replay Corruption","classification":"VERIFIED_WINDOWS_LAB"}
+{"type":"COUNTEREXAMPLE","id":"CEX-005","summary":"P1/P2 Scheduler Starvation under P0 Churn","classification":"VERIFIED_WINDOWS_LAB"}
+{"type":"COUNTEREXAMPLE","id":"CEX-006","summary":"Telemetry Hardcoded Stall Drops","classification":"VERIFIED_CURRENT_SOURCE"}

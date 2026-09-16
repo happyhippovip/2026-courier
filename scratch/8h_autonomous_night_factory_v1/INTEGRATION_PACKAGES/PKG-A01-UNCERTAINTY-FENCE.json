@@ -1,0 +1,25 @@
+{
+  "package_id": "PKG-A01-UNCERTAINTY-FENCE",
+  "title": "Dominant Execution Uncertainty Fence",
+  "problem": "Indirect retry paths in Supervisor and Reconciler can trigger duplicate task execution during network or worker timeout.",
+  "evidence": "Verified in WS2 (EXP-WS2-COMP-001) and WS4 (EXP-WS4-CRASH-001). Mutant MUT-03 killed.",
+  "current_source_location": "supervisor/reconciliation.js, supervisor/index.js",
+  "proposed_change_boundary": "Insert DispatcherUncertaintyFence as a gate before any dispatch, retry, or fallback invocation.",
+  "files_likely_affected": [
+    "supervisor/reconciliation.js",
+    "supervisor/index.js",
+    "supervisor/types.js"
+  ],
+  "migration_impact": "Compatible with existing journals; uncertain tasks tagged on restart.",
+  "rollback": "Feature flag disable falls back to direct reconciliation.",
+  "targeted_tests": [
+    "test_compositional_failures.js",
+    "test_uncertainty_fence.js"
+  ],
+  "independent_verifier": "ResultCustoms verifying zero duplicate execution receipts.",
+  "known_risks": "Tasks in degraded networks may remain quarantined until explicit liveness confirmation.",
+  "mac_dependency": false,
+  "human_gate_dependency": false,
+  "recommended_integration_order": 1,
+  "stop_condition": "Any duplicate execution observed in integration test suite."
+}

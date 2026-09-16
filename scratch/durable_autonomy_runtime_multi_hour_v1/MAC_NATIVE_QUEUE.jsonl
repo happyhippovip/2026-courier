@@ -1,0 +1,2 @@
+{"task_id":"MAC-001","title":"APFS clonefile() Benchmark & Worktree Swap","target_os":"DARWIN","machine":"RECHNER_1_MAC","status":"QUEUED_FOR_RECHNER_1"}
+{"task_id":"MAC-002","title":"Product Single-Writer Git Staging & universuX Fast-Forward","target_os":"DARWIN","machine":"RECHNER_1_MAC","status":"QUEUED_FOR_RECHNER_1"}

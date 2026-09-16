@@ -1,0 +1,14 @@
+{
+  "artifacts": [],
+  "attempt_id": "WF-CHIEF-0f0b0a-STEP-1-DISCOVER:attempt:1",
+  "dispatch_id": "dispatch-1881bcb38038430088367ba01b0fd6d3",
+  "goal_id": "goal_test4",
+  "raw_diagnostic": "",
+  "reason": "INVALID_RESULT",
+  "result_id": "result-8ebec33ea152d38cab4f4337c5b6e664fcdacafe7fafc27ac62e33c82b2cf5c8",
+  "run_id": "20604",
+  "status": "FAILED",
+  "stderr": "",
+  "task_id": "WF-CHIEF-0f0b0a-STEP-1-DISCOVER",
+  "worker_id": "WINDOWS-01"
+}

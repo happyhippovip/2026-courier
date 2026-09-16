@@ -1,0 +1,80 @@
+{
+  "version": "2.0.0",
+  "updated_at_utc": "2026-09-10T04:46:51.209Z",
+  "host_platform": "PC2_WINDOWS_10_X64",
+  "authorities": {
+    "who_may_plan": [
+      "CHIEF",
+      "COURIER_PLANNER",
+      "FRONTIER_REPLENISHER"
+    ],
+    "who_may_approve": [
+      "BORDER_GUARD",
+      "CONSTITUTION_VALIDATOR",
+      "POLICY_VALIDATOR"
+    ],
+    "who_may_stamp": [
+      "TASK_PASSPORT_AUTHORITY"
+    ],
+    "who_may_dispatch": [
+      "COURIER_DISPATCHER (Requires GREEN_CARD + STAMPED_PASSPORT + EXCLUSIVE_LEASE)"
+    ],
+    "who_may_retry": [
+      "SUPERVISOR_PLANE",
+      "TASK_STORE"
+    ],
+    "who_may_fallback": [
+      "COURIER_ORCHESTRATOR"
+    ],
+    "who_may_kill_process": [
+      "PROCESS_LEASE_MANAGER (Requires PID + START_TIME + TASK_TOKEN match)"
+    ],
+    "who_may_accept_result": [
+      "RESULT_CUSTOMS (Requires EXIT_0 + SCOPE_OK + CHECKSUM_VERIFIED)"
+    ],
+    "who_may_verify": [
+      "EVIDENCE_VERIFIER"
+    ],
+    "who_may_close_task": [
+      "TASK_STORE (Post-Customs + Post-Verification only)"
+    ],
+    "who_may_close_goal": [
+      "GOAL_STORE (Requires all acceptance criteria verified by disk evidence)"
+    ],
+    "who_may_close_mission": [
+      "COMPLETION_GOVERNOR (Workers explicitly DENIED)"
+    ],
+    "who_may_authorize_external_action": [
+      "HUMAN_GATE_ONLY (Autonomous spend = 0, Trading = DENY)"
+    ]
+  },
+  "choke_points": [
+    {
+      "choke_point": "BORDER_GUARD",
+      "enforces": [
+        "Passport validity",
+        "Capability bounds",
+        "Resource lock acquisition"
+      ],
+      "location": "runtime/governance/BorderGuard.js"
+    },
+    {
+      "choke_point": "RESULT_CUSTOMS",
+      "enforces": [
+        "Exit code 0",
+        "Artifact scope isolation",
+        "SHA-256 hash attestation"
+      ],
+      "location": "runtime/governance/ResultCustoms.js"
+    },
+    {
+      "choke_point": "COMPLETION_GOVERNOR",
+      "enforces": [
+        "Worker report admission",
+        "Mission pause vs complete",
+        "Global saturation denial"
+      ],
+      "location": "runtime/governance/CompletionGovernor.js"
+    }
+  ]
+}

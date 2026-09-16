@@ -1,0 +1,2325 @@
+{
+  "courier_files_count": 74,
+  "project_memory_files_count": 312,
+  "courier_files": [
+    {
+      "relative_path": "chief\\cli.py",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\chief\\cli.py",
+      "size_bytes": 8587,
+      "modified_utc": "2026-09-09T09:43:05.343Z"
+    },
+    {
+      "relative_path": "chief\\control_plane.py",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\chief\\control_plane.py",
+      "size_bytes": 26009,
+      "modified_utc": "2026-09-09T09:43:18.175Z"
+    },
+    {
+      "relative_path": "chief\\coordinator.py",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\chief\\coordinator.py",
+      "size_bytes": 10055,
+      "modified_utc": "2026-09-09T09:42:55.401Z"
+    },
+    {
+      "relative_path": "chief\\delta_engine.py",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\chief\\delta_engine.py",
+      "size_bytes": 8876,
+      "modified_utc": "2026-09-09T09:42:43.519Z"
+    },
+    {
+      "relative_path": "chief\\ingestor.py",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\chief\\ingestor.py",
+      "size_bytes": 11631,
+      "modified_utc": "2026-09-09T09:42:34.077Z"
+    },
+    {
+      "relative_path": "chief\\safewrite.py",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\chief\\safewrite.py",
+      "size_bytes": 3036,
+      "modified_utc": "2026-09-09T09:41:58.947Z"
+    },
+    {
+      "relative_path": "chief\\types.py",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\chief\\types.py",
+      "size_bytes": 4329,
+      "modified_utc": "2026-09-09T09:41:49.860Z"
+    },
+    {
+      "relative_path": "chief\\validator.py",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\chief\\validator.py",
+      "size_bytes": 3717,
+      "modified_utc": "2026-09-09T09:42:22.414Z"
+    },
+    {
+      "relative_path": "chief\\__init__.py",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\chief\\__init__.py",
+      "size_bytes": 519,
+      "modified_utc": "2026-09-09T09:41:53.588Z"
+    },
+    {
+      "relative_path": "content_os\\ACCOUNT_SETUP_REQUESTS.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\content_os\\ACCOUNT_SETUP_REQUESTS.md",
+      "size_bytes": 10526,
+      "modified_utc": "2026-09-07T05:54:57.007Z"
+    },
+    {
+      "relative_path": "content_os\\candidate_queue.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\content_os\\candidate_queue.json",
+      "size_bytes": 4851,
+      "modified_utc": "2026-09-07T05:58:23.008Z"
+    },
+    {
+      "relative_path": "content_os\\lane4_data_renderer.py",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\content_os\\lane4_data_renderer.py",
+      "size_bytes": 4134,
+      "modified_utc": "2026-09-07T05:55:14.122Z"
+    },
+    {
+      "relative_path": "content_os\\opportunity_evaluator.py",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\content_os\\opportunity_evaluator.py",
+      "size_bytes": 5000,
+      "modified_utc": "2026-09-07T05:55:02.701Z"
+    },
+    {
+      "relative_path": "content_os\\PHASE1_EVIDENCE_AND_PILOT_QUEUE.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\content_os\\PHASE1_EVIDENCE_AND_PILOT_QUEUE.md",
+      "size_bytes": 22217,
+      "modified_utc": "2026-09-07T05:58:18.139Z"
+    },
+    {
+      "relative_path": "content_os\\template_engine.py",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\content_os\\template_engine.py",
+      "size_bytes": 4316,
+      "modified_utc": "2026-09-07T05:55:08.332Z"
+    },
+    {
+      "relative_path": "content_os\\tests\\test_content_os.py",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\content_os\\tests\\test_content_os.py",
+      "size_bytes": 6118,
+      "modified_utc": "2026-09-07T05:55:20.923Z"
+    },
+    {
+      "relative_path": "COURIER_COORDINATION_POLICY.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\COURIER_COORDINATION_POLICY.md",
+      "size_bytes": 3511,
+      "modified_utc": "2026-09-07T05:49:13.973Z"
+    },
+    {
+      "relative_path": "cross_device_intake.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\cross_device_intake.js",
+      "size_bytes": 6691,
+      "modified_utc": "2026-09-07T05:35:53.446Z"
+    },
+    {
+      "relative_path": "cross_device_intake.py",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\cross_device_intake.py",
+      "size_bytes": 13159,
+      "modified_utc": "2026-09-07T05:50:02.262Z"
+    },
+    {
+      "relative_path": "money_factory\\anti_loop_policy.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\anti_loop_policy.js",
+      "size_bytes": 6823,
+      "modified_utc": "2026-09-09T00:58:55.682Z"
+    },
+    {
+      "relative_path": "money_factory\\cheapest_test.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\cheapest_test.js",
+      "size_bytes": 3545,
+      "modified_utc": "2026-09-09T00:57:40.155Z"
+    },
+    {
+      "relative_path": "money_factory\\cycle_ledger.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\cycle_ledger.js",
+      "size_bytes": 6221,
+      "modified_utc": "2026-09-09T00:22:03.909Z"
+    },
+    {
+      "relative_path": "money_factory\\evidence_ledger.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\evidence_ledger.js",
+      "size_bytes": 7515,
+      "modified_utc": "2026-09-09T18:16:46.162Z"
+    },
+    {
+      "relative_path": "money_factory\\first_5_euro_simulator.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\first_5_euro_simulator.js",
+      "size_bytes": 6623,
+      "modified_utc": "2026-09-09T01:00:41.529Z"
+    },
+    {
+      "relative_path": "money_factory\\index.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\index.js",
+      "size_bytes": 2739,
+      "modified_utc": "2026-09-09T00:56:23.439Z"
+    },
+    {
+      "relative_path": "money_factory\\leaderboard_generator.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\leaderboard_generator.js",
+      "size_bytes": 4143,
+      "modified_utc": "2026-09-09T00:22:35.903Z"
+    },
+    {
+      "relative_path": "money_factory\\portfolios.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\portfolios.js",
+      "size_bytes": 5206,
+      "modified_utc": "2026-09-09T00:59:25.088Z"
+    },
+    {
+      "relative_path": "money_factory\\prediction_calibration.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\prediction_calibration.js",
+      "size_bytes": 8515,
+      "modified_utc": "2026-09-09T18:10:55.525Z"
+    },
+    {
+      "relative_path": "money_factory\\safety_gates.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\safety_gates.js",
+      "size_bytes": 5244,
+      "modified_utc": "2026-09-09T01:00:03.086Z"
+    },
+    {
+      "relative_path": "money_factory\\scoring.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\scoring.js",
+      "size_bytes": 3720,
+      "modified_utc": "2026-09-09T00:21:42.408Z"
+    },
+    {
+      "relative_path": "money_factory\\seed_classes.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\seed_classes.js",
+      "size_bytes": 10033,
+      "modified_utc": "2026-09-09T00:22:20.092Z"
+    },
+    {
+      "relative_path": "money_factory\\supervisor_compat.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\supervisor_compat.js",
+      "size_bytes": 2537,
+      "modified_utc": "2026-09-09T01:00:26.477Z"
+    },
+    {
+      "relative_path": "money_factory\\warehouse.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\money_factory\\warehouse.js",
+      "size_bytes": 11959,
+      "modified_utc": "2026-09-09T00:58:28.255Z"
+    },
+    {
+      "relative_path": "MONEY_FACTORY_ARCHITECTURE.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\MONEY_FACTORY_ARCHITECTURE.md",
+      "size_bytes": 5940,
+      "modified_utc": "2026-09-09T00:23:28.095Z"
+    },
+    {
+      "relative_path": "MONEY_FACTORY_WINDOWS_HANDOFF.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\MONEY_FACTORY_WINDOWS_HANDOFF.md",
+      "size_bytes": 3771,
+      "modified_utc": "2026-09-09T00:37:45.248Z"
+    },
+    {
+      "relative_path": "opportunity_warehouse\\evidence\\ZERO_PROMPT_AUTONOMY_PROOF_PACKET.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\opportunity_warehouse\\evidence\\ZERO_PROMPT_AUTONOMY_PROOF_PACKET.json",
+      "size_bytes": 671,
+      "modified_utc": "2026-09-09T07:16:06.136Z"
+    },
+    {
+      "relative_path": "opportunity_warehouse\\history_ledger.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\opportunity_warehouse\\history_ledger.json",
+      "size_bytes": 18934,
+      "modified_utc": "2026-09-09T00:22:41.398Z"
+    },
+    {
+      "relative_path": "opportunity_warehouse\\LEADERBOARD.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\opportunity_warehouse\\LEADERBOARD.md",
+      "size_bytes": 4502,
+      "modified_utc": "2026-09-09T00:22:41.399Z"
+    },
+    {
+      "relative_path": "opportunity_warehouse\\MONEY_FACTORY_POLICY.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\opportunity_warehouse\\MONEY_FACTORY_POLICY.md",
+      "size_bytes": 3038,
+      "modified_utc": "2026-09-09T00:19:32.351Z"
+    },
+    {
+      "relative_path": "opportunity_warehouse\\opportunities.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\opportunity_warehouse\\opportunities.json",
+      "size_bytes": 16934,
+      "modified_utc": "2026-09-09T07:16:06.144Z"
+    },
+    {
+      "relative_path": "opportunity_warehouse\\opportunities.yaml",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\opportunity_warehouse\\opportunities.yaml",
+      "size_bytes": 13479,
+      "modified_utc": "2026-09-09T00:22:41.396Z"
+    },
+    {
+      "relative_path": "opportunity_warehouse\\research\\ZERO_PROMPT_AUTONOMY_SYSTEM.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\opportunity_warehouse\\research\\ZERO_PROMPT_AUTONOMY_SYSTEM.md",
+      "size_bytes": 1187,
+      "modified_utc": "2026-09-09T07:16:06.135Z"
+    },
+    {
+      "relative_path": "supervisor\\audit_ledger.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\audit_ledger.js",
+      "size_bytes": 3080,
+      "modified_utc": "2026-09-09T18:16:40.312Z"
+    },
+    {
+      "relative_path": "supervisor\\chief_envelope.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\chief_envelope.js",
+      "size_bytes": 1701,
+      "modified_utc": "2026-09-09T00:46:41.697Z"
+    },
+    {
+      "relative_path": "supervisor\\decision_engine.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\decision_engine.js",
+      "size_bytes": 2578,
+      "modified_utc": "2026-09-09T00:46:11.156Z"
+    },
+    {
+      "relative_path": "supervisor\\diagnostic_bundle.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\diagnostic_bundle.js",
+      "size_bytes": 3888,
+      "modified_utc": "2026-09-09T00:46:00.942Z"
+    },
+    {
+      "relative_path": "supervisor\\index.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\index.js",
+      "size_bytes": 2692,
+      "modified_utc": "2026-09-09T00:46:46.774Z"
+    },
+    {
+      "relative_path": "supervisor\\lease_manager.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\lease_manager.js",
+      "size_bytes": 7077,
+      "modified_utc": "2026-09-09T00:47:11.182Z"
+    },
+    {
+      "relative_path": "supervisor\\no_stacking.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\no_stacking.js",
+      "size_bytes": 2208,
+      "modified_utc": "2026-09-09T00:46:35.344Z"
+    },
+    {
+      "relative_path": "supervisor\\progress_tracker.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\progress_tracker.js",
+      "size_bytes": 3674,
+      "modified_utc": "2026-09-09T00:45:48.592Z"
+    },
+    {
+      "relative_path": "supervisor\\reconciliation.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\reconciliation.js",
+      "size_bytes": 5880,
+      "modified_utc": "2026-09-09T00:46:22.458Z"
+    },
+    {
+      "relative_path": "supervisor\\resource_governor.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\resource_governor.js",
+      "size_bytes": 5883,
+      "modified_utc": "2026-09-09T18:05:40.921Z"
+    },
+    {
+      "relative_path": "supervisor\\screenshot_spec.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\screenshot_spec.js",
+      "size_bytes": 3450,
+      "modified_utc": "2026-09-09T00:46:07.364Z"
+    },
+    {
+      "relative_path": "supervisor\\stall_policy.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\stall_policy.js",
+      "size_bytes": 7222,
+      "modified_utc": "2026-09-09T00:45:55.858Z"
+    },
+    {
+      "relative_path": "supervisor\\task_hygiene.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\task_hygiene.js",
+      "size_bytes": 3711,
+      "modified_utc": "2026-09-09T00:46:16.130Z"
+    },
+    {
+      "relative_path": "supervisor\\types.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\supervisor\\types.js",
+      "size_bytes": 2677,
+      "modified_utc": "2026-09-09T00:45:29.959Z"
+    },
+    {
+      "relative_path": "SUPERVISOR_PLANE_ARCHITECTURE.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\SUPERVISOR_PLANE_ARCHITECTURE.md",
+      "size_bytes": 6157,
+      "modified_utc": "2026-09-09T00:48:17.840Z"
+    },
+    {
+      "relative_path": "tests\\rc3_hardening\\test_border_guard.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening\\test_border_guard.js",
+      "size_bytes": 8516,
+      "modified_utc": "2026-09-09T18:07:29.407Z"
+    },
+    {
+      "relative_path": "tests\\rc3_hardening\\test_crash_restart_chaos.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening\\test_crash_restart_chaos.js",
+      "size_bytes": 17397,
+      "modified_utc": "2026-09-09T18:14:37.231Z"
+    },
+    {
+      "relative_path": "tests\\rc3_hardening\\test_deterministic_soak.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening\\test_deterministic_soak.js",
+      "size_bytes": 19263,
+      "modified_utc": "2026-09-09T18:22:13.008Z"
+    },
+    {
+      "relative_path": "tests\\rc3_hardening\\test_event_ledger_invariants.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening\\test_event_ledger_invariants.js",
+      "size_bytes": 15802,
+      "modified_utc": "2026-09-09T18:16:25.416Z"
+    },
+    {
+      "relative_path": "tests\\rc3_hardening\\test_follow_up_inbox.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening\\test_follow_up_inbox.js",
+      "size_bytes": 7334,
+      "modified_utc": "2026-09-09T18:06:47.437Z"
+    },
+    {
+      "relative_path": "tests\\rc3_hardening\\test_money_factory_adversarial.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening\\test_money_factory_adversarial.js",
+      "size_bytes": 15814,
+      "modified_utc": "2026-09-09T18:11:18.797Z"
+    },
+    {
+      "relative_path": "tests\\rc3_hardening\\test_rc3_adversarial_validation.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening\\test_rc3_adversarial_validation.js",
+      "size_bytes": 20944,
+      "modified_utc": "2026-09-09T18:02:37.891Z"
+    },
+    {
+      "relative_path": "tests\\rc3_hardening\\test_resource_governor_adversarial.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening\\test_resource_governor_adversarial.js",
+      "size_bytes": 12349,
+      "modified_utc": "2026-09-09T18:05:32.166Z"
+    },
+    {
+      "relative_path": "tests\\rc3_hardening\\test_result_customs.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening\\test_result_customs.js",
+      "size_bytes": 9647,
+      "modified_utc": "2026-09-09T18:08:02.772Z"
+    },
+    {
+      "relative_path": "tests\\rc3_hardening\\test_supervisor_adversarial.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening\\test_supervisor_adversarial.js",
+      "size_bytes": 20243,
+      "modified_utc": "2026-09-09T18:04:59.646Z"
+    },
+    {
+      "relative_path": "tests\\rc3_hardening\\test_task_stamp_contracts.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\rc3_hardening\\test_task_stamp_contracts.js",
+      "size_bytes": 10050,
+      "modified_utc": "2026-09-09T18:06:18.310Z"
+    },
+    {
+      "relative_path": "tests\\test_cross_device_intake.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\test_cross_device_intake.js",
+      "size_bytes": 3289,
+      "modified_utc": "2026-09-07T05:35:53.446Z"
+    },
+    {
+      "relative_path": "tests\\test_cross_device_intake.py",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\test_cross_device_intake.py",
+      "size_bytes": 9876,
+      "modified_utc": "2026-09-07T05:49:51.858Z"
+    },
+    {
+      "relative_path": "tests\\test_money_factory_closure.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\test_money_factory_closure.js",
+      "size_bytes": 21090,
+      "modified_utc": "2026-09-09T01:00:46.080Z"
+    },
+    {
+      "relative_path": "tests\\test_money_factory_p0.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\test_money_factory_p0.js",
+      "size_bytes": 20669,
+      "modified_utc": "2026-09-09T00:22:59.975Z"
+    },
+    {
+      "relative_path": "tests\\test_supervisor_plane_p0.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\tests\\test_supervisor_plane_p0.js",
+      "size_bytes": 23152,
+      "modified_utc": "2026-09-09T00:47:56.233Z"
+    },
+    {
+      "relative_path": "WINDOWS_RESUME_CHECKPOINT.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\courier\\WINDOWS_RESUME_CHECKPOINT.md",
+      "size_bytes": 2597,
+      "modified_utc": "2026-09-09T01:05:03.821Z"
+    }
+  ],
+  "project_memory_files": [
+    {
+      "relative_path": ".github\\workflows\\money_factory_schedule.yml",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\.github\\workflows\\money_factory_schedule.yml",
+      "size_bytes": 1685,
+      "modified_utc": "2026-09-08T06:03:47.395Z"
+    },
+    {
+      "relative_path": ".gitignore",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\.gitignore",
+      "size_bytes": 96,
+      "modified_utc": "2026-09-07T05:03:37.662Z"
+    },
+    {
+      "relative_path": "5H_HARDENING_REPORT.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\5H_HARDENING_REPORT.md",
+      "size_bytes": 20682,
+      "modified_utc": "2026-09-07T05:04:11.917Z"
+    },
+    {
+      "relative_path": "alerts\\alert_dispatcher.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\alerts\\alert_dispatcher.js",
+      "size_bytes": 480,
+      "modified_utc": "2026-09-07T10:34:26.921Z"
+    },
+    {
+      "relative_path": "architecture\\DUAL_WRITER_CURRENT_STATE.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\architecture\\DUAL_WRITER_CURRENT_STATE.md",
+      "size_bytes": 10706,
+      "modified_utc": "2026-09-07T12:08:06.421Z"
+    },
+    {
+      "relative_path": "architecture\\DUAL_WRITER_IMPLEMENTATION_HANDOFF.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\architecture\\DUAL_WRITER_IMPLEMENTATION_HANDOFF.md",
+      "size_bytes": 12748,
+      "modified_utc": "2026-09-07T12:14:09.106Z"
+    },
+    {
+      "relative_path": "architecture\\DUAL_WRITER_PROTOCOL.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\architecture\\DUAL_WRITER_PROTOCOL.md",
+      "size_bytes": 11002,
+      "modified_utc": "2026-09-07T12:08:49.787Z"
+    },
+    {
+      "relative_path": "architecture\\DUAL_WRITER_RESEARCH.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\architecture\\DUAL_WRITER_RESEARCH.md",
+      "size_bytes": 13007,
+      "modified_utc": "2026-09-07T12:08:33.081Z"
+    },
+    {
+      "relative_path": "autonomy_proof_lab\\AUTONOMY_PROOF_REPORT.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\autonomy_proof_lab\\AUTONOMY_PROOF_REPORT.md",
+      "size_bytes": 19761,
+      "modified_utc": "2026-09-08T05:05:09.028Z"
+    },
+    {
+      "relative_path": "autonomy_proof_lab\\crash_window_spec.py",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\autonomy_proof_lab\\crash_window_spec.py",
+      "size_bytes": 10145,
+      "modified_utc": "2026-09-08T05:03:28.584Z"
+    },
+    {
+      "relative_path": "autonomy_proof_lab\\proof_harness.py",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\autonomy_proof_lab\\proof_harness.py",
+      "size_bytes": 10578,
+      "modified_utc": "2026-09-08T05:00:44.001Z"
+    },
+    {
+      "relative_path": "autonomy_proof_lab\\run_all_proof_tests.py",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\autonomy_proof_lab\\run_all_proof_tests.py",
+      "size_bytes": 3459,
+      "modified_utc": "2026-09-08T05:03:52.754Z"
+    },
+    {
+      "relative_path": "autonomy_proof_lab\\test_proof_bounded_failure_loop.py",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\autonomy_proof_lab\\test_proof_bounded_failure_loop.py",
+      "size_bytes": 4650,
+      "modified_utc": "2026-09-08T05:00:51.257Z"
+    },
+    {
+      "relative_path": "autonomy_proof_lab\\test_proof_cli1_fallback_protocol.py",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\autonomy_proof_lab\\test_proof_cli1_fallback_protocol.py",
+      "size_bytes": 3192,
+      "modified_utc": "2026-09-08T04:59:09.041Z"
+    },
+    {
+      "relative_path": "autonomy_proof_lab\\test_proof_cross_goal_isolation.py",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\autonomy_proof_lab\\test_proof_cross_goal_isolation.py",
+      "size_bytes": 3299,
+      "modified_utc": "2026-09-08T04:58:11.807Z"
+    },
+    {
+      "relative_path": "autonomy_proof_lab\\test_proof_identity_host_separation.py",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\autonomy_proof_lab\\test_proof_identity_host_separation.py",
+      "size_bytes": 3055,
+      "modified_utc": "2026-09-08T04:59:04.935Z"
+    },
+    {
+      "relative_path": "autonomy_proof_lab\\test_proof_logical_work_identity.py",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\autonomy_proof_lab\\test_proof_logical_work_identity.py",
+      "size_bytes": 5339,
+      "modified_utc": "2026-09-08T05:03:38.422Z"
+    },
+    {
+      "relative_path": "autonomy_proof_lab\\test_proof_mock_contamination_firewall.py",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\autonomy_proof_lab\\test_proof_mock_contamination_firewall.py",
+      "size_bytes": 2744,
+      "modified_utc": "2026-09-08T04:58:26.943Z"
+    },
+    {
+      "relative_path": "autonomy_proof_lab\\test_proof_restart_recovery.py",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\autonomy_proof_lab\\test_proof_restart_recovery.py",
+      "size_bytes": 3707,
+      "modified_utc": "2026-09-08T04:58:18.193Z"
+    },
+    {
+      "relative_path": "autonomy_proof_lab\\test_proof_same_text_different_goal.py",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\autonomy_proof_lab\\test_proof_same_text_different_goal.py",
+      "size_bytes": 4153,
+      "modified_utc": "2026-09-08T05:03:17.155Z"
+    },
+    {
+      "relative_path": "autonomy_proof_lab\\test_proof_terminal_evidence_gate.py",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\autonomy_proof_lab\\test_proof_terminal_evidence_gate.py",
+      "size_bytes": 6390,
+      "modified_utc": "2026-09-08T05:03:48.177Z"
+    },
+    {
+      "relative_path": "autonomy_proof_lab\\zero_prompt_universal\\ensure_autonomy.py",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\autonomy_proof_lab\\zero_prompt_universal\\ensure_autonomy.py",
+      "size_bytes": 2025,
+      "modified_utc": "2026-09-09T07:19:55.264Z"
+    },
+    {
+      "relative_path": "autonomy_proof_lab\\zero_prompt_universal\\Get-CourierAgyDoctor.ps1",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\autonomy_proof_lab\\zero_prompt_universal\\Get-CourierAgyDoctor.ps1",
+      "size_bytes": 3249,
+      "modified_utc": "2026-09-09T07:19:55.267Z"
+    },
+    {
+      "relative_path": "autonomy_proof_lab\\zero_prompt_universal\\ide_config_template.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\autonomy_proof_lab\\zero_prompt_universal\\ide_config_template.json",
+      "size_bytes": 568,
+      "modified_utc": "2026-09-09T07:16:06.131Z"
+    },
+    {
+      "relative_path": "autonomy_proof_lab\\zero_prompt_universal\\install_mac_autonomy.sh",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\autonomy_proof_lab\\zero_prompt_universal\\install_mac_autonomy.sh",
+      "size_bytes": 2081,
+      "modified_utc": "2026-09-09T07:16:06.133Z"
+    },
+    {
+      "relative_path": "autonomy_proof_lab\\zero_prompt_universal\\install_windows_autonomy.ps1",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\autonomy_proof_lab\\zero_prompt_universal\\install_windows_autonomy.ps1",
+      "size_bytes": 4945,
+      "modified_utc": "2026-09-09T07:17:02.430Z"
+    },
+    {
+      "relative_path": "autonomy_proof_lab\\zero_prompt_universal\\mac_settings_template.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\autonomy_proof_lab\\zero_prompt_universal\\mac_settings_template.json",
+      "size_bytes": 329,
+      "modified_utc": "2026-09-09T07:16:06.128Z"
+    },
+    {
+      "relative_path": "autonomy_proof_lab\\zero_prompt_universal\\Notify-AgentFinished.ps1",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\autonomy_proof_lab\\zero_prompt_universal\\Notify-AgentFinished.ps1",
+      "size_bytes": 1348,
+      "modified_utc": "2026-09-09T07:19:55.266Z"
+    },
+    {
+      "relative_path": "autonomy_proof_lab\\zero_prompt_universal\\README.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\autonomy_proof_lab\\zero_prompt_universal\\README.md",
+      "size_bytes": 1509,
+      "modified_utc": "2026-09-09T07:16:06.134Z"
+    },
+    {
+      "relative_path": "autonomy_proof_lab\\zero_prompt_universal\\WINDOWS_4COLUMN_WORKSPACE_STANDARD.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\autonomy_proof_lab\\zero_prompt_universal\\WINDOWS_4COLUMN_WORKSPACE_STANDARD.md",
+      "size_bytes": 3046,
+      "modified_utc": "2026-09-09T07:48:49.460Z"
+    },
+    {
+      "relative_path": "autonomy_proof_lab\\zero_prompt_universal\\windows_settings_template.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\autonomy_proof_lab\\zero_prompt_universal\\windows_settings_template.json",
+      "size_bytes": 243,
+      "modified_utc": "2026-09-09T07:16:06.128Z"
+    },
+    {
+      "relative_path": "autonomy_proof_lab\\zero_prompt_universal\\ZERO_PROMPT_ARCHITECTURE_STANDARD.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\autonomy_proof_lab\\zero_prompt_universal\\ZERO_PROMPT_ARCHITECTURE_STANDARD.md",
+      "size_bytes": 780,
+      "modified_utc": "2026-09-09T07:16:06.134Z"
+    },
+    {
+      "relative_path": "BACKLOG.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\BACKLOG.md",
+      "size_bytes": 1760,
+      "modified_utc": "2026-09-07T09:57:16.858Z"
+    },
+    {
+      "relative_path": "backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\manifest.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\manifest.json",
+      "size_bytes": 3097,
+      "modified_utc": "2026-09-07T05:17:57.220Z"
+    },
+    {
+      "relative_path": "backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\SOURCE_INDEX.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\SOURCE_INDEX.md",
+      "size_bytes": 533,
+      "modified_utc": "2026-09-07T05:03:00.285Z"
+    },
+    {
+      "relative_path": "backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\thoughts\\index.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\thoughts\\index.json",
+      "size_bytes": 388,
+      "modified_utc": "2026-09-07T05:03:00.284Z"
+    },
+    {
+      "relative_path": "backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\thoughts\\THOUGHT-000001.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\thoughts\\THOUGHT-000001.json",
+      "size_bytes": 2885,
+      "modified_utc": "2026-09-07T05:03:00.146Z"
+    },
+    {
+      "relative_path": "backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\thoughts\\THOUGHT-000002.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\thoughts\\THOUGHT-000002.json",
+      "size_bytes": 2939,
+      "modified_utc": "2026-09-07T05:03:00.159Z"
+    },
+    {
+      "relative_path": "backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\thoughts\\THOUGHT-000003.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\thoughts\\THOUGHT-000003.json",
+      "size_bytes": 2932,
+      "modified_utc": "2026-09-07T05:03:00.140Z"
+    },
+    {
+      "relative_path": "backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\thoughts\\THOUGHT-000004.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\thoughts\\THOUGHT-000004.json",
+      "size_bytes": 2462,
+      "modified_utc": "2026-09-07T05:03:00.153Z"
+    },
+    {
+      "relative_path": "backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\thoughts\\THOUGHT-000005.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\thoughts\\THOUGHT-000005.json",
+      "size_bytes": 2452,
+      "modified_utc": "2026-09-07T05:03:00.162Z"
+    },
+    {
+      "relative_path": "backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\thoughts\\THOUGHT-000006.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\thoughts\\THOUGHT-000006.json",
+      "size_bytes": 2775,
+      "modified_utc": "2026-09-07T05:03:00.173Z"
+    },
+    {
+      "relative_path": "backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\thoughts\\THOUGHT-000007.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\thoughts\\THOUGHT-000007.json",
+      "size_bytes": 3017,
+      "modified_utc": "2026-09-07T05:03:00.187Z"
+    },
+    {
+      "relative_path": "backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\thoughts\\THOUGHT-000008.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\thoughts\\THOUGHT-000008.json",
+      "size_bytes": 2964,
+      "modified_utc": "2026-09-07T05:03:00.198Z"
+    },
+    {
+      "relative_path": "backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\thoughts\\THOUGHT-000009.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\thoughts\\THOUGHT-000009.json",
+      "size_bytes": 2218,
+      "modified_utc": "2026-09-07T05:03:00.208Z"
+    },
+    {
+      "relative_path": "backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\thoughts\\THOUGHT-000010.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\thoughts\\THOUGHT-000010.json",
+      "size_bytes": 2877,
+      "modified_utc": "2026-09-07T05:03:00.225Z"
+    },
+    {
+      "relative_path": "backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\thoughts\\THOUGHT-000011.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\thoughts\\THOUGHT-000011.json",
+      "size_bytes": 2331,
+      "modified_utc": "2026-09-07T05:03:00.230Z"
+    },
+    {
+      "relative_path": "backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\thoughts\\THOUGHT-000012.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\thoughts\\THOUGHT-000012.json",
+      "size_bytes": 2810,
+      "modified_utc": "2026-09-07T05:03:00.270Z"
+    },
+    {
+      "relative_path": "backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\thoughts\\THOUGHT-000013.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\backups\\backup_cli_manual_2026-09-07T05-17-57-177Z\\thoughts\\THOUGHT-000013.json",
+      "size_bytes": 2853,
+      "modified_utc": "2026-09-07T05:03:00.283Z"
+    },
+    {
+      "relative_path": "benchmarks\\DUAL_WRITER_BENCHMARK.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\benchmarks\\DUAL_WRITER_BENCHMARK.md",
+      "size_bytes": 3477,
+      "modified_utc": "2026-09-07T12:13:48.786Z"
+    },
+    {
+      "relative_path": "CHAT_CONTRIBUTIONS\\README.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\CHAT_CONTRIBUTIONS\\README.md",
+      "size_bytes": 79,
+      "modified_utc": "2026-09-07T04:12:20.334Z"
+    },
+    {
+      "relative_path": "CODEX_HOST_SAFETY_FINAL_REVIEW_PACKET.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\CODEX_HOST_SAFETY_FINAL_REVIEW_PACKET.md",
+      "size_bytes": 21244,
+      "modified_utc": "2026-09-09T02:33:44.044Z"
+    },
+    {
+      "relative_path": "company_os\\COMPANY_OPERATING_SYSTEM.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\company_os\\COMPANY_OPERATING_SYSTEM.md",
+      "size_bytes": 7135,
+      "modified_utc": "2026-09-07T10:33:31.461Z"
+    },
+    {
+      "relative_path": "company_os\\company_state.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\company_os\\company_state.json",
+      "size_bytes": 2623,
+      "modified_utc": "2026-09-07T10:34:30.343Z"
+    },
+    {
+      "relative_path": "company_os\\device_truth.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\company_os\\device_truth.json",
+      "size_bytes": 1577,
+      "modified_utc": "2026-09-07T10:40:31.477Z"
+    },
+    {
+      "relative_path": "company_os\\node_discovery.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\company_os\\node_discovery.js",
+      "size_bytes": 5518,
+      "modified_utc": "2026-09-07T10:33:31.464Z"
+    },
+    {
+      "relative_path": "data\\warehouse\\cycle_ledger.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\data\\warehouse\\cycle_ledger.json",
+      "size_bytes": 14502,
+      "modified_utc": "2026-09-08T06:03:49.723Z"
+    },
+    {
+      "relative_path": "data\\warehouse\\history_ledger.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\data\\warehouse\\history_ledger.json",
+      "size_bytes": 115995,
+      "modified_utc": "2026-09-08T06:03:49.722Z"
+    },
+    {
+      "relative_path": "data\\warehouse\\leaderboard_state.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\data\\warehouse\\leaderboard_state.json",
+      "size_bytes": 56552,
+      "modified_utc": "2026-09-08T06:03:49.729Z"
+    },
+    {
+      "relative_path": "data\\warehouse\\opportunities.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\data\\warehouse\\opportunities.json",
+      "size_bytes": 22854,
+      "modified_utc": "2026-09-08T06:03:49.720Z"
+    },
+    {
+      "relative_path": "data\\warehouse\\prediction_calibration_ledger.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\data\\warehouse\\prediction_calibration_ledger.json",
+      "size_bytes": 6396,
+      "modified_utc": "2026-09-08T06:03:49.728Z"
+    },
+    {
+      "relative_path": "DECISIONS.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\DECISIONS.md",
+      "size_bytes": 4200,
+      "modified_utc": "2026-09-09T07:16:06.145Z"
+    },
+    {
+      "relative_path": "dossiers\\DOSSIER-20260907-0193E6.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\dossiers\\DOSSIER-20260907-0193E6.json",
+      "size_bytes": 20801,
+      "modified_utc": "2026-09-07T10:33:08.351Z"
+    },
+    {
+      "relative_path": "dossiers\\DOSSIER-20260907-09EB8E.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\dossiers\\DOSSIER-20260907-09EB8E.json",
+      "size_bytes": 14917,
+      "modified_utc": "2026-09-07T10:03:47.624Z"
+    },
+    {
+      "relative_path": "dossiers\\DOSSIER-20260907-0F252C.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\dossiers\\DOSSIER-20260907-0F252C.json",
+      "size_bytes": 25016,
+      "modified_utc": "2026-09-07T10:33:51.429Z"
+    },
+    {
+      "relative_path": "dossiers\\DOSSIER-20260907-0F95C6.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\dossiers\\DOSSIER-20260907-0F95C6.json",
+      "size_bytes": 15332,
+      "modified_utc": "2026-09-07T10:04:05.564Z"
+    },
+    {
+      "relative_path": "dossiers\\DOSSIER-20260907-101795.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\dossiers\\DOSSIER-20260907-101795.json",
+      "size_bytes": 22070,
+      "modified_utc": "2026-09-07T10:24:28.945Z"
+    },
+    {
+      "relative_path": "dossiers\\DOSSIER-20260907-115760.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\dossiers\\DOSSIER-20260907-115760.json",
+      "size_bytes": 28231,
+      "modified_utc": "2026-09-07T10:56:36.744Z"
+    },
+    {
+      "relative_path": "dossiers\\DOSSIER-20260907-13E526.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\dossiers\\DOSSIER-20260907-13E526.json",
+      "size_bytes": 14917,
+      "modified_utc": "2026-09-07T10:03:47.578Z"
+    },
+    {
+      "relative_path": "dossiers\\DOSSIER-20260907-20B92B.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\dossiers\\DOSSIER-20260907-20B92B.json",
+      "size_bytes": 21476,
+      "modified_utc": "2026-09-07T10:24:48.794Z"
+    },
+    {
+      "relative_path": "dossiers\\DOSSIER-20260907-2DA392.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\dossiers\\DOSSIER-20260907-2DA392.json",
+      "size_bytes": 14917,
+      "modified_utc": "2026-09-07T10:03:46.822Z"
+    },
+    {
+      "relative_path": "dossiers\\DOSSIER-20260907-391F47.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\dossiers\\DOSSIER-20260907-391F47.json",
+      "size_bytes": 14917,
+      "modified_utc": "2026-09-07T10:03:47.239Z"
+    },
+    {
+      "relative_path": "dossiers\\DOSSIER-20260907-3CDB28.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\dossiers\\DOSSIER-20260907-3CDB28.json",
+      "size_bytes": 14497,
+      "modified_utc": "2026-09-07T10:04:34.578Z"
+    },
+    {
+      "relative_path": "dossiers\\DOSSIER-20260907-459AAC.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\dossiers\\DOSSIER-20260907-459AAC.json",
+      "size_bytes": 14917,
+      "modified_utc": "2026-09-07T10:03:47.193Z"
+    },
+    {
+      "relative_path": "dossiers\\DOSSIER-20260907-4A848D.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\dossiers\\DOSSIER-20260907-4A848D.json",
+      "size_bytes": 15175,
+      "modified_utc": "2026-09-07T10:04:05.525Z"
+    },
+    {
+      "relative_path": "dossiers\\DOSSIER-20260907-502DEF.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\dossiers\\DOSSIER-20260907-502DEF.json",
+      "size_bytes": 14917,
+      "modified_utc": "2026-09-07T10:03:47.041Z"
+    },
+    {
+      "relative_path": "dossiers\\DOSSIER-20260907-6846BC.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\dossiers\\DOSSIER-20260907-6846BC.json",
+      "size_bytes": 22070,
+      "modified_utc": "2026-09-07T10:24:48.689Z"
+    },
+    {
+      "relative_path": "dossiers\\DOSSIER-20260907-7DA1A0.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\dossiers\\DOSSIER-20260907-7DA1A0.json",
+      "size_bytes": 22286,
+      "modified_utc": "2026-09-07T10:24:48.762Z"
+    },
+    {
+      "relative_path": "dossiers\\DOSSIER-20260907-876D49.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\dossiers\\DOSSIER-20260907-876D49.json",
+      "size_bytes": 28231,
+      "modified_utc": "2026-09-07T10:54:16.569Z"
+    },
+    {
+      "relative_path": "dossiers\\DOSSIER-20260907-88733B.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\dossiers\\DOSSIER-20260907-88733B.json",
+      "size_bytes": 14917,
+      "modified_utc": "2026-09-07T10:03:47.772Z"
+    },
+    {
+      "relative_path": "dossiers\\DOSSIER-20260907-A018C5.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\dossiers\\DOSSIER-20260907-A018C5.json",
+      "size_bytes": 25388,
+      "modified_utc": "2026-09-07T10:45:55.074Z"
+    },
+    {
+      "relative_path": "dossiers\\DOSSIER-20260907-A10BCA.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\dossiers\\DOSSIER-20260907-A10BCA.json",
+      "size_bytes": 24820,
+      "modified_utc": "2026-09-07T10:45:44.040Z"
+    },
+    {
+      "relative_path": "dossiers\\DOSSIER-20260907-A8BA6C.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\dossiers\\DOSSIER-20260907-A8BA6C.json",
+      "size_bytes": 22199,
+      "modified_utc": "2026-09-07T10:24:48.728Z"
+    },
+    {
+      "relative_path": "dossiers\\DOSSIER-20260907-B96425.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\dossiers\\DOSSIER-20260907-B96425.json",
+      "size_bytes": 24466,
+      "modified_utc": "2026-09-07T10:34:26.908Z"
+    },
+    {
+      "relative_path": "dossiers\\DOSSIER-20260907-BB939B.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\dossiers\\DOSSIER-20260907-BB939B.json",
+      "size_bytes": 21407,
+      "modified_utc": "2026-09-07T10:24:25.326Z"
+    },
+    {
+      "relative_path": "dossiers\\DOSSIER-20260907-CE134D.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\dossiers\\DOSSIER-20260907-CE134D.json",
+      "size_bytes": 14917,
+      "modified_utc": "2026-09-07T10:03:47.382Z"
+    },
+    {
+      "relative_path": "dossiers\\DOSSIER-20260907-CE4D91.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\dossiers\\DOSSIER-20260907-CE4D91.json",
+      "size_bytes": 14917,
+      "modified_utc": "2026-09-07T10:03:46.993Z"
+    },
+    {
+      "relative_path": "dossiers\\DOSSIER-20260907-D5277D.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\dossiers\\DOSSIER-20260907-D5277D.json",
+      "size_bytes": 14917,
+      "modified_utc": "2026-09-07T10:03:47.429Z"
+    },
+    {
+      "relative_path": "dossiers\\DOSSIER-20260907-E9609C.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\dossiers\\DOSSIER-20260907-E9609C.json",
+      "size_bytes": 14925,
+      "modified_utc": "2026-09-07T10:02:34.018Z"
+    },
+    {
+      "relative_path": "dossiers\\DOSSIER-20260907-F3946C.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\dossiers\\DOSSIER-20260907-F3946C.json",
+      "size_bytes": 14497,
+      "modified_utc": "2026-09-07T10:04:05.589Z"
+    },
+    {
+      "relative_path": "dossiers\\DOSSIER-20260907-F9CB44.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\dossiers\\DOSSIER-20260907-F9CB44.json",
+      "size_bytes": 28799,
+      "modified_utc": "2026-09-07T11:07:45.460Z"
+    },
+    {
+      "relative_path": "dossiers\\DOSSIER-20260907-FD061B.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\dossiers\\DOSSIER-20260907-FD061B.json",
+      "size_bytes": 20801,
+      "modified_utc": "2026-09-07T10:32:56.543Z"
+    },
+    {
+      "relative_path": "dossiers\\dossier_latest.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\dossiers\\dossier_latest.json",
+      "size_bytes": 29449,
+      "modified_utc": "2026-09-07T11:07:45.494Z"
+    },
+    {
+      "relative_path": "engine\\capacity_manager.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\engine\\capacity_manager.js",
+      "size_bytes": 1492,
+      "modified_utc": "2026-09-07T04:13:06.658Z"
+    },
+    {
+      "relative_path": "engine\\competitor_intelligence.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\engine\\competitor_intelligence.js",
+      "size_bytes": 5097,
+      "modified_utc": "2026-09-07T10:41:00.901Z"
+    },
+    {
+      "relative_path": "engine\\evidence_provenance.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\engine\\evidence_provenance.js",
+      "size_bytes": 3896,
+      "modified_utc": "2026-09-07T10:44:34.471Z"
+    },
+    {
+      "relative_path": "engine\\founder_concierge.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\engine\\founder_concierge.js",
+      "size_bytes": 47030,
+      "modified_utc": "2026-09-07T10:45:33.363Z"
+    },
+    {
+      "relative_path": "engine\\idea_council.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\engine\\idea_council.js",
+      "size_bytes": 4961,
+      "modified_utc": "2026-09-07T10:32:07.596Z"
+    },
+    {
+      "relative_path": "engine\\idea_foundry_satellite.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\engine\\idea_foundry_satellite.js",
+      "size_bytes": 9506,
+      "modified_utc": "2026-09-07T10:42:39.654Z"
+    },
+    {
+      "relative_path": "engine\\import_pipeline.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\engine\\import_pipeline.js",
+      "size_bytes": 6850,
+      "modified_utc": "2026-09-07T04:37:27.215Z"
+    },
+    {
+      "relative_path": "engine\\metric_definitions.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\engine\\metric_definitions.js",
+      "size_bytes": 2915,
+      "modified_utc": "2026-09-07T10:45:41.291Z"
+    },
+    {
+      "relative_path": "engine\\money_truth_ladder.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\engine\\money_truth_ladder.js",
+      "size_bytes": 7069,
+      "modified_utc": "2026-09-07T10:47:14.419Z"
+    },
+    {
+      "relative_path": "engine\\pattern_observer.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\engine\\pattern_observer.js",
+      "size_bytes": 2070,
+      "modified_utc": "2026-09-07T04:15:45.589Z"
+    },
+    {
+      "relative_path": "engine\\profit_hunter.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\engine\\profit_hunter.js",
+      "size_bytes": 13314,
+      "modified_utc": "2026-09-07T10:42:10.416Z"
+    },
+    {
+      "relative_path": "engine\\schema.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\engine\\schema.js",
+      "size_bytes": 3905,
+      "modified_utc": "2026-09-07T05:02:58.082Z"
+    },
+    {
+      "relative_path": "engine\\security_scanner.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\engine\\security_scanner.js",
+      "size_bytes": 1356,
+      "modified_utc": "2026-09-07T04:20:33.416Z"
+    },
+    {
+      "relative_path": "engine\\storage.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\engine\\storage.js",
+      "size_bytes": 4904,
+      "modified_utc": "2026-09-07T05:01:58.928Z"
+    },
+    {
+      "relative_path": "engine\\workers.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\engine\\workers.js",
+      "size_bytes": 23706,
+      "modified_utc": "2026-09-07T10:32:53.842Z"
+    },
+    {
+      "relative_path": "EXECUTION_DOSSIER.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\EXECUTION_DOSSIER.md",
+      "size_bytes": 15332,
+      "modified_utc": "2026-09-07T11:07:45.494Z"
+    },
+    {
+      "relative_path": "exports\\CLIENT_DELIVERABLE_DOSSIER-20260907-0F252C.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\exports\\CLIENT_DELIVERABLE_DOSSIER-20260907-0F252C.md",
+      "size_bytes": 8667,
+      "modified_utc": "2026-09-07T10:34:23.843Z"
+    },
+    {
+      "relative_path": "exports\\CLIENT_DELIVERABLE_DOSSIER-20260907-20B92B.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\exports\\CLIENT_DELIVERABLE_DOSSIER-20260907-20B92B.md",
+      "size_bytes": 7908,
+      "modified_utc": "2026-09-07T10:26:46.054Z"
+    },
+    {
+      "relative_path": "exports\\CLIENT_DELIVERABLE_LATEST.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\exports\\CLIENT_DELIVERABLE_LATEST.md",
+      "size_bytes": 8667,
+      "modified_utc": "2026-09-07T10:34:26.950Z"
+    },
+    {
+      "relative_path": "HARDENING_AUDIT.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\HARDENING_AUDIT.md",
+      "size_bytes": 6831,
+      "modified_utc": "2026-09-07T04:56:02.146Z"
+    },
+    {
+      "relative_path": "IDEA_ARCHIVE.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\IDEA_ARCHIVE.md",
+      "size_bytes": 3044,
+      "modified_utc": "2026-09-07T09:57:16.858Z"
+    },
+    {
+      "relative_path": "INTEL_MAC_COURIER_HOST_SAFETY_INCIDENT.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\INTEL_MAC_COURIER_HOST_SAFETY_INCIDENT.md",
+      "size_bytes": 18802,
+      "modified_utc": "2026-09-09T02:30:22.291Z"
+    },
+    {
+      "relative_path": "INTEL_MAC_LOW_LOAD_DIAGNOSTIC_RUNBOOK.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\INTEL_MAC_LOW_LOAD_DIAGNOSTIC_RUNBOOK.md",
+      "size_bytes": 20940,
+      "modified_utc": "2026-09-09T02:47:23.674Z"
+    },
+    {
+      "relative_path": "LEADERBOARDS.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\LEADERBOARDS.md",
+      "size_bytes": 5238,
+      "modified_utc": "2026-09-08T06:03:49.729Z"
+    },
+    {
+      "relative_path": "metrics\\execution_ledger.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\metrics\\execution_ledger.json",
+      "size_bytes": 6391,
+      "modified_utc": "2026-09-07T10:47:39.188Z"
+    },
+    {
+      "relative_path": "metrics\\VALUE_METRICS_SPEC.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\metrics\\VALUE_METRICS_SPEC.md",
+      "size_bytes": 4356,
+      "modified_utc": "2026-09-07T10:45:19.427Z"
+    },
+    {
+      "relative_path": "money_factory\\adversarial_pass.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\money_factory\\adversarial_pass.js",
+      "size_bytes": 5874,
+      "modified_utc": "2026-09-08T06:02:57.635Z"
+    },
+    {
+      "relative_path": "money_factory\\continuous_discovery.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\money_factory\\continuous_discovery.js",
+      "size_bytes": 4950,
+      "modified_utc": "2026-09-08T06:02:42.920Z"
+    },
+    {
+      "relative_path": "money_factory\\cycle_ledger.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\money_factory\\cycle_ledger.js",
+      "size_bytes": 5955,
+      "modified_utc": "2026-09-08T06:03:06.273Z"
+    },
+    {
+      "relative_path": "money_factory\\index.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\money_factory\\index.js",
+      "size_bytes": 8623,
+      "modified_utc": "2026-09-08T06:03:35.073Z"
+    },
+    {
+      "relative_path": "money_factory\\initial_seeds.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\money_factory\\initial_seeds.js",
+      "size_bytes": 18609,
+      "modified_utc": "2026-09-08T06:02:36.150Z"
+    },
+    {
+      "relative_path": "money_factory\\leaderboard_generator.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\money_factory\\leaderboard_generator.js",
+      "size_bytes": 6901,
+      "modified_utc": "2026-09-08T06:03:26.536Z"
+    },
+    {
+      "relative_path": "money_factory\\money_scoring.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\money_factory\\money_scoring.js",
+      "size_bytes": 5702,
+      "modified_utc": "2026-09-08T06:02:11.847Z"
+    },
+    {
+      "relative_path": "money_factory\\opportunity_warehouse.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\money_factory\\opportunity_warehouse.js",
+      "size_bytes": 9504,
+      "modified_utc": "2026-09-08T06:02:03.057Z"
+    },
+    {
+      "relative_path": "money_factory\\portfolios.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\money_factory\\portfolios.js",
+      "size_bytes": 3653,
+      "modified_utc": "2026-09-08T06:02:16.773Z"
+    },
+    {
+      "relative_path": "money_factory\\prediction_calibration.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\money_factory\\prediction_calibration.js",
+      "size_bytes": 4991,
+      "modified_utc": "2026-09-08T06:03:13.027Z"
+    },
+    {
+      "relative_path": "money_factory\\research_calendar.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\money_factory\\research_calendar.js",
+      "size_bytes": 4401,
+      "modified_utc": "2026-09-08T06:02:49.457Z"
+    },
+    {
+      "relative_path": "money_factory\\spend_safety.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\money_factory\\spend_safety.js",
+      "size_bytes": 2916,
+      "modified_utc": "2026-09-08T06:03:18.416Z"
+    },
+    {
+      "relative_path": "OPEN_QUESTIONS.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\OPEN_QUESTIONS.md",
+      "size_bytes": 1244,
+      "modified_utc": "2026-09-07T11:07:45.495Z"
+    },
+    {
+      "relative_path": "OPERATING_MODEL.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\OPERATING_MODEL.md",
+      "size_bytes": 3444,
+      "modified_utc": "2026-09-07T05:36:10.349Z"
+    },
+    {
+      "relative_path": "parallel_writer\\benchmark_runner.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\parallel_writer\\benchmark_runner.js",
+      "size_bytes": 11767,
+      "modified_utc": "2026-09-07T12:12:12.904Z"
+    },
+    {
+      "relative_path": "parallel_writer\\conflict_engine.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\parallel_writer\\conflict_engine.js",
+      "size_bytes": 5813,
+      "modified_utc": "2026-09-07T12:11:22.113Z"
+    },
+    {
+      "relative_path": "parallel_writer\\discovery_cache.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\parallel_writer\\discovery_cache.js",
+      "size_bytes": 4858,
+      "modified_utc": "2026-09-07T12:11:29.506Z"
+    },
+    {
+      "relative_path": "parallel_writer\\integration_queue.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\parallel_writer\\integration_queue.js",
+      "size_bytes": 7205,
+      "modified_utc": "2026-09-07T12:11:13.944Z"
+    },
+    {
+      "relative_path": "parallel_writer\\lease_manager.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\parallel_writer\\lease_manager.js",
+      "size_bytes": 6404,
+      "modified_utc": "2026-09-07T12:12:53.828Z"
+    },
+    {
+      "relative_path": "parallel_writer\\parallel_gain.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\parallel_writer\\parallel_gain.js",
+      "size_bytes": 5864,
+      "modified_utc": "2026-09-07T12:10:57.553Z"
+    },
+    {
+      "relative_path": "parallel_writer\\role_market.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\parallel_writer\\role_market.js",
+      "size_bytes": 4865,
+      "modified_utc": "2026-09-07T12:11:35.902Z"
+    },
+    {
+      "relative_path": "parallel_writer\\scope_allocator.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\parallel_writer\\scope_allocator.js",
+      "size_bytes": 6893,
+      "modified_utc": "2026-09-07T12:13:09.095Z"
+    },
+    {
+      "relative_path": "parallel_writer\\task_dag.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\parallel_writer\\task_dag.js",
+      "size_bytes": 7557,
+      "modified_utc": "2026-09-07T12:13:44.158Z"
+    },
+    {
+      "relative_path": "parallel_writer\\worktree_manager.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\parallel_writer\\worktree_manager.js",
+      "size_bytes": 5744,
+      "modified_utc": "2026-09-07T12:12:41.891Z"
+    },
+    {
+      "relative_path": "PROJECT_STATE.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\PROJECT_STATE.md",
+      "size_bytes": 2365,
+      "modified_utc": "2026-09-09T02:48:22.513Z"
+    },
+    {
+      "relative_path": "RUNBOOK.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\RUNBOOK.md",
+      "size_bytes": 3352,
+      "modified_utc": "2026-09-07T04:40:41.422Z"
+    },
+    {
+      "relative_path": "scripts\\backup_restore.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\scripts\\backup_restore.js",
+      "size_bytes": 8536,
+      "modified_utc": "2026-09-07T05:02:27.971Z"
+    },
+    {
+      "relative_path": "scripts\\export_clean_dossier.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\scripts\\export_clean_dossier.js",
+      "size_bytes": 4702,
+      "modified_utc": "2026-09-07T10:34:20.827Z"
+    },
+    {
+      "relative_path": "scripts\\founder_concierge_runner.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\scripts\\founder_concierge_runner.js",
+      "size_bytes": 7774,
+      "modified_utc": "2026-09-07T10:24:45.564Z"
+    },
+    {
+      "relative_path": "scripts\\profit_hunter_runner.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\scripts\\profit_hunter_runner.js",
+      "size_bytes": 9058,
+      "modified_utc": "2026-09-07T10:47:36.605Z"
+    },
+    {
+      "relative_path": "scripts\\run_money_factory_watchdog.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\scripts\\run_money_factory_watchdog.js",
+      "size_bytes": 3036,
+      "modified_utc": "2026-09-08T06:03:44.039Z"
+    },
+    {
+      "relative_path": "scripts\\sqlite_mirror.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\scripts\\sqlite_mirror.js",
+      "size_bytes": 7544,
+      "modified_utc": "2026-09-07T05:02:43.693Z"
+    },
+    {
+      "relative_path": "scripts\\start_real_founder_pilot.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\scripts\\start_real_founder_pilot.js",
+      "size_bytes": 12676,
+      "modified_utc": "2026-09-07T11:06:20.151Z"
+    },
+    {
+      "relative_path": "SOURCE_INDEX.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\SOURCE_INDEX.md",
+      "size_bytes": 533,
+      "modified_utc": "2026-09-07T09:57:16.858Z"
+    },
+    {
+      "relative_path": "studio\\index.html",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\studio\\index.html",
+      "size_bytes": 49054,
+      "modified_utc": "2026-09-07T10:55:31.669Z"
+    },
+    {
+      "relative_path": "studio\\server.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\studio\\server.js",
+      "size_bytes": 19446,
+      "modified_utc": "2026-09-07T10:54:46.424Z"
+    },
+    {
+      "relative_path": "tests\\stress_test_matrix.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\tests\\stress_test_matrix.js",
+      "size_bytes": 8686,
+      "modified_utc": "2026-09-07T04:56:41.216Z"
+    },
+    {
+      "relative_path": "tests\\stress_test_results.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\tests\\stress_test_results.json",
+      "size_bytes": 831,
+      "modified_utc": "2026-09-07T05:03:20.088Z"
+    },
+    {
+      "relative_path": "tests\\test_dual_writer_failures.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\tests\\test_dual_writer_failures.js",
+      "size_bytes": 14227,
+      "modified_utc": "2026-09-07T12:13:22.361Z"
+    },
+    {
+      "relative_path": "tests\\test_dual_writer_pack.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\tests\\test_dual_writer_pack.js",
+      "size_bytes": 16273,
+      "modified_utc": "2026-09-07T12:14:22.073Z"
+    },
+    {
+      "relative_path": "tests\\test_evidence_firewall.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\tests\\test_evidence_firewall.js",
+      "size_bytes": 10036,
+      "modified_utc": "2026-09-07T10:56:23.945Z"
+    },
+    {
+      "relative_path": "tests\\test_founder_concierge.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\tests\\test_founder_concierge.js",
+      "size_bytes": 6366,
+      "modified_utc": "2026-09-07T10:45:51.036Z"
+    },
+    {
+      "relative_path": "tests\\test_money_factory_v3.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\tests\\test_money_factory_v3.js",
+      "size_bytes": 18237,
+      "modified_utc": "2026-09-08T06:04:23.847Z"
+    },
+    {
+      "relative_path": "tests\\test_pilot_hardening.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\tests\\test_pilot_hardening.js",
+      "size_bytes": 12272,
+      "modified_utc": "2026-09-07T11:06:52.612Z"
+    },
+    {
+      "relative_path": "tests\\test_profit_hunter_v3.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\tests\\test_profit_hunter_v3.js",
+      "size_bytes": 12346,
+      "modified_utc": "2026-09-07T10:47:04.501Z"
+    },
+    {
+      "relative_path": "tests\\test_real_pilot_instrumentation.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\tests\\test_real_pilot_instrumentation.js",
+      "size_bytes": 12394,
+      "modified_utc": "2026-09-07T11:07:21.747Z"
+    },
+    {
+      "relative_path": "tests\\test_warehouse.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\tests\\test_warehouse.js",
+      "size_bytes": 9086,
+      "modified_utc": "2026-09-07T04:37:18.443Z"
+    },
+    {
+      "relative_path": "thoughts\\index.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\index.json",
+      "size_bytes": 412,
+      "modified_utc": "2026-09-07T11:07:45.492Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000001.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000001.json",
+      "size_bytes": 6302,
+      "modified_utc": "2026-09-07T11:07:45.488Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000002.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000002.json",
+      "size_bytes": 4403,
+      "modified_utc": "2026-09-07T10:03:47.802Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000003.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000003.json",
+      "size_bytes": 6360,
+      "modified_utc": "2026-09-07T11:07:45.492Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000004.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000004.json",
+      "size_bytes": 2462,
+      "modified_utc": "2026-09-07T09:57:16.719Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000005.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000005.json",
+      "size_bytes": 2757,
+      "modified_utc": "2026-09-07T10:04:05.545Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000006.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000006.json",
+      "size_bytes": 2775,
+      "modified_utc": "2026-09-07T09:57:16.749Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000007.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000007.json",
+      "size_bytes": 3152,
+      "modified_utc": "2026-09-07T10:04:05.572Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000008.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000008.json",
+      "size_bytes": 2776,
+      "modified_utc": "2026-09-07T09:57:16.780Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000009.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000009.json",
+      "size_bytes": 2218,
+      "modified_utc": "2026-09-07T09:57:16.789Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000010.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000010.json",
+      "size_bytes": 2744,
+      "modified_utc": "2026-09-07T09:57:16.799Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000011.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000011.json",
+      "size_bytes": 2331,
+      "modified_utc": "2026-09-07T09:57:16.804Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000012.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000012.json",
+      "size_bytes": 2677,
+      "modified_utc": "2026-09-07T09:57:16.843Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000013.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000013.json",
+      "size_bytes": 2665,
+      "modified_utc": "2026-09-07T09:57:16.856Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000014.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000014.json",
+      "size_bytes": 3372,
+      "modified_utc": "2026-09-07T11:07:45.385Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000015.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000015.json",
+      "size_bytes": 3456,
+      "modified_utc": "2026-09-07T11:07:45.397Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000016.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000016.json",
+      "size_bytes": 3069,
+      "modified_utc": "2026-09-07T11:07:45.412Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000017.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000017.json",
+      "size_bytes": 2814,
+      "modified_utc": "2026-09-07T10:03:47.747Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000018.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000018.json",
+      "size_bytes": 2523,
+      "modified_utc": "2026-09-07T10:03:46.941Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000019.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000019.json",
+      "size_bytes": 2542,
+      "modified_utc": "2026-09-07T10:03:46.951Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000020.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000020.json",
+      "size_bytes": 2478,
+      "modified_utc": "2026-09-07T10:03:46.960Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000021.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000021.json",
+      "size_bytes": 2411,
+      "modified_utc": "2026-09-07T10:03:46.971Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000022.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000022.json",
+      "size_bytes": 2523,
+      "modified_utc": "2026-09-07T10:03:47.144Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000023.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000023.json",
+      "size_bytes": 2542,
+      "modified_utc": "2026-09-07T10:03:47.155Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000024.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000024.json",
+      "size_bytes": 2478,
+      "modified_utc": "2026-09-07T10:03:47.164Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000025.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000025.json",
+      "size_bytes": 2411,
+      "modified_utc": "2026-09-07T10:03:47.173Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000026.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000026.json",
+      "size_bytes": 2523,
+      "modified_utc": "2026-09-07T10:03:47.334Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000027.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000027.json",
+      "size_bytes": 2542,
+      "modified_utc": "2026-09-07T10:03:47.346Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000028.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000028.json",
+      "size_bytes": 2478,
+      "modified_utc": "2026-09-07T10:03:47.356Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000029.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000029.json",
+      "size_bytes": 2411,
+      "modified_utc": "2026-09-07T10:03:47.363Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000030.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000030.json",
+      "size_bytes": 2523,
+      "modified_utc": "2026-09-07T10:03:47.531Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000031.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000031.json",
+      "size_bytes": 2542,
+      "modified_utc": "2026-09-07T10:03:47.542Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000032.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000032.json",
+      "size_bytes": 2478,
+      "modified_utc": "2026-09-07T10:03:47.552Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000033.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000033.json",
+      "size_bytes": 2411,
+      "modified_utc": "2026-09-07T10:03:47.559Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000034.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000034.json",
+      "size_bytes": 2523,
+      "modified_utc": "2026-09-07T10:03:47.723Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000035.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000035.json",
+      "size_bytes": 2542,
+      "modified_utc": "2026-09-07T10:03:47.732Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000036.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000036.json",
+      "size_bytes": 2478,
+      "modified_utc": "2026-09-07T10:03:47.741Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000037.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000037.json",
+      "size_bytes": 2411,
+      "modified_utc": "2026-09-07T10:03:47.749Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000038.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000038.json",
+      "size_bytes": 2969,
+      "modified_utc": "2026-09-07T10:24:48.773Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000039.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000039.json",
+      "size_bytes": 2523,
+      "modified_utc": "2026-09-07T10:24:25.256Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000040.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000040.json",
+      "size_bytes": 2542,
+      "modified_utc": "2026-09-07T10:24:25.277Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000041.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000041.json",
+      "size_bytes": 2478,
+      "modified_utc": "2026-09-07T10:24:25.286Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000042.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000042.json",
+      "size_bytes": 2954,
+      "modified_utc": "2026-09-07T11:07:45.423Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000043.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000043.json",
+      "size_bytes": 2523,
+      "modified_utc": "2026-09-07T10:32:56.486Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000044.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000044.json",
+      "size_bytes": 2542,
+      "modified_utc": "2026-09-07T10:32:56.497Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000045.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000045.json",
+      "size_bytes": 2478,
+      "modified_utc": "2026-09-07T10:32:56.505Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000046.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000046.json",
+      "size_bytes": 2507,
+      "modified_utc": "2026-09-07T10:32:56.514Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000047.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000047.json",
+      "size_bytes": 2523,
+      "modified_utc": "2026-09-07T10:33:08.286Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000048.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000048.json",
+      "size_bytes": 2542,
+      "modified_utc": "2026-09-07T10:33:08.297Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000049.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000049.json",
+      "size_bytes": 2478,
+      "modified_utc": "2026-09-07T10:33:08.308Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000050.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000050.json",
+      "size_bytes": 2507,
+      "modified_utc": "2026-09-07T10:33:08.317Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000051.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000051.json",
+      "size_bytes": 3446,
+      "modified_utc": "2026-09-07T10:34:26.932Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000052.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000052.json",
+      "size_bytes": 2889,
+      "modified_utc": "2026-09-07T10:34:26.836Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000053.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000053.json",
+      "size_bytes": 2829,
+      "modified_utc": "2026-09-07T10:34:26.847Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000054.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000054.json",
+      "size_bytes": 2237,
+      "modified_utc": "2026-09-07T10:34:26.858Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000055.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000055.json",
+      "size_bytes": 2642,
+      "modified_utc": "2026-09-07T10:34:26.867Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000056.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000056.json",
+      "size_bytes": 2498,
+      "modified_utc": "2026-09-07T10:34:26.828Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000057.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000057.json",
+      "size_bytes": 2540,
+      "modified_utc": "2026-09-07T10:34:26.839Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000058.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000058.json",
+      "size_bytes": 2514,
+      "modified_utc": "2026-09-07T10:34:26.850Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000059.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000059.json",
+      "size_bytes": 2223,
+      "modified_utc": "2026-09-07T10:34:26.860Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000060.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000060.json",
+      "size_bytes": 2406,
+      "modified_utc": "2026-09-07T10:34:26.870Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000061.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000061.json",
+      "size_bytes": 2523,
+      "modified_utc": "2026-09-07T10:45:43.977Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000062.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000062.json",
+      "size_bytes": 2542,
+      "modified_utc": "2026-09-07T10:45:43.988Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000063.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000063.json",
+      "size_bytes": 2478,
+      "modified_utc": "2026-09-07T10:45:43.999Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000064.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000064.json",
+      "size_bytes": 2507,
+      "modified_utc": "2026-09-07T10:45:44.008Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000065.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000065.json",
+      "size_bytes": 2523,
+      "modified_utc": "2026-09-07T10:45:55.006Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000066.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000066.json",
+      "size_bytes": 2542,
+      "modified_utc": "2026-09-07T10:45:55.019Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000067.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000067.json",
+      "size_bytes": 2478,
+      "modified_utc": "2026-09-07T10:45:55.029Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000068.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000068.json",
+      "size_bytes": 2507,
+      "modified_utc": "2026-09-07T10:45:55.037Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000069.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000069.json",
+      "size_bytes": 2798,
+      "modified_utc": "2026-09-07T10:54:16.542Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000070.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000070.json",
+      "size_bytes": 2523,
+      "modified_utc": "2026-09-07T10:56:36.686Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000071.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000071.json",
+      "size_bytes": 2542,
+      "modified_utc": "2026-09-07T10:56:36.697Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000072.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000072.json",
+      "size_bytes": 2478,
+      "modified_utc": "2026-09-07T10:56:36.708Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000073.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000073.json",
+      "size_bytes": 2507,
+      "modified_utc": "2026-09-07T10:56:36.714Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000074.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000074.json",
+      "size_bytes": 2523,
+      "modified_utc": "2026-09-07T11:07:45.389Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000075.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000075.json",
+      "size_bytes": 2542,
+      "modified_utc": "2026-09-07T11:07:45.399Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000076.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000076.json",
+      "size_bytes": 2478,
+      "modified_utc": "2026-09-07T11:07:45.414Z"
+    },
+    {
+      "relative_path": "thoughts\\THOUGHT-000077.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\thoughts\\THOUGHT-000077.json",
+      "size_bytes": 2507,
+      "modified_utc": "2026-09-07T11:07:45.426Z"
+    },
+    {
+      "relative_path": "validation\\CONCIERGE_OFFER_SPEC.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\CONCIERGE_OFFER_SPEC.md",
+      "size_bytes": 3908,
+      "modified_utc": "2026-09-07T10:25:05.833Z"
+    },
+    {
+      "relative_path": "validation\\package\\CONCIERGE_60MIN_PROTOCOL.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\package\\CONCIERGE_60MIN_PROTOCOL.md",
+      "size_bytes": 1516,
+      "modified_utc": "2026-09-07T10:46:24.019Z"
+    },
+    {
+      "relative_path": "validation\\package\\EVIDENCE_CAPTURE_SCHEMA.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\package\\EVIDENCE_CAPTURE_SCHEMA.json",
+      "size_bytes": 1894,
+      "modified_utc": "2026-09-07T10:46:24.020Z"
+    },
+    {
+      "relative_path": "validation\\package\\FIRST_PILOT_CHECKLIST.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\package\\FIRST_PILOT_CHECKLIST.md",
+      "size_bytes": 2011,
+      "modified_utc": "2026-09-07T11:06:05.293Z"
+    },
+    {
+      "relative_path": "validation\\package\\FOUNDER_INTAKE_FORM.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\package\\FOUNDER_INTAKE_FORM.md",
+      "size_bytes": 861,
+      "modified_utc": "2026-09-07T10:46:24.019Z"
+    },
+    {
+      "relative_path": "validation\\package\\FOUNDER_REVIEW_QUESTIONNAIRE.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\package\\FOUNDER_REVIEW_QUESTIONNAIRE.md",
+      "size_bytes": 1113,
+      "modified_utc": "2026-09-07T10:46:24.020Z"
+    },
+    {
+      "relative_path": "validation\\package\\KILL_CRITERIA.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\package\\KILL_CRITERIA.md",
+      "size_bytes": 756,
+      "modified_utc": "2026-09-07T10:46:24.021Z"
+    },
+    {
+      "relative_path": "validation\\package\\SUCCESS_CRITERIA.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\package\\SUCCESS_CRITERIA.md",
+      "size_bytes": 743,
+      "modified_utc": "2026-09-07T10:46:24.021Z"
+    },
+    {
+      "relative_path": "validation\\package\\WTP_INTERVIEW_GUIDE.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\package\\WTP_INTERVIEW_GUIDE.md",
+      "size_bytes": 1588,
+      "modified_utc": "2026-09-07T10:53:31.714Z"
+    },
+    {
+      "relative_path": "validation\\pilot_event_ledger.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\pilot_event_ledger.json",
+      "size_bytes": 82090,
+      "modified_utc": "2026-09-08T06:04:31.859Z"
+    },
+    {
+      "relative_path": "validation\\pilot_evidence_ledger.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\pilot_evidence_ledger.json",
+      "size_bytes": 17633,
+      "modified_utc": "2026-09-08T06:04:29.120Z"
+    },
+    {
+      "relative_path": "validation\\pilot_evidence_record.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\pilot_evidence_record.js",
+      "size_bytes": 11262,
+      "modified_utc": "2026-09-07T10:45:04.622Z"
+    },
+    {
+      "relative_path": "validation\\PILOT_EVIDENCE_RECORD.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\PILOT_EVIDENCE_RECORD.md",
+      "size_bytes": 5040,
+      "modified_utc": "2026-09-08T06:04:29.121Z"
+    },
+    {
+      "relative_path": "validation\\pilot_session.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\pilot_session.js",
+      "size_bytes": 31050,
+      "modified_utc": "2026-09-07T11:05:54.678Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-016353.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-016353.json",
+      "size_bytes": 1834,
+      "modified_utc": "2026-09-07T11:07:33.846Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-093F50.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-093F50.json",
+      "size_bytes": 1005,
+      "modified_utc": "2026-09-07T10:56:00.875Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-0CA82D.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-0CA82D.json",
+      "size_bytes": 1292,
+      "modified_utc": "2026-09-07T11:07:27.395Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-0DCD4D.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-0DCD4D.json",
+      "size_bytes": 1522,
+      "modified_utc": "2026-09-07T10:56:40.802Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-1F2BF1.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-1F2BF1.json",
+      "size_bytes": 1869,
+      "modified_utc": "2026-09-07T11:07:33.987Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-236634.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-236634.json",
+      "size_bytes": 1981,
+      "modified_utc": "2026-09-07T11:07:27.489Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-2775F2.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-2775F2.json",
+      "size_bytes": 1569,
+      "modified_utc": "2026-09-07T10:56:40.740Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-28B62F.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-28B62F.json",
+      "size_bytes": 1815,
+      "modified_utc": "2026-09-07T11:07:33.867Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-3323EE.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-3323EE.json",
+      "size_bytes": 1292,
+      "modified_utc": "2026-09-07T11:07:00.528Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-3E4477.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-3E4477.json",
+      "size_bytes": 1726,
+      "modified_utc": "2026-09-07T10:56:40.788Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-3EE395.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-3EE395.json",
+      "size_bytes": 1628,
+      "modified_utc": "2026-09-07T11:06:57.805Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-4295E6.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-4295E6.json",
+      "size_bytes": 1862,
+      "modified_utc": "2026-09-07T11:07:33.918Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-4B2E7B.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-4B2E7B.json",
+      "size_bytes": 1263,
+      "modified_utc": "2026-09-07T11:07:00.530Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-4CD003.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-4CD003.json",
+      "size_bytes": 2064,
+      "modified_utc": "2026-09-07T11:07:34.040Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-4D3E67.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-4D3E67.json",
+      "size_bytes": 1884,
+      "modified_utc": "2026-09-07T11:07:27.436Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-517717.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-517717.json",
+      "size_bytes": 1539,
+      "modified_utc": "2026-09-07T10:56:00.920Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-52A60A.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-52A60A.json",
+      "size_bytes": 1845,
+      "modified_utc": "2026-09-07T11:07:27.512Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-535267.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-535267.json",
+      "size_bytes": 1522,
+      "modified_utc": "2026-09-07T10:56:00.944Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-5B995E.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-5B995E.json",
+      "size_bytes": 1726,
+      "modified_utc": "2026-09-07T10:56:00.930Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-5D0962.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-5D0962.json",
+      "size_bytes": 1268,
+      "modified_utc": "2026-09-07T11:06:57.597Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-5D9350.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-5D9350.json",
+      "size_bytes": 996,
+      "modified_utc": "2026-09-07T10:56:00.873Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-63B4BE.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-63B4BE.json",
+      "size_bytes": 1008,
+      "modified_utc": "2026-09-07T10:54:20.007Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-63B4BE_REVIEW_PACKET.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-63B4BE_REVIEW_PACKET.md",
+      "size_bytes": 675,
+      "modified_utc": "2026-09-07T10:54:20.014Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-73E598.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-73E598.json",
+      "size_bytes": 1815,
+      "modified_utc": "2026-09-07T11:06:57.662Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-7917D2.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-7917D2.json",
+      "size_bytes": 1834,
+      "modified_utc": "2026-09-07T11:06:57.645Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-7E7533.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-7E7533.json",
+      "size_bytes": 1576,
+      "modified_utc": "2026-09-07T10:54:16.581Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-83B9C8.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-83B9C8.json",
+      "size_bytes": 1539,
+      "modified_utc": "2026-09-07T10:56:40.775Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-8D0ADA.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-8D0ADA.json",
+      "size_bytes": 1263,
+      "modified_utc": "2026-09-07T11:07:27.397Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-9E94FA.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-9E94FA.json",
+      "size_bytes": 1268,
+      "modified_utc": "2026-09-07T11:07:33.792Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-9F171B.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-9F171B.json",
+      "size_bytes": 1700,
+      "modified_utc": "2026-09-07T11:07:33.826Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-A9B6A2.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-A9B6A2.json",
+      "size_bytes": 2337,
+      "modified_utc": "2026-09-07T11:06:57.834Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-AA1B4F.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-AA1B4F.json",
+      "size_bytes": 2064,
+      "modified_utc": "2026-09-07T11:06:57.775Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-B81254.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-B81254.json",
+      "size_bytes": 1263,
+      "modified_utc": "2026-09-07T11:06:26.066Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-B81254_REVIEW_PACKET.md",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-B81254_REVIEW_PACKET.md",
+      "size_bytes": 695,
+      "modified_utc": "2026-09-07T11:06:26.069Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-BBF862.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-BBF862.json",
+      "size_bytes": 1700,
+      "modified_utc": "2026-09-07T11:06:57.630Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-C3123C.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-C3123C.json",
+      "size_bytes": 1628,
+      "modified_utc": "2026-09-07T11:07:34.079Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-C6FA8F.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-C6FA8F.json",
+      "size_bytes": 1005,
+      "modified_utc": "2026-09-07T10:56:40.711Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-DB8658.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-DB8658.json",
+      "size_bytes": 1569,
+      "modified_utc": "2026-09-07T10:56:00.898Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-DD7158.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-DD7158.json",
+      "size_bytes": 1881,
+      "modified_utc": "2026-09-07T11:07:27.470Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-E3B6E7.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-E3B6E7.json",
+      "size_bytes": 2337,
+      "modified_utc": "2026-09-07T11:07:34.114Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-EA5C78.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-EA5C78.json",
+      "size_bytes": 996,
+      "modified_utc": "2026-09-07T10:56:40.708Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-EA737A.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-EA737A.json",
+      "size_bytes": 1862,
+      "modified_utc": "2026-09-07T11:06:57.693Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260907-FF4F1D.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260907-FF4F1D.json",
+      "size_bytes": 1869,
+      "modified_utc": "2026-09-07T11:06:57.725Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260908-0440C6.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260908-0440C6.json",
+      "size_bytes": 1700,
+      "modified_utc": "2026-09-08T06:04:31.531Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260908-270DF1.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260908-270DF1.json",
+      "size_bytes": 2064,
+      "modified_utc": "2026-09-08T06:04:31.773Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260908-4AB79D.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260908-4AB79D.json",
+      "size_bytes": 1862,
+      "modified_utc": "2026-09-08T06:04:31.628Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260908-7B4A0B.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260908-7B4A0B.json",
+      "size_bytes": 1268,
+      "modified_utc": "2026-09-08T06:04:31.495Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260908-84456A.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260908-84456A.json",
+      "size_bytes": 1869,
+      "modified_utc": "2026-09-08T06:04:31.675Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260908-8618B4.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260908-8618B4.json",
+      "size_bytes": 1834,
+      "modified_utc": "2026-09-08T06:04:31.554Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260908-C01065.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260908-C01065.json",
+      "size_bytes": 2337,
+      "modified_utc": "2026-09-08T06:04:31.850Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260908-E12C82.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260908-E12C82.json",
+      "size_bytes": 1628,
+      "modified_utc": "2026-09-08T06:04:31.812Z"
+    },
+    {
+      "relative_path": "validation\\sessions\\PSESS-20260908-E7DCFE.json",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\sessions\\PSESS-20260908-E7DCFE.json",
+      "size_bytes": 1815,
+      "modified_utc": "2026-09-08T06:04:31.578Z"
+    },
+    {
+      "relative_path": "validation\\validate_founder_scenario.js",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\validation\\validate_founder_scenario.js",
+      "size_bytes": 10817,
+      "modified_utc": "2026-09-07T10:33:48.919Z"
+    },
+    {
+      "relative_path": "warehouse.db",
+      "absolute_path": "C:\\Users\\lol\\2026-workspace\\project-memory\\warehouse.db",
+      "size_bytes": 94208,
+      "modified_utc": "2026-09-07T05:02:45.678Z"
+    }
+  ],
+  "indexed_at_utc": "2026-09-10T04:46:51.206Z"
+}

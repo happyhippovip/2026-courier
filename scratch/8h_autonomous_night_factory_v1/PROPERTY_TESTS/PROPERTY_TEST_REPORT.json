@@ -1,0 +1,47 @@
+[
+  {
+    "id": "PROP-01",
+    "name": "Reordering read-only events preserves identical safety outcome",
+    "proved": true
+  },
+  {
+    "id": "PROP-02",
+    "name": "Renaming display labels preserves logical work identity",
+    "proved": true
+  },
+  {
+    "id": "PROP-03",
+    "name": "Restart and replay preserve terminal safety decisions",
+    "proved": true
+  },
+  {
+    "id": "PROP-04",
+    "name": "Duplicating a result does not duplicate side effects",
+    "proved": true
+  },
+  {
+    "id": "PROP-05",
+    "name": "Stale version never becomes fresher by replay",
+    "proved": true
+  },
+  {
+    "id": "PROP-06",
+    "name": "Adding uncertainty never increases permission",
+    "proved": true
+  },
+  {
+    "id": "PROP-07",
+    "name": "Removing evidence never turns HOLD/BLOCK into PASS",
+    "proved": true
+  },
+  {
+    "id": "PROP-08",
+    "name": "Increasing future financial liability never reduces Human Gate",
+    "proved": true
+  },
+  {
+    "id": "PROP-09",
+    "name": "Path alias/case variation preserves writer collision",
+    "proved": true
+  }
+]

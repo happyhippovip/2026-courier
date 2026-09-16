@@ -1,0 +1,13 @@
+{
+  "counterexample_id": "CE_TOKEN_01_replayed_approval_double_execution",
+  "date": "2026-09-09T21:49:11.341Z",
+  "category": "TOKEN_REPLAY_DOUBLE_EXECUTION",
+  "vulnerability": "A single human approval token for a €50 spend was intercepted and re-submitted to execute a second duplicate transaction",
+  "unprotected_behavior": "Tokens checked only expiry timestamp and HMAC signature without single-use nonce consumption",
+  "repaired_behavior": "ApprovalTokenCore records consumed nonces atomically, rejecting replay submissions immediately",
+  "minimal_failing_case": {
+    "token_id": "tok_01",
+    "attempt_1": "APPROVED",
+    "attempt_2": "REJECTED_TOKEN_ALREADY_CONSUMED"
+  }
+}

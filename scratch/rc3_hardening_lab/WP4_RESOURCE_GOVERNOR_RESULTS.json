@@ -1,0 +1,68 @@
+{
+  "totalTests": 12,
+  "passed": 12,
+  "failed": 0,
+  "timestamp": "2026-09-13T00:01:28.632Z",
+  "results": [
+    {
+      "testId": "ADV_GOV_01_MAC_THERMAL_WINDOWS_NORMAL",
+      "description": "Mac heat incident holds Mac heavy work while Windows remains eligible",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_GOV_02_WINDOWS_PRESSURE_LOCAL_ONLY",
+      "description": "Windows pressure holds only Windows heavy work without affecting Mac",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_GOV_03_MAC_RECOVERY",
+      "description": "Mac cools down and recovers to NORMAL, restoring heavy admission",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_GOV_04_UNKNOWN_THERMAL_STATE",
+      "description": "Unknown thermal state is handled conservatively without crashing",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_GOV_05_HIGH_CPU_WITH_GENUINE_PROGRESS",
+      "description": "High CPU with progress evidence is kept running, never killed",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_GOV_06_LOW_CPU_VALID_WAIT",
+      "description": "Low CPU in valid wait state is preserved",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_GOV_07_HIGH_MEMORY_PRESSURE",
+      "description": "High memory pressure classifies machine as PRESSURE and holds new heavy tasks",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_GOV_08_SWAP_PRESSURE",
+      "description": "High swap pressure must classify machine into PRESSURE and hold heavy tasks",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_GOV_09_MULTIPLE_HEAVY_JOBS_CAP",
+      "description": "Mac concurrency cap = 1, Windows concurrency cap = 4",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_GOV_10_CANONICAL_PLUS_DUPLICATE",
+      "description": "NoStackingDetector rejects second identical heavy task",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_GOV_11_LIGHTWEIGHT_DIAGNOSTICS_PERMITTED_DURING_PRESSURE",
+      "description": "Lightweight tasks allowed even when machine is under heavy pressure",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_GOV_12_TIME_TEMP_ALONE_NEVER_KILLS",
+      "description": "StallPolicy confirms temperature/time alone never kills progressing process",
+      "status": "PASS"
+    }
+  ]
+}

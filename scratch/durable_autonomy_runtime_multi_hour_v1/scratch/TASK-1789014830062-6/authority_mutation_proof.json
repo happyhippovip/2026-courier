@@ -1,0 +1,7 @@
+{
+  "test": "DYNAMIC_AUTHORITY_MUTATION_FACTORY",
+  "mutants_evaluated": 3,
+  "mutants_killed": 3,
+  "mutation_score": "100.00%",
+  "status": "PASSED"
+}

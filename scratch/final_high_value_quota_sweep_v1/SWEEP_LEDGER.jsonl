@@ -1,0 +1,6 @@
+{"timestamp":"2026-09-09T20:48:22.241Z","phase":1,"scenarios_tested":3,"multi_fault_cases":3,"findings":1}
+{"timestamp":"2026-09-09T20:48:22.244Z","phase":2,"scenarios_tested":3,"findings":0}
+{"timestamp":"2026-09-09T20:48:22.248Z","phase":3,"scenarios_tested":1,"multi_fault_cases":1,"findings":1}
+{"timestamp":"2026-09-09T20:48:22.250Z","phase":4,"scenarios_tested":2,"findings":0}
+{"timestamp":"2026-09-09T20:48:22.253Z","phase":5,"scenarios_tested":1,"findings":0}
+{"timestamp":"2026-09-09T20:48:22.256Z","phase":6,"mutations_tested":8,"mutations_killed":8,"mutations_survived":0}

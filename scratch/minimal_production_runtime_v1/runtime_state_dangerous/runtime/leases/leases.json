@@ -1,0 +1,39 @@
+[
+  {
+    "process_lease_id": "LEASE-1789030435810-A6ADCD",
+    "task_id": "TASK-AUTO-001-REPAIR",
+    "task_version": 1,
+    "goal_id": "GOAL-1789030435805",
+    "worker_id": "WORKER-LOCAL-DETERMINISTIC",
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 14568,
+    "command": "courier_runtime --execute-task",
+    "process_fingerprint": "2591fb9b58558bd5950cacac06ecbc7c54aedb215299de87c189fc6cda8d01f1",
+    "command_fingerprint": "aac9a78be1f71f6fbbc1a1928fe0c034d30acd57bf8d4e289aa8658d693d5da6",
+    "task_token": "TOKEN-TASK-AUTO-001-REPAIR-1789030435810",
+    "start_time_epoch": 1789030435810,
+    "purpose": "WORK-REPAIR-critical_item.txt",
+    "started_at": "2026-09-10T08:53:55.810Z",
+    "last_heartbeat_at": "2026-09-10T08:53:55.810Z",
+    "last_progress_at": "2026-09-10T08:53:55.810Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "EXECUTION_UNCERTAIN",
+    "termination_reason": "Orphaned process detected upon restart; fenced without retry",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-10T08:53:55.810Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-10T08:53:55.905Z",
+        "status": "EXECUTION_UNCERTAIN",
+        "note": "Orphaned process detected upon restart; fenced without retry"
+      }
+    ]
+  }
+]

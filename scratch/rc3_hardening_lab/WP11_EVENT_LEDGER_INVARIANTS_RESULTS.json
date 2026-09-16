@@ -1,0 +1,53 @@
+{
+  "totalTests": 9,
+  "passed": 9,
+  "failed": 0,
+  "timestamp": "2026-09-13T00:01:22.045Z",
+  "results": [
+    {
+      "testId": "LEDGER_01_APPEND_ONLY_ORDERING",
+      "description": "Events are appended with non-decreasing timestamps and sequence integrity",
+      "status": "PASS"
+    },
+    {
+      "testId": "LEDGER_02_SEQUENCE_NUMBER_GAP_DETECTION",
+      "description": "Ledger sequence validator detects missing/skipped sequence numbers",
+      "status": "PASS"
+    },
+    {
+      "testId": "LEDGER_03_DUPLICATE_EVENT_IDEMPOTENCY",
+      "description": "Re-submitting duplicate event does not create duplicate effects or double records",
+      "status": "PASS"
+    },
+    {
+      "testId": "LEDGER_04_AUDIT_LEDGER_CORRUPTED_FINAL_LINE",
+      "description": "AuditLedger cleanly recovers valid events up to truncated final line",
+      "status": "PASS"
+    },
+    {
+      "testId": "LEDGER_05_EVIDENCE_LEDGER_CORRUPTED_FINAL_LINE",
+      "description": "EvidenceLedger cleanly recovers valid evidence up to truncated final line",
+      "status": "PASS"
+    },
+    {
+      "testId": "LEDGER_06_FOLLOW_UP_INBOX_CORRUPTED_FINAL_LINE",
+      "description": "FollowUpInbox preserves all ideas up to truncated final line",
+      "status": "PASS"
+    },
+    {
+      "testId": "LEDGER_07_RESUME_APPEND_AFTER_RECOVERY",
+      "description": "Ledgers can resume appending new events cleanly after corruption recovery",
+      "status": "PASS"
+    },
+    {
+      "testId": "LEDGER_08_CYCLE_LEDGER_CATCH_UP_INVARIANT",
+      "description": "Cycle ledger detects missed cycles and recovers into VERIFIED status",
+      "status": "PASS"
+    },
+    {
+      "testId": "LEDGER_09_WAREHOUSE_AUDIT_IMMUTABILITY",
+      "description": "Mutating opportunity appends immutable snapshots to history ledger",
+      "status": "PASS"
+    }
+  ]
+}

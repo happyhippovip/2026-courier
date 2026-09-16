@@ -1,0 +1,18 @@
+{
+  "timestamp": "2026-09-10T07:16:30.907Z",
+  "tested_states": [
+    "PROGRESSING",
+    "WAITING_VALID",
+    "STALLED",
+    "HUNG",
+    "ORPHANED",
+    "EXECUTION_UNCERTAIN"
+  ],
+  "time_alone_kills_work": false,
+  "evaluation_5min_policy": {
+    "elapsed_ms": 350000,
+    "has_recent_progress": true,
+    "result_action": "KEEP_RUNNING",
+    "correctly_spared": true
+  }
+}

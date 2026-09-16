@@ -1,0 +1,2 @@
+{"test_suite":"DIFFERENTIAL_LADDER_V2","epoch":"EPOCH_05_DIFFERENTIAL_SCALE","executed_at_utc":"2026-09-10T04:18:51.710Z","total_events":26000,"comparisons":7839,"matches":5541,"divergences":2298,"status":"DISCREPANCY_DETECTED"}
+{"test_suite":"DIFFERENTIAL_LADDER_V2","epoch":"EPOCH_05_DIFFERENTIAL_SCALE","executed_at_utc":"2026-09-10T04:22:40.935Z","total_events":26000,"comparisons":7871,"matches":7871,"divergences":0,"status":"PASSED"}

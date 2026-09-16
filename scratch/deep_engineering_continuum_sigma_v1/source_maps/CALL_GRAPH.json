@@ -1,0 +1,1116 @@
+{
+  "generated_at_utc": "2026-09-10T03:53:21.533Z",
+  "modules": {
+    "supervisor/audit_ledger.js": {
+      "lines": 116,
+      "bytes": 3080,
+      "classes": [
+        {
+          "name": "AuditLedger",
+          "line": 8
+        }
+      ],
+      "functions": [
+        {
+          "name": "constructor",
+          "line": 9
+        },
+        {
+          "name": "getEvents",
+          "line": 90
+        },
+        {
+          "name": "getEventsForTask",
+          "line": 104
+        },
+        {
+          "name": "getEventsForProcess",
+          "line": 108
+        }
+      ]
+    },
+    "supervisor/chief_envelope.js": {
+      "lines": 67,
+      "bytes": 1701,
+      "classes": [
+        {
+          "name": "ChiefEscalationEnvelope",
+          "line": 6
+        }
+      ],
+      "functions": []
+    },
+    "supervisor/decision_engine.js": {
+      "lines": 79,
+      "bytes": 2578,
+      "classes": [
+        {
+          "name": "DecisionEngine",
+          "line": 7
+        }
+      ],
+      "functions": [
+        {
+          "name": "constructor",
+          "line": 8
+        }
+      ]
+    },
+    "supervisor/diagnostic_bundle.js": {
+      "lines": 104,
+      "bytes": 3888,
+      "classes": [
+        {
+          "name": "DiagnosticBundleManager",
+          "line": 9
+        }
+      ],
+      "functions": [
+        {
+          "name": "constructor",
+          "line": 10
+        },
+        {
+          "name": "getBundle",
+          "line": 94
+        }
+      ]
+    },
+    "supervisor/index.js": {
+      "lines": 77,
+      "bytes": 2692,
+      "classes": [
+        {
+          "name": "SupervisorPlane",
+          "line": 30
+        }
+      ],
+      "functions": [
+        {
+          "name": "constructor",
+          "line": 31
+        },
+        {
+          "name": "getSafetyInvariants",
+          "line": 47
+        }
+      ]
+    },
+    "supervisor/lease_manager.js": {
+      "lines": 232,
+      "bytes": 7077,
+      "classes": [
+        {
+          "name": "ProcessLeaseManager",
+          "line": 9
+        }
+      ],
+      "functions": [
+        {
+          "name": "constructor",
+          "line": 10
+        },
+        {
+          "name": "_load",
+          "line": 22
+        },
+        {
+          "name": "_persist",
+          "line": 37
+        },
+        {
+          "name": "computeProcessFingerprint",
+          "line": 44
+        },
+        {
+          "name": "computeCommandFingerprint",
+          "line": 49
+        },
+        {
+          "name": "getLease",
+          "line": 126
+        },
+        {
+          "name": "getAllLeases",
+          "line": 130
+        },
+        {
+          "name": "getActiveLeasesForMachine",
+          "line": 134
+        },
+        {
+          "name": "recordHeartbeat",
+          "line": 145
+        },
+        {
+          "name": "updateStatus",
+          "line": 170
+        },
+        {
+          "name": "reconcileChildrenOnParentCompletion",
+          "line": 206
+        }
+      ]
+    },
+    "supervisor/no_stacking.js": {
+      "lines": 65,
+      "bytes": 2208,
+      "classes": [
+        {
+          "name": "NoStackingDetector",
+          "line": 8
+        }
+      ],
+      "functions": [
+        {
+          "name": "constructor",
+          "line": 9
+        },
+        {
+          "name": "computeTaskWorkSignature",
+          "line": 14
+        }
+      ]
+    },
+    "supervisor/progress_tracker.js": {
+      "lines": 116,
+      "bytes": 3674,
+      "classes": [
+        {
+          "name": "ProgressTracker",
+          "line": 22
+        }
+      ],
+      "functions": [
+        {
+          "name": "constructor",
+          "line": 23
+        },
+        {
+          "name": "_load",
+          "line": 35
+        },
+        {
+          "name": "getEvidenceForProcess",
+          "line": 102
+        },
+        {
+          "name": "getLatestProgressForProcess",
+          "line": 106
+        }
+      ]
+    },
+    "supervisor/reconciliation.js": {
+      "lines": 153,
+      "bytes": 5880,
+      "classes": [
+        {
+          "name": "RestartReconciler",
+          "line": 10
+        }
+      ],
+      "functions": [
+        {
+          "name": "constructor",
+          "line": 11
+        }
+      ]
+    },
+    "supervisor/resource_governor.js": {
+      "lines": 162,
+      "bytes": 5883,
+      "classes": [
+        {
+          "name": "MachineResourceGovernor",
+          "line": 8
+        }
+      ],
+      "functions": [
+        {
+          "name": "constructor",
+          "line": 9
+        },
+        {
+          "name": "_initializeDefaultStates",
+          "line": 29
+        },
+        {
+          "name": "getMachineState",
+          "line": 49
+        },
+        {
+          "name": "findHealthyRerouteTarget",
+          "line": 145
+        }
+      ]
+    },
+    "supervisor/screenshot_spec.js": {
+      "lines": 123,
+      "bytes": 3450,
+      "classes": [
+        {
+          "name": "ScreenshotSpec",
+          "line": 28
+        }
+      ],
+      "functions": []
+    },
+    "supervisor/stall_policy.js": {
+      "lines": 181,
+      "bytes": 7222,
+      "classes": [
+        {
+          "name": "StallPolicy",
+          "line": 11
+        }
+      ],
+      "functions": [
+        {
+          "name": "constructor",
+          "line": 12
+        }
+      ]
+    },
+    "supervisor/task_hygiene.js": {
+      "lines": 120,
+      "bytes": 3711,
+      "classes": [
+        {
+          "name": "TaskHygiene",
+          "line": 17
+        }
+      ],
+      "functions": [
+        {
+          "name": "constructor",
+          "line": 18
+        },
+        {
+          "name": "runTaskHygiene",
+          "line": 24
+        }
+      ]
+    },
+    "supervisor/types.js": {
+      "lines": 100,
+      "bytes": 2677,
+      "classes": [],
+      "functions": []
+    },
+    "money_factory/anti_loop_policy.js": {
+      "lines": 204,
+      "bytes": 6823,
+      "classes": [
+        {
+          "name": "AntiLoopPolicy",
+          "line": 23
+        }
+      ],
+      "functions": [
+        {
+          "name": "validateAccountAction",
+          "line": 191
+        }
+      ]
+    },
+    "money_factory/cheapest_test.js": {
+      "lines": 85,
+      "bytes": 3545,
+      "classes": [
+        {
+          "name": "CheapestTestSelector",
+          "line": 6
+        }
+      ],
+      "functions": [
+        {
+          "name": "selectCheapestTestForOpportunity",
+          "line": 53
+        },
+        {
+          "name": "generateTestProposal",
+          "line": 77
+        }
+      ]
+    },
+    "money_factory/cycle_ledger.js": {
+      "lines": 183,
+      "bytes": 6221,
+      "classes": [
+        {
+          "name": "CycleLedger",
+          "line": 32
+        }
+      ],
+      "functions": [
+        {
+          "name": "constructor",
+          "line": 33
+        },
+        {
+          "name": "_load",
+          "line": 43
+        },
+        {
+          "name": "_persist",
+          "line": 58
+        },
+        {
+          "name": "generateFingerprint",
+          "line": 65
+        },
+        {
+          "name": "validateCycleCompleteness",
+          "line": 76
+        },
+        {
+          "name": "recordCycle",
+          "line": 108
+        },
+        {
+          "name": "getCycle",
+          "line": 154
+        },
+        {
+          "name": "detectMissedCycles",
+          "line": 158
+        },
+        {
+          "name": "catchUpMissedCycle",
+          "line": 169
+        }
+      ]
+    },
+    "money_factory/evidence_ledger.js": {
+      "lines": 209,
+      "bytes": 7515,
+      "classes": [
+        {
+          "name": "EvidenceLedger",
+          "line": 22
+        },
+        {
+          "name": "strictly",
+          "line": 116
+        }
+      ],
+      "functions": [
+        {
+          "name": "constructor",
+          "line": 23
+        },
+        {
+          "name": "_load",
+          "line": 34
+        },
+        {
+          "name": "computeFingerprint",
+          "line": 52
+        },
+        {
+          "name": "getEvidenceForOpportunity",
+          "line": 184
+        },
+        {
+          "name": "hasVerifiedSignal",
+          "line": 188
+        },
+        {
+          "name": "getRealRevenueTotal",
+          "line": 192
+        }
+      ]
+    },
+    "money_factory/first_5_euro_simulator.js": {
+      "lines": 185,
+      "bytes": 6623,
+      "classes": [
+        {
+          "name": "First5EuroSimulator",
+          "line": 11
+        }
+      ],
+      "functions": [
+        {
+          "name": "simulateEndToEndFlow",
+          "line": 12
+        }
+      ]
+    },
+    "money_factory/index.js": {
+      "lines": 87,
+      "bytes": 2739,
+      "classes": [
+        {
+          "name": "MoneyFactory",
+          "line": 19
+        }
+      ],
+      "functions": [
+        {
+          "name": "constructor",
+          "line": 20
+        },
+        {
+          "name": "_initializeSeedsIfEmpty",
+          "line": 31
+        },
+        {
+          "name": "refreshLeaderboard",
+          "line": 41
+        },
+        {
+          "name": "getWarehouse",
+          "line": 45
+        },
+        {
+          "name": "getCycleLedger",
+          "line": 49
+        },
+        {
+          "name": "getPredictionCalibrator",
+          "line": 53
+        },
+        {
+          "name": "getEvidenceLedger",
+          "line": 57
+        }
+      ]
+    },
+    "money_factory/leaderboard_generator.js": {
+      "lines": 92,
+      "bytes": 4143,
+      "classes": [
+        {
+          "name": "LeaderboardGenerator",
+          "line": 8
+        }
+      ],
+      "functions": [
+        {
+          "name": "generateMarkdown",
+          "line": 9
+        }
+      ]
+    },
+    "money_factory/portfolios.js": {
+      "lines": 157,
+      "bytes": 5206,
+      "classes": [
+        {
+          "name": "PortfolioManager",
+          "line": 25
+        }
+      ],
+      "functions": [
+        {
+          "name": "constructor",
+          "line": 26
+        },
+        {
+          "name": "getWeights",
+          "line": 34
+        },
+        {
+          "name": "suggestCategory",
+          "line": 38
+        },
+        {
+          "name": "rankByHorizon",
+          "line": 55
+        },
+        {
+          "name": "rankAllHorizons",
+          "line": 76
+        },
+        {
+          "name": "calculateAllocation",
+          "line": 93
+        },
+        {
+          "name": "allocateBudget",
+          "line": 142
+        }
+      ]
+    },
+    "money_factory/prediction_calibration.js": {
+      "lines": 248,
+      "bytes": 8515,
+      "classes": [
+        {
+          "name": "PredictionCalibrator",
+          "line": 11
+        }
+      ],
+      "functions": [
+        {
+          "name": "constructor",
+          "line": 12
+        },
+        {
+          "name": "_load",
+          "line": 22
+        },
+        {
+          "name": "_persist",
+          "line": 37
+        },
+        {
+          "name": "recordPrediction",
+          "line": 44
+        },
+        {
+          "name": "recordActualOutcome",
+          "line": 96
+        },
+        {
+          "name": "getCalibration",
+          "line": 167
+        }
+      ]
+    },
+    "money_factory/safety_gates.js": {
+      "lines": 159,
+      "bytes": 5244,
+      "classes": [
+        {
+          "name": "SafetyGateManager",
+          "line": 38
+        }
+      ],
+      "functions": [
+        {
+          "name": "getInvariants",
+          "line": 39
+        },
+        {
+          "name": "checkOperation",
+          "line": 43
+        },
+        {
+          "name": "executeSpend",
+          "line": 131
+        },
+        {
+          "name": "executeTrade",
+          "line": 139
+        },
+        {
+          "name": "signWithWallet",
+          "line": 146
+        }
+      ]
+    },
+    "money_factory/scoring.js": {
+      "lines": 85,
+      "bytes": 3720,
+      "classes": [
+        {
+          "name": "MoneyScorer",
+          "line": 8
+        }
+      ],
+      "functions": [
+        {
+          "name": "computeSpeedMultiplier",
+          "line": 9
+        },
+        {
+          "name": "parseNumeric",
+          "line": 23
+        },
+        {
+          "name": "computeScore",
+          "line": 29
+        }
+      ]
+    },
+    "money_factory/seed_classes.js": {
+      "lines": 294,
+      "bytes": 10033,
+      "classes": [],
+      "functions": []
+    },
+    "money_factory/supervisor_compat.js": {
+      "lines": 90,
+      "bytes": 2537,
+      "classes": [
+        {
+          "name": "SupervisorCompatibility",
+          "line": 6
+        }
+      ],
+      "functions": [
+        {
+          "name": "bindProcessLease",
+          "line": 73
+        }
+      ]
+    },
+    "money_factory/warehouse.js": {
+      "lines": 364,
+      "bytes": 11959,
+      "classes": [
+        {
+          "name": "OpportunityWarehouse",
+          "line": 107
+        }
+      ],
+      "functions": [
+        {
+          "name": "stringifyYaml",
+          "line": 59
+        },
+        {
+          "name": "stringifyYamlItem",
+          "line": 69
+        },
+        {
+          "name": "constructor",
+          "line": 108
+        },
+        {
+          "name": "_load",
+          "line": 124
+        },
+        {
+          "name": "_persist",
+          "line": 151
+        },
+        {
+          "name": "_recordEvent",
+          "line": 170
+        },
+        {
+          "name": "validateSchema",
+          "line": 182
+        },
+        {
+          "name": "addOpportunity",
+          "line": 198
+        },
+        {
+          "name": "getOpportunity",
+          "line": 237
+        },
+        {
+          "name": "getAllOpportunities",
+          "line": 241
+        },
+        {
+          "name": "getHistory",
+          "line": 245
+        },
+        {
+          "name": "mutateOpportunity",
+          "line": 252
+        },
+        {
+          "name": "promoteOpportunity",
+          "line": 277
+        },
+        {
+          "name": "demoteOpportunity",
+          "line": 307
+        },
+        {
+          "name": "mergeOpportunities",
+          "line": 317
+        },
+        {
+          "name": "archiveOpportunity",
+          "line": 343
+        },
+        {
+          "name": "killOpportunity",
+          "line": 347
+        }
+      ]
+    },
+    "chief/cli.py": {
+      "lines": 219,
+      "bytes": 8587,
+      "classes": [],
+      "functions": [
+        {
+          "name": "cmd_ingest",
+          "line": 19
+        },
+        {
+          "name": "cmd_delta",
+          "line": 49
+        },
+        {
+          "name": "cmd_dispatch",
+          "line": 79
+        },
+        {
+          "name": "cmd_status",
+          "line": 115
+        },
+        {
+          "name": "cmd_watch",
+          "line": 146
+        },
+        {
+          "name": "build_parser",
+          "line": 170
+        },
+        {
+          "name": "main",
+          "line": 201
+        }
+      ]
+    },
+    "chief/control_plane.py": {
+      "lines": 606,
+      "bytes": 26009,
+      "classes": [
+        {
+          "name": "ControlPlane",
+          "line": 22
+        }
+      ],
+      "functions": [
+        {
+          "name": "__init__",
+          "line": 23
+        },
+        {
+          "name": "get_connection",
+          "line": 28
+        },
+        {
+          "name": "init_db",
+          "line": 41
+        },
+        {
+          "name": "record_handoff",
+          "line": 164
+        },
+        {
+          "name": "upsert_finding",
+          "line": 219
+        },
+        {
+          "name": "upsert_patch",
+          "line": 271
+        },
+        {
+          "name": "upsert_task",
+          "line": 319
+        },
+        {
+          "name": "acquire_lock",
+          "line": 375
+        },
+        {
+          "name": "release_lock",
+          "line": 432
+        },
+        {
+          "name": "get_active_locks",
+          "line": 454
+        },
+        {
+          "name": "enqueue_dispatch",
+          "line": 465
+        },
+        {
+          "name": "get_pending_dispatches",
+          "line": 501
+        },
+        {
+          "name": "mark_dispatched",
+          "line": 516
+        },
+        {
+          "name": "get_all_findings",
+          "line": 532
+        },
+        {
+          "name": "get_all_patches",
+          "line": 552
+        },
+        {
+          "name": "get_all_tasks",
+          "line": 570
+        },
+        {
+          "name": "get_recent_events",
+          "line": 576
+        },
+        {
+          "name": "_record_event_tx",
+          "line": 585
+        }
+      ]
+    },
+    "chief/coordinator.py": {
+      "lines": 257,
+      "bytes": 10055,
+      "classes": [
+        {
+          "name": "ChiefCoordinator",
+          "line": 24
+        }
+      ],
+      "functions": [
+        {
+          "name": "__init__",
+          "line": 25
+        },
+        {
+          "name": "acquire_resource",
+          "line": 36
+        },
+        {
+          "name": "release_resource",
+          "line": 52
+        },
+        {
+          "name": "prepare_dispatch",
+          "line": 57
+        },
+        {
+          "name": "execute_local_headless_dispatch",
+          "line": 203
+        },
+        {
+          "name": "format_terminal_status",
+          "line": 247
+        }
+      ]
+    },
+    "chief/delta_engine.py": {
+      "lines": 204,
+      "bytes": 8876,
+      "classes": [
+        {
+          "name": "ChiefDeltaEngine",
+          "line": 17
+        }
+      ],
+      "functions": [
+        {
+          "name": "__init__",
+          "line": 18
+        },
+        {
+          "name": "compute_delta",
+          "line": 21
+        },
+        {
+          "name": "generate_delta_markdown",
+          "line": 117
+        },
+        {
+          "name": "export_reports",
+          "line": 190
+        }
+      ]
+    },
+    "chief/ingestor.py": {
+      "lines": 298,
+      "bytes": 11631,
+      "classes": [
+        {
+          "name": "ChiefIngestor",
+          "line": 23
+        }
+      ],
+      "functions": [
+        {
+          "name": "__init__",
+          "line": 24
+        },
+        {
+          "name": "compute_sha256",
+          "line": 28
+        },
+        {
+          "name": "ingest_file",
+          "line": 35
+        },
+        {
+          "name": "_extract_findings",
+          "line": 130
+        },
+        {
+          "name": "_extract_patches",
+          "line": 206
+        },
+        {
+          "name": "_extract_task",
+          "line": 237
+        },
+        {
+          "name": "scan_and_ingest",
+          "line": 268
+        }
+      ]
+    },
+    "chief/safewrite.py": {
+      "lines": 95,
+      "bytes": 3036,
+      "classes": [],
+      "functions": [
+        {
+          "name": "safe_write_text",
+          "line": 16
+        },
+        {
+          "name": "safe_write_json",
+          "line": 80
+        }
+      ]
+    },
+    "chief/types.py": {
+      "lines": 163,
+      "bytes": 4329,
+      "classes": [
+        {
+          "name": "Lane",
+          "line": 12
+        },
+        {
+          "name": "Host",
+          "line": 31
+        },
+        {
+          "name": "TaskStatus",
+          "line": 49
+        },
+        {
+          "name": "FindingStatus",
+          "line": 57
+        },
+        {
+          "name": "FindingSeverity",
+          "line": 64
+        },
+        {
+          "name": "PatchStatus",
+          "line": 72
+        },
+        {
+          "name": "AuthorityTier",
+          "line": 80
+        },
+        {
+          "name": "TwoLevelDone",
+          "line": 90
+        },
+        {
+          "name": "IngestedHandoff",
+          "line": 107
+        },
+        {
+          "name": "RegisteredFinding",
+          "line": 125
+        },
+        {
+          "name": "RegisteredPatch",
+          "line": 139
+        },
+        {
+          "name": "DispatchEnvelope",
+          "line": 151
+        }
+      ],
+      "functions": [
+        {
+          "name": "from_str",
+          "line": 23
+        },
+        {
+          "name": "from_str",
+          "line": 38
+        },
+        {
+          "name": "validate_invariants",
+          "line": 96
+        }
+      ]
+    },
+    "chief/validator.py": {
+      "lines": 89,
+      "bytes": 3717,
+      "classes": [
+        {
+          "name": "IngestionValidationError",
+          "line": 27
+        },
+        {
+          "name": "HandoffValidator",
+          "line": 31
+        }
+      ],
+      "functions": [
+        {
+          "name": "validate_handoff_payload",
+          "line": 33
+        }
+      ]
+    },
+    "chief/__init__.py": {
+      "lines": 25,
+      "bytes": 519,
+      "classes": [],
+      "functions": []
+    }
+  },
+  "choke_points": {},
+  "omega_claim_evaluations": [
+    {
+      "claim_id": "CX-SIGMA-AUDIT-001",
+      "omega_claim": "Decision engine stall bypass due to telemetry drop",
+      "file": "supervisor/decision_engine.js",
+      "lines": "42-43",
+      "evidence": "stallPolicy.evaluateProcessState is invoked with hardcoded hasActiveSubprocesses: false and cpuActivityDetected: false",
+      "classification": "CONFIRMED_IN_CURRENT_SOURCE",
+      "reproducible_in_test": true,
+      "severity": "P1"
+    },
+    {
+      "claim_id": "CX-SIGMA-AUDIT-002",
+      "omega_claim": "Path-only writer collision between different task IDs",
+      "file": "supervisor/no_stacking.js",
+      "lines": "31-32",
+      "evidence": "Loop checks exclusively lease.task_id === task_id, omitting working path, resource locks, or file tree boundaries",
+      "classification": "CONFIRMED_IN_CURRENT_SOURCE",
+      "reproducible_in_test": true,
+      "severity": "P0"
+    },
+    {
+      "claim_id": "CX-SIGMA-AUDIT-003",
+      "omega_claim": "Capability lattice absence in safety interceptor",
+      "file": "money_factory/safety_gates.js",
+      "lines": "21-58",
+      "evidence": "SafetyGateManager uses a flat list of 14 string literals; operations outside this set bypass interceptor with allowed: true",
+      "classification": "CONFIRMED_IN_CURRENT_SOURCE",
+      "reproducible_in_test": true,
+      "severity": "P0"
+    },
+    {
+      "claim_id": "CX-SIGMA-AUDIT-004",
+      "omega_claim": "Wrapper process orphaning and single-PID tracking",
+      "file": "supervisor/reconciliation.js",
+      "lines": "43-79",
+      "evidence": "livePids.includes(lease.pid) only tests the registered wrapper PID, losing track of active grandchild worker processes on Windows",
+      "classification": "CONFIRMED_IN_CURRENT_SOURCE",
+      "reproducible_in_test": true,
+      "severity": "P1"
+    },
+    {
+      "claim_id": "CX-SIGMA-AUDIT-005",
+      "omega_claim": "TOCTOU dispatch race in coordinator execution",
+      "file": "chief/coordinator.py",
+      "lines": "212-237",
+      "evidence": "execute_local_headless_dispatch inspects pending dispatches but only marks dispatched AFTER 120s subprocess completes",
+      "classification": "CONFIRMED_IN_CURRENT_SOURCE",
+      "reproducible_in_test": true,
+      "severity": "P1"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "test": "JOURNAL_COMPACTION_SCALE",
+  "events": 10000,
+  "uncompacted_bytes": 1492399,
+  "compacted_bytes": 140,
+  "reduction_pct": "99.99%",
+  "status": "PASSED"
+}

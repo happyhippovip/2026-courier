@@ -1,0 +1,1 @@
+{"event":"AUTONOMOUS_TASK_GENERATION_FAILED","timestamp":"2026-09-10T07:21:52.170Z","tasks_count":0,"reason":"AUTONOMY_GAP: Production Courier lacks an autonomous task generation entrypoint connecting goal intake to warehouse/planner."}

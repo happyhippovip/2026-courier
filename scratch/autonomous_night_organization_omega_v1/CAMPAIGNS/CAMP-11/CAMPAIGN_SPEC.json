@@ -1,0 +1,20 @@
+{
+  "campaign_id": "CAMP-11-MESSAGE-PERMUTATION-AND-SUPERVISOR-DIAGNOSTICS",
+  "parent_frontier_item": "FRONTIER-MESSAGE-SUPERVISOR",
+  "goal": "Prove message permutation resilience (2x duplication, out-of-order delivery, cancellation races) and supervisory diagnostics (elapsed time triggers diagnostics, never kill alone).",
+  "hypothesis": "Idempotency sequencing filters message duplicates and reorderings, and multi-metric process diagnostics prevent killing processes that are legitimately waiting on I/O.",
+  "why_now": "Addresses Section 79-84 and 92-96 requirements.",
+  "production_relation": "Hardens supervisor/stall_policy.js and lease_manager.js.",
+  "expected_information_gain": "HIGH",
+  "expected_cost": "0.00 EUR",
+  "risk": "NONE_ISOLATED_SHADOW",
+  "scope": "Message duplication, delayed delivery, cancellation vs in-flight result, multi-metric supervisor diagnostic probe",
+  "write_scope": "scratch/autonomous_night_organization_omega_v1/CAMPAIGNS/CAMP-11/",
+  "dependencies": [
+    "CAMP-10-JOURNAL-CONSISTENCY-AND-TORN-FRAMES"
+  ],
+  "acceptance_criteria": "Duplicate messages deduplicated; cancellation race safely discards late deliverable; 15m CPU idle with active I/O triggers diagnostics, NOT kill.",
+  "falsification_criteria": "Duplicate message causes duplicate side-effect, or active I/O process killed on timeout.",
+  "status": "CLOSED_SUPPORTED",
+  "completed_at": "2026-09-09T23:40:32.158Z"
+}

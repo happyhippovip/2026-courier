@@ -1,0 +1,18 @@
+{
+  "task_id": "TASK-CP-22",
+  "phase": "CLEANED_UP",
+  "stamped": true,
+  "lease_acquired": true,
+  "dispatched": true,
+  "worker_acked": true,
+  "output_created": true,
+  "result_persisted": true,
+  "verified": true,
+  "terminal": true,
+  "cleaned_up": true,
+  "result_envelope": {
+    "task_id": "TASK-CP-22",
+    "status": "SUCCESS",
+    "output_hash": "542743a79a4035ceaba78b2799a4b91c7cc0482e84811463898f4da329a58564"
+  }
+}

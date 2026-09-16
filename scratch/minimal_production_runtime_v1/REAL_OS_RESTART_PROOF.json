@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-09-10T08:53:55.719Z",
+  "target_entrypoint": "bin/courier_runtime.js",
+  "is_real_os_process": true,
+  "old_process": {
+    "pid": 10296,
+    "start_time": "2026-09-10T08:53:55.454Z",
+    "exit_code": 0,
+    "completed_task_at_interrupt": "TASK-AUTO-001-RESOLVE"
+  },
+  "new_process": {
+    "pid": 4520,
+    "start_time": "2026-09-10T08:53:55.583Z",
+    "exit_code": 0,
+    "resumed_mission_id": "MISSION-1789030435546",
+    "resume_count": 0
+  },
+  "durable_state_continuity": {
+    "mission_id_identical": true,
+    "pid_changed": true,
+    "tasks_resumed_without_duplicate": true,
+    "final_mission_status": "SATISFIED"
+  },
+  "verdict": "REAL_OS_RESTART_PROVEN"
+}

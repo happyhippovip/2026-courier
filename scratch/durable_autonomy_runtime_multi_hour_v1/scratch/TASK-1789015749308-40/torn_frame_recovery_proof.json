@@ -1,0 +1,6 @@
+{
+  "test": "TORN_LOG_FRAME_RECOVERY",
+  "valid_events": 5,
+  "torn_entries_isolated": 1,
+  "status": "PASSED"
+}

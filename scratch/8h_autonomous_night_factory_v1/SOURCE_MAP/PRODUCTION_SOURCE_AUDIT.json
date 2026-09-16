@@ -1,0 +1,122 @@
+[
+  {
+    "area": "supervisor",
+    "relPath": "supervisor/index.js",
+    "exists": true,
+    "size": 2692,
+    "lines": 77,
+    "sha256": "2ace305a58f03695a2518aac8bbb172ca349fce359c48aa9c882f904f9c554ed"
+  },
+  {
+    "area": "supervisor",
+    "relPath": "supervisor/decision_engine.js",
+    "exists": true,
+    "size": 2578,
+    "lines": 79,
+    "sha256": "ab42069fd4c5a613833c9bf9c8ed6511176575c5702451b5c04bd15b9756001d"
+  },
+  {
+    "area": "supervisor",
+    "relPath": "supervisor/lease_manager.js",
+    "exists": true,
+    "size": 7077,
+    "lines": 232,
+    "sha256": "c6bb08fe79fbdd0ce135089d784722cc4a943c857f73c6591f89831ecff5036a"
+  },
+  {
+    "area": "supervisor",
+    "relPath": "supervisor/no_stacking.js",
+    "exists": true,
+    "size": 2208,
+    "lines": 65,
+    "sha256": "27bc27a3f06866a83d6d95a86457bd0cffadb7900b885cc9f9180e10a7ac49c4"
+  },
+  {
+    "area": "supervisor",
+    "relPath": "supervisor/reconciliation.js",
+    "exists": true,
+    "size": 5880,
+    "lines": 153,
+    "sha256": "6f65fdf1958ad956b58df6be05430aa0ebfca442db033359a0779953bfa245af"
+  },
+  {
+    "area": "supervisor",
+    "relPath": "supervisor/task_hygiene.js",
+    "exists": true,
+    "size": 3711,
+    "lines": 120,
+    "sha256": "2a97867b762b3499e35c57ca32d0f7d8a45d7d2e4c40a5a69f6830bdd2ed6970"
+  },
+  {
+    "area": "supervisor",
+    "relPath": "supervisor/stall_policy.js",
+    "exists": true,
+    "size": 7222,
+    "lines": 181,
+    "sha256": "70dd2334d86364a8bfdb2e56013f2ef5aceaf569ec149517b94cf7d49bbbb5e8"
+  },
+  {
+    "area": "money_factory",
+    "relPath": "money_factory/index.js",
+    "exists": true,
+    "size": 2739,
+    "lines": 87,
+    "sha256": "c1dffb9cf20ee8af8a3328e29ace12d91ff494a5663b58403e1b0df41c487c18"
+  },
+  {
+    "area": "money_factory",
+    "relPath": "money_factory/safety_gates.js",
+    "exists": true,
+    "size": 5244,
+    "lines": 159,
+    "sha256": "c00ed53b4f0f1fd4ff6160413abeb26a2e6057921e586aa31af373fb3addff19"
+  },
+  {
+    "area": "money_factory",
+    "relPath": "money_factory/anti_loop_policy.js",
+    "exists": true,
+    "size": 6823,
+    "lines": 204,
+    "sha256": "6770e9d066cb85038c53fb19cd78c1ebec9581858a940d22a3942a122f59c32e"
+  },
+  {
+    "area": "money_factory",
+    "relPath": "money_factory/portfolios.js",
+    "exists": true,
+    "size": 5206,
+    "lines": 157,
+    "sha256": "96894faf4557857e52dc592888e5c2041b5975a3715fb598a14066199a6efec7"
+  },
+  {
+    "area": "money_factory",
+    "relPath": "money_factory/cheapest_test.js",
+    "exists": true,
+    "size": 3545,
+    "lines": 85,
+    "sha256": "2e27dc9083e8d5e22373ba6842bb47f839e796f1fbb1dfcaf9adfccd36fd314c"
+  },
+  {
+    "area": "chief",
+    "relPath": "chief/control_plane.py",
+    "exists": true,
+    "size": 26009,
+    "lines": 606,
+    "sha256": "1a34fe44e8d815654c52cb674bd96a60701f16444d7d9582b2d4b48a0733535b"
+  },
+  {
+    "area": "chief",
+    "relPath": "chief/coordinator.py",
+    "exists": true,
+    "size": 10055,
+    "lines": 257,
+    "sha256": "bb755d93faa564e66f210d6913e15a01e4893a59a06b24617454c2e04e7eeeda"
+  },
+  {
+    "area": "chief",
+    "relPath": "chief/validator.py",
+    "exists": true,
+    "size": 3717,
+    "lines": 89,
+    "sha256": "5528dee7820fd7830c428b9d87818c117c12251d1bf23f328794fbf6f759e7cd"
+  }
+]

@@ -1,0 +1,21 @@
+{
+  "manifest_version": "1.0",
+  "fingerprint": "7dbbb038040d00e07d6848936cf749287fdb1854ca56dba1647578a691f891c5",
+  "certified_at": "2026-09-09T20:04:16.607Z",
+  "package_id": "PKG-006",
+  "subsystem": "COURIER_CORE",
+  "target_invariant": "BORDER_GUARD_INTEGRITY",
+  "files": [
+    "src/border_guard.js"
+  ],
+  "tests": [
+    "test_border.js"
+  ],
+  "oracle_version": "1.0",
+  "mutation_score": 1,
+  "dependencies": [],
+  "risk": "MEDIUM",
+  "mac_native_requirement": false,
+  "codex_review_requirement": false,
+  "human_gate_requirement": false
+}

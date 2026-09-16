@@ -1,0 +1,20 @@
+{"mutant_id":"MUTANT-01","name":"UNCERTAIN_TO_SAFE","description":"Bypasses uncertainty fence, allowing redispatch of unverified crashed task","status":"KILLED","timestamp_utc":"2026-09-10T03:55:34.659Z"}
+{"mutant_id":"MUTANT-02","name":"REMOVE_VERSION_CHECK","description":"Removes version check in atomic CAS dispatch","status":"KILLED","timestamp_utc":"2026-09-10T03:55:34.665Z"}
+{"mutant_id":"MUTANT-03","name":"PID_ONLY_IDENTITY","description":"Omits process start-time check, trusting PID alone","status":"KILLED","timestamp_utc":"2026-09-10T03:55:34.672Z"}
+{"mutant_id":"MUTANT-04","name":"ZERO_EUR_EQUALS_SAFE","description":"Permits SPEND_EUR without human gate if amount is zero or unspecified","status":"SURVIVED","timestamp_utc":"2026-09-10T03:55:34.677Z"}
+{"mutant_id":"MUTANT-05","name":"PATH_STRING_EQUALITY","description":"Replaces hierarchical directory overlap check with exact string equality","status":"KILLED","timestamp_utc":"2026-09-10T03:55:34.683Z"}
+{"mutant_id":"MUTANT-06","name":"TRUST_WORKER_PASS","description":"Omits artifact checksum validation on completed task","status":"SURVIVED","timestamp_utc":"2026-09-10T03:55:34.690Z"}
+{"mutant_id":"MUTANT-07","name":"RESULT_REPLAY","description":"Replays old result with non-zero exit code without validation","status":"SURVIVED","timestamp_utc":"2026-09-10T03:55:34.695Z"}
+{"mutant_id":"MUTANT-08","name":"APPROVAL_REUSE_EXPIRED","description":"Allows expired approval token","status":"SURVIVED","timestamp_utc":"2026-09-10T03:55:34.701Z"}
+{"mutant_id":"MUTANT-09","name":"LEASE_EXPIRY_RETRY","description":"Allows blind retry after lease failure without proof of non-effect","status":"SURVIVED","timestamp_utc":"2026-09-10T03:55:34.708Z"}
+{"mutant_id":"MUTANT-10","name":"TIME_ONLY_KILL","description":"Terminates stalled task on elapsed time alone without diagnostic evidence","status":"KILLED","timestamp_utc":"2026-09-10T03:55:34.713Z"}
+{"mutant_id":"MUTANT-01","name":"UNCERTAIN_TO_SAFE","description":"Bypasses uncertainty fence, allowing redispatch of unverified crashed task","status":"KILLED","timestamp_utc":"2026-09-10T03:55:52.156Z"}
+{"mutant_id":"MUTANT-02","name":"REMOVE_VERSION_CHECK","description":"Removes version check in atomic CAS dispatch","status":"KILLED","timestamp_utc":"2026-09-10T03:55:52.164Z"}
+{"mutant_id":"MUTANT-03","name":"PID_ONLY_IDENTITY","description":"Omits process start-time check, trusting PID alone","status":"KILLED","timestamp_utc":"2026-09-10T03:55:52.170Z"}
+{"mutant_id":"MUTANT-04","name":"ZERO_EUR_EQUALS_SAFE","description":"Permits SPEND_EUR without human gate if bypassed","status":"KILLED","timestamp_utc":"2026-09-10T03:55:52.176Z"}
+{"mutant_id":"MUTANT-05","name":"PATH_STRING_EQUALITY","description":"Replaces hierarchical directory overlap check with exact string equality","status":"KILLED","timestamp_utc":"2026-09-10T03:55:52.183Z"}
+{"mutant_id":"MUTANT-06","name":"TRUST_WORKER_PASS","description":"Omits artifact checksum validation on completed task","status":"KILLED","timestamp_utc":"2026-09-10T03:55:52.189Z"}
+{"mutant_id":"MUTANT-07","name":"RESULT_REPLAY","description":"Replays old result with non-zero exit code without validation","status":"KILLED","timestamp_utc":"2026-09-10T03:55:52.195Z"}
+{"mutant_id":"MUTANT-08","name":"APPROVAL_REUSE_EXPIRED","description":"Allows expired approval token","status":"KILLED","timestamp_utc":"2026-09-10T03:55:52.200Z"}
+{"mutant_id":"MUTANT-09","name":"LEASE_EXPIRY_RETRY","description":"Allows blind retry after lease failure without proof of non-effect","status":"KILLED","timestamp_utc":"2026-09-10T03:55:52.207Z"}
+{"mutant_id":"MUTANT-10","name":"TIME_ONLY_KILL","description":"Terminates stalled task on elapsed time alone without diagnostic evidence","status":"KILLED","timestamp_utc":"2026-09-10T03:55:52.212Z"}

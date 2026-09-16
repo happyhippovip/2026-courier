@@ -1,0 +1,7 @@
+{
+  "test": "PROCESS_LEASE_IDENTITY_BINDING",
+  "lease_acquired": true,
+  "verified_authentic": true,
+  "rejected_forgery": true,
+  "status": "PASSED"
+}

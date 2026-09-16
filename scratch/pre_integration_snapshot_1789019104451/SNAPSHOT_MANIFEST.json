@@ -1,0 +1,80 @@
+{
+  "created_at": "2026-09-10T05:45:04.459Z",
+  "gitHead": "aa5c01d21c7e055c7e3b5117ded5eddc6793dde4",
+  "snapshotManifest": {
+    "supervisor/no_stacking.js": {
+      "snapshotPath": "C:\\Users\\lol\\2026-workspace\\courier\\scratch\\pre_integration_snapshot_1789019104451\\supervisor_no_stacking.js",
+      "originalSha256": "27bc27a3f06866a83d6d95a86457bd0cffadb7900b885cc9f9180e10a7ac49c4",
+      "exists": true
+    },
+    "supervisor/lease_manager.js": {
+      "snapshotPath": "C:\\Users\\lol\\2026-workspace\\courier\\scratch\\pre_integration_snapshot_1789019104451\\supervisor_lease_manager.js",
+      "originalSha256": "c6bb08fe79fbdd0ce135089d784722cc4a943c857f73c6591f89831ecff5036a",
+      "exists": true
+    },
+    "supervisor/decision_engine.js": {
+      "snapshotPath": "C:\\Users\\lol\\2026-workspace\\courier\\scratch\\pre_integration_snapshot_1789019104451\\supervisor_decision_engine.js",
+      "originalSha256": "ab42069fd4c5a613833c9bf9c8ed6511176575c5702451b5c04bd15b9756001d",
+      "exists": true
+    },
+    "supervisor/progress_tracker.js": {
+      "snapshotPath": "C:\\Users\\lol\\2026-workspace\\courier\\scratch\\pre_integration_snapshot_1789019104451\\supervisor_progress_tracker.js",
+      "originalSha256": "ee3a03906b147e1cecc0d7bed85db76c4740171f0bc697a6a37ad1afbdb4ec89",
+      "exists": true
+    },
+    "supervisor/index.js": {
+      "snapshotPath": "C:\\Users\\lol\\2026-workspace\\courier\\scratch\\pre_integration_snapshot_1789019104451\\supervisor_index.js",
+      "originalSha256": "2ace305a58f03695a2518aac8bbb172ca349fce359c48aa9c882f904f9c554ed",
+      "exists": true
+    }
+  },
+  "artifactFingerprints": {
+    "PATCH_PLAN.md": {
+      "size": 3324,
+      "sha256": "fb52cc910c4580db2baab860dfa570938349ba735d76d4dda3fddffb7fc39c68"
+    },
+    "DEPENDENCY_GRAPH.json": {
+      "size": 2346,
+      "sha256": "7f178d8e5164282647e5a69228a42bf8bc56730094be942bb529b566bb4252d1"
+    },
+    "PRODUCTION_GAP_PROOF.jsonl": {
+      "size": 5481,
+      "sha256": "6b6c526d1e7b22e80c37e54b9f22c1c6b67c9cf4bfc0ce6a9a4540152215db10"
+    },
+    "TEST_RESULTS.json": {
+      "size": 6410,
+      "sha256": "14953f270e0212bb85a64bf6b28215e666e669535ab97d53f79c725913540c97"
+    },
+    "MIGRATION_PLAN.md": {
+      "size": 1493,
+      "sha256": "b485ffba5e6a2e16725b47c8445875357d5a459a2879381566c6f1a05c6b922e"
+    },
+    "ROLLBACK_PLAN.md": {
+      "size": 1207,
+      "sha256": "1f2d52be51bdd091dbc6294226090b3dec973fbe41e4a8af028449646f2d1532"
+    },
+    "SAFETY_PROOF.json": {
+      "size": 1902,
+      "sha256": "7eea58af1409e69b63576585913cc375aabd49d34be6b95a044cf695584875c6"
+    },
+    "MAC_NATIVE_MINIMUM_PROOF_QUEUE.jsonl": {
+      "size": 950,
+      "sha256": "d7baef36f24915d4a4a265ab8e96788f3c170dd2bfc7619bebdad96a234354c7"
+    },
+    "CODEX_MINIMUM_REVIEW_QUEUE.jsonl": {
+      "size": 1257,
+      "sha256": "2fe23cd0c6df14a86e4bb6c72fd72528c920c4ded82c406aa547049470385a4a"
+    },
+    "HUMAN_GATE_QUEUE.jsonl": {
+      "size": 1256,
+      "sha256": "d11f951df271bed9d9fdaa3af7e0e7ca7cb7702dc96146ce27183869ed02b67b"
+    },
+    "EXACT_NEXT_INTEGRATION_COMMAND.md": {
+      "size": 2481,
+      "sha256": "efd9197642faa19c89e6e3984a5965e67f4300d19061d12b4b1499633b185831"
+    },
+    "SHADOW_PATCH": {
+      "type": "directory"
+    }
+  }
+}

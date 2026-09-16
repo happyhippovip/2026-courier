@@ -1,0 +1,15 @@
+{
+  "test": "EXCLUSIVE_LOCK_MUTEX_RACE",
+  "acqA_success": {
+    "acquired": false,
+    "conflicting_task_id": "TASK-1789015730740-24",
+    "conflicting_path": "c:/users/lol/2026-workspace/courier/scratch/durable_autonomy_runtime_multi_hour_v1/scratch/task-1789015730740-24"
+  },
+  "acqB_blocked": false,
+  "acqB_after_release": {
+    "acquired": false,
+    "conflicting_task_id": "TASK-1789015730740-24",
+    "conflicting_path": "c:/users/lol/2026-workspace/courier/scratch/durable_autonomy_runtime_multi_hour_v1/scratch/task-1789015730740-24"
+  },
+  "status": "FAILED"
+}

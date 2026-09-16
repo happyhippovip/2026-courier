@@ -1,0 +1,113 @@
+{
+  "totalTests": 21,
+  "passed": 21,
+  "failed": 0,
+  "timestamp": "2026-09-13T00:01:12.192Z",
+  "results": [
+    {
+      "testId": "ADV_SUP_01_STALE_HEARTBEAT_ACTIVE_PROGRESS",
+      "description": "Heartbeat stale but progress evidence recent -> time alone never kills",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_SUP_02_HEARTBEAT_WITHOUT_PROGRESS",
+      "description": "Heartbeat ticking but zero progress for 20m -> stall detected and diagnostic triggered",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_SUP_03_QUIET_VALID_WAIT",
+      "description": "Process in designated EXPECTED_WAIT -> preserved without false stall",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_SUP_04_PID_REUSE",
+      "description": "OS recycles PID to a different process -> attribution rejected, marked STALLED",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_SUP_05_SAME_PID_DIFFERENT_FINGERPRINT",
+      "description": "Same PID but mismatched command fingerprint -> rejected",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_SUP_06_PARENT_DIES_BEFORE_CHILD",
+      "description": "Parent process completes/dies -> child detected as ORPHANED",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_SUP_07_CHILD_FINISHES_BEFORE_PARENT",
+      "description": "Child helper exits early -> parent remains active and undisturbed",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_SUP_08_DUPLICATE_HELPER",
+      "description": "Two helper leases for same task -> duplicate detected and cleaned by hygiene",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_SUP_09_DUPLICATE_HEAVY_TEST",
+      "description": "Duplicate equivalent heavy job detected -> second rejected / on hold",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_SUP_10_UNKNOWN_LIVE_PROCESS",
+      "description": "Live PID unmapped in leases -> logged as UNATTRIBUTED, never blindly killed",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_SUP_11_KNOWN_PROCESS_MISSING_AFTER_RESTART",
+      "description": "Progressing process dies during restart with no result -> EXECUTION_UNCERTAIN",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_SUP_12_RESULT_EXISTS_BUT_VERIFICATION_MISSING",
+      "description": "Result reference present but not verified -> held, not satisfied",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_SUP_13_DISPATCH_UNCERTAIN_NO_PROOF",
+      "description": "Pending dispatch without proof -> strictly blocks redispatch & retry",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_SUP_14_RESTART_DURING_DIAGNOSTIC_CREATION",
+      "description": "Corrupt/interrupted diagnostic dir handled gracefully returning null",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_SUP_15_RESTART_DURING_HYGIENE",
+      "description": "Hygiene state recovers cleanly on restart",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_SUP_16_DUPLICATE_CLEANUP_ATTEMPT",
+      "description": "Calling cleanup twice on same task is idempotent and skips already terminated",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_SUP_17_IDEMPOTENT_HYGIENE",
+      "description": "Multiple successive hygiene runs produce zero additional changes",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_SUP_18_APPEND_ONLY_AUDIT_PRESERVATION",
+      "description": "Audit ledger retains all historical events across multiple entries",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_SUP_19_MALFORMED_LEASE",
+      "description": "Creating lease without mandatory task_id throws error fail-closed",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_SUP_20_STALE_LEASE",
+      "description": "Stale lease with dead process marked TERMINATED without resurrecting",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_SUP_21_CROSS_MACHINE_LEASE_CONFUSION",
+      "description": "Leases on WINDOWS_LOCAL and MAC_HOST never collide or kill each other",
+      "status": "PASS"
+    }
+  ]
+}

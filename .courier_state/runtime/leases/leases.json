@@ -1,0 +1,44 @@
+[
+  {
+    "process_lease_id": "LEASE-1789115380508-02CF51",
+    "task_id": "TASK-AUTO-001-VERIFY",
+    "task_version": 1,
+    "goal_id": "GOAL-1789115380459",
+    "worker_id": "WORKER-LOCAL-DETERMINISTIC",
+    "owner": "COURIER_WORKER",
+    "machine_id": "WINDOWS_LOCAL",
+    "pid": 5068,
+    "command": "courier_runtime --execute-task",
+    "process_fingerprint": "71febfff222c26c73a8b48fe7055f43f5cd3532e28c97f1b3c70d4c2718255ab",
+    "command_fingerprint": "aac9a78be1f71f6fbbc1a1928fe0c034d30acd57bf8d4e289aa8658d693d5da6",
+    "task_token": "TOKEN-TASK-AUTO-001-VERIFY-1789115380508",
+    "start_time_epoch": 1789115380508,
+    "purpose": "WORK-VERIFY-MONEY_FACTORY_WINDOWS_HANDOFF.md",
+    "started_at": "2026-09-11T08:29:40.508Z",
+    "last_heartbeat_at": "2026-09-11T08:29:40.508Z",
+    "last_progress_at": "2026-09-11T08:29:40.517Z",
+    "expected_completion_condition": "EXIT_ZERO",
+    "cleanup_policy": "TERMINATE_ON_TASK_END",
+    "parent_process_id": null,
+    "status": "COMPLETED",
+    "termination_reason": "Task executed and verified clean",
+    "result_reference": null,
+    "history": [
+      {
+        "timestamp": "2026-09-11T08:29:40.508Z",
+        "status": "STARTING",
+        "note": "Lease created"
+      },
+      {
+        "timestamp": "2026-09-11T08:29:40.518Z",
+        "status": "PROGRESSING",
+        "note": "Progress confirmed via RESULT_CUSTOMS_ACCEPTED"
+      },
+      {
+        "timestamp": "2026-09-11T08:29:40.525Z",
+        "status": "COMPLETED",
+        "note": "Task executed and verified clean"
+      }
+    ]
+  }
+]

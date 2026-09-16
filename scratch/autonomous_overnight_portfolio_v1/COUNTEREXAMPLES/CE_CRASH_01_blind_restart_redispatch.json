@@ -1,0 +1,9 @@
+{
+  "counterexample_id": "CE-CRASH-01",
+  "title": "Blind Restart Redispatch Causes Double Execution of Mutative Work",
+  "scenario": "Agent executes task that sends an external API request; host reboots before response ACK is written to disk. Naive restart script sees task incomplete and dispatches it again.",
+  "vulnerability_without_reconciler": "External API endpoint receives duplicate request, causing double financial billing or duplicate database insertions.",
+  "remedy_implemented": "ResilientRestartReconciler marks unproven post-crash tasks as EXECUTION_UNCERTAIN_NO_PROOF, strictly blocking automatic redispatch.",
+  "reproduced": true,
+  "minimized": true
+}

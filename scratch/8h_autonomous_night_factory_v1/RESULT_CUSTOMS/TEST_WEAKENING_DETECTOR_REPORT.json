@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Attack 1: Deleting a failing test",
+    "passed": true,
+    "violations": [
+      "TEST_COUNT_DECREASED: before=2, after=1",
+      "ASSERTION_COUNT_DECREASED: before=3, after=1"
+    ]
+  },
+  {
+    "name": "Attack 2: Adding it.skip to failing test",
+    "passed": true,
+    "violations": [
+      "TEST_COUNT_DECREASED: before=2, after=1",
+      "ASSERTION_COUNT_DECREASED: before=3, after=2",
+      "SKIPPED_TESTS_INCREASED: before=0, after=1"
+    ]
+  },
+  {
+    "name": "Attack 3: Removing assertion check",
+    "passed": true,
+    "violations": [
+      "ASSERTION_COUNT_DECREASED: before=3, after=2"
+    ]
+  },
+  {
+    "name": "Attack 4: Silent exception suppression in test",
+    "passed": true,
+    "violations": [
+      "ASSERTION_COUNT_DECREASED: before=3, after=2",
+      "SILENT_EXCEPTION_CATCH_SUPPRESSION_DETECTED"
+    ]
+  },
+  {
+    "name": "Attack 5: Hostile mocking of invariant",
+    "passed": true,
+    "violations": [
+      "ASSERTION_COUNT_DECREASED: before=3, after=2",
+      "HOSTILE_INVARIANT_MOCKING_DETECTED"
+    ]
+  }
+]

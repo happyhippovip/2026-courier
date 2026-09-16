@@ -1,0 +1,20 @@
+{
+  "campaign_id": "CAMP-12-ECONOMIC-AUTONOMY-SIMULATION",
+  "parent_frontier_item": "FRONTIER-ECONOMIC-SIMULATION",
+  "goal": "Prove end-to-end economic pipeline in simulation while strictly rejecting fake revenue claims (views, clicks, draft invoices).",
+  "hypothesis": "Distinguishing verified settlement evidence from leading indicators (clicks/views) prevents false economic self-congratulation while preserving €0 autonomous spend.",
+  "why_now": "Addresses Section 115-119 economic architecture requirements.",
+  "production_relation": "Hardens money_factory/warehouse.js and first_5_euro_simulator.js.",
+  "expected_information_gain": "HIGH",
+  "expected_cost": "0.00 EUR",
+  "risk": "NONE_SIMULATION_ONLY",
+  "scope": "Opportunity pipeline, fake revenue red-team, settlement evidence audit",
+  "write_scope": "scratch/autonomous_night_organization_omega_v1/CAMPAIGNS/CAMP-12/",
+  "dependencies": [
+    "CAMP-11-MESSAGE-PERMUTATION-AND-SUPERVISOR-DIAGNOSTICS"
+  ],
+  "acceptance_criteria": "Views/clicks/draft invoices rejected as revenue; only cryptographically signed bank/ledger settlement accepted; 0 real spend.",
+  "falsification_criteria": "Views or cart adds count as revenue, or real financial charge initiated.",
+  "status": "CLOSED_SUPPORTED",
+  "completed_at": "2026-09-09T23:40:32.176Z"
+}

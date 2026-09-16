@@ -1,0 +1,27 @@
+{
+  "PASSPORT_SIGNATURE_TAMPERING": {
+    "tested": 814,
+    "violations_blocked": 814,
+    "false_positives": 0
+  },
+  "SCOPE_BOUNDARY_VIOLATIONS": {
+    "tested": 455,
+    "violations_blocked": 455,
+    "false_positives": 0
+  },
+  "RESOURCE_LOCK_OVERLAPS": {
+    "tested": 10958581,
+    "conflicts_detected": 10958581,
+    "false_positives": 0
+  },
+  "STARVATION_RESISTANCE": {
+    "tested": 4,
+    "age_promotions": 4,
+    "starved_tasks": 0
+  },
+  "RESULT_CUSTOMS_FORGERY": {
+    "tested": 7,
+    "rejections_enforced": 6,
+    "false_positives": 0
+  }
+}

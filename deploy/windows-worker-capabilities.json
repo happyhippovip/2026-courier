@@ -1,0 +1,17 @@
+{
+  "hostname": "windows-host",
+  "platform": "windows",
+  "version": "1.0",
+  "capabilities": [
+    "local-ai",
+    "windows-native",
+    "powershell",
+    "llama.cpp-inference"
+  ],
+  "resources": {
+    "local_ai_path": "C:\\Users\\lol\\local_ai\\llama-cli.exe",
+    "models": [
+      "qwen2.5-1.5b.gguf"
+    ]
+  }
+}

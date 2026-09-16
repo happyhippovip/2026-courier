@@ -1,0 +1,63 @@
+{
+  "totalTests": 11,
+  "passed": 11,
+  "failed": 0,
+  "timestamp": "2026-09-13T00:00:43.183Z",
+  "results": [
+    {
+      "testId": "ADV_BG_01_GREEN_CARD",
+      "description": "Valid task with complete criteria and evidence receives GREEN_CARD",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_BG_02_BLOCK_SPEND",
+      "description": "Spend request strictly blocked fail-closed",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_BG_03_BLOCK_DEPLOY",
+      "description": "Production deploy attempt strictly blocked fail-closed",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_BG_04_BLOCK_EXTERNAL_MESSAGE",
+      "description": "External message or customer contact strictly blocked",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_BG_05_BLOCK_TEST_WEAKENING",
+      "description": "Attempt to suppress test failure or weaken assertions blocked",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_BG_06_BLOCK_EXECUTION_UNCERTAIN",
+      "description": "Task marked execution_state_uncertain blocked from redispatch",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_BG_07_ESCALATE_CREDENTIALS",
+      "description": "Task requiring credential entry escalates to Human Gate",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_BG_08_REVISE_MISSING_CRITERIA",
+      "description": "Task lacking acceptance criteria receives REVISE",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_BG_09_HOLD_WORKER_BUSY",
+      "description": "Task targeting a currently busy worker placed on HOLD",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_BG_10_WORKER_RESPONSE_HANDLING",
+      "description": "Handles worker responses (ACCEPT, QUESTION, UNSAFE, etc.) correctly",
+      "status": "PASS"
+    },
+    {
+      "testId": "ADV_BG_11_BOUNDED_APPEAL_ANTI_LOOP",
+      "description": "Exactly 1 appeal permitted; 2nd appeal triggers TERMINAL_BLOCK preventing loops",
+      "status": "PASS"
+    }
+  ]
+}
