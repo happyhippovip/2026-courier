@@ -323,7 +323,7 @@ def task_result():
         task = state["tasks"][task_id]
         
         # Duplicate protection
-        if task["status"] in ["RECONCILED", "FAILED_TERMINAL", "RESULT_RECEIVED"]:
+        if task["status"] in ["RECONCILED", "FAILED_TERMINAL", "RESULT_RECEIVED", "HUMAN_REQUIRED"]:
             return jsonify({"status": "IGNORED", "reason": "DUPLICATE_OR_ALREADY_PROCESSED"})
             
         if task.get("worker_id") == worker_id:
