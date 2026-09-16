@@ -2,6 +2,7 @@
 import os
 import sys
 import time
+import random
 import requests
 import hashlib
 
@@ -36,6 +37,7 @@ def run_loop():
     if not API_KEY:
         raise SystemExit("COURIER_VERIFIER_API_KEY is required")
     log(f"Starting Courier Verifier ({VERIFIER_ID}) pointing to {API_URL}")
+    error_backoff = 2
     while True:
         try:
             res = requests.get(f"{API_URL}/tasks/pending_verification", headers=HEADERS, timeout=10)
@@ -90,8 +92,14 @@ def run_loop():
                         log(f"Failed to submit verification for {task_id}: HTTP {vr.status_code} {vr.text}")
         except Exception as e:
             log(f"Error polling for tasks: {e}")
+            import random
+            time.sleep(error_backoff + random.uniform(0, 2))
+            error_backoff = min(60, error_backoff * 2)
+            continue
             
-        time.sleep(5)
+        import random
+        time.sleep(5 + random.uniform(0, 1))
+        error_backoff = 2
 
 if __name__ == "__main__":
     run_loop()

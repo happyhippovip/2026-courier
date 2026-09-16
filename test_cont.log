@@ -1,0 +1,8 @@
+Submitting Provider Continuity Goal...
+Goal ID: goal-b463099f
+A: QUEUED by None | B: QUEUED by None
+A: DISPATCHED by MAC-01 | B: QUEUED by None
+A: RECONCILED by MAC-01 | B: QUEUED by None
+A: RECONCILED by MAC-01 | B: RESULT_RECEIVED by MAC-01
+A: RECONCILED by MAC-01 | B: RECONCILED by MAC-01
+SUCCESS! Goal reached DONE state automatically!

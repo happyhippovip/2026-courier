@@ -1,0 +1,1304 @@
+Starting Courier background daemons...
+Starting Gunicorn server...
+Stopping all...
+Starting Courier background daemons...
+Starting Gunicorn server...
+Stopping all...
+Starting Courier background daemons...
+Starting Gunicorn server...
+DEBUG EVAL: WF-CHIEF-16e078-STEP-2-QA deps=None scope=None
+DEBUG: Checking WF-CHIEF-16e078-STEP-2-QA with target windows against worker capabilities ['github']
+DEBUG EVAL: WF-CHIEF-2f716d-STEP-2-QA deps=None scope=None
+DEBUG: Checking WF-CHIEF-2f716d-STEP-2-QA with target windows against worker capabilities ['github']
+DEBUG EVAL: task_A deps=[] scope=TEST
+DEBUG: Checking task_A with target github against worker capabilities ['github']
+DEBUG EVAL: task_A deps=[] scope=TEST
+DEBUG: Checking task_A with target github against worker capabilities ['github']
+DEBUG EVAL: task_B deps=['task_A'] scope=TEST
+DEBUG EVAL: task_B deps=['task_A'] scope=TEST
+DEBUG EVAL: task_B deps=['task_A'] scope=TEST
+DEBUG EVAL: task_A2 deps=[] scope=TEST_A2
+DEBUG: Checking task_A2 with target github against worker capabilities ['github']
+DEBUG EVAL: task_B2 deps=['task_A2'] scope=TEST_B2
+DEBUG EVAL: task_B2 deps=['task_A2'] scope=TEST_B2
+DEBUG EVAL: task_B2 deps=['task_A2'] scope=TEST_B2
+DEBUG EVAL: task_B2 deps=['task_A2'] scope=TEST_B2
+DEBUG EVAL: task_B2 deps=['task_A2'] scope=TEST_B2
+DEBUG EVAL: task_B2 deps=['task_A2'] scope=TEST_B2
+DEBUG EVAL: task_B2 deps=['task_A2'] scope=TEST_B2
+DEBUG EVAL: task_B2 deps=['task_A2'] scope=TEST_B2
+DEBUG EVAL: task_B2 deps=['task_A2'] scope=TEST_B2
+DEBUG EVAL: task_B2 deps=['task_A2'] scope=TEST_B2
+DEBUG EVAL: task_B2 deps=['task_A2'] scope=TEST_B2
+DEBUG EVAL: task_B2 deps=['task_A2'] scope=TEST_B2
+DEBUG: Checking task_B2 with target github against worker capabilities ['github']
+Stopping all...
+Stopping all...
+Starting Courier background daemons...
+Starting Gunicorn server...
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['macos', 'linux', 'antigravity']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+Stopping all...
+Stopping all...
+Starting Courier background daemons...
+Starting Gunicorn server...
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+Stopping all...
+Stopping all...
+Starting Courier background daemons...
+Starting Gunicorn server...
+DEBUG EVAL: task_continuity deps=[] scope=TEST_CONT
+DEBUG: Checking task_continuity with target mac against worker capabilities ['macos', 'linux', 'antigravity']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+Stopping all...
+Stopping all...
+Starting Courier background daemons...
+Starting Gunicorn server...
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+Stopping all...
+Stopping all...
+Starting Courier background daemons...
+Starting Gunicorn server...
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_981bd8b5 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_981bd8b5 with target mac against worker capabilities ['macos', 'linux', 'antigravity']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+Stopping all...
+Stopping all...
+Starting Courier background daemons...
+Starting Gunicorn server...
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_87362008 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_87362008 with target mac against worker capabilities ['macos', 'linux', 'antigravity']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_f7245393 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_f7245393 with target mac against worker capabilities ['macos', 'linux', 'antigravity']
+DEBUG EVAL: task_cont_57fbdba0 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_57fbdba0 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_57fbdba0 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_57fbdba0 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_57fbdba0 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_57fbdba0 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_57fbdba0 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_57fbdba0 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_57fbdba0 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_57fbdba0 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_57fbdba0 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_57fbdba0 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_57fbdba0 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_57fbdba0 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_57fbdba0 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_57fbdba0 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_57fbdba0 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_57fbdba0 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_57fbdba0 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_57fbdba0 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_cont_57fbdba0 deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_57fbdba0 with target mac against worker capabilities ['macos', 'linux', 'antigravity']
+DEBUG EVAL: task_cont_47980fce deps=[] scope=TEST_CONT
+DEBUG: Checking task_cont_47980fce with target mac against worker capabilities ['macos', 'linux', 'antigravity']
+DEBUG EVAL: REV-AD549EA4 deps=[] scope=None
+DEBUG: Checking REV-AD549EA4 with target linux against worker capabilities ['macos', 'linux', 'antigravity']
+DEBUG EVAL: REV-AD549EA4 deps=[] scope=None
+DEBUG: Checking REV-AD549EA4 with target linux against worker capabilities ['github']
+DEBUG EVAL: REV-AD549EA4 deps=[] scope=None
+DEBUG: Checking REV-AD549EA4 with target linux against worker capabilities ['github']
+DEBUG EVAL: REV-AD549EA4 deps=[] scope=None
+DEBUG: Checking REV-AD549EA4 with target linux against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['macos', 'linux', 'antigravity']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['macos', 'linux', 'antigravity']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+Stopping all...
+Starting Courier background daemons...
+Starting Gunicorn server...
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['macos', 'linux', 'antigravity']
+Stopping all...
+Starting Courier background daemons...
+Starting Gunicorn server...
+is_crash_loop: True raw_result: {'status': 'FAILED', 'reason': 'CRASH_LOOP'}
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['revenue_safety_audit', 'linux']
+Stopping all...
+Stopping all...
+Starting Courier background daemons...
+Starting Gunicorn server...
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+Stopping all...
+Starting Courier background daemons...
+Starting Gunicorn server...
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-a-a5b7 deps=[] scope=TEST_A
+DEBUG: Checking task-a-a5b7 with target github against worker capabilities ['github']
+is_crash_loop: False raw_result: {'status': 'FAILED', 'reason': 'VALIDATION_ERROR'}
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-a-a5b7 deps=[] scope=TEST_A
+DEBUG: Checking task-a-a5b7 with target github against worker capabilities ['github']
+is_crash_loop: False raw_result: {'status': 'FAILED', 'reason': 'VALIDATION_ERROR'}
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-a-a5b7 deps=[] scope=TEST_A
+DEBUG: Checking task-a-a5b7 with target github against worker capabilities ['github']
+is_crash_loop: False raw_result: {'status': 'FAILED', 'reason': 'VALIDATION_ERROR', 'stderr': 'TaskPacket has an unsupported bounded task type'}
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-a-ebc9 deps=[] scope=TEST_A
+DEBUG: Checking task-a-ebc9 with target github against worker capabilities ['github']
+is_crash_loop: False raw_result: None
+DEBUG EVAL: task_crash_0fba24f8 deps=[] scope=TEST_CRASH
+DEBUG: Checking task_crash_0fba24f8 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-a-ebc9 deps=[] scope=TEST_A
+DEBUG: Checking task-a-ebc9 with target github against worker capabilities ['github']
+Stopping all...
+Starting Courier background daemons...
+Starting Gunicorn server...
+DEBUG EVAL: task-a-e946 deps=[] scope=TEST_A
+DEBUG: Checking task-a-e946 with target github against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-c269 deps=['task-a-e946'] scope=TEST_B
+DEBUG: Checking task-b-c269 with target mac against worker capabilities ['macos', 'linux', 'antigravity']
+DEBUG EVAL: task-a-14d1 deps=[] scope=TEST_A
+DEBUG: Checking task-a-14d1 with target mac against worker capabilities ['macos', 'linux', 'antigravity']
+is_crash_loop: False raw_result: {'status': 'FAILED', 'stderr': "Native action '' is not allowed for security reasons.", 'execution_mode': 'NATIVE'}
+DEBUG EVAL: task-a-14d1 deps=[] scope=TEST_A
+DEBUG: Checking task-a-14d1 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-f189 deps=['task-a-14d1'] scope=TEST_B
+DEBUG EVAL: task-a-14d1 deps=[] scope=TEST_A
+DEBUG: Checking task-a-14d1 with target mac against worker capabilities ['macos', 'linux', 'antigravity']
+is_crash_loop: False raw_result: {'status': 'FAILED', 'stderr': "Native action '' is not allowed for security reasons.", 'execution_mode': 'NATIVE'}
+DEBUG EVAL: task-a-14d1 deps=[] scope=TEST_A
+DEBUG: Checking task-a-14d1 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-f189 deps=['task-a-14d1'] scope=TEST_B
+DEBUG EVAL: task-a-14d1 deps=[] scope=TEST_A
+DEBUG: Checking task-a-14d1 with target mac against worker capabilities ['macos', 'linux', 'antigravity']
+is_crash_loop: False raw_result: {'status': 'FAILED', 'stderr': "Native action '' is not allowed for security reasons.", 'execution_mode': 'NATIVE'}
+DEBUG EVAL: task-a-63b2 deps=[] scope=TEST_A
+DEBUG: Checking task-a-63b2 with target mac against worker capabilities ['macos', 'linux', 'antigravity']
+is_crash_loop: False raw_result: {'status': 'FAILED', 'stderr': "Native action '' is not allowed for security reasons.", 'execution_mode': 'NATIVE'}
+DEBUG EVAL: task-a-63b2 deps=[] scope=TEST_A
+DEBUG: Checking task-a-63b2 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-ae15 deps=['task-a-63b2'] scope=TEST_B
+DEBUG EVAL: task-a-63b2 deps=[] scope=TEST_A
+DEBUG: Checking task-a-63b2 with target mac against worker capabilities ['macos', 'linux', 'antigravity']
+is_crash_loop: False raw_result: {'status': 'FAILED', 'stderr': "Native action '' is not allowed for security reasons.", 'execution_mode': 'NATIVE'}
+DEBUG EVAL: task-a-63b2 deps=[] scope=TEST_A
+DEBUG: Checking task-a-63b2 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-ae15 deps=['task-a-63b2'] scope=TEST_B
+DEBUG EVAL: task-a-63b2 deps=[] scope=TEST_A
+DEBUG: Checking task-a-63b2 with target mac against worker capabilities ['macos', 'linux', 'antigravity']
+is_crash_loop: False raw_result: {'status': 'FAILED', 'stderr': "Native action '' is not allowed for security reasons.", 'execution_mode': 'NATIVE'}
+DEBUG EVAL: task-a-360d deps=[] scope=TEST_A
+DEBUG: Checking task-a-360d with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-937c deps=['task-a-360d'] scope=TEST_B
+DEBUG EVAL: task-a-360d deps=[] scope=TEST_A
+DEBUG: Checking task-a-360d with target mac against worker capabilities ['macos', 'linux', 'antigravity']
+DEBUG EVAL: task-b-937c deps=['task-a-360d'] scope=TEST_B
+DEBUG EVAL: task-a-315e deps=[] scope=TEST_A
+DEBUG: Checking task-a-315e with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-937c deps=['task-a-360d'] scope=TEST_B
+DEBUG EVAL: task-a-315e deps=[] scope=TEST_A
+DEBUG: Checking task-a-315e with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-937c deps=['task-a-360d'] scope=TEST_B
+DEBUG EVAL: task-a-315e deps=[] scope=TEST_A
+DEBUG: Checking task-a-315e with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-937c deps=['task-a-360d'] scope=TEST_B
+DEBUG EVAL: task-a-315e deps=[] scope=TEST_A
+DEBUG: Checking task-a-315e with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-937c deps=['task-a-360d'] scope=TEST_B
+DEBUG EVAL: task-a-315e deps=[] scope=TEST_A
+DEBUG: Checking task-a-315e with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-937c deps=['task-a-360d'] scope=TEST_B
+DEBUG EVAL: task-a-315e deps=[] scope=TEST_A
+DEBUG: Checking task-a-315e with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-937c deps=['task-a-360d'] scope=TEST_B
+DEBUG EVAL: task-a-315e deps=[] scope=TEST_A
+DEBUG: Checking task-a-315e with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-937c deps=['task-a-360d'] scope=TEST_B
+DEBUG EVAL: task-a-315e deps=[] scope=TEST_A
+DEBUG: Checking task-a-315e with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-937c deps=['task-a-360d'] scope=TEST_B
+DEBUG EVAL: task-a-315e deps=[] scope=TEST_A
+DEBUG: Checking task-a-315e with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-937c deps=['task-a-360d'] scope=TEST_B
+DEBUG EVAL: task-a-315e deps=[] scope=TEST_A
+DEBUG: Checking task-a-315e with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-937c deps=['task-a-360d'] scope=TEST_B
+DEBUG: Checking task-b-937c with target mac against worker capabilities ['github']
+DEBUG EVAL: task-a-315e deps=[] scope=TEST_A
+DEBUG: Checking task-a-315e with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-937c deps=['task-a-360d'] scope=TEST_B
+DEBUG: Checking task-b-937c with target mac against worker capabilities ['macos', 'linux', 'antigravity']
+DEBUG EVAL: task-a-315e deps=[] scope=TEST_A
+DEBUG: Checking task-a-315e with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-a-315e deps=[] scope=TEST_A
+DEBUG: Checking task-a-315e with target mac against worker capabilities ['macos', 'linux', 'antigravity']
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+is_crash_loop: False raw_result: {'status': 'FAILED', 'stderr': 'TimeoutExpired - Process killed.', 'execution_mode': 'ANTIGRAVITY'}
+DEBUG EVAL: task-a-315e deps=[] scope=TEST_A
+DEBUG: Checking task-a-315e with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-a-315e deps=[] scope=TEST_A
+DEBUG: Checking task-a-315e with target mac against worker capabilities ['macos', 'linux', 'antigravity']
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG: Checking task-b-06e2 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-b-06e2 deps=['task-a-315e'] scope=TEST_B
+DEBUG: Checking task-b-06e2 with target mac against worker capabilities ['macos', 'linux', 'antigravity']
+DEBUG EVAL: msg-1-cd34 deps=[] scope=QUEUE_TEST
+DEBUG: Checking msg-1-cd34 with target mac against worker capabilities ['macos', 'linux', 'antigravity']
+DEBUG EVAL: msg-2-cb3a deps=['msg-1-cd34'] scope=QUEUE_TEST
+DEBUG EVAL: msg-3-e85b deps=['msg-2-cb3a'] scope=QUEUE_TEST
+DEBUG EVAL: msg-2-cb3a deps=['msg-1-cd34'] scope=QUEUE_TEST
+DEBUG: Checking msg-2-cb3a with target mac against worker capabilities ['macos', 'linux', 'antigravity']
+DEBUG EVAL: msg-3-e85b deps=['msg-2-cb3a'] scope=QUEUE_TEST
+DEBUG EVAL: msg-3-e85b deps=['msg-2-cb3a'] scope=QUEUE_TEST
+DEBUG EVAL: msg-3-e85b deps=['msg-2-cb3a'] scope=QUEUE_TEST
+DEBUG EVAL: msg-3-e85b deps=['msg-2-cb3a'] scope=QUEUE_TEST
+DEBUG EVAL: msg-3-e85b deps=['msg-2-cb3a'] scope=QUEUE_TEST
+DEBUG EVAL: msg-3-e85b deps=['msg-2-cb3a'] scope=QUEUE_TEST
+DEBUG EVAL: msg-3-e85b deps=['msg-2-cb3a'] scope=QUEUE_TEST
+DEBUG EVAL: msg-3-e85b deps=['msg-2-cb3a'] scope=QUEUE_TEST
+DEBUG EVAL: msg-3-e85b deps=['msg-2-cb3a'] scope=QUEUE_TEST
+DEBUG EVAL: msg-3-e85b deps=['msg-2-cb3a'] scope=QUEUE_TEST
+DEBUG: Checking msg-3-e85b with target mac against worker capabilities ['macos', 'linux', 'antigravity']
+DEBUG EVAL: task-ext-4a74 deps=[] scope=TEST_EXT
+DEBUG: Checking task-ext-4a74 with target github against worker capabilities ['github']
+DEBUG EVAL: task-pipe-0ee9 deps=[] scope=TEST_PIPE
+DEBUG: Checking task-pipe-0ee9 with target mac against worker capabilities ['macos', 'antigravity']
+DEBUG EVAL: task-1-b654 deps=[] scope=TEST_T1
+DEBUG: Checking task-1-b654 with target mac against worker capabilities ['github']
+DEBUG EVAL: task-2-d8c4 deps=[] scope=TEST_T2
+DEBUG: Checking task-2-d8c4 with target github against worker capabilities ['github']
+DEBUG EVAL: task-1-b654 deps=[] scope=TEST_T1
+DEBUG: Checking task-1-b654 with target mac against worker capabilities ['macos', 'antigravity']
+DEBUG EVAL: task-3-2f54 deps=['task-1-b654'] scope=TEST_T3
+DEBUG: Checking task-3-2f54 with target mac against worker capabilities ['macos', 'antigravity']
+DEBUG EVAL: task-a-d2c2 deps=[] scope=FINAL_TEST
+DEBUG: Checking task-a-d2c2 with target mac against worker capabilities ['macos', 'antigravity']
+DEBUG EVAL: task-b-2363 deps=['task-a-d2c2'] scope=FINAL_TEST
+DEBUG EVAL: task-b-2363 deps=['task-a-d2c2'] scope=FINAL_TEST
+DEBUG EVAL: task-b-2363 deps=['task-a-d2c2'] scope=FINAL_TEST
+DEBUG EVAL: task-b-2363 deps=['task-a-d2c2'] scope=FINAL_TEST
+DEBUG EVAL: task-b-2363 deps=['task-a-d2c2'] scope=FINAL_TEST
+DEBUG EVAL: task-b-2363 deps=['task-a-d2c2'] scope=FINAL_TEST
+DEBUG EVAL: task-b-2363 deps=['task-a-d2c2'] scope=FINAL_TEST
+DEBUG EVAL: task-b-2363 deps=['task-a-d2c2'] scope=FINAL_TEST
+DEBUG EVAL: task-b-2363 deps=['task-a-d2c2'] scope=FINAL_TEST
+DEBUG EVAL: task-b-2363 deps=['task-a-d2c2'] scope=FINAL_TEST
+DEBUG EVAL: task-b-2363 deps=['task-a-d2c2'] scope=FINAL_TEST
+DEBUG EVAL: task-b-2363 deps=['task-a-d2c2'] scope=FINAL_TEST
+DEBUG EVAL: task-b-2363 deps=['task-a-d2c2'] scope=FINAL_TEST
+DEBUG EVAL: task-b-2363 deps=['task-a-d2c2'] scope=FINAL_TEST
+DEBUG EVAL: task-b-2363 deps=['task-a-d2c2'] scope=FINAL_TEST
+DEBUG EVAL: task-b-2363 deps=['task-a-d2c2'] scope=FINAL_TEST
+DEBUG EVAL: task-b-2363 deps=['task-a-d2c2'] scope=FINAL_TEST
+DEBUG EVAL: task-b-2363 deps=['task-a-d2c2'] scope=FINAL_TEST
+DEBUG: Checking task-b-2363 with target github against worker capabilities ['macos', 'antigravity']
+DEBUG EVAL: task-b-2363 deps=['task-a-d2c2'] scope=FINAL_TEST
+DEBUG: Checking task-b-2363 with target github against worker capabilities ['github']

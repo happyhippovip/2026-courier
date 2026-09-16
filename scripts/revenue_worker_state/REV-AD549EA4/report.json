@@ -1,0 +1,22 @@
+{
+  "inspected_files": {
+    "audit.yml": "0113c4848ec3f07b597f208580e9f77e55dbe3ec15380bf59a165f7c8bb5843e"
+  },
+  "findings": [
+    {
+      "rule": "timeout",
+      "file": "audit.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "permissions",
+      "file": "audit.yml",
+      "issue": "Missing explicit permissions block."
+    },
+    {
+      "rule": "concurrency",
+      "file": "audit.yml",
+      "issue": "Missing concurrency block."
+    }
+  ]
+}

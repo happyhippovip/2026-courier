@@ -1,0 +1,20 @@
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 116
+    prompt = f"Task ID: {task['task_id']}
+                                         ^
+SyntaxError: EOL while scanning string literal
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 116
+    prompt = f"Task ID: {task['task_id']}
+                                         ^
+SyntaxError: EOL while scanning string literal
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 116
+    prompt = f"Task ID: {task['task_id']}
+                                         ^
+SyntaxError: EOL while scanning string literal
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 116
+    prompt = f"Task ID: {task['task_id']}
+                                         ^
+SyntaxError: EOL while scanning string literal
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 116
+    prompt = f"Task ID: {task['task_id']}
+                                         ^
+SyntaxError: EOL while scanning string literal

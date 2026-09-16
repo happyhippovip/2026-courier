@@ -37,7 +37,18 @@ def load_config():
 
 def write_log(msg):
     print(msg)
-    with open(LOGS_DIR / "worker.log", "a") as f:
+    log_file = LOGS_DIR / "worker.log"
+    # S04: Bounded logs
+    if log_file.exists() and log_file.stat().st_size > 5 * 1024 * 1024:
+        try:
+            with open(log_file, "r") as f:
+                content = f.read()
+            with open(log_file, "w") as f:
+                f.write(content[-2 * 1024 * 1024:]) # Keep last 2MB
+        except Exception:
+            pass
+    with open(log_file, "a") as f:
+        import time
         f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {msg}\n")
 
 def http_post(config, endpoint, data):
@@ -132,7 +143,9 @@ def run_agy(task, config):
     prompt = f"""Task ID: {task['task_id']}
 Instruction: {instruction}
 
-You are a headless worker on Mac. You MUST execute the instruction. After you have successfully executed the instruction, you MUST output a final JSON object in a markdown codeblock. The JSON must contain a 'status' field set to 'SUCCESS' and a 'stdout_summary' field explaining what you did. IMPORTANT: Your current working directory is {os.getcwd()}. Any file artifacts you create MUST be relative to this directory."""
+You are a headless worker on Mac. You MUST execute the instruction. 
+RULES: MAX_HEAVY_LOCAL_EXECUTIONS=1, MAX_ACTIVE_SUBAGENTS=2, TIMER_DEFAULT=NO. Do NOT use broad killall or unlimited retries.
+After you have successfully executed the instruction, you MUST output a final JSON object in a markdown codeblock. The JSON must contain a 'status' field set to 'SUCCESS' and a 'stdout_summary' field explaining what you did. IMPORTANT: Your current working directory is {os.getcwd()}. Any file artifacts you create MUST be relative to this directory."""
     agy_bin = shutil.which("agy") or shutil.which("agy", path=os.environ.get("PATH", "") + ":/Users/user/.local/bin:/usr/local/bin:/opt/homebrew/bin")
     if not agy_bin:
         return {"status": "FAILED", "reason": "AGY_NOT_FOUND", "execution_mode": "ANTIGRAVITY"}
@@ -192,10 +205,25 @@ You are a headless worker on Mac. You MUST execute the instruction. After you ha
             os.remove(pid_file)
         return {"status": "FAILED", "stderr": str(e), "execution_mode": "ANTIGRAVITY"}
 
+
+import fcntl
+def acquire_single_instance_lock():
+    lock_file = STATE_DIR / "daemon.lock"
+    lock_fd = open(lock_file, "w")
+    try:
+        fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        return lock_fd
+    except BlockingIOError:
+        print("Another instance of daemon is already running. Exiting.")
+        sys.exit(0)
+
 def loop():
+    _lock_fd = acquire_single_instance_lock()
+
     write_log("Starting Mac Worker HTTP Daemon...")
     config = load_config()
     current_task_state_file = STATE_DIR / "current_task.json"
+    current_result_file = STATE_DIR / "current_result.json"
     # Cleanup any stale process from a previous run/crash
     pid_file = STATE_DIR / "current_task_pid.json"
     if pid_file.exists():
@@ -215,14 +243,82 @@ def loop():
             pass
 
     
+    # S02 Crash loop breaker
+    task_crash_file = STATE_DIR / "task_crash_count.json"
+    crash_counts = {}
+    if task_crash_file.exists():
+        try:
+            with open(task_crash_file, "r") as f:
+                crash_counts = json.load(f)
+        except:
+            pass
+
     # Load previously claimed task for duplicate protection
     task = None
     if current_task_state_file.exists():
         write_log("Found unfinished task from previous run, resuming...")
-        with open(current_task_state_file, 'r') as f:
-            task = json.load(f)
+
+        if current_result_file.exists():
+            with open(current_result_file, 'r') as f:
+                saved = json.load(f)
+            write_log("Recovered unsent durable result from disk.")
+            
+            # Post loop right here
+            import random
+            post_backoff = 2
+            while True:
+                res, err = http_post(config, "/tasks/result", saved["payload"])
+                if err:
+                    write_log(f"Result post failed: {err}. Retrying in {post_backoff}s...")
+                    time.sleep(post_backoff + random.uniform(0, 2))
+                    post_backoff = min(60, post_backoff * 2)
+                else:
+                    write_log(f"Result posted successfully: {res}")
+                    break
+                    
+            os.remove(current_result_file)
+            if current_task_state_file.exists():
+                os.remove(current_task_state_file)
+            task = None
+        elif current_task_state_file.exists():
+            with open(current_task_state_file, 'r') as f:
+                task = json.load(f)
+
+            
+        # Increment crash count
+        tid = task.get("task_id", "unknown")
+        c_count = crash_counts.get(tid, 0) + 1
+        crash_counts[tid] = c_count
+        with open(str(task_crash_file) + ".tmp", "w") as f:
+            json.dump(crash_counts, f)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(str(task_crash_file) + ".tmp", task_crash_file)
+            
+        if c_count > 2:
+            write_log(f"Task {tid} has crashed {c_count} times. Breaking circuit and returning FAILED.")
+            # Post failed result
+            payload = {
+                "worker_id": config["WORKER_ID"],
+                "goal_id": task.get("goal_id"),
+                "task_id": tid,
+                "dispatch_id": task.get("dispatch_id"),
+                "attempt_id": task.get("attempt_id"),
+                "run_id": str(uuid.uuid4()),
+                "result_id": str(uuid.uuid4()),
+                "status": "FAILED",
+                "stderr": f"S02 Circuit Breaker: Task crashed {c_count} times.",
+                "execution_mode": "CIRCUIT_BREAKER",
+                "artifacts": [],
+                "raw_result": {"status": "FAILED", "reason": "CRASH_LOOP"}
+            }
+            http_post(config, "/tasks/result", payload)
+            if current_task_state_file.exists():
+                os.remove(current_task_state_file)
+            task = None
             
     registered = False
+    error_backoff = 2
     
     while True:
         try:
@@ -230,15 +326,27 @@ def loop():
                 reg_payload = {
                     "worker_id": config["WORKER_ID"],
                     "platform": "macos",
-                    "capabilities": ["macos", "linux", "antigravity"]
+                    "capabilities": ["macos", "antigravity"]
                 }
                 res, err = http_post(config, "/workers/register", reg_payload)
                 if err:
                     write_log(f"Failed to register: {err}")
-                    time.sleep(5) # backoff
+                    time.sleep(error_backoff + __import__("random").uniform(0, 2))
+                    error_backoff = min(60, error_backoff * 2)
                     continue
                 write_log("Registered successfully.")
                 registered = True
+            # Cleanup old temp dirs
+            try:
+                import shutil
+                paths = [p for p in STATE_DIR.iterdir() if p.is_dir() and p.name.startswith("task_")]
+                paths.sort(key=lambda x: x.stat().st_mtime, reverse=True)
+                for p in paths[5:]: # Keep last 5
+                    shutil.rmtree(p)
+            except Exception:
+                pass
+
+                error_backoff = 2
                 
             # Heartbeat
             # Resource / Heat protection
@@ -253,7 +361,8 @@ def loop():
             if err:
                 write_log(f"Heartbeat failed: {err}")
                 registered = False
-                time.sleep(5)
+                time.sleep(error_backoff + __import__("random").uniform(0, 2))
+                error_backoff = min(60, error_backoff * 2)
                 continue
                 
             if not task:
@@ -261,13 +370,19 @@ def loop():
                 res, err = http_post(config, "/tasks/claim", {"worker_id": config["WORKER_ID"]})
                 if err:
                     write_log(f"Claim failed: {err}")
-                    time.sleep(5)
+                    time.sleep(error_backoff + __import__("random").uniform(0, 2))
+                    error_backoff = min(60, error_backoff * 2)
                     continue
                     
                 task = res.get("task")
+                error_backoff = 2
                 if task:
-                    with open(current_task_state_file, 'w') as f:
+                    temp_task_file = str(current_task_state_file) + ".tmp"
+                    with open(temp_task_file, 'w') as f:
                         json.dump(task, f)
+                        f.flush()
+                        os.fsync(f.fileno())
+                    os.replace(temp_task_file, current_task_state_file)
                         
             if task:
                 write_log(f"Processing task {task['task_id']}")
@@ -314,20 +429,42 @@ def loop():
                     "raw_result": result
                 }
                 
-                # Backoff loop for posting result
-                retries = 0
-                while retries < 8: # Up to 8 retries (~ 255 seconds)
+                # S08/S05: Save current_result before attempting network post
+                temp_res = str(current_result_file) + ".tmp"
+                with open(temp_res, 'w') as f:
+                    json.dump({"task": task, "payload": payload}, f)
+                    f.flush()
+                    os.fsync(f.fileno())
+                os.replace(temp_res, current_result_file)
+                
+                # Infinite backoff loop for posting result (S05: no lost tasks, low-load waiting)
+                import random
+                post_backoff = 2
+                while True:
                     res, err = http_post(config, "/tasks/result", payload)
                     if err:
-                        write_log(f"Result post failed: {err}. Retrying in {2**retries}s...")
-                        time.sleep(2 ** retries)
-                        retries += 1
+                        write_log(f"Result post failed: {err}. Retrying in {post_backoff}s...")
+                        time.sleep(post_backoff + random.uniform(0, 2))
+                        post_backoff = min(60, post_backoff * 2)
                     else:
                         write_log(f"Result posted successfully: {res}")
                         break
                         
+                if current_result_file.exists():
+                    os.remove(current_result_file)
+                
                 if current_task_state_file.exists():
                     os.remove(current_task_state_file)
+                    
+                # Clear crash count
+                tid = task.get("task_id")
+                if tid in crash_counts:
+                    del crash_counts[tid]
+                    with open(str(task_crash_file) + ".tmp", "w") as f:
+                        json.dump(crash_counts, f)
+                        f.flush()
+                        os.fsync(f.fileno())
+                    os.replace(str(task_crash_file) + ".tmp", task_crash_file)
                     
                 task = None
                 

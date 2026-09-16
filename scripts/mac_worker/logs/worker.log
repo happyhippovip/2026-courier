@@ -417,3 +417,882 @@ AttributeError: 'NoneType' object has no attribute 'get'
 [2026-09-16 00:40:07] Result post failed: <urlopen error [Errno 61] Connection refused>. Retrying in 2s...
 [2026-09-16 00:40:09] Result post failed: <urlopen error [Errno 61] Connection refused>. Retrying in 4s...
 [2026-09-16 00:40:13] Result post failed: <urlopen error [Errno 61] Connection refused>. Retrying in 8s...
+[2026-09-16 11:27:35] Processing task WF-CHIEF-16e078-STEP-1-DISCOVER
+[2026-09-16 11:27:35] Running AI task WF-CHIEF-16e078-STEP-1-DISCOVER via agy
+[2026-09-16 11:32:35] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-16 11:32:40] Processing task WF-CHIEF-16e078-STEP-1-DISCOVER
+[2026-09-16 11:32:40] Running AI task WF-CHIEF-16e078-STEP-1-DISCOVER via agy
+[2026-09-16 11:35:42] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-16 11:35:47] Processing task WF-CHIEF-16e078-STEP-3-SYNTHESIZE
+[2026-09-16 11:35:47] Running AI task WF-CHIEF-16e078-STEP-3-SYNTHESIZE via agy
+[2026-09-16 11:40:05] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-16 11:40:10] Processing task WF-CHIEF-2f716d-STEP-1-DISCOVER
+[2026-09-16 11:40:10] Running AI task WF-CHIEF-2f716d-STEP-1-DISCOVER via agy
+[2026-09-16 11:42:25] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-16 11:42:30] Processing task WF-CHIEF-2f716d-STEP-3-SYNTHESIZE
+[2026-09-16 11:42:30] Running AI task WF-CHIEF-2f716d-STEP-3-SYNTHESIZE via agy
+[2026-09-16 11:45:03] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-16 11:52:37] Starting Mac Worker HTTP Daemon...
+[2026-09-16 11:52:37] Registered successfully.
+[2026-09-16 11:52:37] Processing task task_continuity
+[2026-09-16 11:52:37] Running NATIVE task task_continuity
+[2026-09-16 11:52:37] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:52:41] Starting Mac Worker HTTP Daemon...
+[2026-09-16 11:52:41] Found unfinished task from previous run, resuming...
+[2026-09-16 11:52:41] Registered successfully.
+[2026-09-16 11:52:41] Processing task task_continuity
+[2026-09-16 11:52:41] Running NATIVE task task_continuity
+[2026-09-16 11:52:41] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:52:43] Starting Mac Worker HTTP Daemon...
+[2026-09-16 11:52:43] Found unfinished task from previous run, resuming...
+[2026-09-16 11:52:43] Registered successfully.
+[2026-09-16 11:52:43] Processing task task_continuity
+[2026-09-16 11:52:43] Running NATIVE task task_continuity
+[2026-09-16 11:52:43] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:52:48] Processing task task_continuity
+[2026-09-16 11:52:48] Running NATIVE task task_continuity
+[2026-09-16 11:52:48] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:52:53] Processing task task_continuity
+[2026-09-16 11:52:53] Running NATIVE task task_continuity
+[2026-09-16 11:52:53] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:52:58] Processing task task_continuity
+[2026-09-16 11:52:58] Running NATIVE task task_continuity
+[2026-09-16 11:52:58] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:53:03] Processing task task_continuity
+[2026-09-16 11:53:03] Running NATIVE task task_continuity
+[2026-09-16 11:53:03] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:53:08] Processing task task_continuity
+[2026-09-16 11:53:08] Running NATIVE task task_continuity
+[2026-09-16 11:53:08] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:53:14] Processing task task_continuity
+[2026-09-16 11:53:14] Running NATIVE task task_continuity
+[2026-09-16 11:53:14] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:53:19] Processing task task_continuity
+[2026-09-16 11:53:19] Running NATIVE task task_continuity
+[2026-09-16 11:53:19] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:53:24] Processing task task_continuity
+[2026-09-16 11:53:24] Running NATIVE task task_continuity
+[2026-09-16 11:53:24] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:53:29] Processing task task_continuity
+[2026-09-16 11:53:29] Running NATIVE task task_continuity
+[2026-09-16 11:53:29] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:53:34] Processing task task_continuity
+[2026-09-16 11:53:34] Running NATIVE task task_continuity
+[2026-09-16 11:53:34] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:53:39] Processing task task_continuity
+[2026-09-16 11:53:39] Running NATIVE task task_continuity
+[2026-09-16 11:53:39] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:53:44] Processing task task_continuity
+[2026-09-16 11:53:44] Running NATIVE task task_continuity
+[2026-09-16 11:53:44] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:53:49] Processing task task_continuity
+[2026-09-16 11:53:49] Running NATIVE task task_continuity
+[2026-09-16 11:53:49] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:53:54] Processing task task_continuity
+[2026-09-16 11:53:54] Running NATIVE task task_continuity
+[2026-09-16 11:53:54] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:53:59] Processing task task_continuity
+[2026-09-16 11:53:59] Running NATIVE task task_continuity
+[2026-09-16 11:53:59] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:54:04] Processing task task_continuity
+[2026-09-16 11:54:04] Running NATIVE task task_continuity
+[2026-09-16 11:54:04] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:54:09] Processing task task_continuity
+[2026-09-16 11:54:09] Running NATIVE task task_continuity
+[2026-09-16 11:54:09] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:54:14] Processing task task_continuity
+[2026-09-16 11:54:14] Running NATIVE task task_continuity
+[2026-09-16 11:54:14] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:54:15] Starting Mac Worker HTTP Daemon...
+[2026-09-16 11:54:15] Found unfinished task from previous run, resuming...
+[2026-09-16 11:54:15] Registered successfully.
+[2026-09-16 11:54:15] Processing task task_continuity
+[2026-09-16 11:54:15] Running NATIVE task task_continuity
+[2026-09-16 11:54:15] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:54:19] Processing task task_continuity
+[2026-09-16 11:54:19] Running NATIVE task task_continuity
+[2026-09-16 11:54:19] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:54:20] Processing task task_continuity
+[2026-09-16 11:54:20] Running NATIVE task task_continuity
+[2026-09-16 11:54:20] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:54:25] Processing task task_continuity
+[2026-09-16 11:54:25] Running NATIVE task task_continuity
+[2026-09-16 11:54:25] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:54:25] Processing task task_continuity
+[2026-09-16 11:54:25] Running NATIVE task task_continuity
+[2026-09-16 11:54:25] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:54:30] Processing task task_continuity
+[2026-09-16 11:54:30] Running NATIVE task task_continuity
+[2026-09-16 11:54:30] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:54:30] Processing task task_continuity
+[2026-09-16 11:54:30] Running NATIVE task task_continuity
+[2026-09-16 11:54:30] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:54:35] Processing task task_continuity
+[2026-09-16 11:54:35] Running NATIVE task task_continuity
+[2026-09-16 11:54:35] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:54:35] Processing task task_continuity
+[2026-09-16 11:54:35] Running NATIVE task task_continuity
+[2026-09-16 11:54:35] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:54:40] Processing task task_continuity
+[2026-09-16 11:54:40] Running NATIVE task task_continuity
+[2026-09-16 11:54:40] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:54:40] Processing task task_continuity
+[2026-09-16 11:54:40] Running NATIVE task task_continuity
+[2026-09-16 11:54:40] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:54:45] Processing task task_continuity
+[2026-09-16 11:54:45] Running NATIVE task task_continuity
+[2026-09-16 11:54:45] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:54:45] Processing task task_continuity
+[2026-09-16 11:54:45] Running NATIVE task task_continuity
+[2026-09-16 11:54:45] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:54:50] Processing task task_continuity
+[2026-09-16 11:54:50] Running NATIVE task task_continuity
+[2026-09-16 11:54:50] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    # ALLOWLIST CHECK
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:54:50] Processing task task_continuity
+[2026-09-16 11:54:50] Running NATIVE task task_continuity
+[2026-09-16 11:54:50] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    # ALLOWLIST CHECK
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:54:55] Processing task task_continuity
+[2026-09-16 11:54:55] Running NATIVE task task_continuity
+[2026-09-16 11:54:55] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    # ALLOWLIST CHECK
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:54:55] Processing task task_continuity
+[2026-09-16 11:54:55] Running NATIVE task task_continuity
+[2026-09-16 11:54:55] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    # ALLOWLIST CHECK
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:54:56] Starting Mac Worker HTTP Daemon...
+[2026-09-16 11:54:56] Found unfinished task from previous run, resuming...
+[2026-09-16 11:54:56] Registered successfully.
+[2026-09-16 11:54:56] Processing task task_continuity
+[2026-09-16 11:54:56] Running NATIVE task task_continuity
+[2026-09-16 11:55:00] Processing task task_continuity
+[2026-09-16 11:55:00] Running NATIVE task task_continuity
+[2026-09-16 11:55:00] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    # ALLOWLIST CHECK
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:55:05] Processing task task_continuity
+[2026-09-16 11:55:05] Running NATIVE task task_continuity
+[2026-09-16 11:55:05] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    # ALLOWLIST CHECK
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:55:10] Processing task task_continuity
+[2026-09-16 11:55:10] Running NATIVE task task_continuity
+[2026-09-16 11:55:10] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    # ALLOWLIST CHECK
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:55:15] Processing task task_continuity
+[2026-09-16 11:55:15] Running NATIVE task task_continuity
+[2026-09-16 11:55:15] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    # ALLOWLIST CHECK
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:55:16] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 1s...
+[2026-09-16 11:55:17] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 2s...
+[2026-09-16 11:55:20] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 4s...
+[2026-09-16 11:55:20] Processing task task_continuity
+[2026-09-16 11:55:20] Running NATIVE task task_continuity
+[2026-09-16 11:55:20] Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    # ALLOWLIST CHECK
+NameError: name 'extract_intent' is not defined
+
+[2026-09-16 11:55:24] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 8s...
+[2026-09-16 11:55:32] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 16s...
+[2026-09-16 11:55:48] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 32s...
+[2026-09-16 11:56:20] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 64s...
+[2026-09-16 11:56:42] Starting Mac Worker HTTP Daemon...
+[2026-09-16 11:56:42] Found unfinished task from previous run, resuming...
+[2026-09-16 11:56:42] Registered successfully.
+[2026-09-16 11:56:42] Processing task task_continuity
+[2026-09-16 11:56:42] Running NATIVE task task_continuity
+[2026-09-16 11:57:03] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 1s...
+[2026-09-16 11:57:04] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 2s...
+[2026-09-16 11:57:06] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 4s...
+[2026-09-16 11:57:08] Starting Mac Worker HTTP Daemon...
+[2026-09-16 11:57:08] Found unfinished task from previous run, resuming...
+[2026-09-16 11:57:08] Registered successfully.
+[2026-09-16 11:57:08] Processing task task_continuity
+[2026-09-16 11:57:08] Running NATIVE task task_continuity
+[2026-09-16 11:57:28] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 1s...
+[2026-09-16 11:57:29] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 2s...
+[2026-09-16 11:57:31] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 4s...
+[2026-09-16 11:57:35] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 8s...
+[2026-09-16 11:57:43] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 16s...
+[2026-09-16 11:57:59] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 32s...
+[2026-09-16 11:58:32] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 64s...
+[2026-09-16 11:59:36] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 128s...
+[2026-09-16 11:59:53] Starting Mac Worker HTTP Daemon...
+[2026-09-16 11:59:53] Registered successfully.
+[2026-09-16 12:00:45] Processing task task_continuity
+[2026-09-16 12:00:45] Running NATIVE task task_continuity
+[2026-09-16 12:01:05] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 1s...
+[2026-09-16 12:01:06] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 2s...
+[2026-09-16 12:01:08] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 4s...
+[2026-09-16 12:01:12] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 8s...
+[2026-09-16 12:01:20] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 16s...
+[2026-09-16 12:01:22] Starting Mac Worker HTTP Daemon...
+[2026-09-16 12:01:22] Failed to register: <urlopen error [Errno 61] Connection refused>
+[2026-09-16 12:01:27] Registered successfully.
+[2026-09-16 12:01:27] Processing task task_cont_981bd8b5
+[2026-09-16 12:01:27] Running NATIVE task task_cont_981bd8b5
+[2026-09-16 12:01:47] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 1s...
+[2026-09-16 12:01:49] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 2s...
+[2026-09-16 12:01:51] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 4s...
+[2026-09-16 12:01:55] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 8s...
+[2026-09-16 12:02:03] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 16s...
+[2026-09-16 12:02:12] Starting Mac Worker HTTP Daemon...
+[2026-09-16 12:02:12] Failed to register: [Errno 54] Connection reset by peer
+[2026-09-16 12:02:17] Registered successfully.
+[2026-09-16 12:02:17] Processing task task_cont_87362008
+[2026-09-16 12:02:17] Running NATIVE task task_cont_87362008
+[2026-09-16 12:02:38] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-16 12:02:43] Processing task task_cont_f7245393
+[2026-09-16 12:02:43] Running NATIVE task task_cont_f7245393
+[2026-09-16 12:03:03] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-16 12:03:08] Processing task task_cont_57fbdba0
+[2026-09-16 12:03:08] Running NATIVE task task_cont_57fbdba0
+[2026-09-16 12:03:13] Starting Mac Worker HTTP Daemon...
+[2026-09-16 12:03:14] Found stale execution pgid 21123. Killing to release session.
+[2026-09-16 12:03:14] Found unfinished task from previous run, resuming...
+[2026-09-16 12:03:14] Registered successfully.
+[2026-09-16 12:03:14] Processing task task_cont_57fbdba0
+[2026-09-16 12:03:14] Running NATIVE task task_cont_57fbdba0
+[2026-09-16 12:03:34] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-16 12:04:10] Processing task task_cont_47980fce
+[2026-09-16 12:04:10] Running NATIVE task task_cont_47980fce
+[2026-09-16 12:04:14] Starting Mac Worker HTTP Daemon...
+[2026-09-16 12:04:14] Found stale execution pgid 21196. Killing to release session.
+[2026-09-16 12:04:14] Found unfinished task from previous run, resuming...
+[2026-09-16 12:04:14] Registered successfully.
+[2026-09-16 12:04:14] Processing task task_cont_47980fce
+[2026-09-16 12:04:14] Running NATIVE task task_cont_47980fce
+[2026-09-16 12:04:29] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-16 12:06:38] Processing task REV-AD549EA4
+[2026-09-16 12:06:38] Running AI task REV-AD549EA4 via agy
+[2026-09-16 12:07:32] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-16 12:10:49] Starting Mac Worker HTTP Daemon...
+[2026-09-16 12:10:49] Registered successfully.
+[2026-09-16 12:11:12] Starting Mac Worker HTTP Daemon...
+[2026-09-16 12:11:12] Registered successfully.
+[2026-09-16 12:11:33] Processing task task_crash_0fba24f8
+[2026-09-16 12:11:33] Running AI task task_crash_0fba24f8 via agy
+[2026-09-16 12:12:03] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 1s...
+[2026-09-16 12:12:04] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 2s...
+[2026-09-16 12:12:06] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 4s...
+[2026-09-16 12:12:07] Starting Mac Worker HTTP Daemon...
+[2026-09-16 12:12:07] Found unfinished task from previous run, resuming...
+[2026-09-16 12:12:07] Registered successfully.
+[2026-09-16 12:12:07] Processing task task_crash_0fba24f8
+[2026-09-16 12:12:07] Running AI task task_crash_0fba24f8 via agy
+[2026-09-16 12:12:17] Starting Mac Worker HTTP Daemon...
+[2026-09-16 12:12:17] Found stale execution pgid 21716. Killing to release session.
+[2026-09-16 12:12:17] Error cleaning up stale pid: [Errno 3] No such process
+[2026-09-16 12:12:17] Found unfinished task from previous run, resuming...
+[2026-09-16 12:12:17] Registered successfully.
+[2026-09-16 12:12:17] Processing task task_crash_0fba24f8
+[2026-09-16 12:12:17] Running AI task task_crash_0fba24f8 via agy
+[2026-09-16 12:12:28] Starting Mac Worker HTTP Daemon...
+[2026-09-16 12:12:28] Found stale execution pgid 21734. Killing to release session.
+[2026-09-16 12:12:28] Error cleaning up stale pid: [Errno 3] No such process
+[2026-09-16 12:12:28] Found unfinished task from previous run, resuming...
+[2026-09-16 12:12:28] Task task_crash_0fba24f8 has crashed 3 times. Breaking circuit and returning FAILED.
+[2026-09-16 12:12:28] Registered successfully.
+[2026-09-16 12:13:59] Processing task task_crash_0fba24f8
+[2026-09-16 12:13:59] Running AI task task_crash_0fba24f8 via agy
+[2026-09-16 12:15:47] Starting Mac Worker HTTP Daemon...
+[2026-09-16 12:15:47] Found stale execution pgid 21852. Killing to release session.
+[2026-09-16 12:15:47] Found unfinished task from previous run, resuming...
+[2026-09-16 12:15:47] Task task_crash_0fba24f8 has crashed 4 times. Breaking circuit and returning FAILED.
+[2026-09-16 12:15:48] Registered successfully.
+[2026-09-16 12:15:48] Processing task task_crash_0fba24f8
+[2026-09-16 12:15:48] Running AI task task_crash_0fba24f8 via agy
+[2026-09-16 12:16:18] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 1s...
+[2026-09-16 12:16:19] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 2s...
+[2026-09-16 12:16:21] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 4s...
+[2026-09-16 12:16:25] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 8s...
+[2026-09-16 12:16:33] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 16s...
+[2026-09-16 12:16:49] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 32s...
+[2026-09-16 12:17:21] Result post failed: HTTP Error 400: {"error":"successful result requires artifact evidence"}
+. Retrying in 64s...
+[2026-09-16 12:18:25] Result post failed: HTTP Error 400: {"error":"Invalid task or worker"}
+. Retrying in 128s...
+[2026-09-16 12:19:14] Starting Mac Worker HTTP Daemon...
+[2026-09-16 12:19:14] Found unfinished task from previous run, resuming...
+[2026-09-16 12:19:14] Task task_crash_0fba24f8 has crashed 5 times. Breaking circuit and returning FAILED.
+[2026-09-16 12:19:14] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:19:19] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:19:24] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:19:29] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:19:34] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:19:39] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:19:44] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:19:49] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:19:54] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:19:59] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:20:04] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:20:10] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:20:15] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:20:20] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:20:25] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:20:30] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:20:35] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:20:40] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:20:45] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:20:50] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:20:55] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:21:00] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:21:05] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:21:10] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:21:15] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:21:20] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:21:26] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:21:31] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:21:36] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:21:41] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:21:46] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:21:51] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:21:56] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:22:01] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:22:06] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:22:11] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:22:16] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:22:21] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:22:26] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:22:32] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:22:37] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:22:42] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:22:47] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:22:52] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:22:57] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:23:02] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:23:07] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:23:12] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:23:17] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:23:22] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:23:27] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:23:32] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:23:37] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:23:42] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:23:48] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:23:53] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:23:58] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:24:03] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:24:08] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:24:13] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:24:18] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:24:23] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:24:28] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:24:33] Starting Mac Worker HTTP Daemon...
+[2026-09-16 12:24:33] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:24:36] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:24:42] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:24:50] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:25:07] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:25:40] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:26:42] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:27:42] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:28:43] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:29:44] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:30:46] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:31:47] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:32:48] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:33:50] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:34:02] Starting Mac Worker HTTP Daemon...
+[2026-09-16 12:34:02] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:34:04] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:34:10] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:34:19] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:34:27] Starting Mac Worker HTTP Daemon...
+[2026-09-16 12:34:27] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:34:31] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:34:36] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:34:45] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:35:01] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:35:35] Failed to register: HTTP Error 401: {"error":"Unauthorized"}
+
+[2026-09-16 12:35:42] Starting Mac Worker HTTP Daemon...
+[2026-09-16 12:35:42] Registered successfully.
+[2026-09-16 12:35:42] Processing task task-b-c269
+[2026-09-16 12:35:42] Running NATIVE task task-b-c269
+[2026-09-16 12:35:42] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-16 12:37:14] Processing task task-a-14d1
+[2026-09-16 12:37:14] Running NATIVE task task-a-14d1
+[2026-09-16 12:37:14] NATIVE action '' rejected. Not in allowlist.
+[2026-09-16 12:37:14] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-16 12:37:19] Processing task task-a-14d1
+[2026-09-16 12:37:19] Running NATIVE task task-a-14d1
+[2026-09-16 12:37:19] NATIVE action '' rejected. Not in allowlist.
+[2026-09-16 12:37:19] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-16 12:37:24] Processing task task-a-14d1
+[2026-09-16 12:37:24] Running NATIVE task task-a-14d1
+[2026-09-16 12:37:24] NATIVE action '' rejected. Not in allowlist.
+[2026-09-16 12:37:24] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-16 12:37:29] Processing task task-a-63b2
+[2026-09-16 12:37:29] Running NATIVE task task-a-63b2
+[2026-09-16 12:37:29] NATIVE action '' rejected. Not in allowlist.
+[2026-09-16 12:37:29] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-16 12:37:35] Processing task task-a-63b2
+[2026-09-16 12:37:35] Running NATIVE task task-a-63b2
+[2026-09-16 12:37:35] NATIVE action '' rejected. Not in allowlist.
+[2026-09-16 12:37:35] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-16 12:37:40] Processing task task-a-63b2
+[2026-09-16 12:37:40] Running NATIVE task task-a-63b2
+[2026-09-16 12:37:40] NATIVE action '' rejected. Not in allowlist.
+[2026-09-16 12:37:40] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-16 12:38:00] Processing task task-a-360d
+[2026-09-16 12:38:00] Running AI task task-a-360d via agy
+[2026-09-16 12:38:27] Starting Mac Worker HTTP Daemon...
+[2026-09-16 12:38:27] Found stale execution pgid 24034. Killing to release session.
+[2026-09-16 12:38:27] Found unfinished task from previous run, resuming...
+[2026-09-16 12:38:27] Registered successfully.
+[2026-09-16 12:38:27] Processing task task-a-360d
+[2026-09-16 12:38:27] Running AI task task-a-360d via agy
+[2026-09-16 12:38:57] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-16 12:39:03] Processing task task-b-937c
+[2026-09-16 12:39:03] Running NATIVE task task-b-937c
+[2026-09-16 12:39:03] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-16 12:39:08] Processing task task-a-315e
+[2026-09-16 12:39:08] Running AI task task-a-315e via agy
+[2026-09-16 12:44:08] Task task-a-315e timed out (stale session). Cleaning up exact process group.
+[2026-09-16 12:44:08] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-16 12:44:13] Processing task task-a-315e
+[2026-09-16 12:44:13] Running AI task task-a-315e via agy
+[2026-09-16 12:44:48] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-16 12:44:53] Processing task task-b-06e2
+[2026-09-16 12:44:53] Running NATIVE task task-b-06e2
+[2026-09-16 12:44:53] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-16 12:52:21] System is hot (load 8.03). Pausing claims.
+[2026-09-16 12:52:57] Processing task msg-1-cd34
+[2026-09-16 12:52:57] Running NATIVE task msg-1-cd34
+[2026-09-16 12:52:57] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-16 12:53:02] Processing task msg-2-cb3a
+[2026-09-16 12:53:02] Running AI task msg-2-cb3a via agy
+[2026-09-16 12:53:09] Starting Mac Worker HTTP Daemon...
+[2026-09-16 12:53:09] Found stale execution pgid 24751. Killing to release session.
+[2026-09-16 12:53:09] Found unfinished task from previous run, resuming...
+[2026-09-16 12:53:09] Registered successfully.
+[2026-09-16 12:53:09] Processing task msg-2-cb3a
+[2026-09-16 12:53:09] Running AI task msg-2-cb3a via agy
+[2026-09-16 12:53:51] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-16 12:53:56] Processing task msg-3-e85b
+[2026-09-16 12:53:56] Running NATIVE task msg-3-e85b
+[2026-09-16 12:53:56] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-16 12:55:44] Starting Mac Worker HTTP Daemon...
+[2026-09-16 12:55:44] Registered successfully.
+[2026-09-16 12:57:05] Processing task task-pipe-0ee9
+[2026-09-16 12:57:05] Running NATIVE task task-pipe-0ee9
+[2026-09-16 12:57:05] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-16 12:57:46] Processing task task-1-b654
+[2026-09-16 12:57:46] Running NATIVE task task-1-b654
+[2026-09-16 12:57:46] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-16 12:57:51] Processing task task-3-2f54
+[2026-09-16 12:57:51] Running NATIVE task task-3-2f54
+[2026-09-16 12:57:51] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-16 13:00:14] Processing task task-a-d2c2
+[2026-09-16 13:00:14] Running AI task task-a-d2c2 via agy
+[2026-09-16 13:00:20] Starting Mac Worker HTTP Daemon...
+[2026-09-16 13:00:20] Found stale execution pgid 25544. Killing to release session.
+[2026-09-16 13:00:20] Found unfinished task from previous run, resuming...
+[2026-09-16 13:00:20] Registered successfully.
+[2026-09-16 13:00:20] Processing task task-a-d2c2
+[2026-09-16 13:00:20] Running AI task task-a-d2c2 via agy
+[2026-09-16 13:01:44] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}

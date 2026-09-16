@@ -3,7 +3,7 @@
     "goal-62911b5d": {
       "goal_id": "goal-62911b5d",
       "goal_text": "Native Test",
-      "status": "ACTIVE",
+      "status": "BLOCKED",
       "workflow_plan": [
         {
           "target_agent": "mac",
@@ -11,7 +11,7 @@
           "task_id": "mac-native-2",
           "mode": "NATIVE",
           "goal_id": "goal-62911b5d",
-          "status": "RESULT_RECEIVED",
+          "status": "FAILED_VERIFICATION",
           "attempts": 1,
           "worker_id": "MAC-01",
           "dispatch_id": "7c9e5127-76c2-4c98-9b1a-af9267e0bf8b",
@@ -29,7 +29,7 @@
     "goal-26691886": {
       "goal_id": "goal-26691886",
       "goal_text": "AI Test",
-      "status": "ACTIVE",
+      "status": "BLOCKED",
       "workflow_plan": [
         {
           "target_agent": "mac",
@@ -37,7 +37,7 @@
           "task_id": "mac-ai-2",
           "mode": "ANTIGRAVITY",
           "goal_id": "goal-26691886",
-          "status": "RESULT_RECEIVED",
+          "status": "FAILED_VERIFICATION",
           "attempts": 1,
           "worker_id": "MAC-01",
           "dispatch_id": "ce4b5fd9-cf72-4d52-889e-0cdb214c7592",
@@ -55,7 +55,7 @@
     "goal-823476c0": {
       "goal_id": "goal-823476c0",
       "goal_text": "AI Real Test",
-      "status": "ACTIVE",
+      "status": "FAILED",
       "workflow_plan": [
         {
           "target_agent": "mac",
@@ -77,6 +77,1259 @@
         }
       ],
       "current_step_index": 0
+    },
+    "goal-ee5f9578": {
+      "goal_id": "goal-ee5f9578",
+      "goal_text": "Clean room test A->B",
+      "status": "FAILED",
+      "workflow_plan": [
+        {
+          "task_id": "WF-CHIEF-16e078-STEP-1-DISCOVER",
+          "goal_id": "goal-ee5f9578",
+          "instruction": "Formulate execution strategy and inspect context for: Clean room test A->B",
+          "target_agent": "mac",
+          "status": "RECONCILED",
+          "attempts": 2,
+          "worker_id": "MAC-01",
+          "attempt_id": "WF-CHIEF-16e078-STEP-1-DISCOVER:attempt:2",
+          "dispatch_id": "dispatch-fc72ebea124e4a0993242c072ae1dbc7",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "artifacts": [
+            "courier_canary_WF-CHIEF-16e078-STEP-1-DISCOVER.txt"
+          ]
+        },
+        {
+          "task_id": "WF-CHIEF-16e078-STEP-2-QA",
+          "goal_id": "goal-ee5f9578",
+          "instruction": "Perform independent technical QA audit and syntax verification for: Clean room test A->B",
+          "target_agent": "windows",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "WF-CHIEF-16e078-STEP-3-SYNTHESIZE",
+          "goal_id": "goal-ee5f9578",
+          "instruction": "Finalize results, verify invariants, and assemble completion package for: Clean room test A->B",
+          "target_agent": "mac",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-01",
+          "attempt_id": "WF-CHIEF-16e078-STEP-3-SYNTHESIZE:attempt:1",
+          "dispatch_id": "dispatch-403f5b9058704ccb953fc0ce1d33f5c2",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "artifacts": [
+            "courier_canary_WF-CHIEF-16e078-STEP-3-SYNTHESIZE.txt"
+          ]
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-9b93d02a": {
+      "goal_id": "goal-9b93d02a",
+      "goal_text": "Clean room test A->B",
+      "status": "FAILED",
+      "workflow_plan": [
+        {
+          "task_id": "WF-CHIEF-2f716d-STEP-1-DISCOVER",
+          "goal_id": "goal-9b93d02a",
+          "instruction": "Formulate execution strategy and inspect context for: Clean room test A->B",
+          "target_agent": "mac",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-01",
+          "attempt_id": "WF-CHIEF-2f716d-STEP-1-DISCOVER:attempt:1",
+          "dispatch_id": "dispatch-7c0a5c47623440929dbd2e6512e2a6de",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "artifacts": [
+            "courier_canary_WF-CHIEF-2f716d-STEP-1-DISCOVER.txt"
+          ]
+        },
+        {
+          "task_id": "WF-CHIEF-2f716d-STEP-2-QA",
+          "goal_id": "goal-9b93d02a",
+          "instruction": "Perform independent technical QA audit and syntax verification for: Clean room test A->B",
+          "target_agent": "windows",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "WF-CHIEF-2f716d-STEP-3-SYNTHESIZE",
+          "goal_id": "goal-9b93d02a",
+          "instruction": "Finalize results, verify invariants, and assemble completion package for: Clean room test A->B",
+          "target_agent": "mac",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-01",
+          "attempt_id": "WF-CHIEF-2f716d-STEP-3-SYNTHESIZE:attempt:1",
+          "dispatch_id": "dispatch-505ad1ea7e6b4340b1a6d713c6cdda96",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "artifacts": [
+            "courier_canary_WF-CHIEF-2f716d-STEP-3-SYNTHESIZE.txt"
+          ]
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-785836b2": {
+      "goal_id": "goal-785836b2",
+      "goal_text": "Clean room A->B",
+      "status": "FAILED",
+      "workflow_plan": [
+        {
+          "task_id": "task_A",
+          "task_type": "deterministic_transform",
+          "input": "nonce_A",
+          "target_agent": "github",
+          "owner_scope": "TEST",
+          "dependencies": [],
+          "goal_id": "goal-785836b2",
+          "status": "DISPATCHED",
+          "attempts": 1,
+          "worker_id": "GITHUB-DISPATCHER",
+          "attempt_id": "task_A:attempt:1",
+          "dispatch_id": "dispatch-8684d2e229354eb1a4c5e4947328dd19",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "github",
+          "artifacts": [
+            "courier_canary_task_A.txt"
+          ]
+        },
+        {
+          "task_id": "task_B",
+          "task_type": "deterministic_transform",
+          "input": "nonce_B",
+          "target_agent": "github",
+          "owner_scope": "TEST",
+          "dependencies": [
+            "task_A"
+          ],
+          "goal_id": "goal-785836b2",
+          "status": "QUEUED",
+          "attempts": 0
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-166bbba3": {
+      "goal_id": "goal-166bbba3",
+      "goal_text": "Clean room A->B",
+      "status": "FAILED",
+      "workflow_plan": [
+        {
+          "task_id": "task_A",
+          "task_type": "deterministic_transform",
+          "input": "nonce_A",
+          "target_agent": "github",
+          "owner_scope": "TEST",
+          "dependencies": [],
+          "goal_id": "goal-166bbba3",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "task_B",
+          "task_type": "deterministic_transform",
+          "input": "nonce_B",
+          "target_agent": "github",
+          "owner_scope": "TEST",
+          "dependencies": [
+            "task_A"
+          ],
+          "goal_id": "goal-166bbba3",
+          "status": "QUEUED",
+          "attempts": 0
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-a0c7defc": {
+      "goal_id": "goal-a0c7defc",
+      "goal_text": "Clean room A->B",
+      "status": "FAILED",
+      "workflow_plan": [
+        {
+          "task_id": "task_A",
+          "task_type": "deterministic_transform",
+          "input": "nonce_A",
+          "target_agent": "github",
+          "owner_scope": "TEST",
+          "dependencies": [],
+          "goal_id": "goal-a0c7defc",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "task_B",
+          "task_type": "deterministic_transform",
+          "input": "nonce_B",
+          "target_agent": "github",
+          "owner_scope": "TEST",
+          "dependencies": [
+            "task_A"
+          ],
+          "goal_id": "goal-a0c7defc",
+          "status": "QUEUED",
+          "attempts": 0
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-10f2ce1d": {
+      "goal_id": "goal-10f2ce1d",
+      "goal_text": "Clean room A->B",
+      "status": "BLOCKED",
+      "workflow_plan": [
+        {
+          "task_id": "task_A",
+          "task_type": "deterministic_transform",
+          "input": "nonce_A",
+          "target_agent": "github",
+          "owner_scope": "TEST",
+          "dependencies": [],
+          "goal_id": "goal-10f2ce1d",
+          "status": "FAILED_VERIFICATION",
+          "attempts": 1,
+          "worker_id": "GITHUB-DISPATCHER",
+          "attempt_id": "task_A:attempt:1",
+          "dispatch_id": "dispatch-dd151cc79dd04e7b939afe3651c6c565",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "github",
+          "artifacts": [
+            "courier_canary_task_A.txt"
+          ]
+        },
+        {
+          "task_id": "task_B",
+          "task_type": "deterministic_transform",
+          "input": "nonce_B",
+          "target_agent": "github",
+          "owner_scope": "TEST",
+          "dependencies": [
+            "task_A"
+          ],
+          "goal_id": "goal-10f2ce1d",
+          "status": "QUEUED",
+          "attempts": 0
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-728e4be2": {
+      "goal_id": "goal-728e4be2",
+      "goal_text": "Clean room A2->B2",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "task_A2",
+          "task_type": "deterministic_transform",
+          "input": "nonce_A2",
+          "target_agent": "github",
+          "owner_scope": "TEST_A2",
+          "dependencies": [],
+          "goal_id": "goal-728e4be2",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "GITHUB-DISPATCHER",
+          "attempt_id": "task_A2:attempt:1",
+          "dispatch_id": "dispatch-fd9b7fa5537c46308b052709e5ecca65",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "github",
+          "artifacts": [
+            "courier_canary_task_A2.txt"
+          ]
+        },
+        {
+          "task_id": "task_B2",
+          "task_type": "deterministic_transform",
+          "input": "nonce_B2",
+          "target_agent": "github",
+          "owner_scope": "TEST_B2",
+          "dependencies": [
+            "task_A2"
+          ],
+          "goal_id": "goal-728e4be2",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "GITHUB-DISPATCHER",
+          "attempt_id": "task_B2:attempt:1",
+          "dispatch_id": "dispatch-faf3a3d8627145b58dc5e918247775d7",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "github",
+          "artifacts": [
+            "courier_canary_task_B2.txt"
+          ]
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-321bf6f5": {
+      "goal_id": "goal-321bf6f5",
+      "goal_text": "Continuity Test",
+      "status": "BLOCKED",
+      "workflow_plan": [
+        {
+          "task_id": "task_continuity",
+          "task_type": "echo",
+          "instruction": "echo start && sleep 20 && echo end",
+          "target_agent": "mac",
+          "owner_scope": "TEST_CONT",
+          "dependencies": [],
+          "artifacts": [],
+          "goal_id": "goal-321bf6f5",
+          "status": "DISPATCHED",
+          "attempts": 1,
+          "worker_id": "MAC-01",
+          "attempt_id": "task_continuity:attempt:1",
+          "dispatch_id": "dispatch-61b44f1aa0f44bfc833d9e46e7718e50",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac"
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-abd401ac": {
+      "goal_id": "goal-abd401ac",
+      "goal_text": "Continuity Test",
+      "status": "BLOCKED",
+      "workflow_plan": [
+        {
+          "task_id": "task_continuity",
+          "task_type": "echo",
+          "instruction": "echo start && sleep 20 && echo end",
+          "target_agent": "mac",
+          "owner_scope": "TEST_CONT",
+          "dependencies": [],
+          "artifacts": [],
+          "goal_id": "goal-abd401ac",
+          "status": "DISPATCHED",
+          "attempts": 1,
+          "worker_id": "MAC-01",
+          "attempt_id": "task_continuity:attempt:1",
+          "dispatch_id": "dispatch-511e488fff684a299c7655b15f4287fd",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac"
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-4b520cab": {
+      "goal_id": "goal-4b520cab",
+      "goal_text": "Continuity Test",
+      "status": "BLOCKED",
+      "workflow_plan": [
+        {
+          "task_id": "task_cont_981bd8b5",
+          "task_type": "echo",
+          "instruction": "echo start && sleep 20 && echo end",
+          "target_agent": "mac",
+          "owner_scope": "TEST_CONT",
+          "dependencies": [],
+          "artifacts": [],
+          "goal_id": "goal-4b520cab",
+          "status": "DISPATCHED",
+          "attempts": 1,
+          "worker_id": "MAC-01",
+          "attempt_id": "task_cont_981bd8b5:attempt:1",
+          "dispatch_id": "dispatch-472b8c1965c3424fa400cc3c0cc13315",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac"
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-f176d5f9": {
+      "goal_id": "goal-f176d5f9",
+      "goal_text": "Continuity Test",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "task_cont_87362008",
+          "task_type": "echo",
+          "instruction": "echo start && sleep 20 && echo '{\"status\": \"SUCCESS\"}' > result.json",
+          "target_agent": "mac",
+          "owner_scope": "TEST_CONT",
+          "dependencies": [],
+          "artifacts": [
+            "result.json"
+          ],
+          "goal_id": "goal-f176d5f9",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-01",
+          "attempt_id": "task_cont_87362008:attempt:1",
+          "dispatch_id": "dispatch-7caf8aa863f54676887352d508b9253a",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac"
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-ce75072e": {
+      "goal_id": "goal-ce75072e",
+      "goal_text": "Continuity Test",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "task_cont_f7245393",
+          "task_type": "echo",
+          "instruction": "echo start && sleep 20 && echo '{\"status\": \"SUCCESS\"}' > result.json",
+          "target_agent": "mac",
+          "owner_scope": "TEST_CONT",
+          "dependencies": [],
+          "artifacts": [
+            "result.json"
+          ],
+          "goal_id": "goal-ce75072e",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-01",
+          "attempt_id": "task_cont_f7245393:attempt:1",
+          "dispatch_id": "dispatch-43a97fb4c4e24be0a53e93643dbf05f3",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac"
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-a20ff1bf": {
+      "goal_id": "goal-a20ff1bf",
+      "goal_text": "Continuity Test",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "task_cont_57fbdba0",
+          "task_type": "echo",
+          "instruction": "echo start && sleep 20 && echo '{\"status\": \"SUCCESS\"}' > result.json",
+          "target_agent": "mac",
+          "owner_scope": "TEST_CONT",
+          "dependencies": [],
+          "artifacts": [
+            "result.json"
+          ],
+          "goal_id": "goal-a20ff1bf",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-01",
+          "attempt_id": "task_cont_57fbdba0:attempt:1",
+          "dispatch_id": "dispatch-2c977aabdf2549fc924d611feacd6a75",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac"
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-1ef01e0e": {
+      "goal_id": "goal-1ef01e0e",
+      "goal_text": "Continuity Test",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "task_cont_47980fce",
+          "task_type": "echo",
+          "instruction": "echo start && sleep 15 && echo '{\"status\": \"SUCCESS\"}' > result.json",
+          "target_agent": "mac",
+          "owner_scope": "TEST_CONT",
+          "dependencies": [],
+          "artifacts": [
+            "result.json"
+          ],
+          "goal_id": "goal-1ef01e0e",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-01",
+          "attempt_id": "task_cont_47980fce:attempt:1",
+          "dispatch_id": "dispatch-354e09dfffa44aa887403c582936e505",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac"
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-7244c13d": {
+      "goal_id": "goal-7244c13d",
+      "goal_text": "Revenue Safety Audit for P01-Customer/testrepo",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "REV-AD549EA4",
+          "type": "revenue_safety_audit",
+          "capabilities": [
+            "revenue_safety_audit"
+          ],
+          "target_owner": "P01-Customer",
+          "target_repo": "testrepo",
+          "target_sha": "12345",
+          "customer_reference": "cust123",
+          "dependencies": [],
+          "goal_id": "goal-7244c13d",
+          "status": "RECONCILED",
+          "attempts": 2,
+          "worker_id": "REVENUE-MAC-DBFA22",
+          "attempt_id": "REV-AD549EA4:attempt:2",
+          "dispatch_id": "dispatch-486eec21f5754953b572da26b4e41ecd",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "linux",
+          "artifacts": [
+            "courier_canary_REV-AD549EA4.txt"
+          ]
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-acf9676d": {
+      "goal_id": "goal-acf9676d",
+      "goal_text": "Crash Test",
+      "status": "BLOCKED",
+      "workflow_plan": [
+        {
+          "task_id": "task_crash_0fba24f8",
+          "task_type": "echo",
+          "instruction": "pkill -f daemon.py",
+          "target_agent": "mac",
+          "owner_scope": "TEST_CRASH",
+          "dependencies": [],
+          "artifacts": [],
+          "capabilities": [
+            "linux"
+          ],
+          "goal_id": "goal-acf9676d",
+          "status": "QUEUED",
+          "attempts": 3,
+          "worker_id": null,
+          "attempt_id": "task_crash_0fba24f8:attempt:3",
+          "dispatch_id": "dispatch-26479bc919c34b3b9e9a20ef3f3b5939",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac"
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-e93ab630": {
+      "goal_id": "goal-e93ab630",
+      "goal_text": "Cross-worker verification",
+      "status": "BLOCKED",
+      "workflow_plan": [
+        {
+          "task_id": "task-a-a5b7",
+          "task_type": "echo",
+          "instruction": "echo GITHUB_SUCCESS > courier_canary_voll_a.txt",
+          "target_agent": "github",
+          "target_capability": "github",
+          "owner_scope": "TEST_A",
+          "dependencies": [],
+          "artifacts": [
+            "courier_canary_voll_a.txt"
+          ],
+          "capabilities": [
+            "github"
+          ],
+          "goal_id": "goal-e93ab630",
+          "status": "FAILED_TERMINAL",
+          "attempts": 3,
+          "worker_id": "GITHUB-DISPATCHER",
+          "attempt_id": "task-a-a5b7:attempt:3",
+          "dispatch_id": "dispatch-2f3bec6f13604b469726c58ab7888e39",
+          "run_id": null,
+          "result_id": null
+        },
+        {
+          "task_id": "task-b-976d",
+          "task_type": "echo",
+          "instruction": "echo MAC_SUCCESS > courier_canary_voll_b.txt",
+          "target_agent": "mac",
+          "target_capability": "mac",
+          "owner_scope": "TEST_B",
+          "dependencies": [
+            "task-a-a5b7"
+          ],
+          "artifacts": [
+            "courier_canary_voll_b.txt"
+          ],
+          "capabilities": [
+            "macos"
+          ],
+          "goal_id": "goal-e93ab630",
+          "status": "QUEUED",
+          "attempts": 0
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-5c02afc9": {
+      "goal_id": "goal-5c02afc9",
+      "goal_text": "Cross-worker verification",
+      "status": "BLOCKED",
+      "workflow_plan": [
+        {
+          "task_id": "task-a-ebc9",
+          "task_type": "verify_file",
+          "instruction": "echo GITHUB_SUCCESS > courier_canary_voll_a.txt",
+          "target_agent": "github",
+          "target_capability": "github",
+          "owner_scope": "TEST_A",
+          "dependencies": [],
+          "artifacts": [
+            "courier_canary_voll_a.txt"
+          ],
+          "capabilities": [
+            "github"
+          ],
+          "goal_id": "goal-5c02afc9",
+          "status": "DISPATCHED",
+          "attempts": 2,
+          "worker_id": "GITHUB-DISPATCHER",
+          "attempt_id": "task-a-ebc9:attempt:2",
+          "dispatch_id": "dispatch-f5d3fcc0ac7d4dc890816700a01d6133",
+          "run_id": null,
+          "result_id": null
+        },
+        {
+          "task_id": "task-b-236b",
+          "task_type": "verify_file",
+          "instruction": "echo MAC_SUCCESS > courier_canary_voll_b.txt",
+          "target_agent": "mac",
+          "target_capability": "mac",
+          "owner_scope": "TEST_B",
+          "dependencies": [
+            "task-a-ebc9"
+          ],
+          "artifacts": [
+            "courier_canary_voll_b.txt"
+          ],
+          "capabilities": [
+            "macos"
+          ],
+          "goal_id": "goal-5c02afc9",
+          "status": "QUEUED",
+          "attempts": 0
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-d3effb8a": {
+      "goal_id": "goal-d3effb8a",
+      "goal_text": "Final cross-worker physical acceptance",
+      "status": "BLOCKED",
+      "workflow_plan": [
+        {
+          "task_id": "task-a-6409",
+          "task_type": "metadata",
+          "target_agent": "github",
+          "target_capability": "github",
+          "owner_scope": "TEST_A",
+          "dependencies": [],
+          "artifacts": [],
+          "capabilities": [
+            "github"
+          ],
+          "goal_id": "goal-d3effb8a",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "task-b-a66a",
+          "task_type": "echo",
+          "mode": "NATIVE",
+          "instruction": "echo MAC_SUCCESS > courier_canary_voll_b.txt",
+          "target_agent": "mac",
+          "target_capability": "mac",
+          "owner_scope": "TEST_B",
+          "dependencies": [
+            "task-a-6409"
+          ],
+          "artifacts": [
+            "courier_canary_voll_b.txt"
+          ],
+          "capabilities": [
+            "macos"
+          ],
+          "goal_id": "goal-d3effb8a",
+          "status": "QUEUED",
+          "attempts": 0
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-69a5ee58": {
+      "goal_id": "goal-69a5ee58",
+      "goal_text": "Final cross-worker physical acceptance",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "task-a-e946",
+          "task_type": "metadata",
+          "target_agent": "github",
+          "target_capability": "github",
+          "owner_scope": "TEST_A",
+          "dependencies": [],
+          "dispatch_id": "dispatch-ba1321bd1c074725bce89dbd3c8b6a7b",
+          "artifacts": [
+            "courier_output_dispatch-f47756752c47411f8cb01eb72578d07f.json"
+          ],
+          "capabilities": [
+            "github"
+          ],
+          "goal_id": "goal-69a5ee58",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "GITHUB-DISPATCHER",
+          "attempt_id": "task-a-e946:attempt:1",
+          "run_id": null,
+          "result_id": null
+        },
+        {
+          "task_id": "task-b-c269",
+          "task_type": "echo",
+          "mode": "NATIVE",
+          "instruction": "echo MAC_SUCCESS > courier_canary_task-b-c269.txt",
+          "target_agent": "mac",
+          "target_capability": "mac",
+          "owner_scope": "TEST_B",
+          "dependencies": [
+            "task-a-e946"
+          ],
+          "artifacts": [
+            "courier_canary_task-b-c269.txt"
+          ],
+          "capabilities": [
+            "macos"
+          ],
+          "goal_id": "goal-69a5ee58",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-01",
+          "attempt_id": "task-b-c269:attempt:1",
+          "dispatch_id": "dispatch-453fc22b1aab4059bbe4661e4d67d67d",
+          "run_id": null,
+          "result_id": null
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-a8ff9474": {
+      "goal_id": "goal-a8ff9474",
+      "goal_text": "Physical Proof of Provider Continuity",
+      "status": "BLOCKED",
+      "workflow_plan": [
+        {
+          "task_id": "task-a-14d1",
+          "task_type": "antigravity",
+          "instruction": "sleep 10 && echo 'AI FINISHED' > courier_canary_task-a-14d1.txt",
+          "target_agent": "mac",
+          "target_capability": "mac",
+          "owner_scope": "TEST_A",
+          "dependencies": [],
+          "artifacts": [
+            "courier_canary_task-a-14d1.txt"
+          ],
+          "capabilities": [
+            "macos"
+          ],
+          "goal_id": "goal-a8ff9474",
+          "status": "FAILED_TERMINAL",
+          "attempts": 3,
+          "worker_id": "MAC-01",
+          "attempt_id": "task-a-14d1:attempt:3",
+          "dispatch_id": "dispatch-0f1e145ef0804627943dc044df3a8445",
+          "run_id": null,
+          "result_id": null
+        },
+        {
+          "task_id": "task-b-f189",
+          "task_type": "echo",
+          "mode": "NATIVE",
+          "instruction": "echo MAC_SUCCESS > courier_canary_task-b-f189.txt",
+          "target_agent": "mac",
+          "target_capability": "mac",
+          "owner_scope": "TEST_B",
+          "dependencies": [
+            "task-a-14d1"
+          ],
+          "artifacts": [
+            "courier_canary_task-b-f189.txt"
+          ],
+          "capabilities": [
+            "macos"
+          ],
+          "goal_id": "goal-a8ff9474",
+          "status": "QUEUED",
+          "attempts": 0
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-4ae1413b": {
+      "goal_id": "goal-4ae1413b",
+      "goal_text": "Physical Proof of Provider Continuity",
+      "status": "BLOCKED",
+      "workflow_plan": [
+        {
+          "task_id": "task-a-63b2",
+          "task_type": "antigravity",
+          "instruction": "sleep 10 && echo 'AI FINISHED' > courier_canary_task-a-63b2.txt",
+          "target_agent": "mac",
+          "target_capability": "mac",
+          "owner_scope": "TEST_A",
+          "dependencies": [],
+          "artifacts": [
+            "courier_canary_task-a-63b2.txt"
+          ],
+          "capabilities": [
+            "macos"
+          ],
+          "goal_id": "goal-4ae1413b",
+          "status": "FAILED_TERMINAL",
+          "attempts": 3,
+          "worker_id": "MAC-01",
+          "attempt_id": "task-a-63b2:attempt:3",
+          "dispatch_id": "dispatch-44c797c8b2ae49cda89ca95bef21fc1f",
+          "run_id": null,
+          "result_id": null
+        },
+        {
+          "task_id": "task-b-ae15",
+          "task_type": "echo",
+          "mode": "NATIVE",
+          "instruction": "echo MAC_SUCCESS > courier_canary_task-b-ae15.txt",
+          "target_agent": "mac",
+          "target_capability": "mac",
+          "owner_scope": "TEST_B",
+          "dependencies": [
+            "task-a-63b2"
+          ],
+          "artifacts": [
+            "courier_canary_task-b-ae15.txt"
+          ],
+          "capabilities": [
+            "macos"
+          ],
+          "goal_id": "goal-4ae1413b",
+          "status": "QUEUED",
+          "attempts": 0
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-b463099f": {
+      "goal_id": "goal-b463099f",
+      "goal_text": "Physical Proof of Provider Continuity",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "task-a-360d",
+          "task_type": "antigravity",
+          "instruction": "Wait 10 seconds. Then create file courier_canary_task-a-360d.txt with content 'AI_FINISHED'",
+          "target_agent": "mac",
+          "target_capability": "mac",
+          "owner_scope": "TEST_A",
+          "dependencies": [],
+          "artifacts": [
+            "courier_canary_task-a-360d.txt"
+          ],
+          "capabilities": [
+            "macos"
+          ],
+          "goal_id": "goal-b463099f",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-01",
+          "attempt_id": "task-a-360d:attempt:1",
+          "dispatch_id": "dispatch-bd1e9aca2af64f4aba360d10fdbb6e8b",
+          "run_id": null,
+          "result_id": null
+        },
+        {
+          "task_id": "task-b-937c",
+          "task_type": "echo",
+          "mode": "NATIVE",
+          "instruction": "echo MAC_SUCCESS > courier_canary_task-b-937c.txt",
+          "target_agent": "mac",
+          "target_capability": "mac",
+          "owner_scope": "TEST_B",
+          "dependencies": [
+            "task-a-360d"
+          ],
+          "artifacts": [
+            "courier_canary_task-b-937c.txt"
+          ],
+          "capabilities": [
+            "macos"
+          ],
+          "goal_id": "goal-b463099f",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-01",
+          "attempt_id": "task-b-937c:attempt:1",
+          "dispatch_id": "dispatch-ec8719c1b6e749edb17c36656e233035",
+          "run_id": null,
+          "result_id": null
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-a4e6809f": {
+      "goal_id": "goal-a4e6809f",
+      "goal_text": "Physical Proof of Provider Continuity",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "task-a-315e",
+          "task_type": "antigravity",
+          "instruction": "Wait 10 seconds. Then create file courier_canary_task-a-315e.txt with content 'AI_FINISHED'",
+          "target_agent": "mac",
+          "target_capability": "mac",
+          "owner_scope": "TEST_A",
+          "dependencies": [],
+          "artifacts": [
+            "courier_canary_task-a-315e.txt"
+          ],
+          "capabilities": [
+            "macos"
+          ],
+          "goal_id": "goal-a4e6809f",
+          "status": "RECONCILED",
+          "attempts": 2,
+          "worker_id": "MAC-01",
+          "attempt_id": "task-a-315e:attempt:2",
+          "dispatch_id": "dispatch-5b0ce507b1764a51829b4e41071eac52",
+          "run_id": null,
+          "result_id": null
+        },
+        {
+          "task_id": "task-b-06e2",
+          "task_type": "echo",
+          "mode": "NATIVE",
+          "instruction": "echo MAC_SUCCESS > courier_canary_task-b-06e2.txt",
+          "target_agent": "mac",
+          "target_capability": "mac",
+          "owner_scope": "TEST_B",
+          "dependencies": [
+            "task-a-315e"
+          ],
+          "artifacts": [
+            "courier_canary_task-b-06e2.txt"
+          ],
+          "capabilities": [
+            "macos"
+          ],
+          "goal_id": "goal-a4e6809f",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-01",
+          "attempt_id": "task-b-06e2:attempt:1",
+          "dispatch_id": "dispatch-37761595e762484bb45021977cf3fe7f",
+          "run_id": null,
+          "result_id": null
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-2a202962": {
+      "goal_id": "goal-2a202962",
+      "goal_text": "Zero-Loss Queue Recovery",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "msg-1-cd34",
+          "message_id": "msg-1-cd34",
+          "queue_order": 1,
+          "task_type": "echo",
+          "mode": "NATIVE",
+          "instruction": "echo MSG_1_DONE > courier_canary_msg-1-cd34.txt",
+          "target_agent": "mac",
+          "target_capability": "mac",
+          "owner_scope": "QUEUE_TEST",
+          "dependencies": [],
+          "artifacts": [
+            "courier_canary_msg-1-cd34.txt"
+          ],
+          "capabilities": [
+            "macos"
+          ],
+          "goal_id": "goal-2a202962",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-01",
+          "attempt_id": "msg-1-cd34:attempt:1",
+          "dispatch_id": "dispatch-724b084cc2cb478cb84915107aa2959d",
+          "run_id": null,
+          "result_id": null
+        },
+        {
+          "task_id": "msg-2-cb3a",
+          "message_id": "msg-2-cb3a",
+          "queue_order": 2,
+          "task_type": "antigravity",
+          "instruction": "Wait 10 seconds. Then create file courier_canary_msg-2-cb3a.txt with content 'MSG_2_DONE'",
+          "target_agent": "mac",
+          "target_capability": "mac",
+          "owner_scope": "QUEUE_TEST",
+          "dependencies": [
+            "msg-1-cd34"
+          ],
+          "artifacts": [
+            "courier_canary_msg-2-cb3a.txt"
+          ],
+          "capabilities": [
+            "macos"
+          ],
+          "goal_id": "goal-2a202962",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-01",
+          "attempt_id": "msg-2-cb3a:attempt:1",
+          "dispatch_id": "dispatch-07ea0ceeeef74bdc9131bd0b494157b1",
+          "run_id": null,
+          "result_id": null
+        },
+        {
+          "task_id": "msg-3-e85b",
+          "message_id": "msg-3-e85b",
+          "queue_order": 3,
+          "task_type": "echo",
+          "mode": "NATIVE",
+          "instruction": "echo MSG_3_DONE > courier_canary_msg-3-e85b.txt",
+          "target_agent": "mac",
+          "target_capability": "mac",
+          "owner_scope": "QUEUE_TEST",
+          "dependencies": [
+            "msg-2-cb3a"
+          ],
+          "artifacts": [
+            "courier_canary_msg-3-e85b.txt"
+          ],
+          "capabilities": [
+            "macos"
+          ],
+          "goal_id": "goal-2a202962",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-01",
+          "attempt_id": "msg-3-e85b:attempt:1",
+          "dispatch_id": "dispatch-10c5c8154be84bd29110b23944a686f9",
+          "run_id": null,
+          "result_id": null
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-b2fc8828": {
+      "goal_id": "goal-b2fc8828",
+      "goal_text": "Verify External Capability Routing",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "task-ext-4a74",
+          "task_type": "metadata",
+          "target_agent": "github",
+          "target_capability": "github",
+          "owner_scope": "TEST_EXT",
+          "dependencies": [],
+          "capabilities": [
+            "github"
+          ],
+          "goal_id": "goal-b2fc8828",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "GITHUB-DISPATCHER",
+          "attempt_id": "task-ext-4a74:attempt:1",
+          "dispatch_id": "dispatch-d9501c5b046440a5ac2562b0e42ea628",
+          "run_id": null,
+          "result_id": null,
+          "artifacts": [
+            "courier_canary_task-ext-4a74.txt"
+          ]
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-606041e4": {
+      "goal_id": "goal-606041e4",
+      "goal_text": "Verify Result Pipeline",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "task-pipe-0ee9",
+          "task_type": "echo",
+          "mode": "NATIVE",
+          "instruction": "echo RESULT_PIPELINE_OK > courier_canary_task-pipe-0ee9.txt",
+          "target_agent": "mac",
+          "target_capability": "mac",
+          "owner_scope": "TEST_PIPE",
+          "dependencies": [],
+          "artifacts": [
+            "courier_canary_task-pipe-0ee9.txt"
+          ],
+          "capabilities": [
+            "macos"
+          ],
+          "goal_id": "goal-606041e4",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-01",
+          "attempt_id": "task-pipe-0ee9:attempt:1",
+          "dispatch_id": "dispatch-47e21ef9147742d7be74a1975055c9c4",
+          "run_id": null,
+          "result_id": null
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-09569822": {
+      "goal_id": "goal-09569822",
+      "goal_text": "Verify Autonomous Motor",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "task-1-b654",
+          "task_type": "echo",
+          "mode": "NATIVE",
+          "instruction": "echo T1_DONE > courier_canary_task-1-b654.txt",
+          "target_agent": "mac",
+          "target_capability": "mac",
+          "owner_scope": "TEST_T1",
+          "dependencies": [],
+          "artifacts": [
+            "courier_canary_task-1-b654.txt"
+          ],
+          "capabilities": [
+            "macos"
+          ],
+          "goal_id": "goal-09569822",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-01",
+          "attempt_id": "task-1-b654:attempt:1",
+          "dispatch_id": "dispatch-d04f8b82bbc14467b68678f28c896533",
+          "run_id": null,
+          "result_id": null
+        },
+        {
+          "task_id": "task-2-d8c4",
+          "task_type": "metadata",
+          "target_agent": "github",
+          "target_capability": "github",
+          "owner_scope": "TEST_T2",
+          "dependencies": [],
+          "capabilities": [
+            "github"
+          ],
+          "goal_id": "goal-09569822",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "GITHUB-DISPATCHER",
+          "attempt_id": "task-2-d8c4:attempt:1",
+          "dispatch_id": "dispatch-d89bf3206f7e472d8868982c5eaadc3f",
+          "run_id": null,
+          "result_id": null,
+          "artifacts": [
+            "courier_canary_task-2-d8c4.txt"
+          ]
+        },
+        {
+          "task_id": "task-3-2f54",
+          "task_type": "echo",
+          "mode": "NATIVE",
+          "instruction": "echo T3_DONE > courier_canary_task-3-2f54.txt",
+          "target_agent": "mac",
+          "target_capability": "mac",
+          "owner_scope": "TEST_T3",
+          "dependencies": [
+            "task-1-b654"
+          ],
+          "artifacts": [
+            "courier_canary_task-3-2f54.txt"
+          ],
+          "capabilities": [
+            "macos"
+          ],
+          "goal_id": "goal-09569822",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-01",
+          "attempt_id": "task-3-2f54:attempt:1",
+          "dispatch_id": "dispatch-a2be99cfee3d436a802fdc943ea10b61",
+          "run_id": null,
+          "result_id": null
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-10b3be79": {
+      "goal_id": "goal-10b3be79",
+      "goal_text": "ONE HUMAN GOAL",
+      "status": "ACTIVE",
+      "workflow_plan": [
+        {
+          "task_id": "task-a-d2c2",
+          "task_type": "antigravity",
+          "instruction": "Wait 10 seconds. Then create file courier_canary_task-a-d2c2.txt with content 'TASK_A_DONE'",
+          "target_agent": "mac",
+          "target_capability": "mac",
+          "owner_scope": "FINAL_TEST",
+          "dependencies": [],
+          "artifacts": [
+            "courier_canary_task-a-d2c2.txt"
+          ],
+          "capabilities": [
+            "macos"
+          ],
+          "goal_id": "goal-10b3be79",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-01",
+          "attempt_id": "task-a-d2c2:attempt:1",
+          "dispatch_id": "dispatch-75768af53ab84df288a380ecd47eed13",
+          "run_id": null,
+          "result_id": null
+        },
+        {
+          "task_id": "task-b-2363",
+          "task_type": "metadata",
+          "target_agent": "github",
+          "target_capability": "github",
+          "owner_scope": "FINAL_TEST",
+          "dependencies": [
+            "task-a-d2c2"
+          ],
+          "capabilities": [
+            "github"
+          ],
+          "goal_id": "goal-10b3be79",
+          "status": "DISPATCHED",
+          "attempts": 1,
+          "worker_id": "GITHUB-DISPATCHER",
+          "attempt_id": "task-b-2363:attempt:1",
+          "dispatch_id": "dispatch-5191f822a0ba44b8a2848902183a687a",
+          "run_id": null,
+          "result_id": null,
+          "artifacts": [
+            "courier_canary_task-b-2363.txt"
+          ]
+        }
+      ],
+      "current_step_index": 0
     }
   },
   "tasks": {
@@ -86,7 +1339,7 @@
       "task_id": "mac-native-2",
       "mode": "NATIVE",
       "goal_id": "goal-62911b5d",
-      "status": "RESULT_RECEIVED",
+      "status": "FAILED",
       "attempts": 1,
       "worker_id": "MAC-01",
       "dispatch_id": "7c9e5127-76c2-4c98-9b1a-af9267e0bf8b",
@@ -112,6 +1365,17 @@
         "attempt_id": "mac-native-2:attempt:1",
         "status": "SUCCESS",
         "task_id": "mac-native-2"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "7648283f-bdb5-4c65-882f-1c5a3a07099f",
+        "verdict": "FAIL",
+        "artifacts": [
+          {
+            "path": "courier_canary_mac-native-2.txt",
+            "sha256": "70f318b11f1159bf9ba1f92bdd9388efeed487664da0388964db7451e108b884"
+          }
+        ]
       }
     },
     "mac-ai-2": {
@@ -120,7 +1384,7 @@
       "task_id": "mac-ai-2",
       "mode": "ANTIGRAVITY",
       "goal_id": "goal-26691886",
-      "status": "RESULT_RECEIVED",
+      "status": "FAILED",
       "attempts": 1,
       "worker_id": "MAC-01",
       "dispatch_id": "ce4b5fd9-cf72-4d52-889e-0cdb214c7592",
@@ -146,6 +1410,17 @@
         "attempt_id": "mac-ai-2:attempt:1",
         "status": "SUCCESS",
         "task_id": "mac-ai-2"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "09f2ea96-1fb8-4b12-aa94-f18acd97b7c8",
+        "verdict": "FAIL",
+        "artifacts": [
+          {
+            "path": "courier_canary_mac-ai-2.txt",
+            "sha256": "7f5d7b74e215a877d252b9966ef11692aace3e7cd1f055205549dc04afd1ac8c"
+          }
+        ]
       }
     },
     "mac-ai-real": {
@@ -154,7 +1429,7 @@
       "task_id": "mac-ai-real",
       "mode": "ANTIGRAVITY",
       "goal_id": "goal-823476c0",
-      "status": "DISPATCHED",
+      "status": "FAILED",
       "attempts": 1,
       "worker_id": "MAC-01",
       "dispatch_id": "559b7402-0f6e-496f-b57f-8936cf759d58",
@@ -165,6 +1440,1554 @@
       "artifacts": [
         "courier_canary_mac-ai-real.txt"
       ]
+    },
+    "WF-CHIEF-16e078-STEP-1-DISCOVER": {
+      "task_id": "WF-CHIEF-16e078-STEP-1-DISCOVER",
+      "goal_id": "goal-ee5f9578",
+      "instruction": "Formulate execution strategy and inspect context for: Clean room test A->B",
+      "target_agent": "mac",
+      "status": "FAILED",
+      "attempts": 2,
+      "worker_id": "MAC-01",
+      "attempt_id": "WF-CHIEF-16e078-STEP-1-DISCOVER:attempt:2",
+      "dispatch_id": "dispatch-fc72ebea124e4a0993242c072ae1dbc7",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "artifacts": [
+        "courier_canary_WF-CHIEF-16e078-STEP-1-DISCOVER.txt"
+      ],
+      "result": {
+        "artifacts": [
+          {
+            "path": "courier_canary_WF-CHIEF-16e078-STEP-1-DISCOVER.txt",
+            "sha256": "1f513d4ecec4e91ddd48da1a59b6d96f1b76c374dc1da641980782a34f43b102"
+          }
+        ],
+        "run_id": "d795e7fe-ea2d-4a21-b4a5-3fabee06b18e",
+        "worker_id": "MAC-01",
+        "dispatch_id": "dispatch-fc72ebea124e4a0993242c072ae1dbc7",
+        "attempt_id": "WF-CHIEF-16e078-STEP-1-DISCOVER:attempt:2",
+        "goal_id": "goal-ee5f9578",
+        "status": "SUCCESS",
+        "task_id": "WF-CHIEF-16e078-STEP-1-DISCOVER",
+        "result_id": "475c00a8-6b85-41b6-ad25-de991fd1e50f"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "475c00a8-6b85-41b6-ad25-de991fd1e50f",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "courier_canary_WF-CHIEF-16e078-STEP-1-DISCOVER.txt",
+            "sha256": "1f513d4ecec4e91ddd48da1a59b6d96f1b76c374dc1da641980782a34f43b102"
+          }
+        ]
+      }
+    },
+    "WF-CHIEF-16e078-STEP-3-SYNTHESIZE": {
+      "task_id": "WF-CHIEF-16e078-STEP-3-SYNTHESIZE",
+      "goal_id": "goal-ee5f9578",
+      "instruction": "Finalize results, verify invariants, and assemble completion package for: Clean room test A->B",
+      "target_agent": "mac",
+      "status": "FAILED",
+      "attempts": 1,
+      "worker_id": "MAC-01",
+      "attempt_id": "WF-CHIEF-16e078-STEP-3-SYNTHESIZE:attempt:1",
+      "dispatch_id": "dispatch-403f5b9058704ccb953fc0ce1d33f5c2",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "artifacts": [
+        "courier_canary_WF-CHIEF-16e078-STEP-3-SYNTHESIZE.txt"
+      ],
+      "result": {
+        "artifacts": [
+          {
+            "path": "courier_canary_WF-CHIEF-16e078-STEP-3-SYNTHESIZE.txt",
+            "sha256": "1f513d4ecec4e91ddd48da1a59b6d96f1b76c374dc1da641980782a34f43b102"
+          }
+        ],
+        "run_id": "ad90c541-5a98-4e17-865f-4a037e5f6821",
+        "worker_id": "MAC-01",
+        "dispatch_id": "dispatch-403f5b9058704ccb953fc0ce1d33f5c2",
+        "attempt_id": "WF-CHIEF-16e078-STEP-3-SYNTHESIZE:attempt:1",
+        "goal_id": "goal-ee5f9578",
+        "status": "SUCCESS",
+        "task_id": "WF-CHIEF-16e078-STEP-3-SYNTHESIZE",
+        "result_id": "97575e4f-0981-4453-9a0f-16c3f86b3e8d"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "97575e4f-0981-4453-9a0f-16c3f86b3e8d",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "courier_canary_WF-CHIEF-16e078-STEP-3-SYNTHESIZE.txt",
+            "sha256": "1f513d4ecec4e91ddd48da1a59b6d96f1b76c374dc1da641980782a34f43b102"
+          }
+        ]
+      }
+    },
+    "WF-CHIEF-2f716d-STEP-1-DISCOVER": {
+      "task_id": "WF-CHIEF-2f716d-STEP-1-DISCOVER",
+      "goal_id": "goal-9b93d02a",
+      "instruction": "Formulate execution strategy and inspect context for: Clean room test A->B",
+      "target_agent": "mac",
+      "status": "FAILED",
+      "attempts": 1,
+      "worker_id": "MAC-01",
+      "attempt_id": "WF-CHIEF-2f716d-STEP-1-DISCOVER:attempt:1",
+      "dispatch_id": "dispatch-7c0a5c47623440929dbd2e6512e2a6de",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "artifacts": [
+        "courier_canary_WF-CHIEF-2f716d-STEP-1-DISCOVER.txt"
+      ],
+      "result": {
+        "artifacts": [
+          {
+            "path": "courier_canary_WF-CHIEF-2f716d-STEP-1-DISCOVER.txt",
+            "sha256": "1f513d4ecec4e91ddd48da1a59b6d96f1b76c374dc1da641980782a34f43b102"
+          }
+        ],
+        "run_id": "00c975b0-60a1-4521-be1c-ee38c4b8c73d",
+        "worker_id": "MAC-01",
+        "dispatch_id": "dispatch-7c0a5c47623440929dbd2e6512e2a6de",
+        "attempt_id": "WF-CHIEF-2f716d-STEP-1-DISCOVER:attempt:1",
+        "goal_id": "goal-9b93d02a",
+        "status": "SUCCESS",
+        "task_id": "WF-CHIEF-2f716d-STEP-1-DISCOVER",
+        "result_id": "4d609d7a-1eed-48a9-bf6b-b8df8645e86f"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "4d609d7a-1eed-48a9-bf6b-b8df8645e86f",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "courier_canary_WF-CHIEF-2f716d-STEP-1-DISCOVER.txt",
+            "sha256": "1f513d4ecec4e91ddd48da1a59b6d96f1b76c374dc1da641980782a34f43b102"
+          }
+        ]
+      }
+    },
+    "WF-CHIEF-2f716d-STEP-3-SYNTHESIZE": {
+      "task_id": "WF-CHIEF-2f716d-STEP-3-SYNTHESIZE",
+      "goal_id": "goal-9b93d02a",
+      "instruction": "Finalize results, verify invariants, and assemble completion package for: Clean room test A->B",
+      "target_agent": "mac",
+      "status": "FAILED",
+      "attempts": 1,
+      "worker_id": "MAC-01",
+      "attempt_id": "WF-CHIEF-2f716d-STEP-3-SYNTHESIZE:attempt:1",
+      "dispatch_id": "dispatch-505ad1ea7e6b4340b1a6d713c6cdda96",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "artifacts": [
+        "courier_canary_WF-CHIEF-2f716d-STEP-3-SYNTHESIZE.txt"
+      ],
+      "result": {
+        "artifacts": [
+          {
+            "path": "courier_canary_WF-CHIEF-2f716d-STEP-3-SYNTHESIZE.txt",
+            "sha256": "1f513d4ecec4e91ddd48da1a59b6d96f1b76c374dc1da641980782a34f43b102"
+          }
+        ],
+        "task_id": "WF-CHIEF-2f716d-STEP-3-SYNTHESIZE",
+        "result_id": "72fbfcdf-957b-4a01-a4a9-ac29582aab9c",
+        "run_id": "40aa0ef0-33df-4f84-95d0-d51eb5cd67dc",
+        "status": "SUCCESS",
+        "dispatch_id": "dispatch-505ad1ea7e6b4340b1a6d713c6cdda96",
+        "goal_id": "goal-9b93d02a",
+        "worker_id": "MAC-01",
+        "attempt_id": "WF-CHIEF-2f716d-STEP-3-SYNTHESIZE:attempt:1"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "72fbfcdf-957b-4a01-a4a9-ac29582aab9c",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "courier_canary_WF-CHIEF-2f716d-STEP-3-SYNTHESIZE.txt",
+            "sha256": "1f513d4ecec4e91ddd48da1a59b6d96f1b76c374dc1da641980782a34f43b102"
+          }
+        ]
+      }
+    },
+    "task_A": {
+      "task_id": "task_A",
+      "task_type": "deterministic_transform",
+      "input": "nonce_A",
+      "target_agent": "github",
+      "owner_scope": "TEST",
+      "dependencies": [],
+      "goal_id": "goal-10f2ce1d",
+      "status": "FAILED",
+      "attempts": 1,
+      "worker_id": "GITHUB-DISPATCHER",
+      "attempt_id": "task_A:attempt:1",
+      "dispatch_id": "dispatch-dd151cc79dd04e7b939afe3651c6c565",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "github",
+      "artifacts": [
+        "courier_canary_task_A.txt"
+      ],
+      "result": {
+        "artifacts": [
+          {
+            "path": "courier_output_dispatch-dd151cc79dd04e7b939afe3651c6c565.json",
+            "sha256": "c1bf5014ad3f958a3a3e553f7924bfea8229d78ef91ae4ea62994efdb5d9145f"
+          }
+        ],
+        "task_id": "task_A",
+        "result_id": "result-dispatch-dd151cc79dd04e7b939afe3651c6c565",
+        "run_id": "35081118801",
+        "status": "SUCCESS",
+        "dispatch_id": "dispatch-dd151cc79dd04e7b939afe3651c6c565",
+        "goal_id": "goal-10f2ce1d",
+        "worker_id": "GITHUB-DISPATCHER",
+        "attempt_id": "task_A:attempt:1"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "result-dispatch-dd151cc79dd04e7b939afe3651c6c565",
+        "verdict": "FAIL",
+        "artifacts": [
+          {
+            "path": "courier_output_dispatch-dd151cc79dd04e7b939afe3651c6c565.json",
+            "sha256": "c1bf5014ad3f958a3a3e553f7924bfea8229d78ef91ae4ea62994efdb5d9145f"
+          }
+        ]
+      }
+    },
+    "task_A2": {
+      "task_id": "task_A2",
+      "task_type": "deterministic_transform",
+      "input": "nonce_A2",
+      "target_agent": "github",
+      "owner_scope": "TEST_A2",
+      "dependencies": [],
+      "goal_id": "goal-728e4be2",
+      "status": "FAILED",
+      "attempts": 1,
+      "worker_id": "GITHUB-DISPATCHER",
+      "attempt_id": "task_A2:attempt:1",
+      "dispatch_id": "dispatch-fd9b7fa5537c46308b052709e5ecca65",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "github",
+      "artifacts": [
+        "courier_canary_task_A2.txt"
+      ],
+      "result": {
+        "artifacts": [
+          {
+            "path": "courier_output_dispatch-fd9b7fa5537c46308b052709e5ecca65.json",
+            "sha256": "8188c63f1c33e850703f392d8a3051c0124fd791502ac56f737c59010d6d061c"
+          }
+        ],
+        "task_id": "task_A2",
+        "result_id": "result-dispatch-fd9b7fa5537c46308b052709e5ecca65",
+        "run_id": "35081267967",
+        "status": "SUCCESS",
+        "dispatch_id": "dispatch-fd9b7fa5537c46308b052709e5ecca65",
+        "goal_id": "goal-728e4be2",
+        "worker_id": "GITHUB-DISPATCHER",
+        "attempt_id": "task_A2:attempt:1"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "result-dispatch-fd9b7fa5537c46308b052709e5ecca65",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "courier_output_dispatch-fd9b7fa5537c46308b052709e5ecca65.json",
+            "sha256": "8188c63f1c33e850703f392d8a3051c0124fd791502ac56f737c59010d6d061c"
+          }
+        ]
+      }
+    },
+    "task_B2": {
+      "task_id": "task_B2",
+      "task_type": "deterministic_transform",
+      "input": "nonce_B2",
+      "target_agent": "github",
+      "owner_scope": "TEST_B2",
+      "dependencies": [
+        "task_A2"
+      ],
+      "goal_id": "goal-728e4be2",
+      "status": "FAILED",
+      "attempts": 1,
+      "worker_id": "GITHUB-DISPATCHER",
+      "attempt_id": "task_B2:attempt:1",
+      "dispatch_id": "dispatch-faf3a3d8627145b58dc5e918247775d7",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "github",
+      "artifacts": [
+        "courier_canary_task_B2.txt"
+      ],
+      "result": {
+        "artifacts": [
+          {
+            "path": "courier_output_dispatch-faf3a3d8627145b58dc5e918247775d7.json",
+            "sha256": "d7a15516ee9ea2a8e584294b658807f588272ec7c2455512f80e3b9eccc60945"
+          }
+        ],
+        "task_id": "task_B2",
+        "result_id": "result-dispatch-faf3a3d8627145b58dc5e918247775d7",
+        "run_id": "35081346313",
+        "status": "SUCCESS",
+        "dispatch_id": "dispatch-faf3a3d8627145b58dc5e918247775d7",
+        "goal_id": "goal-728e4be2",
+        "worker_id": "GITHUB-DISPATCHER",
+        "attempt_id": "task_B2:attempt:1"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "result-dispatch-faf3a3d8627145b58dc5e918247775d7",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "courier_output_dispatch-faf3a3d8627145b58dc5e918247775d7.json",
+            "sha256": "d7a15516ee9ea2a8e584294b658807f588272ec7c2455512f80e3b9eccc60945"
+          }
+        ]
+      }
+    },
+    "task_continuity": {
+      "task_id": "task_continuity",
+      "task_type": "echo",
+      "instruction": "echo start && sleep 20 && echo end",
+      "target_agent": "mac",
+      "owner_scope": "TEST_CONT",
+      "dependencies": [],
+      "artifacts": [],
+      "goal_id": "goal-abd401ac",
+      "status": "FAILED",
+      "attempts": 1,
+      "worker_id": "MAC-01",
+      "attempt_id": "task_continuity:attempt:1",
+      "dispatch_id": "dispatch-511e488fff684a299c7655b15f4287fd",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac"
+    },
+    "task_cont_981bd8b5": {
+      "task_id": "task_cont_981bd8b5",
+      "task_type": "echo",
+      "instruction": "echo start && sleep 20 && echo end",
+      "target_agent": "mac",
+      "owner_scope": "TEST_CONT",
+      "dependencies": [],
+      "artifacts": [],
+      "goal_id": "goal-4b520cab",
+      "status": "FAILED",
+      "attempts": 1,
+      "worker_id": "MAC-01",
+      "attempt_id": "task_cont_981bd8b5:attempt:1",
+      "dispatch_id": "dispatch-472b8c1965c3424fa400cc3c0cc13315",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac"
+    },
+    "task_cont_87362008": {
+      "task_id": "task_cont_87362008",
+      "task_type": "echo",
+      "instruction": "echo start && sleep 20 && echo '{\"status\": \"SUCCESS\"}' > result.json",
+      "target_agent": "mac",
+      "owner_scope": "TEST_CONT",
+      "dependencies": [],
+      "artifacts": [
+        "result.json"
+      ],
+      "goal_id": "goal-f176d5f9",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-01",
+      "attempt_id": "task_cont_87362008:attempt:1",
+      "dispatch_id": "dispatch-7caf8aa863f54676887352d508b9253a",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "result": {
+        "status": "SUCCESS",
+        "task_id": "task_cont_87362008",
+        "attempt_id": "task_cont_87362008:attempt:1",
+        "worker_id": "MAC-01",
+        "dispatch_id": "dispatch-7caf8aa863f54676887352d508b9253a",
+        "run_id": "74277f99-a32c-40c8-8ea9-4e26944dbfda",
+        "goal_id": "goal-f176d5f9",
+        "artifacts": [
+          {
+            "path": "result.json",
+            "sha256": "e11093aac0acb079ab1e1a670c951376ea264db255e72080a4f57119e4ae7398"
+          }
+        ],
+        "result_id": "8641dc0a-19fe-4810-b91b-c410407a7a33"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "8641dc0a-19fe-4810-b91b-c410407a7a33",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "result.json",
+            "sha256": "e11093aac0acb079ab1e1a670c951376ea264db255e72080a4f57119e4ae7398"
+          }
+        ]
+      }
+    },
+    "task_cont_f7245393": {
+      "task_id": "task_cont_f7245393",
+      "task_type": "echo",
+      "instruction": "echo start && sleep 20 && echo '{\"status\": \"SUCCESS\"}' > result.json",
+      "target_agent": "mac",
+      "owner_scope": "TEST_CONT",
+      "dependencies": [],
+      "artifacts": [
+        "result.json"
+      ],
+      "goal_id": "goal-ce75072e",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-01",
+      "attempt_id": "task_cont_f7245393:attempt:1",
+      "dispatch_id": "dispatch-43a97fb4c4e24be0a53e93643dbf05f3",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "result": {
+        "status": "SUCCESS",
+        "task_id": "task_cont_f7245393",
+        "attempt_id": "task_cont_f7245393:attempt:1",
+        "worker_id": "MAC-01",
+        "dispatch_id": "dispatch-43a97fb4c4e24be0a53e93643dbf05f3",
+        "run_id": "f59ada35-6c52-4bbc-a763-54665346cc81",
+        "goal_id": "goal-ce75072e",
+        "artifacts": [
+          {
+            "path": "result.json",
+            "sha256": "e11093aac0acb079ab1e1a670c951376ea264db255e72080a4f57119e4ae7398"
+          }
+        ],
+        "result_id": "bd02f92d-b6e2-4578-aa05-8133af67ff2b"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "bd02f92d-b6e2-4578-aa05-8133af67ff2b",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "result.json",
+            "sha256": "e11093aac0acb079ab1e1a670c951376ea264db255e72080a4f57119e4ae7398"
+          }
+        ]
+      }
+    },
+    "task_cont_57fbdba0": {
+      "task_id": "task_cont_57fbdba0",
+      "task_type": "echo",
+      "instruction": "echo start && sleep 20 && echo '{\"status\": \"SUCCESS\"}' > result.json",
+      "target_agent": "mac",
+      "owner_scope": "TEST_CONT",
+      "dependencies": [],
+      "artifacts": [
+        "result.json"
+      ],
+      "goal_id": "goal-a20ff1bf",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-01",
+      "attempt_id": "task_cont_57fbdba0:attempt:1",
+      "dispatch_id": "dispatch-2c977aabdf2549fc924d611feacd6a75",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "result": {
+        "status": "SUCCESS",
+        "task_id": "task_cont_57fbdba0",
+        "attempt_id": "task_cont_57fbdba0:attempt:1",
+        "worker_id": "MAC-01",
+        "dispatch_id": "dispatch-2c977aabdf2549fc924d611feacd6a75",
+        "run_id": "c1dddf01-a7b0-4210-baf1-d3df27a8987c",
+        "goal_id": "goal-a20ff1bf",
+        "artifacts": [
+          {
+            "path": "result.json",
+            "sha256": "e11093aac0acb079ab1e1a670c951376ea264db255e72080a4f57119e4ae7398"
+          }
+        ],
+        "result_id": "69ba9cec-10ec-47d2-927d-b6dad89095e0"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "69ba9cec-10ec-47d2-927d-b6dad89095e0",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "result.json",
+            "sha256": "e11093aac0acb079ab1e1a670c951376ea264db255e72080a4f57119e4ae7398"
+          }
+        ]
+      }
+    },
+    "task_cont_47980fce": {
+      "task_id": "task_cont_47980fce",
+      "task_type": "echo",
+      "instruction": "echo start && sleep 15 && echo '{\"status\": \"SUCCESS\"}' > result.json",
+      "target_agent": "mac",
+      "owner_scope": "TEST_CONT",
+      "dependencies": [],
+      "artifacts": [
+        "result.json"
+      ],
+      "goal_id": "goal-1ef01e0e",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-01",
+      "attempt_id": "task_cont_47980fce:attempt:1",
+      "dispatch_id": "dispatch-354e09dfffa44aa887403c582936e505",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "result": {
+        "status": "SUCCESS",
+        "task_id": "task_cont_47980fce",
+        "attempt_id": "task_cont_47980fce:attempt:1",
+        "worker_id": "MAC-01",
+        "dispatch_id": "dispatch-354e09dfffa44aa887403c582936e505",
+        "run_id": "453664fb-9722-43d2-bacb-146ff7a45f0f",
+        "goal_id": "goal-1ef01e0e",
+        "artifacts": [
+          {
+            "path": "result.json",
+            "sha256": "e11093aac0acb079ab1e1a670c951376ea264db255e72080a4f57119e4ae7398"
+          }
+        ],
+        "result_id": "115cce41-2a76-4f77-a842-b832efb77408"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "115cce41-2a76-4f77-a842-b832efb77408",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "result.json",
+            "sha256": "e11093aac0acb079ab1e1a670c951376ea264db255e72080a4f57119e4ae7398"
+          }
+        ]
+      }
+    },
+    "REV-AD549EA4": {
+      "task_id": "REV-AD549EA4",
+      "type": "revenue_safety_audit",
+      "capabilities": [
+        "revenue_safety_audit"
+      ],
+      "target_owner": "P01-Customer",
+      "target_repo": "testrepo",
+      "target_sha": "12345",
+      "customer_reference": "cust123",
+      "dependencies": [],
+      "goal_id": "goal-7244c13d",
+      "status": "RECONCILED",
+      "attempts": 2,
+      "worker_id": "REVENUE-MAC-DBFA22",
+      "attempt_id": "REV-AD549EA4:attempt:2",
+      "dispatch_id": "dispatch-486eec21f5754953b572da26b4e41ecd",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "linux",
+      "artifacts": [
+        "courier_canary_REV-AD549EA4.txt"
+      ],
+      "result": {
+        "status": "SUCCESS",
+        "task_id": "REV-AD549EA4",
+        "attempt_id": "REV-AD549EA4:attempt:2",
+        "worker_id": "REVENUE-MAC-DBFA22",
+        "dispatch_id": "dispatch-486eec21f5754953b572da26b4e41ecd",
+        "run_id": "run-c3f79061",
+        "goal_id": "goal-7244c13d",
+        "artifacts": [
+          {
+            "path": "revenue_artifacts.zip",
+            "sha256": "06da0956cfab23daf9fe7dd2b4e909e332eb5f9664abbae835c3d32df53774c6"
+          }
+        ],
+        "result_id": "res-f673c4db"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "res-f673c4db",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "revenue_artifacts.zip",
+            "sha256": "06da0956cfab23daf9fe7dd2b4e909e332eb5f9664abbae835c3d32df53774c6"
+          }
+        ]
+      }
+    },
+    "task_crash_0fba24f8": {
+      "task_id": "task_crash_0fba24f8",
+      "task_type": "echo",
+      "instruction": "pkill -f daemon.py",
+      "target_agent": "github",
+      "owner_scope": "TEST_CRASH",
+      "dependencies": [],
+      "artifacts": [],
+      "capabilities": [
+        "linux"
+      ],
+      "goal_id": "goal-acf9676d",
+      "status": "QUEUED",
+      "attempts": 3,
+      "worker_id": null,
+      "attempt_id": "task_crash_0fba24f8:attempt:3",
+      "dispatch_id": "dispatch-26479bc919c34b3b9e9a20ef3f3b5939",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "github",
+      "result": {
+        "goal_id": "goal-acf9676d",
+        "attempt_id": "task_crash_0fba24f8:attempt:3",
+        "task_id": "task_crash_0fba24f8",
+        "artifacts": [],
+        "run_id": "d9af5ea7-c9e5-4bf2-963b-64c6193f80b8",
+        "status": "FAILED",
+        "worker_id": "MAC-01",
+        "result_id": "fe3eecf5-08c2-4edf-a53c-adddde4e613a",
+        "dispatch_id": "dispatch-26479bc919c34b3b9e9a20ef3f3b5939"
+      }
+    },
+    "task-a-a5b7": {
+      "task_id": "task-a-a5b7",
+      "task_type": "echo",
+      "instruction": "echo GITHUB_SUCCESS > courier_canary_voll_a.txt",
+      "target_agent": "github",
+      "target_capability": "github",
+      "owner_scope": "TEST_A",
+      "dependencies": [],
+      "artifacts": [
+        "courier_canary_voll_a.txt"
+      ],
+      "capabilities": [
+        "github"
+      ],
+      "goal_id": "goal-e93ab630",
+      "status": "FAILED_TERMINAL",
+      "attempts": 3,
+      "worker_id": "GITHUB-DISPATCHER",
+      "attempt_id": "task-a-a5b7:attempt:3",
+      "dispatch_id": "dispatch-2f3bec6f13604b469726c58ab7888e39",
+      "run_id": null,
+      "result_id": null,
+      "result": {
+        "worker_id": "GITHUB-DISPATCHER",
+        "goal_id": "goal-e93ab630",
+        "artifacts": [],
+        "task_id": "task-a-a5b7",
+        "attempt_id": "task-a-a5b7:attempt:3",
+        "result_id": "failed-early",
+        "dispatch_id": "dispatch-2f3bec6f13604b469726c58ab7888e39",
+        "status": "FAILED",
+        "run_id": "failed-early"
+      }
+    },
+    "task-a-ebc9": {
+      "task_id": "task-a-ebc9",
+      "task_type": "verify_file",
+      "instruction": "echo GITHUB_SUCCESS > courier_canary_voll_a.txt",
+      "target_agent": "github",
+      "target_capability": "github",
+      "owner_scope": "TEST_A",
+      "dependencies": [],
+      "artifacts": [
+        "courier_canary_voll_a.txt"
+      ],
+      "capabilities": [
+        "github"
+      ],
+      "goal_id": "goal-5c02afc9",
+      "status": "DISPATCHED",
+      "attempts": 2,
+      "worker_id": "GITHUB-DISPATCHER",
+      "attempt_id": "task-a-ebc9:attempt:2",
+      "dispatch_id": "dispatch-f5d3fcc0ac7d4dc890816700a01d6133",
+      "run_id": null,
+      "result_id": null
+    },
+    "task-a-e946": {
+      "task_id": "task-a-e946",
+      "task_type": "metadata",
+      "target_agent": "github",
+      "target_capability": "github",
+      "owner_scope": "TEST_A",
+      "dependencies": [],
+      "dispatch_id": "dispatch-ba1321bd1c074725bce89dbd3c8b6a7b",
+      "artifacts": [
+        "courier_output_dispatch-f47756752c47411f8cb01eb72578d07f.json"
+      ],
+      "capabilities": [
+        "github"
+      ],
+      "goal_id": "goal-69a5ee58",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "GITHUB-DISPATCHER",
+      "attempt_id": "task-a-e946:attempt:1",
+      "run_id": null,
+      "result_id": null,
+      "result": {
+        "dispatch_id": "dispatch-ba1321bd1c074725bce89dbd3c8b6a7b",
+        "artifacts": [
+          {
+            "path": "courier_output_dispatch-ba1321bd1c074725bce89dbd3c8b6a7b.json",
+            "sha256": "57baf0bcb4ac465114161341a7f78a6e8adc64f777bc314b95a025c926fcc4d0"
+          }
+        ],
+        "goal_id": "goal-69a5ee58",
+        "worker_id": "GITHUB-DISPATCHER",
+        "result_id": "result-dispatch-ba1321bd1c074725bce89dbd3c8b6a7b",
+        "attempt_id": "task-a-e946:attempt:1",
+        "run_id": "35085462023",
+        "status": "SUCCESS",
+        "task_id": "task-a-e946"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "result-dispatch-ba1321bd1c074725bce89dbd3c8b6a7b",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "courier_output_dispatch-ba1321bd1c074725bce89dbd3c8b6a7b.json",
+            "sha256": "57baf0bcb4ac465114161341a7f78a6e8adc64f777bc314b95a025c926fcc4d0"
+          }
+        ]
+      }
+    },
+    "task-b-c269": {
+      "task_id": "task-b-c269",
+      "task_type": "echo",
+      "mode": "NATIVE",
+      "instruction": "echo MAC_SUCCESS > courier_canary_task-b-c269.txt",
+      "target_agent": "mac",
+      "target_capability": "mac",
+      "owner_scope": "TEST_B",
+      "dependencies": [
+        "task-a-e946"
+      ],
+      "artifacts": [
+        "courier_canary_task-b-c269.txt"
+      ],
+      "capabilities": [
+        "macos"
+      ],
+      "goal_id": "goal-69a5ee58",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-01",
+      "attempt_id": "task-b-c269:attempt:1",
+      "dispatch_id": "dispatch-453fc22b1aab4059bbe4661e4d67d67d",
+      "run_id": null,
+      "result_id": null,
+      "result": {
+        "dispatch_id": "dispatch-453fc22b1aab4059bbe4661e4d67d67d",
+        "artifacts": [
+          {
+            "path": "courier_canary_task-b-c269.txt",
+            "sha256": "286d918fa8b90c289803f4ab02cc110b1edcd5860c41b59dd8f24165113b7121"
+          }
+        ],
+        "goal_id": "goal-69a5ee58",
+        "worker_id": "MAC-01",
+        "result_id": "d53715b8-7db2-461c-9162-f907ca469d28",
+        "attempt_id": "task-b-c269:attempt:1",
+        "run_id": "f15d7ef3-0e08-47aa-b414-9ac33c5a3c4e",
+        "status": "SUCCESS",
+        "task_id": "task-b-c269"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "d53715b8-7db2-461c-9162-f907ca469d28",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "courier_canary_task-b-c269.txt",
+            "sha256": "286d918fa8b90c289803f4ab02cc110b1edcd5860c41b59dd8f24165113b7121"
+          }
+        ]
+      }
+    },
+    "task-a-14d1": {
+      "task_id": "task-a-14d1",
+      "task_type": "antigravity",
+      "instruction": "sleep 10 && echo 'AI FINISHED' > courier_canary_task-a-14d1.txt",
+      "target_agent": "mac",
+      "target_capability": "mac",
+      "owner_scope": "TEST_A",
+      "dependencies": [],
+      "artifacts": [
+        "courier_canary_task-a-14d1.txt"
+      ],
+      "capabilities": [
+        "macos"
+      ],
+      "goal_id": "goal-a8ff9474",
+      "status": "FAILED_TERMINAL",
+      "attempts": 3,
+      "worker_id": "MAC-01",
+      "attempt_id": "task-a-14d1:attempt:3",
+      "dispatch_id": "dispatch-0f1e145ef0804627943dc044df3a8445",
+      "run_id": null,
+      "result_id": null,
+      "result": {
+        "dispatch_id": "dispatch-0f1e145ef0804627943dc044df3a8445",
+        "artifacts": [],
+        "goal_id": "goal-a8ff9474",
+        "worker_id": "MAC-01",
+        "result_id": "7f10dc66-a88b-4fc7-82b1-ff3e7d05276a",
+        "attempt_id": "task-a-14d1:attempt:3",
+        "run_id": "9e6cbaa5-96f8-40f7-a1b6-f822eef9105d",
+        "status": "FAILED",
+        "task_id": "task-a-14d1"
+      }
+    },
+    "task-a-63b2": {
+      "task_id": "task-a-63b2",
+      "task_type": "antigravity",
+      "instruction": "sleep 10 && echo 'AI FINISHED' > courier_canary_task-a-63b2.txt",
+      "target_agent": "mac",
+      "target_capability": "mac",
+      "owner_scope": "TEST_A",
+      "dependencies": [],
+      "artifacts": [
+        "courier_canary_task-a-63b2.txt"
+      ],
+      "capabilities": [
+        "macos"
+      ],
+      "goal_id": "goal-4ae1413b",
+      "status": "FAILED_TERMINAL",
+      "attempts": 3,
+      "worker_id": "MAC-01",
+      "attempt_id": "task-a-63b2:attempt:3",
+      "dispatch_id": "dispatch-44c797c8b2ae49cda89ca95bef21fc1f",
+      "run_id": null,
+      "result_id": null,
+      "result": {
+        "dispatch_id": "dispatch-44c797c8b2ae49cda89ca95bef21fc1f",
+        "artifacts": [],
+        "goal_id": "goal-4ae1413b",
+        "worker_id": "MAC-01",
+        "result_id": "1e87bd72-57f0-4437-8964-9b8ef2a2d5e7",
+        "attempt_id": "task-a-63b2:attempt:3",
+        "run_id": "9a2d854d-781e-4bb4-a5fa-f44a6819f20b",
+        "status": "FAILED",
+        "task_id": "task-a-63b2"
+      }
+    },
+    "task-a-360d": {
+      "task_id": "task-a-360d",
+      "task_type": "antigravity",
+      "instruction": "Wait 10 seconds. Then create file courier_canary_task-a-360d.txt with content 'AI_FINISHED'",
+      "target_agent": "mac",
+      "target_capability": "mac",
+      "owner_scope": "TEST_A",
+      "dependencies": [],
+      "artifacts": [
+        "courier_canary_task-a-360d.txt"
+      ],
+      "capabilities": [
+        "macos"
+      ],
+      "goal_id": "goal-b463099f",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-01",
+      "attempt_id": "task-a-360d:attempt:1",
+      "dispatch_id": "dispatch-bd1e9aca2af64f4aba360d10fdbb6e8b",
+      "run_id": null,
+      "result_id": null,
+      "result": {
+        "dispatch_id": "dispatch-bd1e9aca2af64f4aba360d10fdbb6e8b",
+        "artifacts": [
+          {
+            "path": "courier_canary_task-a-360d.txt",
+            "sha256": "65dda03bb3ccaddad4d57c73fca9fa4b7e4b1c6d23981f5d35dede2bd18cc3c4"
+          }
+        ],
+        "goal_id": "goal-b463099f",
+        "worker_id": "MAC-01",
+        "result_id": "312641ca-44ed-4ef0-9a48-7cac560bb0d1",
+        "attempt_id": "task-a-360d:attempt:1",
+        "run_id": "009f5aa9-e7c7-4d10-96ff-650f5f72a654",
+        "status": "SUCCESS",
+        "task_id": "task-a-360d"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "312641ca-44ed-4ef0-9a48-7cac560bb0d1",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "courier_canary_task-a-360d.txt",
+            "sha256": "65dda03bb3ccaddad4d57c73fca9fa4b7e4b1c6d23981f5d35dede2bd18cc3c4"
+          }
+        ]
+      }
+    },
+    "task-b-937c": {
+      "task_id": "task-b-937c",
+      "task_type": "echo",
+      "mode": "NATIVE",
+      "instruction": "echo MAC_SUCCESS > courier_canary_task-b-937c.txt",
+      "target_agent": "mac",
+      "target_capability": "mac",
+      "owner_scope": "TEST_B",
+      "dependencies": [
+        "task-a-360d"
+      ],
+      "artifacts": [
+        "courier_canary_task-b-937c.txt"
+      ],
+      "capabilities": [
+        "macos"
+      ],
+      "goal_id": "goal-b463099f",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-01",
+      "attempt_id": "task-b-937c:attempt:1",
+      "dispatch_id": "dispatch-ec8719c1b6e749edb17c36656e233035",
+      "run_id": null,
+      "result_id": null,
+      "result": {
+        "dispatch_id": "dispatch-ec8719c1b6e749edb17c36656e233035",
+        "artifacts": [
+          {
+            "path": "courier_canary_task-b-937c.txt",
+            "sha256": "286d918fa8b90c289803f4ab02cc110b1edcd5860c41b59dd8f24165113b7121"
+          }
+        ],
+        "goal_id": "goal-b463099f",
+        "worker_id": "MAC-01",
+        "result_id": "55166cc3-063e-4607-8bdf-653b6730df53",
+        "attempt_id": "task-b-937c:attempt:1",
+        "run_id": "358d7e0c-284c-4a94-83b2-29e712e61bec",
+        "status": "SUCCESS",
+        "task_id": "task-b-937c"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "55166cc3-063e-4607-8bdf-653b6730df53",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "courier_canary_task-b-937c.txt",
+            "sha256": "286d918fa8b90c289803f4ab02cc110b1edcd5860c41b59dd8f24165113b7121"
+          }
+        ]
+      }
+    },
+    "task-a-315e": {
+      "task_id": "task-a-315e",
+      "task_type": "antigravity",
+      "instruction": "Wait 10 seconds. Then create file courier_canary_task-a-315e.txt with content 'AI_FINISHED'",
+      "target_agent": "mac",
+      "target_capability": "mac",
+      "owner_scope": "TEST_A",
+      "dependencies": [],
+      "artifacts": [
+        "courier_canary_task-a-315e.txt"
+      ],
+      "capabilities": [
+        "macos"
+      ],
+      "goal_id": "goal-a4e6809f",
+      "status": "RECONCILED",
+      "attempts": 2,
+      "worker_id": "MAC-01",
+      "attempt_id": "task-a-315e:attempt:2",
+      "dispatch_id": "dispatch-5b0ce507b1764a51829b4e41071eac52",
+      "run_id": null,
+      "result_id": null,
+      "result": {
+        "dispatch_id": "dispatch-5b0ce507b1764a51829b4e41071eac52",
+        "artifacts": [
+          {
+            "path": "courier_canary_task-a-315e.txt",
+            "sha256": "65dda03bb3ccaddad4d57c73fca9fa4b7e4b1c6d23981f5d35dede2bd18cc3c4"
+          }
+        ],
+        "goal_id": "goal-a4e6809f",
+        "worker_id": "MAC-01",
+        "result_id": "854f3b59-2d48-406f-afc6-8b32341984bc",
+        "attempt_id": "task-a-315e:attempt:2",
+        "run_id": "1c27255d-f9da-47b3-97d5-378dddbe25d1",
+        "status": "SUCCESS",
+        "task_id": "task-a-315e"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "854f3b59-2d48-406f-afc6-8b32341984bc",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "courier_canary_task-a-315e.txt",
+            "sha256": "65dda03bb3ccaddad4d57c73fca9fa4b7e4b1c6d23981f5d35dede2bd18cc3c4"
+          }
+        ]
+      }
+    },
+    "task-b-06e2": {
+      "task_id": "task-b-06e2",
+      "task_type": "echo",
+      "mode": "NATIVE",
+      "instruction": "echo MAC_SUCCESS > courier_canary_task-b-06e2.txt",
+      "target_agent": "mac",
+      "target_capability": "mac",
+      "owner_scope": "TEST_B",
+      "dependencies": [
+        "task-a-315e"
+      ],
+      "artifacts": [
+        "courier_canary_task-b-06e2.txt"
+      ],
+      "capabilities": [
+        "macos"
+      ],
+      "goal_id": "goal-a4e6809f",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-01",
+      "attempt_id": "task-b-06e2:attempt:1",
+      "dispatch_id": "dispatch-37761595e762484bb45021977cf3fe7f",
+      "run_id": null,
+      "result_id": null,
+      "result": {
+        "dispatch_id": "dispatch-37761595e762484bb45021977cf3fe7f",
+        "artifacts": [
+          {
+            "path": "courier_canary_task-b-06e2.txt",
+            "sha256": "286d918fa8b90c289803f4ab02cc110b1edcd5860c41b59dd8f24165113b7121"
+          }
+        ],
+        "goal_id": "goal-a4e6809f",
+        "worker_id": "MAC-01",
+        "result_id": "17831da6-aed9-4d8c-86bd-ac544ea1c7bd",
+        "attempt_id": "task-b-06e2:attempt:1",
+        "run_id": "7e82b703-48e5-4bba-b82e-dcf3cadf4912",
+        "status": "SUCCESS",
+        "task_id": "task-b-06e2"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "17831da6-aed9-4d8c-86bd-ac544ea1c7bd",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "courier_canary_task-b-06e2.txt",
+            "sha256": "286d918fa8b90c289803f4ab02cc110b1edcd5860c41b59dd8f24165113b7121"
+          }
+        ]
+      }
+    },
+    "msg-1-cd34": {
+      "task_id": "msg-1-cd34",
+      "message_id": "msg-1-cd34",
+      "queue_order": 1,
+      "task_type": "echo",
+      "mode": "NATIVE",
+      "instruction": "echo MSG_1_DONE > courier_canary_msg-1-cd34.txt",
+      "target_agent": "mac",
+      "target_capability": "mac",
+      "owner_scope": "QUEUE_TEST",
+      "dependencies": [],
+      "artifacts": [
+        "courier_canary_msg-1-cd34.txt"
+      ],
+      "capabilities": [
+        "macos"
+      ],
+      "goal_id": "goal-2a202962",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-01",
+      "attempt_id": "msg-1-cd34:attempt:1",
+      "dispatch_id": "dispatch-724b084cc2cb478cb84915107aa2959d",
+      "run_id": null,
+      "result_id": null,
+      "result": {
+        "dispatch_id": "dispatch-724b084cc2cb478cb84915107aa2959d",
+        "artifacts": [
+          {
+            "path": "courier_canary_msg-1-cd34.txt",
+            "sha256": "214c9602666ad1e2128a9b2311e44fe0ac1f4685fc4713f16d40b1dc7c19756a"
+          }
+        ],
+        "goal_id": "goal-2a202962",
+        "worker_id": "MAC-01",
+        "result_id": "3d5131f8-87e4-443a-9cfb-4ef578c5f495",
+        "attempt_id": "msg-1-cd34:attempt:1",
+        "run_id": "0c1d0d49-d585-47c0-8e8d-dc61266a76d4",
+        "status": "SUCCESS",
+        "task_id": "msg-1-cd34"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "3d5131f8-87e4-443a-9cfb-4ef578c5f495",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "courier_canary_msg-1-cd34.txt",
+            "sha256": "214c9602666ad1e2128a9b2311e44fe0ac1f4685fc4713f16d40b1dc7c19756a"
+          }
+        ]
+      }
+    },
+    "msg-2-cb3a": {
+      "task_id": "msg-2-cb3a",
+      "message_id": "msg-2-cb3a",
+      "queue_order": 2,
+      "task_type": "antigravity",
+      "instruction": "Wait 10 seconds. Then create file courier_canary_msg-2-cb3a.txt with content 'MSG_2_DONE'",
+      "target_agent": "mac",
+      "target_capability": "mac",
+      "owner_scope": "QUEUE_TEST",
+      "dependencies": [
+        "msg-1-cd34"
+      ],
+      "artifacts": [
+        "courier_canary_msg-2-cb3a.txt"
+      ],
+      "capabilities": [
+        "macos"
+      ],
+      "goal_id": "goal-2a202962",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-01",
+      "attempt_id": "msg-2-cb3a:attempt:1",
+      "dispatch_id": "dispatch-07ea0ceeeef74bdc9131bd0b494157b1",
+      "run_id": null,
+      "result_id": null,
+      "result": {
+        "dispatch_id": "dispatch-07ea0ceeeef74bdc9131bd0b494157b1",
+        "artifacts": [
+          {
+            "path": "courier_canary_msg-2-cb3a.txt",
+            "sha256": "30f5ce95614d224c127125a56c210da402d6d93ff820d069acdecb4afc1554c1"
+          }
+        ],
+        "goal_id": "goal-2a202962",
+        "worker_id": "MAC-01",
+        "result_id": "abc7ee5a-ae57-463b-ba70-67930e080cc1",
+        "attempt_id": "msg-2-cb3a:attempt:1",
+        "run_id": "17d1e9c3-15b7-4d34-8e5b-7f1c1491844a",
+        "status": "SUCCESS",
+        "task_id": "msg-2-cb3a"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "abc7ee5a-ae57-463b-ba70-67930e080cc1",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "courier_canary_msg-2-cb3a.txt",
+            "sha256": "30f5ce95614d224c127125a56c210da402d6d93ff820d069acdecb4afc1554c1"
+          }
+        ]
+      }
+    },
+    "msg-3-e85b": {
+      "task_id": "msg-3-e85b",
+      "message_id": "msg-3-e85b",
+      "queue_order": 3,
+      "task_type": "echo",
+      "mode": "NATIVE",
+      "instruction": "echo MSG_3_DONE > courier_canary_msg-3-e85b.txt",
+      "target_agent": "mac",
+      "target_capability": "mac",
+      "owner_scope": "QUEUE_TEST",
+      "dependencies": [
+        "msg-2-cb3a"
+      ],
+      "artifacts": [
+        "courier_canary_msg-3-e85b.txt"
+      ],
+      "capabilities": [
+        "macos"
+      ],
+      "goal_id": "goal-2a202962",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-01",
+      "attempt_id": "msg-3-e85b:attempt:1",
+      "dispatch_id": "dispatch-10c5c8154be84bd29110b23944a686f9",
+      "run_id": null,
+      "result_id": null,
+      "result": {
+        "dispatch_id": "dispatch-10c5c8154be84bd29110b23944a686f9",
+        "artifacts": [
+          {
+            "path": "courier_canary_msg-3-e85b.txt",
+            "sha256": "1765f0cfeff82562a7f778c79a5c5b1d32cd5974ce98976cd4c7b53a3b3c594e"
+          }
+        ],
+        "goal_id": "goal-2a202962",
+        "worker_id": "MAC-01",
+        "result_id": "12db1929-b718-45db-ad76-b5b743218e73",
+        "attempt_id": "msg-3-e85b:attempt:1",
+        "run_id": "f4fe7e36-52d4-4418-aec9-a4958ca021ab",
+        "status": "SUCCESS",
+        "task_id": "msg-3-e85b"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "12db1929-b718-45db-ad76-b5b743218e73",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "courier_canary_msg-3-e85b.txt",
+            "sha256": "1765f0cfeff82562a7f778c79a5c5b1d32cd5974ce98976cd4c7b53a3b3c594e"
+          }
+        ]
+      }
+    },
+    "task-ext-4a74": {
+      "task_id": "task-ext-4a74",
+      "task_type": "metadata",
+      "target_agent": "github",
+      "target_capability": "github",
+      "owner_scope": "TEST_EXT",
+      "dependencies": [],
+      "capabilities": [
+        "github"
+      ],
+      "goal_id": "goal-b2fc8828",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "GITHUB-DISPATCHER",
+      "attempt_id": "task-ext-4a74:attempt:1",
+      "dispatch_id": "dispatch-d9501c5b046440a5ac2562b0e42ea628",
+      "run_id": null,
+      "result_id": null,
+      "artifacts": [
+        "courier_canary_task-ext-4a74.txt"
+      ],
+      "result": {
+        "dispatch_id": "dispatch-d9501c5b046440a5ac2562b0e42ea628",
+        "artifacts": [
+          {
+            "path": "courier_output_dispatch-d9501c5b046440a5ac2562b0e42ea628.json",
+            "sha256": "57baf0bcb4ac465114161341a7f78a6e8adc64f777bc314b95a025c926fcc4d0"
+          }
+        ],
+        "goal_id": "goal-b2fc8828",
+        "worker_id": "GITHUB-DISPATCHER",
+        "result_id": "result-dispatch-d9501c5b046440a5ac2562b0e42ea628",
+        "attempt_id": "task-ext-4a74:attempt:1",
+        "run_id": "35087571313",
+        "status": "SUCCESS",
+        "task_id": "task-ext-4a74"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "result-dispatch-d9501c5b046440a5ac2562b0e42ea628",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "courier_output_dispatch-d9501c5b046440a5ac2562b0e42ea628.json",
+            "sha256": "57baf0bcb4ac465114161341a7f78a6e8adc64f777bc314b95a025c926fcc4d0"
+          }
+        ]
+      }
+    },
+    "task-pipe-0ee9": {
+      "task_id": "task-pipe-0ee9",
+      "task_type": "echo",
+      "mode": "NATIVE",
+      "instruction": "echo RESULT_PIPELINE_OK > courier_canary_task-pipe-0ee9.txt",
+      "target_agent": "mac",
+      "target_capability": "mac",
+      "owner_scope": "TEST_PIPE",
+      "dependencies": [],
+      "artifacts": [
+        "courier_canary_task-pipe-0ee9.txt"
+      ],
+      "capabilities": [
+        "macos"
+      ],
+      "goal_id": "goal-606041e4",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-01",
+      "attempt_id": "task-pipe-0ee9:attempt:1",
+      "dispatch_id": "dispatch-47e21ef9147742d7be74a1975055c9c4",
+      "run_id": null,
+      "result_id": null,
+      "result": {
+        "dispatch_id": "dispatch-47e21ef9147742d7be74a1975055c9c4",
+        "artifacts": [
+          {
+            "path": "courier_canary_task-pipe-0ee9.txt",
+            "sha256": "3fd956d2edba468d0eed9ef11a9679c9deec465e3915d7477816df94cbae67f1"
+          }
+        ],
+        "goal_id": "goal-606041e4",
+        "worker_id": "MAC-01",
+        "result_id": "b793f012-d94c-4573-b821-0ab86df58ecc",
+        "attempt_id": "task-pipe-0ee9:attempt:1",
+        "run_id": "5e017b97-c25c-430e-be75-20ed28bb849a",
+        "status": "SUCCESS",
+        "task_id": "task-pipe-0ee9"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "b793f012-d94c-4573-b821-0ab86df58ecc",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "courier_canary_task-pipe-0ee9.txt",
+            "sha256": "3fd956d2edba468d0eed9ef11a9679c9deec465e3915d7477816df94cbae67f1"
+          }
+        ]
+      }
+    },
+    "task-2-d8c4": {
+      "task_id": "task-2-d8c4",
+      "task_type": "metadata",
+      "target_agent": "github",
+      "target_capability": "github",
+      "owner_scope": "TEST_T2",
+      "dependencies": [],
+      "capabilities": [
+        "github"
+      ],
+      "goal_id": "goal-09569822",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "GITHUB-DISPATCHER",
+      "attempt_id": "task-2-d8c4:attempt:1",
+      "dispatch_id": "dispatch-d89bf3206f7e472d8868982c5eaadc3f",
+      "run_id": null,
+      "result_id": null,
+      "artifacts": [
+        "courier_canary_task-2-d8c4.txt"
+      ],
+      "result": {
+        "dispatch_id": "dispatch-d89bf3206f7e472d8868982c5eaadc3f",
+        "artifacts": [
+          {
+            "path": "courier_output_dispatch-d89bf3206f7e472d8868982c5eaadc3f.json",
+            "sha256": "57baf0bcb4ac465114161341a7f78a6e8adc64f777bc314b95a025c926fcc4d0"
+          }
+        ],
+        "goal_id": "goal-09569822",
+        "worker_id": "GITHUB-DISPATCHER",
+        "result_id": "result-dispatch-d89bf3206f7e472d8868982c5eaadc3f",
+        "attempt_id": "task-2-d8c4:attempt:1",
+        "run_id": "35087770853",
+        "status": "SUCCESS",
+        "task_id": "task-2-d8c4"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "result-dispatch-d89bf3206f7e472d8868982c5eaadc3f",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "courier_output_dispatch-d89bf3206f7e472d8868982c5eaadc3f.json",
+            "sha256": "57baf0bcb4ac465114161341a7f78a6e8adc64f777bc314b95a025c926fcc4d0"
+          }
+        ]
+      }
+    },
+    "task-1-b654": {
+      "task_id": "task-1-b654",
+      "task_type": "echo",
+      "mode": "NATIVE",
+      "instruction": "echo T1_DONE > courier_canary_task-1-b654.txt",
+      "target_agent": "mac",
+      "target_capability": "mac",
+      "owner_scope": "TEST_T1",
+      "dependencies": [],
+      "artifacts": [
+        "courier_canary_task-1-b654.txt"
+      ],
+      "capabilities": [
+        "macos"
+      ],
+      "goal_id": "goal-09569822",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-01",
+      "attempt_id": "task-1-b654:attempt:1",
+      "dispatch_id": "dispatch-d04f8b82bbc14467b68678f28c896533",
+      "run_id": null,
+      "result_id": null,
+      "result": {
+        "dispatch_id": "dispatch-d04f8b82bbc14467b68678f28c896533",
+        "artifacts": [
+          {
+            "path": "courier_canary_task-1-b654.txt",
+            "sha256": "1b9ee37443cd379209d225f34dbaaabe9cc963d990bfee441c43f36daf5d241a"
+          }
+        ],
+        "goal_id": "goal-09569822",
+        "worker_id": "MAC-01",
+        "result_id": "2b1ebb31-4a74-463a-9dfd-0fee030c5a97",
+        "attempt_id": "task-1-b654:attempt:1",
+        "run_id": "04734c86-eccc-43a3-b5ac-654a11aa68ec",
+        "status": "SUCCESS",
+        "task_id": "task-1-b654"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "2b1ebb31-4a74-463a-9dfd-0fee030c5a97",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "courier_canary_task-1-b654.txt",
+            "sha256": "1b9ee37443cd379209d225f34dbaaabe9cc963d990bfee441c43f36daf5d241a"
+          }
+        ]
+      }
+    },
+    "task-3-2f54": {
+      "task_id": "task-3-2f54",
+      "task_type": "echo",
+      "mode": "NATIVE",
+      "instruction": "echo T3_DONE > courier_canary_task-3-2f54.txt",
+      "target_agent": "mac",
+      "target_capability": "mac",
+      "owner_scope": "TEST_T3",
+      "dependencies": [
+        "task-1-b654"
+      ],
+      "artifacts": [
+        "courier_canary_task-3-2f54.txt"
+      ],
+      "capabilities": [
+        "macos"
+      ],
+      "goal_id": "goal-09569822",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-01",
+      "attempt_id": "task-3-2f54:attempt:1",
+      "dispatch_id": "dispatch-a2be99cfee3d436a802fdc943ea10b61",
+      "run_id": null,
+      "result_id": null,
+      "result": {
+        "dispatch_id": "dispatch-a2be99cfee3d436a802fdc943ea10b61",
+        "artifacts": [
+          {
+            "path": "courier_canary_task-3-2f54.txt",
+            "sha256": "922a3bdfbefb2d45368446d1180118788a945bd2cd685a2ef001e78cee5f856c"
+          }
+        ],
+        "goal_id": "goal-09569822",
+        "worker_id": "MAC-01",
+        "result_id": "66587dcb-fcf2-47c4-bce0-518320a50fba",
+        "attempt_id": "task-3-2f54:attempt:1",
+        "run_id": "7f049fe2-8bb3-45c0-b443-4d143082d188",
+        "status": "SUCCESS",
+        "task_id": "task-3-2f54"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "66587dcb-fcf2-47c4-bce0-518320a50fba",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "courier_canary_task-3-2f54.txt",
+            "sha256": "922a3bdfbefb2d45368446d1180118788a945bd2cd685a2ef001e78cee5f856c"
+          }
+        ]
+      }
+    },
+    "task-a-d2c2": {
+      "task_id": "task-a-d2c2",
+      "task_type": "antigravity",
+      "instruction": "Wait 10 seconds. Then create file courier_canary_task-a-d2c2.txt with content 'TASK_A_DONE'",
+      "target_agent": "mac",
+      "target_capability": "mac",
+      "owner_scope": "FINAL_TEST",
+      "dependencies": [],
+      "artifacts": [
+        "courier_canary_task-a-d2c2.txt"
+      ],
+      "capabilities": [
+        "macos"
+      ],
+      "goal_id": "goal-10b3be79",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-01",
+      "attempt_id": "task-a-d2c2:attempt:1",
+      "dispatch_id": "dispatch-75768af53ab84df288a380ecd47eed13",
+      "run_id": null,
+      "result_id": null,
+      "result": {
+        "dispatch_id": "dispatch-75768af53ab84df288a380ecd47eed13",
+        "artifacts": [
+          {
+            "path": "courier_canary_task-a-d2c2.txt",
+            "sha256": "6bf2f57d0170ccd83bb969c89446340ae0f43b1e519429c1d47f1dda6373080f"
+          }
+        ],
+        "goal_id": "goal-10b3be79",
+        "worker_id": "MAC-01",
+        "result_id": "1c14d5f1-e21e-46ca-a69c-d6b85b80ee4c",
+        "attempt_id": "task-a-d2c2:attempt:1",
+        "run_id": "906ee1cf-f701-43f3-81b0-deda35926807",
+        "status": "SUCCESS",
+        "task_id": "task-a-d2c2"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "1c14d5f1-e21e-46ca-a69c-d6b85b80ee4c",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "courier_canary_task-a-d2c2.txt",
+            "sha256": "6bf2f57d0170ccd83bb969c89446340ae0f43b1e519429c1d47f1dda6373080f"
+          }
+        ]
+      }
+    },
+    "task-b-2363": {
+      "task_id": "task-b-2363",
+      "task_type": "metadata",
+      "target_agent": "github",
+      "target_capability": "github",
+      "owner_scope": "FINAL_TEST",
+      "dependencies": [
+        "task-a-d2c2"
+      ],
+      "capabilities": [
+        "github"
+      ],
+      "goal_id": "goal-10b3be79",
+      "status": "DISPATCHED",
+      "attempts": 1,
+      "worker_id": "GITHUB-DISPATCHER",
+      "attempt_id": "task-b-2363:attempt:1",
+      "dispatch_id": "dispatch-5191f822a0ba44b8a2848902183a687a",
+      "run_id": null,
+      "result_id": null,
+      "artifacts": [
+        "courier_canary_task-b-2363.txt"
+      ]
     }
   },
   "workers": {
@@ -173,13 +2996,35 @@
       "platform": "macos",
       "capabilities": [
         "macos",
-        "linux",
         "antigravity"
       ],
-      "last_seen": 1789511925.155294,
+      "last_seen": 1789556525.112275,
       "available": true,
       "current_task": null,
       "cost_class": "unknown"
+    },
+    "GITHUB-DISPATCHER": {
+      "worker_id": "GITHUB-DISPATCHER",
+      "platform": "linux",
+      "capabilities": [
+        "github"
+      ],
+      "last_seen": 1789556522.560197,
+      "available": false,
+      "current_task": "task-b-2363",
+      "cost_class": "free"
+    },
+    "REVENUE-MAC-DBFA22": {
+      "worker_id": "REVENUE-MAC-DBFA22",
+      "platform": "unknown",
+      "capabilities": [
+        "revenue_safety_audit",
+        "linux"
+      ],
+      "last_seen": 1789553938.70786,
+      "available": false,
+      "current_task": null,
+      "cost_class": "free"
     }
   }
 }

@@ -1,0 +1,175 @@
+Starting Mac Worker HTTP Daemon...
+Found unfinished task from previous run, resuming...
+Registered successfully.
+Processing task task_continuity
+Running NATIVE task task_continuity
+Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+Processing task task_continuity
+Running NATIVE task task_continuity
+Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+Processing task task_continuity
+Running NATIVE task task_continuity
+Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+Processing task task_continuity
+Running NATIVE task task_continuity
+Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+Processing task task_continuity
+Running NATIVE task task_continuity
+Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+Processing task task_continuity
+Running NATIVE task task_continuity
+Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+Processing task task_continuity
+Running NATIVE task task_continuity
+Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+Processing task task_continuity
+Running NATIVE task task_continuity
+Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+Processing task task_continuity
+Running NATIVE task task_continuity
+Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+Processing task task_continuity
+Running NATIVE task task_continuity
+Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+Processing task task_continuity
+Running NATIVE task task_continuity
+Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+Processing task task_continuity
+Running NATIVE task task_continuity
+Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+Processing task task_continuity
+Running NATIVE task task_continuity
+Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+Processing task task_continuity
+Running NATIVE task task_continuity
+Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+Processing task task_continuity
+Running NATIVE task task_continuity
+Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+Processing task task_continuity
+Running NATIVE task task_continuity
+Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+Processing task task_continuity
+Running NATIVE task task_continuity
+Error in HTTP poll loop: name 'extract_intent' is not defined
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 266, in loop
+    result = run_native(task, config)
+  File "/Users/user/.courier_runtime/scripts/mac_worker/daemon.py", line 65, in run_native
+    action = extract_intent(instruction)
+NameError: name 'extract_intent' is not defined
+
+Processing task task_continuity
+Running NATIVE task task_continuity

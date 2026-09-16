@@ -15,7 +15,18 @@ for d in [STATE_DIR, LOGS_DIR]:
 
 def write_log(msg):
     print(msg)
-    with open(LOGS_DIR / "revenue_worker.log", "a") as f:
+    log_file = LOGS_DIR / "revenue_worker.log"
+    # S04: Bounded logs
+    if log_file.exists() and log_file.stat().st_size > 5 * 1024 * 1024:
+        try:
+            with open(log_file, "r") as f:
+                content = f.read()
+            with open(log_file, "w") as f:
+                f.write(content[-2 * 1024 * 1024:]) # Keep last 2MB
+        except Exception:
+            pass
+    with open(log_file, "a") as f:
+        import time
         f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {msg}\n")
 
 def get_config():
@@ -71,13 +82,37 @@ def http_post(config, endpoint, data=None):
         write_log(f"Request failed: {e}")
         return None
 
+
+import fcntl
+def acquire_single_instance_lock():
+    lock_file = STATE_DIR / "revenue_daemon.lock"
+    lock_fd = open(lock_file, "w")
+    try:
+        fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        return lock_fd
+    except BlockingIOError:
+        print("Another instance of revenue worker is already running. Exiting.")
+        sys.exit(0)
+
 def main():
+    _lock_fd = acquire_single_instance_lock()
+
     config = get_config()
     worker_id = config["WORKER_ID"]
     write_log(f"Revenue Worker {worker_id} started. Target: {config['COURIER_SERVER']}")
     
+    error_backoff = 2
     while True:
         try:
+
+            try:
+                paths = [p for p in STATE_DIR.iterdir() if p.is_dir() and not p.name.startswith(".")]
+                paths.sort(key=lambda x: x.stat().st_mtime, reverse=True)
+                for p in paths[5:]:
+                    shutil.rmtree(p)
+            except Exception:
+                pass
+
             # Register / Heartbeat
             http_post(config, "/workers/register", {
                 "worker_id": worker_id,
@@ -145,9 +180,20 @@ def main():
                         "artifacts": [{"path": "revenue_artifacts.zip", "sha256": artifact_sha}]
                     }
                     
+
                     write_log("Posting result...")
-                    http_post(config, "/tasks/result", res_payload)
-                    write_log(f"Task {task_id} completed.")
+                    import random
+                    post_backoff = 2
+                    while True:
+                        res, err = http_post(config, "/tasks/result", res_payload)
+                        if err:
+                            write_log(f"Result post failed: {err}. Retrying in {post_backoff}s...")
+                            time.sleep(post_backoff + random.uniform(0, 2))
+                            post_backoff = min(60, post_backoff * 2)
+                        else:
+                            write_log(f"Task {task_id} completed and posted successfully.")
+                            break
+
                     
                 except subprocess.CalledProcessError as e:
                     write_log(f"Task execution failed: {e.output.decode('utf-8', errors='ignore')}")
@@ -155,8 +201,14 @@ def main():
                     
         except Exception as e:
             write_log(f"Error in main loop: {traceback.format_exc()}")
+            import random
+            time.sleep(error_backoff + random.uniform(0, 2))
+            error_backoff = min(60, error_backoff * 2)
+            continue
             
-        time.sleep(config["POLL_INTERVAL_SECONDS"])
+        import random
+        time.sleep(config["POLL_INTERVAL_SECONDS"] + random.uniform(0, 1))
+        error_backoff = 2
 
 if __name__ == "__main__":
     main()

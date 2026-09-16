@@ -1,0 +1,24 @@
+{
+  "artifacts": [
+    "courier_canary_REV-AD549EA4.txt"
+  ],
+  "attempt_id": "REV-AD549EA4:attempt:2",
+  "attempts": 2,
+  "capabilities": [
+    "revenue_safety_audit"
+  ],
+  "customer_reference": "cust123",
+  "dependencies": [],
+  "dispatch_id": "dispatch-486eec21f5754953b572da26b4e41ecd",
+  "goal_id": "goal-7244c13d",
+  "result_id": null,
+  "run_id": null,
+  "status": "DISPATCHED",
+  "target_capability": "linux",
+  "target_owner": "P01-Customer",
+  "target_repo": "testrepo",
+  "target_sha": "12345",
+  "task_id": "REV-AD549EA4",
+  "type": "revenue_safety_audit",
+  "worker_id": "REVENUE-MAC-DBFA22"
+}

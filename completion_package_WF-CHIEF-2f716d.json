@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0",
+  "goal_id": "goal-9b93d02a",
+  "goal_text": "Clean room test A->B",
+  "task_id": "WF-CHIEF-2f716d-STEP-3-SYNTHESIZE",
+  "attempt_id": "WF-CHIEF-2f716d-STEP-3-SYNTHESIZE:attempt:1",
+  "worker_id": "MAC-01",
+  "target_capability": "mac",
+  "status": "SUCCESS",
+  "artifacts": [
+    {
+      "path": "courier_canary_WF-CHIEF-2f716d-STEP-3-SYNTHESIZE.txt",
+      "sha256": "1f513d4ecec4e91ddd48da1a59b6d96f1b76c374dc1da641980782a34f43b102"
+    }
+  ],
+  "invariants_verified": {
+    "artifact_integrity": true,
+    "single_writer_preserved": true,
+    "durable_identity_preserved": true,
+    "independent_verification_ready": true
+  },
+  "summary": "Completed synthesis and assembled completion package for Clean room test A->B."
+}

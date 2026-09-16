@@ -1,0 +1,263 @@
+/Users/user/.courier_runtime/deploy/run-supervisor.sh: line 6: venv/bin/activate: No such file or directory
+/Users/user/.courier_runtime/deploy/run-supervisor.sh: line 6: venv/bin/activate: No such file or directory
+/Users/user/.courier_runtime/deploy/run-supervisor.sh: line 6: venv/bin/activate: No such file or directory
+/Users/user/.courier_runtime/deploy/run-supervisor.sh: line 23: gunicorn: command not found
+/Users/user/.courier_runtime/deploy/run-supervisor.sh: line 23: gunicorn: command not found
+[2026-09-16 11:43:43 +0200] [19281] [INFO] Starting gunicorn 23.0.0
+[2026-09-16 11:43:43 +0200] [19281] [INFO] Listening at: http://0.0.0.0:8080 (19281)
+[2026-09-16 11:43:43 +0200] [19281] [INFO] Using worker: gthread
+[2026-09-16 11:43:43 +0200] [19283] [INFO] Booting worker with pid: 19283
+[2026-09-16 11:51:19 +0200] [19283] [INFO] Worker exiting (pid: 19283)
+[2026-09-16 11:51:19 +0200] [19281] [INFO] Handling signal: term
+[2026-09-16 11:51:19 +0200] [19281] [INFO] Shutting down: Master
+[2026-09-16 11:51:19 +0200] [20264] [INFO] Starting gunicorn 23.0.0
+[2026-09-16 11:51:19 +0200] [20264] [INFO] Listening at: http://0.0.0.0:8080 (20264)
+[2026-09-16 11:51:19 +0200] [20264] [INFO] Using worker: gthread
+[2026-09-16 11:51:19 +0200] [20265] [INFO] Booting worker with pid: 20265
+[2026-09-16 12:00:33 +0200] [20264] [INFO] Handling signal: term
+[2026-09-16 12:00:33 +0200] [20265] [INFO] Worker exiting (pid: 20265)
+[2026-09-16 12:00:33 +0200] [20264] [INFO] Shutting down: Master
+[2026-09-16 12:00:33 +0200] [20924] [INFO] Starting gunicorn 23.0.0
+[2026-09-16 12:00:33 +0200] [20924] [INFO] Listening at: http://0.0.0.0:8080 (20924)
+[2026-09-16 12:00:33 +0200] [20924] [INFO] Using worker: gthread
+[2026-09-16 12:00:33 +0200] [20925] [INFO] Booting worker with pid: 20925
+[2026-09-16 12:00:41 +0200] [20924] [INFO] Handling signal: term
+[2026-09-16 12:00:42 +0200] [20938] [INFO] Starting gunicorn 23.0.0
+[2026-09-16 12:00:42 +0200] [20938] [ERROR] Connection in use: ('0.0.0.0', 8080)
+[2026-09-16 12:00:42 +0200] [20938] [ERROR] connection to ('0.0.0.0', 8080) failed: [Errno 48] Address already in use
+[2026-09-16 12:00:42 +0200] [20925] [INFO] Worker exiting (pid: 20925)
+[2026-09-16 12:00:42 +0200] [20924] [INFO] Shutting down: Master
+[2026-09-16 12:00:43 +0200] [20938] [INFO] Listening at: http://0.0.0.0:8080 (20938)
+[2026-09-16 12:00:43 +0200] [20938] [INFO] Using worker: gthread
+[2026-09-16 12:00:43 +0200] [20940] [INFO] Booting worker with pid: 20940
+[2026-09-16 12:00:51 +0200] [20938] [INFO] Handling signal: term
+[2026-09-16 12:00:51 +0200] [20940] [INFO] Worker exiting (pid: 20940)
+[2026-09-16 12:00:51 +0200] [20938] [INFO] Shutting down: Master
+[2026-09-16 12:00:53 +0200] [20959] [INFO] Starting gunicorn 23.0.0
+[2026-09-16 12:00:53 +0200] [20959] [INFO] Listening at: http://0.0.0.0:8080 (20959)
+[2026-09-16 12:00:53 +0200] [20959] [INFO] Using worker: gthread
+[2026-09-16 12:00:53 +0200] [20960] [INFO] Booting worker with pid: 20960
+[2026-09-16 12:01:22 +0200] [20959] [INFO] Handling signal: term
+[2026-09-16 12:01:22 +0200] [20998] [INFO] Starting gunicorn 23.0.0
+[2026-09-16 12:01:22 +0200] [20998] [ERROR] Connection in use: ('0.0.0.0', 8080)
+[2026-09-16 12:01:22 +0200] [20998] [ERROR] connection to ('0.0.0.0', 8080) failed: [Errno 48] Address already in use
+[2026-09-16 12:01:22 +0200] [20960] [INFO] Worker exiting (pid: 20960)
+[2026-09-16 12:01:22 +0200] [20959] [INFO] Shutting down: Master
+[2026-09-16 12:01:23 +0200] [20998] [INFO] Listening at: http://0.0.0.0:8080 (20998)
+[2026-09-16 12:01:23 +0200] [20998] [INFO] Using worker: gthread
+[2026-09-16 12:01:23 +0200] [21002] [INFO] Booting worker with pid: 21002
+[2026-09-16 12:02:12 +0200] [20998] [INFO] Handling signal: term
+[2026-09-16 12:02:12 +0200] [21063] [INFO] Starting gunicorn 23.0.0
+[2026-09-16 12:02:12 +0200] [21063] [ERROR] Connection in use: ('0.0.0.0', 8080)
+[2026-09-16 12:02:12 +0200] [21063] [ERROR] connection to ('0.0.0.0', 8080) failed: [Errno 48] Address already in use
+[2026-09-16 12:02:12 +0200] [21002] [INFO] Worker exiting (pid: 21002)
+[2026-09-16 12:02:13 +0200] [20998] [INFO] Shutting down: Master
+[2026-09-16 12:02:14 +0200] [21063] [INFO] Listening at: http://0.0.0.0:8080 (21063)
+[2026-09-16 12:02:14 +0200] [21063] [INFO] Using worker: gthread
+[2026-09-16 12:02:14 +0200] [21067] [INFO] Booting worker with pid: 21067
+[2026-09-16 12:15:09 +0200] [21063] [INFO] Handling signal: term
+[2026-09-16 12:15:09 +0200] [21067] [INFO] Worker exiting (pid: 21067)
+[2026-09-16 12:15:09 +0200] [21063] [INFO] Shutting down: Master
+[2026-09-16 12:15:10 +0200] [21956] [INFO] Starting gunicorn 23.0.0
+[2026-09-16 12:15:10 +0200] [21956] [INFO] Listening at: http://0.0.0.0:8080 (21956)
+[2026-09-16 12:15:10 +0200] [21956] [INFO] Using worker: gthread
+[2026-09-16 12:15:10 +0200] [21957] [INFO] Booting worker with pid: 21957
+[2026-09-16 12:17:08 +0200] [21957] [INFO] Worker exiting (pid: 21957)
+[2026-09-16 12:17:08 +0200] [21956] [INFO] Handling signal: term
+[2026-09-16 12:17:08 +0200] [21956] [ERROR] Worker (pid:21957) was sent SIGTERM!
+[2026-09-16 12:17:08 +0200] [21956] [INFO] Shutting down: Master
+[2026-09-16 12:17:09 +0200] [22146] [INFO] Starting gunicorn 23.0.0
+[2026-09-16 12:17:09 +0200] [22146] [INFO] Listening at: http://0.0.0.0:8080 (22146)
+[2026-09-16 12:17:09 +0200] [22146] [INFO] Using worker: gthread
+[2026-09-16 12:17:09 +0200] [22148] [INFO] Booting worker with pid: 22148
+[2026-09-16 12:18:59 +0200] [22146] [INFO] Handling signal: term
+[2026-09-16 12:19:00 +0200] [22148] [INFO] Worker exiting (pid: 22148)
+[2026-09-16 12:19:00 +0200] [22335] [INFO] Starting gunicorn 23.0.0
+[2026-09-16 12:19:00 +0200] [22146] [INFO] Shutting down: Master
+[2026-09-16 12:19:00 +0200] [22335] [INFO] Listening at: http://0.0.0.0:8080 (22335)
+[2026-09-16 12:19:00 +0200] [22335] [INFO] Using worker: gthread
+[2026-09-16 12:19:00 +0200] [22336] [INFO] Booting worker with pid: 22336
+[2026-09-16 12:21:00,644] ERROR in app: Exception on /tasks/reclaim_stale [POST]
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/Users/user/.courier_runtime/server/app.py", line 27, in wrapper
+    return f(*args, **kwargs)
+  File "/Users/user/.courier_runtime/server/app.py", line 51, in wrapper
+    return f(*args, **kwargs)
+  File "/Users/user/.courier_runtime/server/app.py", line 431, in reclaim_stale
+    task["recovery_reason"] = step["recovery_reason"]
+KeyError: 'recovery_reason'
+[2026-09-16 12:22:00,723] ERROR in app: Exception on /tasks/reclaim_stale [POST]
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/Users/user/.courier_runtime/server/app.py", line 27, in wrapper
+    return f(*args, **kwargs)
+  File "/Users/user/.courier_runtime/server/app.py", line 51, in wrapper
+    return f(*args, **kwargs)
+  File "/Users/user/.courier_runtime/server/app.py", line 431, in reclaim_stale
+    task["recovery_reason"] = step["recovery_reason"]
+KeyError: 'recovery_reason'
+[2026-09-16 12:23:00,805] ERROR in app: Exception on /tasks/reclaim_stale [POST]
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/Users/user/.courier_runtime/server/app.py", line 27, in wrapper
+    return f(*args, **kwargs)
+  File "/Users/user/.courier_runtime/server/app.py", line 51, in wrapper
+    return f(*args, **kwargs)
+  File "/Users/user/.courier_runtime/server/app.py", line 431, in reclaim_stale
+    task["recovery_reason"] = step["recovery_reason"]
+KeyError: 'recovery_reason'
+[2026-09-16 12:24:00,873] ERROR in app: Exception on /tasks/reclaim_stale [POST]
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/Users/user/.courier_runtime/server/app.py", line 27, in wrapper
+    return f(*args, **kwargs)
+  File "/Users/user/.courier_runtime/server/app.py", line 51, in wrapper
+    return f(*args, **kwargs)
+  File "/Users/user/.courier_runtime/server/app.py", line 431, in reclaim_stale
+    task["recovery_reason"] = step["recovery_reason"]
+KeyError: 'recovery_reason'
+[2026-09-16 12:25:00,955] ERROR in app: Exception on /tasks/reclaim_stale [POST]
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/Users/user/.courier_runtime/server/app.py", line 27, in wrapper
+    return f(*args, **kwargs)
+  File "/Users/user/.courier_runtime/server/app.py", line 51, in wrapper
+    return f(*args, **kwargs)
+  File "/Users/user/.courier_runtime/server/app.py", line 431, in reclaim_stale
+    task["recovery_reason"] = step["recovery_reason"]
+KeyError: 'recovery_reason'
+[2026-09-16 12:26:01,037] ERROR in app: Exception on /tasks/reclaim_stale [POST]
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/Users/user/.courier_runtime/server/app.py", line 27, in wrapper
+    return f(*args, **kwargs)
+  File "/Users/user/.courier_runtime/server/app.py", line 51, in wrapper
+    return f(*args, **kwargs)
+  File "/Users/user/.courier_runtime/server/app.py", line 431, in reclaim_stale
+    task["recovery_reason"] = step["recovery_reason"]
+KeyError: 'recovery_reason'
+[2026-09-16 12:26:56 +0200] [22335] [INFO] Handling signal: term
+[2026-09-16 12:26:57 +0200] [22336] [INFO] Worker exiting (pid: 22336)
+[2026-09-16 12:26:57 +0200] [22335] [INFO] Shutting down: Master
+[2026-09-16 12:26:57 +0200] [22822] [INFO] Starting gunicorn 23.0.0
+[2026-09-16 12:26:57 +0200] [22822] [INFO] Listening at: http://0.0.0.0:8080 (22822)
+[2026-09-16 12:26:57 +0200] [22822] [INFO] Using worker: gthread
+[2026-09-16 12:26:57 +0200] [22823] [INFO] Booting worker with pid: 22823
+[2026-09-16 12:26:57,633] ERROR in app: Exception on /tasks/reclaim_stale [POST]
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/Users/user/.courier_runtime/server/app.py", line 27, in wrapper
+    return f(*args, **kwargs)
+  File "/Users/user/.courier_runtime/server/app.py", line 51, in wrapper
+    return f(*args, **kwargs)
+  File "/Users/user/.courier_runtime/server/app.py", line 431, in reclaim_stale
+    task["recovery_reason"] = step["recovery_reason"]
+KeyError: 'recovery_reason'
+[2026-09-16 12:27:58,516] ERROR in app: Exception on /tasks/reclaim_stale [POST]
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/Users/user/.courier_runtime/server/app.py", line 27, in wrapper
+    return f(*args, **kwargs)
+  File "/Users/user/.courier_runtime/server/app.py", line 51, in wrapper
+    return f(*args, **kwargs)
+  File "/Users/user/.courier_runtime/server/app.py", line 431, in reclaim_stale
+    task["recovery_reason"] = step["recovery_reason"]
+KeyError: 'recovery_reason'
+[2026-09-16 12:28:59,034] ERROR in app: Exception on /tasks/reclaim_stale [POST]
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/Users/user/.courier_runtime/server/app.py", line 27, in wrapper
+    return f(*args, **kwargs)
+  File "/Users/user/.courier_runtime/server/app.py", line 51, in wrapper
+    return f(*args, **kwargs)
+  File "/Users/user/.courier_runtime/server/app.py", line 431, in reclaim_stale
+    task["recovery_reason"] = step["recovery_reason"]
+KeyError: 'recovery_reason'
+[2026-09-16 12:29:59,591] ERROR in app: Exception on /tasks/reclaim_stale [POST]
+Traceback (most recent call last):
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/user/.courier_runtime/venv/lib/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/Users/user/.courier_runtime/server/app.py", line 27, in wrapper
+    return f(*args, **kwargs)
+  File "/Users/user/.courier_runtime/server/app.py", line 51, in wrapper
+    return f(*args, **kwargs)
+  File "/Users/user/.courier_runtime/server/app.py", line 431, in reclaim_stale
+    task["recovery_reason"] = step["recovery_reason"]
+KeyError: 'recovery_reason'
+[2026-09-16 12:30:23 +0200] [22822] [INFO] Handling signal: term
+[2026-09-16 12:30:23 +0200] [22823] [INFO] Worker exiting (pid: 22823)
+[2026-09-16 12:30:23 +0200] [22822] [INFO] Shutting down: Master
+[2026-09-16 12:30:24 +0200] [23400] [INFO] Starting gunicorn 23.0.0
+[2026-09-16 12:30:24 +0200] [23400] [INFO] Listening at: http://0.0.0.0:8080 (23400)
+[2026-09-16 12:30:24 +0200] [23400] [INFO] Using worker: gthread
+[2026-09-16 12:30:24 +0200] [23402] [INFO] Booting worker with pid: 23402

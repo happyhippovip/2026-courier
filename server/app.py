@@ -356,7 +356,21 @@ def task_result():
             if durable_result.get("status") == "SUCCESS":
                 task["status"] = "RESULT_RECEIVED" # wait for independent /verify
             else:
-                if task.get("attempts", 1) < 3:
+                is_crash_loop = data.get("raw_result", {}).get("reason") == "CRASH_LOOP"
+                print("is_crash_loop:", is_crash_loop, "raw_result:", data.get("raw_result"))
+                
+                if is_crash_loop:
+                    # Keep goal alive, route portable work to github
+                    task["status"] = "QUEUED"
+                    task["worker_id"] = None
+                    if "github" in state.get("workers", {}).get("GITHUB-DISPATCHER", {}).get("capabilities", []):
+                        task["target_agent"] = "github"
+                        task["target_capability"] = "github"
+                    elif "linux" in task.get("capabilities", []):
+                        task["target_agent"] = "linux"
+                        task["target_capability"] = "linux"
+                    # Also mark the crashing worker as unavailable for a bit if we wanted, but routing away is enough
+                elif task.get("attempts", 1) < 3:
                     task["status"] = "QUEUED" # Retry
                     task["worker_id"] = None
                 else:

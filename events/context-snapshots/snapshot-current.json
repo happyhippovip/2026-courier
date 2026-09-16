@@ -1,10 +1,10 @@
 {
   "schema_version": "2.0",
-  "context_version": 59,
-  "generated_at": "2026-09-15T20:35:15.668223+00:00",
+  "context_version": 60,
+  "generated_at": "2026-09-16T09:27:32.412543+00:00",
   "repositories": {
-    "courier_head": "a7e1b6e6707de83c7c81fbd209494520f4174a7b",
-    "memory_head": "3098d0c09c20de0c002f92af73ede44c021d8876",
+    "courier_head": "6ebc123f49b3f09cd704e0431a5d96f0d54ef93d",
+    "memory_head": "fcaa6cca8cffe6863d06c2ea7dff49de24925652",
     "godot_head": "NOT_CONNECTED"
   },
   "workflow_state": {
@@ -18,7 +18,7 @@
         "task": "Compiling Project Context Snapshot",
         "progress": 0.1,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-09-15T20:35:15.668593+00:00"
+        "updated_at": "2026-09-16T09:27:32.413940+00:00"
       }
     },
     "total_decisions": 0,
@@ -117,9 +117,10 @@
     "truth_invariants": "IDEA != IMPLEMENTED | USER_REPORTED != VERIFIED | DETERMINISTIC != REAL_EXTERNAL"
   },
   "changed_since_previous_snapshot": [
-    "courier_head"
+    "courier_head",
+    "memory_head"
   ],
-  "previous_snapshot_version": 58,
-  "previous_snapshot_hash": "a1fb83704fd6da06d69ca6eaed70b9aa3e83e8a55e28d7b438ac352a53a22896",
-  "snapshot_hash": "4ced48b4d34481c6918462e91714a6da512f32ed5ba1854f423692c05d7a2d25"
+  "previous_snapshot_version": 59,
+  "previous_snapshot_hash": "4ced48b4d34481c6918462e91714a6da512f32ed5ba1854f423692c05d7a2d25",
+  "snapshot_hash": "7007c2b51db9e0752f13b9595f1a9735bd2fd09f383561c7aab02994a38a84ea"
 }

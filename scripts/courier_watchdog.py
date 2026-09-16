@@ -2,6 +2,7 @@
 import os
 import sys
 import time
+import random
 import requests
 
 API_URL = os.environ.get("COURIER_SERVER", "http://127.0.0.1:8080").rstrip("/")
@@ -18,6 +19,7 @@ def run_loop():
     if not API_KEY:
         raise SystemExit("COURIER_API_KEY is required")
     log(f"Starting Courier Watchdog pointing to {API_URL}")
+    error_backoff = 2
     while True:
         try:
             # We need to know which tasks are stuck.
@@ -35,8 +37,14 @@ def run_loop():
                     log(f"Quarantined {quarantined} tasks with ambiguous post-crash effects.")
         except Exception as e:
             log(f"Error calling watchdog endpoint: {e}")
+            import random
+            time.sleep(error_backoff + random.uniform(0, 2))
+            error_backoff = min(60, error_backoff * 2)
+            continue
             
-        time.sleep(60)
+        import random
+        time.sleep(60 + random.uniform(0, 1))
+        error_backoff = 2
 
 if __name__ == "__main__":
     run_loop()

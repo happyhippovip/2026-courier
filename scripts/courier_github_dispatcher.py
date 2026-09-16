@@ -2,6 +2,7 @@
 import os
 import sys
 import time
+import random
 import requests
 import json
 import subprocess
@@ -14,7 +15,21 @@ WORKER_ID = os.environ.get("GITHUB_WORKER_ID", "GITHUB-DISPATCHER")
 def log(msg):
     print(f"[GitHub Dispatcher] {msg}", flush=True)
 
+
+import fcntl
+def acquire_single_instance_lock():
+    lock_file = "/tmp/courier_github_dispatcher.lock"
+    lock_fd = open(lock_file, "w")
+    try:
+        fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        return lock_fd
+    except BlockingIOError:
+        print("Another instance of github dispatcher is already running. Exiting.")
+        sys.exit(0)
+
 def run_loop():
+    _lock_fd = acquire_single_instance_lock()
+
     if not API_KEY:
         raise SystemExit("COURIER_API_KEY is required")
     log(f"Starting GitHub Dispatcher ({WORKER_ID}) pointing to {API_URL}")
@@ -25,6 +40,7 @@ def run_loop():
     except Exception as e:
         log(f"Failed to register: {e}")
 
+    error_backoff = 2
     while True:
         try:
             # Heartbeat
@@ -47,8 +63,14 @@ def run_loop():
                     subprocess.Popen([python_bin, "scripts/github_worker_adapter.py", tmp_file])
         except Exception as e:
             log(f"Error polling for tasks: {e}")
+            import random
+            time.sleep(error_backoff + random.uniform(0, 2))
+            error_backoff = min(60, error_backoff * 2)
+            continue
             
-        time.sleep(5)
+        import random
+        time.sleep(5 + random.uniform(0, 1))
+        error_backoff = 2
 
 if __name__ == "__main__":
     run_loop()

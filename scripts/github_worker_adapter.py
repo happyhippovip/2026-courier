@@ -77,25 +77,27 @@ def download_exact_result(run_id: str, dispatch_id: str, destination: Path) -> d
     return result
 
 
+
 def post_result(result: dict[str, Any]) -> None:
     api_key = os.environ.get("COURIER_API_KEY")
     if not api_key:
         raise RuntimeError("COURIER_API_KEY is required to post a DurableResult")
     url = os.environ.get("COURIER_SERVER", "http://127.0.0.1:8080").rstrip("/") + "/tasks/result"
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
-    for attempt in range(3):
+    import random
+    post_backoff = 2
+    while True:
         try:
             response = requests.post(url, json=result, headers=headers, timeout=15)
-        except requests.RequestException as exc:
-            if attempt == 2:
-                raise RuntimeError(f"result POST failed: {exc}") from exc
-        else:
             if response.status_code < 400:
                 print(f"RESULT_POSTED_TO_COURIER=YES status={response.status_code}", flush=True)
                 return
-            if response.status_code not in TRANSIENT_HTTP_STATUSES or attempt == 2:
+            if response.status_code not in TRANSIENT_HTTP_STATUSES:
                 raise RuntimeError(f"result POST failed: {response.status_code} {response.text}")
-        time.sleep(2 ** attempt)
+        except requests.RequestException as exc:
+            print(f"result POST failed: {exc}. Retrying in {post_backoff}s...")
+        time.sleep(post_backoff + random.uniform(0, 2))
+        post_backoff = min(60, post_backoff * 2)
 
 
 def run(task_file_name: str) -> int:
@@ -105,6 +107,23 @@ def run(task_file_name: str) -> int:
         validate_task(task)
     except ValueError as exc:
         print(f"FAILED_TERMINAL={exc}", file=sys.stderr)
+        # S08/S05 Fix: Post terminal failure back so server isn't stuck
+        result = {
+            "worker_id": task.get("worker_id", "GITHUB-HOSTED"),
+            "goal_id": task.get("goal_id", ""),
+            "task_id": task.get("task_id", ""),
+            "attempt_id": task.get("attempt_id", ""),
+            "dispatch_id": task.get("dispatch_id", ""),
+            "run_id": "failed-early",
+            "result_id": "failed-early",
+            "status": "FAILED",
+            "artifacts": [],
+            "raw_result": {"status": "FAILED", "reason": "VALIDATION_ERROR", "stderr": str(exc)}
+        }
+        try:
+            post_result(result)
+        except Exception:
+            pass
         return 2
 
     prior = {}
