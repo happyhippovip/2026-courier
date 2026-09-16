@@ -65,7 +65,7 @@ def run(task_file):
 
     print(f"[GitHub Transport] Polling for exact artifact result-{dispatch_id}...")
     
-    timeout = 300
+    timeout = 7200 # Max 2 hours
     start = time.time()
     
     while time.time() - start < timeout:
@@ -92,6 +92,7 @@ def run(task_file):
                     
                     if result_json_path.exists():
                         result_payload = json.loads(result_json_path.read_text(encoding="utf-8"))
+                        result_payload["worker_id"] = task.get("worker_id", "GITHUB-DISPATCHER")
                         http_post_result(result_payload)
                         
                         # Copy canary files to root so the verifier can see them locally
@@ -105,8 +106,15 @@ def run(task_file):
                         print("[GitHub Transport] Missing result json in artifact!")
                         shutil.rmtree(tmp_dir)
         
-    print(f"[GitHub Transport] Timeout waiting for task {task_id} (dispatch_id: {dispatch_id}).")
-    res = {"status": "FAILED", "reason": "TIMEOUT", "task_id": task_id, "dispatch_id": dispatch_id}
+    # Check if there are any in_progress runs
+    rc, out, err = run_cmd(["gh", "run", "list", "--workflow=courier_worker.yml", "--json", "status"])
+    runs = json.loads(out) if rc == 0 else []
+    if not any(r.get("status") in ["in_progress", "queued"] for r in runs):
+        print(f"[GitHub Transport] All runs completed, but no artifact found for task {task_id}.")
+        res = {"status": "FAILED", "reason": "EXECUTION_TERMINATED_NO_RESULT", "task_id": task_id, "dispatch_id": dispatch_id}
+    else:
+        print(f"[GitHub Transport] Timeout waiting for task {task_id} (dispatch_id: {dispatch_id}).")
+        res = {"status": "FAILED", "reason": "TIMEOUT", "task_id": task_id, "dispatch_id": dispatch_id}
     http_post_result(res)
 
 if __name__ == "__main__":

@@ -16,7 +16,7 @@ if ! pgrep -f "gunicorn.*server.app:app" > /dev/null; then
     pkill -9 -f gunicorn 2>/dev/null || true
     
     # Neu starten im Hintergrund, Ausgaben ins Nirvana
-    nohup ./deploy/run-supervisor.sh > /dev/null 2>&1 &
+    nohup ./deploy/run-supervisor.sh >> logs/server_launchd.error.log 2>&1 &
 else
     # Nur ein kurzes OK loggen
     echo "$(date): Health Check OK - Server laeuft." >> logs/health_watchdog.log

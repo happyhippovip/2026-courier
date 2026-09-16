@@ -82,7 +82,7 @@ def main():
             http_post(config, "/workers/register", {
                 "worker_id": worker_id,
                 "capabilities": ["revenue_safety_audit", "linux"],
-                "cost_per_hour": 1.0,
+                "cost_per_hour": 0.0, "cost_class": "free",
                 "status": "idle"
             })
             
@@ -92,8 +92,8 @@ def main():
                 "capabilities": ["revenue_safety_audit"]
             })
             
-            if claim_resp and "task_id" in claim_resp:
-                task = claim_resp
+            if claim_resp and claim_resp.get("task"):
+                task = claim_resp["task"]
                 task_id = task["task_id"]
                 attempt_id = task.get("attempt_id", task_id)
                 write_log(f"Claimed task {task_id}")
@@ -136,7 +136,13 @@ def main():
                         "result_data": result_data,
                         "artifact_name": "revenue_artifacts.zip",
                         "artifact_sha256": artifact_sha,
-                        "artifact_content_base64": artifact_b64
+                        "artifact_content_base64": artifact_b64,
+                        "dispatch_id": task.get("dispatch_id", "none"),
+                        "goal_id": task.get("goal_id", "none"),
+                        "result_id": f"res-{uuid.uuid4().hex[:8]}",
+                        "run_id": f"run-{uuid.uuid4().hex[:8]}",
+                        "status": "SUCCESS",
+                        "artifacts": [{"path": "revenue_artifacts.zip", "sha256": artifact_sha}]
                     }
                     
                     write_log("Posting result...")
