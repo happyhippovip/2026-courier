@@ -31,6 +31,7 @@ jobs:
             README.md
             scripts
             server
+            tests
       - name: Execute allow-listed TaskPacket operation
         env:
           TASK_PAYLOAD_BASE64: ${{ inputs.task_payload_base64 }}
