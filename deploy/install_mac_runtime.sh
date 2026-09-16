@@ -3,17 +3,38 @@ set -e
 
 echo "1. Creating runtime directory out of protected Downloads folder..."
 RUNTIME_DIR="$HOME/.courier_runtime"
-rm -rf "$RUNTIME_DIR"
 mkdir -p "$RUNTIME_DIR"
+mkdir -p "$RUNTIME_DIR/scripts/mac_worker/state"
+mkdir -p "$RUNTIME_DIR/scripts/mac_worker/logs"
+
+# Backup state and logs before copying
+if [ -d "$RUNTIME_DIR/scripts/mac_worker/state" ]; then
+    cp -r "$RUNTIME_DIR/scripts/mac_worker/state" "/tmp/courier_state_backup" 2>/dev/null || true
+fi
+if [ -d "$RUNTIME_DIR/scripts/mac_worker/logs" ]; then
+    cp -r "$RUNTIME_DIR/scripts/mac_worker/logs" "/tmp/courier_logs_backup" 2>/dev/null || true
+fi
 
 echo "2. Copying files to runtime..."
-cp -r ../2026-courier/* "$RUNTIME_DIR/"
+# Use rsync to update files without destroying untracked files like state/logs if possible, but cp -r will overwrite
+cp -R ../2026-courier/* "$RUNTIME_DIR/"
+
+# Restore state and logs
+if [ -d "/tmp/courier_state_backup" ]; then
+    cp -r "/tmp/courier_state_backup/"* "$RUNTIME_DIR/scripts/mac_worker/state/" 2>/dev/null || true
+    rm -rf "/tmp/courier_state_backup"
+fi
+if [ -d "/tmp/courier_logs_backup" ]; then
+    cp -r "/tmp/courier_logs_backup/"* "$RUNTIME_DIR/scripts/mac_worker/logs/" 2>/dev/null || true
+    rm -rf "/tmp/courier_logs_backup"
+fi
 
 cd "$RUNTIME_DIR"
 
 echo "3. Rebuilding virtual environment in runtime..."
-rm -rf venv
-python3 -m venv venv
+if [ ! -d "venv" ]; then
+    python3 -m venv venv
+fi
 source venv/bin/activate
 pip install flask gunicorn requests keyring >/dev/null 2>&1
 
