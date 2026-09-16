@@ -150,8 +150,43 @@ def run_agy(task, config):
 
 
 def run_copilot(task, config):
-    write_log(f"Running AI task {task['task_id']} via Copilot CLI (stub)")
-    return {"status": "FAILED", "reason": "UNSUPPORTED_ADAPTER", "execution_mode": "COPILOT"}
+    write_log(f"Running AI task {task['task_id']} via Copilot CLI")
+    instruction = task.get('instruction', task.get('description', ''))
+    
+    prompt = f"Task ID: {task['task_id']}
+Instruction: {instruction}"
+    
+    wrapper = os.path.join(os.path.dirname(__file__), "limit_wrapper.sh")
+    
+    import shutil
+    gh_bin = shutil.which("gh")
+    if not gh_bin:
+        return {"status": "FAILED", "reason": "GH_NOT_FOUND", "execution_mode": "COPILOT"}
+        
+    cmd = [wrapper, gh_bin, "copilot", "suggest", "-t", "shell", prompt]
+    
+    try:
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        try:
+            stdout, stderr = process.communicate(timeout=300)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            stdout, stderr = process.communicate()
+            return {"status": "FAILED", "stderr": "Execution timed out", "execution_mode": "COPILOT"}
+        
+        # We can't really execute gh copilot suggest automatically if it requires interactive confirmation,
+        # but if we just want to return the output:
+        res_json = {
+            "status": "SUCCESS" if process.returncode == 0 else "FAILED",
+            "stdout": stdout.strip(),
+            "stderr": stderr.strip(),
+            "execution_mode": "COPILOT"
+        }
+            
+        return res_json
+        
+    except Exception as e:
+        return {"status": "FAILED", "stderr": str(e), "execution_mode": "COPILOT"}
 
 def loop():
     write_log("Starting Mac Worker HTTP Daemon...")
