@@ -208,7 +208,7 @@ def loop():
                 reg_payload = {
                     "worker_id": config["WORKER_ID"],
                     "platform": "windows",
-                    "capabilities": ["windows", "antigravity", "revenue_safety_audit"]
+                    "capabilities": ["windows"]
                 }
                 res, err, status_code = http_post(config, "/workers/register", reg_payload)
                 if status_code in [401, 403]:
