@@ -36,6 +36,9 @@ jobs:
         env:
           TASK_PAYLOAD_BASE64: ${{ inputs.task_payload_base64 }}
           DISPATCH_ID: ${{ inputs.dispatch_id }}
+          COURIER_API_KEY: "test_key"
+          COURIER_VERIFIER_API_KEY: "test_key"
+          PYTHONPATH: "."
         run: |
           cat > "$RUNNER_TEMP/courier_task.py" <<'PY'
           import hashlib
@@ -88,7 +91,7 @@ jobs:
                   if not path or path.is_absolute() or ".." in path.parts or path.parts[0] != "tests" or not Path(path).exists():
                       raise ValueError("run_tests requires an existing safe path under tests")
                   dependencies = subprocess.run(
-                      [sys.executable, "-m", "pip", "install", "--disable-pip-version-check", "--quiet", "pytest", "requests"],
+                      [sys.executable, "-m", "pip", "install", "--disable-pip-version-check", "--quiet", "pytest", "requests", "flask", "keyring"],
                       capture_output=True, text=True, check=False)
                   if dependencies.returncode:
                       raise RuntimeError((dependencies.stdout + dependencies.stderr)[-4000:])
