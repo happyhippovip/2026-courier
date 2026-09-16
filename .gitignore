@@ -97,3 +97,6 @@ scripts/mac_worker/inbox/
 scripts/mac_worker/outbox/
 scripts/windows_worker/logs/
 scripts/windows_worker/state/
+
+central_state.json
+server/state/

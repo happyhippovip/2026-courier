@@ -725,36 +725,40 @@ def verify_task_result():
             if all_done:
                 if goal.get("terminal") is False:
                     # Auto-Replenish!
-                    try:
-                        _, planned_steps = ChiefCommander().formulate_workflow_plan(
-                            goal["goal_text"], idea_type="GOAL"
-                        )
-                        if planned_steps:
-                            for step in planned_steps:
-                                target_agent = str(step.get("target_agent", "linux")).lower()
-                                if "github" in target_agent:
-                                    target_agent = "github"
-                                elif "windows" in target_agent or "codex" in target_agent:
-                                    target_agent = "windows"
-                                elif "mac" in target_agent or "antigravity" in target_agent or "gemini" in target_agent:
-                                    target_agent = "mac"
-                                else:
-                                    target_agent = "linux"
-                                new_task = {
-                                    "task_id": step.get("task_id", f"task-{uuid.uuid4().hex[:8]}"),
-                                    "goal_id": goal["goal_id"],
-                                    "instruction": step.get("instruction", "Next bounded step"),
-                                    "target_agent": target_agent,
-                                    "status": "QUEUED",
-                                    "attempts": 0,
-                                }
-                                goal["workflow_plan"].append(new_task)
-                            goal["terminal"] = True  # Prevent infinite replenish loop for this test
-                        else:
-                            goal["status"] = "DONE"
-                    except Exception as exc:
-                        goal["status"] = "BLOCKED"
-                        goal["blocker"] = f"Replenish failed: {exc}"
+                    replenish_count = goal.get("replenish_count", 0)
+                    if replenish_count >= 1:
+                        goal["status"] = "DONE"
+                    else:
+                        goal["replenish_count"] = replenish_count + 1
+                        try:
+                            _, planned_steps = ChiefCommander().formulate_workflow_plan(
+                                goal["goal_text"], idea_type="GOAL"
+                            )
+                            if planned_steps:
+                                for step in planned_steps:
+                                    target_agent = str(step.get("target_agent", "linux")).lower()
+                                    if "github" in target_agent:
+                                        target_agent = "github"
+                                    elif "windows" in target_agent or "codex" in target_agent:
+                                        target_agent = "windows"
+                                    elif "mac" in target_agent or "antigravity" in target_agent or "gemini" in target_agent:
+                                        target_agent = "mac"
+                                    else:
+                                        target_agent = "linux"
+                                    new_task = {
+                                        "task_id": step.get("task_id", f"task-{uuid.uuid4().hex[:8]}"),
+                                        "goal_id": goal["goal_id"],
+                                        "instruction": step.get("instruction", "Next bounded step"),
+                                        "target_agent": target_agent,
+                                        "status": "QUEUED",
+                                        "attempts": 0,
+                                    }
+                                    goal["workflow_plan"].append(new_task)
+                            else:
+                                goal["status"] = "DONE"
+                        except Exception as exc:
+                            goal["status"] = "BLOCKED"
+                            goal["blocker"] = f"Replenish failed: {exc}"
                 else:
                     goal["status"] = "DONE"
     else:
