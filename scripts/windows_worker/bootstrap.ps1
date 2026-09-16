@@ -18,7 +18,7 @@ $pyVer = uv run python --version
 Write-Host "Found Python (via uv): $pyVer"
 
 Write-Host "Ensuring 'keyring' module is installed for secure credential access..."
-uv pip install keyring | Out-Null
+uv pip install keyring --system | Out-Null
 
 # 2. Exact repo/start path
 Write-Host "`n[2] Verifying Paths..."
@@ -52,7 +52,7 @@ if (-not [string]::IsNullOrWhiteSpace($ApiKeyArg)) {
     $apiKey = $ApiKeyArg
 } else {
     # Check if already stored via Python keyring
-    $existing = uv run python -c "import keyring; print(keyring.get_password('courier_worker', 'courier_api_key') or '')" 2>$null
+    $existing = uv run --with keyring python -c "import keyring; print(keyring.get_password('courier_worker', 'courier_api_key') or '')" 2>$null
     if (-not [string]::IsNullOrWhiteSpace($existing)) {
         Write-Host "API Key already stored in Windows Credential Manager (via keyring)."
         $useExisting = Read-Host "Use existing key? (Y/n)"
@@ -70,7 +70,7 @@ if (-not [string]::IsNullOrWhiteSpace($ApiKeyArg)) {
 if ($apiKey -ne "__CREDENTIAL_MANAGER__" -and -not [string]::IsNullOrWhiteSpace($apiKey)) {
     # Escape quotes if necessary, passing via env is safer
     $env:TEMP_API_KEY = $apiKey
-    uv run python -c "import keyring, os; keyring.set_password('courier_worker', 'courier_api_key', os.environ['TEMP_API_KEY'])"
+    uv run --with keyring python -c "import keyring, os; keyring.set_password('courier_worker', 'courier_api_key', os.environ['TEMP_API_KEY'])"
     $env:TEMP_API_KEY = ""
     Write-Host "API Key stored in Windows Credential Manager (via keyring)." -ForegroundColor Green
 }
@@ -107,7 +107,7 @@ $taskSuccess = $?
 
 if (-not $taskSuccess -or $installResult -match "Zugriff verweigert" -or $installResult -match "Access is denied") {
     Write-Host "UAC elevation missing for Scheduled Task. Falling back to background process for current session." -ForegroundColor Yellow
-    Start-Process -FilePath "uv" -ArgumentList "run python daemon.py" -WorkingDirectory $workerDir -WindowStyle Hidden
+    Start-Process -FilePath "cmd.exe" -ArgumentList "/c start.bat" -WorkingDirectory $workerDir -WindowStyle Hidden
 } else {
     Write-Host "Starting the service..."
     Start-ScheduledTask -TaskName "CourierWindowsWorker" -ErrorAction SilentlyContinue
@@ -129,7 +129,7 @@ $success = $false
 
 while ($watch.Elapsed.TotalSeconds -lt $timeout) {
     $content = Get-Content $logFile -Tail 20 -ErrorAction SilentlyContinue
-    if ($content -match "Registered successfully") {
+    if ($content -match "Registered successfully" -or $content -match "HTTP Daemon started") {
         $success = $true
         break
     }

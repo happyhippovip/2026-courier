@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "C:\Users\lol\2026-workspace\courier\scripts\courier_verifier.py", line 5, in <module>
+    import requests
+ModuleNotFoundError: No module named 'requests'

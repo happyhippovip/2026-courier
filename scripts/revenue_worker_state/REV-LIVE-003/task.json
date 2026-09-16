@@ -1,0 +1,24 @@
+{
+  "artifacts": [
+    "live_run_artifact_3.txt"
+  ],
+  "attempt_id": "REV-LIVE-003:attempt:1",
+  "attempts": 1,
+  "capabilities": [
+    "revenue_safety_audit"
+  ],
+  "customer_reference": "REVENUE-LIVE-3",
+  "dependencies": [],
+  "dispatch_id": "dispatch-d01ff1cc63c14242aeb3b80d289ed78a",
+  "goal_id": "goal-da1d0b4e",
+  "result_id": null,
+  "run_id": null,
+  "status": "DISPATCHED",
+  "target_capability": "linux",
+  "target_owner": "happyhippovip",
+  "target_repo": "2026-courier",
+  "target_sha": "main",
+  "task_id": "REV-LIVE-003",
+  "type": "revenue_safety_audit",
+  "worker_id": "REVENUE-MAC-50A17F"
+}

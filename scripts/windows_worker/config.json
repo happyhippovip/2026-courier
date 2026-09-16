@@ -1,4 +1,4 @@
 {
-    "WORKER_ID": "WIN-WORKER-01",
-    "COURIER_SERVER": "http://127.0.0.1:8080"
+    "WORKER_ID":  "WINDOWS-TEST-WORKER",
+    "COURIER_SERVER":  "http://127.0.0.1:8080"
 }
