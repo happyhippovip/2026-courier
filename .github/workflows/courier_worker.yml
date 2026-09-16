@@ -148,7 +148,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: courier-result-${{ fromJson(inputs.task_payload).dispatch_id }}
-          path: result_*.json
+          path: |
+            result_*.json
+            courier_output_*.json
           if-no-files-found: error
       - name: Mark bounded operation failure
         if: always()
