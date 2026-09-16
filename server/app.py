@@ -219,7 +219,7 @@ def register_worker():
         if server_task and worker_task != server_task:
             task = state.get("tasks", {}).get(server_task)
             if task:
-                task["status"] = "HUMAN_REQUIRED"
+                set_task_status(task, "HUMAN_REQUIRED")
                 task["recovery_reason"] = "WORKER_RESTARTED_AND_LOST_STATE"
             for goal in state.get("goals", {}).values():
                 if goal.get("status") == "ACTIVE" and "workflow_plan" in goal:
@@ -360,7 +360,7 @@ def claim_task():
                             next_task = prepare_task(next_task)
                         except ContractError as exc:
                             return jsonify({"error": str(exc)}), 400
-                        next_task["status"] = "DISPATCHED"
+                        set_task_status(next_task, "DISPATCHED")
                         goal["workflow_plan"][idx] = next_task
                         
                         worker["current_task"] = next_task["task_id"]
@@ -398,11 +398,11 @@ def task_result():
                 durable_result = validate_durable_result(task, data)
             except ContractError as exc:
                 return jsonify({"error": str(exc)}), 400
-            task["status"] = "RESULT_RECEIVED"
+            set_task_status(task, "RESULT_RECEIVED")
             task["result"] = durable_result
             
             if durable_result.get("status") == "SUCCESS":
-                task["status"] = "RESULT_RECEIVED" # wait for independent /verify
+                set_task_status(task, "RESULT_RECEIVED")  # wait for independent /verify
                 # Update checkpoint fields on success
                 task["last_completed_step"] = task.get("task_id")
                 task["next_action"] = "VERIFY"
@@ -411,12 +411,12 @@ def task_result():
             else:
                 failure_reason = durable_result.get("stderr", "unknown")
                 if task.get("attempts", 1) < 3:
-                    task["status"] = "QUEUED" # Retry
+                    set_task_status(task, "QUEUED")  # Retry
                     task["worker_id"] = None
                     task["next_action"] = "RETRY"
                     task["blocker"] = failure_reason[:200] if failure_reason else None
                 else:
-                    task["status"] = "FAILED_TERMINAL"
+                    set_task_status(task, "FAILED_TERMINAL")
                     task["next_action"] = None
                     task["blocker"] = f"MAX_ATTEMPTS_REACHED: {failure_reason[:200]}" if failure_reason else "MAX_ATTEMPTS_REACHED"
                 
@@ -469,7 +469,7 @@ def reclaim_stale():
 
                     task = state.get("tasks", {}).get(step.get("task_id"))
                     if task:
-                        task["status"] = "HUMAN_REQUIRED"
+                        set_task_status(task, "HUMAN_REQUIRED")
                         task["recovery_reason"] = step["recovery_reason"]
                     worker = state.get("workers", {}).get(step.get("worker_id"))
                     if worker and worker.get("current_task") == step.get("task_id"):
@@ -527,16 +527,41 @@ def verify_task_result():
         "result_id": result["result_id"],
         "verdict": verdict,
         "artifacts": result["artifacts"],
+        "verified_at": time.time(),
     }
     goal = state["goals"][task["goal_id"]]
     if verdict == "PASS":
-        task["status"] = "RECONCILED"
-        goal["current_step_index"] = goal.get("current_step_index", 0) + 1
-        if goal["current_step_index"] >= len(goal["workflow_plan"]):
-            goal["status"] = "DONE"
+        # P8 — Human Gate split: protected code changes require merge approval
+        if task.get("merge_scope") == "protected_code":
+            set_task_status(task, "RECONCILED_PENDING_MERGE")
+            task["next_action"] = "AWAIT_MERGE_APPROVAL"
+            task["blocker"] = None
+            # Do NOT advance goal step — merge gate must pass first
+        else:
+            set_task_status(task, "RECONCILED")
+            task["next_action"] = None
+            task["blocker"] = None
+            goal["current_step_index"] = goal.get("current_step_index", 0) + 1
+            if goal["current_step_index"] >= len(goal["workflow_plan"]):
+                goal["status"] = "DONE"
     else:
-        task["status"] = "FAILED_VERIFICATION"
+        set_task_status(task, "FAILED_VERIFICATION")
+        task["next_action"] = "HUMAN_REVIEW"
+        task["blocker"] = f"VERIFICATION_REJECTED: {data.get('reason', 'no reason')}"[:200]
         goal["status"] = "BLOCKED"
+
+    # P6/P10 — Terminal cleanup: release worker ownership after verification
+    assigned_worker_id = task.get("worker_id")
+    if assigned_worker_id and assigned_worker_id in state["workers"]:
+        state["workers"][assigned_worker_id]["current_task"] = None
+        state["workers"][assigned_worker_id]["available"] = True
+
+    # Sync status back to workflow_plan
+    for step in goal.get("workflow_plan", []):
+        if step.get("task_id") == task_id:
+            step["status"] = task["status"]
+            step["verification"] = task["verification"]
+
     save_state(state)
     return jsonify({"status": task["status"]})
 
@@ -559,17 +584,34 @@ def resume_task(task_id):
                 if step["status"] not in ["HUMAN_REQUIRED", "FAILED_VERIFICATION", "FAILED_TERMINAL", "WAITING_PROVIDER", "BLOCKED_TRANSIENT"]:
                     return jsonify({"error": f"Task cannot be resumed from status {step['status']}"}), 400
                 
+                # Also update the canonical task in state["tasks"]
+                task = state["tasks"].get(task_id, step)
+
                 if action == "retry":
+                    set_task_status(task, "QUEUED")
                     step["status"] = "QUEUED"
                     goal["status"] = "ACTIVE"
                     if "instruction_override" in data:
                         step["instruction"] = data["instruction_override"]
+                        task["instruction"] = data["instruction_override"]
+                    # Release previous worker ownership
+                    prev_worker = task.get("worker_id")
+                    task["worker_id"] = None
                     step["worker_id"] = None
+                    task["next_action"] = "DISPATCH"
+                    task["blocker"] = None
+                    if prev_worker and prev_worker in state["workers"]:
+                        w = state["workers"][prev_worker]
+                        if w.get("current_task") == task_id:
+                            w["current_task"] = None
+                            w["available"] = True
                     save_state(state)
                     return jsonify({"status": "RESUMED", "task_id": task_id, "goal_id": goal_id})
                 elif action == "force_success":
+                    set_task_status(task, "RESULT_RECEIVED")
                     step["status"] = "RESULT_RECEIVED"
                     goal["status"] = "ACTIVE"
+                    task["result_id"] = "manual-resume-" + task_id
                     step["result_id"] = "manual-resume-" + task_id
                     save_state(state)
                     return jsonify({"status": "FORCED_SUCCESS_PENDING_VERIFICATION", "task_id": task_id})
@@ -577,6 +619,49 @@ def resume_task(task_id):
                     return jsonify({"error": "Unknown action"}), 400
                     
     return jsonify({"error": "Task not found"}), 404
+
+@app.route('/tasks/<task_id>/approve_merge', methods=['POST'])
+@require_auth
+@serialize_state_mutation
+def approve_merge(task_id):
+    """P8 — Human Gate: approve merge for protected-code tasks.
+
+    Only tasks in RECONCILED_PENDING_MERGE can be approved.
+    On approval the task transitions to RECONCILED and the goal step advances.
+    """
+    data = request.get_json(silent=True) or {}
+    approver = data.get("approver")
+    if not isinstance(approver, str) or not approver:
+        return jsonify({"error": "approver identity is required"}), 400
+    state = load_state()
+
+    task = state["tasks"].get(task_id)
+    if not task:
+        return jsonify({"error": "Task not found"}), 404
+    if task.get("status") != "RECONCILED_PENDING_MERGE":
+        return jsonify({"error": f"Task is not pending merge (status={task.get('status')})"}), 409
+
+    set_task_status(task, "RECONCILED")
+    task["next_action"] = None
+    task["merge_approval"] = {
+        "approver": approver,
+        "approved_at": time.time(),
+        "merge_ref": data.get("merge_ref"),
+    }
+
+    goal = state["goals"].get(task.get("goal_id"))
+    if goal:
+        goal["current_step_index"] = goal.get("current_step_index", 0) + 1
+        if goal["current_step_index"] >= len(goal.get("workflow_plan", [])):
+            goal["status"] = "DONE"
+        # Sync to workflow_plan
+        for step in goal.get("workflow_plan", []):
+            if step.get("task_id") == task_id:
+                step["status"] = "RECONCILED"
+                step["merge_approval"] = task["merge_approval"]
+
+    save_state(state)
+    return jsonify({"status": "RECONCILED", "task_id": task_id})
 
 @app.route('/tasks/<task_id>/provider_wait', methods=['POST'])
 @require_auth
@@ -605,7 +690,7 @@ def provider_wait(task_id):
     if wait_type not in ("WAITING_PROVIDER", "BLOCKED_TRANSIENT"):
         wait_type = "WAITING_PROVIDER"
 
-    task["status"] = wait_type
+    set_task_status(task, wait_type)
     task["blocker"] = reason[:200] if reason else "PROVIDER_UNAVAILABLE"
     task["next_action"] = "WAIT_THEN_RESUME"
     # Preserve attempt_id and dispatch_id — no new attempt
