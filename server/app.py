@@ -92,8 +92,13 @@ def submit_goal():
     data = request.get_json(silent=True) or {}
     if not isinstance(data.get("goal_text"), str) or not data["goal_text"].strip():
         return jsonify({"error": "goal_text is required"}), 400
-    goal_id = f"goal-{uuid.uuid4().hex[:8]}"
+    
     state = load_state()
+    goal_id = data.get("goal_id") or f"goal-{uuid.uuid4().hex[:8]}"
+    
+    # Idempotent batch submission
+    if goal_id in state["goals"]:
+        return jsonify({"status": "ACK_ALREADY_EXISTS", "goal_id": goal_id}), 200
     
     goal = {
         "goal_id": goal_id,
@@ -234,26 +239,15 @@ def claim_task():
     
     for goal_id, goal in state["goals"].items():
         if goal["status"] == "ACTIVE" and "workflow_plan" in goal:
-            # DEPENDENCY-AWARE DISPATCH
-            # Find all RECONCILED tasks to satisfy dependencies
-            reconciled_ids = {t["task_id"] for t in goal["workflow_plan"] if t.get("status") in ("RECONCILED", "DONE")}
-            
-            # Find active scopes to prevent writer collision
-            active_scopes = {t.get("owner_scope") for t in goal["workflow_plan"] if t.get("status") in ("DISPATCHED", "RESULT_RECEIVED", "VERIFYING") and t.get("owner_scope")}
-            
-            for next_task in goal["workflow_plan"]:
-                if next_task.get("status") == "QUEUED":
-                    print(f"DEBUG EVAL: {next_task['task_id']} deps={next_task.get('dependencies')} scope={next_task.get('owner_scope')}", flush=True)
-                    deps = next_task.get("dependencies", [])
-                    deps_met = all(dep in reconciled_ids for dep in deps)
-                    
-                    scope = next_task.get("owner_scope")
-                    scope_clear = not scope or scope not in active_scopes
-                    
-                    if deps_met and scope_clear:
-                        target = next_task.get("target_agent", "linux").lower()
-                        print(f"DEBUG: Checking {next_task['task_id']} with target {target} against worker capabilities {worker['capabilities']}", flush=True)
-                    
+            idx = goal.get("current_step_index", 0)
+            if idx < len(goal["workflow_plan"]):
+                next_task = goal["workflow_plan"][idx]
+                if next_task["status"] in ("QUEUED", "WAITING_PROVIDER", "BLOCKED_TRANSIENT"):
+                    target = next_task.get("target_agent", "linux").lower()
+                    req_caps = next_task.get("capabilities", [])
+                    if req_caps:
+                        matched = all(c in worker.get("capabilities", []) for c in req_caps)
+                    else:
                         matched = False
                         if "github" in target and "github" in worker["capabilities"]: matched = True
                         elif "mac" in target and "macos" in worker["capabilities"]: matched = True
@@ -261,66 +255,63 @@ def claim_task():
                         elif "linux" in target and "linux" in worker["capabilities"]: matched = True
                         elif "antigravity" in target and "antigravity" in worker["capabilities"]: matched = True
                     
-                        if matched:
-                            # Cost-based routing check:
-                            # If this worker is expensive, and a cheaper qualified worker is currently active and available,
-                            # decline this claim so the cheaper worker can grab it.
-                            worker_cost = worker.get("cost_class", "high")
-                            if worker_cost in ("high", "medium"):
-                                cheaper_available = False
-                                now = time.time()
-                                for other_id, other_w in state["workers"].items():
-                                    if other_id == worker_id: continue
-                                    if not other_w.get("available", False): continue
-                                    if now - other_w.get("last_seen", 0) > 300: continue
+                    if matched:
+                        # Cost-based routing check:
+                        # If this worker is expensive, and a cheaper qualified worker is currently active and available,
+                        # decline this claim so the cheaper worker can grab it.
+                        worker_cost = worker.get("cost_class", "high")
+                        if worker_cost in ("high", "medium"):
+                            cheaper_available = False
+                            now = time.time()
+                            for other_id, other_w in state["workers"].items():
+                                if other_id == worker_id: continue
+                                if not other_w.get("available", False): continue
+                                if now - other_w.get("last_seen", 0) > 300: continue
                                 
-                                    other_cost = other_w.get("cost_class", "high")
-                                    # is other cheaper?
-                                    if worker_cost == "high" and other_cost in ("free", "low", "medium"):
-                                        is_cheaper = True
-                                    elif worker_cost == "medium" and other_cost in ("free", "low"):
-                                        is_cheaper = True
-                                    else:
-                                        is_cheaper = False
+                                other_cost = other_w.get("cost_class", "high")
+                                # is other cheaper?
+                                if worker_cost == "high" and other_cost in ("free", "low", "medium"):
+                                    is_cheaper = True
+                                elif worker_cost == "medium" and other_cost in ("free", "low"):
+                                    is_cheaper = True
+                                else:
+                                    is_cheaper = False
                                     
-                                    if is_cheaper:
-                                        # Is other qualified?
-                                        if "github" in target and "github" in other_w["capabilities"]: cheaper_available = True
-                                        elif "mac" in target and "macos" in other_w["capabilities"]: cheaper_available = True
-                                        elif "windows" in target and "windows" in other_w["capabilities"]: cheaper_available = True
-                                        elif "linux" in target and "linux" in other_w["capabilities"]: cheaper_available = True
-                                        elif "antigravity" in target and "antigravity" in other_w["capabilities"]: cheaper_available = True
+                                if is_cheaper:
+                                    # Is other qualified?
+                                    if "github" in target and "github" in other_w["capabilities"]: cheaper_available = True
+                                    elif "mac" in target and "macos" in other_w["capabilities"]: cheaper_available = True
+                                    elif "windows" in target and "windows" in other_w["capabilities"]: cheaper_available = True
+                                    elif "linux" in target and "linux" in other_w["capabilities"]: cheaper_available = True
+                                    elif "antigravity" in target and "antigravity" in other_w["capabilities"]: cheaper_available = True
                                 
-                                if cheaper_available:
-                                    # We decline this claim to let the cheaper worker grab it.
-                                    # But we can't return error, we just skip this task and let it return empty.
-                                    matched = False
+                            if cheaper_available:
+                                # We decline this claim to let the cheaper worker grab it.
+                                # But we can't return error, we just skip this task and let it return empty.
+                                matched = False
 
-                        if matched:
-                            next_task["worker_id"] = worker_id
+                    if matched:
+                        next_task["worker_id"] = worker_id
+                        if next_task["status"] == "QUEUED":
                             next_task["attempts"] = next_task.get("attempts", 0) + 1
-                            next_task["attempt_id"] = f"{next_task['task_id']}:attempt:{next_task['attempts']}"
-                            next_task["dispatch_id"] = f"dispatch-{uuid.uuid4().hex}"
-                            next_task["run_id"] = None
-                            next_task["result_id"] = None
-                            next_task["target_capability"] = target
-                            try:
-                                next_task = prepare_task(next_task)
-                            except ContractError as exc:
-                                return jsonify({"error": str(exc)}), 400
-                            next_task["status"] = "DISPATCHED"
-                            # Find index
-                            for i, t in enumerate(goal["workflow_plan"]):
-                                if t["task_id"] == next_task["task_id"]:
-                                    goal["workflow_plan"][i] = next_task
-                                    break
+                        next_task["attempt_id"] = f"{next_task['task_id']}:attempt:{next_task.get('attempts', 1)}"
+                        next_task["dispatch_id"] = f"dispatch-{uuid.uuid4().hex}"
+                        next_task["run_id"] = None
+                        next_task["result_id"] = None
+                        next_task["target_capability"] = target
+                        try:
+                            next_task = prepare_task(next_task)
+                        except ContractError as exc:
+                            return jsonify({"error": str(exc)}), 400
+                        next_task["status"] = "DISPATCHED"
+                        goal["workflow_plan"][idx] = next_task
                         
-                            worker["current_task"] = next_task["task_id"]
-                            worker["available"] = False
+                        worker["current_task"] = next_task["task_id"]
+                        worker["available"] = False
                         
-                            state["tasks"][next_task["task_id"]] = next_task
-                            save_state(state)
-                            return jsonify({"task": next_task})
+                        state["tasks"][next_task["task_id"]] = next_task
+                        save_state(state)
+                        return jsonify({"task": next_task})
                         
     save_state(state)
     return jsonify({"task": None})
@@ -355,22 +346,12 @@ def task_result():
             
             if durable_result.get("status") == "SUCCESS":
                 task["status"] = "RESULT_RECEIVED" # wait for independent /verify
+            elif durable_result.get("status") in ["WAITING_PROVIDER", "BLOCKED_TRANSIENT", "HUMAN_REQUIRED"]:
+                # Pure waiting must not increment attempt or create duplicate effects
+                task["status"] = durable_result.get("status")
+                task["worker_id"] = None
             else:
-                is_crash_loop = data.get("raw_result", {}).get("reason") == "CRASH_LOOP"
-                print("is_crash_loop:", is_crash_loop, "raw_result:", data.get("raw_result"))
-                
-                if is_crash_loop:
-                    # Keep goal alive, route portable work to github
-                    task["status"] = "QUEUED"
-                    task["worker_id"] = None
-                    if "github" in state.get("workers", {}).get("GITHUB-DISPATCHER", {}).get("capabilities", []):
-                        task["target_agent"] = "github"
-                        task["target_capability"] = "github"
-                    elif "linux" in task.get("capabilities", []):
-                        task["target_agent"] = "linux"
-                        task["target_capability"] = "linux"
-                    # Also mark the crashing worker as unavailable for a bit if we wanted, but routing away is enough
-                elif task.get("attempts", 1) < 3:
+                if task.get("attempts", 1) < 3:
                     task["status"] = "QUEUED" # Retry
                     task["worker_id"] = None
                 else:
@@ -385,7 +366,7 @@ def task_result():
                         step["status"] = task["status"]
                         step["worker_id"] = task.get("worker_id")
                         step["attempts"] = task.get("attempts")
-                if task["status"] == "FAILED_TERMINAL":
+                if task["status"] in ["FAILED_TERMINAL", "HUMAN_REQUIRED"]:
                     goal["status"] = "BLOCKED"
 
             if worker_id in state["workers"]:
@@ -411,7 +392,6 @@ def reclaim_stale():
         if now - w.get("last_seen", 0) > stale_threshold:
             stale_workers.add(w_id)
             w["available"] = False
-            w["current_task"] = None
             
     quarantined_count = 0
     # A claimed task may already have produced an effect. Without durable proof
@@ -420,9 +400,8 @@ def reclaim_stale():
         if goal.get("status") == "ACTIVE" and "workflow_plan" in goal:
             for step in goal["workflow_plan"]:
                 if step.get("status") == "DISPATCHED" and step.get("worker_id") in stale_workers:
-                    step["status"] = "QUEUED"
-                    step["worker_id"] = None
-                    step["attempts"] = step.get("attempts", 0) + 1
+                    step["status"] = "HUMAN_REQUIRED"
+                    step["recovery_reason"] = "STALE_WORKER_EFFECT_AMBIGUOUS"
                     quarantined_count += 1
 
                     task = state.get("tasks", {}).get(step.get("task_id"))
@@ -489,25 +468,16 @@ def verify_task_result():
     goal = state["goals"][task["goal_id"]]
     if verdict == "PASS":
         task["status"] = "RECONCILED"
+        goal["current_step_index"] = goal.get("current_step_index", 0) + 1
+        if goal["current_step_index"] >= len(goal["workflow_plan"]):
+            goal["status"] = "DONE"
     else:
         task["status"] = "FAILED_VERIFICATION"
         goal["status"] = "BLOCKED"
-        
-    all_done = True
-    for t in goal.get("workflow_plan", []):
-        if t["task_id"] == task_id:
-            t["status"] = task["status"]
-        if t.get("status") not in ("RECONCILED", "DONE"):
-            all_done = False
-            
-    if all_done and verdict == "PASS":
-        goal["status"] = "DONE"
     save_state(state)
     return jsonify({"status": task["status"]})
 
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
 
 @app.route('/tasks/<task_id>/resume', methods=['POST'])
 @require_auth
@@ -542,3 +512,7 @@ def resume_task(task_id):
                     return jsonify({"error": "Unknown action"}), 400
                     
     return jsonify({"error": "Task not found"}), 404
+
+if __name__ == "__main__":
+    print("CANONICAL_LOCAL_URL = http://127.0.0.1:8080")
+    app.run(host="127.0.0.1", port=8080)

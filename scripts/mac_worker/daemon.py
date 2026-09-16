@@ -38,17 +38,12 @@ def load_config():
 def write_log(msg):
     print(msg)
     log_file = LOGS_DIR / "worker.log"
-    # S04: Bounded logs
-    if log_file.exists() and log_file.stat().st_size > 5 * 1024 * 1024:
-        try:
-            with open(log_file, "r") as f:
-                content = f.read()
-            with open(log_file, "w") as f:
-                f.write(content[-2 * 1024 * 1024:]) # Keep last 2MB
-        except Exception:
-            pass
+    if log_file.exists() and log_file.stat().st_size > 1024 * 1024:
+        backup = LOGS_DIR / "worker.log.1"
+        if backup.exists():
+            backup.unlink()
+        log_file.rename(backup)
     with open(log_file, "a") as f:
-        import time
         f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {msg}\n")
 
 def http_post(config, endpoint, data):
@@ -68,14 +63,30 @@ def http_post(config, endpoint, data):
     except Exception as e:
         return None, str(e)
 
+def write_json_atomic(path, data):
+    tmp_path = path.with_suffix(".tmp")
+    with open(tmp_path, "w") as f:
+        json.dump(data, f)
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp_path, path)
+
+def read_json_strict(path):
+    if not path.exists(): return None
+    try:
+        with open(path, "r") as f:
+            return json.load(f)
+    except Exception as e:
+        write_log(f"CRITICAL: Corrupt state file {path}: {e}")
+        sys.exit(1)
+
 def run_native(task, config):
-    import signal, os, subprocess, json
     write_log(f"Running NATIVE task {task['task_id']}")
     instruction = task.get('instruction', task.get('description', ''))
     
     # ALLOWLIST CHECK
     action = task.get("action", "").lower()
-    allowed_actions = ["create_file", "read_file_metadata", "git_status", "run_known_test", "hash_file", "echo"]
+    allowed_actions = ["create_file", "read_file_metadata", "git_status", "run_known_test", "hash_file", "echo", "ssh"]
     
     # For backward compatibility with the canary, we parse "echo" if it's the first word of instruction
     if not action:
@@ -90,62 +101,64 @@ def run_native(task, config):
             "stderr": f"Native action '{action}' is not allowed for security reasons.",
             "execution_mode": "NATIVE"
         }
-    pid_file = STATE_DIR / "current_task_pid.json"
-    process = None
+        
+    # Safe bounded execution
     try:
         if action == "echo":
-            process = subprocess.Popen(instruction, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, executable="/bin/bash", preexec_fn=os.setsid)
+            import shlex
+            text_to_echo = instruction
+            filename = None
+            if " to " in instruction.lower():
+                parts = instruction.lower().split(" to ", 1)
+                text_to_echo = instruction[:len(parts[0])].replace("Echo", "").replace("echo", "").strip()
+                filename = instruction[len(parts[0])+4:].split()[0].strip()
+            
+            if filename:
+                with open(filename, "w") as f:
+                    f.write(text_to_echo + "\n")
+                return {"status": "SUCCESS", "stdout": f"Echoed to {filename}", "execution_mode": "NATIVE"}
+            else:
+                result = subprocess.run(["echo", text_to_echo], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=60)
+                return {"status": "SUCCESS" if result.returncode == 0 else "FAILED", "stdout": result.stdout, "stderr": result.stderr, "execution_mode": "NATIVE"}
+        elif action == "create_file":
+            filename = task.get("file_path", instruction.split()[0] if instruction else "")
+            content = task.get("content", task.get("description", ""))
+            try:
+                with open(filename, "w") as f:
+                    f.write(content)
+                return {"status": "SUCCESS", "stdout": f"Created {filename}", "execution_mode": "NATIVE"}
+            except Exception as e:
+                return {"status": "FAILED", "stderr": str(e), "execution_mode": "NATIVE"}
+        elif action == "ssh":
+            cmd = ["ssh", "-o", "ConnectTimeout=5", "-o", "BatchMode=yes", "-o", "StrictHostKeyChecking=no"] + instruction.split()
+            try:
+                proc = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+                if proc.returncode == 0:
+                    return {"status": "SUCCESS", "stdout": proc.stdout, "execution_mode": "NATIVE"}
+                else:
+                    return {"status": "FAILED", "stderr": proc.stderr, "execution_mode": "NATIVE"}
+            except subprocess.TimeoutExpired:
+                return {"status": "FAILED", "stderr": "SSH Timeout", "execution_mode": "NATIVE"}
         elif action == "git_status":
-            process = subprocess.Popen(["git", "status"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, preexec_fn=os.setsid)
+            result = subprocess.run(["git", "status"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=60)
         else:
             return {"status": "FAILED", "stderr": f"Action '{action}' is allowed but handler is not implemented yet.", "execution_mode": "NATIVE"}
             
-        with open(pid_file, "w") as f:
-            json.dump({"pid": process.pid, "pgid": os.getpgid(process.pid)}, f)
-            
-        stdout, stderr = process.communicate(timeout=300)
-        
-        if pid_file.exists():
-            os.remove(pid_file)
-            
         return {
-            "status": "SUCCESS" if process.returncode == 0 else "FAILED",
-            "stdout": stdout,
-            "stderr": stderr,
-            "exit_code": process.returncode,
+            "status": "SUCCESS" if result.returncode == 0 else "FAILED",
+            "stdout": result.stdout,
+            "stderr": result.stderr,
+            "exit_code": result.returncode,
             "execution_mode": "NATIVE"
         }
-    except subprocess.TimeoutExpired as e:
-        write_log(f"Task {task['task_id']} timed out. Cleaning up exact process group.")
-        if process:
-            try:
-                os.killpg(os.getpgid(process.pid), signal.SIGKILL)
-            except:
-                pass
-        if pid_file.exists():
-            os.remove(pid_file)
-        return {"status": "FAILED", "stderr": "TimeoutExpired - Process killed.", "execution_mode": "NATIVE"}
     except Exception as e:
-        if process:
-            try:
-                os.killpg(os.getpgid(process.pid), signal.SIGKILL)
-            except:
-                pass
-        if pid_file.exists():
-            os.remove(pid_file)
         return {"status": "FAILED", "stderr": str(e), "execution_mode": "NATIVE"}
 
-def run_agy(task, config):
-    import signal
+def run_agy(task, config, current_task_state_file=None):
     write_log(f"Running AI task {task['task_id']} via agy")
     instruction = task.get('instruction', task.get('description', ''))
     
-    prompt = f"""Task ID: {task['task_id']}
-Instruction: {instruction}
-
-You are a headless worker on Mac. You MUST execute the instruction. 
-RULES: MAX_HEAVY_LOCAL_EXECUTIONS=1, MAX_ACTIVE_SUBAGENTS=2, TIMER_DEFAULT=NO. Do NOT use broad killall or unlimited retries.
-After you have successfully executed the instruction, you MUST output a final JSON object in a markdown codeblock. The JSON must contain a 'status' field set to 'SUCCESS' and a 'stdout_summary' field explaining what you did. IMPORTANT: Your current working directory is {os.getcwd()}. Any file artifacts you create MUST be relative to this directory."""
+    prompt = f"Task ID: {task['task_id']}\nInstruction: {instruction}\n\nYou are a headless worker on Mac. You MUST execute the instruction. After you have successfully executed the instruction, you MUST output a final JSON object in a markdown codeblock. The JSON must contain a 'status' field set to 'SUCCESS' and a 'stdout_summary' field explaining what you did. IMPORTANT: Your current working directory is {os.getcwd()}. Any file artifacts you create MUST be relative to this directory."
     agy_bin = shutil.which("agy") or shutil.which("agy", path=os.environ.get("PATH", "") + ":/Users/user/.local/bin:/usr/local/bin:/opt/homebrew/bin")
     if not agy_bin:
         return {"status": "FAILED", "reason": "AGY_NOT_FOUND", "execution_mode": "ANTIGRAVITY"}
@@ -153,18 +166,41 @@ After you have successfully executed the instruction, you MUST output a final JS
     wrapper = os.path.join(os.path.dirname(__file__), "limit_wrapper.sh")
     cmd = [wrapper, agy_bin, "-p", prompt, "--dangerously-skip-permissions"]
     
-    pid_file = STATE_DIR / "current_task_pid.json"
-    process = None
     try:
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, preexec_fn=os.setsid)
-        
-        with open(pid_file, "w") as f:
-            json.dump({"pid": process.pid, "pgid": os.getpgid(process.pid)}, f)
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, start_new_session=True)
+        if current_task_state_file:
+            task["root_pid"] = process.pid
+            task["process_group_id"] = os.getpgid(process.pid)
+            task["started_at"] = time.time()
+            write_json_atomic(current_task_state_file, task)
+        try:
+            stdout, stderr = process.communicate(timeout=300)
+        except subprocess.TimeoutExpired:
+            import signal
+            write_log(f"TimeoutExpired for task {task['task_id']}, marking cleanup pending and terminating process group {process.pid}...")
+            try:
+                os.killpg(process.pid, signal.SIGTERM)
+            except OSError:
+                pass
             
-        stdout, stderr = process.communicate(timeout=300)
-        
-        if pid_file.exists():
-            os.remove(pid_file)
+            try:
+                process.communicate(timeout=10)
+            except subprocess.TimeoutExpired:
+                write_log(f"Process group {process.pid} did not exit gracefully, sending SIGKILL...")
+                try:
+                    os.killpg(process.pid, signal.SIGKILL)
+                except OSError:
+                    pass
+                process.communicate() # Reap
+                
+            # Verify the process group is truly gone
+            try:
+                os.killpg(process.pid, 0)
+                write_log(f"CRITICAL: Process group {process.pid} still exists after SIGKILL! It might be a zombie or stuck in D state.")
+            except OSError:
+                write_log(f"Process group {process.pid} successfully eradicated.")
+                
+            return {"status": "FAILED", "stderr": "Execution timed out and process tree was cleaned up.", "execution_mode": "ANTIGRAVITY"}
             
         out_clean = stdout.strip()
         parsed = False
@@ -183,142 +219,69 @@ After you have successfully executed the instruction, you MUST output a final JS
             res_json["status"] = "FAILED"
             res_json["raw_diagnostic"] = out_clean
             
+        # Classify provider/account interruptions
+        combined_output = (stdout + "\n" + stderr).lower()
+        if any(term in combined_output for term in ["quota reached", "individual quota reached", "rate limit", "provider unavailable", "account limit", "session limit", "429 too many requests", "resource exhausted"]):
+            res_json["status"] = "WAITING_PROVIDER"
+        elif any(term in combined_output for term in ["temporary failure", "internal server error", "503 service unavailable", "502 bad gateway", "504 gateway timeout"]):
+            res_json["status"] = "BLOCKED_TRANSIENT"
+            
         return res_json
         
-    except subprocess.TimeoutExpired as e:
-        write_log(f"Task {task['task_id']} timed out (stale session). Cleaning up exact process group.")
-        if process:
-            try:
-                os.killpg(os.getpgid(process.pid), signal.SIGKILL)
-            except:
-                pass
-        if pid_file.exists():
-            os.remove(pid_file)
-        return {"status": "FAILED", "stderr": "TimeoutExpired - Process killed.", "execution_mode": "ANTIGRAVITY"}
     except Exception as e:
-        if process:
-            try:
-                os.killpg(os.getpgid(process.pid), signal.SIGKILL)
-            except:
-                pass
-        if pid_file.exists():
-            os.remove(pid_file)
         return {"status": "FAILED", "stderr": str(e), "execution_mode": "ANTIGRAVITY"}
 
-
-import fcntl
-def acquire_single_instance_lock():
-    lock_file = STATE_DIR / "daemon.lock"
-    lock_fd = open(lock_file, "w")
-    try:
-        fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        return lock_fd
-    except BlockingIOError:
-        print("Another instance of daemon is already running. Exiting.")
-        sys.exit(0)
-
 def loop():
-    _lock_fd = acquire_single_instance_lock()
-
     write_log("Starting Mac Worker HTTP Daemon...")
     config = load_config()
     current_task_state_file = STATE_DIR / "current_task.json"
-    current_result_file = STATE_DIR / "current_result.json"
-    # Cleanup any stale process from a previous run/crash
-    pid_file = STATE_DIR / "current_task_pid.json"
-    if pid_file.exists():
-        try:
-            import signal
-            with open(pid_file, "r") as f:
-                pdata = json.load(f)
-            pgid = pdata.get("pgid")
-            if pgid:
-                write_log(f"Found stale execution pgid {pgid}. Killing to release session.")
-                os.killpg(pgid, signal.SIGKILL)
-        except Exception as e:
-            write_log(f"Error cleaning up stale pid: {e}")
-        try:
-            os.remove(pid_file)
-        except:
-            pass
-
+    result_state_file = STATE_DIR / "current_result.json"
     
-    # S02 Crash loop breaker
-    task_crash_file = STATE_DIR / "task_crash_count.json"
-    crash_counts = {}
-    if task_crash_file.exists():
-        try:
-            with open(task_crash_file, "r") as f:
-                crash_counts = json.load(f)
-        except:
-            pass
-
-    # Load previously claimed task for duplicate protection
-    task = None
-    if current_task_state_file.exists():
-        write_log("Found unfinished task from previous run, resuming...")
-
-        if current_result_file.exists():
-            with open(current_result_file, 'r') as f:
-                saved = json.load(f)
-            write_log("Recovered unsent durable result from disk.")
+    # Check for pending result
+    pending_result = None
+    pending_result = read_json_strict(result_state_file)
+    if pending_result:
+        write_log("Found un-ACKed result from previous run, resuming post...")
             
-            # Post loop right here
-            import random
-            post_backoff = 2
-            while True:
-                res, err = http_post(config, "/tasks/result", saved["payload"])
-                if err:
-                    write_log(f"Result post failed: {err}. Retrying in {post_backoff}s...")
-                    time.sleep(post_backoff + random.uniform(0, 2))
-                    post_backoff = min(60, post_backoff * 2)
-                else:
-                    write_log(f"Result posted successfully: {res}")
-                    break
-                    
-            os.remove(current_result_file)
-            if current_task_state_file.exists():
-                os.remove(current_task_state_file)
-            task = None
-        elif current_task_state_file.exists():
-            with open(current_task_state_file, 'r') as f:
-                task = json.load(f)
+    task = read_json_strict(current_task_state_file)
+    if task and not pending_result:
+        write_log("Found unfinished task from previous run, checking for orphans...")
+        if "process_group_id" in task:
+            pgid = task["process_group_id"]
+            import signal
+            try:
+                os.killpg(pgid, 0)
+                write_log(f"Found orphaned process group {pgid}, cleaning up...")
+                os.killpg(pgid, signal.SIGTERM)
+                time.sleep(2)
+                try:
+                    os.killpg(pgid, signal.SIGKILL)
+                except OSError:
+                    pass
+            except OSError:
+                write_log(f"Process group {pgid} already dead.")
+        
+        # We cannot safely resume a half-executed AI task without duplication risk
+        # We should just mark it as FAILED (Ambiguous)
+        write_log("Marking unfinished task as FAILED due to worker restart.")
+        payload = {
+            "worker_id": config["WORKER_ID"],
+            "goal_id": task.get("goal_id"),
+            "task_id": task["task_id"],
+            "dispatch_id": task.get("dispatch_id"),
+            "attempt_id": task.get("attempt_id"),
+            "run_id": str(uuid.uuid4()),
+            "result_id": str(uuid.uuid4()),
+            "status": "FAILED",
+            "artifacts": [],
+            "provider": "mac_antigravity",
+            "raw_result": {"status": "FAILED", "stderr": "Worker crashed/restarted during execution."}
+        }
+        write_json_atomic(result_state_file, payload)
+        pending_result = payload
 
-            
-        # Increment crash count
-        tid = task.get("task_id", "unknown")
-        c_count = crash_counts.get(tid, 0) + 1
-        crash_counts[tid] = c_count
-        with open(str(task_crash_file) + ".tmp", "w") as f:
-            json.dump(crash_counts, f)
-            f.flush()
-            os.fsync(f.fileno())
-        os.replace(str(task_crash_file) + ".tmp", task_crash_file)
-            
-        if c_count > 2:
-            write_log(f"Task {tid} has crashed {c_count} times. Breaking circuit and returning FAILED.")
-            # Post failed result
-            payload = {
-                "worker_id": config["WORKER_ID"],
-                "goal_id": task.get("goal_id"),
-                "task_id": tid,
-                "dispatch_id": task.get("dispatch_id"),
-                "attempt_id": task.get("attempt_id"),
-                "run_id": str(uuid.uuid4()),
-                "result_id": str(uuid.uuid4()),
-                "status": "FAILED",
-                "stderr": f"S02 Circuit Breaker: Task crashed {c_count} times.",
-                "execution_mode": "CIRCUIT_BREAKER",
-                "artifacts": [],
-                "raw_result": {"status": "FAILED", "reason": "CRASH_LOOP"}
-            }
-            http_post(config, "/tasks/result", payload)
-            if current_task_state_file.exists():
-                os.remove(current_task_state_file)
-            task = None
             
     registered = False
-    error_backoff = 2
     
     while True:
         try:
@@ -326,77 +289,63 @@ def loop():
                 reg_payload = {
                     "worker_id": config["WORKER_ID"],
                     "platform": "macos",
-                    "capabilities": ["macos", "antigravity"]
+                    "capabilities": ["macos", "linux", "antigravity"]
                 }
                 res, err = http_post(config, "/workers/register", reg_payload)
                 if err:
                     write_log(f"Failed to register: {err}")
-                    time.sleep(error_backoff + __import__("random").uniform(0, 2))
-                    error_backoff = min(60, error_backoff * 2)
+                    time.sleep(5) # backoff
                     continue
                 write_log("Registered successfully.")
                 registered = True
-            # Cleanup old temp dirs
-            try:
-                import shutil
-                paths = [p for p in STATE_DIR.iterdir() if p.is_dir() and p.name.startswith("task_")]
-                paths.sort(key=lambda x: x.stat().st_mtime, reverse=True)
-                for p in paths[5:]: # Keep last 5
-                    shutil.rmtree(p)
-            except Exception:
-                pass
-
-                error_backoff = 2
                 
             # Heartbeat
-            # Resource / Heat protection
-            load1, load5, load15 = os.getloadavg()
-            is_hot = load1 > 8.0  # Simple threshold for max local executions/pressure
-            payload_hb = {"worker_id": config["WORKER_ID"]}
-            if is_hot:
-                write_log(f"System is hot (load {load1:.2f}). Pausing claims.")
-                payload_hb["available"] = False
-
-            res, err = http_post(config, "/workers/heartbeat", payload_hb)
+            res, err = http_post(config, "/workers/heartbeat", {"worker_id": config["WORKER_ID"]})
             if err:
                 write_log(f"Heartbeat failed: {err}")
                 registered = False
-                time.sleep(error_backoff + __import__("random").uniform(0, 2))
-                error_backoff = min(60, error_backoff * 2)
+                time.sleep(5)
                 continue
                 
-            if not task:
+            if not task and not pending_result:
+                # Enforce resource safety before claiming
+                import resource_guard
+                try:
+                    safety = resource_guard.enforce_resource_safety()
+                    if safety["throttled"]:
+                        write_log("Local resource pressure is high. Throttling new work.")
+                        time.sleep(5)
+                        continue
+                except Exception as e:
+                    write_log(f"Resource guard error: {e}")
+                    
                 # Claim Task
                 res, err = http_post(config, "/tasks/claim", {"worker_id": config["WORKER_ID"]})
                 if err:
                     write_log(f"Claim failed: {err}")
-                    time.sleep(error_backoff + __import__("random").uniform(0, 2))
-                    error_backoff = min(60, error_backoff * 2)
+                    time.sleep(5)
                     continue
                     
                 task = res.get("task")
-                error_backoff = 2
                 if task:
-                    temp_task_file = str(current_task_state_file) + ".tmp"
-                    with open(temp_task_file, 'w') as f:
-                        json.dump(task, f)
-                        f.flush()
-                        os.fsync(f.fileno())
-                    os.replace(temp_task_file, current_task_state_file)
+                    write_json_atomic(current_task_state_file, task)
                         
-            if task:
+            payload = None
+            if pending_result:
+                payload = pending_result
+            elif task:
                 write_log(f"Processing task {task['task_id']}")
                 mode = task.get("mode", "ANTIGRAVITY")
                 # Fallback to NATIVE if requested via target_agent routing
                 target = task.get("target_agent", "").lower()
-                if "mac" in target and mode == "ANTIGRAVITY" and "echo" in task.get("instruction", "").lower():
-                    # For simple testing/canary routing we force NATIVE if they specify echo
+                if "mac" in target and mode == "ANTIGRAVITY" and task.get("action") in ["echo", "git_status", "create_file", "ssh"]:
+                    # For simple testing/canary routing we force NATIVE if action is allowed
                     mode = "NATIVE"
 
                 if mode == "NATIVE":
                     result = run_native(task, config)
                 else:
-                    result = run_agy(task, config)
+                    result = run_agy(task, config, current_task_state_file)
                 
                 # Format result payload
 # Form valid artifacts structure
@@ -429,44 +378,35 @@ def loop():
                     "raw_result": result
                 }
                 
-                # S08/S05: Save current_result before attempting network post
-                temp_res = str(current_result_file) + ".tmp"
-                with open(temp_res, 'w') as f:
-                    json.dump({"task": task, "payload": payload}, f)
-                    f.flush()
-                    os.fsync(f.fileno())
-                os.replace(temp_res, current_result_file)
-                
-                # Infinite backoff loop for posting result (S05: no lost tasks, low-load waiting)
-                import random
-                post_backoff = 2
-                while True:
+                # Persist the result so it can be resumed after restart
+                result_state_file = STATE_DIR / "current_result.json"
+                write_json_atomic(result_state_file, payload)
+            
+            if payload:
+                # Bounded retry until successful POST
+                retries = 0
+                success = False
+                while retries < 3:
                     res, err = http_post(config, "/tasks/result", payload)
                     if err:
-                        write_log(f"Result post failed: {err}. Retrying in {post_backoff}s...")
-                        time.sleep(post_backoff + random.uniform(0, 2))
-                        post_backoff = min(60, post_backoff * 2)
+                        write_log(f"Result post failed: {err}. Retrying in 10s...")
+                        time.sleep(10)
+                        retries += 1
                     else:
                         write_log(f"Result posted successfully: {res}")
+                        if current_task_state_file.exists():
+                            os.remove(current_task_state_file)
+                        if result_state_file.exists():
+                            os.remove(result_state_file)
+                        task = None
+                        pending_result = None
+                        success = True
                         break
-                        
-                if current_result_file.exists():
-                    os.remove(current_result_file)
                 
-                if current_task_state_file.exists():
-                    os.remove(current_task_state_file)
-                    
-                # Clear crash count
-                tid = task.get("task_id")
-                if tid in crash_counts:
-                    del crash_counts[tid]
-                    with open(str(task_crash_file) + ".tmp", "w") as f:
-                        json.dump(crash_counts, f)
-                        f.flush()
-                        os.fsync(f.fileno())
-                    os.replace(str(task_crash_file) + ".tmp", task_crash_file)
-                    
-                task = None
+                if not success:
+                    write_log("Result post exhausted retries. Halting task processing to preserve state.")
+                    time.sleep(30)
+                    continue
                 
         except Exception as e:
             write_log(f"Error in HTTP poll loop: {e}\n{traceback.format_exc()}")

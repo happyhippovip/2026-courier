@@ -1,7 +1,18 @@
 #!/bin/bash
 set -eu
-: "${COURIER_API_KEY:?COURIER_API_KEY must be set before starting Courier}"
-: "${COURIER_VERIFIER_API_KEY:?COURIER_VERIFIER_API_KEY must be set before starting Courier}"
+
+if [ -z "${COURIER_API_KEY:-}" ]; then
+    COURIER_API_KEY=$(security find-generic-password -s courier-api-key -w 2>/dev/null || true)
+fi
+if [ -z "${COURIER_VERIFIER_API_KEY:-}" ]; then
+    COURIER_VERIFIER_API_KEY=$(security find-generic-password -s courier-verifier-api-key -w 2>/dev/null || true)
+fi
+
+: "${COURIER_API_KEY:?COURIER_API_KEY must be set in env or keychain}"
+: "${COURIER_VERIFIER_API_KEY:?COURIER_VERIFIER_API_KEY must be set in env or keychain}"
+export COURIER_API_KEY
+export COURIER_VERIFIER_API_KEY
+
 [ "$COURIER_API_KEY" != "$COURIER_VERIFIER_API_KEY" ] || { echo "Worker and verifier API keys must differ" >&2; exit 1; }
 source venv/bin/activate
 
