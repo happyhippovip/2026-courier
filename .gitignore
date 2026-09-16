@@ -95,3 +95,5 @@ scripts/mac_worker/logs/
 scripts/mac_worker/state/
 scripts/mac_worker/inbox/
 scripts/mac_worker/outbox/
+scripts/windows_worker/logs/
+scripts/windows_worker/state/
