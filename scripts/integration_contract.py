@@ -21,8 +21,9 @@ TASK_STATES = {
     "FAILED_VERIFICATION",
     "FAILED_TERMINAL",
     "HUMAN_REQUIRED",
+    "WAITING_FOR_WORKER",
 }
-RESULT_STATES = {"SUCCESS", "FAILED", "AUTH_REQUIRED"}
+RESULT_STATES = {"SUCCESS", "FAILED", "AUTH_REQUIRED", "WAITING_FOR_WORKER"}
 WORKER_IDS = {
     "github": "GITHUB-HOSTED",
     "mac": "MAC-01",
@@ -79,7 +80,9 @@ def verify_result(task: dict, raw_result: dict, workspace: Path) -> dict:
         raise ContractError("invalid result status")
 
     run_id = raw_result.get("run_id")
-    if not isinstance(run_id, str) or not run_id:
+    if raw_result.get("status") == "WAITING_FOR_WORKER" and not run_id:
+        run_id = "none"
+    elif not isinstance(run_id, str) or not run_id:
         raise ContractError("observable run_id is required")
 
     artifacts = []

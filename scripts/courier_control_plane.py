@@ -132,6 +132,9 @@ def process_results(state):
             elif durable_result["status"] == "AUTH_REQUIRED":
                 task["status"] = "WAITING_FOR_PROVIDER"
                 print(f"Task {task['task_id']} WAITING_FOR_PROVIDER (Auth required)")
+            elif durable_result["status"] == "WAITING_FOR_WORKER":
+                task["status"] = "WAITING_FOR_WORKER"
+                print(f"Task {task['task_id']} WAITING_FOR_WORKER (Worker offline or timeout)")
             elif durable_result.get("reason") == "LEASE_EXPIRED":
                 task["status"] = "LEASE_EXPIRED"
                 print(f"Task {task['task_id']} LEASE_EXPIRED (Process/OS restart or crash)")
@@ -180,7 +183,7 @@ def loop():
     process_results(state)
     
     for task_id, task in state["tasks"].items():
-        if task.get("status") in ["WAITING_FOR_PROVIDER", "LEASE_EXPIRED", "QUEUED"]:
+        if task.get("status") in ["WAITING_FOR_PROVIDER", "LEASE_EXPIRED", "QUEUED", "WAITING_FOR_WORKER"]:
             print(f"Dispatching task {task_id} from state {task.get('status')}...")
             task["status"] = "QUEUED"
             dispatch_task(task, state)
@@ -201,6 +204,16 @@ def loop():
 if __name__ == "__main__":
     if "--daemon" in sys.argv:
         print("Starting Courier Control Plane Daemon...")
+        # Recover dispatched tasks on daemon startup
+        state = load_state()
+        recovered = False
+        for task in state["tasks"].values():
+            if task.get("status") == "DISPATCHED":
+                task["status"] = "QUEUED"
+                recovered = True
+        if recovered:
+            save_state(state)
+            
         while True:
             loop()
             time.sleep(5)

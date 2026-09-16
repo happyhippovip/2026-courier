@@ -39,7 +39,15 @@ def run(task_file):
     rc, out, err = run_cmd(cmd)
     if rc != 0:
         print(f"[GitHub Transport] Failed to trigger workflow: {err}")
-        res = {"status": "FAILED", "reason": "DISPATCH_FAILED", "task_id": task_id, "stderr": err}
+        res = {
+            "status": "WAITING_FOR_WORKER", 
+            "reason": "DISPATCH_FAILED", 
+            "task_id": task_id, 
+            "goal_id": goal_id,
+            "worker_id": task.get("worker_id", ""),
+            "run_id": "failed",
+            "stderr": err
+        }
         os.makedirs("results/incoming", exist_ok=True)
         with open(f"results/incoming/{task_id}_result.json", 'w') as f:
             json.dump(res, f)
@@ -98,7 +106,14 @@ def run(task_file):
                         shutil.rmtree(tmp_dir)
         
     print(f"[GitHub Transport] Timeout waiting for task {task_id}.")
-    res = {"status": "FAILED", "reason": "TIMEOUT", "task_id": task_id}
+    res = {
+        "status": "WAITING_FOR_WORKER", 
+        "reason": "TIMEOUT", 
+        "task_id": task_id,
+        "goal_id": goal_id,
+        "worker_id": task.get("worker_id", ""),
+        "run_id": "timeout"
+    }
     os.makedirs("results/incoming", exist_ok=True)
     with open(f"results/incoming/{task_id}_result.json", 'w') as f:
         json.dump(res, f)
