@@ -9,6 +9,7 @@ app = Flask(__name__)
 
 STATE_FILE = os.environ.get("COURIER_STATE_FILE", "server/state/central_state.json")
 API_KEY = os.environ.get("COURIER_API_KEY", "dev-secret-key")
+VERIFIER_API_KEY = os.environ.get("COURIER_VERIFIER_API_KEY", "")
 INSECURE_API_KEYS = {"", "dev-secret-key", "your_secure_api_key_here"}
 STATE_LOCK = threading.RLock()
 
@@ -21,6 +22,20 @@ def require_auth(f):
             return jsonify({"error": "Unauthorized"}), 401
         return f(*args, **kwargs)
     wrapper.__name__ = f.__name__
+    return wrapper
+
+
+def require_verifier_auth(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if (
+            VERIFIER_API_KEY in INSECURE_API_KEYS
+            or VERIFIER_API_KEY == API_KEY
+        ):
+            return jsonify({"error": "Courier verifier authority is not configured"}), 503
+        if request.headers.get("Authorization") != f"Bearer {VERIFIER_API_KEY}":
+            return jsonify({"error": "Verifier authority required"}), 401
+        return f(*args, **kwargs)
     return wrapper
 
 
@@ -388,7 +403,7 @@ def reclaim_stale():
     return jsonify({"reclaimed_tasks": 0, "quarantined_tasks": quarantined_count})
 
 @app.route("/tasks/pending_verification", methods=["GET"])
-@require_auth
+@require_verifier_auth
 def pending_verification():
     state = load_state()
     pending = []
@@ -398,7 +413,7 @@ def pending_verification():
     return jsonify({"tasks": pending})
 
 @app.route("/tasks/verify", methods=["POST"])
-@require_auth
+@require_verifier_auth
 @serialize_state_mutation
 def verify_task_result():
     data = request.get_json(silent=True) or {}

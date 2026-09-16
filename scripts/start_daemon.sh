@@ -1,6 +1,8 @@
 #!/bin/bash
 set -eu
 : "${COURIER_API_KEY:?COURIER_API_KEY must be set before starting Courier}"
+: "${COURIER_VERIFIER_API_KEY:?COURIER_VERIFIER_API_KEY must be set before starting Courier}"
+[ "$COURIER_API_KEY" != "$COURIER_VERIFIER_API_KEY" ] || { echo "Worker and verifier API keys must differ" >&2; exit 1; }
 mkdir -p logs server/state
 if [ -f logs/courier_daemon.pid ]; then
     if ps -p $(cat logs/courier_daemon.pid) > /dev/null; then
