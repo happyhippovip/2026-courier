@@ -204,14 +204,17 @@ def submit_goal():
                 target_agent = "mac"
             else:
                 target_agent = "linux"
-            goal["workflow_plan"].append({
+            new_task = {
                 "task_id": step.get("task_id", f"task-{uuid.uuid4().hex[:8]}"),
                 "goal_id": goal_id,
                 "instruction": step.get("instruction", "Next bounded step"),
                 "target_agent": target_agent,
                 "status": "QUEUED",
                 "attempts": 0,
-            })
+            }
+            if "artifacts" in step:
+                new_task["artifacts"] = step["artifacts"]
+            goal["workflow_plan"].append(new_task)
         
     state["goals"][goal_id] = goal
     save_state(state)
@@ -725,40 +728,54 @@ def verify_task_result():
             if all_done:
                 if goal.get("terminal") is False:
                     # Auto-Replenish!
-                    replenish_count = goal.get("replenish_count", 0)
-                    if replenish_count >= 1:
-                        goal["status"] = "DONE"
-                    else:
-                        goal["replenish_count"] = replenish_count + 1
-                        try:
-                            _, planned_steps = ChiefCommander().formulate_workflow_plan(
-                                goal["goal_text"], idea_type="GOAL"
-                            )
-                            if planned_steps:
-                                for step in planned_steps:
-                                    target_agent = str(step.get("target_agent", "linux")).lower()
-                                    if "github" in target_agent:
-                                        target_agent = "github"
-                                    elif "windows" in target_agent or "codex" in target_agent:
-                                        target_agent = "windows"
-                                    elif "mac" in target_agent or "antigravity" in target_agent or "gemini" in target_agent:
-                                        target_agent = "mac"
-                                    else:
-                                        target_agent = "linux"
+                    goal["replenish_count"] = goal.get("replenish_count", 0) + 1
+                    try:
+                        _, planned_steps = ChiefCommander().formulate_workflow_plan(
+                            goal["goal_text"], idea_type="GOAL"
+                        )
+                        if planned_steps:
+                            added_any = False
+                            for step in planned_steps:
+                                target_agent = str(step.get("target_agent", "linux")).lower()
+                                if "github" in target_agent:
+                                    target_agent = "github"
+                                elif "windows" in target_agent or "codex" in target_agent:
+                                    target_agent = "windows"
+                                elif "mac" in target_agent or "antigravity" in target_agent or "gemini" in target_agent:
+                                    target_agent = "mac"
+                                else:
+                                    target_agent = "linux"
+                                    
+                                instruction = step.get("instruction", "Next bounded step")
+                                
+                                # Deduplication logic
+                                is_duplicate = False
+                                for existing_step in goal.get("workflow_plan", []):
+                                    if existing_step.get("instruction") == instruction and existing_step.get("target_agent") == target_agent:
+                                        is_duplicate = True
+                                        break
+                                
+                                if not is_duplicate:
                                     new_task = {
                                         "task_id": step.get("task_id", f"task-{uuid.uuid4().hex[:8]}"),
                                         "goal_id": goal["goal_id"],
-                                        "instruction": step.get("instruction", "Next bounded step"),
+                                        "instruction": instruction,
                                         "target_agent": target_agent,
                                         "status": "QUEUED",
                                         "attempts": 0,
                                     }
+                                    if "artifacts" in step:
+                                        new_task["artifacts"] = step["artifacts"]
                                     goal["workflow_plan"].append(new_task)
-                            else:
+                                    added_any = True
+                            
+                            if not added_any:
                                 goal["status"] = "DONE"
-                        except Exception as exc:
-                            goal["status"] = "BLOCKED"
-                            goal["blocker"] = f"Replenish failed: {exc}"
+                        else:
+                            goal["status"] = "DONE"
+                    except Exception as exc:
+                        goal["status"] = "BLOCKED"
+                        goal["blocker"] = f"Replenish failed: {exc}"
                 else:
                     goal["status"] = "DONE"
     else:
