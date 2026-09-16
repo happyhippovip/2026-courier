@@ -1,11 +1,25 @@
 name: Courier Worker
+run-name: Courier dispatch ${{ inputs.dispatch_id }}
+
 on:
   workflow_dispatch:
     inputs:
-      task_payload:
-        description: "Task Packet JSON"
+      task_payload_base64:
+        description: Base64-encoded compact bounded Courier TaskPacket JSON
         required: true
         type: string
+      dispatch_id:
+        description: Exact dispatch correlation identifier
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: courier-dispatch-${{ inputs.dispatch_id }}
+  cancel-in-progress: false
+
 jobs:
   execute:
     runs-on: ubuntu-latest
@@ -13,97 +27,117 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Execute Bounded Task
-        id: exec
-        run: |
-          cat << 'PY_EOF' > run_task.py
-          import os, sys, json, hashlib, uuid, subprocess
-          
-          payload_str = os.environ.get("TASK_PAYLOAD", "{}")
-          try:
-              task = json.loads(payload_str)
-          except Exception as e:
-              print(f"Failed to parse payload: {e}")
-              sys.exit(1)
-              
-          task_id = task.get("task_id", "unknown")
-          goal_id = task.get("goal_id", "")
-          attempt_id = task.get("attempt_id", "")
-          dispatch_id = task.get("dispatch_id", "")
-          task_type = task.get("type", "unspecified")
-          instruction = task.get("instruction", "")
-          allowed_effects = task.get("allowed_effects", [])
-          
-          print(f"Executing task: {task_id}, type: {task_type}, dispatch: {dispatch_id}")
-          
-          status = "SUCCESS"
-          artifacts = []
-          error_msg = ""
-          stdout = ""
-          stderr = ""
-          
-          if task_type in ["bash", "native_command", "script"]:
-              try:
-                  res = subprocess.run(instruction, shell=True, capture_output=True, text=True)
-                  stdout = res.stdout
-                  stderr = res.stderr
-                  if res.returncode != 0:
-                      status = "FAILED"
-                      error_msg = f"Command failed with exit code {res.returncode}"
-              except Exception as e:
-                  status = "FAILED"
-                  error_msg = str(e)
-          else:
-              print(f"Unsupported task type: {task_type}")
-              status = "FAILED"
-              error_msg = "Unsupported task type"
-              
-          expected_artifacts = task.get("artifacts", [])
-          for expected in expected_artifacts:
-              art = expected.get("path") if isinstance(expected, dict) else expected
-              if os.path.exists(art):
-                  h = hashlib.sha256()
-                  with open(art, "rb") as f:
-                      h.update(f.read())
-                  artifacts.append({"path": art, "sha256": h.hexdigest()})
-              else:
-                  print(f"Warning: Expected artifact {art} not found.")
-                  
-          run_id = os.environ.get("GITHUB_RUN_ID", "")
-          job_id = os.environ.get("GITHUB_JOB", "")
-          sha = os.environ.get("GITHUB_SHA", "")
-          
-          res = {
-              "goal_id": goal_id,
-              "task_id": task_id,
-              "attempt_id": attempt_id,
-              "dispatch_id": dispatch_id,
-              "worker_id": "GITHUB-ACTIONS",
-              "provider": "github",
-              "run_id": run_id,
-              "job_id": job_id,
-              "result_id": f"result-{uuid.uuid4().hex}",
-              "source_sha": sha,
-              "status": status,
-              "artifacts": artifacts,
-              "stdout": stdout,
-              "stderr": stderr,
-              "error": error_msg,
-              "changed_property": task_type
-          }
-          
-          with open(f"result_{dispatch_id}.json", "w") as f:
-              json.dump(res, f)
-          PY_EOF
-          python3 run_task.py
+          sparse-checkout: |
+            README.md
+            scripts
+            server
+            tests
+      - name: Execute allow-listed TaskPacket operation
         env:
-          TASK_PAYLOAD: ${{ github.event.inputs.task_payload }}
-      
-      - name: Upload Result
+          TASK_PAYLOAD_BASE64: ${{ inputs.task_payload_base64 }}
+          DISPATCH_ID: ${{ inputs.dispatch_id }}
+        run: |
+          cat > "$RUNNER_TEMP/courier_task.py" <<'PY'
+          import hashlib
+          import base64
+          import json
+          import os
+          import subprocess
+          import sys
+          from pathlib import Path, PurePosixPath
+
+          task = json.loads(base64.b64decode(os.environ["TASK_PAYLOAD_BASE64"], validate=True))
+          required = ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id")
+          if not all(isinstance(task.get(field), str) and task[field] for field in required):
+              raise ValueError("TaskPacket is missing required identity fields")
+          if task["dispatch_id"] != os.environ["DISPATCH_ID"]:
+              raise ValueError("TaskPacket dispatch_id does not match workflow input")
+          operation = task.get("task_type", task.get("type"))
+          allowed = {"metadata", "report", "deterministic_transform", "verify_file", "static_analysis", "run_tests"}
+          if operation not in allowed:
+              raise ValueError(f"unsupported bounded task type: {operation!r}")
+
+          dispatch_id = task["dispatch_id"]
+          evidence_path = Path(f"courier_output_{dispatch_id}.json")
+          def evidence(value):
+              evidence_path.write_text(json.dumps(value, sort_keys=True, separators=(",", ":")) + "\n")
+              return {"path": evidence_path.name, "sha256": hashlib.sha256(evidence_path.read_bytes()).hexdigest()}
+
+          if operation == "metadata":
+              artifact = evidence({"operation": operation, "source_sha": os.environ["GITHUB_SHA"]})
+          elif operation == "report":
+              report = task.get("report")
+              if not isinstance(report, (dict, list, str)):
+                  raise ValueError("report requires JSON-compatible report content")
+              artifact = evidence({"operation": operation, "report": report})
+          elif operation == "deterministic_transform":
+              value = task.get("input")
+              if not isinstance(value, str):
+                  raise ValueError("deterministic_transform requires a string input")
+              artifact = evidence({"operation": operation, "input_sha256": hashlib.sha256(value.encode()).hexdigest()})
+          elif operation == "verify_file":
+              name = task.get("path")
+              path = PurePosixPath(name) if isinstance(name, str) else None
+              if not path or path.is_absolute() or ".." in path.parts or not Path(path).is_file():
+                  raise ValueError("verify_file requires an existing safe repository-relative path")
+              artifact = evidence({"operation": operation, "path": str(path), "sha256": hashlib.sha256(Path(path).read_bytes()).hexdigest()})
+          else:
+              if operation == "run_tests":
+                  name = task.get("test_path", "tests")
+                  path = PurePosixPath(name) if isinstance(name, str) else None
+                  if not path or path.is_absolute() or ".." in path.parts or path.parts[0] != "tests" or not Path(path).exists():
+                      raise ValueError("run_tests requires an existing safe path under tests")
+                  dependencies = subprocess.run(
+                      [sys.executable, "-m", "pip", "install", "--disable-pip-version-check", "--quiet", "pytest", "requests"],
+                      capture_output=True, text=True, check=False)
+                  if dependencies.returncode:
+                      raise RuntimeError((dependencies.stdout + dependencies.stderr)[-4000:])
+                  command = [sys.executable, "-m", "pytest", "-q", str(path)]
+              else:
+                  command = [sys.executable, "-m", "compileall", "-q", "scripts", "server"]
+              completed = subprocess.run(command, capture_output=True, text=True, check=False)
+              if completed.returncode:
+                  raise RuntimeError((completed.stdout + completed.stderr)[-4000:])
+              artifact = evidence({"operation": operation, "command": command, "exit_code": 0})
+
+          result = {
+              **{field: task[field] for field in required},
+              "provider": "github",
+              "run_id": os.environ["GITHUB_RUN_ID"],
+              "run_attempt": os.environ["GITHUB_RUN_ATTEMPT"],
+              "job_id": os.environ["GITHUB_JOB"],
+              "result_id": f"result-{dispatch_id}",
+              "source_sha": os.environ["GITHUB_SHA"],
+              "status": "SUCCESS",
+              "operation": operation,
+              "artifacts": [artifact],
+          }
+          Path(f"result_{dispatch_id}.json").write_text(json.dumps(result, sort_keys=True) + "\n")
+          PY
+          set +e
+          python3 "$RUNNER_TEMP/courier_task.py"
+          status=$?
+          if [ "$status" -ne 0 ]; then
+            python3 - <<'PY'
+          import base64, json, os
+          from pathlib import Path
+          task = json.loads(base64.b64decode(os.environ["TASK_PAYLOAD_BASE64"], validate=True))
+          fields = ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id")
+          if all(isinstance(task.get(field), str) and task[field] for field in fields):
+              Path(f"result_{task['dispatch_id']}.json").write_text(json.dumps({
+                  **{field: task[field] for field in fields}, "provider": "github",
+                  "run_id": os.environ["GITHUB_RUN_ID"], "run_attempt": os.environ["GITHUB_RUN_ATTEMPT"],
+                  "result_id": f"result-{task['dispatch_id']}", "status": "FAILED", "artifacts": [],
+                  "reason": "BOUNDED_OPERATION_FAILED"}, sort_keys=True) + "\n")
+          PY
+          fi
+          exit "$status"
+      - name: Upload dispatch-bound DurableResult
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: result-${{ fromJson(github.event.inputs.task_payload).dispatch_id }}
+          name: courier-result-${{ inputs.dispatch_id }}
           path: |
             result_*.json
-            courier_canary_*.txt
+            courier_output_*.json
+          if-no-files-found: error
