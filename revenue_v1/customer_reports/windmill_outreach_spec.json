@@ -1,0 +1,16 @@
+{
+  "prospect_alias": "Windmill-Labs",
+  "target_offering": "REV-OPP-B2B-AUTONOMY-AUDIT-BASELINE",
+  "price_eur": 99.0,
+  "contact_email": "contact@windmill.dev",
+  "contact_method_verified": "GitHub Public Profile",
+  "delivery_channel": "Email",
+  "current_status": "WAITING_FOR_HUMAN",
+  "report_asset": "revenue_v1/customer_reports/windmill_audit_outreach.md",
+  "message_fingerprint": "a4d3f3b9e8c3b4a2e5d6",
+  "outreach_message": {
+    "subject": "Windmill Labs - GitHub Actions Safety Baseline Report (EUR 99)",
+    "body": "Hello Windmill Team,\n\nThank you for your interest in the Revenue V1 GitHub Actions Safety Baseline Report. We have completed our read-only, immutable-SHA inspection (SHA: 796b6e5297d8cceb842ec097f33ec1c3115058bd).\n\nOur deterministic repository inspection analyzed your workflows and identified areas for potential security hardening (e.g., missing permissions blocks and timeout-minutes).\n\nTo unlock the full detailed report, the price is fixed at €99.\nIf you'd like the complete audit payload delivered, please reply 'AUDIT' and we will process the payment.\n\nBest regards,\nCourier Commercial Engineering"
+  },
+  "authorization_reason": "EMAIL_LOGIN_CONSENT_REQUIRED"
+}
