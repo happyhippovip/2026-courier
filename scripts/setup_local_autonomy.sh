@@ -29,10 +29,6 @@ cat << PLIST > ~/Library/LaunchAgents/com.courier.server.plist
     <dict>
         <key>PATH</key>
         <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:/Users/user/.local/bin</string>
-        <key>COURIER_API_KEY</key>
-        <string>prod-secret-12345</string>
-        <key>COURIER_VERIFIER_API_KEY</key>
-        <string>ver-secret-67890</string>
         <key>GITHUB_WORKER_ID</key>
         <string>GITHUB-DISPATCHER</string>
     </dict>
@@ -46,7 +42,6 @@ launchctl unload ~/Library/LaunchAgents/com.courier.server.plist 2>/dev/null
 launchctl load ~/Library/LaunchAgents/com.courier.server.plist
 
 echo "2. Setting up Mac Worker LaunchAgent..."
-export COURIER_API_KEY="prod-secret-12345"
 ./scripts/mac_worker/install.sh
 
 echo "Vollautomatik Background Services installed and running!"

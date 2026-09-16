@@ -33,6 +33,11 @@ def load_config():
     if "COURIER_API_KEY" in os.environ:
         config["COURIER_API_KEY"] = os.environ["COURIER_API_KEY"]
         
+    if "COURIER_API_KEY" not in config or not config["COURIER_API_KEY"]:
+        print("FATAL: COURIER_API_KEY is not set in Keychain or Environment. Failing closed.")
+        import sys
+        sys.exit(1)
+        
     return config
 
 def write_log(msg):
