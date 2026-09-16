@@ -30,69 +30,67 @@ jobs:
     runs-on: ${{ fromJSON(github.event.inputs.runner_label) }}
     steps:
       - name: Bridge Task to Native Daemon
-        shell: python
+        shell: pwsh
         run: |
-          import os, sys, json, time, shutil
+          $taskId = $env:TASK_ID
+          $goalId = $env:GOAL_ID
+          $instruction = $env:INSTRUCTION
+          $mode = $env:MODE
+          $runnerOs = $env:RUNNER_OS
           
-          task_id = os.environ.get("TASK_ID", "")
-          goal_id = os.environ.get("GOAL_ID", "")
-          instruction = os.environ.get("INSTRUCTION", "")
-          mode = os.environ.get("MODE", "ANTIGRAVITY")
-          runner_os = os.environ.get("RUNNER_OS", "")
+          Write-Host "Processing task: $taskId"
+          Write-Host "Runner OS: $runnerOs"
           
-          print(f"Processing task: {task_id}")
-          print(f"Runner OS: {runner_os}")
-          
-          task_payload = {
-              "task_id": task_id,
-              "instruction": instruction,
-              "goal_id": goal_id,
-              "mode": mode
+          $taskPayload = @{
+              task_id = $taskId
+              instruction = $instruction
+              goal_id = $goalId
+              mode = $mode
           }
+          $taskJson = $taskPayload | ConvertTo-Json
           
-          if runner_os == "macOS":
-              daemon_dir = os.path.expanduser("~/courier/scripts/mac_worker")
-              os.makedirs(f"{daemon_dir}/inbox", exist_ok=True)
-              os.makedirs(f"{daemon_dir}/outbox", exist_ok=True)
-              with open(f"{daemon_dir}/inbox/{task_id}.json", "w") as f:
-                  json.dump(task_payload, f)
-                  
-              print("Waiting for Mac daemon to finish task...")
-              out_file = f"{daemon_dir}/outbox/{task_id}_result.json"
-              while not os.path.exists(out_file):
-                  time.sleep(2)
-              shutil.copy(out_file, "result.json")
+          if ($runnerOs -eq "macOS") {
+              $daemonDir = "$HOME/courier/scripts/mac_worker"
+              New-Item -ItemType Directory -Force -Path "$daemonDir/inbox" | Out-Null
+              New-Item -ItemType Directory -Force -Path "$daemonDir/outbox" | Out-Null
+              $taskJson | Set-Content -Path "$daemonDir/inbox/$taskId.json" -Encoding utf8
               
-          elif runner_os == "Windows":
-              daemon_dir = "C:/Users/lol/2026-workspace/courier/scripts/windows_worker"
-              os.makedirs(f"{daemon_dir}/inbox", exist_ok=True)
-              os.makedirs(f"{daemon_dir}/outbox", exist_ok=True)
-              with open(f"{daemon_dir}/inbox/{task_id}.json", "w") as f:
-                  json.dump(task_payload, f)
-                  
-              print("Waiting for Windows daemon to finish task...")
-              out_file = f"{daemon_dir}/outbox/{task_id}_result.json"
-              while not os.path.exists(out_file):
-                  time.sleep(2)
-              shutil.copy(out_file, "result.json")
-              
-          else:
-              # Ubuntu cloud mode
-              print(f"Executing: {instruction}")
-              with open("task_script.sh", "w") as f:
-                  f.write(instruction)
-              os.chmod("task_script.sh", 0o755)
-              exit_code = os.system("./task_script.sh")
-              res = {
-                  "task_id": task_id,
-                  "goal_id": goal_id,
-                  "status": "SUCCESS" if exit_code == 0 else "FAILED",
-                  "provider": "github",
-                  "worker_id": "GITHUB-HOSTED",
-                  "exit_code": exit_code
+              Write-Host "Waiting for Mac daemon to finish task..."
+              $outFile = "$daemonDir/outbox/${taskId}_result.json"
+              while (-not (Test-Path $outFile)) {
+                  Start-Sleep -Seconds 2
               }
-              with open("result.json", "w") as f:
-                  json.dump(res, f)
+              Copy-Item -Path $outFile -Destination "result.json"
+          }
+          elseif ($runnerOs -eq "Windows") {
+              $daemonDir = "C:/Users/lol/2026-workspace/courier/scripts/windows_worker"
+              New-Item -ItemType Directory -Force -Path "$daemonDir/inbox" | Out-Null
+              New-Item -ItemType Directory -Force -Path "$daemonDir/outbox" | Out-Null
+              $taskJson | Set-Content -Path "$daemonDir/inbox/$taskId.json" -Encoding utf8
+              
+              Write-Host "Waiting for Windows daemon to finish task..."
+              $outFile = "$daemonDir/outbox/${taskId}_result.json"
+              while (-not (Test-Path $outFile)) {
+                  Start-Sleep -Seconds 2
+              }
+              Copy-Item -Path $outFile -Destination "result.json"
+          }
+          else {
+              Write-Host "Executing: $instruction"
+              $instruction | Set-Content -Path "task_script.sh"
+              bash ./task_script.sh
+              $exitCode = $LASTEXITCODE
+              $status = if ($exitCode -eq 0) { "SUCCESS" } else { "FAILED" }
+              $res = @{
+                  task_id = $taskId
+                  goal_id = $goalId
+                  status = $status
+                  provider = "github"
+                  worker_id = "GITHUB-HOSTED"
+                  exit_code = $exitCode
+              }
+              $res | ConvertTo-Json | Set-Content -Path "result.json" -Encoding utf8
+          }
         env:
           TASK_ID: ${{ github.event.inputs.task_id }}
           GOAL_ID: ${{ github.event.inputs.goal_id }}

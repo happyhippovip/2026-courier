@@ -16,7 +16,7 @@ def run(task_file):
     # Map Courier target to GitHub Runner labels
     target = task.get('target_capability', 'github')
     if target == 'windows':
-        runner_label = '["self-hosted", "windows"]'
+        runner_label = '["self-hosted", "Windows"]'
     elif target == 'mac':
         runner_label = '["self-hosted", "macOS"]'
     else:
