@@ -36,9 +36,16 @@ def load_config():
     return config
 
 def write_log(msg):
+    # Rotate log if > 5MB
+    log_file = LOGS_DIR / "worker.log"
+    if log_file.exists() and log_file.stat().st_size > 5 * 1024 * 1024:
+        log_file.rename(LOGS_DIR / "worker.log.1")
+        
     print(msg)
-    with open(LOGS_DIR / "worker.log", "a") as f:
-        f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {msg}\n")
+    # Strip any potential secrets
+    safe_msg = str(msg).replace(os.environ.get("COURIER_API_KEY", "dummy"), "[REDACTED]")
+    with open(log_file, "a") as f:
+        f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {safe_msg}\n")
 
 def http_post(config, endpoint, data):
     url = config["COURIER_SERVER"].rstrip("/") + endpoint
@@ -136,6 +143,11 @@ def run_agy(task, config):
     except Exception as e:
         return {"status": "FAILED", "stderr": str(e), "execution_mode": "ANTIGRAVITY"}
 
+
+def run_copilot(task, config):
+    write_log(f"Running AI task {task['task_id']} via Copilot CLI (stub)")
+    return {"status": "FAILED", "reason": "UNSUPPORTED_ADAPTER", "execution_mode": "COPILOT"}
+
 def loop():
     write_log("Starting Mac Worker HTTP Daemon...")
     config = load_config()
@@ -161,10 +173,22 @@ def loop():
     while True:
         try:
             if not registered:
+                # Detect provider capabilities
+                caps = ["macos", "linux"]
+                
+                # Check agy
+                import shutil
+                if shutil.which("agy") or shutil.which("agy", path="/Users/user/.local/bin:/usr/local/bin:/opt/homebrew/bin"):
+                    caps.append("antigravity")
+                    
+                # Check gh copilot
+                if shutil.which("gh") and "copilot" in subprocess.getoutput("gh extension list"):
+                    caps.append("copilot")
+
                 reg_payload = {
                     "worker_id": config["WORKER_ID"],
                     "platform": "macos",
-                    "capabilities": ["macos", "linux", "antigravity"]
+                    "capabilities": caps
                 }
                 res, err = http_post(config, "/workers/register", reg_payload)
                 if err:
@@ -203,6 +227,15 @@ def loop():
                 keep_awake = subprocess.Popen(["caffeinate", "-s", "-i"])
                 try:
                     mode = task.get("mode", "ANTIGRAVITY")
+                    workspace = task.get("workspace")
+                    if workspace:
+                        try:
+                            os.chdir(workspace)
+                        except FileNotFoundError:
+                            result = {"status": "FAILED", "stderr": f"Workspace {workspace} not found. Out of scope."}
+                            # short circuit
+                            mode = "FAILED_SCOPE"
+
                     # Fallback to NATIVE if requested via target_agent routing
                     target = task.get("target_agent", "").lower()
                     if "mac" in target and mode == "ANTIGRAVITY" and "echo" in task.get("instruction", "").lower():
@@ -211,6 +244,8 @@ def loop():
 
                     if mode == "NATIVE":
                         result = run_native(task, config)
+                    elif mode == "COPILOT":
+                        result = run_copilot(task, config)
                     else:
                         result = run_agy(task, config)
                     
