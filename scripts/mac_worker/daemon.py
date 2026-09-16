@@ -186,68 +186,75 @@ def loop():
                 if task:
                     with open(current_task_state_file, 'w') as f:
                         json.dump(task, f)
+                else:
+                    time.sleep(config.get('IDLE_POLL_INTERVAL_SECONDS', 30))
+                    continue
                         
             if task:
                 write_log(f"Processing task {task['task_id']}")
-                mode = task.get("mode", "ANTIGRAVITY")
-                # Fallback to NATIVE if requested via target_agent routing
-                target = task.get("target_agent", "").lower()
-                if "mac" in target and mode == "ANTIGRAVITY" and "echo" in task.get("instruction", "").lower():
-                    # For simple testing/canary routing we force NATIVE if they specify echo
-                    mode = "NATIVE"
+                keep_awake = subprocess.Popen(["caffeinate", "-s", "-i"])
+                try:
+                    mode = task.get("mode", "ANTIGRAVITY")
+                    # Fallback to NATIVE if requested via target_agent routing
+                    target = task.get("target_agent", "").lower()
+                    if "mac" in target and mode == "ANTIGRAVITY" and "echo" in task.get("instruction", "").lower():
+                        # For simple testing/canary routing we force NATIVE if they specify echo
+                        mode = "NATIVE"
 
-                if mode == "NATIVE":
-                    result = run_native(task, config)
-                else:
-                    result = run_agy(task, config)
-                
-                # Format result payload
-# Form valid artifacts structure
-                artifact_evidence = []
-                if result.get("status") == "SUCCESS":
-                    expected_arts = task.get("artifacts", [])
-                    import hashlib
-                    for expected in expected_arts:
-                        expected_path = expected.get('path') if isinstance(expected, dict) else expected
-                        p = Path(expected_path)
-                        if p.exists():
-                            artifact_evidence.append({
-                                "path": expected_path,
-                                "sha256": hashlib.sha256(p.read_bytes()).hexdigest()
-                            })
-                        else:
-                            result['status'] = 'FAILED'
-                            result['stderr'] = result.get('stderr', '') + f'\nMissing artifact: {expected_path}'
-                payload = {
-                    "worker_id": config["WORKER_ID"],
-                    "goal_id": task.get("goal_id"),
-                    "task_id": task["task_id"],
-                    "dispatch_id": task.get("dispatch_id"),
-                    "attempt_id": task.get("attempt_id"),
-                    "run_id": str(uuid.uuid4()),
-                    "result_id": str(uuid.uuid4()),
-                    "status": result.get("status", "FAILED"),
-                    "artifacts": artifact_evidence,
-                    "provider": "mac_" + result.get("execution_mode", "unknown").lower(),
-                    "raw_result": result
-                }
-                
-                # Backoff loop for posting result
-                retries = 0
-                while retries < 8: # Up to 8 retries (~ 255 seconds)
-                    res, err = http_post(config, "/tasks/result", payload)
-                    if err:
-                        write_log(f"Result post failed: {err}. Retrying in {2**retries}s...")
-                        time.sleep(2 ** retries)
-                        retries += 1
+                    if mode == "NATIVE":
+                        result = run_native(task, config)
                     else:
-                        write_log(f"Result posted successfully: {res}")
-                        break
-                        
-                if current_task_state_file.exists():
-                    os.remove(current_task_state_file)
+                        result = run_agy(task, config)
                     
-                task = None
+                    # Format result payload
+    # Form valid artifacts structure
+                    artifact_evidence = []
+                    if result.get("status") == "SUCCESS":
+                        expected_arts = task.get("artifacts", [])
+                        import hashlib
+                        for expected in expected_arts:
+                            expected_path = expected.get('path') if isinstance(expected, dict) else expected
+                            p = Path(expected_path)
+                            if p.exists():
+                                artifact_evidence.append({
+                                    "path": expected_path,
+                                    "sha256": hashlib.sha256(p.read_bytes()).hexdigest()
+                                })
+                            else:
+                                result['status'] = 'FAILED'
+                                result['stderr'] = result.get('stderr', '') + f'\nMissing artifact: {expected_path}'
+                    payload = {
+                        "worker_id": config["WORKER_ID"],
+                        "goal_id": task.get("goal_id"),
+                        "task_id": task["task_id"],
+                        "dispatch_id": task.get("dispatch_id"),
+                        "attempt_id": task.get("attempt_id"),
+                        "run_id": str(uuid.uuid4()),
+                        "result_id": str(uuid.uuid4()),
+                        "status": result.get("status", "FAILED"),
+                        "artifacts": artifact_evidence,
+                        "provider": "mac_" + result.get("execution_mode", "unknown").lower(),
+                        "raw_result": result
+                    }
+                    
+                    # Backoff loop for posting result
+                    retries = 0
+                    while retries < 8: # Up to 8 retries (~ 255 seconds)
+                        res, err = http_post(config, "/tasks/result", payload)
+                        if err:
+                            write_log(f"Result post failed: {err}. Retrying in {2**retries}s...")
+                            time.sleep(2 ** retries)
+                            retries += 1
+                        else:
+                            write_log(f"Result posted successfully: {res}")
+                            break
+                            
+                    if current_task_state_file.exists():
+                        os.remove(current_task_state_file)
+                        
+                    task = None
+                finally:
+                    keep_awake.terminate()
                 
         except Exception as e:
             write_log(f"Error in HTTP poll loop: {e}\n{traceback.format_exc()}")
