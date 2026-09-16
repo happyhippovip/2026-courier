@@ -5,8 +5,15 @@ import time
 import requests
 import hashlib
 
-API_URL = os.environ.get("COURIER_SERVER", "http://127.0.0.1:8080").rstrip("/")
-API_KEY = os.environ.get("COURIER_VERIFIER_API_KEY")
+try:
+    import keyring
+    API_URL = os.environ.get("COURIER_SERVER") or keyring.get_password("courier_worker", "courier_server_url") or "http://127.0.0.1:8080"
+    API_URL = API_URL.rstrip("/")
+    API_KEY = os.environ.get("COURIER_VERIFIER_API_KEY") or keyring.get_password("courier_worker", "courier_verifier_api_key")
+except ImportError:
+    API_URL = os.environ.get("COURIER_SERVER", "http://127.0.0.1:8080").rstrip("/")
+    API_KEY = os.environ.get("COURIER_VERIFIER_API_KEY")
+
 HEADERS = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
 VERIFIER_ID = "VERIFIER-01"
 

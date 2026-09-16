@@ -43,6 +43,20 @@ def get_config():
     except Exception:
         pass
 
+    # Windows / cross-platform Keyring support
+    try:
+        import keyring
+        if not config.get("COURIER_API_KEY"):
+            pw = keyring.get_password("courier_worker", "courier_api_key")
+            if pw:
+                config["COURIER_API_KEY"] = pw
+        if not config.get("COURIER_SERVER"):
+            srv = keyring.get_password("courier_worker", "courier_server_url")
+            if srv:
+                config["COURIER_SERVER"] = srv
+    except ImportError:
+        pass
+
     if "COURIER_SERVER" in os.environ:
         config["COURIER_SERVER"] = os.environ["COURIER_SERVER"]
     if "COURIER_API_KEY" in os.environ:
@@ -92,16 +106,16 @@ def main():
                 "capabilities": ["revenue_safety_audit"]
             })
             
-            if claim_resp and "task_id" in claim_resp:
-                task = claim_resp
+            if claim_resp and claim_resp.get("task"):
+                task = claim_resp["task"]
                 task_id = task["task_id"]
                 attempt_id = task.get("attempt_id", task_id)
                 write_log(f"Claimed task {task_id}")
                 
                 work_dir = STATE_DIR / task_id
                 if work_dir.exists():
-                    shutil.rmtree(work_dir)
-                work_dir.mkdir(parents=True)
+                    shutil.rmtree(work_dir, ignore_errors=True)
+                work_dir.mkdir(parents=True, exist_ok=True)
                 
                 task_file = work_dir / "task.json"
                 task_file.write_text(json.dumps(task, indent=2))
@@ -129,10 +143,17 @@ def main():
                     artifact_b64 = base64.b64encode(artifact_bytes).decode('utf-8')
                     
                     # Post result
+                    # Post result
                     res_payload = {
+                        "goal_id": task.get("goal_id"),
                         "task_id": task_id,
                         "attempt_id": attempt_id,
+                        "dispatch_id": task.get("dispatch_id"),
                         "worker_id": worker_id,
+                        "run_id": "rev-worker-v1",
+                        "result_id": f"result-{uuid.uuid4().hex}",
+                        "status": "SUCCESS",
+                        "artifacts": [{"path": "revenue_artifacts.zip", "sha256": artifact_sha}],
                         "result_data": result_data,
                         "artifact_name": "revenue_artifacts.zip",
                         "artifact_sha256": artifact_sha,

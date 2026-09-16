@@ -8,13 +8,41 @@ from scripts.run_chief_commander import ChiefCommander
 app = Flask(__name__)
 
 STATE_FILE = os.environ.get("COURIER_STATE_FILE", "server/state/central_state.json")
-API_KEY = os.environ.get("COURIER_API_KEY")
+try:
+    import keyring
+    API_KEY = os.environ.get("COURIER_API_KEY") or keyring.get_password("courier_worker", "courier_api_key")
+    VERIFIER_API_KEY = os.environ.get("COURIER_VERIFIER_API_KEY") or keyring.get_password("courier_worker", "courier_verifier_api_key")
+except ImportError:
+    API_KEY = os.environ.get("COURIER_API_KEY")
+    VERIFIER_API_KEY = os.environ.get("COURIER_VERIFIER_API_KEY")
+
 if not API_KEY:
-    raise SystemExit("Missing COURIER_API_KEY environment variable")
-VERIFIER_API_KEY = os.environ.get("COURIER_VERIFIER_API_KEY")
+    raise SystemExit("Missing COURIER_API_KEY environment variable or keyring entry")
 if not VERIFIER_API_KEY:
-    raise SystemExit("Missing COURIER_VERIFIER_API_KEY environment variable")
+    raise SystemExit("Missing COURIER_VERIFIER_API_KEY environment variable or keyring entry")
 INSECURE_API_KEYS = {"", "dev-secret-key", "your_secure_api_key_here"}
+
+# Canonical task statuses — the ONLY valid values for task["status"].
+# No code may invent status strings outside this set.
+VALID_TASK_STATUSES = frozenset({
+    "QUEUED",
+    "DISPATCHED",
+    "RESULT_RECEIVED",
+    "RECONCILED",
+    "RECONCILED_PENDING_MERGE",
+    "FAILED_TERMINAL",
+    "FAILED_VERIFICATION",
+    "HUMAN_REQUIRED",
+    "WAITING_PROVIDER",
+    "BLOCKED_TRANSIENT",
+})
+
+def set_task_status(task, new_status):
+    """Set task status with validation. Raises ValueError for invalid statuses."""
+    if new_status not in VALID_TASK_STATUSES:
+        raise ValueError(f"Invalid task status: {new_status!r}. Valid: {sorted(VALID_TASK_STATUSES)}")
+    task["status"] = new_status
+
 STATE_LOCK = threading.RLock()
 
 def require_auth(f):
