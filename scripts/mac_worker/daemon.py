@@ -9,6 +9,9 @@ BASE_DIR = Path(__file__).parent
 CONFIG_PATH = BASE_DIR / "config.json"
 STATE_DIR = BASE_DIR / "state"
 LOGS_DIR = BASE_DIR / "logs"
+LOGS_DIR.mkdir(parents=True, exist_ok=True)
+STATE_DIR.mkdir(parents=True, exist_ok=True)
+SECRET_KEY = None
 
 def load_config():
     with open(CONFIG_PATH, "r") as f:
@@ -32,6 +35,12 @@ def load_config():
         config["COURIER_SERVER"] = os.environ["COURIER_SERVER"]
     if "COURIER_API_KEY" in os.environ:
         config["COURIER_API_KEY"] = os.environ["COURIER_API_KEY"]
+    if not config.get('COURIER_API_KEY'):
+        import sys; sys.stderr.write('FATAL: Missing credentials fail closed.\n'); sys.exit(1)
+    if not config.get('COURIER_SERVER'):
+        import sys; sys.stderr.write('FATAL: Missing server fail closed.\n'); sys.exit(1)
+    global SECRET_KEY
+    SECRET_KEY = config['COURIER_API_KEY']
         
     return config
 
@@ -43,7 +52,7 @@ def write_log(msg):
         
     print(msg)
     # Strip any potential secrets
-    safe_msg = str(msg).replace(os.environ.get("COURIER_API_KEY", "dummy"), "[REDACTED]")
+    safe_msg = str(msg).replace(SECRET_KEY, '[REDACTED]') if SECRET_KEY else str(msg).replace(os.environ.get('COURIER_API_KEY', 'dummy'), '[REDACTED]')
     with open(log_file, "a") as f:
         f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {safe_msg}\n")
 
@@ -153,8 +162,7 @@ def run_copilot(task, config):
     write_log(f"Running AI task {task['task_id']} via Copilot CLI")
     instruction = task.get('instruction', task.get('description', ''))
     
-    prompt = f"Task ID: {task['task_id']}
-Instruction: {instruction}"
+    prompt = f"Task ID: {task['task_id']}\nInstruction: {instruction}"
     
     wrapper = os.path.join(os.path.dirname(__file__), "limit_wrapper.sh")
     
@@ -189,8 +197,8 @@ Instruction: {instruction}"
         return {"status": "FAILED", "stderr": str(e), "execution_mode": "COPILOT"}
 
 def loop():
-    write_log("Starting Mac Worker HTTP Daemon...")
     config = load_config()
+    write_log("Starting Mac Worker HTTP Daemon...")
     current_task_state_file = STATE_DIR / "current_task.json"
     current_result_state_file = STATE_DIR / "current_result.json"
     
