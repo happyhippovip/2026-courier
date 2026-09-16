@@ -33,7 +33,7 @@ def run(task_file):
         print(f"[GitHub Transport] Result already exists for {task_id}. Skipping dispatch.")
         return
 
-    dispatch_file = Path(f"results/incoming/{task_id}_dispatch.json")
+    dispatch_file = Path(f"tasks/dispatched/{task_id}_dispatch.json")
     attempt_id = None
     
     if dispatch_file.exists():
@@ -77,12 +77,12 @@ def run(task_file):
                 "run_id": "failed",
                 "stderr": err
             }
-            os.makedirs("results/incoming", exist_ok=True)
+            os.makedirs("results/incoming", exist_ok=True); os.makedirs("tasks/dispatched", exist_ok=True)
             with open(result_file, 'w') as f:
                 json.dump(res, f)
             return
             
-        os.makedirs("results/incoming", exist_ok=True)
+        os.makedirs("results/incoming", exist_ok=True); os.makedirs("tasks/dispatched", exist_ok=True)
         with open(dispatch_file, 'w') as df:
             json.dump({"attempt_id": attempt_id, "task_id": task_id, "timestamp": time.time()}, df)
             
@@ -126,7 +126,7 @@ def run(task_file):
                     
                     if result_json_path.exists():
                         # Bind the downloaded result to the observable GitHub run.
-                        os.makedirs("results/incoming", exist_ok=True)
+                        os.makedirs("results/incoming", exist_ok=True); os.makedirs("tasks/dispatched", exist_ok=True)
                         result_payload = json.loads(result_json_path.read_text(encoding="utf-8"))
                         result_payload["run_id"] = run_id
                         result_payload["attempt_id"] = attempt_id
@@ -190,7 +190,7 @@ def run(task_file):
         "attempt_id": attempt_id,
         "run_id": "timeout"
     }
-    os.makedirs("results/incoming", exist_ok=True)
+    os.makedirs("results/incoming", exist_ok=True); os.makedirs("tasks/dispatched", exist_ok=True)
     with open(f"results/incoming/{task_id}_result.json", 'w') as f:
         json.dump(res, f)
 
