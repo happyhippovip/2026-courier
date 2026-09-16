@@ -31,7 +31,7 @@
     "goal_38e4ee43": {
       "goal_id": "goal_38e4ee43",
       "goal_text": "Test goal to ensure routing works",
-      "status": "ACTIVE",
+      "status": "BLOCKED",
       "created_at": "2026-09-16T00:41:03.978470",
       "workflow_plan": [
         {
@@ -61,7 +61,7 @@
     "goal_541c2da6": {
       "goal_id": "goal_541c2da6",
       "goal_text": "Erzeuge zwei harmlose abh\u00e4ngige Tasks (Attempt 2).",
-      "status": "ACTIVE",
+      "status": "BLOCKED",
       "created_at": "2026-09-16T00:50:20.498665",
       "workflow_plan": [
         {
@@ -243,7 +243,7 @@
       ],
       "goal_id": "goal-canary-02",
       "goal_text": "Run two step cross-machine canary",
-      "status": "ACTIVE",
+      "status": "BLOCKED",
       "current_step_index": 1
     }
   },
@@ -303,7 +303,7 @@
       "goal_id": "goal_38e4ee43",
       "description": "Formulate execution strategy and inspect context for: Test goal to ensure routing works",
       "target_capability": "mac",
-      "status": "DISPATCHED",
+      "status": "FAILED_VERIFICATION",
       "attempt_id": "WF-CHIEF-c9eaa1-STEP-1-DISCOVER:attempt:1",
       "dispatch_id": "dispatch-f3623bd8463c4596baf3cae64cd4822b",
       "worker_id": "MAC-01",
@@ -318,7 +318,7 @@
       "goal_id": "goal_541c2da6",
       "description": "Formulate execution strategy and inspect context for: Erzeuge zwei harmlose abh\u00e4ngige Tasks (Attempt 2).",
       "target_capability": "mac",
-      "status": "DISPATCHED",
+      "status": "FAILED_VERIFICATION",
       "attempt_id": "WF-CHIEF-b37c49-STEP-1-DISCOVER:attempt:1",
       "dispatch_id": "dispatch-44f6ee6ab1dd4f27870d2d44b936e79e",
       "worker_id": "MAC-01",
@@ -692,7 +692,7 @@
       "artifacts": [
         "courier_canary_task-canary-03.txt"
       ],
-      "status": "DISPATCHED"
+      "status": "FAILED_VERIFICATION"
     }
   }
 }

@@ -65,7 +65,7 @@ jobs:
           elseif ($runnerOs -eq "Windows") {
               Write-Host "Executing on Windows Cloud Runner: $instruction"
               $instruction | Set-Content -Path "task_script.ps1"
-              powershell.exe -File .\task_script.ps1
+              powershell.exe -File .\task_script.ps1 *>&1 | Tee-Object -FilePath "execution.log"
               $exitCode = $LASTEXITCODE
               $status = if ($exitCode -eq 0) { "SUCCESS" } else { "FAILED" }
               $res = @{
@@ -81,7 +81,7 @@ jobs:
           else {
               Write-Host "Executing: $instruction"
               $instruction | Set-Content -Path "task_script.sh"
-              bash ./task_script.sh
+              bash ./task_script.sh *>&1 | Tee-Object -FilePath "execution.log"
               $exitCode = $LASTEXITCODE
               $status = if ($exitCode -eq 0) { "SUCCESS" } else { "FAILED" }
               $res = @{
@@ -109,3 +109,5 @@ jobs:
           path: |
             result.json
             courier_canary_*.txt
+            execution.log
+            task_script.*
