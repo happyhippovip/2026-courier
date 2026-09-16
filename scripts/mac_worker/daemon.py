@@ -36,9 +36,16 @@ def load_config():
     return config
 
 def write_log(msg):
+    # Rotate log if > 5MB
+    log_file = LOGS_DIR / "worker.log"
+    if log_file.exists() and log_file.stat().st_size > 5 * 1024 * 1024:
+        log_file.rename(LOGS_DIR / "worker.log.1")
+        
     print(msg)
-    with open(LOGS_DIR / "worker.log", "a") as f:
-        f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {msg}\n")
+    # Strip any potential secrets
+    safe_msg = str(msg).replace(os.environ.get("COURIER_API_KEY", "dummy"), "[REDACTED]")
+    with open(log_file, "a") as f:
+        f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {safe_msg}\n")
 
 def http_post(config, endpoint, data):
     url = config["COURIER_SERVER"].rstrip("/") + endpoint
@@ -112,7 +119,12 @@ def run_agy(task, config):
     
     try:
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        stdout, stderr = process.communicate(timeout=300)
+        try:
+            stdout, stderr = process.communicate(timeout=300)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            stdout, stderr = process.communicate()
+            return {"status": "FAILED", "stderr": "Execution timed out", "execution_mode": "ANTIGRAVITY"}
         
         out_clean = stdout.strip()
         parsed = False
@@ -136,10 +148,51 @@ def run_agy(task, config):
     except Exception as e:
         return {"status": "FAILED", "stderr": str(e), "execution_mode": "ANTIGRAVITY"}
 
+
+def run_copilot(task, config):
+    write_log(f"Running AI task {task['task_id']} via Copilot CLI")
+    instruction = task.get('instruction', task.get('description', ''))
+    
+    prompt = f"Task ID: {task['task_id']}
+Instruction: {instruction}"
+    
+    wrapper = os.path.join(os.path.dirname(__file__), "limit_wrapper.sh")
+    
+    import shutil
+    gh_bin = shutil.which("gh")
+    if not gh_bin:
+        return {"status": "FAILED", "reason": "GH_NOT_FOUND", "execution_mode": "COPILOT"}
+        
+    cmd = [wrapper, gh_bin, "copilot", "suggest", "-t", "shell", prompt]
+    
+    try:
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        try:
+            stdout, stderr = process.communicate(timeout=300)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            stdout, stderr = process.communicate()
+            return {"status": "FAILED", "stderr": "Execution timed out", "execution_mode": "COPILOT"}
+        
+        # We can't really execute gh copilot suggest automatically if it requires interactive confirmation,
+        # but if we just want to return the output:
+        res_json = {
+            "status": "SUCCESS" if process.returncode == 0 else "FAILED",
+            "stdout": stdout.strip(),
+            "stderr": stderr.strip(),
+            "execution_mode": "COPILOT"
+        }
+            
+        return res_json
+        
+    except Exception as e:
+        return {"status": "FAILED", "stderr": str(e), "execution_mode": "COPILOT"}
+
 def loop():
     write_log("Starting Mac Worker HTTP Daemon...")
     config = load_config()
     current_task_state_file = STATE_DIR / "current_task.json"
+    current_result_state_file = STATE_DIR / "current_result.json"
     
     # Load previously claimed task for duplicate protection
     task = None
@@ -148,15 +201,34 @@ def loop():
         with open(current_task_state_file, 'r') as f:
             task = json.load(f)
             
+    # Load pending result if execution finished but delivery failed
+    pending_result = None
+    if current_result_state_file.exists():
+        write_log("Found pending result from previous run, resuming delivery...")
+        with open(current_result_state_file, 'r') as f:
+            pending_result = json.load(f)
+
     registered = False
     
     while True:
         try:
             if not registered:
+                # Detect provider capabilities
+                caps = ["macos", "linux"]
+                
+                # Check agy
+                import shutil
+                if shutil.which("agy") or shutil.which("agy", path="/Users/user/.local/bin:/usr/local/bin:/opt/homebrew/bin"):
+                    caps.append("antigravity")
+                    
+                # Check gh copilot
+                if shutil.which("gh") and "copilot" in subprocess.getoutput("gh extension list"):
+                    caps.append("copilot")
+
                 reg_payload = {
                     "worker_id": config["WORKER_ID"],
                     "platform": "macos",
-                    "capabilities": ["macos", "linux", "antigravity"]
+                    "capabilities": caps
                 }
                 res, err = http_post(config, "/workers/register", reg_payload)
                 if err:
@@ -174,7 +246,7 @@ def loop():
                 time.sleep(5)
                 continue
                 
-            if not task:
+            if not task and not pending_result:
                 # Claim Task
                 res, err = http_post(config, "/tasks/claim", {"worker_id": config["WORKER_ID"]})
                 if err:
@@ -186,68 +258,91 @@ def loop():
                 if task:
                     with open(current_task_state_file, 'w') as f:
                         json.dump(task, f)
-                        
-            if task:
-                write_log(f"Processing task {task['task_id']}")
-                mode = task.get("mode", "ANTIGRAVITY")
-                # Fallback to NATIVE if requested via target_agent routing
-                target = task.get("target_agent", "").lower()
-                if "mac" in target and mode == "ANTIGRAVITY" and "echo" in task.get("instruction", "").lower():
-                    # For simple testing/canary routing we force NATIVE if they specify echo
-                    mode = "NATIVE"
-
-                if mode == "NATIVE":
-                    result = run_native(task, config)
                 else:
-                    result = run_agy(task, config)
-                
-                # Format result payload
-# Form valid artifacts structure
-                artifact_evidence = []
-                if result.get("status") == "SUCCESS":
-                    expected_arts = task.get("artifacts", [])
-                    import hashlib
-                    for expected in expected_arts:
-                        expected_path = expected.get('path') if isinstance(expected, dict) else expected
-                        p = Path(expected_path)
-                        if p.exists():
-                            artifact_evidence.append({
-                                "path": expected_path,
-                                "sha256": hashlib.sha256(p.read_bytes()).hexdigest()
-                            })
-                        else:
-                            result['status'] = 'FAILED'
-                            result['stderr'] = result.get('stderr', '') + f'\nMissing artifact: {expected_path}'
-                payload = {
-                    "worker_id": config["WORKER_ID"],
-                    "goal_id": task.get("goal_id"),
-                    "task_id": task["task_id"],
-                    "dispatch_id": task.get("dispatch_id"),
-                    "attempt_id": task.get("attempt_id"),
-                    "run_id": str(uuid.uuid4()),
-                    "result_id": str(uuid.uuid4()),
-                    "status": result.get("status", "FAILED"),
-                    "artifacts": artifact_evidence,
-                    "provider": "mac_" + result.get("execution_mode", "unknown").lower(),
-                    "raw_result": result
-                }
-                
-                # Backoff loop for posting result
-                retries = 0
-                while retries < 8: # Up to 8 retries (~ 255 seconds)
-                    res, err = http_post(config, "/tasks/result", payload)
-                    if err:
-                        write_log(f"Result post failed: {err}. Retrying in {2**retries}s...")
-                        time.sleep(2 ** retries)
-                        retries += 1
-                    else:
-                        write_log(f"Result posted successfully: {res}")
-                        break
+                    time.sleep(config.get('IDLE_POLL_INTERVAL_SECONDS', 30))
+                    continue
                         
-                if current_task_state_file.exists():
-                    os.remove(current_task_state_file)
+            if task and not pending_result:
+                write_log(f"Processing task {task['task_id']}")
+                keep_awake = subprocess.Popen(["caffeinate", "-s", "-i"])
+                try:
+                    mode = task.get("mode", "ANTIGRAVITY")
+                    workspace = task.get("workspace")
+                    if workspace:
+                        try:
+                            os.chdir(workspace)
+                        except FileNotFoundError:
+                            result = {"status": "FAILED", "stderr": f"Workspace {workspace} not found. Out of scope."}
+                            # short circuit
+                            mode = "FAILED_SCOPE"
+
+                    # Fallback to NATIVE if requested via target_agent routing
+                    target = task.get("target_agent", "").lower()
+                    if "mac" in target and mode == "ANTIGRAVITY" and "echo" in task.get("instruction", "").lower():
+                        # For simple testing/canary routing we force NATIVE if they specify echo
+                        mode = "NATIVE"
+
+                    if mode == "NATIVE":
+                        result = run_native(task, config)
+                    elif mode == "COPILOT":
+                        result = run_copilot(task, config)
+                    else:
+                        result = run_agy(task, config)
                     
-                task = None
+                    # Format result payload
+    # Form valid artifacts structure
+                    artifact_evidence = []
+                    if result.get("status") == "SUCCESS":
+                        expected_arts = task.get("artifacts", [])
+                        import hashlib
+                        for expected in expected_arts:
+                            expected_path = expected.get('path') if isinstance(expected, dict) else expected
+                            p = Path(expected_path)
+                            if p.exists():
+                                artifact_evidence.append({
+                                    "path": expected_path,
+                                    "sha256": hashlib.sha256(p.read_bytes()).hexdigest()
+                                })
+                            else:
+                                result['status'] = 'FAILED'
+                                result['stderr'] = result.get('stderr', '') + f'\nMissing artifact: {expected_path}'
+                    payload = {
+                        "worker_id": config["WORKER_ID"],
+                        "goal_id": task.get("goal_id"),
+                        "task_id": task["task_id"],
+                        "dispatch_id": task.get("dispatch_id"),
+                        "attempt_id": task.get("attempt_id"),
+                        "run_id": str(uuid.uuid4()),
+                        "result_id": str(uuid.uuid4()),
+                        "status": result.get("status", "FAILED"),
+                        "artifacts": artifact_evidence,
+                        "provider": "mac_" + result.get("execution_mode", "unknown").lower(),
+                        "raw_result": result
+                    }
+                    
+                    # Persist pending result before attempting to send
+                    with open(current_result_state_file, 'w') as f:
+                        json.dump(payload, f)
+                    pending_result = payload
+                    
+                finally:
+                    keep_awake.terminate()
+            
+            if pending_result:
+                # Backoff loop for posting result
+                res, err = http_post(config, "/tasks/result", pending_result)
+                if err:
+                    write_log(f"Result post failed: {err}. Will retry on next loop.")
+                    time.sleep(5)
+                    continue
+                else:
+                    write_log(f"Result posted successfully: {res}")
+                    if current_result_state_file.exists():
+                        os.remove(current_result_state_file)
+                    if current_task_state_file.exists():
+                        os.remove(current_task_state_file)
+                    pending_result = None
+                    task = None
                 
         except Exception as e:
             write_log(f"Error in HTTP poll loop: {e}\n{traceback.format_exc()}")
