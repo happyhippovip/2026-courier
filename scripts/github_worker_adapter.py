@@ -110,7 +110,12 @@ def post_result(result: dict[str, Any]) -> None:
     if not key:
         raise RuntimeError("COURIER_API_KEY is required to post a DurableResult")
     url = os.environ.get("COURIER_SERVER", "http://127.0.0.1:8080").rstrip("/") + "/tasks/result"
-    response = requests.post(url, json=result, headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"}, timeout=15)
+    response = requests.post(
+        url,
+        json=result,
+        headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+        timeout=15,
+    )
     if response.status_code >= 400:
         raise RuntimeError(f"Courier result POST failed: {response.status_code} {response.text}")
 

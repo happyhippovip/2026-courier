@@ -78,3 +78,25 @@ def test_durable_result_preserves_github_run_attempt():
         "status": "SUCCESS", "artifacts": [{"path": "courier_output_dispatch-1.json", "sha256": "a" * 64}],
     }
     assert validate_durable_result(task, result)["run_attempt"] == "1"
+
+
+def test_post_result_uses_courier_bearer_token(monkeypatch):
+    captured = {}
+
+    class Response:
+        status_code = 200
+        text = ""
+
+    def fake_post(url, **kwargs):
+        captured["url"] = url
+        captured.update(kwargs)
+        return Response()
+
+    monkeypatch.setenv("COURIER_API_KEY", "courier-test-token")
+    monkeypatch.setenv("COURIER_SERVER", "http://courier.test/")
+    monkeypatch.setattr(adapter.requests, "post", fake_post)
+
+    adapter.post_result({"result_id": "result-1"})
+
+    assert captured["url"] == "http://courier.test/tasks/result"
+    assert captured["headers"]["Authorization"] == "Bearer courier-test-token"
