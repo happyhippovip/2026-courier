@@ -99,10 +99,14 @@ def run_native(task, config):
         return {"status": "FAILED", "stderr": str(e), "execution_mode": "NATIVE"}
 
 def run_agy(task, config):
+    import signal
     write_log(f"Running AI task {task['task_id']} via agy")
     instruction = task.get('instruction', task.get('description', ''))
     
-    prompt = f"Task ID: {task['task_id']}\nInstruction: {instruction}\n\nYou are a headless worker on Mac. You MUST execute the instruction. After you have successfully executed the instruction, you MUST output a final JSON object in a markdown codeblock. The JSON must contain a 'status' field set to 'SUCCESS' and a 'stdout_summary' field explaining what you did. IMPORTANT: Your current working directory is {os.getcwd()}. Any file artifacts you create MUST be relative to this directory."
+    prompt = f"Task ID: {task['task_id']}
+Instruction: {instruction}
+
+You are a headless worker on Mac. You MUST execute the instruction. After you have successfully executed the instruction, you MUST output a final JSON object in a markdown codeblock. The JSON must contain a 'status' field set to 'SUCCESS' and a 'stdout_summary' field explaining what you did. IMPORTANT: Your current working directory is {os.getcwd()}. Any file artifacts you create MUST be relative to this directory."
     agy_bin = shutil.which("agy") or shutil.which("agy", path=os.environ.get("PATH", "") + ":/Users/user/.local/bin:/usr/local/bin:/opt/homebrew/bin")
     if not agy_bin:
         return {"status": "FAILED", "reason": "AGY_NOT_FOUND", "execution_mode": "ANTIGRAVITY"}
@@ -110,10 +114,19 @@ def run_agy(task, config):
     wrapper = os.path.join(os.path.dirname(__file__), "limit_wrapper.sh")
     cmd = [wrapper, agy_bin, "-p", prompt, "--dangerously-skip-permissions"]
     
+    pid_file = STATE_DIR / "current_task_pid.json"
+    process = None
     try:
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, preexec_fn=os.setsid)
+        
+        with open(pid_file, "w") as f:
+            json.dump({"pid": process.pid, "pgid": os.getpgid(process.pid)}, f)
+            
         stdout, stderr = process.communicate(timeout=300)
         
+        if pid_file.exists():
+            os.remove(pid_file)
+            
         out_clean = stdout.strip()
         parsed = False
         res_json = {}
@@ -133,13 +146,48 @@ def run_agy(task, config):
             
         return res_json
         
+    except subprocess.TimeoutExpired as e:
+        write_log(f"Task {task['task_id']} timed out (stale session). Cleaning up exact process group.")
+        if process:
+            try:
+                os.killpg(os.getpgid(process.pid), signal.SIGKILL)
+            except:
+                pass
+        if pid_file.exists():
+            os.remove(pid_file)
+        return {"status": "FAILED", "stderr": "TimeoutExpired - Process killed.", "execution_mode": "ANTIGRAVITY"}
     except Exception as e:
+        if process:
+            try:
+                os.killpg(os.getpgid(process.pid), signal.SIGKILL)
+            except:
+                pass
+        if pid_file.exists():
+            os.remove(pid_file)
         return {"status": "FAILED", "stderr": str(e), "execution_mode": "ANTIGRAVITY"}
 
 def loop():
     write_log("Starting Mac Worker HTTP Daemon...")
     config = load_config()
     current_task_state_file = STATE_DIR / "current_task.json"
+    # Cleanup any stale process from a previous run/crash
+    pid_file = STATE_DIR / "current_task_pid.json"
+    if pid_file.exists():
+        try:
+            import signal
+            with open(pid_file, "r") as f:
+                pdata = json.load(f)
+            pgid = pdata.get("pgid")
+            if pgid:
+                write_log(f"Found stale execution pgid {pgid}. Killing to release session.")
+                os.killpg(pgid, signal.SIGKILL)
+        except Exception as e:
+            write_log(f"Error cleaning up stale pid: {e}")
+        try:
+            os.remove(pid_file)
+        except:
+            pass
+
     
     # Load previously claimed task for duplicate protection
     task = None
@@ -167,7 +215,15 @@ def loop():
                 registered = True
                 
             # Heartbeat
-            res, err = http_post(config, "/workers/heartbeat", {"worker_id": config["WORKER_ID"]})
+            # Resource / Heat protection
+            load1, load5, load15 = os.getloadavg()
+            is_hot = load1 > 8.0  # Simple threshold for max local executions/pressure
+            payload_hb = {"worker_id": config["WORKER_ID"]}
+            if is_hot:
+                write_log(f"System is hot (load {load1:.2f}). Pausing claims.")
+                payload_hb["available"] = False
+
+            res, err = http_post(config, "/workers/heartbeat", payload_hb)
             if err:
                 write_log(f"Heartbeat failed: {err}")
                 registered = False
