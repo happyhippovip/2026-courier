@@ -86,7 +86,7 @@ def run_native(task, config):
     
     # ALLOWLIST CHECK
     action = task.get("action", "").lower()
-    allowed_actions = ["create_file", "read_file_metadata", "git_status", "run_known_test", "hash_file", "echo"]
+    allowed_actions = ["git_status", "echo"]
     
     # For backward compatibility with the canary, we parse "echo" if it's the first word of instruction
     if not action:
@@ -104,12 +104,25 @@ def run_native(task, config):
         
     # Safe bounded execution
     try:
+        import shlex
         if action == "echo":
-            result = subprocess.run(instruction, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, executable="/bin/bash")
+            try:
+                args = shlex.split(instruction)
+            except ValueError as e:
+                return {"status": "FAILED", "stderr": f"Malformed args: {e}", "execution_mode": "NATIVE"}
+                
+            if not args or args[0].lower() != "echo":
+                return {"status": "FAILED", "stderr": "Malformed echo command.", "execution_mode": "NATIVE"}
+            
+            # Ban shell-injection-like input and path escape patterns
+            for arg in args:
+                if any(bad in arg for bad in [';', '|', '&', '>', '<', '$', '..', '`']):
+                    return {"status": "FAILED", "stderr": "Shell operators and path escapes are banned.", "execution_mode": "NATIVE"}
+
+            result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=False)
+            
         elif action == "git_status":
-            result = subprocess.run(["git", "status"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        else:
-            return {"status": "FAILED", "stderr": f"Action '{action}' is allowed but handler is not implemented yet.", "execution_mode": "NATIVE"}
+            result = subprocess.run(["git", "status"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=False)
             
         return {
             "status": "SUCCESS" if result.returncode == 0 else "FAILED",
