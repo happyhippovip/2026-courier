@@ -359,27 +359,31 @@ def reclaim_stale():
             stale_workers.add(w_id)
             w["available"] = False
             
-    reclaimed_count = 0
-    # Find any DISPATCHED tasks assigned to stale workers, and requeue them.
+    quarantined_count = 0
+    # A claimed task may already have produced an effect. Without durable proof
+    # that execution never started, replaying it would risk a duplicate effect.
     for goal in state.get("goals", {}).values():
         if goal.get("status") == "ACTIVE" and "workflow_plan" in goal:
             for step in goal["workflow_plan"]:
                 if step.get("status") == "DISPATCHED" and step.get("worker_id") in stale_workers:
-                    step["status"] = "QUEUED"
-                    step["worker_id"] = None
-                    step["run_id"] = None
-                    step["result_id"] = None
-                    step["dispatch_id"] = None
-                    reclaimed_count += 1
-                    
-                    # Update tasks map too
-                    if step.get("task_id") in state.get("tasks", {}):
-                        del state["tasks"][step["task_id"]]
-    
-    if reclaimed_count > 0:
+                    step["status"] = "HUMAN_REQUIRED"
+                    step["recovery_reason"] = "STALE_WORKER_EFFECT_AMBIGUOUS"
+                    quarantined_count += 1
+
+                    task = state.get("tasks", {}).get(step.get("task_id"))
+                    if task:
+                        task["status"] = "HUMAN_REQUIRED"
+                        task["recovery_reason"] = step["recovery_reason"]
+                    worker = state.get("workers", {}).get(step.get("worker_id"))
+                    if worker and worker.get("current_task") == step.get("task_id"):
+                        worker["current_task"] = None
+                        worker["available"] = False
+                    goal["status"] = "BLOCKED"
+
+    if stale_workers or quarantined_count > 0:
         save_state(state)
-        
-    return jsonify({"reclaimed_tasks": reclaimed_count})
+
+    return jsonify({"reclaimed_tasks": 0, "quarantined_tasks": quarantined_count})
 
 @app.route("/tasks/pending_verification", methods=["GET"])
 @require_auth

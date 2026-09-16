@@ -26,8 +26,11 @@ def run_loop():
             if res.status_code == 200:
                 data = res.json()
                 reclaimed = data.get("reclaimed_tasks", 0)
+                quarantined = data.get("quarantined_tasks", 0)
                 if reclaimed > 0:
                     log(f"Reclaimed {reclaimed} tasks from stale workers.")
+                if quarantined > 0:
+                    log(f"Quarantined {quarantined} tasks with ambiguous post-crash effects.")
         except Exception as e:
             log(f"Error calling watchdog endpoint: {e}")
             
