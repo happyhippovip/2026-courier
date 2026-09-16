@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/happyhippovip/2026-courier/schemas/pilot_evidence_record.schema.json",
+  "title": "Pilot Evidence Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["pilot_id", "evidence_type", "metric", "result", "timestamp_utc"],
+  "properties": {
+    "pilot_id": {"type": "string"},
+    "evidence_type": {"type": "string", "enum": ["ECONOMIC", "TECHNICAL", "USER_VALIDATION", "PROVIDER_COST"]},
+    "metric": {"type": "string"},
+    "result": {"type": "string"},
+    "timestamp_utc": {"type": "string", "format": "date-time"}
+  }
+}

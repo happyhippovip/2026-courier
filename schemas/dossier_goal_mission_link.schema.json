@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/happyhippovip/2026-courier/schemas/dossier_goal_mission_link.schema.json",
+  "title": "Dossier Goal Mission Link",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["dossier_id", "goal_id", "mission_id", "link_rationale", "timestamp_utc"],
+  "properties": {
+    "dossier_id": {"type": "string"},
+    "goal_id": {"type": "string"},
+    "mission_id": {"type": "string"},
+    "link_rationale": {"type": "string"},
+    "timestamp_utc": {"type": "string", "format": "date-time"}
+  }
+}

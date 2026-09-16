@@ -1,0 +1,24 @@
+{
+  "status": "READY_FOR_FOUNDER",
+  "dossier_link": {
+    "dossier_id": "dossier-001",
+    "goal_id": "goal-baf60855",
+    "mission_id": "mission-founder-fast-path",
+    "link_rationale": "Validating founder concierge fast path by executing exactly the three required gaps.",
+    "timestamp_utc": "2026-09-16T20:56:04.128588Z"
+  },
+  "pilot_evidence": {
+    "pilot_id": "pilot-001",
+    "evidence_type": "TECHNICAL",
+    "metric": "Schemas Implemented and Validated",
+    "result": "PASS",
+    "timestamp_utc": "2026-09-16T20:56:04.129588Z"
+  },
+  "review_gate": {
+    "gate_id": "gate-001",
+    "review_target": "Founder Concierge Validation Slice",
+    "founder_approval": "APPROVED",
+    "feedback_notes": "All gaps closed successfully.",
+    "timestamp_utc": "2026-09-16T20:56:04.129592Z"
+  }
+}

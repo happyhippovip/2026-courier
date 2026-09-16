@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/happyhippovip/2026-courier/schemas/verified_founder_review_gate.schema.json",
+  "title": "Verified Founder Review Gate",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["gate_id", "review_target", "founder_approval", "feedback_notes", "timestamp_utc"],
+  "properties": {
+    "gate_id": {"type": "string"},
+    "review_target": {"type": "string"},
+    "founder_approval": {"type": "string", "enum": ["APPROVED", "REJECTED", "NEEDS_REVISION", "PENDING"]},
+    "feedback_notes": {"type": "string"},
+    "timestamp_utc": {"type": "string", "format": "date-time"}
+  }
+}
