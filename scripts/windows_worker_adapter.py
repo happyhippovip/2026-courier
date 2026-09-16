@@ -45,13 +45,28 @@ def run(task_file):
             
         time.sleep(2)
         
-    # 3. Copy result to control plane's incoming directory
+    # 3. Post result to Courier Server
     print(f"[Windows Transport] Received result for {task['task_id']} from Windows Worker!")
-    os.makedirs("results/incoming", exist_ok=True)
-    incoming = Path(f"results/incoming/{task['task_id']}_result.json")
-    incoming_tmp = incoming.with_suffix(".json.tmp")
-    shutil.copy(target_outbox_file, incoming_tmp)
-    os.replace(incoming_tmp, incoming)
+    
+    with open(target_outbox_file, 'r') as f:
+        result_payload = json.load(f)
+        
+    import requests
+    server_url = os.environ.get("COURIER_SERVER", "http://127.0.0.1:8080").rstrip("/")
+    api_key = os.environ.get("COURIER_API_KEY", "")
+    
+    headers = {"Content-Type": "application/json"}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+        
+    try:
+        resp = requests.post(f"{server_url}/tasks/result", json=result_payload, headers=headers, timeout=15)
+        if resp.status_code >= 400:
+            print(f"[Windows Transport] Courier result POST failed: {resp.status_code} {resp.text}")
+        else:
+            print(f"[Windows Transport] Successfully posted result to Courier Server.")
+    except Exception as e:
+        print(f"[Windows Transport] Error posting result: {e}")
     
     # Cleanup outbox
     os.remove(target_outbox_file)
