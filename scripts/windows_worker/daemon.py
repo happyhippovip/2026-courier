@@ -74,6 +74,10 @@ def run_task(task, config):
         out_clean = stdout.strip()
         stderr = stderr_out
         status = "SUCCESS" if process.returncode == 0 else "FAILED"
+    except subprocess.TimeoutExpired:
+        status = "FAILED"
+        stderr = "Timeout of 600s exceeded. Exact child process tree terminated."
+        subprocess.run(["taskkill", "/F", "/T", "/PID", str(process.pid)], capture_output=True)
     except Exception as e:
         status = "FAILED"
         stderr = str(e)

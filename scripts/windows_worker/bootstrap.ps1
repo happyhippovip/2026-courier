@@ -66,13 +66,24 @@ if (-not [string]::IsNullOrWhiteSpace($ApiKeyArg)) {
     }
 }
 
-# Store API key in Windows Credential Manager (OS-native secure storage)
+# Store API key in Windows Credential Manager (OS-native secure storage) for SYSTEM account
 if ($apiKey -ne "__CREDENTIAL_MANAGER__" -and -not [string]::IsNullOrWhiteSpace($apiKey)) {
-    # Escape quotes if necessary, passing via env is safer
-    $env:TEMP_API_KEY = $apiKey
-    uv run python -c "import keyring, os; keyring.set_password('courier_worker', 'courier_api_key', os.environ['TEMP_API_KEY'])"
-    $env:TEMP_API_KEY = ""
-    Write-Host "API Key stored in Windows Credential Manager (via keyring)." -ForegroundColor Green
+    Write-Host "Storing API Key in SYSTEM Credential Manager..."
+    $tempFile = Join-Path $env:TEMP "courier_key.txt"
+    $apiKey | Out-File -FilePath $tempFile -Encoding utf8 -NoNewline
+    
+    $storeCmd = "import keyring; key=open(r'$tempFile', encoding='utf-8').read(); keyring.set_password('courier_worker', 'courier_api_key', key)"
+    $storeAction = New-ScheduledTaskAction -Execute "uv" -Argument "run python -c `"$storeCmd`"" -WorkingDirectory $workerDir
+    $storePrincipal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
+    $taskName = "CourierSystemKeyStore_Temp"
+    
+    Register-ScheduledTask -TaskName $taskName -Action $storeAction -Principal $storePrincipal -Force | Out-Null
+    Start-ScheduledTask -TaskName $taskName
+    Start-Sleep -Seconds 5
+    Unregister-ScheduledTask -TaskName $taskName -Confirm:$false | Out-Null
+    Remove-Item -Path $tempFile -Force
+    
+    Write-Host "API Key stored in Windows Credential Manager (SYSTEM via keyring)." -ForegroundColor Green
 }
 
 # --- Worker ID (non-secret, stored in config.json) ---
