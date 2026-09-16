@@ -124,6 +124,33 @@ def run(task_file):
                         result_payload = json.loads(result_json_path.read_text(encoding="utf-8"))
                         result_payload["run_id"] = run_id
                         result_payload["attempt_id"] = attempt_id
+                        
+                        acceptance_criteria = task.get('acceptance_criteria', [])
+                        if result_payload.get('status') == 'SUCCESS' and acceptance_criteria:
+                            exec_log_path = tmp_dir / "execution.log"
+                            log_content = exec_log_path.read_text(encoding="utf-8", errors="replace") if exec_log_path.exists() else ""
+                            
+                            failed_criteria = []
+                            for ac in acceptance_criteria:
+                                ac_lower = ac.lower()
+                                if "exit code" in ac_lower:
+                                    continue
+                                
+                                # Determine a basic mechanism to verify criteria:
+                                # 1. If log has exceptions but process exited 0, fail it.
+                                if "Traceback (most recent call last):" in log_content or "Exception:" in log_content:
+                                    failed_criteria.append(ac)
+                                # 2. If criteria expects a specific canary file to be generated
+                                elif "file" in ac_lower or "bundle" in ac_lower or "report" in ac_lower:
+                                    # Since we don't know the exact filename, we look if any canary exists
+                                    canaries = list(tmp_dir.glob("*.*"))
+                                    # if it's just result.json and execution.log, maybe it failed to generate artifacts
+                                    # We'll just rely on the log exception check for now to be safe and avoid false positives
+                            
+                            if failed_criteria:
+                                result_payload['status'] = 'FAILED'
+                                result_payload['reason'] = f"Acceptance criteria validation failed for: {', '.join(failed_criteria)}. Process returned 0 but errors or unmet conditions detected."
+
                         incoming = Path(f"results/incoming/{task_id}_result.json")
                         incoming_tmp = incoming.with_suffix(".json.tmp")
                         incoming_tmp.write_text(json.dumps(result_payload), encoding="utf-8")
