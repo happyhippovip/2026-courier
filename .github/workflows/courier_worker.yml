@@ -6,6 +6,10 @@ on:
         description: "Task ID"
         required: true
         type: string
+      attempt_id:
+        description: "Attempt ID for exact dispatch correlation"
+        required: true
+        type: string
       task_type:
         description: "Task Type (e.g., run_tests, lint, hash_artifact, deterministic_transform)"
         required: true
@@ -81,6 +85,7 @@ jobs:
               $status = if ($exitCode -eq 0) { "SUCCESS" } else { "FAILED" }
               $res = @{
                   task_id = $taskId
+                  attempt_id = $env:ATTEMPT_ID
                   goal_id = $goalId
                   status = $status
                   provider = "github"
@@ -102,6 +107,7 @@ jobs:
               $status = if ($exitCode -eq 0) { "SUCCESS" } else { "FAILED" }
               $res = @{
                   task_id = $taskId
+                  attempt_id = $env:ATTEMPT_ID
                   goal_id = $goalId
                   status = $status
                   provider = "github"
@@ -112,6 +118,7 @@ jobs:
           }
         env:
           TASK_ID: ${{ github.event.inputs.task_id }}
+          ATTEMPT_ID: ${{ github.event.inputs.attempt_id }}
           GOAL_ID: ${{ github.event.inputs.goal_id }}
           TASK_TYPE: ${{ github.event.inputs.task_type }}
           INSTRUCTION: ${{ github.event.inputs.instruction }}
@@ -122,7 +129,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: courier-result-${{ github.event.inputs.task_id }}
+          name: courier-result-${{ github.event.inputs.attempt_id }}
           path: |
             result.json
             courier_canary_*.txt

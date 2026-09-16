@@ -1,4 +1,4 @@
-import json, sys, os, time, subprocess, shutil
+import json, sys, os, time, subprocess, shutil, uuid
 from pathlib import Path
 
 def run_cmd(cmd):
@@ -28,13 +28,17 @@ def run(task_file):
     
     task_type = task.get('task_type', 'run_tests')
     
-    print(f"[GitHub Transport] Routing task {task_id} to GitHub Actions ({runner_label})...")
+    # Generate unique attempt_id for exact dispatch tracking
+    attempt_id = str(uuid.uuid4())
+    
+    print(f"[GitHub Transport] Routing task {task_id} (Attempt: {attempt_id}) to GitHub Actions ({runner_label})...")
     
     # Trigger workflow
     cmd = [
         "gh", "workflow", "run", "courier_worker.yml",
         "--ref", "courier/windows-phase-15-completion",
         "-f", f"task_id={task_id}",
+        "-f", f"attempt_id={attempt_id}",
         "-f", f"task_type={task_type}",
         "-f", f"instruction={instruction}",
         "-f", f"goal_id={goal_id}",
@@ -50,6 +54,7 @@ def run(task_file):
             "task_id": task_id, 
             "goal_id": goal_id,
             "worker_id": task.get("worker_id", ""),
+            "attempt_id": attempt_id,
             "run_id": "failed",
             "stderr": err
         }
@@ -81,8 +86,8 @@ def run(task_file):
             # We can only check if the artifact exists for completed runs because we don't know the exact run ID easily without matching inputs.
             if r['status'] == 'completed':
                 run_id = str(r['databaseId'])
-                # Try to download artifact named courier-result-{task_id}
-                dl_cmd = ["gh", "run", "download", run_id, "-n", f"courier-result-{task_id}", "-D", f"tmp_artifact_{task_id}"]
+                # Try to download artifact named courier-result-{attempt_id}
+                dl_cmd = ["gh", "run", "download", run_id, "-n", f"courier-result-{attempt_id}", "-D", f"tmp_artifact_{task_id}"]
                 rc_dl, out_dl, err_dl = run_cmd(dl_cmd)
                 if rc_dl == 0:
                     print(f"[GitHub Transport] Downloaded artifact from run {run_id}!")
@@ -95,6 +100,7 @@ def run(task_file):
                         os.makedirs("results/incoming", exist_ok=True)
                         result_payload = json.loads(result_json_path.read_text(encoding="utf-8"))
                         result_payload["run_id"] = run_id
+                        result_payload["attempt_id"] = attempt_id
                         incoming = Path(f"results/incoming/{task_id}_result.json")
                         incoming_tmp = incoming.with_suffix(".json.tmp")
                         incoming_tmp.write_text(json.dumps(result_payload), encoding="utf-8")
@@ -117,6 +123,7 @@ def run(task_file):
         "task_id": task_id,
         "goal_id": goal_id,
         "worker_id": task.get("worker_id", ""),
+        "attempt_id": attempt_id,
         "run_id": "timeout"
     }
     os.makedirs("results/incoming", exist_ok=True)
