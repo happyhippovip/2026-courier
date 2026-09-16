@@ -149,6 +149,7 @@ def main():
                         "task_id": task_id,
                         "attempt_id": attempt_id,
                         "dispatch_id": task.get("dispatch_id"),
+                        "execution_ref": task.get("execution_ref"),
                         "worker_id": worker_id,
                         "run_id": "rev-worker-v1",
                         "result_id": f"result-{uuid.uuid4().hex}",
@@ -166,7 +167,34 @@ def main():
                     
                 except subprocess.CalledProcessError as e:
                     write_log(f"Task execution failed: {e.output.decode('utf-8', errors='ignore')}")
-                    # Could implement fail endpoint here if one existed
+                    http_post(config, "/tasks/result", {
+                        "goal_id": task.get("goal_id"),
+                        "task_id": task_id,
+                        "attempt_id": attempt_id,
+                        "dispatch_id": task.get("dispatch_id"),
+                        "execution_ref": task.get("execution_ref"),
+                        "worker_id": worker_id,
+                        "run_id": "rev-worker-v1",
+                        "result_id": f"result-{uuid.uuid4().hex}",
+                        "status": "FAILED_TERMINAL",
+                        "artifacts": [],
+                        "error": f"Execution failed: {e.output.decode('utf-8', errors='ignore')}"
+                    })
+                except Exception as e:
+                    write_log(f"Error executing task: {traceback.format_exc()}")
+                    http_post(config, "/tasks/result", {
+                        "goal_id": task.get("goal_id"),
+                        "task_id": task_id,
+                        "attempt_id": attempt_id,
+                        "dispatch_id": task.get("dispatch_id"),
+                        "execution_ref": task.get("execution_ref"),
+                        "worker_id": worker_id,
+                        "run_id": "rev-worker-v1",
+                        "result_id": f"result-{uuid.uuid4().hex}",
+                        "status": "FAILED_TERMINAL",
+                        "artifacts": [],
+                        "error": str(e)
+                    })
                     
         except Exception as e:
             write_log(f"Error in main loop: {traceback.format_exc()}")

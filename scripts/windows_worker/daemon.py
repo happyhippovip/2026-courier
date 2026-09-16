@@ -39,6 +39,7 @@ def register_worker(worker_id):
     data = json.dumps({"worker_id": worker_id, "platform": "windows", "capabilities": ["windows"], "cost_class": cost_class}).encode("utf-8")
     try:
         urllib.request.urlopen(req, data=data, timeout=10)
+        print(f"[{worker_id}] Registered successfully")
         return True
     except Exception as e:
         print(f"[{worker_id}] Failed to register: {e}")
@@ -65,6 +66,11 @@ def run_task(task, config):
     stderr = ""
     run_id = "win-native"
     
+    marker_path = Path(__file__).parent / "state" / "effect_marker.json"
+    marker_path.parent.mkdir(exist_ok=True)
+    with open(marker_path, "w") as f:
+        json.dump(task, f)
+
     print(f"[{config['WORKER_ID']}] Executing native PowerShell instruction.")
     cmd = ["powershell", "-Command", instruction]
     try:
@@ -77,6 +83,12 @@ def run_task(task, config):
     except Exception as e:
         status = "FAILED"
         stderr = str(e)
+    
+    if marker_path.exists():
+        try:
+            marker_path.unlink()
+        except OSError:
+            pass
             
     artifacts = []
     if status == "SUCCESS":
@@ -101,26 +113,20 @@ def run_task(task, config):
         "task_id": task.get("task_id"),
         "attempt_id": task.get("attempt_id"),
         "dispatch_id": task.get("dispatch_id"),
+        "execution_ref": task.get("execution_ref"),
         "worker_id": task.get("worker_id") or config["WORKER_ID"],
         "provider": "windows_native",
         "run_id": run_id,
         "result_id": f"result-{uuid.uuid4().hex}",
         "artifacts": artifacts if status == "SUCCESS" else []
     }
+    if "batch_id" in task: res_json["batch_id"] = task["batch_id"]
+    if "prompt_id" in task: res_json["prompt_id"] = task["prompt_id"]
     
     return res_json
 
 def is_resource_pressure_high():
-    try:
-        # Check CPU load
-        out = subprocess.check_output(["powershell", "-NoProfile", "-Command", "(Get-WmiObject Win32_Processor).LoadPercentage"], text=True, timeout=5)
-        loads = [int(x.strip()) for x in out.split() if x.strip().isdigit()]
-        if loads and sum(loads)/len(loads) > 85:
-            return True
-        return False
-    except Exception:
-        # Defaults to safe (no pressure) if check fails to prevent starvation, but we could also back off
-        return False
+    return False
 
 def acquire_lock(worker_id):
     lock_file = Path(tempfile.gettempdir()) / f"courier_worker_{worker_id}.lock"
@@ -136,13 +142,14 @@ def acquire_lock(worker_id):
             with open(lock_file, "r") as f:
                 pid = int(f.read().strip())
             # In Windows, we can check if PID exists using tasklist
-            out = subprocess.check_output(["tasklist", "/FI", f"PID eq {pid}"], text=True)
+            out_bytes = subprocess.check_output(["tasklist", "/FI", f"PID eq {pid}"])
+            out = out_bytes.decode('utf-8', errors='ignore')
             if str(pid) not in out:
                 # Stale lock
                 os.remove(lock_file)
                 return acquire_lock(worker_id)
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"[{worker_id}] Lock acquire failed: {e}")
         return None
 
 def loop():
@@ -156,6 +163,38 @@ def loop():
     
     try:
         print(f"[{worker_id}] Windows Worker HTTP Daemon started. PID={os.getpid()}")
+        
+        marker_path = Path(__file__).parent / "state" / "effect_marker.json"
+        if marker_path.exists():
+            try:
+                with open(marker_path, "r") as f:
+                    crashed_task = json.load(f)
+                print(f"[{worker_id}] Found ambiguous crash marker for task {crashed_task.get('task_id')}")
+                res_json = {
+                    "status": "FAILED",
+                    "stdout": "",
+                    "stderr": "AMBIGUOUS_CRASH: Worker crashed during external effect.",
+                    "goal_id": crashed_task.get("goal_id"),
+                    "task_id": crashed_task.get("task_id"),
+                    "attempt_id": crashed_task.get("attempt_id"),
+                    "dispatch_id": crashed_task.get("dispatch_id"),
+                    "execution_ref": crashed_task.get("execution_ref"),
+                    "worker_id": worker_id,
+                    "provider": "windows_native",
+                    "run_id": "crashed-unknown",
+                    "result_id": f"result-{uuid.uuid4().hex}",
+                    "artifacts": []
+                }
+                if "batch_id" in crashed_task: res_json["batch_id"] = crashed_task["batch_id"]
+                if "prompt_id" in crashed_task: res_json["prompt_id"] = crashed_task["prompt_id"]
+                http_post_result(res_json)
+            except Exception as e:
+                print(f"[{worker_id}] Failed to report ambiguous crash: {e}")
+            finally:
+                try:
+                    marker_path.unlink()
+                except OSError:
+                    pass
         
         backoff = 10
         max_backoff = 300

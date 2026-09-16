@@ -8,6 +8,7 @@ from scripts.run_chief_commander import ChiefCommander
 app = Flask(__name__)
 
 STATE_FILE = os.environ.get("COURIER_STATE_FILE", "server/state/central_state.json")
+BATCH_QUEUE_DIR = "server/state/batches"
 try:
     import keyring
     API_KEY = os.environ.get("COURIER_API_KEY") or keyring.get_password("courier_worker", "courier_api_key")
@@ -45,6 +46,22 @@ def set_task_status(task, new_status):
 
 # P13 — Canonical cost ordering for cheapest-qualified routing.
 COST_ORDER = {"free": 0, "low": 1, "medium": 2, "high": 3}
+
+MAX_RETRIES = {
+    "execution": 3,
+    "transport": 5,
+    "provider": 10,
+    "verification": 2
+}
+
+def get_retry_state(task):
+    if "retry_state" not in task:
+        task["retry_state"] = {"execution": 0, "transport": 0, "provider": 0, "verification": 0}
+    return task["retry_state"]
+
+def calculate_backoff(attempt):
+    return min(300, 2 ** attempt)  # Max 5 minutes backoff
+
 
 STATE_LOCK = threading.RLock()
 
@@ -86,11 +103,22 @@ def load_state():
     if os.path.exists(STATE_FILE):
         with open(STATE_FILE, 'r') as f:
             state = json.load(f)
+            
+            schema_version = state.get("schema_version", 1)
+            
+            if schema_version == 1:
+                # Migrate 1 -> 2 preserving task identity/state
+                state["schema_version"] = 2
+            elif schema_version > 2:
+                # Fail closed on unknown future schema
+                print(f"FATAL: Unknown future schema_version {schema_version}. Failing closed to prevent destructive silent reset.")
+                sys.exit(1)
+                
             state.setdefault("goals", {})
             state.setdefault("tasks", {})
             state.setdefault("workers", {})
             return state
-    return {"goals": {}, "tasks": {}, "workers": {}}
+    return {"schema_version": 2, "goals": {}, "tasks": {}, "workers": {}}
 
 def save_state(state):
     os.makedirs(os.path.dirname(STATE_FILE), exist_ok=True)
@@ -309,6 +337,9 @@ def claim_task():
             while scan_idx < len(goal["workflow_plan"]):
                 candidate = goal["workflow_plan"][scan_idx]
                 if candidate["status"] == "QUEUED":
+                    if candidate.get("next_retry_at", 0) > time.time():
+                        scan_idx += 1
+                        continue
                     cand_target = candidate.get("target_agent", "linux").lower()
                     if blocked_target is None or cand_target != blocked_target:
                         next_task = candidate
@@ -366,6 +397,7 @@ def claim_task():
                         next_task["attempts"] = next_task.get("attempts", 0) + 1
                         next_task["attempt_id"] = f"{next_task['task_id']}:attempt:{next_task['attempts']}"
                         next_task["dispatch_id"] = f"dispatch-{uuid.uuid4().hex}"
+                        next_task["execution_ref"] = f"exec-{uuid.uuid4().hex}"
                         next_task["run_id"] = None
                         next_task["result_id"] = None
                         next_task["target_capability"] = target
@@ -388,6 +420,83 @@ def claim_task():
                         save_state(state)
                         return jsonify({"task": next_task})
                         
+    # --- INJECTED BATCH CLAIM LOGIC ---
+    import glob
+    if os.path.exists(BATCH_QUEUE_DIR):
+        for path in glob.glob(os.path.join(BATCH_QUEUE_DIR, "*.json")):
+            basename = os.path.basename(path)
+            batch_id = basename[:-5]
+            batch = load_batch(batch_id)
+            if not batch: continue
+            
+            completed_seqs = {item.get("sequence") for item in batch.get("items", []) if item.get("status") == "COMPLETED"}
+            blocked_targets = {item.get("target_agent", "linux").lower() for item in batch.get("items", []) if item.get("status") in ("WAITING_PROVIDER", "BLOCKED_TRANSIENT")}
+            
+            next_task = None
+            for item in batch.get("items", []):
+                if item.get("status") == "QUEUED":
+                    if item.get("next_retry_at", 0) > time.time():
+                        continue
+                    depends_on = item.get("depends_on")
+                    if depends_on is None or depends_on in completed_seqs:
+                        target = item.get("target_agent", "linux").lower()
+                        if target not in blocked_targets:
+                            # Qualified check
+                            matched = False
+                            if "github" in target and "github" in worker["capabilities"]: matched = True
+                            elif "mac" in target and "macos" in worker["capabilities"]: matched = True
+                            elif "windows" in target and "windows" in worker["capabilities"]: matched = True
+                            elif "linux" in target and "linux" in worker["capabilities"]: matched = True
+                            elif "antigravity" in target and "antigravity" in worker["capabilities"]: matched = True
+                            
+                            if matched:
+                                next_task = item
+                                break
+            
+            if next_task:
+                target = next_task.get("target_agent", "linux").lower()
+                next_task["worker_id"] = worker_id
+                next_task["attempts"] = next_task.get("attempts", 0) + 1
+                next_task["task_id"] = next_task.get("task_id") or f"{batch_id}-seq-{next_task['sequence']}"
+                next_task["attempt_id"] = f"{next_task['task_id']}:attempt:{next_task['attempts']}"
+                next_task["dispatch_id"] = f"dispatch-{uuid.uuid4().hex}"
+                next_task["execution_ref"] = f"exec-{uuid.uuid4().hex}"
+                next_task["run_id"] = None
+                next_task["result_id"] = None
+                next_task["target_capability"] = target
+                next_task["batch_id"] = batch_id
+                if "prompt_id" in batch:
+                    next_task["prompt_id"] = batch["prompt_id"]
+                elif "prompt_id" in next_task:
+                    pass # Keep existing
+                next_task["goal_id"] = next_task.get("goal_id", batch_id)
+                next_task["last_completed_step"] = next_task.get("last_completed_step")
+                next_task["next_action"] = "EXECUTE"
+                next_task["blocker"] = None
+                next_task["artifact_refs"] = next_task.get("artifact_refs", [])
+                next_task["instruction"] = next_task.get("description", "Batch item")
+                
+                try:
+                    next_task = prepare_task(next_task)
+                except ContractError as exc:
+                    return jsonify({"error": str(exc)}), 400
+                    
+                set_task_status(next_task, "DISPATCHED")
+                next_task["status"] = "DISPATCHED"
+                
+                for item in batch["items"]:
+                    if item.get("sequence") == next_task.get("sequence"):
+                        item.update(next_task)
+                
+                with open(path, "w") as bf:
+                    json.dump(batch, bf, indent=2)
+                
+                worker["current_task"] = next_task["task_id"]
+                worker["available"] = False
+                state["tasks"][next_task["task_id"]] = next_task
+                save_state(state)
+                return jsonify({"task": next_task})
+
     save_state(state)
     return jsonify({"task": None})
 
@@ -428,11 +537,19 @@ def task_result():
                 task["artifact_refs"] = durable_result.get("artifacts", task.get("artifact_refs", []))
             else:
                 failure_reason = durable_result.get("stderr", "unknown")
-                if task.get("attempts", 1) < 3:
-                    set_task_status(task, "QUEUED")  # Retry
+                retry_state = get_retry_state(task)
+                if retry_state["execution"] < MAX_RETRIES["execution"] and "AMBIGUOUS_CRASH" not in failure_reason:
+                    retry_state["execution"] += 1
+                    set_task_status(task, "QUEUED")
                     task["worker_id"] = None
                     task["next_action"] = "RETRY"
                     task["blocker"] = failure_reason[:200] if failure_reason else None
+                    task["next_retry_at"] = time.time() + calculate_backoff(retry_state["execution"])
+                elif "AMBIGUOUS_CRASH" in failure_reason:
+                    set_task_status(task, "HUMAN_REQUIRED")
+                    task["next_action"] = "HUMAN_REVIEW"
+                    task["recovery_reason"] = "AMBIGUOUS_EFFECT_CRASH"
+                    task["blocker"] = "Worker crashed during external effect."
                 else:
                     set_task_status(task, "FAILED_TERMINAL")
                     task["next_action"] = None
@@ -447,6 +564,10 @@ def task_result():
                         step["status"] = task["status"]
                         step["worker_id"] = task.get("worker_id")
                         step["attempts"] = task.get("attempts")
+                        if "retry_state" in task:
+                            step["retry_state"] = task["retry_state"]
+                        if "next_retry_at" in task:
+                            step["next_retry_at"] = task["next_retry_at"]
                 if task["status"] == "FAILED_TERMINAL":
                     goal["status"] = "BLOCKED"
 
@@ -563,10 +684,19 @@ def verify_task_result():
             if goal["current_step_index"] >= len(goal["workflow_plan"]):
                 goal["status"] = "DONE"
     else:
-        set_task_status(task, "FAILED_VERIFICATION")
-        task["next_action"] = "HUMAN_REVIEW"
-        task["blocker"] = f"VERIFICATION_REJECTED: {data.get('reason', 'no reason')}"[:200]
-        goal["status"] = "BLOCKED"
+        retry_state = get_retry_state(task)
+        if retry_state["verification"] < MAX_RETRIES["verification"]:
+            retry_state["verification"] += 1
+            set_task_status(task, "QUEUED")
+            task["worker_id"] = None
+            task["next_action"] = "RETRY"
+            task["blocker"] = f"VERIFICATION_REJECTED: {data.get('reason', 'no reason')}"[:200]
+            task["next_retry_at"] = time.time() + calculate_backoff(retry_state["verification"])
+        else:
+            set_task_status(task, "FAILED_VERIFICATION")
+            task["next_action"] = "HUMAN_REVIEW"
+            task["blocker"] = f"VERIFICATION_REJECTED_MAX_RETRIES: {data.get('reason', 'no reason')}"[:200]
+            goal["status"] = "BLOCKED"
 
     # P6/P10 — Terminal cleanup: release worker ownership after verification
     assigned_worker_id = task.get("worker_id")
@@ -579,6 +709,10 @@ def verify_task_result():
         if step.get("task_id") == task_id:
             step["status"] = task["status"]
             step["verification"] = task["verification"]
+            if "retry_state" in task:
+                step["retry_state"] = task["retry_state"]
+            if "next_retry_at" in task:
+                step["next_retry_at"] = task["next_retry_at"]
 
     save_state(state)
     return jsonify({"status": task["status"]})
@@ -611,13 +745,31 @@ def resume_task(task_id):
                     # WAITING_PROVIDER / BLOCKED_TRANSIENT = same attempt, preserve identity
                     # HUMAN_REQUIRED / FAILED_* = real re-execution, new attempt via claim
                     if prior_status in ("WAITING_PROVIDER", "BLOCKED_TRANSIENT"):
-                        # Transport retry: same attempt_id, same dispatch_id
-                        # Go back to DISPATCHED so the same worker (or another) can resume
-                        set_task_status(task, "DISPATCHED")
-                        step["status"] = "DISPATCHED"
-                        task["next_action"] = "EXECUTE"
-                        task["blocker"] = None
-                        task.pop("provider_wait_since", None)
+                        retry_state = get_retry_state(task)
+                        can_resume = True
+                        if prior_status == "BLOCKED_TRANSIENT":
+                            if retry_state["transport"] < MAX_RETRIES["transport"]:
+                                retry_state["transport"] += 1
+                            else:
+                                can_resume = False
+                        
+                        if can_resume:
+                            set_task_status(task, "DISPATCHED")
+                            step["status"] = "DISPATCHED"
+                            task["next_action"] = "EXECUTE"
+                            task["blocker"] = None
+                            task.pop("provider_wait_since", None)
+                            if "retry_state" in task:
+                                step["retry_state"] = task["retry_state"]
+                            if "next_retry_at" in task:
+                                step["next_retry_at"] = task["next_retry_at"]
+                        else:
+                            set_task_status(task, "FAILED_TERMINAL")
+                            step["status"] = "FAILED_TERMINAL"
+                            task["blocker"] = "MAX_TRANSPORT_RETRIES_REACHED"
+                            goal["status"] = "BLOCKED"
+                            save_state(state)
+                            return jsonify({"error": "Max transport retries reached"}), 400
                     else:
                         # Real re-execution: clear identity, will get new attempt on claim
                         set_task_status(task, "QUEUED")
@@ -730,11 +882,21 @@ def provider_wait(task_id):
     if wait_type not in ("WAITING_PROVIDER", "BLOCKED_TRANSIENT"):
         wait_type = "WAITING_PROVIDER"
 
-    set_task_status(task, wait_type)
-    task["blocker"] = reason[:200] if reason else "PROVIDER_UNAVAILABLE"
-    task["next_action"] = "WAIT_THEN_RESUME"
-    # Preserve attempt_id and dispatch_id — no new attempt
-    task["provider_wait_since"] = time.time()
+    retry_state = get_retry_state(task)
+    if retry_state["provider"] < MAX_RETRIES["provider"]:
+        retry_state["provider"] += 1
+        set_task_status(task, wait_type)
+        task["blocker"] = reason[:200] if reason else "PROVIDER_UNAVAILABLE"
+        task["next_action"] = "WAIT_THEN_RESUME"
+        # Preserve attempt_id and dispatch_id — no new attempt
+        task["provider_wait_since"] = time.time()
+        task["next_retry_at"] = time.time() + calculate_backoff(retry_state["provider"])
+    else:
+        set_task_status(task, "FAILED_TERMINAL")
+        task["blocker"] = "MAX_PROVIDER_WAITS_REACHED"
+        task["next_action"] = None
+        if task.get("goal_id") in state.get("goals", {}):
+            state["goals"][task["goal_id"]]["status"] = "BLOCKED"
 
     # Sync to workflow_plan
     goal = state["goals"].get(task.get("goal_id"))
@@ -743,6 +905,10 @@ def provider_wait(task_id):
             if step.get("task_id") == task_id:
                 step["status"] = task["status"]
                 step["blocker"] = task["blocker"]
+                if "retry_state" in task:
+                    step["retry_state"] = task["retry_state"]
+                if "next_retry_at" in task:
+                    step["next_retry_at"] = task["next_retry_at"]
 
     # Release worker so other tasks can proceed
     if worker_id in state["workers"]:
@@ -757,3 +923,123 @@ def provider_wait(task_id):
         "dispatch_id": task.get("dispatch_id"),
         "blocker": task["blocker"],
     })
+import os
+import glob
+import json
+
+BATCH_QUEUE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "events", "queue")
+
+def load_batch(batch_id):
+    path = os.path.join(BATCH_QUEUE_DIR, f"{batch_id}.json")
+    if os.path.exists(path):
+        with open(path, "r") as f:
+            return json.load(f)
+    return None
+
+@app.route("/batches", methods=["GET"])
+@require_auth
+def list_batches():
+    batches = []
+    if os.path.exists(BATCH_QUEUE_DIR):
+        for path in glob.glob(os.path.join(BATCH_QUEUE_DIR, "*.json")):
+            basename = os.path.basename(path)
+            batch_id = basename[:-5]
+            batch_data = load_batch(batch_id)
+            if batch_data:
+                batches.append({
+                    "batch_id": batch_data.get("batch_id"),
+                    "status": batch_data.get("status"),
+                    "created_at": batch_data.get("created_at"),
+                })
+    return jsonify({"batches": batches})
+
+@app.route("/batches/<batch_id>", methods=["GET"])
+@require_auth
+def get_batch(batch_id):
+    batch = load_batch(batch_id)
+    if not batch:
+        return jsonify({"error": "Batch not found"}), 404
+    return jsonify(batch)
+
+@app.route("/batches/<batch_id>/active", methods=["GET"])
+@require_auth
+def get_batch_active(batch_id):
+    batch = load_batch(batch_id)
+    if not batch:
+        return jsonify({"error": "Batch not found"}), 404
+    
+    active_items = [item for item in batch.get("items", []) if item.get("status") in ("IN_PROGRESS", "DISPATCHED")]
+    if active_items:
+        return jsonify({"active_item": active_items[0]})
+    return jsonify({"active_item": None})
+
+@app.route("/batches/<batch_id>/next", methods=["GET"])
+@require_auth
+def get_batch_next(batch_id):
+    batch = load_batch(batch_id)
+    if not batch:
+        return jsonify({"error": "Batch not found"}), 404
+    
+    completed_seqs = {item.get("sequence") for item in batch.get("items", []) if item.get("status") == "COMPLETED"}
+    
+    for item in batch.get("items", []):
+        if item.get("status") == "QUEUED":
+            depends_on = item.get("depends_on")
+            if depends_on is None or depends_on in completed_seqs:
+                return jsonify({"next_item": item})
+    
+    return jsonify({"next_item": None})
+
+@app.route("/batches/<batch_id>/blocked", methods=["GET"])
+@require_auth
+def get_batch_blocked(batch_id):
+    batch = load_batch(batch_id)
+    if not batch:
+        return jsonify({"error": "Batch not found"}), 404
+    
+    blocked_items = [item for item in batch.get("items", []) if item.get("status") in ("WAITING_PROVIDER", "BLOCKED", "BLOCKED_TRANSIENT", "HUMAN_REQUIRED")]
+    return jsonify({"blocked_items": blocked_items})
+
+
+# --- OVERRIDE SAVE_STATE TO SYNC BATCHES ---
+original_save_state = save_state
+def custom_save_state(state):
+    original_save_state(state)
+    
+    import os, json
+    batches_to_sync = {}
+    for task_id, task in state.get("tasks", {}).items():
+        batch_id = task.get("batch_id")
+        if batch_id:
+            if batch_id not in batches_to_sync:
+                batches_to_sync[batch_id] = load_batch(batch_id)
+            
+            batch = batches_to_sync[batch_id]
+            if not batch: continue
+            
+            for item in batch.get("items", []):
+                if item.get("sequence") == task.get("sequence"):
+                    st = task.get("status")
+                    if st == "RECONCILED":
+                        item["status"] = "COMPLETED"
+                    elif st in ("WAITING_PROVIDER", "BLOCKED_TRANSIENT", "HUMAN_REQUIRED", "FAILED_VERIFICATION", "FAILED_TERMINAL"):
+                        item["status"] = "WAITING_PROVIDER"
+                    elif st in ("DISPATCHED", "RESULT_RECEIVED", "RECONCILED_PENDING_MERGE"):
+                        item["status"] = "IN_PROGRESS"
+                    else:
+                        item["status"] = st
+                        
+                    item["worker_id"] = task.get("worker_id")
+                    item["result"] = task.get("result")
+                    item["verification"] = task.get("verification")
+                    item["blocker"] = task.get("blocker")
+                    item["attempts"] = task.get("attempts")
+                    item["attempt_id"] = task.get("attempt_id")
+
+    for batch_id, batch in batches_to_sync.items():
+        if batch:
+            path = os.path.join(BATCH_QUEUE_DIR, f"{batch_id}.json")
+            with open(path, "w") as bf:
+                json.dump(batch, bf, indent=2)
+
+save_state = custom_save_state

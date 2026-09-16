@@ -53,6 +53,7 @@ def prepare_task(task: dict) -> dict:
 
     packet.setdefault("attempt_id", f"{task_id}:attempt:1")
     packet.setdefault("dispatch_id", f"dispatch-{uuid.uuid4().hex}")
+    packet.setdefault("execution_ref", f"exec-{uuid.uuid4().hex}")
     packet.setdefault("worker_id", WORKER_IDS[capability])
     packet.setdefault("run_id", None)
     packet.setdefault("result_id", None)
@@ -65,11 +66,17 @@ def prepare_task(task: dict) -> dict:
 
 def verify_result(task: dict, raw_result: dict, workspace: Path) -> dict:
     """Return a canonical DurableResult only after identity/effect verification."""
-    for field in ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id"):
+    chain = ["goal_id", "task_id", "attempt_id", "dispatch_id", "execution_ref", "worker_id"]
+    if "batch_id" in task:
+        chain.insert(0, "batch_id")
+    if "prompt_id" in task:
+        chain.insert(0, "prompt_id")
+        
+    for field in chain:
         if not task.get(field):
             raise ContractError(f"dispatched task is missing {field}")
 
-    for field in ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id"):
+    for field in chain:
         if raw_result.get(field) != task[field]:
             raise ContractError(f"{field} mismatch")
     if raw_result.get("status") not in RESULT_STATES:
@@ -102,11 +109,16 @@ def verify_result(task: dict, raw_result: dict, workspace: Path) -> dict:
         "task_id": task["task_id"],
         "attempt_id": task["attempt_id"],
         "dispatch_id": task["dispatch_id"],
+        "execution_ref": task["execution_ref"],
         "worker_id": task["worker_id"],
         "run_id": run_id,
         "status": raw_result["status"],
         "artifacts": artifacts,
     }
+    if "batch_id" in task:
+        identity["batch_id"] = task["batch_id"]
+    if "prompt_id" in task:
+        identity["prompt_id"] = task["prompt_id"]
     identity["result_id"] = f"result-{_canonical_hash(identity)}"
     return identity
 
@@ -122,20 +134,36 @@ def validate_durable_result(task: dict, result: dict) -> dict:
         "task_id",
         "attempt_id",
         "dispatch_id",
+        "execution_ref",
         "worker_id",
         "run_id",
         "result_id",
         "status",
         "artifacts",
     }
+    # Optional identity fields for batch runs
+    if "batch_id" in task:
+        required.add("batch_id")
+    if "prompt_id" in task:
+        required.add("prompt_id")
+    
     # GitHub Actions supplies a retry-generation identity in addition to run_id.
     # Preserve it when provided so a DurableResult remains bound to the exact run.
     if "run_attempt" in result:
         required.add("run_attempt")
+    if "result_data" in result:
+        required.add("result_data")
     missing = sorted(required - set(result))
     if missing:
         raise ContractError(f"result is missing: {', '.join(missing)}")
-    for field in ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id"):
+        
+    chain = ["goal_id", "task_id", "attempt_id", "dispatch_id", "execution_ref", "worker_id"]
+    if "batch_id" in task:
+        chain.append("batch_id")
+    if "prompt_id" in task:
+        chain.append("prompt_id")
+        
+    for field in chain:
         if result[field] != task.get(field):
             raise ContractError(f"{field} mismatch")
     for field in ("run_id", "result_id"):
