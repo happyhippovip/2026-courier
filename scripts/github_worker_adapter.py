@@ -132,7 +132,8 @@ def run(task_file_name: str) -> int:
         if not ref:
             raise RuntimeError("cannot determine dispatch ref")
         rc, _, error = run_cmd(["gh", "workflow", "run", WORKFLOW, "--repo", REPOSITORY, "--ref", ref,
-                                "--field", f"task_payload={json.dumps(task, separators=(',', ':'))}"])
+                                "--field", f"task_payload={json.dumps(task, separators=(',', ':'))}",
+                                "--field", f"dispatch_id={task['dispatch_id']}"])
         if rc:
             raise RuntimeError(f"workflow dispatch failed: {error}")
         write_state(task_file, {"dispatch_id": task["dispatch_id"], "status": "WAITING_FOR_WORKER"})

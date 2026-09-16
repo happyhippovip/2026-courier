@@ -1,5 +1,5 @@
 name: Courier Worker
-run-name: Courier dispatch ${{ fromJson(github.event.inputs.task_payload).dispatch_id }}
+run-name: Courier dispatch ${{ inputs.dispatch_id }}
 
 on:
   workflow_dispatch:
@@ -8,12 +8,16 @@ on:
         description: Compact bounded Courier TaskPacket JSON
         required: true
         type: string
+      dispatch_id:
+        description: Exact dispatch correlation identifier
+        required: true
+        type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: courier-dispatch-${{ fromJson(github.event.inputs.task_payload).dispatch_id }}
+  group: courier-dispatch-${{ inputs.dispatch_id }}
   cancel-in-progress: false
 
 jobs:
@@ -30,6 +34,7 @@ jobs:
       - name: Execute allow-listed TaskPacket operation
         env:
           TASK_PAYLOAD: ${{ github.event.inputs.task_payload }}
+          DISPATCH_ID: ${{ inputs.dispatch_id }}
         run: |
           cat > "$RUNNER_TEMP/courier_task.py" <<'PY'
           import hashlib
@@ -43,6 +48,8 @@ jobs:
           required = ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id")
           if not all(isinstance(task.get(field), str) and task[field] for field in required):
               raise ValueError("TaskPacket is missing required identity fields")
+          if task["dispatch_id"] != os.environ["DISPATCH_ID"]:
+              raise ValueError("TaskPacket dispatch_id does not match workflow input")
           operation = task.get("task_type", task.get("type"))
           allowed = {"metadata", "report", "deterministic_transform", "verify_file", "static_analysis", "run_tests"}
           if operation not in allowed:
@@ -115,7 +122,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: courier-result-${{ fromJson(github.event.inputs.task_payload).dispatch_id }}
+          name: courier-result-${{ inputs.dispatch_id }}
           path: |
             result_*.json
             courier_output_*.json
