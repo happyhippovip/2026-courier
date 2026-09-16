@@ -21,7 +21,7 @@ if not API_KEY:
     raise SystemExit("Missing COURIER_API_KEY environment variable or keyring entry")
 if not VERIFIER_API_KEY:
     raise SystemExit("Missing COURIER_VERIFIER_API_KEY environment variable or keyring entry")
-INSECURE_API_KEYS = set()
+INSECURE_API_KEYS = {"dev-secret-key"}
 
 # Canonical task statuses — the ONLY valid values for task["status"].
 # No code may invent status strings outside this set.

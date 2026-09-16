@@ -100,3 +100,24 @@ scripts/windows_worker/state/
 
 central_state.json
 server/state/
+
+# Runtime State & Test artifacts
+courier_canary_*.txt
+artifacts/
+report.json
+report.md
+logs/
+scripts/logs/
+scripts/revenue_worker_state/
+bad_update.zip
+check.py
+patch*.py
+stop_wall.txt
+target_repo
+version.txt
+proof_*.py
+test_*.py
+*_proof.py
+*.ps1
+scripts/revenue_worker_config.json
+revenue_artifacts.zip
