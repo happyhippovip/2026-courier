@@ -54,7 +54,7 @@ def get_config():
             srv = keyring.get_password("courier_worker", "courier_server_url")
             if srv:
                 config["COURIER_SERVER"] = srv
-    except ImportError:
+    except Exception:
         pass
 
     if "COURIER_SERVER" in os.environ:

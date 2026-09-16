@@ -47,6 +47,20 @@
         }
       ],
       "current_step_index": 0
+    },
+    "g1": {
+      "status": "ACTIVE",
+      "current_step_index": 0,
+      "workflow_plan": [
+        {
+          "task_id": "t1",
+          "status": "WAITING_PROVIDER"
+        },
+        {
+          "task_id": "t2",
+          "status": "QUEUED"
+        }
+      ]
     }
   },
   "tasks": {

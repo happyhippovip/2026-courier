@@ -12,7 +12,7 @@ try:
     import keyring
     API_KEY = os.environ.get("COURIER_API_KEY") or keyring.get_password("courier_worker", "courier_api_key")
     VERIFIER_API_KEY = os.environ.get("COURIER_VERIFIER_API_KEY") or keyring.get_password("courier_worker", "courier_verifier_api_key")
-except ImportError:
+except Exception:
     API_KEY = os.environ.get("COURIER_API_KEY")
     VERIFIER_API_KEY = os.environ.get("COURIER_VERIFIER_API_KEY")
 

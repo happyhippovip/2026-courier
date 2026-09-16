@@ -20,7 +20,7 @@ API_URL = os.environ.get("COURIER_SERVER") or _cfg.get("COURIER_SERVER") or "htt
 try:
     import keyring as _keyring
     API_KEY = os.environ.get("COURIER_API_KEY") or _keyring.get_password("courier_worker", "courier_api_key")
-except ImportError:
+except Exception:
     API_KEY = os.environ.get("COURIER_API_KEY")
 
 if not API_KEY:

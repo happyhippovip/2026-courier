@@ -11,9 +11,8 @@ if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
 $trigger = New-ScheduledTaskTrigger -AtStartup
 $action = New-ScheduledTaskAction -Execute $scriptPath
 
-# Get current user instead of SYSTEM
-$currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
-$principal = New-ScheduledTaskPrincipal -UserId $currentUser -LogonType Interactive -RunLevel Highest
+# Run as SYSTEM for unattended reboot-safe operation
+$principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
 
 Register-ScheduledTask -TaskName $taskName -Trigger $trigger -Action $action -Principal $principal
-Write-Host "Courier Windows Worker scheduled task registered to start on boot as $currentUser."
+Write-Host "Courier Windows Worker scheduled task registered to start on boot as SYSTEM."
