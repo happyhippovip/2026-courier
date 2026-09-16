@@ -81,6 +81,20 @@ def run_task(task, config):
     return res_json
 
 def loop():
+    pid_file = Path(__file__).parent / "daemon.pid"
+    if pid_file.exists():
+        try:
+            with open(pid_file, "r") as f:
+                old_pid = int(f.read().strip())
+            os.kill(old_pid, 0)
+            print(f"Daemon already running with PID {old_pid}. Exiting.")
+            sys.exit(0)
+        except (OSError, ValueError):
+            pid_file.unlink(missing_ok=True)
+            
+    with open(pid_file, "w") as f:
+        f.write(str(os.getpid()))
+
     config = load_config()
     inbox = Path(__file__).parent / config["WORKER_INBOX"]
     outbox = Path(__file__).parent / config["WORKER_OUTBOX"]

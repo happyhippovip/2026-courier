@@ -9,6 +9,10 @@ INBOX_DIR = BASE_DIR / "inbox"
 OUTBOX_DIR = BASE_DIR / "outbox"
 LOGS_DIR = BASE_DIR / "logs"
 
+for d in [STATE_DIR, INBOX_DIR, OUTBOX_DIR, LOGS_DIR]:
+    d.mkdir(parents=True, exist_ok=True)
+
+
 def load_config():
     with open(CONFIG_PATH, "r") as f:
         return json.load(f)
@@ -90,6 +94,22 @@ def run_agy(task, config):
 
 def loop():
     write_log("Starting Mac Worker Daemon...")
+    
+    pid_file = STATE_DIR / "daemon.pid"
+    if pid_file.exists():
+        try:
+            with open(pid_file, "r") as f:
+                old_pid = int(f.read().strip())
+            os.kill(old_pid, 0)
+            write_log(f"Daemon already running with PID {old_pid}. Exiting.")
+            sys.exit(0)
+        except (OSError, ValueError):
+            write_log("Stale PID file found. Cleaning up.")
+            pid_file.unlink(missing_ok=True)
+            
+    with open(pid_file, "w") as f:
+        f.write(str(os.getpid()))
+        
     config = load_config()
     current_task_state_file = STATE_DIR / "current_task.json"
     
@@ -127,27 +147,31 @@ def loop():
                 
                 out_file = OUTBOX_DIR / f"{task['task_id']}_result.json"
                 
-                # Simulate backoff if network/directory unavailable
+                # Retry infinitely if network/directory unavailable to ensure durability
                 retries = 0
-                while retries < 5:
+                success = False
+                while True:
                     try:
                         with open(out_file, 'w') as f:
                             json.dump(res, f)
+                        success = True
                         break
                     except Exception as we:
-                        write_log(f"Failed to write result, backoff... {we}")
-                        time.sleep(2 ** retries)
+                        sleep_time = min(2 ** retries, 60)
+                        write_log(f"Failed to write result, backoff {sleep_time}s... {we}")
+                        time.sleep(sleep_time)
                         retries += 1
                         
-                write_log(f"Result written to {out_file}")
-                
-                if os.path.exists(claimed_file):
-                    os.remove(claimed_file)
-                if current_task_state_file.exists():
-                    os.remove(current_task_state_file)
+                if success:
+                    write_log(f"Result written to {out_file}")
                     
-                task = None
-                claimed_file = None
+                    if os.path.exists(claimed_file):
+                        os.remove(claimed_file)
+                    if current_task_state_file.exists():
+                        os.remove(current_task_state_file)
+                    
+                    task = None
+                    claimed_file = None
                 
         except Exception as e:
             write_log(f"Error in poll loop: {e}\n{traceback.format_exc()}")
