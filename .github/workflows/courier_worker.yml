@@ -63,7 +63,7 @@ jobs:
               Copy-Item -Path $outFile -Destination "result.json"
           }
           elseif ($runnerOs -eq "Windows") {
-              Write-Host "Executing on Windows Cloud Runner: $instruction"
+              Write-Host "Executing on Windows Runner (Cloud or Desktop): $instruction"
               $instruction | Set-Content -Path "task_script.ps1"
               powershell.exe -File .\task_script.ps1 *>&1 | Tee-Object -FilePath "execution.log"
               $exitCode = $LASTEXITCODE
