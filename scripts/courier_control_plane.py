@@ -35,6 +35,19 @@ def ingest_goals(state):
         os.remove(goal_file)
         print(f"Ingested new goal: {goal_id}")
 
+def check_github_quota():
+    """Prüft, ob noch GitHub-hosted Runner Minuten/Quota verfügbar sind."""
+    try:
+        if os.path.exists("quota.json"):
+            with open("quota.json", "r") as qf:
+                quota = json.load(qf)
+                if quota.get("github_minutes_remaining", 0) <= 0:
+                    return False
+    except Exception:
+        pass
+    # Standardmäßig True, aber ready für echtes Billing/Quota-Monitoring
+    return True
+
 def determine_next_task(goal_id, state):
     goal = state["goals"][goal_id]
     goal_text = goal["goal_text"]
@@ -50,8 +63,8 @@ def determine_next_task(goal_id, state):
             for step in plan:
                 target_agent = step.get("target_agent", "antigravity").lower()
                 
-                # GitHub-hosted ephemeral für Repo-Arbeit by default
-                target_cap = "github"
+                # Quota/Kosten-basiertes Routing statt blindem "Cloud immer"
+                target_cap = "github" if check_github_quota() else "windows_desktop"
                 
                 # Self-hosted Runner nur bei echter lokaler Capability
                 if "mac" in target_agent:
