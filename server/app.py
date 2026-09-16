@@ -397,6 +397,7 @@ def reclaim_stale():
         if now - w.get("last_seen", 0) > stale_threshold:
             stale_workers.add(w_id)
             w["available"] = False
+            w["current_task"] = None
             
     quarantined_count = 0
     # A claimed task may already have produced an effect. Without durable proof
