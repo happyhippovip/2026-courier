@@ -363,9 +363,10 @@ def claim_task():
 
                     if matched:
                         next_task["worker_id"] = worker_id
-                        next_task["attempts"] = next_task.get("attempts", 0) + 1
-                        next_task["attempt_id"] = f"{next_task['task_id']}:attempt:{next_task['attempts']}"
-                        next_task["dispatch_id"] = f"dispatch-{uuid.uuid4().hex}"
+                        if not next_task.pop("transport_recovery", False):
+                            next_task["attempts"] = next_task.get("attempts", 0) + 1
+                            next_task["attempt_id"] = f"{next_task['task_id']}:attempt:{next_task['attempts']}"
+                            next_task["dispatch_id"] = f"dispatch-{uuid.uuid4().hex}"
                         next_task["run_id"] = None
                         next_task["result_id"] = None
                         next_task["target_capability"] = target
@@ -559,9 +560,6 @@ def verify_task_result():
             set_task_status(task, "RECONCILED")
             task["next_action"] = None
             task["blocker"] = None
-            goal["current_step_index"] = goal.get("current_step_index", 0) + 1
-            if goal["current_step_index"] >= len(goal["workflow_plan"]):
-                goal["status"] = "DONE"
     else:
         set_task_status(task, "FAILED_VERIFICATION")
         task["next_action"] = "HUMAN_REVIEW"
@@ -579,6 +577,16 @@ def verify_task_result():
         if step.get("task_id") == task_id:
             step["status"] = task["status"]
             step["verification"] = task["verification"]
+            
+    if verdict == "PASS" and task.get("merge_scope") != "protected_code":
+        first_incomplete = len(goal["workflow_plan"])
+        for i, s in enumerate(goal["workflow_plan"]):
+            if s.get("status") not in ("RECONCILED", "RECONCILED_PENDING_MERGE", "SKIPPED"):
+                first_incomplete = i
+                break
+        goal["current_step_index"] = first_incomplete
+        if goal["current_step_index"] >= len(goal["workflow_plan"]):
+            goal["status"] = "DONE"
 
     save_state(state)
     return jsonify({"status": task["status"]})
@@ -612,22 +620,33 @@ def resume_task(task_id):
                     # HUMAN_REQUIRED / FAILED_* = real re-execution, new attempt via claim
                     if prior_status in ("WAITING_PROVIDER", "BLOCKED_TRANSIENT"):
                         # Transport retry: same attempt_id, same dispatch_id
-                        # Go back to DISPATCHED so the same worker (or another) can resume
-                        set_task_status(task, "DISPATCHED")
-                        step["status"] = "DISPATCHED"
-                        task["next_action"] = "EXECUTE"
+                        set_task_status(task, "QUEUED")
+                        step["status"] = "QUEUED"
+                        task["next_action"] = "DISPATCH"
                         task["blocker"] = None
                         task.pop("provider_wait_since", None)
+                        task["transport_recovery"] = True
+                        
+                        # Release previous worker ownership
+                        prev_worker = task.get("worker_id")
+                        task["worker_id"] = None
+                        step["worker_id"] = None
+                        if prev_worker and prev_worker in state["workers"]:
+                            w = state["workers"][prev_worker]
+                            if w.get("current_task") == task_id:
+                                w["current_task"] = None
+                                w["available"] = True
                     else:
                         # Real re-execution: clear identity, will get new attempt on claim
                         set_task_status(task, "QUEUED")
                         step["status"] = "QUEUED"
+                        
+                        # Release previous worker ownership
+                        prev_worker = task.get("worker_id")
                         task["worker_id"] = None
                         step["worker_id"] = None
                         task["next_action"] = "DISPATCH"
                         task["blocker"] = None
-                        # Release previous worker ownership
-                        prev_worker = task.get("worker_id")
                         if prev_worker and prev_worker in state["workers"]:
                             w = state["workers"][prev_worker]
                             if w.get("current_task") == task_id:
@@ -691,14 +710,20 @@ def approve_merge(task_id):
 
     goal = state["goals"].get(task.get("goal_id"))
     if goal:
-        goal["current_step_index"] = goal.get("current_step_index", 0) + 1
-        if goal["current_step_index"] >= len(goal.get("workflow_plan", [])):
-            goal["status"] = "DONE"
         # Sync to workflow_plan
         for step in goal.get("workflow_plan", []):
             if step.get("task_id") == task_id:
                 step["status"] = "RECONCILED"
                 step["merge_approval"] = task["merge_approval"]
+                
+        first_incomplete = len(goal.get("workflow_plan", []))
+        for i, s in enumerate(goal.get("workflow_plan", [])):
+            if s.get("status") not in ("RECONCILED", "RECONCILED_PENDING_MERGE", "SKIPPED"):
+                first_incomplete = i
+                break
+        goal["current_step_index"] = first_incomplete
+        if goal["current_step_index"] >= len(goal.get("workflow_plan", [])):
+            goal["status"] = "DONE"
 
     save_state(state)
     return jsonify({"status": "RECONCILED", "task_id": task_id})
