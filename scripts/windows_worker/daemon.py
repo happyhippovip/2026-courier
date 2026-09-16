@@ -42,15 +42,62 @@ def http_post(config, endpoint, data):
     
     try:
         with urllib.request.urlopen(req, data=jsondata, timeout=10) as response:
-            return json.loads(response.read().decode("utf-8")), None
+            return json.loads(response.read().decode("utf-8")), None, response.getcode()
     except urllib.error.HTTPError as e:
         err_msg = e.read().decode("utf-8")
-        return None, f"HTTP Error {e.code}: {err_msg}"
+        return None, f"HTTP Error {e.code}: {err_msg}", e.code
     except Exception as e:
-        return None, str(e)
+        return None, str(e), None
 
 def run_task(task, config):
     write_log(f"Running task {task['task_id']}...")
+    
+    if task.get("type") == "revenue_safety_audit" or "revenue_safety_audit" in task.get("capabilities", []):
+        write_log("Executing revenue_v1_safety_baseline.py worker...")
+        work_dir = STATE_DIR / task['task_id']
+        if work_dir.exists():
+            shutil.rmtree(work_dir)
+        work_dir.mkdir(parents=True)
+        task_file = work_dir / "task.json"
+        with open(task_file, "w") as f:
+            json.dump(task, f)
+            
+        cmd = [sys.executable, str(BASE_DIR.parent / "revenue_v1_safety_baseline.py"), "worker", str(task_file), str(work_dir)]
+        try:
+            result_raw = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+            result_data = json.loads(result_raw.decode("utf-8"))
+            
+            import zipfile, base64
+            zip_path = work_dir / "revenue_artifacts.zip"
+            with zipfile.ZipFile(zip_path, 'w') as zipf:
+                if (work_dir / "report.json").exists():
+                    zipf.write(work_dir / "report.json", "report.json")
+                if (work_dir / "report.md").exists():
+                    zipf.write(work_dir / "report.md", "report.md")
+                    
+            with open(zip_path, "rb") as f:
+                artifact_bytes = f.read()
+                
+            import hashlib
+            artifact_sha = hashlib.sha256(artifact_bytes).hexdigest()
+            artifact_b64 = base64.b64encode(artifact_bytes).decode('utf-8')
+            
+            return {
+                "status": "SUCCESS" if result_data.get("status") == "PASS" else "FAILED",
+                "run_id": "win-revenue-native",
+                "artifact_name": "revenue_artifacts.zip",
+                "artifact_sha256": artifact_sha,
+                "artifact_content_base64": artifact_b64,
+                "result_data": result_data,
+                "raw_result": result_data
+            }
+        except subprocess.CalledProcessError as e:
+            return {
+                "status": "FAILED",
+                "run_id": "win-revenue-native",
+                "stderr": e.output.decode('utf-8', errors='ignore')
+            }
+
     
     has_agy = shutil.which("agy") or shutil.which("agy.exe")
     
@@ -120,13 +167,35 @@ def run_task(task, config):
     res_json["stderr"] = stderr
     return res_json
 
+def get_lock():
+    import msvcrt
+    import sys
+    lock_file_path = STATE_DIR / "daemon.lock"
+    lock_file = open(lock_file_path, "w")
+    try:
+        msvcrt.locking(lock_file.fileno(), msvcrt.LK_NBLCK, 1)
+        return lock_file
+    except IOError:
+        write_log("Another instance of the daemon is already running.")
+        sys.exit(1)
+
 def loop():
+    import sys
+    _lock = get_lock()
     write_log("Starting Windows Worker HTTP Daemon...")
     config = load_config()
     current_task_state_file = STATE_DIR / "current_task.json"
+    current_result_state_file = STATE_DIR / "current_result.json"
     
     task = None
-    if current_task_state_file.exists():
+    pending_payload = None
+    
+    if current_result_state_file.exists():
+        write_log("Found unfinished result POST from previous run, resuming without re-execution...")
+        with open(current_result_state_file, 'r') as f:
+            pending_payload = json.load(f)
+            
+    elif current_task_state_file.exists():
         write_log("Found unfinished task from previous run, resuming...")
         with open(current_task_state_file, 'r') as f:
             task = json.load(f)
@@ -139,9 +208,12 @@ def loop():
                 reg_payload = {
                     "worker_id": config["WORKER_ID"],
                     "platform": "windows",
-                    "capabilities": ["windows", "antigravity"]
+                    "capabilities": ["windows", "antigravity", "revenue_safety_audit"]
                 }
-                res, err = http_post(config, "/workers/register", reg_payload)
+                res, err, status_code = http_post(config, "/workers/register", reg_payload)
+                if status_code in [401, 403]:
+                    write_log(f"FATAL: Permanent auth failure during register: {err}")
+                    sys.exit(1)
                 if err:
                     write_log(f"Failed to register: {err}")
                     time.sleep(5)
@@ -149,15 +221,21 @@ def loop():
                 write_log("Registered successfully.")
                 registered = True
                 
-            res, err = http_post(config, "/workers/heartbeat", {"worker_id": config["WORKER_ID"]})
+            res, err, status_code = http_post(config, "/workers/heartbeat", {"worker_id": config["WORKER_ID"]})
+            if status_code in [401, 403]:
+                write_log(f"FATAL: Permanent auth failure during heartbeat: {err}")
+                sys.exit(1)
             if err:
                 write_log(f"Heartbeat failed: {err}")
                 registered = False
                 time.sleep(5)
                 continue
                 
-            if not task:
-                res, err = http_post(config, "/tasks/claim", {"worker_id": config["WORKER_ID"]})
+            if not task and not pending_payload:
+                res, err, status_code = http_post(config, "/tasks/claim", {"worker_id": config["WORKER_ID"]})
+                if status_code in [401, 403]:
+                    write_log(f"FATAL: Permanent auth failure during claim: {err}")
+                    sys.exit(1)
                 if err:
                     write_log(f"Claim failed: {err}")
                     time.sleep(5)
@@ -168,7 +246,7 @@ def loop():
                     with open(current_task_state_file, 'w') as f:
                         json.dump(task, f)
                         
-            if task:
+            if task and not pending_payload:
                 write_log(f"Processing task {task['task_id']}")
                 
                 result = run_task(task, config)
@@ -189,7 +267,8 @@ def loop():
                             result['status'] = 'FAILED'
                             result['stderr'] = result.get('stderr', '') + f'\nMissing artifact: {expected_path}'
                             
-                payload = {
+
+                pending_payload = {
                     "worker_id": config["WORKER_ID"],
                     "goal_id": task.get("goal_id"),
                     "task_id": task["task_id"],
@@ -203,21 +282,45 @@ def loop():
                     "raw_result": result
                 }
                 
+                # Merge revenue payload specifics if present
+                if "artifact_content_base64" in result:
+                    pending_payload["artifact_name"] = result["artifact_name"]
+                    pending_payload["artifact_sha256"] = result["artifact_sha256"]
+                    pending_payload["artifact_content_base64"] = result["artifact_content_base64"]
+                    pending_payload["result_data"] = result.get("result_data", {})
+
+                
+                with open(current_result_state_file, 'w') as f:
+                    json.dump(pending_payload, f)
+                    
+            if pending_payload:
                 retries = 0
+                posted = False
                 while retries < 8:
-                    res, err = http_post(config, "/tasks/result", payload)
+                    res, err, status_code = http_post(config, "/tasks/result", pending_payload)
+                    if status_code in [400, 409]:
+                        write_log(f"Permanent rejection from server (HTTP {status_code}): {err}. Discarding task.")
+                        posted = True
+                        break
                     if err:
                         write_log(f"Result post failed: {err}. Retrying in {2**retries}s...")
                         time.sleep(2 ** retries)
                         retries += 1
                     else:
                         write_log(f"Result posted successfully: {res}")
+                        posted = True
                         break
                         
-                if current_task_state_file.exists():
-                    os.remove(current_task_state_file)
-                    
-                task = None
+                if posted:
+                    if current_task_state_file.exists():
+                        os.remove(current_task_state_file)
+                    if current_result_state_file.exists():
+                        os.remove(current_result_state_file)
+                    task = None
+                    pending_payload = None
+                else:
+                    write_log("FATAL: Exhausted retries posting result. Failing closed to preserve state.")
+                    sys.exit(1)
                 
         except Exception as e:
             write_log(f"Error in HTTP poll loop: {e}\n{traceback.format_exc()}")
@@ -226,4 +329,3 @@ def loop():
 
 if __name__ == "__main__":
     loop()
-
