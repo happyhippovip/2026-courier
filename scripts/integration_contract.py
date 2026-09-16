@@ -52,7 +52,7 @@ def prepare_task(task: dict) -> dict:
     if capability not in WORKER_IDS:
         raise ContractError(f"unsupported target_capability: {capability}")
 
-    packet.setdefault("attempt_id", f"{task_id}:attempt:1")
+    packet.setdefault("attempt_id", f"{task_id}-attempt-1")
     packet.setdefault("dispatch_id", f"dispatch-{uuid.uuid4().hex}")
     packet.setdefault("worker_id", WORKER_IDS[capability])
     packet.setdefault("run_id", None)
