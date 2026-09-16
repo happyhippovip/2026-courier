@@ -3,12 +3,17 @@ set -e
 
 echo "1. Creating runtime directory out of protected Downloads folder..."
 RUNTIME_DIR="$HOME/.courier_runtime"
-rm -rf "$RUNTIME_DIR"
+
 mkdir -p "$RUNTIME_DIR"
 
 echo "2. Copying files to runtime..."
-cp -r ../2026-courier/* "$RUNTIME_DIR/"
-cp -r ../2026-courier/.env* "$RUNTIME_DIR/" 2>/dev/null || true
+SRC_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+if [ "$SRC_DIR" != "$RUNTIME_DIR" ]; then
+    cp -R "$SRC_DIR"/* "$RUNTIME_DIR/" 2>/dev/null || true
+    cp -r "$SRC_DIR"/.env* "$RUNTIME_DIR/" 2>/dev/null || true
+else
+    echo "Updating in place. Skipping recursive copy."
+fi
 
 cd "$RUNTIME_DIR"
 
@@ -46,6 +51,8 @@ cat << PLIST > ~/Library/LaunchAgents/com.courier.server.plist
     <dict>
         <key>PATH</key>
         <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:$HOME/.local/bin</string>
+        <key>GITHUB_WORKER_ID</key>
+        <string>GITHUB-DISPATCHER</string>
     </dict>
 </dict>
 </plist>
