@@ -87,6 +87,11 @@ jobs:
                   path = PurePosixPath(name) if isinstance(name, str) else None
                   if not path or path.is_absolute() or ".." in path.parts or path.parts[0] != "tests" or not Path(path).exists():
                       raise ValueError("run_tests requires an existing safe path under tests")
+                  dependencies = subprocess.run(
+                      [sys.executable, "-m", "pip", "install", "--disable-pip-version-check", "--quiet", "pytest", "requests"],
+                      capture_output=True, text=True, check=False)
+                  if dependencies.returncode:
+                      raise RuntimeError((dependencies.stdout + dependencies.stderr)[-4000:])
                   command = [sys.executable, "-m", "pytest", "-q", str(path)]
               else:
                   command = [sys.executable, "-m", "compileall", "-q", "scripts", "server"]
