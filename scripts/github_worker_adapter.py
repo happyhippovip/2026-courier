@@ -16,11 +16,11 @@ def run(task_file):
     # Map Courier target to GitHub Runner labels
     target = task.get('target_capability', 'github')
     if target == 'windows':
-        runner_label = "self-hosted, windows"
+        runner_label = '["self-hosted", "windows"]'
     elif target == 'mac':
-        runner_label = "self-hosted, macOS"
+        runner_label = '["self-hosted", "macOS"]'
     else:
-        runner_label = "ubuntu-latest"
+        runner_label = '"ubuntu-latest"'
         
     mode = task.get('mode', 'ANTIGRAVITY')
     
@@ -29,6 +29,7 @@ def run(task_file):
     # Trigger workflow
     cmd = [
         "gh", "workflow", "run", "courier_worker.yml",
+        "--ref", "courier/windows-phase-15-completion",
         "-f", f"task_id={task_id}",
         "-f", f"instruction={instruction}",
         "-f", f"goal_id={goal_id}",

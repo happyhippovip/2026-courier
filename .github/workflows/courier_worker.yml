@@ -27,7 +27,7 @@ on:
 
 jobs:
   execute:
-    runs-on: ${{ github.event.inputs.runner_label }}
+    runs-on: ${{ fromJSON(github.event.inputs.runner_label) }}
     steps:
       - name: Bridge Task to Native Daemon
         shell: bash
