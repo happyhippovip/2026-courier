@@ -1,1 +1,0 @@
-{"status": "SUCCESS", "stdout_summary": "Successfully responded with status SUCCESS in accordance with the task instructions.", "execution_mode": "ANTIGRAVITY", "stderr": "", "goal_id": null, "task_id": "test-mac-004", "worker_id": "MAC-01", "provider": "mac_antigravity", "run_id": "215ed5e6-af4e-4d10-9178-f3156ad238b8"}
