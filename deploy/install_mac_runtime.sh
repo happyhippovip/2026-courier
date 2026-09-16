@@ -3,12 +3,13 @@ set -e
 
 echo "1. Creating runtime directory out of protected Downloads folder..."
 RUNTIME_DIR="$HOME/.courier_runtime"
-rm -rf "$RUNTIME_DIR"
+
 mkdir -p "$RUNTIME_DIR"
 
 echo "2. Copying files to runtime..."
-cp -r ../2026-courier/* "$RUNTIME_DIR/"
-cp -r ../2026-courier/.env* "$RUNTIME_DIR/" 2>/dev/null || true
+SRC_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+cp -R "$SRC_DIR"/* "$RUNTIME_DIR/" 2>/dev/null || true
+cp -r "$SRC_DIR"/.env* "$RUNTIME_DIR/" 2>/dev/null || true
 
 cd "$RUNTIME_DIR"
 
