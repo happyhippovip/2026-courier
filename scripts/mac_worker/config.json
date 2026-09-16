@@ -1,5 +1,4 @@
 {
   "WORKER_ID": "MAC-01",
-  "POLL_INTERVAL_SECONDS": 5,
-  "COURIER_API_KEY": "courier-worker-0eac500d-ed14-45a3-965c-c5aa36668ea4"
+  "POLL_INTERVAL_SECONDS": 5
 }
