@@ -137,12 +137,14 @@ def get_goal(goal_id):
     return jsonify({"goal": goal, "tasks": tasks})
 
 @app.route("/workers", methods=["GET"])
+@require_auth
 def list_workers():
     state = load_state()
     # Mask API keys if they exist, but they shouldn't be in worker definitions
     return jsonify(state.get("workers", {}))
 
 @app.route("/walls", methods=["GET"])
+@require_auth
 def list_walls():
     state = load_state()
     walls = {}
