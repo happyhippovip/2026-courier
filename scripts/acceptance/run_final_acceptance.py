@@ -3,7 +3,9 @@ import requests
 
 API_URL = "http://127.0.0.1:8081"
 API_KEY = "acceptance-secret"
+VERIFIER_API_KEY = "acceptance-verifier-secret"
 HEADERS = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
+VERIFIER_HEADERS = {"Authorization": f"Bearer {VERIFIER_API_KEY}", "Content-Type": "application/json"}
 
 results = {
     "ACCEPTANCE_HARNESS": "YES",
@@ -29,6 +31,7 @@ def start_server(state_file):
     env = os.environ.copy()
     env["COURIER_STATE_FILE"] = state_file
     env["COURIER_API_KEY"] = API_KEY
+    env["COURIER_VERIFIER_API_KEY"] = VERIFIER_API_KEY
     
     python_bin = "venv/bin/python3" if os.path.exists("venv/bin/python3") else sys.executable
     proc = subprocess.Popen([python_bin, "-m", "flask", "--app", "server.app", "run", "-p", "8081"], env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -135,7 +138,7 @@ def run_tests():
             "verdict": "PASS",
             "artifacts": res_payload_1["artifacts"]
         }
-        res = requests.post(f"{API_URL}/tasks/verify", json=verify_payload_1, headers=HEADERS)
+        res = requests.post(f"{API_URL}/tasks/verify", json=verify_payload_1, headers=VERIFIER_HEADERS)
         t_assert(res.status_code == 200, "Mac result verified and reconciled")
 
         # Test 5: Re-claim duplicate prevention (DUPLICATE_RESULT)
@@ -181,7 +184,7 @@ def run_tests():
             "verdict": "PASS",
             "artifacts": res_payload_2["artifacts"]
         }
-        res = requests.post(f"{API_URL}/tasks/verify", json=verify_payload_2, headers=HEADERS)
+        res = requests.post(f"{API_URL}/tasks/verify", json=verify_payload_2, headers=VERIFIER_HEADERS)
         t_assert(res.status_code == 200, "Windows result verified and reconciled")
 
 # Step 3 is github. 
@@ -216,7 +219,7 @@ def run_tests():
             "verdict": "PASS",
             "artifacts": res_payload_3["artifacts"]
         }
-        res = requests.post(f"{API_URL}/tasks/verify", json=verify_payload_3, headers=HEADERS)
+        res = requests.post(f"{API_URL}/tasks/verify", json=verify_payload_3, headers=VERIFIER_HEADERS)
         t_assert(res.status_code == 200, "GitHub result verified and reconciled")
 
         results["LOCAL_END_TO_END"] = "YES"

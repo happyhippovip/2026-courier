@@ -15,11 +15,16 @@ from server import app as server_app
 def client(tmp_path, monkeypatch):
     monkeypatch.setattr(server_app, "STATE_FILE", str(tmp_path / "state.json"))
     monkeypatch.setattr(server_app, "API_KEY", "test-secret")
+    monkeypatch.setattr(server_app, "VERIFIER_API_KEY", "verifier-secret")
     return server_app.app.test_client()
 
 
 def auth():
     return {"Authorization": "Bearer test-secret"}
+
+
+def verifier_auth():
+    return {"Authorization": "Bearer verifier-secret"}
 
 
 def setup_claimed_task(tmp_path, monkeypatch):
@@ -92,13 +97,15 @@ def test_operator_state_endpoints_require_auth(tmp_path, monkeypatch, endpoint):
 def test_background_agents_fail_closed_without_api_key(script):
     env = os.environ.copy()
     env.pop("COURIER_API_KEY", None)
+    env.pop("COURIER_VERIFIER_API_KEY", None)
 
     result = subprocess.run(
         [sys.executable, script], capture_output=True, text=True, env=env, timeout=5
     )
 
     assert result.returncode != 0
-    assert "COURIER_API_KEY is required" in result.stderr
+    expected = "COURIER_VERIFIER_API_KEY" if script.endswith("courier_verifier.py") else "COURIER_API_KEY"
+    assert f"{expected} is required" in result.stderr
 
 
 def test_claim_returns_complete_common_identity(tmp_path, monkeypatch):
@@ -151,9 +158,9 @@ def test_only_independent_verification_advances_goal_exactly_once(tmp_path, monk
     }
 
     self_certification = dict(verification, verifier_id=task["worker_id"])
-    assert http.post("/tasks/verify", headers=auth(), json=self_certification).status_code == 400
-    accepted = http.post("/tasks/verify", headers=auth(), json=verification)
-    duplicate = http.post("/tasks/verify", headers=auth(), json=verification)
+    assert http.post("/tasks/verify", headers=verifier_auth(), json=self_certification).status_code == 400
+    accepted = http.post("/tasks/verify", headers=verifier_auth(), json=verification)
+    duplicate = http.post("/tasks/verify", headers=verifier_auth(), json=verification)
 
     assert accepted.status_code == 200
     assert duplicate.get_json()["status"] == "ACK_DUPLICATE"
@@ -161,6 +168,47 @@ def test_only_independent_verification_advances_goal_exactly_once(tmp_path, monk
     assert state["tasks"][task["task_id"]]["status"] == "RECONCILED"
     assert state["goals"][goal_id]["current_step_index"] == 1
     assert state["goals"][goal_id]["status"] == "DONE"
+
+
+def test_worker_credential_cannot_self_certify_with_forged_verifier_id(tmp_path, monkeypatch):
+    http, goal_id, task = setup_claimed_task(tmp_path, monkeypatch)
+    result = durable_result(task)
+    assert http.post("/tasks/result", headers=auth(), json=result).status_code == 200
+    forged = {
+        "task_id": task["task_id"],
+        "result_id": result["result_id"],
+        "verifier_id": "VERIFIER-01",
+        "verdict": "PASS",
+        "artifacts": result["artifacts"],
+    }
+
+    assert http.get("/tasks/pending_verification", headers=auth()).status_code == 401
+    assert http.post("/tasks/verify", headers=auth(), json=forged).status_code == 401
+    state = server_app.load_state()
+    assert state["tasks"][task["task_id"]]["status"] == "RESULT_RECEIVED"
+    assert state["goals"][goal_id]["current_step_index"] == 0
+
+
+def test_verifier_authority_fails_closed_when_shared_with_worker(tmp_path, monkeypatch):
+    http, _, task = setup_claimed_task(tmp_path, monkeypatch)
+    result = durable_result(task)
+    assert http.post("/tasks/result", headers=auth(), json=result).status_code == 200
+    monkeypatch.setattr(server_app, "VERIFIER_API_KEY", "test-secret")
+
+    response = http.post(
+        "/tasks/verify",
+        headers=auth(),
+        json={
+            "task_id": task["task_id"],
+            "result_id": result["result_id"],
+            "verifier_id": "VERIFIER-01",
+            "verdict": "PASS",
+            "artifacts": result["artifacts"],
+        },
+    )
+
+    assert response.status_code == 503
+    assert server_app.load_state()["tasks"][task["task_id"]]["status"] == "RESULT_RECEIVED"
 
 
 def test_goal_without_manual_plan_uses_existing_planner(tmp_path, monkeypatch):
