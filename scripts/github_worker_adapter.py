@@ -88,16 +88,17 @@ def run(task_file):
             
         print(f"[GitHub Transport] Workflow triggered. Polling for artifact...")
     
-    # Poll for completion. To avoid spamming, we list runs matching this workflow.
-    # It takes time for the run to appear, then finish.
-    timeout = 600
+    # Poll for completion using Heartbeat/Lease instead of blind timer
+    dispatch_grace_period = 180
+    last_heartbeat = time.time()
     start = time.time()
     
-    while time.time() - start < timeout:
+    while True:
         time.sleep(15)
-        # Check latest runs
-        rc, out, err = run_cmd(["gh", "run", "list", "--workflow=courier_worker.yml", "--json", "databaseId,status,conclusion"])
+        rc, out, err = run_cmd(["gh", "run", "list", "--workflow=courier_worker.yml", "--json", "databaseId,status,conclusion,displayTitle"])
         if rc != 0:
+            if time.time() - last_heartbeat > dispatch_grace_period:
+                break
             continue
             
         try:
@@ -105,16 +106,21 @@ def run(task_file):
         except:
             continue
             
+        found_run = None
         for r in runs:
-            # We can only check if the artifact exists for completed runs because we don't know the exact run ID easily without matching inputs.
-            if r['status'] == 'completed':
-                run_id = str(r['databaseId'])
-                # Try to download artifact named courier-result-{attempt_id}
+            if r.get('displayTitle') and attempt_id in r.get('displayTitle', ''):
+                found_run = r
+                break
+                
+        if found_run:
+            last_heartbeat = time.time() # Heartbeat refreshed by GitHub Actions
+            run_id = str(found_run['databaseId'])
+            
+            if found_run['status'] == 'completed':
                 dl_cmd = ["gh", "run", "download", run_id, "-n", f"courier-result-{attempt_id}", "-D", f"tmp_artifact_{task_id}"]
                 rc_dl, out_dl, err_dl = run_cmd(dl_cmd)
                 if rc_dl == 0:
                     print(f"[GitHub Transport] Downloaded artifact from run {run_id}!")
-                    # Check what we downloaded
                     tmp_dir = Path(f"tmp_artifact_{task_id}")
                     result_json_path = tmp_dir / "result.json"
                     
@@ -165,11 +171,19 @@ def run(task_file):
                         return
                     else:
                         shutil.rmtree(tmp_dir)
+                else:
+                    # Run completed but no artifact? Crashed or failed.
+                    print(f"[GitHub Transport] Run {run_id} completed but artifact download failed. Run conclusion: {found_run.get('conclusion')}")
+                    break
+        else:
+            if time.time() - start > dispatch_grace_period and time.time() - last_heartbeat > dispatch_grace_period:
+                print(f"[GitHub Transport] Run not found after grace period.")
+                break
         
-    print(f"[GitHub Transport] Timeout waiting for task {task_id}.")
+    print(f"[GitHub Transport] Terminating wait for task {task_id}.")
     res = {
         "status": "WAITING_FOR_WORKER", 
-        "reason": "TIMEOUT", 
+        "reason": "LEASE_EXPIRED_OR_WORKFLOW_FAILED", 
         "task_id": task_id,
         "goal_id": goal_id,
         "worker_id": task.get("worker_id", ""),

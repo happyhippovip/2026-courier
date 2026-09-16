@@ -49,11 +49,15 @@ def determine_next_task(goal_id, state):
             mapped_plan = []
             for step in plan:
                 target_agent = step.get("target_agent", "antigravity").lower()
-                target_cap = "windows"
+                
+                # GitHub-hosted ephemeral für Repo-Arbeit by default
+                target_cap = "github"
+                
+                # Self-hosted Runner nur bei echter lokaler Capability
                 if "mac" in target_agent:
                     target_cap = "mac"
-                elif "github" in target_agent:
-                    target_cap = "github"
+                elif "desktop" in target_agent or "local" in target_agent or "windows" in target_agent:
+                    target_cap = "windows_desktop"
                 
                 mapped_plan.append({
                     "task_id": step.get("task_id", f"task-{uuid.uuid4().hex[:8]}"),

@@ -1,4 +1,5 @@
 name: Courier Worker
+run-name: "Courier Task ${{ inputs.task_id }} (Attempt ${{ inputs.attempt_id }})"
 on:
   workflow_dispatch:
     inputs:
