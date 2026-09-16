@@ -1,8 +1,13 @@
 #!/bin/bash
 # Reicht das Revenue V1 "Oil Market Anomaly Alarm" Goal an den Server ein.
 
+if [ -z "${COURIER_API_KEY:-}" ]; then
+    COURIER_API_KEY=$(security find-generic-password -a "courier_worker" -s "courier_api_key" -w 2>/dev/null) || true
+fi
+: "${COURIER_API_KEY:?COURIER_API_KEY must be set in env or Mac Keychain}"
+
 curl -X POST http://127.0.0.1:8080/goals \
-  -H "Authorization: Bearer prod-secret-12345" \
+  -H "Authorization: Bearer $COURIER_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "goal_text": "Hourly Oil Market Anomaly Alarm",
