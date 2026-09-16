@@ -1,52 +1,38 @@
 #!/bin/bash
-cd "$(dirname "$0")/.." || exit 1
-TARGET_DIR=$(pwd)
+# Re-routed to the single supported installer path
+set -e
 
-echo "1. Setting up Courier Server LaunchAgent..."
-cat << PLIST > ~/Library/LaunchAgents/com.courier.server.plist
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>Label</key>
-    <string>com.courier.server</string>
-    <key>ProgramArguments</key>
-    <array>
-        <string>/bin/bash</string>
-        <string>$TARGET_DIR/deploy/run-supervisor.sh</string>
-    </array>
-    <key>WorkingDirectory</key>
-    <string>$TARGET_DIR</string>
-    <key>RunAtLoad</key>
-    <true/>
-    <key>KeepAlive</key>
-    <true/>
-    <key>StandardOutPath</key>
-    <string>$TARGET_DIR/logs/server_launchd.log</string>
-    <key>StandardErrorPath</key>
-    <string>$TARGET_DIR/logs/server_launchd.error.log</string>
-    <key>EnvironmentVariables</key>
-    <dict>
-        <key>PATH</key>
-        <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:/Users/user/.local/bin</string>
-        <key>COURIER_API_KEY</key>
-        <string>prod-secret-12345</string>
-        <key>COURIER_VERIFIER_API_KEY</key>
-        <string>ver-secret-67890</string>
-        <key>GITHUB_WORKER_ID</key>
-        <string>GITHUB-DISPATCHER</string>
-    </dict>
-</dict>
-</plist>
-PLIST
+echo "Courier: Local Autonomy Setup"
+echo "---------------------------------"
 
-mkdir -p logs
+# Prompt for credentials securely and store them in the Mac Keychain
+read -p "Enter COURIER_SERVER URL (e.g. http://127.0.0.1:8080): " SERVER_URL
+read -s -p "Enter COURIER_API_KEY (Worker): " API_KEY
+echo ""
+read -s -p "Enter COURIER_VERIFIER_API_KEY (Server): " VERIFIER_KEY
+echo ""
 
-launchctl unload ~/Library/LaunchAgents/com.courier.server.plist 2>/dev/null
-launchctl load ~/Library/LaunchAgents/com.courier.server.plist
+if [ -n "$SERVER_URL" ]; then
+    security add-generic-password -a "courier_worker" -s "courier_server_url" -w "$SERVER_URL" -U
+fi
+if [ -n "$API_KEY" ]; then
+    security add-generic-password -a "courier_worker" -s "courier_api_key" -w "$API_KEY" -U
+fi
+if [ -n "$VERIFIER_KEY" ]; then
+    security add-generic-password -a "courier_worker" -s "courier_verifier_api_key" -w "$VERIFIER_KEY" -U
+fi
 
-echo "2. Setting up Mac Worker LaunchAgent..."
-export COURIER_API_KEY="prod-secret-12345"
-./scripts/mac_worker/install.sh
+echo "Credentials securely stored in Keychain."
 
-echo "Vollautomatik Background Services installed and running!"
+# Call the single canonical installer
+echo "Delegating to canonical installer..."
+cd "$(dirname "$0")/.."
+if [ ! -d "../2026-courier" ]; then
+    # We might be in a different folder name, so symlink it temporarily for the installer
+    CURRENT_DIR_NAME=$(basename $(pwd))
+    if [ "$CURRENT_DIR_NAME" != "2026-courier" ]; then
+        ln -sfn "./$CURRENT_DIR_NAME" "../2026-courier"
+    fi
+fi
+
+bash deploy/install_mac_runtime.sh

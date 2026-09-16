@@ -3,6 +3,8 @@ from pathlib import Path
 import urllib.request
 import urllib.error
 import urllib.parse
+import tempfile
+import fcntl
 
 # Paths
 BASE_DIR = Path(__file__).parent
@@ -32,6 +34,10 @@ def load_config():
         config["COURIER_SERVER"] = os.environ["COURIER_SERVER"]
     if "COURIER_API_KEY" in os.environ:
         config["COURIER_API_KEY"] = os.environ["COURIER_API_KEY"]
+        
+    if not config.get("COURIER_API_KEY"):
+        print("[Mac Worker] FATAL: Missing COURIER_API_KEY in Keychain or environment.")
+        sys.exit(1)
         
     return config
 
@@ -136,9 +142,28 @@ def run_agy(task, config):
     except Exception as e:
         return {"status": "FAILED", "stderr": str(e), "execution_mode": "ANTIGRAVITY"}
 
+import fcntl
+
+def acquire_lock(worker_id):
+    lock_file = Path(tempfile.gettempdir()) / f"courier_mac_worker_{worker_id}.lock"
+    try:
+        fd = os.open(str(lock_file), os.O_CREAT | os.O_RDWR)
+        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        os.write(fd, str(os.getpid()).encode())
+        return fd
+    except BlockingIOError:
+        return None
+
 def loop():
     write_log("Starting Mac Worker HTTP Daemon...")
     config = load_config()
+    
+    worker_id = config.get("WORKER_ID", "macos-default")
+    lock_fd = acquire_lock(worker_id)
+    if not lock_fd:
+        write_log(f"[{worker_id}] Another instance is already running. Exiting.")
+        sys.exit(0)
+        
     current_task_state_file = STATE_DIR / "current_task.json"
     
     # Load previously claimed task for duplicate protection
