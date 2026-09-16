@@ -578,7 +578,13 @@ def task_result():
             else:
                 failure_reason = durable_result.get("stderr", "unknown")
                 retry_state = get_retry_state(task)
-                if retry_state["execution"] < MAX_RETRIES["execution"] and "AMBIGUOUS_CRASH" not in failure_reason:
+                wall_match = next((w for w in ["MONEY_REQUIRED", "SAFETY_REQUIRED", "PERMISSION_REQUIRED", "HUMAN_REQUIRED"] if w in failure_reason), None)
+                if wall_match:
+                    set_task_status(task, "HUMAN_REQUIRED")
+                    task["next_action"] = "HUMAN_REVIEW"
+                    task["recovery_reason"] = wall_match
+                    task["blocker"] = f"Worker reported wall: {wall_match}"
+                elif retry_state["execution"] < MAX_RETRIES["execution"] and "AMBIGUOUS_CRASH" not in failure_reason:
                     retry_state["execution"] += 1
                     set_task_status(task, "QUEUED")
                     task["worker_id"] = None
@@ -608,7 +614,11 @@ def task_result():
                             step["retry_state"] = task["retry_state"]
                         if "next_retry_at" in task:
                             step["next_retry_at"] = task["next_retry_at"]
-                if task["status"] == "FAILED_TERMINAL":
+                        if "recovery_reason" in task:
+                            step["recovery_reason"] = task["recovery_reason"]
+                        if "blocker" in task:
+                            step["blocker"] = task["blocker"]
+                if task["status"] in ["FAILED_TERMINAL", "HUMAN_REQUIRED"]:
                     goal["status"] = "BLOCKED"
 
             if worker_id in state["workers"]:

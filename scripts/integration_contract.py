@@ -154,6 +154,8 @@ def validate_durable_result(task: dict, result: dict) -> dict:
         required.add("run_attempt")
     if "result_data" in result:
         required.add("result_data")
+    if "stderr" in result:
+        required.add("stderr")
     missing = sorted(required - set(result))
     if missing:
         raise ContractError(f"result is missing: {', '.join(missing)}")
