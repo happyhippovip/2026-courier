@@ -82,7 +82,21 @@ def run_native(task, config):
     # Safe bounded execution
     try:
         if action == "echo":
-            result = subprocess.run(instruction, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, executable="/bin/bash")
+            import shlex
+            text_to_echo = instruction
+            filename = None
+            if " to " in instruction.lower():
+                parts = instruction.lower().split(" to ", 1)
+                text_to_echo = instruction[:len(parts[0])].replace("Echo", "").replace("echo", "").strip()
+                filename = instruction[len(parts[0])+4:].split()[0].strip()
+            
+            if filename:
+                with open(filename, "w") as f:
+                    f.write(text_to_echo + "\n")
+                return {"status": "SUCCESS", "stdout": f"Echoed to {filename}", "execution_mode": "NATIVE"}
+            else:
+                result = subprocess.run(["echo", text_to_echo], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                return {"status": "SUCCESS" if result.returncode == 0 else "FAILED", "stdout": result.stdout, "stderr": result.stderr, "execution_mode": "NATIVE"}
         elif action == "git_status":
             result = subprocess.run(["git", "status"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         else:
@@ -111,9 +125,29 @@ def run_agy(task, config):
     cmd = [wrapper, agy_bin, "-p", prompt, "--dangerously-skip-permissions"]
     
     try:
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        stdout, stderr = process.communicate(timeout=300)
-        
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, start_new_session=True)
+        try:
+            stdout, stderr = process.communicate(timeout=300)
+        except subprocess.TimeoutExpired:
+            import signal
+            write_log(f"TimeoutExpired for task {task['task_id']}, marking cleanup pending and terminating process group {process.pid}...")
+            try:
+                os.killpg(process.pid, signal.SIGTERM)
+            except OSError:
+                pass
+            
+            try:
+                process.communicate(timeout=10)
+            except subprocess.TimeoutExpired:
+                write_log(f"Process group {process.pid} did not exit gracefully, sending SIGKILL...")
+                try:
+                    os.killpg(process.pid, signal.SIGKILL)
+                except OSError:
+                    pass
+                process.communicate() # Reap
+                
+            return {"status": "FAILED", "stderr": "Execution timed out and process tree was cleaned up.", "execution_mode": "ANTIGRAVITY"}
+            
         out_clean = stdout.strip()
         parsed = False
         res_json = {}
@@ -140,13 +174,22 @@ def loop():
     write_log("Starting Mac Worker HTTP Daemon...")
     config = load_config()
     current_task_state_file = STATE_DIR / "current_task.json"
+    result_state_file = STATE_DIR / "current_result.json"
     
+    # Check for pending result
+    pending_result = None
+    if result_state_file.exists():
+        write_log("Found un-ACKed result from previous run, resuming post...")
+        with open(result_state_file, 'r') as f:
+            pending_result = json.load(f)
+            
     # Load previously claimed task for duplicate protection
     task = None
     if current_task_state_file.exists():
-        write_log("Found unfinished task from previous run, resuming...")
         with open(current_task_state_file, 'r') as f:
             task = json.load(f)
+        if not pending_result:
+            write_log("Found unfinished task from previous run, resuming...")
             
     registered = False
     
@@ -174,7 +217,7 @@ def loop():
                 time.sleep(5)
                 continue
                 
-            if not task:
+            if not task and not pending_result:
                 # Claim Task
                 res, err = http_post(config, "/tasks/claim", {"worker_id": config["WORKER_ID"]})
                 if err:
@@ -187,7 +230,10 @@ def loop():
                     with open(current_task_state_file, 'w') as f:
                         json.dump(task, f)
                         
-            if task:
+            payload = None
+            if pending_result:
+                payload = pending_result
+            elif task:
                 write_log(f"Processing task {task['task_id']}")
                 mode = task.get("mode", "ANTIGRAVITY")
                 # Fallback to NATIVE if requested via target_agent routing
@@ -232,22 +278,27 @@ def loop():
                     "raw_result": result
                 }
                 
-                # Backoff loop for posting result
-                retries = 0
-                while retries < 8: # Up to 8 retries (~ 255 seconds)
+                # Persist the result so it can be resumed after restart
+                result_state_file = STATE_DIR / "current_result.json"
+                with open(result_state_file, 'w') as f:
+                    json.dump(payload, f)
+            
+            if payload:
+                # Infinite loop until successful POST
+                while True:
                     res, err = http_post(config, "/tasks/result", payload)
                     if err:
-                        write_log(f"Result post failed: {err}. Retrying in {2**retries}s...")
-                        time.sleep(2 ** retries)
-                        retries += 1
+                        write_log(f"Result post failed: {err}. Retrying in 10s...")
+                        time.sleep(10)
                     else:
                         write_log(f"Result posted successfully: {res}")
+                        if current_task_state_file.exists():
+                            os.remove(current_task_state_file)
+                        if result_state_file.exists():
+                            os.remove(result_state_file)
+                        task = None
+                        pending_result = None
                         break
-                        
-                if current_task_state_file.exists():
-                    os.remove(current_task_state_file)
-                    
-                task = None
                 
         except Exception as e:
             write_log(f"Error in HTTP poll loop: {e}\n{traceback.format_exc()}")
