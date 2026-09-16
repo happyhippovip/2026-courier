@@ -2,6 +2,9 @@ import hashlib
 import json
 import threading
 import time
+import os
+import subprocess
+import sys
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
@@ -68,6 +71,34 @@ def test_insecure_default_key_fails_closed(tmp_path, monkeypatch):
     monkeypatch.setattr(server_app, "API_KEY", "dev-secret-key")
     response = server_app.app.test_client().post("/workers/register", json={"worker_id": "worker"})
     assert response.status_code == 503
+
+
+@pytest.mark.parametrize("endpoint", ["/workers", "/walls"])
+def test_operator_state_endpoints_require_auth(tmp_path, monkeypatch, endpoint):
+    http = client(tmp_path, monkeypatch)
+
+    assert http.get(endpoint).status_code == 401
+    assert http.get(endpoint, headers=auth()).status_code == 200
+
+
+@pytest.mark.parametrize(
+    "script",
+    [
+        "scripts/courier_verifier.py",
+        "scripts/courier_github_dispatcher.py",
+        "scripts/courier_watchdog.py",
+    ],
+)
+def test_background_agents_fail_closed_without_api_key(script):
+    env = os.environ.copy()
+    env.pop("COURIER_API_KEY", None)
+
+    result = subprocess.run(
+        [sys.executable, script], capture_output=True, text=True, env=env, timeout=5
+    )
+
+    assert result.returncode != 0
+    assert "COURIER_API_KEY is required" in result.stderr
 
 
 def test_claim_returns_complete_common_identity(tmp_path, monkeypatch):

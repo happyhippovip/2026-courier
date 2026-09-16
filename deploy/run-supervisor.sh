@@ -1,4 +1,6 @@
 #!/bin/bash
+set -eu
+: "${COURIER_API_KEY:?COURIER_API_KEY must be set before starting Courier}"
 source venv/bin/activate
 
 echo "Starting Courier background daemons..."

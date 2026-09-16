@@ -5,7 +5,7 @@ import time
 import requests
 
 API_URL = os.environ.get("COURIER_SERVER", "http://127.0.0.1:8080").rstrip("/")
-API_KEY = os.environ.get("COURIER_API_KEY", "prod-secret-12345")
+API_KEY = os.environ.get("COURIER_API_KEY")
 HEADERS = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
 
 # 5 minutes without heartbeat means worker is stale
@@ -15,6 +15,8 @@ def log(msg):
     print(f"[Watchdog] {msg}", flush=True)
 
 def run_loop():
+    if not API_KEY:
+        raise SystemExit("COURIER_API_KEY is required")
     log(f"Starting Courier Watchdog pointing to {API_URL}")
     while True:
         try:
