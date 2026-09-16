@@ -8,8 +8,12 @@ from scripts.run_chief_commander import ChiefCommander
 app = Flask(__name__)
 
 STATE_FILE = os.environ.get("COURIER_STATE_FILE", "server/state/central_state.json")
-API_KEY = os.environ.get("COURIER_API_KEY", "dev-secret-key")
-VERIFIER_API_KEY = os.environ.get("COURIER_VERIFIER_API_KEY", "")
+API_KEY = os.environ.get("COURIER_API_KEY")
+if not API_KEY:
+    raise SystemExit("Missing COURIER_API_KEY environment variable")
+VERIFIER_API_KEY = os.environ.get("COURIER_VERIFIER_API_KEY")
+if not VERIFIER_API_KEY:
+    raise SystemExit("Missing COURIER_VERIFIER_API_KEY environment variable")
 INSECURE_API_KEYS = {"", "dev-secret-key", "your_secure_api_key_here"}
 STATE_LOCK = threading.RLock()
 

@@ -15,8 +15,14 @@ DISPATCHER_PID=$!
 python3 scripts/courier_watchdog.py > logs/courier_watchdog.log 2>&1 &
 WATCHDOG_PID=$!
 
-trap "echo 'Stopping daemons...'; kill $VERIFIER_PID $DISPATCHER_PID $WATCHDOG_PID" EXIT
+
 
 echo "Starting Gunicorn server..."
 # Using -w 1 --threads 4 to avoid file locking issues with state.json
-exec gunicorn -w 1 --threads 4 -b 0.0.0.0:8080 server.app:app
+
+gunicorn -w 1 --threads 4 -b 0.0.0.0:8080 server.app:app &
+GUNICORN_PID=$!
+
+trap "echo 'Stopping all...'; kill $VERIFIER_PID $DISPATCHER_PID $WATCHDOG_PID $GUNICORN_PID 2>/dev/null; exit 0" EXIT SIGINT SIGTERM
+
+wait $GUNICORN_PID
