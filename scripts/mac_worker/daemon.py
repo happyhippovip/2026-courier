@@ -3,6 +3,21 @@ from pathlib import Path
 import urllib.request
 import urllib.error
 import urllib.parse
+import signal
+
+# Track active process groups for cleanup on shutdown
+ACTIVE_PGIDS = set()
+
+def sigterm_handler(signum, frame):
+    for pgid in list(ACTIVE_PGIDS):
+        try:
+            os.killpg(pgid, signal.SIGKILL)
+        except Exception:
+            pass
+    sys.exit(0)
+
+signal.signal(signal.SIGTERM, sigterm_handler)
+signal.signal(signal.SIGINT, sigterm_handler)
 
 # Paths
 BASE_DIR = Path(__file__).parent
@@ -147,12 +162,21 @@ def run_agy(task, config):
     cmd = [wrapper, agy_bin, "-p", prompt, "--dangerously-skip-permissions"]
     
     try:
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, start_new_session=True)
+        pgid = os.getpgid(process.pid)
+        ACTIVE_PGIDS.add(pgid)
         try:
             stdout, stderr = process.communicate(timeout=300)
         except subprocess.TimeoutExpired:
-            process.kill()
+            try:
+                os.killpg(pgid, signal.SIGTERM)
+                time.sleep(1)
+                os.killpg(pgid, signal.SIGKILL)
+            except Exception:
+                pass
             stdout, stderr = process.communicate()
+        finally:
+            ACTIVE_PGIDS.discard(pgid)
             return {"status": "FAILED", "stderr": "Execution timed out", "execution_mode": "ANTIGRAVITY"}
         
         # Enforce stdout/stderr payload limits
@@ -209,12 +233,21 @@ def run_copilot(task, config):
     cmd = [wrapper, gh_bin, "copilot", "suggest", "-t", "shell", prompt]
     
     try:
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, start_new_session=True)
+        pgid = os.getpgid(process.pid)
+        ACTIVE_PGIDS.add(pgid)
         try:
             stdout, stderr = process.communicate(timeout=300)
         except subprocess.TimeoutExpired:
-            process.kill()
+            try:
+                os.killpg(pgid, signal.SIGTERM)
+                time.sleep(1)
+                os.killpg(pgid, signal.SIGKILL)
+            except Exception:
+                pass
             stdout, stderr = process.communicate()
+        finally:
+            ACTIVE_PGIDS.discard(pgid)
             return {"status": "FAILED", "stderr": "Execution timed out", "execution_mode": "COPILOT"}
         
         # Enforce stdout/stderr payload limits
