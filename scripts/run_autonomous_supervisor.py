@@ -14,9 +14,11 @@ Features:
 """
 
 from __future__ import annotations
-import sys
-print("Disabled in favor of OS-owned Courier Motor.")
-sys.exit(1)
+
+if __name__ == "__main__":
+    import sys
+    print("Disabled in favor of OS-owned Courier Motor.")
+    sys.exit(1)
 
 import argparse
 import datetime

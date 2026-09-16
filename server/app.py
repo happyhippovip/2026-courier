@@ -7,8 +7,9 @@ from scripts.run_chief_commander import ChiefCommander
 
 app = Flask(__name__)
 
-STATE_FILE = os.environ.get("COURIER_STATE_FILE", "server/state/central_state.json")
-BATCH_QUEUE_DIR = "server/state/batches"
+CANONICAL_DIR = os.environ.get("COURIER_DATA_DIR", r"C:\ProgramData\Courier")
+STATE_FILE = os.environ.get("COURIER_STATE_FILE", os.path.join(CANONICAL_DIR, "central_state.json"))
+BATCH_QUEUE_DIR = os.path.join(CANONICAL_DIR, "batches")
 try:
     import keyring
     API_KEY = os.environ.get("COURIER_API_KEY") or keyring.get_password("courier_worker", "courier_api_key")
