@@ -629,7 +629,7 @@ class ChiefCommander:
                 pass # fallback to generic 3-step
 
         # Step 1: Strategy & Discovery
-        step1_desc = f"Formulate execution strategy and inspect context for: {idea_text[:120]}"
+        step1_desc = f"Formulate execution strategy and inspect context for: {idea_text}"
 
         step1_scope = ["config/local_tools.json", "config/teamwork_policy.json"]
         target_1, reason_1, exec_class_1 = SmartResourceRouter.classify_and_route(step1_desc, step1_scope, context_delta)
@@ -648,10 +648,10 @@ class ChiefCommander:
 
         # Step 2: Implementation or QA Audit
         if "test" in idea_lower or "verify" in idea_lower or "audit" in idea_lower:
-            step2_desc = f"Perform independent technical QA audit and syntax verification for: {idea_text[:120]}"
+            step2_desc = f"Perform independent technical QA audit and syntax verification for: {idea_text}"
             step2_scope = ["config/local_tools.json"]
         else:
-            step2_desc = f"Execute core implementation and asset validation for: {idea_text[:120]}"
+            step2_desc = f"Execute core implementation and asset validation for: {idea_text}"
             step2_scope = ["config/social_channels.json", "config/teamwork_policy.json"]
 
         target_2, reason_2, exec_class_2 = SmartResourceRouter.classify_and_route(step2_desc, step2_scope, context_delta)
@@ -668,7 +668,7 @@ class ChiefCommander:
         plan.append(step2)
 
         # Step 3: Chief Synthesis & Final Acceptance
-        step3_desc = f"Finalize results, verify invariants, and assemble completion package for: {idea_text[:120]}"
+        step3_desc = f"Finalize results, verify invariants, and assemble completion package for: {idea_text}"
         step3_scope = ["config/teamwork_policy.json"]
         target_3, reason_3, exec_class_3 = SmartResourceRouter.classify_and_route(step3_desc, step3_scope, context_delta)
         step3 = {
