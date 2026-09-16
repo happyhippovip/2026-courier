@@ -155,6 +155,12 @@ def run_agy(task, config):
             stdout, stderr = process.communicate()
             return {"status": "FAILED", "stderr": "Execution timed out", "execution_mode": "ANTIGRAVITY"}
         
+        # Enforce stdout/stderr payload limits
+        if stdout and len(stdout) > 50000:
+            stdout = "...[TRUNCATED]..." + stdout[-50000:]
+        if stderr and len(stderr) > 20000:
+            stderr = "...[TRUNCATED]..." + stderr[-20000:]
+            
         out_clean = stdout.strip()
         parsed = False
         res_json = {}
@@ -168,6 +174,15 @@ def run_agy(task, config):
         
         res_json["execution_mode"] = "ANTIGRAVITY"
         res_json["stderr"] = stderr
+        res_json["exit_code"] = process.returncode
+        
+        # Check for provider unavailable / quota
+        combined_out = (out_clean + " " + stderr).lower()
+        if any(kw in combined_out for kw in ["429", "too many requests", "quota", "rate limit", "resource exhausted", "provider unavailable"]):
+            res_json["status"] = "PROVIDER_WAIT"
+            res_json["reason"] = "QUOTA_OR_RATE_LIMIT"
+            return res_json
+
         if not parsed:
             res_json["status"] = "FAILED"
             res_json["raw_diagnostic"] = out_clean
@@ -202,6 +217,20 @@ def run_copilot(task, config):
             stdout, stderr = process.communicate()
             return {"status": "FAILED", "stderr": "Execution timed out", "execution_mode": "COPILOT"}
         
+        # Enforce stdout/stderr payload limits
+        if stdout and len(stdout) > 50000:
+            stdout = "...[TRUNCATED]..." + stdout[-50000:]
+        if stderr and len(stderr) > 20000:
+            stderr = "...[TRUNCATED]..." + stderr[-20000:]
+            
+        combined_out = (stdout + " " + stderr).lower()
+        if any(kw in combined_out for kw in ["429", "too many requests", "quota", "rate limit", "resource exhausted", "provider unavailable"]):
+            return {
+                "status": "PROVIDER_WAIT",
+                "reason": "QUOTA_OR_RATE_LIMIT",
+                "execution_mode": "COPILOT"
+            }
+
         # We can't really execute gh copilot suggest automatically if it requires interactive confirmation,
         # but if we just want to return the output:
         res_json = {
@@ -235,6 +264,13 @@ def loop():
         write_log("Found pending result from previous run, resuming delivery...")
         with open(current_result_state_file, 'r') as f:
             pending_result = json.load(f)
+            
+    pending_provider_wait = None
+    current_wait_state_file = STATE_DIR / "current_provider_wait.json"
+    if current_wait_state_file.exists():
+        write_log("Found pending provider wait from previous run...")
+        with open(current_wait_state_file, 'r') as f:
+            pending_provider_wait = json.load(f)
 
     registered = False
     
@@ -334,8 +370,58 @@ def loop():
                         else:
                             result = run_agy(task, config)
                     
+                    # Handle Provider Wait
+
+                    
+                    if result.get("status") == "PROVIDER_WAIT":
+
+                    
+                        write_log(f"Task {task['task_id']} hit a provider wait: {result.get('reason')}")
+
+                    
+                        wait_payload = {
+
+                    
+                            "worker_id": config["WORKER_ID"],
+
+                    
+                            "reason": result.get("reason", "PROVIDER_UNAVAILABLE"),
+
+                    
+                            "wait_type": "WAITING_PROVIDER",
+
+                    
+                            "task_id": task["task_id"]
+
+                    
+                        }
+
+                    
+                        with open(STATE_DIR / "current_provider_wait.json", "w") as fw:
+
+                    
+                            json.dump(wait_payload, fw)
+
+                    
+                        if current_task_state_file.exists():
+
+                    
+                            current_task_state_file.unlink()
+
+                    
+                        task = None
+
+                    
+                        continue
+
+
+                    
                     # Format result payload
-    # Form valid artifacts structure
+
+                    
+                    # Form valid artifacts structure
+
+                    
                     artifact_evidence = []
                     if result.get("status") == "SUCCESS":
                         expected_arts = task.get("artifacts", [])
@@ -373,6 +459,22 @@ def loop():
                 finally:
                     keep_awake.terminate()
             
+            if pending_provider_wait:
+                res, err = http_post(config, f"/tasks/{pending_provider_wait['task_id']}/provider_wait", pending_provider_wait)
+                if err:
+                    write_log(f"Provider wait post failed: {err}. Will retry on next loop.")
+                    time.sleep(5)
+                    continue
+                else:
+                    write_log(f"Provider wait posted successfully: {res}")
+                    if current_wait_state_file.exists():
+                        os.remove(current_wait_state_file)
+                    if current_task_state_file.exists():
+                        os.remove(current_task_state_file)
+                    pending_provider_wait = None
+                    task = None
+                    continue
+
             if pending_result:
                 # Backoff loop for posting result
                 res, err = http_post(config, "/tasks/result", pending_result)
