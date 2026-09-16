@@ -1,3 +1,6 @@
+import sys
+print("Disabled in favor of OS-owned Courier Motor.")
+sys.exit(1)
 import os, glob, json, shutil, sys
 
 # Ensure we can import from scripts dir
@@ -22,4 +25,6 @@ def process_queue():
             print(f"Error processing {intake_file}: {e}")
 
 if __name__ == "__main__":
-    process_queue()
+    import sys
+    print("Disabled in favor of OS-owned Courier Motor.")
+    sys.exit(1)

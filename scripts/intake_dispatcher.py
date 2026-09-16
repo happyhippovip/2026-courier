@@ -1,3 +1,6 @@
+import sys
+print("Disabled in favor of OS-owned Courier Motor.")
+sys.exit(1)
 import json
 import sys
 import uuid
@@ -66,7 +69,6 @@ def dispatch_intake(intake_file):
     print(f"Central state updated. System chain fully connected for intake -> execution -> PR.")
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python3 scripts/intake_dispatcher.py <intake_file.json>")
-        sys.exit(1)
-    dispatch_intake(sys.argv[1])
+    import sys
+    print("Disabled in favor of OS-owned Courier Motor.")
+    sys.exit(1)
