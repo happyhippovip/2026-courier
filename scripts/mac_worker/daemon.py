@@ -278,31 +278,48 @@ def loop():
                     continue
                         
             if task and not pending_result:
-                write_log(f"Processing task {task['task_id']}")
+                task_id = task.get("task_id", "UNKNOWN")
+                write_log(f"Processing task {task_id}")
                 keep_awake = subprocess.Popen(["caffeinate", "-s", "-i"])
                 try:
                     mode = task.get("mode", "ANTIGRAVITY")
+                    result = None
+                    
+                    # 1. Structural Validation
+                    if not task.get("task_id") or (not task.get("instruction") and not task.get("description")):
+                        result = {"status": "FAILED", "reason": "MALFORMED_TASK", "stderr": "Task is missing task_id or instruction"}
+                        mode = "FAILED_VALIDATION"
+                        
+                    # 2. Scope / Target Validation
+                    target_agent = task.get("target_agent", "").lower()
+                    target_capability = task.get("target_capability", "").lower()
+                    if target_agent and "mac" not in target_agent and "night-captain" not in target_agent:
+                        result = {"status": "FAILED", "reason": "UNQUALIFIED", "stderr": f"Target agent '{target_agent}' incompatible with Mac worker."}
+                        mode = "FAILED_VALIDATION"
+                    elif target_capability and target_capability not in ["", "mac", "macos", "antigravity", "linux", "copilot", "bash", "python"]:
+                        result = {"status": "FAILED", "reason": "UNQUALIFIED", "stderr": f"Target capability '{target_capability}' missing on this worker."}
+                        mode = "FAILED_VALIDATION"
+                        
+                    # 3. Workspace Validation
                     workspace = task.get("workspace")
-                    if workspace:
+                    if workspace and mode != "FAILED_VALIDATION":
                         try:
                             os.chdir(workspace)
                         except FileNotFoundError:
-                            result = {"status": "FAILED", "stderr": f"Workspace {workspace} not found. Out of scope."}
-                            # short circuit
-                            mode = "FAILED_SCOPE"
+                            result = {"status": "FAILED", "reason": "FAILED_SCOPE", "stderr": f"Workspace {workspace} not found. Out of scope."}
+                            mode = "FAILED_VALIDATION"
 
-                    # Fallback to NATIVE if requested via target_agent routing
-                    target = task.get("target_agent", "").lower()
-                    if "mac" in target and mode == "ANTIGRAVITY" and "echo" in task.get("instruction", "").lower():
-                        # For simple testing/canary routing we force NATIVE if they specify echo
-                        mode = "NATIVE"
-
-                    if mode == "NATIVE":
-                        result = run_native(task, config)
-                    elif mode == "COPILOT":
-                        result = run_copilot(task, config)
-                    else:
-                        result = run_agy(task, config)
+                    # 4. Routing
+                    if mode != "FAILED_VALIDATION":
+                        if "mac" in target_agent and mode == "ANTIGRAVITY" and "echo" in task.get("instruction", "").lower():
+                            mode = "NATIVE"
+                            
+                        if mode == "NATIVE":
+                            result = run_native(task, config)
+                        elif mode == "COPILOT":
+                            result = run_copilot(task, config)
+                        else:
+                            result = run_agy(task, config)
                     
                     # Format result payload
     # Form valid artifacts structure
