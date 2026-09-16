@@ -51,17 +51,48 @@ def serialize_state_mutation(f):
             return f(*args, **kwargs)
     return wrapper
 
+import shutil
+
+CURRENT_SCHEMA_VERSION = 1
+
+def migrate_state(state, old_version):
+    if old_version > CURRENT_SCHEMA_VERSION:
+        raise RuntimeError(f"Future schema version {old_version} detected. Downgrades are not supported. Please update Courier.")
+        
+    if old_version == CURRENT_SCHEMA_VERSION:
+        return state
+        
+    # Backup before migration
+    if os.path.exists(STATE_FILE):
+        backup_path = f"{STATE_FILE}.backup.v{old_version}.{int(time.time())}"
+        shutil.copy2(STATE_FILE, backup_path)
+        print(f"Backed up pre-migration state to {backup_path}")
+        
+    # Idempotent migration v0 -> v1
+    if old_version < 1:
+        state.setdefault("goals", {})
+        state.setdefault("tasks", {})
+        state.setdefault("workers", {})
+        state["schema_version"] = 1
+        save_state(state)
+        
+    # Write the migrated state to disk immediately so we don't migrate on every load
+    # until a save happens. Wait, we can't save_state here if save_state calls load_state!
+    # But save_state doesn't call load_state.
+    
+    return state
+
 def load_state():
     if os.path.exists(STATE_FILE):
         with open(STATE_FILE, 'r') as f:
             state = json.load(f)
-            state.setdefault("goals", {})
-            state.setdefault("tasks", {})
-            state.setdefault("workers", {})
+            old_version = state.get("schema_version", 0)
+            state = migrate_state(state, old_version)
             return state
-    return {"goals": {}, "tasks": {}, "workers": {}}
+    return {"schema_version": CURRENT_SCHEMA_VERSION, "goals": {}, "tasks": {}, "workers": {}}
 
 def save_state(state):
+    state["schema_version"] = CURRENT_SCHEMA_VERSION
     os.makedirs(os.path.dirname(STATE_FILE), exist_ok=True)
     temp_path = f"{STATE_FILE}.tmp"
     with open(temp_path, 'w') as f:
@@ -419,7 +450,7 @@ def reclaim_stale():
     # A claimed task may already have produced an effect. Without durable proof
     # that execution never started, replaying it would risk a duplicate effect.
     for goal in state.get("goals", {}).values():
-        if goal.get("status") == "ACTIVE" and "workflow_plan" in goal:
+        if goal.get("status") in ["ACTIVE", "BLOCKED"] and "workflow_plan" in goal:
             for step in goal["workflow_plan"]:
                 if step.get("status") == "DISPATCHED" and step.get("worker_id") in stale_workers:
                     step["status"] = "HUMAN_REQUIRED"
