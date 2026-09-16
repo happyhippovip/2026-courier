@@ -26,6 +26,8 @@ def run(task_file):
         
     mode = task.get('mode', 'ANTIGRAVITY')
     
+    task_type = task.get('task_type', 'run_tests')
+    
     print(f"[GitHub Transport] Routing task {task_id} to GitHub Actions ({runner_label})...")
     
     # Trigger workflow
@@ -33,6 +35,7 @@ def run(task_file):
         "gh", "workflow", "run", "courier_worker.yml",
         "--ref", "courier/windows-phase-15-completion",
         "-f", f"task_id={task_id}",
+        "-f", f"task_type={task_type}",
         "-f", f"instruction={instruction}",
         "-f", f"goal_id={goal_id}",
         "-f", f"runner_label={runner_label}",

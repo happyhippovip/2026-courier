@@ -6,8 +6,13 @@ on:
         description: "Task ID"
         required: true
         type: string
+      task_type:
+        description: "Task Type (e.g., run_tests, lint, hash_artifact, deterministic_transform)"
+        required: true
+        type: string
+        default: "run_tests"
       instruction:
-        description: "Instruction"
+        description: "Instruction/Payload"
         required: true
         type: string
       goal_id:
@@ -34,6 +39,7 @@ jobs:
         run: |
           $taskId = $env:TASK_ID
           $goalId = $env:GOAL_ID
+          $taskType = $env:TASK_TYPE
           $instruction = $env:INSTRUCTION
           $mode = $env:MODE
           $runnerOs = $env:RUNNER_OS
@@ -63,9 +69,14 @@ jobs:
               Copy-Item -Path $outFile -Destination "result.json"
           }
           elseif ($runnerOs -eq "Windows") {
-              Write-Host "Executing on Windows Runner (Cloud or Desktop): $instruction"
-              $instruction | Set-Content -Path "task_script.ps1"
-              powershell.exe -File .\task_script.ps1 *>&1 | Tee-Object -FilePath "execution.log"
+              Write-Host "Executing on Windows Runner (Cloud or Desktop). Task: $taskType"
+              switch ($taskType) {
+                  "run_tests" { pytest tests/ *>&1 | Tee-Object -FilePath "execution.log" }
+                  "lint" { flake8 . *>&1 | Tee-Object -FilePath "execution.log" }
+                  "hash_artifact" { Get-FileHash -Path $instruction -Algorithm SHA256 *>&1 | Tee-Object -FilePath "execution.log" }
+                  "deterministic_transform" { python scripts/transform.py --input $instruction *>&1 | Tee-Object -FilePath "execution.log" }
+                  default { Write-Error "Unknown task type: $taskType"; exit 1 }
+              }
               $exitCode = $LASTEXITCODE
               $status = if ($exitCode -eq 0) { "SUCCESS" } else { "FAILED" }
               $res = @{
@@ -79,9 +90,14 @@ jobs:
               $res | ConvertTo-Json | Set-Content -Path "result.json" -Encoding utf8
           }
           else {
-              Write-Host "Executing: $instruction"
-              $instruction | Set-Content -Path "task_script.sh"
-              bash ./task_script.sh *>&1 | Tee-Object -FilePath "execution.log"
+              Write-Host "Executing on Linux Runner. Task: $taskType"
+              switch ($taskType) {
+                  "run_tests" { pytest tests/ *>&1 | Tee-Object -FilePath "execution.log" }
+                  "lint" { flake8 . *>&1 | Tee-Object -FilePath "execution.log" }
+                  "hash_artifact" { sha256sum $instruction *>&1 | Tee-Object -FilePath "execution.log" }
+                  "deterministic_transform" { python scripts/transform.py --input $instruction *>&1 | Tee-Object -FilePath "execution.log" }
+                  default { Write-Error "Unknown task type: $taskType"; exit 1 }
+              }
               $exitCode = $LASTEXITCODE
               $status = if ($exitCode -eq 0) { "SUCCESS" } else { "FAILED" }
               $res = @{
@@ -97,6 +113,7 @@ jobs:
         env:
           TASK_ID: ${{ github.event.inputs.task_id }}
           GOAL_ID: ${{ github.event.inputs.goal_id }}
+          TASK_TYPE: ${{ github.event.inputs.task_type }}
           INSTRUCTION: ${{ github.event.inputs.instruction }}
           MODE: ${{ github.event.inputs.mode }}
           RUNNER_OS: ${{ runner.os }}
@@ -110,4 +127,3 @@ jobs:
             result.json
             courier_canary_*.txt
             execution.log
-            task_script.*
