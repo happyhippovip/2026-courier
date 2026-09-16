@@ -1,20 +1,22 @@
-# Requires Run as Administrator
-$action = "Create"
+# Use HKCU Run to start server automatically
 $taskName = "CourierServer"
-$scriptPath = "$PSScriptRoot\start_server.bat"
+$workingDir = Resolve-Path "$PSScriptRoot\.." | Select-Object -ExpandProperty Path
+$pythonwPath = "$workingDir\.venv_service\Scripts\pythonw.exe"
 
-if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
-    Unregister-ScheduledTask -TaskName $taskName -Confirm:$false
-    Write-Host "Unregistered existing task."
-}
+Write-Host "Creating reproducible virtual environment for background service..."
+Set-Location $workingDir
+uv venv .venv_service
+uv pip install --python .venv_service flask keyring
 
-$trigger = New-ScheduledTaskTrigger -AtLogon
-$action = New-ScheduledTaskAction -Execute $scriptPath
+# Create a small VBScript to launch pythonw.exe in the correct working directory
+$vbsPath = "$PSScriptRoot\launch_server_hidden.vbs"
+$vbsContent = "Set WshShell = CreateObject(`"WScript.Shell`")`nWshShell.CurrentDirectory = `"$workingDir`"`nWshShell.Run chr(34) & `"$pythonwPath`" & chr(34) & `" -m server.app`", 0, False`nSet WshShell = Nothing"
+Set-Content -Path $vbsPath -Value $vbsContent
 
-$currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
-$principal = New-ScheduledTaskPrincipal -UserId $currentUser -LogonType Interactive
+New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run" -Name $taskName -Value "wscript.exe `"$vbsPath`"" -PropertyType String -Force
 
-$settings = New-ScheduledTaskSettingsSet -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1) -ExecutionTimeLimit (New-TimeSpan -Days 0)
+Write-Host "Courier Server registered to start on boot via HKCU Run registry key."
 
-Register-ScheduledTask -TaskName $taskName -Trigger $trigger -Action $action -Principal $principal -Settings $settings
-Write-Host "Courier Server scheduled task registered to start on boot as $currentUser with restart throttling."
+# Also start it now so it survives terminal exit
+Start-Process "wscript.exe" -ArgumentList "`"$vbsPath`""
+Write-Host "Courier Server started in background."
