@@ -49,13 +49,32 @@ def run_loop():
                     
                     log(f"Verifying task {task_id} (result {result_id})...")
                     
-                    verdict = "PASS"
-                    for art in artifacts:
-                        path = art.get("path")
-                        expected_hash = art.get("sha256")
-                        if not verify_artifact(path, expected_hash):
-                            verdict = "FAIL"
-                            break
+                    if "revenue_safety_audit" in task.get("capabilities", []):
+                        log(f"Running deterministic revenue verification for {task_id}...")
+                        import tempfile, json, subprocess
+                        with tempfile.TemporaryDirectory() as td:
+                            task_file = os.path.join(td, "task.json")
+                            candidate_file = os.path.join(td, "candidate.json")
+                            with open(task_file, "w") as f:
+                                json.dump(task, f)
+                            with open(candidate_file, "w") as f:
+                                json.dump(result.get("result_data", {}), f)
+                            
+                            cmd = [sys.executable, os.path.join(os.path.dirname(__file__), "revenue_v1_safety_baseline.py"), "verify", task_file, td, candidate_file]
+                            try:
+                                subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+                                verdict = "PASS"
+                            except subprocess.CalledProcessError as e:
+                                log(f"Revenue verification failed: {e.output.decode('utf-8', errors='ignore')}")
+                                verdict = "FAIL"
+                    else:
+                        verdict = "PASS"
+                        for art in artifacts:
+                            path = art.get("path")
+                            expected_hash = art.get("sha256")
+                            if not verify_artifact(path, expected_hash):
+                                verdict = "FAIL"
+                                break
                             
                     verify_payload = {
                         "task_id": task_id,
