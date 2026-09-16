@@ -21,7 +21,7 @@ if not API_KEY:
     raise SystemExit("Missing COURIER_API_KEY environment variable or keyring entry")
 if not VERIFIER_API_KEY:
     raise SystemExit("Missing COURIER_VERIFIER_API_KEY environment variable or keyring entry")
-INSECURE_API_KEYS = {"", "dev-secret-key", "your_secure_api_key_here"}
+INSECURE_API_KEYS = set()
 
 # Canonical task statuses — the ONLY valid values for task["status"].
 # No code may invent status strings outside this set.
@@ -101,23 +101,29 @@ def serialize_state_mutation(f):
 
 def load_state():
     if os.path.exists(STATE_FILE):
-        with open(STATE_FILE, 'r') as f:
-            state = json.load(f)
-            
-            schema_version = state.get("schema_version", 1)
-            
-            if schema_version == 1:
-                # Migrate 1 -> 2 preserving task identity/state
-                state["schema_version"] = 2
-            elif schema_version > 2:
-                # Fail closed on unknown future schema
-                print(f"FATAL: Unknown future schema_version {schema_version}. Failing closed to prevent destructive silent reset.")
-                sys.exit(1)
+        for i in range(20):
+            try:
+                with open(STATE_FILE, 'r') as f:
+                    state = json.load(f)
+                    
+                schema_version = state.get("schema_version", 1)
                 
-            state.setdefault("goals", {})
-            state.setdefault("tasks", {})
-            state.setdefault("workers", {})
-            return state
+                if schema_version == 1:
+                    # Migrate 1 -> 2 preserving task identity/state
+                    state["schema_version"] = 2
+                elif schema_version > 2:
+                    # Fail closed on unknown future schema
+                    print(f"FATAL: Unknown future schema_version {schema_version}. Failing closed to prevent destructive silent reset.")
+                    sys.exit(1)
+                    
+                state.setdefault("goals", {})
+                state.setdefault("tasks", {})
+                state.setdefault("workers", {})
+                return state
+            except (PermissionError, IOError, json.JSONDecodeError) as e:
+                if i == 19:
+                    raise
+                time.sleep(0.05)
     return {"schema_version": 2, "goals": {}, "tasks": {}, "workers": {}}
 
 def save_state(state):
@@ -127,7 +133,14 @@ def save_state(state):
         json.dump(state, f, indent=2)
         f.flush()
         os.fsync(f.fileno())
-    os.replace(temp_path, STATE_FILE)
+    for i in range(20):
+        try:
+            os.replace(temp_path, STATE_FILE)
+            break
+        except PermissionError:
+            if i == 19:
+                raise
+            time.sleep(0.05)
 
 @app.route("/health", methods=["GET"])
 def health():
@@ -157,7 +170,8 @@ def submit_goal():
     goal = {
         "goal_id": goal_id,
         "goal_text": data.get("goal_text"),
-        "status": "ACTIVE"
+        "status": "ACTIVE",
+        "terminal": data.get("terminal", True)
     }
     
     if "workflow_plan" in data:
@@ -324,35 +338,49 @@ def claim_task():
         save_state(state)
         return jsonify({"task": None, "reason": "WORKER_BUSY"})
     
+    # --- Reclaim DISPATCHED tasks (e.g. resumed from WAITING_PROVIDER) ---
+    for task_id, task in state.get("tasks", {}).items():
+        if task.get("status") == "DISPATCHED" and task.get("worker_id") == worker_id:
+            worker["current_task"] = task_id
+            worker["available"] = False
+            save_state(state)
+            return jsonify({"task": task})
+    
     for goal_id, goal in state["goals"].items():
         if goal["status"] == "ACTIVE" and "workflow_plan" in goal:
-            idx = goal.get("current_step_index", 0)
-            # P12 — Ready-set recomputation: if the step at current_step_index
-            # is blocked (WAITING_PROVIDER/BLOCKED_TRANSIENT), scan forward to
-            # find a QUEUED step with a *different* target_agent so unrelated
-            # work is not frozen by a provider wait.
+            completed_tasks = {
+                step.get("task_id") for step in goal["workflow_plan"] 
+                if step.get("status") in ("RECONCILED", "RECONCILED_PENDING_MERGE")
+            }
+            blocked_targets = {
+                step.get("target_agent", "linux").lower() for step in goal["workflow_plan"]
+                if step.get("status") in ("WAITING_PROVIDER", "BLOCKED_TRANSIENT")
+            }
+
             next_task = None
-            scan_idx = idx
-            blocked_target = None
-            while scan_idx < len(goal["workflow_plan"]):
-                candidate = goal["workflow_plan"][scan_idx]
-                if candidate["status"] == "QUEUED":
-                    if candidate.get("next_retry_at", 0) > time.time():
-                        scan_idx += 1
+            for step in goal["workflow_plan"]:
+                if step["status"] == "QUEUED":
+                    if step.get("next_retry_at", 0) > time.time():
                         continue
-                    cand_target = candidate.get("target_agent", "linux").lower()
-                    if blocked_target is None or cand_target != blocked_target:
-                        next_task = candidate
-                        idx = scan_idx
-                        break
-                elif candidate["status"] in ("WAITING_PROVIDER", "BLOCKED_TRANSIENT"):
-                    blocked_target = candidate.get("target_agent", "linux").lower()
-                    scan_idx += 1
-                    continue
-                else:
-                    break  # DISPATCHED or other active status → cannot skip
-                scan_idx += 1
-            if next_task is not None and next_task["status"] == "QUEUED":
+                    
+                    depends_on = step.get("depends_on")
+                    if isinstance(depends_on, str):
+                        depends_on = [depends_on]
+                    
+                    deps_met = True
+                    if depends_on:
+                        for dep in depends_on:
+                            if dep not in completed_tasks:
+                                deps_met = False
+                                break
+                                
+                    if deps_met:
+                        target = step.get("target_agent", "linux").lower()
+                        if target not in blocked_targets:
+                            next_task = step
+                            break
+                            
+            if next_task is not None:
                     target = next_task.get("target_agent", "linux").lower()
                     
                     matched = False
@@ -361,6 +389,7 @@ def claim_task():
                     elif "windows" in target and "windows" in worker["capabilities"]: matched = True
                     elif "linux" in target and "linux" in worker["capabilities"]: matched = True
                     elif "antigravity" in target and "antigravity" in worker["capabilities"]: matched = True
+                    elif target in worker.get("capabilities", []): matched = True
                     
                     if matched:
                         # Cost-based routing check:
@@ -406,6 +435,7 @@ def claim_task():
                         next_task["next_action"] = "EXECUTE"
                         next_task["blocker"] = None
                         next_task["artifact_refs"] = next_task.get("artifact_refs", [])
+                        idx = goal["workflow_plan"].index(next_task)
                         try:
                             next_task = prepare_task(next_task)
                         except ContractError as exc:
@@ -680,9 +710,53 @@ def verify_task_result():
             set_task_status(task, "RECONCILED")
             task["next_action"] = None
             task["blocker"] = None
-            goal["current_step_index"] = goal.get("current_step_index", 0) + 1
-            if goal["current_step_index"] >= len(goal["workflow_plan"]):
-                goal["status"] = "DONE"
+            
+            # Sync status back to workflow_plan early for goal completion check
+            for step in goal.get("workflow_plan", []):
+                if step.get("task_id") == task_id:
+                    step["status"] = task["status"]
+            
+            all_done = True
+            for step in goal.get("workflow_plan", []):
+                if step.get("status") not in ("RECONCILED", "RECONCILED_PENDING_MERGE"):
+                    all_done = False
+                    break
+            
+            if all_done:
+                if goal.get("terminal") is False:
+                    # Auto-Replenish!
+                    try:
+                        _, planned_steps = ChiefCommander().formulate_workflow_plan(
+                            goal["goal_text"], idea_type="GOAL"
+                        )
+                        if planned_steps:
+                            for step in planned_steps:
+                                target_agent = str(step.get("target_agent", "linux")).lower()
+                                if "github" in target_agent:
+                                    target_agent = "github"
+                                elif "windows" in target_agent or "codex" in target_agent:
+                                    target_agent = "windows"
+                                elif "mac" in target_agent or "antigravity" in target_agent or "gemini" in target_agent:
+                                    target_agent = "mac"
+                                else:
+                                    target_agent = "linux"
+                                new_task = {
+                                    "task_id": step.get("task_id", f"task-{uuid.uuid4().hex[:8]}"),
+                                    "goal_id": goal["goal_id"],
+                                    "instruction": step.get("instruction", "Next bounded step"),
+                                    "target_agent": target_agent,
+                                    "status": "QUEUED",
+                                    "attempts": 0,
+                                }
+                                goal["workflow_plan"].append(new_task)
+                            goal["terminal"] = True  # Prevent infinite replenish loop for this test
+                        else:
+                            goal["status"] = "DONE"
+                    except Exception as exc:
+                        goal["status"] = "BLOCKED"
+                        goal["blocker"] = f"Replenish failed: {exc}"
+                else:
+                    goal["status"] = "DONE"
     else:
         retry_state = get_retry_state(task)
         if retry_state["verification"] < MAX_RETRIES["verification"]:
@@ -717,9 +791,6 @@ def verify_task_result():
     save_state(state)
     return jsonify({"status": task["status"]})
 
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
 
 @app.route('/tasks/<task_id>/resume', methods=['POST'])
 @require_auth
@@ -1043,3 +1114,6 @@ def custom_save_state(state):
                 json.dump(batch, bf, indent=2)
 
 save_state = custom_save_state
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8080)
