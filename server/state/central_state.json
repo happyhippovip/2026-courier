@@ -1,184 +1,136 @@
 {
   "goals": {
-    "goal-62911b5d": {
-      "goal_id": "goal-62911b5d",
-      "goal_text": "Native Test",
-      "status": "ACTIVE",
+    "goal-fc9e8d59": {
+      "goal_id": "goal-fc9e8d59",
+      "goal_text": "Proof Q10",
+      "status": "DONE",
       "workflow_plan": [
         {
-          "target_agent": "mac",
-          "instruction": "echo NATIVE_SUCCESS > courier_canary_mac-native-2.txt",
-          "task_id": "mac-native-2",
-          "mode": "NATIVE",
-          "goal_id": "goal-62911b5d",
+          "task_id": "test-win-002",
+          "instruction": "Create the canary file",
+          "target_agent": "windows",
+          "artifacts": [
+            "courier_canary_test-win-002.txt"
+          ],
+          "goal_id": "goal-fc9e8d59",
           "status": "RESULT_RECEIVED",
           "attempts": 1,
-          "worker_id": "MAC-01",
-          "dispatch_id": "7c9e5127-76c2-4c98-9b1a-af9267e0bf8b",
-          "target_capability": "mac",
-          "attempt_id": "mac-native-2:attempt:1",
+          "worker_id": "WINDOWS-01",
+          "attempt_id": "test-win-002:attempt:1",
+          "dispatch_id": "dispatch-590532cde15e455682506c9015f31bb9",
           "run_id": null,
           "result_id": null,
-          "artifacts": [
-            "courier_canary_mac-native-2.txt"
-          ]
+          "target_capability": "windows"
         }
       ],
-      "current_step_index": 0
+      "current_step_index": 1
     },
-    "goal-26691886": {
-      "goal_id": "goal-26691886",
-      "goal_text": "AI Test",
+    "goal-7751ca47": {
+      "goal_id": "goal-7751ca47",
+      "goal_text": "Proof Q12 Replaceability",
       "status": "ACTIVE",
       "workflow_plan": [
         {
-          "target_agent": "mac",
-          "instruction": "echo AI_SUCCESS > courier_canary_mac-ai-2.txt",
-          "task_id": "mac-ai-2",
-          "mode": "ANTIGRAVITY",
-          "goal_id": "goal-26691886",
-          "status": "RESULT_RECEIVED",
-          "attempts": 1,
-          "worker_id": "MAC-01",
-          "dispatch_id": "ce4b5fd9-cf72-4d52-889e-0cdb214c7592",
-          "target_capability": "mac",
-          "attempt_id": "mac-ai-2:attempt:1",
-          "run_id": null,
-          "result_id": null,
-          "artifacts": [
-            "courier_canary_mac-ai-2.txt"
-          ]
-        }
-      ],
-      "current_step_index": 0
-    },
-    "goal-823476c0": {
-      "goal_id": "goal-823476c0",
-      "goal_text": "AI Real Test",
-      "status": "ACTIVE",
-      "workflow_plan": [
-        {
-          "target_agent": "mac",
-          "instruction": "Print the current date to courier_canary_mac-ai-real.txt",
-          "task_id": "mac-ai-real",
-          "mode": "ANTIGRAVITY",
-          "goal_id": "goal-823476c0",
+          "task_id": "task-replace-001",
+          "instruction": "Output SUCCESS text for replaceability proof",
+          "target_agent": "windows",
+          "artifacts": [],
+          "goal_id": "goal-7751ca47",
           "status": "DISPATCHED",
           "attempts": 1,
-          "worker_id": "MAC-01",
-          "dispatch_id": "559b7402-0f6e-496f-b57f-8936cf759d58",
-          "target_capability": "mac",
-          "attempt_id": "mac-ai-real:attempt:1",
+          "worker_id": "NEW-WIN-PC-01",
+          "attempt_id": "task-replace-001:attempt:1",
+          "dispatch_id": "dispatch-862d1de11e694f229f2afb0dcf6350a4",
           "run_id": null,
           "result_id": null,
-          "artifacts": [
-            "courier_canary_mac-ai-real.txt"
-          ]
+          "target_capability": "windows"
         }
       ],
       "current_step_index": 0
     }
   },
   "tasks": {
-    "mac-native-2": {
-      "target_agent": "mac",
-      "instruction": "echo NATIVE_SUCCESS > courier_canary_mac-native-2.txt",
-      "task_id": "mac-native-2",
-      "mode": "NATIVE",
-      "goal_id": "goal-62911b5d",
-      "status": "RESULT_RECEIVED",
+    "test-win-002": {
+      "task_id": "test-win-002",
+      "instruction": "Create the canary file",
+      "target_agent": "windows",
+      "artifacts": [
+        "courier_canary_test-win-002.txt"
+      ],
+      "goal_id": "goal-fc9e8d59",
+      "status": "RECONCILED",
       "attempts": 1,
-      "worker_id": "MAC-01",
-      "dispatch_id": "7c9e5127-76c2-4c98-9b1a-af9267e0bf8b",
-      "target_capability": "mac",
-      "attempt_id": "mac-native-2:attempt:1",
+      "worker_id": "WINDOWS-01",
+      "attempt_id": "test-win-002:attempt:1",
+      "dispatch_id": "dispatch-590532cde15e455682506c9015f31bb9",
       "run_id": null,
       "result_id": null,
-      "artifacts": [
-        "courier_canary_mac-native-2.txt"
-      ],
+      "target_capability": "windows",
       "result": {
-        "run_id": "54f9dbf8-2e2e-4727-9d54-1156ac8b4479",
-        "dispatch_id": "7c9e5127-76c2-4c98-9b1a-af9267e0bf8b",
-        "worker_id": "MAC-01",
-        "result_id": "7648283f-bdb5-4c65-882f-1c5a3a07099f",
-        "goal_id": "goal-62911b5d",
+        "status": "SUCCESS",
+        "dispatch_id": "dispatch-590532cde15e455682506c9015f31bb9",
+        "goal_id": "goal-fc9e8d59",
+        "run_id": "17188",
+        "result_id": "863329bf-1851-44cd-a77e-69103b2d997f",
+        "attempt_id": "test-win-002:attempt:1",
+        "task_id": "test-win-002",
         "artifacts": [
           {
-            "path": "courier_canary_mac-native-2.txt",
-            "sha256": "70f318b11f1159bf9ba1f92bdd9388efeed487664da0388964db7451e108b884"
+            "path": "courier_canary_test-win-002.txt",
+            "sha256": "1f513d4ecec4e91ddd48da1a59b6d96f1b76c374dc1da641980782a34f43b102"
           }
         ],
-        "attempt_id": "mac-native-2:attempt:1",
-        "status": "SUCCESS",
-        "task_id": "mac-native-2"
-      }
-    },
-    "mac-ai-2": {
-      "target_agent": "mac",
-      "instruction": "echo AI_SUCCESS > courier_canary_mac-ai-2.txt",
-      "task_id": "mac-ai-2",
-      "mode": "ANTIGRAVITY",
-      "goal_id": "goal-26691886",
-      "status": "RESULT_RECEIVED",
-      "attempts": 1,
-      "worker_id": "MAC-01",
-      "dispatch_id": "ce4b5fd9-cf72-4d52-889e-0cdb214c7592",
-      "target_capability": "mac",
-      "attempt_id": "mac-ai-2:attempt:1",
-      "run_id": null,
-      "result_id": null,
-      "artifacts": [
-        "courier_canary_mac-ai-2.txt"
-      ],
-      "result": {
-        "run_id": "df7de97a-ec36-4116-8b8a-8078604e407f",
-        "dispatch_id": "ce4b5fd9-cf72-4d52-889e-0cdb214c7592",
-        "worker_id": "MAC-01",
-        "result_id": "09f2ea96-1fb8-4b12-aa94-f18acd97b7c8",
-        "goal_id": "goal-26691886",
+        "worker_id": "WINDOWS-01"
+      },
+      "verification": {
+        "verifier_id": "independent-verif-01",
+        "result_id": "863329bf-1851-44cd-a77e-69103b2d997f",
+        "verdict": "PASS",
         "artifacts": [
           {
-            "path": "courier_canary_mac-ai-2.txt",
-            "sha256": "7f5d7b74e215a877d252b9966ef11692aace3e7cd1f055205549dc04afd1ac8c"
+            "path": "courier_canary_test-win-002.txt",
+            "sha256": "1f513d4ecec4e91ddd48da1a59b6d96f1b76c374dc1da641980782a34f43b102"
           }
-        ],
-        "attempt_id": "mac-ai-2:attempt:1",
-        "status": "SUCCESS",
-        "task_id": "mac-ai-2"
+        ]
       }
     },
-    "mac-ai-real": {
-      "target_agent": "mac",
-      "instruction": "Print the current date to courier_canary_mac-ai-real.txt",
-      "task_id": "mac-ai-real",
-      "mode": "ANTIGRAVITY",
-      "goal_id": "goal-823476c0",
+    "task-replace-001": {
+      "task_id": "task-replace-001",
+      "instruction": "Output SUCCESS text for replaceability proof",
+      "target_agent": "windows",
+      "artifacts": [],
+      "goal_id": "goal-7751ca47",
       "status": "DISPATCHED",
       "attempts": 1,
-      "worker_id": "MAC-01",
-      "dispatch_id": "559b7402-0f6e-496f-b57f-8936cf759d58",
-      "target_capability": "mac",
-      "attempt_id": "mac-ai-real:attempt:1",
+      "worker_id": "NEW-WIN-PC-01",
+      "attempt_id": "task-replace-001:attempt:1",
+      "dispatch_id": "dispatch-862d1de11e694f229f2afb0dcf6350a4",
       "run_id": null,
       "result_id": null,
-      "artifacts": [
-        "courier_canary_mac-ai-real.txt"
-      ]
+      "target_capability": "windows"
     }
   },
   "workers": {
-    "MAC-01": {
-      "worker_id": "MAC-01",
-      "platform": "macos",
+    "WINDOWS-01": {
+      "worker_id": "WINDOWS-01",
+      "platform": "windows",
       "capabilities": [
-        "macos",
-        "linux",
-        "antigravity"
+        "windows"
       ],
-      "last_seen": 1789511925.155294,
+      "last_seen": 1789564570.1795366,
       "available": true,
       "current_task": null,
+      "cost_class": "unknown"
+    },
+    "NEW-WIN-PC-01": {
+      "worker_id": "NEW-WIN-PC-01",
+      "platform": "windows",
+      "capabilities": [
+        "windows"
+      ],
+      "last_seen": 1789564916.4189703,
+      "available": false,
+      "current_task": "task-replace-001",
       "cost_class": "unknown"
     }
   }
