@@ -1,0 +1,11 @@
+{
+  "artifacts": [],
+  "attempt_id": "task-canary-windows6-attempt-1",
+  "dispatch_id": "dispatch-f459dff3ee7044cf89dc8ac1137c9e52",
+  "goal_id": "goal-crossworker-canary8",
+  "result_id": "result-2ae66edef8cf9e6a6aab24634c14209887704046a690ff0dfe5cfe6855efe4bf",
+  "run_id": "35081504518",
+  "status": "FAILED",
+  "task_id": "task-canary-windows6",
+  "worker_id": "GITHUB-HOSTED-WINDOWS"
+}

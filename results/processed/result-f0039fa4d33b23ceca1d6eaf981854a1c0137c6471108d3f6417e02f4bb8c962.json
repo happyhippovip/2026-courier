@@ -1,0 +1,16 @@
+{
+  "artifacts": [
+    {
+      "path": "courier_canary_task-canary-windows9.txt",
+      "sha256": "421a244564c34296e185cdcf70d2269227ae102f2e7eeef94afddd495c4e06c2"
+    }
+  ],
+  "attempt_id": "task-canary-windows9-attempt-1",
+  "dispatch_id": "dispatch-a7dcfe8d84ca46b3b1b475f413c06302",
+  "goal_id": "goal-crossworker-canary9",
+  "result_id": "result-f0039fa4d33b23ceca1d6eaf981854a1c0137c6471108d3f6417e02f4bb8c962",
+  "run_id": "35081753096",
+  "status": "SUCCESS",
+  "task_id": "task-canary-windows9",
+  "worker_id": "GITHUB-HOSTED-WINDOWS"
+}

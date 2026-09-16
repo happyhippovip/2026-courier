@@ -1,0 +1,16 @@
+{
+  "artifacts": [
+    {
+      "path": "courier_canary_task-canary-linux6.txt",
+      "sha256": "1f513d4ecec4e91ddd48da1a59b6d96f1b76c374dc1da641980782a34f43b102"
+    }
+  ],
+  "attempt_id": "task-canary-linux6-attempt-1",
+  "dispatch_id": "dispatch-25bf15ed62274464a909d2a6e869f8c0",
+  "goal_id": "goal-crossworker-canary6",
+  "result_id": "result-6c044b5c3b4c7563a28207ac0518dca83c70d61a8ea379e1effce497306306b5",
+  "run_id": "35081178942",
+  "status": "SUCCESS",
+  "task_id": "task-canary-linux6",
+  "worker_id": "GITHUB-HOSTED"
+}

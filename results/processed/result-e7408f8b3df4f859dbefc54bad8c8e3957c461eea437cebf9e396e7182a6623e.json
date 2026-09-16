@@ -1,0 +1,11 @@
+{
+  "artifacts": [],
+  "attempt_id": "WF-CHIEF-81188d-STEP-1-DISCOVER-attempt-1",
+  "dispatch_id": "dispatch-8235d7845239495b9ecfb3e5d1b99363",
+  "goal_id": "goal_8ab8ebd0",
+  "result_id": "result-e7408f8b3df4f859dbefc54bad8c8e3957c461eea437cebf9e396e7182a6623e",
+  "run_id": "35083397698",
+  "status": "FAILED",
+  "task_id": "WF-CHIEF-81188d-STEP-1-DISCOVER",
+  "worker_id": "GITHUB-HOSTED"
+}

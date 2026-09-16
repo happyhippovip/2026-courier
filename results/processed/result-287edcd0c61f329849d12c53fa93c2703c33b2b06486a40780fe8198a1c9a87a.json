@@ -1,0 +1,16 @@
+{
+  "artifacts": [
+    {
+      "path": "courier_canary_WF-CHIEF-879e0d-STEP-3-SYNTHESIZE.txt",
+      "sha256": "1f513d4ecec4e91ddd48da1a59b6d96f1b76c374dc1da641980782a34f43b102"
+    }
+  ],
+  "attempt_id": "WF-CHIEF-879e0d-STEP-3-SYNTHESIZE-attempt-1",
+  "dispatch_id": "dispatch-4c6ca2bf93954590a859575a5ed8fd25",
+  "goal_id": "goal_dfd9bcdf",
+  "result_id": "result-287edcd0c61f329849d12c53fa93c2703c33b2b06486a40780fe8198a1c9a87a",
+  "run_id": "35083952327",
+  "status": "SUCCESS",
+  "task_id": "WF-CHIEF-879e0d-STEP-3-SYNTHESIZE",
+  "worker_id": "GITHUB-HOSTED"
+}

@@ -1,0 +1,1 @@
+{"task_id": "task_29d53d2b", "goal_id": "goal_bb0554b9", "description": "README.md", "target_capability": "windows_cloud", "status": "DISPATCHED", "attempt_id": "task_29d53d2b-attempt-1", "dispatch_id": "dispatch-7fe9aaed03484968aab639ed41226329", "worker_id": "GITHUB-HOSTED-WINDOWS", "run_id": null, "result_id": null, "artifacts": ["courier_canary_task_29d53d2b.txt"]}

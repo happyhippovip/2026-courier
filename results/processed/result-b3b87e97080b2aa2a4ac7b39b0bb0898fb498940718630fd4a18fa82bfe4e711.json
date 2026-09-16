@@ -1,0 +1,16 @@
+{
+  "artifacts": [
+    {
+      "path": "courier_canary_task_b93bef8c.txt",
+      "sha256": "1f513d4ecec4e91ddd48da1a59b6d96f1b76c374dc1da641980782a34f43b102"
+    }
+  ],
+  "attempt_id": "task_b93bef8c-attempt-1",
+  "dispatch_id": "dispatch-b2a0a5c53c2b4ba1bd41b8d823138f66",
+  "goal_id": "goal_d82cf0c1",
+  "result_id": "result-b3b87e97080b2aa2a4ac7b39b0bb0898fb498940718630fd4a18fa82bfe4e711",
+  "run_id": "35084437291",
+  "status": "SUCCESS",
+  "task_id": "task_b93bef8c",
+  "worker_id": "GITHUB-HOSTED"
+}

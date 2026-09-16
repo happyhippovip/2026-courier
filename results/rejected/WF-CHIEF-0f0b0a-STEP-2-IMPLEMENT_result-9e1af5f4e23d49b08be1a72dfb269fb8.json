@@ -1,1 +1,0 @@
-{"status": "SUCCESS", "stdout_summary": "Executed core implementation and asset validation for task WF-CHIEF-0f0b0a-STEP-2-IMPLEMENT. Created courier_canary_WF-CHIEF-0f0b0a-STEP-2-IMPLEMENT.txt containing 'SUCCESS'.", "goal_id": "goal_test4", "task_id": "WF-CHIEF-0f0b0a-STEP-2-IMPLEMENT", "worker_id": "WINDOWS-01", "provider": "windows_native", "run_id": "2920"}

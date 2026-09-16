@@ -1,698 +1,742 @@
 {
   "goals": {
-    "goal-73522b31": {
-      "goal_text": "Erzeuge zwei harmlose abh\u00e4ngige Tasks.",
-      "status": "ACTIVE",
-      "workflow_plan": [
-        {
-          "task_id": "WF-CHIEF-776ab2-STEP-1-DISCOVER",
-          "goal_id": "goal-73522b31",
-          "description": "Formulate execution strategy and inspect context for: Erzeuge zwei harmlose abh\u00e4ngige Tasks.",
-          "target_capability": "mac",
-          "status": "QUEUED"
-        },
-        {
-          "task_id": "WF-CHIEF-776ab2-STEP-2-IMPLEMENT",
-          "goal_id": "goal-73522b31",
-          "description": "Execute core implementation and asset validation for: Erzeuge zwei harmlose abh\u00e4ngige Tasks.",
-          "target_capability": "mac",
-          "status": "QUEUED"
-        },
-        {
-          "task_id": "WF-CHIEF-776ab2-STEP-3-SYNTHESIZE",
-          "goal_id": "goal-73522b31",
-          "description": "Finalize results, verify invariants, and assemble completion package for: Erzeuge zwei harmlose abh\u00e4ngige Tasks.",
-          "target_capability": "mac",
-          "status": "QUEUED"
-        }
-      ],
-      "current_step_index": 3
-    },
-    "goal_38e4ee43": {
-      "goal_id": "goal_38e4ee43",
-      "goal_text": "Test goal to ensure routing works",
+    "goal_8ab8ebd0": {
+      "goal_id": "goal_8ab8ebd0",
+      "goal_text": "Proof of Queued Message Continuity: Return PASS",
       "status": "BLOCKED",
-      "created_at": "2026-09-16T00:41:03.978470",
+      "created_at": 1789553337.529985,
       "workflow_plan": [
         {
-          "task_id": "WF-CHIEF-c9eaa1-STEP-1-DISCOVER",
-          "goal_id": "goal_38e4ee43",
-          "description": "Formulate execution strategy and inspect context for: Test goal to ensure routing works",
-          "target_capability": "mac",
+          "task_id": "WF-CHIEF-81188d-STEP-1-DISCOVER",
+          "goal_id": "goal_8ab8ebd0",
+          "description": "Formulate execution strategy and inspect context for: Proof of Queued Message Continuity: Return PASS",
+          "target_capability": "github",
           "status": "QUEUED"
         },
         {
-          "task_id": "WF-CHIEF-c9eaa1-STEP-2-QA",
-          "goal_id": "goal_38e4ee43",
-          "description": "Perform independent technical QA audit and syntax verification for: Test goal to ensure routing works",
-          "target_capability": "windows",
+          "task_id": "WF-CHIEF-81188d-STEP-2-IMPLEMENT",
+          "goal_id": "goal_8ab8ebd0",
+          "description": "Execute core implementation and asset validation for: Proof of Queued Message Continuity: Return PASS",
+          "target_capability": "github",
           "status": "QUEUED"
         },
         {
-          "task_id": "WF-CHIEF-c9eaa1-STEP-3-SYNTHESIZE",
-          "goal_id": "goal_38e4ee43",
-          "description": "Finalize results, verify invariants, and assemble completion package for: Test goal to ensure routing works",
-          "target_capability": "mac",
+          "task_id": "WF-CHIEF-81188d-STEP-3-SYNTHESIZE",
+          "goal_id": "goal_8ab8ebd0",
+          "description": "Finalize results, verify invariants, and assemble completion package for: Proof of Queued Message Continuity: Return PASS",
+          "target_capability": "github",
           "status": "QUEUED"
         }
       ],
       "current_step_index": 1
     },
-    "goal_541c2da6": {
-      "goal_id": "goal_541c2da6",
-      "goal_text": "Erzeuge zwei harmlose abh\u00e4ngige Tasks (Attempt 2).",
+    "goal_8c6a6ba4": {
+      "goal_id": "goal_8c6a6ba4",
+      "goal_text": "Proof of Queued Message Continuity: Return PASS",
       "status": "BLOCKED",
-      "created_at": "2026-09-16T00:50:20.498665",
+      "created_at": 1789553498.896472,
       "workflow_plan": [
         {
-          "task_id": "WF-CHIEF-b37c49-STEP-1-DISCOVER",
-          "goal_id": "goal_541c2da6",
-          "description": "Formulate execution strategy and inspect context for: Erzeuge zwei harmlose abh\u00e4ngige Tasks (Attempt 2).",
-          "target_capability": "mac",
+          "task_id": "WF-CHIEF-6ec9cb-STEP-1-DISCOVER",
+          "goal_id": "goal_8c6a6ba4",
+          "description": "Formulate execution strategy and inspect context for: Proof of Queued Message Continuity: Return PASS",
+          "target_capability": "github",
           "status": "QUEUED"
         },
         {
-          "task_id": "WF-CHIEF-b37c49-STEP-2-IMPLEMENT",
-          "goal_id": "goal_541c2da6",
-          "description": "Execute core implementation and asset validation for: Erzeuge zwei harmlose abh\u00e4ngige Tasks (Attempt 2).",
-          "target_capability": "mac",
+          "task_id": "WF-CHIEF-6ec9cb-STEP-2-IMPLEMENT",
+          "goal_id": "goal_8c6a6ba4",
+          "description": "Execute core implementation and asset validation for: Proof of Queued Message Continuity: Return PASS",
+          "target_capability": "github",
           "status": "QUEUED"
         },
         {
-          "task_id": "WF-CHIEF-b37c49-STEP-3-SYNTHESIZE",
-          "goal_id": "goal_541c2da6",
-          "description": "Finalize results, verify invariants, and assemble completion package for: Erzeuge zwei harmlose abh\u00e4ngige Tasks (Attempt 2).",
-          "target_capability": "mac",
+          "task_id": "WF-CHIEF-6ec9cb-STEP-3-SYNTHESIZE",
+          "goal_id": "goal_8c6a6ba4",
+          "description": "Finalize results, verify invariants, and assemble completion package for: Proof of Queued Message Continuity: Return PASS",
+          "target_capability": "github",
           "status": "QUEUED"
         }
       ],
       "current_step_index": 1
     },
-    "goal_b35190bd": {
-      "goal_id": "goal_b35190bd",
-      "goal_text": "Erzeuge drei harmlose abh\u00e4ngige Tasks (Attempt 3).",
-      "status": "BLOCKED",
-      "created_at": "2026-09-16T00:52:40.121381",
-      "workflow_plan": [
-        {
-          "task_id": "WF-CHIEF-92f7f8-STEP-1-DISCOVER",
-          "goal_id": "goal_b35190bd",
-          "description": "Formulate execution strategy and inspect context for: Erzeuge drei harmlose abh\u00e4ngige Tasks (Attempt 3).",
-          "target_capability": "windows",
-          "status": "QUEUED"
-        },
-        {
-          "task_id": "WF-CHIEF-92f7f8-STEP-2-IMPLEMENT",
-          "goal_id": "goal_b35190bd",
-          "description": "Execute core implementation and asset validation for: Erzeuge drei harmlose abh\u00e4ngige Tasks (Attempt 3).",
-          "target_capability": "windows",
-          "status": "QUEUED"
-        },
-        {
-          "task_id": "WF-CHIEF-92f7f8-STEP-3-SYNTHESIZE",
-          "goal_id": "goal_b35190bd",
-          "description": "Finalize results, verify invariants, and assemble completion package for: Erzeuge drei harmlose abh\u00e4ngige Tasks (Attempt 3).",
-          "target_capability": "windows",
-          "status": "QUEUED"
-        }
-      ],
-      "current_step_index": 2
-    },
-    "goal_test4": {
-      "goal_id": "goal_test4",
-      "goal_text": "Erzeuge drei harmlose abh\u00e4ngige Tasks (Attempt 4).",
-      "status": "BLOCKED",
-      "workflow_plan": [
-        {
-          "task_id": "WF-CHIEF-0f0b0a-STEP-1-DISCOVER",
-          "goal_id": "goal_test4",
-          "description": "Formulate execution strategy and inspect context for: Erzeuge drei harmlose abh\u00e4ngige Tasks (Attempt 4).",
-          "target_capability": "windows",
-          "status": "QUEUED"
-        },
-        {
-          "task_id": "WF-CHIEF-0f0b0a-STEP-2-IMPLEMENT",
-          "goal_id": "goal_test4",
-          "description": "Execute core implementation and asset validation for: Erzeuge drei harmlose abh\u00e4ngige Tasks (Attempt 4).",
-          "target_capability": "windows",
-          "status": "QUEUED"
-        },
-        {
-          "task_id": "WF-CHIEF-0f0b0a-STEP-3-SYNTHESIZE",
-          "goal_id": "goal_test4",
-          "description": "Finalize results, verify invariants, and assemble completion package for: Erzeuge drei harmlose abh\u00e4ngige Tasks (Attempt 4).",
-          "target_capability": "windows",
-          "status": "QUEUED"
-        }
-      ],
-      "current_step_index": 2
-    },
-    "goal_test5": {
-      "goal_id": "goal_test5",
-      "goal_text": "Final Phase 15 End-to-End Test",
+    "goal_dfd9bcdf": {
+      "goal_id": "goal_dfd9bcdf",
+      "goal_text": "Proof of Queued Message Continuity: Return PASS",
       "status": "DONE",
+      "created_at": 1789553627.8596468,
       "workflow_plan": [
         {
-          "task_id": "WF-CHIEF-c076f4-STEP-1-DISCOVER",
-          "goal_id": "goal_test5",
-          "description": "Formulate execution strategy and inspect context for: Final Phase 15 End-to-End Test",
-          "target_capability": "windows",
+          "task_id": "WF-CHIEF-879e0d-STEP-1-DISCOVER",
+          "goal_id": "goal_dfd9bcdf",
+          "description": "Formulate execution strategy and inspect context for: Proof of Queued Message Continuity: Return PASS",
+          "target_capability": "github",
           "status": "QUEUED"
         },
         {
-          "task_id": "WF-CHIEF-c076f4-STEP-2-QA",
-          "goal_id": "goal_test5",
-          "description": "Perform independent technical QA audit and syntax verification for: Final Phase 15 End-to-End Test",
-          "target_capability": "windows",
+          "task_id": "WF-CHIEF-879e0d-STEP-2-IMPLEMENT",
+          "goal_id": "goal_dfd9bcdf",
+          "description": "Execute core implementation and asset validation for: Proof of Queued Message Continuity: Return PASS",
+          "target_capability": "github",
           "status": "QUEUED"
         },
         {
-          "task_id": "WF-CHIEF-c076f4-STEP-3-SYNTHESIZE",
-          "goal_id": "goal_test5",
-          "description": "Finalize results, verify invariants, and assemble completion package for: Final Phase 15 End-to-End Test",
-          "target_capability": "windows",
+          "task_id": "WF-CHIEF-879e0d-STEP-3-SYNTHESIZE",
+          "goal_id": "goal_dfd9bcdf",
+          "description": "Finalize results, verify invariants, and assemble completion package for: Proof of Queued Message Continuity: Return PASS",
+          "target_capability": "github",
           "status": "QUEUED"
         }
       ],
       "current_step_index": 3
     },
-    "goal_1b510b7b": {
-      "goal_id": "goal_1b510b7b",
-      "goal_text": "PHYSICAL ACCEPTANCE CANARY: Write a SUCCESS string to courier_canary_test1.txt",
+    "goal_b0bc49fa": {
+      "goal_id": "goal_b0bc49fa",
+      "goal_text": "Proof of Queued Message Continuity: Return PASS",
       "status": "DONE",
-      "created_at": "2026-09-16T08:16:34.024783",
+      "created_at": 1789553703.296701,
       "workflow_plan": [
         {
-          "task_id": "WF-CHIEF-93ceca-STEP-1-DISCOVER",
-          "goal_id": "goal_1b510b7b",
-          "description": "Formulate execution strategy and inspect context for: PHYSICAL ACCEPTANCE CANARY: Write a SUCCESS string to courier_canary_test1.txt",
-          "target_capability": "windows",
+          "task_id": "WF-CHIEF-c37881-STEP-1-DISCOVER",
+          "goal_id": "goal_b0bc49fa",
+          "description": "Formulate execution strategy and inspect context for: Proof of Queued Message Continuity: Return PASS",
+          "target_capability": "github",
           "status": "QUEUED"
         },
         {
-          "task_id": "WF-CHIEF-93ceca-STEP-2-QA",
-          "goal_id": "goal_1b510b7b",
-          "description": "Perform independent technical QA audit and syntax verification for: PHYSICAL ACCEPTANCE CANARY: Write a SUCCESS string to courier_canary_test1.txt",
-          "target_capability": "windows",
+          "task_id": "WF-CHIEF-c37881-STEP-2-IMPLEMENT",
+          "goal_id": "goal_b0bc49fa",
+          "description": "Execute core implementation and asset validation for: Proof of Queued Message Continuity: Return PASS",
+          "target_capability": "github",
           "status": "QUEUED"
         },
         {
-          "task_id": "WF-CHIEF-93ceca-STEP-3-SYNTHESIZE",
-          "goal_id": "goal_1b510b7b",
-          "description": "Finalize results, verify invariants, and assemble completion package for: PHYSICAL ACCEPTANCE CANARY: Write a SUCCESS string to courier_canary_test1.txt",
-          "target_capability": "windows",
+          "task_id": "WF-CHIEF-c37881-STEP-3-SYNTHESIZE",
+          "goal_id": "goal_b0bc49fa",
+          "description": "Finalize results, verify invariants, and assemble completion package for: Proof of Queued Message Continuity: Return PASS",
+          "target_capability": "github",
           "status": "QUEUED"
         }
       ],
       "current_step_index": 3
     },
-    "goal-canary-01": {
+    "goal_d82cf0c1": {
+      "goal_id": "goal_d82cf0c1",
+      "goal_text": "Cross-Worker Routing Canary",
+      "status": "DONE",
+      "created_at": 1789554022.6523316,
       "workflow_plan": [
         {
-          "target_capability": "windows",
-          "task_id": "task-canary-01",
-          "goal_id": "goal-canary-01",
-          "description": "native canary step A"
+          "task_id": "task_b93bef8c",
+          "goal_id": "goal_d82cf0c1",
+          "description": "README.md",
+          "target_capability": "github",
+          "status": "QUEUED"
         },
         {
-          "target_capability": "windows",
-          "task_id": "task-canary-02",
-          "goal_id": "goal-canary-01",
-          "description": "native canary step B"
+          "task_id": "task_68a1b096",
+          "goal_id": "goal_d82cf0c1",
+          "description": "README.md",
+          "target_capability": "windows_cloud",
+          "status": "QUEUED"
         }
       ],
-      "goal_id": "goal-canary-01",
-      "goal_text": "Run two step canary",
-      "status": "DONE",
       "current_step_index": 2
     },
-    "goal-canary-02": {
+    "goal_bb0554b9": {
+      "goal_id": "goal_bb0554b9",
+      "goal_text": "Cross-Worker Routing Canary with Recovery",
+      "status": "DONE",
+      "created_at": 1789554315.1688054,
       "workflow_plan": [
         {
-          "target_capability": "windows",
-          "task_id": "task-canary-03",
-          "goal_id": "goal-canary-02",
-          "description": "native canary step C (Windows)"
+          "task_id": "task_2eee7325",
+          "goal_id": "goal_bb0554b9",
+          "description": "README.md",
+          "target_capability": "github",
+          "status": "QUEUED"
         },
         {
-          "target_capability": "mac",
-          "task_id": "task-canary-04",
-          "goal_id": "goal-canary-02",
-          "description": "native canary step D (Mac)"
+          "task_id": "task_29d53d2b",
+          "goal_id": "goal_bb0554b9",
+          "description": "README.md",
+          "target_capability": "windows_cloud",
+          "status": "QUEUED"
         }
       ],
-      "goal_id": "goal-canary-02",
-      "goal_text": "Run two step cross-machine canary",
-      "status": "BLOCKED",
-      "current_step_index": 1
+      "current_step_index": 2
+    },
+    "goal_a06295d1": {
+      "goal_id": "goal_a06295d1",
+      "goal_text": "Cross-Worker Routing Canary 3",
+      "status": "DONE",
+      "created_at": "2026-09-16T12:59:31.819194",
+      "workflow_plan": [
+        {
+          "task_id": "WF-CHIEF-ef55ba-STEP-1-DISCOVER",
+          "goal_id": "goal_a06295d1",
+          "description": "Formulate execution strategy and inspect context for: Cross-Worker Routing Canary 3",
+          "target_capability": "github",
+          "status": "QUEUED"
+        },
+        {
+          "task_id": "WF-CHIEF-ef55ba-STEP-2-IMPLEMENT",
+          "goal_id": "goal_a06295d1",
+          "description": "Execute core implementation and asset validation for: Cross-Worker Routing Canary 3",
+          "target_capability": "github",
+          "status": "QUEUED"
+        },
+        {
+          "task_id": "WF-CHIEF-ef55ba-STEP-3-SYNTHESIZE",
+          "goal_id": "goal_a06295d1",
+          "description": "Finalize results, verify invariants, and assemble completion package for: Cross-Worker Routing Canary 3",
+          "target_capability": "github",
+          "status": "QUEUED"
+        }
+      ],
+      "current_step_index": 3
+    },
+    "goal_8ea9b8f7": {
+      "goal_id": "goal_8ea9b8f7",
+      "goal_text": "S7 Physical Acceptance Test",
+      "status": "DONE",
+      "created_at": 1789556791.2724185,
+      "workflow_plan": [
+        {
+          "task_id": "task_b0a0abf1",
+          "goal_id": "goal_8ea9b8f7",
+          "description": "Prove A: Run on ubuntu-latest",
+          "target_capability": "github",
+          "status": "QUEUED"
+        },
+        {
+          "task_id": "task_d99c7067",
+          "goal_id": "goal_8ea9b8f7",
+          "description": "Prove B: Run on windows-latest",
+          "target_capability": "windows_cloud",
+          "status": "QUEUED"
+        }
+      ],
+      "current_step_index": 2
     }
   },
   "tasks": {
-    "WF-CHIEF-776ab2-STEP-1-DISCOVER": {
-      "task_id": "WF-CHIEF-776ab2-STEP-1-DISCOVER",
-      "goal_id": "goal-73522b31",
-      "description": "Formulate execution strategy and inspect context for: Erzeuge zwei harmlose abh\u00e4ngige Tasks.",
-      "target_capability": "mac",
+    "WF-CHIEF-81188d-STEP-1-DISCOVER": {
+      "task_id": "WF-CHIEF-81188d-STEP-1-DISCOVER",
+      "goal_id": "goal_8ab8ebd0",
+      "description": "Formulate execution strategy and inspect context for: Proof of Queued Message Continuity: Return PASS",
+      "target_capability": "github",
       "status": "FAILED_TERMINAL",
-      "result": {
-        "status": "FAILED",
-        "reason": "INVALID_RESULT",
-        "raw_diagnostic": "",
-        "stderr": "",
-        "goal_id": "goal-73522b31",
-        "task_id": "WF-CHIEF-776ab2-STEP-1-DISCOVER",
-        "worker_id": "MAC-AGY-01",
-        "provider": "antigravity",
-        "run_id": "46468"
-      }
-    },
-    "WF-CHIEF-776ab2-STEP-2-IMPLEMENT": {
-      "task_id": "WF-CHIEF-776ab2-STEP-2-IMPLEMENT",
-      "goal_id": "goal-73522b31",
-      "description": "Execute core implementation and asset validation for: Erzeuge zwei harmlose abh\u00e4ngige Tasks.",
-      "target_capability": "mac",
-      "status": "RECONCILED",
-      "result": {
-        "status": "SUCCESS",
-        "stdout_summary": "Created courier_canary_WF-CHIEF-776ab2-STEP-2-IMPLEMENT.txt containing SUCCESS, generated and validated two harmless dependent task specifications (task-harmless-producer-73522b31 and task-harmless-consumer-73522b31 with explicit dependency on producer), and staged verified runtime marker.",
-        "goal_id": "goal-73522b31",
-        "task_id": "WF-CHIEF-776ab2-STEP-2-IMPLEMENT",
-        "worker_id": "MAC-AGY-01",
-        "provider": "antigravity",
-        "run_id": "46491"
-      }
-    },
-    "WF-CHIEF-776ab2-STEP-3-SYNTHESIZE": {
-      "task_id": "WF-CHIEF-776ab2-STEP-3-SYNTHESIZE",
-      "goal_id": "goal-73522b31",
-      "description": "Finalize results, verify invariants, and assemble completion package for: Erzeuge zwei harmlose abh\u00e4ngige Tasks.",
-      "target_capability": "mac",
-      "status": "FAILED_VERIFICATION",
-      "result": {
-        "status": "SUCCESS",
-        "stdout_summary": "Verified invariants, synthesized results for task 'Erzeuge zwei harmlose abh\u00e4ngige Tasks', and created courier_canary_WF-CHIEF-776ab2-STEP-3-SYNTHESIZE.txt containing 'SUCCESS'.",
-        "goal_id": "goal-73522b31",
-        "task_id": "WF-CHIEF-776ab2-STEP-3-SYNTHESIZE",
-        "worker_id": "MAC-AGY-01",
-        "provider": "antigravity",
-        "run_id": "46682"
-      }
-    },
-    "WF-CHIEF-c9eaa1-STEP-1-DISCOVER": {
-      "task_id": "WF-CHIEF-c9eaa1-STEP-1-DISCOVER",
-      "goal_id": "goal_38e4ee43",
-      "description": "Formulate execution strategy and inspect context for: Test goal to ensure routing works",
-      "target_capability": "mac",
-      "status": "FAILED_VERIFICATION",
-      "attempt_id": "WF-CHIEF-c9eaa1-STEP-1-DISCOVER:attempt:1",
-      "dispatch_id": "dispatch-f3623bd8463c4596baf3cae64cd4822b",
-      "worker_id": "MAC-01",
-      "run_id": null,
-      "result_id": null,
+      "attempt_id": "WF-CHIEF-81188d-STEP-1-DISCOVER-attempt-1",
+      "dispatch_id": "dispatch-8235d7845239495b9ecfb3e5d1b99363",
+      "worker_id": "GITHUB-HOSTED",
+      "run_id": "35083397698",
+      "result_id": "result-e7408f8b3df4f859dbefc54bad8c8e3957c461eea437cebf9e396e7182a6623e",
       "artifacts": [
-        "courier_canary_WF-CHIEF-c9eaa1-STEP-1-DISCOVER.txt"
-      ]
-    },
-    "WF-CHIEF-b37c49-STEP-1-DISCOVER": {
-      "task_id": "WF-CHIEF-b37c49-STEP-1-DISCOVER",
-      "goal_id": "goal_541c2da6",
-      "description": "Formulate execution strategy and inspect context for: Erzeuge zwei harmlose abh\u00e4ngige Tasks (Attempt 2).",
-      "target_capability": "mac",
-      "status": "FAILED_VERIFICATION",
-      "attempt_id": "WF-CHIEF-b37c49-STEP-1-DISCOVER:attempt:1",
-      "dispatch_id": "dispatch-44f6ee6ab1dd4f27870d2d44b936e79e",
-      "worker_id": "MAC-01",
-      "run_id": null,
-      "result_id": null,
-      "artifacts": [
-        "courier_canary_WF-CHIEF-b37c49-STEP-1-DISCOVER.txt"
-      ]
-    },
-    "WF-CHIEF-92f7f8-STEP-1-DISCOVER": {
-      "task_id": "WF-CHIEF-92f7f8-STEP-1-DISCOVER",
-      "goal_id": "goal_b35190bd",
-      "description": "Formulate execution strategy and inspect context for: Erzeuge drei harmlose abh\u00e4ngige Tasks (Attempt 3).",
-      "target_capability": "windows",
-      "status": "RECONCILED",
-      "attempt_id": "WF-CHIEF-92f7f8-STEP-1-DISCOVER:attempt:1",
-      "dispatch_id": "dispatch-5171187bd841429a86a13d036787a171",
-      "worker_id": "WINDOWS-01",
-      "run_id": "5380",
-      "result_id": "result-75d6bf5e412c55843c9d40c494e6dd856d868e5478ca00e5d6eea6123932a9ce",
-      "artifacts": [
-        "courier_canary_WF-CHIEF-92f7f8-STEP-1-DISCOVER.txt"
+        "courier_canary_WF-CHIEF-81188d-STEP-1-DISCOVER.txt"
       ],
       "result": {
-        "goal_id": "goal_b35190bd",
-        "task_id": "WF-CHIEF-92f7f8-STEP-1-DISCOVER",
-        "attempt_id": "WF-CHIEF-92f7f8-STEP-1-DISCOVER:attempt:1",
-        "dispatch_id": "dispatch-5171187bd841429a86a13d036787a171",
-        "worker_id": "WINDOWS-01",
-        "run_id": "5380",
-        "status": "SUCCESS",
-        "artifacts": [
-          {
-            "path": "courier_canary_WF-CHIEF-92f7f8-STEP-1-DISCOVER.txt",
-            "sha256": "1f513d4ecec4e91ddd48da1a59b6d96f1b76c374dc1da641980782a34f43b102"
-          }
-        ],
-        "result_id": "result-75d6bf5e412c55843c9d40c494e6dd856d868e5478ca00e5d6eea6123932a9ce"
-      }
-    },
-    "WF-CHIEF-92f7f8-STEP-2-IMPLEMENT": {
-      "task_id": "WF-CHIEF-92f7f8-STEP-2-IMPLEMENT",
-      "goal_id": "goal_b35190bd",
-      "description": "Execute core implementation and asset validation for: Erzeuge drei harmlose abh\u00e4ngige Tasks (Attempt 3).",
-      "target_capability": "windows",
-      "status": "FAILED_TERMINAL",
-      "attempt_id": "WF-CHIEF-92f7f8-STEP-2-IMPLEMENT:attempt:1",
-      "dispatch_id": "dispatch-8c9bc7f5d9264d289a2e95ba7cb6ae67",
-      "worker_id": "WINDOWS-01",
-      "run_id": "3668",
-      "result_id": "result-7684bbd1ce9c90d43f20510757b9e36eb4bb3982b9e0f1cf444bc865a058735e",
-      "artifacts": [
-        "courier_canary_WF-CHIEF-92f7f8-STEP-2-IMPLEMENT.txt"
-      ],
-      "result": {
-        "goal_id": "goal_b35190bd",
-        "task_id": "WF-CHIEF-92f7f8-STEP-2-IMPLEMENT",
-        "attempt_id": "WF-CHIEF-92f7f8-STEP-2-IMPLEMENT:attempt:1",
-        "dispatch_id": "dispatch-8c9bc7f5d9264d289a2e95ba7cb6ae67",
-        "worker_id": "WINDOWS-01",
-        "run_id": "3668",
+        "goal_id": "goal_8ab8ebd0",
+        "task_id": "WF-CHIEF-81188d-STEP-1-DISCOVER",
+        "attempt_id": "WF-CHIEF-81188d-STEP-1-DISCOVER-attempt-1",
+        "dispatch_id": "dispatch-8235d7845239495b9ecfb3e5d1b99363",
+        "worker_id": "GITHUB-HOSTED",
+        "run_id": "35083397698",
         "status": "FAILED",
         "artifacts": [],
-        "result_id": "result-7684bbd1ce9c90d43f20510757b9e36eb4bb3982b9e0f1cf444bc865a058735e"
+        "result_id": "result-e7408f8b3df4f859dbefc54bad8c8e3957c461eea437cebf9e396e7182a6623e"
       }
     },
-    "WF-CHIEF-0f0b0a-STEP-1-DISCOVER": {
-      "task_id": "WF-CHIEF-0f0b0a-STEP-1-DISCOVER",
-      "goal_id": "goal_test4",
-      "description": "Formulate execution strategy and inspect context for: Erzeuge drei harmlose abh\u00e4ngige Tasks (Attempt 4).",
-      "target_capability": "windows",
-      "status": "RECONCILED",
-      "attempt_id": "WF-CHIEF-0f0b0a-STEP-1-DISCOVER:attempt:1",
-      "dispatch_id": "dispatch-1881bcb38038430088367ba01b0fd6d3",
-      "worker_id": "WINDOWS-01",
-      "run_id": "18528",
-      "result_id": "result-8602ff810ae1321664d1ab77d1c2663c4a06abd7064ab0a79d46272914176350",
+    "WF-CHIEF-6ec9cb-STEP-1-DISCOVER": {
+      "task_id": "WF-CHIEF-6ec9cb-STEP-1-DISCOVER",
+      "goal_id": "goal_8c6a6ba4",
+      "description": "Formulate execution strategy and inspect context for: Proof of Queued Message Continuity: Return PASS",
+      "target_capability": "github",
+      "status": "FAILED_TERMINAL",
+      "attempt_id": "WF-CHIEF-6ec9cb-STEP-1-DISCOVER-attempt-1",
+      "dispatch_id": "dispatch-852c792b50554c168d2163dfd306f8a7",
+      "worker_id": "GITHUB-HOSTED",
+      "run_id": "35083647665",
+      "result_id": "result-f255bf6965e522bb5507e1bb9ef0fe8e543670bdb4dee6cdf76efbe255a18696",
       "artifacts": [
-        "courier_canary_WF-CHIEF-0f0b0a-STEP-1-DISCOVER.txt"
+        "courier_canary_WF-CHIEF-6ec9cb-STEP-1-DISCOVER.txt"
       ],
       "result": {
-        "goal_id": "goal_test4",
-        "task_id": "WF-CHIEF-0f0b0a-STEP-1-DISCOVER",
-        "attempt_id": "WF-CHIEF-0f0b0a-STEP-1-DISCOVER:attempt:1",
-        "dispatch_id": "dispatch-1881bcb38038430088367ba01b0fd6d3",
-        "worker_id": "WINDOWS-01",
-        "run_id": "18528",
+        "goal_id": "goal_8c6a6ba4",
+        "task_id": "WF-CHIEF-6ec9cb-STEP-1-DISCOVER",
+        "attempt_id": "WF-CHIEF-6ec9cb-STEP-1-DISCOVER-attempt-1",
+        "dispatch_id": "dispatch-852c792b50554c168d2163dfd306f8a7",
+        "worker_id": "GITHUB-HOSTED",
+        "run_id": "35083647665",
+        "status": "FAILED",
+        "artifacts": [],
+        "result_id": "result-f255bf6965e522bb5507e1bb9ef0fe8e543670bdb4dee6cdf76efbe255a18696"
+      }
+    },
+    "WF-CHIEF-879e0d-STEP-1-DISCOVER": {
+      "task_id": "WF-CHIEF-879e0d-STEP-1-DISCOVER",
+      "goal_id": "goal_dfd9bcdf",
+      "description": "Formulate execution strategy and inspect context for: Proof of Queued Message Continuity: Return PASS",
+      "target_capability": "github",
+      "status": "RECONCILED",
+      "attempt_id": "WF-CHIEF-879e0d-STEP-1-DISCOVER-attempt-1",
+      "dispatch_id": "dispatch-6e7a3edaf82b4721af04dca40a1ddb26",
+      "worker_id": "GITHUB-HOSTED",
+      "run_id": "35083837929",
+      "result_id": "result-bc4e599a5edf7afc17836b5bfe005a021f56e3ff5182f30325e0e77e1c586ae8",
+      "artifacts": [
+        "courier_canary_WF-CHIEF-879e0d-STEP-1-DISCOVER.txt"
+      ],
+      "result": {
+        "goal_id": "goal_dfd9bcdf",
+        "task_id": "WF-CHIEF-879e0d-STEP-1-DISCOVER",
+        "attempt_id": "WF-CHIEF-879e0d-STEP-1-DISCOVER-attempt-1",
+        "dispatch_id": "dispatch-6e7a3edaf82b4721af04dca40a1ddb26",
+        "worker_id": "GITHUB-HOSTED",
+        "run_id": "35083837929",
         "status": "SUCCESS",
         "artifacts": [
           {
-            "path": "courier_canary_WF-CHIEF-0f0b0a-STEP-1-DISCOVER.txt",
+            "path": "courier_canary_WF-CHIEF-879e0d-STEP-1-DISCOVER.txt",
             "sha256": "1f513d4ecec4e91ddd48da1a59b6d96f1b76c374dc1da641980782a34f43b102"
           }
         ],
-        "result_id": "result-8602ff810ae1321664d1ab77d1c2663c4a06abd7064ab0a79d46272914176350"
+        "result_id": "result-bc4e599a5edf7afc17836b5bfe005a021f56e3ff5182f30325e0e77e1c586ae8"
       }
     },
-    "WF-CHIEF-0f0b0a-STEP-2-IMPLEMENT": {
-      "task_id": "WF-CHIEF-0f0b0a-STEP-2-IMPLEMENT",
-      "goal_id": "goal_test4",
-      "description": "Execute core implementation and asset validation for: Erzeuge drei harmlose abh\u00e4ngige Tasks (Attempt 4).",
-      "target_capability": "windows",
-      "status": "FAILED_VERIFICATION",
-      "attempt_id": "WF-CHIEF-0f0b0a-STEP-2-IMPLEMENT:attempt:1",
-      "dispatch_id": "dispatch-55d17ab255d348e7a442de81d926c9ed",
-      "worker_id": "WINDOWS-01",
-      "run_id": null,
-      "result_id": null,
-      "artifacts": [
-        "courier_canary_WF-CHIEF-0f0b0a-STEP-2-IMPLEMENT.txt"
-      ]
-    },
-    "WF-CHIEF-c076f4-STEP-1-DISCOVER": {
-      "task_id": "WF-CHIEF-c076f4-STEP-1-DISCOVER",
-      "goal_id": "goal_test5",
-      "description": "Formulate execution strategy and inspect context for: Final Phase 15 End-to-End Test",
-      "target_capability": "windows",
+    "WF-CHIEF-879e0d-STEP-2-IMPLEMENT": {
+      "task_id": "WF-CHIEF-879e0d-STEP-2-IMPLEMENT",
+      "goal_id": "goal_dfd9bcdf",
+      "description": "Execute core implementation and asset validation for: Proof of Queued Message Continuity: Return PASS",
+      "target_capability": "github",
       "status": "RECONCILED",
-      "attempt_id": "WF-CHIEF-c076f4-STEP-1-DISCOVER:attempt:1",
-      "dispatch_id": "dispatch-232a3b9116cf40078e22d9a7b2d16d34",
-      "worker_id": "WINDOWS-01",
-      "run_id": "7296",
-      "result_id": "result-1f36acf5f6710b619ac5ba90ec431595ed940bab1f564ad3d5d585477e5eb75f",
+      "attempt_id": "WF-CHIEF-879e0d-STEP-2-IMPLEMENT-attempt-1",
+      "dispatch_id": "dispatch-e7dee5591b9e4c66aecd8be8d22b4da1",
+      "worker_id": "GITHUB-HOSTED",
+      "run_id": "35083873479",
+      "result_id": "result-dd6db772283b7230cc797df9c3d3e8ece4f305b2fa84b86ff3c96f983c180e1f",
       "artifacts": [
-        "courier_canary_WF-CHIEF-c076f4-STEP-1-DISCOVER.txt"
+        "courier_canary_WF-CHIEF-879e0d-STEP-2-IMPLEMENT.txt"
       ],
       "result": {
-        "goal_id": "goal_test5",
-        "task_id": "WF-CHIEF-c076f4-STEP-1-DISCOVER",
-        "attempt_id": "WF-CHIEF-c076f4-STEP-1-DISCOVER:attempt:1",
-        "dispatch_id": "dispatch-232a3b9116cf40078e22d9a7b2d16d34",
-        "worker_id": "WINDOWS-01",
-        "run_id": "7296",
+        "goal_id": "goal_dfd9bcdf",
+        "task_id": "WF-CHIEF-879e0d-STEP-2-IMPLEMENT",
+        "attempt_id": "WF-CHIEF-879e0d-STEP-2-IMPLEMENT-attempt-1",
+        "dispatch_id": "dispatch-e7dee5591b9e4c66aecd8be8d22b4da1",
+        "worker_id": "GITHUB-HOSTED",
+        "run_id": "35083873479",
         "status": "SUCCESS",
         "artifacts": [
           {
-            "path": "courier_canary_WF-CHIEF-c076f4-STEP-1-DISCOVER.txt",
-            "sha256": "421a244564c34296e185cdcf70d2269227ae102f2e7eeef94afddd495c4e06c2"
+            "path": "courier_canary_WF-CHIEF-879e0d-STEP-2-IMPLEMENT.txt",
+            "sha256": "1f513d4ecec4e91ddd48da1a59b6d96f1b76c374dc1da641980782a34f43b102"
           }
         ],
-        "result_id": "result-1f36acf5f6710b619ac5ba90ec431595ed940bab1f564ad3d5d585477e5eb75f"
+        "result_id": "result-dd6db772283b7230cc797df9c3d3e8ece4f305b2fa84b86ff3c96f983c180e1f"
       }
     },
-    "WF-CHIEF-c076f4-STEP-2-QA": {
-      "task_id": "WF-CHIEF-c076f4-STEP-2-QA",
-      "goal_id": "goal_test5",
-      "description": "Perform independent technical QA audit and syntax verification for: Final Phase 15 End-to-End Test",
-      "target_capability": "windows",
+    "WF-CHIEF-879e0d-STEP-3-SYNTHESIZE": {
+      "task_id": "WF-CHIEF-879e0d-STEP-3-SYNTHESIZE",
+      "goal_id": "goal_dfd9bcdf",
+      "description": "Finalize results, verify invariants, and assemble completion package for: Proof of Queued Message Continuity: Return PASS",
+      "target_capability": "github",
       "status": "RECONCILED",
-      "attempt_id": "WF-CHIEF-c076f4-STEP-2-QA:attempt:1",
-      "dispatch_id": "dispatch-7b87849a68f5448baa119bd8e7f4b20f",
-      "worker_id": "WINDOWS-01",
-      "run_id": "10356",
-      "result_id": "result-1f09f09772deb67f14d292f37e5225e7f27aa795f812ba72964535c050bd237b",
+      "attempt_id": "WF-CHIEF-879e0d-STEP-3-SYNTHESIZE-attempt-1",
+      "dispatch_id": "dispatch-4c6ca2bf93954590a859575a5ed8fd25",
+      "worker_id": "GITHUB-HOSTED",
+      "run_id": "35083952327",
+      "result_id": "result-287edcd0c61f329849d12c53fa93c2703c33b2b06486a40780fe8198a1c9a87a",
       "artifacts": [
-        "courier_canary_WF-CHIEF-c076f4-STEP-2-QA.txt"
+        "courier_canary_WF-CHIEF-879e0d-STEP-3-SYNTHESIZE.txt"
       ],
       "result": {
-        "goal_id": "goal_test5",
-        "task_id": "WF-CHIEF-c076f4-STEP-2-QA",
-        "attempt_id": "WF-CHIEF-c076f4-STEP-2-QA:attempt:1",
-        "dispatch_id": "dispatch-7b87849a68f5448baa119bd8e7f4b20f",
-        "worker_id": "WINDOWS-01",
-        "run_id": "10356",
+        "goal_id": "goal_dfd9bcdf",
+        "task_id": "WF-CHIEF-879e0d-STEP-3-SYNTHESIZE",
+        "attempt_id": "WF-CHIEF-879e0d-STEP-3-SYNTHESIZE-attempt-1",
+        "dispatch_id": "dispatch-4c6ca2bf93954590a859575a5ed8fd25",
+        "worker_id": "GITHUB-HOSTED",
+        "run_id": "35083952327",
         "status": "SUCCESS",
         "artifacts": [
           {
-            "path": "courier_canary_WF-CHIEF-c076f4-STEP-2-QA.txt",
-            "sha256": "421a244564c34296e185cdcf70d2269227ae102f2e7eeef94afddd495c4e06c2"
+            "path": "courier_canary_WF-CHIEF-879e0d-STEP-3-SYNTHESIZE.txt",
+            "sha256": "1f513d4ecec4e91ddd48da1a59b6d96f1b76c374dc1da641980782a34f43b102"
           }
         ],
-        "result_id": "result-1f09f09772deb67f14d292f37e5225e7f27aa795f812ba72964535c050bd237b"
+        "result_id": "result-287edcd0c61f329849d12c53fa93c2703c33b2b06486a40780fe8198a1c9a87a"
       }
     },
-    "WF-CHIEF-c076f4-STEP-3-SYNTHESIZE": {
-      "task_id": "WF-CHIEF-c076f4-STEP-3-SYNTHESIZE",
-      "goal_id": "goal_test5",
-      "description": "Finalize results, verify invariants, and assemble completion package for: Final Phase 15 End-to-End Test",
-      "target_capability": "windows",
+    "WF-CHIEF-c37881-STEP-1-DISCOVER": {
+      "task_id": "WF-CHIEF-c37881-STEP-1-DISCOVER",
+      "goal_id": "goal_b0bc49fa",
+      "description": "Formulate execution strategy and inspect context for: Proof of Queued Message Continuity: Return PASS",
+      "target_capability": "github",
       "status": "RECONCILED",
-      "attempt_id": "WF-CHIEF-c076f4-STEP-3-SYNTHESIZE:attempt:1",
-      "dispatch_id": "dispatch-52e60983714b4723b439f7292e567db7",
-      "worker_id": "WINDOWS-01",
-      "run_id": "16084",
-      "result_id": "result-134ad252121762393d71c4ef892268ee38269964e7d4f20a54df518ef8ef0a0d",
+      "attempt_id": "WF-CHIEF-c37881-STEP-1-DISCOVER-attempt-1",
+      "dispatch_id": "dispatch-0a82e9b7bc3149039b925b57d567b3fe",
+      "worker_id": "GITHUB-HOSTED",
+      "run_id": "35083952924",
+      "result_id": "result-7a95096a80a17d60299c38307ebbb0cf8fa13e7282a08e3eac5f312b27ddfdb1",
       "artifacts": [
-        "courier_canary_WF-CHIEF-c076f4-STEP-3-SYNTHESIZE.txt"
+        "courier_canary_WF-CHIEF-c37881-STEP-1-DISCOVER.txt"
       ],
       "result": {
-        "goal_id": "goal_test5",
-        "task_id": "WF-CHIEF-c076f4-STEP-3-SYNTHESIZE",
-        "attempt_id": "WF-CHIEF-c076f4-STEP-3-SYNTHESIZE:attempt:1",
-        "dispatch_id": "dispatch-52e60983714b4723b439f7292e567db7",
-        "worker_id": "WINDOWS-01",
-        "run_id": "16084",
+        "goal_id": "goal_b0bc49fa",
+        "task_id": "WF-CHIEF-c37881-STEP-1-DISCOVER",
+        "attempt_id": "WF-CHIEF-c37881-STEP-1-DISCOVER-attempt-1",
+        "dispatch_id": "dispatch-0a82e9b7bc3149039b925b57d567b3fe",
+        "worker_id": "GITHUB-HOSTED",
+        "run_id": "35083952924",
         "status": "SUCCESS",
         "artifacts": [
           {
-            "path": "courier_canary_WF-CHIEF-c076f4-STEP-3-SYNTHESIZE.txt",
-            "sha256": "421a244564c34296e185cdcf70d2269227ae102f2e7eeef94afddd495c4e06c2"
+            "path": "courier_canary_WF-CHIEF-c37881-STEP-1-DISCOVER.txt",
+            "sha256": "1f513d4ecec4e91ddd48da1a59b6d96f1b76c374dc1da641980782a34f43b102"
           }
         ],
-        "result_id": "result-134ad252121762393d71c4ef892268ee38269964e7d4f20a54df518ef8ef0a0d"
+        "result_id": "result-7a95096a80a17d60299c38307ebbb0cf8fa13e7282a08e3eac5f312b27ddfdb1"
       }
     },
-    "WF-CHIEF-93ceca-STEP-1-DISCOVER": {
-      "task_id": "WF-CHIEF-93ceca-STEP-1-DISCOVER",
-      "goal_id": "goal_1b510b7b",
-      "description": "Formulate execution strategy and inspect context for: PHYSICAL ACCEPTANCE CANARY: Write a SUCCESS string to courier_canary_test1.txt",
-      "target_capability": "windows",
+    "WF-CHIEF-c37881-STEP-2-IMPLEMENT": {
+      "task_id": "WF-CHIEF-c37881-STEP-2-IMPLEMENT",
+      "goal_id": "goal_b0bc49fa",
+      "description": "Execute core implementation and asset validation for: Proof of Queued Message Continuity: Return PASS",
+      "target_capability": "github",
       "status": "RECONCILED",
-      "attempt_id": "WF-CHIEF-93ceca-STEP-1-DISCOVER:attempt:1",
-      "dispatch_id": "dispatch-9c764b5b02b543a89bd6932645b51a73",
-      "worker_id": "WINDOWS-01",
-      "run_id": "12896",
-      "result_id": "result-da0033677ebad3e9bca92d1356b7c8b50060332e9ea8d2f403ec5e0db72f75af",
+      "attempt_id": "WF-CHIEF-c37881-STEP-2-IMPLEMENT-attempt-1",
+      "dispatch_id": "dispatch-41f43f7c6c7a4b06a417c5be4a3b7163",
+      "worker_id": "GITHUB-HOSTED",
+      "run_id": "35083992181",
+      "result_id": "result-c64a738ccdd88b80325fb826230c8510519487757dc737e4741fc819bfe06637",
       "artifacts": [
-        "courier_canary_WF-CHIEF-93ceca-STEP-1-DISCOVER.txt"
+        "courier_canary_WF-CHIEF-c37881-STEP-2-IMPLEMENT.txt"
       ],
       "result": {
-        "goal_id": "goal_1b510b7b",
-        "task_id": "WF-CHIEF-93ceca-STEP-1-DISCOVER",
-        "attempt_id": "WF-CHIEF-93ceca-STEP-1-DISCOVER:attempt:1",
-        "dispatch_id": "dispatch-9c764b5b02b543a89bd6932645b51a73",
-        "worker_id": "WINDOWS-01",
-        "run_id": "12896",
+        "goal_id": "goal_b0bc49fa",
+        "task_id": "WF-CHIEF-c37881-STEP-2-IMPLEMENT",
+        "attempt_id": "WF-CHIEF-c37881-STEP-2-IMPLEMENT-attempt-1",
+        "dispatch_id": "dispatch-41f43f7c6c7a4b06a417c5be4a3b7163",
+        "worker_id": "GITHUB-HOSTED",
+        "run_id": "35083992181",
         "status": "SUCCESS",
         "artifacts": [
           {
-            "path": "courier_canary_WF-CHIEF-93ceca-STEP-1-DISCOVER.txt",
-            "sha256": "421a244564c34296e185cdcf70d2269227ae102f2e7eeef94afddd495c4e06c2"
+            "path": "courier_canary_WF-CHIEF-c37881-STEP-2-IMPLEMENT.txt",
+            "sha256": "1f513d4ecec4e91ddd48da1a59b6d96f1b76c374dc1da641980782a34f43b102"
           }
         ],
-        "result_id": "result-da0033677ebad3e9bca92d1356b7c8b50060332e9ea8d2f403ec5e0db72f75af"
+        "result_id": "result-c64a738ccdd88b80325fb826230c8510519487757dc737e4741fc819bfe06637"
       }
     },
-    "WF-CHIEF-93ceca-STEP-2-QA": {
-      "task_id": "WF-CHIEF-93ceca-STEP-2-QA",
-      "goal_id": "goal_1b510b7b",
-      "description": "Perform independent technical QA audit and syntax verification for: PHYSICAL ACCEPTANCE CANARY: Write a SUCCESS string to courier_canary_test1.txt",
-      "target_capability": "windows",
+    "WF-CHIEF-c37881-STEP-3-SYNTHESIZE": {
+      "task_id": "WF-CHIEF-c37881-STEP-3-SYNTHESIZE",
+      "goal_id": "goal_b0bc49fa",
+      "description": "Finalize results, verify invariants, and assemble completion package for: Proof of Queued Message Continuity: Return PASS",
+      "target_capability": "github",
       "status": "RECONCILED",
-      "attempt_id": "WF-CHIEF-93ceca-STEP-2-QA:attempt:1",
-      "dispatch_id": "dispatch-8ee13a35773f42919e3d8b740c2cf7b3",
-      "worker_id": "WINDOWS-01",
-      "run_id": "18688",
-      "result_id": "result-8ff694c146d32ac027c9dd64794f04a29733f3e831f95be2626f3f9e5ad9c15a",
+      "attempt_id": "WF-CHIEF-c37881-STEP-3-SYNTHESIZE-attempt-1",
+      "dispatch_id": "dispatch-890d2a0775794297b421c1eef252b5ae",
+      "worker_id": "GITHUB-HOSTED",
+      "run_id": "35084053933",
+      "result_id": "result-be7d0bcbbd58e279e1797ee1743e04f93ea0fd67f8d0c36a1c30b5327bcd6e06",
       "artifacts": [
-        "courier_canary_WF-CHIEF-93ceca-STEP-2-QA.txt"
+        "courier_canary_WF-CHIEF-c37881-STEP-3-SYNTHESIZE.txt"
       ],
       "result": {
-        "goal_id": "goal_1b510b7b",
-        "task_id": "WF-CHIEF-93ceca-STEP-2-QA",
-        "attempt_id": "WF-CHIEF-93ceca-STEP-2-QA:attempt:1",
-        "dispatch_id": "dispatch-8ee13a35773f42919e3d8b740c2cf7b3",
-        "worker_id": "WINDOWS-01",
-        "run_id": "18688",
+        "goal_id": "goal_b0bc49fa",
+        "task_id": "WF-CHIEF-c37881-STEP-3-SYNTHESIZE",
+        "attempt_id": "WF-CHIEF-c37881-STEP-3-SYNTHESIZE-attempt-1",
+        "dispatch_id": "dispatch-890d2a0775794297b421c1eef252b5ae",
+        "worker_id": "GITHUB-HOSTED",
+        "run_id": "35084053933",
         "status": "SUCCESS",
         "artifacts": [
           {
-            "path": "courier_canary_WF-CHIEF-93ceca-STEP-2-QA.txt",
-            "sha256": "421a244564c34296e185cdcf70d2269227ae102f2e7eeef94afddd495c4e06c2"
+            "path": "courier_canary_WF-CHIEF-c37881-STEP-3-SYNTHESIZE.txt",
+            "sha256": "1f513d4ecec4e91ddd48da1a59b6d96f1b76c374dc1da641980782a34f43b102"
           }
         ],
-        "result_id": "result-8ff694c146d32ac027c9dd64794f04a29733f3e831f95be2626f3f9e5ad9c15a"
+        "result_id": "result-be7d0bcbbd58e279e1797ee1743e04f93ea0fd67f8d0c36a1c30b5327bcd6e06"
       }
     },
-    "WF-CHIEF-93ceca-STEP-3-SYNTHESIZE": {
-      "task_id": "WF-CHIEF-93ceca-STEP-3-SYNTHESIZE",
-      "goal_id": "goal_1b510b7b",
-      "description": "Finalize results, verify invariants, and assemble completion package for: PHYSICAL ACCEPTANCE CANARY: Write a SUCCESS string to courier_canary_test1.txt",
-      "target_capability": "windows",
+    "task_b93bef8c": {
+      "task_id": "task_b93bef8c",
+      "goal_id": "goal_d82cf0c1",
+      "description": "README.md",
+      "target_capability": "github",
       "status": "RECONCILED",
-      "attempt_id": "WF-CHIEF-93ceca-STEP-3-SYNTHESIZE:attempt:1",
-      "dispatch_id": "dispatch-ebb037b813674ef5b7531d0dd8f73c3f",
-      "worker_id": "WINDOWS-01",
-      "run_id": "7476",
-      "result_id": "result-23a714135997f481b8fa59e941984a4694e0689d0be51c91040b7e9be66167ec",
+      "attempt_id": "task_b93bef8c-attempt-1",
+      "dispatch_id": "dispatch-b2a0a5c53c2b4ba1bd41b8d823138f66",
+      "worker_id": "GITHUB-HOSTED",
+      "run_id": "35084437291",
+      "result_id": "result-b3b87e97080b2aa2a4ac7b39b0bb0898fb498940718630fd4a18fa82bfe4e711",
       "artifacts": [
-        "courier_canary_WF-CHIEF-93ceca-STEP-3-SYNTHESIZE.txt"
+        "courier_canary_task_b93bef8c.txt"
       ],
       "result": {
-        "goal_id": "goal_1b510b7b",
-        "task_id": "WF-CHIEF-93ceca-STEP-3-SYNTHESIZE",
-        "attempt_id": "WF-CHIEF-93ceca-STEP-3-SYNTHESIZE:attempt:1",
-        "dispatch_id": "dispatch-ebb037b813674ef5b7531d0dd8f73c3f",
-        "worker_id": "WINDOWS-01",
-        "run_id": "7476",
+        "goal_id": "goal_d82cf0c1",
+        "task_id": "task_b93bef8c",
+        "attempt_id": "task_b93bef8c-attempt-1",
+        "dispatch_id": "dispatch-b2a0a5c53c2b4ba1bd41b8d823138f66",
+        "worker_id": "GITHUB-HOSTED",
+        "run_id": "35084437291",
         "status": "SUCCESS",
         "artifacts": [
           {
-            "path": "courier_canary_WF-CHIEF-93ceca-STEP-3-SYNTHESIZE.txt",
-            "sha256": "421a244564c34296e185cdcf70d2269227ae102f2e7eeef94afddd495c4e06c2"
+            "path": "courier_canary_task_b93bef8c.txt",
+            "sha256": "1f513d4ecec4e91ddd48da1a59b6d96f1b76c374dc1da641980782a34f43b102"
           }
         ],
-        "result_id": "result-23a714135997f481b8fa59e941984a4694e0689d0be51c91040b7e9be66167ec"
+        "result_id": "result-b3b87e97080b2aa2a4ac7b39b0bb0898fb498940718630fd4a18fa82bfe4e711"
       }
     },
-    "task-canary-01": {
-      "target_capability": "windows",
-      "task_id": "task-canary-01",
-      "goal_id": "goal-canary-01",
-      "description": "native canary step A",
-      "attempt_id": "task-canary-01:attempt:1",
-      "dispatch_id": "dispatch-621b9e585f274a9389aa3474fe69db39",
-      "worker_id": "WINDOWS-01",
-      "run_id": "5496",
-      "result_id": "result-f8517a52d2e9901a4672c4298413b8331887da4576760d4aee5814f27f65ebf5",
-      "artifacts": [
-        "courier_canary_task-canary-01.txt"
-      ],
+    "task_68a1b096": {
+      "task_id": "task_68a1b096",
+      "goal_id": "goal_d82cf0c1",
+      "description": "README.md",
+      "target_capability": "windows_cloud",
       "status": "RECONCILED",
+      "attempt_id": "task_68a1b096-attempt-1",
+      "dispatch_id": "dispatch-5f980870899c42d0b2bfec7bd2549188",
+      "worker_id": "GITHUB-HOSTED-WINDOWS",
+      "run_id": "35084540930",
+      "result_id": "result-4aed74d94c933a2849825e04ace898a942455cdf3db3eed47c1002e8bcd5f2e8",
+      "artifacts": [
+        "courier_canary_task_68a1b096.txt"
+      ],
       "result": {
-        "goal_id": "goal-canary-01",
-        "task_id": "task-canary-01",
-        "attempt_id": "task-canary-01:attempt:1",
-        "dispatch_id": "dispatch-621b9e585f274a9389aa3474fe69db39",
-        "worker_id": "WINDOWS-01",
-        "run_id": "5496",
+        "goal_id": "goal_d82cf0c1",
+        "task_id": "task_68a1b096",
+        "attempt_id": "task_68a1b096-attempt-1",
+        "dispatch_id": "dispatch-5f980870899c42d0b2bfec7bd2549188",
+        "worker_id": "GITHUB-HOSTED-WINDOWS",
+        "run_id": "35084540930",
         "status": "SUCCESS",
         "artifacts": [
           {
-            "path": "courier_canary_task-canary-01.txt",
+            "path": "courier_canary_task_68a1b096.txt",
             "sha256": "421a244564c34296e185cdcf70d2269227ae102f2e7eeef94afddd495c4e06c2"
           }
         ],
-        "result_id": "result-f8517a52d2e9901a4672c4298413b8331887da4576760d4aee5814f27f65ebf5"
+        "result_id": "result-4aed74d94c933a2849825e04ace898a942455cdf3db3eed47c1002e8bcd5f2e8"
       }
     },
-    "task-canary-02": {
-      "target_capability": "windows",
-      "task_id": "task-canary-02",
-      "goal_id": "goal-canary-01",
-      "description": "native canary step B",
-      "attempt_id": "task-canary-02:attempt:1",
-      "dispatch_id": "dispatch-3a363c06918c43e7abeb8501c12e0196",
-      "worker_id": "WINDOWS-01",
-      "run_id": "5496",
-      "result_id": "result-31c695941da98262b6a4b8d52dbf534a5aeab0c24041b211ab43bef930647b44",
-      "artifacts": [
-        "courier_canary_task-canary-02.txt"
-      ],
+    "task_2eee7325": {
+      "task_id": "task_2eee7325",
+      "goal_id": "goal_bb0554b9",
+      "description": "README.md",
+      "target_capability": "github",
       "status": "RECONCILED",
+      "attempt_id": "task_2eee7325-attempt-1",
+      "dispatch_id": "dispatch-b9b6e89ef80e4b0a84fd9f3324fa819c",
+      "worker_id": "GITHUB-HOSTED",
+      "run_id": "35084880986",
+      "result_id": "result-6e5a23342a44e70c1758f9d73b38f06244a0597c220474f79916043861d6c62d",
+      "artifacts": [
+        "courier_canary_task_2eee7325.txt"
+      ],
       "result": {
-        "goal_id": "goal-canary-01",
-        "task_id": "task-canary-02",
-        "attempt_id": "task-canary-02:attempt:1",
-        "dispatch_id": "dispatch-3a363c06918c43e7abeb8501c12e0196",
-        "worker_id": "WINDOWS-01",
-        "run_id": "5496",
+        "goal_id": "goal_bb0554b9",
+        "task_id": "task_2eee7325",
+        "attempt_id": "task_2eee7325-attempt-1",
+        "dispatch_id": "dispatch-b9b6e89ef80e4b0a84fd9f3324fa819c",
+        "worker_id": "GITHUB-HOSTED",
+        "run_id": "35084880986",
         "status": "SUCCESS",
         "artifacts": [
           {
-            "path": "courier_canary_task-canary-02.txt",
+            "path": "courier_canary_task_2eee7325.txt",
+            "sha256": "1f513d4ecec4e91ddd48da1a59b6d96f1b76c374dc1da641980782a34f43b102"
+          }
+        ],
+        "result_id": "result-6e5a23342a44e70c1758f9d73b38f06244a0597c220474f79916043861d6c62d"
+      }
+    },
+    "task_29d53d2b": {
+      "task_id": "task_29d53d2b",
+      "goal_id": "goal_bb0554b9",
+      "description": "README.md",
+      "target_capability": "windows_cloud",
+      "status": "RECONCILED",
+      "attempt_id": "task_29d53d2b-attempt-1",
+      "dispatch_id": "dispatch-7fe9aaed03484968aab639ed41226329",
+      "worker_id": "GITHUB-HOSTED-WINDOWS",
+      "run_id": "35084934223",
+      "result_id": "result-b4fe4abbd48ceb20b615a12365bf6827bc33fef8d256e4bf76da6890e7cd4a06",
+      "artifacts": [
+        "courier_canary_task_29d53d2b.txt"
+      ],
+      "result": {
+        "goal_id": "goal_bb0554b9",
+        "task_id": "task_29d53d2b",
+        "attempt_id": "task_29d53d2b-attempt-1",
+        "dispatch_id": "dispatch-7fe9aaed03484968aab639ed41226329",
+        "worker_id": "GITHUB-HOSTED-WINDOWS",
+        "run_id": "35084934223",
+        "status": "SUCCESS",
+        "artifacts": [
+          {
+            "path": "courier_canary_task_29d53d2b.txt",
             "sha256": "421a244564c34296e185cdcf70d2269227ae102f2e7eeef94afddd495c4e06c2"
           }
         ],
-        "result_id": "result-31c695941da98262b6a4b8d52dbf534a5aeab0c24041b211ab43bef930647b44"
+        "result_id": "result-b4fe4abbd48ceb20b615a12365bf6827bc33fef8d256e4bf76da6890e7cd4a06"
       }
     },
-    "task-canary-03": {
-      "target_capability": "windows",
-      "task_id": "task-canary-03",
-      "goal_id": "goal-canary-02",
-      "description": "native canary step C (Windows)",
-      "attempt_id": "task-canary-03:attempt:1",
-      "dispatch_id": "dispatch-b31a30f348ec4fae81a41e14e6e963e7",
-      "worker_id": "WINDOWS-01",
-      "run_id": null,
-      "result_id": null,
+    "WF-CHIEF-ef55ba-STEP-1-DISCOVER": {
+      "task_id": "WF-CHIEF-ef55ba-STEP-1-DISCOVER",
+      "goal_id": "goal_a06295d1",
+      "description": "Formulate execution strategy and inspect context for: Cross-Worker Routing Canary 3",
+      "target_capability": "github",
+      "status": "RECONCILED",
+      "attempt_id": "WF-CHIEF-ef55ba-STEP-1-DISCOVER-attempt-1",
+      "dispatch_id": "dispatch-e7dd966f25cd4a54bf13afb78192cd86",
+      "worker_id": "GITHUB-HOSTED",
+      "run_id": "35088078434",
+      "result_id": "result-470976c8dfca6fef56708f1683e59d9dd4aae3c317d83511ac627710d30245b7",
       "artifacts": [
-        "courier_canary_task-canary-03.txt"
+        "courier_canary_WF-CHIEF-ef55ba-STEP-1-DISCOVER.txt"
       ],
-      "status": "FAILED_VERIFICATION"
+      "result": {
+        "goal_id": "goal_a06295d1",
+        "task_id": "WF-CHIEF-ef55ba-STEP-1-DISCOVER",
+        "attempt_id": "WF-CHIEF-ef55ba-STEP-1-DISCOVER-attempt-1",
+        "dispatch_id": "dispatch-e7dd966f25cd4a54bf13afb78192cd86",
+        "worker_id": "GITHUB-HOSTED",
+        "run_id": "35088078434",
+        "status": "SUCCESS",
+        "artifacts": [
+          {
+            "path": "courier_canary_WF-CHIEF-ef55ba-STEP-1-DISCOVER.txt",
+            "sha256": "1f513d4ecec4e91ddd48da1a59b6d96f1b76c374dc1da641980782a34f43b102"
+          }
+        ],
+        "result_id": "result-470976c8dfca6fef56708f1683e59d9dd4aae3c317d83511ac627710d30245b7"
+      }
+    },
+    "WF-CHIEF-ef55ba-STEP-2-IMPLEMENT": {
+      "task_id": "WF-CHIEF-ef55ba-STEP-2-IMPLEMENT",
+      "goal_id": "goal_a06295d1",
+      "description": "Execute core implementation and asset validation for: Cross-Worker Routing Canary 3",
+      "target_capability": "github",
+      "status": "RECONCILED",
+      "attempt_id": "WF-CHIEF-ef55ba-STEP-2-IMPLEMENT-attempt-1",
+      "dispatch_id": "dispatch-d13235a0fb114fed98920dfea369b536",
+      "worker_id": "GITHUB-HOSTED",
+      "run_id": "35088152477",
+      "result_id": "result-e2f5c83dccf126d168ed8a8a4c1cc4ab48ca594a8df158c28d59cf452c78dcf0",
+      "artifacts": [
+        "courier_canary_WF-CHIEF-ef55ba-STEP-2-IMPLEMENT.txt"
+      ],
+      "result": {
+        "goal_id": "goal_a06295d1",
+        "task_id": "WF-CHIEF-ef55ba-STEP-2-IMPLEMENT",
+        "attempt_id": "WF-CHIEF-ef55ba-STEP-2-IMPLEMENT-attempt-1",
+        "dispatch_id": "dispatch-d13235a0fb114fed98920dfea369b536",
+        "worker_id": "GITHUB-HOSTED",
+        "run_id": "35088152477",
+        "status": "SUCCESS",
+        "artifacts": [
+          {
+            "path": "courier_canary_WF-CHIEF-ef55ba-STEP-2-IMPLEMENT.txt",
+            "sha256": "1f513d4ecec4e91ddd48da1a59b6d96f1b76c374dc1da641980782a34f43b102"
+          }
+        ],
+        "result_id": "result-e2f5c83dccf126d168ed8a8a4c1cc4ab48ca594a8df158c28d59cf452c78dcf0"
+      }
+    },
+    "WF-CHIEF-ef55ba-STEP-3-SYNTHESIZE": {
+      "task_id": "WF-CHIEF-ef55ba-STEP-3-SYNTHESIZE",
+      "goal_id": "goal_a06295d1",
+      "description": "Finalize results, verify invariants, and assemble completion package for: Cross-Worker Routing Canary 3",
+      "target_capability": "github",
+      "status": "RECONCILED",
+      "attempt_id": "WF-CHIEF-ef55ba-STEP-3-SYNTHESIZE-attempt-1",
+      "dispatch_id": "dispatch-24323fbe120d4afdb4187db89b2fff27",
+      "worker_id": "GITHUB-HOSTED",
+      "run_id": "35088213718",
+      "result_id": "result-37be6b314a1c861a814ee24066d63884c2f37b9b71e2f7bf6a3bdbcc4507730a",
+      "artifacts": [
+        "courier_canary_WF-CHIEF-ef55ba-STEP-3-SYNTHESIZE.txt"
+      ],
+      "result": {
+        "goal_id": "goal_a06295d1",
+        "task_id": "WF-CHIEF-ef55ba-STEP-3-SYNTHESIZE",
+        "attempt_id": "WF-CHIEF-ef55ba-STEP-3-SYNTHESIZE-attempt-1",
+        "dispatch_id": "dispatch-24323fbe120d4afdb4187db89b2fff27",
+        "worker_id": "GITHUB-HOSTED",
+        "run_id": "35088213718",
+        "status": "SUCCESS",
+        "artifacts": [
+          {
+            "path": "courier_canary_WF-CHIEF-ef55ba-STEP-3-SYNTHESIZE.txt",
+            "sha256": "1f513d4ecec4e91ddd48da1a59b6d96f1b76c374dc1da641980782a34f43b102"
+          }
+        ],
+        "result_id": "result-37be6b314a1c861a814ee24066d63884c2f37b9b71e2f7bf6a3bdbcc4507730a"
+      }
+    },
+    "task_b0a0abf1": {
+      "task_id": "task_b0a0abf1",
+      "goal_id": "goal_8ea9b8f7",
+      "description": "Prove A: Run on ubuntu-latest",
+      "target_capability": "github",
+      "status": "RECONCILED",
+      "attempt_id": "task_b0a0abf1-attempt-1",
+      "dispatch_id": "dispatch-0b300b590d4b42d2b54f168218403a14",
+      "worker_id": "GITHUB-HOSTED",
+      "run_id": "35088546020",
+      "result_id": "result-1b7818475741a01c55a19f217e471b52249038f9387c6e20ba37369b7ba02048",
+      "artifacts": [
+        "courier_canary_task_b0a0abf1.txt"
+      ],
+      "result": {
+        "goal_id": "goal_8ea9b8f7",
+        "task_id": "task_b0a0abf1",
+        "attempt_id": "task_b0a0abf1-attempt-1",
+        "dispatch_id": "dispatch-0b300b590d4b42d2b54f168218403a14",
+        "worker_id": "GITHUB-HOSTED",
+        "run_id": "35088546020",
+        "status": "SUCCESS",
+        "artifacts": [
+          {
+            "path": "courier_canary_task_b0a0abf1.txt",
+            "sha256": "1f513d4ecec4e91ddd48da1a59b6d96f1b76c374dc1da641980782a34f43b102"
+          }
+        ],
+        "result_id": "result-1b7818475741a01c55a19f217e471b52249038f9387c6e20ba37369b7ba02048"
+      }
+    },
+    "task_d99c7067": {
+      "task_id": "task_d99c7067",
+      "goal_id": "goal_8ea9b8f7",
+      "description": "Prove B: Run on windows-latest",
+      "target_capability": "windows_cloud",
+      "status": "RECONCILED",
+      "attempt_id": "task_d99c7067-attempt-1",
+      "dispatch_id": "dispatch-1f1fed227f734fbd8f142570567ceb23",
+      "worker_id": "GITHUB-HOSTED-WINDOWS",
+      "run_id": "35088605686",
+      "result_id": "result-f383f6ea2ad6294d2e61c5550fc6652da54a446eb0b699754e71c6c6173ab99d",
+      "artifacts": [
+        "courier_canary_task_d99c7067.txt"
+      ],
+      "result": {
+        "goal_id": "goal_8ea9b8f7",
+        "task_id": "task_d99c7067",
+        "attempt_id": "task_d99c7067-attempt-1",
+        "dispatch_id": "dispatch-1f1fed227f734fbd8f142570567ceb23",
+        "worker_id": "GITHUB-HOSTED-WINDOWS",
+        "run_id": "35088605686",
+        "status": "SUCCESS",
+        "artifacts": [
+          {
+            "path": "courier_canary_task_d99c7067.txt",
+            "sha256": "421a244564c34296e185cdcf70d2269227ae102f2e7eeef94afddd495c4e06c2"
+          }
+        ],
+        "result_id": "result-f383f6ea2ad6294d2e61c5550fc6652da54a446eb0b699754e71c6c6173ab99d"
+      }
     }
   }
 }

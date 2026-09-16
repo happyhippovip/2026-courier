@@ -1,0 +1,16 @@
+{
+  "artifacts": [
+    {
+      "path": "courier_canary_WF-CHIEF-ef55ba-STEP-2-IMPLEMENT.txt",
+      "sha256": "1f513d4ecec4e91ddd48da1a59b6d96f1b76c374dc1da641980782a34f43b102"
+    }
+  ],
+  "attempt_id": "WF-CHIEF-ef55ba-STEP-2-IMPLEMENT-attempt-1",
+  "dispatch_id": "dispatch-d13235a0fb114fed98920dfea369b536",
+  "goal_id": "goal_a06295d1",
+  "result_id": "result-e2f5c83dccf126d168ed8a8a4c1cc4ab48ca594a8df158c28d59cf452c78dcf0",
+  "run_id": "35088152477",
+  "status": "SUCCESS",
+  "task_id": "WF-CHIEF-ef55ba-STEP-2-IMPLEMENT",
+  "worker_id": "GITHUB-HOSTED"
+}

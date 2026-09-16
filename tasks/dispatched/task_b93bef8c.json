@@ -1,0 +1,1 @@
+{"task_id": "task_b93bef8c", "goal_id": "goal_d82cf0c1", "description": "README.md", "target_capability": "github", "status": "DISPATCHED", "attempt_id": "task_b93bef8c-attempt-1", "dispatch_id": "dispatch-b2a0a5c53c2b4ba1bd41b8d823138f66", "worker_id": "GITHUB-HOSTED", "run_id": null, "result_id": null, "artifacts": ["courier_canary_task_b93bef8c.txt"]}

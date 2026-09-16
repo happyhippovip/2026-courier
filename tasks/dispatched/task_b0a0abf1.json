@@ -1,0 +1,1 @@
+{"task_id": "task_b0a0abf1", "goal_id": "goal_8ea9b8f7", "description": "Prove A: Run on ubuntu-latest", "target_capability": "github", "status": "DISPATCHED", "attempt_id": "task_b0a0abf1-attempt-1", "dispatch_id": "dispatch-0b300b590d4b42d2b54f168218403a14", "worker_id": "GITHUB-HOSTED", "run_id": null, "result_id": null, "artifacts": ["courier_canary_task_b0a0abf1.txt"]}

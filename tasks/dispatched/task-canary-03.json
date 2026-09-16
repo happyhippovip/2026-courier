@@ -1,1 +1,0 @@
-{"target_capability": "windows", "task_id": "task-canary-03", "goal_id": "goal-canary-02", "description": "native canary step C (Windows)", "attempt_id": "task-canary-03:attempt:1", "dispatch_id": "dispatch-b31a30f348ec4fae81a41e14e6e963e7", "worker_id": "WINDOWS-01", "run_id": null, "result_id": null, "artifacts": ["courier_canary_task-canary-03.txt"], "status": "DISPATCHED"}
