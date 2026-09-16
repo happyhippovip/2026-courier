@@ -16,6 +16,13 @@ SECRET_KEY = None
 def load_config():
     with open(CONFIG_PATH, "r") as f:
         config = json.load(f)
+        
+    if config.get("WORKER_ID") in ["test-mac", "", None]:
+        import socket, uuid
+        config["WORKER_ID"] = f"MAC-{socket.gethostname().split('.')[0].upper()}-{uuid.uuid4().hex[:6].upper()}"
+        with open(CONFIG_PATH, "w") as f:
+            json.dump(config, f)
+
     
     # Try reading from macOS keychain
     try:
