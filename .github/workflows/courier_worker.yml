@@ -81,7 +81,14 @@ jobs:
                   raise ValueError("verify_file requires an existing safe repository-relative path")
               artifact = evidence({"operation": operation, "path": str(path), "sha256": hashlib.sha256(Path(path).read_bytes()).hexdigest()})
           else:
-              command = [sys.executable, "-m", "pytest", "-q", "tests"] if operation == "run_tests" else [sys.executable, "-m", "compileall", "-q", "scripts", "server"]
+              if operation == "run_tests":
+                  name = task.get("test_path", "tests")
+                  path = PurePosixPath(name) if isinstance(name, str) else None
+                  if not path or path.is_absolute() or ".." in path.parts or path.parts[0] != "tests" or not Path(path).exists():
+                      raise ValueError("run_tests requires an existing safe path under tests")
+                  command = [sys.executable, "-m", "pytest", "-q", str(path)]
+              else:
+                  command = [sys.executable, "-m", "compileall", "-q", "scripts", "server"]
               completed = subprocess.run(command, capture_output=True, text=True, check=False)
               if completed.returncode:
                   raise RuntimeError((completed.stdout + completed.stderr)[-4000:])
