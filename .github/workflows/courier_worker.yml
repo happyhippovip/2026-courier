@@ -35,6 +35,9 @@ on:
         type: string
         default: "ANTIGRAVITY"
 
+permissions:
+  contents: read
+
 jobs:
   execute:
     runs-on: ${{ fromJSON(github.event.inputs.runner_label) }}
