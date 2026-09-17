@@ -18,24 +18,11 @@ def hash_file(path: Path) -> str:
     h.update(path.read_bytes())
     return h.hexdigest()
 
-def remove_readonly(func, path, _):
-    import stat
-    os.chmod(path, stat.S_IWRITE)
-    try:
-        func(path)
-    except FileNotFoundError:
-        pass
-
 def clone_and_extract(owner: str, repo: str, sha: str, dest: Path):
     if dest.exists():
-        shutil.rmtree(dest, onerror=remove_readonly)
-    dest.mkdir(parents=True)
-    subprocess.run(["git", "-C", str(dest), "init"], check=True, capture_output=True)
-    subprocess.run(["git", "-C", str(dest), "remote", "add", "origin", f"https://github.com/{owner}/{repo}.git"], check=True, capture_output=True)
-    subprocess.run(["git", "-C", str(dest), "config", "core.sparseCheckout", "true"], check=True, capture_output=True)
-    (dest / ".git" / "info" / "sparse-checkout").write_text(".github/workflows/\n", encoding="utf-8")
-    subprocess.run(["git", "-C", str(dest), "fetch", "--depth=1", "--filter=blob:none", "origin", sha], check=True, capture_output=True)
-    subprocess.run(["git", "-C", str(dest), "checkout", "FETCH_HEAD"], check=True, capture_output=True)
+        shutil.rmtree(dest)
+    subprocess.run(["git", "clone", "--no-checkout", f"https://github.com/{owner}/{repo}.git", str(dest)], check=True, capture_output=False)
+    subprocess.run(["git", "-C", str(dest), "checkout", sha], check=True, capture_output=False)
 
 def analyze_workflows(repo_dir: Path) -> dict:
     workflows_dir = repo_dir / ".github" / "workflows"
@@ -102,7 +89,7 @@ def worker(task: dict, work_dir: Path) -> dict:
         "report_md_sha256": hash_file(work_dir / "report.md"),
         "effect_classification": "SAFE_READ_ONLY",
         "worker_status": "PASS",
-        "proposal_mode": "NONE"
+        "proposal_mode": "PR_ONLY"
     }
 
 def verify(task: dict, candidate: dict, work_dir: Path) -> dict:
@@ -117,7 +104,7 @@ def verify(task: dict, candidate: dict, work_dir: Path) -> dict:
         **candidate,
         "verifier_id": VERIFIER_ID,
         "verifier_status": "PASS",
-        "next_safe_state": "DONE"
+        "next_safe_state": "HUMAN_REVIEW_REQUIRED"
     }
 
 def validate_verified_result(task: dict, result: dict, work_dir: Path) -> None:
