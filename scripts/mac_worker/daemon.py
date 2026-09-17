@@ -41,6 +41,11 @@ def load_config():
             config = json.load(f)
     else:
         config = {}
+
+    # Credentials are never accepted from the repository-backed JSON config.
+    # Production uses macOS Keychain; an environment override remains available
+    # for bounded development/recovery sessions.
+    config.pop("COURIER_API_KEY", None)
         
     if config.get("WORKER_ID") in ["test-mac", "", None]:
         import socket, uuid
@@ -50,10 +55,23 @@ def load_config():
                 json.dump(config, f)
 
     
-    # Try reading from macOS keychain
+    # Try reading credentials from macOS Keychain using the same service and
+    # account identifiers written by setup_keychain.sh.
     try:
-        pass # Bypass keychain to fix 401
-    except (Exception):
+        key = subprocess.check_output(
+            [
+                "security",
+                "find-generic-password",
+                "-a",
+                "courier_worker",
+                "-s",
+                "courier_api_key",
+                "-w",
+            ],
+            stderr=subprocess.DEVNULL,
+        )
+        config["COURIER_API_KEY"] = key.decode("utf-8").strip()
+    except (subprocess.CalledProcessError, FileNotFoundError):
         pass
         
     try:
