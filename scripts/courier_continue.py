@@ -147,7 +147,7 @@ def check_freshness(ledger_path, branch, sha):
 
 def compute_frontier(record: dict):
     proven = record.get("PROVEN_EDGES", [])
-    first_blocker = record.get("FIRST_CAUSAL_BLOCKER", "")
+    unproven = record.get("UNPROVEN_EDGES", [])
     
     capability_map = {
         "LEDGER/HANDOFF": ["git", "file_write"],
@@ -164,8 +164,14 @@ def compute_frontier(record: dict):
         "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION": ["shell", "build_tools"]
     }
     
+    # The durable record is the continuation frontier.  PLAN supplies stable
+    # ordering and capability metadata only; it must not manufacture work that
+    # is absent from UNPROVEN_EDGES.
+    ordered_edges = [edge for edge in PLAN if edge in unproven]
+    ordered_edges.extend(edge for edge in unproven if edge not in PLAN)
+
     tasks = []
-    for edge in PLAN:
+    for edge in ordered_edges:
         if edge not in proven:
             scope = "dependent"
             if "independent" in edge.lower() or any(k in edge for k in ["PUBLIC DEPLOYMENT", "PUBLICATION VERIFICATION", "PILOT INTAKE", "SALES PACKAGE", "POST-PILOT HARDENING", "FIRST PILOT", "PAYMENT", "ONBOARD"]):
@@ -197,8 +203,7 @@ def execute_task(task, ledger_path, record):
         return task, True, None
 
     elif edge in ["POST-PILOT HARDENING", "POST_PILOT_HARDENING"]:
-        print("Successfully proved: POST-PILOT HARDENING")
-        return task, True, None
+        return task, False, "UNVERIFIED_EXTERNAL_EFFECT_POST-PILOT HARDENING"
 
     elif edge in ["PR41 ACCEPTANCE", "PR41_ACCEPTANCE"]:
         try:
@@ -229,19 +234,16 @@ def execute_task(task, ledger_path, record):
         return task, False, f"UNVERIFIED_EXTERNAL_EFFECT_{edge}"
 
     elif "SAFE_AUTOMATABLE_PREPARATION" in edge:
-        print(f"Automated preparation for {edge} completed: validation, payload gen, artifact prep, dry-run, idempotency.")
-        return task, True, None
+        return task, False, f"UNIMPLEMENTED_SAFE_PREPARATION_{edge}"
 
     elif "AUTHORIZED_MACHINE_ACTION" in edge:
-        print(f"Authorized machine action for {edge} completed.")
-        return task, True, None
+        return task, False, f"UNVERIFIED_EXTERNAL_EFFECT_{edge}"
 
     elif "IRREVERSIBLE_HUMAN_ACTION" in edge:
         return task, False, f"UNVERIFIED_EXTERNAL_EFFECT_{edge}"
         
     elif edge == "PUBLICATION VERIFICATION":
-        print("PUBLICATION VERIFICATION passed. URL is live and contact is verified.")
-        return task, True, None
+        return task, False, "UNVERIFIED_EXTERNAL_EFFECT_PUBLICATION VERIFICATION"
 
     else:
         # Fallback for unrecognized test edges: fail closed
@@ -418,12 +420,25 @@ def main():
                 print(f"WAITING: No safe, unowned, independent executable tasks exist.")
                 print(f"Blockers: {first_blocker}")
             else:
-                print("GLOBAL STOP: CLEAN_IDLE. All tasks completed.")
+                print("NO EXECUTABLE FRONTIER: reconciling acceptance state.")
                 try:
                     bundle = update_ledger(ledger_path, "CLEAN_IDLE_ACHIEVED", None, bundle)
                 except Exception as e:
-                    pass
-            if args.once and not running_tasks and 'once_dispatched' in locals():
+                    if "meaningful change" not in str(e):
+                        raise
+                    bundle = load_bundle(ledger_path)
+                if (
+                    bundle["record"].get("CLEAN_IDLE") == "YES"
+                    and bundle["acceptance_guard"].get("transition_state")
+                    == "CANONICAL_ACCEPTED"
+                ):
+                    print("GLOBAL STOP: CLEAN_IDLE. All tasks completed.")
+                else:
+                    print(
+                        "WAITING: Empty frontier is not accepted completion; "
+                        f"status={bundle['record'].get('STATUS')}."
+                    )
+            if args.once and not running_tasks:
                 sys.exit(0)
             if "MOCK_SHA" in os.environ:
                 mock_iters += 1

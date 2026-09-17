@@ -4,6 +4,16 @@ import subprocess
 import json
 from pathlib import Path
 import os
+import importlib.util
+
+ROOT = Path(__file__).parent.parent.resolve()
+CONTINUE_SCRIPT = ROOT / "scripts" / "courier_continue.py"
+CONTINUE_SPEC = importlib.util.spec_from_file_location(
+    "courier_continue_under_test", CONTINUE_SCRIPT
+)
+assert CONTINUE_SPEC and CONTINUE_SPEC.loader
+continue_module = importlib.util.module_from_spec(CONTINUE_SPEC)
+CONTINUE_SPEC.loader.exec_module(continue_module)
 
 def setup_ledger(tmp_path, unproven_edges, blocker, proven_edges=None, active_writers=None, collision_scope=None, blocker_owner="Human"):
     record = {
@@ -29,7 +39,7 @@ def setup_ledger(tmp_path, unproven_edges, blocker, proven_edges=None, active_wr
         "DUPLICATE_EXTERNAL_EFFECTS": 0,
         "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
         "CLEAN_IDLE": "UNKNOWN",
-        "QUEUE_INDEPENDENT": "YES",
+        "QUEUE_INDEPENDENT": "NO",
         "LAST_EVIDENCE": [],
         "LAST_UPDATED_BY": "test",
         "CONTINUATION_CHECKPOINT": "none"
@@ -93,8 +103,62 @@ def run_continue(ledger_path, mock_sha="0000000000000000000000000000000000000000
     result = subprocess.run(cmd, env=env, capture_output=True, text=True)
     return result
 
+
+def test_frontier_uses_only_durable_unproven_edges():
+    rec = {
+        "PROVEN_EDGES": [],
+        "UNPROVEN_EDGES": ["PUBLICATION VERIFICATION"],
+    }
+    tasks = continue_module.compute_frontier(rec)
+    assert [task["edge_name"] for task in tasks] == ["PUBLICATION VERIFICATION"]
+
+
+def test_empty_unproven_frontier_does_not_manufacture_plan_tasks():
+    tasks = continue_module.compute_frontier(
+        {"PROVEN_EDGES": [], "UNPROVEN_EDGES": []}
+    )
+    assert tasks == []
+
+
+def test_empty_frontier_does_not_print_false_clean_idle(tmp_path):
+    ledger_path = setup_ledger(tmp_path, [], "NONE")
+    result = run_continue(ledger_path, run=True)
+    assert result.returncode == 0, result.stderr
+    assert "GLOBAL STOP: CLEAN_IDLE" not in result.stdout
+    assert "Empty frontier is not accepted completion" in result.stdout
+    data = json.loads(ledger_path.read_text(encoding="utf-8"))
+    assert data["record"]["CLEAN_IDLE"] == "NO"
+    assert data["record"]["QUEUE_INDEPENDENT"] == "NO"
+    assert data["acceptance_guard"]["transition_state"] == "PROVISIONAL"
+
+
+@pytest.mark.parametrize(
+    "edge",
+    [
+        "POST-PILOT HARDENING",
+        "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+        "RELEASE - AUTHORIZED_MACHINE_ACTION",
+        "PUBLICATION VERIFICATION",
+    ],
+)
+def test_placeholder_or_external_steps_cannot_self_report_success(edge, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    task = {"edge_name": edge, "instruction": f"Prove edge: {edge}"}
+    _, success, blocker = continue_module.execute_task(task, tmp_path / "ledger.json", {})
+    assert success is False
+    assert blocker
+
 def test_multiple_independent_tasks_concurrent_progress(tmp_path):
-    ledger_path = setup_ledger(tmp_path, [], "HUMAN_REQUIRED", proven_edges=[])
+    ledger_path = setup_ledger(
+        tmp_path,
+        [
+            "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+            "SALES PACKAGE",
+            "POST-PILOT HARDENING",
+        ],
+        "HUMAN_REQUIRED",
+        proven_edges=[],
+    )
     res = run_continue(ledger_path, run=True)
     
     assert "Executing/Delegating task: Prove edge: PILOT INTAKE" in res.stdout
@@ -102,31 +166,59 @@ def test_multiple_independent_tasks_concurrent_progress(tmp_path):
     assert "Executing/Delegating task: Prove edge: POST-PILOT HARDENING" in res.stdout
 
 def test_busy_worker_independent_task_continues(tmp_path):
-    ledger_path = setup_ledger(tmp_path, [], "NONE", collision_scope=["LEDGER/HANDOFF"])
+    ledger_path = setup_ledger(
+        tmp_path,
+        ["LEDGER/HANDOFF", "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION"],
+        "NONE",
+        collision_scope=["LEDGER/HANDOFF"],
+    )
     res = run_continue(ledger_path, run=True)
     
     assert "Prove edge: PUBLIC DEPLOYMENT" in res.stdout
 
 def test_human_gate_independent_task_continues(tmp_path):
-    ledger_path = setup_ledger(tmp_path, [], "HUMAN_REQUIRED", proven_edges=["LEDGER/HANDOFF"])
+    ledger_path = setup_ledger(
+        tmp_path,
+        [
+            "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
+            "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
+        ],
+        "HUMAN_REQUIRED",
+        proven_edges=["LEDGER/HANDOFF"],
+    )
     res = run_continue(ledger_path, run=True)
     
     assert "Prove edge: PUBLIC DEPLOYMENT" in res.stdout
 
 def test_money_gate_free_task_continues(tmp_path):
-    ledger_path = setup_ledger(tmp_path, [], "MONEY_REQUIRED", proven_edges=["LEDGER/HANDOFF"])
+    ledger_path = setup_ledger(
+        tmp_path,
+        ["PR41 ACCEPTANCE", "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION"],
+        "MONEY_REQUIRED",
+        proven_edges=["LEDGER/HANDOFF"],
+    )
     res = run_continue(ledger_path, run=True)
     
     assert "Prove edge: PR41 ACCEPTANCE" in res.stdout
 
 def test_provider_unavailable_alternate_worker_continues(tmp_path):
-    ledger_path = setup_ledger(tmp_path, [], "PROVIDER_QUOTA_EXHAUSTED", blocker_owner="other_worker")
+    ledger_path = setup_ledger(
+        tmp_path,
+        ["LEDGER/HANDOFF"],
+        "PROVIDER_QUOTA_EXHAUSTED",
+        blocker_owner="other_worker",
+    )
     res = run_continue(ledger_path, run=True)
     
     assert "Prove edge: LEDGER/HANDOFF" in res.stdout
 
 def test_writer_collision_serialize_colliding_scope(tmp_path):
-    ledger_path = setup_ledger(tmp_path, [], "NONE", collision_scope=["LEDGER/HANDOFF"])
+    ledger_path = setup_ledger(
+        tmp_path,
+        ["LEDGER/HANDOFF", "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION"],
+        "NONE",
+        collision_scope=["LEDGER/HANDOFF"],
+    )
     res = run_continue(ledger_path, run=True)
     
     assert "Prove edge: PUBLIC DEPLOYMENT" in res.stdout
@@ -141,11 +233,14 @@ def test_all_scopes_blocked_true_global_stop(tmp_path):
     ledger_path = setup_ledger(tmp_path, [], "HUMAN_REQUIRED_PUBLIC_REPO_VISIBILITY", proven_edges=["LEDGER/HANDOFF", "PR41 ACCEPTANCE", "RELEASE - SAFE_AUTOMATABLE_PREPARATION", "RELEASE - AUTHORIZED_MACHINE_ACTION", "RELEASE - IRREVERSIBLE_HUMAN_ACTION", "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION", "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION", "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION", "PUBLICATION VERIFICATION", "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION", "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION", "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION", "SALES PACKAGE", "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION", "FIRST PILOT - AUTHORIZED_MACHINE_ACTION", "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION", "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION", "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION", "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION", "POST-PILOT HARDENING", "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION", "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION", "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION", "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION", "ONBOARD_FIRST_PILOT_CUSTOMER - AUTHORIZED_MACHINE_ACTION", "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION"])
     res = subprocess.run([sys.executable, str(Path(__file__).parent.parent / "scripts" / "courier_continue.py"), "--run", "--once"], env=dict(os.environ, MOCK_LEDGER=str(ledger_path), MOCK_BRANCH="test-branch", MOCK_SHA="0000000000000000000000000000000000000000"), capture_output=True, text=True)
     assert res.returncode == 0
-    assert "GLOBAL STOP: CLEAN_IDLE" in res.stdout
+    assert "GLOBAL STOP: CLEAN_IDLE" not in res.stdout
+    assert "Empty frontier is not accepted completion" in res.stdout
 
 def test_capability_insufficient_cannot_claim(tmp_path):
     # LEDGER/HANDOFF requires "git", "file_write"
-    ledger_path = setup_ledger(tmp_path, [], "NONE")
+    ledger_path = setup_ledger(
+        tmp_path, ["LEDGER/HANDOFF", "PUBLICATION VERIFICATION"], "NONE"
+    )
     
     # Run with limited capabilities (only shell and http_client, missing git/file_write)
     env = os.environ.copy()
@@ -164,7 +259,11 @@ def test_capability_insufficient_cannot_claim(tmp_path):
 def test_worker_loss_takeover_and_handoff(tmp_path):
     # Simulates worker loss and takeover by a different machine (Mac -> Windows)
     # Both use the same Motor primitive contract via `courier_continue.py`
-    ledger_path = setup_ledger(tmp_path, [], "NONE")
+    ledger_path = setup_ledger(
+        tmp_path,
+        ["PUBLICATION VERIFICATION", "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION"],
+        "NONE",
+    )
     
     # Worker 1 (Mac) starts but is interrupted, so it has no collision scope but we simulate a new process
     env1 = os.environ.copy()
@@ -185,7 +284,7 @@ def test_worker_loss_takeover_and_handoff(tmp_path):
 
 
 def test_capability_based_routing_claims_eligible(tmp_path):
-    ledger_path = setup_ledger(tmp_path, [], "NONE")
+    ledger_path = setup_ledger(tmp_path, ["PUBLICATION VERIFICATION"], "NONE")
     
     # Only has HTTP client capability
     env = os.environ.copy()
@@ -238,7 +337,7 @@ def test_valid_physical_proof_allows_acceptance(tmp_path):
         "DUPLICATE_EXTERNAL_EFFECTS": 0,
         "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
         "CLEAN_IDLE": "UNKNOWN",
-        "QUEUE_INDEPENDENT": "YES",
+        "QUEUE_INDEPENDENT": "NO",
         "LAST_EVIDENCE": [],
         "LAST_UPDATED_BY": "test",
         "CONTINUATION_CHECKPOINT": "none"
