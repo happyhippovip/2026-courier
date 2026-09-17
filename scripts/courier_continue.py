@@ -138,6 +138,7 @@ def compute_frontier(record: dict):
     return tasks
 
 def execute_task(task, ledger_path, record):
+    import os
     print(f"Executing/Delegating task: {task['instruction']}")
     edge = task["edge_name"]
 
@@ -185,13 +186,8 @@ def execute_task(task, ledger_path, record):
         return task, True, None
 
     else:
-        # Fallback for unrecognized test edges
-        if "MOCK_LEDGER" in os.environ or "test_" in str(ledger_path):
-            if "PR41" in edge or "LEDGER" in edge or "SALES" in edge:
-                pass 
-            else:
-                return task, False, f"UNRECOGNIZED_OR_UNVERIFIED_TASK_{edge}"
-        return task, True, None
+        # Fallback for unrecognized test edges: fail closed
+        return task, False, f"UNRECOGNIZED_OR_UNVERIFIED_TASK_{edge}"
 
 def update_ledger(ledger_path, edge_name, blocker, bundle):
     revision = bundle["revision"]
