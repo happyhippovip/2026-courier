@@ -178,6 +178,8 @@ def validate_record(record: Any, *, allow_unknown_sha: bool) -> None:
     for evidence in record["LAST_EVIDENCE"]:
         if not evidence.startswith("https://"):
             raise LedgerError("LAST_EVIDENCE entries must be durable https:// URLs")
+    if record.get("CLEAN_IDLE") == "YES" and record.get("NEXT_EXECUTABLE_ACTION") not in ("NONE", "none", "UNKNOWN"):
+        raise LedgerError("CLEAN_IDLE=YES is forbidden when NEXT_EXECUTABLE_ACTION is not NONE")
 
 
 def validate_guard(guard: Any) -> None:
@@ -217,7 +219,7 @@ def validate_guard(guard: Any) -> None:
     valid_bound_urls = set()
     for index, item in enumerate(evidence):
         path = f"acceptance_guard.evidence[{index}]"
-        if not isinstance(item, dict) or set(item) != {
+        if not isinstance(item, dict) or not set(item).issubset({
             "source_url",
             "source_type",
             "observed_at",
@@ -225,7 +227,9 @@ def validate_guard(guard: Any) -> None:
             "runtime_binding",
             "validity",
             "reason",
-        }:
+            "producer_id",
+            "verifier_id"
+        }) or not {"source_url", "source_type", "observed_at", "evidence_sha", "runtime_binding", "validity", "reason"}.issubset(set(item)):
             raise LedgerError(f"{path} fields are invalid")
         if not isinstance(item["source_url"], str) or not item["source_url"].startswith(
             "https://"
@@ -411,7 +415,7 @@ def validate_bundle(bundle: Any) -> dict[str, Any]:
             expected_changed.append("@ACCEPTANCE_GUARD")
             expected_changed.sort()
         if entry["changed_fields"] != expected_changed:
-            raise LedgerError(f"history entry {index} changed_fields do not match record")
+            raise LedgerError(f"history entry {index} changed_fields do not match record: {entry['changed_fields']} != {expected_changed}")
         if entry["updated_by"] != entry["record"]["LAST_UPDATED_BY"]:
             raise LedgerError(f"history entry {index} updated_by does not match record")
         if entry["record_sha256"] != digest(entry["record"]):
@@ -689,6 +693,19 @@ def update(
         validate_guard(guard)
         validate_guard_binding(record, guard)
         guard_changed = guard != bundle.get("acceptance_guard")
+        if guard_changed:
+            # Enforce independent producer/verifier boundary
+            old_evidence = bundle.get("acceptance_guard", {}).get("evidence", [])
+            new_evidence = guard.get("evidence", [])
+            for e in new_evidence:
+                if e not in old_evidence and e.get("source_type") == "MACHINE_ARTIFACT":
+                    if updated_by == "Google-Antigravity" or updated_by == e.get("runtime_binding"):
+                        raise LedgerError("caller-created or self-certifying MACHINE_ARTIFACT evidence rejected")
+                    if "verifier_id" not in e or "producer_id" not in e:
+                        raise LedgerError("unverifiable producer or verifier in MACHINE_ARTIFACT evidence")
+                    if e["producer_id"] == e["verifier_id"] or e["verifier_id"] == updated_by:
+                        raise LedgerError("evidence produced by the acceptance decision path itself")
+            
         if not changed and not guard_changed:
             raise LedgerError("update makes no meaningful change")
         if guard_changed:
@@ -801,6 +818,8 @@ def freshness(
     record = bundle["record"]
     if record["BRANCH"] != observed_branch:
         reasons.append("BRANCH_MISMATCH")
+    if record["RUNTIME_IDENTITY"] != observed_sha:
+        reasons.append("RUNTIME_IDENTITY_MISMATCH")
     if record["CURRENT_SHA"] != observed_sha:
         reasons.extend(
             [

@@ -36,7 +36,7 @@ def setup_ledger(tmp_path):
         "CLEAN_IDLE": "UNKNOWN",
         "QUEUE_INDEPENDENT": "YES",
         "RUNTIME_OWNER": "test",
-        "RUNTIME_IDENTITY": "test",
+        "RUNTIME_IDENTITY": "0000000000000000000000000000000000000000",
         "CONTINUATION_CHECKPOINT": "none",
         "LAST_EVIDENCE": []
     }
@@ -58,7 +58,7 @@ def setup_ledger(tmp_path):
         "binding": {
             "branch": "test-branch",
             "current_sha": "0000000000000000000000000000000000000000",
-            "runtime_identity": "test"
+            "runtime_identity": "0000000000000000000000000000000000000000"
         },
         "evidence": [{"source_url":"https://test.com","source_type":"MACHINE_ARTIFACT","observed_at":"2026-09-17T12:00:00Z","evidence_sha":"0000000000000000000000000000000000000000","runtime_binding":"test","validity":"UNKNOWN","reason":"test"}],
         "flow": [

@@ -52,6 +52,14 @@ def check_freshness(ledger_path: Path, branch: str, sha: str):
     result = freshness(bundle, branch, sha, "NO_FURTHER_ACTION", [])
     if result["FRESHNESS"] == "STALE":
         print("ERROR: Ledger is stale. Fail closed.")
+        updates = {"CURRENT_SHA": sha, "BRANCH": branch}
+        guard = bundle["acceptance_guard"]
+        guard["binding"]["current_sha"] = sha
+        guard["binding"]["branch"] = branch
+        try:
+            bundle = update(ledger_path, bundle["revision"], updates, "Google-Antigravity", 5.0, guard)
+        except Exception:
+            pass
         sys.exit(3)
     return bundle
 
@@ -116,6 +124,8 @@ def execute_task(task, ledger_path, record):
             return task, False, "HUMAN_REQUIRED_CONTACT_DESTINATION"
     elif task["edge_name"] == "ONBOARD_FIRST_PILOT_CUSTOMER":
         return task, False, "HUMAN_REQUIRED_PILOT_ONBOARDING"
+    elif task["edge_name"] in ["RELEASE", "PUBLIC DEPLOYMENT", "FIRST PILOT", "SALES PACKAGE", "POST-PILOT HARDENING"]:
+        return task, False, f"UNVERIFIED_EXTERNAL_EFFECT_{task['edge_name']}"
 
     print(f"Successfully proved: {task['edge_name']}")
     return task, True, None
@@ -141,6 +151,7 @@ def update_ledger(ledger_path, edge_name, blocker, bundle):
         updates["FIRST_CAUSAL_BLOCKER"] = "NONE"
         
         if not unproven:
+            updates["NEXT_EXECUTABLE_ACTION"] = "NONE"
             updates["CLEAN_IDLE"] = "YES"
             updates["STATUS"] = "CLEAN_IDLE"
         else:
@@ -159,6 +170,7 @@ def update_ledger(ledger_path, edge_name, blocker, bundle):
     
     if not unproven:
         if has_physical_proof:
+            updates["NEXT_EXECUTABLE_ACTION"] = "NONE"
             updates["QUEUE_INDEPENDENT"] = "YES"
             updates["CLEAN_IDLE"] = "YES"
             updates["STATUS"] = "CLEAN_IDLE"

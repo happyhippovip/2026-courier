@@ -11,7 +11,7 @@ def setup_ledger(tmp_path, unproven_edges, blocker, proven_edges=None, active_wr
         "GOAL": "TEST-GOAL",
         "CURRENT_SHA": "0000000000000000000000000000000000000000",
         "BRANCH": "test-branch",
-        "RUNTIME_IDENTITY": "test",
+        "RUNTIME_IDENTITY": "0000000000000000000000000000000000000000",
         "RUNTIME_OWNER": "test",
         "STATUS": "TEST",
         "PROVEN_EDGES": proven_edges or [],
@@ -51,9 +51,9 @@ def setup_ledger(tmp_path, unproven_edges, blocker, proven_edges=None, active_wr
         "binding": {
             "branch": "test-branch",
             "current_sha": "0000000000000000000000000000000000000000",
-            "runtime_identity": "test"
+            "runtime_identity": "0000000000000000000000000000000000000000"
         },
-        "evidence": [{"source_url":"https://test.com","source_type":"MACHINE_ARTIFACT","observed_at":"2026-09-17T12:00:00Z","evidence_sha":"0000000000000000000000000000000000000000","runtime_binding":"test","validity":"UNKNOWN","reason":"test"}],
+        "evidence": [{"source_url":"https://test.com","source_type":"MACHINE_ARTIFACT","observed_at":"2026-09-17T12:00:00Z","evidence_sha":"0000000000000000000000000000000000000000","runtime_binding":"0000000000000000000000000000000000000000","validity":"UNKNOWN","reason":"test"}],
         "flow": [
             "EXECUTION",
             "EVIDENCE",
@@ -219,7 +219,7 @@ def test_valid_physical_proof_allows_acceptance(tmp_path):
         "GOAL": "TEST-GOAL",
         "CURRENT_SHA": "0000000000000000000000000000000000000000",
         "BRANCH": "test-branch",
-        "RUNTIME_IDENTITY": "test",
+        "RUNTIME_IDENTITY": "0000000000000000000000000000000000000000",
         "RUNTIME_OWNER": "test",
         "STATUS": "TEST",
         "PROVEN_EDGES": ["LEDGER/HANDOFF", "PR41 ACCEPTANCE", "RELEASE", "PILOT INTAKE", "SALES PACKAGE", "FIRST PILOT", "POST-PILOT HARDENING", "PUBLIC DEPLOYMENT", "PUBLICATION VERIFICATION", "PAYMENT ONLY WHEN ACTUALLY REQUIRED", "EXTERNAL_PUBLICATION", "ONBOARD_FIRST_PILOT_CUSTOMER"],
@@ -259,9 +259,9 @@ def test_valid_physical_proof_allows_acceptance(tmp_path):
         "binding": {
             "branch": "test-branch",
             "current_sha": "0000000000000000000000000000000000000000",
-            "runtime_identity": "test"
+            "runtime_identity": "0000000000000000000000000000000000000000"
         },
-        "evidence": [{"source_url":"https://test.com","source_type":"MACHINE_ARTIFACT","observed_at":"2026-09-17T12:00:00Z","evidence_sha":"0000000000000000000000000000000000000000","runtime_binding":"test","validity":"VALID","reason":"test"}],
+        "evidence": [{"source_url":"https://test.com","source_type":"MACHINE_ARTIFACT","observed_at":"2026-09-17T12:00:00Z","evidence_sha":"0000000000000000000000000000000000000000","runtime_binding":"0000000000000000000000000000000000000000","validity":"VALID","reason":"test"}],
         "flow": [
             "EXECUTION",
             "EVIDENCE",
@@ -291,6 +291,7 @@ def test_valid_physical_proof_allows_acceptance(tmp_path):
     with open(ledger_path, "r") as f:
         data = json.load(f)
         
+    assert res.returncode == 0, res.stderr
     assert data["record"]["CLEAN_IDLE"] == "YES"
     assert data["record"]["QUEUE_INDEPENDENT"] == "YES"
     assert data["history"][-1]["acceptance_guard"]["transition_state"] == "CANONICAL_ACCEPTED"

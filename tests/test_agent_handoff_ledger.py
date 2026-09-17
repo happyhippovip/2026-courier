@@ -27,7 +27,7 @@ def record() -> dict:
         "GOAL": "Continue exact-SHA acceptance without chat context.",
         "CURRENT_SHA": "b" * 40,
         "BRANCH": "release-candidate-integration",
-        "RUNTIME_IDENTITY": "test-runtime",
+        "RUNTIME_IDENTITY": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "RUNTIME_OWNER": "test-owner",
         "STATUS": "PROVISIONAL",
         "PROVEN_EDGES": ["issue state"],
@@ -55,7 +55,7 @@ def record() -> dict:
 def guard(
     *,
     sha: str = "b" * 40,
-    runtime_identity: str = "test-runtime",
+    runtime_identity: str = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     transition_state: str = "PROVISIONAL",
 ) -> dict:
     issue_url = "https://github.com/example/project/issues/1"
@@ -93,6 +93,8 @@ def guard(
                 "runtime_binding": "older-runtime",
                 "validity": "STALE",
                 "reason": "Artifact is not bound to the current SHA/runtime.",
+                "producer_id": "test_producer",
+                "verifier_id": "test_verifier",
             },
         ],
         "acceptance_predicate": {
