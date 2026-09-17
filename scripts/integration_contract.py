@@ -148,12 +148,14 @@ def validate_durable_result(task: dict, result: dict) -> dict:
     if "prompt_id" in task:
         required.add("prompt_id")
     
-    # GitHub Actions supplies a retry-generation identity in addition to run_id.
-    # Preserve it when provided so a DurableResult remains bound to the exact run.
     if "run_attempt" in result:
         required.add("run_attempt")
     if "result_data" in result:
         required.add("result_data")
+    if "stderr" in result:
+        required.add("stderr")
+    if "stdout" in result:
+        required.add("stdout")
     missing = sorted(required - set(result))
     if missing:
         raise ContractError(f"result is missing: {', '.join(missing)}")
