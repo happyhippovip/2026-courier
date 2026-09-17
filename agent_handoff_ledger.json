@@ -8,7 +8,7 @@
       "results": {
         "ISSUE_STATE": {
           "evidence_urls": [
-            "https://github.com/happyhippovip/2026-courier/commit/eeeacc8fcb9e52ee5be037366fadf77839f759a0"
+            "https://github.com/happyhippovip/2026-courier/commit/375a7ce94ab51ab9cf5f1f3c78a3f808807047bf"
           ],
           "observed_value": "NO_FURTHER_ACTION",
           "status": "UNKNOWN"
@@ -18,17 +18,17 @@
     },
     "binding": {
       "branch": "release-candidate-integration",
-      "current_sha": "eeeacc8fcb9e52ee5be037366fadf77839f759a0",
+      "current_sha": "375a7ce94ab51ab9cf5f1f3c78a3f808807047bf",
       "runtime_identity": "Google-Antigravity-Ledger"
     },
     "evidence": [
       {
-        "evidence_sha": "eeeacc8fcb9e52ee5be037366fadf77839f759a0",
+        "evidence_sha": "375a7ce94ab51ab9cf5f1f3c78a3f808807047bf",
         "observed_at": "2026-09-17T12:00:00Z",
         "reason": "Latest commit",
-        "runtime_binding": "release-candidate-integration@eeeacc8fcb9e52ee5be037366fadf77839f759a0",
+        "runtime_binding": "release-candidate-integration@375a7ce94ab51ab9cf5f1f3c78a3f808807047bf",
         "source_type": "GITHUB_COMMIT",
-        "source_url": "https://github.com/happyhippovip/2026-courier/commit/eeeacc8fcb9e52ee5be037366fadf77839f759a0",
+        "source_url": "https://github.com/happyhippovip/2026-courier/commit/375a7ce94ab51ab9cf5f1f3c78a3f808807047bf",
         "validity": "UNKNOWN"
       }
     ],
@@ -54,7 +54,7 @@
           "results": {
             "ISSUE_STATE": {
               "evidence_urls": [
-                "https://github.com/happyhippovip/2026-courier/commit/eeeacc8fcb9e52ee5be037366fadf77839f759a0"
+                "https://github.com/happyhippovip/2026-courier/commit/375a7ce94ab51ab9cf5f1f3c78a3f808807047bf"
               ],
               "observed_value": "NO_FURTHER_ACTION",
               "status": "UNKNOWN"
@@ -64,17 +64,17 @@
         },
         "binding": {
           "branch": "release-candidate-integration",
-          "current_sha": "eeeacc8fcb9e52ee5be037366fadf77839f759a0",
+          "current_sha": "375a7ce94ab51ab9cf5f1f3c78a3f808807047bf",
           "runtime_identity": "Google-Antigravity-Ledger"
         },
         "evidence": [
           {
-            "evidence_sha": "eeeacc8fcb9e52ee5be037366fadf77839f759a0",
+            "evidence_sha": "375a7ce94ab51ab9cf5f1f3c78a3f808807047bf",
             "observed_at": "2026-09-17T12:00:00Z",
             "reason": "Latest commit",
-            "runtime_binding": "release-candidate-integration@eeeacc8fcb9e52ee5be037366fadf77839f759a0",
+            "runtime_binding": "release-candidate-integration@375a7ce94ab51ab9cf5f1f3c78a3f808807047bf",
             "source_type": "GITHUB_COMMIT",
-            "source_url": "https://github.com/happyhippovip/2026-courier/commit/eeeacc8fcb9e52ee5be037366fadf77839f759a0",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/375a7ce94ab51ab9cf5f1f3c78a3f808807047bf",
             "validity": "UNKNOWN"
           }
         ],
@@ -116,7 +116,7 @@
         "USER_CONTINUE_MESSAGES",
         "WORKERS_USED"
       ],
-      "entry_sha256": "d18f07dbe7d7e0f593cd4065b96b24bbbd64e9fae8bf4dc28e1f3473489290b0",
+      "entry_sha256": "711a3928c04fc88bb20651b527140fe88540dba16e36e95fd78ade059ae5ca58",
       "operation": "INIT",
       "previous_entry_sha256": null,
       "record": {
@@ -132,7 +132,7 @@
           "motor-eligibility-v1"
         ],
         "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
-        "CURRENT_SHA": "eeeacc8fcb9e52ee5be037366fadf77839f759a0",
+        "CURRENT_SHA": "375a7ce94ab51ab9cf5f1f3c78a3f808807047bf",
         "DUPLICATE_EXTERNAL_EFFECTS": 0,
         "FIRST_CAUSAL_BLOCKER": "HUMAN_REQUIRED_CONTACT_DESTINATION",
         "GOAL": "COURIER-PUBLIC-RELEASE",
@@ -158,10 +158,10 @@
         "USER_CONTINUE_MESSAGES": 0,
         "WORKERS_USED": 1
       },
-      "record_sha256": "bc4aa65af42a8e0fb9a468a0cb8441990031aa1df6497dc6bcc4920de38ac1f7",
+      "record_sha256": "eec4da99a753e4f22339a63ce5523cfcfebfbff0cc03af2369f703ea2089b9ba",
       "revision": 0,
-      "state_sha256": "264e4183da365e258e8d2035c90375548630a95654fffa8c904fe9bf064ad107",
-      "timestamp_utc": "2026-09-17T12:23:53Z",
+      "state_sha256": "34ee815231983d1c0c3688577fa927d23b489936c0719e221b2c643ac269a443",
+      "timestamp_utc": "2026-09-17T12:24:45Z",
       "updated_by": "Google-Antigravity"
     }
   ],
@@ -179,7 +179,7 @@
       "motor-eligibility-v1"
     ],
     "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
-    "CURRENT_SHA": "eeeacc8fcb9e52ee5be037366fadf77839f759a0",
+    "CURRENT_SHA": "375a7ce94ab51ab9cf5f1f3c78a3f808807047bf",
     "DUPLICATE_EXTERNAL_EFFECTS": 0,
     "FIRST_CAUSAL_BLOCKER": "HUMAN_REQUIRED_CONTACT_DESTINATION",
     "GOAL": "COURIER-PUBLIC-RELEASE",
