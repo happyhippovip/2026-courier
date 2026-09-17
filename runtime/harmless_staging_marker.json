@@ -1,9 +1,0 @@
-{
-  "marker_id": "marker-73522b31-01",
-  "created_at": "2026-09-15T22:36:00+02:00",
-  "status": "STAGED_READY",
-  "provenance": {
-    "source_task": "task-harmless-producer-73522b31",
-    "verified_by": "task-harmless-consumer-73522b31"
-  }
-}
