@@ -900,14 +900,7 @@ def resume_task(task_id):
                         "dispatch_id": task.get("dispatch_id"),
                         "resume_type": "TRANSPORT_RETRY" if prior_status in ("WAITING_PROVIDER", "BLOCKED_TRANSIENT") else "RE_EXECUTION",
                     })
-                elif action == "force_success":
-                    set_task_status(task, "RESULT_RECEIVED")
-                    step["status"] = "RESULT_RECEIVED"
-                    goal["status"] = "ACTIVE"
-                    task["result_id"] = "manual-resume-" + task_id
-                    step["result_id"] = "manual-resume-" + task_id
-                    save_state(state)
-                    return jsonify({"status": "FORCED_SUCCESS_PENDING_VERIFICATION", "task_id": task_id})
+
                 else:
                     return jsonify({"error": "Unknown action"}), 400
                     

@@ -22,6 +22,7 @@ def observed_result(task: dict) -> dict:
         "task_id": task["task_id"],
         "attempt_id": task["attempt_id"],
         "dispatch_id": task["dispatch_id"],
+        "execution_ref": task.get("execution_ref", "exec-mock"),
         "worker_id": task["worker_id"],
         "run_id": "observable-run-42",
         "status": "SUCCESS",
