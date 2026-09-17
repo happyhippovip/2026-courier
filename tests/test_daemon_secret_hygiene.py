@@ -91,3 +91,7 @@ def test_keychain_setup_reads_secret_without_terminal_echo():
 
     assert 'read -r -s -p "Enter Courier API Key: " api_key' in script
     assert "unset api_key" in script
+    assert "delete-generic-password" not in script
+    commands = [line for line in script.splitlines() if "add-generic-password" in line]
+    assert len(commands) == 2
+    assert all(line.endswith(" -U") for line in commands)
