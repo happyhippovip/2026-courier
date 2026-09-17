@@ -2,8 +2,9 @@ import pytest
 import subprocess
 import json
 from pathlib import Path
+import os
 
-def setup_ledger(tmp_path, unproven_edges, blocker):
+def setup_ledger(tmp_path, unproven_edges, blocker, proven_edges=None):
     record = {
         "PROJECT": "Courier",
         "GOAL": "TEST-GOAL",
@@ -12,7 +13,7 @@ def setup_ledger(tmp_path, unproven_edges, blocker):
         "RUNTIME_IDENTITY": "test",
         "RUNTIME_OWNER": "test",
         "STATUS": "TEST",
-        "PROVEN_EDGES": [],
+        "PROVEN_EDGES": proven_edges or [],
         "UNPROVEN_EDGES": unproven_edges,
         "FIRST_CAUSAL_BLOCKER": blocker,
         "BLOCKER_OWNER": "Human",
@@ -73,7 +74,6 @@ def setup_ledger(tmp_path, unproven_edges, blocker):
         "worker_state": "IDLE/YIELDED"
     }
     
-    # Write temp files
     record_path = tmp_path / "record.json"
     guard_path = tmp_path / "guard.json"
     ledger_path = tmp_path / "agent_handoff_ledger.json"
@@ -91,26 +91,47 @@ def run_continue(ledger_path, mock_sha="0000000000000000000000000000000000000000
     repo_dir = Path(__file__).parent.parent.resolve()
     script = repo_dir / "scripts" / "courier_continue.py"
     
-    env = {"MOCK_SHA": mock_sha, "MOCK_BRANCH": mock_branch, "MOCK_LEDGER": str(ledger_path), "PYTHONPATH": str(repo_dir)}
+    env = os.environ.copy()
+    env.update({"MOCK_SHA": mock_sha, "MOCK_BRANCH": mock_branch, "MOCK_LEDGER": str(ledger_path), "PYTHONPATH": str(repo_dir)})
     result = subprocess.run(["python3", str(script)], env=env, capture_output=True, text=True)
     return result
 
-def test_scope_local_gates(tmp_path):
-    ledger_path = setup_ledger(tmp_path, ["independent task A"], "HUMAN_REQUIRED_CONTACT")
+def test_blocked_scope_independent_work_continues(tmp_path):
+    # PILOT INTAKE is independent. Even if PUBLIC DEPLOYMENT is blocked by PUBLIC_REPO_VISIBILITY, we can continue to PILOT INTAKE
+    ledger_path = setup_ledger(tmp_path, [], "HUMAN_REQUIRED_PUBLIC_REPO_VISIBILITY", proven_edges=["LEDGER/HANDOFF", "PR41 ACCEPTANCE", "RELEASE"])
     res = run_continue(ledger_path)
     assert res.returncode == 0
-    assert "Selected Next Action: Prove edge: independent task A" in res.stdout
-    assert "MINIMAL TASK PACKET" in res.stdout
+    assert "Prove edge: PILOT INTAKE" in res.stdout
 
-def test_global_stop(tmp_path):
-    ledger_path = setup_ledger(tmp_path, [], "HUMAN_REQUIRED_CONTACT")
+def test_writer_collision_unrelated_work_continues(tmp_path):
+    # PR41 ACCEPTANCE blocked by Codex ownership, but RELEASE is unblocked
+    ledger_path = setup_ledger(tmp_path, [], "HUMAN_REQUIRED_MERGE", proven_edges=["LEDGER/HANDOFF"])
     res = run_continue(ledger_path)
     assert res.returncode == 0
-    assert "GLOBAL STOP: CLEAN_IDLE" in res.stdout
-    assert "No safe, unowned, independent executable tasks exist" in res.stdout
+    assert "Prove edge: PILOT INTAKE" in res.stdout
+
+def test_money_gate_free_work_continues(tmp_path):
+    # PAYMENT ONLY WHEN ACTUALLY REQUIRED blocked by MONEY, but POST-PILOT HARDENING is free
+    ledger_path = setup_ledger(tmp_path, [], "MONEY_REQUIRED_PAYMENT_GATEWAY", proven_edges=["LEDGER/HANDOFF", "PR41 ACCEPTANCE", "RELEASE", "PUBLIC DEPLOYMENT", "PUBLICATION VERIFICATION", "PILOT INTAKE", "SALES PACKAGE", "FIRST PILOT"])
+    res = run_continue(ledger_path)
+    assert res.returncode == 0
+    assert "Prove edge: POST-PILOT HARDENING" in res.stdout
+
+def test_provider_unavailable_other_worker_eligible_continues(tmp_path):
+    ledger_path = setup_ledger(tmp_path, [], "PROVIDER_QUOTA_EXHAUSTED", proven_edges=["LEDGER/HANDOFF"])
+    res = run_continue(ledger_path)
+    assert res.returncode == 0
+    assert "GLOBAL STOP" in res.stdout
 
 def test_stale_ledger_fail_closed(tmp_path):
-    ledger_path = setup_ledger(tmp_path, ["independent task A"], "NONE")
+    ledger_path = setup_ledger(tmp_path, [], "NONE")
     res = run_continue(ledger_path, mock_sha="1111111111111111111111111111111111111111")
     assert res.returncode == 3
     assert "Ledger is stale. Fail closed" in res.stdout
+
+def test_all_scopes_blocked_true_global_stop(tmp_path):
+    # Everything is proven except PUBLIC DEPLOYMENT and PAYMENT ONLY WHEN ACTUALLY REQUIRED, which are blocked
+    ledger_path = setup_ledger(tmp_path, [], "HUMAN_REQUIRED_PUBLIC_REPO_VISIBILITY", proven_edges=["LEDGER/HANDOFF", "PR41 ACCEPTANCE", "RELEASE", "PILOT INTAKE", "SALES PACKAGE", "FIRST PILOT", "POST-PILOT HARDENING"])
+    res = run_continue(ledger_path)
+    assert res.returncode == 0
+    assert "GLOBAL STOP: CLEAN_IDLE" in res.stdout
