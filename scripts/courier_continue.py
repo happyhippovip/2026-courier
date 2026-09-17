@@ -191,6 +191,8 @@ def execute_task(task, ledger_path, record):
         "POST-PILOT HARDENING",
         "POST_PILOT_HARDENING",
         "EXTERNAL_PUBLICATION",
+        "PILOT INTAKE",
+        "PILOT_INTAKE",
     ]:
         return task, False, f"UNVERIFIED_EXTERNAL_EFFECT_{edge}"
 
