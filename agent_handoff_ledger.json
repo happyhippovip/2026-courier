@@ -1,0 +1,210 @@
+{
+  "acceptance_guard": {
+    "acceptance_predicate": {
+      "name": "Global-Stop",
+      "required_results": [
+        "GLOBAL_STOP_CONFIRMED"
+      ],
+      "results": {
+        "GLOBAL_STOP_CONFIRMED": {
+          "evidence_urls": [
+            "https://github.com/happyhippovip/2026-courier/commit/fa1acea5d7efd18cb3e7289569ed9d90ec1c70e3"
+          ],
+          "observed_value": "NO_FURTHER_ACTION",
+          "status": "UNKNOWN"
+        }
+      },
+      "version": "1.0"
+    },
+    "binding": {
+      "branch": "release-candidate-integration",
+      "current_sha": "fa1acea5d7efd18cb3e7289569ed9d90ec1c70e3",
+      "runtime_identity": "Google-Antigravity-Ledger"
+    },
+    "evidence": [
+      {
+        "evidence_sha": "fa1acea5d7efd18cb3e7289569ed9d90ec1c70e3",
+        "observed_at": "2026-09-17T12:00:00Z",
+        "reason": "Latest commit",
+        "runtime_binding": "release-candidate-integration@fa1acea5d7efd18cb3e7289569ed9d90ec1c70e3",
+        "source_type": "GITHUB_COMMIT",
+        "source_url": "https://github.com/happyhippovip/2026-courier/commit/fa1acea5d7efd18cb3e7289569ed9d90ec1c70e3",
+        "validity": "UNKNOWN"
+      }
+    ],
+    "flow": [
+      "EXECUTION",
+      "EVIDENCE",
+      "ACCEPTANCE_GUARD",
+      "LEDGER_TRANSITION",
+      "NEXT_EXECUTABLE_ACTION"
+    ],
+    "transition_state": "PROVISIONAL",
+    "worker_state": "IDLE/YIELDED"
+  },
+  "format": "courier-agent-handoff-ledger",
+  "history": [
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "GLOBAL_STOP_CONFIRMED"
+          ],
+          "results": {
+            "GLOBAL_STOP_CONFIRMED": {
+              "evidence_urls": [
+                "https://github.com/happyhippovip/2026-courier/commit/fa1acea5d7efd18cb3e7289569ed9d90ec1c70e3"
+              ],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "fa1acea5d7efd18cb3e7289569ed9d90ec1c70e3",
+          "runtime_identity": "Google-Antigravity-Ledger"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "fa1acea5d7efd18cb3e7289569ed9d90ec1c70e3",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@fa1acea5d7efd18cb3e7289569ed9d90ec1c70e3",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/fa1acea5d7efd18cb3e7289569ed9d90ec1c70e3",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "ACTIVE_WRITERS",
+        "BLOCKER_OWNER",
+        "BRANCH",
+        "CLEAN_IDLE",
+        "COLLISION_SCOPE",
+        "CONTINUATION_CHECKPOINT",
+        "CURRENT_SHA",
+        "DUPLICATE_EXTERNAL_EFFECTS",
+        "FIRST_CAUSAL_BLOCKER",
+        "GOAL",
+        "GOALS_SUBMITTED",
+        "LAST_EVIDENCE",
+        "LAST_UPDATED_BY",
+        "MANUAL_PROCESS_RESTARTS",
+        "NEXT_EXECUTABLE_ACTION",
+        "PROJECT",
+        "PROVEN_EDGES",
+        "QUEUE_INDEPENDENT",
+        "RUNTIME_IDENTITY",
+        "RUNTIME_OWNER",
+        "STATUS",
+        "TASKS_COMPLETED",
+        "TEMP_TASK_PROCESSES_AFTER_DONE",
+        "UNPROVEN_EDGES",
+        "USER_CONTINUE_MESSAGES",
+        "WORKERS_USED"
+      ],
+      "entry_sha256": "601a3c0c7b99a8ab05f81fa731360cbb6e92828abe01a95cae0d32ad2c9dffb0",
+      "operation": "INIT",
+      "previous_entry_sha256": null,
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity",
+          "Codex"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "YES",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "fa1acea5d7efd18cb3e7289569ed9d90ec1c70e3",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "HUMAN_REQUIRED_CONTACT_DESTINATION",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "EXTERNAL_PUBLICATION",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Website QA",
+          "Token Efficiency",
+          "Zero-Chat Handoff",
+          "Demo Readiness"
+        ],
+        "QUEUE_INDEPENDENT": "YES",
+        "RUNTIME_IDENTITY": "Google-Antigravity-Ledger",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "CLEAN_IDLE",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "26dfdaba69f1fd2ee746689069ee89027570dd47c3399522640f30e8febc075b",
+      "revision": 0,
+      "state_sha256": "f7739fef6ace7c2e37e7b2fac15ca749d7c230c4c40d8c75cff631a336f86f2f",
+      "timestamp_utc": "2026-09-17T12:12:10Z",
+      "updated_by": "Google-Antigravity"
+    }
+  ],
+  "non_authority": "Coordination metadata only; this ledger has no scheduler, runtime, execution, dispatch, verification, or Courier truth authority.",
+  "record": {
+    "ACTIVE_WRITERS": [
+      "Google-Antigravity",
+      "Codex"
+    ],
+    "BLOCKER_OWNER": "Human",
+    "BRANCH": "release-candidate-integration",
+    "CLEAN_IDLE": "YES",
+    "COLLISION_SCOPE": [
+      "Ledger",
+      "motor-eligibility-v1"
+    ],
+    "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+    "CURRENT_SHA": "fa1acea5d7efd18cb3e7289569ed9d90ec1c70e3",
+    "DUPLICATE_EXTERNAL_EFFECTS": 0,
+    "FIRST_CAUSAL_BLOCKER": "HUMAN_REQUIRED_CONTACT_DESTINATION",
+    "GOAL": "COURIER-PUBLIC-RELEASE",
+    "GOALS_SUBMITTED": 1,
+    "LAST_EVIDENCE": [],
+    "LAST_UPDATED_BY": "Google-Antigravity",
+    "MANUAL_PROCESS_RESTARTS": 0,
+    "NEXT_EXECUTABLE_ACTION": "EXTERNAL_PUBLICATION",
+    "PROJECT": "Courier",
+    "PROVEN_EDGES": [
+      "Website QA",
+      "Token Efficiency",
+      "Zero-Chat Handoff",
+      "Demo Readiness"
+    ],
+    "QUEUE_INDEPENDENT": "YES",
+    "RUNTIME_IDENTITY": "Google-Antigravity-Ledger",
+    "RUNTIME_OWNER": "Google-Antigravity",
+    "STATUS": "CLEAN_IDLE",
+    "TASKS_COMPLETED": 2,
+    "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+    "UNPROVEN_EDGES": [],
+    "USER_CONTINUE_MESSAGES": 0,
+    "WORKERS_USED": 1
+  },
+  "revision": 0,
+  "schema_version": 2
+}
