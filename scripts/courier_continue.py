@@ -1,10 +1,9 @@
-#!/usr/bin/env python3
-import json
-import subprocess
-from pathlib import Path
-import sys
-import os
 import argparse
+import sys
+import subprocess
+import os
+import json
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.resolve()))
 
@@ -56,6 +55,7 @@ def check_freshness(ledger_path: Path, branch: str, sha: str):
 
 def compute_frontier(record: dict):
     proven = record.get("PROVEN_EDGES", [])
+    first_blocker = record.get("FIRST_CAUSAL_BLOCKER", "")
     
     tasks = []
     for edge in PLAN:
@@ -181,15 +181,24 @@ def main():
             if not is_runnable:
                 continue
                 
+            if t["edge_name"] in record.get("COLLISION_SCOPE", []):
+                continue
+                
             if first_blocker and first_blocker != "NONE":
                 if "PROVIDER_QUOTA_EXHAUSTED" in first_blocker:
-                    continue
-                if "PUBLIC_REPO_VISIBILITY" in first_blocker and t["edge_name"] in ["PUBLIC DEPLOYMENT", "PUBLICATION VERIFICATION"]:
-                    continue
-                if "MONEY_REQUIRED" in first_blocker and t["edge_name"] == "PAYMENT ONLY WHEN ACTUALLY REQUIRED":
-                    continue
-                if "HUMAN_REQUIRED_MERGE" in first_blocker and t["edge_name"] == "PR41 ACCEPTANCE":
-                    continue
+                    # Provider unavailable + alternate eligible worker => continue
+                    if record.get("BLOCKER_OWNER") == record.get("RUNTIME_IDENTITY"):
+                        continue # THIS worker is blocked globally
+                elif "MONEY_REQUIRED" in first_blocker:
+                    # Money gate blocks only its scope
+                    if t["edge_name"] == "PAYMENT ONLY WHEN ACTUALLY REQUIRED" or "PAYMENT" in t["edge_name"]:
+                        continue
+                elif "HUMAN_REQUIRED" in first_blocker or "PUBLIC_REPO_VISIBILITY" in first_blocker:
+                    # Human gate blocks only its scope. (Dependent tasks are blocked if the primary line is blocked)
+                    if t["scope"] == "dependent":
+                        continue
+                    if "PUBLIC_REPO_VISIBILITY" in first_blocker and t["edge_name"] in ["PUBLIC DEPLOYMENT", "PUBLICATION VERIFICATION"]:
+                        continue
             safe_executable_tasks.append(t)
             
         if not safe_executable_tasks:
