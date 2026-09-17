@@ -664,6 +664,10 @@ def update(
         if record["LAST_UPDATED_BY"] != updated_by:
             record["LAST_UPDATED_BY"] = updated_by
             changed.append("LAST_UPDATED_BY")
+        old_all_edges = set(bundle["record"].get("UNPROVEN_EDGES", [])) | set(bundle["record"].get("PROVEN_EDGES", []))
+        new_all_edges = set(record.get("UNPROVEN_EDGES", [])) | set(record.get("PROVEN_EDGES", []))
+        if old_all_edges != new_all_edges:
+            raise LedgerError(f"edge conservation violated: old={old_all_edges}, new={new_all_edges}")
         validate_record(record, allow_unknown_sha=False)
         if guard is None:
             if bundle["schema_version"] == 1:
@@ -675,7 +679,7 @@ def update(
         # Acceptance cannot create the evidence used to prove itself: only
         # evidence that pre-existed this update counts toward acceptance.
         prior_evidence = [e for e in evidence if e in old_evidence]
-        has_physical_proof = any(
+        print(f"DEBUG EVIDENCE: {prior_evidence}"); print(f"DEBUG BINDING: {guard['binding']}"); has_physical_proof = any(
             e.get("source_type") == "MACHINE_ARTIFACT" and
             e.get("evidence_sha") == guard["binding"]["current_sha"] and
             e.get("runtime_binding") == guard["binding"]["runtime_identity"] and
