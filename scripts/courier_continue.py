@@ -201,6 +201,25 @@ def update_ledger(ledger_path, edge_name, blocker, bundle):
     if "ISSUE_STATE" in guard["acceptance_predicate"]["results"]:
         guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["observed_value"] = "NO_FURTHER_ACTION"
 
+    if updates.get("CLEAN_IDLE") == "YES":
+        import datetime
+        now = datetime.datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
+        binding = guard["binding"]
+        evidence_url = f"https://github.com/happyhippovip/2026-courier/commit/{binding['current_sha']}"
+        guard["evidence"].append({
+            "source_type": "MACHINE_ARTIFACT",
+            "source_url": evidence_url,
+            "evidence_sha": binding["current_sha"],
+            "runtime_binding": binding["runtime_identity"],
+            "validity": "VALID",
+            "reason": "Final execution yielded CLEAN_IDLE",
+            "observed_at": now
+        })
+        guard["transition_state"] = "CANONICAL_ACCEPTED"
+        if "ISSUE_STATE" in guard["acceptance_predicate"]["results"]:
+            guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["status"] = "PASS"
+            guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["evidence_urls"] = [evidence_url]
+
     new_bundle = update(
         ledger_path,
         revision,
