@@ -21,22 +21,26 @@ signal.signal(signal.SIGINT, sigterm_handler)
 
 # Paths
 BASE_DIR = Path(__file__).parent
-CONFIG_PATH = BASE_DIR / "config.json"
-STATE_DIR = BASE_DIR / "state"
-LOGS_DIR = BASE_DIR / "logs"
+CONFIG_PATH = Path(os.environ.get("COURIER_CONFIG_PATH") or (BASE_DIR / "config.json"))
+STATE_DIR = Path(os.environ.get("COURIER_WORKER_STATE_DIR") or (BASE_DIR / "state"))
+LOGS_DIR = Path(os.environ.get("COURIER_WORKER_LOGS_DIR") or (BASE_DIR / "logs"))
 LOGS_DIR.mkdir(parents=True, exist_ok=True)
 STATE_DIR.mkdir(parents=True, exist_ok=True)
 SECRET_KEY = None
 
 def load_config():
-    with open(CONFIG_PATH, "r") as f:
-        config = json.load(f)
+    if CONFIG_PATH.exists():
+        with open(CONFIG_PATH, "r") as f:
+            config = json.load(f)
+    else:
+        config = {}
         
     if config.get("WORKER_ID") in ["test-mac", "", None]:
         import socket, uuid
         config["WORKER_ID"] = f"MAC-{socket.gethostname().split('.')[0].upper()}-{uuid.uuid4().hex[:6].upper()}"
-        with open(CONFIG_PATH, "w") as f:
-            json.dump(config, f)
+        if CONFIG_PATH.exists():
+            with open(CONFIG_PATH, "w") as f:
+                json.dump(config, f)
 
     
     # Try reading from macOS keychain
@@ -57,6 +61,12 @@ def load_config():
         config["COURIER_SERVER"] = os.environ["COURIER_SERVER"]
     if "COURIER_API_KEY" in os.environ:
         config["COURIER_API_KEY"] = os.environ["COURIER_API_KEY"]
+    if "COURIER_WORKER_ID" in os.environ:
+        config["WORKER_ID"] = os.environ["COURIER_WORKER_ID"]
+    if "POLL_INTERVAL_SECONDS" in os.environ:
+        config["POLL_INTERVAL_SECONDS"] = float(os.environ["POLL_INTERVAL_SECONDS"])
+    if "IDLE_POLL_INTERVAL_SECONDS" in os.environ:
+        config["IDLE_POLL_INTERVAL_SECONDS"] = float(os.environ["IDLE_POLL_INTERVAL_SECONDS"])
     if not config.get('COURIER_API_KEY'):
         import sys; sys.stderr.write('FATAL: Missing credentials fail closed.\n'); sys.exit(1)
     if not config.get('COURIER_SERVER'):
@@ -191,9 +201,10 @@ def run_agy(task, config):
             except Exception:
                 pass
             stdout, stderr = process.communicate()
-        finally:
             ACTIVE_PGIDS.discard(pgid)
             return {"status": "FAILED", "stderr": "Execution timed out", "execution_mode": "ANTIGRAVITY"}
+        finally:
+            ACTIVE_PGIDS.discard(pgid)
         
         # Enforce stdout/stderr payload limits
         if stdout and len(stdout) > 50000:
@@ -262,9 +273,10 @@ def run_copilot(task, config):
             except Exception:
                 pass
             stdout, stderr = process.communicate()
-        finally:
             ACTIVE_PGIDS.discard(pgid)
             return {"status": "FAILED", "stderr": "Execution timed out", "execution_mode": "COPILOT"}
+        finally:
+            ACTIVE_PGIDS.discard(pgid)
         
         # Enforce stdout/stderr payload limits
         if stdout and len(stdout) > 50000:
@@ -338,10 +350,14 @@ def loop():
                 if shutil.which("gh") and "copilot" in subprocess.getoutput("gh extension list"):
                     caps.append("copilot")
 
+                if "COURIER_WORKER_CAPABILITIES" in os.environ:
+                    caps.extend([c.strip() for c in os.environ["COURIER_WORKER_CAPABILITIES"].split(",") if c.strip()])
+
                 reg_payload = {
                     "worker_id": config["WORKER_ID"],
                     "platform": "macos",
-                    "capabilities": caps
+                    "capabilities": list(set(caps)),
+                    "cost_class": os.environ.get("WORKER_COST_CLASS", config.get("cost_class", "low"))
                 }
                 res, err = http_post(config, "/workers/register", reg_payload)
                 if err:
@@ -356,6 +372,10 @@ def loop():
             if err:
                 write_log(f"Heartbeat failed: {err}")
                 registered = False
+                try:
+                    config = load_config()
+                except Exception:
+                    pass
                 time.sleep(5)
                 continue
                 
