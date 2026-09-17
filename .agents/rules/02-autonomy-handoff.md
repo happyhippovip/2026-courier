@@ -21,3 +21,9 @@ When a session reaches a proven terminal state (i.e., CLEAN_IDLE=YES or no execu
 - `TAIL_BASED_CONTROL_FLOW=NO`
 - `MOTOR_ALIVE_AFTER_AGENT_EXIT=YES`
 - `READY_AFTER_AGENT_EXIT_AUTO_DISPATCHES=YES`
+- `AGENT_BACKGROUND_TASKS_AFTER_HANDOFF=0`
+
+## Prevention of Antigravity Task Leaks
+- An agent session may NOT claim `WORKER_STATE=IDLE/YIELDED`, `CLEAN_IDLE=YES`, or terminal handoff while any background task it created (e.g. via `run_command` with `IsDaemon=true` or similar) remains alive.
+- All persistent Antigravity background tasks created for orchestration or monitoring MUST be strictly terminated using `manage_task` (Action="kill") before yielding.
+- Replace indefinite monitoring with bounded/nonblocking inspection (e.g. read the last N lines once, check state once). Observation must never remain as a running agent background task.
