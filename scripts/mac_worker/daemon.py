@@ -362,6 +362,10 @@ def loop():
                 res, err = http_post(config, "/workers/register", reg_payload)
                 if err:
                     write_log(f"Failed to register: {err}")
+                    try:
+                        config = load_config()
+                    except Exception:
+                        pass
                     time.sleep(5) # backoff
                     continue
                 write_log("Registered successfully.")
