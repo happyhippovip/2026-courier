@@ -124,7 +124,7 @@ def run_native(task, config):
     
     # ALLOWLIST CHECK
     action = task.get("action", "").lower()
-    allowed_actions = ["git_status", "echo", "touch", "sleep"]
+    allowed_actions = ["git_status", "echo", "touch", "sleep", "provider_wait"]
     
     # For backward compatibility with the canary, we parse "echo" if it's the first word of instruction
     if not action:
@@ -212,6 +212,13 @@ def run_native(task, config):
             
         elif action == "git_status":
             result = subprocess.run(["git", "status"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=False)
+            
+        elif action == "provider_wait":
+            return {
+                "status": "PROVIDER_WAIT",
+                "reason": "SIMULATED_429_RATE_LIMIT",
+                "execution_mode": "NATIVE"
+            }
             
         return {
             "status": "SUCCESS" if result.returncode == 0 else "FAILED",
@@ -526,44 +533,26 @@ def loop():
 
                     
                     if result.get("status") == "PROVIDER_WAIT":
-
-                    
                         write_log(f"Task {task['task_id']} hit a provider wait: {result.get('reason')}")
-
-                    
                         wait_payload = {
-
-                    
                             "worker_id": config["WORKER_ID"],
-
-                    
                             "reason": result.get("reason", "PROVIDER_UNAVAILABLE"),
-
-                    
                             "wait_type": "WAITING_PROVIDER",
-
-                    
                             "task_id": task["task_id"]
-
-                    
                         }
-
-                    
                         with open(STATE_DIR / "current_provider_wait.json", "w") as fw:
-
-                    
                             json.dump(wait_payload, fw)
-
-                    
                         if current_task_state_file.exists():
-
-                    
                             current_task_state_file.unlink()
-
-                    
                         task = None
-
-                    
+                        res, err = http_post(config, f"/tasks/{wait_payload['task_id']}/provider_wait", wait_payload)
+                        if not err:
+                            write_log(f"Provider wait posted successfully: {res}")
+                            if (STATE_DIR / "current_provider_wait.json").exists():
+                                (STATE_DIR / "current_provider_wait.json").unlink()
+                            pending_provider_wait = None
+                        else:
+                            pending_provider_wait = wait_payload
                         continue
 
 
@@ -616,8 +605,17 @@ def loop():
             if pending_provider_wait:
                 res, err = http_post(config, f"/tasks/{pending_provider_wait['task_id']}/provider_wait", pending_provider_wait)
                 if err:
-                    write_log(f"Provider wait post failed: {err}. Will retry on next loop.")
-                    time.sleep(5)
+                    write_log(f"Provider wait post failed: {err}.")
+                    if "409" in err or "404" in err:
+                        write_log(f"Permanent wait rejection ({err}), clearing pending provider wait.")
+                        if current_wait_state_file.exists():
+                            os.remove(current_wait_state_file)
+                        if current_task_state_file.exists():
+                            os.remove(current_task_state_file)
+                        pending_provider_wait = None
+                        task = None
+                    else:
+                        time.sleep(5)
                     continue
                 else:
                     write_log(f"Provider wait posted successfully: {res}")
@@ -633,8 +631,17 @@ def loop():
                 # Backoff loop for posting result
                 res, err = http_post(config, "/tasks/result", pending_result)
                 if err:
-                    write_log(f"Result post failed: {err}. Will retry on next loop.")
-                    time.sleep(5)
+                    write_log(f"Result post failed: {err}.")
+                    if "409" in err or "404" in err:
+                        write_log(f"Permanent rejection ({err}), clearing pending result.")
+                        if current_result_state_file.exists():
+                            os.remove(current_result_state_file)
+                        if current_task_state_file.exists():
+                            os.remove(current_task_state_file)
+                        pending_result = None
+                        task = None
+                    else:
+                        time.sleep(5)
                     continue
                 else:
                     write_log(f"Result posted successfully: {res}")

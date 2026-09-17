@@ -656,8 +656,7 @@ def claim_task():
                 save_state(state)
                 return jsonify({"task": None, "reason": "WORKER_BUSY"})
         else:
-            save_state(state)
-            return jsonify({"task": None, "reason": "WORKER_BUSY"})
+            worker["available"] = True
     
     # --- Reclaim DISPATCHED tasks (e.g. resumed from WAITING_PROVIDER) ---
     for task_id, task in state.get("tasks", {}).items():
