@@ -590,6 +590,15 @@ subprocess.run([
         ):
             ledger_module.validate_record(rec, allow_unknown_sha=False)
 
+    def test_unproven_work_rejects_missing_next_action(self):
+        rec = record()
+        rec["NEXT_EXECUTABLE_ACTION"] = "NONE"
+        with self.assertRaisesRegex(
+            ledger_module.LedgerError,
+            "NEXT_EXECUTABLE_ACTION=NONE",
+        ):
+            ledger_module.validate_record(rec, allow_unknown_sha=False)
+
     def test_clean_idle_rejected_without_canonical_guard(self):
         with tempfile.TemporaryDirectory() as temporary:
             ledger = Path(temporary) / "ledger.json"
