@@ -56,7 +56,6 @@ def check_freshness(ledger_path: Path, branch: str, sha: str):
 
 def compute_frontier(record: dict):
     proven = record.get("PROVEN_EDGES", [])
-    first_blocker = record.get("FIRST_CAUSAL_BLOCKER", "")
     
     tasks = []
     for edge in PLAN:
@@ -74,7 +73,7 @@ def compute_frontier(record: dict):
             
     return tasks
 
-def execute_task(task, ledger_path):
+def execute_task(task, ledger_path, record):
     print(f"Executing/Delegating task: {task['instruction']}")
     if task["edge_name"] == "PUBLICATION VERIFICATION":
         print("Checking deployment... HTTP 404... PUBLICATION VERIFICATION failed.")
@@ -83,8 +82,13 @@ def execute_task(task, ledger_path):
         print("Payment required. Halting execution for this scope.")
         return False, "MONEY_REQUIRED_PAYMENT_GATEWAY"
     elif task["edge_name"] == "PR41 ACCEPTANCE":
-        print("Active writer collision on PR41 (Codex).")
-        return False, "HUMAN_REQUIRED_MERGE"
+        writers = record.get("ACTIVE_WRITERS", [])
+        if "Codex" in writers:
+            print("Active writer collision on PR41 (Codex).")
+            return False, "HUMAN_REQUIRED_MERGE"
+        else:
+            print("Ownership resolved to Google-Antigravity, but unattended merge is forbidden.")
+            return False, "HUMAN_REQUIRED_MERGE"
     
     print(f"Successfully proved: {task['edge_name']}")
     return True, None
@@ -161,7 +165,7 @@ def main():
                 
             if first_blocker and first_blocker != "NONE":
                 if "PROVIDER_QUOTA_EXHAUSTED" in first_blocker:
-                    continue # Quota means THIS worker can't do anything
+                    continue
                 if "PUBLIC_REPO_VISIBILITY" in first_blocker and t["edge_name"] in ["PUBLIC DEPLOYMENT", "PUBLICATION VERIFICATION"]:
                     continue
                 if "MONEY_REQUIRED" in first_blocker and t["edge_name"] == "PAYMENT ONLY WHEN ACTUALLY REQUIRED":
@@ -196,7 +200,7 @@ def main():
             sys.exit(0)
             
         print("\n=== STARTING TASK ===")
-        success, new_blocker = execute_task(next_task, ledger_path)
+        success, new_blocker = execute_task(next_task, ledger_path, record)
         bundle = update_ledger(ledger_path, next_task["edge_name"], new_blocker, bundle)
         print("CHECKPOINT WRITTEN")
 
