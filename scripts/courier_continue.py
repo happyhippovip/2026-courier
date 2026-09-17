@@ -186,6 +186,20 @@ def execute_task(task, ledger_path, record):
     print(f"Executing/Delegating task: {task['instruction']}")
     edge = task["edge_name"]
 
+
+    if os.environ.get("MOCK_WAITING_TASK") and os.environ["MOCK_WAITING_TASK"] in edge:
+        marker = "mock_a_called.txt"
+        if not os.path.exists(marker):
+            open(marker, "w").write("1")
+            return task, False, "WAITING_PROVIDER_MOCK"
+        else:
+            calls = int(open(marker, "r").read())
+            open(marker, "w").write(str(calls + 1))
+            if calls >= 2:
+                # succeed on 3rd try
+                return task, True, None
+            return task, False, "WAITING_PROVIDER_MOCK"
+
     if edge in ["SALES PACKAGE", "SALES_PACKAGE"]:
         import os
         sales_file = "public/SALES_PACKAGE.md"
@@ -335,6 +349,8 @@ def main():
     blocked_tasks_this_run = set()
     ledger_path_str = os.environ.get("MOCK_LEDGER")
     ledger_path = Path(ledger_path_str) if ledger_path_str else repo_dir / "agent_handoff_ledger.json"
+    print(f'MOCK_LEDGER IN ENV: {os.environ.get("MOCK_LEDGER")}')
+    print(f'USING LEDGER PATH: {ledger_path}')
     
     if not ledger_path.exists():
         print("ERROR: agent_handoff_ledger.json not found.")
@@ -364,7 +380,6 @@ def main():
         chain_unproven_seen = {}
         
         safe_executable_tasks = []
-        blocked_tasks_this_run = set()
         
         for t in tasks:
             base_name = t["edge_name"].split(" - ")[0]
@@ -427,10 +442,10 @@ def main():
                 sys.exit(0)
             if "MOCK_SHA" in os.environ:
                 mock_iters += 1
-                if mock_iters >= 3:
+                if mock_iters >= 10:
                     sys.exit(0)
             import time
-            time.sleep(1.0)
+            time.sleep(0.1 if 'MOCK_SHA' in os.environ else 1.0)
             continue
             
         if not args.run:
@@ -460,6 +475,7 @@ def main():
                     branch, sha = get_git_info()
                     for _retry in range(5):
                         bundle = check_freshness(ledger_path, branch, sha)
+                        print(f"DEBUG BUNDLE BEFORE UPDATE_LEDGER for {task['edge_name']}: {bundle['record']['UNPROVEN_EDGES']}")
                         try:
                             bundle = update_ledger(ledger_path, task["edge_name"], new_blocker, bundle)
                             break
@@ -472,7 +488,9 @@ def main():
                                 continue
                             raise e
 
-                    if not success and new_blocker:
+                    if success:
+                        blocked_tasks_this_run.clear()
+                    elif not success and new_blocker:
                         blocked_tasks_this_run.add(task["edge_name"])
                 except Exception as e:
                     print(f"Task {edge_name} failed with exception: {e}")
@@ -495,17 +513,17 @@ def main():
             print(f"\nCurrently running {len(running_tasks)} tasks concurrently.")
             
         import time
-        time.sleep(1)
+        time.sleep(0.1 if 'MOCK_SHA' in os.environ else 1.0)
 
         
         if args.once and not running_tasks and 'once_dispatched' in locals():
             sys.exit(0)
         if "MOCK_SHA" in os.environ:
             mock_iters += 1
-            if mock_iters >= 3:
+            if mock_iters >= 10:
                 sys.exit(0)
         import time
-        time.sleep(1.0)
+        time.sleep(0.1 if 'MOCK_SHA' in os.environ else 1.0)
 
 if __name__ == "__main__":
     main()
