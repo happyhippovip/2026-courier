@@ -196,3 +196,101 @@ def test_capability_based_routing_claims_eligible(tmp_path):
     
     # It should pick PUBLICATION VERIFICATION since it's independent and matches capabilities
     assert "Prove edge: PUBLICATION VERIFICATION" in res.stdout
+
+
+def test_missing_physical_proof_prevents_acceptance(tmp_path):
+    ledger_path = setup_ledger(tmp_path, [], "NONE", proven_edges=["LEDGER/HANDOFF", "PR41 ACCEPTANCE", "RELEASE", "PILOT INTAKE", "SALES PACKAGE", "FIRST PILOT", "POST-PILOT HARDENING", "PUBLIC DEPLOYMENT", "PUBLICATION VERIFICATION", "PAYMENT ONLY WHEN ACTUALLY REQUIRED", "EXTERNAL_PUBLICATION", "ONBOARD_FIRST_PILOT_CUSTOMER"])
+    
+    # Run continue
+    res = subprocess.run([sys.executable, str(Path(__file__).parent.parent / "scripts" / "courier_continue.py"), "--run"], env=dict(os.environ, MOCK_LEDGER=str(ledger_path), MOCK_BRANCH="test-branch", MOCK_SHA="0000000000000000000000000000000000000000"), capture_output=True, text=True)
+    
+    with open(ledger_path, "r") as f:
+        data = json.load(f)
+        
+    assert data["record"]["CLEAN_IDLE"] == "NO"
+    assert data["record"]["QUEUE_INDEPENDENT"] == "NO"
+    assert data["record"]["FIRST_CAUSAL_BLOCKER"] == "MISSING_PHYSICAL_ACCEPTANCE_EVIDENCE"
+    assert data["history"][-1]["acceptance_guard"]["transition_state"] == "PROVISIONAL"
+
+def test_valid_physical_proof_allows_acceptance(tmp_path):
+    # Manually create the guard and record with valid evidence
+    record = {
+        "PROJECT": "Courier",
+        "GOAL": "TEST-GOAL",
+        "CURRENT_SHA": "0000000000000000000000000000000000000000",
+        "BRANCH": "test-branch",
+        "RUNTIME_IDENTITY": "test",
+        "RUNTIME_OWNER": "test",
+        "STATUS": "TEST",
+        "PROVEN_EDGES": ["LEDGER/HANDOFF", "PR41 ACCEPTANCE", "RELEASE", "PILOT INTAKE", "SALES PACKAGE", "FIRST PILOT", "POST-PILOT HARDENING", "PUBLIC DEPLOYMENT", "PUBLICATION VERIFICATION", "PAYMENT ONLY WHEN ACTUALLY REQUIRED", "EXTERNAL_PUBLICATION", "ONBOARD_FIRST_PILOT_CUSTOMER"],
+        "UNPROVEN_EDGES": [],
+        "FIRST_CAUSAL_BLOCKER": "NONE",
+        "BLOCKER_OWNER": "Human",
+        "NEXT_EXECUTABLE_ACTION": "test",
+        "ACTIVE_WRITERS": [],
+        "COLLISION_SCOPE": [],
+        "GOALS_SUBMITTED": 0,
+        "TASKS_COMPLETED": 0,
+        "WORKERS_USED": 0,
+        "USER_CONTINUE_MESSAGES": 0,
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "CLEAN_IDLE": "UNKNOWN",
+        "QUEUE_INDEPENDENT": "YES",
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "test",
+        "CONTINUATION_CHECKPOINT": "none"
+    }
+    
+    guard = {
+        "acceptance_predicate": {
+            "name": "Global-Stop",
+            "version": "1.0",
+            "required_results": ["ISSUE_STATE"],
+            "results": {
+                "ISSUE_STATE": {
+                    "status": "UNKNOWN",
+                    "observed_value": "NO_FURTHER_ACTION",
+                    "evidence_urls": ["https://test.com"]
+                }
+            }
+        },
+        "binding": {
+            "branch": "test-branch",
+            "current_sha": "0000000000000000000000000000000000000000",
+            "runtime_identity": "test"
+        },
+        "evidence": [{"source_url":"https://test.com","source_type":"MACHINE_ARTIFACT","observed_at":"2026-09-17T12:00:00Z","evidence_sha":"0000000000000000000000000000000000000000","runtime_binding":"test","validity":"VALID","reason":"test"}],
+        "flow": [
+            "EXECUTION",
+            "EVIDENCE",
+            "ACCEPTANCE_GUARD",
+            "LEDGER_TRANSITION",
+            "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+    }
+    
+    import json
+    record_path = tmp_path / "record.json"
+    guard_path = tmp_path / "guard.json"
+    ledger_path = tmp_path / "agent_handoff_ledger.json"
+    
+    record_path.write_text(json.dumps(record))
+    guard_path.write_text(json.dumps(guard))
+    
+    repo_dir = Path(__file__).parent.parent.resolve()
+    script = repo_dir / "scripts" / "agent_handoff_ledger.py"
+    
+    subprocess.run([sys.executable, str(script), "init", str(ledger_path), "--record", str(record_path), "--guard", str(guard_path)], check=True)
+
+    res = subprocess.run([sys.executable, str(Path(__file__).parent.parent / "scripts" / "courier_continue.py"), "--run"], env=dict(os.environ, MOCK_LEDGER=str(ledger_path), MOCK_BRANCH="test-branch", MOCK_SHA="0000000000000000000000000000000000000000"), capture_output=True, text=True)
+    
+    with open(ledger_path, "r") as f:
+        data = json.load(f)
+        
+    assert data["record"]["CLEAN_IDLE"] == "YES"
+    assert data["record"]["QUEUE_INDEPENDENT"] == "YES"
+    assert data["history"][-1]["acceptance_guard"]["transition_state"] == "CANONICAL_ACCEPTED"

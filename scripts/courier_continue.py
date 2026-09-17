@@ -103,7 +103,7 @@ def execute_task(task, ledger_path, record):
         except Exception as e:
             return task, False, "HUMAN_REQUIRED_PUBLIC_REPO_VISIBILITY"
     elif task["edge_name"] == "PAYMENT ONLY WHEN ACTUALLY REQUIRED":
-        return task, True, None
+        return task, False, "MONEY_REQUIRED_PAYMENT_PROOF"
     elif task["edge_name"] == "EXTERNAL_PUBLICATION":
         try:
             import subprocess as sp
@@ -115,7 +115,7 @@ def execute_task(task, ledger_path, record):
         except Exception:
             return task, False, "HUMAN_REQUIRED_CONTACT_DESTINATION"
     elif task["edge_name"] == "ONBOARD_FIRST_PILOT_CUSTOMER":
-        return task, True, None
+        return task, False, "HUMAN_REQUIRED_PILOT_ONBOARDING"
 
     print(f"Successfully proved: {task['edge_name']}")
     return task, True, None
@@ -148,26 +148,33 @@ def update_ledger(ledger_path, edge_name, blocker, bundle):
             updates["STATUS"] = "READY"
             
     guard = bundle["acceptance_guard"]
-    if updates.get("CLEAN_IDLE") == "YES":
-        import datetime
-        now = datetime.datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
-        binding = guard["binding"]
-        evidence_url = f"https://github.com/happyhippovip/2026-courier/commit/{binding['current_sha']}"
-        existing_urls = [item["source_url"] for item in guard["evidence"]]
-        if evidence_url not in existing_urls:
-            guard["evidence"].append({
-                "source_type": "MACHINE_ARTIFACT",
-                "source_url": evidence_url,
-                "evidence_sha": binding["current_sha"],
-                "runtime_binding": binding["runtime_identity"],
-                "validity": "VALID",
-                "reason": "Final execution yielded CLEAN_IDLE",
-                "observed_at": now
-            })
-        guard["transition_state"] = "CANONICAL_ACCEPTED"
-        if "ISSUE_STATE" in guard["acceptance_predicate"]["results"]:
-            guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["status"] = "PASS"
-            guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["evidence_urls"] = [evidence_url]
+    binding = guard["binding"]
+    
+    has_physical_proof = any(
+        e.get("source_type") == "MACHINE_ARTIFACT" and
+        e.get("evidence_sha") == binding["current_sha"] and
+        e.get("validity") == "VALID"
+        for e in guard.get("evidence", [])
+    )
+    
+    if not unproven:
+        if has_physical_proof:
+            updates["QUEUE_INDEPENDENT"] = "YES"
+            updates["CLEAN_IDLE"] = "YES"
+            updates["STATUS"] = "CLEAN_IDLE"
+            guard["transition_state"] = "CANONICAL_ACCEPTED"
+            if "ISSUE_STATE" in guard["acceptance_predicate"]["results"]:
+                guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["status"] = "PASS"
+                # Keep existing evidence URLs without manufacturing new ones
+        else:
+            updates["QUEUE_INDEPENDENT"] = "NO"
+            updates["CLEAN_IDLE"] = "NO"
+            updates["STATUS"] = "WAITING_PHYSICAL_PROOF"
+            updates["FIRST_CAUSAL_BLOCKER"] = "MISSING_PHYSICAL_ACCEPTANCE_EVIDENCE"
+            guard["transition_state"] = "PROVISIONAL"
+            if "ISSUE_STATE" in guard["acceptance_predicate"]["results"]:
+                guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["status"] = "UNKNOWN"
+                guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["observed_value"] = "NO_FURTHER_ACTION"
     elif "ISSUE_STATE" in guard["acceptance_predicate"]["results"]:
         guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["observed_value"] = "NO_FURTHER_ACTION"
 
@@ -300,7 +307,15 @@ def main():
                 # Re-check freshness to avoid race conditions when writing ledger
                 branch, sha = get_git_info()
                 bundle = check_freshness(ledger_path, branch, sha)
-                bundle = update_ledger(ledger_path, task["edge_name"], new_blocker, bundle)
+                
+                try:
+                    bundle = update_ledger(ledger_path, task["edge_name"], new_blocker, bundle)
+                except Exception as e:
+                    if "meaningful change" in str(e):
+                        pass
+                    else:
+                        raise e
+
                 if not success and new_blocker:
                     blocked_tasks_this_run.add(task["edge_name"])
                 print(f"CHECKPOINT WRITTEN for {task['edge_name']}")
