@@ -38,7 +38,7 @@ def test_queue_independent_daemon(tmp_path):
         "DUPLICATE_EXTERNAL_EFFECTS": 0,
         "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
         "CLEAN_IDLE": "UNKNOWN",
-        "QUEUE_INDEPENDENT": "YES",
+        "QUEUE_INDEPENDENT": "NO",
         "RUNTIME_OWNER": "test",
         "RUNTIME_IDENTITY": "0000000000000000000000000000000000000000",
         "CONTINUATION_CHECKPOINT": "none",
@@ -97,8 +97,15 @@ def test_queue_independent_daemon(tmp_path):
     with open(tmp_path / "daemon.out", "r") as outf:
         output = outf.read()
     
-    # Prove that the OS-owned persistent motor continued completely without any interactive loop
-    assert "Prove edge: PILOT INTAKE" in output
-    assert "Prove edge: SALES PACKAGE" in output
-    assert "Prove edge: POST-PILOT HARDENING" in output
-
+    # An empty provisional frontier is not proof of queue independence.  The
+    # stale-proof rule may return previously claimed external edges to the
+    # unproven frontier, but the detached process must not certify them or emit
+    # a CLEAN_IDLE verdict.
+    assert "Successfully proved:" not in output
+    assert "GLOBAL STOP: CLEAN_IDLE" not in output
+    assert "Empty frontier is not accepted completion" in output
+    state = json.loads(ledger_path.read_text(encoding="utf-8"))
+    assert state["record"]["QUEUE_INDEPENDENT"] == "NO"
+    assert state["record"]["CLEAN_IDLE"] == "NO"
+    assert state["record"]["UNPROVEN_EDGES"]
+    assert state["acceptance_guard"]["transition_state"] == "PROVISIONAL"
