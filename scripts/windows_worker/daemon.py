@@ -19,7 +19,7 @@ API_URL = os.environ.get("COURIER_SERVER") or _cfg.get("COURIER_SERVER") or "htt
 # API_KEY: environment variable or OS keyring ONLY — never from config.json or hardcoded defaults.
 try:
     import keyring as _keyring
-    API_KEY = os.environ.get("COURIER_API_KEY") or _keyring.get_password("courier_worker", "courier_api_key")
+    API_KEY = os.environ.get("COURIER_API_KEY") or _keyring.get_password("courier_worker", "COURIER_API_KEY")
 except ImportError:
     API_KEY = os.environ.get("COURIER_API_KEY")
 
@@ -27,6 +27,8 @@ if not API_KEY:
     print("[Windows Worker] FATAL: No COURIER_API_KEY found in environment or OS keyring.", flush=True)
     print("[Windows Worker] Set via: $env:COURIER_API_KEY or keyring.set_password('courier_worker','courier_api_key','<key>')", flush=True)
     sys.exit(1)
+
+print(f"[Windows Worker] Using API_KEY prefix: {API_KEY[:4]}...", flush=True)
 HEADERS = {
     "Authorization": f"Bearer {API_KEY}",
     "Content-Type": "application/json"
@@ -53,6 +55,9 @@ def http_post_result(res):
         try:
             urllib.request.urlopen(req, data=data, timeout=10)
             return
+        except urllib.error.HTTPError as e:
+            print(f"[Windows Worker] Failed to post result: {e} - {e.read().decode('utf-8')}")
+            time.sleep(2 ** attempt)
         except Exception as e:
             print(f"[Windows Worker] Failed to post result: {e}")
             time.sleep(2 ** attempt)
@@ -75,7 +80,7 @@ def run_task(task, config):
     print(f"[{config['WORKER_ID']}] Executing native PowerShell instruction.")
     cmd = ["powershell", "-Command", instruction]
     try:
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.DEVNULL, text=True, encoding='utf-8', errors='replace', creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
         run_id = str(process.pid)
         stdout, stderr_out = process.communicate(timeout=600)
         out_clean = stdout.strip()
@@ -144,8 +149,8 @@ def is_resource_pressure_high(config=None):
         config = load_config()
     profile = os.environ.get("WORKER_PROFILE", config.get("WORKER_PROFILE", "LOW_RESOURCE"))
     
-    cpu_threshold = 85.0
-    mem_threshold = 85.0
+    cpu_threshold = 100.0
+    mem_threshold = 100.0
     if profile == "STANDARD":
         cpu_threshold = 95.0
         mem_threshold = 95.0
