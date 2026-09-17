@@ -213,7 +213,6 @@ subprocess.run([
     "--expected-revision", str(action["REVISION"]),
     "--updated-by", "session-b",
     "--set", "STATUS=VALIDATING",
-    "--set", 'PROVEN_EDGES=["issue state","worker state round-trip"]',
 ], check=True, capture_output=True, text=True)
 """
             subprocess.run(
@@ -311,9 +310,11 @@ subprocess.run([
             ledger_module.validate_guard(provisional)
 
         accepted = guard(transition_state="CANONICAL_ACCEPTED")
-        ledger_module.validate_guard(accepted)
-        self.assertEqual(accepted["acceptance_predicate"]["version"], "1")
-        self.assertEqual(accepted["evidence"][0]["validity"], "VALID")
+        with self.assertRaisesRegex(
+            ledger_module.LedgerError,
+            "no authenticated independent evidence-admission authority",
+        ):
+            ledger_module.validate_guard(accepted)
 
     def test_valid_machine_artifact_requires_independent_identities(self):
         missing = guard(transition_state="CANONICAL_ACCEPTED")
@@ -461,48 +462,32 @@ subprocess.run([
             landed["acceptance_predicate"]["results"]["RUNTIME_ARTIFACT"][
                 "evidence_urls"
             ] = [proof["source_url"]]
-            after_landing = ledger_module.update(
-                ledger,
-                bundle["revision"],
-                {"UNPROVEN_EDGES": []},
-                "foreign-worker",
-                1.0,
-                landed,
-            )
+            with self.assertRaisesRegex(
+                ledger_module.LedgerError,
+                "cannot admit VALID MACHINE_ARTIFACT",
+            ):
+                ledger_module.update(
+                    ledger,
+                    bundle["revision"],
+                    {"UNPROVEN_EDGES": []},
+                    "foreign-worker",
+                    1.0,
+                    landed,
+                )
+            unchanged = ledger_module.load_bundle(ledger)
+            self.assertEqual(unchanged["revision"], bundle["revision"])
             self.assertEqual(
-                after_landing["acceptance_guard"]["transition_state"],
+                unchanged["acceptance_guard"]["transition_state"],
                 "PROVISIONAL",
             )
-            self.assertNotEqual(after_landing["record"]["CLEAN_IDLE"], "YES")
-            followed = ledger_module.update(
-                ledger,
-                after_landing["revision"],
-                {"TASKS_COMPLETED": 3},
-                "another-worker",
-                1.0,
+            self.assertEqual(
+                unchanged["record"]["QUEUE_INDEPENDENT"],
+                bundle["record"]["QUEUE_INDEPENDENT"],
             )
             self.assertEqual(
-                followed["acceptance_guard"]["transition_state"],
-                "PROVISIONAL",
+                unchanged["record"]["CLEAN_IDLE"],
+                bundle["record"]["CLEAN_IDLE"],
             )
-            self.assertEqual(followed["record"]["QUEUE_INDEPENDENT"], "NO")
-            self.assertEqual(followed["record"]["CLEAN_IDLE"], "NO")
-            self.assertEqual(
-                followed["record"]["STATUS"], "WAITING_ACCEPTANCE_GUARD"
-            )
-
-            later = ledger_module.update(
-                ledger,
-                followed["revision"],
-                {"TASKS_COMPLETED": 4},
-                "third-worker",
-                1.0,
-            )
-            self.assertEqual(
-                later["acceptance_guard"]["transition_state"], "PROVISIONAL"
-            )
-            self.assertEqual(later["record"]["QUEUE_INDEPENDENT"], "NO")
-            self.assertEqual(later["record"]["CLEAN_IDLE"], "NO")
 
 
     def test_reject_copied_proof_with_different_sha(self):
@@ -638,37 +623,27 @@ subprocess.run([
             ledger = Path(temporary) / "ledger.json"
             initialize(ledger)
             bundle = ledger_module.load_bundle(ledger)
-            seeded = ledger_module.update(
-                ledger,
-                bundle["revision"],
-                {
-                    "PROVEN_EDGES": [
-                        "SALES PACKAGE",
-                        "POST-PILOT HARDENING",
-                        "RELEASE",
-                    ]
-                },
-                "probe-worker",
-                1.0,
-            )
-            # Without bound physical proof the stale-proof rule must refuse
-            # to keep bare external names in PROVEN_EDGES.
-            updated = ledger_module.update(
-                ledger,
-                seeded["revision"],
-                {"TASKS_COMPLETED": 3},
-                "probe-worker",
-                1.0,
-                seeded["acceptance_guard"],
-            )
-            self.assertNotIn("SALES PACKAGE", updated["record"]["PROVEN_EDGES"])
-            self.assertNotIn(
-                "POST-PILOT HARDENING", updated["record"]["PROVEN_EDGES"]
-            )
-            self.assertNotIn("RELEASE", updated["record"]["PROVEN_EDGES"])
-            self.assertIn("SALES PACKAGE", updated["record"]["UNPROVEN_EDGES"])
+            with self.assertRaisesRegex(
+                ledger_module.LedgerError, "cannot promote PROVEN_EDGES"
+            ):
+                ledger_module.update(
+                    ledger,
+                    bundle["revision"],
+                    {
+                        "PROVEN_EDGES": [
+                            "SALES PACKAGE",
+                            "POST-PILOT HARDENING",
+                            "RELEASE",
+                        ]
+                    },
+                    "probe-worker",
+                    1.0,
+                )
+            unchanged = ledger_module.load_bundle(ledger)
+            self.assertEqual(unchanged["revision"], bundle["revision"])
             self.assertEqual(
-                updated["acceptance_guard"]["transition_state"], "PROVISIONAL"
+                unchanged["record"]["PROVEN_EDGES"],
+                bundle["record"]["PROVEN_EDGES"],
             )
 
     def test_concurrent_readers_only_observe_valid_atomic_snapshots(self):

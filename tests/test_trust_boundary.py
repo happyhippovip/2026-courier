@@ -5,6 +5,150 @@ import shutil
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.resolve()))
 from scripts.agent_handoff_ledger import update, LedgerError
+from scripts import agent_handoff_ledger as ledger_module
+
+
+def test_generic_writer_cannot_promote_task_name_to_proven_edge(tmp_path):
+    """Execution/task naming alone must never grow the proof frontier."""
+    ledger = tmp_path / "ledger.json"
+    from tests.test_agent_handoff_ledger import initialize
+
+    initialize(ledger)
+    bundle = json.loads(ledger.read_text())
+    promoted = [*bundle["record"]["PROVEN_EDGES"], "TASK_REPORTED_SUCCESS"]
+
+    with pytest.raises(LedgerError) as exc:
+        update(
+            ledger,
+            bundle["revision"],
+            {"PROVEN_EDGES": promoted},
+            "task-executor",
+            5.0,
+        )
+
+    assert "cannot promote PROVEN_EDGES" in str(exc.value)
+    unchanged = json.loads(ledger.read_text())
+    assert unchanged["record"]["PROVEN_EDGES"] == bundle["record"]["PROVEN_EDGES"]
+
+
+def test_distinct_caller_supplied_names_do_not_admit_machine_evidence(tmp_path):
+    """Different producer/verifier labels are not an independent attestation."""
+    ledger = tmp_path / "ledger.json"
+    from tests.test_agent_handoff_ledger import initialize, guard as mock_guard
+
+    initialize(ledger)
+    bundle = json.loads(ledger.read_text())
+    guard = mock_guard(
+        sha=bundle["record"]["CURRENT_SHA"],
+        runtime_identity=bundle["record"]["RUNTIME_IDENTITY"],
+    )
+    guard["evidence"].append({
+        "source_url": "https://example.com/caller-manufactured-artifact",
+        "source_type": "MACHINE_ARTIFACT",
+        "observed_at": "2026-09-17T12:00:00Z",
+        "evidence_sha": guard["binding"]["current_sha"],
+        "runtime_binding": guard["binding"]["runtime_identity"],
+        "validity": "VALID",
+        "reason": "syntactically valid but unauthenticated",
+        "producer_id": "claimed-physical-producer",
+        "verifier_id": "claimed-independent-verifier",
+    })
+
+    with pytest.raises(LedgerError) as exc:
+        update(
+            ledger,
+            bundle["revision"],
+            {"STATUS": "DONE"},
+            "third-name-ledger-writer",
+            5.0,
+            guard,
+        )
+
+    assert "cannot admit VALID MACHINE_ARTIFACT" in str(exc.value)
+    assert json.loads(ledger.read_text())["revision"] == bundle["revision"]
+
+
+def test_removed_machine_evidence_cannot_be_replayed_later(tmp_path):
+    """A later update cannot launder a prior caller-created artifact."""
+    ledger = tmp_path / "ledger.json"
+    from tests.test_agent_handoff_ledger import initialize, guard as mock_guard
+
+    initialize(ledger)
+    bundle = json.loads(ledger.read_text())
+    artifact = {
+        "source_url": "https://example.com/replayed-artifact",
+        "source_type": "MACHINE_ARTIFACT",
+        "observed_at": "2026-09-17T12:00:00Z",
+        "evidence_sha": bundle["record"]["CURRENT_SHA"],
+        "runtime_binding": bundle["record"]["RUNTIME_IDENTITY"],
+        "validity": "VALID",
+        "reason": "replayed",
+        "producer_id": "producer-a",
+        "verifier_id": "verifier-b",
+    }
+
+    first_guard = mock_guard(
+        sha=bundle["record"]["CURRENT_SHA"],
+        runtime_identity=bundle["record"]["RUNTIME_IDENTITY"],
+    )
+    first_guard["evidence"].append(artifact)
+    with pytest.raises(LedgerError):
+        update(
+            ledger,
+            bundle["revision"],
+            {"STATUS": "READY"},
+            "writer-c",
+            5.0,
+            first_guard,
+        )
+
+    # The rejected update is atomic, so the same artifact remains new and is
+    # rejected again instead of aging into trusted evidence.
+    current = json.loads(ledger.read_text())
+    second_guard = mock_guard(
+        sha=current["record"]["CURRENT_SHA"],
+        runtime_identity=current["record"]["RUNTIME_IDENTITY"],
+    )
+    second_guard["evidence"].append(artifact)
+    with pytest.raises(LedgerError):
+        update(
+            ledger,
+            current["revision"],
+            {"STATUS": "BLOCKED"},
+            "writer-d",
+            5.0,
+            second_guard,
+        )
+    assert json.loads(ledger.read_text())["revision"] == bundle["revision"]
+
+
+def test_manually_rehashed_canonical_bundle_is_not_a_trust_root(tmp_path):
+    """Valid JSON and internally consistent hashes cannot certify reality."""
+    ledger = tmp_path / "ledger.json"
+    from tests.test_agent_handoff_ledger import initialize, guard as mock_guard
+
+    initialize(ledger)
+    bundle = json.loads(ledger.read_text())
+    canonical = mock_guard(
+        sha=bundle["record"]["CURRENT_SHA"],
+        runtime_identity=bundle["record"]["RUNTIME_IDENTITY"],
+        transition_state="CANONICAL_ACCEPTED",
+    )
+    bundle["acceptance_guard"] = canonical
+    latest = bundle["history"][-1]
+    latest["acceptance_guard"] = canonical
+    latest["state_sha256"] = ledger_module.digest({
+        "record": latest["record"],
+        "acceptance_guard": canonical,
+    })
+    latest["entry_sha256"] = ledger_module._entry_hash(latest)
+
+    with pytest.raises(LedgerError) as exc:
+        ledger_module.validate_bundle(bundle)
+
+    assert "no authenticated independent evidence-admission authority" in str(
+        exc.value
+    )
 
 def test_reject_caller_created_evidence(tmp_path):
     ledger = tmp_path / "ledger.json"

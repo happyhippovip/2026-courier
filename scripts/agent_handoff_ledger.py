@@ -79,6 +79,10 @@ FLOW = [
     "NEXT_EXECUTABLE_ACTION",
 ]
 TRANSITION_STATES = {"PROVISIONAL", "CANONICAL_ACCEPTED"}
+# No authenticated external evidence-admission service exists in this
+# repository.  Distinct caller-supplied identity strings are not a trust root.
+# Keep canonical acceptance unavailable until such an attester is real.
+AUTHENTICATED_EVIDENCE_ADMISSION_AVAILABLE = False
 EVIDENCE_VALIDITY = {"VALID", "STALE", "UNKNOWN"}
 EVIDENCE_SOURCE_TYPES = {
     "GITHUB_PULL_REQUEST",
@@ -337,6 +341,14 @@ def validate_guard(guard: Any) -> None:
         for item in evidence
     ):
         raise LedgerError("CANONICAL_ACCEPTED requires a valid bound machine artifact")
+    if (
+        guard["transition_state"] == "CANONICAL_ACCEPTED"
+        and not AUTHENTICATED_EVIDENCE_ADMISSION_AVAILABLE
+    ):
+        raise LedgerError(
+            "CANONICAL_ACCEPTED is unavailable: no authenticated independent "
+            "evidence-admission authority is configured"
+        )
 
 
 def validate_guard_binding(record: dict[str, Any], guard: dict[str, Any]) -> None:
@@ -631,13 +643,13 @@ def _history_entry(
 def initialize(
     path: Path, record: dict[str, Any], guard: dict[str, Any], timeout: float
 ) -> dict[str, Any]:
-    validate_record(record, allow_unknown_sha=True)
-    validate_guard(guard)
-    validate_guard_binding(record, guard)
-    if guard["transition_state"] == "CANONICAL_ACCEPTED":
+    if guard.get("transition_state") == "CANONICAL_ACCEPTED":
         raise LedgerError(
             "ledger initialization cannot create an authoritative acceptance verdict"
         )
+    validate_record(record, allow_unknown_sha=True)
+    validate_guard(guard)
+    validate_guard_binding(record, guard)
     with writer_lock(path, timeout):
         if path.exists():
             raise LedgerError(f"ledger already exists: {path}")
@@ -698,6 +710,22 @@ def update(
         if record["LAST_UPDATED_BY"] != updated_by:
             record["LAST_UPDATED_BY"] = updated_by
             changed.append("LAST_UPDATED_BY")
+
+        # The generic coordination-ledger writer is not an evidence admission
+        # authority.  In particular, a caller cannot turn its own successful
+        # execution (or a task name) into a newly proven edge.  Until an
+        # authenticated, independently operated attester exists, proof
+        # promotion must fail closed.  Existing edges may be retained or
+        # demoted so stale/invalid state can still be repaired safely.
+        added_proven_edges = set(record["PROVEN_EDGES"]) - set(
+            bundle["record"]["PROVEN_EDGES"]
+        )
+        if added_proven_edges:
+            raise LedgerError(
+                "generic ledger update cannot promote PROVEN_EDGES; "
+                "independent authenticated evidence admission is required: "
+                f"{sorted(added_proven_edges)}"
+            )
         validate_record(record, allow_unknown_sha=False)
         if guard is None:
             if bundle["schema_version"] == 1:
@@ -775,7 +803,12 @@ def update(
 
         guard_changed = guard != bundle.get("acceptance_guard")
         if guard_changed:
-            # Enforce independent producer/verifier boundary
+            # Enforce the evidence-admission trust boundary.  Merely supplying
+            # different producer/verifier strings is not proof of independent
+            # processes, authority, artifact bytes, or freshness.  This generic
+            # update API therefore cannot admit a new VALID machine artifact at
+            # all.  A future authenticated attester needs a separate, narrowly
+            # scoped admission path; until then we fail closed truthfully.
             old_evidence = bundle.get("acceptance_guard", {}).get("evidence", [])
             new_evidence = guard.get("evidence", [])
             for e in new_evidence:
@@ -797,6 +830,12 @@ def update(
                             raise LedgerError("unverifiable producer or verifier in MACHINE_ARTIFACT evidence")
                         if e["producer_id"] == e["verifier_id"] or e["producer_id"] == "arbitrary" or e["verifier_id"] == "arbitrary":
                             raise LedgerError("evidence produced by the acceptance decision path itself or uses arbitrary strings")
+                        if e.get("validity") == "VALID":
+                            raise LedgerError(
+                                "generic ledger update cannot admit VALID "
+                                "MACHINE_ARTIFACT evidence; authenticated independent "
+                                "attestation is required"
+                            )
             
         if not changed and not guard_changed:
             print(f"DEBUG NO CHANGE: updates={updates} | record={bundle['record']}")
