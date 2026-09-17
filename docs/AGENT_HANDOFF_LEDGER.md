@@ -9,12 +9,30 @@ verification, queue, Motor, or daemon authority.
 
 The ledger is one JSON bundle conforming to
 `schemas/agent_handoff_ledger.schema.json`. It contains the current record,
-schema version, optimistic revision, the non-authority declaration, and a
-hash-chained audit entry for every revision. Keeping record and history in one
-bundle prevents readers from observing a committed record without its history.
+schema version, optimistic revision, a versioned acceptance guard, the
+non-authority declaration, and a hash-chained audit entry for every revision.
+Keeping record, guard, and history in one bundle prevents readers from
+observing a committed transition without its evidence decision.
 Each audit entry includes the complete record snapshot and its SHA-256 digest,
-so every transition can be inspected and validated without reconstructing old
-state.
+and schema-version-2 entries also include the complete guard snapshot and
+combined state digest. Existing schema-version-1 history entries remain
+byte-for-byte preserved when the first guarded update upgrades a ledger.
+
+The guard records:
+
+- evidence source URL/type, observation time, exact SHA/runtime binding,
+  validity, and reason;
+- acceptance predicate name/version and every required predicate result;
+- `PROVISIONAL` or `CANONICAL_ACCEPTED` transition state;
+- `WORKER_STATE`; and
+- the explicit flow `EXECUTION -> EVIDENCE -> ACCEPTANCE_GUARD ->
+  LEDGER_TRANSITION -> NEXT_EXECUTABLE_ACTION`.
+
+`CANONICAL_ACCEPTED` fails validation unless every required predicate is
+`PASS`, every PASS cites evidence in the guard, and that evidence is `VALID`
+and bound to the exact current SHA and runtime identity. Issue closure or a
+narrative PASS can therefore be stored as provenance without becoming runtime
+acceptance.
 
 Writers take a bounded advisory lock at `<ledger>.lock`, re-read and validate
 the bundle under that lock, require the caller's expected revision, then write
@@ -35,7 +53,8 @@ Create a complete record (all canonical uppercase fields are required):
 
 ```bash
 python3 scripts/agent_handoff_ledger.py init path/to/ledger.json \
-  --record path/to/record.json
+  --record path/to/record.json \
+  --guard path/to/acceptance-guard.json
 ```
 
 Read canonical JSON or deterministic text:
@@ -52,6 +71,7 @@ Apply a partial update without replacing unrelated fields:
 python3 scripts/agent_handoff_ledger.py update path/to/ledger.json \
   --expected-revision 0 \
   --updated-by session-b \
+  --guard path/to/replacement-guard.json \
   --set 'STATUS=IN_PROGRESS' \
   --set 'TASKS_COMPLETED=7'
 ```
@@ -60,7 +80,24 @@ Values are parsed as JSON when possible, so arrays and `null` use JSON syntax.
 A stale expected revision or busy lock exits nonzero without changing the
 ledger. `CURRENT_SHA` must be a lowercase full 40-character Git SHA; `UNKNOWN`
 is accepted only for revision-zero initialization and must be replaced before
-the first update.
+the first update. A schema-version-1 ledger requires `--guard` on its next
+update; that atomic update advances the format to schema version 2.
+
+Before trusting a checkpoint, compare it with explicit authoritative
+observations. The core CLI performs no network calls:
+
+```bash
+python3 scripts/agent_handoff_ledger.py freshness path/to/ledger.json \
+  --observed-branch release-candidate-integration \
+  --observed-sha 0123456789abcdef0123456789abcdef01234567 \
+  --observed-issue-state CLOSED \
+  --observed-evidence-url https://github.com/owner/repo/issues/37
+```
+
+Staleness exits `3` and returns machine-readable reasons with
+`NEXT_ACTION_ALLOWED=false`. Legacy unguarded ledgers are stale by definition.
+Missing guard state also makes `next-action` exit nonzero, preventing an old
+completed-work instruction from reaching a foreign session.
 
 Give a new session only the ledger path, then retrieve its self-contained work:
 
@@ -70,7 +107,10 @@ python3 scripts/agent_handoff_ledger.py next-action path/to/ledger.json
 
 The output includes `NEXT_EXECUTABLE_ACTION`, blocker and owner, exact SHA,
 branch, runtime identity, status, continuation checkpoint, revision, and the
-non-authority declaration.
+non-authority declaration. It also includes transition state, worker state,
+flow, and the complete versioned acceptance predicate. A `PROVISIONAL`
+transition may direct Session B only to the recorded validation blocker; it
+does not claim canonical acceptance.
 
 ## Secret boundary
 
@@ -82,6 +122,9 @@ Store durable evidence as `https://` URLs, never embedded credentials.
 ## Tracked example
 
 `examples/agent_handoff_ledger.json` is a coordination-only snapshot generated
-with the CLI from durable Issue #37 evidence. Unknown counters remain `null`;
-the example does not upgrade an Issue report into observed runtime truth or
-supersede canonical Courier state.
+with the CLI from current PR #39 and closed Issue #37 evidence. Unknown runtime
+properties and counters remain `UNKNOWN`/`null`; the transition remains
+`PROVISIONAL` until machine-verifiable evidence is bound to the exact release
+SHA/runtime and every required predicate passes. The example does not upgrade
+an Issue report into observed runtime truth or supersede canonical Courier
+state.

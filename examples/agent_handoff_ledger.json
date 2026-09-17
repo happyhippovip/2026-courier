@@ -1,4 +1,116 @@
 {
+  "acceptance_guard": {
+    "acceptance_predicate": {
+      "name": "courier-physical-acceptance",
+      "required_results": [
+        "CURRENT_RELEASE_SHA",
+        "ISSUE_STATE",
+        "OS_OWNED_RUNTIME",
+        "EXACT_SHA_RUNTIME_BINDING",
+        "PHYSICAL_ACCEPTANCE_COUNTERS"
+      ],
+      "results": {
+        "CURRENT_RELEASE_SHA": {
+          "evidence_urls": [
+            "https://github.com/happyhippovip/2026-courier/pull/39",
+            "https://github.com/happyhippovip/2026-courier/commit/57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7"
+          ],
+          "observed_value": "57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7",
+          "status": "PASS"
+        },
+        "EXACT_SHA_RUNTIME_BINDING": {
+          "evidence_urls": [
+            "https://github.com/happyhippovip/2026-courier/blob/fc48f83ddab22e570d07dbdd9ae669bbe1abce2f/.agents/checkpoints/AUTO_DISPATCH_PROOF.md"
+          ],
+          "observed_value": "NO_MACHINE_ARTIFACT_BOUND_TO_CURRENT_SHA",
+          "status": "UNKNOWN"
+        },
+        "ISSUE_STATE": {
+          "evidence_urls": [
+            "https://github.com/happyhippovip/2026-courier/issues/37"
+          ],
+          "observed_value": "CLOSED",
+          "status": "PASS"
+        },
+        "OS_OWNED_RUNTIME": {
+          "evidence_urls": [
+            "https://github.com/happyhippovip/2026-courier/blob/fc48f83ddab22e570d07dbdd9ae669bbe1abce2f/.agents/checkpoints/AUTO_DISPATCH_PROOF.md"
+          ],
+          "observed_value": "SELF_REPORTED_NOT_MACHINE_VERIFIED_AT_CURRENT_SHA",
+          "status": "UNKNOWN"
+        },
+        "PHYSICAL_ACCEPTANCE_COUNTERS": {
+          "evidence_urls": [
+            "https://github.com/happyhippovip/2026-courier/issues/37#issuecomment-5711671567"
+          ],
+          "observed_value": "UNKNOWN",
+          "status": "UNKNOWN"
+        }
+      },
+      "version": "1"
+    },
+    "binding": {
+      "branch": "release-candidate-integration",
+      "current_sha": "57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7",
+      "runtime_identity": "release-candidate-integration@57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7; live OS-owned runtime identity UNKNOWN"
+    },
+    "evidence": [
+      {
+        "evidence_sha": "57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7",
+        "observed_at": "2026-09-17T09:35:00Z",
+        "reason": "GitHub PR metadata identifies the current open draft release head.",
+        "runtime_binding": "release-candidate-integration@57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7; live OS-owned runtime identity UNKNOWN",
+        "source_type": "GITHUB_PULL_REQUEST",
+        "source_url": "https://github.com/happyhippovip/2026-courier/pull/39",
+        "validity": "VALID"
+      },
+      {
+        "evidence_sha": "57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7",
+        "observed_at": "2026-09-17T09:35:00Z",
+        "reason": "GitHub commit metadata identifies the exact release head.",
+        "runtime_binding": "release-candidate-integration@57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7; live OS-owned runtime identity UNKNOWN",
+        "source_type": "GITHUB_COMMIT",
+        "source_url": "https://github.com/happyhippovip/2026-courier/commit/57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7",
+        "validity": "VALID"
+      },
+      {
+        "evidence_sha": "57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7",
+        "observed_at": "2026-09-17T09:35:00Z",
+        "reason": "GitHub reports Issue #37 CLOSED with reason COMPLETED at 2026-09-17T08:53:33Z; closure proves issue state, not runtime acceptance.",
+        "runtime_binding": "release-candidate-integration@57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7; live OS-owned runtime identity UNKNOWN",
+        "source_type": "GITHUB_ISSUE_STATE",
+        "source_url": "https://github.com/happyhippovip/2026-courier/issues/37",
+        "validity": "VALID"
+      },
+      {
+        "evidence_sha": "bd2f85eb1ff2d1b6fe71297b90ad3150e0abc909",
+        "observed_at": "2026-09-17T09:35:00Z",
+        "reason": "The closure comment self-reports OS-owned services but supplies no machine-verifiable artifact or binding to the newer current PR head.",
+        "runtime_binding": "issue-37 self-report without machine artifact",
+        "source_type": "GITHUB_COMMENT",
+        "source_url": "https://github.com/happyhippovip/2026-courier/issues/37#issuecomment-5711671567",
+        "validity": "STALE"
+      },
+      {
+        "evidence_sha": "fc48f83ddab22e570d07dbdd9ae669bbe1abce2f",
+        "observed_at": "2026-09-17T09:35:00Z",
+        "reason": "The committed artifact records an OS Motor auto-dispatch edge, but it is not bound to the newer current PR head and does not prove all physical-acceptance predicates.",
+        "runtime_binding": "OS Motor auto-dispatch proof at fc48f83ddab22e570d07dbdd9ae669bbe1abce2f",
+        "source_type": "MACHINE_ARTIFACT",
+        "source_url": "https://github.com/happyhippovip/2026-courier/blob/fc48f83ddab22e570d07dbdd9ae669bbe1abce2f/.agents/checkpoints/AUTO_DISPATCH_PROOF.md",
+        "validity": "STALE"
+      }
+    ],
+    "flow": [
+      "EXECUTION",
+      "EVIDENCE",
+      "ACCEPTANCE_GUARD",
+      "LEDGER_TRANSITION",
+      "NEXT_EXECUTABLE_ACTION"
+    ],
+    "transition_state": "PROVISIONAL",
+    "worker_state": "READY_FOR_FOREIGN_VALIDATION"
+  },
   "format": "courier-agent-handoff-ledger",
   "history": [
     {
@@ -124,45 +236,397 @@
       "revision": 1,
       "timestamp_utc": "2026-09-17T08:33:13Z",
       "updated_by": "agent-handoff-ledger-session-a"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "courier-physical-acceptance",
+          "required_results": [
+            "CURRENT_RELEASE_SHA",
+            "ISSUE_STATE",
+            "OS_OWNED_RUNTIME",
+            "EXACT_SHA_RUNTIME_BINDING",
+            "PHYSICAL_ACCEPTANCE_COUNTERS"
+          ],
+          "results": {
+            "CURRENT_RELEASE_SHA": {
+              "evidence_urls": [
+                "https://github.com/happyhippovip/2026-courier/pull/39",
+                "https://github.com/happyhippovip/2026-courier/commit/4d7969f9ed48d2b3f3762683f1f03542de29bffd"
+              ],
+              "observed_value": "4d7969f9ed48d2b3f3762683f1f03542de29bffd",
+              "status": "PASS"
+            },
+            "EXACT_SHA_RUNTIME_BINDING": {
+              "evidence_urls": [
+                "https://github.com/happyhippovip/2026-courier/issues/37#issuecomment-5711671567"
+              ],
+              "observed_value": "NO_MACHINE_ARTIFACT_BOUND_TO_CURRENT_SHA",
+              "status": "UNKNOWN"
+            },
+            "ISSUE_STATE": {
+              "evidence_urls": [
+                "https://github.com/happyhippovip/2026-courier/issues/37"
+              ],
+              "observed_value": "CLOSED",
+              "status": "PASS"
+            },
+            "OS_OWNED_RUNTIME": {
+              "evidence_urls": [
+                "https://github.com/happyhippovip/2026-courier/issues/37#issuecomment-5711671567"
+              ],
+              "observed_value": "SELF_REPORTED_NOT_MACHINE_VERIFIED_AT_CURRENT_SHA",
+              "status": "UNKNOWN"
+            },
+            "PHYSICAL_ACCEPTANCE_COUNTERS": {
+              "evidence_urls": [
+                "https://github.com/happyhippovip/2026-courier/issues/37#issuecomment-5711671567"
+              ],
+              "observed_value": "UNKNOWN",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "4d7969f9ed48d2b3f3762683f1f03542de29bffd",
+          "runtime_identity": "release-candidate-integration@4d7969f9ed48d2b3f3762683f1f03542de29bffd; live OS-owned runtime identity UNKNOWN"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "4d7969f9ed48d2b3f3762683f1f03542de29bffd",
+            "observed_at": "2026-09-17T09:29:03Z",
+            "reason": "GitHub PR metadata identifies the current open draft release head.",
+            "runtime_binding": "release-candidate-integration@4d7969f9ed48d2b3f3762683f1f03542de29bffd; live OS-owned runtime identity UNKNOWN",
+            "source_type": "GITHUB_PULL_REQUEST",
+            "source_url": "https://github.com/happyhippovip/2026-courier/pull/39",
+            "validity": "VALID"
+          },
+          {
+            "evidence_sha": "4d7969f9ed48d2b3f3762683f1f03542de29bffd",
+            "observed_at": "2026-09-17T09:29:03Z",
+            "reason": "GitHub commit metadata identifies the exact release head.",
+            "runtime_binding": "release-candidate-integration@4d7969f9ed48d2b3f3762683f1f03542de29bffd; live OS-owned runtime identity UNKNOWN",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/4d7969f9ed48d2b3f3762683f1f03542de29bffd",
+            "validity": "VALID"
+          },
+          {
+            "evidence_sha": "4d7969f9ed48d2b3f3762683f1f03542de29bffd",
+            "observed_at": "2026-09-17T09:29:03Z",
+            "reason": "GitHub reports Issue #37 CLOSED with reason COMPLETED at 2026-09-17T08:53:33Z; closure proves issue state, not runtime acceptance.",
+            "runtime_binding": "release-candidate-integration@4d7969f9ed48d2b3f3762683f1f03542de29bffd; live OS-owned runtime identity UNKNOWN",
+            "source_type": "GITHUB_ISSUE_STATE",
+            "source_url": "https://github.com/happyhippovip/2026-courier/issues/37",
+            "validity": "VALID"
+          },
+          {
+            "evidence_sha": "bd2f85eb1ff2d1b6fe71297b90ad3150e0abc909",
+            "observed_at": "2026-09-17T09:29:03Z",
+            "reason": "The closure comment self-reports OS-owned services but supplies no machine-verifiable artifact or binding to the newer current PR head.",
+            "runtime_binding": "issue-37 self-report without machine artifact",
+            "source_type": "GITHUB_COMMENT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/issues/37#issuecomment-5711671567",
+            "validity": "STALE"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "READY_FOR_FOREIGN_VALIDATION"
+      },
+      "changed_fields": [
+        "@ACCEPTANCE_GUARD",
+        "BLOCKER_OWNER",
+        "CONTINUATION_CHECKPOINT",
+        "CURRENT_SHA",
+        "FIRST_CAUSAL_BLOCKER",
+        "LAST_EVIDENCE",
+        "LAST_UPDATED_BY",
+        "NEXT_EXECUTABLE_ACTION",
+        "PROVEN_EDGES",
+        "RUNTIME_IDENTITY",
+        "RUNTIME_OWNER",
+        "STATUS",
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "1782cacf59f257d743db1123ec969c1a9468d01e97d149696b9f4f2e63565540",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "426f520e1e37b709d0b977a379b5ad457197087a20d7518db1376c3683ceaf76",
+      "record": {
+        "ACTIVE_WRITERS": [],
+        "BLOCKER_OWNER": "FOREIGN_ACCEPTANCE_VALIDATOR",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "UNKNOWN",
+        "COLLISION_SCOPE": [],
+        "CONTINUATION_CHECKPOINT": "Revision 2 replaces the stale completed-work action with a fail-closed provisional acceptance guard. A foreign session needs only this canonical ledger location and must use expected revision 2.",
+        "CURRENT_SHA": "4d7969f9ed48d2b3f3762683f1f03542de29bffd",
+        "DUPLICATE_EXTERNAL_EFFECTS": null,
+        "FIRST_CAUSAL_BLOCKER": "No machine-verifiable physical-acceptance artifact is bound to exact current PR #39 SHA 4d7969f9ed48d2b3f3762683f1f03542de29bffd and its runtime identity.",
+        "GOAL": "Preserve an exact-SHA coordination checkpoint for independent continuation of Courier release acceptance.",
+        "GOALS_SUBMITTED": null,
+        "LAST_EVIDENCE": [
+          "https://github.com/happyhippovip/2026-courier/pull/39",
+          "https://github.com/happyhippovip/2026-courier/commit/4d7969f9ed48d2b3f3762683f1f03542de29bffd",
+          "https://github.com/happyhippovip/2026-courier/issues/37",
+          "https://github.com/happyhippovip/2026-courier/issues/37#issuecomment-5711671567"
+        ],
+        "LAST_UPDATED_BY": "agent-handoff-ledger-productization",
+        "MANUAL_PROCESS_RESTARTS": null,
+        "NEXT_EXECUTABLE_ACTION": "With only this ledger path, fetch and verify PR #39 at CURRENT_SHA, inspect the closed Issue #37 evidence URLs, locate a machine-verifiable physical-acceptance artifact bound to the same SHA/runtime, evaluate every acceptance predicate, and atomically update this ledger using expected revision 2; remain PROVISIONAL if any required predicate is UNKNOWN or FAIL.",
+        "PROJECT": "happyhippovip/2026-courier",
+        "PROVEN_EDGES": [
+          "PR #39 current head is 4d7969f9ed48d2b3f3762683f1f03542de29bffd",
+          "Issue #37 is CLOSED with reason COMPLETED",
+          "Revision 1 was deterministically detected as stale and its next action was refused"
+        ],
+        "QUEUE_INDEPENDENT": "UNKNOWN",
+        "RUNTIME_IDENTITY": "release-candidate-integration@4d7969f9ed48d2b3f3762683f1f03542de29bffd; live OS-owned runtime identity UNKNOWN",
+        "RUNTIME_OWNER": "UNKNOWN_FROM_MACHINE_VERIFIABLE_CURRENT_SHA_EVIDENCE",
+        "STATUS": "PROVISIONAL_CURRENT_SHA_ACCEPTANCE_VALIDATION_REQUIRED",
+        "TASKS_COMPLETED": null,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": null,
+        "UNPROVEN_EDGES": [
+          "OS-owned runtime identity at the current SHA",
+          "Machine-verifiable exact-SHA physical acceptance artifact",
+          "Required task, worker, continuation, restart, duplicate-effect, process-cleanup, queue-independence, and CLEAN_IDLE counters"
+        ],
+        "USER_CONTINUE_MESSAGES": null,
+        "WORKERS_USED": null
+      },
+      "record_sha256": "11ad9bfbf354957f8b33313dcadad94a3f1829d1809083205477c97a40d5e39f",
+      "revision": 2,
+      "state_sha256": "b260f741efb0977aac54b9fb49b55b01e659ec518eee53bccfc46d55603618bc",
+      "timestamp_utc": "2026-09-17T09:34:40Z",
+      "updated_by": "agent-handoff-ledger-productization"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "courier-physical-acceptance",
+          "required_results": [
+            "CURRENT_RELEASE_SHA",
+            "ISSUE_STATE",
+            "OS_OWNED_RUNTIME",
+            "EXACT_SHA_RUNTIME_BINDING",
+            "PHYSICAL_ACCEPTANCE_COUNTERS"
+          ],
+          "results": {
+            "CURRENT_RELEASE_SHA": {
+              "evidence_urls": [
+                "https://github.com/happyhippovip/2026-courier/pull/39",
+                "https://github.com/happyhippovip/2026-courier/commit/57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7"
+              ],
+              "observed_value": "57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7",
+              "status": "PASS"
+            },
+            "EXACT_SHA_RUNTIME_BINDING": {
+              "evidence_urls": [
+                "https://github.com/happyhippovip/2026-courier/blob/fc48f83ddab22e570d07dbdd9ae669bbe1abce2f/.agents/checkpoints/AUTO_DISPATCH_PROOF.md"
+              ],
+              "observed_value": "NO_MACHINE_ARTIFACT_BOUND_TO_CURRENT_SHA",
+              "status": "UNKNOWN"
+            },
+            "ISSUE_STATE": {
+              "evidence_urls": [
+                "https://github.com/happyhippovip/2026-courier/issues/37"
+              ],
+              "observed_value": "CLOSED",
+              "status": "PASS"
+            },
+            "OS_OWNED_RUNTIME": {
+              "evidence_urls": [
+                "https://github.com/happyhippovip/2026-courier/blob/fc48f83ddab22e570d07dbdd9ae669bbe1abce2f/.agents/checkpoints/AUTO_DISPATCH_PROOF.md"
+              ],
+              "observed_value": "SELF_REPORTED_NOT_MACHINE_VERIFIED_AT_CURRENT_SHA",
+              "status": "UNKNOWN"
+            },
+            "PHYSICAL_ACCEPTANCE_COUNTERS": {
+              "evidence_urls": [
+                "https://github.com/happyhippovip/2026-courier/issues/37#issuecomment-5711671567"
+              ],
+              "observed_value": "UNKNOWN",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7",
+          "runtime_identity": "release-candidate-integration@57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7; live OS-owned runtime identity UNKNOWN"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7",
+            "observed_at": "2026-09-17T09:35:00Z",
+            "reason": "GitHub PR metadata identifies the current open draft release head.",
+            "runtime_binding": "release-candidate-integration@57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7; live OS-owned runtime identity UNKNOWN",
+            "source_type": "GITHUB_PULL_REQUEST",
+            "source_url": "https://github.com/happyhippovip/2026-courier/pull/39",
+            "validity": "VALID"
+          },
+          {
+            "evidence_sha": "57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7",
+            "observed_at": "2026-09-17T09:35:00Z",
+            "reason": "GitHub commit metadata identifies the exact release head.",
+            "runtime_binding": "release-candidate-integration@57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7; live OS-owned runtime identity UNKNOWN",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7",
+            "validity": "VALID"
+          },
+          {
+            "evidence_sha": "57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7",
+            "observed_at": "2026-09-17T09:35:00Z",
+            "reason": "GitHub reports Issue #37 CLOSED with reason COMPLETED at 2026-09-17T08:53:33Z; closure proves issue state, not runtime acceptance.",
+            "runtime_binding": "release-candidate-integration@57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7; live OS-owned runtime identity UNKNOWN",
+            "source_type": "GITHUB_ISSUE_STATE",
+            "source_url": "https://github.com/happyhippovip/2026-courier/issues/37",
+            "validity": "VALID"
+          },
+          {
+            "evidence_sha": "bd2f85eb1ff2d1b6fe71297b90ad3150e0abc909",
+            "observed_at": "2026-09-17T09:35:00Z",
+            "reason": "The closure comment self-reports OS-owned services but supplies no machine-verifiable artifact or binding to the newer current PR head.",
+            "runtime_binding": "issue-37 self-report without machine artifact",
+            "source_type": "GITHUB_COMMENT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/issues/37#issuecomment-5711671567",
+            "validity": "STALE"
+          },
+          {
+            "evidence_sha": "fc48f83ddab22e570d07dbdd9ae669bbe1abce2f",
+            "observed_at": "2026-09-17T09:35:00Z",
+            "reason": "The committed artifact records an OS Motor auto-dispatch edge, but it is not bound to the newer current PR head and does not prove all physical-acceptance predicates.",
+            "runtime_binding": "OS Motor auto-dispatch proof at fc48f83ddab22e570d07dbdd9ae669bbe1abce2f",
+            "source_type": "MACHINE_ARTIFACT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/blob/fc48f83ddab22e570d07dbdd9ae669bbe1abce2f/.agents/checkpoints/AUTO_DISPATCH_PROOF.md",
+            "validity": "STALE"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "READY_FOR_FOREIGN_VALIDATION"
+      },
+      "changed_fields": [
+        "@ACCEPTANCE_GUARD",
+        "CONTINUATION_CHECKPOINT",
+        "CURRENT_SHA",
+        "FIRST_CAUSAL_BLOCKER",
+        "LAST_EVIDENCE",
+        "NEXT_EXECUTABLE_ACTION",
+        "PROVEN_EDGES",
+        "RUNTIME_IDENTITY",
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "7f9327700519ffb331b47c18e610ba838199048f7d895256c6fb38cae2108e32",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "1782cacf59f257d743db1123ec969c1a9468d01e97d149696b9f4f2e63565540",
+      "record": {
+        "ACTIVE_WRITERS": [],
+        "BLOCKER_OWNER": "FOREIGN_ACCEPTANCE_VALIDATOR",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "UNKNOWN",
+        "COLLISION_SCOPE": [],
+        "CONTINUATION_CHECKPOINT": "Revision 3 supersedes revision 2 after live PR #39 SHA drift. The guarded transition remains PROVISIONAL; a foreign session needs only this canonical ledger location and must use expected revision 3.",
+        "CURRENT_SHA": "57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7",
+        "DUPLICATE_EXTERNAL_EFFECTS": null,
+        "FIRST_CAUSAL_BLOCKER": "Available physical and auto-dispatch evidence is not machine-verifiably bound to exact current PR #39 SHA 57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7 and its live runtime identity.",
+        "GOAL": "Preserve an exact-SHA coordination checkpoint for independent continuation of Courier release acceptance.",
+        "GOALS_SUBMITTED": null,
+        "LAST_EVIDENCE": [
+          "https://github.com/happyhippovip/2026-courier/pull/39",
+          "https://github.com/happyhippovip/2026-courier/commit/57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7",
+          "https://github.com/happyhippovip/2026-courier/issues/37",
+          "https://github.com/happyhippovip/2026-courier/issues/37#issuecomment-5711671567",
+          "https://github.com/happyhippovip/2026-courier/blob/fc48f83ddab22e570d07dbdd9ae669bbe1abce2f/.agents/checkpoints/AUTO_DISPATCH_PROOF.md"
+        ],
+        "LAST_UPDATED_BY": "agent-handoff-ledger-productization",
+        "MANUAL_PROCESS_RESTARTS": null,
+        "NEXT_EXECUTABLE_ACTION": "With only this ledger path, fetch and verify PR #39 at CURRENT_SHA, inspect the closed Issue #37 evidence and committed auto-dispatch proof, locate or produce a machine-verifiable full physical-acceptance artifact bound to the same SHA/runtime, evaluate every acceptance predicate, and atomically update this ledger using expected revision 3; remain PROVISIONAL if any required predicate is UNKNOWN or FAIL.",
+        "PROJECT": "happyhippovip/2026-courier",
+        "PROVEN_EDGES": [
+          "PR #39 current head is 57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7",
+          "Issue #37 is CLOSED with reason COMPLETED",
+          "Revision 1 and revision 2 SHA drift were deterministically detected and their bound actions refused",
+          "A committed auto-dispatch proof artifact exists at fc48f83ddab22e570d07dbdd9ae669bbe1abce2f"
+        ],
+        "QUEUE_INDEPENDENT": "UNKNOWN",
+        "RUNTIME_IDENTITY": "release-candidate-integration@57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7; live OS-owned runtime identity UNKNOWN",
+        "RUNTIME_OWNER": "UNKNOWN_FROM_MACHINE_VERIFIABLE_CURRENT_SHA_EVIDENCE",
+        "STATUS": "PROVISIONAL_CURRENT_SHA_ACCEPTANCE_VALIDATION_REQUIRED",
+        "TASKS_COMPLETED": null,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": null,
+        "UNPROVEN_EDGES": [
+          "OS-owned runtime identity at exact current SHA 57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7",
+          "Machine-verifiable full physical acceptance artifact bound to the exact current SHA/runtime",
+          "Required task, worker, continuation, restart, duplicate-effect, process-cleanup, queue-independence, and CLEAN_IDLE counters at the exact current SHA"
+        ],
+        "USER_CONTINUE_MESSAGES": null,
+        "WORKERS_USED": null
+      },
+      "record_sha256": "0e3b28dc28f8827644816fae26042a6206dba5c045adcc771f890dec2af3da25",
+      "revision": 3,
+      "state_sha256": "aa15eaff6bb09bf26186f315d7bfa1898b7cc89d0eb882a2c88c4666069fb6f7",
+      "timestamp_utc": "2026-09-17T09:36:57Z",
+      "updated_by": "agent-handoff-ledger-productization"
     }
   ],
   "non_authority": "Coordination metadata only; this ledger has no scheduler, runtime, execution, dispatch, verification, or Courier truth authority.",
   "record": {
     "ACTIVE_WRITERS": [],
-    "BLOCKER_OWNER": "NEXT_ACCEPTANCE_REVIEWER",
+    "BLOCKER_OWNER": "FOREIGN_ACCEPTANCE_VALIDATOR",
     "BRANCH": "release-candidate-integration",
     "CLEAN_IDLE": "UNKNOWN",
     "COLLISION_SCOPE": [],
-    "CONTINUATION_CHECKPOINT": "Revision 1 closes the ledger writer lane. Session B needs only this file path and must use expected revision 1 for its first update.",
-    "CURRENT_SHA": "bd2f85eb1ff2d1b6fe71297b90ad3150e0abc909",
+    "CONTINUATION_CHECKPOINT": "Revision 3 supersedes revision 2 after live PR #39 SHA drift. The guarded transition remains PROVISIONAL; a foreign session needs only this canonical ledger location and must use expected revision 3.",
+    "CURRENT_SHA": "57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7",
     "DUPLICATE_EXTERNAL_EFFECTS": null,
-    "FIRST_CAUSAL_BLOCKER": "NONE_REPORTED_IN_LATEST_ISSUE_37_EVIDENCE",
+    "FIRST_CAUSAL_BLOCKER": "Available physical and auto-dispatch evidence is not machine-verifiably bound to exact current PR #39 SHA 57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7 and its live runtime identity.",
     "GOAL": "Preserve an exact-SHA coordination checkpoint for independent continuation of Courier release acceptance.",
     "GOALS_SUBMITTED": null,
     "LAST_EVIDENCE": [
-      "https://github.com/happyhippovip/2026-courier/issues/37#issuecomment-5711022644",
-      "https://github.com/happyhippovip/2026-courier/commit/bd2f85eb1ff2d1b6fe71297b90ad3150e0abc909"
+      "https://github.com/happyhippovip/2026-courier/pull/39",
+      "https://github.com/happyhippovip/2026-courier/commit/57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7",
+      "https://github.com/happyhippovip/2026-courier/issues/37",
+      "https://github.com/happyhippovip/2026-courier/issues/37#issuecomment-5711671567",
+      "https://github.com/happyhippovip/2026-courier/blob/fc48f83ddab22e570d07dbdd9ae669bbe1abce2f/.agents/checkpoints/AUTO_DISPATCH_PROOF.md"
     ],
-    "LAST_UPDATED_BY": "agent-handoff-ledger-session-a",
+    "LAST_UPDATED_BY": "agent-handoff-ledger-productization",
     "MANUAL_PROCESS_RESTARTS": null,
-    "NEXT_EXECUTABLE_ACTION": "Fetch origin/release-candidate-integration, verify it still resolves to CURRENT_SHA, read LAST_EVIDENCE, inspect live OS ownership and canonical state, then update this ledger with observed counters and durable evidence using the current expected revision.",
+    "NEXT_EXECUTABLE_ACTION": "With only this ledger path, fetch and verify PR #39 at CURRENT_SHA, inspect the closed Issue #37 evidence and committed auto-dispatch proof, locate or produce a machine-verifiable full physical-acceptance artifact bound to the same SHA/runtime, evaluate every acceptance predicate, and atomically update this ledger using expected revision 3; remain PROVISIONAL if any required predicate is UNKNOWN or FAIL.",
     "PROJECT": "happyhippovip/2026-courier",
     "PROVEN_EDGES": [
-      "origin/release-candidate-integration resolved to bd2f85eb1ff2d1b6fe71297b90ad3150e0abc909 when this ledger was created",
-      "The newest durable Issue #37 comment reports physical acceptance pass and queue independence at the same exact SHA"
+      "PR #39 current head is 57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7",
+      "Issue #37 is CLOSED with reason COMPLETED",
+      "Revision 1 and revision 2 SHA drift were deterministically detected and their bound actions refused",
+      "A committed auto-dispatch proof artifact exists at fc48f83ddab22e570d07dbdd9ae669bbe1abce2f"
     ],
     "QUEUE_INDEPENDENT": "UNKNOWN",
-    "RUNTIME_IDENTITY": "Issue #37 reports canonical OS-owned Central server, independent verifier, and Mac launchd worker; this ledger lane did not observe the live processes.",
-    "RUNTIME_OWNER": "CENTRAL/MAC operators named by Issue #37 evidence",
-    "STATUS": "ISSUE_REPORTED_PHYSICAL_ACCEPTANCE_PASS",
+    "RUNTIME_IDENTITY": "release-candidate-integration@57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7; live OS-owned runtime identity UNKNOWN",
+    "RUNTIME_OWNER": "UNKNOWN_FROM_MACHINE_VERIFIABLE_CURRENT_SHA_EVIDENCE",
+    "STATUS": "PROVISIONAL_CURRENT_SHA_ACCEPTANCE_VALIDATION_REQUIRED",
     "TASKS_COMPLETED": null,
     "TEMP_TASK_PROCESSES_AFTER_DONE": null,
     "UNPROVEN_EDGES": [
-      "Live runtime ownership and acceptance counters were not independently observed by this coordination-only ledger lane"
+      "OS-owned runtime identity at exact current SHA 57a8a0f82763c52dff9ef65bdb0ad78fd131e5b7",
+      "Machine-verifiable full physical acceptance artifact bound to the exact current SHA/runtime",
+      "Required task, worker, continuation, restart, duplicate-effect, process-cleanup, queue-independence, and CLEAN_IDLE counters at the exact current SHA"
     ],
     "USER_CONTINUE_MESSAGES": null,
     "WORKERS_USED": null
   },
-  "revision": 1,
-  "schema_version": 1
+  "revision": 3,
+  "schema_version": 2
 }
