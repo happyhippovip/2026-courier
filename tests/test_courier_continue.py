@@ -86,6 +86,7 @@ def run_continue(ledger_path, mock_sha="0000000000000000000000000000000000000000
     env.update({"MOCK_SHA": mock_sha, "MOCK_BRANCH": mock_branch, "MOCK_LEDGER": str(ledger_path), "PYTHONPATH": str(repo_dir)})
     
     cmd = [sys.executable, str(script)]
+    cmd.append("--once")
     if run:
         cmd.append("--run")
         
@@ -138,7 +139,7 @@ def test_stale_ledger_fail_closed(tmp_path):
 
 def test_all_scopes_blocked_true_global_stop(tmp_path):
     ledger_path = setup_ledger(tmp_path, [], "HUMAN_REQUIRED_PUBLIC_REPO_VISIBILITY", proven_edges=["LEDGER/HANDOFF", "PR41 ACCEPTANCE", "RELEASE", "PILOT INTAKE", "SALES PACKAGE", "FIRST PILOT", "POST-PILOT HARDENING"])
-    res = subprocess.run([sys.executable, str(Path(__file__).parent.parent / "scripts" / "courier_continue.py"), "--run"], env=dict(os.environ, MOCK_LEDGER=str(ledger_path), MOCK_BRANCH="test-branch", MOCK_SHA="0000000000000000000000000000000000000000"), capture_output=True, text=True)
+    res = subprocess.run([sys.executable, str(Path(__file__).parent.parent / "scripts" / "courier_continue.py"), "--run", "--once"], env=dict(os.environ, MOCK_LEDGER=str(ledger_path), MOCK_BRANCH="test-branch", MOCK_SHA="0000000000000000000000000000000000000000"), capture_output=True, text=True)
     assert res.returncode == 0
     assert "GLOBAL STOP: CLEAN_IDLE" in res.stdout
 
@@ -152,7 +153,7 @@ def test_capability_insufficient_cannot_claim(tmp_path):
     
     repo_dir = Path(__file__).parent.parent.resolve()
     runner = repo_dir / "scripts" / "courier_continue.py"
-    res = subprocess.run([sys.executable, str(runner)], env=env, capture_output=True, text=True)
+    res = subprocess.run([sys.executable, str(runner), "--once"], env=env, capture_output=True, text=True)
     
     assert res.returncode == 0
     # Because LEDGER/HANDOFF cannot be claimed, it should fall back to an independent task it CAN claim.
@@ -192,7 +193,7 @@ def test_capability_based_routing_claims_eligible(tmp_path):
     
     repo_dir = Path(__file__).parent.parent.resolve()
     runner = repo_dir / "scripts" / "courier_continue.py"
-    res = subprocess.run([sys.executable, str(runner)], env=env, capture_output=True, text=True)
+    res = subprocess.run([sys.executable, str(runner), "--once"], env=env, capture_output=True, text=True)
     
     # It should pick PUBLICATION VERIFICATION since it's independent and matches capabilities
     assert "Prove edge: PUBLICATION VERIFICATION" in res.stdout
@@ -202,7 +203,7 @@ def test_missing_physical_proof_prevents_acceptance(tmp_path):
     ledger_path = setup_ledger(tmp_path, [], "NONE", proven_edges=["LEDGER/HANDOFF", "PR41 ACCEPTANCE", "RELEASE", "PILOT INTAKE", "SALES PACKAGE", "FIRST PILOT", "POST-PILOT HARDENING", "PUBLIC DEPLOYMENT", "PUBLICATION VERIFICATION", "PAYMENT ONLY WHEN ACTUALLY REQUIRED", "EXTERNAL_PUBLICATION", "ONBOARD_FIRST_PILOT_CUSTOMER"])
     
     # Run continue
-    res = subprocess.run([sys.executable, str(Path(__file__).parent.parent / "scripts" / "courier_continue.py"), "--run"], env=dict(os.environ, MOCK_LEDGER=str(ledger_path), MOCK_BRANCH="test-branch", MOCK_SHA="0000000000000000000000000000000000000000"), capture_output=True, text=True)
+    res = subprocess.run([sys.executable, str(Path(__file__).parent.parent / "scripts" / "courier_continue.py"), "--run", "--once"], env=dict(os.environ, MOCK_LEDGER=str(ledger_path), MOCK_BRANCH="test-branch", MOCK_SHA="0000000000000000000000000000000000000000"), capture_output=True, text=True)
     
     with open(ledger_path, "r") as f:
         data = json.load(f)
@@ -286,7 +287,7 @@ def test_valid_physical_proof_allows_acceptance(tmp_path):
     
     subprocess.run([sys.executable, str(script), "init", str(ledger_path), "--record", str(record_path), "--guard", str(guard_path)], check=True)
 
-    res = subprocess.run([sys.executable, str(Path(__file__).parent.parent / "scripts" / "courier_continue.py"), "--run"], env=dict(os.environ, MOCK_LEDGER=str(ledger_path), MOCK_BRANCH="test-branch", MOCK_SHA="0000000000000000000000000000000000000000"), capture_output=True, text=True)
+    res = subprocess.run([sys.executable, str(Path(__file__).parent.parent / "scripts" / "courier_continue.py"), "--run", "--once"], env=dict(os.environ, MOCK_LEDGER=str(ledger_path), MOCK_BRANCH="test-branch", MOCK_SHA="0000000000000000000000000000000000000000"), capture_output=True, text=True)
     
     with open(ledger_path, "r") as f:
         data = json.load(f)

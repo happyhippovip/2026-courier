@@ -92,7 +92,7 @@ def test_antigravity_continuous_queue_participation(tmp_path):
     env.update({"MOCK_SHA": "0000000000000000000000000000000000000000", "MOCK_BRANCH": "test-branch", "MOCK_LEDGER": str(ledger_path), "PYTHONPATH": str(repo_dir)})
     
     runner = repo_dir / "scripts" / "courier_continue.py"
-    res = subprocess.run([sys.executable, str(runner), "--run"], env=env, capture_output=True, text=True)
+    res = subprocess.run([sys.executable, str(runner), "--run", "--once"], env=env, capture_output=True, text=True)
     
     executions = [line for line in res.stdout.split('\n') if "Executing/Delegating task:" in line]
     

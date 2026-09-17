@@ -730,19 +730,36 @@ def update(
         changed = sorted(field for field in RECORD_FIELDS if bundle["record"][field] != record[field])
         validate_guard(guard)
         validate_guard_binding(record, guard)
+# Enforce history boundaries and reject replayed/copied proofs
+        historical_evidence = {}
+        for h in bundle.get("history", []):
+            for e in h.get("acceptance_guard", {}).get("evidence", []):
+                historical_evidence[e["source_url"]] = e
+
         guard_changed = guard != bundle.get("acceptance_guard")
         if guard_changed:
             # Enforce independent producer/verifier boundary
             old_evidence = bundle.get("acceptance_guard", {}).get("evidence", [])
             new_evidence = guard.get("evidence", [])
             for e in new_evidence:
-                if e not in old_evidence and e.get("source_type") == "MACHINE_ARTIFACT":
-                    if updated_by == "Google-Antigravity" or updated_by == e.get("runtime_binding"):
-                        raise LedgerError("caller-created or self-certifying MACHINE_ARTIFACT evidence rejected")
-                    if "verifier_id" not in e or "producer_id" not in e:
-                        raise LedgerError("unverifiable producer or verifier in MACHINE_ARTIFACT evidence")
-                    if e["producer_id"] == e["verifier_id"] or e["verifier_id"] == updated_by:
-                        raise LedgerError("evidence produced by the acceptance decision path itself")
+                if e not in old_evidence:
+                    url = e.get("source_url")
+                    
+                    if url in historical_evidence:
+                        # Replayed or copied proof
+                        old_e = historical_evidence[url]
+                        if old_e["evidence_sha"] != e["evidence_sha"]:
+                            raise LedgerError(f"copied proof: URL {url} was historically bound to SHA {old_e['evidence_sha']} but is now claimed for {e['evidence_sha']}")
+                        if old_e["runtime_binding"] != e["runtime_binding"]:
+                            raise LedgerError(f"copied proof: URL {url} was historically bound to runtime {old_e['runtime_binding']} but is now claimed for {e['runtime_binding']}")
+                            
+                    if e.get("source_type") == "MACHINE_ARTIFACT":
+                        if updated_by == "Google-Antigravity" or updated_by == e.get("runtime_binding") or updated_by == e.get("producer_id") or updated_by == e.get("verifier_id"):
+                            raise LedgerError("caller-created or self-certifying MACHINE_ARTIFACT evidence rejected")
+                        if not e.get("producer_id") or not e.get("verifier_id"):
+                            raise LedgerError("unverifiable producer or verifier in MACHINE_ARTIFACT evidence")
+                        if e["producer_id"] == e["verifier_id"] or e["producer_id"] == "arbitrary" or e["verifier_id"] == "arbitrary":
+                            raise LedgerError("evidence produced by the acceptance decision path itself or uses arbitrary strings")
             
         if not changed and not guard_changed:
             raise LedgerError("update makes no meaningful change")

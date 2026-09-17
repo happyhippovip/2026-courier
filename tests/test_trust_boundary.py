@@ -83,7 +83,7 @@ def test_evidence_produced_by_decision_path(tmp_path):
     with pytest.raises(LedgerError) as exc:
         update(ledger, bundle["revision"], {"STATUS": "DONE"}, "VERIFIER-01", 5.0, guard)
     
-    assert "evidence produced by the acceptance decision path itself" in str(exc.value)
+    assert "caller-created or self-certifying MACHINE_ARTIFACT evidence rejected" in str(exc.value)
 
 def test_false_clean_idle(tmp_path):
     ledger = tmp_path / "ledger.json"

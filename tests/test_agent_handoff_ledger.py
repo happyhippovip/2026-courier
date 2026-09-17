@@ -422,6 +422,100 @@ subprocess.run([
                 "CANONICAL_ACCEPTED",
             )
 
+
+    def test_reject_copied_proof_with_different_sha(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            ledger = Path(temporary) / "ledger.json"
+            initialize(ledger)
+            bundle = ledger_module.load_bundle(ledger)
+            
+            # Step 1: Add a valid proof for SHA A
+            landed = ledger_module.copy.deepcopy(bundle["acceptance_guard"])
+            proof = {
+                "source_url": "https://github.com/example/project/actions/runs/99",
+                "source_type": "MACHINE_ARTIFACT",
+                "observed_at": "2026-09-17T18:00:00Z",
+                "evidence_sha": "a" * 40,
+                "runtime_binding": "runtime-a",
+                "validity": "UNKNOWN",
+                "reason": "foreign attestation",
+                "producer_id": "foreign-producer",
+                "verifier_id": "foreign-verifier",
+            }
+            landed["evidence"].append(proof)
+            landed["evidence"][0]["validity"] = "STALE"
+            landed["binding"]["current_sha"] = "a"*40
+            landed["binding"]["runtime_identity"] = "runtime-a"
+            landed["acceptance_predicate"]["results"]["ISSUE_STATE"]["status"] = "UNKNOWN"
+            b2 = ledger_module.update(ledger, bundle["revision"], {"CURRENT_SHA": "a"*40, "RUNTIME_IDENTITY": "runtime-a"}, "worker1", 1.0, landed)
+            
+            # Step 2: Try to reuse the SAME URL but change the SHA to B (Copied Proof)
+            landed2 = ledger_module.copy.deepcopy(b2["acceptance_guard"])
+            proof2 = ledger_module.copy.deepcopy(proof)
+            proof2["evidence_sha"] = "b" * 40
+            landed2["evidence"][2] = proof2
+            landed2["evidence"][0]["validity"] = "STALE"
+            landed2["evidence"][1]["validity"] = "STALE"
+            landed2["evidence"][2]["validity"] = "UNKNOWN"
+            landed2["binding"]["current_sha"] = "b"*40
+            
+            with self.assertRaisesRegex(ledger_module.LedgerError, "copied proof: URL https://github.com/example/project/actions/runs/99 was historically bound to SHA"):
+                ledger_module.update(ledger, b2["revision"], {"CURRENT_SHA": "b"*40}, "worker2", 1.0, landed2)
+
+    def test_reject_caller_created_machine_artifact(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            ledger = Path(temporary) / "ledger.json"
+            initialize(ledger)
+            bundle = ledger_module.load_bundle(ledger)
+            
+            landed = ledger_module.copy.deepcopy(bundle["acceptance_guard"])
+            proof = {
+                "source_url": "https://github.com/example/project/actions/runs/100",
+                "source_type": "MACHINE_ARTIFACT",
+                "observed_at": "2026-09-17T18:00:00Z",
+                "evidence_sha": "a" * 40,
+                "runtime_binding": "runtime-a",
+                "validity": "UNKNOWN",
+                "reason": "attestation",
+                "producer_id": "caller",
+                "verifier_id": "verifier",
+            }
+            landed["evidence"].append(proof)
+            landed["evidence"][0]["validity"] = "STALE"
+            landed["binding"]["current_sha"] = "a"*40
+            landed["binding"]["runtime_identity"] = "runtime-a"
+            landed["acceptance_predicate"]["results"]["ISSUE_STATE"]["status"] = "UNKNOWN"
+            # The updater is "caller", which matches producer_id -> Self-certification!
+            with self.assertRaisesRegex(ledger_module.LedgerError, "caller-created or self-certifying MACHINE_ARTIFACT evidence rejected"):
+                ledger_module.update(ledger, bundle["revision"], {"CURRENT_SHA": "a"*40, "RUNTIME_IDENTITY": "runtime-a"}, "caller", 1.0, landed)
+
+    def test_reject_arbitrary_producer_verifier(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            ledger = Path(temporary) / "ledger.json"
+            initialize(ledger)
+            bundle = ledger_module.load_bundle(ledger)
+            
+            landed = ledger_module.copy.deepcopy(bundle["acceptance_guard"])
+            proof = {
+                "source_url": "https://github.com/example/project/actions/runs/101",
+                "source_type": "MACHINE_ARTIFACT",
+                "observed_at": "2026-09-17T18:00:00Z",
+                "evidence_sha": "a" * 40,
+                "runtime_binding": "runtime-a",
+                "validity": "UNKNOWN",
+                "reason": "attestation",
+                "producer_id": "arbitrary",
+                "verifier_id": "verifier",
+            }
+            landed["evidence"].append(proof)
+            landed["evidence"][0]["validity"] = "STALE"
+            landed["binding"]["current_sha"] = "a"*40
+            landed["binding"]["runtime_identity"] = "runtime-a"
+            landed["acceptance_predicate"]["results"]["ISSUE_STATE"]["status"] = "UNKNOWN"
+            with self.assertRaisesRegex(ledger_module.LedgerError, "evidence produced by the acceptance decision path itself or uses arbitrary strings"):
+                ledger_module.update(ledger, bundle["revision"], {"CURRENT_SHA": "a"*40, "RUNTIME_IDENTITY": "runtime-a"}, "worker", 1.0, landed)
+
+
     def test_clean_idle_rejected_with_unproven_work(self):
         rec = record()
         rec["CLEAN_IDLE"] = "YES"
