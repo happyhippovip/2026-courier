@@ -81,8 +81,6 @@ def load_config():
     
     if not config.get('COURIER_SERVER'):
         import sys; sys.stderr.write('FATAL: Missing server fail closed.\n'); sys.exit(1)
-    config["COURIER_SERVER"] = "http://127.0.0.1:8081"
-    config["COURIER_API_KEY"] = "321606503a874d39b50f6137e3321b7f"
     global SECRET_KEY
     SECRET_KEY = config['COURIER_API_KEY']
 
@@ -95,9 +93,13 @@ def write_log(msg):
     if log_file.exists() and log_file.stat().st_size > 5 * 1024 * 1024:
         log_file.rename(LOGS_DIR / "worker.log.1")
         
-    print(msg)
-    # Strip any potential secrets
-    safe_msg = str(msg).replace(SECRET_KEY, '[REDACTED]') if SECRET_KEY else str(msg).replace(os.environ.get('COURIER_API_KEY', 'dummy'), '[REDACTED]')
+    # Strip any potential secrets BEFORE any output: stdout (launchd logs)
+    # and file must never carry secret values.
+    safe_msg = str(msg)
+    for candidate in (SECRET_KEY, os.environ.get('COURIER_API_KEY')):
+        if candidate:
+            safe_msg = safe_msg.replace(str(candidate), '[REDACTED]')
+    print(safe_msg)
     with open(log_file, "a") as f:
         f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {safe_msg}\n")
 
@@ -444,14 +446,14 @@ def loop():
                 }
                 res, err = http_post(config, "/workers/register", reg_payload)
                 if err:
-                    write_log(f"Failed to register: {err}. Server: {config.get('COURIER_SERVER')}, Key: {config.get('COURIER_API_KEY')}")
+                    write_log(f"Failed to register: {err}. Server: {config.get('COURIER_SERVER')}")
                     try:
                         config = load_config()
                     except Exception:
                         pass
                     time.sleep(5) # backoff
                     continue
-                write_log(f"Registered successfully to {config.get('COURIER_SERVER')} with key {config.get('COURIER_API_KEY')}")
+                write_log("Registration successful")
                 registered = True
                 
             # Heartbeat
