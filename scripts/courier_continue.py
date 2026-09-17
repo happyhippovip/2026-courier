@@ -163,7 +163,19 @@ def execute_task(task, ledger_path, record):
         except Exception:
             return task, False, "UNVERIFIED_EXTERNAL_EFFECT_LEDGER/HANDOFF"
 
-    elif edge in ["PR41 ACCEPTANCE", "PR41_ACCEPTANCE"]:
+    elif edge in ["SALES PACKAGE", "SALES_PACKAGE"]:
+        # Fail closed: a sales edge is proven only by commercial approval
+        # plus verified delivery. Machine-built predecessor artifacts
+        # (structure, validated facts, dry-run payload) never prove it alone.
+        return task, False, f"UNVERIFIED_EXTERNAL_EFFECT_{edge}"
+
+    elif edge in ["POST-PILOT HARDENING", "POST_PILOT_HARDENING"]:
+        # Fail closed: simulated success is forbidden. Only executed
+        # hardening backed by test evidence proves this edge.
+        return task, False, f"UNVERIFIED_EXTERNAL_EFFECT_{edge}"
+
+    elif edge in [
+"PR41 ACCEPTANCE", "PR41_ACCEPTANCE"]:
         # Must verify real git merge ancestry for PR41
         try:
             import subprocess as sp
@@ -173,14 +185,38 @@ def execute_task(task, ledger_path, record):
             return task, True, None
         except Exception:
             return task, False, "UNVERIFIED_EXTERNAL_EFFECT_PR41 ACCEPTANCE"
-            
-    elif edge in ["PAYMENT ONLY WHEN ACTUALLY REQUIRED", "PAYMENT_ONLY_WHEN_ACTUALLY_REQUIRED"]:
+
+    elif edge in ["SALES PACKAGE", "SALES_PACKAGE"]:
+        # Fail closed: a sales edge is proven only by commercial approval
+        # plus verified delivery. Machine-built predecessor artifacts
+        # (structure, validated facts, dry-run payload) never prove it alone.
+        return task, False, f"UNVERIFIED_EXTERNAL_EFFECT_{edge}"
+
+    elif edge in ["POST-PILOT HARDENING", "POST_PILOT_HARDENING"]:
+        # Fail closed: simulated success is forbidden. Only executed
+        # hardening backed by test evidence proves this edge.
+        return task, False, f"UNVERIFIED_EXTERNAL_EFFECT_{edge}"
+
+    elif edge in [
+"PAYMENT ONLY WHEN ACTUALLY REQUIRED", "PAYMENT_ONLY_WHEN_ACTUALLY_REQUIRED"]:
         return task, False, "MONEY_REQUIRED_PAYMENT_PROOF"
         
     elif edge == "ONBOARD_FIRST_PILOT_CUSTOMER":
         return task, False, "HUMAN_REQUIRED_PILOT_ONBOARDING"
-        
+
+    elif edge in ["SALES PACKAGE", "SALES_PACKAGE"]:
+        # Fail closed: a sales edge is proven only by commercial approval
+        # plus verified delivery. Machine-built predecessor artifacts
+        # (structure, validated facts, dry-run payload) never prove it alone.
+        return task, False, f"UNVERIFIED_EXTERNAL_EFFECT_{edge}"
+
+    elif edge in ["POST-PILOT HARDENING", "POST_PILOT_HARDENING"]:
+        # Fail closed: simulated success is forbidden. Only executed
+        # hardening backed by test evidence proves this edge.
+        return task, False, f"UNVERIFIED_EXTERNAL_EFFECT_{edge}"
+
     elif edge in [
+
         "RELEASE",
         "PUBLIC DEPLOYMENT",
         "PUBLIC_DEPLOYMENT",

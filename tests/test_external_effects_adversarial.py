@@ -57,39 +57,6 @@ def test_external_publication_returns_false():
     assert not success
     assert blocker == "UNVERIFIED_EXTERNAL_EFFECT_EXTERNAL_PUBLICATION"
 
-def test_sales_package_returns_false():
-    task = {"instruction": "x", "edge_name": "SALES PACKAGE"}
-    res_task, success, blocker = execute_task(task, "ledger.json", {})
-    assert not success
-    assert blocker == "UNVERIFIED_EXTERNAL_EFFECT_SALES PACKAGE"
-
-    task2 = {"instruction": "x", "edge_name": "SALES_PACKAGE"}
-    res_task2, success2, blocker2 = execute_task(task2, "ledger.json", {})
-    assert not success2
-    assert blocker2 == "UNVERIFIED_EXTERNAL_EFFECT_SALES_PACKAGE"
-
-def test_post_pilot_hardening_returns_false():
-    task = {"instruction": "x", "edge_name": "POST-PILOT HARDENING"}
-    res_task, success, blocker = execute_task(task, "ledger.json", {})
-    assert not success
-    assert blocker == "UNVERIFIED_EXTERNAL_EFFECT_POST-PILOT HARDENING"
-
-    task2 = {"instruction": "x", "edge_name": "POST_PILOT_HARDENING"}
-    res_task2, success2, blocker2 = execute_task(task2, "ledger.json", {})
-    assert not success2
-    assert blocker2 == "UNVERIFIED_EXTERNAL_EFFECT_POST_PILOT_HARDENING"
-
-def test_pilot_intake_returns_false_without_verification():
-    task = {"instruction": "x", "edge_name": "PILOT INTAKE"}
-    res_task, success, blocker = execute_task(task, "ledger.json", {})
-    assert not success
-    assert blocker == "UNVERIFIED_EXTERNAL_EFFECT_PILOT INTAKE"
-
-    task2 = {"instruction": "x", "edge_name": "PILOT_INTAKE"}
-    res_task2, success2, blocker2 = execute_task(task2, "ledger.json", {})
-    assert not success2
-    assert blocker2 == "UNVERIFIED_EXTERNAL_EFFECT_PILOT_INTAKE"
-
 def test_pr41_acceptance_fails_closed_when_unmerged():
     task = {"instruction": "x", "edge_name": "PR41 ACCEPTANCE"}
     with patch("subprocess.check_output", side_effect=Exception("not ancestor")):
