@@ -23,6 +23,9 @@ __pycache__/
 events/locks/*.lease
 events/locks/*.lock
 
+# Agent handoff ledger advisory lock files
+examples/*.json.lock
+
 # Runtime GitHub Transport envelopes remain local.
 events/transport/incoming/*.json
 events/transport/processed/*.json
