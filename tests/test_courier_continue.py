@@ -120,6 +120,202 @@ def test_empty_unproven_frontier_does_not_manufacture_plan_tasks():
     assert tasks == []
 
 
+def test_unknown_unproven_edge_is_preserved_in_durable_order():
+    record = {
+        "PROVEN_EDGES": [],
+        "UNPROVEN_EDGES": ["UNKNOWN-FUTURE-EDGE", "PUBLICATION VERIFICATION"],
+    }
+    tasks = continue_module.compute_frontier(record)
+    assert [task["edge_name"] for task in tasks] == [
+        "UNKNOWN-FUTURE-EDGE",
+        "PUBLICATION VERIFICATION",
+    ]
+
+
+def test_human_gated_first_edge_does_not_hide_safe_preparation():
+    record = {
+        "PROVEN_EDGES": [],
+        "UNPROVEN_EDGES": [
+            "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
+            "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+            "PUBLICATION VERIFICATION",
+        ],
+        "COLLISION_SCOPE": [],
+    }
+    tasks = continue_module.compute_frontier(record)
+    selected = continue_module.select_safe_frontier(record, tasks)
+    assert [task["edge_name"] for task in selected] == [
+        "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+        "PUBLICATION VERIFICATION",
+    ]
+
+
+def test_next_action_tracks_safe_frontier_not_stale_cached_value():
+    record = {
+        "STATUS": "BLOCKED",
+        "FIRST_CAUSAL_BLOCKER": "HUMAN_REQUIRED_RELEASE",
+        "CONTINUATION_CHECKPOINT": "none",
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "CLEAN_IDLE": "YES",
+        "QUEUE_INDEPENDENT": "YES",
+    }
+    guard = {"transition_state": "PROVISIONAL", "binding": {}, "evidence": []}
+    tasks = [{
+        "edge_name": "PUBLICATION VERIFICATION",
+        "instruction": "Prove edge: PUBLICATION VERIFICATION",
+    }]
+    updates = continue_module.derive_frontier_updates(
+        record, guard, tasks, tasks
+    )
+    assert updates["NEXT_EXECUTABLE_ACTION"] == (
+        "Prove edge: PUBLICATION VERIFICATION"
+    )
+    assert updates["CLEAN_IDLE"] == "NO"
+    assert updates["QUEUE_INDEPENDENT"] == "NO"
+
+
+def test_provisional_empty_frontier_is_not_clean_idle():
+    record = {
+        "STATUS": "TEST",
+        "FIRST_CAUSAL_BLOCKER": "NONE",
+        "CONTINUATION_CHECKPOINT": "none",
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "CLEAN_IDLE": "YES",
+        "QUEUE_INDEPENDENT": "YES",
+    }
+    guard = {"transition_state": "PROVISIONAL", "binding": {}, "evidence": []}
+    updates = continue_module.derive_frontier_updates(record, guard, [], [])
+    assert updates["CLEAN_IDLE"] == "NO"
+    assert updates["QUEUE_INDEPENDENT"] == "NO"
+    assert updates["STATUS"] == "WAITING_PHYSICAL_PROOF"
+    assert updates["NEXT_EXECUTABLE_ACTION"] != "NONE"
+
+
+def test_waiting_provider_is_resumable_not_clean_idle():
+    record = {
+        "STATUS": "WAITING_PROVIDER",
+        "FIRST_CAUSAL_BLOCKER": "WAITING_PROVIDER_QUOTA",
+        "CONTINUATION_CHECKPOINT": "provider-attempt-7",
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "CLEAN_IDLE": "YES",
+        "QUEUE_INDEPENDENT": "YES",
+    }
+    guard = {"transition_state": "PROVISIONAL", "binding": {}, "evidence": []}
+    updates = continue_module.derive_frontier_updates(record, guard, [], [])
+    assert updates["CLEAN_IDLE"] == "NO"
+    assert updates["NEXT_EXECUTABLE_ACTION"].startswith("Resume provider-waiting")
+
+
+@pytest.mark.parametrize(
+    "status,blocker,active_writers",
+    [
+        ("RUNNING", "NONE", []),
+        ("DONE", "REPAIRABLE_SOFTWARE_DEFECT", []),
+        ("DONE", "NONE", ["worker-1"]),
+    ],
+)
+def test_terminal_guard_does_not_override_active_or_repairable_state(
+    status, blocker, active_writers
+):
+    record = {
+        "STATUS": status,
+        "FIRST_CAUSAL_BLOCKER": blocker,
+        "ACTIVE_WRITERS": active_writers,
+        "CONTINUATION_CHECKPOINT": "none",
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "CLEAN_IDLE": "NO",
+        "QUEUE_INDEPENDENT": "NO",
+    }
+    guard = {
+        "transition_state": "CANONICAL_ACCEPTED",
+        "binding": {},
+        "evidence": [],
+    }
+    updates = continue_module.derive_frontier_updates(record, guard, [], [])
+    assert updates.get("CLEAN_IDLE") != "YES"
+    assert updates.get("QUEUE_INDEPENDENT") != "YES"
+    assert updates["NEXT_EXECUTABLE_ACTION"] != "NONE"
+
+
+def test_ineligible_safe_work_remains_visible_and_prevents_idle():
+    record = {
+        "PROVEN_EDGES": [],
+        "UNPROVEN_EDGES": ["PUBLICATION VERIFICATION"],
+        "COLLISION_SCOPE": [],
+        "STATUS": "READY",
+        "FIRST_CAUSAL_BLOCKER": "NONE",
+        "CONTINUATION_CHECKPOINT": "none",
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "CLEAN_IDLE": "YES",
+        "QUEUE_INDEPENDENT": "YES",
+    }
+    guard = {"transition_state": "PROVISIONAL", "binding": {}, "evidence": []}
+    tasks = continue_module.compute_frontier(record)
+    selected = continue_module.select_safe_frontier(
+        record, tasks, worker_capabilities={"file_write"}
+    )
+    assert selected == []
+    updates = continue_module.derive_frontier_updates(
+        record, guard, tasks, selected
+    )
+    assert updates["CLEAN_IDLE"] == "NO"
+    assert updates["NEXT_EXECUTABLE_ACTION"].startswith(
+        "Waiting for eligibility/authority"
+    )
+
+
+def test_rederive_after_external_state_change_drops_completed_edge():
+    before = {
+        "PROVEN_EDGES": [],
+        "UNPROVEN_EDGES": ["PUBLICATION VERIFICATION"],
+    }
+    assert continue_module.compute_frontier(before)
+
+    # Another writer reconciles the edge before this worker dispatches.  A
+    # fresh derivation must not reuse the old cached candidate.
+    after = {
+        "PROVEN_EDGES": ["PUBLICATION VERIFICATION"],
+        "UNPROVEN_EDGES": [],
+    }
+    assert continue_module.compute_frontier(after) == []
+
+
+def test_execution_exception_is_durable_blocker_not_idle(
+    tmp_path, monkeypatch
+):
+    ledger_path = setup_ledger(tmp_path, ["LEDGER/HANDOFF"], "NONE")
+
+    def explode(*_args, **_kwargs):
+        raise RuntimeError("deterministic failure")
+
+    monkeypatch.setattr(continue_module, "execute_task", explode)
+    monkeypatch.setenv("MOCK_LEDGER", str(ledger_path))
+    monkeypatch.setenv("MOCK_BRANCH", "test-branch")
+    monkeypatch.setenv("MOCK_SHA", "0" * 40)
+    monkeypatch.setattr(sys, "argv", [str(CONTINUE_SCRIPT), "--run", "--once"])
+
+    with pytest.raises(SystemExit) as stopped:
+        continue_module.main()
+    assert stopped.value.code == 0
+
+    state = json.loads(ledger_path.read_text())
+    assert state["record"]["STATUS"] == "BLOCKED"
+    assert state["record"]["FIRST_CAUSAL_BLOCKER"] == (
+        "EXECUTION_EXCEPTION_RuntimeError"
+    )
+    assert state["record"]["CLEAN_IDLE"] == "NO"
+
+
+def test_success_waiting_for_evidence_is_not_reexecuted_in_same_run(tmp_path):
+    ledger_path = setup_ledger(tmp_path, ["LEDGER/HANDOFF"], "NONE")
+    result = run_continue(ledger_path, run=True)
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.count("SUBMITTING TASK: LEDGER/HANDOFF") == 1
+    state = json.loads(ledger_path.read_text())
+    assert state["record"]["STATUS"] == "WAITING_ACCEPTANCE_GUARD"
+    assert state["record"]["CLEAN_IDLE"] == "NO"
+
+
 def test_empty_frontier_does_not_print_false_clean_idle(tmp_path):
     ledger_path = setup_ledger(tmp_path, [], "NONE")
     result = run_continue(ledger_path, run=True)
@@ -263,12 +459,15 @@ def test_stale_ledger_fail_closed(tmp_path):
     assert res.returncode == 0
     assert "Ledger is stale. Fail closed" in res.stdout
 
-def test_all_scopes_blocked_true_global_stop(tmp_path):
+def test_untrusted_proven_state_reopens_frontier_instead_of_false_idle(tmp_path):
     ledger_path = setup_ledger(tmp_path, [], "HUMAN_REQUIRED_PUBLIC_REPO_VISIBILITY", proven_edges=["LEDGER/HANDOFF", "PR41 ACCEPTANCE", "RELEASE - SAFE_AUTOMATABLE_PREPARATION", "RELEASE - AUTHORIZED_MACHINE_ACTION", "RELEASE - IRREVERSIBLE_HUMAN_ACTION", "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION", "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION", "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION", "PUBLICATION VERIFICATION", "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION", "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION", "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION", "SALES PACKAGE", "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION", "FIRST PILOT - AUTHORIZED_MACHINE_ACTION", "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION", "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION", "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION", "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION", "POST-PILOT HARDENING", "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION", "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION", "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION", "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION", "ONBOARD_FIRST_PILOT_CUSTOMER - AUTHORIZED_MACHINE_ACTION", "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION"])
     res = subprocess.run([sys.executable, str(Path(__file__).parent.parent / "scripts" / "courier_continue.py"), "--run", "--once"], env=dict(os.environ, MOCK_LEDGER=str(ledger_path), MOCK_BRANCH="test-branch", MOCK_SHA="0000000000000000000000000000000000000000"), capture_output=True, text=True)
     assert res.returncode == 0
     assert "GLOBAL STOP: CLEAN_IDLE" not in res.stdout
-    assert "Empty frontier is not accepted completion" in res.stdout
+    data = json.loads(ledger_path.read_text())
+    assert data["record"]["CLEAN_IDLE"] == "NO"
+    assert data["record"]["QUEUE_INDEPENDENT"] == "NO"
+    assert data["record"]["UNPROVEN_EDGES"]
 
 def test_capability_insufficient_cannot_claim(tmp_path):
     # LEDGER/HANDOFF requires "git", "file_write"
@@ -343,7 +542,8 @@ def test_missing_physical_proof_prevents_acceptance(tmp_path):
         
     assert data["record"]["CLEAN_IDLE"] == "NO"
     assert data["record"]["QUEUE_INDEPENDENT"] == "NO"
-    assert data["record"]["FIRST_CAUSAL_BLOCKER"] == "MISSING_PHYSICAL_ACCEPTANCE_EVIDENCE"
+    assert data["record"]["FIRST_CAUSAL_BLOCKER"] != "NONE"
+    assert data["record"]["UNPROVEN_EDGES"]
     assert data["history"][-1]["acceptance_guard"]["transition_state"] == "PROVISIONAL"
 
 def test_valid_physical_proof_still_requires_independent_guard(tmp_path):

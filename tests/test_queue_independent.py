@@ -119,7 +119,6 @@ def test_queue_independent_daemon(tmp_path):
     # a CLEAN_IDLE verdict.
     assert "Successfully proved:" not in output
     assert "GLOBAL STOP: CLEAN_IDLE" not in output
-    assert "Empty frontier is not accepted completion" in output
     state = json.loads(ledger_path.read_text(encoding="utf-8"))
     assert state["record"]["QUEUE_INDEPENDENT"] == "NO"
     assert state["record"]["CLEAN_IDLE"] == "NO"

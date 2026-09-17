@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 import argparse
 import sys
 import subprocess
 import os
 import json
+import hashlib
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.resolve()))
@@ -17,36 +20,6 @@ try:
 except ImportError as e:
     print(f"Failed to import required primitives: {e}")
     sys.exit(1)
-
-PLAN = [
-    "LEDGER/HANDOFF",
-    "PR41 ACCEPTANCE",
-    "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
-    "RELEASE - AUTHORIZED_MACHINE_ACTION",
-    "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
-    "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
-    "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION",
-    "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
-    "PUBLICATION VERIFICATION",
-    "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
-    "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION",
-    "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
-    "SALES PACKAGE",
-    "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
-    "FIRST PILOT - AUTHORIZED_MACHINE_ACTION",
-    "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
-    "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
-    "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION",
-    "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
-    "POST-PILOT HARDENING",
-    "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
-    "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION",
-    "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
-    "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
-    "ONBOARD_FIRST_PILOT_CUSTOMER - AUTHORIZED_MACHINE_ACTION",
-    "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION"
-]
-
 
 def get_runtime_truth():
     import subprocess
@@ -146,7 +119,7 @@ def check_freshness(ledger_path, branch, sha):
     return bundle
 
 def compute_frontier(record: dict):
-    proven = record.get("PROVEN_EDGES", [])
+    proven = set(record.get("PROVEN_EDGES", []))
     unproven = record.get("UNPROVEN_EDGES", [])
     
     capability_map = {
@@ -164,28 +137,170 @@ def compute_frontier(record: dict):
         "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION": ["shell", "build_tools"]
     }
     
-    # The durable record is the continuation frontier.  PLAN supplies stable
-    # ordering and capability metadata only; it must not manufacture work that
-    # is absent from UNPROVEN_EDGES.
-    ordered_edges = [edge for edge in PLAN if edge in unproven]
-    ordered_edges.extend(edge for edge in unproven if edge not in PLAN)
-
+    # Durable state is both the membership and ordering authority.  A desired
+    # or static plan would reorder actual work or hide previously unknown edges.
     tasks = []
-    for edge in ordered_edges:
+    for edge in unproven:
         if edge not in proven:
             scope = "dependent"
             if "independent" in edge.lower() or any(k in edge for k in ["PUBLIC DEPLOYMENT", "PUBLICATION VERIFICATION", "PILOT INTAKE", "SALES PACKAGE", "POST-PILOT HARDENING", "FIRST PILOT", "PAYMENT", "ONBOARD"]):
                 scope = "independent"
-                
+
+            task_digest = hashlib.sha256(edge.encode("utf-8")).hexdigest()[:16]
             tasks.append({
-                "id": f"TASK-{hash(edge)}",
+                "id": f"TASK-{task_digest}",
                 "instruction": f"Prove edge: {edge}",
                 "scope": scope,
                 "edge_name": edge,
                 "capabilities": capability_map.get(edge, [])
             })
-            
+
     return tasks
+
+
+def _is_human_or_external_gate(edge_name: str) -> bool:
+    upper = edge_name.upper()
+    return any(
+        marker in upper
+        for marker in (
+            "IRREVERSIBLE_HUMAN_ACTION",
+            "AUTHORIZED_MACHINE_ACTION",
+            "PAYMENT_ONLY_WHEN_ACTUALLY_REQUIRED",
+            "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
+            "ONBOARD_FIRST_PILOT_CUSTOMER",
+        )
+    ) and "SAFE_AUTOMATABLE_PREPARATION" not in upper
+
+
+def select_safe_frontier(
+    record: dict,
+    tasks: list[dict],
+    blocked_edges: set[str] | None = None,
+    running_edges: set[str] | None = None,
+    worker_capabilities: set[str] | None = None,
+) -> list[dict]:
+    """Return currently executable work without treating one blocker globally."""
+    blocked_edges = blocked_edges or set()
+    running_edges = running_edges or set()
+    collision_scope = set(record.get("COLLISION_SCOPE", []))
+    selected = []
+    selected_chains = set()
+
+    for task in tasks:
+        edge = task["edge_name"]
+        if edge in blocked_edges or edge in running_edges or edge in collision_scope:
+            continue
+        if _is_human_or_external_gate(edge):
+            continue
+        required = set(task.get("capabilities", []))
+        if worker_capabilities is not None and not required.issubset(
+            worker_capabilities
+        ):
+            continue
+
+        # Preserve sequential execution inside one chain, but only an actually
+        # selected safe task occupies that chain.  A human/provider-blocked
+        # earlier item must not hide safe preparation or unrelated work.
+        chain = edge.split(" - ", 1)[0]
+        if chain in selected_chains:
+            continue
+        selected_chains.add(chain)
+        selected.append(task)
+
+    return selected
+
+
+def derive_frontier_updates(
+    record: dict,
+    guard: dict,
+    tasks: list[dict],
+    safe_tasks: list[dict],
+    running_edges: set[str] | None = None,
+) -> dict:
+    """Derive durable NEXT/idle truth solely from current observable state."""
+    running_edges = running_edges or set()
+    updates = {}
+    guard_accepted = guard.get("transition_state") == "CANONICAL_ACCEPTED"
+    binding = guard.get("binding", {})
+    has_bound_machine_evidence = any(
+        item.get("source_type") == "MACHINE_ARTIFACT"
+        and item.get("validity") == "VALID"
+        and item.get("evidence_sha") == binding.get("current_sha")
+        and item.get("runtime_binding") == binding.get("runtime_identity")
+        for item in guard.get("evidence", [])
+    )
+    status = record.get("STATUS", "")
+    blocker = str(record.get("FIRST_CAUSAL_BLOCKER", "")).strip()
+    checkpoint = str(record.get("CONTINUATION_CHECKPOINT", "")).strip().lower()
+    checkpoint_pending = checkpoint not in {"", "none", "complete", "completed"}
+    resumable_wait = status == "WAITING_PROVIDER" or "WAITING_PROVIDER" in str(
+        record.get("FIRST_CAUSAL_BLOCKER", "")
+    )
+    blocker_pending = blocker not in {"", "NONE", "NO_FURTHER_ACTION"}
+    nonterminal_status = status not in {"DONE", "COMPLETED", "CLEAN_IDLE"}
+    unfinished = bool(
+        tasks
+        or safe_tasks
+        or running_edges
+        or checkpoint_pending
+        or resumable_wait
+        or blocker_pending
+        or record.get("ACTIVE_WRITERS")
+        or nonterminal_status
+    )
+
+    if safe_tasks:
+        next_action = safe_tasks[0]["instruction"]
+    elif running_edges:
+        next_action = "Await and reconcile running work: " + ", ".join(
+            sorted(running_edges)
+        )
+    elif resumable_wait:
+        next_action = "Resume provider-waiting work from durable checkpoint"
+    elif checkpoint_pending:
+        next_action = "Recover pending durable continuation checkpoint"
+    elif tasks:
+        next_action = "Waiting for eligibility/authority: " + tasks[0]["edge_name"]
+    elif status in {"READY", "RUNNING", "DISPATCHED"}:
+        next_action = f"Reconcile recorded {status} work"
+    elif blocker_pending:
+        next_action = "Resolve durable blocker: " + blocker
+    elif record.get("ACTIVE_WRITERS"):
+        next_action = "Reconcile active writers: " + ", ".join(
+            sorted(record["ACTIVE_WRITERS"])
+        )
+    elif nonterminal_status:
+        next_action = "Reconcile nonterminal status: " + status
+    elif not guard_accepted and not has_bound_machine_evidence:
+        next_action = "Obtain independently authenticated physical evidence"
+    elif not guard_accepted:
+        next_action = "Independent Acceptance Guard must establish completion"
+    else:
+        next_action = "NONE"
+
+    if record.get("NEXT_EXECUTABLE_ACTION") != next_action:
+        updates["NEXT_EXECUTABLE_ACTION"] = next_action
+
+    clean_idle = "YES" if guard_accepted and not unfinished else "NO"
+    if record.get("CLEAN_IDLE") != clean_idle:
+        updates["CLEAN_IDLE"] = clean_idle
+    queue_independent = "YES" if clean_idle == "YES" else "NO"
+    if record.get("QUEUE_INDEPENDENT") != queue_independent:
+        updates["QUEUE_INDEPENDENT"] = queue_independent
+
+    if not guard_accepted and not tasks and not running_edges:
+        if resumable_wait:
+            target_status = "WAITING_PROVIDER"
+        elif has_bound_machine_evidence:
+            target_status = "WAITING_ACCEPTANCE_GUARD"
+        else:
+            target_status = "WAITING_PHYSICAL_PROOF"
+            if record.get("FIRST_CAUSAL_BLOCKER") != "MISSING_PHYSICAL_ACCEPTANCE_EVIDENCE":
+                updates["FIRST_CAUSAL_BLOCKER"] = "MISSING_PHYSICAL_ACCEPTANCE_EVIDENCE"
+        if record.get("STATUS") != target_status:
+            updates["STATUS"] = target_status
+
+    return updates
 
 def execute_task(task, ledger_path, record):
     import os
@@ -229,7 +344,7 @@ def execute_task(task, ledger_path, record):
 
     elif edge in ["RELEASE", "PUBLIC DEPLOYMENT", "PUBLIC_DEPLOYMENT", "FIRST PILOT", "FIRST_PILOT", "PILOT INTAKE", "PILOT_INTAKE", "EXTERNAL_PUBLICATION"]:
         # Bare external names fail closed with external-effect semantics even
-        # though PLAN now addresses split stage names; the generic fallback
+        # even though split stage names are preferred; the generic fallback
         # alone would mislabel these known-dangerous edges.
         return task, False, f"UNVERIFIED_EXTERNAL_EFFECT_{edge}"
 
@@ -343,82 +458,103 @@ def main():
         branch, sha = get_git_info()
         bundle = check_freshness(ledger_path, branch, sha)
         record = bundle["record"]
-        
+
+        # Reconcile completed executions before deriving or dispatching from
+        # the frontier.  Otherwise a result arriving between snapshots can
+        # cause stale work to be dispatched once more.
+        completed_edges = [
+            edge for edge, future in running_tasks.items() if future.done()
+        ]
+        if completed_edges:
+            for edge_name in completed_edges:
+                future = running_tasks.pop(edge_name)
+                try:
+                    task, success, new_blocker = future.result()
+                except Exception as exc:
+                    # Uncertainty is durable blocked state, never implicit idle.
+                    current = load_bundle(ledger_path)
+                    if edge_name in current["record"].get("UNPROVEN_EDGES", []):
+                        update_ledger(
+                            ledger_path,
+                            edge_name,
+                            f"EXECUTION_EXCEPTION_{type(exc).__name__}",
+                            current,
+                        )
+                    blocked_tasks_this_run.add(edge_name)
+                    print(f"Task {edge_name} failed closed: {type(exc).__name__}")
+                    continue
+
+                print(f"\n=== FINISHED TASK: {task['edge_name']} ===")
+                current = load_bundle(ledger_path)
+                if task["edge_name"] in current["record"].get(
+                    "UNPROVEN_EDGES", []
+                ):
+                    update_ledger(
+                        ledger_path,
+                        task["edge_name"],
+                        new_blocker,
+                        current,
+                    )
+                # Successful execution is still waiting for independent
+                # evidence, so it must not be re-executed in this process.
+                blocked_tasks_this_run.add(task["edge_name"])
+
+            # A completion changes the authoritative frontier.  Reload before
+            # any selection instead of using the pre-result cached snapshot.
+            continue
+
         tasks = compute_frontier(record)
+        worker_caps_env = os.environ.get("COURIER_WORKER_CAPABILITIES", "all")
+        worker_capabilities = (
+            None
+            if worker_caps_env == "all"
+            else {item for item in worker_caps_env.split(",") if item}
+        )
+        safe_executable_tasks = select_safe_frontier(
+            record,
+            tasks,
+            blocked_tasks_this_run,
+            set(running_tasks),
+            worker_capabilities,
+        )
+
+        frontier_updates = derive_frontier_updates(
+            record,
+            bundle["acceptance_guard"],
+            tasks,
+            safe_executable_tasks,
+            set(running_tasks),
+        )
+        if frontier_updates:
+            try:
+                update(
+                    ledger_path,
+                    bundle["revision"],
+                    frontier_updates,
+                    "Google-Antigravity",
+                    5.0,
+                )
+            except Exception as exc:
+                if "revision conflict" in str(exc):
+                    continue
+                raise
+            # The durable NEXT/status transition is now newer than this local
+            # snapshot.  Reload and rederive before dispatch.
+            continue
+
         first_blocker = record.get("FIRST_CAUSAL_BLOCKER", "")
-        
+
         if not args.run:
             print(f"Goal: {record.get('GOAL')}")
             print(f"Branch/SHA: {branch} / {sha}")
             print(f"Active Writers: {record.get('ACTIVE_WRITERS', [])}")
-            
-        safe_executable_tasks = []
-# We need to enforce sequential execution within each chain (e.g. PUBLIC DEPLOYMENT)
-        # while allowing unrelated chains to execute concurrently.
-        # Group tasks by their base name (the part before ' - ')
-        chain_unproven_seen = {}
-        
-        safe_executable_tasks = []
-        
-        for t in tasks:
-            base_name = t["edge_name"].split(" - ")[0]
-            
-            is_runnable = False
-            if not chain_unproven_seen.get(base_name, False):
-                is_runnable = True
-                chain_unproven_seen[base_name] = True
-            
-            if not is_runnable:
-                continue
-                
-            if t["edge_name"] in record.get("COLLISION_SCOPE", []):
-                continue
-                
-            # Capability check
-            worker_caps_env = os.environ.get("COURIER_WORKER_CAPABILITIES", "all")
-            if worker_caps_env != "all":
-                worker_caps = set(worker_caps_env.split(","))
-                task_caps = set(t.get("capabilities", []))
-                if not task_caps.issubset(worker_caps):
-                    continue
-                
-            if t["edge_name"] in blocked_tasks_this_run:
-                continue
-                
-            if first_blocker and first_blocker != "NONE":
-                # If the ledger already has a blocker, we should still allow the *exact task* that is blocked to re-evaluate ONCE per run.
-                # How do we know which task is blocked? The blocker applies to its scope. 
-                # If it's a dependent task and it's the first unproven, we allow it to evaluate.
-                if t["edge_name"] not in blocked_tasks_this_run:
-                    # We will allow it to be added to safe_executable_tasks so it can be re-evaluated.
-                    # But we MUST still skip tasks that are strictly downstream of the blocker.
-                    # If this task is NOT the one that caused the blocker, we should skip it.
-                    # The task that caused the blocker is typically the FIRST unproven task for dependent line.
-                    if "HUMAN_REQUIRED" in first_blocker or "IRREVERSIBLE_HUMAN_ACTION" in first_blocker or "PUBLIC_REPO_VISIBILITY" in first_blocker:
-                        if t["scope"] == "dependent" and False:
-                            # It's a dependent task, but not the first unproven. It's downstream. Skip.
-                            pass # Wait, first_unproven_seen logic above already makes is_runnable=True for the first unproven.
-                            # So if is_runnable is True, it's either independent OR it's the first unproven dependent.
-                            # The first unproven dependent IS the one that caused the HUMAN_REQUIRED blocker!
-                            # So we SHOULD allow it.
-                            pass
-                    
-                    if "MONEY_REQUIRED" in first_blocker or "WAITING_PROVIDER" in first_blocker:
-                        pass # Allow the payment task to evaluate once
-            safe_executable_tasks.append(t)
-            
+
         if not safe_executable_tasks:
             if tasks:
                 print(f"WAITING: No safe, unowned, independent executable tasks exist.")
                 print(f"Blockers: {first_blocker}")
             else:
-                print("NO EXECUTABLE FRONTIER: reconciling acceptance state.")
-                try:
-                    bundle = update_ledger(ledger_path, "CLEAN_IDLE_ACHIEVED", None, bundle)
-                except Exception as e:
-                    if "meaningful change" not in str(e):
-                        raise
-                    bundle = load_bundle(ledger_path)
+                print("NO EXECUTABLE FRONTIER: acceptance remains authoritative.")
                 if (
                     bundle["record"].get("CLEAN_IDLE") == "YES"
                     and bundle["acceptance_guard"].get("transition_state")
@@ -456,38 +592,6 @@ def main():
             print(json.dumps(package, indent=2))
             sys.exit(0)
             
-        # Process any completed futures
-        done_edges = []
-        for edge_name, future in list(running_tasks.items()):
-            if future.done():
-                done_edges.append(edge_name)
-                try:
-                    task, success, new_blocker = future.result()
-                    print(f"\n=== FINISHED TASK: {task['edge_name']} ===")
-                    branch, sha = get_git_info()
-                    for _retry in range(5):
-                        bundle = check_freshness(ledger_path, branch, sha)
-                        try:
-                            bundle = update_ledger(ledger_path, task["edge_name"], new_blocker, bundle)
-                            break
-                        except Exception as e:
-                            if "meaningful change" in str(e):
-                                break
-                            if "revision conflict" in str(e):
-                                import time, random
-                                time.sleep(0.5 + random.random())
-                                continue
-                            raise e
-
-                    if not success and new_blocker:
-                        blocked_tasks_this_run.add(task["edge_name"])
-                except Exception as e:
-                    print(f"Task {edge_name} failed with exception: {e}")
-                    blocked_tasks_this_run.add(edge_name)
-
-        for edge_name in done_edges:
-            del running_tasks[edge_name]
-
         # Submit new tasks
         newly_submitted = []
         for t in safe_executable_tasks:

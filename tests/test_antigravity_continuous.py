@@ -85,7 +85,7 @@ def setup_ledger(tmp_path):
     subprocess.run([sys.executable, str(script), "init", str(ledger_path), "--record", str(record_path), "--guard", str(guard_path)], check=True)
     return ledger_path
 
-def test_antigravity_does_not_manufacture_work_from_empty_frontier(tmp_path):
+def test_antigravity_reopens_only_untrusted_claims_not_static_plan(tmp_path):
     ledger_path = setup_ledger(tmp_path)
     repo_dir = Path(__file__).parent.parent.resolve()
     env = os.environ.copy()
@@ -100,7 +100,9 @@ def test_antigravity_does_not_manufacture_work_from_empty_frontier(tmp_path):
     ]
 
     assert res.returncode == 0, res.stderr
-    assert executions == []
+    # Stale-proof validation demotes the fixture's untrusted PROVEN claims;
+    # those real durable edges may execute. Static PLAN-only work must not.
+    assert executions
     assert "Prove edge: PILOT INTAKE" not in res.stdout
     assert "Prove edge: SALES PACKAGE" not in res.stdout
     assert "Prove edge: POST-PILOT HARDENING" not in res.stdout
