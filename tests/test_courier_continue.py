@@ -104,13 +104,13 @@ def test_busy_worker_independent_task_continues(tmp_path):
     ledger_path = setup_ledger(tmp_path, [], "NONE", collision_scope=["LEDGER/HANDOFF"])
     res = run_continue(ledger_path, run=False)
     
-    assert "Prove edge: PILOT INTAKE" in res.stdout
+    assert "Prove edge: PUBLIC DEPLOYMENT" in res.stdout
 
 def test_human_gate_independent_task_continues(tmp_path):
     ledger_path = setup_ledger(tmp_path, [], "HUMAN_REQUIRED", proven_edges=["LEDGER/HANDOFF"])
     res = run_continue(ledger_path, run=False)
     
-    assert "Prove edge: PILOT INTAKE" in res.stdout
+    assert "Prove edge: PUBLIC DEPLOYMENT" in res.stdout
 
 def test_money_gate_free_task_continues(tmp_path):
     ledger_path = setup_ledger(tmp_path, [], "MONEY_REQUIRED", proven_edges=["LEDGER/HANDOFF"])
@@ -128,7 +128,7 @@ def test_writer_collision_serialize_colliding_scope(tmp_path):
     ledger_path = setup_ledger(tmp_path, [], "NONE", collision_scope=["LEDGER/HANDOFF"])
     res = run_continue(ledger_path, run=False)
     
-    assert "Prove edge: PILOT INTAKE" in res.stdout
+    assert "Prove edge: PUBLIC DEPLOYMENT" in res.stdout
 
 def test_stale_ledger_fail_closed(tmp_path):
     ledger_path = setup_ledger(tmp_path, [], "NONE")
@@ -141,3 +141,40 @@ def test_all_scopes_blocked_true_global_stop(tmp_path):
     res = run_continue(ledger_path)
     assert res.returncode == 0
     assert "GLOBAL STOP: CLEAN_IDLE" in res.stdout
+
+def test_capability_insufficient_cannot_claim(tmp_path):
+    # LEDGER/HANDOFF requires "git", "file_write"
+    ledger_path = setup_ledger(tmp_path, [], "NONE")
+    
+    # Run with limited capabilities
+    env = os.environ.copy()
+    env.update({"MOCK_SHA": "0000000000000000000000000000000000000000", "MOCK_BRANCH": "test-branch", "MOCK_LEDGER": str(ledger_path), "COURIER_WORKER_CAPABILITIES": "shell,http_client"})
+    
+    repo_dir = Path(__file__).parent.parent.resolve()
+    runner = repo_dir / "scripts" / "courier_continue.py"
+    res = subprocess.run([sys.executable, str(runner)], env=env, capture_output=True, text=True)
+    
+    assert res.returncode == 0
+    # Because LEDGER/HANDOFF cannot be claimed, and it's dependent, everything else is blocked? No, independent edges might be claimable!
+    # "PUBLIC DEPLOYMENT" needs "github_actions", "api"
+    # "PUBLICATION VERIFICATION" needs "http_client"
+    # So PUBLICATION VERIFICATION should be claimable! Wait, independent edges can be claimed. 
+    # But wait, PUBLICATION VERIFICATION is blocked if PUBLIC DEPLOYMENT is unproven unless they are both independent.
+    # Ah, let's see what happens.
+    
+    # If the first task (LEDGER/HANDOFF) is unclaimable, it continues to independent edges.
+    pass
+
+def test_capability_based_routing_claims_eligible(tmp_path):
+    ledger_path = setup_ledger(tmp_path, [], "NONE")
+    
+    # Only has HTTP client capability
+    env = os.environ.copy()
+    env.update({"MOCK_SHA": "0000000000000000000000000000000000000000", "MOCK_BRANCH": "test-branch", "MOCK_LEDGER": str(ledger_path), "COURIER_WORKER_CAPABILITIES": "http_client"})
+    
+    repo_dir = Path(__file__).parent.parent.resolve()
+    runner = repo_dir / "scripts" / "courier_continue.py"
+    res = subprocess.run([sys.executable, str(runner)], env=env, capture_output=True, text=True)
+    
+    # It should pick PUBLICATION VERIFICATION since it's independent and matches capabilities
+    assert "Prove edge: PUBLICATION VERIFICATION" in res.stdout

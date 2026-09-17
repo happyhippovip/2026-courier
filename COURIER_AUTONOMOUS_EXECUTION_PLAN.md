@@ -290,3 +290,22 @@ The continuation path must satisfy these behaviors:
 
 **Optimization Goal:**
 Maximize *verified completed Courier work per token and per worker-minute*, not merely the lowest raw token count.
+
+### Google Antigravity Continuous Queue Participation
+
+**Antigravity Status:** PRIMARY WORKER
+
+**Continuous Participation Flow:**
+`TASK COMPLETE → CHECKPOINT → MOTOR RECOMPUTES FRONTIER → ANTIGRAVITY CLAIMS NEXT ELIGIBLE TASK`
+
+**Invariants:**
+1. Google Antigravity must not unnecessarily yield back to the human after a verified task completion.
+2. As long as Antigravity is available, has sufficient capability/authority, has remaining provider capacity, and an eligible safe task exists, it must automatically consume the next task from the Motor-controlled frontier.
+3. Antigravity may delegate bounded deterministic subtasks to eligible CLI/tool workers while retaining responsibility for the parent task and final verification.
+4. **NO SEPARATE QUEUES**: The Motor-controlled canonical task frontier is the singular queue. Antigravity must not create its own internal queue or scheduler.
+5. **UNAVAILABILITY**: When Antigravity becomes unavailable (e.g., quota exhausted, timeout):
+   `CHECKPOINT → CLEAN YIELD → RELEASE/TRANSFER OWNERSHIP ACCORDING TO CANONICAL RULES → MOTOR SELECTS NEXT ELIGIBLE WORKER`
+6. No human continue messages are required between tasks.
+
+**Required Acceptance Proof:**
+The continuous participation loop is proven by: `ANTIGRAVITY_TASK_1_COMPLETE → AUTOMATIC_TASK_2_CLAIM → AUTOMATIC_TASK_3_CLAIM` with zero human continuation messages.

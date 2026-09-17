@@ -57,6 +57,19 @@ def compute_frontier(record: dict):
     proven = record.get("PROVEN_EDGES", [])
     first_blocker = record.get("FIRST_CAUSAL_BLOCKER", "")
     
+    capability_map = {
+        "LEDGER/HANDOFF": ["git", "file_write"],
+        "PR41 ACCEPTANCE": ["git_merge", "code_analysis", "reasoning"],
+        "RELEASE": ["shell", "build_tools"],
+        "PUBLIC DEPLOYMENT": ["github_actions", "api"],
+        "PUBLICATION VERIFICATION": ["http_client"],
+        "PILOT INTAKE": ["email_processing"],
+        "SALES PACKAGE": ["markdown", "file_write", "reasoning"],
+        "FIRST PILOT": ["intake_execution", "reasoning"],
+        "PAYMENT ONLY WHEN ACTUALLY REQUIRED": ["payment_mechanism"],
+        "POST-PILOT HARDENING": ["refactoring", "testing", "reasoning"]
+    }
+    
     tasks = []
     for edge in PLAN:
         if edge not in proven:
@@ -68,7 +81,8 @@ def compute_frontier(record: dict):
                 "id": f"TASK-{hash(edge)}",
                 "instruction": f"Prove edge: {edge}",
                 "scope": scope,
-                "edge_name": edge
+                "edge_name": edge,
+                "capabilities": capability_map.get(edge, [])
             })
             
     return tasks
@@ -183,6 +197,14 @@ def main():
                 
             if t["edge_name"] in record.get("COLLISION_SCOPE", []):
                 continue
+                
+            # Capability check
+            worker_caps_env = os.environ.get("COURIER_WORKER_CAPABILITIES", "all")
+            if worker_caps_env != "all":
+                worker_caps = set(worker_caps_env.split(","))
+                task_caps = set(t.get("capabilities", []))
+                if not task_caps.issubset(worker_caps):
+                    continue
                 
             if first_blocker and first_blocker != "NONE":
                 if "PROVIDER_QUOTA_EXHAUSTED" in first_blocker:
