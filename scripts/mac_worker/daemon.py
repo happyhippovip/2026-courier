@@ -13,7 +13,6 @@ def sigterm_handler(signum, frame):
         try:
             if hasattr(os, "killpg"):
                 os.killpg(pgid, signal.SIGKILL)
-                    process.wait(timeout=2)
             else:
                 import psutil
                 parent = psutil.Process(pgid)
@@ -264,14 +263,13 @@ def run_agy(task, config):
                     os.killpg(pgid, signal.SIGTERM)
                     time.sleep(1)
                     os.killpg(pgid, signal.SIGKILL)
-                    process.wait(timeout=2)
                 else:
                     process.terminate()
                     time.sleep(1)
                     process.kill()
-                    process.wait(timeout=2)
             except Exception:
                 pass
+            process.wait()
             stdout, stderr = process.communicate()
             return {"status": "FAILED", "stderr": "Execution timed out", "execution_mode": "ANTIGRAVITY"}
         finally:
@@ -352,14 +350,13 @@ def run_copilot(task, config):
                     os.killpg(pgid, signal.SIGTERM)
                     time.sleep(1)
                     os.killpg(pgid, signal.SIGKILL)
-                    process.wait(timeout=2)
                 else:
                     process.terminate()
                     time.sleep(1)
                     process.kill()
-                    process.wait(timeout=2)
             except Exception:
                 pass
+            process.wait()
             stdout, stderr = process.communicate()
             return {"status": "FAILED", "stderr": "Execution timed out", "execution_mode": "COPILOT"}
         finally:

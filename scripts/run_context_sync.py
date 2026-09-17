@@ -94,7 +94,7 @@ def get_git_head(repo_path: Path) -> str:
     # Fallback to direct git rev-parse if accessible
     try:
         res = subprocess.run(
-            ["git", "-C", str(repo_path, timeout=120), "rev-parse", "HEAD"],
+            ["git", "-C", str(repo_path), "rev-parse", "HEAD"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,

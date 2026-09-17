@@ -83,7 +83,7 @@ except OSError:
 # Check for any orphaned sleep processes
 orphan_check = subprocess.run(
     ["pgrep", "-f", "sleep 1000"], capture_output=True, text=True
-, timeout=120)
+)
 if orphan_check.stdout.strip():
     print(f"  ✗ FAIL: Orphaned 'sleep 1000' processes found: {orphan_check.stdout.strip()}")
     result_a = "FAIL"

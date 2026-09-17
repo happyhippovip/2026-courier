@@ -104,7 +104,7 @@ def main() -> int:
         if avi.exists() or mp4.exists() or metadata.exists():
             raise FileExistsError("Output directory must be empty for a deterministic render")
 
-        godot_result = subprocess.run(command, check=False, timeout=120)
+        godot_result = subprocess.run(command, check=False)
         if godot_result.returncode != 0 or not avi.is_file() or avi.stat().st_size == 0:
             print("Godot Movie Maker failed; AVI preserved for diagnosis.", file=sys.stderr)
             return 1
@@ -113,13 +113,13 @@ def main() -> int:
             args.ffmpeg, "-y", "-i", str(avi), "-map", "0:v:0", "-map", "0:a?",
             "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", "-movflags", "+faststart", str(mp4),
         ]
-        ffmpeg_result = subprocess.run(ffmpeg_command, check=False, timeout=120)
+        ffmpeg_result = subprocess.run(ffmpeg_command, check=False)
         if ffmpeg_result.returncode != 0 or not mp4.is_file() or mp4.stat().st_size == 0:
             print("MP4 conversion failed; AVI preserved for diagnosis.", file=sys.stderr)
             return 1
 
         probe = subprocess.run(
-            ["ffprobe", "-v", "error", "-show_entries", "stream=codec_name,width,height:format=duration", "-of", "json", str(mp4, timeout=120)],
+            ["ffprobe", "-v", "error", "-show_entries", "stream=codec_name,width,height:format=duration", "-of", "json", str(mp4)],
             text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False,
         )
         if probe.returncode != 0:

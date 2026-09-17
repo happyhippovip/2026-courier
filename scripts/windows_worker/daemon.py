@@ -97,7 +97,7 @@ def run_task(task, config):
         try:
             if process.poll() is None:
                 # /T kills the tree, /F forces, /PID targets exact process
-                subprocess.run(["taskkill", "/F", "/T", "/PID", str(process.pid, timeout=120)], capture_output=True)
+                subprocess.run(["taskkill", "/F", "/T", "/PID", str(process.pid)], capture_output=True)
         except Exception:
             pass
     

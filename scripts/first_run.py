@@ -5,7 +5,7 @@ import subprocess
 import time
 
 def run_command(cmd):
-    return subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=120)
+    return subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
 def main():
     print("=== Courier First-Run Experience ===")

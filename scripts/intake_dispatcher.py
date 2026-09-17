@@ -23,7 +23,7 @@ def dispatch_intake(intake_file):
     ]
     
     try:
-        subprocess.run(cmd, check=True, capture_output=True, text=True, timeout=120)
+        subprocess.run(cmd, check=True, capture_output=True, text=True)
         print(f"Successfully dispatched to GitHub Actions worker.")
     except subprocess.CalledProcessError as e:
         print(f"Failed to dispatch: {e.stderr}")
@@ -33,7 +33,7 @@ def dispatch_intake(intake_file):
     # We pause a tiny bit so GitHub registers the workflow dispatch
     import time
     time.sleep(3)
-    run_info = subprocess.run(["gh", "run", "list", "--workflow=revenue_v1_baseline.yml", "--limit=1", "--json", "databaseId", "-q", ".[0].databaseId"], capture_output=True, text=True, timeout=120)
+    run_info = subprocess.run(["gh", "run", "list", "--workflow=revenue_v1_baseline.yml", "--limit=1", "--json", "databaseId", "-q", ".[0].databaseId"], capture_output=True, text=True)
     execution_ref = run_info.stdout.strip()
     
     # Update Central State

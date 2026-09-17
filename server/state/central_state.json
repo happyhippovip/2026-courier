@@ -1,10 +1,10 @@
 {
   "schema_version": 2,
   "goals": {
-    "goal-0756d3d0": {
-      "goal_id": "goal-0756d3d0",
+    "goal-460ef14d": {
+      "goal_id": "goal-460ef14d",
       "goal_text": "Test Goal",
-      "status": "BLOCKED",
+      "status": "ACTIVE",
       "terminal": true,
       "workflow_plan": [
         {
@@ -15,12 +15,12 @@
           "instruction": "Task A",
           "status": "WAITING_PROVIDER",
           "task_id": "A",
-          "goal_id": "goal-0756d3d0",
+          "goal_id": "goal-460ef14d",
           "attempts": 1,
           "worker_id": "W1",
           "attempt_id": "A:attempt:1",
-          "dispatch_id": "dispatch-889962c53eec42df8744b2bce13ed4cf",
-          "execution_ref": "exec-009139e1692d45ca980c42e804ff153a",
+          "dispatch_id": "dispatch-c95538eee1d94e6b89e343bcfe3cd8d0",
+          "execution_ref": "exec-415651fd5c414b7ea417d9241a357577",
           "run_id": null,
           "result_id": null,
           "target_capability": "linux",
@@ -34,7 +34,7 @@
             "provider": 1,
             "verification": 0
           },
-          "next_retry_at": 1789684634.518672
+          "next_retry_at": 1789685199.183788
         },
         {
           "capabilities": [
@@ -44,12 +44,12 @@
           "instruction": "Task B",
           "status": "RECONCILED",
           "task_id": "B",
-          "goal_id": "goal-0756d3d0",
+          "goal_id": "goal-460ef14d",
           "attempts": 1,
           "worker_id": "W1",
           "attempt_id": "B:attempt:1",
-          "dispatch_id": "dispatch-9f33ddfccdee42fd8b7cb8c413b7c2e2",
-          "execution_ref": "exec-b6f75ccfb87648dab8b50af57c63025d",
+          "dispatch_id": "dispatch-d6a6895a15404ebea5f5e84ad47f4492",
+          "execution_ref": "exec-11fcb72c4f1e496f95c059f707326c3a",
           "run_id": null,
           "result_id": null,
           "target_capability": "linux",
@@ -62,7 +62,7 @@
             "result_id": "res-b",
             "verdict": "PASS",
             "artifacts": [],
-            "verified_at": 1789684636.649212
+            "verified_at": 1789685198.426917
           }
         },
         {
@@ -71,22 +71,21 @@
           ],
           "depends_on": [],
           "instruction": "Task C",
-          "status": "HUMAN_REQUIRED",
+          "status": "DISPATCHED",
           "task_id": "C",
-          "goal_id": "goal-0756d3d0",
+          "goal_id": "goal-460ef14d",
           "attempts": 1,
           "worker_id": "W1",
           "attempt_id": "C:attempt:1",
-          "dispatch_id": "dispatch-c6918c08f7db45e4822da34dbc7be248",
-          "execution_ref": "exec-185719ed66624a179ae5b0485f0f0688",
+          "dispatch_id": "dispatch-4ae9996cc8054a7686059edaeaeb7bae",
+          "execution_ref": "exec-6971fa2da97d47bdbc5a372d2765f467",
           "run_id": null,
           "result_id": null,
           "target_capability": "linux",
           "last_completed_step": null,
           "next_action": "EXECUTE",
           "blocker": null,
-          "artifact_refs": [],
-          "recovery_reason": "STALE_WORKER_EFFECT_AMBIGUOUS"
+          "artifact_refs": []
         }
       ],
       "current_step_index": 0
@@ -101,12 +100,12 @@
       "instruction": "Task A",
       "status": "WAITING_PROVIDER",
       "task_id": "A",
-      "goal_id": "goal-0756d3d0",
+      "goal_id": "goal-460ef14d",
       "attempts": 1,
       "worker_id": "W1",
       "attempt_id": "A:attempt:1",
-      "dispatch_id": "dispatch-889962c53eec42df8744b2bce13ed4cf",
-      "execution_ref": "exec-009139e1692d45ca980c42e804ff153a",
+      "dispatch_id": "dispatch-c95538eee1d94e6b89e343bcfe3cd8d0",
+      "execution_ref": "exec-415651fd5c414b7ea417d9241a357577",
       "run_id": null,
       "result_id": null,
       "target_capability": "linux",
@@ -120,8 +119,8 @@
         "provider": 1,
         "verification": 0
       },
-      "provider_wait_since": 1789684632.518672,
-      "next_retry_at": 1789684634.518672
+      "provider_wait_since": 1789685197.183788,
+      "next_retry_at": 1789685199.183788
     },
     "B": {
       "capabilities": [
@@ -131,12 +130,12 @@
       "instruction": "Task B",
       "status": "RECONCILED",
       "task_id": "B",
-      "goal_id": "goal-0756d3d0",
+      "goal_id": "goal-460ef14d",
       "attempts": 1,
       "worker_id": "W1",
       "attempt_id": "B:attempt:1",
-      "dispatch_id": "dispatch-9f33ddfccdee42fd8b7cb8c413b7c2e2",
-      "execution_ref": "exec-b6f75ccfb87648dab8b50af57c63025d",
+      "dispatch_id": "dispatch-d6a6895a15404ebea5f5e84ad47f4492",
+      "execution_ref": "exec-11fcb72c4f1e496f95c059f707326c3a",
       "run_id": null,
       "result_id": null,
       "target_capability": "linux",
@@ -145,23 +144,23 @@
       "blocker": null,
       "artifact_refs": [],
       "result": {
-        "status": "SUCCESS",
-        "dispatch_id": "dispatch-9f33ddfccdee42fd8b7cb8c413b7c2e2",
-        "task_id": "B",
-        "result_id": "res-b",
+        "dispatch_id": "dispatch-d6a6895a15404ebea5f5e84ad47f4492",
         "attempt_id": "B:attempt:1",
+        "worker_id": "W1",
+        "status": "SUCCESS",
         "run_id": "run1",
         "artifacts": [],
-        "worker_id": "W1",
-        "goal_id": "goal-0756d3d0",
-        "execution_ref": "exec-b6f75ccfb87648dab8b50af57c63025d"
+        "execution_ref": "exec-11fcb72c4f1e496f95c059f707326c3a",
+        "result_id": "res-b",
+        "task_id": "B",
+        "goal_id": "goal-460ef14d"
       },
       "verification": {
         "verifier_id": "VERIFIER-01",
         "result_id": "res-b",
         "verdict": "PASS",
         "artifacts": [],
-        "verified_at": 1789684636.649212
+        "verified_at": 1789685198.426917
       }
     },
     "C": {
@@ -170,22 +169,21 @@
       ],
       "depends_on": [],
       "instruction": "Task C",
-      "status": "HUMAN_REQUIRED",
+      "status": "DISPATCHED",
       "task_id": "C",
-      "goal_id": "goal-0756d3d0",
+      "goal_id": "goal-460ef14d",
       "attempts": 1,
       "worker_id": "W1",
       "attempt_id": "C:attempt:1",
-      "dispatch_id": "dispatch-c6918c08f7db45e4822da34dbc7be248",
-      "execution_ref": "exec-185719ed66624a179ae5b0485f0f0688",
+      "dispatch_id": "dispatch-4ae9996cc8054a7686059edaeaeb7bae",
+      "execution_ref": "exec-6971fa2da97d47bdbc5a372d2765f467",
       "run_id": null,
       "result_id": null,
       "target_capability": "linux",
       "last_completed_step": null,
       "next_action": "EXECUTE",
       "blocker": null,
-      "artifact_refs": [],
-      "recovery_reason": "STALE_WORKER_EFFECT_AMBIGUOUS"
+      "artifact_refs": []
     }
   },
   "workers": {
@@ -200,8 +198,8 @@
       "capacity_identity": null,
       "provider_available": true,
       "capacity_available": true,
-      "last_seen": 1789684632.532269,
-      "available": false,
+      "last_seen": 1789685197.196501,
+      "available": true,
       "current_task": null,
       "cost_class": "unknown"
     },
@@ -218,7 +216,7 @@
       "capacity_identity": null,
       "provider_available": true,
       "capacity_available": true,
-      "last_seen": 1789685146.527337,
+      "last_seen": 1789685240.3892648,
       "available": true,
       "current_task": null,
       "cost_class": "low"

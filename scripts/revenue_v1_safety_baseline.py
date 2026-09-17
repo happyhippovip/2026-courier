@@ -21,8 +21,8 @@ def hash_file(path: Path) -> str:
 def clone_and_extract(owner: str, repo: str, sha: str, dest: Path):
     if dest.exists():
         shutil.rmtree(dest)
-    subprocess.run(["git", "clone", "--no-checkout", f"https://github.com/{owner}/{repo}.git", str(dest, timeout=120)], check=True, capture_output=False)
-    subprocess.run(["git", "-C", str(dest, timeout=120), "checkout", sha], check=True, capture_output=False)
+    subprocess.run(["git", "clone", "--no-checkout", f"https://github.com/{owner}/{repo}.git", str(dest)], check=True, capture_output=False)
+    subprocess.run(["git", "-C", str(dest), "checkout", sha], check=True, capture_output=False)
 
 def analyze_workflows(repo_dir: Path) -> dict:
     workflows_dir = repo_dir / ".github" / "workflows"

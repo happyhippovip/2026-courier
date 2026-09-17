@@ -26,7 +26,7 @@ def message(message_id, timestamp, source, kind, summary, status_label, requeste
 class ThoughtMeshTests(unittest.TestCase):
     def test_coverage_audit_dedupe_delta_and_proposal(self):
         memory_head_before = subprocess.run(
-            ["git", "-C", str(MEMORY, timeout=60), "rev-parse", "HEAD"], check=True, capture_output=True, text=True
+            ["git", "-C", str(MEMORY), "rev-parse", "HEAD"], check=True, capture_output=True, text=True
         ).stdout.strip()
         initial = [
             message("m-20260825", "2026-08-25T09:00:00Z", "CHAT_EXPORT", "INTENT", "Keep historical statements classified.", "USER_INTENT"),
@@ -57,7 +57,7 @@ class ThoughtMeshTests(unittest.TestCase):
         self.assertEqual(replay["coverage_ledger"]["message_counts"]["delta_processed"], 0)
         self.assertIsNone(replay["memory_update_proposal"])
         memory_head_after = subprocess.run(
-            ["git", "-C", str(MEMORY, timeout=60), "rev-parse", "HEAD"], check=True, capture_output=True, text=True
+            ["git", "-C", str(MEMORY), "rev-parse", "HEAD"], check=True, capture_output=True, text=True
         ).stdout.strip()
         self.assertEqual(memory_head_before, memory_head_after)
 
