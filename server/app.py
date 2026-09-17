@@ -32,8 +32,8 @@ ROLE_KEYS = {
     "github": GITHUB_KEY or OLD_API_KEY,
     "verifier": VERIFIER_API_KEY
 }
-    API_KEY = os.environ.get("COURIER_API_KEY")
-    VERIFIER_API_KEY = os.environ.get("COURIER_VERIFIER_API_KEY")
+API_KEY = os.environ.get("COURIER_API_KEY")
+VERIFIER_API_KEY = os.environ.get("COURIER_VERIFIER_API_KEY")
 
 INSECURE_API_KEYS = {"dev-secret-key"}
 
@@ -606,17 +606,17 @@ def task_result():
     state = load_state()
     
     
-        if task_id in state["tasks"]:
-            task = state["tasks"][task_id]
+    if task_id in state["tasks"]:
+        task = state["tasks"][task_id]
+        
+        if task.get("status") == "HUMAN_REQUIRED":
+            return jsonify({"error": "Task requires human intervention and cannot be advanced autonomously."}), 403
+        
+        if data.get("lease_id") != task.get("lease_id"):
+            return jsonify({"error": "Invalid or expired lease"}), 403
             
-            if task.get("status") == "HUMAN_REQUIRED":
-                return jsonify({"error": "Task requires human intervention and cannot be advanced autonomously."}), 403
-            
-            if data.get("lease_id") != task.get("lease_id"):
-                return jsonify({"error": "Invalid or expired lease"}), 403
-                
-            if g.caller_role != task.get("target_agent", "linux") and g.caller_role != "verifier":
-                return jsonify({"error": "Worker identity mismatch"}), 403
+        if g.caller_role != task.get("target_agent", "linux") and g.caller_role != "verifier":
+            return jsonify({"error": "Worker identity mismatch"}), 403
 
         
         # Duplicate protection

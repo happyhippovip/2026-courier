@@ -10,12 +10,18 @@ from server.app import app, load_state, save_state
 
 class TestCourierSafetyHardening(unittest.TestCase):
     def setUp(self):
+        from server.app import ROLE_KEYS
         self.app = app.test_client()
         app.testing = True
         
         # Ensure a clean temp state file for testing
         self.test_state_file = 'server/state/test_state.json'
         os.environ['COURIER_STATE_FILE'] = self.test_state_file
+        
+        # Mock auth
+        ROLE_KEYS['linux'] = 'dev-secret-key'
+        ROLE_KEYS['windows'] = 'dev-secret-key'
+        ROLE_KEYS['verifier'] = 'dev-secret-key'
         
         if os.path.exists(self.test_state_file):
             os.remove(self.test_state_file)
