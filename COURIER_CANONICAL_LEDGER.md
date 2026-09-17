@@ -6,7 +6,7 @@
 
 ## 1. Repository State
 - **Branch:** release-candidate-integration
-- **Exact SHA:** c32727e4a853fb085c9b45665c88282051be2ff1
+- **Exact SHA:** 9fb036db4d37adea15fe8deeeae1b22b29f1e4b1
 - **Status:** Public release packaging completed (MIT License, requirements.txt, pyproject.toml, GitHub Pages deploy script, Sales/Pilot Kit ready).
 
 ## 2. Canonical Goal & Active Work State
@@ -46,7 +46,7 @@
 {
   "GOAL_ID": "COURIER-PUBLIC-RELEASE",
   "TASK_ID": "LEDGER-HANDOFF-7",
-  "CURRENT_RUNTIME_SHA": "c32727e4a853fb085c9b45665c88282051be2ff1",
+  "CURRENT_RUNTIME_SHA": "9fb036db4d37adea15fe8deeeae1b22b29f1e4b1",
   "OBJECTIVE": "Maintain zero-chat handoff ledger and ensure publication readiness without spending money or auto-deploying.",
   "REQUIRED_CAPABILITIES": ["documentation_generation", "git_inspection"],
   "REQUIRED_AUTHORITY": ["repo:write"],
