@@ -655,6 +655,37 @@ def update(
             if bundle["schema_version"] == 1:
                 raise LedgerError("schema version 1 update requires --guard")
             guard = copy.deepcopy(bundle["acceptance_guard"])
+        # Auto-derive Guard Acceptance from Evidence
+        evidence = guard.get("evidence", [])
+        has_physical_proof = any(
+            e.get("source_type") == "MACHINE_ARTIFACT" and
+            e.get("evidence_sha") == guard["binding"]["current_sha"] and
+            e.get("runtime_binding") == guard["binding"]["runtime_identity"] and
+            e.get("validity") == "VALID"
+            for e in evidence
+        )
+        
+        unproven = record.get("UNPROVEN_EDGES", [])
+        if not unproven and has_physical_proof:
+            guard["transition_state"] = "CANONICAL_ACCEPTED"
+            if "ISSUE_STATE" in guard["acceptance_predicate"]["results"]:
+                guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["status"] = "PASS"
+                guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["observed_value"] = "NO_FURTHER_ACTION"
+                # Inherit the valid evidence URL
+                valid_url = next((e["source_url"] for e in evidence if e["validity"] == "VALID"), "")
+                guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["evidence_urls"] = [valid_url]
+            record["CLEAN_IDLE"] = "YES"
+            record["QUEUE_INDEPENDENT"] = "YES"
+            record["STATUS"] = "CLEAN_IDLE"
+        elif not unproven:
+            # Cannot be CLEAN_IDLE without physical proof
+            record["CLEAN_IDLE"] = "NO"
+            record["QUEUE_INDEPENDENT"] = "NO"
+            record["STATUS"] = "WAITING_PHYSICAL_PROOF"
+            guard["transition_state"] = "PROVISIONAL"
+
+        # Recompute changed based on the final record state
+        changed = sorted(field for field in RECORD_FIELDS if bundle["record"][field] != record[field])
         validate_guard(guard)
         validate_guard_binding(record, guard)
         guard_changed = guard != bundle.get("acceptance_guard")
