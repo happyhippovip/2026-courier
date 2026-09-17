@@ -17,10 +17,15 @@ if [ -d "$RUNTIME_DIR/scripts/mac_worker/logs" ]; then
     cp -r "$RUNTIME_DIR/scripts/mac_worker/logs" "/tmp/courier_logs_backup" 2>/dev/null || true
 fi
 
+
 echo "2. Copying files to runtime..."
 # Use rsync to update files without destroying untracked files like state/logs if possible, but cp -r will overwrite
 mkdir -p "$RUNTIME_DIR/scripts"
 cp -R "$PROJECT_ROOT/scripts/mac_worker" "$RUNTIME_DIR/scripts/"
+
+# NEW: Write deployed SHA for independent verification
+git rev-parse HEAD > "$RUNTIME_DIR/.deployed_sha" 2>/dev/null || true
+
 
 # Restore state and logs
 if [ -d "/tmp/courier_state_backup" ]; then

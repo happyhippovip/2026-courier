@@ -47,6 +47,20 @@ PLAN = [
     "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION"
 ]
 
+
+def get_runtime_truth():
+    import subprocess
+    import os
+    import json
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    truth_script = os.path.join(repo_root, "scripts", "runtime_truth.py")
+    try:
+        out = subprocess.check_output(["python3", truth_script], stderr=subprocess.DEVNULL).decode()
+        info = json.loads(out)
+        return info.get("ACTUAL_SERVING_RUNTIME_SHA", "UNKNOWN")
+    except Exception:
+        return "UNKNOWN"
+
 def get_runtime_identity():
     import os
     import socket
@@ -84,12 +98,24 @@ def get_git_info():
     except subprocess.CalledProcessError:
         return "UNKNOWN", "UNKNOWN"
 
+
 def check_freshness(ledger_path, branch, sha):
     bundle = load_bundle(ledger_path)
     runtime_id = get_runtime_identity()
-    result = freshness(bundle, branch, sha, "NO_FURTHER_ACTION", [], runtime_id)
+    
+    # NEW: Determine actual serving runtime SHA
 
-    if result["FRESHNESS"] == "STALE":
+    actual_runtime_sha = get_runtime_truth()
+    if actual_runtime_sha != "UNKNOWN" and actual_runtime_sha != sha:
+        print(f"ERROR: Acceptance for SHA {sha} while actual runtime is SHA {actual_runtime_sha}: FAIL CLOSED.")
+        print("You must deploy the new code using the canonical authorized deployment mechanism first!")
+        sys.exit(1)
+
+    else:
+        result = freshness(bundle, branch, sha, "NO_FURTHER_ACTION", [], runtime_id)
+        
+    if result.get("FRESHNESS") == "STALE":
+
         print(f"ERROR: Ledger is stale. Fail closed. Runtime or SHA changed. Reasons: {result}")
 
         updates = {"CURRENT_SHA": sha, "BRANCH": branch, "RUNTIME_IDENTITY": runtime_id}
@@ -390,7 +416,7 @@ def main():
             
         print(f"\n=== DISPATCHING {len(safe_executable_tasks)} TASKS CONCURRENTLY ===")
         import concurrent.futures
-        with concurrent.futures.ThreadPoolExecutor(max_workers=len(safe_executable_tasks)) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
             futures = [executor.submit(execute_task, t, ledger_path, record) for t in safe_executable_tasks]
             
             for future in concurrent.futures.as_completed(futures):
