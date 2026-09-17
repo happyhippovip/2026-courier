@@ -62,7 +62,12 @@ def main():
     print("Regression test completed successfully.")
     return 0
 
-def test_agent_background_cleanup():
+def test_agent_background_cleanup(tmp_path, monkeypatch):
+    monkeypatch.setattr(
+        agent_session_manager,
+        "REGISTRY_FILE",
+        tmp_path / "background_monitors.json",
+    )
     assert main() == 0
 
 if __name__ == "__main__":

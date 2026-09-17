@@ -89,7 +89,14 @@ def test_queue_independent_daemon(tmp_path):
     
     # Launch as a detached daemon/background process
     with open(tmp_path / "daemon.out", "w") as outf:
-        p = subprocess.Popen([sys.executable, str(runner), "--run"], env=env, stdout=outf, stderr=outf, start_new_session=True)
+        p = subprocess.Popen(
+            [sys.executable, str(runner), "--run"],
+            env=env,
+            stdout=outf,
+            stderr=outf,
+            start_new_session=True,
+            cwd=str(tmp_path),
+        )
     
     # Let it run detached
     p.wait()
@@ -101,4 +108,3 @@ def test_queue_independent_daemon(tmp_path):
     assert "Prove edge: PILOT INTAKE" in output
     assert "Prove edge: SALES PACKAGE" in output
     assert "Prove edge: POST-PILOT HARDENING" in output
-

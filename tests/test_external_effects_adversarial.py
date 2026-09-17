@@ -57,7 +57,8 @@ def test_external_publication_returns_false():
     assert not success
     assert blocker == "UNVERIFIED_EXTERNAL_EFFECT_EXTERNAL_PUBLICATION"
 
-def test_sales_package_returns_false():
+def test_sales_package_returns_false(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
     task = {"instruction": "x", "edge_name": "SALES PACKAGE"}
     res_task, success, blocker = execute_task(task, "ledger.json", {})
     assert success

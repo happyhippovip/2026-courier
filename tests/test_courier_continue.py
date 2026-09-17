@@ -90,7 +90,15 @@ def run_continue(ledger_path, mock_sha="0000000000000000000000000000000000000000
     if run:
         cmd.append("--run")
         
-    result = subprocess.run(cmd, env=env, capture_output=True, text=True)
+    # Task execution may materialize proof artifacts. Keep those effects inside
+    # pytest's per-test directory instead of polluting the repository checkout.
+    result = subprocess.run(
+        cmd,
+        env=env,
+        capture_output=True,
+        text=True,
+        cwd=str(ledger_path.parent),
+    )
     return result
 
 def test_multiple_independent_tasks_concurrent_progress(tmp_path):

@@ -1,24 +1,24 @@
-import os
 import pytest
 
-from server.app import app, load_state, save_state
-app.config['TESTING'] = True
+from server import app as server_app
+server_app.app.config['TESTING'] = True
 
 @pytest.fixture
-def client():
-    with app.test_client() as client:
+def client(tmp_path, monkeypatch):
+    # Never let this destructive queue-state regression mutate the checked-in
+    # canonical runtime state used by a real Courier process.
+    monkeypatch.setattr(server_app, "STATE_FILE", str(tmp_path / "central_state.json"))
+    monkeypatch.setattr(server_app, "API_KEY", "TEST")
+    with server_app.app.test_client() as client:
         yield client
 
 def reset_state():
-    state = load_state()
+    state = server_app.load_state()
     state.update({"goals": {}, "tasks": {}, "workers": {}})
-    save_state(state)
+    server_app.save_state(state)
 
 def test_waiting_provider_does_not_stall_global_queue(client):
     reset_state()
-    import server.app
-    server.app.API_KEY = "TEST"
-
     # Register worker
     res = client.post("/workers/register", json={"worker_id": "W1", "platform": "linux", "capabilities": ["linux"]}, headers={"Authorization": "Bearer TEST"})
     assert res.status_code == 200
@@ -65,4 +65,3 @@ def test_waiting_provider_does_not_stall_global_queue(client):
     print("Claim C:", res.json)
     assert task_c is not None, "Task C was blocked by Task A's WAITING_PROVIDER state!"
     assert task_c["task_id"] == "C"
-
