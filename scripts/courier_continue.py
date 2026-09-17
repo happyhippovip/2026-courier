@@ -76,8 +76,16 @@ def compute_frontier(record: dict):
 def execute_task(task, ledger_path, record):
     print(f"Executing/Delegating task: {task['instruction']}")
     if task["edge_name"] == "PUBLICATION VERIFICATION":
-        print("Checking deployment... HTTP 404... PUBLICATION VERIFICATION failed.")
-        return False, "HUMAN_REQUIRED_PUBLIC_REPO_VISIBILITY"
+        try:
+            import urllib.request
+            req = urllib.request.Request("https://happyhippovip.github.io/courier-pilot-website/", headers={'User-Agent': 'Mozilla/5.0'})
+            html = urllib.request.urlopen(req).read().decode('utf-8')
+            if "hobbiejanssen@gmx.net" in html and "Courier" in html:
+                print("PUBLICATION VERIFICATION passed. URL is live and contact is verified.")
+            else:
+                return False, "HUMAN_REQUIRED_PUBLIC_REPO_VISIBILITY"
+        except Exception as e:
+            return False, "HUMAN_REQUIRED_PUBLIC_REPO_VISIBILITY"
     elif task["edge_name"] == "PAYMENT ONLY WHEN ACTUALLY REQUIRED":
         print("Payment required. Halting execution for this scope.")
         return False, "MONEY_REQUIRED_PAYMENT_GATEWAY"
@@ -87,8 +95,18 @@ def execute_task(task, ledger_path, record):
             print("Active writer collision on PR41 (Codex).")
             return False, "HUMAN_REQUIRED_MERGE"
         else:
-            print("Ownership resolved to Google-Antigravity, but unattended merge is forbidden.")
-            return False, "HUMAN_REQUIRED_MERGE"
+            try:
+                out = subprocess.check_output(["gh", "pr", "view", "41", "--json", "state"]).decode()
+                state = json.loads(out).get("state")
+                if state == "MERGED":
+                    print("PR41 successfully merged.")
+                else:
+                    print(f"PR41 state is {state}. Ownership resolved, but unattended merge is forbidden.")
+                    return False, "HUMAN_REQUIRED_MERGE"
+            except Exception as e:
+                print(f"Ownership resolved to Google-Antigravity, but unattended merge is forbidden. Failed to check PR state: {e}")
+                return False, "HUMAN_REQUIRED_MERGE"
+
     
     print(f"Successfully proved: {task['edge_name']}")
     return True, None
