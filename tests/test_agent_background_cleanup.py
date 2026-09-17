@@ -62,5 +62,8 @@ def main():
     print("Regression test completed successfully.")
     return 0
 
+def test_agent_background_cleanup():
+    assert main() == 0
+
 if __name__ == "__main__":
     sys.exit(main())

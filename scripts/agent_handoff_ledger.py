@@ -178,8 +178,12 @@ def validate_record(record: Any, *, allow_unknown_sha: bool) -> None:
     for evidence in record["LAST_EVIDENCE"]:
         if not evidence.startswith("https://"):
             raise LedgerError("LAST_EVIDENCE entries must be durable https:// URLs")
-    if record.get("CLEAN_IDLE") == "YES" and record.get("NEXT_EXECUTABLE_ACTION") not in ("NONE", "none", "UNKNOWN"):
+    if record.get("CLEAN_IDLE") == "YES" and record.get("NEXT_EXECUTABLE_ACTION") not in ("NONE", "none"):
         raise LedgerError("CLEAN_IDLE=YES is forbidden when NEXT_EXECUTABLE_ACTION is not NONE")
+    if record.get("CLEAN_IDLE") == "YES" and record.get("UNPROVEN_EDGES"):
+        raise LedgerError("CLEAN_IDLE=YES is forbidden while UNPROVEN_EDGES is not empty")
+    if record.get("CLEAN_IDLE") == "YES" and record.get("STATUS") in ("READY", "WAITING_PROVIDER", "DISPATCHED", "RUNNING", "BLOCKED", "TEST"):
+        raise LedgerError(f"CLEAN_IDLE=YES is forbidden when STATUS is {record.get('STATUS')}")
 
 
 def validate_guard(guard: Any) -> None:
@@ -354,6 +358,12 @@ def validate_bundle(bundle: Any) -> dict[str, Any]:
     if schema_version == SCHEMA_VERSION:
         validate_guard(bundle["acceptance_guard"])
         validate_guard_binding(bundle["record"], bundle["acceptance_guard"])
+        if (
+            bundle["record"].get("CLEAN_IDLE") == "YES"
+            and bundle["acceptance_guard"]["transition_state"]
+            != "CANONICAL_ACCEPTED"
+        ):
+            raise LedgerError("CLEAN_IDLE=YES requires a CANONICAL_ACCEPTED guard")
     history = bundle["history"]
     if not isinstance(history, list) or len(history) != revision + 1:
         raise LedgerError("history must contain exactly one entry per revision")
@@ -661,19 +671,41 @@ def update(
             guard = copy.deepcopy(bundle["acceptance_guard"])
         # Auto-derive Guard Acceptance from Evidence
         evidence = guard.get("evidence", [])
+        old_evidence = bundle.get("acceptance_guard", {}).get("evidence", [])
+        # Acceptance cannot create the evidence used to prove itself: only
+        # evidence that pre-existed this update counts toward acceptance.
+        prior_evidence = [e for e in evidence if e in old_evidence]
         has_physical_proof = any(
             e.get("source_type") == "MACHINE_ARTIFACT" and
             e.get("evidence_sha") == guard["binding"]["current_sha"] and
             e.get("runtime_binding") == guard["binding"]["runtime_identity"] and
             e.get("validity") == "VALID"
-            for e in evidence
+            for e in prior_evidence
         )
         
         unproven = record.get("UNPROVEN_EDGES", [])
+        # Enforce stale proof rules: if provisional or missing physical proof, edges cannot be proven
+        if not has_physical_proof:
+            # Move physical edges back to unproven if they require it
+            physical_edges = {"RELEASE", "PUBLIC DEPLOYMENT", "FIRST PILOT", "PAYMENT ONLY WHEN ACTUALLY REQUIRED", "ONBOARD_FIRST_PILOT_CUSTOMER", "EXTERNAL_PUBLICATION", "PUBLICATION VERIFICATION", "PILOT INTAKE", "SALES PACKAGE", "POST-PILOT HARDENING"}
+            proven = set(record.get("PROVEN_EDGES", []))
+            invalid_proven = proven.intersection(physical_edges)
+            if invalid_proven:
+                record["PROVEN_EDGES"] = list(proven - invalid_proven)
+                unproven_set = set(unproven)
+                unproven_set.update(invalid_proven)
+                unproven = list(unproven_set)
+                record["UNPROVEN_EDGES"] = unproven
+
+        if updates.get("CLEAN_IDLE") == "YES" and (unproven or not has_physical_proof):
+            raise LedgerError("CLEAN_IDLE=YES is forbidden without pre-existing physical proof and empty unproven edges")
+
         if unproven or record.get("STATUS") in ("READY", "WAITING_PROVIDER", "DISPATCHED", "RUNNING"):
-            # Cannot be CLEAN_IDLE if work exists or is active
+            # Cannot be CLEAN_IDLE if work exists or is active; a caller-preset
+            # CANONICAL must not survive alongside unfinished work or proof.
             record["CLEAN_IDLE"] = "NO"
             record["QUEUE_INDEPENDENT"] = "NO"
+            guard["transition_state"] = "PROVISIONAL"
             if record.get("STATUS") == "CLEAN_IDLE":
                 record["STATUS"] = "READY"
         elif not unproven and has_physical_proof:
@@ -681,8 +713,8 @@ def update(
             if "ISSUE_STATE" in guard["acceptance_predicate"]["results"]:
                 guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["status"] = "PASS"
                 guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["observed_value"] = "NO_FURTHER_ACTION"
-                # Inherit the valid evidence URL
-                valid_url = next((e["source_url"] for e in evidence if e["validity"] == "VALID"), "")
+                # Inherit the valid evidence URL (pre-existing proof only)
+                valid_url = next((e["source_url"] for e in prior_evidence if e["validity"] == "VALID"), "")
                 guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["evidence_urls"] = [valid_url]
             record["CLEAN_IDLE"] = "YES"
             record["QUEUE_INDEPENDENT"] = "YES"
@@ -817,6 +849,7 @@ def freshness(
     observed_sha: str,
     observed_issue_state: str,
     observed_evidence_urls: list[str],
+    observed_runtime: str | None = None,
 ) -> dict[str, Any]:
     if not SHA_RE.fullmatch(observed_sha):
         raise LedgerError("--observed-sha must be a full lowercase 40-character Git SHA")
@@ -824,7 +857,8 @@ def freshness(
     record = bundle["record"]
     if record["BRANCH"] != observed_branch:
         reasons.append("BRANCH_MISMATCH")
-    if record["RUNTIME_IDENTITY"] != observed_sha:
+    expected_runtime = observed_runtime if observed_runtime is not None else observed_sha
+    if record["RUNTIME_IDENTITY"] != expected_runtime:
         reasons.append("RUNTIME_IDENTITY_MISMATCH")
     if record["CURRENT_SHA"] != observed_sha:
         reasons.extend(
@@ -924,6 +958,7 @@ def build_parser() -> argparse.ArgumentParser:
     freshness_parser.add_argument(
         "--observed-evidence-url", action="append", default=[]
     )
+    freshness_parser.add_argument("--observed-runtime", default=None)
     return parser
 
 
@@ -961,6 +996,7 @@ def main(argv: list[str] | None = None) -> int:
                 args.observed_sha,
                 args.observed_issue_state,
                 args.observed_evidence_url,
+                args.observed_runtime,
             )
             print_json(result)
             return 3 if result["FRESHNESS"] == "STALE" else 0

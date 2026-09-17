@@ -24,8 +24,8 @@ import urllib.error
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent
-SERVER_URL = "http://127.0.0.1:8080"
-API_KEY = "courier-worker-0eac500d-ed14-45a3-965c-c5aa36668ea4"
+SERVER_URL = "http://127.0.0.1:8081"
+API_KEY = "321606503a874d39b50f6137e3321b7f"
 VERIFIER_KEY = "verifier-12345"
 HEADERS = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
 VERIFIER_HEADERS = {"Authorization": f"Bearer {VERIFIER_KEY}", "Content-Type": "application/json"}
@@ -80,18 +80,18 @@ def main():
     server_proc = None
 
     try:
-        # 1. Ensure Central server is running on 8080
+        # 1. Ensure Central server is running on 8081
         server_alive = False
         try:
             r = http_get("/health")
             if r.get("status") == "healthy":
                 server_alive = True
-                print("[Central] Detected running Central server on 8080.")
+                print("[Central] Detected running Central server on 8081.")
         except Exception:
             pass
 
         if not server_alive:
-            print("[Central] Starting canonical Central server (server/app.py) on 8080...")
+            print("[Central] Starting canonical Central server (server/app.py) on 8081...")
             s_env = os.environ.copy()
             s_env["PYTHONPATH"] = str(REPO_ROOT)
             s_env["COURIER_API_KEY"] = API_KEY

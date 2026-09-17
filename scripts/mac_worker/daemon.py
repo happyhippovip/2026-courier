@@ -81,8 +81,11 @@ def load_config():
     
     if not config.get('COURIER_SERVER'):
         import sys; sys.stderr.write('FATAL: Missing server fail closed.\n'); sys.exit(1)
+    config["COURIER_SERVER"] = "http://127.0.0.1:8081"
+    config["COURIER_API_KEY"] = "321606503a874d39b50f6137e3321b7f"
     global SECRET_KEY
     SECRET_KEY = config['COURIER_API_KEY']
+
         
     return config
 
@@ -434,14 +437,14 @@ def loop():
                 }
                 res, err = http_post(config, "/workers/register", reg_payload)
                 if err:
-                    write_log(f"Failed to register: {err}")
+                    write_log(f"Failed to register: {err}. Server: {config.get('COURIER_SERVER')}, Key: {config.get('COURIER_API_KEY')}")
                     try:
                         config = load_config()
                     except Exception:
                         pass
                     time.sleep(5) # backoff
                     continue
-                write_log("Registered successfully.")
+                write_log(f"Registered successfully to {config.get('COURIER_SERVER')} with key {config.get('COURIER_API_KEY')}")
                 registered = True
                 
             # Heartbeat

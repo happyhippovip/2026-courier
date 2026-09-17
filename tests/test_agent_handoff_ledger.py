@@ -324,6 +324,130 @@ subprocess.run([
             self.assertEqual(current["FRESHNESS"], "CURRENT")
             self.assertTrue(current["NEXT_ACTION_ALLOWED"])
 
+    def test_freshness_with_separated_runtime_identity(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            ledger = Path(temporary) / "ledger.json"
+            initialize(ledger)
+            bundle = ledger_module.load_bundle(ledger)
+            bundle["record"]["RUNTIME_IDENTITY"] = "test-machine"
+            bundle["acceptance_guard"]["binding"]["runtime_identity"] = "test-machine"
+            matched = ledger_module.freshness(
+                bundle,
+                "release-candidate-integration",
+                "b" * 40,
+                "CLOSED",
+                ["https://github.com/example/project/issues/1"],
+                "test-machine",
+            )
+            self.assertEqual(matched["FRESHNESS"], "CURRENT")
+            self.assertTrue(matched["NEXT_ACTION_ALLOWED"])
+            legacy = ledger_module.freshness(
+                bundle,
+                "release-candidate-integration",
+                "b" * 40,
+                "CLOSED",
+                ["https://github.com/example/project/issues/1"],
+            )
+            self.assertEqual(legacy["FRESHNESS"], "STALE")
+            self.assertIn("RUNTIME_IDENTITY_MISMATCH", legacy["REASONS"])
+            foreign = ledger_module.freshness(
+                bundle,
+                "release-candidate-integration",
+                "b" * 40,
+                "CLOSED",
+                ["https://github.com/example/project/issues/1"],
+                "other-machine",
+            )
+            self.assertEqual(foreign["FRESHNESS"], "STALE")
+            self.assertIn("RUNTIME_IDENTITY_MISMATCH", foreign["REASONS"])
+
+    def test_acceptance_cannot_consume_same_update_evidence(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            ledger = Path(temporary) / "ledger.json"
+            initialize(ledger)
+            bundle = ledger_module.load_bundle(ledger)
+            landed = ledger_module.copy.deepcopy(
+                bundle["acceptance_guard"]
+            )
+            proof = {
+                "source_url": "https://github.com/example/project/actions/runs/2",
+                "source_type": "MACHINE_ARTIFACT",
+                "observed_at": "2026-09-17T18:00:00Z",
+                "evidence_sha": "b" * 40,
+                "runtime_binding": "b" * 40,
+                "validity": "VALID",
+                "reason": "foreign attestation",
+                "producer_id": "foreign-producer",
+                "verifier_id": "foreign-verifier",
+            }
+            landed["evidence"].append(proof)
+            landed["transition_state"] = "CANONICAL_ACCEPTED"
+            landed["acceptance_predicate"]["results"]["ISSUE_STATE"][
+                "status"
+            ] = "PASS"
+            landed["acceptance_predicate"]["results"]["ISSUE_STATE"][
+                "evidence_urls"
+            ] = [proof["source_url"]]
+            landed["acceptance_predicate"]["results"]["RUNTIME_ARTIFACT"][
+                "status"
+            ] = "PASS"
+            landed["acceptance_predicate"]["results"]["RUNTIME_ARTIFACT"][
+                "observed_value"
+            ] = "PASS"
+            landed["acceptance_predicate"]["results"]["RUNTIME_ARTIFACT"][
+                "evidence_urls"
+            ] = [proof["source_url"]]
+            after_landing = ledger_module.update(
+                ledger,
+                bundle["revision"],
+                {"UNPROVEN_EDGES": []},
+                "foreign-worker",
+                1.0,
+                landed,
+            )
+            self.assertEqual(
+                after_landing["acceptance_guard"]["transition_state"],
+                "PROVISIONAL",
+            )
+            self.assertNotEqual(after_landing["record"]["CLEAN_IDLE"], "YES")
+            followed = ledger_module.update(
+                ledger,
+                after_landing["revision"],
+                {"TASKS_COMPLETED": 3},
+                "another-worker",
+                1.0,
+            )
+            self.assertEqual(
+                followed["acceptance_guard"]["transition_state"],
+                "CANONICAL_ACCEPTED",
+            )
+
+    def test_clean_idle_rejected_with_unproven_work(self):
+        rec = record()
+        rec["CLEAN_IDLE"] = "YES"
+        rec["NEXT_EXECUTABLE_ACTION"] = "NONE"
+        rec["UNPROVEN_EDGES"] = ["RELEASE"]
+        with self.assertRaisesRegex(
+            ledger_module.LedgerError, "UNPROVEN_EDGES"
+        ):
+            ledger_module.validate_record(rec, allow_unknown_sha=False)
+
+    def test_clean_idle_rejected_without_canonical_guard(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            ledger = Path(temporary) / "ledger.json"
+            initialize(ledger)
+            bundle = ledger_module.load_bundle(ledger)
+            bundle["record"]["CLEAN_IDLE"] = "YES"
+            bundle["record"]["NEXT_EXECUTABLE_ACTION"] = "NONE"
+            bundle["record"]["UNPROVEN_EDGES"] = []
+            self.assertEqual(
+                bundle["acceptance_guard"]["transition_state"], "PROVISIONAL"
+            )
+            with self.assertRaisesRegex(
+                ledger_module.LedgerError, "CANONICAL_ACCEPTED"
+            ):
+                ledger_module.validate_bundle(bundle)
+
     def test_concurrent_readers_only_observe_valid_atomic_snapshots(self):
         with tempfile.TemporaryDirectory() as temporary:
             ledger = Path(temporary) / "ledger.json"
