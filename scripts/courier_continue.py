@@ -187,6 +187,49 @@ def execute_task(task, ledger_path, record):
     edge = task["edge_name"]
 
 
+
+    if os.environ.get("MOCK_TORTURE_TASK") and os.environ["MOCK_TORTURE_TASK"] == edge:
+        import time, sys
+        state_file = "torture_state.txt"
+        
+        state = 0
+        if os.path.exists(state_file):
+            state = int(open(state_file).read().strip())
+        
+        if state == 0:
+            print("TORTURE: checkpoint before work (implied by dispatch)")
+            print("TORTURE: work begins")
+            
+            # do step 1 (durable step)
+            with open("torture_durable_1.txt", "a") as df:
+                df.write("X")
+                df.flush()
+                os.fsync(df.fileno())
+            print("TORTURE: checkpoint after durable step")
+            
+            with open(state_file, "w") as sf:
+                sf.write("1")
+                sf.flush()
+                os.fsync(sf.fileno())
+            
+            print("TORTURE: simulating hard crash before returning success!")
+            os._exit(99) # Hard crash
+            
+        elif state == 1:
+            print("TORTURE: restart / resume")
+            with open("torture_durable_2.txt", "a") as df:
+                df.write("Y")
+                df.flush()
+                os.fsync(df.fileno())
+            with open(state_file, "w") as sf:
+                sf.write("2")
+                sf.flush()
+                os.fsync(sf.fileno())
+            return task, True, None
+        
+        else:
+            return task, True, None
+
     if os.environ.get("MOCK_WAITING_TASK") and os.environ["MOCK_WAITING_TASK"] in edge:
         marker = "mock_a_called.txt"
         if not os.path.exists(marker):
