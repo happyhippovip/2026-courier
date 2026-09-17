@@ -1,0 +1,168 @@
+{
+  "format": "courier-agent-handoff-ledger",
+  "history": [
+    {
+      "changed_fields": [
+        "ACTIVE_WRITERS",
+        "BLOCKER_OWNER",
+        "BRANCH",
+        "CLEAN_IDLE",
+        "COLLISION_SCOPE",
+        "CONTINUATION_CHECKPOINT",
+        "CURRENT_SHA",
+        "DUPLICATE_EXTERNAL_EFFECTS",
+        "FIRST_CAUSAL_BLOCKER",
+        "GOAL",
+        "GOALS_SUBMITTED",
+        "LAST_EVIDENCE",
+        "LAST_UPDATED_BY",
+        "MANUAL_PROCESS_RESTARTS",
+        "NEXT_EXECUTABLE_ACTION",
+        "PROJECT",
+        "PROVEN_EDGES",
+        "QUEUE_INDEPENDENT",
+        "RUNTIME_IDENTITY",
+        "RUNTIME_OWNER",
+        "STATUS",
+        "TASKS_COMPLETED",
+        "TEMP_TASK_PROCESSES_AFTER_DONE",
+        "UNPROVEN_EDGES",
+        "USER_CONTINUE_MESSAGES",
+        "WORKERS_USED"
+      ],
+      "entry_sha256": "884feb2e5a3a9ef9218e265d0d23d2752e4d3655f4c97c30b71b056065de639d",
+      "operation": "INIT",
+      "previous_entry_sha256": null,
+      "record": {
+        "ACTIVE_WRITERS": [
+          "happyhippovip-agent-handoff-ledger (coordination metadata files only)"
+        ],
+        "BLOCKER_OWNER": "NEXT_ACCEPTANCE_REVIEWER",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "UNKNOWN",
+        "COLLISION_SCOPE": [],
+        "CONTINUATION_CHECKPOINT": "Revision 0 records the latest durable report without promoting unobserved runtime claims to observed fact.",
+        "CURRENT_SHA": "bd2f85eb1ff2d1b6fe71297b90ad3150e0abc909",
+        "DUPLICATE_EXTERNAL_EFFECTS": null,
+        "FIRST_CAUSAL_BLOCKER": "NONE_REPORTED_IN_LATEST_ISSUE_37_EVIDENCE",
+        "GOAL": "Preserve an exact-SHA coordination checkpoint for independent continuation of Courier release acceptance.",
+        "GOALS_SUBMITTED": null,
+        "LAST_EVIDENCE": [
+          "https://github.com/happyhippovip/2026-courier/issues/37#issuecomment-5711022644",
+          "https://github.com/happyhippovip/2026-courier/commit/bd2f85eb1ff2d1b6fe71297b90ad3150e0abc909"
+        ],
+        "LAST_UPDATED_BY": "agent-handoff-ledger-session-a",
+        "MANUAL_PROCESS_RESTARTS": null,
+        "NEXT_EXECUTABLE_ACTION": "Fetch origin/release-candidate-integration, verify it still resolves to CURRENT_SHA, read LAST_EVIDENCE, inspect live OS ownership and canonical state, then update this ledger with observed counters and durable evidence using the current expected revision.",
+        "PROJECT": "happyhippovip/2026-courier",
+        "PROVEN_EDGES": [
+          "origin/release-candidate-integration resolved to bd2f85eb1ff2d1b6fe71297b90ad3150e0abc909 when this ledger was created",
+          "The newest durable Issue #37 comment reports physical acceptance pass and queue independence at the same exact SHA"
+        ],
+        "QUEUE_INDEPENDENT": "UNKNOWN",
+        "RUNTIME_IDENTITY": "Issue #37 reports canonical OS-owned Central server, independent verifier, and Mac launchd worker; this ledger lane did not observe the live processes.",
+        "RUNTIME_OWNER": "CENTRAL/MAC operators named by Issue #37 evidence",
+        "STATUS": "ISSUE_REPORTED_PHYSICAL_ACCEPTANCE_PASS",
+        "TASKS_COMPLETED": null,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": null,
+        "UNPROVEN_EDGES": [
+          "Live runtime ownership and acceptance counters were not independently observed by this coordination-only ledger lane"
+        ],
+        "USER_CONTINUE_MESSAGES": null,
+        "WORKERS_USED": null
+      },
+      "record_sha256": "112395296b46a4ee7dd33ee1889c414f673456f1b55140728d19f2f06fdffb95",
+      "revision": 0,
+      "timestamp_utc": "2026-09-17T08:33:13Z",
+      "updated_by": "agent-handoff-ledger-session-a"
+    },
+    {
+      "changed_fields": [
+        "ACTIVE_WRITERS",
+        "CONTINUATION_CHECKPOINT"
+      ],
+      "entry_sha256": "426f520e1e37b709d0b977a379b5ad457197087a20d7518db1376c3683ceaf76",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "884feb2e5a3a9ef9218e265d0d23d2752e4d3655f4c97c30b71b056065de639d",
+      "record": {
+        "ACTIVE_WRITERS": [],
+        "BLOCKER_OWNER": "NEXT_ACCEPTANCE_REVIEWER",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "UNKNOWN",
+        "COLLISION_SCOPE": [],
+        "CONTINUATION_CHECKPOINT": "Revision 1 closes the ledger writer lane. Session B needs only this file path and must use expected revision 1 for its first update.",
+        "CURRENT_SHA": "bd2f85eb1ff2d1b6fe71297b90ad3150e0abc909",
+        "DUPLICATE_EXTERNAL_EFFECTS": null,
+        "FIRST_CAUSAL_BLOCKER": "NONE_REPORTED_IN_LATEST_ISSUE_37_EVIDENCE",
+        "GOAL": "Preserve an exact-SHA coordination checkpoint for independent continuation of Courier release acceptance.",
+        "GOALS_SUBMITTED": null,
+        "LAST_EVIDENCE": [
+          "https://github.com/happyhippovip/2026-courier/issues/37#issuecomment-5711022644",
+          "https://github.com/happyhippovip/2026-courier/commit/bd2f85eb1ff2d1b6fe71297b90ad3150e0abc909"
+        ],
+        "LAST_UPDATED_BY": "agent-handoff-ledger-session-a",
+        "MANUAL_PROCESS_RESTARTS": null,
+        "NEXT_EXECUTABLE_ACTION": "Fetch origin/release-candidate-integration, verify it still resolves to CURRENT_SHA, read LAST_EVIDENCE, inspect live OS ownership and canonical state, then update this ledger with observed counters and durable evidence using the current expected revision.",
+        "PROJECT": "happyhippovip/2026-courier",
+        "PROVEN_EDGES": [
+          "origin/release-candidate-integration resolved to bd2f85eb1ff2d1b6fe71297b90ad3150e0abc909 when this ledger was created",
+          "The newest durable Issue #37 comment reports physical acceptance pass and queue independence at the same exact SHA"
+        ],
+        "QUEUE_INDEPENDENT": "UNKNOWN",
+        "RUNTIME_IDENTITY": "Issue #37 reports canonical OS-owned Central server, independent verifier, and Mac launchd worker; this ledger lane did not observe the live processes.",
+        "RUNTIME_OWNER": "CENTRAL/MAC operators named by Issue #37 evidence",
+        "STATUS": "ISSUE_REPORTED_PHYSICAL_ACCEPTANCE_PASS",
+        "TASKS_COMPLETED": null,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": null,
+        "UNPROVEN_EDGES": [
+          "Live runtime ownership and acceptance counters were not independently observed by this coordination-only ledger lane"
+        ],
+        "USER_CONTINUE_MESSAGES": null,
+        "WORKERS_USED": null
+      },
+      "record_sha256": "944cc1586f6cac9a8ec6c6726860576ee045ccb2e80ad1de1d1cf3f638a9fa87",
+      "revision": 1,
+      "timestamp_utc": "2026-09-17T08:33:13Z",
+      "updated_by": "agent-handoff-ledger-session-a"
+    }
+  ],
+  "non_authority": "Coordination metadata only; this ledger has no scheduler, runtime, execution, dispatch, verification, or Courier truth authority.",
+  "record": {
+    "ACTIVE_WRITERS": [],
+    "BLOCKER_OWNER": "NEXT_ACCEPTANCE_REVIEWER",
+    "BRANCH": "release-candidate-integration",
+    "CLEAN_IDLE": "UNKNOWN",
+    "COLLISION_SCOPE": [],
+    "CONTINUATION_CHECKPOINT": "Revision 1 closes the ledger writer lane. Session B needs only this file path and must use expected revision 1 for its first update.",
+    "CURRENT_SHA": "bd2f85eb1ff2d1b6fe71297b90ad3150e0abc909",
+    "DUPLICATE_EXTERNAL_EFFECTS": null,
+    "FIRST_CAUSAL_BLOCKER": "NONE_REPORTED_IN_LATEST_ISSUE_37_EVIDENCE",
+    "GOAL": "Preserve an exact-SHA coordination checkpoint for independent continuation of Courier release acceptance.",
+    "GOALS_SUBMITTED": null,
+    "LAST_EVIDENCE": [
+      "https://github.com/happyhippovip/2026-courier/issues/37#issuecomment-5711022644",
+      "https://github.com/happyhippovip/2026-courier/commit/bd2f85eb1ff2d1b6fe71297b90ad3150e0abc909"
+    ],
+    "LAST_UPDATED_BY": "agent-handoff-ledger-session-a",
+    "MANUAL_PROCESS_RESTARTS": null,
+    "NEXT_EXECUTABLE_ACTION": "Fetch origin/release-candidate-integration, verify it still resolves to CURRENT_SHA, read LAST_EVIDENCE, inspect live OS ownership and canonical state, then update this ledger with observed counters and durable evidence using the current expected revision.",
+    "PROJECT": "happyhippovip/2026-courier",
+    "PROVEN_EDGES": [
+      "origin/release-candidate-integration resolved to bd2f85eb1ff2d1b6fe71297b90ad3150e0abc909 when this ledger was created",
+      "The newest durable Issue #37 comment reports physical acceptance pass and queue independence at the same exact SHA"
+    ],
+    "QUEUE_INDEPENDENT": "UNKNOWN",
+    "RUNTIME_IDENTITY": "Issue #37 reports canonical OS-owned Central server, independent verifier, and Mac launchd worker; this ledger lane did not observe the live processes.",
+    "RUNTIME_OWNER": "CENTRAL/MAC operators named by Issue #37 evidence",
+    "STATUS": "ISSUE_REPORTED_PHYSICAL_ACCEPTANCE_PASS",
+    "TASKS_COMPLETED": null,
+    "TEMP_TASK_PROCESSES_AFTER_DONE": null,
+    "UNPROVEN_EDGES": [
+      "Live runtime ownership and acceptance counters were not independently observed by this coordination-only ledger lane"
+    ],
+    "USER_CONTINUE_MESSAGES": null,
+    "WORKERS_USED": null
+  },
+  "revision": 1,
+  "schema_version": 1
+}
