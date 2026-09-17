@@ -1,0 +1,17 @@
+{
+  "LOW_RESOURCE": {
+    "max_workers": 1,
+    "hosted_fallback": true,
+    "memory_limit_mb": 1024
+  },
+  "STANDARD": {
+    "max_workers": 2,
+    "hosted_fallback": false,
+    "memory_limit_mb": 4096
+  },
+  "HIGH_CAPACITY": {
+    "max_workers": 8,
+    "hosted_fallback": false,
+    "memory_limit_mb": 16384
+  }
+}

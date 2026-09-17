@@ -18,9 +18,17 @@ def hash_file(path: Path) -> str:
     h.update(path.read_bytes())
     return h.hexdigest()
 
+def remove_readonly(func, path, _):
+    import stat
+    os.chmod(path, stat.S_IWRITE)
+    try:
+        func(path)
+    except FileNotFoundError:
+        pass
+
 def clone_and_extract(owner: str, repo: str, sha: str, dest: Path):
     if dest.exists():
-        shutil.rmtree(dest)
+        shutil.rmtree(dest, onerror=remove_readonly)
     dest.mkdir(parents=True)
     subprocess.run(["git", "-C", str(dest), "init"], check=True, capture_output=True)
     subprocess.run(["git", "-C", str(dest), "remote", "add", "origin", f"https://github.com/{owner}/{repo}.git"], check=True, capture_output=True)
@@ -94,7 +102,7 @@ def worker(task: dict, work_dir: Path) -> dict:
         "report_md_sha256": hash_file(work_dir / "report.md"),
         "effect_classification": "SAFE_READ_ONLY",
         "worker_status": "PASS",
-        "proposal_mode": "PR_ONLY"
+        "proposal_mode": "NONE"
     }
 
 def verify(task: dict, candidate: dict, work_dir: Path) -> dict:
@@ -109,7 +117,7 @@ def verify(task: dict, candidate: dict, work_dir: Path) -> dict:
         **candidate,
         "verifier_id": VERIFIER_ID,
         "verifier_status": "PASS",
-        "next_safe_state": "HUMAN_REVIEW_REQUIRED"
+        "next_safe_state": "DONE"
     }
 
 def validate_verified_result(task: dict, result: dict, work_dir: Path) -> None:

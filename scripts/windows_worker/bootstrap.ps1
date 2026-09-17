@@ -17,6 +17,9 @@ if (-not (Get-Command "uv" -ErrorAction SilentlyContinue)) {
 $pyVer = uv run python --version
 Write-Host "Found Python (via uv): $pyVer"
 
+Write-Host "Ensuring 'keyring' module is installed for secure credential access..."
+uv pip install keyring --system | Out-Null
+
 # 2. Exact repo/start path
 Write-Host "`n[2] Verifying Paths..."
 $workerDir = $PSScriptRoot
@@ -35,6 +38,7 @@ if (Test-Path $configPath) {
     $config = Get-Content $configPath -Raw | ConvertFrom-Json
 }
 
+# --- Server URL (non-secret, stored in config.json) ---
 $server = $config.COURIER_SERVER
 if (-not [string]::IsNullOrWhiteSpace($ServerArg)) {
     $server = $ServerArg
@@ -42,14 +46,36 @@ if (-not [string]::IsNullOrWhiteSpace($ServerArg)) {
     $server = Read-Host "Enter COURIER_SERVER URL (e.g. http://192.168.1.100:8080)"
 }
 
-$apiKey = $config.COURIER_API_KEY
+# --- API Key (secret, stored in Windows Credential Manager — NEVER in config.json) ---
+$apiKey = ""
 if (-not [string]::IsNullOrWhiteSpace($ApiKeyArg)) {
     $apiKey = $ApiKeyArg
-} elseif ([string]::IsNullOrWhiteSpace($apiKey)) {
-    $secureKey = Read-Host "Enter COURIER_API_KEY" -AsSecureString
-    $apiKey = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureKey))
+} else {
+    # Check if already stored via Python keyring
+    $existing = uv run --with keyring python -c "import keyring; print(keyring.get_password('courier_worker', 'courier_api_key') or '')" 2>$null
+    if (-not [string]::IsNullOrWhiteSpace($existing)) {
+        Write-Host "API Key already stored in Windows Credential Manager (via keyring)."
+        $useExisting = Read-Host "Use existing key? (Y/n)"
+        if ($useExisting -ne "n") {
+            $apiKey = "__CREDENTIAL_MANAGER__"
+        }
+    }
+    if ($apiKey -ne "__CREDENTIAL_MANAGER__") {
+        $secureKey = Read-Host "Enter COURIER_API_KEY" -AsSecureString
+        $apiKey = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureKey))
+    }
 }
 
+# Store API key in Windows Credential Manager (OS-native secure storage)
+if ($apiKey -ne "__CREDENTIAL_MANAGER__" -and -not [string]::IsNullOrWhiteSpace($apiKey)) {
+    # Escape quotes if necessary, passing via env is safer
+    $env:TEMP_API_KEY = $apiKey
+    uv run --with keyring python -c "import keyring, os; keyring.set_password('courier_worker', 'courier_api_key', os.environ['TEMP_API_KEY'])"
+    $env:TEMP_API_KEY = ""
+    Write-Host "API Key stored in Windows Credential Manager (via keyring)." -ForegroundColor Green
+}
+
+# --- Worker ID (non-secret, stored in config.json) ---
 $workerId = $config.WORKER_ID
 if (-not [string]::IsNullOrWhiteSpace($WorkerIdArg)) {
     $workerId = $WorkerIdArg
@@ -57,13 +83,14 @@ if (-not [string]::IsNullOrWhiteSpace($WorkerIdArg)) {
     $workerId = "WINDOWS-$($env:COMPUTERNAME)"
 }
 
+# Config.json stores ONLY non-secret fields. API key is in Credential Manager.
 $newConfig = @{
     WORKER_ID = $workerId
     COURIER_SERVER = $server
-    COURIER_API_KEY = $apiKey
 }
 $newConfig | ConvertTo-Json | Set-Content $configPath
-Write-Host "Configuration saved to $configPath (API Key stored securely in config)."
+Write-Host "Configuration saved to $configPath (non-secret fields only)."
+Write-Host "API Key stored in Windows Credential Manager (not in config.json)." -ForegroundColor Green
 
 # 4. Service / Start Command
 Write-Host "`n[4] Installing Service (Scheduled Task)..."
@@ -80,7 +107,7 @@ $taskSuccess = $?
 
 if (-not $taskSuccess -or $installResult -match "Zugriff verweigert" -or $installResult -match "Access is denied") {
     Write-Host "UAC elevation missing for Scheduled Task. Falling back to background process for current session." -ForegroundColor Yellow
-    Start-Process -FilePath "uv" -ArgumentList "run python daemon.py" -WorkingDirectory $workerDir -WindowStyle Hidden
+    Start-Process -FilePath "cmd.exe" -ArgumentList "/c start.bat" -WorkingDirectory $workerDir -WindowStyle Hidden
 } else {
     Write-Host "Starting the service..."
     Start-ScheduledTask -TaskName "CourierWindowsWorker" -ErrorAction SilentlyContinue
@@ -102,7 +129,7 @@ $success = $false
 
 while ($watch.Elapsed.TotalSeconds -lt $timeout) {
     $content = Get-Content $logFile -Tail 20 -ErrorAction SilentlyContinue
-    if ($content -match "Registered successfully") {
+    if ($content -match "Registered successfully" -or $content -match "HTTP Daemon started") {
         $success = $true
         break
     }

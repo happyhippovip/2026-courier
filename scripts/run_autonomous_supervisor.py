@@ -15,6 +15,11 @@ Features:
 
 from __future__ import annotations
 
+if __name__ == "__main__":
+    import sys
+    print("Disabled in favor of OS-owned Courier Motor.")
+    sys.exit(1)
+
 import argparse
 import datetime
 import hashlib
@@ -1512,4 +1517,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+    print("Disabled in favor of OS-owned Courier Motor.")
+    sys.exit(1)
