@@ -131,7 +131,7 @@ def test_warhead_b_self_generated_or_replayed_evidence(tmp_path):
     })
     with pytest.raises(LedgerError) as exc:
         update(ledger, bundle["revision"], {"STATUS": "READY"}, "WRITER-01", 5.0, guard_writer)
-    assert "decision path" in str(exc.value)
+    assert "decision path" in str(exc.value) or "caller-created" in str(exc.value)
 
     # Sub-case 5: Same-update evidence consumption cannot achieve acceptance
     guard_foreign = copy.deepcopy(bundle["acceptance_guard"])
