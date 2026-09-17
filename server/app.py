@@ -1,4 +1,4 @@
-import os, json, uuid, time, threading
+import copy, os, json, re, uuid, time, threading
 from functools import wraps
 from flask import Flask, request, jsonify
 
@@ -46,6 +46,257 @@ def set_task_status(task, new_status):
 
 # P13 — Canonical cost ordering for cheapest-qualified routing.
 COST_ORDER = {"free": 0, "low": 1, "medium": 2, "high": 3}
+
+HUMAN_GATED_ACTIONS = frozenset({
+    "SPEND",
+    "PAYMENT",
+    "BANKING",
+    "PURCHASE",
+    "UPGRADE",
+    "MERGE",
+    "RELEASE",
+    "CREDENTIAL_EXPANSION",
+    "PERMISSION_EXPANSION",
+})
+
+HUMAN_GATED_AUTHORITIES = frozenset({
+    "SPEND",
+    "PAYMENT",
+    "BANKING",
+    "MERGE",
+    "RELEASE",
+    "CREDENTIAL_EXPANSION",
+    "PERMISSION_EXPANSION",
+})
+
+TASK_ELIGIBILITY_FIELDS = (
+    "required_capabilities",
+    "required_authorities",
+    "exclusive_resources",
+    "requires_spend",
+    "estimated_cost_eur",
+    "requires_human_approval",
+    "human_gate_required",
+    "requested_action",
+    "merge_scope",
+)
+
+SECRET_MATERIAL_RE = re.compile(
+    r"(?i)(?:bearer\s+\S+|-----BEGIN [A-Z ]*PRIVATE KEY-----|"
+    r"\b(?:github_pat_|gh[pousr]_|sk-)[A-Za-z0-9_-]{12,})"
+)
+
+
+def _string_list(value):
+    """Return a normalized list of non-empty strings, or None when malformed."""
+    if value is None:
+        return []
+    if not isinstance(value, list):
+        return None
+    normalized = []
+    for item in value:
+        if not isinstance(item, str) or not item.strip():
+            return None
+        cleaned = item.strip()
+        if cleaned not in normalized:
+            normalized.append(cleaned)
+    return normalized
+
+
+def _safe_capacity_value(value):
+    if value is None:
+        return None
+    if not isinstance(value, str) or not value.strip() or len(value) > 256:
+        return None
+    cleaned = value.strip()
+    if SECRET_MATERIAL_RE.search(cleaned):
+        return None
+    return cleaned
+
+
+def _task_requires_human_gate(task):
+    def is_required(value):
+        return value is True or (
+            isinstance(value, str) and value.strip().upper() in {"TRUE", "YES", "REQUIRED"}
+        )
+
+    if is_required(task.get("requires_spend")):
+        return True
+    try:
+        if float(task.get("estimated_cost_eur", 0) or 0) > 0:
+            return True
+    except (TypeError, ValueError):
+        return True
+    if is_required(task.get("requires_human_approval")) or is_required(task.get("human_gate_required")):
+        return True
+    action = str(task.get("requested_action", "")).strip().upper().replace("-", "_").replace(" ", "_")
+    if any(action == gated or action.startswith(f"{gated}_") for gated in HUMAN_GATED_ACTIONS):
+        return True
+    authorities = _string_list(task.get("required_authorities"))
+    if authorities is None:
+        return True
+    normalized = {authority.upper().replace("-", "_").replace(" ", "_") for authority in authorities}
+    return bool(normalized & HUMAN_GATED_AUTHORITIES)
+
+
+def _legacy_target_matches(task, worker):
+    target = str(task.get("target_agent", "linux")).lower()
+    capabilities = set(worker.get("capabilities", []))
+    if "github" in target:
+        return "github" in capabilities
+    if "mac" in target:
+        return "macos" in capabilities
+    if "windows" in target:
+        return "windows" in capabilities
+    if "linux" in target:
+        return "linux" in capabilities
+    if "antigravity" in target:
+        return "antigravity" in capabilities
+    if "auto" in target:
+        return bool({"windows", "macos"} & capabilities)
+    return target in capabilities
+
+
+def _resource_owner_is_active(state, owner):
+    task = state.get("tasks", {}).get(owner.get("task_id"))
+    if not task:
+        # Missing canonical ownership evidence is ambiguous; fail closed.
+        return True
+    return task.get("status") not in {"RECONCILED", "FAILED_TERMINAL"}
+
+
+def _prune_terminal_resource_owners(state):
+    owners = state.setdefault("resource_owners", {})
+    for resource, owner in list(owners.items()):
+        if not isinstance(owner, dict) or not _resource_owner_is_active(state, owner):
+            owners.pop(resource, None)
+
+
+def _resources_available(state, task):
+    resources = _string_list(task.get("exclusive_resources"))
+    if resources is None:
+        return False
+    owners = state.setdefault("resource_owners", {})
+    for resource in resources:
+        owner = owners.get(resource)
+        if owner and owner.get("task_id") != task.get("task_id"):
+            return False
+    return True
+
+
+def _worker_is_eligible(state, task, worker_id):
+    worker = state.get("workers", {}).get(worker_id)
+    if not worker or not worker.get("available", False) or worker.get("current_task"):
+        return False
+    if (
+        worker.get("provider_available", True) is not True
+        or worker.get("capacity_available", True) is not True
+    ):
+        return False
+    if _task_requires_human_gate(task):
+        return False
+
+    required_capabilities = _string_list(task.get("required_capabilities"))
+    required_authorities = _string_list(task.get("required_authorities"))
+    worker_capabilities = _string_list(worker.get("capabilities"))
+    worker_authorities = _string_list(worker.get("authorities"))
+    if None in (required_capabilities, required_authorities, worker_capabilities, worker_authorities):
+        return False
+
+    if required_capabilities:
+        if not set(required_capabilities).issubset(set(worker_capabilities)):
+            return False
+    elif not _legacy_target_matches(task, worker):
+        return False
+    if not set(required_authorities).issubset(set(worker_authorities)):
+        return False
+    return _resources_available(state, task)
+
+
+def _cheaper_eligible_worker_exists(state, task, worker_id):
+    worker = state["workers"][worker_id]
+    worker_cost = COST_ORDER.get(worker.get("cost_class", "high"), 3)
+    if worker_cost <= COST_ORDER["free"]:
+        return False
+    now = time.time()
+    for other_id, other in state.get("workers", {}).items():
+        if other_id == worker_id or now - other.get("last_seen", 0) > 300:
+            continue
+        if COST_ORDER.get(other.get("cost_class", "high"), 3) >= worker_cost:
+            continue
+        if _worker_is_eligible(state, task, other_id):
+            return True
+    return False
+
+
+def _canonical_target_capability(task, worker):
+    required = _string_list(task.get("required_capabilities")) or []
+    if required:
+        return required[0]
+    target = str(task.get("target_agent", "linux")).lower()
+    if "github" in target:
+        return "github"
+    if "mac" in target:
+        return "mac"
+    if "windows" in target:
+        return "windows"
+    if "linux" in target:
+        return "linux"
+    if "antigravity" in target:
+        return "antigravity"
+    if target and target != "auto":
+        return target
+    capabilities = worker.get("capabilities", [])
+    for known in ("windows", "macos", "github", "linux"):
+        if known in capabilities:
+            return "mac" if known == "macos" else known
+    return capabilities[0] if capabilities else "unknown"
+
+
+def _acquire_task_resources(state, task):
+    owners = state.setdefault("resource_owners", {})
+    for resource in _string_list(task.get("exclusive_resources")) or []:
+        owners[resource] = {
+            "resource": resource,
+            "goal_id": task.get("goal_id"),
+            "task_id": task.get("task_id"),
+            "attempt_id": task.get("attempt_id"),
+            "worker_id": task.get("worker_id"),
+            "acquired_at": time.time(),
+        }
+
+
+def _release_task_resources(state, task):
+    owners = state.setdefault("resource_owners", {})
+    task_id = task.get("task_id")
+    for resource, owner in list(owners.items()):
+        if isinstance(owner, dict) and owner.get("task_id") == task_id:
+            owners.pop(resource, None)
+
+
+def _copy_task_eligibility_fields(source, target):
+    for field in TASK_ELIGIBILITY_FIELDS:
+        if field in source:
+            target[field] = source[field]
+
+
+def _prepare_claimed_task(task, worker_id, worker):
+    claimed = copy.deepcopy(task)
+    claimed["worker_id"] = worker_id
+    claimed["attempts"] = claimed.get("attempts", 0) + 1
+    claimed["attempt_id"] = f"{claimed['task_id']}:attempt:{claimed['attempts']}"
+    claimed["dispatch_id"] = f"dispatch-{uuid.uuid4().hex}"
+    claimed["execution_ref"] = f"exec-{uuid.uuid4().hex}"
+    claimed["run_id"] = None
+    claimed["result_id"] = None
+    claimed["target_capability"] = _canonical_target_capability(claimed, worker)
+    claimed["last_completed_step"] = claimed.get("last_completed_step")
+    claimed["next_action"] = "EXECUTE"
+    claimed["blocker"] = None
+    claimed["artifact_refs"] = claimed.get("artifact_refs", [])
+    claimed = prepare_task(claimed)
+    set_task_status(claimed, "DISPATCHED")
+    return claimed
 
 MAX_RETRIES = {
     "execution": 3,
@@ -130,12 +381,19 @@ def load_state():
                 state.setdefault("goals", {})
                 state.setdefault("tasks", {})
                 state.setdefault("workers", {})
+                state.setdefault("resource_owners", {})
                 return state
             except (PermissionError, IOError, json.JSONDecodeError) as e:
                 if i == 19:
                     raise
                 time.sleep(0.05)
-    return {"schema_version": 2, "goals": {}, "tasks": {}, "workers": {}}
+    return {
+        "schema_version": 2,
+        "goals": {},
+        "tasks": {},
+        "workers": {},
+        "resource_owners": {},
+    }
 
 def save_state(state):
     os.makedirs(os.path.dirname(STATE_FILE), exist_ok=True)
@@ -230,6 +488,7 @@ def submit_goal():
             }
             if "artifacts" in step:
                 new_task["artifacts"] = step["artifacts"]
+            _copy_task_eligibility_fields(step, new_task)
             goal["workflow_plan"].append(new_task)
         
     state["goals"][goal_id] = goal
@@ -295,10 +554,38 @@ def register_worker():
     else:
         current_task = server_task
 
+    capabilities = _string_list(data.get("capabilities", existing.get("capabilities", [])))
+    authorities = _string_list(data.get("authorities", existing.get("authorities", [])))
+    if capabilities is None or authorities is None:
+        return jsonify({"error": "capabilities and authorities must be lists of strings"}), 400
+
+    provider = existing.get("provider")
+    if "provider" in data:
+        provider = _safe_capacity_value(data.get("provider"))
+        if provider is None:
+            return jsonify({"error": "provider must be safe non-secret metadata"}), 400
+
+    capacity_identity = existing.get("capacity_identity")
+    capacity_key = "capacity_identity" if "capacity_identity" in data else "account_id"
+    if capacity_key in data:
+        capacity_identity = _safe_capacity_value(data.get(capacity_key))
+        if capacity_identity is None:
+            return jsonify({"error": "capacity identity must be safe non-secret metadata"}), 400
+
+    provider_available = data.get("provider_available", existing.get("provider_available", True))
+    capacity_available = data.get("capacity_available", existing.get("capacity_available", True))
+    if not isinstance(provider_available, bool) or not isinstance(capacity_available, bool):
+        return jsonify({"error": "provider/capacity availability must be boolean"}), 400
+
     state["workers"][worker_id] = {
         "worker_id": worker_id,
         "platform": data.get("platform", "unknown"),
-        "capabilities": data.get("capabilities", []),
+        "capabilities": capabilities,
+        "authorities": authorities,
+        "provider": provider,
+        "capacity_identity": capacity_identity,
+        "provider_available": provider_available,
+        "capacity_available": capacity_available,
         "last_seen": time.time(),
         "available": current_task is None,
         "current_task": current_task,
@@ -379,115 +666,52 @@ def claim_task():
             worker["available"] = False
             save_state(state)
             return jsonify({"task": task})
-    
+
+    _prune_terminal_resource_owners(state)
+    if (
+        worker.get("provider_available", True) is not True
+        or worker.get("capacity_available", True) is not True
+    ):
+        save_state(state)
+        return jsonify({"task": None, "reason": "PROVIDER_UNAVAILABLE"})
+
     for goal_id, goal in state["goals"].items():
         if goal["status"] == "ACTIVE" and "workflow_plan" in goal:
             completed_tasks = {
-                step.get("task_id") for step in goal["workflow_plan"] 
-                if step.get("status") in ("RECONCILED", "RECONCILED_PENDING_MERGE")
-            }
-            blocked_targets = {
-                step.get("target_agent", "linux").lower() for step in goal["workflow_plan"]
-                if step.get("status") in ("WAITING_PROVIDER", "BLOCKED_TRANSIENT")
+                step.get("task_id") for step in goal["workflow_plan"]
+                if step.get("status") == "RECONCILED"
             }
 
-            next_task = None
-            for step in goal["workflow_plan"]:
-                if step["status"] == "QUEUED":
-                    if step.get("next_retry_at", 0) > time.time():
-                        continue
-                    
-                    depends_on = step.get("depends_on")
-                    if isinstance(depends_on, str):
-                        depends_on = [depends_on]
-                    
-                    deps_met = True
-                    if depends_on:
-                        for dep in depends_on:
-                            if dep not in completed_tasks:
-                                deps_met = False
-                                break
-                                
-                    if deps_met:
-                        next_task = step
-                        break
-                            
-            if next_task is not None:
-                    target = next_task.get("target_agent", "linux").lower()
-                    
-                    matched = False
-                    if "github" in target and "github" in worker["capabilities"]: matched = True
-                    elif "mac" in target and "macos" in worker["capabilities"]: matched = True
-                    elif "windows" in target and "windows" in worker["capabilities"]: matched = True
-                    elif "linux" in target and "linux" in worker["capabilities"]: matched = True
-                    elif "antigravity" in target and "antigravity" in worker["capabilities"]: matched = True
-                    elif "auto" in target and ("windows" in worker["capabilities"] or "macos" in worker["capabilities"]): matched = True
-                    elif target in worker.get("capabilities", []): matched = True
-                    
-                    if matched:
-                        # Cost-based routing check:
-                        # If this worker is expensive, and a cheaper qualified worker is currently active and available,
-                        # decline this claim so the cheaper worker can grab it.
-                        worker_cost = worker.get("cost_class", "high")
-                        if worker_cost in ("high", "medium"):
-                            cheaper_available = False
-                            now = time.time()
-                            for other_id, other_w in state["workers"].items():
-                                if other_id == worker_id: continue
-                                if not other_w.get("available", False): continue
-                                if now - other_w.get("last_seen", 0) > 300: continue
-                                
-                                other_cost = other_w.get("cost_class", "high")
-                                # P13 — use COST_ORDER for clean comparison
-                                is_cheaper = COST_ORDER.get(other_cost, 3) < COST_ORDER.get(worker_cost, 3)
-                                    
-                                if is_cheaper:
-                                    # Is other qualified?
-                                    if "github" in target and "github" in other_w["capabilities"]: cheaper_available = True
-                                    elif "mac" in target and "macos" in other_w["capabilities"]: cheaper_available = True
-                                    elif "windows" in target and "windows" in other_w["capabilities"]: cheaper_available = True
-                                    elif "linux" in target and "linux" in other_w["capabilities"]: cheaper_available = True
-                                    elif "antigravity" in target and "antigravity" in other_w["capabilities"]: cheaper_available = True
-                                
-                            if cheaper_available:
-                                # We decline this claim to let the cheaper worker grab it.
-                                # But we can't return error, we just skip this task and let it return empty.
-                                matched = False
+            # Scan every dependency-ready task until eligible work is found.
+            # A capability/provider/resource mismatch is local to that task and
+            # must not hide later independent READY work.
+            for index, candidate in enumerate(goal["workflow_plan"]):
+                if candidate.get("status") != "QUEUED":
+                    continue
+                if candidate.get("next_retry_at", 0) > time.time():
+                    continue
+                depends_on = candidate.get("depends_on", [])
+                if isinstance(depends_on, str):
+                    depends_on = [depends_on]
+                if not all(dependency in completed_tasks for dependency in depends_on):
+                    continue
+                if not _worker_is_eligible(state, candidate, worker_id):
+                    continue
+                if _cheaper_eligible_worker_exists(state, candidate, worker_id):
+                    continue
+                try:
+                    claimed = _prepare_claimed_task(candidate, worker_id, worker)
+                except ContractError as exc:
+                    print(f"ContractError in prepare_task: {exc}", flush=True)
+                    return jsonify({"error": str(exc)}), 400
 
-                    if matched:
-                        next_task["worker_id"] = worker_id
-                        next_task["attempts"] = next_task.get("attempts", 0) + 1
-                        next_task["attempt_id"] = f"{next_task['task_id']}:attempt:{next_task['attempts']}"
-                        next_task["dispatch_id"] = f"dispatch-{uuid.uuid4().hex}"
-                        next_task["execution_ref"] = f"exec-{uuid.uuid4().hex}"
-                        next_task["run_id"] = None
-                        next_task["result_id"] = None
-                        canonical_cap = target
-                        if "windows" in worker["capabilities"]: canonical_cap = "windows"
-                        elif "macos" in worker["capabilities"]: canonical_cap = "mac"
-                        elif "github" in worker["capabilities"]: canonical_cap = "github"
-                        elif "linux" in worker["capabilities"]: canonical_cap = "linux"
-                        next_task["target_capability"] = canonical_cap
-                        # Structured checkpoint fields (Prompt 2) — resume-safe, no CoT
-                        next_task["last_completed_step"] = next_task.get("last_completed_step")
-                        next_task["next_action"] = "EXECUTE"
-                        next_task["blocker"] = None
-                        next_task["artifact_refs"] = next_task.get("artifact_refs", [])
-                        idx = goal["workflow_plan"].index(next_task)
-                        try:
-                            next_task = prepare_task(next_task)
-                        except ContractError as exc:
-                            print(f"ContractError in prepare_task: {exc}", flush=True)
-                            return jsonify({"error": str(exc)}), 400
-                        set_task_status(next_task, "DISPATCHED")
-                        goal["workflow_plan"][idx] = next_task
-                        
-                        worker["current_task"] = next_task["task_id"]
-                        worker["available"] = False
-                        
-                        state["tasks"][next_task["task_id"]] = next_task
-                        save_state(state)
-                        return jsonify({"task": next_task})
+                goal["workflow_plan"][index] = claimed
+                state["tasks"][claimed["task_id"]] = claimed
+                _acquire_task_resources(state, claimed)
+                worker["current_task"] = claimed["task_id"]
+                worker["available"] = False
+                save_state(state)
+                return jsonify({"task": claimed})
                         
     # --- INJECTED BATCH CLAIM LOGIC ---
     import glob
@@ -499,7 +723,6 @@ def claim_task():
             if not batch: continue
             
             completed_seqs = {item.get("sequence") for item in batch.get("items", []) if item.get("status") == "COMPLETED"}
-            blocked_targets = {item.get("target_agent", "linux").lower() for item in batch.get("items", []) if item.get("status") in ("WAITING_PROVIDER", "BLOCKED_TRANSIENT")}
             
             next_task = None
             for item in batch.get("items", []):
@@ -508,68 +731,42 @@ def claim_task():
                         continue
                     depends_on = item.get("depends_on")
                     if depends_on is None or depends_on in completed_seqs:
-                        target = item.get("target_agent", "linux").lower()
-                        if target not in blocked_targets:
-                            # Qualified check
-                            matched = False
-                            if "github" in target and "github" in worker["capabilities"]: matched = True
-                            elif "mac" in target and "macos" in worker["capabilities"]: matched = True
-                            elif "windows" in target and "windows" in worker["capabilities"]: matched = True
-                            elif "linux" in target and "linux" in worker["capabilities"]: matched = True
-                            elif "antigravity" in target and "antigravity" in worker["capabilities"]: matched = True
-                            elif "auto" in target and ("windows" in worker["capabilities"] or "macos" in worker["capabilities"]): matched = True
-                            if matched:
-                                next_task = item
-                                break
+                        item.setdefault("task_id", f"{batch_id}-seq-{item['sequence']}")
+                        item.setdefault("goal_id", batch_id)
+                        if not _worker_is_eligible(state, item, worker_id):
+                            continue
+                        if _cheaper_eligible_worker_exists(state, item, worker_id):
+                            continue
+                        next_task = item
+                        break
             
             if next_task:
-                target = next_task.get("target_agent", "linux").lower()
-                next_task["worker_id"] = worker_id
-                next_task["attempts"] = next_task.get("attempts", 0) + 1
-                next_task["task_id"] = next_task.get("task_id") or f"{batch_id}-seq-{next_task['sequence']}"
-                next_task["attempt_id"] = f"{next_task['task_id']}:attempt:{next_task['attempts']}"
-                next_task["dispatch_id"] = f"dispatch-{uuid.uuid4().hex}"
-                next_task["execution_ref"] = f"exec-{uuid.uuid4().hex}"
-                next_task["run_id"] = None
-                next_task["result_id"] = None
-                canonical_cap = target
-                if "windows" in worker["capabilities"]: canonical_cap = "windows"
-                elif "macos" in worker["capabilities"]: canonical_cap = "mac"
-                elif "github" in worker["capabilities"]: canonical_cap = "github"
-                elif "linux" in worker["capabilities"]: canonical_cap = "linux"
-                next_task["target_capability"] = canonical_cap
-                next_task["batch_id"] = batch_id
+                batch_task = copy.deepcopy(next_task)
+                batch_task["batch_id"] = batch_id
                 if "prompt_id" in batch:
-                    next_task["prompt_id"] = batch["prompt_id"]
-                elif "prompt_id" in next_task:
+                    batch_task["prompt_id"] = batch["prompt_id"]
+                elif "prompt_id" in batch_task:
                     pass # Keep existing
-                next_task["goal_id"] = next_task.get("goal_id", batch_id)
-                next_task["last_completed_step"] = next_task.get("last_completed_step")
-                next_task["next_action"] = "EXECUTE"
-                next_task["blocker"] = None
-                next_task["artifact_refs"] = next_task.get("artifact_refs", [])
-                next_task["instruction"] = next_task.get("description", "Batch item")
+                batch_task["instruction"] = batch_task.get("instruction", batch_task.get("description", "Batch item"))
                 
                 try:
-                    next_task = prepare_task(next_task)
+                    claimed = _prepare_claimed_task(batch_task, worker_id, worker)
                 except ContractError as exc:
                     return jsonify({"error": str(exc)}), 400
-                    
-                set_task_status(next_task, "DISPATCHED")
-                next_task["status"] = "DISPATCHED"
                 
                 for item in batch["items"]:
-                    if item.get("sequence") == next_task.get("sequence"):
-                        item.update(next_task)
+                    if item.get("sequence") == claimed.get("sequence"):
+                        item.update(claimed)
                 
                 with open(path, "w") as bf:
                     json.dump(batch, bf, indent=2)
                 
-                worker["current_task"] = next_task["task_id"]
+                worker["current_task"] = claimed["task_id"]
                 worker["available"] = False
-                state["tasks"][next_task["task_id"]] = next_task
+                state["tasks"][claimed["task_id"]] = claimed
+                _acquire_task_resources(state, claimed)
                 save_state(state)
-                return jsonify({"task": next_task})
+                return jsonify({"task": claimed})
 
     save_state(state)
     return jsonify({"task": None})
@@ -757,6 +954,7 @@ def verify_task_result():
             set_task_status(task, "RECONCILED")
             task["next_action"] = None
             task["blocker"] = None
+            _release_task_resources(state, task)
             
             # Sync status back to workflow_plan early for goal completion check
             for step in goal.get("workflow_plan", []):
@@ -765,10 +963,14 @@ def verify_task_result():
             
             all_done = True
             ready_work_exists = False
-            completed_tasks = {s.get("task_id") for s in goal.get("workflow_plan", []) if s.get("status") in ("RECONCILED", "RECONCILED_PENDING_MERGE")}
+            completed_tasks = {
+                step.get("task_id")
+                for step in goal.get("workflow_plan", [])
+                if step.get("status") == "RECONCILED"
+            }
             for step in goal.get("workflow_plan", []):
                 st = step.get("status")
-                if st not in ("RECONCILED", "RECONCILED_PENDING_MERGE"):
+                if st != "RECONCILED":
                     all_done = False
                 if st in ("QUEUED", "FAILED_TRANSIENT", "PROVIDER_WAIT"):
                     deps = step.get("depends_on", [])
@@ -817,6 +1019,7 @@ def verify_task_result():
                                     }
                                     if "artifacts" in step:
                                         new_task["artifacts"] = step["artifacts"]
+                                    _copy_task_eligibility_fields(step, new_task)
                                     goal["workflow_plan"].append(new_task)
                                     added_any = True
                             
@@ -914,6 +1117,7 @@ def resume_task(task_id):
                             set_task_status(task, "FAILED_TERMINAL")
                             step["status"] = "FAILED_TERMINAL"
                             task["blocker"] = "MAX_TRANSPORT_RETRIES_REACHED"
+                            _release_task_resources(state, task)
                             goal["status"] = "BLOCKED"
                             save_state(state)
                             return jsonify({"error": "Max transport retries reached"}), 400
@@ -975,6 +1179,7 @@ def approve_merge(task_id):
 
     set_task_status(task, "RECONCILED")
     task["next_action"] = None
+    _release_task_resources(state, task)
     task["merge_approval"] = {
         "approver": approver,
         "approved_at": time.time(),
@@ -1035,6 +1240,7 @@ def provider_wait(task_id):
         set_task_status(task, "FAILED_TERMINAL")
         task["blocker"] = "MAX_PROVIDER_WAITS_REACHED"
         task["next_action"] = None
+        _release_task_resources(state, task)
         if task.get("goal_id") in state.get("goals", {}):
             state["goals"][task["goal_id"]]["status"] = "BLOCKED"
 
