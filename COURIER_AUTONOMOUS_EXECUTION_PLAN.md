@@ -258,3 +258,35 @@ The continuation path must satisfy these behaviors:
 **LEDGER_V1=COMPLETE**
 **LEDGER_V1_FROZEN=YES**
 **LEDGER_ACTIVE_DEVELOPMENT=NO**
+
+### Execution Efficiency Policy (Maximum Verified Work Per Token)
+
+**DETERMINISTIC FIRST → MINIMAL CONTEXT → CHEAPEST SUFFICIENT WORKER → LLM ONLY FOR REASONING → VERIFY → REUSE EVIDENCE**
+
+**Core Directives:**
+- Never send raw chat history to workers.
+- Build every worker context from Ledger + relevant diff + causally relevant files/evidence only.
+- Use `ChiefContextPackageBuilder`, `FileManifestTracker`, and `TaskDedupeEngine` to avoid retransmitting/reprocessing unchanged context.
+- Do not repeatedly inspect files whose manifest/hash has not changed unless causally required.
+- Reuse still-valid acceptance evidence instead of rerunning entire proof suites.
+- For a code change, re-prove affected causal edges first; run broader suites only when required.
+- Use deterministic Python/shell/Git/GitHub operations instead of LLM reasoning whenever the operation is deterministic.
+- Batch related safe operations into one worker assignment instead of repeated worker round-trips.
+- Do not ask the human for continue.
+- Do not generate intermediate narrative reports while autonomous execution can continue.
+- Do not spawn duplicate reasoning workers for the same task unless independent verification is required.
+- Provider/model escalation only when the current worker demonstrably cannot complete the task.
+- Never use background LLM polling.
+- Never sacrifice acceptance predicates, evidence quality, safety or correctness to save tokens.
+
+**Tracked Metrics (When Observable):**
+- INPUT_TOKENS
+- OUTPUT_TOKENS
+- CONTEXT_SIZE
+- RETRIES
+- WORKER
+- VERIFIED_TASK_RESULT
+- TOKENS_PER_VERIFIED_TASK
+
+**Optimization Goal:**
+Maximize *verified completed Courier work per token and per worker-minute*, not merely the lowest raw token count.
