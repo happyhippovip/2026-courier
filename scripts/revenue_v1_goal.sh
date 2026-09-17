@@ -2,7 +2,7 @@
 # Reicht das Revenue V1 "Oil Market Anomaly Alarm" Goal an den Server ein.
 
 curl -X POST http://127.0.0.1:8080/goals \
-  -H "Authorization: Bearer prod-secret-12345" \
+  -H "Authorization: Bearer ${COURIER_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{
     "goal_text": "Hourly Oil Market Anomaly Alarm",

@@ -1,0 +1,176 @@
+{
+  "schema_version": 2,
+  "goals": {
+    "goal-4c5134c4": {
+      "goal_id": "goal-4c5134c4",
+      "goal_text": "Long Task",
+      "status": "BLOCKED",
+      "terminal": true,
+      "workflow_plan": [
+        {
+          "task_id": "T-W19-1-task1",
+          "instruction": "Start-Sleep -Seconds 10",
+          "target_agent": "windows",
+          "goal_id": "goal-4c5134c4",
+          "status": "HUMAN_REQUIRED",
+          "attempts": 1,
+          "worker_id": "w19-worker",
+          "attempt_id": "T-W19-1-task1:attempt:1",
+          "dispatch_id": "dispatch-543f79c7b20841be865c1da57f568fb2",
+          "execution_ref": "exec-d28d0ae0713e4bc388b7d240aece5630",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "windows",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": "Worker crashed during external effect.",
+          "artifact_refs": [],
+          "artifacts": [
+            "courier_canary_T-W19-1-task1.txt"
+          ],
+          "retry_state": {
+            "execution": 0,
+            "transport": 0,
+            "provider": 0,
+            "verification": 0
+          },
+          "recovery_reason": "AMBIGUOUS_EFFECT_CRASH"
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-5459a02b": {
+      "goal_id": "goal-5459a02b",
+      "goal_text": "Quick Task",
+      "status": "ACTIVE",
+      "terminal": true,
+      "workflow_plan": [
+        {
+          "task_id": "T-W19-2-task1",
+          "instruction": "echo SUCCESS > courier_canary_T-W19-2-task1.txt",
+          "target_agent": "windows",
+          "goal_id": "goal-5459a02b",
+          "status": "RESULT_RECEIVED",
+          "attempts": 1,
+          "worker_id": "w19-worker",
+          "attempt_id": "T-W19-2-task1:attempt:1",
+          "dispatch_id": "dispatch-bbab64ce07874954a9fb6c57ce60e4a7",
+          "execution_ref": "exec-1d4329e78b484911bb7e0f86c029d727",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "windows",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "artifacts": [
+            "courier_canary_T-W19-2-task1.txt"
+          ]
+        }
+      ],
+      "current_step_index": 0
+    }
+  },
+  "tasks": {
+    "T-W19-1-task1": {
+      "task_id": "T-W19-1-task1",
+      "instruction": "Start-Sleep -Seconds 10",
+      "target_agent": "windows",
+      "goal_id": "goal-4c5134c4",
+      "status": "HUMAN_REQUIRED",
+      "attempts": 1,
+      "worker_id": "w19-worker",
+      "attempt_id": "T-W19-1-task1:attempt:1",
+      "dispatch_id": "dispatch-543f79c7b20841be865c1da57f568fb2",
+      "execution_ref": "exec-d28d0ae0713e4bc388b7d240aece5630",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "windows",
+      "last_completed_step": null,
+      "next_action": "HUMAN_REVIEW",
+      "blocker": "Worker crashed during external effect.",
+      "artifact_refs": [],
+      "artifacts": [
+        "courier_canary_T-W19-1-task1.txt"
+      ],
+      "result": {
+        "attempt_id": "T-W19-1-task1:attempt:1",
+        "execution_ref": "exec-d28d0ae0713e4bc388b7d240aece5630",
+        "run_id": "crashed-unknown",
+        "artifacts": [],
+        "result_id": "result-4944494a941448f8a3a3452a70251ce0",
+        "status": "FAILED",
+        "worker_id": "w19-worker",
+        "dispatch_id": "dispatch-543f79c7b20841be865c1da57f568fb2",
+        "task_id": "T-W19-1-task1",
+        "stderr": "AMBIGUOUS_CRASH: Worker crashed during external effect.",
+        "goal_id": "goal-4c5134c4"
+      },
+      "retry_state": {
+        "execution": 0,
+        "transport": 0,
+        "provider": 0,
+        "verification": 0
+      },
+      "recovery_reason": "AMBIGUOUS_EFFECT_CRASH"
+    },
+    "T-W19-2-task1": {
+      "task_id": "T-W19-2-task1",
+      "instruction": "echo SUCCESS > courier_canary_T-W19-2-task1.txt",
+      "target_agent": "windows",
+      "goal_id": "goal-5459a02b",
+      "status": "RESULT_RECEIVED",
+      "attempts": 1,
+      "worker_id": "w19-worker",
+      "attempt_id": "T-W19-2-task1:attempt:1",
+      "dispatch_id": "dispatch-bbab64ce07874954a9fb6c57ce60e4a7",
+      "execution_ref": "exec-1d4329e78b484911bb7e0f86c029d727",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "windows",
+      "last_completed_step": "T-W19-2-task1",
+      "next_action": "VERIFY",
+      "blocker": null,
+      "artifact_refs": [
+        {
+          "path": "courier_canary_T-W19-2-task1.txt",
+          "sha256": "401ea6393cb8c7630df4b424f7840ae4c54a1b409514e4a1eef1f91b33c6f993"
+        }
+      ],
+      "artifacts": [
+        "courier_canary_T-W19-2-task1.txt"
+      ],
+      "result": {
+        "attempt_id": "T-W19-2-task1:attempt:1",
+        "execution_ref": "exec-1d4329e78b484911bb7e0f86c029d727",
+        "run_id": "22656",
+        "artifacts": [
+          {
+            "path": "courier_canary_T-W19-2-task1.txt",
+            "sha256": "401ea6393cb8c7630df4b424f7840ae4c54a1b409514e4a1eef1f91b33c6f993"
+          }
+        ],
+        "result_id": "result-fdaf5f6412464c21bf4e97487a284808",
+        "status": "SUCCESS",
+        "worker_id": "w19-worker",
+        "dispatch_id": "dispatch-bbab64ce07874954a9fb6c57ce60e4a7",
+        "task_id": "T-W19-2-task1",
+        "stderr": "",
+        "goal_id": "goal-5459a02b"
+      }
+    }
+  },
+  "workers": {
+    "w19-worker": {
+      "worker_id": "w19-worker",
+      "platform": "windows",
+      "capabilities": [
+        "windows"
+      ],
+      "last_seen": 1789605907.1928637,
+      "available": true,
+      "current_task": null,
+      "cost_class": "low"
+    }
+  }
+}

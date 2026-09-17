@@ -38,7 +38,7 @@ def test_verified_completed_result_posts_and_records_run_attempt(tmp_path: Path,
     posted = []
     monkeypatch.setattr(adapter, "find_run", lambda _: ("99", "completed"))
     monkeypatch.setattr(adapter, "download_result", lambda _, __, directory: (
-        {**packet(), "run_id": "99", "run_attempt": "1", "result_id": "result-dispatch-1", "status": "SUCCESS",
+        {**packet(), "execution_ref": "ref", "run_id": "99", "run_attempt": "1", "result_id": "result-dispatch-1", "status": "SUCCESS",
          "operation": "deterministic_transform", "artifacts": [{"path": "courier_output_dispatch-1.json", "sha256": "x"}]}, evidence))
     monkeypatch.setattr(adapter, "verify_result", lambda *args: None)
     monkeypatch.setattr(adapter, "post_result", posted.append)
@@ -72,9 +72,9 @@ def test_dispatch_preserves_taskpacket_as_raw_json(tmp_path: Path, monkeypatch):
 
 
 def test_durable_result_preserves_github_run_attempt():
-    task = packet()
+    task = {**packet(), "execution_ref": "ref"}
     result = {
-        **packet(), "run_id": "99", "run_attempt": "1", "result_id": "result-dispatch-1",
+        **packet(), "execution_ref": "ref", "run_id": "99", "run_attempt": "1", "result_id": "result-dispatch-1",
         "status": "SUCCESS", "artifacts": [{"path": "courier_output_dispatch-1.json", "sha256": "a" * 64}],
     }
     assert validate_durable_result(task, result)["run_attempt"] == "1"
