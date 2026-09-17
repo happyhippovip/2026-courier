@@ -1,0 +1,8 @@
+EXACT_SHA=2e559d8287e613716a5a12ecca8d9820d32773ca
+NEXT_BLOCKER=Verifier and Windows worker are not established as independently OS-owned, single-instance runtime processes; no Windows worker daemon is running.
+COMMAND=Read-only PowerShell: Get-NetTCPConnection 8080; Invoke-WebRequest /health and /workers with invalid token; Get-ScheduledTask; Get-CimInstance Win32_Process.
+EXPECTED=Server, verifier, and workers run under their installed OS owners; invalid worker authority fails closed; one verifier and at least two actual worker identities are observable without a proof starting them.
+ACTUAL=8080 listener PID 19156 returned health 200 and invalid /workers authority returned 401. CourierServer/CourierVerifier/CourierWindowsWorker tasks were NOT_REGISTERED; HKCU CourierServer Run entry was registered. PID 19156 ancestry was python.exe(19156)<-python.exe(5652)<-pwsh.exe(23864). Six verifier-related processes formed two independent trees: 3416->3540->20964 and 16164->25240->13784. WINDOWS_WORKER_PROCESS_COUNT=0.
+FILES=server/install_server_service.ps1; scripts/install_verifier_service.ps1; scripts/windows_worker/bootstrap.ps1; scripts/windows_worker/install_service.ps1
+OWNER=Windows/Central
+MINIMAL_REPAIR=Central should correct the worker WMI command, establish exactly one verifier launch owner after scheduled-task access failure, and record each launched PID/parent/worker registration in an immutable physical-proof evidence record; then rerun the same read-only observation without proof-started processes.
