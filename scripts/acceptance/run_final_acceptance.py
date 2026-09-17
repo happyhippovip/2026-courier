@@ -1,14 +1,17 @@
-import sys, os, time, subprocess, json, uuid
+"""Synthetic integration test harness; never a production acceptance proof."""
+
+import sys, os, time, subprocess, json, uuid, secrets
 import requests
 
 API_URL = "http://127.0.0.1:8081"
-API_KEY = "acceptance-secret"
-VERIFIER_API_KEY = "acceptance-verifier-secret"
+API_KEY = secrets.token_urlsafe(32)
+VERIFIER_API_KEY = secrets.token_urlsafe(32)
 HEADERS = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
 VERIFIER_HEADERS = {"Authorization": f"Bearer {VERIFIER_API_KEY}", "Content-Type": "application/json"}
 
 results = {
-    "ACCEPTANCE_HARNESS": "YES",
+    "SYNTHETIC_TEST_ONLY": "YES",
+    "PHYSICAL_ACCEPTANCE": "NO",
     "LOCAL_END_TO_END": "NO",
     "RESTART_RESUME": "NO",
     "DUPLICATE_RESULT": "NO",
@@ -68,6 +71,12 @@ def t_assert(cond, msg):
         raise AssertionError(msg)
 
 def run_tests():
+    if os.environ.get("COURIER_RUN_SYNTHETIC_ACCEPTANCE") != "1":
+        print("REFUSED: synthetic harness requires COURIER_RUN_SYNTHETIC_ACCEPTANCE=1")
+        print("SYNTHETIC_TEST_ONLY=YES")
+        print("PHYSICAL_ACCEPTANCE=NO")
+        return 2
+
     state_file = "./acceptance_state.json"
     if os.path.exists(state_file): os.remove(state_file)
     
@@ -286,9 +295,9 @@ def run_tests():
             res = requests.post(f"{API_URL}/tasks/verify", json=verify_payload, headers=VERIFIER_HEADERS, timeout=10)
             t_assert(res.status_code == 200, f"Step {i} result verified and reconciled")
 
-        results["TASKS_COMPLETED"] = 13
-        results["WORKERS_USED"] = 3
-        results["CLEAN_IDLE"] = "YES"
+        results["SYNTHETIC_TASKS_COMPLETED"] = 13
+        results["SYNTHETIC_WORKERS_USED"] = 3
+        results["SYNTHETIC_CLEAN_IDLE"] = "YES"
         stop_server(server_proc)
         server_proc = start_server(state_file)
         
@@ -364,17 +373,20 @@ def run_tests():
             res = requests.post(f"{API_URL}/tasks/verify", json=verify_payload, headers=VERIFIER_HEADERS, timeout=10)
             t_assert(res.status_code == 200, f"Step {i} result verified and reconciled")
 
-        results["TASKS_COMPLETED"] = 13
-        results["WORKERS_USED"] = 3
-        results["CLEAN_IDLE"] = "YES"
+        results["SYNTHETIC_TASKS_COMPLETED"] = 13
+        results["SYNTHETIC_WORKERS_USED"] = 3
+        results["SYNTHETIC_CLEAN_IDLE"] = "YES"
         stop_server(server_proc)
         if os.path.exists(state_file): os.remove(state_file)
 
 if __name__ == "__main__":
-    run_tests()
+    exit_code = run_tests()
+    if exit_code:
+        raise SystemExit(exit_code)
     
     final_output = f"""
-ACCEPTANCE_HARNESS=YES
+SYNTHETIC_TEST_ONLY=YES
+PHYSICAL_ACCEPTANCE=NO
 LOCAL_END_TO_END={results['LOCAL_END_TO_END']}
 RESTART_RESUME={results['RESTART_RESUME']}
 DUPLICATE_RESULT={results['DUPLICATE_RESULT']}
@@ -388,7 +400,7 @@ FAIL={results['FAIL']}
 EXTERNAL_WALLS={results['EXTERNAL_WALLS']}
 COMMIT=pending
 PUSHED=NO
-REAL_WALL=NONE
+REAL_WALL=PHYSICAL_ACCEPTANCE_NOT_PERFORMED
 STOPPED=YES
 """
     print("====================")
