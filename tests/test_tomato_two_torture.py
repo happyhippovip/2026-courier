@@ -8,6 +8,7 @@ counterexample torture tests, and the three combined cross-check attacks (A, B, 
 import hashlib
 import base64
 import json
+import ntpath
 import os
 import signal
 import socket
@@ -67,6 +68,25 @@ def _keychain_value(account, service):
         return None
 
 
+def _runtime_process_is_bound_to_repo(observed, repo):
+    """Return true when the serving process or its launcher lives in repo."""
+    command = str(observed.get("command_line") or "").lower().replace("/", "\\")
+    if "server\\run_waitress.py" not in command and "-m server.app" not in command:
+        return False
+    expected_root = ntpath.normcase(ntpath.normpath(repo))
+    for field in ("process_path", "parent_path"):
+        candidate = str(observed.get(field) or "").strip()
+        if not candidate:
+            continue
+        candidate = ntpath.normcase(ntpath.normpath(candidate))
+        try:
+            if ntpath.commonpath([expected_root, candidate]) == expected_root:
+                return True
+        except ValueError:
+            continue
+    return False
+
+
 def get_runtime_identity():
     """Observe the actual Windows listener and repository identity over SSH."""
     alias = os.environ.get("COURIER_WINDOWS_SSH_ALIAS", "windows-ai")
@@ -107,9 +127,7 @@ $parent=Get-CimInstance Win32_Process -Filter ('ProcessId='+$process.ParentProce
     for line in output.splitlines():
         if line.startswith("{"):
             observed = json.loads(line)
-            expected_root = repo.lower().rstrip("\\")
-            process_path = str(observed.get("parent_path") or observed.get("process_path") or "").lower()
-            if expected_root not in process_path:
+            if not _runtime_process_is_bound_to_repo(observed, repo):
                 raise AssertionError("Serving Windows process is not bound to the configured canonical repository")
             return observed
     raise AssertionError("Windows runtime identity could not be observed")
