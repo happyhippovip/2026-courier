@@ -1,0 +1,15 @@
+{
+  "goal_text": "10-task Acceptance Test",
+  "workflow_plan": [
+    { "task_id": "u1", "target_agent": "windows", "instruction": "echo Windows Task 1", "mode": "NATIVE" },
+    { "task_id": "u2", "target_agent": "mac", "instruction": "echo Mac Task 2", "mode": "NATIVE", "depends_on": ["u1"] },
+    { "task_id": "u3", "target_agent": "windows", "instruction": "echo Windows Task 3", "mode": "NATIVE", "depends_on": ["u2"] },
+    { "task_id": "u4", "target_agent": "mac", "instruction": "echo Mac Task 4", "mode": "NATIVE", "depends_on": ["u3"] },
+    { "task_id": "u5", "target_agent": "windows", "instruction": "echo Windows Task 5", "mode": "NATIVE", "depends_on": ["u4"] },
+    { "task_id": "u6", "target_agent": "mac", "instruction": "echo Mac Task 6", "mode": "NATIVE", "depends_on": ["u5"] },
+    { "task_id": "u7", "target_agent": "windows", "instruction": "echo Windows Task 7", "mode": "NATIVE", "depends_on": ["u6"] },
+    { "task_id": "u8", "target_agent": "mac", "instruction": "echo Mac Task 8", "mode": "NATIVE", "depends_on": ["u7"] },
+    { "task_id": "u9", "target_agent": "windows", "instruction": "echo Windows Task 9", "mode": "NATIVE", "depends_on": ["u8"] },
+    { "task_id": "u10", "target_agent": "mac", "instruction": "echo Mac Task 10", "mode": "NATIVE", "depends_on": ["u9"] }
+  ]
+}

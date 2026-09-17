@@ -1,0 +1,22 @@
+{
+    "type": "DAG",
+    "goal_id": "demo-goal-1",
+    "depends_on": [],
+    "workflow_plan": [
+        {
+            "task_id": "task-generate",
+            "description": "Generate initial market research data",
+            "depends_on": []
+        },
+        {
+            "task_id": "task-process",
+            "description": "Analyze market trends and filter noise",
+            "depends_on": ["task-generate"]
+        },
+        {
+            "task_id": "task-summarize",
+            "description": "Produce executive summary",
+            "depends_on": ["task-process"]
+        }
+    ]
+}
