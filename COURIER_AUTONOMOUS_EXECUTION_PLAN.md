@@ -240,3 +240,21 @@ The continuation path must satisfy these behaviors:
 ---
 **LEDGER_V1=COMPLETE**
 *Ledger/autonomy milestone proven in canonical state. Ledger V1 is frozen except for future bug fixes.*
+
+### Permanent Operating Rule (Ledger V1 Frozen)
+
+**GOAL → MOTOR → WORKER → VERIFIED RESULT → LEDGER CHECKPOINT → NEXT EXECUTABLE ACTION**
+
+**Permanent invariants:**
+- Motor remains the sole runtime scheduler/execution authority.
+- Ledger stores only durable execution state, ownership, blockers, evidence, acceptance state and minimal handoff context.
+- Ledger is NOT a scheduler, queue, second Motor or second truth store.
+- Never persist raw chat as runtime context.
+- Every fresh/disposable worker resumes with: `python3 scripts/courier_continue.py --run`
+- Session/account/provider replacement requires no old chat reconstruction.
+- Human/money/provider gates remain scope-local whenever independent safe work exists.
+- Ledger V1 may be changed after freeze only for a reproducible correctness/reliability defect, not speculative improvements.
+
+**LEDGER_V1=COMPLETE**
+**LEDGER_V1_FROZEN=YES**
+**LEDGER_ACTIVE_DEVELOPMENT=NO**
