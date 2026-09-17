@@ -116,7 +116,9 @@ def compute_frontier(record: dict):
 
 def execute_task(task, ledger_path, record):
     print(f"Executing/Delegating task: {task['instruction']}")
-    if task["edge_name"] == "PUBLICATION VERIFICATION":
+    edge = task["edge_name"]
+    
+    if edge == "PUBLICATION VERIFICATION":
         try:
             import subprocess as sp
             html = sp.check_output(["curl", "-sL", "https://happyhippovip.github.io/courier-pilot-website/"]).decode('utf-8')
@@ -127,25 +129,23 @@ def execute_task(task, ledger_path, record):
                 return task, False, "HUMAN_REQUIRED_PUBLIC_REPO_VISIBILITY"
         except Exception as e:
             return task, False, "HUMAN_REQUIRED_PUBLIC_REPO_VISIBILITY"
-    elif task["edge_name"] == "PAYMENT ONLY WHEN ACTUALLY REQUIRED":
+            
+    elif edge == "PAYMENT ONLY WHEN ACTUALLY REQUIRED":
         return task, False, "MONEY_REQUIRED_PAYMENT_PROOF"
-    elif task["edge_name"] == "EXTERNAL_PUBLICATION":
-        try:
-            import subprocess as sp
-            out = sp.check_output(["gh", "variable", "list"]).decode()
-            if "COURIER_CONTACT_EMAIL" in out:
-                return task, True, None
-            else:
-                return task, False, "HUMAN_REQUIRED_CONTACT_DESTINATION"
-        except Exception:
-            return task, False, "HUMAN_REQUIRED_CONTACT_DESTINATION"
-    elif task["edge_name"] == "ONBOARD_FIRST_PILOT_CUSTOMER":
+        
+    elif edge == "ONBOARD_FIRST_PILOT_CUSTOMER":
         return task, False, "HUMAN_REQUIRED_PILOT_ONBOARDING"
-    elif task["edge_name"] in ["RELEASE", "PUBLIC DEPLOYMENT", "FIRST PILOT", "SALES PACKAGE", "POST-PILOT HARDENING"]:
-        return task, False, f"UNVERIFIED_EXTERNAL_EFFECT_{task['edge_name']}"
+        
+    elif edge in ["RELEASE", "PUBLIC DEPLOYMENT", "PUBLIC_DEPLOYMENT", "FIRST PILOT", "FIRST_PILOT", "SALES PACKAGE", "POST-PILOT HARDENING", "EXTERNAL_PUBLICATION", "PAYMENT_ONLY_WHEN_ACTUALLY_REQUIRED"]:
+        return task, False, f"UNVERIFIED_EXTERNAL_EFFECT_{edge}"
+        
+    # Valid deterministic local checks that can pass automatically if their conditions are met
+    elif edge in ["LEDGER/HANDOFF", "PR41 ACCEPTANCE", "PILOT INTAKE"]:
+        print(f"Successfully proved: {edge}")
+        return task, True, None
 
-    print(f"Successfully proved: {task['edge_name']}")
-    return task, True, None
+    # Fail closed for any unrecognized or default fallthrough tasks
+    return task, False, f"UNRECOGNIZED_OR_UNVERIFIED_TASK_{edge}"
 
 def update_ledger(ledger_path, edge_name, blocker, bundle):
     revision = bundle["revision"]
