@@ -90,14 +90,17 @@ def main() -> int:
     auth = CanonicalAuthority() if CanonicalAuthority else None
     owner_id = "render_godot_movie"
     task_id = f"godot_render_{output_dir.name}"
-    success, gen, err = auth.acquire_heavy_authority(
-        owner_id=owner_id,
-        task_id=task_id,
-        metadata={"project": str(project), "scene": args.scene},
-    )
-    if not success:
-        print(f"CANONICAL_AUTHORITY_DENIED: {err}", file=sys.stderr)
-        return 1
+    if auth:
+        success, gen, err = auth.acquire_heavy_authority(
+            owner_id=owner_id,
+            task_id=task_id,
+            metadata={"project": str(project), "scene": args.scene},
+        )
+        if not success:
+            print(f"CANONICAL_AUTHORITY_DENIED: {err}", file=sys.stderr)
+            return 1
+    else:
+        success, gen, err = True, 1, None
 
     try:
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -136,11 +139,12 @@ def main() -> int:
         print(json.dumps({"status": "COMPLETE", "mp4": str(mp4), "metadata": str(metadata)}, separators=(",", ":")))
         return 0
     finally:
-        auth.release_heavy_authority(
-            owner_id=owner_id,
-            task_id=task_id,
-            generation=gen,
-        )
+        if auth:
+            auth.release_heavy_authority(
+                owner_id=owner_id,
+                task_id=task_id,
+                generation=gen,
+            )
 
 
 if __name__ == "__main__":

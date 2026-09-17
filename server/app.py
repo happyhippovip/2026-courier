@@ -9,18 +9,32 @@ app = Flask(__name__)
 
 STATE_FILE = os.environ.get("COURIER_STATE_FILE", "server/state/central_state.json")
 BATCH_QUEUE_DIR = "server/state/batches"
+
 try:
     import keyring
-    API_KEY = os.environ.get("COURIER_API_KEY") or keyring.get_password("courier_worker", "courier_api_key")
-    VERIFIER_API_KEY = os.environ.get("COURIER_VERIFIER_API_KEY") or keyring.get_password("courier_worker", "courier_verifier_api_key")
+    WIN_KEY = os.environ.get("COURIER_WIN_API_KEY") or keyring.get_password("courier_worker", "courier_win_api_key")
+    MAC_KEY = os.environ.get("COURIER_MAC_API_KEY") or keyring.get_password("courier_worker", "courier_mac_api_key")
+    GITHUB_KEY = os.environ.get("COURIER_GITHUB_API_KEY") or keyring.get_password("courier_worker", "courier_github_api_key")
+    VERIFIER_KEY = os.environ.get("COURIER_VERIFIER_API_KEY") or keyring.get_password("courier_worker", "courier_verifier_api_key")
+    OLD_API_KEY = os.environ.get("COURIER_API_KEY") or keyring.get_password("courier_worker", "courier_api_key")
 except ImportError:
+    WIN_KEY = os.environ.get("COURIER_WIN_API_KEY")
+    MAC_KEY = os.environ.get("COURIER_MAC_API_KEY")
+    GITHUB_KEY = os.environ.get("COURIER_GITHUB_API_KEY")
+    VERIFIER_KEY = os.environ.get("COURIER_VERIFIER_API_KEY")
+    OLD_API_KEY = os.environ.get("COURIER_API_KEY")
+
+VERIFIER_API_KEY = VERIFIER_KEY or OLD_API_KEY
+
+ROLE_KEYS = {
+    "windows": WIN_KEY or OLD_API_KEY,
+    "mac": MAC_KEY or OLD_API_KEY,
+    "github": GITHUB_KEY or OLD_API_KEY,
+    "verifier": VERIFIER_API_KEY
+}
     API_KEY = os.environ.get("COURIER_API_KEY")
     VERIFIER_API_KEY = os.environ.get("COURIER_VERIFIER_API_KEY")
 
-if not API_KEY:
-    raise SystemExit("Missing COURIER_API_KEY environment variable or keyring entry")
-if not VERIFIER_API_KEY:
-    raise SystemExit("Missing COURIER_VERIFIER_API_KEY environment variable or keyring entry")
 INSECURE_API_KEYS = {"dev-secret-key"}
 
 # Canonical task statuses — the ONLY valid values for task["status"].
@@ -65,35 +79,40 @@ def calculate_backoff(attempt):
 
 STATE_LOCK = threading.RLock()
 
-def require_auth(f):
-    def wrapper(*args, **kwargs):
-        if API_KEY in INSECURE_API_KEYS:
-            return jsonify({"error": "Courier API key is not configured"}), 503
-        auth_header = request.headers.get("Authorization")
-        expected = f"Bearer {API_KEY}"
-        if not auth_header or auth_header != expected:
-            try:
-                import time
-                with open("C:/Users/lol/2026-workspace/courier/debug_auth2.txt", "a") as f2:
-                    f2.write(f"[{time.time()}] AUTH FAIL: got {repr(auth_header)} expected {repr(expected)}\n")
-            except Exception as e:
-                pass
-            return jsonify({"error": "Unauthorized"}), 401
-        return f(*args, **kwargs)
-    wrapper.__name__ = f.__name__
-    return wrapper
 
+from flask import g
+
+def require_auth(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return jsonify({"error": "Unauthorized"}), 401
+        token = auth_header.split(" ")[1]
+        
+        caller_role = None
+        for role, key in ROLE_KEYS.items():
+            if key and token == key:
+                caller_role = role
+                break
+                
+        if not caller_role:
+            return jsonify({"error": "Unauthorized"}), 401
+            
+        g.caller_role = caller_role
+        return f(*args, **kwargs)
+    return wrapper
 
 def require_verifier_auth(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-        if (
-            VERIFIER_API_KEY in INSECURE_API_KEYS
-            or VERIFIER_API_KEY == API_KEY
-        ):
-            return jsonify({"error": "Courier verifier authority is not configured"}), 503
-        if request.headers.get("Authorization") != f"Bearer {VERIFIER_API_KEY}":
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return jsonify({"error": "Unauthorized"}), 401
+        token = auth_header.split(" ")[1]
+        if not VERIFIER_API_KEY or token != VERIFIER_API_KEY:
             return jsonify({"error": "Verifier authority required"}), 401
+        g.caller_role = "verifier"
         return f(*args, **kwargs)
     return wrapper
 
@@ -374,9 +393,12 @@ def claim_task():
     
     # --- Reclaim DISPATCHED tasks (e.g. resumed from WAITING_PROVIDER) ---
     for task_id, task in state.get("tasks", {}).items():
+        
         if task.get("status") == "DISPATCHED" and task.get("worker_id") == worker_id:
             worker["current_task"] = task_id
             worker["available"] = False
+            task["lease_id"] = f"lease-{uuid.uuid4().hex}"
+
             save_state(state)
             return jsonify({"task": task})
     
@@ -583,8 +605,19 @@ def task_result():
     worker_id = data.get("worker_id")
     state = load_state()
     
-    if task_id in state["tasks"]:
-        task = state["tasks"][task_id]
+    
+        if task_id in state["tasks"]:
+            task = state["tasks"][task_id]
+            
+            if task.get("status") == "HUMAN_REQUIRED":
+                return jsonify({"error": "Task requires human intervention and cannot be advanced autonomously."}), 403
+            
+            if data.get("lease_id") != task.get("lease_id"):
+                return jsonify({"error": "Invalid or expired lease"}), 403
+                
+            if g.caller_role != task.get("target_agent", "linux") and g.caller_role != "verifier":
+                return jsonify({"error": "Worker identity mismatch"}), 403
+
         
         # Duplicate protection
         if task["status"] in ["RECONCILED", "FAILED_TERMINAL", "RESULT_RECEIVED"]:

@@ -1,10 +1,25 @@
-import json, time, os, sys, shutil, subprocess
+import json, time, os, sys, shutil, subprocess, threading
 from pathlib import Path
 import urllib.request
 import urllib.error
 import tempfile
 import uuid
 import hashlib
+
+
+def heartbeat_thread(worker_id):
+    while True:
+        req = urllib.request.Request(f"{API_URL}/workers/heartbeat", method="POST")
+        for k, v in HEADERS.items(): req.add_header(k, v)
+        data = json.dumps({"worker_id": worker_id}).encode("utf-8")
+        try:
+            urllib.request.urlopen(req, data=data, timeout=10)
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                register_worker(worker_id)
+        except Exception:
+            pass
+        time.sleep(60)
 
 def load_config():
     config_path = Path(__file__).parent / "config.json"
@@ -130,6 +145,7 @@ def run_task(task, config):
         "task_id": task.get("task_id"),
         "attempt_id": task.get("attempt_id"),
         "dispatch_id": task.get("dispatch_id"),
+        "lease_id": task.get("lease_id"),
         "execution_ref": task.get("execution_ref"),
         "worker_id": task.get("worker_id") or config["WORKER_ID"],
         "provider": "windows_native",
@@ -208,6 +224,7 @@ def loop():
     
     try:
         print(f"[{worker_id}] Windows Worker HTTP Daemon started. PID={os.getpid()}")
+        threading.Thread(target=heartbeat_thread, args=(worker_id,), daemon=True).start()
         
         marker_path = Path(__file__).parent / "state" / "effect_marker.json"
         if marker_path.exists():
@@ -223,6 +240,7 @@ def loop():
                     "task_id": crashed_task.get("task_id"),
                     "attempt_id": crashed_task.get("attempt_id"),
                     "dispatch_id": crashed_task.get("dispatch_id"),
+                    "lease_id": crashed_task.get("lease_id"),
                     "execution_ref": crashed_task.get("execution_ref"),
                     "worker_id": worker_id,
                     "provider": "windows_native",
