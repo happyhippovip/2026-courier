@@ -1,10 +1,9 @@
-#!/usr/bin/env python3
-import json
-import subprocess
-from pathlib import Path
-import sys
-import os
 import argparse
+import sys
+import subprocess
+import os
+import json
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.resolve()))
 
@@ -56,19 +55,34 @@ def check_freshness(ledger_path: Path, branch: str, sha: str):
 
 def compute_frontier(record: dict):
     proven = record.get("PROVEN_EDGES", [])
+    first_blocker = record.get("FIRST_CAUSAL_BLOCKER", "")
+    
+    capability_map = {
+        "LEDGER/HANDOFF": ["git", "file_write"],
+        "PR41 ACCEPTANCE": ["git_merge", "code_analysis", "reasoning"],
+        "RELEASE": ["shell", "build_tools"],
+        "PUBLIC DEPLOYMENT": ["github_actions", "api"],
+        "PUBLICATION VERIFICATION": ["http_client"],
+        "PILOT INTAKE": ["email_processing"],
+        "SALES PACKAGE": ["markdown", "file_write", "reasoning"],
+        "FIRST PILOT": ["intake_execution", "reasoning"],
+        "PAYMENT ONLY WHEN ACTUALLY REQUIRED": ["payment_mechanism"],
+        "POST-PILOT HARDENING": ["refactoring", "testing", "reasoning"]
+    }
     
     tasks = []
     for edge in PLAN:
         if edge not in proven:
             scope = "dependent"
-            if "independent" in edge.lower() or edge in ["PILOT INTAKE", "SALES PACKAGE", "POST-PILOT HARDENING"]:
+            if "independent" in edge.lower() or edge in ["PUBLIC DEPLOYMENT", "PUBLICATION VERIFICATION", "PILOT INTAKE", "SALES PACKAGE", "POST-PILOT HARDENING"]:
                 scope = "independent"
                 
             tasks.append({
                 "id": f"TASK-{hash(edge)}",
                 "instruction": f"Prove edge: {edge}",
                 "scope": scope,
-                "edge_name": edge
+                "edge_name": edge,
+                "capabilities": capability_map.get(edge, [])
             })
             
     return tasks
@@ -76,8 +90,16 @@ def compute_frontier(record: dict):
 def execute_task(task, ledger_path, record):
     print(f"Executing/Delegating task: {task['instruction']}")
     if task["edge_name"] == "PUBLICATION VERIFICATION":
-        print("Checking deployment... HTTP 404... PUBLICATION VERIFICATION failed.")
-        return False, "HUMAN_REQUIRED_PUBLIC_REPO_VISIBILITY"
+        try:
+            import subprocess as sp
+            html = sp.check_output(["curl", "-sL", "https://happyhippovip.github.io/courier-pilot-website/"]).decode('utf-8')
+            if "hobbiejanssen@gmx.net" in html and "Courier" in html:
+                print("PUBLICATION VERIFICATION passed. URL is live and contact is verified.")
+                return True, None
+            else:
+                return False, "HUMAN_REQUIRED_PUBLIC_REPO_VISIBILITY"
+        except Exception as e:
+            return False, "HUMAN_REQUIRED_PUBLIC_REPO_VISIBILITY"
     elif task["edge_name"] == "PAYMENT ONLY WHEN ACTUALLY REQUIRED":
         print("Payment required. Halting execution for this scope.")
         return False, "MONEY_REQUIRED_PAYMENT_GATEWAY"
@@ -87,8 +109,18 @@ def execute_task(task, ledger_path, record):
             print("Active writer collision on PR41 (Codex).")
             return False, "HUMAN_REQUIRED_MERGE"
         else:
-            print("Ownership resolved to Google-Antigravity, but unattended merge is forbidden.")
-            return False, "HUMAN_REQUIRED_MERGE"
+            try:
+                out = subprocess.check_output(["gh", "pr", "view", "41", "--json", "state"]).decode()
+                state = json.loads(out).get("state")
+                if state == "MERGED":
+                    print("PR41 successfully merged.")
+                else:
+                    print(f"PR41 state is {state}. Ownership resolved, but unattended merge is forbidden.")
+                    return False, "HUMAN_REQUIRED_MERGE"
+            except Exception as e:
+                print(f"Ownership resolved to Google-Antigravity, but unattended merge is forbidden. Failed to check PR state: {e}")
+                return False, "HUMAN_REQUIRED_MERGE"
+
     
     print(f"Successfully proved: {task['edge_name']}")
     return True, None
@@ -163,15 +195,32 @@ def main():
             if not is_runnable:
                 continue
                 
+            if t["edge_name"] in record.get("COLLISION_SCOPE", []):
+                continue
+                
+            # Capability check
+            worker_caps_env = os.environ.get("COURIER_WORKER_CAPABILITIES", "all")
+            if worker_caps_env != "all":
+                worker_caps = set(worker_caps_env.split(","))
+                task_caps = set(t.get("capabilities", []))
+                if not task_caps.issubset(worker_caps):
+                    continue
+                
             if first_blocker and first_blocker != "NONE":
                 if "PROVIDER_QUOTA_EXHAUSTED" in first_blocker:
-                    continue
-                if "PUBLIC_REPO_VISIBILITY" in first_blocker and t["edge_name"] in ["PUBLIC DEPLOYMENT", "PUBLICATION VERIFICATION"]:
-                    continue
-                if "MONEY_REQUIRED" in first_blocker and t["edge_name"] == "PAYMENT ONLY WHEN ACTUALLY REQUIRED":
-                    continue
-                if "HUMAN_REQUIRED_MERGE" in first_blocker and t["edge_name"] == "PR41 ACCEPTANCE":
-                    continue
+                    # Provider unavailable + alternate eligible worker => continue
+                    if record.get("BLOCKER_OWNER") == record.get("RUNTIME_IDENTITY"):
+                        continue # THIS worker is blocked globally
+                elif "MONEY_REQUIRED" in first_blocker:
+                    # Money gate blocks only its scope
+                    if t["edge_name"] == "PAYMENT ONLY WHEN ACTUALLY REQUIRED" or "PAYMENT" in t["edge_name"]:
+                        continue
+                elif "HUMAN_REQUIRED" in first_blocker or "PUBLIC_REPO_VISIBILITY" in first_blocker:
+                    # Human gate blocks only its scope. (Dependent tasks are blocked if the primary line is blocked)
+                    if t["scope"] == "dependent":
+                        continue
+                    if "PUBLIC_REPO_VISIBILITY" in first_blocker and t["edge_name"] in ["PUBLIC DEPLOYMENT", "PUBLICATION VERIFICATION"]:
+                        continue
             safe_executable_tasks.append(t)
             
         if not safe_executable_tasks:
