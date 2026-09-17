@@ -3,10 +3,13 @@ import os
 import sys
 import time
 import requests
-import keyring
+try:
+    import keyring
+except ImportError:
+    keyring = None
 
 API_URL = os.environ.get("COURIER_SERVER", "http://127.0.0.1:8080").rstrip("/")
-API_KEY = os.environ.get("COURIER_API_KEY") or keyring.get_password("courier_worker", "COURIER_API_KEY")
+API_KEY = os.environ.get("COURIER_API_KEY") or (keyring.get_password if keyring else lambda *args: None)("courier_worker", "COURIER_API_KEY")
 HEADERS = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
 
 # 5 minutes without heartbeat means worker is stale
