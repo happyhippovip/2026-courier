@@ -236,3 +236,7 @@ The continuation path must satisfy these behaviors:
 - **Safe Automatic Actions**: Audit code, run tests, apply owned safe fixes.
 - **Forbidden Actions**: Destructive broad cleanup.
 - **Next Executable Action**: NONE when the full frontier is genuinely complete/blocked.
+
+---
+**LEDGER_V1=COMPLETE**
+*Ledger/autonomy milestone proven in canonical state. Ledger V1 is frozen except for future bug fixes.*
