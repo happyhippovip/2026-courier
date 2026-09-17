@@ -305,6 +305,26 @@ subprocess.run([
         self.assertEqual(accepted["acceptance_predicate"]["version"], "1")
         self.assertEqual(accepted["evidence"][0]["validity"], "VALID")
 
+    def test_initialization_cannot_preset_canonical_acceptance(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            ledger = Path(temporary) / "ledger.json"
+            accepted_guard = guard(transition_state="CANONICAL_ACCEPTED")
+            accepted_record = record()
+            accepted_record["UNPROVEN_EDGES"] = []
+            accepted_record["NEXT_EXECUTABLE_ACTION"] = "NONE"
+            accepted_record["CLEAN_IDLE"] = "YES"
+            accepted_record["QUEUE_INDEPENDENT"] = "YES"
+            accepted_record["STATUS"] = "CLEAN_IDLE"
+
+            with self.assertRaisesRegex(
+                ledger_module.LedgerError,
+                "initialization cannot create an authoritative acceptance verdict",
+            ):
+                ledger_module.initialize(
+                    ledger, accepted_record, accepted_guard, 1.0
+                )
+            self.assertFalse(ledger.exists())
+
     def test_worker_state_and_current_freshness_round_trip(self):
         with tempfile.TemporaryDirectory() as temporary:
             ledger = Path(temporary) / "ledger.json"
@@ -419,8 +439,28 @@ subprocess.run([
             )
             self.assertEqual(
                 followed["acceptance_guard"]["transition_state"],
-                "CANONICAL_ACCEPTED",
+                "PROVISIONAL",
             )
+            self.assertEqual(followed["record"]["QUEUE_INDEPENDENT"], "NO")
+            self.assertEqual(followed["record"]["CLEAN_IDLE"], "NO")
+            self.assertEqual(
+                followed["record"]["STATUS"], "WAITING_ACCEPTANCE_GUARD"
+            )
+
+            # More unrelated revisions cannot launder the same caller-supplied
+            # evidence into an independent acceptance decision.
+            later = ledger_module.update(
+                ledger,
+                followed["revision"],
+                {"TASKS_COMPLETED": 4},
+                "third-worker",
+                1.0,
+            )
+            self.assertEqual(
+                later["acceptance_guard"]["transition_state"], "PROVISIONAL"
+            )
+            self.assertEqual(later["record"]["QUEUE_INDEPENDENT"], "NO")
+            self.assertEqual(later["record"]["CLEAN_IDLE"], "NO")
 
 
     def test_reject_copied_proof_with_different_sha(self):
