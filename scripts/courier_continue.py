@@ -199,7 +199,7 @@ def execute_task(task, ledger_path, record):
             os.makedirs("public")
         with open(sales_file, "w") as f:
             f.write("# Courier Pilot Sales Package\n\nContact us for the first pilot.\nRequirements: Must have a public repository.\n")
-        print("Successfully proved: SALES PACKAGE")
+        print("Execution candidate completed; independent evidence required: SALES PACKAGE")
         return task, True, None
 
     elif edge in ["POST-PILOT HARDENING", "POST_PILOT_HARDENING"]:
@@ -210,7 +210,7 @@ def execute_task(task, ledger_path, record):
             import subprocess as sp
             current_head = sp.check_output(["git", "rev-parse", "HEAD"], timeout=10).decode().strip()
             sp.check_output(["git", "merge-base", "--is-ancestor", "6170850b", current_head], timeout=10)
-            print("Successfully proved: PR41 ACCEPTANCE")
+            print("Local ancestry check passed; independent evidence required: PR41 ACCEPTANCE")
             return task, True, None
         except Exception:
             return task, False, "UNVERIFIED_EXTERNAL_EFFECT_PR41 ACCEPTANCE"
