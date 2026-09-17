@@ -186,9 +186,30 @@ def select_safe_frontier(
     selected = []
     selected_chains = set()
 
+    def collides_with_owned_scope(edge_name: str) -> bool:
+        """Match canonical logical scopes, not only literal task names.
+
+        Durable ownership commonly names a scope such as ``Ledger`` while the
+        task frontier names a child edge such as ``LEDGER/HANDOFF``.  Literal
+        equality would let the child edge bypass the active writer claim.
+        Delimiter-aware matching avoids both that bypass and broad substring
+        matches (for example, ``RELEASE`` must not match ``PRE-RELEASE``).
+        """
+        edge_key = edge_name.strip().casefold()
+        for owned_scope in collision_scope:
+            scope_key = str(owned_scope).strip().casefold()
+            if not scope_key:
+                continue
+            if edge_key == scope_key or any(
+                edge_key.startswith(scope_key + delimiter)
+                for delimiter in ("/", " - ", ":")
+            ):
+                return True
+        return False
+
     for task in tasks:
         edge = task["edge_name"]
-        if edge in blocked_edges or edge in running_edges or edge in collision_scope:
+        if edge in blocked_edges or edge in running_edges or collides_with_owned_scope(edge):
             continue
         if _is_human_or_external_gate(edge):
             continue
