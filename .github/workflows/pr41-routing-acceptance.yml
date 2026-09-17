@@ -15,10 +15,16 @@ jobs:
       COURIER_API_KEY: test-secret
       COURIER_VERIFIER_API_KEY: verifier-secret
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          persist-credentials: false
+      - name: Checkout exact SHA without submodule traversal
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          git init .
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git fetch --no-tags --depth=1 origin "${GITHUB_SHA}"
+          git checkout --detach FETCH_HEAD
+          git remote set-url origin "https://github.com/${GITHUB_REPOSITORY}.git"
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
