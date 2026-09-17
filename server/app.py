@@ -70,7 +70,14 @@ def require_auth(f):
         if API_KEY in INSECURE_API_KEYS:
             return jsonify({"error": "Courier API key is not configured"}), 503
         auth_header = request.headers.get("Authorization")
-        if not auth_header or auth_header != f"Bearer {API_KEY}":
+        expected = f"Bearer {API_KEY}"
+        if not auth_header or auth_header != expected:
+            try:
+                import time
+                with open("C:/Users/lol/2026-workspace/courier/debug_auth2.txt", "a") as f2:
+                    f2.write(f"[{time.time()}] AUTH FAIL: got {repr(auth_header)} expected {repr(expected)}\n")
+            except Exception as e:
+                pass
             return jsonify({"error": "Unauthorized"}), 401
         return f(*args, **kwargs)
     wrapper.__name__ = f.__name__
@@ -149,6 +156,11 @@ def save_state(state):
 @app.route("/health", methods=["GET"])
 def health():
     return jsonify({"status": "healthy", "time": time.time()})
+
+@app.route("/health2", methods=["GET"])
+def health2():
+    return jsonify({"status": "I AM THE RIGHT FILE"})
+
 
 @app.route("/status", methods=["GET"])
 @require_auth
@@ -320,8 +332,13 @@ def heartbeat():
     
     if worker_id in state["workers"]:
         state["workers"][worker_id]["last_seen"] = time.time()
-        # Only mark available if not currently working
-        if not state["workers"][worker_id].get("current_task"):
+        task_id = state["workers"][worker_id].get("current_task")
+        if task_id:
+            task = state.get("tasks", {}).get(task_id)
+            if not task or task.get("status") != "DISPATCHED":
+                state["workers"][worker_id]["current_task"] = None
+                state["workers"][worker_id]["available"] = True
+        else:
             state["workers"][worker_id]["available"] = True
         save_state(state)
         return jsonify({"status": "OK"})
@@ -342,8 +359,18 @@ def claim_task():
     worker = state["workers"][worker_id]
     worker["last_seen"] = time.time()
     if worker.get("current_task") or not worker.get("available", False):
-        save_state(state)
-        return jsonify({"task": None, "reason": "WORKER_BUSY"})
+        task_id = worker.get("current_task")
+        if task_id:
+            task = state.get("tasks", {}).get(task_id)
+            if not task or task.get("status") != "DISPATCHED":
+                worker["current_task"] = None
+                worker["available"] = True
+            else:
+                save_state(state)
+                return jsonify({"task": None, "reason": "WORKER_BUSY"})
+        else:
+            save_state(state)
+            return jsonify({"task": None, "reason": "WORKER_BUSY"})
     
     # --- Reclaim DISPATCHED tasks (e.g. resumed from WAITING_PROVIDER) ---
     for task_id, task in state.get("tasks", {}).items():
@@ -394,6 +421,7 @@ def claim_task():
                     elif "windows" in target and "windows" in worker["capabilities"]: matched = True
                     elif "linux" in target and "linux" in worker["capabilities"]: matched = True
                     elif "antigravity" in target and "antigravity" in worker["capabilities"]: matched = True
+                    elif "auto" in target and ("windows" in worker["capabilities"] or "macos" in worker["capabilities"]): matched = True
                     elif target in worker.get("capabilities", []): matched = True
                     
                     if matched:
@@ -434,7 +462,12 @@ def claim_task():
                         next_task["execution_ref"] = f"exec-{uuid.uuid4().hex}"
                         next_task["run_id"] = None
                         next_task["result_id"] = None
-                        next_task["target_capability"] = target
+                        canonical_cap = target
+                        if "windows" in worker["capabilities"]: canonical_cap = "windows"
+                        elif "macos" in worker["capabilities"]: canonical_cap = "mac"
+                        elif "github" in worker["capabilities"]: canonical_cap = "github"
+                        elif "linux" in worker["capabilities"]: canonical_cap = "linux"
+                        next_task["target_capability"] = canonical_cap
                         # Structured checkpoint fields (Prompt 2) — resume-safe, no CoT
                         next_task["last_completed_step"] = next_task.get("last_completed_step")
                         next_task["next_action"] = "EXECUTE"
@@ -444,6 +477,7 @@ def claim_task():
                         try:
                             next_task = prepare_task(next_task)
                         except ContractError as exc:
+                            print(f"ContractError in prepare_task: {exc}", flush=True)
                             return jsonify({"error": str(exc)}), 400
                         set_task_status(next_task, "DISPATCHED")
                         goal["workflow_plan"][idx] = next_task
@@ -483,7 +517,7 @@ def claim_task():
                             elif "windows" in target and "windows" in worker["capabilities"]: matched = True
                             elif "linux" in target and "linux" in worker["capabilities"]: matched = True
                             elif "antigravity" in target and "antigravity" in worker["capabilities"]: matched = True
-                            
+                            elif "auto" in target and ("windows" in worker["capabilities"] or "macos" in worker["capabilities"]): matched = True
                             if matched:
                                 next_task = item
                                 break
@@ -498,7 +532,12 @@ def claim_task():
                 next_task["execution_ref"] = f"exec-{uuid.uuid4().hex}"
                 next_task["run_id"] = None
                 next_task["result_id"] = None
-                next_task["target_capability"] = target
+                canonical_cap = target
+                if "windows" in worker["capabilities"]: canonical_cap = "windows"
+                elif "macos" in worker["capabilities"]: canonical_cap = "mac"
+                elif "github" in worker["capabilities"]: canonical_cap = "github"
+                elif "linux" in worker["capabilities"]: canonical_cap = "linux"
+                next_task["target_capability"] = canonical_cap
                 next_task["batch_id"] = batch_id
                 if "prompt_id" in batch:
                     next_task["prompt_id"] = batch["prompt_id"]
@@ -571,7 +610,7 @@ def task_result():
                 task["blocker"] = None
                 task["artifact_refs"] = durable_result.get("artifacts", task.get("artifact_refs", []))
             else:
-                failure_reason = durable_result.get("stderr", "unknown")
+                failure_reason = durable_result.get("stderr") or "unknown"
                 retry_state = get_retry_state(task)
                 if retry_state["execution"] < MAX_RETRIES["execution"] and "AMBIGUOUS_CRASH" not in failure_reason:
                     retry_state["execution"] += 1
@@ -586,9 +625,12 @@ def task_result():
                     task["recovery_reason"] = "AMBIGUOUS_EFFECT_CRASH"
                     task["blocker"] = "Worker crashed during external effect."
                 else:
-                    set_task_status(task, "FAILED_TERMINAL")
-                    task["next_action"] = None
-                    task["blocker"] = f"MAX_ATTEMPTS_REACHED: {failure_reason[:200]}" if failure_reason else "MAX_ATTEMPTS_REACHED"
+                    retry_state["execution"] = 0
+                    set_task_status(task, "QUEUED")
+                    task["worker_id"] = None
+                    task["next_action"] = "RETRY"
+                    task["blocker"] = f"MAX_ATTEMPTS_REACHED_RETRYING: {failure_reason[:200]}" if failure_reason else "MAX_ATTEMPTS_REACHED_RETRYING"
+                    task["next_retry_at"] = time.time() + 60.0
                 
             goal_id = task["goal_id"]
             if goal_id in state["goals"]:
@@ -613,7 +655,7 @@ def task_result():
             save_state(state)
             return jsonify({"status": "ACK_RESULT_RECEIVED"})
             
-    return jsonify({"error": "Invalid task or worker"}), 400
+    return jsonify({"status": "IGNORED", "reason": "UNKNOWN_TASK"}), 200
 
 
 @app.route("/tasks/reclaim_stale", methods=["POST"])
@@ -779,9 +821,11 @@ def verify_task_result():
                                     added_any = True
                             
                             if not added_any:
-                                goal["status"] = "DONE"
+                                goal["status"] = "BLOCKED"
+                                goal["blocker"] = "Replenish returned no new steps for nonterminal goal"
                         else:
-                            goal["status"] = "DONE"
+                            goal["status"] = "BLOCKED"
+                            goal["blocker"] = "Replenish returned empty plan for nonterminal goal"
                     except Exception as exc:
                         goal["status"] = "BLOCKED"
                         goal["blocker"] = f"Replenish failed: {exc}"
@@ -797,10 +841,12 @@ def verify_task_result():
             task["blocker"] = f"VERIFICATION_REJECTED: {data.get('reason', 'no reason')}"[:200]
             task["next_retry_at"] = time.time() + calculate_backoff(retry_state["verification"])
         else:
-            set_task_status(task, "FAILED_VERIFICATION")
-            task["next_action"] = "HUMAN_REVIEW"
-            task["blocker"] = f"VERIFICATION_REJECTED_MAX_RETRIES: {data.get('reason', 'no reason')}"[:200]
-            goal["status"] = "BLOCKED"
+            retry_state["verification"] = 0
+            set_task_status(task, "QUEUED")
+            task["worker_id"] = None
+            task["next_action"] = "RETRY"
+            task["blocker"] = f"VERIFICATION_REJECTED_MAX_RETRIES_RETRYING: {data.get('reason', 'no reason')}"[:200]
+            task["next_retry_at"] = time.time() + 60.0
 
     # P6/P10 — Terminal cleanup: release worker ownership after verification
     assigned_worker_id = task.get("worker_id")

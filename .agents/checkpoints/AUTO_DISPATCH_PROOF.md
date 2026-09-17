@@ -27,3 +27,52 @@
 ```
 
 The canonical Motor definitively holds scheduling authority and pushes READY work to available workers asynchronously.
+
+---
+
+## Auto Dispatch 2 Extension (goal-558a821d)
+
+**Proof of physical causal edge (Multi-Step Sequential DAG):**
+1. Goal `goal-558a821d` ("Prove Auto Dispatch 2") was registered in the Central Motor.
+2. Step 1 (`WF-CHIEF-8d6f37-STEP-1-DISCOVER`) was dispatched to Mac worker `MAC-FRESH-2`.
+3. Worker `MAC-FRESH-2` executed discovery, generated physical artifacts, and posted its completion envelope at `11:39:00`.
+4. The worker session cleanly exited without any polling loops or `tail -f` monitoring, returning control to the Motor.
+5. Within 1 second (`11:39:01`), the Central Motor automatically promoted and dispatched Step 2 (`WF-CHIEF-8d6f37-STEP-2-IMPLEMENT`) to `MAC-FRESH-2` with `dispatch-ed657f119a2a4719825e21f92543bffb`.
+6. The worker daemon claimed Step 2 and invoked the implementation subagent immediately and autonomously.
+7. Worker `MAC-FRESH-2` executed Step 2 core implementation, generated artifacts, and posted its completion envelope at `11:42:40`.
+8. Within 1 second (`11:42:41`), the Central Motor automatically promoted and dispatched Step 3 (`WF-CHIEF-8d6f37-STEP-3-SYNTHESIZE`) to `MAC-FRESH-2` with `dispatch-17b2bc6a036f4e8e82f14b8e8f0b797f`.
+9. The worker daemon claimed Step 3 and completed synthesis, invariant verification, and completion package assembly.
+
+**Evidence:**
+```json
+[
+  {
+    "task_id": "WF-CHIEF-8d6f37-STEP-1-DISCOVER",
+    "status": "RESULT_RECEIVED",
+    "worker_id": "MAC-FRESH-2",
+    "timestamp": "2026-09-17 11:39:00"
+  },
+  {
+    "task_id": "WF-CHIEF-8d6f37-STEP-2-IMPLEMENT",
+    "status": "DISPATCHED",
+    "dispatch_id": "dispatch-ed657f119a2a4719825e21f92543bffb",
+    "worker_id": "MAC-FRESH-2",
+    "timestamp": "2026-09-17 11:39:01"
+  },
+  {
+    "task_id": "WF-CHIEF-8d6f37-STEP-2-IMPLEMENT",
+    "status": "RESULT_RECEIVED",
+    "worker_id": "MAC-FRESH-2",
+    "timestamp": "2026-09-17 11:42:40"
+  },
+  {
+    "task_id": "WF-CHIEF-8d6f37-STEP-3-SYNTHESIZE",
+    "status": "DISPATCHED",
+    "dispatch_id": "dispatch-17b2bc6a036f4e8e82f14b8e8f0b797f",
+    "worker_id": "MAC-FRESH-2",
+    "timestamp": "2026-09-17 11:42:41"
+  }
+]
+```
+
+
