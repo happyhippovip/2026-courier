@@ -634,6 +634,10 @@ def initialize(
     validate_record(record, allow_unknown_sha=True)
     validate_guard(guard)
     validate_guard_binding(record, guard)
+    if guard["transition_state"] == "CANONICAL_ACCEPTED":
+        raise LedgerError(
+            "ledger initialization cannot create an authoritative acceptance verdict"
+        )
     with writer_lock(path, timeout):
         if path.exists():
             raise LedgerError(f"ledger already exists: {path}")
@@ -739,17 +743,20 @@ def update(
             if record.get("STATUS") == "CLEAN_IDLE":
                 record["STATUS"] = "READY"
         elif not unproven and has_physical_proof:
-            guard["transition_state"] = "CANONICAL_ACCEPTED"
-            if "ISSUE_STATE" in guard["acceptance_predicate"]["results"]:
-                guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["status"] = "PASS"
-                guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["observed_value"] = "NO_FURTHER_ACTION"
-                # Inherit the valid evidence URL (pre-existing proof only)
-                valid_url = next((e["source_url"] for e in prior_evidence if e["validity"] == "VALID"), "")
-                guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["evidence_urls"] = [valid_url]
-            record["CLEAN_IDLE"] = "YES"
-            record["QUEUE_INDEPENDENT"] = "YES"
-            record["STATUS"] = "CLEAN_IDLE"
-            record["NEXT_EXECUTABLE_ACTION"] = "NONE"
+            # This ledger is coordination state, not an acceptance authority.
+            # Aging caller-supplied evidence by one or more revisions must not
+            # turn it into an independent verdict.  A dedicated Acceptance
+            # Guard must authenticate the physical artifact through its own
+            # trust-bound admission path.
+            guard["transition_state"] = "PROVISIONAL"
+            record["CLEAN_IDLE"] = "NO"
+            record["QUEUE_INDEPENDENT"] = "NO"
+            record["STATUS"] = "WAITING_ACCEPTANCE_GUARD"
+            if record["NEXT_EXECUTABLE_ACTION"].lower() == "none":
+                record["NEXT_EXECUTABLE_ACTION"] = (
+                    "Independent Acceptance Guard must authenticate the "
+                    "bound physical evidence"
+                )
         elif not unproven:
             # Cannot be CLEAN_IDLE without physical proof
             record["CLEAN_IDLE"] = "NO"

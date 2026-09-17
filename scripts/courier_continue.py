@@ -360,7 +360,6 @@ def main():
         chain_unproven_seen = {}
         
         safe_executable_tasks = []
-        blocked_tasks_this_run = set()
         
         for t in tasks:
             base_name = t["edge_name"].split(" - ")[0]
@@ -493,7 +492,10 @@ def main():
         # Submit new tasks
         newly_submitted = []
         for t in safe_executable_tasks:
-            if t["edge_name"] not in running_tasks:
+            if (
+                t["edge_name"] not in running_tasks
+                and t["edge_name"] not in blocked_tasks_this_run
+            ):
                 print(f"\n=== SUBMITTING TASK: {t['edge_name']} ===")
                 running_tasks[t["edge_name"]] = executor.submit(execute_task, t, ledger_path, record)
                 newly_submitted.append(t["edge_name"])

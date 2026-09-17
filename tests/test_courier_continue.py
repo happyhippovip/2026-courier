@@ -149,6 +149,18 @@ def test_placeholder_or_external_steps_cannot_self_report_success(edge, tmp_path
     assert blocker
 
 
+def test_failed_task_is_not_resubmitted_in_same_run(tmp_path):
+    ledger_path = setup_ledger(
+        tmp_path, ["PUBLICATION VERIFICATION"], "NONE"
+    )
+    result = run_continue(ledger_path, run=True)
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.count("SUBMITTING TASK: PUBLICATION VERIFICATION") == 1
+    state = json.loads(ledger_path.read_text(encoding="utf-8"))
+    assert "PUBLICATION VERIFICATION" in state["record"]["UNPROVEN_EDGES"]
+    assert "PUBLICATION VERIFICATION" not in state["record"]["PROVEN_EDGES"]
+
+
 def test_execution_success_cannot_promote_its_own_edge(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     edge = "SALES PACKAGE"

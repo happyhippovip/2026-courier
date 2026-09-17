@@ -483,8 +483,26 @@ subprocess.run([
             )
             self.assertEqual(
                 followed["acceptance_guard"]["transition_state"],
-                "CANONICAL_ACCEPTED",
+                "PROVISIONAL",
             )
+            self.assertEqual(followed["record"]["QUEUE_INDEPENDENT"], "NO")
+            self.assertEqual(followed["record"]["CLEAN_IDLE"], "NO")
+            self.assertEqual(
+                followed["record"]["STATUS"], "WAITING_ACCEPTANCE_GUARD"
+            )
+
+            later = ledger_module.update(
+                ledger,
+                followed["revision"],
+                {"TASKS_COMPLETED": 4},
+                "third-worker",
+                1.0,
+            )
+            self.assertEqual(
+                later["acceptance_guard"]["transition_state"], "PROVISIONAL"
+            )
+            self.assertEqual(later["record"]["QUEUE_INDEPENDENT"], "NO")
+            self.assertEqual(later["record"]["CLEAN_IDLE"], "NO")
 
 
     def test_reject_copied_proof_with_different_sha(self):
