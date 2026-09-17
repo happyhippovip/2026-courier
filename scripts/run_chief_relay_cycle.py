@@ -88,7 +88,7 @@ def run_cycle(
 ) -> dict:
     # 1. Optional Pull
     if pull:
-        res = subprocess.run(["git", "-C", str(repo_dir), "pull", "--ff-only", "origin", "main"], capture_output=True, text=True)
+        res = subprocess.run(["git", "-C", str(repo_dir, timeout=120), "pull", "--ff-only", "origin", "main"], capture_output=True, text=True)
         if res.returncode != 0:
             print(f"PULL_WARNING: {res.stderr.strip()}", file=sys.stderr)
 
@@ -120,7 +120,7 @@ def run_cycle(
     if memory_repo and memory_repo.exists():
         build_cmd.extend(["--memory-repo", str(memory_repo)])
 
-    build_res = subprocess.run(build_cmd, capture_output=True, text=True)
+    build_res = subprocess.run(build_cmd, capture_output=True, text=True, timeout=120)
     if build_res.returncode != 0:
         fail(f"Worker job builder failed: {build_res.stderr.strip()}")
 
@@ -132,7 +132,7 @@ def run_cycle(
     val_job_res = subprocess.run(
         [
             sys.executable,
-            str(build_job_script),
+            str(build_job_script, timeout=120),
             "--validate-job",
             str(worker_job_file),
             "--schema",
@@ -149,7 +149,7 @@ def run_cycle(
     res = subprocess.run(
         [
             sys.executable,
-            str(consume_script),
+            str(consume_script, timeout=120),
             "--command",
             str(pending_cmd),
             "--incoming-dir",
@@ -172,7 +172,7 @@ def run_cycle(
     val_res = subprocess.run(
         [
             sys.executable,
-            str(val_script),
+            str(val_script, timeout=120),
             "--file",
             str(result_file),
             "--incoming-dir",
@@ -201,7 +201,7 @@ def run_cycle(
             "--output-dir",
             str(proposals_dir),
         ]
-        prop_res = subprocess.run(prop_cmd, capture_output=True, text=True)
+        prop_res = subprocess.run(prop_cmd, capture_output=True, text=True, timeout=120)
         if prop_res.returncode != 0:
             fail(f"Memory proposal builder failed: {prop_res.stderr.strip()}")
 
@@ -223,7 +223,7 @@ def run_cycle(
             "--output-approvals",
             str(approvals_dir),
         ]
-        eval_res = subprocess.run(eval_cmd, capture_output=True, text=True)
+        eval_res = subprocess.run(eval_cmd, capture_output=True, text=True, timeout=120)
         if eval_res.returncode != 0:
             fail(f"Autonomous Chief Policy evaluation failed: {eval_res.stderr.strip()}")
 
@@ -255,7 +255,7 @@ def run_cycle(
             if memory_dry_run:
                 apply_cmd.append("--dry-run")
 
-            apply_res = subprocess.run(apply_cmd, capture_output=True, text=True)
+            apply_res = subprocess.run(apply_cmd, capture_output=True, text=True, timeout=120)
             if apply_res.returncode != 0:
                 fail(f"Memory write handler failed: {apply_res.stderr.strip()}")
             write_result = json.loads(apply_res.stdout.strip())
@@ -272,13 +272,13 @@ def run_cycle(
     # 6. Optional Git Commit & Push
     commit_sha = None
     if push:
-        subprocess.run(["git", "-C", str(repo_dir), "add", "-f", str(worker_job_file), str(result_file)], check=True)
+        subprocess.run(["git", "-C", str(repo_dir, timeout=120), "add", "-f", str(worker_job_file), str(result_file)], check=True)
         commit_msg = f"Publish Antigravity worker job and result for {task_id} ({cmd_data['message_id']})"
-        subprocess.run(["git", "-C", str(repo_dir), "commit", "-m", commit_msg], check=True)
-        push_res = subprocess.run(["git", "-C", str(repo_dir), "push", "origin", "main"], capture_output=True, text=True)
+        subprocess.run(["git", "-C", str(repo_dir, timeout=120), "commit", "-m", commit_msg], check=True)
+        push_res = subprocess.run(["git", "-C", str(repo_dir, timeout=120), "push", "origin", "main"], capture_output=True, text=True)
         if push_res.returncode != 0:
             fail(f"Git push failed: {push_res.stderr.strip()}")
-        rev_res = subprocess.run(["git", "-C", str(repo_dir), "rev-parse", "HEAD"], capture_output=True, text=True, check=True)
+        rev_res = subprocess.run(["git", "-C", str(repo_dir, timeout=120), "rev-parse", "HEAD"], capture_output=True, text=True, check=True)
         commit_sha = rev_res.stdout.strip()
 
     return {

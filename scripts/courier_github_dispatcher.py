@@ -29,7 +29,10 @@ def run_loop():
     except Exception as e:
         log(f"Failed to register: {e}")
 
+    active_procs = []
     while True:
+        # Collect zombies
+        active_procs = [p for p in active_procs if p.poll() is None]
         try:
             # Heartbeat
             requests.post(f"{API_URL}/workers/heartbeat", json={"worker_id": WORKER_ID}, headers=HEADERS, timeout=10)
@@ -48,7 +51,8 @@ def run_loop():
                         json.dump(task, f)
                     
                     python_bin = "venv/bin/python3" if os.path.exists("venv/bin/python3") else "python3"
-                    subprocess.Popen([python_bin, "scripts/github_worker_adapter.py", tmp_file])
+                    p = subprocess.Popen([python_bin, "scripts/github_worker_adapter.py", tmp_file])
+                    active_procs.append(p)
         except Exception as e:
             log(f"Error polling for tasks: {e}")
             

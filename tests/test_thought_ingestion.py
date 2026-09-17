@@ -27,7 +27,7 @@ def write_json(path, data):
 
 class ThoughtIngestionTests(unittest.TestCase):
     def test_real_file_ingestion_dedupe_conflict_secret_and_delta(self):
-        memory_before = subprocess.run(["git", "-C", str(MEMORY), "rev-parse", "HEAD"], check=True, capture_output=True, text=True).stdout.strip()
+        memory_before = subprocess.run(["git", "-C", str(MEMORY, timeout=60), "rev-parse", "HEAD"], check=True, capture_output=True, text=True).stdout.strip()
         with tempfile.TemporaryDirectory() as temporary:
             base = Path(temporary)
             inbox, processed, rejected = base / "inbox", base / "processed", base / "rejected"
@@ -65,7 +65,7 @@ class ThoughtIngestionTests(unittest.TestCase):
             self.assertTrue(delta["proposal_created"])
             self.assertTrue(delta["scene_audit"]["coverage_complete"])
             self.assertTrue(any(rejected.glob("*-rejected.json")))
-        memory_after = subprocess.run(["git", "-C", str(MEMORY), "rev-parse", "HEAD"], check=True, capture_output=True, text=True).stdout.strip()
+        memory_after = subprocess.run(["git", "-C", str(MEMORY, timeout=60), "rev-parse", "HEAD"], check=True, capture_output=True, text=True).stdout.strip()
         self.assertEqual(memory_before, memory_after)
 
     def test_pre_anchor_privacy_hash_and_lock_boundaries(self):

@@ -1,0 +1,247 @@
+{
+  "schema_version": 2,
+  "goals": {
+    "goal-95e82125": {
+      "goal_id": "goal-95e82125",
+      "goal_text": "Demo: Market Research Pipeline",
+      "status": "DONE",
+      "terminal": true,
+      "workflow_plan": [
+        {
+          "task_id": "t1-0b79e6",
+          "target_agent": "mac",
+          "instruction": "echo Extracting market data",
+          "mode": "NATIVE",
+          "goal_id": "goal-95e82125",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+          "attempt_id": "t1-0b79e6:attempt:1",
+          "dispatch_id": "dispatch-437f127f955d4056b4331ad95cb19cb7",
+          "execution_ref": "exec-e1794e956a604e51b2e94c3a37eb6755",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "verification": {
+            "verifier_id": "VERIFIER-01",
+            "result_id": "26bbaea0-9cab-4968-b545-46d03bfadaa6",
+            "verdict": "PASS",
+            "artifacts": [],
+            "verified_at": 1789670435.343702
+          }
+        },
+        {
+          "task_id": "t2-0b79e6",
+          "target_agent": "mac",
+          "instruction": "echo Processing metrics",
+          "mode": "NATIVE",
+          "depends_on": [
+            "t1-0b79e6"
+          ],
+          "goal_id": "goal-95e82125",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+          "attempt_id": "t2-0b79e6:attempt:1",
+          "dispatch_id": "dispatch-cacd8009282d4a2d9f8f44a1a5a37471",
+          "execution_ref": "exec-e3bb53199be7490a8a51d0fc2857ae13",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "verification": {
+            "verifier_id": "VERIFIER-01",
+            "result_id": "ad1bd662-6d34-404f-953a-5fa4649b4162",
+            "verdict": "PASS",
+            "artifacts": [],
+            "verified_at": 1789670440.3571641
+          }
+        },
+        {
+          "task_id": "t3-0b79e6",
+          "target_agent": "mac",
+          "instruction": "echo Generating final report",
+          "mode": "NATIVE",
+          "depends_on": [
+            "t2-0b79e6"
+          ],
+          "goal_id": "goal-95e82125",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+          "attempt_id": "t3-0b79e6:attempt:1",
+          "dispatch_id": "dispatch-bfe149aacd254d568ee285afa2a10bfe",
+          "execution_ref": "exec-b33c54c5888f4cd5af7b59601ac0dea7",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "verification": {
+            "verifier_id": "VERIFIER-01",
+            "result_id": "87025d0f-594a-4a1d-b71c-c59f3ca66930",
+            "verdict": "PASS",
+            "artifacts": [],
+            "verified_at": 1789670445.370474
+          }
+        }
+      ],
+      "current_step_index": 0
+    }
+  },
+  "tasks": {
+    "t1-0b79e6": {
+      "task_id": "t1-0b79e6",
+      "target_agent": "mac",
+      "instruction": "echo Extracting market data",
+      "mode": "NATIVE",
+      "goal_id": "goal-95e82125",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+      "attempt_id": "t1-0b79e6:attempt:1",
+      "dispatch_id": "dispatch-437f127f955d4056b4331ad95cb19cb7",
+      "execution_ref": "exec-e1794e956a604e51b2e94c3a37eb6755",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "last_completed_step": "t1-0b79e6",
+      "next_action": null,
+      "blocker": null,
+      "artifact_refs": [],
+      "result": {
+        "goal_id": "goal-95e82125",
+        "artifacts": [],
+        "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+        "task_id": "t1-0b79e6",
+        "dispatch_id": "dispatch-437f127f955d4056b4331ad95cb19cb7",
+        "execution_ref": "exec-e1794e956a604e51b2e94c3a37eb6755",
+        "status": "SUCCESS",
+        "result_id": "26bbaea0-9cab-4968-b545-46d03bfadaa6",
+        "run_id": "0c36d3e4-c9d9-4c30-9ab7-c498c7bfdc58",
+        "attempt_id": "t1-0b79e6:attempt:1"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "26bbaea0-9cab-4968-b545-46d03bfadaa6",
+        "verdict": "PASS",
+        "artifacts": [],
+        "verified_at": 1789670435.343702
+      }
+    },
+    "t2-0b79e6": {
+      "task_id": "t2-0b79e6",
+      "target_agent": "mac",
+      "instruction": "echo Processing metrics",
+      "mode": "NATIVE",
+      "depends_on": [
+        "t1-0b79e6"
+      ],
+      "goal_id": "goal-95e82125",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+      "attempt_id": "t2-0b79e6:attempt:1",
+      "dispatch_id": "dispatch-cacd8009282d4a2d9f8f44a1a5a37471",
+      "execution_ref": "exec-e3bb53199be7490a8a51d0fc2857ae13",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "last_completed_step": "t2-0b79e6",
+      "next_action": null,
+      "blocker": null,
+      "artifact_refs": [],
+      "result": {
+        "goal_id": "goal-95e82125",
+        "artifacts": [],
+        "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+        "task_id": "t2-0b79e6",
+        "dispatch_id": "dispatch-cacd8009282d4a2d9f8f44a1a5a37471",
+        "execution_ref": "exec-e3bb53199be7490a8a51d0fc2857ae13",
+        "status": "SUCCESS",
+        "result_id": "ad1bd662-6d34-404f-953a-5fa4649b4162",
+        "run_id": "6dd28fa0-b5c9-47a4-ab4c-359e7d7ad922",
+        "attempt_id": "t2-0b79e6:attempt:1"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "ad1bd662-6d34-404f-953a-5fa4649b4162",
+        "verdict": "PASS",
+        "artifacts": [],
+        "verified_at": 1789670440.3571641
+      }
+    },
+    "t3-0b79e6": {
+      "task_id": "t3-0b79e6",
+      "target_agent": "mac",
+      "instruction": "echo Generating final report",
+      "mode": "NATIVE",
+      "depends_on": [
+        "t2-0b79e6"
+      ],
+      "goal_id": "goal-95e82125",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+      "attempt_id": "t3-0b79e6:attempt:1",
+      "dispatch_id": "dispatch-bfe149aacd254d568ee285afa2a10bfe",
+      "execution_ref": "exec-b33c54c5888f4cd5af7b59601ac0dea7",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "last_completed_step": "t3-0b79e6",
+      "next_action": null,
+      "blocker": null,
+      "artifact_refs": [],
+      "result": {
+        "goal_id": "goal-95e82125",
+        "artifacts": [],
+        "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+        "task_id": "t3-0b79e6",
+        "dispatch_id": "dispatch-bfe149aacd254d568ee285afa2a10bfe",
+        "execution_ref": "exec-b33c54c5888f4cd5af7b59601ac0dea7",
+        "status": "SUCCESS",
+        "result_id": "87025d0f-594a-4a1d-b71c-c59f3ca66930",
+        "run_id": "3fb6db00-fe3a-4aad-869f-1d76dd118f39",
+        "attempt_id": "t3-0b79e6:attempt:1"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "87025d0f-594a-4a1d-b71c-c59f3ca66930",
+        "verdict": "PASS",
+        "artifacts": [],
+        "verified_at": 1789670445.370474
+      }
+    }
+  },
+  "workers": {
+    "MAC-MACBOOK-PRO-VON-USER-EDEA96": {
+      "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+      "platform": "macos",
+      "capabilities": [
+        "macos",
+        "linux",
+        "antigravity"
+      ],
+      "authorities": [],
+      "provider": null,
+      "capacity_identity": null,
+      "provider_available": true,
+      "capacity_available": true,
+      "last_seen": 1789670450.5992699,
+      "available": true,
+      "current_task": null,
+      "cost_class": "low"
+    }
+  },
+  "resource_owners": {}
+}

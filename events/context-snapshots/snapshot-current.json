@@ -1,10 +1,10 @@
 {
   "schema_version": "2.0",
-  "context_version": 2,
-  "generated_at": "2026-09-17T06:59:39.575719+00:00",
+  "context_version": 6,
+  "generated_at": "2026-09-17T19:28:50.078195+00:00",
   "repositories": {
-    "courier_head": "5a619fae8c3b776483895e0b4c6b4b9b36433160",
-    "memory_head": "NOT_CONNECTED",
+    "courier_head": "42c20cb8e076324cea95350ebefd9c8991079a3f",
+    "memory_head": "b89b91c97218bbb1d45a271942efdd835cd624e4",
     "godot_head": "NOT_CONNECTED"
   },
   "workflow_state": {
@@ -18,7 +18,63 @@
         "task": "Compiling Project Context Snapshot",
         "progress": 0.1,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-09-17T06:59:39.575746+00:00"
+        "updated_at": "2026-09-17T19:28:50.078219+00:00"
+      },
+      "agent-bodyguard-hotel": {
+        "state": "STANDBY",
+        "task": "Reserve Duty (Standby)",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-17T12:57:51.433673+00:00"
+      },
+      "agent-bodyguard-golf": {
+        "state": "STANDBY",
+        "task": "Reserve Duty (Standby)",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-17T12:57:51.432782+00:00"
+      },
+      "agent-bodyguard-alpha": {
+        "state": "STANDBY",
+        "task": "Reserve Duty (Standby)",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-17T12:57:51.421296+00:00"
+      },
+      "agent-bodyguard-delta": {
+        "state": "STANDBY",
+        "task": "Reserve Duty (Standby)",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-17T12:57:51.429672+00:00"
+      },
+      "agent-bodyguard-charlie": {
+        "state": "STANDBY",
+        "task": "Reserve Duty (Standby)",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-17T12:57:51.428088+00:00"
+      },
+      "agent-bodyguard-echo": {
+        "state": "STANDBY",
+        "task": "Reserve Duty (Standby)",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-17T12:57:51.430719+00:00"
+      },
+      "agent-bodyguard-foxtrot": {
+        "state": "STANDBY",
+        "task": "Reserve Duty (Standby)",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-17T12:57:51.431696+00:00"
+      },
+      "agent-bodyguard-bravo": {
+        "state": "STANDBY",
+        "task": "Reserve Duty (Standby)",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-17T12:57:51.427320+00:00"
       }
     },
     "total_decisions": 0,
@@ -27,16 +83,55 @@
     "total_adoptions": 0
   },
   "memory_truth": {
-    "latest_verified_milestone": "NOT_RECORDED",
-    "latest_decisions": [],
+    "latest_verified_milestone": "**VERIFIED_CURRENT** | Source: direct GitHub fetch/API readback for `happyhippovip/2026-project-memory` | Verified: 2026-09-06. The earlier repository-inaccessible/404 conclusion is **SUPERSEDED**. Remote `main` is readable, and prior same-chat commit `4b6c93ed0675ed0b6218beaf14c3340f438dcbf5` was successfully pushed and remotely read back. This proves the canonical Memory read/write path at that time; it does not authorize access to other repositories or secret values.",
+    "latest_decisions": [
+      "D-035 \u2014 Courier Normal Operations and evidence-triggered repair",
+      "D-036 \u2014 Single-writer and cheapest-sufficient worker routing",
+      "D-037 \u2014 Original healthy social platform is the first real product direction",
+      "D-038 \u2014 Wait/resume interactions require an exact handoff contract",
+      "D-001 \u2014 Revenue first, conservative capital",
+      "D-002 \u2014 Crypto and speculative recovery blocked",
+      "D-003 \u2014 Protected and private assets excluded",
+      "D-004 \u2014 No paid or irreversible action by default",
+      "D-005 \u2014 Separate project memory repository",
+      "D-006 \u2014 Courier evidence must be staged",
+      "D-007 \u2014 Postiz legacy preservation",
+      "D-008 \u2014 Direct social paths, no new publication by default",
+      "D-009 \u2014 Sensitive data boundary",
+      "D-010 \u2014 Compact memory, not history deletion",
+      "D-011 \u2014 Configured-secret autonomy without value retention",
+      "D-012 \u2014 Chief Relay Protocol & Handoff Standard",
+      "D-013 \u2014 Antigravity Consumer & Result Publisher Architecture",
+      "D-014 \u2014 Chief Relay Cycle Runner (GitHub Intake & Publish Bridge)",
+      "D-015 \u2014 Truth Audit & Exact Automation Boundary Definition",
+      "D-016 \u2014 Antigravity Worker Dispatch Contract & Handoff Point",
+      "D-017 \u2014 Permanent Zero-UI-Confirmation & Unattended Autonomy Policy",
+      "D-018 \u2014 Worker Job Contract Hardening & Strict JSON Schema Validation",
+      "D-019 \u2014 Sync current state before technical work",
+      "D-020 \u2014 Bounded Godot Movie Maker render contract",
+      "D-021 \u2014 Dedicated Godot short source repository",
+      "D-022 \u2014 Scoped permissions and safe cleanup",
+      "D-023 \u2014 Native local Codex CLI attachment is a distinct evidence stage",
+      "D-024 \u2014 Autonomous Chief Commander & Visual Multi-Agent Operations Cockpit",
+      "D-025 \u2014 Idea Sync & Thought Curator memory comparison layer",
+      "D-026 \u2014 Truth-grounded operations cockpit and human gate persistence",
+      "D-027 \u2014 Context Sync & Update Steward state snapshotting",
+      "D-028 \u2014 Update Steward Studio workstation and task thread context integration",
+      "D-029 \u2014 AI Academy Layer (Teacher + Director) and Evidence Evaluation Architecture",
+      "D-030 \u2014 AI Academy visual workstation and dual-loop process integration",
+      "D-031 \u2014 Live Agent HQ / Operations World, Master TV Wall and Facility Matrix",
+      "D-032 \u2014 SNITCH 2.0 Operations Watchdog & Eight Bodyguards Reserve Worker Pool Architecture",
+      "D-033 \u2014 SNITCH 3.0 Permission Guard & Sandbox Masterlist Architecture",
+      "D-034 \u2014 Living Agent HQ Operations Room Visual Architecture"
+    ],
     "open_blockers": [],
     "relevant_ideas": [],
     "human_gates": [],
     "files_available": {
-      "project_state": false,
-      "decisions": false,
-      "ideas": false,
-      "changelog": false
+      "project_state": true,
+      "decisions": true,
+      "ideas": true,
+      "changelog": true
     }
   },
   "latest_idea_delta": null,
@@ -54,7 +149,7 @@
   "changed_since_previous_snapshot": [
     "courier_head"
   ],
-  "previous_snapshot_version": 1,
-  "previous_snapshot_hash": "ec833f62ed0fd2617faefa3aa5de746ca124032a98ae388dcc55d567d26b5dc2",
-  "snapshot_hash": "5096caafcc83b2656e73f0f4ade7dcec8d2e9fb755f7d75302b38e6917a67199"
+  "previous_snapshot_version": 5,
+  "previous_snapshot_hash": "a11536ab31818398e559fd7148cf627a949a336f4721bbaf7d71b1951f89d086",
+  "snapshot_hash": "84f82a16fdd7e654b5e9162b60fdefb2486cabb08f7387af58a308a9451ecf40"
 }

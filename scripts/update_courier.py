@@ -11,7 +11,7 @@ import tempfile
 import platform
 
 def run_command(cmd, shell=True):
-    return subprocess.run(cmd, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    return subprocess.run(cmd, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120)
 
 def get_current_version(app_dir):
     vf = os.path.join(app_dir, "version.txt")

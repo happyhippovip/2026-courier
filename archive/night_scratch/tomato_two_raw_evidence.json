@@ -1,0 +1,46 @@
+{
+  "server_health": {
+    "status": "healthy",
+    "time": 1789673302.817616
+  },
+  "session_independence": {
+    "launchd_pid": 64264,
+    "launchd_worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+    "server_url": "http://127.0.0.1:8081"
+  },
+  "checkpoint_captured": {
+    "artifact_refs": [],
+    "artifacts": [],
+    "attempt_id": "torture-seq-01-5a2ed5f5:attempt:1",
+    "attempts": 1,
+    "blocker": null,
+    "dispatch_id": "dispatch-896144c27ac54d9694b87934414891b2",
+    "execution_ref": "exec-c376bb601f854fe59c5be5bf82b89732",
+    "goal_id": "goal-144006a5",
+    "instruction": "sleep 4",
+    "last_completed_step": null,
+    "mode": "NATIVE",
+    "next_action": "EXECUTE",
+    "result_id": null,
+    "run_id": null,
+    "status": "DISPATCHED",
+    "target_agent": "mac",
+    "target_capability": "mac",
+    "task_id": "torture-seq-01-5a2ed5f5",
+    "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96"
+  },
+  "real_interrupt_observed": {
+    "pid": 64264
+  },
+  "resumed_from_checkpoint": true,
+  "waiting_provider_isolation": true,
+  "unrelated_ready_continued": true,
+  "waiting_task_resumed": true,
+  "auto_replenish": true,
+  "user_continue_messages": 0,
+  "duplicate_external_effects": 0,
+  "true_clean_idle_enforced": true,
+  "combined_attack_a": "PASS",
+  "combined_attack_b": "PASS",
+  "combined_attack_c": "PASS"
+}

@@ -151,7 +151,7 @@ def write_legacy_ledger(path: Path) -> dict:
 
 def run_cli(*args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        [sys.executable, str(CLI), *args],
+        [sys.executable, str(CLI, timeout=60), *args],
         check=check,
         capture_output=True,
         text=True,
@@ -176,7 +176,7 @@ class AgentHandoffLedgerTests(unittest.TestCase):
                         "import subprocess,sys;"
                         "subprocess.run([sys.executable,sys.argv[1],'init',sys.argv[2],"
                         "'--record',sys.argv[3],'--guard',sys.argv[4]],check=True,"
-                        "capture_output=True,text=True)"
+                        "capture_output=True,text=True, timeout=60)"
                     ),
                     str(CLI),
                     str(ledger),
@@ -194,20 +194,20 @@ cli, ledger = sys.argv[1], sys.argv[2]
 action = json.loads(subprocess.run(
     [sys.executable, cli, "next-action", ledger],
     check=True, capture_output=True, text=True
-).stdout)
+, timeout=60).stdout)
 assert action["CURRENT_SHA"] == "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 assert action["TRANSITION_STATE"] == "PROVISIONAL"
 assert action["WORKER_STATE"] == "READY_FOR_FOREIGN_VALIDATION"
 subprocess.run([
     sys.executable, cli, "update", ledger,
-    "--expected-revision", str(action["REVISION"]),
+    "--expected-revision", str(action["REVISION"], timeout=60),
     "--updated-by", "session-b",
     "--set", "STATUS=VALIDATING",
     "--set", 'PROVEN_EDGES=["issue state","worker state round-trip"]',
 ], check=True, capture_output=True, text=True)
 """
             subprocess.run(
-                [sys.executable, "-c", session_b_code, str(CLI), str(ledger)],
+                [sys.executable, "-c", session_b_code, str(CLI, timeout=60), str(ledger)],
                 check=True,
                 capture_output=True,
                 text=True,

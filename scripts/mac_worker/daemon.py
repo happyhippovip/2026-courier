@@ -13,6 +13,7 @@ def sigterm_handler(signum, frame):
         try:
             if hasattr(os, "killpg"):
                 os.killpg(pgid, signal.SIGKILL)
+                    process.wait(timeout=2)
             else:
                 import psutil
                 parent = psutil.Process(pgid)
@@ -263,10 +264,12 @@ def run_agy(task, config):
                     os.killpg(pgid, signal.SIGTERM)
                     time.sleep(1)
                     os.killpg(pgid, signal.SIGKILL)
+                    process.wait(timeout=2)
                 else:
                     process.terminate()
                     time.sleep(1)
                     process.kill()
+                    process.wait(timeout=2)
             except Exception:
                 pass
             stdout, stderr = process.communicate()
@@ -349,10 +352,12 @@ def run_copilot(task, config):
                     os.killpg(pgid, signal.SIGTERM)
                     time.sleep(1)
                     os.killpg(pgid, signal.SIGKILL)
+                    process.wait(timeout=2)
                 else:
                     process.terminate()
                     time.sleep(1)
                     process.kill()
+                    process.wait(timeout=2)
             except Exception:
                 pass
             stdout, stderr = process.communicate()
@@ -603,6 +608,11 @@ def loop():
                 finally:
                     if keep_awake:
                         keep_awake.terminate()
+                        try:
+                            keep_awake.wait(timeout=2)
+                        except subprocess.TimeoutExpired:
+                            keep_awake.kill()
+                            keep_awake.wait(timeout=2)
             
             if pending_provider_wait:
                 res, err = http_post(config, f"/tasks/{pending_provider_wait['task_id']}/provider_wait", pending_provider_wait)

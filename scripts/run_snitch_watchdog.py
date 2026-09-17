@@ -884,7 +884,7 @@ class SnitchWatchdog:
 
 def inspect_local_processes() -> list[RuntimeObservation]:
     """Read-only local process snapshot; no process control is performed."""
-    result = subprocess.run(["ps", "-axo", "etime=,command="], text=True, capture_output=True, check=False)
+    result = subprocess.run(["ps", "-axo", "etime=,command="], text=True, capture_output=True, check=False, timeout=120)
     observations: list[RuntimeObservation] = []
     for line in result.stdout.splitlines():
         if "run_visual_studio_server.py" in line:

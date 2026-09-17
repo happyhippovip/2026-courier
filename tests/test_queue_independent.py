@@ -80,7 +80,7 @@ def test_queue_independent_daemon(tmp_path):
         json.dump(guard, f)
         
     script = repo_dir / "scripts" / "agent_handoff_ledger.py"
-    subprocess.run([sys.executable, str(script), "init", str(ledger_path), "--record", str(record_path), "--guard", str(guard_path)], check=True)
+    subprocess.run([sys.executable, str(script, timeout=60), "init", str(ledger_path), "--record", str(record_path), "--guard", str(guard_path)], check=True)
     
     env = os.environ.copy()
     env.update({"MOCK_SHA": "0000000000000000000000000000000000000000", "MOCK_BRANCH": "test-branch", "MOCK_LEDGER": str(ledger_path), "PYTHONPATH": str(repo_dir)})

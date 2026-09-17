@@ -82,7 +82,7 @@ def setup_ledger(tmp_path):
     repo_dir = Path(__file__).parent.parent.resolve()
     script = repo_dir / "scripts" / "agent_handoff_ledger.py"
     
-    subprocess.run([sys.executable, str(script), "init", str(ledger_path), "--record", str(record_path), "--guard", str(guard_path)], check=True)
+    subprocess.run([sys.executable, str(script, timeout=60), "init", str(ledger_path), "--record", str(record_path), "--guard", str(guard_path)], check=True)
     return ledger_path
 
 def test_antigravity_continuous_queue_participation(tmp_path):
@@ -92,7 +92,7 @@ def test_antigravity_continuous_queue_participation(tmp_path):
     env.update({"MOCK_SHA": "0000000000000000000000000000000000000000", "MOCK_BRANCH": "test-branch", "MOCK_LEDGER": str(ledger_path), "PYTHONPATH": str(repo_dir)})
     
     runner = repo_dir / "scripts" / "courier_continue.py"
-    res = subprocess.run([sys.executable, str(runner), "--run", "--once"], env=env, capture_output=True, text=True, errors='replace')
+    res = subprocess.run([sys.executable, str(runner, timeout=60), "--run", "--once"], env=env, capture_output=True, text=True, errors='replace', timeout=60)
     
     executions = [line for line in res.stdout.split('\n') if "Executing/Delegating task:" in line]
     

@@ -252,7 +252,7 @@ def codex_cli_version() -> str:
     """Return the installed CLI version without treating it as backend proof."""
     try:
         proc = subprocess.run(
-            [str(CODEX_CLI_PATH), "--version"],
+            [str(CODEX_CLI_PATH, timeout=120), "--version"],
             stdin=subprocess.DEVNULL,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,

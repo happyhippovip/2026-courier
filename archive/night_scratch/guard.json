@@ -1,0 +1,8 @@
+{
+    "flow": ["EXECUTION", "EVIDENCE", "ACCEPTANCE_GUARD", "LEDGER_TRANSITION", "NEXT_EXECUTABLE_ACTION"],
+    "transition_state": "PROVISIONAL",
+    "binding": {"branch": "main", "current_sha": "abc1234abc1234abc1234abc1234abc1234abc12", "runtime_identity": "WINDOWS-01"},
+    "worker_state": {},
+    "evidence": [],
+    "acceptance_predicate": {"results": {}}
+}
