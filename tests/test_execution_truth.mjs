@@ -27,6 +27,7 @@ import {
   resolveCapabilityTruth,
   resolveSkillTruth,
   resolveHandoffTruth,
+  resolveAgentDetailData,
   sanitizeTruthText,
   PROMPT_LIFECYCLE_PHASES,
   TRUTH_MODES,
@@ -1120,6 +1121,20 @@ assert.equal(handoffMotion.speech_overrides['agent-courier-relay'], 'HANDOFF');
 assert.deepEqual(handoffMotion.routes['agent-courier-relay'], ['DESK_02', 'ROUTER_DESK', 'DESK_16']);
 assert.equal(handoffMotion.states['agent-thought-curator'], 'HANDOFF');
 assert.equal(handoffMotion.states['agent-antigravity-bridge'], 'RUNNING');
+
+// Agent detail must never invent mission/task and must redact secret-bearing text
+const unknownDetail = resolveAgentDetailData({ id: 'agent-x', state: 'UNKNOWN' }, {});
+assert.equal(unknownDetail.mission, 'Keine aktive Mission gemeldet');
+assert.equal(unknownDetail.task, 'Keine konkrete Aufgabe gemeldet');
+const leakDetail = resolveAgentDetailData(
+  { id: 'agent-x', state: 'RUNNING', task: 'Verify with token=abc123', blocked_reason: 'wait bearer xyz.9-_' }, {});
+assert.doesNotMatch(leakDetail.task, /abc123/);
+assert.doesNotMatch(leakDetail.blocked_reason, /xyz/);
+const knownDetail = resolveAgentDetailData(
+  { id: 'agent-x', state: 'RUNNING', task: 'Proving edge RELEASE' },
+  { autonomy_runtime: { current_goal: 'Finish ledger' } });
+assert.equal(knownDetail.mission, 'Finish ledger');
+assert.equal(knownDetail.task, 'Proving edge RELEASE');
 
 console.log('execution truth tests: PASS (100% SUCCESS)');
 
