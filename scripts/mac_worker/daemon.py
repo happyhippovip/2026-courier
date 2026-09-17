@@ -101,7 +101,7 @@ def run_native(task, config):
     
     # ALLOWLIST CHECK
     action = task.get("action", "").lower()
-    allowed_actions = ["git_status", "echo"]
+    allowed_actions = ["git_status", "echo", "touch"]
     
     # For backward compatibility with the canary, we parse "echo" if it's the first word of instruction
     if not action:
@@ -135,6 +135,22 @@ def run_native(task, config):
                     return {"status": "FAILED", "stderr": "Shell operators and path escapes are banned.", "execution_mode": "NATIVE"}
 
             result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=False)
+            
+        elif action == "touch":
+            args = instruction.split()
+            if not args or args[0].lower() != "touch":
+                return {"status": "FAILED", "stderr": "Malformed touch command.", "execution_mode": "NATIVE"}
+            file_name = args[1]
+            if any(bad in file_name for bad in ['/', '\\', '..', ';', '&']):
+                return {"status": "FAILED", "stderr": "Invalid path for touch.", "execution_mode": "NATIVE"}
+            
+            with open(file_name, "w") as f:
+                f.write("canary")
+            class DummyResult: pass
+            result = DummyResult()
+            result.returncode = 0
+            result.stdout = ""
+            result.stderr = ""
             
         elif action == "git_status":
             result = subprocess.run(["git", "status"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=False)
@@ -476,6 +492,7 @@ def loop():
                         "task_id": task["task_id"],
                         "dispatch_id": task.get("dispatch_id"),
                         "attempt_id": task.get("attempt_id"),
+                        "execution_ref": task.get("execution_ref"),
                         "run_id": str(uuid.uuid4()),
                         "result_id": str(uuid.uuid4()),
                         "status": result.get("status", "FAILED"),
