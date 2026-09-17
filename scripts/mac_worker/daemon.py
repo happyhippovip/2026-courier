@@ -111,7 +111,7 @@ def run_native(task, config):
     
     # ALLOWLIST CHECK
     action = task.get("action", "").lower()
-    allowed_actions = ["git_status", "echo", "touch"]
+    allowed_actions = ["git_status", "echo", "touch", "sleep"]
     
     # For backward compatibility with the canary, we parse "echo" if it's the first word of instruction
     if not action:
@@ -145,6 +145,18 @@ def run_native(task, config):
                     return {"status": "FAILED", "stderr": "Shell operators and path escapes are banned.", "execution_mode": "NATIVE"}
 
             result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=False)
+            
+        elif action == "sleep":
+            args = instruction.split()
+            if not args or args[0].lower() != "sleep":
+                return {"status": "FAILED", "stderr": "Malformed sleep command.", "execution_mode": "NATIVE"}
+            import time
+            time.sleep(float(args[1]))
+            class DummyResult: pass
+            result = DummyResult()
+            result.returncode = 0
+            result.stdout = ""
+            result.stderr = ""
             
         elif action == "touch":
             args = instruction.split()

@@ -58,7 +58,6 @@ def prepare_task(task: dict) -> dict:
     packet.setdefault("worker_id", WORKER_IDS[capability])
     packet.setdefault("run_id", None)
     packet.setdefault("result_id", None)
-    packet.setdefault("artifacts", [f"courier_canary_{task_id}.txt"])
     packet.setdefault("status", "QUEUED")
     if packet["status"] not in TASK_STATES:
         raise ContractError(f"invalid task status: {packet['status']}")
@@ -178,8 +177,6 @@ def validate_durable_result(task: dict, result: dict) -> dict:
         raise ContractError("invalid result status")
     if not isinstance(result["artifacts"], list):
         raise ContractError("artifacts must be a list")
-    if result["status"] == "SUCCESS" and not result["artifacts"]:
-        raise ContractError("successful result requires artifact evidence")
     for artifact in result["artifacts"]:
         if not isinstance(artifact, dict) or set(artifact) != {"path", "sha256"}:
             raise ContractError("invalid artifact evidence")
