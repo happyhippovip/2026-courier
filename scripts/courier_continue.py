@@ -77,11 +77,11 @@ def execute_task(task, ledger_path, record):
     print(f"Executing/Delegating task: {task['instruction']}")
     if task["edge_name"] == "PUBLICATION VERIFICATION":
         try:
-            import urllib.request
-            req = urllib.request.Request("https://happyhippovip.github.io/courier-pilot-website/", headers={'User-Agent': 'Mozilla/5.0'})
-            html = urllib.request.urlopen(req).read().decode('utf-8')
+            import subprocess
+            html = subprocess.check_output(["curl", "-sL", "https://happyhippovip.github.io/courier-pilot-website/"]).decode('utf-8')
             if "hobbiejanssen@gmx.net" in html and "Courier" in html:
                 print("PUBLICATION VERIFICATION passed. URL is live and contact is verified.")
+                return True, None
             else:
                 return False, "HUMAN_REQUIRED_PUBLIC_REPO_VISIBILITY"
         except Exception as e:
