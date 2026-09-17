@@ -44,5 +44,8 @@ if __name__ == "__main__":
     if len(sys.argv) < 5:
         print("Usage: python3 revenue_customer_intake.py <owner> <repo> <sha> <customer_ref>")
         sys.exit(1)
+    if not API_KEY:
+        print("FATAL: Missing COURIER_API_KEY, refusing to submit intake.")
+        sys.exit(1)
         
     submit_intake(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
