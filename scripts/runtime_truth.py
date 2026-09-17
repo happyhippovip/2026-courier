@@ -6,7 +6,7 @@ import sys
 def get_sha(cwd):
     try:
         if os.path.exists(os.path.join(cwd, '.git')):
-            return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=cwd, stderr=subprocess.DEVNULL).decode().strip()
+            return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=cwd, stderr=subprocess.DEVNULL, timeout=15).decode().strip()
         elif os.path.exists(os.path.join(cwd, '.deployed_sha')):
             with open(os.path.join(cwd, '.deployed_sha')) as f:
                 return f.read().strip()
@@ -18,7 +18,7 @@ def get_sha(cwd):
 
 def get_remote_sha(cwd):
     try:
-        return subprocess.check_output(["git", "ls-remote", "origin", "HEAD"], cwd=cwd, stderr=subprocess.DEVNULL).decode().split()[0].strip()
+        return subprocess.check_output(["git", "ls-remote", "origin", "HEAD"], cwd=cwd, stderr=subprocess.DEVNULL, timeout=25).decode().split()[0].strip()
     except Exception:
         return "UNKNOWN"
 
@@ -53,9 +53,9 @@ def get_runtime_info():
         except Exception:
             pass
             
-    # Process queries using ps
+    # Process queries using ps (bounded: one blocked query must not stall truth)
     try:
-        out = subprocess.check_output(["ps", "-eo", "pid,command"], stderr=subprocess.DEVNULL).decode()
+        out = subprocess.check_output(["ps", "-eo", "pid,command"], stderr=subprocess.DEVNULL, timeout=10).decode()
         for line in out.splitlines():
             if "mac_worker/daemon.py" in line and "grep" not in line:
                 parts = line.strip().split(maxsplit=1)
@@ -65,7 +65,7 @@ def get_runtime_info():
                 info["RUNTIME_PROCESS_IDENTITY"] = f"PID:{pid} EXE:{cmd.split()[0]}"
                 
                 try:
-                    lsof_out = subprocess.check_output(["lsof", "-p", pid, "-a", "-d", "cwd", "-F", "n"], stderr=subprocess.DEVNULL).decode()
+                    lsof_out = subprocess.check_output(["lsof", "-p", pid, "-a", "-d", "cwd", "-F", "n"], stderr=subprocess.DEVNULL, timeout=10).decode()
                     cwd = ""
                     for lline in lsof_out.splitlines():
                         if lline.startswith('n'):
@@ -82,7 +82,7 @@ def get_runtime_info():
                 # Check listener
                 listener = "NONE"
                 try:
-                    lsof_i = subprocess.check_output(["lsof", "-p", pid, "-a", "-i", "-P", "-n"], stderr=subprocess.DEVNULL).decode()
+                    lsof_i = subprocess.check_output(["lsof", "-p", pid, "-a", "-i", "-P", "-n"], stderr=subprocess.DEVNULL, timeout=10).decode()
                     if lsof_i:
                         lines = lsof_i.splitlines()
                         if len(lines) > 1:
@@ -98,7 +98,7 @@ def get_runtime_info():
                     health_script = os.path.join(repo_root, "scripts", "product_health_check.py")
                 if os.path.exists(health_script):
                     try:
-                        res = subprocess.run([sys.executable, health_script], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=os.environ.copy())
+                        res = subprocess.run([sys.executable, health_script], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=os.environ.copy(), timeout=30)
                         if res.returncode == 0 and b"HEALTHY" in res.stdout:
                             health_status = "HEALTHY"
                         else:
