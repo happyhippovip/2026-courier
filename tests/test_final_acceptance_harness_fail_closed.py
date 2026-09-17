@@ -33,8 +33,33 @@ def test_synthetic_acceptance_harness_refuses_default_execution(tmp_path):
     assert not (tmp_path / "acceptance_state.json").exists()
 
 
+def test_opted_in_synthetic_harness_is_bounded_and_side_effect_free(tmp_path):
+    env = os.environ.copy()
+    env["COURIER_RUN_SYNTHETIC_ACCEPTANCE"] = "1"
+
+    completed = subprocess.run(
+        [sys.executable, str(SCRIPT)],
+        cwd=tmp_path,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+
+    assert completed.returncode == 0, completed.stdout + completed.stderr
+    assert "SYNTHETIC_TEST_ONLY=YES" in completed.stdout
+    assert "PHYSICAL_ACCEPTANCE=NO" in completed.stdout
+    assert "TESTS_RUN=59" in completed.stdout
+    assert "PASS=59" in completed.stdout
+    assert "FAIL=0" in completed.stdout
+    assert completed.stdout.count("Running 10-task goal test...") == 1
+    assert not (tmp_path / "acceptance_state.json").exists()
+
+
 def test_synthetic_harness_kills_only_its_exact_hung_child():
     child = mock.Mock()
+    child.poll.return_value = None
     child.wait.side_effect = [subprocess.TimeoutExpired("child", 10), 0]
 
     run_final_acceptance.stop_server(child)

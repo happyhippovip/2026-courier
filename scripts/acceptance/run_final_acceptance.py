@@ -1,9 +1,14 @@
 """Synthetic integration test harness; never a production acceptance proof."""
 
 import sys, os, time, subprocess, json, uuid, secrets
+import shutil
+import socket
+import tempfile
+from pathlib import Path
 import requests
 
-API_URL = "http://127.0.0.1:8081"
+ROOT = Path(__file__).resolve().parents[2]
+API_URL = ""
 API_KEY = secrets.token_urlsafe(32)
 VERIFIER_API_KEY = secrets.token_urlsafe(32)
 HEADERS = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
@@ -30,23 +35,36 @@ def log(msg):
     print(msg)
     results["LOGS"].append(msg)
 
-def start_server(state_file):
+def find_free_port():
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.bind(("127.0.0.1", 0))
+        return sock.getsockname()[1]
+
+
+def start_server(state_file, port):
     env = os.environ.copy()
-    env["COURIER_STATE_FILE"] = state_file
+    env["COURIER_STATE_FILE"] = str(state_file)
     env["COURIER_API_KEY"] = API_KEY
     env["COURIER_VERIFIER_API_KEY"] = VERIFIER_API_KEY
     
     python_bin = sys.executable
-    proc = subprocess.Popen([python_bin, "-m", "flask", "--app", "server.app", "run", "-p", "8081"], env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen(
+        [python_bin, "-m", "flask", "--app", "server.app", "run", "-p", str(port)],
+        cwd=ROOT,
+        env=env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    api_url = f"http://127.0.0.1:{port}"
     
     # wait for start
     for _ in range(30):
         try:
-            res = requests.get(f"{API_URL}/health", timeout=10)
+            res = requests.get(f"{api_url}/health", timeout=1)
             if res.status_code == 200:
                 log("Server started.")
-                return proc
-        except:
+                return proc, api_url
+        except requests.RequestException:
             pass
         time.sleep(0.5)
     
@@ -63,6 +81,8 @@ def start_server(state_file):
     sys.exit(1)
 
 def stop_server(proc):
+    if not proc or proc.poll() is not None:
+        return
     proc.terminate()
     try:
         proc.wait(timeout=10)
@@ -83,16 +103,17 @@ def t_assert(cond, msg):
         raise AssertionError(msg)
 
 def run_tests():
+    global API_URL
     if os.environ.get("COURIER_RUN_SYNTHETIC_ACCEPTANCE") != "1":
         print("REFUSED: synthetic harness requires COURIER_RUN_SYNTHETIC_ACCEPTANCE=1")
         print("SYNTHETIC_TEST_ONLY=YES")
         print("PHYSICAL_ACCEPTANCE=NO")
         return 2
 
-    state_file = "./acceptance_state.json"
-    if os.path.exists(state_file): os.remove(state_file)
-    
-    server_proc = start_server(state_file)
+    temp_dir = Path(tempfile.mkdtemp(prefix="courier-acceptance-"))
+    state_file = temp_dir / "acceptance_state.json"
+    server_proc = None
+    server_proc, API_URL = start_server(state_file, find_free_port())
     
     try:
         # Test 1: Goal intake & routing progression (LOCAL_END_TO_END)
@@ -311,10 +332,10 @@ def run_tests():
         results["SYNTHETIC_WORKERS_USED"] = 3
         results["SYNTHETIC_CLEAN_IDLE"] = "YES"
         stop_server(server_proc)
-        server_proc = start_server(state_file)
+        server_proc, API_URL = start_server(state_file, find_free_port())
         
         # Verify goal is COMPLETE after restart
-        with open(state_file, "r") as f:
+        with state_file.open("r") as f:
             st = json.load(f)
         goal_status = st["goals"][goal_id]["status"]
         t_assert(goal_status == "DONE", f"Goal state persisted and loaded correctly ({goal_status})")
@@ -327,69 +348,10 @@ def run_tests():
         log(f"Unexpected error: {traceback.format_exc()}")
         results["FAIL"] += 1
     finally:
-
-        # --- 10 TASK GOAL ---
-        log("Running 10-task goal test...")
-        plan = []
-        for i in range(1, 11):
-            task = {
-                "task_id": f"t{i+3}",
-                "target_agent": "mac" if i % 2 == 0 else "windows",
-                "instruction": f"do task {i}",
-                "mode": "NATIVE"
-            }
-            if i > 1:
-                task["depends_on"] = f"t{i+3-1}"
-            plan.append(task)
-            
-        goal_payload = {
-            "goal_text": "10-task Acceptance Test",
-            "workflow_plan": plan
-        }
-        res = requests.post(f"{API_URL}/goals", json=goal_payload, headers=HEADERS, timeout=10)
-        t_assert(res.status_code == 200, "10-task goal created")
-        goal_id = res.json()["goal_id"]
-        
-        for i in range(1, 11):
-            worker = "MAC-01" if i % 2 == 0 else "WINDOWS-01"
-            res = requests.post(f"{API_URL}/tasks/claim", json={"worker_id": worker}, headers=HEADERS, timeout=10)
-            t_assert(res.status_code == 200, f"Step {i} claimed by {worker}")
-            task = res.json().get("task")
-            t_assert(task is not None and task["task_id"] == f"t{i+3}", f"Step {i} task is correct")
-            
-            import hashlib
-            h = hashlib.sha256()
-            h.update(b"test")
-            res_payload = {
-                "worker_id": worker,
-                "goal_id": goal_id,
-                "task_id": task["task_id"],
-                "attempt_id": task["attempt_id"],
-                "dispatch_id": task["dispatch_id"],
-                "execution_ref": task.get("execution_ref"),
-                "run_id": f"run-{worker}-{i}",
-                "result_id": f"result-{worker}-{i}",
-                "status": "SUCCESS",
-                "artifacts": [{"path": f"courier_canary_{task['task_id']}.txt", "sha256": h.hexdigest()}]
-            }
-            res = requests.post(f"{API_URL}/tasks/result", json=res_payload, headers=HEADERS, timeout=10)
-            t_assert(res.status_code == 200, f"Step {i} result posted")
-            
-            verify_payload = {
-                "task_id": task["task_id"],
-                "verifier_id": "ACCEPTANCE_HARNESS",
-                "result_id": res_payload["result_id"],
-                "verdict": "PASS",
-                "artifacts": res_payload["artifacts"]
-            }
-            res = requests.post(f"{API_URL}/tasks/verify", json=verify_payload, headers=VERIFIER_HEADERS, timeout=10)
-            t_assert(res.status_code == 200, f"Step {i} result verified and reconciled")
-
-        results["SYNTHETIC_TASKS_COMPLETED"] = 13
-        results["SYNTHETIC_WORKERS_USED"] = 3
-        results["SYNTHETIC_CLEAN_IDLE"] = "YES"
         stop_server(server_proc)
-        if os.path.exists(state_file): os.remove(state_file)
+        shutil.rmtree(temp_dir, ignore_errors=True)
+
+    return 1 if results["FAIL"] else 0
 
 if __name__ == "__main__":
     exit_code = run_tests()
