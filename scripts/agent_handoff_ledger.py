@@ -184,6 +184,12 @@ def validate_record(record: Any, *, allow_unknown_sha: bool) -> None:
         raise LedgerError("CLEAN_IDLE=YES is forbidden while UNPROVEN_EDGES is not empty")
     if record.get("CLEAN_IDLE") == "YES" and record.get("STATUS") in ("READY", "WAITING_PROVIDER", "DISPATCHED", "RUNNING", "BLOCKED", "TEST"):
         raise LedgerError(f"CLEAN_IDLE=YES is forbidden when STATUS is {record.get('STATUS')}")
+    if record.get("UNPROVEN_EDGES") and record.get(
+        "NEXT_EXECUTABLE_ACTION"
+    ) in ("NONE", "none"):
+        raise LedgerError(
+            "NEXT_EXECUTABLE_ACTION=NONE is forbidden while UNPROVEN_EDGES is not empty"
+        )
 
 
 def validate_guard(guard: Any) -> None:
