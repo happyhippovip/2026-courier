@@ -81,9 +81,20 @@ def run_task(task, config):
         out_clean = stdout.strip()
         stderr = stderr_out
         status = "SUCCESS" if process.returncode == 0 else "FAILED"
+    except subprocess.TimeoutExpired as e:
+        status = "FAILED"
+        stderr = "TimeoutExpired: task exceeded 600s"
     except Exception as e:
         status = "FAILED"
         stderr = str(e)
+    finally:
+        # Exact process tree cleanup (no broad kills)
+        try:
+            if process.poll() is None:
+                # /T kills the tree, /F forces, /PID targets exact process
+                subprocess.run(["taskkill", "/F", "/T", "/PID", str(process.pid)], capture_output=True)
+        except Exception:
+            pass
     
     if marker_path.exists():
         try:
