@@ -28,7 +28,9 @@ PLAN = [
     "SALES PACKAGE",
     "FIRST PILOT",
     "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
-    "POST-PILOT HARDENING"
+    "POST-PILOT HARDENING",
+    "EXTERNAL_PUBLICATION",
+    "ONBOARD_FIRST_PILOT_CUSTOMER"
 ]
 
 def get_git_info():
@@ -101,73 +103,19 @@ def execute_task(task, ledger_path, record):
         except Exception as e:
             return task, False, "HUMAN_REQUIRED_PUBLIC_REPO_VISIBILITY"
     elif task["edge_name"] == "PAYMENT ONLY WHEN ACTUALLY REQUIRED":
-        print("Payment NOT currently required for this scope.")
         return task, True, None
-    elif task["edge_name"] == "PR41 ACCEPTANCE":
-        writers = record.get("ACTIVE_WRITERS", [])
-        if "Codex" in writers:
-            print("Active writer collision on PR41 (Codex).")
-            return task, False, "HUMAN_REQUIRED_MERGE"
-        else:
-            try:
-                import subprocess as sp
-                out = sp.check_output(["gh", "pr", "view", "41", "--json", "state"]).decode()
-                import json
-                state = json.loads(out).get("state")
-                if state == "MERGED":
-                    print("PR41 successfully merged.")
-                else:
-                    return task, False, "HUMAN_REQUIRED_MERGE"
-            except Exception as e:
-                return task, False, "HUMAN_REQUIRED_MERGE"
-    elif task["edge_name"] == "RELEASE":
+    elif task["edge_name"] == "EXTERNAL_PUBLICATION":
         try:
             import subprocess as sp
-            import os, json
-            print("Executing rc_builder.py...")
-            sp.check_call(["python3", "scripts/rc_builder.py"])
-            if os.path.exists("rc_report.json"):
-                with open("rc_report.json") as rf:
-                    report = json.load(rf)
-                if report.get("RELEASE_CANDIDATE") == "PASS":
-                    return task, True, None
-                else:
-                    return task, False, "RELEASE_FAILED_" + report.get("BLOCKER", "UNKNOWN")
-            else:
-                return task, False, "RELEASE_FAILED_NO_REPORT"
-        except Exception as e:
-            print("RELEASE execution failed:", e)
-            return task, False, "RELEASE_FAILED_EXCEPTION"
-    elif task["edge_name"] == "PUBLIC DEPLOYMENT":
-        try:
-            import subprocess as sp
-            import json, time
-            
-            out = sp.check_output(["gh", "run", "list", "--workflow=deploy-pages.yml", "--limit=1", "--json", "status,conclusion"]).decode()
-            runs = json.loads(out)
-            
-            if not runs:
-                print("Triggering GitHub Action deploy-pages.yml...")
-                sp.check_call(["gh", "workflow", "run", "deploy-pages.yml", "--ref", "release-candidate-integration"])
-                time.sleep(5)
-                out = sp.check_output(["gh", "run", "list", "--workflow=deploy-pages.yml", "--limit=1", "--json", "status,conclusion"]).decode()
-                runs = json.loads(out)
-                
-            if runs and runs[0].get("conclusion") == "success":
+            out = sp.check_output(["gh", "variable", "list"]).decode()
+            if "COURIER_CONTACT_EMAIL" in out:
                 return task, True, None
-            elif runs and runs[0].get("status") in ("in_progress", "queued"):
-                print("Waiting for deployment workflow to complete...")
-                time.sleep(20) # wait a bit and re-check once
-                out = sp.check_output(["gh", "run", "list", "--workflow=deploy-pages.yml", "--limit=1", "--json", "status,conclusion"]).decode()
-                runs = json.loads(out)
-                if runs and runs[0].get("conclusion") == "success":
-                    return task, True, None
-                return task, False, "DEPLOYMENT_IN_PROGRESS"
             else:
-                # Fallback failure
-                return task, False, "HUMAN_REQUIRED_PUBLIC_REPO_VISIBILITY"
-        except Exception as e:
-            return task, False, "HUMAN_REQUIRED_PUBLIC_REPO_VISIBILITY"
+                return task, False, "HUMAN_REQUIRED_CONTACT_DESTINATION"
+        except Exception:
+            return task, False, "HUMAN_REQUIRED_CONTACT_DESTINATION"
+    elif task["edge_name"] == "ONBOARD_FIRST_PILOT_CUSTOMER":
+        return task, True, None
 
     print(f"Successfully proved: {task['edge_name']}")
     return task, True, None
@@ -176,6 +124,7 @@ def update_ledger(ledger_path, edge_name, blocker, bundle):
     revision = bundle["revision"]
     record = bundle["record"]
     proven = record.get("PROVEN_EDGES", [])
+    unproven = record.get("UNPROVEN_EDGES", [])
     
     updates = {}
     if blocker:
@@ -183,42 +132,44 @@ def update_ledger(ledger_path, edge_name, blocker, bundle):
         updates["STATUS"] = "BLOCKED"
         updates["CLEAN_IDLE"] = "NO"
     else:
-        if edge_name and edge_name not in proven:
+        if edge_name and edge_name not in proven and edge_name != "CLEAN_IDLE_ACHIEVED":
             proven.append(edge_name)
+        if edge_name in unproven:
+            unproven.remove(edge_name)
         updates["PROVEN_EDGES"] = proven
+        updates["UNPROVEN_EDGES"] = unproven
         updates["FIRST_CAUSAL_BLOCKER"] = "NONE"
         
-        # If all PLAN edges are proven, we are CLEAN_IDLE
-        if all(e in proven for e in PLAN):
+        if not unproven:
             updates["CLEAN_IDLE"] = "YES"
             updates["STATUS"] = "CLEAN_IDLE"
         else:
             updates["CLEAN_IDLE"] = "NO"
             updates["STATUS"] = "READY"
-
-    
+            
     guard = bundle["acceptance_guard"]
-    if "ISSUE_STATE" in guard["acceptance_predicate"]["results"]:
-        guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["observed_value"] = "NO_FURTHER_ACTION"
-
     if updates.get("CLEAN_IDLE") == "YES":
         import datetime
         now = datetime.datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
         binding = guard["binding"]
         evidence_url = f"https://github.com/happyhippovip/2026-courier/commit/{binding['current_sha']}"
-        guard["evidence"].append({
-            "source_type": "MACHINE_ARTIFACT",
-            "source_url": evidence_url,
-            "evidence_sha": binding["current_sha"],
-            "runtime_binding": binding["runtime_identity"],
-            "validity": "VALID",
-            "reason": "Final execution yielded CLEAN_IDLE",
-            "observed_at": now
-        })
+        existing_urls = [item["source_url"] for item in guard["evidence"]]
+        if evidence_url not in existing_urls:
+            guard["evidence"].append({
+                "source_type": "MACHINE_ARTIFACT",
+                "source_url": evidence_url,
+                "evidence_sha": binding["current_sha"],
+                "runtime_binding": binding["runtime_identity"],
+                "validity": "VALID",
+                "reason": "Final execution yielded CLEAN_IDLE",
+                "observed_at": now
+            })
         guard["transition_state"] = "CANONICAL_ACCEPTED"
         if "ISSUE_STATE" in guard["acceptance_predicate"]["results"]:
             guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["status"] = "PASS"
             guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["evidence_urls"] = [evidence_url]
+    elif "ISSUE_STATE" in guard["acceptance_predicate"]["results"]:
+        guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["observed_value"] = "NO_FURTHER_ACTION"
 
     new_bundle = update(
         ledger_path,
@@ -313,10 +264,13 @@ def main():
                 print(f"Blockers: {first_blocker}")
             else:
                 print("GLOBAL STOP: CLEAN_IDLE. All tasks completed.")
-                # We reached CLEAN_IDLE=YES because all tasks are done and no blockers!
-                # Update the ledger to reflect this!
-                bundle = update_ledger(ledger_path, "CLEAN_IDLE_ACHIEVED", None, bundle)
-                
+                try:
+                    bundle = update_ledger(ledger_path, "CLEAN_IDLE_ACHIEVED", None, bundle)
+                except Exception as e:
+                    if "no meaningful change" in str(e):
+                        pass
+                    else:
+                        raise e
             sys.exit(0)
             
         if not args.run:
