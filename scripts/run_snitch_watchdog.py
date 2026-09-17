@@ -27,7 +27,13 @@ from typing import Any
 try:
     from resource_intelligence import ResourceIntelligenceManager
 except ImportError:
-    from scripts.resource_intelligence import ResourceIntelligenceManager
+    try:
+        from scripts.resource_intelligence import ResourceIntelligenceManager
+    except ImportError:
+        class ResourceIntelligenceManager:
+            def __init__(self, repo_dir): pass
+            def classify_process(self, *args, **kwargs): return "UNKNOWN_RESOURCE_CLASSIFICATION"
+            def context_for_role(self, *args, **kwargs): return {}
 
 
 SCRIPTS_DIR = Path(__file__).resolve().parent
