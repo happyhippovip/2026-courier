@@ -1,9 +1,14 @@
-import sys, os, time, subprocess, json, uuid
+import sys, os, time, subprocess, json
+import socket
+import shutil
+import tempfile
+from pathlib import Path
 import requests
-import importlib.util
 
-API_URL = "http://127.0.0.1:8082"
+ROOT = Path(__file__).resolve().parents[2]
+API_URL = ""
 API_KEY = "boundary-secret"
+VERIFIER_API_KEY = "boundary-verifier-secret"
 HEADERS = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
 
 results = {
@@ -22,7 +27,6 @@ def log(msg):
 
 def create_finding(prop, inp, obs, exp, causal, fix):
     results["REAL_DEFECTS"] += 1
-    fid = f"defect_{uuid.uuid4().hex[:6]}"
     finding = f"""PROPERTY: {prop}
 INPUT: {inp}
 OBSERVED: {obs}
@@ -30,41 +34,70 @@ EXPECTED: {exp}
 CAUSAL_FILE: {causal}
 MINIMUM_FIX: {fix}
 """
-    path = f"tests/boundaries/findings/{fid}.txt"
-    with open(path, "w") as f:
-        f.write(finding)
-    log(f"Created finding: {path}\n{finding}")
+    results.setdefault("FINDINGS", []).append(finding.strip())
+    log(f"Finding recorded in process output:\n{finding}")
 
-def start_server(state_file):
-    env = os.environ.copy()
-    env["COURIER_STATE_FILE"] = state_file
-    env["COURIER_API_KEY"] = API_KEY
-    
-    python_bin = "venv/bin/python3" if os.path.exists("venv/bin/python3") else sys.executable
-    proc = subprocess.Popen([python_bin, "-m", "flask", "--app", "server.app", "run", "-p", "8082"], env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    
-    for _ in range(30):
-        try:
-            res = requests.get(f"{API_URL}/health", timeout=10)
-            if res.status_code == 200:
-                log("Server started.")
-                return proc
-        except:
-            pass
-        time.sleep(0.5)
-    
-    proc.kill()
-    sys.exit(1)
+def find_free_port():
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.bind(("127.0.0.1", 0))
+        return sock.getsockname()[1]
+
 
 def stop_server(proc):
+    if not proc or proc.poll() is not None:
+        return
     proc.terminate()
-    proc.wait()
+    try:
+        proc.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.wait(timeout=5)
+
+
+def start_server(state_file, port):
+    env = os.environ.copy()
+    env["COURIER_STATE_FILE"] = str(state_file)
+    env["COURIER_API_KEY"] = API_KEY
+    env["COURIER_VERIFIER_API_KEY"] = VERIFIER_API_KEY
+    env["PYTHONPATH"] = str(ROOT)
+
+    proc = subprocess.Popen(
+        [sys.executable, "-m", "flask", "--app", "server.app", "run", "-p", str(port)],
+        cwd=ROOT,
+        env=env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    api_url = f"http://127.0.0.1:{port}"
+    for _ in range(40):
+        if proc.poll() is not None:
+            stdout, stderr = proc.communicate(timeout=1)
+            raise RuntimeError(
+                f"Boundary server exited with {proc.returncode}: "
+                f"{stderr.strip() or stdout.strip()}"
+            )
+        try:
+            res = requests.get(f"{api_url}/health", timeout=1)
+            if res.status_code == 200:
+                log("Server started.")
+                return proc, api_url
+        except requests.RequestException:
+            pass
+        time.sleep(0.25)
+
+    stop_server(proc)
+    stdout, stderr = proc.communicate(timeout=1)
+    raise RuntimeError(
+        f"Boundary server did not become healthy: {stderr.strip() or stdout.strip()}"
+    )
 
 def run_tests():
-    state_file = "./boundary_state.json"
-    if os.path.exists(state_file): os.remove(state_file)
-    
-    proc = start_server(state_file)
+    global API_URL
+    temp_dir = Path(tempfile.mkdtemp(prefix="courier-boundaries-"))
+    state_file = temp_dir / "boundary_state.json"
+    proc = None
+    proc, API_URL = start_server(state_file, find_free_port())
     try:
         # Auth Boundaries
         log("Testing Auth Boundaries...")
@@ -107,6 +140,7 @@ def run_tests():
         
         r = requests.post(f"{API_URL}/tasks/claim", json={"worker_id": "W1"}, headers=HEADERS, timeout=10)
         task = r.json().get("task")
+        claimed_task_id = task["task_id"]
         
         # Unknown Task Result
         log("Testing Unknown Task Result...")
@@ -120,7 +154,7 @@ def run_tests():
         # Wrong Worker Result
         log("Testing Wrong Worker Result...")
         results["PROPERTIES_TESTED"] += 1
-        r = requests.post(f"{API_URL}/tasks/result", json={"task_id": "t1", "worker_id": "W2", "goal_id": goal_id, "dispatch_id": task["dispatch_id"], "attempt_id": task["attempt_id"], "status": "SUCCESS", "artifacts": [], "run_id": "r1", "result_id": "res1"}, headers=HEADERS, timeout=10)
+        r = requests.post(f"{API_URL}/tasks/result", json={"task_id": claimed_task_id, "worker_id": "W2", "goal_id": goal_id, "dispatch_id": task["dispatch_id"], "attempt_id": task["attempt_id"], "execution_ref": task["execution_ref"], "status": "SUCCESS", "artifacts": [], "run_id": "r1", "result_id": "res1"}, headers=HEADERS, timeout=10)
         if r.status_code in [400, 404]:
             results["PASS"] += 1
         else:
@@ -133,9 +167,10 @@ def run_tests():
         for attr, bad_val in [("goal_id", "bad_goal"), ("attempt_id", "bad_attempt"), ("dispatch_id", "bad_dispatch")]:
             results["PROPERTIES_TESTED"] += 1
             payload = {
-                "worker_id": "W1", "goal_id": goal_id, "task_id": "t1", 
+                "worker_id": "W1", "goal_id": goal_id, "task_id": claimed_task_id,
                 "dispatch_id": task["dispatch_id"], "attempt_id": task["attempt_id"], 
-                "status": "SUCCESS", "artifacts": [], "run_id": "r1", "result_id": "res1"
+                "execution_ref": task["execution_ref"], "status": "SUCCESS",
+                "artifacts": [], "run_id": "r1", "result_id": "res1"
             }
             payload[attr] = bad_val
             r = requests.post(f"{API_URL}/tasks/result", json=payload, headers=HEADERS, timeout=10)
@@ -150,9 +185,10 @@ def run_tests():
         import hashlib
         h = hashlib.sha256(b"test").hexdigest()
         good_payload = {
-            "worker_id": "W1", "goal_id": goal_id, "task_id": "t1", 
+            "worker_id": "W1", "goal_id": goal_id, "task_id": claimed_task_id,
             "dispatch_id": task["dispatch_id"], "attempt_id": task["attempt_id"], 
-            "status": "SUCCESS", "artifacts": [{"path": "courier_canary_t1.txt", "sha256": h}], 
+            "execution_ref": task["execution_ref"], "status": "SUCCESS",
+            "artifacts": [{"path": "courier_canary_t1.txt", "sha256": h}],
             "run_id": "r1", "result_id": "res1"
         }
         r = requests.post(f"{API_URL}/tasks/result", json=good_payload, headers=HEADERS, timeout=10)
@@ -181,7 +217,7 @@ def run_tests():
         if r.status_code in [400, 500]:
             # Ensure state is not corrupted
             try:
-                with open(state_file, "r") as f:
+                with state_file.open("r") as f:
                     json.load(f)
                 results["PASS"] += 1
                 results["MALFORMED_INPUT_SAFE"] = "YES"
@@ -192,9 +228,9 @@ def run_tests():
         # Restart preserves state
         log("Testing Restart Preserves State...")
         stop_server(proc)
-        proc = start_server(state_file)
+        proc, API_URL = start_server(state_file, find_free_port())
         results["PROPERTIES_TESTED"] += 1
-        with open(state_file, "r") as sf:
+        with state_file.open("r") as sf:
             st = json.load(sf)
         if st["goals"][goal_id]["status"] == "ACTIVE":
             results["PASS"] += 1
@@ -206,7 +242,7 @@ def run_tests():
         results["PROPERTIES_TESTED"] += 1
         
         # We can import run_native from daemon.py
-        sys.path.append(os.path.abspath("scripts/mac_worker"))
+        sys.path.append(str(ROOT / "scripts" / "mac_worker"))
         import daemon
         
         res = daemon.run_native({"task_id": "test", "action": "rm_rf_slash", "instruction": "rm -rf /"}, {})
@@ -219,21 +255,24 @@ def run_tests():
         log("Testing GitHub Worker Boundary...")
         results["PROPERTIES_TESTED"] += 1
         
-        with open(".github/workflows/courier_worker.yml", "r") as f:
+        with (ROOT / ".github/workflows/courier_worker.yml").open("r") as f:
             workflow = f.read()
             
-        if "os.system" not in workflow and "subprocess" not in workflow:
-            # We already fixed this in the previous step
-            if "status = \"FAILED_UNSUPPORTED\"" in workflow:
+        bounded_operations = (
+            'allowed = {"metadata", "report", "deterministic_transform", '
+            '"verify_file", "static_analysis", "run_tests"}'
+        )
+        if "os.system" not in workflow and "shell=True" not in workflow:
+            if bounded_operations in workflow and "unsupported bounded task type" in workflow:
                 results["PASS"] += 1
             else:
-                create_finding("GitHub worker cannot become arbitrary shell service", "GitHub workflow content", "Lack of fail closed", "status=FAILED_UNSUPPORTED", ".github/workflows/courier_worker.yml", "Implement bounded task types")
+                create_finding("GitHub worker cannot become arbitrary shell service", "GitHub workflow content", "Bounded operation allowlist missing", "Explicit fail-closed operation allowlist", ".github/workflows/courier_worker.yml", "Implement bounded task types")
         else:
             create_finding("GitHub worker cannot become arbitrary shell service", "os.system in workflow", "Found os.system", "Removed os.system", ".github/workflows/courier_worker.yml", "Remove arbitrary execution")
 
     finally:
         stop_server(proc)
-        if os.path.exists(state_file): os.remove(state_file)
+        shutil.rmtree(temp_dir, ignore_errors=True)
 
 if __name__ == "__main__":
     run_tests()
@@ -255,3 +294,4 @@ STOPPED=YES
 """
     print("====================")
     print(final_output.strip())
+    raise SystemExit(1 if results["REAL_DEFECTS"] else 0)
