@@ -49,13 +49,16 @@ def prepare_task(task: dict) -> dict:
     capability = packet.get("target_capability")
     if not all(isinstance(value, str) and value for value in (task_id, goal_id, capability)):
         raise ContractError("task_id, goal_id and target_capability are required")
-    if capability not in WORKER_IDS:
-        raise ContractError(f"unsupported target_capability: {capability}")
-
     packet.setdefault("attempt_id", f"{task_id}:attempt:1")
     packet.setdefault("dispatch_id", f"dispatch-{uuid.uuid4().hex}")
     packet.setdefault("execution_ref", f"exec-{uuid.uuid4().hex}")
-    packet.setdefault("worker_id", WORKER_IDS[capability])
+    if not packet.get("worker_id"):
+        legacy_worker_id = WORKER_IDS.get(capability)
+        if not legacy_worker_id:
+            raise ContractError(
+                "worker_id is required when target_capability is not a legacy capability"
+            )
+        packet["worker_id"] = legacy_worker_id
     packet.setdefault("run_id", None)
     packet.setdefault("result_id", None)
     packet.setdefault("status", "QUEUED")
