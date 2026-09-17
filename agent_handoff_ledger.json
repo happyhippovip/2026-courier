@@ -8,18 +8,18 @@
       "results": {
         "ISSUE_STATE": {
           "evidence_urls": [
-            "https://github.com/happyhippovip/2026-courier/commit/7af3cae8e6296f15a142363b021fea0a8b22ac74"
+            "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6"
           ],
           "observed_value": "NO_FURTHER_ACTION",
-          "status": "PASS"
+          "status": "UNKNOWN"
         }
       },
       "version": "1.0"
     },
     "binding": {
       "branch": "release-candidate-integration",
-      "current_sha": "7af3cae8e6296f15a142363b021fea0a8b22ac74",
-      "runtime_identity": "Google-Antigravity-Ledger"
+      "current_sha": "8fcb6eb359ae973d338b90869ed7524b36dfde9a",
+      "runtime_identity": "8fcb6eb359ae973d338b90869ed7524b36dfde9a"
     },
     "evidence": [
       {
@@ -30,24 +30,6 @@
         "source_type": "GITHUB_COMMIT",
         "source_url": "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6",
         "validity": "UNKNOWN"
-      },
-      {
-        "evidence_sha": "e093b79cc2af1d6354932db2cc324ab5201167e3",
-        "observed_at": "2026-09-17T14:38:49Z",
-        "reason": "Code changed; exact-SHA causal evaluation required.",
-        "runtime_binding": "Google-Antigravity-Ledger",
-        "source_type": "MACHINE_ARTIFACT",
-        "source_url": "https://github.com/happyhippovip/2026-courier/commit/e093b79cc2af1d6354932db2cc324ab5201167e3",
-        "validity": "STALE"
-      },
-      {
-        "evidence_sha": "7af3cae8e6296f15a142363b021fea0a8b22ac74",
-        "observed_at": "2026-09-17T14:42:06Z",
-        "reason": "Final execution yielded CLEAN_IDLE",
-        "runtime_binding": "Google-Antigravity-Ledger",
-        "source_type": "MACHINE_ARTIFACT",
-        "source_url": "https://github.com/happyhippovip/2026-courier/commit/7af3cae8e6296f15a142363b021fea0a8b22ac74",
-        "validity": "VALID"
       }
     ],
     "flow": [
@@ -57,7 +39,7 @@
       "LEDGER_TRANSITION",
       "NEXT_EXECUTABLE_ACTION"
     ],
-    "transition_state": "CANONICAL_ACCEPTED",
+    "transition_state": "PROVISIONAL",
     "worker_state": "IDLE/YIELDED"
   },
   "format": "courier-agent-handoff-ledger",
@@ -134,7 +116,7 @@
         "USER_CONTINUE_MESSAGES",
         "WORKERS_USED"
       ],
-      "entry_sha256": "90387d86359cc99c2d5c9e250ad1bf9218b844f628468a01fe89534aac6e3b7a",
+      "entry_sha256": "5d4582f304226b3999cd83afbe6430737e1454417e462ff412acaab8fe399697",
       "operation": "INIT",
       "previous_entry_sha256": null,
       "record": {
@@ -178,7 +160,7 @@
       },
       "record_sha256": "bebc86c05c7b258a160f6c6701580e18db574ccfb4f14d97d088ac8659c0cf7d",
       "revision": 0,
-      "state_sha256": "956a8d3f1f95598a87b5c4735995133a6846f4811ec859f4b9ed0f994efaf069",
+      "state_sha256": "edb992cdc36efba4c718f6cd43be7fc60470b094a66f97907547f7698b406401",
       "timestamp_utc": "2026-09-17T12:24:45Z",
       "updated_by": "Google-Antigravity"
     },
@@ -229,9 +211,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "419adbe478097a3aa4ae93f9b841894466fd83160e96024c36e64b158a745eab",
+      "entry_sha256": "27e4b32b8f0e394b94b80f28986275bc015819f02bb13d2559ed3d97b03c1d5a",
       "operation": "UPDATE",
-      "previous_entry_sha256": "90387d86359cc99c2d5c9e250ad1bf9218b844f628468a01fe89534aac6e3b7a",
+      "previous_entry_sha256": "5d4582f304226b3999cd83afbe6430737e1454417e462ff412acaab8fe399697",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity",
@@ -273,7 +255,7 @@
       },
       "record_sha256": "5c52c0a87e9c7ccfc15d15c14a82236a439a739b933ce7f84a6d226b1997aaa5",
       "revision": 1,
-      "state_sha256": "2934752ed247bcc1cffd3f67343792d25393909353e127c3bcf041a5bf8192fc",
+      "state_sha256": "5be924ff222ec303e1372d5bd555334e50c0a81c99d8607cf739b043aec5d39f",
       "timestamp_utc": "2026-09-17T12:38:53Z",
       "updated_by": "Google-Antigravity"
     },
@@ -325,9 +307,9 @@
         "@ACCEPTANCE_GUARD",
         "CURRENT_SHA"
       ],
-      "entry_sha256": "da7163c805e3e52544f09e28fdb405b2d2c78d233522886732d17772266cebc1",
+      "entry_sha256": "6da9be4d70b8aed3e2221305528c584ffdc1f28a2a64b8c6b4301c002d55db0f",
       "operation": "UPDATE",
-      "previous_entry_sha256": "419adbe478097a3aa4ae93f9b841894466fd83160e96024c36e64b158a745eab",
+      "previous_entry_sha256": "27e4b32b8f0e394b94b80f28986275bc015819f02bb13d2559ed3d97b03c1d5a",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity",
@@ -369,7 +351,7 @@
       },
       "record_sha256": "3c5cbc693462034135da1eb3300648a0e5bfcad9d74f0c1d280ca178bf040c6e",
       "revision": 2,
-      "state_sha256": "652d410d1f7ef511a0f7f762c0a84eb86b49a56beb80c273c954fe495a5da111",
+      "state_sha256": "9ec200b36b134d942dbd35ed57ac0caf6d47b0fc40cd33f8a8b57d782de98970",
       "timestamp_utc": "2026-09-17T12:39:06Z",
       "updated_by": "Google-Antigravity"
     },
@@ -418,13 +400,13 @@
         "worker_state": "IDLE/YIELDED"
       },
       "changed_fields": [
-        "CLEAN_IDLE",
         "FIRST_CAUSAL_BLOCKER",
+        "STATUS",
         "UNPROVEN_EDGES"
       ],
-      "entry_sha256": "a4da571fa5a4e1693dd6a5fadad29258266d507641272d7cfd57424d5d22624d",
+      "entry_sha256": "fb54191cfba11342316b926814109c0856d8098e63e99b64b223ec99a9aa5289",
       "operation": "UPDATE",
-      "previous_entry_sha256": "da7163c805e3e52544f09e28fdb405b2d2c78d233522886732d17772266cebc1",
+      "previous_entry_sha256": "6da9be4d70b8aed3e2221305528c584ffdc1f28a2a64b8c6b4301c002d55db0f",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity",
@@ -468,7 +450,7 @@
       },
       "record_sha256": "f67034f326b2cef5f58731e2868e3c4d49871ada8833a48fdfd6ccd2a041329a",
       "revision": 3,
-      "state_sha256": "cc5ec1472b2f970b36564b8d416395109ff6083c98421e9c0b93ac1e9a00ca09",
+      "state_sha256": "6546eae744642f182527d1819ef56fbcb2e4d0cbc0febef90325646b0cd84f2e",
       "timestamp_utc": "2026-09-17T12:54:11Z",
       "updated_by": "Google-Antigravity"
     },
@@ -517,15 +499,15 @@
         "worker_state": "IDLE/YIELDED"
       },
       "changed_fields": [
-        "CLEAN_IDLE",
         "FIRST_CAUSAL_BLOCKER",
         "NEXT_EXECUTABLE_ACTION",
         "PROVEN_EDGES",
+        "STATUS",
         "UNPROVEN_EDGES"
       ],
-      "entry_sha256": "111af3e16c585474530f7e5a927fce5531b5f82e32aaebd7310d95c0b09ddc5b",
+      "entry_sha256": "fa16f26b5e58c76cfe6e98523091f97f1d23d871e8ae575e485eaaeec7a1f55a",
       "operation": "UPDATE",
-      "previous_entry_sha256": "a4da571fa5a4e1693dd6a5fadad29258266d507641272d7cfd57424d5d22624d",
+      "previous_entry_sha256": "fb54191cfba11342316b926814109c0856d8098e63e99b64b223ec99a9aa5289",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity",
@@ -568,7 +550,7 @@
       },
       "record_sha256": "c066c6575d2dce02264435fc24a42af032bcf81df70f2ce516ac8de0a9d38f9b",
       "revision": 4,
-      "state_sha256": "697a84ae38f44f80a08787edeb951996c224e03a00c7a803928b581aa1574548",
+      "state_sha256": "aae5d3919072d0fe163b4cb9a7fa7bb71c221c31b31b08164e44176dcbfc49c5",
       "timestamp_utc": "2026-09-17T12:54:41Z",
       "updated_by": "Google-Antigravity"
     },
@@ -622,9 +604,9 @@
         "PROVEN_EDGES",
         "UNPROVEN_EDGES"
       ],
-      "entry_sha256": "dce3631a3ffb152c4eb6d3cd8ed152105e1c61a61a4493e5fe199da5d344f232",
+      "entry_sha256": "e38c5f9ac130d8a45b959ab269bb5a65e24b3943c4047df9ac49a6c7ea117764",
       "operation": "UPDATE",
-      "previous_entry_sha256": "111af3e16c585474530f7e5a927fce5531b5f82e32aaebd7310d95c0b09ddc5b",
+      "previous_entry_sha256": "fa16f26b5e58c76cfe6e98523091f97f1d23d871e8ae575e485eaaeec7a1f55a",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity",
@@ -669,7 +651,7 @@
       },
       "record_sha256": "a8ab35a754f6afd6904b1ed6b117cdbd3e74e5b3b4d5a722f5fd9ef0ae20c93d",
       "revision": 5,
-      "state_sha256": "96436c1ba4cd95058ecfb50b527129c1d8b293fd618eb221dc3ebe2b37b1990c",
+      "state_sha256": "469d849e832dc4eb97b7bf3790f25662f3aa723e715f37e59804559b432d72c6",
       "timestamp_utc": "2026-09-17T12:58:57Z",
       "updated_by": "Google-Antigravity"
     },
@@ -718,13 +700,13 @@
         "worker_state": "IDLE/YIELDED"
       },
       "changed_fields": [
-        "CLEAN_IDLE",
         "FIRST_CAUSAL_BLOCKER",
-        "PROVEN_EDGES"
+        "PROVEN_EDGES",
+        "STATUS"
       ],
-      "entry_sha256": "72cdf76593dd77f8c11c54866f93205bd153bd16c1f10a08c434f0cff303e0c9",
+      "entry_sha256": "ff1909f14a3b961017f3b0de8f74a81a99708ee5b9c6608496d41ade45e95884",
       "operation": "UPDATE",
-      "previous_entry_sha256": "dce3631a3ffb152c4eb6d3cd8ed152105e1c61a61a4493e5fe199da5d344f232",
+      "previous_entry_sha256": "e38c5f9ac130d8a45b959ab269bb5a65e24b3943c4047df9ac49a6c7ea117764",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity",
@@ -770,7 +752,7 @@
       },
       "record_sha256": "9881c0e9b7990bd6f266ed2ea9bad10475271f532dafad4459952db78ab6baa0",
       "revision": 6,
-      "state_sha256": "52bcb45922b0bd9dc2b780c8150515216bcf5adf85bb8b8c13846f836bfdd1be",
+      "state_sha256": "287dd30ee2a1ba4eca7e1b286d61217a4dd98342926104235dee4807e8e86faa",
       "timestamp_utc": "2026-09-17T13:02:30Z",
       "updated_by": "Google-Antigravity"
     },
@@ -821,9 +803,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "e59c76184264cef60d74d359900da472623b43e2583f813279e25f935070b924",
+      "entry_sha256": "9a1b80a8e289216ff2ef28870abc3434830a83c85b876801c431dac92c7d9032",
       "operation": "UPDATE",
-      "previous_entry_sha256": "72cdf76593dd77f8c11c54866f93205bd153bd16c1f10a08c434f0cff303e0c9",
+      "previous_entry_sha256": "ff1909f14a3b961017f3b0de8f74a81a99708ee5b9c6608496d41ade45e95884",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity",
@@ -869,7 +851,7 @@
       },
       "record_sha256": "12a2ffe03b621451d7742011823a263159bde3c2f70105877dd1f1c368d707d7",
       "revision": 7,
-      "state_sha256": "7e203b62676a4daae7ec4b8fee886cb0fcc660881caf3fd64b3bb885046c90ac",
+      "state_sha256": "920e3a730d373458b2704141503cddafb86b9c93aee9ccadef7e721f4c8b28bc",
       "timestamp_utc": "2026-09-17T13:02:30Z",
       "updated_by": "Google-Antigravity"
     },
@@ -921,9 +903,9 @@
         "FIRST_CAUSAL_BLOCKER",
         "PROVEN_EDGES"
       ],
-      "entry_sha256": "1a10826305ffed120ab1d702d3808e4dfd80ffa9908e6d3e093d76b1e7f42dd9",
+      "entry_sha256": "f9be5fb49b149e8737fed918a077318e9e9f7cfe41fed98d41c2764008b0e610",
       "operation": "UPDATE",
-      "previous_entry_sha256": "e59c76184264cef60d74d359900da472623b43e2583f813279e25f935070b924",
+      "previous_entry_sha256": "9a1b80a8e289216ff2ef28870abc3434830a83c85b876801c431dac92c7d9032",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity",
@@ -970,7 +952,7 @@
       },
       "record_sha256": "d0079910846b4f02e847ff4016ee33bc38389045cc3ac0890181d6e20367aad9",
       "revision": 8,
-      "state_sha256": "9570abfad318eb93bc23648b905ccc2a97a1ceea21ddac53a2979203a9502586",
+      "state_sha256": "2a62bdf48bfa6ed8e1c7006e8682123dc1243c97dec96f051b89af5fe50f7276",
       "timestamp_utc": "2026-09-17T13:02:30Z",
       "updated_by": "Google-Antigravity"
     },
@@ -1021,9 +1003,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "18ae895f9410123c3751b7e320d983e4d755fcf3ebe4b4fa731b466eb62d2063",
+      "entry_sha256": "b52327ece8d5790d2d356f1e154ba449861f59c90ee4411c54597d8d82eebb62",
       "operation": "UPDATE",
-      "previous_entry_sha256": "1a10826305ffed120ab1d702d3808e4dfd80ffa9908e6d3e093d76b1e7f42dd9",
+      "previous_entry_sha256": "f9be5fb49b149e8737fed918a077318e9e9f7cfe41fed98d41c2764008b0e610",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity",
@@ -1070,7 +1052,7 @@
       },
       "record_sha256": "dc4ff1597b0d4bb55638b02d2437b5574be5f42eb299fa5467487fac1f210221",
       "revision": 9,
-      "state_sha256": "fef7bcff60b540015b507874d9af2f994cf07587d69a80326343d10c252394e4",
+      "state_sha256": "ced59f61af7e43061dce3adf8d57a94d34d4ffa1331a429556bd0ef194887cf7",
       "timestamp_utc": "2026-09-17T13:02:30Z",
       "updated_by": "Google-Antigravity"
     },
@@ -1122,9 +1104,9 @@
         "FIRST_CAUSAL_BLOCKER",
         "PROVEN_EDGES"
       ],
-      "entry_sha256": "1949a6906c1324c383ede80ae18fc65a2709775ef363a82cebcfc6360d40e367",
+      "entry_sha256": "4442c88270483f4410fedd279961c8779ce7863c7be850371335de8d433e164b",
       "operation": "UPDATE",
-      "previous_entry_sha256": "18ae895f9410123c3751b7e320d983e4d755fcf3ebe4b4fa731b466eb62d2063",
+      "previous_entry_sha256": "b52327ece8d5790d2d356f1e154ba449861f59c90ee4411c54597d8d82eebb62",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity",
@@ -1172,7 +1154,7 @@
       },
       "record_sha256": "a4cb06731948f7fdf579105cca40883928bcdb055a0d2921f6fbe7a518c18657",
       "revision": 10,
-      "state_sha256": "18b223a0adfad39c13d855951a95555116cddf693b46a580c871d5b713640a0a",
+      "state_sha256": "89dd007d9eaf91fdbe74c7e60cb3dcea48740b7911fc72acf4fcb3eaebbfa65e",
       "timestamp_utc": "2026-09-17T13:02:30Z",
       "updated_by": "Google-Antigravity"
     },
@@ -1223,9 +1205,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "932f10e92bbadb54d323b89cf723093da1b84d36148aba4e984683f2ebc4e758",
+      "entry_sha256": "01185375da73839627e0d76476ba6e71175c0724e55daec34ecb409e9893111f",
       "operation": "UPDATE",
-      "previous_entry_sha256": "1949a6906c1324c383ede80ae18fc65a2709775ef363a82cebcfc6360d40e367",
+      "previous_entry_sha256": "4442c88270483f4410fedd279961c8779ce7863c7be850371335de8d433e164b",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity",
@@ -1273,7 +1255,7 @@
       },
       "record_sha256": "3d81e8ed19eb31e53bf6f922460d62a59cd451f2c0dfc279dfbd41ee19e18e97",
       "revision": 11,
-      "state_sha256": "647afc32f294e996bc5233c8e9cb1a581d3d7b7fdcb77f75b49aead4a17a925f",
+      "state_sha256": "283cb0805bc6e14f9f70464d0858d6fe7c26b226cda8e808c17e67e7d907e062",
       "timestamp_utc": "2026-09-17T13:02:30Z",
       "updated_by": "Google-Antigravity"
     },
@@ -1325,9 +1307,9 @@
         "FIRST_CAUSAL_BLOCKER",
         "PROVEN_EDGES"
       ],
-      "entry_sha256": "d69523e2692318b2608662b55df27b6e457eb889033a622b36b06a3f68d6f735",
+      "entry_sha256": "aaa529aa57df2ec9afa4c6e4ddf335b7fee0a00120454ed21e278a68c0eb994c",
       "operation": "UPDATE",
-      "previous_entry_sha256": "932f10e92bbadb54d323b89cf723093da1b84d36148aba4e984683f2ebc4e758",
+      "previous_entry_sha256": "01185375da73839627e0d76476ba6e71175c0724e55daec34ecb409e9893111f",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity",
@@ -1376,7 +1358,7 @@
       },
       "record_sha256": "8626f38d60bab5ec3506a98b9284f627bca18da3d3c94d7d3d8e5687ac8843e3",
       "revision": 12,
-      "state_sha256": "1ed3c8cba728b7e789abf7bdbf606fc78b80ceb98a2de8f2a0436f045de64394",
+      "state_sha256": "7096a1a6e6655418b9aa7e20956ef71dffe70e5f3daecd1ae9a5f73320aa3bec",
       "timestamp_utc": "2026-09-17T13:02:30Z",
       "updated_by": "Google-Antigravity"
     },
@@ -1427,9 +1409,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "7394d4d2ba6cd15dc4f4927d8635a8f8c3a0f3997fdeab23f2b47634766ce321",
+      "entry_sha256": "b5c4fd929af0bab8bf549964103baacb9e33ff59faab9782f44c1bc3826d44c9",
       "operation": "UPDATE",
-      "previous_entry_sha256": "d69523e2692318b2608662b55df27b6e457eb889033a622b36b06a3f68d6f735",
+      "previous_entry_sha256": "aaa529aa57df2ec9afa4c6e4ddf335b7fee0a00120454ed21e278a68c0eb994c",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity",
@@ -1478,7 +1460,7 @@
       },
       "record_sha256": "7ab85d3211c29576658e8a8d81beb6f248217259a7f1cc41902004c3412d4399",
       "revision": 13,
-      "state_sha256": "e2ac9614a1481fe4c98c28fa160393e958f7c5c59f6794592ccf1e70c3817663",
+      "state_sha256": "08346c453d53f23efb5b4edeeafb4af794c24e12a67d3bb59e0bc8b0a384c720",
       "timestamp_utc": "2026-09-17T13:02:30Z",
       "updated_by": "Google-Antigravity"
     },
@@ -1529,9 +1511,9 @@
       "changed_fields": [
         "ACTIVE_WRITERS"
       ],
-      "entry_sha256": "5ff3448fa64cd77a3f9bc8bf2074dad8d95ea13ff479cd1165aaa27d191213f9",
+      "entry_sha256": "92b0470d773dbc1e61378e5b962d408461d07ffbedc20493b0be6e794de9bc11",
       "operation": "UPDATE",
-      "previous_entry_sha256": "7394d4d2ba6cd15dc4f4927d8635a8f8c3a0f3997fdeab23f2b47634766ce321",
+      "previous_entry_sha256": "b5c4fd929af0bab8bf549964103baacb9e33ff59faab9782f44c1bc3826d44c9",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -1579,7 +1561,7 @@
       },
       "record_sha256": "f687ddd4f43a79c8c3d3ad2525af11893839be5efdd9986e3feecaa4c1472149",
       "revision": 14,
-      "state_sha256": "2cca22354ec8f12c1c5bf08f573e988a94db95297d4661d504a8f02dadb66e19",
+      "state_sha256": "ecdb27000d9c33a12fc5c599aa1faf7dc37e254edbb6979e69f180da7bd9c0dd",
       "timestamp_utc": "2026-09-17T13:09:00Z",
       "updated_by": "Google-Antigravity"
     },
@@ -1631,9 +1613,9 @@
         "@ACCEPTANCE_GUARD",
         "CURRENT_SHA"
       ],
-      "entry_sha256": "ab74f2e556f69ef9108b9f3df8cc00654037aca14bbcfe07d31818a917cb8e9a",
+      "entry_sha256": "362c23eab51bf03ea69a39c6a6eda62b135c7bcfece0a21cbface4a534d9063e",
       "operation": "UPDATE",
-      "previous_entry_sha256": "5ff3448fa64cd77a3f9bc8bf2074dad8d95ea13ff479cd1165aaa27d191213f9",
+      "previous_entry_sha256": "92b0470d773dbc1e61378e5b962d408461d07ffbedc20493b0be6e794de9bc11",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -1681,7 +1663,7 @@
       },
       "record_sha256": "a3b451a86a5717d9f1df864c36f8963385cce15a81bf608db3ad90a0121d4ac4",
       "revision": 15,
-      "state_sha256": "35f66a22fccbbbcd49058d0886d695755097ff82521f4bc6efb271852855d18c",
+      "state_sha256": "c5b0e306e71a00d1b3fe41da6710aa8b1a9bff7d56f9c01a8f520e96ecb0da55",
       "timestamp_utc": "2026-09-17T13:09:40Z",
       "updated_by": "Google-Antigravity"
     },
@@ -1733,9 +1715,9 @@
         "@ACCEPTANCE_GUARD",
         "CURRENT_SHA"
       ],
-      "entry_sha256": "85eb4ac573f2ae347c82e7d2c7f1b9507bab23a5a789b117752e058db139043c",
+      "entry_sha256": "f9ba2686423f70ccfa0d55f92b7919e3005067aba69c68561cf7e3af10609dd5",
       "operation": "UPDATE",
-      "previous_entry_sha256": "ab74f2e556f69ef9108b9f3df8cc00654037aca14bbcfe07d31818a917cb8e9a",
+      "previous_entry_sha256": "362c23eab51bf03ea69a39c6a6eda62b135c7bcfece0a21cbface4a534d9063e",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -1783,7 +1765,7 @@
       },
       "record_sha256": "9df56cd356e5e17975344df8cb6ff6437b900720a56e4be80876876bc947e1a9",
       "revision": 16,
-      "state_sha256": "866c108550bf2d10d8ac0bfe8e40a17f558a2e853c3b85b5687aa619de58f092",
+      "state_sha256": "1c74afa7fb4a14ed4530c2ed036cdb37594e40a03a52063e4b90248317fe74e1",
       "timestamp_utc": "2026-09-17T13:10:18Z",
       "updated_by": "Google-Antigravity"
     },
@@ -1835,9 +1817,9 @@
         "@ACCEPTANCE_GUARD",
         "CURRENT_SHA"
       ],
-      "entry_sha256": "1682d8dbd5e49f22919ddbf2c5b9496d9c15d754f8d6ed541e6a192ccafce417",
+      "entry_sha256": "84de10848aadba054df6146bc602882117419f6025387c2c829195f7fb3858d9",
       "operation": "UPDATE",
-      "previous_entry_sha256": "85eb4ac573f2ae347c82e7d2c7f1b9507bab23a5a789b117752e058db139043c",
+      "previous_entry_sha256": "f9ba2686423f70ccfa0d55f92b7919e3005067aba69c68561cf7e3af10609dd5",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -1885,7 +1867,7 @@
       },
       "record_sha256": "77a244fcb6b634a39a95d69e611aee72dc79957bb63e241ac128673ff7ed45ca",
       "revision": 17,
-      "state_sha256": "e2e2e5b29735f583b95898bf0c328d354cfd285767833e7efe6f61b52788a777",
+      "state_sha256": "9ab63e96e2c885767e1782ee9533462ee70b790b32ec75b4bf7184ad7dc07a2d",
       "timestamp_utc": "2026-09-17T13:15:53Z",
       "updated_by": "Google-Antigravity"
     },
@@ -1937,9 +1919,9 @@
         "@ACCEPTANCE_GUARD",
         "CURRENT_SHA"
       ],
-      "entry_sha256": "0a9cf2416dd90ff852449b18be9555a4f7cc2fbba779a4f836d27917c7390624",
+      "entry_sha256": "29391b5401c068ff027a2d56f685a03dda27c532713e80dde7f67d52680536b6",
       "operation": "UPDATE",
-      "previous_entry_sha256": "1682d8dbd5e49f22919ddbf2c5b9496d9c15d754f8d6ed541e6a192ccafce417",
+      "previous_entry_sha256": "84de10848aadba054df6146bc602882117419f6025387c2c829195f7fb3858d9",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -1987,7 +1969,7 @@
       },
       "record_sha256": "6eeb119a2b15ddbaee080385aa7c9f5050fab348be897365ab3dfdeae2245cd6",
       "revision": 18,
-      "state_sha256": "f507683c529a5304a3076e062fa64c3a977dcf28aeaa0f669dbc0b594c789694",
+      "state_sha256": "679c3161bde469d1b26dc33922fd0af9fd7e45f02bd9175419394fadf9dde54f",
       "timestamp_utc": "2026-09-17T13:16:05Z",
       "updated_by": "Google-Antigravity"
     },
@@ -2039,9 +2021,9 @@
         "@ACCEPTANCE_GUARD",
         "CURRENT_SHA"
       ],
-      "entry_sha256": "6869d40f93e0d98c540d70b77f95738e5339c528bcd91ff2fd4611f2a9af972d",
+      "entry_sha256": "1c01e59948eb9a08d7a1f3d97a5676a2c52c7ca259e2189b3f0b88101c6f8912",
       "operation": "UPDATE",
-      "previous_entry_sha256": "0a9cf2416dd90ff852449b18be9555a4f7cc2fbba779a4f836d27917c7390624",
+      "previous_entry_sha256": "29391b5401c068ff027a2d56f685a03dda27c532713e80dde7f67d52680536b6",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -2089,7 +2071,7 @@
       },
       "record_sha256": "f375277b82483dda323cea80d73f49d114251cd03dbc6f7d4db23133b6cf6109",
       "revision": 19,
-      "state_sha256": "56e69eb17723af96f97ee4513b4d2191b830da6b03301e90fc48815bc1cf3c83",
+      "state_sha256": "2b731e9504f39410fbd8f73f283e87a9a698046d62af456ef6ba0463290e0f78",
       "timestamp_utc": "2026-09-17T13:16:45Z",
       "updated_by": "Google-Antigravity"
     },
@@ -2141,9 +2123,9 @@
         "FIRST_CAUSAL_BLOCKER",
         "PROVEN_EDGES"
       ],
-      "entry_sha256": "616396e4f92048ee75c13235aa733c5e2c55524818e1b58688e2d7c56f771116",
+      "entry_sha256": "9eec6d4147572380c309e96130425d82faae5fe9db4e63433368252c53bd3bd6",
       "operation": "UPDATE",
-      "previous_entry_sha256": "6869d40f93e0d98c540d70b77f95738e5339c528bcd91ff2fd4611f2a9af972d",
+      "previous_entry_sha256": "1c01e59948eb9a08d7a1f3d97a5676a2c52c7ca259e2189b3f0b88101c6f8912",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -2192,7 +2174,7 @@
       },
       "record_sha256": "91ce91787c2dad9ab2146844fee94e7ee11aaf98c9a35cd8ae6344160c7a77b6",
       "revision": 20,
-      "state_sha256": "5210e9bc90ec0839963d3a16fcb188b5f4896dfd75b51d177cf4baca2b2fd622",
+      "state_sha256": "73ea06e2533bcf707c18cb6ea7498d6a4edb7a94097a3efee99d36fc7e6c4871",
       "timestamp_utc": "2026-09-17T13:16:52Z",
       "updated_by": "Google-Antigravity"
     },
@@ -2243,9 +2225,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "421db4bfdfd267a6c69e0bf8fb950705cdced540353a0634ee8a5845da1d9e26",
+      "entry_sha256": "878150f8582a09c499ee62317e86e79f92ea62917c202c13fb333cc5c6ed1b16",
       "operation": "UPDATE",
-      "previous_entry_sha256": "616396e4f92048ee75c13235aa733c5e2c55524818e1b58688e2d7c56f771116",
+      "previous_entry_sha256": "9eec6d4147572380c309e96130425d82faae5fe9db4e63433368252c53bd3bd6",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -2294,7 +2276,7 @@
       },
       "record_sha256": "d39a0b9083825d22dded9d5bcb50a2876374ddc195ced75c3541c8fd6adaaf2d",
       "revision": 21,
-      "state_sha256": "9bfd3eaf61eff9c91fe6815ec0353a4d534bf8cb1cd0ae50dc5e6c7294e1daab",
+      "state_sha256": "d225cf70e90e9da4b8b6f922e4e4faf756da3d8da0b2d3369a70850c8416e8f8",
       "timestamp_utc": "2026-09-17T13:16:53Z",
       "updated_by": "Google-Antigravity"
     },
@@ -2345,9 +2327,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "bdb88019311494876732dd0abf016fe1f6c0e7b96a7ebeab25370d2e4e845080",
+      "entry_sha256": "51d6571afff49606fadce7c6a398b2a1e6b7ee01ce23b73f84978abc70936eb1",
       "operation": "UPDATE",
-      "previous_entry_sha256": "421db4bfdfd267a6c69e0bf8fb950705cdced540353a0634ee8a5845da1d9e26",
+      "previous_entry_sha256": "878150f8582a09c499ee62317e86e79f92ea62917c202c13fb333cc5c6ed1b16",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -2396,7 +2378,7 @@
       },
       "record_sha256": "c54c8a941187d7bad1d76f94195cb243092d278887a3894c0f47c3c787a3dab6",
       "revision": 22,
-      "state_sha256": "ceba9f4a8ca33f90de2eaa2be1cb18905fee638fe9d9743d5ff4f88d41b70966",
+      "state_sha256": "d3a3cdaf5b2ca2191d83204d7273b104fa9adbc4684f5c9629eec5c4d03f08ba",
       "timestamp_utc": "2026-09-17T13:16:53Z",
       "updated_by": "Google-Antigravity"
     },
@@ -2447,9 +2429,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "b7c7cfebb082a1c262c7892ad656a95b1de39b1c7a86970e158dd9e1dd28c293",
+      "entry_sha256": "26a664438a5e1790411c75d9b97b20712ffdf5f3536bdfdff1aab3fa7bce27f3",
       "operation": "UPDATE",
-      "previous_entry_sha256": "bdb88019311494876732dd0abf016fe1f6c0e7b96a7ebeab25370d2e4e845080",
+      "previous_entry_sha256": "51d6571afff49606fadce7c6a398b2a1e6b7ee01ce23b73f84978abc70936eb1",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -2498,7 +2480,7 @@
       },
       "record_sha256": "d39a0b9083825d22dded9d5bcb50a2876374ddc195ced75c3541c8fd6adaaf2d",
       "revision": 23,
-      "state_sha256": "34bd7fa426e52b5b254189243e5be19bfece294cba16c7244c2056d1ac623cb7",
+      "state_sha256": "d225cf70e90e9da4b8b6f922e4e4faf756da3d8da0b2d3369a70850c8416e8f8",
       "timestamp_utc": "2026-09-17T13:16:54Z",
       "updated_by": "Google-Antigravity"
     },
@@ -2549,9 +2531,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "0b230e7e0029080c9a97563a94d8816f87ab379751485d2970ecb98a95a99bd8",
+      "entry_sha256": "ece684cd39d353ad72345d1ca5657efdb4b8680cfea6f4d685c03b4480a21867",
       "operation": "UPDATE",
-      "previous_entry_sha256": "b7c7cfebb082a1c262c7892ad656a95b1de39b1c7a86970e158dd9e1dd28c293",
+      "previous_entry_sha256": "26a664438a5e1790411c75d9b97b20712ffdf5f3536bdfdff1aab3fa7bce27f3",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -2600,7 +2582,7 @@
       },
       "record_sha256": "c54c8a941187d7bad1d76f94195cb243092d278887a3894c0f47c3c787a3dab6",
       "revision": 24,
-      "state_sha256": "401ee026be7e91cbd503bdd6bdd17ad4e3c4b637b217f1bb2d883a6cb3ff7f1b",
+      "state_sha256": "d3a3cdaf5b2ca2191d83204d7273b104fa9adbc4684f5c9629eec5c4d03f08ba",
       "timestamp_utc": "2026-09-17T13:16:54Z",
       "updated_by": "Google-Antigravity"
     },
@@ -2651,9 +2633,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "4c10c969d0507ed11e9a228f924dce17e679d4f7534008845716dad52e2d98c5",
+      "entry_sha256": "0ce040f91c4a7a95ede15ed81b767a1c7ff215963a2a1b435f54b78be7894b8f",
       "operation": "UPDATE",
-      "previous_entry_sha256": "0b230e7e0029080c9a97563a94d8816f87ab379751485d2970ecb98a95a99bd8",
+      "previous_entry_sha256": "ece684cd39d353ad72345d1ca5657efdb4b8680cfea6f4d685c03b4480a21867",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -2702,7 +2684,7 @@
       },
       "record_sha256": "d39a0b9083825d22dded9d5bcb50a2876374ddc195ced75c3541c8fd6adaaf2d",
       "revision": 25,
-      "state_sha256": "7c67192db54a54377dc9de630b0dcb7af025929973f1a3a4abbbb0ec58eb6995",
+      "state_sha256": "d225cf70e90e9da4b8b6f922e4e4faf756da3d8da0b2d3369a70850c8416e8f8",
       "timestamp_utc": "2026-09-17T13:16:55Z",
       "updated_by": "Google-Antigravity"
     },
@@ -2753,9 +2735,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "5640bb1326cd2d70a24fa775df1668446f026e234560bb790a02d8ad3cc29a98",
+      "entry_sha256": "cfc9b9836f27ce396c7c2deec96bc575a2c8c3eeabc4ca8eca70af92c06e518c",
       "operation": "UPDATE",
-      "previous_entry_sha256": "4c10c969d0507ed11e9a228f924dce17e679d4f7534008845716dad52e2d98c5",
+      "previous_entry_sha256": "0ce040f91c4a7a95ede15ed81b767a1c7ff215963a2a1b435f54b78be7894b8f",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -2804,7 +2786,7 @@
       },
       "record_sha256": "c54c8a941187d7bad1d76f94195cb243092d278887a3894c0f47c3c787a3dab6",
       "revision": 26,
-      "state_sha256": "e167ee3deaf1b4e88c4e711aa8495ec74de712978f5e5ad24bcd4ae699fad9dd",
+      "state_sha256": "d3a3cdaf5b2ca2191d83204d7273b104fa9adbc4684f5c9629eec5c4d03f08ba",
       "timestamp_utc": "2026-09-17T13:16:55Z",
       "updated_by": "Google-Antigravity"
     },
@@ -2855,9 +2837,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "dc48b0e547ce2c910c4cca965768f5d8205464acb9ac52ecf279f5734bdee62f",
+      "entry_sha256": "feec16aa90b2e93ac5a6014df2740ce23a1e3f512724333802993b4836706da7",
       "operation": "UPDATE",
-      "previous_entry_sha256": "5640bb1326cd2d70a24fa775df1668446f026e234560bb790a02d8ad3cc29a98",
+      "previous_entry_sha256": "cfc9b9836f27ce396c7c2deec96bc575a2c8c3eeabc4ca8eca70af92c06e518c",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -2906,7 +2888,7 @@
       },
       "record_sha256": "d39a0b9083825d22dded9d5bcb50a2876374ddc195ced75c3541c8fd6adaaf2d",
       "revision": 27,
-      "state_sha256": "9c8e25303cf29168b848538358b96e5bfdcdeaf7dfdfccbc9d32d76cfa08da82",
+      "state_sha256": "d225cf70e90e9da4b8b6f922e4e4faf756da3d8da0b2d3369a70850c8416e8f8",
       "timestamp_utc": "2026-09-17T13:16:55Z",
       "updated_by": "Google-Antigravity"
     },
@@ -2957,9 +2939,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "fefa9941dff2a671b84539004bff74dc44ec50e5dc93a58447e1c4e056d03e0f",
+      "entry_sha256": "36015fd204b66e0959e4bc4e79dc74c6693d8cab747e26ff2f89874e6e21a747",
       "operation": "UPDATE",
-      "previous_entry_sha256": "dc48b0e547ce2c910c4cca965768f5d8205464acb9ac52ecf279f5734bdee62f",
+      "previous_entry_sha256": "feec16aa90b2e93ac5a6014df2740ce23a1e3f512724333802993b4836706da7",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -3008,7 +2990,7 @@
       },
       "record_sha256": "c54c8a941187d7bad1d76f94195cb243092d278887a3894c0f47c3c787a3dab6",
       "revision": 28,
-      "state_sha256": "68e7502cca563d7be18726e6e0a82d93a747affe94639420582b780a85ace5cf",
+      "state_sha256": "d3a3cdaf5b2ca2191d83204d7273b104fa9adbc4684f5c9629eec5c4d03f08ba",
       "timestamp_utc": "2026-09-17T13:16:56Z",
       "updated_by": "Google-Antigravity"
     },
@@ -3059,9 +3041,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "7b66782a17de1856a146815048a920fbd97f14eec330b5873681a9dd1092e171",
+      "entry_sha256": "bd351a343ca3d264eba8e2451deca7510ed0eef36ae35d08b60c904fcc741445",
       "operation": "UPDATE",
-      "previous_entry_sha256": "fefa9941dff2a671b84539004bff74dc44ec50e5dc93a58447e1c4e056d03e0f",
+      "previous_entry_sha256": "36015fd204b66e0959e4bc4e79dc74c6693d8cab747e26ff2f89874e6e21a747",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -3110,7 +3092,7 @@
       },
       "record_sha256": "d39a0b9083825d22dded9d5bcb50a2876374ddc195ced75c3541c8fd6adaaf2d",
       "revision": 29,
-      "state_sha256": "d96d2fdd782ebcdffdde663edf1298778a62ad0743acb4d6e76f137ca9e3cf0e",
+      "state_sha256": "d225cf70e90e9da4b8b6f922e4e4faf756da3d8da0b2d3369a70850c8416e8f8",
       "timestamp_utc": "2026-09-17T13:16:56Z",
       "updated_by": "Google-Antigravity"
     },
@@ -3161,9 +3143,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "cb0643d29dd537e71e4790832538e345056b1611b3a0cd3e1cc4762c38d40b14",
+      "entry_sha256": "f33dddbaae3846738415df9f2b877685cf93755b6ca7447d170622cc82c1f175",
       "operation": "UPDATE",
-      "previous_entry_sha256": "7b66782a17de1856a146815048a920fbd97f14eec330b5873681a9dd1092e171",
+      "previous_entry_sha256": "bd351a343ca3d264eba8e2451deca7510ed0eef36ae35d08b60c904fcc741445",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -3212,7 +3194,7 @@
       },
       "record_sha256": "c54c8a941187d7bad1d76f94195cb243092d278887a3894c0f47c3c787a3dab6",
       "revision": 30,
-      "state_sha256": "65eec9271b7aa84439d983735224f730d875b2966f4ecd3651c74ea97f8da6dd",
+      "state_sha256": "d3a3cdaf5b2ca2191d83204d7273b104fa9adbc4684f5c9629eec5c4d03f08ba",
       "timestamp_utc": "2026-09-17T13:16:57Z",
       "updated_by": "Google-Antigravity"
     },
@@ -3263,9 +3245,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "72ae9578b1da5022a9e88bd7353cd538ad5d4979d48a8e952ff2cbd25417cd96",
+      "entry_sha256": "aeebb9b6b0221baa02c82601f77b07150e6e8c10e0b6bf4d823834c419d17da1",
       "operation": "UPDATE",
-      "previous_entry_sha256": "cb0643d29dd537e71e4790832538e345056b1611b3a0cd3e1cc4762c38d40b14",
+      "previous_entry_sha256": "f33dddbaae3846738415df9f2b877685cf93755b6ca7447d170622cc82c1f175",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -3314,7 +3296,7 @@
       },
       "record_sha256": "d39a0b9083825d22dded9d5bcb50a2876374ddc195ced75c3541c8fd6adaaf2d",
       "revision": 31,
-      "state_sha256": "57fe45cd66ef0621fc720c110cddbe50a14c2e7501ec56f7b3b5ea356034bcdc",
+      "state_sha256": "d225cf70e90e9da4b8b6f922e4e4faf756da3d8da0b2d3369a70850c8416e8f8",
       "timestamp_utc": "2026-09-17T13:16:57Z",
       "updated_by": "Google-Antigravity"
     },
@@ -3365,9 +3347,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "99f42257c853013ce3c90d5347a5a29ef3eac2a4699286f3da7777be40f27a09",
+      "entry_sha256": "de6c7712fdbd28c18db83fd7211c8fc1cf282d1010645e5ae3e88ced84be6833",
       "operation": "UPDATE",
-      "previous_entry_sha256": "72ae9578b1da5022a9e88bd7353cd538ad5d4979d48a8e952ff2cbd25417cd96",
+      "previous_entry_sha256": "aeebb9b6b0221baa02c82601f77b07150e6e8c10e0b6bf4d823834c419d17da1",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -3416,7 +3398,7 @@
       },
       "record_sha256": "c54c8a941187d7bad1d76f94195cb243092d278887a3894c0f47c3c787a3dab6",
       "revision": 32,
-      "state_sha256": "ec9495f407ae5c3ddef32c3559c0c604a9aa169c8478e38efcd1781162afd47b",
+      "state_sha256": "d3a3cdaf5b2ca2191d83204d7273b104fa9adbc4684f5c9629eec5c4d03f08ba",
       "timestamp_utc": "2026-09-17T13:16:58Z",
       "updated_by": "Google-Antigravity"
     },
@@ -3467,9 +3449,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "cc41cf5f8aff0e1d8a7479e2b6fe6e4af20ea13e6170ddf752b5ef74402e81e6",
+      "entry_sha256": "15cf0abbe320ef810a21821e0e58bc4f6cae999074b3d32a12ef38a622ffcde7",
       "operation": "UPDATE",
-      "previous_entry_sha256": "99f42257c853013ce3c90d5347a5a29ef3eac2a4699286f3da7777be40f27a09",
+      "previous_entry_sha256": "de6c7712fdbd28c18db83fd7211c8fc1cf282d1010645e5ae3e88ced84be6833",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -3518,7 +3500,7 @@
       },
       "record_sha256": "d39a0b9083825d22dded9d5bcb50a2876374ddc195ced75c3541c8fd6adaaf2d",
       "revision": 33,
-      "state_sha256": "b1b941043ae89e4984f105d99dbb68501d77319d343760d821ec2a640cc6c9ac",
+      "state_sha256": "d225cf70e90e9da4b8b6f922e4e4faf756da3d8da0b2d3369a70850c8416e8f8",
       "timestamp_utc": "2026-09-17T13:16:59Z",
       "updated_by": "Google-Antigravity"
     },
@@ -3569,9 +3551,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "30a8d84ebdf2e7b01abb763132db227f506e162abafde5528a8a6b6fcbd19a36",
+      "entry_sha256": "5c7a60e6bdd359c7d38533e588221465c49b8b515ce0a842a73b5ca2fc50d309",
       "operation": "UPDATE",
-      "previous_entry_sha256": "cc41cf5f8aff0e1d8a7479e2b6fe6e4af20ea13e6170ddf752b5ef74402e81e6",
+      "previous_entry_sha256": "15cf0abbe320ef810a21821e0e58bc4f6cae999074b3d32a12ef38a622ffcde7",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -3620,7 +3602,7 @@
       },
       "record_sha256": "c54c8a941187d7bad1d76f94195cb243092d278887a3894c0f47c3c787a3dab6",
       "revision": 34,
-      "state_sha256": "41f63c41890e4b96ef602eb5f431262b5b19d4c22ec480d0c60a3744f19aed68",
+      "state_sha256": "d3a3cdaf5b2ca2191d83204d7273b104fa9adbc4684f5c9629eec5c4d03f08ba",
       "timestamp_utc": "2026-09-17T13:16:59Z",
       "updated_by": "Google-Antigravity"
     },
@@ -3671,9 +3653,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "2981d70c75be3636383b131e58d1eace61e3db2f5544b2a79e3a8b5322460a18",
+      "entry_sha256": "3eacf14fccba62ba66c3f93cb3ff4faccbcc68e2ca6162536fec423259f26a03",
       "operation": "UPDATE",
-      "previous_entry_sha256": "30a8d84ebdf2e7b01abb763132db227f506e162abafde5528a8a6b6fcbd19a36",
+      "previous_entry_sha256": "5c7a60e6bdd359c7d38533e588221465c49b8b515ce0a842a73b5ca2fc50d309",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -3722,7 +3704,7 @@
       },
       "record_sha256": "d39a0b9083825d22dded9d5bcb50a2876374ddc195ced75c3541c8fd6adaaf2d",
       "revision": 35,
-      "state_sha256": "e5a443e07cdca0359b1c5d13d7f3dfeddea5bb4392eb3da6f37344ecbc8d0d91",
+      "state_sha256": "d225cf70e90e9da4b8b6f922e4e4faf756da3d8da0b2d3369a70850c8416e8f8",
       "timestamp_utc": "2026-09-17T13:16:59Z",
       "updated_by": "Google-Antigravity"
     },
@@ -3773,9 +3755,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "50a232848b4e85e2a2e7db16e6a2791efdee534043c3c7ef08c951190450b36c",
+      "entry_sha256": "c7d95f1b731e3c23076e784bc8dc4943f2f073b19bd8f7d5d508d9606b4fc9c0",
       "operation": "UPDATE",
-      "previous_entry_sha256": "2981d70c75be3636383b131e58d1eace61e3db2f5544b2a79e3a8b5322460a18",
+      "previous_entry_sha256": "3eacf14fccba62ba66c3f93cb3ff4faccbcc68e2ca6162536fec423259f26a03",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -3824,7 +3806,7 @@
       },
       "record_sha256": "c54c8a941187d7bad1d76f94195cb243092d278887a3894c0f47c3c787a3dab6",
       "revision": 36,
-      "state_sha256": "366a209339adc252a952ccdde6ec876306289bbbf44a0b38f509c29601ac555f",
+      "state_sha256": "d3a3cdaf5b2ca2191d83204d7273b104fa9adbc4684f5c9629eec5c4d03f08ba",
       "timestamp_utc": "2026-09-17T13:17:00Z",
       "updated_by": "Google-Antigravity"
     },
@@ -3875,9 +3857,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "b1e500587d86536af862f318b25da3472c0128f9c4f5efa560c8711a14cd63c5",
+      "entry_sha256": "7dd982a40e521d794753422e9416a786d12db15ad8727777ab5d972f7395ed58",
       "operation": "UPDATE",
-      "previous_entry_sha256": "50a232848b4e85e2a2e7db16e6a2791efdee534043c3c7ef08c951190450b36c",
+      "previous_entry_sha256": "c7d95f1b731e3c23076e784bc8dc4943f2f073b19bd8f7d5d508d9606b4fc9c0",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -3926,7 +3908,7 @@
       },
       "record_sha256": "d39a0b9083825d22dded9d5bcb50a2876374ddc195ced75c3541c8fd6adaaf2d",
       "revision": 37,
-      "state_sha256": "82068bf6737d89b629d2eef535252b428cda2eff10da2f4a8f6fd94e1ea66a42",
+      "state_sha256": "d225cf70e90e9da4b8b6f922e4e4faf756da3d8da0b2d3369a70850c8416e8f8",
       "timestamp_utc": "2026-09-17T13:17:00Z",
       "updated_by": "Google-Antigravity"
     },
@@ -3977,9 +3959,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "57e657359ad267100a039f239b28fa002cfa775c2811805e75667ba5359fc9b8",
+      "entry_sha256": "2a6484e4bdd99551013c682472e1479f3904fe61c79fd9861c8351e157c8ef93",
       "operation": "UPDATE",
-      "previous_entry_sha256": "b1e500587d86536af862f318b25da3472c0128f9c4f5efa560c8711a14cd63c5",
+      "previous_entry_sha256": "7dd982a40e521d794753422e9416a786d12db15ad8727777ab5d972f7395ed58",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -4028,7 +4010,7 @@
       },
       "record_sha256": "c54c8a941187d7bad1d76f94195cb243092d278887a3894c0f47c3c787a3dab6",
       "revision": 38,
-      "state_sha256": "eb3d8ea70b9ba73b8c7a198a6c0f7ee280c0d3ead951c196d564fd99aba4062b",
+      "state_sha256": "d3a3cdaf5b2ca2191d83204d7273b104fa9adbc4684f5c9629eec5c4d03f08ba",
       "timestamp_utc": "2026-09-17T13:17:01Z",
       "updated_by": "Google-Antigravity"
     },
@@ -4079,9 +4061,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "796cc98e92ee3291602093041915b1d8144f0ee40e7c7e19f87440e2ca4bdd44",
+      "entry_sha256": "bdf22203e308ebd5eec9c4bde2f018b252d198b9cda16ad97523370a0db12413",
       "operation": "UPDATE",
-      "previous_entry_sha256": "57e657359ad267100a039f239b28fa002cfa775c2811805e75667ba5359fc9b8",
+      "previous_entry_sha256": "2a6484e4bdd99551013c682472e1479f3904fe61c79fd9861c8351e157c8ef93",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -4130,7 +4112,7 @@
       },
       "record_sha256": "d39a0b9083825d22dded9d5bcb50a2876374ddc195ced75c3541c8fd6adaaf2d",
       "revision": 39,
-      "state_sha256": "f7d1540b2a5815070e8000566d58cca488eaa2a7be9e284432c4d683535e038d",
+      "state_sha256": "d225cf70e90e9da4b8b6f922e4e4faf756da3d8da0b2d3369a70850c8416e8f8",
       "timestamp_utc": "2026-09-17T13:17:01Z",
       "updated_by": "Google-Antigravity"
     },
@@ -4181,9 +4163,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "64da0d846dc123b4dee74dd6128aecfa3d388c9015aaefc0dd7b9ab4ed3e8b69",
+      "entry_sha256": "accd15e0e89379e1aa2ee5d33f2efbd3ce0f9e1aa258f0d6b191fc72eecb1463",
       "operation": "UPDATE",
-      "previous_entry_sha256": "796cc98e92ee3291602093041915b1d8144f0ee40e7c7e19f87440e2ca4bdd44",
+      "previous_entry_sha256": "bdf22203e308ebd5eec9c4bde2f018b252d198b9cda16ad97523370a0db12413",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -4232,7 +4214,7 @@
       },
       "record_sha256": "c54c8a941187d7bad1d76f94195cb243092d278887a3894c0f47c3c787a3dab6",
       "revision": 40,
-      "state_sha256": "dfec3fa336fc7fa778c19945193e41a97845580040ed1c34da26785577438c50",
+      "state_sha256": "d3a3cdaf5b2ca2191d83204d7273b104fa9adbc4684f5c9629eec5c4d03f08ba",
       "timestamp_utc": "2026-09-17T13:17:02Z",
       "updated_by": "Google-Antigravity"
     },
@@ -4283,9 +4265,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "ffbdc7b71193195ff74885b0a9ed20c320fea7ff16c38a5f022154c0f3bdb058",
+      "entry_sha256": "028414593fef93eee2f5bd2fb841760b1ee593cce1bbd71336a5a29cf8ab39fc",
       "operation": "UPDATE",
-      "previous_entry_sha256": "64da0d846dc123b4dee74dd6128aecfa3d388c9015aaefc0dd7b9ab4ed3e8b69",
+      "previous_entry_sha256": "accd15e0e89379e1aa2ee5d33f2efbd3ce0f9e1aa258f0d6b191fc72eecb1463",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -4334,7 +4316,7 @@
       },
       "record_sha256": "d39a0b9083825d22dded9d5bcb50a2876374ddc195ced75c3541c8fd6adaaf2d",
       "revision": 41,
-      "state_sha256": "bfe324bd136463827eb3a505fd13dce22b75821034eceb768908f538d7313b49",
+      "state_sha256": "d225cf70e90e9da4b8b6f922e4e4faf756da3d8da0b2d3369a70850c8416e8f8",
       "timestamp_utc": "2026-09-17T13:17:02Z",
       "updated_by": "Google-Antigravity"
     },
@@ -4385,9 +4367,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "8b867d5cb3445836b4a8703ee8076f1bde69ab4fa8e0c25d569c7712f9d8e5ac",
+      "entry_sha256": "15d5a1b5b5e52ed1726031446c2f20b9f3e670fdd7cab1d8046b15e28a2cc32f",
       "operation": "UPDATE",
-      "previous_entry_sha256": "ffbdc7b71193195ff74885b0a9ed20c320fea7ff16c38a5f022154c0f3bdb058",
+      "previous_entry_sha256": "028414593fef93eee2f5bd2fb841760b1ee593cce1bbd71336a5a29cf8ab39fc",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -4436,7 +4418,7 @@
       },
       "record_sha256": "c54c8a941187d7bad1d76f94195cb243092d278887a3894c0f47c3c787a3dab6",
       "revision": 42,
-      "state_sha256": "d6dc709b54d27d8546618fe2c8007c8af03287f35dfa63acd3a68ebe54b18768",
+      "state_sha256": "d3a3cdaf5b2ca2191d83204d7273b104fa9adbc4684f5c9629eec5c4d03f08ba",
       "timestamp_utc": "2026-09-17T13:17:03Z",
       "updated_by": "Google-Antigravity"
     },
@@ -4487,9 +4469,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "5df733094b7e435033f289710c113bb680fa03b0a4b833d0b836371c6f84ae99",
+      "entry_sha256": "81cb8a84f8afe109d2dcd25244d2abebd2601f8e500d81fd5d854dc723351931",
       "operation": "UPDATE",
-      "previous_entry_sha256": "8b867d5cb3445836b4a8703ee8076f1bde69ab4fa8e0c25d569c7712f9d8e5ac",
+      "previous_entry_sha256": "15d5a1b5b5e52ed1726031446c2f20b9f3e670fdd7cab1d8046b15e28a2cc32f",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -4538,7 +4520,7 @@
       },
       "record_sha256": "d39a0b9083825d22dded9d5bcb50a2876374ddc195ced75c3541c8fd6adaaf2d",
       "revision": 43,
-      "state_sha256": "21230bc0e6bfaeb6bf1848036d210d599deee804aa3899a04fc0604b301932fc",
+      "state_sha256": "d225cf70e90e9da4b8b6f922e4e4faf756da3d8da0b2d3369a70850c8416e8f8",
       "timestamp_utc": "2026-09-17T13:17:03Z",
       "updated_by": "Google-Antigravity"
     },
@@ -4589,9 +4571,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "ca3de7630ebfe67a0e7e0a830d183e2f6e7b2c37891a17e084d30cb46781cb88",
+      "entry_sha256": "dc73c452ba07b003815658567794f576018ae58020831dbe57d2c8ea7ae29aaf",
       "operation": "UPDATE",
-      "previous_entry_sha256": "5df733094b7e435033f289710c113bb680fa03b0a4b833d0b836371c6f84ae99",
+      "previous_entry_sha256": "81cb8a84f8afe109d2dcd25244d2abebd2601f8e500d81fd5d854dc723351931",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -4640,7 +4622,7 @@
       },
       "record_sha256": "c54c8a941187d7bad1d76f94195cb243092d278887a3894c0f47c3c787a3dab6",
       "revision": 44,
-      "state_sha256": "c7f1f82046ddc527315b5c4fdab0580a050dd2cb495d9194fad189188846d32d",
+      "state_sha256": "d3a3cdaf5b2ca2191d83204d7273b104fa9adbc4684f5c9629eec5c4d03f08ba",
       "timestamp_utc": "2026-09-17T13:17:04Z",
       "updated_by": "Google-Antigravity"
     },
@@ -4691,9 +4673,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "aebea4a8ec63f5765278a6a547b3b830b56ed421e88260dc5c5af685b18c57d1",
+      "entry_sha256": "805c1e0d3977057ccaf30a4734e18f021c7965ad0c33f788702ec790f9a6569b",
       "operation": "UPDATE",
-      "previous_entry_sha256": "ca3de7630ebfe67a0e7e0a830d183e2f6e7b2c37891a17e084d30cb46781cb88",
+      "previous_entry_sha256": "dc73c452ba07b003815658567794f576018ae58020831dbe57d2c8ea7ae29aaf",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -4742,7 +4724,7 @@
       },
       "record_sha256": "d39a0b9083825d22dded9d5bcb50a2876374ddc195ced75c3541c8fd6adaaf2d",
       "revision": 45,
-      "state_sha256": "3c87a33bc11aea99cb194e8b1352a30528112e02260e12f6b862538f948f2f70",
+      "state_sha256": "d225cf70e90e9da4b8b6f922e4e4faf756da3d8da0b2d3369a70850c8416e8f8",
       "timestamp_utc": "2026-09-17T13:17:04Z",
       "updated_by": "Google-Antigravity"
     },
@@ -4793,9 +4775,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "8fd4404a28621d76caa061e741af9f3ef9163469709ba7b39e7ff8b6a2b9fea7",
+      "entry_sha256": "53c6c27b0230e6fb5a5a447b7f0626d094584e084fc0d7394ae02528dfb3b2e1",
       "operation": "UPDATE",
-      "previous_entry_sha256": "aebea4a8ec63f5765278a6a547b3b830b56ed421e88260dc5c5af685b18c57d1",
+      "previous_entry_sha256": "805c1e0d3977057ccaf30a4734e18f021c7965ad0c33f788702ec790f9a6569b",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -4844,7 +4826,7 @@
       },
       "record_sha256": "c54c8a941187d7bad1d76f94195cb243092d278887a3894c0f47c3c787a3dab6",
       "revision": 46,
-      "state_sha256": "535f96bde2d89595f3967b020d2f36ba1f422230a6f020591512e4a1569a3c0e",
+      "state_sha256": "d3a3cdaf5b2ca2191d83204d7273b104fa9adbc4684f5c9629eec5c4d03f08ba",
       "timestamp_utc": "2026-09-17T13:17:05Z",
       "updated_by": "Google-Antigravity"
     },
@@ -4895,9 +4877,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "f3f8e937cccaad7846d4f0ab752b0a0b124eedfcafed813f16743c92868f3195",
+      "entry_sha256": "767f3725cb1b9de192e75fba33fa580b55eed389809e1f16ad1b9e432522fc46",
       "operation": "UPDATE",
-      "previous_entry_sha256": "8fd4404a28621d76caa061e741af9f3ef9163469709ba7b39e7ff8b6a2b9fea7",
+      "previous_entry_sha256": "53c6c27b0230e6fb5a5a447b7f0626d094584e084fc0d7394ae02528dfb3b2e1",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -4946,7 +4928,7 @@
       },
       "record_sha256": "d39a0b9083825d22dded9d5bcb50a2876374ddc195ced75c3541c8fd6adaaf2d",
       "revision": 47,
-      "state_sha256": "7fef5a68972687c724b62edbed81bba13a5041097557be22ac38a4c190eca6de",
+      "state_sha256": "d225cf70e90e9da4b8b6f922e4e4faf756da3d8da0b2d3369a70850c8416e8f8",
       "timestamp_utc": "2026-09-17T13:17:05Z",
       "updated_by": "Google-Antigravity"
     },
@@ -4997,9 +4979,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "2e26b8a99d3a94b3aca0b6ba14c5bf85261c8d0a63c2613ec5c7cec77bd0a5fc",
+      "entry_sha256": "f97e8f1beb5fd01f1cfb5950511475e7c8a2ac663b78823c01bd6e0a69ea8ec2",
       "operation": "UPDATE",
-      "previous_entry_sha256": "f3f8e937cccaad7846d4f0ab752b0a0b124eedfcafed813f16743c92868f3195",
+      "previous_entry_sha256": "767f3725cb1b9de192e75fba33fa580b55eed389809e1f16ad1b9e432522fc46",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -5048,7 +5030,7 @@
       },
       "record_sha256": "c54c8a941187d7bad1d76f94195cb243092d278887a3894c0f47c3c787a3dab6",
       "revision": 48,
-      "state_sha256": "4188792399b5ba02ba49141ee484e7a14ef831c3bc28b4e0ac217cd17bf08d31",
+      "state_sha256": "d3a3cdaf5b2ca2191d83204d7273b104fa9adbc4684f5c9629eec5c4d03f08ba",
       "timestamp_utc": "2026-09-17T13:17:06Z",
       "updated_by": "Google-Antigravity"
     },
@@ -5100,9 +5082,9 @@
         "@ACCEPTANCE_GUARD",
         "CURRENT_SHA"
       ],
-      "entry_sha256": "d425399ac5d54de849c64b0f4e67d546c238e2d742972071fe947d07c5d80428",
+      "entry_sha256": "2a7b9df93a2f44ad2f39ab3f27d16dc52cc3da0a76b4b474300ee8315bb1f532",
       "operation": "UPDATE",
-      "previous_entry_sha256": "2e26b8a99d3a94b3aca0b6ba14c5bf85261c8d0a63c2613ec5c7cec77bd0a5fc",
+      "previous_entry_sha256": "f97e8f1beb5fd01f1cfb5950511475e7c8a2ac663b78823c01bd6e0a69ea8ec2",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -5151,7 +5133,7 @@
       },
       "record_sha256": "848c55abf50e3fd2bc10fae4096ba3f322d4418e859773cdd7582cb284c7fa09",
       "revision": 49,
-      "state_sha256": "43ad4f07154d9ec726b673ca811eb6914a577a77014e8e632ec23456ecd14a09",
+      "state_sha256": "94a86386806a4defec0991bb8abf4bb2c471daf10b3019f48873bc826fe128c1",
       "timestamp_utc": "2026-09-17T13:17:51Z",
       "updated_by": "Google-Antigravity"
     },
@@ -5202,9 +5184,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "3d51204804de531015bd70b26481f2ea1db5be7919d98acd82da10e03142bf01",
+      "entry_sha256": "87a828899685accb0543bfd3e1eb0962d38f4554916fd5a2b9d91de09b641af3",
       "operation": "UPDATE",
-      "previous_entry_sha256": "d425399ac5d54de849c64b0f4e67d546c238e2d742972071fe947d07c5d80428",
+      "previous_entry_sha256": "2a7b9df93a2f44ad2f39ab3f27d16dc52cc3da0a76b4b474300ee8315bb1f532",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -5253,7 +5235,7 @@
       },
       "record_sha256": "80fda08b7e5db688a3b4016c9968c5e44879d7607f519378c3ac3045ddff5ac2",
       "revision": 50,
-      "state_sha256": "61b5106eb93f0680284b3aa089a895165d967283a68fa745648dd95999d26142",
+      "state_sha256": "578934ef1233ceda9cb0cec4a4c670839eddc26c64354466b6ee9ba248d3db94",
       "timestamp_utc": "2026-09-17T13:17:57Z",
       "updated_by": "Google-Antigravity"
     },
@@ -5305,9 +5287,9 @@
         "FIRST_CAUSAL_BLOCKER",
         "PROVEN_EDGES"
       ],
-      "entry_sha256": "ccdb60f2c48417dc25574f042c898af4f442150f75ba0bf2f355ab9eb058f638",
+      "entry_sha256": "664223168296cae1dd1fe2cca0d302d0bfb9678649ca7d4e6a54fc4c2f0f46ce",
       "operation": "UPDATE",
-      "previous_entry_sha256": "3d51204804de531015bd70b26481f2ea1db5be7919d98acd82da10e03142bf01",
+      "previous_entry_sha256": "87a828899685accb0543bfd3e1eb0962d38f4554916fd5a2b9d91de09b641af3",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -5357,7 +5339,7 @@
       },
       "record_sha256": "f6576b8750e9ad7f10ed2231651afa8df3e8cdbf0f2c0ba9283928c92f71800c",
       "revision": 51,
-      "state_sha256": "82fef71f4630d17b8449430a6b89dc8345228f2eead5a6eca7669856d077433d",
+      "state_sha256": "b5fd067bfbd01b10aa29d30cc05c01d05a0b08540417e39c84a85308e885f1ab",
       "timestamp_utc": "2026-09-17T13:17:57Z",
       "updated_by": "Google-Antigravity"
     },
@@ -5408,9 +5390,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "39932d5a34576ebc381c09d1fb922dc7dcfd963718c1226296321dd451d05bb0",
+      "entry_sha256": "3d6039612f8e8f1d12d3aa8bf2928d350581e4876f7a9df840cac3f40ed0bf98",
       "operation": "UPDATE",
-      "previous_entry_sha256": "ccdb60f2c48417dc25574f042c898af4f442150f75ba0bf2f355ab9eb058f638",
+      "previous_entry_sha256": "664223168296cae1dd1fe2cca0d302d0bfb9678649ca7d4e6a54fc4c2f0f46ce",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -5460,7 +5442,7 @@
       },
       "record_sha256": "7811d4df63443b77f5d40f7fe9fd26fe097eca12c34490152e4d4ede52627611",
       "revision": 52,
-      "state_sha256": "3095780a8ee8c5dc4d18e92760ac97d2ffe2aab23d83299b360934a88f0cc026",
+      "state_sha256": "97164d2ea8b8877798399329cf52369beb1c0eaefac9d1ad8eb8d47c111a4bba",
       "timestamp_utc": "2026-09-17T13:17:58Z",
       "updated_by": "Google-Antigravity"
     },
@@ -5512,9 +5494,9 @@
         "@ACCEPTANCE_GUARD",
         "CURRENT_SHA"
       ],
-      "entry_sha256": "c7d887eca5db448448ccb8e8609e65883040d8b5fe6433b0e6f15d0cb34c167d",
+      "entry_sha256": "b7aa7be5f9492b06b24b431be734639a8c3c7913cabed0c4bdd3d29331959827",
       "operation": "UPDATE",
-      "previous_entry_sha256": "39932d5a34576ebc381c09d1fb922dc7dcfd963718c1226296321dd451d05bb0",
+      "previous_entry_sha256": "3d6039612f8e8f1d12d3aa8bf2928d350581e4876f7a9df840cac3f40ed0bf98",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -5564,7 +5546,7 @@
       },
       "record_sha256": "b6fde0df7ed4c77c1209ac5d304658e625f28218a4a9fb8944a5557e95a5d1c1",
       "revision": 53,
-      "state_sha256": "e2cdeda42e8bf89971c6e11c45136c58ae4db310a6074e4cffffd58a372fa272",
+      "state_sha256": "bee8aa3cdfefb6ed91b8f50a35eabbe1359a7578519bed64bd9e30deadefa864",
       "timestamp_utc": "2026-09-17T13:18:12Z",
       "updated_by": "Google-Antigravity"
     },
@@ -5616,9 +5598,9 @@
         "@ACCEPTANCE_GUARD",
         "CURRENT_SHA"
       ],
-      "entry_sha256": "b21dc2144b0eaaac867d704f7b3154e892d555f9d7863905091898f136813632",
+      "entry_sha256": "7968aa9da0f91e06bc2cdea6fb8e4615b13b143851e7bcaff8587ac8f23b27e2",
       "operation": "UPDATE",
-      "previous_entry_sha256": "c7d887eca5db448448ccb8e8609e65883040d8b5fe6433b0e6f15d0cb34c167d",
+      "previous_entry_sha256": "b7aa7be5f9492b06b24b431be734639a8c3c7913cabed0c4bdd3d29331959827",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -5668,7 +5650,7 @@
       },
       "record_sha256": "313dd80ca9673f7d99bc898f12052de94b27668dd512b292625017ac34bb6cbf",
       "revision": 54,
-      "state_sha256": "cedb862a9e7b159fe97bb628375773a7535d0b69cf586fe0d461e56d4fe45ea6",
+      "state_sha256": "e43f3fbbebddeb2c2c7c76eb912cdab7754ceadf9961f21c329f2c2b34e44b3f",
       "timestamp_utc": "2026-09-17T13:22:09Z",
       "updated_by": "Google-Antigravity"
     },
@@ -5720,9 +5702,9 @@
         "@ACCEPTANCE_GUARD",
         "CURRENT_SHA"
       ],
-      "entry_sha256": "ad834771bd87698412c04f233995f463bfbba92e1c8adcdbe790f7b4700f1077",
+      "entry_sha256": "68a6d495e91a6f91b474ecdcc779c520e27577ee4fff53564cf5aa49bbd25450",
       "operation": "UPDATE",
-      "previous_entry_sha256": "b21dc2144b0eaaac867d704f7b3154e892d555f9d7863905091898f136813632",
+      "previous_entry_sha256": "7968aa9da0f91e06bc2cdea6fb8e4615b13b143851e7bcaff8587ac8f23b27e2",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -5772,7 +5754,7 @@
       },
       "record_sha256": "e50c3590f8b95f0bfec611976a83addca27563c658ef2f7b55aea7e1c66ff15f",
       "revision": 55,
-      "state_sha256": "a1db683615d3530cc7e2a4a1d0e7d126be24972174151ac5be6cddeacec2efa8",
+      "state_sha256": "e1b44cb332a821598d1a2f45597e7ae819497e17795c9713f77aa0047a9f7129",
       "timestamp_utc": "2026-09-17T13:24:12Z",
       "updated_by": "Google-Antigravity"
     },
@@ -5824,9 +5806,9 @@
         "@ACCEPTANCE_GUARD",
         "CURRENT_SHA"
       ],
-      "entry_sha256": "1cbfbd3125168f02322c19f5ea6ebd143225347c2adaeec66750ac785ca7eb2d",
+      "entry_sha256": "c7b320bafd66081d9f5f82facd180e87e4b7e06df30104f38f5d6496e86c2416",
       "operation": "UPDATE",
-      "previous_entry_sha256": "ad834771bd87698412c04f233995f463bfbba92e1c8adcdbe790f7b4700f1077",
+      "previous_entry_sha256": "68a6d495e91a6f91b474ecdcc779c520e27577ee4fff53564cf5aa49bbd25450",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -5876,7 +5858,7 @@
       },
       "record_sha256": "6df96e754284ccdfcb47953e8e7c2d77f0704e3da5783847d4829da7b395793f",
       "revision": 56,
-      "state_sha256": "feef28239f9ea5264a4e1e7373161a8a3ee2acd7f13338e50f1a2fd1ffad8002",
+      "state_sha256": "e316111babda79120231346bd5aa0db8a4dde06e7b31ebc8d33c620163c84ccb",
       "timestamp_utc": "2026-09-17T13:24:58Z",
       "updated_by": "Google-Antigravity"
     },
@@ -5928,9 +5910,9 @@
         "@ACCEPTANCE_GUARD",
         "CURRENT_SHA"
       ],
-      "entry_sha256": "515ff5a796a881217ac8e180930563d84dacc59c69c21ef66ec237c65ff53fa9",
+      "entry_sha256": "cbda335417f3fe63bdd59a0921355014f50a7fa14f00cb60d8efe06f68bcdec2",
       "operation": "UPDATE",
-      "previous_entry_sha256": "1cbfbd3125168f02322c19f5ea6ebd143225347c2adaeec66750ac785ca7eb2d",
+      "previous_entry_sha256": "c7b320bafd66081d9f5f82facd180e87e4b7e06df30104f38f5d6496e86c2416",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -5980,7 +5962,7 @@
       },
       "record_sha256": "93723a94223bb876cc068a7cb0405be2a1efe0109b4d9feea6bd9d1bb1536e4a",
       "revision": 57,
-      "state_sha256": "90c958793f5be2ea42f3662daf583e637269dd47d69499105733e5ee495c25d4",
+      "state_sha256": "a2aa6cd18ac8525ef2538c767f097dbab6a8c119a1fee3f329504a5c4b280092",
       "timestamp_utc": "2026-09-17T13:27:25Z",
       "updated_by": "Google-Antigravity"
     },
@@ -6032,9 +6014,9 @@
         "@ACCEPTANCE_GUARD",
         "CURRENT_SHA"
       ],
-      "entry_sha256": "fbacba7c04c14275858420dbb73340b5aae53128a796db3516577b9ae61d5887",
+      "entry_sha256": "04342b42a9ffbbba44fa1c6ddcbfc7563058ddb2b46256635f15134cb3d1cbf0",
       "operation": "UPDATE",
-      "previous_entry_sha256": "515ff5a796a881217ac8e180930563d84dacc59c69c21ef66ec237c65ff53fa9",
+      "previous_entry_sha256": "cbda335417f3fe63bdd59a0921355014f50a7fa14f00cb60d8efe06f68bcdec2",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -6084,7 +6066,7 @@
       },
       "record_sha256": "ed20b9e9099a711d9701e3d9e3724a2865b64f9a7080a045808aaad0fb429864",
       "revision": 58,
-      "state_sha256": "1735d714627c25c190d2178aecd46edae8884ed35c33c90b2be05932e0537bdc",
+      "state_sha256": "9a98d04f10c821c1a9a0accc52dfeadd6da74a1018ece26f381746801168a858",
       "timestamp_utc": "2026-09-17T13:29:27Z",
       "updated_by": "Google-Antigravity"
     },
@@ -6136,9 +6118,9 @@
         "@ACCEPTANCE_GUARD",
         "CURRENT_SHA"
       ],
-      "entry_sha256": "a3c8180ea453437a88d464a65c8e813c464cf4fe30938482a285fe59f811c520",
+      "entry_sha256": "3da77e5c5bc5f8d781b539d96a0368f5faf885a59e09166308cc1714f26a231c",
       "operation": "UPDATE",
-      "previous_entry_sha256": "fbacba7c04c14275858420dbb73340b5aae53128a796db3516577b9ae61d5887",
+      "previous_entry_sha256": "04342b42a9ffbbba44fa1c6ddcbfc7563058ddb2b46256635f15134cb3d1cbf0",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -6188,7 +6170,7 @@
       },
       "record_sha256": "6107befff00d5345c291997991916684bde69269c1adeda7529cbdc4ba935666",
       "revision": 59,
-      "state_sha256": "63f3f54ed2cac9ee6ec86671efc828788b792cd46566127e4cf63eec87207e22",
+      "state_sha256": "bc0e8d1fa880f558d01dc013755902870388fe281ebe520621cd6b5178f30a95",
       "timestamp_utc": "2026-09-17T13:29:47Z",
       "updated_by": "Google-Antigravity"
     },
@@ -6240,9 +6222,9 @@
         "@ACCEPTANCE_GUARD",
         "CURRENT_SHA"
       ],
-      "entry_sha256": "8ffa3dfb79bb5e0ee696b869669166fe71985835a20c27d69cb6f382b30c13c2",
+      "entry_sha256": "11a8ec3665e248a51d9307773a4c7ce7ab8821076f76073a784fcb1ff14f508d",
       "operation": "UPDATE",
-      "previous_entry_sha256": "a3c8180ea453437a88d464a65c8e813c464cf4fe30938482a285fe59f811c520",
+      "previous_entry_sha256": "3da77e5c5bc5f8d781b539d96a0368f5faf885a59e09166308cc1714f26a231c",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -6292,7 +6274,7 @@
       },
       "record_sha256": "121ec83fe5a240368e7faf40d198fc6591c2e4c17c5d8b903c06e141c0a19e0c",
       "revision": 60,
-      "state_sha256": "ecb431ddaefa05cff5fe3f8d9ebd0f67bbcf8b0189368476c6547d780dbd0963",
+      "state_sha256": "0e075289aa5433f73eea83a36388c42aff3d0c800d68bf74854a2904da2417f6",
       "timestamp_utc": "2026-09-17T13:51:42Z",
       "updated_by": "Google-Antigravity"
     },
@@ -6344,9 +6326,9 @@
         "@ACCEPTANCE_GUARD",
         "CURRENT_SHA"
       ],
-      "entry_sha256": "b26dde62719b72652ae20e4e337ef8f5251213a56d4c5fb0639d66a840c7b75b",
+      "entry_sha256": "7d7248afc7984af944d0a07a93c065b0d4109107eb7c0f57a37a8ec3490cf8a0",
       "operation": "UPDATE",
-      "previous_entry_sha256": "8ffa3dfb79bb5e0ee696b869669166fe71985835a20c27d69cb6f382b30c13c2",
+      "previous_entry_sha256": "11a8ec3665e248a51d9307773a4c7ce7ab8821076f76073a784fcb1ff14f508d",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -6396,7 +6378,7 @@
       },
       "record_sha256": "81ac4642be354687f24fa77f708eb813e0d91576382c1b1cb06100cdcf2c4f06",
       "revision": 61,
-      "state_sha256": "55bf0852e4b9327baeeb73c2558fbf7976681540334cebc3a6a60ccd68407e9d",
+      "state_sha256": "1977b92d5ab47caf7391fbd601966b5a28ff5d6563fa982e5484fd6102990919",
       "timestamp_utc": "2026-09-17T13:59:22Z",
       "updated_by": "Google-Antigravity"
     },
@@ -6447,9 +6429,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "7ecef801b1b6e1a53b8f1eca1a2b88d551978e3ae8b49c775c489d0baee6cec6",
+      "entry_sha256": "e7fc2b06ad588c8d728d2ff700f6c9b2664eb673af2c605337070933b0bbee71",
       "operation": "UPDATE",
-      "previous_entry_sha256": "b26dde62719b72652ae20e4e337ef8f5251213a56d4c5fb0639d66a840c7b75b",
+      "previous_entry_sha256": "7d7248afc7984af944d0a07a93c065b0d4109107eb7c0f57a37a8ec3490cf8a0",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -6499,7 +6481,7 @@
       },
       "record_sha256": "7c42a614c0b12c967d4aec6869ad06ab85e8c9742566bd118012b218c80ac984",
       "revision": 62,
-      "state_sha256": "d42b2e6fd46782864c0759310f04a07de5e31baa81986c29a979e72f0b3afc63",
+      "state_sha256": "0a15984eb195289a70112abd6f339426f75cb35e673cf2e8dffa32ff0e87cc1c",
       "timestamp_utc": "2026-09-17T13:59:52Z",
       "updated_by": "Google-Antigravity"
     },
@@ -6550,9 +6532,9 @@
       "changed_fields": [
         "PROVEN_EDGES"
       ],
-      "entry_sha256": "6d11437205d140ef0193f75863d9af2e794afda778d93a9e37362beabb6b3ed2",
+      "entry_sha256": "07339e3ece8b894de2df691b02a2e12636b90259f13162600ced2ddcdddbf6fe",
       "operation": "UPDATE",
-      "previous_entry_sha256": "7ecef801b1b6e1a53b8f1eca1a2b88d551978e3ae8b49c775c489d0baee6cec6",
+      "previous_entry_sha256": "e7fc2b06ad588c8d728d2ff700f6c9b2664eb673af2c605337070933b0bbee71",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -6603,7 +6585,7 @@
       },
       "record_sha256": "e5ca023f8699e62bfa77ce9195e9cd7705e4b8c9d6b8764a7d3b16a6403e5497",
       "revision": 63,
-      "state_sha256": "1a63669f416eb48749a82e2ba68bd020c5807148ff4d9593cecd6befeac8a4fe",
+      "state_sha256": "93ba522b1e1cdbbd99fb4c729bab56060fc2f76befe65088f4c8895cd9da3d8d",
       "timestamp_utc": "2026-09-17T13:59:57Z",
       "updated_by": "Google-Antigravity"
     },
@@ -6654,9 +6636,9 @@
       "changed_fields": [
         "PROVEN_EDGES"
       ],
-      "entry_sha256": "61808ce3677e840c9c7fc2861629308876fe5b05aa00895f2c2eb33dc4bfb981",
+      "entry_sha256": "2935aaa3223a056ed52168f5012faf1b26300ff725f5f3aa7c07cf4f1363a1a6",
       "operation": "UPDATE",
-      "previous_entry_sha256": "6d11437205d140ef0193f75863d9af2e794afda778d93a9e37362beabb6b3ed2",
+      "previous_entry_sha256": "07339e3ece8b894de2df691b02a2e12636b90259f13162600ced2ddcdddbf6fe",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -6708,7 +6690,7 @@
       },
       "record_sha256": "9f2c8dec5b85f3061a362b19abd43f3c662eddaa7616d4e42ab4a3925f52298c",
       "revision": 64,
-      "state_sha256": "284e32c3d99d84bad360431c0b3f30d4dfc16f8ca128e692c500bfc8b81a501c",
+      "state_sha256": "a20ff595578ba4f7735056403e6c8d5ef78be200151c2ae2cdb11073246d35c9",
       "timestamp_utc": "2026-09-17T13:59:58Z",
       "updated_by": "Google-Antigravity"
     },
@@ -6759,9 +6741,9 @@
       "changed_fields": [
         "PROVEN_EDGES"
       ],
-      "entry_sha256": "efe48e40ff604becc55499d1bd52767265c3b7bf2f0d6fc23101d15a3575f790",
+      "entry_sha256": "c6862ce90e1138fc8a4c54d2d4f7f0ded197a232754122b3a521e07a6837ba64",
       "operation": "UPDATE",
-      "previous_entry_sha256": "61808ce3677e840c9c7fc2861629308876fe5b05aa00895f2c2eb33dc4bfb981",
+      "previous_entry_sha256": "2935aaa3223a056ed52168f5012faf1b26300ff725f5f3aa7c07cf4f1363a1a6",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -6814,7 +6796,7 @@
       },
       "record_sha256": "1b8dde50788b5b125eb3e9bccef5e0d729394ea8ae8764700e0ca4980af7a055",
       "revision": 65,
-      "state_sha256": "fc4e79fca5058bf9e3b8343e3d42bccca51167040914130e3e5a694c2c2d7837",
+      "state_sha256": "f8a54010658c5666d737c3717d2fc959219c9965f7a348c00c9f51a0c04636f3",
       "timestamp_utc": "2026-09-17T13:59:58Z",
       "updated_by": "Google-Antigravity"
     },
@@ -6865,9 +6847,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "fbbffc372d60c258a6dc6cab9c7c0385a7325a1ca115e205b005015734250be7",
+      "entry_sha256": "f250557836e654ba49ab18cb1bbe58a75e669c243eb054f312116d83e99f4eb8",
       "operation": "UPDATE",
-      "previous_entry_sha256": "efe48e40ff604becc55499d1bd52767265c3b7bf2f0d6fc23101d15a3575f790",
+      "previous_entry_sha256": "c6862ce90e1138fc8a4c54d2d4f7f0ded197a232754122b3a521e07a6837ba64",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -6920,7 +6902,7 @@
       },
       "record_sha256": "7712a401a16267952d47fd4873c007a7c30559e05e17439d48034973fde1051f",
       "revision": 66,
-      "state_sha256": "0fa8a6a4aefb96cc4c0aff6dbc0d376212a589594f95b1f0cc9469b4d122b7cd",
+      "state_sha256": "46a03e5172daef1df953d1c36f3d0e7f021e007a612635822b7591610bf39c5c",
       "timestamp_utc": "2026-09-17T13:59:59Z",
       "updated_by": "Google-Antigravity"
     },
@@ -6972,9 +6954,9 @@
         "@ACCEPTANCE_GUARD",
         "CURRENT_SHA"
       ],
-      "entry_sha256": "04e803cb647adbe43efdc3e6b1b03fb6377b5c4716ba72e5bb637382ab3ebe2a",
+      "entry_sha256": "e835570908812cb93612145e93d43f16b07de6f125b2e3c267ce6e9702078d2e",
       "operation": "UPDATE",
-      "previous_entry_sha256": "fbbffc372d60c258a6dc6cab9c7c0385a7325a1ca115e205b005015734250be7",
+      "previous_entry_sha256": "f250557836e654ba49ab18cb1bbe58a75e669c243eb054f312116d83e99f4eb8",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -7027,7 +7009,7 @@
       },
       "record_sha256": "673d1457ab635af7491c4d549359ec011912525f72627e875c9a96950c9e1260",
       "revision": 67,
-      "state_sha256": "216c619ff79bcfa5f25d30a3b84035ded674e80d39cc965687774896f45b1b72",
+      "state_sha256": "04da2cce7fb01fff2c6acc099248754474224d6cf9e7a3a41c7080a4ea17ac00",
       "timestamp_utc": "2026-09-17T14:05:57Z",
       "updated_by": "Google-Antigravity"
     },
@@ -7081,9 +7063,9 @@
         "PROVEN_EDGES",
         "STATUS"
       ],
-      "entry_sha256": "5fd1545b0668632b54a96f53d59e6fb5432acc6003ff436935ffdfacdeeb941e",
+      "entry_sha256": "133f7e4df5b3ca044c8321810fe604308bdc611d5447d63f55d90c1925123e68",
       "operation": "UPDATE",
-      "previous_entry_sha256": "04e803cb647adbe43efdc3e6b1b03fb6377b5c4716ba72e5bb637382ab3ebe2a",
+      "previous_entry_sha256": "e835570908812cb93612145e93d43f16b07de6f125b2e3c267ce6e9702078d2e",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -7128,7 +7110,7 @@
       },
       "record_sha256": "ed9cd42c3586fd98256887c7fae589c1b7b9fa94e74b259bed2ab26670ab14d9",
       "revision": 68,
-      "state_sha256": "d798e78d5f077c2f29680e40c861eb9d3ecc4999a493c1f80e79ab215e930f91",
+      "state_sha256": "e770dc35b96c244e4070e583d3b904a71f8a3e94bcf1a1f2df7f26fb119c1502",
       "timestamp_utc": "2026-09-17T14:14:45Z",
       "updated_by": "antigravity"
     },
@@ -7180,9 +7162,9 @@
         "@ACCEPTANCE_GUARD",
         "CURRENT_SHA"
       ],
-      "entry_sha256": "6681d37e3697d31155621d5187b701e47fec3c0ecd0bffc1a2fa4e2222102d5f",
+      "entry_sha256": "720af6bff67faa50a9c664f81511e70f8cb6c42ea3ac2a50130f047b13b913f1",
       "operation": "UPDATE",
-      "previous_entry_sha256": "5fd1545b0668632b54a96f53d59e6fb5432acc6003ff436935ffdfacdeeb941e",
+      "previous_entry_sha256": "133f7e4df5b3ca044c8321810fe604308bdc611d5447d63f55d90c1925123e68",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -7227,7 +7209,7 @@
       },
       "record_sha256": "557fb88039dc61eaf8f604e5af4415fee258d1bdb8b3a0d804d0d82d01b22540",
       "revision": 69,
-      "state_sha256": "431febee4f3f12cf635ffbdc562242e8d09b84ea30b9986ad340e8e571d82f64",
+      "state_sha256": "187997e5a240436d61c67fb1263f13f5de7996bff80211d3433e0e6591b0955f",
       "timestamp_utc": "2026-09-17T14:15:24Z",
       "updated_by": "antigravity"
     },
@@ -7279,9 +7261,9 @@
         "LAST_UPDATED_BY",
         "PROVEN_EDGES"
       ],
-      "entry_sha256": "fbe1f25538905132191feb754295b0fb3b8a80e2e51fe012468c12066a85a66a",
+      "entry_sha256": "888503d659f82aa4144f17b8a51127763db3c28cd282cc23fd1f9073c113eb6c",
       "operation": "UPDATE",
-      "previous_entry_sha256": "6681d37e3697d31155621d5187b701e47fec3c0ecd0bffc1a2fa4e2222102d5f",
+      "previous_entry_sha256": "720af6bff67faa50a9c664f81511e70f8cb6c42ea3ac2a50130f047b13b913f1",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -7327,7 +7309,7 @@
       },
       "record_sha256": "cd66ab52009eef0325d133bc2089cc3b153b96a2c421f784a94b02f43de44352",
       "revision": 70,
-      "state_sha256": "4b3a0751553f3d37a6c2e4035940b8b2f0399e792a5238cd479f0a48341f4a41",
+      "state_sha256": "f0ae34266d26c3761cc04388c6c902f5cbbf26d61832b102987f1bd6dfbbf07f",
       "timestamp_utc": "2026-09-17T14:15:29Z",
       "updated_by": "Google-Antigravity"
     },
@@ -7378,9 +7360,9 @@
       "changed_fields": [
         "PROVEN_EDGES"
       ],
-      "entry_sha256": "66272e430abee72511930afecb6c6c6cfed5b5959484050fafba77aaac3d296c",
+      "entry_sha256": "ca9c68ccc07adba93ce29fce45e03ee90d610dddaae42a470304d7589f60f5a3",
       "operation": "UPDATE",
-      "previous_entry_sha256": "fbe1f25538905132191feb754295b0fb3b8a80e2e51fe012468c12066a85a66a",
+      "previous_entry_sha256": "888503d659f82aa4144f17b8a51127763db3c28cd282cc23fd1f9073c113eb6c",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -7427,7 +7409,7 @@
       },
       "record_sha256": "0bd8802a75600e8406f1066f350e5eaabfc8899eaf1bbe1b891498dc6e13f421",
       "revision": 71,
-      "state_sha256": "136d61fe45d6280b4c36b10f0547e4f04499fcab36a6c4390cb5f51af646d8f8",
+      "state_sha256": "099b64e9cf7b7c311ab591f8f2b4611efd6ea4de11bac980d058b707ef344d26",
       "timestamp_utc": "2026-09-17T14:15:30Z",
       "updated_by": "Google-Antigravity"
     },
@@ -7478,9 +7460,9 @@
       "changed_fields": [
         "PROVEN_EDGES"
       ],
-      "entry_sha256": "25d95285153b6ca981e9ea71ff8604b60d7b245c60d0bdb2430cfda6af736a88",
+      "entry_sha256": "7d977b57b29a4dcbe9397f6e4024a49538530dacb46abef9912cf0a89c6944ba",
       "operation": "UPDATE",
-      "previous_entry_sha256": "66272e430abee72511930afecb6c6c6cfed5b5959484050fafba77aaac3d296c",
+      "previous_entry_sha256": "ca9c68ccc07adba93ce29fce45e03ee90d610dddaae42a470304d7589f60f5a3",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -7528,7 +7510,7 @@
       },
       "record_sha256": "4e6de87df672ed987f9cbc6f1fd9b73a2d7d02750ae68e003af7e15a8855380e",
       "revision": 72,
-      "state_sha256": "1cd319c9104920e3c03cfa3ac82f326e2885c1a7876a88d3854fe8b4dbf38318",
+      "state_sha256": "e5b794b447c580f48cefe9d0a1f5171c2877d12c07dd4c0ed4557137bbab88d9",
       "timestamp_utc": "2026-09-17T14:15:30Z",
       "updated_by": "Google-Antigravity"
     },
@@ -7579,9 +7561,9 @@
       "changed_fields": [
         "PROVEN_EDGES"
       ],
-      "entry_sha256": "207ba725b94b004b682285f36c13441e63bf8693193fe5ca8524b529a3f0f173",
+      "entry_sha256": "e6a70ee8e00f2092abed7035e6f8dbb80541b82889bb3c1f295e1bbf36fde672",
       "operation": "UPDATE",
-      "previous_entry_sha256": "25d95285153b6ca981e9ea71ff8604b60d7b245c60d0bdb2430cfda6af736a88",
+      "previous_entry_sha256": "7d977b57b29a4dcbe9397f6e4024a49538530dacb46abef9912cf0a89c6944ba",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -7630,7 +7612,7 @@
       },
       "record_sha256": "7deba8044d4d7a0283e3c73a803e936273888e3ee147a873e71d193a90918590",
       "revision": 73,
-      "state_sha256": "ddf1b7a36a6f0d69ff2d37cedf12e21a1b87eac159b87a1e91c7a48f9d0edd17",
+      "state_sha256": "543dd477d648d53ea5bd8eb67d0996313f0bcbfb010ee8368c18339af6348117",
       "timestamp_utc": "2026-09-17T14:15:30Z",
       "updated_by": "Google-Antigravity"
     },
@@ -7681,9 +7663,9 @@
       "changed_fields": [
         "PROVEN_EDGES"
       ],
-      "entry_sha256": "d6717fd0429d5fb8545efacd0469007922333cb5edb3f403bb35a39b3ea72d5e",
+      "entry_sha256": "0e5d9c549839dcb36b99ffea183be0b3383c4a8a61bcc7b88f272d67de6e75b2",
       "operation": "UPDATE",
-      "previous_entry_sha256": "207ba725b94b004b682285f36c13441e63bf8693193fe5ca8524b529a3f0f173",
+      "previous_entry_sha256": "e6a70ee8e00f2092abed7035e6f8dbb80541b82889bb3c1f295e1bbf36fde672",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -7733,7 +7715,7 @@
       },
       "record_sha256": "665cd4c5b6604b8624b825c2452d859475b5ca6e448f9958a114de3a3626601c",
       "revision": 74,
-      "state_sha256": "42d0d6b4d918e62d27ef99629c536c4e210e18a987856a8581f779fc95e307cb",
+      "state_sha256": "7d808738bf0b244c334f6d3c49418d02bd0f7f901d6f064b5f1d26b4fb506e80",
       "timestamp_utc": "2026-09-17T14:15:31Z",
       "updated_by": "Google-Antigravity"
     },
@@ -7784,9 +7766,9 @@
       "changed_fields": [
         "PROVEN_EDGES"
       ],
-      "entry_sha256": "8913cce8910709211fc763cdf1e74c386c04e9e381a2fe6c475096e4c07ca491",
+      "entry_sha256": "822f515cdf258653460cb67e0653b2bf9c6205de0acef2fe6e36a40fc0e17bb7",
       "operation": "UPDATE",
-      "previous_entry_sha256": "d6717fd0429d5fb8545efacd0469007922333cb5edb3f403bb35a39b3ea72d5e",
+      "previous_entry_sha256": "0e5d9c549839dcb36b99ffea183be0b3383c4a8a61bcc7b88f272d67de6e75b2",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -7837,7 +7819,7 @@
       },
       "record_sha256": "09d6d858d866803f351e2351819970f00e01df81361909a50b6bdd56875fee1b",
       "revision": 75,
-      "state_sha256": "13908be63255774bbceb8a6f28340757cbd89e5fd3813c82b8ace217f025a7ab",
+      "state_sha256": "645e8316af7e7d39624e36c456625760f076774b911c75486a00d64c0e570e83",
       "timestamp_utc": "2026-09-17T14:15:31Z",
       "updated_by": "Google-Antigravity"
     },
@@ -7888,9 +7870,9 @@
       "changed_fields": [
         "PROVEN_EDGES"
       ],
-      "entry_sha256": "033a333e3145e24e81f9051050d9fef839caf839c817a314e4b5a01e393d856d",
+      "entry_sha256": "830450ef7dc8fab9d0601978c6ea98e130c8e8798edcf08c235cedc61887eada",
       "operation": "UPDATE",
-      "previous_entry_sha256": "8913cce8910709211fc763cdf1e74c386c04e9e381a2fe6c475096e4c07ca491",
+      "previous_entry_sha256": "822f515cdf258653460cb67e0653b2bf9c6205de0acef2fe6e36a40fc0e17bb7",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -7942,7 +7924,7 @@
       },
       "record_sha256": "a6f4e1c9209ca7a9daad1f3a7a3e67d0c3e7c173f6f467bf2d5575cb9ab7b733",
       "revision": 76,
-      "state_sha256": "d0a5a3814905579f887981b0f93737e78200b863b00381116af67ae839130ce9",
+      "state_sha256": "1cd1446dd2e88c952eb2e03723f7cdf18efd06dfe42a23eb41e52f4aecb29f40",
       "timestamp_utc": "2026-09-17T14:15:31Z",
       "updated_by": "Google-Antigravity"
     },
@@ -7993,9 +7975,9 @@
       "changed_fields": [
         "PROVEN_EDGES"
       ],
-      "entry_sha256": "b6048dbe4a0582841f5cbd28ff7e7f3be553ce23bdd9b4f22f9cf96818be87ab",
+      "entry_sha256": "2039e103197a3372ca18972e38b2d3c8898647b9d5be3c5420e8d284524f60ea",
       "operation": "UPDATE",
-      "previous_entry_sha256": "033a333e3145e24e81f9051050d9fef839caf839c817a314e4b5a01e393d856d",
+      "previous_entry_sha256": "830450ef7dc8fab9d0601978c6ea98e130c8e8798edcf08c235cedc61887eada",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -8048,7 +8030,7 @@
       },
       "record_sha256": "a5f58f79dfe74e2fb07b978107e6d2b5c32064bd7144b8723e27e9653c2abfa9",
       "revision": 77,
-      "state_sha256": "a04ee51ffe155626bbf3aa837f2af9e0c3c31fc11d7207541de7519c054623a1",
+      "state_sha256": "32675ebfb0bc5b1d61a372ab1ba42216a1ba22888f658663b702da2e971588a6",
       "timestamp_utc": "2026-09-17T14:15:32Z",
       "updated_by": "Google-Antigravity"
     },
@@ -8099,9 +8081,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "d3ce3f7ca86001e890c34a4e201634d14592e3b40c0edde74a8d6aa8aa810358",
+      "entry_sha256": "c552f477b9cdff2f54b631adfdbd45f297f14de348108e50fb4b37046d46af15",
       "operation": "UPDATE",
-      "previous_entry_sha256": "b6048dbe4a0582841f5cbd28ff7e7f3be553ce23bdd9b4f22f9cf96818be87ab",
+      "previous_entry_sha256": "2039e103197a3372ca18972e38b2d3c8898647b9d5be3c5420e8d284524f60ea",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -8154,7 +8136,7 @@
       },
       "record_sha256": "5804bf74b074198117e9b857834981f33b88521cace30a21ec2374c679b3ea90",
       "revision": 78,
-      "state_sha256": "1ad2e458b45bda51dea6f85ed3799fa5d1c388ba75cf3bd9bf6411adc6fb9af3",
+      "state_sha256": "ac221defabfae84fe32e866fa00d465587cf50f84b589af6f6b0155207343575",
       "timestamp_utc": "2026-09-17T14:15:32Z",
       "updated_by": "Google-Antigravity"
     },
@@ -8207,9 +8189,9 @@
         "LAST_UPDATED_BY",
         "PROVEN_EDGES"
       ],
-      "entry_sha256": "f6070b760c580791731c1d8e942006dd49e738376b4940493e486eaf0a3f3a69",
+      "entry_sha256": "e9fe1ac02f564b0b6d2a0f2472791db57b4a9f4f0e82c574ab9ba945bc4983ec",
       "operation": "UPDATE",
-      "previous_entry_sha256": "d3ce3f7ca86001e890c34a4e201634d14592e3b40c0edde74a8d6aa8aa810358",
+      "previous_entry_sha256": "c552f477b9cdff2f54b631adfdbd45f297f14de348108e50fb4b37046d46af15",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -8254,7 +8236,7 @@
       },
       "record_sha256": "557fb88039dc61eaf8f604e5af4415fee258d1bdb8b3a0d804d0d82d01b22540",
       "revision": 79,
-      "state_sha256": "f4cfbfbdf60b7ac7aad3521a8020486d9dc171b821c3bc0b1ceb8fd166ffe1ff",
+      "state_sha256": "187997e5a240436d61c67fb1263f13f5de7996bff80211d3433e0e6591b0955f",
       "timestamp_utc": "2026-09-17T14:16:05Z",
       "updated_by": "antigravity"
     },
@@ -8306,9 +8288,9 @@
         "LAST_UPDATED_BY",
         "PROVEN_EDGES"
       ],
-      "entry_sha256": "fb6501b6c56b86f3074766ef9381cb10b66a2e668e182ebfbfc22d492fa38db6",
+      "entry_sha256": "3b423e1e9293bcb298c279457dc957c9215e581e1c62262d68fc7b89edd8e301",
       "operation": "UPDATE",
-      "previous_entry_sha256": "f6070b760c580791731c1d8e942006dd49e738376b4940493e486eaf0a3f3a69",
+      "previous_entry_sha256": "e9fe1ac02f564b0b6d2a0f2472791db57b4a9f4f0e82c574ab9ba945bc4983ec",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -8354,7 +8336,7 @@
       },
       "record_sha256": "0cf233dd420031a5e929dbf07bacc1fa274744f12bc08ca297914f1e9b6ff8fb",
       "revision": 80,
-      "state_sha256": "d7ca4e982d9e805b9d624452ae1eab8f07bd49e87f43eb264befef775d9aebda",
+      "state_sha256": "593a791585f366bd1f6e390cb1379435b28f06135e991ba6f0a7497853258b7f",
       "timestamp_utc": "2026-09-17T14:16:45Z",
       "updated_by": "Google-Antigravity"
     },
@@ -8405,9 +8387,9 @@
       "changed_fields": [
         "PROVEN_EDGES"
       ],
-      "entry_sha256": "708ee42c929099d987c3b1376a4662e0e2f1df2a6c71d23fa199bcb3342f4d28",
+      "entry_sha256": "a3437a6e54d5446891f48f26fe41fb38d0fdcb92f3bb3773a86784964ef4e069",
       "operation": "UPDATE",
-      "previous_entry_sha256": "fb6501b6c56b86f3074766ef9381cb10b66a2e668e182ebfbfc22d492fa38db6",
+      "previous_entry_sha256": "3b423e1e9293bcb298c279457dc957c9215e581e1c62262d68fc7b89edd8e301",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -8454,7 +8436,7 @@
       },
       "record_sha256": "8f96d9d845a45d0245982a0318f93e09eee7fb984201540b14cddb00745da907",
       "revision": 81,
-      "state_sha256": "ecb6e86671dfb126e2f5de0f30990b665ffbb808c5797db67de8dbd35f11a710",
+      "state_sha256": "402a3301f229ffdd71098426118fcc92e942a49315d14bd9d47f64c1ebaafb89",
       "timestamp_utc": "2026-09-17T14:16:45Z",
       "updated_by": "Google-Antigravity"
     },
@@ -8505,9 +8487,9 @@
       "changed_fields": [
         "PROVEN_EDGES"
       ],
-      "entry_sha256": "6e3b782d725233f2bcbc6725aff53a855c2383a6ece661cd22032d68bf512f3c",
+      "entry_sha256": "57b220650b75246aba07b40af79a4afefedcb7931bfde9ccebb8f71e8e1f9e9d",
       "operation": "UPDATE",
-      "previous_entry_sha256": "708ee42c929099d987c3b1376a4662e0e2f1df2a6c71d23fa199bcb3342f4d28",
+      "previous_entry_sha256": "a3437a6e54d5446891f48f26fe41fb38d0fdcb92f3bb3773a86784964ef4e069",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -8555,7 +8537,7 @@
       },
       "record_sha256": "9ebb2d4e5183761e3fd419ea84f1f2e99886075f6ad5a135f6c65eb3b5c0bad7",
       "revision": 82,
-      "state_sha256": "0358f43b2bec908d1f380d39694fdf0d273212ba98a373f94b2c6ca23b4a3287",
+      "state_sha256": "4663c8b2881570cc470559a2f3906623cf438be21005ee56f75c1df91d69c7d7",
       "timestamp_utc": "2026-09-17T14:16:46Z",
       "updated_by": "Google-Antigravity"
     },
@@ -8606,9 +8588,9 @@
       "changed_fields": [
         "PROVEN_EDGES"
       ],
-      "entry_sha256": "55176a98aa9810497945e524234389bf007c517d7d7abef9d0a052404b31e35f",
+      "entry_sha256": "13aee379d46708f382a856c91d117920ff282eaaba5e240cca1686012a76dae6",
       "operation": "UPDATE",
-      "previous_entry_sha256": "6e3b782d725233f2bcbc6725aff53a855c2383a6ece661cd22032d68bf512f3c",
+      "previous_entry_sha256": "57b220650b75246aba07b40af79a4afefedcb7931bfde9ccebb8f71e8e1f9e9d",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -8657,7 +8639,7 @@
       },
       "record_sha256": "729c68b733d2308eca03cf2c8a9f50625edd1082afb1081837399a6df7e2946e",
       "revision": 83,
-      "state_sha256": "44d75a27597c47a449e1e4532ce944d913a86de62e9d19472c9f447cc3f4657f",
+      "state_sha256": "bf499bc0d3d166ea74a4d377984e1c10aac0ca2de10c2abdb5b8cd5a5627bb93",
       "timestamp_utc": "2026-09-17T14:16:46Z",
       "updated_by": "Google-Antigravity"
     },
@@ -8708,9 +8690,9 @@
       "changed_fields": [
         "PROVEN_EDGES"
       ],
-      "entry_sha256": "dfb424e82b20b3cc22b76c32294bba69daa793a78d366da4e01319ff0e0a9452",
+      "entry_sha256": "acce1e98f4d4f5d957cf50a2ed4ce32a305061a3735aaeb0a71065ba9bafda00",
       "operation": "UPDATE",
-      "previous_entry_sha256": "55176a98aa9810497945e524234389bf007c517d7d7abef9d0a052404b31e35f",
+      "previous_entry_sha256": "13aee379d46708f382a856c91d117920ff282eaaba5e240cca1686012a76dae6",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -8760,7 +8742,7 @@
       },
       "record_sha256": "4d81bcc5ebc5d3f2ce91f2bc9ea0a6480a2b4b01d1552d0a6468930fac594c0e",
       "revision": 84,
-      "state_sha256": "e5f31d4cf5cda2b2b45d89dbe1dfcccff52a441ae79ff5230ebb034743cb088f",
+      "state_sha256": "b6a70a9a0efba7c293d23cab0e359b4e841849c8d6f751b4d7bacbd2dbba35d8",
       "timestamp_utc": "2026-09-17T14:16:46Z",
       "updated_by": "Google-Antigravity"
     },
@@ -8811,9 +8793,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "33bf42751063aed4457e15da55361aa550600113cd59eea46148a2c0c7721d7b",
+      "entry_sha256": "760702be33307f810d8438ff7b8f3819854dbfed70242e8c40b57e0bde5a220b",
       "operation": "UPDATE",
-      "previous_entry_sha256": "dfb424e82b20b3cc22b76c32294bba69daa793a78d366da4e01319ff0e0a9452",
+      "previous_entry_sha256": "acce1e98f4d4f5d957cf50a2ed4ce32a305061a3735aaeb0a71065ba9bafda00",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -8863,7 +8845,7 @@
       },
       "record_sha256": "6497025693def8ddc1b463cb428460cfdf79630ca749da3ca56c4d0345993c45",
       "revision": 85,
-      "state_sha256": "c25e6eee60f2c5265d835b10130232f6f321f952155f8134da7a82d5b23cce04",
+      "state_sha256": "313ec25767d19a1a59e1d612664e5c542c5f93794bb5c9e4c4a00da7d1301123",
       "timestamp_utc": "2026-09-17T14:16:47Z",
       "updated_by": "Google-Antigravity"
     },
@@ -8915,9 +8897,9 @@
         "FIRST_CAUSAL_BLOCKER",
         "PROVEN_EDGES"
       ],
-      "entry_sha256": "c43f8882b1eec58ebde70fafd10aa166198f719650350ae11532c6462090e70e",
+      "entry_sha256": "2fb1c9c43231ba6c2aac424bd8d3a99aca0ddc2bb88a0765f367ec3c0e6faeea",
       "operation": "UPDATE",
-      "previous_entry_sha256": "33bf42751063aed4457e15da55361aa550600113cd59eea46148a2c0c7721d7b",
+      "previous_entry_sha256": "760702be33307f810d8438ff7b8f3819854dbfed70242e8c40b57e0bde5a220b",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -8968,7 +8950,7 @@
       },
       "record_sha256": "2ab218c60abd3ece02d8e55da7fc18f0ed4d582a3dc1d571b42f7b33bbb0f1a6",
       "revision": 86,
-      "state_sha256": "d4a371839480c2b2bbb422da2032d4a1d0d60ca7f6ee86299f1263ae47f9fbd3",
+      "state_sha256": "0d92bf911bf8b667447dd3baaa5c427fb5f3d20e46d7e05a1b30cc02608439b8",
       "timestamp_utc": "2026-09-17T14:16:47Z",
       "updated_by": "Google-Antigravity"
     },
@@ -9019,9 +9001,9 @@
       "changed_fields": [
         "FIRST_CAUSAL_BLOCKER"
       ],
-      "entry_sha256": "5bfbc880127e9977f032013a21d75f2d0fc6b98411f3def09ee9d0a4a849b779",
+      "entry_sha256": "9ce74f6399e684178031ab1abc70d8d9f76730d80b3be835306c1aa2b4f21837",
       "operation": "UPDATE",
-      "previous_entry_sha256": "c43f8882b1eec58ebde70fafd10aa166198f719650350ae11532c6462090e70e",
+      "previous_entry_sha256": "2fb1c9c43231ba6c2aac424bd8d3a99aca0ddc2bb88a0765f367ec3c0e6faeea",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -9072,7 +9054,7 @@
       },
       "record_sha256": "1f83ef0a9cb8922978a9ab9323911062b15e24576009e28dea98215b7dda2a6a",
       "revision": 87,
-      "state_sha256": "0e3b7700395fbcb17a8901562bf71bf07e2d24e1b95393e4efbb2f062e0d75fe",
+      "state_sha256": "969cbecef8ee5af9330e72733df57529142b3cca17c5012d79c44f4b8c4519a0",
       "timestamp_utc": "2026-09-17T14:16:48Z",
       "updated_by": "Google-Antigravity"
     },
@@ -9125,9 +9107,9 @@
         "CURRENT_SHA",
         "LAST_UPDATED_BY"
       ],
-      "entry_sha256": "2ef9e4b24fbff82c764d13f0e7956ae4a3ff754a76f5b9c420f63a323c51db72",
+      "entry_sha256": "861c9d45c5b6a11e54301fbe87a285cb07ce588e21ace1e456813bd141f8b173",
       "operation": "UPDATE",
-      "previous_entry_sha256": "5bfbc880127e9977f032013a21d75f2d0fc6b98411f3def09ee9d0a4a849b779",
+      "previous_entry_sha256": "9ce74f6399e684178031ab1abc70d8d9f76730d80b3be835306c1aa2b4f21837",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -9178,7 +9160,7 @@
       },
       "record_sha256": "634bdd7e841429a02c6328a54ced4d3a92bc041acbdf3c253077c8ddd4170c15",
       "revision": 88,
-      "state_sha256": "622185b7352ef5d3dd2938978b40e1a0aa438a76b77f48ee320c4b7bf28a27ce",
+      "state_sha256": "909625354a8caa3ca860e1489574147edf060b766a8dc580b535ff32d273958b",
       "timestamp_utc": "2026-09-17T14:38:26Z",
       "updated_by": "antigravity"
     },
@@ -9230,9 +9212,9 @@
         "@ACCEPTANCE_GUARD",
         "CURRENT_SHA"
       ],
-      "entry_sha256": "5f5bd7410e620f3e178a9471428b215fc4329ea7dacb21315d73572c8aa8a602",
+      "entry_sha256": "d223f1528da898742696e54c304c3c19eac5f72e62191be9dc54654159b89a0b",
       "operation": "UPDATE",
-      "previous_entry_sha256": "2ef9e4b24fbff82c764d13f0e7956ae4a3ff754a76f5b9c420f63a323c51db72",
+      "previous_entry_sha256": "861c9d45c5b6a11e54301fbe87a285cb07ce588e21ace1e456813bd141f8b173",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -9283,7 +9265,7 @@
       },
       "record_sha256": "3e9b4d6d6367827ed79bd37a5d587d78e36d4110b739f69435ac14e1ba3b3053",
       "revision": 89,
-      "state_sha256": "d4ddc18d88c7bece03efffd5afe9640455380ea08331325e5aa20d6292888dfd",
+      "state_sha256": "5f537c427717da1800989a197140af8fd3c8a920b6912774911293def0925fb9",
       "timestamp_utc": "2026-09-17T14:38:46Z",
       "updated_by": "antigravity"
     },
@@ -9336,9 +9318,9 @@
         "LAST_UPDATED_BY",
         "PROVEN_EDGES"
       ],
-      "entry_sha256": "5f0ef8b36170f0b799ce01372a98a4e1819048abeb00bf16a51841dbc727d8e4",
+      "entry_sha256": "6f287b99ac23e7fa01e608a1cd3b654e2dfc3fa328187fa018f46804489a1d89",
       "operation": "UPDATE",
-      "previous_entry_sha256": "5f5bd7410e620f3e178a9471428b215fc4329ea7dacb21315d73572c8aa8a602",
+      "previous_entry_sha256": "d223f1528da898742696e54c304c3c19eac5f72e62191be9dc54654159b89a0b",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -9390,7 +9372,7 @@
       },
       "record_sha256": "4e3240aa4c365449f23cc934385f5b7708b9f896c0b8b475f5752ec7f42b023b",
       "revision": 90,
-      "state_sha256": "f3a2eadcdb49741acbe1f2cb50e2e15084568ffaa28ace93d587de1d475accad",
+      "state_sha256": "24462c54f75b54914ab2407989223f9f3cb15c577a1ee69f62182c5d0440d920",
       "timestamp_utc": "2026-09-17T14:38:46Z",
       "updated_by": "Google-Antigravity"
     },
@@ -9441,9 +9423,9 @@
       "changed_fields": [
         "PROVEN_EDGES"
       ],
-      "entry_sha256": "0b8a17a938d66f208f2a563a573ca4c6c884c07f9b12a6021f0b9fbe954b818b",
+      "entry_sha256": "f8dfb56675a7e11604ea9f038b4d11e40770f80c7d071fa808b7a8a93d7d1345",
       "operation": "UPDATE",
-      "previous_entry_sha256": "5f0ef8b36170f0b799ce01372a98a4e1819048abeb00bf16a51841dbc727d8e4",
+      "previous_entry_sha256": "6f287b99ac23e7fa01e608a1cd3b654e2dfc3fa328187fa018f46804489a1d89",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -9496,7 +9478,7 @@
       },
       "record_sha256": "c22e46064d2ef73d0a1f15a47dcac0d6d11379d0df2147e424c7dac0c707212c",
       "revision": 91,
-      "state_sha256": "41a5f7df263a8d8ad1ff98230e6fbf27b1267c31a7b0bbbad839e2c6e51eed54",
+      "state_sha256": "e41becc155ff2dcc2da2002902efc493a7f1e2f4e04322bae8e931ef4add2e74",
       "timestamp_utc": "2026-09-17T14:38:47Z",
       "updated_by": "Google-Antigravity"
     },
@@ -9547,9 +9529,9 @@
       "changed_fields": [
         "PROVEN_EDGES"
       ],
-      "entry_sha256": "43f46f7b7d38ecb5579c3600ae1b5f35bee88bfc82ef02e2ba39aaa0cd569108",
+      "entry_sha256": "0b8b3ffed3e17a64d775364b7c133e548d3f3cdfc610198d90c61115a81c3f3c",
       "operation": "UPDATE",
-      "previous_entry_sha256": "0b8a17a938d66f208f2a563a573ca4c6c884c07f9b12a6021f0b9fbe954b818b",
+      "previous_entry_sha256": "f8dfb56675a7e11604ea9f038b4d11e40770f80c7d071fa808b7a8a93d7d1345",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -9603,7 +9585,7 @@
       },
       "record_sha256": "36e836f9c7d13ce28f0942d04bcb605b0ce2a97533e7f5eed65d8bd88d255021",
       "revision": 92,
-      "state_sha256": "d4005a928c767a1261d955996d603c6ef5f4e5e5017e1854ae8e47951becede0",
+      "state_sha256": "a957561f36be8589f1df910adc19af8707a8032b7e6cf24ab572f83d30b21da3",
       "timestamp_utc": "2026-09-17T14:38:47Z",
       "updated_by": "Google-Antigravity"
     },
@@ -9655,9 +9637,9 @@
         "PROVEN_EDGES",
         "UNPROVEN_EDGES"
       ],
-      "entry_sha256": "1ab6c7affb67b2448f830192507d7922a740c0b153ba14af4759015dcff55322",
+      "entry_sha256": "c3bd11eb1ea917f86ef061d51dfc104beafae3620da757c1d74df517362b7833",
       "operation": "UPDATE",
-      "previous_entry_sha256": "43f46f7b7d38ecb5579c3600ae1b5f35bee88bfc82ef02e2ba39aaa0cd569108",
+      "previous_entry_sha256": "0b8b3ffed3e17a64d775364b7c133e548d3f3cdfc610198d90c61115a81c3f3c",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -9711,7 +9693,7 @@
       },
       "record_sha256": "f98d87808ebb2453b5e651e0933e2126dc8ec2d2d2454b2e54d51731f9c9baec",
       "revision": 93,
-      "state_sha256": "fb7fb1f967570289bf0162ad22a895519855494a076ea16de483863b9b3c087a",
+      "state_sha256": "7db4f7c7ac59da0dccfc240376ef2a5b1bda5111a5b2c3f6ad984e34c23500bc",
       "timestamp_utc": "2026-09-17T14:38:49Z",
       "updated_by": "Google-Antigravity"
     },
@@ -9770,14 +9752,13 @@
       },
       "changed_fields": [
         "@ACCEPTANCE_GUARD",
-        "CLEAN_IDLE",
         "PROVEN_EDGES",
         "STATUS",
         "UNPROVEN_EDGES"
       ],
-      "entry_sha256": "a4cd9d4a830ebe60c8e088c8cf6a09f5efc262fc987c6c931cd6c055f4a02825",
+      "entry_sha256": "8b6095ab47b5a99be5b1efabe6438374220e234a55fcb0aaea9a201387d1bb7b",
       "operation": "UPDATE",
-      "previous_entry_sha256": "1ab6c7affb67b2448f830192507d7922a740c0b153ba14af4759015dcff55322",
+      "previous_entry_sha256": "c3bd11eb1ea917f86ef061d51dfc104beafae3620da757c1d74df517362b7833",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -9830,7 +9811,7 @@
       },
       "record_sha256": "ab9dd186d45283c87a309ea5cfd63558d461361b72d1e07e156981b55a6daaad",
       "revision": 94,
-      "state_sha256": "494df15a1d7bff802143762a19a027b38160b41118b6aedd396ddd613a159218",
+      "state_sha256": "c2be09e94db56366839bff3705237a828a227f141427a79e917cc8feebddf55d",
       "timestamp_utc": "2026-09-17T14:38:49Z",
       "updated_by": "Google-Antigravity"
     },
@@ -9891,9 +9872,9 @@
         "@ACCEPTANCE_GUARD",
         "CURRENT_SHA"
       ],
-      "entry_sha256": "39c7c2acb92d8a096068a7763c38db27b4108503bb4307e52d3a803dde392f9e",
+      "entry_sha256": "28467840f7a02668172856d01b13fbb5a7b9597a04ff54233b5233461a3b8f4f",
       "operation": "UPDATE",
-      "previous_entry_sha256": "a4cd9d4a830ebe60c8e088c8cf6a09f5efc262fc987c6c931cd6c055f4a02825",
+      "previous_entry_sha256": "8b6095ab47b5a99be5b1efabe6438374220e234a55fcb0aaea9a201387d1bb7b",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -9946,7 +9927,7 @@
       },
       "record_sha256": "787f717bf4ceef494dd17e6b94fce0583cfe264712e85cd7d4f0e240ecb28564",
       "revision": 95,
-      "state_sha256": "cdb32d2b61a01a50468be98b47c72b9878332c3d061ffdc5b34614c90640bf95",
+      "state_sha256": "fe3853cedd7d2aa3ac9f80e1166c33bc953122da8215df28968becda511993aa",
       "timestamp_utc": "2026-09-17T14:42:06Z",
       "updated_by": "Google-Antigravity"
     },
@@ -10015,9 +9996,9 @@
       "changed_fields": [
         "@ACCEPTANCE_GUARD"
       ],
-      "entry_sha256": "d3806412c4527ce8201b4a932e0ea3a95e4a3dc6391d183eacc4fcc4925d7c9e",
+      "entry_sha256": "4772baa77f5d5ba57a1d31659fcbb994ee694527f98c3fcf7b125e6e3c9a3c0b",
       "operation": "UPDATE",
-      "previous_entry_sha256": "39c7c2acb92d8a096068a7763c38db27b4108503bb4307e52d3a803dde392f9e",
+      "previous_entry_sha256": "28467840f7a02668172856d01b13fbb5a7b9597a04ff54233b5233461a3b8f4f",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -10070,8 +10051,225 @@
       },
       "record_sha256": "787f717bf4ceef494dd17e6b94fce0583cfe264712e85cd7d4f0e240ecb28564",
       "revision": 96,
-      "state_sha256": "88e6c58c627e800cafd22e55e299758fc22e6613a474aee6778040ad5ead6eda",
+      "state_sha256": "ae3f5b578ec72fa12dff2a416dcc9b861a714e43e0b5952942088d4d98ab7e1b",
       "timestamp_utc": "2026-09-17T14:42:06Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [
+                "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6"
+              ],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "8fcb6eb359ae973d338b90869ed7524b36dfde9a",
+          "runtime_identity": "8fcb6eb359ae973d338b90869ed7524b36dfde9a"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "b4529b49d434b1b26bb3590c760658afe16154c6",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@b4529b49d434b1b26bb3590c760658afe16154c6",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "@ACCEPTANCE_GUARD",
+        "CURRENT_SHA",
+        "QUEUE_INDEPENDENT",
+        "RUNTIME_IDENTITY",
+        "STATUS"
+      ],
+      "entry_sha256": "0c57cb56e6be1f4d0c424268bba6ee8e39b064cfd1a4d03bab12841ab9a617f3",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "4772baa77f5d5ba57a1d31659fcbb994ee694527f98c3fcf7b125e6e3c9a3c0b",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "8fcb6eb359ae973d338b90869ed7524b36dfde9a",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "NONE",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "EXTERNAL_PUBLICATION",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Website QA",
+          "Token Efficiency",
+          "Zero-Chat Handoff",
+          "Demo Readiness",
+          "LEDGER/HANDOFF",
+          "PILOT INTAKE",
+          "SALES PACKAGE",
+          "POST-PILOT HARDENING",
+          "PUBLICATION VERIFICATION",
+          "PR41 ACCEPTANCE",
+          "RELEASE",
+          "PUBLIC DEPLOYMENT",
+          "FIRST PILOT",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
+          "EXTERNAL_PUBLICATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "8fcb6eb359ae973d338b90869ed7524b36dfde9a",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "WAITING_PHYSICAL_PROOF",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "b7da3af451665ba2907a2659e05c7cd51c0701414a24d322443546eabc7cda21",
+      "revision": 97,
+      "state_sha256": "7dc82643caa895ac852c186d50d63349462b8e682ce8a6005ce8114df9b01bc8",
+      "timestamp_utc": "2026-09-17T15:39:28Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [
+                "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6"
+              ],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "8fcb6eb359ae973d338b90869ed7524b36dfde9a",
+          "runtime_identity": "8fcb6eb359ae973d338b90869ed7524b36dfde9a"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "b4529b49d434b1b26bb3590c760658afe16154c6",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@b4529b49d434b1b26bb3590c760658afe16154c6",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "FIRST_CAUSAL_BLOCKER",
+        "NEXT_EXECUTABLE_ACTION"
+      ],
+      "entry_sha256": "389c1879e3cdb614c5a76a79d02cdc1a9cf0c2ca7afd8cb658457c77da6e172d",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "0c57cb56e6be1f4d0c424268bba6ee8e39b064cfd1a4d03bab12841ab9a617f3",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "8fcb6eb359ae973d338b90869ed7524b36dfde9a",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "MISSING_PHYSICAL_ACCEPTANCE_EVIDENCE",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Website QA",
+          "Token Efficiency",
+          "Zero-Chat Handoff",
+          "Demo Readiness",
+          "LEDGER/HANDOFF",
+          "PILOT INTAKE",
+          "SALES PACKAGE",
+          "POST-PILOT HARDENING",
+          "PUBLICATION VERIFICATION",
+          "PR41 ACCEPTANCE",
+          "RELEASE",
+          "PUBLIC DEPLOYMENT",
+          "FIRST PILOT",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
+          "EXTERNAL_PUBLICATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "8fcb6eb359ae973d338b90869ed7524b36dfde9a",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "WAITING_PHYSICAL_PROOF",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "c60e600b5c017c2944599cc063d07969bc5e695531c88fd8bc07d3218ff0e477",
+      "revision": 98,
+      "state_sha256": "112be5992e472f635f0f7ea1d61dbd00c6a058a8f4536c4f727c6a40f6bd3e49",
+      "timestamp_utc": "2026-09-17T15:39:37Z",
       "updated_by": "Google-Antigravity"
     }
   ],
@@ -10088,15 +10286,15 @@
       "motor-eligibility-v1"
     ],
     "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
-    "CURRENT_SHA": "7af3cae8e6296f15a142363b021fea0a8b22ac74",
+    "CURRENT_SHA": "8fcb6eb359ae973d338b90869ed7524b36dfde9a",
     "DUPLICATE_EXTERNAL_EFFECTS": 0,
-    "FIRST_CAUSAL_BLOCKER": "NONE",
+    "FIRST_CAUSAL_BLOCKER": "MISSING_PHYSICAL_ACCEPTANCE_EVIDENCE",
     "GOAL": "COURIER-PUBLIC-RELEASE",
     "GOALS_SUBMITTED": 1,
     "LAST_EVIDENCE": [],
     "LAST_UPDATED_BY": "Google-Antigravity",
     "MANUAL_PROCESS_RESTARTS": 0,
-    "NEXT_EXECUTABLE_ACTION": "EXTERNAL_PUBLICATION",
+    "NEXT_EXECUTABLE_ACTION": "NONE",
     "PROJECT": "Courier",
     "PROVEN_EDGES": [
       "Website QA",
@@ -10116,16 +10314,16 @@
       "EXTERNAL_PUBLICATION",
       "ONBOARD_FIRST_PILOT_CUSTOMER"
     ],
-    "QUEUE_INDEPENDENT": "YES",
-    "RUNTIME_IDENTITY": "Google-Antigravity-Ledger",
+    "QUEUE_INDEPENDENT": "NO",
+    "RUNTIME_IDENTITY": "8fcb6eb359ae973d338b90869ed7524b36dfde9a",
     "RUNTIME_OWNER": "Google-Antigravity",
-    "STATUS": "WAITING_NEXT_ACTION",
+    "STATUS": "WAITING_PHYSICAL_PROOF",
     "TASKS_COMPLETED": 2,
     "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
     "UNPROVEN_EDGES": [],
     "USER_CONTINUE_MESSAGES": 0,
     "WORKERS_USED": 1
   },
-  "revision": 96,
+  "revision": 98,
   "schema_version": 2
 }
