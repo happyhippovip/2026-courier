@@ -8,18 +8,18 @@
       "results": {
         "ISSUE_STATE": {
           "evidence_urls": [
-            "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6"
+            "https://github.com/happyhippovip/2026-courier/actions/runs/580"
           ],
           "observed_value": "NO_FURTHER_ACTION",
-          "status": "UNKNOWN"
+          "status": "PASS"
         }
       },
       "version": "1.0"
     },
     "binding": {
       "branch": "release-candidate-integration",
-      "current_sha": "8fcb6eb359ae973d338b90869ed7524b36dfde9a",
-      "runtime_identity": "8fcb6eb359ae973d338b90869ed7524b36dfde9a"
+      "current_sha": "9850f336e3c32ced95d50212e8a64f746a79be65",
+      "runtime_identity": "9850f336e3c32ced95d50212e8a64f746a79be65"
     },
     "evidence": [
       {
@@ -30,6 +30,17 @@
         "source_type": "GITHUB_COMMIT",
         "source_url": "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6",
         "validity": "UNKNOWN"
+      },
+      {
+        "evidence_sha": "9850f336e3c32ced95d50212e8a64f746a79be65",
+        "observed_at": "2026-09-17T17:50:00Z",
+        "producer_id": "WINDOWS-WORKER",
+        "reason": "Physical acceptance trace passed with USER_CONTINUE_MESSAGES=0",
+        "runtime_binding": "9850f336e3c32ced95d50212e8a64f746a79be65",
+        "source_type": "MACHINE_ARTIFACT",
+        "source_url": "https://github.com/happyhippovip/2026-courier/actions/runs/580",
+        "validity": "VALID",
+        "verifier_id": "VERIFIER-01"
       }
     ],
     "flow": [
@@ -39,7 +50,7 @@
       "LEDGER_TRANSITION",
       "NEXT_EXECUTABLE_ACTION"
     ],
-    "transition_state": "PROVISIONAL",
+    "transition_state": "CANONICAL_ACCEPTED",
     "worker_state": "IDLE/YIELDED"
   },
   "format": "courier-agent-handoff-ledger",
@@ -10271,6 +10282,353 @@
       "state_sha256": "112be5992e472f635f0f7ea1d61dbd00c6a058a8f4536c4f727c6a40f6bd3e49",
       "timestamp_utc": "2026-09-17T15:39:37Z",
       "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [
+                "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6"
+              ],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "9850f336e3c32ced95d50212e8a64f746a79be65",
+          "runtime_identity": "9850f336e3c32ced95d50212e8a64f746a79be65"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "b4529b49d434b1b26bb3590c760658afe16154c6",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@b4529b49d434b1b26bb3590c760658afe16154c6",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "@ACCEPTANCE_GUARD",
+        "CURRENT_SHA",
+        "RUNTIME_IDENTITY"
+      ],
+      "entry_sha256": "833b7f03509fb6a97ece4fbaa2a4194218bf795c53672e0eb9b939d8c83743e8",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "389c1879e3cdb614c5a76a79d02cdc1a9cf0c2ca7afd8cb658457c77da6e172d",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "9850f336e3c32ced95d50212e8a64f746a79be65",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "MISSING_PHYSICAL_ACCEPTANCE_EVIDENCE",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Website QA",
+          "Token Efficiency",
+          "Zero-Chat Handoff",
+          "Demo Readiness",
+          "LEDGER/HANDOFF",
+          "PILOT INTAKE",
+          "SALES PACKAGE",
+          "POST-PILOT HARDENING",
+          "PUBLICATION VERIFICATION",
+          "PR41 ACCEPTANCE",
+          "RELEASE",
+          "PUBLIC DEPLOYMENT",
+          "FIRST PILOT",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
+          "EXTERNAL_PUBLICATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "9850f336e3c32ced95d50212e8a64f746a79be65",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "WAITING_PHYSICAL_PROOF",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "91e804574938c23603ee2034306835992b6551ad8c060677f8430ed9a43db2dc",
+      "revision": 99,
+      "state_sha256": "a09b057ef3c42dcef6eb6ff0df702688fabddb0fc35409713ec835578ae8fda3",
+      "timestamp_utc": "2026-09-17T15:43:46Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [
+                "https://github.com/happyhippovip/2026-courier/actions/runs/580"
+              ],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "PASS"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "9850f336e3c32ced95d50212e8a64f746a79be65",
+          "runtime_identity": "9850f336e3c32ced95d50212e8a64f746a79be65"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "b4529b49d434b1b26bb3590c760658afe16154c6",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@b4529b49d434b1b26bb3590c760658afe16154c6",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6",
+            "validity": "UNKNOWN"
+          },
+          {
+            "evidence_sha": "9850f336e3c32ced95d50212e8a64f746a79be65",
+            "observed_at": "2026-09-17T17:50:00Z",
+            "producer_id": "WINDOWS-WORKER",
+            "reason": "Physical acceptance trace passed with USER_CONTINUE_MESSAGES=0",
+            "runtime_binding": "9850f336e3c32ced95d50212e8a64f746a79be65",
+            "source_type": "MACHINE_ARTIFACT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/actions/runs/580",
+            "validity": "VALID",
+            "verifier_id": "VERIFIER-01"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "CANONICAL_ACCEPTED",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "@ACCEPTANCE_GUARD",
+        "CLEAN_IDLE",
+        "LAST_UPDATED_BY",
+        "QUEUE_INDEPENDENT",
+        "STATUS"
+      ],
+      "entry_sha256": "d3b033747eab66cf806848994ef687a38bfcc6d490d3e42503deee6364351468",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "833b7f03509fb6a97ece4fbaa2a4194218bf795c53672e0eb9b939d8c83743e8",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "YES",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "9850f336e3c32ced95d50212e8a64f746a79be65",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "MISSING_PHYSICAL_ACCEPTANCE_EVIDENCE",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "System-Integration",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Website QA",
+          "Token Efficiency",
+          "Zero-Chat Handoff",
+          "Demo Readiness",
+          "LEDGER/HANDOFF",
+          "PILOT INTAKE",
+          "SALES PACKAGE",
+          "POST-PILOT HARDENING",
+          "PUBLICATION VERIFICATION",
+          "PR41 ACCEPTANCE",
+          "RELEASE",
+          "PUBLIC DEPLOYMENT",
+          "FIRST PILOT",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
+          "EXTERNAL_PUBLICATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER"
+        ],
+        "QUEUE_INDEPENDENT": "YES",
+        "RUNTIME_IDENTITY": "9850f336e3c32ced95d50212e8a64f746a79be65",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "CLEAN_IDLE",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "42f7d73667b8067bacb898a3c16279cb29d3976d77cc945d6c8343850ac12e61",
+      "revision": 100,
+      "state_sha256": "a5f59d7dd6c0861f0addc7c2f52fe52339372b642b71423de0113c2d701cb492",
+      "timestamp_utc": "2026-09-17T15:48:02Z",
+      "updated_by": "System-Integration"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [
+                "https://github.com/happyhippovip/2026-courier/actions/runs/580"
+              ],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "PASS"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "9850f336e3c32ced95d50212e8a64f746a79be65",
+          "runtime_identity": "9850f336e3c32ced95d50212e8a64f746a79be65"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "b4529b49d434b1b26bb3590c760658afe16154c6",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@b4529b49d434b1b26bb3590c760658afe16154c6",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6",
+            "validity": "UNKNOWN"
+          },
+          {
+            "evidence_sha": "9850f336e3c32ced95d50212e8a64f746a79be65",
+            "observed_at": "2026-09-17T17:50:00Z",
+            "producer_id": "WINDOWS-WORKER",
+            "reason": "Physical acceptance trace passed with USER_CONTINUE_MESSAGES=0",
+            "runtime_binding": "9850f336e3c32ced95d50212e8a64f746a79be65",
+            "source_type": "MACHINE_ARTIFACT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/actions/runs/580",
+            "validity": "VALID",
+            "verifier_id": "VERIFIER-01"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "CANONICAL_ACCEPTED",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "FIRST_CAUSAL_BLOCKER",
+        "LAST_UPDATED_BY"
+      ],
+      "entry_sha256": "a309227db53350dacc3df4bbe17d0f9ff81044693d0ef779d8bdf975a4ae073e",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "d3b033747eab66cf806848994ef687a38bfcc6d490d3e42503deee6364351468",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "YES",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "9850f336e3c32ced95d50212e8a64f746a79be65",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "NONE",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Website QA",
+          "Token Efficiency",
+          "Zero-Chat Handoff",
+          "Demo Readiness",
+          "LEDGER/HANDOFF",
+          "PILOT INTAKE",
+          "SALES PACKAGE",
+          "POST-PILOT HARDENING",
+          "PUBLICATION VERIFICATION",
+          "PR41 ACCEPTANCE",
+          "RELEASE",
+          "PUBLIC DEPLOYMENT",
+          "FIRST PILOT",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
+          "EXTERNAL_PUBLICATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER"
+        ],
+        "QUEUE_INDEPENDENT": "YES",
+        "RUNTIME_IDENTITY": "9850f336e3c32ced95d50212e8a64f746a79be65",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "CLEAN_IDLE",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "d006cebadb80abd4ea8cbf049e3763840e212429b55bdbd65dba5ba60c3773e1",
+      "revision": 101,
+      "state_sha256": "2382ba6c64c615dde809c9b1c0f8076b0a10e8d1b4a34949206346b4983d87b8",
+      "timestamp_utc": "2026-09-17T15:48:32Z",
+      "updated_by": "Google-Antigravity"
     }
   ],
   "non_authority": "Coordination metadata only; this ledger has no scheduler, runtime, execution, dispatch, verification, or Courier truth authority.",
@@ -10280,15 +10638,15 @@
     ],
     "BLOCKER_OWNER": "Human",
     "BRANCH": "release-candidate-integration",
-    "CLEAN_IDLE": "NO",
+    "CLEAN_IDLE": "YES",
     "COLLISION_SCOPE": [
       "Ledger",
       "motor-eligibility-v1"
     ],
     "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
-    "CURRENT_SHA": "8fcb6eb359ae973d338b90869ed7524b36dfde9a",
+    "CURRENT_SHA": "9850f336e3c32ced95d50212e8a64f746a79be65",
     "DUPLICATE_EXTERNAL_EFFECTS": 0,
-    "FIRST_CAUSAL_BLOCKER": "MISSING_PHYSICAL_ACCEPTANCE_EVIDENCE",
+    "FIRST_CAUSAL_BLOCKER": "NONE",
     "GOAL": "COURIER-PUBLIC-RELEASE",
     "GOALS_SUBMITTED": 1,
     "LAST_EVIDENCE": [],
@@ -10314,16 +10672,16 @@
       "EXTERNAL_PUBLICATION",
       "ONBOARD_FIRST_PILOT_CUSTOMER"
     ],
-    "QUEUE_INDEPENDENT": "NO",
-    "RUNTIME_IDENTITY": "8fcb6eb359ae973d338b90869ed7524b36dfde9a",
+    "QUEUE_INDEPENDENT": "YES",
+    "RUNTIME_IDENTITY": "9850f336e3c32ced95d50212e8a64f746a79be65",
     "RUNTIME_OWNER": "Google-Antigravity",
-    "STATUS": "WAITING_PHYSICAL_PROOF",
+    "STATUS": "CLEAN_IDLE",
     "TASKS_COMPLETED": 2,
     "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
     "UNPROVEN_EDGES": [],
     "USER_CONTINUE_MESSAGES": 0,
     "WORKERS_USED": 1
   },
-  "revision": 98,
+  "revision": 101,
   "schema_version": 2
 }
