@@ -1,3 +1,8 @@
+---
+description: "Always-on Courier autonomy rule: reject stale timeboxes/gate stops and continue until DONE, quota checkpoint, or a genuine human/safety/permission/writer blocker."
+trigger: always_on
+---
+
 # Courier Autonomous Execution Policy — Always-On Workspace Rule
 
 This rule exists to prevent stale queued prompts, old milestone comments, and legacy timeboxes from stopping productive autonomous work.
