@@ -8,7 +8,7 @@ def run_health_check():
     try:
         # Assuming there is a health check script
         if os.path.exists('scripts/health_check.py'):
-            subprocess.run([sys.executable, 'scripts/health_check.py'], check=True)
+            subprocess.run([sys.executable, 'scripts/health_check.py'], check=True, timeout=120)
             print("Health check passed.")
         else:
             print("Health check script not found, assuming ok.")

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.courier.server</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>TARGET_PYTHON</string>
+        <string>-m</string>
+        <string>server.app</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>TARGET_DIR</string>
+    <key>KeepAlive</key>
+    <true/>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>TARGET_DIR/logs/courier_server.log</string>
+    <key>StandardErrorPath</key>
+    <string>TARGET_DIR/logs/courier_server.err</string>
+</dict>
+</plist>

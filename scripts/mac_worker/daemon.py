@@ -269,6 +269,7 @@ def run_agy(task, config):
                     process.kill()
             except Exception:
                 pass
+            process.wait()
             stdout, stderr = process.communicate()
             return {"status": "FAILED", "stderr": "Execution timed out", "execution_mode": "ANTIGRAVITY"}
         finally:
@@ -355,6 +356,7 @@ def run_copilot(task, config):
                     process.kill()
             except Exception:
                 pass
+            process.wait()
             stdout, stderr = process.communicate()
             return {"status": "FAILED", "stderr": "Execution timed out", "execution_mode": "COPILOT"}
         finally:
@@ -603,6 +605,11 @@ def loop():
                 finally:
                     if keep_awake:
                         keep_awake.terminate()
+                        try:
+                            keep_awake.wait(timeout=2)
+                        except subprocess.TimeoutExpired:
+                            keep_awake.kill()
+                            keep_awake.wait(timeout=2)
             
             if pending_provider_wait:
                 res, err = http_post(config, f"/tasks/{pending_provider_wait['task_id']}/provider_wait", pending_provider_wait)

@@ -26,7 +26,11 @@ def run_worker(task_path, negative_test=False):
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     pid = process.pid
     
-    stdout, stderr = process.communicate(timeout=60)
+    try:
+        stdout, stderr = process.communicate(timeout=60)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        stdout, stderr = process.communicate()
     
     out = stdout.strip()
     
