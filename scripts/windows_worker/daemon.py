@@ -196,6 +196,21 @@ def loop():
                 except OSError:
                     pass
         
+        result_marker_path = Path(__file__).parent / "state" / "result_marker.json"
+        if result_marker_path.exists():
+            try:
+                with open(result_marker_path, "r") as f:
+                    saved_result = json.load(f)
+                print(f"[{worker_id}] Found unsent result marker for task {saved_result.get('task_id')}")
+                http_post_result(saved_result)
+            except Exception as e:
+                print(f"[{worker_id}] Failed to report saved result: {e}")
+            finally:
+                try:
+                    result_marker_path.unlink()
+                except OSError:
+                    pass
+
         backoff = 10
         max_backoff = 300
         
@@ -226,8 +241,19 @@ def loop():
                 task = res_data.get("task")
                 if task:
                     result = run_task(task, config)
+                    
+                    result_marker_path = Path(__file__).parent / "state" / "result_marker.json"
+                    with open(result_marker_path, "w") as f:
+                        json.dump(result, f)
+                        
                     http_post_result(result)
                     print(f"[{worker_id}] Task {task['task_id']} completed. Result posted.")
+                    
+                    try:
+                        result_marker_path.unlink()
+                    except OSError:
+                        pass
+                        
                     backoff = 10 # reset backoff on success
                 else:
                     # Idle, reset backoff
