@@ -61,7 +61,7 @@ def compute_frontier(record: dict):
     for edge in PLAN:
         if edge not in proven:
             scope = "dependent"
-            if "independent" in edge.lower() or edge in ["PILOT INTAKE", "SALES PACKAGE", "POST-PILOT HARDENING"]:
+            if "independent" in edge.lower() or edge in ["PUBLIC DEPLOYMENT", "PUBLICATION VERIFICATION", "PILOT INTAKE", "SALES PACKAGE", "POST-PILOT HARDENING"]:
                 scope = "independent"
                 
             tasks.append({
