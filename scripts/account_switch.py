@@ -82,7 +82,7 @@ if __name__ == '__main__':
     worker = WindowsPrimaryWorker()
     worker.claim_task({"task_id": "WF-CANARY-STEP-1"})
     
-    proc = subprocess.Popen("ping 127.0.0.1 -n 10", shell=True)
+    proc = subprocess.Popen(["ping", "127.0.0.1", "-n", "10"], shell=False)
     worker.owned_pids.add(proc.pid)
     worker.save_state()
     

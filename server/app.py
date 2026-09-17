@@ -327,10 +327,10 @@ def require_auth(f):
             try:
                 import time
                 with open("C:/Users/lol/2026-workspace/courier/debug_auth2.txt", "a") as f2:
-                    f2.write(f"[{time.time()}] AUTH FAIL: got {repr(auth_header)} expected {repr(expected)}\n")
+                    f2.write(f"[{time.time()}] AUTH FAIL: Invalid token provided\n")
             except Exception as e:
                 pass
-            print(f"Auth fail: {auth_header} != {expected}"); return jsonify({"error": "Unauthorized"}), 401
+            print("Auth fail: Invalid token provided"); return jsonify({"error": "Unauthorized"}), 401
         return f(*args, **kwargs)
     wrapper.__name__ = f.__name__
     return wrapper

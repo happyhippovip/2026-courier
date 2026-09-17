@@ -28,7 +28,7 @@ if not API_KEY:
     print("[Windows Worker] Set via: $env:COURIER_API_KEY or keyring.set_password('courier_worker','courier_api_key','<key>')", flush=True)
     sys.exit(1)
 
-print(f"[Windows Worker] Using API_KEY prefix: {API_KEY[:4]}...", flush=True)
+print("[Windows Worker] Using API_KEY (redacted)", flush=True)
 HEADERS = {
     "Authorization": f"Bearer {API_KEY}",
     "Content-Type": "application/json"

@@ -5,7 +5,7 @@ import subprocess
 import time
 
 def run_command(cmd):
-    return subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    return subprocess.run(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
 def main():
     print("=== Courier First-Run Experience ===")
@@ -22,7 +22,7 @@ def main():
     print("[3] Confirming Health...")
     hc = os.path.join(os.path.dirname(__file__), 'product_health_check.py')
     if os.path.exists(hc):
-        res = run_command(f"{sys.executable} {hc}")
+        res = run_command([sys.executable, hc])
         if 'HEALTHY' in res.stdout:
             print("    Health: HEALTHY\n")
         else:

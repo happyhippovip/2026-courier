@@ -10,8 +10,8 @@ import argparse
 import tempfile
 import platform
 
-def run_command(cmd, shell=True):
-    return subprocess.run(cmd, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120)
+def run_command(cmd):
+    return subprocess.run(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120)
 
 def get_current_version(app_dir):
     vf = os.path.join(app_dir, "version.txt")
@@ -29,17 +29,17 @@ def get_update_version(extract_dir):
 
 def restart_service():
     if platform.system() == "Windows":
-        run_command("Stop-ScheduledTask -TaskName CourierWindowsWorker -ErrorAction SilentlyContinue", shell=True)
+        run_command(["powershell", "-Command", "Stop-ScheduledTask -TaskName CourierWindowsWorker -ErrorAction SilentlyContinue"])
         # Give it a moment to stop
         time.sleep(2)
-        run_command("Start-ScheduledTask -TaskName CourierWindowsWorker", shell=True)
+        run_command(["powershell", "-Command", "Start-ScheduledTask -TaskName CourierWindowsWorker"])
     else:
-        run_command("systemctl restart courier")
+        run_command(["systemctl", "restart", "courier"])
 
 def health_check(app_dir):
     hc = os.path.join(app_dir, "scripts", "product_health_check.py")
     if os.path.exists(hc):
-        res = run_command(f"{sys.executable} {hc}")
+        res = run_command([sys.executable, hc])
         if res.returncode == 0 and b"HEALTHY" in res.stdout:
             return True
     return False
@@ -94,7 +94,7 @@ def main():
             print("[5] Running migrations...")
             migration_script = os.path.join(app_dir, "scripts", "migrate.py")
             if os.path.exists(migration_script):
-                res = run_command(f"{sys.executable} {migration_script}")
+                res = run_command([sys.executable, migration_script])
                 if res.returncode != 0:
                     raise Exception("Migration failed: " + res.stderr.decode())
 
