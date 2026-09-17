@@ -261,26 +261,20 @@ def update_ledger(ledger_path, edge_name, blocker, bundle):
         updates["STATUS"] = "BLOCKED"
         updates["CLEAN_IDLE"] = "NO"
     else:
-        if edge_name and edge_name not in proven and edge_name != "CLEAN_IDLE_ACHIEVED":
-            proven.append(edge_name)
-        if edge_name in unproven:
-            unproven.remove(edge_name)
-        updates["PROVEN_EDGES"] = proven
-        updates["UNPROVEN_EDGES"] = unproven
-        
-        # Don't clear first causal blocker if it's already set to a blocker, unless we are sure it's resolved.
-        # But for now, we just avoid setting it to NONE if we aren't explicitly resolving it.
-        if record.get("FIRST_CAUSAL_BLOCKER") == "NONE" or not record.get("FIRST_CAUSAL_BLOCKER"):
-            updates["FIRST_CAUSAL_BLOCKER"] = "NONE"
-
-        
-        if not unproven:
-            updates["NEXT_EXECUTABLE_ACTION"] = "NONE"
-            updates["CLEAN_IDLE"] = "YES"
-            updates["STATUS"] = "CLEAN_IDLE"
-        else:
+        if edge_name and edge_name != "CLEAN_IDLE_ACHIEVED":
+            # An execution result is a candidate fact, not independent proof.
+            # This legacy continuation path has no authenticated evidence
+            # admission boundary, so it must not promote its own work into
+            # PROVEN_EDGES or remove it from the durable frontier.
+            updates["FIRST_CAUSAL_BLOCKER"] = (
+                f"AWAITING_INDEPENDENT_EVIDENCE_{edge_name}"
+            )
+            updates["NEXT_EXECUTABLE_ACTION"] = (
+                f"Independent verifier must authenticate evidence for: {edge_name}"
+            )
+            updates["QUEUE_INDEPENDENT"] = "NO"
             updates["CLEAN_IDLE"] = "NO"
-            updates["STATUS"] = "READY"
+            updates["STATUS"] = "WAITING_ACCEPTANCE_GUARD"
             
     guard = bundle["acceptance_guard"]
     binding = guard["binding"]

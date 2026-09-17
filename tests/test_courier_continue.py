@@ -148,6 +148,28 @@ def test_placeholder_or_external_steps_cannot_self_report_success(edge, tmp_path
     assert success is False
     assert blocker
 
+
+def test_execution_success_cannot_promote_its_own_edge(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    edge = "SALES PACKAGE"
+    ledger_path = setup_ledger(tmp_path, [edge], "NONE")
+    bundle = continue_module.load_bundle(ledger_path)
+    task = {"edge_name": edge, "instruction": f"Prove edge: {edge}"}
+    _, success, blocker = continue_module.execute_task(
+        task, ledger_path, bundle["record"]
+    )
+    assert success is True
+    assert blocker is None
+
+    updated = continue_module.update_ledger(
+        ledger_path, edge, blocker, bundle
+    )
+    assert edge not in updated["record"]["PROVEN_EDGES"]
+    assert edge in updated["record"]["UNPROVEN_EDGES"]
+    assert updated["record"]["QUEUE_INDEPENDENT"] == "NO"
+    assert updated["record"]["CLEAN_IDLE"] == "NO"
+    assert updated["record"]["STATUS"] == "WAITING_ACCEPTANCE_GUARD"
+
 def test_multiple_independent_tasks_concurrent_progress(tmp_path):
     ledger_path = setup_ledger(
         tmp_path,
