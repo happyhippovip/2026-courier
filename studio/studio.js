@@ -1,3 +1,4 @@
+import { updateCompactHQ, localToolActors } from "./compact-hq.js";
 import {
   resolveLivingRoomAgents,
   resolveLiveHQMetrics,
@@ -43,7 +44,7 @@ const AVATAR_ICONS = {
 
 export class LivingHQController {
   constructor() {
-    this.pollInterval = 1000;
+    this.pollInterval = 2000; // Keep live state responsive with half the request/render load.
     this.isPolling = false;
     this.currentView = "overview";
     this.currentMode = "LIVE"; // LIVE ONLY
@@ -598,6 +599,7 @@ export class LivingHQController {
 
   startClock() {
     const update = () => {
+      if (document.hidden) return;
       const now = new Date();
       const str = now.toUTCString().split(" ")[4];
       if (this.liveClock) this.liveClock.textContent = `HQ TIME: ${str} UTC`;
@@ -607,24 +609,44 @@ export class LivingHQController {
   }
 
   // ------------------------------------------------------------------------
-  // 60 FPS RequestAnimationFrame Simulation Loop
+  // Cap movement work at 30 FPS; idle and hidden rooms do no frame work.
+  // CSS water animation remains independent of agent telemetry.
   // ------------------------------------------------------------------------
   startAnimationLoop() {
     let lastTime = performance.now();
-
+    let frame = null;
     const loop = (time) => {
-      const delta = Math.min((time - lastTime) / 1000, 0.1); // seconds capped at 100ms
-      lastTime = time;
-
-      if (this.currentMode === "LIVE" && this.lastAgents && this.lastLiveState) {
-        this.updateCourierTransport(this.lastAgents, this.lastLiveState);
+      frame = null;
+      if (document.hidden) return;
+      const elapsed = time - lastTime;
+      if (elapsed >= 1000 / 30) {
+        lastTime = time;
+        const moving = [...this.agentSims.values()].some(sim => sim.pathQueue?.length || sim.isWalking);
+        if (moving) {
+          this.updateAgentPositions(Math.min(elapsed / 1000, 0.1));
+          if (this.currentMode === "LIVE" && this.lastAgents && this.lastLiveState) {
+            this.updateCourierTransport(this.lastAgents, this.lastLiveState, this.lastMotion);
+          }
+        }
       }
-
-      this.updateAgentPositions(delta);
-      requestAnimationFrame(loop);
+      if ([...this.agentSims.values()].some(sim => sim.pathQueue?.length || sim.isWalking)) {
+        frame = requestAnimationFrame(loop);
+      }
     };
-
-    requestAnimationFrame(loop);
+    this.wakeAnimation = () => {
+      if (!document.hidden && frame === null) {
+        lastTime = performance.now();
+        frame = requestAnimationFrame(loop);
+      }
+    };
+    document.addEventListener("visibilitychange", () => {
+      document.body.classList.toggle("hq-paused", document.hidden);
+      if (document.hidden && frame !== null) {
+        cancelAnimationFrame(frame);
+        frame = null;
+      } else this.wakeAnimation();
+    });
+    this.wakeAnimation();
   }
 
   updateAgentPositions(delta) {
@@ -633,6 +655,7 @@ export class LivingHQController {
     for (const [id, sim] of this.agentSims.entries()) {
       const node = this.agentNodes.get(id);
       if (!node) continue;
+      if (!sim.pathQueue?.length && !sim.isWalking && node.style.left) continue;
 
       if (sim.pathQueue && sim.pathQueue.length > 0) {
         const nextWp = sim.pathQueue[0];
@@ -681,14 +704,25 @@ export class LivingHQController {
     this.isPolling = true;
 
     const poll = async () => {
+      if (document.hidden) {
+        setTimeout(poll, this.pollInterval);
+        return;
+      }
       try {
         const response = await fetch("/api/state", { cache: "no-store" });
+        if (!response.ok) throw new Error(`State API: ${response.status}`);
         if (response.ok) {
           const stateData = await response.json();
+          try {
+            const localResponse = await fetch('/api/local-tools', {cache:'no-store', signal:AbortSignal.timeout(3000)});
+            stateData.local_tools = localResponse.ok ? await localResponse.json() : null;
+          } catch { stateData.local_tools = null; }
           this.updateLivingHQ(stateData);
+          this.wakeAnimation?.();
           if (this.serverStatus) this.serverStatus.textContent = "LIVE BUS CONNECTED";
         }
       } catch (err) {
+        updateCompactHQ({});
         if (this.serverStatus) this.serverStatus.textContent = "RECONNECTING LOCAL BUS...";
       } finally {
         setTimeout(poll, this.pollInterval);
@@ -735,8 +769,11 @@ export class LivingHQController {
 
   updateLivingHQ(stateData) {
     this.lastLiveState = stateData;
+    updateCompactHQ(stateData);
     // 1. Resolve Dynamic Living Agents from real telemetry
-    const agents = resolveLivingRoomAgents(stateData);
+    const localActors = localToolActors(stateData.local_tools);
+    const agents = resolveLivingRoomAgents(stateData).filter(a => !['agent-codex-bridge','agent-antigravity-bridge'].includes(a.id));
+    agents.push(...localActors);
     this.lastLiveAgents = agents;
 
     // 2. Resolve Deterministic Live Agent Motion
@@ -769,6 +806,8 @@ export class LivingHQController {
         }
       }
 
+      // Position app actors independently of the Courier orchestration fingerprint.
+      for (const actor of localActors) this.setAgentTarget(actor.id, actor.targetX, actor.targetY);
       this.renderLivingAgents(agents, motion);
       this.updateCourierTransport(agents, stateData, motion);
     }
@@ -1187,7 +1226,7 @@ export class LivingHQController {
         node.style.cursor = "pointer";
         node.addEventListener("click", (e) => {
           e.stopPropagation();
-          this.openAgentInspector(agent);
+          this.openAgentInspector(this.lastAgents?.find(a => a.id === agent.id) || agent);
         });
 
         node.addEventListener("mouseenter", () => {
@@ -1236,7 +1275,7 @@ export class LivingHQController {
 
         const avatar = document.createElement("div");
         avatar.className = "agent-avatar-body";
-        const iconSymbol = agent.is_bodyguard ? "🛡️" : (AVATAR_ICONS[agent.id] || "🤖");
+        const iconSymbol = agent.icon || (agent.is_bodyguard ? "🛡️" : (AVATAR_ICONS[agent.id] || "🤖"));
         const avatarIcon = document.createElement("span");
         avatarIcon.className = "avatar-icon";
         avatarIcon.textContent = iconSymbol;
@@ -1313,7 +1352,7 @@ export class LivingHQController {
 
       // Update Subtitle / State Indicator
       const subtitle = node.querySelector(".nameplate-subtitle");
-      if (subtitle) subtitle.textContent = normalizedState;
+      if (subtitle) subtitle.textContent = agent.display_state || normalizedState;
 
       // Smart Speech Bubble Visibility: Uncluttered by default
       const speechEl = node.querySelector(".agent-speech-bubble");

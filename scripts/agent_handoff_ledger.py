@@ -762,6 +762,7 @@ def update(
                             raise LedgerError("evidence produced by the acceptance decision path itself or uses arbitrary strings")
             
         if not changed and not guard_changed:
+            print(f"DEBUG NO CHANGE: updates={updates} | record={bundle['record']}")
             raise LedgerError("update makes no meaningful change")
         if guard_changed:
             changed.append("@ACCEPTANCE_GUARD")

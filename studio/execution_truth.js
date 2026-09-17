@@ -877,6 +877,7 @@ export function resolveLiveHQMetrics(stateData) {
   const desks = resolveDeskMatrix(stateData);
   const bus = stateData?.bus || {};
   const snapshot = stateData?.context_snapshot;
+  const repositories = snapshot?.repositories || {};
   const hasMachineState = Object.keys(stateData?.agents || {}).length > 0 || Boolean(stateData?.bus);
 
   let activeCount = 0;
@@ -912,6 +913,8 @@ export function resolveLiveHQMetrics(stateData) {
     system_health: !hasMachineState
       ? 'UNKNOWN'
       : (blockedCount > 0 ? 'ATTENTION_REQUIRED' : (bus.is_locked ? 'OPERATIONAL_BUSY' : 'OPERATIONAL_HEALTHY')),
+    courier_commit: repositories.courier_head || null,
+    memory_commit: repositories.memory_head || null,
   };
 }
 
@@ -2124,4 +2127,3 @@ export function resolveStoryLivingAgents(step, baseLivingAgents) {
     };
   });
 }
-

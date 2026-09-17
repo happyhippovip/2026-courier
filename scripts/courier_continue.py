@@ -152,14 +152,16 @@ def compute_frontier(record: dict):
     capability_map = {
         "LEDGER/HANDOFF": ["git", "file_write"],
         "PR41 ACCEPTANCE": ["git_merge", "code_analysis", "reasoning"],
-        "RELEASE": ["shell", "build_tools"],
-        "PUBLIC DEPLOYMENT": ["github_actions", "api"],
+        "RELEASE - SAFE_AUTOMATABLE_PREPARATION": ["shell", "build_tools"],
+        "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION": ["github_actions", "api"],
         "PUBLICATION VERIFICATION": ["http_client"],
-        "PILOT INTAKE": ["email_processing"],
-        "SALES PACKAGE": ["markdown", "file_write", "reasoning"],
-        "FIRST PILOT": ["intake_execution", "reasoning"],
-        "PAYMENT ONLY WHEN ACTUALLY REQUIRED": ["payment_mechanism"],
-        "POST-PILOT HARDENING": ["refactoring", "testing", "reasoning"]
+        "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION": ["email_processing"],
+        "SALES PACKAGE - SAFE_AUTOMATABLE_PREPARATION": ["markdown", "file_write", "reasoning"],
+        "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION": ["intake_execution", "reasoning"],
+        "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION": ["payment_mechanism"],
+        "POST-PILOT HARDENING - SAFE_AUTOMATABLE_PREPARATION": ["refactoring", "testing", "reasoning"],
+        "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION": ["social_api", "press_api"],
+        "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION": ["shell", "build_tools"]
     }
     
     tasks = []
@@ -248,8 +250,8 @@ def execute_task(task, ledger_path, record):
 def update_ledger(ledger_path, edge_name, blocker, bundle):
     revision = bundle["revision"]
     record = bundle["record"]
-    proven = record.get("PROVEN_EDGES", [])
-    unproven = record.get("UNPROVEN_EDGES", [])
+    proven = list(record.get("PROVEN_EDGES", []))
+    unproven = list(record.get("UNPROVEN_EDGES", []))
     
     updates = {}
     if blocker:
@@ -310,6 +312,7 @@ def update_ledger(ledger_path, edge_name, blocker, bundle):
     elif "ISSUE_STATE" in guard["acceptance_predicate"]["results"]:
         guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["observed_value"] = "NO_FURTHER_ACTION"
 
+    print(f"DEBUG UPDATES: {updates}")
     new_bundle = update(
         ledger_path,
         revision,
@@ -420,7 +423,7 @@ def main():
                 sys.exit(0)
             if "MOCK_SHA" in os.environ:
                 mock_iters += 1
-                if mock_iters >= 3:
+                if mock_iters >= 15:
                     sys.exit(0)
             import time
             time.sleep(0.01)
@@ -457,6 +460,7 @@ def main():
                 try:
                     bundle = update_ledger(ledger_path, task["edge_name"], new_blocker, bundle)
                 except Exception as e:
+                    print(f"Exception in update_ledger: {type(e)} {e}")
                     if "meaningful change" in str(e):
                         pass
                     else:
@@ -472,7 +476,7 @@ def main():
             sys.exit(0)
         if "MOCK_SHA" in os.environ:
             mock_iters += 1
-            if mock_iters >= 3:
+            if mock_iters >= 15:
                 sys.exit(0)
         import time
         time.sleep(0.01)

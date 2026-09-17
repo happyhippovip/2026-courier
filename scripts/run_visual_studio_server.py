@@ -34,6 +34,7 @@ APPROVALS_DIR.mkdir(parents=True, exist_ok=True)
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
+from studio_local_tools import observer as local_tool_observer
 from run_chief_commander import ChiefCommander
 from run_bodyguards import BodyguardPoolManager
 
@@ -164,7 +165,12 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         super().end_headers()
 
     def do_GET(self):
-        if self.path == "/api/state":
+        if self.path == "/api/local-tools":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps(local_tool_observer.snapshot()).encode("utf-8"))
+        elif self.path == "/api/state":
             self.handle_api_state()
         elif self.path == "/" or self.path == "/index.html":
             super().do_GET()
@@ -895,7 +901,7 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
 
 
 def run_server(port: int = 8088):
-    server_address = ("", port)
+    server_address = ("127.0.0.1", port)
     socketserver.TCPServer.allow_reuse_address = True
     with socketserver.TCPServer(server_address, StudioHTTPRequestHandler) as httpd:
         print(f"=== AUTONOMOUS CHIEF OPERATIONS COCKPIT RUNNING ===")
