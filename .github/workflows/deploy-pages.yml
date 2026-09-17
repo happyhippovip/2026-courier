@@ -6,6 +6,7 @@ on:
     inputs:
       contact_email:
         description: 'Approved Public Contact Email (e.g. pilot@yourdomain.com)'
+        default: 'hobbiejanssen@gmx.net'
         required: true
         type: string
 
