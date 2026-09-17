@@ -79,6 +79,10 @@ FLOW = [
     "NEXT_EXECUTABLE_ACTION",
 ]
 TRANSITION_STATES = {"PROVISIONAL", "CANONICAL_ACCEPTED"}
+# No authenticated external evidence-admission service exists in this
+# repository.  Distinct caller-supplied identity strings are not a trust root.
+# Keep canonical acceptance unavailable until such an attester is real.
+AUTHENTICATED_EVIDENCE_ADMISSION_AVAILABLE = False
 EVIDENCE_VALIDITY = {"VALID", "STALE", "UNKNOWN"}
 EVIDENCE_SOURCE_TYPES = {
     "GITHUB_PULL_REQUEST",
@@ -184,6 +188,12 @@ def validate_record(record: Any, *, allow_unknown_sha: bool) -> None:
         raise LedgerError("CLEAN_IDLE=YES is forbidden while UNPROVEN_EDGES is not empty")
     if record.get("CLEAN_IDLE") == "YES" and record.get("STATUS") in ("READY", "WAITING_PROVIDER", "DISPATCHED", "RUNNING", "BLOCKED", "TEST"):
         raise LedgerError(f"CLEAN_IDLE=YES is forbidden when STATUS is {record.get('STATUS')}")
+    if record.get("UNPROVEN_EDGES") and record.get(
+        "NEXT_EXECUTABLE_ACTION"
+    ) in ("NONE", "none"):
+        raise LedgerError(
+            "NEXT_EXECUTABLE_ACTION=NONE is forbidden while UNPROVEN_EDGES is not empty"
+        )
 
 
 def validate_guard(guard: Any) -> None:
@@ -262,6 +272,22 @@ def validate_guard(guard: Any) -> None:
             raise LedgerError(f"{path} marked VALID with mismatched SHA/runtime binding")
         if item["validity"] == "STALE" and bound:
             raise LedgerError(f"{path} marked STALE despite matching SHA/runtime binding")
+        if item["source_type"] == "MACHINE_ARTIFACT" and item["validity"] == "VALID":
+            producer_id = item.get("producer_id")
+            verifier_id = item.get("verifier_id")
+            if not producer_id or not verifier_id:
+                raise LedgerError(
+                    "unverifiable producer or verifier in MACHINE_ARTIFACT evidence"
+                )
+            if (
+                producer_id == verifier_id
+                or producer_id == "arbitrary"
+                or verifier_id == "arbitrary"
+            ):
+                raise LedgerError(
+                    "caller-created or self-certifying MACHINE_ARTIFACT evidence "
+                    "rejected; independent producer/verifier required"
+                )
         if item["validity"] == "VALID":
             valid_bound_urls.add(item["source_url"])
     predicate = guard["acceptance_predicate"]
@@ -315,6 +341,14 @@ def validate_guard(guard: Any) -> None:
         for item in evidence
     ):
         raise LedgerError("CANONICAL_ACCEPTED requires a valid bound machine artifact")
+    if (
+        guard["transition_state"] == "CANONICAL_ACCEPTED"
+        and not AUTHENTICATED_EVIDENCE_ADMISSION_AVAILABLE
+    ):
+        raise LedgerError(
+            "CANONICAL_ACCEPTED is unavailable: no authenticated independent "
+            "evidence-admission authority is configured"
+        )
 
 
 def validate_guard_binding(record: dict[str, Any], guard: dict[str, Any]) -> None:
@@ -364,6 +398,14 @@ def validate_bundle(bundle: Any) -> dict[str, Any]:
             != "CANONICAL_ACCEPTED"
         ):
             raise LedgerError("CLEAN_IDLE=YES requires a CANONICAL_ACCEPTED guard")
+        if (
+            bundle["record"].get("QUEUE_INDEPENDENT") == "YES"
+            and bundle["acceptance_guard"]["transition_state"]
+            != "CANONICAL_ACCEPTED"
+        ):
+            raise LedgerError(
+                "QUEUE_INDEPENDENT=YES requires a CANONICAL_ACCEPTED guard"
+            )
     history = bundle["history"]
     if not isinstance(history, list) or len(history) != revision + 1:
         raise LedgerError("history must contain exactly one entry per revision")
@@ -601,6 +643,10 @@ def _history_entry(
 def initialize(
     path: Path, record: dict[str, Any], guard: dict[str, Any], timeout: float
 ) -> dict[str, Any]:
+    if guard.get("transition_state") == "CANONICAL_ACCEPTED":
+        raise LedgerError(
+            "ledger initialization cannot create an authoritative acceptance verdict"
+        )
     validate_record(record, allow_unknown_sha=True)
     validate_guard(guard)
     validate_guard_binding(record, guard)
@@ -664,6 +710,22 @@ def update(
         if record["LAST_UPDATED_BY"] != updated_by:
             record["LAST_UPDATED_BY"] = updated_by
             changed.append("LAST_UPDATED_BY")
+
+        # The generic coordination-ledger writer is not an evidence admission
+        # authority.  In particular, a caller cannot turn its own successful
+        # execution (or a task name) into a newly proven edge.  Until an
+        # authenticated, independently operated attester exists, proof
+        # promotion must fail closed.  Existing edges may be retained or
+        # demoted so stale/invalid state can still be repaired safely.
+        added_proven_edges = set(record["PROVEN_EDGES"]) - set(
+            bundle["record"]["PROVEN_EDGES"]
+        )
+        if added_proven_edges:
+            raise LedgerError(
+                "generic ledger update cannot promote PROVEN_EDGES; "
+                "independent authenticated evidence admission is required: "
+                f"{sorted(added_proven_edges)}"
+            )
         validate_record(record, allow_unknown_sha=False)
         if guard is None:
             if bundle["schema_version"] == 1:
@@ -709,17 +771,20 @@ def update(
             if record.get("STATUS") == "CLEAN_IDLE":
                 record["STATUS"] = "READY"
         elif not unproven and has_physical_proof:
-            guard["transition_state"] = "CANONICAL_ACCEPTED"
-            if "ISSUE_STATE" in guard["acceptance_predicate"]["results"]:
-                guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["status"] = "PASS"
-                guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["observed_value"] = "NO_FURTHER_ACTION"
-                # Inherit the valid evidence URL (pre-existing proof only)
-                valid_url = next((e["source_url"] for e in prior_evidence if e["validity"] == "VALID"), "")
-                guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["evidence_urls"] = [valid_url]
-            record["CLEAN_IDLE"] = "YES"
-            record["QUEUE_INDEPENDENT"] = "YES"
-            record["STATUS"] = "CLEAN_IDLE"
-            record["NEXT_EXECUTABLE_ACTION"] = "NONE"
+            # This ledger is coordination state, not an acceptance authority.
+            # Aging caller-supplied evidence by one or more revisions must not
+            # turn it into an independent verdict.  A dedicated Acceptance
+            # Guard must authenticate the physical artifact through its own
+            # trust-bound admission path.
+            guard["transition_state"] = "PROVISIONAL"
+            record["CLEAN_IDLE"] = "NO"
+            record["QUEUE_INDEPENDENT"] = "NO"
+            record["STATUS"] = "WAITING_ACCEPTANCE_GUARD"
+            if record["NEXT_EXECUTABLE_ACTION"].lower() == "none":
+                record["NEXT_EXECUTABLE_ACTION"] = (
+                    "Independent Acceptance Guard must authenticate the "
+                    "bound physical evidence"
+                )
         elif not unproven:
             # Cannot be CLEAN_IDLE without physical proof
             record["CLEAN_IDLE"] = "NO"
@@ -738,7 +803,12 @@ def update(
 
         guard_changed = guard != bundle.get("acceptance_guard")
         if guard_changed:
-            # Enforce independent producer/verifier boundary
+            # Enforce the evidence-admission trust boundary.  Merely supplying
+            # different producer/verifier strings is not proof of independent
+            # processes, authority, artifact bytes, or freshness.  This generic
+            # update API therefore cannot admit a new VALID machine artifact at
+            # all.  A future authenticated attester needs a separate, narrowly
+            # scoped admission path; until then we fail closed truthfully.
             old_evidence = bundle.get("acceptance_guard", {}).get("evidence", [])
             new_evidence = guard.get("evidence", [])
             for e in new_evidence:
@@ -760,6 +830,12 @@ def update(
                             raise LedgerError("unverifiable producer or verifier in MACHINE_ARTIFACT evidence")
                         if e["producer_id"] == e["verifier_id"] or e["producer_id"] == "arbitrary" or e["verifier_id"] == "arbitrary":
                             raise LedgerError("evidence produced by the acceptance decision path itself or uses arbitrary strings")
+                        if e.get("validity") == "VALID":
+                            raise LedgerError(
+                                "generic ledger update cannot admit VALID "
+                                "MACHINE_ARTIFACT evidence; authenticated independent "
+                                "attestation is required"
+                            )
             
         if not changed and not guard_changed:
             print(f"DEBUG NO CHANGE: updates={updates} | record={bundle['record']}")

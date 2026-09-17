@@ -147,10 +147,20 @@ def test_warhead_b_self_generated_or_replayed_evidence(tmp_path):
         "verifier_id": "INDEP-VERIFIER",
     })
     guard_foreign["transition_state"] = "CANONICAL_ACCEPTED"
-    result = update(ledger, bundle["revision"], {"UNPROVEN_EDGES": []}, "FOREIGN-WRITER", 5.0, guard_foreign)
-    # Must remain PROVISIONAL in the same update where evidence is introduced!
-    assert result["acceptance_guard"]["transition_state"] == "PROVISIONAL"
-    assert result["record"]["CLEAN_IDLE"] != "YES"
+    with pytest.raises(LedgerError) as exc:
+        update(
+            ledger,
+            bundle["revision"],
+            {"UNPROVEN_EDGES": []},
+            "FOREIGN-WRITER",
+            5.0,
+            guard_foreign,
+        )
+    assert "cannot admit VALID MACHINE_ARTIFACT" in str(exc.value)
+    unchanged = load_bundle(ledger)
+    assert unchanged["revision"] == bundle["revision"]
+    assert unchanged["acceptance_guard"]["transition_state"] == "PROVISIONAL"
+    assert unchanged["record"]["CLEAN_IDLE"] != "YES"
 
 
 def test_warhead_c_stale_sha(tmp_path):

@@ -127,6 +127,10 @@
           "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
           "type": "string"
         },
+        "producer_id": {
+          "minLength": 1,
+          "type": "string"
+        },
         "reason": {
           "minLength": 1,
           "type": "string"
@@ -155,6 +159,10 @@
             "STALE",
             "UNKNOWN"
           ]
+        },
+        "verifier_id": {
+          "minLength": 1,
+          "type": "string"
         }
       },
       "required": [

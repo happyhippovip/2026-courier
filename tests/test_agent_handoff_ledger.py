@@ -159,6 +159,16 @@ def run_cli(*args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
 
 
 class AgentHandoffLedgerTests(unittest.TestCase):
+    def test_schema_accepts_evidence_identity_fields_used_by_runtime(self):
+        schema = json.loads(
+            (ROOT / "schemas" / "agent_handoff_ledger.schema.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        evidence_properties = schema["$defs"]["evidence"]["properties"]
+        self.assertIn("producer_id", evidence_properties)
+        self.assertIn("verifier_id", evidence_properties)
+
     def test_separate_process_handoff_preserves_state_and_rejects_stale_writer(self):
         with tempfile.TemporaryDirectory() as temporary:
             base = Path(temporary)
@@ -203,7 +213,6 @@ subprocess.run([
     "--expected-revision", str(action["REVISION"]),
     "--updated-by", "session-b",
     "--set", "STATUS=VALIDATING",
-    "--set", 'PROVEN_EDGES=["issue state","worker state round-trip"]',
 ], check=True, capture_output=True, text=True)
 """
             subprocess.run(
@@ -301,9 +310,65 @@ subprocess.run([
             ledger_module.validate_guard(provisional)
 
         accepted = guard(transition_state="CANONICAL_ACCEPTED")
-        ledger_module.validate_guard(accepted)
-        self.assertEqual(accepted["acceptance_predicate"]["version"], "1")
-        self.assertEqual(accepted["evidence"][0]["validity"], "VALID")
+        with self.assertRaisesRegex(
+            ledger_module.LedgerError,
+            "no authenticated independent evidence-admission authority",
+        ):
+            ledger_module.validate_guard(accepted)
+
+    def test_valid_machine_artifact_requires_independent_identities(self):
+        missing = guard(transition_state="CANONICAL_ACCEPTED")
+        missing["evidence"][1].pop("producer_id")
+        missing["evidence"][1].pop("verifier_id")
+        with self.assertRaisesRegex(
+            ledger_module.LedgerError,
+            "unverifiable producer or verifier",
+        ):
+            ledger_module.validate_guard(missing)
+
+        self_certified = guard(transition_state="CANONICAL_ACCEPTED")
+        self_certified["evidence"][1]["producer_id"] = "same-actor"
+        self_certified["evidence"][1]["verifier_id"] = "same-actor"
+        with self.assertRaisesRegex(
+            ledger_module.LedgerError,
+            "self-certifying MACHINE_ARTIFACT",
+        ):
+            ledger_module.validate_guard(self_certified)
+
+    def test_initialization_cannot_preset_canonical_acceptance(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            ledger = Path(temporary) / "ledger.json"
+            accepted_guard = guard(transition_state="CANONICAL_ACCEPTED")
+            accepted_record = record()
+            accepted_record["UNPROVEN_EDGES"] = []
+            accepted_record["NEXT_EXECUTABLE_ACTION"] = "NONE"
+            accepted_record["CLEAN_IDLE"] = "YES"
+            accepted_record["QUEUE_INDEPENDENT"] = "YES"
+            accepted_record["STATUS"] = "CLEAN_IDLE"
+
+            with self.assertRaisesRegex(
+                ledger_module.LedgerError,
+                "initialization cannot create an authoritative acceptance verdict",
+            ):
+                ledger_module.initialize(
+                    ledger, accepted_record, accepted_guard, 1.0
+                )
+            self.assertFalse(ledger.exists())
+
+    def test_initialization_rejects_queue_independent_with_provisional_guard(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            ledger = Path(temporary) / "ledger.json"
+            false_green_record = record()
+            false_green_record["QUEUE_INDEPENDENT"] = "YES"
+
+            with self.assertRaisesRegex(
+                ledger_module.LedgerError,
+                "QUEUE_INDEPENDENT=YES requires a CANONICAL_ACCEPTED guard",
+            ):
+                ledger_module.initialize(
+                    ledger, false_green_record, guard(), 1.0
+                )
+            self.assertFalse(ledger.exists())
 
     def test_worker_state_and_current_freshness_round_trip(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -397,29 +462,31 @@ subprocess.run([
             landed["acceptance_predicate"]["results"]["RUNTIME_ARTIFACT"][
                 "evidence_urls"
             ] = [proof["source_url"]]
-            after_landing = ledger_module.update(
-                ledger,
-                bundle["revision"],
-                {"UNPROVEN_EDGES": []},
-                "foreign-worker",
-                1.0,
-                landed,
-            )
+            with self.assertRaisesRegex(
+                ledger_module.LedgerError,
+                "cannot admit VALID MACHINE_ARTIFACT",
+            ):
+                ledger_module.update(
+                    ledger,
+                    bundle["revision"],
+                    {"UNPROVEN_EDGES": []},
+                    "foreign-worker",
+                    1.0,
+                    landed,
+                )
+            unchanged = ledger_module.load_bundle(ledger)
+            self.assertEqual(unchanged["revision"], bundle["revision"])
             self.assertEqual(
-                after_landing["acceptance_guard"]["transition_state"],
+                unchanged["acceptance_guard"]["transition_state"],
                 "PROVISIONAL",
             )
-            self.assertNotEqual(after_landing["record"]["CLEAN_IDLE"], "YES")
-            followed = ledger_module.update(
-                ledger,
-                after_landing["revision"],
-                {"TASKS_COMPLETED": 3},
-                "another-worker",
-                1.0,
+            self.assertEqual(
+                unchanged["record"]["QUEUE_INDEPENDENT"],
+                bundle["record"]["QUEUE_INDEPENDENT"],
             )
             self.assertEqual(
-                followed["acceptance_guard"]["transition_state"],
-                "CANONICAL_ACCEPTED",
+                unchanged["record"]["CLEAN_IDLE"],
+                bundle["record"]["CLEAN_IDLE"],
             )
 
 
@@ -526,6 +593,15 @@ subprocess.run([
         ):
             ledger_module.validate_record(rec, allow_unknown_sha=False)
 
+    def test_unproven_work_rejects_missing_next_action(self):
+        rec = record()
+        rec["NEXT_EXECUTABLE_ACTION"] = "NONE"
+        with self.assertRaisesRegex(
+            ledger_module.LedgerError,
+            "NEXT_EXECUTABLE_ACTION=NONE",
+        ):
+            ledger_module.validate_record(rec, allow_unknown_sha=False)
+
     def test_clean_idle_rejected_without_canonical_guard(self):
         with tempfile.TemporaryDirectory() as temporary:
             ledger = Path(temporary) / "ledger.json"
@@ -547,37 +623,27 @@ subprocess.run([
             ledger = Path(temporary) / "ledger.json"
             initialize(ledger)
             bundle = ledger_module.load_bundle(ledger)
-            seeded = ledger_module.update(
-                ledger,
-                bundle["revision"],
-                {
-                    "PROVEN_EDGES": [
-                        "SALES PACKAGE",
-                        "POST-PILOT HARDENING",
-                        "RELEASE",
-                    ]
-                },
-                "probe-worker",
-                1.0,
-            )
-            # Without bound physical proof the stale-proof rule must refuse
-            # to keep bare external names in PROVEN_EDGES.
-            updated = ledger_module.update(
-                ledger,
-                seeded["revision"],
-                {"TASKS_COMPLETED": 3},
-                "probe-worker",
-                1.0,
-                seeded["acceptance_guard"],
-            )
-            self.assertNotIn("SALES PACKAGE", updated["record"]["PROVEN_EDGES"])
-            self.assertNotIn(
-                "POST-PILOT HARDENING", updated["record"]["PROVEN_EDGES"]
-            )
-            self.assertNotIn("RELEASE", updated["record"]["PROVEN_EDGES"])
-            self.assertIn("SALES PACKAGE", updated["record"]["UNPROVEN_EDGES"])
+            with self.assertRaisesRegex(
+                ledger_module.LedgerError, "cannot promote PROVEN_EDGES"
+            ):
+                ledger_module.update(
+                    ledger,
+                    bundle["revision"],
+                    {
+                        "PROVEN_EDGES": [
+                            "SALES PACKAGE",
+                            "POST-PILOT HARDENING",
+                            "RELEASE",
+                        ]
+                    },
+                    "probe-worker",
+                    1.0,
+                )
+            unchanged = ledger_module.load_bundle(ledger)
+            self.assertEqual(unchanged["revision"], bundle["revision"])
             self.assertEqual(
-                updated["acceptance_guard"]["transition_state"], "PROVISIONAL"
+                unchanged["record"]["PROVEN_EDGES"],
+                bundle["record"]["PROVEN_EDGES"],
             )
 
     def test_concurrent_readers_only_observe_valid_atomic_snapshots(self):

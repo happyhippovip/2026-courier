@@ -34,7 +34,7 @@ def setup_ledger(tmp_path):
         "DUPLICATE_EXTERNAL_EFFECTS": 0,
         "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
         "CLEAN_IDLE": "UNKNOWN",
-        "QUEUE_INDEPENDENT": "YES",
+        "QUEUE_INDEPENDENT": "NO",
         "RUNTIME_OWNER": "test",
         "RUNTIME_IDENTITY": "0000000000000000000000000000000000000000",
         "CONTINUATION_CHECKPOINT": "none",
@@ -85,7 +85,7 @@ def setup_ledger(tmp_path):
     subprocess.run([sys.executable, str(script), "init", str(ledger_path), "--record", str(record_path), "--guard", str(guard_path)], check=True)
     return ledger_path
 
-def test_antigravity_continuous_queue_participation(tmp_path):
+def test_antigravity_reopens_only_untrusted_claims_not_static_plan(tmp_path):
     ledger_path = setup_ledger(tmp_path)
     repo_dir = Path(__file__).parent.parent.resolve()
     env = os.environ.copy()
@@ -94,12 +94,18 @@ def test_antigravity_continuous_queue_participation(tmp_path):
     runner = repo_dir / "scripts" / "courier_continue.py"
     res = subprocess.run([sys.executable, str(runner), "--run", "--once"], env=env, capture_output=True, text=True, errors='replace')
     
-    executions = [line for line in res.stdout.split('\n') if "Executing/Delegating task:" in line]
-    
-    print('STDOUT:', res.stdout)
-    print('STDERR:', res.stderr)
-    assert len(executions) >= 3, f"Antigravity did not claim at least 3 tasks automatically. Output: {res.stdout}"
-    assert "Prove edge: PILOT INTAKE" in res.stdout
-    assert "Prove edge: SALES PACKAGE" in res.stdout
-    assert "Prove edge: POST-PILOT HARDENING" in res.stdout
+    executions = [
+        line for line in res.stdout.split("\n")
+        if "Executing/Delegating task:" in line
+    ]
 
+    assert res.returncode == 0, res.stderr
+    # Stale-proof validation demotes the fixture's untrusted PROVEN claims;
+    # those real durable edges may execute. Static PLAN-only work must not.
+    assert executions
+    assert "Prove edge: PILOT INTAKE" not in res.stdout
+    assert "Prove edge: SALES PACKAGE" not in res.stdout
+    assert "Prove edge: POST-PILOT HARDENING" not in res.stdout
+    state = json.loads(ledger_path.read_text())
+    assert state["record"]["QUEUE_INDEPENDENT"] == "NO"
+    assert state["acceptance_guard"]["transition_state"] == "PROVISIONAL"
