@@ -95,35 +95,36 @@ def execute_task(task, ledger_path, record):
             html = sp.check_output(["curl", "-sL", "https://happyhippovip.github.io/courier-pilot-website/"]).decode('utf-8')
             if "hobbiejanssen@gmx.net" in html and "Courier" in html:
                 print("PUBLICATION VERIFICATION passed. URL is live and contact is verified.")
-                return True, None
+                return task, True, None
             else:
-                return False, "HUMAN_REQUIRED_PUBLIC_REPO_VISIBILITY"
+                return task, False, "HUMAN_REQUIRED_PUBLIC_REPO_VISIBILITY"
         except Exception as e:
-            return False, "HUMAN_REQUIRED_PUBLIC_REPO_VISIBILITY"
+            return task, False, "HUMAN_REQUIRED_PUBLIC_REPO_VISIBILITY"
     elif task["edge_name"] == "PAYMENT ONLY WHEN ACTUALLY REQUIRED":
         print("Payment required. Halting execution for this scope.")
-        return False, "MONEY_REQUIRED_PAYMENT_GATEWAY"
+        return task, False, "MONEY_REQUIRED_PAYMENT_GATEWAY"
     elif task["edge_name"] == "PR41 ACCEPTANCE":
         writers = record.get("ACTIVE_WRITERS", [])
         if "Codex" in writers:
             print("Active writer collision on PR41 (Codex).")
-            return False, "HUMAN_REQUIRED_MERGE"
+            return task, False, "HUMAN_REQUIRED_MERGE"
         else:
             try:
-                out = subprocess.check_output(["gh", "pr", "view", "41", "--json", "state"]).decode()
+                import subprocess as sp
+                out = sp.check_output(["gh", "pr", "view", "41", "--json", "state"]).decode()
                 state = json.loads(out).get("state")
                 if state == "MERGED":
                     print("PR41 successfully merged.")
                 else:
                     print(f"PR41 state is {state}. Ownership resolved, but unattended merge is forbidden.")
-                    return False, "HUMAN_REQUIRED_MERGE"
+                    return task, False, "HUMAN_REQUIRED_MERGE"
             except Exception as e:
                 print(f"Ownership resolved to Google-Antigravity, but unattended merge is forbidden. Failed to check PR state: {e}")
-                return False, "HUMAN_REQUIRED_MERGE"
+                return task, False, "HUMAN_REQUIRED_MERGE"
 
     
     print(f"Successfully proved: {task['edge_name']}")
-    return True, None
+    return task, True, None
 
 def update_ledger(ledger_path, edge_name, blocker, bundle):
     revision = bundle["revision"]
@@ -231,9 +232,8 @@ def main():
                 print("GLOBAL STOP: CLEAN_IDLE. All tasks completed.")
             sys.exit(0)
             
-        next_task = safe_executable_tasks[0]
-        
         if not args.run:
+            next_task = safe_executable_tasks[0]
             print(f"Selected Next Action: {next_task['instruction']}")
             manifest = FileManifestTracker.build_manifest([str(ledger_path.resolve())], repo_dir)
             dedupe_engine = TaskDedupeEngine(repo_dir)
@@ -248,10 +248,19 @@ def main():
             print(json.dumps(package, indent=2))
             sys.exit(0)
             
-        print("\n=== STARTING TASK ===")
-        success, new_blocker = execute_task(next_task, ledger_path, record)
-        bundle = update_ledger(ledger_path, next_task["edge_name"], new_blocker, bundle)
-        print("CHECKPOINT WRITTEN")
+        print(f"\n=== DISPATCHING {len(safe_executable_tasks)} TASKS CONCURRENTLY ===")
+        import concurrent.futures
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(safe_executable_tasks)) as executor:
+            futures = [executor.submit(execute_task, t, ledger_path, record) for t in safe_executable_tasks]
+            
+            for future in concurrent.futures.as_completed(futures):
+                task, success, new_blocker = future.result()
+                print(f"\n=== FINISHED TASK: {task['edge_name']} ===")
+                # Re-check freshness to avoid race conditions when writing ledger
+                branch, sha = get_git_info()
+                bundle = check_freshness(ledger_path, branch, sha)
+                bundle = update_ledger(ledger_path, task["edge_name"], new_blocker, bundle)
+                print(f"CHECKPOINT WRITTEN for {task['edge_name']}")
 
 if __name__ == "__main__":
     main()
