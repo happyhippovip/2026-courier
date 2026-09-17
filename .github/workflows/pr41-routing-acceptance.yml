@@ -56,8 +56,8 @@ jobs:
                   failed.add(f"{case.attrib.get('classname', '')}::{case.attrib.get('name', '')}")
 
           physically_unavailable_here = {
-              "test_thought_ingestion.ThoughtIngestionTests::test_real_file_ingestion_dedupe_conflict_secret_and_delta",
-              "test_thought_memory_mesh.ThoughtMeshTests::test_coverage_audit_dedupe_delta_and_proposal",
+              "tests.test_thought_ingestion.ThoughtIngestionTests::test_real_file_ingestion_dedupe_conflict_secret_and_delta",
+              "tests.test_thought_memory_mesh.ThoughtMeshTests::test_coverage_audit_dedupe_delta_and_proposal",
           }
           unexpected = failed - physically_unavailable_here
           if unexpected:
