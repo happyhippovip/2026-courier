@@ -427,7 +427,7 @@ def main():
                 sys.exit(0)
             if "MOCK_SHA" in os.environ:
                 mock_iters += 1
-                if mock_iters >= 15:
+                if mock_iters >= 3:
                     sys.exit(0)
             import time
             time.sleep(1.0)
@@ -458,12 +458,18 @@ def main():
                     task, success, new_blocker = future.result()
                     print(f"\n=== FINISHED TASK: {task['edge_name']} ===")
                     branch, sha = get_git_info()
-                    bundle = check_freshness(ledger_path, branch, sha)
-                    try:
-                        bundle = update_ledger(ledger_path, task["edge_name"], new_blocker, bundle)
-                    except Exception as e:
-                        print(f"Exception in update_ledger: {type(e)} {e}")
-                        if "meaningful change" not in str(e):
+                    for _retry in range(5):
+                        bundle = check_freshness(ledger_path, branch, sha)
+                        try:
+                            bundle = update_ledger(ledger_path, task["edge_name"], new_blocker, bundle)
+                            break
+                        except Exception as e:
+                            if "meaningful change" in str(e):
+                                break
+                            if "revision conflict" in str(e):
+                                import time, random
+                                time.sleep(0.5 + random.random())
+                                continue
                             raise e
 
                     if not success and new_blocker:
@@ -496,7 +502,7 @@ def main():
             sys.exit(0)
         if "MOCK_SHA" in os.environ:
             mock_iters += 1
-            if mock_iters >= 15:
+            if mock_iters >= 3:
                 sys.exit(0)
         import time
         time.sleep(1.0)
