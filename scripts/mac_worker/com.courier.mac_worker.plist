@@ -6,7 +6,7 @@
     <string>com.courier.mac_worker</string>
     <key>ProgramArguments</key>
     <array>
-        <string>TARGET_DIR/venv/bin/python</string>
+        <string>PYTHON_BIN</string>
         <string>TARGET_DIR/scripts/mac_worker/daemon.py</string>
     </array>
     <key>WorkingDirectory</key>
