@@ -17,6 +17,7 @@ import json
 import os
 import socketserver
 import sys
+import subprocess
 import threading
 import time
 import uuid
@@ -68,6 +69,61 @@ def load_json_safe(path: Path) -> dict:
         return json.loads(path.read_text(encoding="utf-8"))
     except Exception:
         return {}
+
+
+# Read-only derived Courier truth for the cockpit. Observational only: never
+# writes Ledger/Motor state. Parsed file content is cached by mtime so the
+# ~2s dashboard poll costs one cheap stat; git HEAD is cached with a TTL.
+_ledger_truth_cache = {"mtime": None, "data": None}
+_head_sha_cache = {"at": 0.0, "sha": "UNKNOWN"}
+
+
+def read_courier_ledger_truth() -> dict:
+    unknown = {
+        "revision": None, "status": "UNKNOWN", "clean_idle": "UNKNOWN",
+        "queue_independent": "UNKNOWN", "unproven_count": None,
+        "next_action": "UNKNOWN", "guard": "UNKNOWN", "observed_at": None,
+    }
+    try:
+        ledger_path = COURIER_DIR / "agent_handoff_ledger.json"
+        mtime = ledger_path.stat().st_mtime
+        if _ledger_truth_cache["mtime"] == mtime and _ledger_truth_cache["data"]:
+            return dict(_ledger_truth_cache["data"])
+        bundle = json.loads(ledger_path.read_text(encoding="utf-8"))
+        record = bundle.get("record", {}) or {}
+        guard = bundle.get("acceptance_guard", {}) or {}
+        unproven = record.get("UNPROVEN_EDGES", []) or []
+        data = {
+            "revision": bundle.get("revision"),
+            "status": record.get("STATUS", "UNKNOWN"),
+            "clean_idle": record.get("CLEAN_IDLE", "UNKNOWN"),
+            "queue_independent": record.get("QUEUE_INDEPENDENT", "UNKNOWN"),
+            "unproven_count": len(unproven),
+            "next_action": record.get("NEXT_EXECUTABLE_ACTION", "UNKNOWN"),
+            "guard": guard.get("transition_state", "UNKNOWN"),
+            "observed_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        }
+        _ledger_truth_cache["mtime"] = mtime
+        _ledger_truth_cache["data"] = data
+        return dict(data)
+    except Exception:
+        return unknown
+
+
+def read_repo_head_sha() -> str:
+    try:
+        now = time.monotonic()
+        if now - _head_sha_cache["at"] < 30.0 and _head_sha_cache["sha"] != "UNKNOWN":
+            return _head_sha_cache["sha"]
+        out = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=str(COURIER_DIR),
+            stderr=subprocess.DEVNULL, timeout=10).decode().strip()
+        if out:
+            _head_sha_cache.update(at=now, sha=out)
+            return out
+    except Exception:
+        pass
+    return "UNKNOWN"
 
 
 def save_json_safe(path: Path, data: dict) -> None:
@@ -760,6 +816,8 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             "morning_report": latest_morning_report_data,
             "heartbeat": heartbeat_data,
             "opportunity_queue": queue_summary,
+            "courier_ledger": read_courier_ledger_truth(),
+            "repo_head_sha": read_repo_head_sha(),
             "bus": {
                 "is_locked": is_locked,
                 "active_lock": active_lock_name,

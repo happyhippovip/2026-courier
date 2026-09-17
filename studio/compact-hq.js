@@ -8,7 +8,7 @@ export function workerIndicator(worker) {
   if (/OFFLINE|STOPPED|DISABLED/.test(status)) return {kind:'off', label:'AUS'};
   if (/STALE|UNKNOWN/.test(status) || !fresh) return {kind:'unknown', label:'?'};
   if (/BLOCK|ERROR|WAITING/.test(status)) return {kind:'waiting', label:'WARTET'};
-  if (/RUNNING|WORKING|BUSY|PROGRESSING/.test(status)) return {kind:'working', label:'AKTIV'};
+  if (/RUNNING|WORKING|BUSY|PROGRESSING|ACTIVE|RECHNET/.test(status)) return {kind:'working', label:'AKTIV'};
   if (/IDLE|AVAILABLE|ONLINE|READY/.test(status)) return {kind:'on', label:'AN'};
   return {kind:'unknown', label:'?'};
 }
@@ -20,7 +20,8 @@ function badge(el, worker) {
   const detail = el.querySelector('small');
   if (detail) detail.textContent = worker?.detail || '';
 }
-export function updateCompactHQ(state) {
+export function updateCompactHQ(state, ops) {
+  const opsAgents = ops?.agents || null;
   if (!document.getElementById('machine-rail')) mount();
   const workers = Object.values(state.platform_runtime?.workers || {});
   for (let n=1;n<=8;n++) {
@@ -47,11 +48,21 @@ export function updateCompactHQ(state) {
       detail,
     });
   }
+  const opsKey = {muse:'muse', chatgpt:'codex', antigravity:'google'};
   for (const [key, id] of [['muse','muse-main'],['chatgpt','rail-chatgpt'],['antigravity','rail-antigravity']]) {
+    const el = document.getElementById(id);
+    if (!el) continue;
+    const oa = opsAgents?.[opsKey[key]];
+    if (oa) {
+      // Single-source ops state: rail label always matches map/detail/counts.
+      badge(el, {status: oa.state, task: oa.task || 'Arbeitsinhalt nicht gemeldet', worker_id: key});
+      el.title = `${key}: ${oa.state} · ${oa.task || 'Keine Aufgabe'} (Quelle: ${oa.source || 'ops_state'})`;
+      continue;
+    }
     const tool = fresh ? local.tools?.[key] : null;
     const kind = tool?.status === 'COMPUTING' ? 'working' : tool?.status === 'OPEN' ? 'on' : tool?.status === 'OFFLINE' ? 'off' : 'unknown';
     const label = {working:'RECHNET',on:'GEÖFFNET',off:'AUS',unknown:'?'}[kind];
-    badge(document.getElementById(id), {status:label, task: tool?.cpu_percent == null ? 'Arbeitsinhalt nicht gemeldet' : `${tool.cpu_percent}% CPU · Arbeitsinhalt nicht gemeldet`, displayIndicator:{kind,label}});
+    badge(el, {status:label, task: tool?.cpu_percent == null ? 'Arbeitsinhalt nicht gemeldet' : `${tool.cpu_percent}% CPU · Arbeitsinhalt nicht gemeldet`, displayIndicator:{kind,label}});
   }
 
 }

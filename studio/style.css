@@ -1944,3 +1944,147 @@ body.mode-zen .chief-alert-bar:hover {
   border: 1px solid #666666;
   color: #888888;
 }
+
+/* --------------------------------------------------------------------------
+   COURIER SYMPHONY MUSE · header brand + LIVE OPERATIONS BAY
+   -------------------------------------------------------------------------- */
+.brand-symphony {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.05;
+  padding: 2px 12px;
+  border-left: 1px solid rgba(0, 210, 255, 0.35);
+}
+.brand-symphony .brand-courier {
+  font-family: Orbitron, sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.14em;
+  color: #eaf6ff;
+}
+.brand-symphony .brand-symphony-sub {
+  font-family: Orbitron, sans-serif;
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 0.32em;
+  color: #7fe7ff;
+}
+
+.ops-bay {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 8px;
+  width: min(1180px, 94vw);
+  max-height: 46vh;
+  overflow-y: auto;
+  background: rgba(2, 6, 10, 0.94);
+  border: 1px solid rgba(0, 210, 255, 0.28);
+  border-radius: 6px;
+  z-index: 40;
+  font-family: 'JetBrains Mono', monospace;
+  transition: max-height 0.35s ease, opacity 0.35s ease;
+}
+.ops-bay.is-collapsed { max-height: 84px; }
+.ops-bay-idle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 22px 20px;
+  color: #5f7a8c;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+}
+.ops-bay-idle-mark { color: #23414f; font-size: 22px; }
+.ops-bay-top {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 12px 16px 8px;
+  border-bottom: 1px solid rgba(0, 210, 255, 0.16);
+}
+.ops-bay-icon { font-size: 20px; color: #7fe7ff; }
+.ops-bay-name {
+  font-family: Orbitron, sans-serif;
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  color: #f2fbff;
+}
+.ops-bay-role { font-size: 10px; letter-spacing: 0.22em; color: #5f7a8c; }
+.ops-bay-state { margin-left: auto; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; }
+.ops-bay-state[data-ops-state="ACTIVE"] { color: #5dffb0; text-shadow: 0 0 12px rgba(93, 255, 176, 0.55); }
+.ops-bay-state[data-ops-state="IDLE"] { color: #4f7d6a; }
+.ops-bay-state[data-ops-state="WAITING"] { color: #ffcf6e; animation: ops-breathe 3.2s ease-in-out infinite; }
+.ops-bay-state[data-ops-state="BLOCKED"], .ops-bay-state[data-ops-state="ERROR"] { color: #ff7a6e; animation: ops-breathe 1.6s ease-in-out infinite; }
+.ops-bay-state[data-ops-state="OFFLINE"], .ops-bay-state[data-ops-state="UNKNOWN"] { color: #66767f; }
+.ops-bay-elapsed, .ops-bay-src { font-size: 10px; color: #4c626f; }
+.ops-bay-btn {
+  font-family: inherit;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  background: transparent;
+  border: 1px solid rgba(0, 210, 255, 0.35);
+  color: #7fe7ff;
+  border-radius: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+.ops-bay-mission, .ops-bay-task {
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  padding: 8px 16px 0;
+}
+.ops-label { font-size: 10px; letter-spacing: 0.22em; color: #00b4d8; min-width: 150px; }
+.ops-val { font-size: 13px; color: #d9eef7; }
+.ops-bay-task .ops-val { font-size: 17px; font-weight: 600; }
+.ops-bay-task.is-active .ops-task-text {
+  color: #5dffb0;
+  text-shadow: 0 0 14px rgba(93, 255, 176, 0.5);
+}
+.ops-task-scroll { overflow: hidden; flex: 1; white-space: nowrap; }
+.ops-task-scroll.is-long .ops-task-text {
+  display: inline-block;
+  padding-left: 0;
+  animation: ops-ticker 14s linear infinite;
+}
+.ops-bay-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px 18px;
+  padding: 10px 16px 0;
+}
+.ops-bay-grid > div { display: flex; flex-direction: column; gap: 2px; }
+.ops-bay-grid .ops-val { font-size: 12px; }
+.ops-bay-pipe { padding: 10px 16px 0; font-size: 10px; letter-spacing: 0.1em; color: #4c626f; }
+.ops-bay-hist { padding: 8px 16px 0; font-size: 11px; line-height: 1.7; color: #9fc3d4; white-space: pre-wrap; }
+.ops-bay-tech { padding: 8px 16px 14px; font-size: 11px; color: #9fc3d4; }
+.ops-bay-tech summary { cursor: pointer; font-size: 10px; letter-spacing: 0.22em; color: #00b4d8; }
+.ops-bay-techgrid { margin-top: 6px; white-space: pre-wrap; line-height: 1.7; }
+@keyframes ops-ticker {
+  0%, 12% { transform: translateX(0); }
+  82%, 92% { transform: translateX(calc(-100% + 60vw)); }
+  100% { transform: translateX(0); }
+}
+@keyframes ops-breathe {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ops-task-scroll.is-long .ops-task-text { animation: none; }
+  .ops-bay-state[data-ops-state="WAITING"],
+  .ops-bay-state[data-ops-state="BLOCKED"],
+  .ops-bay-state[data-ops-state="ERROR"] { animation: none; }
+}
+.badge-state-active {
+  background: rgba(93, 255, 176, 0.14);
+  border: 1px solid #5dffb0;
+  color: #5dffb0;
+}
+/* Stable agent placement: nodes appear at canonical coords with a fade only */
+.living-agent-node.is-spawn { animation: ops-fade-in 0.5s ease-out; }
+@keyframes ops-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .living-agent-node.is-spawn { animation: none; }
+}

@@ -1,4 +1,5 @@
 import { updateCompactHQ, localToolActors } from "./compact-hq.js";
+import { initOpsBay, selectAgent, getSelectedAgent, renderOpsBay } from "./ops-bay.js";
 import {
   resolveLivingRoomAgents,
   resolveLiveHQMetrics,
@@ -11,6 +12,8 @@ import {
   resolveLiveAgentMotion,
   resolveChiefAlerts,
   resolveAgentDetailData,
+  resolveOpsState,
+  normalizeOpsState,
   StorySceneController,
   CANONICAL_EXAMPLE_STORY,
   resolveStoryLivingAgents,
@@ -78,6 +81,8 @@ export class LivingHQController {
     this.initElements();
     this.resetUnverifiedTelemetry();
     this.bindEvents();
+    initOpsBay({ openAdvanced: (id) => this.openAgentInspectorFor(id) });
+    this.bindOpsBayCards();
     this.startClock();
 
     // Set initial collapsed state on panels if small screen
@@ -767,9 +772,56 @@ export class LivingHQController {
     }
   }
 
+  bindOpsBayCards() {
+    if (this.opsCardsBound) return;
+    const museCard = document.getElementById("muse-main");
+    if (museCard) {
+      museCard.style.cursor = "pointer";
+      museCard.addEventListener("click", () => selectAgent("muse", { name: "MUSE", title: "MAIN WORKER", icon: "∞" }));
+      this.opsCardsBound = true;
+    }
+    for (const [id, key] of [["rail-chatgpt", "codex"], ["rail-antigravity", "google"]]) {
+      const card = document.getElementById(id);
+      if (card && !card.dataset.opsBound) {
+        card.dataset.opsBound = "1";
+        card.style.cursor = "pointer";
+        card.addEventListener("click", () => {
+          const a = (this.lastAgents || []).find(x => x.provider === key || (x.id || "").includes(key)) || {};
+          selectAgent(key, { name: a.name || key.toUpperCase(), title: a.title || a.role, icon: a.icon });
+        });
+      }
+    }
+  }
+
+  openAgentInspectorFor(id) {
+    const live = (this.lastAgents || []).find(a => a.id === id)
+      || (this.lastAgents || []).find(a => (a.provider || "").toLowerCase().includes(id))
+      || { id, name: id.toUpperCase() };
+    this.openAgentInspector(live);
+  }
+
+  updateTruthPanel(stateData) {
+    const set = (id, v) => { const n = document.getElementById(id); if (n) n.textContent = v; };
+    const L = stateData?.courier_ledger || {};
+    set("tv-truth-ledger", L.status && L.status !== "UNKNOWN" ? `${L.status} · r${L.revision ?? "?"}` : "UNKNOWN");
+    set("tv-truth-guard", L.guard || "UNKNOWN");
+    set("tv-truth-unproven", L.unproven_count ?? "UNKNOWN");
+    set("tv-truth-clean", L.clean_idle || "UNKNOWN");
+    set("tv-truth-qi", L.queue_independent || "UNKNOWN");
+    const next = L.next_action && L.next_action !== "UNKNOWN" ? L.next_action.replace(/^Prove edge:\s*/, "") : "UNKNOWN";
+    set("tv-truth-next", next);
+    const head = stateData?.repo_head_sha;
+    set("tv-truth-head", typeof head === "string" && head !== "UNKNOWN" ? head.slice(0, 12) : "UNKNOWN");
+  }
+
   updateLivingHQ(stateData) {
     this.lastLiveState = stateData;
-    updateCompactHQ(stateData);
+    // Single ops_state: every display surface derives agent state from here.
+    this.lastOpsState = resolveOpsState(stateData);
+    updateCompactHQ(stateData, this.lastOpsState);
+    this.bindOpsBayCards();
+    this.updateTruthPanel(stateData);
+    renderOpsBay(this.lastOpsState, stateData);
     // 1. Resolve Dynamic Living Agents from real telemetry
     const localActors = localToolActors(stateData.local_tools);
     const agents = resolveLivingRoomAgents(stateData).filter(a => !['agent-codex-bridge','agent-antigravity-bridge'].includes(a.id));
@@ -1226,7 +1278,9 @@ export class LivingHQController {
         node.style.cursor = "pointer";
         node.addEventListener("click", (e) => {
           e.stopPropagation();
-          this.openAgentInspector(this.lastAgents?.find(a => a.id === agent.id) || agent);
+          // Primary interaction: lower operations bay. Modal only via ADVANCED DETAILS.
+          const live = this.lastAgents?.find(a => a.id === agent.id) || agent;
+          selectAgent(agent.id, { name: live.name, title: live.title || live.role, icon: live.icon });
         });
 
         node.addEventListener("mouseenter", () => {
@@ -1291,12 +1345,19 @@ export class LivingHQController {
         node.appendChild(avatar);
         node.appendChild(speech);
 
+        // Stable placement: appear directly at canonical coords, fade only.
+        if (agent.x != null) node.style.left = `${agent.x}%`;
+        if (agent.y != null) node.style.top = `${agent.y}%`;
+        node.dataset.spawnPending = "1";
         this.agentsLayer.appendChild(node);
         this.agentNodes.set(agent.id, node);
       }
 
       // State Classes & Visual Indicators
-      node.className = "living-agent-node";
+      // Fade-in runs exactly once per node lifetime; positions are preset so
+      // nothing travels across the map on reload.
+      node.className = "living-agent-node" + (node.dataset.spawnPending ? " is-spawn" : "");
+      delete node.dataset.spawnPending;
       if (this.hoveredAgentId === agent.id) node.classList.add("is-hovered");
       const motionState = motion?.states?.[agent.id] || agent.state;
       const normalizedState = (motionState || agent.state || "UNKNOWN").toUpperCase();

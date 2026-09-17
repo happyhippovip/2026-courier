@@ -1577,20 +1577,85 @@ export function resolveChiefAlerts(stateData) {
 /**
  * Resolves comprehensive, non-secret telemetry for the Agent Detail Panel.
  */
+/**
+ * Single normalized operations state. Observational only: derives one
+ * canonical agent state from the same snapshot every consumer uses, so
+ * sidebar, map, detail and counts can never disagree.
+ * Canonical states: OFFLINE | IDLE | ACTIVE | WAITING | BLOCKED | ERROR.
+ * Every field carries {value, source, observed_at, fresh}; unknown stays UNKNOWN.
+ */
+export function normalizeOpsState(raw) {
+  const s = String(raw || 'UNKNOWN').toUpperCase();
+  if (/OFFLINE|STOPPED|DISABLED/.test(s)) return 'OFFLINE';
+  if (/BLOCK|ERROR|FAIL|STALE/.test(s)) return s.includes('BLOCK') ? 'BLOCKED' : 'ERROR';
+  if (/WAIT|GATE|PAUSE/.test(s)) return 'WAITING';
+  if (/RUNNING|WORKING|BUSY|COMPUTING|PROGRESS|RECHNET/.test(s)) return 'ACTIVE';
+  if (/IDLE|AVAILABLE|ONLINE|READY|SAFE_IDLE|OPEN|GEÖFFNET|AN\b/.test(s)) return 'IDLE';
+  return 'UNKNOWN';
+}
+
+function toolFresh(localTools) {
+  const age = Date.now() - Date.parse(localTools?.observed_at || '');
+  return Number.isFinite(age) && age >= -5000 && age < 15000;
+}
+
+export function resolveOpsState(stateData) {
+  const observedAt = stateData?.server_time || new Date().toISOString();
+  const local = stateData?.local_tools || null;
+  const freshLocal = toolFresh(local);
+  const agents = stateData?.agents || {};
+  const out = {};
+  const defs = [
+    ['muse', () => {
+      const t = freshLocal ? local.tools?.muse : null;
+      if (!t) return { state: 'UNKNOWN', task: null, src: 'local-tools (absent/stale)' };
+      const st = t.status === 'COMPUTING' ? 'ACTIVE' : t.status === 'OPEN' ? 'IDLE' : t.status === 'OFFLINE' ? 'OFFLINE' : 'UNKNOWN';
+      return { state: st, task: t.task_known ? (t.current_task || null) : null, src: 'local-tools PROCESS_CPU_DELTA' };
+    }],
+    ['codex', () => {
+      const t = freshLocal ? local.tools?.chatgpt : null;
+      const a = agents['worker-codex'];
+      const raw = t?.status === 'COMPUTING' ? 'ACTIVE' : t?.status === 'OFFLINE' ? 'OFFLINE' : (a?.state || 'UNKNOWN');
+      return { state: normalizeOpsState(raw), task: a?.task || null, src: t ? 'local-tools+worker-codex' : 'worker-codex' };
+    }],
+    ['google', () => {
+      const t = freshLocal ? local.tools?.antigravity : null;
+      const a = agents['worker-google'];
+      const raw = t?.status === 'COMPUTING' ? 'ACTIVE' : t?.status === 'OFFLINE' ? 'OFFLINE' : (a?.state || 'UNKNOWN');
+      return { state: normalizeOpsState(raw), task: a?.task || null, src: t ? 'local-tools+worker-google' : 'worker-google' };
+    }],
+  ];
+  for (const [id, fn] of defs) {
+    const r = fn();
+    out[id] = {
+      id, state: r.state, task: r.task || null,
+      source: r.src, observed_at: observedAt,
+      fresh: freshLocal || Boolean(agents[`worker-${id}`]),
+    };
+  }
+  return { observed_at: observedAt, company: 'COURIER SYMPHONY MUSE', agents: out };
+}
+
+export function escapeHtmlText(value) {
+  return String(value ?? '').replace(/[&<>"']/g, c => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
 export function resolveAgentDetailData(agent, stateData) {
   const autoRuntime = stateData?.autonomy_runtime || {};
+  const esc = escapeHtmlText;
   return {
-    name: agent.name || agent.id,
-    role: agent.role || agent.title || 'Specialist Operator',
-    state: agent.state || 'UNKNOWN',
-    mission: autoRuntime.current_goal ? sanitizeTruthText(autoRuntime.current_goal) : 'Keine aktive Mission gemeldet',
-    task: agent.task ? sanitizeTruthText(agent.task) : 'Keine konkrete Aufgabe gemeldet',
-    last_progress: sanitizeTruthText(agent.last_progress || autoRuntime.last_active_at || 'Just now'),
-    state_age: agent.state_age || '0s',
-    blocked_reason: sanitizeTruthText(agent.blocked_reason || (agent.is_blocked ? 'Human gate / policy pause' : 'None (Operating normally)')),
-    provider: agent.provider || 'LOCAL_DETERMINISTIC',
+    name: esc(agent.name || agent.id),
+    role: esc(agent.role || agent.title || 'Specialist Operator'),
+    state: esc(agent.state || 'UNKNOWN'),
+    mission: autoRuntime.current_goal ? esc(sanitizeTruthText(autoRuntime.current_goal)) : 'Keine aktive Mission gemeldet',
+    task: agent.task ? esc(sanitizeTruthText(agent.task)) : 'Keine konkrete Aufgabe gemeldet',
+    last_progress: esc(sanitizeTruthText(agent.last_progress || autoRuntime.last_active_at || 'Just now')),
+    state_age: esc(agent.state_age || '0s'),
+    blocked_reason: esc(sanitizeTruthText(agent.blocked_reason || (agent.is_blocked ? 'Human gate / policy pause' : 'None (Operating normally)'))),
+    provider: esc(agent.provider || 'LOCAL_DETERMINISTIC'),
     heavy_job: agent.heavy_job ? 'YES (Scope Locked)' : 'NO',
-    result_id: agent.result_id || 'None',
+    result_id: esc(agent.result_id || 'None'),
   };
 }
 

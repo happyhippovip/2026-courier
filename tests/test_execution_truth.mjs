@@ -28,6 +28,8 @@ import {
   resolveSkillTruth,
   resolveHandoffTruth,
   resolveAgentDetailData,
+  resolveOpsState,
+  normalizeOpsState,
   sanitizeTruthText,
   PROMPT_LIFECYCLE_PHASES,
   TRUTH_MODES,
@@ -1135,6 +1137,29 @@ const knownDetail = resolveAgentDetailData(
   { autonomy_runtime: { current_goal: 'Finish ledger' } });
 assert.equal(knownDetail.mission, 'Finish ledger');
 assert.equal(knownDetail.task, 'Proving edge RELEASE');
+
+// Single ops_state: sidebar, map, detail and counts must derive identically
+assert.equal(normalizeOpsState('COMPUTING'), 'ACTIVE');
+assert.equal(normalizeOpsState('WORKING'), 'ACTIVE');
+assert.equal(normalizeOpsState('SAFE_IDLE'), 'IDLE');
+assert.equal(normalizeOpsState('RECHNET'), 'ACTIVE');
+assert.equal(normalizeOpsState('WAITING_HUMAN'), 'WAITING');
+assert.equal(normalizeOpsState('HUMAN_GATE'), 'WAITING');
+assert.equal(normalizeOpsState('bogus-state-xyz'), 'UNKNOWN');
+const opsSnap = {
+  server_time: '2026-09-18T00:00:00.000Z',
+  local_tools: { observed_at: new Date(Date.now() - 2000).toISOString(),
+    tools: { muse: { status: 'COMPUTING', task_known: false }, chatgpt: { status: 'OPEN' }, antigravity: { status: 'OFFLINE' } } },
+  agents: { 'worker-codex': { state: 'SAFE_IDLE', task: 'Standby' }, 'worker-google': { state: 'SAFE_IDLE', task: 'Standby' } },
+};
+const ops = resolveOpsState(opsSnap);
+assert.equal(ops.company, 'COURIER SYMPHONY MUSE');
+assert.equal(ops.agents.muse.state, 'ACTIVE');
+assert.equal(ops.agents.muse.task, null);
+assert.equal(ops.agents.codex.state, 'IDLE');
+assert.equal(ops.agents.google.state, 'OFFLINE');
+assert.equal(resolveOpsState({}).agents.muse.state, 'UNKNOWN');
+assert.equal(resolveOpsState(null).agents.codex.task, null);
 
 console.log('execution truth tests: PASS (100% SUCCESS)');
 
