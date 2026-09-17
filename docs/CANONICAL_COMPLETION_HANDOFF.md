@@ -122,3 +122,7 @@ The handoff protocol does not relax safety constraints. Preserve at minimum:
 ## Phase rule
 
 This protocol is permanent infrastructure. All future Courier finishing phases, autonomy tests, product milestones, Codex audits, repair cycles, and final acceptance runs must end with a canonical handoff record conforming to `schemas/canonical_handoff.schema.json`.
+
+## Scope-Local Human Gates vs Global Stops
+
+A `HUMAN_REQUIRED` gate blocks only its causally dependent scope. It is a global stop only when no other safe, authorized, unowned executable work exists anywhere on the current goal frontier. If one scope is blocked by a human gate (e.g., waiting for deployment authorization), the agent MUST immediately compute the next safe action in another unblocked scope and continue working.
