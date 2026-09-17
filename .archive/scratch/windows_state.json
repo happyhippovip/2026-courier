@@ -1,0 +1,766 @@
+{
+  "schema_version": 2,
+  "goals": {
+    "goal-e671e920": {
+      "goal_id": "goal-e671e920",
+      "goal_text": "10-task Acceptance Test",
+      "status": "DONE",
+      "terminal": true,
+      "workflow_plan": [
+        {
+          "task_id": "u1",
+          "target_agent": "windows",
+          "instruction": "echo Windows Task 1",
+          "mode": "NATIVE",
+          "goal_id": "goal-e671e920",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "WINDOWS-TEST-WORKER",
+          "attempt_id": "u1:attempt:1",
+          "dispatch_id": "dispatch-45e9451ef227435896afbf1ad13e8377",
+          "execution_ref": "exec-e81e774c61b04968b3e821ce17df5b25",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "windows",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "verification": {
+            "verifier_id": "VERIFIER-01",
+            "result_id": "result-c7a89c4f8f704ddaa75d8c4e161cb596",
+            "verdict": "PASS",
+            "artifacts": [],
+            "verified_at": 1789642394.7776945
+          }
+        },
+        {
+          "task_id": "u2",
+          "target_agent": "mac",
+          "instruction": "echo Mac Task 2",
+          "mode": "NATIVE",
+          "depends_on": [
+            "u1"
+          ],
+          "goal_id": "goal-e671e920",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+          "attempt_id": "u2:attempt:1",
+          "dispatch_id": "dispatch-66bfe0d13e1b4c8c9e2a550224bcdea1",
+          "execution_ref": "exec-67e6d3d4cda64465938b0c6210b6cc48",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "verification": {
+            "verifier_id": "VERIFIER-01",
+            "result_id": "8bcb91b5-1bb2-4be7-aa6f-569770f33ccd",
+            "verdict": "PASS",
+            "artifacts": [],
+            "verified_at": 1789642399.8199582
+          }
+        },
+        {
+          "task_id": "u3",
+          "target_agent": "windows",
+          "instruction": "echo Windows Task 3",
+          "mode": "NATIVE",
+          "depends_on": [
+            "u2"
+          ],
+          "goal_id": "goal-e671e920",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "WINDOWS-TEST-WORKER",
+          "attempt_id": "u3:attempt:1",
+          "dispatch_id": "dispatch-e024f44afa0446948105f319bab406de",
+          "execution_ref": "exec-3f57b59d725242b3b977e69fc1c609ca",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "windows",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "verification": {
+            "verifier_id": "VERIFIER-01",
+            "result_id": "result-9f2cce6dcc6841579d166ac74c00b8c2",
+            "verdict": "PASS",
+            "artifacts": [],
+            "verified_at": 1789642409.8664355
+          }
+        },
+        {
+          "task_id": "u4",
+          "target_agent": "mac",
+          "instruction": "echo Mac Task 4",
+          "mode": "NATIVE",
+          "depends_on": [
+            "u3"
+          ],
+          "goal_id": "goal-e671e920",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+          "attempt_id": "u4:attempt:1",
+          "dispatch_id": "dispatch-15ebb1049e624d7c86fc48a4c0aaeb58",
+          "execution_ref": "exec-4bc2a0fa073947a2a2eb31df647d60d8",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "verification": {
+            "verifier_id": "VERIFIER-01",
+            "result_id": "c6f28041-c938-408c-913f-478d90c60584",
+            "verdict": "PASS",
+            "artifacts": [],
+            "verified_at": 1789642414.923467
+          }
+        },
+        {
+          "task_id": "u5",
+          "target_agent": "windows",
+          "instruction": "echo Windows Task 5",
+          "mode": "NATIVE",
+          "depends_on": [
+            "u4"
+          ],
+          "goal_id": "goal-e671e920",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "WINDOWS-TEST-WORKER",
+          "attempt_id": "u5:attempt:1",
+          "dispatch_id": "dispatch-47e01c36df764dcfa6c00c03b6286198",
+          "execution_ref": "exec-ff64a9ec2eec4246bb82903d1aa241bb",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "windows",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "verification": {
+            "verifier_id": "VERIFIER-01",
+            "result_id": "result-d20903402b424fb4a2e8e46f00f5ed8c",
+            "verdict": "PASS",
+            "artifacts": [],
+            "verified_at": 1789642419.9593594
+          }
+        },
+        {
+          "task_id": "u6",
+          "target_agent": "mac",
+          "instruction": "echo Mac Task 6",
+          "mode": "NATIVE",
+          "depends_on": [
+            "u5"
+          ],
+          "goal_id": "goal-e671e920",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+          "attempt_id": "u6:attempt:1",
+          "dispatch_id": "dispatch-95a41abbdd18497282407287a48fb742",
+          "execution_ref": "exec-0e40be93e35d4492ab6577fa778b0ca6",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "verification": {
+            "verifier_id": "VERIFIER-01",
+            "result_id": "1424d7e4-cc85-4809-9d83-5866f93d8fb1",
+            "verdict": "PASS",
+            "artifacts": [],
+            "verified_at": 1789642424.9874332
+          }
+        },
+        {
+          "task_id": "u7",
+          "target_agent": "windows",
+          "instruction": "echo Windows Task 7",
+          "mode": "NATIVE",
+          "depends_on": [
+            "u6"
+          ],
+          "goal_id": "goal-e671e920",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "WINDOWS-TEST-WORKER",
+          "attempt_id": "u7:attempt:1",
+          "dispatch_id": "dispatch-4b9b3ce9934d4d25a820811512b18fba",
+          "execution_ref": "exec-4da44fbce0df45608053eaf819b2f473",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "windows",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "verification": {
+            "verifier_id": "VERIFIER-01",
+            "result_id": "result-2d4ad989e9714c5386db979ce1031450",
+            "verdict": "PASS",
+            "artifacts": [],
+            "verified_at": 1789642435.040394
+          }
+        },
+        {
+          "task_id": "u8",
+          "target_agent": "mac",
+          "instruction": "echo Mac Task 8",
+          "mode": "NATIVE",
+          "depends_on": [
+            "u7"
+          ],
+          "goal_id": "goal-e671e920",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+          "attempt_id": "u8:attempt:1",
+          "dispatch_id": "dispatch-8f3f3947d47648e6b938489e89f78d39",
+          "execution_ref": "exec-eb0c6ae4346d45ed8950c7f3ab4165f9",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "verification": {
+            "verifier_id": "VERIFIER-01",
+            "result_id": "047d8b84-b7ba-495f-9050-9a1f657f5f63",
+            "verdict": "PASS",
+            "artifacts": [],
+            "verified_at": 1789642440.0892584
+          }
+        },
+        {
+          "task_id": "u9",
+          "target_agent": "windows",
+          "instruction": "echo Windows Task 9",
+          "mode": "NATIVE",
+          "depends_on": [
+            "u8"
+          ],
+          "goal_id": "goal-e671e920",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "WINDOWS-TEST-WORKER",
+          "attempt_id": "u9:attempt:1",
+          "dispatch_id": "dispatch-89ced00247294722aac3dd5e5ecba509",
+          "execution_ref": "exec-13b59c00e3cc4ef69043c69e2b5ed640",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "windows",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "verification": {
+            "verifier_id": "VERIFIER-01",
+            "result_id": "result-9e9afadbb2dc4815886537f55c520ca3",
+            "verdict": "PASS",
+            "artifacts": [],
+            "verified_at": 1789642450.137796
+          }
+        },
+        {
+          "task_id": "u10",
+          "target_agent": "mac",
+          "instruction": "echo Mac Task 10",
+          "mode": "NATIVE",
+          "depends_on": [
+            "u9"
+          ],
+          "goal_id": "goal-e671e920",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+          "attempt_id": "u10:attempt:1",
+          "dispatch_id": "dispatch-28fc793406944f08be01d1a62944bd7a",
+          "execution_ref": "exec-ce801906ca2345569963d018c64582c5",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "verification": {
+            "verifier_id": "VERIFIER-01",
+            "result_id": "4bf09b7e-0a89-41af-8d03-165796c524e4",
+            "verdict": "PASS",
+            "artifacts": [],
+            "verified_at": 1789642455.1813135
+          }
+        }
+      ],
+      "current_step_index": 0
+    }
+  },
+  "tasks": {
+    "u1": {
+      "task_id": "u1",
+      "target_agent": "windows",
+      "instruction": "echo Windows Task 1",
+      "mode": "NATIVE",
+      "goal_id": "goal-e671e920",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "WINDOWS-TEST-WORKER",
+      "attempt_id": "u1:attempt:1",
+      "dispatch_id": "dispatch-45e9451ef227435896afbf1ad13e8377",
+      "execution_ref": "exec-e81e774c61b04968b3e821ce17df5b25",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "windows",
+      "last_completed_step": "u1",
+      "next_action": null,
+      "blocker": null,
+      "artifact_refs": [],
+      "result": {
+        "status": "SUCCESS",
+        "artifacts": [],
+        "dispatch_id": "dispatch-45e9451ef227435896afbf1ad13e8377",
+        "goal_id": "goal-e671e920",
+        "stderr": "",
+        "worker_id": "WINDOWS-TEST-WORKER",
+        "execution_ref": "exec-e81e774c61b04968b3e821ce17df5b25",
+        "run_id": "25424",
+        "stdout": "Windows\nTask\n1",
+        "result_id": "result-c7a89c4f8f704ddaa75d8c4e161cb596",
+        "attempt_id": "u1:attempt:1",
+        "task_id": "u1"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "result-c7a89c4f8f704ddaa75d8c4e161cb596",
+        "verdict": "PASS",
+        "artifacts": [],
+        "verified_at": 1789642394.7776945
+      }
+    },
+    "u2": {
+      "task_id": "u2",
+      "target_agent": "mac",
+      "instruction": "echo Mac Task 2",
+      "mode": "NATIVE",
+      "depends_on": [
+        "u1"
+      ],
+      "goal_id": "goal-e671e920",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+      "attempt_id": "u2:attempt:1",
+      "dispatch_id": "dispatch-66bfe0d13e1b4c8c9e2a550224bcdea1",
+      "execution_ref": "exec-67e6d3d4cda64465938b0c6210b6cc48",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "last_completed_step": "u2",
+      "next_action": null,
+      "blocker": null,
+      "artifact_refs": [],
+      "result": {
+        "status": "SUCCESS",
+        "artifacts": [],
+        "dispatch_id": "dispatch-66bfe0d13e1b4c8c9e2a550224bcdea1",
+        "goal_id": "goal-e671e920",
+        "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+        "execution_ref": "exec-67e6d3d4cda64465938b0c6210b6cc48",
+        "run_id": "0b67ee2c-2fe3-492c-b23d-fb9660db666c",
+        "result_id": "8bcb91b5-1bb2-4be7-aa6f-569770f33ccd",
+        "attempt_id": "u2:attempt:1",
+        "task_id": "u2"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "8bcb91b5-1bb2-4be7-aa6f-569770f33ccd",
+        "verdict": "PASS",
+        "artifacts": [],
+        "verified_at": 1789642399.8199582
+      }
+    },
+    "u3": {
+      "task_id": "u3",
+      "target_agent": "windows",
+      "instruction": "echo Windows Task 3",
+      "mode": "NATIVE",
+      "depends_on": [
+        "u2"
+      ],
+      "goal_id": "goal-e671e920",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "WINDOWS-TEST-WORKER",
+      "attempt_id": "u3:attempt:1",
+      "dispatch_id": "dispatch-e024f44afa0446948105f319bab406de",
+      "execution_ref": "exec-3f57b59d725242b3b977e69fc1c609ca",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "windows",
+      "last_completed_step": "u3",
+      "next_action": null,
+      "blocker": null,
+      "artifact_refs": [],
+      "result": {
+        "status": "SUCCESS",
+        "artifacts": [],
+        "dispatch_id": "dispatch-e024f44afa0446948105f319bab406de",
+        "goal_id": "goal-e671e920",
+        "stderr": "",
+        "worker_id": "WINDOWS-TEST-WORKER",
+        "execution_ref": "exec-3f57b59d725242b3b977e69fc1c609ca",
+        "run_id": "26000",
+        "stdout": "Windows\nTask\n3",
+        "result_id": "result-9f2cce6dcc6841579d166ac74c00b8c2",
+        "attempt_id": "u3:attempt:1",
+        "task_id": "u3"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "result-9f2cce6dcc6841579d166ac74c00b8c2",
+        "verdict": "PASS",
+        "artifacts": [],
+        "verified_at": 1789642409.8664355
+      }
+    },
+    "u4": {
+      "task_id": "u4",
+      "target_agent": "mac",
+      "instruction": "echo Mac Task 4",
+      "mode": "NATIVE",
+      "depends_on": [
+        "u3"
+      ],
+      "goal_id": "goal-e671e920",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+      "attempt_id": "u4:attempt:1",
+      "dispatch_id": "dispatch-15ebb1049e624d7c86fc48a4c0aaeb58",
+      "execution_ref": "exec-4bc2a0fa073947a2a2eb31df647d60d8",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "last_completed_step": "u4",
+      "next_action": null,
+      "blocker": null,
+      "artifact_refs": [],
+      "result": {
+        "status": "SUCCESS",
+        "artifacts": [],
+        "dispatch_id": "dispatch-15ebb1049e624d7c86fc48a4c0aaeb58",
+        "goal_id": "goal-e671e920",
+        "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+        "execution_ref": "exec-4bc2a0fa073947a2a2eb31df647d60d8",
+        "run_id": "8e78b646-5451-4b30-8c34-0a28e3c7e8b5",
+        "result_id": "c6f28041-c938-408c-913f-478d90c60584",
+        "attempt_id": "u4:attempt:1",
+        "task_id": "u4"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "c6f28041-c938-408c-913f-478d90c60584",
+        "verdict": "PASS",
+        "artifacts": [],
+        "verified_at": 1789642414.923467
+      }
+    },
+    "u5": {
+      "task_id": "u5",
+      "target_agent": "windows",
+      "instruction": "echo Windows Task 5",
+      "mode": "NATIVE",
+      "depends_on": [
+        "u4"
+      ],
+      "goal_id": "goal-e671e920",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "WINDOWS-TEST-WORKER",
+      "attempt_id": "u5:attempt:1",
+      "dispatch_id": "dispatch-47e01c36df764dcfa6c00c03b6286198",
+      "execution_ref": "exec-ff64a9ec2eec4246bb82903d1aa241bb",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "windows",
+      "last_completed_step": "u5",
+      "next_action": null,
+      "blocker": null,
+      "artifact_refs": [],
+      "result": {
+        "status": "SUCCESS",
+        "artifacts": [],
+        "dispatch_id": "dispatch-47e01c36df764dcfa6c00c03b6286198",
+        "goal_id": "goal-e671e920",
+        "stderr": "",
+        "worker_id": "WINDOWS-TEST-WORKER",
+        "execution_ref": "exec-ff64a9ec2eec4246bb82903d1aa241bb",
+        "run_id": "22936",
+        "stdout": "Windows\nTask\n5",
+        "result_id": "result-d20903402b424fb4a2e8e46f00f5ed8c",
+        "attempt_id": "u5:attempt:1",
+        "task_id": "u5"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "result-d20903402b424fb4a2e8e46f00f5ed8c",
+        "verdict": "PASS",
+        "artifacts": [],
+        "verified_at": 1789642419.9593594
+      }
+    },
+    "u6": {
+      "task_id": "u6",
+      "target_agent": "mac",
+      "instruction": "echo Mac Task 6",
+      "mode": "NATIVE",
+      "depends_on": [
+        "u5"
+      ],
+      "goal_id": "goal-e671e920",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+      "attempt_id": "u6:attempt:1",
+      "dispatch_id": "dispatch-95a41abbdd18497282407287a48fb742",
+      "execution_ref": "exec-0e40be93e35d4492ab6577fa778b0ca6",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "last_completed_step": "u6",
+      "next_action": null,
+      "blocker": null,
+      "artifact_refs": [],
+      "result": {
+        "status": "SUCCESS",
+        "artifacts": [],
+        "dispatch_id": "dispatch-95a41abbdd18497282407287a48fb742",
+        "goal_id": "goal-e671e920",
+        "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+        "execution_ref": "exec-0e40be93e35d4492ab6577fa778b0ca6",
+        "run_id": "6a7d8933-4c83-44fe-93f7-5b107d6bb37a",
+        "result_id": "1424d7e4-cc85-4809-9d83-5866f93d8fb1",
+        "attempt_id": "u6:attempt:1",
+        "task_id": "u6"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "1424d7e4-cc85-4809-9d83-5866f93d8fb1",
+        "verdict": "PASS",
+        "artifacts": [],
+        "verified_at": 1789642424.9874332
+      }
+    },
+    "u7": {
+      "task_id": "u7",
+      "target_agent": "windows",
+      "instruction": "echo Windows Task 7",
+      "mode": "NATIVE",
+      "depends_on": [
+        "u6"
+      ],
+      "goal_id": "goal-e671e920",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "WINDOWS-TEST-WORKER",
+      "attempt_id": "u7:attempt:1",
+      "dispatch_id": "dispatch-4b9b3ce9934d4d25a820811512b18fba",
+      "execution_ref": "exec-4da44fbce0df45608053eaf819b2f473",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "windows",
+      "last_completed_step": "u7",
+      "next_action": null,
+      "blocker": null,
+      "artifact_refs": [],
+      "result": {
+        "status": "SUCCESS",
+        "artifacts": [],
+        "dispatch_id": "dispatch-4b9b3ce9934d4d25a820811512b18fba",
+        "goal_id": "goal-e671e920",
+        "stderr": "",
+        "worker_id": "WINDOWS-TEST-WORKER",
+        "execution_ref": "exec-4da44fbce0df45608053eaf819b2f473",
+        "run_id": "26480",
+        "stdout": "Windows\nTask\n7",
+        "result_id": "result-2d4ad989e9714c5386db979ce1031450",
+        "attempt_id": "u7:attempt:1",
+        "task_id": "u7"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "result-2d4ad989e9714c5386db979ce1031450",
+        "verdict": "PASS",
+        "artifacts": [],
+        "verified_at": 1789642435.040394
+      }
+    },
+    "u8": {
+      "task_id": "u8",
+      "target_agent": "mac",
+      "instruction": "echo Mac Task 8",
+      "mode": "NATIVE",
+      "depends_on": [
+        "u7"
+      ],
+      "goal_id": "goal-e671e920",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+      "attempt_id": "u8:attempt:1",
+      "dispatch_id": "dispatch-8f3f3947d47648e6b938489e89f78d39",
+      "execution_ref": "exec-eb0c6ae4346d45ed8950c7f3ab4165f9",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "last_completed_step": "u8",
+      "next_action": null,
+      "blocker": null,
+      "artifact_refs": [],
+      "result": {
+        "status": "SUCCESS",
+        "artifacts": [],
+        "dispatch_id": "dispatch-8f3f3947d47648e6b938489e89f78d39",
+        "goal_id": "goal-e671e920",
+        "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+        "execution_ref": "exec-eb0c6ae4346d45ed8950c7f3ab4165f9",
+        "run_id": "7aeda6ec-5588-4117-85c5-2f384934dfe3",
+        "result_id": "047d8b84-b7ba-495f-9050-9a1f657f5f63",
+        "attempt_id": "u8:attempt:1",
+        "task_id": "u8"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "047d8b84-b7ba-495f-9050-9a1f657f5f63",
+        "verdict": "PASS",
+        "artifacts": [],
+        "verified_at": 1789642440.0892584
+      }
+    },
+    "u9": {
+      "task_id": "u9",
+      "target_agent": "windows",
+      "instruction": "echo Windows Task 9",
+      "mode": "NATIVE",
+      "depends_on": [
+        "u8"
+      ],
+      "goal_id": "goal-e671e920",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "WINDOWS-TEST-WORKER",
+      "attempt_id": "u9:attempt:1",
+      "dispatch_id": "dispatch-89ced00247294722aac3dd5e5ecba509",
+      "execution_ref": "exec-13b59c00e3cc4ef69043c69e2b5ed640",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "windows",
+      "last_completed_step": "u9",
+      "next_action": null,
+      "blocker": null,
+      "artifact_refs": [],
+      "result": {
+        "status": "SUCCESS",
+        "artifacts": [],
+        "dispatch_id": "dispatch-89ced00247294722aac3dd5e5ecba509",
+        "goal_id": "goal-e671e920",
+        "stderr": "",
+        "worker_id": "WINDOWS-TEST-WORKER",
+        "execution_ref": "exec-13b59c00e3cc4ef69043c69e2b5ed640",
+        "run_id": "2624",
+        "stdout": "Windows\nTask\n9",
+        "result_id": "result-9e9afadbb2dc4815886537f55c520ca3",
+        "attempt_id": "u9:attempt:1",
+        "task_id": "u9"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "result-9e9afadbb2dc4815886537f55c520ca3",
+        "verdict": "PASS",
+        "artifacts": [],
+        "verified_at": 1789642450.137796
+      }
+    },
+    "u10": {
+      "task_id": "u10",
+      "target_agent": "mac",
+      "instruction": "echo Mac Task 10",
+      "mode": "NATIVE",
+      "depends_on": [
+        "u9"
+      ],
+      "goal_id": "goal-e671e920",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+      "attempt_id": "u10:attempt:1",
+      "dispatch_id": "dispatch-28fc793406944f08be01d1a62944bd7a",
+      "execution_ref": "exec-ce801906ca2345569963d018c64582c5",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "last_completed_step": "u10",
+      "next_action": null,
+      "blocker": null,
+      "artifact_refs": [],
+      "result": {
+        "status": "SUCCESS",
+        "artifacts": [],
+        "dispatch_id": "dispatch-28fc793406944f08be01d1a62944bd7a",
+        "goal_id": "goal-e671e920",
+        "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+        "execution_ref": "exec-ce801906ca2345569963d018c64582c5",
+        "run_id": "5ba1f745-119c-4306-8455-1102561ce0e6",
+        "result_id": "4bf09b7e-0a89-41af-8d03-165796c524e4",
+        "attempt_id": "u10:attempt:1",
+        "task_id": "u10"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "4bf09b7e-0a89-41af-8d03-165796c524e4",
+        "verdict": "PASS",
+        "artifacts": [],
+        "verified_at": 1789642455.1813135
+      }
+    }
+  },
+  "workers": {
+    "WINDOWS-TEST-WORKER": {
+      "worker_id": "WINDOWS-TEST-WORKER",
+      "platform": "windows",
+      "capabilities": [
+        "windows"
+      ],
+      "last_seen": 1789642450.9650714,
+      "available": true,
+      "current_task": null,
+      "cost_class": "low"
+    },
+    "MAC-MACBOOK-PRO-VON-USER-EDEA96": {
+      "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+      "platform": "macos",
+      "capabilities": [
+        "linux",
+        "antigravity",
+        "macos"
+      ],
+      "last_seen": 1789642457.7972322,
+      "available": true,
+      "current_task": null,
+      "cost_class": "low"
+    }
+  }
+}

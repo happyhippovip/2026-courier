@@ -1,0 +1,16 @@
+{
+  "task": "Run Issue #37 Physical Acceptance Proof",
+  "target_capability": "windows",
+  "requires_central_authority": true,
+  "required_sha": "dddad3709adaafb30873b1e6b005e2e50403a288",
+  "instructions": [
+    "Checkout exact SHA dddad3709adaafb30873b1e6b005e2e50403a288.",
+    "Verify OS-owned Windows Central runtime is running and matches SHA.",
+    "Run docs/RELEASE_CANDIDATE.md proof using real workers.",
+    "Submit 10-task non-mock goal.",
+    "Observe automatic reconcile -> READY -> next dispatch.",
+    "Verify USER_CONTINUE_MESSAGES=0, MANUAL_PROCESS_RESTARTS=0, DUPLICATE_EXTERNAL_EFFECTS=0, TEMP_TASK_PROCESSES_AFTER_DONE=0, and genuine DONE -> CLEAN_IDLE.",
+    "Persist verifiable evidence and update examples/agent_handoff_ledger.json to revision 6.",
+    "Yield interactive session."
+  ]
+}
