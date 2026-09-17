@@ -236,8 +236,11 @@ def loop():
                 except OSError:
                     pass
         
-        backoff = 10
-        max_backoff = 300
+        error_backoff = 10
+        max_error_backoff = 300
+        
+        idle_backoff = 5.0
+        max_idle_backoff = 30.0
         
         while True:
             try:
@@ -294,18 +297,18 @@ def loop():
                     except OSError:
                         pass
                         
-                    backoff = 10 # reset backoff on success
+                    error_backoff = 10
+                    idle_backoff = 5.0
                 else:
-                    # Idle, reset backoff
-                    backoff = 10
+                    idle_backoff = min(max_idle_backoff, idle_backoff * 1.5)
                     
             except Exception as e:
-                print(f"[{worker_id}] Loop error: {e}. Backing off {backoff}s.")
-                time.sleep(backoff)
-                backoff = min(max_backoff, backoff * 2)
+                print(f"[{worker_id}] Loop error: {e}. Backing off {error_backoff}s.")
+                time.sleep(error_backoff)
+                error_backoff = min(max_error_backoff, error_backoff * 2)
                 continue
                 
-            time.sleep(5.0)
+            time.sleep(idle_backoff)
             
     finally:
         if os.path.exists(lock_path):
