@@ -75,8 +75,7 @@ def test_wrong_runtime(tmp_path):
         pass
 
 def test_substring_success_attack(tmp_path):
-    # Test if we can submit "PAYMENT_UNVERIFIED - AUTHORIZED_MACHINE_ACTION"
-    # and the ledger accepts it as a valid unproven/proven edge.
+    # Test if we can submit# and the ledger accepts it as a valid unproven/proven edge.
     ledger_path = setup_ledger(tmp_path, unproven_edges=["A"], blocker="NONE", proven_edges=[])
     bundle = ledger.load_bundle(ledger_path)
     

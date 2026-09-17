@@ -1,0 +1,202 @@
+{
+  "acceptance_guard": {
+    "acceptance_predicate": {
+      "name": "Global-Stop",
+      "required_results": [
+        "ISSUE_STATE"
+      ],
+      "results": {
+        "ISSUE_STATE": {
+          "evidence_urls": [
+            "https://test.com"
+          ],
+          "observed_value": "NO_FURTHER_ACTION",
+          "status": "UNKNOWN"
+        }
+      },
+      "version": "1.0"
+    },
+    "binding": {
+      "branch": "test-branch",
+      "current_sha": "0000000000000000000000000000000000000000",
+      "runtime_identity": "0000000000000000000000000000000000000000"
+    },
+    "evidence": [
+      {
+        "evidence_sha": "0000000000000000000000000000000000000000",
+        "observed_at": "2026-09-17T12:00:00Z",
+        "reason": "test",
+        "runtime_binding": "0000000000000000000000000000000000000000",
+        "source_type": "MACHINE_ARTIFACT",
+        "source_url": "https://test.com",
+        "validity": "VALID"
+      }
+    ],
+    "flow": [
+      "EXECUTION",
+      "EVIDENCE",
+      "ACCEPTANCE_GUARD",
+      "LEDGER_TRANSITION",
+      "NEXT_EXECUTABLE_ACTION"
+    ],
+    "transition_state": "PROVISIONAL",
+    "worker_state": "IDLE/YIELDED"
+  },
+  "format": "courier-agent-handoff-ledger",
+  "history": [
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [
+                "https://test.com"
+              ],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "test-branch",
+          "current_sha": "0000000000000000000000000000000000000000",
+          "runtime_identity": "0000000000000000000000000000000000000000"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "0000000000000000000000000000000000000000",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "test",
+            "runtime_binding": "0000000000000000000000000000000000000000",
+            "source_type": "MACHINE_ARTIFACT",
+            "source_url": "https://test.com",
+            "validity": "VALID"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "ACTIVE_WRITERS",
+        "BLOCKER_OWNER",
+        "BRANCH",
+        "CLEAN_IDLE",
+        "COLLISION_SCOPE",
+        "CONTINUATION_CHECKPOINT",
+        "CURRENT_SHA",
+        "DUPLICATE_EXTERNAL_EFFECTS",
+        "FIRST_CAUSAL_BLOCKER",
+        "GOAL",
+        "GOALS_SUBMITTED",
+        "LAST_EVIDENCE",
+        "LAST_UPDATED_BY",
+        "MANUAL_PROCESS_RESTARTS",
+        "NEXT_EXECUTABLE_ACTION",
+        "PROJECT",
+        "PROVEN_EDGES",
+        "QUEUE_INDEPENDENT",
+        "RUNTIME_IDENTITY",
+        "RUNTIME_OWNER",
+        "STATUS",
+        "TASKS_COMPLETED",
+        "TEMP_TASK_PROCESSES_AFTER_DONE",
+        "UNPROVEN_EDGES",
+        "USER_CONTINUE_MESSAGES",
+        "WORKERS_USED"
+      ],
+      "entry_sha256": "c2224cd436fba9759a540c33f5c3719b8de7f6704e84b585c635501bcf74d8ef",
+      "operation": "INIT",
+      "previous_entry_sha256": null,
+      "record": {
+        "ACTIVE_WRITERS": [],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "test-branch",
+        "CLEAN_IDLE": "UNKNOWN",
+        "COLLISION_SCOPE": [],
+        "CONTINUATION_CHECKPOINT": "none",
+        "CURRENT_SHA": "0000000000000000000000000000000000000000",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "NONE",
+        "GOAL": "QUEUE-INDEPENDENT-TEST",
+        "GOALS_SUBMITTED": 0,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "test",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "test",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "LEDGER/HANDOFF",
+          "PR41 ACCEPTANCE"
+        ],
+        "QUEUE_INDEPENDENT": "YES",
+        "RUNTIME_IDENTITY": "0000000000000000000000000000000000000000",
+        "RUNTIME_OWNER": "test",
+        "STATUS": "TEST",
+        "TASKS_COMPLETED": 0,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
+          
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 0
+      },
+      "record_sha256": "0fe3e1c5e3218547712e4c8f6eea0e07d664bc6a631e8afea187d5c8060dd933",
+      "revision": 0,
+      "state_sha256": "bf0e0a0a06a86fd1f97eb8a1f6e5917ea9a2e6518a91195db35b7c68d7a9ad2c",
+      "timestamp_utc": "2026-09-17T23:15:05Z",
+      "updated_by": "test"
+    }
+  ],
+  "non_authority": "Coordination metadata only; this ledger has no scheduler, runtime, execution, dispatch, verification, or Courier truth authority.",
+  "record": {
+    "ACTIVE_WRITERS": [],
+    "BLOCKER_OWNER": "Human",
+    "BRANCH": "test-branch",
+    "CLEAN_IDLE": "UNKNOWN",
+    "COLLISION_SCOPE": [],
+    "CONTINUATION_CHECKPOINT": "none",
+    "CURRENT_SHA": "0000000000000000000000000000000000000000",
+    "DUPLICATE_EXTERNAL_EFFECTS": 0,
+    "FIRST_CAUSAL_BLOCKER": "NONE",
+    "GOAL": "QUEUE-INDEPENDENT-TEST",
+    "GOALS_SUBMITTED": 0,
+    "LAST_EVIDENCE": [],
+    "LAST_UPDATED_BY": "test",
+    "MANUAL_PROCESS_RESTARTS": 0,
+    "NEXT_EXECUTABLE_ACTION": "test",
+    "PROJECT": "Courier",
+    "PROVEN_EDGES": [
+      "LEDGER/HANDOFF",
+      "PR41 ACCEPTANCE"
+    ],
+    "QUEUE_INDEPENDENT": "YES",
+    "RUNTIME_IDENTITY": "0000000000000000000000000000000000000000",
+    "RUNTIME_OWNER": "test",
+    "STATUS": "TEST",
+    "TASKS_COMPLETED": 0,
+    "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+    "UNPROVEN_EDGES": [
+      "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+      "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
+      
+    ],
+    "USER_CONTINUE_MESSAGES": 0,
+    "WORKERS_USED": 0
+  },
+  "revision": 0,
+  "schema_version": 2
+}
