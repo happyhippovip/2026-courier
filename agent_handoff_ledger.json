@@ -10266,7 +10266,7 @@
         },
         "binding": {
           "branch": "release-candidate-integration",
-          "current_sha": "95e57e2b4e020a17244e2004d623ebd9d4321ffe",
+          "current_sha": "e093b79cc2af1d6354932db2cc324ab5201167e3",
           "runtime_identity": "Google-Antigravity-Ledger"
         },
         "evidence": [
@@ -10280,12 +10280,12 @@
             "validity": "UNKNOWN"
           },
           {
-            "evidence_sha": "95e57e2b4e020a17244e2004d623ebd9d4321ffe",
+            "evidence_sha": "e093b79cc2af1d6354932db2cc324ab5201167e3",
             "observed_at": "2026-09-17T14:30:50Z",
             "reason": "Final execution yielded CLEAN_IDLE",
             "runtime_binding": "Google-Antigravity-Ledger",
             "source_type": "MACHINE_ARTIFACT",
-            "source_url": "https://github.com/happyhippovip/2026-courier/commit/95e57e2b4e020a17244e2004d623ebd9d4321ffe",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/e093b79cc2af1d6354932db2cc324ab5201167e3",
             "validity": "VALID"
           }
         ],
@@ -10378,7 +10378,7 @@
       "motor-eligibility-v1"
     ],
     "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
-    "CURRENT_SHA": "95e57e2b4e020a17244e2004d623ebd9d4321ffe",
+    "CURRENT_SHA": "e093b79cc2af1d6354932db2cc324ab5201167e3",
     "DUPLICATE_EXTERNAL_EFFECTS": 0,
     "FIRST_CAUSAL_BLOCKER": "NONE",
     "GOAL": "COURIER-PUBLIC-RELEASE",
