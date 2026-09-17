@@ -1,0 +1,8 @@
+EXACT_SHA=2e559d8287e613716a5a12ecca8d9820d32773ca
+NEXT_BLOCKER=The authoritative PR does not contain the worker bootstrap repairs, and the current physical runtime has no running Windows worker or single registered verifier owner.
+COMMAND=Read-only PowerShell: git merge-base --is-ancestor e99bfdfc/7c0be16b origin/release-candidate-integration; Get-CimInstance Win32_Process; Get-ScheduledTask; Invoke-WebRequest /health,/status,/workers.
+EXPECTED=The exact PR head contains the psutil and explicit identity repairs; a surviving uniquely identified Windows worker registers using the same authority as the server; one verifier owner is observable.
+ACTUAL=Both e99bfdfc and 7c0be16b are on origin/central-physical-fix but are not ancestors of PR #39. PID 26196 was not running; WINDOWS_WORKER_PROCESS_COUNT=0; CourierVerifier and CourierWindowsWorker were NOT_REGISTERED; one remaining verifier process tree was 3416->3540->20964. /health=200 while /status=401 and /workers=401 for the validation invalid token. Credential equality was not inspected because this proof lane does not read secret material.
+FILES=scripts/windows_worker/start.bat; scripts/windows_worker/config.json; scripts/windows_worker/daemon.py; scripts/install_verifier_service.ps1; PR #39; origin/central-physical-fix
+OWNER=Windows/Central
+MINIMAL_REPAIR=Integrate e99bfdfc and 7c0be16b into the exact PR #39 target, then use the existing OS-owned launch path to establish one verifier owner and a unique worker ID. Rerun this read-only process/registration evidence before any lifecycle acceptance claim.
