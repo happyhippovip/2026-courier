@@ -448,6 +448,44 @@ subprocess.run([
             ):
                 ledger_module.validate_bundle(bundle)
 
+    def test_bare_external_names_unproven_without_physical_proof(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            ledger = Path(temporary) / "ledger.json"
+            initialize(ledger)
+            bundle = ledger_module.load_bundle(ledger)
+            seeded = ledger_module.update(
+                ledger,
+                bundle["revision"],
+                {
+                    "PROVEN_EDGES": [
+                        "SALES PACKAGE",
+                        "POST-PILOT HARDENING",
+                        "RELEASE",
+                    ]
+                },
+                "probe-worker",
+                1.0,
+            )
+            # Without bound physical proof the stale-proof rule must refuse
+            # to keep bare external names in PROVEN_EDGES.
+            updated = ledger_module.update(
+                ledger,
+                seeded["revision"],
+                {"TASKS_COMPLETED": 3},
+                "probe-worker",
+                1.0,
+                seeded["acceptance_guard"],
+            )
+            self.assertNotIn("SALES PACKAGE", updated["record"]["PROVEN_EDGES"])
+            self.assertNotIn(
+                "POST-PILOT HARDENING", updated["record"]["PROVEN_EDGES"]
+            )
+            self.assertNotIn("RELEASE", updated["record"]["PROVEN_EDGES"])
+            self.assertIn("SALES PACKAGE", updated["record"]["UNPROVEN_EDGES"])
+            self.assertEqual(
+                updated["acceptance_guard"]["transition_state"], "PROVISIONAL"
+            )
+
     def test_concurrent_readers_only_observe_valid_atomic_snapshots(self):
         with tempfile.TemporaryDirectory() as temporary:
             ledger = Path(temporary) / "ledger.json"
