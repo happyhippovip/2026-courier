@@ -25,7 +25,7 @@ ALLOW_LIST = {"metadata", "report", "deterministic_transform", "verify_file", "s
 
 
 def run_cmd(command: list[str]) -> tuple[int, str, str]:
-    completed = subprocess.run(command, capture_output=True, text=True, check=False)
+    completed = subprocess.run(command, timeout=60, capture_output=True, text=True, check=False)
     return completed.returncode, completed.stdout.strip(), completed.stderr.strip()
 
 

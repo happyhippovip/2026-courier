@@ -45,7 +45,7 @@ def start_server(state_file):
     
     for _ in range(30):
         try:
-            res = requests.get(f"{API_URL}/health")
+            res = requests.get(f"{API_URL}/health", timeout=10)
             if res.status_code == 200:
                 log("Server started.")
                 return proc
@@ -69,7 +69,7 @@ def run_tests():
         # Auth Boundaries
         log("Testing Auth Boundaries...")
         results["PROPERTIES_TESTED"] += 1
-        r = requests.post(f"{API_URL}/goals", json={"goal_text": "test"})
+        r = requests.post(f"{API_URL}/goals", json={"goal_text": "test"}, timeout=10)
         if r.status_code == 401:
             results["PASS"] += 1
             results["AUTH_FAIL_CLOSED"] = "YES"
@@ -77,7 +77,7 @@ def run_tests():
             create_finding("missing auth rejected", "No Authorization header", f"Status {r.status_code}", "Status 401", "server/app.py", "Enforce auth on /goals")
 
         results["PROPERTIES_TESTED"] += 1
-        r = requests.post(f"{API_URL}/goals", json={"goal_text": "test"}, headers={"Authorization": "Bearer BAD"})
+        r = requests.post(f"{API_URL}/goals", json={"goal_text": "test"}, headers={"Authorization": "Bearer BAD"}, timeout=10)
         if r.status_code == 401:
             results["PASS"] += 1
         else:
@@ -86,15 +86,15 @@ def run_tests():
         # Unknown Worker Boundary
         log("Testing Unknown Worker Boundary...")
         results["PROPERTIES_TESTED"] += 1
-        r = requests.post(f"{API_URL}/tasks/claim", json={"worker_id": "UNKNOWN"}, headers=HEADERS)
+        r = requests.post(f"{API_URL}/tasks/claim", json={"worker_id": "UNKNOWN"}, headers=HEADERS, timeout=10)
         if r.status_code == 404:
             results["PASS"] += 1
         else:
             create_finding("unknown worker rejected", "worker_id=UNKNOWN", f"Status {r.status_code}", "Status 404", "server/app.py", "Check worker existence")
 
         # Create worker & goal for further tests
-        requests.post(f"{API_URL}/workers/register", json={"worker_id": "W1", "platform": "linux", "capabilities": ["linux"]}, headers=HEADERS)
-        requests.post(f"{API_URL}/workers/register", json={"worker_id": "W2", "platform": "linux", "capabilities": ["linux"]}, headers=HEADERS)
+        requests.post(f"{API_URL}/workers/register", json={"worker_id": "W1", "platform": "linux", "capabilities": ["linux"]}, headers=HEADERS, timeout=10)
+        requests.post(f"{API_URL}/workers/register", json={"worker_id": "W2", "platform": "linux", "capabilities": ["linux"]}, headers=HEADERS, timeout=10)
         
         goal_payload = {
             "goal_text": "test",
@@ -102,16 +102,16 @@ def run_tests():
                 {"task_id": "t1", "target_agent": "linux", "instruction": "echo test"}
             ]
         }
-        r = requests.post(f"{API_URL}/goals", json=goal_payload, headers=HEADERS)
+        r = requests.post(f"{API_URL}/goals", json=goal_payload, headers=HEADERS, timeout=10)
         goal_id = r.json()["goal_id"]
         
-        r = requests.post(f"{API_URL}/tasks/claim", json={"worker_id": "W1"}, headers=HEADERS)
+        r = requests.post(f"{API_URL}/tasks/claim", json={"worker_id": "W1"}, headers=HEADERS, timeout=10)
         task = r.json().get("task")
         
         # Unknown Task Result
         log("Testing Unknown Task Result...")
         results["PROPERTIES_TESTED"] += 1
-        r = requests.post(f"{API_URL}/tasks/result", json={"task_id": "UNKNOWN", "worker_id": "W1"}, headers=HEADERS)
+        r = requests.post(f"{API_URL}/tasks/result", json={"task_id": "UNKNOWN", "worker_id": "W1"}, headers=HEADERS, timeout=10)
         if r.status_code in [404, 400]:
             results["PASS"] += 1
         else:
@@ -120,7 +120,7 @@ def run_tests():
         # Wrong Worker Result
         log("Testing Wrong Worker Result...")
         results["PROPERTIES_TESTED"] += 1
-        r = requests.post(f"{API_URL}/tasks/result", json={"task_id": "t1", "worker_id": "W2", "goal_id": goal_id, "dispatch_id": task["dispatch_id"], "attempt_id": task["attempt_id"], "status": "SUCCESS", "artifacts": [], "run_id": "r1", "result_id": "res1"}, headers=HEADERS)
+        r = requests.post(f"{API_URL}/tasks/result", json={"task_id": "t1", "worker_id": "W2", "goal_id": goal_id, "dispatch_id": task["dispatch_id"], "attempt_id": task["attempt_id"], "status": "SUCCESS", "artifacts": [], "run_id": "r1", "result_id": "res1"}, headers=HEADERS, timeout=10)
         if r.status_code in [400, 404]:
             results["PASS"] += 1
         else:
@@ -138,7 +138,7 @@ def run_tests():
                 "status": "SUCCESS", "artifacts": [], "run_id": "r1", "result_id": "res1"
             }
             payload[attr] = bad_val
-            r = requests.post(f"{API_URL}/tasks/result", json=payload, headers=HEADERS)
+            r = requests.post(f"{API_URL}/tasks/result", json=payload, headers=HEADERS, timeout=10)
             if r.status_code == 400:
                 results["PASS"] += 1
             else:
@@ -155,10 +155,10 @@ def run_tests():
             "status": "SUCCESS", "artifacts": [{"path": "courier_canary_t1.txt", "sha256": h}], 
             "run_id": "r1", "result_id": "res1"
         }
-        r = requests.post(f"{API_URL}/tasks/result", json=good_payload, headers=HEADERS)
+        r = requests.post(f"{API_URL}/tasks/result", json=good_payload, headers=HEADERS, timeout=10)
         
         results["PROPERTIES_TESTED"] += 1
-        r2 = requests.post(f"{API_URL}/tasks/result", json=good_payload, headers=HEADERS)
+        r2 = requests.post(f"{API_URL}/tasks/result", json=good_payload, headers=HEADERS, timeout=10)
         if r2.status_code == 200 or r2.status_code == 409:
             results["PASS"] += 1
             results["DUPLICATE_SAFE"] = "YES"
@@ -168,7 +168,7 @@ def run_tests():
         # Re-claim boundary
         log("Testing Re-claim Completed Task...")
         results["PROPERTIES_TESTED"] += 1
-        r = requests.post(f"{API_URL}/tasks/claim", json={"worker_id": "W1"}, headers=HEADERS)
+        r = requests.post(f"{API_URL}/tasks/claim", json={"worker_id": "W1"}, headers=HEADERS, timeout=10)
         if r.json().get("task") is None:
             results["PASS"] += 1
         else:
@@ -177,7 +177,7 @@ def run_tests():
         # Malformed JSON
         log("Testing Malformed JSON...")
         results["PROPERTIES_TESTED"] += 1
-        r = requests.post(f"{API_URL}/goals", data="INVALID JSON {", headers={"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"})
+        r = requests.post(f"{API_URL}/goals", data="INVALID JSON {", headers={"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}, timeout=10)
         if r.status_code in [400, 500]:
             # Ensure state is not corrupted
             try:

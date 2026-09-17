@@ -159,8 +159,8 @@ def execute_task(task, ledger_path, record):
     elif edge in ["PR41 ACCEPTANCE", "PR41_ACCEPTANCE"]:
         try:
             import subprocess as sp
-            current_head = sp.check_output(["git", "rev-parse", "HEAD"]).decode().strip()
-            sp.check_output(["git", "merge-base", "--is-ancestor", "6170850b", current_head])
+            current_head = sp.check_output(["git", "rev-parse", "HEAD"], timeout=10).decode().strip()
+            sp.check_output(["git", "merge-base", "--is-ancestor", "6170850b", current_head], timeout=10)
             print("Successfully proved: PR41 ACCEPTANCE")
             return task, True, None
         except Exception:
@@ -337,7 +337,7 @@ def main():
                             # So we SHOULD allow it.
                             pass
                     
-                    if "MONEY_REQUIRED" in first_blocker:
+                    if "MONEY_REQUIRED" in first_blocker or "WAITING_PROVIDER" in first_blocker:
                         pass # Allow the payment task to evaluate once
             safe_executable_tasks.append(t)
             

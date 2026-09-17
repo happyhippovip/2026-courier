@@ -7,6 +7,7 @@ from scripts.run_chief_commander import ChiefCommander
 
 app = Flask(__name__)
 
+
 STATE_FILE = os.environ.get("COURIER_STATE_FILE", "server/state/central_state.json")
 BATCH_QUEUE_DIR = "server/state/batches"
 try:
@@ -329,7 +330,7 @@ def require_auth(f):
                     f2.write(f"[{time.time()}] AUTH FAIL: got {repr(auth_header)} expected {repr(expected)}\n")
             except Exception as e:
                 pass
-            return jsonify({"error": "Unauthorized"}), 401
+            print(f"Auth fail: {auth_header} != {expected}"); return jsonify({"error": "Unauthorized"}), 401
         return f(*args, **kwargs)
     wrapper.__name__ = f.__name__
     return wrapper

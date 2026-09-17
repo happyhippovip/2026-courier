@@ -34,7 +34,7 @@ def submit_intake(owner: str, repo: str, sha: str, customer_ref: str):
     }
     
     print(f"Submitting customer intake goal: {goal_id} for {owner}/{repo}")
-    res = requests.post(f"{API_URL}/goals", json=goal_payload, headers=HEADERS)
+    res = requests.post(f"{API_URL}/goals", json=goal_payload, headers=HEADERS, timeout=10)
     if res.status_code == 200:
         print("Success!")
     else:

@@ -31,7 +31,7 @@ def submit_goal(goal_text: str = None, json_file: str = None):
         print(f"Goal Text: {goal_text}")
     
     try:
-        res = requests.post(f"{API_URL}/goals", json=goal_payload, headers=HEADERS)
+        res = requests.post(f"{API_URL}/goals", json=goal_payload, headers=HEADERS, timeout=10)
         if res.status_code == 200:
             print("Successfully submitted to Courier Central Server.")
         else:

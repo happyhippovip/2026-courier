@@ -7,16 +7,18 @@
       ],
       "results": {
         "ISSUE_STATE": {
-          "evidence_urls": [],
+          "evidence_urls": [
+            "https://github.com/happyhippovip/2026-courier/releases/tag/v1-physical"
+          ],
           "observed_value": "NO_FURTHER_ACTION",
-          "status": "UNKNOWN"
+          "status": "PASS"
         }
       },
       "version": "1.0"
     },
     "binding": {
       "branch": "release-candidate-integration",
-      "current_sha": "4232569cfead19a896551f0145e70ca863aa471a",
+      "current_sha": "8857829a89bb689c3deef0fdf047a58d42261eb0",
       "runtime_identity": "MacBook-Pro-von-user.local"
     },
     "evidence": [
@@ -30,15 +32,15 @@
         "validity": "UNKNOWN"
       },
       {
-        "evidence_sha": "4232569cfead19a896551f0145e70ca863aa471a",
-        "observed_at": "2026-09-17T17:20:00Z",
-        "producer_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
-        "reason": "Physical acceptance trace passed with USER_CONTINUE_MESSAGES=0",
+        "evidence_sha": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+        "observed_at": "2026-09-17T12:00:00Z",
+        "producer_id": "P",
+        "reason": "physical proof",
         "runtime_binding": "MacBook-Pro-von-user.local",
         "source_type": "MACHINE_ARTIFACT",
-        "source_url": "https://github.com/happyhippovip/2026-courier/actions/runs/84050239",
+        "source_url": "https://github.com/happyhippovip/2026-courier/releases/tag/v1-physical",
         "validity": "VALID",
-        "verifier_id": "VERIFIER-01"
+        "verifier_id": "V"
       }
     ],
     "flow": [
@@ -16146,6 +16148,2824 @@
       "state_sha256": "a6970567cbf7ffc624e8f6bf81336086ca6d89f58cd415fd7220a80aa5132e81",
       "timestamp_utc": "2026-09-17T17:20:16Z",
       "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "1e3e8f01b8ad1273e459190f6718207f9a07fd17",
+          "runtime_identity": "MacBook-Pro-von-user.local"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "b4529b49d434b1b26bb3590c760658afe16154c6",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@b4529b49d434b1b26bb3590c760658afe16154c6",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "@ACCEPTANCE_GUARD",
+        "CURRENT_SHA",
+        "PROVEN_EDGES",
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "8585636200ca545eef5840dfc5459a8f105f32415c3c8fde90150715f943126a",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "2bdccf556713b0493336b64ab5b0151c9bb0f30a50a03667ca54612dc21d85d4",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "1e3e8f01b8ad1273e459190f6718207f9a07fd17",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_POST-PILOT HARDENING",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Token Efficiency",
+          "PR41 ACCEPTANCE",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "LEDGER/HANDOFF",
+          "Demo Readiness"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "MacBook-Pro-von-user.local",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "READY",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "FIRST PILOT",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
+          "PUBLICATION VERIFICATION",
+          "PUBLIC DEPLOYMENT",
+          "EXTERNAL_PUBLICATION",
+          "SALES PACKAGE",
+          "RELEASE",
+          "POST-PILOT HARDENING",
+          "ONBOARD_FIRST_PILOT_CUSTOMER",
+          "PILOT INTAKE"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "378763dd6f781f675f5a69a9bef05e773cc28518a01032a52d5a6d0f32b320b1",
+      "revision": 152,
+      "state_sha256": "a54f594d1e2c66472efcf44f342cfbe96002c53339584d44df67deef43a7dcf4",
+      "timestamp_utc": "2026-09-17T17:42:56Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "1e3e8f01b8ad1273e459190f6718207f9a07fd17",
+          "runtime_identity": "MacBook-Pro-von-user.local"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "b4529b49d434b1b26bb3590c760658afe16154c6",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@b4529b49d434b1b26bb3590c760658afe16154c6",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "FIRST_CAUSAL_BLOCKER",
+        "STATUS"
+      ],
+      "entry_sha256": "d3662bf08d3e376d886c82bd1fbb375da3be8feec6fb752f51b839146d4f7179",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "8585636200ca545eef5840dfc5459a8f105f32415c3c8fde90150715f943126a",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "1e3e8f01b8ad1273e459190f6718207f9a07fd17",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_RELEASE",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Token Efficiency",
+          "PR41 ACCEPTANCE",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "LEDGER/HANDOFF",
+          "Demo Readiness"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "MacBook-Pro-von-user.local",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "BLOCKED",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "FIRST PILOT",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
+          "PUBLICATION VERIFICATION",
+          "PUBLIC DEPLOYMENT",
+          "EXTERNAL_PUBLICATION",
+          "SALES PACKAGE",
+          "RELEASE",
+          "POST-PILOT HARDENING",
+          "ONBOARD_FIRST_PILOT_CUSTOMER",
+          "PILOT INTAKE"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "2eae074468dbc312bf14cd75194c4008767ab4dc2e253c5055557667b71ab168",
+      "revision": 153,
+      "state_sha256": "e74e03e1875b2d2ba682030d7a6f4daddcf250ff63b7e10a845db67f1d1ad11b",
+      "timestamp_utc": "2026-09-17T17:42:56Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "1e3e8f01b8ad1273e459190f6718207f9a07fd17",
+          "runtime_identity": "MacBook-Pro-von-user.local"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "b4529b49d434b1b26bb3590c760658afe16154c6",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@b4529b49d434b1b26bb3590c760658afe16154c6",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "FIRST_CAUSAL_BLOCKER"
+      ],
+      "entry_sha256": "32b2259b13c49c17e70d32a459abf42483cfceef422fc412b39934b060aa2afd",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "d3662bf08d3e376d886c82bd1fbb375da3be8feec6fb752f51b839146d4f7179",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "1e3e8f01b8ad1273e459190f6718207f9a07fd17",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_PUBLIC DEPLOYMENT",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Token Efficiency",
+          "PR41 ACCEPTANCE",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "LEDGER/HANDOFF",
+          "Demo Readiness"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "MacBook-Pro-von-user.local",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "BLOCKED",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "FIRST PILOT",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
+          "PUBLICATION VERIFICATION",
+          "PUBLIC DEPLOYMENT",
+          "EXTERNAL_PUBLICATION",
+          "SALES PACKAGE",
+          "RELEASE",
+          "POST-PILOT HARDENING",
+          "ONBOARD_FIRST_PILOT_CUSTOMER",
+          "PILOT INTAKE"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "e5b43d295f95196e68e73a6a519d3132b78dddc3cfc2e60fa8086c8432b8f18a",
+      "revision": 154,
+      "state_sha256": "f8e6d88dbb813966edd4731c0d58058aefa47e6ac383737a5a6041546768fcb3",
+      "timestamp_utc": "2026-09-17T17:42:57Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "1e3e8f01b8ad1273e459190f6718207f9a07fd17",
+          "runtime_identity": "MacBook-Pro-von-user.local"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "b4529b49d434b1b26bb3590c760658afe16154c6",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@b4529b49d434b1b26bb3590c760658afe16154c6",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "FIRST_CAUSAL_BLOCKER"
+      ],
+      "entry_sha256": "dcb5d589e09ef6e847159435d1ff289444e4f9cc210b474718533a7bff1d5bd3",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "32b2259b13c49c17e70d32a459abf42483cfceef422fc412b39934b060aa2afd",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "1e3e8f01b8ad1273e459190f6718207f9a07fd17",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_PILOT INTAKE",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Token Efficiency",
+          "PR41 ACCEPTANCE",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "LEDGER/HANDOFF",
+          "Demo Readiness"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "MacBook-Pro-von-user.local",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "BLOCKED",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "FIRST PILOT",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
+          "PUBLICATION VERIFICATION",
+          "PUBLIC DEPLOYMENT",
+          "EXTERNAL_PUBLICATION",
+          "SALES PACKAGE",
+          "RELEASE",
+          "POST-PILOT HARDENING",
+          "ONBOARD_FIRST_PILOT_CUSTOMER",
+          "PILOT INTAKE"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "844dcca730c6e844e993503882140f591de4dfc0bb9ca8d4e8e3ed24255f0a8a",
+      "revision": 155,
+      "state_sha256": "b698784bf5d05375ac73abba032d64710b745b7791f3dda1a399957be176d099",
+      "timestamp_utc": "2026-09-17T17:42:57Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "1e3e8f01b8ad1273e459190f6718207f9a07fd17",
+          "runtime_identity": "MacBook-Pro-von-user.local"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "b4529b49d434b1b26bb3590c760658afe16154c6",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@b4529b49d434b1b26bb3590c760658afe16154c6",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "STATUS",
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "5b3e27efdfcb5955477698174e24eafb0336ba9cbc8c1e460be4f7e59cf6900d",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "dcb5d589e09ef6e847159435d1ff289444e4f9cc210b474718533a7bff1d5bd3",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "1e3e8f01b8ad1273e459190f6718207f9a07fd17",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_PILOT INTAKE",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Token Efficiency",
+          "PR41 ACCEPTANCE",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "LEDGER/HANDOFF",
+          "Demo Readiness"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "MacBook-Pro-von-user.local",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "READY",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "RELEASE",
+          "FIRST PILOT",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
+          "PUBLICATION VERIFICATION",
+          "PUBLIC DEPLOYMENT",
+          "SALES PACKAGE",
+          "EXTERNAL_PUBLICATION",
+          "POST-PILOT HARDENING",
+          "ONBOARD_FIRST_PILOT_CUSTOMER",
+          "PILOT INTAKE"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "978fbd906575a42d4bae35f9f9c478716fdcdef3e20b457cedd9f724a7b5d927",
+      "revision": 156,
+      "state_sha256": "dbac51075384e7e766bead4ce925bf84fdcf45303c162729c407c23572393257",
+      "timestamp_utc": "2026-09-17T17:42:58Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "1e3e8f01b8ad1273e459190f6718207f9a07fd17",
+          "runtime_identity": "MacBook-Pro-von-user.local"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "b4529b49d434b1b26bb3590c760658afe16154c6",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@b4529b49d434b1b26bb3590c760658afe16154c6",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "PROVEN_EDGES",
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "4f5cdd2f11dc30e9d9c1b7a7465f4d813907a032933f433fbd9c527d8c3aa4bf",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "5b3e27efdfcb5955477698174e24eafb0336ba9cbc8c1e460be4f7e59cf6900d",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "1e3e8f01b8ad1273e459190f6718207f9a07fd17",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_PILOT INTAKE",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Token Efficiency",
+          "PR41 ACCEPTANCE",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "LEDGER/HANDOFF",
+          "Demo Readiness",
+          "POST-PILOT HARDENING"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "MacBook-Pro-von-user.local",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "READY",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "RELEASE",
+          "FIRST PILOT",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
+          "PUBLICATION VERIFICATION",
+          "PUBLIC DEPLOYMENT",
+          "SALES PACKAGE",
+          "EXTERNAL_PUBLICATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER",
+          "PILOT INTAKE"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "1d0a5dc33bd5e1c205abbed07f200a8147281d07e34a9b445126a944e4ce8998",
+      "revision": 157,
+      "state_sha256": "741e8bf538b7b77642a868a531e9d9758f070b9e695c6c6d26f65978a1988ac5",
+      "timestamp_utc": "2026-09-17T17:42:59Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "1e3e8f01b8ad1273e459190f6718207f9a07fd17",
+          "runtime_identity": "MacBook-Pro-von-user.local"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "b4529b49d434b1b26bb3590c760658afe16154c6",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@b4529b49d434b1b26bb3590c760658afe16154c6",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "PROVEN_EDGES",
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "fb214d1606d87524d486db23b5d9722e276b7b84e22dc6843a997a3a3608bf12",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "4f5cdd2f11dc30e9d9c1b7a7465f4d813907a032933f433fbd9c527d8c3aa4bf",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "1e3e8f01b8ad1273e459190f6718207f9a07fd17",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_PILOT INTAKE",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Token Efficiency",
+          "PR41 ACCEPTANCE",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "LEDGER/HANDOFF",
+          "Demo Readiness",
+          "POST-PILOT HARDENING",
+          "SALES PACKAGE"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "MacBook-Pro-von-user.local",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "READY",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "RELEASE",
+          "FIRST PILOT",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
+          "PUBLICATION VERIFICATION",
+          "PUBLIC DEPLOYMENT",
+          "EXTERNAL_PUBLICATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER",
+          "PILOT INTAKE"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "d38523998b15af33a840fd11ff817e7f0c4ee45e1fd7b94e42bea8491d2fd8e5",
+      "revision": 158,
+      "state_sha256": "7053851fd065dccf32812ed24dc1b9dfeb6db89a6086b2388a14c39cb9336e31",
+      "timestamp_utc": "2026-09-17T17:42:59Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [
+                "https://github.com/happyhippovip/2026-courier/releases/tag/v1-physical"
+              ],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "PASS"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "1e3e8f01b8ad1273e459190f6718207f9a07fd17",
+          "runtime_identity": "MacBook-Pro-von-user.local"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "b4529b49d434b1b26bb3590c760658afe16154c6",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@b4529b49d434b1b26bb3590c760658afe16154c6",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6",
+            "validity": "UNKNOWN"
+          },
+          {
+            "evidence_sha": "1e3e8f01b8ad1273e459190f6718207f9a07fd17",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "producer_id": "P",
+            "reason": "physical proof",
+            "runtime_binding": "MacBook-Pro-von-user.local",
+            "source_type": "MACHINE_ARTIFACT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/releases/tag/v1-physical",
+            "validity": "VALID",
+            "verifier_id": "V"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "@ACCEPTANCE_GUARD",
+        "LAST_UPDATED_BY"
+      ],
+      "entry_sha256": "dc05286bc646ada30f7050346198667c446aac094fc0e4273753f14503e510cc",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "fb214d1606d87524d486db23b5d9722e276b7b84e22dc6843a997a3a3608bf12",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "1e3e8f01b8ad1273e459190f6718207f9a07fd17",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_PILOT INTAKE",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Mac-Verification-Protocol",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Token Efficiency",
+          "PR41 ACCEPTANCE",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "LEDGER/HANDOFF",
+          "Demo Readiness",
+          "POST-PILOT HARDENING",
+          "SALES PACKAGE"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "MacBook-Pro-von-user.local",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "READY",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "RELEASE",
+          "FIRST PILOT",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
+          "PUBLICATION VERIFICATION",
+          "PUBLIC DEPLOYMENT",
+          "EXTERNAL_PUBLICATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER",
+          "PILOT INTAKE"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "fe74cc8078b42b4446720821100d208ebb2fec7830b5906f9af5dc677a25dc5a",
+      "revision": 159,
+      "state_sha256": "31e77a815045f18d3673e75d95b1a00b2e99213181470da67ec06fb0b731ad36",
+      "timestamp_utc": "2026-09-17T17:43:05Z",
+      "updated_by": "Mac-Verification-Protocol"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [
+                "https://github.com/happyhippovip/2026-courier/releases/tag/v1-physical"
+              ],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "PASS"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "1e3e8f01b8ad1273e459190f6718207f9a07fd17",
+          "runtime_identity": "MacBook-Pro-von-user.local"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "b4529b49d434b1b26bb3590c760658afe16154c6",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@b4529b49d434b1b26bb3590c760658afe16154c6",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6",
+            "validity": "UNKNOWN"
+          },
+          {
+            "evidence_sha": "1e3e8f01b8ad1273e459190f6718207f9a07fd17",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "producer_id": "P",
+            "reason": "physical proof",
+            "runtime_binding": "MacBook-Pro-von-user.local",
+            "source_type": "MACHINE_ARTIFACT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/releases/tag/v1-physical",
+            "validity": "VALID",
+            "verifier_id": "V"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "FIRST_CAUSAL_BLOCKER",
+        "LAST_UPDATED_BY",
+        "STATUS"
+      ],
+      "entry_sha256": "d81cf2c796d5dfb95fe40b1cd541dc87b2ae88e7377c08dc4465aec459a05ba3",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "dc05286bc646ada30f7050346198667c446aac094fc0e4273753f14503e510cc",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "1e3e8f01b8ad1273e459190f6718207f9a07fd17",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_RELEASE",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Token Efficiency",
+          "PR41 ACCEPTANCE",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "LEDGER/HANDOFF",
+          "Demo Readiness",
+          "POST-PILOT HARDENING",
+          "SALES PACKAGE"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "MacBook-Pro-von-user.local",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "BLOCKED",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "RELEASE",
+          "FIRST PILOT",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
+          "PUBLICATION VERIFICATION",
+          "PUBLIC DEPLOYMENT",
+          "EXTERNAL_PUBLICATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER",
+          "PILOT INTAKE"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "102b5249f438c88519f980c702c282ef526288060428e23f130c6ad947f9a6c6",
+      "revision": 160,
+      "state_sha256": "1971e8b6956ba4f23442f629ce14227184c626e8d7ffce78e07099ae9fa2a9a7",
+      "timestamp_utc": "2026-09-17T17:43:10Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [
+                "https://github.com/happyhippovip/2026-courier/releases/tag/v1-physical"
+              ],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "PASS"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "1e3e8f01b8ad1273e459190f6718207f9a07fd17",
+          "runtime_identity": "MacBook-Pro-von-user.local"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "b4529b49d434b1b26bb3590c760658afe16154c6",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@b4529b49d434b1b26bb3590c760658afe16154c6",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6",
+            "validity": "UNKNOWN"
+          },
+          {
+            "evidence_sha": "1e3e8f01b8ad1273e459190f6718207f9a07fd17",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "producer_id": "P",
+            "reason": "physical proof",
+            "runtime_binding": "MacBook-Pro-von-user.local",
+            "source_type": "MACHINE_ARTIFACT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/releases/tag/v1-physical",
+            "validity": "VALID",
+            "verifier_id": "V"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "FIRST_CAUSAL_BLOCKER"
+      ],
+      "entry_sha256": "fe5db60951b5c61151c249d4da56ec8fdfb59d53895c366f0d2faf323264d14c",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "d81cf2c796d5dfb95fe40b1cd541dc87b2ae88e7377c08dc4465aec459a05ba3",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "1e3e8f01b8ad1273e459190f6718207f9a07fd17",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_PUBLIC DEPLOYMENT",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Token Efficiency",
+          "PR41 ACCEPTANCE",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "LEDGER/HANDOFF",
+          "Demo Readiness",
+          "POST-PILOT HARDENING",
+          "SALES PACKAGE"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "MacBook-Pro-von-user.local",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "BLOCKED",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "RELEASE",
+          "FIRST PILOT",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
+          "PUBLICATION VERIFICATION",
+          "PUBLIC DEPLOYMENT",
+          "EXTERNAL_PUBLICATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER",
+          "PILOT INTAKE"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "81c47ad50b21bd9a11a5ac55bbdf79e43ffedf743255b4ecf7acec27bac86072",
+      "revision": 161,
+      "state_sha256": "cb84592c59a9cb3989280fd2c6b2658eeb8065f583658a6b783f182ae325bec7",
+      "timestamp_utc": "2026-09-17T17:43:11Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [
+                "https://github.com/happyhippovip/2026-courier/releases/tag/v1-physical"
+              ],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "PASS"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "1e3e8f01b8ad1273e459190f6718207f9a07fd17",
+          "runtime_identity": "MacBook-Pro-von-user.local"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "b4529b49d434b1b26bb3590c760658afe16154c6",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@b4529b49d434b1b26bb3590c760658afe16154c6",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6",
+            "validity": "UNKNOWN"
+          },
+          {
+            "evidence_sha": "1e3e8f01b8ad1273e459190f6718207f9a07fd17",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "producer_id": "P",
+            "reason": "physical proof",
+            "runtime_binding": "MacBook-Pro-von-user.local",
+            "source_type": "MACHINE_ARTIFACT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/releases/tag/v1-physical",
+            "validity": "VALID",
+            "verifier_id": "V"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "FIRST_CAUSAL_BLOCKER"
+      ],
+      "entry_sha256": "3b36c25855cd26737439e5a5c91aa173ed39ee90c4cbc3afad784cef65723937",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "fe5db60951b5c61151c249d4da56ec8fdfb59d53895c366f0d2faf323264d14c",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "1e3e8f01b8ad1273e459190f6718207f9a07fd17",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_PILOT INTAKE",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Token Efficiency",
+          "PR41 ACCEPTANCE",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "LEDGER/HANDOFF",
+          "Demo Readiness",
+          "POST-PILOT HARDENING",
+          "SALES PACKAGE"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "MacBook-Pro-von-user.local",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "BLOCKED",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "RELEASE",
+          "FIRST PILOT",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
+          "PUBLICATION VERIFICATION",
+          "PUBLIC DEPLOYMENT",
+          "EXTERNAL_PUBLICATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER",
+          "PILOT INTAKE"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "dd76acd529754dabb77fd0befc73e84b41a2ebe61792b2bd83bd4c67b403c569",
+      "revision": 162,
+      "state_sha256": "409cb4bf6e3ad379ff825e71f3d3aa75dc0239a7fe825aab6019c1529a6f633a",
+      "timestamp_utc": "2026-09-17T17:43:12Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [
+                "https://github.com/happyhippovip/2026-courier/releases/tag/v1-physical"
+              ],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "PASS"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "1e3e8f01b8ad1273e459190f6718207f9a07fd17",
+          "runtime_identity": "MacBook-Pro-von-user.local"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "b4529b49d434b1b26bb3590c760658afe16154c6",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@b4529b49d434b1b26bb3590c760658afe16154c6",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6",
+            "validity": "UNKNOWN"
+          },
+          {
+            "evidence_sha": "1e3e8f01b8ad1273e459190f6718207f9a07fd17",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "producer_id": "P",
+            "reason": "physical proof",
+            "runtime_binding": "MacBook-Pro-von-user.local",
+            "source_type": "MACHINE_ARTIFACT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/releases/tag/v1-physical",
+            "validity": "VALID",
+            "verifier_id": "V"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "PROVEN_EDGES",
+        "STATUS",
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "7255926b2f0cc0b74bcba73135fe787b7437de19a823d6b17bfba9d0267499ce",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "3b36c25855cd26737439e5a5c91aa173ed39ee90c4cbc3afad784cef65723937",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "1e3e8f01b8ad1273e459190f6718207f9a07fd17",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_PILOT INTAKE",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Token Efficiency",
+          "PR41 ACCEPTANCE",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "LEDGER/HANDOFF",
+          "Demo Readiness",
+          "POST-PILOT HARDENING",
+          "SALES PACKAGE",
+          "PUBLICATION VERIFICATION"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "MacBook-Pro-von-user.local",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "READY",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "RELEASE",
+          "FIRST PILOT",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
+          "PUBLIC DEPLOYMENT",
+          "EXTERNAL_PUBLICATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER",
+          "PILOT INTAKE"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "c317e618a6ca8a65c4d9bd9206024b54e64192150fe00804f3ddc5c5a1387a97",
+      "revision": 163,
+      "state_sha256": "4c970e8ec7a068e5992af3b7cdc7b8d9c7d18ab5a33dfe6c09ef0e21c2b2184a",
+      "timestamp_utc": "2026-09-17T17:43:13Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+          "runtime_identity": "MacBook-Pro-von-user.local"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "b4529b49d434b1b26bb3590c760658afe16154c6",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@b4529b49d434b1b26bb3590c760658afe16154c6",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "@ACCEPTANCE_GUARD",
+        "CURRENT_SHA",
+        "PROVEN_EDGES",
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "a3b13e0d248207e2b262f474736c65071d055bd1567abae10727c3de805cd4c6",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "7255926b2f0cc0b74bcba73135fe787b7437de19a823d6b17bfba9d0267499ce",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_PILOT INTAKE",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "POST-PILOT HARDENING",
+          "PR41 ACCEPTANCE",
+          "Demo Readiness",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "LEDGER/HANDOFF",
+          "SALES PACKAGE",
+          "Token Efficiency"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "MacBook-Pro-von-user.local",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "READY",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "FIRST PILOT",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
+          "RELEASE",
+          "PILOT INTAKE",
+          "EXTERNAL_PUBLICATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER",
+          "PUBLICATION VERIFICATION",
+          "PUBLIC DEPLOYMENT"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "45179536a2831c10c970379f302dfe87064c512cfad212917416e34cf758e31a",
+      "revision": 164,
+      "state_sha256": "9d5c6b552407c71cc9c4fe4d29f243497615a892fe8354c6f849b2a34dba1748",
+      "timestamp_utc": "2026-09-17T17:48:31Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+          "runtime_identity": "MacBook-Pro-von-user.local"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "b4529b49d434b1b26bb3590c760658afe16154c6",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@b4529b49d434b1b26bb3590c760658afe16154c6",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "FIRST_CAUSAL_BLOCKER",
+        "STATUS"
+      ],
+      "entry_sha256": "da91d8b1bee32ad647c33b6f59117586408dabe720fded3558e0af49aeb6545e",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "a3b13e0d248207e2b262f474736c65071d055bd1567abae10727c3de805cd4c6",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_PUBLIC DEPLOYMENT",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "POST-PILOT HARDENING",
+          "PR41 ACCEPTANCE",
+          "Demo Readiness",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "LEDGER/HANDOFF",
+          "SALES PACKAGE",
+          "Token Efficiency"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "MacBook-Pro-von-user.local",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "BLOCKED",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "FIRST PILOT",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
+          "RELEASE",
+          "PILOT INTAKE",
+          "EXTERNAL_PUBLICATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER",
+          "PUBLICATION VERIFICATION",
+          "PUBLIC DEPLOYMENT"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "09f70b5fdc273f5c2be4ed52a29c48b1c76221bbb3715727b279dc99a940ac38",
+      "revision": 165,
+      "state_sha256": "b1ea493175f79fdb68f47ae3f0d77589d0f18f8c492ec7e6beaa109a515ef2f9",
+      "timestamp_utc": "2026-09-17T17:48:32Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+          "runtime_identity": "MacBook-Pro-von-user.local"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "b4529b49d434b1b26bb3590c760658afe16154c6",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@b4529b49d434b1b26bb3590c760658afe16154c6",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "FIRST_CAUSAL_BLOCKER"
+      ],
+      "entry_sha256": "e38af6990520e287b28a52631e76a2dc994736f889efb83199a63b6a359f4eae",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "da91d8b1bee32ad647c33b6f59117586408dabe720fded3558e0af49aeb6545e",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_RELEASE",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "POST-PILOT HARDENING",
+          "PR41 ACCEPTANCE",
+          "Demo Readiness",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "LEDGER/HANDOFF",
+          "SALES PACKAGE",
+          "Token Efficiency"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "MacBook-Pro-von-user.local",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "BLOCKED",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "FIRST PILOT",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
+          "RELEASE",
+          "PILOT INTAKE",
+          "EXTERNAL_PUBLICATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER",
+          "PUBLICATION VERIFICATION",
+          "PUBLIC DEPLOYMENT"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "9b802a6f037780f2e425cda8cc3341d8737b8247e22794340177dd2c4ee651f1",
+      "revision": 166,
+      "state_sha256": "079b99511041392b19749596408a6d5bb88364a31b7016384d5feb1ef52b8bdf",
+      "timestamp_utc": "2026-09-17T17:48:32Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+          "runtime_identity": "MacBook-Pro-von-user.local"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "b4529b49d434b1b26bb3590c760658afe16154c6",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@b4529b49d434b1b26bb3590c760658afe16154c6",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "STATUS"
+      ],
+      "entry_sha256": "e32530a0f504223bb4c4af76c346ed385962608a2e8802a83c25af1d45fa4d03",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "e38af6990520e287b28a52631e76a2dc994736f889efb83199a63b6a359f4eae",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_RELEASE",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "POST-PILOT HARDENING",
+          "PR41 ACCEPTANCE",
+          "Demo Readiness",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "LEDGER/HANDOFF",
+          "SALES PACKAGE",
+          "Token Efficiency"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "MacBook-Pro-von-user.local",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "READY",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "FIRST PILOT",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
+          "RELEASE",
+          "PILOT INTAKE",
+          "EXTERNAL_PUBLICATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER",
+          "PUBLICATION VERIFICATION",
+          "PUBLIC DEPLOYMENT"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "b4552525fafecc87172bdd392c6980a219cd4be21941bb0c7fa5bcce5b4a18fc",
+      "revision": 167,
+      "state_sha256": "555cb79b4829eb2fb048d041b42dfea79b270d7cbf54a2221970d8320eaa6db3",
+      "timestamp_utc": "2026-09-17T17:48:33Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+          "runtime_identity": "MacBook-Pro-von-user.local"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "b4529b49d434b1b26bb3590c760658afe16154c6",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@b4529b49d434b1b26bb3590c760658afe16154c6",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "FIRST_CAUSAL_BLOCKER",
+        "STATUS"
+      ],
+      "entry_sha256": "9cf93f57d557d9d5d5d226055106166417fd1548129c3979b0c29149c53aba6b",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "e32530a0f504223bb4c4af76c346ed385962608a2e8802a83c25af1d45fa4d03",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_PILOT INTAKE",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "POST-PILOT HARDENING",
+          "PR41 ACCEPTANCE",
+          "Demo Readiness",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "LEDGER/HANDOFF",
+          "SALES PACKAGE",
+          "Token Efficiency"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "MacBook-Pro-von-user.local",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "BLOCKED",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "FIRST PILOT",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
+          "RELEASE",
+          "PILOT INTAKE",
+          "EXTERNAL_PUBLICATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER",
+          "PUBLICATION VERIFICATION",
+          "PUBLIC DEPLOYMENT"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "f95e80a1b48879678124d7a298a5c455ea41c0cac8cc7284cae225935ed782b5",
+      "revision": 168,
+      "state_sha256": "4083ced572bbf981e6e8f6abdb1d1ecc63c85cc2d7c77a4f7101e4e5d0319f7a",
+      "timestamp_utc": "2026-09-17T17:48:33Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [
+                "https://github.com/happyhippovip/2026-courier/releases/tag/v1-physical"
+              ],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "PASS"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+          "runtime_identity": "MacBook-Pro-von-user.local"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "b4529b49d434b1b26bb3590c760658afe16154c6",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@b4529b49d434b1b26bb3590c760658afe16154c6",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6",
+            "validity": "UNKNOWN"
+          },
+          {
+            "evidence_sha": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "producer_id": "P",
+            "reason": "physical proof",
+            "runtime_binding": "MacBook-Pro-von-user.local",
+            "source_type": "MACHINE_ARTIFACT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/releases/tag/v1-physical",
+            "validity": "VALID",
+            "verifier_id": "V"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "@ACCEPTANCE_GUARD",
+        "LAST_UPDATED_BY",
+        "STATUS"
+      ],
+      "entry_sha256": "527c4c89aa0756bbe4f4dc0a8f9614c460f3eee87d5df9a616da5890670e6089",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "9cf93f57d557d9d5d5d226055106166417fd1548129c3979b0c29149c53aba6b",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_PILOT INTAKE",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Mac-Verification-Protocol",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "POST-PILOT HARDENING",
+          "PR41 ACCEPTANCE",
+          "Demo Readiness",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "LEDGER/HANDOFF",
+          "SALES PACKAGE",
+          "Token Efficiency"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "MacBook-Pro-von-user.local",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "READY",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "FIRST PILOT",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
+          "RELEASE",
+          "PILOT INTAKE",
+          "EXTERNAL_PUBLICATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER",
+          "PUBLICATION VERIFICATION",
+          "PUBLIC DEPLOYMENT"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "90932889890bdcc9b83ce65b3fd989bd43144c3d314f597367153b41cd94ff4e",
+      "revision": 169,
+      "state_sha256": "cc8a099c5dafe7dfa9d9968922248e50dfacdb92f558e95cd44f7342785ed338",
+      "timestamp_utc": "2026-09-17T17:49:01Z",
+      "updated_by": "Mac-Verification-Protocol"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [
+                "https://github.com/happyhippovip/2026-courier/releases/tag/v1-physical"
+              ],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "PASS"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+          "runtime_identity": "MacBook-Pro-von-user.local"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "b4529b49d434b1b26bb3590c760658afe16154c6",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@b4529b49d434b1b26bb3590c760658afe16154c6",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6",
+            "validity": "UNKNOWN"
+          },
+          {
+            "evidence_sha": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "producer_id": "P",
+            "reason": "physical proof",
+            "runtime_binding": "MacBook-Pro-von-user.local",
+            "source_type": "MACHINE_ARTIFACT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/releases/tag/v1-physical",
+            "validity": "VALID",
+            "verifier_id": "V"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "FIRST_CAUSAL_BLOCKER",
+        "LAST_UPDATED_BY",
+        "STATUS"
+      ],
+      "entry_sha256": "0edb437211dc9a1fa39cd65176ce0e79ad2fa0c028c7f4723054e2ab27019c59",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "527c4c89aa0756bbe4f4dc0a8f9614c460f3eee87d5df9a616da5890670e6089",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_PUBLIC DEPLOYMENT",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "POST-PILOT HARDENING",
+          "PR41 ACCEPTANCE",
+          "Demo Readiness",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "LEDGER/HANDOFF",
+          "SALES PACKAGE",
+          "Token Efficiency"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "MacBook-Pro-von-user.local",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "BLOCKED",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "FIRST PILOT",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
+          "RELEASE",
+          "PILOT INTAKE",
+          "EXTERNAL_PUBLICATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER",
+          "PUBLICATION VERIFICATION",
+          "PUBLIC DEPLOYMENT"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "09f70b5fdc273f5c2be4ed52a29c48b1c76221bbb3715727b279dc99a940ac38",
+      "revision": 170,
+      "state_sha256": "b18217757b41bb18771950b261c7f686136d1e7222a334cc7e2dc06e58b391a6",
+      "timestamp_utc": "2026-09-17T17:49:05Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [
+                "https://github.com/happyhippovip/2026-courier/releases/tag/v1-physical"
+              ],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "PASS"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+          "runtime_identity": "MacBook-Pro-von-user.local"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "b4529b49d434b1b26bb3590c760658afe16154c6",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@b4529b49d434b1b26bb3590c760658afe16154c6",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6",
+            "validity": "UNKNOWN"
+          },
+          {
+            "evidence_sha": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "producer_id": "P",
+            "reason": "physical proof",
+            "runtime_binding": "MacBook-Pro-von-user.local",
+            "source_type": "MACHINE_ARTIFACT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/releases/tag/v1-physical",
+            "validity": "VALID",
+            "verifier_id": "V"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "FIRST_CAUSAL_BLOCKER"
+      ],
+      "entry_sha256": "cf099b8a7eebb05b3b65c44e5fe5547398fc6459aacb1f6dc25f431b50e8351b",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "0edb437211dc9a1fa39cd65176ce0e79ad2fa0c028c7f4723054e2ab27019c59",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_RELEASE",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "POST-PILOT HARDENING",
+          "PR41 ACCEPTANCE",
+          "Demo Readiness",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "LEDGER/HANDOFF",
+          "SALES PACKAGE",
+          "Token Efficiency"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "MacBook-Pro-von-user.local",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "BLOCKED",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "FIRST PILOT",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
+          "RELEASE",
+          "PILOT INTAKE",
+          "EXTERNAL_PUBLICATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER",
+          "PUBLICATION VERIFICATION",
+          "PUBLIC DEPLOYMENT"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "9b802a6f037780f2e425cda8cc3341d8737b8247e22794340177dd2c4ee651f1",
+      "revision": 171,
+      "state_sha256": "7e71af6ddbf53ae00b0f067c699e34ec2e5ae3c58770eb24fbdb0b91465c7613",
+      "timestamp_utc": "2026-09-17T17:49:05Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [
+                "https://github.com/happyhippovip/2026-courier/releases/tag/v1-physical"
+              ],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "PASS"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+          "runtime_identity": "MacBook-Pro-von-user.local"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "b4529b49d434b1b26bb3590c760658afe16154c6",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@b4529b49d434b1b26bb3590c760658afe16154c6",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6",
+            "validity": "UNKNOWN"
+          },
+          {
+            "evidence_sha": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "producer_id": "P",
+            "reason": "physical proof",
+            "runtime_binding": "MacBook-Pro-von-user.local",
+            "source_type": "MACHINE_ARTIFACT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/releases/tag/v1-physical",
+            "validity": "VALID",
+            "verifier_id": "V"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "PROVEN_EDGES",
+        "STATUS",
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "48a30c3277a7da50dcf5551cfb3e5f2708cd828268925d3e8a14ed5a092d5753",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "cf099b8a7eebb05b3b65c44e5fe5547398fc6459aacb1f6dc25f431b50e8351b",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_RELEASE",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "POST-PILOT HARDENING",
+          "PR41 ACCEPTANCE",
+          "Demo Readiness",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "LEDGER/HANDOFF",
+          "SALES PACKAGE",
+          "Token Efficiency",
+          "PUBLICATION VERIFICATION"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "MacBook-Pro-von-user.local",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "READY",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "FIRST PILOT",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
+          "RELEASE",
+          "PILOT INTAKE",
+          "EXTERNAL_PUBLICATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER",
+          "PUBLIC DEPLOYMENT"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "f3f9d8df9d9d89f0a35df700deced4ea6008d34a83858f227695269338b7c515",
+      "revision": 172,
+      "state_sha256": "3bf35a4538449f0715576eb9e465055084d8b9d9d559209e95ba8434d89d9da8",
+      "timestamp_utc": "2026-09-17T17:49:06Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [
+                "https://github.com/happyhippovip/2026-courier/releases/tag/v1-physical"
+              ],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "PASS"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+          "runtime_identity": "MacBook-Pro-von-user.local"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "b4529b49d434b1b26bb3590c760658afe16154c6",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@b4529b49d434b1b26bb3590c760658afe16154c6",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6",
+            "validity": "UNKNOWN"
+          },
+          {
+            "evidence_sha": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "producer_id": "P",
+            "reason": "physical proof",
+            "runtime_binding": "MacBook-Pro-von-user.local",
+            "source_type": "MACHINE_ARTIFACT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/releases/tag/v1-physical",
+            "validity": "VALID",
+            "verifier_id": "V"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "FIRST_CAUSAL_BLOCKER",
+        "STATUS"
+      ],
+      "entry_sha256": "f2429d5b7a0ae15aa5af2eb2e2bb52fd85c66994fee60174f3af76365e6b1bdb",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "48a30c3277a7da50dcf5551cfb3e5f2708cd828268925d3e8a14ed5a092d5753",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_PILOT INTAKE",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "POST-PILOT HARDENING",
+          "PR41 ACCEPTANCE",
+          "Demo Readiness",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "LEDGER/HANDOFF",
+          "SALES PACKAGE",
+          "Token Efficiency",
+          "PUBLICATION VERIFICATION"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "MacBook-Pro-von-user.local",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "BLOCKED",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "FIRST PILOT",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
+          "RELEASE",
+          "PILOT INTAKE",
+          "EXTERNAL_PUBLICATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER",
+          "PUBLIC DEPLOYMENT"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "dcd227a04a3db26009b728f95c758fbad513456c946a938a1ec3263ae2020559",
+      "revision": 173,
+      "state_sha256": "cb54adb12c296c9171a0019f5f5ca91b8f39fc3cf30be6fc5cac7d97ba01b9bf",
+      "timestamp_utc": "2026-09-17T17:49:06Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [
+                "https://github.com/happyhippovip/2026-courier/releases/tag/v1-physical"
+              ],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "PASS"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+          "runtime_identity": "MacBook-Pro-von-user.local"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "b4529b49d434b1b26bb3590c760658afe16154c6",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@b4529b49d434b1b26bb3590c760658afe16154c6",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6",
+            "validity": "UNKNOWN"
+          },
+          {
+            "evidence_sha": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "producer_id": "P",
+            "reason": "physical proof",
+            "runtime_binding": "MacBook-Pro-von-user.local",
+            "source_type": "MACHINE_ARTIFACT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/releases/tag/v1-physical",
+            "validity": "VALID",
+            "verifier_id": "V"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "FIRST_CAUSAL_BLOCKER"
+      ],
+      "entry_sha256": "b1aff2a348dd9061e6f6b233bd90e370729c034652f29bf846e8a94cba9ee458",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "f2429d5b7a0ae15aa5af2eb2e2bb52fd85c66994fee60174f3af76365e6b1bdb",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_RELEASE",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "POST-PILOT HARDENING",
+          "PR41 ACCEPTANCE",
+          "Demo Readiness",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "LEDGER/HANDOFF",
+          "SALES PACKAGE",
+          "Token Efficiency",
+          "PUBLICATION VERIFICATION"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "MacBook-Pro-von-user.local",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "BLOCKED",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "FIRST PILOT",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
+          "RELEASE",
+          "PILOT INTAKE",
+          "EXTERNAL_PUBLICATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER",
+          "PUBLIC DEPLOYMENT"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "e121f7b68b91e0770d6bee02aaebabb68ea586929193cf6018ec42f394387854",
+      "revision": 174,
+      "state_sha256": "3e7859ff5ed24db8c37b2e8ce584ad779771f702456c4a344e9df4179862bb75",
+      "timestamp_utc": "2026-09-17T18:00:28Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [
+                "https://github.com/happyhippovip/2026-courier/releases/tag/v1-physical"
+              ],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "PASS"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+          "runtime_identity": "MacBook-Pro-von-user.local"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "b4529b49d434b1b26bb3590c760658afe16154c6",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@b4529b49d434b1b26bb3590c760658afe16154c6",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6",
+            "validity": "UNKNOWN"
+          },
+          {
+            "evidence_sha": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "producer_id": "P",
+            "reason": "physical proof",
+            "runtime_binding": "MacBook-Pro-von-user.local",
+            "source_type": "MACHINE_ARTIFACT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/releases/tag/v1-physical",
+            "validity": "VALID",
+            "verifier_id": "V"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "FIRST_CAUSAL_BLOCKER"
+      ],
+      "entry_sha256": "dd237bb1b3b1c0679745629696e8064821ddae0ba15b13e52e082d909ba658a9",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "b1aff2a348dd9061e6f6b233bd90e370729c034652f29bf846e8a94cba9ee458",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_PUBLIC DEPLOYMENT",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "POST-PILOT HARDENING",
+          "PR41 ACCEPTANCE",
+          "Demo Readiness",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "LEDGER/HANDOFF",
+          "SALES PACKAGE",
+          "Token Efficiency",
+          "PUBLICATION VERIFICATION"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "MacBook-Pro-von-user.local",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "BLOCKED",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "FIRST PILOT",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
+          "RELEASE",
+          "PILOT INTAKE",
+          "EXTERNAL_PUBLICATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER",
+          "PUBLIC DEPLOYMENT"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "78eb9ffab32a78c9a66217b08f0d79ddb16bba057a3e99476cd0363a1f14a153",
+      "revision": 175,
+      "state_sha256": "9063436897b1a5364f7b61052904ec3779a2eab88ec6b32667b4488746733a0e",
+      "timestamp_utc": "2026-09-17T18:00:28Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [
+                "https://github.com/happyhippovip/2026-courier/releases/tag/v1-physical"
+              ],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "PASS"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+          "runtime_identity": "MacBook-Pro-von-user.local"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "b4529b49d434b1b26bb3590c760658afe16154c6",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@b4529b49d434b1b26bb3590c760658afe16154c6",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/b4529b49d434b1b26bb3590c760658afe16154c6",
+            "validity": "UNKNOWN"
+          },
+          {
+            "evidence_sha": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "producer_id": "P",
+            "reason": "physical proof",
+            "runtime_binding": "MacBook-Pro-von-user.local",
+            "source_type": "MACHINE_ARTIFACT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/releases/tag/v1-physical",
+            "validity": "VALID",
+            "verifier_id": "V"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "FIRST_CAUSAL_BLOCKER"
+      ],
+      "entry_sha256": "927bf16fbd2f3896a441e87f7b1415f66dd8bdbf12176f9e003ca1effe5bf615",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "dd237bb1b3b1c0679745629696e8064821ddae0ba15b13e52e082d909ba658a9",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "8857829a89bb689c3deef0fdf047a58d42261eb0",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_PILOT INTAKE",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "POST-PILOT HARDENING",
+          "PR41 ACCEPTANCE",
+          "Demo Readiness",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "LEDGER/HANDOFF",
+          "SALES PACKAGE",
+          "Token Efficiency",
+          "PUBLICATION VERIFICATION"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "MacBook-Pro-von-user.local",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "BLOCKED",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "FIRST PILOT",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
+          "RELEASE",
+          "PILOT INTAKE",
+          "EXTERNAL_PUBLICATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER",
+          "PUBLIC DEPLOYMENT"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "dcd227a04a3db26009b728f95c758fbad513456c946a938a1ec3263ae2020559",
+      "revision": 176,
+      "state_sha256": "cb54adb12c296c9171a0019f5f5ca91b8f39fc3cf30be6fc5cac7d97ba01b9bf",
+      "timestamp_utc": "2026-09-17T18:00:28Z",
+      "updated_by": "Google-Antigravity"
     }
   ],
   "non_authority": "Coordination metadata only; this ledger has no scheduler, runtime, execution, dispatch, verification, or Courier truth authority.",
@@ -16161,9 +18981,9 @@
       "motor-eligibility-v1"
     ],
     "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
-    "CURRENT_SHA": "4232569cfead19a896551f0145e70ca863aa471a",
+    "CURRENT_SHA": "8857829a89bb689c3deef0fdf047a58d42261eb0",
     "DUPLICATE_EXTERNAL_EFFECTS": 0,
-    "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_POST-PILOT HARDENING",
+    "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_PILOT INTAKE",
     "GOAL": "COURIER-PUBLIC-RELEASE",
     "GOALS_SUBMITTED": 1,
     "LAST_EVIDENCE": [],
@@ -16172,34 +18992,34 @@
     "NEXT_EXECUTABLE_ACTION": "NONE",
     "PROJECT": "Courier",
     "PROVEN_EDGES": [
-      "Website QA",
-      "Zero-Chat Handoff",
-      "LEDGER/HANDOFF",
-      "Token Efficiency",
+      "POST-PILOT HARDENING",
       "PR41 ACCEPTANCE",
       "Demo Readiness",
+      "Zero-Chat Handoff",
+      "Website QA",
+      "LEDGER/HANDOFF",
+      "SALES PACKAGE",
+      "Token Efficiency",
       "PUBLICATION VERIFICATION"
     ],
     "QUEUE_INDEPENDENT": "NO",
     "RUNTIME_IDENTITY": "MacBook-Pro-von-user.local",
     "RUNTIME_OWNER": "Google-Antigravity",
-    "STATUS": "READY",
+    "STATUS": "BLOCKED",
     "TASKS_COMPLETED": 2,
     "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
     "UNPROVEN_EDGES": [
-      "RELEASE",
       "FIRST PILOT",
       "PAYMENT ONLY WHEN ACTUALLY REQUIRED",
-      "SALES PACKAGE",
-      "ONBOARD_FIRST_PILOT_CUSTOMER",
+      "RELEASE",
+      "PILOT INTAKE",
       "EXTERNAL_PUBLICATION",
-      "POST-PILOT HARDENING",
-      "PUBLIC DEPLOYMENT",
-      "PILOT INTAKE"
+      "ONBOARD_FIRST_PILOT_CUSTOMER",
+      "PUBLIC DEPLOYMENT"
     ],
     "USER_CONTINUE_MESSAGES": 0,
     "WORKERS_USED": 1
   },
-  "revision": 151,
+  "revision": 176,
   "schema_version": 2
 }

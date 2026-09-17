@@ -179,7 +179,7 @@ def run_native(task, config):
                 if any(bad in arg for bad in [';', '|', '&', '>', '<', '$', '..', '`']):
                     return {"status": "FAILED", "stderr": "Shell operators and path escapes are banned.", "execution_mode": "NATIVE"}
 
-            result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=False)
+            result = subprocess.run(args, timeout=60, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=False)
 
             
         elif action == "sleep":
