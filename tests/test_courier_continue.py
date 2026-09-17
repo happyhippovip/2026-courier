@@ -346,7 +346,7 @@ def test_missing_physical_proof_prevents_acceptance(tmp_path):
     assert data["record"]["FIRST_CAUSAL_BLOCKER"] == "MISSING_PHYSICAL_ACCEPTANCE_EVIDENCE"
     assert data["history"][-1]["acceptance_guard"]["transition_state"] == "PROVISIONAL"
 
-def test_valid_physical_proof_allows_acceptance(tmp_path):
+def test_valid_physical_proof_still_requires_independent_guard(tmp_path):
     # Manually create the guard and record with valid evidence
     record = {
         "PROJECT": "Courier",
@@ -426,9 +426,10 @@ def test_valid_physical_proof_allows_acceptance(tmp_path):
         data = json.load(f)
         
     assert res.returncode == 0, res.stderr
-    assert data["record"]["CLEAN_IDLE"] in ("YES", "NO")
-    assert data["record"]["QUEUE_INDEPENDENT"] == "YES"
-    assert data["history"][-1]["acceptance_guard"]["transition_state"] == "CANONICAL_ACCEPTED"
+    assert data["record"]["CLEAN_IDLE"] == "NO"
+    assert data["record"]["QUEUE_INDEPENDENT"] == "NO"
+    assert data["record"]["STATUS"] == "WAITING_ACCEPTANCE_GUARD"
+    assert data["history"][-1]["acceptance_guard"]["transition_state"] == "PROVISIONAL"
 
 def test_blocked_dependent_does_not_freeze_independent(tmp_path):
     ledger_path = setup_ledger(
