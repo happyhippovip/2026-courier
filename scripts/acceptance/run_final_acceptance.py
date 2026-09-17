@@ -113,7 +113,11 @@ def run_tests():
     temp_dir = Path(tempfile.mkdtemp(prefix="courier-acceptance-"))
     state_file = temp_dir / "acceptance_state.json"
     server_proc = None
-    server_proc, API_URL = start_server(state_file, find_free_port())
+    try:
+        server_proc, API_URL = start_server(state_file, find_free_port())
+    except Exception:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+        raise
     
     try:
         # Test 1: Goal intake & routing progression (LOCAL_END_TO_END)

@@ -97,7 +97,11 @@ def run_tests():
     temp_dir = Path(tempfile.mkdtemp(prefix="courier-boundaries-"))
     state_file = temp_dir / "boundary_state.json"
     proc = None
-    proc, API_URL = start_server(state_file, find_free_port())
+    try:
+        proc, API_URL = start_server(state_file, find_free_port())
+    except Exception:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+        raise
     try:
         # Auth Boundaries
         log("Testing Auth Boundaries...")
