@@ -159,6 +159,16 @@ def run_cli(*args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
 
 
 class AgentHandoffLedgerTests(unittest.TestCase):
+    def test_schema_accepts_evidence_identity_fields_used_by_runtime(self):
+        schema = json.loads(
+            (ROOT / "schemas" / "agent_handoff_ledger.schema.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        evidence_properties = schema["$defs"]["evidence"]["properties"]
+        self.assertIn("producer_id", evidence_properties)
+        self.assertIn("verifier_id", evidence_properties)
+
     def test_separate_process_handoff_preserves_state_and_rejects_stale_writer(self):
         with tempfile.TemporaryDirectory() as temporary:
             base = Path(temporary)
