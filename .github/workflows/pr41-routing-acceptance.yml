@@ -1,0 +1,38 @@
+name: PR41 Routing Acceptance
+
+on:
+  push:
+    branches:
+      - codex/motor-eligibility-v1
+
+permissions:
+  contents: read
+
+jobs:
+  exact-sha-acceptance:
+    runs-on: ubuntu-latest
+    env:
+      COURIER_API_KEY: test-secret
+      COURIER_VERIFIER_API_KEY: verifier-secret
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt pytest
+      - name: Record exact acceptance SHA
+        run: |
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+          printf 'PR41_ACCEPTANCE_SHA=%s\n' "${GITHUB_SHA}"
+      - name: Targeted Routing V1 acceptance
+        run: |
+          python -m pytest -q tests/test_motor_eligibility_v1.py tests/test_routing_acceptance_v1.py
+      - name: Full regression
+        run: |
+          python -m pytest -q tests
