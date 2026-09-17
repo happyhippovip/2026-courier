@@ -90,7 +90,7 @@ def check_freshness(ledger_path, branch, sha):
     result = freshness(bundle, branch, sha, "NO_FURTHER_ACTION", [], runtime_id)
 
     if result["FRESHNESS"] == "STALE":
-        print("ERROR: Ledger is stale. Fail closed. Runtime or SHA changed.")
+        print(f"ERROR: Ledger is stale. Fail closed. Runtime or SHA changed. Reasons: {result}")
 
         updates = {"CURRENT_SHA": sha, "BRANCH": branch, "RUNTIME_IDENTITY": runtime_id}
         guard = bundle["acceptance_guard"]
@@ -344,7 +344,7 @@ def main():
                     # But we MUST still skip tasks that are strictly downstream of the blocker.
                     # If this task is NOT the one that caused the blocker, we should skip it.
                     # The task that caused the blocker is typically the FIRST unproven task for dependent line.
-                    if "HUMAN_REQUIRED" in first_blocker or "PUBLIC_REPO_VISIBILITY" in first_blocker:
+                    if "HUMAN_REQUIRED" in first_blocker or "IRREVERSIBLE_HUMAN_ACTION" in first_blocker or "PUBLIC_REPO_VISIBILITY" in first_blocker:
                         if t["scope"] == "dependent" and not first_unproven_seen:
                             # It's a dependent task, but not the first unproven. It's downstream. Skip.
                             pass # Wait, first_unproven_seen logic above already makes is_runnable=True for the first unproven.
