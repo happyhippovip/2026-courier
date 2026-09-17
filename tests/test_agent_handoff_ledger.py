@@ -325,6 +325,21 @@ subprocess.run([
                 )
             self.assertFalse(ledger.exists())
 
+    def test_initialization_rejects_queue_independent_with_provisional_guard(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            ledger = Path(temporary) / "ledger.json"
+            false_green_record = record()
+            false_green_record["QUEUE_INDEPENDENT"] = "YES"
+
+            with self.assertRaisesRegex(
+                ledger_module.LedgerError,
+                "QUEUE_INDEPENDENT=YES requires a CANONICAL_ACCEPTED guard",
+            ):
+                ledger_module.initialize(
+                    ledger, false_green_record, guard(), 1.0
+                )
+            self.assertFalse(ledger.exists())
+
     def test_worker_state_and_current_freshness_round_trip(self):
         with tempfile.TemporaryDirectory() as temporary:
             ledger = Path(temporary) / "ledger.json"

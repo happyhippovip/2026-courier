@@ -364,6 +364,14 @@ def validate_bundle(bundle: Any) -> dict[str, Any]:
             != "CANONICAL_ACCEPTED"
         ):
             raise LedgerError("CLEAN_IDLE=YES requires a CANONICAL_ACCEPTED guard")
+        if (
+            bundle["record"].get("QUEUE_INDEPENDENT") == "YES"
+            and bundle["acceptance_guard"]["transition_state"]
+            != "CANONICAL_ACCEPTED"
+        ):
+            raise LedgerError(
+                "QUEUE_INDEPENDENT=YES requires a CANONICAL_ACCEPTED guard"
+            )
     history = bundle["history"]
     if not isinstance(history, list) or len(history) != revision + 1:
         raise LedgerError("history must contain exactly one entry per revision")
