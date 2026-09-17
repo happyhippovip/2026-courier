@@ -10,6 +10,7 @@ import pytest
 
 SCRIPTS = Path(__file__).parent.parent / "scripts" / "mac_worker"
 TRACKED_CONFIG = SCRIPTS / "config.json"
+KEYCHAIN_SETUP = SCRIPTS / "setup_keychain.sh"
 FAKE_KEY = "TEST-FAKE-KEY-0123456789abcdef"
 
 
@@ -83,3 +84,10 @@ def test_tracked_mac_worker_config_contains_no_secret():
     config = json.loads(TRACKED_CONFIG.read_text())
 
     assert "COURIER_API_KEY" not in config
+
+
+def test_keychain_setup_reads_secret_without_terminal_echo():
+    script = KEYCHAIN_SETUP.read_text()
+
+    assert 'read -r -s -p "Enter Courier API Key: " api_key' in script
+    assert "unset api_key" in script
