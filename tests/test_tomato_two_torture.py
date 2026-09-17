@@ -1,5 +1,3 @@
-import uuid
-
 #!/usr/bin/env python3
 """COURIER — CLI-2 TOMATO TWO: MOTOR RESUME / REPLAY / QUEUE TORTURE CHAMBER.
 
@@ -8,6 +6,7 @@ counterexample torture tests, and the three combined cross-check attacks (A, B, 
 """
 
 import hashlib
+import base64
 import json
 import os
 import signal
@@ -17,16 +16,15 @@ import sys
 import time
 import urllib.error
 import urllib.request
+import uuid
 from pathlib import Path
+from urllib.parse import urlparse
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
-SERVER_URL = "http://127.0.0.1:8081"
-API_KEY = "321606503a874d39b50f6137e3321b7f"
-VERIFIER_KEY = "verifier-12345"
-HEADERS = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
-VERIFIER_HEADERS = {"Authorization": f"Bearer {VERIFIER_KEY}", "Content-Type": "application/json"}
+SERVER_URL = None
+HEADERS = {}
 
 EVIDENCE_LOG = REPO_ROOT / "logs" / "tomato_two_raw_evidence.json"
 
@@ -57,8 +55,64 @@ def get_goal_tasks(goal_id):
 def get_git_sha():
     return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO_ROOT).decode().strip()
 
+def _keychain_value(account, service):
+    try:
+        value = subprocess.check_output(
+            ["security", "find-generic-password", "-a", account, "-s", service, "-w"],
+            stderr=subprocess.DEVNULL,
+            text=True,
+        ).strip()
+        return value or None
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return None
+
+
 def get_runtime_identity():
-    return socket.gethostname()
+    """Observe the actual Windows listener and repository identity over SSH."""
+    alias = os.environ.get("COURIER_WINDOWS_SSH_ALIAS", "windows-ai")
+    repo = os.environ.get(
+        "COURIER_WINDOWS_REPO", r"C:\Users\lol\2026-workspace\2026-courier"
+    )
+    escaped_repo = repo.replace("'", "''")
+    script = f"""
+$ProgressPreference='SilentlyContinue'
+$repo='{escaped_repo}'
+Set-Location $repo
+$listener=Get-NetTCPConnection -LocalPort 8080 -State Listen -ErrorAction Stop | Select-Object -First 1
+$process=Get-CimInstance Win32_Process -Filter ('ProcessId='+$listener.OwningProcess)
+$parent=Get-CimInstance Win32_Process -Filter ('ProcessId='+$process.ParentProcessId)
+[pscustomobject]@{{
+  host=$env:COMPUTERNAME
+  runtime_sha=(git rev-parse HEAD).Trim()
+  pid=$listener.OwningProcess
+  process_path=$process.ExecutablePath
+  command_line=$process.CommandLine
+  parent_path=$parent.ExecutablePath
+  repo=$repo
+}} | ConvertTo-Json -Compress
+"""
+    encoded = base64.b64encode(script.encode("utf-16le")).decode("ascii")
+    output = subprocess.check_output(
+        [
+            "ssh",
+            "-o", "BatchMode=yes",
+            "-o", "ConnectTimeout=8",
+            alias,
+            "powershell", "-NoProfile", "-EncodedCommand", encoded,
+        ],
+        stderr=subprocess.PIPE,
+        text=True,
+        timeout=20,
+    )
+    for line in output.splitlines():
+        if line.startswith("{"):
+            observed = json.loads(line)
+            expected_root = repo.lower().rstrip("\\")
+            process_path = str(observed.get("parent_path") or observed.get("process_path") or "").lower()
+            if expected_root not in process_path:
+                raise AssertionError("Serving Windows process is not bound to the configured canonical repository")
+            return observed
+    raise AssertionError("Windows runtime identity could not be observed")
 
 def cleanup_file(filename):
     p = Path.home() / ".courier_runtime" / filename
@@ -86,32 +140,37 @@ import subprocess
 import os
 
 @pytest.fixture(scope="module", autouse=True)
-def start_server():
-    print("Starting server for test...")
-    python_exe = sys.executable
-    env = os.environ.copy()
-    env["PORT"] = "8081"
-    env["PYTHONPATH"] = str(REPO_ROOT)
-    env["COURIER_SERVER"] = "http://127.0.0.1:8081"
-    env["COURIER_API_KEY"] = "321606503a874d39b50f6137e3321b7f"
-    env["COURIER_VERIFIER_API_KEY"] = "421606503a874d39b50f6137e3321b7f"
-    
-    # waitress is missing, so let's start the server and verifier manually here
-    server_proc = subprocess.Popen([python_exe, "-m", "server.app"], env=env, cwd=str(Path.home() / ".courier_runtime"))
-    verifier_proc = subprocess.Popen([python_exe, str(REPO_ROOT / "scripts/courier_verifier.py")], env=env, cwd=str(Path.home() / ".courier_runtime"))
-    time.sleep(3)
-    yield
-    print("Stopping server...")
-    server_proc.terminate()
-    verifier_proc.terminate()
-    server_proc.wait()
-    verifier_proc.wait()
+def require_canonical_runtime():
+    """Physical proof must observe the canonical server; it may never create one."""
+    if os.environ.get("COURIER_RUN_PHYSICAL_ACCEPTANCE") != "1":
+        pytest.skip("set COURIER_RUN_PHYSICAL_ACCEPTANCE=1 for the canonical physical proof")
+
+    global SERVER_URL, HEADERS
+    SERVER_URL = (
+        os.environ.get("COURIER_SERVER")
+        or _keychain_value("courier_worker", "courier_server_url")
+    )
+    api_key = (
+        os.environ.get("COURIER_API_KEY")
+        or _keychain_value("courier_worker", "courier_api_key")
+    )
+    assert SERVER_URL, "canonical Courier server URL is unavailable"
+    assert api_key, "Courier credential is unavailable from environment or macOS Keychain"
+    host = (urlparse(SERVER_URL).hostname or "").lower()
+    assert host not in {"127.0.0.1", "localhost", "::1"}, (
+        "physical acceptance refuses a private localhost Central"
+    )
+    HEADERS = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
 
 
 def test_tomato_two_full_torture_chamber():
     evidence = {}
     tested_sha = get_git_sha()
-    runtime_id = get_runtime_identity()
+    runtime = get_runtime_identity()
+    runtime_id = f"{runtime['host']}:{runtime['pid']}:{runtime['process_path']}"
+    assert runtime["runtime_sha"] == tested_sha, (
+        f"Windows runtime SHA {runtime['runtime_sha']} does not match candidate {tested_sha}"
+    )
     user_continue_messages = 0
     duplicate_external_effects = 0
 
