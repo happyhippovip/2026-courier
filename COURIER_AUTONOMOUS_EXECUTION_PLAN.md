@@ -309,3 +309,6 @@ Maximize *verified completed Courier work per token and per worker-minute*, not 
 
 **Required Acceptance Proof:**
 The continuous participation loop is proven by: `ANTIGRAVITY_TASK_1_COMPLETE → AUTOMATIC_TASK_2_CLAIM → AUTOMATIC_TASK_3_CLAIM` with zero human continuation messages.
+
+**ROUTING_V1=COMPLETE**
+**ROUTING_V1_FROZEN=YES**
