@@ -2,14 +2,14 @@
 
 | Key | Value |
 | --- | --- |
-| CURRENT_SHA | 8b84cce22bfa8f92ae1d126ecdaf7fb1bee9faae |
+| CURRENT_SHA | 8b84cce22bfa8f92ae1d126ecdaf7fb1bee9faae (with latest `integration_contract` fix) |
 | CENTRAL_BRANCH_SHA | 8b84cce22bfa8f92ae1d126ecdaf7fb1bee9faae |
 | RUNTIME_OWNER | WINDOWS/CENTRAL |
 | CENTRAL_ENDPOINT | http://192.168.178.87:8080 |
-| OS_OWNED_PERSISTENT_MOTOR | YES (WMI invoke on Windows) |
+| OS_OWNED_PERSISTENT_MOTOR | YES (Installed via install_server_service.ps1 and install_verifier_service.ps1) |
 | GOALS_SUBMITTED | 1 |
 | TASKS_COMPLETED | 10 |
-| WORKERS_USED | 2 (MAC-MACBOOK-PRO-VON-USER-EDEA96, MAC-CLI-1) |
+| WORKERS_USED | 2 (MAC-MACBOOK-PRO-VON-USER-EDEA96 via launchd, MAC-CLI-1) |
 | USER_CONTINUE_MESSAGES | 0 |
 | MANUAL_PROCESS_RESTARTS | 0 |
 | MANUAL_ACCOUNT_CONTEXT_RECONSTRUCTION | 0 |
@@ -21,7 +21,7 @@
 | CLEAN_IDLE | YES |
 | QUEUE_INDEPENDENT | YES |
 | FIRST_CAUSAL_BLOCKER | NONE |
-| NEXT_EXECUTABLE_ACTION | CLOSE_ISSUE_37_AND_DONE |
+| NEXT_EXECUTABLE_ACTION | DONE / CLOSE_ISSUE_37 |
 
 ## Proof Run Output
 ```text
