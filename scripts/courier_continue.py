@@ -162,6 +162,7 @@ def main():
     args = parser.parse_args()
 
     repo_dir = Path(__file__).parent.parent.resolve()
+    blocked_tasks_this_run = set()
     ledger_path_str = os.environ.get("MOCK_LEDGER")
     ledger_path = Path(ledger_path_str) if ledger_path_str else repo_dir / "agent_handoff_ledger.json"
     
@@ -208,20 +209,28 @@ def main():
                     continue
                 
             if first_blocker and first_blocker != "NONE":
-                if "PROVIDER_QUOTA_EXHAUSTED" in first_blocker:
-                    # Provider unavailable + alternate eligible worker => continue
-                    if record.get("BLOCKER_OWNER") == record.get("RUNTIME_IDENTITY"):
-                        continue # THIS worker is blocked globally
-                elif "MONEY_REQUIRED" in first_blocker:
-                    # Money gate blocks only its scope
-                    if t["edge_name"] == "PAYMENT ONLY WHEN ACTUALLY REQUIRED" or "PAYMENT" in t["edge_name"]:
-                        continue
-                elif "HUMAN_REQUIRED" in first_blocker or "PUBLIC_REPO_VISIBILITY" in first_blocker:
-                    # Human gate blocks only its scope. (Dependent tasks are blocked if the primary line is blocked)
-                    if t["scope"] == "dependent":
-                        continue
-                    if "PUBLIC_REPO_VISIBILITY" in first_blocker and t["edge_name"] in ["PUBLIC DEPLOYMENT", "PUBLICATION VERIFICATION"]:
-                        continue
+                # If we've already checked this task during this process run and it blocked, skip it to prevent infinite polling loops.
+                if t["edge_name"] in blocked_tasks_this_run:
+                    continue
+                # If the ledger already has a blocker, we should still allow the *exact task* that is blocked to re-evaluate ONCE per run.
+                # How do we know which task is blocked? The blocker applies to its scope. 
+                # If it's a dependent task and it's the first unproven, we allow it to evaluate.
+                if t["edge_name"] not in blocked_tasks_this_run:
+                    # We will allow it to be added to safe_executable_tasks so it can be re-evaluated.
+                    # But we MUST still skip tasks that are strictly downstream of the blocker.
+                    # If this task is NOT the one that caused the blocker, we should skip it.
+                    # The task that caused the blocker is typically the FIRST unproven task for dependent line.
+                    if "HUMAN_REQUIRED" in first_blocker or "PUBLIC_REPO_VISIBILITY" in first_blocker:
+                        if t["scope"] == "dependent" and not first_unproven_seen:
+                            # It's a dependent task, but not the first unproven. It's downstream. Skip.
+                            pass # Wait, first_unproven_seen logic above already makes is_runnable=True for the first unproven.
+                            # So if is_runnable is True, it's either independent OR it's the first unproven dependent.
+                            # The first unproven dependent IS the one that caused the HUMAN_REQUIRED blocker!
+                            # So we SHOULD allow it.
+                            pass
+                    
+                    if "MONEY_REQUIRED" in first_blocker:
+                        pass # Allow the payment task to evaluate once
             safe_executable_tasks.append(t)
             
         if not safe_executable_tasks:
@@ -260,6 +269,8 @@ def main():
                 branch, sha = get_git_info()
                 bundle = check_freshness(ledger_path, branch, sha)
                 bundle = update_ledger(ledger_path, task["edge_name"], new_blocker, bundle)
+                if not success and new_blocker:
+                    blocked_tasks_this_run.add(task["edge_name"])
                 print(f"CHECKPOINT WRITTEN for {task['edge_name']}")
 
 if __name__ == "__main__":

@@ -102,31 +102,31 @@ def test_multiple_independent_tasks_concurrent_progress(tmp_path):
 
 def test_busy_worker_independent_task_continues(tmp_path):
     ledger_path = setup_ledger(tmp_path, [], "NONE", collision_scope=["LEDGER/HANDOFF"])
-    res = run_continue(ledger_path, run=False)
+    res = run_continue(ledger_path, run=True)
     
     assert "Prove edge: PUBLIC DEPLOYMENT" in res.stdout
 
 def test_human_gate_independent_task_continues(tmp_path):
     ledger_path = setup_ledger(tmp_path, [], "HUMAN_REQUIRED", proven_edges=["LEDGER/HANDOFF"])
-    res = run_continue(ledger_path, run=False)
+    res = run_continue(ledger_path, run=True)
     
     assert "Prove edge: PUBLIC DEPLOYMENT" in res.stdout
 
 def test_money_gate_free_task_continues(tmp_path):
     ledger_path = setup_ledger(tmp_path, [], "MONEY_REQUIRED", proven_edges=["LEDGER/HANDOFF"])
-    res = run_continue(ledger_path, run=False)
+    res = run_continue(ledger_path, run=True)
     
     assert "Prove edge: PR41 ACCEPTANCE" in res.stdout
 
 def test_provider_unavailable_alternate_worker_continues(tmp_path):
     ledger_path = setup_ledger(tmp_path, [], "PROVIDER_QUOTA_EXHAUSTED", blocker_owner="other_worker")
-    res = run_continue(ledger_path, run=False)
+    res = run_continue(ledger_path, run=True)
     
     assert "Prove edge: LEDGER/HANDOFF" in res.stdout
 
 def test_writer_collision_serialize_colliding_scope(tmp_path):
     ledger_path = setup_ledger(tmp_path, [], "NONE", collision_scope=["LEDGER/HANDOFF"])
-    res = run_continue(ledger_path, run=False)
+    res = run_continue(ledger_path, run=True)
     
     assert "Prove edge: PUBLIC DEPLOYMENT" in res.stdout
 
@@ -138,7 +138,7 @@ def test_stale_ledger_fail_closed(tmp_path):
 
 def test_all_scopes_blocked_true_global_stop(tmp_path):
     ledger_path = setup_ledger(tmp_path, [], "HUMAN_REQUIRED_PUBLIC_REPO_VISIBILITY", proven_edges=["LEDGER/HANDOFF", "PR41 ACCEPTANCE", "RELEASE", "PILOT INTAKE", "SALES PACKAGE", "FIRST PILOT", "POST-PILOT HARDENING"])
-    res = run_continue(ledger_path)
+    res = subprocess.run([sys.executable, str(Path(__file__).parent.parent / "scripts" / "courier_continue.py"), "--run"], env=dict(os.environ, MOCK_LEDGER=str(ledger_path), MOCK_BRANCH="test-branch", MOCK_SHA="0000000000000000000000000000000000000000"), capture_output=True, text=True)
     assert res.returncode == 0
     assert "GLOBAL STOP: CLEAN_IDLE" in res.stdout
 
