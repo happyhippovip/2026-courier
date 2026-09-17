@@ -54,3 +54,22 @@
   "NEXT_EXECUTABLE_ACTION": "EXTERNAL_PUBLICATION"
 }
 ```
+
+## 10. EXISTING_ASSET_REUSE
+The recent 15-day read-only asset recovery found valuable existing Courier primitives. These should be preserved and integrated into the canonical path:
+
+*   **PR40 Agent Handoff Ledger:** preserve/integrate after human gate
+*   **PR41 Motor Eligibility:** Acceptance re-evaluation required before integration
+*   **TaskDedupeEngine:** later canonical reuse
+*   **FileManifestTracker:** later Minimal Task Packet/context reuse
+*   **ChiefContextPackageBuilder:** later context minimization reuse
+*   **ReviewDedupeTracker:** later redundant-review avoidance
+*   **AgentSessionManager:** canonical candidate for exact owned-process cleanup
+*   **RevenueV1SafetyBaseline:** existing revenue-capable workflow to evaluate/use
+
+**DO_NOT_REVIVE_AS_AUTHORITY:**
+*   `run_autonomous_loop.py`
+*   `TaskLeaseManager`
+*   `intake_dispatcher.py` / `queue_processor.py`
+*   `dashboard/server.py`
+*   `account_switch.py`
