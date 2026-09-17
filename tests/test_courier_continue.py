@@ -146,7 +146,7 @@ def test_capability_insufficient_cannot_claim(tmp_path):
     # LEDGER/HANDOFF requires "git", "file_write"
     ledger_path = setup_ledger(tmp_path, [], "NONE")
     
-    # Run with limited capabilities
+    # Run with limited capabilities (only shell and http_client, missing git/file_write)
     env = os.environ.copy()
     env.update({"MOCK_SHA": "0000000000000000000000000000000000000000", "MOCK_BRANCH": "test-branch", "MOCK_LEDGER": str(ledger_path), "COURIER_WORKER_CAPABILITIES": "shell,http_client"})
     
@@ -155,15 +155,33 @@ def test_capability_insufficient_cannot_claim(tmp_path):
     res = subprocess.run([sys.executable, str(runner)], env=env, capture_output=True, text=True)
     
     assert res.returncode == 0
-    # Because LEDGER/HANDOFF cannot be claimed, and it's dependent, everything else is blocked? No, independent edges might be claimable!
-    # "PUBLIC DEPLOYMENT" needs "github_actions", "api"
-    # "PUBLICATION VERIFICATION" needs "http_client"
-    # So PUBLICATION VERIFICATION should be claimable! Wait, independent edges can be claimed. 
-    # But wait, PUBLICATION VERIFICATION is blocked if PUBLIC DEPLOYMENT is unproven unless they are both independent.
-    # Ah, let's see what happens.
+    # Because LEDGER/HANDOFF cannot be claimed, it should fall back to an independent task it CAN claim.
+    # PUBLICATION VERIFICATION needs "http_client" so it should claim that.
+    assert "Prove edge: PUBLICATION VERIFICATION" in res.stdout
+    assert "Prove edge: LEDGER/HANDOFF" not in res.stdout
+
+def test_worker_loss_takeover_and_handoff(tmp_path):
+    # Simulates worker loss and takeover by a different machine (Mac -> Windows)
+    # Both use the same Motor primitive contract via `courier_continue.py`
+    ledger_path = setup_ledger(tmp_path, [], "NONE")
     
-    # If the first task (LEDGER/HANDOFF) is unclaimable, it continues to independent edges.
-    pass
+    # Worker 1 (Mac) starts but is interrupted, so it has no collision scope but we simulate a new process
+    env1 = os.environ.copy()
+    env1.update({"MOCK_SHA": "0000000000000000000000000000000000000000", "MOCK_BRANCH": "test-branch", "MOCK_LEDGER": str(ledger_path), "COURIER_WORKER_CAPABILITIES": "http_client"})
+    
+    repo_dir = Path(__file__).parent.parent.resolve()
+    runner = repo_dir / "scripts" / "courier_continue.py"
+    
+    res1 = subprocess.run([sys.executable, str(runner)], env=env1, capture_output=True, text=True)
+    assert "Prove edge: PUBLICATION VERIFICATION" in res1.stdout
+    
+    # Worker 2 (Windows) picks up another independent edge because it has different capabilities
+    env2 = os.environ.copy()
+    env2.update({"MOCK_SHA": "0000000000000000000000000000000000000000", "MOCK_BRANCH": "test-branch", "MOCK_LEDGER": str(ledger_path), "COURIER_WORKER_CAPABILITIES": "email_processing"})
+    
+    res2 = subprocess.run([sys.executable, str(runner)], env=env2, capture_output=True, text=True)
+    assert "Prove edge: PILOT INTAKE" in res2.stdout
+
 
 def test_capability_based_routing_claims_eligible(tmp_path):
     ledger_path = setup_ledger(tmp_path, [], "NONE")
