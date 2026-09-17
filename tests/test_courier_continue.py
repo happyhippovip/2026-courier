@@ -295,3 +295,48 @@ def test_valid_physical_proof_allows_acceptance(tmp_path):
     assert data["record"]["CLEAN_IDLE"] in ("YES", "NO")
     assert data["record"]["QUEUE_INDEPENDENT"] == "YES"
     assert data["history"][-1]["acceptance_guard"]["transition_state"] == "CANONICAL_ACCEPTED"
+
+def test_blocked_dependent_does_not_freeze_independent(tmp_path):
+    ledger_path = setup_ledger(
+        tmp_path,
+        unproven_edges=["RELEASE", "PUBLICATION VERIFICATION"],
+        blocker="UNVERIFIED_EXTERNAL_EFFECT_RELEASE",
+        proven_edges=["LEDGER/HANDOFF"],
+    )
+    repo_dir = Path(__file__).parent.parent.resolve()
+    res = subprocess.run(
+        [sys.executable, str(repo_dir / "scripts" / "courier_continue.py")],
+        env=dict(os.environ, MOCK_LEDGER=str(ledger_path), MOCK_BRANCH="test-branch", MOCK_SHA="0000000000000000000000000000000000000000"),
+        capture_output=True, text=True, cwd=str(repo_dir),
+    )
+    assert res.returncode == 0, res.stderr
+    assert "Selected Next Action" in res.stdout
+    assert "GLOBAL STOP" not in res.stdout
+    with open(ledger_path) as f:
+        data = json.load(f)
+    assert data["record"]["USER_CONTINUE_MESSAGES"] == 0
+
+
+def test_zero_chat_replenishment_two_cycles(tmp_path):
+    repo_dir = Path(__file__).parent.parent.resolve()
+    proven = ["LEDGER/HANDOFF"]
+    for cycle_unproven in (["PR41 ACCEPTANCE", "RELEASE"], ["RELEASE"]):
+        cycle_dir = tmp_path / f"cycle{len(proven)}"
+        cycle_dir.mkdir(exist_ok=True)
+        ledger_path = setup_ledger(
+            cycle_dir,
+            unproven_edges=cycle_unproven,
+            blocker="NONE",
+            proven_edges=list(proven),
+        )
+        res = subprocess.run(
+            [sys.executable, str(repo_dir / "scripts" / "courier_continue.py")],
+            env=dict(os.environ, MOCK_LEDGER=str(ledger_path), MOCK_BRANCH="test-branch", MOCK_SHA="0000000000000000000000000000000000000000"),
+            capture_output=True, text=True, cwd=str(repo_dir),
+        )
+        assert res.returncode == 0, res.stderr
+        assert "Selected Next Action" in res.stdout
+        with open(ledger_path) as f:
+            data = json.load(f)
+        assert data["record"]["USER_CONTINUE_MESSAGES"] == 0
+        proven.append(cycle_unproven[0])
