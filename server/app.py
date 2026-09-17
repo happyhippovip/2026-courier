@@ -667,6 +667,25 @@ def claim_task():
             save_state(state)
             return jsonify({"task": task})
 
+    # --- Auto-resume WAITING_PROVIDER tasks if backoff elapsed ---
+    for task_id, task in state.get("tasks", {}).items():
+        if task.get("status") in ("WAITING_PROVIDER", "BLOCKED_TRANSIENT") and task.get("worker_id") == worker_id:
+            if time.time() > task.get("next_retry_at", 0):
+                task["status"] = "DISPATCHED"
+                
+                # Sync back to goal
+                if task.get("goal_id") in state.get("goals", {}):
+                    goal = state["goals"][task["goal_id"]]
+                    if "workflow_plan" in goal:
+                        for step in goal["workflow_plan"]:
+                            if step.get("task_id") == task_id:
+                                step["status"] = "DISPATCHED"
+
+                worker["current_task"] = task_id
+                worker["available"] = False
+                save_state(state)
+                return jsonify({"task": task})
+
     _prune_terminal_resource_owners(state)
     if (
         worker.get("provider_available", True) is not True

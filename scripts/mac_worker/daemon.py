@@ -300,7 +300,7 @@ def run_agy(task, config):
         
         # Check for provider unavailable / quota
         combined_out = (out_clean + " " + stderr).lower()
-        if any(kw in combined_out for kw in ["429", "too many requests", "quota", "rate limit", "resource exhausted", "provider unavailable"]):
+        if any(kw in combined_out for kw in ["429", "too many requests", "quota", "rate limit", "resource exhausted", "provider unavailable", "500", "502", "503", "504", "timeout", "timed out", "internal server error", "service unavailable", "bad gateway", "401", "403", "unauthorized", "authentication failed", "invalid api key"]):
             res_json["status"] = "PROVIDER_WAIT"
             res_json["reason"] = "QUOTA_OR_RATE_LIMIT"
             return res_json
@@ -370,7 +370,7 @@ def run_copilot(task, config):
             stderr = "...[TRUNCATED]..." + stderr[-20000:]
             
         combined_out = (stdout + " " + stderr).lower()
-        if any(kw in combined_out for kw in ["429", "too many requests", "quota", "rate limit", "resource exhausted", "provider unavailable"]):
+        if any(kw in combined_out for kw in ["429", "too many requests", "quota", "rate limit", "resource exhausted", "provider unavailable", "500", "502", "503", "504", "timeout", "timed out", "internal server error", "service unavailable", "bad gateway", "401", "403", "unauthorized", "authentication failed", "invalid api key"]):
             return {
                 "status": "PROVIDER_WAIT",
                 "reason": "QUOTA_OR_RATE_LIMIT",
