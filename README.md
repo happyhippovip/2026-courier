@@ -84,6 +84,13 @@
 
 ## 🚀 Key Commands
 
+### Agent handoff ledger
+
+The canonical coordination-only handoff is
+`examples/agent_handoff_ledger.json`. A fresh agent must read
+`docs/AGENT_HANDOFF_LEDGER.md`, run the documented `freshness` check, and only
+then use `next-action`. This ledger does not replace Courier runtime truth.
+
 ### 1. Unified Autonomous System Readiness Check (<0.05s)
 ```bash
 python3 scripts/verify_autonomous_readiness.py
