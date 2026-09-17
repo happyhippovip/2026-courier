@@ -69,10 +69,13 @@ def run_loop():
                             
                             cmd = [sys.executable, os.path.join(os.path.dirname(__file__), "revenue_v1_safety_baseline.py"), "verify", task_file, td, candidate_file]
                             try:
-                                subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+                                subprocess.check_output(cmd, stderr=subprocess.STDOUT, timeout=60)
                                 verdict = "PASS"
                             except subprocess.CalledProcessError as e:
                                 log(f"Revenue verification failed: {e.output.decode('utf-8', errors='ignore')}")
+                                verdict = "FAIL"
+                            except subprocess.TimeoutExpired:
+                                log("Revenue verification timed out after 60s")
                                 verdict = "FAIL"
                     else:
                         verdict = "PASS"

@@ -340,6 +340,10 @@ def main():
         print("ERROR: agent_handoff_ledger.json not found.")
         sys.exit(1)
 
+    import concurrent.futures
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=5)
+    running_tasks = {} # mapping task edge_name to future
+    
     while True:
         branch, sha = get_git_info()
         bundle = check_freshness(ledger_path, branch, sha)
@@ -426,7 +430,7 @@ def main():
                 if mock_iters >= 15:
                     sys.exit(0)
             import time
-            time.sleep(0.01)
+            time.sleep(1.0)
             continue
             
         if not args.run:
@@ -445,32 +449,46 @@ def main():
             print(json.dumps(package, indent=2))
             sys.exit(0)
             
-        print(f"\n=== DISPATCHING {len(safe_executable_tasks)} TASKS CONCURRENTLY ===")
-        import concurrent.futures
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-            futures = [executor.submit(execute_task, t, ledger_path, record) for t in safe_executable_tasks]
-            
-            for future in concurrent.futures.as_completed(futures):
-                task, success, new_blocker = future.result()
-                print(f"\n=== FINISHED TASK: {task['edge_name']} ===")
-                # Re-check freshness to avoid race conditions when writing ledger
-                branch, sha = get_git_info()
-                bundle = check_freshness(ledger_path, branch, sha)
-                
+        # Process any completed futures
+        done_edges = []
+        for edge_name, future in list(running_tasks.items()):
+            if future.done():
+                done_edges.append(edge_name)
                 try:
-                    bundle = update_ledger(ledger_path, task["edge_name"], new_blocker, bundle)
-                except Exception as e:
-                    print(f"Exception in update_ledger: {type(e)} {e}")
-                    if "meaningful change" in str(e):
-                        pass
-                    else:
-                        raise e
+                    task, success, new_blocker = future.result()
+                    print(f"\n=== FINISHED TASK: {task['edge_name']} ===")
+                    branch, sha = get_git_info()
+                    bundle = check_freshness(ledger_path, branch, sha)
+                    try:
+                        bundle = update_ledger(ledger_path, task["edge_name"], new_blocker, bundle)
+                    except Exception as e:
+                        print(f"Exception in update_ledger: {type(e)} {e}")
+                        if "meaningful change" not in str(e):
+                            raise e
 
-                if not success and new_blocker:
-                    blocked_tasks_this_run.add(task["edge_name"])
-                if task["edge_name"] not in bundle["record"].get("PROVEN_EDGES", []):
-                    blocked_tasks_this_run.add(task["edge_name"])
-                print(f"CHECKPOINT WRITTEN for {task['edge_name']}")
+                    if not success and new_blocker:
+                        blocked_tasks_this_run.add(task["edge_name"])
+                except Exception as e:
+                    print(f"Task {edge_name} failed with exception: {e}")
+                    blocked_tasks_this_run.add(edge_name)
+
+        for edge_name in done_edges:
+            del running_tasks[edge_name]
+
+        # Submit new tasks
+        newly_submitted = []
+        for t in safe_executable_tasks:
+            if t["edge_name"] not in running_tasks:
+                print(f"\n=== SUBMITTING TASK: {t['edge_name']} ===")
+                running_tasks[t["edge_name"]] = executor.submit(execute_task, t, ledger_path, record)
+                newly_submitted.append(t["edge_name"])
+        
+        if newly_submitted or running_tasks:
+            print(f"\nCurrently running {len(running_tasks)} tasks concurrently.")
+            
+        import time
+        time.sleep(1)
+
         
         if args.once:
             sys.exit(0)
@@ -479,7 +497,7 @@ def main():
             if mock_iters >= 15:
                 sys.exit(0)
         import time
-        time.sleep(0.01)
+        time.sleep(1.0)
 
 if __name__ == "__main__":
     main()

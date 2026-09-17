@@ -213,7 +213,7 @@ def run_native(task, config):
             result.stderr = ""
             
         elif action == "git_status":
-            result = subprocess.run(["git", "status"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=False)
+            result = subprocess.run(["git", "status"], timeout=30, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=False)
             
         elif action == "provider_wait":
             return {
