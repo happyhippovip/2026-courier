@@ -382,10 +382,8 @@ def claim_task():
                                 break
                                 
                     if deps_met:
-                        target = step.get("target_agent", "linux").lower()
-                        if target not in blocked_targets:
-                            next_task = step
-                            break
+                        next_task = step
+                        break
                             
             if next_task is not None:
                     target = next_task.get("target_agent", "linux").lower()
