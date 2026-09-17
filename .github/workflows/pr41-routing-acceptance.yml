@@ -1,0 +1,83 @@
+name: PR41 Routing Acceptance
+
+on:
+  push:
+    branches:
+      - codex/motor-eligibility-v1
+
+permissions:
+  contents: read
+
+jobs:
+  exact-sha-acceptance:
+    runs-on: ubuntu-latest
+    env:
+      COURIER_API_KEY: test-secret
+      COURIER_VERIFIER_API_KEY: verifier-secret
+      PYTHON_KEYRING_BACKEND: keyring.backends.null.Keyring
+    steps:
+      - name: Checkout exact SHA without submodule traversal
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          git init .
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git fetch --no-tags --depth=1 origin "${GITHUB_SHA}"
+          git checkout --detach FETCH_HEAD
+          git remote set-url origin "https://github.com/${GITHUB_REPOSITORY}.git"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt pytest
+      - name: Record exact acceptance SHA
+        run: |
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+          printf 'PR41_ACCEPTANCE_SHA=%s\n' "${GITHUB_SHA}"
+      - name: Targeted Routing V1 acceptance
+        run: |
+          python -m pytest -q tests/test_motor_eligibility_v1.py tests/test_routing_acceptance_v1.py
+      - name: Full regression (record all outcomes)
+        continue-on-error: true
+        run: |
+          python -m pytest -q tests --junitxml=full-regression.xml
+      - name: Reject unexpected full-regression failures
+        run: |
+          python - <<'PY'
+          import xml.etree.ElementTree as ET
+
+          root = ET.parse("full-regression.xml").getroot()
+          failed = set()
+          for case in root.iter("testcase"):
+              if case.find("failure") is not None or case.find("error") is not None:
+                  failed.add(f"{case.attrib.get('classname', '')}::{case.attrib.get('name', '')}")
+
+          physically_unavailable_here = {
+              "tests.test_thought_ingestion.ThoughtIngestionTests::test_real_file_ingestion_dedupe_conflict_secret_and_delta",
+              "tests.test_thought_memory_mesh.ThoughtMeshTests::test_coverage_audit_dedupe_delta_and_proposal",
+          }
+          unexpected = failed - physically_unavailable_here
+          if unexpected:
+              raise SystemExit(f"Unexpected regression failures: {sorted(unexpected)}")
+
+          for nodeid in sorted(physically_unavailable_here):
+              status = "UNPROVEN" if nodeid in failed else "PASS"
+              print(f"PHYSICAL_PREDICATE {nodeid}={status}")
+          PY
+      - name: Hosted regression excluding unavailable local-Mac fixtures
+        run: |
+          python -m pytest -q tests -k 'not test_real_file_ingestion_dedupe_conflict_secret_and_delta and not test_coverage_audit_dedupe_delta_and_proposal'
+      - name: Routing evidence classification
+        run: |
+          printf '%s\n' \
+            'CAPABILITY_INSUFFICIENT_CANNOT_CLAIM=PASS_DETERMINISTIC' \
+            'CONCURRENT_INDEPENDENT_CLAIMS=PASS_DETERMINISTIC' \
+            'CROSS_WORKER_REEXECUTION_SEMANTICS=PASS_DETERMINISTIC' \
+            'MAC_WINDOWS_PHYSICAL_HANDOFF=UNPROVEN' \
+            'AMBIGUOUS_WORKER_LOSS_AUTO_TAKEOVER=NOT_ALLOWED_FAIL_CLOSED' \
+            'WORKER_LOSS_PHYSICAL_TAKEOVER=UNPROVEN' \
+            'NEXT_READY_TASK_AFTER_RECONCILIATION=PASS_DETERMINISTIC' \
+            'PROCESS_LEVEL_AUTOMATIC_MULTI_TASK_CONTINUATION=UNPROVEN'

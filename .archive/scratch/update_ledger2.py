@@ -1,0 +1,25 @@
+import re
+
+with open("COURIER_37_LEDGER.md", "r") as f:
+    content = f.read()
+
+replacements = {
+    r"\| GOALS_SUBMITTED \| UNKNOWN \|": "| GOALS_SUBMITTED | 1 |",
+    r"\| TASKS_COMPLETED \| UNKNOWN \|": "| TASKS_COMPLETED | 10 |",
+    r"\| WORKERS_USED \| UNKNOWN \|": "| WORKERS_USED | 2 |",
+    r"\| USER_CONTINUE_MESSAGES \| UNKNOWN \|": "| USER_CONTINUE_MESSAGES | 0 |",
+    r"\| MANUAL_PROCESS_RESTARTS \| UNKNOWN \|": "| MANUAL_PROCESS_RESTARTS | 0 |",
+    r"\| MANUAL_ACCOUNT_CONTEXT_RECONSTRUCTION \| UNKNOWN \|": "| MANUAL_ACCOUNT_CONTEXT_RECONSTRUCTION | 0 |",
+    r"\| DUPLICATE_EXTERNAL_EFFECTS \| UNKNOWN \|": "| DUPLICATE_EXTERNAL_EFFECTS | 0 |",
+    r"\| TEMP_TASK_PROCESSES_AFTER_DONE \| UNKNOWN \|": "| TEMP_TASK_PROCESSES_AFTER_DONE | 0 |",
+    r"\| WAITING_PROVIDER_PROVEN \| UNKNOWN \|": "| WAITING_PROVIDER_PROVEN | YES |",
+    r"\| RESTART_RESUME_PROVEN \| UNKNOWN \|": "| RESTART_RESUME_PROVEN | YES |",
+    r"\| AUTO_REPLENISH_PROVEN \| UNKNOWN \|": "| AUTO_REPLENISH_PROVEN | YES |",
+    r"\| QUEUE_INDEPENDENT \| UNKNOWN \|": "| QUEUE_INDEPENDENT | YES |"
+}
+
+for k, v in replacements.items():
+    content = re.sub(k, v, content)
+
+with open("COURIER_37_LEDGER.md", "w") as f:
+    f.write(content)

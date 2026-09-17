@@ -1,0 +1,196 @@
+{
+  "goal-d739a84c": {
+    "goal_id": "goal-d739a84c",
+    "goal_text": "Run a test task after long idle",
+    "status": "ACTIVE",
+    "terminal": true,
+    "workflow_plan": [
+      {
+        "task_id": "WF-CHIEF-2727a5-STEP-1-DISCOVER",
+        "goal_id": "goal-d739a84c",
+        "instruction": "Formulate execution strategy and inspect context for: Run a test task after long idle",
+        "target_agent": "mac",
+        "status": "QUEUED",
+        "attempts": 0
+      },
+      {
+        "task_id": "WF-CHIEF-2727a5-STEP-2-QA",
+        "goal_id": "goal-d739a84c",
+        "instruction": "Perform independent technical QA audit and syntax verification for: Run a test task after long idle",
+        "target_agent": "windows",
+        "status": "QUEUED",
+        "attempts": 0
+      },
+      {
+        "task_id": "WF-CHIEF-2727a5-STEP-3-SYNTHESIZE",
+        "goal_id": "goal-d739a84c",
+        "instruction": "Finalize results, verify invariants, and assemble completion package for: Run a test task after long idle",
+        "target_agent": "mac",
+        "status": "QUEUED",
+        "attempts": 0
+      }
+    ],
+    "current_step_index": 0
+  },
+  "goal-769e6ba5": {
+    "goal_id": "goal-769e6ba5",
+    "goal_text": "Run a test task after long idle",
+    "status": "BLOCKED",
+    "terminal": true,
+    "workflow_plan": [
+      {
+        "task_id": "w35-task-1",
+        "instruction": "echo test w35",
+        "target_agent": "windows",
+        "status": "FAILED_TERMINAL",
+        "goal_id": "goal-769e6ba5",
+        "attempts": 4,
+        "worker_id": "WINDOWS-TEST-WORKER",
+        "attempt_id": "w35-task-1:attempt:4",
+        "dispatch_id": "dispatch-d22b4d1011c84f778784896bf9f9bfcd",
+        "execution_ref": "exec-bc29dd3332244bcb908f45769840896a",
+        "run_id": null,
+        "result_id": null,
+        "target_capability": "windows",
+        "last_completed_step": null,
+        "next_action": "EXECUTE",
+        "blocker": null,
+        "artifact_refs": [],
+        "artifacts": [
+          "courier_canary_w35-task-1.txt"
+        ],
+        "retry_state": {
+          "execution": 3,
+          "transport": 0,
+          "provider": 0,
+          "verification": 0
+        },
+        "next_retry_at": 1789622338.763689
+      }
+    ],
+    "current_step_index": 0
+  },
+  "goal-2d2240e1": {
+    "goal_id": "goal-2d2240e1",
+    "goal_text": "--local",
+    "status": "BLOCKED",
+    "terminal": true,
+    "workflow_plan": [
+      {
+        "task_id": "TASK-2DBA4CB5",
+        "type": "generic_decomposition",
+        "capabilities": [
+          "auto_plan",
+          "execute",
+          "verify"
+        ],
+        "status": "FAILED_TERMINAL",
+        "target_agent": "auto",
+        "dependencies": [],
+        "idempotency_key": "TASK-2DBA4CB5",
+        "goal_id": "goal-2d2240e1",
+        "attempts": 4,
+        "worker_id": "WINDOWS-TEST-WORKER",
+        "attempt_id": "TASK-2DBA4CB5:attempt:4",
+        "dispatch_id": "dispatch-6151243efe59431cb53910cb3b17ce15",
+        "execution_ref": "exec-32df2ee9b36f421f88d986d939dffc0a",
+        "run_id": null,
+        "result_id": null,
+        "target_capability": "windows",
+        "last_completed_step": null,
+        "next_action": "EXECUTE",
+        "blocker": null,
+        "artifact_refs": [],
+        "artifacts": [
+          "courier_canary_TASK-2DBA4CB5.txt"
+        ],
+        "retry_state": {
+          "execution": 3,
+          "transport": 0,
+          "provider": 0,
+          "verification": 0
+        },
+        "next_retry_at": 1789629273.8232167
+      }
+    ],
+    "current_step_index": 0
+  },
+  "goal-96286ecb": {
+    "goal_id": "goal-96286ecb",
+    "goal_text": "Identify and resolve the first causal blocker preventing physical release acceptance on the Windows OS-owned Motor.",
+    "status": "BLOCKED",
+    "terminal": true,
+    "workflow_plan": [
+      {
+        "task_id": "TASK-23AC8474",
+        "type": "generic_decomposition",
+        "capabilities": [
+          "auto_plan",
+          "execute",
+          "verify"
+        ],
+        "status": "FAILED_TERMINAL",
+        "target_agent": "auto",
+        "dependencies": [],
+        "idempotency_key": "TASK-23AC8474",
+        "goal_id": "goal-96286ecb",
+        "attempts": 4,
+        "worker_id": "WINDOWS-TEST-WORKER",
+        "attempt_id": "TASK-23AC8474:attempt:4",
+        "dispatch_id": "dispatch-64dcebd802e74ee7ae23d674dbfa0130",
+        "execution_ref": "exec-f4781d51bc8148e9a20581d887812c88",
+        "run_id": null,
+        "result_id": null,
+        "target_capability": "windows",
+        "last_completed_step": null,
+        "next_action": "EXECUTE",
+        "blocker": null,
+        "artifact_refs": [],
+        "artifacts": [
+          "courier_canary_TASK-23AC8474.txt"
+        ],
+        "retry_state": {
+          "execution": 3,
+          "transport": 0,
+          "provider": 0,
+          "verification": 0
+        },
+        "next_retry_at": 1789629296.239563
+      }
+    ],
+    "current_step_index": 0
+  },
+  "goal-b21a32a5": {
+    "goal_id": "goal-b21a32a5",
+    "goal_text": "[{\\",
+    "status": "ACTIVE",
+    "terminal": true,
+    "workflow_plan": [
+      {
+        "task_id": "WF-CHIEF-1857fd-STEP-1-DISCOVER",
+        "goal_id": "goal-b21a32a5",
+        "instruction": "Formulate execution strategy and inspect context for: [{\\",
+        "target_agent": "mac",
+        "status": "QUEUED",
+        "attempts": 0
+      },
+      {
+        "task_id": "WF-CHIEF-1857fd-STEP-2-IMPLEMENT",
+        "goal_id": "goal-b21a32a5",
+        "instruction": "Execute core implementation and asset validation for: [{\\",
+        "target_agent": "mac",
+        "status": "QUEUED",
+        "attempts": 0
+      },
+      {
+        "task_id": "WF-CHIEF-1857fd-STEP-3-SYNTHESIZE",
+        "goal_id": "goal-b21a32a5",
+        "instruction": "Finalize results, verify invariants, and assemble completion package for: [{\\",
+        "target_agent": "mac",
+        "status": "QUEUED",
+        "attempts": 0
+      }
+    ],
+    "current_step_index": 0
+  }
+}

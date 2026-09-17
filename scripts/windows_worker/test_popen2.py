@@ -1,0 +1,2 @@
+import subprocess, os; p = subprocess.Popen(['powershell', '-Command', 'echo \
+test\ > courier_canary_TEST_QUOTES.txt'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True); stdout, stderr = p.communicate(); print('STDOUT:', stdout); print('STDERR:', stderr); print('EXISTS:', os.path.exists('courier_canary_TEST_QUOTES.txt'))

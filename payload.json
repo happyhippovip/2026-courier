@@ -1,0 +1,66 @@
+{
+  "workflow_plan": [
+    {
+      "instructions": "echo \"test\" > courier_canary_TASK-WIN-TEST-0.txt",
+      "target_agent": "windows",
+      "dependencies": [],
+      "task_id": "TASK-WIN-TEST-0"
+    },
+    {
+      "instructions": "echo \"test\" > courier_canary_TASK-WIN-TEST-1.txt",
+      "target_agent": "windows",
+      "dependencies": [],
+      "task_id": "TASK-WIN-TEST-1"
+    },
+    {
+      "instructions": "echo \"test\" > courier_canary_TASK-WIN-TEST-2.txt",
+      "target_agent": "windows",
+      "dependencies": [],
+      "task_id": "TASK-WIN-TEST-2"
+    },
+    {
+      "instructions": "echo \"test\" > courier_canary_TASK-WIN-TEST-3.txt",
+      "target_agent": "windows",
+      "dependencies": [],
+      "task_id": "TASK-WIN-TEST-3"
+    },
+    {
+      "instructions": "echo \"test\" > courier_canary_TASK-WIN-TEST-4.txt",
+      "target_agent": "windows",
+      "dependencies": [],
+      "task_id": "TASK-WIN-TEST-4"
+    },
+    {
+      "instructions": "echo \"test\" > courier_canary_TASK-WIN-TEST-5.txt",
+      "target_agent": "windows",
+      "dependencies": [],
+      "task_id": "TASK-WIN-TEST-5"
+    },
+    {
+      "instructions": "echo \"test\" > courier_canary_TASK-WIN-TEST-6.txt",
+      "target_agent": "windows",
+      "dependencies": [],
+      "task_id": "TASK-WIN-TEST-6"
+    },
+    {
+      "instructions": "echo \"test\" > courier_canary_TASK-WIN-TEST-7.txt",
+      "target_agent": "windows",
+      "dependencies": [],
+      "task_id": "TASK-WIN-TEST-7"
+    },
+    {
+      "instructions": "echo \"test\" > courier_canary_TASK-WIN-TEST-8.txt",
+      "target_agent": "windows",
+      "dependencies": [],
+      "task_id": "TASK-WIN-TEST-8"
+    },
+    {
+      "instructions": "echo \"test\" > courier_canary_TASK-WIN-TEST-9.txt",
+      "target_agent": "windows",
+      "dependencies": [],
+      "task_id": "TASK-WIN-TEST-9"
+    }
+  ],
+  "goal_text": "Windows Master Loop Proof",
+  "goal_id": "GOAL-WIN-TEST-FULL"
+}
