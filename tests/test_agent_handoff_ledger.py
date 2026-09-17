@@ -315,6 +315,25 @@ subprocess.run([
         self.assertEqual(accepted["acceptance_predicate"]["version"], "1")
         self.assertEqual(accepted["evidence"][0]["validity"], "VALID")
 
+    def test_valid_machine_artifact_requires_independent_identities(self):
+        missing = guard(transition_state="CANONICAL_ACCEPTED")
+        missing["evidence"][1].pop("producer_id")
+        missing["evidence"][1].pop("verifier_id")
+        with self.assertRaisesRegex(
+            ledger_module.LedgerError,
+            "unverifiable producer or verifier",
+        ):
+            ledger_module.validate_guard(missing)
+
+        self_certified = guard(transition_state="CANONICAL_ACCEPTED")
+        self_certified["evidence"][1]["producer_id"] = "same-actor"
+        self_certified["evidence"][1]["verifier_id"] = "same-actor"
+        with self.assertRaisesRegex(
+            ledger_module.LedgerError,
+            "self-certifying MACHINE_ARTIFACT",
+        ):
+            ledger_module.validate_guard(self_certified)
+
     def test_initialization_cannot_preset_canonical_acceptance(self):
         with tempfile.TemporaryDirectory() as temporary:
             ledger = Path(temporary) / "ledger.json"

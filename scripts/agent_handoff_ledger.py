@@ -262,6 +262,22 @@ def validate_guard(guard: Any) -> None:
             raise LedgerError(f"{path} marked VALID with mismatched SHA/runtime binding")
         if item["validity"] == "STALE" and bound:
             raise LedgerError(f"{path} marked STALE despite matching SHA/runtime binding")
+        if item["source_type"] == "MACHINE_ARTIFACT" and item["validity"] == "VALID":
+            producer_id = item.get("producer_id")
+            verifier_id = item.get("verifier_id")
+            if not producer_id or not verifier_id:
+                raise LedgerError(
+                    "unverifiable producer or verifier in MACHINE_ARTIFACT evidence"
+                )
+            if (
+                producer_id == verifier_id
+                or producer_id == "arbitrary"
+                or verifier_id == "arbitrary"
+            ):
+                raise LedgerError(
+                    "caller-created or self-certifying MACHINE_ARTIFACT evidence "
+                    "rejected; independent producer/verifier required"
+                )
         if item["validity"] == "VALID":
             valid_bound_urls.add(item["source_url"])
     predicate = guard["acceptance_predicate"]
