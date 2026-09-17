@@ -722,12 +722,19 @@ def verify_task_result():
                     step["status"] = task["status"]
             
             all_done = True
+            ready_work_exists = False
+            completed_tasks = {s.get("task_id") for s in goal.get("workflow_plan", []) if s.get("status") in ("RECONCILED", "RECONCILED_PENDING_MERGE")}
             for step in goal.get("workflow_plan", []):
-                if step.get("status") not in ("RECONCILED", "RECONCILED_PENDING_MERGE"):
+                st = step.get("status")
+                if st not in ("RECONCILED", "RECONCILED_PENDING_MERGE"):
                     all_done = False
-                    break
+                if st in ("QUEUED", "FAILED_TRANSIENT", "PROVIDER_WAIT"):
+                    deps = step.get("depends_on", [])
+                    if isinstance(deps, str): deps = [deps]
+                    if all(d in completed_tasks for d in deps):
+                        ready_work_exists = True
             
-            if all_done:
+            if all_done or (not ready_work_exists and goal.get("terminal") is False):
                 if goal.get("terminal") is False:
                     # Auto-Replenish!
                     goal["replenish_count"] = goal.get("replenish_count", 0) + 1
