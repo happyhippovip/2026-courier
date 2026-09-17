@@ -24,7 +24,16 @@ def get_git_info():
         return os.environ["MOCK_BRANCH"], os.environ["MOCK_SHA"]
     try:
         branch = subprocess.check_output(["git", "branch", "--show-current"]).decode().strip()
-        sha = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip()
+        # Separate runtime/evidence SHA from Ledger commit identity
+        # The evidence SHA is the latest commit that touched the code (ignoring the ledger itself)
+        sha = subprocess.check_output([
+            "git", "log", "-1", "--format=%H", "--", ".", ":(exclude)agent_handoff_ledger.json"
+        ]).decode().strip()
+        
+        # Fallback to HEAD if it's a completely fresh repo
+        if not sha:
+            sha = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip()
+            
         return branch, sha
     except subprocess.CalledProcessError:
         return "UNKNOWN", "UNKNOWN"
