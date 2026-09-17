@@ -56,6 +56,7 @@ def http_post_result(res):
         except Exception as e:
             print(f"[Windows Worker] Failed to post result: {e}")
             time.sleep(2 ** attempt)
+    raise RuntimeError("Failed to post result after 5 attempts")
 
 def run_task(task, config):
     print(f"[{config['WORKER_ID']}] Running task {task['task_id']}...")
@@ -196,26 +197,26 @@ def loop():
                 except OSError:
                     pass
         
-        result_marker_path = Path(__file__).parent / "state" / "result_marker.json"
-        if result_marker_path.exists():
-            try:
-                with open(result_marker_path, "r") as f:
-                    saved_result = json.load(f)
-                print(f"[{worker_id}] Found unsent result marker for task {saved_result.get('task_id')}")
-                http_post_result(saved_result)
-            except Exception as e:
-                print(f"[{worker_id}] Failed to report saved result: {e}")
-            finally:
-                try:
-                    result_marker_path.unlink()
-                except OSError:
-                    pass
-
         backoff = 10
         max_backoff = 300
         
         while True:
             try:
+                result_marker_path = Path(__file__).parent / "state" / "result_marker.json"
+                if result_marker_path.exists():
+                    try:
+                        with open(result_marker_path, "r") as f:
+                            saved_result = json.load(f)
+                        print(f"[{worker_id}] Found unsent result marker for task {saved_result.get('task_id')}")
+                        http_post_result(saved_result)
+                    except Exception as e:
+                        print(f"[{worker_id}] Failed to report saved result: {e}")
+                        raise
+                    try:
+                        result_marker_path.unlink()
+                    except OSError:
+                        pass
+                        
                 # 1. Register/Heartbeat
                 req = urllib.request.Request(f"{API_URL}/workers/heartbeat", method="POST")
                 for k, v in HEADERS.items(): req.add_header(k, v)
