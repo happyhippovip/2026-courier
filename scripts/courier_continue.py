@@ -423,7 +423,7 @@ def main():
                     bundle = update_ledger(ledger_path, "CLEAN_IDLE_ACHIEVED", None, bundle)
                 except Exception as e:
                     pass
-            if args.once:
+            if args.once and not running_tasks and 'once_dispatched' in locals():
                 sys.exit(0)
             if "MOCK_SHA" in os.environ:
                 mock_iters += 1
@@ -483,6 +483,8 @@ def main():
                 running_tasks[t["edge_name"]] = executor.submit(execute_task, t, ledger_path, record)
                 newly_submitted.append(t["edge_name"])
         
+        if newly_submitted:
+            once_dispatched = True
         if newly_submitted or running_tasks:
             print(f"\nCurrently running {len(running_tasks)} tasks concurrently.")
             
@@ -490,7 +492,7 @@ def main():
         time.sleep(1)
 
         
-        if args.once:
+        if args.once and not running_tasks and 'once_dispatched' in locals():
             sys.exit(0)
         if "MOCK_SHA" in os.environ:
             mock_iters += 1
