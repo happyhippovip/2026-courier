@@ -112,16 +112,48 @@ def execute_task(task, ledger_path, record):
             try:
                 import subprocess as sp
                 out = sp.check_output(["gh", "pr", "view", "41", "--json", "state"]).decode()
+                import json
                 state = json.loads(out).get("state")
                 if state == "MERGED":
                     print("PR41 successfully merged.")
                 else:
-                    print(f"PR41 state is {state}. Ownership resolved, but unattended merge is forbidden.")
                     return task, False, "HUMAN_REQUIRED_MERGE"
             except Exception as e:
-                print(f"Ownership resolved to Google-Antigravity, but unattended merge is forbidden. Failed to check PR state: {e}")
                 return task, False, "HUMAN_REQUIRED_MERGE"
-
+    elif task["edge_name"] == "RELEASE":
+        try:
+            import subprocess as sp
+            import os, json
+            print("Executing rc_builder.py...")
+            sp.check_call(["python3", "scripts/rc_builder.py"])
+            if os.path.exists("rc_report.json"):
+                with open("rc_report.json") as rf:
+                    report = json.load(rf)
+                if report.get("RELEASE_CANDIDATE") == "PASS":
+                    return task, True, None
+                else:
+                    return task, False, "RELEASE_FAILED_" + report.get("BLOCKER", "UNKNOWN")
+            else:
+                return task, False, "RELEASE_FAILED_NO_REPORT"
+        except Exception as e:
+            print("RELEASE execution failed:", e)
+            return task, False, "RELEASE_FAILED_EXCEPTION"
+    elif task["edge_name"] == "PUBLIC DEPLOYMENT":
+        try:
+            import subprocess as sp
+            import json
+            print("Triggering GitHub Action deploy-pages.yml...")
+            sp.check_call(["gh", "workflow", "run", "deploy-pages.yml", "--ref", "release-candidate-integration"])
+            out = sp.check_output(["gh", "run", "list", "--workflow=deploy-pages.yml", "--limit=1", "--json", "status,conclusion"]).decode()
+            runs = json.loads(out)
+            if runs and runs[0].get("conclusion") == "success":
+                return task, True, None
+            elif runs and runs[0].get("status") in ("in_progress", "queued"):
+                return task, False, "DEPLOYMENT_IN_PROGRESS"
+            else:
+                return task, False, "DEPLOYMENT_FAILED"
+        except Exception as e:
+            return task, False, "DEPLOYMENT_FAILED"
     
     print(f"Successfully proved: {task['edge_name']}")
     return task, True, None
