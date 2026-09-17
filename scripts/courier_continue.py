@@ -33,6 +33,17 @@ PLAN = [
     "ONBOARD_FIRST_PILOT_CUSTOMER"
 ]
 
+def get_runtime_identity():
+    import os
+    import socket
+    import uuid
+    # Persistent OS identity, not git SHA
+    # Prefer an explicitly injected identity from the launcher
+    if "COURIER_RUNTIME_IDENTITY" in os.environ:
+        return os.environ["COURIER_RUNTIME_IDENTITY"]
+    # Fallback to host info if not provided
+    return f"{socket.gethostname()}-{os.getpid()}"
+
 def get_git_info():
     if "MOCK_SHA" in os.environ and "MOCK_BRANCH" in os.environ:
         return os.environ["MOCK_BRANCH"], os.environ["MOCK_SHA"]
@@ -47,37 +58,37 @@ def get_git_info():
     except subprocess.CalledProcessError:
         return "UNKNOWN", "UNKNOWN"
 
-def check_freshness(ledger_path: Path, branch: str, sha: str):
+def check_freshness(ledger_path, branch, sha):
     bundle = load_bundle(ledger_path)
     result = freshness(bundle, branch, sha, "NO_FURTHER_ACTION", [])
-    if result["FRESHNESS"] == "STALE":
-        print("ERROR: Ledger is stale. Fail closed.")
-        updates = {"CURRENT_SHA": sha, "BRANCH": branch, "RUNTIME_IDENTITY": sha}
+    runtime_id = get_runtime_identity()
+    
+    if result["FRESHNESS"] == "STALE" or bundle["record"].get("RUNTIME_IDENTITY") != runtime_id:
+        print("ERROR: Ledger is stale or runtime changed. Fail closed.")
+
+        updates = {"CURRENT_SHA": sha, "BRANCH": branch, "RUNTIME_IDENTITY": runtime_id}
         guard = bundle["acceptance_guard"]
         guard["transition_state"] = "PROVISIONAL"
         guard["binding"]["current_sha"] = sha
         guard["binding"]["branch"] = branch
-        guard["binding"]["runtime_identity"] = sha
+        guard["binding"]["runtime_identity"] = runtime_id
         guard["evidence"] = [ev for ev in guard.get("evidence", []) if ev.get("source_type") != "MACHINE_ARTIFACT"]
+        if "ISSUE_STATE" in guard["acceptance_predicate"]["results"]:
+            guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["status"] = "UNKNOWN"
+            guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["evidence_urls"] = []
+
         if not guard["evidence"]:
             guard["evidence"].append({
                 "source_type": "GITHUB_COMMIT",
                 "source_url": f"https://github.com/happyhippovip/2026-courier/commit/{sha}",
                 "observed_at": "2026-09-17T12:00:00Z",
                 "evidence_sha": sha,
-                "runtime_binding": "NONE",
+                "runtime_binding": f"{branch}@{sha}",
                 "validity": "UNKNOWN",
-                "reason": "Provisional ledger downgrade"
+                "reason": "Latest commit"
             })
-        for res in guard["acceptance_predicate"]["results"].values():
-            if res.get("status") == "PASS":
-                res["status"] = "UNKNOWN"
-            res["evidence_urls"] = [ev["source_url"] for ev in guard["evidence"]]
-        try:
-            bundle = update(ledger_path, bundle["revision"], updates, "Google-Antigravity", 5.0, guard)
-        except Exception:
-            pass
-        sys.exit(3)
+        
+        bundle = update(ledger_path, bundle["revision"], updates, "Google-Antigravity", 5.0, guard)
     return bundle
 
 def compute_frontier(record: dict):

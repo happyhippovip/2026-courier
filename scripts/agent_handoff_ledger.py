@@ -670,7 +670,13 @@ def update(
         )
         
         unproven = record.get("UNPROVEN_EDGES", [])
-        if not unproven and has_physical_proof:
+        if unproven or record.get("STATUS") in ("READY", "WAITING_PROVIDER", "DISPATCHED", "RUNNING"):
+            # Cannot be CLEAN_IDLE if work exists or is active
+            record["CLEAN_IDLE"] = "NO"
+            record["QUEUE_INDEPENDENT"] = "NO"
+            if record.get("STATUS") == "CLEAN_IDLE":
+                record["STATUS"] = "READY"
+        elif not unproven and has_physical_proof:
             guard["transition_state"] = "CANONICAL_ACCEPTED"
             if "ISSUE_STATE" in guard["acceptance_predicate"]["results"]:
                 guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["status"] = "PASS"
@@ -681,14 +687,14 @@ def update(
             record["CLEAN_IDLE"] = "YES"
             record["QUEUE_INDEPENDENT"] = "YES"
             record["STATUS"] = "CLEAN_IDLE"
+            record["NEXT_EXECUTABLE_ACTION"] = "NONE"
         elif not unproven:
             # Cannot be CLEAN_IDLE without physical proof
             record["CLEAN_IDLE"] = "NO"
             record["QUEUE_INDEPENDENT"] = "NO"
             record["STATUS"] = "WAITING_PHYSICAL_PROOF"
             guard["transition_state"] = "PROVISIONAL"
-
-        # Recompute changed based on the final record state
+# Recompute changed based on the final record state
         changed = sorted(field for field in RECORD_FIELDS if bundle["record"][field] != record[field])
         validate_guard(guard)
         validate_guard_binding(record, guard)
