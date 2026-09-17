@@ -137,8 +137,36 @@ def run_task(task, config):
     
     return res_json
 
-def is_resource_pressure_high():
-    return False
+import psutil
+
+def is_resource_pressure_high(config=None):
+    if config is None:
+        config = load_config()
+    profile = os.environ.get("WORKER_PROFILE", config.get("WORKER_PROFILE", "LOW_RESOURCE"))
+    
+    cpu_threshold = 85.0
+    mem_threshold = 85.0
+    if profile == "STANDARD":
+        cpu_threshold = 95.0
+        mem_threshold = 95.0
+    elif profile == "HIGH_CAPACITY":
+        cpu_threshold = 98.0
+        mem_threshold = 98.0
+        
+    try:
+        cpu = psutil.cpu_percent(interval=0.1)
+        mem = psutil.virtual_memory().percent
+    except Exception:
+        cpu = 0.0
+        mem = 0.0
+        
+    sim_cpu = float(os.environ.get("SIMULATE_CPU_PERCENT", -1))
+    sim_mem = float(os.environ.get("SIMULATE_MEM_PERCENT", -1))
+    
+    if sim_cpu >= 0: cpu = sim_cpu
+    if sim_mem >= 0: mem = sim_mem
+    
+    return cpu > cpu_threshold or mem > mem_threshold
 
 def acquire_lock(worker_id):
     lock_file = Path(tempfile.gettempdir()) / f"courier_worker_{worker_id}.lock"
@@ -239,9 +267,9 @@ def loop():
                         register_worker(worker_id)
                 
                 # 2. Resource Pressure Check
-                if is_resource_pressure_high():
+                if is_resource_pressure_high(config):
                     print(f"[{worker_id}] Resource pressure high. Pausing claims.")
-                    time.sleep(60)
+                    time.sleep(5.0)
                     continue
                 
                 # 3. Claim Task
@@ -277,7 +305,7 @@ def loop():
                 backoff = min(max_backoff, backoff * 2)
                 continue
                 
-            time.sleep(10)
+            time.sleep(5.0)
             
     finally:
         if os.path.exists(lock_path):
