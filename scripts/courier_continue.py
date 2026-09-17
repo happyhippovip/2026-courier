@@ -292,14 +292,18 @@ def update_ledger(ledger_path, edge_name, blocker, bundle):
     
     if not unproven:
         if has_physical_proof:
-            updates["NEXT_EXECUTABLE_ACTION"] = "NONE"
-            updates["QUEUE_INDEPENDENT"] = "YES"
-            updates["CLEAN_IDLE"] = "YES"
-            updates["STATUS"] = "CLEAN_IDLE"
-            guard["transition_state"] = "CANONICAL_ACCEPTED"
-            if "ISSUE_STATE" in guard["acceptance_predicate"]["results"]:
-                guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["status"] = "PASS"
-                # Keep existing evidence URLs without manufacturing new ones
+            # The Motor can report that work and bound physical evidence exist,
+            # but it is not the independent Acceptance Guard.  Never let the
+            # execution path certify its own result or set terminal Ledger
+            # counters.
+            updates["NEXT_EXECUTABLE_ACTION"] = (
+                "Independent Acceptance Guard must authenticate the bound "
+                "physical evidence"
+            )
+            updates["QUEUE_INDEPENDENT"] = "NO"
+            updates["CLEAN_IDLE"] = "NO"
+            updates["STATUS"] = "WAITING_ACCEPTANCE_GUARD"
+            guard["transition_state"] = "PROVISIONAL"
         else:
             updates["QUEUE_INDEPENDENT"] = "NO"
             updates["CLEAN_IDLE"] = "NO"
