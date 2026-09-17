@@ -52,10 +52,27 @@ def check_freshness(ledger_path: Path, branch: str, sha: str):
     result = freshness(bundle, branch, sha, "NO_FURTHER_ACTION", [])
     if result["FRESHNESS"] == "STALE":
         print("ERROR: Ledger is stale. Fail closed.")
-        updates = {"CURRENT_SHA": sha, "BRANCH": branch}
+        updates = {"CURRENT_SHA": sha, "BRANCH": branch, "RUNTIME_IDENTITY": sha}
         guard = bundle["acceptance_guard"]
+        guard["transition_state"] = "PROVISIONAL"
         guard["binding"]["current_sha"] = sha
         guard["binding"]["branch"] = branch
+        guard["binding"]["runtime_identity"] = sha
+        guard["evidence"] = [ev for ev in guard.get("evidence", []) if ev.get("source_type") != "MACHINE_ARTIFACT"]
+        if not guard["evidence"]:
+            guard["evidence"].append({
+                "source_type": "GITHUB_COMMIT",
+                "source_url": f"https://github.com/happyhippovip/2026-courier/commit/{sha}",
+                "observed_at": "2026-09-17T12:00:00Z",
+                "evidence_sha": sha,
+                "runtime_binding": "NONE",
+                "validity": "UNKNOWN",
+                "reason": "Provisional ledger downgrade"
+            })
+        for res in guard["acceptance_predicate"]["results"].values():
+            if res.get("status") == "PASS":
+                res["status"] = "UNKNOWN"
+            res["evidence_urls"] = [ev["source_url"] for ev in guard["evidence"]]
         try:
             bundle = update(ledger_path, bundle["revision"], updates, "Google-Antigravity", 5.0, guard)
         except Exception:
