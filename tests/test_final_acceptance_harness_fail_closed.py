@@ -2,6 +2,9 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from unittest import mock
+
+from scripts.acceptance import run_final_acceptance
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -28,3 +31,14 @@ def test_synthetic_acceptance_harness_refuses_default_execution(tmp_path):
     assert "TASKS_COMPLETED=" not in completed.stdout
     assert "CLEAN_IDLE=YES" not in completed.stdout
     assert not (tmp_path / "acceptance_state.json").exists()
+
+
+def test_synthetic_harness_kills_only_its_exact_hung_child():
+    child = mock.Mock()
+    child.wait.side_effect = [subprocess.TimeoutExpired("child", 10), 0]
+
+    run_final_acceptance.stop_server(child)
+
+    child.terminate.assert_called_once_with()
+    child.kill.assert_called_once_with()
+    assert child.wait.call_args_list == [mock.call(timeout=10), mock.call(timeout=5)]

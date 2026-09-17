@@ -54,7 +54,9 @@ def get_goal_tasks(goal_id):
     return res.get("tasks", [])
 
 def get_git_sha():
-    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO_ROOT).decode().strip()
+    return subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], cwd=REPO_ROOT, timeout=10
+    ).decode().strip()
 
 def _keychain_value(account, service):
     try:
@@ -62,6 +64,7 @@ def _keychain_value(account, service):
             ["security", "find-generic-password", "-a", account, "-s", service, "-w"],
             stderr=subprocess.DEVNULL,
             text=True,
+            timeout=10,
         ).strip()
         return value or None
     except (FileNotFoundError, subprocess.CalledProcessError):
@@ -144,7 +147,7 @@ def cleanup_file(filename):
             pass
 
 def get_launchd_worker_pid():
-    out = subprocess.check_output(["launchctl", "list"]).decode()
+    out = subprocess.check_output(["launchctl", "list"], timeout=10).decode()
     for line in out.splitlines():
         if "com.courier.mac_worker" in line:
             parts = line.split()

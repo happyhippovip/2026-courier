@@ -99,7 +99,16 @@ def test_queue_independent_daemon(tmp_path):
         )
     
     # Let it run detached
-    p.wait()
+    try:
+        p.wait(timeout=20)
+    except subprocess.TimeoutExpired:
+        p.terminate()
+        try:
+            p.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            p.kill()
+            p.wait(timeout=5)
+        pytest.fail("detached Courier test motor did not stop within 20 seconds")
     
     with open(tmp_path / "daemon.out", "r") as outf:
         output = outf.read()

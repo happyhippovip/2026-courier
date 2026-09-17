@@ -50,14 +50,26 @@ def start_server(state_file):
             pass
         time.sleep(0.5)
     
-    out, err = proc.communicate()
+    try:
+        out, err = proc.communicate(timeout=5)
+    except subprocess.TimeoutExpired:
+        proc.terminate()
+        try:
+            out, err = proc.communicate(timeout=5)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            out, err = proc.communicate(timeout=5)
     log(f"Server failed to start. Stdout: {out} Stderr: {err}")
-    proc.kill()
     sys.exit(1)
 
 def stop_server(proc):
     proc.terminate()
-    proc.wait()
+    try:
+        proc.wait(timeout=10)
+    except subprocess.TimeoutExpired:
+        # This harness owns this exact child. Never use a broad process kill.
+        proc.kill()
+        proc.wait(timeout=5)
     log("Server stopped.")
 
 def t_assert(cond, msg):

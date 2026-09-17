@@ -98,6 +98,7 @@ def test_antigravity_continuous_queue_participation(tmp_path):
         capture_output=True,
         text=True,
         cwd=str(tmp_path),
+        timeout=20,
     )
     
     executions = [line for line in res.stdout.split('\n') if "Executing/Delegating task:" in line]
