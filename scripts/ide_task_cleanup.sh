@@ -1,17 +1,15 @@
 #!/bin/bash
-# IDE Task Cleanup Watchdog
-# Kills background test scripts (run_*, test_*) that have been running for > 15 minutes (900 seconds)
+# Fail-closed IDE task registry audit.
+#
+# Process age and a command-name pattern are not proof that Courier owns a
+# process.  Cleanup is therefore permitted only through the existing registry,
+# which binds an exact PID to its observed process identity and owner.  This
+# watchdog only removes dead/stale registry entries; an explicit owner-scoped
+# cleanup command is required to terminate a registered live process.
 
-echo "$(date): Running IDE Task Cleanup..."
+set -eu
 
-# Find python scripts matching run_*.py or test_*.py that have been running for > 900 seconds
-PIDS=$(ps -eo pid,etimes,command | awk '{if ($2 > 900 && $3 ~ /python/ && ($4 ~ /run_/ || $4 ~ /test_/)) print $1}')
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
-if [ -n "$PIDS" ]; then
-    echo "Found stale IDE tasks. Killing PIDs: $PIDS"
-    for pid in $PIDS; do
-        kill -9 $pid 2>/dev/null
-    done
-else
-    echo "No stale IDE tasks found."
-fi
+echo "$(date): Auditing Courier-owned IDE task registry..."
+python3 "$SCRIPT_DIR/agent_session_manager.py" audit
