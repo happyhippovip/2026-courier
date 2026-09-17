@@ -77,8 +77,8 @@ def execute_task(task, ledger_path, record):
     print(f"Executing/Delegating task: {task['instruction']}")
     if task["edge_name"] == "PUBLICATION VERIFICATION":
         try:
-            import subprocess
-            html = subprocess.check_output(["curl", "-sL", "https://happyhippovip.github.io/courier-pilot-website/"]).decode('utf-8')
+            import subprocess as sp
+            html = sp.check_output(["curl", "-sL", "https://happyhippovip.github.io/courier-pilot-website/"]).decode('utf-8')
             if "hobbiejanssen@gmx.net" in html and "Courier" in html:
                 print("PUBLICATION VERIFICATION passed. URL is live and contact is verified.")
                 return True, None
