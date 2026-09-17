@@ -53,38 +53,31 @@ def get_runtime_truth():
     import os
     import json
     if "MOCK_SHA" in os.environ:
-        return os.environ["MOCK_SHA"]
+        return {"ACTUAL_SERVING_RUNTIME_SHA": os.environ["MOCK_SHA"]}
     repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     truth_script = os.path.join(repo_root, "scripts", "runtime_truth.py")
     try:
         out = subprocess.check_output(["python3", truth_script], stderr=subprocess.DEVNULL).decode()
-        info = json.loads(out)
-        return info.get("ACTUAL_SERVING_RUNTIME_SHA", "UNKNOWN")
+        return json.loads(out)
     except Exception:
-        return "UNKNOWN"
+        return {}
 
 def get_runtime_identity():
     import os
-    import socket
-    # Stable machine identity, not git SHA and not per-process:
-    # a pid changes on every run and would keep the ledger permanently stale.
-    injected = os.environ.get("COURIER_RUNTIME_IDENTITY", "")
-    if injected.strip():
-        return injected.strip()
-    if "MOCK_LEDGER" in os.environ:
-        try:
-            from scripts.agent_handoff_ledger import load_bundle
-            from pathlib import Path
-            b = load_bundle(Path(os.environ["MOCK_LEDGER"]))
-            return b["record"].get("RUNTIME_IDENTITY") or b["acceptance_guard"]["binding"].get("runtime_identity")
-        except Exception:
-            pass
-    # Prefer an explicitly injected identity from the launcher.
     if "MOCK_RUNTIME_IDENTITY" in os.environ and os.environ["MOCK_RUNTIME_IDENTITY"].strip():
         return os.environ["MOCK_RUNTIME_IDENTITY"].strip()
     if "MOCK_SHA" in os.environ:
         return os.environ["MOCK_SHA"]
-    return socket.gethostname()
+    
+    # Do not trust hostname, health text or environment label.
+    # The true runtime identity is the actual serving SHA.
+    truth_info = get_runtime_truth()
+    actual = truth_info.get("ACTUAL_SERVING_RUNTIME_SHA", "UNKNOWN")
+    if actual != "UNKNOWN":
+        return actual
+        
+    return "UNKNOWN_RUNTIME"
+
 
 def get_git_info():
     if "MOCK_SHA" in os.environ and "MOCK_BRANCH" in os.environ:
@@ -103,18 +96,46 @@ def get_git_info():
 
 def check_freshness(ledger_path, branch, sha):
     bundle = load_bundle(ledger_path)
-    runtime_id = get_runtime_identity()
     
-    # NEW: Determine actual serving runtime SHA
+    truth_info = get_runtime_truth()
+    actual_runtime_sha = truth_info.get("ACTUAL_SERVING_RUNTIME_SHA", "UNKNOWN")
+    process_identity = truth_info.get("RUNTIME_PROCESS_IDENTITY", "UNKNOWN")
+    remote_sha = truth_info.get("REMOTE_HEAD_SHA", "UNKNOWN")
+    tested_sha = bundle.get("record", {}).get("CURRENT_SHA", "UNKNOWN")
+    
+    # Find ACCEPTANCE_BOUND_SHA
+    acceptance_bound_sha = "UNKNOWN"
+    guard = bundle.get("acceptance_guard", {})
+    if "evidence" in guard and len(guard["evidence"]) > 0:
+        acceptance_bound_sha = guard["evidence"][0].get("evidence_sha", "UNKNOWN")
+    else:
+        acceptance_bound_sha = guard.get("binding", {}).get("current_sha", "UNKNOWN")
 
-    actual_runtime_sha = get_runtime_truth()
-    if actual_runtime_sha != "UNKNOWN" and actual_runtime_sha != sha:
+    # The 5 SHAs:
+    # 1. sha (LOCAL_HEAD_SHA)
+    # 2. remote_sha (REMOTE_HEAD_SHA)
+    # 3. tested_sha (TESTED_SHA)
+    # 4. actual_runtime_sha (ACTUAL_SERVING_RUNTIME_SHA)
+    # 5. acceptance_bound_sha (ACCEPTANCE_BOUND_SHA)
+    
+    # Track process identity
+    # Process Identity: process_identity
+
+    # Do not silently assume actual_runtime_sha == sha!
+    # If we don't have an actual_runtime_sha, we cannot proceed with acceptance.
+    if actual_runtime_sha == "UNKNOWN" and "MOCK_SHA" not in os.environ:
+        print("ERROR: ACTUAL_SERVING_RUNTIME_SHA is UNKNOWN. Cannot prove actual serving runtime. FAIL CLOSED.")
+        sys.exit(1)
+
+    if actual_runtime_sha != sha:
         print(f"ERROR: Acceptance for SHA {sha} while actual runtime is SHA {actual_runtime_sha}: FAIL CLOSED.")
         print("You must deploy the new code using the canonical authorized deployment mechanism first!")
         sys.exit(1)
 
-    else:
-        result = freshness(bundle, branch, sha, "NO_FURTHER_ACTION", [], runtime_id)
+    runtime_id = actual_runtime_sha if "MOCK_SHA" not in os.environ else os.environ["MOCK_SHA"]
+
+    result = freshness(bundle, branch, sha, "NO_FURTHER_ACTION", [], runtime_id)
+
         
     if result.get("FRESHNESS") == "STALE":
 
