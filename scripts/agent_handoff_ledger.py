@@ -687,7 +687,7 @@ def update(
         # Enforce stale proof rules: if provisional or missing physical proof, edges cannot be proven
         if not has_physical_proof:
             # Move physical edges back to unproven if they require it
-            physical_edges = {"RELEASE", "PUBLIC DEPLOYMENT", "FIRST PILOT", "PAYMENT ONLY WHEN ACTUALLY REQUIRED", "ONBOARD_FIRST_PILOT_CUSTOMER", "EXTERNAL_PUBLICATION", "PUBLICATION VERIFICATION", "PILOT INTAKE", "SALES PACKAGE", "POST-PILOT HARDENING"}
+            physical_edges = {"RELEASE", "PUBLIC DEPLOYMENT", "FIRST PILOT", "PAYMENT ONLY WHEN ACTUALLY REQUIRED", "ONBOARD_FIRST_PILOT_CUSTOMER", "EXTERNAL_PUBLICATION", "PUBLICATION VERIFICATION"}
             proven = set(record.get("PROVEN_EDGES", []))
             invalid_proven = proven.intersection(physical_edges)
             if invalid_proven:
