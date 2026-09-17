@@ -288,14 +288,14 @@ def update_ledger(ledger_path, edge_name, blocker, bundle):
     
     if not unproven:
         if has_physical_proof:
-            updates["NEXT_EXECUTABLE_ACTION"] = "NONE"
-            updates["QUEUE_INDEPENDENT"] = "YES"
-            updates["CLEAN_IDLE"] = "YES"
-            updates["STATUS"] = "CLEAN_IDLE"
-            guard["transition_state"] = "CANONICAL_ACCEPTED"
-            if "ISSUE_STATE" in guard["acceptance_predicate"]["results"]:
-                guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["status"] = "PASS"
-                # Keep existing evidence URLs without manufacturing new ones
+            updates["NEXT_EXECUTABLE_ACTION"] = (
+                "Independent Acceptance Guard must authenticate the bound "
+                "physical evidence"
+            )
+            updates["QUEUE_INDEPENDENT"] = "NO"
+            updates["CLEAN_IDLE"] = "NO"
+            updates["STATUS"] = "WAITING_ACCEPTANCE_GUARD"
+            guard["transition_state"] = "PROVISIONAL"
         else:
             updates["QUEUE_INDEPENDENT"] = "NO"
             updates["CLEAN_IDLE"] = "NO"
@@ -308,7 +308,6 @@ def update_ledger(ledger_path, edge_name, blocker, bundle):
     elif "ISSUE_STATE" in guard["acceptance_predicate"]["results"]:
         guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["observed_value"] = "NO_FURTHER_ACTION"
 
-    print(f"DEBUG UPDATES: {updates}")
     new_bundle = update(
         ledger_path,
         revision,
