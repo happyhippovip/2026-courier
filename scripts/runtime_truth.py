@@ -18,9 +18,34 @@ def get_sha(cwd):
 
 def get_remote_sha(cwd):
     try:
-        return subprocess.check_output(["git", "ls-remote", "origin", "HEAD"], cwd=cwd, stderr=subprocess.DEVNULL, timeout=25).decode().split()[0].strip()
+        # The checked-out branch's upstream is the relevant release truth.
+        # origin/HEAD may point at main while a release branch is deployed.
+        return subprocess.check_output(
+            ["git", "rev-parse", "--verify", "@{upstream}"],
+            cwd=cwd,
+            stderr=subprocess.DEVNULL,
+            timeout=15,
+        ).decode().strip()
     except Exception:
         return "UNKNOWN"
+
+
+def select_server_process(ps_output):
+    """Return the actual Courier Central process, never a worker process."""
+    for line in ps_output.splitlines():
+        stripped = line.strip()
+        if not stripped:
+            continue
+        parts = stripped.split(maxsplit=1)
+        if len(parts) != 2 or not parts[0].isdigit():
+            continue
+        command = parts[1].replace("\\", "/")
+        if (
+            " -m server.app" in command
+            or "/server/run_waitress.py" in command
+        ):
+            return parts[0], parts[1]
+    return None
 
 def get_runtime_info():
     info = {
@@ -56,11 +81,9 @@ def get_runtime_info():
     # Process queries using ps (bounded: one blocked query must not stall truth)
     try:
         out = subprocess.check_output(["ps", "-eo", "pid,command"], stderr=subprocess.DEVNULL, timeout=10).decode()
-        for line in out.splitlines():
-            if "mac_worker/daemon.py" in line and "grep" not in line:
-                parts = line.strip().split(maxsplit=1)
-                pid = parts[0]
-                cmd = parts[1]
+        selected = select_server_process(out)
+        if selected:
+                pid, cmd = selected
                 
                 info["RUNTIME_PROCESS_IDENTITY"] = f"PID:{pid} EXE:{cmd.split()[0]}"
                 
@@ -73,9 +96,6 @@ def get_runtime_info():
                 except Exception:
                     cwd = ""
                 
-                if ".courier_runtime" in cmd:
-                    cwd = os.path.expanduser("~/.courier_runtime")
-                    
                 info["DEPLOYED_SHA"] = get_sha(cwd)
                 info["ACTUAL_SERVING_RUNTIME_SHA"] = info["DEPLOYED_SHA"]
                 
@@ -107,7 +127,6 @@ def get_runtime_info():
                         pass
                 info["RUNTIME_HEALTH"] = health_status
                 
-                break
     except Exception as e:
         pass
             

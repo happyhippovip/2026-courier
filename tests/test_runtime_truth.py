@@ -29,11 +29,28 @@ def test_remote_sha_call_is_time_bounded():
 
     def fake_check_output(*args, **kwargs):
         seen.update(kwargs)
-        raise subprocess.TimeoutExpired("git", 25)
+        raise subprocess.TimeoutExpired("git", 15)
 
     with mock.patch.object(runtime_truth.subprocess, "check_output", fake_check_output):
         assert runtime_truth.get_remote_sha(".") == "UNKNOWN"
-    assert seen.get("timeout") == 25
+    assert seen.get("timeout") == 15
+
+
+def test_runtime_process_selection_uses_central_not_worker():
+    output = """
+101 /usr/bin/python /repo/scripts/mac_worker/daemon.py
+202 /usr/bin/python -m server.app
+303 /usr/bin/python /repo/scripts/courier_verifier.py
+"""
+    assert runtime_truth.select_server_process(output) == (
+        "202",
+        "/usr/bin/python -m server.app",
+    )
+
+
+def test_runtime_process_selection_rejects_worker_only():
+    output = "101 /usr/bin/python /repo/scripts/mac_worker/daemon.py\n"
+    assert runtime_truth.select_server_process(output) is None
 
 
 def test_runtime_info_completes_with_all_keys():
