@@ -1,3 +1,5 @@
+# HISTORICAL SNAPSHOT — canonical source routing is `ops/ai/SOURCE_MAP.md`
+
 # Source Map
 
 RESULT INGESTION

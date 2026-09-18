@@ -1,5 +1,5 @@
-bound_to_code_head: 7c495f8c1b31293f8d3a5465035d2d3f61cbd3a7
-updated_at: 2026-09-18 00:15:00+02:00
+bound_to_code_head: 0c8d1eddacb15dedbebb8406e475917dc2ab1c2b
+updated_at: 2026-09-18 09:23:33+02:00
 signatures:
 - name: pytest-OOM-SIGKILL
   evidence: full-file runs killed (signal 9) after ~30 dots on swap-pressured Mac

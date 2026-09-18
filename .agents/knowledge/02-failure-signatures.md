@@ -1,3 +1,5 @@
+# HISTORICAL SNAPSHOT — canonical state is in `ops/ai/START_HERE.md`
+
 # Failure Signatures
 
 - `426 Upgrade Required`: Worker submitted a `runtime_sha` that mismatches `SERVER_SHA`. Indicates a stale worker that must be killed/updated.

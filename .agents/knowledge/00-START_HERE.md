@@ -1,4 +1,10 @@
-# START HERE (Next Agent Handoff)
+# HISTORICAL SNAPSHOT — NOT CANONICAL
+
+Canonical shared memory is `ops/ai/START_HERE.md`. Read it first. The remainder
+of this file is retained only as historical evidence and may contain stale SHA,
+ownership, and task information.
+
+# START HERE (Historical Agent Handoff)
 
 CURRENT_HEAD=f71ff070
 CURRENT_RUNTIME_STATE=Clean (release-candidate-integration)

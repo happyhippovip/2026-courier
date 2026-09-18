@@ -1,3 +1,5 @@
+# HISTORICAL SNAPSHOT — canonical test routing is `ops/ai/TEST_MAP.yaml`
+
 # Test Map (Verified 2026-09-18)
 
 BEHAVIOR: Duplicate result & AMBIGUOUS_CRASH

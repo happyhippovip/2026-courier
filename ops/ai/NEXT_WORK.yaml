@@ -1,0 +1,43 @@
+version: 1
+code_base_head: "0c8d1eddacb15dedbebb8406e475917dc2ab1c2b"
+updated_at: "2026-09-18T09:23:33+02:00"
+
+tasks:
+  - id: MEMORY-NEXT-01
+    owner: GOOGLE
+    state: READY_FOR_PHYSICAL_PRECHECK
+    action: "Verify canonical Windows runtime exact SHA and server-owned quota-pool configuration for DLQ-05 without changing Ledger truth."
+    human_gate: false
+    codex_review: "Only after a complete packet with T2/T3 and physical evidence."
+
+  - id: MEMORY-NEXT-02
+    owner: MUSE_NEWSY
+    state: PACKET_PREPARATION
+    action: "Refresh DLQ-01 and DLQ-02 reproducers against current HEAD; decide attester independence and freshness invariants."
+    human_gate: false
+    implementation_owner_after_ready: GOOGLE
+
+  - id: MEMORY-NEXT-03
+    owner: MUSE
+    state: INVARIANT_DECISION
+    action: "Decide documented identical-retry semantics for DLQ-03, then issue a focused contract-test packet."
+    human_gate: false
+    implementation_owner_after_ready: GOOGLE
+
+  - id: MEMORY-NEXT-04
+    owner: GOOGLE
+    state: OWNERSHIP_COORDINATION_REQUIRED
+    action: "Reproduce DLQ-04 drain/timing behavior only after confirming courier_continue.py has no foreign active writer."
+    human_gate: false
+
+  - id: MEMORY-NEXT-05
+    owner: CODEX
+    state: WAITING_FOR_COMPLETE_PACKET
+    action: "Independently attack the next completed high-risk batch; return PACKET_INCOMPLETE if required fields are absent."
+    human_gate: false
+
+  - id: MEMORY-NEXT-06
+    owner: HUMAN_AND_GOOGLE
+    state: PHYSICAL_GATE
+    action: "Run exact-SHA OS-owned Windows acceptance only after reviewed deployment and explicit machine authority."
+    human_gate: true

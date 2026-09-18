@@ -1,5 +1,5 @@
-bound_to_code_head: 7c495f8c1b31293f8d3a5465035d2d3f61cbd3a7
-updated_at: 2026-09-18 00:15:00+02:00
+bound_to_code_head: 0c8d1eddacb15dedbebb8406e475917dc2ab1c2b
+updated_at: 2026-09-18 09:23:33+02:00
 lanes:
   T0:
     purpose: syntax/import sanity
@@ -13,7 +13,7 @@ lanes:
       jobs)
   T3:
     purpose: fast adversarial truth suite
-    command: python3 /tmp/ledger_attack.py + ledger_race.py + node --test tests/test_execution_truth.mjs
+    command: python3 -m pytest -q tests/test_ledger_false_green_attack.py tests/test_ledger_edge_conservation_regression.py && node --test tests/test_execution_truth.mjs
   T4:
     purpose: integration/full boundary
     command: "sharded full-file runs only; full parallel suite OOMs (SIGKILL observed)\

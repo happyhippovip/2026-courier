@@ -1,3 +1,5 @@
+# HISTORICAL SNAPSHOT — canonical state is in `ops/ai/START_HERE.md`
+
 # Findings Pack (2026-09-18)
 
 ID=FND-01

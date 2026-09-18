@@ -1,9 +1,9 @@
-bound_to_code_head: f71ff070158abfee6a8e6bda9683e70277f27256
-updated_at: '2026-09-18T06:52:47.439850Z'
+bound_to_code_head: 0c8d1eddacb15dedbebb8406e475917dc2ab1c2b
+updated_at: '2026-09-18T09:23:33+02:00'
 tasks:
 - id: DLQ-01
   priority: P0
-  current_head: 7c495f8c
+  last_reproduced_head: 7c495f8c
   title: two-step self-acceptance via direct ledger writes
   evidence: "/tmp/ledger_attack2.py run 2026-09-17 \u2014 step1 PROVISIONAL, step2\
     \ CANONICAL_ACCEPTED + CLEAN_IDLE=YES on self-made VALID MACHINE_ARTIFACT"
@@ -19,7 +19,7 @@ tasks:
   ready_to_implement: false
 - id: DLQ-02
   priority: P0
-  current_head: 7c495f8c
+  last_reproduced_head: 7c495f8c
   title: stale-dated VALID artifact accepted (observed_at unenforced)
   evidence: "/tmp/ledger_attack3.py B3 + follow-up \u2014 2020-01-01 evidence accepted\
     \ when unproven empty"
@@ -33,7 +33,7 @@ tasks:
   ready_to_implement: false
 - id: DLQ-03
   priority: P1
-  current_head: 7c495f8c
+  last_reproduced_head: 7c495f8c
   title: duplicate-result semantics contract (verified fail-closed, needs decision)
   evidence: "probe 2026-09-18 \u2014 IDENTICAL retry raises LedgerError, CONTRADICTORY-STALE\
     \ raises revision conflict (both fail closed, no double transition)"
@@ -49,7 +49,7 @@ tasks:
   ready_to_implement: YES (contract test only)
 - id: DLQ-04
   priority: P1
-  current_head: 7c495f8c
+  last_reproduced_head: 7c495f8c
   title: courier_continue full-file timing flake under load
   evidence: acceptance pair fails in full-file runs (fast UNKNOWN exit), passes paired/isolated;
     foreign mock_iters + retry loop improved drain 77s to 12s
@@ -64,7 +64,8 @@ tasks:
   ready_to_implement: YES (with owner)
 - id: DLQ-05
   priority: P2
-  current_head: d45db37e
+  last_reproduced_head: d45db37e
+  implementation_head: 0c8d1edd
   title: Uncoordinated Provider Quota Backoff
   evidence: Source code review of provider_wait. Backoff is applied individually to
     task[next_retry_at], missing cluster-wide lock for the provider credential pool.

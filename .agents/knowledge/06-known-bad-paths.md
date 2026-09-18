@@ -1,3 +1,5 @@
+# HISTORICAL SNAPSHOT — canonical queue is `ops/ai/DEFERRED_LEDGER_QUEUE.yaml`
+
 # Known Bad Paths
 
 BAD_PATH=Replayed Evidence / Duplicate Execution

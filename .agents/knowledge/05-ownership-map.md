@@ -1,3 +1,5 @@
+# HISTORICAL SNAPSHOT — canonical ownership is `ops/ai/OWNERSHIP_MAP.yaml`
+
 # Ownership Map
 TIMESTAMP: 2026-09-18
 HEAD: f71ff070
