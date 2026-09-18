@@ -2,30 +2,46 @@ import pytest
 from server.app import app, load_state, save_state
 import json
 import os
+import tempfile
+import shutil
 
 os.environ["COURIER_API_KEY"] = "test"
 os.environ["COURIER_VERIFIER_API_KEY"] = "test"
 
 @pytest.fixture
 def client():
+    # Isolate state
+    temp_dir = tempfile.mkdtemp()
+    os.environ["COURIER_STATE_DIR"] = temp_dir
+    
     app.config['TESTING'] = True
     with app.test_client() as client:
         yield client
+        
+    shutil.rmtree(temp_dir)
 
 def test_result_duplicate_invariant(client):
     headers = {"Authorization": "Bearer test"}
     state = load_state()
     task_id = "task-dup-1"
-    state["tasks"][task_id] = {
-        "task_id": task_id,
-        "worker_id": "worker-1",
-        "status": "DISPATCHED",
-        "instruction": "test",
-        "capabilities": [],
-        "goal_id": "goal-1",
-        "attempt_id": "1",
-        "dispatch_id": "1",
-        "execution_ref": "1"
+    state["tasks"] = {
+        task_id: {
+            "task_id": task_id,
+            "worker_id": "worker-1",
+            "status": "DISPATCHED",
+            "instruction": "test",
+            "capabilities": [],
+            "goal_id": "goal-1",
+            "attempt_id": "1",
+            "dispatch_id": "1",
+            "execution_ref": "1"
+        }
+    }
+    state["goals"] = {
+        "goal-1": {
+            "goal_id": "goal-1",
+            "workflow_plan": []
+        }
     }
     save_state(state)
 
