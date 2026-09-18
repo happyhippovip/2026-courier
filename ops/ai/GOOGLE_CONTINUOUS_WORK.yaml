@@ -1,0 +1,238 @@
+version: 1
+name: GOOGLE_CONTINUOUS_IMPLEMENTATION_LOOP
+mode: CONTINUOUS_FIXED_POINT
+branch: release-candidate-integration
+verified_remote_head_at_creation: 9837e5ae735f3075bffa9d3bdf6509002692e1ca
+purpose: >
+  Durable high-throughput Google implementation loop for Ledger/Guard/Motor work.
+  Google owns the sensitive implementation scope. Consume prepared invariants and
+  Codex decisions, implement causally, test in bounded layers, packetize for Codex,
+  and continue without conversational babysitting.
+
+canonical_inputs:
+  - ops/ai/START_HERE.md
+  - ops/ai/MASTER_OPERATING_SYSTEM.md
+  - ops/ai/OWNERSHIP_MAP.yaml
+  - ops/ai/NEXT_WORK.yaml
+  - ops/ai/DEFERRED_LEDGER_QUEUE.yaml
+  - ops/ai/TEST_MAP.yaml
+  - ops/ai/packets/
+  - ops/ai/WINDOWS_CONTINUOUS_WORK.yaml
+  - ops/ai/CODEX_CONTINUOUS_REVIEW.yaml
+
+rules:
+  current_reality_wins: true
+  one_writer_per_sensitive_scope: true
+  google_is_writer: true
+  preserve_foreign_work: true
+  no_reset_hard: true
+  no_blind_git_clean: true
+  no_force_push: true
+  no_generic_killall: true
+  bounded_subprocesses: true
+  ledger_last: true
+  no_fake_green: true
+  no_mock_as_physical_proof: true
+  no_unauthorized_external_effects: true
+  do_not_rewrite_commits_under_codex_review: true
+
+checkpoint:
+  iteration: 0
+  last_verified_head: 9837e5ae735f3075bffa9d3bdf6509002692e1ca
+  last_remote_head: 9837e5ae735f3075bffa9d3bdf6509002692e1ca
+  current_lane: G01_REALITY_AND_PACKET_SYNC
+  current_task: UNSTARTED
+  last_test: NONE
+  last_test_result: UNKNOWN
+  last_commit: NONE
+  last_push: NONE
+  blocker: NONE
+  next_action: FETCH_AND_RECONCILE
+  codex_review_snapshot:
+    - 3039126e
+    - bbc86b56
+    - 8918bc8f
+    - fc1f42dd
+  packets_ready: []
+  lanes_exhausted: []
+
+scheduler:
+  selection_order:
+    - G01_REALITY_AND_PACKET_SYNC
+    - G02_DLQ01_TRUST_ROOT
+    - G03_DLQ02_BINDING_EPOCH_FRESHNESS
+    - G04_DLQ03_TYPED_DUPLICATE_CONTRACT
+    - G05_HISTORICAL_EVIDENCE_MIGRATION
+    - G06_ATTESTATION_CRASH_REPLAY_ATOMICITY
+    - G07_T0_T1_T2_T3_GATE
+    - G08_CODEX_HANDOFF
+    - G09_WINDOWS_PHYSICAL_EXACT_SHA_IF_AVAILABLE
+    - G10_NEXT_SAFE_LEDGER_MOTOR_FRONTIER
+
+lanes:
+  - id: G01_REALITY_AND_PACKET_SYNC
+    priority: P0
+    mission: >
+      Fetch origin, inspect status/diff, verify ownership, identify foreign work,
+      and read only current DLQ-01/02/03 packets plus any Codex verdict artifacts.
+      Do not redo architecture archaeology already settled.
+
+  - id: G02_DLQ01_TRUST_ROOT
+    priority: P0
+    mission: >
+      Implement the minimum server-owned attestation authority required so Ledger
+      cannot trust caller-controlled producer_id/verifier_id/updated_by strings.
+      Evidence surviving revisions or rotating URLs must never increase trust.
+      Bind immutable attestation identity to event, digest, SHA, runtime/epoch,
+      authenticated producer/verifier principals, and server authority.
+    required_attacks:
+      - two-revision laundering
+      - three-revision laundering
+      - renamed identities
+      - different strings same credential
+      - producer equals verifier
+      - verifier equals introducer
+      - verifier equals acceptance writer
+      - new URL each revision
+      - copied digest
+      - restart/reload
+      - valid independent control case
+
+  - id: G03_DLQ02_BINDING_EPOCH_FRESHNESS
+    priority: P0
+    mission: >
+      Implement canonical server-owned binding epoch and freshness consumption.
+      Producer time is advisory; server receipt/verification and current epoch are
+      authoritative. Historical pre-policy evidence stays visible but non-accepting.
+    required_attacks:
+      - ancient timestamp
+      - future plus 299 seconds
+      - future plus 300 seconds
+      - future plus 301 seconds
+      - old epoch replay
+      - same SHA wrong runtime
+      - same runtime wrong SHA
+      - process/service restart
+      - machine reboot
+      - credential rotation
+      - clock anomaly
+      - long-lived epoch mutable evidence
+
+  - id: G04_DLQ03_TYPED_DUPLICATE_CONTRACT
+    priority: P0
+    mission: >
+      Replace fragile message-substring caller branching with stable typed error
+      classes/codes while preserving storage semantics: identical replay settles
+      idempotently, stale contradictory update conflicts, genuine current update
+      advances once, retry is bounded.
+    required_attacks:
+      - ACK loss
+      - changed/localized error messages
+      - unknown error code
+      - revision conflict then identical reread
+      - concurrent identical submissions
+      - concurrent contradictory submissions
+
+  - id: G05_HISTORICAL_EVIDENCE_MIGRATION
+    priority: P0
+    mission: >
+      Add minimal migration/schema behavior so evidence lacking canonical attestation,
+      server receipt, epoch, and authenticated principals becomes HISTORICAL_UNTRUSTED
+      or STALE, remains auditable, and contributes nothing to acceptance, proven
+      edges, queue independence, or clean idle.
+
+  - id: G06_ATTESTATION_CRASH_REPLAY_ATOMICITY
+    priority: P0
+    mission: >
+      Make attestation/epoch transitions absent-or-complete and replay-safe.
+      Test crashes between raw artifact, registry commit, verification, receipt,
+      Ledger consumption, ACK, and epoch rotation. No blind external-effect replay.
+
+  - id: G07_T0_T1_T2_T3_GATE
+    priority: P0
+    mission: >
+      Run bounded layered validation. T0 on each coherent edit, focused T1 suites,
+      affected Ledger/Guard/server/Motor T2, then the exact adversarial T3 from the
+      Codex blueprint. No full repository suite in the inner loop.
+    minimum_t3:
+      - tests/test_ledger_attestation_trust_root.py
+      - tests/test_ledger_freshness_binding_epoch.py
+      - tests/test_ledger_duplicate_semantics_contract.py
+      - tests/test_attestation_cross_defect_crash.py
+      - tests/test_ledger_false_green_attack.py
+      - tests/test_ledger_edge_conservation_regression.py
+      - tests/test_execution_truth.mjs
+
+  - id: G08_CODEX_HANDOFF
+    priority: P0
+    mission: >
+      Produce a complete bounded Codex packet for the new Google implementation:
+      exact head/commits, invariants, reproducers, T2/T3, known attacks, bounded files,
+      and explicit questions. Do not ask Codex to rediscover architecture.
+
+  - id: G09_WINDOWS_PHYSICAL_EXACT_SHA_IF_AVAILABLE
+    priority: P1
+    mission: >
+      Only when running on the actual authorized Windows runtime, verify
+      process->executable->worktree->exact SHA and mark stale physical proof after
+      runtime-affecting changes. If actual Windows access is unavailable, park this
+      lane and continue G10. Never substitute mocks for physical proof.
+
+  - id: G10_NEXT_SAFE_LEDGER_MOTOR_FRONTIER
+    priority: P1
+    mission: >
+      Recompute current deferred queue and packets. Consume the next genuinely ready
+      Google-owned Ledger/Guard/Motor task, including newly confirmed regressions,
+      without broad archaeology. A blocked task is not a blocked project.
+
+work_unit_protocol:
+  - FETCH_AND_VERIFY
+  - STATUS_DIFF_OWNERSHIP
+  - SELECT_HIGHEST_PRIORITY_SAFE_LANE
+  - REPRODUCE
+  - IMPLEMENT_MINIMAL_CAUSAL_REPAIR
+  - T0
+  - T1_FAST
+  - T1_FULL
+  - T2_AFFECTED
+  - SELF_ATTACK
+  - COMMIT_COHERENT_OWNED_DIFF
+  - PUSH_WHEN_SAFE
+  - UPDATE_CHECKPOINT
+  - RECOMPUTE_FRONTIER
+  - REPEAT
+
+return_policy:
+  progress_reports_forbidden: true
+  ask_proceed_forbidden: true
+  ask_what_next_forbidden: true
+  return_after_one_task_forbidden: true
+  return_after_test_pass_forbidden: true
+  return_after_test_failure_forbidden: true
+  return_after_commit_forbidden: true
+  return_after_push_forbidden: true
+  stop_allowed_only_if:
+    - all ten lanes are exhausted for current HEAD
+    - no complete Google-owned implementation packet remains
+    - no safe test/attack/migration/packet work remains
+    - remaining work requires unavailable physical access, human authority, or foreign active ownership
+  final_return_fields:
+    - CURRENT_HEAD
+    - REMOTE_HEAD
+    - ITERATIONS_COMPLETED
+    - LANES_EXHAUSTED
+    - TASKS_CLOSED
+    - TESTS_RUN
+    - T3_RESULT
+    - COMMITS_PUSHED
+    - CODEX_PACKET
+    - BLOCKERS_PARKED
+    - SAFE_WORK_REMAINING
+    - WHY_GOOGLE_FIXED_POINT_IS_TRUE
+
+usage:
+  one_time_prompt: >
+    Read ops/ai/GOOGLE_CONTINUOUS_WORK.yaml and enter CONTINUOUS_FIXED_POINT.
+    Treat it as your durable scheduler/checkpoint. Never return while any safe
+    lane is executable. Preserve immutable Codex review commits while adding new
+    implementation commits on top.
