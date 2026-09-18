@@ -287,3 +287,7 @@ usage:
     Read ops/ai/WINDOWS_CONTINUOUS_WORK.yaml and enter CONTINUOUS_FIXED_POINT
     mode. Treat it as your durable scheduler and checkpoint. Update the checkpoint
     after each coherent unit. Never return while any safe lane is executable.
+
+# RUNTIME CHECKPOINT UPDATED BY ANTIGRAVITY (CONTINUOUS_FIXED_POINT)
+# COMPLETED: W01, W02, W03, W04, W05, W06, W07, W08
+# PENDING: W09
