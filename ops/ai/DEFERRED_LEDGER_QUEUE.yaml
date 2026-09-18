@@ -3,10 +3,13 @@ updated_at: '2026-09-18T09:23:33+02:00'
 tasks:
 - id: DLQ-01
   priority: P0
-  last_reproduced_head: 7c495f8c
+  last_reproduced_head: 50810001
   title: two-step self-acceptance via direct ledger writes
-  evidence: "/tmp/ledger_attack2.py run 2026-09-17 \u2014 step1 PROVISIONAL, step2\
-    \ CANONICAL_ACCEPTED + CLEAN_IDLE=YES on self-made VALID MACHINE_ARTIFACT"
+  evidence: /tmp/dlq01_refresh.py run 2026-09-18 at HEAD 50810001 (ledger code
+    unchanged since 7c495f8c) - step1 PROVISIONAL, step2 CANONICAL_ACCEPTED plus
+    CLEAN_IDLE=YES on self-made VALID MACHINE_ARTIFACT with pre-declared
+    RUNTIME_ARTIFACT PASS. Defect live.
+  packet: ops/ai/packets/DLQ-01_review_packet.md
   exact_file: scripts/agent_handoff_ledger.py
   exact_function: update() prior_evidence rule + caller checks
   reproduction: tmp ledger (unproven=[]); update1 adds artifact (updated_by distinct
@@ -19,10 +22,12 @@ tasks:
   ready_to_implement: false
 - id: DLQ-02
   priority: P0
-  last_reproduced_head: 7c495f8c
+  last_reproduced_head: 50810001
   title: stale-dated VALID artifact accepted (observed_at unenforced)
-  evidence: "/tmp/ledger_attack3.py B3 + follow-up \u2014 2020-01-01 evidence accepted\
-    \ when unproven empty"
+  evidence: /tmp/dlq02_refresh.py run 2026-09-18 at HEAD 50810001 (ledger code
+    unchanged since 7c495f8c) - 2020-01-01 VALID bound artifact planted step1,
+    step2 with no new evidence reaches CANONICAL_ACCEPTED. Defect live.
+  packet: ops/ai/packets/DLQ-02_review_packet.md
   exact_file: scripts/agent_handoff_ledger.py
   exact_function: update() has_physical_proof block
   reproduction: store 2020-dated VALID artifact, advance one update, observe CANONICAL_ACCEPTED
@@ -33,16 +38,21 @@ tasks:
   ready_to_implement: false
 - id: DLQ-03
   priority: P1
-  last_reproduced_head: 7c495f8c
-  title: duplicate-result semantics contract (verified fail-closed, needs decision)
-  evidence: "probe 2026-09-18 \u2014 IDENTICAL retry raises LedgerError, CONTRADICTORY-STALE\
-    \ raises revision conflict (both fail closed, no double transition)"
+  last_reproduced_head: 50810001
+  title: duplicate-result semantics contract (verified fail-closed, DECIDED 2026-09-18)
+  evidence: /tmp/dlq03_refresh.py run 2026-09-18 at HEAD 50810001 - IDENTICAL
+    retry raises no-meaningful-change with revision and bytes unchanged, STALE
+    contradictory raises revision conflict with authoritative value kept.
+    Contract DECIDED - raise-at-storage, settle-on-no-change, retry-on-conflict.
+    Motor split verified at scripts/courier_continue.py lines 537-544.
+  packet: ops/ai/packets/DLQ-03_review_packet.md
   exact_file: scripts/agent_handoff_ledger.py
   exact_function: update() no-meaningful-change vs revision conflict
   reproduction: same-revision identical update, then stale-revision contradictory
     update
-  expected_invariant: "DOCUMENTED contract \u2014 idempotent ACK vs raise; motor retry\
-    \ loop already treats no-change as settle"
+  expected_invariant: DECIDED 2026-09-18 - raise-at-storage. Identical retry raises
+    no-meaningful-change and callers settle, stale contradictory raises revision
+    conflict and callers retry with backoff. Motor split verified.
   targeted_test: duplicate-semantics contract test
   negative_test: contradictory payload never overwrites authoritative result
   owner: Google (decision + test)
