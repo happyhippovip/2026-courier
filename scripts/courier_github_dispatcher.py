@@ -18,6 +18,7 @@ API_KEY = os.environ.get("COURIER_API_KEY") or (keyring.get_password if keyring 
 HEADERS = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
 WORKER_ID = "GITHUB-DISPATCHER"
 WAITING_EXIT_CODE = 75
+MAX_ADAPTER_RESTARTS = 3
 
 def log(msg):
     print(f"[GitHub Dispatcher] {msg}", flush=True)
@@ -69,6 +70,15 @@ def reap_adapters(active_procs):
             log(f"Hosted task {task_id} still waiting; resuming its durable dispatch.")
             entry["process"] = launch_adapter(entry["task_file"])
             continue
+        retries = entry.get("retries", 0)
+        if returncode != 0 and retries < MAX_ADAPTER_RESTARTS:
+            entry["retries"] = retries + 1
+            log(
+                f"Hosted task {task_id} adapter stopped with code {returncode}; "
+                f"bounded retry {entry['retries']}/{MAX_ADAPTER_RESTARTS}."
+            )
+            entry["process"] = launch_adapter(entry["task_file"])
+            continue
         del active_procs[task_id]
         if returncode == 0:
             cleanup_task_files(entry["task_file"])
@@ -110,6 +120,7 @@ def run_loop():
                     active_procs[task_id] = {
                         "process": launch_adapter(tmp_file),
                         "task_file": tmp_file,
+                        "retries": 0,
                     }
         except Exception as e:
             log(f"Error polling for tasks: {e}")

@@ -59,16 +59,40 @@ def test_terminal_adapter_is_reaped_and_owned_files_are_removed(monkeypatch, tmp
     assert not state_file.exists()
 
 
-def test_failed_adapter_is_reaped_fail_closed_without_retry_storm(monkeypatch):
+def test_failed_adapter_gets_bounded_recovery(monkeypatch):
+    replacement = FinishedProcess(None)
+    launched = []
     monkeypatch.setattr(
         dispatcher,
         "launch_adapter",
-        lambda _: (_ for _ in ()).throw(AssertionError("must not retry fatal adapter")),
+        lambda task_file: launched.append(task_file) or replacement,
     )
     active = {
         "task-1": {
             "process": FinishedProcess(1),
             "task_file": "/tmp/task-1.json",
+            "retries": 0,
+        }
+    }
+
+    dispatcher.reap_adapters(active)
+
+    assert launched == ["/tmp/task-1.json"]
+    assert active["task-1"]["process"] is replacement
+    assert active["task-1"]["retries"] == 1
+
+
+def test_failed_adapter_stops_after_bounded_recovery(monkeypatch):
+    monkeypatch.setattr(
+        dispatcher,
+        "launch_adapter",
+        lambda _: (_ for _ in ()).throw(AssertionError("retry bound exceeded")),
+    )
+    active = {
+        "task-1": {
+            "process": FinishedProcess(1),
+            "task_file": "/tmp/task-1.json",
+            "retries": dispatcher.MAX_ADAPTER_RESTARTS,
         }
     }
 
