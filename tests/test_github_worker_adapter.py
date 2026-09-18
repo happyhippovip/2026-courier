@@ -57,6 +57,65 @@ def test_existing_waiting_dispatch_is_reconciled_not_dispatched(tmp_path: Path, 
     assert adapter.run(str(task_file)) == 0
 
 
+def test_posted_dispatch_is_terminal_and_never_replayed(tmp_path: Path, monkeypatch):
+    task_file = tmp_path / "task.json"
+    task_file.write_text(json.dumps(packet()), encoding="utf-8")
+    adapter.write_state(
+        task_file,
+        {
+            "dispatch_id": "dispatch-1",
+            "run_id": "99",
+            "run_attempt": "1",
+            "result_id": "result-dispatch-1",
+            "status": "POSTED",
+        },
+    )
+    monkeypatch.setattr(adapter, "find_run", lambda _: pytest.fail("must not query a posted dispatch"))
+    monkeypatch.setattr(adapter, "post_result", lambda _: pytest.fail("must not repost a posted dispatch"))
+
+    assert adapter.run(str(task_file)) == 0
+
+
+def test_persisted_state_for_another_dispatch_fails_closed(tmp_path: Path):
+    task_file = tmp_path / "task.json"
+    task_file.write_text(json.dumps(packet()), encoding="utf-8")
+    adapter.write_state(
+        task_file,
+        {"dispatch_id": "different-dispatch", "status": "WAITING_FOR_WORKER"},
+    )
+
+    with pytest.raises(ValueError, match="another dispatch"):
+        adapter.run(str(task_file))
+
+
+def test_duplicate_hosted_runs_for_one_dispatch_fail_closed(monkeypatch):
+    monkeypatch.setattr(
+        adapter,
+        "run_cmd",
+        lambda _: (
+            0,
+            json.dumps(
+                [
+                    {
+                        "databaseId": 4,
+                        "status": "completed",
+                        "displayTitle": "Courier dispatch dispatch-1",
+                    },
+                    {
+                        "databaseId": 5,
+                        "status": "completed",
+                        "displayTitle": "Courier dispatch dispatch-1",
+                    },
+                ]
+            ),
+            "",
+        ),
+    )
+
+    with pytest.raises(RuntimeError, match="multiple GitHub runs"):
+        adapter.find_run("dispatch-1")
+
+
 def test_dispatch_preserves_taskpacket_as_raw_json(tmp_path: Path, monkeypatch):
     task_file = tmp_path / "task.json"
     task_file.write_text(json.dumps(packet()), encoding="utf-8")
