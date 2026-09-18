@@ -552,6 +552,9 @@ def main():
 
         for edge_name in done_edges:
             del running_tasks[edge_name]
+        
+        if done_edges:
+            continue
 
         # Submit new tasks
         newly_submitted = []
