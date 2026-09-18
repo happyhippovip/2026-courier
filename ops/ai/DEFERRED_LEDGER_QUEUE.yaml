@@ -56,3 +56,23 @@ tasks:
     ready_to_implement: YES (with owner)
 notes:
   - B-candidate COURIER_STATE_DIR vs COURIER_STATE_FILE OMITTED: only COURIER_STATE_FILE exists at current HEAD (tests/test_windows_runtime_torture.py:19); no mismatch supported.
+  - id: DLQ-05
+    priority: P2
+    current_head: d45db37e
+    title: Uncoordinated Provider Quota Backoff
+    evidence: Source code review of provider_wait. Backoff is applied individually to task[next_retry_at], missing cluster-wide lock for the provider credential pool.
+    exact_file: server/app.py
+    exact_function: provider_wait() and claim_task()
+    reproduction: Mock 429 provider limit. Dispatch 10 tasks for that provider. Watch them independently claim and backoff, worsening rate limits.
+    expected_invariant: A 429/quota-exhaustion applies a cluster-wide lock to the specific `provider` string (credential pool). No tasks for that provider are dispatched until backoff expires.
+    current_bad_behavior: Individual tasks back off independently, wasting worker claims on doomed dispatches.
+    targeted_test: Cluster provider wait isolation test (mock 429, verify other tasks for same provider aren't dispatched).
+    negative_test: Unrelated providers and workers remain unblocked and continue processing READY tasks.
+    replay_case: N/A
+    restart_case: Provider locks must persist in central_state.json across server restarts.
+    concurrency_case: Multiple workers hitting 429 simultaneously should idempotently extend/refresh the provider lock.
+    provider_wait_case: Resolves provider wait isolation across the cluster.
+    dependencies: Central state lock structure.
+    owner: Google (Ledger / Motor resource management)
+    can_batch_with: Provider resource management
+    ready_to_implement: YES (Invariant confirmed. Scope is per-provider string representing the shared credential pool)
