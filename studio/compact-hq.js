@@ -55,7 +55,16 @@ export function updateCompactHQ(state, ops) {
     const oa = opsAgents?.[opsKey[key]];
     if (oa) {
       // Single-source ops state: rail label always matches map/detail/counts.
-      badge(el, {status: oa.state, task: oa.task || 'Arbeitsinhalt nicht gemeldet', worker_id: key});
+      const indicator = {
+        ACTIVE: {kind:'working', label:'AKTIV'},
+        IDLE: {kind:'on', label:'AN'},
+        WAITING: {kind:'waiting', label:'WARTET'},
+        BLOCKED: {kind:'waiting', label:'BLOCKIERT'},
+        ERROR: {kind:'waiting', label:'FEHLER'},
+        OFFLINE: {kind:'off', label:'AUS'},
+        UNKNOWN: {kind:'unknown', label:'?'},
+      }[oa.state] || {kind:'unknown', label:'?'};
+      badge(el, {status: oa.state, task: oa.task || 'Arbeitsinhalt nicht gemeldet', worker_id: key, displayIndicator: indicator});
       el.title = `${key}: ${oa.state} · ${oa.task || 'Keine Aufgabe'} (Quelle: ${oa.source || 'ops_state'})`;
       continue;
     }
@@ -82,9 +91,9 @@ export function localToolActors(snapshot) {
   const age = Date.now() - Date.parse(snapshot?.observed_at || '');
   const fresh = Number.isFinite(age) && age >= -5000 && age < 15000;
   return [
-    ['chatgpt','ChatGPT / Codex',14.5,48,11,84,'💬'],
-    ['muse','MUSE',75,59,50,88,'∞'],
-    ['antigravity','Google Antigravity',67,46,80,87,'✦'],
+    ['chatgpt','ChatGPT / Codex',72,48,12,84,'💬'],
+    ['muse','MUSE',79,59,20,84,'∞'],
+    ['antigravity','Google Antigravity',86,46,28,84,'✦'],
   ].map(([key,name,x,y,restX,restY,icon]) => {
     const tool = fresh ? snapshot.tools?.[key] : null;
     const active = tool?.status === 'COMPUTING';
