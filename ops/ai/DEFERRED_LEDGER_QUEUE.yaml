@@ -74,7 +74,7 @@ tasks:
   owner: foreign/motor (coordinate, FOREIGN-ACTIVE file)
   ready_to_implement: YES (with owner)
   status: IMPLEMENTED_AND_VERIFIED
-  implementation_head: 0c8d1edd
+  implementation_head: ceba1fe0
 - id: DLQ-05
   priority: P2
   last_reproduced_head: d45db37e
