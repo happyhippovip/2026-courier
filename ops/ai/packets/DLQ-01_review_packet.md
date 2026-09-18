@@ -143,3 +143,41 @@ first.
 
 GOOGLE_ZERO_ARCHAEOLOGY=YES for check (b): sites, callers, negatives,
 migration, and forensic evidence all above; only check (c) awaits Codex.
+
+## CURRENT RED-TEAM RESULT — 2026-09-18
+
+CODE_SHA=b0f6cec5e7a8e3ca64c9039792d239d2e67fe5ea
+
+The landed T3 suite does not close check (c).  Two tests explicitly tolerate
+the unsafe result instead of requiring fail-closed behavior:
+
+- `TestRenamedIdentities.test_renamed_writer_still_blocked`
+- `TestVerifierEqualsIntroducer.test_verifier_introduced_in_earlier_update_blocked`
+
+A direct two-update reproduction with an `ISSUE_STATE` acceptance predicate
+still reaches all of the following using only caller-selected identity
+strings: `CANONICAL_ACCEPTED`, `CLEAN_IDLE=YES`, and
+`QUEUE_INDEPENDENT=YES`.
+
+REPRODUCED_VARIANTS=
+- introducer `actor-v1`, acceptance writer `actor-v2`, arbitrary distinct
+  producer/verifier aliases
+- introducer `introducer`, acceptance writer `acceptor`, arbitrary
+  `producer-string` / `verifier-string`
+
+ROOT_CAUSE=`producer_id`, `verifier_id`, and `updated_by` are compared as
+untrusted strings.  A different string is treated as independence even though
+no authenticated principal or server-owned attestation record exists.
+
+MINIMUM_GOOGLE_REPAIR=Fail closed for MACHINE_ARTIFACT proof unless it resolves
+to a server-owned immutable attestation whose authenticated producer,
+authenticated verifier, introducer, and acceptance-writer actor domains meet
+the independence policy.  Ledger history may consume that verdict but must not
+create or authenticate it.  Historical string-only evidence remains auditable
+but cannot count toward acceptance.
+
+TEST_GOOGLE_MUST_CORRECT=Both tests above must assert rejection of the current
+bypass.  Add a positive control backed by the real server-owned attestation
+trust root; do not substitute another collection of caller-provided names.
+
+STATUS=OPEN_P0_TRUST_ROOT; current green T3 count is not closure evidence.
