@@ -131,6 +131,7 @@ jobs:
               Path(f"result_{task['dispatch_id']}.json").write_text(json.dumps({
                   **{field: task[field] for field in fields}, "provider": "github",
                   "run_id": os.environ["GITHUB_RUN_ID"], "run_attempt": os.environ["GITHUB_RUN_ATTEMPT"],
+                  "source_sha": os.environ["GITHUB_SHA"],
                   "result_id": f"result-{task['dispatch_id']}", "status": "FAILED", "artifacts": [],
                   "reason": "BOUNDED_OPERATION_FAILED"}, sort_keys=True) + "\n")
           PY

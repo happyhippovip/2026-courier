@@ -90,6 +90,21 @@ def find_run(dispatch_id: str) -> tuple[str | None, str | None]:
     return (str(matches[0]["databaseId"]), matches[0]["status"]) if matches else (None, None)
 
 
+def get_run_head_sha(run_id: str) -> str:
+    rc, output, error = run_cmd(
+        ["gh", "run", "view", run_id, "--repo", REPOSITORY, "--json", "headSha"]
+    )
+    if rc:
+        raise RuntimeError(f"cannot inspect workflow run identity: {error}")
+    try:
+        head_sha = json.loads(output)["headSha"]
+    except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+        raise RuntimeError("workflow run returned invalid head SHA evidence") from exc
+    if not isinstance(head_sha, str) or not re.fullmatch(r"[a-f0-9]{40}", head_sha):
+        raise RuntimeError("workflow run returned invalid head SHA evidence")
+    return head_sha
+
+
 def download_result(run_id: str, dispatch_id: str, destination: Path) -> tuple[dict[str, Any], dict[str, Any] | None]:
     rc, _, error = run_cmd(["gh", "run", "download", run_id, "--repo", REPOSITORY, "--name",
                             f"courier-result-{dispatch_id}", "--dir", str(destination)])
@@ -110,6 +125,12 @@ def verify_result(task: dict[str, Any], result: dict[str, Any], evidence: dict[s
         raise ValueError("DurableResult is not bound to the observed GitHub run")
     if not isinstance(result.get("run_attempt"), str) or not result["run_attempt"].isdigit():
         raise ValueError("DurableResult is missing GitHub run_attempt")
+    observed_sha = get_run_head_sha(run_id)
+    if result.get("source_sha") != observed_sha:
+        raise ValueError("DurableResult source SHA does not match the observed GitHub run")
+    expected_sha = task.get("source_sha")
+    if expected_sha is not None and expected_sha != observed_sha:
+        raise ValueError("GitHub run does not match the TaskPacket source SHA")
     if result.get("status") == "FAILED":
         if result.get("artifacts") != [] or evidence is not None:
             raise ValueError("failed GitHub operation must not claim evidence")

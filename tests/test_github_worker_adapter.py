@@ -37,10 +37,12 @@ def test_hosted_workflow_preserves_execution_reference_in_success_and_failure_re
     assert workflow.count(
         '("goal_id", "task_id", "attempt_id", "dispatch_id", "execution_ref", "worker_id")'
     ) == 2
+    # metadata evidence plus both SUCCESS and FAILED DurableResult paths
+    assert workflow.count('"source_sha": os.environ["GITHUB_SHA"]') == 3
     assert workflow.count('re.fullmatch(r"[A-Za-z0-9._-]{1,128}", task["dispatch_id"])') == 2
 
 
-def test_verify_result_rejects_artifact_path_not_bound_to_dispatch(tmp_path: Path):
+def test_verify_result_rejects_artifact_path_not_bound_to_dispatch(tmp_path: Path, monkeypatch):
     task = packet()
     outside = tmp_path.parent / "outside.json"
     outside.write_text("{}", encoding="utf-8")
@@ -48,12 +50,14 @@ def test_verify_result_rejects_artifact_path_not_bound_to_dispatch(tmp_path: Pat
         **task,
         "run_id": "99",
         "run_attempt": "1",
+        "source_sha": "a" * 40,
         "result_id": "result-dispatch-1",
         "status": "SUCCESS",
         "operation": "deterministic_transform",
         "artifacts": [{"path": "../outside.json", "sha256": hashlib.sha256(outside.read_bytes()).hexdigest()}],
     }
 
+    monkeypatch.setattr(adapter, "get_run_head_sha", lambda _: "a" * 40)
     with pytest.raises(ValueError, match="not dispatch-bound"):
         adapter.verify_result(
             task,
@@ -65,6 +69,46 @@ def test_verify_result_rejects_artifact_path_not_bound_to_dispatch(tmp_path: Pat
             "99",
             tmp_path,
         )
+
+
+def test_verify_result_rejects_source_sha_not_matching_observed_run(monkeypatch, tmp_path: Path):
+    task = packet()
+    result = {
+        **task,
+        "run_id": "99",
+        "run_attempt": "1",
+        "source_sha": "b" * 40,
+        "result_id": "result-dispatch-1",
+        "status": "FAILED",
+        "artifacts": [],
+    }
+    monkeypatch.setattr(adapter, "get_run_head_sha", lambda _: "a" * 40)
+
+    with pytest.raises(ValueError, match="source SHA"):
+        adapter.verify_result(
+            task,
+            result,
+            None,
+            "99",
+            tmp_path,
+        )
+
+
+def test_verify_result_enforces_optional_taskpacket_source_sha(monkeypatch, tmp_path: Path):
+    task = packet(source_sha="c" * 40)
+    result = {
+        **task,
+        "source_sha": "a" * 40,
+        "run_id": "99",
+        "run_attempt": "1",
+        "result_id": "result-dispatch-1",
+        "status": "FAILED",
+        "artifacts": [],
+    }
+    monkeypatch.setattr(adapter, "get_run_head_sha", lambda _: "a" * 40)
+
+    with pytest.raises(ValueError, match="TaskPacket source SHA"):
+        adapter.verify_result(task, result, None, "99", tmp_path)
 
 
 def test_verify_result_rejects_wrong_execution_reference(tmp_path: Path):
