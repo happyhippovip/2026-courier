@@ -117,6 +117,50 @@ class LedgerError(RuntimeError):
     """Expected fail-closed ledger error."""
 
 
+class RevisionConflictError(LedgerError):
+    """Update conflicts with current revision (stale or concurrent)."""
+
+
+class NoMeaningfulChangeError(LedgerError):
+    """Update makes no meaningful change to the ledger."""
+
+
+class ValidationError(LedgerError):
+    """Schema or field validation failure."""
+
+
+class BindingError(LedgerError):
+    """SHA, runtime, or evidence binding mismatch."""
+
+
+class FreshnessError(LedgerError):
+    """Evidence freshness or clock-skew violation."""
+
+
+class MonotonicityError(LedgerError):
+    """Timestamp or epoch monotonicity violation."""
+
+
+class SelfCertificationError(LedgerError):
+    """Rejected: caller-created, self-certifying, or unverifiable evidence."""
+
+
+class EdgeConservationError(LedgerError):
+    """Edge set conservation violated (edges can move but not appear/disappear)."""
+
+
+class CleanIdleError(LedgerError):
+    """CLEAN_IDLE=YES preconditions not met."""
+
+
+class InitializationError(LedgerError):
+    """Ledger initialization constraint violated."""
+
+
+class StorageError(LedgerError):
+    """Filesystem read, write, lock, or symlink violation."""
+
+
 def canonical_bytes(value: Any) -> bytes:
     return (
         json.dumps(value, ensure_ascii=True, separators=(",", ":"), sort_keys=True)
@@ -136,29 +180,29 @@ def reject_secrets(value: Any, path: str = "record") -> None:
     if isinstance(value, dict):
         for key, child in value.items():
             if SECRET_KEY_RE.search(str(key)):
-                raise LedgerError(f"likely secret field rejected at {path}.{key}")
+                raise ValidationError(f"likely secret field rejected at {path}.{key}")
             reject_secrets(child, f"{path}.{key}")
     elif isinstance(value, list):
         for index, child in enumerate(value):
             reject_secrets(child, f"{path}[{index}]")
     elif isinstance(value, str) and SECRET_VALUE_RE.search(value):
-        raise LedgerError(f"likely secret value rejected at {path}")
+        raise ValidationError(f"likely secret value rejected at {path}")
 
 
 def _nonempty_string(value: Any, field: str) -> None:
     if not isinstance(value, str) or not value.strip():
-        raise LedgerError(f"{field} must be a non-empty string")
+        raise ValidationError(f"{field} must be a non-empty string")
 
 
 def validate_record(record: Any, *, allow_unknown_sha: bool) -> None:
     if not isinstance(record, dict):
-        raise LedgerError("record must be a JSON object")
+        raise ValidationError("record must be a JSON object")
     actual = set(record)
     expected = set(RECORD_FIELDS)
     if actual != expected:
         missing = sorted(expected - actual)
         extra = sorted(actual - expected)
-        raise LedgerError(f"record fields mismatch: missing={missing}, extra={extra}")
+        raise ValidationError(f"record fields mismatch: missing={missing}, extra={extra}")
     reject_secrets(record)
     for field in RECORD_FIELDS:
         value = record[field]
@@ -166,29 +210,29 @@ def validate_record(record: Any, *, allow_unknown_sha: bool) -> None:
             if not isinstance(value, list) or any(
                 not isinstance(item, str) or not item.strip() for item in value
             ):
-                raise LedgerError(f"{field} must be an array of non-empty strings")
+                raise ValidationError(f"{field} must be an array of non-empty strings")
         elif field in COUNT_FIELDS:
             if value is not None and (
                 not isinstance(value, int) or isinstance(value, bool) or value < 0
             ):
-                raise LedgerError(f"{field} must be a non-negative integer or null")
+                raise ValidationError(f"{field} must be a non-negative integer or null")
         elif field in TRISTATE_FIELDS:
             if value not in {"YES", "NO", "UNKNOWN"}:
-                raise LedgerError(f"{field} must be YES, NO, or UNKNOWN")
+                raise ValidationError(f"{field} must be YES, NO, or UNKNOWN")
         else:
             _nonempty_string(value, field)
     sha = record["CURRENT_SHA"]
     if not SHA_RE.fullmatch(sha) and not (allow_unknown_sha and sha == "UNKNOWN"):
-        raise LedgerError("CURRENT_SHA must be a full lowercase 40-character Git SHA")
+        raise ValidationError("CURRENT_SHA must be a full lowercase 40-character Git SHA")
     for evidence in record["LAST_EVIDENCE"]:
         if not evidence.startswith("https://"):
-            raise LedgerError("LAST_EVIDENCE entries must be durable https:// URLs")
+            raise ValidationError("LAST_EVIDENCE entries must be durable https:// URLs")
     if record.get("CLEAN_IDLE") == "YES" and record.get("NEXT_EXECUTABLE_ACTION") not in ("NONE", "none"):
-        raise LedgerError("CLEAN_IDLE=YES is forbidden when NEXT_EXECUTABLE_ACTION is not NONE")
+        raise CleanIdleError("CLEAN_IDLE=YES is forbidden when NEXT_EXECUTABLE_ACTION is not NONE")
     if record.get("CLEAN_IDLE") == "YES" and record.get("UNPROVEN_EDGES"):
-        raise LedgerError("CLEAN_IDLE=YES is forbidden while UNPROVEN_EDGES is not empty")
+        raise CleanIdleError("CLEAN_IDLE=YES is forbidden while UNPROVEN_EDGES is not empty")
     if record.get("CLEAN_IDLE") == "YES" and record.get("STATUS") in ("READY", "WAITING_PROVIDER", "DISPATCHED", "RUNNING", "BLOCKED", "TEST"):
-        raise LedgerError(f"CLEAN_IDLE=YES is forbidden when STATUS is {record.get('STATUS')}")
+        raise CleanIdleError(f"CLEAN_IDLE=YES is forbidden when STATUS is {record.get('STATUS')}")
 
 
 def validate_guard(guard: Any) -> None:
@@ -200,30 +244,30 @@ def validate_guard(guard: Any) -> None:
         "evidence",
         "acceptance_predicate",
     }:
-        raise LedgerError("acceptance_guard fields do not match schema version 2")
+        raise ValidationError("acceptance_guard fields do not match schema version 2")
     reject_secrets(guard, "acceptance_guard")
     if guard["flow"] != FLOW:
-        raise LedgerError("acceptance_guard flow is invalid")
+        raise ValidationError("acceptance_guard flow is invalid")
     if guard["transition_state"] not in TRANSITION_STATES:
-        raise LedgerError("transition_state must be PROVISIONAL or CANONICAL_ACCEPTED")
+        raise ValidationError("transition_state must be PROVISIONAL or CANONICAL_ACCEPTED")
     binding = guard["binding"]
     if not isinstance(binding, dict) or set(binding) != {
         "branch",
         "current_sha",
         "runtime_identity",
     }:
-        raise LedgerError("acceptance_guard binding is invalid")
+        raise ValidationError("acceptance_guard binding is invalid")
     _nonempty_string(binding["branch"], "acceptance_guard.binding.branch")
     if not SHA_RE.fullmatch(binding["current_sha"]):
-        raise LedgerError("acceptance_guard binding requires a full Git SHA")
+        raise ValidationError("acceptance_guard binding requires a full Git SHA")
     _nonempty_string(
         binding["runtime_identity"], "acceptance_guard.binding.runtime_identity"
     )
     if guard["worker_state"] not in WORKER_STATES:
-        raise LedgerError("acceptance_guard worker_state is invalid")
+        raise ValidationError("acceptance_guard worker_state is invalid")
     evidence = guard["evidence"]
     if not isinstance(evidence, list) or not evidence:
-        raise LedgerError("acceptance_guard evidence must be a non-empty array")
+        raise ValidationError("acceptance_guard evidence must be a non-empty array")
     evidence_urls = set()
     valid_bound_urls = set()
     for index, item in enumerate(evidence):
@@ -239,44 +283,44 @@ def validate_guard(guard: Any) -> None:
             "producer_id",
             "verifier_id"
         }) or not {"source_url", "source_type", "observed_at", "evidence_sha", "runtime_binding", "validity", "reason"}.issubset(set(item)):
-            raise LedgerError(f"{path} fields are invalid")
+            raise ValidationError(f"{path} fields are invalid")
         if not isinstance(item["source_url"], str) or not item["source_url"].startswith(
             "https://"
         ):
-            raise LedgerError(f"{path}.source_url must be a durable https:// URL")
+            raise ValidationError(f"{path}.source_url must be a durable https:// URL")
         if item["source_type"] not in EVIDENCE_SOURCE_TYPES:
-            raise LedgerError(f"{path}.source_type is invalid")
+            raise ValidationError(f"{path}.source_type is invalid")
         if not isinstance(item["observed_at"], str) or not TIMESTAMP_RE.fullmatch(
             item["observed_at"]
         ):
-            raise LedgerError(f"{path}.observed_at must be UTC second precision")
+            raise ValidationError(f"{path}.observed_at must be UTC second precision")
         try:
             obs_dt = datetime.strptime(item["observed_at"], "%Y-%m-%dT%H:%M:%SZ")
         except ValueError:
-            raise LedgerError(f"{path}.observed_at must be UTC second precision")
+            raise ValidationError(f"{path}.observed_at must be UTC second precision")
         future_skew = (obs_dt - datetime.utcnow()).total_seconds()
         if future_skew > MAX_FUTURE_CLOCK_SKEW_SECONDS:
-            raise LedgerError(
+            raise FreshnessError(
                 f"{path}.observed_at future timestamp exceeds "
                 f"{MAX_FUTURE_CLOCK_SKEW_SECONDS}-second clock skew"
             )
         if not SHA_RE.fullmatch(item["evidence_sha"]):
-            raise LedgerError(f"{path}.evidence_sha must be a full Git SHA")
+            raise ValidationError(f"{path}.evidence_sha must be a full Git SHA")
         _nonempty_string(item["runtime_binding"], f"{path}.runtime_binding")
         if item["validity"] not in EVIDENCE_VALIDITY:
-            raise LedgerError(f"{path}.validity is invalid")
+            raise ValidationError(f"{path}.validity is invalid")
         _nonempty_string(item["reason"], f"{path}.reason")
         if item["source_url"] in evidence_urls:
-            raise LedgerError("acceptance_guard evidence URLs must be unique")
+            raise ValidationError("acceptance_guard evidence URLs must be unique")
         evidence_urls.add(item["source_url"])
         bound = (
             item["evidence_sha"] == binding["current_sha"]
             and item["runtime_binding"] == binding["runtime_identity"]
         )
         if item["validity"] == "VALID" and not bound:
-            raise LedgerError(f"{path} marked VALID with mismatched SHA/runtime binding")
+            raise BindingError(f"{path} marked VALID with mismatched SHA/runtime binding")
         if item["validity"] == "STALE" and bound:
-            raise LedgerError(f"{path} marked STALE despite matching SHA/runtime binding")
+            raise BindingError(f"{path} marked STALE despite matching SHA/runtime binding")
         if item["validity"] == "VALID":
             valid_bound_urls.add(item["source_url"])
     predicate = guard["acceptance_predicate"]
@@ -286,7 +330,7 @@ def validate_guard(guard: Any) -> None:
         "required_results",
         "results",
     }:
-        raise LedgerError("acceptance_predicate fields are invalid")
+        raise ValidationError("acceptance_predicate fields are invalid")
     _nonempty_string(predicate["name"], "acceptance_predicate.name")
     _nonempty_string(predicate["version"], "acceptance_predicate.version")
     required_results = predicate["required_results"]
@@ -297,39 +341,39 @@ def validate_guard(guard: Any) -> None:
         or any(not isinstance(name, str) or not name for name in required_results)
         or len(set(required_results)) != len(required_results)
     ):
-        raise LedgerError("acceptance_predicate.required_results is invalid")
+        raise ValidationError("acceptance_predicate.required_results is invalid")
     if not isinstance(results, dict) or set(results) != set(required_results):
-        raise LedgerError("acceptance_predicate results must match required_results")
+        raise ValidationError("acceptance_predicate results must match required_results")
     for name, result in results.items():
         if not isinstance(result, dict) or set(result) != {
             "status",
             "observed_value",
             "evidence_urls",
         }:
-            raise LedgerError(f"predicate result {name} fields are invalid")
+            raise ValidationError(f"predicate result {name} fields are invalid")
         if result["status"] not in PREDICATE_STATUS:
-            raise LedgerError(f"predicate result {name} status is invalid")
+            raise ValidationError(f"predicate result {name} status is invalid")
         _nonempty_string(result["observed_value"], f"predicate result {name}")
         if (
             not isinstance(result["evidence_urls"], list)
             or any(url not in evidence_urls for url in result["evidence_urls"])
         ):
-            raise LedgerError(f"predicate result {name} evidence URLs are invalid")
+            raise ValidationError(f"predicate result {name} evidence URLs are invalid")
         if result["status"] == "PASS" and (
             not result["evidence_urls"]
             or any(url not in valid_bound_urls for url in result["evidence_urls"])
         ):
-            raise LedgerError(f"predicate result {name} PASS lacks valid bound evidence")
+            raise ValidationError(f"predicate result {name} PASS lacks valid bound evidence")
     if guard["transition_state"] == "CANONICAL_ACCEPTED" and any(
         result["status"] != "PASS" for result in results.values()
     ):
-        raise LedgerError("CANONICAL_ACCEPTED requires every predicate result to PASS")
+        raise ValidationError("CANONICAL_ACCEPTED requires every predicate result to PASS")
     if guard["transition_state"] == "CANONICAL_ACCEPTED" and not any(
         item["source_type"] == "MACHINE_ARTIFACT"
         and item["validity"] == "VALID"
         for item in evidence
     ):
-        raise LedgerError("CANONICAL_ACCEPTED requires a valid bound machine artifact")
+        raise ValidationError("CANONICAL_ACCEPTED requires a valid bound machine artifact")
 
 
 def validate_guard_binding(record: dict[str, Any], guard: dict[str, Any]) -> None:
@@ -339,7 +383,7 @@ def validate_guard_binding(record: dict[str, Any], guard: dict[str, Any]) -> Non
         or binding["current_sha"] != record["CURRENT_SHA"]
         or binding["runtime_identity"] != record["RUNTIME_IDENTITY"]
     ):
-        raise LedgerError("acceptance_guard binding does not match current record")
+        raise BindingError("acceptance_guard binding does not match current record")
 
 
 def _entry_hash(entry: dict[str, Any]) -> str:
@@ -349,7 +393,7 @@ def _entry_hash(entry: dict[str, Any]) -> str:
 
 def validate_bundle(bundle: Any) -> dict[str, Any]:
     if not isinstance(bundle, dict):
-        raise LedgerError("ledger root must be a JSON object")
+        raise ValidationError("ledger root must be a JSON object")
     base_fields = {
         "format",
         "schema_version",
@@ -361,14 +405,14 @@ def validate_bundle(bundle: Any) -> dict[str, Any]:
     schema_version = bundle.get("schema_version")
     required = base_fields if schema_version == 1 else base_fields | {"acceptance_guard"}
     if set(bundle) != required:
-        raise LedgerError("ledger root fields do not match the canonical format")
+        raise ValidationError("ledger root fields do not match the canonical format")
     if bundle["format"] != FORMAT or schema_version not in {1, SCHEMA_VERSION}:
-        raise LedgerError("unsupported ledger format or schema version")
+        raise ValidationError("unsupported ledger format or schema version")
     if bundle["non_authority"] != NON_AUTHORITY:
-        raise LedgerError("non-authority declaration is missing or changed")
+        raise ValidationError("non-authority declaration is missing or changed")
     revision = bundle["revision"]
     if not isinstance(revision, int) or isinstance(revision, bool) or revision < 0:
-        raise LedgerError("revision must be a non-negative integer")
+        raise ValidationError("revision must be a non-negative integer")
     validate_record(bundle["record"], allow_unknown_sha=revision == 0)
     if schema_version == SCHEMA_VERSION:
         validate_guard(bundle["acceptance_guard"])
@@ -378,16 +422,16 @@ def validate_bundle(bundle: Any) -> dict[str, Any]:
             and bundle["acceptance_guard"]["transition_state"]
             != "CANONICAL_ACCEPTED"
         ):
-            raise LedgerError("CLEAN_IDLE=YES requires a CANONICAL_ACCEPTED guard")
+            raise CleanIdleError("CLEAN_IDLE=YES requires a CANONICAL_ACCEPTED guard")
     history = bundle["history"]
     if not isinstance(history, list) or len(history) != revision + 1:
-        raise LedgerError("history must contain exactly one entry per revision")
+        raise ValidationError("history must contain exactly one entry per revision")
     previous_hash = None
     previous_record = None
     previous_guard = None
     for index, entry in enumerate(history):
         if not isinstance(entry, dict):
-            raise LedgerError(f"history entry {index} must be an object")
+            raise ValidationError(f"history entry {index} must be an object")
         v1_fields = {
             "revision",
             "timestamp_utc",
@@ -402,24 +446,24 @@ def validate_bundle(bundle: Any) -> dict[str, Any]:
         v2_fields = v1_fields | {"acceptance_guard", "state_sha256"}
         entry_version = 2 if set(entry) == v2_fields else 1
         if set(entry) != v1_fields and set(entry) != v2_fields:
-            raise LedgerError(f"history entry {index} fields are invalid")
+            raise ValidationError(f"history entry {index} fields are invalid")
         if entry["revision"] != index:
-            raise LedgerError(f"history entry {index} revision is invalid")
+            raise ValidationError(f"history entry {index} revision is invalid")
         if entry["operation"] not in {"INIT", "UPDATE"}:
-            raise LedgerError(f"history entry {index} operation is invalid")
+            raise ValidationError(f"history entry {index} operation is invalid")
         if index == 0 and entry["operation"] != "INIT":
-            raise LedgerError("first history entry must be INIT")
+            raise ValidationError("first history entry must be INIT")
         if index > 0 and entry["operation"] != "UPDATE":
-            raise LedgerError(f"history entry {index} must be UPDATE")
+            raise ValidationError(f"history entry {index} must be UPDATE")
         if not isinstance(entry["changed_fields"], list) or entry["changed_fields"] != sorted(
             entry["changed_fields"]
         ):
-            raise LedgerError(f"history entry {index} changed_fields are invalid")
+            raise ValidationError(f"history entry {index} changed_fields are invalid")
         allowed_changes = set(RECORD_FIELDS) | {"@ACCEPTANCE_GUARD"}
         if not entry["changed_fields"] or not set(entry["changed_fields"]).issubset(
             allowed_changes
         ):
-            raise LedgerError(f"history entry {index} changed_fields are invalid")
+            raise ValidationError(f"history entry {index} changed_fields are invalid")
         _nonempty_string(entry["timestamp_utc"], f"history[{index}].timestamp_utc")
         _nonempty_string(entry["updated_by"], f"history[{index}].updated_by")
         validate_record(entry["record"], allow_unknown_sha=index == 0)
@@ -440,11 +484,11 @@ def validate_bundle(bundle: Any) -> dict[str, Any]:
             expected_changed.append("@ACCEPTANCE_GUARD")
             expected_changed.sort()
         if entry["changed_fields"] != expected_changed:
-            raise LedgerError(f"history entry {index} changed_fields do not match record: {entry['changed_fields']} != {expected_changed}")
+            raise ValidationError(f"history entry {index} changed_fields do not match record: {entry['changed_fields']} != {expected_changed}")
         if entry["updated_by"] != entry["record"]["LAST_UPDATED_BY"]:
-            raise LedgerError(f"history entry {index} updated_by does not match record")
+            raise ValidationError(f"history entry {index} updated_by does not match record")
         if entry["record_sha256"] != digest(entry["record"]):
-            raise LedgerError(f"history entry {index} record hash is invalid")
+            raise ValidationError(f"history entry {index} record hash is invalid")
         if entry_version == 2:
             validate_guard(entry["acceptance_guard"])
             validate_guard_binding(entry["record"], entry["acceptance_guard"])
@@ -454,27 +498,27 @@ def validate_bundle(bundle: Any) -> dict[str, Any]:
                     "acceptance_guard": entry["acceptance_guard"],
                 }
             ):
-                raise LedgerError(f"history entry {index} state hash is invalid")
+                raise ValidationError(f"history entry {index} state hash is invalid")
         if entry["previous_entry_sha256"] != previous_hash:
-            raise LedgerError(f"history entry {index} chain is invalid")
+            raise ValidationError(f"history entry {index} chain is invalid")
         if entry["entry_sha256"] != _entry_hash(entry):
-            raise LedgerError(f"history entry {index} hash is invalid")
+            raise ValidationError(f"history entry {index} hash is invalid")
         previous_hash = entry["entry_sha256"]
         previous_record = entry["record"]
         previous_guard = entry.get("acceptance_guard")
     if history[-1]["record"] != bundle["record"]:
-        raise LedgerError("current record does not match the latest history entry")
+        raise ValidationError("current record does not match the latest history entry")
     if schema_version == SCHEMA_VERSION and (
         "acceptance_guard" not in history[-1]
         or history[-1]["acceptance_guard"] != bundle["acceptance_guard"]
     ):
-        raise LedgerError("current acceptance_guard does not match latest history")
+        raise ValidationError("current acceptance_guard does not match latest history")
     return bundle
 
 
 def load_bundle(path: Path) -> dict[str, Any]:
     if path.is_symlink():
-        raise LedgerError(f"refusing symlink ledger path: {path}")
+        raise StorageError(f"refusing symlink ledger path: {path}")
     import time
     for attempt in range(20):
         try:
@@ -482,16 +526,16 @@ def load_bundle(path: Path) -> dict[str, Any]:
             break
         except PermissionError as exc:
             if attempt == 19:
-                raise LedgerError(f"cannot read ledger {path}: {exc}") from exc
+                raise StorageError(f"cannot read ledger {path}: {exc}") from exc
             time.sleep(0.05)
         except FileNotFoundError as exc:
-            raise LedgerError(f"ledger does not exist: {path}") from exc
+            raise StorageError(f"ledger does not exist: {path}") from exc
         except OSError as exc:
-            raise LedgerError(f"cannot read ledger {path}: {exc}") from exc
+            raise StorageError(f"cannot read ledger {path}: {exc}") from exc
     try:
         return validate_bundle(json.loads(raw))
     except json.JSONDecodeError as exc:
-        raise LedgerError(f"ledger is corrupt JSON: {exc}") from exc
+        raise StorageError(f"ledger is corrupt JSON: {exc}") from exc
 
 
 def _fsync_directory(directory: Path) -> None:
@@ -516,7 +560,7 @@ def atomic_write(path: Path, bundle: dict[str, Any]) -> None:
     parent = path.parent
     parent.mkdir(parents=True, exist_ok=True)
     if path.is_symlink():
-        raise LedgerError(f"refusing symlink ledger path: {path}")
+        raise StorageError(f"refusing symlink ledger path: {path}")
     descriptor, temporary_name = tempfile.mkstemp(
         prefix=f".{path.name}.", suffix=".tmp", dir=parent
     )
@@ -545,11 +589,11 @@ def atomic_write(path: Path, bundle: dict[str, Any]) -> None:
 @contextlib.contextmanager
 def writer_lock(path: Path, timeout: float) -> Iterator[None]:
     if timeout < 0 or timeout > 60:
-        raise LedgerError("lock timeout must be between 0 and 60 seconds")
+        raise StorageError("lock timeout must be between 0 and 60 seconds")
     lock_path = path.with_name(f"{path.name}.lock")
     lock_path.parent.mkdir(parents=True, exist_ok=True)
     if lock_path.is_symlink():
-        raise LedgerError(f"refusing symlink lock path: {lock_path}")
+        raise StorageError(f"refusing symlink lock path: {lock_path}")
     with lock_path.open("a+b") as stream:
         stream.seek(0, os.SEEK_END)
         if stream.tell() == 0:
@@ -565,9 +609,9 @@ def writer_lock(path: Path, timeout: float) -> Iterator[None]:
                     errno.EACCES,
                     errno.EAGAIN,
                 }:
-                    raise LedgerError(f"cannot acquire writer lock: {exc}") from exc
+                    raise StorageError(f"cannot acquire writer lock: {exc}") from exc
                 if time.monotonic() >= deadline:
-                    raise LedgerError(
+                    raise StorageError(
                         f"writer lock busy after {timeout:.2f}s: {lock_path}"
                     ) from exc
                 time.sleep(min(0.05, max(0.0, deadline - time.monotonic())))
@@ -632,9 +676,9 @@ def initialize(
     path: Path, record: dict[str, Any], guard: dict[str, Any], timeout: float
 ) -> dict[str, Any]:
     if guard.get("transition_state") == "CANONICAL_ACCEPTED":
-        raise LedgerError("INIT cannot start with CANONICAL_ACCEPTED")
+        raise InitializationError("INIT cannot start with CANONICAL_ACCEPTED")
     if record.get("CLEAN_IDLE") == "YES":
-        raise LedgerError("INIT cannot start with CLEAN_IDLE=YES")
+        raise InitializationError("INIT cannot start with CLEAN_IDLE=YES")
     
     guard["transition_state"] = "PROVISIONAL"
 
@@ -643,7 +687,7 @@ def initialize(
     validate_guard_binding(record, guard)
     with writer_lock(path, timeout):
         if path.exists():
-            raise LedgerError(f"ledger already exists: {path}")
+            raise InitializationError(f"ledger already exists: {path}")
         bundle = {
             "format": FORMAT,
             "schema_version": SCHEMA_VERSION,
@@ -678,12 +722,12 @@ def update(
 ) -> dict[str, Any]:
     _nonempty_string(updated_by, "updated_by")
     if not updates:
-        raise LedgerError("at least one --set update is required")
+        raise ValidationError("at least one --set update is required")
     invalid = sorted(set(updates) - set(RECORD_FIELDS))
     if invalid:
-        raise LedgerError(f"unknown record fields: {invalid}")
+        raise ValidationError(f"unknown record fields: {invalid}")
     if "LAST_UPDATED_BY" in updates:
-        raise LedgerError("use --updated-by instead of setting LAST_UPDATED_BY")
+        raise ValidationError("use --updated-by instead of setting LAST_UPDATED_BY")
     reject_secrets(updates, "updates")
     with writer_lock(path, timeout):
         bundle = load_bundle(path)
@@ -700,9 +744,9 @@ def update(
                     first_observed_map[url] = e.get("observed_at")
                     
         if bundle["revision"] != expected_revision:
-            raise LedgerError(
+            raise RevisionConflictError(
                 f"revision conflict: expected {expected_revision}, "
-                f"current {bundle['revision']}"
+                f"but currently at {bundle['revision']}"
             )
         record = copy.deepcopy(bundle["record"])
         changed = []
@@ -716,11 +760,11 @@ def update(
         old_all_edges = set(bundle["record"].get("UNPROVEN_EDGES", [])) | set(bundle["record"].get("PROVEN_EDGES", []))
         new_all_edges = set(record.get("UNPROVEN_EDGES", [])) | set(record.get("PROVEN_EDGES", []))
         if old_all_edges != new_all_edges:
-            raise LedgerError(f"edge conservation violated: old={old_all_edges}, new={new_all_edges}")
+            raise EdgeConservationError(f"edge conservation violated: old={old_all_edges}, new={new_all_edges}")
         validate_record(record, allow_unknown_sha=False)
         if guard is None:
             if bundle["schema_version"] == 1:
-                raise LedgerError("schema version 1 update requires --guard")
+                raise ValidationError("schema version 1 update requires --guard")
             guard = copy.deepcopy(bundle["acceptance_guard"])
         # Auto-derive Guard Acceptance from Evidence
         evidence = guard.get("evidence", [])
@@ -762,7 +806,7 @@ def update(
         logger.debug("unproven=%s, has_physical_proof=%s", unproven, has_physical_proof)
         if updates.get("CLEAN_IDLE") == "YES" and (unproven or not has_physical_proof):
 
-            raise LedgerError("CLEAN_IDLE=YES is forbidden without pre-existing physical proof and empty unproven edges")
+            raise CleanIdleError("CLEAN_IDLE=YES is forbidden without pre-existing physical proof and empty unproven edges")
 
         if unproven or record.get("STATUS") in ("READY", "WAITING_PROVIDER", "DISPATCHED", "RUNNING"):
             # Cannot be CLEAN_IDLE if work exists or is active; a caller-preset
@@ -814,23 +858,23 @@ def update(
                         old_e = historical_evidence[url]
                         first_obs = first_observed_map.get(url, e.get("observed_at"))
                         if e.get("observed_at") < first_obs:
-                            raise LedgerError(f"monotonicity violation: {url} cannot be back-dated")
+                            raise MonotonicityError(f"monotonicity violation: {url} cannot be back-dated")
                         if old_e["evidence_sha"] != e["evidence_sha"]:
-                            raise LedgerError(f"copied proof: URL {url} was historically bound to SHA {old_e['evidence_sha']} but is now claimed for {e['evidence_sha']}")
+                            raise BindingError(f"copied proof: URL {url} was historically bound to SHA {old_e['evidence_sha']} but is now claimed for {e['evidence_sha']}")
                         if old_e["runtime_binding"] != e["runtime_binding"]:
-                            raise LedgerError(f"copied proof: URL {url} was historically bound to runtime {old_e['runtime_binding']} but is now claimed for {e['runtime_binding']}")
+                            raise BindingError(f"copied proof: URL {url} was historically bound to runtime {old_e['runtime_binding']} but is now claimed for {e['runtime_binding']}")
                             
                     if e.get("source_type") == "MACHINE_ARTIFACT":
                         if updated_by == "Google-Antigravity" or updated_by == e.get("runtime_binding") or updated_by == e.get("producer_id") or updated_by == e.get("verifier_id"):
-                            raise LedgerError("caller-created or self-certifying MACHINE_ARTIFACT evidence rejected")
+                            raise SelfCertificationError("caller-created or self-certifying MACHINE_ARTIFACT evidence rejected")
                         if not e.get("producer_id") or not e.get("verifier_id"):
-                            raise LedgerError("unverifiable producer or verifier in MACHINE_ARTIFACT evidence")
+                            raise SelfCertificationError("unverifiable producer or verifier in MACHINE_ARTIFACT evidence")
                         if e["producer_id"] == e["verifier_id"] or e["producer_id"] == "arbitrary" or e["verifier_id"] == "arbitrary":
-                            raise LedgerError("evidence produced by the acceptance decision path itself or uses arbitrary strings")
+                            raise SelfCertificationError("evidence produced by the acceptance decision path itself or uses arbitrary strings")
             
         if not changed and not guard_changed:
             logger.debug("no meaningful change: updates=%s | record=%s", updates, bundle['record'])
-            raise LedgerError("update makes no meaningful change")
+            raise NoMeaningfulChangeError("update makes no meaningful change")
         if guard_changed:
             changed.append("@ACCEPTANCE_GUARD")
         revision = bundle["revision"] + 1
@@ -904,7 +948,7 @@ def render(bundle: dict[str, Any]) -> str:
 
 def next_action(bundle: dict[str, Any]) -> dict[str, Any]:
     if bundle["schema_version"] != SCHEMA_VERSION:
-        raise LedgerError(
+        raise ValidationError(
             "next-action refused: ledger lacks schema version 2 acceptance guard; "
             "run freshness with authoritative facts and update the stale checkpoint"
         )
@@ -937,7 +981,7 @@ def freshness(
     observed_runtime: str | None = None,
 ) -> dict[str, Any]:
     if not SHA_RE.fullmatch(observed_sha):
-        raise LedgerError("--observed-sha must be a full lowercase 40-character Git SHA")
+        raise ValidationError("--observed-sha must be a full lowercase 40-character Git SHA")
     reasons = []
     record = bundle["record"]
     if record["BRANCH"] != observed_branch:
@@ -996,16 +1040,16 @@ def _read_record(path: str) -> dict[str, Any]:
     try:
         value = json.loads(raw)
     except json.JSONDecodeError as exc:
-        raise LedgerError(f"record input is invalid JSON: {exc}") from exc
+        raise ValidationError(f"record input is invalid JSON: {exc}") from exc
     if not isinstance(value, dict):
-        raise LedgerError("record input must be a JSON object")
+        raise ValidationError("record input must be a JSON object")
     return value
 
 
 def _read_object(path: str, label: str) -> dict[str, Any]:
     value = _read_record(path)
     if not isinstance(value, dict):
-        raise LedgerError(f"{label} must be a JSON object")
+        raise ValidationError(f"{label} must be a JSON object")
     return value
 
 
@@ -1063,7 +1107,7 @@ def main(argv: list[str] | None = None) -> int:
             updates: dict[str, Any] = {}
             for field, value in args.assignments:
                 if field in updates:
-                    raise LedgerError(f"duplicate --set field: {field}")
+                    raise ValidationError(f"duplicate --set field: {field}")
                 updates[field] = value
             bundle = update(
                 args.ledger,
