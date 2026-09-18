@@ -7,6 +7,7 @@ import hashlib
 import base64
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -30,6 +31,7 @@ IDENTITY_FIELDS = (
     "worker_id",
 )
 ALLOW_LIST = {"metadata", "report", "deterministic_transform", "verify_file", "static_analysis", "run_tests"}
+SAFE_DISPATCH_RE = re.compile(r"^[A-Za-z0-9._-]{1,128}$")
 
 
 def run_cmd(command: list[str]) -> tuple[int, str, str]:
@@ -71,6 +73,8 @@ def validate_task(task: dict[str, Any]) -> None:
         raise ValueError(f"TaskPacket is missing required identity fields: {', '.join(missing)}")
     if task.get("task_type", task.get("type")) not in ALLOW_LIST:
         raise ValueError("TaskPacket has an unsupported bounded task type")
+    if not SAFE_DISPATCH_RE.fullmatch(task["dispatch_id"]):
+        raise ValueError("TaskPacket dispatch_id is not path-safe")
 
 
 def find_run(dispatch_id: str) -> tuple[str | None, str | None]:
@@ -117,7 +121,10 @@ def verify_result(task: dict[str, Any], result: dict[str, Any], evidence: dict[s
     if not isinstance(artifacts, list) or len(artifacts) != 1:
         raise ValueError("successful DurableResult requires one evidence artifact")
     artifact = artifacts[0]
-    evidence_file = directory / artifact.get("path", "")
+    expected_evidence_name = f"courier_output_{task['dispatch_id']}.json"
+    if artifact.get("path") != expected_evidence_name:
+        raise ValueError("evidence artifact path is not dispatch-bound")
+    evidence_file = directory / expected_evidence_name
     if not evidence_file.is_file() or artifact.get("sha256") != hashlib.sha256(evidence_file.read_bytes()).hexdigest():
         raise ValueError("evidence artifact hash does not match")
     operation = result["operation"]

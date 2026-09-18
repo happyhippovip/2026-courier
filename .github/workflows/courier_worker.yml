@@ -42,6 +42,7 @@ jobs:
           import base64
           import json
           import os
+          import re
           import subprocess
           import sys
           from pathlib import Path, PurePosixPath
@@ -52,6 +53,8 @@ jobs:
               raise ValueError("TaskPacket is missing required identity fields")
           if task["dispatch_id"] != os.environ["DISPATCH_ID"]:
               raise ValueError("TaskPacket dispatch_id does not match workflow input")
+          if not re.fullmatch(r"[A-Za-z0-9._-]{1,128}", task["dispatch_id"]):
+              raise ValueError("TaskPacket dispatch_id is not path-safe")
           operation = task.get("task_type", task.get("type"))
           allowed = {"metadata", "report", "deterministic_transform", "verify_file", "static_analysis", "run_tests"}
           if operation not in allowed:
@@ -119,11 +122,12 @@ jobs:
           status=$?
           if [ "$status" -ne 0 ]; then
             python3 - <<'PY'
-          import base64, json, os
+          import base64, json, os, re
           from pathlib import Path
           task = json.loads(base64.b64decode(os.environ["TASK_PAYLOAD_BASE64"], validate=True))
           fields = ("goal_id", "task_id", "attempt_id", "dispatch_id", "execution_ref", "worker_id")
-          if all(isinstance(task.get(field), str) and task[field] for field in fields):
+          if (all(isinstance(task.get(field), str) and task[field] for field in fields)
+                  and re.fullmatch(r"[A-Za-z0-9._-]{1,128}", task["dispatch_id"])):
               Path(f"result_{task['dispatch_id']}.json").write_text(json.dumps({
                   **{field: task[field] for field in fields}, "provider": "github",
                   "run_id": os.environ["GITHUB_RUN_ID"], "run_attempt": os.environ["GITHUB_RUN_ATTEMPT"],
