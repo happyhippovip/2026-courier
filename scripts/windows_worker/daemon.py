@@ -19,7 +19,7 @@ API_URL = os.environ.get("COURIER_SERVER") or _cfg.get("COURIER_SERVER") or "htt
 # API_KEY: environment variable or OS keyring ONLY — never from config.json or hardcoded defaults.
 try:
     import keyring as _keyring
-    API_KEY = os.environ.get("COURIER_API_KEY") or _keyring.get_password("courier_worker", "COURIER_API_KEY")
+    API_KEY = os.environ.get("COURIER_API_KEY") or _keyring.get_password("courier_worker", "courier_api_key") or _keyring.get_password("courier_worker", "COURIER_API_KEY")
 except ImportError:
     API_KEY = os.environ.get("COURIER_API_KEY")
 
