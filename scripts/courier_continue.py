@@ -492,7 +492,7 @@ def main():
                     bundle = update_ledger(ledger_path, "CLEAN_IDLE_ACHIEVED", None, bundle)
                 except Exception as e:
                     pass
-            if args.once and not running_tasks and 'once_dispatched' in locals():
+            if args.once and not running_tasks and ('done_edges' not in locals() or not done_edges) and 'once_dispatched' in locals():
                 sys.exit(0)
             if "MOCK_SHA" in os.environ:
                 mock_iters += 1
@@ -570,7 +570,7 @@ def main():
         time.sleep(0.1 if 'MOCK_SHA' in os.environ else 1.0)
 
         
-        if args.once and not running_tasks and 'once_dispatched' in locals():
+        if args.once and not running_tasks and ('done_edges' not in locals() or not done_edges) and 'once_dispatched' in locals():
             sys.exit(0)
         if "MOCK_SHA" in os.environ:
             mock_iters += 1
