@@ -111,3 +111,7 @@ Probes: /tmp/dlq01_refresh.py, /tmp/dlq02_refresh.py, /tmp/dlq03_refresh.py,
 - Windows prep: DLQ-06 behavioral harness /tmp/windows_ledger_race_inject.py
   demonstrates writer-side PermissionError crash under simulated Win32
   semantics → ops/ai/packets/WINDOWS_DLQ06-race-prep.md (zero Windows claims)
+- iter6 (2026-09-18T12:11:42+02:00): checkpoint state-lag corrected
+  (fields named 2ee8d905, live HEAD/push already 8c194f54); HEAD equals
+  origin, no drift; foreign session ACTIVE (heartbeat seconds old) -
+  hands-off, 8-file draft still uncommitted; no test runs (hot session)

@@ -59,24 +59,24 @@ scheduler:
   on_human_gate: GATE_ONLY_EXACT_ACTION_AND_SELECT_NEXT_SAFE_LANE
 
 checkpoint:
-  iteration: 5
-  last_verified_head: 2ee8d9057347e813ffa3f31f3d0fc6f6b3396109
-  last_remote_head: 2ee8d9057347e813ffa3f31f3d0fc6f6b3396109
+  iteration: 6
+  last_verified_head: 8c194f5467fc0289a52601f96311aa6526cb19a6
+  last_remote_head: 8c194f5467fc0289a52601f96311aa6526cb19a6
   current_lane: SHARED_MEMORY_MAINTENANCE
-  current_task: verify-no-drift plus checkpoint-iter5 plus draft review record
-  last_action: reviewed foreign worktree draft read-only (DLQ-01 check-b,
-    48h window, monotonicity, demotion removal all match forge); verified
-    DLQ-01/02/A/B/C/D blocked and ledger suites 29/29 green against draft;
-    no drift (HEAD equals origin); no test runs this turn (foreign hot)
+  current_task: iter6 state catch-up plus foreign-active watch
+  last_action: caught up checkpoint state (iter5 commit 8c194f54 was live
+    but fields still named 2ee8d905 - corrected); verified HEAD equals
+    origin; foreign session ACTIVE (heartbeat seconds old) - hands-off,
+    8-file draft still uncommitted; no test runs this turn (foreign hot)
   last_test: dlq01/02/03 refresh plus redteam2 plus ledger 5-file suite
-    against worktree draft (29 passed, prior turn)
+    against worktree draft (29 passed, two turns back)
   last_test_result: GREEN draft state - 6 previously-red tests green again
     after demotion removal; parked 4 review notes for owner
-  last_commit: 2ee8d905
-  last_push: 2ee8d905
+  last_commit: 8c194f54
+  last_push: 8c194f54
   blocker: NONE
   next_action: RECOMPUTE_FRONTIER_NEXT_TURN
-  heartbeat_utc: 2026-09-18T12:08:36+02:00
+  heartbeat_utc: 2026-09-18T12:11:42+02:00
   packets_ready:
   - ops/ai/packets/CODEX_DLQ05-provider-lock.md (new, CODEX_READY)
   - ops/ai/packets/DLQ-07-FOLLOWUP-overblock.md (new, READY_TO_IMPLEMENT YES)
@@ -88,6 +88,7 @@ checkpoint:
   - ops/ai/packets/DLQ-07_review_packet.md (CLOSED by 8918bc8f, verified)
   - ops/ai/packets/DLQ-08_review_packet.md (CLOSED by bbc86b56, verified)
   parked_blockers:
+  - foreign session ACTIVE at iter6 (heartbeat seconds old) - hands-off
   - DLQ-07-FOLLOWUP resolved in worktree draft (awaiting owner commit)
   - DLQ-01 check-c authority + DLQ-02 window (WAITING_FOR_CODEX_DECISION)
   - WATCH server provider_locks gate removed in worktree (owner intent?)
@@ -98,6 +99,8 @@ checkpoint:
     DLQ-08 abandon verified in code
   - draft review (iter5) - check-b plus 48h window plus monotonicity match
     forge; demotion removal resolves over-block; 4 cleanup notes parked
+  - iter6 state-lag find - checkpoint fields named 2ee8d905 while live
+    HEAD/push was already 8c194f54; corrected, ledger now names real HEAD
   - DLQ-05 effective key is worker_id:provider (pools map never populated)
   - author-bracket-typo saga - Bearer [REDACTED] typos cause 401/EQ-false; byte-scan
     discipline (0x20 check + bracket check) for all future auth literals
