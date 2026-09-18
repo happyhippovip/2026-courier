@@ -17,6 +17,16 @@ signatures:
 - name: launchd-absent-torture-gate
   evidence: test_tomato_two_torture.py:130 requires com.courier.mac_worker
   response: user authorization lane, do not self-install persistent agents
+- name: ledger-zero-update-preset
+  evidence: revision-0 CANONICAL_ACCEPTED bundle via initialize() with planted
+    artifact loads clean (DLQ-07, live 2026-09-18)
+  response: INIT-must-be-PROVISIONAL structural check; see DLQ-07 packet
+- name: ledger-future-proof-promotion
+  evidence: 2030-dated VALID bound artifact promotes step2 (DLQ-02 variant, live)
+  response: freshness window must bound both directions; see DLQ-02 packet
+- name: ledger-ghost-attester-promotion
+  evidence: invented producer/verifier strings promote step2 (DLQ-01 variant, live)
+  response: server-derived attester authority required; see DLQ-01 packet
 - name: uncoordinated-provider-429
   evidence: 10 tasks independent retry instead of global credential pool backoff
   response: Ensure provider_locks is maintained per worker quota pool and checked

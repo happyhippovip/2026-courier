@@ -162,6 +162,26 @@ tasks:
   owner: Google (ledger init trust design)
   ready_to_implement: false
   packet: ops/ai/packets/DLQ-07_review_packet.md
+- id: DLQ-08
+  priority: P1
+  last_reproduced_head: 82bbe090
+  title: hung task wedges motor, no bounded drain timeout
+  evidence: code fact - bare future.result() at scripts/courier_continue.py
+    line 527 plus zero deadline or drain identifiers in file. Bounded owned-PID
+    demo /tmp/motor_hang_bound.py proves the exact call pattern blocks past an
+    8s deadline. One hung thread parks --once forever, violating the drain
+    half of the DLQ-04 invariant.
+  exact_file: scripts/courier_continue.py
+  exact_function: main() done_edges drain loop result call plus missing loop
+    wall-clock bound
+  reproduction: /tmp/motor_hang_demo.py plus /tmp/motor_hang_bound.py
+  expected_invariant: ONE HUNG TASK is not a WEDGED MOTOR. Per-result timeout
+    plus loop deadline, hung edge recorded blocked, run exits bounded.
+  targeted_test: hung-task bounded-exit test (hangs forever today)
+  negative_test: healthy tasks settle identically, no slot leak, no orphans
+  owner: foreign/motor (packet only, do not race)
+  ready_to_implement: YES (with owner)
+  packet: ops/ai/packets/DLQ-08_review_packet.md
 notes:
 - B-candidate COURIER_STATE_DIR vs COURIER_STATE_FILE OMITTED: only COURIER_STATE_FILE
     exists at current HEAD (tests/test_windows_runtime_torture.py:19); no mismatch
