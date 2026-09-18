@@ -13,7 +13,7 @@ try:
         FileManifestTracker,
         TaskDedupeEngine
     )
-    from scripts.agent_handoff_ledger import freshness, load_bundle, update
+    from scripts.agent_handoff_ledger import freshness, load_bundle, update, NoMeaningfulChangeError, RevisionConflictError
 except ImportError as e:
     print(f"Failed to import required primitives: {e}")
     sys.exit(1)
