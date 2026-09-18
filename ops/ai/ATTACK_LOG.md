@@ -130,3 +130,7 @@ Probes: /tmp/dlq01_refresh.py, /tmp/dlq02_refresh.py, /tmp/dlq03_refresh.py,
   ff-only; 3 new G5 tests reviewed (AST-static x2, tmp-isolated x1) and
   run - 3 passed; frontier part 2 GREEN (draft motor plus overwrite,
   committed server retry)
+- iter9 (2026-09-18T12:19:20+02:00): shared-checkout reconcile - owner
+  955c1261 committed rest-draft plus my iter8 edits (intact); G5 trio
+  rerun vs committed state 3 passed; push DEFERRED (b264aeb9, 0f1d4539,
+  955c1261 owner-local-only); no broad suite (foreign hot, 3s heartbeat)

@@ -59,26 +59,27 @@ scheduler:
   on_human_gate: GATE_ONLY_EXACT_ACTION_AND_SELECT_NEXT_SAFE_LANE
 
 checkpoint:
-  iteration: 8
-  last_verified_head: 0f1d453902b1bc2f11017dc60426d5bf45d610f2
-  last_remote_head: 0f1d453902b1bc2f11017dc60426d5bf45d610f2
+  iteration: 9
+  last_verified_head: 955c12615b562c584753296451f7ed6917fe6d58
+  last_remote_head: 56fa90573dc2ad7a45ac407025ec1113a139b88b
   current_lane: SHARED_MEMORY_MAINTENANCE
-  current_task: iter8 pull plus G5 test review plus green run
-  last_action: pulled owner commits b264aeb9 (3 new G5 tests, pure-add)
-    plus 0f1d4539 (NEXT-WORK G5 PACKETS_COMPLETE) via ff-only, worktree
-    draft preserved; reviewed all 3 tests read-only (2 AST-static,
-    1 tmp-isolated functional); ran them - 3 passed; foreign still
-    ACTIVE - rest-draft untouched
-  last_test: owner G5 batch - motor_swallow plus server_retry plus
-    ledger_overwrite (3 passed, 0.46s, this turn)
-  last_test_result: GREEN - draft motor calls update_ledger in handler;
-    committed server transitions FAILED_TERMINAL without zero-reset;
-    draft update_ledger preserves BLOCKED
-  last_commit: 56fa9057
+  current_task: iter9 shared-checkout reconcile plus push deferral
+  last_action: owner committed 955c1261 locally (DLQ-01/02 preserve) and
+    swept in rest-draft plus my uncommitted iter8 edits (content intact,
+    iteration 8 live at HEAD); shared-checkout model confirmed - owner
+    commits land locally first, push later; reran G5 trio vs COMMITTED
+    state - 3 passed; PUSH DEFERRED - 3 owner commits unpushed,
+    publishing them is owner call; my new commit stays local-only
+  last_test: owner G5 batch vs committed 955c1261 - motor_swallow plus
+    server_retry plus ledger_overwrite (3 passed, 0.39s, this turn)
+  last_test_result: GREEN vs committed state - motor handler calls
+    update_ledger; server FAILED_TERMINAL without zero-reset; ledger
+    preserves BLOCKED
+  last_commit: 955c1261 (owner, local-only)
   last_push: 56fa9057
   blocker: NONE
-  next_action: RECOMPUTE_FRONTIER_NEXT_TURN
-  heartbeat_utc: 2026-09-18T12:17:33+02:00
+  next_action: AWAIT_OWNER_PUSH_THEN_RECOMPUTE
+  heartbeat_utc: 2026-09-18T12:19:20+02:00
   packets_ready:
   - ops/ai/packets/CODEX_DLQ05-provider-lock.md (new, CODEX_READY)
   - ops/ai/packets/DLQ-07-FOLLOWUP-overblock.md (new, READY_TO_IMPLEMENT YES)
