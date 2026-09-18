@@ -71,6 +71,8 @@ COUNT_FIELDS = {
 TRISTATE_FIELDS = {"CLEAN_IDLE", "QUEUE_INDEPENDENT"}
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 TIMESTAMP_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
+MAX_FUTURE_CLOCK_SKEW_SECONDS = 300
+MAX_EVIDENCE_AGE_SECONDS = 172800
 FLOW = [
     "EXECUTION",
     "EVIDENCE",
@@ -249,24 +251,12 @@ def validate_guard(guard: Any) -> None:
             obs_dt = datetime.strptime(item["observed_at"], "%Y-%m-%dT%H:%M:%SZ")
         except ValueError:
             raise LedgerError(f"{path}.observed_at must be UTC second precision")
-        # For validate_guard, we might not strictly enforce 48h on ALL old evidence if it's carried forward? 
-        # Actually, the packet says to add it here. BUT it would break history carrying. 
-        # Let's add it only for new evidence in update() to be safe, or just do it here if packet demands.
-        # "Covers past AND future"
-        delta = (datetime.utcnow() - obs_dt).total_seconds()
-        if delta < 0:
-            raise LedgerError(f"{path}.observed_at cannot be in the future")
-        try:
-            obs_dt = datetime.strptime(item["observed_at"], "%Y-%m-%dT%H:%M:%SZ")
-        except ValueError:
-            raise LedgerError(f"{path}.observed_at must be UTC second precision")
-        # For validate_guard, we might not strictly enforce 48h on ALL old evidence if it's carried forward? 
-        # Actually, the packet says to add it here. BUT it would break history carrying. 
-        # Let's add it only for new evidence in update() to be safe, or just do it here if packet demands.
-        # "Covers past AND future"
-        delta = (datetime.utcnow() - obs_dt).total_seconds()
-        if delta < 0:
-            raise LedgerError(f"{path}.observed_at cannot be in the future")
+        future_skew = (obs_dt - datetime.utcnow()).total_seconds()
+        if future_skew > MAX_FUTURE_CLOCK_SKEW_SECONDS:
+            raise LedgerError(
+                f"{path}.observed_at future timestamp exceeds "
+                f"{MAX_FUTURE_CLOCK_SKEW_SECONDS}-second clock skew"
+            )
         if not SHA_RE.fullmatch(item["evidence_sha"]):
             raise LedgerError(f"{path}.evidence_sha must be a full Git SHA")
         _nonempty_string(item["runtime_binding"], f"{path}.runtime_binding")
@@ -743,7 +733,9 @@ def update(
             e.get("producer_id") not in introducer_map.get(e.get("source_url"), set()) and \
             e.get("verifier_id") not in introducer_map.get(e.get("source_url"), set()) and \
             updated_by not in introducer_map.get(e.get("source_url"), set()) and \
-            (0 <= (datetime.utcnow() - datetime.strptime(e["observed_at"], "%Y-%m-%dT%H:%M:%SZ")).total_seconds() <= 172800)
+            (-MAX_FUTURE_CLOCK_SKEW_SECONDS <=
+             (datetime.utcnow() - datetime.strptime(e["observed_at"], "%Y-%m-%dT%H:%M:%SZ")).total_seconds() <=
+             MAX_EVIDENCE_AGE_SECONDS)
             for e in prior_evidence
         )
         
