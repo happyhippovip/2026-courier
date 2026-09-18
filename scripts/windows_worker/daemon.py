@@ -126,12 +126,12 @@ def run_task(task, config):
     with open(marker_path, "w") as f:
         json.dump(task, f)
 
-    print(f"[{config['WORKER_ID']}] Executing native PowerShell instruction.")
-    cmd = ["powershell", "-Command", instruction]
+    cmd = ["powershell", "-NoProfile", "-NonInteractive", "-Command", "-"]
     try:
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.DEVNULL, text=True, encoding='utf-8', errors='replace', creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
+        flags = subprocess.CREATE_NEW_PROCESS_GROUP if hasattr(subprocess, 'CREATE_NEW_PROCESS_GROUP') else 0
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, text=True, encoding='utf-8', errors='replace', creationflags=flags)
         run_id = str(process.pid)
-        stdout, stderr_out = process.communicate(timeout=600)
+        stdout, stderr_out = process.communicate(input=instruction, timeout=600)
         out_clean = stdout.strip()
         stderr = stderr_out
         status = "SUCCESS" if process.returncode == 0 else "FAILED"

@@ -6,6 +6,6 @@ set COURIER_VERIFIER_API_KEY=local-verifier-key
 
 start "" /B cmd.exe /c ".\scripts\start_motor.bat"
 start "" /B cmd.exe /c ".\scripts\start_verifier.bat"
-start "" /B cmd.exe /c ".\scripts\windows_worker\start.bat"
+start "" /B cmd.exe /c "python -u .\scripts\windows_worker\daemon.py"
 
 echo All services started. Wait a few seconds for initialization.
