@@ -74,11 +74,11 @@ checkpoint:
   last_test_result: GREEN except Google DLQ-07 over-block fallout (6 tests -
     5 false-green + DLQ-03 contract, all fail at INIT setup) and foreign
     worktree deletions (race test file D, adversarial file untracked)
-  last_commit: NONE
-  last_push: NONE
+  last_commit: 29cdb4f5
+  last_push: b3d37bad
   blocker: NONE
-  next_action: COMMIT_COHERENT_BATCH_THEN_RECOMPUTE_FRONTIER
-  heartbeat_utc: 2026-09-18T11:00:00+02:00
+  next_action: RECOMPUTE_FRONTIER_NEXT_TURN
+  heartbeat_utc: 2026-09-18T11:10:00+02:00
   packets_ready:
   - ops/ai/packets/CODEX_DLQ05-provider-lock.md (new, CODEX_READY)
   - ops/ai/packets/DLQ-07-FOLLOWUP-overblock.md (new, READY_TO_IMPLEMENT YES)
