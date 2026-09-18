@@ -59,26 +59,24 @@ scheduler:
   on_human_gate: GATE_ONLY_EXACT_ACTION_AND_SELECT_NEXT_SAFE_LANE
 
 checkpoint:
-  iteration: 4
-  last_verified_head: 9837e5ae735f3075bffa9d3bdf6509002692e1ca
-  last_remote_head: 9837e5ae735f3075bffa9d3bdf6509002692e1ca
-  current_lane: CODEX_FEED
-  current_task: DLQ-05 review packet + DLQ-07-fix regression packet + stale-test updates
-  last_action: verified Google DLQ-06/07/08 fixes against packet invariants
-    (07 closed, 06 retry works, 08 abandon works); packetized DLQ-07 over-block
-    regression (6 tests red); updated 4 stale tests without weakening; all
-    provider suites green single-file
-  last_test: provider batch single-file (stall 1/1, wait 3/3, isolation 1/1,
-    eligibility 23/23) + ledger unaffected set 23/23 + race ride-through +
-    fam_d blocked
-  last_test_result: GREEN except Google DLQ-07 over-block fallout (6 tests -
-    5 false-green + DLQ-03 contract, all fail at INIT setup) and foreign
-    worktree deletions (race test file D, adversarial file untracked)
-  last_commit: 29cdb4f5
-  last_push: b3d37bad
+  iteration: 5
+  last_verified_head: 2ee8d9057347e813ffa3f31f3d0fc6f6b3396109
+  last_remote_head: 2ee8d9057347e813ffa3f31f3d0fc6f6b3396109
+  current_lane: SHARED_MEMORY_MAINTENANCE
+  current_task: verify-no-drift plus checkpoint-iter5 plus draft review record
+  last_action: reviewed foreign worktree draft read-only (DLQ-01 check-b,
+    48h window, monotonicity, demotion removal all match forge); verified
+    DLQ-01/02/A/B/C/D blocked and ledger suites 29/29 green against draft;
+    no drift (HEAD equals origin); no test runs this turn (foreign hot)
+  last_test: dlq01/02/03 refresh plus redteam2 plus ledger 5-file suite
+    against worktree draft (29 passed, prior turn)
+  last_test_result: GREEN draft state - 6 previously-red tests green again
+    after demotion removal; parked 4 review notes for owner
+  last_commit: 2ee8d905
+  last_push: 2ee8d905
   blocker: NONE
   next_action: RECOMPUTE_FRONTIER_NEXT_TURN
-  heartbeat_utc: 2026-09-18T11:10:00+02:00
+  heartbeat_utc: 2026-09-18T12:08:36+02:00
   packets_ready:
   - ops/ai/packets/CODEX_DLQ05-provider-lock.md (new, CODEX_READY)
   - ops/ai/packets/DLQ-07-FOLLOWUP-overblock.md (new, READY_TO_IMPLEMENT YES)
@@ -90,13 +88,16 @@ checkpoint:
   - ops/ai/packets/DLQ-07_review_packet.md (CLOSED by 8918bc8f, verified)
   - ops/ai/packets/DLQ-08_review_packet.md (CLOSED by bbc86b56, verified)
   parked_blockers:
-  - DLQ-07-FOLLOWUP over-block repair (GOOGLE-owned file, 6 tests red)
+  - DLQ-07-FOLLOWUP resolved in worktree draft (awaiting owner commit)
   - DLQ-01 check-c authority + DLQ-02 window (WAITING_FOR_CODEX_DECISION)
-  - foreign worktree deletions (race test D, adversarial ??, ledger +29 uncommitted)
+  - WATCH server provider_locks gate removed in worktree (owner intent?)
+  - foreign worktree deletions (race test D, ledger/motor/server/guards edits)
   - Windows physical execution (machine access required)
   discoveries_completed:
   - DLQ-07 fix verified closed (fam_d blocked); DLQ-06 retry verified working;
     DLQ-08 abandon verified in code
+  - draft review (iter5) - check-b plus 48h window plus monotonicity match
+    forge; demotion removal resolves over-block; 4 cleanup notes parked
   - DLQ-05 effective key is worker_id:provider (pools map never populated)
   - author-bracket-typo saga - Bearer [REDACTED] typos cause 401/EQ-false; byte-scan
     discipline (0x20 check + bracket check) for all future auth literals

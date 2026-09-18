@@ -43,6 +43,21 @@ Probes: /tmp/dlq01_refresh.py, /tmp/dlq02_refresh.py, /tmp/dlq03_refresh.py,
   parked for Google retry — never weaken); DLQ-06 Codex packet completed
   additively (HEAD/commits/T2/T3/attacks/questions); Windows worker commands
   restored as separate packet (foreign rewrite preserved).
+- CONTINUOUS iteration 5 (worktree draft, UNCOMMITTED foreign work, reviewed
+  read-only 12:06 UTC): Google is implementing DLQ-01 check-b (introducer_map
+  in update, no init exemption — matches forge), 48h recency window (172800s
+  in has_physical_proof) + future-rejection in validate_guard, monotonicity
+  per URL, and REMOVED the DLQ-07 demotion loop (over-block resolved).
+  VERIFIED: DLQ-01/02/A/B/C/D all blocked, DLQ-03 holds, ledger suites 29/29
+  green (incl. the 6 previously-red). REVIEW NOTES for owner (not edited):
+  (1) duplicated future-check block + leftover deliberation comments in
+  validate_guard — cleanup before commit; (2) new DEBUG prints
+  (introducer_map/updated_by/unproven) pollute output — remove; (3) WATCH:
+  server/app.py provider_locks enforcement gate removed (blank line left) —
+  if committed as-is, DLQ-05 is silently disabled; needs owner intent;
+  (4) race test file still deleted in worktree — restore/flip, do not drop.
+  Foreign w1-to-w2 edit of test_ledger_fix_guards.py reviewed: consistent
+  with check-b, passes, left in place.
 - CONTINUOUS iteration 4 (HEAD 9837e5ae): Google landed DLQ-06 retry
   (3039126e, verified working via harness), DLQ-07 INIT gate (8918bc8f,
   verified closed via fam_d), DLQ-08 abandon (bbc86b56, code-reviewed),
