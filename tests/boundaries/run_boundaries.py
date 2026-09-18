@@ -58,7 +58,11 @@ def start_server(state_file):
 
 def stop_server(proc):
     proc.terminate()
-    proc.wait()
+    try:
+        proc.wait(timeout=3)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.wait()
 
 def run_tests():
     state_file = "./boundary_state.json"

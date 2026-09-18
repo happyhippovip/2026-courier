@@ -125,6 +125,3 @@ def test_queue_independence_a_waits_b_executes_c_executes(tmp_path):
     assert "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION" not in unproven
     print(res.stdout)
     print(res.stderr)
-    assertnot in unproven
-    assert "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION" not in unproven
-

@@ -92,7 +92,13 @@ def test_queue_independent_daemon(tmp_path):
         p = subprocess.Popen([sys.executable, str(runner), "--run"], env=env, stdout=outf, stderr=outf, start_new_session=True)
     
     # Let it run detached
-    p.wait()
+    try:
+        p.wait(timeout=10)
+    except subprocess.TimeoutExpired:
+        p.terminate()
+        p.kill()
+        assert False, "Daemon run hung and timed out"
+
     
     with open(tmp_path / "daemon.out", "r") as outf:
         output = outf.read()

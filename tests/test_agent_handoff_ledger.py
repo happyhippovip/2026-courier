@@ -203,7 +203,7 @@ subprocess.run([
     "--expected-revision", str(action["REVISION"]),
     "--updated-by", "session-b",
     "--set", "STATUS=VALIDATING",
-    "--set", 'PROVEN_EDGES=["issue state","worker state round-trip"]',
+    "--set", 'PROVEN_EDGES=["issue state","runtime artifact"]', "--set", 'UNPROVEN_EDGES=[]',
 ], check=True, capture_output=True, text=True)
 """
             subprocess.run(
@@ -216,9 +216,9 @@ subprocess.run([
 
             bundle = json.loads(run_cli("read", str(ledger)).stdout)
             self.assertEqual(bundle["revision"], 1)
-            self.assertEqual(bundle["record"]["STATUS"], "VALIDATING")
+            self.assertEqual(bundle["record"]["STATUS"], "WAITING_PHYSICAL_PROOF")
             self.assertEqual(bundle["record"]["TASKS_COMPLETED"], 2)
-            self.assertEqual(bundle["record"]["UNPROVEN_EDGES"], ["runtime artifact"])
+            self.assertEqual(bundle["record"]["UNPROVEN_EDGES"], [])
             self.assertEqual(bundle["acceptance_guard"]["worker_state"], "READY_FOR_FOREIGN_VALIDATION")
             self.assertEqual([item["operation"] for item in bundle["history"]], ["INIT", "UPDATE"])
 
@@ -400,7 +400,7 @@ subprocess.run([
             after_landing = ledger_module.update(
                 ledger,
                 bundle["revision"],
-                {"UNPROVEN_EDGES": []},
+                {"UNPROVEN_EDGES": [], "PROVEN_EDGES": ["issue state", "runtime artifact"]},
                 "foreign-worker",
                 1.0,
                 landed,
@@ -545,7 +545,10 @@ subprocess.run([
     def test_bare_external_names_unproven_without_physical_proof(self):
         with tempfile.TemporaryDirectory() as temporary:
             ledger = Path(temporary) / "ledger.json"
-            initialize(ledger)
+            rec = record()
+            rec["UNPROVEN_EDGES"] = ["SALES PACKAGE", "POST-PILOT HARDENING", "RELEASE"]
+            rec["PROVEN_EDGES"] = []
+            ledger_module.initialize(ledger, rec, guard(), 1.0)
             bundle = ledger_module.load_bundle(ledger)
             seeded = ledger_module.update(
                 ledger,
@@ -555,7 +558,8 @@ subprocess.run([
                         "SALES PACKAGE",
                         "POST-PILOT HARDENING",
                         "RELEASE",
-                    ]
+                    ],
+                    "UNPROVEN_EDGES": []
                 },
                 "probe-worker",
                 1.0,

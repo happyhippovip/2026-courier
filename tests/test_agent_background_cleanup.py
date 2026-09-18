@@ -48,7 +48,9 @@ def main():
             try:
                 p.wait(timeout=1)
             except subprocess.TimeoutExpired:
-                print(f"FAIL: Owned process {p.pid} is still alive!")
+                p.kill()
+                p.wait()
+                print(f"FAIL: Owned process {p.pid} is still alive (and leaked)!")
                 return 1
             
     try:

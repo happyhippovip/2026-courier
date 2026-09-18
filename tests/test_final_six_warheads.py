@@ -147,7 +147,7 @@ def test_warhead_b_self_generated_or_replayed_evidence(tmp_path):
         "verifier_id": "INDEP-VERIFIER",
     })
     guard_foreign["transition_state"] = "CANONICAL_ACCEPTED"
-    result = update(ledger, bundle["revision"], {"UNPROVEN_EDGES": []}, "FOREIGN-WRITER", 5.0, guard_foreign)
+    result = update(ledger, bundle["revision"], {"PROVEN_EDGES": ["issue state", "runtime artifact"], "UNPROVEN_EDGES": []}, "FOREIGN-WRITER", 5.0, guard_foreign)
     # Must remain PROVISIONAL in the same update where evidence is introduced!
     assert result["acceptance_guard"]["transition_state"] == "PROVISIONAL"
     assert result["record"]["CLEAN_IDLE"] != "YES"
@@ -224,7 +224,7 @@ def test_warhead_e_empty_unproven_edges(tmp_path):
     updated = update(
         ledger,
         bundle["revision"],
-        {"UNPROVEN_EDGES": []},
+        {"PROVEN_EDGES": ["issue state", "runtime artifact"], "UNPROVEN_EDGES": []},
         "V-01",
         5.0,
     )
@@ -252,7 +252,7 @@ def test_warhead_f_false_clean_idle(tmp_path):
 
     # 2. CLEAN_IDLE=YES with UNPROVEN_EDGES non-empty is forbidden
     with pytest.raises(LedgerError) as exc:
-        update(ledger, bundle["revision"], {"CLEAN_IDLE": "YES", "NEXT_EXECUTABLE_ACTION": "NONE", "UNPROVEN_EDGES": ["EDGE_1"]}, "V-01", 5.0)
+        update(ledger, bundle["revision"], {"CLEAN_IDLE": "YES", "NEXT_EXECUTABLE_ACTION": "NONE", "UNPROVEN_EDGES": ["runtime artifact"]}, "V-01", 5.0)
     assert "CLEAN_IDLE=YES is forbidden" in str(exc.value)
 
     # 3. CLEAN_IDLE=YES when STATUS is READY/BLOCKED is forbidden
