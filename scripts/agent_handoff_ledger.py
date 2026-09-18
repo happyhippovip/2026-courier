@@ -616,6 +616,18 @@ def _history_entry(
 def initialize(
     path: Path, record: dict[str, Any], guard: dict[str, Any], timeout: float
 ) -> dict[str, Any]:
+    if guard.get("transition_state") == "CANONICAL_ACCEPTED":
+        raise LedgerError("INIT cannot start with CANONICAL_ACCEPTED")
+    if record.get("CLEAN_IDLE") == "YES":
+        raise LedgerError("INIT cannot start with CLEAN_IDLE=YES")
+    
+    # Force PROVISIONAL and strip any planted VALID MACHINE_ARTIFACT
+    guard["transition_state"] = "PROVISIONAL"
+    for ev in guard.get("evidence", []):
+        if ev.get("source_type") == "MACHINE_ARTIFACT" and ev.get("validity") == "VALID":
+            ev["validity"] = "INVALID"
+            ev["reason"] = "INIT cannot plant a pre-validated MACHINE_ARTIFACT"
+
     validate_record(record, allow_unknown_sha=True)
     validate_guard(guard)
     validate_guard_binding(record, guard)
