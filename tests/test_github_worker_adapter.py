@@ -44,7 +44,9 @@ def test_verified_completed_result_posts_and_records_run_attempt(tmp_path: Path,
     monkeypatch.setattr(adapter, "post_result", posted.append)
     assert adapter.run(str(task_file)) == 0
     assert posted[0]["run_id"] == "99"
-    assert json.loads(adapter.state_path(task_file).read_text())["run_attempt"] == "1"
+    state = json.loads(adapter.state_path(task_file).read_text())
+    assert state["run_attempt"] == "1"
+    assert state["task_identity_sha256"] == adapter.task_identity_sha256(packet())
 
 
 def test_existing_waiting_dispatch_is_reconciled_not_dispatched(tmp_path: Path, monkeypatch):
@@ -59,11 +61,13 @@ def test_existing_waiting_dispatch_is_reconciled_not_dispatched(tmp_path: Path, 
 
 def test_posted_dispatch_is_terminal_and_never_replayed(tmp_path: Path, monkeypatch):
     task_file = tmp_path / "task.json"
-    task_file.write_text(json.dumps(packet()), encoding="utf-8")
+    task = packet()
+    task_file.write_text(json.dumps(task), encoding="utf-8")
     adapter.write_state(
         task_file,
         {
             "dispatch_id": "dispatch-1",
+            "task_identity_sha256": adapter.task_identity_sha256(task),
             "run_id": "99",
             "run_attempt": "1",
             "result_id": "result-dispatch-1",
@@ -74,6 +78,35 @@ def test_posted_dispatch_is_terminal_and_never_replayed(tmp_path: Path, monkeypa
     monkeypatch.setattr(adapter, "post_result", lambda _: pytest.fail("must not repost a posted dispatch"))
 
     assert adapter.run(str(task_file)) == 0
+
+
+def test_unbound_posted_state_cannot_silently_skip_work(tmp_path: Path):
+    task_file = tmp_path / "task.json"
+    task_file.write_text(json.dumps(packet()), encoding="utf-8")
+    adapter.write_state(
+        task_file,
+        {"dispatch_id": "dispatch-1", "status": "POSTED"},
+    )
+
+    with pytest.raises(ValueError, match="missing bound task identity"):
+        adapter.run(str(task_file))
+
+
+def test_same_dispatch_with_different_task_identity_fails_closed(tmp_path: Path):
+    original = packet()
+    task_file = tmp_path / "task.json"
+    task_file.write_text(json.dumps(packet(task_id="different-task")), encoding="utf-8")
+    adapter.write_state(
+        task_file,
+        {
+            "dispatch_id": "dispatch-1",
+            "task_identity_sha256": adapter.task_identity_sha256(original),
+            "status": "WAITING_FOR_WORKER",
+        },
+    )
+
+    with pytest.raises(ValueError, match="another task identity"):
+        adapter.run(str(task_file))
 
 
 def test_persisted_state_for_another_dispatch_fails_closed(tmp_path: Path):

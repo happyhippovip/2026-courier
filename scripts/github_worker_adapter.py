@@ -33,6 +33,12 @@ def state_path(task_file: Path) -> Path:
     return task_file.with_name(f"{task_file.stem}.github-worker-state.json")
 
 
+def task_identity_sha256(task: dict[str, Any]) -> str:
+    identity = {field: task[field] for field in IDENTITY_FIELDS}
+    encoded = json.dumps(identity, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
 def write_state(task_file: Path, state: dict[str, Any]) -> None:
     state_path(task_file).write_text(json.dumps(state, sort_keys=True) + "\n", encoding="utf-8")
 
@@ -124,12 +130,18 @@ def run(task_file_name: str) -> int:
     task_file = Path(task_file_name)
     task = json.loads(task_file.read_text(encoding="utf-8"))
     validate_task(task)
+    identity_sha256 = task_identity_sha256(task)
     prior = {}
     if state_path(task_file).is_file():
         prior = json.loads(state_path(task_file).read_text(encoding="utf-8"))
         if prior.get("dispatch_id") != task["dispatch_id"]:
             raise ValueError("persisted GitHub state belongs to another dispatch")
+        prior_identity = prior.get("task_identity_sha256")
+        if prior_identity is not None and prior_identity != identity_sha256:
+            raise ValueError("persisted GitHub state belongs to another task identity")
         if prior.get("status") == "POSTED":
+            if prior_identity is None:
+                raise ValueError("posted GitHub state is missing bound task identity")
             return 0
 
     run_id, status = find_run(task["dispatch_id"])
@@ -143,7 +155,7 @@ def run(task_file_name: str) -> int:
                                 "--field", f"dispatch_id={task['dispatch_id']}"])
         if rc:
             raise RuntimeError(f"workflow dispatch failed: {error}")
-        write_state(task_file, {"dispatch_id": task["dispatch_id"], "status": "WAITING_FOR_WORKER"})
+        write_state(task_file, {"dispatch_id": task["dispatch_id"], "task_identity_sha256": identity_sha256, "status": "WAITING_FOR_WORKER"})
 
     deadline = time.monotonic() + LOCAL_WAIT_SECONDS
     while time.monotonic() < deadline:
@@ -154,14 +166,14 @@ def run(task_file_name: str) -> int:
                 result, evidence = download_result(run_id, task["dispatch_id"], directory)
                 verify_result(task, result, evidence, run_id, directory)
                 post_result(result)
-                write_state(task_file, {"dispatch_id": task["dispatch_id"], "run_id": run_id, "run_attempt": result["run_attempt"], "result_id": result["result_id"], "status": "POSTED"})
+                write_state(task_file, {"dispatch_id": task["dispatch_id"], "task_identity_sha256": identity_sha256, "run_id": run_id, "run_attempt": result["run_attempt"], "result_id": result["result_id"], "status": "POSTED"})
                 return 0
             finally:
                 shutil.rmtree(directory, ignore_errors=True)
         if run_id:
-            write_state(task_file, {"dispatch_id": task["dispatch_id"], "run_id": run_id, "status": "WAITING_FOR_WORKER"})
+            write_state(task_file, {"dispatch_id": task["dispatch_id"], "task_identity_sha256": identity_sha256, "run_id": run_id, "status": "WAITING_FOR_WORKER"})
         time.sleep(POLL_SECONDS)
-    write_state(task_file, {"dispatch_id": task["dispatch_id"], "run_id": run_id, "status": "WAITING_FOR_WORKER"})
+    write_state(task_file, {"dispatch_id": task["dispatch_id"], "task_identity_sha256": identity_sha256, "run_id": run_id, "status": "WAITING_FOR_WORKER"})
     return 0
 
 
