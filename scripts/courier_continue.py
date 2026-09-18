@@ -346,7 +346,10 @@ def update_ledger(ledger_path, edge_name, blocker, bundle):
             updates["STATUS"] = "CLEAN_IDLE"
         else:
             updates["CLEAN_IDLE"] = "NO"
-            updates["STATUS"] = "READY"
+            if record.get("STATUS") == "BLOCKED" or (record.get("FIRST_CAUSAL_BLOCKER") and record.get("FIRST_CAUSAL_BLOCKER") != "NONE"):
+                updates["STATUS"] = "BLOCKED"
+            else:
+                updates["STATUS"] = "READY"
             
     guard = bundle["acceptance_guard"]
     binding = guard["binding"]
@@ -411,9 +414,10 @@ def main():
         sys.exit(1)
 
     import concurrent.futures
+    import time
     executor = concurrent.futures.ThreadPoolExecutor(max_workers=5)
     running_tasks = {} # mapping task edge_name to future
-    
+    task_start_times = {} # mapping task edge_name to start time
     while True:
         branch, sha = get_git_info()
         bundle = check_freshness(ledger_path, branch, sha)
@@ -520,7 +524,20 @@ def main():
             
         # Process any completed futures
         done_edges = []
+        current_time = time.time()
         for edge_name, future in list(running_tasks.items()):
+            if not future.done() and current_time - task_start_times[edge_name] > 8.0:
+                print(f"Task {edge_name} hung for > 8s, abandoning.")
+                done_edges.append(edge_name)
+                blocked_tasks_this_run.add(edge_name)
+                try:
+                    branch, sha = get_git_info()
+                    bundle = check_freshness(ledger_path, branch, sha)
+                    update_ledger(ledger_path, edge_name, "TIMEOUT_HUNG_TASK", bundle)
+                except Exception as e:
+                    print(f"Failed to record hang for {edge_name}: {e}")
+                continue
+
             if future.done():
                 done_edges.append(edge_name)
                 try:
@@ -549,6 +566,12 @@ def main():
                 except Exception as e:
                     print(f"Task {edge_name} failed with exception: {e}")
                     blocked_tasks_this_run.add(edge_name)
+                    try:
+                        branch, sha = get_git_info()
+                        bundle = check_freshness(ledger_path, branch, sha)
+                        update_ledger(ledger_path, edge_name, f"EXCEPTION_{type(e).__name__}", bundle)
+                    except Exception as le:
+                        print(f"Failed to record exception for {edge_name}: {le}")
 
         for edge_name in done_edges:
             del running_tasks[edge_name]
@@ -562,6 +585,7 @@ def main():
             if t["edge_name"] not in running_tasks:
                 print(f"\n=== SUBMITTING TASK: {t['edge_name']} ===")
                 running_tasks[t["edge_name"]] = executor.submit(execute_task, t, ledger_path, record)
+                task_start_times[t["edge_name"]] = time.time()
                 newly_submitted.append(t["edge_name"])
         
         if newly_submitted:
@@ -574,7 +598,8 @@ def main():
 
         
         if args.once and not running_tasks and ('done_edges' not in locals() or not done_edges) and 'once_dispatched' in locals():
-            sys.exit(0)
+            import os
+            os._exit(0)
         if "MOCK_SHA" in os.environ:
             mock_iters += 1
             if mock_iters >= 10:

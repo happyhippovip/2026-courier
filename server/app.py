@@ -897,12 +897,10 @@ def task_result():
                     task["recovery_reason"] = "AMBIGUOUS_EFFECT_CRASH"
                     task["blocker"] = "Worker crashed during external effect."
                 else:
-                    retry_state["execution"] = 0
-                    set_task_status(task, "QUEUED")
-                    task["worker_id"] = None
-                    task["next_action"] = "RETRY"
-                    task["blocker"] = f"MAX_ATTEMPTS_REACHED_RETRYING: {failure_reason[:200]}" if failure_reason else "MAX_ATTEMPTS_REACHED_RETRYING"
-                    task["next_retry_at"] = time.time() + 60.0
+                    set_task_status(task, "FAILED_TERMINAL")
+                    task["next_action"] = "ABORT"
+                    task["blocker"] = f"MAX_ATTEMPTS_REACHED: {failure_reason[:200]}" if failure_reason else "MAX_ATTEMPTS_REACHED"
+
                 
             goal_id = task["goal_id"]
             if goal_id in state["goals"]:
@@ -1119,13 +1117,9 @@ def verify_task_result():
             task["blocker"] = f"VERIFICATION_REJECTED: {data.get('reason', 'no reason')}"[:200]
             task["next_retry_at"] = time.time() + calculate_backoff(retry_state["verification"])
         else:
-            retry_state["verification"] = 0
-            set_task_status(task, "QUEUED")
-            task["worker_id"] = None
-            task["next_action"] = "RETRY"
-            task["blocker"] = f"VERIFICATION_REJECTED_MAX_RETRIES_RETRYING: {data.get('reason', 'no reason')}"[:200]
-            task["next_retry_at"] = time.time() + 60.0
-
+            set_task_status(task, "FAILED_TERMINAL")
+            task["next_action"] = "ABORT"
+            task["blocker"] = f"VERIFICATION_REJECTED_MAX_RETRIES: {data.get('reason', 'no reason')}"[:200]
     # P6/P10 — Terminal cleanup: release worker ownership after verification
     assigned_worker_id = task.get("worker_id")
     if assigned_worker_id and assigned_worker_id in state["workers"]:
