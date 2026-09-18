@@ -4,7 +4,6 @@ from flask import Flask, request, jsonify
 
 from scripts.integration_contract import ContractError, prepare_task, validate_durable_result
 import os
-print("MOCK IS:", os.environ.get("COURIER_MOCK_CHIEF"))
 if os.environ.get("COURIER_MOCK_CHIEF"):
     class ChiefCommander:
         def formulate_workflow_plan(self, text, idea_type):
@@ -837,11 +836,15 @@ def task_result():
         
         # Duplicate protection
         if task["status"] in ["RECONCILED", "FAILED_TERMINAL", "RESULT_RECEIVED"]:
-            return jsonify({"status": "IGNORED", "reason": "DUPLICATE_OR_ALREADY_PROCESSED"})
+            is_identical = (
+                task.get("result", {}).get("result_id") == data.get("result_id") and
+                task.get("result", {}).get("worker_id") == data.get("worker_id")
+            )
+            if is_identical:
+                return jsonify({"status": "ACK_DUPLICATE"})
+            return jsonify({"status": "CONFLICT", "reason": "CONTRADICTORY_DUPLICATE"}), 409
             
         if task.get("worker_id") == worker_id:
-            if task.get("status") == "RESULT_RECEIVED" and task.get("result", {}).get("result_id") == data.get("result_id"):
-                return jsonify({"status": "ACK_DUPLICATE"})
             if task.get("status") != "DISPATCHED":
                 return jsonify({"error": "Task is not awaiting a result"}), 409
             try:
