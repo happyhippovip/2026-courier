@@ -54,3 +54,11 @@ No new architecture, rule, agent, roadmap, or refactor is justified before a con
 - Fixed PowerShell encoding bug in `daemon.py` by streaming instructions via stdin.
 - Verified test `test_windows_runtime_torture.py` passes safely.
 - New Checkpoint SHA (Fingerprint): f2def98d3c13cad67925983d7374be14d38ec4c8
+
+### TEST: RESULT -> VERIFICATION -> FREIGABE API PATH
+- **Ursache:** Der bisherige Turbo-Test (`test_turbo_queue_parallel_ab_wait_c`) manipulierte den State manuell (`status = "RECONCILED"`) als Scheduler-Fixture, ohne den echten API-Lifecycle (Result, Verifier, Identity Binding) zu durchlaufen.
+- **Änderung:** Alter Test als `test_turbo_queue_parallel_fixture_state` bewahrt. Neuer Integrationstest `test_turbo_queue_integration_api_path` hinzugefügt, der den gesamten Pfad über `POST /tasks/result` und `POST /tasks/verify` mit strikten Rollen (Worker vs. Verifier Token) und Runtime Identity Checks nachweist.
+- **Testbefehl:** `pytest tests/test_turbo_queue.py -v`
+- **Exitcode / Ergebnis:** 0 (2 passed). Nachweis für parallele Verarbeitung und Reconcile-Blockade C -> A+B auf API-Ebene erbracht.
+- **Fingerprint:** 38b10e188d8ff9ccc73046c2a2c8ef89809215cb
+- **Verbleibender Blocker:** REALER PHYSICAL ACCEPTANCE PROOF (FIRST_CURRENT_CAUSAL_BLOCKER=NONE_PROVEN).
