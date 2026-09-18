@@ -107,7 +107,15 @@ def test_restart_does_not_replay_posted_task(monkeypatch, tmp_path):
     work_dir = adapter.work_dir_for_task(packet)
     work_dir.mkdir()
     (work_dir / "task.json").write_text(json.dumps(packet), encoding="utf-8")
-    (work_dir / "posted_result.json").write_text("{}", encoding="utf-8")
+    (work_dir / "posted_result.json").write_text(
+        json.dumps(
+            {
+                "result_id": "result-dispatch-1",
+                "acknowledgement": "ACK_RESULT_RECEIVED",
+            }
+        ),
+        encoding="utf-8",
+    )
     monkeypatch.setattr(
         adapter,
         "process_claimed_task",
@@ -115,6 +123,18 @@ def test_restart_does_not_replay_posted_task(monkeypatch, tmp_path):
     )
 
     assert adapter.recover_incomplete_tasks({}, "REVENUE-1") is False
+
+
+def test_restart_rejects_unbound_posted_marker(monkeypatch, tmp_path):
+    monkeypatch.setattr(adapter, "STATE_DIR", tmp_path)
+    packet = task(worker_id="REVENUE-1")
+    work_dir = adapter.work_dir_for_task(packet)
+    work_dir.mkdir()
+    (work_dir / "task.json").write_text(json.dumps(packet), encoding="utf-8")
+    (work_dir / "posted_result.json").write_text("{}", encoding="utf-8")
+
+    with pytest.raises(RuntimeError, match="not bound"):
+        adapter.recover_incomplete_tasks({}, "REVENUE-1")
 
 
 def test_task_checkpoint_is_immutable_and_idempotent(monkeypatch, tmp_path):

@@ -202,8 +202,6 @@ def recover_incomplete_tasks(config, worker_id):
     incomplete = []
     for task_file in sorted(STATE_DIR.glob("dispatch-*/task.json")):
         work_dir = task_file.parent
-        if (work_dir / "posted_result.json").is_file() or (work_dir / "pending_result.json").is_file():
-            continue
         if task_file.is_symlink() or not task_file.is_file():
             raise RuntimeError("persisted revenue task must be a regular owned file")
         task = json.loads(task_file.read_text(encoding="utf-8"))
@@ -212,6 +210,19 @@ def recover_incomplete_tasks(config, worker_id):
             raise RuntimeError("persisted revenue task path does not match dispatch identity")
         if task.get("worker_id") not in {None, worker_id}:
             raise RuntimeError("persisted revenue task belongs to another worker")
+        if (work_dir / "pending_result.json").is_file():
+            continue
+        posted = work_dir / "posted_result.json"
+        if posted.exists():
+            if posted.is_symlink() or not posted.is_file():
+                raise RuntimeError("posted result marker must be a regular owned file")
+            marker = json.loads(posted.read_text(encoding="utf-8"))
+            if marker != {
+                "result_id": result_id_for(task),
+                "acknowledgement": marker.get("acknowledgement"),
+            } or marker.get("acknowledgement") not in {"ACK_RESULT_RECEIVED", "ACK_DUPLICATE"}:
+                raise RuntimeError("posted result marker is not bound to the persisted task")
+            continue
         incomplete.append(task)
 
     if len(incomplete) > 1:
