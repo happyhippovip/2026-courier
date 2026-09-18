@@ -1,5 +1,6 @@
 from pathlib import Path
 import json
+from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 
@@ -130,18 +131,25 @@ def test_persist_task_file_atomically_materializes_exact_packet(monkeypatch, tmp
     assert list(tmp_path.glob(".*.tmp")) == []
 
 
-def test_failed_task_file_replace_preserves_previous_packet(monkeypatch, tmp_path):
+def test_conflicting_task_packet_never_replaces_previous_packet(monkeypatch, tmp_path):
     monkeypatch.setattr(dispatcher.tempfile, "gettempdir", lambda: str(tmp_path))
     original = {"task_id": "task-1", "dispatch_id": "dispatch-1", "value": "old"}
     path = Path(dispatcher.persist_task_file(original))
-    monkeypatch.setattr(
-        dispatcher.os,
-        "replace",
-        lambda *_: (_ for _ in ()).throw(OSError("injected replace failure")),
-    )
 
-    with pytest.raises(OSError, match="injected replace failure"):
+    with pytest.raises(RuntimeError, match="conflicting TaskPacket"):
         dispatcher.persist_task_file({**original, "value": "new"})
 
     assert json.loads(path.read_text(encoding="utf-8")) == original
+    assert list(tmp_path.glob(".*.tmp")) == []
+
+
+def test_concurrent_identical_task_packet_materialization_is_idempotent(monkeypatch, tmp_path):
+    monkeypatch.setattr(dispatcher.tempfile, "gettempdir", lambda: str(tmp_path))
+    task = {"task_id": "task-1", "dispatch_id": "dispatch-1", "value": "same"}
+
+    with ThreadPoolExecutor(max_workers=16) as pool:
+        paths = list(pool.map(lambda _: dispatcher.persist_task_file(task), range(64)))
+
+    assert len(set(paths)) == 1
+    assert json.loads(Path(paths[0]).read_text(encoding="utf-8")) == task
     assert list(tmp_path.glob(".*.tmp")) == []

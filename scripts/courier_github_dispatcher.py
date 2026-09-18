@@ -7,6 +7,7 @@ import json
 import subprocess
 import hashlib
 import tempfile
+import uuid
 from pathlib import Path
 try:
     import keyring
@@ -39,14 +40,21 @@ def task_file_path(task):
 
 def persist_task_file(task):
     destination = Path(task_file_path(task))
-    temporary = destination.with_name(f".{destination.name}.{os.getpid()}.tmp")
+    temporary = destination.with_name(f".{destination.name}.{os.getpid()}.{uuid.uuid4().hex}.tmp")
     try:
-        with temporary.open("w", encoding="utf-8") as handle:
+        with temporary.open("x", encoding="utf-8") as handle:
             json.dump(task, handle, sort_keys=True)
             handle.write("\n")
             handle.flush()
             os.fsync(handle.fileno())
-        os.replace(temporary, destination)
+        try:
+            os.link(temporary, destination)
+        except FileExistsError:
+            existing = json.loads(destination.read_text(encoding="utf-8"))
+            if existing != task:
+                raise RuntimeError(
+                    f"conflicting TaskPacket already exists for dispatch {task.get('dispatch_id')}"
+                )
     finally:
         temporary.unlink(missing_ok=True)
     return str(destination)
