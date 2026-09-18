@@ -48,6 +48,20 @@ class _RecordingHooks:
         return self.failure_path
 
 
+def job_packet(**overrides):
+    packet = {
+        "task_id": "task-safe",
+        "correlation_id": "corr-safe",
+        "source_command_message_id": "msg-safe",
+        "target_agent": "courier-codex-bridge",
+        "allowed_scope": [],
+        "cost_policy": "ZERO_COST_ONLY",
+        "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+    }
+    packet.update(overrides)
+    return packet
+
+
 @pytest.mark.parametrize(
     ("field", "value"),
     [
@@ -58,12 +72,7 @@ class _RecordingHooks:
     ],
 )
 def test_bridge_rejects_unsafe_identity_before_result_path(tmp_path, field, value):
-    job = {
-        "task_id": "task-safe",
-        "correlation_id": "corr-safe",
-        "source_command_message_id": "msg-safe",
-        "allowed_scope": [],
-    }
+    job = job_packet()
     job[field] = value
     job_path = tmp_path / "job.json"
     job_path.write_text(json.dumps(job), encoding="utf-8")
@@ -74,12 +83,7 @@ def test_bridge_rejects_unsafe_identity_before_result_path(tmp_path, field, valu
 
 @pytest.mark.parametrize("missing_field", ["task_id", "correlation_id", "source_command_message_id"])
 def test_bridge_never_invents_missing_canonical_identity(tmp_path, missing_field):
-    job = {
-        "task_id": "task-safe",
-        "correlation_id": "corr-safe",
-        "source_command_message_id": "msg-safe",
-        "allowed_scope": [],
-    }
+    job = job_packet()
     del job[missing_field]
     job_path = tmp_path / "job.json"
     job_path.write_text(json.dumps(job), encoding="utf-8")
@@ -158,12 +162,11 @@ def test_dedupe_rejects_result_from_different_dispatch_identity(monkeypatch, tmp
     job_path = tmp_path / "job.json"
     job_path.write_text(
         json.dumps(
-            {
-                "task_id": "task-1",
-                "correlation_id": "corr-new",
-                "source_command_message_id": "msg-new",
-                "allowed_scope": [],
-            }
+            job_packet(
+                task_id="task-1",
+                correlation_id="corr-new",
+                source_command_message_id="msg-new",
+            )
         ),
         encoding="utf-8",
     )
@@ -222,13 +225,13 @@ def test_failed_real_execution_never_emits_completed_result(monkeypatch, tmp_pat
     job_path = tmp_path / "job.json"
     job_path.write_text(
         json.dumps(
-            {
-                "task_id": "task-1",
-                "correlation_id": "corr-1",
-                "source_command_message_id": "msg-1",
-                "instruction": "inspect",
-                "allowed_scope": ["README.md"],
-            }
+            job_packet(
+                task_id="task-1",
+                correlation_id="corr-1",
+                source_command_message_id="msg-1",
+                instruction="inspect",
+                allowed_scope=["README.md"],
+            )
         ),
         encoding="utf-8",
     )
@@ -270,13 +273,13 @@ def test_requested_real_execution_never_falls_back_when_cli_is_missing(monkeypat
     job_path = tmp_path / "job.json"
     job_path.write_text(
         json.dumps(
-            {
-                "task_id": "task-1",
-                "correlation_id": "corr-1",
-                "source_command_message_id": "msg-1",
-                "instruction": "inspect",
-                "allowed_scope": ["README.md"],
-            }
+            job_packet(
+                task_id="task-1",
+                correlation_id="corr-1",
+                source_command_message_id="msg-1",
+                instruction="inspect",
+                allowed_scope=["README.md"],
+            )
         ),
         encoding="utf-8",
     )
@@ -289,3 +292,23 @@ def test_requested_real_execution_never_falls_back_when_cli_is_missing(monkeypat
     assert hooks.failed is True
     assert hooks.completed is False
     assert authority.released is True
+
+
+@pytest.mark.parametrize(
+    ("overrides", "message"),
+    [
+        ({"target_agent": "courier-antigravity-bridge"}, "Invalid target_agent"),
+        ({"target_agent": None}, "Invalid target_agent"),
+        ({"cost_policy": "ALLOW_SPEND"}, "Invalid cost_policy"),
+        ({"cost_policy": None}, "Invalid cost_policy"),
+        ({"human_gate_policy": "AUTO_APPROVE"}, "Invalid human_gate_policy"),
+        ({"human_gate_policy": None}, "Invalid human_gate_policy"),
+        ({"allowed_scope": "README.md"}, "Invalid allowed_scope"),
+    ],
+)
+def test_bridge_rejects_misrouted_or_policy_bypassing_job_before_claim(tmp_path, overrides, message):
+    job_path = tmp_path / "job.json"
+    job_path.write_text(json.dumps(job_packet(**overrides)), encoding="utf-8")
+
+    with pytest.raises(ValueError, match=message):
+        bridge.execute_codex_task(job_path, _Hooks())

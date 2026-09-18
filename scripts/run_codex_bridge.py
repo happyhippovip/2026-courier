@@ -59,6 +59,24 @@ def validate_identifier(value: object, field_name: str) -> str:
     return value
 
 
+def validate_job_contract(job: dict) -> list[str]:
+    target_agent = job.get("target_agent")
+    if not isinstance(target_agent, str) or target_agent.lower() not in {
+        "codex",
+        "courier-codex-bridge",
+        "agent-codex-bridge",
+    }:
+        raise ValueError("Invalid target_agent: Codex bridge cannot execute work routed elsewhere")
+    if job.get("cost_policy") != "ZERO_COST_ONLY":
+        raise ValueError("Invalid cost_policy: Codex bridge requires ZERO_COST_ONLY")
+    if job.get("human_gate_policy") != "STOP_ON_HUMAN_GATE_ONLY":
+        raise ValueError("Invalid human_gate_policy: Codex bridge requires STOP_ON_HUMAN_GATE_ONLY")
+    allowed_scope = job.get("allowed_scope")
+    if not isinstance(allowed_scope, list) or not all(isinstance(item, str) for item in allowed_scope):
+        raise ValueError("Invalid allowed_scope: expected a list of paths/scopes")
+    return allowed_scope
+
+
 def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -479,10 +497,10 @@ def execute_codex_task(worker_job_path: Path, hooks: CodexHookRunner, force: boo
     )
     parent_id_value = job.get("source_command_message_id")
     parent_id = validate_identifier(parent_id_value, "source_command_message_id")
+    allowed_scope = validate_job_contract(job)
     workflow_id = job.get("workflow_id")
     parent_task_id = job.get("parent_task_id")
     instruction = job.get("instruction", "Execute Codex task")
-    allowed_scope = job.get("allowed_scope", [])
 
     # Deduplication & Replay Protection
     result_file = PROCESSED_DIR / f"{task_id}-result.json"
