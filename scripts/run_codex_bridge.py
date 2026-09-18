@@ -144,6 +144,13 @@ def check_secrets_in_text(text: str) -> int:
     return found
 
 
+def safe_error_message(error_message: object) -> str:
+    text = str(error_message)
+    if check_secrets_in_text(text):
+        return "Sensitive worker error redacted"
+    return text[:500]
+
+
 class CodexVisualStateTracker:
     """Maintains machine-readable visual and operational state for agent-codex-bridge."""
 
@@ -282,6 +289,7 @@ class CodexHookRunner:
         correlation_id = validate_identifier(correlation_id, "correlation_id")
         if parent_id is not None:
             parent_id = validate_identifier(parent_id, "parent_id")
+        error_message = safe_error_message(error_message)
         print(f"[CODEX_HOOK: ON_FAILURE] Task {task_id} failed: {error_message}")
         now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
         payload = {"verdict": "FAILED", "error": error_message}
@@ -516,6 +524,9 @@ def execute_codex_task(worker_job_path: Path, hooks: CodexHookRunner, force: boo
                 "zero_cost_policy": "ZERO_COST_ONLY",
                 "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
             })
+            if not success:
+                error = payload.get("error") or payload.get("verdict") or "Codex CLI execution failed"
+                return hooks.on_task_failure(task_id, correlation_id, parent_id, safe_error_message(error))
         else:
             target_fixture = None
             for item in allowed_scope:

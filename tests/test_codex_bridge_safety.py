@@ -17,6 +17,37 @@ class _StateTracker:
         return kwargs
 
 
+class _Authority:
+    released = False
+
+    def acquire_scopes(self, **kwargs):
+        return True, 1, None
+
+    def release_scopes(self, **kwargs):
+        self.released = True
+
+
+class _RecordingHooks:
+    def __init__(self, failure_path):
+        self.failure_path = failure_path
+        self.completed = False
+        self.failed = False
+
+    def on_task_start(self, *args, **kwargs):
+        pass
+
+    def on_tool_action(self, *args, **kwargs):
+        pass
+
+    def on_task_completion(self, *args, **kwargs):
+        self.completed = True
+        raise AssertionError("failed execution reached completion hook")
+
+    def on_task_failure(self, *args, **kwargs):
+        self.failed = True
+        return self.failure_path
+
+
 @pytest.mark.parametrize(
     ("field", "value"),
     [
@@ -169,3 +200,51 @@ def test_atomic_json_save_preserves_previous_state_when_replace_fails(monkeypatc
 
     assert json.loads(state_file.read_text(encoding="utf-8")) == {"state": "old"}
     assert list(tmp_path.glob("*.tmp")) == []
+
+
+def test_failed_real_execution_never_emits_completed_result(monkeypatch, tmp_path):
+    job_path = tmp_path / "job.json"
+    job_path.write_text(
+        json.dumps(
+            {
+                "task_id": "task-1",
+                "correlation_id": "corr-1",
+                "source_command_message_id": "msg-1",
+                "instruction": "inspect",
+                "allowed_scope": ["README.md"],
+            }
+        ),
+        encoding="utf-8",
+    )
+    authority = _Authority()
+    hooks = _RecordingHooks(tmp_path / "failure.json")
+    cli_path = tmp_path / "codex"
+    cli_path.touch()
+    monkeypatch.setattr(bridge, "CanonicalAuthority", lambda: authority)
+    monkeypatch.setattr(bridge, "CODEX_CLI_PATH", cli_path)
+    monkeypatch.setattr(
+        bridge,
+        "execute_real_codex_cli",
+        lambda *args: (False, {"verdict": "FAILED", "error": "worker failed"}),
+    )
+
+    assert bridge.execute_codex_task(job_path, hooks, try_real_cli=True) == tmp_path / "failure.json"
+    assert hooks.failed is True
+    assert hooks.completed is False
+    assert authority.released is True
+
+
+def test_failure_hook_redacts_secret_bearing_error(monkeypatch, tmp_path):
+    monkeypatch.setattr(bridge, "PROCESSED_DIR", tmp_path)
+    hooks = bridge.CodexHookRunner(_StateTracker())
+
+    result_file = hooks.on_task_failure(
+        "task-1",
+        "corr-1",
+        None,
+        "provider failed api_key=supersecretvalue",
+    )
+    persisted = json.loads(result_file.read_text(encoding="utf-8"))
+
+    assert persisted["payload"]["error"] == "Sensitive worker error redacted"
+    assert "supersecretvalue" not in result_file.read_text(encoding="utf-8")
