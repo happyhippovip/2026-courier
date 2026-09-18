@@ -67,6 +67,51 @@ def cleanup_task_files(task_file):
     state.unlink(missing_ok=True)
 
 
+def recover_adapters():
+    """Resume the single durable hosted dispatch after dispatcher restart."""
+    recoverable = []
+    invalid = []
+    task_paths = (
+        path
+        for path in Path(tempfile.gettempdir()).glob("courier-github-*.json")
+        if not path.name.endswith(".github-worker-state.json")
+    )
+    for path in sorted(task_paths):
+        try:
+            if path.is_symlink() or not path.is_file():
+                raise ValueError("persisted GitHub task must be a regular file")
+            task = json.loads(path.read_text(encoding="utf-8"))
+            task_id = task.get("task_id")
+            if not isinstance(task_id, str) or not task_id:
+                raise ValueError("persisted GitHub task is missing task_id")
+            if Path(task_file_path(task)) != path:
+                raise ValueError("persisted GitHub task path does not match dispatch identity")
+            state = path.with_name(f"{path.stem}.github-worker-state.json")
+            if state.is_file() and json.loads(state.read_text(encoding="utf-8")).get("status") == "POSTED":
+                cleanup_task_files(str(path))
+                continue
+            recoverable.append((task_id, path))
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            invalid.append(f"{path.name}: {exc}")
+
+    if invalid:
+        raise RuntimeError("invalid persisted GitHub task prevents safe recovery: " + "; ".join(invalid))
+    if len(recoverable) > 1:
+        raise RuntimeError("multiple unfinished persisted GitHub tasks require reconciliation")
+    if not recoverable:
+        return {}
+
+    task_id, path = recoverable[0]
+    log(f"Resuming durable hosted task {task_id} after dispatcher restart.")
+    return {
+        task_id: {
+            "process": launch_adapter(str(path)),
+            "task_file": str(path),
+            "retries": 0,
+        }
+    }
+
+
 def reap_adapters(active_procs):
     """Re-enter bounded hosted waits without asking Central for a second claim."""
     for task_id, entry in list(active_procs.items()):
@@ -104,7 +149,7 @@ def run_loop():
     except Exception as e:
         log(f"Failed to register: {e}")
 
-    active_procs = {}
+    active_procs = recover_adapters()
     while True:
         reap_adapters(active_procs)
         try:

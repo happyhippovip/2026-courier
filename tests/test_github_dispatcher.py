@@ -153,3 +153,61 @@ def test_concurrent_identical_task_packet_materialization_is_idempotent(monkeypa
     assert len(set(paths)) == 1
     assert json.loads(Path(paths[0]).read_text(encoding="utf-8")) == task
     assert list(tmp_path.glob(".*.tmp")) == []
+
+
+def test_dispatcher_restart_resumes_single_durable_task(monkeypatch, tmp_path):
+    monkeypatch.setattr(dispatcher.tempfile, "gettempdir", lambda: str(tmp_path))
+    task = {"task_id": "task-1", "dispatch_id": "dispatch-1"}
+    task_file = dispatcher.persist_task_file(task)
+    launched = []
+    process = FinishedProcess(None)
+    monkeypatch.setattr(
+        dispatcher,
+        "launch_adapter",
+        lambda path: launched.append(path) or process,
+    )
+
+    recovered = dispatcher.recover_adapters()
+
+    assert launched == [task_file]
+    assert recovered["task-1"]["process"] is process
+    assert recovered["task-1"]["task_file"] == task_file
+
+
+def test_dispatcher_restart_cleans_posted_checkpoint_without_replay(monkeypatch, tmp_path):
+    monkeypatch.setattr(dispatcher.tempfile, "gettempdir", lambda: str(tmp_path))
+    task = {"task_id": "task-1", "dispatch_id": "dispatch-1"}
+    task_file = Path(dispatcher.persist_task_file(task))
+    state_file = task_file.with_name(f"{task_file.stem}.github-worker-state.json")
+    state_file.write_text(json.dumps({"status": "POSTED"}), encoding="utf-8")
+    monkeypatch.setattr(
+        dispatcher,
+        "launch_adapter",
+        lambda _: (_ for _ in ()).throw(AssertionError("posted task must not replay")),
+    )
+
+    assert dispatcher.recover_adapters() == {}
+    assert not task_file.exists()
+    assert not state_file.exists()
+
+
+def test_dispatcher_restart_fails_closed_on_multiple_unfinished_tasks(monkeypatch, tmp_path):
+    monkeypatch.setattr(dispatcher.tempfile, "gettempdir", lambda: str(tmp_path))
+    dispatcher.persist_task_file({"task_id": "task-1", "dispatch_id": "dispatch-1"})
+    dispatcher.persist_task_file({"task_id": "task-2", "dispatch_id": "dispatch-2"})
+    monkeypatch.setattr(
+        dispatcher,
+        "launch_adapter",
+        lambda _: (_ for _ in ()).throw(AssertionError("ambiguous recovery must not execute")),
+    )
+
+    with pytest.raises(RuntimeError, match="multiple unfinished"):
+        dispatcher.recover_adapters()
+
+
+def test_dispatcher_restart_fails_closed_on_corrupt_durable_task(monkeypatch, tmp_path):
+    monkeypatch.setattr(dispatcher.tempfile, "gettempdir", lambda: str(tmp_path))
+    (tmp_path / "courier-github-corrupt.json").write_text("{", encoding="utf-8")
+
+    with pytest.raises(RuntimeError, match="invalid persisted GitHub task"):
+        dispatcher.recover_adapters()
