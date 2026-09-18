@@ -440,11 +440,17 @@ def loop():
                 if "COURIER_WORKER_CAPABILITIES" in os.environ:
                     caps.extend([c.strip() for c in os.environ["COURIER_WORKER_CAPABILITIES"].split(",") if c.strip()])
 
+                try:
+                    out = subprocess.check_output(["git", "rev-parse", "HEAD"], stderr=subprocess.STDOUT)
+                    runtime_sha = out.decode("utf-8").strip()
+                except Exception:
+                    runtime_sha = "unknown"
                 reg_payload = {
                     "worker_id": config["WORKER_ID"],
                     "platform": "macos",
                     "capabilities": list(set(caps)),
-                    "cost_class": os.environ.get("WORKER_COST_CLASS", config.get("cost_class", "low"))
+                    "cost_class": os.environ.get("WORKER_COST_CLASS", config.get("cost_class", "low")),
+                    "runtime_sha": runtime_sha
                 }
                 res, err = http_post(config, "/workers/register", reg_payload)
                 if err:

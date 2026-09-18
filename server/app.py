@@ -37,6 +37,13 @@ else:
     from scripts.run_chief_commander import ChiefCommander
 
 
+import subprocess
+
+try:
+    SERVER_SHA = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode("utf-8").strip()
+except Exception:
+    SERVER_SHA = "unknown"
+
 app = Flask(__name__)
 
 
@@ -564,6 +571,11 @@ def register_worker():
     worker_id = data.get("worker_id")
     if not isinstance(worker_id, str) or not worker_id:
         return jsonify({"error": "worker_id is required"}), 400
+        
+    worker_sha = data.get("runtime_sha")
+    if worker_sha and SERVER_SHA != "unknown" and worker_sha != "unknown" and worker_sha != SERVER_SHA:
+        return jsonify({"error": "wrong SHA rejected: worker runtime_sha does not match server SHA"}), 426
+        
     state = load_state()
     
     existing = state["workers"].get(worker_id, {})
