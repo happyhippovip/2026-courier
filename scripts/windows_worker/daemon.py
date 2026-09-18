@@ -235,18 +235,40 @@ def acquire_lock(worker_id):
     try:
         # Try to open file in exclusive creation mode.
         fd = os.open(str(lock_file), os.O_CREAT | os.O_EXCL | os.O_RDWR)
-        os.write(fd, str(os.getpid()).encode())
+        lock_data = {
+            "service_id": "courier-windows-worker",
+            "worker_id": worker_id,
+            "pid": os.getpid(),
+            "process_create_time": psutil.Process(os.getpid()).create_time(),
+            "executable": sys.executable,
+            "daemon_path": str(Path(__file__).absolute()),
+            "started_at": time.time()
+        }
+        os.write(fd, json.dumps(lock_data).encode("utf-8"))
         os.close(fd)
         return lock_file
     except FileExistsError:
         # Check if the process is actually running
         try:
             with open(lock_file, "r") as f:
-                pid = int(f.read().strip())
+                data = f.read().strip()
+            if not data:
+                raise ValueError("Empty lock file")
+            try:
+                lock_data = json.loads(data)
+                pid = lock_data["pid"]
+                create_time = lock_data.get("process_create_time")
+            except ValueError:
+                pid = int(data)
+                create_time = None
+
             # Cross-platform process existence check
             try:
-                os.kill(pid, 0)
-            except (OSError, ProcessLookupError):
+                p = psutil.Process(pid)
+                if create_time is not None:
+                    if abs(p.create_time() - create_time) > 0.1:
+                        raise psutil.NoSuchProcess(pid)
+            except (psutil.NoSuchProcess, ProcessLookupError, OSError):
                 # Stale lock - process not running
                 os.remove(lock_file)
                 return acquire_lock(worker_id)
