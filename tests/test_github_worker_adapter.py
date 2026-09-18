@@ -11,7 +11,7 @@ from scripts.integration_contract import validate_durable_result
 
 def packet(**changes):
     value = {"goal_id": "goal-1", "task_id": "task-1", "attempt_id": "attempt-1", "dispatch_id": "dispatch-1",
-             "worker_id": "GITHUB-HOSTED", "task_type": "deterministic_transform", "input": "canary"}
+             "execution_ref": "exec-1", "worker_id": "GITHUB-HOSTED", "task_type": "deterministic_transform", "input": "canary"}
     value.update(changes)
     return value
 
@@ -21,6 +21,41 @@ def test_validate_task_rejects_missing_identity_and_shell():
         adapter.validate_task(packet(task_id=""))
     with pytest.raises(ValueError, match="unsupported"):
         adapter.validate_task(packet(task_type="shell"))
+    with pytest.raises(ValueError, match="execution_ref"):
+        adapter.validate_task(packet(execution_ref=""))
+
+
+def test_verify_result_rejects_wrong_execution_reference(tmp_path: Path):
+    task = packet()
+    evidence_file = tmp_path / "courier_output_dispatch-1.json"
+    evidence_file.write_text("{}", encoding="utf-8")
+    result = {
+        **task,
+        "execution_ref": "wrong-execution",
+        "run_id": "99",
+        "run_attempt": "1",
+        "result_id": "result-dispatch-1",
+        "status": "SUCCESS",
+        "operation": "deterministic_transform",
+        "artifacts": [
+            {
+                "path": evidence_file.name,
+                "sha256": hashlib.sha256(evidence_file.read_bytes()).hexdigest(),
+            }
+        ],
+    }
+
+    with pytest.raises(ValueError, match="identity does not match"):
+        adapter.verify_result(
+            task,
+            result,
+            {
+                "operation": "deterministic_transform",
+                "input_sha256": hashlib.sha256(b"canary").hexdigest(),
+            },
+            "99",
+            tmp_path,
+        )
 
 
 def test_find_run_uses_exact_dispatch_title(monkeypatch):

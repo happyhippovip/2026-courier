@@ -20,7 +20,14 @@ REPOSITORY = os.environ.get("GITHUB_REPOSITORY", "happyhippovip/2026-courier")
 WORKFLOW = "courier_worker.yml"
 LOCAL_WAIT_SECONDS = int(os.environ.get("GITHUB_WORKER_LOCAL_WAIT_SECONDS", "60"))
 POLL_SECONDS = 5
-IDENTITY_FIELDS = ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id")
+IDENTITY_FIELDS = (
+    "goal_id",
+    "task_id",
+    "attempt_id",
+    "dispatch_id",
+    "execution_ref",
+    "worker_id",
+)
 ALLOW_LIST = {"metadata", "report", "deterministic_transform", "verify_file", "static_analysis", "run_tests"}
 
 
