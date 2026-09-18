@@ -1,0 +1,289 @@
+version: 1
+name: WINDOWS_GOOGLE_CONTINUOUS_WORK_LOOP
+mode: CONTINUOUS_FIXED_POINT
+purpose: >
+  Durable Windows/Google work scheduler so the Windows implementation worker can
+  keep consuming safe work without repeated user prompts. The worker updates this
+  file as a checkpoint and only returns at a truthful global stop condition.
+
+canonical_inputs:
+  - ops/ai/START_HERE.md
+  - ops/ai/MASTER_OPERATING_SYSTEM.md
+  - ops/ai/OWNERSHIP_MAP.yaml
+  - ops/ai/NEXT_WORK.yaml
+  - ops/ai/DEFERRED_LEDGER_QUEUE.yaml
+  - ops/ai/TEST_MAP.yaml
+  - ops/ai/FAILURE_SIGNATURES.yaml
+  - ops/ai/packets/
+
+truth_rules:
+  current_reality_wins: true
+  one_writer_per_sensitive_scope: true
+  google_is_canonical_windows_runtime_owner: true
+  google_is_ledger_guard_motor_owner: true
+  preserve_foreign_work: true
+  no_reset_hard: true
+  no_blind_git_clean: true
+  no_force_push: true
+  no_generic_killall: true
+  bounded_subprocesses: true
+  ledger_last: true
+  no_fake_green: true
+  no_mock_as_physical_proof: true
+  no_unauthorized_external_effects: true
+
+checkpoint:
+  iteration: 0
+  last_verified_head: UNKNOWN
+  last_remote_head: UNKNOWN
+  current_lane: UNSTARTED
+  current_task: UNSTARTED
+  last_action: NONE
+  last_test: NONE
+  last_test_result: UNKNOWN
+  last_commit: NONE
+  last_push: NONE
+  blocker: NONE
+  next_action: VERIFY_CURRENT_REALITY
+  windows_process_pid: UNKNOWN
+  windows_executable: UNKNOWN
+  windows_worktree: UNKNOWN
+  windows_serving_sha: UNKNOWN
+  acceptance_bound_sha: UNKNOWN
+  packets_ready: []
+  parked_blockers: []
+  lanes_exhausted: []
+
+scheduler:
+  selection_order:
+    - W01_REALITY_AND_OWNERSHIP
+    - W02_DLQ06_WINDOWS_FILE_SHARING
+    - W03_DLQ08_HUNG_TASK_BOUNDED_DRAIN
+    - W04_MOTOR_EXCEPTION_PERSISTENCE
+    - W05_SERVER_RETRY_TERMINATION
+    - W06_BLOCKED_STATE_CONSERVATION
+    - W07_DLQ07_INIT_ACCEPTANCE_GATE
+    - W08_PROVIDER_QUOTA_WINDOWS_PRECHECK
+    - W09_EXACT_SHA_RUNTIME_PROOF_PREP
+    - W10_CODEX_HANDOFF_AND_FIXED_POINT
+  on_success: RECOMPUTE_FRONTIER_AND_CONTINUE
+  on_test_failure: DIAGNOSE_REPAIR_RETEST_CONTINUE
+  on_test_pass: CONTINUE
+  on_commit: CONTINUE
+  on_push: CONTINUE
+  on_foreign_ownership: PARK_AND_SELECT_NEXT_LANE
+  on_human_gate: PARK_EXACT_GATE_AND_SELECT_NEXT_LANE
+  on_missing_physical_authority: FINISH_SOFTWARE_PREP_AND_SELECT_NEXT_LANE
+  on_provider_wait: SELECT_NEXT_LANE
+
+lanes:
+  - id: W01_REALITY_AND_OWNERSHIP
+    priority: P0
+    mission: >
+      Fetch origin, verify local/remote HEAD, inspect status/diff, identify active
+      writers, verify actual Windows process->executable->worktree where reachable,
+      and record exact SHA identities separately. Do not infer equality.
+    completion: >
+      Current repository and Windows ownership/runtime baseline is explicit enough
+      to select safe implementation work without overwriting foreign changes.
+
+  - id: W02_DLQ06_WINDOWS_FILE_SHARING
+    priority: P0
+    mission: >
+      Reproduce DLQ-06 on Windows behaviorally, not only by static analysis.
+      Exercise transient PermissionError/OSError around load_bundle/atomic replace.
+      Implement the smallest bounded retry strategy only for proven transient
+      sharing violations. Persistent/corrupt errors must fail boundedly.
+    tests:
+      - transient sharing failure eventually succeeds
+      - persistent failure exits boundedly
+      - malformed/corrupt ledger never retried into acceptance
+      - no infinite loop
+      - no orphan processes
+    completion: >
+      DLQ-06 has a real Windows reproducer, minimal repair, T0/T1/T2 evidence,
+      and a coherent commit or a precise packet if blocked.
+
+  - id: W03_DLQ08_HUNG_TASK_BOUNDED_DRAIN
+    priority: P0
+    mission: >
+      Revalidate DLQ-08 at current HEAD. One hung future must not wedge the Motor.
+      Add bounded per-result wait and/or bounded drain deadline while preserving
+      checkpoint semantics and unrelated READY progress. Do not kill unrelated PIDs.
+    tests:
+      - hung task + unrelated READY task
+      - --once bounded exit
+      - completed future still reconciled
+      - hung task recorded blocked/checkpointed
+      - healthy task behavior unchanged
+      - owned child cleanup zero
+    completion: >
+      Current code cannot hang indefinitely on one task and affected Motor T2 passes.
+
+  - id: W04_MOTOR_EXCEPTION_PERSISTENCE
+    priority: P0
+    source_candidate: CODEX_harvest_batch_G5
+    mission: >
+      Revalidate the candidate that future.result()/execute_task exceptions can be
+      swallowed without durable blocker recording. If reproducible, repair so a
+      crashed task leaves truthful durable state while unrelated work continues.
+      Do not trust static AST evidence alone.
+    tests:
+      - execute_task RuntimeError
+      - durable blocker after crash
+      - restart sees blocker
+      - unrelated READY task continues
+      - no false CLEAN_IDLE
+    completion: >
+      Candidate is disproved with executable evidence or causally repaired and tested.
+
+  - id: W05_SERVER_RETRY_TERMINATION
+    priority: P0
+    source_candidate: CODEX_harvest_batch_G5
+    mission: >
+      Revalidate whether task_result/task_verify reset execution retry state after
+      MAX_RETRIES and can loop forever. If real, implement bounded terminal or
+      explicit durable failure semantics without breaking provider-wait retries.
+    tests:
+      - persistent generic failure reaches bounded terminal state
+      - success before limit succeeds
+      - provider wait remains resumable
+      - restart preserves retry count
+      - no reset-to-zero retry loop
+    completion: >
+      Persistent errors cannot cycle forever and affected server suites pass.
+
+  - id: W06_BLOCKED_STATE_CONSERVATION
+    priority: P0
+    source_candidate: CODEX_harvest_batch_G5
+    mission: >
+      Revalidate whether an unrelated successful task can overwrite a durable
+      BLOCKED/first-causal-blocker state with READY. Preserve branch-local progress
+      without erasing the truthful blocker. Repair only if executable reproduction
+      confirms the defect.
+    tests:
+      - task A fails while task B succeeds
+      - blocker remains durable
+      - B progress is still recorded
+      - frontier can continue unrelated work
+      - blocker clears only by valid causal resolution
+    completion: >
+      Status reconciliation conserves blockers and progress without false global stop.
+
+  - id: W07_DLQ07_INIT_ACCEPTANCE_GATE
+    priority: P0
+    mission: >
+      Revalidate DLQ-07: initialize() must never create CANONICAL_ACCEPTED from
+      planted acceptance data. INIT starts PROVISIONAL. First canonical acceptance
+      requires a later validated transition. Preserve legitimate initialization.
+    tests:
+      - init with preset CANONICAL rejected/demoted
+      - init with planted machine artifact remains provisional
+      - normal init unchanged
+      - preset CLEAN_IDLE cannot bypass Guard
+    completion: >
+      No zero-update path can self-certify acceptance; T0/T1/T2 evidence exists.
+
+  - id: W08_PROVIDER_QUOTA_WINDOWS_PRECHECK
+    priority: P1
+    mission: >
+      Verify actual Windows server-owned quota-pool configuration for implemented
+      DLQ-05. Confirm worker cannot self-assign quota pool, same resource blocks,
+      independent resource continues, lock persists across restart, expiry resumes,
+      and replay cannot shorten the lock.
+    tests:
+      - same quota resource blocked
+      - independent account/pool same provider continues
+      - unrelated provider continues
+      - READY unrelated task continues
+      - restart persistence
+      - expiry auto-resume
+      - fake/unknown key does not global-stop
+    completion: >
+      Windows precheck evidence is exact and packeted; no unsupported physical claim.
+
+  - id: W09_EXACT_SHA_RUNTIME_PROOF_PREP
+    priority: P1
+    mission: >
+      Establish actual process->executable->worktree->exact SHA for the canonical
+      Windows runtime and compare separately with tested SHA and acceptance-bound SHA.
+      If runtime-affecting code changed, mark old physical evidence stale. Prepare
+      but do not fake final acceptance.
+    completion: >
+      Exact runtime identity chain and stale-proof decision are evidence-backed.
+
+  - id: W10_CODEX_HANDOFF_AND_FIXED_POINT
+    priority: P1
+    mission: >
+      For every high-risk completed Windows/Google repair, build one bounded Codex
+      packet with exact HEAD, commits, invariants, reproducers, T2/T3, known attacks,
+      files, and questions. Then recompute all lanes and take any newly safe work.
+    completion: >
+      All completed high-risk work is CODEX_READY and no safe Windows/Google lane remains.
+
+work_unit_protocol:
+  - FETCH_AND_VERIFY
+  - STATUS_DIFF_OWNERSHIP
+  - SELECT_HIGHEST_PRIORITY_SAFE_LANE
+  - REPRODUCE
+  - IMPLEMENT_MINIMAL_CAUSAL_REPAIR_IF_PROVEN
+  - T0
+  - T1_FAST
+  - T1_FULL
+  - T2_AFFECTED
+  - NEGATIVE_SELF_ATTACK
+  - COMMIT_COHERENT_OWNED_DIFF
+  - PUSH_WHEN_SAFE
+  - UPDATE_CHECKPOINT
+  - RECOMPUTE_FRONTIER
+  - REPEAT
+
+test_policy:
+  no_full_suite_inner_loop: true
+  T0_every_edit: true
+  T1_exact_regression: true
+  T2_affected_component_before_handoff: true
+  T3_before_codex: true
+  T4_only_integration_boundary: true
+  subprocess_timeout_required: true
+  owned_pid_cleanup_required: true
+
+return_policy:
+  progress_reports_forbidden: true
+  ask_proceed_forbidden: true
+  ask_what_next_forbidden: true
+  return_after_one_task_forbidden: true
+  return_after_test_pass_forbidden: true
+  return_after_test_failure_forbidden: true
+  return_after_commit_forbidden: true
+  return_after_push_forbidden: true
+  stop_allowed_only_if:
+    - >
+      Every safe lane is exhausted at the current HEAD and every remaining item
+      genuinely requires explicit human authority, unavailable physical access,
+      or foreign active ownership.
+    - >
+      No safe implementation, testing, attack, packetization, runtime precheck,
+      or Codex-handoff work remains.
+  final_return_must_include:
+    - CURRENT_HEAD
+    - REMOTE_HEAD
+    - ITERATIONS_COMPLETED
+    - LANES_EXHAUSTED
+    - TESTS_RUN
+    - COMMITS_PUSHED
+    - PACKETS_READY
+    - WINDOWS_PROCESS_PID
+    - WINDOWS_EXECUTABLE
+    - WINDOWS_WORKTREE
+    - WINDOWS_SERVING_SHA
+    - ACCEPTANCE_BOUND_SHA
+    - BLOCKERS_PARKED
+    - SAFE_WORK_REMAINING
+    - WHY_GLOBAL_STOP_IS_TRUE
+
+usage:
+  one_time_prompt: >
+    Read ops/ai/WINDOWS_CONTINUOUS_WORK.yaml and enter CONTINUOUS_FIXED_POINT
+    mode. Treat it as your durable scheduler and checkpoint. Update the checkpoint
+    after each coherent unit. Never return while any safe lane is executable.
