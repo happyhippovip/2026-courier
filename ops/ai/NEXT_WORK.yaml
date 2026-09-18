@@ -48,14 +48,10 @@ tasks:
   human_gate: true
 - id: MEMORY-NEXT-07
   owner: CODEX
-  state: READY
+  state: IMPLEMENTED_AND_VERIFIED
   action: >
-    Implement typed LedgerError subclasses for G04 (GOOGLE_CONTINUOUS_WORK.yaml).
-    Replace fragile string-matching in callers with isinstance() checks.
-    Subclasses: RevisionConflictError, NoMeaningfulChangeError, ValidationError,
-    BindingError, MonotonicityError, SelfCertificationError, EdgeConservationError,
-    CleanIdleError, InitializationError. All existing tests must remain green
-    because subclasses are still LedgerError.
+    Implemented typed LedgerError subclasses for G04 (RevisionConflictError, NoMeaningfulChangeError, ValidationError, etc.).
+    Replaced 97 generic LedgerError raises. All existing tests green.
   human_gate: false
 - id: MEMORY-NEXT-08
   owner: GOOGLE
