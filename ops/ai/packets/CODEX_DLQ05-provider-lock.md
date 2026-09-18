@@ -90,3 +90,34 @@ until expiry (bounded, max 300s backoff) while independent workers continue.
 CODEX_READY=YES (implementation reviewed line-level, tests re-run at HEAD,
 stale tests updated without weakening, open points asked not assumed).
 PHYSICAL_PENDING=W08 server-owned pool precheck on Windows.
+
+## REGRESSION REOPENED — 2026-09-18
+
+CURRENT_HEAD=a46e32e33e08222f98f649c9fabe0a3634b118a0
+
+The committed `provider_wait()` path still persists the quota-resource lock,
+but `claim_task()` no longer checks that lock before scanning new READY work.
+The missing gate is visible as the empty block immediately before the READY
+goal scan in `server/app.py`.  This reopens same-pool dispatch during an active
+provider wait; it does not justify closing or deleting the waiting task.
+
+REPRODUCER=
+`python3 -m pytest -q tests/test_provider_wait_isolation.py tests/test_global_queue_stall.py tests/test_motor_eligibility_v1.py`
+
+CURRENT_RESULT=3 failed, 22 passed
+
+FAILING_INVARIANTS=
+- same provider/quota resource must not dispatch while its persisted lock is active
+- a waiting worker must not claim unrelated work using that same locked capacity
+- unrelated workers/providers must remain eligible
+
+MINIMUM_GOOGLE_REPAIR=Restore the canonical `PROVIDER_QUOTA_LOCKED` check in
+`server.app.claim_task()` after the auto-resume scan and before the READY scan,
+using the already computed server-owned `lock_key`.  Preserve the existing
+all-READY candidate scan after this worker-level eligibility check.
+
+TEST_GOOGLE_MUST_ADD_OR_RETAIN=The three failing tests above, plus the existing
+independent-worker/provider case proving that one locked quota resource does
+not globally stall the queue.
+
+STATUS=OPEN_REGRESSION; production fix remains GOOGLE-owned.
