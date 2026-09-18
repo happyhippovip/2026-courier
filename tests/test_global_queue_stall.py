@@ -49,18 +49,27 @@ def test_waiting_provider_does_not_stall_global_queue(client):
     res = client.get(f"/goals/{goal_id}", headers={"Authorization": "Bearer TEST"})
     assert res.json["goal"]["status"] == "ACTIVE"
 
-    # Worker 1 should be able to claim Task B immediately (because it's READY)
+    # DLQ-05: W1's own quota pool is locked, so W1 itself is backed off
+    # (PROVIDER_QUOTA_LOCKED) -- the cluster lock replaced per-task backoff.
     res = client.post("/tasks/claim", json={"worker_id": "W1"}, headers={"Authorization": "Bearer TEST"})
+    assert res.json.get("task") is None
+    assert res.json.get("reason") == "PROVIDER_QUOTA_LOCKED"
+
+    # True negative (DLQ-05 invariant): an independent worker on its own pool
+    # keeps processing READY work while W1 is locked.
+    res = client.post("/workers/register", json={"worker_id": "W2", "platform": "linux", "capabilities": ["linux"]}, headers={"Authorization": "Bearer TEST"})
+    assert res.status_code == 200
+    res = client.post("/tasks/claim", json={"worker_id": "W2"}, headers={"Authorization": "Bearer TEST"})
     task_b = res.json.get("task")
-    assert task_b is not None, "Task B was blocked by Task A's WAITING_PROVIDER state!"
+    assert task_b is not None, "Independent worker W2 was blocked by W1's quota lock!"
     assert task_b["task_id"] == "B"
 
     # Set Task B to SUCCESS
-    res = client.post("/tasks/result", json={"task_id": "B", "worker_id": "W1", "result_id": "res-b", "status": "SUCCESS", "execution_ref": task_b["execution_ref"], "run_id": "run1", "artifacts": [], "goal_id": goal_id, "dispatch_id": task_b["dispatch_id"], "attempt_id": task_b["attempt_id"]}, headers={"Authorization": "Bearer TEST"})
+    res = client.post("/tasks/result", json={"task_id": "B", "worker_id": "W2", "result_id": "res-b", "status": "SUCCESS", "execution_ref": task_b["execution_ref"], "run_id": "run1", "artifacts": [], "goal_id": goal_id, "dispatch_id": task_b["dispatch_id"], "attempt_id": task_b["attempt_id"]}, headers={"Authorization": "Bearer TEST"})
     print("Result B:", res.json)
 
-    # Worker 1 should be able to claim Task C immediately
-    res = client.post("/tasks/claim", json={"worker_id": "W1"}, headers={"Authorization": "Bearer TEST"})
+    # Worker 2 should be able to claim Task C immediately
+    res = client.post("/tasks/claim", json={"worker_id": "W2"}, headers={"Authorization": "Bearer TEST"})
     task_c = res.json.get("task")
     print("Claim C:", res.json)
     assert task_c is not None, "Task C was blocked by Task A's WAITING_PROVIDER state!"
