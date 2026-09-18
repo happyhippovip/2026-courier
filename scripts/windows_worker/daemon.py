@@ -38,10 +38,25 @@ def register_worker(worker_id):
     req = urllib.request.Request(f"{API_URL}/workers/register", method="POST")
     for k, v in HEADERS.items(): req.add_header(k, v)
     cost_class = os.environ.get("WORKER_COST_CLASS", "low")
-    data = json.dumps({"worker_id": worker_id, "platform": "windows", "capabilities": ["windows"], "cost_class": cost_class}).encode("utf-8")
+    
+    runtime_sha = "unknown"
+    try:
+        out = subprocess.check_output(["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL)
+        runtime_sha = out.decode("utf-8").strip()
+    except Exception:
+        pass
+
+    payload = {
+        "worker_id": worker_id, 
+        "platform": "windows", 
+        "capabilities": ["windows"], 
+        "cost_class": cost_class,
+        "runtime_sha": runtime_sha
+    }
+    data = json.dumps(payload).encode("utf-8")
     try:
         urllib.request.urlopen(req, data=data, timeout=10)
-        print(f"[{worker_id}] Registered successfully")
+        print(f"[{worker_id}] Registered successfully (SHA: {runtime_sha[:8]})")
         return True
     except Exception as e:
         print(f"[{worker_id}] Failed to register: {e}")
@@ -56,7 +71,17 @@ def http_post_result(res):
             urllib.request.urlopen(req, data=data, timeout=10)
             return
         except urllib.error.HTTPError as e:
-            print(f"[Windows Worker] Failed to post result: {e} - {e.read().decode('utf-8')}")
+            try:
+                body = e.read().decode('utf-8')
+                if e.code in (200, 409) and '"ACK_DUPLICATE"' in body:
+                    print(f"[Windows Worker] Result already acknowledged by server: {body}")
+                    return
+                elif e.code == 409 and '"CONTRADICTORY_DUPLICATE"' in body:
+                    print(f"[Windows Worker] Result rejected as contradictory duplicate: {body}")
+                    return
+            except Exception:
+                body = ""
+            print(f"[Windows Worker] Failed to post result: {e} - {body}")
             time.sleep(2 ** attempt)
         except Exception as e:
             print(f"[Windows Worker] Failed to post result: {e}")
@@ -68,6 +93,30 @@ def run_task(task, config):
     
     instruction = task.get("instruction", "")
     
+    # WAITING_PROVIDER isolation
+    action = task.get("action", "").lower()
+    if action == "provider_wait":
+        print(f"[{config['WORKER_ID']}] Simulating PROVIDER_WAIT")
+        res_json = {
+            "status": "PROVIDER_WAIT",
+            "reason": "SIMULATED_429_RATE_LIMIT",
+            "stdout": "",
+            "stderr": "",
+            "goal_id": task.get("goal_id"),
+            "task_id": task.get("task_id"),
+            "attempt_id": task.get("attempt_id"),
+            "dispatch_id": task.get("dispatch_id"),
+            "execution_ref": task.get("execution_ref"),
+            "worker_id": task.get("worker_id") or config["WORKER_ID"],
+            "provider": "windows_native",
+            "run_id": "win-native",
+            "result_id": f"result-{uuid.uuid4().hex}",
+            "artifacts": []
+        }
+        if "batch_id" in task: res_json["batch_id"] = task["batch_id"]
+        if "prompt_id" in task: res_json["prompt_id"] = task["prompt_id"]
+        return res_json
+
     out_clean = ""
     stderr = ""
     run_id = "win-native"
