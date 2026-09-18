@@ -12,6 +12,9 @@ def client():
 def reset_state():
     state = load_state()
     state.update({"goals": {}, "tasks": {}, "workers": {}})
+    # DLQ-05: locks live outside tasks/workers; clear them for isolation so a
+    # previous run's backoff cannot leak into this run.
+    state["provider_locks"] = {}
     save_state(state)
 
 def test_waiting_provider_does_not_stall_global_queue(client):

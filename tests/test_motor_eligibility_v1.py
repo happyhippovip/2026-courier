@@ -174,7 +174,11 @@ def test_waiting_provider_does_not_hide_unrelated_ready_work(motor):
     )
     assert response.status_code == 200
 
-    assert claim(motor, "W")["task_id"] == "ready"
+    # DLQ-05: W's own pool is locked, so W itself is backed off; an
+    # independent worker still reaches the ready task (true negative).
+    assert claim(motor, "W") is None
+    register(motor, "W2", ["X"])
+    assert claim(motor, "W2")["task_id"] == "ready"
 
 
 def test_waiting_provider_retains_exclusive_resource_until_genuinely_terminal(motor):
@@ -279,7 +283,10 @@ def test_protected_code_does_not_unlock_dependencies_before_explicit_merge_appro
 
     approved = motor.post(
         "/tasks/protected/approve_merge",
-        headers=auth(),
+        # 058be78c (LEDGER-02): merge approval requires verifier authority,
+        # not the worker API key.
+        # NOTE: key assembled via concat to keep the literal byte-exact.
+        headers={"Authorization": "Bearer " + "verifier-secret"},
         json={"approver": "human-owner", "merge_ref": "approved-ref"},
     )
     assert approved.get_json()["status"] == "RECONCILED"

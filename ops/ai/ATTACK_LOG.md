@@ -43,6 +43,21 @@ Probes: /tmp/dlq01_refresh.py, /tmp/dlq02_refresh.py, /tmp/dlq03_refresh.py,
   parked for Google retry — never weaken); DLQ-06 Codex packet completed
   additively (HEAD/commits/T2/T3/attacks/questions); Windows worker commands
   restored as separate packet (foreign rewrite preserved).
+- CONTINUOUS iteration 4 (HEAD 9837e5ae): Google landed DLQ-06 retry
+  (3039126e, verified working via harness), DLQ-07 INIT gate (8918bc8f,
+  verified closed via fam_d), DLQ-08 abandon (bbc86b56, code-reviewed),
+  stall-test W2 update (fc1f42dd, converged with Muse design). Findings:
+  DLQ-07 fix OVER-BLOCKS (VALID at INIT demoted to non-member "INVALID" ->
+  6 tests red incl. Google's own contract test; packet DLQ-07-FOLLOWUP with
+  options A/B, no production edit). Stale tests updated without weakening:
+  resume (lock-aware), stall (W1-locked/W2-continues + lock-clearing reset),
+  eligibility waiting (W2 true-negative), protected (verifier header;
+  058be78c-bisect-proven). worker_quota_pools never populated in prod code
+  (effective key worker_id:provider). Author bracket-typo ([REDACTED] vs
+  TEST) caused all probe-401s; byte-scan discipline adopted. Import-order
+  fragility documented (isolation passes standalone only). One historical
+  pytest-401 cluster remains mechanically unisolated (torn-read during
+  concurrent foreign write is the leading theory; 10+ greens since).
 - preset CLEAN_IDLE=YES + PROVISIONAL guard (probe E 2026-09-18, blocked)
 - VALID-marked mismatched SHA/runtime (validate_guard :261-264, structural)
 

@@ -82,6 +82,9 @@ def test_provider_wait_resumes_same_dispatch_without_new_attempt(motor):
     for step in state["goals"][original["goal_id"]]["workflow_plan"]:
         if step["task_id"] == "waiting-task":
             step["next_retry_at"] = 0
+    # DLQ-05: auto-resume is gated by the cluster provider lock, not the
+    # per-task timestamp — expire the lock to simulate elapsed backoff.
+    state["provider_locks"] = {}
     server_app.save_state(state)
 
     resumed = claim(motor, "worker-1")
