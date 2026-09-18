@@ -9,6 +9,7 @@ import copy
 import errno
 import hashlib
 import json
+import logging
 import os
 import re
 import sys
@@ -17,6 +18,8 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterator
+
+logger = logging.getLogger(__name__)
 
 FORMAT = "courier-agent-handoff-ledger"
 SCHEMA_VERSION = 2
@@ -754,9 +757,9 @@ def update(
                 record["UNPROVEN_EDGES"] = unproven
 
 
-        print(f"introducer_map={introducer_map}")
-        print(f"updated_by={updated_by}")
-        print(f"unproven={unproven}, has_physical_proof={has_physical_proof}")
+        logger.debug("introducer_map=%s", introducer_map)
+        logger.debug("updated_by=%s", updated_by)
+        logger.debug("unproven=%s, has_physical_proof=%s", unproven, has_physical_proof)
         if updates.get("CLEAN_IDLE") == "YES" and (unproven or not has_physical_proof):
 
             raise LedgerError("CLEAN_IDLE=YES is forbidden without pre-existing physical proof and empty unproven edges")
@@ -826,7 +829,7 @@ def update(
                             raise LedgerError("evidence produced by the acceptance decision path itself or uses arbitrary strings")
             
         if not changed and not guard_changed:
-            print(f"DEBUG NO CHANGE: updates={updates} | record={bundle['record']}")
+            logger.debug("no meaningful change: updates=%s | record=%s", updates, bundle['record'])
             raise LedgerError("update makes no meaningful change")
         if guard_changed:
             changed.append("@ACCEPTANCE_GUARD")
