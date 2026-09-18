@@ -1,5 +1,5 @@
-bound_to_code_head: 0c8d1eddacb15dedbebb8406e475917dc2ab1c2b
-updated_at: '2026-09-18T09:23:33+02:00'
+bound_to_code_head: eba56edb
+updated_at: '2026-09-18T13:02:00+02:00'
 tasks:
 - id: DLQ-01
   priority: P0
@@ -20,6 +20,13 @@ tasks:
   negative_test: legitimate multi-writer evidence still accepted
   owner: Google (attester protocol design)
   ready_to_implement: false
+  status: GUARDS_AND_TESTS_IMPLEMENTED
+  implementation_note: >
+    introducer_map + writer-independence checks added to update() at lines 697-747.
+    T3 adversarial suite: tests/test_ledger_attestation_trust_root.py (12 tests).
+    T2 suite: tests/test_ledger_self_cert_rejection.py (1 test).
+    All passing at HEAD eba56edb. DLQ entry kept open for future server-owned
+    attestation authority design (not just caller-string checks).
 - id: DLQ-02
   priority: P0
   last_reproduced_head: 50810001
@@ -36,6 +43,14 @@ tasks:
   negative_test: fresh valid evidence still accepted
   owner: Google (freshness policy design)
   ready_to_implement: false
+  status: GUARDS_AND_TESTS_IMPLEMENTED
+  implementation_note: >
+    48h freshness window (0 <= delta <= 172800) + monotonicity enforcement +
+    MAX_FUTURE_CLOCK_SKEW_SECONDS=300 added to update() at lines 738-747.
+    T3 adversarial suite: tests/test_ledger_freshness_binding_epoch.py (11 tests).
+    T2 suite: tests/test_ledger_freshness_rejection.py (1 test).
+    All passing at HEAD eba56edb. DLQ entry kept open for future server-owned
+    binding epoch design (canonical server receipt vs producer timestamp).
 - id: DLQ-03
   priority: P1
   last_reproduced_head: 50810001
@@ -142,6 +157,13 @@ tasks:
     injection.
   owner: Google (Windows physical)
   ready_to_implement: true
+  status: IMPLEMENTED_AND_VERIFIED
+  implementation_note: >
+    load_bundle: 20x retry with 50ms backoff on PermissionError (lines 476-487).
+    atomic_write: 20x retry on os.replace PermissionError (lines 528-535).
+    Symlink protection in both functions.
+    Test: tests/test_ledger_windows_permission_retry.py (6 tests).
+    All passing at HEAD eba56edb. Awaits Windows physical validation.
 - id: DLQ-07
   priority: P0
   last_reproduced_head: 82bbe090
@@ -162,6 +184,13 @@ tasks:
   owner: Google (ledger init trust design)
   ready_to_implement: false
   packet: ops/ai/packets/DLQ-07_review_packet.md
+  status: GUARDS_AND_TESTS_IMPLEMENTED
+  implementation_note: >
+    initialize() forces transition_state=PROVISIONAL at line 636 and rejects
+    CANONICAL_ACCEPTED at line 631. CLEAN_IDLE=YES at init rejected at line 633-634.
+    T3 tests: test_attestation_cross_defect_crash.py::TestInitWithPlantedEvidence (2 tests).
+    T3 tests: test_ledger_false_green_attack.py::test_preset_canonical_accepted.
+    All passing at HEAD eba56edb.
 - id: DLQ-08
   priority: P1
   last_reproduced_head: 82bbe090

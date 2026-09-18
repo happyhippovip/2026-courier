@@ -1,6 +1,6 @@
 version: 1
-code_base_head: 0c8d1eddacb15dedbebb8406e475917dc2ab1c2b
-updated_at: '2026-09-18T09:23:33+02:00'
+code_base_head: eba56edb
+updated_at: '2026-09-18T13:02:00+02:00'
 tasks:
 - id: MEMORY-NEXT-01
   owner: GOOGLE
@@ -10,13 +10,11 @@ tasks:
   human_gate: false
   codex_review: Only after a complete packet with T2/T3 and physical evidence.
 - id: MEMORY-NEXT-02
-  owner: MUSE_NEWSY
-  state: PACKETS_COMPLETE
-  action: DONE 2026-09-18 at HEAD 50810001 - DLQ-01/DLQ-02 reproducers refreshed and
-    live (/tmp/dlq01_refresh.py, /tmp/dlq02_refresh.py); attester writer-independence
-    and freshness recency-plus-monotonicity invariants decided; Codex-ready packets
-    at ops/ai/packets/DLQ-01_review_packet.md and DLQ-02_review_packet.md. Awaiting
-    Google design and implementation.
+  owner: GOOGLE
+  state: GUARDS_AND_TESTS_IMPLEMENTED
+  action: DLQ-01/DLQ-02 guards implemented with T3 adversarial suites (12+11 tests).
+    Introducer-map writer-independence, 48h freshness, monotonicity enforcement all
+    in place. DLQ entries kept open for future server-owned attestation authority.
   human_gate: false
   implementation_owner_after_ready: GOOGLE
 - id: MEMORY-NEXT-03
@@ -48,3 +46,22 @@ tasks:
   action: Run exact-SHA OS-owned Windows acceptance only after reviewed deployment
     and explicit machine authority.
   human_gate: true
+- id: MEMORY-NEXT-07
+  owner: CODEX
+  state: READY
+  action: >
+    Implement typed LedgerError subclasses for G04 (GOOGLE_CONTINUOUS_WORK.yaml).
+    Replace fragile string-matching in callers with isinstance() checks.
+    Subclasses: RevisionConflictError, NoMeaningfulChangeError, ValidationError,
+    BindingError, MonotonicityError, SelfCertificationError, EdgeConservationError,
+    CleanIdleError, InitializationError. All existing tests must remain green
+    because subclasses are still LedgerError.
+  human_gate: false
+- id: MEMORY-NEXT-08
+  owner: GOOGLE
+  state: IMPLEMENTED_AND_VERIFIED
+  action: >
+    DLQ-06 Windows PermissionError retry. load_bundle: 20x retry, atomic_write: 20x
+    retry, symlink protection. Test: test_ledger_windows_permission_retry.py (6 tests).
+    Debug prints converted to logger.debug(). All 72 ledger tests green.
+  human_gate: false
