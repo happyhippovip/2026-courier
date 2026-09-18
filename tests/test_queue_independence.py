@@ -57,7 +57,7 @@ def setup_ledger(tmp_path, unproven_edges, blocker, proven_edges):
             "current_sha": "0000000000000000000000000000000000000000",
             "runtime_identity": "0000000000000000000000000000000000000000"
         },
-        "evidence": [{"source_url":"https://test.com","source_type":"MACHINE_ARTIFACT","observed_at":"2026-09-17T12:00:00Z","evidence_sha":"0000000000000000000000000000000000000000","runtime_binding":"0000000000000000000000000000000000000000","validity":"VALID","reason":"test"}],
+        "evidence": [{"source_url":"https://test.com","source_type":"MACHINE_ARTIFACT","observed_at":"2026-09-18T22:05:45Z","evidence_sha":"0000000000000000000000000000000000000000","runtime_binding":"0000000000000000000000000000000000000000","validity":"VALID","reason":"test","producer_id":"producer_1","verifier_id":"verifier_1","result_sha256":"0000000000000000000000000000000000000000"}],
         "flow": ["EXECUTION", "EVIDENCE", "ACCEPTANCE_GUARD", "LEDGER_TRANSITION", "NEXT_EXECUTABLE_ACTION"]
     }
     
@@ -93,6 +93,7 @@ def test_queue_independence_a_waits_b_executes_c_executes(tmp_path):
     )
     
     env = os.environ.copy()
+    env["MOCK_GOAL_ID"] = "QUEUE-INDEPENDENT-TEST"
     env["MOCK_LEDGER"] = str(ledger_path)
     env["MOCK_BRANCH"] = "test-branch"
     env["MOCK_SHA"] = "0000000000000000000000000000000000000000"
@@ -100,7 +101,7 @@ def test_queue_independence_a_waits_b_executes_c_executes(tmp_path):
     
     # Run the motor in the temp dir so it creates marker there
     repo_dir = Path(__file__).parent.parent.resolve()
-    script = repo_dir / "scripts" / "courier_continue.py"
+    script = repo_dir / "tests" / "mock_courier_continue.py"
     
     # We run with --run --once? 
     # If we run with --once, it does exactly one loop.

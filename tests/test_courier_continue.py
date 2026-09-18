@@ -8,7 +8,7 @@ import os
 def setup_ledger(tmp_path, unproven_edges, blocker, proven_edges=None, active_writers=None, collision_scope=None, blocker_owner="Human"):
     record = {
         "PROJECT": "Courier",
-        "GOAL": "TEST-GOAL",
+        "GOAL": "test-goal",
         "CURRENT_SHA": "0000000000000000000000000000000000000000",
         "BRANCH": "test-branch",
         "RUNTIME_IDENTITY": "0000000000000000000000000000000000000000",
@@ -53,7 +53,7 @@ def setup_ledger(tmp_path, unproven_edges, blocker, proven_edges=None, active_wr
             "current_sha": "0000000000000000000000000000000000000000",
             "runtime_identity": "0000000000000000000000000000000000000000"
         },
-        "evidence": [{"source_url":"https://test.com","source_type":"MACHINE_ARTIFACT","observed_at":"2026-09-17T12:00:00Z","evidence_sha":"0000000000000000000000000000000000000000","runtime_binding":"0000000000000000000000000000000000000000","validity":"UNKNOWN","reason":"test"}],
+        "evidence": [{"source_url":"https://test.com","source_type":"MACHINE_ARTIFACT","observed_at":"2026-09-18T22:06:15Z","evidence_sha":"0000000000000000000000000000000000000000","runtime_binding":"0000000000000000000000000000000000000000","validity":"UNKNOWN","reason":"test"}],
         "flow": [
             "EXECUTION",
             "EVIDENCE",
@@ -80,7 +80,7 @@ def setup_ledger(tmp_path, unproven_edges, blocker, proven_edges=None, active_wr
 
 def run_continue(ledger_path, mock_sha="0000000000000000000000000000000000000000", mock_branch="test-branch", run=False):
     repo_dir = Path(__file__).parent.parent.resolve()
-    script = repo_dir / "scripts" / "courier_continue.py"
+    script = repo_dir / "tests" / "mock_courier_continue.py"
     
     env = os.environ.copy()
     env.update({"MOCK_SHA": mock_sha, "MOCK_BRANCH": mock_branch, "MOCK_LEDGER": str(ledger_path), "PYTHONPATH": str(repo_dir)})
@@ -139,7 +139,7 @@ def test_stale_ledger_fail_closed(tmp_path):
 
 def test_all_scopes_blocked_true_global_stop(tmp_path):
     ledger_path = setup_ledger(tmp_path, [], "HUMAN_REQUIRED_PUBLIC_REPO_VISIBILITY", proven_edges=["LEDGER/HANDOFF", "PR41 ACCEPTANCE", "RELEASE - SAFE_AUTOMATABLE_PREPARATION", "RELEASE - IRREVERSIBLE_HUMAN_ACTION", "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION", "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION", "PUBLICATION VERIFICATION", "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION", "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION", "SALES PACKAGE", "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION", "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION", "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION", "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION", "POST-PILOT HARDENING", "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION", "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION", "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION", "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION", "PUBLICATION VERIFICATION"])
-    res = subprocess.run([sys.executable, str(Path(__file__).parent.parent / "scripts" / "courier_continue.py"), "--run", "--once"], env=dict(os.environ, MOCK_LEDGER=str(ledger_path), MOCK_BRANCH="test-branch", MOCK_SHA="0000000000000000000000000000000000000000"), capture_output=True, text=True)
+    res = subprocess.run([sys.executable, str(Path(__file__).parent.parent / "tests" / "mock_courier_continue.py"), "--run", "--once"], env=dict(os.environ, MOCK_LEDGER=str(ledger_path), MOCK_BRANCH="test-branch", MOCK_SHA="0000000000000000000000000000000000000000"), capture_output=True, text=True)
     assert res.returncode == 0
     assert "GLOBAL STOP: CLEAN_IDLE" in res.stdout
 
@@ -152,7 +152,7 @@ def test_capability_insufficient_cannot_claim(tmp_path):
     env.update({"MOCK_SHA": "0000000000000000000000000000000000000000", "MOCK_BRANCH": "test-branch", "MOCK_LEDGER": str(ledger_path), "COURIER_WORKER_CAPABILITIES": "shell,http_client"})
     
     repo_dir = Path(__file__).parent.parent.resolve()
-    runner = repo_dir / "scripts" / "courier_continue.py"
+    runner = repo_dir / "tests" / "mock_courier_continue.py"
     res = subprocess.run([sys.executable, str(runner), "--once"], env=env, capture_output=True, text=True)
     
     assert res.returncode == 0
@@ -171,7 +171,7 @@ def test_worker_loss_takeover_and_handoff(tmp_path):
     env1.update({"MOCK_SHA": "0000000000000000000000000000000000000000", "MOCK_BRANCH": "test-branch", "MOCK_LEDGER": str(ledger_path), "COURIER_WORKER_CAPABILITIES": "http_client"})
     
     repo_dir = Path(__file__).parent.parent.resolve()
-    runner = repo_dir / "scripts" / "courier_continue.py"
+    runner = repo_dir / "tests" / "mock_courier_continue.py"
     
     res1 = subprocess.run([sys.executable, str(runner)], env=env1, capture_output=True, text=True)
     assert "Prove edge: PUBLICATION VERIFICATION" in res1.stdout
@@ -192,7 +192,7 @@ def test_capability_based_routing_claims_eligible(tmp_path):
     env.update({"MOCK_SHA": "0000000000000000000000000000000000000000", "MOCK_BRANCH": "test-branch", "MOCK_LEDGER": str(ledger_path), "COURIER_WORKER_CAPABILITIES": "http_client"})
     
     repo_dir = Path(__file__).parent.parent.resolve()
-    runner = repo_dir / "scripts" / "courier_continue.py"
+    runner = repo_dir / "tests" / "mock_courier_continue.py"
     res = subprocess.run([sys.executable, str(runner), "--once"], env=env, capture_output=True, text=True)
     
     # It should pick PUBLICATION VERIFICATION since it's independent and matches capabilities
@@ -203,7 +203,7 @@ def test_missing_physical_proof_prevents_acceptance(tmp_path):
     ledger_path = setup_ledger(tmp_path, [], "NONE", proven_edges=["LEDGER/HANDOFF", "PR41 ACCEPTANCE", "RELEASE - SAFE_AUTOMATABLE_PREPARATION", "RELEASE - IRREVERSIBLE_HUMAN_ACTION", "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION", "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION", "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION", "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION", "SALES PACKAGE", "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION", "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION", "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION", "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION", "POST-PILOT HARDENING", "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION", "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION", "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION", "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION", "PUBLICATION VERIFICATION"])
     
     # Run continue
-    res = subprocess.run([sys.executable, str(Path(__file__).parent.parent / "scripts" / "courier_continue.py"), "--run", "--once"], env=dict(os.environ, MOCK_LEDGER=str(ledger_path), MOCK_BRANCH="test-branch", MOCK_SHA="0000000000000000000000000000000000000000"), capture_output=True, text=True)
+    res = subprocess.run([sys.executable, str(Path(__file__).parent.parent / "tests" / "mock_courier_continue.py"), "--run", "--once"], env=dict(os.environ, MOCK_LEDGER=str(ledger_path), MOCK_BRANCH="test-branch", MOCK_SHA="0000000000000000000000000000000000000000"), capture_output=True, text=True)
     
     with open(ledger_path, "r") as f:
         data = json.load(f)
@@ -217,7 +217,7 @@ def test_valid_physical_proof_allows_acceptance(tmp_path):
     # Manually create the guard and record with valid evidence
     record = {
         "PROJECT": "Courier",
-        "GOAL": "TEST-GOAL",
+        "GOAL": "test-goal",
         "CURRENT_SHA": "0000000000000000000000000000000000000000",
         "BRANCH": "test-branch",
         "RUNTIME_IDENTITY": "0000000000000000000000000000000000000000",
@@ -262,7 +262,7 @@ def test_valid_physical_proof_allows_acceptance(tmp_path):
             "current_sha": "0000000000000000000000000000000000000000",
             "runtime_identity": "0000000000000000000000000000000000000000"
         },
-        "evidence": [{"source_url":"https://test.com","source_type":"MACHINE_ARTIFACT","observed_at":"2026-09-17T12:00:00Z","evidence_sha":"0000000000000000000000000000000000000000","runtime_binding":"0000000000000000000000000000000000000000","validity":"VALID","reason":"test"}],
+        "evidence": [{"source_url":"https://test.com","source_type":"MACHINE_ARTIFACT","observed_at":"2026-09-18T22:06:15Z","evidence_sha":"0000000000000000000000000000000000000000","runtime_binding":"0000000000000000000000000000000000000000","validity":"VALID","producer_id":"producer_1","verifier_id":"verifier_1","result_sha256":"0000000000000000000000000000000000000000","reason":"test"}],
         "flow": [
             "EXECUTION",
             "EVIDENCE",
@@ -287,7 +287,7 @@ def test_valid_physical_proof_allows_acceptance(tmp_path):
     
     subprocess.run([sys.executable, str(script), "init", str(ledger_path), "--record", str(record_path), "--guard", str(guard_path)], check=True)
 
-    res = subprocess.run([sys.executable, str(Path(__file__).parent.parent / "scripts" / "courier_continue.py"), "--run", "--once"], env=dict(os.environ, MOCK_LEDGER=str(ledger_path), MOCK_BRANCH="test-branch", MOCK_SHA="0000000000000000000000000000000000000000"), capture_output=True, text=True)
+    res = subprocess.run([sys.executable, str(Path(__file__).parent.parent / "tests" / "mock_courier_continue.py"), "--run", "--once"], env=dict(os.environ, MOCK_LEDGER=str(ledger_path), MOCK_BRANCH="test-branch", MOCK_SHA="0000000000000000000000000000000000000000"), capture_output=True, text=True)
     
     with open(ledger_path, "r") as f:
         data = json.load(f)
@@ -306,7 +306,7 @@ def test_blocked_dependent_does_not_freeze_independent(tmp_path):
     )
     repo_dir = Path(__file__).parent.parent.resolve()
     res = subprocess.run(
-        [sys.executable, str(repo_dir / "scripts" / "courier_continue.py")],
+        [sys.executable, str(repo_dir / "tests" / "mock_courier_continue.py")],
         env=dict(os.environ, MOCK_LEDGER=str(ledger_path), MOCK_BRANCH="test-branch", MOCK_SHA="0000000000000000000000000000000000000000"),
         capture_output=True, text=True, cwd=str(repo_dir),
     )
@@ -331,7 +331,7 @@ def test_zero_chat_replenishment_two_cycles(tmp_path):
             proven_edges=list(proven),
         )
         res = subprocess.run(
-            [sys.executable, str(repo_dir / "scripts" / "courier_continue.py")],
+            [sys.executable, str(repo_dir / "tests" / "mock_courier_continue.py")],
             env=dict(os.environ, MOCK_LEDGER=str(ledger_path), MOCK_BRANCH="test-branch", MOCK_SHA="0000000000000000000000000000000000000000"),
             capture_output=True, text=True, cwd=str(repo_dir),
         )

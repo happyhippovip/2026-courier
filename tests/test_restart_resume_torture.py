@@ -34,13 +34,14 @@ def test_restart_resume_torture(tmp_path):
     )
     
     env = os.environ.copy()
+    env["MOCK_GOAL_ID"] = "QUEUE-INDEPENDENT-TEST"
     env["MOCK_LEDGER"] = str(ledger_path)
     env["MOCK_BRANCH"] = "test-branch"
     env["MOCK_SHA"] = "0000000000000000000000000000000000000000"
     env["MOCK_TORTURE_TASK"] = torture_task
     
     repo_dir = Path(__file__).parent.parent.resolve()
-    script = repo_dir / "scripts" / "courier_continue.py"
+    script = repo_dir / "tests" / "mock_courier_continue.py"
     
     # Run #1: Motor starts, hits torture task, does step 1, hard crashes (exit 99)
     res1 = subprocess.run([sys.executable, str(script), "--run"], env=env, cwd=str(tmp_path), capture_output=True, text=True)

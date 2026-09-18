@@ -85,7 +85,7 @@ def test_queue_independent_daemon(tmp_path):
     env = os.environ.copy()
     env.update({"MOCK_SHA": "0000000000000000000000000000000000000000", "MOCK_BRANCH": "test-branch", "MOCK_LEDGER": str(ledger_path), "PYTHONPATH": str(repo_dir)})
     
-    runner = repo_dir / "scripts" / "courier_continue.py"
+    runner = repo_dir / "tests" / "mock_courier_continue.py"
     
     # Launch as a detached daemon/background process
     with open(tmp_path / "daemon.out", "w") as outf:

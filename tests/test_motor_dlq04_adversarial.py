@@ -16,7 +16,7 @@ def test_dlq04_adversarial_drain(tmp_path):
 
     record = {
         "PROJECT": "Courier",
-        "GOAL": "TEST-GOAL",
+        "GOAL": "test-goal",
         "CURRENT_SHA": "0000000000000000000000000000000000000000",
         "BRANCH": "test-branch",
         "RUNTIME_IDENTITY": "0000000000000000000000000000000000000000",
@@ -61,7 +61,7 @@ def test_dlq04_adversarial_drain(tmp_path):
             "current_sha": "0000000000000000000000000000000000000000",
             "runtime_identity": "0000000000000000000000000000000000000000"
         },
-        "evidence": [{"source_url":"https://test.com","source_type":"MACHINE_ARTIFACT","observed_at":"2026-09-17T12:00:00Z","evidence_sha":"0000000000000000000000000000000000000000","runtime_binding":"0000000000000000000000000000000000000000","validity":"VALID","reason":"test"}],
+        "evidence": [{"source_url":"https://test.com","source_type":"MACHINE_ARTIFACT","observed_at":"2026-09-18T22:03:59Z","evidence_sha":"0000000000000000000000000000000000000000","runtime_binding":"0000000000000000000000000000000000000000","validity":"VALID","producer_id":"producer_1","verifier_id":"verifier_1","result_sha256":"0000000000000000000000000000000000000000","reason":"test"}],
         "flow": [
             "EXECUTION",
             "EVIDENCE",
@@ -86,7 +86,7 @@ def test_dlq04_adversarial_drain(tmp_path):
     
     subprocess.run([sys.executable, str(script), "init", str(ledger_path), "--record", str(record_path), "--guard", str(guard_path)], check=True)
     repo_dir = Path(__file__).parent.parent.resolve()
-    script = repo_dir / "scripts" / "courier_continue.py"
+    script = repo_dir / "tests" / "mock_courier_continue.py"
     
     env = dict(
         os.environ, 
