@@ -126,6 +126,42 @@ def test_verified_completed_result_posts_and_records_run_attempt(tmp_path: Path,
     assert state["task_packet_sha256"] == adapter.task_packet_sha256(packet())
 
 
+def test_completed_run_removes_only_stale_owned_download_before_resume(tmp_path: Path, monkeypatch):
+    task_file = tmp_path / "task.json"
+    task = packet()
+    task_file.write_text(json.dumps(task), encoding="utf-8")
+    download_dir = tmp_path / ".courier-result-dispatch-1"
+    download_dir.mkdir()
+    (download_dir / "stale-partial.json").write_text("partial", encoding="utf-8")
+    unrelated = tmp_path / "keep.txt"
+    unrelated.write_text("keep", encoding="utf-8")
+
+    monkeypatch.setattr(adapter, "find_run", lambda _: ("99", "completed"))
+
+    def download(_, __, directory):
+        assert not directory.exists()
+        return (
+            {
+                **task,
+                "run_id": "99",
+                "run_attempt": "1",
+                "result_id": "result-dispatch-1",
+                "status": "SUCCESS",
+                "operation": "deterministic_transform",
+                "artifacts": [{"path": "courier_output_dispatch-1.json", "sha256": "x"}],
+            },
+            {"operation": "deterministic_transform"},
+        )
+
+    monkeypatch.setattr(adapter, "download_result", download)
+    monkeypatch.setattr(adapter, "verify_result", lambda *args: None)
+    monkeypatch.setattr(adapter, "post_result", lambda _: "ACK_RESULT_RECEIVED")
+
+    assert adapter.run(str(task_file)) == 0
+    assert unrelated.read_text(encoding="utf-8") == "keep"
+    assert not download_dir.exists()
+
+
 def test_existing_waiting_dispatch_is_reconciled_not_dispatched(tmp_path: Path, monkeypatch):
     task_file = tmp_path / "task.json"
     task_file.write_text(json.dumps(packet()), encoding="utf-8")

@@ -203,6 +203,10 @@ def run(task_file_name: str) -> int:
         run_id, status = find_run(task["dispatch_id"])
         if run_id and status == "completed":
             directory = task_file.parent / f".courier-result-{task['dispatch_id']}"
+            # A process may have crashed after downloading but before cleanup.
+            # The dispatch id is path-safe, so only this adapter-owned directory
+            # is removed before fetching the canonical artifact again.
+            shutil.rmtree(directory, ignore_errors=True)
             try:
                 result, evidence = download_result(run_id, task["dispatch_id"], directory)
                 verify_result(task, result, evidence, run_id, directory)
