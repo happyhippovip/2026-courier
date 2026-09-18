@@ -154,3 +154,18 @@ def test_concurrent_conflicting_results_have_exactly_one_immutable_winner(tmp_pa
     assert persisted["payload_hash"] == bridge.payload_hash(persisted["payload"])
     assert "accepted" in outcomes
     assert "conflict" in outcomes
+
+
+def test_atomic_json_save_preserves_previous_state_when_replace_fails(monkeypatch, tmp_path):
+    state_file = tmp_path / "state.json"
+    state_file.write_text('{"state": "old"}\n', encoding="utf-8")
+
+    def fail_replace(source, destination):
+        raise OSError("simulated replace failure")
+
+    monkeypatch.setattr(bridge.os, "replace", fail_replace)
+    with pytest.raises(OSError, match="simulated replace failure"):
+        bridge.save_json(state_file, {"state": "new"})
+
+    assert json.loads(state_file.read_text(encoding="utf-8")) == {"state": "old"}
+    assert list(tmp_path.glob("*.tmp")) == []
