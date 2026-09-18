@@ -103,3 +103,32 @@ correct there), CLI update (LedgerError surfaces to operator, correct).
 No Codex decision was pending on this item; none invented.
 WAITING_FOR_CODEX_DECISION=(none — item closed, no placeholders outstanding)
 GOOGLE_ZERO_ARCHAEOLOGY=YES (nothing left to implement).
+
+## CURRENT RED-TEAM RESULT — 2026-09-18
+
+CODE_SHA=b0f6cec5e7a8e3ca64c9039792d239d2e67fe5ea
+
+Storage semantics remain correct, but caller semantics are not yet typed.
+`scripts/courier_continue.py` still branches on the English substrings
+`"meaningful change"` and `"revision conflict"` in `str(e)`.  The landed
+contract test asserts those message fragments, so it preserves the fragile
+coupling rather than proving stable machine-readable behavior.
+
+CURRENT_SAFE_CLAIM=Identical replay does not mutate bytes or revision; stale
+contradictory update does not overwrite authoritative state.  The current
+caller settles/retries correctly only while the exact message wording remains
+unchanged and unwrapped.
+
+MINIMUM_GOOGLE_REPAIR=Give `LedgerError` a stable code (at minimum
+`NO_MEANINGFUL_CHANGE` and `REVISION_CONFLICT`) or use narrow subclasses.
+`courier_continue.py` must branch on that typed value.  Human-readable messages
+remain free to change.  Preserve the existing five-attempt bound and storage
+behavior.
+
+TEST_GOOGLE_MUST_ADD=Change/wrap/localize the human-readable messages while
+asserting that identical replay still settles and revision conflict still
+retries; unknown error codes must fail closed and must not be treated as an
+idempotent ACK.
+
+STATUS=REOPENED_FOR_TYPED_CALLER_CONTRACT; duplicate storage semantics remain
+verified and must not be rewritten.
