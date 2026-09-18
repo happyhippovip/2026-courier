@@ -97,7 +97,7 @@ checkpoint:
   - DLQ-01 check-c authority + DLQ-02 window (WAITING_FOR_CODEX_DECISION)
   - provider_locks gate removal CONFIRMED intentional by owner 29191a53
     (deadlock fix); stray blank lines left in claim_task - cosmetic
-  - cleanup note 5: duplicated artifacts block in run_chief_commander
+  - cleanup note 5 - duplicated artifacts block in run_chief_commander
     steward ctx (idempotent, owner may dedupe)
   - foreign rest-draft uncommitted (ledger, courier_continue, guards,
     race test D)
