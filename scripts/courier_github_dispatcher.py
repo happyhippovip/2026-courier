@@ -5,6 +5,9 @@ import time
 import requests
 import json
 import subprocess
+import hashlib
+import tempfile
+from pathlib import Path
 try:
     import keyring
 except ImportError:
@@ -25,6 +28,21 @@ def launch_adapter(task_file):
     return subprocess.Popen([python_bin, "scripts/github_worker_adapter.py", task_file])
 
 
+def task_file_path(task):
+    dispatch_id = task.get("dispatch_id")
+    if not isinstance(dispatch_id, str) or not dispatch_id:
+        raise ValueError("claimed GitHub task is missing dispatch_id")
+    digest = hashlib.sha256(dispatch_id.encode("utf-8")).hexdigest()
+    return str(Path(tempfile.gettempdir()) / f"courier-github-{digest}.json")
+
+
+def cleanup_task_files(task_file):
+    path = Path(task_file)
+    state = path.with_name(f"{path.stem}.github-worker-state.json")
+    path.unlink(missing_ok=True)
+    state.unlink(missing_ok=True)
+
+
 def reap_adapters(active_procs):
     """Re-enter bounded hosted waits without asking Central for a second claim."""
     for task_id, entry in list(active_procs.items()):
@@ -37,6 +55,8 @@ def reap_adapters(active_procs):
             entry["process"] = launch_adapter(entry["task_file"])
             continue
         del active_procs[task_id]
+        if returncode == 0:
+            cleanup_task_files(entry["task_file"])
         if returncode != 0:
             log(f"Hosted task {task_id} adapter stopped with code {returncode}; task remains fail-closed.")
 
@@ -70,7 +90,7 @@ def run_loop():
                     log(f"Claimed task {task_id} for GitHub.")
                     
                     # Write to temp file for the adapter
-                    tmp_file = f"/tmp/{task_id}.json"
+                    tmp_file = task_file_path(task)
                     with open(tmp_file, "w") as f:
                         json.dump(task, f)
                     

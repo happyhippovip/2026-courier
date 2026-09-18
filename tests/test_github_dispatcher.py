@@ -1,3 +1,7 @@
+from pathlib import Path
+
+import pytest
+
 from scripts import courier_github_dispatcher as dispatcher
 
 
@@ -30,22 +34,28 @@ def test_waiting_adapter_is_reentered_without_second_claim(monkeypatch):
     assert active["task-1"]["process"] is replacement
 
 
-def test_terminal_adapter_is_reaped_without_restart(monkeypatch):
+def test_terminal_adapter_is_reaped_and_owned_files_are_removed(monkeypatch, tmp_path):
     monkeypatch.setattr(
         dispatcher,
         "launch_adapter",
         lambda _: (_ for _ in ()).throw(AssertionError("must not restart terminal adapter")),
     )
+    task_file = tmp_path / "task.json"
+    state_file = tmp_path / "task.github-worker-state.json"
+    task_file.write_text("{}", encoding="utf-8")
+    state_file.write_text("{}", encoding="utf-8")
     active = {
         "task-1": {
             "process": FinishedProcess(0),
-            "task_file": "/tmp/task-1.json",
+            "task_file": str(task_file),
         }
     }
 
     dispatcher.reap_adapters(active)
 
     assert active == {}
+    assert not task_file.exists()
+    assert not state_file.exists()
 
 
 def test_failed_adapter_is_reaped_fail_closed_without_retry_storm(monkeypatch):
@@ -64,3 +74,22 @@ def test_failed_adapter_is_reaped_fail_closed_without_retry_storm(monkeypatch):
     dispatcher.reap_adapters(active)
 
     assert active == {}
+
+
+def test_task_file_path_is_confined_and_does_not_use_untrusted_task_id(monkeypatch, tmp_path):
+    monkeypatch.setattr(dispatcher.tempfile, "gettempdir", lambda: str(tmp_path))
+
+    path = Path(
+        dispatcher.task_file_path(
+            {"task_id": "../../escape", "dispatch_id": "dispatch-safe"}
+        )
+    )
+
+    assert path.parent == tmp_path
+    assert path.name.startswith("courier-github-")
+    assert "escape" not in path.name
+
+
+def test_task_file_path_requires_dispatch_identity():
+    with pytest.raises(ValueError, match="dispatch_id"):
+        dispatcher.task_file_path({"task_id": "task-1"})
