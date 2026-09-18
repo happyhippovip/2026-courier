@@ -39,3 +39,23 @@ EXPECTED_FAILURE_MODE=If the double submission bug survives: tests fail via exec
 
 CODEX_READY=YES 
 PHYSICAL_PENDING=DLQ-06 Windows proof still outstanding (tripwire only).
+
+## MUSE VERIFICATION ADDENDUM (2026-09-18, HEAD 5a8befb7 — additive repair, body above preserved)
+
+CURRENT_HEAD_VERIFIED=5a8befb7b19a436a8ded2dd619c7ea32645023c2 (packet body
+still names ceba1fe0; commits under review now also include 1b492d0a chore and
+5a8befb7 DLQ-06 behavioral tests — see DLQ-06 Codex packet for that batch).
+T2_VERIFIED_BY_MUSE=tests/test_courier_continue.py 15/15 passed in 27.86s
+AND tests/test_motor_dlq04_adversarial.py 1/1 passed in 1.58s, both re-run at
+HEAD 5a8befb7 (replaces the unnumbered "passed" claim above with numbers).
+T3_STILL_GREEN=ledger false-green + edge-conservation suites unaffected by
+this motor-only diff (last full T3 green same-day; re-run on demand).
+DLQ08_STILL_LIVE=bare future.result() confirmed present at
+scripts/courier_continue.py:527 after ceba1fe0 (no timeout/deadline added) —
+see ops/ai/packets/DLQ-08_review_packet.md; this fix does not close it.
+QUEUE_NOTE=DLQ-04 implementation_head corrected to ceba1fe0 by owner (answers
+former Q4); DLQ-06 entry unchanged (OPEN, behavioral tests now FAILING 2/1 —
+red suite parked, routed to Google retry implementation; tests must NOT be
+weakened).
+CODEX_READY_CONFIRMED=YES (with this addendum: SHAs current, numbers attached,
+open red items explicitly parked).

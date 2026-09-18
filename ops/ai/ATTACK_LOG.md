@@ -35,6 +35,14 @@ Probes: /tmp/dlq01_refresh.py, /tmp/dlq02_refresh.py, /tmp/dlq03_refresh.py,
   genuine-update advances, stale-contradictory raises conflict +
   authoritative value kept. Exact match. Queue IMPLEMENTED_AND_VERIFIED
   confirmed.
+- CONTINUOUS iteration (HEAD 5a8befb7): ceba1fe0 motor double-submission fix
+  reviewed (3-line continue, no timeout added — DLQ-08 still live);
+  test_motor_dlq04_adversarial 1/1 + continue suite 15/15 re-verified;
+  motor-batch packet repaired additively (real numbers replace unverified
+  claims); DLQ-06 behavioral tests FAIL 2/1 on unfixed code (declared red,
+  parked for Google retry — never weaken); DLQ-06 Codex packet completed
+  additively (HEAD/commits/T2/T3/attacks/questions); Windows worker commands
+  restored as separate packet (foreign rewrite preserved).
 - preset CLEAN_IDLE=YES + PROVISIONAL guard (probe E 2026-09-18, blocked)
 - VALID-marked mismatched SHA/runtime (validate_guard :261-264, structural)
 

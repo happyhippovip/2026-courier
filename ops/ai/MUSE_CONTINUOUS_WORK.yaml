@@ -1,0 +1,253 @@
+version: 1
+name: MUSE_CONTINUOUS_WORK_LOOP
+mode: CONTINUOUS_FIXED_POINT
+purpose: >
+  Durable, file-driven work loop for MUSE so the user does not need to provide
+  repeated prompts. MUSE updates this file as a checkpoint, always selects the
+  next safe lane, and only returns when the global stop condition is true.
+
+canonical_inputs:
+  - ops/ai/START_HERE.md
+  - ops/ai/MASTER_OPERATING_SYSTEM.md
+  - ops/ai/OWNERSHIP_MAP.yaml
+  - ops/ai/NEXT_WORK.yaml
+  - ops/ai/DEFERRED_LEDGER_QUEUE.yaml
+  - ops/ai/TEST_MAP.yaml
+  - ops/ai/FAILURE_SIGNATURES.yaml
+  - ops/ai/packets/
+
+truth_rules:
+  current_reality_wins: true
+  ledger_last: true
+  no_fake_green: true
+  one_writer_per_sensitive_scope: true
+  preserve_foreign_work: true
+  no_reset_hard: true
+  no_blind_git_clean: true
+  no_force_push: true
+  no_generic_killall: true
+  no_unauthorized_external_effects: true
+  no_synthetic_physical_proof: true
+
+ownership:
+  ledger_guard_motor_production_owner: GOOGLE
+  muse_default_mode: PACKET_QA_ADVERSARIAL_TESTS_AND_SAFE_NONCONFLICTING_WORK
+  production_edit_rule: >
+    MUSE must not edit GOOGLE-owned Ledger/Guard/Motor production files unless
+    OWNERSHIP_MAP.yaml explicitly hands that scope to MUSE at the current HEAD.
+  blocked_scope_rule: >
+    A blocked or foreign-owned file blocks one task, not the whole loop.
+    Immediately switch to another safe lane.
+
+scheduler:
+  selection_order:
+    - LEDGER_PACKET_FORGE
+    - LEDGER_ADVERSARIAL_TEST_FACTORY
+    - MOTOR_QUEUE_TORTURE
+    - WINDOWS_PHYSICAL_PREP
+    - CODEX_FEED
+    - SHARED_MEMORY_MAINTENANCE
+  on_success: RECOMPUTE_FRONTIER_AND_CONTINUE
+  on_test_failure: DIAGNOSE_REPAIR_OR_PACKETIZE_THEN_CONTINUE
+  on_test_pass: CONTINUE
+  on_commit: CONTINUE
+  on_push: CONTINUE
+  on_blocker: PARK_BLOCKER_AND_SELECT_NEXT_SAFE_LANE
+  on_foreign_ownership: SELECT_NEXT_SAFE_LANE
+  on_provider_wait: SELECT_NEXT_SAFE_LANE
+  on_missing_physical_access: FINISH_SOFTWARE_PREP_THEN_SELECT_NEXT_SAFE_LANE
+  on_human_gate: GATE_ONLY_EXACT_ACTION_AND_SELECT_NEXT_SAFE_LANE
+
+checkpoint:
+  iteration: 3
+  last_verified_head: 5a8befb7b19a436a8ded2dd619c7ea32645023c2
+  last_remote_head: a2daf2f949190cc6ddf054676d4a32043e1ab025
+  current_lane: CODEX_FEED
+  current_task: motor-batch + DLQ-06 packet repair and verification
+  last_action: verified T2 motor suites + T3 ledger gate at HEAD, repaired two
+    foreign-rewritten packets additively, restored Windows worker prep
+  last_test: tests/test_courier_continue.py + test_motor_dlq04_adversarial.py
+    + windows_ledger_race + ledger T3 + node truth
+  last_test_result: motor 15/15 and 1/1 green; DLQ-06 race 2 FAILED 1 passed
+    (DECLARED red, parked for Google); ledger T3 11 passed; node 1/0
+  last_commit: NONE
+  last_push: NONE
+  blocker: NONE
+  next_action: COMMIT_COHERENT_BATCH_THEN_RECOMPUTE_FRONTIER
+  heartbeat_utc: 2026-09-18T10:30:00+02:00
+  packets_ready:
+  - ops/ai/packets/CODEX_motor-batch-DLQ04-DLQ06.md (addendum-verified)
+  - ops/ai/packets/WINDOWS_DLQ06-race-prep.md (addendum-completed)
+  - ops/ai/packets/WINDOWS_DLQ06-worker-commands.md (new)
+  - ops/ai/packets/DLQ-01_review_packet.md (forge, awaiting Google/Codex)
+  - ops/ai/packets/DLQ-02_review_packet.md (forge, awaiting Google/Codex)
+  - ops/ai/packets/DLQ-07_review_packet.md (awaiting Google)
+  - ops/ai/packets/DLQ-08_review_packet.md (awaiting owner)
+  parked_blockers:
+  - DLQ-06 retry implementation (GOOGLE-owned production file, red suite waits)
+  - DLQ-01 check-c authority + DLQ-02 window (WAITING_FOR_CODEX_DECISION)
+  - DLQ-08 bounded-drain fix (foreign/motor ownership)
+  - Windows physical execution (machine access required)
+  discoveries_completed:
+  - DLQ-08 still live after ceba1fe0 (bare result() at :527)
+  - DLQ-06 behavioral tests commit red suite 2/1 (declared, must not weaken)
+  - foreign packet rewrites repaired additively (no overwrite)
+  lanes_exhausted: []
+
+lanes:
+  - id: LEDGER_PACKET_FORGE
+    priority: P0
+    allowed_writes:
+      - ops/ai/packets/**
+      - tests/**
+      - ops/ai/FAILURE_SIGNATURES.yaml
+      - ops/ai/SOURCE_MAP.md
+      - ops/ai/TEST_MAP.yaml
+      - ops/ai/MUSE_CONTINUOUS_WORK.yaml
+    mission: >
+      Make DLQ-01/02/03 and any newly verified Ledger/Guard findings
+      implementation-ready for GOOGLE with exact files/functions, deterministic
+      reproducers, invariants, negative tests, restart/replay/concurrency cases,
+      dependencies and zero-archaeology handoff.
+    completion: >
+      All currently known Ledger/Guard packets are implementation-grade except
+      fields explicitly waiting on Codex/Google/Windows evidence.
+
+  - id: LEDGER_ADVERSARIAL_TEST_FACTORY
+    priority: P0
+    allowed_writes:
+      - tests/**
+      - ops/ai/packets/**
+      - ops/ai/ATTACK_LOG.md
+      - ops/ai/MUSE_CONTINUOUS_WORK.yaml
+    mission: >
+      Build durable attacks for self-certification, evidence laundering, stale
+      evidence, wrong SHA/runtime/process, replay, identity-string forgery,
+      duplicate semantics, false CLEAN_IDLE, false QUEUE_INDEPENDENT, and
+      cross-defect crash boundaries. Do not weaken tests to make current code green.
+    completion: >
+      Every currently specified attack has a deterministic test/reproducer or a
+      precise reason it requires later physical/authority evidence.
+
+  - id: MOTOR_QUEUE_TORTURE
+    priority: P1
+    allowed_writes:
+      - tests/**
+      - ops/ai/packets/**
+      - ops/ai/FAILURE_SIGNATURES.yaml
+      - ops/ai/MUSE_CONTINUOUS_WORK.yaml
+    mission: >
+      Attack WAITING_PROVIDER isolation, queue starvation, done-edge frontier
+      refresh, --once early exit, restart/resume, ACK loss, duplicate execution,
+      stale lease, orphan process, missing timeout, deadlock, false idle, and
+      zero-chat replenishment. Do not collide with active GOOGLE-owned production files.
+    completion: >
+      All safely testable Motor/queue attack families have deterministic evidence
+      and repair packets or are explicitly physical/ownership blocked.
+
+  - id: WINDOWS_PHYSICAL_PREP
+    priority: P1
+    allowed_writes:
+      - ops/ai/packets/**
+      - tests/**
+      - ops/ai/WINDOWS_RUNTIME_MAP.md
+      - ops/ai/MUSE_CONTINUOUS_WORK.yaml
+    mission: >
+      Prepare exact Windows execution packets for process->executable->worktree->SHA,
+      OS-owned Motor persistence, restart/resume, WAITING_PROVIDER isolation,
+      DLQ-06 transient file-sharing failures, duplicate prevention, and final
+      physical acceptance. Mac preparation must never be labeled physical proof.
+    completion: >
+      Windows worker can execute every remaining physical scenario without repo
+      archaeology, with explicit commands, pass/fail criteria and evidence requirements.
+
+  - id: CODEX_FEED
+    priority: P1
+    allowed_writes:
+      - ops/ai/packets/**
+      - ops/ai/MUSE_CONTINUOUS_WORK.yaml
+    mission: >
+      Maintain N/N+1/N+2 complete high-risk review packets so Codex never needs
+      broad archaeology and does not return PACKET_INCOMPLETE for ready work.
+    required_fields:
+      - CURRENT_HEAD
+      - COMMITS_UNDER_REVIEW
+      - INVARIANTS
+      - DIFF_SCOPE
+      - REPRODUCERS
+      - T2_RESULTS
+      - T3_RESULTS
+      - KNOWN_ATTACKS
+      - FILES_TO_READ
+      - QUESTIONS_TO_ANSWER
+    completion: >
+      Every current high-risk batch is either CODEX_READY, waiting on implementation,
+      or truthfully PHYSICAL_PENDING.
+
+  - id: SHARED_MEMORY_MAINTENANCE
+    priority: P2
+    allowed_writes:
+      - ops/ai/**
+    forbidden_without_explicit_ownership:
+      - scripts/agent_handoff_ledger.py
+      - scripts/courier_continue.py
+      - server/app.py
+    mission: >
+      Remove stale bindings, duplicate facts, obsolete packets and resolved queue
+      entries only when current executable evidence proves the update. Preserve a
+      single canonical shared memory and record only durable verified knowledge.
+    completion: >
+      Shared memory matches current committed reality and contains no known
+      contradiction affecting task routing.
+
+work_unit_protocol:
+  - VERIFY_CURRENT_HEAD_AND_REMOTE
+  - READ_ONLY_MINIMUM_RELEVANT_ARTIFACTS
+  - SELECT_HIGHEST_PRIORITY_SAFE_WORK
+  - REPRODUCE_OR_VALIDATE
+  - EXECUTE_SAFE_WORK
+  - T0
+  - T1
+  - T2_IF_AFFECTED
+  - SELF_ATTACK
+  - UPDATE_PACKET_OR_ARTIFACT
+  - COMMIT_ONLY_COHERENT_OWNED_CHANGES_WHEN_SAFE
+  - PUSH_WHEN_SAFE_AND_AUTHORIZED
+  - UPDATE_THIS_CHECKPOINT
+  - RECOMPUTE_FRONTIER
+  - REPEAT
+
+return_policy:
+  progress_reports_forbidden: true
+  ask_proceed_forbidden: true
+  ask_what_next_forbidden: true
+  return_after_one_task_forbidden: true
+  return_after_test_pass_forbidden: true
+  return_after_test_failure_forbidden: true
+  return_after_commit_forbidden: true
+  stop_allowed_only_if:
+    - >
+      Every safe lane above is exhausted at current HEAD AND every remaining item
+      is one of HUMAN_AUTHORITY_REQUIRED, WINDOWS_PHYSICAL_REQUIRED,
+      FOREIGN_ACTIVE_OWNERSHIP, or EXTERNAL_IRREVERSIBLE_GATE.
+    - >
+      There is no independent safe preparation, testing, packetization,
+      adversarial work, shared-memory repair, or Codex-feed work remaining.
+  final_return_must_include:
+    - CURRENT_HEAD
+    - REMOTE_HEAD
+    - ITERATIONS_COMPLETED
+    - LANES_EXHAUSTED
+    - PACKETS_READY
+    - BLOCKERS_PARKED
+    - TESTS_RUN
+    - COMMITS_PUSHED
+    - SAFE_WORK_REMAINING
+    - WHY_GLOBAL_STOP_IS_TRUE
+
+usage:
+  one_time_prompt: >
+    Read ops/ai/MUSE_CONTINUOUS_WORK.yaml and enter CONTINUOUS_FIXED_POINT mode.
+    Treat the YAML as your durable scheduler and checkpoint. Update its checkpoint
+    after each coherent work unit. Never return while any safe lane is executable.
+    Do not restart discovery; resume from checkpoint and current HEAD.
