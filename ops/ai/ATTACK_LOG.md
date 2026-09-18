@@ -28,6 +28,13 @@ Probes: /tmp/dlq01_refresh.py, /tmp/dlq02_refresh.py, /tmp/dlq03_refresh.py,
 - false PROVEN_EDGES without proof (test_bare_external_names..., green)
 - stale-writer revision conflict (test_separate_process..., green)
 - identical retry / stale contradictory (DLQ-03 probe + contract, holds)
+- DLQ-03 CLOSED END-TO-END 2026-09-18: Google landed
+  tests/test_ledger_duplicate_semantics_contract.py (20ca0601); Muse
+  independently re-ran green at HEAD and reviewed assertions against the
+  decided invariant — identical-retry raises + bytes unchanged,
+  genuine-update advances, stale-contradictory raises conflict +
+  authoritative value kept. Exact match. Queue IMPLEMENTED_AND_VERIFIED
+  confirmed.
 - preset CLEAN_IDLE=YES + PROVISIONAL guard (probe E 2026-09-18, blocked)
 - VALID-marked mismatched SHA/runtime (validate_guard :261-264, structural)
 
