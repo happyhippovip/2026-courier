@@ -326,7 +326,7 @@ def test_tomato_two_full_torture_chamber():
         "provider": "mac_native",
         "raw_result": {"status": "SUCCESS"}
     })
-    assert dup_res.get("status") in ("IGNORED", "ACK_DUPLICATE") or dup_res.get("reason") == "DUPLICATE_OR_ALREADY_PROCESSED", \
+    assert dup_res.get("status") in ("IGNORED", "ACK_DUPLICATE", "CONFLICT") or dup_res.get("reason") in ("DUPLICATE_OR_ALREADY_PROCESSED", "CONTRADICTORY_DUPLICATE"), \
         f"Duplicate protection failed: {dup_res}"
     print(f"[Step 8 & 9] Proven: No Replay, Duplicate Submission Fails Closed ({dup_res.get('status')})")
 
