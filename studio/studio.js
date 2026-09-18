@@ -812,6 +812,12 @@ export class LivingHQController {
     set("tv-truth-next", next);
     const head = stateData?.repo_head_sha;
     set("tv-truth-head", typeof head === "string" && head !== "UNKNOWN" ? head.slice(0, 12) : "UNKNOWN");
+    const co = document.getElementById("co-truth");
+    if (co) {
+      const v = (x) => (x === null || x === undefined || x === "UNKNOWN" ? "—" : String(x));
+      const hs = typeof head === "string" && head !== "UNKNOWN" ? head.slice(0, 12) : "—";
+      co.textContent = `LEDGER ${v(L.status)} · GUARD ${v(L.guard)} · QUEUE ${v(L.queue_independent)} · CLEAN ${v(L.clean_idle)} · UNPROVEN ${L.unproven_count ?? "—"} · HEAD ${hs}`;
+    }
   }
 
   updateLivingHQ(stateData) {
