@@ -1,4 +1,5 @@
 from pathlib import Path
+import json
 
 import pytest
 
@@ -93,3 +94,30 @@ def test_task_file_path_is_confined_and_does_not_use_untrusted_task_id(monkeypat
 def test_task_file_path_requires_dispatch_identity():
     with pytest.raises(ValueError, match="dispatch_id"):
         dispatcher.task_file_path({"task_id": "task-1"})
+
+
+def test_persist_task_file_atomically_materializes_exact_packet(monkeypatch, tmp_path):
+    monkeypatch.setattr(dispatcher.tempfile, "gettempdir", lambda: str(tmp_path))
+    task = {"task_id": "task-1", "dispatch_id": "dispatch-1"}
+
+    path = Path(dispatcher.persist_task_file(task))
+
+    assert json.loads(path.read_text(encoding="utf-8")) == task
+    assert list(tmp_path.glob(".*.tmp")) == []
+
+
+def test_failed_task_file_replace_preserves_previous_packet(monkeypatch, tmp_path):
+    monkeypatch.setattr(dispatcher.tempfile, "gettempdir", lambda: str(tmp_path))
+    original = {"task_id": "task-1", "dispatch_id": "dispatch-1", "value": "old"}
+    path = Path(dispatcher.persist_task_file(original))
+    monkeypatch.setattr(
+        dispatcher.os,
+        "replace",
+        lambda *_: (_ for _ in ()).throw(OSError("injected replace failure")),
+    )
+
+    with pytest.raises(OSError, match="injected replace failure"):
+        dispatcher.persist_task_file({**original, "value": "new"})
+
+    assert json.loads(path.read_text(encoding="utf-8")) == original
+    assert list(tmp_path.glob(".*.tmp")) == []

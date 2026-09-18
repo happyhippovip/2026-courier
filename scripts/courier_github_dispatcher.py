@@ -36,6 +36,21 @@ def task_file_path(task):
     return str(Path(tempfile.gettempdir()) / f"courier-github-{digest}.json")
 
 
+def persist_task_file(task):
+    destination = Path(task_file_path(task))
+    temporary = destination.with_name(f".{destination.name}.{os.getpid()}.tmp")
+    try:
+        with temporary.open("w", encoding="utf-8") as handle:
+            json.dump(task, handle, sort_keys=True)
+            handle.write("\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, destination)
+    finally:
+        temporary.unlink(missing_ok=True)
+    return str(destination)
+
+
 def cleanup_task_files(task_file):
     path = Path(task_file)
     state = path.with_name(f"{path.stem}.github-worker-state.json")
@@ -90,9 +105,7 @@ def run_loop():
                     log(f"Claimed task {task_id} for GitHub.")
                     
                     # Write to temp file for the adapter
-                    tmp_file = task_file_path(task)
-                    with open(tmp_file, "w") as f:
-                        json.dump(task, f)
+                    tmp_file = persist_task_file(task)
                     
                     active_procs[task_id] = {
                         "process": launch_adapter(tmp_file),
