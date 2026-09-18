@@ -3,7 +3,40 @@ from functools import wraps
 from flask import Flask, request, jsonify
 
 from scripts.integration_contract import ContractError, prepare_task, validate_durable_result
-from scripts.run_chief_commander import ChiefCommander
+import os
+print("MOCK IS:", os.environ.get("COURIER_MOCK_CHIEF"))
+if os.environ.get("COURIER_MOCK_CHIEF"):
+    class ChiefCommander:
+        def formulate_workflow_plan(self, text, idea_type):
+            import json
+            try:
+                plan = json.loads(text)
+                if isinstance(plan, list) and plan:
+                    return None, plan
+            except:
+                pass
+            
+            if "REPLENISHMENT_TEST" in text:
+                import uuid
+                # Read a counter from a file so we can return unique instructions
+                count = 1
+                counter_file = "/tmp/mock_replenish.txt"
+                if os.path.exists(counter_file):
+                    with open(counter_file, "r") as cf:
+                        count = int(cf.read().strip()) + 1
+                with open(counter_file, "w") as cf:
+                    cf.write(str(count))
+                    
+                return None, [{
+                    "task_id": f"task-{uuid.uuid4().hex[:8]}",
+                    "target_agent": "linux",
+                    "instruction": f"touch mock_replenish_{count}.txt",
+                    "status": "QUEUED"
+                }]
+            return None, []
+else:
+    from scripts.run_chief_commander import ChiefCommander
+
 
 app = Flask(__name__)
 

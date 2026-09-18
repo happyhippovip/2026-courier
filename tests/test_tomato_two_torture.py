@@ -22,8 +22,8 @@ import pytest
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
-SERVER_URL = "http://127.0.0.1:8081"
-API_KEY = "321606503a874d39b50f6137e3321b7f"
+SERVER_URL = "http://127.0.0.1:8080"
+API_KEY = "local-dev-key-123"
 VERIFIER_KEY = "verifier-12345"
 HEADERS = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
 VERIFIER_HEADERS = {"Authorization": f"Bearer {VERIFIER_KEY}", "Content-Type": "application/json"}
@@ -61,7 +61,7 @@ def get_runtime_identity():
     return socket.gethostname()
 
 def cleanup_file(filename):
-    p = Path.home() / ".courier_runtime" / filename
+    p = REPO_ROOT / filename
     if p.exists(): p.unlink()
     return
     p = REPO_ROOT / filename
@@ -90,22 +90,33 @@ def start_server():
     print("Starting server for test...")
     python_exe = sys.executable
     env = os.environ.copy()
-    env["PORT"] = "8081"
+    env["PORT"] = "8080"
     env["PYTHONPATH"] = str(REPO_ROOT)
-    env["COURIER_SERVER"] = "http://127.0.0.1:8081"
-    env["COURIER_API_KEY"] = "321606503a874d39b50f6137e3321b7f"
+    env["FLASK_APP"] = "server.app"
+    env["PORT"] = "8080"
+    env["COURIER_API_KEY"] = "local-dev-key-123"
+    env["COURIER_MOCK_CHIEF"] = "1"
     env["COURIER_VERIFIER_API_KEY"] = "421606503a874d39b50f6137e3321b7f"
     
     # waitress is missing, so let's start the server and verifier manually here
-    server_proc = subprocess.Popen([python_exe, "-m", "server.app"], env=env, cwd=str(Path.home() / ".courier_runtime"))
-    verifier_proc = subprocess.Popen([python_exe, str(REPO_ROOT / "scripts/courier_verifier.py")], env=env, cwd=str(Path.home() / ".courier_runtime"))
+    server_proc = subprocess.Popen([python_exe, "-m", "server.app"], env=env, cwd=str(REPO_ROOT))
+    
+    verifier_proc = subprocess.Popen([python_exe, str(REPO_ROOT / "scripts/courier_verifier.py")], env=env, cwd=str(REPO_ROOT))
     time.sleep(3)
     yield
     print("Stopping server...")
     server_proc.terminate()
     verifier_proc.terminate()
-    server_proc.wait()
-    verifier_proc.wait()
+    try:
+        server_proc.wait(timeout=3)
+    except subprocess.TimeoutExpired:
+        server_proc.kill()
+        server_proc.wait()
+    try:
+        verifier_proc.wait(timeout=3)
+    except subprocess.TimeoutExpired:
+        verifier_proc.kill()
+        verifier_proc.wait()
 
 
 def test_tomato_two_full_torture_chamber():
@@ -202,7 +213,7 @@ def test_tomato_two_full_torture_chamber():
     # Poll until launchd worker claims task_seq1
     claimed = False
     task1_data = None
-    checkpoint_file = Path.home() / ".courier_runtime" / "scripts" / "mac_worker" / "state" / "current_task.json"
+    checkpoint_file = REPO_ROOT / "scripts" / "mac_worker" / "state" / "current_task.json"
 
     start_wait = time.time()
     while time.time() - start_wait < 30:
@@ -298,7 +309,7 @@ def test_tomato_two_full_torture_chamber():
     assert t1_final["status"] == "RECONCILED"
 
     # Canary seq2 file was created once
-    assert (Path.home() / ".courier_runtime" / canary_seq2).exists()
+    assert (REPO_ROOT / canary_seq2).exists()
 
     # Counterexample Torture: Attempt duplicate submission of completed task
     dup_res = http_post("/tasks/result", {
@@ -380,7 +391,7 @@ def test_tomato_two_full_torture_chamber():
         time.sleep(0.5)
 
     assert goal_b_done, "Goal B failed to complete while Goal A was in WAITING_PROVIDER"
-    assert (Path.home() / ".courier_runtime" / canary_indep).exists(), "Independent canary was not touched"
+    assert (REPO_ROOT / canary_indep).exists(), "Independent canary was not touched"
 
     # Confirm Goal A remained in WAITING_PROVIDER throughout
     assert get_goal_tasks(goal_a_id)[0]["status"] == "WAITING_PROVIDER"
