@@ -58,14 +58,20 @@ export function initOpsBay(callbacks = {}) {
     if (saved && META[saved]) { host.selectedAgent = saved; host.selectedAt = Date.now(); }
   } catch { /* storage unavailable: selection simply won't survive refresh */ }
   el('ops-bay-close')?.addEventListener('click', () => selectAgent(null));
+  // ESC closes the drawer. Background clicks are wired by studio.js.
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && host.selectedAgent) selectAgent(null);
+  });
   el('ops-bay-adv')?.addEventListener('click', () => {
     if (host.selectedAgent && host.openAdvanced) host.openAdvanced(host.selectedAgent);
   });
 }
 
 export function selectAgent(id, agent) {
+  // Toggle: clicking the selected agent again closes the drawer.
+  if (id && id === host.selectedAgent) id = null;
   host.selectedAgent = (id && (META[id] || agent)) ? id : null;
-  host.selectedMeta = (id && agent) ? agent : null;
+  host.selectedMeta = (host.selectedAgent && agent) ? agent : null;
   host.selectedAt = host.selectedAgent ? Date.now() : 0;
   try {
     if (host.selectedAgent) localStorage.setItem(STORAGE_KEY, host.selectedAgent);
@@ -75,6 +81,70 @@ export function selectAgent(id, agent) {
 }
 
 export function getSelectedAgent() { return host.selectedAgent; }
+
+const STRIP_FIELDS = ['STATE', 'TASK', 'OWNER', 'ACTION', 'COMMIT', 'TEST', 'BLOCKER', 'NEXT', 'ELAPSED'];
+
+function stripRow(oa, extra) {
+  return {
+    state: oa?.state || 'UNKNOWN',
+    task: oa?.task || (oa?.state === 'ACTIVE'
+      ? 'Lokale Aktivität erkannt — konkrete Aufgabe nicht gemeldet'
+      : 'Keine konkrete Aufgabe gemeldet'),
+    owner: oa?.role || 'OPERATOR',
+    action: extra.lastAction || '—',
+    commit: extra.head || 'UNKNOWN',
+    test: 'UNKNOWN',
+    blocker: extra.blocker || 'NONE',
+    next: extra.next || 'UNKNOWN',
+    elapsed: extra.hb || 'UNKNOWN',
+  };
+}
+
+// Operator strip: one compact row per agent, same ops_state as the HUD.
+export function renderStrip(opsState, stateData) {
+  const root = document.getElementById('ops-strip');
+  if (!root) return;
+  const st = stateData || {};
+  const ledger = st.courier_ledger || {};
+  const head = typeof st.repo_head_sha === 'string' && st.repo_head_sha !== 'UNKNOWN'
+    ? st.repo_head_sha.slice(0, 12) : 'UNKNOWN';
+  const auto = st.autonomy_runtime || {};
+  const blocker = auto.human_gates?.[0] || auto.money_gates?.[0] || 'NONE';
+  const next = ledger.next_action && ledger.next_action !== 'UNKNOWN'
+    ? String(ledger.next_action).replace(/^Prove edge:\s*/, '') : 'UNKNOWN';
+  const hb = st.local_tools?.observed_at ? fmtAge(st.local_tools.observed_at) : 'UNKNOWN';
+  const feed = recentEvents(st, null, 1);
+  const extra = { head, blocker, next, hb, lastAction: feed.length ? feed[0].slice(10, 100) : '—' };
+  const names = { muse: 'MUSE', codex: 'CODEX', google: 'GOOGLE' };
+  root.textContent = '';
+  for (const id of ['muse', 'codex', 'google']) {
+    const oa = opsState?.agents?.[id] || null;
+    const row = stripRow(oa, extra);
+    const line = document.createElement('button');
+    line.type = 'button';
+    line.className = 'ops-strip-row';
+    line.dataset.opsState = row.state;
+    line.setAttribute('aria-label', `${names[id]} ${row.state}`);
+    const cells = STRIP_FIELDS.map(f => {
+      const s = document.createElement('span');
+      s.className = 'ops-strip-cell';
+      const lab = document.createElement('span');
+      lab.className = 'ops-strip-lab';
+      lab.textContent = f;
+      const val = document.createElement('span');
+      val.className = 'ops-strip-val' + (f === 'TASK' && row.state === 'ACTIVE' ? ' is-active' : '');
+      val.textContent = row[f.toLowerCase()];
+      s.append(lab, val);
+      return s;
+    });
+    const who = document.createElement('span');
+    who.className = 'ops-strip-who';
+    who.textContent = names[id];
+    line.append(who, ...cells);
+    line.addEventListener('click', () => selectAgent(id, { name: names[id], title: oa?.role || 'OPERATOR', icon: id === 'muse' ? '∞' : id === 'codex' ? '💬' : '✦' }));
+    root.append(line);
+  }
+}
 
 export function renderOpsBay(opsState, stateData) {
   if (opsState) host.lastOps = opsState;

@@ -1,16 +1,16 @@
 {
   "schema_version": "2.0",
-  "context_version": 6,
-  "generated_at": "2026-09-17T19:28:50.078195+00:00",
+  "context_version": 10,
+  "generated_at": "2026-09-18T00:48:12.014311+00:00",
   "repositories": {
-    "courier_head": "42c20cb8e076324cea95350ebefd9c8991079a3f",
+    "courier_head": "a146435953dfe8a54f764cfb0af569876e170292",
     "memory_head": "b89b91c97218bbb1d45a271942efdd835cd624e4",
     "godot_head": "NOT_CONNECTED"
   },
   "workflow_state": {
-    "workflow_id": "IDLE",
+    "workflow_id": "WF-CHIEF-31d60b",
     "correlation_id": "UNKNOWN",
-    "current_task_id": "NONE",
+    "current_task_id": "WF-CHIEF-31d60b-STEP-1-DISCOVER",
     "is_locked": false,
     "agent_states": {
       "agent-update-steward": {
@@ -18,7 +18,7 @@
         "task": "Compiling Project Context Snapshot",
         "progress": 0.1,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-09-17T19:28:50.078219+00:00"
+        "updated_at": "2026-09-18T00:48:12.014331+00:00"
       },
       "agent-bodyguard-hotel": {
         "state": "STANDBY",
@@ -77,7 +77,7 @@
         "updated_at": "2026-09-17T12:57:51.427320+00:00"
       }
     },
-    "total_decisions": 0,
+    "total_decisions": 2,
     "total_results": 0,
     "total_approvals": 0,
     "total_adoptions": 0
@@ -149,7 +149,7 @@
   "changed_since_previous_snapshot": [
     "courier_head"
   ],
-  "previous_snapshot_version": 5,
-  "previous_snapshot_hash": "a11536ab31818398e559fd7148cf627a949a336f4721bbaf7d71b1951f89d086",
-  "snapshot_hash": "84f82a16fdd7e654b5e9162b60fdefb2486cabb08f7387af58a308a9451ecf40"
+  "previous_snapshot_version": 9,
+  "previous_snapshot_hash": "d173c79fa75606f726bf631796de486e677ea25b5d11eb73e39781ebbc8ca179",
+  "snapshot_hash": "4722cba2649b09aaa88e25c7585deea43daa3a45de0d8abd221a63dd88c1e618"
 }

@@ -1,5 +1,5 @@
 import { updateCompactHQ, localToolActors } from "./compact-hq.js";
-import { initOpsBay, selectAgent, getSelectedAgent, renderOpsBay } from "./ops-bay.js";
+import { initOpsBay, selectAgent, getSelectedAgent, renderOpsBay, renderStrip } from "./ops-bay.js";
 import {
   resolveLivingRoomAgents,
   resolveLiveHQMetrics,
@@ -773,6 +773,20 @@ export class LivingHQController {
   }
 
   bindOpsBayCards() {
+    // FOCUS MODE: dim decoration, emphasize actives/tasks/blockers. UI-only.
+    const focusBtn = document.getElementById("btn-focus-mode");
+    if (focusBtn && !focusBtn.dataset.opsBound) {
+      focusBtn.dataset.opsBound = "1";
+      focusBtn.addEventListener("click", () => {
+        const on = document.body.classList.toggle("focus-mode");
+        focusBtn.classList.toggle("active", on);
+      });
+    }
+    // Clicking empty room background deselects (node clicks stopPropagation).
+    if (this.stage && !this.stage.dataset.opsBgBound) {
+      this.stage.dataset.opsBgBound = "1";
+      this.stage.addEventListener("click", () => selectAgent(null));
+    }
     if (this.opsCardsBound) return;
     const museCard = document.getElementById("muse-main");
     if (museCard) {
@@ -837,6 +851,7 @@ export class LivingHQController {
     this.bindOpsBayCards();
     this.updateTruthPanel(stateData);
     renderOpsBay(this.lastOpsState, stateData);
+    renderStrip(this.lastOpsState, stateData);
     // 1. Resolve Dynamic Living Agents from real telemetry
     const localActors = localToolActors(stateData.local_tools);
     const agents = resolveLivingRoomAgents(stateData).filter(a => !['agent-codex-bridge','agent-antigravity-bridge'].includes(a.id));

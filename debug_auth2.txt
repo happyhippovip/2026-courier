@@ -1,5 +1,0 @@
-[1789636081.4893107] AUTH FAIL: got 'Bearer dev-secret-key' expected 'Bearer 321606503a874d39b50f6137e3321b7f'
-[1789636549.659327] AUTH FAIL: got 'Bearer test-key-123' expected 'Bearer 321606503a874d39b50f6137e3321b7f'
-[1789638054.2876658] AUTH FAIL: got 'Bearer' expected 'Bearer 321606503a874d39b50f6137e3321b7f'
-[1789639500.8644114] AUTH FAIL: got 'Bearer acceptance-secret' expected 'Bearer 321606503a874d39b50f6137e3321b7f'
-[1789639500.8691883] AUTH FAIL: got 'Bearer acceptance-secret' expected 'Bearer 321606503a874d39b50f6137e3321b7f'

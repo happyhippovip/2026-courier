@@ -74,6 +74,9 @@
       <button id="btn-cinematic-mode" class="btn-control" title="Toggle Cinematic Presentation">
         <span class="cinematic-icon">🎥</span> CINEMATIC
       </button>
+      <button id="btn-focus-mode" class="btn-control" title="Focus Mode: emphasize active agents, tasks, blockers">
+        <span>🎯</span> FOCUS
+      </button>
       <div class="hq-time-badge">
         <span class="time-dot"></span>
         <span class="hq-time-text" id="hq-live-clock">HQ TIME: 17:42:18 UTC</span>
@@ -268,7 +271,7 @@
     <section id="ops-bay" class="ops-bay is-collapsed" aria-label="Live Operations Bay">
       <div class="ops-bay-idle" id="ops-bay-idle">
         <span class="ops-bay-idle-mark">∞</span>
-        <span class="ops-bay-idle-text">COURIER SYMPHONY MUSE<br>LIVE OPERATIONS — Select an agent to view current activity.</span>
+        <div class="ops-strip" id="ops-strip" aria-label="Operator strip"></div>
       </div>
       <div class="ops-bay-live" id="ops-bay-live" hidden>
         <div class="ops-bay-top">

@@ -1631,10 +1631,11 @@ export function resolveOpsState(stateData) {
       return { state: normalizeOpsState(raw), task: a?.task || null, src: t ? 'local-tools+worker-google' : 'worker-google' };
     }],
   ];
+  const roles = { muse: 'MAIN WORKER', codex: 'QA SPECIALIST', google: 'PRO BUILDER' };
   for (const [id, fn] of defs) {
     const r = fn();
     out[id] = {
-      id, state: r.state, task: r.task || null,
+      id, state: r.state, task: r.task || null, role: roles[id],
       source: r.src, observed_at: observedAt,
       fresh: freshLocal || Boolean(agents[`worker-${id}`]),
     };

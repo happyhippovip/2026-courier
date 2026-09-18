@@ -1990,7 +1990,7 @@ body.mode-zen .chief-alert-bar:hover {
   right: 8px;
   bottom: 8px;
   width: auto;
-  max-height: 46vh;
+  max-height: 32vh;
   overflow-y: auto;
   background: rgba(2, 6, 10, 0.94);
   border: 1px solid rgba(0, 210, 255, 0.28);
@@ -1999,7 +1999,7 @@ body.mode-zen .chief-alert-bar:hover {
   font-family: 'JetBrains Mono', monospace;
   transition: max-height 0.35s ease, opacity 0.35s ease;
 }
-.ops-bay.is-collapsed { max-height: 84px; }
+.ops-bay.is-collapsed { max-height: 172px; }
 .ops-bay-idle[hidden], .ops-bay-live[hidden] { display: none; }
 .ops-bay-idle {
   display: flex;
@@ -2011,6 +2011,35 @@ body.mode-zen .chief-alert-bar:hover {
   letter-spacing: 0.18em;
 }
 .ops-bay-idle-mark { color: #23414f; font-size: 22px; }
+.ops-strip { display: flex; flex-direction: column; gap: 4px; flex: 1; padding: 10px 4px; }
+.ops-strip-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  background: rgba(4, 12, 18, 0.6);
+  border: 1px solid rgba(0, 210, 255, 0.18);
+  border-radius: 4px;
+  padding: 5px 12px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  color: inherit;
+}
+.ops-strip-row[data-ops-state="ACTIVE"] { border-color: rgba(93, 255, 176, 0.45); }
+.ops-strip-who { font-family: Orbitron, sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 0.1em; color: #f2fbff; min-width: 64px; }
+.ops-strip-cell { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.ops-strip-cell:nth-child(3) { flex: 1; }
+.ops-strip-lab { font-size: 8px; letter-spacing: 0.2em; color: #00b4d8; }
+.ops-strip-val { font-size: 11px; color: #d9eef7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 34vw; }
+.ops-strip-val.is-active { color: #5dffb0; text-shadow: 0 0 10px rgba(93, 255, 176, 0.5); }
+/* FOCUS MODE: dim decoration, emphasize operational truth */
+body.focus-mode .fountain-motion,
+body.focus-mode .agent-speech-bubble { display: none; }
+body.focus-mode .room-canvas-art { filter: brightness(0.55); }
+body.focus-mode .ops-bay { border-color: rgba(93, 255, 176, 0.4); }
+body.focus-mode .ops-strip-row[data-ops-state="ACTIVE"],
+body.focus-mode .ops-bay-task.is-active .ops-task-text { filter: brightness(1.15); }
 .ops-bay-top {
   display: flex;
   align-items: baseline;

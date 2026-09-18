@@ -483,7 +483,7 @@ def loop():
                     with open(current_task_state_file, 'w') as f:
                         json.dump(task, f)
                 else:
-                    time.sleep(config.get('IDLE_POLL_INTERVAL_SECONDS', 30))
+                    time.sleep(1)
                     continue
                         
             if task and not pending_result:
