@@ -472,13 +472,13 @@ def execute_codex_task(worker_job_path: Path, hooks: CodexHookRunner, force: boo
     """Executes a Codex task through the automated bridge with hooks, dedupe, and path confinement."""
     job = load_json(worker_job_path)
 
-    task_id = validate_identifier(job.get("task_id", f"task-cdx-{uuid.uuid4().hex[:8]}"), "task_id")
+    task_id = validate_identifier(job.get("task_id"), "task_id")
     correlation_id = validate_identifier(
-        job.get("correlation_id", f"corr-cdx-{uuid.uuid4().hex[:8]}"),
+        job.get("correlation_id"),
         "correlation_id",
     )
     parent_id_value = job.get("source_command_message_id")
-    parent_id = validate_identifier(parent_id_value, "source_command_message_id") if parent_id_value is not None else None
+    parent_id = validate_identifier(parent_id_value, "source_command_message_id")
     workflow_id = job.get("workflow_id")
     parent_task_id = job.get("parent_task_id")
     instruction = job.get("instruction", "Execute Codex task")

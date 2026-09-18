@@ -72,6 +72,22 @@ def test_bridge_rejects_unsafe_identity_before_result_path(tmp_path, field, valu
         bridge.execute_codex_task(job_path, _Hooks())
 
 
+@pytest.mark.parametrize("missing_field", ["task_id", "correlation_id", "source_command_message_id"])
+def test_bridge_never_invents_missing_canonical_identity(tmp_path, missing_field):
+    job = {
+        "task_id": "task-safe",
+        "correlation_id": "corr-safe",
+        "source_command_message_id": "msg-safe",
+        "allowed_scope": [],
+    }
+    del job[missing_field]
+    job_path = tmp_path / "job.json"
+    job_path.write_text(json.dumps(job), encoding="utf-8")
+
+    with pytest.raises(ValueError, match=f"Invalid {missing_field}"):
+        bridge.execute_codex_task(job_path, _Hooks())
+
+
 def test_real_cli_rejects_unsafe_task_id_before_temp_path(monkeypatch, tmp_path):
     monkeypatch.setattr(bridge, "CODEX_CLI_PATH", Path("/bin/true"))
     monkeypatch.setattr(bridge, "COURIER_DIR", tmp_path)
