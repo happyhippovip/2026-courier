@@ -112,25 +112,26 @@ def persist_result_once(path: Path, result: dict) -> Path:
     """Create one immutable result, accepting only an identical idempotent replay."""
     path.parent.mkdir(parents=True, exist_ok=True)
     encoded = (json.dumps(result, indent=2) + "\n").encode("utf-8")
+    temp_path = path.with_name(f".{path.name}.{os.getpid()}.{uuid.uuid4().hex}.tmp")
     try:
-        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-    except FileExistsError:
-        existing = load_json(path)
-        if _result_identity(existing) != _result_identity(result):
-            raise RuntimeError(f"Conflicting result already exists for task {result.get('task_id')}")
-        if existing.get("payload_hash") != payload_hash(existing.get("payload")):
-            raise RuntimeError(f"Existing result payload hash is invalid for task {result.get('task_id')}")
-        return path
-
-    try:
-        with os.fdopen(fd, "wb") as handle:
+        with temp_path.open("xb") as handle:
             handle.write(encoded)
             handle.flush()
             os.fsync(handle.fileno())
-    except BaseException:
-        path.unlink(missing_ok=True)
-        raise
-    return path
+        try:
+            # Same-directory hard-link publication is atomic and never replaces
+            # an already published immutable result.
+            os.link(temp_path, path)
+            return path
+        except FileExistsError:
+            existing = load_json(path)
+            if _result_identity(existing) != _result_identity(result):
+                raise RuntimeError(f"Conflicting result already exists for task {result.get('task_id')}")
+            if existing.get("payload_hash") != payload_hash(existing.get("payload")):
+                raise RuntimeError(f"Existing result payload hash is invalid for task {result.get('task_id')}")
+            return path
+    finally:
+        temp_path.unlink(missing_ok=True)
 
 
 def validate_existing_result(path: Path, task_id: str, correlation_id: str, parent_id: str | None) -> None:
