@@ -4,7 +4,7 @@ updated_at: '2026-09-18T13:02:00+02:00'
 tasks:
 - id: MEMORY-NEXT-01
   owner: GOOGLE
-  state: READY_FOR_PHYSICAL_PRECHECK
+  state: IMPLEMENTED_AND_VERIFIED
   action: Verify canonical Windows runtime exact SHA and server-owned quota-pool configuration
     for DLQ-05 without changing Ledger truth.
   human_gate: false
