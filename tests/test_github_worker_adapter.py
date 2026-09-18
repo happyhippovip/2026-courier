@@ -9,6 +9,9 @@ from scripts import github_worker_adapter as adapter
 from scripts.integration_contract import validate_durable_result
 
 
+WORKFLOW = Path(__file__).parent.parent / ".github" / "workflows" / "courier_worker.yml"
+
+
 def packet(**changes):
     value = {"goal_id": "goal-1", "task_id": "task-1", "attempt_id": "attempt-1", "dispatch_id": "dispatch-1",
              "execution_ref": "exec-1", "worker_id": "GITHUB-HOSTED", "task_type": "deterministic_transform", "input": "canary"}
@@ -23,6 +26,14 @@ def test_validate_task_rejects_missing_identity_and_shell():
         adapter.validate_task(packet(task_type="shell"))
     with pytest.raises(ValueError, match="execution_ref"):
         adapter.validate_task(packet(execution_ref=""))
+
+
+def test_hosted_workflow_preserves_execution_reference_in_success_and_failure_results():
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+
+    assert workflow.count(
+        '("goal_id", "task_id", "attempt_id", "dispatch_id", "execution_ref", "worker_id")'
+    ) == 2
 
 
 def test_verify_result_rejects_wrong_execution_reference(tmp_path: Path):

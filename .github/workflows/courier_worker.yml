@@ -47,7 +47,7 @@ jobs:
           from pathlib import Path, PurePosixPath
 
           task = json.loads(base64.b64decode(os.environ["TASK_PAYLOAD_BASE64"], validate=True))
-          required = ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id")
+          required = ("goal_id", "task_id", "attempt_id", "dispatch_id", "execution_ref", "worker_id")
           if not all(isinstance(task.get(field), str) and task[field] for field in required):
               raise ValueError("TaskPacket is missing required identity fields")
           if task["dispatch_id"] != os.environ["DISPATCH_ID"]:
@@ -122,7 +122,7 @@ jobs:
           import base64, json, os
           from pathlib import Path
           task = json.loads(base64.b64decode(os.environ["TASK_PAYLOAD_BASE64"], validate=True))
-          fields = ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id")
+          fields = ("goal_id", "task_id", "attempt_id", "dispatch_id", "execution_ref", "worker_id")
           if all(isinstance(task.get(field), str) and task[field] for field in fields):
               Path(f"result_{task['dispatch_id']}.json").write_text(json.dumps({
                   **{field: task[field] for field in fields}, "provider": "github",
