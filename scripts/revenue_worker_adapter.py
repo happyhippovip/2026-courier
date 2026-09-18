@@ -1,4 +1,4 @@
-import json, time, os, sys, shutil, subprocess, uuid, traceback
+import json, time, os, sys, shutil, subprocess, uuid, traceback, hashlib
 import base64, zipfile
 from pathlib import Path
 import urllib.request
@@ -12,6 +12,52 @@ CONFIG_PATH = BASE_DIR / "revenue_worker_config.json"
 
 for d in [STATE_DIR, LOGS_DIR]:
     d.mkdir(parents=True, exist_ok=True)
+
+
+class ResultPostError(RuntimeError):
+    pass
+
+
+def validate_task_identity(task):
+    required = ("goal_id", "task_id", "attempt_id", "dispatch_id", "execution_ref")
+    missing = [field for field in required if not isinstance(task.get(field), str) or not task[field]]
+    if missing:
+        raise ValueError("TaskPacket is missing identity fields: " + ", ".join(missing))
+    return task
+
+
+def work_dir_for_task(task):
+    validate_task_identity(task)
+    digest = hashlib.sha256(task["dispatch_id"].encode("utf-8")).hexdigest()
+    return STATE_DIR / f"dispatch-{digest}"
+
+
+def result_id_for(task):
+    validate_task_identity(task)
+    return f"result-{task['dispatch_id']}"
+
+
+def persist_pending_result(work_dir, payload):
+    destination = work_dir / "pending_result.json"
+    temporary = destination.with_name(f".{destination.name}.{os.getpid()}.{uuid.uuid4().hex}.tmp")
+    work_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        with temporary.open("x", encoding="utf-8") as handle:
+            json.dump(payload, handle, sort_keys=True)
+            handle.write("\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        try:
+            os.link(temporary, destination)
+        except FileExistsError:
+            if destination.is_symlink() or not destination.is_file():
+                raise RuntimeError("pending result path is not a regular owned file")
+            existing = json.loads(destination.read_text(encoding="utf-8"))
+            if existing != payload:
+                raise RuntimeError("conflicting pending result already exists for dispatch")
+    finally:
+        temporary.unlink(missing_ok=True)
+    return destination
 
 def write_log(msg):
     print(msg)
@@ -85,6 +131,31 @@ def http_post(config, endpoint, data=None):
         write_log(f"Request failed: {e}")
         return None
 
+
+def post_result(config, payload):
+    response = http_post(config, "/tasks/result", payload)
+    status = response.get("status") if isinstance(response, dict) else None
+    if status not in {"ACK_RESULT_RECEIVED", "ACK_DUPLICATE"}:
+        raise ResultPostError(f"result was not canonically acknowledged: {status or 'NO_RESPONSE'}")
+    return status
+
+
+def deliver_pending_result(config, work_dir):
+    pending = work_dir / "pending_result.json"
+    if not pending.is_file():
+        return False
+    if pending.is_symlink():
+        raise RuntimeError("pending result must be a regular owned file")
+    payload = json.loads(pending.read_text(encoding="utf-8"))
+    post_result(config, payload)
+    pending.unlink()
+    return True
+
+
+def flush_pending_results(config):
+    for pending in sorted(STATE_DIR.glob("dispatch-*/pending_result.json")):
+        deliver_pending_result(config, pending.parent)
+
 def main():
     config = get_config()
     worker_id = config["WORKER_ID"]
@@ -92,6 +163,10 @@ def main():
     
     while True:
         try:
+            # Result delivery is resumed before any new claim. An uncertain
+            # transport outcome never becomes a contradictory failure result.
+            flush_pending_results(config)
+
             # Register / Heartbeat
             http_post(config, "/workers/register", {
                 "worker_id": worker_id,
@@ -108,11 +183,12 @@ def main():
             
             if claim_resp and claim_resp.get("task"):
                 task = claim_resp["task"]
+                validate_task_identity(task)
                 task_id = task["task_id"]
-                attempt_id = task.get("attempt_id", task_id)
+                attempt_id = task["attempt_id"]
                 write_log(f"Claimed task {task_id}")
                 
-                work_dir = STATE_DIR / task_id
+                work_dir = work_dir_for_task(task)
                 if work_dir.exists():
                     shutil.rmtree(work_dir, ignore_errors=True)
                 work_dir.mkdir(parents=True, exist_ok=True)
@@ -138,7 +214,6 @@ def main():
                     with open(zip_path, "rb") as f:
                         artifact_bytes = f.read()
                         
-                    import hashlib
                     artifact_sha = hashlib.sha256(artifact_bytes).hexdigest()
                     artifact_b64 = base64.b64encode(artifact_bytes).decode('utf-8')
                     
@@ -152,7 +227,7 @@ def main():
                         "execution_ref": task.get("execution_ref"),
                         "worker_id": worker_id,
                         "run_id": "rev-worker-v1",
-                        "result_id": f"result-{uuid.uuid4().hex}",
+                        "result_id": result_id_for(task),
                         "status": "SUCCESS",
                         "artifacts": [{"path": "revenue_artifacts.zip", "sha256": artifact_sha}],
                         "result_data": result_data,
@@ -162,12 +237,15 @@ def main():
                     }
                     
                     write_log("Posting result...")
-                    http_post(config, "/tasks/result", res_payload)
+                    persist_pending_result(work_dir, res_payload)
+                    deliver_pending_result(config, work_dir)
                     write_log(f"Task {task_id} completed.")
-                    
+
+                except ResultPostError as e:
+                    write_log(f"Result delivery pending for task {task_id}: {e}")
                 except subprocess.CalledProcessError as e:
                     write_log(f"Task execution failed: {e.output.decode('utf-8', errors='ignore')}")
-                    http_post(config, "/tasks/result", {
+                    failure_payload = {
                         "goal_id": task.get("goal_id"),
                         "task_id": task_id,
                         "attempt_id": attempt_id,
@@ -175,14 +253,16 @@ def main():
                         "execution_ref": task.get("execution_ref"),
                         "worker_id": worker_id,
                         "run_id": "rev-worker-v1",
-                        "result_id": f"result-{uuid.uuid4().hex}",
+                        "result_id": result_id_for(task),
                         "status": "FAILED_TERMINAL",
                         "artifacts": [],
                         "error": f"Execution failed: {e.output.decode('utf-8', errors='ignore')}"
-                    })
+                    }
+                    persist_pending_result(work_dir, failure_payload)
+                    deliver_pending_result(config, work_dir)
                 except Exception as e:
                     write_log(f"Error executing task: {traceback.format_exc()}")
-                    http_post(config, "/tasks/result", {
+                    failure_payload = {
                         "goal_id": task.get("goal_id"),
                         "task_id": task_id,
                         "attempt_id": attempt_id,
@@ -190,11 +270,13 @@ def main():
                         "execution_ref": task.get("execution_ref"),
                         "worker_id": worker_id,
                         "run_id": "rev-worker-v1",
-                        "result_id": f"result-{uuid.uuid4().hex}",
+                        "result_id": result_id_for(task),
                         "status": "FAILED_TERMINAL",
                         "artifacts": [],
                         "error": str(e)
-                    })
+                    }
+                    persist_pending_result(work_dir, failure_payload)
+                    deliver_pending_result(config, work_dir)
                     
         except Exception as e:
             write_log(f"Error in main loop: {traceback.format_exc()}")
