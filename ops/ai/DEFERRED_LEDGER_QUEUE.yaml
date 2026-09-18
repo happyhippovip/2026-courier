@@ -57,6 +57,7 @@ tasks:
   negative_test: contradictory payload never overwrites authoritative result
   owner: Google (decision + test)
   ready_to_implement: YES (contract test only)
+  status: IMPLEMENTED_AND_VERIFIED
 - id: DLQ-04
   priority: P1
   last_reproduced_head: 7c495f8c
@@ -141,6 +142,26 @@ tasks:
     injection.
   owner: Google (Windows physical)
   ready_to_implement: true
+- id: DLQ-07
+  priority: P0
+  last_reproduced_head: 82bbe090
+  title: zero-update preset acceptance via initialize()
+  evidence: /tmp/ledger_redteam2.py fam_d run 2026-09-18 at HEAD 82bbe090 - single
+    initialize() with planted VALID artifact plus pre-declared all-PASS predicate
+    yields CANONICAL_ACCEPTED at revision 0, loads clean. INIT path skips all update-time
+    caller checks.
+  exact_file: scripts/agent_handoff_ledger.py
+  exact_function: initialize() missing transition gate plus validate_bundle() missing
+    revision-0-CANONICAL rejection
+  reproduction: /tmp/ledger_redteam2.py fam_d
+  expected_invariant: No INIT-to-CANONICAL. First CANONICAL_ACCEPTED requires at least
+    one UPDATE round-trip. INIT always starts PROVISIONAL.
+  targeted_test: init-with-CANONICAL rejection test (fails today)
+  negative_test: legitimate INIT flows unaffected (all start PROVISIONAL); preset
+    CLEAN_IDLE with PROVISIONAL guard stays rejected (verified blocked)
+  owner: Google (ledger init trust design)
+  ready_to_implement: false
+  packet: ops/ai/packets/DLQ-07_review_packet.md
 notes:
 - B-candidate COURIER_STATE_DIR vs COURIER_STATE_FILE OMITTED: only COURIER_STATE_FILE
     exists at current HEAD (tests/test_windows_runtime_torture.py:19); no mismatch
