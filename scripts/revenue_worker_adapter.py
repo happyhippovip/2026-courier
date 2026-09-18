@@ -9,6 +9,7 @@ BASE_DIR = Path(__file__).parent
 STATE_DIR = BASE_DIR / "revenue_worker_state"
 LOGS_DIR = BASE_DIR / "logs"
 CONFIG_PATH = BASE_DIR / "revenue_worker_config.json"
+WORKER_TIMEOUT_SECONDS = int(os.environ.get("REVENUE_WORKER_TIMEOUT_SECONDS", "900"))
 
 for d in [STATE_DIR, LOGS_DIR]:
     d.mkdir(parents=True, exist_ok=True)
@@ -250,7 +251,11 @@ def process_claimed_task(config, worker_id, task, resume=False):
     write_log("Executing revenue_v1_safety_baseline.py worker...")
     cmd = [sys.executable, str(BASE_DIR / "revenue_v1_safety_baseline.py"), "worker", str(task_file), str(work_dir)]
     try:
-        result_raw = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+        result_raw = subprocess.check_output(
+            cmd,
+            stderr=subprocess.STDOUT,
+            timeout=WORKER_TIMEOUT_SECONDS,
+        )
         result_data = json.loads(result_raw.decode("utf-8"))
 
         zip_path = work_dir / "revenue_artifacts.zip"

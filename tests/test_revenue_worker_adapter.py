@@ -150,3 +150,23 @@ def test_task_checkpoint_is_immutable_and_idempotent(monkeypatch, tmp_path):
 
     assert json.loads(checkpoint.read_text(encoding="utf-8")) == packet
     assert list(work_dir.glob(".*.tmp")) == []
+
+
+def test_worker_subprocess_has_bounded_timeout(monkeypatch, tmp_path):
+    monkeypatch.setattr(adapter, "STATE_DIR", tmp_path)
+    monkeypatch.setattr(adapter, "WORKER_TIMEOUT_SECONDS", 17)
+    packet = task(worker_id="REVENUE-1")
+    observed = {}
+
+    def execute(command, **kwargs):
+        observed.update(kwargs)
+        work_dir = Path(command[-1])
+        (work_dir / "report.json").write_text("{}", encoding="utf-8")
+        (work_dir / "report.md").write_text("report", encoding="utf-8")
+        return json.dumps({"worker_status": "PASS"}).encode("utf-8")
+
+    monkeypatch.setattr(adapter.subprocess, "check_output", execute)
+    monkeypatch.setattr(adapter, "deliver_pending_result", lambda *args: True)
+
+    assert adapter.process_claimed_task({}, "REVENUE-1", packet) is True
+    assert observed["timeout"] == 17
