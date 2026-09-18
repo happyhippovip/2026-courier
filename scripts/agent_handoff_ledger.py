@@ -741,7 +741,7 @@ def update(
                 if url not in introducer_map:
                     introducer_map[url] = {h_updater}
                 if url not in first_observed_map:
-                    first_observed_map[url] = e.get("observed_at")
+                    first_observed_map[url] = (e.get("observed_at"), h.get("timestamp_utc"))
                     
         if bundle["revision"] != expected_revision:
             raise RevisionConflictError(
@@ -781,7 +781,7 @@ def update(
             e.get("verifier_id") not in introducer_map.get(e.get("source_url"), set()) and \
             updated_by not in introducer_map.get(e.get("source_url"), set()) and \
             (-MAX_FUTURE_CLOCK_SKEW_SECONDS <=
-             (datetime.utcnow() - datetime.strptime(e["observed_at"], "%Y-%m-%dT%H:%M:%SZ")).total_seconds() <=
+             (datetime.strptime(first_observed_map.get(e.get("source_url"), (None, datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")))[1], "%Y-%m-%dT%H:%M:%SZ") - datetime.strptime(e["observed_at"], "%Y-%m-%dT%H:%M:%SZ")).total_seconds() <=
              MAX_EVIDENCE_AGE_SECONDS)
             for e in prior_evidence
         )
@@ -856,7 +856,7 @@ def update(
                     if url in historical_evidence:
                         # Replayed or copied proof
                         old_e = historical_evidence[url]
-                        first_obs = first_observed_map.get(url, e.get("observed_at"))
+                        first_obs = first_observed_map.get(url, (e.get("observed_at"), None))[0]
                         if e.get("observed_at") < first_obs:
                             raise MonotonicityError(f"monotonicity violation: {url} cannot be back-dated")
                         if old_e["evidence_sha"] != e["evidence_sha"]:
