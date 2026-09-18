@@ -1,2 +1,2 @@
 @echo off
-tasklist | findstr /I "python"
+powershell -Command "Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match 'daemon.py' } | Select-Object ProcessId, CommandLine"
