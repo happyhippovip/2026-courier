@@ -122,3 +122,7 @@ Probes: /tmp/dlq01_refresh.py, /tmp/dlq02_refresh.py, /tmp/dlq03_refresh.py,
   artifacts block, idempotent); KNOWN_GOOD_CHECKPOINT.md skimmed (runbook,
   targets 2ee8d905 plus local fixes); rest-draft uncommitted, foreign
   hot - no test runs
+- iter7-fix: iter7 commit f1c03282 carried a broken YAML plain scalar
+  ("note 5:" colon) and was pushed before validation caught it - broken
+  window ~2min on origin; fixed forward in c0c39de7 (dash rewrite, gated
+  commit); lesson - validation must gate commit via strict && chaining
