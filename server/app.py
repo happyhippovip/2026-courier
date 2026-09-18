@@ -365,6 +365,13 @@ def calculate_backoff(attempt):
 
 STATE_LOCK = threading.RLock()
 
+
+import hashlib
+def get_auth_principal():
+    from flask import request
+    token = request.headers.get("Authorization", "")
+    return "principal_" + hashlib.sha256(token.encode()).hexdigest()[:12]
+
 def require_auth(f):
     def wrapper(*args, **kwargs):
         if API_KEY in INSECURE_API_KEYS:
@@ -884,10 +891,12 @@ def task_result():
             except ContractError as exc:
                 return jsonify({"error": str(exc)}), 400
             set_task_status(task, "RESULT_RECEIVED")
+            task["producer_principal"] = get_auth_principal()
             task["result"] = durable_result
             
             if durable_result.get("status") == "SUCCESS":
                 set_task_status(task, "RESULT_RECEIVED")  # wait for independent /verify
+                task["producer_principal"] = get_auth_principal()
                 # Update checkpoint fields on success
                 task["last_completed_step"] = task.get("task_id")
                 task["next_action"] = "VERIFY"
@@ -1000,17 +1009,32 @@ def verify_task_result():
     task = state["tasks"].get(task_id)
     if not task:
         return jsonify({"error": "Unknown task"}), 404
+
     if task.get("status") == "RECONCILED":
         verification = task.get("verification", {})
         if verification.get("result_id") == data.get("result_id"):
+            if data.get("verifier_id") != verification.get("verifier_id"):
+                return jsonify({"error": "alias attack on replay rejected"}), 403
             return jsonify({"status": "ACK_DUPLICATE"})
         return jsonify({"error": "Task already reconciled"}), 409
+
     if task.get("status") != "RESULT_RECEIVED":
         return jsonify({"error": "Task has no result awaiting verification"}), 409
+
 
     verifier_id = data.get("verifier_id")
     if not isinstance(verifier_id, str) or not verifier_id or verifier_id == task.get("worker_id"):
         return jsonify({"error": "independent verifier_id is required"}), 400
+
+    verifier_principal = get_auth_principal()
+    producer_principal = task.get("producer_principal")
+    
+    if not producer_principal:
+        return jsonify({"error": "missing authenticated provenance for producer"}), 403
+        
+    if verifier_principal == producer_principal:
+        return jsonify({"error": "producer cannot certify itself"}), 403
+
     result = task["result"]
     if data.get("result_id") != result.get("result_id"):
         return jsonify({"error": "result_id mismatch"}), 400
