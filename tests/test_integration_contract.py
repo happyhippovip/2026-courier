@@ -1,6 +1,8 @@
+from pathlib import Path
+
 import pytest
 
-from scripts.integration_contract import ContractError, prepare_task
+from scripts.integration_contract import ContractError, prepare_task, verify_result
 
 
 def base_task(**changes):
@@ -56,3 +58,28 @@ def test_existing_attempt_dispatch_and_execution_identity_are_preserved():
     assert packet["attempt_id"] == "attempt-existing"
     assert packet["dispatch_id"] == "dispatch-existing"
     assert packet["execution_ref"] == "execution-existing"
+
+
+@pytest.mark.parametrize("field", ["attempt_id", "dispatch_id", "execution_ref"])
+def test_explicitly_empty_execution_identity_fails_closed(field):
+    with pytest.raises(ContractError, match=f"{field} is required"):
+        prepare_task(base_task(**{field: ""}))
+
+
+def test_success_artifact_symlink_cannot_escape_workspace(tmp_path: Path):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    outside = tmp_path / "outside.txt"
+    outside.write_text("not workspace evidence", encoding="utf-8")
+    (workspace / "evidence.txt").symlink_to(outside)
+    task = prepare_task(base_task(artifacts=["evidence.txt"]))
+    result = {
+        **{field: task[field] for field in (
+            "goal_id", "task_id", "attempt_id", "dispatch_id", "execution_ref", "worker_id"
+        )},
+        "run_id": "run-1",
+        "status": "SUCCESS",
+    }
+
+    with pytest.raises(ContractError, match="missing expected artifact"):
+        verify_result(task, result, workspace)

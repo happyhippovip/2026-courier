@@ -59,6 +59,9 @@ def prepare_task(task: dict) -> dict:
                 "worker_id is required when target_capability is not a legacy capability"
             )
         packet["worker_id"] = legacy_worker_id
+    for field in ("attempt_id", "dispatch_id", "execution_ref", "worker_id"):
+        if not isinstance(packet.get(field), str) or not packet[field]:
+            raise ContractError(f"{field} is required")
     packet.setdefault("run_id", None)
     packet.setdefault("result_id", None)
     packet.setdefault("status", "QUEUED")
@@ -97,13 +100,19 @@ def verify_result(task: dict, raw_result: dict, workspace: Path) -> dict:
         for relative_name in expected:
             if not isinstance(relative_name, str) or Path(relative_name).is_absolute() or ".." in Path(relative_name).parts:
                 raise ContractError("unsafe artifact path")
-            artifact_path = workspace / relative_name
-            if not artifact_path.is_file():
+            workspace_root = workspace.resolve()
+            artifact_path = workspace_root / relative_name
+            resolved_artifact = artifact_path.resolve()
+            if (
+                artifact_path.is_symlink()
+                or workspace_root not in resolved_artifact.parents
+                or not resolved_artifact.is_file()
+            ):
                 raise ContractError(f"missing expected artifact: {relative_name}")
             artifacts.append(
                 {
                     "path": relative_name,
-                    "sha256": hashlib.sha256(artifact_path.read_bytes()).hexdigest(),
+                    "sha256": hashlib.sha256(resolved_artifact.read_bytes()).hexdigest(),
                 }
             )
 
