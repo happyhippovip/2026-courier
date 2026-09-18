@@ -177,6 +177,30 @@ def test_persisted_state_for_another_dispatch_fails_closed(tmp_path: Path):
         adapter.run(str(task_file))
 
 
+def test_failed_state_replace_preserves_previous_checkpoint(tmp_path: Path, monkeypatch):
+    task_file = tmp_path / "task.json"
+    adapter.write_state(
+        task_file,
+        {"dispatch_id": "dispatch-1", "status": "WAITING_FOR_WORKER"},
+    )
+    checkpoint = adapter.state_path(task_file)
+    original = checkpoint.read_text(encoding="utf-8")
+    monkeypatch.setattr(
+        adapter.os,
+        "replace",
+        lambda *_: (_ for _ in ()).throw(OSError("injected replace failure")),
+    )
+
+    with pytest.raises(OSError, match="injected replace failure"):
+        adapter.write_state(
+            task_file,
+            {"dispatch_id": "dispatch-1", "status": "POSTED"},
+        )
+
+    assert checkpoint.read_text(encoding="utf-8") == original
+    assert list(tmp_path.glob(".*.tmp")) == []
+
+
 def test_duplicate_hosted_runs_for_one_dispatch_fail_closed(monkeypatch):
     monkeypatch.setattr(
         adapter,

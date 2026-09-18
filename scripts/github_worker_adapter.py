@@ -53,7 +53,16 @@ def task_packet_sha256(task: dict[str, Any]) -> str:
 
 
 def write_state(task_file: Path, state: dict[str, Any]) -> None:
-    state_path(task_file).write_text(json.dumps(state, sort_keys=True) + "\n", encoding="utf-8")
+    destination = state_path(task_file)
+    temporary = destination.with_name(f".{destination.name}.{os.getpid()}.tmp")
+    try:
+        with temporary.open("w", encoding="utf-8") as handle:
+            handle.write(json.dumps(state, sort_keys=True) + "\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, destination)
+    finally:
+        temporary.unlink(missing_ok=True)
 
 
 def validate_task(task: dict[str, Any]) -> None:
