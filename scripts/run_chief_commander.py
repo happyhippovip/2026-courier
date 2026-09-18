@@ -622,6 +622,10 @@ class ChiefCommander:
                         "context_delta": context_delta,
                         "routing_reason": "Explicit goal parsing"
                     }
+                    if "mode" in step:
+                        s["mode"] = step["mode"]
+                    if "artifacts" in step:
+                        s["artifacts"] = step["artifacts"]
                     if "artifacts" in step:
                         s["artifacts"] = step["artifacts"]
                     self.steward.attach_task_context(s, snapshot)

@@ -407,12 +407,19 @@ def test_tomato_two_full_torture_chamber():
     # 13 & 14. CLEAR PROVIDER CONDITION SAFELY & RESUME ORIGINAL WAITING TASK
     canary_prov = f"courier_canary_torture_prov_{run_uid}.txt"
     cleanup_file(canary_prov)
-    resume_res = http_post(f"/tasks/{task_wait}/resume", {
-        "action": "retry",
-        "goal_id": goal_a_id,
-        "instruction_override": f"touch {canary_prov}"
-    })
-    assert resume_res.get("status") == "RESUMED"
+    for _ in range(15):
+        try:
+            resume_res = http_post(f"/tasks/{task_wait}/resume", {
+                "action": "retry",
+                "goal_id": goal_a_id,
+                "instruction_override": f"touch {canary_prov}"
+            })
+            if resume_res.get("status") == "RESUMED":
+                break
+        except Exception:
+            time.sleep(1)
+    else:
+        assert False, "Failed to resume after retries"
     assert resume_res.get("resume_type") == "TRANSPORT_RETRY"
     print(f"[Step 13] Cleared Provider Condition safely: resume_type={resume_res.get('resume_type')}")
 

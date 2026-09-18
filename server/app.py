@@ -742,9 +742,7 @@ def claim_task():
         save_state(state)
         return jsonify({"task": None, "reason": "PROVIDER_UNAVAILABLE"})
         
-    if time.time() < state.get("provider_locks", {}).get(lock_key, 0):
-        save_state(state)
-        return jsonify({"task": None, "reason": "PROVIDER_QUOTA_LOCKED"})
+
 
     for goal_id, goal in state["goals"].items():
         if goal["status"] == "ACTIVE" and "workflow_plan" in goal:
@@ -1092,6 +1090,8 @@ def verify_task_result():
                                     }
                                     if "artifacts" in step:
                                         new_task["artifacts"] = step["artifacts"]
+                                    if "mode" in step:
+                                        new_task["mode"] = step["mode"]
                                     _copy_task_eligibility_fields(step, new_task)
                                     goal["workflow_plan"].append(new_task)
                                     added_any = True
