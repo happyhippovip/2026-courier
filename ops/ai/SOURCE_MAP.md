@@ -3,7 +3,7 @@ BOUND_TO_CODE_HEAD: 7c495f8c1b31293f8d3a5465035d2d3f61cbd3a7
 UPDATED_AT: 2026-09-18T00:15:00+02:00
 
 RESULT_INGESTION: COMPONENT=result_feed FILE=scripts/run_visual_studio_server.py FUNCTION=handle_api_state ROLE=aggregates events for cockpit BOUND_TO_CODE_HEAD=7c495f8c
-TASK_CLAIM: UNKNOWN
+TASK_CLAIM: COMPONENT=claim_endpoint FILE=server/app.py FUNCTION=claim_task ROLE=dispatch and quota checks BOUND_TO_CODE_HEAD=4cf2eba0
 TASK_RESULT: UNKNOWN
 VERIFICATION: COMPONENT=acceptance tests FILE=tests/test_courier_continue.py ROLE=physical-proof gating BOUND_TO_CODE_HEAD=7c495f8c
 RECONCILIATION: COMPONENT=frontier recompute FILE=scripts/courier_continue.py FUNCTION=main ROLE=stateless recompute from PROVEN_EDGES BOUND_TO_CODE_HEAD=7c495f8c
@@ -17,3 +17,5 @@ ACCEPTANCE_GUARD: COMPONENT=guard derivation FILE=scripts/agent_handoff_ledger.p
 LEDGER_WRITE: COMPONENT=ledger update FILE=scripts/agent_handoff_ledger.py FUNCTION=update/initialize BOUND_TO_CODE_HEAD=7c495f8c
 WINDOWS_RUNTIME: COMPONENT=windows observer OWNER=Google FILE=scripts/studio_local_tools.py ROLE=hosts.windows runtime_sha observation BOUND_TO_CODE_HEAD=7c495f8c
 COCKPIT_TELEMETRY: COMPONENT=state endpoints FILE=scripts/run_visual_studio_server.py FUNCTION=handle_api_state/handle_api_local_tools ROLE=/api/state + /api/local-tools BOUND_TO_CODE_HEAD=7c495f8c
+
+PROVIDER_LOCK: COMPONENT=quota_backoff FILE=server/app.py FUNCTION=provider_wait/claim_task ROLE=global provider wait isolation BOUND_TO_CODE_HEAD=4cf2eba0

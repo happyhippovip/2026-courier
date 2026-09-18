@@ -1,19 +1,23 @@
-# FAILURE_SIGNATURES — observed shapes (evidence-backed)
 bound_to_code_head: 7c495f8c1b31293f8d3a5465035d2d3f61cbd3a7
-updated_at: 2026-09-18T00:15:00+02:00
+updated_at: 2026-09-18 00:15:00+02:00
 signatures:
-  - name: pytest-OOM-SIGKILL
-    evidence: full-file runs killed (signal 9) after ~30 dots on swap-pressured Mac
-    response: shard by file, max 2 heavy jobs
-  - name: motor-drain-flake
-    evidence: acceptance pair UNKNOWN in full-file runs, green paired/isolated
-    response: drain-aware exit, retry-on-revision-conflict (foreign fix 67e85e02 verified)
-  - name: werkzeug-sandbox-stall
-    evidence: Flask banner without "Running on", connections accepted-but-hung, "Operation not permitted" (sandboxed session only)
-    response: environmental; verify unsandboxed or record lane-blocked
-  - name: mid-commit-read-race
-    evidence: transient TypeError reading test module during foreign commit landing
-    response: re-run, never auto-retry loop
-  - name: launchd-absent-torture-gate
-    evidence: test_tomato_two_torture.py:130 requires com.courier.mac_worker
-    response: user authorization lane, do not self-install persistent agents
+- name: pytest-OOM-SIGKILL
+  evidence: full-file runs killed (signal 9) after ~30 dots on swap-pressured Mac
+  response: shard by file, max 2 heavy jobs
+- name: motor-drain-flake
+  evidence: acceptance pair UNKNOWN in full-file runs, green paired/isolated
+  response: drain-aware exit, retry-on-revision-conflict (foreign fix 67e85e02 verified)
+- name: werkzeug-sandbox-stall
+  evidence: Flask banner without "Running on", connections accepted-but-hung, "Operation
+    not permitted" (sandboxed session only)
+  response: environmental; verify unsandboxed or record lane-blocked
+- name: mid-commit-read-race
+  evidence: transient TypeError reading test module during foreign commit landing
+  response: re-run, never auto-retry loop
+- name: launchd-absent-torture-gate
+  evidence: test_tomato_two_torture.py:130 requires com.courier.mac_worker
+  response: user authorization lane, do not self-install persistent agents
+- name: uncoordinated-provider-429
+  evidence: 10 tasks independent retry instead of global credential pool backoff
+  response: Ensure provider_locks is maintained per worker quota pool and checked
+    before claim_task.

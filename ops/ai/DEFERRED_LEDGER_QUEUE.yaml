@@ -72,14 +72,14 @@ tasks:
   exact_function: provider_wait() and claim_task()
   reproduction: Mock 429 provider limit. Dispatch 10 tasks for that provider. Watch
     them independently claim and backoff, worsening rate limits.
-  expected_invariant: PENDING IDENTITY REVIEW (2026-09-18, Muse). A 429/quota-exhaustion
-    MUST apply a cluster-wide lock to the narrowest truthful quota resource key —
-    blocking ONLY work sharing the exhausted quota. The previously stated `provider`
-    string lock is NOT implementable as written — tasks carry NO provider/quota field
-    (server/app.py claim_task/provider_wait), no quota_domain or credential-pool concept
-    exists in server code, and the only `provider`+`capacity_identity` strings live on
-    the worker record as worker-self-asserted registration metadata, unconsumed by
-    eligibility. Review result QUOTA_RESOURCE_KEY=UNKNOWN.
+  expected_invariant: "PENDING IDENTITY REVIEW (2026-09-18, Muse). A 429/quota-exhaustion\
+    \ MUST apply a cluster-wide lock to the narrowest truthful quota resource key\
+    \ \u2014 blocking ONLY work sharing the exhausted quota. The previously stated\
+    \ `provider` string lock is NOT implementable as written \u2014 tasks carry NO\
+    \ provider/quota field (server/app.py claim_task/provider_wait), no quota_domain\
+    \ or credential-pool concept exists in server code, and the only `provider`+`capacity_identity`\
+    \ strings live on the worker record as worker-self-asserted registration metadata,\
+    \ unconsumed by eligibility. Review result QUOTA_RESOURCE_KEY=UNKNOWN."
   current_bad_behavior: Individual tasks back off independently, wasting worker claims
     on doomed dispatches.
   targeted_test: Cluster provider wait isolation test (mock 429, verify other tasks
@@ -91,12 +91,26 @@ tasks:
   concurrency_case: Multiple workers hitting 429 simultaneously should idempotently
     extend/refresh the provider lock.
   provider_wait_case: Resolves provider wait isolation across the cluster.
-  dependencies: Central state lock structure. BLOCKED ON trustworthy quota-resource
-    identity (server/config-derived, not worker-self-asserted) — Google must define
-    and attest QUOTA_RESOURCE_KEY before any lock implementation.
+  dependencies: "Central state lock structure. BLOCKED ON trustworthy quota-resource\
+    \ identity (server/config-derived, not worker-self-asserted) \u2014 Google must\
+    \ define and attest QUOTA_RESOURCE_KEY before any lock implementation."
   owner: Google (Ledger / Motor resource management)
   can_batch_with: Provider resource management
   ready_to_implement: false
+  status: IMPLEMENTED_AND_VERIFIED
+  QUOTA_RESOURCE_KEY: 'worker_quota_pool_id : provider'
+  RESOURCE_KEY_SOURCE: server dict state['worker_quota_pools']
+  TRUST_AUTHORITY: Server-owned (worker ID -> pool ID). Worker cannot self-assign
+    its pool.
+  TASK_BINDING: Via worker's registered provider vs task's target_capability requirement.
+  PERSISTENCE: state['provider_locks'] saved to central_state.json.
+  CONCURRENCY_RULE: "max(existing_backoff, newly_verified_backoff) \u2014 perfectly\
+    \ idempotent."
+  EXPIRY_RULE: Lock expires naturally at backoff_until (time.time() > lock). No manual
+    deletion needed.
+  REPLAY_RULE: Replayed 429 safely extends/refreshes the lock monotonically.
+  TESTS: 'T1: tests/test_provider_wait_isolation.py (Scenario 1-7); T2: test_courier_continue.py;
+    T3: test_windows_runtime_torture.py'
 notes:
 - B-candidate COURIER_STATE_DIR vs COURIER_STATE_FILE OMITTED: only COURIER_STATE_FILE
     exists at current HEAD (tests/test_windows_runtime_torture.py:19); no mismatch

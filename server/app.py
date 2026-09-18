@@ -712,9 +712,13 @@ def claim_task():
             return jsonify({"task": task})
 
     # --- Auto-resume WAITING_PROVIDER tasks if backoff elapsed ---
+    quota_resource_id = state.get("worker_quota_pools", {}).get(worker_id, worker_id)
+    worker_provider = str(worker.get("provider", "unknown"))
+    lock_key = f"{quota_resource_id}:{worker_provider}"
+
     for task_id, task in state.get("tasks", {}).items():
         if task.get("status") in ("WAITING_PROVIDER", "BLOCKED_TRANSIENT") and task.get("worker_id") == worker_id:
-            if time.time() > task.get("next_retry_at", 0):
+            if time.time() > state.get("provider_locks", {}).get(lock_key, 0):
                 task["status"] = "DISPATCHED"
                 
                 # Sync back to goal
@@ -737,6 +741,10 @@ def claim_task():
     ):
         save_state(state)
         return jsonify({"task": None, "reason": "PROVIDER_UNAVAILABLE"})
+        
+    if time.time() < state.get("provider_locks", {}).get(lock_key, 0):
+        save_state(state)
+        return jsonify({"task": None, "reason": "PROVIDER_QUOTA_LOCKED"})
 
     for goal_id, goal in state["goals"].items():
         if goal["status"] == "ACTIVE" and "workflow_plan" in goal:
@@ -1301,8 +1309,16 @@ def provider_wait(task_id):
         task["blocker"] = reason[:200] if reason else "PROVIDER_UNAVAILABLE"
         task["next_action"] = "WAIT_THEN_RESUME"
         # Preserve attempt_id and dispatch_id — no new attempt
+        quota_resource_id = state.setdefault("worker_quota_pools", {}).get(worker_id, worker_id)
+        worker_provider = str(state["workers"][worker_id].get("provider", "unknown"))
+        lock_key = f"{quota_resource_id}:{worker_provider}"
+        
+        new_backoff = time.time() + calculate_backoff(retry_state["provider"])
+        existing_backoff = state.setdefault("provider_locks", {}).get(lock_key, 0)
+        state["provider_locks"][lock_key] = max(existing_backoff, new_backoff)
+        
         task["provider_wait_since"] = time.time()
-        task["next_retry_at"] = time.time() + calculate_backoff(retry_state["provider"])
+        task["next_retry_at"] = state["provider_locks"][lock_key]
     else:
         set_task_status(task, "FAILED_TERMINAL")
         task["blocker"] = "MAX_PROVIDER_WAITS_REACHED"
