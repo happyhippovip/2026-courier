@@ -1,0 +1,40 @@
+bound_to_code_head: 0c8d1eddacb15dedbebb8406e475917dc2ab1c2b
+updated_at: 2026-09-18 09:23:33+02:00
+lanes:
+  T0:
+    purpose: syntax/import sanity
+    command: node --check studio/*.js && python3 -c 'import ast,...' && bash -n scripts/*.sh
+  T1:
+    purpose: exact regression
+    command: python3 -m pytest tests/test_<area>.py -q (single file, sharded)
+  T2:
+    purpose: affected component
+    command: python3 -m pytest tests/test_<a>.py tests/test_<b>.py -q (max 2 heavy
+      jobs)
+  T3:
+    purpose: fast adversarial truth suite
+    command: python3 -m pytest -q tests/test_ledger_false_green_attack.py tests/test_ledger_edge_conservation_regression.py
+      && node --test tests/test_execution_truth.mjs
+  T4:
+    purpose: integration/full boundary
+    command: "sharded full-file runs only; full parallel suite OOMs (SIGKILL observed)\
+      \ \u2014 never one giant batch"
+package_candidates:
+  pytest-timeout: USE_NOW
+  pytest-xdist: TEST_FIRST
+  pytest-testmon: TEST_FIRST
+  pytest-picked: NOT_NEEDED
+zero_hang_policy: POLICY (bounded timeouts on subprocess/network/poll; no killall;
+  motor sleeps bounded; writer_lock 5s)
+owned_child_target: OWNED_CHILD_PROCESSES=0 after tests (observed via pgrep checks)
+tests:
+  test_provider_wait_isolation.py:
+    role: DLQ-05 cluster-wide provider lock isolation, auto-resume, concurrency, and
+      forged ID rejection
+    lane: T1
+  test_windows_ledger_race.py:
+    role: DLQ-06 static check for missing load_bundle retry loop on Windows
+    lane: T1
+  test_ledger_duplicate_semantics_contract.py:
+    role: DLQ-03 duplicate-result semantics contract test
+    lane: T1

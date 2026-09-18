@@ -136,6 +136,53 @@ def get_commercial_offers_payload() -> dict:
     }
 
 
+import urllib.parse
+
+def map_internal_to_customer_status(internal_state: str) -> str:
+    state = internal_state.upper()
+    if state in ['NEW', 'QUEUED', 'PENDING_DISPATCH']:
+        return 'QUEUED'
+    elif state in ['RUNNING', 'IN_PROGRESS', 'DISPATCHED_TO_EXTERNAL', 'EXECUTING']:
+        return 'RUNNING'
+    elif state in ['WAITING', 'WAITING_PROVIDER', 'WAITING_FOR_CHIEF_COMMAND', 'WAIT_FOR_GITHUB_PR', 'BLOCKED']:
+        return 'WAITING'
+    elif state in ['NEEDS_APPROVAL', 'HUMAN_REVIEW_REQUIRED_ON_PR', 'HUMAN_GATE_REQUIRED', 'HUMAN_REQUIRED']:
+        return 'NEEDS_APPROVAL'
+    elif state in ['DONE', 'COMPLETED', 'SUCCESS', 'VERIFIED', 'RECONCILED']:
+        return 'DONE'
+    elif state in ['FAILED', 'ERROR', 'SYSTEM_FAILURE']:
+        return 'FAILED'
+    return 'WAITING'
+
+def get_customer_status_payload(task_id: str, is_admin: bool) -> dict:
+    state_file = COURIER_DIR / 'central_state.json'
+    if not state_file.exists():
+        return {"error": "No tasks found."}
+    try:
+        state = json.loads(state_file.read_text(encoding='utf-8'))
+    except Exception:
+        return {"error": "Corrupt state file."}
+        
+    tasks = state.get("tasks", {})
+    if task_id not in tasks:
+        return {"error": f"Task {task_id} not found."}
+        
+    internal_task = tasks[task_id]
+    customer_view = {
+        "task_id": internal_task.get("task_id"),
+        "customer_reference": internal_task.get("customer_reference", "N/A"),
+        "status": map_internal_to_customer_status(internal_task.get("state", "QUEUED"))
+    }
+    
+    if is_admin:
+        customer_view["_internal_state"] = internal_task.get("state")
+        customer_view["_worker_id"] = internal_task.get("worker_id")
+        customer_view["_dispatch_ref"] = internal_task.get("dispatch_ref")
+        customer_view["_execution_ref"] = internal_task.get("execution_ref")
+        customer_view["_real_wall"] = internal_task.get("real_wall")
+        
+    return customer_view
+
 class CommandCenterHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self) -> None:
         if self.path in ("/api/status", "/api/health"):
@@ -156,6 +203,25 @@ class CommandCenterHandler(http.server.SimpleHTTPRequestHandler):
 
             offers_payload = get_commercial_offers_payload()
             self.wfile.write(json.dumps(offers_payload, indent=2).encode("utf-8"))
+            return
+
+        if self.path.startswith("/api/customer-status"):
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            
+            parsed = urllib.parse.urlparse(self.path)
+            qs = urllib.parse.parse_qs(parsed.query)
+            task_id = qs.get("task_id", [""])[0]
+            is_admin = qs.get("admin", ["false"])[0].lower() == "true"
+            
+            if not task_id:
+                self.wfile.write(json.dumps({"error": "task_id required"}, indent=2).encode("utf-8"))
+                return
+                
+            payload = get_customer_status_payload(task_id, is_admin)
+            self.wfile.write(json.dumps(payload, indent=2).encode("utf-8"))
             return
 
         return super().do_GET()
@@ -185,3 +251,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

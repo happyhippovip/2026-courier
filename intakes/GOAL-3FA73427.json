@@ -1,0 +1,19 @@
+{
+  "goal_id": "GOAL-3FA73427",
+  "goal_text": "--help",
+  "workflow_plan": [
+    {
+      "task_id": "TASK-67175072",
+      "type": "generic_decomposition",
+      "capabilities": [
+        "auto_plan",
+        "execute",
+        "verify"
+      ],
+      "status": "QUEUED",
+      "target_agent": "auto",
+      "dependencies": [],
+      "idempotency_key": "TASK-67175072"
+    }
+  ]
+}

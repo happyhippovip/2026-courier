@@ -272,7 +272,7 @@ def execute_video_build_stage(stage_dir: Path, topic: str, content_project: str,
                 "-c:a", "aac", "-shortest",
                 str(preview_file)
             ]
-            subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+            subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, timeout=120)
             if preview_file.exists() and preview_file.stat().st_size > 0:
                 render_details["ffmpeg_preview_render"] = {
                     "type": "FFMPEG_PREVIEW_RENDER",

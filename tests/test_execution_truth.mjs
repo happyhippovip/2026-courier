@@ -27,6 +27,10 @@ import {
   resolveCapabilityTruth,
   resolveSkillTruth,
   resolveHandoffTruth,
+  resolveAgentDetailData,
+  resolveChiefAlerts,
+  resolveOpsState,
+  normalizeOpsState,
   sanitizeTruthText,
   PROMPT_LIFECYCLE_PHASES,
   TRUTH_MODES,
@@ -1120,6 +1124,50 @@ assert.equal(handoffMotion.speech_overrides['agent-courier-relay'], 'HANDOFF');
 assert.deepEqual(handoffMotion.routes['agent-courier-relay'], ['DESK_02', 'ROUTER_DESK', 'DESK_16']);
 assert.equal(handoffMotion.states['agent-thought-curator'], 'HANDOFF');
 assert.equal(handoffMotion.states['agent-antigravity-bridge'], 'RUNNING');
+
+// Agent detail must never invent mission/task and must redact secret-bearing text
+const unknownDetail = resolveAgentDetailData({ id: 'agent-x', state: 'UNKNOWN' }, {});
+assert.equal(unknownDetail.mission, 'Keine aktive Mission gemeldet');
+assert.equal(unknownDetail.task, 'Keine konkrete Aufgabe gemeldet');
+const leakDetail = resolveAgentDetailData(
+  { id: 'agent-x', state: 'RUNNING', task: 'Verify with token=abc123', blocked_reason: 'wait bearer xyz.9-_' }, {});
+assert.doesNotMatch(leakDetail.task, /abc123/);
+assert.doesNotMatch(leakDetail.blocked_reason, /xyz/);
+const knownDetail = resolveAgentDetailData(
+  { id: 'agent-x', state: 'RUNNING', task: 'Proving edge RELEASE' },
+  { autonomy_runtime: { current_goal: 'Finish ledger' } });
+assert.equal(knownDetail.mission, 'Finish ledger');
+assert.equal(knownDetail.task, 'Proving edge RELEASE');
+
+// Single ops_state: sidebar, map, detail and counts must derive identically
+assert.equal(normalizeOpsState('COMPUTING'), 'ACTIVE');
+assert.equal(normalizeOpsState('WORKING'), 'ACTIVE');
+assert.equal(normalizeOpsState('SAFE_IDLE'), 'IDLE');
+assert.equal(normalizeOpsState('RECHNET'), 'ACTIVE');
+assert.equal(normalizeOpsState('WAITING_HUMAN'), 'WAITING');
+assert.equal(normalizeOpsState('HUMAN_GATE'), 'WAITING');
+assert.equal(normalizeOpsState('bogus-state-xyz'), 'UNKNOWN');
+const opsSnap = {
+  server_time: '2026-09-18T00:00:00.000Z',
+  local_tools: { observed_at: new Date(Date.now() - 2000).toISOString(),
+    tools: { muse: { status: 'COMPUTING', task_known: false }, chatgpt: { status: 'OPEN' }, antigravity: { status: 'OFFLINE' } } },
+  agents: { 'worker-codex': { state: 'SAFE_IDLE', task: 'Standby' }, 'worker-google': { state: 'SAFE_IDLE', task: 'Standby' } },
+};
+const ops = resolveOpsState(opsSnap);
+assert.equal(ops.company, 'COURIER SYMPHONY MUSE');
+assert.equal(ops.agents.muse.state, 'ACTIVE');
+assert.equal(ops.agents.muse.task, null);
+assert.equal(ops.agents.codex.state, 'IDLE');
+assert.equal(ops.agents.google.state, 'OFFLINE');
+assert.equal(resolveOpsState({}).agents.muse.state, 'UNKNOWN');
+assert.equal(resolveOpsState(null).agents.codex.task, null);
+
+// Provisional guard must surface as endgame warning, never as healthy systems
+const endgameAlerts = resolveChiefAlerts({ courier_ledger: { status: 'READY', guard: 'PROVISIONAL' } });
+assert.ok(endgameAlerts.some(a => a.type === 'TECHNICAL_ENDGAME' && a.severity === 'WARNING'));
+assert.ok(!endgameAlerts.some(a => /gesund|HEALTHY/i.test(a.message)));
+const acceptedAlerts = resolveChiefAlerts({ courier_ledger: { status: 'CLEAN_IDLE', guard: 'CANONICAL_ACCEPTED' } });
+assert.ok(!acceptedAlerts.some(a => a.type === 'TECHNICAL_ENDGAME'));
 
 console.log('execution truth tests: PASS (100% SUCCESS)');
 

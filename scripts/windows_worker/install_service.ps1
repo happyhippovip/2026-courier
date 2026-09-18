@@ -8,9 +8,12 @@ if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
     Write-Host "Unregistered existing task."
 }
 
-$trigger = New-ScheduledTaskTrigger -AtStartup
+$trigger = New-ScheduledTaskTrigger -AtLogon
 $action = New-ScheduledTaskAction -Execute $scriptPath
-$principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
+
+# Get current user instead of SYSTEM
+$currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+$principal = New-ScheduledTaskPrincipal -UserId $currentUser -LogonType Interactive
 
 Register-ScheduledTask -TaskName $taskName -Trigger $trigger -Action $action -Principal $principal
-Write-Host "Courier Windows Worker scheduled task registered to start on boot."
+Write-Host "Courier Windows Worker scheduled task registered to start on boot as $currentUser."

@@ -5,8 +5,15 @@ import time
 import requests
 import hashlib
 
-API_URL = os.environ.get("COURIER_SERVER", "http://127.0.0.1:8080").rstrip("/")
-API_KEY = os.environ.get("COURIER_VERIFIER_API_KEY")
+try:
+    import keyring
+    API_URL = os.environ.get("COURIER_SERVER") or keyring.get_password("courier_worker", "courier_server_url") or "http://127.0.0.1:8080"
+    API_URL = API_URL.rstrip("/")
+    API_KEY = os.environ.get("COURIER_VERIFIER_API_KEY") or keyring.get_password("courier_worker", "courier_verifier_api_key")
+except ImportError:
+    API_URL = os.environ.get("COURIER_SERVER", "http://127.0.0.1:8080").rstrip("/")
+    API_KEY = os.environ.get("COURIER_VERIFIER_API_KEY")
+
 HEADERS = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
 VERIFIER_ID = "VERIFIER-01"
 
@@ -62,10 +69,13 @@ def run_loop():
                             
                             cmd = [sys.executable, os.path.join(os.path.dirname(__file__), "revenue_v1_safety_baseline.py"), "verify", task_file, td, candidate_file]
                             try:
-                                subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+                                subprocess.check_output(cmd, stderr=subprocess.STDOUT, timeout=60)
                                 verdict = "PASS"
                             except subprocess.CalledProcessError as e:
                                 log(f"Revenue verification failed: {e.output.decode('utf-8', errors='ignore')}")
+                                verdict = "FAIL"
+                            except subprocess.TimeoutExpired:
+                                log("Revenue verification timed out after 60s")
                                 verdict = "FAIL"
                     else:
                         verdict = "PASS"

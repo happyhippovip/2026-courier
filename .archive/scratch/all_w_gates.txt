@@ -1,0 +1,153 @@
+issue37.txt:1002:W25 - EXACT PROCESS 
+issue37.txt:1002:W25 - EXACT PROCESS \r\nCLEANUP\\r\\nissue37.txt:1005:W26 - WORKER LEASE / HEARTBEAT 
+issue37.txt:1002:W25 - EXACT PROCESS \r\n\r\nCLEANUP\\r\\nissue37.txt:1005:W26 - WORKER LEASE / 
+issue37.txt:1002:W25 ? EXACT PROCESS CLEANUP\r\n\r\nissue37.txt:1005:W26 ? WORKER LEASE / HEARTBEAT 
+issue37.txt:1002:W25 — EXACT PROCESS CLEANUP
+issue37.txt:1002:W25 � EXACT PROCESS CLEANUP
+issue37.txt:1005:W26 - WORKER LEASE / HEARTBEAT EXPIRY\\\\r\\\\nissue37.txt:1008:W27 - "}
+issue37.txt:1005:W26 - WORKER LEASE / HEARTBEAT EXPIRY\\\\r\\\\nissue37.txt:1008:W27 - WINDOWS 
+issue37.txt:1005:W26 - WORKER LEASE / HEARTBEAT EXPIRY\\r\\nissue37.txt:1008:W27 - WINDOWS + SECOND WORKER "}
+issue37.txt:1005:W26 - WORKER LEASE / HEARTBEAT EXPIRY\r\nissue37.txt:1008:W27 - WINDOWS + SECOND WORKER 
+issue37.txt:1005:W26 — WORKER LEASE / HEARTBEAT EXPIRY
+issue37.txt:1005:W26 � WORKER LEASE / HEARTBEAT EXPIRY
+issue37.txt:1008:W27 - WINDOWS + SECOND WORKER \\r\\nWORK "}
+issue37.txt:1008:W27 - WINDOWS + SECOND WORKER \r\nWORK 
+issue37.txt:1008:W27 - WINDOWS + SECOND WORKER \r\n\r\nWORK STEALING\\r\\n\\r\\n\\r\\n\\n\"}\r\n\
+issue37.txt:1008:W27 ? WINDOWS + SECOND WORKER WORK STEALING\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\n"}
+issue37.txt:1008:W27 ù WINDOWS + SECOND WORKER WORK STEALING"}
+issue37.txt:1008:W27 — WINDOWS + SECOND WORKER WORK STEALING
+issue37.txt:1008:W27 � WINDOWS + SECOND WORKER WORK STEALING
+issue37.txt:1047:W40 — FREEZE DECISION / CUSTOMER-READY HANDOFF
+issue37.txt:930:W1 - BRANCH / WRITER / SCOPE INTEGRITY\\\\r\\\\nissue37.txt:933:W2 - CREDENTIAL FAIL-CLOSED \\r\\nBASELINE\\\\r\\\\nissue37.txt:936:W3 - OS-OWNED SERVER RUNTIME\\\\r\\\\nissue37.txt:939:W4 - OS-OWNED VERIFIER \\r\\nRUNTIME\\\\r\\\\nissue37.txt:940:Same as W3 for verifier. Prove verifier survives interactive-agent exit, uses approved \\r\\n\\\\r\\\\ncredentials/runtime environment, and does not require manual PYTHONPATH. Verify exact process ownership and \\r\\nrestart \\\\r\\\\nbehavior.\\\\r\\\\nissue37.txt:942:W5 - OS-OWNED MOTOR RUNTIME\\\\r\\\\nissue37.txt:945:W6 - SINGLE RUNTIME \\r\\nAUTHORITY\\\\r\\\\nissue37.txt:948:W7 - CANONICAL STATE LOCATION / NON-GIT RUNTIME TRUTH\\\\r\\\\nissue37.txt:951:W8 - ATOMIC \\r\\nSTATE MUTATION / WINDOWS FILE LOCKING\\\\r\\\\nissue37.txt:954:W9 - EXACT IDENTITY CHAIN\\\\r\\\\nissue37.txt:957:W10 - QUALIFIED \\r\\nCLAIM / SINGLE-FLIGHT\\\\r\\\\nissue37.txt:960:W11 - READY RECOMPUTE AFTER RECONCILE\\\\r\\\\nissue37.txt:963:W12 - AUTOMATIC NEXT \\r\\nDISPATCH\\\\r\\\\nissue37.txt:964:Continue W11 chain. PASS only if Task B is automatically dispatched/claimable after A \\r\\nreconciles, with \\\\r\\\\nUSER_CONTINUE_MESSAGES=0. If READY exists but no dispatch/claim path progresses, treat that exact \\r\\ncausal edge as the \\\\r\\\\ndefect.\\\\r\\\\nissue37.txt:966:W13 - BOUNDED AUTO-REPLENISH ON OPEN GOAL\\\\r\\\\nissue37.txt:969:W14 - \\r\\nNO FALSE DONE AFTER ONE REPLENISH\\\\r\\\\nissue37.txt:972:W15 - CLEAN IDLE ONLY WHEN TERMINAL / REAL \\r\\nWALL\\\\r\\\\nissue37.txt:975:W16 - SERVER RESTART RECOVERY\\\\r\\\\nissue37.txt:978:W17 - VERIFIER RESTART \\r\\nRECOVERY\\\\r\\\\nissue37.txt:981:W18 - MOTOR RESTART RECOVERY\\\\r\\\\nissue37.txt:984:W19 - WINDOWS WORKER RESTART \\r\\nRECOVERY\\\\r\\\\nissue37.txt:987:W20 - RESULT DURABILITY BEFORE ACK\\\\r\\\\nissue37.txt:990:W21 - TRANSPORT RETRY PRESERVES \\r\\nLOGICAL ATTEMPT\\\\r\\\\nissue37.txt:993:W22 - PROVIDER WAIT ISOLATION\\\\r\\\\nissue37.txt:996:W23 - PROVIDER RESUME SAME SAFE \\r\\nATTEMPT\\\\r\\\\nissue37.txt:999:W24 - AMBIGUOUS EXTERNAL EFFECT FAIL-CLOSED\\\\r\\\\nissue37.txt:1002:W25 - EXACT PROCESS \\r\\nCLEANUP\\\\r\\\\nissue37.txt:1005:W26 - WORKER LEASE / HEARTBEAT EXPIRY\\\\r\\\\nissue37.txt:1008:W27 - WINDOWS + SECOND WORKER \\r\\nWORK STEALING\\\\r\\\\n\\\\r\\\\n\\\\r\\\\n\\\\n\\\"}\\r\\n\\r\\n\\r\\n\\n\\n\u003c/SYSTEM_MESSAGE\u003e\"}"}
+issue37.txt:930:W1 - BRANCH / WRITER / SCOPE INTEGRITY\\r\\nissue37.txt:933:W2 - CREDENTIAL FAIL-CLOSED 
+issue37.txt:930:W1 - BRANCH / WRITER / SCOPE INTEGRITY\r\nissue37.txt:933:W2 - CREDENTIAL FAIL-CLOSED 
+issue37.txt:930:W1 ? BRANCH / WRITER / SCOPE INTEGRITY\r\n\r\nissue37.txt:933:W2 ? CREDENTIAL 
+issue37.txt:930:W1 ù BRANCH / WRITER / SCOPE INTEGRITY\\r\\nissue37.txt:933:W2 ù CREDENTIAL FAIL-CLOSED BASELINE\\r\\nissue37.txt:936:W3 ù OS-OWNED SERVER RUNTIME\\r\\nissue37.txt:939:W4 ù OS-OWNED VERIFIER RUNTIME\\r\\nissue37.txt:940:Same as W3 for verifier. Prove verifier survives interactive-agent exit, uses approved \\r\\ncredentials/runtime environment, and does not require manual PYTHONPATH. Verify exact process ownership and restart \\r\\nbehavior.\\r\\nissue37.txt:942:W5 ù OS-OWNED MOTOR RUNTIME\\r\\nissue37.txt:945:W6 ù SINGLE RUNTIME AUTHORITY\\r\\nissue37.txt:948:W7 ù CANONICAL STATE LOCATION / NON-GIT RUNTIME TRUTH\\r\\nissue37.txt:951:W8 ù ATOMIC STATE MUTATION / WINDOWS FILE LOCKING\\r\\nissue37.txt:954:W9 ù EXACT IDENTITY CHAIN\\r\\nissue37.txt:957:W10 ù QUALIFIED CLAIM / SINGLE-FLIGHT\\r\\nissue37.txt:960:W11 ù READY RECOMPUTE AFTER RECONCILE\\r\\nissue37.txt:963:W12 ù AUTOMATIC NEXT DISPATCH\\r\\nissue37.txt:964:Continue W11 chain. PASS only if Task B is automatically dispatched/claimable after A reconciles, with \\r\\nUSER_CONTINUE_MESSAGES=0. If READY exists but no dispatch/claim path progresses, treat that exact causal edge as the \\r\\ndefect.\\r\\nissue37.txt:966:W13 ù BOUNDED AUTO-REPLENISH ON OPEN GOAL\\r\\nissue37.txt:969:W14 ù NO FALSE DONE AFTER ONE REPLENISH\\r\\nissue37.txt:972:W15 ù CLEAN IDLE ONLY WHEN TERMINAL / REAL WALL\\r\\nissue37.txt:975:W16 ù SERVER RESTART RECOVERY\\r\\nissue37.txt:978:W17 ù VERIFIER RESTART RECOVERY\\r\\nissue37.txt:981:W18 ù MOTOR RESTART RECOVERY\\r\\nissue37.txt:984:W19 ù WINDOWS WORKER RESTART RECOVERY\\r\\nissue37.txt:987:W20 ù RESULT DURABILITY BEFORE ACK\\r\\nissue37.txt:990:W21 ù TRANSPORT RETRY PRESERVES LOGICAL ATTEMPT\\r\\nissue37.txt:993:W22 ù PROVIDER WAIT ISOLATION\\r\\nissue37.txt:996:W23 ù PROVIDER RESUME SAME SAFE ATTEMPT\\r\\nissue37.txt:999:W24 ù AMBIGUOUS EXTERNAL EFFECT FAIL-CLOSED\\r\\nissue37.txt:1002:W25 ù EXACT PROCESS CLEANUP\\r\\nissue37.txt:1005:W26 ù WORKER LEASE / HEARTBEAT EXPIRY\\r\\nissue37.txt:1008:W27 ù WINDOWS + SECOND WORKER WORK STEALING\\r\\n\\r\\n\\r\\n\\n\"}"}
+issue37.txt:930:W1 — BRANCH / WRITER / SCOPE INTEGRITY
+issue37.txt:930:W1 � BRANCH / WRITER / SCOPE INTEGRITY
+issue37.txt:930:W1 � BRANCH / WRITER / SCOPE INTEGRITY\\\\r\\\\nissue37.txt:933:W2 � CREDENTIAL 
+issue37.txt:933:W2 - CREDENTIAL FAIL-CLOSED \r\nBASELINE\\r\\nissue37.txt:936:W3 - 
+issue37.txt:933:W2 — CREDENTIAL FAIL-CLOSED BASELINE
+issue37.txt:933:W2 � CREDENTIAL FAIL-CLOSED BASELINE
+issue37.txt:936:W3 - OS-OWNED SERVER RUNTIME\\r\\nissue37.txt:939:W4 - OS-OWNED VERIFIER 
+issue37.txt:936:W3 - OS-OWNED SERVER RUNTIME\r\nissue37.txt:939:W4 - OS-OWNED VERIFIER 
+issue37.txt:936:W3 ? OS-OWNED SERVER RUNTIME\r\n\r\nissue37.txt:939:W4 ? OS-OWNED VERIFIER 
+issue37.txt:936:W3 — OS-OWNED SERVER RUNTIME
+issue37.txt:936:W3 � OS-OWNED SERVER RUNTIME
+issue37.txt:936:W3 � OS-OWNED SERVER RUNTIME\\\\
+issue37.txt:939:W4 - OS-OWNED VERIFIER 
+issue37.txt:939:W4 - OS-OWNED VERIFIER \r\nRUNTIME\\r\\nissue37.txt:940:Same as W3 for 
+issue37.txt:939:W4 ù OS-OWNED VERIFIER RUNTIME\\r\\n\u003e issue37.txt:940:Same as W3 for verifier. Prove verifier survives interactive-agent exit, uses approved \\r\\ncredentials/runtime environment, and does not require manual PYTHONPATH. Verify exact process ownership and restart \\r\\nbehavior.\\r\\n  issue37.txt:941:\\r\\n\u003e issue37.txt:942:W5 ù OS-OWNED MOTOR RUNTIME\\r\\n  issue37.txt:943:Prove the new persistent Courier Motor is the single OS-owned scheduler. Confirm legacy \\r\\ncron/one-tick GitHub motor is not a product authority. End Antigravity/terminal and prove the motor remains alive and \\r\\ncontinues state transitions.\\r\\n  issue37.txt:944:\\r\\n\u003e issue37.txt:945:W6 ù SINGLE RUNTIME AUTHORITY\\r\\n  issue37.txt:946:Search actual runtime paths for legacy/autonomous loops that can schedule centrally. Prove only one \\r\\nscheduler has write authority. If a second active scheduler exists, disable/adapt/retire only the conflicting path \\r\\nwithout rebuilding architecture.\\r\\n  issue37.txt:947:\\r\\n\u003e issue37.txt:948:W7 ù CANONICAL STATE LOCATION / NON-GIT RUNTIME TRUTH\\r\\n  issue37.txt:949:Prove live central state is not sourced from committed central_state.json or docs. Restart services \\r\\nand confirm they recover from the canonical runtime store/path. Git checkout/reset must not silently become runtime \\r\\ntruth. Repair only actual product reliance on committed state.\\r\\n  issue37.txt:950:\\r\\n\u003e issue37.txt:951:W8 ù ATOMIC STATE MUTATION / WINDOWS FILE LOCKING\\r\\n  issue37.txt:952:Stress canonical state reads/writes with concurrent claim/result/reconcile activity. Reproduce and \\r\\neliminate PermissionError/JSON partial-read/file-lock crashes. PASS requires no corruption, bounded retry, and \\r\\ndeterministic recovery without broad locks that freeze the whole system indefinitely.\\r\\n  issue37.txt:953:\\r\\n\u003e issue37.txt:954:W9 ù EXACT IDENTITY CHAIN\\r\\n  issue37.txt:955:Run one real task through goal_id -\u003e task_id -\u003e attempt_id -\u003e dispatch_id -\u003e execution_ref -\u003e result \\r\\n-\u003e verifier/reconcile. Prove all identifiers remain linked across logs/state/result/checkpoints. Missing or \\r\\nregenerated identity is a failure.\\r\\n  issue37.txt:956:\\r\\n\u003e issue37.txt:957:W10 ù QUALIFIED CLAIM / SINGLE-FLIGHT\\r\\n  issue37.txt:958:Prove one READY TaskPacket is claimed by at most one qualified worker/dispatch at a time. Concurrent \\r\\nclaim attempts must not produce duplicate execution. Repair claim locking/lease logic only if executable proof fails.\\r\\n  issue37.txt:959:\\r\\n\u003e issue37.txt:960:W11 ù READY RECOMPUTE AFTER RECONCILE\\r\\n  issue37.txt:961:Run Task A to verified reconciliation. PASS only if Courier automatically recomputes \\r\\neligibility/READY state for dependent Task B with zero user message. No manual API poke may stand in for the product \\r\\ntransition.\\r\\n  issue37.txt:962:\\r\\n\u003e issue37.txt:963:W12 ù AUTOMATIC NEXT DISPATCH\\r\\n\u003e issue37.txt:964:Continue W11 chain. PASS only if Task B is automatically dispatched/claimable after A reconciles, \\r\\nwith USER_CONTINUE_MESSAGES=0. If READY exists but no dispatch/claim path progresses, treat that exact causal edge as \\r\\nthe defect.\\r\\n  issue37.txt:965:\\r\\n\u003e issue37.txt:966:W13 ù BOUNDED AUTO-REPLENISH ON OPEN GOAL\\r\\n  issue37.txt:967:Create/attach one nonterminal goal whose runnable backlog can reach zero. PASS only if Courier \\r\\nautomatically asks planner for a small bounded next batch, materializes bounded TaskPackets, recomputes READY, and \\r\\ncontinues. Planner may not schedule or become truth store.\\r\\n  issue37.txt:968:\\r\\n\u003e issue37.txt:969:W14 ù NO FALSE DONE AFTER ONE REPLENISH\\r\\n  issue37.txt:970:Specifically challenge any replenish_count/test shortcut. Run a goal requiring more than one \\r\\nreplenishment cycle. PASS only if Courier reaches DONE because the goal is genuinely terminal, not because a fixed \\r\\nreplenish counter was exhausted.\\r\\n  issue37.txt:971:\\r\\n\u003e issue37.txt:972:W15 ù CLEAN IDLE ONLY WHEN TERMINAL / REAL WALL\\r\\n  issue37.txt:973:Prove queue-empty + terminal goal -\u003e CLEAN_IDLE. Prove queue-empty + nonterminal runnable goal -\u003e \\r\\nreplenish/continue, not idle. Prove queue-empty + genuine HUMAN/MONEY/SAFETY/PERMISSION wall -\u003e explicit blocked state.\\r\\n  issue37.txt:974:\\r\\n\u003e issue37.txt:975:W16 ù SERVER RESTART RECOVERY\\r\\n  issue37.txt:976:During an active nonterminal goal, restart only the exact server service/process via its supported \\r\\nownership path. PASS if goal/task/attempt/dispatch state survives and progression resumes without user reconstruction \\r\\nor duplicate effects.\\r\\n  issue37.txt:977:\\r\\n\u003e issue37.txt:978:W17 ù VERIFIER RESTART RECOVERY\\r\\n  issue37.txt:979:Restart verifier while a result is pending verification. PASS if pending evidence remains durable \\r\\nand exactly one verification/reconcile outcome occurs after recovery.\\r\\n  issue37.txt:980:\\r\\n\u003e issue37.txt:981:W18 ù MOTOR RESTART RECOVERY\\r\\n  issue37.txt:982:Restart the persistent motor during active work. PASS if canonical queue/leases/state survive, motor \\r\\nresumes from canonical state, and no duplicate scheduler is spawned.\\r\\n  issue37.txt:983:\\r\\n\u003e issue37.txt:984:W19 ù WINDOWS WORKER RESTART RECOVERY\\r\\n  issue37.txt:985:Restart the Windows worker during a safe task lifecycle. Prove current-task/pending-result \\r\\ncheckpoints behave correctly, stale worker availability is repaired, and work is not silently lost.\\r\\n  issue37.txt:986:\\r\\n\u003e issue37.txt:987:W20 ù RESULT DURABILITY BEFORE ACK\\r\\n  issue37.txt:988:Complete one task, interrupt result delivery before canonical ACK, restart worker/runtime as needed. \\r\\nPASS only if durable result is retried without re-executing the completed task and checkpoint clears only after \\r\\naccepted ACK.\\r\\n  issue37.txt:989:\\r\\n\u003e issue37.txt:990:W21 ù TRANSPORT RETRY PRESERVES LOGICAL ATTEMPT\\r\\n  issue37.txt:991:Inject transient result/claim/heartbeat transport errors. Prove transport retries do not create a \\r\\nnew logical execution attempt. Exact task/attempt/dispatch identity must be preserved unless a true re-execution is \\r\\nexplicitly authorized.\\r\\n  issue37.txt:992:\\r\\n\u003e issue37.txt:993:W22 ù PROVIDER WAIT ISOLATION\\r\\n  issue37.txt:994:Put one task/provider into WAITING_PROVIDER/cooldown while another unrelated qualified READY task \\r\\nexists. PASS only if unrelated work continues automatically. No global stall because one provider/account is waiting.\\r\\n  issue37.txt:995:\\r\\n\u003e issue37.txt:996:W23 ù PROVIDER RESUME SAME SAFE ATTEMPT\\r\\n  issue37.txt:997:Resume a provider-wait task where continuation is safe. PASS if same logical attempt/checkpoint \\r\\nresumes correctly; no unnecessary new attempt and no lost context. If re-execution is required, it must be explicit \\r\\nand distinguishable.\\r\\n  issue37.txt:998:\\r\\n\u003e issue37.txt:999:W24 ù AMBIGUOUS EXTERNAL EFFECT FAIL-CLOSED\\r\\n  issue37.txt:1000:Simulate crash/network ambiguity after a potentially externally-effecting action. PASS only if \\r\\nCourier does not blindly duplicate the effect. It must quarantine/request verification/human input according to \\r\\nexisting safety contract.\\r\\n  issue37.txt:1001:\\r\\n\u003e issue37.txt:1002:W25 ù EXACT PROCESS CLEANUP\\r\\n  issue37.txt:1003:Exercise success, failure, timeout, cancellation, worker restart, and verifier rejection. PASS if \\r\\ntemporary task-owned processes are gone after terminal handling. Never use Stop-Process -Name python, taskkill /IM \\r\\npython.exe, killall, or equivalent broad kills.\\r\\n  issue37.txt:1004:\\r\\n\u003e issue37.txt:1005:W26 ù WORKER LEASE / HEARTBEAT EXPIRY\\r\\n  issue37.txt:1006:Simulate a worker disappearing after claim. Prove lease/heartbeat expiry is bounded and state is \\r\\nclassified safely. Safe work may return to runnable state; ambiguous external-effect work must fail closed. No task \\r\\nshould remain permanently orphaned without explicit blocker.\\r\\n  issue37.txt:1007:\\r\\n\u003e issue37.txt:1008:W27 ù WINDOWS + SECOND WORKER WORK STEALING\\r\\n  issue37.txt:1009:Using canonical routing only, prove Windows plus one second qualified worker can pull distinct \\r\\nREADY TaskPackets from the same goal/queue. Worker chooses only from qualified canonical work; it never chooses \\r\\nproject/scope itself. Do not modify Mac files from Windows.\\r\\n  issue37.txt:1010:\\r\\n\\r\\n\\r\\n\\n\"}"}
+issue37.txt:939:W4 — OS-OWNED VERIFIER RUNTIME
+issue37.txt:939:W4 � OS-OWNED VERIFIER RUNTIME
+issue37.txt:942:W5 - OS-OWNED MOTOR RUNTIME\\r\\nissue37.txt:945:W6 
+issue37.txt:942:W5 - OS-OWNED MOTOR RUNTIME\\r\\nissue37.txt:945:W6 - 
+issue37.txt:942:W5 - OS-OWNED MOTOR RUNTIME\\r\\nissue37.txt:945:W6 - SINGLE RUNTIME 
+issue37.txt:942:W5 - OS-OWNED MOTOR RUNTIME\r\nissue37.txt:945:W6 - SINGLE RUNTIME 
+issue37.txt:942:W5 ? OS-OWNED MOTOR RUNTIME\r\n\r\nissue37.txt:945:W6 ? SINGLE 
+issue37.txt:942:W5 — OS-OWNED MOTOR RUNTIME
+issue37.txt:942:W5 � OS-OWNED MOTOR RUNTIME
+issue37.txt:945:W6 — SINGLE RUNTIME AUTHORITY
+issue37.txt:945:W6 � SINGLE RUNTIME AUTHORITY
+issue37.txt:948:W7 - CANONICAL STATE LOCATION / NON-GIT RUNTIME 
+issue37.txt:948:W7 - CANONICAL STATE LOCATION / NON-GIT RUNTIME TRUTH\\r\\nissue37.txt:951:W8 - 
+issue37.txt:948:W7 - CANONICAL STATE LOCATION / NON-GIT RUNTIME TRUTH\r\nissue37.txt:951:W8 - ATOMIC 
+issue37.txt:948:W7 ? CANONICAL STATE LOCATION / NON-GIT RUNTIME 
+issue37.txt:948:W7 — CANONICAL STATE LOCATION / NON-GIT RUNTIME TRUTH
+issue37.txt:948:W7 � CANONICAL STATE LOCATION / NON-GIT RUNTIME TRUTH
+issue37.txt:951:W8 - ATOMIC STATE MUTATION / WINDOWS FILE LOCKING.\" Progress is being 
+issue37.txt:951:W8 - ATOMIC STATE MUTATION / WINDOWS FILE LOCKING.\" Progress is being made.\n\n\n","tool_calls":[{"name":"run_command","args":{"CommandLine":"$lines = Get-Content C:\\Users\\lol\\.gemini\\antigravity\\brain\\ec711710-4565-4f5b-9ad4-8d95cd8540b9\\.system_generated\\logs\\transcript_full.jsonl | Where-Object { $_ -match \"W8 - ATOMIC STATE MUTATION\" -and $_ -match \"USER_INPUT\" }; foreach ($line in $lines) { $json = $line | ConvertFrom-Json; $json.content | Out-File -Encoding utf8 w8_content.txt; break }","Cwd":"C:\\Users\\lol\\2026-workspace\\courier","WaitMsBeforeAsync":8000,"toolAction":"Running PowerShell command to extract W8 prompt from USER_INPUT","toolSummary":"Extract W8 requirements using PowerShell"}}]}
+issue37.txt:951:W8 - ATOMIC \r\nSTATE MUTATION / WINDOWS FILE LOCKING\\r\\nissue37.txt:954:W9 - EXACT 
+issue37.txt:951:W8 - ATOMIC \r\n\r\nSTATE MUTATION / WINDOWS FILE LOCKING\\r\\nissue37.txt:954:W9 - EXACT 
+issue37.txt:951:W8 ? ATOMIC STATE MUTATION / WINDOWS FILE LOCKING\r\n\r\nissue37.txt:954:W9 ? EXACT 
+issue37.txt:951:W8 — ATOMIC STATE MUTATION / WINDOWS FILE LOCKING
+issue37.txt:951:W8 � ATOMIC STATE MUTATION / WINDOWS FILE LOCKING
+issue37.txt:954:W9 - EXACT IDENTITY 
+issue37.txt:954:W9 - EXACT IDENTITY CHAIN\r\nissue37.txt:957:W10 - QUALIFIED 
+issue37.txt:954:W9 — EXACT IDENTITY CHAIN
+issue37.txt:954:W9 � EXACT IDENTITY CHAIN
+issue37.txt:957:W10 - QUALIFIED \r\nCLAIM / SINGLE-FLIGHT\\r\\nissue37.txt:960:W11 - READY 
+issue37.txt:957:W10 - QUALIFIED \r\nCLAIM / SINGLE-FLIGHT\\r\\nissue37.txt:960:W11 - READY RECOMPUTE AFTER 
+issue37.txt:957:W10 - QUALIFIED \r\n\r\nCLAIM / SINGLE-FLIGHT\\r\\nissue37.txt:960:W11 - READY 
+issue37.txt:957:W10 ? QUALIFIED CLAIM / SINGLE-FLIGHT\r\n\r\nissue37.txt:960:W11 ? READY 
+issue37.txt:957:W10 — QUALIFIED CLAIM / SINGLE-FLIGHT
+issue37.txt:957:W10 � QUALIFIED CLAIM / SINGLE-FLIGHT
+issue37.txt:960:W11 - READY RECOMPUTE AFTER RECONCILE\r\nissue37.txt:963:W12 - AUTOMATIC NEXT 
+issue37.txt:960:W11 — READY RECOMPUTE AFTER RECONCILE
+issue37.txt:960:W11 � READY RECOMPUTE AFTER RECONCILE
+issue37.txt:963:W12 - AUTOMATIC NEXT \r\nDISPATCH\\r\\nissue37.txt:964:Continue W11 
+issue37.txt:963:W12 - AUTOMATIC NEXT \r\nDISPATCH\\r\\nissue37.txt:964:Continue W11 chain. PASS only if 
+issue37.txt:963:W12 - AUTOMATIC NEXT \r\n\r\nDISPATCH\\r\\nissue37.txt:964:Continue W11 
+issue37.txt:963:W12 ? AUTOMATIC NEXT DISPATCH\r\n\r\nissue37.txt:964:Continue W11 
+issue37.txt:963:W12 — AUTOMATIC NEXT DISPATCH
+issue37.txt:963:W12 � AUTOMATIC NEXT DISPATCH
+issue37.txt:966:W13 - BOUNDED AUTO-REPLENISH ON OPEN GOAL\\\\r\\\\nissue37.txt:969:W14 - 
+issue37.txt:966:W13 - BOUNDED AUTO-REPLENISH ON OPEN GOAL\\r\\nissue37.txt:969:W14 - 
+issue37.txt:966:W13 - BOUNDED AUTO-REPLENISH ON OPEN GOAL\\r\\nissue37.txt:969:W14 - \r\nNO FALSE 
+issue37.txt:966:W13 - BOUNDED AUTO-REPLENISH ON OPEN GOAL\r\nissue37.txt:969:W14 - 
+issue37.txt:966:W13 ? BOUNDED AUTO-REPLENISH ON OPEN GOAL\r\n\r\nissue37.txt:969:W14 ? 
+issue37.txt:966:W13 — BOUNDED AUTO-REPLENISH ON OPEN GOAL
+issue37.txt:966:W13 � BOUNDED AUTO-REPLE
+issue37.txt:966:W13 � BOUNDED AUTO-REPLENISH ON OPEN GOAL
+issue37.txt:969:W14 — NO FALSE DONE AFTER ONE REPLENISH
+issue37.txt:969:W14 � NO FALSE DONE AFTER ONE REPLENISH
+issue37.txt:972:W15 - CLEAN IDLE ONLY WHEN TERMINAL / REAL 
+issue37.txt:972:W15 ? CLEAN IDLE ONLY WHEN TERMINAL / REAL 
+issue37.txt:972:W15 — CLEAN IDLE ONLY WHEN TERMINAL / REAL WALL
+issue37.txt:972:W15 � CLEAN IDLE ONLY WHEN TERMINAL / REAL WALL
+issue37.txt:975:W16 - SERVER RESTART RECOVERY\\\\r\\\\nissue37.txt:978:W17 - VERIFIER RESTART 
+issue37.txt:975:W16 - SERVER RESTART RECOVERY\\r\\nissue37.txt:978:W17 - VERIFIER RESTART 
+issue37.txt:975:W16 - SERVER RESTART RECOVERY\r\nissue37.txt:978:W17 - VERIFIER RESTART 
+issue37.txt:975:W16 ? SERVER RESTART RECOVERY\r\n\r\nissue37.txt:978:W17 ? VERIFIER RESTART 
+issue37.txt:975:W16 — SERVER RESTART RECOVERY
+issue37.txt:975:W16 � SERVER RESTART RECOVERY
+issue37.txt:978:W17 — VERIFIER RESTART RECOVERY
+issue37.txt:978:W17 � VERIFIER RESTART RECOVERY
+issue37.txt:981:W18 - MOTOR RESTART RECOVERY\\\\r\\\\nissue37.txt:984:W19 - WINDOWS WORKER 
+issue37.txt:981:W18 - MOTOR RESTART RECOVERY\\r\\nissue37.txt:984:W19 - WINDOWS WORKER RESTART 
+issue37.txt:981:W18 - MOTOR RESTART RECOVERY\r\nissue37.txt:984:W19 - WINDOWS WORKER RESTART 
+issue37.txt:981:W18 ? MOTOR RESTART RECOVERY\r\n\r\nissue37.txt:984:W19 ? WINDOWS WORKER RESTART 
+issue37.txt:981:W18 — MOTOR RESTART RECOVERY
+issue37.txt:981:W18 � MOTOR RESTART RECOVERY
+issue37.txt:984:W19 - WINDOWS WORKER RESTART \\r\\n\\r\\nRECOVERY\\\\r\\\\nissue37.txt:987:W20 - RESULT "}
+issue37.txt:984:W19 — WINDOWS WORKER RESTART RECOVERY
+issue37.txt:984:W19 � WINDOWS WORKER RESTART RECOVERY
+issue37.txt:987:W20 - RESULT DURABILITY BEFORE ACK\\\\r\\\\nissue37.txt:990:W21 - 
+issue37.txt:987:W20 - RESULT DURABILITY BEFORE ACK\\\\r\\\\nissue37.txt:990:W21 - TRANSPORT RETRY 
+issue37.txt:987:W20 - RESULT DURABILITY BEFORE ACK\\\\r\\\\nissue37.txt:990:W21 - TRANSPORT RETRY "}
+issue37.txt:987:W20 - RESULT DURABILITY BEFORE ACK\\r\\nissue37.txt:990:W21 - TRANSPORT RETRY 
+issue37.txt:987:W20 - RESULT DURABILITY BEFORE ACK\\r\\nissue37.txt:990:W21 - TRANSPORT RETRY PRESERVES "}
+issue37.txt:987:W20 - RESULT DURABILITY BEFORE ACK\r\nissue37.txt:990:W21 - 
+issue37.txt:987:W20 - RESULT DURABILITY BEFORE ACK\r\nissue37.txt:990:W21 - TRANSPORT RETRY PRESERVES 
+issue37.txt:987:W20 ? RESULT DURABILITY BEFORE ACK\r\n\r\nissue37.txt:990:W21 ? TRANSPORT RETRY 
+issue37.txt:987:W20 ù RESULT DURABILITY BEFORE ACK"}
+issue37.txt:987:W20 — RESULT DURABILITY BEFORE ACK
+issue37.txt:987:W20 � RESULT DURABILITY BEFORE ACK
+issue37.txt:987:W20 � RESULT DURABILITY BEFORE ACK\
+issue37.txt:987:W20 � RESULT DURABILITY BEFORE ACK\"}\n{\"File\":\"C:\\\\Users\\\\lol\\\\2026-workspace\\\\courie
+issue37.txt:990:W21 - TRANSPORT RETRY "}
+issue37.txt:990:W21 - TRANSPORT RETRY PRESERVES "}
+issue37.txt:990:W21 - TRANSPORT RETRY PRESERVES LOGICAL ATTEMPT\r\n 
+issue37.txt:990:W21 ? TRANSPORT RETRY PRESERVES LOGICAL ATTEMPT
+issue37.txt:990:W21 — TRANSPORT RETRY PRESERVES LOGICAL ATTEMPT
+issue37.txt:990:W21 � TRANSPORT RETRY PRESERVES LOGICAL ATTEMPT
+issue37.txt:993:W22 - PROVIDER WAIT 
+issue37.txt:993:W22 - PROVIDER WAIT ISOLATION\\\\r\\\\nissue37.txt:996:W23 - PROVIDER "}
+issue37.txt:993:W22 - PROVIDER WAIT ISOLATION\\\\r\\\\nissue37.txt:996:W23 - PROVIDER RESUME SAME SAFE "}
+issue37.txt:993:W22 - PROVIDER WAIT ISOLATION\\r\\nissue37.txt:996:W23 - 
+issue37.txt:993:W22 - PROVIDER WAIT ISOLATION\\r\\nissue37.txt:996:W23 - PROVIDER 
+issue37.txt:993:W22 - PROVIDER WAIT ISOLATION\\r\\nissue37.txt:996:W23 - PROVIDER RESUME SAME SAFE "}
+issue37.txt:993:W22 - PROVIDER WAIT ISOLATION\r\nissue37.txt:996:W23 - 
+issue37.txt:993:W22 - PROVIDER WAIT ISOLATION\r\nissue37.txt:996:W23 - PROVIDER RESUME SAME SAFE 
+issue37.txt:993:W22 ? PROVIDER WAIT ISOLATION\r\n\r\nissue37.txt:996:W23 ? PROVIDER 
+issue37.txt:993:W22 — PROVIDER WAIT ISOLATION
+issue37.txt:993:W22 � PROVIDER WAIT ISOLATION
+issue37.txt:996:W23 - PROVIDER RESUME SAME SAFE \\r\\nATTEMPT\\\\r\\\\nissue37.txt:999:W24 - 
+issue37.txt:996:W23 ù PROVIDER RESUME SAME SAFE ATTEMPT"}
+issue37.txt:996:W23 — PROVIDER RESUME SAME SAFE ATTEMPT
+issue37.txt:996:W23 � PROVIDER RESUME SAME SAFE ATTEMPT
+issue37.txt:999:W24 - AMBIGUOUS EXTERNAL EFFECT 
+issue37.txt:999:W24 - AMBIGUOUS EXTERNAL EFFECT FAIL-CLOSED\r\nissue37.txt:1002:W25 - EXACT PROCESS 
+issue37.txt:999:W24 ? AMBIGUOUS EXTERNAL EFFECT 
+issue37.txt:999:W24 — AMBIGUOUS EXTERNAL EFFECT FAIL-CLOSED
+issue37.txt:999:W24 � AMBIGUOUS EXTERNAL EFFECT FAIL-CLOSED

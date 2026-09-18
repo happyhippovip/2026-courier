@@ -49,6 +49,33 @@ SECRET_PATTERNS = [
     re.compile(r"AIza[0-9A-Za-z-_]{35}"),
 ]
 
+SAFE_IDENTIFIER_RE = re.compile(r"^[A-Za-z0-9._-]{1,128}$")
+
+
+def validate_identifier(value: object, field_name: str) -> str:
+    """Return a path-safe canonical identifier or fail before filesystem use."""
+    if not isinstance(value, str) or not SAFE_IDENTIFIER_RE.fullmatch(value):
+        raise ValueError(f"Invalid {field_name}: expected 1-128 path-safe characters")
+    return value
+
+
+def validate_job_contract(job: dict) -> list[str]:
+    target_agent = job.get("target_agent")
+    if not isinstance(target_agent, str) or target_agent.lower() not in {
+        "codex",
+        "courier-codex-bridge",
+        "agent-codex-bridge",
+    }:
+        raise ValueError("Invalid target_agent: Codex bridge cannot execute work routed elsewhere")
+    if job.get("cost_policy") != "ZERO_COST_ONLY":
+        raise ValueError("Invalid cost_policy: Codex bridge requires ZERO_COST_ONLY")
+    if job.get("human_gate_policy") != "STOP_ON_HUMAN_GATE_ONLY":
+        raise ValueError("Invalid human_gate_policy: Codex bridge requires STOP_ON_HUMAN_GATE_ONLY")
+    allowed_scope = job.get("allowed_scope")
+    if not isinstance(allowed_scope, list) or not all(isinstance(item, str) for item in allowed_scope):
+        raise ValueError("Invalid allowed_scope: expected a list of paths/scopes")
+    return allowed_scope
+
 
 def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
@@ -56,7 +83,71 @@ def load_json(path: Path) -> dict:
 
 def save_json(path: Path, data: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    temp_path = path.with_name(f".{path.name}.{os.getpid()}.{uuid.uuid4().hex}.tmp")
+    try:
+        with temp_path.open("w", encoding="utf-8") as handle:
+            json.dump(data, handle, indent=2)
+            handle.write("\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temp_path, path)
+    finally:
+        temp_path.unlink(missing_ok=True)
+
+
+def _result_identity(data: dict) -> tuple[object, ...]:
+    return (
+        data.get("task_id"),
+        data.get("correlation_id"),
+        data.get("parent_id"),
+        data.get("source"),
+        data.get("destination"),
+        data.get("type"),
+        data.get("status"),
+        data.get("payload_hash"),
+    )
+
+
+def persist_result_once(path: Path, result: dict) -> Path:
+    """Create one immutable result, accepting only an identical idempotent replay."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    encoded = (json.dumps(result, indent=2) + "\n").encode("utf-8")
+    temp_path = path.with_name(f".{path.name}.{os.getpid()}.{uuid.uuid4().hex}.tmp")
+    try:
+        with temp_path.open("xb") as handle:
+            handle.write(encoded)
+            handle.flush()
+            os.fsync(handle.fileno())
+        try:
+            # Same-directory hard-link publication is atomic and never replaces
+            # an already published immutable result.
+            os.link(temp_path, path)
+            return path
+        except FileExistsError:
+            existing = load_json(path)
+            if _result_identity(existing) != _result_identity(result):
+                raise RuntimeError(f"Conflicting result already exists for task {result.get('task_id')}")
+            if existing.get("payload_hash") != payload_hash(existing.get("payload")):
+                raise RuntimeError(f"Existing result payload hash is invalid for task {result.get('task_id')}")
+            return path
+    finally:
+        temp_path.unlink(missing_ok=True)
+
+
+def validate_existing_result(path: Path, task_id: str, correlation_id: str, parent_id: str | None) -> None:
+    existing = load_json(path)
+    expected = {
+        "task_id": task_id,
+        "correlation_id": correlation_id,
+        "parent_id": parent_id,
+        "source": "codex",
+        "destination": "courier",
+        "type": "RESULT",
+    }
+    if any(existing.get(key) != value for key, value in expected.items()):
+        raise RuntimeError(f"Existing result identity conflicts with task {task_id}")
+    if existing.get("payload_hash") != payload_hash(existing.get("payload")):
+        raise RuntimeError(f"Existing result payload hash is invalid for task {task_id}")
 
 
 def payload_hash(payload: object) -> str:
@@ -70,6 +161,13 @@ def check_secrets_in_text(text: str) -> int:
         if matches:
             found += len(matches)
     return found
+
+
+def safe_error_message(error_message: object) -> str:
+    text = str(error_message)
+    if check_secrets_in_text(text):
+        return "Sensitive worker error redacted"
+    return text[:500]
 
 
 class CodexVisualStateTracker:
@@ -156,6 +254,10 @@ class CodexHookRunner:
         payload: dict,
         message_id: str | None = None,
     ) -> Path:
+        task_id = validate_identifier(task_id, "task_id")
+        correlation_id = validate_identifier(correlation_id, "correlation_id")
+        if parent_id is not None:
+            parent_id = validate_identifier(parent_id, "parent_id")
         print(f"[CODEX_HOOK: ON_COMPLETION] Task {task_id} completed successfully. Writing RESULT_READY...")
         if not message_id:
             message_id = f"msg-res-cdx-{uuid.uuid4().hex[:12]}"
@@ -186,7 +288,7 @@ class CodexHookRunner:
 
         PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
         result_file = PROCESSED_DIR / f"{task_id}-result.json"
-        save_json(result_file, result_envelope)
+        persist_result_once(result_file, result_envelope)
 
         self.state_tracker.update_state(
             state="AWAITING_CHIEF_REVIEW",
@@ -202,6 +304,11 @@ class CodexHookRunner:
         return result_file
 
     def on_task_failure(self, task_id: str, correlation_id: str, parent_id: str | None, error_message: str) -> Path:
+        task_id = validate_identifier(task_id, "task_id")
+        correlation_id = validate_identifier(correlation_id, "correlation_id")
+        if parent_id is not None:
+            parent_id = validate_identifier(parent_id, "parent_id")
+        error_message = safe_error_message(error_message)
         print(f"[CODEX_HOOK: ON_FAILURE] Task {task_id} failed: {error_message}")
         now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
         payload = {"verdict": "FAILED", "error": error_message}
@@ -225,7 +332,7 @@ class CodexHookRunner:
 
         PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
         result_file = PROCESSED_DIR / f"{task_id}-result.json"
-        save_json(result_file, result_envelope)
+        persist_result_once(result_file, result_envelope)
 
         self.state_tracker.update_state(
             state="FAILED",
@@ -239,6 +346,7 @@ class CodexHookRunner:
         return result_file
 
     def on_task_stop(self, task_id: str) -> bool:
+        task_id = validate_identifier(task_id, "task_id")
         result_file = PROCESSED_DIR / f"{task_id}-result.json"
         exists = result_file.exists()
         print(f"[CODEX_HOOK: ON_STOP] Result file verified for {task_id}: {exists}")
@@ -285,6 +393,7 @@ def parse_real_codex_result(content: str) -> dict:
 
 def execute_real_codex_cli(instruction: str, allowed_scope: list[str], task_id: str) -> tuple[bool, dict]:
     """Invokes the real installed Codex CLI non-interactively."""
+    task_id = validate_identifier(task_id, "task_id")
     if not CODEX_CLI_PATH.exists():
         return False, {"error": "Codex CLI binary not found"}
 
@@ -382,17 +491,22 @@ def execute_codex_task(worker_job_path: Path, hooks: CodexHookRunner, force: boo
     """Executes a Codex task through the automated bridge with hooks, dedupe, and path confinement."""
     job = load_json(worker_job_path)
 
-    task_id = job.get("task_id", f"task-cdx-{uuid.uuid4().hex[:8]}")
-    correlation_id = job.get("correlation_id", f"corr-cdx-{uuid.uuid4().hex[:8]}")
-    parent_id = job.get("source_command_message_id")
+    task_id = validate_identifier(job.get("task_id"), "task_id")
+    correlation_id = validate_identifier(
+        job.get("correlation_id"),
+        "correlation_id",
+    )
+    parent_id_value = job.get("source_command_message_id")
+    parent_id = validate_identifier(parent_id_value, "source_command_message_id")
+    allowed_scope = validate_job_contract(job)
     workflow_id = job.get("workflow_id")
     parent_task_id = job.get("parent_task_id")
     instruction = job.get("instruction", "Execute Codex task")
-    allowed_scope = job.get("allowed_scope", [])
 
     # Deduplication & Replay Protection
     result_file = PROCESSED_DIR / f"{task_id}-result.json"
     if result_file.exists() and not force:
+        validate_existing_result(result_file, task_id, correlation_id, parent_id)
         print(f"[CODEX_DEDUPE] Task {task_id} already COMPLETED in {result_file.name}. Skipping duplicate execution.")
         return result_file
 
@@ -421,7 +535,14 @@ def execute_codex_task(worker_job_path: Path, hooks: CodexHookRunner, force: boo
         hooks.on_tool_action(task_id, "Validating Codex scope and parameters", 0.3)
 
         payload = {}
-        if try_real_cli and CODEX_CLI_PATH.exists():
+        if try_real_cli:
+            if not CODEX_CLI_PATH.exists():
+                return hooks.on_task_failure(
+                    task_id,
+                    correlation_id,
+                    parent_id,
+                    "Codex CLI binary not found; real execution cannot fall back",
+                )
             hooks.on_tool_action(task_id, "Invoking real Codex CLI process (/Applications/ChatGPT.app/Contents/Resources/codex)", 0.6)
             success, real_res = execute_real_codex_cli(instruction, allowed_scope, task_id)
             payload = real_res
@@ -429,6 +550,9 @@ def execute_codex_task(worker_job_path: Path, hooks: CodexHookRunner, force: boo
                 "zero_cost_policy": "ZERO_COST_ONLY",
                 "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
             })
+            if not success:
+                error = payload.get("error") or payload.get("verdict") or "Codex CLI execution failed"
+                return hooks.on_task_failure(task_id, correlation_id, parent_id, safe_error_message(error))
         else:
             target_fixture = None
             for item in allowed_scope:
@@ -504,6 +628,7 @@ def execute_codex_task(worker_job_path: Path, hooks: CodexHookRunner, force: boo
 
 def run_chief_review_router(task_id: str, result_file: Path) -> dict:
     """Evaluates Chief Review Router for the given Codex task result."""
+    task_id = validate_identifier(task_id, "task_id")
     DECISIONS_DIR.mkdir(parents=True, exist_ok=True)
     decision_file = DECISIONS_DIR / f"{task_id}-chief-decision.json"
 

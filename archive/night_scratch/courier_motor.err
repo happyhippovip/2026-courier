@@ -1,0 +1,200 @@
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 446
+    print(f"CHECKPOINT WRITTEN for {task['edge_name']}")
+                                                        ^
+IndentationError: unindent does not match any outer indentation level
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 446
+    print(f"CHECKPOINT WRITTEN for {task['edge_name']}")
+                                                        ^
+IndentationError: unindent does not match any outer indentation level
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 446
+    print(f"CHECKPOINT WRITTEN for {task['edge_name']}")
+                                                        ^
+IndentationError: unindent does not match any outer indentation level
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 446
+    print(f"CHECKPOINT WRITTEN for {task['edge_name']}")
+                                                        ^
+IndentationError: unindent does not match any outer indentation level
+usage: courier_continue.py [-h] [--run]
+courier_continue.py: error: unrecognized arguments: -u
+usage: courier_continue.py [-h] [--run]
+courier_continue.py: error: unrecognized arguments: -u
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 483, in <module>
+    main()
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 465, in main
+    raise e
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 460, in main
+    bundle = update_ledger(ledger_path, task["edge_name"], new_blocker, bundle)
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 315, in update_ledger
+    new_bundle = update(
+  File "/Users/user/Downloads/2026-courier/scripts/agent_handoff_ledger.py", line 654, in update
+    raise LedgerError(
+scripts.agent_handoff_ledger.LedgerError: revision conflict: expected 351, current 352
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 485, in <module>
+    main()
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 467, in main
+    raise e
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 461, in main
+    bundle = update_ledger(ledger_path, task["edge_name"], new_blocker, bundle)
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 316, in update_ledger
+    new_bundle = update(
+  File "/Users/user/Downloads/2026-courier/scripts/agent_handoff_ledger.py", line 654, in update
+    raise LedgerError(
+scripts.agent_handoff_ledger.LedgerError: revision conflict: expected 430, current 431
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 485, in <module>
+    main()
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 467, in main
+    raise e
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 461, in main
+    bundle = update_ledger(ledger_path, task["edge_name"], new_blocker, bundle)
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 316, in update_ledger
+    new_bundle = update(
+  File "/Users/user/Downloads/2026-courier/scripts/agent_handoff_ledger.py", line 654, in update
+    raise LedgerError(
+scripts.agent_handoff_ledger.LedgerError: revision conflict: expected 432, current 434
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 485, in <module>
+    main()
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 467, in main
+    raise e
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 461, in main
+    bundle = update_ledger(ledger_path, task["edge_name"], new_blocker, bundle)
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 316, in update_ledger
+    new_bundle = update(
+  File "/Users/user/Downloads/2026-courier/scripts/agent_handoff_ledger.py", line 654, in update
+    raise LedgerError(
+scripts.agent_handoff_ledger.LedgerError: revision conflict: expected 435, current 436
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 485, in <module>
+    main()
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 467, in main
+    raise e
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 461, in main
+    bundle = update_ledger(ledger_path, task["edge_name"], new_blocker, bundle)
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 316, in update_ledger
+    new_bundle = update(
+  File "/Users/user/Downloads/2026-courier/scripts/agent_handoff_ledger.py", line 654, in update
+    raise LedgerError(
+scripts.agent_handoff_ledger.LedgerError: revision conflict: expected 437, current 438
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 485, in <module>
+    main()
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 467, in main
+    raise e
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 461, in main
+    bundle = update_ledger(ledger_path, task["edge_name"], new_blocker, bundle)
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 316, in update_ledger
+    new_bundle = update(
+  File "/Users/user/Downloads/2026-courier/scripts/agent_handoff_ledger.py", line 654, in update
+    raise LedgerError(
+scripts.agent_handoff_ledger.LedgerError: revision conflict: expected 439, current 441
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 485, in <module>
+    main()
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 467, in main
+    raise e
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 461, in main
+    bundle = update_ledger(ledger_path, task["edge_name"], new_blocker, bundle)
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 316, in update_ledger
+    new_bundle = update(
+  File "/Users/user/Downloads/2026-courier/scripts/agent_handoff_ledger.py", line 654, in update
+    raise LedgerError(
+scripts.agent_handoff_ledger.LedgerError: revision conflict: expected 442, current 443
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 485, in <module>
+    main()
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 467, in main
+    raise e
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 461, in main
+    bundle = update_ledger(ledger_path, task["edge_name"], new_blocker, bundle)
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 316, in update_ledger
+    new_bundle = update(
+  File "/Users/user/Downloads/2026-courier/scripts/agent_handoff_ledger.py", line 654, in update
+    raise LedgerError(
+scripts.agent_handoff_ledger.LedgerError: revision conflict: expected 445, current 446
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 485, in <module>
+    main()
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 467, in main
+    raise e
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 461, in main
+    bundle = update_ledger(ledger_path, task["edge_name"], new_blocker, bundle)
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 316, in update_ledger
+    new_bundle = update(
+  File "/Users/user/Downloads/2026-courier/scripts/agent_handoff_ledger.py", line 654, in update
+    raise LedgerError(
+scripts.agent_handoff_ledger.LedgerError: revision conflict: expected 447, current 448
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 485, in <module>
+    main()
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 467, in main
+    raise e
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 461, in main
+    bundle = update_ledger(ledger_path, task["edge_name"], new_blocker, bundle)
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 316, in update_ledger
+    new_bundle = update(
+  File "/Users/user/Downloads/2026-courier/scripts/agent_handoff_ledger.py", line 654, in update
+    raise LedgerError(
+scripts.agent_handoff_ledger.LedgerError: revision conflict: expected 449, current 451
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 485, in <module>
+    main()
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 467, in main
+    raise e
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 461, in main
+    bundle = update_ledger(ledger_path, task["edge_name"], new_blocker, bundle)
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 316, in update_ledger
+    new_bundle = update(
+  File "/Users/user/Downloads/2026-courier/scripts/agent_handoff_ledger.py", line 654, in update
+    raise LedgerError(
+scripts.agent_handoff_ledger.LedgerError: revision conflict: expected 452, current 454
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 485, in <module>
+    main()
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 467, in main
+    raise e
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 461, in main
+    bundle = update_ledger(ledger_path, task["edge_name"], new_blocker, bundle)
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 316, in update_ledger
+    new_bundle = update(
+  File "/Users/user/Downloads/2026-courier/scripts/agent_handoff_ledger.py", line 654, in update
+    raise LedgerError(
+scripts.agent_handoff_ledger.LedgerError: revision conflict: expected 455, current 457
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 485, in <module>
+    main()
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 467, in main
+    raise e
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 461, in main
+    bundle = update_ledger(ledger_path, task["edge_name"], new_blocker, bundle)
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 316, in update_ledger
+    new_bundle = update(
+  File "/Users/user/Downloads/2026-courier/scripts/agent_handoff_ledger.py", line 654, in update
+    raise LedgerError(
+scripts.agent_handoff_ledger.LedgerError: revision conflict: expected 458, current 459
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 485, in <module>
+    main()
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 467, in main
+    raise e
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 461, in main
+    bundle = update_ledger(ledger_path, task["edge_name"], new_blocker, bundle)
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 316, in update_ledger
+    new_bundle = update(
+  File "/Users/user/Downloads/2026-courier/scripts/agent_handoff_ledger.py", line 654, in update
+    raise LedgerError(
+scripts.agent_handoff_ledger.LedgerError: revision conflict: expected 460, current 462
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 485, in <module>
+    main()
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 467, in main
+    raise e
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 461, in main
+    bundle = update_ledger(ledger_path, task["edge_name"], new_blocker, bundle)
+  File "/Users/user/Downloads/2026-courier/scripts/courier_continue.py", line 316, in update_ledger
+    new_bundle = update(
+  File "/Users/user/Downloads/2026-courier/scripts/agent_handoff_ledger.py", line 654, in update
+    raise LedgerError(
+scripts.agent_handoff_ledger.LedgerError: revision conflict: expected 464, current 465

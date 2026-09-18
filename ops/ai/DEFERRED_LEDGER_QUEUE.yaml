@@ -1,0 +1,217 @@
+bound_to_code_head: eba56edb
+updated_at: '2026-09-18T13:02:00+02:00'
+tasks:
+- id: DLQ-01
+  priority: P0
+  last_reproduced_head: 50810001
+  title: two-step self-acceptance via direct ledger writes
+  evidence: /tmp/dlq01_refresh.py run 2026-09-18 at HEAD 50810001 (ledger code unchanged
+    since 7c495f8c) - step1 PROVISIONAL, step2 CANONICAL_ACCEPTED plus CLEAN_IDLE=YES
+    on self-made VALID MACHINE_ARTIFACT with pre-declared RUNTIME_ARTIFACT PASS. Defect
+    live.
+  packet: ops/ai/packets/DLQ-01_review_packet.md
+  exact_file: scripts/agent_handoff_ledger.py
+  exact_function: update() prior_evidence rule + caller checks
+  reproduction: tmp ledger (unproven=[]); update1 adds artifact (updated_by distinct
+    from producer/verifier); update2 with no new evidence accepts
+  expected_invariant: self-created evidence never graduates to trusted prior evidence
+    without independent attestation
+  targeted_test: two-update self-cert rejection test (fails today)
+  negative_test: legitimate multi-writer evidence still accepted
+  owner: Google (attester protocol design)
+  ready_to_implement: false
+  status: GUARDS_AND_TESTS_IMPLEMENTED
+  implementation_note: >
+    introducer_map + writer-independence checks added to update() at lines 697-747.
+    T3 adversarial suite: tests/test_ledger_attestation_trust_root.py (12 tests).
+    T2 suite: tests/test_ledger_self_cert_rejection.py (1 test).
+    All passing at HEAD eba56edb. DLQ entry kept open for future server-owned
+    attestation authority design (not just caller-string checks).
+- id: DLQ-02
+  priority: P0
+  last_reproduced_head: 50810001
+  title: stale-dated VALID artifact accepted (observed_at unenforced)
+  evidence: /tmp/dlq02_refresh.py run 2026-09-18 at HEAD 50810001 (ledger code unchanged
+    since 7c495f8c) - 2020-01-01 VALID bound artifact planted step1, step2 with no
+    new evidence reaches CANONICAL_ACCEPTED. Defect live.
+  packet: ops/ai/packets/DLQ-02_review_packet.md
+  exact_file: scripts/agent_handoff_ledger.py
+  exact_function: update() has_physical_proof block
+  reproduction: store 2020-dated VALID artifact, advance one update, observe CANONICAL_ACCEPTED
+  expected_invariant: freshness bound (recency or binding-epoch) enforced
+  targeted_test: stale-date rejection test (fails today)
+  negative_test: fresh valid evidence still accepted
+  owner: Google (freshness policy design)
+  ready_to_implement: false
+  status: GUARDS_AND_TESTS_IMPLEMENTED
+  implementation_note: >
+    48h freshness window (0 <= delta <= 172800) + monotonicity enforcement +
+    MAX_FUTURE_CLOCK_SKEW_SECONDS=300 added to update() at lines 738-747.
+    T3 adversarial suite: tests/test_ledger_freshness_binding_epoch.py (11 tests).
+    T2 suite: tests/test_ledger_freshness_rejection.py (1 test).
+    All passing at HEAD eba56edb. DLQ entry kept open for future server-owned
+    binding epoch design (canonical server receipt vs producer timestamp).
+- id: DLQ-03
+  priority: P1
+  last_reproduced_head: 50810001
+  title: duplicate-result semantics contract (verified fail-closed, DECIDED 2026-09-18)
+  evidence: /tmp/dlq03_refresh.py run 2026-09-18 at HEAD 50810001 - IDENTICAL retry
+    raises no-meaningful-change with revision and bytes unchanged, STALE contradictory
+    raises revision conflict with authoritative value kept. Contract DECIDED - raise-at-storage,
+    settle-on-no-change, retry-on-conflict. Motor split verified at scripts/courier_continue.py
+    lines 537-544.
+  packet: ops/ai/packets/DLQ-03_review_packet.md
+  exact_file: scripts/agent_handoff_ledger.py
+  exact_function: update() no-meaningful-change vs revision conflict
+  reproduction: same-revision identical update, then stale-revision contradictory
+    update
+  expected_invariant: DECIDED 2026-09-18 - raise-at-storage. Identical retry raises
+    no-meaningful-change and callers settle, stale contradictory raises revision conflict
+    and callers retry with backoff. Motor split verified.
+  targeted_test: duplicate-semantics contract test
+  negative_test: contradictory payload never overwrites authoritative result
+  owner: Google (decision + test)
+  ready_to_implement: YES (contract test only)
+  status: IMPLEMENTED_AND_VERIFIED
+- id: DLQ-04
+  priority: P1
+  last_reproduced_head: 7c495f8c
+  title: courier_continue full-file timing flake under load
+  evidence: acceptance pair fails in full-file runs (fast UNKNOWN exit), passes paired/isolated;
+    foreign mock_iters + retry loop improved drain 77s to 12s
+  exact_file: scripts/courier_continue.py
+  exact_function: main() mock-iters exit + done_edges drain
+  reproduction: python3 -m pytest tests/test_courier_continue.py -q on loaded Mac
+  expected_invariant: --once exits only after futures settle or bounded drain timeout,
+    independent of iteration count
+  targeted_test: pair under parallel load
+  negative_test: never exits with futures still pending
+  owner: foreign/motor (coordinate, FOREIGN-ACTIVE file)
+  ready_to_implement: YES (with owner)
+  status: IMPLEMENTED_AND_VERIFIED
+  implementation_head: ceba1fe0
+- id: DLQ-05
+  priority: P2
+  last_reproduced_head: d45db37e
+  implementation_head: 0c8d1edd
+  title: Uncoordinated Provider Quota Backoff
+  evidence: Source code review of provider_wait. Backoff is applied individually to
+    task[next_retry_at], missing cluster-wide lock for the provider credential pool.
+  exact_file: server/app.py
+  exact_function: provider_wait() and claim_task()
+  reproduction: Mock 429 provider limit. Dispatch 10 tasks for that provider. Watch
+    them independently claim and backoff, worsening rate limits.
+  expected_invariant: "PENDING IDENTITY REVIEW (2026-09-18, Muse). A 429/quota-exhaustion\
+    \ MUST apply a cluster-wide lock to the narrowest truthful quota resource key\
+    \ \u2014 blocking ONLY work sharing the exhausted quota. The previously stated\
+    \ `provider` string lock is NOT implementable as written \u2014 tasks carry NO\
+    \ provider/quota field (server/app.py claim_task/provider_wait), no quota_domain\
+    \ or credential-pool concept exists in server code, and the only `provider`+`capacity_identity`\
+    \ strings live on the worker record as worker-self-asserted registration metadata,\
+    \ unconsumed by eligibility. Review result QUOTA_RESOURCE_KEY=UNKNOWN."
+  current_bad_behavior: Individual tasks back off independently, wasting worker claims
+    on doomed dispatches.
+  targeted_test: Cluster provider wait isolation test (mock 429, verify other tasks
+    for same provider aren't dispatched).
+  negative_test: Unrelated providers and workers remain unblocked and continue processing
+    READY tasks.
+  replay_case: N/A
+  restart_case: Provider locks must persist in central_state.json across server restarts.
+  concurrency_case: Multiple workers hitting 429 simultaneously should idempotently
+    extend/refresh the provider lock.
+  provider_wait_case: Resolves provider wait isolation across the cluster.
+  dependencies: "Central state lock structure. BLOCKED ON trustworthy quota-resource\
+    \ identity (server/config-derived, not worker-self-asserted) \u2014 Google must\
+    \ define and attest QUOTA_RESOURCE_KEY before any lock implementation."
+  owner: Google (Ledger / Motor resource management)
+  can_batch_with: Provider resource management
+  ready_to_implement: false
+  status: IMPLEMENTED_AND_VERIFIED
+  QUOTA_RESOURCE_KEY: 'worker_quota_pool_id : provider'
+  RESOURCE_KEY_SOURCE: server dict state['worker_quota_pools']
+  TRUST_AUTHORITY: Server-owned (worker ID -> pool ID). Worker cannot self-assign
+    its pool.
+  TASK_BINDING: Via worker's registered provider vs task's target_capability requirement.
+  PERSISTENCE: state['provider_locks'] saved to central_state.json.
+  CONCURRENCY_RULE: "max(existing_backoff, newly_verified_backoff) \u2014 perfectly\
+    \ idempotent."
+  EXPIRY_RULE: Lock expires naturally at backoff_until (time.time() > lock). No manual
+    deletion needed.
+  REPLAY_RULE: Replayed 429 safely extends/refreshes the lock monotonically.
+  TESTS: 'T1: tests/test_provider_wait_isolation.py (Scenario 1-7); T2: test_courier_continue.py;
+    T3: test_windows_runtime_torture.py'
+- id: DLQ-06
+  priority: P2
+  last_reproduced_head: 0c8d1edd
+  title: Windows PermissionError on concurrent motor reads
+  evidence: Source inspection of load_bundle in agent_handoff_ledger.py shows no OSError
+    retry loop. os.replace in atomic_write fails on Windows if file is held open by
+    a reader.
+  exact_file: scripts/agent_handoff_ledger.py
+  exact_function: load_bundle()
+  reproduction: Windows worker concurrently running motor loop while Courier API reads
+    ledger.
+  expected_invariant: Concurrent readers must not crash writers. load_bundle must
+    implement a retry loop similar to load_state() in server/app.py.
+  targeted_test: Static analysis check (T0) or mocked Windows FileNotFoundError/PermissionError
+    injection.
+  owner: Google (Windows physical)
+  ready_to_implement: true
+  status: IMPLEMENTED_AND_VERIFIED
+  implementation_note: >
+    load_bundle: 20x retry with 50ms backoff on PermissionError (lines 476-487).
+    atomic_write: 20x retry on os.replace PermissionError (lines 528-535).
+    Symlink protection in both functions.
+    Test: tests/test_ledger_windows_permission_retry.py (6 tests).
+    All passing at HEAD eba56edb. Awaits Windows physical validation.
+- id: DLQ-07
+  priority: P0
+  last_reproduced_head: 82bbe090
+  title: zero-update preset acceptance via initialize()
+  evidence: /tmp/ledger_redteam2.py fam_d run 2026-09-18 at HEAD 82bbe090 - single
+    initialize() with planted VALID artifact plus pre-declared all-PASS predicate
+    yields CANONICAL_ACCEPTED at revision 0, loads clean. INIT path skips all update-time
+    caller checks.
+  exact_file: scripts/agent_handoff_ledger.py
+  exact_function: initialize() missing transition gate plus validate_bundle() missing
+    revision-0-CANONICAL rejection
+  reproduction: /tmp/ledger_redteam2.py fam_d
+  expected_invariant: No INIT-to-CANONICAL. First CANONICAL_ACCEPTED requires at least
+    one UPDATE round-trip. INIT always starts PROVISIONAL.
+  targeted_test: init-with-CANONICAL rejection test (fails today)
+  negative_test: legitimate INIT flows unaffected (all start PROVISIONAL); preset
+    CLEAN_IDLE with PROVISIONAL guard stays rejected (verified blocked)
+  owner: Google (ledger init trust design)
+  ready_to_implement: false
+  packet: ops/ai/packets/DLQ-07_review_packet.md
+  status: GUARDS_AND_TESTS_IMPLEMENTED
+  implementation_note: >
+    initialize() forces transition_state=PROVISIONAL at line 636 and rejects
+    CANONICAL_ACCEPTED at line 631. CLEAN_IDLE=YES at init rejected at line 633-634.
+    T3 tests: test_attestation_cross_defect_crash.py::TestInitWithPlantedEvidence (2 tests).
+    T3 tests: test_ledger_false_green_attack.py::test_preset_canonical_accepted.
+    All passing at HEAD eba56edb.
+- id: DLQ-08
+  priority: P1
+  last_reproduced_head: 82bbe090
+  title: hung task wedges motor, no bounded drain timeout
+  evidence: code fact - bare future.result() at scripts/courier_continue.py
+    line 527 plus zero deadline or drain identifiers in file. Bounded owned-PID
+    demo /tmp/motor_hang_bound.py proves the exact call pattern blocks past an
+    8s deadline. One hung thread parks --once forever, violating the drain
+    half of the DLQ-04 invariant.
+  exact_file: scripts/courier_continue.py
+  exact_function: main() done_edges drain loop result call plus missing loop
+    wall-clock bound
+  reproduction: /tmp/motor_hang_demo.py plus /tmp/motor_hang_bound.py
+  expected_invariant: ONE HUNG TASK is not a WEDGED MOTOR. Per-result timeout
+    plus loop deadline, hung edge recorded blocked, run exits bounded.
+  targeted_test: hung-task bounded-exit test (hangs forever today)
+  negative_test: healthy tasks settle identically, no slot leak, no orphans
+  owner: foreign/motor (packet only, do not race)
+  ready_to_implement: YES (with owner)
+  packet: ops/ai/packets/DLQ-08_review_packet.md
+notes:
+- B-candidate COURIER_STATE_DIR vs COURIER_STATE_FILE OMITTED: only COURIER_STATE_FILE
+    exists at current HEAD (tests/test_windows_runtime_torture.py:19); no mismatch
+    supported.

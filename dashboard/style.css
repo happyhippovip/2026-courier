@@ -792,3 +792,104 @@ body {
   text-decoration: none;
 }
 .footer-link:hover { text-decoration: underline; }
+
+/* MACHINE STATUS AREAS */
+.agent-status-list {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.agent-status-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius-sm);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.agent-status-item .status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  margin-right: 10px;
+  box-shadow: 0 0 0 rgba(0,0,0,0);
+}
+
+.agent-status-item .agent-name {
+  flex-grow: 1;
+  font-family: var(--font-code);
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.agent-status-item .agent-state {
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: var(--text-muted);
+}
+
+/* ACTIVE STATE GLOW / PULSE */
+@keyframes pulse-glow {
+  0% { box-shadow: 0 0 5px var(--accent-cyan), inset 0 0 5px var(--accent-cyan); }
+  50% { box-shadow: 0 0 20px var(--accent-cyan), inset 0 0 10px var(--accent-cyan); }
+  100% { box-shadow: 0 0 5px var(--accent-cyan), inset 0 0 5px var(--accent-cyan); }
+}
+
+.agent-status-item.active {
+  background: rgba(6, 182, 212, 0.15);
+  border: 1px solid var(--accent-cyan);
+  animation: pulse-glow 2s infinite ease-in-out;
+}
+
+.agent-status-item.active .status-dot {
+  background: var(--accent-cyan);
+  box-shadow: 0 0 10px var(--accent-cyan);
+}
+
+.agent-status-item.active .agent-state {
+  color: var(--accent-cyan);
+}
+
+.agent-status-item.waiting {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid var(--accent-amber);
+}
+.agent-status-item.waiting .status-dot {
+  background: var(--accent-amber);
+}
+.agent-status-item.waiting .agent-state {
+  color: var(--accent-amber);
+}
+
+.agent-status-item.error {
+  background: rgba(244, 63, 94, 0.15);
+  border: 1px solid var(--accent-rose);
+}
+.agent-status-item.error .status-dot {
+  background: var(--accent-rose);
+}
+.agent-status-item.error .agent-state {
+  color: var(--accent-rose);
+}
+
+.agent-status-item.idle {
+  background: rgba(255, 255, 255, 0.05);
+}
+.agent-status-item.idle .status-dot {
+  background: var(--accent-indigo);
+}
+.agent-status-item.idle .agent-state {
+  color: var(--text-main);
+}
+
+/* FOUNTAIN CANVAS */
+#central-water-fountain {
+  width: 100%;
+  height: 100%;
+}

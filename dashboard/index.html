@@ -43,10 +43,41 @@
 
   <!-- Main Grid Dashboard -->
   <main class="dashboard-grid">
+    <!-- CENTRAL WATER FOUNTAIN -->
+    <div id="central-water-fountain-container" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 300px; height: 300px; pointer-events: none; z-index: 10;">
+      <canvas id="central-water-fountain" width="300" height="300"></canvas>
+    </div>
+
     
     <!-- LEFT COLUMN: Commander HUD & Workflow -->
     <section class="grid-column col-left">
       
+      
+      <!-- MACBOOK PRO STATUS -->
+      <div class="card glass-card machine-card" id="macbook-card">
+        <div class="card-header">
+          <div class="header-icon">💻</div>
+          <div class="header-text">
+            <h2>MACBOOK PRO (LEFT)</h2>
+            <span class="meta-tag">Physical Host Identity</span>
+          </div>
+        </div>
+        <div class="agent-status-list" id="macbook-agents">
+          <div class="agent-status-item" id="agent-mac-muse">
+            <span class="status-dot"></span> <span class="agent-name">MUSE</span> <span class="agent-state">OFFLINE</span>
+          </div>
+          <div class="agent-status-item" id="agent-mac-codex">
+            <span class="status-dot"></span> <span class="agent-name">CODEX</span> <span class="agent-state">OFFLINE</span>
+          </div>
+          <div class="agent-status-item" id="agent-mac-github">
+            <span class="status-dot"></span> <span class="agent-name">GITHUB</span> <span class="agent-state">OFFLINE</span>
+          </div>
+          <div class="agent-status-item" id="agent-mac-antigravity">
+            <span class="status-dot"></span> <span class="agent-name">ANTIGRAVITY</span> <span class="agent-state">OFFLINE</span>
+          </div>
+        </div>
+      </div>
+
       <!-- 1. Chief Commander HUD -->
       <div class="card glass-card commander-hud">
         <div class="card-header">
@@ -203,6 +234,32 @@
 
     <!-- RIGHT COLUMN: Demo Mission & Agent Roster -->
     <section class="grid-column col-right">
+
+      
+      <!-- WINDOWS PC STATUS -->
+      <div class="card glass-card machine-card" id="windows-card">
+        <div class="card-header">
+          <div class="header-icon">🖥️</div>
+          <div class="header-text">
+            <h2>WINDOWS PC (RIGHT)</h2>
+            <span class="meta-tag">Physical Host Identity</span>
+          </div>
+        </div>
+        <div class="agent-status-list" id="windows-agents">
+          <div class="agent-status-item" id="agent-win-muse">
+            <span class="status-dot"></span> <span class="agent-name">MUSE</span> <span class="agent-state">OFFLINE</span>
+          </div>
+          <div class="agent-status-item" id="agent-win-codex">
+            <span class="status-dot"></span> <span class="agent-name">CODEX</span> <span class="agent-state">OFFLINE</span>
+          </div>
+          <div class="agent-status-item" id="agent-win-github">
+            <span class="status-dot"></span> <span class="agent-name">GITHUB</span> <span class="agent-state">OFFLINE</span>
+          </div>
+          <div class="agent-status-item" id="agent-win-antigravity">
+            <span class="status-dot"></span> <span class="agent-name">ANTIGRAVITY</span> <span class="agent-state">OFFLINE</span>
+          </div>
+        </div>
+      </div>
 
       <!-- 4. Demo Mission: Short-Form Video Pipeline -->
       <div class="card glass-card mission-card">
@@ -366,5 +423,7 @@
   </footer>
 
   <script src="app.js"></script>
+  <script src="operations_water.js"></script>
+  <script src="demo.js"></script>
 </body>
 </html>
