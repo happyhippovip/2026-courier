@@ -115,3 +115,10 @@ Probes: /tmp/dlq01_refresh.py, /tmp/dlq02_refresh.py, /tmp/dlq03_refresh.py,
   (fields named 2ee8d905, live HEAD/push already 8c194f54); HEAD equals
   origin, no drift; foreign session ACTIVE (heartbeat seconds old) -
   hands-off, 8-file draft still uncommitted; no test runs (hot session)
+- iter7 (2026-09-18T12:13:48+02:00): owner 29191a53 reviewed read-only -
+  WAITING_PROVIDER deadlock fix (provider_locks gate removal intentional,
+  WATCH resolved; stray blanks cosmetic) plus mode propagation in 3 spots
+  (chief steward ctx, verify new_task); cleanup note 5 (duplicated
+  artifacts block, idempotent); KNOWN_GOOD_CHECKPOINT.md skimmed (runbook,
+  targets 2ee8d905 plus local fixes); rest-draft uncommitted, foreign
+  hot - no test runs
