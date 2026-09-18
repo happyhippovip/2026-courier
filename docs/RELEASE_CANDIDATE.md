@@ -70,3 +70,10 @@ No new architecture, rule, agent, roadmap, or refactor is justified before a con
 - **Exitcode / Ergebnis:** 0 (2 passed in 2.22s).
 - **Fingerprint:** 97ef29e1d7c2c00255b2c6a4ea12dd1e58d43db0
 - **Verbleibender Blocker:** REALER PHYSICAL ACCEPTANCE PROOF (FIRST_CURRENT_CAUSAL_BLOCKER=NONE_PROVEN).
+
+### TEST: 3/3 PORTABLER KANDIDAT UND ABSCHLUSSPAKET
+- **Ursache:** Fehlender Nachweis eines sauberen Kandidaten für Cross-Platform Abnahme.
+- **Änderung:** Mac-Sync-Skript isoliert verifiziert. Windows-Sync-Skript minimal korrigiert (`git clone` akzeptiert nun `$env:COURIER_REPO_URL` als Fallback für die unerreichbare lokale Mac-Quelle, um dirty Remotes zu vermeiden).
+- **Testbefehl:** `./scripts/sync_test_mac.sh` in isolierter Umgebung.
+- **Exitcode / Ergebnis:** 0. Mac Test-Build erfolgreich (CANDIDATE_SHA=fcd6ebc864f2ee876e4e9fff082045e445b68996).
+- **Verbleibender Blocker:** REALER PHYSICAL ACCEPTANCE PROOF (FIRST_CURRENT_CAUSAL_BLOCKER=WINDOWS_ENVIRONMENT).

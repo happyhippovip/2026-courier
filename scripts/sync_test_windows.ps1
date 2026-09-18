@@ -15,7 +15,8 @@ try {
     if (-not (Test-Path "$TestPath\.git")) {
         Write-Host "Creating test workspace..."
         New-Item -ItemType Directory -Force -Path $TestPath | Out-Null
-        git clone /Users/user/Downloads/2026-courier $TestPath
+        $RepoUrl = if ($env:COURIER_REPO_URL) { $env:COURIER_REPO_URL } else { "https://github.com/happyhippovip/2026-courier.git" }
+        git clone $RepoUrl $TestPath
     }
 
     Set-Location $TestPath
