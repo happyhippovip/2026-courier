@@ -1224,7 +1224,7 @@ def resume_task(task_id):
     return jsonify({"error": "Task not found"}), 404
 
 @app.route('/tasks/<task_id>/approve_merge', methods=['POST'])
-@require_auth
+@require_verifier_auth
 @serialize_state_mutation
 def approve_merge(task_id):
     """P8 — Human Gate: approve merge for protected-code tasks.
