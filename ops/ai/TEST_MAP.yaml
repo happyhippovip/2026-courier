@@ -1,0 +1,43 @@
+version: 1
+updated_at_utc: "2026-09-18"
+bound_to_code_head: "7c495f8c1b31293f8d3a5465035d2d3f61cbd3a7"
+
+lanes:
+  T0:
+    purpose: "syntax/import/schema/isolation sanity"
+    trigger: "every relevant edit"
+  T1:
+    purpose: "exact regression"
+    inner_loop: "-x --maxfail=1 allowed during iteration"
+    closure: "full targeted set required"
+  T2:
+    purpose: "affected component suite"
+    trigger: "before handoff or merge"
+  T3:
+    purpose: "fast adversarial truth suite"
+    target_seconds: 120
+    trigger: "before Codex review / once per related batch"
+  T4:
+    purpose: "broader/full integration"
+    trigger: "integration boundary, pre-handoff, pre-deploy, or uncertain impact"
+
+parallel_classes:
+  PARALLEL_SAFE: "pure/no shared state, ports, or child processes"
+  PROCESS_ISOLATED: "owns subprocesses/resources; fixed low parallelism only"
+  SERIAL_SHARED_STATE: "shared Courier state/ports/runtime; serial"
+  PHYSICAL_SERIAL: "canonical machine/physical acceptance; serial"
+
+zero_hang:
+  generic_killall_forbidden: true
+  owned_pid_tracking_required: true
+  bounded_subprocess_lifetime_required: true
+  diagnostics_before_timeout_cleanup: true
+  post_suite_owned_children_target: 0
+
+tool_candidates:
+  pytest_timeout: "USE_NOW_CANDIDATE"
+  pytest_xdist: "TEST_FIRST_PARALLEL_SAFE_ONLY"
+  pytest_testmon: "TEST_FIRST_CROSS_CHECK_ONLY"
+  pytest_picked: "NOT_NEEDED_CURRENTLY"
+
+components: []

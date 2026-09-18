@@ -1,0 +1,52 @@
+version: 1
+updated_at_utc: "2026-09-18"
+bound_to_code_head: "7c495f8c1b31293f8d3a5465035d2d3f61cbd3a7"
+
+rules:
+  fake_tasks_forbidden: true
+  evidence_required: true
+  exact_file_required: true
+  exact_function_required: true
+  reproduction_required: true
+  revalidate_against_current_head: true
+
+tasks:
+  - id: "LEDGER-REVALIDATE-DUPLICATE-RESULT"
+    priority: "P0/P1_REVALIDATE"
+    current_head: "7c495f8c1b31293f8d3a5465035d2d3f61cbd3a7"
+    title: "Distinguish identical result retry from contradictory duplicate"
+    evidence: "Previously reproduced/reported; MUST be revalidated against current HEAD before implementation."
+    exact_file: "server/app.py"
+    exact_function: "REVALIDATE task result / verifier result handlers"
+    reproduction: "Submit accepted result, then same logical identifiers with mutated semantic payload. Also mutate verifier retry PASS→FAIL."
+    expected_invariant: "Identical retry receives deterministic idempotent ACK; contradictory duplicate fails closed; authoritative first result is preserved; no second transition/effect."
+    targeted_test: "TO_BE_REVALIDATED"
+    negative_test: "mutated payload with same identifiers"
+    replay_case: "late/verifier retry mutation"
+    restart_case: "revalidate if persistence boundary is involved"
+    concurrency_case: "concurrent contradictory submission"
+    provider_wait_case: "N/A"
+    dependencies: []
+    owner: "GOOGLE once current ownership permits"
+    can_batch_with: ["LEDGER-REVALIDATE-STATE-ISOLATION"]
+    ready_to_implement: false
+
+  - id: "LEDGER-REVALIDATE-STATE-ISOLATION"
+    priority: "P1_REVALIDATE"
+    current_head: "7c495f8c1b31293f8d3a5465035d2d3f61cbd3a7"
+    title: "Verify test state isolation reaches the state path actually consumed by server"
+    evidence: "Previous finding reported COURIER_STATE_DIR in a test while server used COURIER_STATE_FILE; MUST be revalidated."
+    exact_file: "server/app.py and relevant test"
+    exact_function: "state loading + test setup"
+    reproduction: "Resolve actual state path at runtime and assert it matches intended temporary test state."
+    expected_invariant: "Tests claiming isolation never read/write canonical runtime state."
+    targeted_test: "isolation self-test to be located/created after revalidation"
+    negative_test: "wrong env variable must fail isolation assertion"
+    replay_case: "N/A"
+    restart_case: "state path remains isolated after test server restart"
+    concurrency_case: "parallel isolated tests must not share state"
+    provider_wait_case: "N/A"
+    dependencies: []
+    owner: "GOOGLE once current ownership permits"
+    can_batch_with: ["LEDGER-REVALIDATE-DUPLICATE-RESULT"]
+    ready_to_implement: false

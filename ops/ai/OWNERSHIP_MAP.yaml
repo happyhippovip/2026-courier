@@ -1,0 +1,28 @@
+version: 1
+updated_at_utc: "2026-09-18"
+bound_to_code_head: "7c495f8c1b31293f8d3a5465035d2d3f61cbd3a7"
+
+scopes:
+  ledger_guard_motor:
+    owner: "GOOGLE until explicit handoff"
+    status: "VERIFY_CURRENT_OWNERSHIP_BEFORE_WRITE"
+  cockpit:
+    owner: "MUSE"
+    status: "VERIFY_CURRENT_OWNERSHIP_BEFORE_WRITE"
+  windows_runtime:
+    owner: "GOOGLE"
+    status: "VERIFY_CURRENT_OWNERSHIP_BEFORE_WRITE"
+  codex_review:
+    owner: "CODEX"
+    status: "INDEPENDENT_REVIEW_ONLY"
+  repo_scout:
+    owner: "NEWSY"
+    status: "READ_ONLY"
+
+rules:
+  one_writer_per_sensitive_scope: true
+  overwrite_foreign_active_work: false
+  reset_hard: false
+  blind_git_clean: false
+  force_push: false
+  ownership_must_be_revalidated: true
