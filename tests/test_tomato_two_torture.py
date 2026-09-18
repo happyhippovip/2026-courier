@@ -312,20 +312,25 @@ def test_tomato_two_full_torture_chamber():
     assert (REPO_ROOT / canary_seq2).exists()
 
     # Counterexample Torture: Attempt duplicate submission of completed task
-    dup_res = http_post("/tasks/result", {
-        "worker_id": launchd_wid,
-        "goal_id": seq_goal_id,
-        "task_id": task_seq1,
-        "dispatch_id": t1_final.get("dispatch_id"),
-        "attempt_id": t1_final.get("attempt_id"),
-        "execution_ref": t1_final.get("execution_ref"),
-        "run_id": "duplicate-run-test",
-        "result_id": "duplicate-res-test",
-        "status": "SUCCESS",
-        "artifacts": [],
-        "provider": "mac_native",
-        "raw_result": {"status": "SUCCESS"}
-    })
+    import urllib.error
+    try:
+        dup_res = http_post("/tasks/result", {
+            "worker_id": launchd_wid,
+            "goal_id": seq_goal_id,
+            "task_id": task_seq1,
+            "dispatch_id": t1_final.get("dispatch_id"),
+            "attempt_id": t1_final.get("attempt_id"),
+            "execution_ref": t1_final.get("execution_ref"),
+            "run_id": "duplicate-run-test",
+            "result_id": "duplicate-res-test",
+            "status": "SUCCESS",
+            "artifacts": [],
+            "provider": "mac_native",
+            "raw_result": {"status": "SUCCESS"}
+        })
+    except urllib.error.HTTPError as e:
+        dup_res = json.loads(e.read())
+        
     assert dup_res.get("status") in ("IGNORED", "ACK_DUPLICATE", "CONFLICT") or dup_res.get("reason") in ("DUPLICATE_OR_ALREADY_PROCESSED", "CONTRADICTORY_DUPLICATE"), \
         f"Duplicate protection failed: {dup_res}"
     print(f"[Step 8 & 9] Proven: No Replay, Duplicate Submission Fails Closed ({dup_res.get('status')})")
