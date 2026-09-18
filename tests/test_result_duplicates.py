@@ -1,28 +1,31 @@
 import pytest
-from server.app import app, load_state, save_state
-import json
 import os
 import tempfile
 import shutil
-
-os.environ["COURIER_API_KEY"] = "test"
-os.environ["COURIER_VERIFIER_API_KEY"] = "test"
+from pathlib import Path
 
 @pytest.fixture
-def client():
+def client(monkeypatch):
+    import server.app
+    
     # Isolate state
     temp_dir = tempfile.mkdtemp()
-    os.environ["COURIER_STATE_DIR"] = temp_dir
+    state_file = Path(temp_dir) / "central_state.json"
     
-    app.config['TESTING'] = True
-    with app.test_client() as client:
+    monkeypatch.setattr(server.app, "STATE_FILE", str(state_file))
+    monkeypatch.setattr(server.app, "API_KEY", "test")
+    monkeypatch.setattr(server.app, "VERIFIER_API_KEY", "test")
+    
+    server.app.app.config['TESTING'] = True
+    with server.app.app.test_client() as client:
         yield client
         
     shutil.rmtree(temp_dir)
 
 def test_result_duplicate_invariant(client):
+    import server.app
     headers = {"Authorization": "Bearer test"}
-    state = load_state()
+    state = server.app.load_state()
     task_id = "task-dup-1"
     state["tasks"] = {
         task_id: {
@@ -40,10 +43,11 @@ def test_result_duplicate_invariant(client):
     state["goals"] = {
         "goal-1": {
             "goal_id": "goal-1",
+            "status": "ACTIVE",
             "workflow_plan": []
         }
     }
-    save_state(state)
+    server.app.save_state(state)
 
     payload1 = {
         "task_id": task_id,
@@ -81,7 +85,7 @@ def test_result_duplicate_invariant(client):
     assert resp3.get_json()["status"] == "CONFLICT"
     assert resp3.get_json()["reason"] == "CONTRADICTORY_DUPLICATE"
 
-    state = load_state()
+    state = server.app.load_state()
     assert state["tasks"][task_id]["result"]["result_id"] == "res-1"
 
     payload_worker2 = dict(payload1)
