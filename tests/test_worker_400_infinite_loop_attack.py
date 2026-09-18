@@ -22,7 +22,7 @@ while True:
     conn, addr = s.accept()
     data = conn.recv(4096)
     if not data: break
-    conn.sendall(b"HTTP/1.1 400 Bad Request\\r\\nContent-Type: application/json\\r\\nContent-Length: 22\\r\\n\\r\\n{\\"error\\": \\"bad test\\"}")
+    conn.sendall(b"HTTP/1.1 400 Bad Request\\r\\nContent-Type: application/json\\r\\nContent-Length: 21\\r\\n\\r\\n{\\"error\\": \\"bad test\\"}")
     time.sleep(0.1)
     conn.close()
 """
