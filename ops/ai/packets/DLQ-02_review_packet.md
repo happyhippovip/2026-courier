@@ -135,3 +135,40 @@ rolling-window model; grandfather rule text for pre-policy VALID artifacts.
 GOOGLE_ZERO_ARCHAEOLOGY=YES except the four Codex policy values above: sites,
 callers, negatives, migration (with live-history scan numbers), and future
 + ancient probes all above.
+
+## CURRENT RED-TEAM RESULT — 2026-09-18
+
+CODE_SHA=b0f6cec5e7a8e3ca64c9039792d239d2e67fe5ea
+
+The landed `tests/test_ledger_freshness_binding_epoch.py` verifies the bounded
+wall-clock window, URL timestamp monotonicity, and SHA/runtime string matching.
+It does **not** prove a binding epoch: neither production code nor the test
+contains `binding_epoch_id`, `server_received_at`, `verification_time`, an
+immutable `attestation_id`, or an authenticated principal reference.
+
+CURRENT_SAFE_CLAIM=Evidence outside the 48-hour window, evidence more than 300
+seconds ahead of the server clock, back-dated reuse of one URL, and direct
+SHA/runtime-string mismatches are rejected.  The Ledger cannot yet claim that
+proof is invalidated by process replacement, machine reboot, same-SHA binary
+replacement, credential/verifier rotation, or an epoch change.
+
+ROOT_CAUSE=`observed_at` remains caller-supplied evidence metadata.  A rolling
+48-hour check cannot identify which physical runtime/process the server
+actually received and verified the evidence for.
+
+MINIMUM_GOOGLE_REPAIR=Create the server-owned attestation record required by
+DLQ-01, adding immutable attestation identity, server receipt/verification
+times, and the current server-owned binding epoch.  Guard consumption must
+require current epoch + exact SHA + exact runtime/process identity + trusted
+principal verdict.  Ledger time or a refreshed caller timestamp must never
+refresh proof.  Historical entries without these fields remain visible as
+`HISTORICAL_UNTRUSTED`/`RE_ATTEST_REQUIRED` and contribute nothing to
+acceptance.
+
+TEST_GOOGLE_MUST_CORRECT=Add real epoch rotation tests for service/process
+replacement, reboot, same SHA on a different machine/process, credential or
+verifier rotation, stale-epoch exact replay, and crash during epoch rotation.
+Do not label URL monotonicity alone as old-epoch rejection.
+
+STATUS=OPEN_P0_BINDING_EPOCH; current freshness tests are useful but are not
+binding-epoch closure evidence.
