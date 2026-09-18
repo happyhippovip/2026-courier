@@ -84,3 +84,22 @@ courier_continue.py:159/:386 and feed_evidence.py that needs the same split?
 DEPENDENCIES=None (test-only).
 CAN_BATCH_WITH=DLQ-01/DLQ-02 guard-validation tests (same suite, one Google batch)
 READY_TO_IMPLEMENT=YES (contract test only)
+
+## IMPLEMENTATION FORGE + CLOSURE (2026-09-18, HEAD d00a00a8 — status update, review above unchanged)
+
+STATUS=CLOSED END-TO-END. Google implemented
+tests/test_ledger_duplicate_semantics_contract.py (commit 20ca0601); Muse
+independently re-ran green and assertion-reviewed it against the decided
+invariant: identical-retry raises + bytes unchanged, genuine update advances,
+stale-contradictory raises conflict + authoritative value kept. Queue status:
+IMPLEMENTED_AND_VERIFIED (confirmed, not edited by Muse).
+MIGRATION: contract strings "makes no meaningful change" / "revision conflict"
+are now pinned by a committed test AND matched by scripts/courier_continue.py
+:537-544. Any future rename of these strings must update the motor matcher in
+the same commit — recorded here as the standing constraint.
+AFFECTED_CALLERS: courier_continue.py:159/:384 (via update_ledger retry split),
+feed_evidence.py (no handler — manual one-shot, fail-closed propagation is
+correct there), CLI update (LedgerError surfaces to operator, correct).
+No Codex decision was pending on this item; none invented.
+WAITING_FOR_CODEX_DECISION=(none — item closed, no placeholders outstanding)
+GOOGLE_ZERO_ARCHAEOLOGY=YES (nothing left to implement).

@@ -73,3 +73,65 @@ long-lived artifacts?
 DEPENDENCIES=Google freshness policy (window length, clock authority).
 CAN_BATCH_WITH=DLQ-01 (same function, shared guard-validation tests)
 READY_TO_IMPLEMENT=NO (policy owned by Google; packet is complete and attacks live)
+
+## IMPLEMENTATION FORGE (2026-09-18, HEAD d00a00a8 — additive, review above unchanged)
+
+EXACT_GOOGLE_EDIT_SITES (scripts/agent_handoff_ledger.py, read-only refs):
+- :244-247 observed_at format check — add recency: parse observed_at, require
+  0 <= (entry_timestamp - observed_at) <= WINDOW, where entry_timestamp is the
+  SAME clock update() already uses for history entries (utc_now(), single
+  clock domain, no writer clock involved). Covers past AND future (2030 probe).
+- :682-688 has_physical_proof — add observed_at-within-WINDOW conjunct for
+  evidence counting toward proof (defense in depth: introduction gate + proof
+  gate share the predicate).
+- Monotonicity (b): per-URL first-observed_at from history scan (same helper
+  as DLQ-01 introducer map); reject back-dated re-introduction of a known URL.
+
+AFFECTED_CALLERS (all verified at HEAD):
+- scripts/courier_continue.py:152 fallback evidence: hardcoded
+  observed_at 2026-09-17T12:00:00Z, type GITHUB_COMMIT, validity UNKNOWN →
+  NOT MACHINE_ARTIFACT/VALID → proof-recency does not touch it. HYGIENE (not
+  blocking): motor should stamp utcnow() at introduction; flagged for owner,
+  not edited by Muse.
+- scripts/feed_evidence.py: uses datetime.utcnow() at introduction → already
+  recency-compatible.
+- Production ledger (rev 1227): single live evidence is GITHUB_COMMIT/UNKNOWN
+  → unaffected (pinned by
+  tests/test_ledger_fix_guards.py::test_unknown_github_evidence_never_proves).
+  History holds 2 distinct VALID artifacts (runs/1 obs 2026-09-17T18:15:50Z,
+  runs/84050240 obs 2026-09-17T18:23:47Z) — both older than ~24h, so a WINDOW
+  shorter than their age excludes both from future proof (intended). A longer
+  WINDOW would still admit INDEPENDENT promotion on aged evidence (check (b)
+  blocks only self-promotion) — Codex must set WINDOW with this in mind.
+  Either way, next acceptance needs fresh independent evidence.
+
+NEGATIVE_TEST_MATRIX (executable guards, all green 2026-09-18):
+- tests/test_ledger_fix_guards.py::test_fresh_bound_evidence_promotes
+  (now-stamped bound VALID → promotes; must survive the fix)
+- tests/test_ledger_fix_guards.py::test_unknown_github_evidence_never_proves
+  (production shape never proves; recency fix must not alter this path)
+
+MIGRATION_MATRIX:
+- Live ledger PROVISIONAL with unproven work → fix gates future promotions
+  only; no immediate breakage. Grandfather rule needed ONLY for hypothetical
+  pre-policy VALID artifacts claimed as current proof — live scan shows none
+  qualify (both aged out). Google still declares the rule explicitly.
+- Long-lived artifact re-observation: monotonicity allows EQUAL timestamps,
+  rejects older ones; legitimate re-observation re-stamps now() (feed_evidence
+  pattern) → compatible.
+
+RESTART_REPLAY_CONCURRENCY:
+- observed_at is bundle-persisted per evidence entry → restart-safe.
+- Freshened re-introduction of a stale URL hits monotonicity + copied-proof
+  binding (:752-758) → rejected as variant.
+- Concurrent introducers share the server update clock; no writer-clock skew
+  attack surface (writer-supplied observed_at is BOUNDED by the window, not
+  trusted).
+
+WAITING_FOR_CODEX_DECISION=WINDOW length; clock authority confirmation
+(server update time REQUIRED, writer clocks excluded); binding-epoch vs
+rolling-window model; grandfather rule text for pre-policy VALID artifacts.
+
+GOOGLE_ZERO_ARCHAEOLOGY=YES except the four Codex policy values above: sites,
+callers, negatives, migration (with live-history scan numbers), and future
++ ancient probes all above.

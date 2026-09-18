@@ -79,3 +79,67 @@ ledger currently holds CANONICAL_ACCEPTED reached via self-planted evidence.
 DEPENDENCIES=Google attester protocol design; no central-state change needed.
 CAN_BATCH_WITH=DLQ-02 (same function, shared guard-validation tests)
 READY_TO_IMPLEMENT=NO (design owned by Google; packet is complete and attacks live)
+
+## IMPLEMENTATION FORGE (2026-09-18, HEAD d00a00a8 — additive, review above unchanged)
+
+EXACT_GOOGLE_EDIT_SITES (scripts/agent_handoff_ledger.py, read-only refs):
+- :681 prior_evidence comprehension — build introducer map alongside it by
+  scanning bundle history exactly like :738-741 (url -> (first_rev,
+  introducer_updated_by, operation)).
+- :682-688 has_physical_proof — add conjunct: for evidence e counting toward
+  proof, e.producer_id and e.verifier_id must not be in {updated_by of every
+  history entry since e first appeared} and updated_by(current update) must
+  not equal the introducer of e's URL. NO init exemption (see forensics).
+- :743-766 caller checks — unchanged (same-update path already closed).
+
+AFFECTED_CALLERS (all verified at HEAD):
+- scripts/courier_continue.py:159/:384 (updated_by Google-Antigravity):
+  strips MACHINE_ARTIFACT before update → introduces nothing → unaffected.
+- scripts/feed_evidence.py:38 (updated_by System-Integration): introduces
+  artifact producer MAC-MACBOOK-PRO-VON-USER-EDEA96 / verifier VERIFIER-01 →
+  later promotion by Google-Antigravity stays legal (rev-81 shape). Promotion
+  by System-Integration itself becomes illegal (intended).
+- CLI update: operator promoting own plant with same --updated-by becomes
+  illegal (intended — that IS the attack).
+- CLI init with operator JSON: INIT-introduced URLs record the init writer as
+  introducer; see DLQ-07 forge interaction (INIT stays PROVISIONAL AND its
+  evidence stays non-promotable by the same writer).
+
+NEGATIVE_TEST_MATRIX (executable guards, all green 2026-09-18):
+- tests/test_ledger_fix_guards.py::test_legit_two_writer_accumulation_accepted
+  (introducer A / promoter B / producer P / verifier V all distinct → promotes)
+- existing test_reject_caller_created_machine_artifact (same-update → raises)
+- existing test_replayed_evidence + copied-proof tests (unchanged behavior)
+
+MIGRATION_MATRIX (live ledger forensics, /tmp/ledger_forensic.py, read-only):
+- Root ledger rev 1227 PROVISIONAL: 4 past CANONICAL promotions (revs
+  75/77/81/82, 2026-09-17). Revs 75/77/82 promoted by Google-Antigravity on
+  evidence INTRODUCED at rev 0 by Google-Antigravity → flag under check (b).
+  Rev 81 (System-Integration promoting Google-introduced evidence) = healthy
+  shape the fix preserves.
+- Consequence: after the fix, NO future promotion may rely on runs/1
+  evidence promoted by Google-Antigravity; next acceptance needs fresh
+  independently-introduced evidence. Nothing breaks immediately (ledger is
+  PROVISIONAL with unproven work; fix gates future promotions only).
+- tests/guard.json + record.json fixtures: PROVISIONAL/TEST → unaffected.
+- tests/agent_handoff_ledger.json: TRACKED, corrupt (parse fails char 4584),
+  referenced by zero tests → hygiene: Google confirms delete (Muse does not
+  touch).
+
+RESTART_REPLAY_CONCURRENCY:
+- History-derived introducer map is bundle-persisted → restart-safe, no new
+  state file, no cursor.
+- Same-writer replay of a plant → blocked at promotion (intended).
+- Concurrent distinct-URL plants → each URL checked against its own
+  introducer; writer_lock serialization unchanged.
+- DLQ-07 interaction: INIT-PROVISIONAL fix does NOT deduplicate this check —
+  INIT plants are covered HERE at promotion time (no init exemption).
+
+WAITING_FOR_CODEX_DECISION=attester-authority shape for check (c):
+allowlist vs PKI vs server-derived role; quorum/threshold (1-of-N?);
+whether producer/verifier registries live in central_state.json or config.
+Check (b) above is implementable WITHOUT that decision — Google may ship (b)
+first.
+
+GOOGLE_ZERO_ARCHAEOLOGY=YES for check (b): sites, callers, negatives,
+migration, and forensic evidence all above; only check (c) awaits Codex.
