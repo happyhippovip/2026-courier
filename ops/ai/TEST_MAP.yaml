@@ -35,3 +35,6 @@ tests:
   test_windows_ledger_race.py:
     role: DLQ-06 static check for missing load_bundle retry loop on Windows
     lane: T1
+  test_ledger_duplicate_semantics_contract.py:
+    role: DLQ-03 duplicate-result semantics contract test
+    lane: T1
