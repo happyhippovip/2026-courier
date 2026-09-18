@@ -1986,10 +1986,10 @@ body.mode-zen .chief-alert-bar:hover {
 
 .ops-bay {
   position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 8px;
+  right: 8px;
   bottom: 8px;
-  width: min(1180px, 94vw);
+  width: auto;
   max-height: 46vh;
   overflow-y: auto;
   background: rgba(2, 6, 10, 0.94);
@@ -2000,6 +2000,7 @@ body.mode-zen .chief-alert-bar:hover {
   transition: max-height 0.35s ease, opacity 0.35s ease;
 }
 .ops-bay.is-collapsed { max-height: 84px; }
+.ops-bay-idle[hidden], .ops-bay-live[hidden] { display: none; }
 .ops-bay-idle {
   display: flex;
   align-items: center;
@@ -2099,28 +2100,24 @@ body.mode-zen .chief-alert-bar:hover {
 /* Company title over the room + live truth strip (top black letterbox) */
 .co-title-wrap {
   position: absolute;
-  top: 6px;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 76px;
+  left: 8px;
+  right: 8px;
   text-align: center;
   z-index: 30;
   pointer-events: none;
 }
-.co-title {
-  font-family: Orbitron, sans-serif;
-  font-weight: 900;
-  font-size: clamp(18px, 3.2vw, 34px);
-  letter-spacing: 0.22em;
-  color: #f2fbff;
-  text-shadow: 0 0 18px rgba(0, 210, 255, 0.45), 0 0 4px rgba(255, 255, 255, 0.6);
-  white-space: nowrap;
-}
 .co-truth {
+  display: inline-block;
   margin-top: 4px;
-  font-size: clamp(9px, 1.1vw, 12px);
+  font-size: clamp(9px, 1vw, 11px);
   letter-spacing: 0.12em;
   color: #7fa8bc;
   white-space: nowrap;
+  background: rgba(2, 6, 10, 0.72);
+  border: 1px solid rgba(0, 210, 255, 0.14);
+  border-radius: 4px;
+  padding: 2px 12px 3px;
 }
 /* Fountain: stronger cyan glow/reflections; base water-jet motion untouched */
 .fountain-motion i {

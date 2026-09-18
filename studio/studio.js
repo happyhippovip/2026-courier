@@ -780,6 +780,15 @@ export class LivingHQController {
       museCard.addEventListener("click", () => selectAgent("muse", { name: "MUSE", title: "MAIN WORKER", icon: "∞" }));
       this.opsCardsBound = true;
     }
+    for (let n = 1; n <= 8; n++) {
+      const slot = document.getElementById(`cli-slot-${n}`);
+      if (slot && !slot.dataset.opsBound) {
+        slot.dataset.opsBound = "1";
+        slot.style.cursor = "pointer";
+        const label = `CLI${n}`;
+        slot.addEventListener("click", () => selectAgent(`cli${n}`, { name: label, title: "OPERATOR", icon: "▫" }));
+      }
+    }
     for (const [id, key] of [["rail-chatgpt", "codex"], ["rail-antigravity", "google"]]) {
       const card = document.getElementById(id);
       if (card && !card.dataset.opsBound) {

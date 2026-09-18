@@ -28,6 +28,7 @@ import {
   resolveSkillTruth,
   resolveHandoffTruth,
   resolveAgentDetailData,
+  resolveChiefAlerts,
   resolveOpsState,
   normalizeOpsState,
   sanitizeTruthText,
@@ -1160,6 +1161,13 @@ assert.equal(ops.agents.codex.state, 'IDLE');
 assert.equal(ops.agents.google.state, 'OFFLINE');
 assert.equal(resolveOpsState({}).agents.muse.state, 'UNKNOWN');
 assert.equal(resolveOpsState(null).agents.codex.task, null);
+
+// Provisional guard must surface as endgame warning, never as healthy systems
+const endgameAlerts = resolveChiefAlerts({ courier_ledger: { status: 'READY', guard: 'PROVISIONAL' } });
+assert.ok(endgameAlerts.some(a => a.type === 'TECHNICAL_ENDGAME' && a.severity === 'WARNING'));
+assert.ok(!endgameAlerts.some(a => /gesund|HEALTHY/i.test(a.message)));
+const acceptedAlerts = resolveChiefAlerts({ courier_ledger: { status: 'CLEAN_IDLE', guard: 'CANONICAL_ACCEPTED' } });
+assert.ok(!acceptedAlerts.some(a => a.type === 'TECHNICAL_ENDGAME'));
 
 console.log('execution truth tests: PASS (100% SUCCESS)');
 

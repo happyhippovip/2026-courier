@@ -1566,9 +1566,15 @@ export function resolveChiefAlerts(stateData) {
     addAlert('WORKER_COMPLETED', 'INFO', `Task erfolgreich abgeschlossen: ${latestJob}`);
   }
 
+  // 7b. Technical endgame: never claim healthy systems while acceptance is pending
+  const ledger = stateData?.courier_ledger || {};
+  if (ledger.guard && ledger.guard !== 'CANONICAL_ACCEPTED') {
+    addAlert('TECHNICAL_ENDGAME', 'WARNING', `Ledger ${ledger.status || 'UNKNOWN'} · Guard ${ledger.guard} · physische Abnahme ausstehend`);
+  }
+
   // 8. Safe Idle Status if no alerts
   if (alerts.length === 0) {
-    addAlert('WORKER_AVAILABLE', 'INFO', 'SAFE_IDLE • Alle Systeme gesund • 0 EUR Spend • 0 Model Calls');
+    addAlert('WORKER_AVAILABLE', 'INFO', 'SAFE_IDLE • Bereitschaft • keine Ausgaben • Live-Telemetrie');
   }
 
   return alerts;
