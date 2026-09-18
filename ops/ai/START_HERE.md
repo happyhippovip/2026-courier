@@ -28,6 +28,8 @@ here.
 
 ## Permanent rules
 
+Apply [Better-than-Brief](../../GOAL_REFRAME_BETTER_THAN_BRIEF_RULE.md) to all existing and future plans and handoffs. Preserve original ideas and requirements; make one bounded improvement decision, then execute and verify. Use [the addendum template](BETTER_GOAL_WORK_PACKAGE_TEMPLATE.md) and [prompt experiments](BETTER_GOAL_PROMPTS.md). No executable READY work means checkpoint and worker IDLE without model polling, not global completion.
+
 PACKET FIRST. ONE WRITER. T0 → T1 → T2. T3 BEFORE CODEX. CODEX ONLY WHEN
 INDEPENDENCE MATTERS. T4 ONLY AT BOUNDARIES. BLOCKED TASK != BLOCKED PROJECT.
 LEDGER LAST. NO FAKE GREEN.

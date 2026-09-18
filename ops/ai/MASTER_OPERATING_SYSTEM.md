@@ -5,6 +5,8 @@ UPDATED_AT: 2026-09-18T09:23:33+02:00
 
 ## Objective
 
+All existing and future blueprints inherit [the additive improvement/security rule](../../GOAL_REFRAME_BETTER_THAN_BRIEF_RULE.md). Read it once for the current work; preserve source ideas, settings, ownership and acceptance. New plans use [the Work Package addendum](BETTER_GOAL_WORK_PACKAGE_TEMPLATE.md). Apply deeper reasoning only to unresolved decisions with material value; new model labels alone do not trigger redesign.
+
 Maximize verified engineering output per hour and per scarce independent-review
 unit while preserving one runtime authority and truthful acceptance.
 
