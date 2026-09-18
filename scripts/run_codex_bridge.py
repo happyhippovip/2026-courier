@@ -68,6 +68,60 @@ def save_json(path: Path, data: dict) -> None:
     path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
 
 
+def _result_identity(data: dict) -> tuple[object, ...]:
+    return (
+        data.get("task_id"),
+        data.get("correlation_id"),
+        data.get("parent_id"),
+        data.get("source"),
+        data.get("destination"),
+        data.get("type"),
+        data.get("status"),
+        data.get("payload_hash"),
+    )
+
+
+def persist_result_once(path: Path, result: dict) -> Path:
+    """Create one immutable result, accepting only an identical idempotent replay."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    encoded = (json.dumps(result, indent=2) + "\n").encode("utf-8")
+    try:
+        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    except FileExistsError:
+        existing = load_json(path)
+        if _result_identity(existing) != _result_identity(result):
+            raise RuntimeError(f"Conflicting result already exists for task {result.get('task_id')}")
+        if existing.get("payload_hash") != payload_hash(existing.get("payload")):
+            raise RuntimeError(f"Existing result payload hash is invalid for task {result.get('task_id')}")
+        return path
+
+    try:
+        with os.fdopen(fd, "wb") as handle:
+            handle.write(encoded)
+            handle.flush()
+            os.fsync(handle.fileno())
+    except BaseException:
+        path.unlink(missing_ok=True)
+        raise
+    return path
+
+
+def validate_existing_result(path: Path, task_id: str, correlation_id: str, parent_id: str | None) -> None:
+    existing = load_json(path)
+    expected = {
+        "task_id": task_id,
+        "correlation_id": correlation_id,
+        "parent_id": parent_id,
+        "source": "codex",
+        "destination": "courier",
+        "type": "RESULT",
+    }
+    if any(existing.get(key) != value for key, value in expected.items()):
+        raise RuntimeError(f"Existing result identity conflicts with task {task_id}")
+    if existing.get("payload_hash") != payload_hash(existing.get("payload")):
+        raise RuntimeError(f"Existing result payload hash is invalid for task {task_id}")
+
+
 def payload_hash(payload: object) -> str:
     return hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
 
@@ -199,7 +253,7 @@ class CodexHookRunner:
 
         PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
         result_file = PROCESSED_DIR / f"{task_id}-result.json"
-        save_json(result_file, result_envelope)
+        persist_result_once(result_file, result_envelope)
 
         self.state_tracker.update_state(
             state="AWAITING_CHIEF_REVIEW",
@@ -242,7 +296,7 @@ class CodexHookRunner:
 
         PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
         result_file = PROCESSED_DIR / f"{task_id}-result.json"
-        save_json(result_file, result_envelope)
+        persist_result_once(result_file, result_envelope)
 
         self.state_tracker.update_state(
             state="FAILED",
@@ -416,6 +470,7 @@ def execute_codex_task(worker_job_path: Path, hooks: CodexHookRunner, force: boo
     # Deduplication & Replay Protection
     result_file = PROCESSED_DIR / f"{task_id}-result.json"
     if result_file.exists() and not force:
+        validate_existing_result(result_file, task_id, correlation_id, parent_id)
         print(f"[CODEX_DEDUPE] Task {task_id} already COMPLETED in {result_file.name}. Skipping duplicate execution.")
         return result_file
 
