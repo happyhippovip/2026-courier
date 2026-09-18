@@ -615,7 +615,7 @@ def loop():
                 res, err = http_post(config, f"/tasks/{pending_provider_wait['task_id']}/provider_wait", pending_provider_wait)
                 if err:
                     write_log(f"Provider wait post failed: {err}.")
-                    if "409" in err or "404" in err:
+                    if "409" in err or "404" in err or "400" in err:
                         write_log(f"Permanent wait rejection ({err}), clearing pending provider wait.")
                         if current_wait_state_file.exists():
                             os.remove(current_wait_state_file)
@@ -641,7 +641,7 @@ def loop():
                 res, err = http_post(config, "/tasks/result", pending_result)
                 if err:
                     write_log(f"Result post failed: {err}.")
-                    if "409" in err or "404" in err:
+                    if "409" in err or "404" in err or "400" in err:
                         write_log(f"Permanent rejection ({err}), clearing pending result.")
                         if current_result_state_file.exists():
                             os.remove(current_result_state_file)
