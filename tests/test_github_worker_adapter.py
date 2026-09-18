@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import json
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import pytest
@@ -275,6 +276,18 @@ def test_failed_state_replace_preserves_previous_checkpoint(tmp_path: Path, monk
         )
 
     assert checkpoint.read_text(encoding="utf-8") == original
+    assert list(tmp_path.glob(".*.tmp")) == []
+
+
+def test_concurrent_state_writes_use_private_temp_files(tmp_path: Path):
+    task_file = tmp_path / "task.json"
+    task_file.write_text("{}", encoding="utf-8")
+
+    with ThreadPoolExecutor(max_workers=16) as pool:
+        list(pool.map(lambda value: adapter.write_state(task_file, {"value": value}), range(64)))
+
+    persisted = json.loads(adapter.state_path(task_file).read_text(encoding="utf-8"))
+    assert persisted["value"] in range(64)
     assert list(tmp_path.glob(".*.tmp")) == []
 
 

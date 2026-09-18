@@ -12,6 +12,7 @@ import shutil
 import subprocess
 import sys
 import time
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -56,7 +57,7 @@ def task_packet_sha256(task: dict[str, Any]) -> str:
 
 def write_state(task_file: Path, state: dict[str, Any]) -> None:
     destination = state_path(task_file)
-    temporary = destination.with_name(f".{destination.name}.{os.getpid()}.tmp")
+    temporary = destination.with_name(f".{destination.name}.{os.getpid()}.{uuid.uuid4().hex}.tmp")
     try:
         with temporary.open("w", encoding="utf-8") as handle:
             handle.write(json.dumps(state, sort_keys=True) + "\n")
