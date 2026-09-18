@@ -62,3 +62,11 @@ No new architecture, rule, agent, roadmap, or refactor is justified before a con
 - **Exitcode / Ergebnis:** 0 (2 passed). Nachweis für parallele Verarbeitung und Reconcile-Blockade C -> A+B auf API-Ebene erbracht.
 - **Fingerprint:** 38b10e188d8ff9ccc73046c2a2c8ef89809215cb
 - **Verbleibender Blocker:** REALER PHYSICAL ACCEPTANCE PROOF (FIRST_CURRENT_CAUSAL_BLOCKER=NONE_PROVEN).
+
+### TEST: 2/3 ZWEI LOKALE WORKER UND A+B -> C
+- **Ursache:** Lokale Claim-Sicherheit bei Race-Conditions, tatsächliche Ausführungsüberlappung und das automatische Nachrutschen (Auto-Continue) der blockierten Aufgabe C waren isoliert noch nicht nachgewiesen.
+- **Änderung:** Einen separaten Hintergrund-Werkzeug-Server und parallele Test-Threads (`test_turbo_queue_concurrency.py`) implementiert. Zwei Worker konkurrieren hart um Aufgaben (Claim Race). Überlappung ist durch `threading.Barrier` auf Ausführungsebene gesichert.
+- **Testbefehl:** `pytest tests/test_turbo_queue_concurrency.py -v` (mit Netzwerk-Sandbox-Bypass)
+- **Exitcode / Ergebnis:** 0 (2 passed in 2.22s).
+- **Fingerprint:** 97ef29e1d7c2c00255b2c6a4ea12dd1e58d43db0
+- **Verbleibender Blocker:** REALER PHYSICAL ACCEPTANCE PROOF (FIRST_CURRENT_CAUSAL_BLOCKER=NONE_PROVEN).
