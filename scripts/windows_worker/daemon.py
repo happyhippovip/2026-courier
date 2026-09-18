@@ -135,6 +135,11 @@ def run_task(task, config):
         out_clean = stdout.strip()
         stderr = stderr_out
         status = "SUCCESS" if process.returncode == 0 else "FAILED"
+        
+        combined_out = (out_clean + " " + stderr).lower()
+        if any(kw in combined_out for kw in ["429", "too many requests", "quota", "rate limit", "resource exhausted", "provider unavailable", "500", "502", "503", "504", "timeout", "timed out", "internal server error", "service unavailable", "bad gateway", "401", "403", "unauthorized", "authentication failed", "invalid api key"]):
+            status = "PROVIDER_WAIT"
+            
     except subprocess.TimeoutExpired as e:
         status = "FAILED"
         stderr = "TimeoutExpired: task exceeded 600s"
@@ -186,6 +191,9 @@ def run_task(task, config):
         "result_id": f"result-{uuid.uuid4().hex}",
         "artifacts": artifacts if status == "SUCCESS" else []
     }
+    if status == "PROVIDER_WAIT":
+        res_json["reason"] = "QUOTA_OR_RATE_LIMIT"
+        
     if "batch_id" in task: res_json["batch_id"] = task["batch_id"]
     if "prompt_id" in task: res_json["prompt_id"] = task["prompt_id"]
     
