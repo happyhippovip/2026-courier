@@ -460,12 +460,19 @@ def validate_bundle(bundle: Any) -> dict[str, Any]:
 def load_bundle(path: Path) -> dict[str, Any]:
     if path.is_symlink():
         raise LedgerError(f"refusing symlink ledger path: {path}")
-    try:
-        raw = path.read_text(encoding="utf-8")
-    except FileNotFoundError as exc:
-        raise LedgerError(f"ledger does not exist: {path}") from exc
-    except OSError as exc:
-        raise LedgerError(f"cannot read ledger {path}: {exc}") from exc
+    import time
+    for attempt in range(20):
+        try:
+            raw = path.read_text(encoding="utf-8")
+            break
+        except PermissionError as exc:
+            if attempt == 19:
+                raise LedgerError(f"cannot read ledger {path}: {exc}") from exc
+            time.sleep(0.05)
+        except FileNotFoundError as exc:
+            raise LedgerError(f"ledger does not exist: {path}") from exc
+        except OSError as exc:
+            raise LedgerError(f"cannot read ledger {path}: {exc}") from exc
     try:
         return validate_bundle(json.loads(raw))
     except json.JSONDecodeError as exc:
@@ -505,7 +512,15 @@ def atomic_write(path: Path, bundle: dict[str, Any]) -> None:
             stream.write("\n")
             stream.flush()
             os.fsync(stream.fileno())
-        os.replace(temporary, path)
+        import time
+        for attempt in range(20):
+            try:
+                os.replace(temporary, path)
+                break
+            except PermissionError:
+                if attempt == 19:
+                    raise
+                time.sleep(0.05)
         _fsync_directory(parent)
     finally:
         with contextlib.suppress(FileNotFoundError):
