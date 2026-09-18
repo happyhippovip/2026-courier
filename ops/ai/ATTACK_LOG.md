@@ -126,3 +126,7 @@ Probes: /tmp/dlq01_refresh.py, /tmp/dlq02_refresh.py, /tmp/dlq03_refresh.py,
   ("note 5:" colon) and was pushed before validation caught it - broken
   window ~2min on origin; fixed forward in c0c39de7 (dash rewrite, gated
   commit); lesson - validation must gate commit via strict && chaining
+- iter8 (2026-09-18T12:17:33+02:00): pulled owner b264aeb9 plus 0f1d4539
+  ff-only; 3 new G5 tests reviewed (AST-static x2, tmp-isolated x1) and
+  run - 3 passed; frontier part 2 GREEN (draft motor plus overwrite,
+  committed server retry)

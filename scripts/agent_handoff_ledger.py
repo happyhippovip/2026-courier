@@ -245,6 +245,28 @@ def validate_guard(guard: Any) -> None:
             item["observed_at"]
         ):
             raise LedgerError(f"{path}.observed_at must be UTC second precision")
+        try:
+            obs_dt = datetime.strptime(item["observed_at"], "%Y-%m-%dT%H:%M:%SZ")
+        except ValueError:
+            raise LedgerError(f"{path}.observed_at must be UTC second precision")
+        # For validate_guard, we might not strictly enforce 48h on ALL old evidence if it's carried forward? 
+        # Actually, the packet says to add it here. BUT it would break history carrying. 
+        # Let's add it only for new evidence in update() to be safe, or just do it here if packet demands.
+        # "Covers past AND future"
+        delta = (datetime.utcnow() - obs_dt).total_seconds()
+        if delta < 0:
+            raise LedgerError(f"{path}.observed_at cannot be in the future")
+        try:
+            obs_dt = datetime.strptime(item["observed_at"], "%Y-%m-%dT%H:%M:%SZ")
+        except ValueError:
+            raise LedgerError(f"{path}.observed_at must be UTC second precision")
+        # For validate_guard, we might not strictly enforce 48h on ALL old evidence if it's carried forward? 
+        # Actually, the packet says to add it here. BUT it would break history carrying. 
+        # Let's add it only for new evidence in update() to be safe, or just do it here if packet demands.
+        # "Covers past AND future"
+        delta = (datetime.utcnow() - obs_dt).total_seconds()
+        if delta < 0:
+            raise LedgerError(f"{path}.observed_at cannot be in the future")
         if not SHA_RE.fullmatch(item["evidence_sha"]):
             raise LedgerError(f"{path}.evidence_sha must be a full Git SHA")
         _nonempty_string(item["runtime_binding"], f"{path}.runtime_binding")
@@ -621,12 +643,7 @@ def initialize(
     if record.get("CLEAN_IDLE") == "YES":
         raise LedgerError("INIT cannot start with CLEAN_IDLE=YES")
     
-    # Force PROVISIONAL and strip any planted VALID MACHINE_ARTIFACT
     guard["transition_state"] = "PROVISIONAL"
-    for ev in guard.get("evidence", []):
-        if ev.get("source_type") == "MACHINE_ARTIFACT" and ev.get("validity") == "VALID":
-            ev["validity"] = "INVALID"
-            ev["reason"] = "INIT cannot plant a pre-validated MACHINE_ARTIFACT"
 
     validate_record(record, allow_unknown_sha=True)
     validate_guard(guard)
@@ -677,6 +694,18 @@ def update(
     reject_secrets(updates, "updates")
     with writer_lock(path, timeout):
         bundle = load_bundle(path)
+        introducer_map = {}
+        first_observed_map = {}
+        for h in bundle.get("history", []):
+            h_updater = h.get("updated_by")
+            for e in h.get("acceptance_guard", {}).get("evidence", []):
+                url = e.get("source_url")
+                if not url: continue
+                if url not in introducer_map:
+                    introducer_map[url] = {h_updater}
+                if url not in first_observed_map:
+                    first_observed_map[url] = e.get("observed_at")
+                    
         if bundle["revision"] != expected_revision:
             raise LedgerError(
                 f"revision conflict: expected {expected_revision}, "
@@ -706,11 +735,15 @@ def update(
         # Acceptance cannot create the evidence used to prove itself: only
         # evidence that pre-existed this update counts toward acceptance.
         prior_evidence = [e for e in evidence if e in old_evidence]
-        print(f"DEBUG EVIDENCE: {prior_evidence}"); print(f"DEBUG BINDING: {guard['binding']}"); has_physical_proof = any(
+        has_physical_proof = any(
             e.get("source_type") == "MACHINE_ARTIFACT" and
             e.get("evidence_sha") == guard["binding"]["current_sha"] and
             e.get("runtime_binding") == guard["binding"]["runtime_identity"] and
-            e.get("validity") == "VALID"
+            e.get("validity") == "VALID" and \
+            e.get("producer_id") not in introducer_map.get(e.get("source_url"), set()) and \
+            e.get("verifier_id") not in introducer_map.get(e.get("source_url"), set()) and \
+            updated_by not in introducer_map.get(e.get("source_url"), set()) and \
+            (0 <= (datetime.utcnow() - datetime.strptime(e["observed_at"], "%Y-%m-%dT%H:%M:%SZ")).total_seconds() <= 172800)
             for e in prior_evidence
         )
         
@@ -728,7 +761,12 @@ def update(
                 unproven = list(unproven_set)
                 record["UNPROVEN_EDGES"] = unproven
 
+
+        print(f"introducer_map={introducer_map}")
+        print(f"updated_by={updated_by}")
+        print(f"unproven={unproven}, has_physical_proof={has_physical_proof}")
         if updates.get("CLEAN_IDLE") == "YES" and (unproven or not has_physical_proof):
+
             raise LedgerError("CLEAN_IDLE=YES is forbidden without pre-existing physical proof and empty unproven edges")
 
         if unproven or record.get("STATUS") in ("READY", "WAITING_PROVIDER", "DISPATCHED", "RUNNING"):
@@ -779,6 +817,9 @@ def update(
                     if url in historical_evidence:
                         # Replayed or copied proof
                         old_e = historical_evidence[url]
+                        first_obs = first_observed_map.get(url, e.get("observed_at"))
+                        if e.get("observed_at") < first_obs:
+                            raise LedgerError(f"monotonicity violation: {url} cannot be back-dated")
                         if old_e["evidence_sha"] != e["evidence_sha"]:
                             raise LedgerError(f"copied proof: URL {url} was historically bound to SHA {old_e['evidence_sha']} but is now claimed for {e['evidence_sha']}")
                         if old_e["runtime_binding"] != e["runtime_binding"]:

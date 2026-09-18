@@ -598,7 +598,6 @@ def main():
 
         
         if args.once and not running_tasks and ('done_edges' not in locals() or not done_edges) and 'once_dispatched' in locals():
-            import os
             os._exit(0)
         if "MOCK_SHA" in os.environ:
             mock_iters += 1
