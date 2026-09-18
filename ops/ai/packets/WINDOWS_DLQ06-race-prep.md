@@ -1,56 +1,31 @@
-# WINDOWS PREP PACKET — DLQ-06 behavioral race verification + evidence handoff (Mac-prepared)
+# CODEX REVIEW PACKET — DLQ-06 Windows Ledger Race Condition
 
-CURRENT_HEAD=82bbe0908dfd7db55b5820974f1c0b11e570d7a1
-EXPECTED_WINDOWS_SHA=UNKNOWN (Mac does not observe Windows; re-observe on worker)
-TASK=Run the DLQ-06 concurrent ledger read/write collision on the real Windows
-worker and return raw evidence; plus evidence-handoff field checklist so future
-Windows artifacts survive DLQ-01/02/07 gates.
+CURRENT_HEAD=1b492d0a0496cb81d1a70565c6098c7817597645
+COMMITS_UNDER_REVIEW=
+- 1b492d0a test: deterministic behavioral reproducer for DLQ-06 Windows ledger race
 
-FILES=
-- scripts/agent_handoff_ledger.py (exact HEAD code under test; load_bundle +
-  atomic_write)
-- /tmp/windows_ledger_race_inject.py (Mac simulation harness — REFERENCE ONLY,
-  not Windows proof)
-- tests/test_windows_ledger_race.py (static tripwire, passes-while-broken)
+INVARIANTS=
+1. Concurrent readers must not crash writers. `atomic_write` must safely retry replacing the file if a reader holds it open.
+2. Concurrent writers must not crash readers. `load_bundle` must safely retry reading the file if a writer holds it open.
+3. Persistent errors must fail boundedly, preventing infinite hangs.
 
-COMMANDS (Windows worker, exact-SHA worktree)=
-1. python -m pytest tests/test_windows_ledger_race.py -q (tripwire baseline)
-2. Two-loop collision: Loop A `while($true){ python -c "load_bundle(...)" }`;
-   Loop B motor --once iteration; run 50 collision cycles, capture every
-   PermissionError/OSError traceback verbatim.
-3. Post-fix repeat of (2) after Google lands the retry loop; tripwire test
-   must be flipped in the same commit.
+DIFF_SCOPE=tests/test_windows_ledger_race.py: Replaced the static AST check with dynamic monkeypatching of `Path.read_text` and `os.replace` to simulate transient Windows `PermissionError`s. The tests now verify target behavioral requirements by asserting the operations succeed if contention clears, and fail cleanly boundedly on persistent errors.
 
-PRECONDITIONS=Reviewed deployable SHA checked out on worker; canonical ledger
-path used (not a copy); no synthetic injection on worker (real concurrency
-only — the Mac harness already covers the synthetic case).
-PROCESS_IDENTITY_CHECK=OS-owned worker identity observed (per PHYSICAL plan);
-no interactive-agent ownership.
-RUNTIME_SHA_CHECK=Worker reports exact SHA; must equal deployed SHA.
-STATE_PATH=Production ledger path (worker-local agent_handoff_ledger.json).
-TEST_INPUT=50 real concurrent read/write collision cycles.
-EXPECTED_OUTPUT=Pre-fix: PermissionError traceback on reader or writer
-(Mac-simulated shape: PermissionError [WinError 32] from atomic_write,
-no retry). Post-fix: zero crashes + flipped tripwire green.
-RAW_EVIDENCE_REQUIRED=Full tracebacks, cycle count, SHA report, process
-identity — pasted verbatim, no summaries as proof.
-FAIL_CONDITION=Stale/wrong/unknown SHA; zero collisions attempted (test
-without contact proves nothing); mock/shim replace on worker; traceback-free
-"it worked" claims.
-NEGATIVE_TEST=Single-reader/single-writer run stays clean (proves the crash
-is concurrency-caused, not environmental); Linux/Mac control run of the same
-50 cycles stays clean (proves Windows-specificity).
-LEDGER_INVARIANT_SUPPORTED=DLQ-06 (concurrent readers must not crash writers).
-WHAT_MUST_NOT_COUNT_AS_PROOF=Mac simulation output in this packet; static
-tripwire passing; desired-state patches; temporary substitute ledger server;
-any VALID-marked artifact without independent producer/verifier (DLQ-01);
-stale or future observed_at (DLQ-02); revision-0 CANONICAL bundles (DLQ-07).
+EXACT_FILES=tests/test_windows_ledger_race.py
+EXACT_FUNCTIONS=load_bundle(), atomic_write()
 
-EVIDENCE-HANDOFF CHECKLIST (Windows artifacts must carry, else rejected):
-producer_id + verifier_id distinct, server-attested (no ghost strings);
-observed_at within freshness window of worker clock AND server clock;
-evidence_sha == deployed SHA; runtime_binding == observed worker identity;
-source_url durable https://, retrievable, immutable per revision.
+REPRODUCERS=
+- DLQ-06: python3 -m pytest tests/test_windows_ledger_race.py (The read and write transient tests currently FAIL, proving the defect is present in the unpatched `agent_handoff_ledger.py`.)
 
-MAC CLAIMS NOTHING: no WINDOWS_RUNTIME_READY, no EXACT_SHA_DEPLOYED, no
-PHYSICAL_ACCEPTANCE_PASS. Harness result above is simulation input only.
+EXPECTED_FAIL_CURRENT=YES, transient tests fail because `agent_handoff_ledger.py` lacks a retry loop.
+
+BOUNDED_RETRY_DESIGN=
+- EXACT_EXCEPTION: `PermissionError` ONLY.
+- RETRY_BOUNDARY: Wrap `path.read_text` in `load_bundle`, and `os.replace` in `atomic_write`.
+- MAX_ATTEMPT_RECOMMENDATION: 20 max attempts (matching `server/app.py` `load_state()`), equating to ~1 second deadline.
+- BACKOFF_RECOMMENDATION: Fixed 0.05s delay (or slightly jittered).
+- UNSAFE_BROAD_RETRY: Broadly retrying `OSError` or `json.JSONDecodeError` would be unsafe. If a file is permanently corrupted by a manual edit or hardware issue, infinite or broad retry would mask the corruption and hang the Motor loop. Strict `PermissionError` bounding isolates the retry specifically to OS-level file locking semantics.
+
+WINDOWS_PHYSICAL_STILL_REQUIRED=YES. The mock validates the logic, but the actual file-locking characteristics must be physically proven on a Windows worker.
+
+CODEX_READY=YES 

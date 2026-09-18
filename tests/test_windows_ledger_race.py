@@ -1,34 +1,71 @@
 import pytest
-import threading
-import time
+import os
 import json
 import tempfile
-import os
 from pathlib import Path
-import ast
+from unittest import mock
 
-from scripts.agent_handoff_ledger import atomic_write, load_bundle
+from scripts.agent_handoff_ledger import atomic_write, load_bundle, LedgerError
 
-def test_windows_ledger_race():
-    # We can just statically verify that load_bundle lacks the retry loop
-    # without running the ledger init
-    with open("scripts/agent_handoff_ledger.py", "r") as f:
-        tree = ast.parse(f.read())
-        
-    load_bundle_func = None
-    for node in tree.body:
-        if isinstance(node, ast.FunctionDef) and node.name == "load_bundle":
-            load_bundle_func = node
-            break
-            
-    assert load_bundle_func is not None
+def test_windows_ledger_race_read_transient(tmp_path):
+    ledger_path = tmp_path / "ledger.json"
+    bundle = {"schema_version": 2, "record": {"TEST": "OK"}, "history": []}
+    ledger_path.write_text(json.dumps(bundle))
     
-    # Find if there is a 'for' or 'while' loop wrapping the 'try'
-    has_loop = False
-    for node in ast.walk(load_bundle_func):
-        if isinstance(node, (ast.For, ast.While)):
-            has_loop = True
-            
-    # If it doesn't have a retry loop, this assertion will pass (which proves the defect exists)
-    assert not has_loop, "load_bundle has a loop, defect might be fixed!"
+    call_count = 0
+    original_read_text = Path.read_text
+    
+    def mock_read_text(*args, **kwargs):
+        nonlocal call_count
+        call_count += 1
+        if call_count <= 3:
+            raise PermissionError("Simulated Windows file contention")
+        return original_read_text(*args, **kwargs)
         
+    with mock.patch("pathlib.Path.read_text", side_effect=mock_read_text):
+        # Target behavior: bounded retry should eventually succeed.
+        # Defect: this will throw LedgerError("cannot read ledger") because there is no retry.
+        loaded = load_bundle(ledger_path)
+        assert loaded["record"]["TEST"] == "OK"
+
+def test_windows_ledger_race_write_transient(tmp_path):
+    ledger_path = tmp_path / "ledger.json"
+    bundle = {"schema_version": 2, "record": {"TEST": "OK"}, "history": []}
+    
+    call_count = 0
+    original_replace = os.replace
+    
+    def mock_replace(src, dst, *args, **kwargs):
+        nonlocal call_count
+        call_count += 1
+        if call_count <= 3:
+            raise PermissionError("Simulated Windows file contention")
+        return original_replace(src, dst, *args, **kwargs)
+        
+    with mock.patch("os.replace", side_effect=mock_replace):
+        # Target behavior: bounded retry should eventually succeed.
+        # Defect: this will throw PermissionError because there is no retry.
+        atomic_write(ledger_path, bundle)
+        
+    assert json.loads(ledger_path.read_text())["record"]["TEST"] == "OK"
+
+def test_windows_ledger_race_persistent_failure(tmp_path):
+    ledger_path = tmp_path / "ledger.json"
+    bundle = {"schema_version": 2, "record": {}, "history": []}
+    ledger_path.write_text(json.dumps(bundle))
+    
+    call_count = 0
+    original_read_text = Path.read_text
+    
+    def mock_read_text(*args, **kwargs):
+        nonlocal call_count
+        call_count += 1
+        raise PermissionError("Simulated persistent Windows file contention")
+        
+    with mock.patch("pathlib.Path.read_text", side_effect=mock_read_text):
+        # Negative behavior: persistent error must fail boundedly, never infinite hang.
+        with pytest.raises(LedgerError) as exc_info:
+            load_bundle(ledger_path)
+        assert "cannot read ledger" in str(exc_info.value)
+        # Verify it didn't hang infinitely (by checking call count bounds)
+        assert call_count <= 50, f"Expected bounded retry, but hit {call_count} attempts"
