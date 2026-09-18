@@ -248,3 +248,28 @@ def test_failure_hook_redacts_secret_bearing_error(monkeypatch, tmp_path):
 
     assert persisted["payload"]["error"] == "Sensitive worker error redacted"
     assert "supersecretvalue" not in result_file.read_text(encoding="utf-8")
+
+
+def test_requested_real_execution_never_falls_back_when_cli_is_missing(monkeypatch, tmp_path):
+    job_path = tmp_path / "job.json"
+    job_path.write_text(
+        json.dumps(
+            {
+                "task_id": "task-1",
+                "correlation_id": "corr-1",
+                "source_command_message_id": "msg-1",
+                "instruction": "inspect",
+                "allowed_scope": ["README.md"],
+            }
+        ),
+        encoding="utf-8",
+    )
+    authority = _Authority()
+    hooks = _RecordingHooks(tmp_path / "failure.json")
+    monkeypatch.setattr(bridge, "CanonicalAuthority", lambda: authority)
+    monkeypatch.setattr(bridge, "CODEX_CLI_PATH", tmp_path / "missing-codex")
+
+    assert bridge.execute_codex_task(job_path, hooks, try_real_cli=True) == tmp_path / "failure.json"
+    assert hooks.failed is True
+    assert hooks.completed is False
+    assert authority.released is True

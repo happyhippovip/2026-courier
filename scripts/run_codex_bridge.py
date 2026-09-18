@@ -516,7 +516,14 @@ def execute_codex_task(worker_job_path: Path, hooks: CodexHookRunner, force: boo
         hooks.on_tool_action(task_id, "Validating Codex scope and parameters", 0.3)
 
         payload = {}
-        if try_real_cli and CODEX_CLI_PATH.exists():
+        if try_real_cli:
+            if not CODEX_CLI_PATH.exists():
+                return hooks.on_task_failure(
+                    task_id,
+                    correlation_id,
+                    parent_id,
+                    "Codex CLI binary not found; real execution cannot fall back",
+                )
             hooks.on_tool_action(task_id, "Invoking real Codex CLI process (/Applications/ChatGPT.app/Contents/Resources/codex)", 0.6)
             success, real_res = execute_real_codex_cli(instruction, allowed_scope, task_id)
             payload = real_res
