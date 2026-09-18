@@ -3,6 +3,8 @@ from functools import wraps
 from flask import Flask, request, jsonify
 
 from scripts.integration_contract import ContractError, prepare_task, validate_durable_result
+from scripts.attestation_contract import fingerprint, principal, current_receipt
+from pathlib import Path
 import os
 if os.environ.get("COURIER_MOCK_CHIEF"):
     class ChiefCommander:
@@ -39,10 +41,28 @@ else:
 
 import subprocess
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
 try:
-    SERVER_SHA = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode("utf-8").strip()
+    SERVER_SHA = subprocess.check_output(["git", "-C", str(REPO_ROOT), "rev-parse", "HEAD"]).decode("utf-8").strip()
 except Exception:
     SERVER_SHA = "unknown"
+
+SERVER_BINDING = {"sha": SERVER_SHA, "runtime": "courier-server:" + uuid.uuid4().hex}
+
+
+def runtime_source_is_clean():
+    """No attestation claims a Git SHA for dirty or replaced runtime sources."""
+    try:
+        head = subprocess.check_output(['git', '-C', str(REPO_ROOT), 'rev-parse', 'HEAD'], timeout=5).decode().strip()
+        delta = subprocess.check_output(['git', '-C', str(REPO_ROOT), 'status', '--porcelain', '--untracked-files=all', '--', 'server', 'scripts'], timeout=5)
+        # Ignore runtime files excluded by git; all source deltas fail closed.
+        return head == SERVER_SHA and not delta.strip()
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
+STARTUP_SOURCE_CLEAN = runtime_source_is_clean()
 
 app = Flask(__name__)
 
@@ -336,6 +356,9 @@ def _prepare_claimed_task(task, worker_id, worker):
     claimed["attempt_id"] = f"{claimed['task_id']}:attempt:{claimed['attempts']}"
     claimed["dispatch_id"] = f"dispatch-{uuid.uuid4().hex}"
     claimed["execution_ref"] = f"exec-{uuid.uuid4().hex}"
+    claimed["server_binding"] = copy.deepcopy(SERVER_BINDING)
+    for field in ("verification", "producer_principal", "result_received_at", "result"):
+        claimed.pop(field, None)
     claimed["run_id"] = None
     claimed["result_id"] = None
     claimed["target_capability"] = _canonical_target_capability(claimed, worker)
@@ -370,7 +393,7 @@ import hashlib
 def get_auth_principal():
     from flask import request
     token = request.headers.get("Authorization", "")
-    return "principal_" + hashlib.sha256(token.encode()).hexdigest()[:12]
+    return "principal_" + hashlib.sha256(token.encode()).hexdigest()
 
 def require_auth(f):
     def wrapper(*args, **kwargs):
@@ -395,7 +418,8 @@ def require_verifier_auth(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         if (
-            VERIFIER_API_KEY in INSECURE_API_KEYS
+            not VERIFIER_API_KEY or not API_KEY
+            or VERIFIER_API_KEY in INSECURE_API_KEYS
             or VERIFIER_API_KEY == API_KEY
         ):
             return jsonify({"error": "Courier verifier authority is not configured"}), 503
@@ -453,7 +477,7 @@ def load_state():
 
 def save_state(state):
     os.makedirs(os.path.dirname(STATE_FILE), exist_ok=True)
-    temp_path = f"{STATE_FILE}.tmp"
+    import threading; temp_path = f"{STATE_FILE}.{threading.get_ident()}.tmp"
     with open(temp_path, 'w') as f:
         json.dump(state, f, indent=2)
         f.flush()
@@ -765,7 +789,9 @@ def claim_task():
         save_state(state)
         return jsonify({"task": None, "reason": "PROVIDER_QUOTA_LOCKED"})
 
+    
     for goal_id, goal in state["goals"].items():
+        
         if goal["status"] == "ACTIVE" and "workflow_plan" in goal:
             completed_tasks = {
                 step.get("task_id") for step in goal["workflow_plan"]
@@ -776,6 +802,7 @@ def claim_task():
             # A capability/provider/resource mismatch is local to that task and
             # must not hide later independent READY work.
             for index, candidate in enumerate(goal["workflow_plan"]):
+                
                 if candidate.get("status") != "QUEUED":
                     continue
                 if candidate.get("next_retry_at", 0) > time.time():
@@ -787,7 +814,9 @@ def claim_task():
                     continue
                 if not _worker_is_eligible(state, candidate, worker_id):
                     continue
+                    continue
                 if _cheaper_eligible_worker_exists(state, candidate, worker_id):
+                    continue
                     continue
                 try:
                     claimed = _prepare_claimed_task(candidate, worker_id, worker)
@@ -875,9 +904,14 @@ def task_result():
         
         # Duplicate protection
         if task["status"] in ["RECONCILED", "FAILED_TERMINAL", "RESULT_RECEIVED"]:
+            # check canonical payload equality
+            existing_result = task.get("result", {})
+            # we need to compare relevant fields to ensure it's not contradictory
             is_identical = (
-                task.get("result", {}).get("result_id") == data.get("result_id") and
-                task.get("result", {}).get("worker_id") == data.get("worker_id")
+                existing_result.get("result_id") == data.get("result_id") and
+                existing_result.get("worker_id") == data.get("worker_id") and
+                existing_result.get("status") == data.get("status") and
+                existing_result.get("artifacts") == data.get("artifacts")
             )
             if is_identical:
                 return jsonify({"status": "ACK_DUPLICATE"})
@@ -893,6 +927,7 @@ def task_result():
             set_task_status(task, "RESULT_RECEIVED")
             task["producer_principal"] = get_auth_principal()
             task["result"] = durable_result
+            task["result_received_at"] = time.time()
             
             if durable_result.get("status") == "SUCCESS":
                 set_task_status(task, "RESULT_RECEIVED")  # wait for independent /verify
@@ -1010,13 +1045,15 @@ def verify_task_result():
     if not task:
         return jsonify({"error": "Unknown task"}), 404
 
-    if task.get("status") == "RECONCILED":
+    if task.get("status") in {"RECONCILED", "RECONCILED_PENDING_MERGE"}:
         verification = task.get("verification", {})
-        if verification.get("result_id") == data.get("result_id"):
-            if data.get("verifier_id") != verification.get("verifier_id"):
-                return jsonify({"error": "alias attack on replay rejected"}), 403
-            return jsonify({"status": "ACK_DUPLICATE"})
-        return jsonify({"error": "Task already reconciled"}), 409
+        if data.get("verifier_id") != verification.get("verifier_id"):
+            return jsonify({"error": "alias attack on replay rejected"}), 403
+        if verification.get("verifier_principal") != get_auth_principal():
+            return jsonify({"error": "verification authority changed"}), 403
+        if any(data.get(k) != verification.get(k) for k in ("result_id", "verdict", "artifacts")):
+            return jsonify({"error": "contradictory verification replay"}), 409
+        return jsonify({"status": "ACK_DUPLICATE"})
 
     if task.get("status") != "RESULT_RECEIVED":
         return jsonify({"error": "Task has no result awaiting verification"}), 409
@@ -1044,13 +1081,39 @@ def verify_task_result():
     if verdict not in {"PASS", "FAIL"}:
         return jsonify({"error": "verdict must be PASS or FAIL"}), 400
 
+    received_runtime = data.get("received_runtime_identity")
+    if not received_runtime:
+        return jsonify({"error": "missing runtime identity"}), 400
+        
+    server_binding = task.get("server_binding")
+    if server_binding and received_runtime != server_binding:
+        return jsonify({"error": "runtime identity mismatch"}), 400
+
     task["verification"] = {
         "verifier_id": verifier_id,
+        "verifier_principal": verifier_principal,
         "result_id": result["result_id"],
         "verdict": verdict,
         "artifacts": result["artifacts"],
         "verified_at": time.time(),
     }
+    if (verdict == "PASS" and result.get("artifacts")
+            and task.get("server_binding") == SERVER_BINDING
+            and producer_principal == principal(API_KEY)
+            and STARTUP_SOURCE_CLEAN and runtime_source_is_clean()):
+        attestation_id = uuid.uuid4().hex
+        receipt = {
+            "attestation_id": attestation_id,
+            **{k: task[k] for k in ("goal_id", "task_id", "attempt_id", "dispatch_id", "execution_ref")},
+            "result_id": result["result_id"], "result_sha256": fingerprint(result),
+            "artifacts": copy.deepcopy(result["artifacts"]),
+            "producer_principal": producer_principal, "verifier_principal": verifier_principal,
+            "binding": copy.deepcopy(SERVER_BINDING), "verdict": "PASS",
+            "received_at": task["result_received_at"],
+            "verified_at": task["verification"]["verified_at"],
+        }
+        state.setdefault("attestation_receipts", {})[attestation_id] = receipt
+        task["verification"]["attestation_id"] = attestation_id
     goal = state["goals"][task["goal_id"]]
     if verdict == "PASS":
         # P8 — Human Gate split: protected code changes require merge approval
@@ -1178,6 +1241,23 @@ def verify_task_result():
     return jsonify({"status": task["status"]})
 
 
+@app.route('/attestations/<attestation_id>', methods=['GET'])
+@require_auth
+@serialize_state_mutation
+def get_attestation(attestation_id):
+    state = load_state()
+    receipt = state.get('attestation_receipts', {}).get(attestation_id)
+    if (not receipt or not STARTUP_SOURCE_CLEAN or not runtime_source_is_clean()
+            or not VERIFIER_API_KEY or VERIFIER_API_KEY in INSECURE_API_KEYS):
+        return jsonify({"error": "no current authenticated attestation"}), 404
+    task = state.get('tasks', {}).get(receipt.get('task_id'), {})
+    goal = state.get('goals', {}).get(receipt.get('goal_id'), {})
+    if not current_receipt(receipt, task, goal, SERVER_BINDING,
+                           principal(API_KEY), principal(VERIFIER_API_KEY)):
+        return jsonify({"error": "attestation stale or provenance mismatch"}), 409
+    return jsonify(receipt)
+
+
 @app.route('/tasks/<task_id>/resume', methods=['POST'])
 @require_auth
 @serialize_state_mutation
@@ -1185,6 +1265,7 @@ def resume_task(task_id):
     data = request.get_json(silent=True) or {}
     action = data.get("action", "retry")
     state = load_state()
+    
     
     for goal_id, goal in state["goals"].items():
         if "workflow_plan" not in goal: continue
