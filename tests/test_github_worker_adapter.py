@@ -235,6 +235,10 @@ def test_post_result_uses_courier_bearer_token(monkeypatch):
         status_code = 200
         text = ""
 
+        @staticmethod
+        def json():
+            return {"status": "ACK_RESULT_RECEIVED"}
+
     def fake_post(url, **kwargs):
         captured["url"] = url
         captured.update(kwargs)
@@ -244,7 +248,31 @@ def test_post_result_uses_courier_bearer_token(monkeypatch):
     monkeypatch.setenv("COURIER_SERVER", "http://courier.test/")
     monkeypatch.setattr(adapter.requests, "post", fake_post)
 
-    adapter.post_result({"result_id": "result-1"})
+    assert adapter.post_result({"result_id": "result-1"}) == "ACK_RESULT_RECEIVED"
 
     assert captured["url"] == "http://courier.test/tasks/result"
     assert captured["headers"]["Authorization"] == "Bearer courier-test-token"
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"status": "IGNORED", "reason": "UNKNOWN_TASK"},
+        {"status": "IGNORED", "reason": "DUPLICATE_OR_ALREADY_PROCESSED"},
+        {},
+    ],
+)
+def test_post_result_rejects_noncanonical_success_response(monkeypatch, payload):
+    class Response:
+        status_code = 200
+        text = ""
+
+        @staticmethod
+        def json():
+            return payload
+
+    monkeypatch.setenv("COURIER_API_KEY", "courier-test-token")
+    monkeypatch.setattr(adapter.requests, "post", lambda *args, **kwargs: Response())
+
+    with pytest.raises(RuntimeError, match="was not acknowledged"):
+        adapter.post_result({"result_id": "result-1"})

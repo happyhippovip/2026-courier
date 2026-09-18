@@ -123,7 +123,7 @@ def verify_result(task: dict[str, Any], result: dict[str, Any], evidence: dict[s
         raise ValueError("bounded verification acceptance failed")
 
 
-def post_result(result: dict[str, Any]) -> None:
+def post_result(result: dict[str, Any]) -> str:
     key = os.environ.get("COURIER_API_KEY")
     if not key:
         raise RuntimeError("COURIER_API_KEY is required to post a DurableResult")
@@ -136,6 +136,14 @@ def post_result(result: dict[str, Any]) -> None:
     )
     if response.status_code >= 400:
         raise RuntimeError(f"Courier result POST failed: {response.status_code} {response.text}")
+    try:
+        acknowledgement = response.json()
+    except (ValueError, json.JSONDecodeError) as exc:
+        raise RuntimeError("Courier result POST returned invalid acknowledgement") from exc
+    status = acknowledgement.get("status") if isinstance(acknowledgement, dict) else None
+    if status not in {"ACK_RESULT_RECEIVED", "ACK_DUPLICATE"}:
+        raise RuntimeError(f"Courier result POST was not acknowledged: {status or 'UNKNOWN'}")
+    return status
 
 
 def run(task_file_name: str) -> int:
