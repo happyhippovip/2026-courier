@@ -20,6 +20,7 @@ REPOSITORY = os.environ.get("GITHUB_REPOSITORY", "happyhippovip/2026-courier")
 WORKFLOW = "courier_worker.yml"
 LOCAL_WAIT_SECONDS = int(os.environ.get("GITHUB_WORKER_LOCAL_WAIT_SECONDS", "60"))
 POLL_SECONDS = 5
+WAITING_EXIT_CODE = 75
 IDENTITY_FIELDS = (
     "goal_id",
     "task_id",
@@ -198,7 +199,7 @@ def run(task_file_name: str) -> int:
             write_state(task_file, {"dispatch_id": task["dispatch_id"], "task_identity_sha256": identity_sha256, "task_packet_sha256": packet_sha256, "run_id": run_id, "status": "WAITING_FOR_WORKER"})
         time.sleep(POLL_SECONDS)
     write_state(task_file, {"dispatch_id": task["dispatch_id"], "task_identity_sha256": identity_sha256, "task_packet_sha256": packet_sha256, "run_id": run_id, "status": "WAITING_FOR_WORKER"})
-    return 0
+    return WAITING_EXIT_CODE
 
 
 if __name__ == "__main__":

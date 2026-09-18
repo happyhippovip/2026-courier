@@ -92,7 +92,7 @@ def test_existing_waiting_dispatch_is_reconciled_not_dispatched(tmp_path: Path, 
     monkeypatch.setattr(adapter, "LOCAL_WAIT_SECONDS", 0)
     monkeypatch.setattr(adapter, "find_run", lambda _: (None, None))
     monkeypatch.setattr(adapter, "run_cmd", lambda command: pytest.fail(f"must not redispatch: {command}"))
-    assert adapter.run(str(task_file)) == 0
+    assert adapter.run(str(task_file)) == adapter.WAITING_EXIT_CODE
 
 
 def test_posted_dispatch_is_terminal_and_never_replayed(tmp_path: Path, monkeypatch):
@@ -212,7 +212,7 @@ def test_dispatch_preserves_taskpacket_as_raw_json(tmp_path: Path, monkeypatch):
     monkeypatch.setattr(adapter, "LOCAL_WAIT_SECONDS", 0)
     commands = []
     monkeypatch.setattr(adapter, "run_cmd", lambda command: (commands.append(command) or (0, "branch", "")))
-    assert adapter.run(str(task_file)) == 0
+    assert adapter.run(str(task_file)) == adapter.WAITING_EXIT_CODE
     dispatch = next(command for command in commands if command[:3] == ["gh", "workflow", "run"])
     assert "--raw-field" in dispatch
     encoded = dispatch[dispatch.index("--raw-field") + 1].removeprefix("task_payload_base64=")
