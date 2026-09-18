@@ -1,0 +1,14 @@
+# OWNERSHIP_MAP — who owns what (observed, not assumed)
+bound_to_code_head: 7c495f8c1b31293f8d3a5465035d2d3f61cbd3a7
+updated_at: 2026-09-18T00:15:00+02:00
+owners:
+  ledger_guard_motor_finishing: Codex (handoff pending verification; do not race live files)
+  canonical_integration_windows_runtime: Google/Antigravity
+  mac_cockpit_studio: Muse (studio/*, scripts/run_visual_studio_server.py read-only truth layer)
+  mac_local_verification: Muse
+  ledger_completion_supervision: ChatGPT
+  physical_launchd_runtime: user authorization required
+current_scopes:
+  muse: cockpit truth UI, red-team verification, scout packets, no Ledger/Motor writes without handoff
+  google: integration, Windows deployment, motor fixes, attester protocol design
+  codex: Ledger/Guard/Motor finishing after handoff

@@ -1,0 +1,58 @@
+# DEFERRED_LEDGER_QUEUE — real findings only, each with evidence
+bound_to_code_head: 7c495f8c1b31293f8d3a5465035d2d3f61cbd3a7
+updated_at: 2026-09-18T00:15:00+02:00
+tasks:
+  - id: DLQ-01
+    priority: P0
+    current_head: 7c495f8c
+    title: two-step self-acceptance via direct ledger writes
+    evidence: /tmp/ledger_attack2.py run 2026-09-17 — step1 PROVISIONAL, step2 CANONICAL_ACCEPTED + CLEAN_IDLE=YES on self-made VALID MACHINE_ARTIFACT
+    exact_file: scripts/agent_handoff_ledger.py
+    exact_function: update() prior_evidence rule + caller checks
+    reproduction: tmp ledger (unproven=[]); update1 adds artifact (updated_by distinct from producer/verifier); update2 with no new evidence accepts
+    expected_invariant: self-created evidence never graduates to trusted prior evidence without independent attestation
+    targeted_test: two-update self-cert rejection test (fails today)
+    negative_test: legitimate multi-writer evidence still accepted
+    owner: Google (attester protocol design)
+    ready_to_implement: NO
+  - id: DLQ-02
+    priority: P0
+    current_head: 7c495f8c
+    title: stale-dated VALID artifact accepted (observed_at unenforced)
+    evidence: /tmp/ledger_attack3.py B3 + follow-up — 2020-01-01 evidence accepted when unproven empty
+    exact_file: scripts/agent_handoff_ledger.py
+    exact_function: update() has_physical_proof block
+    reproduction: store 2020-dated VALID artifact, advance one update, observe CANONICAL_ACCEPTED
+    expected_invariant: freshness bound (recency or binding-epoch) enforced
+    targeted_test: stale-date rejection test (fails today)
+    negative_test: fresh valid evidence still accepted
+    owner: Google (freshness policy design)
+    ready_to_implement: NO
+  - id: DLQ-03
+    priority: P1
+    current_head: 7c495f8c
+    title: duplicate-result semantics contract (verified fail-closed, needs decision)
+    evidence: probe 2026-09-18 — IDENTICAL retry raises LedgerError, CONTRADICTORY-STALE raises revision conflict (both fail closed, no double transition)
+    exact_file: scripts/agent_handoff_ledger.py
+    exact_function: update() no-meaningful-change vs revision conflict
+    reproduction: same-revision identical update, then stale-revision contradictory update
+    expected_invariant: DOCUMENTED contract — idempotent ACK vs raise; motor retry loop already treats no-change as settle
+    targeted_test: duplicate-semantics contract test
+    negative_test: contradictory payload never overwrites authoritative result
+    owner: Google (decision + test)
+    ready_to_implement: YES (contract test only)
+  - id: DLQ-04
+    priority: P1
+    current_head: 7c495f8c
+    title: courier_continue full-file timing flake under load
+    evidence: acceptance pair fails in full-file runs (fast UNKNOWN exit), passes paired/isolated; foreign mock_iters + retry loop improved drain 77s to 12s
+    exact_file: scripts/courier_continue.py
+    exact_function: main() mock-iters exit + done_edges drain
+    reproduction: python3 -m pytest tests/test_courier_continue.py -q on loaded Mac
+    expected_invariant: --once exits only after futures settle or bounded drain timeout, independent of iteration count
+    targeted_test: pair under parallel load
+    negative_test: never exits with futures still pending
+    owner: foreign/motor (coordinate, FOREIGN-ACTIVE file)
+    ready_to_implement: YES (with owner)
+notes:
+  - B-candidate COURIER_STATE_DIR vs COURIER_STATE_FILE OMITTED: only COURIER_STATE_FILE exists at current HEAD (tests/test_windows_runtime_torture.py:19); no mismatch supported.

@@ -1,0 +1,16 @@
+# TEST_MAP — lanes with verified commands
+bound_to_code_head: 7c495f8c1b31293f8d3a5465035d2d3f61cbd3a7
+updated_at: 2026-09-18T00:15:00+02:00
+lanes:
+  T0: {purpose: syntax/import sanity, command: "node --check studio/*.js && python3 -c 'import ast,...' && bash -n scripts/*.sh"}
+  T1: {purpose: exact regression, command: "python3 -m pytest tests/test_<area>.py -q (single file, sharded)"}
+  T2: {purpose: affected component, command: "python3 -m pytest tests/test_<a>.py tests/test_<b>.py -q (max 2 heavy jobs)"}
+  T3: {purpose: fast adversarial truth suite, command: "python3 /tmp/ledger_attack.py + ledger_race.py + node --test tests/test_execution_truth.mjs"}
+  T4: {purpose: integration/full boundary, command: "sharded full-file runs only; full parallel suite OOMs (SIGKILL observed) — never one giant batch"}
+package_candidates:
+  pytest-timeout: USE_NOW
+  pytest-xdist: TEST_FIRST
+  pytest-testmon: TEST_FIRST
+  pytest-picked: NOT_NEEDED
+zero_hang_policy: POLICY (bounded timeouts on subprocess/network/poll; no killall; motor sleeps bounded; writer_lock 5s)
+owned_child_target: OWNED_CHILD_PROCESSES=0 after tests (observed via pgrep checks)
