@@ -243,11 +243,11 @@ def acquire_lock(worker_id):
         try:
             with open(lock_file, "r") as f:
                 pid = int(f.read().strip())
-            # In Windows, we can check if PID exists using tasklist
-            out_bytes = subprocess.check_output(["tasklist", "/FI", f"PID eq {pid}"])
-            out = out_bytes.decode('utf-8', errors='ignore')
-            if str(pid) not in out:
-                # Stale lock
+            # Cross-platform process existence check
+            try:
+                os.kill(pid, 0)
+            except (OSError, ProcessLookupError):
+                # Stale lock - process not running
                 os.remove(lock_file)
                 return acquire_lock(worker_id)
         except Exception as e:
