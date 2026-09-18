@@ -49,6 +49,15 @@ SECRET_PATTERNS = [
     re.compile(r"AIza[0-9A-Za-z-_]{35}"),
 ]
 
+SAFE_IDENTIFIER_RE = re.compile(r"^[A-Za-z0-9._-]{1,128}$")
+
+
+def validate_identifier(value: object, field_name: str) -> str:
+    """Return a path-safe canonical identifier or fail before filesystem use."""
+    if not isinstance(value, str) or not SAFE_IDENTIFIER_RE.fullmatch(value):
+        raise ValueError(f"Invalid {field_name}: expected 1-128 path-safe characters")
+    return value
+
 
 def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
@@ -156,6 +165,10 @@ class CodexHookRunner:
         payload: dict,
         message_id: str | None = None,
     ) -> Path:
+        task_id = validate_identifier(task_id, "task_id")
+        correlation_id = validate_identifier(correlation_id, "correlation_id")
+        if parent_id is not None:
+            parent_id = validate_identifier(parent_id, "parent_id")
         print(f"[CODEX_HOOK: ON_COMPLETION] Task {task_id} completed successfully. Writing RESULT_READY...")
         if not message_id:
             message_id = f"msg-res-cdx-{uuid.uuid4().hex[:12]}"
@@ -202,6 +215,10 @@ class CodexHookRunner:
         return result_file
 
     def on_task_failure(self, task_id: str, correlation_id: str, parent_id: str | None, error_message: str) -> Path:
+        task_id = validate_identifier(task_id, "task_id")
+        correlation_id = validate_identifier(correlation_id, "correlation_id")
+        if parent_id is not None:
+            parent_id = validate_identifier(parent_id, "parent_id")
         print(f"[CODEX_HOOK: ON_FAILURE] Task {task_id} failed: {error_message}")
         now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
         payload = {"verdict": "FAILED", "error": error_message}
@@ -239,6 +256,7 @@ class CodexHookRunner:
         return result_file
 
     def on_task_stop(self, task_id: str) -> bool:
+        task_id = validate_identifier(task_id, "task_id")
         result_file = PROCESSED_DIR / f"{task_id}-result.json"
         exists = result_file.exists()
         print(f"[CODEX_HOOK: ON_STOP] Result file verified for {task_id}: {exists}")
@@ -285,6 +303,7 @@ def parse_real_codex_result(content: str) -> dict:
 
 def execute_real_codex_cli(instruction: str, allowed_scope: list[str], task_id: str) -> tuple[bool, dict]:
     """Invokes the real installed Codex CLI non-interactively."""
+    task_id = validate_identifier(task_id, "task_id")
     if not CODEX_CLI_PATH.exists():
         return False, {"error": "Codex CLI binary not found"}
 
@@ -382,9 +401,13 @@ def execute_codex_task(worker_job_path: Path, hooks: CodexHookRunner, force: boo
     """Executes a Codex task through the automated bridge with hooks, dedupe, and path confinement."""
     job = load_json(worker_job_path)
 
-    task_id = job.get("task_id", f"task-cdx-{uuid.uuid4().hex[:8]}")
-    correlation_id = job.get("correlation_id", f"corr-cdx-{uuid.uuid4().hex[:8]}")
-    parent_id = job.get("source_command_message_id")
+    task_id = validate_identifier(job.get("task_id", f"task-cdx-{uuid.uuid4().hex[:8]}"), "task_id")
+    correlation_id = validate_identifier(
+        job.get("correlation_id", f"corr-cdx-{uuid.uuid4().hex[:8]}"),
+        "correlation_id",
+    )
+    parent_id_value = job.get("source_command_message_id")
+    parent_id = validate_identifier(parent_id_value, "source_command_message_id") if parent_id_value is not None else None
     workflow_id = job.get("workflow_id")
     parent_task_id = job.get("parent_task_id")
     instruction = job.get("instruction", "Execute Codex task")
@@ -504,6 +527,7 @@ def execute_codex_task(worker_job_path: Path, hooks: CodexHookRunner, force: boo
 
 def run_chief_review_router(task_id: str, result_file: Path) -> dict:
     """Evaluates Chief Review Router for the given Codex task result."""
+    task_id = validate_identifier(task_id, "task_id")
     DECISIONS_DIR.mkdir(parents=True, exist_ok=True)
     decision_file = DECISIONS_DIR / f"{task_id}-chief-decision.json"
 
