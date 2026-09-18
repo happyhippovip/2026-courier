@@ -48,3 +48,9 @@ Against the exact current PR head at proof start:
 10. Only then make the smallest repair and rerun the SAME proof.
 
 No new architecture, rule, agent, roadmap, or refactor is justified before a concrete current failure is observed.
+
+### FIX: WINDOWS WRAPPER REMOVAL & POWERSHELL ENCODING
+- Removed redundant windows polling wrappers (`start.bat`, `start.py`, `stop.bat`, etc.).
+- Fixed PowerShell encoding bug in `daemon.py` by streaming instructions via stdin.
+- Verified test `test_windows_runtime_torture.py` passes safely.
+- New Checkpoint SHA (Fingerprint): f2def98d3c13cad67925983d7374be14d38ec4c8
