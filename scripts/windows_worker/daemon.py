@@ -3,18 +3,34 @@ from pathlib import Path
 import urllib.request
 import urllib.error
 import tempfile
+import uuid
+import hashlib
 
-API_URL = "http://192.168.178.162:8080"
-API_KEY = "prod-secret-12345"
+def load_config():
+    config_path = Path(__file__).parent / "config.json"
+    if config_path.exists():
+        with open(config_path, "r") as f:
+            return json.load(f)
+    return {}
+
+_cfg = load_config()
+API_URL = os.environ.get("COURIER_SERVER") or _cfg.get("COURIER_SERVER") or "http://127.0.0.1:8080"
+
+# API_KEY: environment variable or OS keyring ONLY — never from config.json or hardcoded defaults.
+try:
+    import keyring as _keyring
+    API_KEY = os.environ.get("COURIER_API_KEY") or _keyring.get_password("courier_worker", "courier_api_key")
+except ImportError:
+    API_KEY = os.environ.get("COURIER_API_KEY")
+
+if not API_KEY:
+    print("[Windows Worker] FATAL: No COURIER_API_KEY found in environment or OS keyring.", flush=True)
+    print("[Windows Worker] Set via: $env:COURIER_API_KEY or keyring.set_password('courier_worker','courier_api_key','<key>')", flush=True)
+    sys.exit(1)
 HEADERS = {
     "Authorization": f"Bearer {API_KEY}",
     "Content-Type": "application/json"
 }
-
-def load_config():
-    config_path = Path(__file__).parent / "config.json"
-    with open(config_path, "r") as f:
-        return json.load(f)
 
 def register_worker(worker_id):
     req = urllib.request.Request(f"{API_URL}/workers/register", method="POST")
@@ -61,17 +77,35 @@ def run_task(task, config):
         status = "FAILED"
         stderr = str(e)
             
+    artifacts = []
+    if status == "SUCCESS":
+        expected = task.get("artifacts", [])
+        workspace = Path(os.getcwd())
+        for relative_name in expected:
+            artifact_path = workspace / relative_name
+            if artifact_path.is_file():
+                artifacts.append({
+                    "path": relative_name,
+                    "sha256": hashlib.sha256(artifact_path.read_bytes()).hexdigest(),
+                })
+            else:
+                status = "FAILED"
+                stderr += f"\nMissing artifact: {relative_name}"
+
     res_json = {
         "status": status,
         "stdout": out_clean,
-        "stderr": stderr
+        "stderr": stderr,
+        "goal_id": task.get("goal_id"),
+        "task_id": task.get("task_id"),
+        "attempt_id": task.get("attempt_id"),
+        "dispatch_id": task.get("dispatch_id"),
+        "worker_id": task.get("worker_id") or config["WORKER_ID"],
+        "provider": "windows_native",
+        "run_id": run_id,
+        "result_id": f"result-{uuid.uuid4().hex}",
+        "artifacts": artifacts if status == "SUCCESS" else []
     }
-        
-    res_json["goal_id"] = task.get("goal_id")
-    res_json["task_id"] = task["task_id"]
-    res_json["worker_id"] = config["WORKER_ID"]
-    res_json["provider"] = "windows_native"
-    res_json["run_id"] = run_id
     
     return res_json
 
@@ -112,7 +146,7 @@ def acquire_lock(worker_id):
 
 def loop():
     config = load_config()
-    worker_id = config["WORKER_ID"]
+    worker_id = os.environ.get("COURIER_WORKER_ID") or config.get("WORKER_ID", "default-win-worker")
     
     lock_path = acquire_lock(worker_id)
     if not lock_path:
