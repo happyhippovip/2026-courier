@@ -99,3 +99,24 @@ Required property:
 `HUMAN_CONTINUE_BETWEEN_A_AND_B = 0`
 
 This policy is an operating contract, not proof that the underlying auto-continuation/restart implementation already exists. Physical evidence is still required before declaring that behavior complete.
+
+
+## Canonical product-plan guard
+
+Product/pilot governance is defined in `docs/COURIER_SYMPHONY_CANONICAL_PRODUCT_PLAN.md`.
+
+Before creating or dispatching new non-recovery work, classify it as:
+- `CRITICAL PATH`: required for the current gate;
+- `LATER`: valuable but not required now;
+- `NON-GOAL`: outside the current authorized product scope.
+
+Only `CRITICAL PATH` is normally executable during the current gate. Unclear work does not start.
+
+Additional invariants:
+- Human-confirmed Goal Contract is the acceptance anchor; a worker cannot redefine success after execution.
+- No Evidence -> No PASS.
+- Prefer deterministic verification when it fully covers the criterion; do not spend independent model review merely to duplicate deterministic proof.
+- Proof Levels and Autonomy Grades are bound to an explicit Covered Surface; a relevant delta requires `REVALIDATION_REQUIRED`.
+- Gate timeboxes trigger scope/blocker review, never artificial PASS.
+- After a gate is PASS/FROZEN, do not invent follow-on architecture merely to consume time or model capacity.
+- Product Shell, installer, updates and broad connector expansion remain later than the paid minimal-pilot evidence specified by the canonical plan.
