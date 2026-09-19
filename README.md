@@ -150,3 +150,12 @@ python3 -m unittest -v \
   - `knowledge-base/` — Distilled organizational lessons and compounding knowledge.
   - `runtime-alerts/` — Deduplicated Snitch anomaly alerts.
   - `worker-events/` — Compacted runtime event stream (`evt-*.json` and `archive/`).
+
+
+---
+
+## Canonical Courier Symphony Product Plan
+
+Product priority, proof levels, Autonomy Grades, Goal Contracts, pilot metrics, Scope Freeze and gate transitions are governed by [docs/COURIER_SYMPHONY_CANONICAL_PRODUCT_PLAN.md](docs/COURIER_SYMPHONY_CANONICAL_PRODUCT_PLAN.md).
+
+This plan is governance, not runtime evidence. Current code/runtime/acceptance evidence still decides what is actually implemented or proven. Personal payment/account identifiers are never stored in this public repository.
