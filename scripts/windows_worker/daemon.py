@@ -73,10 +73,11 @@ def http_post_result(res):
         except urllib.error.HTTPError as e:
             try:
                 body = e.read().decode('utf-8')
-                if e.code in (200, 409) and '"ACK_DUPLICATE"' in body:
+                data = json.loads(body)
+                if e.code in (200, 409) and data.get("status") == "ACK_DUPLICATE":
                     print(f"[Windows Worker] Result already acknowledged by server: {body}")
                     return
-                elif e.code == 409 and '"CONTRADICTORY_DUPLICATE"' in body:
+                elif e.code == 409 and data.get("reason") == "CONTRADICTORY_DUPLICATE":
                     print(f"[Windows Worker] Result rejected as contradictory duplicate: {body}")
                     return
             except Exception:
@@ -147,11 +148,19 @@ def run_task(task, config):
         status = "FAILED"
         stderr = str(e)
     finally:
-        # Exact process tree cleanup (no broad kills)
+        # Exact process tree cleanup (no broad kills) using psutil for reliability on Windows
         try:
-            if process.poll() is None:
-                # /T kills the tree, /F forces, /PID targets exact process
-                subprocess.run(["taskkill", "/F", "/T", "/PID", str(process.pid)], capture_output=True)
+            import psutil
+            try:
+                parent = psutil.Process(process.pid)
+                for child in parent.children(recursive=True):
+                    try:
+                        child.kill()
+                    except psutil.NoSuchProcess:
+                        pass
+                parent.kill()
+            except psutil.NoSuchProcess:
+                pass
         except Exception:
             pass
     
@@ -329,6 +338,9 @@ def loop():
         while True:
             try:
                 result_marker_path = Path(__file__).parent / "state" / "result_marker.json"
+                pause_marker_path = Path(__file__).parent / "state" / "pause.marker"
+                stop_marker_path = Path(__file__).parent / "state" / "stop.marker"
+                
                 if result_marker_path.exists():
                     try:
                         with open(result_marker_path, "r") as f:
@@ -343,6 +355,15 @@ def loop():
                     except OSError:
                         pass
                         
+                if stop_marker_path.exists():
+                    print(f"[{worker_id}] Stop marker found. Exiting gracefully after current task.")
+                    break
+                    
+                if pause_marker_path.exists():
+                    print(f"[{worker_id}] Pause marker found. Pausing claims.")
+                    time.sleep(5.0)
+                    continue
+
                 # 1. Register/Heartbeat
                 req = urllib.request.Request(f"{API_URL}/workers/heartbeat", method="POST")
                 for k, v in HEADERS.items(): req.add_header(k, v)
