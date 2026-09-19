@@ -1,0 +1,67 @@
+schema_version: 1
+head: d5cd013033156657630ccaa7f8017ab1f842c686
+scope: isolated operator-surface and product-factory only
+ownership:
+  GOOGLE_OWNED: [Ledger, Guard, Motor, canonical server, Windows runtime]
+  MUSE_OWNED: [studio cockpit, Muse worker implementation]
+  CODEX_CHATGPT_FREE: [operator-surface, product-factory]
+  READ_ONLY_SAFE: [repository metadata, accepted evidence, Prompt Library]
+features:
+  POWER_GOVERNOR: {classification: ALREADY_IMPLEMENTED, evidence: "setGovernor + safeActualConcurrency; targeted PASS"}
+  TASK_LIMIT: {classification: ALREADY_IMPLEMENTED, evidence: "10/20/50/100 validation and board cap; targeted PASS"}
+  TASK_BOARD: {classification: ALREADY_IMPLEMENTED, evidence: "six columns, guarded transitions, DONE requires result; targeted PASS"}
+  THOUGHT_INBOX: {classification: ALREADY_IMPLEMENTED, evidence: "local durable ThoughtContribution; restart PASS"}
+  THOUGHT_DEDUP: {classification: ALREADY_IMPLEMENTED, evidence: "goal-scoped exact fingerprint reuse; PASS"}
+  PROJECT_MATCH: {classification: ALREADY_IMPLEMENTED, evidence: "deterministic top-3 reversible candidates; PASS"}
+  GOAL_CANDIDATE: {classification: ALREADY_IMPLEMENTED, evidence: "draft-only provider-neutral candidate; PASS"}
+  WORK_PACKAGE_REGISTRY: {classification: ALREADY_IMPLEMENTED, evidence: "machine-readable schema, example, bounds and gates validated"}
+  RESULT_WORKSPACE: {classification: ALREADY_IMPLEMENTED, evidence: "typed durable result sections and selection UI"}
+  ANSWER_VIEW: {classification: ALREADY_IMPLEMENTED, evidence: "typed answer tab and deterministic renderer"}
+  CODE_VIEW: {classification: ALREADY_IMPLEMENTED, evidence: "typed code tab and deterministic renderer"}
+  COPY_ALL: {classification: ALREADY_IMPLEMENTED, evidence: "copies immutable displayed result JSON; fails closed on denied clipboard"}
+  COPY_CODE: {classification: ALREADY_IMPLEMENTED, evidence: "Code tab plus Copy Tab uses exact code payload"}
+  FILES_VIEW: {classification: ALREADY_IMPLEMENTED, evidence: "typed files tab"}
+  DIFF_VIEW: {classification: ALREADY_IMPLEMENTED, evidence: "typed diff tab"}
+  TESTS_VIEW: {classification: ALREADY_IMPLEMENTED, evidence: "typed tests tab; core renderer PASS"}
+  EVIDENCE_VIEW: {classification: ALREADY_IMPLEMENTED, evidence: "typed evidence tab; core renderer PASS"}
+  NEXT_ACTION: {classification: ALREADY_IMPLEMENTED, evidence: "typed next-action tab"}
+  PROJECT_MEMORY: {classification: ALREADY_IMPLEMENTED, evidence: "projects/goals/thoughts/work/results survive local restart"}
+  HUMAN_INBOX: {classification: ALREADY_IMPLEMENTED, evidence: "BRAUCHT_MICH projection; explicit local approval only"}
+  MULTI_MUSE_UI: {classification: ACTIVE_WRITER_COLLISION, evidence: "Muse owns cockpit and worker UI"}
+  NIGHT_SHIFT_UI_CONTRACT: {classification: BLOCKED_BY_CORE, evidence: "event-driven continuation requires accepted canonical Motor"}
+  CANNON_UI_CONTRACT: {classification: ALREADY_IMPLEMENTED, evidence: "bounded Preview UI; 0 execution and 0 agents; Fire fails closed"}
+  CONTEXT_PREVIEW: {classification: ALREADY_IMPLEMENTED, evidence: "goal-scoped IDs only; execution_authorized=false"}
+  MY_DAY: {classification: ALREADY_IMPLEMENTED, evidence: "deterministic board summary"}
+  MORNING_VIEW: {classification: ALREADY_IMPLEMENTED, evidence: "done/blocked/ready/waiting/results; model_calls=0"}
+  FAVORITES: {classification: ALREADY_IMPLEMENTED, evidence: "durable local goal/project favorites"}
+  RECENT: {classification: ALREADY_IMPLEMENTED, evidence: "deterministic five-item recent projection"}
+  GITHUB_TODAY: {classification: ALREADY_IMPLEMENTED, evidence: "operator-supplied read-only exact-SHA snapshot, dedup and validation"}
+  CUSTOMER_FIRST_RUN: {classification: BLOCKED_BY_CORE, evidence: "local onboarding UI works; real customer execution remains disabled"}
+targeted_tests:
+  - operator-surface acceptance PASS
+  - operator-surface app syntax PASS
+  - operator-surface core syntax PASS
+  - expanded UI DOM contract PASS
+  - Work Package deterministic validation PASS
+  - task explosion bound PASS
+  - Human Gate validation PASS
+accepted_local_features: 27
+waiting_google: [NIGHT_SHIFT_UI_CONTRACT, CUSTOMER_FIRST_RUN_EXECUTION]
+waiting_muse: [MULTI_MUSE_UI]
+blocked_by_core: [real Cannon Fire, event-driven Night Shift, customer execution, physical A-to-B]
+free_to_implement: 0
+files_changed:
+  - operator-surface/core.mjs
+  - operator-surface/app.mjs
+  - operator-surface/index.html
+  - operator-surface/style.css
+  - operator-surface/test-core.mjs
+  - operator-surface/project.schema.json
+  - product-factory/CONTINUOUS_WORK_QUEUE.yaml
+  - product-factory/CONTINUOUS_WORK_RESULT.yaml
+  - product-factory/work-package.schema.json
+  - product-factory/work-package.example.json
+  - product-factory/FIRST_10_MINUTES.yaml
+  - product-factory/PACKAGE_SAFETY_MANIFEST.yaml
+  - product-factory/IMPLEMENTATION_ACCEPTANCE.yaml
+production_files_changed: false

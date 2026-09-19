@@ -20,23 +20,34 @@ VERIFIER_ID = "VERIFIER-01"
 def log(msg):
     print(f"[Verifier] {msg}", flush=True)
 
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 def verify_artifact(path, expected_hash):
-    if not os.path.exists(path):
-        log(f"Artifact missing: {path}")
+    # Try CWD first, then repo root as fallback (verifier CWD may differ from worker CWD)
+    candidates = [path]
+    if not os.path.isabs(path):
+        candidates.append(os.path.join(REPO_ROOT, path))
+    resolved = None
+    for c in candidates:
+        if os.path.exists(c):
+            resolved = c
+            break
+    if resolved is None:
+        log(f"Artifact missing: {path} (checked: {candidates})")
         return False
     h = hashlib.sha256()
     try:
-        with open(path, "rb") as f:
+        with open(resolved, "rb") as f:
             for chunk in iter(lambda: f.read(4096), b""):
                 h.update(chunk)
         actual_hash = h.hexdigest()
         if actual_hash == expected_hash:
             return True
         else:
-            log(f"Hash mismatch for {path}. Expected {expected_hash}, got {actual_hash}")
+            log(f"Hash mismatch for {resolved}. Expected {expected_hash}, got {actual_hash}")
             return False
     except Exception as e:
-        log(f"Error reading artifact {path}: {e}")
+        log(f"Error reading artifact {resolved}: {e}")
         return False
 
 def run_loop():
@@ -89,6 +100,7 @@ def run_loop():
                     verify_payload = {
                         "task_id": task_id,
                         "verifier_id": VERIFIER_ID,
+                        "received_runtime_identity": task.get("server_binding"),
                         "result_id": result_id,
                         "verdict": verdict,
                         "artifacts": artifacts

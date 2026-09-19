@@ -134,3 +134,24 @@ Probes: /tmp/dlq01_refresh.py, /tmp/dlq02_refresh.py, /tmp/dlq03_refresh.py,
   955c1261 committed rest-draft plus my iter8 edits (intact); G5 trio
   rerun vs committed state 3 passed; push DEFERRED (b264aeb9, 0f1d4539,
   955c1261 owner-local-only); no broad suite (foreign hot, 3s heartbeat)
+- FIRST_CAUSAL_DEFECT 2026-09-18 (dirty tree, uncommitted, owner scope -
+  NOT edited by Muse): scripts/agent_handoff_ledger.py _verify_attestation
+  wired into has_physical_proof with (a) PYTEST_CURRENT_TEST bypass
+  (returns True under pytest - suites prove nothing about this conjunct),
+  (b) source_url misused as attestation endpoint (artifact URL queried
+  for verdict PASS), (c) network call in proof predicate (all non-PASS-JSON
+  URLs can never prove). Reproduced: same unreachable URL -> False prod,
+  True under pytest. CORRECTION: 56/56 green ran with bypass active -
+  proof-predicate portion unproven in prod; string/freshness/monotonicity
+  conjuncts unaffected. MINIMUM FIX (owner): remove env bypass, inject
+  attestation resolver (test double in tests), bind lookup to server
+  attestation_id/endpoint never source_url, fail-closed plus cache.
+  REGRESSION REQUIRED: resolver-PASS proves, resolver-FAIL/unreachable
+  rejects, no env gate. Sweep: single occurrence, no other bypasses.
+- iter10 (HEAD 71b3dc06): runtime-identity binding reviewed (claim strips
+  stale verification fields, verify enforces received_runtime_identity
+  equality, save_state thread-ident tmp, verifier 503 hardening); my
+  A-to-B test fixed for new contract (green); Google contract test RED
+  at own HEAD (verify 400, missing identity field - owner follow-up);
+  test_runtime_binding.py unrunnable here (live :8099 plus real keys
+  plus silent early returns - owner scope)

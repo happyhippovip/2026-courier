@@ -1,0 +1,217 @@
+"""Canonical TaskPacket/DurableResult glue for the multi-worker control plane.
+
+Workers may have platform-specific payloads, but the control plane owns the
+workflow identity and independently binds an observed effect to that identity.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import re
+import uuid
+from pathlib import Path
+
+
+TASK_STATES = {
+    "QUEUED",
+    "DISPATCHED",
+    "RESULT_RECEIVED",
+    "RECONCILED",
+    "FAILED_VERIFICATION",
+    "FAILED_TERMINAL",
+    "HUMAN_REQUIRED",
+}
+RESULT_STATES = {"SUCCESS", "FAILED"}
+WORKER_IDS = {
+    "github": "GITHUB-HOSTED",
+    "mac": "MAC-01",
+    "windows": "WINDOWS-01",
+    "linux": "AWS-LINUX-01",
+    "mock-provider": "MOCK-PROVIDER-WORKER",
+}
+
+
+class ContractError(ValueError):
+    """The worker envelope cannot be bound to the dispatched task."""
+
+
+def _canonical_hash(value: object) -> str:
+    payload = json.dumps(value, sort_keys=True, separators=(",", ":")).encode()
+    return hashlib.sha256(payload).hexdigest()
+
+
+def prepare_task(task: dict) -> dict:
+    """Add stable workflow identity before the task is durably dispatched."""
+    packet = dict(task)
+    task_id = packet.get("task_id")
+    goal_id = packet.get("goal_id")
+    capability = packet.get("target_capability")
+    if not all(isinstance(value, str) and value for value in (task_id, goal_id, capability)):
+        raise ContractError("task_id, goal_id and target_capability are required")
+    packet.setdefault("attempt_id", f"{task_id}:attempt:1")
+    packet.setdefault("dispatch_id", f"dispatch-{uuid.uuid4().hex}")
+    packet.setdefault("execution_ref", f"exec-{uuid.uuid4().hex}")
+    if not packet.get("worker_id"):
+        legacy_worker_id = WORKER_IDS.get(capability)
+        if not legacy_worker_id:
+            raise ContractError(
+                "worker_id is required when target_capability is not a legacy capability"
+            )
+        packet["worker_id"] = legacy_worker_id
+    packet.setdefault("run_id", None)
+    packet.setdefault("result_id", None)
+    packet.setdefault("status", "QUEUED")
+    if packet["status"] not in TASK_STATES:
+        raise ContractError(f"invalid task status: {packet['status']}")
+    return packet
+
+
+def verify_result(task: dict, raw_result: dict, workspace: Path) -> dict:
+    """Return a canonical DurableResult only after identity/effect verification."""
+    chain = ["goal_id", "task_id", "attempt_id", "dispatch_id", "execution_ref", "worker_id"]
+    if "batch_id" in task:
+        chain.insert(0, "batch_id")
+    if "prompt_id" in task:
+        chain.insert(0, "prompt_id")
+        
+    for field in chain:
+        if not task.get(field):
+            raise ContractError(f"dispatched task is missing {field}")
+
+    for field in chain:
+        if raw_result.get(field) != task[field]:
+            raise ContractError(f"{field} mismatch")
+    if raw_result.get("status") not in RESULT_STATES:
+        raise ContractError("invalid result status")
+
+    run_id = raw_result.get("run_id")
+    if not isinstance(run_id, str) or not run_id:
+        raise ContractError("observable run_id is required")
+
+    artifacts = []
+    if raw_result["status"] == "SUCCESS":
+        expected = task.get("artifacts")
+        if not isinstance(expected, list) or not expected:
+            raise ContractError("successful task has no expected artifacts")
+        for relative_name in expected:
+            if not isinstance(relative_name, str) or Path(relative_name).is_absolute() or ".." in Path(relative_name).parts:
+                raise ContractError("unsafe artifact path")
+            artifact_path = workspace / relative_name
+            if not artifact_path.is_file():
+                raise ContractError(f"missing expected artifact: {relative_name}")
+            artifacts.append(
+                {
+                    "path": relative_name,
+                    "sha256": hashlib.sha256(artifact_path.read_bytes()).hexdigest(),
+                }
+            )
+
+    identity = {
+        "goal_id": task["goal_id"],
+        "task_id": task["task_id"],
+        "attempt_id": task["attempt_id"],
+        "dispatch_id": task["dispatch_id"],
+        "execution_ref": task["execution_ref"],
+        "worker_id": task["worker_id"],
+        "run_id": run_id,
+        "status": raw_result["status"],
+        "artifacts": artifacts,
+    }
+    if "batch_id" in task:
+        identity["batch_id"] = task["batch_id"]
+    if "prompt_id" in task:
+        identity["prompt_id"] = task["prompt_id"]
+    identity["result_id"] = f"result-{_canonical_hash(identity)}"
+    return identity
+
+
+def validate_durable_result(task: dict, result: dict) -> dict:
+    """Validate a remote DurableResult without trusting worker-only success.
+
+    This validates identity and evidence shape. A separate verifier must still
+    observe the effect and approve the evidence before workflow advancement.
+    """
+    required = {
+        "goal_id",
+        "task_id",
+        "attempt_id",
+        "dispatch_id",
+        "execution_ref",
+        "worker_id",
+        "run_id",
+        "result_id",
+        "status",
+        "artifacts",
+    }
+    # Optional identity fields for batch runs
+    if "batch_id" in task:
+        required.add("batch_id")
+    if "prompt_id" in task:
+        required.add("prompt_id")
+    
+    if "run_attempt" in result:
+        required.add("run_attempt")
+    if "result_data" in result:
+        required.add("result_data")
+    if "stderr" in result:
+        required.add("stderr")
+    if "stdout" in result:
+        required.add("stdout")
+    missing = sorted(required - set(result))
+    if missing:
+        raise ContractError(f"result is missing: {', '.join(missing)}")
+        
+    chain = ["goal_id", "task_id", "attempt_id", "dispatch_id", "execution_ref", "worker_id"]
+    if "batch_id" in task:
+        chain.append("batch_id")
+    if "prompt_id" in task:
+        chain.append("prompt_id")
+        
+    for field in chain:
+        if result[field] != task.get(field):
+            raise ContractError(f"{field} mismatch")
+    for field in ("run_id", "result_id"):
+        if not isinstance(result[field], str) or not result[field]:
+            raise ContractError(f"{field} is required")
+    if "run_attempt" in required and (not isinstance(result["run_attempt"], str) or not result["run_attempt"].isdigit()):
+        raise ContractError("run_attempt is invalid")
+    if result["status"] not in RESULT_STATES:
+        raise ContractError("invalid result status")
+    if not isinstance(result["artifacts"], list):
+        raise ContractError("artifacts must be a list")
+    artifact_paths = []
+    for artifact in result["artifacts"]:
+        if not isinstance(artifact, dict) or set(artifact) != {"path", "sha256"}:
+            raise ContractError("invalid artifact evidence")
+        path = artifact["path"]
+        digest = artifact["sha256"]
+        if not isinstance(path, str) or not path or Path(path).is_absolute() or ".." in Path(path).parts:
+            raise ContractError("unsafe artifact path")
+        if not isinstance(digest, str) or not re.fullmatch(r"[a-f0-9]{64}", digest):
+            raise ContractError("invalid artifact fingerprint")
+        artifact_paths.append(path)
+
+    # A worker-supplied SUCCESS must still cover the artifacts the dispatch
+    # promised.  Otherwise an empty (or partial) evidence list could reach an
+    # independent verifier and be accepted as a completed effect.
+    if result["status"] == "SUCCESS":
+        expected = task.get("artifacts")
+        # Artifactless tasks remain valid; tasks that declare artifacts must
+        # provide a complete, one-to-one evidence set for them.
+        if expected:
+            if (
+                not isinstance(expected, list)
+                or any(
+                not isinstance(path, str)
+                or not path
+                or Path(path).is_absolute()
+                or ".." in Path(path).parts
+                for path in expected
+            )
+                or len(expected) != len(set(expected))
+            ):
+                raise ContractError("successful task has invalid expected artifacts")
+            if len(artifact_paths) != len(set(artifact_paths)) or set(artifact_paths) != set(expected):
+                raise ContractError("artifact evidence does not match expected artifacts")
+    return {field: result[field] for field in required}

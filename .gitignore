@@ -100,3 +100,18 @@ scripts/windows_worker/state/
 scripts/mac_worker/logs/
 scripts/mac_worker/state/
 .env.local
+
+# Cross-platform sync exclusions
+.env
+.env.local
+tokens/
+keys/
+cookies
+sessions/
+logs/
+*.pid
+venv/
+.venv/
+node_modules/
+test-build-identity.json
+test_sync.lock

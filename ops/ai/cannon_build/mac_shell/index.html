@@ -1,0 +1,7 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Courier Mac Shell (Spec UI)</title></head>
+<body><h1>Courier Mac Shell</h1>
+<div id="badge">Lade identity.json …</div>
+<h2>Harmlose Aufgabe</h2><p>Test-Workspace auflisten (kein Provider, kein Schreiben außerhalb).</p>
+<h2>Kill-Switch</h2><p>Manuell: Datei <code>~/.courier/STOP</code> anlegen — Worker starten nicht mehr. Keine Runner-Integration in dieser Spec-Shell.</p>
+<script>fetch("identity.json").then(r=>r.json()).then(j=>{document.getElementById("badge").textContent="App "+j.app_version+" · SHA "+j.candidate_source_sha+" · Fingerprint "+j.build_fingerprint;});</script>
+</body></html>

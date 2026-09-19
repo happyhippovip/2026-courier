@@ -1,0 +1,137 @@
+schema_version: 1
+checkpoint: CHATGPT_LONG_RED_TEAM
+head: d5cd013033156657630ccaa7f8017ab1f842c686
+target:
+  canonical_contracts: current dirty Google-owned runtime, read-only tests
+  product_surface: operator-surface
+  durable_queue_prototype: scripts/work_queue.py
+  queue_file_status: UNTRACKED_FOREIGN_OWNER_UNKNOWN
+attacks:
+  - id: false_done
+    REPRODUCIBLE: YES
+    CURRENTLY_HANDLED: NO_IN_WORK_QUEUE
+    EVIDENCE: caller passes --stage ACCEPTED; task becomes DONE with no verification_state
+    OWNER: UNASSIGNED_FOREIGN_QUEUE_PROTOTYPE
+    MINIMUM_FIX: remove caller-controlled ACCEPTED; require independently persisted verifier verdict bound to task attempt result
+  - id: duplicate_dispatch
+    REPRODUCIBLE: NO
+    CURRENTLY_HANDLED: YES
+    EVIDENCE: isolated restart attack and canonical concurrent-claim tests pass
+    OWNER: GOOGLE_CORE
+    MINIMUM_FIX: NONE
+  - id: duplicate_result
+    REPRODUCIBLE: NO_DOUBLE_APPLICATION
+    CURRENTLY_HANDLED: YES
+    EVIDENCE: duplicate-result and isolated queue negative tests pass
+    OWNER: GOOGLE_CORE
+    MINIMUM_FIX: NONE
+  - id: stale_result
+    REPRODUCIBLE: YES
+    CURRENTLY_HANDLED: NO_IN_WORK_QUEUE
+    EVIDENCE: complete accepts arbitrary result without attempt_id or dispatch identity
+    OWNER: UNASSIGNED_FOREIGN_QUEUE_PROTOTYPE
+    MINIMUM_FIX: bind result to goal/task/package/attempt/dispatch and reject stale identities
+  - id: wrong_worker
+    REPRODUCIBLE: YES
+    CURRENTLY_HANDLED: NO_IN_WORK_QUEUE
+    EVIDENCE: complete command has no worker identity and does not compare lease owner
+    OWNER: UNASSIGNED_FOREIGN_QUEUE_PROTOTYPE
+    MINIMUM_FIX: authenticated worker must match active lease owner
+  - id: stale_lease
+    REPRODUCIBLE: YES_BY_CODE_PATH
+    CURRENTLY_HANDLED: NO_FOR_AMBIGUOUS_EXTERNAL_EFFECT
+    EVIDENCE: reconcile returns stale claimed work to READY whenever no result is stored
+    OWNER: UNASSIGNED_FOREIGN_QUEUE_PROTOTYPE
+    MINIMUM_FIX: ambiguous post-effect lease must quarantine/reconcile before reexecution
+  - id: scope_collision
+    REPRODUCIBLE: YES
+    CURRENTLY_HANDLED: NO_FOR_HIERARCHICAL_PATHS
+    EVIDENCE: write scopes src and src/file.py were simultaneously claimed
+    OWNER: UNASSIGNED_FOREIGN_QUEUE_PROTOTYPE
+    MINIMUM_FIX: normalize scopes and reject ancestor/descendant overlap inside claim transaction
+  - id: premature_dependency
+    REPRODUCIBLE: YES
+    CURRENTLY_HANDLED: NO_IN_WORK_QUEUE
+    EVIDENCE: READY dependent was claimed while parent remained WAITING
+    OWNER: UNASSIGNED_FOREIGN_QUEUE_PROTOTYPE
+    MINIMUM_FIX: validate dependency completion on add and again atomically on claim
+  - id: task_explosion
+    REPRODUCIBLE: YES
+    CURRENTLY_HANDLED: NO_IN_WORK_QUEUE
+    EVIDENCE: 101 tasks accepted despite product maximum options ending at 100
+    OWNER: UNASSIGNED_FOREIGN_QUEUE_PROTOTYPE
+    MINIMUM_FIX: bind package to approved max_tasks and reject overflow before persistence
+  - id: agent_explosion
+    REPRODUCIBLE: YES
+    CURRENTLY_HANDLED: NO_IN_WORK_QUEUE
+    EVIDENCE: 25 arbitrary workers obtained simultaneous claims with no configured ceiling
+    OWNER: UNASSIGNED_FOREIGN_QUEUE_PROTOTYPE
+    MINIMUM_FIX: enforce qualified registered workers and canonical safe concurrency ceiling
+  - id: context_explosion
+    REPRODUCIBLE: YES
+    CURRENTLY_HANDLED: NO_AT_CORE_FUNCTION_BOUNDARY
+    EVIDENCE: addThought accepted 1000000 characters when called outside HTML maxlength
+    OWNER: CODEX_OPERATOR_SURFACE
+    MINIMUM_FIX: enforce content byte/character limit in addThought, not UI only
+  - id: review_explosion
+    REPRODUCIBLE: YES
+    CURRENTLY_HANDLED: NO_AT_INGEST_BOUNDARY
+    EVIDENCE: GitHub snapshot accepted 100000 check records
+    OWNER: CODEX_OPERATOR_SURFACE
+    MINIMUM_FIX: bounded arrays and total serialized byte limit before persistence
+  - id: human_gate_bypass
+    REPRODUCIBLE: YES
+    CURRENTLY_HANDLED: NO_IN_WORK_QUEUE
+    EVIDENCE: task carrying human_gate=PAYMENT but status READY was claimed
+    OWNER: UNASSIGNED_FOREIGN_QUEUE_PROTOTYPE
+    MINIMUM_FIX: derive gate state from immutable action class; reject caller READY override
+  - id: power_governor_overrun
+    REPRODUCIBLE: YES
+    CURRENTLY_HANDLED: NO_IN_WORK_QUEUE
+    EVIDENCE: product governor is advisory while queue accepted 25 simultaneous claims
+    OWNER: UNASSIGNED_FOREIGN_QUEUE_PROTOTYPE
+    MINIMUM_FIX: enforce safe_actual_concurrency in authoritative claim path after core handoff
+  - id: night_polling
+    REPRODUCIBLE: YES_BY_CODE
+    CURRENTLY_HANDLED: NO
+    EVIDENCE: courier_continue main uses while True with repeated one-second sleeps and duplicate sleep sites
+    OWNER: GOOGLE_CORE
+    MINIMUM_FIX: event/checkpoint-driven wakeup; true idle without model/process polling
+  - id: session_dependence
+    REPRODUCIBLE: NO_FOR_QUEUE_STATE
+    CURRENTLY_HANDLED: YES
+    EVIDENCE: durable state and active lease survive process reconstruction in isolated attack
+    OWNER: QUEUE_CONTRACT
+    MINIMUM_FIX: NONE_FOR_PROVEN_BOUNDARY
+  - id: result_coalescing_hides_unknown
+    REPRODUCIBLE: NO
+    CURRENTLY_HANDLED: YES_AT_REVIEWED_BOUNDARIES
+    EVIDENCE: canonical duplicate tests pass and Result Workspace renders UNPROVEN explicitly
+    OWNER: GOOGLE_CORE_AND_CODEX_SURFACE
+    MINIMUM_FIX: NONE
+  - id: work_package_missing_acceptance
+    REPRODUCIBLE: YES
+    CURRENTLY_HANDLED: NO_IN_WORK_QUEUE
+    EVIDENCE: init definition_of_done defaults empty and caller may still mark task ACCEPTED
+    OWNER: UNASSIGNED_FOREIGN_QUEUE_PROTOTYPE
+    MINIMUM_FIX: reject empty package acceptance and forbid DONE until package acceptance evaluates true
+  - id: thought_duplicate_project
+    REPRODUCIBLE: NO
+    CURRENTLY_HANDLED: YES
+    EVIDENCE: normalized duplicate project rejection and reversible project matching test pass
+    OWNER: CODEX_OPERATOR_SURFACE
+    MINIMUM_FIX: NONE
+  - id: customer_package_private_data
+    REPRODUCIBLE: UNKNOWN_NO_CUSTOMER_PACKAGER
+    CURRENTLY_HANDLED: MANIFEST_ONLY_NOT_ENFORCED
+    EVIDENCE: safety denylist exists; no integrated customer packaging boundary proves enforcement
+    OWNER: FUTURE_CUSTOMER_PACKAGING_OWNER
+    MINIMUM_FIX: allowlist packager from clean checkout plus secret/private-path scan and deterministic manifest
+summary:
+  attacks: 20
+  pass: 5
+  fail: 14
+  unknown: 1
+  first_causal_defect: scripts/work_queue.py cmd_complete allows caller-controlled ACCEPTED to create false DONE without independent verification
+  first_owner: UNASSIGNED_UNTRACKED_FOREIGN_QUEUE_PROTOTYPE
+production_files_changed: false

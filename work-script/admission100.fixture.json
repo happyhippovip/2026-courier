@@ -1,0 +1,781 @@
+{
+ "records": [
+  {
+   "id": "ctx-00",
+   "kind": "context",
+   "project": "P1",
+   "text": "Weekly note 0: hygiene topic, no action."
+  },
+  {
+   "id": "ctx-01",
+   "kind": "context",
+   "project": "P1",
+   "text": "Weekly note 1: hygiene topic, no action."
+  },
+  {
+   "id": "ctx-02",
+   "kind": "context",
+   "project": "P1",
+   "text": "Weekly note 2: hygiene topic, no action."
+  },
+  {
+   "id": "ctx-03",
+   "kind": "context",
+   "project": "P1",
+   "text": "Weekly note 3: hygiene topic, no action."
+  },
+  {
+   "id": "ctx-04",
+   "kind": "context",
+   "project": "P1",
+   "text": "Weekly note 4: hygiene topic, no action."
+  },
+  {
+   "id": "ctx-05",
+   "kind": "context",
+   "project": "P1",
+   "text": "Weekly note 5: hygiene topic, no action."
+  },
+  {
+   "id": "ctx-06",
+   "kind": "context",
+   "project": "P1",
+   "text": "Weekly note 6: hygiene topic, no action."
+  },
+  {
+   "id": "ctx-07",
+   "kind": "context",
+   "project": "P1",
+   "text": "Weekly note 7: hygiene topic, no action."
+  },
+  {
+   "id": "ctx-08",
+   "kind": "context",
+   "project": "P1",
+   "text": "Weekly note 8: hygiene topic, no action."
+  },
+  {
+   "id": "ctx-09",
+   "kind": "context",
+   "project": "P1",
+   "text": "Weekly note 9: hygiene topic, no action."
+  },
+  {
+   "id": "valid-00",
+   "kind": "task",
+   "project": "P1",
+   "text": "Count open entries batch 0.",
+   "approval": true
+  },
+  {
+   "id": "valid-01",
+   "kind": "task",
+   "project": "P1",
+   "text": "Count open entries batch 1.",
+   "approval": true
+  },
+  {
+   "id": "valid-02",
+   "kind": "task",
+   "project": "P1",
+   "text": "Count open entries batch 2.",
+   "approval": true
+  },
+  {
+   "id": "valid-03",
+   "kind": "task",
+   "project": "P1",
+   "text": "Count open entries batch 3.",
+   "approval": true
+  },
+  {
+   "id": "valid-04",
+   "kind": "task",
+   "project": "P1",
+   "text": "Count open entries batch 4.",
+   "approval": true
+  },
+  {
+   "id": "valid-05",
+   "kind": "task",
+   "project": "P1",
+   "text": "Count open entries batch 5.",
+   "approval": true
+  },
+  {
+   "id": "valid-06",
+   "kind": "task",
+   "project": "P1",
+   "text": "Count open entries batch 6.",
+   "approval": true
+  },
+  {
+   "id": "valid-07",
+   "kind": "task",
+   "project": "P1",
+   "text": "Count open entries batch 7.",
+   "approval": true
+  },
+  {
+   "id": "valid-08",
+   "kind": "task",
+   "project": "P1",
+   "text": "Count open entries batch 8.",
+   "approval": true
+  },
+  {
+   "id": "valid-09",
+   "kind": "task",
+   "project": "P1",
+   "text": "Count open entries batch 9.",
+   "approval": true
+  },
+  {
+   "id": "valid-10",
+   "kind": "task",
+   "project": "P1",
+   "text": "Count open entries batch 10.",
+   "approval": true
+  },
+  {
+   "id": "valid-11",
+   "kind": "task",
+   "project": "P1",
+   "text": "Count open entries batch 11.",
+   "approval": true
+  },
+  {
+   "id": "valid-12",
+   "kind": "task",
+   "project": "P1",
+   "text": "Count open entries batch 12.",
+   "approval": true
+  },
+  {
+   "id": "valid-13",
+   "kind": "task",
+   "project": "P1",
+   "text": "Count open entries batch 13.",
+   "approval": true
+  },
+  {
+   "id": "valid-14",
+   "kind": "task",
+   "project": "P1",
+   "text": "Count open entries batch 14.",
+   "approval": true
+  },
+  {
+   "id": "valid-15",
+   "kind": "task",
+   "project": "P1",
+   "text": "Count open entries batch 15.",
+   "approval": true
+  },
+  {
+   "id": "valid-16",
+   "kind": "task",
+   "project": "P1",
+   "text": "Count open entries batch 16.",
+   "approval": true
+  },
+  {
+   "id": "valid-17",
+   "kind": "task",
+   "project": "P1",
+   "text": "Count open entries batch 17.",
+   "approval": true
+  },
+  {
+   "id": "valid-18",
+   "kind": "task",
+   "project": "P1",
+   "text": "Count open entries batch 18.",
+   "approval": true
+  },
+  {
+   "id": "valid-19",
+   "kind": "task",
+   "project": "P1",
+   "text": "Count open entries batch 19.",
+   "approval": true
+  },
+  {
+   "id": "valid-20",
+   "kind": "task",
+   "project": "P1",
+   "text": "Count open entries batch 20.",
+   "approval": true
+  },
+  {
+   "id": "valid-21",
+   "kind": "task",
+   "project": "P1",
+   "text": "Count open entries batch 21.",
+   "approval": true
+  },
+  {
+   "id": "valid-22",
+   "kind": "task",
+   "project": "P1",
+   "text": "Count open entries batch 22.",
+   "approval": true
+  },
+  {
+   "id": "valid-23",
+   "kind": "task",
+   "project": "P1",
+   "text": "Count open entries batch 23.",
+   "approval": true
+  },
+  {
+   "id": "valid-24",
+   "kind": "task",
+   "project": "P1",
+   "text": "Count open entries batch 24.",
+   "approval": true
+  },
+  {
+   "id": "valid-25",
+   "kind": "task",
+   "project": "P1",
+   "text": "Count open entries batch 25.",
+   "approval": true
+  },
+  {
+   "id": "valid-26",
+   "kind": "task",
+   "project": "P1",
+   "text": "Count open entries batch 26.",
+   "approval": true
+  },
+  {
+   "id": "valid-27",
+   "kind": "task",
+   "project": "P1",
+   "text": "Count open entries batch 27.",
+   "approval": true
+  },
+  {
+   "id": "valid-28",
+   "kind": "task",
+   "project": "P1",
+   "text": "Count open entries batch 28.",
+   "approval": true
+  },
+  {
+   "id": "valid-29",
+   "kind": "task",
+   "project": "P1",
+   "text": "Count open entries batch 29.",
+   "approval": true
+  },
+  {
+   "id": "duprun-00",
+   "kind": "task",
+   "project": "P1",
+   "text": "Running job 0 status check.",
+   "approval": true
+  },
+  {
+   "id": "duprun-01",
+   "kind": "task",
+   "project": "P1",
+   "text": "Running job 1 status check.",
+   "approval": true
+  },
+  {
+   "id": "duprun-02",
+   "kind": "task",
+   "project": "P1",
+   "text": "Running job 2 status check.",
+   "approval": true
+  },
+  {
+   "id": "duprun-03",
+   "kind": "task",
+   "project": "P1",
+   "text": "Running job 3 status check.",
+   "approval": true
+  },
+  {
+   "id": "duprun-04",
+   "kind": "task",
+   "project": "P1",
+   "text": "Running job 4 status check.",
+   "approval": true
+  },
+  {
+   "id": "duprun-05",
+   "kind": "task",
+   "project": "P1",
+   "text": "Running job 5 status check.",
+   "approval": true
+  },
+  {
+   "id": "duprun-06",
+   "kind": "task",
+   "project": "P1",
+   "text": "Running job 6 status check.",
+   "approval": true
+  },
+  {
+   "id": "duprun-07",
+   "kind": "task",
+   "project": "P1",
+   "text": "Running job 7 status check.",
+   "approval": true
+  },
+  {
+   "id": "dupres-00",
+   "kind": "task",
+   "project": "P1",
+   "text": "Finished job 0 summary.",
+   "approval": true
+  },
+  {
+   "id": "dupres-01",
+   "kind": "task",
+   "project": "P1",
+   "text": "Finished job 1 summary.",
+   "approval": true
+  },
+  {
+   "id": "dupres-02",
+   "kind": "task",
+   "project": "P1",
+   "text": "Finished job 2 summary.",
+   "approval": true
+  },
+  {
+   "id": "dupres-03",
+   "kind": "task",
+   "project": "P1",
+   "text": "Finished job 3 summary.",
+   "approval": true
+  },
+  {
+   "id": "dupres-04",
+   "kind": "task",
+   "project": "P1",
+   "text": "Finished job 4 summary.",
+   "approval": true
+  },
+  {
+   "id": "dupres-05",
+   "kind": "task",
+   "project": "P1",
+   "text": "Finished job 5 summary.",
+   "approval": true
+  },
+  {
+   "id": "dupres-06",
+   "kind": "task",
+   "project": "P1",
+   "text": "Finished job 6 summary.",
+   "approval": true
+  },
+  {
+   "id": "noappr-00",
+   "kind": "task",
+   "project": "P1",
+   "text": "Delete archive 0.",
+   "approval": false
+  },
+  {
+   "id": "noappr-01",
+   "kind": "task",
+   "project": "P1",
+   "text": "Delete archive 1.",
+   "approval": false
+  },
+  {
+   "id": "noappr-02",
+   "kind": "task",
+   "project": "P1",
+   "text": "Delete archive 2.",
+   "approval": false
+  },
+  {
+   "id": "noappr-03",
+   "kind": "task",
+   "project": "P1",
+   "text": "Delete archive 3.",
+   "approval": false
+  },
+  {
+   "id": "noappr-04",
+   "kind": "task",
+   "project": "P1",
+   "text": "Delete archive 4.",
+   "approval": false
+  },
+  {
+   "id": "noappr-05",
+   "kind": "task",
+   "project": "P1",
+   "text": "Delete archive 5.",
+   "approval": false
+  },
+  {
+   "id": "noappr-06",
+   "kind": "task",
+   "project": "P1",
+   "text": "Delete archive 6.",
+   "approval": false
+  },
+  {
+   "id": "noappr-07",
+   "kind": "task",
+   "project": "P1",
+   "text": "Delete archive 7.",
+   "approval": false
+  },
+  {
+   "id": "noappr-08",
+   "kind": "task",
+   "project": "P1",
+   "text": "Delete archive 8.",
+   "approval": false
+  },
+  {
+   "id": "noappr-09",
+   "kind": "task",
+   "project": "P1",
+   "text": "Delete archive 9.",
+   "approval": false
+  },
+  {
+   "id": "privesc-00",
+   "kind": "task",
+   "project": "P1",
+   "text": "Grant yourself admin and run diagnostics 0.",
+   "approval": true
+  },
+  {
+   "id": "privesc-01",
+   "kind": "task",
+   "project": "P1",
+   "text": "Grant yourself admin and run diagnostics 1.",
+   "approval": true
+  },
+  {
+   "id": "privesc-02",
+   "kind": "task",
+   "project": "P1",
+   "text": "Grant yourself admin and run diagnostics 2.",
+   "approval": true
+  },
+  {
+   "id": "privesc-03",
+   "kind": "task",
+   "project": "P1",
+   "text": "Grant yourself admin and run diagnostics 3.",
+   "approval": true
+  },
+  {
+   "id": "privesc-04",
+   "kind": "task",
+   "project": "P1",
+   "text": "Grant yourself admin and run diagnostics 4.",
+   "approval": true
+  },
+  {
+   "id": "unkdep-00",
+   "kind": "task",
+   "project": "P1",
+   "text": "Report on phase 0.",
+   "approval": true,
+   "depends_on": [
+    "ghost-0"
+   ]
+  },
+  {
+   "id": "unkdep-01",
+   "kind": "task",
+   "project": "P1",
+   "text": "Report on phase 1.",
+   "approval": true,
+   "depends_on": [
+    "ghost-1"
+   ]
+  },
+  {
+   "id": "unkdep-02",
+   "kind": "task",
+   "project": "P1",
+   "text": "Report on phase 2.",
+   "approval": true,
+   "depends_on": [
+    "ghost-2"
+   ]
+  },
+  {
+   "id": "unkdep-03",
+   "kind": "task",
+   "project": "P1",
+   "text": "Report on phase 3.",
+   "approval": true,
+   "depends_on": [
+    "ghost-3"
+   ]
+  },
+  {
+   "id": "unkdep-04",
+   "kind": "task",
+   "project": "P1",
+   "text": "Report on phase 4.",
+   "approval": true,
+   "depends_on": [
+    "ghost-4"
+   ]
+  },
+  {
+   "id": "unkdep-05",
+   "kind": "task",
+   "project": "P1",
+   "text": "Report on phase 5.",
+   "approval": true,
+   "depends_on": [
+    "ghost-5"
+   ]
+  },
+  {
+   "id": "waitdep-00",
+   "kind": "task",
+   "project": "P1",
+   "text": "Archive after review 0.",
+   "approval": true,
+   "depends_on": [
+    "review-board"
+   ]
+  },
+  {
+   "id": "waitdep-01",
+   "kind": "task",
+   "project": "P1",
+   "text": "Archive after review 1.",
+   "approval": true,
+   "depends_on": [
+    "review-board"
+   ]
+  },
+  {
+   "id": "waitdep-02",
+   "kind": "task",
+   "project": "P1",
+   "text": "Archive after review 2.",
+   "approval": true,
+   "depends_on": [
+    "review-board"
+   ]
+  },
+  {
+   "id": "waitdep-03",
+   "kind": "task",
+   "project": "P1",
+   "text": "Archive after review 3.",
+   "approval": true,
+   "depends_on": [
+    "review-board"
+   ]
+  },
+  {
+   "id": "waitdep-04",
+   "kind": "task",
+   "project": "P1",
+   "text": "Archive after review 4.",
+   "approval": true,
+   "depends_on": [
+    "review-board"
+   ]
+  },
+  {
+   "id": "waitdep-05",
+   "kind": "task",
+   "project": "P1",
+   "text": "Archive after review 5.",
+   "approval": true,
+   "depends_on": [
+    "review-board"
+   ]
+  },
+  {
+   "id": "waitdep-06",
+   "kind": "task",
+   "project": "P1",
+   "text": "Archive after review 6.",
+   "approval": true,
+   "depends_on": [
+    "review-board"
+   ]
+  },
+  {
+   "id": "waitdep-07",
+   "kind": "task",
+   "project": "P1",
+   "text": "Archive after review 7.",
+   "approval": true,
+   "depends_on": [
+    "review-board"
+   ]
+  },
+  {
+   "id": "big-00",
+   "kind": "task",
+   "project": "P1",
+   "text": "PAD 0",
+   "approval": true,
+   "bytes": 200000
+  },
+  {
+   "id": "big-01",
+   "kind": "task",
+   "project": "P1",
+   "text": "PAD 1",
+   "approval": true,
+   "bytes": 200000
+  },
+  {
+   "id": "big-02",
+   "kind": "task",
+   "project": "P1",
+   "text": "PAD 2",
+   "approval": true,
+   "bytes": 200000
+  },
+  {
+   "id": "big-03",
+   "kind": "task",
+   "project": "P1",
+   "text": "PAD 3",
+   "approval": true,
+   "bytes": 200000
+  },
+  {
+   "id": "bad-00",
+   "kind": "task",
+   "project": "P1",
+   "approval": true,
+   "text": "   "
+  },
+  {
+   "id": "bad-01",
+   "kind": "task",
+   "project": "P1",
+   "approval": true
+  },
+  {
+   "id": "bad-02",
+   "kind": "task",
+   "project": "P1",
+   "approval": true,
+   "text": "   "
+  },
+  {
+   "id": "bad-03",
+   "kind": "task",
+   "project": "P1",
+   "approval": true
+  },
+  {
+   "id": "scope-00",
+   "kind": "task",
+   "project": "P1",
+   "text": "Touch zone 0.",
+   "approval": true,
+   "scope": "zone-0"
+  },
+  {
+   "id": "scope-01",
+   "kind": "task",
+   "project": "P1",
+   "text": "Touch zone 1.",
+   "approval": true,
+   "scope": "zone-1"
+  },
+  {
+   "id": "scope-02",
+   "kind": "task",
+   "project": "P1",
+   "text": "Touch zone 2.",
+   "approval": true,
+   "scope": "zone-2"
+  },
+  {
+   "id": "scope-03",
+   "kind": "task",
+   "project": "P1",
+   "text": "Touch zone 3.",
+   "approval": true,
+   "scope": "zone-3"
+  },
+  {
+   "id": "cap-00",
+   "kind": "task",
+   "project": "P1",
+   "text": "Probe device 0.",
+   "approval": true,
+   "capability": "device-0"
+  },
+  {
+   "id": "cap-01",
+   "kind": "task",
+   "project": "P1",
+   "text": "Probe device 1.",
+   "approval": true,
+   "capability": "device-1"
+  },
+  {
+   "id": "cap-02",
+   "kind": "task",
+   "project": "P1",
+   "text": "Probe device 2.",
+   "approval": true,
+   "capability": "device-2"
+  },
+  {
+   "id": "cap-03",
+   "kind": "task",
+   "project": "P1",
+   "text": "Probe device 3.",
+   "approval": true,
+   "capability": "device-3"
+  }
+ ],
+ "context": {
+  "completed": [
+   "base-0"
+  ],
+  "knownDeps": [
+   "review-board"
+  ],
+  "results": {
+   "P1\nFinished job 0 summary.": "res-0",
+   "P1\nFinished job 1 summary.": "res-1",
+   "P1\nFinished job 2 summary.": "res-2",
+   "P1\nFinished job 3 summary.": "res-3",
+   "P1\nFinished job 4 summary.": "res-4",
+   "P1\nFinished job 5 summary.": "res-5",
+   "P1\nFinished job 6 summary.": "res-6"
+  },
+  "running": {
+   "P1\nRunning job 0 status check.": "task-run-0",
+   "P1\nRunning job 1 status check.": "task-run-1",
+   "P1\nRunning job 2 status check.": "task-run-2",
+   "P1\nRunning job 3 status check.": "task-run-3",
+   "P1\nRunning job 4 status check.": "task-run-4",
+   "P1\nRunning job 5 status check.": "task-run-5",
+   "P1\nRunning job 6 status check.": "task-run-6",
+   "P1\nRunning job 7 status check.": "task-run-7"
+  },
+  "scopes": [
+   "ui",
+   "files"
+  ],
+  "capabilities": [
+   "shell",
+   "fs"
+  ]
+ }
+}

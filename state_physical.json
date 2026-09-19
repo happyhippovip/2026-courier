@@ -1,0 +1,193 @@
+{
+  "schema_version": 2,
+  "goals": {
+    "goal-ca71e4f5": {
+      "goal_id": "goal-ca71e4f5",
+      "goal_text": "Physical Proof",
+      "status": "ACTIVE",
+      "terminal": true,
+      "workflow_plan": [
+        {
+          "artifacts": [
+            "test.txt"
+          ],
+          "instruction": "A",
+          "target_agent": "mac",
+          "task_id": "P-A",
+          "goal_id": "goal-ca71e4f5",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "W-MAC-1",
+          "attempt_id": "P-A:attempt:1",
+          "dispatch_id": "dispatch-e0ed6ce1da754094870879c72baff333",
+          "execution_ref": "exec-f2c2985e2bed4d348ccd491b92d98073",
+          "server_binding": {
+            "sha": "970eae52409c38ea7b09642253f98e4cd13b9db2",
+            "runtime": "courier-server:a67a5e759750421bbf88e681647ee162"
+          },
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "verification": {
+            "verifier_id": "V-MAC",
+            "verifier_principal": "principal_476815aea7ed70fa3412c3f4aed71c660689dce9883439cd59a3953b3eb650a9",
+            "result_id": "result-99b0b6f67283f2e607899ed23c1de23449a7fcc0c33df2e0162140800f0d828e",
+            "verdict": "PASS",
+            "artifacts": [
+              {
+                "path": "test.txt",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+              }
+            ],
+            "verified_at": 1789789379.752432
+          }
+        },
+        {
+          "depends_on": [
+            "P-A"
+          ],
+          "instruction": "B",
+          "target_agent": "mac",
+          "task_id": "P-B",
+          "goal_id": "goal-ca71e4f5",
+          "status": "DISPATCHED",
+          "attempts": 1,
+          "worker_id": "W-MAC-1",
+          "attempt_id": "P-B:attempt:1",
+          "dispatch_id": "dispatch-8b13c5d0d5e546d48a9cc7790ea4a9fb",
+          "execution_ref": "exec-fb7b8834df92435185d7820f0b8c5655",
+          "server_binding": {
+            "sha": "970eae52409c38ea7b09642253f98e4cd13b9db2",
+            "runtime": "courier-server:a67a5e759750421bbf88e681647ee162"
+          },
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": []
+        }
+      ],
+      "current_step_index": 0
+    }
+  },
+  "tasks": {
+    "P-A": {
+      "artifacts": [
+        "test.txt"
+      ],
+      "instruction": "A",
+      "target_agent": "mac",
+      "task_id": "P-A",
+      "goal_id": "goal-ca71e4f5",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "W-MAC-1",
+      "attempt_id": "P-A:attempt:1",
+      "dispatch_id": "dispatch-e0ed6ce1da754094870879c72baff333",
+      "execution_ref": "exec-f2c2985e2bed4d348ccd491b92d98073",
+      "server_binding": {
+        "sha": "970eae52409c38ea7b09642253f98e4cd13b9db2",
+        "runtime": "courier-server:a67a5e759750421bbf88e681647ee162"
+      },
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "last_completed_step": "P-A",
+      "next_action": null,
+      "blocker": null,
+      "artifact_refs": [
+        {
+          "path": "test.txt",
+          "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        }
+      ],
+      "producer_principal": "principal_f43fe304fe8f4c3402dca1905d86a446abcfc361e889ef4c737a09fd28655c25",
+      "result": {
+        "runtime_identity": {
+          "runtime": "courier-server:a67a5e759750421bbf88e681647ee162",
+          "sha": "970eae52409c38ea7b09642253f98e4cd13b9db2"
+        },
+        "execution_ref": "exec-f2c2985e2bed4d348ccd491b92d98073",
+        "result_id": "result-99b0b6f67283f2e607899ed23c1de23449a7fcc0c33df2e0162140800f0d828e",
+        "task_id": "P-A",
+        "goal_id": "goal-ca71e4f5",
+        "run_id": "run-mac",
+        "status": "SUCCESS",
+        "worker_id": "W-MAC-1",
+        "attempt_id": "P-A:attempt:1",
+        "artifacts": [
+          {
+            "path": "test.txt",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          }
+        ],
+        "dispatch_id": "dispatch-e0ed6ce1da754094870879c72baff333"
+      },
+      "result_received_at": 1789789379.749362,
+      "verification": {
+        "verifier_id": "V-MAC",
+        "verifier_principal": "principal_476815aea7ed70fa3412c3f4aed71c660689dce9883439cd59a3953b3eb650a9",
+        "result_id": "result-99b0b6f67283f2e607899ed23c1de23449a7fcc0c33df2e0162140800f0d828e",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "test.txt",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          }
+        ],
+        "verified_at": 1789789379.752432
+      }
+    },
+    "P-B": {
+      "depends_on": [
+        "P-A"
+      ],
+      "instruction": "B",
+      "target_agent": "mac",
+      "task_id": "P-B",
+      "goal_id": "goal-ca71e4f5",
+      "status": "DISPATCHED",
+      "attempts": 1,
+      "worker_id": "W-MAC-1",
+      "attempt_id": "P-B:attempt:1",
+      "dispatch_id": "dispatch-8b13c5d0d5e546d48a9cc7790ea4a9fb",
+      "execution_ref": "exec-fb7b8834df92435185d7820f0b8c5655",
+      "server_binding": {
+        "sha": "970eae52409c38ea7b09642253f98e4cd13b9db2",
+        "runtime": "courier-server:a67a5e759750421bbf88e681647ee162"
+      },
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "last_completed_step": null,
+      "next_action": "EXECUTE",
+      "blocker": null,
+      "artifact_refs": []
+    }
+  },
+  "workers": {
+    "W-MAC-1": {
+      "worker_id": "W-MAC-1",
+      "platform": "mac",
+      "capabilities": [
+        "macos"
+      ],
+      "authorities": [],
+      "provider": null,
+      "capacity_identity": null,
+      "provider_available": true,
+      "capacity_available": true,
+      "last_seen": 1789789379.75503,
+      "available": false,
+      "current_task": "P-B",
+      "cost_class": "unknown"
+    }
+  },
+  "resource_owners": {}
+}

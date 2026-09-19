@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Courier Symphony · Agent Workstation</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/style.css"><script defer src="/ui.js"></script></head>
+<body>
+<aside class="sidebar">
+ <div class="brand"><img src="/icon.svg" alt="Courier Symphony"><div><strong>Courier <span>Symphony</span></strong><small>Agent Workstation</small></div></div>
+ <button class="primary new" data-nav="Chat">＋ Neuer Chat / Ziel <kbd>Ctrl N</kbd></button>
+ <nav id="navigation" aria-label="Hauptnavigation"></nav>
+ <div class="side-label">PROJEKTE</div><div id="project-nav"></div>
+ <div class="profile"><span class="avatar" id="avatar">D</span><div><b id="profile-name">Lokaler Workspace</b><small>Lokales Profil · V2</small></div><button data-nav="Einstellungen" class="icon-button" aria-label="Einstellungen">⚙</button></div>
+ <div class="local"><i></i> Nur lokal · keine Cloud-Verbindung</div>
+</aside>
+<div class="shell">
+ <header><label class="search"><span>⌕</span><input id="search" aria-label="Navigation durchsuchen" placeholder="Ansichten, Projekte und Aktionen suchen …"><kbd>Ctrl K</kbd></label><div class="header-tags"><span>▣ Windows</span><span class="pill">LOCAL V2</span></div></header>
+ <div class="layout">
+  <main><div class="tabs" role="tablist" aria-label="Workspace"><button data-nav="Chat" role="tab">◈ Chat</button><button data-nav="Plan" role="tab">☷ Plan</button><button data-nav="Dateien" role="tab">▱ Dateien</button><button data-nav="Terminal" role="tab">⌘ Terminal</button><button data-nav="Aktivität" role="tab">◷ Aktivität</button></div><div id="content"></div><footer>Courier Symphony <span>Ein Workspace. Austauschbare Agenten. Nachvollziehbare Ergebnisse.</span></footer></main>
+  <aside class="context">
+   <section class="panel"><div class="panel-title">Aktives Projekt <span class="tiny">LOKAL</span></div><div class="project-heading"><span class="folder-icon">▱</span><div><b id="project-name">Wird gelesen …</b><small id="project-path"></small></div></div><div id="git-line" class="git-line"></div><button class="secondary full" data-open="project">Im Explorer öffnen ↗</button></section>
+   <section class="panel"><div class="panel-title">Agenten <button class="text-button" data-nav="Agenten">Alle anzeigen →</button></div><div id="agents-mini"></div><p class="hint">Ein vorhandener Starter belegt keinen Online-Status.</p></section>
+   <section class="panel"><div class="panel-title">Schnellzugriff</div><div class="quick"><button data-open="muse">↗ Muse öffnen</button><button data-open="project">▱ Projektordner</button><button data-nav="Evidenz">◇ Evidenz</button><button data-nav="Einstellungen">⚙ Einstellungen</button></div></section>
+   <section class="panel status-panel"><div class="panel-title">System-Status <button class="text-button" id="refresh">↻ Aktualisieren</button></div><p class="hint" id="observed">Daten werden geladen.</p><div id="status-mini"></div><button class="text-button full" data-nav="System-Status">Quellen und Details →</button></section>
+  </aside>
+ </div>
+</div><div id="toast" role="status" aria-live="polite"></div><dialog id="detail"><button id="close-detail" class="secondary">Schließen</button><h2>Gespeicherte Aufgabe</h2><pre id="detail-text"></pre></dialog>
+</body></html>

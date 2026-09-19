@@ -1,3 +1,4 @@
+from scripts.integration_contract import _canonical_hash
 import pytest
 import os
 import tempfile
@@ -113,10 +114,11 @@ def test_turbo_queue_integration_api_path(app_state):
         "execution_ref": t1["execution_ref"],
         "worker_id": w1_id,
         "run_id": "r1",
-        "result_id": "res_A2",
         "status": "SUCCESS",
-        "artifacts": []
+        "artifacts": [],
+        "runtime_identity": t1.get("server_binding")
     }
+    result_A["result_id"] = f"result-{_canonical_hash(result_A)}"
     r = app_state.post(f"/tasks/result", json=result_A, headers=auth_worker)
     assert r.status_code == 200
 
@@ -129,10 +131,11 @@ def test_turbo_queue_integration_api_path(app_state):
         "execution_ref": t2["execution_ref"],
         "worker_id": w2_id,
         "run_id": "r2",
-        "result_id": "res_B2",
         "status": "SUCCESS",
-        "artifacts": []
+        "artifacts": [],
+        "runtime_identity": t2.get("server_binding")
     }
+    result_B["result_id"] = f"result-{_canonical_hash(result_B)}"
     r = app_state.post(f"/tasks/result", json=result_B, headers=auth_worker)
     assert r.status_code == 200
     

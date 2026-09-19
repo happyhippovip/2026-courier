@@ -1,0 +1,10 @@
+WORKER=muse-almond-scheat
+SCOPE=mac-port (thin Mac adapter over accepted core, no rewrite)
+FILES_OWNED=scripts/mac_adapter.py tests/test_mac_adapter.py
+STARTED_AT=2026-09-19T06:10:32.929728+00:00
+SOURCE_IDENTITY=almond-scheat/01a0affd-6736-7350-9620-594c17a40708
+STATUS=PASS
+COMPLETED_AT=2026-09-19T06:25:00Z
+TEST_EVIDENCE=pytest tests/test_mac_adapter.py tests/test_cannon_motor_acceptance.py -q -> 16 passed (on Darwin x86_64)
+PLATFORM_DELTA=none in core (stdlib, mkdir-lock, atomic replace all portable); adapter-only: default state dir ~/.courier/motor + JSON status snapshot + CLI verbs
+REMAINING_DEPENDENCY=browser UI polling adapter status; real provider worker

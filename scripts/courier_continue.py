@@ -3,6 +3,7 @@ import sys
 import subprocess
 import os
 import json
+import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.resolve()))
@@ -199,6 +200,8 @@ def execute_task(task, ledger_path, record):
     import os
     print(f"Executing/Delegating task: {task['instruction']}")
     edge = task["edge_name"]
+    
+
 
 
 
@@ -383,7 +386,7 @@ def update_ledger(ledger_path, edge_name, blocker, bundle):
     elif "ISSUE_STATE" in guard["acceptance_predicate"]["results"]:
         guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["observed_value"] = "NO_FURTHER_ACTION"
 
-    print(f"DEBUG UPDATES: {updates}")
+    print(f"{time.time()} DEBUG UPDATES: {updates}")
     new_bundle = update(
         ledger_path,
         revision,
@@ -393,6 +396,7 @@ def update_ledger(ledger_path, edge_name, blocker, bundle):
         guard
     )
     return new_bundle
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -418,9 +422,10 @@ def main():
     executor = concurrent.futures.ThreadPoolExecutor(max_workers=5)
     running_tasks = {} # mapping task edge_name to future
     task_start_times = {} # mapping task edge_name to start time
+    completed_this_session = set()
     while True:
         branch, sha = get_git_info()
-        bundle = check_freshness(ledger_path, branch, sha)
+        print(f"CHECKING FRESHNESS {branch} {sha}"); bundle = check_freshness(ledger_path, branch, sha)
         record = bundle["record"]
         
         tasks = compute_frontier(record)
@@ -461,6 +466,8 @@ def main():
                 if not task_caps.issubset(worker_caps):
                     continue
                 
+            if t["edge_name"] in completed_this_session:
+                continue
             if t["edge_name"] in blocked_tasks_this_run:
                 continue
                 
@@ -496,15 +503,17 @@ def main():
                     bundle = update_ledger(ledger_path, "CLEAN_IDLE_ACHIEVED", None, bundle)
                 except Exception as e:
                     pass
-            if args.once and not running_tasks and ('done_edges' not in locals() or not done_edges) and 'once_dispatched' in locals():
+            if args.once and not running_tasks and 'once_dispatched' in locals():
                 sys.exit(0)
             if "MOCK_SHA" in os.environ:
-                mock_iters += 1
-                if mock_iters >= 10:
-                    sys.exit(0)
+                if not running_tasks:
+                    mock_iters += 1
+                    if mock_iters >= 10:
+                        sys.exit(0)
+                else:
+                    mock_iters = 0
             import time
             time.sleep(0.1 if 'MOCK_SHA' in os.environ else 1.0)
-            continue
             
         if not args.run:
             next_task = safe_executable_tasks[0]
@@ -526,13 +535,16 @@ def main():
         done_edges = []
         current_time = time.time()
         for edge_name, future in list(running_tasks.items()):
-            if not future.done() and current_time - task_start_times[edge_name] > 8.0:
+            print(f"{time.time()} DEBUG: {edge_name} running for {current_time - task_start_times[edge_name]} seconds")
+            print(f"{time.time()} DEBUG: {edge_name} running for {current_time - task_start_times[edge_name]} seconds")
+            if not future.done() and (current_time - task_start_times[edge_name]) > 8.0:
                 print(f"Task {edge_name} hung for > 8s, abandoning.")
                 done_edges.append(edge_name)
+                completed_this_session.add(edge_name)
                 blocked_tasks_this_run.add(edge_name)
                 try:
                     branch, sha = get_git_info()
-                    bundle = check_freshness(ledger_path, branch, sha)
+                    print(f"CHECKING FRESHNESS {branch} {sha}"); bundle = check_freshness(ledger_path, branch, sha)
                     update_ledger(ledger_path, edge_name, "TIMEOUT_HUNG_TASK", bundle)
                 except Exception as e:
                     print(f"Failed to record hang for {edge_name}: {e}")
@@ -540,13 +552,14 @@ def main():
 
             if future.done():
                 done_edges.append(edge_name)
+                completed_this_session.add(edge_name)
                 try:
                     task, success, new_blocker = future.result()
-                    print(f"\n=== FINISHED TASK: {task['edge_name']} ===")
+                    print(f"\n{time.time()} === FINISHED TASK: {task['edge_name']} ===")
                     branch, sha = get_git_info()
                     for _retry in range(5):
-                        bundle = check_freshness(ledger_path, branch, sha)
-                        print(f"DEBUG BUNDLE BEFORE UPDATE_LEDGER for {task['edge_name']}: {bundle['record']['UNPROVEN_EDGES']}")
+                        print(f"CHECKING FRESHNESS {branch} {sha}"); bundle = check_freshness(ledger_path, branch, sha)
+                        print(f"{time.time()} DEBUG BUNDLE BEFORE UPDATE_LEDGER for {task['edge_name']}: {bundle['record']['UNPROVEN_EDGES']}")
                         try:
                             bundle = update_ledger(ledger_path, task["edge_name"], new_blocker, bundle)
                             break
@@ -560,7 +573,7 @@ def main():
                             raise e
 
                     if success:
-                        blocked_tasks_this_run.clear()
+                        pass
                     elif not success and new_blocker:
                         blocked_tasks_this_run.add(task["edge_name"])
                 except Exception as e:
@@ -568,7 +581,7 @@ def main():
                     blocked_tasks_this_run.add(edge_name)
                     try:
                         branch, sha = get_git_info()
-                        bundle = check_freshness(ledger_path, branch, sha)
+                        print(f"CHECKING FRESHNESS {branch} {sha}"); bundle = check_freshness(ledger_path, branch, sha)
                         update_ledger(ledger_path, edge_name, f"EXCEPTION_{type(e).__name__}", bundle)
                     except Exception as le:
                         print(f"Failed to record exception for {edge_name}: {le}")
@@ -583,7 +596,7 @@ def main():
         newly_submitted = []
         for t in safe_executable_tasks:
             if t["edge_name"] not in running_tasks:
-                print(f"\n=== SUBMITTING TASK: {t['edge_name']} ===")
+                print(f"\n{time.time()} === SUBMITTING TASK: {t['edge_name']} ===")
                 running_tasks[t["edge_name"]] = executor.submit(execute_task, t, ledger_path, record)
                 task_start_times[t["edge_name"]] = time.time()
                 newly_submitted.append(t["edge_name"])
@@ -597,12 +610,8 @@ def main():
         time.sleep(0.1 if 'MOCK_SHA' in os.environ else 1.0)
 
         
-        if args.once and not running_tasks and ('done_edges' not in locals() or not done_edges) and 'once_dispatched' in locals():
+        if args.once and not running_tasks and 'once_dispatched' in locals():
             os._exit(0)
-        if "MOCK_SHA" in os.environ:
-            mock_iters += 1
-            if mock_iters >= 10:
-                sys.exit(0)
         import time
         time.sleep(0.1 if 'MOCK_SHA' in os.environ else 1.0)
 

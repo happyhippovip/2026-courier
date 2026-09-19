@@ -1,9 +1,9 @@
 {
   "schema_version": "2.0",
-  "context_version": 10,
-  "generated_at": "2026-09-18T00:48:12.014311+00:00",
+  "context_version": 12,
+  "generated_at": "2026-09-18T20:54:59.578464+00:00",
   "repositories": {
-    "courier_head": "a146435953dfe8a54f764cfb0af569876e170292",
+    "courier_head": "71b3dc06749b6b9d8ac62834813c8b71aa842249",
     "memory_head": "b89b91c97218bbb1d45a271942efdd835cd624e4",
     "godot_head": "NOT_CONNECTED"
   },
@@ -18,7 +18,7 @@
         "task": "Compiling Project Context Snapshot",
         "progress": 0.1,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-09-18T00:48:12.014331+00:00"
+        "updated_at": "2026-09-18T20:54:59.580142+00:00"
       },
       "agent-bodyguard-hotel": {
         "state": "STANDBY",
@@ -40,6 +40,13 @@
         "progress": 0.0,
         "execution_class": "UNKNOWN",
         "updated_at": "2026-09-17T12:57:51.421296+00:00"
+      },
+      "agent-thought-curator": {
+        "state": "SENT TO CHIEF",
+        "task": "Curated idea-e9765d4b",
+        "progress": 1.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-18T17:27:59.744355+00:00"
       },
       "agent-bodyguard-delta": {
         "state": "STANDBY",
@@ -77,7 +84,7 @@
         "updated_at": "2026-09-17T12:57:51.427320+00:00"
       }
     },
-    "total_decisions": 2,
+    "total_decisions": 4,
     "total_results": 0,
     "total_approvals": 0,
     "total_adoptions": 0
@@ -134,7 +141,33 @@
       "changelog": true
     }
   },
-  "latest_idea_delta": null,
+  "latest_idea_delta": {
+    "idea_id": "idea-e9765d4b",
+    "raw_idea": "Ich m\u00f6chte eine Website f\u00fcr mein Produkt.",
+    "normalized_idea": "ich m\u00f6chte eine website f\u00fcr mein produkt.",
+    "normalized_summary": "Ich m\u00f6chte eine Website f\u00fcr mein Produkt.",
+    "idea_status": "PROPOSED",
+    "type": "GOAL",
+    "classification": "NEW",
+    "truth_boundary": "IDEA != VERIFIED | USER_REPORTED != TECHNICALLY_VERIFIED",
+    "conflicts": [],
+    "related_ideas": [],
+    "memory_references": [],
+    "affected_agents": [
+      "antigravity"
+    ],
+    "affected_workflows": [
+      "General Architecture (Courier System)"
+    ],
+    "recommended_next_action": "ROUTE_TO_ANTIGRAVITY_PRIMARY",
+    "target_agent_recommendation": "antigravity",
+    "sources_indexed": {
+      "decisions": true,
+      "ideas": true,
+      "project_state": true
+    },
+    "timestamp": "2026-09-18T17:27:59.744338+00:00"
+  },
   "academy_adoptions": 0,
   "truth_classifications": {
     "courier_codebase": "VERIFIED",
@@ -149,7 +182,7 @@
   "changed_since_previous_snapshot": [
     "courier_head"
   ],
-  "previous_snapshot_version": 9,
-  "previous_snapshot_hash": "d173c79fa75606f726bf631796de486e677ea25b5d11eb73e39781ebbc8ca179",
-  "snapshot_hash": "4722cba2649b09aaa88e25c7585deea43daa3a45de0d8abd221a63dd88c1e618"
+  "previous_snapshot_version": 11,
+  "previous_snapshot_hash": "b3926e975e22abd5a4945db35a325bc5650248a219d66a553e73890d49aaf951",
+  "snapshot_hash": "709a415e76830e6bc3d560df69e526d4fbc0fb62a2ba876749a174c6449803ec"
 }

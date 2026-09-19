@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Muse Workbench</title>
+<style>
+body { font-family: system-ui, sans-serif; margin: 0; background: #111; color: #eee; }
+header { padding: 8px 12px; background: #1c1c1c; display: flex; gap: 12px; align-items: center; }
+header .demo { color: #ffcf5c; font-weight: bold; }
+.tabs { display: flex; gap: 4px; padding: 8px 12px 0; }
+.tabs button { padding: 6px 14px; border: 1px solid #444; background: #222; color: #eee; cursor: pointer; }
+.tabs button.active { background: #0a4d8c; }
+.slot { display: none; padding: 12px; }
+.slot.active { display: block; }
+textarea.prompt { width: 100%; height: 140px; background: #0d0d0d; color: #eee;
+  border: 2px solid #555; font-size: 14px; }
+textarea.prompt:focus { border-color: #2ea3ff; outline: none; }
+.status { font-weight: bold; margin: 6px 0; }
+pre.view { background: #0d0d0d; border: 1px solid #333; padding: 8px; max-height: 160px;
+  overflow: auto; white-space: pre-wrap; }
+.row { display: flex; gap: 8px; margin: 8px 0; align-items: center; }
+button.action { padding: 6px 14px; cursor: pointer; }
+#gallery { margin: 0 12px 12px; }
+</style>
+</head>
+<body>
+<header>
+  <b>Muse Workbench</b>
+  <span id="demo-banner" class="demo" style="display:none">DEMO MODE (paths/secrets masked)</span>
+  <span id="queue-info"></span>
+</header>
+<div class="tabs" id="tabs"></div>
+<div id="slots"></div>
+<div id="gallery"><h3>Prompt Gallery</h3><div id="gallery-list" class="row"></div></div>
+<script src="muse-bench.js"></script>
+</body>
+</html>

@@ -70,16 +70,103 @@ checkpoint:
     commits land locally first, push later; reran G5 trio vs COMMITTED
     state - 3 passed; PUSH DEFERRED - 3 owner commits unpushed,
     publishing them is owner call; my new commit stays local-only
-  last_test: owner G5 batch vs committed 955c1261 - motor_swallow plus
-    server_retry plus ledger_overwrite (3 passed, 0.39s, this turn)
-  last_test_result: GREEN vs committed state - motor handler calls
-    update_ledger; server FAILED_TERMINAL without zero-reset; ledger
-    preserves BLOCKED
+  last_test: work_queue portable-lock regression (2 passed, fcntl-free
+    import plus full cycle on tmp state)
+  last_test_result: GREEN - queue imports and runs with fcntl blocked
+    (Windows simulation); claim/complete/reconcile intact
   last_commit: 955c1261 (owner, local-only)
   last_push: 56fa9057
   blocker: NONE
-  next_action: AWAIT_OWNER_PUSH_THEN_RECOMPUTE
-  heartbeat_utc: 2026-09-18T12:19:20+02:00
+  next_action: AWAIT_OWNER_CONTRACT_FIX
+  heartbeat_utc: 2026-09-18T20:55:00+02:00
+  closeout_01_candidate_commit: d5817cafadb9af8e267bb2addeb0f5a70b9fc903
+  closeout_01_candidate_tree: 1603e27aab7265b2b852f5049016d970ebaa0da5
+  closeout_01_commits_since_71b3dc06: d5817caf plus 068e4790 (Windows worker scope)
+  closeout_01_own_allowed_files: ops/ai/MUSE_CONTINUOUS_WORK.yaml
+  closeout_01_first_open_condition: "owner contract plus live-verify evidence for runtime binding (server/app.py verify_task_result, GOOGLE scope)"
+  closeout_02_reuse: "portable-lock plus mac-smoke REUSE (work_queue plus smoke unveraendert, kein Re-Run); DLQ-03/07/08 KEIN REUSE (ledger plus tests dirty, HEAD-Delta) - betroffen"
+  closeout_03_verify400: "400 missing-runtime-identity war korrekte Abweisung (app.py 1084-1086), kein gueltiger Fall abgewiesen; Mismatch 1088-1090; Sender verifier.py 103; fehlend positiv plus mismatch live (Owner-Gate)"
+  closeout_04_reproducer: "REUSE - kein neuer Test (03/10 geklaert, kein belegter Defekt)"
+  closeout_05_handover: "keine Produktion geaendert (GOOGLE scope); Auftrag AWAIT_OWNER_CONTRACT_FIX mit Datei-Funktion-Vertrag aus closeout_03"
+  closeout_06_posneg: "Owner-Fix ausstehend dokumentiert; rote Pruefungen nicht erneut ausgefuehrt"
+  closeout_07_dupclose: "DLQ-03-Vertrag (DECIDED, raise-at-storage) deckt committed Stand, nicht dirty Kandidaten-Tree; Delta ist GOOGLE-Fremdscope (ledger M) - kein eigener Run, kein neuer Ledger; Kriterien identisch-konfliktorisch-veraltet-Reload bleiben Owner-Gate"
+  closeout_08_runtime: "Kandidat d5817caf Tree 1603e27a; geladener Build unbelegt (HEAD-Host-Health allein kein Beleg); Bindung server-binding vs received_runtime_identity (app.py 1084-1090, verifier.py 103); Mac-Smoke bleibt Mac-Smoke; Windows-PASS fehlt; Fremdauftrag nicht editiert (Boundary), Punkt hier festgehalten"
+  closeout_09_package: "Paket ist dieser Checkpoint 01-08; Kandidat-Diff: 068e4790 plus d5817caf plus dirty ledger-Tests (Fremdscope); neu: keine Produkt-Tests; REUSE: portable-lock plus Mac-Smoke plus 400-Einordnung; Bindung: closeout_08; Luecke: Owner-Vertrag plus Live- plus Windows-Evidenz; Refs: MUSE_CONTINUOUS_WORK.yaml plus server/app.py plus scripts/courier_verifier.py; Ledger-Abnahme vs Betriebsnachweis vs Release getrennt; keine Logo-WORKSCRIPT-Turbo-AppStore-Bedingungen; kein PASS-Ersatz"
+  closeout_10_status: "BLOCKED; erste Luecke: Live-Nachweis positiv plus mismatch zum Verify-Vertrag (Owner GOOGLE); LEDGER_ACCEPTED plus LEDGER_FROZEN nicht gesetzt; Folgeauftrag: Owner liefert Contract-Live-Evidenz zu app.py verify_task_result (Belege: closeout_03 plus closeout_08), danach Neubewertung"
+  closeout_11_ownerfix: "kein relevanter Owner-Fix seit closeout_10 (HEAD d5817caf unveraendert, app.py clean); keine Wiederholung"
+  closeout_12_positiv: "gueltiger Fall akzeptierbar belegt (test_ab_reconcile_unlock: verify mit server_binding als received_runtime_identity ergibt 200, B claimable); Kette Felder-Empfang-Validierung-Verifikation-Abschluss ohne Verlustpunkt; keine Reparatur (GOOGLE scope)"
+  closeout_13_manipulation: "Mismatch-Schutz nur statisch vorhanden (app.py 1088-1090), kein eigener isolierter Negativbeleg; Fremdtest dirty, nicht als Eigenbeleg; keine Runtime-Daten geaendert; Luecke bleibt Owner-Gate"
+  closeout_15_zuordnung: "A-zu-B-Kette positiv belegt (Result-A-1 zu Verify zu B); A-fuer-B plus ersetzter-Attempt negativ nicht eigenbelegt; identische Wiederholung ohne Zweitabschluss per DLQ-03-Vertrag (committed); keine neue Matrix"
+  closeout_16_abbruch: "Crash-Grenze nicht eigenbelegt; referenziert: save_state-Racefix aus 71b3dc06 plus Restart-Resume-Torture (Fremdscope); kein Prod-Abbruch, keine neue DB"
+  closeout_17_windows: "Windows-Auftrag betroffen (068e4790 plus d5817caf Worker-Scope); portable-lock plus Mac-Smoke REUSE als Simulation; Retry-Regel DLQ-06 vorhanden; physischer Windows-Nachweis fehlt (Owner-Gate); keine ACL-Prozess-Except-Aenderung"
+  closeout_18_selfcert: "test_ab ist Fixture-Beleg (tmp-state, synthetische Secrets, test_client), kein Produktionsnachweis; gueltig-Pfad code-belegt (200 plus B claimable), hier kein Fresh-Run; eigener invalider Kontrollfall fehlt (Mismatch nur statisch app.py 1088-1090) - konkrete Luecke; keine Providerstarts, kein ACCEPTED-FROZEN gesetzt"
+  closeout_19_winpkg: "Windows-Pflicht bleibt; Fremdauftrag nicht editiert (Boundary), Paket hier: Kandidat d5817caf Tree 1603e27a; Bedarf: Windows-Maschine plus Repo plus Python; Befehl: python scripts/windows_queue_smoke.py (optional --state-dir DIR, lt. Script-Usage); State: tempfile wq_smoke_ isoliert, danach entfernt; erwartet: Exit 0 plus WINDOWS-QUEUE-SMOKE PASS plus DONE; Rohbelege: stdout-stderr des Laufs; Hinweis: subprocess ohne Timeout im Script, keine Prod-Starts"
+  closeout_20_status: "BLOCKED; Paket: dieser Checkpoint closeout_01 bis closeout_19; keine Selbstabnahme, kein ACCEPTED-FROZEN erfunden"
+  turbo_01_candidate: "Hinweis 057d59ad ist Vorfahr, nicht Kandidat; Lauf-HEAD f2def98d, aktuell 1901cb00 (docs), Tree 6b509337; Turbo-Dateien clean"
+  turbo_02_fixture: "Fixture setzt API_KEY direkt (test), kein getrennter Verifier-Wert, keine Ruecksetzung; .json ohne Status-Schema-Pruefung; Isolation: REUSE nur fuer tmp-State, Rest Luecke"
+  turbo_03_vertrag: "Vertrag: register-goals-claim-result-verify je 200 (kein 201); Turbo prueft keine Statuscodes; Fehler ohne task-Feld darf nicht als leere Queue gelten - Luecke"
+  turbo_04_integration: "Letzter Test patchelt RECONCILED direkt: nur Scheduler-Fixture; kein eigener A-plus-B-zu-C Result-Verify-Test (test_ab deckt nur A-zu-B); roter Reproducer fehlt - Owner-Gate"
+  turbo_05_barriere: "FIXTURE_ONLY: C-Sperre nach manuellem RECONCILED beobachtet; beschaeftigt-vs-abhaengig nicht per Status plus Worker-Check getrennt"
+  turbo_06_concurrency: "NOT_PROVEN: zwei sequentielle Posts, keine Ueberlappung; kein CLAIM_RACE- oder OVERLAP-Beleg"
+  turbo_07_dispatcher: "NOT_PROVEN: kein Dispatcher beobachtet; Claim-durch-Treiber ist kein Auto-Continue; Neustart-Doppelzustellung offen; Recovery-Tests fremd-dirty"
+  turbo_08_sync: "Mac- und Windows-Skripte klonen lokalen Pfad (kein portabler Windows-Quellpfad); Mac-Schritt-10 maskiert Fehler via OR-true und schreibt PASS unbedingt; kein amend-reset-clean erfolgt"
+  turbo_09_ui: "WORK_SCRIPT_VISIBLE plus TURBO_VISIBLE: NOT_OBSERVED; kein UI-Test, keine Features hinzu; AUS-Puls-CLI-Aussagen unbelegt; LIVE_MUSE_DELIVERY bleibt NOT_CONNECTED"
+  turbo_10_fields: "SCHEDULER_FIXTURE=PASS(1-1,0.59s,f2def98d); RESULT_VERIFICATION_INTEGRATION=NOT_PROVEN; DEPENDENCY_BARRIER=FIXTURE_ONLY; LOCAL_CONCURRENCY=NOT_PROVEN; AUTO_CONTINUE_RECOVERY=NOT_PROVEN; MAC_TEST=NOT_EXECUTED; WINDOWS_TEST=NOT_EXECUTED; WORK_SCRIPT_UI=NOT_OBSERVED; REAL_MUSE_ROUNDTRIP=NOT_PROVEN; LEDGER_ACCEPTANCE=BLOCKED"
+  turbo_10_status: "BLOCKED; naechster Schritt (Owner GOOGLE): separater A-plus-B-zu-C Result-Verify-Integrationstest plus Status-Schema-Asserts im Turbo-Test; danach Neubewertung"
+  m01_10: "M01 CANDIDATE=970eae52 TREE=cdec6030 dirty(fremd, aktiv) Owner-GOOGLE; M02 REUSED-durch-Owner-38b10e18 (Status-Asserts plus 401-400-Kontrollen), Ersttest bleibt Fixture; M03 Global-Keys-Luecke (API-VERIFIER-direkt, kein Reset) als Owner-Korrektur (monkeypatch plus Reset), kein Eigen-Edit; M04 claim-get teils ohne Status-Assert als Owner; M05 REUSED; M06 REUSED-Owner; M07 REUSED plus Mini-Luecke mismatch-Wert; M08 REUSED (A-plus-B-zu-C plus Dup-Verify); M09 Handover-hier; M10 BLOCKED"
+  m11_20: "M11 REUSED (Smoke-Roundtrip); M12 WAITING (kein Idempotenz-Interface belegt); M13-M16 NOT_APPLICABLE (kein belegter Defekt); M17 REUSED (DLQ-03); M18 depends-Membership ok, Selbst-Zyklus ohne Beleg NOT_APPLICABLE; M19 NOT_APPLICABLE; M20 Handover-hier"
+  m21_30: "M21 TESTED-21-21-282ms; M22-M23 REUSED; M24 CLI-Pfad plus v1.3.0, non-interactive-Aufruf undokumentiert CAPABILITY_MISSING; M25 CAPABILITY_MISSING; M26-M28 REUSED-ADAPTER_FIXTURE; M29 BLOCKED-Freigabe; M30 APP_TESTED-21-21 ADAPTER_LOCAL-fixture REAL_MUSE_ROUNDTRIP-BLOCKED"
+  m31_40: "M31 REUSED; M32 REUSED-Barriere-lokal; M33 REUSED-DupVerify-plus-C; M34 NOT_APPLICABLE; M35 REUSED-Policy; M36 REUSED-ClaimRace; M37 NOT_APPLICABLE (M29-blockiert); M38 REUSED; M39 BLOCKED-TURBO_UNPROVEN; M40 NORMAL-testmodus TURBO-fixture REAL-BLOCKED"
+  m41_50: "M41-M47 NOT_APPLICABLE (kein Katalog-Icon-App-Resultfeld-Scope); M48 beobachtet-25-pass Provider-0 Euro-UNKNOWN; M49 Handover-hier; M50 ENDE (BLOCKED, keine autorisierte Arbeit)"
+  w_all_mac: "W01-W50 NOT_APPLICABLE auf Mac (Darwin) - Windows-Host fehlt; einmal dokumentiert, nicht einzeln untersucht"
+  g21_31: "Probe-tmp-33-33-Exit0: ResultA-ACK plus Pending-Read-Ref; Worker-frei-bei-Result; C-4-Stufen-gated-then-once; 401-400s-ohne-Effekt; RealSHA-ok plus Tamper-400s; Lineage-400; DupVerify-ACK; Redelivery-ACK-ohne-Zweiteffekt; B-Pfad-A-intakt; C-Result-Verify; Goal-DONE; G32-REUSED"
+  g33_40: "G33-G34-REUSED (Concurrency-4-4-heute); G35-NOT_IMPLEMENTED-serverseitig; G36-sequentiell-single-owner plus Generik-REUSED; G37-ServerPush-CAPABILITY_MISSING DriverPoll-PROVEN; G38-Restart-Referenz-ohne-neuen-Test; G39-Helfer-keine (nur-test_client); G40-Turbo-4-4-plus-Probe-33-33-Exit-0-0 Reset-Leak-bleibt-M03-Owner"
+  g41_46: "G41-beide-Skripte-weiter-Lokalpfad Mac-maskiert-OR-true-PASS-unbedingt; G42-Fremdscope-OwnerDelta (Quelle-parametrieren OriginURL-Windows Exit-echt); G43-Testcheckout-da-bei-fcd6ebc8-hinter-970eae52-Transfer-offen; G44-NOT_EXECUTED (pkill-Selbsttreffer-Risiko plus Heavyweight plus PASS-unbedingt, Audit-gespeichert); G45-NOT_EXECUTED (kein-pwsh); G46-NOT_OBSERVED"
+  g47_50: "G47-Eigendiff-nur-Checkpoint-keine-Abschwaechung; G48-Paket-dieser-Checkpoint-Fingerprint-in-Antwort; G49-ein-Ownerauftrag-GOOGLE-Live-plus-Windows-Evidenz; G50-LEDGER_STATUS-BLOCKED"
+  c01_area: "Kandidat-970eae52; Scopes-work-script-Repo plus Desktop-Testcheckout; Fremddateien-unangetastet; Eigen-Checkpoint-plus-Tests"
+  c02_cli: "CLI_EXECUTABLE-User-local-bin-muse-Datei-33118B-kein-Alias-Wrapper; CLI_VERSION-1.3.0-Banner-R3401.1-frueher-R3233.1-beobachtet; SHELL-bin-sh-PATH-local-bin; Downloads-kein-Installnachweis"
+  c03_app: "SOURCE_FOUND-ja-work-script-Preview; APP_BUNDLE_FOUND-nein-kein-Muse-Verzeichnis; CONNECTION_EVIDENCE-keine-NOT_CONNECTED-8097-nicht-zugeordnet"
+  c04_transport: "exec-passt-headless-plus-json-ohne-Attach; serve-vorhanden-stdio-Host-schwerer-kein-Zweittransport; resume-verboten-SessionAttach; keine-erfundenen-Flags; exec-Modellaufruf-braucht-Freigabe-Budget-zu-25"
+  c05_503: "kein-bereinigter-503-Ausschnitt-vorhanden-nur-Hardening-Erwaehnung; Quelle-UNKNOWN; 503-allein-kein-Beweis; keine-Adapteraenderung-keine-Logs"
+  c06_transport: "3-Tests-gruen-Glob-37-37; Helper-Fixes-donePromise-plus-StubDrain; Befund-PENDING-wedged-alles-neue-Reconciliation-dokumentiert; kein-Produkt-Change"
+  c13_adapter: "exec-adapter-implementiert-argv-ohne-Shell-CWD-Allowlist-Marker-Pflicht-Timeout-Kill-nur-eigen-Redelivery; nur-Stub-8-Tests-gruen"
+  c14_cancel: "Cancel-mit-Identitaet-eigener-PID-unknown-untouched-Abbruch-ist-ABORTED-Drain-ok"
+  c15_approval: "Yolo-Flags-BLOCKED-ohne-Approval-BLOCKED-ohne-Spawn-kein-Config-Change"
+  c16_result: "Redelivery-statt-ReExec-Teiloutput-unvollstaendig-Verifikation-bleibt-serverseitig"
+  c17_dispatcher: "kein-Dispatcher-im-AppScope-Verbindung-MISSING-kein-neuer-Scheduler"
+  c18_offpulse: "REUSED-Suite-OFF-Puls-StaleTimer-Stop"
+  c19_display: "Widget-Status-plus-Receipt-da; 503Detail-Dedup-fehlt-WAITING-braucht-ControllerFehlerfeld"
+  c20_slots: "NORMAL1-TURBO2-5-Tests-gruen; reale-Turbo-Freigabe-separat"
+  c21_race: "serverseitig-REUSED-committed-keine-neuen-Varianten"
+  c22_cannon: "ResultVerifierPfad-serverseitig-REUSED-33-33-Appseitig-kein-Motor-keine-Dublette"
+  c23_restart: "RestartOFF-plus-PENDING-REUSED-AUSvorher-REUSED-RetryZaehler-fremd"
+  c24_bundle: "Bundle-weiter-fehlend-kein-Build-WAITING-OwnerEntscheidung"
+  n1_link: "Kandidat-970eae52-Tree-cdec6030; erste-offene-Verbindung-AutoNext-Dispatcher-MISSING-nur-DriverClaim; Einzelkette-3333-belegt"
+  n2_rules: "stabil-FailClosed-1Lane-unklar-PAUSE-kein-Start-durch-UI; params-Lanes-1-3-lokal-Nacht-NORMAL1-keine-Modi-4-6"
+  n3_fixture: "12Records-Erwartungen-fixiert-vorab-Hash-e8531ea-keine-Kundendaten"
+  n4_path: "Interfaces-belegt-Probe-Stub-nur-workscript-Dispatcher-MISSING_CONNECTION-kein-Ersatzscheduler"
+  n5_replay: "A-controller-B-redelivery-plus-5D-neu-C-BLOCKED-Pfade-D-5D-E-stop-plus-restartOFF-F-DLQ03-G-committedRace-H-storagefailure"
+  n6_night: "Gesamtlauf-nicht-moeglich-Stuecke-belegt-Fehlglied-benannt"
+  n7_bounds: "Slots-maxBytes-Timeouts-Journal1000-keinRetry-keine-Metriken-erfunden"
+  n8_scale: "Kleinbestand-nur-1000-10000-nicht-ausgefuehrt-keine-Frage"
+  n9_update: "Fixtures-nur-Checkout-hinterher-keine-SyncAktion"
+  n10_findings: "Fwedge-Verhalten-eigen-FdonePromise-fix-eigen-Fstubdrain-fix-eigen-Fglobalkeys-Owner-Fsyncsrc-Owner-Fmcmask-Owner"
+  n11_map: "Timing-controller-Lanes-slots-Import-fixture-Adapter-adapter-Texte-keinReproof"
+  n12_pkg: "Paket-Checkpoint-plus-workscript-Dateien-Index-mit-GoogleAuftraegen"
+  cannon_final: "PrepV3-plus-Acceptance-plus-Refinement-implicit; K06-K14-12Pakete; Freeze-1-10-9Pakete; BuilderInput-final; PrePro-Sanity; ws56-Exit0; CANNON_PREPARATION_COMPLETE-YES-STOP"
+  prep1_lock: "HEAD-970eae52-TREE-cdec6030-BASELINE-IDENTICAL-REMOTE-71b3dc06-behind-WT354-foreign-active; claims-REUSE_VALID-STALE-none; FIRST_GAP-live-plus-machine"
+  prep2_turbosync: "R1-PARTIALLY_PROVEN-behavior-green-hardening-open; R2-NOT_PROVEN-no-loaded-SHAs-mask-plus-localpath; later-turbo-rerun-plus-winsmoke-plus-syncfix-GOOGLE"
+  prep3_physlive: "WIN_PACKET_YES-steps-defined; LIVE_STAGE1_YES-artifacts-defined; FIRST_PHYSICAL_BLOCKER-no-Windows-access-plus-STAGE1-approval"
+  prep4_scope: "NOW-minimal-runner-plus-R1R2; LATER-importer-governor-updater; DROP-bundle-morninglive; REUSE-queue-contract-controller-adapter"
+  prep5_gate: "VERDICT-BLOCKED_BY_OWNER_FIX; R1NO-R2NO-R3packetYES-R4packetYES; builder-cmd-single-see-packet"
+  ledger_final_note: iter10 at HEAD 71b3dc06 - runtime binding landed
+    (server_binding per claim, verify requires received_runtime_identity,
+    save_state race fix, attestation_contract module); my A-to-B test
+    adapted to new verify contract (green, pins identity propagation);
+    Google contract test RED at own HEAD (same 400, owner follow-up);
+    boundary test needs live :8099 plus silent returns (owner scope);
+    defect 1 plus motor switch plus epoch plus lineage plus PR42/43
+    plus A-to-B-physical still open; freeze NO; Codex NO
   packets_ready:
   - ops/ai/packets/CODEX_DLQ05-provider-lock.md (new, CODEX_READY)
   - ops/ai/packets/DLQ-07-FOLLOWUP-overblock.md (new, READY_TO_IMPLEMENT YES)
@@ -111,6 +198,16 @@ checkpoint:
   - iter7 owner-commit review - 29191a53 resolves WATCH (deadlock fix
     intentional); mode propagation consistent; duplicate artifacts block
     plus stray blanks are cosmetic-only notes for owner
+  - windows fcntl kill - work_queue.py used fcntl.flock (ImportError on
+    Windows); replaced with atomic-mkdir lock, portable; regression test
+    tests/test_work_queue_portable_lock.py 2/2 green
+  - windows smoke - scripts/windows_queue_smoke.py one-command proof
+    (fcntl-free import plus full cycle, isolated tmp dir); PASS on Mac,
+    Windows run pending owner
+  - windows hazard audit (read-only) - mac daemon killpg is platform-correct;
+    server /tmp/mock_replenish.txt sits in REPLENISHMENT_TEST mock branch
+    (owner scope, noted not touched); no other POSIX-only calls in
+    ledger/motor/verifier/server core; windows_worker dir exists (owner)
   - DLQ-05 effective key is worker_id:provider (pools map never populated)
   - author-bracket-typo saga - Bearer [REDACTED] typos cause 401/EQ-false; byte-scan
     discipline (0x20 check + bracket check) for all future auth literals
@@ -277,3 +374,12 @@ usage:
     Treat the YAML as your durable scheduler and checkpoint. Update its checkpoint
     after each coherent work unit. Never return while any safe lane is executable.
     Do not restart discovery; resume from checkpoint and current HEAD.
+  day2-close:
+    at: 2026-09-19
+    batch: MUSE-51..150
+    executed_tests: "work-script/*.test.mjs 65/65 PASS (56 Bestand + 9 fake_worker neu); CLEAN_START=PASS live"
+    static_specs: "ux_specs_core.md, ux_specs_trust.md, ux_specs_demo_safety.md, fixtures_time_events.json, fixtures_lifecycle.json, fixtures_safety.json, mac_shell/ (UI-only)"
+    audits_readonly: "100 auto-upshift PASS (keine Logik); 103 Logging PASS minimal; 143 app.py atomar PASS, daemon plain writes -> Google; 144 zwei Writer, shared-file offen; 52 sync READY/PASS false-green bestaetigt; 63 DONE-Bindung offen"
+    demos_mapped: "109-118 auf fake_worker-Modi; 112,113,114,115,116,117,118,127 per Test belegt"
+    false_pass_count_day2: 0
+    status: MUSE_DAY2_STATUS=YELLOW

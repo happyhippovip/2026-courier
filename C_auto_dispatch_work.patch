@@ -1,0 +1,228 @@
+diff --git a/server/app.py b/server/app.py
+index 7b3cac50..28227a3c 100644
+--- a/server/app.py
++++ b/server/app.py
+@@ -364,6 +364,7 @@ def calculate_backoff(attempt):
+ 
+ 
+ STATE_LOCK = threading.RLock()
++NEW_TASK_EVENT = threading.Condition(STATE_LOCK)
+ 
+ def require_auth(f):
+     def wrapper(*args, **kwargs):
+@@ -541,6 +542,7 @@ def submit_goal():
+             goal["workflow_plan"].append(new_task)
+         
+     state["goals"][goal_id] = goal
++    with NEW_TASK_EVENT: NEW_TASK_EVENT.notify_all()
+     save_state(state)
+     return jsonify({"goal_id": goal_id, "status": "ACTIVE"})
+ 
+@@ -646,6 +648,7 @@ def register_worker():
+         "cost_class": data.get("cost_class", "unknown")
+     }
+     
++    with NEW_TASK_EVENT: NEW_TASK_EVENT.notify_all()
+     save_state(state)
+     return jsonify({"status": "REGISTERED"})
+ 
+@@ -659,6 +662,7 @@ def unregister_worker():
+     
+     if worker_id in state["workers"]:
+         state["workers"][worker_id]["available"] = False
++        with NEW_TASK_EVENT: NEW_TASK_EVENT.notify_all()
+         save_state(state)
+         return jsonify({"status": "UNREGISTERED"})
+     return jsonify({"error": "Unknown worker"}), 404
+@@ -681,6 +685,7 @@ def heartbeat():
+                 state["workers"][worker_id]["available"] = True
+         else:
+             state["workers"][worker_id]["available"] = True
++        with NEW_TASK_EVENT: NEW_TASK_EVENT.notify_all()
+         save_state(state)
+         return jsonify({"status": "OK"})
+     else:
+@@ -692,8 +697,37 @@ def heartbeat():
+ def claim_task():
+     data = request.get_json(silent=True) or {}
+     worker_id = data.get("worker_id")
+-    state = load_state()
++    timeout = min(int(data.get("timeout", 5)), 25)
+     
++    wait_start = time.time()
++    while time.time() - wait_start < timeout:
++        state = load_state()
++        if worker_id not in state["workers"]:
++            return jsonify({"error": "Unknown worker"}), 404
++        worker = state["workers"][worker_id]
++        
++        if worker.get("current_task"):
++            break
++            
++        has_ready = False
++        for goal in state["goals"].values():
++            if goal["status"] == "ACTIVE" and "workflow_plan" in goal:
++                completed = {s["task_id"] for s in goal["workflow_plan"] if s.get("status") == "RECONCILED"}
++                for s in goal["workflow_plan"]:
++                    if s.get("status") == "QUEUED" and s.get("next_retry_at", 0) <= time.time():
++                        deps = s.get("depends_on", [])
++                        if isinstance(deps, str): deps = [deps]
++                        if all(d in completed for d in deps):
++                            has_ready = True
++                            break
++            if has_ready: break
++            
++        if has_ready: break
++        
++        with NEW_TASK_EVENT:
++            NEW_TASK_EVENT.wait(timeout=1)
++            
++    state = load_state()
+     if worker_id not in state["workers"]:
+         return jsonify({"error": "Unknown worker"}), 404
+         
+@@ -707,8 +741,9 @@ def claim_task():
+                 worker["current_task"] = None
+                 worker["available"] = True
+             else:
++                with NEW_TASK_EVENT: NEW_TASK_EVENT.notify_all()
+                 save_state(state)
+-                return jsonify({"task": None, "reason": "WORKER_BUSY"})
++                return jsonify({"task": task}) # <--- Return task instead of WORKER_BUSY
+         else:
+             worker["available"] = True
+     
+@@ -717,6 +752,7 @@ def claim_task():
+         if task.get("status") == "DISPATCHED" and task.get("worker_id") == worker_id:
+             worker["current_task"] = task_id
+             worker["available"] = False
++            with NEW_TASK_EVENT: NEW_TASK_EVENT.notify_all()
+             save_state(state)
+             return jsonify({"task": task})
+ 
+@@ -740,6 +776,7 @@ def claim_task():
+ 
+                 worker["current_task"] = task_id
+                 worker["available"] = False
++                with NEW_TASK_EVENT: NEW_TASK_EVENT.notify_all()
+                 save_state(state)
+                 return jsonify({"task": task})
+ 
+@@ -748,6 +785,7 @@ def claim_task():
+         worker.get("provider_available", True) is not True
+         or worker.get("capacity_available", True) is not True
+     ):
++        with NEW_TASK_EVENT: NEW_TASK_EVENT.notify_all()
+         save_state(state)
+         return jsonify({"task": None, "reason": "PROVIDER_UNAVAILABLE"})
+         
+@@ -755,6 +793,7 @@ def claim_task():
+     worker_provider = str(worker.get("provider", "unknown"))
+     lock_key = f"{quota_resource_id}:{worker_provider}"
+     if time.time() <= state.get("provider_locks", {}).get(lock_key, 0):
++        with NEW_TASK_EVENT: NEW_TASK_EVENT.notify_all()
+         save_state(state)
+         return jsonify({"task": None, "reason": "PROVIDER_QUOTA_LOCKED"})
+ 
+@@ -793,6 +832,7 @@ def claim_task():
+                 _acquire_task_resources(state, claimed)
+                 worker["current_task"] = claimed["task_id"]
+                 worker["available"] = False
++                with NEW_TASK_EVENT: NEW_TASK_EVENT.notify_all()
+                 save_state(state)
+                 return jsonify({"task": claimed})
+                         
+@@ -848,9 +888,11 @@ def claim_task():
+                 worker["available"] = False
+                 state["tasks"][claimed["task_id"]] = claimed
+                 _acquire_task_resources(state, claimed)
++                with NEW_TASK_EVENT: NEW_TASK_EVENT.notify_all()
+                 save_state(state)
+                 return jsonify({"task": claimed})
+ 
++    with NEW_TASK_EVENT: NEW_TASK_EVENT.notify_all()
+     save_state(state)
+     return jsonify({"task": None})
+ 
+@@ -934,6 +976,7 @@ def task_result():
+                 state["workers"][worker_id]["current_task"] = None
+                 state["workers"][worker_id]["available"] = True
+ 
++            with NEW_TASK_EVENT: NEW_TASK_EVENT.notify_all()
+             save_state(state)
+             return jsonify({"status": "ACK_RESULT_RECEIVED"})
+             
+@@ -976,6 +1019,7 @@ def reclaim_stale():
+                     goal["status"] = "BLOCKED"
+ 
+     if stale_workers or quarantined_count > 0:
++        with NEW_TASK_EVENT: NEW_TASK_EVENT.notify_all()
+         save_state(state)
+ 
+     return jsonify({"reclaimed_tasks": 0, "quarantined_tasks": quarantined_count})
+@@ -998,6 +1042,8 @@ def verify_task_result():
+     task_id = data.get("task_id")
+     state = load_state()
+     task = state["tasks"].get(task_id)
++    task_worker_id = task.get('worker_id') if task else None
++    worker = state['workers'].get(task_worker_id) if task_worker_id else None
+     if not task:
+         return jsonify({"error": "Unknown task"}), 404
+     if task.get("status") == "RECONCILED":
+@@ -1062,6 +1108,16 @@ def verify_task_result():
+                     if isinstance(deps, str): deps = [deps]
+                     if all(d in completed_tasks for d in deps):
+                         ready_work_exists = True
++                        if _worker_is_eligible(state, step, task_worker_id):
++                            try:
++                                claimed = _prepare_claimed_task(step, task_worker_id, worker)
++                                goal['workflow_plan'][goal['workflow_plan'].index(step)] = claimed
++                                state['tasks'][claimed['task_id']] = claimed
++                                _acquire_task_resources(state, claimed)
++                                worker['current_task'] = claimed['task_id']
++                                worker['available'] = False
++                            except ContractError as exc:
++                                pass
+             
+             if all_done or (not ready_work_exists and goal.get("terminal") is False):
+                 if goal.get("terminal") is False:
+@@ -1150,6 +1206,7 @@ def verify_task_result():
+             if "next_retry_at" in task:
+                 step["next_retry_at"] = task["next_retry_at"]
+ 
++    with NEW_TASK_EVENT: NEW_TASK_EVENT.notify_all()
+     save_state(state)
+     return jsonify({"status": task["status"]})
+ 
+@@ -1202,6 +1259,7 @@ def resume_task(task_id):
+                             task["blocker"] = "MAX_TRANSPORT_RETRIES_REACHED"
+                             _release_task_resources(state, task)
+                             goal["status"] = "BLOCKED"
++                            with NEW_TASK_EVENT: NEW_TASK_EVENT.notify_all()
+                             save_state(state)
+                             return jsonify({"error": "Max transport retries reached"}), 400
+                     else:
+@@ -1224,6 +1282,7 @@ def resume_task(task_id):
+                     if "instruction_override" in data:
+                         step["instruction"] = data["instruction_override"]
+                         task["instruction"] = data["instruction_override"]
++                    with NEW_TASK_EVENT: NEW_TASK_EVENT.notify_all()
+                     save_state(state)
+                     return jsonify({
+                         "status": "RESUMED",
+@@ -1280,6 +1339,7 @@ def approve_merge(task_id):
+                 step["status"] = "RECONCILED"
+                 step["merge_approval"] = task["merge_approval"]
+ 
++    with NEW_TASK_EVENT: NEW_TASK_EVENT.notify_all()
+     save_state(state)
+     return jsonify({"status": "RECONCILED", "task_id": task_id})
+ 
+@@ -1352,6 +1412,7 @@ def provider_wait(task_id):
+         state["workers"][worker_id]["current_task"] = None
+         state["workers"][worker_id]["available"] = True
+ 
++    with NEW_TASK_EVENT: NEW_TASK_EVENT.notify_all()
+     save_state(state)
+     return jsonify({
+         "status": task["status"],

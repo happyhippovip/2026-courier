@@ -1,0 +1,372 @@
+schema_version: 1
+packet_id: chatgpt-windows-20-pack
+version: 1.0.0
+bound_state:
+  local_head: d5cd013033156657630ccaa7f8017ab1f842c686
+  remote_head: 4cf6fad76c5835474ca54486b0e520aea6cdc993
+  branch: release-candidate-integration
+  core_owner: GOOGLE
+  generated_scope: PRODUCT_DESIGN_ONLY
+  core_modified: false
+
+roadmap:
+  CORE:
+    - trusted-ledger
+    - result-verify-reconcile
+    - atomic-claim-and-scope-ownership
+    - restart-resume-not-replay
+    - truthful-idle
+  PRODUCT:
+    - thought-inbox
+    - project-and-goal-creation
+    - work-package-registry
+    - task-board
+    - result-workspace
+    - human-inbox
+  ACCELERATION:
+    - power-governor
+    - multi-worker-slots
+    - event-driven-night-shift
+    - adaptive-cannon
+  CUSTOMER:
+    - flagship-packages
+    - deterministic-evidence
+    - isolated-customer-workspace
+    - human-gated-delivery
+
+global_contracts:
+  power_governor:
+    user_ceiling_values: [AUTO, 1, 2, 3, 5, 10, 15, 20]
+    max_tasks_values: [10, 20, 50, 100]
+    safe_actual_concurrency: >-
+      min(user_ceiling, independent_ready_tasks, qualified_workers,
+      scope_safe_capacity, configured_resource_capacity, provider_capacity)
+    modes:
+      ECO: {ceiling: 1, intent: lowest resource use}
+      QUICK: {ceiling: 2, intent: responsive bounded work}
+      TURBO: {ceiling: 3, intent: parallel independent work}
+      BOOST: {ceiling: 5, intent: larger verified batches}
+      HYPER: {ceiling: 10, intent: high-capacity local or deterministic work}
+      ULTRA: {ceiling: 15, intent: explicitly provisioned capacity}
+      CANNON: {ceiling: 20, intent: maximum configured safe capacity}
+      AUTO: {ceiling: AUTO, intent: continuously recomputed safe minimum}
+    invariants:
+      - a mode is a ceiling, never a dispatch promise
+      - zero READY work means zero model workers
+      - provider or resource pressure scales down deterministically
+      - no automatic spending or quota bypass
+  task_board_states: [READY, RUNNING, WAITING, DONE, BLOCKED, BRAUCHT_MICH]
+  max_tasks:
+    meaning: planning envelope, independent from concurrency
+    overflow: reject_or_split_before_persistence
+  common_do_not_touch:
+    - server/app.py
+    - scripts/agent_handoff_ledger.py
+    - scripts/courier_continue.py
+    - active Google Ledger/Guard/Motor files
+    - active Muse cockpit files
+
+packages:
+  - package_id: CW20-01
+    version: 1.0.0
+    title: Current State Checkpoint
+    CURRENT_REUSE: [git HEAD, remote HEAD, ownership map, durable Ledger]
+    USER_VALUE: one compact trustworthy starting point
+    MINIMUM_IMPLEMENTATION: read state once; emit hashes, owners, blockers, and next safe edge
+    DETERMINISTIC_FIRST: true
+    LLM_REQUIRED: false
+    DEPENDENCIES: []
+    SCOPE: read-only repository metadata
+    ACCEPTANCE_TEST: identical state produces identical checkpoint content except timestamp
+    DO_NOT_TOUCH: [runtime state, Ledger truth, active writer files]
+
+  - package_id: CW20-02
+    version: 1.0.0
+    title: Roadmap Dependency Graph
+    CURRENT_REUSE: [existing roadmap, NEXT_WORK, accepted checkpoints]
+    USER_VALUE: separates required core work from optional product growth
+    MINIMUM_IMPLEMENTATION: persist CORE→PRODUCT→ACCELERATION→CUSTOMER DAG with explicit gates
+    DETERMINISTIC_FIRST: true
+    LLM_REQUIRED: false
+    DEPENDENCIES: [CW20-01]
+    SCOPE: product metadata
+    ACCEPTANCE_TEST: DAG is acyclic and every node has exactly one category
+    DO_NOT_TOUCH: [scheduler, Ledger]
+
+  - package_id: CW20-03
+    version: 1.0.0
+    title: Power Governor
+    CURRENT_REUSE: [worker capabilities, provider capacity metadata, exclusive resources]
+    USER_VALUE: simple speed control without unsafe over-dispatch
+    MINIMUM_IMPLEMENTATION: store user ceiling and compute safe_actual_concurrency from canonical state
+    DETERMINISTIC_FIRST: true
+    LLM_REQUIRED: false
+    DEPENDENCIES: [CW20-01]
+    SCOPE: product configuration and read model
+    ACCEPTANCE_TEST: each ceiling clamps dispatch; pressure scales down; no READY work yields zero
+    DO_NOT_TOUCH: [claim authority, provider rotation, spending]
+
+  - package_id: CW20-04
+    version: 1.0.0
+    title: Maximum Planned Tasks
+    CURRENT_REUSE: [TaskPacket, Goal task inventory]
+    USER_VALUE: controls workload size independently from speed
+    MINIMUM_IMPLEMENTATION: validate planned task cap of 10/20/50/100 before expansion
+    DETERMINISTIC_FIRST: true
+    LLM_REQUIRED: false
+    DEPENDENCIES: [CW20-02]
+    SCOPE: plan validation
+    ACCEPTANCE_TEST: task 101 is rejected or placed into a separately approved continuation package
+    DO_NOT_TOUCH: [runtime concurrency, existing tasks]
+
+  - package_id: CW20-05
+    version: 1.0.0
+    title: Safe Actual Concurrency
+    CURRENT_REUSE: [capability eligibility, authority eligibility, exclusive resources]
+    USER_VALUE: fastest useful execution that remains collision-safe
+    MINIMUM_IMPLEMENTATION: pure function implementing documented minimum formula with reason codes
+    DETERMINISTIC_FIRST: true
+    LLM_REQUIRED: false
+    DEPENDENCIES: [CW20-03, CW20-04]
+    SCOPE: non-authoritative dispatch recommendation
+    ACCEPTANCE_TEST: conflicting scopes reduce capacity; unrelated scopes remain executable
+    DO_NOT_TOUCH: [atomic claim transaction, Motor authority]
+
+  - package_id: CW20-06
+    version: 1.0.0
+    title: Power Mode UI
+    CURRENT_REUSE: [CW20-03 governor contract]
+    USER_VALUE: understandable ECO through CANNON controls
+    MINIMUM_IMPLEMENTATION: selector displays ceiling, actual concurrency, limiting reason, and cost boundary
+    DETERMINISTIC_FIRST: true
+    LLM_REQUIRED: false
+    DEPENDENCIES: [CW20-03, CW20-05]
+    SCOPE: future product UI only
+    ACCEPTANCE_TEST: changing mode changes ceiling only and never directly launches a worker
+    DO_NOT_TOUCH: [Muse cockpit while owned, Motor]
+
+  - package_id: CW20-07
+    version: 1.0.0
+    title: Task Board
+    CURRENT_REUSE: [canonical task status, durable task identity]
+    USER_VALUE: shows exactly what is ready, active, waiting, finished, blocked, or needs a decision
+    MINIMUM_IMPLEMENTATION: read-only projection into READY/RUNNING/WAITING/DONE/BLOCKED/BRAUCHT_MICH
+    DETERMINISTIC_FIRST: true
+    LLM_REQUIRED: false
+    DEPENDENCIES: [CW20-01]
+    SCOPE: product read model
+    ACCEPTANCE_TEST: every canonical task maps to one board column; UI cannot mutate truth directly
+    DO_NOT_TOUCH: [canonical statuses, state transitions]
+
+  - package_id: CW20-08
+    version: 1.0.0
+    title: Thought Inbox
+    CURRENT_REUSE: [ThoughtContribution, fingerprint dedup, Cannon Preview]
+    USER_VALUE: captures rough ideas without accidentally executing them
+    MINIMUM_IMPLEMENTATION: persist thought; exact dedup; rank project matches; draft Goal candidate
+    DETERMINISTIC_FIRST: true
+    LLM_REQUIRED: semantic match only after exact match is inconclusive
+    DEPENDENCIES: [CW20-01]
+    SCOPE: isolated product data
+    ACCEPTANCE_TEST: duplicate returns existing ID; new thought executes nothing
+    DO_NOT_TOUCH: [Motor, provider calls during idle]
+
+  - package_id: CW20-09
+    version: 1.0.0
+    title: Project Creation
+    CURRENT_REUSE: [Goal and ThoughtPackage concepts]
+    USER_VALUE: starts useful work with minimal questions
+    MINIMUM_IMPLEMENTATION: ask name, desired outcome, workspace, acceptance command, and sensitive-action gates; default everything else reversibly
+    DETERMINISTIC_FIRST: true
+    LLM_REQUIRED: optional wording assistance only
+    DEPENDENCIES: [CW20-08]
+    SCOPE: project metadata
+    ACCEPTANCE_TEST: project survives restart and cannot authorize payment, publication, secrets, or deployment
+    DO_NOT_TOUCH: [customer data outside chosen workspace]
+
+  - package_id: CW20-10
+    version: 1.0.0
+    title: Work Package Registry
+    CURRENT_REUSE: [ops/ai/night_factory/factory.json, TaskPacket contracts]
+    USER_VALUE: reusable actions with predictable inputs, outputs, ownership, and proof
+    MINIMUM_IMPLEMENTATION: validate registry schema; version packages; bind instances to versions
+    DETERMINISTIC_FIRST: true
+    LLM_REQUIRED: false for validation and selection
+    DEPENDENCIES: [CW20-02]
+    SCOPE: product registry
+    ACCEPTANCE_TEST: malformed package rejected; version binding immutable; one writer scope required
+    DO_NOT_TOUCH: [queue authority, runtime state]
+
+  - package_id: CW20-11
+    version: 1.0.0
+    title: Website Build
+    CURRENT_REUSE: [website-build package, Human Gate]
+    USER_VALUE: produces a reviewable local website without accidental publication
+    MINIMUM_IMPLEMENTATION: brief→IA→assets→implementation→local build/tests→review package
+    DETERMINISTIC_FIRST: build, lint, links, routes, asset checks
+    LLM_REQUIRED: copy/design synthesis when requested
+    DEPENDENCIES: [CW20-10]
+    SCOPE: isolated website workspace; one assigned writer
+    ACCEPTANCE_TEST: clean checkout builds; required routes return 200; publication remains blocked
+    DO_NOT_TOUCH: [DNS, hosting, production]
+
+  - package_id: CW20-12
+    version: 1.0.0
+    title: Bug End-to-End
+    CURRENT_REUSE: [bug-e2e package, deterministic test evidence]
+    USER_VALUE: smallest trustworthy fix with regression protection
+    MINIMUM_IMPLEMENTATION: symptom→reproduce→root cause→smallest repair→test→diff/evidence
+    DETERMINISTIC_FIRST: repro and tests before model judgment
+    LLM_REQUIRED: root-cause reasoning and repair when mechanical tools are insufficient
+    DEPENDENCIES: [CW20-10]
+    SCOPE: explicitly named repository paths; one writer
+    ACCEPTANCE_TEST: regression fails before fix and passes after; unrelated suite remains green
+    DO_NOT_TOUCH: [out-of-scope files, deployment]
+
+  - package_id: CW20-13
+    version: 1.0.0
+    title: CI Red Build
+    CURRENT_REUSE: [GitHub deterministic adapter, CI evidence package]
+    USER_VALUE: classifies and fixes real CI failures without chasing noise
+    MINIMUM_IMPLEMENTATION: ingest run→reproduce→classify flaky/transient/real→repair candidate→verify
+    DETERMINISTIC_FIRST: Git metadata, logs, rerun policy, exact acceptance command
+    LLM_REQUIRED: only for ambiguous root cause
+    DEPENDENCIES: [CW20-10]
+    SCOPE: selected repository and workflow
+    ACCEPTANCE_TEST: exact failing check becomes green and evidence binds commit/run/artifacts
+    DO_NOT_TOUCH: [branch protection, secrets, merges]
+
+  - package_id: CW20-14
+    version: 1.0.0
+    title: Result Workspace
+    CURRENT_REUSE: [DurableResult identity, operator surface Results]
+    USER_VALUE: separates readable answer, code, files, diff, tests, evidence, and next action
+    MINIMUM_IMPLEMENTATION: render typed tabs from one immutable result manifest with copy/download controls
+    DETERMINISTIC_FIRST: file/diff/test/evidence rendering
+    LLM_REQUIRED: false
+    DEPENDENCIES: [CW20-07, CW20-10]
+    SCOPE: future product UI/read model
+    ACCEPTANCE_TEST: copied content equals durable payload; missing sections show UNPROVEN, never fabricated
+    DO_NOT_TOUCH: [result acceptance, Muse cockpit while owned]
+
+  - package_id: CW20-15
+    version: 1.0.0
+    title: Project Memory and Zero-Chat Handoff
+    CURRENT_REUSE: [memory context package, checkpoints, provenance]
+    USER_VALUE: work resumes after restart without reconstructing the chat
+    MINIMUM_IMPLEMENTATION: map project→goal→packages→results→next safe action using durable IDs and source references
+    DETERMINISTIC_FIRST: state loading, cursor/checkpoint validation, identity matching
+    LLM_REQUIRED: summary only after deterministic selection
+    DEPENDENCIES: [CW20-09, CW20-10]
+    SCOPE: product memory projection
+    ACCEPTANCE_TEST: restart restores same frontier; completed tasks do not replay; zero continuation messages
+    DO_NOT_TOUCH: [Ledger truth generation, chat history as authority]
+
+  - package_id: CW20-16
+    version: 1.0.0
+    title: Human Inbox
+    CURRENT_REUSE: [Human Gate, BRAUCHT_MICH column]
+    USER_VALUE: asks only for genuine decisions
+    MINIMUM_IMPLEMENTATION: show decision, reason, reversible options, evidence, consequence, and expiry
+    DETERMINISTIC_FIRST: gate classification and dedup
+    LLM_REQUIRED: optional plain-language explanation
+    DEPENDENCIES: [CW20-07]
+    SCOPE: product read/action surface
+    ACCEPTANCE_TEST: ordinary failures never appear as human decisions; duplicate gate appears once
+    DO_NOT_TOUCH: [automatic approval, payment, merge, publication]
+
+  - package_id: CW20-17
+    version: 1.0.0
+    title: Multi-Muse Worker Slots
+    CURRENT_REUSE: [worker registration, capabilities, provider metadata]
+    USER_VALUE: additional useful throughput only when work is independent
+    MINIMUM_IMPLEMENTATION: lifecycle EMPTY→REGISTERED→IDLE→CLAIMED→RUNNING→terminal→IDLE/OFFLINE for slots 1 and 2; future slots use same contract
+    DETERMINISTIC_FIRST: eligibility, leases, process ownership, heartbeats
+    LLM_REQUIRED: only during claimed execution
+    DEPENDENCIES: [CW20-03, CW20-05]
+    SCOPE: future worker integration after core ownership is free
+    ACCEPTANCE_TEST: two independent tasks use two workers; conflicts serialize; no task doubles
+    DO_NOT_TOUCH: [second scheduler, active Muse implementation]
+
+  - package_id: CW20-18
+    version: 1.0.0
+    title: Event-Driven Night Shift
+    CURRENT_REUSE: [durable READY frontier, OS-owned workers, checkpoints]
+    USER_VALUE: continues overnight without chat relay or wasteful polling
+    MINIMUM_IMPLEMENTATION: state event wakes worker; bounded claim cycle drains safe frontier; true idle exits model work
+    DETERMINISTIC_FIRST: event, claim, dependency and retry calculations
+    LLM_REQUIRED: only for a claimed task that requires it
+    DEPENDENCIES: [CW20-15, CW20-17]
+    SCOPE: future runtime integration after core freeze
+    ACCEPTANCE_TEST: one queued goal continues across restart with zero user messages and zero busy loop
+    DO_NOT_TOUCH: [timers as continuation authority, second Motor]
+
+  - package_id: CW20-19
+    version: 1.0.0
+    title: Adaptive Cannon
+    CURRENT_REUSE: [Cannon Preview, dependencies, exclusive resources, Power Governor]
+    USER_VALUE: safely decomposes larger work while preserving one writer per scope
+    MINIMUM_IMPLEMENTATION: preview DAG→dedup→cap by max tasks→fan-out independent reads→barriers→single-writer fan-in
+    DETERMINISTIC_FIRST: fingerprints, DAG, barriers, scope collision, capacity
+    LLM_REQUIRED: decomposition/synthesis only when required
+    DEPENDENCIES: [CW20-04, CW20-05, CW20-10, CW20-17]
+    SCOPE: product orchestration proposal; non-authoritative until integrated by Google
+    ACCEPTANCE_TEST: conflicting writes never overlap; failed branch blocks only dependents; fan-in runs once
+    DO_NOT_TOUCH: [Motor authority, auto-spend, unattended merge]
+
+  - package_id: CW20-20
+    version: 1.0.0
+    title: Google Implementation Handoff
+    CURRENT_REUSE: [this packet, accepted core contracts]
+    USER_VALUE: implementation can start without rediscovering product architecture
+    MINIMUM_IMPLEMENTATION: integrate in dependency order after explicit core handoff; preserve all hard boundaries
+    DETERMINISTIC_FIRST: schema validation and contract tests before UI or provider work
+    LLM_REQUIRED: false for integration planning
+    DEPENDENCIES: [CW20-01, CW20-02, CW20-03, CW20-04, CW20-05, CW20-07, CW20-08, CW20-09, CW20-10, CW20-14, CW20-15, CW20-16]
+    SCOPE: future Google product implementation packet
+    ACCEPTANCE_TEST: every implemented feature traces to package/version/test; no core authority duplicated
+    DO_NOT_TOUCH: [active dirty core, Ledger truth, current Muse cockpit]
+
+google_handoff:
+  status: READY_AFTER_CORE_WRITER_HANDOFF
+  implementation_order:
+    - CW20-10
+    - CW20-08
+    - CW20-09
+    - CW20-07
+    - CW20-14
+    - CW20-16
+    - CW20-15
+    - CW20-03
+    - CW20-04
+    - CW20-05
+    - CW20-06
+    - [CW20-11, CW20-12, CW20-13]
+    - CW20-17
+    - CW20-18
+    - CW20-19
+  first_batch:
+    goal: product data contracts only
+    files_allowed:
+      - schemas/work_package.schema.json
+      - schemas/project.schema.json
+      - schemas/result_workspace.schema.json
+      - product registry files
+      - isolated contract tests
+    files_forbidden:
+      - server/app.py
+      - scripts/agent_handoff_ledger.py
+      - scripts/courier_continue.py
+      - studio/**
+    exit_criteria:
+      - schemas reject malformed and unsafe inputs
+      - package instances bind immutable package versions
+      - project restart test passes
+      - preview causes zero execution
+      - no new scheduler or truth store exists
+
+real_blockers:
+  - Google Ledger/Guard/Motor scope is active and dirty
+  - Muse cockpit scope is active
+  - exact runtime-bound core acceptance is not frozen
+  - product integration must wait for explicit ownership handoff

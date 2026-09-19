@@ -27,7 +27,7 @@
         <span class="live-status-dot"></span>
         <span class="live-status-text">LIVE HQ</span>
       </div>
-      <div class="mode-toggle">
+      <div class="mode-toggle"><button id="update-test-build" onclick="fetch('/api/sync_test',{method:'POST'}).then(r=>r.text()).then(alert)">UPDATE TEST BUILD</button>
         <button id="btn-aspect-16-9" class="btn-toggle active" title="16:9 Fullscreen Landscape">16:9</button>
         <button id="btn-aspect-9-16" class="btn-toggle" title="9:16 Vertical">9:16</button>
       </div>

@@ -1,0 +1,1200 @@
+#!/usr/bin/env python3
+"""Durable, coordination-only handoff ledger with optimistic writer fencing."""
+
+from __future__ import annotations
+
+import argparse
+import contextlib
+import copy
+import errno
+import hashlib
+import json
+import logging
+import os
+import re
+import sys
+import tempfile
+import time
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Iterator
+
+logger = logging.getLogger(__name__)
+
+FORMAT = "courier-agent-handoff-ledger"
+SCHEMA_VERSION = 2
+NON_AUTHORITY = (
+    "Coordination metadata only; this ledger has no scheduler, runtime, "
+    "execution, dispatch, verification, or Courier truth authority."
+)
+RECORD_FIELDS = (
+    "PROJECT",
+    "GOAL",
+    "CURRENT_SHA",
+    "BRANCH",
+    "RUNTIME_IDENTITY",
+    "RUNTIME_OWNER",
+    "STATUS",
+    "PROVEN_EDGES",
+    "UNPROVEN_EDGES",
+    "FIRST_CAUSAL_BLOCKER",
+    "BLOCKER_OWNER",
+    "NEXT_EXECUTABLE_ACTION",
+    "ACTIVE_WRITERS",
+    "COLLISION_SCOPE",
+    "GOALS_SUBMITTED",
+    "TASKS_COMPLETED",
+    "WORKERS_USED",
+    "USER_CONTINUE_MESSAGES",
+    "MANUAL_PROCESS_RESTARTS",
+    "DUPLICATE_EXTERNAL_EFFECTS",
+    "TEMP_TASK_PROCESSES_AFTER_DONE",
+    "CLEAN_IDLE",
+    "QUEUE_INDEPENDENT",
+    "LAST_EVIDENCE",
+    "LAST_UPDATED_BY",
+    "CONTINUATION_CHECKPOINT",
+)
+LIST_FIELDS = {
+    "PROVEN_EDGES",
+    "UNPROVEN_EDGES",
+    "ACTIVE_WRITERS",
+    "COLLISION_SCOPE",
+    "LAST_EVIDENCE",
+}
+COUNT_FIELDS = {
+    "GOALS_SUBMITTED",
+    "TASKS_COMPLETED",
+    "WORKERS_USED",
+    "USER_CONTINUE_MESSAGES",
+    "MANUAL_PROCESS_RESTARTS",
+    "DUPLICATE_EXTERNAL_EFFECTS",
+    "TEMP_TASK_PROCESSES_AFTER_DONE",
+}
+TRISTATE_FIELDS = {"CLEAN_IDLE", "QUEUE_INDEPENDENT"}
+SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+TIMESTAMP_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
+MAX_FUTURE_CLOCK_SKEW_SECONDS = 300
+MAX_EVIDENCE_AGE_SECONDS = 172800
+
+_attestation_resolver = None
+
+def _verify_attestation(url: str):
+    if _attestation_resolver:
+        return _attestation_resolver(url)
+        }
+    try:
+        import requests
+        resp = requests.get(url, headers={"Authorization": f"Bearer {__import__('os').environ.get('COURIER_API_KEY', '')}"}, timeout=3)
+        if resp.status_code != 200: return None
+        return resp.json()
+    except Exception:
+        return None
+
+FLOW = [
+    "EXECUTION",
+    "EVIDENCE",
+    "ACCEPTANCE_GUARD",
+    "LEDGER_TRANSITION",
+    "NEXT_EXECUTABLE_ACTION",
+]
+TRANSITION_STATES = {"PROVISIONAL", "CANONICAL_ACCEPTED"}
+EVIDENCE_VALIDITY = {"VALID", "STALE", "UNKNOWN"}
+EVIDENCE_SOURCE_TYPES = {
+    "GITHUB_PULL_REQUEST",
+    "GITHUB_COMMIT",
+    "GITHUB_ISSUE_STATE",
+    "GITHUB_COMMENT",
+    "MACHINE_ARTIFACT",
+}
+PREDICATE_STATUS = {"PASS", "FAIL", "UNKNOWN"}
+WORKER_STATES = {
+    "ACTIVE",
+    "BLOCKED",
+    "READY_FOR_FOREIGN_VALIDATION",
+    "IDLE/YIELDED",
+}
+SECRET_KEY_RE = re.compile(
+    r"(?i)(api.?key|password|passwd|authorization|client.?secret|"
+    r"access.?token|refresh.?token|private.?key)"
+)
+SECRET_VALUE_RE = re.compile(
+    r"(?i)(?:api[_ -]?key|password|passwd|authorization|bearer|"
+    r"client[_ -]?secret|access[_ -]?token|refresh[_ -]?token|"
+    r"private[_ -]?key)\s*[:=]\s*\S+|"
+    r"\bbearer\s+\S+|-----BEGIN [A-Z ]*PRIVATE KEY-----|"
+    r"\bAKIA[A-Z0-9]{16}\b|"
+    r"\b(?:github_pat_|gh[pousr]_|sk-)[A-Za-z0-9_-]{16,}"
+)
+
+
+class LedgerError(RuntimeError):
+    """Expected fail-closed ledger error."""
+
+
+class RevisionConflictError(LedgerError):
+    """Update conflicts with current revision (stale or concurrent)."""
+
+
+class NoMeaningfulChangeError(LedgerError):
+    """Update makes no meaningful change to the ledger."""
+
+
+class ValidationError(LedgerError):
+    """Schema or field validation failure."""
+
+
+class BindingError(LedgerError):
+    """SHA, runtime, or evidence binding mismatch."""
+
+
+class FreshnessError(LedgerError):
+    """Evidence freshness or clock-skew violation."""
+
+
+class MonotonicityError(LedgerError):
+    """Timestamp or epoch monotonicity violation."""
+
+
+class SelfCertificationError(LedgerError):
+    """Rejected: caller-created, self-certifying, or unverifiable evidence."""
+
+
+class EdgeConservationError(LedgerError):
+    """Edge set conservation violated (edges can move but not appear/disappear)."""
+
+
+class CleanIdleError(LedgerError):
+    """CLEAN_IDLE=YES preconditions not met."""
+
+
+class InitializationError(LedgerError):
+    """Ledger initialization constraint violated."""
+
+
+class StorageError(LedgerError):
+    """Filesystem read, write, lock, or symlink violation."""
+
+
+def canonical_bytes(value: Any) -> bytes:
+    return (
+        json.dumps(value, ensure_ascii=True, separators=(",", ":"), sort_keys=True)
+        .encode("utf-8")
+    )
+
+
+def digest(value: Any) -> str:
+    return hashlib.sha256(canonical_bytes(value)).hexdigest()
+
+
+def utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+
+
+def reject_secrets(value: Any, path: str = "record") -> None:
+    if isinstance(value, dict):
+        for key, child in value.items():
+            if SECRET_KEY_RE.search(str(key)):
+                raise ValidationError(f"likely secret field rejected at {path}.{key}")
+            reject_secrets(child, f"{path}.{key}")
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            reject_secrets(child, f"{path}[{index}]")
+    elif isinstance(value, str) and SECRET_VALUE_RE.search(value):
+        raise ValidationError(f"likely secret value rejected at {path}")
+
+
+def _nonempty_string(value: Any, field: str) -> None:
+    if not isinstance(value, str) or not value.strip():
+        raise ValidationError(f"{field} must be a non-empty string")
+
+
+def validate_record(record: Any, *, allow_unknown_sha: bool) -> None:
+    if not isinstance(record, dict):
+        raise ValidationError("record must be a JSON object")
+    actual = set(record)
+    expected = set(RECORD_FIELDS)
+    if actual != expected:
+        missing = sorted(expected - actual)
+        extra = sorted(actual - expected)
+        raise ValidationError(f"record fields mismatch: missing={missing}, extra={extra}")
+    reject_secrets(record)
+    for field in RECORD_FIELDS:
+        value = record[field]
+        if field in LIST_FIELDS:
+            if not isinstance(value, list) or any(
+                not isinstance(item, str) or not item.strip() for item in value
+            ):
+                raise ValidationError(f"{field} must be an array of non-empty strings")
+        elif field in COUNT_FIELDS:
+            if value is not None and (
+                not isinstance(value, int) or isinstance(value, bool) or value < 0
+            ):
+                raise ValidationError(f"{field} must be a non-negative integer or null")
+        elif field in TRISTATE_FIELDS:
+            if value not in {"YES", "NO", "UNKNOWN"}:
+                raise ValidationError(f"{field} must be YES, NO, or UNKNOWN")
+        else:
+            _nonempty_string(value, field)
+    sha = record["CURRENT_SHA"]
+    if not SHA_RE.fullmatch(sha) and not (allow_unknown_sha and sha == "UNKNOWN"):
+        raise ValidationError("CURRENT_SHA must be a full lowercase 40-character Git SHA")
+    for evidence in record["LAST_EVIDENCE"]:
+        if not evidence.startswith("https://"):
+            raise ValidationError("LAST_EVIDENCE entries must be durable https:// URLs")
+    if record.get("CLEAN_IDLE") == "YES" and record.get("NEXT_EXECUTABLE_ACTION") not in ("NONE", "none"):
+        raise CleanIdleError("CLEAN_IDLE=YES is forbidden when NEXT_EXECUTABLE_ACTION is not NONE")
+    if record.get("CLEAN_IDLE") == "YES" and record.get("UNPROVEN_EDGES"):
+        raise CleanIdleError("CLEAN_IDLE=YES is forbidden while UNPROVEN_EDGES is not empty")
+    if record.get("CLEAN_IDLE") == "YES" and record.get("STATUS") in ("READY", "WAITING_PROVIDER", "DISPATCHED", "RUNNING", "BLOCKED", "TEST"):
+        raise CleanIdleError(f"CLEAN_IDLE=YES is forbidden when STATUS is {record.get('STATUS')}")
+
+
+def validate_guard(guard: Any) -> None:
+    if not isinstance(guard, dict) or set(guard) != {
+        "flow",
+        "transition_state",
+        "binding",
+        "worker_state",
+        "evidence",
+        "acceptance_predicate",
+    }:
+        raise ValidationError("acceptance_guard fields do not match schema version 2")
+    reject_secrets(guard, "acceptance_guard")
+    if guard["flow"] != FLOW:
+        raise ValidationError("acceptance_guard flow is invalid")
+    if guard["transition_state"] not in TRANSITION_STATES:
+        raise ValidationError("transition_state must be PROVISIONAL or CANONICAL_ACCEPTED")
+    binding = guard["binding"]
+    if not isinstance(binding, dict) or set(binding) != {
+        "branch",
+        "current_sha",
+        "runtime_identity",
+    }:
+        raise ValidationError("acceptance_guard binding is invalid")
+    _nonempty_string(binding["branch"], "acceptance_guard.binding.branch")
+    if not SHA_RE.fullmatch(binding["current_sha"]):
+        raise ValidationError("acceptance_guard binding requires a full Git SHA")
+    _nonempty_string(
+        binding["runtime_identity"], "acceptance_guard.binding.runtime_identity"
+    )
+    if guard["worker_state"] not in WORKER_STATES:
+        raise ValidationError("acceptance_guard worker_state is invalid")
+    evidence = guard["evidence"]
+    if not isinstance(evidence, list) or not evidence:
+        raise ValidationError("acceptance_guard evidence must be a non-empty array")
+    evidence_urls = set()
+    valid_bound_urls = set()
+    for index, item in enumerate(evidence):
+        path = f"acceptance_guard.evidence[{index}]"
+        if not isinstance(item, dict) or not set(item).issubset({
+            "source_url",
+            "source_type",
+            "observed_at",
+            "evidence_sha",
+            "runtime_binding",
+            "validity",
+            "reason",
+            "producer_id",
+            "verifier_id",
+            "result_sha256"
+        }) or not {"source_url", "source_type", "observed_at", "evidence_sha", "runtime_binding", "validity", "reason"}.issubset(set(item)):
+            raise ValidationError(f"{path} fields are invalid")
+        if not isinstance(item["source_url"], str) or not item["source_url"].startswith(
+            "https://"
+        ):
+            raise ValidationError(f"{path}.source_url must be a durable https:// URL")
+        if item["source_type"] not in EVIDENCE_SOURCE_TYPES:
+            raise ValidationError(f"{path}.source_type is invalid")
+        if not isinstance(item["observed_at"], str) or not TIMESTAMP_RE.fullmatch(
+            item["observed_at"]
+        ):
+            raise ValidationError(f"{path}.observed_at must be UTC second precision")
+        try:
+            obs_dt = datetime.strptime(item["observed_at"], "%Y-%m-%dT%H:%M:%SZ")
+        except ValueError:
+            raise ValidationError(f"{path}.observed_at must be UTC second precision")
+        future_skew = (obs_dt - datetime.utcnow()).total_seconds()
+        if future_skew > MAX_FUTURE_CLOCK_SKEW_SECONDS:
+            raise FreshnessError(
+                f"{path}.observed_at future timestamp exceeds "
+                f"{MAX_FUTURE_CLOCK_SKEW_SECONDS}-second clock skew"
+            )
+        if not SHA_RE.fullmatch(item["evidence_sha"]):
+            raise ValidationError(f"{path}.evidence_sha must be a full Git SHA")
+        _nonempty_string(item["runtime_binding"], f"{path}.runtime_binding")
+        if item["validity"] not in EVIDENCE_VALIDITY:
+            raise ValidationError(f"{path}.validity is invalid")
+        _nonempty_string(item["reason"], f"{path}.reason")
+        if item["source_url"] in evidence_urls:
+            raise ValidationError("acceptance_guard evidence URLs must be unique")
+        evidence_urls.add(item["source_url"])
+        bound = (
+            item["evidence_sha"] == binding["current_sha"]
+            and item["runtime_binding"] == binding["runtime_identity"]
+        )
+        if item["validity"] == "VALID" and not bound:
+            raise BindingError(f"{path} marked VALID with mismatched SHA/runtime binding")
+        if item["validity"] == "STALE" and bound:
+            raise BindingError(f"{path} marked STALE despite matching SHA/runtime binding")
+        if item["validity"] == "VALID":
+            valid_bound_urls.add(item["source_url"])
+    predicate = guard["acceptance_predicate"]
+    if not isinstance(predicate, dict) or set(predicate) != {
+        "name",
+        "version",
+        "required_results",
+        "results",
+    }:
+        raise ValidationError("acceptance_predicate fields are invalid")
+    _nonempty_string(predicate["name"], "acceptance_predicate.name")
+    _nonempty_string(predicate["version"], "acceptance_predicate.version")
+    required_results = predicate["required_results"]
+    results = predicate["results"]
+    if (
+        not isinstance(required_results, list)
+        or not required_results
+        or any(not isinstance(name, str) or not name for name in required_results)
+        or len(set(required_results)) != len(required_results)
+    ):
+        raise ValidationError("acceptance_predicate.required_results is invalid")
+    if not isinstance(results, dict) or set(results) != set(required_results):
+        raise ValidationError("acceptance_predicate results must match required_results")
+    for name, result in results.items():
+        if not isinstance(result, dict) or set(result) != {
+            "status",
+            "observed_value",
+            "evidence_urls",
+        }:
+            raise ValidationError(f"predicate result {name} fields are invalid")
+        if result["status"] not in PREDICATE_STATUS:
+            raise ValidationError(f"predicate result {name} status is invalid")
+        _nonempty_string(result["observed_value"], f"predicate result {name}")
+        if (
+            not isinstance(result["evidence_urls"], list)
+            or any(url not in evidence_urls for url in result["evidence_urls"])
+        ):
+            raise ValidationError(f"predicate result {name} evidence URLs are invalid")
+        if result["status"] == "PASS" and (
+            not result["evidence_urls"]
+            or any(url not in valid_bound_urls for url in result["evidence_urls"])
+        ):
+            raise ValidationError(f"predicate result {name} PASS lacks valid bound evidence")
+    if guard["transition_state"] == "CANONICAL_ACCEPTED" and any(
+        result["status"] != "PASS" for result in results.values()
+    ):
+        raise ValidationError("CANONICAL_ACCEPTED requires every predicate result to PASS")
+    if guard["transition_state"] == "CANONICAL_ACCEPTED" and not any(
+        item["source_type"] == "MACHINE_ARTIFACT"
+        and item["validity"] == "VALID"
+        for item in evidence
+    ):
+        raise ValidationError("CANONICAL_ACCEPTED requires a valid bound machine artifact")
+
+
+def validate_guard_binding(record: dict[str, Any], guard: dict[str, Any]) -> None:
+    binding = guard["binding"]
+    if (
+        binding["branch"] != record["BRANCH"]
+        or binding["current_sha"] != record["CURRENT_SHA"]
+        or binding["runtime_identity"] != record["RUNTIME_IDENTITY"]
+    ):
+        raise BindingError("acceptance_guard binding does not match current record")
+
+
+def _entry_hash(entry: dict[str, Any]) -> str:
+    unsigned = {key: value for key, value in entry.items() if key != "entry_sha256"}
+    return digest(unsigned)
+
+
+def validate_bundle(bundle: Any) -> dict[str, Any]:
+    if not isinstance(bundle, dict):
+        raise ValidationError("ledger root must be a JSON object")
+    base_fields = {
+        "format",
+        "schema_version",
+        "revision",
+        "non_authority",
+        "record",
+        "history",
+    }
+    schema_version = bundle.get("schema_version")
+    required = base_fields if schema_version == 1 else base_fields | {"acceptance_guard"}
+    if set(bundle) != required:
+        raise ValidationError("ledger root fields do not match the canonical format")
+    if bundle["format"] != FORMAT or schema_version not in {1, SCHEMA_VERSION}:
+        raise ValidationError("unsupported ledger format or schema version")
+    if bundle["non_authority"] != NON_AUTHORITY:
+        raise ValidationError("non-authority declaration is missing or changed")
+    revision = bundle["revision"]
+    if not isinstance(revision, int) or isinstance(revision, bool) or revision < 0:
+        raise ValidationError("revision must be a non-negative integer")
+    validate_record(bundle["record"], allow_unknown_sha=revision == 0)
+    if schema_version == SCHEMA_VERSION:
+        validate_guard(bundle["acceptance_guard"])
+        validate_guard_binding(bundle["record"], bundle["acceptance_guard"])
+        if (
+            bundle["record"].get("CLEAN_IDLE") == "YES"
+            and bundle["acceptance_guard"]["transition_state"]
+            != "CANONICAL_ACCEPTED"
+        ):
+            raise CleanIdleError("CLEAN_IDLE=YES requires a CANONICAL_ACCEPTED guard")
+    history = bundle["history"]
+    if not isinstance(history, list) or len(history) != revision + 1:
+        raise ValidationError("history must contain exactly one entry per revision")
+    previous_hash = None
+    previous_record = None
+    previous_guard = None
+    for index, entry in enumerate(history):
+        if not isinstance(entry, dict):
+            raise ValidationError(f"history entry {index} must be an object")
+        v1_fields = {
+            "revision",
+            "timestamp_utc",
+            "updated_by",
+            "operation",
+            "changed_fields",
+            "record",
+            "record_sha256",
+            "previous_entry_sha256",
+            "entry_sha256",
+        }
+        v2_fields = v1_fields | {"acceptance_guard", "state_sha256"}
+        entry_version = 2 if set(entry) == v2_fields else 1
+        if set(entry) != v1_fields and set(entry) != v2_fields:
+            raise ValidationError(f"history entry {index} fields are invalid")
+        if entry["revision"] != index:
+            raise ValidationError(f"history entry {index} revision is invalid")
+        if entry["operation"] not in {"INIT", "UPDATE"}:
+            raise ValidationError(f"history entry {index} operation is invalid")
+        if index == 0 and entry["operation"] != "INIT":
+            raise ValidationError("first history entry must be INIT")
+        if index > 0 and entry["operation"] != "UPDATE":
+            raise ValidationError(f"history entry {index} must be UPDATE")
+        if not isinstance(entry["changed_fields"], list) or entry["changed_fields"] != sorted(
+            entry["changed_fields"]
+        ):
+            raise ValidationError(f"history entry {index} changed_fields are invalid")
+        allowed_changes = set(RECORD_FIELDS) | {"@ACCEPTANCE_GUARD"}
+        if not entry["changed_fields"] or not set(entry["changed_fields"]).issubset(
+            allowed_changes
+        ):
+            raise ValidationError(f"history entry {index} changed_fields are invalid")
+        _nonempty_string(entry["timestamp_utc"], f"history[{index}].timestamp_utc")
+        _nonempty_string(entry["updated_by"], f"history[{index}].updated_by")
+        validate_record(entry["record"], allow_unknown_sha=index == 0)
+        expected_changed = (
+            sorted(RECORD_FIELDS)
+            if previous_record is None
+            else sorted(
+                field
+                for field in RECORD_FIELDS
+                if previous_record[field] != entry["record"][field]
+            )
+        )
+        if (
+            previous_record is not None
+            and entry_version == 2
+            and previous_guard != entry["acceptance_guard"]
+        ):
+            expected_changed.append("@ACCEPTANCE_GUARD")
+            expected_changed.sort()
+        if entry["changed_fields"] != expected_changed:
+            raise ValidationError(f"history entry {index} changed_fields do not match record: {entry['changed_fields']} != {expected_changed}")
+        if entry["updated_by"] != entry["record"]["LAST_UPDATED_BY"]:
+            raise ValidationError(f"history entry {index} updated_by does not match record")
+        if entry["record_sha256"] != digest(entry["record"]):
+            raise ValidationError(f"history entry {index} record hash is invalid")
+        if entry_version == 2:
+            validate_guard(entry["acceptance_guard"])
+            validate_guard_binding(entry["record"], entry["acceptance_guard"])
+            if entry["state_sha256"] != digest(
+                {
+                    "record": entry["record"],
+                    "acceptance_guard": entry["acceptance_guard"],
+                }
+            ):
+                raise ValidationError(f"history entry {index} state hash is invalid")
+        if entry["previous_entry_sha256"] != previous_hash:
+            raise ValidationError(f"history entry {index} chain is invalid")
+        if entry["entry_sha256"] != _entry_hash(entry):
+            raise ValidationError(f"history entry {index} hash is invalid")
+        previous_hash = entry["entry_sha256"]
+        previous_record = entry["record"]
+        previous_guard = entry.get("acceptance_guard")
+    if history[-1]["record"] != bundle["record"]:
+        raise ValidationError("current record does not match the latest history entry")
+    if schema_version == SCHEMA_VERSION and (
+        "acceptance_guard" not in history[-1]
+        or history[-1]["acceptance_guard"] != bundle["acceptance_guard"]
+    ):
+        raise ValidationError("current acceptance_guard does not match latest history")
+    return bundle
+
+
+def load_bundle(path: Path) -> dict[str, Any]:
+    if path.is_symlink():
+        raise StorageError(f"refusing symlink ledger path: {path}")
+    import time
+    for attempt in range(20):
+        try:
+            raw = path.read_text(encoding="utf-8")
+            break
+        except PermissionError as exc:
+            if attempt == 19:
+                raise StorageError(f"cannot read ledger {path}: {exc}") from exc
+            time.sleep(0.05)
+        except FileNotFoundError as exc:
+            raise StorageError(f"ledger does not exist: {path}") from exc
+        except OSError as exc:
+            raise StorageError(f"cannot read ledger {path}: {exc}") from exc
+    try:
+        return validate_bundle(json.loads(raw))
+    except json.JSONDecodeError as exc:
+        raise StorageError(f"ledger is corrupt JSON: {exc}") from exc
+
+
+def _fsync_directory(directory: Path) -> None:
+    flags = os.O_RDONLY
+    if hasattr(os, "O_DIRECTORY"):
+        flags |= os.O_DIRECTORY
+    try:
+        descriptor = os.open(directory, flags)
+    except OSError:
+        return
+    try:
+        try:
+            os.fsync(descriptor)
+        except OSError as exc:
+            if exc.errno not in {errno.EBADF, errno.EINVAL, getattr(errno, "ENOTSUP", 0)}:
+                raise
+    finally:
+        os.close(descriptor)
+
+
+def atomic_write(path: Path, bundle: dict[str, Any]) -> None:
+    parent = path.parent
+    parent.mkdir(parents=True, exist_ok=True)
+    if path.is_symlink():
+        raise StorageError(f"refusing symlink ledger path: {path}")
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{path.name}.", suffix=".tmp", dir=parent
+    )
+    temporary = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as stream:
+            json.dump(bundle, stream, ensure_ascii=True, indent=2, sort_keys=True)
+            stream.write("\n")
+            stream.flush()
+            os.fsync(stream.fileno())
+        import time
+        for attempt in range(20):
+            try:
+                os.replace(temporary, path)
+                break
+            except PermissionError:
+                if attempt == 19:
+                    raise
+                time.sleep(0.05)
+        _fsync_directory(parent)
+    finally:
+        with contextlib.suppress(FileNotFoundError):
+            temporary.unlink()
+
+
+@contextlib.contextmanager
+def writer_lock(path: Path, timeout: float) -> Iterator[None]:
+    if timeout < 0 or timeout > 60:
+        raise StorageError("lock timeout must be between 0 and 60 seconds")
+    lock_path = path.with_name(f"{path.name}.lock")
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    if lock_path.is_symlink():
+        raise StorageError(f"refusing symlink lock path: {lock_path}")
+    with lock_path.open("a+b") as stream:
+        stream.seek(0, os.SEEK_END)
+        if stream.tell() == 0:
+            stream.write(b"\0")
+            stream.flush()
+        deadline = time.monotonic() + timeout
+        while True:
+            try:
+                _lock_stream(stream)
+                break
+            except (BlockingIOError, OSError) as exc:
+                if isinstance(exc, OSError) and exc.errno not in {
+                    errno.EACCES,
+                    errno.EAGAIN,
+                }:
+                    raise StorageError(f"cannot acquire writer lock: {exc}") from exc
+                if time.monotonic() >= deadline:
+                    raise StorageError(
+                        f"writer lock busy after {timeout:.2f}s: {lock_path}"
+                    ) from exc
+                time.sleep(min(0.05, max(0.0, deadline - time.monotonic())))
+        try:
+            yield
+        finally:
+            _unlock_stream(stream)
+
+
+def _lock_stream(stream: Any) -> None:
+    stream.seek(0)
+    if os.name == "nt":
+        import msvcrt
+
+        msvcrt.locking(stream.fileno(), msvcrt.LK_NBLCK, 1)
+    else:
+        import fcntl
+
+        fcntl.flock(stream.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+
+
+def _unlock_stream(stream: Any) -> None:
+    stream.seek(0)
+    if os.name == "nt":
+        import msvcrt
+
+        msvcrt.locking(stream.fileno(), msvcrt.LK_UNLCK, 1)
+    else:
+        import fcntl
+
+        fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
+
+
+def _history_entry(
+    revision: int,
+    record: dict[str, Any],
+    updated_by: str,
+    operation: str,
+    changed_fields: list[str],
+    previous_hash: str | None,
+    guard: dict[str, Any],
+) -> dict[str, Any]:
+    entry = {
+        "revision": revision,
+        "timestamp_utc": utc_now(),
+        "updated_by": updated_by,
+        "operation": operation,
+        "changed_fields": sorted(changed_fields),
+        "record": copy.deepcopy(record),
+        "record_sha256": digest(record),
+        "previous_entry_sha256": previous_hash,
+        "acceptance_guard": copy.deepcopy(guard),
+    }
+    entry["state_sha256"] = digest(
+        {"record": entry["record"], "acceptance_guard": entry["acceptance_guard"]}
+    )
+    entry["entry_sha256"] = _entry_hash(entry)
+    return entry
+
+
+def initialize(
+    path: Path, record: dict[str, Any], guard: dict[str, Any], timeout: float
+) -> dict[str, Any]:
+    if guard.get("transition_state") == "CANONICAL_ACCEPTED":
+        raise InitializationError("INIT cannot start with CANONICAL_ACCEPTED")
+    if record.get("CLEAN_IDLE") == "YES":
+        raise InitializationError("INIT cannot start with CLEAN_IDLE=YES")
+    
+    guard["transition_state"] = "PROVISIONAL"
+
+    validate_record(record, allow_unknown_sha=True)
+    validate_guard(guard)
+    validate_guard_binding(record, guard)
+    with writer_lock(path, timeout):
+        if path.exists():
+            raise InitializationError(f"ledger already exists: {path}")
+        bundle = {
+            "format": FORMAT,
+            "schema_version": SCHEMA_VERSION,
+            "revision": 0,
+            "non_authority": NON_AUTHORITY,
+            "record": copy.deepcopy(record),
+            "acceptance_guard": copy.deepcopy(guard),
+            "history": [
+                _history_entry(
+                    0,
+                    record,
+                    record["LAST_UPDATED_BY"],
+                    "INIT",
+                    list(RECORD_FIELDS),
+                    None,
+                    guard,
+                )
+            ],
+        }
+        validate_bundle(bundle)
+        atomic_write(path, bundle)
+    return bundle
+
+
+def update(
+    path: Path,
+    expected_revision: int,
+    updates: dict[str, Any],
+    updated_by: str,
+    timeout: float,
+    guard: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    _nonempty_string(updated_by, "updated_by")
+    if not updates:
+        raise ValidationError("at least one --set update is required")
+    invalid = sorted(set(updates) - set(RECORD_FIELDS))
+    if invalid:
+        raise ValidationError(f"unknown record fields: {invalid}")
+    if "LAST_UPDATED_BY" in updates:
+        raise ValidationError("use --updated-by instead of setting LAST_UPDATED_BY")
+    reject_secrets(updates, "updates")
+    with writer_lock(path, timeout):
+        bundle = load_bundle(path)
+        introducer_map = {}
+        first_observed_map = {}
+        for h in bundle.get("history", []):
+            h_updater = h.get("updated_by")
+            for e in h.get("acceptance_guard", {}).get("evidence", []):
+                url = e.get("source_url")
+                if not url: continue
+                if url not in introducer_map:
+                    introducer_map[url] = {h_updater}
+                if url not in first_observed_map:
+                    first_observed_map[url] = (e.get("observed_at"), h.get("timestamp_utc"))
+                    
+        if bundle["revision"] != expected_revision:
+            raise RevisionConflictError(
+                f"revision conflict: expected {expected_revision}, "
+                f"but currently at {bundle['revision']}"
+            )
+        record = copy.deepcopy(bundle["record"])
+        changed = []
+        for field, value in updates.items():
+            if record[field] != value:
+                record[field] = value
+                changed.append(field)
+        if record["LAST_UPDATED_BY"] != updated_by:
+            record["LAST_UPDATED_BY"] = updated_by
+            changed.append("LAST_UPDATED_BY")
+        old_all_edges = set(bundle["record"].get("UNPROVEN_EDGES", [])) | set(bundle["record"].get("PROVEN_EDGES", []))
+        new_all_edges = set(record.get("UNPROVEN_EDGES", [])) | set(record.get("PROVEN_EDGES", []))
+        if old_all_edges != new_all_edges:
+            raise EdgeConservationError(f"edge conservation violated: old={old_all_edges}, new={new_all_edges}")
+        validate_record(record, allow_unknown_sha=False)
+        if guard is None:
+            if bundle["schema_version"] == 1:
+                raise ValidationError("schema version 1 update requires --guard")
+            guard = copy.deepcopy(bundle["acceptance_guard"])
+        # Auto-derive Guard Acceptance from Evidence
+        evidence = guard.get("evidence", [])
+        old_evidence = bundle.get("acceptance_guard", {}).get("evidence", [])
+        # Acceptance cannot create the evidence used to prove itself: only
+        # evidence that pre-existed this update counts toward acceptance.
+        prior_evidence = [e for e in evidence if e in old_evidence]
+        has_physical_proof = False
+        for e in prior_evidence:
+            if (
+                e.get("source_type") == "MACHINE_ARTIFACT" and
+                e.get("evidence_sha") == guard["binding"]["current_sha"] and
+                e.get("runtime_binding") == guard["binding"]["runtime_identity"] and
+                e.get("validity") == "VALID" and
+                e.get("producer_id") not in introducer_map.get(e.get("source_url"), set()) and
+                e.get("verifier_id") not in introducer_map.get(e.get("source_url"), set()) and
+                updated_by not in introducer_map.get(e.get("source_url"), set()) and
+                (-MAX_FUTURE_CLOCK_SKEW_SECONDS <=
+                 (datetime.strptime(first_observed_map.get(e.get("source_url"), (None, datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")))[1], "%Y-%m-%dT%H:%M:%SZ") - datetime.strptime(e["observed_at"], "%Y-%m-%dT%H:%M:%SZ")).total_seconds() <=
+                 MAX_EVIDENCE_AGE_SECONDS)
+            ):
+                receipt = _verify_attestation(e.get("source_url"))
+                if receipt and receipt.get("verdict") == "PASS":
+                    if receipt.get("producer_principal") == e.get("producer_id") and \
+                       receipt.get("verifier_principal") == e.get("verifier_id") and \
+                       receipt.get("result_sha256") == e.get("result_sha256") and \
+                       receipt.get("goal_id") == bundle.get("record", {}).get("GOAL"):
+                        b = receipt.get("binding", {})
+                        if b.get("sha") == guard["binding"]["current_sha"] and \
+                           b.get("runtime") == guard["binding"]["runtime_identity"]:
+                            has_physical_proof = True
+                            break
+
+        
+        unproven = record.get("UNPROVEN_EDGES", [])
+        
+        # Enforce that any predicate PASS backed by MACHINE_ARTIFACT has a valid receipt
+        for name, result in guard.get("acceptance_predicate", {}).get("results", {}).items():
+            if result.get("status") == "PASS":
+                for url in result.get("evidence_urls", []):
+                    # Non-MACHINE_ARTIFACT evidence (e.g. ISSUE_STATE) uses full evidence;
+                    # MACHINE_ARTIFACT must exist in prior_evidence (self-cert guard)
+                    e = next((ev for ev in evidence if ev.get("source_url") == url), None)
+                    if not e or e.get("validity") != "VALID":
+                        raise SelfCertificationError(f"predicate PASS requires valid evidence for {url}")
+                    # Only MACHINE_ARTIFACT evidence requires receipt verification
+                    if e.get("source_type") == "MACHINE_ARTIFACT":
+                        # Must also exist in prior_evidence (cannot self-certify)
+                        pe = next((ev for ev in prior_evidence if ev.get("source_url") == url), None)
+                        if not pe:
+                            raise SelfCertificationError(f"predicate PASS requires prior evidence for {url}")
+                        receipt = _verify_attestation(url)
+                        if not receipt or receipt.get("verdict") != "PASS" or \
+                           receipt.get("producer_principal") != e.get("producer_id") or \
+                           receipt.get("verifier_principal") != e.get("verifier_id") or \
+                           receipt.get("result_sha256") != e.get("result_sha256"):
+                            raise SelfCertificationError(f"predicate PASS requires verified receipt for {url}")
+        # Enforce stale proof rules: if provisional or missing physical proof, edges cannot be proven
+        if not has_physical_proof:
+            # Move physical edges back to unproven if they require it
+            physical_edges = { 'ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION', 'PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION', 'EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION', 'EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION', 'RELEASE - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION', 'PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION', 'PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION', 'FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION', 'PUBLICATION VERIFICATION', 'RELEASE - SAFE_AUTOMATABLE_PREPARATION', 'RELEASE', 'PUBLIC DEPLOYMENT', 'PUBLIC_DEPLOYMENT', 'FIRST PILOT', 'FIRST_PILOT', 'PILOT INTAKE', 'PILOT_INTAKE', 'SALES PACKAGE', 'SALES_PACKAGE', 'POST-PILOT HARDENING', 'POST_PILOT_HARDENING', 'EXTERNAL_PUBLICATION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED', 'PAYMENT_ONLY_WHEN_ACTUALLY_REQUIRED', 'ONBOARD_FIRST_PILOT_CUSTOMER'}
+            proven = set(record.get("PROVEN_EDGES", []))
+            invalid_proven = proven.intersection(physical_edges)
+            if invalid_proven:
+                record["PROVEN_EDGES"] = list(proven - invalid_proven)
+                unproven_set = set(unproven)
+                unproven_set.update(invalid_proven)
+                unproven = list(unproven_set)
+                record["UNPROVEN_EDGES"] = unproven
+
+
+        logger.debug("introducer_map=%s", introducer_map)
+        logger.debug("updated_by=%s", updated_by)
+        logger.debug("unproven=%s, has_physical_proof=%s", unproven, has_physical_proof)
+        if updates.get("CLEAN_IDLE") == "YES" and (unproven or not has_physical_proof):
+
+            raise CleanIdleError("CLEAN_IDLE=YES is forbidden without pre-existing physical proof and empty unproven edges")
+
+        if unproven or record.get("STATUS") in ("READY", "WAITING_PROVIDER", "DISPATCHED", "RUNNING"):
+            # Cannot be CLEAN_IDLE if work exists or is active; a caller-preset
+            # CANONICAL must not survive alongside unfinished work or proof.
+            record["CLEAN_IDLE"] = "NO"
+            record["QUEUE_INDEPENDENT"] = "NO"
+            guard["transition_state"] = "PROVISIONAL"
+            if record.get("STATUS") == "CLEAN_IDLE":
+                record["STATUS"] = "READY"
+        elif not unproven and has_physical_proof:
+            guard["transition_state"] = "CANONICAL_ACCEPTED"
+            if "ISSUE_STATE" in guard["acceptance_predicate"]["results"]:
+                guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["status"] = "PASS"
+                guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["observed_value"] = "NO_FURTHER_ACTION"
+                # Inherit the valid evidence URL (pre-existing proof only)
+                valid_url = next((e["source_url"] for e in prior_evidence if e["validity"] == "VALID"), "")
+                guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["evidence_urls"] = [valid_url]
+            record["CLEAN_IDLE"] = "YES"
+            record["QUEUE_INDEPENDENT"] = "YES"
+            record["STATUS"] = "CLEAN_IDLE"
+            record["NEXT_EXECUTABLE_ACTION"] = "NONE"
+        elif not unproven:
+            # Cannot be CLEAN_IDLE without physical proof
+            record["CLEAN_IDLE"] = "NO"
+            record["QUEUE_INDEPENDENT"] = "NO"
+            record["STATUS"] = "WAITING_PHYSICAL_PROOF"
+            guard["transition_state"] = "PROVISIONAL"
+# Recompute changed based on the final record state
+        changed = sorted(field for field in RECORD_FIELDS if bundle["record"][field] != record[field])
+        validate_guard(guard)
+        validate_guard_binding(record, guard)
+# Enforce history boundaries and reject replayed/copied proofs
+        historical_evidence = {}
+        for h in bundle.get("history", []):
+            for e in h.get("acceptance_guard", {}).get("evidence", []):
+                historical_evidence[e["source_url"]] = e
+
+        guard_changed = guard != bundle.get("acceptance_guard")
+        if guard_changed:
+            # Enforce independent producer/verifier boundary
+            old_evidence = bundle.get("acceptance_guard", {}).get("evidence", [])
+            new_evidence = guard.get("evidence", [])
+            for e in new_evidence:
+                if e not in old_evidence:
+                    url = e.get("source_url")
+                    
+                    if url in historical_evidence:
+                        # Replayed or copied proof
+                        old_e = historical_evidence[url]
+                        first_obs = first_observed_map.get(url, (e.get("observed_at"), None))[0]
+                        if e.get("observed_at") < first_obs:
+                            raise MonotonicityError(f"monotonicity violation: {url} cannot be back-dated")
+                        if old_e["evidence_sha"] != e["evidence_sha"]:
+                            raise BindingError(f"copied proof: URL {url} was historically bound to SHA {old_e['evidence_sha']} but is now claimed for {e['evidence_sha']}")
+                        if old_e["runtime_binding"] != e["runtime_binding"]:
+                            raise BindingError(f"copied proof: URL {url} was historically bound to runtime {old_e['runtime_binding']} but is now claimed for {e['runtime_binding']}")
+                            
+                    if e.get("source_type") == "MACHINE_ARTIFACT":
+                        if updated_by == "Google-Antigravity" or updated_by == e.get("runtime_binding") or updated_by == e.get("producer_id") or updated_by == e.get("verifier_id"):
+                            raise SelfCertificationError("caller-created or self-certifying MACHINE_ARTIFACT evidence rejected")
+                        if not e.get("producer_id") or not e.get("verifier_id"):
+                            raise SelfCertificationError("unverifiable producer or verifier in MACHINE_ARTIFACT evidence")
+                        if e["producer_id"] == e["verifier_id"] or e["producer_id"] == "arbitrary" or e["verifier_id"] == "arbitrary":
+                            raise SelfCertificationError("evidence produced by the acceptance decision path itself or uses arbitrary strings")
+            
+        if not changed and not guard_changed:
+            logger.debug("no meaningful change: updates=%s | record=%s", updates, bundle['record'])
+            raise NoMeaningfulChangeError("update makes no meaningful change")
+        if guard_changed:
+            changed.append("@ACCEPTANCE_GUARD")
+        revision = bundle["revision"] + 1
+        entry = _history_entry(
+            revision,
+            record,
+            updated_by,
+            "UPDATE",
+            changed,
+            bundle["history"][-1]["entry_sha256"],
+            guard,
+        )
+        updated = {
+            **bundle,
+            "schema_version": SCHEMA_VERSION,
+            "revision": revision,
+            "record": record,
+            "acceptance_guard": copy.deepcopy(guard),
+            "history": [*bundle["history"], entry],
+        }
+        validate_bundle(updated)
+        atomic_write(path, updated)
+    return updated
+
+
+def parse_assignment(value: str) -> tuple[str, Any]:
+    if "=" not in value:
+        raise argparse.ArgumentTypeError("--set requires FIELD=VALUE")
+    field, raw = value.split("=", 1)
+    if not field:
+        raise argparse.ArgumentTypeError("--set field cannot be empty")
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError:
+        parsed = raw
+    return field, parsed
+
+
+def render(bundle: dict[str, Any]) -> str:
+    lines = [
+        "COURIER AGENT HANDOFF LEDGER",
+        f"FORMAT: {bundle['format']}",
+        f"SCHEMA_VERSION: {bundle['schema_version']}",
+        f"REVISION: {bundle['revision']}",
+        f"NON_AUTHORITY: {bundle['non_authority']}",
+    ]
+    record = bundle["record"]
+    for field in RECORD_FIELDS:
+        value = record[field]
+        if isinstance(value, list):
+            rendered = "NONE" if not value else " | ".join(value)
+        elif value is None:
+            rendered = "UNKNOWN"
+        else:
+            rendered = str(value)
+        lines.append(f"{field}: {rendered}")
+    if bundle["schema_version"] == SCHEMA_VERSION:
+        guard = bundle["acceptance_guard"]
+        lines.extend(
+            [
+                f"TRANSITION_STATE: {guard['transition_state']}",
+                f"WORKER_STATE: {guard['worker_state']}",
+                f"FLOW: {' -> '.join(guard['flow'])}",
+                "ACCEPTANCE_PREDICATE: "
+                f"{guard['acceptance_predicate']['name']}/"
+                f"{guard['acceptance_predicate']['version']}",
+            ]
+        )
+    return "\n".join(lines) + "\n"
+
+
+def next_action(bundle: dict[str, Any]) -> dict[str, Any]:
+    if bundle["schema_version"] != SCHEMA_VERSION:
+        raise ValidationError(
+            "next-action refused: ledger lacks schema version 2 acceptance guard; "
+            "run freshness with authoritative facts and update the stale checkpoint"
+        )
+    record = bundle["record"]
+    guard = bundle["acceptance_guard"]
+    return {
+        "BRANCH": record["BRANCH"],
+        "CURRENT_SHA": record["CURRENT_SHA"],
+        "FIRST_CAUSAL_BLOCKER": record["FIRST_CAUSAL_BLOCKER"],
+        "BLOCKER_OWNER": record["BLOCKER_OWNER"],
+        "NEXT_EXECUTABLE_ACTION": record["NEXT_EXECUTABLE_ACTION"],
+        "RUNTIME_IDENTITY": record["RUNTIME_IDENTITY"],
+        "STATUS": record["STATUS"],
+        "CONTINUATION_CHECKPOINT": record["CONTINUATION_CHECKPOINT"],
+        "REVISION": bundle["revision"],
+        "TRANSITION_STATE": guard["transition_state"],
+        "WORKER_STATE": guard["worker_state"],
+        "FLOW": guard["flow"],
+        "ACCEPTANCE_PREDICATE": guard["acceptance_predicate"],
+        "NON_AUTHORITY": bundle["non_authority"],
+    }
+
+
+def freshness(
+    bundle: dict[str, Any],
+    observed_branch: str,
+    observed_sha: str,
+    observed_issue_state: str,
+    observed_evidence_urls: list[str],
+    observed_runtime: str | None = None,
+) -> dict[str, Any]:
+    if not SHA_RE.fullmatch(observed_sha):
+        raise ValidationError("--observed-sha must be a full lowercase 40-character Git SHA")
+    reasons = []
+    record = bundle["record"]
+    if record["BRANCH"] != observed_branch:
+        reasons.append("BRANCH_MISMATCH")
+    expected_runtime = observed_runtime if observed_runtime is not None else observed_sha
+    if record["RUNTIME_IDENTITY"] != expected_runtime:
+        reasons.append("RUNTIME_IDENTITY_MISMATCH")
+    if record["CURRENT_SHA"] != observed_sha:
+        reasons.extend(
+            [
+                "CURRENT_SHA_MISMATCH",
+                "BLOCKER_BINDING_STALE",
+                "ACCEPTANCE_STATE_BINDING_STALE",
+                "NEXT_ACTION_BINDING_STALE",
+            ]
+        )
+    if bundle["schema_version"] != SCHEMA_VERSION:
+        reasons.extend(
+            [
+                "ACCEPTANCE_GUARD_MISSING",
+                "OBSERVED_ISSUE_STATE_NOT_RECORDED",
+                "BLOCKER_UNGUARDED",
+                "ACCEPTANCE_STATE_UNGUARDED",
+                "NEXT_ACTION_UNGUARDED",
+            ]
+        )
+    else:
+        guard = bundle["acceptance_guard"]
+        issue_result = guard["acceptance_predicate"]["results"].get("ISSUE_STATE")
+        if issue_result is None or issue_result["observed_value"] != observed_issue_state:
+            reasons.append("ISSUE_STATE_MISMATCH")
+        recorded_urls = {item["source_url"] for item in guard["evidence"]}
+        if any(url not in recorded_urls for url in observed_evidence_urls):
+            reasons.append("EVIDENCE_SET_MISMATCH")
+    return {
+        "FRESHNESS": "STALE" if reasons else "CURRENT",
+        "NEXT_ACTION_ALLOWED": not reasons,
+        "LEDGER_REVISION": bundle["revision"],
+        "LEDGER_SHA": record["CURRENT_SHA"],
+        "OBSERVED_SHA": observed_sha,
+        "OBSERVED_BRANCH": observed_branch,
+        "OBSERVED_ISSUE_STATE": observed_issue_state,
+        "REASONS": reasons,
+    }
+
+
+def print_json(value: Any) -> None:
+    print(json.dumps(value, ensure_ascii=True, indent=2, sort_keys=True))
+
+
+def _read_record(path: str) -> dict[str, Any]:
+    if path == "-":
+        raw = sys.stdin.read()
+    else:
+        raw = Path(path).read_text(encoding="utf-8")
+    try:
+        value = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise ValidationError(f"record input is invalid JSON: {exc}") from exc
+    if not isinstance(value, dict):
+        raise ValidationError("record input must be a JSON object")
+    return value
+
+
+def _read_object(path: str, label: str) -> dict[str, Any]:
+    value = _read_record(path)
+    if not isinstance(value, dict):
+        raise ValidationError(f"{label} must be a JSON object")
+    return value
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description=__doc__)
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    init_parser = subparsers.add_parser("init", help="create a new ledger")
+    init_parser.add_argument("ledger", type=Path)
+    init_parser.add_argument("--record", required=True, help="record JSON file, or -")
+    init_parser.add_argument("--guard", required=True, help="acceptance guard JSON file")
+    init_parser.add_argument("--lock-timeout", type=float, default=5.0)
+
+    for command in ("read", "render", "history", "next-action"):
+        command_parser = subparsers.add_parser(command)
+        command_parser.add_argument("ledger", type=Path)
+
+    update_parser = subparsers.add_parser("update", help="update selected fields")
+    update_parser.add_argument("ledger", type=Path)
+    update_parser.add_argument("--expected-revision", required=True, type=int)
+    update_parser.add_argument("--updated-by", required=True)
+    update_parser.add_argument(
+        "--set", dest="assignments", action="append", required=True, type=parse_assignment
+    )
+    update_parser.add_argument("--lock-timeout", type=float, default=5.0)
+    update_parser.add_argument("--guard", help="replacement acceptance guard JSON file")
+
+    freshness_parser = subparsers.add_parser(
+        "freshness", help="compare a ledger with explicitly observed authoritative facts"
+    )
+    freshness_parser.add_argument("ledger", type=Path)
+    freshness_parser.add_argument("--observed-branch", required=True)
+    freshness_parser.add_argument("--observed-sha", required=True)
+    freshness_parser.add_argument("--observed-issue-state", required=True)
+    freshness_parser.add_argument(
+        "--observed-evidence-url", action="append", default=[]
+    )
+    freshness_parser.add_argument("--observed-runtime", default=None)
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    try:
+        if args.command == "init":
+            bundle = initialize(
+                args.ledger,
+                _read_record(args.record),
+                _read_object(args.guard, "acceptance guard"),
+                args.lock_timeout,
+            )
+            print_json(bundle)
+        elif args.command == "update":
+            updates: dict[str, Any] = {}
+            for field, value in args.assignments:
+                if field in updates:
+                    raise ValidationError(f"duplicate --set field: {field}")
+                updates[field] = value
+            bundle = update(
+                args.ledger,
+                args.expected_revision,
+                updates,
+                args.updated_by,
+                args.lock_timeout,
+                _read_object(args.guard, "acceptance guard") if args.guard else None,
+            )
+            print_json(bundle)
+        elif args.command == "freshness":
+            result = freshness(
+                load_bundle(args.ledger),
+                args.observed_branch,
+                args.observed_sha,
+                args.observed_issue_state,
+                args.observed_evidence_url,
+                args.observed_runtime,
+            )
+            print_json(result)
+            return 3 if result["FRESHNESS"] == "STALE" else 0
+        else:
+            bundle = load_bundle(args.ledger)
+            if args.command == "read":
+                print_json(bundle)
+            elif args.command == "render":
+                print(render(bundle), end="")
+            elif args.command == "history":
+                print_json(bundle["history"])
+            elif args.command == "next-action":
+                print_json(next_action(bundle))
+    except (LedgerError, OSError) as exc:
+        print(f"agent-handoff-ledger: {exc}", file=sys.stderr)
+        return 2
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

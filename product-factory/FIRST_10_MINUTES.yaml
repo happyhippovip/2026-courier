@@ -1,0 +1,58 @@
+version: 1
+purpose: bounded private remediation pilot intake
+minute_0_2:
+  customer_supplies:
+    - isolated or sanitized repository snapshot
+    - one bounded defect/remediation statement
+    - exact deterministic acceptance command
+    - allowed read and write scopes
+  reject_if:
+    - production credentials are present
+    - acceptance requires payment, publication, deployment, or customer contact
+    - scope is unbounded
+minute_2_4:
+  deterministic_checks:
+    - record repository commit and dirty state
+    - verify acceptance command exists without running external effects
+    - inventory required local tools
+    - create one writer scope
+minute_4_6:
+  package:
+    template: bug-end-to-end@1.0.0
+    max_tasks: 10
+    concurrency_ceiling: 1
+    cost_policy: LOCAL_FIRST
+    execution: NOT_STARTED_UNTIL_INPUT_VALID
+minute_6_8:
+  preview:
+    - planned files and scopes
+    - deterministic tests
+    - human gates
+    - expected deliverable layout
+  invariant: preview performs zero model or external execution
+minute_8_10:
+  operator_decision:
+    - approve bounded internal execution
+    - revise scope
+    - reject unsafe input
+deliverable:
+  - reviewable diff
+  - exact test output
+  - file and commit provenance
+  - compact evidence manifest
+  - Human Gate before merge or deployment
+manual_glue_allowed:
+  - customer supplies repository through an approved isolated channel
+  - operator confirms scope and acceptance command
+  - operator packages final files for review
+not_ready:
+  - automatic customer repository ingestion
+  - production deployment
+  - billing
+  - public publication
+acceptance:
+  - no secret copied into Courier state
+  - no write outside authorized scope
+  - no external effect before Human Gate
+  - clean restart preserves package identity
+

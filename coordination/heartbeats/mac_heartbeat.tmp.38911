@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "node_id": "MAC_CHIEF_01",
+  "host": "MAC",
+  "timestamp_utc": "2026-09-18T19:00:00.110687+00:00",
+  "state_generation": 3532,
+  "process_instance_id": "4bd0b25f-4f57-46d8-9126-a3ac47ab7238",
+  "active_request_id": null,
+  "writer_state": "IDLE",
+  "lease_epoch": 1,
+  "last_verified_result": null
+}

@@ -1,0 +1,26 @@
+{
+  "schema_version": 2,
+  "goals": {},
+  "tasks": {},
+  "workers": {
+    "MAC-MACBOOK-PRO-VON-USER-EDEA96": {
+      "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+      "platform": "macos",
+      "capabilities": [
+        "antigravity",
+        "linux",
+        "macos"
+      ],
+      "authorities": [],
+      "provider": null,
+      "capacity_identity": null,
+      "provider_available": true,
+      "capacity_available": true,
+      "last_seen": 1789781826.223722,
+      "available": true,
+      "current_task": null,
+      "cost_class": "low"
+    }
+  },
+  "resource_owners": {}
+}

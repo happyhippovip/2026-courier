@@ -1,0 +1,35 @@
+schema_version: 1
+checkpoint: CHATGPT_CONTINUOUS_WORK
+head: d5cd013033156657630ccaa7f8017ab1f842c686
+remote_head: 4cf6fad76c5835474ca54486b0e520aea6cdc993
+core_state: GOOGLE_ACTIVE_NOT_REVIEWED_WITHOUT_NEW_FINGERPRINT
+completed:
+  - typed Result Workspace with Answer/Code/Files/Diff/Tests/Evidence/Next Action
+  - Copy Tab and Copy All from durable result payload
+  - reversible Thought-to-Project candidate matching
+  - Cannon Preview task cap 10/20/50/100
+  - zero-agent and zero-execution preview invariant
+  - machine-readable Work Package schema and bounded example
+  - customer first-10-minutes private pilot flow
+  - package safety allowlist/denylist manifest
+tests:
+  - operator-surface/test-core.mjs PASS
+  - app.mjs syntax PASS
+  - core.mjs syntax PASS
+  - Work Package deterministic validation PASS
+  - task explosion bound PASS
+  - Human Gate presence PASS
+reused:
+  - existing Goal/ThoughtPackage/ThoughtContribution contracts
+  - existing deterministic fingerprint and exact dedup
+  - existing Prompt and Work Package factory concepts
+  - existing canonical Human Gate and GitHub evidence boundaries
+waiting:
+  - new authenticated Ledger candidate fingerprint
+  - physical exact-SHA A-to-B
+customer_readiness:
+  core: NOT_READY
+  product_prototype: READY_FOR_LOCAL_REVIEW
+  acceleration: SPECIFIED_NOT_INTEGRATED
+  customer_pilot: MANUAL_FLOW_DESIGNED_NOT_SAFE_TO_RUN_UNTIL_CORE_AND_PACKAGE_SAFETY_CLOSE
+repository_files_modified_outside_isolated_scope: false

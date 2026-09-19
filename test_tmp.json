@@ -1,0 +1,349 @@
+{
+  "acceptance_guard": {
+    "acceptance_predicate": {
+      "name": "Global-Stop",
+      "required_results": [
+        "ISSUE_STATE"
+      ],
+      "results": {
+        "ISSUE_STATE": {
+          "evidence_urls": [
+            "https://test.com"
+          ],
+          "observed_value": "NO_FURTHER_ACTION",
+          "status": "UNKNOWN"
+        }
+      },
+      "version": "1.0"
+    },
+    "binding": {
+      "branch": "main",
+      "current_sha": "cccccccccccccccccccccccccccccccccccccccc",
+      "runtime_identity": "attacker-runtime"
+    },
+    "evidence": [
+      {
+        "evidence_sha": "cccccccccccccccccccccccccccccccccccccccc",
+        "observed_at": "2026-09-17T12:00:00Z",
+        "reason": "test",
+        "runtime_binding": "attacker-runtime",
+        "source_type": "MACHINE_ARTIFACT",
+        "source_url": "https://test.com",
+        "validity": "VALID"
+      }
+    ],
+    "flow": [
+      "EXECUTION",
+      "EVIDENCE",
+      "ACCEPTANCE_GUARD",
+      "LEDGER_TRANSITION",
+      "NEXT_EXECUTABLE_ACTION"
+    ],
+    "transition_state": "PROVISIONAL",
+    "worker_state": "IDLE/YIELDED"
+  },
+  "format": "courier-agent-handoff-ledger",
+  "history": [
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [
+                "https://test.com"
+              ],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "main",
+          "current_sha": "cccccccccccccccccccccccccccccccccccccccc",
+          "runtime_identity": "attacker-runtime"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "cccccccccccccccccccccccccccccccccccccccc",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "test",
+            "runtime_binding": "attacker-runtime",
+            "source_type": "MACHINE_ARTIFACT",
+            "source_url": "https://test.com",
+            "validity": "VALID"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "ACTIVE_WRITERS",
+        "BLOCKER_OWNER",
+        "BRANCH",
+        "CLEAN_IDLE",
+        "COLLISION_SCOPE",
+        "CONTINUATION_CHECKPOINT",
+        "CURRENT_SHA",
+        "DUPLICATE_EXTERNAL_EFFECTS",
+        "FIRST_CAUSAL_BLOCKER",
+        "GOAL",
+        "GOALS_SUBMITTED",
+        "LAST_EVIDENCE",
+        "LAST_UPDATED_BY",
+        "MANUAL_PROCESS_RESTARTS",
+        "NEXT_EXECUTABLE_ACTION",
+        "PROJECT",
+        "PROVEN_EDGES",
+        "QUEUE_INDEPENDENT",
+        "RUNTIME_IDENTITY",
+        "RUNTIME_OWNER",
+        "STATUS",
+        "TASKS_COMPLETED",
+        "TEMP_TASK_PROCESSES_AFTER_DONE",
+        "UNPROVEN_EDGES",
+        "USER_CONTINUE_MESSAGES",
+        "WORKERS_USED"
+      ],
+      "entry_sha256": "7eede7abce55f9bbd0d3730abc5d1ccc3c25b122ad4fb49b314d9a24979a218c",
+      "operation": "INIT",
+      "previous_entry_sha256": null,
+      "record": {
+        "ACTIVE_WRITERS": [
+          "probe"
+        ],
+        "BLOCKER_OWNER": "NONE",
+        "BRANCH": "main",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [],
+        "CONTINUATION_CHECKPOINT": "NONE",
+        "CURRENT_SHA": "cccccccccccccccccccccccccccccccccccccccc",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "NONE",
+        "GOAL": "Test Goal",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [
+          "https://github.com/example/project/issues/1"
+        ],
+        "LAST_UPDATED_BY": "system",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "PROJECT": "Test",
+        "PROVEN_EDGES": [
+          "LEDGER/HANDOFF",
+          "PR41 ACCEPTANCE",
+          "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+          "RELEASE - IRREVERSIBLE_HUMAN_ACTION"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "attacker-runtime",
+        "RUNTIME_OWNER": "system",
+        "STATUS": "RUNNING",
+        "TASKS_COMPLETED": 0,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLICATION VERIFICATION",
+          "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+          "SALES PACKAGE",
+          "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+          "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+          "POST-PILOT HARDENING",
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+          "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "f7d37f8b164acc020878944760104d47c1b76f80179038180162a5e2201b1746",
+      "revision": 0,
+      "state_sha256": "1ed7774fb68be09a7c47fcaafe4f76905847bb5d2cd0e895de03ed752ce0a522",
+      "timestamp_utc": "2026-09-18T16:36:26Z",
+      "updated_by": "system"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [
+                "https://test.com"
+              ],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "main",
+          "current_sha": "cccccccccccccccccccccccccccccccccccccccc",
+          "runtime_identity": "attacker-runtime"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "cccccccccccccccccccccccccccccccccccccccc",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "test",
+            "runtime_binding": "attacker-runtime",
+            "source_type": "MACHINE_ARTIFACT",
+            "source_url": "https://test.com",
+            "validity": "VALID"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "LAST_UPDATED_BY",
+        "PROVEN_EDGES",
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "493c9e1888c4b26f4aa2fcaccb6cc8f779deb61a263a000d20c3e62036268193",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "7eede7abce55f9bbd0d3730abc5d1ccc3c25b122ad4fb49b314d9a24979a218c",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "probe"
+        ],
+        "BLOCKER_OWNER": "NONE",
+        "BRANCH": "main",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [],
+        "CONTINUATION_CHECKPOINT": "NONE",
+        "CURRENT_SHA": "cccccccccccccccccccccccccccccccccccccccc",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "NONE",
+        "GOAL": "Test Goal",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [
+          "https://github.com/example/project/issues/1"
+        ],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "NONE",
+        "PROJECT": "Test",
+        "PROVEN_EDGES": [
+          "LEDGER/HANDOFF",
+          "PR41 ACCEPTANCE",
+          "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+          "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLICATION VERIFICATION"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "attacker-runtime",
+        "RUNTIME_OWNER": "system",
+        "STATUS": "RUNNING",
+        "TASKS_COMPLETED": 0,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+          "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+          "SALES PACKAGE",
+          "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+          "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+          "POST-PILOT HARDENING",
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+          "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "67df3d5f3e9eee85a722cc121c006e8ea02ab7ff5bf34435900ec23daac4ef11",
+      "revision": 1,
+      "state_sha256": "5bd8cef2a7bd7afeb24176c281aa9a413d374096377d66120d78e708e8bbd19f",
+      "timestamp_utc": "2026-09-18T16:36:26Z",
+      "updated_by": "Google-Antigravity"
+    }
+  ],
+  "non_authority": "Coordination metadata only; this ledger has no scheduler, runtime, execution, dispatch, verification, or Courier truth authority.",
+  "record": {
+    "ACTIVE_WRITERS": [
+      "probe"
+    ],
+    "BLOCKER_OWNER": "NONE",
+    "BRANCH": "main",
+    "CLEAN_IDLE": "NO",
+    "COLLISION_SCOPE": [],
+    "CONTINUATION_CHECKPOINT": "NONE",
+    "CURRENT_SHA": "cccccccccccccccccccccccccccccccccccccccc",
+    "DUPLICATE_EXTERNAL_EFFECTS": 0,
+    "FIRST_CAUSAL_BLOCKER": "NONE",
+    "GOAL": "Test Goal",
+    "GOALS_SUBMITTED": 1,
+    "LAST_EVIDENCE": [
+      "https://github.com/example/project/issues/1"
+    ],
+    "LAST_UPDATED_BY": "Google-Antigravity",
+    "MANUAL_PROCESS_RESTARTS": 0,
+    "NEXT_EXECUTABLE_ACTION": "NONE",
+    "PROJECT": "Test",
+    "PROVEN_EDGES": [
+      "LEDGER/HANDOFF",
+      "PR41 ACCEPTANCE",
+      "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+      "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
+      "PUBLICATION VERIFICATION"
+    ],
+    "QUEUE_INDEPENDENT": "NO",
+    "RUNTIME_IDENTITY": "attacker-runtime",
+    "RUNTIME_OWNER": "system",
+    "STATUS": "RUNNING",
+    "TASKS_COMPLETED": 0,
+    "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+    "UNPROVEN_EDGES": [
+      "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
+      "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+      "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+      "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+      "SALES PACKAGE",
+      "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+      "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+      "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+      "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+      "POST-PILOT HARDENING",
+      "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+      "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+      "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+      "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION"
+    ],
+    "USER_CONTINUE_MESSAGES": 0,
+    "WORKERS_USED": 1
+  },
+  "revision": 1,
+  "schema_version": 2
+}

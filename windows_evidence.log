@@ -1,0 +1,38 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.9.13, pytest-8.4.2, pluggy-1.6.0
+rootdir: /Users/user/Downloads/2026-courier
+configfile: pyproject.toml
+collected 1 item
+
+tests/test_windows_runtime_torture.py Starting server...
+Server ready.
+[PASS] Goal created
+Starting Windows daemon to process marker...
+Daemon STDOUT (1):
+[Windows Worker] Using API_KEY (redacted)
+[WINDOWS-TEST-WORKER] Windows Worker HTTP Daemon started. PID=14026
+[WINDOWS-TEST-WORKER] Found ambiguous crash marker for task task-win-torture-01
+[WINDOWS-TEST-WORKER] Registered successfully (SHA: 80656278)
+[WINDOWS-TEST-WORKER] Running task task-win-torture-01...
+[WINDOWS-TEST-WORKER] Executing native PowerShell instruction.
+[WINDOWS-TEST-WORKER] Task task-win-torture-01 completed. Result posted.
+
+[PASS] Effect marker unlinked after recovery
+[PASS] Daemon detected crash marker
+Task status after crash recovery: QUEUED
+[PASS] Crash recovery succeeded
+Restarting daemon to process unsent result...
+Daemon STDOUT (2):
+[Windows Worker] Using API_KEY (redacted)
+[WINDOWS-TEST-WORKER] Windows Worker HTTP Daemon started. PID=14031
+[WINDOWS-TEST-WORKER] Found unsent result marker for task task-win-torture-01
+[WINDOWS-TEST-WORKER] Running task task-win-torture-01...
+[WINDOWS-TEST-WORKER] Executing native PowerShell instruction.
+[WINDOWS-TEST-WORKER] Task task-win-torture-01 completed. Result posted.
+
+[PASS] Result marker unlinked after recovery
+[PASS] Daemon detected unsent result
+[PASS] Duplicate result posted successfully (HTTP 200/409 safely handled)
+.
+
+============================== 1 passed in 6.72s ===============================

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://courier.local/schemas/thought-contribution-v1.json",
+  "title": "Provider-neutral ThoughtContribution",
+  "type": "object",
+  "required": ["contribution_id", "goal_id", "content", "provider", "contributor", "observed_at", "dedup_key", "provenance", "execution_authorized"],
+  "properties": {
+    "contribution_id": {"type": "string", "minLength": 1},
+    "goal_id": {"type": "string", "minLength": 1},
+    "content": {"type": "string", "minLength": 1},
+    "provider": {"type": "string", "minLength": 1},
+    "contributor": {"type": "string", "minLength": 1},
+    "observed_at": {"type": "string", "format": "date-time"},
+    "dedup_key": {"type": "string", "pattern": "^fp1-[0-9a-f]{8}$"},
+    "provenance": {"type": "object"},
+    "execution_authorized": {"const": false}
+  },
+  "additionalProperties": false
+}
+

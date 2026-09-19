@@ -1,0 +1,31 @@
+{
+ "completed_runs": 1,
+ "cooldown_seconds": 5.0,
+ "current_task": null,
+ "done_count": 1,
+ "error": null,
+ "executed_inputs": [],
+ "executions": {
+  "canary_1": 1
+ },
+ "human_continue": 0,
+ "last_result": {
+  "completed_at": 1789812482.403054,
+  "result_id": "canary_1:r1",
+  "task": "canary_1"
+ },
+ "local_fake": false,
+ "max_active_observed": 1,
+ "needs_review": [],
+ "next_admission_after": 1789812487.403452,
+ "pause_requested": false,
+ "run_id": "run-1789812482173",
+ "run_mode": "FINITE",
+ "saved_prompt": null,
+ "start_limit": 1,
+ "started_count": 1,
+ "state": "COMPLETED",
+ "stop_count": 0,
+ "stop_requested": false,
+ "waiting_for_work": false
+}

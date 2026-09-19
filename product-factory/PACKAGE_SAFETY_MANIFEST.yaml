@@ -1,0 +1,40 @@
+version: 1
+policy: allowlist source and product artifacts; deny runtime and private material
+include:
+  - application source explicitly selected for release
+  - schemas
+  - deterministic tests
+  - customer-facing documentation reviewed for private paths
+  - static assets with documented provenance
+exclude:
+  - "**/.env*"
+  - "**/*secret*"
+  - "**/*credential*"
+  - "logs/**"
+  - "runtime/**"
+  - "server/state/**"
+  - "**/*.pid"
+  - "**/*.log"
+  - "**/*.tmp"
+  - ".archive/**"
+  - "archive/night_scratch/**"
+  - "tmp_test_run/**"
+  - "venv/**"
+  - local proof artifacts containing endpoint keys
+  - absolute user home paths
+required_preflight:
+  - enumerate final tracked files from the release commit
+  - scan final package for credential-like assignments without printing values
+  - reject logs, state databases, PID files, archives, and temporary patches
+  - build from a clean isolated checkout
+  - compare package manifest to allowlist
+  - verify application fails closed when credentials are absent
+current_verdict: NOT_SAFE_TO_PACKAGE
+current_evidence:
+  - tracked logs, PID files, runtime database, and archived proof debris exist
+  - credential-like literals exist in tracked proof/demo/acceptance/bootstrap files
+required_owner_action:
+  - classify and remove or sanitize release-ineligible tracked artifacts
+  - rotate any value confirmed to have been a real credential
+  - perform final package build from reviewed exact SHA
+

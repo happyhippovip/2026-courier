@@ -1,0 +1,109 @@
+{
+  "schema_version": 2,
+  "goals": {
+    "goal-c14b6d13": {
+      "goal_id": "goal-c14b6d13",
+      "goal_text": "Value test",
+      "status": "ACTIVE",
+      "terminal": true,
+      "workflow_plan": [
+        {
+          "instruction": "Step 1",
+          "target_agent": "mac",
+          "task_id": "T-VAL",
+          "goal_id": "goal-c14b6d13",
+          "status": "RESULT_RECEIVED",
+          "attempts": 1,
+          "worker_id": "W-VALUE",
+          "attempt_id": "T-VAL:attempt:1",
+          "dispatch_id": "dispatch-18ac983ad6c14f7b8834b27883da9a1c",
+          "execution_ref": "exec-38044c00e38d44a985bde17234263c70",
+          "server_binding": {
+            "sha": "970eae52409c38ea7b09642253f98e4cd13b9db2",
+            "runtime": "courier-server:55e08cd083d645c5b0263994f9db847f"
+          },
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": []
+        }
+      ],
+      "current_step_index": 0
+    }
+  },
+  "tasks": {
+    "T-VAL": {
+      "instruction": "Step 1",
+      "target_agent": "mac",
+      "task_id": "T-VAL",
+      "goal_id": "goal-c14b6d13",
+      "status": "RESULT_RECEIVED",
+      "attempts": 1,
+      "worker_id": "W-VALUE",
+      "attempt_id": "T-VAL:attempt:1",
+      "dispatch_id": "dispatch-18ac983ad6c14f7b8834b27883da9a1c",
+      "execution_ref": "exec-38044c00e38d44a985bde17234263c70",
+      "server_binding": {
+        "sha": "970eae52409c38ea7b09642253f98e4cd13b9db2",
+        "runtime": "courier-server:55e08cd083d645c5b0263994f9db847f"
+      },
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "last_completed_step": "T-VAL",
+      "next_action": "VERIFY",
+      "blocker": null,
+      "artifact_refs": [],
+      "producer_principal": "principal_f43fe304fe8f4c3402dca1905d86a446abcfc361e889ef4c737a09fd28655c25",
+      "result": {
+        "result_id": "result-de817bb097cbaf8d867ba77fe1ac9fd08b1f7ddbe5512b5cacf7afc12e5ec531",
+        "worker_id": "W-VALUE",
+        "execution_ref": "exec-38044c00e38d44a985bde17234263c70",
+        "runtime_identity": {
+          "runtime": "courier-server:55e08cd083d645c5b0263994f9db847f",
+          "sha": "970eae52409c38ea7b09642253f98e4cd13b9db2"
+        },
+        "result_data": {
+          "asset_created": "Sales Tool",
+          "business_problem": "Lead gen",
+          "confirmed_recurring_revenue_eur_month": 0,
+          "confirmed_revenue_eur": 0,
+          "customer_relevance": "High",
+          "estimated_opportunity_value_eur": 500,
+          "revenue_status": "BUILT",
+          "target_contribution": "FIRST_REAL_REVENUE"
+        },
+        "run_id": "run-val",
+        "goal_id": "goal-c14b6d13",
+        "dispatch_id": "dispatch-18ac983ad6c14f7b8834b27883da9a1c",
+        "status": "SUCCESS",
+        "task_id": "T-VAL",
+        "artifacts": [],
+        "attempt_id": "T-VAL:attempt:1"
+      },
+      "result_received_at": 1789791348.6672268
+    }
+  },
+  "workers": {
+    "W-VALUE": {
+      "worker_id": "W-VALUE",
+      "platform": "mac",
+      "capabilities": [
+        "macos"
+      ],
+      "authorities": [],
+      "provider": null,
+      "capacity_identity": null,
+      "provider_available": true,
+      "capacity_available": true,
+      "last_seen": 1789791348.661678,
+      "available": true,
+      "current_task": null,
+      "cost_class": "unknown"
+    }
+  },
+  "resource_owners": {}
+}

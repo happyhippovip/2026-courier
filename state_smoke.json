@@ -1,0 +1,141 @@
+{
+  "schema_version": 2,
+  "goals": {
+    "goal-6cf33aa6": {
+      "goal_id": "goal-6cf33aa6",
+      "goal_text": "Smoke test",
+      "status": "DONE",
+      "terminal": true,
+      "workflow_plan": [
+        {
+          "artifacts": [
+            "test.txt"
+          ],
+          "instruction": "Smoke test local",
+          "target_agent": "mac",
+          "task_id": "T-SMOKE",
+          "goal_id": "goal-6cf33aa6",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "W-SMOKE",
+          "attempt_id": "T-SMOKE:attempt:1",
+          "dispatch_id": "dispatch-fc05de37b712474dbe5c74b5d91a9cc7",
+          "execution_ref": "exec-60f5e9411852407c95971e43e5d69b2a",
+          "server_binding": {
+            "sha": "970eae52409c38ea7b09642253f98e4cd13b9db2",
+            "runtime": "courier-server:292a9e391dab4f40b62f9adf373b22c0"
+          },
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "verification": {
+            "verifier_id": "V-SMOKE",
+            "verifier_principal": "principal_476815aea7ed70fa3412c3f4aed71c660689dce9883439cd59a3953b3eb650a9",
+            "result_id": "result-b9c36e79b47918e20c4c5281a65679637fd23750da3f5eff78d51d79439d9584",
+            "verdict": "PASS",
+            "artifacts": [
+              {
+                "path": "test.txt",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+              }
+            ],
+            "verified_at": 1789790288.640841
+          }
+        }
+      ],
+      "current_step_index": 0
+    }
+  },
+  "tasks": {
+    "T-SMOKE": {
+      "artifacts": [
+        "test.txt"
+      ],
+      "instruction": "Smoke test local",
+      "target_agent": "mac",
+      "task_id": "T-SMOKE",
+      "goal_id": "goal-6cf33aa6",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "W-SMOKE",
+      "attempt_id": "T-SMOKE:attempt:1",
+      "dispatch_id": "dispatch-fc05de37b712474dbe5c74b5d91a9cc7",
+      "execution_ref": "exec-60f5e9411852407c95971e43e5d69b2a",
+      "server_binding": {
+        "sha": "970eae52409c38ea7b09642253f98e4cd13b9db2",
+        "runtime": "courier-server:292a9e391dab4f40b62f9adf373b22c0"
+      },
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "last_completed_step": "T-SMOKE",
+      "next_action": null,
+      "blocker": null,
+      "artifact_refs": [
+        {
+          "path": "test.txt",
+          "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        }
+      ],
+      "producer_principal": "principal_f43fe304fe8f4c3402dca1905d86a446abcfc361e889ef4c737a09fd28655c25",
+      "result": {
+        "execution_ref": "exec-60f5e9411852407c95971e43e5d69b2a",
+        "task_id": "T-SMOKE",
+        "status": "SUCCESS",
+        "attempt_id": "T-SMOKE:attempt:1",
+        "dispatch_id": "dispatch-fc05de37b712474dbe5c74b5d91a9cc7",
+        "artifacts": [
+          {
+            "path": "test.txt",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          }
+        ],
+        "runtime_identity": {
+          "runtime": "courier-server:292a9e391dab4f40b62f9adf373b22c0",
+          "sha": "970eae52409c38ea7b09642253f98e4cd13b9db2"
+        },
+        "worker_id": "W-SMOKE",
+        "run_id": "run-smoke",
+        "result_id": "result-b9c36e79b47918e20c4c5281a65679637fd23750da3f5eff78d51d79439d9584",
+        "goal_id": "goal-6cf33aa6"
+      },
+      "result_received_at": 1789790288.6370618,
+      "verification": {
+        "verifier_id": "V-SMOKE",
+        "verifier_principal": "principal_476815aea7ed70fa3412c3f4aed71c660689dce9883439cd59a3953b3eb650a9",
+        "result_id": "result-b9c36e79b47918e20c4c5281a65679637fd23750da3f5eff78d51d79439d9584",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "test.txt",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          }
+        ],
+        "verified_at": 1789790288.640841
+      }
+    }
+  },
+  "workers": {
+    "W-SMOKE": {
+      "worker_id": "W-SMOKE",
+      "platform": "mac",
+      "capabilities": [
+        "macos"
+      ],
+      "authorities": [],
+      "provider": null,
+      "capacity_identity": null,
+      "provider_available": true,
+      "capacity_available": true,
+      "last_seen": 1789790288.6321778,
+      "available": true,
+      "current_task": null,
+      "cost_class": "unknown"
+    }
+  },
+  "resource_owners": {}
+}

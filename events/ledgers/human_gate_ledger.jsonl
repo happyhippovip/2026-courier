@@ -1,0 +1,3 @@
+{"timestamp": 1789786439.3403819, "goal_task": "t123", "category": "PERMISSION", "requested_decision": "approve_write", "why_automation_stopped": "requires root", "safe_to_continue": false, "status": "pending", "approving_human_reference": null}
+{"timestamp": 1789789265.00789, "goal_task": "ambiguous", "category": "OTHER", "requested_decision": "approve_execution", "why_automation_stopped": null, "safe_to_continue": false, "status": "pending", "approving_human_reference": null}
+{"timestamp": 1789789267.897494, "goal_task": "stale-test-1", "category": "OTHER", "requested_decision": "approve_execution", "why_automation_stopped": null, "safe_to_continue": false, "status": "pending", "approving_human_reference": null}

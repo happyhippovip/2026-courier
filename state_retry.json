@@ -1,0 +1,127 @@
+{
+  "schema_version": 2,
+  "goals": {
+    "goal-32c69bdd": {
+      "goal_id": "goal-32c69bdd",
+      "goal_text": "Retry test",
+      "status": "ACTIVE",
+      "terminal": true,
+      "workflow_plan": [
+        {
+          "instruction": "Failing step",
+          "target_agent": "mac",
+          "task_id": "T-RETRY",
+          "goal_id": "goal-32c69bdd",
+          "status": "QUEUED",
+          "attempts": 1,
+          "worker_id": null,
+          "attempt_id": "T-RETRY:attempt:1",
+          "dispatch_id": "dispatch-ec9f33cbb3a04301a802e0f4bcb3f242",
+          "execution_ref": "exec-8906c09c83e44da5ad76040ea80de80e",
+          "server_binding": {
+            "sha": "970eae52409c38ea7b09642253f98e4cd13b9db2",
+            "runtime": "courier-server:873f64dd15dc451b996ae9d75ebad640"
+          },
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "retry_state": {
+            "execution": 1,
+            "transport": 0,
+            "provider": 0,
+            "verification": 0
+          },
+          "next_retry_at": 1789791394.294655
+        }
+      ],
+      "current_step_index": 0
+    }
+  },
+  "tasks": {
+    "T-RETRY": {
+      "instruction": "Failing step",
+      "target_agent": "mac",
+      "task_id": "T-RETRY",
+      "goal_id": "goal-32c69bdd",
+      "status": "QUEUED",
+      "attempts": 1,
+      "worker_id": null,
+      "attempt_id": "T-RETRY:attempt:1",
+      "dispatch_id": "dispatch-ec9f33cbb3a04301a802e0f4bcb3f242",
+      "execution_ref": "exec-8906c09c83e44da5ad76040ea80de80e",
+      "server_binding": {
+        "sha": "970eae52409c38ea7b09642253f98e4cd13b9db2",
+        "runtime": "courier-server:873f64dd15dc451b996ae9d75ebad640"
+      },
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "last_completed_step": null,
+      "next_action": "RETRY",
+      "blocker": "unknown",
+      "artifact_refs": [],
+      "producer_principal": "principal_f43fe304fe8f4c3402dca1905d86a446abcfc361e889ef4c737a09fd28655c25",
+      "result": {
+        "artifacts": [],
+        "task_id": "T-RETRY",
+        "runtime_identity": {
+          "runtime": "courier-server:873f64dd15dc451b996ae9d75ebad640",
+          "sha": "970eae52409c38ea7b09642253f98e4cd13b9db2"
+        },
+        "result_id": "result-31fa2f1d0dcc42579ee7f6a90d3ca55bedb4faef6c2839ab675405dee3ac7d28",
+        "run_id": "run-retry",
+        "execution_ref": "exec-8906c09c83e44da5ad76040ea80de80e",
+        "result_data": {
+          "retry_metadata": {
+            "duplicate_prevented": true,
+            "evidence_ref": "log-456",
+            "failure_category": "RATE_LIMIT",
+            "idempotency_key": "idem-123",
+            "intervention_type": "AUTOMATIC",
+            "previous_attempt_id": null,
+            "previous_effect_exists": false,
+            "retry_allowed": true,
+            "retry_executed": false,
+            "retry_reason": "Rate limit hit"
+          }
+        },
+        "worker_id": "W-RETRY",
+        "status": "FAILED",
+        "attempt_id": "T-RETRY:attempt:1",
+        "dispatch_id": "dispatch-ec9f33cbb3a04301a802e0f4bcb3f242",
+        "goal_id": "goal-32c69bdd"
+      },
+      "result_received_at": 1789791392.2941241,
+      "retry_state": {
+        "execution": 1,
+        "transport": 0,
+        "provider": 0,
+        "verification": 0
+      },
+      "next_retry_at": 1789791394.294655
+    }
+  },
+  "workers": {
+    "W-RETRY": {
+      "worker_id": "W-RETRY",
+      "platform": "mac",
+      "capabilities": [
+        "macos"
+      ],
+      "authorities": [],
+      "provider": null,
+      "capacity_identity": null,
+      "provider_available": true,
+      "capacity_available": true,
+      "last_seen": 1789791392.290695,
+      "available": true,
+      "current_task": null,
+      "cost_class": "unknown"
+    }
+  },
+  "resource_owners": {}
+}

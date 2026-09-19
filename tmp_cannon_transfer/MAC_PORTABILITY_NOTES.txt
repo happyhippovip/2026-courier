@@ -1,0 +1,30 @@
+MAC PORTABILITY NOTES — source preserved, no export-time fixes
+1. app/cannon/web.py uses .venv/Scripts/python.exe, .venv/Lib/site-packages,
+   and python.exe. Select the existing Mac interpreter in the Mac adaptation.
+2. app/cannon/controller.py resource_state returns YELLOW on non-Windows,
+   which blocks local starts. Add a real bounded Mac resource observation.
+3. app/cannon/processes.py WindowsJob does nothing on POSIX. The existing
+   process handle shutdown is not proof of crash/parent-death cleanup on Mac.
+4. core-source-manifest.json keys use Windows backslashes; cannon_support.py
+   compares Path strings. Normalize only fixture path representation on Mac,
+   retaining original file hashes and documenting the resulting build identity.
+5. app/server.py open_app and shared-runtime paths are Windows-specific.
+   Use --cannon-only --port 8768; never launch its shared-runtime fallback.
+6. Courier Cannon V1.cmd is Windows-only. Retain it as source/build-identity
+   input, not as the Mac launcher. Use a thin separate Mac launcher.
+7. pyproject.toml declares Python >=3.14 and Flask/requests versions; no venv
+   or third-party packages are exported. Validate available Mac dependencies.
+8. Tests contain Windows process assumptions. Do not count skipped cases as PASS.
+9. LiveMuseAdapter/acceptance.py are included as current source, NOT authorized
+   execution. Never run live acceptance, Muse, provider calls or credential paths.
+10. Local test fixtures use isolated synthetic credentials and a forbidden keyring
+    stub, NOT real account credentials. Local fixture PASS is not physical proof.
+11. Default NORMAL, max active 1, unanswered/lane 1, result-bound cooldown 5s
+    must remain unchanged. Next-run selection must stay separate from last run.
+12. SECURITY EXCLUSION: frozen scripts/acceptance/run_final_acceptance.py
+    embeds two unverified credentials and has no references in app/frozen code.
+    It is excluded. Windows source remains unchanged. The exported fixture
+    manifest omits this one unused file. Original hash-only manifest is retained
+    as TRANSFER_ORIGINAL_CORE_MANIFEST.json. This is a NEW fixture identity:
+    old test acceptance MUST NOT be reused. All included executable source
+    bytes are unchanged; run fresh Mac tests after minimal platform adaptation.

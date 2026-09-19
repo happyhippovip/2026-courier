@@ -1,3 +1,4 @@
+from scripts.integration_contract import _canonical_hash
 import pytest
 import os
 import tempfile
@@ -144,13 +145,13 @@ def test_concurrency_overlap_and_auto_continue(test_server):
     for tid in ("A", "B"):
         t_data = state["tasks"][tid]
         requests.post(f"{test_server}/tasks/verify", json={
-            "task_id": tid, "verifier_id": "v1", "result_id": f"res_{tid}",
+            "task_id": tid, "verifier_id": "v1", "result_id": state["res_ids"][tid],
             "artifacts": [], "verdict": "PASS", "received_runtime_identity": t_data.get("server_binding")
         }, headers=auth_verifier)
     
     # Duplicate verify shouldn't double-schedule
     requests.post(f"{test_server}/tasks/verify", json={
-        "task_id": "A", "verifier_id": "v1", "result_id": "res_A",
+        "task_id": "A", "verifier_id": "v1", "result_id": state["res_ids"]["A"],
         "artifacts": [], "verdict": "PASS", "received_runtime_identity": state["tasks"]["A"].get("server_binding")
     }, headers=auth_verifier)
 

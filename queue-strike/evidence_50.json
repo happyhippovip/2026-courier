@@ -1,0 +1,20 @@
+{
+  "fixture": "50-task-isolated-durable-queue",
+  "tasks_planned": 50,
+  "tasks_terminal": 50,
+  "statuses": {
+    "DONE": 46,
+    "FAILED": 1,
+    "HUMAN_REQUIRED": 1,
+    "SKIPPED_NOT_REQUIRED": 2
+  },
+  "human_relay_after_start": 0,
+  "duplicate_dispatch": 0,
+  "premature_dependents": 0,
+  "lifecycle_violations": 0,
+  "false_done": 0,
+  "model_wait_polling": 0,
+  "restart_count": 1,
+  "final_revision": 262,
+  "state_sha256": "e7cc0511f9571a0c439582149fa168f3852af275c78e25df8a0f0aa8a130902e"
+}

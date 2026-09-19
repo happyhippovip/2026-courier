@@ -1,0 +1,176 @@
+{
+  "schema_version": 2,
+  "goals": {
+    "goal-91414160": {
+      "goal_id": "goal-91414160",
+      "goal_text": "Lineage test",
+      "status": "ACTIVE",
+      "terminal": true,
+      "workflow_plan": [
+        {
+          "artifacts": [],
+          "instruction": "Step 1",
+          "target_agent": "mac",
+          "task_id": "T-LIN-1",
+          "goal_id": "goal-91414160",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "W-LINEAGE",
+          "attempt_id": "T-LIN-1:attempt:1",
+          "dispatch_id": "dispatch-4e0ca7e884554e0e9a9f7bdb1f5463eb",
+          "execution_ref": "exec-33d94da4ce7c41c68429b74b15c1a32a",
+          "server_binding": {
+            "sha": "970eae52409c38ea7b09642253f98e4cd13b9db2",
+            "runtime": "courier-server:66470c127de1418a884bae391341c9ad"
+          },
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "verification": {
+            "verifier_id": "V-LINEAGE",
+            "verifier_principal": "principal_476815aea7ed70fa3412c3f4aed71c660689dce9883439cd59a3953b3eb650a9",
+            "result_id": "result-b6a6b4a7a412ac4e38056692b3a5882ee0a1bd95c2c709c7d8a7fd0c6ea0fa3e",
+            "verdict": "PASS",
+            "artifacts": [],
+            "verified_at": 1789791315.937969
+          }
+        },
+        {
+          "depends_on": [
+            "T-LIN-1"
+          ],
+          "instruction": "Step 2",
+          "target_agent": "mac",
+          "task_id": "T-LIN-2",
+          "goal_id": "goal-91414160",
+          "status": "DISPATCHED",
+          "attempts": 1,
+          "worker_id": "W-LINEAGE",
+          "attempt_id": "T-LIN-2:attempt:1",
+          "dispatch_id": "dispatch-0d09982aebe848bb871638d00b8ef892",
+          "execution_ref": "exec-8893b15188b245488b89f82462062c9c",
+          "server_binding": {
+            "sha": "970eae52409c38ea7b09642253f98e4cd13b9db2",
+            "runtime": "courier-server:66470c127de1418a884bae391341c9ad"
+          },
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": []
+        }
+      ],
+      "current_step_index": 0
+    }
+  },
+  "tasks": {
+    "T-LIN-1": {
+      "artifacts": [],
+      "instruction": "Step 1",
+      "target_agent": "mac",
+      "task_id": "T-LIN-1",
+      "goal_id": "goal-91414160",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "W-LINEAGE",
+      "attempt_id": "T-LIN-1:attempt:1",
+      "dispatch_id": "dispatch-4e0ca7e884554e0e9a9f7bdb1f5463eb",
+      "execution_ref": "exec-33d94da4ce7c41c68429b74b15c1a32a",
+      "server_binding": {
+        "sha": "970eae52409c38ea7b09642253f98e4cd13b9db2",
+        "runtime": "courier-server:66470c127de1418a884bae391341c9ad"
+      },
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "last_completed_step": "T-LIN-1",
+      "next_action": null,
+      "blocker": null,
+      "artifact_refs": [],
+      "producer_principal": "principal_f43fe304fe8f4c3402dca1905d86a446abcfc361e889ef4c737a09fd28655c25",
+      "result": {
+        "dispatch_id": "dispatch-4e0ca7e884554e0e9a9f7bdb1f5463eb",
+        "result_id": "result-b6a6b4a7a412ac4e38056692b3a5882ee0a1bd95c2c709c7d8a7fd0c6ea0fa3e",
+        "status": "SUCCESS",
+        "run_id": "run-lin-1",
+        "attempt_id": "T-LIN-1:attempt:1",
+        "result_data": {
+          "usage": {
+            "input_tokens": 100,
+            "measurement_basis": "PROVIDER_REPORTED",
+            "output_tokens": 50
+          }
+        },
+        "goal_id": "goal-91414160",
+        "execution_ref": "exec-33d94da4ce7c41c68429b74b15c1a32a",
+        "runtime_identity": {
+          "runtime": "courier-server:66470c127de1418a884bae391341c9ad",
+          "sha": "970eae52409c38ea7b09642253f98e4cd13b9db2"
+        },
+        "worker_id": "W-LINEAGE",
+        "artifacts": [],
+        "task_id": "T-LIN-1"
+      },
+      "result_received_at": 1789791315.933762,
+      "verification": {
+        "verifier_id": "V-LINEAGE",
+        "verifier_principal": "principal_476815aea7ed70fa3412c3f4aed71c660689dce9883439cd59a3953b3eb650a9",
+        "result_id": "result-b6a6b4a7a412ac4e38056692b3a5882ee0a1bd95c2c709c7d8a7fd0c6ea0fa3e",
+        "verdict": "PASS",
+        "artifacts": [],
+        "verified_at": 1789791315.937969
+      }
+    },
+    "T-LIN-2": {
+      "depends_on": [
+        "T-LIN-1"
+      ],
+      "instruction": "Step 2",
+      "target_agent": "mac",
+      "task_id": "T-LIN-2",
+      "goal_id": "goal-91414160",
+      "status": "DISPATCHED",
+      "attempts": 1,
+      "worker_id": "W-LINEAGE",
+      "attempt_id": "T-LIN-2:attempt:1",
+      "dispatch_id": "dispatch-0d09982aebe848bb871638d00b8ef892",
+      "execution_ref": "exec-8893b15188b245488b89f82462062c9c",
+      "server_binding": {
+        "sha": "970eae52409c38ea7b09642253f98e4cd13b9db2",
+        "runtime": "courier-server:66470c127de1418a884bae391341c9ad"
+      },
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "last_completed_step": null,
+      "next_action": "EXECUTE",
+      "blocker": null,
+      "artifact_refs": []
+    }
+  },
+  "workers": {
+    "W-LINEAGE": {
+      "worker_id": "W-LINEAGE",
+      "platform": "mac",
+      "capabilities": [
+        "macos"
+      ],
+      "authorities": [],
+      "provider": null,
+      "capacity_identity": null,
+      "provider_available": true,
+      "capacity_available": true,
+      "last_seen": 1789791315.940639,
+      "available": false,
+      "current_task": "T-LIN-2",
+      "cost_class": "unknown"
+    }
+  },
+  "resource_owners": {}
+}

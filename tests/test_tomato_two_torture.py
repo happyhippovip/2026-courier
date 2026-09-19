@@ -1,3 +1,5 @@
+import os
+os.environ["no_proxy"]="*"
 import uuid
 
 #!/usr/bin/env python3
@@ -22,8 +24,8 @@ import pytest
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
-SERVER_URL = "http://127.0.0.1:8080"
-API_KEY = "local-dev-key-123"
+SERVER_URL = "http://127.0.0.1:8081"
+API_KEY = "321606503a874d39b50f6137e3321b7f"
 VERIFIER_KEY = "verifier-12345"
 HEADERS = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
 VERIFIER_HEADERS = {"Authorization": f"Bearer {VERIFIER_KEY}", "Content-Type": "application/json"}
@@ -90,15 +92,37 @@ def start_server():
     print("Starting server for test...")
     python_exe = sys.executable
     env = os.environ.copy()
-    env["PORT"] = "8080"
+    env["PORT"] = "8081"
     env["PYTHONPATH"] = str(REPO_ROOT)
     env["FLASK_APP"] = "server.app"
-    env["PORT"] = "8080"
-    env["COURIER_API_KEY"] = "local-dev-key-123"
+    env["PORT"] = "8081"
+    env["COURIER_API_KEY"] = "321606503a874d39b50f6137e3321b7f"
     env["COURIER_MOCK_CHIEF"] = "1"
     env["COURIER_VERIFIER_API_KEY"] = "421606503a874d39b50f6137e3321b7f"
     
     # waitress is missing, so let's start the server and verifier manually here
+    import json
+    config_path = REPO_ROOT / "scripts/mac_worker/config.json"
+    if config_path.exists() and 'orig_config' in locals():
+        with open(config_path, "w") as cf:
+            json.dump(orig_config, cf)
+            
+        if orig_keychain_srv:
+            try:
+                subprocess.check_call(["security", "add-generic-password", "-a", "courier_worker", "-s", "courier_server_url", "-w", orig_keychain_srv, "-U"])
+            except Exception:
+                pass
+                
+        try:
+            subprocess.check_call(["launchctl", "stop", "com.courier.mac_worker"])
+        except Exception:
+            pass
+
+        try:
+            subprocess.check_call(["launchctl", "stop", "com.courier.mac_worker"])
+        except Exception:
+            pass
+
     server_proc = subprocess.Popen([python_exe, "-m", "server.app"], env=env, cwd=str(REPO_ROOT))
     
     verifier_proc = subprocess.Popen([python_exe, str(REPO_ROOT / "scripts/courier_verifier.py")], env=env, cwd=str(REPO_ROOT))
@@ -117,6 +141,21 @@ def start_server():
     except subprocess.TimeoutExpired:
         verifier_proc.kill()
         verifier_proc.wait()
+
+    if config_path.exists() and 'orig_config' in locals():
+        with open(config_path, "w") as cf:
+            json.dump(orig_config, cf)
+            
+        if orig_keychain_srv:
+            try:
+                subprocess.check_call(["security", "add-generic-password", "-a", "courier_worker", "-s", "courier_server_url", "-w", orig_keychain_srv, "-U"])
+            except Exception:
+                pass
+                
+        try:
+            subprocess.check_call(["launchctl", "stop", "com.courier.mac_worker"])
+        except Exception:
+            pass
 
 
 def test_tomato_two_full_torture_chamber():

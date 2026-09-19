@@ -126,6 +126,7 @@ def verify_result(task: dict, raw_result: dict, workspace: Path) -> dict:
         "run_id": run_id,
         "status": raw_result["status"],
         "artifacts": artifacts,
+        "runtime_identity": task.get("server_binding")
     }
     if "batch_id" in task:
         identity["batch_id"] = task["batch_id"]
@@ -152,6 +153,7 @@ def validate_durable_result(task: dict, result: dict) -> dict:
         "result_id",
         "status",
         "artifacts",
+        "runtime_identity"
     }
     # Optional identity fields for batch runs
     if "batch_id" in task:
@@ -183,6 +185,31 @@ def validate_durable_result(task: dict, result: dict) -> dict:
     for field in ("run_id", "result_id"):
         if not isinstance(result[field], str) or not result[field]:
             raise ContractError(f"{field} is required")
+            
+    if result["runtime_identity"] != task.get("server_binding"):
+        raise ContractError("runtime_identity mismatch")
+        
+    identity = {
+        "goal_id": result.get("goal_id"),
+        "task_id": result.get("task_id"),
+        "attempt_id": result.get("attempt_id"),
+        "dispatch_id": result.get("dispatch_id"),
+        "execution_ref": result.get("execution_ref"),
+        "worker_id": result.get("worker_id"),
+        "run_id": result.get("run_id"),
+        "status": result.get("status"),
+        "artifacts": result.get("artifacts", []),
+        "runtime_identity": result.get("runtime_identity")
+    }
+    if "batch_id" in result:
+        identity["batch_id"] = result["batch_id"]
+    if "prompt_id" in result:
+        identity["prompt_id"] = result["prompt_id"]
+    expected_result_id = f"result-{_canonical_hash(identity)}"
+    
+    if result["result_id"] != expected_result_id:
+        raise ContractError(f"result_id cryptographic mismatch. Expected {expected_result_id}")
+        
     if "run_attempt" in required and (not isinstance(result["run_attempt"], str) or not result["run_attempt"].isdigit()):
         raise ContractError("run_attempt is invalid")
     if result["status"] not in RESULT_STATES:

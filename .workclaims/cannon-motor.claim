@@ -1,0 +1,10 @@
+WORKER=muse-almond-scheat
+SCOPE=cannon-motor (CORE state machine + MOTOR serial Dauerlauf)
+FILES_OWNED=scripts/cannon_motor.py tests/test_cannon_motor_acceptance.py
+STARTED_AT=2026-09-19T06:06:10.345906+00:00
+SOURCE_IDENTITY=almond-scheat/01a0affd-6736-7350-9620-594c17a40708
+STATUS=PASS
+COMPLETED_AT=2026-09-19T06:15:00Z
+TEST_EVIDENCE=pytest tests/test_cannon_motor_acceptance.py -q -> 13 passed; regression work_queue_portable_lock + cannon_result_first -> 3 passed
+INVARIANTS=DUPLICATES=0 LOST=0 MAX_ACTIVE=1 HUMAN_CONTINUE=0
+REMAINING_DEPENDENCY=real provider worker + Mac/Windows runner proof (not in this package)

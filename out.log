@@ -1,0 +1,83 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.9.13, pytest-8.4.2, pluggy-1.6.0
+rootdir: /Users/user/Downloads/2026-courier
+configfile: pyproject.toml
+collected 2 items / 1 deselected / 1 selected
+
+tests/test_zero_chat_motor_cannon.py VERIFY RESP: 200 b'{"status":"RECONCILED"}\n'
+VERIFY RESP: 200 b'{"status":"RECONCILED"}\n'
+VERIFY RESP: 200 b'{"status":"RECONCILED"}\n'
+VERIFY RESP: 200 b'{"status":"RECONCILED"}\n'
+GOALS: {'goal': {'current_step_index': 0, 'goal_id': 'goal-fb6ebd94', 'goal_text': 'cannon test', 'status': 'ACTIVE', 'terminal': True, 'workflow_plan': [{'artifact_refs': [], 'attempt_id': 'A:attempt:1', 'attempts': 1, 'blocker': None, 'dispatch_id': 'dispatch-d25d2b09207542a4a42c17d74bf9b9f5', 'execution_ref': 'exec-36dedb7a169145c3a027c5a81ee02dff', 'goal_id': 'goal-fb6ebd94', 'instruction': 'Task A', 'last_completed_step': None, 'next_action': 'EXECUTE', 'result_id': None, 'run_id': None, 'server_binding': {'runtime': 'courier-server:b463253393b142a080f9a8efd90dbe9f', 'sha': 'd5cd013033156657630ccaa7f8017ab1f842c686'}, 'status': 'RECONCILED', 'target_agent': 'linux', 'target_capability': 'linux', 'task_id': 'A', 'verification': {'artifacts': [], 'result_id': 'res-A', 'verdict': 'PASS', 'verified_at': 1789751095.319437, 'verifier_id': 'V1', 'verifier_principal': 'principal_01a4447a4261e4f6a4952301165be1175a0f20c4a26bde68d5722d0a9241e550'}, 'worker_id': 'W1'}, {'artifact_refs': [], 'attempt_id': 'B:attempt:1', 'attempts': 1, 'blocker': None, 'depends_on': ['A'], 'dispatch_id': 'dispatch-026bd1ba4d6d4600b1788e87f8403676', 'execution_ref': 'exec-f42d23076136405a8c0ae58cce3472d5', 'goal_id': 'goal-fb6ebd94', 'instruction': 'Task B', 'last_completed_step': None, 'next_action': 'EXECUTE', 'result_id': None, 'run_id': None, 'server_binding': {'runtime': 'courier-server:b463253393b142a080f9a8efd90dbe9f', 'sha': 'd5cd013033156657630ccaa7f8017ab1f842c686'}, 'status': 'RECONCILED', 'target_agent': 'linux', 'target_capability': 'linux', 'task_id': 'B', 'verification': {'artifacts': [], 'result_id': 'res-B', 'verdict': 'PASS', 'verified_at': 1789751095.328114, 'verifier_id': 'V1', 'verifier_principal': 'principal_01a4447a4261e4f6a4952301165be1175a0f20c4a26bde68d5722d0a9241e550'}, 'worker_id': 'W1'}, {'artifact_refs': [], 'attempt_id': 'C:attempt:1', 'attempts': 1, 'blocker': 'blocked', 'dispatch_id': 'dispatch-cc4b6769907d44c7810d167004745fd9', 'execution_ref': 'exec-ae6a1c2c53d84bc3b451d7a69ebb1637', 'goal_id': 'goal-fb6ebd94', 'instruction': 'Task C', 'last_completed_step': None, 'next_action': 'EXECUTE', 'next_retry_at': 1789751097.314263, 'result_id': None, 'retry_state': {'execution': 0, 'provider': 1, 'transport': 0, 'verification': 0}, 'run_id': None, 'server_binding': {'runtime': 'courier-server:b463253393b142a080f9a8efd90dbe9f', 'sha': 'd5cd013033156657630ccaa7f8017ab1f842c686'}, 'status': 'RECONCILED', 'target_agent': 'linux', 'target_capability': 'linux', 'task_id': 'C', 'verification': {'artifacts': [], 'result_id': 'res-C', 'verdict': 'PASS', 'verified_at': 1789751095.341953, 'verifier_id': 'V1', 'verifier_principal': 'principal_01a4447a4261e4f6a4952301165be1175a0f20c4a26bde68d5722d0a9241e550'}, 'worker_id': 'W2'}, {'artifact_refs': [], 'attempt_id': 'D:attempt:1', 'attempts': 1, 'blocker': None, 'depends_on': ['C'], 'dispatch_id': 'dispatch-b66387de56c14430b5d1fb7869990f80', 'execution_ref': 'exec-5dfe4a6f5cf84e91b248a863a3cc4274', 'goal_id': 'goal-fb6ebd94', 'instruction': 'Task D', 'last_completed_step': None, 'next_action': 'EXECUTE', 'result_id': None, 'run_id': None, 'server_binding': {'runtime': 'courier-server:b463253393b142a080f9a8efd90dbe9f', 'sha': 'd5cd013033156657630ccaa7f8017ab1f842c686'}, 'status': 'RECONCILED', 'target_agent': 'linux', 'target_capability': 'linux', 'task_id': 'D', 'verification': {'artifacts': [], 'result_id': 'res-D', 'verdict': 'PASS', 'verified_at': 1789751095.350943, 'verifier_id': 'V1', 'verifier_principal': 'principal_01a4447a4261e4f6a4952301165be1175a0f20c4a26bde68d5722d0a9241e550'}, 'worker_id': 'W1'}, {'attempts': 0, 'depends_on': ['B', 'D'], 'goal_id': 'goal-fb6ebd94', 'instruction': 'Task E', 'status': 'QUEUED', 'target_agent': 'linux', 'task_id': 'E'}]}, 'tasks': [{'artifact_refs': [], 'attempt_id': 'A:attempt:1', 'attempts': 1, 'blocker': None, 'dispatch_id': 'dispatch-d25d2b09207542a4a42c17d74bf9b9f5', 'execution_ref': 'exec-36dedb7a169145c3a027c5a81ee02dff', 'goal_id': 'goal-fb6ebd94', 'instruction': 'Task A', 'last_completed_step': 'A', 'next_action': None, 'producer_principal': 'principal_ca64faa2f21a66699571463505fdf124b2046e98f1424f3bc28cb3e199ebd68f', 'result': {'artifacts': [], 'attempt_id': 'A:attempt:1', 'dispatch_id': 'dispatch-d25d2b09207542a4a42c17d74bf9b9f5', 'execution_ref': 'exec-36dedb7a169145c3a027c5a81ee02dff', 'goal_id': 'goal-fb6ebd94', 'result_id': 'res-A', 'run_id': 'run-694227d597dd4b078e4793040d57d0ba', 'status': 'SUCCESS', 'task_id': 'A', 'worker_id': 'W1'}, 'result_id': None, 'result_received_at': 1789751095.316842, 'run_id': None, 'server_binding': {'runtime': 'courier-server:b463253393b142a080f9a8efd90dbe9f', 'sha': 'd5cd013033156657630ccaa7f8017ab1f842c686'}, 'status': 'RECONCILED', 'target_agent': 'linux', 'target_capability': 'linux', 'task_id': 'A', 'verification': {'artifacts': [], 'result_id': 'res-A', 'verdict': 'PASS', 'verified_at': 1789751095.319437, 'verifier_id': 'V1', 'verifier_principal': 'principal_01a4447a4261e4f6a4952301165be1175a0f20c4a26bde68d5722d0a9241e550'}, 'worker_id': 'W1'}, {'artifact_refs': [], 'attempt_id': 'C:attempt:1', 'attempts': 1, 'blocker': None, 'dispatch_id': 'dispatch-cc4b6769907d44c7810d167004745fd9', 'execution_ref': 'exec-ae6a1c2c53d84bc3b451d7a69ebb1637', 'goal_id': 'goal-fb6ebd94', 'instruction': 'Task C', 'last_completed_step': 'C', 'next_action': None, 'next_retry_at': 1789751097.314263, 'producer_principal': 'principal_ca64faa2f21a66699571463505fdf124b2046e98f1424f3bc28cb3e199ebd68f', 'result': {'artifacts': [], 'attempt_id': 'C:attempt:1', 'dispatch_id': 'dispatch-cc4b6769907d44c7810d167004745fd9', 'execution_ref': 'exec-ae6a1c2c53d84bc3b451d7a69ebb1637', 'goal_id': 'goal-fb6ebd94', 'result_id': 'res-C', 'run_id': 'run-4512c7edb8a247458504e42d2db7d02b', 'status': 'SUCCESS', 'task_id': 'C', 'worker_id': 'W2'}, 'result_id': None, 'result_received_at': 1789751095.3390641, 'retry_state': {'execution': 0, 'provider': 1, 'transport': 0, 'verification': 0}, 'run_id': None, 'server_binding': {'runtime': 'courier-server:b463253393b142a080f9a8efd90dbe9f', 'sha': 'd5cd013033156657630ccaa7f8017ab1f842c686'}, 'status': 'RECONCILED', 'target_agent': 'linux', 'target_capability': 'linux', 'task_id': 'C', 'verification': {'artifacts': [], 'result_id': 'res-C', 'verdict': 'PASS', 'verified_at': 1789751095.341953, 'verifier_id': 'V1', 'verifier_principal': 'principal_01a4447a4261e4f6a4952301165be1175a0f20c4a26bde68d5722d0a9241e550'}, 'worker_id': 'W2'}, {'artifact_refs': [], 'attempt_id': 'B:attempt:1', 'attempts': 1, 'blocker': None, 'depends_on': ['A'], 'dispatch_id': 'dispatch-026bd1ba4d6d4600b1788e87f8403676', 'execution_ref': 'exec-f42d23076136405a8c0ae58cce3472d5', 'goal_id': 'goal-fb6ebd94', 'instruction': 'Task B', 'last_completed_step': 'B', 'next_action': None, 'producer_principal': 'principal_ca64faa2f21a66699571463505fdf124b2046e98f1424f3bc28cb3e199ebd68f', 'result': {'artifacts': [], 'attempt_id': 'B:attempt:1', 'dispatch_id': 'dispatch-026bd1ba4d6d4600b1788e87f8403676', 'execution_ref': 'exec-f42d23076136405a8c0ae58cce3472d5', 'goal_id': 'goal-fb6ebd94', 'result_id': 'res-B', 'run_id': 'run-5e23bf27a55e4d5a84c89a018b28cbc4', 'status': 'SUCCESS', 'task_id': 'B', 'worker_id': 'W1'}, 'result_id': None, 'result_received_at': 1789751095.324917, 'run_id': None, 'server_binding': {'runtime': 'courier-server:b463253393b142a080f9a8efd90dbe9f', 'sha': 'd5cd013033156657630ccaa7f8017ab1f842c686'}, 'status': 'RECONCILED', 'target_agent': 'linux', 'target_capability': 'linux', 'task_id': 'B', 'verification': {'artifacts': [], 'result_id': 'res-B', 'verdict': 'PASS', 'verified_at': 1789751095.328114, 'verifier_id': 'V1', 'verifier_principal': 'principal_01a4447a4261e4f6a4952301165be1175a0f20c4a26bde68d5722d0a9241e550'}, 'worker_id': 'W1'}, {'artifact_refs': [], 'attempt_id': 'D:attempt:1', 'attempts': 1, 'blocker': None, 'depends_on': ['C'], 'dispatch_id': 'dispatch-b66387de56c14430b5d1fb7869990f80', 'execution_ref': 'exec-5dfe4a6f5cf84e91b248a863a3cc4274', 'goal_id': 'goal-fb6ebd94', 'instruction': 'Task D', 'last_completed_step': 'D', 'next_action': None, 'producer_principal': 'principal_ca64faa2f21a66699571463505fdf124b2046e98f1424f3bc28cb3e199ebd68f', 'result': {'artifacts': [], 'attempt_id': 'D:attempt:1', 'dispatch_id': 'dispatch-b66387de56c14430b5d1fb7869990f80', 'execution_ref': 'exec-5dfe4a6f5cf84e91b248a863a3cc4274', 'goal_id': 'goal-fb6ebd94', 'result_id': 'res-D', 'run_id': 'run-2937048e7cd44705a9e7b92e95e6243c', 'status': 'SUCCESS', 'task_id': 'D', 'worker_id': 'W1'}, 'result_id': None, 'result_received_at': 1789751095.347882, 'run_id': None, 'server_binding': {'runtime': 'courier-server:b463253393b142a080f9a8efd90dbe9f', 'sha': 'd5cd013033156657630ccaa7f8017ab1f842c686'}, 'status': 'RECONCILED', 'target_agent': 'linux', 'target_capability': 'linux', 'task_id': 'D', 'verification': {'artifacts': [], 'result_id': 'res-D', 'verdict': 'PASS', 'verified_at': 1789751095.350943, 'verifier_id': 'V1', 'verifier_principal': 'principal_01a4447a4261e4f6a4952301165be1175a0f20c4a26bde68d5722d0a9241e550'}, 'worker_id': 'W1'}]}
+F
+
+=================================== FAILURES ===================================
+__________________________ test_motor_cannon_5_tasks ___________________________
+
+motor = <FlaskClient <Flask 'server.app'>>
+
+    def test_motor_cannon_5_tasks(motor):
+        register(motor, "W1")
+        register(motor, "W2")
+    
+        tasks = [
+            {"task_id": "A", "target_agent": "linux", "instruction": "Task A"},
+            {"task_id": "B", "target_agent": "linux", "instruction": "Task B", "depends_on": ["A"]},
+            {"task_id": "C", "target_agent": "linux", "instruction": "Task C"},
+            {"task_id": "D", "target_agent": "linux", "instruction": "Task D", "depends_on": ["C"]},
+            {"task_id": "E", "target_agent": "linux", "instruction": "Task E", "depends_on": ["B", "D"]}
+        ]
+    
+        goal_id = submit(motor, tasks)
+    
+        # Claim A and C
+        t1 = claim(motor, "W1")
+        t2 = claim(motor, "W2")
+        assert {t1["task_id"], t2["task_id"]} == {"A", "C"}
+    
+        # Provider wait C
+        c_worker = "W1" if t1["task_id"] == "C" else "W2"
+        a_worker = "W1" if t1["task_id"] == "A" else "W2"
+        c_task = t1 if t1["task_id"] == "C" else t2
+        a_task = t1 if t1["task_id"] == "A" else t2
+    
+        provider_wait(motor, c_worker, c_task)
+    
+        # Complete A
+        complete(motor, a_worker, a_task)
+        verify(motor, "A")
+    
+        # Now B should be ready, C is still blocked
+        t3 = claim(motor, "W1")
+        assert t3["task_id"] == "B"
+    
+        complete(motor, "W1", t3)
+        verify(motor, "B")
+    
+        # No more tasks ready until C finishes
+        assert claim(motor, "W2") is None
+    
+        # Complete C (pretend provider wait finished, how?)
+        # Resume endpoint!
+        resp = motor.post(f"/tasks/C/resume", headers=auth())
+        assert resp.status_code == 200
+    
+        t4 = claim(motor, "W2")
+        assert t4["task_id"] == "C"
+        complete(motor, "W2", t4)
+        verify(motor, "C")
+    
+        t5 = claim(motor, "W1")
+        assert t5["task_id"] == "D"
+        complete(motor, "W1", t5)
+        verify(motor, "D")
+    
+        print("GOALS:", motor.get(f"/goals/{goal_id}", headers=auth()).get_json(), flush=True)
+        t6 = claim(motor, "W2")
+>       assert t6["task_id"] == "E"
+E       TypeError: 'NoneType' object is not subscriptable
+
+tests/test_zero_chat_motor_cannon.py:119: TypeError
+=========================== short test summary info ============================
+FAILED tests/test_zero_chat_motor_cannon.py::test_motor_cannon_5_tasks - Type...
+======================= 1 failed, 1 deselected in 0.52s ========================

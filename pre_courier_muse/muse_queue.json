@@ -1,0 +1,59 @@
+[
+  {
+    "task_id": "A",
+    "objective": "Courier competitor delta research",
+    "status": "COMPLETED",
+    "output_path": "research_a.md",
+    "fingerprint": "360c31ef9f053223b208e021c6e9ee52306c0c0f50d234ad107abb8e5e654a4e",
+    "sources": [
+      "https://about.fb.com/news/2026/09/introducing-muse-personal-ai-agent/",
+      "https://research.meta.ai/blog/security-and-safety-for-ai-agents-our-approach-with-muse",
+      "https://openai.com/index/codex-maxxing-long-running-work/",
+      "https://www.anthropic.com/news/enabling-claude-code-to-work-more-autonomously",
+      "docs/COURIER_COPY_PASTE_EXIT_PLAN.md",
+      "docs/DEFERRED_PRODUCT_PLATFORM_AND_REVENUE_PLAYBOOK_2026-09-10.md"
+    ],
+    "material_findings": "Meta launched Muse on Sept 8, 2026, establishing the Secure VM and isolated Sentinel egress-authority pattern with credential surrogation. Concurrently, OpenAI Codex and Claude Code have expanded into hierarchical model tiering and persistent workflows. Competitors remain cloud-dependent or single-session bound. Courier retains clear structural advantages in bare-metal host survival, kernel-level lock safety (flock + monotonic fencing tokens), strict 0.00 EUR spend limits, and empirical Compound Intelligence validation, while Meta's credential surrogation and Sentinel isolation strongly reinforce Courier's non-negotiable principle that reasoning agents must never be their own permission authority.",
+    "recommended_action": "Preserve the strict separation of Motor (scheduling) from Ledger (state) and Canonical Authority (flock + fencing); evaluate adopting an isolated local credential-surrogation daemon for any future third-party API connectors; and continue offloading mechanical verification to deterministic scripts and minimal CLI packets.",
+    "completed_at": 1789738463.2313118
+  },
+  {
+    "task_id": "B",
+    "objective": "cost/waste research",
+    "status": "COMPLETED",
+    "output_path": "research_b.md",
+    "fingerprint": "a304536976a50a49d4bf83c0d5e5ff8ae74c1d0d0e34b265122ba24b8d8ef269",
+    "sources": [
+      "ops/ai/CLOUD_ALIGNMENT_2026-09-18.md",
+      "ops/ai/CODEX_BUDGET.md",
+      "ops/ai/MASTER_OPERATING_SYSTEM.md",
+      "2026-project-memory/CHAT_CONTRIBUTIONS/2026-09-06-agent-efficiency-research-delta.md",
+      "2026-project-memory/SYMPHONY_RESOURCE_SELF_FUNDING_RULE.md",
+      "2026-project-memory/POST_V1_ECONOMIC_MISSION.md",
+      "COURIER_MAXIMUM_THROUGHPUT_RULE.md",
+      "COURIER_AGENT_OPERATING_CONTEXT.md"
+    ],
+    "material_findings": "Resource and quota waste in autonomous agent systems is driven by four primary anti-patterns: (1) un-evicted raw tool logs and context re-inflation (exemplified by tmp_ledger.json swelling to 5.4 MB), (2) 'archaeology burn' where expensive frontier reasoning models spend 35k-65k tokens searching files for un-scoped tasks, (3) inter-agent chatter loops and model-driven polling, and (4) breaking prompt-caching prefix anchors by injecting dynamic timestamps early in prompts. In contrast, Courier's tiered execution pipeline (Deterministic Scout -> QA -> Implementation -> T0-T3 Harness -> Codex Review) cuts token consumption by 85%-90%, eliminates polling token burn via local OS daemons, and preserves the fail-closed 0.00 EUR autonomous spend boundary.",
+    "recommended_action": "Enforce strict pre-dispatch admission gates that reject tasks lacking exact file, function, and reproducer specs as PACKET_INCOMPLETE; compact and rotate tmp_ledger.json into compressed archives to keep active working state under 50 KB; anchor immutable operating rules at the prompt prefix to maximize provider prompt-caching discounts (50%-90%); and route asynchronous offline verification tasks to cold batch API lanes.",
+    "completed_at": 1789738662.385589
+  },
+  {
+    "task_id": "C",
+    "objective": "revenue opportunity research",
+    "status": "COMPLETED",
+    "output_path": "research_c.md",
+    "fingerprint": "838d46e4dfbfafaa48588f2e039f44bad1d131177f47867408c1cb10f4402c5b",
+    "sources": [
+      "COURIER_SYMPHONY_COMMERCIAL_STRATEGY_ENTERPRISE_DEPLOYMENT.md",
+      "docs/PRODUCT_REVENUE_AND_REINVESTMENT_STRATEGY.md",
+      "docs/DEFERRED_PRODUCT_PLATFORM_AND_REVENUE_PLAYBOOK_2026-09-10.md",
+      "2026-project-memory/POST_V1_ECONOMIC_MISSION.md",
+      "2026-project-memory/SYMPHONY_RESOURCE_SELF_FUNDING_RULE.md",
+      "2026-project-memory/POST_V1_REVENUE_OPERATIONS_BLUEPRINT.md",
+      "2026-Projektzentrale/docs/agent-bridge/FIRST_REVENUE_TEST_PACKAGE_001.md"
+    ],
+    "material_findings": "Courier revenue strategy establishes a rigorous evidence-backed self-funding sequence (\u20ac1 verified -> \u20ac239/mo baseline surplus -> \u20ac439/mo AI supportable -> \u20ac1,000/mo sustainable surplus -> enterprise scale) guarded by a fail-closed 0.00 EUR autonomous spend limit. Four distinct monetization vectors exist: (1) Courier Symphony Enterprise Orchestration Layer targeting high-ACV markets via $25k-$50k 60-day paid pilots and $120k-$750k/yr annual hybrid/sovereign licenses; (2) Developer Utilities & Micro-SaaS (fencing middleware, prompt-cache reverse proxy, and pre-commit task packet gatekeepers) offering the fastest path to self-serve recurring SaaS revenue; (3) Immediate first-euro validation services (\u20ac149 fixed-scope productized digital assets); and (4) Long-horizon geotechnical digital twins and privacy-first community networks. Result Customs enforces an anti-hype standard where only independently verified settled transactions count as economic progress.",
+    "recommended_action": "Package Courier's internal kernel-level fencing and prompt-cache prefix routing into a lightweight developer middleware utility ('Courier Engine Lite') for immediate recurring SaaS validation; prepare the enterprise 60-day paid pilot documentation kit ($25k sandbox POC) for human-approved B2B intake; and maintain strict branch-local human gates for payment rails, contract execution, and outbound solicitation.",
+    "completed_at": 1789738816.728103
+  }
+]

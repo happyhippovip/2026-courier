@@ -1,0 +1,1 @@
+{"app":"courier-mac-shell","app_version":"0.1.0-muse-spec","candidate_source_sha":"<filled at build>","candidate_tree_sha":"<filled at build>","build_fingerprint":"<filled at build>","kill_switch_file":"~/.courier/STOP","note":"UI-only shell. Shows loaded identity, renders badge, documents manual kill-switch. No runner control."}

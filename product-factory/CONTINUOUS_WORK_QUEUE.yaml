@@ -1,0 +1,24 @@
+schema_version: 1
+bound_head: d5cd013033156657630ccaa7f8017ab1f842c686
+updated_at: 2026-09-18T16:00:00+02:00
+queue_state: WAITING
+ready_tasks: 0
+current_blockers:
+  - Ledger candidate remains Google-owned and no new durable candidate fingerprint is published
+  - physical A-to-B depends on accepted Ledger candidate and authorized Windows runtime
+waiting_dependencies:
+  - CWQ-004: new Google Ledger candidate fingerprint and complete acceptance packet
+  - CWQ-005: accepted Ledger plus exact-SHA Windows authority
+next_wake_conditions:
+  - new durable Ledger candidate fingerprint
+  - explicit Google ownership release
+  - accepted Ledger judgment unlocking physical A-to-B
+items:
+  - {TASK_ID: CWQ-001, OBJECTIVE: "Typed Result Workspace", DEPENDENCIES: [], OWNER: CODEX, SCOPE: "operator-surface/**", READ_OR_WRITE: WRITE, STATUS: DONE, EVIDENCE: "operator-surface acceptance PASS", NEXT_ACTION: "none"}
+  - {TASK_ID: CWQ-002, OBJECTIVE: "Bounded Thought-to-Project proposal", DEPENDENCIES: [], OWNER: CODEX, SCOPE: "operator-surface/**", READ_OR_WRITE: WRITE, STATUS: DONE, EVIDENCE: "operator-surface project match acceptance PASS", NEXT_ACTION: "none"}
+  - {TASK_ID: CWQ-003, OBJECTIVE: "Anti-task-explosion preview limits", DEPENDENCIES: [CWQ-002], OWNER: CODEX, SCOPE: "operator-surface/**", READ_OR_WRITE: WRITE, STATUS: DONE, EVIDENCE: "10/20/50/100 cap and zero-agent acceptance PASS", NEXT_ACTION: "none"}
+  - {TASK_ID: CWQ-004, OBJECTIVE: "Accept new Ledger fingerprint", DEPENDENCIES: [], OWNER: GOOGLE_AND_CODEX_REVIEW, SCOPE: Ledger, READ_OR_WRITE: READ, STATUS: WAITING, EVIDENCE: "rejected BF7E4F29FCA41F296A632726AD3C5A6B6FBD4767CBE0DF4D646F56272612FD99", NEXT_ACTION: "wake only on new fingerprint"}
+  - {TASK_ID: CWQ-005, OBJECTIVE: "Physical exact-SHA A-to-B", DEPENDENCIES: [CWQ-004], OWNER: HUMAN_AND_GOOGLE, SCOPE: Windows_runtime, READ_OR_WRITE: READ, STATUS: WAITING, EVIDENCE: "requires Ledger acceptance", NEXT_ACTION: "run after Ledger acceptance"}
+  - {TASK_ID: CWQ-006, OBJECTIVE: "Machine-readable Work Package schema", DEPENDENCIES: [], OWNER: CODEX, SCOPE: "product-factory/**", READ_OR_WRITE: WRITE, STATUS: DONE, EVIDENCE: "schema/example deterministic validation PASS", NEXT_ACTION: "none"}
+  - {TASK_ID: CWQ-007, OBJECTIVE: "Customer first-10-minutes checklist", DEPENDENCIES: [CWQ-006], OWNER: CODEX, SCOPE: "product-factory/**", READ_OR_WRITE: WRITE, STATUS: DONE, EVIDENCE: "FIRST_10_MINUTES.yaml", NEXT_ACTION: "none"}
+  - {TASK_ID: CWQ-008, OBJECTIVE: "Package safety manifest", DEPENDENCIES: [], OWNER: CODEX, SCOPE: "product-factory/**", READ_OR_WRITE: WRITE, STATUS: DONE, EVIDENCE: "PACKAGE_SAFETY_MANIFEST.yaml", NEXT_ACTION: "owner sanitization before release"}

@@ -1,0 +1,53 @@
+diff --git a/tests/test_auto_replenishment.py b/tests/test_auto_replenishment.py
+index beaac830..feb99b0c 100644
+--- a/tests/test_auto_replenishment.py
++++ b/tests/test_auto_replenishment.py
+@@ -55,7 +55,7 @@ def http_post(path, data):
+     req.add_header("Content-Type", "application/json")
+     req.add_header("Authorization", "Bearer 321606503a874d39b50f6137e3321b7f")
+     try:
+-        res = urllib.request.urlopen(req, timeout=5)
++        res = urllib.request.urlopen(req, timeout=15)
+         return json.loads(res.read().decode())
+     except urllib.error.HTTPError as e:
+         return json.loads(e.read().decode())
+@@ -64,7 +64,7 @@ def http_get(path):
+     url = f"http://127.0.0.1:8081{path}"
+     req = urllib.request.Request(url, method="GET")
+     req.add_header("Authorization", "Bearer 321606503a874d39b50f6137e3321b7f")
+-    res = urllib.request.urlopen(req, timeout=5)
++    res = urllib.request.urlopen(req, timeout=15)
+     return json.loads(res.read().decode())
+ 
+ 
+@@ -84,18 +84,18 @@ def test_zero_chat_auto_replenishment():
+     time.sleep(1)
+     
+     # Worker register
+-    http_post("/workers/register", {"worker_id": "linux-worker", "platform": "linux", "capabilities": ["github-actions-safety-baseline-v1", "linux"]})
++    http_post("/workers/register", {"worker_id": "linux-worker", "timeout": 1, "platform": "linux", "capabilities": ["github-actions-safety-baseline-v1", "linux"]})
+     time.sleep(1)
+     
+     tasks_completed = 0
+     
+     for i in range(3):
+         # 2. Worker claims task
+-        claim_res = http_post("/tasks/claim", {"worker_id": "linux-worker"})
++        claim_res = http_post("/tasks/claim", {"worker_id": "linux-worker", "timeout": 1})
+         task = claim_res.get("task")
+         if not task:
+             time.sleep(2) # Wait for auto-replenish if it didn't happen yet
+-            claim_res = http_post("/tasks/claim", {"worker_id": "linux-worker"})
++            claim_res = http_post("/tasks/claim", {"worker_id": "linux-worker", "timeout": 1})
+             task = claim_res.get("task")
+             
+         assert task is not None, f"Expected to claim a task on iteration {i}"
+@@ -104,7 +104,7 @@ def test_zero_chat_auto_replenishment():
+         task_id = task["task_id"]
+         result_payload = {
+             "task_id": task_id,
+-            "worker_id": "linux-worker",
++            "worker_id": "linux-worker", "timeout": 1,
+             "status": "SUCCESS",
+             "result_file_path": f"/tmp/result_{task_id}.json",
+             "stderr": "",

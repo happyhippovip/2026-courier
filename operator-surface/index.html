@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Courier Symphony — Operator Surface</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div><p class="eyebrow">COURIER SYMPHONY</p><h1>Goal → Thought → Work → Result</h1></div>
+    <div class="telemetry"><span>LOCAL DURABLE</span><span>MODEL CALLS <b id="model-calls">0</b></span><label>Power <select id="power-mode"><option>AUTO</option><option>ECO</option><option>QUICK</option><option>TURBO</option><option>BOOST</option><option>HYPER</option><option>ULTRA</option><option>CANNON</option></select></label><label>Max tasks <select id="max-tasks"><option>10</option><option>20</option><option>50</option><option>100</option></select></label><label><input id="expert-toggle" type="checkbox"> Expert View</label></div>
+  </header>
+  <main>
+    <section class="panel goals-panel">
+      <div class="panel-title"><span>01</span><h2>Goals</h2><em>REAL · LOCAL</em></div>
+      <form id="goal-form">
+        <label>Goal name<input id="goal-title" required maxlength="100" placeholder="Launch the next safe milestone"></label>
+        <label>Objective<textarea id="goal-objective" required maxlength="1000" placeholder="Describe the outcome, not the implementation"></textarea></label>
+        <button type="submit">+ New Goal</button>
+      </form>
+      <div id="goals" class="list"></div>
+    </section>
+    <section class="panel">
+      <div class="panel-title"><span>P</span><h2>Projects</h2><em>LOCAL DRAFTS</em></div>
+      <form id="project-form"><label>Project name<input id="project-name" required maxlength="120"></label><label>Description<textarea id="project-description" maxlength="2000"></textarea></label><button type="submit">+ New Project</button></form>
+      <div id="projects" class="list"></div><pre id="candidate-output" class="result-content">Select a thought to preview project and Goal candidates.</pre>
+    </section>
+    <section class="panel">
+      <div class="panel-title"><span>02</span><h2>Thoughts</h2><em>REAL · NO EXECUTION</em></div>
+      <form id="thought-form">
+        <label>Contribution<textarea id="thought-content" required maxlength="2000" placeholder="Add an idea, constraint, observation, or proposal"></textarea></label>
+        <label>Provider identity<input id="thought-provider" value="human" maxlength="80"></label>
+        <button type="submit">+ New Thought</button>
+      </form>
+      <div id="thoughts" class="list"></div>
+    </section>
+    <section class="panel">
+      <div class="panel-title"><span>03</span><h2>Work</h2><em>PREVIEW</em></div>
+      <div class="actions"><button id="preview-button">Cannon Preview</button><button id="fire-button" class="fire">Fire Cannon</button><button id="update-test-build-button" class="update-build" onclick="fetch('/api/sync_test',{method:'POST'}).then(r=>r.text()).then(alert)">UPDATE TEST BUILD</button></div>
+      <p class="notice">Preview derives, deduplicates and classifies work without execution. Fire fails closed until a real safe adapter is integrated.</p>
+      <div id="work" class="list"></div>
+    </section>
+    <section class="panel">
+      <div class="panel-title"><span>B</span><h2>Task Board</h2><em>LOCAL PLANS</em></div>
+      <p id="governor-readout" class="notice"></p><div id="task-board" class="board"></div>
+    </section>
+    <section class="panel">
+      <div class="panel-title"><span>!</span><h2>Human Inbox</h2><em>DECISIONS ONLY</em></div>
+      <div id="human-inbox" class="list"></div>
+    </section>
+    <section class="panel">
+      <div class="panel-title"><span>D</span><h2>My Day</h2><em>DETERMINISTIC</em></div>
+      <div id="my-day" class="summary-grid"></div><div class="actions"><button id="favorite-goal">Favorite Goal</button><button id="context-preview">Context Preview</button><button id="morning-view">Morning View</button></div><div id="recent" class="list"></div><pre id="context-output" class="result-content">No context preview requested.</pre>
+    </section>
+    <section class="panel">
+      <div class="panel-title"><span>GH</span><h2>GitHub Today</h2><em>READ-ONLY SNAPSHOT</em></div>
+      <form id="github-form"><label>Deterministic GitHub snapshot JSON<textarea id="github-snapshot" required placeholder='{"repository":"owner/repo","head_sha":"40 hex characters","checks":[]}'></textarea></label><button type="submit">Load Snapshot</button></form>
+      <div id="github-today" class="list"></div>
+    </section>
+    <section class="panel">
+      <div class="panel-title"><span>10</span><h2>Customer First Run</h2><em>LOCAL ONLY</em></div>
+      <div id="first-run" class="list"></div><p class="notice">Customer execution remains blocked until an accepted adapter, isolated repository and deterministic acceptance command exist.</p>
+    </section>
+    <section class="panel">
+      <div class="panel-title"><span>04</span><h2>Results</h2><em>TRUTHFUL</em></div>
+      <div id="result-list" class="list result-list"></div>
+      <nav class="result-tabs" aria-label="Result sections">
+        <button data-result-tab="answer" class="selected">Antwort</button><button data-result-tab="code">Code</button>
+        <button data-result-tab="files">Dateien</button><button data-result-tab="diff">Diff</button>
+        <button data-result-tab="tests">Tests</button><button data-result-tab="evidence">Evidenz</button>
+        <button data-result-tab="next_action">Next Action</button>
+      </nav>
+      <pre id="result-content" class="result-content">No result selected.</pre>
+      <div class="actions"><button id="copy-section" disabled>Copy Tab</button><button id="copy-all" disabled>Copy All</button></div>
+      <details class="expert-only"><summary>Provider-neutral boundary</summary><p>ThoughtContribution carries provider, contributor, provenance, observation time and a goal-scoped deduplication key. It never grants execution authority.</p></details>
+    </section>
+  </main>
+  <footer><p id="status" data-kind="info">Ready. Idle UI performs zero model calls.</p><span>NO LEDGER AUTHORITY · NO MOTOR AUTHORITY · NO PROVIDER CONNECTORS</span></footer>
+  <script type="module" src="app.mjs"></script>
+<script src="identity.js"></script>
+</body>
+</html>

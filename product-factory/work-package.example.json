@@ -1,0 +1,25 @@
+{
+  "package_id": "bug-end-to-end",
+  "version": "1.0.0",
+  "title": "Bug End-to-End",
+  "description": "Reproduce one bounded defect, apply the smallest repair, and return deterministic evidence.",
+  "inputs": ["isolated repository", "bug symptom", "acceptance command"],
+  "goal": "Produce a reviewable minimal repair without external deployment.",
+  "acceptance": ["reproducer fails before repair", "acceptance command passes after repair", "reviewable diff exists"],
+  "tasks": [
+    {"task_id": "reproduce", "objective": "Create the smallest deterministic reproduction", "depends_on": [], "write_scope": "tests/"},
+    {"task_id": "repair", "objective": "Apply the smallest causal fix", "depends_on": ["reproduce"], "write_scope": "assigned-source-scope"},
+    {"task_id": "verify", "objective": "Run targeted acceptance and preserve evidence", "depends_on": ["repair"], "write_scope": null}
+  ],
+  "dependencies": [],
+  "required_capabilities": ["repository-read", "repository-write", "test-runner"],
+  "read_scopes": ["repository", "test logs"],
+  "write_scopes": ["tests/", "assigned-source-scope"],
+  "parallel_safe_tasks": [],
+  "writer_scope": "one-assigned-writer",
+  "verification": ["exact acceptance command", "diff inspection"],
+  "human_gates": ["MERGE", "DEPLOYMENT"],
+  "cost_policy": "LOCAL_FIRST",
+  "result_layout": ["ANSWER", "CODE", "FILES", "DIFF", "TESTS", "EVIDENCE", "NEXT_ACTION"],
+  "failure_policy": "FAIL_CLOSED"
+}

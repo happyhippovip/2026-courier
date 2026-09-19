@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/Users/user/Downloads/2026-courier/tests/test_antigravity_continuous.py", line 108, in <module>
+    test_antigravity_continuous_queue_participation()
+TypeError: test_antigravity_continuous_queue_participation() missing 1 required positional argument: 'tmp_path'

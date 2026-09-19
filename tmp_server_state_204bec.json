@@ -1,0 +1,119 @@
+{
+  "schema_version": 2,
+  "goals": {
+    "goal-46dd824a": {
+      "goal_id": "goal-46dd824a",
+      "goal_text": "real worker prep",
+      "status": "DONE",
+      "terminal": true,
+      "workflow_plan": [
+        {
+          "task_id": "T1",
+          "target_agent": "macos",
+          "instruction": "echo 'hello real worker'",
+          "action": "echo",
+          "goal_id": "goal-46dd824a",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-REAL-A5533D",
+          "attempt_id": "T1:attempt:1",
+          "dispatch_id": "dispatch-c33ee3184f464f03a1e45d0cb764fe7f",
+          "execution_ref": "exec-7e1f533bdede47e5811d91512d57e120",
+          "server_binding": {
+            "sha": "18666fbcd08fe9a009b35a5248f519882fd9cab4",
+            "runtime": "courier-server:c35334e8c7b0494ca09b3fc651f39ae6"
+          },
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "verification": {
+            "verifier_id": "VERIFIER-01",
+            "verifier_principal": "principal_01a4447a4261e4f6a4952301165be1175a0f20c4a26bde68d5722d0a9241e550",
+            "result_id": "result-41c2f2b8d7dc39ce13d8e31ad44674129128aedc738f24c56cde67e79e0d638f",
+            "verdict": "PASS",
+            "artifacts": [],
+            "verified_at": 1789794322.991803
+          }
+        }
+      ],
+      "current_step_index": 0
+    }
+  },
+  "tasks": {
+    "T1": {
+      "task_id": "T1",
+      "target_agent": "macos",
+      "instruction": "echo 'hello real worker'",
+      "action": "echo",
+      "goal_id": "goal-46dd824a",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-REAL-A5533D",
+      "attempt_id": "T1:attempt:1",
+      "dispatch_id": "dispatch-c33ee3184f464f03a1e45d0cb764fe7f",
+      "execution_ref": "exec-7e1f533bdede47e5811d91512d57e120",
+      "server_binding": {
+        "sha": "18666fbcd08fe9a009b35a5248f519882fd9cab4",
+        "runtime": "courier-server:c35334e8c7b0494ca09b3fc651f39ae6"
+      },
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "last_completed_step": "T1",
+      "next_action": null,
+      "blocker": null,
+      "artifact_refs": [],
+      "producer_principal": "principal_ca64faa2f21a66699571463505fdf124b2046e98f1424f3bc28cb3e199ebd68f",
+      "result": {
+        "run_id": "581042c9-5b2b-4f42-9547-05ecb4834f97",
+        "goal_id": "goal-46dd824a",
+        "artifacts": [],
+        "status": "SUCCESS",
+        "attempt_id": "T1:attempt:1",
+        "runtime_identity": {
+          "runtime": "courier-server:c35334e8c7b0494ca09b3fc651f39ae6",
+          "sha": "18666fbcd08fe9a009b35a5248f519882fd9cab4"
+        },
+        "result_id": "result-41c2f2b8d7dc39ce13d8e31ad44674129128aedc738f24c56cde67e79e0d638f",
+        "execution_ref": "exec-7e1f533bdede47e5811d91512d57e120",
+        "task_id": "T1",
+        "worker_id": "MAC-REAL-A5533D",
+        "dispatch_id": "dispatch-c33ee3184f464f03a1e45d0cb764fe7f"
+      },
+      "result_received_at": 1789794321.1314292,
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "verifier_principal": "principal_01a4447a4261e4f6a4952301165be1175a0f20c4a26bde68d5722d0a9241e550",
+        "result_id": "result-41c2f2b8d7dc39ce13d8e31ad44674129128aedc738f24c56cde67e79e0d638f",
+        "verdict": "PASS",
+        "artifacts": [],
+        "verified_at": 1789794322.991803
+      }
+    }
+  },
+  "workers": {
+    "MAC-REAL-A5533D": {
+      "worker_id": "MAC-REAL-A5533D",
+      "platform": "macos",
+      "capabilities": [
+        "antigravity",
+        "macos",
+        "linux"
+      ],
+      "authorities": [],
+      "provider": null,
+      "capacity_identity": null,
+      "provider_available": true,
+      "capacity_available": true,
+      "last_seen": 1789794350.404129,
+      "available": true,
+      "current_task": null,
+      "cost_class": "low"
+    }
+  },
+  "resource_owners": {}
+}

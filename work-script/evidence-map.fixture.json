@@ -1,0 +1,18 @@
+{"note": "Change-type reuse map. UI/text/logo changes never invalidate ledger/queue evidence. Parser/adapter/retry changes retest their path only.",
+"entries": [
+{"change": "ui-text", "class": "NO_EFFECT_ON_EVIDENCE", "retest": []},
+{"change": "logo-asset", "class": "NO_EFFECT_ON_EVIDENCE", "retest": []},
+{"change": "widget-copy", "class": "NO_EFFECT_ON_EVIDENCE", "retest": []},
+{"change": "result-parser", "class": "TARGETED_RETEST", "retest": ["result-tests"]},
+{"change": "artifact-shape", "class": "TARGETED_RETEST", "retest": ["result-tests"]},
+{"change": "adapter-exec", "class": "TARGETED_RETEST", "retest": ["adapter-tests", "roundtrip-fixture"]},
+{"change": "adapter-timeout", "class": "TARGETED_RETEST", "retest": ["adapter-tests"]},
+{"change": "retry-backoff", "class": "TARGETED_RETEST", "retest": ["chaos-tests", "backpressure-fixture"]},
+{"change": "verify-contract", "class": "FULL_PATH_RETEST", "retest": ["result-verify-chain"]},
+{"change": "ledger-write-path", "class": "FULL_PATH_RETEST", "retest": ["ledger-suites"]},
+{"change": "queue-claim", "class": "TARGETED_RETEST", "retest": ["claim-race-tests"]},
+{"change": "state-schema", "class": "FULL_PATH_RETEST", "retest": ["persistence-suites"]},
+{"change": "journal-format", "class": "TARGETED_RETEST", "retest": ["journal-tests"]},
+{"change": "scheduler-dispatch", "class": "NEW_ACCEPTANCE_REQUIRED", "retest": ["dispatcher-acceptance"]},
+{"change": "timeout-values", "class": "TARGETED_RETEST", "retest": ["timing-tests"]}
+]}

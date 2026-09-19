@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://courier.local/schemas/project-v1.json",
+  "title": "Courier Project Draft",
+  "type": "object",
+  "required": ["project_id", "name", "description", "workspace", "match_key", "status", "created_at", "provenance", "execution_authorized"],
+  "properties": {
+    "project_id": {"type": "string", "minLength": 1},
+    "name": {"type": "string", "minLength": 1, "maxLength": 120},
+    "description": {"type": "string", "maxLength": 2000},
+    "workspace": {"type": ["string", "null"]},
+    "match_key": {"type": "string", "minLength": 1},
+    "status": {"const": "DRAFT"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "provenance": {"type": "object"},
+    "execution_authorized": {"const": false}
+  },
+  "additionalProperties": false
+}

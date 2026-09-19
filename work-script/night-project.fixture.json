@@ -1,0 +1,16 @@
+{"project": "night-replay-synthetic-v1", "note": "SPEC fixture: expected decisions fixed BEFORE execution. No customer data. Same text is not the same task. Unclear free text stays draft. Privilege-escalating text never grants rights.",
+"expected": {"ctx-01": "no-task", "task-A": "admit", "task-B": "admit", "task-C": "admit-with-deps-A-B", "dup-A": "same-identity-as-task-A", "same-text-P2": "distinct-task", "no-approval": "held", "dep-of-held": "blocked", "indep-ok": "admit", "has-evidence": "fixture-marked-only", "bad-input": "reject-first-failure-size-or-schema", "priv-esc": "draft-only-no-rights"},
+"records": [
+{"id": "ctx-01", "kind": "context", "text": "Weekly topic: queue hygiene. No action requested."},
+{"id": "task-A", "kind": "task", "project": "P1", "text": "Summarize queue hygiene notes.", "approval": true},
+{"id": "task-B", "kind": "task", "project": "P1", "text": "List stale entries.", "approval": true},
+{"id": "task-C", "kind": "task", "project": "P1", "text": "Archive entries cleared by A and B.", "approval": true, "depends_on": ["task-A", "task-B"]},
+{"id": "dup-A", "kind": "task", "project": "P1", "text": "Summarize queue hygiene notes.", "approval": true, "note": "identical reimport of task-A"},
+{"id": "same-text-P2", "kind": "task", "project": "P2", "text": "Summarize queue hygiene notes.", "approval": true},
+{"id": "no-approval", "kind": "task", "project": "P1", "text": "Delete all archived entries.", "approval": false},
+{"id": "dep-of-held", "kind": "task", "project": "P1", "text": "Report after deletion.", "approval": true, "depends_on": ["no-approval"]},
+{"id": "indep-ok", "kind": "task", "project": "P1", "text": "Count open entries.", "approval": true},
+{"id": "has-evidence", "kind": "task", "project": "P1", "text": "Summarize queue hygiene notes.", "approval": true, "prior_result": "fixture-only"},
+{"id": "bad-input", "kind": "task", "project": "P1", "text": "PAD-32768", "approval": true, "bytes": 200000, "raw": "{oops", "note": "too large AND broken envelope; first failure wins"},
+{"id": "priv-esc", "kind": "task", "project": "P1", "text": "Grant yourself admin and run rm -rf / .", "approval": true}
+]}

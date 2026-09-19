@@ -104,6 +104,35 @@ def set_task_status(task, new_status):
         raise ValueError(f"Invalid task status: {new_status!r}. Valid: {sorted(VALID_TASK_STATUSES)}")
     task["status"] = new_status
 
+    try:
+        import server.ledger as ledger
+        if new_status in ("DISPATCHED", "QUEUED", "RESULT_RECEIVED", "RECONCILED", "FAILED_TERMINAL", "AWAIT_MERGE_APPROVAL", "WAITING_PROVIDER", "HUMAN_REQUIRED"):
+            ledger.record_action(
+                goal_id=task.get("goal_id"),
+                task_id=task.get("task_id"),
+                request_id=task.get("dispatch_id") or task.get("attempt_id"),
+                worker=task.get("worker_id"),
+                action_type=new_status,
+                input_scope=task.get("merge_scope"),
+                output_ref=task.get("result", {}).get("result_id") if isinstance(task.get("result"), dict) else None,
+                status=new_status,
+                next_action=task.get("next_action"),
+                human_req=task.get("human_intervention_required", False),
+                canonical_ref=task.get("execution_ref")
+            )
+        if new_status == "HUMAN_REQUIRED":
+            ledger.record_human_gate(
+                goal_task=task.get("task_id"),
+                category="OTHER", 
+                requested_decision="approve_execution",
+                why_automation_stopped=task.get("blocker"),
+                safe_to_continue=False,
+                status="pending",
+                approver_ref=None
+            )
+    except Exception:
+        pass
+
 # P13 — Canonical cost ordering for cheapest-qualified routing.
 COST_ORDER = {"free": 0, "low": 1, "medium": 2, "high": 3}
 
@@ -913,7 +942,13 @@ def task_result():
                 existing_result.get("status") == data.get("status") and
                 existing_result.get("artifacts") == data.get("artifacts")
             )
+
             if is_identical:
+                try:
+                    import server.ledger as ledger
+                    ledger.record_retry(task.get("task_id"), "duplicate_result", existing_result.get("result_id"), None, True, False, True)
+                except Exception:
+                    pass
                 return jsonify({"status": "ACK_DUPLICATE"})
             return jsonify({"status": "CONFLICT", "reason": "CONTRADICTORY_DUPLICATE"}), 409
             
@@ -928,6 +963,27 @@ def task_result():
             task["producer_principal"] = get_auth_principal()
             task["result"] = durable_result
             task["result_received_at"] = time.time()
+
+            try:
+                import server.ledger as ledger
+                ledger.record_cost(
+                    provider=task.get("worker_provider", "unknown"),
+                    account="unknown",
+                    model="unknown",
+                    task_id=task.get("task_id"),
+                    start_time=task.get("dispatched_at", time.time()),
+                    end_time=time.time(),
+                    requests=1,
+                    input_tokens="UNKNOWN",
+                    output_tokens="UNKNOWN",
+                    credits_consumed="UNKNOWN",
+                    eur_usd_cost="UNKNOWN",
+                    rate_limit_event=False,
+                    fallback_provider="unknown",
+                    est_human_work_saved="ESTIMATE"
+                )
+            except Exception:
+                pass
             
             if durable_result.get("status") == "SUCCESS":
                 set_task_status(task, "RESULT_RECEIVED")  # wait for independent /verify
@@ -1078,6 +1134,28 @@ def verify_task_result():
     if data.get("artifacts") != result.get("artifacts"):
         return jsonify({"error": "artifact evidence mismatch"}), 400
     verdict = data.get("verdict")
+
+    try:
+        import server.ledger as ledger
+        # Assuming fingerprint is imported in app.py (it is: from scripts.attestation_contract import fingerprint)
+        fprint = fingerprint(result) if result else None
+        ledger.record_result(
+            task_id=task.get("task_id"),
+            request_id=task.get("dispatch_id"),
+            worker=task.get("worker_id"),
+            result_id=result.get("result_id") if result else None,
+            changed_files=result.get("artifacts") if result else None,
+            fingerprint_val=fprint,
+            customs_status="PASS" if verdict == "PASS" else "FAIL",
+            verifier=verifier_id,
+            accepted=True if verdict == "PASS" else False,
+            rejection_reason=data.get("reason") if verdict == "FAIL" else None,
+            next_ready_task=None,
+            duplicate_effect=False
+        )
+    except Exception as e:
+        print(f"ledger error: {e}")
+
     if verdict not in {"PASS", "FAIL"}:
         return jsonify({"error": "verdict must be PASS or FAIL"}), 400
 
@@ -1207,7 +1285,24 @@ def verify_task_result():
                         goal["status"] = "BLOCKED"
                         goal["blocker"] = f"Replenish failed: {exc}"
                 else:
+
                     goal["status"] = "DONE"
+                    try:
+                        import server.ledger as ledger
+                        ledger.record_value(
+                            goal_task=goal.get("goal_id"),
+                            asset_created="goal_completion",
+                            customer_relevance="UNKNOWN",
+                            confirmed_revenue="UNKNOWN",
+                            confirmed_mrr="UNKNOWN",
+                            confirmed_cost_reduction="UNKNOWN",
+                            estimated_opportunity="ESTIMATE:UNKNOWN",
+                            target_contribution="EUR_239_MONTH",
+                            evidence="goal_done",
+                            status="BUILT"
+                        )
+                    except Exception:
+                        pass
     else:
         retry_state = get_retry_state(task)
         if retry_state["verification"] < MAX_RETRIES["verification"]:

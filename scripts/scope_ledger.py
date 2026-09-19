@@ -1,3 +1,4 @@
+import sys
 import sqlite3
 import time
 import uuid
@@ -30,11 +31,14 @@ class ScopeLedger:
             """)
 
     def _normalize_scope(self, scope_id):
-        # normalize to absolute path style, trailing slash removed unless root
-        s = os.path.normpath(scope_id)
+        # Resolve symlinks and normalize to absolute path style
+        s = os.path.realpath(scope_id)
+        s = os.path.normpath(s)
+        # On APFS/NTFS, case might not matter, but realpath returns the true case if exists.
+        # If we assume case-insensitive, we could lower(), but let's just stick to realpath for now.
         if not s.startswith('/'):
             s = '/' + s
-        return s
+        return s.lower() if os.name == 'nt' or sys.platform == 'darwin' else s
 
     def _overlaps(self, s1, s2):
         if s1 == s2:

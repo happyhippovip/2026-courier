@@ -1,3 +1,5 @@
+import os
+os.environ["no_proxy"]="*"
 import json, time, os, sys, shutil, subprocess, uuid, traceback
 from pathlib import Path
 import urllib.request
@@ -107,7 +109,7 @@ def http_post(config, endpoint, data):
     url = config["COURIER_SERVER"].rstrip("/") + endpoint
     req = urllib.request.Request(url, method="POST")
     req.add_header("Content-Type", "application/json")
-    req.add_header("Authorization", f"Bearer {config.get('COURIER_API_KEY', '')}")
+    print("Worker using key:", config.get('COURIER_API_KEY')); req.add_header("Authorization", f"Bearer {config.get('COURIER_API_KEY', '')}")
     
     jsondata = json.dumps(data).encode("utf-8")
     
@@ -588,15 +590,35 @@ def loop():
                             else:
                                 result['status'] = 'FAILED'
                                 result['stderr'] = result.get('stderr', '') + f'\nMissing artifact: {expected_path}'
+                    run_id = str(uuid.uuid4())
+                    
+                    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                    from integration_contract import _canonical_hash
+                    
+                    identity_payload = {
+                        "goal_id": task.get("goal_id"),
+                        "task_id": task["task_id"],
+                        "attempt_id": task.get("attempt_id"),
+                        "dispatch_id": task.get("dispatch_id"),
+                        "execution_ref": task.get("execution_ref"),
+                        "worker_id": config["WORKER_ID"],
+                        "run_id": run_id,
+                        "status": result.get("status", "FAILED"),
+                        "artifacts": artifact_evidence,
+                        "runtime_identity": task.get("server_binding")
+                    }
+                    calculated_result_id = "result-" + _canonical_hash(identity_payload)
+
                     payload = {
                         "worker_id": config["WORKER_ID"],
                         "goal_id": task.get("goal_id"),
                         "task_id": task["task_id"],
                         "dispatch_id": task.get("dispatch_id"),
+                        "runtime_identity": task.get("server_binding"),
                         "attempt_id": task.get("attempt_id"),
                         "execution_ref": task.get("execution_ref"),
-                        "run_id": str(uuid.uuid4()),
-                        "result_id": str(uuid.uuid4()),
+                        "run_id": run_id,
+                        "result_id": calculated_result_id,
                         "status": result.get("status", "FAILED"),
                         "artifacts": artifact_evidence,
                         "provider": "mac_" + result.get("execution_mode", "unknown").lower(),

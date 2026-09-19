@@ -1,0 +1,31 @@
+{
+ "leases": {},
+ "packages": {
+  "mac-pk": {
+   "created_at": 1789812481.9173481,
+   "definition_of_done": "",
+   "package_id": "mac-pk"
+  }
+ },
+ "tasks": {
+  "canary_1": {
+   "dependencies": [],
+   "description": "Create an isolated test file named /tmp/muse_canary_test.txt containing a unique nonce 12345, then return its exact path and SHA256.",
+   "owner": "cannon-motor-1",
+   "package_id": "mac-pk",
+   "priority": 1,
+   "prompt_id": "p1",
+   "read_scopes": [],
+   "result": {
+    "result_id": "canary_1:r1"
+   },
+   "result_id": "canary_1:r1",
+   "result_stage": "ACCEPTED",
+   "status": "DONE",
+   "task_id": "canary_1",
+   "write_scopes": [
+    "mac-scope-1"
+   ]
+  }
+ }
+}

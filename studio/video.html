@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Courier Symphony Muse · Studio</title>
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="video-logo.png">
+  <link rel="stylesheet" href="video.css?v=live-motion-2">
+</head>
+<body>
+  <div class="studio-shell">
+    <header class="topbar">
+      <a class="wordmark" href="video.html"><img src="video-logo.png" alt="Courier Logo"><span>COURIER <b>SYMPHONY</b><small>MUSE / PRESENTATION STUDIO</small></span></a>
+      <div class="top-right"><span class="local-badge"><i></i> LOKALE PRÄSENTATION</span><button id="fullscreen" class="icon-button" aria-label="Vollbild öffnen" title="Vollbild">⛶</button></div>
+    </header>
+
+    <main>
+      <section class="intro">
+        <div class="eyebrow"><span></span> IDEEN IN BEWEGUNG.</div>
+        <h1>COURIER SYMPHONY <em>MUSE</em></h1>
+        <p>Ein Gedanke. Ein klarer Ablauf. Ein sichtbares Ergebnis.</p>
+      </section>
+
+      <section class="stage-card" aria-label="Animiertes Muse-Hauptquartier">
+        <div class="stage-top"><span><i class="status-dot"></i> MUSE HEADQUARTERS</span><span id="film-state">BEREIT FÜR DEIN VIDEO</span><span class="demo-mark">ABLAUFVISUALISIERUNG</span></div>
+        <div id="stage" class="stage">
+          <img class="room" src="assets/hq_room_bg_hd.jpg" alt="Illustriertes Hauptquartier mit Arbeitsplätzen und einem Springbrunnen">
+          <div class="room-shade"></div>
+          <div class="mission-screen" aria-hidden="true"><span>COURIER / SYMPHONY</span><strong>Ideas become<br><em>possibilities.</em></strong><div>THOUGHT <i>→</i> WORK <i>→</i> RESULT</div><small>ILLUSTRIERTES HQ · KEINE LIVE-KENNZAHLEN</small></div>
+          <svg class="route" viewBox="0 0 1000 563" preserveAspectRatio="none" aria-hidden="true"><path d="M 145 442 L 235 298 L 355 287 L 432 278 L 657 278 L 794 386 L 652 465 L 530 448 L 352 464 Z"/></svg>
+          <div class="water" aria-hidden="true"><i></i><i></i><i></i><span class="water-jet"></span><span class="water-glow"></span></div>
+          <button class="station s-thought selected" data-scene="0"><span>01</span> THOUGHT</button>
+          <button class="station s-work" data-scene="1"><span>02</span> WORK</button>
+          <button class="station s-verify" data-scene="2"><span>03</span> VERIFY</button>
+          <button class="station s-result" data-scene="3"><span>04</span> RESULT</button>
+          <button id="muse-bot" class="muse-bot" aria-label="Muse: Aufgaben und Details anzeigen">
+            <span class="bot-name"><i></i> MUSE <small>VIDEO</small></span>
+            <span class="bot-body"><span class="antenna"></span><span class="bot-face">∞</span><span class="arm arm-left"></span><span class="arm arm-right"></span><span class="leg leg-left"></span><span class="leg leg-right"></span></span>
+            <span class="bot-shadow"></span>
+          </button>
+          <div class="scene-caption"><span id="chapter-no">01 / 04</span><div><small>SO KANN ZUSAMMENARBEIT AUSSEHEN</small><h2 id="scene-title">Aus Gedanken wird Richtung.</h2></div></div>
+          <div class="corner-note">SYMBOLISCHE BEWEGUNG · KEINE TASK-AUSFÜHRUNG</div>
+        </div>
+        <div class="transport">
+          <button id="play" class="play-button"><span id="play-icon">▶</span><span id="play-label">Video starten</span></button>
+          <button id="restart" class="icon-button" aria-label="Videosequenz von vorne starten" title="Von vorne">↺</button>
+          <div class="timeline"><div class="timeline-label"><span id="timeline-caption">Muse wartet auf den Filmstart</span><span><b id="elapsed">00:00</b> / <span id="duration-label">01:30</span> <i>↻</i></span></div><div class="timeline-track"><span id="progress"></span></div></div>
+          <label class="duration"><span>LÄNGE</span><select id="duration" aria-label="Videolänge"><option value="90">90 Sekunden</option><option value="180">3 Minuten</option></select></label>
+        </div>
+      </section>
+
+      <div class="ticker" aria-label="Laufender Präsentationstext"><span class="ticker-label"><i></i> MUSE / SZENE</span><div class="ticker-window"><p id="ticker-text">Video starten: Muse bewegt sich durch das HQ. Klicke Muse für Aufgaben, Status und Quellen.</p></div></div>
+
+      <section class="bottom-grid">
+        <aside class="panel team-panel"><div class="panel-heading"><span>01 / TEAM</span><small>1 WORKER IM FOKUS</small></div>
+          <button class="worker selected" data-worker="muse" aria-pressed="true"><span class="worker-icon muse-symbol">∞</span><span><strong>Muse</strong><small>Dein Worker im Fokus</small></span><i class="worker-dot"></i><span class="worker-arrow">↗</span></button>
+          <button class="worker" data-worker="codex" aria-pressed="false"><span class="worker-icon">⌘</span><span><strong>Codex</strong><small>Hier nicht eingebunden</small></span><span class="worker-arrow">↗</span></button>
+          <button class="worker" data-worker="google" aria-pressed="false"><span class="worker-icon">✦</span><span><strong>Google</strong><small>Hier nicht eingebunden</small></span><span class="worker-arrow">↗</span></button>
+          <p class="microcopy">Die Auswahl öffnet Details. Sie startet keinen Agenten.</p>
+        </aside>
+        <section id="detail-panel" class="panel detail-panel" aria-label="Worker-Details">
+          <div class="panel-heading"><span>02 / WORKER DETAIL</span><span id="detail-tag" class="tag">MUSE</span></div>
+          <h2 id="detail-name">Muse im Mittelpunkt.</h2>
+          <p id="detail-description">Klicke auf den Bot oder die Muse-Karte. Hier siehst du Szene und gemeldete Arbeit getrennt.</p>
+          <div class="detail-row"><span>IM VIDEO</span><strong id="detail-scene">Bereit · Thought → Work → Verify → Result</strong></div>
+          <div class="detail-row"><span>GEMELDETE ARBEIT</span><strong id="real-task">Noch keine aktuelle Task-Telemetrie.</strong></div>
+          <div class="source-row"><span id="source-status"><i></i> Live-Quelle wird geprüft</span><button id="refresh-data" title="Lokale Statusquelle einmal lesen">↻ Quelle prüfen</button></div>
+        </section>
+        <section class="panel story-panel"><div class="panel-heading"><span>03 / ABLAUF</span><small>PRÄSENTATION</small></div>
+          <ol id="chapters"><li class="selected" data-chapter="0"><b>01</b><div><strong>Gedanken ordnen</strong><small>Ein Ziel bekommt Richtung.</small></div><i></i></li><li data-chapter="1"><b>02</b><div><strong>Arbeit verbinden</strong><small>Ein Schritt nach dem anderen.</small></div><i></i></li><li data-chapter="2"><b>03</b><div><strong>Ergebnisse prüfen</strong><small>Belege statt Behauptungen.</small></div><i></i></li><li data-chapter="3"><b>04</b><div><strong>Klar weitergehen</strong><small>Das nächste Ziel wird sichtbar.</small></div><i></i></li></ol>
+        </section>
+      </section>
+      <footer><span><i></i> Nur Darstellung · keine Modellaufrufe · keine Steuerung von Cannon</span><a href="index.html">Original-Cockpit ↗</a></footer>
+    </main>
+  </div>
+  <script type="module" src="video.mjs?v=live-motion-2"></script>
+
+<!-- COURIER_HIDE_DEBUG_OVERLAY -->
+<script>
+(() => {
+  function hideDebug() {
+    document.querySelectorAll("body *").forEach(el => {
+      if (el.children.length !== 0) return;
+      const t = (el.textContent || "").trim();
+      if (
+        t.startsWith("VIDEO STATE") ||
+        t.startsWith("DONE:") ||
+        t.includes("VIDEO STATE:")
+      ) {
+        el.style.setProperty("display", "none", "important");
+      }
+    });
+  }
+
+  hideDebug();
+  new MutationObserver(hideDebug).observe(document.body, {
+    childList: true,
+    subtree: true,
+    characterData: true
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,124 @@
+{
+  "schema_version": 2,
+  "goals": {
+    "goal-3b25dc82": {
+      "goal_id": "goal-3b25dc82",
+      "goal_text": "Gate test",
+      "status": "ACTIVE",
+      "terminal": true,
+      "workflow_plan": [
+        {
+          "instruction": "Dangerous step",
+          "target_agent": "mac",
+          "task_id": "T-GATE",
+          "goal_id": "goal-3b25dc82",
+          "status": "QUEUED",
+          "attempts": 1,
+          "worker_id": null,
+          "attempt_id": "T-GATE:attempt:1",
+          "dispatch_id": "dispatch-a191180dbce849658880458f8040a286",
+          "execution_ref": "exec-1cded80cb64c4f3eb1c6909069c6006f",
+          "server_binding": {
+            "sha": "970eae52409c38ea7b09642253f98e4cd13b9db2",
+            "runtime": "courier-server:d2313e4f9d654d28ad3cebd1e88b6a45"
+          },
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "retry_state": {
+            "execution": 1,
+            "transport": 0,
+            "provider": 0,
+            "verification": 0
+          },
+          "next_retry_at": 1789791377.866815
+        }
+      ],
+      "current_step_index": 0
+    }
+  },
+  "tasks": {
+    "T-GATE": {
+      "instruction": "Dangerous step",
+      "target_agent": "mac",
+      "task_id": "T-GATE",
+      "goal_id": "goal-3b25dc82",
+      "status": "QUEUED",
+      "attempts": 1,
+      "worker_id": null,
+      "attempt_id": "T-GATE:attempt:1",
+      "dispatch_id": "dispatch-a191180dbce849658880458f8040a286",
+      "execution_ref": "exec-1cded80cb64c4f3eb1c6909069c6006f",
+      "server_binding": {
+        "sha": "970eae52409c38ea7b09642253f98e4cd13b9db2",
+        "runtime": "courier-server:d2313e4f9d654d28ad3cebd1e88b6a45"
+      },
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "last_completed_step": null,
+      "next_action": "RETRY",
+      "blocker": "unknown",
+      "artifact_refs": [],
+      "producer_principal": "principal_f43fe304fe8f4c3402dca1905d86a446abcfc361e889ef4c737a09fd28655c25",
+      "result": {
+        "status": "FAILED",
+        "run_id": "run-gate",
+        "runtime_identity": {
+          "runtime": "courier-server:d2313e4f9d654d28ad3cebd1e88b6a45",
+          "sha": "970eae52409c38ea7b09642253f98e4cd13b9db2"
+        },
+        "execution_ref": "exec-1cded80cb64c4f3eb1c6909069c6006f",
+        "dispatch_id": "dispatch-a191180dbce849658880458f8040a286",
+        "result_data": {
+          "human_gate": {
+            "exact_decision_requested": "Approve production API key generation",
+            "gate_category": "SECURITY",
+            "risk_if_executed_without_approval": "Unauthorized prod access",
+            "safe_work_remaining": "None in this task",
+            "status": "PENDING",
+            "timestamp": "2026-09-19T06:17:00Z",
+            "why_automation_stopped": "Requires high-privilege IAM"
+          }
+        },
+        "attempt_id": "T-GATE:attempt:1",
+        "worker_id": "W-GATE",
+        "goal_id": "goal-3b25dc82",
+        "task_id": "T-GATE",
+        "result_id": "result-d4a32b9ddcb50555a7afc58f82d3a4ba9458ac843f1fdc27559e7fb7d3c71fd5",
+        "artifacts": []
+      },
+      "result_received_at": 1789791375.865837,
+      "retry_state": {
+        "execution": 1,
+        "transport": 0,
+        "provider": 0,
+        "verification": 0
+      },
+      "next_retry_at": 1789791377.866815
+    }
+  },
+  "workers": {
+    "W-GATE": {
+      "worker_id": "W-GATE",
+      "platform": "mac",
+      "capabilities": [
+        "macos"
+      ],
+      "authorities": [],
+      "provider": null,
+      "capacity_identity": null,
+      "provider_available": true,
+      "capacity_available": true,
+      "last_seen": 1789791375.861602,
+      "available": true,
+      "current_task": null,
+      "cost_class": "unknown"
+    }
+  },
+  "resource_owners": {}
+}

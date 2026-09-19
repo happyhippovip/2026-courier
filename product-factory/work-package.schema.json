@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://courier.local/schemas/work-package-v1.json",
+  "title": "Courier Work Package",
+  "type": "object",
+  "required": ["package_id", "version", "title", "description", "inputs", "goal", "acceptance", "tasks", "dependencies", "required_capabilities", "read_scopes", "write_scopes", "parallel_safe_tasks", "writer_scope", "verification", "human_gates", "cost_policy", "result_layout", "failure_policy"],
+  "properties": {
+    "package_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,79}$"},
+    "version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "title": {"type": "string", "minLength": 1, "maxLength": 120},
+    "description": {"type": "string", "minLength": 1, "maxLength": 2000},
+    "inputs": {"type": "array", "items": {"type": "string"}, "maxItems": 20},
+    "goal": {"type": "string", "minLength": 1},
+    "acceptance": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1, "maxItems": 20},
+    "tasks": {"type": "array", "items": {"$ref": "#/$defs/task"}, "minItems": 1, "maxItems": 100},
+    "dependencies": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "required_capabilities": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "read_scopes": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "write_scopes": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "parallel_safe_tasks": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "writer_scope": {"type": "string", "minLength": 1},
+    "verification": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "human_gates": {"type": "array", "items": {"enum": ["PAYMENT", "PUBLICATION", "DEPLOYMENT", "CUSTOMER_CONTACT", "PILOT_ONBOARDING", "CREDENTIAL_CHANGE", "MERGE", "IRREVERSIBLE_EXTERNAL_ACTION"]}, "uniqueItems": true},
+    "cost_policy": {"enum": ["LOCAL_FIRST", "CACHE_FIRST", "NO_AUTO_SPEND"]},
+    "result_layout": {"type": "array", "items": {"enum": ["ANSWER", "CODE", "FILES", "DIFF", "TESTS", "EVIDENCE", "NEXT_ACTION"]}, "uniqueItems": true},
+    "failure_policy": {"enum": ["FAIL_CLOSED", "BOUNDED_RETRY_THEN_BLOCK", "NO_MATERIAL_DELTA"]}
+  },
+  "$defs": {
+    "task": {
+      "type": "object",
+      "required": ["task_id", "objective", "depends_on", "write_scope"],
+      "properties": {
+        "task_id": {"type": "string", "minLength": 1},
+        "objective": {"type": "string", "minLength": 1},
+        "depends_on": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "write_scope": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
