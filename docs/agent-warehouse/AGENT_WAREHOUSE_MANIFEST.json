@@ -70,6 +70,21 @@
       "path": "docs/agent-warehouse/CUSTOMER_PACKAGING_AND_COST_GUARDRAILS_2026-09-20.md",
       "type": "customer-packaging",
       "authority": "founder-approved-working-hypothesis"
+    },
+    {
+      "path": "docs/agent-warehouse/MASTER_RULES_AND_IDEAS_2026-09-20.md",
+      "type": "master-rules-and-ideas",
+      "authority": "founder-working-master"
+    },
+    {
+      "path": "docs/agent-warehouse/SECURITY_PUBLIC_SHARING_POLICY_2026-09-20.md",
+      "type": "security-policy",
+      "authority": "founder-operating-rule"
+    },
+    {
+      "path": "docs/agent-warehouse/MUSE_AUTONOMY_OPERATING_RULES_2026-09-20.md",
+      "type": "muse-autonomy",
+      "authority": "working-operational-rule"
     }
   ],
   "existing_canonical_references": [
@@ -92,16 +107,20 @@
     "cloud_migration_planned": true,
     "customer_plan_included_ai": true,
     "fair_use_cost_guardrails": true,
-    "explicit_extra_quote_gate": true
+    "explicit_extra_quote_gate": true,
+    "confirmed_product_name_courier_symphony": true,
+    "maldives_social_logo_variant": true,
+    "screenshot_driven_admin_mode": true,
+    "public_infra_screenshot_redaction": true,
+    "muse_auto_launcher_approval_mode_never": true
   },
   "open_decisions": [
-    "Final brand naming: Courier Symphony vs Corineria Symphonie",
     "Cloud provider and plan",
     "Private repository / private documentation location for confidential warehouse data",
     "Final AI provider and cost-routing policy",
     "Final legal review of ToS/IP language",
-    "Verified AWS instance + SSH user + private-key attribution before first SSH connection",
     "Validate final monthly customer price and included usage envelope from real unit economics",
-    "Choose customer-facing metering model: credits, fair-use budget, task classes, or hybrid"
+    "Choose customer-facing metering model: credits, fair-use budget, task classes, or hybrid",
+    "Choose and verify AWS-supported managed access path after missing local private key"
   ]
 }
