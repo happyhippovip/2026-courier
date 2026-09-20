@@ -184,3 +184,15 @@ When the administrator says they can follow along and wants speed:
 - preserve state before cleanup;
 - treat "close" and "delete" as different actions;
 - never delete apps, repositories, sessions, keys, or project data merely to simplify the desktop.
+
+
+## Continuous persistence rule
+
+When the founder says an idea/rule is important or asks for urgent preservation:
+
+1. save it to the correct Agent Warehouse document;
+2. keep the public-repository secret policy;
+3. update the machine-readable manifest;
+4. update the master rules/ideas snapshot when it changes a core principle;
+5. correct earlier handoff statements if later evidence disproves them;
+6. prefer a concise canonical rule over copying raw chat logs into GitHub.
