@@ -114,3 +114,19 @@ MacBook/AWS:
 - EC2 instance identity, platform and key-pair name.
 
 Only after they agree should a single explicit SSH command be produced.
+
+
+## MacBook UI simplification decision
+
+Administrator preference: screenshot-driven guidance with as few windows as possible.
+
+Preferred live Mac workspace:
+- ChatGPT/browser: coordination and screenshot exchange;
+- one active Claude Code Terminal: execution + Remote Control owner;
+- AWS browser tab only when AWS console inspection is needed.
+
+Claude Desktop can be minimized for infrastructure setup unless a task explicitly requires it.
+
+Old/duplicate Terminal or Claude Code sessions should be minimized first. Close only after confirming they are not the active Remote Control session and contain no running task that must be preserved.
+
+The currently known active Remote Control session was shown in a Claude Code Terminal window with `/remote-control is active`; that Terminal should be kept open and may be minimized, not closed, during setup.
