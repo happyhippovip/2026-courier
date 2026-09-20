@@ -150,3 +150,27 @@ Where economically relevant, future handoffs may record:
 These fields do not authorize external action.
 
 Last updated: 2026-09-06
+
+
+## 2026-09-20 packaging direction — included outcome plan
+
+Founder working hypothesis:
+
+- target an initial package around **EUR 99–100/month**;
+- include a useful amount of routine Courier AI and agent work;
+- describe customer value as **included in the plan**, not "free";
+- meter real variable cost internally;
+- route work through the cheapest sufficient capability;
+- require an explicit extra quote before unusually expensive work;
+- never create silent overages.
+
+Commercial decision model:
+
+`CUSTOMER GOAL -> ESTIMATE COST/RISK -> INCLUDED | EXTRA_QUOTE_REQUIRED -> HUMAN APPROVAL IF EXTRA -> EXECUTE -> VERIFIED RESULT -> RECORD ACTUAL COST`
+
+Required unit-economics reasoning should consider model/API, cloud compute, storage, egress, tools and support burden.
+
+The exact public price and plan limits remain a Human Gate pending real cost and willingness-to-pay evidence.
+
+Working detail:
+`docs/agent-warehouse/CUSTOMER_PACKAGING_AND_COST_GUARDRAILS_2026-09-20.md`
