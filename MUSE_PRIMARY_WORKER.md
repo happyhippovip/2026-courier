@@ -52,3 +52,20 @@ Never commit unencrypted:
 - API tokens
 - provider/session secrets
 
+
+
+## Competitive intelligence
+
+For product, market, infrastructure, website, funding, and UX research, follow:
+
+`docs/COMPETITIVE_ADVANTAGE_RULEBOOK.md`
+
+Standing rule:
+- study strong public products and public evidence;
+- extract the useful principle;
+- rebuild it in an original Courier-specific form;
+- improve it where measurable;
+- preserve provenance;
+- never copy proprietary code, non-public information, trade secrets, protected assets, or credentials.
+
+Confidential strategy is never stored in this public repository. Use only ignored/encrypted local confidential storage for genuinely sensitive material.
