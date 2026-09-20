@@ -40,6 +40,21 @@
       "path": "docs/agent-warehouse/BRAND_AND_LOGO_2026-09-20.md",
       "type": "brand-handoff",
       "authority": "design-concept"
+    },
+    {
+      "path": "docs/agent-warehouse/BACKUP_STRATEGY_MAC_WINDOWS_CLOUD_2026-09-20.md",
+      "type": "backup-strategy",
+      "authority": "operational-recommendation"
+    },
+    {
+      "path": "docs/agent-warehouse/CLOUD_REACTIVATION_RUNBOOK_2026-09-20.md",
+      "type": "cloud-reactivation",
+      "authority": "runbook"
+    },
+    {
+      "path": "docs/agent-warehouse/COMPANY_EXPANSION_ROADMAP_2026-09-20.md",
+      "type": "company-roadmap",
+      "authority": "strategic-working-roadmap"
     }
   ],
   "existing_canonical_references": [
