@@ -61,3 +61,7 @@ Wenn ein Agent neue Erkenntnisse erzeugt:
 4. Keine produktiven Veröffentlichungsaktionen ohne vorhandene Freigabe-Gates.
 5. Bestehende Canonical Docs referenzieren statt Parallelwahrheiten zu bauen.
 6. Bei Cloud-Migration zuerst Backup + Restore-Probe, dann Cutover.
+
+
+7. `CUSTOMER_PACKAGING_AND_COST_GUARDRAILS_2026-09-20.md`  
+   Founder-selected working packaging direction: roughly EUR 99–100/month hypothesis, routine AI/agent work included, internal fair-use/cost controls, and explicit extra quotes for unusually expensive work.
