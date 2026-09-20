@@ -5,7 +5,15 @@ Status: design concept / naming decision still open
 
 ## Current logo concept
 
-A green premium technology/eco-style emblem built from **four infinity symbols** arranged around a central point.
+A green premium technology/eco-style identity for **Courier Symphony**, with infinity as the recurring symbol.
+
+Core logo direction:
+- green / emerald / teal;
+- infinity motif;
+- premium, modern, trustworthy;
+- clear Courier Symphony wordmark.
+
+Campaign/social variants may additionally use a Maldives/tropical direction with palm, island, lagoon or wave elements while keeping the brand recognizable.
 
 Visual intent:
 - four infinity loops;
@@ -19,12 +27,11 @@ A generated concept image exists in the working conversation. The binary image i
 
 ## Naming decision
 
-Two names are currently present in the work:
+**Confirmed product/project name: Courier Symphony.**
 
-- **Courier Symphony** — existing product/repository name.
-- **Corineria Symphonie** — name used for the newly generated logo concept.
+"Corineria Symphonie" was an earlier/incorrect logo-generation wording and should not be used as the product name.
 
-Do not silently rename code, domains, package names or legal documents until a final naming decision is made.
+Do not silently rename code, domains, package names or legal documents away from Courier Symphony.
 
 Recommended decision record before launch:
 - legal company name;
