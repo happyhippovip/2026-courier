@@ -113,10 +113,12 @@ Before creating or dispatching new non-recovery work, classify it as:
 Only `CRITICAL PATH` is normally executable during the current gate. Unclear work does not start.
 
 Additional invariants:
+- Gate status, work authorization and priority are separate; `IN_PROGRESS` alone does not authorize a gate as the current primary build target.
 - Human-confirmed Goal Contract is the acceptance anchor; a worker cannot redefine success after execution.
 - No Evidence -> No PASS.
 - Prefer deterministic verification when it fully covers the criterion; do not spend independent model review merely to duplicate deterministic proof.
 - Proof Levels and Autonomy Grades are bound to an explicit Covered Surface; a relevant delta requires `REVALIDATION_REQUIRED`.
+- Pilot/recovery metrics use the canonical definitions: HIPG and RSR are explicit ratios; NDR uses the 3-5 / 2 / 0-1 first-cohort thresholds.
 - Gate timeboxes trigger scope/blocker review, never artificial PASS.
 - After a gate is PASS/FROZEN, do not invent follow-on architecture merely to consume time or model capacity.
 - Product Shell, installer, updates and broad connector expansion remain later than the paid minimal-pilot evidence specified by the canonical plan.
