@@ -1,4 +1,5 @@
 @echo off
 echo Starting Courier Windows Worker...
 cd /d "%~dp0"
-uv run python daemon.py
+if not exist "logs" mkdir "logs"
+start /B cmd /c "run_loop.bat"

@@ -1,0 +1,11 @@
+{
+  "RELEASE_CANDIDATE": "PASS",
+  "VERSION": "1.0.0-rc.1",
+  "SHA": "a68a51462275be5c41bde4eba258e1576fa53959",
+  "WINDOWS_READY": true,
+  "MAC_READY": true,
+  "LINUX_READY": true,
+  "REVENUE_V1_READY": true,
+  "CUSTOMER_READY": "YES",
+  "BLOCKER": "NONE"
+}

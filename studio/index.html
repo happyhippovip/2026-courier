@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="compact-hq.css?v=3">
 </head>
 <body class="theme-dark">
 
@@ -21,10 +22,6 @@
       <div class="live-bus-badge">
         <span class="bus-dot active"></span>
         <span class="bus-text" id="server-status">LIVE BUS CONNECTED</span>
-      </div>
-      <div class="head-context-pill">
-        <span class="head-tag" id="courier-commit">HEAD: e7edad01</span>
-        <span class="context-tag" id="context-pill-ver">CONTEXT: v64</span>
       </div>
       <div class="live-status-badge">
         <span class="live-status-dot"></span>
@@ -77,6 +74,9 @@
       <button id="btn-cinematic-mode" class="btn-control" title="Toggle Cinematic Presentation">
         <span class="cinematic-icon">🎥</span> CINEMATIC
       </button>
+      <button id="btn-focus-mode" class="btn-control" title="Focus Mode: emphasize active agents, tasks, blockers">
+        <span>🎯</span> FOCUS
+      </button>
       <div class="hq-time-badge">
         <span class="time-dot"></span>
         <span class="hq-time-text" id="hq-live-clock">HQ TIME: 17:42:18 UTC</span>
@@ -99,6 +99,12 @@
   <!-- MAIN FULLSCREEN LIVING AGENT HQ OPERATIONS STAGE                  -->
   <!-- ================================================================= -->
   <main class="living-hq-wrapper" id="living-hq-wrapper">
+
+    <!-- Company brand in the otherwise unused upper presentation space. -->
+    <div class="brand-symphony" id="brand-symphony" title="COURIER SYMPHONY MUSE">
+      <span class="brand-courier">COURIER SYMPHONY MUSE</span>
+      <span class="brand-symphony-sub">AUTONOMOUS DIGITAL WORKFORCE</span>
+    </div>
 
     <!-- Interactive Viewport Zoom & Pan Controls -->
     <div class="hq-zoom-controls" id="hq-zoom-controls">
@@ -132,30 +138,28 @@
           <div class="flight-line">Context: <b id="tv-live-ctx" class="text-green">v64</b> • School: <b id="tv-live-school" class="text-orange">06:00 UTC</b></div>
         </div>
 
-        <!-- Live 24H PNL & Financial Evidence -->
-        <div class="tv-live-kpis">
+        <!-- COURIER SYMPHONY MUSE · LIVE TECHNICAL REALITY (real data only) -->
+        <div class="tv-live-kpis" id="tv-truth-panel">
           <div class="live-kpi-item">
-            <span class="kpi-label">24H PNL</span>
-            <span class="kpi-value text-green" id="tv-kpi-pnl">+$28,540.32</span>
+            <span class="kpi-label">LEDGER</span>
+            <span class="kpi-value text-white" id="tv-truth-ledger">UNKNOWN</span>
           </div>
           <div class="live-kpi-item">
-            <span class="kpi-label">WIN RATE</span>
-            <span class="kpi-value text-cyan">78.6%</span>
+            <span class="kpi-label">GUARD</span>
+            <span class="kpi-value text-white" id="tv-truth-guard">UNKNOWN</span>
           </div>
           <div class="live-kpi-item">
-            <span class="kpi-label">TREASURY</span>
-            <span class="kpi-value text-white" id="tv-live-treasury">$8 GOAL</span>
+            <span class="kpi-label">UNPROVEN</span>
+            <span class="kpi-value text-white" id="tv-truth-unproven">UNKNOWN</span>
           </div>
         </div>
 
-        <!-- Live Market & Agent Ticker Tape -->
-        <div class="tv-live-ticker">
-          <span class="ticker-elem"><i class="dot green"></i> BTC <b class="text-green">+1.35%</b></span>
-          <span class="ticker-elem"><i class="dot green"></i> ETH <b class="text-green">+2.21%</b></span>
-          <span class="ticker-elem"><i class="dot green"></i> SOL <b class="text-green">+3.87%</b></span>
-          <span class="ticker-elem"><i class="dot green"></i> XLM <b class="text-green">+1.12%</b></span>
-          <span class="ticker-elem"><i class="dot green"></i> $ORDI <b class="text-green">+8.91%</b></span>
-          <span class="ticker-elem"><i class="dot cyan"></i> AGENTS <b class="text-cyan">100% HEALTHY</b></span>
+        <!-- Live Technical Reality Strip -->
+        <div class="tv-live-ticker" id="tv-reality-strip">
+          <span class="ticker-elem">HEAD <b class="text-cyan" id="tv-truth-head">UNKNOWN</b></span>
+          <span class="ticker-elem">CLEAN_IDLE <b class="text-white" id="tv-truth-clean">UNKNOWN</b></span>
+          <span class="ticker-elem">QUEUE_IND <b class="text-white" id="tv-truth-qi">UNKNOWN</b></span>
+          <span class="ticker-elem">NEXT <b class="text-green" id="tv-truth-next">UNKNOWN</b></span>
         </div>
       </div>
 
@@ -257,6 +261,47 @@
       </aside>
 
     </div>
+
+    <!-- COMPANY TITLE over the room (top black letterbox) -->
+    <div class="co-title-wrap" id="co-title-wrap" aria-label="Company live truth">
+      <div class="co-truth font-mono" id="co-truth">LEDGER — · GUARD — · QUEUE — · CLEAN — · HEAD —</div>
+    </div>
+
+    <!-- LIVE OPERATIONS BAY: selected-agent HUD, outside the stage zoom transform -->
+    <section id="ops-bay" class="ops-bay is-collapsed" aria-label="Live Operations Bay">
+      <div class="ops-bay-idle" id="ops-bay-idle">
+        <span class="ops-bay-idle-mark">∞</span>
+        <div class="ops-strip" id="ops-strip" aria-label="Operator strip"></div>
+      </div>
+      <div class="ops-bay-live" id="ops-bay-live" hidden>
+        <div class="ops-bay-top">
+          <span class="ops-bay-icon" id="ops-bay-icon">∞</span>
+          <span class="ops-bay-name" id="ops-bay-name">MUSE</span>
+          <span class="ops-bay-role" id="ops-bay-role">MAIN WORKER</span>
+          <span class="ops-bay-state" id="ops-bay-state">UNKNOWN</span>
+          <span class="ops-bay-elapsed font-mono" id="ops-bay-elapsed"></span>
+          <span class="ops-bay-src font-mono" id="ops-bay-src"></span>
+          <button class="ops-bay-btn" id="ops-bay-adv" type="button">ADVANCED DETAILS</button>
+          <button class="ops-bay-btn" id="ops-bay-close" type="button">×</button>
+        </div>
+        <div class="ops-bay-mission"><span class="ops-label">MISSION</span><span class="ops-val" id="ops-bay-mission">—</span></div>
+        <div class="ops-bay-task"><span class="ops-label">AUFGABE</span><span class="ops-task-scroll"><span class="ops-val ops-task-text" id="ops-bay-task">—</span></span></div>
+        <div class="ops-bay-grid">
+          <div><span class="ops-label">AKTUELLER SCHRITT</span><span class="ops-val font-mono" id="ops-bay-step">—</span></div>
+          <div><span class="ops-label">DATEI</span><span class="ops-val font-mono" id="ops-bay-file">—</span></div>
+          <div><span class="ops-label">TEST</span><span class="ops-val font-mono" id="ops-bay-test">—</span></div>
+          <div><span class="ops-label">LETZTE AKTION</span><span class="ops-val" id="ops-bay-action">—</span></div>
+          <div><span class="ops-label">BLOCKER</span><span class="ops-val" id="ops-bay-blocker">—</span></div>
+          <div><span class="ops-label">HEARTBEAT</span><span class="ops-val font-mono" id="ops-bay-hb">—</span></div>
+        </div>
+        <div class="ops-bay-pipe" id="ops-bay-pipe"></div>
+        <div class="ops-bay-hist font-mono" id="ops-bay-hist"></div>
+        <details class="ops-bay-tech" id="ops-bay-tech">
+          <summary>TECHNISCHE DETAILS</summary>
+          <div class="ops-bay-techgrid font-mono" id="ops-bay-techgrid"></div>
+        </details>
+      </div>
+    </section>
   </main>
 
   <!-- ================================================================= -->
@@ -370,6 +415,6 @@
   </div>
 
   <!-- Script Import -->
-  <script type="module" src="studio.js?v=110j_live"></script>
+  <script type="module" src="studio.js?v=localtools3"></script>
 </body>
 </html>

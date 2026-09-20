@@ -10,6 +10,9 @@ fi
 "$@" &
 PID=$!
 
+# Ensure exact cleanup of child when wrapper is killed
+trap "kill -TERM $PID 2>/dev/null" EXIT INT TERM
+
 # Lower CPU priority (niceness)
 renice 10 -p $PID >/dev/null 2>&1
 
@@ -20,4 +23,6 @@ fi
 
 # Wait for the process to finish
 wait $PID
-exit $?
+EXIT_CODE=$?
+trap - EXIT INT TERM
+exit $EXIT_CODE

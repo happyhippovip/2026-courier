@@ -7,10 +7,12 @@ import hashlib
 import base64
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
 import time
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -20,12 +22,21 @@ REPOSITORY = os.environ.get("GITHUB_REPOSITORY", "happyhippovip/2026-courier")
 WORKFLOW = "courier_worker.yml"
 LOCAL_WAIT_SECONDS = int(os.environ.get("GITHUB_WORKER_LOCAL_WAIT_SECONDS", "60"))
 POLL_SECONDS = 5
-IDENTITY_FIELDS = ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id")
+WAITING_EXIT_CODE = 75
+IDENTITY_FIELDS = (
+    "goal_id",
+    "task_id",
+    "attempt_id",
+    "dispatch_id",
+    "execution_ref",
+    "worker_id",
+)
 ALLOW_LIST = {"metadata", "report", "deterministic_transform", "verify_file", "static_analysis", "run_tests"}
+SAFE_DISPATCH_RE = re.compile(r"^[A-Za-z0-9._-]{1,128}$")
 
 
 def run_cmd(command: list[str]) -> tuple[int, str, str]:
-    completed = subprocess.run(command, capture_output=True, text=True, check=False)
+    completed = subprocess.run(command, timeout=60, capture_output=True, text=True, check=False)
     return completed.returncode, completed.stdout.strip(), completed.stderr.strip()
 
 
@@ -33,8 +44,28 @@ def state_path(task_file: Path) -> Path:
     return task_file.with_name(f"{task_file.stem}.github-worker-state.json")
 
 
+def task_identity_sha256(task: dict[str, Any]) -> str:
+    identity = {field: task[field] for field in IDENTITY_FIELDS}
+    encoded = json.dumps(identity, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def task_packet_sha256(task: dict[str, Any]) -> str:
+    encoded = json.dumps(task, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
 def write_state(task_file: Path, state: dict[str, Any]) -> None:
-    state_path(task_file).write_text(json.dumps(state, sort_keys=True) + "\n", encoding="utf-8")
+    destination = state_path(task_file)
+    temporary = destination.with_name(f".{destination.name}.{os.getpid()}.{uuid.uuid4().hex}.tmp")
+    try:
+        with temporary.open("w", encoding="utf-8") as handle:
+            handle.write(json.dumps(state, sort_keys=True) + "\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, destination)
+    finally:
+        temporary.unlink(missing_ok=True)
 
 
 def validate_task(task: dict[str, Any]) -> None:
@@ -43,6 +74,8 @@ def validate_task(task: dict[str, Any]) -> None:
         raise ValueError(f"TaskPacket is missing required identity fields: {', '.join(missing)}")
     if task.get("task_type", task.get("type")) not in ALLOW_LIST:
         raise ValueError("TaskPacket has an unsupported bounded task type")
+    if not SAFE_DISPATCH_RE.fullmatch(task["dispatch_id"]):
+        raise ValueError("TaskPacket dispatch_id is not path-safe")
 
 
 def find_run(dispatch_id: str) -> tuple[str | None, str | None]:
@@ -55,6 +88,21 @@ def find_run(dispatch_id: str) -> tuple[str | None, str | None]:
     if len(matches) > 1:
         raise RuntimeError(f"multiple GitHub runs found for dispatch_id {dispatch_id}")
     return (str(matches[0]["databaseId"]), matches[0]["status"]) if matches else (None, None)
+
+
+def get_run_head_sha(run_id: str) -> str:
+    rc, output, error = run_cmd(
+        ["gh", "run", "view", run_id, "--repo", REPOSITORY, "--json", "headSha"]
+    )
+    if rc:
+        raise RuntimeError(f"cannot inspect workflow run identity: {error}")
+    try:
+        head_sha = json.loads(output)["headSha"]
+    except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+        raise RuntimeError("workflow run returned invalid head SHA evidence") from exc
+    if not isinstance(head_sha, str) or not re.fullmatch(r"[a-f0-9]{40}", head_sha):
+        raise RuntimeError("workflow run returned invalid head SHA evidence")
+    return head_sha
 
 
 def download_result(run_id: str, dispatch_id: str, destination: Path) -> tuple[dict[str, Any], dict[str, Any] | None]:
@@ -77,6 +125,12 @@ def verify_result(task: dict[str, Any], result: dict[str, Any], evidence: dict[s
         raise ValueError("DurableResult is not bound to the observed GitHub run")
     if not isinstance(result.get("run_attempt"), str) or not result["run_attempt"].isdigit():
         raise ValueError("DurableResult is missing GitHub run_attempt")
+    observed_sha = get_run_head_sha(run_id)
+    if result.get("source_sha") != observed_sha:
+        raise ValueError("DurableResult source SHA does not match the observed GitHub run")
+    expected_sha = task.get("source_sha")
+    if expected_sha is not None and expected_sha != observed_sha:
+        raise ValueError("GitHub run does not match the TaskPacket source SHA")
     if result.get("status") == "FAILED":
         if result.get("artifacts") != [] or evidence is not None:
             raise ValueError("failed GitHub operation must not claim evidence")
@@ -89,7 +143,10 @@ def verify_result(task: dict[str, Any], result: dict[str, Any], evidence: dict[s
     if not isinstance(artifacts, list) or len(artifacts) != 1:
         raise ValueError("successful DurableResult requires one evidence artifact")
     artifact = artifacts[0]
-    evidence_file = directory / artifact.get("path", "")
+    expected_evidence_name = f"courier_output_{task['dispatch_id']}.json"
+    if artifact.get("path") != expected_evidence_name:
+        raise ValueError("evidence artifact path is not dispatch-bound")
+    evidence_file = directory / expected_evidence_name
     if not evidence_file.is_file() or artifact.get("sha256") != hashlib.sha256(evidence_file.read_bytes()).hexdigest():
         raise ValueError("evidence artifact hash does not match")
     operation = result["operation"]
@@ -105,7 +162,7 @@ def verify_result(task: dict[str, Any], result: dict[str, Any], evidence: dict[s
         raise ValueError("bounded verification acceptance failed")
 
 
-def post_result(result: dict[str, Any]) -> None:
+def post_result(result: dict[str, Any]) -> str:
     key = os.environ.get("COURIER_API_KEY")
     if not key:
         raise RuntimeError("COURIER_API_KEY is required to post a DurableResult")
@@ -118,18 +175,36 @@ def post_result(result: dict[str, Any]) -> None:
     )
     if response.status_code >= 400:
         raise RuntimeError(f"Courier result POST failed: {response.status_code} {response.text}")
+    try:
+        acknowledgement = response.json()
+    except (ValueError, json.JSONDecodeError) as exc:
+        raise RuntimeError("Courier result POST returned invalid acknowledgement") from exc
+    status = acknowledgement.get("status") if isinstance(acknowledgement, dict) else None
+    if status not in {"ACK_RESULT_RECEIVED", "ACK_DUPLICATE"}:
+        raise RuntimeError(f"Courier result POST was not acknowledged: {status or 'UNKNOWN'}")
+    return status
 
 
 def run(task_file_name: str) -> int:
     task_file = Path(task_file_name)
     task = json.loads(task_file.read_text(encoding="utf-8"))
     validate_task(task)
+    identity_sha256 = task_identity_sha256(task)
+    packet_sha256 = task_packet_sha256(task)
     prior = {}
     if state_path(task_file).is_file():
         prior = json.loads(state_path(task_file).read_text(encoding="utf-8"))
         if prior.get("dispatch_id") != task["dispatch_id"]:
             raise ValueError("persisted GitHub state belongs to another dispatch")
+        prior_identity = prior.get("task_identity_sha256")
+        if prior_identity is not None and prior_identity != identity_sha256:
+            raise ValueError("persisted GitHub state belongs to another task identity")
+        prior_packet = prior.get("task_packet_sha256")
+        if prior_packet is not None and prior_packet != packet_sha256:
+            raise ValueError("persisted GitHub state belongs to another task packet")
         if prior.get("status") == "POSTED":
+            if prior_identity is None or prior_packet is None:
+                raise ValueError("posted GitHub state is missing bound task packet")
             return 0
 
     run_id, status = find_run(task["dispatch_id"])
@@ -143,26 +218,30 @@ def run(task_file_name: str) -> int:
                                 "--field", f"dispatch_id={task['dispatch_id']}"])
         if rc:
             raise RuntimeError(f"workflow dispatch failed: {error}")
-        write_state(task_file, {"dispatch_id": task["dispatch_id"], "status": "WAITING_FOR_WORKER"})
+        write_state(task_file, {"dispatch_id": task["dispatch_id"], "task_identity_sha256": identity_sha256, "task_packet_sha256": packet_sha256, "status": "WAITING_FOR_WORKER"})
 
     deadline = time.monotonic() + LOCAL_WAIT_SECONDS
     while time.monotonic() < deadline:
         run_id, status = find_run(task["dispatch_id"])
         if run_id and status == "completed":
             directory = task_file.parent / f".courier-result-{task['dispatch_id']}"
+            # A process may have crashed after downloading but before cleanup.
+            # The dispatch id is path-safe, so only this adapter-owned directory
+            # is removed before fetching the canonical artifact again.
+            shutil.rmtree(directory, ignore_errors=True)
             try:
                 result, evidence = download_result(run_id, task["dispatch_id"], directory)
                 verify_result(task, result, evidence, run_id, directory)
                 post_result(result)
-                write_state(task_file, {"dispatch_id": task["dispatch_id"], "run_id": run_id, "run_attempt": result["run_attempt"], "result_id": result["result_id"], "status": "POSTED"})
+                write_state(task_file, {"dispatch_id": task["dispatch_id"], "task_identity_sha256": identity_sha256, "task_packet_sha256": packet_sha256, "run_id": run_id, "run_attempt": result["run_attempt"], "result_id": result["result_id"], "status": "POSTED"})
                 return 0
             finally:
                 shutil.rmtree(directory, ignore_errors=True)
         if run_id:
-            write_state(task_file, {"dispatch_id": task["dispatch_id"], "run_id": run_id, "status": "WAITING_FOR_WORKER"})
+            write_state(task_file, {"dispatch_id": task["dispatch_id"], "task_identity_sha256": identity_sha256, "task_packet_sha256": packet_sha256, "run_id": run_id, "status": "WAITING_FOR_WORKER"})
         time.sleep(POLL_SECONDS)
-    write_state(task_file, {"dispatch_id": task["dispatch_id"], "run_id": run_id, "status": "WAITING_FOR_WORKER"})
-    return 0
+    write_state(task_file, {"dispatch_id": task["dispatch_id"], "task_identity_sha256": identity_sha256, "task_packet_sha256": packet_sha256, "run_id": run_id, "status": "WAITING_FOR_WORKER"})
+    return WAITING_EXIT_CODE
 
 
 if __name__ == "__main__":

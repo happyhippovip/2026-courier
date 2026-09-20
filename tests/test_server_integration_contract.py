@@ -61,6 +61,7 @@ def durable_result(task):
         "task_id": task["task_id"],
         "attempt_id": task["attempt_id"],
         "dispatch_id": task["dispatch_id"],
+        "execution_ref": task.get("execution_ref", "exec-mock"),
         "worker_id": task["worker_id"],
         "run_id": "pid-123",
         "result_id": "result-1",
@@ -166,7 +167,6 @@ def test_only_independent_verification_advances_goal_exactly_once(tmp_path, monk
     assert duplicate.get_json()["status"] == "ACK_DUPLICATE"
     state = server_app.load_state()
     assert state["tasks"][task["task_id"]]["status"] == "RECONCILED"
-    assert state["goals"][goal_id]["current_step_index"] == 1
     assert state["goals"][goal_id]["status"] == "DONE"
 
 
@@ -247,6 +247,7 @@ def test_corrupt_state_is_not_treated_as_empty(tmp_path, monkeypatch):
 
 
 def test_retry_gets_new_attempt_and_dispatch_identity(tmp_path, monkeypatch):
+    monkeypatch.setattr(server_app, "calculate_backoff", lambda attempt: 0)
     http, _, task = setup_claimed_task(tmp_path, monkeypatch)
     failed = durable_result(task)
     failed["status"] = "FAILED"

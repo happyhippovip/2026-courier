@@ -1,5 +1,0 @@
-{
-  "task_id": "test-mac-002",
-  "description": "Just testing the headless worker.",
-  "target_capability": "mac"
-}

@@ -1,7 +1,4 @@
 {
-  "COURIER_SERVER": "local",
-  "WORKER_ID": "WINDOWS-01",
-  "WORKER_CAPABILITIES": ["windows", "antigravity", "powershell", "cmd"],
-  "WORKER_STATE_DIR": "state",
-  "POLL_INTERVAL_SECONDS": 5
+    "WORKER_ID":  "WINDOWS-TEST-WORKER",
+    "COURIER_SERVER":  "http://127.0.0.1:8081"
 }

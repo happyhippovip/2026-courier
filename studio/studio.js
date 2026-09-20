@@ -1,3 +1,5 @@
+import { updateCompactHQ, localToolActors } from "./compact-hq.js";
+import { initOpsBay, selectAgent, getSelectedAgent, renderOpsBay, renderStrip } from "./ops-bay.js";
 import {
   resolveLivingRoomAgents,
   resolveLiveHQMetrics,
@@ -10,6 +12,8 @@ import {
   resolveLiveAgentMotion,
   resolveChiefAlerts,
   resolveAgentDetailData,
+  resolveOpsState,
+  normalizeOpsState,
   StorySceneController,
   CANONICAL_EXAMPLE_STORY,
   resolveStoryLivingAgents,
@@ -43,7 +47,7 @@ const AVATAR_ICONS = {
 
 export class LivingHQController {
   constructor() {
-    this.pollInterval = 1000;
+    this.pollInterval = 2000; // Keep live state responsive with half the request/render load.
     this.isPolling = false;
     this.currentView = "overview";
     this.currentMode = "LIVE"; // LIVE ONLY
@@ -77,6 +81,8 @@ export class LivingHQController {
     this.initElements();
     this.resetUnverifiedTelemetry();
     this.bindEvents();
+    initOpsBay({ openAdvanced: (id) => this.openAgentInspectorFor(id) });
+    this.bindOpsBayCards();
     this.startClock();
 
     // Set initial collapsed state on panels if small screen
@@ -598,6 +604,7 @@ export class LivingHQController {
 
   startClock() {
     const update = () => {
+      if (document.hidden) return;
       const now = new Date();
       const str = now.toUTCString().split(" ")[4];
       if (this.liveClock) this.liveClock.textContent = `HQ TIME: ${str} UTC`;
@@ -607,24 +614,44 @@ export class LivingHQController {
   }
 
   // ------------------------------------------------------------------------
-  // 60 FPS RequestAnimationFrame Simulation Loop
+  // Cap movement work at 30 FPS; idle and hidden rooms do no frame work.
+  // CSS water animation remains independent of agent telemetry.
   // ------------------------------------------------------------------------
   startAnimationLoop() {
     let lastTime = performance.now();
-
+    let frame = null;
     const loop = (time) => {
-      const delta = Math.min((time - lastTime) / 1000, 0.1); // seconds capped at 100ms
-      lastTime = time;
-
-      if (this.currentMode === "LIVE" && this.lastAgents && this.lastLiveState) {
-        this.updateCourierTransport(this.lastAgents, this.lastLiveState);
+      frame = null;
+      if (document.hidden) return;
+      const elapsed = time - lastTime;
+      if (elapsed >= 1000 / 30) {
+        lastTime = time;
+        const moving = [...this.agentSims.values()].some(sim => sim.pathQueue?.length || sim.isWalking);
+        if (moving) {
+          this.updateAgentPositions(Math.min(elapsed / 1000, 0.1));
+          if (this.currentMode === "LIVE" && this.lastAgents && this.lastLiveState) {
+            this.updateCourierTransport(this.lastAgents, this.lastLiveState, this.lastMotion);
+          }
+        }
       }
-
-      this.updateAgentPositions(delta);
-      requestAnimationFrame(loop);
+      if ([...this.agentSims.values()].some(sim => sim.pathQueue?.length || sim.isWalking)) {
+        frame = requestAnimationFrame(loop);
+      }
     };
-
-    requestAnimationFrame(loop);
+    this.wakeAnimation = () => {
+      if (!document.hidden && frame === null) {
+        lastTime = performance.now();
+        frame = requestAnimationFrame(loop);
+      }
+    };
+    document.addEventListener("visibilitychange", () => {
+      document.body.classList.toggle("hq-paused", document.hidden);
+      if (document.hidden && frame !== null) {
+        cancelAnimationFrame(frame);
+        frame = null;
+      } else this.wakeAnimation();
+    });
+    this.wakeAnimation();
   }
 
   updateAgentPositions(delta) {
@@ -633,6 +660,7 @@ export class LivingHQController {
     for (const [id, sim] of this.agentSims.entries()) {
       const node = this.agentNodes.get(id);
       if (!node) continue;
+      if (!sim.pathQueue?.length && !sim.isWalking && node.style.left) continue;
 
       if (sim.pathQueue && sim.pathQueue.length > 0) {
         const nextWp = sim.pathQueue[0];
@@ -681,14 +709,25 @@ export class LivingHQController {
     this.isPolling = true;
 
     const poll = async () => {
+      if (document.hidden) {
+        setTimeout(poll, this.pollInterval);
+        return;
+      }
       try {
         const response = await fetch("/api/state", { cache: "no-store" });
+        if (!response.ok) throw new Error(`State API: ${response.status}`);
         if (response.ok) {
           const stateData = await response.json();
+          try {
+            const localResponse = await fetch('/api/local-tools', {cache:'no-store', signal:AbortSignal.timeout(3000)});
+            stateData.local_tools = localResponse.ok ? await localResponse.json() : null;
+          } catch { stateData.local_tools = null; }
           this.updateLivingHQ(stateData);
+          this.wakeAnimation?.();
           if (this.serverStatus) this.serverStatus.textContent = "LIVE BUS CONNECTED";
         }
       } catch (err) {
+        updateCompactHQ({});
         if (this.serverStatus) this.serverStatus.textContent = "RECONNECTING LOCAL BUS...";
       } finally {
         setTimeout(poll, this.pollInterval);
@@ -733,10 +772,90 @@ export class LivingHQController {
     }
   }
 
+  bindOpsBayCards() {
+    // FOCUS MODE: dim decoration, emphasize actives/tasks/blockers. UI-only.
+    const focusBtn = document.getElementById("btn-focus-mode");
+    if (focusBtn && !focusBtn.dataset.opsBound) {
+      focusBtn.dataset.opsBound = "1";
+      focusBtn.addEventListener("click", () => {
+        const on = document.body.classList.toggle("focus-mode");
+        focusBtn.classList.toggle("active", on);
+      });
+    }
+    // Clicking empty room background deselects (node clicks stopPropagation).
+    if (this.stage && !this.stage.dataset.opsBgBound) {
+      this.stage.dataset.opsBgBound = "1";
+      this.stage.addEventListener("click", () => selectAgent(null));
+    }
+    if (this.opsCardsBound) return;
+    const museCard = document.getElementById("muse-main");
+    if (museCard) {
+      museCard.style.cursor = "pointer";
+      museCard.addEventListener("click", () => selectAgent("muse", { name: "MUSE", title: "MAIN WORKER", icon: "∞" }));
+      this.opsCardsBound = true;
+    }
+    for (let n = 1; n <= 8; n++) {
+      const slot = document.getElementById(`cli-slot-${n}`);
+      if (slot && !slot.dataset.opsBound) {
+        slot.dataset.opsBound = "1";
+        slot.style.cursor = "pointer";
+        const label = `CLI${n}`;
+        slot.addEventListener("click", () => selectAgent(`cli${n}`, { name: label, title: "OPERATOR", icon: "▫" }));
+      }
+    }
+    for (const [id, key] of [["rail-chatgpt", "codex"], ["rail-antigravity", "google"]]) {
+      const card = document.getElementById(id);
+      if (card && !card.dataset.opsBound) {
+        card.dataset.opsBound = "1";
+        card.style.cursor = "pointer";
+        card.addEventListener("click", () => {
+          const a = (this.lastAgents || []).find(x => x.provider === key || (x.id || "").includes(key)) || {};
+          selectAgent(key, { name: a.name || key.toUpperCase(), title: a.title || a.role, icon: a.icon });
+        });
+      }
+    }
+  }
+
+  openAgentInspectorFor(id) {
+    const live = (this.lastAgents || []).find(a => a.id === id)
+      || (this.lastAgents || []).find(a => (a.provider || "").toLowerCase().includes(id))
+      || { id, name: id.toUpperCase() };
+    this.openAgentInspector(live);
+  }
+
+  updateTruthPanel(stateData) {
+    const set = (id, v) => { const n = document.getElementById(id); if (n) n.textContent = v; };
+    const L = stateData?.courier_ledger || {};
+    set("tv-truth-ledger", L.status && L.status !== "UNKNOWN" ? `${L.status} · r${L.revision ?? "?"}` : "UNKNOWN");
+    set("tv-truth-guard", L.guard || "UNKNOWN");
+    set("tv-truth-unproven", L.unproven_count ?? "UNKNOWN");
+    set("tv-truth-clean", L.clean_idle || "UNKNOWN");
+    set("tv-truth-qi", L.queue_independent || "UNKNOWN");
+    const next = L.next_action && L.next_action !== "UNKNOWN" ? L.next_action.replace(/^Prove edge:\s*/, "") : "UNKNOWN";
+    set("tv-truth-next", next);
+    const head = stateData?.repo_head_sha;
+    set("tv-truth-head", typeof head === "string" && head !== "UNKNOWN" ? head.slice(0, 12) : "UNKNOWN");
+    const co = document.getElementById("co-truth");
+    if (co) {
+      const v = (x) => (x === null || x === undefined || x === "UNKNOWN" ? "—" : String(x));
+      const hs = typeof head === "string" && head !== "UNKNOWN" ? head.slice(0, 12) : "—";
+      co.textContent = `LEDGER ${v(L.status)} · GUARD ${v(L.guard)} · QUEUE ${v(L.queue_independent)} · CLEAN ${v(L.clean_idle)} · UNPROVEN ${L.unproven_count ?? "—"} · HEAD ${hs}`;
+    }
+  }
+
   updateLivingHQ(stateData) {
     this.lastLiveState = stateData;
+    // Single ops_state: every display surface derives agent state from here.
+    this.lastOpsState = resolveOpsState(stateData);
+    updateCompactHQ(stateData, this.lastOpsState);
+    this.bindOpsBayCards();
+    this.updateTruthPanel(stateData);
+    renderOpsBay(this.lastOpsState, stateData);
+    renderStrip(this.lastOpsState, stateData);
     // 1. Resolve Dynamic Living Agents from real telemetry
-    const agents = resolveLivingRoomAgents(stateData);
+    const localActors = localToolActors(stateData.local_tools);
+    const agents = resolveLivingRoomAgents(stateData).filter(a => !['agent-codex-bridge','agent-antigravity-bridge'].includes(a.id));
+    agents.push(...localActors);
     this.lastLiveAgents = agents;
 
     // 2. Resolve Deterministic Live Agent Motion
@@ -769,6 +888,8 @@ export class LivingHQController {
         }
       }
 
+      // Position app actors independently of the Courier orchestration fingerprint.
+      for (const actor of localActors) this.setAgentTarget(actor.id, actor.targetX, actor.targetY);
       this.renderLivingAgents(agents, motion);
       this.updateCourierTransport(agents, stateData, motion);
     }
@@ -1187,7 +1308,9 @@ export class LivingHQController {
         node.style.cursor = "pointer";
         node.addEventListener("click", (e) => {
           e.stopPropagation();
-          this.openAgentInspector(agent);
+          // Primary interaction: lower operations bay. Modal only via ADVANCED DETAILS.
+          const live = this.lastAgents?.find(a => a.id === agent.id) || agent;
+          selectAgent(agent.id, { name: live.name, title: live.title || live.role, icon: live.icon });
         });
 
         node.addEventListener("mouseenter", () => {
@@ -1236,7 +1359,7 @@ export class LivingHQController {
 
         const avatar = document.createElement("div");
         avatar.className = "agent-avatar-body";
-        const iconSymbol = agent.is_bodyguard ? "🛡️" : (AVATAR_ICONS[agent.id] || "🤖");
+        const iconSymbol = agent.icon || (agent.is_bodyguard ? "🛡️" : (AVATAR_ICONS[agent.id] || "🤖"));
         const avatarIcon = document.createElement("span");
         avatarIcon.className = "avatar-icon";
         avatarIcon.textContent = iconSymbol;
@@ -1252,12 +1375,19 @@ export class LivingHQController {
         node.appendChild(avatar);
         node.appendChild(speech);
 
+        // Stable placement: appear directly at canonical coords, fade only.
+        if (agent.x != null) node.style.left = `${agent.x}%`;
+        if (agent.y != null) node.style.top = `${agent.y}%`;
+        node.dataset.spawnPending = "1";
         this.agentsLayer.appendChild(node);
         this.agentNodes.set(agent.id, node);
       }
 
       // State Classes & Visual Indicators
-      node.className = "living-agent-node";
+      // Fade-in runs exactly once per node lifetime; positions are preset so
+      // nothing travels across the map on reload.
+      node.className = "living-agent-node" + (node.dataset.spawnPending ? " is-spawn" : "");
+      delete node.dataset.spawnPending;
       if (this.hoveredAgentId === agent.id) node.classList.add("is-hovered");
       const motionState = motion?.states?.[agent.id] || agent.state;
       const normalizedState = (motionState || agent.state || "UNKNOWN").toUpperCase();
@@ -1313,7 +1443,7 @@ export class LivingHQController {
 
       // Update Subtitle / State Indicator
       const subtitle = node.querySelector(".nameplate-subtitle");
-      if (subtitle) subtitle.textContent = normalizedState;
+      if (subtitle) subtitle.textContent = agent.display_state || normalizedState;
 
       // Smart Speech Bubble Visibility: Uncluttered by default
       const speechEl = node.querySelector(".agent-speech-bubble");

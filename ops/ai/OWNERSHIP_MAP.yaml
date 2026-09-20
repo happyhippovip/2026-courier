@@ -1,0 +1,43 @@
+version: 2
+code_base_head: "0c8d1eddacb15dedbebb8406e475917dc2ab1c2b"
+updated_at: "2026-09-18T09:23:33+02:00"
+
+scopes:
+  ledger_guard_motor:
+    owner: GOOGLE
+    status: OWNED_UNTIL_EXPLICIT_HANDOFF
+    notes: "Codex must not infer handoff from silence."
+  canonical_integration_windows_runtime:
+    owner: GOOGLE
+    status: ACTIVE_OWNER
+  mac_cockpit_studio:
+    owner: MUSE
+    status: ACTIVE_OWNER
+    paths:
+      - "studio/**"
+      - "scripts/run_visual_studio_server.py"
+  invariant_and_packet_qa:
+    owner: MUSE
+    status: ACTIVE_OWNER
+  repo_scout:
+    owner: NEWSY
+    status: READ_ONLY
+  independent_review:
+    owner: CODEX
+    status: COMPLETE_PACKET_ONLY
+  ledger_completion_supervision:
+    owner: CHATGPT
+    status: SUPERVISOR_NOT_RUNTIME_AUTHORITY
+  physical_persistent_runtime:
+    owner: HUMAN_AND_GOOGLE
+    status: AUTHORIZATION_AND_MACHINE_EVIDENCE_REQUIRED
+
+rules:
+  one_writer_per_sensitive_scope: true
+  overwrite_foreign_active_work: false
+  reset_hard: false
+  blind_git_clean: false
+  force_push: false
+  ownership_must_be_revalidated: true
+  ledger_is_scheduler: false
+  cockpit_is_runtime_authority: false

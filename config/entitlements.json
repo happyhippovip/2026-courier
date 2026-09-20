@@ -1,0 +1,10 @@
+{
+  "FREE": {
+    "max_goals": 1,
+    "update_channel": "stable"
+  },
+  "PRO": {
+    "max_goals": -1,
+    "update_channel": "early_access"
+  }
+}

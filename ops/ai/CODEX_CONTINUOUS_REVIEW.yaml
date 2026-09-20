@@ -1,0 +1,176 @@
+version: 1
+name: CODEX_CONTINUOUS_REVIEW_LOOP
+mode: READ_ONLY_CONTINUOUS_FIXED_POINT
+review_snapshot:
+  branch: release-candidate-integration
+  verified_remote_head_at_creation: 9837e5ae735f3075bffa9d3bdf6509002692e1ca
+  primary_packet: ops/ai/packets/CODEX_windows_continuous_W01_W07.md
+  commits_under_review:
+    - 3039126e
+    - bbc86b56
+    - 8918bc8f
+    - fc1f42dd
+purpose: >
+  Keep scarce Codex focused on independent high-risk verification without broad
+  archaeology or implementation. Review immutable committed snapshots, attack them,
+  refresh remote reality between lanes, and consume new complete packets only when
+  they become available.
+
+rules:
+  read_only: true
+  no_production_edits: true
+  no_commits: true
+  no_pushes: true
+  no_ledger_writes: true
+  no_runtime_repair: true
+  no_broad_repo_audit: true
+  packet_first: true
+  independence_matters: true
+  current_reality_wins: true
+  preserve_review_snapshot: true
+  packet_incomplete_means_skip_not_stop: true
+  no_progress_return: true
+
+checkpoint:
+  iteration: 0
+  last_remote_head: 9837e5ae735f3075bffa9d3bdf6509002692e1ca
+  current_lane: C01_WINDOWS_BATCH_REVIEW
+  last_verdict: NONE
+  next_action: REVIEW_PRIMARY_PACKET
+  reviewed_commits: []
+  failed_invariants: []
+  packets_consumed: []
+  parked_incomplete_packets: []
+
+scheduler:
+  selection_order:
+    - C01_WINDOWS_BATCH_REVIEW
+    - C02_BEHAVIORAL_ATTACKS
+    - C03_CROSS_DEFECT_CRASH_REPLAY
+    - C04_LEDGER_TRUST_ROOT_CONFORMANCE
+    - C05_FRESHNESS_EPOCH_CONFORMANCE
+    - C06_DUPLICATE_TYPED_ERROR_CONFORMANCE
+    - C07_NEW_PACKET_SWEEP
+    - C08_FINAL_BOUNDED_REVIEW_PACKET
+
+lanes:
+  - id: C01_WINDOWS_BATCH_REVIEW
+    mission: >
+      Independently review commits 3039126e, bbc86b56, 8918bc8f, fc1f42dd and
+      their exact diffs. Verify W02-W07 invariants against code, not packet prose.
+      Treat later commits as context only unless they modify reviewed behavior.
+    attacks:
+      - transient PermissionError retry is bounded and narrow
+      - persistent PermissionError fails boundedly
+      - corruption is never retried into trust
+      - hung task cannot wedge Motor
+      - task exception becomes durable blocker
+      - max retry cannot reset into infinite loop
+      - successful sibling cannot erase active blocker
+      - initialize cannot create canonical acceptance
+    output: PER_COMMIT_PASS_FAIL_WITH_EXACT_COUNTEREXAMPLE
+
+  - id: C02_BEHAVIORAL_ATTACKS
+    mission: >
+      Run the smallest independent executable attacks required to falsify the
+      reviewed repairs. Prefer existing tests and bounded throwaway reproducers.
+      Do not repair failures.
+    required:
+      - restart/reload
+      - reversed completion order
+      - concurrent identical operations
+      - concurrent contradictory operations
+      - timeout boundary
+      - persistent failure boundary
+      - false CLEAN_IDLE attempt
+      - stale or wrong runtime/SHA attempt
+
+  - id: C03_CROSS_DEFECT_CRASH_REPLAY
+    mission: >
+      Combine repaired behaviors: hung future plus sibling success, crash during
+      blocker persistence, retry exhaustion during restart, init with planted
+      evidence, and ACK-loss/revision-conflict interactions. Find any path where
+      one repair bypasses another.
+    stop_on_first_failure: false
+
+  - id: C04_LEDGER_TRUST_ROOT_CONFORMANCE
+    mission: >
+      Re-check current repository against the already-decided trust-root law:
+      caller-controlled producer/verifier/updated_by strings are never authority,
+      surviving revisions never increases trust, canonical attestation authority
+      must be server-owned, and Ledger remains last. If Google has landed a new
+      complete implementation packet, review only that bounded delta.
+
+  - id: C05_FRESHNESS_EPOCH_CONFORMANCE
+    mission: >
+      Re-check any newly landed freshness/binding-epoch implementation against
+      current server-owned clock/epoch requirements, including 299/300/301 skew,
+      restart/reboot/runtime/SHA boundaries, stale replay, and historical-untrusted
+      migration. Consume only a complete packet if implementation has landed.
+
+  - id: C06_DUPLICATE_TYPED_ERROR_CONFORMANCE
+    mission: >
+      Verify NO_MEANINGFUL_CHANGE / REVISION_CONFLICT / RESULT_CONFLICT semantics
+      are typed or equivalently stable, callers do not branch on message substrings,
+      retries are bounded, and ACK loss does not double-apply.
+
+  - id: C07_NEW_PACKET_SWEEP
+    mission: >
+      git fetch origin, inspect ops/ai/packets only, and consume every newly complete
+      high-risk packet not already reviewed. If a packet is incomplete, record the
+      missing fields and continue to another complete packet. Never stop the whole
+      session because one packet is incomplete.
+    mandatory_fields:
+      - CURRENT_HEAD
+      - COMMITS_UNDER_REVIEW
+      - INVARIANTS
+      - REPRODUCERS
+      - T2_RESULTS
+      - T3_RESULTS
+      - KNOWN_ATTACKS
+      - FILES_TO_READ
+      - QUESTIONS_TO_ANSWER
+
+  - id: C08_FINAL_BOUNDED_REVIEW_PACKET
+    mission: >
+      Produce one final bounded verdict artifact in-session: reviewed commits,
+      exact failures, attacks attempted, unresolved physical requirements, and the
+      exact next Google repair packet. Do not modify the repository.
+
+loop:
+  - FETCH_REMOTE
+  - VERIFY_SNAPSHOT_COMMITS_STILL_EXIST
+  - SELECT_NEXT_UNREVIEWED_LANE
+  - READ_ONLY_MINIMUM_FILES
+  - ATTACK
+  - RECORD_VERDICT_IN_CHECKPOINT_MEMORY
+  - FETCH_REMOTE_AGAIN
+  - CONSUME_NEW_COMPLETE_PACKET_IF_PRESENT
+  - REPEAT
+
+return_policy:
+  ask_proceed_forbidden: true
+  ask_what_next_forbidden: true
+  return_after_one_verdict_forbidden: true
+  return_after_failure_forbidden: true
+  return_after_pass_forbidden: true
+  stop_allowed_only_if:
+    - all eight lanes are exhausted for the current committed evidence
+    - no complete high-risk packet remains unreviewed
+    - remaining work requires Google implementation or unavailable physical evidence
+  final_return_fields:
+    - REMOTE_HEAD
+    - REVIEWED_COMMITS
+    - REVIEWED_PACKETS
+    - FAILURES
+    - PASSES
+    - COUNTEREXAMPLES
+    - PHYSICAL_PENDING
+    - NEXT_GOOGLE_ACTIONS
+    - NEW_COMPLETE_PACKET_REMAINING
+    - WHY_CODEX_FIXED_POINT_IS_TRUE
+
+usage:
+  one_time_prompt: >
+    Read ops/ai/CODEX_CONTINUOUS_REVIEW.yaml and enter READ_ONLY_CONTINUOUS_FIXED_POINT.
+    Never implement. Never return while an unreviewed lane or complete packet remains.

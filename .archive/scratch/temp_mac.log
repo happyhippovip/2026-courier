@@ -1,0 +1,4 @@
+C:\Users\lol\2026-workspace\courier\scripts\mac_worker\daemon.py:201: SyntaxWarning: 'return' in a 'finally' block
+  return {"status": "FAILED", "stderr": "Execution timed out", "execution_mode": "ANTIGRAVITY"}
+C:\Users\lol\2026-workspace\courier\scripts\mac_worker\daemon.py:287: SyntaxWarning: 'return' in a 'finally' block
+  return {"status": "FAILED", "stderr": "Execution timed out", "execution_mode": "COPILOT"}

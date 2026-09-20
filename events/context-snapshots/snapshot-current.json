@@ -1,16 +1,16 @@
 {
   "schema_version": "2.0",
-  "context_version": 59,
-  "generated_at": "2026-09-15T20:35:15.668223+00:00",
+  "context_version": 10,
+  "generated_at": "2026-09-18T00:48:12.014311+00:00",
   "repositories": {
-    "courier_head": "a7e1b6e6707de83c7c81fbd209494520f4174a7b",
-    "memory_head": "3098d0c09c20de0c002f92af73ede44c021d8876",
+    "courier_head": "a146435953dfe8a54f764cfb0af569876e170292",
+    "memory_head": "b89b91c97218bbb1d45a271942efdd835cd624e4",
     "godot_head": "NOT_CONNECTED"
   },
   "workflow_state": {
-    "workflow_id": "IDLE",
+    "workflow_id": "WF-CHIEF-31d60b",
     "correlation_id": "UNKNOWN",
-    "current_task_id": "NONE",
+    "current_task_id": "WF-CHIEF-31d60b-STEP-1-DISCOVER",
     "is_locked": false,
     "agent_states": {
       "agent-update-steward": {
@@ -18,13 +18,69 @@
         "task": "Compiling Project Context Snapshot",
         "progress": 0.1,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-09-15T20:35:15.668593+00:00"
+        "updated_at": "2026-09-18T00:48:12.014331+00:00"
+      },
+      "agent-bodyguard-hotel": {
+        "state": "STANDBY",
+        "task": "Reserve Duty (Standby)",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-17T12:57:51.433673+00:00"
+      },
+      "agent-bodyguard-golf": {
+        "state": "STANDBY",
+        "task": "Reserve Duty (Standby)",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-17T12:57:51.432782+00:00"
+      },
+      "agent-bodyguard-alpha": {
+        "state": "STANDBY",
+        "task": "Reserve Duty (Standby)",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-17T12:57:51.421296+00:00"
+      },
+      "agent-bodyguard-delta": {
+        "state": "STANDBY",
+        "task": "Reserve Duty (Standby)",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-17T12:57:51.429672+00:00"
+      },
+      "agent-bodyguard-charlie": {
+        "state": "STANDBY",
+        "task": "Reserve Duty (Standby)",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-17T12:57:51.428088+00:00"
+      },
+      "agent-bodyguard-echo": {
+        "state": "STANDBY",
+        "task": "Reserve Duty (Standby)",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-17T12:57:51.430719+00:00"
+      },
+      "agent-bodyguard-foxtrot": {
+        "state": "STANDBY",
+        "task": "Reserve Duty (Standby)",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-17T12:57:51.431696+00:00"
+      },
+      "agent-bodyguard-bravo": {
+        "state": "STANDBY",
+        "task": "Reserve Duty (Standby)",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-17T12:57:51.427320+00:00"
       }
     },
-    "total_decisions": 0,
-    "total_results": 3,
+    "total_decisions": 2,
+    "total_results": 0,
     "total_approvals": 0,
-    "total_adoptions": 12
+    "total_adoptions": 0
   },
   "memory_truth": {
     "latest_verified_milestone": "**VERIFIED_CURRENT** | Source: direct GitHub fetch/API readback for `happyhippovip/2026-project-memory` | Verified: 2026-09-06. The earlier repository-inaccessible/404 conclusion is **SUPERSEDED**. Remote `main` is readable, and prior same-chat commit `4b6c93ed0675ed0b6218beaf14c3340f438dcbf5` was successfully pushed and remotely read back. This proves the canonical Memory read/write path at that time; it does not authorize access to other repositories or secret values.",
@@ -78,34 +134,8 @@
       "changelog": true
     }
   },
-  "latest_idea_delta": {
-    "idea_id": "idea-5138f1d9",
-    "raw_idea": "Optimiere FruitKI 3D Video-Render Pipeline und erstelle Release-Metadaten",
-    "normalized_idea": "optimiere fruitki 3d video-render pipeline und erstelle release-metadaten",
-    "normalized_summary": "Optimiere FruitKI 3D Video-Render Pipeline und erstelle Release-Metadaten",
-    "idea_status": "PROPOSED",
-    "type": "GOAL",
-    "classification": "NEW",
-    "truth_boundary": "IDEA != VERIFIED | USER_REPORTED != TECHNICALLY_VERIFIED",
-    "conflicts": [],
-    "related_ideas": [],
-    "memory_references": [],
-    "affected_agents": [
-      "antigravity"
-    ],
-    "affected_workflows": [
-      "3D Shorts Pipeline (Antigravity Media Studio)"
-    ],
-    "recommended_next_action": "ROUTE_TO_ANTIGRAVITY_PRIMARY",
-    "target_agent_recommendation": "antigravity",
-    "sources_indexed": {
-      "decisions": true,
-      "ideas": true,
-      "project_state": true
-    },
-    "timestamp": "2026-08-30T17:22:41.293196+00:00"
-  },
-  "academy_adoptions": 12,
+  "latest_idea_delta": null,
+  "academy_adoptions": 0,
   "truth_classifications": {
     "courier_codebase": "VERIFIED",
     "project_memory": "VERIFIED",
@@ -119,7 +149,7 @@
   "changed_since_previous_snapshot": [
     "courier_head"
   ],
-  "previous_snapshot_version": 58,
-  "previous_snapshot_hash": "a1fb83704fd6da06d69ca6eaed70b9aa3e83e8a55e28d7b438ac352a53a22896",
-  "snapshot_hash": "4ced48b4d34481c6918462e91714a6da512f32ed5ba1854f423692c05d7a2d25"
+  "previous_snapshot_version": 9,
+  "previous_snapshot_hash": "d173c79fa75606f726bf631796de486e677ea25b5d11eb73e39781ebbc8ca179",
+  "snapshot_hash": "4722cba2649b09aaa88e25c7585deea43daa3a45de0d8abd221a63dd88c1e618"
 }
