@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "created": "2026-09-20",
+  "repository": "happyhippovip/2026-courier",
+  "purpose": "Public-safe structured handoff for Courier Symphony agents and future cloud migration",
+  "public_repository_warning": true,
+  "secret_policy": "Never commit credentials, tokens, private customer data, private emails or payment data.",
+  "documents": [
+    {
+      "path": "docs/agent-warehouse/README.md",
+      "type": "index",
+      "authority": "handoff-index"
+    },
+    {
+      "path": "docs/agent-warehouse/PRODUCT_VISION_AND_FEATURE_MAP_2026-09-20.md",
+      "type": "product-vision",
+      "authority": "working-product-vision"
+    },
+    {
+      "path": "docs/agent-warehouse/AI_COMMUNITY_KNOWLEDGE_ARCHITECTURE_2026-09-20.md",
+      "type": "architecture",
+      "authority": "concept"
+    },
+    {
+      "path": "docs/agent-warehouse/CONTENT_PIPELINES_2026-09-20.md",
+      "type": "pipeline-inventory",
+      "authority": "code-backed-handoff"
+    },
+    {
+      "path": "docs/agent-warehouse/CLOUD_MIGRATION_HANDOFF_2026-09-20.md",
+      "type": "cloud-handoff",
+      "authority": "checklist"
+    },
+    {
+      "path": "docs/agent-warehouse/IP_BRAND_LEGAL_DRAFT_2026-09-20.md",
+      "type": "legal-draft",
+      "authority": "draft-only"
+    }
+  ],
+  "existing_canonical_references": [
+    "docs/COURIER_SYMPHONY_CANONICAL_PRODUCT_PLAN.md",
+    "docs/COURIER_4_FORWARD_ONLY_OPERATING_CONTRACT.md",
+    "docs/MULTI_AGENT_CONVERGENCE_POLICY.md",
+    "docs/MULTI_AGENT_TASK_GROUP_PROTOCOL.md",
+    "docs/EMAIL_SENDER_POLICY.md",
+    "docs/PRODUCT_REVENUE_AND_REINVESTMENT_STRATEGY.md"
+  ],
+  "known_product_concepts": {
+    "goal_to_done": true,
+    "integrated_ai_chat": true,
+    "community_knowledge": true,
+    "courier_guild": true,
+    "website_factory": true,
+    "mail_and_archive": true,
+    "youtube_pipeline": true,
+    "tiktok_pipeline": true,
+    "cloud_migration_planned": true
+  },
+  "open_decisions": [
+    "Final brand naming: Courier Symphony vs Corineria Symphonie",
+    "Cloud provider and plan",
+    "Private repository / private documentation location for confidential warehouse data",
+    "Final AI provider and cost-routing policy",
+    "Final legal review of ToS/IP language"
+  ]
+}
