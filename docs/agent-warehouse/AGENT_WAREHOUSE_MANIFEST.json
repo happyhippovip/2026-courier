@@ -65,6 +65,11 @@
       "path": "docs/agent-warehouse/SESSION_HANDOFF_2026-09-20.md",
       "type": "session-handoff",
       "authority": "public-safe-current-state"
+    },
+    {
+      "path": "docs/agent-warehouse/CUSTOMER_PACKAGING_AND_COST_GUARDRAILS_2026-09-20.md",
+      "type": "customer-packaging",
+      "authority": "founder-approved-working-hypothesis"
     }
   ],
   "existing_canonical_references": [
@@ -84,7 +89,10 @@
     "mail_and_archive": true,
     "youtube_pipeline": true,
     "tiktok_pipeline": true,
-    "cloud_migration_planned": true
+    "cloud_migration_planned": true,
+    "customer_plan_included_ai": true,
+    "fair_use_cost_guardrails": true,
+    "explicit_extra_quote_gate": true
   },
   "open_decisions": [
     "Final brand naming: Courier Symphony vs Corineria Symphonie",
@@ -92,6 +100,8 @@
     "Private repository / private documentation location for confidential warehouse data",
     "Final AI provider and cost-routing policy",
     "Final legal review of ToS/IP language",
-    "Verified AWS instance + SSH user + private-key attribution before first SSH connection"
+    "Verified AWS instance + SSH user + private-key attribution before first SSH connection",
+    "Validate final monthly customer price and included usage envelope from real unit economics",
+    "Choose customer-facing metering model: credits, fair-use budget, task classes, or hybrid"
   ]
 }
