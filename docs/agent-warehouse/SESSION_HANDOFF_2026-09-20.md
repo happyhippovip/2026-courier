@@ -75,16 +75,25 @@ If AWS CLI is unavailable, use the AWS Console in the browser and inspect EC2 in
 
 Cloud migration is NOT yet considered complete.
 
-Before first server connection:
-1. identify the correct AWS account;
-2. identify the intended EC2 instance;
-3. determine instance OS/platform;
-4. determine expected SSH username;
-5. identify the matching private key;
-6. verify backup/rollback plan;
-7. only then perform first SSH connection.
+Read-only AWS discovery has already identified the intended running Linux/Ubuntu EC2 workload in the expected Frankfurt region.
 
-No cloud purchase, destructive change, server start/stop/terminate, or migration cutover should be inferred from this handoff.
+For security, this public handoff intentionally does NOT preserve:
+- account ID;
+- public IP;
+- instance ID;
+- exact key-pair name;
+- root/account ARN;
+- credential material.
+
+Current rule:
+1. do not repeat already-completed instance discovery;
+2. do not guess a private key;
+3. prefer an AWS-supported access/recovery path such as EC2 Instance Connect or Session Manager if available;
+4. after access, create a clean managed access path;
+5. verify backup/rollback before migration;
+6. move daily administration toward least-privilege IAM/roles rather than root use.
+
+No destructive change, server terminate action, or migration cutover should be inferred from this handoff.
 
 ## Device/window interaction rule
 
@@ -98,22 +107,18 @@ Every command/prompt must say both:
 
 ## Current coordination recommendation
 
-- Windows PC: continue local SSH-key/history attribution only.
-- MacBook: perform AWS read-only identity/instance attribution.
+- Windows PC: stop repeating the same key search; preserve current Courier working state.
+- MacBook: AWS discovery is complete enough for the next access/recovery step.
 - iPhone: Remote Control / monitoring only.
-- AWS: read-only until instance + key + user are verified.
+- AWS: prefer managed access/recovery instead of guessing missing key material.
 
 ## Next integration milestone
 
-Merge the two evidence streams:
-
-Windows:
-- historical SSH command/key path evidence.
-
-MacBook/AWS:
-- EC2 instance identity, platform and key-pair name.
-
-Only after they agree should a single explicit SSH command be produced.
+1. establish AWS-supported access to the verified EC2 workload;
+2. confirm the running Courier/cloud state;
+3. create a clean managed access method;
+4. back up and test restore;
+5. only then continue migration/deployment work.
 
 
 ## MacBook UI simplification decision
@@ -134,20 +139,20 @@ The currently known active Remote Control session was shown in a Claude Code Ter
 
 ## SSH key attribution update — 2026-09-20
 
-Windows search found a private-key file whose filename matches the AWS EC2 key-pair name `courier-key-2`.
+Correction after the broader Windows search:
 
-Public-safe conclusion:
-- matching key file exists on the Windows PC;
-- filename matches the verified EC2 key-pair name;
-- the exact local path is intentionally NOT committed to this public repository;
-- key contents were not printed;
+- no matching Courier EC2 private key was found on the Windows PC;
+- certificate-bundle `.pem` files found in development environments were correctly excluded as non-SSH keys;
+- no matching historical SSH command/key path was established;
+- no private key contents were printed;
 - no SSH connection was performed during discovery.
 
-Next safety gate before first SSH:
-1. verify the key file is the intended private key without exposing contents;
-2. use the verified Ubuntu EC2 host/user combination;
-3. perform a minimal first SSH connection test;
-4. do not copy or publish the private key.
+The MacBook search also found no matching Courier EC2 private key.
+
+Operational conclusion:
+- do not keep repeating the same local key search;
+- do not guess a private key or SSH identity;
+- use an AWS-supported recovery/access method such as EC2 Instance Connect or Session Manager if available, then establish a clean managed access path.
 
 
 ## MacBook SSH key search result — 2026-09-20
