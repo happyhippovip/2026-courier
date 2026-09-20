@@ -113,3 +113,74 @@ Before the first SSH connection, verify the intended instance, login user and pr
 ## Persistence
 
 Any future setup handoff should reference this protocol so a new agent does not repeat the device/window ambiguity.
+
+
+## Screenshot-Driven Administrator Mode
+
+When the administrator is present and sends a screenshot, use a fast guided workflow instead of long explanations.
+
+### Required response format
+
+1. Name the device.
+2. Name the exact window/app.
+3. Give only the next concrete action.
+4. Say what the other visible windows should do: KEEP OPEN / MINIMIZE / WAIT / CLOSE.
+5. Avoid repeating background theory unless the screenshot shows a new risk or ambiguity.
+6. If a command is required, provide only the command that belongs in that named window.
+7. After the command, ask for the next screenshot/result rather than predicting multiple future screens.
+
+Example:
+
+```
+MACBOOK — CLAUDE CODE TERMINAL
+Paste:
+<command>
+
+MACBOOK — OTHER WINDOWS
+ChatGPT: KEEP OPEN
+Claude Desktop: MINIMIZE
+Old duplicate Terminal: MINIMIZE
+AWS Browser: WAIT
+
+NEXT: send screenshot after the command finishes.
+```
+
+### Minimal-window rule
+
+Prefer the smallest stable working set.
+
+Default Mac setup:
+- one ChatGPT/browser window for the human + assistant coordination;
+- one active Claude Code Terminal session;
+- one AWS browser tab only when AWS console work is needed.
+
+Claude Desktop is optional for this setup and may be minimized unless a task explicitly belongs there.
+
+Duplicate Terminal/Claude Code sessions should not be used in parallel unless explicitly required. If one session is confirmed to be the active Remote Control session, keep that one and minimize old duplicate sessions.
+
+Do not tell the administrator to close the active Claude Code Terminal that owns the current Remote Control session. Closing that Terminal may stop the local Claude Code process/session. Minimize it instead when not actively entering commands.
+
+### Prompt-routing shorthand
+
+Use these exact labels:
+
+- `MACBOOK — CLAUDE CODE TERMINAL`
+- `MACBOOK — NORMAL TERMINAL`
+- `MACBOOK — CLAUDE DESKTOP APP`
+- `MACBOOK — AWS BROWSER`
+- `WINDOWS PC — POWERSHELL`
+- `WINDOWS PC — CLAUDE CODE TERMINAL`
+- `IPHONE — REMOTE CONTROL`
+
+The operator should never have to infer where a command goes.
+
+### Administrator fast-mode principle
+
+When the administrator says they can follow along and wants speed:
+- favor one-step instructions;
+- avoid saying "you should see..." unless that visible result is necessary for safety;
+- do not open extra windows if an existing window can do the job;
+- reduce duplicate tools and duplicate sessions;
+- preserve state before cleanup;
+- treat "close" and "delete" as different actions;
+- never delete apps, repositories, sessions, keys, or project data merely to simplify the desktop.
