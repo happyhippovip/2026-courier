@@ -35,6 +35,11 @@
       "path": "docs/agent-warehouse/IP_BRAND_LEGAL_DRAFT_2026-09-20.md",
       "type": "legal-draft",
       "authority": "draft-only"
+    },
+    {
+      "path": "docs/agent-warehouse/BRAND_AND_LOGO_2026-09-20.md",
+      "type": "brand-handoff",
+      "authority": "design-concept"
     }
   ],
   "existing_canonical_references": [
