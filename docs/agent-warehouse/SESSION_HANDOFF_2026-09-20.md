@@ -130,3 +130,21 @@ Claude Desktop can be minimized for infrastructure setup unless a task explicitl
 Old/duplicate Terminal or Claude Code sessions should be minimized first. Close only after confirming they are not the active Remote Control session and contain no running task that must be preserved.
 
 The currently known active Remote Control session was shown in a Claude Code Terminal window with `/remote-control is active`; that Terminal should be kept open and may be minimized, not closed, during setup.
+
+
+## SSH key attribution update — 2026-09-20
+
+Windows search found a private-key file whose filename matches the AWS EC2 key-pair name `courier-key-2`.
+
+Public-safe conclusion:
+- matching key file exists on the Windows PC;
+- filename matches the verified EC2 key-pair name;
+- the exact local path is intentionally NOT committed to this public repository;
+- key contents were not printed;
+- no SSH connection was performed during discovery.
+
+Next safety gate before first SSH:
+1. verify the key file is the intended private key without exposing contents;
+2. use the verified Ubuntu EC2 host/user combination;
+3. perform a minimal first SSH connection test;
+4. do not copy or publish the private key.
