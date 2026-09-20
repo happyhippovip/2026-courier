@@ -1,44 +1,71 @@
 # COURIER SYMPHONY — KANONISCHER PRODUKTPLAN
 
-**Status:** Kanonische Arbeitsgrundlage bis zur nächsten ausdrücklich freigegebenen Revision  
-**Stand:** 2026-09-19  
-**Prinzip:** Finish vor Ausbau  
-**Steuerungsregel:** **Critical Path · Later · Non-Goal**  
-**Beweisregel:** **No Evidence -> No PASS**  
-**Aenderungsregel:** **No Authorization -> No Scope Expansion**
+Status: Kanonische Arbeitsgrundlage bis zur nächsten ausdrücklich freigegebenen Revision  
+Stand: 2026-09-20  
+Prinzip: Finish vor Ausbau  
+Steuerungsregel: Critical Path · Later · Non-Goal  
+Beweisregel: No Evidence → No PASS  
+Änderungsregel: No Authorization → No Scope Expansion
 
 ## Externes Kernversprechen
 
-**„Courier bringt dich am naechsten Tag genau dort weiter, wo du aufgehoert hast.“**
+„Courier bringt dich am nächsten Tag genau dort weiter, wo du aufgehört hast.“
 
-Dieses Versprechen ist die externe Produktbotschaft. Interne Begriffe wie Ledger, Attempts, Evidence, Autonomy Grade oder Earned Autonomy werden nur gezeigt, wenn sie fuer Vertrauen oder Bedienung wirklich helfen.
+Dieses Versprechen ist die externe Produktbotschaft.
 
-## 0. Steuerungsmodell
+Interne Begriffe wie Ledger, Attempts, Evidence, Autonomy Grade oder Earned Autonomy werden Kunden nur gezeigt, wenn sie für Vertrauen oder Bedienung tatsächlich hilfreich sind.
 
-Der Plan trennt:
-1. **Gate-Status** — wie weit ist der Beweis?
-2. **Arbeitsfreigabe** — darf daran aktuell gearbeitet werden?
-3. **Prioritaet** — ist es der aktuelle Critical Path?
+---
 
-Arbeitsfreigaben:
-- **ACTIVE:** aktueller Critical Path.
-- **ACTIVE_BOUNDED:** nur Arbeit, die das vorherige Gate nicht destabilisiert.
-- **PREP_ONLY:** Tests/Fixtures/Pläne vorbereiten; Gate noch nicht beanspruchen.
-- **NON_CODE_PREP:** Pilotkandidaten, Zahlungsweg, Datenschutz und Baseline vorbereiten.
-- **LOCKED:** nicht bauen.
+## 0. Steuerung des Plans
 
-Status wird durch Evidenz geaendert, nicht durch Einschaetzung.
+Der Plan trennt drei Dinge strikt:
+
+1. Gate-Status — Wie weit ist der Beweis?
+2. Arbeitsfreigabe — Darf daran aktuell gearbeitet werden?
+3. Priorität — Ist es der aktuelle Critical Path?
+
+Damit bedeutet IN_PROGRESS nicht automatisch, dass mehrere Gates gleichzeitig Hauptpriorität haben.
+
+### Aktueller Steuerungszustand
+
+| Gate | Ziel | Status | Arbeitsfreigabe |
+|---|---|---|---|
+| 1 | Trusted Ledger | IN_PROGRESS | ACTIVE |
+| 2 | Reliable Motor | IN_PROGRESS | ACTIVE_BOUNDED |
+| 3 | Zero-Human A→B | NOT_PROVEN | PREP_ONLY |
+| 4 | Restart & Recovery | NOT_PROVEN | PREP_ONLY |
+| 5 | Bezahlter Minimalpilot | NOT_STARTED | NON_CODE_PREP |
+| 6 | Product Shell | LOCKED | NO |
+| 7 | Packaging / Updates | LOCKED | NO |
+
+ACTIVE: aktueller Critical Path.
+
+ACTIVE_BOUNDED: nur Arbeit, die Gate 1 nicht destabilisiert.
+
+PREP_ONLY: Tests, Fixtures und Pläne vorbereiten; Gate noch nicht beanspruchen.
+
+NON_CODE_PREP: Pilotkandidaten, Zahlungsweg, Datenschutz und Baseline dürfen vorbereitet werden.
+
+LOCKED: nicht bauen.
+
+Status wird ausschließlich durch Evidenz geändert.
+
+---
 
 ## 1. Produktziel
 
-Courier Symphony fuehrt begonnene Arbeit zuverlaessig, nachvollziehbar und wiederaufnehmbar weiter.
+Courier Symphony führt begonnene Arbeit zuverlässig, nachvollziehbar und wiederaufnehmbar weiter.
 
-Der Nutzer definiert ein Ziel. Courier speichert dauerhaft mindestens:
+Der Nutzer definiert ein Ziel.
+
+Courier speichert dauerhaft mindestens:
+
 - Goal
 - Goal Contract
 - Tasks
 - Dependencies
-- Zustaendigkeiten
+- Zuständigkeiten
 - Attempts
 - Executions
 - Results
@@ -46,32 +73,50 @@ Der Nutzer definiert ein Ziel. Courier speichert dauerhaft mindestens:
 - Entscheidungen
 - Fortsetzungszustand
 
-Courier setzt autorisierte Arbeit selbststaendig fort, ohne dass der Nutzer fortlaufend Prompts kopiert, Ergebnisse zwischen Agenten verschiebt, Worker auswaehlt, Anbieter manuell wechselt, Status korrigiert oder „weiter“ schreibt.
+Courier setzt autorisierte Arbeit selbstständig fort, ohne dass der Nutzer fortlaufend:
+
+- Prompts kopiert
+- Ergebnisse zwischen Agenten verschiebt
+- Worker auswählt
+- Anbieter manuell wechselt
+- Status korrigiert
+- „weiter“ schreibt
 
 Courier stoppt nur an einer echten Grenze:
+
 - menschliche Entscheidung
 - Geldfreigabe
 - Berechtigung
-- Sicherheit
+- Sicherheitsgrenze
 - rechtliche Freigabe
-- nicht aufloesbarer Zielkonflikt
-- ausdruecklich verlangte menschliche Kontrolle
+- nicht auflösbarer Zielkonflikt
+- ausdrücklich verlangte menschliche Kontrolle
 
-**Kernnutzen:** nachweisbare, wiederaufnehmbare Autonomie ueber Tools, Worker, Provider und Sessions hinweg.
+Kernnutzen:
 
-## 2. Internes Wettbewerbsverstaendnis
+Nachweisbare, wiederaufnehmbare Autonomie über Tools, Worker, Provider und Sessions hinweg.
+
+---
+
+## 2. Internes Wettbewerbsverständnis
 
 Nur intern:
 
-**„Nicht Codex oder Claude Code im Hintergrund, sondern tool-uebergreifende, beweisbare Autonomie mit Ledger und pruefbaren Autonomy Grades.“**
+„Nicht Codex oder Claude Code im Hintergrund, sondern tool-übergreifende, beweisbare Autonomie mit Ledger und prüfbaren Autonomy Grades.“
 
-Der Wettbewerbsvorteil ist nicht die Anzahl der Modelle. Courier weiss nachweisbar, was passiert ist, was als Naechstes passieren darf und ob es nach einem Abbruch korrekt weitergeht.
+Der Wettbewerbsvorteil ist nicht die Anzahl der Modelle.
+
+Der Wettbewerbsvorteil ist:
+
+Courier weiß nachweisbar, was passiert ist, was als Nächstes passieren darf und ob es nach einem Abbruch korrekt weitergeht.
+
+---
 
 ## 3. Verbindliche Reihenfolge
 
 1. Trusted Ledger
 2. Reliable Courier Motor
-3. Zero-Human A->B
+3. Zero-Human A→B
 4. Restart & Recovery
 5. Bezahlter Minimalpilot
 6. Pilotentscheidung
@@ -80,126 +125,271 @@ Der Wettbewerbsvorteil ist nicht die Anzahl der Modelle. Courier weiss nachweisb
 9. Packaging und Updates
 10. Connector-/Plattformausbau
 
-Ein spaeteres Gate darf ein frueheres Gate niemals durch UI, Dokumentation, Simulation, Selbstbericht oder zusaetzliche Features ersetzen.
+Ein späteres Gate darf ein früheres Gate niemals durch:
+
+- UI
+- Dokumentation
+- Simulation
+- Selbstbericht
+- zusätzliche Features
+
+ersetzen.
+
+---
 
 ## 4. Gate 1 — Trusted Ledger
 
-Courier besitzt dauerhaft rekonstruierbare Wahrheit ueber Auftrag, Goal Contract, Task, Worker, Attempt, Execution, Result, Evidence, Verifikation, Akzeptanz, Ablehnung und UNKNOWNs.
+### Ziel
 
-Pflicht:
-- stabile Goal-/Task-/Attempt-/Execution-/Result-ID
+Courier besitzt eine dauerhaft rekonstruierbare Wahrheit darüber:
+
+- was beauftragt wurde
+- welcher Vertrag vor Arbeitsbeginn galt
+- was gestartet wurde
+- welcher Worker tätig war
+- welcher Attempt betroffen war
+- welche Execution stattfand
+- welches Result zurückkam
+- welche Evidenz entstand
+- was geprüft wurde
+- was akzeptiert wurde
+- was abgelehnt wurde
+- was UNKNOWN blieb
+
+### Pflicht
+
+Mindestens:
+
+- stabile Goal-ID
+- stabile Task-ID
+- stabile Attempt-ID
+- stabile Execution-ID
+- stabile Result-ID
 - eindeutige Result-Bindung
 - idempotente Result-Verarbeitung
 - identische Duplicates erzeugen keine Doppelwirkung
-- widerspruechliche Duplicates werden abgelehnt
-- stale Results ueberschreiben keine aktuelle Wahrheit
-- Persistenz ueberlebt Restart
+- widersprüchliche Duplicates werden abgelehnt
+- stale Results überschreiben keine aktuelle Wahrheit
+- Persistenz überlebt Restart
 - Reconciliation ist idempotent
 - unbelegte Historie bleibt UNKNOWN
-- Provenienz wird nicht nachtraeglich erfunden
+- Provenienz wird nicht nachträglich erfunden
 
-Ein PASS gilt nur fuer einen konkreten Candidate mit Source SHA, Tree/Fingerprint, relevanter Konfiguration, erforderlicher Loaded-Runtime-Identitaet und Acceptance-Evidence.
+### Candidate-Bindung
 
-**PASS nur wenn:** exakter Candidate gebunden, Ledger-Fingerprint definiert, relevante Tests erfolgreich, erforderliche Runtime-Bindung vorhanden, keine gateverletzenden UNKNOWNs und erforderliche unabhaengige Abnahme vorhanden.
+Ein PASS ist ausschließlich für einen konkreten Candidate gültig.
 
-Danach: **LEDGER_FROZEN = YES**.
+Mindestens gebunden werden:
 
-## 5. Goal Contract — harter Pruefanker
+- Source SHA
+- Tree/Fingerprint
+- relevante Konfiguration
+- geladene Runtime-Identität, falls erforderlich
+- Acceptance-Evidence
 
-Vor autonomer Ausfuehrung bestaetigt der Mensch einmal den Goal Contract:
-- gewuenschtes Endergebnis
-- erlaubter Scope
-- nicht erlaubter Scope
+Source auf Platte und tatsächlich geladene Runtime dürfen nicht verwechselt werden.
+
+### PASS
+
+Gate 1 ist PASS nur wenn:
+
+- Ledger-Fingerprint definiert
+- exakter Candidate gebunden
+- erforderliche Tests erfolgreich
+- erforderliche Runtime-Bindung vorhanden
+- keine gateverletzenden UNKNOWNs
+- unabhängige Abnahme vorhanden
+
+Danach:
+
+LEDGER_FROZEN = YES
+
+---
+
+## 5. Goal Contract — der harte Prüfanker
+
+Vor autonomer Ausführung bestätigt der Mensch einmal den Goal Contract.
+
+Dieser enthält mindestens:
+
+- gewünschtes Endergebnis
+- erlaubten Scope
+- nicht erlaubten Scope
 - relevante Constraints
 - Akzeptanzkriterien
 - erforderliche Evidenzklasse
-- Side-Effect-Grenzen
+- relevante Side-Effect-Grenzen
 - Human-/Money-/Safety-Gates
 
-Courier darf daraus Task-Vertraege ableiten. Diese muessen auf den bestaetigten Goal Contract rueckfuehrbar sein. Courier darf zerlegen, aber Erfolgsvoraussetzungen nicht eigenmaechtig veraendern.
+Danach darf Courier daraus selbst Task-Verträge ableiten.
 
-Erfordert neue Erkenntnis eine Erweiterung: **HUMAN_CONFIRMATION_REQUIRED**.
+Diese müssen eindeutig auf den Goal Contract rückführbar sein.
 
-Fehlt ein ausreichender Pruefanker: **NOT_VERIFIABLE**, niemals automatisch PASS.
+Courier darf einen Task zerlegen.
 
-## 6. Unabhaengige Verifikation
+Courier darf die Erfolgsvoraussetzungen nicht eigenmächtig verändern.
+
+Erfordert neue Erkenntnis eine Erweiterung des Goal Contracts:
+
+HUMAN_CONFIRMATION_REQUIRED
+
+Fehlt ein ausreichender Prüfanker:
+
+NOT_VERIFIABLE
+
+Niemals automatisch:
+
+PASS
+
+---
+
+## 6. Unabhängige Verifikation
+
+Verifikation ist evidenzbasiert, nicht modellbasiert.
 
 Bevorzugte Reihenfolge:
-1. deterministische Pruefung
+
+1. deterministische Prüfung
 2. reproduzierbarer automatisierter Test
-3. unabhaengiger Reviewer
+3. unabhängiger Reviewer
 4. physischer End-to-End-Beweis
 
-Ein AI-Reviewer ist nicht noetig, wenn ein deterministischer Test das Kriterium vollstaendig beweist.
+Ein zusätzlicher AI-Reviewer ist nicht nötig, wenn ein deterministischer Test das Akzeptanzkriterium vollständig beweist.
 
-Wenn ein unabhaengiger Reviewer erforderlich ist:
+Wenn ein unabhängiger Reviewer erforderlich ist, gilt:
+
 - nicht der Writer
 - nicht dasselbe Modell
 - nicht derselbe Arbeitskontext
-- Writer-Selbsturteil ist keine unabhaengige Evidenz
+- keine Übernahme des Writer-Selbsturteils als Evidenz
+
+Teure unabhängige Modelle werden nur dort verwendet, wo deterministische Evidenz nicht ausreicht.
+
+---
 
 ## 7. Gate 2 — Reliable Courier Motor
 
-Verbindlicher Pfad:
+### Ziel
 
-**Result -> persistieren -> validieren -> gegen Goal-/Task-Contract pruefen -> reconcile -> Dependencies aktualisieren -> READY neu berechnen -> Eligibility pruefen -> Worker auswaehlen -> dispatchen**
+Ein gültiges Result führt deterministisch zur nächsten zulässigen Aktion.
 
-Regeln:
+### Verbindlicher Pfad
+
+Result  
+→ persistieren  
+→ validieren  
+→ gegen Goal-/Task-Contract prüfen  
+→ reconcile  
+→ Dependencies aktualisieren  
+→ READY neu berechnen  
+→ Eligibility prüfen  
+→ Worker auswählen  
+→ dispatchen
+
+### Regeln
+
 - kein menschlicher Continue-Befehl im Normalpfad
 - Queue leer = IDLE
 - IDLE erzeugt keine Arbeit
 - kein AI-Polling
 - kein Tight Polling
-- Retries begrenzt
+- Retries sind begrenzt
 - Provider-Ausfall blockiert nur betroffene Arbeit
-- unabhaengige READY-Arbeit darf weiterlaufen
-- ein logischer Attempt hat hoechstens eine aktive externe Execution
-- ein mutable Scope hat hoechstens einen aktiven Writer
+- unabhängige READY-Arbeit darf weiterlaufen
+- ein logischer Attempt hat höchstens eine aktive externe Execution
+- ein mutable Scope hat höchstens einen aktiven Writer
 - UNKNOWN Execution wird reconciled, nicht blind neu gestartet
 
-## 8. Gate 3 — Zero-Human A->B
+### PASS
+
+Gate 2 ist PASS, wenn der komplette Pfad automatisiert und reproduzierbar funktioniert.
+
+---
+
+## 8. Gate 3 — Zero-Human A→B
 
 Physisch beweisen:
 
-**ONE GOAL -> Task A -> realer Worker -> reales Result A -> automatische Verifikation -> automatische Reconciliation -> Task B READY -> automatische Worker-Auswahl -> automatischer Dispatch -> reales Result B -> DONE**
+ONE GOAL  
+→ Task A  
+→ realer Worker  
+→ reales Result A  
+→ automatische Verifikation  
+→ automatische Reconciliation  
+→ Task B READY  
+→ automatische Worker-Auswahl  
+→ automatischer Dispatch  
+→ reales Result B  
+→ DONE
 
-Pflichtmetrik: **HUMAN_RELAY_COUNT = 0**.
+### Pflichtmetrik
 
-Nicht zulässig: Prompt kopieren, „Weiter“, Worker manuell waehlen, Result manuell uebertragen, Status manuell setzen, B manuell starten oder Result manuell injizieren. Fixtures duerfen vorbereiten, aber Gate 3 nicht beweisen.
+HUMAN_RELAY_COUNT = 0
+
+Nicht zulässig:
+
+- Prompt kopieren
+- „Weiter“
+- Worker manuell auswählen
+- Result manuell übertragen
+- Status manuell setzen
+- B manuell starten
+- Result manuell injizieren
+
+Fixtures dürfen vorbereiten.
+
+Fixtures dürfen Gate 3 nicht beweisen.
+
+---
 
 ## 9. Gate 4 — Restart & Recovery
 
-Mindestens testen:
+Mindestens folgende Matrix wird getestet:
+
 - Courier-Prozessrestart
 - Worker verschwindet
 - Result persistiert, Reconcile fehlt
 - READY vor Dispatch
 - Dispatch erfolgt, Result fehlt
-- Provider temporaer nicht verfuegbar
+- Provider temporär nicht verfügbar
 - stale Result
 - identisches Duplicate Result
-- widerspruechliches Duplicate Result
+- widersprüchliches Duplicate Result
 
-Fuer jedes Szenario:
+Für jedes Szenario gilt:
+
 - kein Task verloren
 - kein akzeptiertes Result verloren
 - keine stille Doppelwirkung
-- stale Daten ueberschreiben keine aktuelle Wahrheit
+- stale Daten überschreiben keine aktuelle Wahrheit
 - Zustand bleibt ehrlich
-- naechste zulaessige Aktion ist deterministisch
+- nächste zulässige Aktion ist deterministisch
 
-**RSR = bestandene Restart-Szenarien / definierte Restart-Szenarien. Ziel: 100 %.**
+### RSR
+
+RSR = erfolgreich bestandene Restart-Szenarien / definierte Restart-Szenarien
+
+Gate-Ziel:
+
+RSR = 100 %
+
+Neue Restart-Szenarien erweitern die Matrix und können Revalidation auslösen.
+
+---
 
 ## 10. Proof Card
 
+Jede wesentliche abgeschlossene Arbeit besitzt eine kompakte Proof Card.
+
 Pflichtfelder:
+
 - Goal-ID
 - Goal-Contract-Fingerprint
 - Task-ID
-- tatsaechliches Result
+- tatsächliches Result
 - Akzeptanzkriterien
 - Evidence-IDs
-- Pruefstufe
+- Prüfstufe
 - Source-/Build-/Runtime-Fingerprint
 - Covered Surface
 - UNKNOWNs
@@ -208,121 +398,276 @@ Pflichtfelder:
 
 Keine lange Agentenprosa.
 
+---
+
 ## 11. Proof Levels
 
-- **P0 — SELF_REPORTED:** Worker behauptet Erfolg.
-- **P1 — DETERMINISTIC_TESTED:** deterministische Evidenz vorhanden.
-- **P2 — INDEPENDENTLY_VERIFIED:** unabhaengige Pruefung vorhanden.
-- **P3 — PHYSICAL_E2E:** realer End-to-End-Pfad physisch bewiesen.
+P0 — SELF_REPORTED  
+Worker behauptet Erfolg.
 
-Ein hoeherer Proof Level ersetzt keine fehlenden Akzeptanzkriterien.
+P1 — DETERMINISTIC_TESTED  
+Automatisierte deterministische Evidenz vorhanden.
+
+P2 — INDEPENDENTLY_VERIFIED  
+Unabhängige Prüfung vorhanden.
+
+P3 — PHYSICAL_E2E  
+Realer End-to-End-Pfad physisch bewiesen.
+
+Ein höherer Proof Level ersetzt keine fehlenden Akzeptanzkriterien.
+
+---
 
 ## 12. Autonomy Grade
 
-- **A0 — MANUAL:** menschlicher Relay-Schritt erforderlich.
-- **A1 — SINGLE_STEP:** ein Task kann ohne Relay abgeschlossen werden.
-- **A2 — AUTO_CONTINUE:** Result fuehrt automatisch zur naechsten zulaessigen Arbeit.
-- **A3 — ZERO_RELAY_CHAIN:** mehrstufige reale Arbeit mit HUMAN_RELAY_COUNT=0.
-- **A4 — RECOVERY_RESILIENT:** A3 plus vollstaendige definierte Restart-Matrix.
+Autonomy Grade beschreibt bewiesenes Systemverhalten, nicht Marketing.
 
-Jeder Grade gilt nur fuer seine konkrete Covered Surface.
+Grade A0 — MANUAL
 
-## 13. Covered Surface und Revalidation
+Menschlicher Relay-Schritt erforderlich.
 
-Covered Surface bindet Module, relevante Konfiguration, externe Vertraege, Connector-Vertraege, Contract-Fingerprint und notwendige Acceptance Tests.
+Grade A1 — SINGLE_STEP
 
-Aendert sich ein entscheidungsrelevanter Bestandteil: **REVALIDATION_REQUIRED**. Der alte Grade wird bis zur erfolgreichen Revalidation nicht als aktuell gueltig angezeigt. Aenderungen ausserhalb der Covered Surface entwerten ihn nicht automatisch.
+Ein Task kann ohne Relay abgeschlossen werden.
+
+Grade A2 — AUTO_CONTINUE
+
+Result führt automatisch zur nächsten zulässigen Arbeit.
+
+Grade A3 — ZERO_RELAY_CHAIN
+
+Mehrstufige reale Arbeit erreicht:
+
+HUMAN_RELAY_COUNT = 0
+
+Grade A4 — RECOVERY_RESILIENT
+
+A3 plus vollständige definierte Restart-Matrix.
+
+Ein Grade gilt nur für seine konkrete Covered Surface.
+
+---
+
+## 13. Covered Surface
+
+Jeder Autonomy Grade bindet:
+
+- Module
+- relevante Konfiguration
+- externe Verträge
+- Connector-Verträge
+- Contract-Fingerprint
+- notwendige Acceptance Tests
+
+Ändert sich ein entscheidungsrelevanter Bestandteil:
+
+REVALIDATION_REQUIRED
+
+Der alte Grade wird bis zur erfolgreichen Revalidation nicht als aktuell gültig angezeigt.
+
+Änderungen außerhalb der Covered Surface entwerten den Grade nicht automatisch.
+
+---
 
 ## 14. Gate 5 — Minimaler Pilot
 
-Der Pilot kommt vor einer schoenen Product Shell.
+Der Pilot kommt vor einer schönen Product Shell.
 
-Sichtbar benoetigt werden nur:
-- **Arbeitet**
-- **Braucht dich**
-- **Fertig**
+Sichtbar benötigt werden nur:
+
+- Arbeitet
+- Braucht dich
+- Fertig
 - Proof Card
 - Proof Level
 - Autonomy Grade
-- naechste Aktion
+- nächste Aktion
 
-Nicht erforderlich: grosses Home, umfangreiche Navigation, Marketplace, Update-UI, Enterprise-Admin oder grosses Dashboard.
+Nicht erforderlich:
+
+- großes Home
+- umfangreiche Navigation
+- Marketplace
+- Update-UI
+- Enterprise-Admin
+- großes Dashboard
+
+Der Pilot testet Nutzen, nicht Designqualität.
+
+---
 
 ## 15. Pilot-Installation
 
-Ein automatischer Installer ist keine Pilotvoraussetzung. Erste Piloten duerfen begleitet, manuell eingerichtet und persoenlich onboarded werden.
+Ein automatischer Installer ist keine Pilotvoraussetzung.
 
-Dieser Aufwand wird als **SETUP_MINUTES_PER_PILOT** gemessen. Manuelles Setup darf im Pilot existieren, aber nicht als skalierbarer Endzustand ausgegeben werden.
+Erste Piloten dürfen:
+
+- begleitet
+- manuell eingerichtet
+- persönlich onboarded
+
+werden.
+
+Dieser Aufwand wird gemessen:
+
+SETUP_MINUTES_PER_PILOT
+
+Manuelles Setup darf im Pilot existieren.
+
+Es darf nicht als skalierbarer Endzustand ausgegeben werden.
+
+---
 
 ## 16. Pilot mit echten Menschen
 
-Jeder Pilot besitzt klares Goal, menschlich bestaetigten Goal Contract, dokumentierte Baseline, Pilotdauer, vereinbarten Preis und Daten-/Permission-Scope.
+Jeder Pilot besitzt:
 
-Der Pilot testet ausschliesslich das Kernversprechen:
+- klares Goal
+- menschlich bestätigten Goal Contract
+- dokumentierte Baseline
+- Pilotdauer
+- vereinbarten Preis
+- Daten-/Permission-Scope
 
-**„Courier bringt dich am naechsten Tag genau dort weiter, wo du aufgehoert hast.“**
+Zielgruppe sind Menschen mit realem Problem durch:
+
+- verlorenen Kontext
+- Copy/Paste
+- manuelle Übergaben
+- wiederholtes Erklären
+- Session-Abbrüche
+
+Der Pilot testet ausschließlich:
+
+„Courier bringt dich am nächsten Tag genau dort weiter, wo du aufgehört hast.“
+
+---
 
 ## 17. Pilotmetriken
 
-**HIPG = notwendige menschliche Fortsetzungseingriffe / abgeschlossene oder beendete Goals. Ziel: < 1,0.**
+### HIPG — Human Interventions per Goal
 
-Normale initiale Goal-Bestaetigung wird nicht als Relay gezaehlt. Echte HUMAN_REQUIRED-Entscheidungen werden separat erfasst.
+HIPG = notwendige menschliche Fortsetzungseingriffe / abgeschlossene oder beendete Goals
 
-**RSR = bestandene Restart-Szenarien / ausgefuehrte definierte Restart-Szenarien. Ziel: 100 %.**
+Ziel:
 
-**NDR — Next-Day Return:** Nutzer verwendet Courier am Folgetag aus eigenem Interesse erneut oder fuehrt seinen begonnenen Goal-Pfad fort.
+HIPG < 1,0
+
+Normale initiale Goal-Bestätigung wird nicht als Relay gezählt.
+
+Echte HUMAN_REQUIRED-Entscheidungen werden separat erfasst.
+
+### RSR
+
+RSR = bestandene Restart-Szenarien / ausgeführte definierte Restart-Szenarien
+
+Ziel:
+
+100 %
+
+### NDR — Next-Day Return
+
+Ein Pilot zählt als NDR, wenn der Nutzer am Folgetag aus eigenem Interesse Courier erneut nutzt oder seinen begonnenen Goal-Pfad fortsetzt.
 
 Erste 5er-Kohorte:
-- **3–5 / 5 -> GO**
-- **2 / 5 -> ITERATE ONCE**: genau ein begrenzter Iterationszyklus, danach neue Kohorte
-- **0–1 / 5 -> REVIEW CORE PROMISE**
 
-Fuenf Piloten sind **ein Entscheidungssignal, kein Marktbeweis**.
+3–5 / 5 → GO
+
+positives Signal; nächstes Gate darf vorbereitet werden.
+
+2 / 5 → ITERATE ONCE
+
+genau ein begrenzter Iterationszyklus am Kernversprechen, Use Case oder Zielsegment.
+
+Danach neue Kohorte messen.
+
+0–1 / 5 → REVIEW CORE PROMISE
+
+kein automatischer Feature-Ausbau.
+
+Fünf Piloten sind:
+
+ein Entscheidungssignal, kein Marktbeweis.
+
+---
 
 ## 18. Zahlung im Pilot
 
 Der erste Umsatz wartet nicht auf Billing-Plattform oder Installer.
 
-Orientierung: **49–99 EUR Setup-/Pilotgebuehr**.
+Pilot-Orientierung:
 
-Preis ist ein Experiment. Zu messen:
+49–99 € Setup-/Pilotgebühr
+
+Der Preis ist ein Experiment.
+
+Zu messen:
+
 - PAYMENT_YES/NO
-- tatsaechlicher Betrag
+- tatsächlicher Betrag
 - Setup-Aufwand
 - Wiederkehr
 - Support-Aufwand
 - Providerkosten
 
-Feedback ohne Zahlungsbereitschaft ist schwaechere Evidenz als eine echte Zahlung.
+Feedback ohne Zahlungsbereitschaft ist schwächere Evidenz als eine echte Zahlung.
+
+---
 
 ## 19. Pilot-Voraussetzungen
 
-Vor dem ersten bezahlten externen Pilot ausreichend klaeren:
+Vor dem ersten bezahlten externen Pilot müssen ausreichend geklärt sein:
+
 - einfacher Zahlungsweg
 - verarbeitete Nutzerdaten
 - Speicherort
 - beteiligte Provider
 - Berechtigungen
-- Aufbewahrung und Loeschung
+- Aufbewahrung
+- Löschung
 - notwendige Datenschutzhinweise
 - organisatorische DSGVO-Pflichten
 - steuerliche/gewerbliche Voraussetzungen
 
+Falls erforderlich werden insbesondere geprüft:
+
+- Gewerbeanmeldung
+- steuerliche Erfassung
+- Umsatzsteuer-/Kleinunternehmerfragen
+
 Der Produktplan ersetzt keine individuelle Rechts- oder Steuerberatung.
+
+Diese Punkte blockieren nicht Gate 1–4.
+
+Sie können aber den Start eines bezahlten externen Piloten blockieren.
+
+---
 
 ## 20. Parallelspur ab sofort
 
-Waehren Gate 1–4 darf Nicht-Code-Arbeit parallel laufen:
+Während Gate 1–4 darf Nicht-Code-Arbeit parallel laufen.
+
+Erlaubt:
+
 - Pilotkandidaten ansprechen
-- Kandidatenliste fuehren
+- Kandidatenliste führen
 - Baseline-Fragebogen vorbereiten
-- Pilotgespraech vorbereiten
+- Pilotgespräch vorbereiten
 - Zahlungsweg vorbereiten
 - Datenfluss inventarisieren
 - Pilotunterlagen vorbereiten
 - Pilotpreis testen
 
-Nicht erlaubt: grosse Marketingkampagne, Product Shell vorziehen, Billing-Plattform bauen oder Features aus ungeprueften Interviewwuenschen bauen.
+Nicht erlaubt:
+
+- große Marketingkampagne
+- Product Shell vorziehen
+- Billing-Plattform bauen
+- Features aus ungeprüften Interviewwünschen bauen
+
+Die Parallelspur darf den Engineering-Critical-Path nicht unterbrechen.
+
+---
 
 ## 21. Gate 6 — Product Shell
 
@@ -330,68 +675,166 @@ Nur nach positivem Pilotsignal.
 
 Zielpfad:
 
-**Connect -> Goal -> Arbeitet -> Braucht dich -> Fertig**
+Connect  
+→ Goal  
+→ Arbeitet  
+→ Braucht dich  
+→ Fertig
 
-Optional: Details oeffnen. Interne Komplexitaet bleibt intern.
+Optional:
+
+Details öffnen
+
+Interne Komplexität bleibt intern.
+
+Der Kunde muss Ledger, Attempts, Workers oder Execution-IDs nicht verstehen.
+
+---
+
+## 21a. Courier Brain — providerunabhaengiger eigener Kontext (LATER)
+
+**Klassifikation:** LATER bis positiver Pilotnachweis; keine Freigabe, Gate 1–5 zu ueberspringen.
+
+Courier soll spaeter einen eigenen, providerunabhaengigen Kontext-/Wissensspeicher anbieten, den Nutzer zu Beginn auswaehlen oder neu anlegen koennen. Arbeitsname: **Courier Brain**.
+
+Ziel:
+- wiederverwendbarer Nutzer-/Projektkontext bleibt ausserhalb einzelner Provider-Chats,
+- Nutzer koennen ein vorhandenes Brain waehlen, ein leeres Brain starten oder ein eigenes importieren,
+- der Katalog darf offizielle Brain-Vorlagen/Manifeste anbieten,
+- private Brain-Inhalte bleiben standardmaessig privat und werden nicht automatisch in einen oeffentlichen Katalog kopiert,
+- Export, Loeschung und Providerwechsel muessen moeglich bleiben.
+
+**Abgrenzung:**
+- Brain = wiederverwendbarer Kontext, Wissen, Praeferenzen und freigegebene Quellen.
+- Ledger = belegte Ausfuehrungswahrheit.
+- Goal Contract = konkrete Erfolgskriterien und Grenzen eines Goals.
+- Katalog = auffindbare Vorlagen/Manifeste; er ist nicht automatisch der Speicher privater Inhalte.
+
+Ein Brain darf keine Ausfuehrungsrechte, Geldgrenzen oder Goal-Contract-Grenzen erweitern. Auswahl oder Wechsel eines Brains startet keinen Job.
+
+Vorgesehener spaeterer Product-Shell-Pfad:
+
+**Brain waehlen/neu -> Connect -> Goal -> Arbeitet -> Braucht dich -> Fertig**
+
+Ein **Leeres Brain** bleibt immer moeglich, damit die Funktion kein Zwang fuer einfache Piloten wird.
+
+---
 
 ## 22. Gate 7 — Packaging / Updates
 
 Erst nach Core- und Pilotnachweis.
 
-Spaeter erforderlich:
+Erforderlich werden später:
+
 - reproduzierbarer Build
-- Source-Identitaet
-- Build-Identitaet
-- Loaded-Runtime-Identitaet
+- Source-Identität
+- Build-Identität
+- Loaded-Runtime-Identität
 - Single Instance
 - sicheres Update
 - Rollback
 - Last Known Good
-- State-Kompatibilitaet
+- State-Kompatibilität
 - keine verlorene laufende Arbeit
+
+---
 
 ## 23. Non-Goals / Scope Freeze
 
 Bis zum positiven Pilotnachweis nicht bauen:
+
 - Marketplace
-- vollstaendige Billing-Plattform
+- vollständige Billing-Plattform
 - Enterprise-Admin
 - Kubernetes
 - Multi-Region
-- grosses Dashboard
-- vollstaendige Social-Automation
+- großes Dashboard
+- vollständige Social-Automation
 - Spieleplattform
 - Millionen-Task-Cannon als Produktionsziel
-- zusaetzliche Ledger
-- zusaetzliche Scheduler ohne belegte Luecke
-- zusaetzliche Watchdogs ohne belegte Luecke
+- zusätzliche Ledger
+- zusätzliche Scheduler ohne belegte Lücke
+- zusätzliche Watchdogs ohne belegte Lücke
 - perfekte Desktop-Shell
 - App-Store-Optimierung
 - spekulative Enterprise-Funktionen
 
-**Default = nicht bauen.** Nicht im Plan -> keine Implementierung ohne ausdrueckliche Freigabe.
+Default = nicht bauen.
+
+Nicht im Plan:
+
+→ keine Implementierung ohne ausdrückliche Freigabe.
+
+---
 
 ## 24. Agenten-Grenzen
 
-Agenten duerfen Code implementieren, Tests ausfuehren, Evidenz erzeugen, Reviews durchfuehren, Fehler klassifizieren, dependency-sichere autorisierte Arbeit fortsetzen und Metriken auswerten.
+Agenten dürfen:
 
-Agenten duerfen nicht eigene Rechte/Scope/Geldgrenzen/Sicherheitsgrenzen erweitern, Kundendaten unautorisiert freigeben, ungefragt publizieren, UNKNOWN zu PASS machen, Proof Levels erfinden, Erfolg erfinden oder neue Arbeit nur zur Beschaeftigung erzeugen.
+- Code implementieren
+- Tests ausführen
+- Evidenz erzeugen
+- Reviews durchführen
+- Fehler klassifizieren
+- dependency-sichere autorisierte Arbeit fortsetzen
+- Metriken auswerten
+
+Agenten dürfen nicht:
+
+- eigene Rechte erweitern
+- Scope selbst erweitern
+- Geldgrenzen verändern
+- Sicherheitsgrenzen verändern
+- Kundendaten unautorisiert freigeben
+- ungefragt publizieren
+- UNKNOWN zu PASS machen
+- Proof Levels erfinden
+- Erfolg erfinden
+- neue Arbeit nur zur Beschäftigung erzeugen
+
+---
 
 ## 25. Gate-Timeboxes
 
-Timeboxes sind **Review-Grenzen**, keine kuenstlichen PASS-Deadlines.
+Timeboxes sind Review-Grenzen, keine künstlichen PASS-Deadlines.
 
 Default:
-- Gate 1–4: 5 Arbeitstage bis zwingender Scope-/Blocker-Review
-- Pilotvorbereitung: 5 Arbeitstage fuer Minimalvoraussetzungen
-- erste Pilotkohorte: 10–14 Kalendertage
-- erste Product Shell: maximal 10 Arbeitstage bis Review
 
-Ist ein Gate nach der Timebox nicht PASS: stoppen, ersten kausalen Blocker benennen, Scope pruefen, nicht kausale Arbeit entfernen, Evidenzlage pruefen und entscheiden: weiter, enger schneiden, blockieren oder Ansatz aendern.
+Gate 1–4:  
+5 Arbeitstage bis zwingender Scope-/Blocker-Review
 
-## 26. Gate-Zustaende
+Pilotvorbereitung:  
+5 Arbeitstage für Minimalvoraussetzungen
 
-Erlaubt:
+erste Pilotkohorte:  
+10–14 Kalendertage
+
+erste Product Shell:  
+maximal 10 Arbeitstage bis Review
+
+Wenn ein Gate nach der Timebox nicht PASS ist:
+
+1. Arbeit stoppen
+2. ersten kausalen Blocker benennen
+3. Scope prüfen
+4. nicht kausale Arbeit entfernen
+5. Evidenzlage prüfen
+6. entscheiden:
+   - weiter
+   - enger schneiden
+   - blockieren
+   - Ansatz ändern
+
+Eine Verlängerung braucht einen dokumentierten Grund.
+
+Kein Gate verlängert sich still selbst.
+
+---
+
+## 26. Gate-Zustände
+
+Erlaubte Zustände:
+
 - NOT_STARTED
 - PREP_ONLY
 - IN_PROGRESS
@@ -400,81 +843,183 @@ Erlaubt:
 - PASS
 - FROZEN
 
-Nur PASS erlaubt den regulaeren Uebergang. Nur FROZEN beendet regulaere Arbeit am abgeschlossenen Gate. „Fast fertig“ ist kein Zustand.
+PASS bedeutet:
+
+Gate-Kriterien aktuell bewiesen.
+
+FROZEN bedeutet:
+
+Gate ist abgeschlossen und reguläre Änderung beendet.
+
+Nur PASS erlaubt den regulären Übergang zum nächsten Gate.
+
+Nur FROZEN beendet reguläre Arbeit an einem abgeschlossenen Gate.
+
+„Fast fertig“ ist kein Zustand.
+
+---
 
 ## 27. Evidence Invalidation
 
-Ein bestehender PASS wird ungueltig, wenn Covered Surface relevant geaendert wurde, Candidate gewechselt hat, Runtime nicht mehr zum akzeptierten Build passt, Akzeptanzvertrag geaendert wurde, relevante Konfiguration geaendert wurde oder vorherige Evidence nachweislich falsch/unvollstaendig war.
+Ein bestehender PASS wird ungültig, wenn:
 
-Dann: **REVALIDATION_REQUIRED**.
+- Covered Surface relevant geändert wurde
+- Candidate gewechselt hat
+- Runtime nicht mehr zum akzeptierten Build passt
+- Akzeptanzvertrag geändert wurde
+- relevante Konfiguration geändert wurde
+- vorherige Evidence nachweislich falsch oder unvollständig war
+
+Dann:
+
+REVALIDATION_REQUIRED
+
+Nicht:
+
+„war früher grün, also bleibt es grün.“
+
+---
 
 ## 28. Definition von Core fertig
 
 Core fertig bedeutet:
+
 - Ledger PASS + FROZEN
 - Motor PASS
-- Result -> Verify -> Reconcile -> Next READY bewiesen
-- A->B ohne Relay physisch bewiesen
+- Result → Verify → Reconcile → Next READY bewiesen
+- A→B ohne Relay physisch bewiesen
 - Restart-Matrix PASS
-- Autonomy Grade mindestens A4 fuer den definierten Core-Scope
+- Autonomy Grade mindestens A4 für den definierten Core-Scope
 - Ressourcenbetrieb bounded
 - keine Tight-Polling-Schleifen
 - Proof Cards korrekt
 - Covered Surface gebunden
 
-Dann: **CORE_FREEZE**.
+Dann gilt:
 
-Danach Core-Aenderungen nur bei beobachtetem kausalen Defekt, Sicherheitsproblem, notwendiger Revalidation, realer Kundenanforderung oder nachgewiesenem wirtschaftlichem Vorteil.
+CORE_FREEZE
 
-## 29. Entscheidungsregel fuer jede neue Idee
+Danach Core-Änderungen nur bei:
 
-**CRITICAL PATH:** Ohne diese Arbeit kann das aktuelle Gate nicht PASS werden -> jetzt bearbeiten.
+- beobachtetem kausalen Defekt
+- Sicherheitsproblem
+- notwendiger Revalidation
+- realer Kundenanforderung
+- nachgewiesenem wirtschaftlichem Vorteil
 
-**LATER:** Wertvoll, aber fuer das aktuelle Gate nicht erforderlich -> notieren, nicht bauen.
+---
 
-**NON-GOAL:** Verletzt Scope Freeze oder lenkt vom Kernversprechen ab -> nicht bauen.
+## 29. Entscheidungsregel für jede neue Idee
 
-Unklar -> nicht starten.
+Jede neue Idee erhält genau eine Kategorie.
+
+### CRITICAL PATH
+
+Ohne diese Arbeit kann das aktuelle Gate nicht PASS werden.
+
+→ jetzt bearbeiten
+
+### LATER
+
+Wertvoll, aber für das aktuelle Gate nicht erforderlich.
+
+→ notieren, nicht bauen
+
+### NON-GOAL
+
+Verletzt Scope Freeze oder lenkt vom Kernversprechen ab.
+
+→ nicht bauen
+
+Unklar:
+
+→ nicht starten
 
 Technische Interessantheit, Agentenbegeisterung oder freie Rechenzeit machen eine Idee nicht zum Critical Path.
 
+---
+
 ## 30. Kanonischer kritischer Pfad
 
-**JETZT:** Ledger remote, exakt gebunden und unabhaengig schliessen.
+### JETZT
 
-Parallel ausschliesslich: Pilotkandidaten, Baseline, Zahlungsweg, Daten-/Compliance-Vorbereitung.
+Ledger remote, exakt gebunden und unabhängig schließen.
 
-**DANACH:** Reliable Motor PASS.
+Parallel ausschließlich:
 
-**DANN:** Zero-Human A->B.
+- Pilotkandidaten
+- Baseline
+- Zahlungsweg
+- Daten-/Compliance-Vorbereitung
 
-**DANN:** Restart-Matrix und A4.
+### DANACH
 
-**DANN:** Minimaler bezahlter Pilot.
+Reliable Motor PASS.
 
-**DANN:** HIPG, RSR, NDR, Zahlung und Supportaufwand auswerten.
+### DANN
 
-**BEI POSITIVEM SIGNAL:** Product Shell.
+Zero-Human A→B.
 
-**ERST DANACH:** Packaging, Updates, breitere Connectoren, skalierter Vertrieb.
+### DANN
+
+Restart-Matrix und A4.
+
+### DANN
+
+Minimaler bezahlter Pilot.
+
+### DANN
+
+HIPG, RSR, NDR, Zahlung und Supportaufwand auswerten.
+
+### BEI POSITIVEM SIGNAL
+
+Product Shell.
+
+### ERST DANACH
+
+Packaging.
+
+Updates.
+
+breitere Connectoren.
+
+skalierter Vertrieb.
+
+---
 
 ## 31. Kanonische Stop-Regel
 
 Arbeit wird beendet, wenn:
-- aktuelles Gate PASS und anschliessend FROZEN ist
+
+- aktuelles Gate PASS und anschließend FROZEN ist
 - kein dependency-sicheres autorisiertes Critical-Path-Item verbleibt
 - echte menschliche Entscheidung erforderlich ist
 - Permission-/Safety-/Money-Grenze erreicht wurde
-- weitere Arbeit nur LATER oder NON-GOAL waere
+- weitere Arbeit nur LATER oder NON-GOAL wäre
 
-**Kein Agent erfindet Arbeit, nur weil noch Zeit oder Compute verfuegbar ist.**
+Kein Agent erfindet Arbeit, nur weil noch Zeit oder Compute verfügbar ist.
+
+---
 
 ## 32. Produktprinzip
 
-**Courier gewinnt nicht dadurch, dass es mehr Dinge gleichzeitig tut. Courier gewinnt dadurch, dass begonnene Arbeit morgen zuverlaessig, beweisbar und ohne menschliches Relay weitergeht.**
+Courier gewinnt nicht dadurch, dass es mehr Dinge gleichzeitig tut.
+
+Courier gewinnt dadurch, dass begonnene Arbeit morgen zuverlässig, beweisbar und ohne menschliches Relay weitergeht.
+
+## Kanonische Klarstellungen dieser Revision
+
+- Gate-Status und Arbeitsfreigabe sind getrennt – damit widerspricht „Gate 2 IN_PROGRESS“ nicht mehr automatisch der Reihenfolge.
+- HIPG, RSR und NDR sind berechenbar, nicht nur Schlagworte.
+- Autonomy Grade hat A0–A4 statt eines undefinierten Scores.
+- PASS kann aktiv ungültig werden, wenn Covered Surface, Candidate oder Runtime sich ändern.
+- Goal Contract und Task-Vertrag sind getrennt: der Mensch bestätigt einmal das Ziel; Courier darf danach autonom zerlegen.
+- Es gibt eine kanonische Stop-Regel. Ein Agent kann nach einem bestandenen Gate nicht einfach neue „wichtige“ Arbeit erfinden.
+
 
 ---
 
 ## Datenschutz-/Speicherhinweis
 
-Persoenliche Zahlungs-, Konto-, Steuer- oder Identifikationsdaten gehoeren **nicht** in das oeffentliche Courier-Repository. Private Zahlungsdaten werden nur in dafuer vorgesehenen privaten Nutzerunterlagen verwaltet.
+Persönliche Zahlungs-, Konto-, Steuer- oder Identifikationsdaten gehören **nicht** in das öffentliche Courier-Repository. Private Zahlungsdaten werden nur in dafür vorgesehenen privaten Nutzerunterlagen verwaltet.
