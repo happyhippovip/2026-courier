@@ -55,6 +55,16 @@
       "path": "docs/agent-warehouse/COMPANY_EXPANSION_ROADMAP_2026-09-20.md",
       "type": "company-roadmap",
       "authority": "strategic-working-roadmap"
+    },
+    {
+      "path": "docs/agent-warehouse/OPERATOR_INTERACTION_PROTOCOL_2026-09-20.md",
+      "type": "operator-protocol",
+      "authority": "mandatory-human-setup-rule"
+    },
+    {
+      "path": "docs/agent-warehouse/SESSION_HANDOFF_2026-09-20.md",
+      "type": "session-handoff",
+      "authority": "public-safe-current-state"
     }
   ],
   "existing_canonical_references": [
@@ -81,6 +91,7 @@
     "Cloud provider and plan",
     "Private repository / private documentation location for confidential warehouse data",
     "Final AI provider and cost-routing policy",
-    "Final legal review of ToS/IP language"
+    "Final legal review of ToS/IP language",
+    "Verified AWS instance + SSH user + private-key attribution before first SSH connection"
   ]
 }
