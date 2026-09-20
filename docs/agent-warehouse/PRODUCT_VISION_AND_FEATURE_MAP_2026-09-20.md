@@ -131,3 +131,27 @@ Sicherheitsprinzipien:
 
 Bessere Formulierung:
 **Courier baut eine eigene Wissens- und Orchestrierungsschicht, die mit freigegebenen, geprüften Lösungen und Produktwissen laufend besser werden kann.**
+
+
+## Customer Packaging / Included AI
+
+Founder-approved working direction (2026-09-20):
+
+Courier should sell a **simple outcome package**, not expose raw model-token complexity to normal customers.
+
+Initial hypothesis:
+- roughly **EUR 99–100/month**;
+- meaningful routine Courier AI/agent usage included;
+- customer wording: **"included in your plan"**, not "free";
+- fair-use / internal budget envelope protects unit economics;
+- expensive or unusually large tasks trigger an explicit extra quote before work starts;
+- no silent overages.
+
+Customer experience:
+
+`GOAL -> PLAN -> INCLUDED OR EXTRA QUOTE -> EXECUTE -> VERIFY -> RESULT`
+
+Internal architecture may use credits, cost budgets, task classes and model routing, but the UI should remain simple.
+
+Canonical working detail:
+`docs/agent-warehouse/CUSTOMER_PACKAGING_AND_COST_GUARDRAILS_2026-09-20.md`
