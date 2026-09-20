@@ -148,3 +148,22 @@ Next safety gate before first SSH:
 2. use the verified Ubuntu EC2 host/user combination;
 3. perform a minimal first SSH connection test;
 4. do not copy or publish the private key.
+
+
+## MacBook SSH key search result — 2026-09-20
+
+Claude Code completed a read-only, name-based search on the MacBook for the EC2 key pair `courier-key-2`.
+
+Result:
+- `MATCHING_KEY_FOUND=NO`
+- search covered normal user locations plus iCloud/Mobile Documents;
+- Spotlight and a broader home-folder search were used;
+- no file named `courier-key*` was found;
+- certificate `.pem` files and unrelated general Mac SSH keys were excluded as non-matches;
+- no SSH connection was attempted;
+- no files or permissions were changed.
+
+Operational conclusion:
+- stop repeating the same Mac key search;
+- keep the Mac Claude Code session available/minimized;
+- next key-attribution work belongs on the Windows PC or, if Windows also has no key, use a separate AWS-supported recovery/access path rather than guessing.
