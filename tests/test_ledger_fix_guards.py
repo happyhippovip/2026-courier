@@ -98,6 +98,35 @@ def guard():
 
 ART_URL = "https://github.com/example/project/actions/runs/guard-1"
 
+# Offline attestation receipts for the pinned two-step flow: introduction
+# (update N) lands PROVISIONAL without a receipt; promotion (update N+1,
+# independent writer, pre-existing evidence) requires a strictly verified
+# receipt. The production seam exists for exactly this; the resolver below
+# answers only the fixture URLs so no live network is needed.
+ATTESTATIONS = {
+    ART_URL + "-tw": ("indep-producer", "indep-verifier"),
+    ART_URL + "-fr": ("fresh-prod", "fresh-ver"),
+}
+
+
+def install_resolver():
+    previous = ledger._attestation_resolver
+
+    def resolve(url):
+        if url not in ATTESTATIONS:
+            return None
+        producer, verifier = ATTESTATIONS[url]
+        return {
+            "verdict": "PASS",
+            "producer_principal": producer,
+            "verifier_principal": verifier,
+            "goal_id": "fix-guard rails",
+            "binding": {"sha": SHA, "runtime": RT},
+        }
+
+    ledger._attestation_resolver = resolve
+    return previous
+
 
 def artifact(url_suffix, producer, verifier):
     return {
@@ -127,17 +156,21 @@ class FixGuardTests(unittest.TestCase):
         path = Path("/tmp") / "guard_two_writer.json"
         if path.exists():
             path.unlink()
-        ledger.initialize(path, record(), guard(), 5.0)
-        g1 = with_pass(guard(), ART_URL + "-tw")
-        g1["evidence"].append(artifact("-tw", "indep-producer", "indep-verifier"))
-        b1 = ledger.update(path, 0, {"TASKS_COMPLETED": 1},
-                           "writer-A", 5.0, g1)
-        self.assertEqual(b1["acceptance_guard"]["transition_state"],
-                         "PROVISIONAL")
-        # Independent writer-B promotes with NO new evidence.
-        b2 = ledger.update(path, 1, {"TASKS_COMPLETED": 2}, "writer-B", 5.0)
-        self.assertEqual(b2["acceptance_guard"]["transition_state"],
-                         "CANONICAL_ACCEPTED")
+        previous = install_resolver()
+        try:
+            ledger.initialize(path, record(), guard(), 5.0)
+            g1 = with_pass(guard(), ART_URL + "-tw")
+            g1["evidence"].append(artifact("-tw", "indep-producer", "indep-verifier"))
+            b1 = ledger.update(path, 0, {"TASKS_COMPLETED": 1},
+                               "writer-A", 5.0, g1)
+            self.assertEqual(b1["acceptance_guard"]["transition_state"],
+                             "PROVISIONAL")
+            # Independent writer-B promotes with NO new evidence.
+            b2 = ledger.update(path, 1, {"TASKS_COMPLETED": 2}, "writer-B", 5.0)
+            self.assertEqual(b2["acceptance_guard"]["transition_state"],
+                             "CANONICAL_ACCEPTED")
+        finally:
+            ledger._attestation_resolver = previous
 
     def test_fresh_bound_evidence_promotes(self):
         """DLQ-02 negative: fresh (now-stamped) bound VALID evidence must keep
@@ -145,13 +178,17 @@ class FixGuardTests(unittest.TestCase):
         path = Path("/tmp/guard_fresh.json")
         if path.exists():
             path.unlink()
-        ledger.initialize(path, record(), guard(), 5.0)
-        g1 = with_pass(guard(), ART_URL + "-fr")
-        g1["evidence"].append(artifact("-fr", "fresh-prod", "fresh-ver"))
-        ledger.update(path, 0, {"TASKS_COMPLETED": 1}, "w1", 5.0, g1)
-        b2 = ledger.update(path, 1, {"TASKS_COMPLETED": 2}, "w2", 5.0)
-        self.assertEqual(b2["acceptance_guard"]["transition_state"],
-                         "CANONICAL_ACCEPTED")
+        previous = install_resolver()
+        try:
+            ledger.initialize(path, record(), guard(), 5.0)
+            g1 = with_pass(guard(), ART_URL + "-fr")
+            g1["evidence"].append(artifact("-fr", "fresh-prod", "fresh-ver"))
+            ledger.update(path, 0, {"TASKS_COMPLETED": 1}, "w1", 5.0, g1)
+            b2 = ledger.update(path, 1, {"TASKS_COMPLETED": 2}, "w2", 5.0)
+            self.assertEqual(b2["acceptance_guard"]["transition_state"],
+                             "CANONICAL_ACCEPTED")
+        finally:
+            ledger._attestation_resolver = previous
 
     def test_provisional_init_round_trips(self):
         """DLQ-07 negative: PROVISIONAL INIT must keep loading clean after the

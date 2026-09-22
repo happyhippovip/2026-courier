@@ -7,63 +7,135 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 import agent_handoff_ledger as ahl
 
-sys.path.insert(0, "/tmp")
-from dlq01_refresh import record as base_record, base_guard
+# Dummy resolver for the mock URL
+def dummy_resolver(url):
+    return {
+        "verdict": "PASS",
+        "producer_principal": "github-actions",
+        "verifier_principal": "sigstore-verifier",
+        "result_sha256": "dummy-hash",
+        "goal_id": "test-goal",
+        "binding": {
+            "sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "runtime": "mac-1"
+        }
+    }
+
+ahl._attestation_resolver = dummy_resolver
+ahl._verify_attestation = dummy_resolver
+
+def get_base(observed_at):
+    def base_record():
+        return {
+            "PROJECT": "courier",
+            "GOAL": "test-goal",
+            "BRANCH": "release-candidate-integration",
+            "CURRENT_SHA": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "RUNTIME_IDENTITY": "mac-1",
+            "RUNTIME_OWNER": "test-owner",
+            "STATUS": "READY",
+            "PROVEN_EDGES": [],
+            "UNPROVEN_EDGES": [],
+            "FIRST_CAUSAL_BLOCKER": "NONE",
+            "BLOCKER_OWNER": "NONE",
+            "NEXT_EXECUTABLE_ACTION": "DO_WORK",
+            "ACTIVE_WRITERS": ["session-a"],
+            "COLLISION_SCOPE": [],
+            "GOALS_SUBMITTED": 1,
+            "TASKS_COMPLETED": 2,
+            "WORKERS_USED": 1,
+            "USER_CONTINUE_MESSAGES": 0,
+            "MANUAL_PROCESS_RESTARTS": 0,
+            "DUPLICATE_EXTERNAL_EFFECTS": 0,
+            "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+            "LAST_EVIDENCE": [],
+            "LAST_UPDATED_BY": "writer",
+            "CONTINUATION_CHECKPOINT": "NONE",
+            "QUEUE_INDEPENDENT": "YES",
+            "CLEAN_IDLE": "NO"
+        }
+    def base_guard():
+        return {
+            "flow": [
+                "EXECUTION",
+                "EVIDENCE",
+                "ACCEPTANCE_GUARD",
+                "LEDGER_TRANSITION",
+                "NEXT_EXECUTABLE_ACTION"
+            ],
+            "transition_state": "READY",
+            "binding": {
+                "branch": "release-candidate-integration",
+                "current_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "runtime_identity": "mac-1"
+            },
+            "worker_state": "ACTIVE",
+            "acceptance_predicate": {
+                "name": "COURIER_NATIVE",
+                "version": "1.0",
+                "required_results": ["RUNTIME_ARTIFACT"],
+                "results": {
+                    "RUNTIME_ARTIFACT": {
+                        "status": "UNKNOWN",
+                        "observed_value": "PENDING",
+                        "evidence_urls": []
+                    }
+                }
+            },
+            "evidence": [{
+                "source_url": "https://github.com/example/project/actions/runs/12345",
+                "source_type": "MACHINE_ARTIFACT",
+                "observed_at": observed_at,
+                "evidence_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "runtime_binding": "mac-1",
+                "validity": "VALID",
+                "reason": "artifact",
+                "producer_id": "github-actions",
+                "verifier_id": "sigstore-verifier",
+                "result_sha256": "dummy-hash"
+            }]
+        }
+    return base_record, base_guard
 
 def test_dlq02_stale_evidence_rejected(tmp_path):
     path = tmp_path / "ledger.json"
+    stale_time = "2020-01-01T00:00:00Z"
+    base_record, base_guard = get_base(stale_time)
+    
     rec = base_record()
     ahl.initialize(path, rec, base_guard(), 5.0)
 
     g1 = base_guard()
     g1["acceptance_predicate"]["results"]["RUNTIME_ARTIFACT"] = {
         "status": "PASS", "observed_value": "BOUND",
-        "evidence_urls": ["https://github.com/example/project/actions/runs/stale-1"],
+        "evidence_urls": ["https://github.com/example/project/actions/runs/12345"],
     }
-    g1["evidence"].append({
-        "source_url": "https://github.com/example/project/actions/runs/stale-1",
-        "source_type": "MACHINE_ARTIFACT",
-        "observed_at": "2020-01-01T00:00:00Z",  # Stale
-        "evidence_sha": g1["binding"]["current_sha"],
-        "runtime_binding": g1["binding"]["runtime_identity"],
-        "validity": "VALID",
-        "reason": "ancient artifact",
-        "producer_id": "stale-producer",
-        "verifier_id": "stale-verifier",
-    })
     
+    # Update shouldn't transition to CANONICAL_ACCEPTED because evidence is stale
     b1 = ahl.update(path, 0, {"TASKS_COMPLETED": 1}, "stale-writer", 5.0, g1)
     assert b1["acceptance_guard"]["transition_state"] == "PROVISIONAL"
     
-    b2 = ahl.update(path, 1, {"TASKS_COMPLETED": 2}, "independent-verifier", 5.0)
+    b2 = ahl.update(path, 1, {"TASKS_COMPLETED": 2, "STATUS": "DONE"}, "independent-verifier", 5.0)
     assert b2["acceptance_guard"]["transition_state"] == "PROVISIONAL"
     assert b2["record"]["CLEAN_IDLE"] == "NO"
 
 def test_dlq02_fresh_evidence_accepted(tmp_path):
     path = tmp_path / "ledger.json"
+    fresh_time = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+    base_record, base_guard = get_base(fresh_time)
+    
     rec = base_record()
     ahl.initialize(path, rec, base_guard(), 5.0)
 
     g1 = base_guard()
     g1["acceptance_predicate"]["results"]["RUNTIME_ARTIFACT"] = {
         "status": "PASS", "observed_value": "BOUND",
-        "evidence_urls": ["https://github.com/example/project/actions/runs/stale-1"],
+        "evidence_urls": ["https://github.com/example/project/actions/runs/12345"],
     }
-    g1["evidence"].append({
-        "source_url": "https://github.com/example/project/actions/runs/stale-1",
-        "source_type": "MACHINE_ARTIFACT",
-        "observed_at": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),  # Fresh
-        "evidence_sha": g1["binding"]["current_sha"],
-        "runtime_binding": g1["binding"]["runtime_identity"],
-        "validity": "VALID",
-        "reason": "fresh artifact",
-        "producer_id": "stale-producer",
-        "verifier_id": "stale-verifier",
-    })
     
     b1 = ahl.update(path, 0, {"TASKS_COMPLETED": 1}, "stale-writer", 5.0, g1)
     assert b1["acceptance_guard"]["transition_state"] == "PROVISIONAL"
     
-    b2 = ahl.update(path, 1, {"TASKS_COMPLETED": 2}, "independent-verifier", 5.0)
+    b2 = ahl.update(path, 1, {"TASKS_COMPLETED": 2, "STATUS": "DONE"}, "independent-verifier", 5.0)
     assert b2["acceptance_guard"]["transition_state"] == "CANONICAL_ACCEPTED"
     assert b2["record"]["CLEAN_IDLE"] == "YES"

@@ -75,32 +75,55 @@ def test_ledger_duplicate_semantics_contract(tmp_path):
     rec = base_record()
     ahl.initialize(path, rec, base_guard(), 5.0)
 
-    # 1. Update TASKS_COMPLETED=1
-    b1 = ahl.update(path, 0, {"TASKS_COMPLETED": 1}, "writer1", 5.0, base_guard())
-    rev1 = b1["revision"]
-    assert rev1 == 1
-    
-    # Snapshot bytes
-    bytes1 = path.read_bytes()
+    # Offline receipt via the production seam: this test pins duplicate /
+    # revision semantics, not attestation, so the pre-existing PASS-backed
+    # evidence gets a strictly matching local receipt instead of live net.
+    previous = ahl._attestation_resolver
 
-    # 2. Identical retry at same revision
-    with pytest.raises(ahl.NoMeaningfulChangeError) as exc:
-        ahl.update(path, 1, {"TASKS_COMPLETED": 1}, "writer1", 5.0, base_guard())
-    
-    # Assert bytes unchanged
-    bytes2 = path.read_bytes()
-    assert bytes1 == bytes2
+    def resolve(url):
+        if url != "https://github.com/example/project/actions/runs/test":
+            return None
+        return {
+            "verdict": "PASS",
+            "producer_principal": "test",
+            "verifier_principal": "test2",
+            "goal_id": "probe",
+            "binding": {
+                "sha": "cccccccccccccccccccccccccccccccccccccccc",
+                "runtime": "attacker-runtime",
+            },
+        }
 
-    # 3. Advance to TASKS_COMPLETED=5
-    b3 = ahl.update(path, 1, {"TASKS_COMPLETED": 5}, "writer2", 5.0, base_guard())
-    rev3 = b3["revision"]
-    assert rev3 == 2
-
-    # 4. Stale contradictory write of 9 at old revision
-    with pytest.raises(ahl.RevisionConflictError) as exc:
-        ahl.update(path, 1, {"TASKS_COMPLETED": 9}, "writer3", 5.0, base_guard())
+    ahl._attestation_resolver = resolve
+    try:
+        # 1. Update TASKS_COMPLETED=1
+        b1 = ahl.update(path, 0, {"TASKS_COMPLETED": 1}, "writer1", 5.0, base_guard())
+        rev1 = b1["revision"]
+        assert rev1 == 1
     
-    # Assert authoritative TASKS_COMPLETED=5 kept
-    b_final = ahl.load_bundle(path)
-    assert b_final["record"]["TASKS_COMPLETED"] == 5
+        # Snapshot bytes
+        bytes1 = path.read_bytes()
+
+        # 2. Identical retry at same revision
+        with pytest.raises(ahl.NoMeaningfulChangeError):
+            ahl.update(path, 1, {"TASKS_COMPLETED": 1}, "writer1", 5.0, base_guard())
+
+        # Assert bytes unchanged
+        bytes2 = path.read_bytes()
+        assert bytes1 == bytes2
+
+        # 3. Advance to TASKS_COMPLETED=5
+        b3 = ahl.update(path, 1, {"TASKS_COMPLETED": 5}, "writer2", 5.0, base_guard())
+        rev3 = b3["revision"]
+        assert rev3 == 2
+
+        # 4. Stale contradictory write of 9 at old revision
+        with pytest.raises(ahl.RevisionConflictError):
+            ahl.update(path, 1, {"TASKS_COMPLETED": 9}, "writer3", 5.0, base_guard())
+
+        # Assert authoritative TASKS_COMPLETED=5 kept
+        b_final = ahl.load_bundle(path)
+        assert b_final["record"]["TASKS_COMPLETED"] == 5
+    finally:
+        ahl._attestation_resolver = previous
 
