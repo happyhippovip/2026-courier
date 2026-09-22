@@ -289,8 +289,7 @@ def _worker_is_eligible(state, task, worker_id):
     worker_provider = str(worker.get("provider", "unknown"))
     lock_key = f"{quota_resource_id}:{worker_provider}"
     if time.time() <= state.get("provider_locks", {}).get(lock_key, 0):
-        if task.get("mode") != "NATIVE":
-            return False
+        return False
         
     if _task_requires_human_gate(task):
         return False
@@ -815,9 +814,9 @@ def claim_task():
     quota_resource_id = state.get("worker_quota_pools", {}).get(worker_id, worker_id)
     worker_provider = str(worker.get("provider", "unknown"))
     lock_key = f"{quota_resource_id}:{worker_provider}"
-#     if time.time() <= state.get("provider_locks", {}).get(lock_key, 0):
-#         save_state(state)
-#         return jsonify({"task": None, "reason": "PROVIDER_QUOTA_LOCKED"})
+    if time.time() <= state.get("provider_locks", {}).get(lock_key, 0):
+        save_state(state)
+        return jsonify({"task": None, "reason": "PROVIDER_QUOTA_LOCKED"})
 
     
     for goal_id, goal in state["goals"].items():
