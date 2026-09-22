@@ -173,7 +173,15 @@ def test_tomato_two_full_torture_chamber():
     print(f"RUNTIME_IDENTITY={runtime_id}")
 
     # Health check
-    health = http_get("/health")
+    for _ in range(30):
+        try:
+            health = http_get("/health")
+            break
+        except Exception:
+            import time
+            time.sleep(1)
+    else:
+        raise RuntimeError("Server did not start")
     assert health.get("status") == "healthy", "Central server not healthy"
     evidence["server_health"] = health
 
@@ -255,8 +263,6 @@ def test_tomato_two_full_torture_chamber():
     # Poll until launchd worker claims task_seq1
     claimed = False
     task1_data = None
-    checkpoint_file = REPO_ROOT / "scripts" / "mac_worker" / "state_2" / "current_task.json"
-
     start_wait = time.time()
     while time.time() - start_wait < 30:
         tasks = get_goal_tasks(seq_goal_id)
@@ -272,6 +278,9 @@ def test_tomato_two_full_torture_chamber():
     print(f"[Step 3] Motor claimed Task 1: {task1_data['task_id']} by {task1_data['worker_id']}")
 
     # Capture durable checkpoint
+    worker_num = task1_data["worker_id"].split("-")[-1]
+    checkpoint_file = REPO_ROOT / "scripts" / "mac_worker" / f"state_{worker_num}" / "current_task.json"
+    
     checkpoint_found = False
     for _ in range(20):
         if checkpoint_file.exists():

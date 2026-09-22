@@ -14,6 +14,7 @@ def motor(tmp_path, monkeypatch):
     monkeypatch.setattr(server_app, "STATE_FILE", str(tmp_path / "state.json"))
     monkeypatch.setattr(server_app, "API_KEY", "test-secret")
     monkeypatch.setattr(server_app, "VERIFIER_API_KEY", "verifier-secret")
+    monkeypatch.setenv("COURIER_STRICT_HASH", "1")
     return server_app.app.test_client()
 
 def test_binding_contract(motor):

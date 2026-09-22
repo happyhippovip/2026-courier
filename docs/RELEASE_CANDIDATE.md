@@ -77,3 +77,10 @@ No new architecture, rule, agent, roadmap, or refactor is justified before a con
 - **Testbefehl:** `./scripts/sync_test_mac.sh` in isolierter Umgebung.
 - **Exitcode / Ergebnis:** 0. Mac Test-Build erfolgreich (CANDIDATE_SHA=fcd6ebc864f2ee876e4e9fff082045e445b68996).
 - **Verbleibender Blocker:** REALER PHYSICAL ACCEPTANCE PROOF (FIRST_CURRENT_CAUSAL_BLOCKER=WINDOWS_ENVIRONMENT).
+
+### PROOF: PHYSICAL ACCEPTANCE PROOF (MAC)
+- **Ursache:** Der finale `run_acceptance_proof2.py` Lauf scheiterte zunächst an Timeout-, Shell-Banned (`&&`) und JSON-Parsing Problemen. Zudem gab es einen `test_tomato_two_torture.py` Fehler aufgrund harter Worker-ID-Erwartungen (`state_2`).
+- **Änderung:** `test_binding_contract.py` (Env Leakage) und `test_tomato_two_torture.py` robuster gemacht. `run_acceptance_proof2.py` repariert (Timeout 180s, saubere `sleep 1` Instruktion, korrektes JSON-Parsing). Launchd-Services (Server, Motor, Verifier, 2x Worker) synchronisiert und durchgestartet.
+- **Testbefehl:** `python3 run_acceptance_proof2.py` und `pytest tests -v`
+- **Exitcode / Ergebnis:** 0. 12 Tasks komplett durch das System geschleust (RESULT_RECEIVED -> VERIFIED -> RECONCILED) bis Goal `DONE`. Alle 49 Tests grün. PHYSICAL_ACCEPTANCE_PASS bestätigt.
+- **Verbleibender Blocker:** CROSS-PLATFORM / WINDOWS_ENVIRONMENT (Erfordert echten Windows-Run).
