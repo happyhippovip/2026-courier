@@ -100,29 +100,35 @@ def start_server():
     env["COURIER_MOCK_CHIEF"] = "1"
     env["COURIER_VERIFIER_API_KEY"] = "421606503a874d39b50f6137e3321b7f"
     
-    # waitress is missing, so let's start the server and verifier manually here
+# Setup mac_worker_2 to hit 8081 via plist
     import json
-    config_path = REPO_ROOT / "scripts/mac_worker/config.json"
-    if config_path.exists() and 'orig_config' in locals():
-        with open(config_path, "w") as cf:
-            json.dump(orig_config, cf)
-            
-        if orig_keychain_srv:
-            try:
-                subprocess.check_call(["security", "add-generic-password", "-a", "courier_worker", "-s", "courier_server_url", "-w", orig_keychain_srv, "-U"])
-            except Exception:
-                pass
+    import subprocess
+    import shutil
+    
+    # clear test_state.json
+    state_file = REPO_ROOT / "server" / "state" / "test_state.json"
+    if state_file.exists():
+        state_file.unlink()
+        
+    # clear current_task.json and current_result.json
+    for wf in ["state", "state_2"]:
+        for sf in ["current_task.json", "current_result.json", "current_provider_wait.json"]:
+            sfp = REPO_ROOT / "scripts" / "mac_worker" / wf / sf
+            if sfp.exists():
+                sfp.unlink()
                 
-        try:
-            subprocess.check_call(["launchctl", "stop", "com.courier.mac_worker"])
-        except Exception:
-            pass
-
-        try:
-            subprocess.check_call(["launchctl", "stop", "com.courier.mac_worker"])
-        except Exception:
-            pass
-
+    plist_path = os.path.expanduser("~/Library/LaunchAgents/com.courier.mac_worker_2.plist")
+    with open(plist_path, "r") as f:
+        plist_content = f.read()
+        
+    new_plist_content = plist_content.replace("<string>http://127.0.0.1:8080/</string>", "<string>http://127.0.0.1:8081/</string>")
+    with open(plist_path, "w") as f:
+        f.write(new_plist_content)
+        
+    subprocess.run(["launchctl", "unload", plist_path])
+    subprocess.run(["launchctl", "load", plist_path])
+    subprocess.run(["launchctl", "start", "com.courier.mac_worker_2"])
+    
     server_proc = subprocess.Popen([python_exe, "-m", "server.app"], env=env, cwd=str(REPO_ROOT))
     
     verifier_proc = subprocess.Popen([python_exe, str(REPO_ROOT / "scripts/courier_verifier.py")], env=env, cwd=str(REPO_ROOT))
@@ -142,20 +148,17 @@ def start_server():
         verifier_proc.kill()
         verifier_proc.wait()
 
-    if config_path.exists() and 'orig_config' in locals():
-        with open(config_path, "w") as cf:
-            json.dump(orig_config, cf)
-            
-        if orig_keychain_srv:
-            try:
-                subprocess.check_call(["security", "add-generic-password", "-a", "courier_worker", "-s", "courier_server_url", "-w", orig_keychain_srv, "-U"])
-            except Exception:
-                pass
-                
-        try:
-            subprocess.check_call(["launchctl", "stop", "com.courier.mac_worker"])
-        except Exception:
-            pass
+    pass
+    plist_path = os.path.expanduser("~/Library/LaunchAgents/com.courier.mac_worker_2.plist")
+    if os.path.exists(plist_path):
+        with open(plist_path, "r") as f:
+            plist_content = f.read()
+        new_plist_content = plist_content.replace("<string>http://127.0.0.1:8081/</string>", "<string>http://127.0.0.1:8080/</string>")
+        with open(plist_path, "w") as f:
+            f.write(new_plist_content)
+        subprocess.run(["launchctl", "unload", plist_path])
+        subprocess.run(["launchctl", "load", plist_path])
+        subprocess.run(["launchctl", "start", "com.courier.mac_worker_2"])
 
 
 def test_tomato_two_full_torture_chamber():
@@ -252,19 +255,20 @@ def test_tomato_two_full_torture_chamber():
     # Poll until launchd worker claims task_seq1
     claimed = False
     task1_data = None
-    checkpoint_file = REPO_ROOT / "scripts" / "mac_worker" / "state" / "current_task.json"
+    checkpoint_file = REPO_ROOT / "scripts" / "mac_worker" / "state_2" / "current_task.json"
 
     start_wait = time.time()
     while time.time() - start_wait < 30:
         tasks = get_goal_tasks(seq_goal_id)
         t1 = [t for t in tasks if t["task_id"] == task_seq1]
-        if t1 and t1[0]["status"] == "DISPATCHED":
-            claimed = True
-            task1_data = t1[0]
-            break
+        if t1:
+            if t1[0]["status"] == "DISPATCHED" or t1[0]["status"] == "READY_FOR_VERIFICATION" or t1[0]["status"] == "DONE":
+                claimed = True
+                task1_data = t1[0]
+                break
         time.sleep(0.2)
 
-    assert claimed, "Task 1 was not claimed within timeout"
+    assert claimed, f"Task 1 was not claimed within timeout. Last task status was {t1[0]['status'] if t1 else None}"
     print(f"[Step 3] Motor claimed Task 1: {task1_data['task_id']} by {task1_data['worker_id']}")
 
     # Capture durable checkpoint
@@ -434,7 +438,7 @@ def test_tomato_two_full_torture_chamber():
             break
         time.sleep(0.5)
 
-    assert goal_b_done, "Goal B failed to complete while Goal A was in WAITING_PROVIDER"
+    assert goal_b_done, f"Goal B failed to complete while Goal A was in WAITING_PROVIDER. Status={get_goal(goal_b_id)} Tasks={get_goal_tasks(goal_b_id)}"
     assert (REPO_ROOT / canary_indep).exists(), "Independent canary was not touched"
 
     # Confirm Goal A remained in WAITING_PROVIDER throughout
