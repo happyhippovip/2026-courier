@@ -14,6 +14,7 @@ no human relay between normal tasks (human_continue stays 0).
 import hashlib
 import itertools
 import json
+import os
 import subprocess
 import sys
 import time
@@ -79,6 +80,12 @@ class CannonMotor:
                       "executed_inputs": [], "last_result": None,
                       "waiting_for_work": False}
             self._save()
+        self.yolo = None
+        if os.environ.get("COURIER_CANNON_PROFILE") == "yolo":
+            _p = str(Path(__file__).resolve().parent)
+            if _p not in sys.path: sys.path.insert(0, _p)
+            import cannon_yolo
+            self.yolo = cannon_yolo.Yolo(self.m.setdefault("yolo", {}), save=self._save)
 
     def _save(self):
         tmp = self.motor_file.with_suffix(".tmp")
@@ -101,7 +108,7 @@ class CannonMotor:
         return self._wq("state")
 
     # ---- controls ----
-    def start(self, mode=None, limit=None, cooldown=5.0, local_fake=False):
+    def start(self, mode=None, limit=None, cooldown=5.0, local_fake=False, continuous_canary=False):
         """mode: FINITE (BEGRENZT) drains queue or limit; INFINITE (UNENDLICH)
         idles when the queue is empty instead of completing. limit is only a
         persisted countdown — tasks are never pre-created. cooldown waits
@@ -126,6 +133,7 @@ class CannonMotor:
             self.m["waiting_for_work"] = False
             self.m["run_mode"] = effective_mode
             self.m["local_fake"] = local_fake
+            self.m["continuous_canary"] = continuous_canary
             if mode is not None or limit is not None:
                 self.m["start_limit"] = None if effective_mode == "INFINITE" else limit
             self.m["cooldown_seconds"] = cooldown
@@ -222,8 +230,8 @@ class CannonMotor:
             return max(self.m["start_limit"] - self.m["started_count"], 0)
         return None  # drain mode: derived from queue by the caller
 
-    def _admit_local_fake(self):
-        """One explicit local fake task, never a preallocated limit-sized list.
+    def _admit_next_task(self):
+        """One explicit task, never a preallocated limit-sized list.
 
         Reuse the canonical queue. A previous admission must be durably DONE
         with its matching artifact before a new identity can be admitted.
@@ -246,14 +254,26 @@ class CannonMotor:
                 raise MotorError("previous_result_not_verified")
         if self.m.get("pause_requested") or self.m.get("stop_requested"):
             return
-        package = "local-fake-" + self.m["run_id"]
+            
+        is_fake = self.m.get("local_fake", False)
+        prefix = "local-fake-" if is_fake else "real-canary-"
+        package = prefix + self.m["run_id"]
         task_id = package + "-" + str(self.m["started_count"] + 1)
         self._wq("init", package)
-        self._wq("add", json.dumps({
+        
+        task_data = {
             "task_id": task_id, "package_id": package,
-            "description": "Explicit local fake task (no model/provider)",
+            "description": "Explicit local fake task (no model/provider)" if is_fake else "Explicit real muse canary task",
             "dependencies": [], "read_scopes": [],
-            "write_scopes": ["cannon-local-fake"], "status": "READY"}))
+            "write_scopes": ["cannon-local-fake"] if is_fake else ["cannon-real-canary"],
+            "status": "READY"
+        }
+        if not is_fake:
+            task_data["executor_kind"] = "REAL_MUSE"
+            task_data["acceptance"] = "isolated_nonce_canary_v1"
+            task_data["provider"] = "meta"
+            
+        self._wq("add", json.dumps(task_data))
 
     def run_step(self):
         """Execute at most one task. Returns a step report dict."""
@@ -266,8 +286,9 @@ class CannonMotor:
             self.m["current_task"] = None
             self.m["completed_runs"] += 1
             self._save()
+            if getattr(self, "yolo", None) is not None: self.yolo.end("LIMIT_MOTOR")
             return {"step": "limit_reached", "state": "COMPLETED"}
-        if self.m.get("local_fake"):
+        if self.m.get("local_fake") or self.m.get("continuous_canary"):
             # Persisted deadline also covers reopening during the cooldown.
             delay = self.m.get("next_admission_after", 0) - time.time()
             if delay > 0:
@@ -276,14 +297,47 @@ class CannonMotor:
             if self.m.get("pause_requested") or self.m.get("stop_requested"):
                 self.m["state"] = "PAUSED" if self.m.get("pause_requested") else "IDLE"
                 self._save()
+                if getattr(self, "yolo", None) is not None: self.yolo.end("STOPP")
                 return {"step": "controlled_stop", "state": self.state}
             try:
-                self._admit_local_fake()
+                self._admit_next_task()
             except (MotorError, OSError, ValueError) as exc:
                 self.m["state"] = "ERROR"
                 self.m["error"] = str(exc)
                 self._save()
                 return {"step": "error", "error": str(exc)}
+        if getattr(self, "yolo", None) is not None:
+            why = self.yolo.gate()
+            if why:
+                self.yolo.end(why)
+                self.m["state"] = "IDLE"
+                self.m["current_task"] = None
+                self._save()
+                return {"step": "yolo_end", "reason": why, "state": "IDLE"}
+            try:
+                _snap = self.queue_snapshot()
+            except Exception:
+                _snap = {"tasks": {}}
+            _open = [t for t in _snap.get("tasks", {}).values() if t.get("status") in ("READY", "WAITING", "CLAIMED", "RUNNING", "VERIFYING")]
+            if not _open:
+                known = list(_snap.get("tasks", {}).keys())
+                tid = self.yolo.next_task(known=known)
+                if tid:
+                    try:
+                        self._wq("add", json.dumps({"task_id": tid, "package_id": "yolo-" + str(self.yolo.s.get("run", "run")), "description": "Repo-Aufgabe " + tid, "dependencies": [], "read_scopes": [], "write_scopes": [], "status": "READY"}))
+                    except Exception as _e:
+                        try:
+                            self._wq("block", tid, "--reason", "BRAUCHT_PRUEFUNG")
+                        except Exception:
+                            pass
+                        if tid not in self.m.get("needs_review", []):
+                            self.m["needs_review"].append(tid)
+                        self.m["state"] = "BLOCKED"
+                        self.m["error"] = "unknown_effect:%s" % tid
+                        self.m["current_task"] = None
+                        self._save()
+                        self.yolo.end("UNKNOWN add-fehlgeschlagen")
+                        return {"step": "unknown_halt", "task": tid, "state": "BLOCKED"}
         claimed = self._wq("claim", "--worker", WORKER_ID)
         task_id = claimed.get("claimed")
         if not task_id:
@@ -293,11 +347,13 @@ class CannonMotor:
                 self.m["current_task"] = None
                 self.m["waiting_for_work"] = True
                 self._save()
+                if getattr(self, "yolo", None) is not None: self.yolo.end("LEERLAUF")
                 return {"step": "waiting_for_work", "state": "IDLE"}
             self.m["state"] = "COMPLETED"
             self.m["current_task"] = None
             self.m["completed_runs"] += 1
             self._save()
+            if getattr(self, "yolo", None) is not None: self.yolo.end("LEERLAUF")
             return {"step": "queue_empty", "state": "COMPLETED"}
         self.m["current_task"] = task_id
         self.m["max_active_observed"] = max(
@@ -314,6 +370,113 @@ class CannonMotor:
         hook = self.hooks.get("on_task_start")
         if hook:
             hook(self, task_id)
+        if getattr(self, "yolo", None) is not None:
+            try:
+                kind, detail, res = self.yolo.execute(task_id)
+            except Exception as _e:
+                kind, detail, res = "unknown", "EXEC_FEHLER", None
+            if kind == "done":
+                self.m["executions"][task_id] = self.m["executions"].get(task_id, 0) + 1
+                _rid = (res.get("commit") if isinstance(res, dict) else None) or (task_id + ":r1")
+                _artifact = self.results_dir / f"{task_id}.result.json"
+                _payload = {"result_id": _rid, "task_id": task_id,
+                            "outcome": "ok", "persisted_at": time.time(),
+                            "yolo": res}
+                try:
+                    self.results_dir.mkdir(parents=True, exist_ok=True)
+                    _tmp = _artifact.with_suffix(".tmp")
+                    _tmp.write_text(json.dumps(_payload, indent=1, sort_keys=True) + "\n",
+                                    encoding="utf-8")
+                    _tmp.replace(_artifact)
+                except (OSError, ValueError):
+                    self._wq("block", task_id, "--reason", "BRAUCHT_PRUEFUNG")
+                    if task_id not in self.m.get("needs_review", []):
+                        self.m["needs_review"].append(task_id)
+                    self.m["state"] = "BLOCKED"
+                    self.m["error"] = f"unknown_effect:{task_id}"
+                    self.m["current_task"] = None
+                    self._save()
+                    self.yolo.end("UNKNOWN BRAUCHT_PRUEFUNG")
+                    return {"step": "unknown_halt", "task": task_id, "state": "BLOCKED"}
+                completed = self._wq("complete", task_id, "--result-json", json.dumps({"result_id": _rid, "yolo": res}), "--stage", "ACCEPTED")
+                if completed.get("done") != task_id or completed.get("stage") != "ACCEPTED":
+                    self.m["state"] = "BLOCKED"
+                    self.m["error"] = "result_not_reconciled"
+                    self._save()
+                    self.yolo.end("UNKNOWN result_not_reconciled")
+                    return {"step": "error", "error": self.m["error"]}
+                try:
+                    _receipt = json.loads(_artifact.read_text(encoding="utf-8"))
+                except (OSError, ValueError):
+                    _receipt = {}
+                if (_receipt.get("task_id") != task_id
+                        or _receipt.get("result_id") != _rid
+                        or _receipt.get("outcome") != "ok"):
+                    self._wq("block", task_id, "--reason", "BRAUCHT_PRUEFUNG")
+                    if task_id not in self.m.get("needs_review", []):
+                        self.m["needs_review"].append(task_id)
+                    self.m["state"] = "BLOCKED"
+                    self.m["error"] = f"unknown_effect:{task_id}"
+                    self.m["current_task"] = None
+                    self._save()
+                    self.yolo.end("UNKNOWN BRAUCHT_PRUEFUNG")
+                    return {"step": "unknown_halt", "task": task_id, "state": "BLOCKED"}
+                self.m["done_count"] += 1
+                self.m["last_result"] = {"task": task_id, "result_id": _rid, "completed_at": time.time(), "yolo": res}
+                try:
+                    raw = json.loads((self.state_dir / "queue.json").read_text(encoding="utf-8"))
+                    t = raw.get("tasks", {}).get(task_id, {})
+                except (OSError, ValueError):
+                    t = {}
+                sp = self.m.get("saved_prompt")
+                if sp and t.get("prompt_id") == sp["prompt_id"]:
+                    ihash = self.input_hash(sp["prompt_id"], t.get("description", ""))
+                    if ihash not in self.m["executed_inputs"]:
+                        self.m["executed_inputs"].append(ihash)
+                self.m["current_task"] = None
+                self.m["next_admission_after"] = time.time() + (self.m.get("cooldown_seconds", 5.0) or 0)
+                self._save()
+                cooldown = self.m.get("cooldown_seconds", 5.0) or 0
+                if cooldown > 0:
+                    time.sleep(cooldown)
+                    self._load()
+                if self.m["pause_requested"]:
+                    self.m["pause_requested"] = False
+                    self.m["state"] = "PAUSED"
+                    self._save()
+                    self.yolo.end("STOPP")
+                elif self.m["stop_requested"]:
+                    snap = self.queue_snapshot()
+                    remaining = [t for t, v in snap["tasks"].items() if v.get("status") in ("READY", "WAITING")]
+                    self.m["state"] = "IDLE" if remaining else "COMPLETED"
+                    if self.m["state"] == "COMPLETED":
+                        self.m["completed_runs"] += 1
+                    self._save()
+                    self.yolo.end("STOPP")
+                return {"step": "done", "task": task_id, "state": self.m["state"]}
+            elif kind == "failed":
+                self.m["executions"][task_id] = self.m["executions"].get(task_id, 0) + 1
+                self._wq("block", task_id, "--reason", "YOLO_FEHLER")
+                if task_id not in self.m.get("needs_review", []):
+                    self.m["needs_review"].append(task_id)
+                self.m["state"] = "BLOCKED"
+                self.m["error"] = str(detail or "YOLO_FEHLER")
+                self.m["last_result"] = {"task": task_id, "result_id": task_id + ":r1", "completed_at": time.time(), "yolo": res}
+                self.m["current_task"] = None
+                self._save()
+                self.yolo.end("FEHLER " + str(detail or ""))
+                return {"step": "error", "task": task_id, "error": self.m["error"]}
+            else:
+                self.m["executions"][task_id] = self.m["executions"].get(task_id, 0) + 1
+                self._wq("block", task_id, "--reason", "BRAUCHT_PRUEFUNG")
+                if task_id not in self.m.get("needs_review", []):
+                    self.m["needs_review"].append(task_id)
+                self.m["state"] = "BLOCKED"
+                self.m["error"] = f"unknown_effect:{task_id}"
+                self.m["current_task"] = None
+                self._save()
+                self.yolo.end("UNKNOWN " + str(detail or ""))
+                return {"step": "unknown_halt", "task": task_id, "state": "BLOCKED"}
         behavior = self.behaviors.get(task_id, "ok")
         try:
             # The display snapshot deliberately omits executor metadata.
@@ -337,6 +500,7 @@ class CannonMotor:
             self.m["error"] = str(exc)
             self.m["current_task"] = None
             self._save()
+            if getattr(self, "yolo", None) is not None: self.yolo.end("FEHLER " + str(exc))
             return {"step": "error", "task": task_id,
                     "error": str(exc)}
         self.m["executions"][task_id] = \
@@ -348,6 +512,7 @@ class CannonMotor:
             self.m["error"] = f"unknown_effect:{task_id}"
             self.m["current_task"] = None
             self._save()
+            if getattr(self, "yolo", None) is not None: self.yolo.end("UNKNOWN BRAUCHT_PRUEFUNG")
             return {"step": "unknown_halt", "task": task_id,
                     "state": "BLOCKED"}
         completed = self._wq("complete", task_id, "--result-json",
@@ -385,6 +550,7 @@ class CannonMotor:
         if self.m["pause_requested"]:
             self.m["pause_requested"] = False
             self.m["state"] = "PAUSED"
+            if getattr(self, "yolo", None) is not None: self.yolo.end("STOPP")
         elif self.m["stop_requested"]:
             snap = self.queue_snapshot()
             remaining = [t for t, v in snap["tasks"].items()
@@ -392,6 +558,7 @@ class CannonMotor:
             self.m["state"] = "IDLE" if remaining else "COMPLETED"
             if self.m["state"] == "COMPLETED":
                 self.m["completed_runs"] += 1
+            if getattr(self, "yolo", None) is not None: self.yolo.end("STOPP")
         self._save()
         return {"step": "done", "task": task_id,
                 "state": self.m["state"]}
