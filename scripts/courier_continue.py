@@ -4,6 +4,9 @@ import subprocess
 import os
 import json
 import time
+import logging
+
+logger = logging.getLogger("courier.motor")
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.resolve()))
@@ -51,7 +54,7 @@ def get_runtime_truth():
     repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     truth_script = os.path.join(repo_root, "scripts", "runtime_truth.py")
     try:
-        out = subprocess.check_output(["python3", truth_script], stderr=subprocess.DEVNULL).decode()
+        out = subprocess.check_output(["python3", truth_script], stderr=subprocess.DEVNULL, timeout=10).decode()
         return json.loads(out)
     except Exception:
         return {}
@@ -77,14 +80,14 @@ def get_git_info():
     if "MOCK_SHA" in os.environ and "MOCK_BRANCH" in os.environ:
         return os.environ["MOCK_BRANCH"], os.environ["MOCK_SHA"]
     try:
-        branch = subprocess.check_output(["git", "branch", "--show-current"]).decode().strip()
+        branch = subprocess.check_output(["git", "branch", "--show-current"], timeout=5).decode().strip()
         sha = subprocess.check_output([
             "git", "log", "-1", "--format=%H", "--", ".", ":(exclude)agent_handoff_ledger.json"
-        ]).decode().strip()
+        ], timeout=5).decode().strip()
         if not sha:
-            sha = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip()
+            sha = subprocess.check_output(["git", "rev-parse", "HEAD"], timeout=5).decode().strip()
         return branch, sha
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
         return "UNKNOWN", "UNKNOWN"
 
 
@@ -389,7 +392,7 @@ def update_ledger(ledger_path, edge_name, blocker, bundle):
     elif "ISSUE_STATE" in guard["acceptance_predicate"]["results"]:
         guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["observed_value"] = "NO_FURTHER_ACTION"
 
-    print(f"{time.time()} DEBUG UPDATES: {updates}")
+    logger.debug("Ledger updates: %s", updates)
     new_bundle = update(
         ledger_path,
         revision,
@@ -428,7 +431,7 @@ def main():
     completed_this_session = set()
     while True:
         branch, sha = get_git_info()
-        print(f"CHECKING FRESHNESS {branch} {sha}"); bundle = check_freshness(ledger_path, branch, sha)
+        logger.debug("Checking freshness %s %s", branch, sha); bundle = check_freshness(ledger_path, branch, sha)
         record = bundle["record"]
         
         tasks = compute_frontier(record)
@@ -538,8 +541,7 @@ def main():
         done_edges = []
         current_time = time.time()
         for edge_name, future in list(running_tasks.items()):
-            print(f"{time.time()} DEBUG: {edge_name} running for {current_time - task_start_times[edge_name]} seconds")
-            print(f"{time.time()} DEBUG: {edge_name} running for {current_time - task_start_times[edge_name]} seconds")
+            logger.debug("%s running for %.1fs", edge_name, current_time - task_start_times[edge_name])
             if not future.done() and (current_time - task_start_times[edge_name]) > 8.0:
                 print(f"Task {edge_name} hung for > 8s, abandoning.")
                 done_edges.append(edge_name)
@@ -547,7 +549,7 @@ def main():
                 blocked_tasks_this_run.add(edge_name)
                 try:
                     branch, sha = get_git_info()
-                    print(f"CHECKING FRESHNESS {branch} {sha}"); bundle = check_freshness(ledger_path, branch, sha)
+                    logger.debug("Checking freshness %s %s", branch, sha); bundle = check_freshness(ledger_path, branch, sha)
                     update_ledger(ledger_path, edge_name, "TIMEOUT_HUNG_TASK", bundle)
                 except Exception as e:
                     print(f"Failed to record hang for {edge_name}: {e}")
@@ -561,8 +563,8 @@ def main():
                     print(f"\n{time.time()} === FINISHED TASK: {task['edge_name']} ===")
                     branch, sha = get_git_info()
                     for _retry in range(5):
-                        print(f"CHECKING FRESHNESS {branch} {sha}"); bundle = check_freshness(ledger_path, branch, sha)
-                        print(f"{time.time()} DEBUG BUNDLE BEFORE UPDATE_LEDGER for {task['edge_name']}: {bundle['record']['UNPROVEN_EDGES']}")
+                        logger.debug("Checking freshness %s %s", branch, sha); bundle = check_freshness(ledger_path, branch, sha)
+                        logger.debug("Bundle before update_ledger for %s: %s", task['edge_name'], bundle['record']['UNPROVEN_EDGES'])
                         try:
                             bundle = update_ledger(ledger_path, task["edge_name"], new_blocker, bundle)
                             break
@@ -584,7 +586,7 @@ def main():
                     blocked_tasks_this_run.add(edge_name)
                     try:
                         branch, sha = get_git_info()
-                        print(f"CHECKING FRESHNESS {branch} {sha}"); bundle = check_freshness(ledger_path, branch, sha)
+                        logger.debug("Checking freshness %s %s", branch, sha); bundle = check_freshness(ledger_path, branch, sha)
                         update_ledger(ledger_path, edge_name, f"EXCEPTION_{type(e).__name__}", bundle)
                     except Exception as le:
                         print(f"Failed to record exception for {edge_name}: {le}")

@@ -14,7 +14,7 @@ if os.environ.get("COURIER_MOCK_CHIEF"):
                 plan = json.loads(text)
                 if isinstance(plan, list) and plan:
                     return None, plan
-            except:
+            except (ValueError, json.JSONDecodeError):
                 pass
             
             if "REPLENISHMENT_TEST" in text:
@@ -289,7 +289,8 @@ def _worker_is_eligible(state, task, worker_id):
     worker_provider = str(worker.get("provider", "unknown"))
     lock_key = f"{quota_resource_id}:{worker_provider}"
     if time.time() <= state.get("provider_locks", {}).get(lock_key, 0):
-        return False
+        if task.get("mode") != "NATIVE":
+            return False
         
     if _task_requires_human_gate(task):
         return False
@@ -611,6 +612,7 @@ def get_goal(goal_id):
     state = load_state()
     goal = state["goals"].get(goal_id)
     if not goal:
+        print(f"[DEBUG GET_GOAL] goal_id={goal_id} not found in state['goals']. Existing goals: {list(state.get('goals', {}).keys())} STATE_FILE={STATE_FILE}", flush=True)
         return jsonify({"error": "Unknown goal"}), 404
     tasks = [task for task in state["tasks"].values() if task.get("goal_id") == goal_id]
     return jsonify({"goal": goal, "tasks": tasks})
@@ -643,7 +645,7 @@ def register_worker():
         
     worker_sha = data.get("runtime_sha")
     if worker_sha and SERVER_SHA != "unknown" and worker_sha != "unknown" and worker_sha != SERVER_SHA:
-        return jsonify({"error": "wrong SHA rejected: worker runtime_sha does not match server SHA"}), 426
+        return jsonify({"error": f"wrong SHA rejected: worker runtime_sha ({worker_sha}) does not match server SHA ({SERVER_SHA})"}), 426
         
     state = load_state()
     
@@ -814,9 +816,7 @@ def claim_task():
     quota_resource_id = state.get("worker_quota_pools", {}).get(worker_id, worker_id)
     worker_provider = str(worker.get("provider", "unknown"))
     lock_key = f"{quota_resource_id}:{worker_provider}"
-    if time.time() <= state.get("provider_locks", {}).get(lock_key, 0):
-        save_state(state)
-        return jsonify({"task": None, "reason": "PROVIDER_QUOTA_LOCKED"})
+    is_provider_locked = time.time() <= state.get("provider_locks", {}).get(lock_key, 0)
 
     
     for goal_id, goal in state["goals"].items():
@@ -917,6 +917,8 @@ def claim_task():
                 return jsonify({"task": claimed})
 
     save_state(state)
+    if is_provider_locked:
+        return jsonify({"task": None, "reason": "PROVIDER_QUOTA_LOCKED"})
     return jsonify({"task": None})
 
 @app.route("/tasks/result", methods=["POST"])
@@ -932,7 +934,7 @@ def task_result():
         task = state["tasks"][task_id]
         
         # Duplicate protection
-        if task["status"] in ["RECONCILED", "FAILED_TERMINAL", "RESULT_RECEIVED"]:
+        if task["status"] in ["RECONCILED", "RECONCILED_PENDING_MERGE", "FAILED_TERMINAL", "RESULT_RECEIVED", "HUMAN_REQUIRED"]:
             # check canonical payload equality
             existing_result = task.get("result", {})
             # we need to compare relevant fields to ensure it's not contradictory
@@ -958,6 +960,7 @@ def task_result():
             try:
                 durable_result = validate_durable_result(task, data)
             except ContractError as exc:
+                print("CAUGHT ContractError IN RESULT:", exc, flush=True)
                 return jsonify({"error": str(exc)}), 400
             set_task_status(task, "RESULT_RECEIVED")
             task["producer_principal"] = get_auth_principal()

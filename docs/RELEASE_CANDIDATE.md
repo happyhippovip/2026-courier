@@ -84,3 +84,32 @@ No new architecture, rule, agent, roadmap, or refactor is justified before a con
 - **Testbefehl:** `python3 run_acceptance_proof2.py` und `pytest tests -v`
 - **Exitcode / Ergebnis:** 0. 12 Tasks komplett durch das System geschleust (RESULT_RECEIVED -> VERIFIED -> RECONCILED) bis Goal `DONE`. Alle 49 Tests grün. PHYSICAL_ACCEPTANCE_PASS bestätigt.
 - **Verbleibender Blocker:** CROSS-PLATFORM / WINDOWS_ENVIRONMENT (Erfordert echten Windows-Run).
+
+### FIX & PROOF: WINDOWS DAEMON CRASH RECOVERY, STOP RESPONSIVENESS & SUITE-WIDE VERIFICATION
+- **Ursache:** 
+  1. `daemon.py` erzeugte bei `AMBIGUOUS_CRASH` zufällige Result-IDs (`uuid.uuid4()`), wodurch wiederholte Crash-Recovery-Aufrufe idempotenzwidrig neue Resultate anstelle identischer Hashes sendeten.
+  2. `server/app.py` verweigerte doppelte Resultate für Aufgaben im Status `HUMAN_REQUIRED` mit HTTP 409 (`Task is not awaiting a result`), anstatt ein `ACK_DUPLICATE` (HTTP 200) zurückzugeben.
+  3. Blockierendes `time.sleep(error_backoff)` verhinderte die zeitnahe Reaktion auf `stop.marker` (bis zu 300s Verzögerung).
+- **Änderung:**
+  1. `daemon.py`: `compute_result_id(res_json)` für kryptografisch deterministische Result-IDs bei Crash-Recovery integriert.
+  2. `daemon.py`: `sleep_interruptible(seconds, stop_marker_path)` mit 200ms-Polling implementiert.
+  3. `server/app.py`: Duplikatschutz auf `HUMAN_REQUIRED` und `RECONCILED_PENDING_MERGE` erweitert.
+  4. `test_windows_runtime_torture.py`: Dynamische Port-Bindung, echte Server-Zuweisung und asynchrones Marker-Polling.
+  5. `.gitignore`: Atomare Zwischenzustände (`server/state/*.tmp*`, `test_state.json`) ignoriert.
+- **Testbefehl:** `pytest tests/test_windows_runtime_torture.py tests/test_cannon_windows_process.py -v` sowie die gesamte 533-Test-Suite.
+- **Exitcode / Ergebnis:** 0 (100% grün über alle 533 Tests).
+- **Status:** Vollständige Idempotenz, deterministische Recovery und Stop-Reaktivität nachgewiesen.
+
+### FIX & PROOF: WORK-QUEUE STALE LOCK RECOVERY, QUERY READ-ONLY ISOLATION & MOTOR REVIEW DEDUPLICATION
+- **Ursache:**
+  1. `work_queue.py`: Ein Prozessabsturz während `_locked` hinterließ `.lockdir` dauerhaft auf Disk, wodurch nachfolgende Aufrufe mit `TimeoutError: queue lock busy` blockierten.
+  2. `work_queue.py`: `state`-Abfragen riefen unnötigerweise `save(args, data)` auf und überschrieben potenziell parallele Worker-Claims mit älteren Queue-Zuständen.
+  3. `cannon_motor.py`: Bei Fehlern und `unknown_halt` wurde `task_id` mehrfach an `needs_review` angehängt, was die Invariantenberechnung für `LOST_RESULTS` verfälschte.
+- **Änderung:**
+  1. `work_queue.py`: `_locked` um `owner.json` mit PID-/Zeitstempel-Tracking und automatischer Stale-Lock-Auflösung (via `_is_pid_alive`) erweitert.
+  2. `work_queue.py`: `save(args, data)` nur noch für mutierende Befehle (`init`, `add`, `claim`, `complete`, `block`, `reconcile`) ausgeführt (`state` bleibt rein lesend).
+  3. `cannon_motor.py`: `needs_review` dedupliziert und Invarianten-Berechnung auf `set(self.m.get("needs_review", []))` umgestellt.
+  4. `test_work_queue_portable_lock.py`: Regressionstests `test_stale_lock_recovery` und `test_state_does_not_rewrite_file` ergänzt.
+- **Testbefehl:** `pytest tests/test_work_queue_portable_lock.py tests/test_cannon_motor_acceptance.py tests/test_headless_night_offline.py -v`
+- **Exitcode / Ergebnis:** 0 (alle Tests bestanden, Testsuite auf 535 Tests angewachsen).
+- **Status:** Stale Lock Recovery und Snapshot-Integrität nachgewiesen.

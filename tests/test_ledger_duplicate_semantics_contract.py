@@ -48,7 +48,7 @@ def base_guard():
         "evidence": [{
             "source_url": "https://github.com/example/project/actions/runs/test",
             "source_type": "MACHINE_ARTIFACT",
-            "observed_at": "2026-09-18T00:00:00Z",
+            "observed_at": "2026-09-22T16:14:56Z",
             "evidence_sha": "cccccccccccccccccccccccccccccccccccccccc",
             "runtime_binding": "attacker-runtime",
             "validity": "VALID",

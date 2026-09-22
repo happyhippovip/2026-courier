@@ -24,6 +24,7 @@ from unittest.mock import patch
 from scripts.agent_handoff_ledger import (
     initialize, update, validate_guard, LedgerError,
 )
+from scripts import agent_handoff_ledger as ahl
 from tests.test_agent_handoff_ledger import guard as make_guard
 
 SHA = "0000000000000000000000000000000000000000"
@@ -104,6 +105,28 @@ def _artifact(url, observed_at=None, sha=SHA, runtime=RUNTIME,
         "producer_id": producer,
         "verifier_id": verifier,
     }
+
+
+def _echo_resolver(artifact, goal="freshness-test", sha=SHA, runtime=RUNTIME):
+    """Offline attestation answering only the given artifact URL.
+
+    Installed per-test with save/restore, never at import: a leaked
+    module-global seam would bypass other tests' own resolvers.
+    Returns None for unknown URLs so anything unattested stays
+    fail-closed.
+    """
+    def resolve(url):
+        if url != artifact["source_url"]:
+            return None
+        return {
+            "verdict": "PASS",
+            "producer_principal": artifact.get("producer_id"),
+            "verifier_principal": artifact.get("verifier_id"),
+            "result_sha256": artifact.get("result_sha256"),
+            "goal_id": goal,
+            "binding": {"sha": sha, "runtime": runtime},
+        }
+    return resolve
 
 
 def _init_ledger(tmp_path, sha=SHA, runtime=RUNTIME):
@@ -276,13 +299,19 @@ class TestLongLivedEpochMutableEvidence:
         initialize(path, rec, g, 5.0)
 
         just_fresh = datetime.utcnow() - timedelta(hours=47)
+        art = _artifact("https://test.com/47h", _ts(just_fresh))
         g1 = copy.deepcopy(g)
-        g1["evidence"].append(_artifact("https://test.com/47h", _ts(just_fresh)))
-        update(path, 0, {"TASKS_COMPLETED": 3}, "writer-a", 5.0, guard=g1)
+        g1["evidence"].append(art)
+        previous = ahl._attestation_resolver
+        ahl._attestation_resolver = _echo_resolver(art)
+        try:
+            update(path, 0, {"TASKS_COMPLETED": 3}, "writer-a", 5.0, guard=g1)
 
-        result = update(path, 1, {"TASKS_COMPLETED": 4, "STATUS": "DONE"}, "writer-b", 5.0)
-        assert result["acceptance_guard"]["transition_state"] == "CANONICAL_ACCEPTED"
-        assert result["record"]["CLEAN_IDLE"] == "YES"
+            result = update(path, 1, {"TASKS_COMPLETED": 4, "STATUS": "DONE"}, "writer-b", 5.0)
+            assert result["acceptance_guard"]["transition_state"] == "CANONICAL_ACCEPTED"
+            assert result["record"]["CLEAN_IDLE"] == "YES"
+        finally:
+            ahl._attestation_resolver = previous
 
     def test_evidence_at_49h_is_stale(self):
         """Evidence at 49 hours old is beyond the 48h window."""

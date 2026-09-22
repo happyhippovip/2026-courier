@@ -20,6 +20,7 @@ import tempfile
 from pathlib import Path
 from datetime import datetime
 from scripts.agent_handoff_ledger import initialize, update, LedgerError
+from scripts import agent_handoff_ledger as ahl
 from tests.test_agent_handoff_ledger import guard as make_guard
 
 SHA = "0000000000000000000000000000000000000000"
@@ -101,6 +102,28 @@ def _artifact(url, producer="prod-a", verifier="ver-b"):
         "producer_id": producer,
         "verifier_id": verifier,
     }
+
+
+def _echo_resolver(artifact, goal="trust-root-test", sha=SHA, runtime=RUNTIME):
+    """Offline attestation answering only the given artifact URL.
+
+    Installed per-test with save/restore, never at import: a leaked
+    module-global seam would bypass other tests' own resolvers (the
+    duplicate-semantics failure). Returns None for unknown URLs so
+    anything unattested stays fail-closed.
+    """
+    def resolve(url):
+        if url != artifact["source_url"]:
+            return None
+        return {
+            "verdict": "PASS",
+            "producer_principal": artifact.get("producer_id"),
+            "verifier_principal": artifact.get("verifier_id"),
+            "result_sha256": artifact.get("result_sha256"),
+            "goal_id": goal,
+            "binding": {"sha": sha, "runtime": runtime},
+        }
+    return resolve
 
 
 class TestTwoRevisionLaundering:
@@ -205,13 +228,19 @@ class TestProducerEqualsVerifier:
         initialize(path, rec, g, 5.0)
 
         # Step 1: writer-a introduces artifact with distinct producer/verifier
+        art = _artifact("https://legit.com/distinct-pv", "prod-x", "ver-y")
         g1 = copy.deepcopy(g)
-        g1["evidence"].append(_artifact("https://legit.com/distinct-pv", "prod-x", "ver-y"))
-        update(path, 0, {"TASKS_COMPLETED": 3}, "writer-a", 5.0, guard=g1)
+        g1["evidence"].append(art)
+        previous = ahl._attestation_resolver
+        ahl._attestation_resolver = _echo_resolver(art)
+        try:
+            update(path, 0, {"TASKS_COMPLETED": 3}, "writer-a", 5.0, guard=g1)
 
-        # Step 2: Independent writer-b can accept
-        result = update(path, 1, {"TASKS_COMPLETED": 4, "STATUS": "DONE"}, "writer-b", 5.0)
-        assert result["acceptance_guard"]["transition_state"] == "CANONICAL_ACCEPTED"
+            # Step 2: Independent writer-b can accept
+            result = update(path, 1, {"TASKS_COMPLETED": 4, "STATUS": "DONE"}, "writer-b", 5.0)
+            assert result["acceptance_guard"]["transition_state"] == "CANONICAL_ACCEPTED"
+        finally:
+            ahl._attestation_resolver = previous
 
 
 class TestVerifierEqualsIntroducer:
@@ -246,14 +275,20 @@ class TestVerifierEqualsIntroducer:
         initialize(path, rec, g, 5.0)
 
         # Step 1: intro-writer introduces artifact. verifier_id != updated_by
+        art = _artifact("https://evil.com/cross-ver", "ext-prod", "colluding-ver")
         g1 = copy.deepcopy(g)
-        g1["evidence"].append(_artifact("https://evil.com/cross-ver", "ext-prod", "colluding-ver"))
-        update(path, 0, {"TASKS_COMPLETED": 3}, "intro-writer", 5.0, guard=g1)
+        g1["evidence"].append(art)
+        previous = ahl._attestation_resolver
+        ahl._attestation_resolver = _echo_resolver(art)
+        try:
+            update(path, 0, {"TASKS_COMPLETED": 3}, "intro-writer", 5.0, guard=g1)
 
-        # Step 2: honest-writer. colluding-ver is NOT in introducer_map
-        # (introducer_map only has updated_by values). Known limitation.
-        result = update(path, 1, {"TASKS_COMPLETED": 4, "STATUS": "DONE"}, "honest-writer", 5.0)
-        assert result["acceptance_guard"]["transition_state"] == "CANONICAL_ACCEPTED"
+            # Step 2: honest-writer. colluding-ver is NOT in introducer_map
+            # (introducer_map only has updated_by values). Known limitation.
+            result = update(path, 1, {"TASKS_COMPLETED": 4, "STATUS": "DONE"}, "honest-writer", 5.0)
+            assert result["acceptance_guard"]["transition_state"] == "CANONICAL_ACCEPTED"
+        finally:
+            ahl._attestation_resolver = previous
 
 
 class TestVerifierEqualsAcceptanceWriter:
@@ -362,17 +397,23 @@ class TestValidIndependentControlCase:
         initialize(path, rec, g, 5.0)
 
         # Step 1: Independent producer creates evidence, introduced by "writer-a"
+        art = _artifact("https://legit.com/independent", "real-prod", "real-ver")
         g1 = copy.deepcopy(g)
-        g1["evidence"].append(_artifact("https://legit.com/independent", "real-prod", "real-ver"))
+        g1["evidence"].append(art)
         g1["acceptance_predicate"]["results"]["ISSUE_STATE"]["status"] = "UNKNOWN"
-        update(path, 0, {"TASKS_COMPLETED": 3}, "writer-a", 5.0, guard=g1)
+        previous = ahl._attestation_resolver
+        ahl._attestation_resolver = _echo_resolver(art)
+        try:
+            update(path, 0, {"TASKS_COMPLETED": 3}, "writer-a", 5.0, guard=g1)
 
-        # Step 2: Completely different writer "writer-b" advances.
-        # The evidence was introduced by "writer-a", producer is "real-prod",
-        # verifier is "real-ver". None of these match "writer-b".
-        # STATUS must not be "READY" (active status forces PROVISIONAL branch).
-        result = update(path, 1, {"TASKS_COMPLETED": 4, "STATUS": "DONE"}, "writer-b", 5.0)
+            # Step 2: Completely different writer "writer-b" advances.
+            # The evidence was introduced by "writer-a", producer is "real-prod",
+            # verifier is "real-ver". None of these match "writer-b".
+            # STATUS must not be "READY" (active status forces PROVISIONAL branch).
+            result = update(path, 1, {"TASKS_COMPLETED": 4, "STATUS": "DONE"}, "writer-b", 5.0)
 
-        # The evidence should qualify as physical proof now
-        assert result["acceptance_guard"]["transition_state"] == "CANONICAL_ACCEPTED"
-        assert result["record"]["CLEAN_IDLE"] == "YES"
+            # The evidence should qualify as physical proof now
+            assert result["acceptance_guard"]["transition_state"] == "CANONICAL_ACCEPTED"
+            assert result["record"]["CLEAN_IDLE"] == "YES"
+        finally:
+            ahl._attestation_resolver = previous

@@ -114,13 +114,16 @@ def test_concurrency_overlap_and_auto_continue(test_server):
                 if tid in ("A", "B"):
                     execution_barrier.wait(timeout=5.0)
                 
-                result = {
+                identity = {
                     "goal_id": task["goal_id"], "task_id": tid, "attempt_id": task["attempt_id"],
                     "dispatch_id": task["dispatch_id"], "execution_ref": task["execution_ref"],
-                    "worker_id": w_id, "run_id": f"run_{tid}", "result_id": f"res_{tid}",
-                    "status": "SUCCESS", "artifacts": []
+                    "worker_id": w_id, "run_id": f"run_{tid}", "status": "SUCCESS", "artifacts": [],
+                    "runtime_identity": task.get("server_binding")
                 }
-                requests.post(f"{test_server}/tasks/result", json=result, headers=auth_worker)
+                result = dict(identity)
+                result["result_id"] = f"result-{_canonical_hash(identity)}"
+                r = requests.post(f"{test_server}/tasks/result", json=result, headers=auth_worker)
+                assert r.status_code == 200, r.text
                 completion_events[tid].set()
             else:
                 time.sleep(0.1)
@@ -145,13 +148,13 @@ def test_concurrency_overlap_and_auto_continue(test_server):
     for tid in ("A", "B"):
         t_data = state["tasks"][tid]
         requests.post(f"{test_server}/tasks/verify", json={
-            "task_id": tid, "verifier_id": "v1", "result_id": state["res_ids"][tid],
+            "task_id": tid, "verifier_id": "v1", "result_id": t_data["result"]["result_id"],
             "artifacts": [], "verdict": "PASS", "received_runtime_identity": t_data.get("server_binding")
         }, headers=auth_verifier)
     
     # Duplicate verify shouldn't double-schedule
     requests.post(f"{test_server}/tasks/verify", json={
-        "task_id": "A", "verifier_id": "v1", "result_id": state["res_ids"]["A"],
+        "task_id": "A", "verifier_id": "v1", "result_id": state["tasks"]["A"]["result"]["result_id"],
         "artifacts": [], "verdict": "PASS", "received_runtime_identity": state["tasks"]["A"].get("server_binding")
     }, headers=auth_verifier)
 

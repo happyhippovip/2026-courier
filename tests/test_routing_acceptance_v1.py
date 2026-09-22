@@ -2,7 +2,9 @@ import threading
 
 import pytest
 
+from scripts.integration_contract import _canonical_hash
 from server import app as server_app
+
 
 
 def auth():
@@ -75,13 +77,28 @@ def result_for(claimed, worker_id, result_id, status, stderr=None):
         "execution_ref": claimed["execution_ref"],
         "worker_id": worker_id,
         "run_id": f"run-{result_id}",
-        "result_id": result_id,
         "status": status,
         "artifacts": [],
+        "runtime_identity": claimed.get("server_binding"),
     }
     if stderr is not None:
         result["stderr"] = stderr
+    identity = {
+        "goal_id": result["goal_id"],
+        "task_id": result["task_id"],
+        "attempt_id": result["attempt_id"],
+        "dispatch_id": result["dispatch_id"],
+        "execution_ref": result["execution_ref"],
+        "worker_id": result["worker_id"],
+        "run_id": result["run_id"],
+        "status": result["status"],
+        "artifacts": result["artifacts"],
+        "runtime_identity": result["runtime_identity"],
+    }
+    result["result_id"] = f"result-{_canonical_hash(identity)}"
     return result
+
+
 
 
 def test_capability_insufficient_cannot_claim(motor):
@@ -213,10 +230,11 @@ def test_reconciliation_exposes_next_ready_task_without_manual_state_edit(motor)
     assert first["task_id"] == "first"
 
     result_id = "result-first-success"
+    result_payload = result_for(first, "W", result_id, "SUCCESS")
     received = motor.post(
         "/tasks/result",
         headers=auth(),
-        json=result_for(first, "W", result_id, "SUCCESS"),
+        json=result_payload,
     )
     assert received.status_code == 200
 
@@ -225,13 +243,15 @@ def test_reconciliation_exposes_next_ready_task_without_manual_state_edit(motor)
         headers=verifier_auth(),
         json={
             "task_id": "first",
-            "result_id": result_id,
+            "result_id": result_payload["result_id"],
             "verifier_id": "independent-verifier",
             "verdict": "PASS",
+            "received_runtime_identity": first.get("server_binding"),
             "artifacts": [],
         },
     )
-    assert verified.status_code == 200
+
+    assert verified.status_code == 200, verified.get_json()
     assert verified.get_json()["status"] == "RECONCILED"
 
     second = claim(motor, "W")

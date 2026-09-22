@@ -10,6 +10,7 @@ import datetime
 import hashlib
 import json
 import os
+import threading
 from pathlib import Path
 from typing import Any
 
@@ -35,9 +36,14 @@ def load_json(path: Path) -> dict | None:
 
 def save_json(path: Path, data: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    temp_path = path.with_suffix(path.suffix + f".tmp.{os.getpid()}")
+    temp_path = path.with_suffix(path.suffix + f".tmp.{os.getpid()}.{threading.get_ident()}")
     with open(temp_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
+        f.flush()
+        try:
+            os.fsync(f.fileno())
+        except OSError:
+            pass
     os.replace(temp_path, path)
 
 
@@ -116,7 +122,7 @@ class CostGate:
             return {
                 "allowed": False,
                 "reason": "RESOURCE_PLANNED_NOT_ACTIVE",
-                "message": f"Resource \{resource_id}\ is PLANNED_NOT_ACTIVE and cannot be used for routing or budget.",
+                "message": f"Resource '{resource_id}' is PLANNED_NOT_ACTIVE and cannot be used for routing or budget.",
                 "requires_human_gate": True,
             }
 
@@ -125,7 +131,7 @@ class CostGate:
             return {
                 "allowed": False,
                 "reason": "UNAUTHORIZED_RESOURCE_TIER",
-                "message": f"Resource \{resource_id}\ is UNAVAILABLE or unauthorized by policy.",
+                "message": f"Resource '{resource_id}' is UNAVAILABLE or unauthorized by policy.",
                 "requires_human_gate": True,
             }
 
@@ -141,7 +147,7 @@ class CostGate:
         return {
             "allowed": True,
             "reason": "AUTHORIZED_ACTIVE_RESOURCE",
-            "message": f"Resource \{resource_id}\ is authorized under active paid subscription.",
+            "message": f"Resource '{resource_id}' is authorized under active paid subscription.",
             "requires_human_gate": False,
         }
 

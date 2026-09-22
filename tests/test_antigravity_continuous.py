@@ -60,7 +60,7 @@ def setup_ledger(tmp_path):
             "current_sha": "0000000000000000000000000000000000000000",
             "runtime_identity": "0000000000000000000000000000000000000000"
         },
-        "evidence": [{"source_url":"https://test.com","source_type":"MACHINE_ARTIFACT","observed_at":"2026-09-17T12:00:00Z","evidence_sha":"0000000000000000000000000000000000000000","runtime_binding":"test","validity":"UNKNOWN","reason":"test"}],
+        "evidence": [{"source_url":"https://test.com","source_type":"MACHINE_ARTIFACT","observed_at":"2026-09-22T16:14:56Z","evidence_sha":"0000000000000000000000000000000000000000","runtime_binding":"test","validity":"UNKNOWN","reason":"test"}],
         "flow": [
             "EXECUTION",
             "EVIDENCE",

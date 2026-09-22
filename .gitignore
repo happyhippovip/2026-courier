@@ -53,7 +53,10 @@ events/runtime-state/*.lock
 events/task-envelopes/*.json
 !events/runtime-state/.gitkeep
 !events/task-envelopes/.gitkeep
-
+server/state/test_state.json
+server/state/*.tmp
+server/state/*.tmp.*
+.youtube_receipts/
 
 
 
@@ -115,3 +118,47 @@ venv/
 node_modules/
 test-build-identity.json
 test_sync.lock
+
+# Root-level scratch/debug scripts (generated during autonomous sessions)
+/fix_*.py
+/patch_*.py
+/debug_*.py
+/scratch_*.py
+/run_debug*.py
+/run_acceptance*.py
+/run_test*.py
+/rewrite_*.py
+/revert_*.py
+/reset_*.py
+/clean_*.py
+/print_*.py
+/force_*.py
+/proof_*.py
+/test_fixer*.py
+/test_delta.py
+/test_idle.py
+/test_dom.py
+/test_agy.py
+/test_validate.py
+/test_verify_debug.py
+/test_where.py
+/test_dlq_debug.py
+
+# Canary torture test output files
+/courier_canary_torture_*.txt
+
+# Misc scratch/temp files
+/out.txt
+/res2_output.txt
+/test_out.txt
+/tmp_status.json
+/hello_courier.txt
+/exit.md
+/explain.md
+/wait_for_windows.md
+/worker_mac_launcher.log
+/tmp/
+/revert.py
+/coordination/heartbeats/*.tmp.*
+/Claude outputs/
+/scripts/mac_worker/logs_*/

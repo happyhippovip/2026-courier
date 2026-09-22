@@ -1,10 +1,33 @@
-import json, time, os, sys, shutil, subprocess
+import json, time, os, sys, shutil, subprocess, signal
 from pathlib import Path
 import urllib.request
 import urllib.error
 import tempfile
 import uuid
 import hashlib
+
+def _canonical_hash(value: object) -> str:
+    payload = json.dumps(value, sort_keys=True, separators=(",", ":")).encode()
+    return hashlib.sha256(payload).hexdigest()
+
+def compute_result_id(res_json: dict) -> str:
+    identity = {
+        "goal_id": res_json.get("goal_id"),
+        "task_id": res_json.get("task_id"),
+        "attempt_id": res_json.get("attempt_id"),
+        "dispatch_id": res_json.get("dispatch_id"),
+        "execution_ref": res_json.get("execution_ref"),
+        "worker_id": res_json.get("worker_id"),
+        "run_id": res_json.get("run_id"),
+        "status": res_json.get("status"),
+        "artifacts": res_json.get("artifacts", []),
+        "runtime_identity": res_json.get("runtime_identity")
+    }
+    if "batch_id" in res_json:
+        identity["batch_id"] = res_json["batch_id"]
+    if "prompt_id" in res_json:
+        identity["prompt_id"] = res_json["prompt_id"]
+    return f"result-{_canonical_hash(identity)}"
 
 def load_config():
     config_path = Path(__file__).parent / "config.json"
@@ -14,7 +37,7 @@ def load_config():
     return {}
 
 _cfg = load_config()
-API_URL = os.environ.get("COURIER_SERVER") or _cfg.get("COURIER_SERVER") or "http://127.0.0.1:8080"
+API_URL = os.environ.get("COURIER_SERVER") or os.environ.get("API_URL") or _cfg.get("COURIER_SERVER") or "http://127.0.0.1:8080"
 
 # API_KEY: environment variable or OS keyring ONLY — never from config.json or hardcoded defaults.
 try:
@@ -41,7 +64,7 @@ def register_worker(worker_id):
     
     runtime_sha = "unknown"
     try:
-        out = subprocess.check_output(["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL)
+        out = subprocess.check_output(["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL, timeout=5)
         runtime_sha = out.decode("utf-8").strip()
     except Exception:
         pass
@@ -65,19 +88,20 @@ def register_worker(worker_id):
 def http_post_result(res):
     req = urllib.request.Request(f"{API_URL}/tasks/result", method="POST")
     for k, v in HEADERS.items(): req.add_header(k, v)
-    data = json.dumps(res).encode("utf-8")
+    payload_bytes = json.dumps(res).encode("utf-8")
     for attempt in range(5):
         try:
-            urllib.request.urlopen(req, data=data, timeout=10)
+            urllib.request.urlopen(req, data=payload_bytes, timeout=10)
+            print("[Windows Worker] Result posted successfully: HTTP 200")
             return
         except urllib.error.HTTPError as e:
             try:
                 body = e.read().decode('utf-8')
-                data = json.loads(body)
-                if e.code in (200, 409) and data.get("status") == "ACK_DUPLICATE":
+                err_data = json.loads(body)
+                if e.code in (200, 409) and err_data.get("status") == "ACK_DUPLICATE":
                     print(f"[Windows Worker] Result already acknowledged by server: {body}")
                     return
-                elif e.code == 409 and data.get("reason") == "CONTRADICTORY_DUPLICATE":
+                elif e.code == 409 and err_data.get("reason") == "CONTRADICTORY_DUPLICATE":
                     print(f"[Windows Worker] Result rejected as contradictory duplicate: {body}")
                     return
             except Exception:
@@ -111,11 +135,12 @@ def run_task(task, config):
             "worker_id": task.get("worker_id") or config["WORKER_ID"],
             "provider": "windows_native",
             "run_id": "win-native",
-            "result_id": f"result-{uuid.uuid4().hex}",
-            "artifacts": []
+            "artifacts": [],
+            "runtime_identity": task.get("server_binding") or task.get("runtime_identity")
         }
         if "batch_id" in task: res_json["batch_id"] = task["batch_id"]
         if "prompt_id" in task: res_json["prompt_id"] = task["prompt_id"]
+        res_json["result_id"] = compute_result_id(res_json)
         return res_json
 
     out_clean = ""
@@ -197,14 +222,15 @@ def run_task(task, config):
         "worker_id": task.get("worker_id") or config["WORKER_ID"],
         "provider": "windows_native",
         "run_id": run_id,
-        "result_id": f"result-{uuid.uuid4().hex}",
-        "artifacts": artifacts if status == "SUCCESS" else []
+        "artifacts": artifacts if status == "SUCCESS" else [],
+        "runtime_identity": task.get("server_binding") or task.get("runtime_identity")
     }
     if status == "PROVIDER_WAIT":
         res_json["reason"] = "QUOTA_OR_RATE_LIMIT"
         
     if "batch_id" in task: res_json["batch_id"] = task["batch_id"]
     if "prompt_id" in task: res_json["prompt_id"] = task["prompt_id"]
+    res_json["result_id"] = compute_result_id(res_json)
     
     return res_json
 
@@ -285,15 +311,40 @@ def acquire_lock(worker_id):
             print(f"[{worker_id}] Lock acquire failed: {e}")
         return None
 
+def sleep_interruptible(seconds, stop_marker_path):
+    end_time = time.time() + seconds
+    while time.time() < end_time:
+        if stop_marker_path.exists():
+            return True
+        time.sleep(min(0.2, max(0.0, end_time - time.time())))
+    return stop_marker_path.exists()
+
 def loop():
     config = load_config()
-    worker_id = os.environ.get("COURIER_WORKER_ID") or config.get("WORKER_ID", "default-win-worker")
+    worker_id = os.environ.get("COURIER_WORKER_ID") or os.environ.get("WORKER_ID") or config.get("WORKER_ID", "default-win-worker")
     
     lock_path = acquire_lock(worker_id)
     if not lock_path:
         print(f"[{worker_id}] Another instance is already running. Exiting to prevent duplicates.")
         sys.exit(0)
     
+    import atexit
+    def _cleanup_lock():
+        try:
+            if lock_path and lock_path.exists():
+                lock_path.unlink()
+        except Exception:
+            pass
+    atexit.register(_cleanup_lock)
+    def _sig_handler(signum, frame):
+        _cleanup_lock()
+        sys.exit(0)
+    try:
+        signal.signal(signal.SIGTERM, _sig_handler)
+        signal.signal(signal.SIGINT, _sig_handler)
+    except Exception:
+        pass
+
     try:
         print(f"[{worker_id}] Windows Worker HTTP Daemon started. PID={os.getpid()}")
         
@@ -315,11 +366,12 @@ def loop():
                     "worker_id": worker_id,
                     "provider": "windows_native",
                     "run_id": "crashed-unknown",
-                    "result_id": f"result-{uuid.uuid4().hex}",
-                    "artifacts": []
+                    "artifacts": [],
+                    "runtime_identity": crashed_task.get("server_binding") or crashed_task.get("runtime_identity")
                 }
                 if "batch_id" in crashed_task: res_json["batch_id"] = crashed_task["batch_id"]
                 if "prompt_id" in crashed_task: res_json["prompt_id"] = crashed_task["prompt_id"]
+                res_json["result_id"] = compute_result_id(res_json)
                 http_post_result(res_json)
             except Exception as e:
                 print(f"[{worker_id}] Failed to report ambiguous crash: {e}")
@@ -361,7 +413,9 @@ def loop():
                     
                 if pause_marker_path.exists():
                     print(f"[{worker_id}] Pause marker found. Pausing claims.")
-                    time.sleep(5.0)
+                    if sleep_interruptible(5.0, stop_marker_path):
+                        print(f"[{worker_id}] Stop marker found. Exiting gracefully after current task.")
+                        break
                     continue
 
                 # 1. Register/Heartbeat
@@ -377,7 +431,9 @@ def loop():
                 # 2. Resource Pressure Check
                 if is_resource_pressure_high(config):
                     print(f"[{worker_id}] Resource pressure high. Pausing claims.")
-                    time.sleep(5.0)
+                    if sleep_interruptible(5.0, stop_marker_path):
+                        print(f"[{worker_id}] Stop marker found. Exiting gracefully after current task.")
+                        break
                     continue
                 
                 # 3. Claim Task
@@ -409,11 +465,15 @@ def loop():
                     
             except Exception as e:
                 print(f"[{worker_id}] Loop error: {e}. Backing off {error_backoff}s.")
-                time.sleep(error_backoff)
+                if sleep_interruptible(error_backoff, stop_marker_path):
+                    print(f"[{worker_id}] Stop marker found. Exiting gracefully after current task.")
+                    break
                 error_backoff = min(max_error_backoff, error_backoff * 2)
                 continue
                 
-            time.sleep(idle_backoff)
+            if sleep_interruptible(idle_backoff, stop_marker_path):
+                print(f"[{worker_id}] Stop marker found. Exiting gracefully after current task.")
+                break
             
     finally:
         if os.path.exists(lock_path):

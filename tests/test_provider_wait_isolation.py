@@ -12,7 +12,9 @@ os.environ["COURIER_VERIFIER_API_KEY"] = "test-key-12345"
 from server.app import app, STATE_FILE, STATE_LOCK
 
 @pytest.fixture
-def client():
+def client(monkeypatch):
+    import server.app
+    monkeypatch.setattr(server.app, "API_KEY", "test-key-12345")
     app.config["TESTING"] = True
     
     with STATE_LOCK:

@@ -1,3 +1,4 @@
+import logging
 import os
 import subprocess
 import sys
@@ -105,7 +106,8 @@ def status():
                 import cannon_yolo
                 _lv = cannon_yolo.live_payload()
                 if _lv: D["live"] = _lv
-        except Exception: pass
+        except Exception:
+            logging.getLogger(__name__).warning("cannon live payload unavailable", exc_info=True)
         return D
 
 def action(body):

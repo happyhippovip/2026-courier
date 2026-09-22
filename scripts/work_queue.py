@@ -24,9 +24,28 @@ the task overlaps a scope already held by another live claim.
 import argparse
 import contextlib
 import json
+import os
 import sys
 import time
 from pathlib import Path
+
+def _is_pid_alive(pid):
+    try:
+        import psutil
+        return psutil.pid_exists(pid)
+    except Exception:
+        pass
+    if os.name == "posix":
+        try:
+            os.kill(pid, 0)
+            return True
+        except ProcessLookupError:
+            return False
+        except PermissionError:
+            return True
+        except OSError:
+            return False
+    return True
 
 STATUSES = ("WAITING", "READY", "CLAIMED", "RUNNING",
             "VERIFYING", "DONE", "BLOCKED", "HUMAN_GATE")
@@ -49,20 +68,59 @@ def _locked(path):
 
     Uses atomic directory creation: mkdir is atomic on both platforms,
     unlike fcntl.flock which does not exist on Windows.
+    Includes stale-lock recovery if the owner process has terminated.
     """
-    import os
     lockdir = str(path) + ".lockdir"
-    for _ in range(1000):
+    owner_file = os.path.join(lockdir, "owner.json")
+    for i in range(1000):
         try:
             os.mkdir(lockdir)
+            try:
+                with open(owner_file, "w", encoding="utf-8") as f:
+                    json.dump({"pid": os.getpid(), "time": time.time()}, f)
+            except OSError:
+                pass
             break
         except FileExistsError:
+            if i > 20:  # Check stale after 200ms of contention
+                stale = False
+                try:
+                    if os.path.exists(owner_file):
+                        with open(owner_file, "r", encoding="utf-8") as f:
+                            owner = json.load(f)
+                        pid = owner.get("pid")
+                        ltime = owner.get("time", 0)
+                        if pid and not _is_pid_alive(pid):
+                            stale = True
+                        elif time.time() - ltime > 30.0:
+                            stale = True
+                    else:
+                        if time.time() - os.path.getmtime(lockdir) > 5.0:
+                            stale = True
+                except Exception:
+                    pass
+                if stale:
+                    try:
+                        if os.path.exists(owner_file):
+                            os.remove(owner_file)
+                    except OSError:
+                        pass
+                    try:
+                        os.rmdir(lockdir)
+                    except OSError:
+                        pass
+                    continue
             time.sleep(0.01)
     else:
         raise TimeoutError(f"queue lock busy: {path}")
     try:
         yield
     finally:
+        try:
+            if os.path.exists(owner_file):
+                os.remove(owner_file)
+        except OSError:
+            pass
         try:
             os.rmdir(lockdir)
         except OSError:
@@ -229,7 +287,8 @@ def main(argv=None):
         out = {"tasks": {t: {"status": v.get("status"), "stage": v.get("result_stage")}
                          for t, v in data["tasks"].items()},
                "leases": list(data["leases"])}
-    save(args, data)
+    if args.cmd != "state":
+        save(args, data)
     print(json.dumps(out))
 
 

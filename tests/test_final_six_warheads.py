@@ -72,7 +72,7 @@ def test_warhead_b_self_generated_or_replayed_evidence(tmp_path):
     guard_caller["evidence"].append({
         "source_url": "https://example.com/caller_ev",
         "source_type": "MACHINE_ARTIFACT",
-        "observed_at": "2026-09-17T12:00:00Z",
+        "observed_at": "2026-09-22T16:14:56Z",
         "evidence_sha": current_sha,
         "runtime_binding": current_runtime,
         "validity": "VALID",
@@ -89,7 +89,7 @@ def test_warhead_b_self_generated_or_replayed_evidence(tmp_path):
     guard_self["evidence"].append({
         "source_url": "https://example.com/self_ev",
         "source_type": "MACHINE_ARTIFACT",
-        "observed_at": "2026-09-17T12:00:00Z",
+        "observed_at": "2026-09-22T16:14:56Z",
         "evidence_sha": current_sha,
         "runtime_binding": current_runtime,
         "validity": "VALID",
@@ -106,7 +106,7 @@ def test_warhead_b_self_generated_or_replayed_evidence(tmp_path):
     guard_missing["evidence"].append({
         "source_url": "https://example.com/missing_ev",
         "source_type": "MACHINE_ARTIFACT",
-        "observed_at": "2026-09-17T12:00:00Z",
+        "observed_at": "2026-09-22T16:14:56Z",
         "evidence_sha": current_sha,
         "runtime_binding": current_runtime,
         "validity": "VALID",
@@ -121,7 +121,7 @@ def test_warhead_b_self_generated_or_replayed_evidence(tmp_path):
     guard_writer["evidence"].append({
         "source_url": "https://example.com/writer_ev",
         "source_type": "MACHINE_ARTIFACT",
-        "observed_at": "2026-09-17T12:00:00Z",
+        "observed_at": "2026-09-22T16:14:56Z",
         "evidence_sha": current_sha,
         "runtime_binding": current_runtime,
         "validity": "VALID",
@@ -138,7 +138,7 @@ def test_warhead_b_self_generated_or_replayed_evidence(tmp_path):
     guard_foreign["evidence"].append({
         "source_url": "https://example.com/foreign_ev",
         "source_type": "MACHINE_ARTIFACT",
-        "observed_at": "2026-09-17T12:00:00Z",
+        "observed_at": "2026-09-22T16:14:56Z",
         "evidence_sha": current_sha,
         "runtime_binding": current_runtime,
         "validity": "VALID",
@@ -171,7 +171,7 @@ def test_warhead_c_stale_sha(tmp_path):
     guard["evidence"].append({
         "source_url": "https://example.com/stale_sha_ev",
         "source_type": "MACHINE_ARTIFACT",
-        "observed_at": "2026-09-17T12:00:00Z",
+        "observed_at": "2026-09-22T16:14:56Z",
         "evidence_sha": stale_sha,
         "runtime_binding": guard["binding"]["runtime_identity"],
         "validity": "VALID",
@@ -201,7 +201,7 @@ def test_warhead_d_wrong_actual_runtime_sha(tmp_path):
     guard["evidence"].append({
         "source_url": "https://example.com/wrong_runtime_ev",
         "source_type": "MACHINE_ARTIFACT",
-        "observed_at": "2026-09-17T12:00:00Z",
+        "observed_at": "2026-09-22T16:14:56Z",
         "evidence_sha": current_sha,
         "runtime_binding": "WRONG_RUNTIME_HOST",
         "validity": "VALID",

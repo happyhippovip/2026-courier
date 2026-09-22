@@ -2,7 +2,9 @@ import threading
 
 import pytest
 
+from scripts.integration_contract import _canonical_hash
 from server import app as server_app
+
 
 
 def auth():
@@ -218,24 +220,28 @@ def test_independently_verified_terminal_task_releases_exclusive_resource(motor)
         "execution_ref": claimed["execution_ref"],
         "worker_id": "W",
         "run_id": "run-1",
-        "result_id": "result-1",
         "status": "SUCCESS",
         "artifacts": [],
+        "runtime_identity": claimed.get("server_binding"),
     }
+    ident = {k: v for k, v in result.items() if k != "result_id"}
+    result["result_id"] = f"result-{_canonical_hash(ident)}"
     assert motor.post("/tasks/result", headers=auth(), json=result).status_code == 200
     verified = motor.post(
         "/tasks/verify",
         headers={"Authorization": "Bearer verifier-secret"},
         json={
             "task_id": "terminal",
-            "result_id": "result-1",
+            "result_id": result["result_id"],
             "verifier_id": "independent-verifier",
             "verdict": "PASS",
+            "received_runtime_identity": claimed.get("server_binding"),
             "artifacts": [],
         },
     )
 
-    assert verified.get_json()["status"] == "RECONCILED"
+
+    assert verified.get_json().get("status") == "RECONCILED", verified.get_json()
     assert server_app.load_state()["resource_owners"] == {}
 
 
@@ -262,23 +268,27 @@ def test_protected_code_does_not_unlock_dependencies_before_explicit_merge_appro
         "execution_ref": claimed["execution_ref"],
         "worker_id": "W",
         "run_id": "run-protected",
-        "result_id": "result-protected",
         "status": "SUCCESS",
         "artifacts": [],
+        "runtime_identity": claimed.get("server_binding"),
     }
+    ident = {k: v for k, v in result.items() if k != "result_id"}
+    result["result_id"] = f"result-{_canonical_hash(ident)}"
     assert motor.post("/tasks/result", headers=auth(), json=result).status_code == 200
     verified = motor.post(
         "/tasks/verify",
         headers={"Authorization": "Bearer verifier-secret"},
         json={
             "task_id": "protected",
-            "result_id": "result-protected",
+            "result_id": result["result_id"],
             "verifier_id": "independent-verifier",
             "verdict": "PASS",
+            "received_runtime_identity": claimed.get("server_binding"),
             "artifacts": [],
         },
     )
-    assert verified.get_json()["status"] == "RECONCILED_PENDING_MERGE"
+
+    assert verified.get_json().get("status") == "RECONCILED_PENDING_MERGE", verified.get_json()
     assert claim(motor, "W") is None
 
     approved = motor.post(

@@ -66,7 +66,14 @@ class CannonMotor:
     # ---- persistence: motor.json is the backend truth ----
     def _load(self):
         if self.motor_file.exists():
-            self.m = json.loads(self.motor_file.read_text(encoding="utf-8"))
+            try:
+                self.m = json.loads(self.motor_file.read_text(encoding="utf-8"))
+            except json.JSONDecodeError as exc:
+                # Recovery must know WHICH durable file is corrupt; same type
+                # so existing handlers keep matching.
+                raise json.JSONDecodeError(
+                    f'Corrupt cannon motor file {self.motor_file}: {exc.msg}',
+                    exc.doc, exc.pos) from exc
         else:
             self.m = {"run_id": None, "state": "IDLE",
                       "current_task": None, "pause_requested": False,
@@ -495,7 +502,8 @@ class CannonMotor:
                 raise MotorError('UNKNOWN_EXECUTOR_KIND')
         except (MotorError, ValueError, OSError) as exc:
             self._wq('block', task_id, '--reason', 'REAL_EXECUTION_REQUIRES_REVIEW')
-            self.m['needs_review'].append(task_id)
+            if task_id not in self.m.get('needs_review', []):
+                self.m['needs_review'].append(task_id)
             self.m["state"] = "BLOCKED"
             self.m["error"] = str(exc)
             self.m["current_task"] = None
@@ -507,7 +515,8 @@ class CannonMotor:
             self.m["executions"].get(task_id, 0) + 1
         if outcome == "unknown":
             self._wq("block", task_id, "--reason", "BRAUCHT_PRUEFUNG")
-            self.m["needs_review"].append(task_id)
+            if task_id not in self.m.get('needs_review', []):
+                self.m["needs_review"].append(task_id)
             self.m["state"] = "BLOCKED"
             self.m["error"] = f"unknown_effect:{task_id}"
             self.m["current_task"] = None
@@ -600,7 +609,7 @@ class CannonMotor:
                 if (self.results_dir / f"{tid}.result.json").exists():
                     done_with_artifact += 1
         duplicates = sum(c - 1 for c in execs.values() if c > 1)
-        lost = len(execs) - done_with_artifact - len(self.m["needs_review"])
+        lost = len(execs) - done_with_artifact - len(set(self.m.get("needs_review", [])))
         return {"DUPLICATE_EXECUTIONS": duplicates,
                 "LOST_RESULTS": max(lost, 0),
                 "MAX_ACTIVE": self.m["max_active_observed"],

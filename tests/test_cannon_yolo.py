@@ -216,10 +216,18 @@ def test_l_three_tasks_serial_then_quota_stop(W):
 def test_l_kill_switch_stops_running_muse_and_freezes_last_output(W):
     s, e = make(W, "hang", COURIER_YOLO_IDLE_SECONDS="100", COURIER_YOLO_TASK_SECONDS="100")
     assert s.gate() == ""; t = s.next_task()
-    threading.Timer(1.0, lambda: (s.home / "STOP").write_text("")).start(); t0 = time.time()
+    def trigger_stop():
+        t_end = time.time() + 8.0
+        while time.time() < t_end:
+            if s.live.lines:
+                break
+            time.sleep(0.05)
+        (s.home / "STOP").write_text("")
+    threading.Thread(target=trigger_stop, daemon=True).start(); t0 = time.time()
     k, d, _r = s.execute(t); assert (k, d) == ("unknown", "NOTAUS") and time.time() - t0 < 10 and not procs(W) and s.gate() == "NOTAUS"
     s.end("NOTAUS"); lv = y.live_payload(e)
     assert lv["text"].startswith("GESTOPPT · 0001 · NOTAUS") and "arbeite weiter und weiter" in lv["text"]      # letzter Code/Ausgabe bleibt stehen
+
 
 
 # ---- S: Zustand und Wiederaufnahme ----

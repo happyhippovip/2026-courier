@@ -74,7 +74,8 @@ def test_restart_resume_torture(tmp_path):
         data = json.load(f)
     
     unproven = data["record"]["UNPROVEN_EDGES"]
-    assert torture_task not in unproven, "Torture task must be removed from unproven edges upon completion"
+    if torture_task in unproven: open("res2_output.txt", "w").write(f"STDOUT: {res2.stdout}\nSTDERR: {res2.stderr}")
+    assert torture_task not in unproven
 
 
 def test_stale_writer_cannot_overwrite(tmp_path):

@@ -60,7 +60,12 @@ def read(path, default=None):
     if not path.exists():
         return default
     # Corrupt operational state is never silently treated as an empty queue.
-    return json.loads(path.read_text(encoding='utf-8'))
+    try:
+        return json.loads(path.read_text(encoding='utf-8'))
+    except json.JSONDecodeError as exc:
+        # Recovery must know WHICH durable file is corrupt; same type so
+        # existing handlers keep matching.
+        raise json.JSONDecodeError(f'Corrupt cannon state file {path}: {exc.msg}', exc.doc, exc.pos) from exc
 
 
 class InstanceLock:

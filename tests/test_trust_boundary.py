@@ -19,7 +19,7 @@ def test_reject_caller_created_evidence(tmp_path):
     guard["evidence"].append({
         "source_url": "https://test.com/evidence2",
         "source_type": "MACHINE_ARTIFACT",
-        "observed_at": "2026-09-17T12:00:00Z",
+        "observed_at": "2026-09-22T16:14:56Z",
         "evidence_sha": guard["binding"]["current_sha"],
         "runtime_binding": guard["binding"]["runtime_identity"],
         "validity": "VALID",
@@ -46,7 +46,7 @@ def test_missing_producer_verifier(tmp_path):
     guard["evidence"].append({
         "source_url": "https://test.com/evidence3",
         "source_type": "MACHINE_ARTIFACT",
-        "observed_at": "2026-09-17T12:00:00Z",
+        "observed_at": "2026-09-22T16:14:56Z",
         "evidence_sha": guard["binding"]["current_sha"],
         "runtime_binding": guard["binding"]["runtime_identity"],
         "validity": "VALID",
@@ -71,7 +71,7 @@ def test_evidence_produced_by_decision_path(tmp_path):
     guard["evidence"].append({
         "source_url": "https://test.com/evidence4",
         "source_type": "MACHINE_ARTIFACT",
-        "observed_at": "2026-09-17T12:00:00Z",
+        "observed_at": "2026-09-22T16:14:56Z",
         "evidence_sha": guard["binding"]["current_sha"],
         "runtime_binding": guard["binding"]["runtime_identity"],
         "validity": "VALID",
@@ -115,7 +115,7 @@ def test_stale_evidence_sha(tmp_path):
     guard["evidence"].append({
         "source_url": "https://test.com/evidence_stale",
         "source_type": "MACHINE_ARTIFACT",
-        "observed_at": "2026-09-17T12:00:00Z",
+        "observed_at": "2026-09-22T16:14:56Z",
         "evidence_sha": "some_stale_sha_123",
         "runtime_binding": guard["binding"]["runtime_identity"],
         "validity": "VALID",
@@ -144,7 +144,7 @@ def test_wrong_runtime_sha(tmp_path):
     guard["evidence"].append({
         "source_url": "https://test.com/evidence_runtime",
         "source_type": "MACHINE_ARTIFACT",
-        "observed_at": "2026-09-17T12:00:00Z",
+        "observed_at": "2026-09-22T16:14:56Z",
         "evidence_sha": guard["binding"]["current_sha"],
         "runtime_binding": "some_wrong_runtime_id",
         "validity": "VALID",

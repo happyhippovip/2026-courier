@@ -216,7 +216,7 @@ class FixGuardTests(unittest.TestCase):
         g["evidence"] = [{
             "source_url": "https://github.com/happyhippovip/2026-courier/commit/" + "e" * 40,
             "source_type": "GITHUB_COMMIT",
-            "observed_at": "2026-09-17T12:00:00Z",
+            "observed_at": "2026-09-22T16:14:56Z",
             "evidence_sha": "e" * 40,
             "runtime_binding": RT,
             "validity": "UNKNOWN",

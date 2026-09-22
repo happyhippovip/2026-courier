@@ -7,7 +7,8 @@ from pathlib import Path
 import pytest
 
 from scripts import github_worker_adapter as adapter
-from scripts.integration_contract import validate_durable_result
+from scripts.integration_contract import validate_durable_result, _canonical_hash
+
 
 
 WORKFLOW = Path(__file__).parent.parent / ".github" / "workflows" / "courier_worker.yml"
@@ -378,12 +379,27 @@ def test_dispatch_preserves_taskpacket_as_raw_json(tmp_path: Path, monkeypatch):
 
 
 def test_durable_result_preserves_github_run_attempt():
-    task = {**packet(), "execution_ref": "ref"}
+    task = {**packet(), "execution_ref": "ref", "server_binding": "github-actions-mac-1"}
     result = {
-        **packet(), "execution_ref": "ref", "run_id": "99", "run_attempt": "1", "result_id": "result-dispatch-1",
+        **packet(), "execution_ref": "ref", "run_id": "99", "run_attempt": "1",
         "status": "SUCCESS", "artifacts": [{"path": "courier_output_dispatch-1.json", "sha256": "a" * 64}],
+        "runtime_identity": "github-actions-mac-1",
     }
+    ident = {
+        "goal_id": result["goal_id"],
+        "task_id": result["task_id"],
+        "attempt_id": result["attempt_id"],
+        "dispatch_id": result["dispatch_id"],
+        "execution_ref": result["execution_ref"],
+        "worker_id": result["worker_id"],
+        "run_id": result["run_id"],
+        "status": result["status"],
+        "artifacts": result["artifacts"],
+        "runtime_identity": result["runtime_identity"],
+    }
+    result["result_id"] = f"result-{_canonical_hash(ident)}"
     assert validate_durable_result(task, result)["run_attempt"] == "1"
+
 
 
 def test_post_result_uses_courier_bearer_token(monkeypatch):

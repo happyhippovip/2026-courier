@@ -1,3 +1,4 @@
+from scripts.integration_contract import _canonical_hash
 import hashlib
 import json
 import threading
@@ -56,7 +57,8 @@ def setup_claimed_task(tmp_path, monkeypatch):
 
 
 def durable_result(task):
-    return {
+    import hashlib
+    base = {
         "goal_id": task["goal_id"],
         "task_id": task["task_id"],
         "attempt_id": task["attempt_id"],
@@ -64,14 +66,15 @@ def durable_result(task):
         "execution_ref": task.get("execution_ref", "exec-mock"),
         "worker_id": task["worker_id"],
         "run_id": "pid-123",
-        "result_id": "result-1",
         "status": "SUCCESS",
         "artifacts": [
             {"path": "bounded.txt", "sha256": hashlib.sha256(b"bounded\n").hexdigest()}
         ],
+        "runtime_identity": task.get("server_binding", "MAC-01")
     }
-
-
+    ident = dict(base)
+    base["result_id"] = "result-" + _canonical_hash(ident)
+    return base
 def test_insecure_default_key_fails_closed(tmp_path, monkeypatch):
     monkeypatch.setattr(server_app, "STATE_FILE", str(tmp_path / "state.json"))
     monkeypatch.setattr(server_app, "API_KEY", "dev-secret-key")
@@ -156,6 +159,7 @@ def test_only_independent_verification_advances_goal_exactly_once(tmp_path, monk
         "verifier_id": "VERIFIER-01",
         "verdict": "PASS",
         "artifacts": result["artifacts"],
+        "received_runtime_identity": task.get("server_binding", "MAC-01"),
     }
 
     self_certification = dict(verification, verifier_id=task["worker_id"])
@@ -180,6 +184,7 @@ def test_worker_credential_cannot_self_certify_with_forged_verifier_id(tmp_path,
         "verifier_id": "VERIFIER-01",
         "verdict": "PASS",
         "artifacts": result["artifacts"],
+        "received_runtime_identity": task.get("server_binding", "MAC-01"),
     }
 
     assert http.get("/tasks/pending_verification", headers=auth()).status_code == 401
@@ -204,6 +209,7 @@ def test_verifier_authority_fails_closed_when_shared_with_worker(tmp_path, monke
             "verifier_id": "VERIFIER-01",
             "verdict": "PASS",
             "artifacts": result["artifacts"],
+        "received_runtime_identity": task.get("server_binding", "MAC-01"),
         },
     )
 
@@ -252,6 +258,8 @@ def test_retry_gets_new_attempt_and_dispatch_identity(tmp_path, monkeypatch):
     failed = durable_result(task)
     failed["status"] = "FAILED"
     failed["artifacts"] = []
+    ident = {k: v for k, v in failed.items() if k != "result_id"}
+    failed["result_id"] = "result-" + _canonical_hash(ident)
     assert http.post("/tasks/result", headers=auth(), json=failed).status_code == 200
 
     retried = http.post("/tasks/claim", headers=auth(), json={"worker_id": "MAC-01"}).get_json()["task"]

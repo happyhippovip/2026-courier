@@ -21,8 +21,16 @@ def dummy_resolver(url):
         }
     }
 
-ahl._attestation_resolver = dummy_resolver
-ahl._verify_attestation = dummy_resolver
+# Installed per-test (not at import): replacing module globals at import
+# time permanently pollutes every other test module that shares this
+# module object (e.g. duplicate-semantics), bypassing their own
+# resolvers. monkeypatch restores the production seam after each test.
+# Only the resolver is patched, never _verify_attestation itself, so
+# the real verification logic (verdict/principal/sha/binding checks)
+# still runs against the dummy receipt.
+@pytest.fixture(autouse=True)
+def _offline_attestation(monkeypatch):
+    monkeypatch.setattr(ahl, "_attestation_resolver", dummy_resolver)
 
 def get_base(observed_at):
     def base_record():

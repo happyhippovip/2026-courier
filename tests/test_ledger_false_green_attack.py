@@ -30,7 +30,7 @@ def test_same_update_evidence(tmp_path):
     fake_evidence = {
         "source_type": "MACHINE_ARTIFACT", "evidence_sha": guard["binding"]["current_sha"],
         "runtime_binding": guard["binding"]["runtime_identity"], "validity": "VALID",
-        "source_url": "https://fake.com", "observed_at": "2026-09-17T12:00:00Z", "reason": "fake reason"
+        "source_url": "https://fake.com", "observed_at": "2026-09-22T16:14:56Z", "reason": "fake reason"
     }
     guard["evidence"] = [fake_evidence]
     guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["evidence_urls"] = ["https://fake.com"]
@@ -46,7 +46,7 @@ def test_replayed_evidence(tmp_path):
     fake_evidence = {
         "source_type": "MACHINE_ARTIFACT", "evidence_sha": "0000000000000000000000000000000000000001",
         "runtime_binding": bundle["acceptance_guard"]["binding"]["runtime_identity"], "validity": "VALID",
-        "source_url": "https://fake.com", "observed_at": "2026-09-17T12:00:00Z", "reason": "fake reason"
+        "source_url": "https://fake.com", "observed_at": "2026-09-22T16:14:56Z", "reason": "fake reason"
     }
     with open(ledger_path, "w") as f:
         bundle["acceptance_guard"]["evidence"] = [fake_evidence]
@@ -63,7 +63,7 @@ def test_wrong_runtime(tmp_path):
     fake_evidence = {
         "source_type": "MACHINE_ARTIFACT", "evidence_sha": bundle["acceptance_guard"]["binding"]["current_sha"],
         "runtime_binding": "wrong_runtime", "validity": "VALID",
-        "source_url": "https://fake.com", "observed_at": "2026-09-17T12:00:00Z", "reason": "fake reason"
+        "source_url": "https://fake.com", "observed_at": "2026-09-22T16:14:56Z", "reason": "fake reason"
     }
     with open(ledger_path, "w") as f:
         bundle["acceptance_guard"]["evidence"] = [fake_evidence]

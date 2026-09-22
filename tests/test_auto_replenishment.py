@@ -13,14 +13,27 @@ import uuid
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
+import socket
+
+TEST_PORT = 8081
+
 @pytest.fixture(scope="module", autouse=True)
-def start_server():
+def start_server(tmp_path_factory):
+    global TEST_PORT
     print("Starting server for test...")
     python_exe = sys.executable
+    state_dir = tmp_path_factory.mktemp("replenish_state")
+    state_file = state_dir / "central_state.json"
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(("", 0))
+        TEST_PORT = s.getsockname()[1]
+
     env = os.environ.copy()
-    env["PORT"] = "8081"
+    env["PORT"] = str(TEST_PORT)
     env["PYTHONPATH"] = str(REPO_ROOT)
-    env["COURIER_SERVER"] = "http://127.0.0.1:8081"
+    env["COURIER_SERVER"] = f"http://127.0.0.1:{TEST_PORT}"
+    env["COURIER_STATE_FILE"] = str(state_file)
     env["COURIER_MOCK_CHIEF"] = "1"
     env["COURIER_API_KEY"] = "321606503a874d39b50f6137e3321b7f"
     env["COURIER_VERIFIER_API_KEY"] = "421606503a874d39b50f6137e3321b7f"
@@ -28,13 +41,24 @@ def start_server():
     if os.path.exists("/tmp/mock_replenish.txt"):
         os.remove("/tmp/mock_replenish.txt")
 
-    state_file = Path.home() / ".courier_runtime" / "server" / "state" / "central_state.json"
-    if state_file.exists():
-        state_file.unlink()
+    server_proc = subprocess.Popen([python_exe, "-m", "server.app"], env=env, cwd=str(REPO_ROOT))
+    verifier_proc = subprocess.Popen([python_exe, str(REPO_ROOT / "scripts/courier_verifier.py")], env=env, cwd=str(REPO_ROOT))
 
-    server_proc = subprocess.Popen([python_exe, "-m", "server.app"], env=env, cwd=str(Path.home() / ".courier_runtime"))
-    verifier_proc = subprocess.Popen([python_exe, str(REPO_ROOT / "scripts/courier_verifier.py")], env=env, cwd=str(Path.home() / ".courier_runtime"))
-    time.sleep(3)
+    deadline = time.time() + 10
+    started = False
+    while time.time() < deadline:
+        if server_proc.poll() is not None:
+            break
+        try:
+            req = urllib.request.Request(f"http://127.0.0.1:{TEST_PORT}/health")
+            with urllib.request.urlopen(req, timeout=1) as r:
+                if r.status == 200:
+                    started = True
+                    break
+        except Exception:
+            time.sleep(0.2)
+    assert started, f"Server failed to start on port {TEST_PORT}"
+
     yield
     print("Stopping server...")
     server_proc.terminate()
@@ -51,7 +75,7 @@ def start_server():
         verifier_proc.wait()
 
 def http_post(path, data):
-    url = f"http://127.0.0.1:8081{path}"
+    url = f"http://127.0.0.1:{TEST_PORT}{path}"
     req = urllib.request.Request(url, method="POST", data=json.dumps(data).encode("utf-8"))
     req.add_header("Content-Type", "application/json")
     req.add_header("Authorization", "Bearer 321606503a874d39b50f6137e3321b7f")
@@ -62,7 +86,7 @@ def http_post(path, data):
         return json.loads(e.read().decode())
 
 def http_get(path):
-    url = f"http://127.0.0.1:8081{path}"
+    url = f"http://127.0.0.1:{TEST_PORT}{path}"
     req = urllib.request.Request(url, method="GET")
     req.add_header("Authorization", "Bearer 321606503a874d39b50f6137e3321b7f")
     res = urllib.request.urlopen(req, timeout=5)

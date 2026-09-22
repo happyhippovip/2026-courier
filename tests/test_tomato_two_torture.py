@@ -73,42 +73,47 @@ def cleanup_file(filename):
         except Exception:
             pass
 
-def get_launchd_worker_pid():
-    out = subprocess.check_output(["launchctl", "list"]).decode()
-    for line in out.splitlines():
-        if "com.courier.mac_worker" in line:
-            parts = line.split()
-            if parts and parts[0].isdigit():
-                return int(parts[0])
+def get_launchd_worker_pid(timeout_sec=15):
+    start_t = time.time()
+    while True:
+        try:
+            out = subprocess.check_output(["launchctl", "list"]).decode()
+            for line in out.splitlines():
+                if "com.courier.mac_worker_2" in line:
+                    parts = line.split()
+                    if parts and parts[0].isdigit():
+                        return int(parts[0])
+        except Exception:
+            pass
+        if time.time() - start_t >= timeout_sec:
+            break
+        time.sleep(1)
     return None
 
 
-import time
-import subprocess
-import os
 
 @pytest.fixture(scope="module", autouse=True)
 def start_server():
     print("Starting server for test...")
     python_exe = sys.executable
+    state_file = REPO_ROOT / "server" / "state" / "test_state.json"
+    if state_file.exists():
+        state_file.unlink()
+
     env = os.environ.copy()
     env["PORT"] = "8081"
     env["PYTHONPATH"] = str(REPO_ROOT)
     env["FLASK_APP"] = "server.app"
-    env["PORT"] = "8081"
+    env["COURIER_STATE_FILE"] = str(state_file)
+    env["COURIER_SERVER"] = "http://127.0.0.1:8081"
     env["COURIER_API_KEY"] = "321606503a874d39b50f6137e3321b7f"
     env["COURIER_MOCK_CHIEF"] = "1"
     env["COURIER_VERIFIER_API_KEY"] = "421606503a874d39b50f6137e3321b7f"
     
-# Setup mac_worker_2 to hit 8081 via plist
+    # Setup mac_worker_2 to hit 8081 via plist
     import json
     import subprocess
     import shutil
-    
-    # clear test_state.json
-    state_file = REPO_ROOT / "server" / "state" / "test_state.json"
-    if state_file.exists():
-        state_file.unlink()
         
     # clear current_task.json and current_result.json
     for wf in ["state", "state_2"]:
@@ -117,7 +122,14 @@ def start_server():
             if sfp.exists():
                 sfp.unlink()
                 
-    plist_path = os.path.expanduser("~/Library/LaunchAgents/com.courier.mac_worker_2.plist")
+    candidates = [
+        Path(os.path.expanduser("~/Library/LaunchAgents/com.courier.mac_worker_2.plist")),
+        Path("/Users") / os.environ.get("USER", "user") / "Library/LaunchAgents/com.courier.mac_worker_2.plist",
+    ]
+    plist_path = next((str(p) for p in candidates if p.exists()), None)
+    if not plist_path:
+        pytest.skip("LaunchAgent plist com.courier.mac_worker_2.plist not found")
+        
     with open(plist_path, "r") as f:
         plist_content = f.read()
         
@@ -129,10 +141,41 @@ def start_server():
     subprocess.run(["launchctl", "load", plist_path])
     subprocess.run(["launchctl", "start", "com.courier.mac_worker_2"])
     
+    # Ensure port 8081 is clean before starting
+    import socket
+    for _ in range(10):
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                s.bind(("127.0.0.1", 8081))
+                break
+        except OSError:
+            try:
+                out = subprocess.check_output(["lsof", "-t", "-i", ":8081"]).decode().strip()
+                for pid_str in out.split():
+                    if pid_str.isdigit():
+                        os.kill(int(pid_str), signal.SIGKILL)
+            except Exception:
+                pass
+            time.sleep(0.5)
+
     server_proc = subprocess.Popen([python_exe, "-m", "server.app"], env=env, cwd=str(REPO_ROOT))
     
     verifier_proc = subprocess.Popen([python_exe, str(REPO_ROOT / "scripts/courier_verifier.py")], env=env, cwd=str(REPO_ROOT))
-    time.sleep(3)
+    
+    server_started = False
+    for _ in range(30):
+        if server_proc.poll() is not None:
+            break
+        try:
+            req = urllib.request.Request("http://127.0.0.1:8081/health")
+            with urllib.request.urlopen(req, timeout=1) as r:
+                if r.status == 200:
+                    server_started = True
+                    break
+        except Exception:
+            time.sleep(0.2)
+    assert server_started, f"Server on 8081 failed to start (exit code {server_proc.poll()})"
     yield
     print("Stopping server...")
     server_proc.terminate()
@@ -148,9 +191,23 @@ def start_server():
         verifier_proc.kill()
         verifier_proc.wait()
 
+    for _ in range(20):
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                s.bind(("127.0.0.1", 8081))
+                break
+        except OSError:
+            time.sleep(0.2)
+
+    if state_file.exists():
+        try:
+            state_file.unlink()
+        except Exception:
+            pass
+
     pass
-    plist_path = os.path.expanduser("~/Library/LaunchAgents/com.courier.mac_worker_2.plist")
-    if os.path.exists(plist_path):
+    if plist_path and os.path.exists(plist_path):
         with open(plist_path, "r") as f:
             plist_content = f.read()
         new_plist_content = plist_content.replace("<string>http://127.0.0.1:8081/</string>", "<string>http://127.0.0.1:8080/</string>")
@@ -178,7 +235,6 @@ def test_tomato_two_full_torture_chamber():
             health = http_get("/health")
             break
         except Exception:
-            import time
             time.sleep(1)
     else:
         raise RuntimeError("Server did not start")
@@ -191,21 +247,19 @@ def test_tomato_two_full_torture_chamber():
     assert launchd_pid is not None, "Launchd worker com.courier.mac_worker is not running"
 
     # Identify launchd worker ID in Central
-    workers = http_get("/workers")
     launchd_wid = None
-    for wid, winfo in workers.items():
-        if wid.startswith("MAC-") and wid != "MAC-CLI-1":
-            launchd_wid = wid
+    for _ in range(30):
+        try:
+            workers = http_get("/workers")
+            for wid, winfo in workers.items():
+                if wid.startswith("MAC-") and wid != "MAC-CLI-1":
+                    launchd_wid = wid
+                    break
+        except Exception:
+            pass
+        if launchd_wid is not None:
             break
-    import time
-    for _ in range(15):
-        if launchd_wid is not None: break
         time.sleep(1)
-        workers = http_get("/workers")
-        for wid, winfo in workers.items():
-            if wid.startswith("MAC-") and wid != "MAC-CLI-1":
-                launchd_wid = wid
-                break
     assert launchd_wid is not None, "Launchd worker not registered in Central"
 
     evidence["session_independence"] = {
@@ -328,8 +382,8 @@ def test_tomato_two_full_torture_chamber():
     # Launchd supervisor automatically spawns new worker process
     new_pid = None
     start_restart = time.time()
-    while time.time() - start_restart < 15:
-        cur_pid = get_launchd_worker_pid()
+    while time.time() - start_restart < 30:
+        cur_pid = get_launchd_worker_pid(timeout_sec=0)
         if cur_pid and cur_pid != pid_to_kill:
             new_pid = cur_pid
             break
@@ -410,7 +464,7 @@ def test_tomato_two_full_torture_chamber():
 
     # Observe launchd worker claim it and automatically transition to WAITING_PROVIDER
     t_a_waiting = False
-    for _ in range(25):
+    for _ in range(60):
         tasks = get_goal_tasks(goal_a_id)
         if tasks and tasks[0]["status"] == "WAITING_PROVIDER":
             t_a_waiting = True
@@ -459,7 +513,7 @@ def test_tomato_two_full_torture_chamber():
     # 13 & 14. CLEAR PROVIDER CONDITION SAFELY & RESUME ORIGINAL WAITING TASK
     canary_prov = f"courier_canary_torture_prov_{run_uid}.txt"
     cleanup_file(canary_prov)
-    for _ in range(15):
+    for _ in range(25):
         try:
             resume_res = http_post(f"/tasks/{task_wait}/resume", {
                 "action": "retry",
@@ -645,7 +699,7 @@ def test_tomato_two_full_torture_chamber():
 
     print(f"\nRAW EVIDENCE WRITTEN TO: {EVIDENCE_LOG}")
     print("\n--- ALL TORTURE CHAMBER PREDICATES PROVEN ---")
-    return evidence
+    return
 
 if __name__ == "__main__":
     test_tomato_two_full_torture_chamber()

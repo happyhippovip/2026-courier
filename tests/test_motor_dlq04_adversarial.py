@@ -61,7 +61,7 @@ def test_dlq04_adversarial_drain(tmp_path):
             "current_sha": "0000000000000000000000000000000000000000",
             "runtime_identity": "0000000000000000000000000000000000000000"
         },
-        "evidence": [{"source_url":"https://test.com","source_type":"MACHINE_ARTIFACT","observed_at":"2026-09-18T22:03:59Z","evidence_sha":"0000000000000000000000000000000000000000","runtime_binding":"0000000000000000000000000000000000000000","validity":"VALID","producer_id":"producer_1","verifier_id":"verifier_1","result_sha256":"0000000000000000000000000000000000000000","reason":"test"}],
+        "evidence": [{"source_url":"https://test.com","source_type":"MACHINE_ARTIFACT","observed_at":"2026-09-22T16:14:56Z","evidence_sha":"0000000000000000000000000000000000000000","runtime_binding":"0000000000000000000000000000000000000000","validity":"VALID","producer_id":"producer_1","verifier_id":"verifier_1","result_sha256":"0000000000000000000000000000000000000000","reason":"test"}],
         "flow": [
             "EXECUTION",
             "EVIDENCE",

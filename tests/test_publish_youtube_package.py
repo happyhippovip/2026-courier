@@ -56,11 +56,15 @@ def test_publish_package_dry_run_success(fake_manifest, monkeypatch):
     if os.path.exists(".youtube_receipts"):
         shutil.rmtree(".youtube_receipts")
     
-    assert publish_package(str(fake_manifest), dry_run=True) is True
-    
-    # Verify idempotency key receipt was created
-    receipt_path = ".youtube_receipts/yt_test-mission_test-wf.json"
-    assert os.path.exists(receipt_path)
-    with open(receipt_path, "r") as f:
-        receipt = json.load(f)
-        assert receipt["status"] == "dry_run"
+    try:
+        assert publish_package(str(fake_manifest), dry_run=True) is True
+        
+        # Verify idempotency key receipt was created
+        receipt_path = ".youtube_receipts/yt_test-mission_test-wf.json"
+        assert os.path.exists(receipt_path)
+        with open(receipt_path, "r") as f:
+            receipt = json.load(f)
+            assert receipt["status"] == "dry_run"
+    finally:
+        if os.path.exists(".youtube_receipts"):
+            shutil.rmtree(".youtube_receipts")

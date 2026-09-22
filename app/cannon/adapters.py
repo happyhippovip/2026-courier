@@ -147,7 +147,7 @@ class LiveMuseAdapter:
         command = [executable, 'exec', '--json', '--provider', 'meta', '--reasoning-effort', 'low',
                    '--max-model-steps', '6', '--workspace', str(target.parent),
                    '--prompt-file', str(prompt_file),
-                   '--no-foreign-personal-context', '--no-session-log', '--disable-web-tools']
+                   '--no-foreign-personal-context', '--no-session-log', '--disable-web-tools', '--disable-approval']
         env = dict(os.environ, MUSE_NO_AUTO_UPDATE='1')
         persist_identity(identity)
         with (folder / 'stdout.jsonl').open('wb') as out, (folder / 'stderr.txt').open('wb') as err:

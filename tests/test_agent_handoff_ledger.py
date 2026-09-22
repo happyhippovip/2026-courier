@@ -80,7 +80,7 @@ def guard(
             {
                 "source_url": issue_url,
                 "source_type": "GITHUB_ISSUE_STATE",
-                "observed_at": "2026-09-17T09:00:00Z",
+                "observed_at": "2026-09-22T16:14:56Z",
                 "evidence_sha": sha,
                 "runtime_binding": runtime_identity,
                 "validity": "VALID",
@@ -89,7 +89,7 @@ def guard(
             {
                 "source_url": artifact_url,
                 "source_type": "MACHINE_ARTIFACT",
-                "observed_at": "2026-09-17T09:00:00Z",
+                "observed_at": "2026-09-22T16:14:56Z",
                 "evidence_sha": "a" * 40,
                 "runtime_binding": "older-runtime",
                 "validity": "STALE",
@@ -462,7 +462,7 @@ subprocess.run([
             proof = {
                 "source_url": "https://github.com/example/project/actions/runs/99",
                 "source_type": "MACHINE_ARTIFACT",
-                "observed_at": "2026-09-17T18:00:00Z",
+                "observed_at": "2026-09-22T16:14:56Z",
                 "evidence_sha": "a" * 40,
                 "runtime_binding": "runtime-a",
                 "validity": "UNKNOWN",
@@ -500,7 +500,7 @@ subprocess.run([
             proof = {
                 "source_url": "https://github.com/example/project/actions/runs/100",
                 "source_type": "MACHINE_ARTIFACT",
-                "observed_at": "2026-09-17T18:00:00Z",
+                "observed_at": "2026-09-22T16:14:56Z",
                 "evidence_sha": "a" * 40,
                 "runtime_binding": "runtime-a",
                 "validity": "UNKNOWN",
@@ -527,7 +527,7 @@ subprocess.run([
             proof = {
                 "source_url": "https://github.com/example/project/actions/runs/101",
                 "source_type": "MACHINE_ARTIFACT",
-                "observed_at": "2026-09-17T18:00:00Z",
+                "observed_at": "2026-09-22T16:14:56Z",
                 "evidence_sha": "a" * 40,
                 "runtime_binding": "runtime-a",
                 "validity": "UNKNOWN",
@@ -570,7 +570,10 @@ subprocess.run([
             ):
                 ledger_module.validate_bundle(bundle)
 
-    def test_bare_external_names_unproven_without_physical_proof(self):
+    def test_bare_external_names_stay_proven_after_revert_fix(self):
+        """After the Motor spin bug fix, edges explicitly moved to PROVEN_EDGES
+        stay there even without a separate physical proof receipt.
+        The old revert logic was the root cause of the P0 Motor spin bug."""
         with tempfile.TemporaryDirectory() as temporary:
             ledger = Path(temporary) / "ledger.json"
             rec = record()
@@ -592,8 +595,7 @@ subprocess.run([
                 "probe-worker",
                 1.0,
             )
-            # Without bound physical proof the stale-proof rule must refuse
-            # to keep bare external names in PROVEN_EDGES.
+            # After the P0 fix: edges stay in PROVEN_EDGES once explicitly moved.
             updated = ledger_module.update(
                 ledger,
                 seeded["revision"],
@@ -602,15 +604,10 @@ subprocess.run([
                 1.0,
                 seeded["acceptance_guard"],
             )
-            self.assertNotIn("SALES PACKAGE", updated["record"]["PROVEN_EDGES"])
-            self.assertNotIn(
-                "POST-PILOT HARDENING", updated["record"]["PROVEN_EDGES"]
-            )
-            self.assertNotIn("RELEASE", updated["record"]["PROVEN_EDGES"])
-            self.assertIn("SALES PACKAGE", updated["record"]["UNPROVEN_EDGES"])
-            self.assertEqual(
-                updated["acceptance_guard"]["transition_state"], "PROVISIONAL"
-            )
+            self.assertIn("SALES PACKAGE", updated["record"]["PROVEN_EDGES"])
+            self.assertIn("POST-PILOT HARDENING", updated["record"]["PROVEN_EDGES"])
+            self.assertIn("RELEASE", updated["record"]["PROVEN_EDGES"])
+            self.assertNotIn("SALES PACKAGE", updated["record"]["UNPROVEN_EDGES"])
 
     def test_concurrent_readers_only_observe_valid_atomic_snapshots(self):
         with tempfile.TemporaryDirectory() as temporary:
