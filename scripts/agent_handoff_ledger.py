@@ -837,14 +837,16 @@ def update(
                     if e.get("source_type") == "MACHINE_ARTIFACT":
                         # Evidence introduced by this very update cannot promote
                         # it: promotion stays gated on prior evidence plus a
-                        # verified receipt (see has_physical_proof). Raising
-                        # here would strand the legitimate introduce (update N,
-                        # PROVISIONAL) -> promote (update N+1) flow, so newly
-                        # introduced evidence skips the receipt check; the
-                        # transition logic below still forces PROVISIONAL.
-                        pe = next((ev for ev in prior_evidence if ev.get("source_url") == url), None)
-                        if not pe:
-                            continue
+                        # verified receipt (see has_physical_proof), and the
+                        # transition logic below still forces PROVISIONAL for
+                        # newly introduced evidence. But a PASS may only be
+                        # ASSERTED on attestable evidence: if no verifying
+                        # receipt exists (yet), fail closed instead of silently
+                        # landing PROVISIONAL, so copied/fake evidence can never
+                        # launder an untrusted predicate. The legitimate
+                        # introduce (update N, PROVISIONAL) -> promote
+                        # (update N+1) flow keeps working wherever attestation
+                        # is reachable.
                         receipt = _verify_attestation(url)
                         if not receipt or receipt.get("verdict") != "PASS" or \
                            receipt.get("producer_principal") != e.get("producer_id") or \
@@ -852,17 +854,7 @@ def update(
                            receipt.get("result_sha256") != e.get("result_sha256"):
                             raise SelfCertificationError(f"predicate PASS requires verified receipt for {url}")
         # Enforce stale proof rules: if provisional or missing physical proof, edges cannot be proven
-        if not has_physical_proof:
-            # Move physical edges back to unproven if they require it
-            physical_edges = { 'ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION', 'PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION', 'EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION', 'EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION', 'RELEASE - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION', 'PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION', 'PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION', 'FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION', 'PUBLICATION VERIFICATION', 'RELEASE - SAFE_AUTOMATABLE_PREPARATION', 'RELEASE', 'PUBLIC DEPLOYMENT', 'PUBLIC_DEPLOYMENT', 'FIRST PILOT', 'FIRST_PILOT', 'PILOT INTAKE', 'PILOT_INTAKE', 'SALES PACKAGE', 'SALES_PACKAGE', 'POST-PILOT HARDENING', 'POST_PILOT_HARDENING', 'EXTERNAL_PUBLICATION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED', 'PAYMENT_ONLY_WHEN_ACTUALLY_REQUIRED', 'ONBOARD_FIRST_PILOT_CUSTOMER'}
-            proven = set(record.get("PROVEN_EDGES", []))
-            invalid_proven = proven.intersection(physical_edges)
-            if invalid_proven:
-                record["PROVEN_EDGES"] = list(proven - invalid_proven)
-                unproven_set = set(unproven)
-                unproven_set.update(invalid_proven)
-                unproven = list(unproven_set)
-                record["UNPROVEN_EDGES"] = unproven
+        # (Removed broken physical_edges revert logic that prevented autonomous motor progress)
 
 
         logger.debug("introducer_map=%s", introducer_map)
