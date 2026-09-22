@@ -1,37 +1,24 @@
-import re
 with open("tests/test_DLQ02_freshness_bound.py", "r") as f:
-    code = f.read()
+    c = f.read()
 
-# I need to add monkeypatch parameter to both test functions
-code = code.replace("def test_dlq02_stale_evidence_rejected(tmp_path):", "def test_dlq02_stale_evidence_rejected(tmp_path, monkeypatch):")
-code = code.replace("def test_dlq02_fresh_evidence_accepted(tmp_path):", "def test_dlq02_fresh_evidence_accepted(tmp_path, monkeypatch):")
+# Remove the static import
+c = c.replace("from dlq01_refresh import record as base_record, base_guard", "")
 
-# I need to define the mock inside the test file and monkeypatch it
-mock_code = """
-def patch_verify(monkeypatch):
-    def fake_verify(url: str):
-        return {
-            "verdict": "PASS",
-            "result_sha256": "0000000000000000000000000000000000000000",
-            "producer_principal": "producer_1",
-            "verifier_principal": "verifier_1",
-            "binding": {
-                "sha": base_guard()["binding"]["current_sha"],
-                "runtime": base_guard()["binding"]["runtime_identity"]
-            },
-            "goal_id": base_record()["GOAL"]
-        }
-    monkeypatch.setattr(ahl, "_verify_attestation", fake_verify)
+# Add dynamic import function
+get_base_code = """
+def get_base():
+    import importlib.util
+    import sys
+    spec = importlib.util.spec_from_file_location("dlq01_refresh", "/tmp/dlq01_refresh.py")
+    dlq = importlib.util.module_from_spec(spec)
+    sys.modules["dlq01_refresh"] = dlq
+    spec.loader.exec_module(dlq)
+    return dlq.record, dlq.base_guard
+"""
+c = c.replace('sys.path.insert(0, "/tmp")', 'sys.path.insert(0, "/tmp")\n' + get_base_code)
 
-def test_dlq02_stale_evidence_rejected(tmp_path, monkeypatch):
-    patch_verify(monkeypatch)"""
-
-code = code.replace("def test_dlq02_stale_evidence_rejected(tmp_path, monkeypatch):", mock_code)
-
-mock_code2 = """
-def test_dlq02_fresh_evidence_accepted(tmp_path, monkeypatch):
-    patch_verify(monkeypatch)"""
-code = code.replace("def test_dlq02_fresh_evidence_accepted(tmp_path, monkeypatch):", mock_code2)
+# Replace all rec = base_record() with the dynamic version
+c = c.replace("rec = base_record()", "base_record, base_guard = get_base()\n    rec = base_record()")
 
 with open("tests/test_DLQ02_freshness_bound.py", "w") as f:
-    f.write(code)
+    f.write(c)

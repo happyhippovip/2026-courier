@@ -1,29 +1,28 @@
 {
   "schema_version": 2,
   "goals": {
-    "goal-85eba1e1": {
-      "goal_id": "goal-85eba1e1",
-      "goal_text": "real worker prep",
-      "status": "ACTIVE",
+    "goal-f10e6db0": {
+      "goal_id": "goal-f10e6db0",
+      "goal_text": "Torture Sequence Work",
+      "status": "DONE",
       "terminal": true,
       "workflow_plan": [
         {
-          "task_id": "T1",
+          "task_id": "torture-seq-01-a057111e",
           "target_agent": "mac",
-          "instruction": "echo 'hello real worker'",
-          "payload": {
-            "command": "echo 'hello real worker'"
-          },
-          "goal_id": "goal-85eba1e1",
-          "status": "DISPATCHED",
+          "mode": "NATIVE",
+          "instruction": "sleep 4",
+          "artifacts": [],
+          "goal_id": "goal-f10e6db0",
+          "status": "RECONCILED",
           "attempts": 1,
-          "worker_id": "MAC-REAL-8603E4",
-          "attempt_id": "T1:attempt:1",
-          "dispatch_id": "dispatch-6f863a1b459a420fa95d173ec26c0fba",
-          "execution_ref": "exec-86b469ca122541c29e829a60a0e28f3d",
+          "worker_id": "MAC-WORKER-2",
+          "attempt_id": "torture-seq-01-a057111e:attempt:1",
+          "dispatch_id": "dispatch-a664353650254b1581784f3567dab424",
+          "execution_ref": "exec-a6116ee2a037483f99694a97c45132b4",
           "server_binding": {
-            "sha": "18666fbcd08fe9a009b35a5248f519882fd9cab4",
-            "runtime": "courier-server:974676927051492ebc3e3c16a14ffbb1"
+            "sha": "c38116aa34bb1facd236efacd94976062b2c29bf",
+            "runtime": "courier-server:8338c99ebdbe4619bf51f7ec6fea3a91"
           },
           "run_id": null,
           "result_id": null,
@@ -31,298 +30,37 @@
           "last_completed_step": null,
           "next_action": "EXECUTE",
           "blocker": null,
-          "artifact_refs": []
-        }
-      ],
-      "current_step_index": 0
-    },
-    "goal-5d1216b2": {
-      "goal_id": "goal-5d1216b2",
-      "goal_text": "real worker prep",
-      "status": "ACTIVE",
-      "terminal": true,
-      "workflow_plan": [
+          "artifact_refs": [],
+          "verification": {
+            "verifier_id": "VERIFIER-01",
+            "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
+            "result_id": "result-347d99ac875cac2eb802384452ba4a0dba5be83724d3e3874a1725ee686c3c35",
+            "verdict": "PASS",
+            "artifacts": [],
+            "verified_at": 1790089950.4219499
+          }
+        },
         {
-          "task_id": "T1",
+          "task_id": "torture-seq-02-a057111e",
           "target_agent": "mac",
-          "instruction": "echo 'hello real worker'",
-          "payload": {
-            "command": "echo 'hello real worker'"
-          },
-          "goal_id": "goal-5d1216b2",
-          "status": "DISPATCHED",
-          "attempts": 1,
-          "worker_id": "MAC-REAL-274D3A",
-          "attempt_id": "T1:attempt:1",
-          "dispatch_id": "dispatch-b7e0cfa9780c4b108ec52eb13ce6eecf",
-          "execution_ref": "exec-0a7daf04142e40ce9d1d18cf55122e31",
-          "server_binding": {
-            "sha": "18666fbcd08fe9a009b35a5248f519882fd9cab4",
-            "runtime": "courier-server:974676927051492ebc3e3c16a14ffbb1"
-          },
-          "run_id": null,
-          "result_id": null,
-          "target_capability": "mac",
-          "last_completed_step": null,
-          "next_action": "EXECUTE",
-          "blocker": null,
-          "artifact_refs": []
-        }
-      ],
-      "current_step_index": 0
-    },
-    "goal-5547c2b5": {
-      "goal_id": "goal-5547c2b5",
-      "goal_text": "real worker prep",
-      "status": "ACTIVE",
-      "terminal": true,
-      "workflow_plan": [
-        {
-          "task_id": "T1",
-          "target_agent": "macos",
-          "instruction": "echo 'hello real worker'",
-          "action": "echo",
-          "goal_id": "goal-5547c2b5",
-          "status": "DISPATCHED",
-          "attempts": 1,
-          "worker_id": "MAC-REAL-1B11A9",
-          "attempt_id": "T1:attempt:1",
-          "dispatch_id": "dispatch-dd4cf5c3e9e248c0a8bcfbf4b7aeb82f",
-          "execution_ref": "exec-36eedb50d7e54b2fa63859e70d2d98f7",
-          "server_binding": {
-            "sha": "18666fbcd08fe9a009b35a5248f519882fd9cab4",
-            "runtime": "courier-server:974676927051492ebc3e3c16a14ffbb1"
-          },
-          "run_id": null,
-          "result_id": null,
-          "target_capability": "mac",
-          "last_completed_step": null,
-          "next_action": "EXECUTE",
-          "blocker": null,
-          "artifact_refs": []
-        }
-      ],
-      "current_step_index": 0
-    },
-    "goal-995e7fd2": {
-      "goal_id": "goal-995e7fd2",
-      "goal_text": "real worker prep",
-      "status": "ACTIVE",
-      "terminal": true,
-      "workflow_plan": [
-        {
-          "task_id": "T1",
-          "target_agent": "macos",
-          "instruction": "echo 'hello real worker'",
-          "action": "echo",
-          "goal_id": "goal-995e7fd2",
-          "status": "DISPATCHED",
-          "attempts": 1,
-          "worker_id": "MAC-REAL-5A430A",
-          "attempt_id": "T1:attempt:1",
-          "dispatch_id": "dispatch-242d1b0efb804a589d6a087bee24fb84",
-          "execution_ref": "exec-15e1e2cad96a40d89cfe8f7c8b1a4c8a",
-          "server_binding": {
-            "sha": "18666fbcd08fe9a009b35a5248f519882fd9cab4",
-            "runtime": "courier-server:974676927051492ebc3e3c16a14ffbb1"
-          },
-          "run_id": null,
-          "result_id": null,
-          "target_capability": "mac",
-          "last_completed_step": null,
-          "next_action": "EXECUTE",
-          "blocker": null,
-          "artifact_refs": []
-        }
-      ],
-      "current_step_index": 0
-    },
-    "goal-59b7e732": {
-      "goal_id": "goal-59b7e732",
-      "goal_text": "real worker prep",
-      "status": "ACTIVE",
-      "terminal": true,
-      "workflow_plan": [
-        {
-          "task_id": "T1",
-          "target_agent": "macos",
-          "instruction": "echo 'hello real worker'",
-          "action": "echo",
-          "goal_id": "goal-59b7e732",
-          "status": "DISPATCHED",
-          "attempts": 1,
-          "worker_id": "MAC-REAL-A81CCC",
-          "attempt_id": "T1:attempt:1",
-          "dispatch_id": "dispatch-8554916c08004e14b4602376a77fa38b",
-          "execution_ref": "exec-95368aee99af42f391ebcad8b2324294",
-          "server_binding": {
-            "sha": "18666fbcd08fe9a009b35a5248f519882fd9cab4",
-            "runtime": "courier-server:974676927051492ebc3e3c16a14ffbb1"
-          },
-          "run_id": null,
-          "result_id": null,
-          "target_capability": "mac",
-          "last_completed_step": null,
-          "next_action": "EXECUTE",
-          "blocker": null,
-          "artifact_refs": []
-        }
-      ],
-      "current_step_index": 0
-    },
-    "goal-5bd41612": {
-      "goal_id": "goal-5bd41612",
-      "goal_text": "real worker prep",
-      "status": "ACTIVE",
-      "terminal": true,
-      "workflow_plan": [
-        {
-          "task_id": "T1",
-          "target_agent": "macos",
-          "instruction": "echo 'hello real worker'",
-          "action": "echo",
-          "goal_id": "goal-5bd41612",
-          "status": "DISPATCHED",
-          "attempts": 1,
-          "worker_id": "MAC-REAL-EBCBE5",
-          "attempt_id": "T1:attempt:1",
-          "dispatch_id": "dispatch-0225f3454bf24f0287555670667a19dd",
-          "execution_ref": "exec-1a7e4da208f748d986fd62ddda42ecaf",
-          "server_binding": {
-            "sha": "18666fbcd08fe9a009b35a5248f519882fd9cab4",
-            "runtime": "courier-server:974676927051492ebc3e3c16a14ffbb1"
-          },
-          "run_id": null,
-          "result_id": null,
-          "target_capability": "mac",
-          "last_completed_step": null,
-          "next_action": "EXECUTE",
-          "blocker": null,
-          "artifact_refs": []
-        }
-      ],
-      "current_step_index": 0
-    },
-    "goal-b845a0f6": {
-      "goal_id": "goal-b845a0f6",
-      "goal_text": "real worker prep",
-      "status": "ACTIVE",
-      "terminal": true,
-      "workflow_plan": [
-        {
-          "task_id": "T1",
-          "target_agent": "macos",
-          "instruction": "echo 'hello real worker'",
-          "action": "echo",
-          "goal_id": "goal-b845a0f6",
-          "status": "DISPATCHED",
-          "attempts": 1,
-          "worker_id": "MAC-REAL-53587B",
-          "attempt_id": "T1:attempt:1",
-          "dispatch_id": "dispatch-06d6e86b087a4c5a9d8671a1f3196657",
-          "execution_ref": "exec-22756449140241d5bc360d210e22e8d9",
-          "server_binding": {
-            "sha": "18666fbcd08fe9a009b35a5248f519882fd9cab4",
-            "runtime": "courier-server:974676927051492ebc3e3c16a14ffbb1"
-          },
-          "run_id": null,
-          "result_id": null,
-          "target_capability": "mac",
-          "last_completed_step": null,
-          "next_action": "EXECUTE",
-          "blocker": null,
-          "artifact_refs": []
-        }
-      ],
-      "current_step_index": 0
-    },
-    "goal-d6ecdcf0": {
-      "goal_id": "goal-d6ecdcf0",
-      "goal_text": "real worker prep",
-      "status": "ACTIVE",
-      "terminal": true,
-      "workflow_plan": [
-        {
-          "task_id": "T1",
-          "target_agent": "macos",
-          "instruction": "echo 'hello real worker'",
-          "action": "echo",
-          "goal_id": "goal-d6ecdcf0",
-          "status": "DISPATCHED",
-          "attempts": 1,
-          "worker_id": "MAC-REAL-49E28F",
-          "attempt_id": "T1:attempt:1",
-          "dispatch_id": "dispatch-287e6db96e7a46a7a9746dfd2b1190ea",
-          "execution_ref": "exec-c224e3cb0a954aceb299b7a3e594cadb",
-          "server_binding": {
-            "sha": "18666fbcd08fe9a009b35a5248f519882fd9cab4",
-            "runtime": "courier-server:974676927051492ebc3e3c16a14ffbb1"
-          },
-          "run_id": null,
-          "result_id": null,
-          "target_capability": "mac",
-          "last_completed_step": null,
-          "next_action": "EXECUTE",
-          "blocker": null,
-          "artifact_refs": []
-        }
-      ],
-      "current_step_index": 0
-    },
-    "goal-622eb794": {
-      "goal_id": "goal-622eb794",
-      "goal_text": "real worker prep",
-      "status": "ACTIVE",
-      "terminal": true,
-      "workflow_plan": [
-        {
-          "task_id": "T1",
-          "target_agent": "macos",
-          "instruction": "echo 'hello real worker'",
-          "action": "echo",
-          "goal_id": "goal-622eb794",
-          "status": "DISPATCHED",
-          "attempts": 1,
-          "worker_id": "MAC-REAL-B98865",
-          "attempt_id": "T1:attempt:1",
-          "dispatch_id": "dispatch-7eb043bfc54f41d4a09f1699374e6019",
-          "execution_ref": "exec-25c9b973466843d3a71f0b832debab22",
-          "server_binding": {
-            "sha": "18666fbcd08fe9a009b35a5248f519882fd9cab4",
-            "runtime": "courier-server:974676927051492ebc3e3c16a14ffbb1"
-          },
-          "run_id": null,
-          "result_id": null,
-          "target_capability": "mac",
-          "last_completed_step": null,
-          "next_action": "EXECUTE",
-          "blocker": null,
-          "artifact_refs": []
-        }
-      ],
-      "current_step_index": 0
-    },
-    "goal-1848a6bb": {
-      "goal_id": "goal-1848a6bb",
-      "goal_text": "real worker prep",
-      "status": "DONE",
-      "terminal": true,
-      "workflow_plan": [
-        {
-          "task_id": "T1",
-          "target_agent": "macos",
-          "instruction": "echo 'hello real worker'",
-          "action": "echo",
-          "goal_id": "goal-1848a6bb",
+          "mode": "NATIVE",
+          "instruction": "touch courier_canary_torture_seq2_a057111e.txt",
+          "artifacts": [
+            "courier_canary_torture_seq2_a057111e.txt"
+          ],
+          "depends_on": [
+            "torture-seq-01-a057111e"
+          ],
+          "goal_id": "goal-f10e6db0",
           "status": "RECONCILED",
           "attempts": 1,
-          "worker_id": "MAC-REAL-E86872",
-          "attempt_id": "T1:attempt:1",
-          "dispatch_id": "dispatch-66612dbf83dd49fbb58e83918bdabd7b",
-          "execution_ref": "exec-c040eb8e65894ba194353eeff74eb817",
+          "worker_id": "MAC-WORKER-2",
+          "attempt_id": "torture-seq-02-a057111e:attempt:1",
+          "dispatch_id": "dispatch-7f4b7bb83e274a33ae06fc7ed35208e5",
+          "execution_ref": "exec-8da382afc0664955a21997d4c7d86051",
           "server_binding": {
-            "sha": "18666fbcd08fe9a009b35a5248f519882fd9cab4",
-            "runtime": "courier-server:974676927051492ebc3e3c16a14ffbb1"
+            "sha": "c38116aa34bb1facd236efacd94976062b2c29bf",
+            "runtime": "courier-server:8338c99ebdbe4619bf51f7ec6fea3a91"
           },
           "run_id": null,
           "result_id": null,
@@ -333,69 +71,94 @@
           "artifact_refs": [],
           "verification": {
             "verifier_id": "VERIFIER-01",
-            "verifier_principal": "principal_01a4447a4261e4f6a4952301165be1175a0f20c4a26bde68d5722d0a9241e550",
-            "result_id": "result-2c5b179fafcb6c86b02e0362166d3284af7f78002f68839ab70d1167785f8d6f",
+            "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
+            "result_id": "result-fd4861f7beaa8760e192835acfbdc183593df4a65e7a79f42cbfe34b94280d19",
             "verdict": "PASS",
-            "artifacts": [],
-            "verified_at": 1789793767.094416
+            "artifacts": [
+              {
+                "path": "courier_canary_torture_seq2_a057111e.txt",
+                "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
+              }
+            ],
+            "verified_at": 1790089955.465195
           }
         }
       ],
       "current_step_index": 0
     },
-    "goal-b9245988": {
-      "goal_id": "goal-b9245988",
-      "goal_text": "real worker prep",
-      "status": "ACTIVE",
-      "terminal": true,
-      "workflow_plan": [
-        {
-          "task_id": "T1",
-          "target_capability": "linux",
-          "instruction": "echo 'hello real worker'",
-          "action": "echo",
-          "goal_id": "goal-b9245988",
-          "status": "DISPATCHED",
-          "attempts": 1,
-          "worker_id": "MAC-REAL-8603E4",
-          "attempt_id": "T1:attempt:1",
-          "dispatch_id": "dispatch-87411fd331274334a542108743e246ba",
-          "execution_ref": "exec-2c2a6d207a34440b815e43af641e3b24",
-          "server_binding": {
-            "sha": "18666fbcd08fe9a009b35a5248f519882fd9cab4",
-            "runtime": "courier-server:974676927051492ebc3e3c16a14ffbb1"
-          },
-          "run_id": null,
-          "result_id": null,
-          "last_completed_step": null,
-          "next_action": "EXECUTE",
-          "blocker": null,
-          "artifact_refs": []
-        }
-      ],
-      "current_step_index": 0
-    },
-    "goal-75bb240d": {
-      "goal_id": "goal-75bb240d",
-      "goal_text": "real worker prep",
+    "goal-4574f0cd": {
+      "goal_id": "goal-4574f0cd",
+      "goal_text": "Goal A With Provider Wait",
       "status": "DONE",
       "terminal": true,
       "workflow_plan": [
         {
-          "task_id": "T1",
-          "target_agent": "macos",
-          "instruction": "echo 'hello real worker'",
-          "action": "echo",
-          "goal_id": "goal-75bb240d",
+          "task_id": "torture-wait-a057111e",
+          "target_agent": "mac",
+          "instruction": "touch courier_canary_torture_prov_a057111e.txt",
+          "mode": "NATIVE",
+          "artifacts": [],
+          "goal_id": "goal-4574f0cd",
           "status": "RECONCILED",
           "attempts": 1,
-          "worker_id": "MAC-REAL-5CF148",
-          "attempt_id": "T1:attempt:1",
-          "dispatch_id": "dispatch-3a80db3da51c49d294d84ff25d0acb42",
-          "execution_ref": "exec-eb524b27594e42eeb0be6d49d93655e2",
+          "worker_id": "MAC-WORKER-2",
+          "attempt_id": "torture-wait-a057111e:attempt:1",
+          "dispatch_id": "dispatch-88440c0e754c4205b4ca3d4652aeeea2",
+          "execution_ref": "exec-4383168a300d426aa6c80db60bac0a46",
           "server_binding": {
-            "sha": "18666fbcd08fe9a009b35a5248f519882fd9cab4",
-            "runtime": "courier-server:974676927051492ebc3e3c16a14ffbb1"
+            "sha": "c38116aa34bb1facd236efacd94976062b2c29bf",
+            "runtime": "courier-server:8338c99ebdbe4619bf51f7ec6fea3a91"
+          },
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": "SIMULATED_429_RATE_LIMIT",
+          "artifact_refs": [],
+          "retry_state": {
+            "execution": 0,
+            "transport": 0,
+            "provider": 1,
+            "verification": 0
+          },
+          "next_retry_at": 1790089961.9277482,
+          "verification": {
+            "verifier_id": "VERIFIER-01",
+            "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
+            "result_id": "result-43454edf4b6bf67c55ca4f074e60baf01afdf0d84ceda15cd3edf6fee867dce0",
+            "verdict": "PASS",
+            "artifacts": [],
+            "verified_at": 1790089970.5298402
+          }
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-40c5e485": {
+      "goal_id": "goal-40c5e485",
+      "goal_text": "Goal B Unrelated Independent Work",
+      "status": "DONE",
+      "terminal": true,
+      "workflow_plan": [
+        {
+          "task_id": "torture-indep-a057111e",
+          "target_agent": "mac",
+          "instruction": "touch courier_canary_torture_indep_a057111e.txt",
+          "mode": "NATIVE",
+          "artifacts": [
+            "courier_canary_torture_indep_a057111e.txt"
+          ],
+          "goal_id": "goal-40c5e485",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-WORKER-2",
+          "attempt_id": "torture-indep-a057111e:attempt:1",
+          "dispatch_id": "dispatch-bf66b239cd6e4855bb369ae077006c5c",
+          "execution_ref": "exec-0a1d06add29a40b3a05ce83f2b07e8fa",
+          "server_binding": {
+            "sha": "c38116aa34bb1facd236efacd94976062b2c29bf",
+            "runtime": "courier-server:8338c99ebdbe4619bf51f7ec6fea3a91"
           },
           "run_id": null,
           "result_id": null,
@@ -406,37 +169,45 @@
           "artifact_refs": [],
           "verification": {
             "verifier_id": "VERIFIER-01",
-            "verifier_principal": "principal_01a4447a4261e4f6a4952301165be1175a0f20c4a26bde68d5722d0a9241e550",
-            "result_id": "result-8195165288ba4096e660f627c4b245b4350a7969d7c4e7499dca113208e4bf25",
+            "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
+            "result_id": "result-ea1cca6b29d2d36ff55bcaffb7995709d80359af0c74c43f722c3be70849eb22",
             "verdict": "PASS",
-            "artifacts": [],
-            "verified_at": 1789793991.452616
+            "artifacts": [
+              {
+                "path": "courier_canary_torture_indep_a057111e.txt",
+                "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
+              }
+            ],
+            "verified_at": 1790089965.512106
           }
         }
       ],
       "current_step_index": 0
     },
-    "goal-05e38bfe": {
-      "goal_id": "goal-05e38bfe",
-      "goal_text": "real worker prep",
-      "status": "DONE",
-      "terminal": true,
+    "goal-0192a49a": {
+      "goal_id": "goal-0192a49a",
+      "goal_text": "[{\"task_id\": \"torture-rep-step-a057111e\", \"instruction\": \"touch courier_canary_torture_rep_step_a057111e.txt\", \"target_agent\": \"mac\", \"mode\": \"NATIVE\", \"artifacts\": [\"courier_canary_torture_rep_step_a057111e.txt\"]}]",
+      "status": "BLOCKED",
+      "terminal": false,
       "workflow_plan": [
         {
-          "task_id": "T1",
-          "target_agent": "macos",
-          "instruction": "echo 'hello real worker'",
-          "action": "echo",
-          "goal_id": "goal-05e38bfe",
+          "task_id": "torture-rep-init-a057111e",
+          "target_agent": "mac",
+          "mode": "NATIVE",
+          "instruction": "touch courier_canary_torture_rep_init_a057111e.txt",
+          "artifacts": [
+            "courier_canary_torture_rep_init_a057111e.txt"
+          ],
+          "goal_id": "goal-0192a49a",
           "status": "RECONCILED",
           "attempts": 1,
-          "worker_id": "MAC-REAL-502A0C",
-          "attempt_id": "T1:attempt:1",
-          "dispatch_id": "dispatch-96127afefa1b4d7e88f86d6db7f815ed",
-          "execution_ref": "exec-0f8ccf8061a74e4a9b60ed3895f4e99c",
+          "worker_id": "MAC-WORKER-2",
+          "attempt_id": "torture-rep-init-a057111e:attempt:1",
+          "dispatch_id": "dispatch-9b80db42f5924043b6904f073211a1df",
+          "execution_ref": "exec-6014c21c136f46d4bfe97776612a2669",
           "server_binding": {
-            "sha": "18666fbcd08fe9a009b35a5248f519882fd9cab4",
-            "runtime": "courier-server:974676927051492ebc3e3c16a14ffbb1"
+            "sha": "c38116aa34bb1facd236efacd94976062b2c29bf",
+            "runtime": "courier-server:8338c99ebdbe4619bf51f7ec6fea3a91"
           },
           "run_id": null,
           "result_id": null,
@@ -447,125 +218,453 @@
           "artifact_refs": [],
           "verification": {
             "verifier_id": "VERIFIER-01",
-            "verifier_principal": "principal_01a4447a4261e4f6a4952301165be1175a0f20c4a26bde68d5722d0a9241e550",
-            "result_id": "result-3fe01152ef14ce2021b1e35b019135a0b836cd46f0803a25a86d586ea3e271ce",
+            "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
+            "result_id": "result-b8edfcfa0837d2d3409be2de47f73d433b32750ed4915a658a9b917904238335",
             "verdict": "PASS",
-            "artifacts": [],
-            "verified_at": 1789794051.50647
+            "artifacts": [
+              {
+                "path": "courier_canary_torture_rep_init_a057111e.txt",
+                "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
+              }
+            ],
+            "verified_at": 1790089975.567204
+          }
+        },
+        {
+          "task_id": "WF-CHIEF-8507fa-STEP-1",
+          "goal_id": "goal-0192a49a",
+          "instruction": "touch courier_canary_torture_rep_step_a057111e.txt",
+          "target_agent": "mac",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "artifacts": [
+            "courier_canary_torture_rep_step_a057111e.txt"
+          ],
+          "mode": "NATIVE",
+          "worker_id": "MAC-WORKER-2",
+          "attempt_id": "WF-CHIEF-8507fa-STEP-1:attempt:1",
+          "dispatch_id": "dispatch-de8616375a404840a076cf981785f5fd",
+          "execution_ref": "exec-01ea479d58c24a1ba67a814e8df1805a",
+          "server_binding": {
+            "sha": "c38116aa34bb1facd236efacd94976062b2c29bf",
+            "runtime": "courier-server:8338c99ebdbe4619bf51f7ec6fea3a91"
+          },
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "verification": {
+            "verifier_id": "VERIFIER-01",
+            "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
+            "result_id": "result-2d93aab6939568115a6173ebaf74a82a21cba14e396369f970cbd39d69927287",
+            "verdict": "PASS",
+            "artifacts": [
+              {
+                "path": "courier_canary_torture_rep_step_a057111e.txt",
+                "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
+              }
+            ],
+            "verified_at": 1790089981.711657
           }
         }
       ],
-      "current_step_index": 0
-    },
-    "goal-4c778bce": {
-      "goal_id": "goal-4c778bce",
-      "goal_text": "test",
-      "status": "ACTIVE",
-      "terminal": true,
-      "workflow_plan": [
-        {
-          "task_id": "T1",
-          "target_agent": "macos",
-          "instruction": "echo hi",
-          "goal_id": "goal-4c778bce",
-          "status": "QUEUED",
-          "attempts": 0
-        }
-      ],
-      "current_step_index": 0
+      "current_step_index": 0,
+      "replenish_count": 2,
+      "blocker": "Replenish returned no new steps for nonterminal goal"
     }
   },
   "tasks": {
-    "T1": {
-      "task_id": "T1",
-      "target_agent": "macos",
-      "instruction": "echo 'hello real worker'",
-      "action": "echo",
-      "goal_id": "goal-05e38bfe",
+    "torture-seq-01-a057111e": {
+      "task_id": "torture-seq-01-a057111e",
+      "target_agent": "mac",
+      "mode": "NATIVE",
+      "instruction": "sleep 4",
+      "artifacts": [],
+      "goal_id": "goal-f10e6db0",
       "status": "RECONCILED",
       "attempts": 1,
-      "worker_id": "MAC-REAL-502A0C",
-      "attempt_id": "T1:attempt:1",
-      "dispatch_id": "dispatch-96127afefa1b4d7e88f86d6db7f815ed",
-      "execution_ref": "exec-0f8ccf8061a74e4a9b60ed3895f4e99c",
+      "worker_id": "MAC-WORKER-2",
+      "attempt_id": "torture-seq-01-a057111e:attempt:1",
+      "dispatch_id": "dispatch-a664353650254b1581784f3567dab424",
+      "execution_ref": "exec-a6116ee2a037483f99694a97c45132b4",
       "server_binding": {
-        "sha": "18666fbcd08fe9a009b35a5248f519882fd9cab4",
-        "runtime": "courier-server:974676927051492ebc3e3c16a14ffbb1"
+        "sha": "c38116aa34bb1facd236efacd94976062b2c29bf",
+        "runtime": "courier-server:8338c99ebdbe4619bf51f7ec6fea3a91"
       },
       "run_id": null,
       "result_id": null,
       "target_capability": "mac",
-      "last_completed_step": "T1",
+      "last_completed_step": "torture-seq-01-a057111e",
       "next_action": null,
       "blocker": null,
       "artifact_refs": [],
-      "producer_principal": "principal_ca64faa2f21a66699571463505fdf124b2046e98f1424f3bc28cb3e199ebd68f",
+      "producer_principal": "principal_a2feb8ee4ae6ac6d82e9a68c34fbc7f3b7bef7b64908ded944e60dd5288b970e",
       "result": {
-        "runtime_identity": {
-          "runtime": "courier-server:974676927051492ebc3e3c16a14ffbb1",
-          "sha": "18666fbcd08fe9a009b35a5248f519882fd9cab4"
-        },
-        "attempt_id": "T1:attempt:1",
-        "task_id": "T1",
-        "execution_ref": "exec-0f8ccf8061a74e4a9b60ed3895f4e99c",
-        "result_id": "result-3fe01152ef14ce2021b1e35b019135a0b836cd46f0803a25a86d586ea3e271ce",
-        "run_id": "36b4e851-6db3-44be-8788-03188928a0ea",
-        "worker_id": "MAC-REAL-502A0C",
-        "status": "SUCCESS",
-        "goal_id": "goal-05e38bfe",
         "artifacts": [],
-        "dispatch_id": "dispatch-96127afefa1b4d7e88f86d6db7f815ed"
+        "goal_id": "goal-f10e6db0",
+        "result_id": "result-347d99ac875cac2eb802384452ba4a0dba5be83724d3e3874a1725ee686c3c35",
+        "task_id": "torture-seq-01-a057111e",
+        "worker_id": "MAC-WORKER-2",
+        "status": "SUCCESS",
+        "attempt_id": "torture-seq-01-a057111e:attempt:1",
+        "dispatch_id": "dispatch-a664353650254b1581784f3567dab424",
+        "execution_ref": "exec-a6116ee2a037483f99694a97c45132b4",
+        "runtime_identity": {
+          "runtime": "courier-server:8338c99ebdbe4619bf51f7ec6fea3a91",
+          "sha": "c38116aa34bb1facd236efacd94976062b2c29bf"
+        },
+        "run_id": "e448001c-ed95-4ec3-9929-6a9ead26330c"
       },
-      "result_received_at": 1789794049.6482391,
+      "result_received_at": 1790089949.7322628,
       "verification": {
         "verifier_id": "VERIFIER-01",
-        "verifier_principal": "principal_01a4447a4261e4f6a4952301165be1175a0f20c4a26bde68d5722d0a9241e550",
-        "result_id": "result-3fe01152ef14ce2021b1e35b019135a0b836cd46f0803a25a86d586ea3e271ce",
+        "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
+        "result_id": "result-347d99ac875cac2eb802384452ba4a0dba5be83724d3e3874a1725ee686c3c35",
         "verdict": "PASS",
         "artifacts": [],
-        "verified_at": 1789794051.50647
+        "verified_at": 1790089950.4219499
+      }
+    },
+    "torture-seq-02-a057111e": {
+      "task_id": "torture-seq-02-a057111e",
+      "target_agent": "mac",
+      "mode": "NATIVE",
+      "instruction": "touch courier_canary_torture_seq2_a057111e.txt",
+      "artifacts": [
+        "courier_canary_torture_seq2_a057111e.txt"
+      ],
+      "depends_on": [
+        "torture-seq-01-a057111e"
+      ],
+      "goal_id": "goal-f10e6db0",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-WORKER-2",
+      "attempt_id": "torture-seq-02-a057111e:attempt:1",
+      "dispatch_id": "dispatch-7f4b7bb83e274a33ae06fc7ed35208e5",
+      "execution_ref": "exec-8da382afc0664955a21997d4c7d86051",
+      "server_binding": {
+        "sha": "c38116aa34bb1facd236efacd94976062b2c29bf",
+        "runtime": "courier-server:8338c99ebdbe4619bf51f7ec6fea3a91"
+      },
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "last_completed_step": "torture-seq-02-a057111e",
+      "next_action": null,
+      "blocker": null,
+      "artifact_refs": [
+        {
+          "path": "courier_canary_torture_seq2_a057111e.txt",
+          "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
+        }
+      ],
+      "producer_principal": "principal_a2feb8ee4ae6ac6d82e9a68c34fbc7f3b7bef7b64908ded944e60dd5288b970e",
+      "result": {
+        "artifacts": [
+          {
+            "path": "courier_canary_torture_seq2_a057111e.txt",
+            "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
+          }
+        ],
+        "goal_id": "goal-f10e6db0",
+        "result_id": "result-fd4861f7beaa8760e192835acfbdc183593df4a65e7a79f42cbfe34b94280d19",
+        "task_id": "torture-seq-02-a057111e",
+        "worker_id": "MAC-WORKER-2",
+        "status": "SUCCESS",
+        "attempt_id": "torture-seq-02-a057111e:attempt:1",
+        "dispatch_id": "dispatch-7f4b7bb83e274a33ae06fc7ed35208e5",
+        "execution_ref": "exec-8da382afc0664955a21997d4c7d86051",
+        "runtime_identity": {
+          "runtime": "courier-server:8338c99ebdbe4619bf51f7ec6fea3a91",
+          "sha": "c38116aa34bb1facd236efacd94976062b2c29bf"
+        },
+        "run_id": "bbb4df3b-9812-403f-9f59-7c508aed22d6"
+      },
+      "result_received_at": 1790089954.810474,
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
+        "result_id": "result-fd4861f7beaa8760e192835acfbdc183593df4a65e7a79f42cbfe34b94280d19",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "courier_canary_torture_seq2_a057111e.txt",
+            "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
+          }
+        ],
+        "verified_at": 1790089955.465195
+      }
+    },
+    "torture-wait-a057111e": {
+      "task_id": "torture-wait-a057111e",
+      "target_agent": "mac",
+      "instruction": "touch courier_canary_torture_prov_a057111e.txt",
+      "mode": "NATIVE",
+      "artifacts": [],
+      "goal_id": "goal-4574f0cd",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-WORKER-2",
+      "attempt_id": "torture-wait-a057111e:attempt:1",
+      "dispatch_id": "dispatch-88440c0e754c4205b4ca3d4652aeeea2",
+      "execution_ref": "exec-4383168a300d426aa6c80db60bac0a46",
+      "server_binding": {
+        "sha": "c38116aa34bb1facd236efacd94976062b2c29bf",
+        "runtime": "courier-server:8338c99ebdbe4619bf51f7ec6fea3a91"
+      },
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "last_completed_step": "torture-wait-a057111e",
+      "next_action": null,
+      "blocker": null,
+      "artifact_refs": [],
+      "retry_state": {
+        "execution": 0,
+        "transport": 0,
+        "provider": 1,
+        "verification": 0
+      },
+      "next_retry_at": 1790089961.9277482,
+      "producer_principal": "principal_a2feb8ee4ae6ac6d82e9a68c34fbc7f3b7bef7b64908ded944e60dd5288b970e",
+      "result": {
+        "artifacts": [],
+        "goal_id": "goal-4574f0cd",
+        "result_id": "result-43454edf4b6bf67c55ca4f074e60baf01afdf0d84ceda15cd3edf6fee867dce0",
+        "task_id": "torture-wait-a057111e",
+        "worker_id": "MAC-WORKER-2",
+        "status": "SUCCESS",
+        "attempt_id": "torture-wait-a057111e:attempt:1",
+        "dispatch_id": "dispatch-88440c0e754c4205b4ca3d4652aeeea2",
+        "execution_ref": "exec-4383168a300d426aa6c80db60bac0a46",
+        "runtime_identity": {
+          "runtime": "courier-server:8338c99ebdbe4619bf51f7ec6fea3a91",
+          "sha": "c38116aa34bb1facd236efacd94976062b2c29bf"
+        },
+        "run_id": "cd471f0a-3f4b-434e-8520-9ab1a2cde1fd"
+      },
+      "result_received_at": 1790089966.182681,
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
+        "result_id": "result-43454edf4b6bf67c55ca4f074e60baf01afdf0d84ceda15cd3edf6fee867dce0",
+        "verdict": "PASS",
+        "artifacts": [],
+        "verified_at": 1790089970.5298402
+      }
+    },
+    "torture-indep-a057111e": {
+      "task_id": "torture-indep-a057111e",
+      "target_agent": "mac",
+      "instruction": "touch courier_canary_torture_indep_a057111e.txt",
+      "mode": "NATIVE",
+      "artifacts": [
+        "courier_canary_torture_indep_a057111e.txt"
+      ],
+      "goal_id": "goal-40c5e485",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-WORKER-2",
+      "attempt_id": "torture-indep-a057111e:attempt:1",
+      "dispatch_id": "dispatch-bf66b239cd6e4855bb369ae077006c5c",
+      "execution_ref": "exec-0a1d06add29a40b3a05ce83f2b07e8fa",
+      "server_binding": {
+        "sha": "c38116aa34bb1facd236efacd94976062b2c29bf",
+        "runtime": "courier-server:8338c99ebdbe4619bf51f7ec6fea3a91"
+      },
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "last_completed_step": "torture-indep-a057111e",
+      "next_action": null,
+      "blocker": null,
+      "artifact_refs": [
+        {
+          "path": "courier_canary_torture_indep_a057111e.txt",
+          "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
+        }
+      ],
+      "producer_principal": "principal_a2feb8ee4ae6ac6d82e9a68c34fbc7f3b7bef7b64908ded944e60dd5288b970e",
+      "result": {
+        "artifacts": [
+          {
+            "path": "courier_canary_torture_indep_a057111e.txt",
+            "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
+          }
+        ],
+        "goal_id": "goal-40c5e485",
+        "result_id": "result-ea1cca6b29d2d36ff55bcaffb7995709d80359af0c74c43f722c3be70849eb22",
+        "task_id": "torture-indep-a057111e",
+        "worker_id": "MAC-WORKER-2",
+        "status": "SUCCESS",
+        "attempt_id": "torture-indep-a057111e:attempt:1",
+        "dispatch_id": "dispatch-bf66b239cd6e4855bb369ae077006c5c",
+        "execution_ref": "exec-0a1d06add29a40b3a05ce83f2b07e8fa",
+        "runtime_identity": {
+          "runtime": "courier-server:8338c99ebdbe4619bf51f7ec6fea3a91",
+          "sha": "c38116aa34bb1facd236efacd94976062b2c29bf"
+        },
+        "run_id": "05bba42e-9344-41f3-b456-c6e21d90b6f0"
+      },
+      "result_received_at": 1790089961.074154,
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
+        "result_id": "result-ea1cca6b29d2d36ff55bcaffb7995709d80359af0c74c43f722c3be70849eb22",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "courier_canary_torture_indep_a057111e.txt",
+            "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
+          }
+        ],
+        "verified_at": 1790089965.512106
+      }
+    },
+    "torture-rep-init-a057111e": {
+      "task_id": "torture-rep-init-a057111e",
+      "target_agent": "mac",
+      "mode": "NATIVE",
+      "instruction": "touch courier_canary_torture_rep_init_a057111e.txt",
+      "artifacts": [
+        "courier_canary_torture_rep_init_a057111e.txt"
+      ],
+      "goal_id": "goal-0192a49a",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-WORKER-2",
+      "attempt_id": "torture-rep-init-a057111e:attempt:1",
+      "dispatch_id": "dispatch-9b80db42f5924043b6904f073211a1df",
+      "execution_ref": "exec-6014c21c136f46d4bfe97776612a2669",
+      "server_binding": {
+        "sha": "c38116aa34bb1facd236efacd94976062b2c29bf",
+        "runtime": "courier-server:8338c99ebdbe4619bf51f7ec6fea3a91"
+      },
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "last_completed_step": "torture-rep-init-a057111e",
+      "next_action": null,
+      "blocker": null,
+      "artifact_refs": [
+        {
+          "path": "courier_canary_torture_rep_init_a057111e.txt",
+          "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
+        }
+      ],
+      "producer_principal": "principal_a2feb8ee4ae6ac6d82e9a68c34fbc7f3b7bef7b64908ded944e60dd5288b970e",
+      "result": {
+        "artifacts": [
+          {
+            "path": "courier_canary_torture_rep_init_a057111e.txt",
+            "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
+          }
+        ],
+        "goal_id": "goal-0192a49a",
+        "result_id": "result-b8edfcfa0837d2d3409be2de47f73d433b32750ed4915a658a9b917904238335",
+        "task_id": "torture-rep-init-a057111e",
+        "worker_id": "MAC-WORKER-2",
+        "status": "SUCCESS",
+        "attempt_id": "torture-rep-init-a057111e:attempt:1",
+        "dispatch_id": "dispatch-9b80db42f5924043b6904f073211a1df",
+        "execution_ref": "exec-6014c21c136f46d4bfe97776612a2669",
+        "runtime_identity": {
+          "runtime": "courier-server:8338c99ebdbe4619bf51f7ec6fea3a91",
+          "sha": "c38116aa34bb1facd236efacd94976062b2c29bf"
+        },
+        "run_id": "94cd88cb-5302-4826-bcf0-4defa1055858"
+      },
+      "result_received_at": 1790089971.256809,
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
+        "result_id": "result-b8edfcfa0837d2d3409be2de47f73d433b32750ed4915a658a9b917904238335",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "courier_canary_torture_rep_init_a057111e.txt",
+            "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
+          }
+        ],
+        "verified_at": 1790089975.567204
+      }
+    },
+    "WF-CHIEF-8507fa-STEP-1": {
+      "task_id": "WF-CHIEF-8507fa-STEP-1",
+      "goal_id": "goal-0192a49a",
+      "instruction": "touch courier_canary_torture_rep_step_a057111e.txt",
+      "target_agent": "mac",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "artifacts": [
+        "courier_canary_torture_rep_step_a057111e.txt"
+      ],
+      "mode": "NATIVE",
+      "worker_id": "MAC-WORKER-2",
+      "attempt_id": "WF-CHIEF-8507fa-STEP-1:attempt:1",
+      "dispatch_id": "dispatch-de8616375a404840a076cf981785f5fd",
+      "execution_ref": "exec-01ea479d58c24a1ba67a814e8df1805a",
+      "server_binding": {
+        "sha": "c38116aa34bb1facd236efacd94976062b2c29bf",
+        "runtime": "courier-server:8338c99ebdbe4619bf51f7ec6fea3a91"
+      },
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "last_completed_step": "WF-CHIEF-8507fa-STEP-1",
+      "next_action": null,
+      "blocker": null,
+      "artifact_refs": [
+        {
+          "path": "courier_canary_torture_rep_step_a057111e.txt",
+          "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
+        }
+      ],
+      "producer_principal": "principal_a2feb8ee4ae6ac6d82e9a68c34fbc7f3b7bef7b64908ded944e60dd5288b970e",
+      "result": {
+        "artifacts": [
+          {
+            "path": "courier_canary_torture_rep_step_a057111e.txt",
+            "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
+          }
+        ],
+        "goal_id": "goal-0192a49a",
+        "result_id": "result-2d93aab6939568115a6173ebaf74a82a21cba14e396369f970cbd39d69927287",
+        "task_id": "WF-CHIEF-8507fa-STEP-1",
+        "worker_id": "MAC-WORKER-2",
+        "status": "SUCCESS",
+        "attempt_id": "WF-CHIEF-8507fa-STEP-1:attempt:1",
+        "dispatch_id": "dispatch-de8616375a404840a076cf981785f5fd",
+        "execution_ref": "exec-01ea479d58c24a1ba67a814e8df1805a",
+        "runtime_identity": {
+          "runtime": "courier-server:8338c99ebdbe4619bf51f7ec6fea3a91",
+          "sha": "c38116aa34bb1facd236efacd94976062b2c29bf"
+        },
+        "run_id": "a6ee62c2-316c-4e7c-8a00-c4b85735a5eb"
+      },
+      "result_received_at": 1790089976.8373451,
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
+        "result_id": "result-2d93aab6939568115a6173ebaf74a82a21cba14e396369f970cbd39d69927287",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "courier_canary_torture_rep_step_a057111e.txt",
+            "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
+          }
+        ],
+        "verified_at": 1790089981.711657
       }
     }
   },
   "workers": {
-    "MAC-REAL-8603E4": {
-      "worker_id": "MAC-REAL-8603E4",
-      "platform": "macos",
-      "capabilities": [
-        "antigravity",
-        "macos",
-        "linux"
-      ],
-      "authorities": [],
-      "provider": null,
-      "capacity_identity": null,
-      "provider_available": true,
-      "capacity_available": true,
-      "last_seen": 1789794155.731335,
-      "available": true,
-      "current_task": null,
-      "cost_class": "low"
-    },
-    "MAC-REAL-274D3A": {
-      "worker_id": "MAC-REAL-274D3A",
-      "platform": "macos",
-      "capabilities": [
-        "macos",
-        "antigravity",
-        "linux"
-      ],
-      "authorities": [],
-      "provider": null,
-      "capacity_identity": null,
-      "provider_available": true,
-      "capacity_available": true,
-      "last_seen": 1789793220.5588632,
-      "available": false,
-      "current_task": "T1",
-      "cost_class": "low"
-    },
-    "MAC-REAL-1B11A9": {
-      "worker_id": "MAC-REAL-1B11A9",
+    "MAC-WORKER-2": {
+      "worker_id": "MAC-WORKER-2",
       "platform": "macos",
       "capabilities": [
         "linux",
@@ -577,191 +676,15 @@
       "capacity_identity": null,
       "provider_available": true,
       "capacity_available": true,
-      "last_seen": 1789793305.916317,
-      "available": false,
-      "current_task": "T1",
-      "cost_class": "low"
-    },
-    "MAC-REAL-5A430A": {
-      "worker_id": "MAC-REAL-5A430A",
-      "platform": "macos",
-      "capabilities": [
-        "linux",
-        "antigravity",
-        "macos"
-      ],
-      "authorities": [],
-      "provider": null,
-      "capacity_identity": null,
-      "provider_available": true,
-      "capacity_available": true,
-      "last_seen": 1789793375.904268,
-      "available": false,
-      "current_task": "T1",
-      "cost_class": "low"
-    },
-    "MAC-REAL-A81CCC": {
-      "worker_id": "MAC-REAL-A81CCC",
-      "platform": "macos",
-      "capabilities": [
-        "antigravity",
-        "linux",
-        "macos"
-      ],
-      "authorities": [],
-      "provider": null,
-      "capacity_identity": null,
-      "provider_available": true,
-      "capacity_available": true,
-      "last_seen": 1789793443.373109,
-      "available": false,
-      "current_task": "T1",
-      "cost_class": "low"
-    },
-    "MAC-REAL-EBCBE5": {
-      "worker_id": "MAC-REAL-EBCBE5",
-      "platform": "macos",
-      "capabilities": [
-        "linux",
-        "macos",
-        "antigravity"
-      ],
-      "authorities": [],
-      "provider": null,
-      "capacity_identity": null,
-      "provider_available": true,
-      "capacity_available": true,
-      "last_seen": 1789793543.913155,
-      "available": false,
-      "current_task": "T1",
-      "cost_class": "low"
-    },
-    "MAC-REAL-53587B": {
-      "worker_id": "MAC-REAL-53587B",
-      "platform": "macos",
-      "capabilities": [
-        "macos",
-        "linux",
-        "antigravity"
-      ],
-      "authorities": [],
-      "provider": null,
-      "capacity_identity": null,
-      "provider_available": true,
-      "capacity_available": true,
-      "last_seen": 1789793607.299396,
-      "available": false,
-      "current_task": "T1",
-      "cost_class": "low"
-    },
-    "MAC-REAL-49E28F": {
-      "worker_id": "MAC-REAL-49E28F",
-      "platform": "macos",
-      "capabilities": [
-        "linux",
-        "antigravity",
-        "macos"
-      ],
-      "authorities": [],
-      "provider": null,
-      "capacity_identity": null,
-      "provider_available": true,
-      "capacity_available": true,
-      "last_seen": 1789793677.517709,
-      "available": false,
-      "current_task": "T1",
-      "cost_class": "low"
-    },
-    "MAC-REAL-B98865": {
-      "worker_id": "MAC-REAL-B98865",
-      "platform": "macos",
-      "capabilities": [
-        "linux",
-        "macos",
-        "antigravity"
-      ],
-      "authorities": [],
-      "provider": null,
-      "capacity_identity": null,
-      "provider_available": true,
-      "capacity_available": true,
-      "last_seen": 1789793744.486231,
-      "available": false,
-      "current_task": "T1",
-      "cost_class": "low"
-    },
-    "MAC-REAL-E86872": {
-      "worker_id": "MAC-REAL-E86872",
-      "platform": "macos",
-      "capabilities": [
-        "antigravity",
-        "macos",
-        "linux"
-      ],
-      "authorities": [],
-      "provider": null,
-      "capacity_identity": null,
-      "provider_available": true,
-      "capacity_available": true,
-      "last_seen": 1789793794.880312,
-      "available": true,
-      "current_task": null,
-      "cost_class": "low"
-    },
-    "MAC-REAL-954BC2": {
-      "worker_id": "MAC-REAL-954BC2",
-      "platform": "macos",
-      "capabilities": [
-        "antigravity",
-        "macos",
-        "linux"
-      ],
-      "authorities": [],
-      "provider": null,
-      "capacity_identity": null,
-      "provider_available": true,
-      "capacity_available": true,
-      "last_seen": 1789793889.2517319,
-      "available": true,
-      "current_task": null,
-      "cost_class": "low"
-    },
-    "MAC-REAL-5CF148": {
-      "worker_id": "MAC-REAL-5CF148",
-      "platform": "macos",
-      "capabilities": [
-        "macos",
-        "antigravity",
-        "linux"
-      ],
-      "authorities": [],
-      "provider": null,
-      "capacity_identity": null,
-      "provider_available": true,
-      "capacity_available": true,
-      "last_seen": 1789794018.937047,
-      "available": true,
-      "current_task": null,
-      "cost_class": "low"
-    },
-    "MAC-REAL-502A0C": {
-      "worker_id": "MAC-REAL-502A0C",
-      "platform": "macos",
-      "capabilities": [
-        "macos",
-        "antigravity",
-        "linux"
-      ],
-      "authorities": [],
-      "provider": null,
-      "capacity_identity": null,
-      "provider_available": true,
-      "capacity_available": true,
-      "last_seen": 1789794079.007468,
+      "last_seen": 1790090023.658869,
       "available": true,
       "current_task": null,
       "cost_class": "low"
     }
   },
-  "resource_owners": {}
+  "resource_owners": {},
+  "worker_quota_pools": {},
+  "provider_locks": {
+    "MAC-WORKER-2:None": 1790089961.9277482
+  }
 }

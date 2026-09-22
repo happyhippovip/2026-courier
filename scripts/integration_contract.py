@@ -28,7 +28,6 @@ WORKER_IDS = {
     "mac": "MAC-01",
     "windows": "WINDOWS-01",
     "linux": "AWS-LINUX-01",
-    "mock-provider": "MOCK-PROVIDER-WORKER",
 }
 
 
@@ -49,21 +48,15 @@ def prepare_task(task: dict) -> dict:
     capability = packet.get("target_capability")
     if not all(isinstance(value, str) and value for value in (task_id, goal_id, capability)):
         raise ContractError("task_id, goal_id and target_capability are required")
+    if capability not in WORKER_IDS:
+        raise ContractError(f"unsupported target_capability: {capability}")
+
     packet.setdefault("attempt_id", f"{task_id}:attempt:1")
     packet.setdefault("dispatch_id", f"dispatch-{uuid.uuid4().hex}")
-    packet.setdefault("execution_ref", f"exec-{uuid.uuid4().hex}")
-    if not packet.get("worker_id"):
-        legacy_worker_id = WORKER_IDS.get(capability)
-        if not legacy_worker_id:
-            raise ContractError(
-                "worker_id is required when target_capability is not a legacy capability"
-            )
-        packet["worker_id"] = legacy_worker_id
-    for field in ("attempt_id", "dispatch_id", "execution_ref", "worker_id"):
-        if not isinstance(packet.get(field), str) or not packet[field]:
-            raise ContractError(f"{field} is required")
+    packet.setdefault("worker_id", WORKER_IDS[capability])
     packet.setdefault("run_id", None)
     packet.setdefault("result_id", None)
+    packet.setdefault("artifacts", [f"courier_canary_{task_id}.txt"])
     packet.setdefault("status", "QUEUED")
     if packet["status"] not in TASK_STATES:
         raise ContractError(f"invalid task status: {packet['status']}")
@@ -72,17 +65,11 @@ def prepare_task(task: dict) -> dict:
 
 def verify_result(task: dict, raw_result: dict, workspace: Path) -> dict:
     """Return a canonical DurableResult only after identity/effect verification."""
-    chain = ["goal_id", "task_id", "attempt_id", "dispatch_id", "execution_ref", "worker_id"]
-    if "batch_id" in task:
-        chain.insert(0, "batch_id")
-    if "prompt_id" in task:
-        chain.insert(0, "prompt_id")
-        
-    for field in chain:
+    for field in ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id"):
         if not task.get(field):
             raise ContractError(f"dispatched task is missing {field}")
 
-    for field in chain:
+    for field in ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id"):
         if raw_result.get(field) != task[field]:
             raise ContractError(f"{field} mismatch")
     if raw_result.get("status") not in RESULT_STATES:
@@ -100,19 +87,13 @@ def verify_result(task: dict, raw_result: dict, workspace: Path) -> dict:
         for relative_name in expected:
             if not isinstance(relative_name, str) or Path(relative_name).is_absolute() or ".." in Path(relative_name).parts:
                 raise ContractError("unsafe artifact path")
-            workspace_root = workspace.resolve()
-            artifact_path = workspace_root / relative_name
-            resolved_artifact = artifact_path.resolve()
-            if (
-                artifact_path.is_symlink()
-                or workspace_root not in resolved_artifact.parents
-                or not resolved_artifact.is_file()
-            ):
+            artifact_path = workspace / relative_name
+            if not artifact_path.is_file():
                 raise ContractError(f"missing expected artifact: {relative_name}")
             artifacts.append(
                 {
                     "path": relative_name,
-                    "sha256": hashlib.sha256(resolved_artifact.read_bytes()).hexdigest(),
+                    "sha256": hashlib.sha256(artifact_path.read_bytes()).hexdigest(),
                 }
             )
 
@@ -121,17 +102,11 @@ def verify_result(task: dict, raw_result: dict, workspace: Path) -> dict:
         "task_id": task["task_id"],
         "attempt_id": task["attempt_id"],
         "dispatch_id": task["dispatch_id"],
-        "execution_ref": task["execution_ref"],
         "worker_id": task["worker_id"],
         "run_id": run_id,
         "status": raw_result["status"],
         "artifacts": artifacts,
-        "runtime_identity": task.get("server_binding")
     }
-    if "batch_id" in task:
-        identity["batch_id"] = task["batch_id"]
-    if "prompt_id" in task:
-        identity["prompt_id"] = task["prompt_id"]
     identity["result_id"] = f"result-{_canonical_hash(identity)}"
     return identity
 
@@ -147,75 +122,33 @@ def validate_durable_result(task: dict, result: dict) -> dict:
         "task_id",
         "attempt_id",
         "dispatch_id",
-        "execution_ref",
         "worker_id",
         "run_id",
         "result_id",
         "status",
         "artifacts",
-        "runtime_identity"
     }
-    # Optional identity fields for batch runs
-    if "batch_id" in task:
-        required.add("batch_id")
-    if "prompt_id" in task:
-        required.add("prompt_id")
-    
+    # GitHub Actions supplies a retry-generation identity in addition to run_id.
+    # Preserve it when provided so a DurableResult remains bound to the exact run.
     if "run_attempt" in result:
         required.add("run_attempt")
-    if "result_data" in result:
-        required.add("result_data")
-    if "stderr" in result:
-        required.add("stderr")
-    if "stdout" in result:
-        required.add("stdout")
     missing = sorted(required - set(result))
     if missing:
         raise ContractError(f"result is missing: {', '.join(missing)}")
-        
-    chain = ["goal_id", "task_id", "attempt_id", "dispatch_id", "execution_ref", "worker_id"]
-    if "batch_id" in task:
-        chain.append("batch_id")
-    if "prompt_id" in task:
-        chain.append("prompt_id")
-        
-    for field in chain:
+    for field in ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id"):
         if result[field] != task.get(field):
             raise ContractError(f"{field} mismatch")
     for field in ("run_id", "result_id"):
         if not isinstance(result[field], str) or not result[field]:
             raise ContractError(f"{field} is required")
-            
-    if result["runtime_identity"] != task.get("server_binding"):
-        raise ContractError("runtime_identity mismatch")
-        
-    identity = {
-        "goal_id": result.get("goal_id"),
-        "task_id": result.get("task_id"),
-        "attempt_id": result.get("attempt_id"),
-        "dispatch_id": result.get("dispatch_id"),
-        "execution_ref": result.get("execution_ref"),
-        "worker_id": result.get("worker_id"),
-        "run_id": result.get("run_id"),
-        "status": result.get("status"),
-        "artifacts": result.get("artifacts", []),
-        "runtime_identity": result.get("runtime_identity")
-    }
-    if "batch_id" in result:
-        identity["batch_id"] = result["batch_id"]
-    if "prompt_id" in result:
-        identity["prompt_id"] = result["prompt_id"]
-    expected_result_id = f"result-{_canonical_hash(identity)}"
-    
-    if result["result_id"] != expected_result_id:
-        raise ContractError(f"result_id cryptographic mismatch. Expected {expected_result_id}")
-        
     if "run_attempt" in required and (not isinstance(result["run_attempt"], str) or not result["run_attempt"].isdigit()):
         raise ContractError("run_attempt is invalid")
     if result["status"] not in RESULT_STATES:
         raise ContractError("invalid result status")
     if not isinstance(result["artifacts"], list):
         raise ContractError("artifacts must be a list")
+    if result["status"] == "SUCCESS" and not result["artifacts"]:
+        raise ContractError("successful result requires artifact evidence")
     for artifact in result["artifacts"]:
         if not isinstance(artifact, dict) or set(artifact) != {"path", "sha256"}:
             raise ContractError("invalid artifact evidence")

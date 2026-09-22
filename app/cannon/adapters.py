@@ -144,9 +144,11 @@ class LiveMuseAdapter:
         identity = {'executor_kind': 'REAL_MUSE', 'provider': 'meta', 'task_id': task['task_id'],
                     'execution_id': execution, 'worker_id': 'muse-' + execution,
                     'started_at': time.time(), 'heartbeat_at': time.time(), 'terminal': False}
+        # Unattended night runtime: no approval prompts, sandbox stays on.
+        # Never --yolo, never --disable-sandbox.
         command = [executable, 'exec', '--json', '--provider', 'meta', '--reasoning-effort', 'low',
                    '--max-model-steps', '6', '--workspace', str(target.parent),
-                   '--prompt-file', str(prompt_file),
+                   '--prompt-file', str(prompt_file), '--disable-approval',
                    '--no-foreign-personal-context', '--no-session-log', '--disable-web-tools']
         env = dict(os.environ, MUSE_NO_AUTO_UPDATE='1')
         persist_identity(identity)

@@ -23,7 +23,7 @@ def test_web_million_is_limit_not_seed(monkeypatch, mode):
     monkeypatch.setattr(web.subprocess, "check_call", external)
     assert web.action({"action": "START", "mode": mode, "count": 1000000})["ok"]
     command = launch.call_args.args[0]
-    assert "seed" not in command and "--local-fake" in command
+    assert "seed" not in command and "--continuous-canary" in command
     if mode == "BEGRENZT":
         assert command[command.index("--limit") + 1] == "1000000"
     else:
@@ -91,7 +91,7 @@ def test_unknown_never_admits_second_task_or_restarts(tmp_path):
     motor = CannonMotor(tmp_path, hooks={"on_task_start": inject})
     motor.start(mode="INFINITE", local_fake=True, cooldown=0)
     motor.supervise(max_cycles=10)
-    assert motor.state == "ERROR"
+    assert motor.state == "BLOCKED"
     assert (motor.m["started_count"], motor.m["done_count"]) == (1, 0)
     assert len(motor.queue_snapshot()["tasks"]) == 1
     assert CannonMotor(tmp_path).start(mode="INFINITE", local_fake=True)["reason"] == "review_required"

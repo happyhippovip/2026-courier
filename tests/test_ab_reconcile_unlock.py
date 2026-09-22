@@ -1,3 +1,4 @@
+from scripts.integration_contract import _canonical_hash
 """A->B reconcile unlock: completing A (claim/result/independent-verify)
 makes dependent B claimable with no human continuation step.
 
@@ -73,16 +74,19 @@ def test_a_reconcile_unlocks_b_without_human_step(tmp_path, monkeypatch):
         "execution_ref": claimed_a.get("execution_ref", "exec-test"),
         "worker_id": "W-01",
         "run_id": "pid-test",
-        "result_id": "result-A-1",
         "status": "SUCCESS",
         "artifacts": [
             {"path": "a.txt", "sha256": hashlib.sha256(b"a\n").hexdigest()}
         ],
+        "runtime_identity": claimed_a["server_binding"]
     }
-    assert http.post("/tasks/result", headers=auth(), json=result).status_code == 200
+    result["result_id"] = f"result-{_canonical_hash(result)}"
+    res = http.post("/tasks/result", headers=auth(), json=result)
+    print("RESPONSE:", res.get_json())
+    assert res.status_code == 200
     verification = {
                 "task_id": "task-A",
-        "result_id": "result-A-1",
+        "result_id": result["result_id"],
         "verifier_id": "V-01",
         "verdict": "PASS",
         "artifacts": result["artifacts"],

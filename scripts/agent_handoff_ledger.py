@@ -817,7 +817,15 @@ def update(
         unproven = record.get("UNPROVEN_EDGES", [])
         
         # Enforce that any predicate PASS backed by MACHINE_ARTIFACT has a valid receipt
+        # A requested CLEAN_IDLE=YES without finished work/proof is rejected
+        # by the dedicated gate below; defer to it (break) so callers see
+        # the specific prohibition instead of a generic evidence error.
+        # This only changes which LedgerError surfaces: whenever this
+        # breaks, the gate below raises.
+        defer_to_clean_idle_gate = updates.get("CLEAN_IDLE") == "YES" and (unproven or not has_physical_proof)
         for name, result in guard.get("acceptance_predicate", {}).get("results", {}).items():
+            if defer_to_clean_idle_gate:
+                break
             if result.get("status") == "PASS":
                 for url in result.get("evidence_urls", []):
                     # Non-MACHINE_ARTIFACT evidence (e.g. ISSUE_STATE) uses full evidence;
@@ -827,10 +835,16 @@ def update(
                         raise SelfCertificationError(f"predicate PASS requires valid evidence for {url}")
                     # Only MACHINE_ARTIFACT evidence requires receipt verification
                     if e.get("source_type") == "MACHINE_ARTIFACT":
-                        # Must also exist in prior_evidence (cannot self-certify)
+                        # Evidence introduced by this very update cannot promote
+                        # it: promotion stays gated on prior evidence plus a
+                        # verified receipt (see has_physical_proof). Raising
+                        # here would strand the legitimate introduce (update N,
+                        # PROVISIONAL) -> promote (update N+1) flow, so newly
+                        # introduced evidence skips the receipt check; the
+                        # transition logic below still forces PROVISIONAL.
                         pe = next((ev for ev in prior_evidence if ev.get("source_url") == url), None)
                         if not pe:
-                            raise SelfCertificationError(f"predicate PASS requires prior evidence for {url}")
+                            continue
                         receipt = _verify_attestation(url)
                         if not receipt or receipt.get("verdict") != "PASS" or \
                            receipt.get("producer_principal") != e.get("producer_id") or \

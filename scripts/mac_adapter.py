@@ -59,11 +59,13 @@ class MacAdapter:
         return self._rebind({"reports": len(reports)})
 
     def dauerlauf(self, art="begrenzt", limit=None, cooldown=5.0,
-                  max_cycles=None, idle_sleep=5.0, local_fake=False):
+                  max_cycles=None, idle_sleep=5.0, local_fake=False,
+                  continuous_canary=False):
         """Overnight entry: art begrenzt (FINITE) or unendlich (INFINITE).
         Bounded supervisor; returns when terminal or cycles exhausted."""
         return self.supervise(max_cycles, idle_sleep,
-                              start=(art, limit, cooldown, local_fake))
+                              start=(art, limit, cooldown, local_fake,
+                                     continuous_canary))
 
     def supervise(self, max_cycles=None, idle_sleep=5.0, start=None):
         # One existing motor supervisor per state directory, including CLI
@@ -75,11 +77,12 @@ class MacAdapter:
                 return {"started": False, "reason": "supervisor_active"}
             self.motor._load()
             if start is not None:
-                art, limit, cooldown, local_fake = start
+                art, limit, cooldown, local_fake, continuous_canary = start
                 mode = "INFINITE" if art == "unendlich" else "FINITE"
                 started = self.motor.start(mode=mode, limit=limit,
                                            cooldown=cooldown,
-                                           local_fake=local_fake)
+                                           local_fake=local_fake,
+                                           continuous_canary=continuous_canary)
                 if not started.get("started"):
                     return self._rebind(started)
             return self._rebind(self.motor.supervise(max_cycles, idle_sleep))
@@ -168,6 +171,7 @@ def main(argv=None):
     ap.add_argument("--limit", type=int, default=None)
     ap.add_argument("--cooldown", type=float, default=5.0)
     ap.add_argument("--local-fake", action="store_true")
+    ap.add_argument("--continuous-canary", action="store_true")
     ap.add_argument("--prompt-id", default=None)
     ap.add_argument("--semantics", default="readonly")
     ap.add_argument("--text", default="")
@@ -178,7 +182,8 @@ def main(argv=None):
     elif args.verb == "dauerlauf":
         print(json.dumps(adapter.dauerlauf(
             art=args.art, limit=args.limit, cooldown=args.cooldown,
-            local_fake=args.local_fake),
+            local_fake=args.local_fake,
+            continuous_canary=args.continuous_canary),
             default=str))
     elif args.verb == "save-prompt":
         print(json.dumps(adapter.save_prompt(

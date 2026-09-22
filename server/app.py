@@ -1,3 +1,5 @@
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import copy, os, json, re, uuid, time, threading
 from functools import wraps
 from flask import Flask, request, jsonify
@@ -289,7 +291,8 @@ def _worker_is_eligible(state, task, worker_id):
     worker_provider = str(worker.get("provider", "unknown"))
     lock_key = f"{quota_resource_id}:{worker_provider}"
     if time.time() <= state.get("provider_locks", {}).get(lock_key, 0):
-        return False
+        if task.get("mode") != "NATIVE":
+            return False
         
     if _task_requires_human_gate(task):
         return False
@@ -814,9 +817,7 @@ def claim_task():
     quota_resource_id = state.get("worker_quota_pools", {}).get(worker_id, worker_id)
     worker_provider = str(worker.get("provider", "unknown"))
     lock_key = f"{quota_resource_id}:{worker_provider}"
-    if time.time() <= state.get("provider_locks", {}).get(lock_key, 0):
-        save_state(state)
-        return jsonify({"task": None, "reason": "PROVIDER_QUOTA_LOCKED"})
+    # We removed the global PROVIDER_QUOTA_LOCKED return here to allow NATIVE tasks to bypass the lock
 
     
     for goal_id, goal in state["goals"].items():
@@ -959,10 +960,10 @@ def task_result():
                 durable_result = validate_durable_result(task, data)
             except ContractError as exc:
                 return jsonify({"error": str(exc)}), 400
-            set_task_status(task, "RESULT_RECEIVED")
             task["producer_principal"] = get_auth_principal()
             task["result"] = durable_result
             task["result_received_at"] = time.time()
+            set_task_status(task, "RESULT_RECEIVED")
 
             try:
                 import server.ledger as ledger
@@ -986,8 +987,6 @@ def task_result():
                 pass
             
             if durable_result.get("status") == "SUCCESS":
-                set_task_status(task, "RESULT_RECEIVED")  # wait for independent /verify
-                task["producer_principal"] = get_auth_principal()
                 # Update checkpoint fields on success
                 task["last_completed_step"] = task.get("task_id")
                 task["next_action"] = "VERIFY"

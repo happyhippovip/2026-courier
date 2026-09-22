@@ -196,6 +196,14 @@ def compute_frontier(record: dict):
             
     return tasks
 
+
+def process_worker(task, ledger_path, record, queue):
+    try:
+        res = execute_task(task, ledger_path, record)
+        queue.put(res)
+    except Exception as e:
+        queue.put(e)
+
 def execute_task(task, ledger_path, record):
     import os
     print(f"Executing/Delegating task: {task['instruction']}")
@@ -419,7 +427,8 @@ def main():
 
     import concurrent.futures
     import time
-    executor = concurrent.futures.ThreadPoolExecutor(max_workers=5)
+    import multiprocessing
+    multiprocessing.set_start_method('fork', force=True)
     running_tasks = {} # mapping task edge_name to future
     task_start_times = {} # mapping task edge_name to start time
     completed_this_session = set()
@@ -534,27 +543,37 @@ def main():
         # Process any completed futures
         done_edges = []
         current_time = time.time()
-        for edge_name, future in list(running_tasks.items()):
-            print(f"{time.time()} DEBUG: {edge_name} running for {current_time - task_start_times[edge_name]} seconds")
-            print(f"{time.time()} DEBUG: {edge_name} running for {current_time - task_start_times[edge_name]} seconds")
-            if not future.done() and (current_time - task_start_times[edge_name]) > 8.0:
+        for edge_name, (p, q) in list(running_tasks.items()):
+            if p.is_alive() and (current_time - task_start_times[edge_name]) > 8.0:
                 print(f"Task {edge_name} hung for > 8s, abandoning.")
+                p.terminate()
+                p.join(timeout=1.0)
                 done_edges.append(edge_name)
                 completed_this_session.add(edge_name)
                 blocked_tasks_this_run.add(edge_name)
                 try:
                     branch, sha = get_git_info()
-                    print(f"CHECKING FRESHNESS {branch} {sha}"); bundle = check_freshness(ledger_path, branch, sha)
+                    bundle = check_freshness(ledger_path, branch, sha)
                     update_ledger(ledger_path, edge_name, "TIMEOUT_HUNG_TASK", bundle)
                 except Exception as e:
                     print(f"Failed to record hang for {edge_name}: {e}")
                 continue
 
-            if future.done():
+            if not q.empty() or not p.is_alive():
                 done_edges.append(edge_name)
                 completed_this_session.add(edge_name)
                 try:
-                    task, success, new_blocker = future.result()
+                    if not q.empty():
+                        res = q.get()
+                        p.join()
+                    else:
+                        p.join()
+                        res = Exception("Process died without result")
+                    
+                    if isinstance(res, Exception):
+                        raise res
+                    
+                    task, success, new_blocker = res
                     print(f"\n{time.time()} === FINISHED TASK: {task['edge_name']} ===")
                     branch, sha = get_git_info()
                     for _retry in range(5):
@@ -597,7 +616,12 @@ def main():
         for t in safe_executable_tasks:
             if t["edge_name"] not in running_tasks:
                 print(f"\n{time.time()} === SUBMITTING TASK: {t['edge_name']} ===")
-                running_tasks[t["edge_name"]] = executor.submit(execute_task, t, ledger_path, record)
+                if len(running_tasks) >= 5:
+                    break
+                q = multiprocessing.Queue()
+                p = multiprocessing.Process(target=process_worker, args=(t, ledger_path, record, q))
+                p.start()
+                running_tasks[t["edge_name"]] = (p, q)
                 task_start_times[t["edge_name"]] = time.time()
                 newly_submitted.append(t["edge_name"])
         

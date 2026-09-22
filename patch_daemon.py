@@ -1,37 +1,15 @@
 import re
+with open("scripts/mac_worker/daemon.py", "r") as f:
+    code = f.read()
 
-with open("scripts/windows_worker/daemon.py", "r") as f:
-    content = f.read()
+replacement = """        combined_out = (out_clean + " " + stderr).lower()
+        if any(kw in combined_out for kw in ["429", "too many requests", "quota", "rate limit", "resource exhausted", "provider unavailable", "500", "502", "503", "504", "timeout", "timed out", "internal server error", "service unavailable", "bad gateway", "401", "403", "unauthorized", "authentication failed", "invalid api key"]):
+            write_log("DEBUG AGY OUTPUT: " + combined_out)
+            res_json["status"] = "PROVIDER_WAIT"
+            res_json["reason"] = "QUOTA_OR_RATE_LIMIT"
+            return res_json"""
 
-old_logic = """
-            try:
-                body = e.read().decode('utf-8')
-                if e.code in (200, 409) and '"ACK_DUPLICATE"' in body:
-                    print(f"[Windows Worker] Result already acknowledged by server: {body}")
-                    return
-                elif e.code == 409 and '"CONTRADICTORY_DUPLICATE"' in body:
-                    print(f"[Windows Worker] Result rejected as contradictory duplicate: {body}")
-                    return
-            except Exception:
-                body = ""
-"""
+code = re.sub(r'        combined_out = \(out_clean \+ " " \+ stderr\)\.lower\(\).*?return res_json', replacement, code, flags=re.DOTALL)
 
-new_logic = """
-            try:
-                body = e.read().decode('utf-8')
-                data = json.loads(body)
-                if e.code in (200, 409) and data.get("status") == "ACK_DUPLICATE":
-                    print(f"[Windows Worker] Result already acknowledged by server: {body}")
-                    return
-                elif e.code == 409 and data.get("reason") == "CONTRADICTORY_DUPLICATE":
-                    print(f"[Windows Worker] Result rejected as contradictory duplicate: {body}")
-                    return
-            except Exception:
-                body = ""
-"""
-
-content = content.replace(old_logic, new_logic)
-
-with open("scripts/windows_worker/daemon.py", "w") as f:
-    f.write(content)
-
+with open("scripts/mac_worker/daemon.py", "w") as f:
+    f.write(code)

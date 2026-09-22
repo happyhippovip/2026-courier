@@ -252,8 +252,9 @@ def test_tomato_two_full_torture_chamber():
     # Poll until launchd worker claims task_seq1
     claimed = False
     task1_data = None
-    checkpoint_file = REPO_ROOT / "scripts" / "mac_worker" / "state" / "current_task.json"
-
+    checkpoint_file_1 = REPO_ROOT / "scripts" / "mac_worker" / "state" / "current_task.json"
+    checkpoint_file_2 = REPO_ROOT / "scripts" / "mac_worker" / "state_2" / "current_task.json"
+    
     start_wait = time.time()
     while time.time() - start_wait < 30:
         tasks = get_goal_tasks(seq_goal_id)
@@ -269,13 +270,23 @@ def test_tomato_two_full_torture_chamber():
 
     # Capture durable checkpoint
     checkpoint_found = False
+    checkpoint_file = None
     for _ in range(20):
-        if checkpoint_file.exists():
-            checkpoint_found = True
-            break
+        if checkpoint_file_1.exists():
+            c1 = json.loads(checkpoint_file_1.read_text())
+            if c1.get("task_id") == task_seq1:
+                checkpoint_found = True
+                checkpoint_file = checkpoint_file_1
+                break
+        if checkpoint_file_2.exists():
+            c2 = json.loads(checkpoint_file_2.read_text())
+            if c2.get("task_id") == task_seq1:
+                checkpoint_found = True
+                checkpoint_file = checkpoint_file_2
+                break
         time.sleep(0.1)
 
-    assert checkpoint_found, "Checkpoint file current_task.json was not created on disk before completion"
+    assert checkpoint_found, "Checkpoint file current_task.json was not created on disk with correct task_id"
     checkpoint_content = json.loads(checkpoint_file.read_text())
     assert checkpoint_content["task_id"] == task_seq1
     assert "attempt_id" in checkpoint_content

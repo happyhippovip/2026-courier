@@ -1,42 +1,15 @@
 import re
+with open("tests/test_DLQ01_trust_boundary.py", "r") as f:
+    c = f.read()
+    
+c = c.replace('"artifacts": [{"path": "a.txt", "sha256": hashlib.sha256(b"a\\n").hexdigest()}]',
+              '"artifacts": [{"path": "a.txt", "sha256": hashlib.sha256(b"a\\n").hexdigest()}],\n        "runtime_identity": {"uid": "1", "user": "user"}')
+with open("tests/test_DLQ01_trust_boundary.py", "w") as f:
+    f.write(c)
 
-with open("tests/test_zero_hang_regression.py", "r") as f:
-    content = f.read()
-
-plan_edges = [
-    "LEDGER/HANDOFF",
-    "PR41 ACCEPTANCE",
-    "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
-    "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
-    "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
-    "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
-    "PUBLICATION VERIFICATION",
-    "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
-    "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
-    "SALES PACKAGE",
-    "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
-    "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
-    "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
-    "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
-    "POST-PILOT HARDENING",
-    "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
-    "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
-    "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
-    "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION"
-]
-
-proven = [
-    "LEDGER/HANDOFF",
-    "PR41 ACCEPTANCE",
-    "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
-    "RELEASE - IRREVERSIBLE_HUMAN_ACTION"
-]
-
-unproven = [x for x in plan_edges if x not in proven]
-
-import json
-content = re.sub(r'"UNPROVEN_EDGES": \[.*?\]', '"UNPROVEN_EDGES": ' + json.dumps(unproven), content, flags=re.DOTALL)
-content = re.sub(r'"PROVEN_EDGES": \[.*?\]', '"PROVEN_EDGES": ' + json.dumps(proven), content, flags=re.DOTALL)
-
-with open("tests/test_zero_hang_regression.py", "w") as f:
-    f.write(content)
+with open("tests/test_DLQ02_freshness_bound.py", "r") as f:
+    c = f.read()
+c = c.replace('"artifacts": [{"path": "a.txt", "sha256": hashlib.sha256(b"a\\n").hexdigest()}]',
+              '"artifacts": [{"path": "a.txt", "sha256": hashlib.sha256(b"a\\n").hexdigest()}],\n        "runtime_identity": {"uid": "1", "user": "user"}')
+with open("tests/test_DLQ02_freshness_bound.py", "w") as f:
+    f.write(c)

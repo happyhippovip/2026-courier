@@ -10,6 +10,7 @@ import sys
 import tempfile
 import threading
 import unittest
+from datetime import datetime, timezone
 from pathlib import Path
 from unittest import mock
 
@@ -369,10 +370,14 @@ subprocess.run([
             landed = ledger_module.copy.deepcopy(
                 bundle["acceptance_guard"]
             )
+            # Fresh stamp: the 2-day freshness bound is evaluated against
+            # now, so a hardcoded date would rot this test into STALE.
+            observed_at = datetime.now(timezone.utc).replace(
+                microsecond=0).strftime("%Y-%m-%dT%H:%M:%SZ")
             proof = {
                 "source_url": "https://github.com/example/project/actions/runs/2",
                 "source_type": "MACHINE_ARTIFACT",
-                "observed_at": "2026-09-17T18:00:00Z",
+                "observed_at": observed_at,
                 "evidence_sha": "b" * 40,
                 "runtime_binding": "b" * 40,
                 "validity": "VALID",
@@ -397,26 +402,49 @@ subprocess.run([
             landed["acceptance_predicate"]["results"]["RUNTIME_ARTIFACT"][
                 "evidence_urls"
             ] = [proof["source_url"]]
-            after_landing = ledger_module.update(
-                ledger,
-                bundle["revision"],
-                {"UNPROVEN_EDGES": [], "PROVEN_EDGES": ["issue state", "runtime artifact"]},
-                "foreign-worker",
-                1.0,
-                landed,
-            )
-            self.assertEqual(
-                after_landing["acceptance_guard"]["transition_state"],
-                "PROVISIONAL",
-            )
-            self.assertNotEqual(after_landing["record"]["CLEAN_IDLE"], "YES")
-            followed = ledger_module.update(
-                ledger,
-                after_landing["revision"],
-                {"TASKS_COMPLETED": 3},
-                "another-worker",
-                1.0,
-            )
+            # Offline receipt for the promotion step: introduction needs
+            # none, but the independent follow-up promotion requires a
+            # strictly verified attestation via the production seam.
+            goal = bundle["record"]["GOAL"]
+            binding = landed["binding"]
+
+            def resolve(url):
+                if url != proof["source_url"]:
+                    return None
+                return {
+                    "verdict": "PASS",
+                    "producer_principal": proof["producer_id"],
+                    "verifier_principal": proof["verifier_id"],
+                    "goal_id": goal,
+                    "binding": {
+                        "sha": binding["current_sha"],
+                        "runtime": binding["runtime_identity"],
+                    },
+                }
+
+            with mock.patch.object(
+                ledger_module, "_attestation_resolver", resolve
+            ):
+                after_landing = ledger_module.update(
+                    ledger,
+                    bundle["revision"],
+                    {"UNPROVEN_EDGES": [], "PROVEN_EDGES": ["issue state", "runtime artifact"]},
+                    "foreign-worker",
+                    1.0,
+                    landed,
+                )
+                self.assertEqual(
+                    after_landing["acceptance_guard"]["transition_state"],
+                    "PROVISIONAL",
+                )
+                self.assertNotEqual(after_landing["record"]["CLEAN_IDLE"], "YES")
+                followed = ledger_module.update(
+                    ledger,
+                    after_landing["revision"],
+                    {"TASKS_COMPLETED": 3},
+                    "another-worker",
+                    1.0,
+                )
             self.assertEqual(
                 followed["acceptance_guard"]["transition_state"],
                 "CANONICAL_ACCEPTED",

@@ -136,7 +136,7 @@ def action(body):
             # already in the queue run through the proven motor path; the
             # local deterministic entry stays available separately via the
             # mac_adapter --local-fake CLI flag used by tests.
-            command = [sys.executable, str(MAC_ADAPTER), "dauerlauf", "--art", art, "--limit", limit]
+            command = [sys.executable, str(MAC_ADAPTER), "dauerlauf", "--art", art, "--limit", limit, "--continuous-canary"]
             CHILD, JOB, _ = launch_gated(command, str(ROOT), dict(os.environ), stderr=subprocess.PIPE)
             RUN_BASE["done"] = _current_done()
             
@@ -151,7 +151,7 @@ def action(body):
             subprocess.check_call([sys.executable, str(MAC_ADAPTER), "resume"])
             if not active:
                 # if not active, we need to spawn it again to continue supervision
-                command = [sys.executable, str(MAC_ADAPTER), "dauerlauf", "--art", "begrenzt", "--limit", "1000000"]
+                command = [sys.executable, str(MAC_ADAPTER), "dauerlauf", "--art", "begrenzt", "--limit", "1000000", "--continuous-canary"]
                 CHILD, JOB, _ = launch_gated(command, str(ROOT), dict(os.environ), stderr=subprocess.PIPE)
                 def bounded_errors(child):
                     for chunk in iter(lambda: child.stderr.read(1024), b''):
