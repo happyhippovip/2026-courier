@@ -36,7 +36,7 @@ async function refresh(){
   $('uebrig').textContent='ÜBRIG: '+fmtCount(data.session.remaining ?? 1000000000);
   const counts={'Queue':c.QUEUED||0,'Läuft':s.active_lanes||0,'Wartet':c.RESULT_RECEIVED||0,'Blockiert':lanes.filter(l=>['UNKNOWN','ERROR'].includes(l.phase)).length,'Erledigt':currentRunDone(m.DONE||0)};
   for(const [key,value]of Object.entries(counts)){const cell=document.createElement('span');cell.textContent=`${key}: ${value}`;$('counts').append(cell);}
-  const rt=data.live?data.live.text:s.last_result?JSON.stringify(s.last_result,null,2):'Noch kein bestätigtes Ergebnis.';if($('result').textContent!==rt)$('result').textContent=rt;
+  if(data.live){const rt=data.live.text;if($('result').textContent!==rt)$('result').textContent=rt;}else{$('result').textContent=s.last_result?JSON.stringify(s.last_result,null,2):'Noch kein bestätigtes Ergebnis.';}
   $('evidence').textContent=JSON.stringify({...data,token:undefined},null,2);
   const bs = s.status || 'IDLE';
   const canStart = currentBuild && !data.helper_active && (bs === 'IDLE' || bs === 'COMPLETED' || bs === 'NOT_STARTED');
