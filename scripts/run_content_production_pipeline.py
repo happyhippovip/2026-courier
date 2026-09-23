@@ -433,6 +433,7 @@ def run_pipeline(
     workflows_path: Path = DEFAULT_WORKFLOWS_CONFIG,
     local_tools_path: Path = DEFAULT_LOCAL_TOOLS_CONFIG,
     force_rerun: bool = False,
+    approve_publish: bool = False,
 ) -> dict:
     if not channels_path.exists():
         raise FileNotFoundError(f"Channels config not found: {channels_path}")
@@ -561,8 +562,20 @@ def run_pipeline(
                 metadata_artifact_path,
                 final_arts
             )
+            if approve_publish:
+                publish_package_data["status"] = "APPROVED_BY_HUMAN"
+                publish_status = "COMPLETED"
+                print(f"[HUMAN_GATE] READY_TO_PUBLISH approved by human. Package marked COMPLETED.")
+            else:
+                publish_package_data["status"] = "AWAITING_HUMAN_APPROVAL"
+                publish_status = "AWAITING_HUMAN_APPROVAL"
+                print(f"[HUMAN_GATE] READY_TO_PUBLISH package staged. Paused awaiting explicit human approval.")
+                print(f"[HUMAN_GATE] Re-run pipeline with --approve-publish to finalize publish package.")
+
+            save_json(pkg_file, publish_package_data)
+
             stages_state[step] = {
-                "status": "COMPLETED",
+                "status": publish_status,
                 "executed_at": now_iso,
                 "artifact_path": str(pkg_file.relative_to(mission_dir)),
                 "details": publish_package_data
@@ -584,7 +597,15 @@ def run_pipeline(
 
     failed_any = any(s.get("status") == "FAILED" for s in stages_state.values())
     all_completed = all(s.get("status") == "COMPLETED" for s in stages_state.values())
-    overall_status = "COMPLETED" if all_completed else ("FAILED_FINAL" if failed_any else "PARTIAL_COMPLETED")
+    is_awaiting_approval = any(s.get("status") == "AWAITING_HUMAN_APPROVAL" for s in stages_state.values())
+    if all_completed:
+        overall_status = "COMPLETED"
+    elif is_awaiting_approval:
+        overall_status = "READY_TO_PUBLISH"
+    elif failed_any:
+        overall_status = "FAILED_FINAL"
+    else:
+        overall_status = "PARTIAL_COMPLETED"
 
     manifest = {
         "schema_version": "2.0",
@@ -617,6 +638,7 @@ def main() -> None:
     parser.add_argument("--workflows-config", default=str(DEFAULT_WORKFLOWS_CONFIG), help="Path to content_workflows.json")
     parser.add_argument("--tools-config", default=str(DEFAULT_LOCAL_TOOLS_CONFIG), help="Path to local_tools.json")
     parser.add_argument("--force", action="store_true", help="Force rerun all stages")
+    parser.add_argument("--approve-publish", action="store_true", help="Explicit human consent to finalize READY_TO_PUBLISH stage")
     args = parser.parse_args()
 
     manifest = run_pipeline(
@@ -628,6 +650,7 @@ def main() -> None:
         workflows_path=Path(args.workflows_config).resolve(),
         local_tools_path=Path(args.tools_config).resolve(),
         force_rerun=args.force,
+        approve_publish=args.approve_publish,
     )
     print(json.dumps(manifest, indent=2))
 
