@@ -350,6 +350,28 @@ class CannonMotor:
             self._save()
             return {"step": "unknown_halt", "task": task_id,
                     "state": "BLOCKED"}
+        artifact = self.results_dir / f"{task_id}.result.json"
+        if not artifact.exists():
+            self.m["state"] = "BLOCKED"
+            self.m["error"] = "missing_result_artifact"
+            self._save()
+            return {"step": "error", "error": self.m["error"]}
+        try:
+            receipt = json.loads(artifact.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            self.m["state"] = "BLOCKED"
+            self.m["error"] = "invalid_result_artifact"
+            self._save()
+            return {"step": "error", "error": self.m["error"]}
+            
+        if (receipt.get("task_id") != task_id
+                or receipt.get("result_id") != result_id
+                or receipt.get("outcome") != "ok"):
+            self.m["state"] = "BLOCKED"
+            self.m["error"] = "mismatched_result_artifact"
+            self._save()
+            return {"step": "error", "error": self.m["error"]}
+            
         completed = self._wq("complete", task_id, "--result-json",
                  json.dumps({"result_id": result_id}),
                  "--stage", "ACCEPTED")
