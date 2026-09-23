@@ -1,101 +1,237 @@
 #!/usr/bin/env python3
 import json
+import logging
 import os
+from pathlib import Path
 import shutil
 import time
 
+try:
+    from scripts.orphan_task_reaper import (
+        REPO_ROOT,
+        get_canonical_state_path,
+        get_worker_state_path,
+        atomic_save_json,
+        safely_terminate_pid,
+    )
+except ImportError:
+    from orphan_task_reaper import (
+        REPO_ROOT,
+        get_canonical_state_path,
+        get_worker_state_path,
+        atomic_save_json,
+        safely_terminate_pid,
+    )
+
+logger = logging.getLogger("windows_update_manager")
+
+
 class WindowsUpdateManager:
-    def __init__(self):
-        self.state_file = '../central_state.json'
-        self.backup_dir = '../backup_update'
+    def __init__(self, state_file=None, backup_dir=None, target_version="1.1.0"):
+        self.state_file = get_canonical_state_path(state_file)
+        self.backup_dir = Path(backup_dir).resolve() if backup_dir else (REPO_ROOT / "backup_update")
         self.current_version = "1.0.0"
-        self.target_version = "1.1.0"
-        
-    def detect_version(self):
+        self.target_version = target_version
+
+    def detect_version(self) -> str:
+        if self.state_file.exists():
+            try:
+                with open(self.state_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    self.current_version = data.get("schema_version", self.current_version)
+            except Exception:
+                pass
         print(f"Detected current installed version: {self.current_version}")
-        
-    def schema_compatibility_check(self):
+        return self.current_version
+
+    def schema_compatibility_check(self) -> bool:
         print(f"Checking schema compatibility for target {self.target_version}...")
-        # Simulate check
+        # Target version must follow standard semantic ordering
+        try:
+            cur_parts = [int(p) for p in self.current_version.split(".")[:2]]
+            tgt_parts = [int(p) for p in self.target_version.split(".")[:2]]
+            # Disallow downgrading or breaking major versions
+            if tgt_parts[0] < cur_parts[0]:
+                return False
+        except (ValueError, IndexError):
+            pass
         return True
-        
-    def checkpoint_state(self):
+
+    def checkpoint_state(self) -> int:
         print("Checkpointing canonical state, credentials, queue, results, and account checkpoints...")
-        if not os.path.exists(self.backup_dir):
-            os.makedirs(self.backup_dir)
-        
-        # Copy critical files
-        critical_files = [self.state_file, 'worker_state.json', 'account_session.json', '.env.txt']
-        for f in critical_files:
-            if os.path.exists(f):
-                shutil.copy2(f, self.backup_dir)
-                print(f"Backed up {f}")
-                
-    def stop_runtime(self):
+        self.backup_dir.mkdir(parents=True, exist_ok=True)
+
+        worker_state = get_worker_state_path()
+        candidates = [
+            self.state_file,
+            worker_state,
+            REPO_ROOT / "account_session.json",
+            REPO_ROOT / ".env.txt",
+        ]
+
+        manifest = {}
+        backed_up_count = 0
+        for cand in candidates:
+            cand_path = Path(cand).resolve()
+            if cand_path.exists() and cand_path.is_file():
+                dest_file = self.backup_dir / cand_path.name
+                shutil.copy2(cand_path, dest_file)
+                manifest[cand_path.name] = str(cand_path)
+                backed_up_count += 1
+                print(f"Backed up {cand_path} -> {dest_file}")
+
+        manifest_file = self.backup_dir / "manifest.json"
+        atomic_save_json(manifest_file, {"manifest": manifest, "timestamp": time.time()})
+        return backed_up_count
+
+    def stop_runtime(self) -> int:
         print("Stopping only Courier-owned runtime...")
-        # Uses the logic from orphan_task_reaper / windows_worker cleanup
-        # to cleanly terminate the running process tree without broad kill
-        print("Runtime cleanly stopped.")
-        
-    def update_files(self):
+        worker_state = get_worker_state_path()
+        terminated_count = 0
+        if worker_state.exists():
+            try:
+                with open(worker_state, "r", encoding="utf-8") as f:
+                    wdata = json.load(f)
+                owned_pids = wdata.get("owned_pids", [])
+                for pid in list(owned_pids):
+                    if safely_terminate_pid(pid):
+                        terminated_count += 1
+                wdata["owned_pids"] = []
+                atomic_save_json(worker_state, wdata)
+            except Exception as e:
+                logger.warning(f"Failed while stopping worker runtime: {e}")
+        print(f"Runtime cleanly stopped ({terminated_count} processes terminated).")
+        return terminated_count
+
+    def update_files(self) -> bool:
         print("Downloading and applying update package (No customer git commands)...")
-        # Simulate file swap
-        
-    def migrate_schema(self):
+        # In real update: unzips validated update package into runtime directory.
+        return True
+
+    def migrate_schema(self) -> bool:
         print("Migrating schema idempotently...")
-        # e.g., adding missing fields to central_state.json
-        if os.path.exists(self.state_file):
-            with open(self.state_file, 'r') as f:
+        if not self.state_file.exists():
+            return False
+
+        try:
+            with open(self.state_file, "r", encoding="utf-8") as f:
                 state = json.load(f)
-            
-            # Idempotent mutation
-            if 'schema_version' not in state:
-                state['schema_version'] = self.target_version
-                
-            with open(self.state_file, 'w') as f:
-                json.dump(state, f, indent=2)
-                
-    def restart_and_health_check(self, force_fail=False):
+        except (json.JSONDecodeError, OSError) as e:
+            print(f"[ERROR] Cannot parse canonical state during migration: {e}")
+            return False
+
+        # Idempotent mutation: update schema_version
+        state["schema_version"] = self.target_version
+        if "updated_at" not in state:
+            state["updated_at"] = time.time()
+
+        atomic_save_json(self.state_file, state)
+        print("Schema migration completed successfully.")
+        return True
+
+    def restart_and_health_check(self, force_fail=False) -> bool:
         print("Restarting runtime and performing health check...")
-        time.sleep(1)
+        time.sleep(0.1)
         if force_fail:
             print("[HEALTH CHECK FAILED]")
             return False
+
+        if not self.state_file.exists():
+            print("[HEALTH CHECK FAILED] State file missing.")
+            return False
+
+        try:
+            with open(self.state_file, "r", encoding="utf-8") as f:
+                state = json.load(f)
+            if not isinstance(state, dict):
+                print("[HEALTH CHECK FAILED] State file is not a dict.")
+                return False
+        except Exception as e:
+            print(f"[HEALTH CHECK FAILED] Corrupt state file: {e}")
+            return False
+
         print("[HEALTH CHECK PASSED]")
         return True
-        
-    def rollback(self):
+
+    def rollback(self) -> bool:
         print("Initiating ROLLBACK sequence...")
-        for f in os.listdir(self.backup_dir):
-            src = os.path.join(self.backup_dir, f)
-            dst = f if f != '../central_state.json' else self.state_file
-            if src.endswith('.json') or src.endswith('.txt'):
-                shutil.copy2(src, dst)
-        print("Rollback complete. Restored original state.")
-        
-    def run_update_flow(self, simulate_failure=False):
+        if not self.backup_dir.exists():
+            print("Rollback aborted: backup directory does not exist.")
+            return False
+
+        manifest_file = self.backup_dir / "manifest.json"
+        restored = 0
+        if manifest_file.exists():
+            try:
+                with open(manifest_file, "r", encoding="utf-8") as f:
+                    manifest_data = json.load(f).get("manifest", {})
+                for filename, original_path_str in manifest_data.items():
+                    src = self.backup_dir / filename
+                    dst = Path(original_path_str)
+                    if src.exists():
+                        dst.parent.mkdir(parents=True, exist_ok=True)
+                        shutil.copy2(src, dst)
+                        restored += 1
+                        print(f"Restored {src} -> {dst}")
+            except Exception as e:
+                logger.error(f"Error reading manifest: {e}")
+
+        # Fallback to direct directory scan if manifest failed or was absent
+        if restored == 0:
+            for item in self.backup_dir.iterdir():
+                if item.name == "manifest.json":
+                    continue
+                if item.suffix in [".json", ".txt"]:
+                    if item.name == self.state_file.name:
+                        shutil.copy2(item, self.state_file)
+                    else:
+                        shutil.copy2(item, REPO_ROOT / item.name)
+                    restored += 1
+
+        print(f"Rollback complete. Restored {restored} original file(s).")
+        return True
+
+    def run_update_flow(self, simulate_failure=False) -> dict:
         self.detect_version()
         if not self.schema_compatibility_check():
             print("Update aborted due to schema incompatibility.")
-            return
-            
+            return {
+                "success": False,
+                "status": "ABORTED_SCHEMA",
+                "version": self.current_version,
+            }
+
         self.checkpoint_state()
         self.stop_runtime()
         self.update_files()
         self.migrate_schema()
-        
+
         if not self.restart_and_health_check(force_fail=simulate_failure):
             self.rollback()
+            return {
+                "success": False,
+                "status": "ROLLEDBACK",
+                "version": self.current_version,
+            }
         else:
             print("Update succeeded. Cleaning up backups.")
-            shutil.rmtree(self.backup_dir)
+            if self.backup_dir.exists():
+                shutil.rmtree(self.backup_dir, ignore_errors=True)
+            return {
+                "success": True,
+                "status": "COMPLETED",
+                "version": self.target_version,
+            }
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     manager = WindowsUpdateManager()
-    
+
     print("--- SCENARIO 1: Successful Update ---")
-    manager.run_update_flow(simulate_failure=False)
-    
+    res1 = manager.run_update_flow(simulate_failure=False)
+    print(f"Result 1: {res1}")
+
     print("\n--- SCENARIO 2: Failed Update / Rollback ---")
-    manager = WindowsUpdateManager()
-    manager.run_update_flow(simulate_failure=True)
+    manager2 = WindowsUpdateManager()
+    res2 = manager2.run_update_flow(simulate_failure=True)
+    print(f"Result 2: {res2}")

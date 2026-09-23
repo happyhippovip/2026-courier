@@ -163,3 +163,5 @@ test_sync.lock
 /coordination/heartbeats/*.tmp.*
 /Claude outputs/
 /scripts/mac_worker/logs_*/
+/backup_update/
+/support_bundle_*.zip

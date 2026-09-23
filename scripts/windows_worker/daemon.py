@@ -371,6 +371,11 @@ def loop():
     atexit.register(_cleanup_lock)
     def _sig_handler(signum, frame):
         _cleanup_lock()
+        try:
+            sys.stdout.flush()
+            sys.stderr.flush()
+        except Exception:
+            pass
         sys.exit(0)
     try:
         signal.signal(signal.SIGTERM, _sig_handler)
@@ -379,14 +384,14 @@ def loop():
         pass
 
     try:
-        print(f"[{worker_id}] Windows Worker HTTP Daemon started. PID={os.getpid()}")
+        print(f"[{worker_id}] Windows Worker HTTP Daemon started. PID={os.getpid()}", flush=True)
         
         marker_path = Path(__file__).parent / "state" / "effect_marker.json"
         if marker_path.exists():
             try:
                 with open(marker_path, "r", encoding="utf-8") as f:
                     crashed_task = json.load(f)
-                print(f"[{worker_id}] Found ambiguous crash marker for task {crashed_task.get('task_id')}")
+                print(f"[{worker_id}] Found ambiguous crash marker for task {crashed_task.get('task_id')}", flush=True)
                 res_json = {
                     "status": "FAILED",
                     "stdout": "",
@@ -407,10 +412,10 @@ def loop():
                 res_json["result_id"] = compute_result_id(res_json)
                 http_post_result(res_json)
             except json.JSONDecodeError as e:
-                print(f"[{worker_id}] Corrupt crash marker {marker_path}: {e}. Quarantining...")
+                print(f"[{worker_id}] Corrupt crash marker {marker_path}: {e}. Quarantining...", flush=True)
                 quarantine_corrupt_file(marker_path)
             except Exception as e:
-                print(f"[{worker_id}] Failed to report ambiguous crash: {e}")
+                print(f"[{worker_id}] Failed to report ambiguous crash: {e}", flush=True)
             finally:
                 try:
                     if marker_path.exists():
@@ -434,7 +439,7 @@ def loop():
                     try:
                         with open(result_marker_path, "r", encoding="utf-8") as f:
                             saved_result = json.load(f)
-                        print(f"[{worker_id}] Found unsent result marker for task {saved_result.get('task_id')}")
+                        print(f"[{worker_id}] Found unsent result marker for task {saved_result.get('task_id')}", flush=True)
                         http_post_result(saved_result)
                         try:
                             result_marker_path.unlink()
