@@ -118,12 +118,17 @@ class LiveMuseAdapter:
         """Bounded real Meta canary; independent file verification, never exit-only success."""
         import hashlib
         import json
+        import os
         import shutil
         import subprocess
         import tempfile
         import time
         import uuid
         from pathlib import Path
+        
+        if os.environ.get('COURIER_ALLOW_PAID_API') != '1':
+            raise ValueError('PAID_CALLS_DISABLED')
+            
         if task.get('provider', 'meta') != 'meta':
             raise ValueError('UNSUPPORTED_REAL_PROVIDER')
         if task.get('acceptance') != 'isolated_nonce_canary_v1':

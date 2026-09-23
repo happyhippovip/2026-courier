@@ -21,7 +21,8 @@ def test_real_selects_adapter_and_failure_stops_next(tmp_path, monkeypatch):
     assert m.queue_snapshot()['tasks']['real-1']['status']=='READY'
 
 @pytest.mark.parametrize('provider',['echo','fake','mock'])
-def test_fake_provider_rejected(provider,tmp_path):
+def test_fake_provider_rejected(provider,tmp_path,monkeypatch):
+    monkeypatch.setenv('COURIER_ALLOW_PAID_API', '1')
     with pytest.raises(ValueError,match='UNSUPPORTED_REAL_PROVIDER'):
         LiveMuseAdapter.execute_canary({'provider':provider},tmp_path,lambda x:None)
 
