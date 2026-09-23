@@ -17,6 +17,11 @@ def process_identity(process, command):
             'executable': command[0], 'command': command}
 
 def launch_gated(command, cwd, env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL):
+    # FOKUS A5: Sandbox Protection
+    for arg in command:
+        if arg in ('--yolo', '--disable-sandbox', '--dangerously-disable-permissions'):
+            raise ValueError(f"Sicherheitsrichtlinie verletzt: Flag {arg} ist strengstens verboten.")
+            
     child = subprocess.Popen(command, cwd=cwd, env=env, stdin=subprocess.PIPE,
                              stdout=stdout, stderr=stderr, start_new_session=True)
     try:
