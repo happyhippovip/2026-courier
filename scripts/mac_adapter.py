@@ -11,6 +11,7 @@ Core (scripts/cannon_motor.py, scripts/work_queue.py) is imported read-only
 and never modified by this adapter. stdlib only.
 """
 import argparse
+# fcntl/msvcrt are imported lazily inside _lock_stream (Windows port)
 import json
 import os
 import platform
@@ -22,6 +23,39 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from scripts.cannon_motor import CannonMotor  # noqa: E402
 
 WORK_QUEUE = Path(__file__).resolve().parent / "work_queue.py"
+
+
+def _lock_stream(stream):
+    """Non-blocking exclusive supervisor lock, platform-neutral.
+
+    POSIX (Mac/Linux): fcntl.flock whole-file semantics via fd.
+    Windows: msvcrt.locking 1-byte region at offset 0.
+    Same pattern as _lock_stream/_unlock_stream in the canonical
+    agent_handoff_ledger (absent at this SHA, so mirrored here
+    instead of imported). Contention raises BlockingIOError (POSIX)
+    or OSError EACCES (Windows).
+    """
+    stream.seek(0)
+    if os.name == "nt":
+        import msvcrt
+
+        msvcrt.locking(stream.fileno(), msvcrt.LK_NBLCK, 1)
+    else:
+        import fcntl
+
+        fcntl.flock(stream.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+
+
+def _unlock_stream(stream):
+    stream.seek(0)
+    if os.name == "nt":
+        import msvcrt
+
+        msvcrt.locking(stream.fileno(), msvcrt.LK_UNLCK, 1)
+    else:
+        import fcntl
+
+        fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
 
 
 def default_state_dir():
@@ -67,37 +101,32 @@ class MacAdapter:
     def supervise(self, max_cycles=None, idle_sleep=5.0, start=None):
         # One existing motor supervisor per state directory, including CLI
         # retries. This is an instance lock, not another task/lease authority.
-        with (self.state_dir / "supervisor.lock").open("a") as lock:
+        self.state_dir.mkdir(parents=True, exist_ok=True)
+        with (self.state_dir / "supervisor.lock").open("a+b") as lock:
+            lock.seek(0, os.SEEK_END)
+            if lock.tell() == 0:
+                lock.write(b"\0")
+                lock.flush()
             try:
-                if os.name == "nt":
-                    import msvcrt
-                    lock.seek(0)
-                    msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
-                else:
-                    import fcntl
-                    fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-            except (BlockingIOError, OSError):
+                _lock_stream(lock)
+            except BlockingIOError:
                 return {"started": False, "reason": "supervisor_active"}
-            
-            try:
-                self.motor._load()
-                if start is not None:
-                    art, limit, cooldown, local_fake = start
-                    mode = "INFINITE" if art == "unendlich" else "FINITE"
-                    started = self.motor.start(mode=mode, limit=limit,
-                                               cooldown=cooldown,
-                                               local_fake=local_fake)
-                    if not started.get("started"):
-                        return self._rebind(started)
-                return self._rebind(self.motor.supervise(max_cycles, idle_sleep))
-            finally:
-                if os.name == "nt":
-                    import msvcrt
-                    lock.seek(0)
-                    msvcrt.locking(lock.fileno(), msvcrt.LK_UNLCK, 1)
-                else:
-                    import fcntl
-                    fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
+            except OSError:  # Windows (msvcrt) contention surfaces as OSError
+                if os.name != "nt":
+                    raise
+                return {"started": False, "reason": "supervisor_active"}
+            self.motor._load()
+            if start is not None:
+                art, limit, cooldown, local_fake = start
+                mode = "INFINITE" if art == "unendlich" else "FINITE"
+                started = self.motor.start(mode=mode, limit=limit,
+                                           cooldown=cooldown,
+                                           local_fake=local_fake)
+                if not started.get("started"):
+                    _unlock_stream(lock)
+                    return self._rebind(started)
+            _unlock_stream(lock)
+            return self._rebind(self.motor.supervise(max_cycles, idle_sleep))
 
     def save_prompt(self, prompt_id, text, semantics="readonly"):
         return self._rebind(
@@ -144,7 +173,7 @@ class MacAdapter:
                                 else "BEGRENZT"),
                     "gestartet": self.motor.m.get("started_count", 0),
                     "erledigt": self.motor.m.get("done_count", 0),
-                    "verbleibend": ("∞" if remaining is None
+                    "verbleibend": ("UNENDLICH" if remaining is None
                                     else remaining),
                     "aktuelle_aufgabe": self.motor.m.get("current_task"),
                     "letztes_ergebnis": self.motor.m.get("last_result"),
