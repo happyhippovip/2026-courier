@@ -271,7 +271,15 @@ class CannonMotor:
             # Persisted deadline also covers reopening during the cooldown.
             delay = self.m.get("next_admission_after", 0) - time.time()
             if delay > 0:
-                time.sleep(delay)
+                end_time = time.time() + delay
+                while time.time() < end_time:
+                    self._load()
+                    if (self.state_dir / "STOP").exists():
+                        self.m["stop_requested"] = True
+                        self._save()
+                    if self.m.get("pause_requested") or self.m.get("stop_requested"):
+                        break
+                    time.sleep(0.1)
                 self._load()
             if self.m.get("pause_requested") or self.m.get("stop_requested"):
                 self.m["state"] = "PAUSED" if self.m.get("pause_requested") else "IDLE"
@@ -379,7 +387,15 @@ class CannonMotor:
         # Cooldown AFTER confirmed completion — never instead of it.
         cooldown = self.m.get("cooldown_seconds", 5.0) or 0
         if cooldown > 0:
-            time.sleep(cooldown)
+            end_time = time.time() + cooldown
+            while time.time() < end_time:
+                self._load()
+                if (self.state_dir / "STOP").exists():
+                    self.m["stop_requested"] = True
+                    self._save()
+                if self.m.get("pause_requested") or self.m.get("stop_requested"):
+                    break
+                time.sleep(0.1)
             self._load()  # include controls persisted by the web process
         # Control flags take effect between tasks, never mid-task.
         if self.m["pause_requested"]:
