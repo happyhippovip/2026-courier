@@ -12,7 +12,7 @@ def test_adapter_seed_run_snapshot(tmp_path):
     assert adapter.start(cooldown=0)["started"] is True
     adapter.run()
     snap = adapter.status()
-    assert snap["platform"] == "darwin"
+    assert snap["platform"] == sys.platform
     assert snap["state"] == "COMPLETED"
     assert snap["task_counts"].get("DONE") == 5
     assert snap["invariants"]["DUPLICATE_EXECUTIONS"] == 0
@@ -45,6 +45,6 @@ def test_adapter_cli_status_json(tmp_path):
         [sys.executable, "scripts/mac_adapter.py", "--state-dir",
          str(tmp_path), "status"], text=True)
     snap = json.loads(out)
-    assert snap["platform"] == "darwin"
+    assert snap["platform"] == sys.platform
     assert snap["state"] == "IDLE"
     assert snap["state_dir"] == str(tmp_path)

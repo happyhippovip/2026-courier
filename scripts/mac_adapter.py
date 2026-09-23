@@ -11,7 +11,6 @@ Core (scripts/cannon_motor.py, scripts/work_queue.py) is imported read-only
 and never modified by this adapter. stdlib only.
 """
 import argparse
-import fcntl
 import json
 import os
 import platform
@@ -70,19 +69,35 @@ class MacAdapter:
         # retries. This is an instance lock, not another task/lease authority.
         with (self.state_dir / "supervisor.lock").open("a") as lock:
             try:
-                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            except BlockingIOError:
+                if os.name == "nt":
+                    import msvcrt
+                    lock.seek(0)
+                    msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
+                else:
+                    import fcntl
+                    fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except (BlockingIOError, OSError):
                 return {"started": False, "reason": "supervisor_active"}
-            self.motor._load()
-            if start is not None:
-                art, limit, cooldown, local_fake = start
-                mode = "INFINITE" if art == "unendlich" else "FINITE"
-                started = self.motor.start(mode=mode, limit=limit,
-                                           cooldown=cooldown,
-                                           local_fake=local_fake)
-                if not started.get("started"):
-                    return self._rebind(started)
-            return self._rebind(self.motor.supervise(max_cycles, idle_sleep))
+            
+            try:
+                self.motor._load()
+                if start is not None:
+                    art, limit, cooldown, local_fake = start
+                    mode = "INFINITE" if art == "unendlich" else "FINITE"
+                    started = self.motor.start(mode=mode, limit=limit,
+                                               cooldown=cooldown,
+                                               local_fake=local_fake)
+                    if not started.get("started"):
+                        return self._rebind(started)
+                return self._rebind(self.motor.supervise(max_cycles, idle_sleep))
+            finally:
+                if os.name == "nt":
+                    import msvcrt
+                    lock.seek(0)
+                    msvcrt.locking(lock.fileno(), msvcrt.LK_UNLCK, 1)
+                else:
+                    import fcntl
+                    fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
 
     def save_prompt(self, prompt_id, text, semantics="readonly"):
         return self._rebind(
