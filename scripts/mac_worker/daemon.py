@@ -84,12 +84,8 @@ def load_config():
         if CONFIG_PATH.exists():
             atomic_save_json(CONFIG_PATH, config)
 
-    # Try reading from macOS keychain
-    try:
-        pass # Bypass keychain to fix 401
-    except (Exception):
-        pass
-        
+
+
     try:
         srv = subprocess.check_output(["security", "find-generic-password", "-a", "courier_worker", "-s", "courier_server_url", "-w"], stderr=subprocess.DEVNULL)
         config["COURIER_SERVER"] = srv.decode("utf-8").strip()
