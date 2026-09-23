@@ -17,6 +17,7 @@ from cannon.storage import ROOT, InstanceLock, atomic, digest, file_hash, owned
 CORE_MANIFEST = ROOT / 'data/cannon-tests/core-source-manifest.json'
 # This is a frozen local fixture, never an implicit acceptance of the live Core.
 CORE_HASHES = json.loads(CORE_MANIFEST.read_text(encoding='utf-8'))
+NORMALIZED_HASHES = {k.replace('\\', '/'): v for k, v in CORE_HASHES.items()}
 CORE_FIXTURE_ID = digest(CORE_HASHES)
 SNAPSHOT = ROOT / 'data/cannon-tests/core-snapshots' / CORE_FIXTURE_ID
 
@@ -30,7 +31,7 @@ def snapshot():
         published = manifest_path.exists()
         if published and json.loads(manifest_path.read_text(encoding='utf-8')) != hashes:
             raise ValueError('CORE_SNAPSHOT_MUTATED')
-        for name, expected in hashes.items():
+        for name, expected in NORMALIZED_HASHES.items():
             relative = Path(name)
             if relative.is_absolute() or '..' in relative.parts:
                 raise ValueError('CORE_FIXTURE_PATH_INVALID')
@@ -43,8 +44,8 @@ def snapshot():
                 shutil.copyfile(source, target)
             if not target.is_file() or file_hash(target) != expected:
                 raise ValueError('CORE_SNAPSHOT_MUTATED')
-        actual = {str(p.relative_to(SNAPSHOT)) for p in SNAPSHOT.rglob('*.py')}
-        if actual != set(hashes):
+        actual = {str(p.relative_to(SNAPSHOT)).replace('\\', '/') for p in SNAPSHOT.rglob('*.py')}
+        if actual != set(NORMALIZED_HASHES.keys()):
             raise ValueError('CORE_SNAPSHOT_UNEXPECTED_CODE')
         if not published:
             atomic(manifest_path, hashes)

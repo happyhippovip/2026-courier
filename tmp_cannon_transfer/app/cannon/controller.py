@@ -14,7 +14,12 @@ NEXT_TASK_COOLDOWN_SECONDS = 5
 def resource_state():
     try:
         import psutil
+        import sys
         mem = psutil.virtual_memory()
+        if sys.platform == 'darwin':
+            if mem.available < 512 * 1024**2: return 'RED'
+            if mem.available < 1024**3: return 'YELLOW'
+            return 'GREEN'
         if mem.percent >= 90 or mem.available < 512 * 1024**2: return 'RED'
         if mem.percent >= 75 or mem.available < 1024**3: return 'YELLOW'
         return 'GREEN'
