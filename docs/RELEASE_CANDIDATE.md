@@ -158,5 +158,34 @@ No new architecture, rule, agent, roadmap, or refactor is justified before a con
 - **Exitcode / Ergebnis:** 0 (100% grün, Testsuite auf 576 Tests angewachsen).
 - **Status:** Deterministische Frontier-Ausführung, robuste Kunden-Intake-Validierung und sichere Prozessbereinigung nachgewiesen.
 
+### FEAT: WINDOWS CRASH RECOVERY, REPAIR MODE, UPDATE MANAGER & SUPPORT BUNDLE SANITIZATION
+- **Ursache:**
+  1. `scripts/windows_crash_recovery.py`: Fehlende differenzierte Crash-Recovery für diskrete Ausführungsphasen (`PRE_EFFECT`, `ARTIFACT_CREATED`, `POST_EXTERNAL_EFFECT`, `POST_RESULT`), wodurch potenziell idempotenzwidrige Duplikat-Effekte bei unklarem Crash-Status ausgelöst werden konnten.
+  2. `scripts/windows_repair_mode.py`: Kein standardisiertes One-Click-Reparaturwerkzeug zur Bereinigung verwaister UI-Handles, Validierung von State-Schemas und Forensik-Sicherung beschädigter Zustandsdateien.
+  3. `scripts/windows_update_manager.py`: Fehlende transaktionale Rollback-Sicherheit bei fehlschlagenden Schema-Migrationen oder ungesunden Zustandstests nach Updates.
+  4. `scripts/account_switch.py`: Fehlende sichere PID-Terminierung und atomare Zustandsüberführung bei Provider-/Account-Wechsel.
+  5. `scripts/support_bundle.py`: Fehlende Bereinigung sensibler Chain-of-Thought- und Secret-Payloads beim Export von Support-Bundles sowie plattformabhängige `statvfs`-Aufrufe.
+- **Änderung:**
+  1. `windows_crash_recovery.py`: Phasenbasierte Recovery (`REQUEUE`, `RESUME_ARTIFACT`, `FAIL_CLOSED_HUMAN_GATE`, `ACKNOWLEDGE_RESULT`) mit forensischer Quarantäne korrupter Zustände implementiert.
+  2. `windows_repair_mode.py`: Schema-Validierung, automatisches Backup korrupter Dateien, Entkopplung von UI-Handles und sichere PID-Bereinigung (`safely_terminate_pid`) integriert.
+  3. `windows_update_manager.py`: Checkpoint-Manifeste mit SHA-256-Prüfsummen, schema-kompatible idempotente Migrationen und automatischen Rollback bei fehlgeschlagenen Health-Checks umgesetzt.
+  4. `account_switch.py`: Sichere Überführung aktiver Aufgaben in `WAITING_PROVIDER` und deterministische Fortsetzung nach Account-Aktualisierung.
+  5. `support_bundle.py`: Redigierte Queue-Metriken (ohne Tokens/Secrets), plattformunabhängige Festplattenmetriken via `shutil.disk_usage` und zeitbegrenzte Git-Head-Ermittlung eingeführt.
+  6. 5 neue Testsuites (`tests/test_windows_crash_recovery.py`, `tests/test_windows_repair_mode.py`, `tests/test_windows_update_manager.py`, `tests/test_account_switch.py`, `tests/test_support_bundle.py`) mit insgesamt 31 Tests ergänzt.
+- **Testbefehl:** `pytest tests/test_windows_crash_recovery.py tests/test_windows_repair_mode.py tests/test_windows_update_manager.py tests/test_account_switch.py tests/test_support_bundle.py -v`
+- **Exitcode / Ergebnis:** 0 (100% grün, Testsuite auf 607 Tests erweitert).
+- **Status:** Vollständige Recovery- und Rollback-Sicherheit nachgewiesen.
 
-
+### FIX & HARDENING: CANNON YOLO PROCESS LIFECYCLE & WORKER STATE UI HANDLE DECOUPLING
+- **Ursache:**
+  1. `scripts/cannon_yolo.py`: In `run_muse` konnte ein beendeter Kindprozess (`p.poll() is not None`), dessen stdout-Pipe noch geleert wurde, unter hoher Systemlast fälschlicherweise als `why = "IDLE"` klassifiziert werden.
+  2. `tests/test_cannon_yolo.py`: `test_l_live_shows_output_while_running_not_only_at_end` nutzte ein statisches `time.sleep(1.5)`, das bei CPU-Spitzen flakete. `COURIER_YOLO_IDLE_SECONDS="2"` lag auf der Schwelle der Python-Subprozess-Initialisierungszeit unter Vollast.
+  3. `scripts/orphan_task_reaper.py`: UI-Handles waren mit Mock-Strings hardcodiert statt dynamisch aus dem `worker_state.json` gelesen zu werden.
+- **Änderung:**
+  1. `scripts/cannon_yolo.py`: IDLE-Bedingung strikt an `p.poll() is None` gekoppelt und Restpuffer nach Prozessbeendigung sicher entleert.
+  2. `tests/test_cannon_yolo.py`: Asynchrones Polling-Verhalten (bis zu 8s) in `test_l_live_shows_output_while_running_not_only_at_end` und robuster 3s-Idle-Timeout für Subprozess-Initialisierung unter Last konfiguriert.
+  3. `scripts/orphan_task_reaper.py`: Dynamische Extraktion von `ui_handles` und `active_ui_handle` aus `worker_state.json` integriert und neue Tests hinzugefügt.
+  4. `scripts/windows_repair_mode.py`: `current_task` wird bei Bereinigung verwaister Ausführungen zusätzlich sicher auf `None` zurückgesetzt.
+- **Testbefehl:** `pytest tests/test_cannon_yolo.py tests/test_orphan_task_reaper.py tests/test_windows_repair_mode.py -v`
+- **Exitcode / Ergebnis:** 0 (100% grün).
+- **Status:** Flake-freie Subprozess-Überwachung und dynamische Handle-Bereinigung nachgewiesen.
