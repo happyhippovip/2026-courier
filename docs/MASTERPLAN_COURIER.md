@@ -99,3 +99,16 @@ Mac: Cannon-Endlos-Lauf in ~/Downloads/courier_cannon_endlos (Ziel-Repo ~/Downlo
 Windows: Cannon-Port in C:\Users\lol\2026-workspace\courier-cannon-win; Antigravity nur über Chrome/localhost.
 AWS und Abos sind erledigt – nicht erneut prüfen.
 ```
+
+
+## 10. Merksatz / Beschleunigungs-Addendum (23.09.2026)
+
+Der bestehende Masterplan bleibt unverändert maßgeblich.
+
+Zusätzlicher Merksatz:
+**Schnell raus aus manueller Orchestrierung: Cannon V1 einfrieren, vorhandene Pipeline beweisen, danach den Bedienweg auf "Ziel + Kanal auswählen -> Courier arbeitet bis READY_TO_PUBLISH" verkürzen.**
+
+Details und belegter Pipeline-Bestand:
+`docs/ACCELERATION_AND_CHANNEL_PIPELINE_ADDENDUM_2026-09-23.md`
+
+Diese Ergänzung erweitert den Plan, ersetzt oder schwächt keine bestehenden Stufen oder Abnahmekriterien.
