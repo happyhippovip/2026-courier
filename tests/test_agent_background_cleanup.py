@@ -22,7 +22,8 @@ def main():
         p = subprocess.Popen(["tail", "-f", "/dev/null"])
         monitors.append(p)
         
-    session_id = "TEST-SESSION-123"
+    import uuid
+    session_id = f"TEST-SESSION-{uuid.uuid4().hex}"
     
     print(f"Registering monitors to session {session_id}...")
     for i, p in enumerate(monitors):

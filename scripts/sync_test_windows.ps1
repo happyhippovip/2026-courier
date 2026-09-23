@@ -37,7 +37,11 @@ try {
 
     # 4 & 5. stop only exact owned TEST processes
     Write-Host "Stopping test application if running..."
-    Get-Process | Where-Object { $_.Path -like "$TestPath*" } | Stop-Process -Force -ErrorAction SilentlyContinue
+    if (Test-Path "$env:TEMP\courier_test_app.pid") {
+        $pid_to_kill = Get-Content "$env:TEMP\courier_test_app.pid"
+        Stop-Process -Id $pid_to_kill -Force -ErrorAction SilentlyContinue
+        Remove-Item "$env:TEMP\courier_test_app.pid" -Force -ErrorAction SilentlyContinue
+    }
 
     # 6. verify test checkout has no unexplained local changes
     $status = git status --porcelain

@@ -38,7 +38,10 @@ echo "Candidate: $CANDIDATE_SHA"
 
 # 4 & 5. stop only exact owned TEST processes
 echo "Stopping test application if running..."
-pkill -f "Courier Symphony Test" || true
+if [ -f "/tmp/courier_test_app.pid" ]; then
+    kill -9 $(cat /tmp/courier_test_app.pid) 2>/dev/null || true
+    rm -f /tmp/courier_test_app.pid
+fi
 
 # 6. verify test checkout has no unexplained local changes
 if ! git diff-index --quiet HEAD --; then

@@ -10,10 +10,12 @@ if ! pgrep -f "gunicorn.*server.app:app" > /dev/null; then
     echo "$(date): Courier Server laeuft nicht. Starte neu..." >> logs/health_watchdog.log
     
     # Alte Reste zur Sicherheit aufraeumen
-    pkill -9 -f courier_verifier.py 2>/dev/null || true
-    pkill -9 -f courier_github_dispatcher.py 2>/dev/null || true
-    pkill -9 -f courier_watchdog.py 2>/dev/null || true
-    pkill -9 -f gunicorn 2>/dev/null || true
+    if [ -f "logs/.supervisor.pid" ]; then
+        for pid in $(cat logs/.supervisor.pid); do
+            kill -9 $pid 2>/dev/null || true
+        done
+        rm -f logs/.supervisor.pid
+    fi
     
     # Neu starten im Hintergrund, Ausgaben ins Nirvana
     nohup ./deploy/run-supervisor.sh > /dev/null 2>&1 &
