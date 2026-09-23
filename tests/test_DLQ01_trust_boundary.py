@@ -1,9 +1,18 @@
 import pytest
 import hashlib
-from tests.test_ab_reconcile_unlock import make_client, auth
+from server.app import app
+def make_client(tmp_path, monkeypatch):
+    monkeypatch.setenv("COURIER_STORAGE_DIR", str(tmp_path))
+    monkeypatch.setenv("COURIER_API_KEY", "test-secret")
+    return app.test_client()
+
+def auth():
+    from server.app import API_KEY
+    return {"Authorization": f"Bearer {API_KEY}"}
 
 def verifier_auth():
-    return {"Authorization": f"Bearer verifier-secret"}
+    from server.app import VERIFIER_API_KEY
+    return {"Authorization": f"Bearer {VERIFIER_API_KEY}"}
 
 def make_result(claimed, result_id="res-1"):
     return {

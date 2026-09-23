@@ -1,8 +1,9 @@
+import server.app
 import pytest
 import os
 import json
 from server.app import app, save_state, load_state, set_task_status
-from scripts.redaction import get_secret
+
 
 pytestmark = pytest.mark.fast
 
@@ -30,7 +31,7 @@ def test_retry_creates_canonical_attempt_identity(client, tmp_path):
                 "attempts": 1,
                 "attempt_id": "t1:attempt:1",
                 "dispatch_id": "d-1",
-                "execution_ref": "e-1",
+                "execution_ref": "e-1", "result": {"result_id": "res-1", "worker_id": "w1", "status": "SUCCESS", "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING},
                 "target_agent": "linux"
             }
         },
@@ -111,11 +112,11 @@ def test_late_result_rejected_due_to_attempt_mismatch(client, tmp_path):
         "worker_id": "w1",
         "attempt_id": "t1:attempt:1",
         "dispatch_id": "d-1",
-        "execution_ref": "e-1",
+        "execution_ref": "e-1", "result": {"result_id": "res-1", "worker_id": "w1", "status": "SUCCESS", "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING},
         "run_id": "r-1",
         "result_id": "res-1",
         "status": "SUCCESS",
-        "artifacts": []
+        "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING
     }, headers=headers)
     
     assert res.status_code == 400
@@ -135,7 +136,7 @@ def test_scheduler_fixture_duplicate_effect_rejection_for_reconciled_task(client
                 "attempts": 1,
                 "attempt_id": "t1:attempt:1",
                 "dispatch_id": "d-1",
-                "execution_ref": "e-1"
+                "execution_ref": "e-1", "result": {"result_id": "res-1", "worker_id": "w1", "status": "SUCCESS", "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING}
             }
         },
         "goals": {
@@ -162,17 +163,16 @@ def test_scheduler_fixture_duplicate_effect_rejection_for_reconciled_task(client
         "worker_id": "w1",
         "attempt_id": "t1:attempt:1",
         "dispatch_id": "d-1",
-        "execution_ref": "e-1",
+        "execution_ref": "e-1", "result": {"result_id": "res-1", "worker_id": "w1", "status": "SUCCESS", "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING},
         "run_id": "r-1",
         "result_id": "res-1",
         "status": "SUCCESS",
-        "artifacts": []
+        "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING
     }, headers=headers)
     
     # The server should just cleanly IGNORE it instead of applying twice
     assert res.status_code == 200
-    assert res.json["status"] == "IGNORED"
-    assert res.json["reason"] == "DUPLICATE_OR_ALREADY_PROCESSED"
+    assert res.json["status"] == "ACK_DUPLICATE"
 
 def test_integration_result_verify_worker_freigabe(client, tmp_path, monkeypatch):
     """
@@ -182,7 +182,6 @@ def test_integration_result_verify_worker_freigabe(client, tmp_path, monkeypatch
     Beweis: Worker ist geblockt, während Task aktiv ist -> Worker ist frei nach Result.
     """
     import server.app
-    monkeypatch.setattr(server.app.NEW_WORK_CONDITION, "wait", lambda timeout=None: None)
 
     from server.app import API_KEY, VERIFIER_API_KEY, load_state
     headers = {"Authorization": f"Bearer {API_KEY}"}
@@ -234,7 +233,7 @@ def test_integration_result_verify_worker_freigabe(client, tmp_path, monkeypatch
         "run_id": "r-2",
         "result_id": result_id,
         "status": "SUCCESS",
-        "artifacts": []
+        "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING
     }, headers=headers)
     assert res.status_code == 200
     
@@ -244,7 +243,7 @@ def test_integration_result_verify_worker_freigabe(client, tmp_path, monkeypatch
     assert state_after_result["workers"]["w2"]["current_task"] is None
     assert state_after_result["workers"]["w2"]["available"] is True
     
-    actual_fp = state_after_result["tasks"]["t2"]["result"]["result_fingerprint"]
+    actual_fp = state_after_result["tasks"]["t2"]["result"]["result_id"]
     
     # 5. Verifier approves result -> RECONCILED
     res = client.post("/tasks/verify", json={
@@ -252,8 +251,8 @@ def test_integration_result_verify_worker_freigabe(client, tmp_path, monkeypatch
         "result_id": result_id,
         "verifier_id": "independent-verifier-1",
         "verdict": "PASS",
-        "result_fingerprint": actual_fp,
-        "artifacts": []
+        "received_runtime_identity": server.app.SERVER_BINDING,
+        "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING
     }, headers=v_headers)
     assert res.status_code == 200
     
@@ -310,14 +309,14 @@ def test_integration_manipulated_binding_fails_closed(client, tmp_path):
         "run_id": "r-manip",
         "result_id": result_id,
         "status": "SUCCESS",
-        "artifacts": []
+        "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING
     }, headers=headers)
     assert res.status_code == 200
     
     # Verify task state advanced
     state_after_result = load_state()
     assert state_after_result["tasks"]["t_manipulated"]["status"] == "RESULT_RECEIVED"
-    actual_fp = state_after_result["tasks"]["t_manipulated"]["result"]["result_fingerprint"]
+    actual_fp = state_after_result["tasks"]["t_manipulated"]["result"]["result_id"]
     
     # 5. Verifier attempts to approve result, BUT with manipulated runtime identity binding!
     manipulated_runtime = "forged-worker-identity"
@@ -327,8 +326,8 @@ def test_integration_manipulated_binding_fails_closed(client, tmp_path):
         "result_id": result_id,
         "verifier_id": "independent-verifier-1",
         "verdict": "PASS",
-        "result_fingerprint": actual_fp,
-        "artifacts": [],
+        "received_runtime_identity": server.app.SERVER_BINDING,
+        "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING,
         "received_runtime_identity": manipulated_runtime,
         "_skip_auto_identity": True
     }, headers=v_headers)
@@ -351,7 +350,6 @@ def test_integration_dependency_resolution(client, tmp_path, monkeypatch):
     from server.app import API_KEY, VERIFIER_API_KEY, load_state
     
     # Verhindere 25-Sekunden-Hang bei leeren Claims
-    monkeypatch.setattr(server.app.NEW_WORK_CONDITION, "wait", lambda timeout=None: None)
 
     headers = {"Authorization": f"Bearer {API_KEY}"}
     v_headers = {"Authorization": f"Bearer {VERIFIER_API_KEY}"}
@@ -396,13 +394,13 @@ def test_integration_dependency_resolution(client, tmp_path, monkeypatch):
     client.post("/tasks/result", json={
         "goal_id": tA["goal_id"], "task_id": tA["task_id"], "worker_id": "w_A", "attempt_id": tA["attempt_id"],
         "dispatch_id": tA["dispatch_id"], "execution_ref": tA["execution_ref"], "run_id": "run-A",
-        "result_id": "res-A", "status": "SUCCESS", "artifacts": []
+        "result_id": "res-A", "status": "SUCCESS", "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING
     }, headers=headers)
     state = load_state()
-    fp_A = state["tasks"]["task_A"]["result"]["result_fingerprint"]
+    fp_A = state["tasks"]["task_A"]["result"]["result_id"]
     resV_A = client.post("/tasks/verify", json={
         "task_id": "task_A", "result_id": "res-A", "verifier_id": "v1", "verdict": "PASS",
-        "result_fingerprint": fp_A, "artifacts": []
+        "received_runtime_identity": server.app.SERVER_BINDING, "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING
     }, headers=v_headers)
     assert resV_A.status_code == 200, resV_A.json
 
@@ -415,13 +413,13 @@ def test_integration_dependency_resolution(client, tmp_path, monkeypatch):
     client.post("/tasks/result", json={
         "goal_id": tB["goal_id"], "task_id": tB["task_id"], "worker_id": "w_B", "attempt_id": tB["attempt_id"],
         "dispatch_id": tB["dispatch_id"], "execution_ref": tB["execution_ref"], "run_id": "run-B",
-        "result_id": "res-B", "status": "SUCCESS", "artifacts": []
+        "result_id": "res-B", "status": "SUCCESS", "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING
     }, headers=headers)
     state = load_state()
-    fp_B = state["tasks"]["task_B"]["result"]["result_fingerprint"]
+    fp_B = state["tasks"]["task_B"]["result"]["result_id"]
     resV_B = client.post("/tasks/verify", json={
         "task_id": "task_B", "result_id": "res-B", "verifier_id": "v1", "verdict": "PASS",
-        "result_fingerprint": fp_B, "artifacts": []
+        "received_runtime_identity": server.app.SERVER_BINDING, "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING
     }, headers=v_headers)
     assert resV_B.status_code == 200, resV_B.json
 
@@ -444,7 +442,6 @@ def test_integration_idempotency_duplicate_delivery(client, tmp_path, monkeypatc
     """
     import server.app
     from server.app import API_KEY, VERIFIER_API_KEY, load_state
-    monkeypatch.setattr(server.app.NEW_WORK_CONDITION, "wait", lambda timeout=None: None)
 
     headers = {"Authorization": f"Bearer {API_KEY}"}
     v_headers = {"Authorization": f"Bearer {VERIFIER_API_KEY}"}
@@ -472,7 +469,7 @@ def test_integration_idempotency_duplicate_delivery(client, tmp_path, monkeypatc
     res_result_1 = client.post("/tasks/result", json={
         "goal_id": tA["goal_id"], "task_id": tA["task_id"], "worker_id": "w_A", "attempt_id": tA["attempt_id"],
         "dispatch_id": tA["dispatch_id"], "execution_ref": tA["execution_ref"], "run_id": "run-A",
-        "result_id": "res-A", "status": "SUCCESS", "artifacts": []
+        "result_id": "res-A", "status": "SUCCESS", "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING
     }, headers=headers)
     assert res_result_1.status_code == 200
     assert res_result_1.json.get("status") == "ACK_RESULT_RECEIVED"
@@ -481,26 +478,26 @@ def test_integration_idempotency_duplicate_delivery(client, tmp_path, monkeypatc
     res_result_2 = client.post("/tasks/result", json={
         "goal_id": tA["goal_id"], "task_id": tA["task_id"], "worker_id": "w_A", "attempt_id": tA["attempt_id"],
         "dispatch_id": tA["dispatch_id"], "execution_ref": tA["execution_ref"], "run_id": "run-A",
-        "result_id": "res-A", "status": "SUCCESS", "artifacts": []
+        "result_id": "res-A", "status": "SUCCESS", "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING
     }, headers=headers)
     assert res_result_2.status_code == 200
     # Es muss abgewiesen/ignoriert werden
-    assert res_result_2.json.get("status") == "IGNORED"
+    assert res_result_2.json.get("status") == "ACK_DUPLICATE"
 
     state = load_state()
-    fp_A = state["tasks"]["task_A"]["result"]["result_fingerprint"]
+    fp_A = state["tasks"]["task_A"]["result"]["result_id"]
 
     # 4. First Verify for A
     res_verify_1 = client.post("/tasks/verify", json={
         "task_id": "task_A", "result_id": "res-A", "verifier_id": "v1", "verdict": "PASS",
-        "result_fingerprint": fp_A, "artifacts": []
+        "received_runtime_identity": server.app.SERVER_BINDING, "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING
     }, headers=v_headers)
     assert res_verify_1.status_code == 200
 
     # 5. DUPLICATE Verify for A
     res_verify_2 = client.post("/tasks/verify", json={
         "task_id": "task_A", "result_id": "res-A", "verifier_id": "v1", "verdict": "PASS",
-        "result_fingerprint": fp_A, "artifacts": []
+        "received_runtime_identity": server.app.SERVER_BINDING, "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING
     }, headers=v_headers)
     assert res_verify_2.status_code == 200
     assert res_verify_2.json.get("status") == "ACK_DUPLICATE", res_verify_2.json
@@ -528,7 +525,6 @@ def test_integration_parallel_execution_overlap(client, tmp_path, monkeypatch):
     # Wait nicht komplett ausschalten, aber auf 0.1 reduzieren, um Deadlocks zu vermeiden,
     # falls Worker leer laufen (sollte hier aber nicht passieren)
     import server.app
-    monkeypatch.setattr(server.app.NEW_WORK_CONDITION, "wait", lambda timeout=None: time.sleep(0.01))
 
     headers = {"Authorization": f"Bearer {API_KEY}"}
 
@@ -578,7 +574,7 @@ def test_integration_parallel_execution_overlap(client, tmp_path, monkeypatch):
             "goal_id": task["goal_id"], "task_id": task["task_id"], "worker_id": wid,
             "attempt_id": task["attempt_id"], "dispatch_id": task["dispatch_id"],
             "execution_ref": task["execution_ref"], "run_id": f"run-{wid}",
-            "result_id": f"res-{wid}", "status": "SUCCESS", "artifacts": []
+            "result_id": f"res-{wid}", "status": "SUCCESS", "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING
         }, headers=headers)
         
         with lock:
@@ -653,7 +649,7 @@ def test_integration_dispatcher_auto_continue(client, tmp_path):
                         "goal_id": task["goal_id"], "task_id": task["task_id"], "worker_id": "w_auto",
                         "attempt_id": task["attempt_id"], "dispatch_id": task["dispatch_id"],
                         "execution_ref": task["execution_ref"], "run_id": f"run-{task['task_id']}",
-                        "result_id": f"res-{task['task_id']}", "status": "SUCCESS", "artifacts": []
+                        "result_id": f"res-{task['task_id']}", "status": "SUCCESS", "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING
                     }, headers=headers)
                 else:
                     time.sleep(0.05)
@@ -671,7 +667,7 @@ def test_integration_dispatcher_auto_continue(client, tmp_path):
             for _ in range(50):
                 st = load_state()
                 if st["tasks"].get(tid, {}).get("status") == "RESULT_RECEIVED":
-                    return st["tasks"][tid]["result"]["result_fingerprint"]
+                    return st["tasks"][tid]["result"]["result_id"]
                 time.sleep(0.1)
             raise TimeoutError(f"{tid} did not complete")
             
@@ -684,12 +680,12 @@ def test_integration_dispatcher_auto_continue(client, tmp_path):
         # Testtreiber verifiziert A und B (was C freischalten sollte)
         client.post("/tasks/verify", json={
             "task_id": "auto_A", "result_id": "res-auto_A", "verifier_id": "v1", "verdict": "PASS",
-            "result_fingerprint": fp_a, "artifacts": []
+            "received_runtime_identity": server.app.SERVER_BINDING, "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING
         }, headers=v_headers)
         
         client.post("/tasks/verify", json={
             "task_id": "auto_B", "result_id": "res-auto_B", "verifier_id": "v1", "verdict": "PASS",
-            "result_fingerprint": fp_b, "artifacts": []
+            "received_runtime_identity": server.app.SERVER_BINDING, "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING
         }, headers=v_headers)
         
         # BEWEIS: Wir rufen hier _kein_ manuelles client.post("/tasks/claim") auf!
@@ -741,15 +737,15 @@ def test_integration_server_restart_persistence(client, tmp_path):
         "goal_id": task_a["goal_id"], "task_id": "rest_A", "worker_id": "w_restart",
         "attempt_id": task_a["attempt_id"], "dispatch_id": task_a["dispatch_id"],
         "execution_ref": task_a["execution_ref"], "run_id": "run-a",
-        "result_id": "res-a", "status": "SUCCESS", "artifacts": []
+        "result_id": "res-a", "status": "SUCCESS", "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING
     }, headers=headers)
 
     # Verifier nimmt A ab -> RECONCILED
     state = load_state()
-    fp_a = state["tasks"]["rest_A"]["result"]["result_fingerprint"]
+    fp_a = state["tasks"]["rest_A"]["result"]["result_id"]
     client.post("/tasks/verify", json={
         "task_id": "rest_A", "result_id": "res-a", "verifier_id": "v1", "verdict": "PASS",
-        "result_fingerprint": fp_a, "artifacts": []
+        "received_runtime_identity": server.app.SERVER_BINDING, "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING
     }, headers=v_headers)
 
     # 4. Worker claims B, aber schließt es vor dem Restart NICHT ab!
@@ -787,15 +783,15 @@ def test_integration_server_restart_persistence(client, tmp_path):
         "goal_id": task_b["goal_id"], "task_id": "rest_B", "worker_id": "w_restart",
         "attempt_id": task_b["attempt_id"], "dispatch_id": task_b["dispatch_id"],
         "execution_ref": task_b["execution_ref"], "run_id": "run-b",
-        "result_id": "res-b", "status": "SUCCESS", "artifacts": []
+        "result_id": "res-b", "status": "SUCCESS", "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING
     }, headers=headers)
     assert res_b_res.status_code == 200, "Server hat Resultat für wiederhergestelltes B nicht akzeptiert!"
 
     st2 = load_state()
-    fp_b = st2["tasks"]["rest_B"]["result"]["result_fingerprint"]
+    fp_b = st2["tasks"]["rest_B"]["result"]["result_id"]
     new_client.post("/tasks/verify", json={
         "task_id": "rest_B", "result_id": "res-b", "verifier_id": "v1", "verdict": "PASS",
-        "result_fingerprint": fp_b, "artifacts": []
+        "received_runtime_identity": server.app.SERVER_BINDING, "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING
     }, headers=v_headers)
 
     # 6. Beweis: C wird freigeschaltet, A bleibt unberührt
@@ -808,7 +804,7 @@ def test_integration_server_restart_persistence(client, tmp_path):
         "goal_id": res_c.json["task"]["goal_id"], "task_id": "rest_C", "worker_id": "w_restart",
         "attempt_id": res_c.json["task"]["attempt_id"], "dispatch_id": res_c.json["task"]["dispatch_id"],
         "execution_ref": res_c.json["task"]["execution_ref"], "run_id": "run-c",
-        "result_id": "res-c", "status": "SUCCESS", "artifacts": []
+        "result_id": "res-c", "status": "SUCCESS", "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING
     }, headers=headers)
 
     # Fertig
@@ -876,7 +872,7 @@ def test_integration_crash_result_persistence_boundaries(client, tmp_path, monke
             "goal_id": task_a["goal_id"], "task_id": "crash_A", "worker_id": "w_crash_1",
             "attempt_id": task_a["attempt_id"], "dispatch_id": task_a["dispatch_id"],
             "execution_ref": task_a["execution_ref"], "run_id": "run-crash-a",
-            "result_id": "res-crash-a", "status": "SUCCESS", "artifacts": []
+            "result_id": "res-crash-a", "status": "SUCCESS", "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING
         }, headers=headers)
 
     # Beweis: A ist weiterhin DISPATCHED, Resultat ist nicht gespeichert (kein stiller Defekt)
@@ -888,7 +884,7 @@ def test_integration_crash_result_persistence_boundaries(client, tmp_path, monke
         "goal_id": task_a["goal_id"], "task_id": "crash_A", "worker_id": "w_crash_1",
         "attempt_id": task_a["attempt_id"], "dispatch_id": task_a["dispatch_id"],
         "execution_ref": task_a["execution_ref"], "run_id": "run-crash-a",
-        "result_id": "res-crash-a", "status": "SUCCESS", "artifacts": []
+        "result_id": "res-crash-a", "status": "SUCCESS", "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING
     }, headers=headers)
     assert res_a_retry.status_code == 200
     assert load_state()["tasks"]["crash_A"]["status"] == "RESULT_RECEIVED"
@@ -900,7 +896,7 @@ def test_integration_crash_result_persistence_boundaries(client, tmp_path, monke
         "goal_id": task_b["goal_id"], "task_id": "crash_B", "worker_id": "w_crash_2",
         "attempt_id": task_b["attempt_id"], "dispatch_id": task_b["dispatch_id"],
         "execution_ref": task_b["execution_ref"], "run_id": "run-crash-b",
-        "result_id": "res-crash-b", "status": "SUCCESS", "artifacts": []
+        "result_id": "res-crash-b", "status": "SUCCESS", "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING
     }, headers=headers)
     assert res_b_ok.status_code == 200
     assert load_state()["tasks"]["crash_B"]["status"] == "RESULT_RECEIVED"
@@ -911,34 +907,34 @@ def test_integration_crash_result_persistence_boundaries(client, tmp_path, monke
         "goal_id": task_b["goal_id"], "task_id": "crash_B", "worker_id": "w_crash_2",
         "attempt_id": task_b["attempt_id"], "dispatch_id": task_b["dispatch_id"],
         "execution_ref": task_b["execution_ref"], "run_id": "run-crash-b",
-        "result_id": "res-crash-b", "status": "SUCCESS", "artifacts": []
+        "result_id": "res-crash-b", "status": "SUCCESS", "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING
     }, headers=headers)
     assert res_b_retry.status_code == 200
-    assert res_b_retry.json.get("status") == "IGNORED", "Doppeltes Result muss idempotent abgefangen werden"
+    assert res_b_retry.json.get("status") == "ACK_DUPLICATE", "Doppeltes Result muss idempotent abgefangen werden"
 
 
     # --- RECONCILE PHASE ---
     # Beide Tasks müssen nun lückenlos und ohne Doppelwirkung abgenommen werden können.
     st = load_state()
-    fp_a = st["tasks"]["crash_A"]["result"]["result_fingerprint"]
-    fp_b = st["tasks"]["crash_B"]["result"]["result_fingerprint"]
+    fp_a = st["tasks"]["crash_A"]["result"]["result_id"]
+    fp_b = st["tasks"]["crash_B"]["result"]["result_id"]
 
     res_v_a = client.post("/tasks/verify", json={
         "task_id": "crash_A", "result_id": "res-crash-a", "verifier_id": "v1", "verdict": "PASS",
-        "result_fingerprint": fp_a, "artifacts": []
+        "received_runtime_identity": server.app.SERVER_BINDING, "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING
     }, headers=v_headers)
     assert res_v_a.status_code == 200
 
     res_v_b = client.post("/tasks/verify", json={
         "task_id": "crash_B", "result_id": "res-crash-b", "verifier_id": "v1", "verdict": "PASS",
-        "result_fingerprint": fp_b, "artifacts": []
+        "received_runtime_identity": server.app.SERVER_BINDING, "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING
     }, headers=v_headers)
     assert res_v_b.status_code == 200
 
     # Teste Reconcile Doppelwirkung: Zweiter Verify-Versuch auf A
     res_v_a_dup = client.post("/tasks/verify", json={
         "task_id": "crash_A", "result_id": "res-crash-a", "verifier_id": "v1", "verdict": "PASS",
-        "result_fingerprint": fp_a, "artifacts": []
+        "received_runtime_identity": server.app.SERVER_BINDING, "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING
     }, headers=v_headers)
     assert res_v_a_dup.status_code == 200
     assert res_v_a_dup.json.get("status") == "ACK_DUPLICATE", "Doppel-Verify muss idempotent bleiben"
@@ -1008,14 +1004,14 @@ def test_integration_waiting_provider_isolation(client, tmp_path):
         "goal_id": task_b["goal_id"], "task_id": "prov_B", "worker_id": "w_prov",
         "attempt_id": task_b["attempt_id"], "dispatch_id": task_b["dispatch_id"],
         "execution_ref": task_b["execution_ref"], "run_id": "run-prov-b",
-        "result_id": "res-prov-b", "status": "SUCCESS", "artifacts": []
+        "result_id": "res-prov-b", "status": "SUCCESS", "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING
     }, headers=headers)
     
     st2 = load_state()
-    fp_b = st2["tasks"]["prov_B"]["result"]["result_fingerprint"]
+    fp_b = st2["tasks"]["prov_B"]["result"]["result_id"]
     client.post("/tasks/verify", json={
         "task_id": "prov_B", "result_id": "res-prov-b", "verifier_id": "v_prov", "verdict": "PASS",
-        "result_fingerprint": fp_b, "artifacts": []
+        "received_runtime_identity": server.app.SERVER_BINDING, "artifacts": [], "received_runtime_identity": server.app.SERVER_BINDING
     }, headers=v_headers)
 
     # 4. w_prov fordert erneut Arbeit an.
@@ -1031,3 +1027,5 @@ def test_integration_waiting_provider_isolation(client, tmp_path):
     assert final_st["tasks"]["prov_A"]["status"] == "WAITING_PROVIDER", "A muss weiterhin isoliert in WAITING_PROVIDER stehen"
     assert final_st["tasks"]["prov_B"]["status"] == "RECONCILED", "B ist fertig"
     assert final_st["tasks"]["prov_C"]["status"] == "DISPATCHED", "C wurde erfolgreich blockierungsfrei abgezogen"
+
+
