@@ -117,10 +117,9 @@ class CannonMotor:
         effective_mode = mode or self.m.get("run_mode", "FINITE")
         if effective_mode not in ("FINITE", "INFINITE"):
             return {"started": False, "reason": "bad_mode"}
-        if self.m["state"] != "PAUSED":
+        is_interrupted = self.m["state"] == "IDLE" and self.m.get("started_count", 0) > 0
+        if self.m["state"] != "PAUSED" and not is_interrupted:
             self.m["run_id"] = f"run-{int(time.time() * 1000)}"
-            self.m["pause_requested"] = False
-            self.m["stop_requested"] = False
             self.m["stop_count"] = 0  # duplicate suppression belongs to this run
             self.m["error"] = None
             self.m["waiting_for_work"] = False
@@ -130,10 +129,12 @@ class CannonMotor:
                 self.m["start_limit"] = None if effective_mode == "INFINITE" else limit
             self.m["cooldown_seconds"] = cooldown
             if effective_mode == "FINITE" and mode is not None:
-                # Fresh finite run: per-run counters restart. Resume-from-PAUSED
-                # keeps them; reopen-without-start never touches them.
+                # Fresh finite run: per-run counters restart.
                 self.m["started_count"] = 0
                 self.m["done_count"] = 0
+                
+        self.m["pause_requested"] = False
+        self.m["stop_requested"] = False
         self.m["state"] = "RUNNING"
         self._save()
         return {"started": True, "run_id": self.m["run_id"],
