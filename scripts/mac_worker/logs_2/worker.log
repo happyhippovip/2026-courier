@@ -11932,3 +11932,41 @@
 [2026-09-19 15:29:46] Failed to register: <urlopen error [Errno 61] Connection refused>. Server: http://127.0.0.1:8080/
 [2026-09-19 15:29:51] Failed to register: <urlopen error [Errno 61] Connection refused>. Server: http://127.0.0.1:8080/
 [2026-09-19 15:29:56] Failed to register: <urlopen error [Errno 61] Connection refused>. Server: http://127.0.0.1:8080/
+[2026-09-23 01:47:25] Heartbeat failed: HTTP Error 404: {"error":"Unknown worker"}
+
+[2026-09-23 01:47:32] Registration successful
+[2026-09-23 01:48:45] Heartbeat failed: HTTP Error 404: {"error":"Unknown worker"}
+
+[2026-09-23 01:48:50] Registration successful
+[2026-09-23 01:49:02] Starting Mac Worker HTTP Daemon...
+[2026-09-23 01:49:03] Failed to register: <urlopen error [Errno 61] Connection refused>. Server: http://127.0.0.1:8081/
+[2026-09-23 01:49:08] Registration successful
+[2026-09-23 01:49:09] Processing task torture-seq-01-b2c1caec
+[2026-09-23 01:49:09] Running NATIVE task torture-seq-01-b2c1caec
+[2026-09-23 01:49:12] Starting Mac Worker HTTP Daemon...
+[2026-09-23 01:49:12] Found unfinished task from previous run, resuming...
+[2026-09-23 01:49:12] Registration successful
+[2026-09-23 01:49:12] Processing task torture-seq-01-b2c1caec
+[2026-09-23 01:49:12] Running NATIVE task torture-seq-01-b2c1caec
+[2026-09-23 01:49:17] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-23 01:49:22] Processing task torture-seq-02-b2c1caec
+[2026-09-23 01:49:22] Running NATIVE task torture-seq-02-b2c1caec
+[2026-09-23 01:49:22] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-23 01:49:27] Processing task torture-wait-b2c1caec
+[2026-09-23 01:49:27] Running NATIVE task torture-wait-b2c1caec
+[2026-09-23 01:49:27] Task torture-wait-b2c1caec hit a provider wait: SIMULATED_429_RATE_LIMIT
+[2026-09-23 01:49:27] Provider wait posted successfully: {'attempt_id': 'torture-wait-b2c1caec:attempt:1', 'blocker': 'SIMULATED_429_RATE_LIMIT', 'dispatch_id': 'dispatch-1fa1724426d44c4aa4a86192d74e918a', 'status': 'WAITING_PROVIDER', 'task_id': 'torture-wait-b2c1caec'}
+[2026-09-23 01:49:28] Processing task torture-indep-b2c1caec
+[2026-09-23 01:49:28] Running NATIVE task torture-indep-b2c1caec
+[2026-09-23 01:49:28] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-23 01:49:33] Processing task torture-wait-b2c1caec
+[2026-09-23 01:49:33] Running NATIVE task torture-wait-b2c1caec
+[2026-09-23 01:49:33] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-23 01:49:38] Processing task torture-rep-init-b2c1caec
+[2026-09-23 01:49:38] Running NATIVE task torture-rep-init-b2c1caec
+[2026-09-23 01:49:38] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-23 01:49:43] Processing task torture-rep-step-b2c1caec
+[2026-09-23 01:49:43] Running NATIVE task torture-rep-step-b2c1caec
+[2026-09-23 01:49:43] Result posted successfully: {'status': 'ACK_RESULT_RECEIVED'}
+[2026-09-23 01:49:46] Starting Mac Worker HTTP Daemon...
+[2026-09-23 01:49:47] Registration successful

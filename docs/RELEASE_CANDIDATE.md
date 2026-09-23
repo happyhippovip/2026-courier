@@ -128,3 +128,18 @@ No new architecture, rule, agent, roadmap, or refactor is justified before a con
 - **Exitcode / Ergebnis:** 0 (100% grün, Gesamtsuite auf 543 Tests erweitert).
 - **Status:** Atomare Persistenz, Forensik-Quarantäne und Secret-Hygiene nachgewiesen.
 
+### FIX & PROOF: VERIFIER PIPELINE RESILIENCE & MALFORMED ARTIFACT HANDLING
+- **Ursache:**
+  1. `scripts/courier_verifier.py`: `verify_artifact` rief ungeschützt `os.path.isabs(path)` auf; war `path` `None`, leer oder kein String, stürzte die Funktion mit `TypeError` ab. Zeigte `path` auf ein Verzeichnis, warf `with open(..., "rb")` einen `IsADirectoryError`.
+  2. Enthielt `result["artifacts"]` Strings oder ungültige Einträge statt Dictionaries, stürzte `art.get("path")` mit `AttributeError` ab.
+  3. Durch die unbehandelte Ausnahme in der Verifier-Schleife wurde `/tasks/verify` nie aufgerufen. Die betroffene Aufgabe verblieb dauerhaft in `pending_verification`, blockierte nachfolgende Verifikationen und führte alle 5 Sekunden zu einem wiederholten Schleifenfehler.
+- **Änderung:**
+  1. `verify_artifact` typ- und pfadsicher gehärtet: validiert `path` auf `(str, os.PathLike)`, nicht-leer und `os.path.isfile`, normalisiert Hash-Vergleiche (Groß-/Kleinschreibung und Whitespace).
+  2. Robuste Typ-Prüfung von `artifacts` (Dicts, Strings, ungültige Typen): meldet bei Fehlern sauber `verdict = "FAIL"` mit aussagekräftigem `reason` an `/tasks/verify`, wodurch der Server den Task abbaut (Retry/Terminal Failure) und die Queue nicht blockiert wird.
+  3. Dynamische Credentials und Server-URL via `get_api_key()`, `get_server_url()`, `get_headers()`.
+  4. Neue Testsuite `tests/test_verifier_resilience.py` (9 Tests) ergänzt.
+- **Testbefehl:** `pytest tests/test_verifier_resilience.py tests/test_ledger_authenticated_receipts.py tests/test_server_integration_contract.py -v`
+- **Exitcode / Ergebnis:** 0 (100% grün, Gesamtsuite auf 552 Tests erweitert).
+- **Status:** Verifier-Pipeline-Resilienz und deterministisches Fehler-Reporting nachgewiesen.
+
+
