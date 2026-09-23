@@ -40,3 +40,13 @@ def test_missing_api_key_fails_closed(monkeypatch, tmp_path):
     daemon = load_daemon(monkeypatch, tmp_path, key=None)
     with pytest.raises(SystemExit):
         daemon.load_config()
+
+
+def test_worker_http_post_does_not_leak_key(monkeypatch, tmp_path, capsys):
+    daemon = load_daemon(monkeypatch, tmp_path)
+    cfg = daemon.load_config()
+    daemon.http_post(cfg, "/dummy", {"test": 1})
+    captured = capsys.readouterr()
+    assert FAKE_KEY not in captured.out
+    assert FAKE_KEY not in captured.err
+

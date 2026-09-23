@@ -113,3 +113,18 @@ No new architecture, rule, agent, roadmap, or refactor is justified before a con
 - **Testbefehl:** `pytest tests/test_work_queue_portable_lock.py tests/test_cannon_motor_acceptance.py tests/test_headless_night_offline.py -v`
 - **Exitcode / Ergebnis:** 0 (alle Tests bestanden, Testsuite auf 535 Tests angewachsen).
 - **Status:** Stale Lock Recovery und Snapshot-Integrität nachgewiesen.
+
+### FIX & PROOF: WORKER CRASH RESILIENCE, ATOMIC STATE WRITES & SECRET HYGIENE
+- **Ursache:**
+  1. `scripts/mac_worker/daemon.py`: Ein unredigiertes `print` in `http_post` gab den API-Schlüssel im Klartext auf `stdout` aus.
+  2. `scripts/mac_worker/daemon.py` & `scripts/windows_worker/daemon.py`: Status- und Markerdateien (`current_task.json`, `current_result.json`, `effect_marker.json`, `result_marker.json`) wurden nicht-atomar geschrieben (`with open(..., 'w')`), wodurch ein Prozessabsturz während des Schreibens 0-Byte- oder unvollständige JSON-Dateien hinterlassen konnte.
+  3. Beschädigte Statusdateien führten beim Daemon-Neustart zu unbehandelten `json.JSONDecodeError`-Ausnahmen, was beim Mac-Worker zu permanenten LaunchAgent-Crash-Loops und beim Windows-Worker zu endlosen Backoff-Blockaden führte.
+- **Änderung:**
+  1. `scripts/mac_worker/daemon.py`: Unredigiertes `print` in `http_post` entfernt.
+  2. `scripts/mac_worker/daemon.py` & `scripts/windows_worker/daemon.py`: `atomic_save_json` integriert (PID-spezifische Zwischendatei, `flush()`, `os.fsync()` und atomares `os.replace`).
+  3. `scripts/mac_worker/daemon.py` & `scripts/windows_worker/daemon.py`: `quarantine_corrupt_file` implementiert, das korrupte Dateien nach `.corrupt.<timestamp>` verschiebt (Beweissicherung ohne Dauerabsturz des Daemons).
+  4. Neue Testsuite `tests/test_worker_crash_resilience.py` (7 Tests) sowie Erweiterung von `tests/test_daemon_secret_hygiene.py` um `test_worker_http_post_does_not_leak_key`.
+- **Testbefehl:** `pytest tests/test_worker_crash_resilience.py tests/test_daemon_secret_hygiene.py tests/test_worker_400_infinite_loop_attack.py tests/test_windows_runtime_torture.py -v`
+- **Exitcode / Ergebnis:** 0 (100% grün, Gesamtsuite auf 543 Tests erweitert).
+- **Status:** Atomare Persistenz, Forensik-Quarantäne und Secret-Hygiene nachgewiesen.
+

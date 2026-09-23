@@ -37,21 +37,53 @@ LOGS_DIR.mkdir(parents=True, exist_ok=True)
 STATE_DIR.mkdir(parents=True, exist_ok=True)
 SECRET_KEY = None
 
+def atomic_save_json(target_path, data):
+    target_path = Path(target_path)
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = target_path.with_name(f".{target_path.name}.tmp.{os.getpid()}")
+    try:
+        with open(tmp_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp_path, target_path)
+    finally:
+        if tmp_path.exists():
+            try:
+                tmp_path.unlink()
+            except OSError:
+                pass
+
+def quarantine_corrupt_file(file_path):
+    p = Path(file_path)
+    if not p.exists():
+        return None
+    corrupt_name = f"{p.name}.corrupt.{int(time.time())}"
+    corrupt_path = p.with_name(corrupt_name)
+    try:
+        os.replace(p, corrupt_path)
+        write_log(f"Quarantined corrupt file {p} to {corrupt_path}")
+        return corrupt_path
+    except Exception as e:
+        write_log(f"Failed to quarantine corrupt file {p}: {e}")
+        return None
+
 def load_config():
+    config = {}
     if CONFIG_PATH.exists():
-        with open(CONFIG_PATH, "r") as f:
-            config = json.load(f)
-    else:
-        config = {}
+        try:
+            with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+                config = json.load(f)
+        except (json.JSONDecodeError, OSError) as e:
+            sys.stderr.write(f"WARNING: Corrupt config at {CONFIG_PATH}: {e}. Falling back to empty.\n")
+            config = {}
         
     if config.get("WORKER_ID") in ["test-mac", "", None]:
         import socket, uuid
         config["WORKER_ID"] = f"MAC-{socket.gethostname().split('.')[0].upper()}-{uuid.uuid4().hex[:6].upper()}"
         if CONFIG_PATH.exists():
-            with open(CONFIG_PATH, "w") as f:
-                json.dump(config, f)
+            atomic_save_json(CONFIG_PATH, config)
 
-    
     # Try reading from macOS keychain
     try:
         pass # Bypass keychain to fix 401
@@ -109,7 +141,7 @@ def http_post(config, endpoint, data):
     url = config["COURIER_SERVER"].rstrip("/") + endpoint
     req = urllib.request.Request(url, method="POST")
     req.add_header("Content-Type", "application/json")
-    print("Worker using key:", config.get('COURIER_API_KEY')); req.add_header("Authorization", f"Bearer {config.get('COURIER_API_KEY', '')}")
+    req.add_header("Authorization", f"Bearer {config.get('COURIER_API_KEY', '')}")
     
     jsondata = json.dumps(data).encode("utf-8")
     
@@ -405,22 +437,37 @@ def loop():
     task = None
     if current_task_state_file.exists():
         write_log("Found unfinished task from previous run, resuming...")
-        with open(current_task_state_file, 'r') as f:
-            task = json.load(f)
+        try:
+            with open(current_task_state_file, 'r', encoding="utf-8") as f:
+                task = json.load(f)
+        except (json.JSONDecodeError, OSError) as e:
+            write_log(f"WARNING: Corrupt task state file {current_task_state_file}: {e}. Quarantining...")
+            quarantine_corrupt_file(current_task_state_file)
+            task = None
             
     # Load pending result if execution finished but delivery failed
     pending_result = None
     if current_result_state_file.exists():
         write_log("Found pending result from previous run, resuming delivery...")
-        with open(current_result_state_file, 'r') as f:
-            pending_result = json.load(f)
+        try:
+            with open(current_result_state_file, 'r', encoding="utf-8") as f:
+                pending_result = json.load(f)
+        except (json.JSONDecodeError, OSError) as e:
+            write_log(f"WARNING: Corrupt result state file {current_result_state_file}: {e}. Quarantining...")
+            quarantine_corrupt_file(current_result_state_file)
+            pending_result = None
             
     pending_provider_wait = None
     current_wait_state_file = STATE_DIR / "current_provider_wait.json"
     if current_wait_state_file.exists():
         write_log("Found pending provider wait from previous run...")
-        with open(current_wait_state_file, 'r') as f:
-            pending_provider_wait = json.load(f)
+        try:
+            with open(current_wait_state_file, 'r', encoding="utf-8") as f:
+                pending_provider_wait = json.load(f)
+        except (json.JSONDecodeError, OSError) as e:
+            write_log(f"WARNING: Corrupt provider wait state file {current_wait_state_file}: {e}. Quarantining...")
+            quarantine_corrupt_file(current_wait_state_file)
+            pending_provider_wait = None
 
     registered = False
     
@@ -488,8 +535,7 @@ def loop():
                     
                 task = res.get("task")
                 if task:
-                    with open(current_task_state_file, 'w') as f:
-                        json.dump(task, f)
+                    atomic_save_json(current_task_state_file, task)
                 else:
                     time.sleep(1)
                     continue
@@ -552,8 +598,7 @@ def loop():
                             "wait_type": "WAITING_PROVIDER",
                             "task_id": task["task_id"]
                         }
-                        with open(STATE_DIR / "current_provider_wait.json", "w") as fw:
-                            json.dump(wait_payload, fw)
+                        atomic_save_json(STATE_DIR / "current_provider_wait.json", wait_payload)
                         if current_task_state_file.exists():
                             current_task_state_file.unlink()
                         task = None
@@ -626,8 +671,7 @@ def loop():
                     }
                     
                     # Persist pending result before attempting to send
-                    with open(current_result_state_file, 'w') as f:
-                        json.dump(payload, f)
+                    atomic_save_json(current_result_state_file, payload)
                     pending_result = payload
                     
                 finally:

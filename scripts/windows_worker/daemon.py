@@ -29,11 +29,46 @@ def compute_result_id(res_json: dict) -> str:
         identity["prompt_id"] = res_json["prompt_id"]
     return f"result-{_canonical_hash(identity)}"
 
+def atomic_save_json(target_path, data):
+    target_path = Path(target_path)
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = target_path.with_name(f".{target_path.name}.tmp.{os.getpid()}")
+    try:
+        with open(tmp_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp_path, target_path)
+    finally:
+        if tmp_path.exists():
+            try:
+                tmp_path.unlink()
+            except OSError:
+                pass
+
+def quarantine_corrupt_file(file_path):
+    p = Path(file_path)
+    if not p.exists():
+        return None
+    corrupt_name = f"{p.name}.corrupt.{int(time.time())}"
+    corrupt_path = p.with_name(corrupt_name)
+    try:
+        os.replace(p, corrupt_path)
+        print(f"Quarantined corrupt file {p} to {corrupt_path}")
+        return corrupt_path
+    except Exception as e:
+        print(f"Failed to quarantine corrupt file {p}: {e}")
+        return None
+
 def load_config():
     config_path = Path(__file__).parent / "config.json"
     if config_path.exists():
-        with open(config_path, "r") as f:
-            return json.load(f)
+        try:
+            with open(config_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, OSError) as e:
+            print(f"WARNING: Corrupt config at {config_path}: {e}")
+            return {}
     return {}
 
 _cfg = load_config()
@@ -148,9 +183,7 @@ def run_task(task, config):
     run_id = "win-native"
     
     marker_path = Path(__file__).parent / "state" / "effect_marker.json"
-    marker_path.parent.mkdir(exist_ok=True)
-    with open(marker_path, "w") as f:
-        json.dump(task, f)
+    atomic_save_json(marker_path, task)
 
     cmd = ["powershell", "-NoProfile", "-NonInteractive", "-Command", "-"]
     try:
@@ -351,7 +384,7 @@ def loop():
         marker_path = Path(__file__).parent / "state" / "effect_marker.json"
         if marker_path.exists():
             try:
-                with open(marker_path, "r") as f:
+                with open(marker_path, "r", encoding="utf-8") as f:
                     crashed_task = json.load(f)
                 print(f"[{worker_id}] Found ambiguous crash marker for task {crashed_task.get('task_id')}")
                 res_json = {
@@ -373,11 +406,15 @@ def loop():
                 if "prompt_id" in crashed_task: res_json["prompt_id"] = crashed_task["prompt_id"]
                 res_json["result_id"] = compute_result_id(res_json)
                 http_post_result(res_json)
+            except json.JSONDecodeError as e:
+                print(f"[{worker_id}] Corrupt crash marker {marker_path}: {e}. Quarantining...")
+                quarantine_corrupt_file(marker_path)
             except Exception as e:
                 print(f"[{worker_id}] Failed to report ambiguous crash: {e}")
             finally:
                 try:
-                    marker_path.unlink()
+                    if marker_path.exists():
+                        marker_path.unlink()
                 except OSError:
                     pass
         
@@ -395,17 +432,24 @@ def loop():
                 
                 if result_marker_path.exists():
                     try:
-                        with open(result_marker_path, "r") as f:
+                        with open(result_marker_path, "r", encoding="utf-8") as f:
                             saved_result = json.load(f)
                         print(f"[{worker_id}] Found unsent result marker for task {saved_result.get('task_id')}")
                         http_post_result(saved_result)
+                        try:
+                            result_marker_path.unlink()
+                        except OSError:
+                            pass
+                    except json.JSONDecodeError as e:
+                        print(f"[{worker_id}] Corrupt result marker {result_marker_path}: {e}. Quarantining...")
+                        quarantine_corrupt_file(result_marker_path)
+                        try:
+                            result_marker_path.unlink()
+                        except OSError:
+                            pass
                     except Exception as e:
                         print(f"[{worker_id}] Failed to report saved result: {e}")
                         raise
-                    try:
-                        result_marker_path.unlink()
-                    except OSError:
-                        pass
                         
                 if stop_marker_path.exists():
                     print(f"[{worker_id}] Stop marker found. Exiting gracefully after current task.")
@@ -447,8 +491,7 @@ def loop():
                     result = run_task(task, config)
                     
                     result_marker_path = Path(__file__).parent / "state" / "result_marker.json"
-                    with open(result_marker_path, "w") as f:
-                        json.dump(result, f)
+                    atomic_save_json(result_marker_path, result)
                         
                     http_post_result(result)
                     print(f"[{worker_id}] Task {task['task_id']} completed. Result posted.")
