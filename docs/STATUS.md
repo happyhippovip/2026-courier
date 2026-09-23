@@ -42,3 +42,19 @@ Every update must classify claims as:
 - UNKNOWN
 
 Do not place funding, Jobcenter, billing, account, credentials, secrets, or customer-private material in this public repository.
+
+
+## Current execution mode — Mac first
+
+- 7 Google worker slots available on Mac.
+- Claude unavailable until Saturday; do not block Mac progress waiting for Claude.
+- Windows work is deferred to a separate later lane unless strictly required for the current Mac result.
+- Muse handoff: `docs/MUSE_HANDOFF.md`.
+
+### Fast-path rule
+Use minimal sufficient evidence:
+- targeted checks during debugging;
+- no repeated review loops;
+- no broad regression after every small change;
+- one acceptance verification at the Cannon V1 freeze boundary, unless a concrete risk justifies more;
+- after parallel read-only diagnosis, allow only one writer for the causal fix.
