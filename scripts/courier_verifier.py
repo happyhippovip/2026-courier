@@ -84,11 +84,13 @@ def run_loop():
     verifier_id = os.environ.get("COURIER_VERIFIER_ID", VERIFIER_ID)
     log(f"Starting Courier Verifier ({verifier_id}) pointing to {api_url}")
     while True:
+        _had_tasks = False
         try:
             headers = get_headers()
             res = requests.get(f"{api_url}/tasks/pending_verification", headers=headers, timeout=10)
             if res.status_code == 200:
                 tasks = res.json().get("tasks", [])
+                _had_tasks = bool(tasks)
                 for task in tasks:
                     task_id = task.get("task_id")
                     result = task.get("result", {})
@@ -167,7 +169,7 @@ def run_loop():
         except (ValueError, TypeError):
             poll_interval = 5.0
 
-        sleep_time = min(0.2, poll_interval) if ('tasks' in locals() and tasks) else poll_interval
+        sleep_time = min(0.2, poll_interval) if _had_tasks else poll_interval
         time.sleep(sleep_time)
 
 if __name__ == "__main__":

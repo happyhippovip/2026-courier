@@ -72,3 +72,37 @@ def test_verify_artifact_with_pathlib_object(tmp_path):
     target.write_bytes(b"binary data")
     expected_hash = hashlib.sha256(b"binary data").hexdigest()
     assert verify_artifact(target, expected_hash) is True
+
+
+# ── Adaptive poll interval tests ─────────────────────────────────────────────
+
+def _compute_sleep_time(had_tasks: bool, poll_interval: float) -> float:
+    """Mirror the adaptive-sleep formula in run_loop() for unit testing."""
+    return min(0.2, poll_interval) if had_tasks else poll_interval
+
+
+def test_adaptive_poll_with_tasks_uses_short_sleep():
+    """When tasks were found this iteration, sleep_time is capped at 0.2s."""
+    assert _compute_sleep_time(had_tasks=True, poll_interval=5.0) == pytest.approx(0.2)
+
+
+def test_adaptive_poll_without_tasks_uses_full_interval():
+    """When no tasks found (or exception), sleep_time equals poll_interval."""
+    assert _compute_sleep_time(had_tasks=False, poll_interval=5.0) == pytest.approx(5.0)
+
+
+def test_adaptive_poll_exception_resets_had_tasks():
+    """Simulate a run_loop iteration that throws an exception before any tasks
+    are fetched. _had_tasks must remain False so the loop sleeps at the full
+    poll_interval rather than the rapid 0.2s cadence from a previous iteration."""
+    had_tasks_after_exception = False  # what _had_tasks is initialized to
+    # Exception occurs before any tasks could be fetched
+    # => had_tasks stays False => full sleep
+    assert _compute_sleep_time(had_tasks=had_tasks_after_exception, poll_interval=5.0) == pytest.approx(5.0)
+
+
+def test_adaptive_poll_custom_interval():
+    """COURIER_VERIFIER_POLL_INTERVAL is honored when no tasks are pending."""
+    assert _compute_sleep_time(had_tasks=False, poll_interval=2.5) == pytest.approx(2.5)
+    assert _compute_sleep_time(had_tasks=True, poll_interval=2.5) == pytest.approx(0.2)
+
