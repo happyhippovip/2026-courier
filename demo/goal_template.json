@@ -1,22 +1,42 @@
 {
     "type": "DAG",
-    "goal_id": "demo-goal-1",
+    "goal_id": "content-pipeline-v1",
     "depends_on": [],
     "workflow_plan": [
         {
-            "task_id": "task-generate",
-            "description": "Generate initial market research data",
+            "task_id": "stage-idea",
+            "description": "Generate content idea and strategy",
             "depends_on": []
         },
         {
-            "task_id": "task-process",
-            "description": "Analyze market trends and filter noise",
-            "depends_on": ["task-generate"]
+            "task_id": "stage-script",
+            "description": "Write video script based on the idea",
+            "depends_on": ["stage-idea"]
         },
         {
-            "task_id": "task-summarize",
-            "description": "Produce executive summary",
-            "depends_on": ["task-process"]
+            "task_id": "stage-asset",
+            "description": "Select and generate necessary media assets",
+            "depends_on": ["stage-script"]
+        },
+        {
+            "task_id": "stage-build",
+            "description": "Build the final video composition",
+            "depends_on": ["stage-asset"]
+        },
+        {
+            "task_id": "stage-review",
+            "description": "Automated technical and content review",
+            "depends_on": ["stage-build"]
+        },
+        {
+            "task_id": "stage-metadata",
+            "description": "Generate title, tags, and description",
+            "depends_on": ["stage-review"]
+        },
+        {
+            "task_id": "stage-ready",
+            "description": "Package for publishing (Human approval boundary)",
+            "depends_on": ["stage-metadata"]
         }
     ]
 }

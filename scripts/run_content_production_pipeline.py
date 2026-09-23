@@ -630,6 +630,22 @@ def main() -> None:
         force_rerun=args.force,
     )
     print(json.dumps(manifest, indent=2))
+    
+    if manifest["overall_status"] == "COMPLETED":
+        workflows_path = Path(args.workflows_config).resolve()
+        workflows = json.loads(workflows_path.read_text(encoding="utf-8")).get("workflows", [])
+        wf = next((w for w in workflows if w["workflow_id"] == manifest["workflow_id"]), {})
+        if wf.get("publish_gate") == "REQUIRE_EXPLICIT_HUMAN_APPROVAL":
+            print("\n*** HUMAN APPROVAL REQUIRED ***")
+            print("The pipeline requires explicit human approval before publishing.")
+            print(f"Mission: {manifest['mission_id']}, Topic: {args.topic}")
+            ans = input("Do you approve publishing this content? (yes/no): ")
+            if ans.strip().lower() in ["y", "yes"]:
+                print("Approval granted. Ready for publisher agent.")
+                # TODO: Trigger publish_youtube_package.py
+            else:
+                print("Publishing aborted by human.")
+                sys.exit(1)
 
 
 if __name__ == "__main__":
