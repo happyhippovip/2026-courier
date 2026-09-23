@@ -284,6 +284,7 @@ class CannonMotor:
                 self.m["error"] = str(exc)
                 self._save()
                 return {"step": "error", "error": str(exc)}
+        self._wq("reconcile", "--reclaim-stale", "0")
         claimed = self._wq("claim", "--worker", WORKER_ID)
         task_id = claimed.get("claimed")
         if not task_id:
