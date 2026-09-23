@@ -245,9 +245,9 @@ def run_agy(task, config):
         
     wrapper = os.path.join(os.path.dirname(__file__), "limit_wrapper.sh")
     if os.name == "nt":
-        cmd = [agy_bin, "-p", prompt, "--dangerously-skip-permissions"]
+        cmd = [agy_bin, "-p", prompt]
     else:
-        cmd = [wrapper, agy_bin, "-p", prompt, "--dangerously-skip-permissions"]
+        cmd = [wrapper, agy_bin, "-p", prompt]
     
     try:
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, start_new_session=True)

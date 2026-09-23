@@ -78,7 +78,7 @@ def main():
         try:
             print(f"Executing agy for {task['task_id']}...")
             result = subprocess.run(
-                ["agy", "--dangerously-skip-permissions", "-p", prompt],
+                ["agy", "-p", prompt],
                 capture_output=True, text=True
             )
             # Find JSON block in output
