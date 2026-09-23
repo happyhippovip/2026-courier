@@ -185,18 +185,36 @@ def cmd_block(args, data, now):
 def cmd_reconcile(args, data, now):
     # Restart recovery: stale CLAIMED/RUNNING leases return to READY.
     reclaimed = []
+    blocked = []
     for tid, lease in list(data["leases"].items()):
         if now - lease.get("claimed_at", 0) > args.reclaim_stale:
             task = data["tasks"].get(tid)
             if task and task.get("status") in ("CLAIMED", "RUNNING"):
-                if "result" not in task:  # never completed: safe, no effect yet
-                    task["status"] = "READY"
-                    task.pop("owner", None)
-                    reclaimed.append(tid)
+                if "result" not in task:  # never completed
+                    if task.get("executor_kind", "LOCAL_FAKE") == "LOCAL_FAKE":
+                        task["status"] = "READY"
+                        task.pop("owner", None)
+                        reclaimed.append(tid)
+                    else:
+                        task["status"] = "BLOCKED"
+                        task["block_reason"] = "CRASH_DURING_EXTERNAL_EFFECT"
+                        task.pop("owner", None)
+                        blocked.append(tid)
             data["leases"].pop(tid, None)
     released = reconcile(data, now)
-    return {"reclaimed": reclaimed, "newly_ready": released}
+    return {"reclaimed": reclaimed, "blocked": blocked, "newly_ready": released}
 
+
+def cmd_heartbeat(args, data, now):
+    task = data["tasks"].get(args.task_id)
+    if not task:
+        return {"error": "unknown task"}
+    if args.task_id not in data["leases"]:
+        return {"error": "not claimed"}
+    if args.worker and data["leases"][args.task_id].get("worker") != args.worker:
+        return {"error": "wrong worker"}
+    data["leases"][args.task_id]["claimed_at"] = now
+    return {"heartbeat": args.task_id}
 
 def main(argv=None):
     ap = argparse.ArgumentParser()
@@ -209,6 +227,7 @@ def main(argv=None):
     p = sub.add_parser("complete"); p.add_argument("task_id"); p.add_argument("--result-json", required=True); p.add_argument("--stage", default="EVIDENCE_READY")
     p = sub.add_parser("block"); p.add_argument("task_id"); p.add_argument("--reason", required=True)
     p = sub.add_parser("reconcile"); p.add_argument("--reclaim-stale", type=float, default=3600)
+    p = sub.add_parser("heartbeat"); p.add_argument("task_id"); p.add_argument("--worker", default="")
     p = sub.add_parser("state")
     args = ap.parse_args(argv)
     data = load(args)
@@ -225,8 +244,10 @@ def main(argv=None):
         out = cmd_block(args, data, now)
     elif args.cmd == "reconcile":
         out = cmd_reconcile(args, data, now)
+    elif args.cmd == "heartbeat":
+        out = cmd_heartbeat(args, data, now)
     elif args.cmd == "state":
-        out = {"tasks": {t: {"status": v.get("status"), "stage": v.get("result_stage")}
+        out = {"tasks": {t: {"status": v.get("status"), "stage": v.get("result_stage"), "block_reason": v.get("block_reason")}
                          for t, v in data["tasks"].items()},
                "leases": list(data["leases"])}
     save(args, data)

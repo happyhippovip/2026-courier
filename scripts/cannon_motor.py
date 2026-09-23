@@ -41,6 +41,9 @@ def deterministic_executor(results_dir, task_id, behavior="ok"):
         return ("unknown", None)
     if behavior == "crash":
         raise MotorError(f"executor crash on {task_id}")
+    if behavior == "real_bad":
+        import os, signal
+        os.kill(os.getpid(), signal.SIGKILL)
     result_id = f"{task_id}:r1"
     artifact = results_dir / f"{task_id}.result.json"
     payload = {"result_id": result_id, "task_id": task_id,
@@ -154,6 +157,37 @@ class CannonMotor:
     def input_hash(prompt_id, description):
         return hashlib.sha1(
             f"{prompt_id}|{description}".encode("utf-8")).hexdigest()[:16]
+
+    def recover(self):
+        """Recover from a hard crash. Unsticks the supervisor by reclaiming or blocking stale work."""
+        self._load()
+        task_id = self.m.get("current_task")
+        if not task_id:
+            return {"recovered": False, "reason": "no_current_task"}
+            
+        snap = self.queue_snapshot()
+        task = snap["tasks"].get(task_id, {})
+        status = task.get("status")
+        
+        if status in ("DONE", "VERIFYING", "BLOCKED"):
+            # Result was delivered or task was blocked before crash. Just clear local state.
+            self.m["current_task"] = None
+            if self.m["state"] not in ("COMPLETED", "ERROR", "PAUSED"):
+                self.m["state"] = "IDLE"
+            self._save()
+            return {"recovered": True, "task": task_id, "action": "cleared_local"}
+            
+        if status in ("CLAIMED", "RUNNING"):
+            # Task didn't complete. Let reconcile handle it via reclaim-stale=0.
+            res = self._wq("reconcile", "--reclaim-stale", "0")
+            action = "reclaimed_safe" if task_id in res.get("reclaimed", []) else "failed_closed"
+            self.m["current_task"] = None
+            if self.m["state"] not in ("COMPLETED", "ERROR", "PAUSED"):
+                self.m["state"] = "IDLE"
+            self._save()
+            return {"recovered": True, "task": task_id, "action": action}
+            
+        return {"recovered": False, "reason": "unknown_task_status"}
 
     def request_pause(self):
         if self.m["state"] == "PAUSED":
