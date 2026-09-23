@@ -142,4 +142,21 @@ No new architecture, rule, agent, roadmap, or refactor is justified before a con
 - **Exitcode / Ergebnis:** 0 (100% grün, Gesamtsuite auf 552 Tests erweitert).
 - **Status:** Verifier-Pipeline-Resilienz und deterministisches Fehler-Reporting nachgewiesen.
 
+### FIX & PROOF: REVENUE INTAKE VALIDATION, ORPHAN TASK REAPER & DETERMINISTIC FRONTIER COMPUTATION
+- **Ursache:**
+  1. `scripts/revenue_customer_intake.py`: Fehlende Eingabevalidierung für `owner`, `repo`, `sha` und `customer_ref`, statisch gebundene Auth-Header beim Modulimport, unbehandelte Netzwerk-Exceptions bei Server-Ausfall sowie unstrukturierte Rückgabewerte.
+  2. `scripts/orphan_task_reaper.py`: Starre relative Pfade (`../central_state.json`), die außerhalb bestimmter Arbeitsverzeichnisse fehlschlugen, nicht-atomare Schreiboperationen (`json.dump`), unsicheres Terminieren von PIDs ohne Schutz für System- oder Eltern-PIDs sowie fehlende Fehlerbehandlung bei beschädigtem Worker-State.
+  3. `scripts/courier_continue.py`: Nicht-deterministische Task-ID-Generierung via `f"TASK-{hash(edge)}"`, die sich zwischen Python-Prozessen änderte und negative IDs erzeugen konnte, sowie fehleranfälliges Substring-Matching für Ledger-Update-Exceptions.
+  4. Root-Level-Logdateien (`server_output.log`) waren ungetrackt und verschmutzten `git status`.
+- **Änderung:**
+  1. `scripts/revenue_customer_intake.py`: Strikte Eingabevalidierung (RegEx-Checks für Identifier und Hex-SHAs, Kontrollzeichen-Abweisung), dynamische Server- und Keyring-Auth-Ermittlung, Netzwerk-Exception-Resilienz und strukturierte Ergebnis-Dictionaries implementiert.
+  2. `scripts/orphan_task_reaper.py`: Dynamische Pfadermittlung für kanonische und Worker-Zustände, atomare Speicherung via `atomic_save_json` mit fsync, geschützte Prozess-Terminierung (`safely_terminate_pid` ignoriert System-/Self-/Parent-PIDs) und Quarantäne-/Fehler-Rückgaben.
+  3. `scripts/courier_continue.py`: Deterministische SHA-256-basierte Task-IDs (`f"TASK-{edge_hash}"`) und typisierte Ausnahmebehandlung (`NoMeaningfulChangeError`, `RevisionConflictError`) eingeführt.
+  4. `.gitignore`: `/server_output.log` aufgenommen.
+  5. Neue Testsuites `tests/test_revenue_customer_intake.py` (14 Tests) und `tests/test_orphan_task_reaper.py` (8 Tests) hinzugefügt.
+- **Testbefehl:** `pytest tests/test_revenue_customer_intake.py tests/test_orphan_task_reaper.py tests/test_courier_continue.py -v`
+- **Exitcode / Ergebnis:** 0 (100% grün, Testsuite auf 576 Tests angewachsen).
+- **Status:** Deterministische Frontier-Ausführung, robuste Kunden-Intake-Validierung und sichere Prozessbereinigung nachgewiesen.
+
+
 

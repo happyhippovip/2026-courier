@@ -550,7 +550,7 @@ def load_bundle(path: Path) -> dict[str, Any]:
     try:
         return validate_bundle(json.loads(raw))
     except json.JSONDecodeError as exc:
-        raise StorageError(f"ledger is corrupt JSON: {exc}") from exc
+        raise StorageError(f"ledger is corrupt JSON: {path}: {exc}") from exc
 
 
 def _fsync_directory(directory: Path) -> None:

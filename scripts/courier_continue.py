@@ -189,8 +189,10 @@ def compute_frontier(record: dict):
             if "independent" in edge.lower() or any(k in edge for k in ["PUBLIC DEPLOYMENT", "PUBLICATION VERIFICATION", "PILOT INTAKE", "SALES PACKAGE", "POST-PILOT HARDENING", "FIRST PILOT", "PAYMENT", "ONBOARD"]):
                 scope = "independent"
                 
+            import hashlib
+            edge_hash = hashlib.sha256(edge.encode("utf-8")).hexdigest()[:8].upper()
             tasks.append({
-                "id": f"TASK-{hash(edge)}",
+                "id": f"TASK-{edge_hash}",
                 "instruction": f"Prove edge: {edge}",
                 "scope": scope,
                 "edge_name": edge,
@@ -569,9 +571,9 @@ def main():
                             bundle = update_ledger(ledger_path, task["edge_name"], new_blocker, bundle)
                             break
                         except Exception as e:
-                            if "meaningful change" in str(e):
+                            if isinstance(e, NoMeaningfulChangeError) or "meaningful change" in str(e).lower():
                                 break
-                            if "revision conflict" in str(e):
+                            if isinstance(e, RevisionConflictError) or "revision conflict" in str(e).lower():
                                 import time, random
                                 time.sleep(0.5 + random.random())
                                 continue

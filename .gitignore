@@ -157,6 +157,7 @@ test_sync.lock
 /explain.md
 /wait_for_windows.md
 /worker_mac_launcher.log
+/server_output.log
 /tmp/
 /revert.py
 /coordination/heartbeats/*.tmp.*
