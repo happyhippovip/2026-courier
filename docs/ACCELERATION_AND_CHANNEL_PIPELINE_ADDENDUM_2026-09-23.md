@@ -123,3 +123,11 @@ Next acceleration package:
 ## Windows
 
 Windows is a separate later acceptance lane. Do not let Windows interrupt the current Mac critical path unless a cross-platform blocker is proven.
+
+
+## Google Mac execution prompts
+
+For the current 7-worker Mac acceleration sequence, use:
+`docs/GOOGLE_MAC_MASTERPROMPTS_ABC_2026-09-23.md`
+
+Order: A -> B -> C. Each worker atomically claims one lane; do not assign duplicate review work.
