@@ -83,7 +83,7 @@ test('14: timeout kills only the own child and stays bounded', async () => {
 
 test('15: yolo flags are refused, missing approval blocks without spawn', async () => {
   const a = base();
-  for (const flag of FORBIDDEN_FLAGS.slice(0, 2)) {
+  for (const flag of FORBIDDEN_FLAGS) {
     const r = await run(a, {argvExtra: [flag], idempotencyKey: `k-${flag}`});
     assert.equal(r.status, 'BLOCKED');
     assert.equal(r.reason, 'forbidden-flag');
@@ -100,7 +100,7 @@ test('15: yolo flags are refused, missing approval blocks without spawn', async 
 test('5D: timeout after possible effect keeps partial output marked TIMEOUT, no auto-retry', async () => {
   const a = base();
   const r = await run(a, {argvExtra: ['--mode=slow', '--extra=30000'],
-    idempotencyKey: 'k-5d', timeout: 400});
+    idempotencyKey: 'k-5d', timeout: 1500});
   assert.equal(r.status, 'TIMEOUT');
   assert.ok(r.stdout.includes('partial-before-timeout')); // partial preserved...
   assert.equal(r.markerFound, false); // ...but marked incomplete, never success

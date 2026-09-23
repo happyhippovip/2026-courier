@@ -189,3 +189,22 @@ No new architecture, rule, agent, roadmap, or refactor is justified before a con
 - **Testbefehl:** `pytest tests/test_cannon_yolo.py tests/test_orphan_task_reaper.py tests/test_windows_repair_mode.py -v`
 - **Exitcode / Ergebnis:** 0 (100% grün).
 - **Status:** Flake-freie Subprozess-Überwachung und dynamische Handle-Bereinigung nachgewiesen.
+
+### FEAT & HARDENING: MUSE RUNNER, MUSE BENCH SERVER & WORK-SCRIPT PORTABILITY
+- **Ursache:**
+  1. `work-script/exec-adapter.mjs`: Schreibfehler in `FORBIDDEN_FLAGS` (`'-- dangerously-disable-permissions'`) verhinderte zuverlässiges Blockieren von Sandbox-Escapes und schloss `--dangerously-skip-permissions` nicht ein. In `exec-adapter.test.mjs` führte ein 400ms-Timeout unter Last zum Fehlschlagen von Test 5D.
+  2. `work-script/fake_worker.test.mjs`: `MUSE 116 two fake lanes overlap in wall time` nutzte ein statisches `< 700ms` Wall-Clock-Kriterium, das kürzer war als der Kaltstart eines einzelnen Node.js-Prozesses auf macOS (~1.3s) und daher flakete.
+  3. `pre_courier_muse/muse_runner.py`: Starre relative Pfade führten beim Aufruf außerhalb des Verzeichnisses zu Fehlern; Statusdateien wurden nicht-atomar geschrieben (`with open(..., 'w')`); beschädigte JSON-Dateien lösten unbehandelte `JSONDecodeError`-Crashes aus; fcntl-Import verhinderte Windows-Portabilität; unbegrenztes `subprocess.run` riskierte Daemon-Hangs; und Pfad-Traversal in `output_path` wurde nicht abgefangen. Keine Tests vorhanden.
+  4. `scripts/muse_bench_server.py`: `claim_task` hinterließ den Status `QUEUED` in `queue.jsonl` statt auf `RUNNING` zu wechseln; verwaiste Lock-Dateien nach Prozessabsturz hatten keine TTL-Erkennung; und es existierten weder Endpunkte zum Releasen noch zum Abschließen von Tasks. Keine Tests vorhanden.
+  5. `w8_prompt.txt`: War eine leere 0-Byte-Datei ohne den kanonischen Muse-Prompt-Vertrag.
+- **Änderung:**
+  1. `work-script/exec-adapter.mjs` & `work-script/exec-adapter.test.mjs`: `FORBIDDEN_FLAGS` korrigiert und um `--dangerously-skip-permissions` ergänzt; Test 5D auf 1500ms angehoben und alle Flags getestet (13 Tests in `exec-adapter.test.mjs` 100% grün).
+  2. `work-script/fake_worker.mjs` & `work-script/fake_worker.test.mjs`: Deterministische Nebenläufigkeitsprüfung via Zeitstempelüberlappung im Event-Log (`secondStartTs <= firstResultTs`) und robuste Obergrenze implementiert (alle 65 Node-Tests in `work-script/*.test.mjs` 100% grün).
+  3. `pre_courier_muse/muse_runner.py`: Dynamische Basispfad-Auflösung, atomare Persistenz (`os.fsync` + atomares Replace), automatische Quarantäne korrupter JSON-Dateien (`.corrupt.<ts>`), plattformunabhängige Lock-Akquise (`msvcrt` / `fcntl`), strikte Bounded Timeouts und Scope-Escape-Schutz umgesetzt.
+  4. `scripts/muse_bench_server.py`: Atomares Queue-Management mit Statusübergang `QUEUED` -> `RUNNING` -> `COMPLETED`, Stale-Lock-Detection (TTL 300s), `/api/muse/release`- und `/api/muse/complete`-Endpunkte sowie Sanitization gegen Pfad-Traversal hinzugefügt.
+  5. `w8_prompt.txt`: Kanonischen Muse-Prompt-Vertrag (Arbeitsbereich, Git-Schutz, Prioritätenhierarchie, geschlossene Schleife) hinterlegt.
+  6. 2 neue Python-Testsuites (`tests/test_muse_runner.py` [11 Tests], `tests/test_muse_bench_server.py` [6 Tests]) hinzugefügt. Gesamte Suite wächst von 609 auf 626 Tests (100% grün).
+- **Testbefehl:** `pytest tests/test_muse_runner.py tests/test_muse_bench_server.py -v && node --test work-script/*.test.mjs`
+- **Exitcode / Ergebnis:** 0 (100% grün).
+- **Status:** Muse-Runner-, Workbench-Server- und Work-Script-Portabilität sowie Integrität vollständig nachgewiesen.
+

@@ -1,0 +1,45 @@
+# Muse Prompt für Muse (Courier Symphony Autonomous Hardening Contract)
+
+Du arbeitest am aktuell geöffneten Courier-Symphony-Repository.
+Dein Ziel ist nicht, möglichst viel Code zu verändern, sondern das Projekt Schritt für Schritt nachweisbar besser, zuverlässiger und vollständiger zu machen.
+
+## ARBEITSBEREICH
+Arbeite ausschließlich innerhalb dieses Repositories und seiner lokalen Entwicklungsprozesse.
+Keine Änderungen an:
+- Betriebssystem oder Systemeinstellungen
+- anderen Projekten
+- persönlichen Dateien
+- externen Accounts
+- Cloud-Diensten
+- produktiven Systemen
+- fremden Anwendungen
+Keine kostenpflichtigen Aktionen, Deployments oder Veröffentlichungen ohne ausdrückliche Freigabe.
+
+## SCHÜTZE BESTEHENDE ARBEIT
+Bevor du größere Änderungen machst:
+1. Prüfe den Git-Status.
+2. Verstehe vorhandene uncommitted Änderungen.
+3. Überschreibe oder verwerfe keine fremden Änderungen.
+4. Verwende kein `git reset --hard`, kein `git clean -fdx`, keinen Force Push und keinen History Rewrite.
+
+## START
+Untersuche zuerst:
+1. Repository-Struktur
+2. README und vorhandene Dokumentation
+3. Architektur, Datenfluss und Zustandshaltung
+4. Bestehende Tests, Testrunner und CI-Konfigurationen
+5. Bestehende offene Aufgaben, TODOs, FIXMEs und unvollständige Pfade
+
+## IDENTIFIZIERE DAS NÄCHSTE SINNVOLLE ARBEITSPAKET
+Wähle genau EINE klar umrissene Aufgabe mit dem höchsten Wert für das Projekt.
+Priorität:
+1. Datenintegrität & Recovery
+2. Deterministisches Verhalten & Idempotenz
+3. Fehlerbehandlung & Edge Cases
+4. Kritische End-to-End-Pfade
+5. Sinnvolle Tests
+6. Refactoring & Kosmetik erst ganz zum Schluss
+
+## VERIFIZIERUNG VOR UND NACH ÄNDERUNGEN
+Wiederhole den Zyklus:
+UNTERSUCHEN → VERSTEHEN → KLEINSTEN SICHEREN SCHRITT WÄHLEN → IMPLEMENTIEREN → TESTEN → VERIFIZIEREN → DIFF PRÜFEN → NÄCHSTER SCHRITT

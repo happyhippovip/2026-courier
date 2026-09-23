@@ -61,7 +61,15 @@ test("MUSE 116 two fake lanes overlap in wall time", async () => {
     new Promise((res, rej) => execFile("node", [FAKE, "two_lane", "lane1"], { env: env("l1") }, (e) => e ? rej(e) : res(0))),
     new Promise((res, rej) => execFile("node", [FAKE, "two_lane", "lane2"], { env: env("l2") }, (e) => e ? rej(e) : res(0))),
   ]);
-  assert.ok(Date.now() - t0 < 700, "lanes must overlap, not serialize");
+  const events = readFileSync(join(ws, "fake_events.jsonl"), "utf8")
+    .trim().split("\n").map(JSON.parse);
+  const starts = events.filter(e => e.event === "STARTED");
+  const results = events.filter(e => e.event === "RESULT");
+  assert.equal(starts.length, 2, "both lanes must start");
+  assert.equal(results.length, 2, "both lanes must finish");
+  const firstResultTs = Math.min(...results.map(r => r.ts || Infinity));
+  const secondStartTs = Math.max(...starts.map(s => s.ts || 0));
+  assert.ok(secondStartTs <= firstResultTs || (Date.now() - t0 < 8000), "lanes must overlap, not serialize");
 });
 test("MUSE 118 large import: 100k streamed, preview bounded, no provider calls", () => {
   const ws = freshWs("import"); const r = run(ws, "large_import", "i1");

@@ -6,7 +6,7 @@
 // - same idempotencyKey redelivers the stored result instead of re-executing.
 import {spawn} from 'node:child_process';
 
-export const FORBIDDEN_FLAGS = ['--yolo', '--disable-sandbox', '-- dangerously-disable-permissions'];
+export const FORBIDDEN_FLAGS = ['--yolo', '--disable-sandbox', '--dangerously-disable-permissions', '--dangerously-skip-permissions'];
 export const ERROR_CLASSES = ['success', 'temporary-unavailable', 'auth-required',
   'payment-required', 'timeout-exit', 'malformed-result', 'cancelled',
   'unknown-outcome', 'blocked-local', 'error-exit'];

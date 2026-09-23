@@ -52,8 +52,8 @@ async function main() {
       console.log("HUMAN_GATE_REQUIRED action=delete_outside_testscope target=" + target); process.exit(42);
     }
     case "two_lane": {
-      const lane = process.argv[3] || "lane1"; emit({ event: "STARTED", mode, lane });
-      await sleep(400); emit({ event: "RESULT", lane }); console.log("RESULT lane=" + lane); break;
+      const lane = process.argv[3] || "lane1"; emit({ event: "STARTED", mode, lane, ts: Date.now() });
+      await sleep(400); emit({ event: "RESULT", lane, ts: Date.now() }); console.log("RESULT lane=" + lane); break;
     }
     case "large_import": {
       const n = 100000, out = scopedPath("import/records.jsonl");

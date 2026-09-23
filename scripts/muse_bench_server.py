@@ -2,7 +2,7 @@
 """Muse workbench companion server (stdlib only, new file, no studio changes).
 
 Serves the studio directory (reuses existing static hosting pattern) plus
-three Muse-bench endpoints backed by a file queue:
+Muse-bench endpoints backed by a file queue:
 
   GET  /muse-bench.html            workbench page (static)
   GET  /api/muse/gallery           prompt gallery JSON
@@ -10,13 +10,15 @@ three Muse-bench endpoints backed by a file queue:
   POST /api/muse/queue             append one task envelope {slot, template_id,
                                    template_version, inputs, prompt}
   POST /api/muse/claim             lease one QUEUED task (runner boundary)
+  POST /api/muse/release           release runner lock
+  POST /api/muse/complete          mark task completed and save result artifact
 
 States are file-backed and therefore real; nothing is simulated.
-Runner/execution backend is OUT OF SCOPE (see QUEUE_CONTRACT below).
 """
 import http.server
 import json
 import os
+import re
 import time
 import urllib.parse
 from pathlib import Path
@@ -31,6 +33,7 @@ QUEUE_FILE = WORK_DIR / "queue.jsonl"
 RESULTS_DIR = WORK_DIR / "results"
 CHECKPOINT_FILE = WORK_DIR / "checkpoint.json"
 LEASE_DIR = WORK_DIR / "lease"
+LOCK_TTL_SECONDS = int(os.environ.get("MUSE_LOCK_TTL", "300"))
 
 QUEUE_CONTRACT = (
     "Gallery -> Workspace -> queue.jsonl -> runner(lease/claim) -> "
@@ -46,27 +49,59 @@ def ensure_dirs():
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     LEASE_DIR.mkdir(parents=True, exist_ok=True)
     if not CHECKPOINT_FILE.exists():
-        CHECKPOINT_FILE.write_text(json.dumps({"concurrency": 1}) + "\n")
+        atomic_save_file(CHECKPOINT_FILE, json.dumps({"concurrency": 1}) + "\n")
+
+
+def atomic_save_file(path, content_str):
+    p = Path(path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    temp = p.with_name(f".{p.name}.tmp.{os.getpid()}.{int(time.time() * 1000)}")
+    try:
+        with open(temp, "w", encoding="utf-8") as fh:
+            fh.write(content_str)
+            fh.flush()
+            os.fsync(fh.fileno())
+        temp.replace(p)
+    except Exception:
+        if temp.exists():
+            try:
+                temp.unlink()
+            except OSError:
+                pass
+        raise
 
 
 def read_queue():
     tasks = []
     if QUEUE_FILE.exists():
-        for line in QUEUE_FILE.read_text().splitlines():
-            line = line.strip()
-            if line:
-                try:
-                    tasks.append(json.loads(line))
-                except json.JSONDecodeError:
-                    continue
+        try:
+            for line in QUEUE_FILE.read_text(encoding="utf-8").splitlines():
+                line = line.strip()
+                if line:
+                    try:
+                        tasks.append(json.loads(line))
+                    except json.JSONDecodeError:
+                        continue
+        except OSError:
+            pass
     return tasks
+
+
+def atomic_save_queue(tasks):
+    lines = [json.dumps(t) + "\n" for t in tasks]
+    atomic_save_file(QUEUE_FILE, "".join(lines))
+
+
+def sanitize_task_id(raw_id):
+    if not raw_id:
+        return "muse-%d" % int(time.time() * 1000)
+    cleaned = re.sub(r"[^a-zA-Z0-9_\-]", "", str(raw_id))
+    return cleaned if cleaned else ("muse-%d" % int(time.time() * 1000))
 
 
 def append_task(envelope):
     ensure_dirs()
-    task_id = envelope.get("task_id") or (
-        "muse-%d" % int(time.time() * 1000)
-    )
+    task_id = sanitize_task_id(envelope.get("task_id"))
     record = {
         "task_id": task_id,
         "slot": envelope.get("slot", "CHAT 1"),
@@ -82,21 +117,90 @@ def append_task(envelope):
     return record
 
 
+def is_lock_stale(lock_path):
+    try:
+        data = json.loads(lock_path.read_text(encoding="utf-8"))
+        age = time.time() - float(data.get("at", 0))
+        return age > LOCK_TTL_SECONDS
+    except (ValueError, OSError):
+        return True
+
+
 def claim_task(runner_id):
     ensure_dirs()
     lock_path = LEASE_DIR / "runner.lock"
+
+    if lock_path.exists() and is_lock_stale(lock_path):
+        try:
+            lock_path.unlink()
+        except OSError:
+            pass
+
     try:
         fd = os.open(str(lock_path), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
     except FileExistsError:
         return None
+
     with os.fdopen(fd, "w", encoding="utf-8") as fh:
         fh.write(json.dumps({"runner_id": runner_id, "at": time.time()}))
+
     tasks = read_queue()
+    claimed = None
     for task in tasks:
         if task.get("state") == "QUEUED":
-            return task
-    os.unlink(lock_path)
+            task["state"] = "RUNNING"
+            task["runner_id"] = runner_id
+            task["claimed_at"] = time.strftime("%Y-%m-%dT%H:%M:%S")
+            claimed = task
+            break
+
+    if claimed:
+        atomic_save_queue(tasks)
+        return claimed
+
+    try:
+        lock_path.unlink()
+    except OSError:
+        pass
     return None
+
+
+def release_runner_lock(runner_id=None):
+    ensure_dirs()
+    lock_path = LEASE_DIR / "runner.lock"
+    if not lock_path.exists():
+        return True
+    try:
+        if runner_id:
+            data = json.loads(lock_path.read_text(encoding="utf-8"))
+            if data.get("runner_id") and data.get("runner_id") != runner_id:
+                return False
+        lock_path.unlink()
+        return True
+    except OSError:
+        return False
+
+
+def complete_task(task_id, result_data=None):
+    ensure_dirs()
+    tid = sanitize_task_id(task_id)
+    tasks = read_queue()
+    target_task = None
+    for task in tasks:
+        if task.get("task_id") == tid:
+            task["state"] = "COMPLETED"
+            task["completed_at"] = time.strftime("%Y-%m-%dT%H:%M:%S")
+            target_task = task
+            break
+
+    if target_task:
+        atomic_save_queue(tasks)
+        if result_data is not None:
+            res_file = RESULTS_DIR / f"{tid}.json"
+            atomic_save_file(res_file, json.dumps(result_data, indent=2))
+        release_runner_lock()
+        return True
+    return False
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):
@@ -153,6 +257,18 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 self._json(409, {"ok": False, "reason": "busy-or-empty"})
             else:
                 self._json(200, {"ok": True, "task": task})
+        elif parsed.path == "/api/muse/release":
+            data = self._read_json()
+            ok = release_runner_lock(data.get("runner_id"))
+            self._json(200, {"ok": ok})
+        elif parsed.path == "/api/muse/complete":
+            data = self._read_json()
+            tid = data.get("task_id")
+            if not tid:
+                self._json(400, {"ok": False, "reason": "task_id required"})
+            else:
+                ok = complete_task(tid, data.get("result"))
+                self._json(200 if ok else 404, {"ok": ok})
         else:
             self.send_error(404, "Endpoint not found")
 
@@ -162,4 +278,9 @@ if __name__ == "__main__":
     ensure_dirs()
     server = http.server.ThreadingHTTPServer(("127.0.0.1", port), Handler)
     print(f"muse-bench on http://127.0.0.1:{port}/muse-bench.html", flush=True)
-    server.serve_forever()
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        server.server_close()
