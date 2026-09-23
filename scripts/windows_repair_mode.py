@@ -163,6 +163,7 @@ class WindowsRepairUtility:
                         print(f"Cleaned orphan PID: {pid}")
 
                 wstate["owned_pids"] = []
+                wstate["current_task"] = None
                 atomic_save_json(self.worker_state_file, wstate)
             except Exception as e:
                 logger.warning(f"Error cleaning worker orphaned executions: {e}")

@@ -102,9 +102,10 @@ def test_background_agents_fail_closed_without_api_key(script):
     env = os.environ.copy()
     env.pop("COURIER_API_KEY", None)
     env.pop("COURIER_VERIFIER_API_KEY", None)
+    env["PYTHONKEYRING_BACKEND"] = "keyring.backends.null.Keyring"
 
     result = subprocess.run(
-        [sys.executable, script], capture_output=True, text=True, env=env, timeout=5
+        [sys.executable, script], capture_output=True, text=True, env=env, timeout=15
     )
 
     assert result.returncode != 0

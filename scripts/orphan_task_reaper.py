@@ -92,8 +92,19 @@ def check_task_health(state_file: str = None, worker_state_file: str = None) -> 
         except Exception as e:
             print(f"Warning: Failed to load canonical state {s_path}: {e}")
 
-    # 2. Check UI handles (mock representation of UI handles)
-    ui_handles = ["WF-CANARY-STEP-1", "GHOST-TASK-99"]
+    # 2. Check UI handles sourced from worker state (not hardcoded)
+    ui_handles: list = []
+    if w_path.exists():
+        try:
+            with open(w_path, "r", encoding="utf-8") as f:
+                _wstate_peek = json.load(f)
+            ui_handles = list(_wstate_peek.get("ui_handles", []))
+            active = _wstate_peek.get("active_ui_handle")
+            if active and active not in ui_handles:
+                ui_handles.append(active)
+        except Exception:
+            pass  # Will be handled again when w_path is loaded below
+
     stale_ui_handles = []
     for handle in ui_handles:
         if handle not in valid_task_ids:

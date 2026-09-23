@@ -164,3 +164,51 @@ def test_check_task_health_corrupt_worker_json(tmp_path):
     res = check_task_health(str(state_file), str(worker_file))
     assert res["cleaned"] is False
     assert "error" in res
+
+
+def test_check_task_health_ui_handles_from_worker_state(tmp_path):
+    """UI handles must be sourced from worker_state.json, not hardcoded.
+    Stale handles (no matching canonical task) are reported.
+    Valid handles (matching a running canonical task) are NOT reported as stale.
+    """
+    state_file = tmp_path / "central_state.json"
+    state_file.write_text(json.dumps({
+        "goals": {
+            "G1": {
+                "workflow_plan": [
+                    {"task_id": "TASK-LIVE-001", "status": "RUNNING"},
+                ]
+            }
+        }
+    }))
+
+    worker_file = tmp_path / "worker_state.json"
+    worker_file.write_text(json.dumps({
+        "current_task": {"task_id": "TASK-LIVE-001"},
+        "owned_pids": [],
+        "last_heartbeat": time.time(),
+        "ui_handles": ["STALE-HANDLE-ABC", "TASK-LIVE-001"],
+        "active_ui_handle": "GHOST-HANDLE-XYZ",
+    }))
+
+    res = check_task_health(str(state_file), str(worker_file))
+
+    # TASK-LIVE-001 is valid; only the two non-canonical handles should be stale
+    stale = res["stale_ui_handles"]
+    assert "STALE-HANDLE-ABC" in stale, "Expected stale handle to be detected"
+    assert "GHOST-HANDLE-XYZ" in stale, "Expected active stale handle to be detected"
+    assert "TASK-LIVE-001" not in stale, "Valid handle must NOT be reported stale"
+
+    # No orphan cleanup triggered — TASK-LIVE-001 is healthy
+    assert res["cleaned"] is False
+    assert res["orphaned_task_id"] is None
+
+
+def test_check_task_health_no_ui_handles_when_worker_missing(tmp_path):
+    """When worker_state.json does not exist, stale_ui_handles must be empty (not hardcoded)."""
+    state_file = tmp_path / "central_state.json"
+    state_file.write_text("{}")
+    # No worker file
+
+    res = check_task_health(str(state_file), str(tmp_path / "nonexistent_worker.json"))
+    assert res["stale_ui_handles"] == [], "Must be empty when no worker state exists, not hardcoded test strings"

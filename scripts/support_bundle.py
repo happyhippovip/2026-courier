@@ -31,12 +31,17 @@ def get_system_health() -> dict:
         "timestamp_utc": datetime.datetime.utcnow().isoformat() + "Z",
         "disk_free_gb": "N/A",
     }
-    if hasattr(os, "statvfs"):
-        try:
-            st = os.statvfs(".")
-            health["disk_free_gb"] = round((st.f_bavail * st.f_frsize) / (1024**3), 2)
-        except Exception:
-            pass
+    try:
+        import shutil
+        total, used, free = shutil.disk_usage(".")
+        health["disk_free_gb"] = round(free / (1024**3), 2)
+    except Exception:
+        if hasattr(os, "statvfs"):
+            try:
+                st = os.statvfs(".")
+                health["disk_free_gb"] = round((st.f_bavail * st.f_frsize) / (1024**3), 2)
+            except Exception:
+                pass
     return health
 
 
@@ -68,6 +73,7 @@ def generate_redacted_queue_summary(state_path: Path) -> dict:
             "status": "available",
             "schema_version": state.get("schema_version", "unknown"),
             "total_goals": len(goals),
+            "total_top_level_tasks": len(tasks),
             "total_workflow_tasks": total_workflow_tasks,
             "status_counts": status_counts,
         }

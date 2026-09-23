@@ -3,7 +3,7 @@ YOLO heisst hier: --disable-approval (kein proceed/1-2), Sandbox AN, dazu eigene
 Einhaengepunkte im Motor: y=Yolo(state); y.gate() -> ""|Stopp-Grund; y.next_task(known) -> id|None; y.execute(id) -> (kind,detail,res); y.end(grund).
 Aufgaben = Dateien tasks/*.md im Repo (id = Dateiname ohne .md). Start ohne Button: Umgebungsvariable COURIER_CANNON_PROFILE=yolo."""
 from __future__ import annotations
-import glob, hashlib, json, os, queue, re, shutil, signal, subprocess, threading, time
+import glob, hashlib, json, os, queue, re, shutil, signal, subprocess, sys, threading, time
 from pathlib import Path
 
 PROTECT = ("app/cannon.html", "app/cannon.css", "app/cannon.js", "app/cannon/", "scripts/cannon_", "scripts/headless_night.py",
@@ -110,8 +110,19 @@ def _kill(p):
 
 
 def run_muse(cmd, cwd, env, live, hard_s, idle_s, stop, on_pid=lambda pid: None):
+    actual_cmd = list(cmd)
+    if os.name != "nt" and actual_cmd:
+        bin_path = Path(actual_cmd[0])
+        if bin_path.is_file():
+            try:
+                with open(bin_path, "rb") as f:
+                    first_line = f.readline()
+                if first_line.startswith(b"#!") and b"python" in first_line:
+                    actual_cmd = [sys.executable, str(bin_path)] + actual_cmd[1:]
+            except OSError:
+                pass
     kw = {} if os.name == "nt" else {"start_new_session": True}
-    p = subprocess.Popen(cmd, cwd=cwd, env=env, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+    p = subprocess.Popen(actual_cmd, cwd=cwd, env=env, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                          text=True, errors="replace", bufsize=1, **kw)
     on_pid(p.pid); q = queue.Queue()
     def rd():
@@ -128,8 +139,17 @@ def run_muse(cmd, cwd, env, live, hard_s, idle_s, stop, on_pid=lambda pid: None)
                 for t in disp: [live.add(x) for x in t.splitlines()]
         except queue.Empty: live.flush()
         now = time.time()
-        if not eof: why = "NOTAUS" if stop() else "ZEIT" if now - t0 > hard_s else ("IDLE" if now - last > idle_s and p.poll() is None else "")
-        if why: _kill(p); break
+        if not eof: why = "NOTAUS" if stop() else "ZEIT" if now - t0 > hard_s else ("IDLE" if p.poll() is None and now - last > idle_s else "")
+        if why:
+            _kill(p)
+            while not q.empty():
+                try:
+                    l = q.get_nowait()
+                    if l is not None:
+                        raw.append(l); allt, disp = texts(l); parts += allt
+                except queue.Empty:
+                    break
+            break
     return p.wait(), parts, "".join(raw), why
 
 

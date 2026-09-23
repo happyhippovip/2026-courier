@@ -27,9 +27,10 @@ logger = logging.getLogger("windows_update_manager")
 
 
 class WindowsUpdateManager:
-    def __init__(self, state_file=None, backup_dir=None, target_version="1.1.0"):
+    def __init__(self, state_file=None, backup_dir=None, target_version="1.1.0", worker_state_file=None):
         self.state_file = get_canonical_state_path(state_file)
         self.backup_dir = Path(backup_dir).resolve() if backup_dir else (REPO_ROOT / "backup_update")
+        self.worker_state_file = get_worker_state_path(worker_state_file)
         self.current_version = "1.0.0"
         self.target_version = target_version
 
@@ -61,10 +62,9 @@ class WindowsUpdateManager:
         print("Checkpointing canonical state, credentials, queue, results, and account checkpoints...")
         self.backup_dir.mkdir(parents=True, exist_ok=True)
 
-        worker_state = get_worker_state_path()
         candidates = [
             self.state_file,
-            worker_state,
+            self.worker_state_file,
             REPO_ROOT / "account_session.json",
             REPO_ROOT / ".env.txt",
         ]
@@ -86,18 +86,17 @@ class WindowsUpdateManager:
 
     def stop_runtime(self) -> int:
         print("Stopping only Courier-owned runtime...")
-        worker_state = get_worker_state_path()
         terminated_count = 0
-        if worker_state.exists():
+        if self.worker_state_file.exists():
             try:
-                with open(worker_state, "r", encoding="utf-8") as f:
+                with open(self.worker_state_file, "r", encoding="utf-8") as f:
                     wdata = json.load(f)
                 owned_pids = wdata.get("owned_pids", [])
                 for pid in list(owned_pids):
                     if safely_terminate_pid(pid):
                         terminated_count += 1
                 wdata["owned_pids"] = []
-                atomic_save_json(worker_state, wdata)
+                atomic_save_json(self.worker_state_file, wdata)
             except Exception as e:
                 logger.warning(f"Failed while stopping worker runtime: {e}")
         print(f"Runtime cleanly stopped ({terminated_count} processes terminated).")

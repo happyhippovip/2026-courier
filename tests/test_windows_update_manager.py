@@ -12,6 +12,7 @@ def temp_env():
     with tempfile.TemporaryDirectory() as td:
         tdp = Path(td)
         state_file = tdp / "central_state.json"
+        worker_state_file = tdp / "worker_state.json"
         backup_dir = tdp / "backup"
         
         initial_state = {
@@ -22,10 +23,14 @@ def temp_env():
         }
         with open(state_file, "w", encoding="utf-8") as f:
             json.dump(initial_state, f)
+
+        with open(worker_state_file, "w", encoding="utf-8") as f:
+            json.dump({"worker_id": "TEST_WIN_01", "owned_pids": []}, f)
             
         yield {
             "root": tdp,
             "state_file": state_file,
+            "worker_state_file": worker_state_file,
             "backup_dir": backup_dir,
             "initial_state": initial_state,
         }
@@ -35,6 +40,7 @@ def test_detect_version(temp_env):
     mgr = WindowsUpdateManager(
         state_file=str(temp_env["state_file"]),
         backup_dir=str(temp_env["backup_dir"]),
+        worker_state_file=str(temp_env["worker_state_file"]),
         target_version="1.1.0"
     )
     assert mgr.detect_version() == "1.0.0"
@@ -44,6 +50,7 @@ def test_schema_compatibility(temp_env):
     mgr = WindowsUpdateManager(
         state_file=str(temp_env["state_file"]),
         backup_dir=str(temp_env["backup_dir"]),
+        worker_state_file=str(temp_env["worker_state_file"]),
         target_version="1.2.0"
     )
     mgr.detect_version()
@@ -58,6 +65,7 @@ def test_checkpoint_creates_manifest(temp_env):
     mgr = WindowsUpdateManager(
         state_file=str(temp_env["state_file"]),
         backup_dir=str(temp_env["backup_dir"]),
+        worker_state_file=str(temp_env["worker_state_file"]),
         target_version="1.1.0"
     )
     count = mgr.checkpoint_state()
@@ -77,6 +85,7 @@ def test_migrate_schema_idempotent(temp_env):
     mgr = WindowsUpdateManager(
         state_file=str(temp_env["state_file"]),
         backup_dir=str(temp_env["backup_dir"]),
+        worker_state_file=str(temp_env["worker_state_file"]),
         target_version="1.1.0"
     )
     assert mgr.migrate_schema() is True
@@ -97,6 +106,7 @@ def test_successful_update_flow(temp_env):
     mgr = WindowsUpdateManager(
         state_file=str(temp_env["state_file"]),
         backup_dir=str(temp_env["backup_dir"]),
+        worker_state_file=str(temp_env["worker_state_file"]),
         target_version="1.1.0"
     )
     res = mgr.run_update_flow(simulate_failure=False)
@@ -117,6 +127,7 @@ def test_rollback_on_failed_health_check(temp_env):
     mgr = WindowsUpdateManager(
         state_file=str(temp_env["state_file"]),
         backup_dir=str(temp_env["backup_dir"]),
+        worker_state_file=str(temp_env["worker_state_file"]),
         target_version="1.1.0"
     )
     res = mgr.run_update_flow(simulate_failure=True)
@@ -135,6 +146,7 @@ def test_rollback_on_corrupt_state_health_check(temp_env):
     mgr = WindowsUpdateManager(
         state_file=str(temp_env["state_file"]),
         backup_dir=str(temp_env["backup_dir"]),
+        worker_state_file=str(temp_env["worker_state_file"]),
         target_version="1.1.0"
     )
     # Checkpoint initial state
