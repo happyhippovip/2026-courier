@@ -101,6 +101,18 @@ scripts/mac_worker/logs/
 scripts/mac_worker/state/
 .env.local
 
+# T6: Motor-Laufzeit-State (belegt durch kurzen local_fake-Lauf in der
+# Arbeitskopie, s. tests/test_t6_gitignore_runtime_noise.py):
+# <state_dir>/motor.json (CannonMotor), queue.json (work_queue),
+# results/*.result.json (deterministic_executor), supervisor.lock
+# (mac_adapter). pid/heartbeat sind Felder in JSON, keine eigenen Dateien.
+motor.json
+queue.json
+*.result.json
+supervisor.lock
+# Atomare .tmp-Schreibzugriffe (cannon_motor.py, work_queue.py, storage.py);
+# ein harter Absturz dazwischen laesst die .tmp-Datei liegen.
+*.tmp
 # Cross-platform sync exclusions
 .env
 .env.local
