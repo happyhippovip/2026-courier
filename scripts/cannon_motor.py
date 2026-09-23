@@ -29,19 +29,29 @@ class MotorError(Exception):
     pass
 
 
-def deterministic_executor(results_dir, task_id, behavior="ok"):
+def deterministic_executor(results_dir, task_id, behavior="ok", check_stop=None):
     """Local deterministic worker. No network, no provider, no LLM.
 
-    Returns (outcome, result_id) where outcome is 'ok' or 'unknown'.
+    Returns (outcome, result_id) where outcome is 'ok', 'unknown', or 'aborted'.
     Persists a result artifact for every ok execution.
     """
+    import time
     results_dir = Path(results_dir)
     results_dir.mkdir(parents=True, exist_ok=True)
     if behavior == "unknown":
         return ("unknown", None)
     if behavior == "crash":
         raise MotorError(f"executor crash on {task_id}")
-    result_id = f"{task_id}:r1"
+        
+    if behavior.startswith("slow:"):
+        duration = float(behavior.split(":")[1])
+        start = time.time()
+        while time.time() - start < duration:
+            if check_stop and check_stop():
+                return ("aborted", None)
+            time.sleep(0.1)
+
+    result_id = f"{task_id}:r1" 
     artifact = results_dir / f"{task_id}.result.json"
     payload = {"result_id": result_id, "task_id": task_id,
                "outcome": "ok", "persisted_at": time.time()}

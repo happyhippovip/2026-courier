@@ -114,7 +114,7 @@ class LiveMuseAdapter:
         return result
 
     @staticmethod
-    def execute_canary(task, results_dir, persist_identity, timeout=90):
+    def execute_canary(task, results_dir, persist_identity, timeout=90, check_stop=None):
         """Bounded real Meta canary; independent file verification, never exit-only success."""
         import hashlib
         import json
@@ -161,6 +161,11 @@ class LiveMuseAdapter:
                     persist_identity(dict(identity))
                     if time.monotonic() >= deadline:
                         raise ValueError('MUSE_TIMEOUT_UNKNOWN_EFFECT')
+                    if check_stop and check_stop():
+                        child.terminate()
+                        try: child.wait(timeout=3)
+                        except subprocess.TimeoutExpired: child.kill(); child.wait(timeout=3)
+                        return ("aborted", None)
                     time.sleep(.25)
                 if child.returncode != 0:
                     raise ValueError('MUSE_NONZERO_EXIT:' + str(child.returncode))
