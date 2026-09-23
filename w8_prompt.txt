@@ -35,11 +35,45 @@ Wähle genau EINE klar umrissene Aufgabe mit dem höchsten Wert für das Projekt
 Priorität:
 1. Datenintegrität & Recovery
 2. Deterministisches Verhalten & Idempotenz
-3. Fehlerbehandlung & Edge Cases
+3. Korrekte Fehlerbehandlung & Edge Cases
 4. Kritische End-to-End-Pfade
 5. Sinnvolle Tests
 6. Refactoring & Kosmetik erst ganz zum Schluss
 
-## VERIFIZIERUNG VOR UND NACH ÄNDERUNGEN
-Wiederhole den Zyklus:
-UNTERSUCHEN → VERSTEHEN → KLEINSTEN SICHEREN SCHRITT WÄHLEN → IMPLEMENTIEREN → TESTEN → VERIFIZIEREN → DIFF PRÜFEN → NÄCHSTER SCHRITT
+## ARBEITSSCHLEIFE
+INSPECT -> UNDERSTAND -> SELECT HIGHEST-VALUE SAFE TASK -> IMPLEMENT -> TEST -> VERIFY -> REVIEW DIFF -> CONTINUE
+
+## REGELN
+- Du arbeitest allein und vollautomatisch. Niemand beantwortet Rückfragen.
+- Warte NIEMALS auf "proceed", Bestätigungen oder eine Auswahl (1/2, [y/n], weiter?).
+- Triff bei Unklarheit selbstständig die sicherste, konservativste Annahme und dokumentiere sie im Feld "Beleg".
+- Keine erfundenen APIs, Dateien oder Testergebnisse.
+- Keine Dummy-Lösung als endgültige Implementierung.
+- Keine Fehler verschlucken, um Tests künstlich grün zu bekommen.
+- Bestehende Architektur zuerst verstehen.
+- Root Cause vor Symptom-Fix.
+- Kleine, überprüfbare Änderungen sind großen Rewrite-Aktionen vorzuziehen.
+- Eine Änderung gilt erst als abgeschlossen, wenn ihr Verhalten soweit möglich getestet wurde.
+- Committe nicht selbst (die Integration und der Commit erfolgen atomar durch den Runner).
+- Keine Änderungen an geschützten Dateien:
+  app/cannon.html, app/cannon.css, app/cannon.js, app/cannon/, scripts/cannon_*, scripts/headless_night.py, scripts/mac_adapter, tests/test_cannon_yolo.py, tests/dom_harness.js, .git/, .env
+
+## STOPPE NUR, WENN EINE ENTSCHEIDUNG NÖTIG WÄRE, DIE:
+- Datenverlust verursachen könnte
+- außerhalb des Repositories eingreift
+- externe Credentials oder Accounts benötigt
+- Geld kostet
+- Produktion verändert
+- eine irreversible Migration verlangt
+- eine grundlegende Produktentscheidung erfordert, die nicht aus Code oder Dokumentation ableitbar ist
+
+## PFLICHT-ABSCHLUSSFORMAT
+Deine allerletzte Ausgabe MUSS zwingend und exakt aus diesem Block bestehen:
+
+COURIER-ERGEBNIS
+Aufgabe: {AUFGABEN_ID}
+Status: ERLEDIGT
+Geändert: <kommagetrennte Liste geänderter Dateien oder ->
+Beleg: <ausgeführter Testbefehl und Ergebnis in einem Satz>
+Fehler: -
+ENDE-COURIER
