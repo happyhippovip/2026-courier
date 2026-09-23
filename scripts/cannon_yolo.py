@@ -128,7 +128,7 @@ def run_muse(cmd, cwd, env, live, hard_s, idle_s, stop, on_pid=lambda pid: None)
                 for t in disp: [live.add(x) for x in t.splitlines()]
         except queue.Empty: live.flush()
         now = time.time()
-        if not eof: why = "NOTAUS" if stop() else "ZEIT" if now - t0 > hard_s else "IDLE" if now - last > idle_s else ""
+        if not eof: why = "NOTAUS" if stop() else "ZEIT" if now - t0 > hard_s else ("IDLE" if now - last > idle_s and p.poll() is None else "")
         if why: _kill(p); break
     return p.wait(), parts, "".join(raw), why
 
