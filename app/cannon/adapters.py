@@ -109,8 +109,22 @@ class LiveMuseAdapter:
         if len(terminals) != 1 or terminals[0].get('terminal') != 'completed':
             raise ValueError('MISSING_OR_AMBIGUOUS_TERMINAL_RESULT')
         result = json.loads(terminals[0].get('text', ''))
-        if result != {'path': str(path), 'nonce': nonce, 'sha256': sha}:
+        if set(result.keys()) != {'path', 'nonce', 'sha256'}:
             raise ValueError('WRONG_CANARY_RESULT')
+        if result.get('nonce') != nonce or result.get('sha256') != sha:
+            raise ValueError('WRONG_CANARY_RESULT')
+            
+        import os
+        from pathlib import PureWindowsPath
+        p1 = str(result.get('path', ''))
+        p2 = str(path)
+        is_windows = os.name == 'nt' or (len(p2) >= 2 and p2[1] == ':')
+        if is_windows:
+            if PureWindowsPath(p1) != PureWindowsPath(p2):
+                raise ValueError('WRONG_CANARY_RESULT')
+        else:
+            if p1 != p2:
+                raise ValueError('WRONG_CANARY_RESULT')
         return result
 
     @staticmethod
