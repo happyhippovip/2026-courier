@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 import os
+import time
 from pathlib import Path
 
 
@@ -25,17 +26,42 @@ def payload_hash(payload: object) -> str:
     return hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--task", required=True)
-    parser.add_argument("--processed-dir", required=True)
-    parser.add_argument("--github-output", required=True)
-    args = parser.parse_args()
-
-    task = json.loads(Path(args.task).read_text(encoding="utf-8"))
-    raw_result = os.environ.get("CODEX_RESULT_JSON", "")
+def atomic_save_json(path: Path, data: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = path.with_suffix(f".tmp.{os.getpid()}.{int(time.time() * 1000)}")
     try:
-        result = json.loads(raw_result)
+        with open(tmp_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, sort_keys=True, indent=2)
+            f.write("\n")
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp_path, path)
+    except Exception:
+        if tmp_path.exists():
+            try:
+                tmp_path.unlink()
+            except OSError:
+                pass
+        raise
+
+
+def publish_result(
+    task_path: Path | str,
+    processed_dir: Path | str,
+    github_output: Path | str | None = None,
+    raw_result: str | None = None,
+) -> Path:
+    t_path = Path(task_path)
+    if not t_path.exists():
+        fail(f"task file does not exist: {t_path}")
+    try:
+        task = json.loads(t_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        fail(f"malformed task json: {exc}")
+
+    result_str = raw_result if raw_result is not None else os.environ.get("CODEX_RESULT_JSON", "")
+    try:
+        result = json.loads(result_str)
     except json.JSONDecodeError as exc:
         fail(f"Codex output is not JSON: {exc.msg}")
 
@@ -61,8 +87,9 @@ def main() -> None:
     if not result["message_id"].replace("-", "").replace("_", "").replace(".", "").isalnum():
         fail("unsafe result message_id")
 
-    processed_dir = Path(args.processed_dir)
-    for candidate in processed_dir.glob("*.json"):
+    p_dir = Path(processed_dir)
+    p_dir.mkdir(parents=True, exist_ok=True)
+    for candidate in p_dir.glob("*.json"):
         try:
             existing = json.loads(candidate.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
@@ -70,12 +97,27 @@ def main() -> None:
         if existing.get("parent_id") == task["message_id"] or existing.get("message_id") == result["message_id"]:
             fail("duplicate terminal result")
 
-    target = processed_dir / f"{task['message_id']}.result.json"
+    target = p_dir / f"{task['message_id']}.result.json"
     if target.exists():
         fail("terminal result path already exists")
-    target.write_text(json.dumps(result, sort_keys=True, indent=2) + "\n", encoding="utf-8")
-    with Path(args.github_output).open("a", encoding="utf-8") as output:
-        output.write(f"result_path={target.as_posix()}\n")
+
+    atomic_save_json(target, result)
+
+    if github_output is not None:
+        with Path(github_output).open("a", encoding="utf-8") as output:
+            output.write(f"result_path={target.as_posix()}\n")
+
+    return target
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--task", required=True)
+    parser.add_argument("--processed-dir", required=True)
+    parser.add_argument("--github-output", required=True)
+    args = parser.parse_args()
+
+    publish_result(args.task, args.processed_dir, github_output=args.github_output)
 
 
 if __name__ == "__main__":

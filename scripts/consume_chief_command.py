@@ -154,6 +154,25 @@ def create_antigravity_result(
     return result_event
 
 
+def atomic_save_json(path: Path, data: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = path.with_suffix(f".tmp.{os.getpid()}")
+    try:
+        with open(tmp_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+            f.write("\n")
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp_path, path)
+    except Exception:
+        if tmp_path.exists():
+            try:
+                tmp_path.unlink()
+            except OSError:
+                pass
+        raise
+
+
 def process_command(command_file: Path, incoming_dir: Path, processed_dir: Path) -> dict:
     if not command_file.exists():
         fail(f"Command file does not exist: {command_file}")
@@ -196,10 +215,12 @@ def process_command(command_file: Path, incoming_dir: Path, processed_dir: Path)
         safe_next_state=safe_next_state,
     )
 
-    # Publish result to processed_dir
+    # Publish result to processed_dir atomically
     processed_dir.mkdir(parents=True, exist_ok=True)
-    processed_file = processed_dir / f"{command_data['task_id']}-result.json"
-    processed_file.write_text(json.dumps(result_event, indent=2) + "\n", encoding="utf-8")
+    import re
+    safe_task_id = re.sub(r"[^a-zA-Z0-9_\-]", "", str(command_data['task_id']))
+    processed_file = processed_dir / f"{safe_task_id}-result.json"
+    atomic_save_json(processed_file, result_event)
 
     return result_event
 

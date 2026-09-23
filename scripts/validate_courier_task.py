@@ -30,6 +30,47 @@ def canonical_hash(payload: object) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
+def validate_task(task_path: Path | str, processed_dir: Path | str) -> dict:
+    t_path = Path(task_path)
+    p_dir = Path(processed_dir)
+    if not t_path.exists():
+        fail(f"task file does not exist: {t_path}")
+    try:
+        task = json.loads(t_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        fail(f"malformed task json: {exc}")
+
+    if set(task) != REQUIRED:
+        fail("unexpected envelope fields")
+    if task.get("schema_version") != "2.0":
+        fail("unsupported schema_version")
+    if task.get("type") != "TASK" or task.get("status") != "NEW":
+        fail("message is not a new TASK")
+    if task.get("source") != "github_courier" or task.get("destination") != "codex":
+        fail("unexpected route")
+    if not all(isinstance(task.get(key), str) and task.get(key) for key in ("message_id", "task_id", "correlation_id", "payload_hash")):
+        fail("missing identity field")
+    if task.get("parent_id") is not None:
+        fail("TASK parent_id must be null")
+    if task.get("max_iterations") != 1:
+        fail("max_iterations must be exactly 1")
+    if not isinstance(task.get("payload"), dict) or canonical_hash(task["payload"]) != task.get("payload_hash"):
+        fail("payload_hash mismatch")
+    if task.get("payload", {}).get("result_request") not in {"COURIER_CODEX_ACK", "COURIER_SEQUENTIAL_ACK", "COURIER_AUTOMATIC_ACK"}:
+        fail("unsupported result_request")
+
+    if p_dir.exists():
+        for candidate in p_dir.glob("*.json"):
+            try:
+                processed = json.loads(candidate.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                continue
+            if processed.get("parent_id") == task["message_id"] or processed.get("message_id") == task["message_id"]:
+                fail("TASK already has a terminal record")
+
+    return task
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--task", required=True)
@@ -37,35 +78,7 @@ def main() -> None:
     args = parser.parse_args()
 
     task_path = Path(args.task)
-    processed_dir = Path(args.processed_dir)
-    task = json.loads(task_path.read_text(encoding="utf-8"))
-    if set(task) != REQUIRED:
-        fail("unexpected envelope fields")
-    if task["schema_version"] != "2.0":
-        fail("unsupported schema_version")
-    if task["type"] != "TASK" or task["status"] != "NEW":
-        fail("message is not a new TASK")
-    if task["source"] != "github_courier" or task["destination"] != "codex":
-        fail("unexpected route")
-    if not all(isinstance(task[key], str) and task[key] for key in ("message_id", "task_id", "correlation_id", "payload_hash")):
-        fail("missing identity field")
-    if task["parent_id"] is not None:
-        fail("TASK parent_id must be null")
-    if task["max_iterations"] != 1:
-        fail("max_iterations must be exactly 1")
-    if not isinstance(task["payload"], dict) or canonical_hash(task["payload"]) != task["payload_hash"]:
-        fail("payload_hash mismatch")
-    if task["payload"].get("result_request") not in {"COURIER_CODEX_ACK", "COURIER_SEQUENTIAL_ACK", "COURIER_AUTOMATIC_ACK"}:
-        fail("unsupported result_request")
-
-    for candidate in processed_dir.glob("*.json"):
-        try:
-            processed = json.loads(candidate.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
-            continue
-        if processed.get("parent_id") == task["message_id"] or processed.get("message_id") == task["message_id"]:
-            fail("TASK already has a terminal record")
-
+    validate_task(task_path, args.processed_dir)
     print(task_path.as_posix())
 
 

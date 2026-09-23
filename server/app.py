@@ -1,4 +1,4 @@
-import copy, os, json, re, uuid, time, threading
+import copy, os, sys, json, re, uuid, time, threading
 from functools import wraps
 from flask import Flask, request, jsonify
 
@@ -508,18 +508,25 @@ def load_state():
 def save_state(state):
     os.makedirs(os.path.dirname(STATE_FILE), exist_ok=True)
     import threading; temp_path = f"{STATE_FILE}.{threading.get_ident()}.tmp"
-    with open(temp_path, 'w') as f:
-        json.dump(state, f, indent=2)
-        f.flush()
-        os.fsync(f.fileno())
-    for i in range(20):
-        try:
-            os.replace(temp_path, STATE_FILE)
-            break
-        except PermissionError:
-            if i == 19:
-                raise
-            time.sleep(0.05)
+    try:
+        with open(temp_path, 'w') as f:
+            json.dump(state, f, indent=2)
+            f.flush()
+            os.fsync(f.fileno())
+        for i in range(20):
+            try:
+                os.replace(temp_path, STATE_FILE)
+                break
+            except PermissionError:
+                if i == 19:
+                    raise
+                time.sleep(0.05)
+    finally:
+        if os.path.exists(temp_path):
+            try:
+                os.unlink(temp_path)
+            except OSError:
+                pass
 
 @app.route("/health", methods=["GET"])
 def health():
@@ -790,7 +797,7 @@ def claim_task():
     for task_id, task in state.get("tasks", {}).items():
         if task.get("status") in ("WAITING_PROVIDER", "BLOCKED_TRANSIENT") and task.get("worker_id") == worker_id:
             if time.time() > state.get("provider_locks", {}).get(lock_key, 0):
-                task["status"] = "DISPATCHED"
+                set_task_status(task, "DISPATCHED")
                 
                 # Sync back to goal
                 if task.get("goal_id") in state.get("goals", {}):
@@ -843,9 +850,7 @@ def claim_task():
                     continue
                 if not _worker_is_eligible(state, candidate, worker_id):
                     continue
-                    continue
                 if _cheaper_eligible_worker_exists(state, candidate, worker_id):
-                    continue
                     continue
                 try:
                     claimed = _prepare_claimed_task(candidate, worker_id, worker)
@@ -1015,6 +1020,7 @@ def task_result():
                     set_task_status(task, "FAILED_TERMINAL")
                     task["next_action"] = "ABORT"
                     task["blocker"] = f"MAX_ATTEMPTS_REACHED: {failure_reason[:200]}" if failure_reason else "MAX_ATTEMPTS_REACHED"
+                    _release_task_resources(state, task)
 
                 
             goal_id = task["goal_id"]
@@ -1030,7 +1036,7 @@ def task_result():
                             step["retry_state"] = task["retry_state"]
                         if "next_retry_at" in task:
                             step["next_retry_at"] = task["next_retry_at"]
-                if task["status"] == "FAILED_TERMINAL":
+                if task["status"] in ("FAILED_TERMINAL", "HUMAN_REQUIRED"):
                     goal["status"] = "BLOCKED"
 
             if worker_id in state["workers"]:
@@ -1307,6 +1313,7 @@ def verify_task_result():
                     except Exception:
                         pass
     else:
+        assigned_worker_id = task.get("worker_id")
         retry_state = get_retry_state(task)
         if retry_state["verification"] < MAX_RETRIES["verification"]:
             retry_state["verification"] += 1
@@ -1319,16 +1326,19 @@ def verify_task_result():
             set_task_status(task, "FAILED_TERMINAL")
             task["next_action"] = "ABORT"
             task["blocker"] = f"VERIFICATION_REJECTED_MAX_RETRIES: {data.get('reason', 'no reason')}"[:200]
-    # P6/P10 — Terminal cleanup: release worker ownership after verification
-    assigned_worker_id = task.get("worker_id")
-    if assigned_worker_id and assigned_worker_id in state["workers"]:
-        state["workers"][assigned_worker_id]["current_task"] = None
-        state["workers"][assigned_worker_id]["available"] = True
+            _release_task_resources(state, task)
+            if goal:
+                goal["status"] = "BLOCKED"
+        # P6/P10 — Terminal cleanup: release worker ownership after verification
+        if assigned_worker_id and assigned_worker_id in state["workers"]:
+            state["workers"][assigned_worker_id]["current_task"] = None
+            state["workers"][assigned_worker_id]["available"] = True
 
     # Sync status back to workflow_plan
     for step in goal.get("workflow_plan", []):
         if step.get("task_id") == task_id:
             step["status"] = task["status"]
+            step["worker_id"] = task.get("worker_id")
             step["verification"] = task["verification"]
             if "retry_state" in task:
                 step["retry_state"] = task["retry_state"]

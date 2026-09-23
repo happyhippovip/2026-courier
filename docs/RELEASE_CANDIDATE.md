@@ -208,3 +208,20 @@ No new architecture, rule, agent, roadmap, or refactor is justified before a con
 - **Exitcode / Ergebnis:** 0 (100% grün).
 - **Status:** Muse-Runner-, Workbench-Server- und Work-Script-Portabilität sowie Integrität vollständig nachgewiesen.
 
+### FEAT & HARDENING: REVENUE INTAKE DISPATCHER, QUEUE PROCESSOR & CHIEF RELAY PIPELINE
+- **Ursache:**
+  1. `scripts/intake_dispatcher.py`: Feste Pfade (`central_state.json`) im CWD statt kanonischer Pfadauflösung; nicht-atomares Überschreiben von Central State (`open(..., 'w')`); fehlende Validierung von Intake-Feldern (Gefahr von Injection und KeyErrors); keine Testbarkeit durch harte Abhängigkeit von externem `gh`-CLI-Aufruf.
+  2. `scripts/queue_processor.py`: Fehlende Quarantäne für fehlerhafte Intakes führte bei korrupten Dateien zu einer Endlosschleife im Processing-Loop; starre Pfade ohne Konfigurierbarkeit.
+  3. `scripts/consume_chief_command.py` & `scripts/publish_courier_result.py`: Nicht-atomare Speicherung von Ergebnisdateien auf Disk; fehlende Pfad-Sanitization bei `task_id`; keine automatisierte Testabdeckung.
+  4. `scripts/validate_courier_task.py`: Fehlende Kapselung als importierbare Python-Funktion für Tests; unbehandelte Abstürze bei fehlenden Dateien oder ungültigem JSON.
+- **Änderung:**
+  1. `scripts/intake_dispatcher.py`: Kanonische Zustandspfad-Ermittlung via `get_canonical_state_path()`, atomares Speichern via `atomic_save_json` mit fsync, Quarantäne für beschädigte Zustände (`.corrupt.<ts>`), strikte Regex-Validierung (`SAFE_IDENTIFIER_PATTERN`, `HEX_SHA_PATTERN`) und Entkopplung durch injizierbaren `gh_runner` implementiert.
+  2. `scripts/queue_processor.py`: Isolierte Fehlerquarantäne nach `intakes/failed/` inklusive Fehler-JSON-Metadaten (`.error.json`) gegen Queue-Poisoning; konfigurierbare Verzeichnisse und strukturierte Ergebnisrückgabe integriert.
+  3. `scripts/consume_chief_command.py` & `scripts/publish_courier_result.py`: Atomares Speichern von Ergebnissen (`atomic_save_json`) und Bereinigung von Task-IDs gegen Directory Traversal umgesetzt.
+  4. `scripts/validate_courier_task.py`: Wiederverwendbare `validate_task`-Funktion mit Datei- und JSON-Guardrails extrahiert.
+  5. 3 neue Testsuites (`tests/test_intake_dispatcher.py` [14 Tests], `tests/test_chief_command_and_relay.py` [8 Tests], `tests/test_courier_task_and_result.py` [7 Tests]) ergänzt. Gesamtsuite wächst von 626 auf 660 Tests (100% grün).
+- **Testbefehl:** `pytest tests/test_intake_dispatcher.py tests/test_chief_command_and_relay.py tests/test_courier_task_and_result.py -v`
+- **Exitcode / Ergebnis:** 0 (100% grün, 29/29 bestanden).
+- **Status:** Resiliente Intake- und Relay-Pipelines, atomare State-Garantien und vollständige Testabdeckung nachgewiesen.
+
+

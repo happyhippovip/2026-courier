@@ -423,3 +423,257 @@ def test_stale_claim_is_quarantined_without_replay_and_other_goal_continues(tmp_
     late_result = durable_result(claimed)
     assert http.post("/tasks/result", headers=auth(), json=late_result).status_code == 409
     assert server_app.load_state()["tasks"][claimed["task_id"]]["status"] == "HUMAN_REQUIRED"
+
+
+def test_schema_version_future_fails_closed_with_system_exit(tmp_path, monkeypatch):
+    """Schema version > 2 must fail closed via sys.exit(1), not crash with NameError."""
+    state_file = tmp_path / "future_state.json"
+    state_file.write_text(json.dumps({"schema_version": 99, "goals": {}}))
+    monkeypatch.setattr(server_app, "STATE_FILE", str(state_file))
+
+    with pytest.raises(SystemExit) as excinfo:
+        server_app.load_state()
+    assert excinfo.value.code == 1
+
+
+def test_save_state_cleans_up_temp_file_on_error(tmp_path, monkeypatch):
+    """save_state must clean up the .tmp file if serialization fails."""
+    state_file = tmp_path / "test_cleanup.json"
+    monkeypatch.setattr(server_app, "STATE_FILE", str(state_file))
+
+    # Attempt to save state with an un-serializable object (set)
+    unserializable_state = {"schema_version": 2, "bad_data": {1, 2, 3}}
+    with pytest.raises(TypeError):
+        server_app.save_state(unserializable_state)
+
+    # Verify no .tmp file was leaked in the directory
+    tmp_files = list(tmp_path.glob("*.tmp"))
+    assert tmp_files == [], f"Expected no leftover .tmp files, found: {tmp_files}"
+
+
+def test_terminal_verification_failure_releases_resources_and_blocks_goal(tmp_path, monkeypatch):
+    """When a task terminally fails verification, its exclusive resources are freed and goal is BLOCKED."""
+    http = client(tmp_path, monkeypatch)
+    http.post(
+        "/workers/register",
+        headers=auth(),
+        json={"worker_id": "W-FAIL", "platform": "mac", "capabilities": ["macos"]},
+    )
+    goal_res = http.post(
+        "/goals",
+        headers=auth(),
+        json={
+            "goal_text": "failing goal",
+            "workflow_plan": [
+                {
+                    "task_id": "t-fail-verify",
+                    "target_agent": "mac",
+                    "instruction": "do work",
+                    "artifacts": ["out.txt"],
+                    "exclusive_resources": ["gpu-0"],
+                }
+            ],
+        },
+    ).get_json()
+    gid = goal_res["goal_id"]
+
+    # Claim the task
+    claim_res = http.post("/tasks/claim", headers=auth(), json={"worker_id": "W-FAIL"})
+    task = claim_res.get_json()["task"]
+
+    # Check resource was acquired
+    st = server_app.load_state()
+    assert "gpu-0" in st.get("resource_owners", {})
+
+    # Submit success result so it reaches RESULT_RECEIVED
+    res_payload = durable_result(task)
+    assert http.post("/tasks/result", headers=auth(), json=res_payload).status_code == 200
+
+    # Exhaust verification retries (MAX_RETRIES is 3)
+    # Fail 1
+    v1 = http.post("/tasks/verify", headers=verifier_auth(), json={
+        "task_id": "t-fail-verify",
+        "verifier_id": "V-01",
+        "result_id": res_payload["result_id"],
+        "artifacts": res_payload["artifacts"],
+        "verdict": "FAIL",
+        "reason": "bad output 1",
+        "received_runtime_identity": task["server_binding"],
+    })
+    assert v1.status_code == 200
+    assert v1.get_json()["status"] == "QUEUED"
+
+    # Reset backoff to allow immediate re-claim in test
+    st = server_app.load_state()
+    st["tasks"]["t-fail-verify"]["next_retry_at"] = 0
+    for step in st["goals"][gid]["workflow_plan"]:
+        if step["task_id"] == "t-fail-verify":
+            step["next_retry_at"] = 0
+    server_app.save_state(st)
+
+    # Re-claim and re-submit result for attempt 2
+    claim2 = http.post("/tasks/claim", headers=auth(), json={"worker_id": "W-FAIL"}).get_json()["task"]
+    assert claim2 is not None
+    res2 = durable_result(claim2)
+    http.post("/tasks/result", headers=auth(), json=res2)
+
+    # Fail 2
+    v2 = http.post("/tasks/verify", headers=verifier_auth(), json={
+        "task_id": "t-fail-verify",
+        "verifier_id": "V-01",
+        "result_id": res2["result_id"],
+        "artifacts": res2["artifacts"],
+        "verdict": "FAIL",
+        "reason": "bad output 2",
+        "received_runtime_identity": claim2["server_binding"],
+    })
+    assert v2.status_code == 200
+    assert v2.get_json()["status"] == "QUEUED"
+
+    # Reset backoff to allow immediate re-claim in test
+    st = server_app.load_state()
+    st["tasks"]["t-fail-verify"]["next_retry_at"] = 0
+    for step in st["goals"][gid]["workflow_plan"]:
+        if step["task_id"] == "t-fail-verify":
+            step["next_retry_at"] = 0
+    server_app.save_state(st)
+
+    # Re-claim and re-submit result for attempt 3
+    claim3 = http.post("/tasks/claim", headers=auth(), json={"worker_id": "W-FAIL"}).get_json()["task"]
+    assert claim3 is not None
+    res3 = durable_result(claim3)
+    http.post("/tasks/result", headers=auth(), json=res3)
+
+    # Fail 3 -> should hit FAILED_TERMINAL
+    v3 = http.post("/tasks/verify", headers=verifier_auth(), json={
+        "task_id": "t-fail-verify",
+        "verifier_id": "V-01",
+        "result_id": res3["result_id"],
+        "artifacts": res3["artifacts"],
+        "verdict": "FAIL",
+        "reason": "bad output 3",
+        "received_runtime_identity": claim3["server_binding"],
+    })
+    assert v3.status_code == 200
+    assert v3.get_json()["status"] == "FAILED_TERMINAL"
+
+    # Verify state: goal is BLOCKED and resource gpu-0 is freed
+    st_final = server_app.load_state()
+    assert st_final["tasks"]["t-fail-verify"]["status"] == "FAILED_TERMINAL"
+    assert st_final["goals"][gid]["status"] == "BLOCKED"
+    assert "gpu-0" not in st_final.get("resource_owners", {})
+
+
+def test_ambiguous_crash_in_result_blocks_goal(tmp_path, monkeypatch):
+    """When a worker reports AMBIGUOUS_CRASH, task is HUMAN_REQUIRED and goal is BLOCKED."""
+    http = client(tmp_path, monkeypatch)
+    http.post(
+        "/workers/register",
+        headers=auth(),
+        json={"worker_id": "W-CRASH", "platform": "mac", "capabilities": ["macos"]},
+    )
+    goal = http.post(
+        "/goals",
+        headers=auth(),
+        json={
+            "goal_text": "crash test goal",
+            "workflow_plan": [{"task_id": "t-crash", "target_agent": "mac", "instruction": "do work"}],
+        },
+    ).get_json()
+    gid = goal["goal_id"]
+
+    claimed = http.post("/tasks/claim", headers=auth(), json={"worker_id": "W-CRASH"}).get_json()["task"]
+    crash_res = durable_result(claimed)
+    crash_res["status"] = "FAILED"
+    crash_res["artifacts"] = []
+    # Re-compute result_id using only canonical identity fields (without stderr)
+    ident = {
+        "goal_id": crash_res["goal_id"],
+        "task_id": crash_res["task_id"],
+        "attempt_id": crash_res["attempt_id"],
+        "dispatch_id": crash_res["dispatch_id"],
+        "execution_ref": crash_res["execution_ref"],
+        "worker_id": crash_res["worker_id"],
+        "run_id": crash_res["run_id"],
+        "status": "FAILED",
+        "artifacts": [],
+        "runtime_identity": crash_res["runtime_identity"],
+    }
+    crash_res["result_id"] = f"result-{_canonical_hash(ident)}"
+    crash_res["stderr"] = "AMBIGUOUS_CRASH: process terminated unexpectedly"
+
+    resp = http.post("/tasks/result", headers=auth(), json=crash_res)
+    assert resp.status_code == 200
+    assert resp.get_json()["status"] == "ACK_RESULT_RECEIVED"
+
+    st = server_app.load_state()
+    assert st["tasks"]["t-crash"]["status"] == "HUMAN_REQUIRED"
+    assert st["goals"][gid]["status"] == "BLOCKED"
+
+
+def test_terminal_result_failure_releases_resources_and_blocks_goal(tmp_path, monkeypatch):
+    """When a task reaches FAILED_TERMINAL in /tasks/result, resources are freed and goal is BLOCKED."""
+    http = client(tmp_path, monkeypatch)
+    http.post(
+        "/workers/register",
+        headers=auth(),
+        json={"worker_id": "W-FAIL-RES", "platform": "mac", "capabilities": ["macos"]},
+    )
+    goal = http.post(
+        "/goals",
+        headers=auth(),
+        json={
+            "goal_text": "terminal failure goal",
+            "workflow_plan": [{
+                "task_id": "t-term-res",
+                "target_agent": "mac",
+                "instruction": "fail work",
+                "exclusive_resources": ["exclusive-lock-1"],
+            }],
+        },
+    ).get_json()
+    gid = goal["goal_id"]
+
+    for attempt in range(1, 5):  # 1 initial attempt + 3 retries = 4 attempts
+        claim = http.post("/tasks/claim", headers=auth(), json={"worker_id": "W-FAIL-RES"}).get_json()["task"]
+        assert claim is not None
+        # Check resource is held while active
+        st = server_app.load_state()
+        assert "exclusive-lock-1" in st.get("resource_owners", {})
+
+        fail_res = durable_result(claim)
+        fail_res["status"] = "FAILED"
+        fail_res["artifacts"] = []
+        ident = {
+            "goal_id": fail_res["goal_id"],
+            "task_id": fail_res["task_id"],
+            "attempt_id": fail_res["attempt_id"],
+            "dispatch_id": fail_res["dispatch_id"],
+            "execution_ref": fail_res["execution_ref"],
+            "worker_id": fail_res["worker_id"],
+            "run_id": fail_res["run_id"],
+            "status": "FAILED",
+            "artifacts": [],
+            "runtime_identity": fail_res["runtime_identity"],
+        }
+        fail_res["result_id"] = f"result-{_canonical_hash(ident)}"
+        fail_res["stderr"] = f"deterministic execution failure attempt {attempt}"
+
+        resp = http.post("/tasks/result", headers=auth(), json=fail_res)
+        assert resp.status_code == 200
+
+        if attempt < 4:
+            # Clear backoff for next iteration
+            st = server_app.load_state()
+            st["tasks"]["t-term-res"]["next_retry_at"] = 0
+            for step in st["goals"][gid]["workflow_plan"]:
+                if step["task_id"] == "t-term-res":
+                    step["next_retry_at"] = 0
+            server_app.save_state(st)
+
+    # After 3 failed attempts, task must be FAILED_TERMINAL, goal BLOCKED, and resource released
+    st_final = server_app.load_state()
+    assert st_final["tasks"]["t-term-res"]["status"] == "FAILED_TERMINAL"
+    assert st_final["goals"][gid]["status"] == "BLOCKED"
+    assert "exclusive-lock-1" not in st_final.get("resource_owners", {})
+
