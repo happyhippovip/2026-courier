@@ -14,12 +14,12 @@ def main():
     agent_session_manager.audit_orphans()
     
     print("Starting unrelated control process...")
-    control_proc = subprocess.Popen(["tail", "-f", "/dev/null"])
+    control_proc = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(100)"])
     
     print("Starting disposable background monitor processes...")
     monitors = []
     for i in range(3):
-        p = subprocess.Popen(["tail", "-f", "/dev/null"])
+        p = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(100)"])
         monitors.append(p)
         
     session_id = "TEST-SESSION-123"

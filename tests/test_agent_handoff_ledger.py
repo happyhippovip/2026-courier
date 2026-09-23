@@ -369,10 +369,11 @@ subprocess.run([
             landed = ledger_module.copy.deepcopy(
                 bundle["acceptance_guard"]
             )
+            import datetime
             proof = {
                 "source_url": "https://github.com/example/project/actions/runs/2",
                 "source_type": "MACHINE_ARTIFACT",
-                "observed_at": "2026-09-17T18:00:00Z",
+                "observed_at": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
                 "evidence_sha": "b" * 40,
                 "runtime_binding": "b" * 40,
                 "validity": "VALID",
@@ -380,6 +381,8 @@ subprocess.run([
                 "producer_id": "foreign-producer",
                 "verifier_id": "foreign-verifier",
             }
+            landed["binding"]["current_sha"] = "b" * 40
+            landed["binding"]["runtime_identity"] = "b" * 40
             landed["evidence"].append(proof)
             landed["transition_state"] = "CANONICAL_ACCEPTED"
             landed["acceptance_predicate"]["results"]["ISSUE_STATE"][
@@ -599,14 +602,18 @@ subprocess.run([
                             errors.append(f"unexpected revision {bundle['revision']}")
                     except Exception as exc:
                         errors.append(str(exc))
+                    finally:
+                        time.sleep(0.01)
 
             readers = [threading.Thread(target=reader) for _ in range(8)]
             for thread in readers:
                 thread.start()
-            ledger_module.update(ledger, 0, {"STATUS": "VALIDATING"}, "writer", 1.0)
-            stop.set()
-            for thread in readers:
-                thread.join()
+            try:
+                ledger_module.update(ledger, 0, {"STATUS": "VALIDATING"}, "writer", 1.0)
+            finally:
+                stop.set()
+                for thread in readers:
+                    thread.join()
             self.assertEqual(errors, [])
 
     def test_atomic_replace_failure_preserves_previous_bundle(self):

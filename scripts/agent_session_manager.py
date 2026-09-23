@@ -4,6 +4,7 @@ import subprocess
 import signal
 import time
 from pathlib import Path
+import sys
 
 REGISTRY_FILE = Path(".agents/state/background_monitors.json")
 
@@ -22,6 +23,13 @@ def _save(data):
         json.dump(data, f, indent=2)
 
 def get_process_info(pid):
+    if sys.platform == "win32":
+        try:
+            import psutil
+            p = psutil.Process(pid)
+            return f"{p.create_time()} {' '.join(p.cmdline())}"
+        except Exception:
+            return None
     try:
         # Get start time and command line
         out = subprocess.check_output(["ps", "-p", str(pid), "-o", "lstart=,args="], stderr=subprocess.DEVNULL).decode().strip()
@@ -50,6 +58,18 @@ def register_task(pid, owner, purpose):
 
 def kill_pid(pid):
     try:
+        if sys.platform == "win32":
+            import psutil
+            try:
+                p = psutil.Process(pid)
+                p.kill()
+                p.wait(timeout=3)
+                return True
+            except psutil.NoSuchProcess:
+                return True
+            except Exception:
+                return False
+        
         os.kill(pid, signal.SIGTERM)
         for _ in range(30): # 3 seconds
             try:
