@@ -145,12 +145,19 @@ def cmd_claim(args, data, now):
         clash = [s for s in task.get("write_scopes", []) if s in held]
         if clash:
             continue
+        import uuid
         task["status"] = "CLAIMED"
         task["owner"] = args.worker
+        task["worker_id"] = args.worker
+        task["attempts"] = task.get("attempts", 0) + 1
+        task["attempt_id"] = f"{task['task_id']}:a{task['attempts']}"
+        task["dispatch_id"] = str(uuid.uuid4())
         data["leases"][task["task_id"]] = {
             "worker": args.worker,
             "write_scopes": task.get("write_scopes", []),
             "claimed_at": now,
+            "attempt_id": task["attempt_id"],
+            "dispatch_id": task["dispatch_id"],
         }
         return {"claimed": task["task_id"], "scopes": task.get("write_scopes", [])}
     return {"claimed": None, "reason": "no unblocked READY task"}
@@ -160,6 +167,10 @@ def cmd_complete(args, data, now):
     task = data["tasks"].get(args.task_id)
     if not task or task.get("status") not in ("CLAIMED", "RUNNING"):
         return {"error": "not claimed"}
+    if args.worker_id and task.get("worker_id") != args.worker_id:
+        return {"error": "wrong worker_id"}
+    if args.attempt_id and task.get("attempt_id") != args.attempt_id:
+        return {"error": "wrong attempt_id"}
     result = json.loads(args.result_json)
     task["result"] = result
     task["result_id"] = result.get("result_id", args.task_id + ":r1")
@@ -206,7 +217,7 @@ def main(argv=None):
     p = sub.add_parser("init"); p.add_argument("package_id"); p.add_argument("--dod", default="")
     p = sub.add_parser("add"); p.add_argument("json")
     p = sub.add_parser("claim"); p.add_argument("--worker", required=True); p.add_argument("--caps", default=""); p.add_argument("--package", default="")
-    p = sub.add_parser("complete"); p.add_argument("task_id"); p.add_argument("--result-json", required=True); p.add_argument("--stage", default="EVIDENCE_READY")
+    p = sub.add_parser("complete"); p.add_argument("task_id"); p.add_argument("--result-json", required=True); p.add_argument("--stage", default="EVIDENCE_READY"); p.add_argument("--worker-id", default=""); p.add_argument("--attempt-id", default="")
     p = sub.add_parser("block"); p.add_argument("task_id"); p.add_argument("--reason", required=True)
     p = sub.add_parser("reconcile"); p.add_argument("--reclaim-stale", type=float, default=3600)
     p = sub.add_parser("state")
@@ -226,7 +237,7 @@ def main(argv=None):
     elif args.cmd == "reconcile":
         out = cmd_reconcile(args, data, now)
     elif args.cmd == "state":
-        out = {"tasks": {t: {"status": v.get("status"), "stage": v.get("result_stage")}
+        out = {"tasks": {t: {"status": v.get("status"), "stage": v.get("result_stage"), "worker_id": v.get("worker_id"), "attempt_id": v.get("attempt_id"), "dispatch_id": v.get("dispatch_id")}
                          for t, v in data["tasks"].items()},
                "leases": list(data["leases"])}
     save(args, data)

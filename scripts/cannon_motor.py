@@ -29,12 +29,13 @@ class MotorError(Exception):
     pass
 
 
-def deterministic_executor(results_dir, task_id, behavior="ok"):
+def deterministic_executor(results_dir, task, behavior="ok"):
     """Local deterministic worker. No network, no provider, no LLM.
 
     Returns (outcome, result_id) where outcome is 'ok' or 'unknown'.
     Persists a result artifact for every ok execution.
     """
+    task_id = task["task_id"]
     results_dir = Path(results_dir)
     results_dir.mkdir(parents=True, exist_ok=True)
     if behavior == "unknown":
@@ -44,6 +45,9 @@ def deterministic_executor(results_dir, task_id, behavior="ok"):
     result_id = f"{task_id}:r1"
     artifact = results_dir / f"{task_id}.result.json"
     payload = {"result_id": result_id, "task_id": task_id,
+               "worker_id": task.get("worker_id"),
+               "attempt_id": task.get("attempt_id"),
+               "dispatch_id": task.get("dispatch_id"),
                "outcome": "ok", "persisted_at": time.time()}
     tmp = artifact.with_suffix(".tmp")
     tmp.write_text(json.dumps(payload, indent=1, sort_keys=True) + "\n",
@@ -240,9 +244,12 @@ class CannonMotor:
                 raise MotorError("previous_result_not_reconciled")
             artifact = self.results_dir / (last["task"] + ".result.json")
             receipt = json.loads(artifact.read_text(encoding="utf-8"))
+            task_snap = snap["tasks"].get(last["task"], {})
             if (receipt.get("task_id") != last["task"]
                     or receipt.get("result_id") != last["result_id"]
-                    or receipt.get("outcome") != "ok"):
+                    or receipt.get("outcome") != "ok"
+                    or receipt.get("worker_id") != task_snap.get("worker_id")
+                    or receipt.get("attempt_id") != task_snap.get("attempt_id")):
                 raise MotorError("previous_result_not_verified")
         if self.m.get("pause_requested") or self.m.get("stop_requested"):
             return
@@ -321,7 +328,7 @@ class CannonMotor:
             task = json.loads((self.state_dir / 'queue.json').read_text())['tasks'][task_id]
             kind = task.get('executor_kind', 'LOCAL_FAKE')
             if kind == 'LOCAL_FAKE':
-                outcome, result_id = deterministic_executor(self.results_dir, task_id, behavior)
+                outcome, result_id = deterministic_executor(self.results_dir, task, behavior)
             elif kind == 'REAL_MUSE':
                 from app.cannon.adapters import LiveMuseAdapter
                 def persist_identity(identity):
@@ -350,9 +357,35 @@ class CannonMotor:
             self._save()
             return {"step": "unknown_halt", "task": task_id,
                     "state": "BLOCKED"}
+        
+        try:
+            artifact = self.results_dir / (task_id + ".result.json")
+            receipt = json.loads(artifact.read_text(encoding="utf-8"))
+            if (receipt.get("task_id") != task_id
+                    or receipt.get("result_id") != result_id
+                    or receipt.get("outcome") != "ok"
+                    or receipt.get("worker_id") != task.get("worker_id")
+                    or receipt.get("attempt_id") != task.get("attempt_id")):
+                raise MotorError("current_result_binding_rejected")
+        except (OSError, ValueError, MotorError) as exc:
+            self._wq("block", task_id, "--reason", "INVALID_RESULT_BINDING")
+            self.m["needs_review"].append(task_id)
+            self.m["state"] = "BLOCKED"
+            self.m["error"] = str(exc)
+            self.m["current_task"] = None
+            self._save()
+            return {"step": "error", "error": str(exc)}
+
         completed = self._wq("complete", task_id, "--result-json",
                  json.dumps({"result_id": result_id}),
-                 "--stage", "ACCEPTED")
+                 "--stage", "ACCEPTED",
+                 "--worker-id", task.get("worker_id", ""),
+                 "--attempt-id", task.get("attempt_id", ""))
+        if completed.get("error"):
+            self.m["state"] = "BLOCKED"
+            self.m["error"] = completed["error"]
+            self._save()
+            return {"step": "error", "error": completed["error"]}
         if completed.get("done") != task_id or completed.get("stage") != "ACCEPTED":
             self.m["state"] = "BLOCKED"
             self.m["error"] = "result_not_reconciled"
