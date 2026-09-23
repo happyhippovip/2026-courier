@@ -37,6 +37,7 @@ def start_server(tmp_path_factory):
     env["COURIER_MOCK_CHIEF"] = "1"
     env["COURIER_API_KEY"] = "321606503a874d39b50f6137e3321b7f"
     env["COURIER_VERIFIER_API_KEY"] = "421606503a874d39b50f6137e3321b7f"
+    env["COURIER_VERIFIER_POLL_INTERVAL"] = "0.2"
     
     if os.path.exists("/tmp/mock_replenish.txt"):
         os.remove("/tmp/mock_replenish.txt")
@@ -115,13 +116,15 @@ def test_zero_chat_auto_replenishment():
     tasks_completed = 0
     
     for i in range(3):
-        # 2. Worker claims task
-        claim_res = http_post("/tasks/claim", {"worker_id": "linux-worker"})
-        task = claim_res.get("task")
-        if not task:
-            time.sleep(2) # Wait for auto-replenish if it didn't happen yet
+        # 2. Worker claims task (poll up to 10s for auto-replenishment)
+        task = None
+        claim_deadline = time.time() + 10.0
+        while time.time() < claim_deadline:
             claim_res = http_post("/tasks/claim", {"worker_id": "linux-worker"})
             task = claim_res.get("task")
+            if task:
+                break
+            time.sleep(0.1)
             
         assert task is not None, f"Expected to claim a task on iteration {i}"
         
@@ -163,8 +166,19 @@ def test_zero_chat_auto_replenishment():
         assert post_res.get("status") in ("success", "ACK_RESULT_RECEIVED"), f"Failed to post result: {post_res}"
         tasks_completed += 1
         
-        # 5. Verifier picks it up and reconciles
-        time.sleep(2)
+        # 5. Verifier picks it up and reconciles (poll until step is RECONCILED)
+        reconcile_deadline = time.time() + 10.0
+        reconciled = False
+        while time.time() < reconcile_deadline:
+            goal_res = http_get(f"/goals/{actual_goal_id}").get("goal", {})
+            for step in goal_res.get("workflow_plan", []):
+                if step.get("task_id") == task_id and step.get("status") == "RECONCILED":
+                    reconciled = True
+                    break
+            if reconciled:
+                break
+            time.sleep(0.1)
+        assert reconciled, f"Task {task_id} was not reconciled within deadline"
         
         # 6. Check the goal to see if it replenished
         goal = http_get(f"/goals/{actual_goal_id}").get("goal")

@@ -162,7 +162,13 @@ def run_loop():
         except Exception as e:
             log(f"Error polling for tasks: {e}")
             
-        time.sleep(5)
+        try:
+            poll_interval = float(os.environ.get("COURIER_VERIFIER_POLL_INTERVAL", "5.0"))
+        except (ValueError, TypeError):
+            poll_interval = 5.0
+
+        sleep_time = min(0.2, poll_interval) if ('tasks' in locals() and tasks) else poll_interval
+        time.sleep(sleep_time)
 
 if __name__ == "__main__":
     run_loop()
