@@ -159,7 +159,8 @@ def action(body):
             mode = body.get('mode', 'BEGRENZT')
             if mode not in {'NORMAL', 'BEGRENZT', 'UNENDLICH'}:
                 raise ValueError(f'Invalid mode: {mode}')
-            if isinstance(count, bool) or not isinstance(count, int) or count < 1 or count > 100:
+            max_count = 100 if DEMO is not None else 1000000
+            if isinstance(count, bool) or not isinstance(count, int) or count < 1 or count > max_count:
                 raise ValueError(f'Invalid count: {count}')
             if active:
                 return {'ok': True, 'already_running': True, 'reused': True}

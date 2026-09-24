@@ -154,24 +154,47 @@ class TestAtomicWritePermissionRetry:
         assert reloaded["record"]["PROJECT"] == "courier"
 
 
+@pytest.fixture
+def symlink_helper():
+    import contextlib
+    import shutil
+
+    @contextlib.contextmanager
+    def _helper(link: Path, target: Path):
+        try:
+            link.symlink_to(target)
+            yield link
+        except OSError:
+            shutil.copy2(target, link)
+            orig_is_symlink = Path.is_symlink
+            with patch.object(
+                Path,
+                "is_symlink",
+                side_effect=lambda self=link: True if str(self) == str(link) else orig_is_symlink(self),
+                autospec=True,
+            ):
+                yield link
+
+    return _helper
+
+
 class TestSymlinkProtection:
     """Symlink paths are rejected for both read and write."""
 
-    def test_load_bundle_rejects_symlink(self):
+    def test_load_bundle_rejects_symlink(self, symlink_helper):
         tmp = Path(tempfile.mkdtemp())
         path = _init_ledger(tmp)
         link = tmp / "link.json"
-        link.symlink_to(path)
+        with symlink_helper(link, path):
+            with pytest.raises(LedgerError, match="symlink"):
+                load_bundle(link)
 
-        with pytest.raises(LedgerError, match="symlink"):
-            load_bundle(link)
-
-    def test_atomic_write_rejects_symlink(self):
+    def test_atomic_write_rejects_symlink(self, symlink_helper):
         tmp = Path(tempfile.mkdtemp())
         path = _init_ledger(tmp)
         bundle = load_bundle(path)
         link = tmp / "link.json"
-        link.symlink_to(path)
+        with symlink_helper(link, path):
+            with pytest.raises(LedgerError, match="symlink"):
+                atomic_write(link, bundle)
 
-        with pytest.raises(LedgerError, match="symlink"):
-            atomic_write(link, bundle)
