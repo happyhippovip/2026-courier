@@ -851,7 +851,7 @@ def claim_task():
                     claimed = _prepare_claimed_task(candidate, worker_id, worker)
                 except ContractError as exc:
                     print(f"ContractError in prepare_task: {exc}", flush=True)
-                    return jsonify({"error": str(exc)}), 400
+                    print("CONTRACT ERROR:", str(exc)); return jsonify({"error": str(exc)}), 400
 
                 goal["workflow_plan"][index] = claimed
                 state["tasks"][claimed["task_id"]] = claimed
@@ -900,7 +900,7 @@ def claim_task():
                 try:
                     claimed = _prepare_claimed_task(batch_task, worker_id, worker)
                 except ContractError as exc:
-                    return jsonify({"error": str(exc)}), 400
+                    print("CONTRACT ERROR:", str(exc)); return jsonify({"error": str(exc)}), 400
                 
                 for item in batch["items"]:
                     if item.get("sequence") == claimed.get("sequence"):
@@ -958,7 +958,7 @@ def task_result():
             try:
                 durable_result = validate_durable_result(task, data)
             except ContractError as exc:
-                return jsonify({"error": str(exc)}), 400
+                print("CONTRACT ERROR:", str(exc)); return jsonify({"error": str(exc)}), 400
             set_task_status(task, "RESULT_RECEIVED")
             task["producer_principal"] = get_auth_principal()
             task["result"] = durable_result
@@ -1460,6 +1460,25 @@ def approve_merge(task_id):
     if task.get("status") != "RECONCILED_PENDING_MERGE":
         return jsonify({"error": f"Task is not pending merge (status={task.get('status')})"}), 409
 
+    # SECURITY HYGIENE: Reject unauthorized libraries or core security changes
+    diff_text = str(task.get("result", {}).get("diff", "")) + str(data.get("diff", ""))
+    
+    has_requests = False
+    import re as _re
+    if _re.search(r'\bimport requests\b|\bfrom requests\b', diff_text) or "requests." in diff_text:
+        has_requests = True
+        
+    if has_requests:
+        task["blocker"] = "SECURITY_REJECTION: unzulässige Bibliothek requests"
+        set_task_status(task, "BLOCKED")
+        save_state(state)
+        return jsonify({"approved": False, "blocker": task["blocker"]}), 200
+
+    if "core-security" in diff_text.lower() or "motor-eligibility" in diff_text.lower() or "kern-sicherheitsregeln" in diff_text.lower():
+        task["blocker"] = "SECURITY_REJECTION: Kern-Sicherheitsregeln geändert"
+        set_task_status(task, "BLOCKED")
+        save_state(state)
+        return jsonify({"approved": False, "blocker": task["blocker"]}), 200
     set_task_status(task, "RECONCILED")
     task["next_action"] = None
     _release_task_resources(state, task)
