@@ -8,15 +8,24 @@ def _resolve_ledger_dir():
     env_dir = os.environ.get("COURIER_LEDGER_DIR")
     if env_dir:
         return env_dir
+    canonical_norm = os.path.normcase(os.path.normpath(os.path.abspath(LEDGER_DIR)))
     env_state = os.environ.get("COURIER_STATE_FILE")
     if env_state and os.path.normpath(env_state) != os.path.normpath("server/state/central_state.json"):
-        return os.path.join(os.path.dirname(os.path.abspath(env_state)), "events", "ledgers")
+        candidate = os.path.join(os.path.dirname(os.path.abspath(env_state)), "events", "ledgers")
+        if os.path.normcase(os.path.normpath(candidate)) == canonical_norm:
+            import tempfile
+            return os.path.join(tempfile.gettempdir(), "courier_test_events_ledgers")
+        return candidate
     try:
         import sys
         server_app = sys.modules.get("server.app")
         state_file = getattr(server_app, "STATE_FILE", None) if server_app else None
         if state_file and os.path.normpath(str(state_file)) != os.path.normpath("server/state/central_state.json"):
-            return os.path.join(os.path.dirname(os.path.abspath(str(state_file))), "events", "ledgers")
+            candidate = os.path.join(os.path.dirname(os.path.abspath(str(state_file))), "events", "ledgers")
+            if os.path.normcase(os.path.normpath(candidate)) == canonical_norm:
+                import tempfile
+                return os.path.join(tempfile.gettempdir(), "courier_test_events_ledgers")
+            return candidate
     except Exception:
         pass
     if os.environ.get("PYTEST_CURRENT_TEST"):
