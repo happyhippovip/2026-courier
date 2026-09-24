@@ -177,4 +177,41 @@ def test_windows_daemon_antigravity_mode_uses_skip_permissions_flag(monkeypatch)
     assert captured_cmds[0][0] == "C:\\bin\\agy.exe"
 
 
+def test_windows_worker_atomic_marker_write_and_recovery(tmp_path, monkeypatch):
+    """Verify atomic marker writes, durable identity attachment on recovery, and corrupt marker quarantine."""
+    from scripts.windows_worker import daemon as win_daemon
+
+    marker_file = tmp_path / "result_marker.json"
+    posted = []
+    monkeypatch.setattr(win_daemon, "http_post_result", lambda payload: posted.append(dict(payload)))
+
+    # 1. Valid result marker without canonical result_id gets canonical result_id + runtime_identity and is unlinked
+    win_daemon._atomic_write_json(
+        marker_file,
+        {
+            "goal_id": "g-rec",
+            "task_id": "t-rec",
+            "attempt_id": "t-rec:attempt:1",
+            "dispatch_id": "d-rec",
+            "execution_ref": "e-rec",
+            "worker_id": "WIN-REC",
+            "run_id": "win-native",
+            "status": "SUCCESS",
+            "artifacts": [],
+            "server_binding": "local-runtime-v1",
+        },
+    )
+    assert marker_file.exists()
+    assert win_daemon.recover_result_marker(marker_file, "WIN-REC") is True
+    assert not marker_file.exists()
+    assert len(posted) == 1
+    assert posted[0]["runtime_identity"] == "local-runtime-v1"
+    assert posted[0]["result_id"].startswith("result-")
+
+    # 2. Corrupt/truncated result marker is quarantined/unlinked without crashing loop
+    marker_file.write_text("{corrupt-truncated-json", encoding="utf-8")
+    assert win_daemon.recover_result_marker(marker_file, "WIN-REC") is False
+    assert not marker_file.exists()
+
+
 

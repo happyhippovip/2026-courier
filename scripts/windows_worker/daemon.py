@@ -107,8 +107,40 @@ def http_post_result(res):
             time.sleep(2 ** attempt)
     raise RuntimeError("Failed to post result after 5 attempts")
 
+def _atomic_write_json(path: Path, payload: dict):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = path.with_suffix(f"{path.suffix}.tmp.{os.getpid()}.{uuid.uuid4().hex[:8]}")
+    try:
+        with open(tmp_path, "w", encoding="utf-8") as f:
+            json.dump(payload, f)
+            f.flush()
+            try:
+                os.fsync(f.fileno())
+            except OSError:
+                pass
+        for attempt in range(5):
+            try:
+                os.replace(tmp_path, path)
+                break
+            except PermissionError:
+                if attempt == 4:
+                    raise
+                time.sleep(0.02 * (attempt + 1))
+    finally:
+        if tmp_path.exists():
+            try:
+                tmp_path.unlink()
+            except OSError:
+                pass
+
+
 def _attach_durable_result_identity(task, res_json):
-    res_json["runtime_identity"] = task.get("server_binding")
+    res_json["runtime_identity"] = (
+        task.get("server_binding")
+        or task.get("runtime_identity")
+        or res_json.get("runtime_identity")
+    )
     identity = {
         "goal_id": res_json.get("goal_id"),
         "task_id": res_json.get("task_id"),
@@ -128,6 +160,34 @@ def _attach_durable_result_identity(task, res_json):
     canonical = json.dumps(identity, sort_keys=True, separators=(",", ":")).encode("utf-8")
     res_json["result_id"] = f"result-{hashlib.sha256(canonical).hexdigest()}"
     return res_json
+
+
+def recover_result_marker(result_marker_path: Path, worker_id: str = "default-win-worker") -> bool:
+    result_marker_path = Path(result_marker_path)
+    if not result_marker_path.exists():
+        return False
+    try:
+        with open(result_marker_path, "r", encoding="utf-8") as f:
+            saved_result = json.load(f)
+        if not isinstance(saved_result, dict) or not saved_result.get("task_id"):
+            raise ValueError("Invalid or incomplete result_marker payload")
+    except (json.JSONDecodeError, ValueError, OSError) as e:
+        print(f"[{worker_id}] Quarantining corrupt result marker {result_marker_path}: {e}")
+        try:
+            result_marker_path.unlink(missing_ok=True)
+        except OSError:
+            pass
+        return False
+
+    print(f"[{worker_id}] Found unsent result marker for task {saved_result.get('task_id')}")
+    _attach_durable_result_identity(saved_result, saved_result)
+    http_post_result(saved_result)
+    try:
+        result_marker_path.unlink(missing_ok=True)
+    except OSError:
+        pass
+    return True
+
 
 
 def run_task(task, config):
@@ -164,9 +224,7 @@ def run_task(task, config):
     run_id = "win-native"
     
     marker_path = Path(__file__).parent / "state" / "effect_marker.json"
-    marker_path.parent.mkdir(exist_ok=True)
-    with open(marker_path, "w") as f:
-        json.dump(task, f)
+    _atomic_write_json(marker_path, task)
 
     mode = str(task.get("mode", "NATIVE") or "NATIVE").upper()
     process = None
@@ -453,18 +511,7 @@ def loop():
                 stop_marker_path = Path(__file__).parent / "state" / "stop.marker"
                 
                 if result_marker_path.exists():
-                    try:
-                        with open(result_marker_path, "r") as f:
-                            saved_result = json.load(f)
-                        print(f"[{worker_id}] Found unsent result marker for task {saved_result.get('task_id')}")
-                        http_post_result(saved_result)
-                    except Exception as e:
-                        print(f"[{worker_id}] Failed to report saved result: {e}")
-                        raise
-                    try:
-                        result_marker_path.unlink()
-                    except OSError:
-                        pass
+                    recover_result_marker(result_marker_path, worker_id)
                         
                 if stop_marker_path.exists():
                     print(f"[{worker_id}] Stop marker found. Exiting gracefully after current task.")
@@ -502,8 +549,7 @@ def loop():
                     result = run_task(task, config)
                     
                     result_marker_path = Path(__file__).parent / "state" / "result_marker.json"
-                    with open(result_marker_path, "w") as f:
-                        json.dump(result, f)
+                    _atomic_write_json(result_marker_path, result)
                         
                     http_post_result(result)
                     print(f"[{worker_id}] Task {task['task_id']} completed. Result posted.")
