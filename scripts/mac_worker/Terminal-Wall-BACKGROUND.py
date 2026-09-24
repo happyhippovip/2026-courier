@@ -5,15 +5,31 @@ from datetime import datetime
 STATE_FILE = os.path.expanduser("~/Downloads/courier_work/wall/state.tsv")
 CLAIMS_DIR = os.path.expanduser("~/Downloads/courier_work/wall/claims")
 QUEUE_SCRIPT = os.path.join(os.path.dirname(__file__), "..", "work_queue.py")
+CONFIG_FILE = os.path.join(os.path.dirname(STATE_FILE), "capacity_profile.json")
 
-# --- ADAPTIVE CAPACITY GOVERNOR ---
+# --- CUSTOMER WORKER CAPACITY PROFILE ---
+def load_capacity_config():
+    if os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE, "r") as f:
+            return json.load(f)
+    return {"profile": "AUTO", "custom_max": 73}
+
+def get_requested_max(config):
+    p = config.get("profile", "AUTO")
+    if p == "LOW": return 8
+    if p == "MEDIUM": return 32
+    if p == "HIGH": return 64
+    if p == "CUSTOM": return config.get("custom_max", 73)
+    return 73 # AUTO max ceiling
+
 class CapacityGovernor:
-    def __init__(self, desired_capacity=73, start_capacity=4):
-        self.desired_capacity = desired_capacity
+    def __init__(self, requested_max=73, start_capacity=4):
+        self.requested_max = requested_max
         self.admitted_capacity = start_capacity
         self.state = "RAMPING"
         self.last_metrics = None
         self.timeout_count = 0
+        self.resource_health = "HEALTHY"
         
     def get_real_metrics(self):
         m = {"swap_mb": 0.0, "load_1m": 0.0, "free_pages": 0, "ws_cpu": 0.0, "term_cpu": 0.0, "worker_rss_mb": 0.0, "active_procs": 0, "mem_pressure_pct": 100.0, "sys_latency_ms": 0.0}
@@ -63,23 +79,25 @@ class CapacityGovernor:
             
             if d_swap > 500 or curr["load_1m"] > 10.0 or curr["mem_pressure_pct"] < 10.0 or curr["sys_latency_ms"] > 1000.0 or self.timeout_count > 3:
                 self.state = "BACKOFF"
+                self.resource_health = "CRITICAL"
                 self.admitted_capacity = max(4, self.admitted_capacity - 4)
                 self.timeout_count = 0
             elif d_swap > 100 or curr["load_1m"] > 5.0 or curr["ws_cpu"] > 60.0 or d_ws > 20.0 or d_lat > 100.0:
                 self.state = "HOLD"
+                self.resource_health = "STRESSED"
             else:
                 self.state = "RAMPING"
-                if self.admitted_capacity < self.desired_capacity:
-                    self.admitted_capacity = min(self.desired_capacity, self.admitted_capacity * 2)
+                self.resource_health = "HEALTHY"
+                if self.admitted_capacity < self.requested_max:
+                    self.admitted_capacity = min(self.requested_max, self.admitted_capacity + 4)
         self.last_metrics = curr
         return self.admitted_capacity
 
-gov = CapacityGovernor(desired_capacity=73, start_capacity=4)
+config = load_capacity_config()
+gov = CapacityGovernor(requested_max=get_requested_max(config), start_capacity=4)
 # ----------------------------------
 
 def try_claim_task(slot_id):
-    # Runs the central work_queue.py logic to claim a task.
-    # Ensures Writer-/Collision-Scope checks (One writer per scope).
     try:
         out = subprocess.check_output(["python3", QUEUE_SCRIPT, "claim", "--worker", slot_id, "--lease-ttl", "3600"]).decode()
         result = json.loads(out)
@@ -133,7 +151,6 @@ def save_state(rows):
         writer.writerows(rows)
 
 def get_slot_command(slot_id, task_id):
-    # Pass the task ID into the environment so the worker knows its claim
     cmd = "muse --yolo" if slot_id.startswith("MUSE") else "HOME=/Users/user/.gemini_alt agy"
     return f"export COURIER_TASK_ID={task_id}; {cmd}"
 
@@ -152,10 +169,7 @@ def supervise_loop(run_once=False, canary_mode=False):
             if row["state"] == "WORKING" and row["pid"]:
                 try: os.kill(int(row["pid"]), 0)
                 except OSError:
-                    # Worker Abbruch: Wir markieren es nicht sofort als failed/re-run! 
-                    # Zuerst prüfen: Ist ein externes Artefakt da?
                     if row["proof_ref"] and verify_proof(row["proof_ref"]):
-                        # Wurde schon verifiziert?
                         mark_task_complete(row["task_id"], success=True)
                     row["state"], row["pid"], row["pty"], row["task_id"], row["scope"] = "IDLE", "", "", "", ""
                     changed = True
@@ -166,21 +180,18 @@ def supervise_loop(run_once=False, canary_mode=False):
                 else:
                     row["state"], row["blocker"] = "BLOCKED", "missing_deterministic_proof"
                     gov.timeout_count += 1
-                row["claim_created_at"] = datetime.now().isoformat()
+                row["updated_at"] = datetime.now().isoformat()
                 changed = True
                 
         if active_count < admitted and gov.state != "BACKOFF":
             for row in rows:
                 if active_count >= admitted: break
                 if row["state"] in ["IDLE", "WAITING"]:
-                    # CLAIM MASTERPROMPT:
-                    # 1. Scheduler findet Aufgabe, 2. Prüft Collision Scope, 3. Reserviert atomar.
                     task_id, scope = try_claim_task(row["slot_id"])
-                    
                     if not task_id:
                         row["state"] = "WAITING"
                         changed = True
-                        continue # No busy work!
+                        continue
                         
                     slot_id = row["slot_id"]
                     if not canary_mode: pid, tty = start_screen_session(slot_id, get_slot_command(slot_id, task_id))
@@ -189,7 +200,7 @@ def supervise_loop(run_once=False, canary_mode=False):
                     if pid:
                         row["pid"], row["pty"], row["state"] = pid, tty, "WORKING"
                         row["task_id"], row["scope"] = task_id, scope
-                        row["claim_created_at"] = datetime.now().isoformat()
+                        row["updated_at"] = datetime.now().isoformat()
                         claim_path = os.path.join(CLAIMS_DIR, slot_id)
                         os.makedirs(claim_path, exist_ok=True)
                         with open(os.path.join(claim_path, "owner.txt"), "w") as f:
@@ -203,9 +214,10 @@ def supervise_loop(run_once=False, canary_mode=False):
         time.sleep(5)
 
 def show_dashboard():
-    print("\033[2J\033[H=== COURIER 73-WORKER ZENTRALE ===")
+    print("\033[2J\033[H=== COURIER CUSTOMER WORKER CAPACITY DASHBOARD ===")
     rows = load_state()
     if not rows: return
+    
     stats = {"WORKING": 0, "VERIFYING": 0, "WAITING": 0, "BLOCKED": 0, "DONE": 0, "IDLE": 0, "RESULT_READY": 0}
     for i, row in enumerate(rows):
         state = row['state']
@@ -213,9 +225,26 @@ def show_dashboard():
         col = "\033[92m" if state=="WORKING" else "\033[91m" if state=="BLOCKED" else "\033[90m" if state in ["IDLE", "WAITING"] else "\033[93m" if state in ["RESULT_READY","VERIFYING"] else "\033[0m"
         print(f"{col}{row['slot_id']}:{state[:3]:<4}\033[0m", end="")
         if (i + 1) % 8 == 0: print()
-    print("\n\n=== METRICS ===")
-    print(" | ".join(f"{k}: {v}" for k, v in stats.items()))
-    print(f"ADMITTED_CAPACITY: {gov.admitted_capacity} / {gov.desired_capacity} [{gov.state}]")
+        
+    active = stats["WORKING"] + stats["VERIFYING"]
+    queued = gov.requested_max - active if gov.requested_max > active else 0
+    
+    print("\n\n=== CUSTOMER CAPACITY METRICS ===")
+    print(f"PROFILE:          {config.get('profile', 'AUTO')} (Max requested: {gov.requested_max})")
+    print(f"RESOURCE HEALTH:  {gov.resource_health} (Governor: {gov.state})")
+    print(f"SAFE CAPACITY:    {gov.admitted_capacity} admitted workers")
+    print("---")
+    print(f"ACTIVE WORKERS:   {active}")
+    print(f"QUEUED WORKERS:   {queued}")
+    print("---")
+    print(f"WORKING: {stats['WORKING']} | VERIFYING: {stats['VERIFYING']} | WAITING: {stats['WAITING']} | BLOCKED: {stats['BLOCKED']} | DONE: {stats['DONE']}")
+    print("=====================================================")
+
+def set_profile(profile, custom_max=73):
+    cfg = {"profile": profile, "custom_max": custom_max}
+    with open(CONFIG_FILE, "w") as f:
+        json.dump(cfg, f, indent=2)
+    print(f"Capacity profile updated to: {profile} (Max: {custom_max})")
 
 def main():
     if len(sys.argv) < 2: sys.exit(1)
@@ -224,5 +253,6 @@ def main():
     elif cmd == "attach": os.execvp("screen", ["screen", "-r", sys.argv[2]])
     elif cmd == "supervise": supervise_loop(run_once=("--once" in sys.argv))
     elif cmd == "canary": supervise_loop(run_once=("--once" in sys.argv), canary_mode=True)
+    elif cmd == "profile": set_profile(sys.argv[2], int(sys.argv[3]) if len(sys.argv) > 3 else 73)
 
 if __name__ == "__main__": main()
