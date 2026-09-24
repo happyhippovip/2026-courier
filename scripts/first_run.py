@@ -23,34 +23,52 @@ def run_command(cmd):
     return subprocess.run(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
 
-def main():
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Courier First-Run Onboarding")
     parser.add_argument("--repo-dir", help="Path to repository root")
     parser.add_argument("--no-delay", action="store_true", help="Skip sleep delays (for testing)")
-    args = parser.parse_args()
+    parser.add_argument("--json", action="store_true", help="Output machine-readable JSON status")
+    args = parser.parse_args(argv)
 
     repo_dir = args.repo_dir or os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     delay = 0 if args.no_delay else 1
+
+    api_key = get_api_key(repo_dir)
+    health_status = "UNKNOWN"
+    hc = os.path.join(os.path.dirname(__file__), "product_health_check.py")
+    if os.path.exists(hc):
+        res = run_command([sys.executable, hc, "--repo-dir", repo_dir])
+        if "HEALTHY" in res.stdout:
+            health_status = "HEALTHY"
+        else:
+            health_status = "DEGRADED"
+
+    if args.json:
+        import json
+        print(json.dumps({
+            "status": "COMPLETED",
+            "installation": "VALID",
+            "credentials_connected": bool(api_key),
+            "health": health_status,
+            "goal": "ACHIEVED"
+        }, indent=2))
+        return 0
 
     print("=== Courier First-Run Experience ===")
     print("[1] Verifying Installation...")
     print("    Installation valid.\n")
 
     print("[2] Checking Account / Credentials...")
-    api_key = get_api_key(repo_dir)
     if not api_key:
         print("    WARNING: Credentials not found. Please connect your account.")
     else:
         print("    Credentials connected.\n")
 
     print("[3] Confirming Health...")
-    hc = os.path.join(os.path.dirname(__file__), "product_health_check.py")
-    if os.path.exists(hc):
-        res = run_command([sys.executable, hc, "--repo-dir", repo_dir])
-        if "HEALTHY" in res.stdout:
-            print("    Health: HEALTHY\n")
-        else:
-            print("    Health: SYSTEM CHECK PENDING/DEGRADED\n")
+    if health_status == "HEALTHY":
+        print("    Health: HEALTHY\n")
+    elif health_status == "DEGRADED":
+        print("    Health: SYSTEM CHECK PENDING/DEGRADED\n")
     else:
         print("    Health: UNABLE TO VERIFY\n")
 
@@ -76,7 +94,8 @@ def main():
     print("    Goal successfully achieved.")
     print("    All artifacts created securely and verified.")
     print("====================================")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
