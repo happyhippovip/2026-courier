@@ -9,6 +9,15 @@ def get_config():
     server = os.environ.get("COURIER_SERVER", "http://127.0.0.1:8080").rstrip("/")
     api_key = os.environ.get("COURIER_API_KEY")
     if not api_key:
+        try:
+            import keyring
+            api_key = (
+                keyring.get_password("courier_worker", "courier_api_key")
+                or keyring.get_password("courier_worker", "COURIER_API_KEY")
+            )
+        except Exception:
+            pass
+    if not api_key:
         print("ERROR: COURIER_API_KEY environment variable is not set.", file=sys.stderr)
         sys.exit(1)
     return server, api_key

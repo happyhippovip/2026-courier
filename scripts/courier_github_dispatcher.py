@@ -11,7 +11,10 @@ import uuid
 from pathlib import Path
 try:
     import keyring
-    _keyring_key = keyring.get_password("courier_worker", "COURIER_API_KEY")
+    _keyring_key = (
+        keyring.get_password("courier_worker", "courier_api_key")
+        or keyring.get_password("courier_worker", "COURIER_API_KEY")
+    )
 except Exception:
     _keyring_key = None
 

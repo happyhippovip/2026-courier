@@ -8,7 +8,16 @@ import keyring
 import argparse
 
 API_URL = os.environ.get('COURIER_SERVER', 'http://127.0.0.1:8080').rstrip('/')
-API_KEY = os.environ.get('COURIER_API_KEY') or keyring.get_password("courier_worker", "COURIER_API_KEY")
+_keyring_key = None
+try:
+    _keyring_key = (
+        keyring.get_password("courier_worker", "courier_api_key")
+        or keyring.get_password("courier_worker", "COURIER_API_KEY")
+    )
+except Exception:
+    pass
+
+API_KEY = os.environ.get('COURIER_API_KEY') or _keyring_key
 HEADERS = {'Authorization': f'Bearer {API_KEY}', 'Content-Type': 'application/json'}
 
 def submit_goal(goal_text: str = None, json_file: str = None):

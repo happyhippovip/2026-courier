@@ -23,15 +23,25 @@ def clean_env(monkeypatch):
 
 def test_get_config_missing_api_key(monkeypatch):
     monkeypatch.delenv("COURIER_API_KEY", raising=False)
-    with pytest.raises(SystemExit) as exc_info:
-        courierctl.get_config()
-    assert exc_info.value.code == 1
+    with patch("keyring.get_password", return_value=None):
+        with pytest.raises(SystemExit) as exc_info:
+            courierctl.get_config()
+        assert exc_info.value.code == 1
 
 
 def test_get_config_success():
     server, api_key = courierctl.get_config()
     assert server == "http://127.0.0.1:8080"
     assert api_key == "test-api-key"
+
+
+def test_get_config_keyring_fallback(monkeypatch):
+    monkeypatch.delenv("COURIER_API_KEY", raising=False)
+    with patch("keyring.get_password", return_value="vault-api-key"):
+        server, api_key = courierctl.get_config()
+    assert server == "http://127.0.0.1:8080"
+    assert api_key == "vault-api-key"
+
 
 
 def test_make_request_connection_failure():
