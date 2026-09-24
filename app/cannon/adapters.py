@@ -132,7 +132,8 @@ class LiveMuseAdapter:
         if not executable:
             raise ValueError('MUSE_EXECUTABLE_MISSING')
         execution = str(uuid.uuid4())
-        target = Path('/tmp') / ('courier-live-canary-' + execution + '.txt')
+        import tempfile
+        target = Path(tempfile.gettempdir()) / ('courier-live-canary-' + execution + '.txt')
         nonce = uuid.uuid4().hex
         folder = Path(results_dir) / execution
         folder.mkdir(parents=True, exist_ok=False)
@@ -159,6 +160,18 @@ class LiveMuseAdapter:
                 while child.poll() is None:
                     identity['heartbeat_at'] = time.time()
                     persist_identity(dict(identity))
+
+                    try:
+                        motor_path = Path(results_dir).parent / 'motor.json'
+                        if motor_path.exists():
+                            st = json.loads(motor_path.read_text(encoding='utf-8'))
+                            if st.get('stop_requested'):
+                                raise ValueError('ABORTED_BY_OPERATOR')
+                    except ValueError:
+                        raise
+                    except Exception:
+                        pass
+
                     if time.monotonic() >= deadline:
                         raise ValueError('MUSE_TIMEOUT_UNKNOWN_EFFECT')
                     time.sleep(.25)
