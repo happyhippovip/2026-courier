@@ -125,8 +125,34 @@ def test_windows_torture():
             task = state_data["tasks"][task_id]
             print(f"Task status after crash recovery: {task.get('status')}")
             t_assert(True, "Crash recovery succeeded")
-            
-            # 3. Test DUPLICATE RESULT (Idempotency)
+
+            # A recovery report that cannot be acknowledged must retain the
+            # effect marker.  Otherwise a restart could claim fresh work while
+            # the outcome of the previous external effect is still ambiguous.
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as failed_sock:
+                failed_sock.bind(("127.0.0.1", 0))
+                failed_port = failed_sock.getsockname()[1]
+
+            with open(effect_marker, "w") as f:
+                json.dump(fake_task, f)
+
+            failed_post_env = daemon_env.copy()
+            failed_post_env["COURIER_SERVER"] = f"http://127.0.0.1:{failed_port}"
+            failed_post_env["COURIER_RESULT_POST_ATTEMPTS"] = "1"
+            print("Starting Windows daemon with an unavailable result endpoint...")
+            daemon_proc = subprocess.Popen([sys.executable, "-u", str(worker_dir / "daemon.py")], env=failed_post_env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+            time.sleep(1)
+            daemon_proc.terminate()
+            stdout, _ = daemon_proc.communicate(timeout=2)
+
+            print("Daemon STDOUT (failed recovery):\n" + stdout)
+            t_assert(effect_marker.exists(), "Effect marker retained when recovery result cannot be posted")
+            t_assert("Found ambiguous crash marker" in stdout, "Daemon blocks on unresolved ambiguous recovery")
+            effect_marker.unlink()
+
+            # 3. A contradictory duplicate is not an acknowledgement.  Retain
+            # it for operator/recovery handling and do not silently claim more
+            # work after the server rejects it.
             result_marker = state_dir / "result_marker.json"
             fake_result = {
                 "status": "SUCCESS",
@@ -155,9 +181,9 @@ def test_windows_torture():
             
             print("Daemon STDOUT (2):\n" + stdout)
             
-            t_assert(not result_marker.exists(), "Result marker unlinked after recovery")
+            t_assert(result_marker.exists(), "Contradictory result marker retained for recovery")
             t_assert("Found unsent result marker" in stdout, "Daemon detected unsent result")
-            t_assert("Result posted" in stdout or "409" not in stdout, "Duplicate result posted successfully (HTTP 200/409 safely handled)")
+            t_assert("CONTRADICTORY_DUPLICATE" in stdout, "Contradictory duplicate blocks acknowledgement")
 
         finally:
             if daemon_proc is not None and daemon_proc.poll() is None:

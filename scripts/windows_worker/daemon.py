@@ -33,6 +33,7 @@ HEADERS = {
     "Authorization": f"Bearer {API_KEY}",
     "Content-Type": "application/json"
 }
+RESULT_POST_ATTEMPTS = max(1, int(os.environ.get("COURIER_RESULT_POST_ATTEMPTS", "5")))
 
 def register_worker(worker_id):
     req = urllib.request.Request(f"{API_URL}/workers/register", method="POST")
@@ -66,19 +67,19 @@ def http_post_result(res):
     req = urllib.request.Request(f"{API_URL}/tasks/result", method="POST")
     for k, v in HEADERS.items(): req.add_header(k, v)
     data = json.dumps(res).encode("utf-8")
-    for attempt in range(5):
+    for attempt in range(RESULT_POST_ATTEMPTS):
         try:
             urllib.request.urlopen(req, data=data, timeout=10)
-            return
+            return True
         except urllib.error.HTTPError as e:
             try:
                 body = e.read().decode('utf-8')
                 if e.code in (200, 409) and '"ACK_DUPLICATE"' in body:
                     print(f"[Windows Worker] Result already acknowledged by server: {body}")
-                    return
+                    return True
                 elif e.code == 409 and '"CONTRADICTORY_DUPLICATE"' in body:
                     print(f"[Windows Worker] Result rejected as contradictory duplicate: {body}")
-                    return
+                    raise RuntimeError("Server rejected contradictory duplicate result")
             except Exception:
                 body = ""
             print(f"[Windows Worker] Failed to post result: {e} - {body}")
@@ -86,7 +87,64 @@ def http_post_result(res):
         except Exception as e:
             print(f"[Windows Worker] Failed to post result: {e}")
             time.sleep(2 ** attempt)
-    raise RuntimeError("Failed to post result after 5 attempts")
+    raise RuntimeError(f"Failed to post result after {RESULT_POST_ATTEMPTS} attempts")
+
+def persist_marker(marker_path, payload):
+    """Atomically persist recovery state before an externally visible transition."""
+    marker_path.parent.mkdir(exist_ok=True)
+    temporary_path = marker_path.with_suffix(marker_path.suffix + ".tmp")
+    with open(temporary_path, "w", encoding="utf-8") as marker_file:
+        json.dump(payload, marker_file)
+        marker_file.flush()
+        os.fsync(marker_file.fileno())
+    os.replace(temporary_path, marker_path)
+
+def same_execution(left, right):
+    keys = ("goal_id", "task_id", "attempt_id", "dispatch_id", "execution_ref")
+    return all(left.get(key) == right.get(key) for key in keys)
+
+def recover_pending_markers(worker_id):
+    """Resolve durable work before claims; never discard ambiguous effects unacknowledged."""
+    state_dir = Path(__file__).parent / "state"
+    effect_marker_path = state_dir / "effect_marker.json"
+    result_marker_path = state_dir / "result_marker.json"
+
+    if result_marker_path.exists():
+        with open(result_marker_path, "r", encoding="utf-8") as marker_file:
+            saved_result = json.load(marker_file)
+        print(f"[{worker_id}] Found unsent result marker for task {saved_result.get('task_id')}")
+        http_post_result(saved_result)
+        result_marker_path.unlink()
+
+        if effect_marker_path.exists():
+            with open(effect_marker_path, "r", encoding="utf-8") as marker_file:
+                effect = json.load(marker_file)
+            if same_execution(effect, saved_result):
+                effect_marker_path.unlink()
+
+    if effect_marker_path.exists():
+        with open(effect_marker_path, "r", encoding="utf-8") as marker_file:
+            crashed_task = json.load(marker_file)
+        print(f"[{worker_id}] Found ambiguous crash marker for task {crashed_task.get('task_id')}")
+        res_json = {
+            "status": "FAILED",
+            "stdout": "",
+            "stderr": "AMBIGUOUS_CRASH: Worker crashed during external effect.",
+            "goal_id": crashed_task.get("goal_id"),
+            "task_id": crashed_task.get("task_id"),
+            "attempt_id": crashed_task.get("attempt_id"),
+            "dispatch_id": crashed_task.get("dispatch_id"),
+            "execution_ref": crashed_task.get("execution_ref"),
+            "worker_id": worker_id,
+            "provider": "windows_native",
+            "run_id": "crashed-unknown",
+            "result_id": f"result-{uuid.uuid4().hex}",
+            "artifacts": []
+        }
+        if "batch_id" in crashed_task: res_json["batch_id"] = crashed_task["batch_id"]
+        if "prompt_id" in crashed_task: res_json["prompt_id"] = crashed_task["prompt_id"]
+        http_post_result(res_json)
+        effect_marker_path.unlink()
 
 def run_task(task, config):
     print(f"[{config['WORKER_ID']}] Running task {task['task_id']}...")
@@ -122,9 +180,7 @@ def run_task(task, config):
     run_id = "win-native"
     
     marker_path = Path(__file__).parent / "state" / "effect_marker.json"
-    marker_path.parent.mkdir(exist_ok=True)
-    with open(marker_path, "w") as f:
-        json.dump(task, f)
+    persist_marker(marker_path, task)
 
     print(f"[{config['WORKER_ID']}] Executing native PowerShell instruction.")
     cmd = ["powershell", "-Command", instruction]
@@ -155,12 +211,6 @@ def run_task(task, config):
         except Exception:
             pass
     
-    if marker_path.exists():
-        try:
-            marker_path.unlink()
-        except OSError:
-            pass
-            
     artifacts = []
     if status == "SUCCESS":
         expected = task.get("artifacts", [])
@@ -289,37 +339,7 @@ def loop():
     try:
         print(f"[{worker_id}] Windows Worker HTTP Daemon started. PID={os.getpid()}")
         
-        marker_path = Path(__file__).parent / "state" / "effect_marker.json"
-        if marker_path.exists():
-            try:
-                with open(marker_path, "r") as f:
-                    crashed_task = json.load(f)
-                print(f"[{worker_id}] Found ambiguous crash marker for task {crashed_task.get('task_id')}")
-                res_json = {
-                    "status": "FAILED",
-                    "stdout": "",
-                    "stderr": "AMBIGUOUS_CRASH: Worker crashed during external effect.",
-                    "goal_id": crashed_task.get("goal_id"),
-                    "task_id": crashed_task.get("task_id"),
-                    "attempt_id": crashed_task.get("attempt_id"),
-                    "dispatch_id": crashed_task.get("dispatch_id"),
-                    "execution_ref": crashed_task.get("execution_ref"),
-                    "worker_id": worker_id,
-                    "provider": "windows_native",
-                    "run_id": "crashed-unknown",
-                    "result_id": f"result-{uuid.uuid4().hex}",
-                    "artifacts": []
-                }
-                if "batch_id" in crashed_task: res_json["batch_id"] = crashed_task["batch_id"]
-                if "prompt_id" in crashed_task: res_json["prompt_id"] = crashed_task["prompt_id"]
-                http_post_result(res_json)
-            except Exception as e:
-                print(f"[{worker_id}] Failed to report ambiguous crash: {e}")
-            finally:
-                try:
-                    marker_path.unlink()
-                except OSError:
-                    pass
+        recover_pending_markers(worker_id)
         
         error_backoff = 10
         max_error_backoff = 300
@@ -329,20 +349,7 @@ def loop():
         
         while True:
             try:
-                result_marker_path = Path(__file__).parent / "state" / "result_marker.json"
-                if result_marker_path.exists():
-                    try:
-                        with open(result_marker_path, "r") as f:
-                            saved_result = json.load(f)
-                        print(f"[{worker_id}] Found unsent result marker for task {saved_result.get('task_id')}")
-                        http_post_result(saved_result)
-                    except Exception as e:
-                        print(f"[{worker_id}] Failed to report saved result: {e}")
-                        raise
-                    try:
-                        result_marker_path.unlink()
-                    except OSError:
-                        pass
+                recover_pending_markers(worker_id)
                         
                 # 1. Register/Heartbeat
                 req = urllib.request.Request(f"{API_URL}/workers/heartbeat", method="POST")
@@ -371,16 +378,9 @@ def loop():
                     result = run_task(task, config)
                     
                     result_marker_path = Path(__file__).parent / "state" / "result_marker.json"
-                    with open(result_marker_path, "w") as f:
-                        json.dump(result, f)
-                        
-                    http_post_result(result)
+                    persist_marker(result_marker_path, result)
+                    recover_pending_markers(worker_id)
                     print(f"[{worker_id}] Task {task['task_id']} completed. Result posted.")
-                    
-                    try:
-                        result_marker_path.unlink()
-                    except OSError:
-                        pass
                         
                     error_backoff = 10
                     idle_backoff = 5.0
