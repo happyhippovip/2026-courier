@@ -58,6 +58,7 @@ def cmd_submit(args):
     else:
         print(f"ERROR: Failed to submit goal (HTTP {status})", file=sys.stderr)
         print_result(data, args.json)
+        sys.exit(1)
 
 def cmd_status(args):
     data, status = make_request("GET", "/status")
@@ -68,6 +69,7 @@ def cmd_status(args):
     else:
         print(f"ERROR: Failed to get status (HTTP {status})", file=sys.stderr)
         print_result(data, args.json)
+        sys.exit(1)
 
 def cmd_goal(args):
     data, status = make_request("GET", f"/goals/{args.id}")
@@ -92,6 +94,7 @@ def cmd_goal(args):
     else:
         print(f"ERROR: Failed to get goal (HTTP {status})", file=sys.stderr)
         print_result(data, args.json)
+        sys.exit(1)
 
 def cmd_workers(args):
     data, status = make_request("GET", "/workers")
@@ -101,11 +104,13 @@ def cmd_workers(args):
         else:
             print("ERROR: Server is missing endpoint GET /workers")
             print("Handoff: The server needs a read endpoint to list workers.")
+        sys.exit(1)
     elif status == 200:
         print_result(data, args.json)
     else:
         print(f"ERROR: Failed to get workers (HTTP {status})", file=sys.stderr)
         print_result(data, args.json)
+        sys.exit(1)
 
 def cmd_health(args):
     data, status = make_request("GET", "/health")
@@ -117,6 +122,7 @@ def cmd_health(args):
     else:
         print(f"ERROR: Server health check failed (HTTP {status})", file=sys.stderr)
         print_result(data, args.json)
+        sys.exit(1)
 
 def cmd_wall(args):
     data, status = make_request("GET", "/walls")
@@ -126,11 +132,13 @@ def cmd_wall(args):
         else:
             print("ERROR: Server is missing endpoint GET /walls")
             print("Handoff: The server needs a read endpoint to list external walls/blocked goals.")
+        sys.exit(1)
     elif status == 200:
         print_result(data, args.json)
     else:
         print(f"ERROR: Failed to get walls (HTTP {status})", file=sys.stderr)
         print_result(data, args.json)
+        sys.exit(1)
 
 def main():
     parser = argparse.ArgumentParser(description="Courier CLI Operator Client")
