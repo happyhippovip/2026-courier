@@ -214,4 +214,32 @@ def test_windows_worker_atomic_marker_write_and_recovery(tmp_path, monkeypatch):
     assert not marker_file.exists()
 
 
+def test_windows_uninstall_and_demo_and_tempdir_safety():
+    """Verify uninstall.ps1 preserves source code, demo/run_demo.py supports Windows process groups, and temp dirs are portable."""
+    from demo import run_demo
+    from scripts import muse_bench_server
+
+    repo_root = Path(__file__).resolve().parents[1]
+    uninstall_ps1 = (repo_root / "scripts" / "windows_worker" / "uninstall.ps1").read_text(encoding="utf-8")
+    assert "Remove-Item -Path $PSScriptRoot -Recurse" not in uninstall_ps1
+    assert '@("state", "logs", "worker_daemon.lock")' in uninstall_ps1
+
+    # Verify demo._popen_group and _kill_process_tree work on Windows without os.setsid / os.killpg errors
+    proc = run_demo._popen_group([sys.executable, "-c", "import time; time.sleep(30)"])
+    try:
+        assert proc.poll() is None
+        run_demo._kill_process_tree(proc)
+        proc.wait(timeout=5)
+        assert proc.poll() is not None
+    finally:
+        if proc.poll() is None:
+            proc.kill()
+
+    # Verify muse_bench_server default WORK_DIR is portable (not raw POSIX /tmp on Windows)
+    assert str(muse_bench_server.WORK_DIR).endswith("muse_workhorse")
+    if sys.platform == "win32":
+        assert not str(muse_bench_server.WORK_DIR).startswith("/tmp/")
+
+
+
 

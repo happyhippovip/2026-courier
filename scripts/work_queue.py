@@ -85,7 +85,14 @@ def save(args, data):
         with open(tmp, "w", encoding="utf-8") as fh:
             json.dump(data, fh, indent=1, sort_keys=True)
             fh.write("\n")
-        tmp.replace(p)
+        for attempt in range(5):
+            try:
+                tmp.replace(p)
+                break
+            except PermissionError:
+                if attempt == 4:
+                    raise
+                time.sleep(0.02 * (attempt + 1))
 
 
 def live_scopes(data, now, stale_after):
@@ -199,8 +206,9 @@ def cmd_reconcile(args, data, now):
 
 
 def main(argv=None):
+    import tempfile
     ap = argparse.ArgumentParser()
-    ap.add_argument("--state-dir", default="/tmp/courier_work_queue")
+    ap.add_argument("--state-dir", default=str(Path(tempfile.gettempdir()) / "courier_work_queue"))
     ap.add_argument("--lease-ttl", type=float, default=3600)
     sub = ap.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("init"); p.add_argument("package_id"); p.add_argument("--dod", default="")

@@ -45,20 +45,51 @@ def get_goal_state(goal_id):
         return resp.json()
     return None
 
+def _popen_group(cmd):
+    kwargs = {
+        "stdout": subprocess.DEVNULL,
+        "stderr": subprocess.DEVNULL,
+    }
+    if os.name == "nt":
+        kwargs["creationflags"] = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+    elif hasattr(os, "setsid"):
+        kwargs["preexec_fn"] = os.setsid
+    return subprocess.Popen(cmd, **kwargs)
+
+
+def _kill_process_tree(proc):
+    if not proc or proc.poll() is not None:
+        return
+    if hasattr(os, "killpg") and hasattr(os, "getpgid"):
+        try:
+            os.killpg(os.getpgid(proc.pid), 9)
+            return
+        except OSError:
+            pass
+    try:
+        import psutil
+        parent = psutil.Process(proc.pid)
+        for child in parent.children(recursive=True):
+            try:
+                child.kill()
+            except psutil.NoSuchProcess:
+                pass
+        parent.kill()
+    except Exception:
+        try:
+            proc.kill()
+        except OSError:
+            pass
+
+
 def start_mac_worker():
-    return subprocess.Popen(
-        ["python3", "scripts/mac_worker/daemon.py"],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-        preexec_fn=os.setsid
-    )
+    return _popen_group([sys.executable, "scripts/mac_worker/daemon.py"])
 
 def start_windows_worker():
-    return subprocess.Popen(
-        ["ssh", "windows-ai", "cd C:\\Users\\lol\\2026-workspace\\2026-courier\\scripts\\windows_worker && start.bat"],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-        preexec_fn=os.setsid
+    if os.name == "nt":
+        return _popen_group([sys.executable, "scripts/windows_worker/daemon.py"])
+    return _popen_group(
+        ["ssh", "windows-ai", "cd C:\\Users\\lol\\2026-workspace\\2026-courier\\scripts\\windows_worker && start.bat"]
     )
 
 def main():
@@ -98,7 +129,7 @@ def main():
             if not task1_done and t1_status == "RECONCILED":
                 print_step("3. TASK 1 COMPLETE", "Mac Worker finished data extraction.", GREEN)
                 print(f" {RED}-> SIMULATING CRASH: Killing Worker 1 (Mac){RESET}")
-                os.killpg(os.getpgid(mac_proc.pid), 9)
+                _kill_process_tree(mac_proc)
                 mac_proc.wait()
                 task1_done = True
                 
@@ -120,10 +151,9 @@ def main():
             time.sleep(1.5)
     finally:
         if mac_proc and mac_proc.poll() is None:
-            os.killpg(os.getpgid(mac_proc.pid), 9)
+            _kill_process_tree(mac_proc)
         if win_proc and win_proc.poll() is None:
-            os.killpg(os.getpgid(win_proc.pid), 9)
-            subprocess.run(["ssh", "windows-ai", "powershell -Command \"Stop-Process -Name python -Force\""], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            _kill_process_tree(win_proc)
 
 if __name__ == "__main__":
     main()

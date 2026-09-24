@@ -1,4 +1,4 @@
-﻿param (
+param (
     [switch]$RemoveData,
     [switch]$RemoveCredentials
 )
@@ -28,11 +28,20 @@ if ($RemoveCredentials) {
 }
 
 Write-Host "[4] Cleaning up running background processes..."
-Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match "daemon.py|start.bat" } | Invoke-CimMethod -MethodName Terminate | Out-Null
+$daemonTarget = [regex]::Escape((Join-Path $PSScriptRoot "daemon.py"))
+$startTarget = [regex]::Escape((Join-Path $PSScriptRoot "start.bat"))
+Get-CimInstance Win32_Process | Where-Object {
+    $_.CommandLine -match $daemonTarget -or $_.CommandLine -match $startTarget -or $_.CommandLine -match "scripts[\\/]windows_worker[\\/]daemon\.py"
+} | Invoke-CimMethod -MethodName Terminate | Out-Null
 
 if ($RemoveData) {
     Write-Host "[5] Removing runtime and data files..."
-    Remove-Item -Path $PSScriptRoot -Recurse -Force -ErrorAction SilentlyContinue
+    foreach ($runtimeItem in @("state", "logs", "worker_daemon.lock")) {
+        $targetPath = Join-Path $PSScriptRoot $runtimeItem
+        if (Test-Path $targetPath) {
+            Remove-Item -Path $targetPath -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
 } else {
     Write-Host "[5] Preserving directory data (use -RemoveData to delete)."
 }

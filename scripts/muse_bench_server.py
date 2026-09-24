@@ -17,6 +17,7 @@ Runner/execution backend is OUT OF SCOPE (see QUEUE_CONTRACT below).
 import http.server
 import json
 import os
+import tempfile
 import time
 import urllib.parse
 from pathlib import Path
@@ -26,7 +27,7 @@ REPO = HERE.parents[1] if HERE.parents[1].name == "2026-courier" else Path.cwd()
 STUDIO_DIR = REPO / "studio"
 GALLERY_FILE = STUDIO_DIR / "muse-gallery.json"
 
-WORK_DIR = Path(os.environ.get("MUSE_WORKHORSE_DIR", "/tmp/muse_workhorse"))
+WORK_DIR = Path(os.environ.get("MUSE_WORKHORSE_DIR", str(Path(tempfile.gettempdir()) / "muse_workhorse")))
 QUEUE_FILE = WORK_DIR / "queue.jsonl"
 RESULTS_DIR = WORK_DIR / "results"
 CHECKPOINT_FILE = WORK_DIR / "checkpoint.json"
