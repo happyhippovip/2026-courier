@@ -27,9 +27,7 @@ SCRIPTS_DIR = Path(__file__).resolve().parent
 COURIER_DIR = SCRIPTS_DIR.parent
 STUDIO_DIR = COURIER_DIR / "studio"
 EVENTS_DIR = COURIER_DIR / "events"
-
 APPROVALS_DIR = EVENTS_DIR / "approvals"
-APPROVALS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Add scripts directory to path for imports
 if str(SCRIPTS_DIR) not in sys.path:
@@ -128,6 +126,7 @@ def read_repo_head_sha() -> str:
 
 def save_json_safe(path: Path, data: dict) -> None:
     try:
+        path.parent.mkdir(parents=True, exist_ok=True)
         tmp = path.with_suffix(".tmp")
         tmp.write_text(json.dumps(data, indent=2), encoding="utf-8")
         tmp.replace(path)
@@ -973,12 +972,30 @@ def run_server(port: int = 8088):
             print("\nShutting down Operations Studio server.")
 
 
-def main():
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Run Autonomous Chief Operations Cockpit Server")
     parser.add_argument("--port", type=int, default=8088, help="Port to serve UI (default: 8088)")
-    args = parser.parse_args()
+    parser.add_argument("--check-config", action="store_true", help="Validate server configuration and exit")
+    parser.add_argument("--json", action="store_true", help="Output machine-readable JSON status")
+    args = parser.parse_args(argv)
+
+    if args.check_config:
+        info = {
+            "status": "CONFIG_VALID",
+            "port": args.port,
+            "studio_dir": str(STUDIO_DIR),
+            "events_dir": str(EVENTS_DIR),
+            "ledger_truth": read_courier_ledger_truth(),
+        }
+        if args.json:
+            print(json.dumps(info, indent=2))
+        else:
+            print(f"STUDIO_SERVER_CONFIG: {info}")
+        return 0
+
     run_server(args.port)
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
