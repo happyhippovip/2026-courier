@@ -36,10 +36,12 @@ import time
 import uuid
 from pathlib import Path
 
+from scripts.resolve_project_memory import resolve_default_memory_repo
+
 SCRIPTS_DIR = Path(__file__).resolve().parent
 COURIER_DIR = SCRIPTS_DIR.parent
-PROJECT_MEMORY_DIR = Path("/Users/user/Downloads/2026-project-memory")
-GODOT_DIR = Path("/Users/user/Downloads/2026-godot-shorts")
+PROJECT_MEMORY_DIR = resolve_default_memory_repo()
+GODOT_DIR = Path(os.environ.get("COURIER_GODOT_REPO", "/Users/user/Downloads/2026-godot-shorts"))
 
 EVENTS_DIR = COURIER_DIR / "events"
 STATES_DIR = EVENTS_DIR / "agent-states"

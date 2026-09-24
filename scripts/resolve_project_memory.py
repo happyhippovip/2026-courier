@@ -15,7 +15,10 @@ import re
 import sys
 from pathlib import Path
 
-from build_memory_update_proposal import DEFAULT_MEMORY_REPO_PATH
+try:
+    from scripts.build_memory_update_proposal import DEFAULT_MEMORY_REPO_PATH, resolve_default_memory_repo
+except ImportError:
+    from build_memory_update_proposal import DEFAULT_MEMORY_REPO_PATH, resolve_default_memory_repo
 DEFAULT_MEMORY_REPO_NAME = "happyhippovip/2026-project-memory"
 
 ALWAYS_CONSULTED_FILES = [

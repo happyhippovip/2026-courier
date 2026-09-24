@@ -24,7 +24,9 @@ import sys
 import uuid
 from pathlib import Path
 
-DEFAULT_MEMORY_REPO_PATH = Path("/Users/user/Downloads/2026-project-memory")
+from scripts.resolve_project_memory import resolve_default_memory_repo
+
+DEFAULT_MEMORY_REPO_PATH = resolve_default_memory_repo()
 DEFAULT_PROPOSAL_SCHEMA_PATH = Path(__file__).resolve().parent.parent / "schemas/memory_update_proposal.schema.json"
 DEFAULT_APPROVAL_SCHEMA_PATH = Path(__file__).resolve().parent.parent / "schemas/memory_update_approval.schema.json"
 DEFAULT_DECISION_SCHEMA_PATH = Path(__file__).resolve().parent.parent / "schemas/autonomous_chief_decision.schema.json"

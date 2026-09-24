@@ -24,7 +24,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-DEFAULT_MEMORY_REPO = Path("/Users/user/Downloads/2026-project-memory")
+from scripts.resolve_project_memory import resolve_default_memory_repo
+
+DEFAULT_MEMORY_REPO = resolve_default_memory_repo()
 
 
 def fail(message: str) -> None:
