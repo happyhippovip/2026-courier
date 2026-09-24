@@ -120,8 +120,11 @@ class AntigravityVisualStateTracker:
 class AntigravityHookRunner:
     """Lifecycle hooks for Antigravity automated task execution."""
 
-    def __init__(self, state_tracker: AntigravityVisualStateTracker):
+    def __init__(self, state_tracker: AntigravityVisualStateTracker, repo_dir: Path | None = None):
         self.state_tracker = state_tracker
+        self.repo_dir = Path(repo_dir).resolve() if repo_dir else state_tracker.repo_dir
+        self.processed_dir = self.repo_dir / "events/processed"
+        self.processed_dir.mkdir(parents=True, exist_ok=True)
 
     def on_task_start(self, task_id: str, correlation_id: str, instruction: str, workflow: str | None = "automation") -> None:
         print(f"[HOOK: ON_TASK_START] Task {task_id} started (Correlation: {correlation_id})")
@@ -182,8 +185,8 @@ class AntigravityHookRunner:
         if check_secrets_in_text(res_text) > 0:
             raise ValueError(f"Secret detected in result payload for task {task_id}. Rejection triggered.")
 
-        PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
-        result_file = PROCESSED_DIR / f"{task_id}-result.json"
+        self.processed_dir.mkdir(parents=True, exist_ok=True)
+        result_file = self.processed_dir / f"{task_id}-result.json"
         save_json(result_file, result_envelope)
 
         self.state_tracker.update_state(
@@ -221,8 +224,8 @@ class AntigravityHookRunner:
             "max_iterations": 1,
         }
 
-        PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
-        result_file = PROCESSED_DIR / f"{task_id}-result.json"
+        self.processed_dir.mkdir(parents=True, exist_ok=True)
+        result_file = self.processed_dir / f"{task_id}-result.json"
         save_json(result_file, result_envelope)
 
         self.state_tracker.update_state(
@@ -237,13 +240,13 @@ class AntigravityHookRunner:
         return result_file
 
     def on_task_stop(self, task_id: str) -> bool:
-        result_file = PROCESSED_DIR / f"{task_id}-result.json"
+        result_file = self.processed_dir / f"{task_id}-result.json"
         exists = result_file.exists()
         print(f"[HOOK: ON_STOP] Result file verified for {task_id}: {exists}")
         return exists
 
 
-def execute_bridge_task(worker_job_path: Path, hooks: AntigravityHookRunner, force: bool = False) -> Path:
+def execute_bridge_task(worker_job_path: Path, hooks: AntigravityHookRunner, force: bool = False, repo_dir: Path | None = None) -> Path:
     """Executes a worker job through the automated bridge with hooks."""
     job = load_json(worker_job_path)
 
@@ -252,9 +255,10 @@ def execute_bridge_task(worker_job_path: Path, hooks: AntigravityHookRunner, for
     parent_id = job.get("source_command_message_id")
     instruction = job.get("instruction", "Execute task")
     allowed_scope = job.get("allowed_scope", [])
+    repo = Path(repo_dir).resolve() if repo_dir else hooks.repo_dir
 
     # Deduplication & Replay Protection
-    result_file = PROCESSED_DIR / f"{task_id}-result.json"
+    result_file = hooks.processed_dir / f"{task_id}-result.json"
     if result_file.exists() and not force:
         print(f"[DEDUPE] Task {task_id} already COMPLETED in {result_file.name}. Skipping duplicate execution.")
         return result_file
@@ -271,8 +275,8 @@ def execute_bridge_task(worker_job_path: Path, hooks: AntigravityHookRunner, for
         if isinstance(item, str) and (item.endswith(".json") or item.endswith(".md") or item.endswith(".txt")):
             # Path confinement check
             try:
-                candidate = (COURIER_DIR / item).resolve()
-                if COURIER_DIR in candidate.parents or candidate == COURIER_DIR:
+                candidate = (repo / item).resolve()
+                if repo in candidate.parents or candidate == repo:
                     if candidate.exists() and candidate.is_file():
                         target_fixture = candidate
                         break
@@ -285,7 +289,7 @@ def execute_bridge_task(worker_job_path: Path, hooks: AntigravityHookRunner, for
         payload = {
             "verdict": "PASS",
             "action_executed": "READ_FIXTURE_AND_SUMMARIZE",
-            "target_file": str(target_fixture.relative_to(COURIER_DIR)),
+            "target_file": str(target_fixture.relative_to(repo)),
             "file_size_bytes": target_fixture.stat().st_size,
             "content_summary": f"Verified readable content ({len(content_snippet)} chars snippet)",
             "execution_mode": "AUTOMATED_ANTIGRAVITY_BRIDGE",
@@ -323,10 +327,12 @@ def execute_bridge_task(worker_job_path: Path, hooks: AntigravityHookRunner, for
     return result_file
 
 
-def run_chief_review_router(task_id: str, result_file: Path) -> dict:
+def run_chief_review_router(task_id: str, result_file: Path, repo_dir: Path | None = None) -> dict:
     """Evaluates Chief Review Router for the given task result."""
-    DECISIONS_DIR.mkdir(parents=True, exist_ok=True)
-    decision_file = DECISIONS_DIR / f"{task_id}-chief-decision.json"
+    repo = Path(repo_dir).resolve() if repo_dir else (result_file.parent.parent.parent if result_file else COURIER_DIR)
+    decisions_dir = repo / "events/chief-decisions"
+    decisions_dir.mkdir(parents=True, exist_ok=True)
+    decision_file = decisions_dir / f"{task_id}-chief-decision.json"
 
     res_data = load_json(result_file)
     payload = res_data.get("payload", {})
@@ -376,33 +382,57 @@ def run_chief_review_router(task_id: str, result_file: Path) -> dict:
     return decision
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Run Automated Courier-Antigravity Bridge")
     parser.add_argument("--job-file", type=Path, help="Path to AntigravityWorkerJob JSON file")
     parser.add_argument("--auto-discover", action="store_true", help="Auto-discover pending worker jobs")
     parser.add_argument("--review", action="store_true", help="Trigger Chief Review Router after execution")
-    args = parser.parse_args()
+    parser.add_argument("--repo-dir", type=str, default=str(COURIER_DIR), help="Path to repository root")
+    parser.add_argument("--json", action="store_true", help="Output summary in JSON format")
+    args = parser.parse_args(argv)
 
-    state_tracker = AntigravityVisualStateTracker()
-    hooks = AntigravityHookRunner(state_tracker)
+    repo_dir = Path(args.repo_dir).resolve()
+    dispatch_dir = repo_dir / "events/dispatch"
+
+    state_tracker = AntigravityVisualStateTracker(repo_dir=repo_dir)
+    hooks = AntigravityHookRunner(state_tracker, repo_dir=repo_dir)
 
     target_job = args.job_file
     if not target_job and args.auto_discover:
-        if DISPATCH_DIR.exists():
-            pending = sorted(list(DISPATCH_DIR.glob("*.json")))
+        if dispatch_dir.exists():
+            pending = sorted(list(dispatch_dir.glob("*.json")))
             if pending:
                 target_job = pending[0]
 
     if not target_job or not target_job.exists():
-        print("No job file provided or found. Exiting cleanly.")
+        if args.json:
+            print(json.dumps({"status": "NO_JOB_FOUND", "executed": False}))
+        else:
+            print("No job file provided or found. Exiting cleanly.")
         return 0
 
-    print(f"=== RUNNING ANTIGRAVITY AUTOMATION BRIDGE: {target_job.name} ===")
-    result_file = execute_bridge_task(target_job, hooks)
-
-    if args.review:
-        task_id = load_json(target_job).get("task_id", target_job.stem.replace("-worker-job", ""))
-        run_chief_review_router(task_id, result_file)
+    decision = None
+    if args.json:
+        import io
+        import contextlib
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            result_file = execute_bridge_task(target_job, hooks, repo_dir=repo_dir)
+            if args.review:
+                task_id = load_json(target_job).get("task_id", target_job.stem.replace("-worker-job", ""))
+                decision = run_chief_review_router(task_id, result_file, repo_dir=repo_dir)
+        print(json.dumps({
+            "status": "COMPLETED",
+            "executed": True,
+            "result_file": str(result_file),
+            "decision": decision,
+        }, indent=2))
+    else:
+        print(f"=== RUNNING ANTIGRAVITY AUTOMATION BRIDGE: {target_job.name} ===")
+        result_file = execute_bridge_task(target_job, hooks, repo_dir=repo_dir)
+        if args.review:
+            task_id = load_json(target_job).get("task_id", target_job.stem.replace("-worker-job", ""))
+            decision = run_chief_review_router(task_id, result_file, repo_dir=repo_dir)
 
     return 0
 
