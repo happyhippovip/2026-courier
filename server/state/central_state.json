@@ -468,6 +468,308 @@
           "target_agent": "macos",
           "instruction": "echo hi",
           "goal_id": "goal-4c778bce",
+          "status": "RESULT_RECEIVED",
+          "attempts": 1,
+          "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+          "attempt_id": "T1:attempt:1",
+          "dispatch_id": "dispatch-8015b1d8192a4f869bbf76e2b59d8028",
+          "execution_ref": "exec-768d6764c0f0470d86ba810444445adb",
+          "server_binding": {
+            "sha": "2fe697ef2b0fbf71a5ce679bc5874e1bc4afa1a5",
+            "runtime": "courier-server:4cba1fdd50344595a6287360a0078883"
+          },
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": []
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-9739fa49": {
+      "goal_id": "goal-9739fa49",
+      "goal_text": "Generate a 10-file documentation site for Courier to prove multi-worker orchestration.",
+      "status": "ACTIVE",
+      "terminal": true,
+      "workflow_plan": [
+        {
+          "task_id": "TASK-DOC-1",
+          "instruction": "Create docs/public_site/index.md containing a welcome message for the Courier project.",
+          "target_capability": "mac",
+          "goal_id": "goal-9739fa49",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "TASK-DOC-2",
+          "instruction": "Create docs/public_site/setup.md containing a setup guide for the Courier project.",
+          "target_capability": "windows",
+          "goal_id": "goal-9739fa49",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "TASK-DOC-3",
+          "instruction": "Create docs/public_site/api.md containing an overview of the Courier central API.",
+          "target_capability": "mac",
+          "goal_id": "goal-9739fa49",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "TASK-DOC-4",
+          "instruction": "Create docs/public_site/architecture.md containing a description of the Mac and Windows worker architecture.",
+          "target_capability": "windows",
+          "goal_id": "goal-9739fa49",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "TASK-DOC-5",
+          "instruction": "Create docs/public_site/billing.md containing a placeholder guide for billing and token limits.",
+          "target_capability": "mac",
+          "goal_id": "goal-9739fa49",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "TASK-DOC-6",
+          "instruction": "Create docs/public_site/faq.md containing 3 frequently asked questions about Courier.",
+          "target_capability": "windows",
+          "goal_id": "goal-9739fa49",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "TASK-DOC-7",
+          "instruction": "Create docs/public_site/contributing.md containing guidelines for contributing to Courier.",
+          "target_capability": "mac",
+          "goal_id": "goal-9739fa49",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "TASK-DOC-8",
+          "instruction": "Create docs/public_site/security.md containing the security policies for Courier (e.g., bypassing sandbox, exact process ownership).",
+          "target_capability": "windows",
+          "goal_id": "goal-9739fa49",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "TASK-DOC-9",
+          "instruction": "Create docs/public_site/release_notes.md containing release notes for version 1.0.",
+          "target_capability": "mac",
+          "goal_id": "goal-9739fa49",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "TASK-DOC-10",
+          "instruction": "Read the docs/public_site directory and create a docs/public_site/site_map.md linking to all 9 generated files.",
+          "target_capability": "windows",
+          "goal_id": "goal-9739fa49",
+          "status": "QUEUED",
+          "attempts": 0
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-07807a7b": {
+      "goal_id": "goal-07807a7b",
+      "goal_text": "Generate a 10-file documentation site for Courier to prove multi-worker orchestration.",
+      "status": "ACTIVE",
+      "terminal": true,
+      "workflow_plan": [
+        {
+          "task_id": "TASK-DOC-1",
+          "instruction": "Create docs/public_site/index.md containing a welcome message for the Courier project.",
+          "required_capabilities": [
+            "mac"
+          ],
+          "goal_id": "goal-07807a7b",
+          "status": "RESULT_RECEIVED",
+          "attempts": 1,
+          "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+          "attempt_id": "TASK-DOC-1:attempt:1",
+          "dispatch_id": "dispatch-61bee99df73b4e1686b0ccbc63a16e16",
+          "execution_ref": "exec-81bf79ca8ad548fb926e5c2fbc6ceeac",
+          "server_binding": {
+            "sha": "2fe697ef2b0fbf71a5ce679bc5874e1bc4afa1a5",
+            "runtime": "courier-server:4cba1fdd50344595a6287360a0078883"
+          },
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": []
+        },
+        {
+          "task_id": "TASK-DOC-2",
+          "instruction": "Create docs/public_site/setup.md containing a setup guide for the Courier project.",
+          "required_capabilities": [
+            "windows"
+          ],
+          "goal_id": "goal-07807a7b",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "TASK-DOC-3",
+          "instruction": "Create docs/public_site/api.md containing an overview of the Courier central API.",
+          "required_capabilities": [
+            "mac"
+          ],
+          "goal_id": "goal-07807a7b",
+          "status": "RESULT_RECEIVED",
+          "attempts": 2,
+          "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+          "attempt_id": "TASK-DOC-3:attempt:2",
+          "dispatch_id": "dispatch-f86e8c426e8f4048b7bea7b713140ed4",
+          "execution_ref": "exec-7d7e4aea52b94c51bb04aeae4e57435a",
+          "server_binding": {
+            "sha": "2fe697ef2b0fbf71a5ce679bc5874e1bc4afa1a5",
+            "runtime": "courier-server:4cba1fdd50344595a6287360a0078883"
+          },
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "retry_state": {
+            "execution": 1,
+            "transport": 0,
+            "provider": 0,
+            "verification": 0
+          },
+          "next_retry_at": 1790242092.8292181
+        },
+        {
+          "task_id": "TASK-DOC-4",
+          "instruction": "Create docs/public_site/architecture.md containing a description of the Mac and Windows worker architecture.",
+          "required_capabilities": [
+            "windows"
+          ],
+          "goal_id": "goal-07807a7b",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "TASK-DOC-5",
+          "instruction": "Create docs/public_site/billing.md containing a placeholder guide for billing and token limits.",
+          "required_capabilities": [
+            "mac"
+          ],
+          "goal_id": "goal-07807a7b",
+          "status": "RESULT_RECEIVED",
+          "attempts": 1,
+          "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+          "attempt_id": "TASK-DOC-5:attempt:1",
+          "dispatch_id": "dispatch-fca8ee79e4364c978b9d8f9bfa970742",
+          "execution_ref": "exec-c4ce3d3ed8b94bfba33d97302fb25e4e",
+          "server_binding": {
+            "sha": "2fe697ef2b0fbf71a5ce679bc5874e1bc4afa1a5",
+            "runtime": "courier-server:4cba1fdd50344595a6287360a0078883"
+          },
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": []
+        },
+        {
+          "task_id": "TASK-DOC-6",
+          "instruction": "Create docs/public_site/faq.md containing 3 frequently asked questions about Courier.",
+          "required_capabilities": [
+            "windows"
+          ],
+          "goal_id": "goal-07807a7b",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "TASK-DOC-7",
+          "instruction": "Create docs/public_site/contributing.md containing guidelines for contributing to Courier.",
+          "required_capabilities": [
+            "mac"
+          ],
+          "goal_id": "goal-07807a7b",
+          "status": "RESULT_RECEIVED",
+          "attempts": 2,
+          "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+          "attempt_id": "TASK-DOC-7:attempt:2",
+          "dispatch_id": "dispatch-aaa80ed77a3542d897bace2ed2e28648",
+          "execution_ref": "exec-2e4846e222664130b2230b908c742181",
+          "server_binding": {
+            "sha": "2fe697ef2b0fbf71a5ce679bc5874e1bc4afa1a5",
+            "runtime": "courier-server:4cba1fdd50344595a6287360a0078883"
+          },
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "retry_state": {
+            "execution": 1,
+            "transport": 0,
+            "provider": 0,
+            "verification": 0
+          },
+          "next_retry_at": 1790242875.6351402
+        },
+        {
+          "task_id": "TASK-DOC-8",
+          "instruction": "Create docs/public_site/security.md containing the security policies for Courier (e.g., bypassing sandbox, exact process ownership).",
+          "required_capabilities": [
+            "windows"
+          ],
+          "goal_id": "goal-07807a7b",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "TASK-DOC-9",
+          "instruction": "Create docs/public_site/release_notes.md containing release notes for version 1.0.",
+          "required_capabilities": [
+            "mac"
+          ],
+          "goal_id": "goal-07807a7b",
+          "status": "RESULT_RECEIVED",
+          "attempts": 1,
+          "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+          "attempt_id": "TASK-DOC-9:attempt:1",
+          "dispatch_id": "dispatch-a4a34b91aba94d48af2406835d932a95",
+          "execution_ref": "exec-5a206c43870044eeb33f38236554f635",
+          "server_binding": {
+            "sha": "2fe697ef2b0fbf71a5ce679bc5874e1bc4afa1a5",
+            "runtime": "courier-server:4cba1fdd50344595a6287360a0078883"
+          },
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": []
+        },
+        {
+          "task_id": "TASK-DOC-10",
+          "instruction": "Read the docs/public_site directory and create a docs/public_site/site_map.md linking to all 9 generated files.",
+          "required_capabilities": [
+            "windows"
+          ],
+          "goal_id": "goal-07807a7b",
           "status": "QUEUED",
           "attempts": 0
         }
@@ -479,52 +781,272 @@
     "T1": {
       "task_id": "T1",
       "target_agent": "macos",
-      "instruction": "echo 'hello real worker'",
-      "action": "echo",
-      "goal_id": "goal-05e38bfe",
-      "status": "RECONCILED",
+      "instruction": "echo hi",
+      "goal_id": "goal-4c778bce",
+      "status": "RESULT_RECEIVED",
       "attempts": 1,
-      "worker_id": "MAC-REAL-502A0C",
+      "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
       "attempt_id": "T1:attempt:1",
-      "dispatch_id": "dispatch-96127afefa1b4d7e88f86d6db7f815ed",
-      "execution_ref": "exec-0f8ccf8061a74e4a9b60ed3895f4e99c",
+      "dispatch_id": "dispatch-8015b1d8192a4f869bbf76e2b59d8028",
+      "execution_ref": "exec-768d6764c0f0470d86ba810444445adb",
       "server_binding": {
-        "sha": "18666fbcd08fe9a009b35a5248f519882fd9cab4",
-        "runtime": "courier-server:974676927051492ebc3e3c16a14ffbb1"
+        "sha": "2fe697ef2b0fbf71a5ce679bc5874e1bc4afa1a5",
+        "runtime": "courier-server:4cba1fdd50344595a6287360a0078883"
       },
       "run_id": null,
       "result_id": null,
       "target_capability": "mac",
       "last_completed_step": "T1",
-      "next_action": null,
+      "next_action": "VERIFY",
       "blocker": null,
       "artifact_refs": [],
-      "producer_principal": "principal_ca64faa2f21a66699571463505fdf124b2046e98f1424f3bc28cb3e199ebd68f",
+      "producer_principal": "principal_a2feb8ee4ae6ac6d82e9a68c34fbc7f3b7bef7b64908ded944e60dd5288b970e",
       "result": {
-        "runtime_identity": {
-          "runtime": "courier-server:974676927051492ebc3e3c16a14ffbb1",
-          "sha": "18666fbcd08fe9a009b35a5248f519882fd9cab4"
-        },
+        "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+        "execution_ref": "exec-768d6764c0f0470d86ba810444445adb",
+        "artifacts": [],
         "attempt_id": "T1:attempt:1",
+        "runtime_identity": {
+          "runtime": "courier-server:4cba1fdd50344595a6287360a0078883",
+          "sha": "2fe697ef2b0fbf71a5ce679bc5874e1bc4afa1a5"
+        },
+        "dispatch_id": "dispatch-8015b1d8192a4f869bbf76e2b59d8028",
         "task_id": "T1",
-        "execution_ref": "exec-0f8ccf8061a74e4a9b60ed3895f4e99c",
-        "result_id": "result-3fe01152ef14ce2021b1e35b019135a0b836cd46f0803a25a86d586ea3e271ce",
-        "run_id": "36b4e851-6db3-44be-8788-03188928a0ea",
-        "worker_id": "MAC-REAL-502A0C",
+        "goal_id": "goal-4c778bce",
+        "result_id": "result-b5a3a8ae09766e4a805b183bbb84aceb86aa383fce0db14fd2bd46046180a07c",
         "status": "SUCCESS",
-        "goal_id": "goal-05e38bfe",
-        "artifacts": [],
-        "dispatch_id": "dispatch-96127afefa1b4d7e88f86d6db7f815ed"
+        "run_id": "08e19242-5e4a-4b43-9a94-12a8c340a075"
       },
-      "result_received_at": 1789794049.6482391,
-      "verification": {
-        "verifier_id": "VERIFIER-01",
-        "verifier_principal": "principal_01a4447a4261e4f6a4952301165be1175a0f20c4a26bde68d5722d0a9241e550",
-        "result_id": "result-3fe01152ef14ce2021b1e35b019135a0b836cd46f0803a25a86d586ea3e271ce",
-        "verdict": "PASS",
+      "result_received_at": 1790241378.023062
+    },
+    "TASK-DOC-1": {
+      "task_id": "TASK-DOC-1",
+      "instruction": "Create docs/public_site/index.md containing a welcome message for the Courier project.",
+      "required_capabilities": [
+        "mac"
+      ],
+      "goal_id": "goal-07807a7b",
+      "status": "RESULT_RECEIVED",
+      "attempts": 1,
+      "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+      "attempt_id": "TASK-DOC-1:attempt:1",
+      "dispatch_id": "dispatch-61bee99df73b4e1686b0ccbc63a16e16",
+      "execution_ref": "exec-81bf79ca8ad548fb926e5c2fbc6ceeac",
+      "server_binding": {
+        "sha": "2fe697ef2b0fbf71a5ce679bc5874e1bc4afa1a5",
+        "runtime": "courier-server:4cba1fdd50344595a6287360a0078883"
+      },
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "last_completed_step": "TASK-DOC-1",
+      "next_action": "VERIFY",
+      "blocker": null,
+      "artifact_refs": [],
+      "producer_principal": "principal_a2feb8ee4ae6ac6d82e9a68c34fbc7f3b7bef7b64908ded944e60dd5288b970e",
+      "result": {
+        "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+        "execution_ref": "exec-81bf79ca8ad548fb926e5c2fbc6ceeac",
         "artifacts": [],
-        "verified_at": 1789794051.50647
-      }
+        "attempt_id": "TASK-DOC-1:attempt:1",
+        "runtime_identity": {
+          "runtime": "courier-server:4cba1fdd50344595a6287360a0078883",
+          "sha": "2fe697ef2b0fbf71a5ce679bc5874e1bc4afa1a5"
+        },
+        "dispatch_id": "dispatch-61bee99df73b4e1686b0ccbc63a16e16",
+        "task_id": "TASK-DOC-1",
+        "goal_id": "goal-07807a7b",
+        "result_id": "result-7f60a6f73155fbd290ffc9de82055b1cbfdcad22924faa22c1e82ea08a94bae5",
+        "status": "SUCCESS",
+        "run_id": "f0d7c380-2304-4577-b308-d37a0c225702"
+      },
+      "result_received_at": 1790241788.416193
+    },
+    "TASK-DOC-3": {
+      "task_id": "TASK-DOC-3",
+      "instruction": "Create docs/public_site/api.md containing an overview of the Courier central API.",
+      "required_capabilities": [
+        "mac"
+      ],
+      "goal_id": "goal-07807a7b",
+      "status": "RESULT_RECEIVED",
+      "attempts": 2,
+      "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+      "attempt_id": "TASK-DOC-3:attempt:2",
+      "dispatch_id": "dispatch-f86e8c426e8f4048b7bea7b713140ed4",
+      "execution_ref": "exec-7d7e4aea52b94c51bb04aeae4e57435a",
+      "server_binding": {
+        "sha": "2fe697ef2b0fbf71a5ce679bc5874e1bc4afa1a5",
+        "runtime": "courier-server:4cba1fdd50344595a6287360a0078883"
+      },
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "last_completed_step": "TASK-DOC-3",
+      "next_action": "VERIFY",
+      "blocker": null,
+      "artifact_refs": [],
+      "retry_state": {
+        "execution": 1,
+        "transport": 0,
+        "provider": 0,
+        "verification": 0
+      },
+      "next_retry_at": 1790242092.8292181,
+      "producer_principal": "principal_a2feb8ee4ae6ac6d82e9a68c34fbc7f3b7bef7b64908ded944e60dd5288b970e",
+      "result": {
+        "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+        "execution_ref": "exec-7d7e4aea52b94c51bb04aeae4e57435a",
+        "artifacts": [],
+        "attempt_id": "TASK-DOC-3:attempt:2",
+        "runtime_identity": {
+          "runtime": "courier-server:4cba1fdd50344595a6287360a0078883",
+          "sha": "2fe697ef2b0fbf71a5ce679bc5874e1bc4afa1a5"
+        },
+        "dispatch_id": "dispatch-f86e8c426e8f4048b7bea7b713140ed4",
+        "task_id": "TASK-DOC-3",
+        "goal_id": "goal-07807a7b",
+        "result_id": "result-9db6f69a7dc58c055ff78ef9ebad4df05e59f5edb7382f46e38fbbd0f45b7c1d",
+        "status": "SUCCESS",
+        "run_id": "90af1efc-ec01-4c53-8aa1-c846c106e2ce"
+      },
+      "result_received_at": 1790242570.977387
+    },
+    "TASK-DOC-5": {
+      "task_id": "TASK-DOC-5",
+      "instruction": "Create docs/public_site/billing.md containing a placeholder guide for billing and token limits.",
+      "required_capabilities": [
+        "mac"
+      ],
+      "goal_id": "goal-07807a7b",
+      "status": "RESULT_RECEIVED",
+      "attempts": 1,
+      "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+      "attempt_id": "TASK-DOC-5:attempt:1",
+      "dispatch_id": "dispatch-fca8ee79e4364c978b9d8f9bfa970742",
+      "execution_ref": "exec-c4ce3d3ed8b94bfba33d97302fb25e4e",
+      "server_binding": {
+        "sha": "2fe697ef2b0fbf71a5ce679bc5874e1bc4afa1a5",
+        "runtime": "courier-server:4cba1fdd50344595a6287360a0078883"
+      },
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "last_completed_step": "TASK-DOC-5",
+      "next_action": "VERIFY",
+      "blocker": null,
+      "artifact_refs": [],
+      "producer_principal": "principal_a2feb8ee4ae6ac6d82e9a68c34fbc7f3b7bef7b64908ded944e60dd5288b970e",
+      "result": {
+        "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+        "execution_ref": "exec-c4ce3d3ed8b94bfba33d97302fb25e4e",
+        "artifacts": [],
+        "attempt_id": "TASK-DOC-5:attempt:1",
+        "runtime_identity": {
+          "runtime": "courier-server:4cba1fdd50344595a6287360a0078883",
+          "sha": "2fe697ef2b0fbf71a5ce679bc5874e1bc4afa1a5"
+        },
+        "dispatch_id": "dispatch-fca8ee79e4364c978b9d8f9bfa970742",
+        "task_id": "TASK-DOC-5",
+        "goal_id": "goal-07807a7b",
+        "result_id": "result-f8684626339626ca69fd8b5249f59b201dadda00cc5468cb643a7d9b4ad0e604",
+        "status": "SUCCESS",
+        "run_id": "59a763c3-7beb-4853-afd6-962f54f089a8"
+      },
+      "result_received_at": 1790242317.1226351
+    },
+    "TASK-DOC-7": {
+      "task_id": "TASK-DOC-7",
+      "instruction": "Create docs/public_site/contributing.md containing guidelines for contributing to Courier.",
+      "required_capabilities": [
+        "mac"
+      ],
+      "goal_id": "goal-07807a7b",
+      "status": "RESULT_RECEIVED",
+      "attempts": 2,
+      "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+      "attempt_id": "TASK-DOC-7:attempt:2",
+      "dispatch_id": "dispatch-aaa80ed77a3542d897bace2ed2e28648",
+      "execution_ref": "exec-2e4846e222664130b2230b908c742181",
+      "server_binding": {
+        "sha": "2fe697ef2b0fbf71a5ce679bc5874e1bc4afa1a5",
+        "runtime": "courier-server:4cba1fdd50344595a6287360a0078883"
+      },
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "last_completed_step": "TASK-DOC-7",
+      "next_action": "VERIFY",
+      "blocker": null,
+      "artifact_refs": [],
+      "retry_state": {
+        "execution": 1,
+        "transport": 0,
+        "provider": 0,
+        "verification": 0
+      },
+      "next_retry_at": 1790242875.6351402,
+      "producer_principal": "principal_a2feb8ee4ae6ac6d82e9a68c34fbc7f3b7bef7b64908ded944e60dd5288b970e",
+      "result": {
+        "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+        "execution_ref": "exec-2e4846e222664130b2230b908c742181",
+        "artifacts": [],
+        "attempt_id": "TASK-DOC-7:attempt:2",
+        "runtime_identity": {
+          "runtime": "courier-server:4cba1fdd50344595a6287360a0078883",
+          "sha": "2fe697ef2b0fbf71a5ce679bc5874e1bc4afa1a5"
+        },
+        "dispatch_id": "dispatch-aaa80ed77a3542d897bace2ed2e28648",
+        "task_id": "TASK-DOC-7",
+        "goal_id": "goal-07807a7b",
+        "result_id": "result-b0af937a5e6e8c348459119d05f2ff8b8d868ebaf16278a1fb915d332aec049a",
+        "status": "SUCCESS",
+        "run_id": "1bbbac8d-1e1f-47cc-8edd-ae617c698756"
+      },
+      "result_received_at": 1790243284.017299
+    },
+    "TASK-DOC-9": {
+      "task_id": "TASK-DOC-9",
+      "instruction": "Create docs/public_site/release_notes.md containing release notes for version 1.0.",
+      "required_capabilities": [
+        "mac"
+      ],
+      "goal_id": "goal-07807a7b",
+      "status": "RESULT_RECEIVED",
+      "attempts": 1,
+      "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+      "attempt_id": "TASK-DOC-9:attempt:1",
+      "dispatch_id": "dispatch-a4a34b91aba94d48af2406835d932a95",
+      "execution_ref": "exec-5a206c43870044eeb33f38236554f635",
+      "server_binding": {
+        "sha": "2fe697ef2b0fbf71a5ce679bc5874e1bc4afa1a5",
+        "runtime": "courier-server:4cba1fdd50344595a6287360a0078883"
+      },
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "last_completed_step": "TASK-DOC-9",
+      "next_action": "VERIFY",
+      "blocker": null,
+      "artifact_refs": [],
+      "producer_principal": "principal_a2feb8ee4ae6ac6d82e9a68c34fbc7f3b7bef7b64908ded944e60dd5288b970e",
+      "result": {
+        "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+        "execution_ref": "exec-5a206c43870044eeb33f38236554f635",
+        "artifacts": [],
+        "attempt_id": "TASK-DOC-9:attempt:1",
+        "runtime_identity": {
+          "runtime": "courier-server:4cba1fdd50344595a6287360a0078883",
+          "sha": "2fe697ef2b0fbf71a5ce679bc5874e1bc4afa1a5"
+        },
+        "dispatch_id": "dispatch-a4a34b91aba94d48af2406835d932a95",
+        "task_id": "TASK-DOC-9",
+        "goal_id": "goal-07807a7b",
+        "result_id": "result-413f4c1c1924f9a262f3c8b55beac45cb3db59335441ec23a466a90697f66e07",
+        "status": "SUCCESS",
+        "run_id": "271e485b-725f-4cc2-bcf1-8ddd40c0ef61"
+      },
+      "result_received_at": 1790243091.968946
     }
   },
   "workers": {
@@ -761,6 +1283,37 @@
       "available": true,
       "current_task": null,
       "cost_class": "low"
+    },
+    "MAC-MACBOOK-PRO-VON-USER-EDEA96": {
+      "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+      "platform": "macos",
+      "capabilities": [
+        "mac",
+        "bash"
+      ],
+      "authorities": [],
+      "provider": null,
+      "capacity_identity": null,
+      "provider_available": true,
+      "capacity_available": true,
+      "last_seen": 1790252978.3099048,
+      "available": true,
+      "current_task": null,
+      "cost_class": "unknown"
+    },
+    "test": {
+      "worker_id": "test",
+      "platform": "unknown",
+      "capabilities": [],
+      "authorities": [],
+      "provider": null,
+      "capacity_identity": null,
+      "provider_available": true,
+      "capacity_available": true,
+      "last_seen": 1790241391.502742,
+      "available": true,
+      "current_task": null,
+      "cost_class": "unknown"
     }
   },
   "resource_owners": {}
