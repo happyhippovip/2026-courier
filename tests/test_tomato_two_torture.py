@@ -353,7 +353,7 @@ def test_tomato_two_full_torture_chamber():
     # Counterexample Torture: Attempt duplicate submission of completed task
     import urllib.error
     try:
-        dup_res = http_post("/tasks/result", {
+        base_payload = {
             "worker_id": launchd_wid,
             "goal_id": seq_goal_id,
             "task_id": task_seq1,
@@ -361,12 +361,15 @@ def test_tomato_two_full_torture_chamber():
             "attempt_id": t1_final.get("attempt_id"),
             "execution_ref": t1_final.get("execution_ref"),
             "run_id": "duplicate-run-test",
-            "result_id": "duplicate-res-test",
             "status": "SUCCESS",
             "artifacts": [],
-            "provider": "mac_native",
-            "raw_result": {"status": "SUCCESS"}
-        })
+            "runtime_identity": runtime_id
+        }
+        import json, hashlib
+        identity_dup = {k: base_payload.get(k) for k in ("goal_id", "task_id", "attempt_id", "dispatch_id", "execution_ref", "worker_id", "run_id", "status", "artifacts", "runtime_identity")}
+        rid_dup = hashlib.sha256(json.dumps(identity_dup, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        payload = dict(base_payload, result_id=f"result-{rid_dup}", provider="mac_native", raw_result={"status": "SUCCESS"})
+        dup_res = http_post("/tasks/result", payload)
     except urllib.error.HTTPError as e:
         dup_res = json.loads(e.read())
         
