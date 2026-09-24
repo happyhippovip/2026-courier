@@ -55,6 +55,16 @@ def test_freshness_rejection():
     # Put a stale timestamp (5 days ago)
     stale_dt = datetime.utcnow() - timedelta(days=5)
     
+    from scripts import agent_handoff_ledger
+    digest = "0" * 64
+    agent_handoff_ledger._attestation_resolver = lambda url: {
+        "verdict": "PASS",
+        "producer_principal": "prod-1",
+        "verifier_principal": "ver-1",
+        "result_sha256": digest,
+        "goal_id": "test",
+        "binding": {"sha": current_sha, "runtime": runtime},
+    }
     guard["evidence"] = [
         {
             "source_url": "https://example.com/stale",
@@ -62,12 +72,11 @@ def test_freshness_rejection():
             "observed_at": stale_dt.strftime("%Y-%m-%dT%H:%M:%SZ"),
             "evidence_sha": current_sha,
             "runtime_binding": runtime,
-    
-        "validity": "UNKNOWN",
-
+            "validity": "VALID",
             "reason": "stale-proof",
-            "producer_id": "sys",
-            "verifier_id": "sys"
+            "producer_id": "prod-1",
+            "verifier_id": "ver-1",
+            "result_sha256": digest,
         }
     ]
     

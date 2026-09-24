@@ -89,7 +89,25 @@ def _init_ledger(tmp_path):
     return path
 
 
+_ATTESTATIONS = {}
+
+
+@pytest.fixture(autouse=True)
+def _mock_attestation_resolver(monkeypatch):
+    from scripts import agent_handoff_ledger
+    monkeypatch.setattr(agent_handoff_ledger, "_attestation_resolver", lambda url: _ATTESTATIONS.get(url))
+
+
 def _artifact(url, producer="prod-a", verifier="ver-b"):
+    digest = "0" * 64
+    _ATTESTATIONS[url] = {
+        "verdict": "PASS",
+        "producer_principal": producer,
+        "verifier_principal": verifier,
+        "result_sha256": digest,
+        "goal_id": "trust-root-test",
+        "binding": {"sha": SHA, "runtime": RUNTIME},
+    }
     return {
         "source_url": url,
         "source_type": "MACHINE_ARTIFACT",
@@ -100,6 +118,7 @@ def _artifact(url, producer="prod-a", verifier="ver-b"):
         "reason": "test-artifact",
         "producer_id": producer,
         "verifier_id": verifier,
+        "result_sha256": digest,
     }
 
 

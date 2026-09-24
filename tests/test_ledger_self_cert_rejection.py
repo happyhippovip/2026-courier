@@ -73,6 +73,16 @@ def test_two_update_self_cert_rejection():
     
     initialize(ledger_path, record, guard, 5.0)
     
+    from scripts import agent_handoff_ledger
+    digest = "0" * 64
+    agent_handoff_ledger._attestation_resolver = lambda url: {
+        "verdict": "PASS",
+        "producer_principal": "fake-sys",
+        "verifier_principal": "fake-sys2",
+        "result_sha256": digest,
+        "goal_id": "test",
+        "binding": {"sha": current_sha, "runtime": runtime},
+    }
     # Step 1: Plant self-certified artifact
     guard1 = json.loads(json.dumps(guard))
     plant_url = "https://example.com/planted_artifact"
@@ -85,7 +95,8 @@ def test_two_update_self_cert_rejection():
         "validity": "VALID",
         "reason": "self-planted",
         "producer_id": "fake-sys",
-        "verifier_id": "fake-sys2"
+        "verifier_id": "fake-sys2",
+        "result_sha256": digest,
     })
     
     update(ledger_path, 0, {"LAST_EVIDENCE": [plant_url]}, actor, 5.0, guard=guard1)

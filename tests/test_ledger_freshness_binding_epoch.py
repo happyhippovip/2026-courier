@@ -91,8 +91,26 @@ def _base_guard(sha=SHA, runtime=RUNTIME):
     return g
 
 
+_ATTESTATIONS = {}
+
+
+@pytest.fixture(autouse=True)
+def _mock_attestation_resolver(monkeypatch):
+    from scripts import agent_handoff_ledger
+    monkeypatch.setattr(agent_handoff_ledger, "_attestation_resolver", lambda url: _ATTESTATIONS.get(url))
+
+
 def _artifact(url, observed_at=None, sha=SHA, runtime=RUNTIME,
               producer="prod-ext", verifier="ver-ext"):
+    digest = "0" * 64
+    _ATTESTATIONS[url] = {
+        "verdict": "PASS",
+        "producer_principal": producer,
+        "verifier_principal": verifier,
+        "result_sha256": digest,
+        "goal_id": "freshness-test",
+        "binding": {"sha": sha, "runtime": runtime},
+    }
     return {
         "source_url": url,
         "source_type": "MACHINE_ARTIFACT",
@@ -103,6 +121,7 @@ def _artifact(url, observed_at=None, sha=SHA, runtime=RUNTIME,
         "reason": "test-artifact",
         "producer_id": producer,
         "verifier_id": verifier,
+        "result_sha256": digest,
     }
 
 

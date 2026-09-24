@@ -5,8 +5,9 @@ from tests.test_ab_reconcile_unlock import make_client, auth
 def verifier_auth():
     return {"Authorization": f"Bearer verifier-secret"}
 
-def make_result(claimed, result_id="res-1"):
-    return {
+def make_result(claimed, result_id=None):
+    from scripts.integration_contract import _canonical_hash
+    identity = {
         "goal_id": claimed["goal_id"],
         "task_id": claimed["task_id"],
         "attempt_id": claimed["attempt_id"],
@@ -14,10 +15,11 @@ def make_result(claimed, result_id="res-1"):
         "execution_ref": claimed.get("execution_ref", "exec-test"),
         "worker_id": claimed["worker_id"],
         "run_id": "pid-test",
-        "result_id": result_id,
         "status": "SUCCESS",
-        "artifacts": [{"path": "a.txt", "sha256": hashlib.sha256(b"a\n").hexdigest()}]
+        "artifacts": [{"path": "a.txt", "sha256": hashlib.sha256(b"a\n").hexdigest()}],
+        "runtime_identity": claimed["server_binding"],
     }
+    return dict(identity, result_id=result_id or f"result-{_canonical_hash(identity)}")
 
 def test_genuine_attestation_and_alias_attack_and_replay(tmp_path, monkeypatch):
     http = make_client(tmp_path, monkeypatch)
@@ -36,19 +38,19 @@ def test_genuine_attestation_and_alias_attack_and_replay(tmp_path, monkeypatch):
     
     # Genuine attestation
     v = http.post("/tasks/verify", headers=verifier_auth(), json={
-        "task_id": claimed["task_id"], "verifier_id": "V-01", "result_id": "res-1", "verdict": "PASS", "artifacts": result_json["artifacts"]
+        "task_id": claimed["task_id"], "verifier_id": "V-01", "result_id": result_json["result_id"], "verdict": "PASS", "artifacts": result_json["artifacts"], "received_runtime_identity": claimed["server_binding"]
     })
     assert v.status_code == 200
     
     # Replay with same alias -> ACK_DUPLICATE
     v2 = http.post("/tasks/verify", headers=verifier_auth(), json={
-        "task_id": claimed["task_id"], "verifier_id": "V-01", "result_id": "res-1", "verdict": "PASS", "artifacts": result_json["artifacts"]
+        "task_id": claimed["task_id"], "verifier_id": "V-01", "result_id": result_json["result_id"], "verdict": "PASS", "artifacts": result_json["artifacts"], "received_runtime_identity": claimed["server_binding"]
     })
     assert v2.json["status"] == "ACK_DUPLICATE"
     
     # Alias attack: Replay with different alias -> REJECT
     v3 = http.post("/tasks/verify", headers=verifier_auth(), json={
-        "task_id": claimed["task_id"], "verifier_id": "V-02", "result_id": "res-1", "verdict": "PASS", "artifacts": result_json["artifacts"]
+        "task_id": claimed["task_id"], "verifier_id": "V-02", "result_id": result_json["result_id"], "verdict": "PASS", "artifacts": result_json["artifacts"], "received_runtime_identity": claimed["server_binding"]
     })
     assert v3.status_code == 403
 

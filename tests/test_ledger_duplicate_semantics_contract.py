@@ -36,6 +36,15 @@ def base_record():
     }
 
 def base_guard():
+    digest = "0" * 64
+    ahl._attestation_resolver = lambda url: {
+        "verdict": "PASS",
+        "producer_principal": "test",
+        "verifier_principal": "test2",
+        "result_sha256": digest,
+        "goal_id": "probe",
+        "binding": {"sha": "cccccccccccccccccccccccccccccccccccccccc", "runtime": "attacker-runtime"},
+    }
     return {
         "flow": ["EXECUTION", "EVIDENCE", "ACCEPTANCE_GUARD", "LEDGER_TRANSITION", "NEXT_EXECUTABLE_ACTION"],
         "transition_state": "PROVISIONAL",
@@ -48,13 +57,14 @@ def base_guard():
         "evidence": [{
             "source_url": "https://github.com/example/project/actions/runs/test",
             "source_type": "MACHINE_ARTIFACT",
-            "observed_at": "2026-09-18T00:00:00Z",
+            "observed_at": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
             "evidence_sha": "cccccccccccccccccccccccccccccccccccccccc",
             "runtime_binding": "attacker-runtime",
             "validity": "VALID",
             "reason": "test",
             "producer_id": "test",
-            "verifier_id": "test2"
+            "verifier_id": "test2",
+            "result_sha256": digest,
         }],
         "acceptance_predicate": {
             "name": "test-predicate",

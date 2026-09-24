@@ -99,9 +99,23 @@ def guard():
 ART_URL = "https://github.com/example/project/actions/runs/guard-1"
 
 
+_ATTESTATIONS = {}
+ledger._attestation_resolver = lambda url: _ATTESTATIONS.get(url)
+
+
 def artifact(url_suffix, producer, verifier):
+    digest = "0" * 64
+    url = ART_URL + url_suffix
+    _ATTESTATIONS[url] = {
+        "verdict": "PASS",
+        "producer_principal": producer,
+        "verifier_principal": verifier,
+        "result_sha256": digest,
+        "goal_id": "fix-guard rails",
+        "binding": {"sha": SHA, "runtime": RT},
+    }
     return {
-        "source_url": ART_URL + url_suffix,
+        "source_url": url,
         "source_type": "MACHINE_ARTIFACT",
         "observed_at": now_utc(),
         "evidence_sha": SHA,
@@ -110,6 +124,7 @@ def artifact(url_suffix, producer, verifier):
         "reason": "independent attestation",
         "producer_id": producer,
         "verifier_id": verifier,
+        "result_sha256": digest,
     }
 
 
@@ -119,44 +134,50 @@ def with_pass(g, url):
     return g
 
 
+import tempfile
+TMP_DIR = Path(tempfile.gettempdir())
+
+
 class FixGuardTests(unittest.TestCase):
     def test_legit_two_writer_accumulation_accepted(self):
         """DLQ-01 negative: introducer A != promoter B with independent
         producer/verifier must keep working after the writer-independence fix.
         """
-        path = Path("/tmp") / "guard_two_writer.json"
+        path = TMP_DIR / "guard_two_writer.json"
         if path.exists():
             path.unlink()
         ledger.initialize(path, record(), guard(), 5.0)
-        g1 = with_pass(guard(), ART_URL + "-tw")
+        g1 = guard()
         g1["evidence"].append(artifact("-tw", "indep-producer", "indep-verifier"))
         b1 = ledger.update(path, 0, {"TASKS_COMPLETED": 1},
                            "writer-A", 5.0, g1)
         self.assertEqual(b1["acceptance_guard"]["transition_state"],
                          "PROVISIONAL")
-        # Independent writer-B promotes with NO new evidence.
-        b2 = ledger.update(path, 1, {"TASKS_COMPLETED": 2}, "writer-B", 5.0)
+        # Independent writer-B promotes using the pre-existing evidence.
+        g2 = with_pass(b1["acceptance_guard"], ART_URL + "-tw")
+        b2 = ledger.update(path, 1, {"TASKS_COMPLETED": 2}, "writer-B", 5.0, g2)
         self.assertEqual(b2["acceptance_guard"]["transition_state"],
                          "CANONICAL_ACCEPTED")
 
     def test_fresh_bound_evidence_promotes(self):
         """DLQ-02 negative: fresh (now-stamped) bound VALID evidence must keep
         promoting after the recency fix."""
-        path = Path("/tmp/guard_fresh.json")
+        path = TMP_DIR / "guard_fresh.json"
         if path.exists():
             path.unlink()
         ledger.initialize(path, record(), guard(), 5.0)
-        g1 = with_pass(guard(), ART_URL + "-fr")
+        g1 = guard()
         g1["evidence"].append(artifact("-fr", "fresh-prod", "fresh-ver"))
-        ledger.update(path, 0, {"TASKS_COMPLETED": 1}, "w1", 5.0, g1)
-        b2 = ledger.update(path, 1, {"TASKS_COMPLETED": 2}, "w2", 5.0)
+        b1 = ledger.update(path, 0, {"TASKS_COMPLETED": 1}, "w1", 5.0, g1)
+        g2 = with_pass(b1["acceptance_guard"], ART_URL + "-fr")
+        b2 = ledger.update(path, 1, {"TASKS_COMPLETED": 2}, "w2", 5.0, g2)
         self.assertEqual(b2["acceptance_guard"]["transition_state"],
                          "CANONICAL_ACCEPTED")
 
     def test_provisional_init_round_trips(self):
         """DLQ-07 negative: PROVISIONAL INIT must keep loading clean after the
         INIT-must-be-PROVISIONAL fix."""
-        path = Path("/tmp/guard_init.json")
+        path = TMP_DIR / "guard_init.json"
         if path.exists():
             path.unlink()
         b = ledger.initialize(path, record(), guard(), 5.0)
@@ -171,7 +192,7 @@ class FixGuardTests(unittest.TestCase):
         """Migration guard: production-ledger-shaped evidence (GITHUB_COMMIT /
         UNKNOWN, aged date) must never count as physical proof, so a recency
         fix scoped to VALID MACHINE_ARTIFACT cannot strand the live ledger."""
-        path = Path("/tmp/guard_prodshape.json")
+        path = TMP_DIR / "guard_prodshape.json"
         if path.exists():
             path.unlink()
         rec = record()
