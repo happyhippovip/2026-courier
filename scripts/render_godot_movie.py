@@ -12,10 +12,13 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import os
 import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+from scripts.run_content_production_pipeline import discover_godot_binary, discover_ffmpeg_binary
 
 try:
     CanonicalAuthority = None
@@ -57,15 +60,15 @@ def movie_command(godot: str, project: Path, scene: str, avi: Path, fps: int, fr
     ]
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project", type=Path, required=True)
     parser.add_argument("--scene", required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
-    parser.add_argument("--godot", default="/Users/user/Desktop/Godot.app/Contents/MacOS/Godot")
-    parser.add_argument("--ffmpeg", default=shutil.which("ffmpeg") or "/usr/local/bin/ffmpeg")
+    parser.add_argument("--godot", default=None)
+    parser.add_argument("--ffmpeg", default=None)
     parser.add_argument("--dry-run", action="store_true")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     project = args.project.resolve()
     script = scene_script(project, args.scene)
@@ -74,15 +77,28 @@ def main() -> int:
     frames = round(duration * fps)
     if duration <= 0 or fps <= 0 or frames <= 0:
         raise ValueError("Duration, FPS, and frame limit must be positive")
-    if not Path(args.godot).is_file() or not Path(args.ffmpeg).is_file():
-        raise FileNotFoundError("Godot or ffmpeg executable is unavailable")
+
+    godot_bin = args.godot
+    if not godot_bin:
+        godot_bin, _ = discover_godot_binary()
+    if not godot_bin:
+        godot_bin = "/Users/user/Desktop/Godot.app/Contents/MacOS/Godot"
+
+    ffmpeg_bin = args.ffmpeg
+    if not ffmpeg_bin:
+        ffmpeg_bin = discover_ffmpeg_binary()
+    if not ffmpeg_bin:
+        ffmpeg_bin = shutil.which("ffmpeg") or "/usr/local/bin/ffmpeg"
+
+    if not Path(godot_bin).is_file() or not Path(ffmpeg_bin).is_file():
+        raise FileNotFoundError(f"Godot ({godot_bin}) or ffmpeg ({ffmpeg_bin}) executable is unavailable")
 
     output_dir = args.output_dir.resolve()
     avi = output_dir / "render.avi"
     mp4 = output_dir / "render.mp4"
     metadata = output_dir / "render_metadata.json"
 
-    command = movie_command(args.godot, project, args.scene, avi, fps, frames)
+    command = movie_command(godot_bin, project, args.scene, avi, fps, frames)
     print(json.dumps({"duration_seconds": duration, "fps": fps, "frame_limit": frames, "command": command}, separators=(",", ":")))
     if args.dry_run:
         return 0
@@ -90,14 +106,16 @@ def main() -> int:
     auth = CanonicalAuthority() if CanonicalAuthority else None
     owner_id = "render_godot_movie"
     task_id = f"godot_render_{output_dir.name}"
-    success, gen, err = auth.acquire_heavy_authority(
-        owner_id=owner_id,
-        task_id=task_id,
-        metadata={"project": str(project), "scene": args.scene},
-    )
-    if not success:
-        print(f"CANONICAL_AUTHORITY_DENIED: {err}", file=sys.stderr)
-        return 1
+    gen = 0
+    if auth:
+        success, gen, err = auth.acquire_heavy_authority(
+            owner_id=owner_id,
+            task_id=task_id,
+            metadata={"project": str(project), "scene": args.scene},
+        )
+        if not success:
+            print(f"CANONICAL_AUTHORITY_DENIED: {err}", file=sys.stderr)
+            return 1
 
     try:
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -110,7 +128,7 @@ def main() -> int:
             return 1
 
         ffmpeg_command = [
-            args.ffmpeg, "-y", "-i", str(avi), "-map", "0:v:0", "-map", "0:a?",
+            ffmpeg_bin, "-y", "-i", str(avi), "-map", "0:v:0", "-map", "0:a?",
             "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", "-movflags", "+faststart", str(mp4),
         ]
         ffmpeg_result = subprocess.run(ffmpeg_command, check=False)
@@ -118,8 +136,12 @@ def main() -> int:
             print("MP4 conversion failed; AVI preserved for diagnosis.", file=sys.stderr)
             return 1
 
+        ffprobe_bin = str(Path(ffmpeg_bin).with_name("ffprobe.exe" if os.name == "nt" else "ffprobe"))
+        if not Path(ffprobe_bin).is_file():
+            ffprobe_bin = shutil.which("ffprobe") or "ffprobe"
+
         probe = subprocess.run(
-            ["ffprobe", "-v", "error", "-show_entries", "stream=codec_name,width,height:format=duration", "-of", "json", str(mp4)],
+            [ffprobe_bin, "-v", "error", "-show_entries", "stream=codec_name,width,height:format=duration", "-of", "json", str(mp4)],
             text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False,
         )
         if probe.returncode != 0:
@@ -136,11 +158,12 @@ def main() -> int:
         print(json.dumps({"status": "COMPLETE", "mp4": str(mp4), "metadata": str(metadata)}, separators=(",", ":")))
         return 0
     finally:
-        auth.release_heavy_authority(
-            owner_id=owner_id,
-            task_id=task_id,
-            generation=gen,
-        )
+        if auth:
+            auth.release_heavy_authority(
+                owner_id=owner_id,
+                task_id=task_id,
+                generation=gen,
+            )
 
 
 if __name__ == "__main__":
