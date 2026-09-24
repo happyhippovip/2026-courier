@@ -4,6 +4,7 @@ from datetime import datetime
 
 STATE_FILE = os.path.expanduser("~/Downloads/courier_work/wall/state.tsv")
 CLAIMS_DIR = os.path.expanduser("~/Downloads/courier_work/wall/claims")
+LEDGER_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "agent_handoff_ledger.json")
 
 def start_screen_session(slot_id, cmd):
     print(f"[{slot_id}] Starting in background mode...")
@@ -74,7 +75,6 @@ def ramp_up(count):
                 row["state"] = "WORKING"
                 row["updated_at"] = datetime.now().isoformat()
                 
-                # Write standard claim directory
                 claim_path = os.path.join(CLAIMS_DIR, slot_id)
                 os.makedirs(claim_path, exist_ok=True)
                 with open(os.path.join(claim_path, "owner.txt"), "w") as f:
@@ -85,9 +85,53 @@ def ramp_up(count):
     save_state(rows)
     print(f"Ramp up complete: started {launched} new worker slots.")
 
+def verify_proof(proof_ref):
+    # Micro-verification: check deterministic proof file existence
+    if not proof_ref: return False
+    return os.path.exists(proof_ref)
+
+def supervise_loop(run_once=False):
+    print("Starting Supervisor Loop...")
+    while True:
+        rows = load_state()
+        changed = False
+        
+        for row in rows:
+            if row["state"] == "WORKING":
+                # Check if process is still alive
+                if row["pid"]:
+                    try:
+                        os.kill(int(row["pid"]), 0)
+                    except OSError:
+                        row["state"] = "IDLE"
+                        changed = True
+                        
+            elif row["state"] == "RESULT_READY":
+                print(f"[{row['slot_id']}] RESULT_READY. Verifying proof_ref: {row['proof_ref']}")
+                if verify_proof(row["proof_ref"]):
+                    print(f"[{row['slot_id']}] PROOF PASS! Dispatching next task.")
+                    row["state"] = "WORKING"
+                    row["next_action"] = "start_next_task"
+                    row["proof_ref"] = ""
+                    row["updated_at"] = datetime.now().isoformat()
+                    changed = True
+                else:
+                    print(f"[{row['slot_id']}] PROOF FAILED/MISSING.")
+                    row["state"] = "BLOCKED"
+                    row["blocker"] = "missing_deterministic_proof"
+                    row["updated_at"] = datetime.now().isoformat()
+                    changed = True
+                    
+        if changed:
+            save_state(rows)
+            
+        if run_once:
+            break
+        time.sleep(5)
+
 def main():
     if len(sys.argv) < 2:
-        print("Usage: Terminal-Wall-BACKGROUND.py [ramp <count> | status | attach <slot>]")
+        print("Usage: Terminal-Wall-BACKGROUND.py [ramp <count> | status | attach <slot> | supervise]")
         sys.exit(1)
         
     cmd = sys.argv[1]
@@ -104,6 +148,8 @@ def main():
         slot = sys.argv[2]
         print(f"Attaching to {slot}... (Press Ctrl+A, D to detach again)")
         os.execvp("screen", ["screen", "-r", slot])
+    elif cmd == "supervise":
+        supervise_loop(run_once=("--once" in sys.argv))
         
 if __name__ == "__main__":
     main()
