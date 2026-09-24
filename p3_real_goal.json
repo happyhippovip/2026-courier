@@ -1,0 +1,56 @@
+{
+  "goal_id": "GOAL-P3-REAL-DOCS",
+  "goal_text": "Generate a 10-file documentation site for Courier to prove multi-worker orchestration.",
+  "workflow_plan": [
+    {
+      "task_id": "TASK-DOC-1",
+      "instruction": "Create docs/public_site/index.md containing a welcome message for the Courier project.",
+      "required_capabilities": ["mac"]
+    },
+    {
+      "task_id": "TASK-DOC-2",
+      "instruction": "Create docs/public_site/setup.md containing a setup guide for the Courier project.",
+      "required_capabilities": ["windows"]
+    },
+    {
+      "task_id": "TASK-DOC-3",
+      "instruction": "Create docs/public_site/api.md containing an overview of the Courier central API.",
+      "required_capabilities": ["mac"]
+    },
+    {
+      "task_id": "TASK-DOC-4",
+      "instruction": "Create docs/public_site/architecture.md containing a description of the Mac and Windows worker architecture.",
+      "required_capabilities": ["windows"]
+    },
+    {
+      "task_id": "TASK-DOC-5",
+      "instruction": "Create docs/public_site/billing.md containing a placeholder guide for billing and token limits.",
+      "required_capabilities": ["mac"]
+    },
+    {
+      "task_id": "TASK-DOC-6",
+      "instruction": "Create docs/public_site/faq.md containing 3 frequently asked questions about Courier.",
+      "required_capabilities": ["windows"]
+    },
+    {
+      "task_id": "TASK-DOC-7",
+      "instruction": "Create docs/public_site/contributing.md containing guidelines for contributing to Courier.",
+      "required_capabilities": ["mac"]
+    },
+    {
+      "task_id": "TASK-DOC-8",
+      "instruction": "Create docs/public_site/security.md containing the security policies for Courier (e.g., bypassing sandbox, exact process ownership).",
+      "required_capabilities": ["windows"]
+    },
+    {
+      "task_id": "TASK-DOC-9",
+      "instruction": "Create docs/public_site/release_notes.md containing release notes for version 1.0.",
+      "required_capabilities": ["mac"]
+    },
+    {
+      "task_id": "TASK-DOC-10",
+      "instruction": "Read the docs/public_site directory and create a docs/public_site/site_map.md linking to all 9 generated files.",
+      "required_capabilities": ["windows"]
+    }
+  ]
+}
