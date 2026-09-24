@@ -22,3 +22,8 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/your-org/courier"
 Repository = "https://github.com/your-org/courier.git"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+norecursedirs = [".venv", "venv", "tmp*", "test_tmp*", "dist", "build"]

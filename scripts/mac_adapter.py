@@ -173,7 +173,7 @@ class MacAdapter:
                                 else "BEGRENZT"),
                     "gestartet": self.motor.m.get("started_count", 0),
                     "erledigt": self.motor.m.get("done_count", 0),
-                    "verbleibend": ("UNENDLICH" if remaining is None
+                    "verbleibend": ("∞" if remaining is None
                                     else remaining),
                     "aktuelle_aufgabe": self.motor.m.get("current_task"),
                     "letztes_ergebnis": self.motor.m.get("last_result"),
