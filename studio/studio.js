@@ -1074,7 +1074,7 @@ export class LivingHQController {
       return;
     }
 
-    this.taskBoardCards.innerHTML = filtered.map(t => {
+    this.taskBoardCards.innerHTML = filtered.slice(0, 50).map(t => {
       const st = t.status || 'UNKNOWN';
       const provider = t.provider || 'LOCAL_DETERMINISTIC';
       const owner = t.owner_agent || 'UNASSIGNED';
@@ -1212,7 +1212,7 @@ export class LivingHQController {
     if (timeline.length === 0) {
       this.reportModalBody.innerHTML = '<div class="text-muted font-mono" style="text-align: center; padding: 20px;">No timeline events recorded</div>';
     } else {
-      this.reportModalBody.innerHTML = timeline.slice().reverse().map(item => {
+      this.reportModalBody.innerHTML = timeline.slice(-50).reverse().map(item => {
         const time = item.timestamp ? item.timestamp.split('T')[1]?.substring(0, 8) : '';
         const evType = item.event_type || 'EVENT';
         const cls = evType.includes('COMPLETED') ? 'COMPLETED' : (evType.includes('GATE') ? 'GATE' : (evType.includes('ANOMALY') ? 'ANOMALY' : ''));
