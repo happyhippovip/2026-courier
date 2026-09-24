@@ -168,12 +168,76 @@ def run_task(task, config):
     with open(marker_path, "w") as f:
         json.dump(task, f)
 
-    cmd = ["powershell", "-NoProfile", "-NonInteractive", "-Command", "-"]
+    mode = str(task.get("mode", "NATIVE") or "NATIVE").upper()
+    process = None
+    stdin_payload = None
+
+    if mode == "ANTIGRAVITY":
+        agy_bin = shutil.which("agy")
+        if not agy_bin:
+            if marker_path.exists():
+                marker_path.unlink(missing_ok=True)
+            res_json = {
+                "status": "FAILED",
+                "stdout": "",
+                "stderr": "AGY_NOT_FOUND",
+                "goal_id": task.get("goal_id"),
+                "task_id": task.get("task_id"),
+                "attempt_id": task.get("attempt_id"),
+                "dispatch_id": task.get("dispatch_id"),
+                "execution_ref": task.get("execution_ref"),
+                "worker_id": task.get("worker_id") or config["WORKER_ID"],
+                "provider": "antigravity",
+                "run_id": "agy-missing",
+                "result_id": f"result-{uuid.uuid4().hex}",
+                "artifacts": [],
+            }
+            return _attach_durable_result_identity(task, res_json)
+        prompt = (
+            f"Task ID: {task['task_id']}\nInstruction: {instruction}\n\n"
+            f"You are a headless worker on Windows. Execute the instruction in {os.getcwd()}."
+        )
+        cmd = [agy_bin, "-p", prompt, "--dangerously-skip-permissions"]
+    elif mode == "COPILOT":
+        gh_bin = shutil.which("gh")
+        if not gh_bin:
+            if marker_path.exists():
+                marker_path.unlink(missing_ok=True)
+            res_json = {
+                "status": "FAILED",
+                "stdout": "",
+                "stderr": "GH_NOT_FOUND",
+                "goal_id": task.get("goal_id"),
+                "task_id": task.get("task_id"),
+                "attempt_id": task.get("attempt_id"),
+                "dispatch_id": task.get("dispatch_id"),
+                "execution_ref": task.get("execution_ref"),
+                "worker_id": task.get("worker_id") or config["WORKER_ID"],
+                "provider": "copilot",
+                "run_id": "gh-missing",
+                "result_id": f"result-{uuid.uuid4().hex}",
+                "artifacts": [],
+            }
+            return _attach_durable_result_identity(task, res_json)
+        cmd = [gh_bin, "copilot", "suggest", "-t", "shell", f"Task ID: {task['task_id']}\nInstruction: {instruction}"]
+    else:
+        cmd = ["powershell", "-NoProfile", "-NonInteractive", "-Command", "-"]
+        stdin_payload = instruction
+
     try:
         flags = subprocess.CREATE_NEW_PROCESS_GROUP if hasattr(subprocess, 'CREATE_NEW_PROCESS_GROUP') else 0
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, text=True, encoding='utf-8', errors='replace', creationflags=flags)
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            stdin=subprocess.PIPE if stdin_payload is not None else subprocess.DEVNULL,
+            text=True,
+            encoding='utf-8',
+            errors='replace',
+            creationflags=flags,
+        )
         run_id = str(process.pid)
-        stdout, stderr_out = process.communicate(input=instruction, timeout=600)
+        stdout, stderr_out = process.communicate(input=stdin_payload, timeout=600)
         out_clean = stdout.strip()
         stderr = stderr_out
         status = "SUCCESS" if process.returncode == 0 else "FAILED"
@@ -190,20 +254,21 @@ def run_task(task, config):
         stderr = str(e)
     finally:
         # Exact process tree cleanup (no broad kills) using psutil for reliability on Windows
-        try:
-            import psutil
+        if process is not None:
             try:
-                parent = psutil.Process(process.pid)
-                for child in parent.children(recursive=True):
-                    try:
-                        child.kill()
-                    except psutil.NoSuchProcess:
-                        pass
-                parent.kill()
-            except psutil.NoSuchProcess:
+                import psutil
+                try:
+                    parent = psutil.Process(process.pid)
+                    for child in parent.children(recursive=True):
+                        try:
+                            child.kill()
+                        except psutil.NoSuchProcess:
+                            pass
+                    parent.kill()
+                except psutil.NoSuchProcess:
+                    pass
+            except Exception:
                 pass
-        except Exception:
-            pass
     
     if marker_path.exists():
         try:

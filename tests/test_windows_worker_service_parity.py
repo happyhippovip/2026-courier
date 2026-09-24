@@ -139,3 +139,42 @@ def test_windows_daemon_provider_wait_transitions_task_to_waiting_provider(tmp_p
     assert server_app.load_state()["tasks"]["win-wait-1"]["status"] == "WAITING_PROVIDER"
 
 
+def test_windows_daemon_antigravity_mode_uses_skip_permissions_flag(monkeypatch):
+    monkeypatch.setenv("COURIER_API_KEY", "test-secret")
+    from scripts.windows_worker import daemon as win_daemon
+
+    captured_cmds = []
+
+    class DummyProc:
+        pid = 42424
+        returncode = 0
+
+        def communicate(self, input=None, timeout=None):
+            return ('```json\n{"status": "SUCCESS", "stdout_summary": "ok"}\n```', "")
+
+    monkeypatch.setattr(win_daemon.shutil, "which", lambda name: "C:\\bin\\agy.exe" if name == "agy" else None)
+    monkeypatch.setattr(
+        win_daemon.subprocess,
+        "Popen",
+        lambda cmd, **kwargs: (captured_cmds.append(cmd) or DummyProc()),
+    )
+
+    task = {
+        "goal_id": "g-agy",
+        "task_id": "t-agy",
+        "attempt_id": "t-agy:attempt:1",
+        "dispatch_id": "d-agy",
+        "execution_ref": "e-agy",
+        "worker_id": "WIN-AGY",
+        "mode": "ANTIGRAVITY",
+        "instruction": "Verify Windows agy invocation",
+        "server_binding": "local-runtime-v1",
+    }
+    res = win_daemon.run_task(task, {"WORKER_ID": "WIN-AGY"})
+    assert res["status"] == "SUCCESS"
+    assert len(captured_cmds) == 1
+    assert "--dangerously-skip-permissions" in captured_cmds[0]
+    assert captured_cmds[0][0] == "C:\\bin\\agy.exe"
+
+
+
