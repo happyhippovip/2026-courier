@@ -20,10 +20,10 @@ from providers.youtube_provider import YouTubeProvider, MissingCredentialError
 def setup_logging():
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
-def publish_package(manifest_path, dry_run=True):
+def publish_package(manifest_path, dry_run=True, receipts_dir=None):
     logger = logging.getLogger("YouTubePublisher")
     
-    with open(manifest_path, "r") as f:
+    with open(manifest_path, "r", encoding="utf-8") as f:
         manifest = json.load(f)
         
     stages = manifest.get("stages", {})
@@ -63,7 +63,7 @@ def publish_package(manifest_path, dry_run=True):
     idempotency_key = f"yt_{manifest.get('mission_id', 'unknown')}_{manifest.get('workflow_id', 'unknown')}"
     
     try:
-        provider = YouTubeProvider(dry_run=dry_run)
+        provider = YouTubeProvider(dry_run=dry_run, receipts_dir=receipts_dir)
     except MissingCredentialError as e:
         logger.error(f"FAIL-CLOSED: Credentials absent. {e}")
         return False
@@ -81,13 +81,21 @@ def publish_package(manifest_path, dry_run=True):
         logger.error(f"Offline Constraint Active: {e}")
         return False
 
-if __name__ == "__main__":
+
+def main(argv=None) -> int:
     setup_logging()
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="YouTube Package Publisher")
     parser.add_argument("--manifest", required=True, help="Path to pipeline manifest.json")
     parser.add_argument("--live", action="store_true", help="Execute real upload instead of dry-run")
-    args = parser.parse_args()
+    parser.add_argument("--receipts-dir", default=None, help="Directory for upload receipts")
+    parser.add_argument("--json", action="store_true", help="Output machine-readable JSON status")
+    args = parser.parse_args(argv)
     
-    success = publish_package(args.manifest, dry_run=not args.live)
-    if not success:
-        sys.exit(1)
+    success = publish_package(args.manifest, dry_run=not args.live, receipts_dir=args.receipts_dir)
+    if args.json:
+        print(json.dumps({"success": success, "manifest": args.manifest, "live": args.live}))
+    return 0 if success else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

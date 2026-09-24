@@ -15,7 +15,7 @@ from pathlib import Path
 READONLY_SCOPE = "https://www.googleapis.com/auth/youtube.readonly"
 
 
-def check_youtube_auth(dry_run=False, token_path=None, client_secret_path=None):
+def check_youtube_auth(dry_run=False, token_path=None, client_secret_path=None, repo_dir=None):
     """Perform read-only YouTube health check.
 
     Returns a status dict. Never performs destructive or publishing actions.
@@ -34,6 +34,15 @@ def check_youtube_auth(dry_run=False, token_path=None, client_secret_path=None):
         }
 
     # Resolve token/credentials locations safely
+    if not token_path and repo_dir:
+        cand_token = Path(repo_dir) / ".secrets/token.json"
+        if cand_token.is_file():
+            token_path = str(cand_token)
+    if not client_secret_path and repo_dir:
+        cand_secret = Path(repo_dir) / ".secrets/client_secret.json"
+        if cand_secret.is_file():
+            client_secret_path = str(cand_secret)
+
     token_file = (
         token_path
         or os.environ.get("YOUTUBE_OAUTH_TOKEN_PATH")
@@ -49,6 +58,21 @@ def check_youtube_auth(dry_run=False, token_path=None, client_secret_path=None):
     token_exists = Path(token_file).is_file()
     secret_exists = Path(secret_file).is_file()
 
+    # Fallback to keyring
+    if not token_exists and not secret_exists:
+        try:
+            import keyring
+            stored_token = keyring.get_password("courier", "YOUTUBE_OAUTH_TOKEN_PATH")
+            if stored_token and Path(stored_token).is_file():
+                token_file = stored_token
+                token_exists = True
+            stored_secret = keyring.get_password("courier", "YOUTUBE_OAUTH_CLIENT_SECRET_PATH")
+            if stored_secret and Path(stored_secret).is_file():
+                secret_file = stored_secret
+                secret_exists = True
+        except Exception:
+            pass
+
     if not token_exists and not secret_exists:
         return {
             "status": "MISSING_CREDENTIALS",
@@ -59,7 +83,7 @@ def check_youtube_auth(dry_run=False, token_path=None, client_secret_path=None):
             "channel_id": None,
             "channel_title": None,
             "publish_allowed": False,
-            "reason": "Neither token.json nor client_secret.json found in environment or .secrets/"
+            "reason": "Neither token.json nor client_secret.json found in environment, keyring, or .secrets/"
         }
 
     # If google client libraries are available and token exists, attempt read-only call
@@ -133,11 +157,12 @@ def check_youtube_auth(dry_run=False, token_path=None, client_secret_path=None):
     }
 
 
-def main(argv=None):
+def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="YouTube API Health Check (Read-Only)")
     parser.add_argument("--dry-run", action="store_true", help="Run offline health check simulation")
     parser.add_argument("--token-path", default=None, help="Path to token.json")
     parser.add_argument("--client-secret-path", default=None, help="Path to client_secret.json")
+    parser.add_argument("--repo-dir", default=None, help="Repository root path")
     parser.add_argument("--json", action="store_true", help="Output machine-readable JSON only")
     args = parser.parse_args(argv)
 
@@ -145,6 +170,7 @@ def main(argv=None):
         dry_run=args.dry_run,
         token_path=args.token_path,
         client_secret_path=args.client_secret_path,
+        repo_dir=args.repo_dir,
     )
 
     if args.json:
@@ -160,10 +186,10 @@ def main(argv=None):
 
     # Exit code: 0 if DRY_RUN_OK or AUTHENTICATED, 1 otherwise
     if result["status"] in ("DRY_RUN_OK", "AUTHENTICATED"):
-        sys.exit(0)
+        return 0
     else:
-        sys.exit(1)
+        return 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

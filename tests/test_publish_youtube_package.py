@@ -64,3 +64,32 @@ def test_publish_package_dry_run_success(fake_manifest, monkeypatch):
     with open(receipt_path, "r") as f:
         receipt = json.load(f)
         assert receipt["status"] == "dry_run"
+
+
+def test_publish_package_custom_receipts_dir(fake_manifest, monkeypatch, tmp_path):
+    monkeypatch.setenv("YOUTUBE_OAUTH_CLIENT_SECRET_PATH", "/fake/path")
+    custom_dir = tmp_path / "custom_yt_receipts"
+    
+    assert publish_package(str(fake_manifest), dry_run=True, receipts_dir=str(custom_dir)) is True
+    
+    receipt_file = custom_dir / "yt_test-mission_test-wf.json"
+    assert receipt_file.is_file()
+    receipt = json.loads(receipt_file.read_text(encoding="utf-8"))
+    assert receipt["status"] == "dry_run"
+
+
+def test_publish_package_main_cli(fake_manifest, monkeypatch, tmp_path, capsys):
+    from publish_youtube_package import main
+    monkeypatch.setenv("YOUTUBE_OAUTH_CLIENT_SECRET_PATH", "/fake/path")
+    custom_dir = tmp_path / "cli_yt_receipts"
+
+    code = main([
+        "--manifest", str(fake_manifest),
+        "--receipts-dir", str(custom_dir),
+        "--json"
+    ])
+    assert code == 0
+    captured = capsys.readouterr()
+    data = json.loads(captured.out)
+    assert data["success"] is True
+    assert (custom_dir / "yt_test-mission_test-wf.json").is_file()
