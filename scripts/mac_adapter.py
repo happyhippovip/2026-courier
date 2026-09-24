@@ -102,31 +102,39 @@ class MacAdapter:
         # One existing motor supervisor per state directory, including CLI
         # retries. This is an instance lock, not another task/lease authority.
         self.state_dir.mkdir(parents=True, exist_ok=True)
-        with (self.state_dir / "supervisor.lock").open("a+b") as lock:
-            lock.seek(0, os.SEEK_END)
-            if lock.tell() == 0:
-                lock.write(b"\0")
-                lock.flush()
-            try:
-                _lock_stream(lock)
-            except BlockingIOError:
-                return {"started": False, "reason": "supervisor_active"}
-            except OSError:  # Windows (msvcrt) contention surfaces as OSError
-                if os.name != "nt":
-                    raise
-                return {"started": False, "reason": "supervisor_active"}
-            self.motor._load()
-            if start is not None:
-                art, limit, cooldown, local_fake = start
-                mode = "INFINITE" if art == "unendlich" else "FINITE"
-                started = self.motor.start(mode=mode, limit=limit,
-                                           cooldown=cooldown,
-                                           local_fake=local_fake)
-                if not started.get("started"):
+        try:
+            with (self.state_dir / "supervisor.lock").open("a+b") as lock:
+                lock.seek(0, os.SEEK_END)
+                if lock.tell() == 0:
+                    lock.write(b"\0")
+                    lock.flush()
+                try:
+                    _lock_stream(lock)
+                except BlockingIOError:
+                    return {"started": False, "reason": "supervisor_active"}
+                except OSError:  # Windows (msvcrt) contention surfaces as OSError
+                    if os.name != "nt":
+                        raise
+                    return {"started": False, "reason": "supervisor_active"}
+                try:
+                    self.motor._load()
+                    if start is not None:
+                        art, limit, cooldown, local_fake = start
+                        mode = "INFINITE" if art == "unendlich" else "FINITE"
+                        started = self.motor.start(mode=mode, limit=limit,
+                                                   cooldown=cooldown,
+                                                   local_fake=local_fake)
+                        if not started.get("started"):
+                            return self._rebind(started)
+                    return self._rebind(self.motor.supervise(max_cycles, idle_sleep))
+                finally:
                     _unlock_stream(lock)
-                    return self._rebind(started)
-            _unlock_stream(lock)
-            return self._rebind(self.motor.supervise(max_cycles, idle_sleep))
+        except (BlockingIOError, PermissionError):
+            return {"started": False, "reason": "supervisor_active"}
+        except OSError:
+            if os.name != "nt":
+                raise
+            return {"started": False, "reason": "supervisor_active"}
 
     def save_prompt(self, prompt_id, text, semantics="readonly"):
         return self._rebind(

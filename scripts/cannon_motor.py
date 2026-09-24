@@ -333,7 +333,7 @@ class CannonMotor:
         except (MotorError, ValueError, OSError) as exc:
             self._wq('block', task_id, '--reason', 'REAL_EXECUTION_REQUIRES_REVIEW')
             self.m['needs_review'].append(task_id)
-            self.m["state"] = "BLOCKED"
+            self.m["state"] = "ERROR"
             self.m["error"] = str(exc)
             self.m["current_task"] = None
             self._save()
@@ -344,17 +344,17 @@ class CannonMotor:
         if outcome == "unknown":
             self._wq("block", task_id, "--reason", "BRAUCHT_PRUEFUNG")
             self.m["needs_review"].append(task_id)
-            self.m["state"] = "BLOCKED"
+            self.m["state"] = "ERROR"
             self.m["error"] = f"unknown_effect:{task_id}"
             self.m["current_task"] = None
             self._save()
             return {"step": "unknown_halt", "task": task_id,
-                    "state": "BLOCKED"}
+                    "state": "ERROR"}
         completed = self._wq("complete", task_id, "--result-json",
                  json.dumps({"result_id": result_id}),
                  "--stage", "ACCEPTED")
         if completed.get("done") != task_id or completed.get("stage") != "ACCEPTED":
-            self.m["state"] = "BLOCKED"
+            self.m["state"] = "ERROR"
             self.m["error"] = "result_not_reconciled"
             self._save()
             return {"step": "error", "error": self.m["error"]}

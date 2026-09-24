@@ -91,18 +91,18 @@ def action(body):
             return {'ok': True}
             
         if action_type == 'START':
+            if CHILD is not None and CHILD.poll() is None:
+                return {'ok': True, 'already_running': True}
             count = body.get('count', 5)
             mode = body.get('mode', 'BEGRENZT')
             
             if JOB: JOB.close(); JOB = None
             if CHILD is not None and CHILD.stdin: CHILD.stdin.close()
             
-            subprocess.check_call([sys.executable, str(MAC_ADAPTER), "seed", "--n", str(count)])
-            
             art = "unendlich" if mode == "UNENDLICH" else "begrenzt"
-            limit = str(count) if art == "begrenzt" else "1000000"
-            
-            command = [sys.executable, str(MAC_ADAPTER), "dauerlauf", "--art", art, "--limit", limit]
+            command = [sys.executable, str(MAC_ADAPTER), "dauerlauf", "--art", art, "--local-fake"]
+            if art == "begrenzt":
+                command += ["--limit", str(count)]
             CHILD, JOB, _ = launch_gated(command, str(ROOT), dict(os.environ), stderr=subprocess.PIPE)
             
             def bounded_errors(child):
@@ -116,7 +116,7 @@ def action(body):
             subprocess.check_call([sys.executable, str(MAC_ADAPTER), "resume"])
             if not active:
                 # if not active, we need to spawn it again to continue supervision
-                command = [sys.executable, str(MAC_ADAPTER), "dauerlauf", "--art", "begrenzt", "--limit", "1000000"]
+                command = [sys.executable, str(MAC_ADAPTER), "dauerlauf", "--art", "begrenzt", "--limit", "1000000", "--local-fake"]
                 CHILD, JOB, _ = launch_gated(command, str(ROOT), dict(os.environ), stderr=subprocess.PIPE)
                 def bounded_errors(child):
                     for chunk in iter(lambda: child.stderr.read(1024), b''):

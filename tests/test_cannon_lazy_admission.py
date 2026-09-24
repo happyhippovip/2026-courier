@@ -1,6 +1,7 @@
 """Bounded local fake proof. No provider calls or live state mutation."""
 import io
 import json
+import os
 from unittest.mock import Mock
 
 import pytest
@@ -115,11 +116,22 @@ def test_seed_large_count_rejected_before_queue_write(tmp_path):
 
 
 def test_adapter_supervisor_lock_rejects_duplicate(tmp_path):
-    import fcntl
     adapter = MacAdapter(tmp_path)
-    with (tmp_path / "supervisor.lock").open("a") as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    with (tmp_path / "supervisor.lock").open("a+b") as lock:
+        if os.name == "nt":
+            import msvcrt
+            msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
+        else:
+            import fcntl
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         result = adapter.dauerlauf(limit=1000000, local_fake=True, max_cycles=1)
+        if os.name == "nt":
+            import msvcrt
+            lock.seek(0)
+            msvcrt.locking(lock.fileno(), msvcrt.LK_UNLCK, 1)
+        else:
+            import fcntl
+            fcntl.flock(lock, fcntl.LOCK_UN)
     assert result == {"started": False, "reason": "supervisor_active"}
     assert not (tmp_path / "queue.json").exists()
 

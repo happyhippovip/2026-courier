@@ -1,5 +1,7 @@
-"""Short-lived macOS launcher: reuse Cannon, never wait for its lifetime."""
-import fcntl
+try:
+    import fcntl
+except ImportError:
+    fcntl = None
 import json
 import os
 from pathlib import Path
