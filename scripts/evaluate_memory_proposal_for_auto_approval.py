@@ -21,6 +21,7 @@ import json
 import os
 import re
 import sys
+import tempfile
 import uuid
 from pathlib import Path
 
@@ -74,8 +75,12 @@ SECRET_PATTERNS = [
 ]
 
 
+class ChiefPolicyError(RuntimeError):
+    pass
+
+
 def fail(message: str) -> None:
-    raise SystemExit(f"CHIEF_POLICY_ERROR: {message}")
+    raise ChiefPolicyError(f"CHIEF_POLICY_ERROR: {message}")
 
 
 def get_memory_commit(repo_path: Path) -> str:
@@ -260,7 +265,10 @@ def process_proposal_for_chief_decision(
         }
         output_approvals_dir.mkdir(parents=True, exist_ok=True)
         appr_file = output_approvals_dir / f"{task_id}-auto-approval.json"
-        appr_file.write_text(json.dumps(approval_record, indent=2) + "\n", encoding="utf-8")
+        fd, tmp_file = tempfile.mkstemp(dir=output_approvals_dir, prefix="appr_", suffix=".tmp")
+        with open(fd, "w", encoding="utf-8") as f:
+            f.write(json.dumps(approval_record, indent=2) + "\n")
+        os.replace(tmp_file, appr_file)
 
     decision_record = {
         "schema_version": "2.0",
@@ -281,32 +289,40 @@ def process_proposal_for_chief_decision(
 
     output_decisions_dir.mkdir(parents=True, exist_ok=True)
     dec_file = output_decisions_dir / f"{task_id}-chief-decision.json"
-    dec_file.write_text(json.dumps(decision_record, indent=2) + "\n", encoding="utf-8")
+    fd, tmp_file = tempfile.mkstemp(dir=output_decisions_dir, prefix="dec_", suffix=".tmp")
+    with open(fd, "w", encoding="utf-8") as f:
+        f.write(json.dumps(decision_record, indent=2) + "\n")
+    os.replace(tmp_file, dec_file)
 
     return decision_record
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Evaluate Memory Update Proposal under Autonomous Chief Policy (088)")
     parser.add_argument("--proposal", required=True, help="Path to memory update proposal JSON")
     parser.add_argument("--memory-repo", default=str(DEFAULT_MEMORY_REPO_PATH), help="Path to 2026-project-memory")
     parser.add_argument("--output-decisions", default="events/chief-decisions", help="Output directory for decision records")
     parser.add_argument("--output-approvals", default="events/approvals", help="Output directory for generated approvals")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     proposal_path = Path(args.proposal).resolve()
     memory_repo_path = Path(args.memory_repo).resolve()
     dec_dir = Path(args.output_decisions).resolve()
     appr_dir = Path(args.output_approvals).resolve()
 
-    result = process_proposal_for_chief_decision(
-        proposal_file=proposal_path,
-        memory_repo_path=memory_repo_path,
-        output_decisions_dir=dec_dir,
-        output_approvals_dir=appr_dir,
-    )
-    print(json.dumps(result, indent=2))
+    try:
+        result = process_proposal_for_chief_decision(
+            proposal_file=proposal_path,
+            memory_repo_path=memory_repo_path,
+            output_decisions_dir=dec_dir,
+            output_approvals_dir=appr_dir,
+        )
+        print(json.dumps(result, indent=2))
+        return 0
+    except ChiefPolicyError as e:
+        print(str(e), file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

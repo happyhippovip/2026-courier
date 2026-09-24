@@ -18,6 +18,7 @@ import json
 import os
 import re
 import sys
+import tempfile
 import uuid
 from pathlib import Path
 
@@ -39,8 +40,12 @@ DEFAULT_MEMORY_REPO_PATH = resolve_default_memory_repo()
 DEFAULT_SCHEMA_PATH = Path(__file__).resolve().parent.parent / "schemas/memory_update_proposal.schema.json"
 
 
+class MemoryProposalError(RuntimeError):
+    pass
+
+
 def fail(message: str) -> None:
-    raise SystemExit(f"MEMORY_PROPOSAL_ERROR: {message}")
+    raise MemoryProposalError(f"MEMORY_PROPOSAL_ERROR: {message}")
 
 
 def get_memory_commit(repo_path: Path) -> str:
@@ -248,51 +253,66 @@ def build_proposal_from_result(
 
     output_dir.mkdir(parents=True, exist_ok=True)
     out_file = output_dir / f"{task_id}-memory-proposal.json"
-    out_file.write_text(json.dumps(proposal, indent=2) + "\n", encoding="utf-8")
+    fd, tmp_file = tempfile.mkstemp(dir=output_dir, prefix="prop_", suffix=".tmp")
+    with open(fd, "w", encoding="utf-8") as f:
+        f.write(json.dumps(proposal, indent=2) + "\n")
+    os.replace(tmp_file, out_file)
 
     return proposal
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Build and Validate Memory Update Proposal from Antigravity Result")
     parser.add_argument("--result", help="Path to Antigravity result JSON")
     parser.add_argument("--memory-repo", default=str(DEFAULT_MEMORY_REPO_PATH), help="Path to 2026-project-memory")
     parser.add_argument("--output-dir", default="events/proposals", help="Output directory for proposals")
     parser.add_argument("--validate-proposal", help="Validate an existing proposal file against the JSON Schema")
     parser.add_argument("--schema", help="Custom path to memory_update_proposal.schema.json")
-    args = parser.parse_args()
+    parser.add_argument("--json", action="store_true", help="Output machine-readable JSON only")
+    args = parser.parse_args(argv)
 
     schema_path = Path(args.schema).resolve() if args.schema else None
 
-    if args.validate_proposal:
-        prop_file = Path(args.validate_proposal)
-        if not prop_file.exists():
-            fail(f"Proposal file not found: {prop_file}")
-        try:
-            prop_data = json.loads(prop_file.read_text(encoding="utf-8"))
-        except Exception as exc:
-            fail(f"Invalid JSON in proposal file: {exc}")
-        valid, msg = validate_proposal_against_schema(prop_data, schema_path)
-        if not valid:
-            fail(f"Proposal validation failed: {msg}")
-        print(f"MEMORY_UPDATE_PROPOSAL_SCHEMA_VALID: {prop_file.name}")
-        return
+    try:
+        if args.validate_proposal:
+            prop_file = Path(args.validate_proposal)
+            if not prop_file.exists():
+                fail(f"Proposal file not found: {prop_file}")
+            try:
+                prop_data = json.loads(prop_file.read_text(encoding="utf-8"))
+            except Exception as exc:
+                fail(f"Invalid JSON in proposal file: {exc}")
+            valid, msg = validate_proposal_against_schema(prop_data, schema_path)
+            if not valid:
+                fail(f"Proposal validation failed: {msg}")
+            if args.json:
+                print(json.dumps({"status": "VALID", "file": str(prop_file)}))
+            else:
+                print(f"MEMORY_UPDATE_PROPOSAL_SCHEMA_VALID: {prop_file.name}")
+            return 0
 
-    if not args.result:
-        fail("Missing required --result argument")
+        if not args.result:
+            fail("Missing required --result argument")
 
-    result_path = Path(args.result)
-    memory_repo_path = Path(args.memory_repo).resolve()
-    output_dir = Path(args.output_dir)
+        result_path = Path(args.result)
+        memory_repo_path = Path(args.memory_repo).resolve()
+        output_dir = Path(args.output_dir)
 
-    proposal = build_proposal_from_result(
-        result_file=result_path,
-        memory_repo_path=memory_repo_path,
-        output_dir=output_dir,
-        schema_path=schema_path,
-    )
-    print(f"MEMORY_UPDATE_PROPOSAL_CREATED: id={proposal['proposal_id']}, task={proposal['task_id']}, src_res={proposal['source_result_message_id']}")
+        proposal = build_proposal_from_result(
+            result_file=result_path,
+            memory_repo_path=memory_repo_path,
+            output_dir=output_dir,
+            schema_path=schema_path,
+        )
+        if args.json:
+            print(json.dumps(proposal, indent=2))
+        else:
+            print(f"MEMORY_UPDATE_PROPOSAL_CREATED: id={proposal['proposal_id']}, task={proposal['task_id']}, src_res={proposal['source_result_message_id']}")
+        return 0
+    except MemoryProposalError as e:
+        print(str(e), file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

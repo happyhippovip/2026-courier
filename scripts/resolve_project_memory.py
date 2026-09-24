@@ -11,8 +11,10 @@ from __future__ import annotations
 import argparse
 import datetime
 import json
+import os
 import re
 import sys
+import tempfile
 from pathlib import Path
 
 try:
@@ -50,8 +52,12 @@ SENSITIVE_PATTERNS = [
 ]
 
 
+class MemoryResolverError(RuntimeError):
+    pass
+
+
 def fail(message: str) -> None:
-    raise SystemExit(f"MEMORY_RESOLVER_ERROR: {message}")
+    raise MemoryResolverError(f"MEMORY_RESOLVER_ERROR: {message}")
 
 
 def get_memory_commit(repo_path: Path) -> str:
@@ -223,30 +229,38 @@ def build_memory_context_package(
     return context_package
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Resolve read-only Project Memory Context Package for Courier")
     parser.add_argument("--memory-repo", default=str(DEFAULT_MEMORY_REPO_PATH), help="Path to 2026-project-memory")
     parser.add_argument("--instruction", default="", help="Instruction string to analyze for relevant context")
     parser.add_argument("--files", nargs="*", help="Explicit list of files to consult")
     parser.add_argument("--output", help="Optional output JSON file path")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     repo_path = Path(args.memory_repo).resolve()
-    package = build_memory_context_package(
-        memory_repo_path=repo_path,
-        instruction=args.instruction,
-        requested_files=args.files,
-    )
+    try:
+        package = build_memory_context_package(
+            memory_repo_path=repo_path,
+            instruction=args.instruction,
+            requested_files=args.files,
+        )
 
-    out_json = json.dumps(package, indent=2)
-    if args.output:
-        out_file = Path(args.output)
-        out_file.parent.mkdir(parents=True, exist_ok=True)
-        out_file.write_text(out_json + "\n", encoding="utf-8")
-        print(f"MEMORY_CONTEXT_PACKAGE_WRITTEN: {out_file}")
-    else:
-        print(out_json)
+        out_json = json.dumps(package, indent=2)
+        if args.output:
+            out_file = Path(args.output)
+            out_file.parent.mkdir(parents=True, exist_ok=True)
+            fd, tmp_file = tempfile.mkstemp(dir=out_file.parent, prefix="mem_res_", suffix=".tmp")
+            with open(fd, "w", encoding="utf-8") as f:
+                f.write(out_json + "\n")
+            os.replace(tmp_file, out_file)
+            print(f"MEMORY_CONTEXT_PACKAGE_WRITTEN: {out_file}")
+        else:
+            print(out_json)
+        return 0
+    except MemoryResolverError as e:
+        print(str(e), file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
