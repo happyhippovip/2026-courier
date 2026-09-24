@@ -157,7 +157,7 @@ def supervise_loop(run_once=False, canary_mode=False):
                     if row["proof_ref"] and verify_proof(row["proof_ref"]):
                         # Wurde schon verifiziert?
                         mark_task_complete(row["task_id"], success=True)
-                    row["state"], row["pid"], row["tty/pty"], row["task_id"], row["scope"] = "IDLE", "", "", "", ""
+                    row["state"], row["pid"], row["pty"], row["task_id"], row["scope"] = "IDLE", "", "", "", ""
                     changed = True
             elif row["state"] == "RESULT_READY":
                 if verify_proof(row["proof_ref"]):
@@ -166,7 +166,7 @@ def supervise_loop(run_once=False, canary_mode=False):
                 else:
                     row["state"], row["blocker"] = "BLOCKED", "missing_deterministic_proof"
                     gov.timeout_count += 1
-                row["updated_at"] = datetime.now().isoformat()
+                row["claim_created_at"] = datetime.now().isoformat()
                 changed = True
                 
         if active_count < admitted and gov.state != "BACKOFF":
@@ -187,9 +187,9 @@ def supervise_loop(run_once=False, canary_mode=False):
                     else: pid, tty = "CANARY_PID", "CANARY_TTY"
                     
                     if pid:
-                        row["pid"], row["tty/pty"], row["state"] = pid, tty, "WORKING"
+                        row["pid"], row["pty"], row["state"] = pid, tty, "WORKING"
                         row["task_id"], row["scope"] = task_id, scope
-                        row["updated_at"] = datetime.now().isoformat()
+                        row["claim_created_at"] = datetime.now().isoformat()
                         claim_path = os.path.join(CLAIMS_DIR, slot_id)
                         os.makedirs(claim_path, exist_ok=True)
                         with open(os.path.join(claim_path, "owner.txt"), "w") as f:
