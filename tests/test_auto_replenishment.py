@@ -17,22 +17,25 @@ def start_server():
     print("Starting server for test...")
     python_exe = sys.executable
     env = os.environ.copy()
-    env["PORT"] = "8081"
+    env["PORT"] = "18081"
     env["PYTHONPATH"] = str(REPO_ROOT)
-    env["COURIER_SERVER"] = "http://127.0.0.1:8081"
+    env["COURIER_SERVER"] = "http://127.0.0.1:18081"
     env["COURIER_MOCK_CHIEF"] = "1"
     env["COURIER_API_KEY"] = "321606503a874d39b50f6137e3321b7f"
     env["COURIER_VERIFIER_API_KEY"] = "421606503a874d39b50f6137e3321b7f"
+    env["COURIER_VERIFIER_POLL_SECONDS"] = "0.5"
     
     if os.path.exists("/tmp/mock_replenish.txt"):
         os.remove("/tmp/mock_replenish.txt")
 
-    state_file = Path.home() / ".courier_runtime" / "server" / "state" / "central_state.json"
+    runtime_dir = Path.home() / ".courier_runtime"
+    (runtime_dir / "server" / "state").mkdir(parents=True, exist_ok=True)
+    state_file = runtime_dir / "server" / "state" / "central_state.json"
     if state_file.exists():
         state_file.unlink()
 
-    server_proc = subprocess.Popen([python_exe, "-m", "server.app"], env=env, cwd=str(Path.home() / ".courier_runtime"))
-    verifier_proc = subprocess.Popen([python_exe, str(REPO_ROOT / "scripts/courier_verifier.py")], env=env, cwd=str(Path.home() / ".courier_runtime"))
+    server_proc = subprocess.Popen([python_exe, "-m", "server.app"], env=env, cwd=str(runtime_dir))
+    verifier_proc = subprocess.Popen([python_exe, str(REPO_ROOT / "scripts/courier_verifier.py")], env=env, cwd=str(runtime_dir))
     time.sleep(3)
     yield
     print("Stopping server...")
@@ -50,7 +53,7 @@ def start_server():
         verifier_proc.wait()
 
 def http_post(path, data):
-    url = f"http://127.0.0.1:8081{path}"
+    url = f"http://127.0.0.1:18081{path}"
     req = urllib.request.Request(url, method="POST", data=json.dumps(data).encode("utf-8"))
     req.add_header("Content-Type", "application/json")
     req.add_header("Authorization", "Bearer 321606503a874d39b50f6137e3321b7f")
@@ -61,7 +64,7 @@ def http_post(path, data):
         return json.loads(e.read().decode())
 
 def http_get(path):
-    url = f"http://127.0.0.1:8081{path}"
+    url = f"http://127.0.0.1:18081{path}"
     req = urllib.request.Request(url, method="GET")
     req.add_header("Authorization", "Bearer 321606503a874d39b50f6137e3321b7f")
     res = urllib.request.urlopen(req, timeout=5)
@@ -69,6 +72,7 @@ def http_get(path):
 
 
 def test_zero_chat_auto_replenishment():
+    from scripts.integration_contract import _canonical_hash
     # 1. Create a Goal that triggers the mocked Auto-Replenishment
     payload = {
         "goal_id": "goal-replenish-test",
@@ -102,6 +106,19 @@ def test_zero_chat_auto_replenishment():
         
         # 3. Worker executes task (mock)
         task_id = task["task_id"]
+        run_id = f"run-{uuid.uuid4().hex[:8]}"
+        identity = {
+            "goal_id": task.get("goal_id"),
+            "task_id": task_id,
+            "attempt_id": task.get("attempt_id"),
+            "dispatch_id": task.get("dispatch_id"),
+            "execution_ref": task.get("execution_ref"),
+            "worker_id": "linux-worker",
+            "run_id": run_id,
+            "status": "SUCCESS",
+            "artifacts": [],
+            "runtime_identity": task.get("server_binding"),
+        }
         result_payload = {
             "task_id": task_id,
             "worker_id": "linux-worker",
@@ -114,8 +131,9 @@ def test_zero_chat_auto_replenishment():
             "dispatch_id": task.get("dispatch_id"),
             "execution_ref": task.get("execution_ref"),
             "goal_id": task.get("goal_id"),
-            "result_id": f"res-{uuid.uuid4().hex[:8]}",
-            "run_id": f"run-{uuid.uuid4().hex[:8]}"
+            "result_id": f"result-{_canonical_hash(identity)}",
+            "run_id": run_id,
+            "runtime_identity": task.get("server_binding"),
         }
         
         # 4. Worker posts result

@@ -55,6 +55,9 @@ def task_packet_sha256(task: dict[str, Any]) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
+_STATE_WRITE_LOCK = __import__("threading").Lock()
+
+
 def write_state(task_file: Path, state: dict[str, Any]) -> None:
     destination = state_path(task_file)
     temporary = destination.with_name(f".{destination.name}.{os.getpid()}.{uuid.uuid4().hex}.tmp")
@@ -63,9 +66,20 @@ def write_state(task_file: Path, state: dict[str, Any]) -> None:
             handle.write(json.dumps(state, sort_keys=True) + "\n")
             handle.flush()
             os.fsync(handle.fileno())
-        os.replace(temporary, destination)
+        with _STATE_WRITE_LOCK:
+            for attempt in range(5):
+                try:
+                    os.replace(temporary, destination)
+                    break
+                except PermissionError:
+                    if attempt == 4:
+                        raise
+                    time.sleep(0.01 * (attempt + 1))
     finally:
-        temporary.unlink(missing_ok=True)
+        try:
+            temporary.unlink(missing_ok=True)
+        except PermissionError:
+            pass
 
 
 def validate_task(task: dict[str, Any]) -> None:

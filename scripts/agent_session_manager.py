@@ -22,13 +22,20 @@ def _save(data):
         json.dump(data, f, indent=2)
 
 def get_process_info(pid):
+    if os.name == "nt":
+        try:
+            import psutil
+            p = psutil.Process(int(pid))
+            return f"{p.create_time():.3f}:{' '.join(p.cmdline())}"
+        except Exception:
+            return None
     try:
         # Get start time and command line
         out = subprocess.check_output(["ps", "-p", str(pid), "-o", "lstart=,args="], stderr=subprocess.DEVNULL).decode().strip()
         if not out:
             return None
         return out
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, FileNotFoundError):
         return None
 
 def register_task(pid, owner, purpose):
@@ -49,6 +56,19 @@ def register_task(pid, owner, purpose):
     return True
 
 def kill_pid(pid):
+    if os.name == "nt":
+        try:
+            import psutil
+            p = psutil.Process(int(pid))
+            p.terminate()
+            try:
+                p.wait(timeout=3)
+            except psutil.TimeoutExpired:
+                p.kill()
+                p.wait(timeout=1)
+            return True
+        except Exception:
+            return False
     try:
         os.kill(pid, signal.SIGTERM)
         for _ in range(30): # 3 seconds
@@ -57,7 +77,7 @@ def kill_pid(pid):
                 time.sleep(0.1)
             except OSError:
                 return True
-        os.kill(pid, signal.SIGKILL)
+        os.kill(pid, getattr(signal, "SIGKILL", signal.SIGTERM))
         return True
     except OSError:
         return False

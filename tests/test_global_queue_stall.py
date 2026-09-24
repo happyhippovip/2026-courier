@@ -17,9 +17,11 @@ def reset_state():
     state["provider_locks"] = {}
     save_state(state)
 
-def test_waiting_provider_does_not_stall_global_queue(client):
-    reset_state()
+def test_waiting_provider_does_not_stall_global_queue(client, tmp_path, monkeypatch):
     import server.app
+    from scripts.integration_contract import _canonical_hash
+    monkeypatch.setattr(server.app, "STATE_FILE", str(tmp_path / "state.json"))
+    reset_state()
     server.app.API_KEY = "TEST"
 
     # Register worker
@@ -68,7 +70,19 @@ def test_waiting_provider_does_not_stall_global_queue(client):
     assert task_b["task_id"] == "B"
 
     # Set Task B to SUCCESS
-    res = client.post("/tasks/result", json={"task_id": "B", "worker_id": "W2", "result_id": "res-b", "status": "SUCCESS", "execution_ref": task_b["execution_ref"], "run_id": "run1", "artifacts": [], "goal_id": goal_id, "dispatch_id": task_b["dispatch_id"], "attempt_id": task_b["attempt_id"]}, headers={"Authorization": "Bearer TEST"})
+    identity_b = {
+        "goal_id": goal_id,
+        "task_id": "B",
+        "attempt_id": task_b["attempt_id"],
+        "dispatch_id": task_b["dispatch_id"],
+        "execution_ref": task_b["execution_ref"],
+        "worker_id": "W2",
+        "run_id": "run1",
+        "status": "SUCCESS",
+        "artifacts": [],
+        "runtime_identity": task_b.get("server_binding"),
+    }
+    res = client.post("/tasks/result", json={"task_id": "B", "worker_id": "W2", "result_id": f"result-{_canonical_hash(identity_b)}", "status": "SUCCESS", "execution_ref": task_b["execution_ref"], "run_id": "run1", "artifacts": [], "goal_id": goal_id, "dispatch_id": task_b["dispatch_id"], "attempt_id": task_b["attempt_id"], "runtime_identity": task_b.get("server_binding")}, headers={"Authorization": "Bearer TEST"})
     print("Result B:", res.json)
 
     # Worker 2 should be able to claim Task C immediately

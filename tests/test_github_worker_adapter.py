@@ -378,10 +378,26 @@ def test_dispatch_preserves_taskpacket_as_raw_json(tmp_path: Path, monkeypatch):
 
 
 def test_durable_result_preserves_github_run_attempt():
-    task = {**packet(), "execution_ref": "ref"}
+    from scripts.integration_contract import _canonical_hash
+    task = {**packet(), "execution_ref": "ref", "server_binding": "local-runtime-v1"}
+    artifacts = [{"path": "courier_output_dispatch-1.json", "sha256": "a" * 64}]
+    identity = {
+        "goal_id": task["goal_id"],
+        "task_id": task["task_id"],
+        "attempt_id": task["attempt_id"],
+        "dispatch_id": task["dispatch_id"],
+        "execution_ref": task["execution_ref"],
+        "worker_id": task["worker_id"],
+        "run_id": "99",
+        "status": "SUCCESS",
+        "artifacts": artifacts,
+        "runtime_identity": "local-runtime-v1",
+    }
     result = {
-        **packet(), "execution_ref": "ref", "run_id": "99", "run_attempt": "1", "result_id": "result-dispatch-1",
-        "status": "SUCCESS", "artifacts": [{"path": "courier_output_dispatch-1.json", "sha256": "a" * 64}],
+        **packet(), "execution_ref": "ref", "run_id": "99", "run_attempt": "1",
+        "result_id": f"result-{_canonical_hash(identity)}",
+        "status": "SUCCESS", "artifacts": artifacts,
+        "runtime_identity": "local-runtime-v1",
     }
     assert validate_durable_result(task, result)["run_attempt"] == "1"
 

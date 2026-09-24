@@ -113,7 +113,7 @@ def run_loop():
         except Exception as e:
             log(f"Error polling for tasks: {e}")
             
-        time.sleep(5)
+        time.sleep(float(os.environ.get("COURIER_VERIFIER_POLL_SECONDS", "5")))
 
 if __name__ == "__main__":
     run_loop()

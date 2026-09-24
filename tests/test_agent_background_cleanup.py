@@ -13,13 +13,14 @@ def main():
     
     agent_session_manager.audit_orphans()
     
+    sleep_cmd = [sys.executable, "-c", "import time; time.sleep(60)"] if os.name == "nt" else ["tail", "-f", "/dev/null"]
     print("Starting unrelated control process...")
-    control_proc = subprocess.Popen(["tail", "-f", "/dev/null"])
+    control_proc = subprocess.Popen(sleep_cmd)
     
     print("Starting disposable background monitor processes...")
     monitors = []
     for i in range(3):
-        p = subprocess.Popen(["tail", "-f", "/dev/null"])
+        p = subprocess.Popen(sleep_cmd)
         monitors.append(p)
         
     session_id = "TEST-SESSION-123"
@@ -53,14 +54,25 @@ def main():
                 print(f"FAIL: Owned process {p.pid} is still alive (and leaked)!")
                 return 1
             
-    try:
-        os.kill(control_proc.pid, 0)
-        print("PASS: Unrelated control process remains alive.")
-    except OSError:
-        print("FAIL: Unrelated control process was killed!")
-        return 1
+    if os.name == "nt":
+        if control_proc.poll() is None:
+            print("PASS: Unrelated control process remains alive.")
+        else:
+            print("FAIL: Unrelated control process was killed!")
+            return 1
+    else:
+        try:
+            os.kill(control_proc.pid, 0)
+            print("PASS: Unrelated control process remains alive.")
+        except OSError:
+            print("FAIL: Unrelated control process was killed!")
+            return 1
         
     control_proc.terminate()
+    try:
+        control_proc.wait(timeout=2)
+    except Exception:
+        pass
     print("Regression test completed successfully.")
     return 0
 
