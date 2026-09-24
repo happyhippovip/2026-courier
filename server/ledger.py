@@ -8,6 +8,9 @@ def _resolve_ledger_dir():
     env_dir = os.environ.get("COURIER_LEDGER_DIR")
     if env_dir:
         return env_dir
+    env_state = os.environ.get("COURIER_STATE_FILE")
+    if env_state and os.path.normpath(env_state) != os.path.normpath("server/state/central_state.json"):
+        return os.path.join(os.path.dirname(os.path.abspath(env_state)), "events", "ledgers")
     try:
         import sys
         server_app = sys.modules.get("server.app")
@@ -16,6 +19,9 @@ def _resolve_ledger_dir():
             return os.path.join(os.path.dirname(os.path.abspath(str(state_file))), "events", "ledgers")
     except Exception:
         pass
+    if os.environ.get("PYTEST_CURRENT_TEST"):
+        import tempfile
+        return os.path.join(tempfile.gettempdir(), "courier_pytest_events_ledgers")
     return LEDGER_DIR
 
 def _append(ledger_name, data):
