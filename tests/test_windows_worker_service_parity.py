@@ -253,6 +253,23 @@ def test_windows_uninstall_and_demo_and_tempdir_safety():
         finally:
             os.close(fd1)
 
+    # Verify app.cannon.processes.process_identity populates creation_filetime and WindowsJob binds Job Object
+    from app.cannon import processes as cannon_proc
+    child, job, ident = cannon_proc.launch_gated(
+        [sys.executable, "-c", "import time; time.sleep(30)"],
+        cwd=str(repo_root),
+        env=dict(os.environ),
+    )
+    try:
+        assert ident["pid"] == child.pid
+        assert ident["creation_filetime"] is not None
+        if os.name == "nt":
+            assert job.job_handle is not None
+    finally:
+        job.close()
+        child.wait(timeout=5)
+
+
 
 
 

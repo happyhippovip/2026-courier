@@ -15,10 +15,25 @@ from cannon.core import CourierClient
 from cannon.storage import ROOT, InstanceLock, atomic, digest, file_hash, owned
 
 CORE_MANIFEST = ROOT / 'data/cannon-tests/core-source-manifest.json'
+FALLBACK_CANNON_DATA = ROOT / 'tmp_cannon_transfer/data/cannon-tests'
+if not CORE_MANIFEST.exists() and (FALLBACK_CANNON_DATA / 'core-source-manifest.json').exists():
+    CORE_MANIFEST.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(FALLBACK_CANNON_DATA / 'core-source-manifest.json', CORE_MANIFEST)
 # This is a frozen local fixture, never an implicit acceptance of the live Core.
 CORE_HASHES = json.loads(CORE_MANIFEST.read_text(encoding='utf-8'))
 CORE_FIXTURE_ID = digest(CORE_HASHES)
 SNAPSHOT = ROOT / 'data/cannon-tests/core-snapshots' / CORE_FIXTURE_ID
+
+
+def _copy_matching_hash(source: Path, target: Path, expected: str):
+    import hashlib
+    raw = source.read_bytes()
+    for candidate in (raw, raw.replace(b'\r\n', b'\n'), raw.replace(b'\r\n', b'\n').replace(b'\n', b'\r\n')):
+        if hashlib.sha256(candidate).hexdigest() == expected:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(candidate)
+            return
+    raise ValueError('CORE_SNAPSHOT_MUTATED')
 
 
 def snapshot():
@@ -31,20 +46,20 @@ def snapshot():
         if published and json.loads(manifest_path.read_text(encoding='utf-8')) != hashes:
             raise ValueError('CORE_SNAPSHOT_MUTATED')
         for name, expected in hashes.items():
-            relative = Path(name)
+            relative = Path(name.replace('\\', '/'))
             if relative.is_absolute() or '..' in relative.parts:
                 raise ValueError('CORE_FIXTURE_PATH_INVALID')
             target = owned(SNAPSHOT / relative)
             if not target.is_file() and not published:
                 source = ROOT / 'data/cannon-tests/core-snapshot' / relative
-                if file_hash(source) != expected:
-                    raise ValueError('CORE_SNAPSHOT_MUTATED')
-                target.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copyfile(source, target)
+                if not source.is_file():
+                    source = FALLBACK_CANNON_DATA / 'core-snapshot' / relative
+                _copy_matching_hash(source, target, expected)
             if not target.is_file() or file_hash(target) != expected:
                 raise ValueError('CORE_SNAPSHOT_MUTATED')
-        actual = {str(p.relative_to(SNAPSHOT)) for p in SNAPSHOT.rglob('*.py')}
-        if actual != set(hashes):
+        actual = {p.relative_to(SNAPSHOT).as_posix() for p in SNAPSHOT.rglob('*.py')}
+        expected_set = {Path(k.replace('\\', '/')).as_posix() for k in hashes}
+        if actual != expected_set:
             raise ValueError('CORE_SNAPSHOT_UNEXPECTED_CODE')
         if not published:
             atomic(manifest_path, hashes)
