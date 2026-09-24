@@ -1,0 +1,15 @@
+{
+  "desired_slots": 64,
+  "active_limit": 0,
+  "provider_launch_enabled": false,
+  "staged_levels": [1, 4, 8, 16, 32, 64],
+  "minimum_free_memory_mb": 2500,
+  "account_roles": {
+    "ACCOUNT_A": {"role": "P3/runtime", "binding": null},
+    "ACCOUNT_B": {"role": "Windows Muse wall", "binding": null},
+    "ACCOUNT_C": {"role": "recovery/regression", "binding": null},
+    "ACCOUNT_D": {"role": "independent Courier queue", "binding": null},
+    "ACCOUNT_E": {"role": "QA/review", "binding": null},
+    "ACCOUNT_F": {"role": "read-only release/ledger review", "binding": null}
+  }
+}
