@@ -51,7 +51,7 @@ def get_runtime_truth():
     repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     truth_script = os.path.join(repo_root, "scripts", "runtime_truth.py")
     try:
-        out = subprocess.check_output(["python3", truth_script], stderr=subprocess.DEVNULL).decode()
+        out = subprocess.check_output([sys.executable, truth_script], stderr=subprocess.DEVNULL).decode()
         return json.loads(out)
     except Exception:
         return {}

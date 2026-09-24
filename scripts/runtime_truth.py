@@ -53,63 +53,111 @@ def get_runtime_info():
         except Exception:
             pass
             
-    # Process queries using ps (bounded: one blocked query must not stall truth)
-    try:
-        out = subprocess.check_output(["ps", "-eo", "pid,command"], stderr=subprocess.DEVNULL, timeout=10).decode()
-        for line in out.splitlines():
-            if "mac_worker/daemon.py" in line and "grep" not in line:
-                parts = line.strip().split(maxsplit=1)
-                pid = parts[0]
-                cmd = parts[1]
-                
-                info["RUNTIME_PROCESS_IDENTITY"] = f"PID:{pid} EXE:{cmd.split()[0]}"
-                
+    # Process queries (bounded: one blocked query must not stall truth)
+    if sys.platform == "win32":
+        try:
+            import psutil
+            for proc in psutil.process_iter(["pid", "cmdline", "cwd"]):
                 try:
-                    lsof_out = subprocess.check_output(["lsof", "-p", pid, "-a", "-d", "cwd", "-F", "n"], stderr=subprocess.DEVNULL, timeout=10).decode()
-                    cwd = ""
-                    for lline in lsof_out.splitlines():
-                        if lline.startswith('n'):
-                            cwd = lline[1:]
-                except Exception:
-                    cwd = ""
-                
-                if ".courier_runtime" in cmd:
-                    cwd = os.path.expanduser("~/.courier_runtime")
+                    cmdline_list = proc.info.get("cmdline") or []
+                    cmdline = " ".join(cmdline_list)
+                    norm_cmd = cmdline.replace("\\", "/")
+                    if ("windows_worker/daemon.py" in norm_cmd or "mac_worker/daemon.py" in norm_cmd) and "grep" not in norm_cmd:
+                        pid = str(proc.info["pid"])
+                        exe = cmdline_list[0] if cmdline_list else "python.exe"
+                        info["RUNTIME_PROCESS_IDENTITY"] = f"PID:{pid} EXE:{exe}"
+                        cwd = proc.info.get("cwd") or ""
+                        if not cwd and ".courier_runtime" in norm_cmd:
+                            cwd = os.path.expanduser("~/.courier_runtime")
+                        info["DEPLOYED_SHA"] = get_sha(cwd) if cwd else "UNKNOWN"
+                        info["ACTUAL_SERVING_RUNTIME_SHA"] = info["DEPLOYED_SHA"]
+                        
+                        listener = "NONE"
+                        try:
+                            for conn in proc.net_connections(kind="inet"):
+                                if conn.status == psutil.CONN_LISTEN:
+                                    listener = f"{conn.laddr.ip}:{conn.laddr.port}"
+                                    break
+                        except Exception:
+                            pass
+                        info["RUNTIME_LISTENER"] = listener
+                        
+                        health_status = "UNKNOWN"
+                        health_script = os.path.join(cwd, "scripts", "product_health_check.py") if cwd else ""
+                        if not health_script or not os.path.exists(health_script):
+                            health_script = os.path.join(repo_root, "scripts", "product_health_check.py")
+                        if os.path.exists(health_script):
+                            try:
+                                res = subprocess.run([sys.executable, health_script], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=os.environ.copy(), timeout=30)
+                                if res.returncode == 0 and b"HEALTHY" in res.stdout:
+                                    health_status = "HEALTHY"
+                                else:
+                                    health_status = "DEGRADED"
+                            except Exception:
+                                pass
+                        info["RUNTIME_HEALTH"] = health_status
+                        break
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    continue
+        except Exception:
+            pass
+    else:
+        try:
+            out = subprocess.check_output(["ps", "-eo", "pid,command"], stderr=subprocess.DEVNULL, timeout=10).decode()
+            for line in out.splitlines():
+                if "mac_worker/daemon.py" in line and "grep" not in line:
+                    parts = line.strip().split(maxsplit=1)
+                    pid = parts[0]
+                    cmd = parts[1]
                     
-                info["DEPLOYED_SHA"] = get_sha(cwd)
-                info["ACTUAL_SERVING_RUNTIME_SHA"] = info["DEPLOYED_SHA"]
-                
-                # Check listener
-                listener = "NONE"
-                try:
-                    lsof_i = subprocess.check_output(["lsof", "-p", pid, "-a", "-i", "-P", "-n"], stderr=subprocess.DEVNULL, timeout=10).decode()
-                    if lsof_i:
-                        lines = lsof_i.splitlines()
-                        if len(lines) > 1:
-                            listener = lines[-1].split()[-2]
-                except Exception:
-                    pass
-                info["RUNTIME_LISTENER"] = listener
-                
-                # Check health
-                health_status = "UNKNOWN"
-                health_script = os.path.join(cwd, "scripts", "product_health_check.py")
-                if not os.path.exists(health_script):
-                    health_script = os.path.join(repo_root, "scripts", "product_health_check.py")
-                if os.path.exists(health_script):
+                    info["RUNTIME_PROCESS_IDENTITY"] = f"PID:{pid} EXE:{cmd.split()[0]}"
+                    
                     try:
-                        res = subprocess.run([sys.executable, health_script], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=os.environ.copy(), timeout=30)
-                        if res.returncode == 0 and b"HEALTHY" in res.stdout:
-                            health_status = "HEALTHY"
-                        else:
-                            health_status = "DEGRADED"
+                        lsof_out = subprocess.check_output(["lsof", "-p", pid, "-a", "-d", "cwd", "-F", "n"], stderr=subprocess.DEVNULL, timeout=10).decode()
+                        cwd = ""
+                        for lline in lsof_out.splitlines():
+                            if lline.startswith('n'):
+                                cwd = lline[1:]
+                    except Exception:
+                        cwd = ""
+                    
+                    if ".courier_runtime" in cmd:
+                        cwd = os.path.expanduser("~/.courier_runtime")
+                        
+                    info["DEPLOYED_SHA"] = get_sha(cwd)
+                    info["ACTUAL_SERVING_RUNTIME_SHA"] = info["DEPLOYED_SHA"]
+                    
+                    # Check listener
+                    listener = "NONE"
+                    try:
+                        lsof_i = subprocess.check_output(["lsof", "-p", pid, "-a", "-i", "-P", "-n"], stderr=subprocess.DEVNULL, timeout=10).decode()
+                        if lsof_i:
+                            lines = lsof_i.splitlines()
+                            if len(lines) > 1:
+                                listener = lines[-1].split()[-2]
                     except Exception:
                         pass
-                info["RUNTIME_HEALTH"] = health_status
-                
-                break
-    except Exception as e:
-        pass
+                    info["RUNTIME_LISTENER"] = listener
+                    
+                    # Check health
+                    health_status = "UNKNOWN"
+                    health_script = os.path.join(cwd, "scripts", "product_health_check.py")
+                    if not os.path.exists(health_script):
+                        health_script = os.path.join(repo_root, "scripts", "product_health_check.py")
+                    if os.path.exists(health_script):
+                        try:
+                            res = subprocess.run([sys.executable, health_script], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=os.environ.copy(), timeout=30)
+                            if res.returncode == 0 and b"HEALTHY" in res.stdout:
+                                health_status = "HEALTHY"
+                            else:
+                                health_status = "DEGRADED"
+                        except Exception:
+                            pass
+                    info["RUNTIME_HEALTH"] = health_status
+                    
+                    break
+        except Exception:
+            pass
             
     return info
 
