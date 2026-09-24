@@ -100,6 +100,7 @@ def test_concurrency_overlap_and_auto_continue(test_server):
     completion_events = {"A": threading.Event(), "B": threading.Event(), "C": threading.Event()}
     
     exec_times = {}
+    thread_res_ids = {}
     stop_event = threading.Event()
 
     def worker_loop(w_id):
@@ -121,6 +122,7 @@ def test_concurrency_overlap_and_auto_continue(test_server):
                     "status": "SUCCESS", "artifacts": []
                 }
                 requests.post(f"{test_server}/tasks/result", json=result, headers=auth_worker)
+                thread_res_ids[tid] = result["result_id"]
                 completion_events[tid].set()
             else:
                 time.sleep(0.1)
@@ -145,13 +147,13 @@ def test_concurrency_overlap_and_auto_continue(test_server):
     for tid in ("A", "B"):
         t_data = state["tasks"][tid]
         requests.post(f"{test_server}/tasks/verify", json={
-            "task_id": tid, "verifier_id": "v1", "result_id": state["res_ids"][tid],
+            "task_id": tid, "verifier_id": "v1", "result_id": thread_res_ids[tid],
             "artifacts": [], "verdict": "PASS", "received_runtime_identity": t_data.get("server_binding")
         }, headers=auth_verifier)
     
     # Duplicate verify shouldn't double-schedule
     requests.post(f"{test_server}/tasks/verify", json={
-        "task_id": "A", "verifier_id": "v1", "result_id": state["res_ids"]["A"],
+        "task_id": "A", "verifier_id": "v1", "result_id": thread_res_ids["A"],
         "artifacts": [], "verdict": "PASS", "received_runtime_identity": state["tasks"]["A"].get("server_binding")
     }, headers=auth_verifier)
 

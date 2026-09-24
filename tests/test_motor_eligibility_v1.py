@@ -210,7 +210,9 @@ def test_independently_verified_terminal_task_releases_exclusive_resource(motor)
         [task("terminal", required_capabilities=["X"], exclusive_resources=["R"])],
     )
     claimed = claim(motor, "W")
-    result = {
+
+    import hashlib, json, server.app
+    base_res = {
         "goal_id": claimed["goal_id"],
         "task_id": claimed["task_id"],
         "attempt_id": claimed["attempt_id"],
@@ -218,19 +220,23 @@ def test_independently_verified_terminal_task_releases_exclusive_resource(motor)
         "execution_ref": claimed["execution_ref"],
         "worker_id": "W",
         "run_id": "run-1",
-        "result_id": "result-1",
         "status": "SUCCESS",
         "artifacts": [],
+        "runtime_identity": server.app.SERVER_BINDING
     }
+    rid = hashlib.sha256(json.dumps(base_res, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    result = dict(base_res, result_id=f"result-{rid}")
+
     assert motor.post("/tasks/result", headers=auth(), json=result).status_code == 200
     verified = motor.post(
         "/tasks/verify",
         headers={"Authorization": "Bearer verifier-secret"},
         json={
             "task_id": "terminal",
-            "result_id": "result-1",
+            "result_id": result["result_id"],
             "verifier_id": "independent-verifier",
             "verdict": "PASS",
+                "received_runtime_identity": server.app.SERVER_BINDING,
             "artifacts": [],
         },
     )
@@ -254,7 +260,9 @@ def test_protected_code_does_not_unlock_dependencies_before_explicit_merge_appro
         ],
     )
     claimed = claim(motor, "W")
-    result = {
+
+    import hashlib, json, server.app
+    base_res = {
         "goal_id": claimed["goal_id"],
         "task_id": "protected",
         "attempt_id": claimed["attempt_id"],
@@ -262,19 +270,23 @@ def test_protected_code_does_not_unlock_dependencies_before_explicit_merge_appro
         "execution_ref": claimed["execution_ref"],
         "worker_id": "W",
         "run_id": "run-protected",
-        "result_id": "result-protected",
         "status": "SUCCESS",
         "artifacts": [],
+        "runtime_identity": server.app.SERVER_BINDING
     }
+    rid = hashlib.sha256(json.dumps(base_res, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    result = dict(base_res, result_id=f"result-{rid}")
+
     assert motor.post("/tasks/result", headers=auth(), json=result).status_code == 200
     verified = motor.post(
         "/tasks/verify",
         headers={"Authorization": "Bearer verifier-secret"},
         json={
             "task_id": "protected",
-            "result_id": "result-protected",
+            "result_id": result["result_id"],
             "verifier_id": "independent-verifier",
             "verdict": "PASS",
+                "received_runtime_identity": server.app.SERVER_BINDING,
             "artifacts": [],
         },
     )
