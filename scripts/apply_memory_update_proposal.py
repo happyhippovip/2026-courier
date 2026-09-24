@@ -22,6 +22,7 @@ import json
 import os
 import re
 import sys
+import tempfile
 from pathlib import Path
 
 from scripts.resolve_project_memory import resolve_default_memory_repo
@@ -73,8 +74,12 @@ SECRET_PATTERNS = [
 ]
 
 
+class MemoryApplyError(RuntimeError):
+    pass
+
+
 def fail(message: str) -> None:
-    raise SystemExit(f"MEMORY_WRITE_HANDLER_ERROR: {message}")
+    raise MemoryApplyError(f"MEMORY_WRITE_HANDLER_ERROR: {message}")
 
 
 def get_memory_commit(repo_path: Path) -> str:
@@ -284,7 +289,10 @@ def apply_memory_update_proposal(
                 # Append section with content at EOF
                 new_content = current_content.rstrip() + f"\n\n## {section}\n\n{text_to_apply}\n"
 
-            target_path.write_text(new_content, encoding="utf-8")
+            fd, tmp_file = tempfile.mkstemp(dir=target_path.parent, prefix="mem_", suffix=".tmp")
+            with open(fd, "w", encoding="utf-8") as f:
+                f.write(new_content)
+            os.replace(tmp_file, target_path)
 
             # Post-write verification: re-read file
             verified_content = target_path.read_text(encoding="utf-8")
@@ -319,7 +327,7 @@ def apply_memory_update_proposal(
     return result_data
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Apply Chief-Approved Memory Update Proposal to Canonical Project Memory")
     parser.add_argument("--proposal", required=True, help="Path to memory update proposal JSON")
     parser.add_argument("--approval", required=True, help="Path to chief approval JSON")
@@ -327,7 +335,7 @@ def main() -> None:
     parser.add_argument("--dry-run", action="store_true", help="Simulate changes without writing to memory files")
     parser.add_argument("--proposal-schema", help="Custom proposal schema path")
     parser.add_argument("--approval-schema", help="Custom approval schema path")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     proposal_path = Path(args.proposal).resolve()
     approval_path = Path(args.approval).resolve()
@@ -335,16 +343,21 @@ def main() -> None:
     prop_schema = Path(args.proposal_schema).resolve() if args.proposal_schema else None
     appr_schema = Path(args.approval_schema).resolve() if args.approval_schema else None
 
-    result = apply_memory_update_proposal(
-        proposal_file=proposal_path,
-        approval_file=approval_path,
-        memory_repo_path=memory_repo_path,
-        dry_run=args.dry_run,
-        proposal_schema_path=prop_schema,
-        approval_schema_path=appr_schema,
-    )
-    print(json.dumps(result, indent=2))
+    try:
+        result = apply_memory_update_proposal(
+            proposal_file=proposal_path,
+            approval_file=approval_path,
+            memory_repo_path=memory_repo_path,
+            dry_run=args.dry_run,
+            proposal_schema_path=prop_schema,
+            approval_schema_path=appr_schema,
+        )
+        print(json.dumps(result, indent=2))
+        return 0
+    except MemoryApplyError as e:
+        print(str(e), file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

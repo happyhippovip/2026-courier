@@ -36,3 +36,18 @@ def test_tiktok_auth_check_cli_dry_run():
     assert data["status"] == "DRY_RUN_OK"
     assert data["read_only"] is True
     assert data["publish_allowed"] is False
+
+
+def test_tiktok_auth_check_repo_dir(monkeypatch, tmp_path):
+    monkeypatch.delenv("TIKTOK_ACCESS_TOKEN", raising=False)
+    monkeypatch.delenv("TIKTOK_TOKEN_PATH", raising=False)
+    secrets_dir = tmp_path / ".secrets"
+    secrets_dir.mkdir()
+    token_file = secrets_dir / "tiktok_token.json"
+    token_file.write_text(json.dumps({"access_token": "mock_token_abc"}), encoding="utf-8")
+
+    # When repo_dir is supplied, resolves token from repo_dir/.secrets/tiktok_token.json
+    res = check_tiktok_auth(dry_run=False, repo_dir=str(tmp_path))
+    # It will attempt HTTP call with mock_token_abc and fail with AUTH_ERROR (not MISSING_CREDENTIALS)
+    assert res["status"] in ("AUTH_ERROR", "AUTHENTICATED")
+    assert res["status"] != "MISSING_CREDENTIALS"

@@ -18,7 +18,7 @@ READONLY_SCOPE = "user.info.basic"
 TIKTOK_USER_INFO_URL = "https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name"
 
 
-def check_tiktok_auth(dry_run=False, token=None, token_path=None):
+def check_tiktok_auth(dry_run=False, token=None, token_path=None, repo_dir=None):
     """Perform read-only TikTok health check.
 
     Returns a status dict. Never performs destructive or publishing actions.
@@ -36,8 +36,13 @@ def check_tiktok_auth(dry_run=False, token=None, token_path=None):
             "reason": "dry_run_mode_no_network"
         }
 
-    # Resolve token safely from param, env, or secrets file
+    # Resolve token safely from param, env, secrets file, or keyring
     resolved_token = token or os.environ.get("TIKTOK_ACCESS_TOKEN")
+    if not resolved_token and repo_dir:
+        candidate = Path(repo_dir) / ".secrets/tiktok_token.json"
+        if candidate.is_file():
+            token_path = str(candidate)
+
     token_file = token_path or os.environ.get("TIKTOK_TOKEN_PATH") or ".secrets/tiktok_token.json"
 
     if not resolved_token and Path(token_file).is_file():
@@ -46,6 +51,15 @@ def check_tiktok_auth(dry_run=False, token=None, token_path=None):
             resolved_token = data.get("access_token") or data.get("token")
         except Exception:
             resolved_token = None
+
+    if not resolved_token:
+        try:
+            import keyring
+            stored = keyring.get_password("courier", "TIKTOK_ACCESS_TOKEN")
+            if stored:
+                resolved_token = stored
+        except Exception:
+            pass
 
     if not resolved_token:
         return {
@@ -57,7 +71,7 @@ def check_tiktok_auth(dry_run=False, token=None, token_path=None):
             "open_id": None,
             "display_name": None,
             "publish_allowed": False,
-            "reason": "No TikTok access token found in environment or .secrets/tiktok_token.json"
+            "reason": "No TikTok access token found in environment, keyring, or .secrets/tiktok_token.json"
         }
 
     # Execute read-only request using stdlib urllib
@@ -118,11 +132,12 @@ def check_tiktok_auth(dry_run=False, token=None, token_path=None):
         }
 
 
-def main(argv=None):
+def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="TikTok API Health Check (Read-Only)")
     parser.add_argument("--dry-run", action="store_true", help="Run offline health check simulation")
     parser.add_argument("--token", default=None, help="TikTok access token")
     parser.add_argument("--token-path", default=None, help="Path to tiktok_token.json")
+    parser.add_argument("--repo-dir", default=None, help="Repository root path")
     parser.add_argument("--json", action="store_true", help="Output machine-readable JSON only")
     args = parser.parse_args(argv)
 
@@ -130,6 +145,7 @@ def main(argv=None):
         dry_run=args.dry_run,
         token=args.token,
         token_path=args.token_path,
+        repo_dir=args.repo_dir,
     )
 
     if args.json:
@@ -146,10 +162,10 @@ def main(argv=None):
             print(f"Error: {result['error']}")
 
     if result["status"] in ("DRY_RUN_OK", "AUTHENTICATED"):
-        sys.exit(0)
+        return 0
     else:
-        sys.exit(1)
+        return 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
