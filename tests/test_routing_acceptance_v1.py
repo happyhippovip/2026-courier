@@ -67,6 +67,21 @@ def claim(http, worker_id):
 
 
 def result_for(claimed, worker_id, result_id, status, stderr=None):
+    from scripts.integration_contract import _canonical_hash
+    run_id = f"run-{result_id}"
+    runtime_identity = claimed.get("server_binding")
+    identity = {
+        "goal_id": claimed["goal_id"],
+        "task_id": claimed["task_id"],
+        "attempt_id": claimed["attempt_id"],
+        "dispatch_id": claimed["dispatch_id"],
+        "execution_ref": claimed["execution_ref"],
+        "worker_id": worker_id,
+        "run_id": run_id,
+        "status": status,
+        "artifacts": [],
+        "runtime_identity": runtime_identity,
+    }
     result = {
         "goal_id": claimed["goal_id"],
         "task_id": claimed["task_id"],
@@ -74,10 +89,11 @@ def result_for(claimed, worker_id, result_id, status, stderr=None):
         "dispatch_id": claimed["dispatch_id"],
         "execution_ref": claimed["execution_ref"],
         "worker_id": worker_id,
-        "run_id": f"run-{result_id}",
-        "result_id": result_id,
+        "run_id": run_id,
+        "result_id": f"result-{_canonical_hash(identity)}",
         "status": status,
         "artifacts": [],
+        "runtime_identity": runtime_identity,
     }
     if stderr is not None:
         result["stderr"] = stderr
@@ -212,11 +228,11 @@ def test_reconciliation_exposes_next_ready_task_without_manual_state_edit(motor)
     first = claim(motor, "W")
     assert first["task_id"] == "first"
 
-    result_id = "result-first-success"
+    payload = result_for(first, "W", "result-first-success", "SUCCESS")
     received = motor.post(
         "/tasks/result",
         headers=auth(),
-        json=result_for(first, "W", result_id, "SUCCESS"),
+        json=payload,
     )
     assert received.status_code == 200
 
@@ -225,7 +241,8 @@ def test_reconciliation_exposes_next_ready_task_without_manual_state_edit(motor)
         headers=verifier_auth(),
         json={
             "task_id": "first",
-            "result_id": result_id,
+            "result_id": payload["result_id"],
+            "received_runtime_identity": first.get("server_binding"),
             "verifier_id": "independent-verifier",
             "verdict": "PASS",
             "artifacts": [],

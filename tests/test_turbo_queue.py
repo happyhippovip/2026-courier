@@ -143,7 +143,7 @@ def test_turbo_queue_integration_api_path(app_state):
     verify_invalid_payload = {
         "task_id": t1["task_id"],
         "verifier_id": "v1",
-        "result_id": "res_A2",
+        "result_id": result_A["result_id"],
         "artifacts": [],
         "verdict": "PASS",
         "received_runtime_identity": t1.get("server_binding")
@@ -156,7 +156,7 @@ def test_turbo_queue_integration_api_path(app_state):
     verify_missing_runtime = {
         "task_id": t1["task_id"],
         "verifier_id": "v1",
-        "result_id": "res_A2",
+        "result_id": result_A["result_id"],
         "artifacts": [],
         "verdict": "PASS"
     }
@@ -168,7 +168,7 @@ def test_turbo_queue_integration_api_path(app_state):
     verify_valid_A = {
         "task_id": t1["task_id"],
         "verifier_id": "v1",
-        "result_id": "res_A2",
+        "result_id": result_A["result_id"],
         "artifacts": [],
         "verdict": "PASS",
         "received_runtime_identity": t1.get("server_binding")
@@ -186,7 +186,7 @@ def test_turbo_queue_integration_api_path(app_state):
     verify_valid_B = {
         "task_id": t2["task_id"],
         "verifier_id": "v2",
-        "result_id": "res_B2",
+        "result_id": result_B["result_id"],
         "artifacts": [],
         "verdict": "PASS",
         "received_runtime_identity": t2.get("server_binding")

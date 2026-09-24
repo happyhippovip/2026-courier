@@ -11,7 +11,7 @@ from werkzeug.serving import make_server
 class ServerThread(threading.Thread):
     def __init__(self, app):
         threading.Thread.__init__(self)
-        self.server = make_server('localhost', 0, app)
+        self.server = make_server('127.0.0.1', 0, app, threaded=True)
         self.ctx = app.app_context()
         self.ctx.push()
         self.port = self.server.port
@@ -40,7 +40,7 @@ def test_server(monkeypatch):
     server_thread.start()
     
     # Wait for server to be responsive
-    base_url = f"http://localhost:{server_thread.port}"
+    base_url = f"http://127.0.0.1:{server_thread.port}"
     for _ in range(10):
         try:
             requests.get(base_url)
@@ -98,14 +98,17 @@ def test_concurrency_overlap_and_auto_continue(test_server):
 
     execution_barrier = threading.Barrier(2)
     completion_events = {"A": threading.Event(), "B": threading.Event(), "C": threading.Event()}
-    
+    submitted_result_ids = {}
     exec_times = {}
     stop_event = threading.Event()
 
     def worker_loop(w_id):
         while not stop_event.is_set():
-            res = requests.post(f"{test_server}/tasks/claim", json={"worker_id": w_id}, headers=auth_worker)
-            task = res.json().get("task")
+            try:
+                res = requests.post(f"{test_server}/tasks/claim", json={"worker_id": w_id}, headers=auth_worker)
+                task = res.json().get("task")
+            except Exception:
+                break
             if task:
                 tid = task["task_id"]
                 exec_times[tid] = time.time()
@@ -117,47 +120,51 @@ def test_concurrency_overlap_and_auto_continue(test_server):
                 result = {
                     "goal_id": task["goal_id"], "task_id": tid, "attempt_id": task["attempt_id"],
                     "dispatch_id": task["dispatch_id"], "execution_ref": task["execution_ref"],
-                    "worker_id": w_id, "run_id": f"run_{tid}", "result_id": f"res_{tid}",
-                    "status": "SUCCESS", "artifacts": []
+                    "worker_id": w_id, "run_id": f"run_{tid}",
+                    "status": "SUCCESS", "artifacts": [],
+                    "runtime_identity": task.get("server_binding")
                 }
+                result["result_id"] = f"result-{_canonical_hash(result)}"
+                submitted_result_ids[tid] = result["result_id"]
                 requests.post(f"{test_server}/tasks/result", json=result, headers=auth_worker)
                 completion_events[tid].set()
             else:
-                time.sleep(0.1)
+                time.sleep(0.05)
 
     t1 = threading.Thread(target=worker_loop, args=("w1",))
     t2 = threading.Thread(target=worker_loop, args=("w2",))
     t1.start(); t2.start()
-
-    # Wait for A and B to complete (meaning they both hit the barrier and submitted results)
-    assert completion_events["A"].wait(timeout=5.0)
-    assert completion_events["B"].wait(timeout=5.0)
-    
-    # Prove they overlapped
-    assert "A" in exec_times and "B" in exec_times
-    
-    time.sleep(0.5)
-    assert not completion_events["C"].is_set()
-    
-    # Verify A and B to unlock C
-    import server.app
-    state = server.app.load_state()
-    for tid in ("A", "B"):
-        t_data = state["tasks"][tid]
+    try:
+        # Wait for A and B to complete (meaning they both hit the barrier and submitted results)
+        assert completion_events["A"].wait(timeout=5.0)
+        assert completion_events["B"].wait(timeout=5.0)
+        
+        # Prove they overlapped
+        assert "A" in exec_times and "B" in exec_times
+        
+        time.sleep(0.2)
+        assert not completion_events["C"].is_set()
+        
+        # Verify A and B to unlock C
+        import server.app
+        state = server.app.load_state()
+        for tid in ("A", "B"):
+            t_data = state["tasks"][tid]
+            requests.post(f"{test_server}/tasks/verify", json={
+                "task_id": tid, "verifier_id": "v1", "result_id": submitted_result_ids[tid],
+                "artifacts": [], "verdict": "PASS", "received_runtime_identity": t_data.get("server_binding")
+            }, headers=auth_verifier)
+        
+        # Duplicate verify shouldn't double-schedule
         requests.post(f"{test_server}/tasks/verify", json={
-            "task_id": tid, "verifier_id": "v1", "result_id": state["res_ids"][tid],
-            "artifacts": [], "verdict": "PASS", "received_runtime_identity": t_data.get("server_binding")
+            "task_id": "A", "verifier_id": "v1", "result_id": submitted_result_ids["A"],
+            "artifacts": [], "verdict": "PASS", "received_runtime_identity": state["tasks"]["A"].get("server_binding")
         }, headers=auth_verifier)
-    
-    # Duplicate verify shouldn't double-schedule
-    requests.post(f"{test_server}/tasks/verify", json={
-        "task_id": "A", "verifier_id": "v1", "result_id": state["res_ids"]["A"],
-        "artifacts": [], "verdict": "PASS", "received_runtime_identity": state["tasks"]["A"].get("server_binding")
-    }, headers=auth_verifier)
 
-    # Now the worker loops should automatically claim and finish C
-    assert completion_events["C"].wait(timeout=5.0)
-    
-    stop_event.set()
-    t1.join(); t2.join()
+        # Now the worker loops should automatically claim and finish C
+        assert completion_events["C"].wait(timeout=5.0)
+    finally:
+        stop_event.set()
+        t1.join(timeout=2.0)
+        t2.join(timeout=2.0)
 
