@@ -752,7 +752,7 @@ def update(
             h_updater = h.get("updated_by")
             for e in h.get("acceptance_guard", {}).get("evidence", []):
                 url = e.get("source_url")
-                if not url: continue
+                if not url: raise SelfCertificationError(f"predicate PASS requires prior evidence for {url}")
                 if url not in introducer_map:
                     introducer_map[url] = {h_updater}
                 if url not in first_observed_map:
@@ -822,6 +822,7 @@ def update(
         # the specific prohibition instead of a generic evidence error.
         # This only changes which LedgerError surfaces: whenever this
         # breaks, the gate below raises.
+        has_unverified_pass_evidence = False
         defer_to_clean_idle_gate = updates.get("CLEAN_IDLE") == "YES" and (unproven or not has_physical_proof)
         for name, result in guard.get("acceptance_predicate", {}).get("results", {}).items():
             if defer_to_clean_idle_gate:
@@ -844,6 +845,7 @@ def update(
                         # transition logic below still forces PROVISIONAL.
                         pe = next((ev for ev in prior_evidence if ev.get("source_url") == url), None)
                         if not pe:
+                            has_unverified_pass_evidence = True
                             continue
                         receipt = _verify_attestation(url)
                         if not receipt or receipt.get("verdict") != "PASS" or \
@@ -867,6 +869,7 @@ def update(
 
         logger.debug("introducer_map=%s", introducer_map)
         logger.debug("updated_by=%s", updated_by)
+        print(f"DEBUG: unproven={unproven}, has_physical_proof={has_physical_proof}, has_unverified_pass_evidence={has_unverified_pass_evidence}")
         logger.debug("unproven=%s, has_physical_proof=%s", unproven, has_physical_proof)
         if updates.get("CLEAN_IDLE") == "YES" and (unproven or not has_physical_proof):
 
@@ -880,7 +883,7 @@ def update(
             guard["transition_state"] = "PROVISIONAL"
             if record.get("STATUS") == "CLEAN_IDLE":
                 record["STATUS"] = "READY"
-        elif not unproven and has_physical_proof:
+        elif not unproven and has_physical_proof and not has_unverified_pass_evidence:
             guard["transition_state"] = "CANONICAL_ACCEPTED"
             if "ISSUE_STATE" in guard["acceptance_predicate"]["results"]:
                 guard["acceptance_predicate"]["results"]["ISSUE_STATE"]["status"] = "PASS"

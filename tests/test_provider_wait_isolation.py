@@ -6,10 +6,11 @@ import shutil
 import tempfile
 from pathlib import Path
 
-os.environ["COURIER_API_KEY"] = "test-key-12345"
-os.environ["COURIER_VERIFIER_API_KEY"] = "test-key-12345"
+os.environ.setdefault("COURIER_API_KEY", "test-key-12345")
+os.environ.setdefault("COURIER_VERIFIER_API_KEY", "test-key-verifier-12345")
 
 from server.app import app, STATE_FILE, STATE_LOCK
+import server.app as app_module
 
 @pytest.fixture
 def client():
@@ -46,7 +47,7 @@ def register_worker(client, worker_id, provider):
         "worker_id": worker_id,
         "provider": provider,
         "capabilities": [provider, "macos"]
-    }, headers={"Authorization": "Bearer test-key-12345"})
+    }, headers={"Authorization": f"Bearer {app_module.API_KEY}"})
     assert response.status_code == 200
 
 def create_task(client, task_id, required_provider):
@@ -75,14 +76,14 @@ def create_task(client, task_id, required_provider):
             json.dump(state, f)
 
 def claim_task(client, worker_id):
-    response = client.post("/tasks/claim", json={"worker_id": worker_id}, headers={"Authorization": "Bearer test-key-12345"})
+    response = client.post("/tasks/claim", json={"worker_id": worker_id}, headers={"Authorization": f"Bearer {app_module.API_KEY}"})
     return response.get_json()
 
 def provider_wait(client, worker_id, task_id):
     response = client.post(f"/tasks/{task_id}/provider_wait", json={
         "worker_id": worker_id,
         "reason": "429 Too Many Requests"
-    }, headers={"Authorization": "Bearer test-key-12345"})
+    }, headers={"Authorization": f"Bearer {app_module.API_KEY}"})
     return response.get_json()
 
 def test_provider_wait_isolation(client):

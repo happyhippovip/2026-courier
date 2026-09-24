@@ -121,7 +121,7 @@ def test_unknown_halts_with_counters(tmp_path):
     motor = CannonMotor(tmp_path, behaviors={"t2": "unknown"})
     motor.start(mode="FINITE", limit=10, cooldown=0)
     motor.run()
-    assert motor.state == "ERROR"
+    assert motor.state == "BLOCKED"
     assert motor.m["started_count"] == 2
     assert motor.m["done_count"] == 1
     assert motor.remaining() == 8

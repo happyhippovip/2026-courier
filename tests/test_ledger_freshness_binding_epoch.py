@@ -24,6 +24,21 @@ from unittest.mock import patch
 from scripts.agent_handoff_ledger import (
     initialize, update, validate_guard, LedgerError,
 )
+import scripts.agent_handoff_ledger as ahl
+
+def mock_resolver(url):
+    return {
+        "verdict": "PASS",
+        "producer_principal": "prod-ext",
+        "verifier_principal": "ver-ext",
+        "result_sha256": "fake-hash",
+        "goal_id": "freshness-test",
+        "binding": {"sha": SHA, "runtime": RUNTIME}
+    }
+@pytest.fixture(autouse=True)
+def apply_mock_resolver(monkeypatch):
+    monkeypatch.setattr(ahl, '_attestation_resolver', mock_resolver)
+
 from tests.test_agent_handoff_ledger import guard as make_guard
 
 SHA = "0000000000000000000000000000000000000000"
@@ -103,6 +118,7 @@ def _artifact(url, observed_at=None, sha=SHA, runtime=RUNTIME,
         "reason": "test-artifact",
         "producer_id": producer,
         "verifier_id": verifier,
+        "result_sha256": "fake-hash",
     }
 
 

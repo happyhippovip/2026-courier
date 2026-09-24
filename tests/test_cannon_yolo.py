@@ -57,7 +57,7 @@ def W(tmp_path):
     fake = tmp_path / "muse"; fake.write_text(FAKE); fake.chmod(0o755)
     (tmp_path / "desk").mkdir(); dk = tmp_path / "desk" / "Courier Symphony Cannon.decoy"; dk.write_text("orig")
     e = {**ge, "COURIER_CANNON_PROFILE": "yolo", "COURIER_CANNON_HOME": str(tmp_path / "home"), "COURIER_CANNON_ROOT": str(repo),
-         "COURIER_MUSE_BIN": str(fake), "COURIER_DESKTOP_ITEM": str(dk), "COURIER_YOLO_TASK_SECONDS": "6", "COURIER_YOLO_IDLE_SECONDS": "2",
+         "COURIER_MUSE_BIN": str(fake), "COURIER_DESKTOP_ITEM": str(dk), "COURIER_YOLO_TASK_SECONDS": "15", "COURIER_YOLO_IDLE_SECONDS": "5",
          "FAKE_REPO": str(repo), "FAKE_DESKTOP": str(dk)}
     return types.SimpleNamespace(repo=repo, g=g, env=e, tmp=tmp_path, fake=fake)
 
