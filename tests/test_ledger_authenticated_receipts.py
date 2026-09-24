@@ -56,11 +56,11 @@ def context(tmp_path, monkeypatch):
     artifact.write_bytes(b'independent artifact\n')
     digest = hashlib.sha256(artifact.read_bytes()).hexdigest()
     assert verify_artifact(str(artifact), digest)
-    result = {k:task[k] for k in ('goal_id','task_id','attempt_id','dispatch_id','execution_ref','worker_id')}
-    result.update(run_id='worker-process', result_id='res-1', status='SUCCESS', artifacts=[{'path':'a.txt','sha256':digest}])
+    from scripts.integration_contract import verify_result
+    result = verify_result(task, dict(task, run_id='worker-process', status='SUCCESS'), tmp_path)
     result.update(producer_id='forged', verifier_id='forged', producer_principal='forged')
     assert http.post('/tasks/result', headers=AUTH, json=result).status_code == 200
-    verification = {'task_id':task['task_id'], 'result_id':'res-1', 'verifier_id':'independent-verifier', 'verdict':'PASS', 'received_runtime_identity': server.SERVER_BINDING, 'artifacts':result['artifacts']}
+    verification = {'task_id':task['task_id'], 'result_id':result['result_id'], 'verifier_id':'independent-verifier', 'verdict':'PASS', 'received_runtime_identity': server.SERVER_BINDING, 'artifacts':result['artifacts']}
     return {'http':http,'goal':goal,'task':task,'verification':verification,'tmp':tmp_path}
 
 

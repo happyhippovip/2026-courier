@@ -65,7 +65,8 @@ def test_a_reconcile_unlocks_b_without_human_step(tmp_path, monkeypatch):
     ).get_json()
     assert blocked.get("task") is None
 
-    result = {
+    from scripts.integration_contract import _canonical_hash
+    identity = {
         "goal_id": claimed_a["goal_id"],
         "task_id": "task-A",
         "attempt_id": claimed_a["attempt_id"],
@@ -73,16 +74,17 @@ def test_a_reconcile_unlocks_b_without_human_step(tmp_path, monkeypatch):
         "execution_ref": claimed_a.get("execution_ref", "exec-test"),
         "worker_id": "W-01",
         "run_id": "pid-test",
-        "result_id": "result-A-1",
         "status": "SUCCESS",
         "artifacts": [
             {"path": "a.txt", "sha256": hashlib.sha256(b"a\n").hexdigest()}
         ],
+        "runtime_identity": claimed_a["server_binding"],
     }
+    result = dict(identity, result_id=f"result-{_canonical_hash(identity)}")
     assert http.post("/tasks/result", headers=auth(), json=result).status_code == 200
     verification = {
-                "task_id": "task-A",
-        "result_id": "result-A-1",
+        "task_id": "task-A",
+        "result_id": result["result_id"],
         "verifier_id": "V-01",
         "verdict": "PASS",
         "artifacts": result["artifacts"],
