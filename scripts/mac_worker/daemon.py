@@ -258,7 +258,7 @@ def run_agy(task, config):
             ACTIVE_PGIDS.add(process.pid)
             
         try:
-            stdout, stderr = process.communicate(timeout=300)
+            stdout, stderr = process.communicate(timeout=3600)
         except subprocess.TimeoutExpired:
             try:
                 if hasattr(os, "killpg"):
@@ -345,7 +345,7 @@ def run_copilot(task, config):
             ACTIVE_PGIDS.add(process.pid)
             
         try:
-            stdout, stderr = process.communicate(timeout=300)
+            stdout, stderr = process.communicate(timeout=3600)
         except subprocess.TimeoutExpired:
             try:
                 if hasattr(os, "killpg"):
