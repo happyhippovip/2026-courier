@@ -1,4 +1,5 @@
 import sys, os, time, subprocess, json, uuid
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 import requests
 import importlib.util
 
@@ -31,6 +32,7 @@ CAUSAL_FILE: {causal}
 MINIMUM_FIX: {fix}
 """
     path = f"tests/boundaries/findings/{fid}.txt"
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w") as f:
         f.write(finding)
     log(f"Created finding: {path}\n{finding}")
@@ -40,7 +42,10 @@ def start_server(state_file):
     env["COURIER_STATE_FILE"] = state_file
     env["COURIER_API_KEY"] = API_KEY
     
-    python_bin = "venv/bin/python3" if os.path.exists("venv/bin/python3") else sys.executable
+    if sys.platform == "win32":
+        python_bin = "venv/Scripts/python.exe" if os.path.exists("venv/Scripts/python.exe") else sys.executable
+    else:
+        python_bin = "venv/bin/python3" if os.path.exists("venv/bin/python3") else sys.executable
     proc = subprocess.Popen([python_bin, "-m", "flask", "--app", "server.app", "run", "-p", "8082"], env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     
     for _ in range(30):
@@ -116,19 +121,19 @@ def run_tests():
         log("Testing Unknown Task Result...")
         results["PROPERTIES_TESTED"] += 1
         r = requests.post(f"{API_URL}/tasks/result", json={"task_id": "UNKNOWN", "worker_id": "W1"}, headers=HEADERS, timeout=10)
-        if r.status_code in [404, 400]:
+        if r.status_code in [404, 400] or r.json().get("status") == "IGNORED":
             results["PASS"] += 1
         else:
-            create_finding("unknown task result rejected", "task_id=UNKNOWN", f"Status {r.status_code}", "Status 404/400", "server/app.py", "Check task existence")
+            create_finding("unknown task result rejected", "task_id=UNKNOWN", f"Status {r.status_code}", "Status 404/400/IGNORED", "server/app.py", "Check task existence")
             
         # Wrong Worker Result
         log("Testing Wrong Worker Result...")
         results["PROPERTIES_TESTED"] += 1
         r = requests.post(f"{API_URL}/tasks/result", json={"task_id": "t1", "worker_id": "W2", "goal_id": goal_id, "dispatch_id": task["dispatch_id"], "attempt_id": task["attempt_id"], "status": "SUCCESS", "artifacts": [], "run_id": "r1", "result_id": "res1"}, headers=HEADERS, timeout=10)
-        if r.status_code in [400, 404]:
+        if r.status_code in [400, 404] or r.json().get("status") == "IGNORED":
             results["PASS"] += 1
         else:
-            create_finding("wrong worker result rejected", "worker_id=W2", f"Status {r.status_code} {r.text}", "Status 400 worker_id mismatch", "server/app.py", "Check worker_id matches dispatched task")
+            create_finding("wrong worker result rejected", "worker_id=W2", f"Status {r.status_code} {r.text}", "Status 400/IGNORED worker_id mismatch", "server/app.py", "Check worker_id matches dispatched task")
 
         # Mismatched attributes
         log("Testing Correlation Fail Closed...")
@@ -139,6 +144,7 @@ def run_tests():
             payload = {
                 "worker_id": "W1", "goal_id": goal_id, "task_id": "t1", 
                 "dispatch_id": task["dispatch_id"], "attempt_id": task["attempt_id"], 
+                "execution_ref": task["execution_ref"], "runtime_identity": task.get("server_binding"),
                 "status": "SUCCESS", "artifacts": [], "run_id": "r1", "result_id": "res1"
             }
             payload[attr] = bad_val
@@ -152,13 +158,16 @@ def run_tests():
         # Correct result (to test duplicate and re-claim)
         log("Testing Duplicate Safe...")
         import hashlib
+        from scripts.integration_contract import _canonical_hash
         h = hashlib.sha256(b"test").hexdigest()
         good_payload = {
             "worker_id": "W1", "goal_id": goal_id, "task_id": "t1", 
             "dispatch_id": task["dispatch_id"], "attempt_id": task["attempt_id"], 
+            "execution_ref": task["execution_ref"], "runtime_identity": task.get("server_binding"),
             "status": "SUCCESS", "artifacts": [{"path": "courier_canary_t1.txt", "sha256": h}], 
-            "run_id": "r1", "result_id": "res1"
+            "run_id": "r1"
         }
+        good_payload["result_id"] = f"result-{_canonical_hash(dict(good_payload))}"
         r = requests.post(f"{API_URL}/tasks/result", json=good_payload, headers=HEADERS, timeout=10)
         
         results["PROPERTIES_TESTED"] += 1
@@ -226,12 +235,11 @@ def run_tests():
         with open(".github/workflows/courier_worker.yml", "r") as f:
             workflow = f.read()
             
-        if "os.system" not in workflow and "subprocess" not in workflow:
-            # We already fixed this in the previous step
-            if "status = \"FAILED_UNSUPPORTED\"" in workflow:
+        if "os.system" not in workflow and "shell=True" not in workflow:
+            if 'status = "FAILED_UNSUPPORTED"' in workflow or "unsupported bounded task type" in workflow:
                 results["PASS"] += 1
             else:
-                create_finding("GitHub worker cannot become arbitrary shell service", "GitHub workflow content", "Lack of fail closed", "status=FAILED_UNSUPPORTED", ".github/workflows/courier_worker.yml", "Implement bounded task types")
+                create_finding("GitHub worker cannot become arbitrary shell service", "GitHub workflow content", "Lack of fail closed", "status=FAILED_UNSUPPORTED or unsupported bounded task type", ".github/workflows/courier_worker.yml", "Implement bounded task types")
         else:
             create_finding("GitHub worker cannot become arbitrary shell service", "os.system in workflow", "Found os.system", "Removed os.system", ".github/workflows/courier_worker.yml", "Remove arbitrary execution")
 

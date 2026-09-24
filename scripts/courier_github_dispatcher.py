@@ -27,7 +27,10 @@ def log(msg):
 
 
 def launch_adapter(task_file):
-    python_bin = "venv/bin/python3" if os.path.exists("venv/bin/python3") else "python3"
+    if sys.platform == "win32":
+        python_bin = "venv/Scripts/python.exe" if os.path.exists("venv/Scripts/python.exe") else sys.executable
+    else:
+        python_bin = "venv/bin/python3" if os.path.exists("venv/bin/python3") else "python3"
     return subprocess.Popen([python_bin, "scripts/github_worker_adapter.py", task_file])
 
 

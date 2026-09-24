@@ -13,7 +13,7 @@ def log(msg):
 def submit_goals(count):
     env = os.environ.copy()
     for i in range(count):
-        cmd = ["python3", "tools/courierctl/courierctl.py", "--json", "submit", f"Soak test goal {i}"]
+        cmd = [sys.executable, "tools/courierctl/courierctl.py", "--json", "submit", f"Soak test goal {i}"]
         res = subprocess.run(cmd, env=env, capture_output=True, text=True)
         if res.returncode != 0:
             log(f"Failed to submit goal {i}: {res.stderr}")
@@ -27,7 +27,7 @@ def run_soak():
     # Wait and monitor
     start = time.time()
     while time.time() - start < 300:
-        res = subprocess.run(["python3", "tools/courierctl/courierctl.py", "status"], env=os.environ.copy(), capture_output=True, text=True)
+        res = subprocess.run([sys.executable, "tools/courierctl/courierctl.py", "status"], env=os.environ.copy(), capture_output=True, text=True)
         log(res.stdout.replace('\n', ' '))
         time.sleep(30)
     

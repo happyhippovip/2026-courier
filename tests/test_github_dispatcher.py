@@ -211,3 +211,22 @@ def test_dispatcher_restart_fails_closed_on_corrupt_durable_task(monkeypatch, tm
 
     with pytest.raises(RuntimeError, match="invalid persisted GitHub task"):
         dispatcher.recover_adapters()
+
+
+def test_launch_adapter_uses_valid_windows_python_executable(monkeypatch):
+    captured = {}
+
+    class DummyProc:
+        pass
+
+    def fake_popen(cmd, *args, **kwargs):
+        captured["cmd"] = cmd
+        return DummyProc()
+
+    monkeypatch.setattr(dispatcher.subprocess, "Popen", fake_popen)
+    proc = dispatcher.launch_adapter("task.json")
+    assert isinstance(proc, DummyProc)
+    if dispatcher.sys.platform == "win32":
+        assert captured["cmd"][0] != "venv/bin/python3"
+        assert captured["cmd"][0] == dispatcher.sys.executable or captured["cmd"][0].endswith("python.exe")
+
