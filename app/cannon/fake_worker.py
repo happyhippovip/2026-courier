@@ -6,11 +6,11 @@ import sys
 import threading
 import time
 from pathlib import Path
-from .storage import atomic, owned
+from .storage import _fs_path, atomic, owned, read
 
 
 def main():
-    request = json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))
+    request = read(sys.argv[1])
     if os.read(0, 3) != b'GO\n':
         return 2
     cancel = threading.Event()
@@ -42,8 +42,9 @@ def main():
             target = (workspace / name).resolve()
             if not target.is_relative_to(workspace) or target == workspace:
                 return 4
-            target.parent.mkdir(parents=True, exist_ok=True)
-            with target.open('x', encoding='utf-8', newline='\n') as output:
+            fs_target = _fs_path(target)
+            fs_target.parent.mkdir(parents=True, exist_ok=True)
+            with fs_target.open('x', encoding='utf-8', newline='\n') as output:
                 output.write(task['instruction'] + '\n'); output.flush(); os.fsync(output.fileno())
     result = contract.verify_result(task, raw, workspace)
     if failed:

@@ -20,16 +20,32 @@ def owned(path):
     candidate, root = comparable(path), comparable(ROOT.resolve())
     if not candidate.is_relative_to(root) or candidate == root:
         raise ValueError(f'Cannon path outside owned workspace: {path}; root={ROOT.resolve()}')
-    return path
+    return _fs_path(path)
 
 
 def digest(value):
     return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False).encode()).hexdigest()
 
 
+def _fs_path(path):
+    p = Path(path)
+    if os.name == 'nt':
+        s = str(p)
+        if not s.startswith('\\\\?\\'):
+            try:
+                resolved = str(p.resolve())
+            except OSError:
+                resolved = os.path.abspath(s)
+            if len(resolved) >= 200:
+                if resolved.startswith('\\\\'):
+                    return Path('\\\\?\\UNC\\' + resolved[2:])
+                return Path('\\\\?\\' + resolved)
+    return p
+
+
 def file_hash(path):
     h = hashlib.sha256()
-    with Path(path).open('rb') as stream:
+    with _fs_path(path).open('rb') as stream:
         for chunk in iter(lambda: stream.read(65536), b''):
             h.update(chunk)
     return h.hexdigest()
@@ -37,8 +53,9 @@ def file_hash(path):
 
 def atomic(path, value):
     path = owned(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_name(path.name + '.tmp')
+    fs_target = _fs_path(path)
+    fs_target.parent.mkdir(parents=True, exist_ok=True)
+    tmp = _fs_path(path.with_name(path.name + '.tmp'))
     with tmp.open('w', encoding='utf-8', newline='\n') as stream:
         json.dump(value, stream, ensure_ascii=False, sort_keys=True)
         stream.flush()
@@ -47,7 +64,7 @@ def atomic(path, value):
     # Keep the old durable file intact and retry the atomic replacement only.
     for attempt in range(8):
         try:
-            os.replace(tmp, path)
+            os.replace(tmp, fs_target)
             break
         except PermissionError as exc:
             if os.name != 'nt' or getattr(exc, 'winerror', None) not in {5, 32, 33} or attempt == 7:
@@ -56,11 +73,11 @@ def atomic(path, value):
 
 
 def read(path, default=None):
-    path = Path(path)
-    if not path.exists():
+    fs_target = _fs_path(path)
+    if not fs_target.exists():
         return default
     # Corrupt operational state is never silently treated as an empty queue.
-    return json.loads(path.read_text(encoding='utf-8'))
+    return json.loads(fs_target.read_text(encoding='utf-8'))
 
 
 class InstanceLock:
@@ -69,8 +86,9 @@ class InstanceLock:
         self.file = None
 
     def __enter__(self):
-        self.directory.mkdir(parents=True, exist_ok=True)
-        self.file = (self.directory / 'controller.lock').open('a+b')
+        fs_dir = _fs_path(self.directory)
+        fs_dir.mkdir(parents=True, exist_ok=True)
+        self.file = _fs_path(self.directory / 'controller.lock').open('a+b')
         try:
             if os.fstat(self.file.fileno()).st_size == 0:
                 self.file.write(b'0'); self.file.flush()

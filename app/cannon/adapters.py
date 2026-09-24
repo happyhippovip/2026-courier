@@ -9,11 +9,16 @@ class FakeAdapter:
     """Interface is explicit; only the test adapter may start a process in V1."""
     MODES = {'SUCCESS', 'FAILURE', 'TIMEOUT', 'MALFORMED_RESULT', 'DELAYED_RESULT', 'CANCEL'}
 
-    def __init__(self, contract_path, workspace):
-        self.contract_path = str(contract_path)
-        self.workspace = owned(workspace); self.workspace.mkdir(parents=True, exist_ok=True)
-        spec = importlib.util.spec_from_file_location('cannon_canonical_contract', self.contract_path)
-        self.contract = importlib.util.module_from_spec(spec); spec.loader.exec_module(self.contract)
+    def __init__(self, contract_path=None, workspace=None):
+        self.contract_path = str(contract_path) if contract_path else None
+        self.workspace = owned(workspace) if workspace else None
+        if self.workspace:
+            self.workspace.mkdir(parents=True, exist_ok=True)
+        if self.contract_path:
+            spec = importlib.util.spec_from_file_location('cannon_canonical_contract', self.contract_path)
+            self.contract = importlib.util.module_from_spec(spec); spec.loader.exec_module(self.contract)
+        else:
+            self.contract = None
         self.handles = {}
 
     def discover(self):
@@ -84,14 +89,23 @@ class FakeAdapter:
 
 
 
+class _UnprovenAdapterError(RuntimeError, ValueError):
+    pass
+
+
 class LiveMuseAdapter:
     """Live integration using muse exec --json."""
     
-    def __init__(self, contract_path, workspace):
-        self.contract_path = str(contract_path)
-        self.workspace = owned(workspace); self.workspace.mkdir(parents=True, exist_ok=True)
-        spec = importlib.util.spec_from_file_location('cannon_canonical_contract', self.contract_path)
-        self.contract = importlib.util.module_from_spec(spec); spec.loader.exec_module(self.contract)
+    def __init__(self, contract_path=None, workspace=None):
+        self.contract_path = str(contract_path) if contract_path else None
+        self.workspace = owned(workspace) if workspace else None
+        if self.workspace:
+            self.workspace.mkdir(parents=True, exist_ok=True)
+        if self.contract_path:
+            spec = importlib.util.spec_from_file_location('cannon_canonical_contract', self.contract_path)
+            self.contract = importlib.util.module_from_spec(spec); spec.loader.exec_module(self.contract)
+        else:
+            self.contract = None
         self.handles = {}
 
     def discover(self):
@@ -99,7 +113,8 @@ class LiveMuseAdapter:
 
     def health(self):
         import shutil
-        return {'available': bool(shutil.which('muse')), 'state': 'UNPROVEN', 'kind': 'REAL_MUSE'}
+        return {'available': bool(self.contract_path and shutil.which('muse')), 'state': 'UNPROVEN', 'kind': 'REAL_MUSE'}
+
 
     @staticmethod
     def validate_canary_terminal(events, path, nonce, sha):
@@ -202,8 +217,8 @@ class LiveMuseAdapter:
         temporary.replace(path)
         return 'ok', result_id
 
-    def execute(self, task, folder, persist_identity):
-        raise ValueError('LEGACY_EXIT_ONLY_ADAPTER_DISABLED_USE_VERIFIED_CANARY')
+    def execute(self, task, folder=None, persist_identity=None):
+        raise _UnprovenAdapterError('LEGACY_EXIT_ONLY_ADAPTER_DISABLED_USE_VERIFIED_CANARY')
         folder = owned(folder); folder.mkdir(parents=True, exist_ok=True)
         execution = task['execution_ref']
         if execution in self.handles: raise RuntimeError('Execution already owned')

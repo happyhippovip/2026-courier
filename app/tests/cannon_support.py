@@ -10,9 +10,23 @@ from pathlib import Path
 from unittest.mock import patch
 
 APP = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(APP))
+_app_added = str(APP) not in sys.path
+if _app_added:
+    sys.path.insert(0, str(APP))
+import cannon
+import cannon.adapters
+import cannon.controller
+import cannon.core
+import cannon.importer
+import cannon.processes
+import cannon.storage
 from cannon.core import CourierClient
 from cannon.storage import ROOT, InstanceLock, atomic, digest, file_hash, owned
+if _app_added and str(APP) in sys.path:
+    sys.path.remove(str(APP))
+if str(ROOT) in sys.path:
+    sys.path.remove(str(ROOT))
+sys.path.insert(0, str(ROOT))
 
 CORE_MANIFEST = ROOT / 'data/cannon-tests/core-source-manifest.json'
 FALLBACK_CANNON_DATA = ROOT / 'tmp_cannon_transfer/data/cannon-tests'
@@ -67,22 +81,32 @@ def snapshot():
 
 
 def load_core():
+    saved_sys_path = list(sys.path)
+    saved_scripts_modules = {k: v for k, v in sys.modules.items() if k == 'scripts' or k.startswith('scripts.')}
+    for k in list(saved_scripts_modules):
+        sys.modules.pop(k, None)
     sys.path.insert(0, str(SNAPSHOT))
-    # An unavailable keyring is explicitly forbidden in this fixture, never read.
-    keyring = types.ModuleType('keyring')
-    def forbidden(*a, **kw): raise AssertionError('Test attempted real credential access')
-    keyring.get_password = forbidden; keyring.set_password = forbidden
-    sys.modules['keyring'] = keyring
-    os.environ.update(DISABLE_KEYRING='1', COURIER_API_KEY='isolated-worker-fixture',
-                      COURIER_VERIFIER_API_KEY='isolated-verifier-fixture',
-                      COURIER_STATE_FILE=str(SNAPSHOT / 'state.json'))
-    # Suppress unrelated minute-based reaper while testing request handlers.
-    with patch('threading.Thread.start'):
-        spec = importlib.util.spec_from_file_location('isolated_courier_server', SNAPSHOT / 'server/app.py')
-        api = importlib.util.module_from_spec(spec); spec.loader.exec_module(api)
-    api.app.config['TESTING'] = False  # Do not enable runtime-binding test bypass.
-    verifier = importlib.import_module('scripts.courier_verifier')
-    return api, verifier
+    try:
+        # An unavailable keyring is explicitly forbidden in this fixture, never read.
+        keyring = types.ModuleType('keyring')
+        def forbidden(*a, **kw): raise AssertionError('Test attempted real credential access')
+        keyring.get_password = forbidden; keyring.set_password = forbidden
+        sys.modules['keyring'] = keyring
+        os.environ.update(DISABLE_KEYRING='1', COURIER_API_KEY='isolated-worker-fixture',
+                          COURIER_VERIFIER_API_KEY='isolated-verifier-fixture',
+                          COURIER_STATE_FILE=str(SNAPSHOT / 'state.json'))
+        # Suppress unrelated minute-based reaper while testing request handlers.
+        with patch('threading.Thread.start'):
+            spec = importlib.util.spec_from_file_location('isolated_courier_server', SNAPSHOT / 'server/app.py')
+            api = importlib.util.module_from_spec(spec); spec.loader.exec_module(api)
+        api.app.config['TESTING'] = False  # Do not enable runtime-binding test bypass.
+        verifier = importlib.import_module('scripts.courier_verifier')
+        return api, verifier
+    finally:
+        sys.path[:] = saved_sys_path
+        for k in [m for m in list(sys.modules) if m == 'scripts' or m.startswith('scripts.')]:
+            sys.modules.pop(k, None)
+        sys.modules.update(saved_scripts_modules)
 
 
 class IsolatedCore(CourierClient):

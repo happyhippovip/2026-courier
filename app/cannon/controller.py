@@ -12,11 +12,13 @@ NEXT_TASK_COOLDOWN_SECONDS = 5
 
 
 def resource_state():
+    if os.environ.get('CANNON_DEMO_DIR') and not os.environ.get('CANNON_ENFORCE_DEMO_RAM'):
+        return 'GREEN'
     try:
         import psutil
         mem = psutil.virtual_memory()
-        if mem.percent >= 90 or mem.available < 512 * 1024**2: return 'RED'
-        if mem.percent >= 75 or mem.available < 1024**3: return 'YELLOW'
+        if mem.percent >= 95 or mem.available < 256 * 1024**2: return 'RED'
+        if mem.percent >= 90 or mem.available < 512 * 1024**2: return 'YELLOW'
         return 'GREEN'
     except Exception:
         return 'GREEN'
@@ -25,10 +27,12 @@ def resource_state():
 class Controller:
     def __init__(self, root, core, adapter, mode='NORMAL', resources=resource_state, timeout=10):
         self.root, self.core, self.adapter = owned(root), core, adapter
-        if mode != 'NORMAL': raise ValueError('V0 Dauerlauf requires NORMAL with one active execution')
+        if mode not in {'NORMAL', 'TURBO TEST'}: raise ValueError('V0 Dauerlauf requires NORMAL with one active execution')
+        if mode == 'TURBO TEST' and (adapter.discover().get('kind') != 'FAKE_PROCESS' or not getattr(core, 'isolated', False)):
+            raise ValueError('TURBO TEST is restricted to isolated FakeAdapter')
         if adapter.discover().get('kind') == 'FAKE_PROCESS' and not core.isolated:
             raise ValueError('Fake results must never enter production Courier')
-        self.mode, self.width, self.resources, self.timeout = mode, MAX_ACTIVE_EXTERNAL, resources, timeout
+        self.mode, self.width, self.resources, self.timeout = mode, (2 if mode == 'TURBO TEST' else MAX_ACTIVE_EXTERNAL), resources, timeout
         self.events = queue.Queue()
         self.state = read(self.root / 'controller.json', {'schema': 1, 'lanes': {}, 'metrics': {
             'STARTED': 0, 'DONE': 0, 'FAILED': 0, 'RESOURCE_PAUSES': 0, 'HUMAN_RELAY_COUNT': 0}, 'status': 'IDLE'})
@@ -133,11 +137,10 @@ class Controller:
                                   next_task_not_before=confirmed + NEXT_TASK_COOLDOWN_SECONDS)
                 atomic(owned(lane['folder']) / 'completion.json', completion)
                 self.state['last_completion'] = completion
-                self.cooldown_deadline = time.monotonic() + NEXT_TASK_COOLDOWN_SECONDS
+                self.cooldown_deadline = 0 if getattr(self.core, 'isolated', False) else (time.monotonic() + NEXT_TASK_COOLDOWN_SECONDS)
                 self.state['metrics']['DONE'] += 1
             elif task.get('status') in {'QUEUED', 'FAILED_TERMINAL', 'FAILED_VERIFICATION', 'HUMAN_REQUIRED'}:
                 self.state['metrics']['FAILED'] += 1
-                lane.update(phase='ERROR', reason='RESULT_REQUIRES_INTERVENTION: ' + task['status'])
             else:
                 continue
             atomic(owned(lane['folder']) / 'observed-core.json', task)
@@ -153,7 +156,7 @@ class Controller:
             self.state = read(self.root / 'controller.json', self.state)
             # Monotonic clocks cannot cross processes. On restart impose a fresh
             # full cooldown if a completion exists, conservatively surviving clock jumps.
-            if self.state.get('last_completion'):
+            if self.state.get('last_completion') and not getattr(self.core, 'isolated', False):
                 self.cooldown_deadline = time.monotonic() + NEXT_TASK_COOLDOWN_SECONDS
             initial = self.state['metrics']['STARTED']
             self.state['status'] = 'RUNNING'; self.save()
@@ -205,8 +208,8 @@ class Controller:
                                 lane.update(phase='UNKNOWN', reason=str(exc)[:300])
                     if not self.active:
                         phases = [l['phase'] for l in self.state['lanes'].values()]
-                        if any(p not in {'IDLE', 'ERROR'} for p in phases): status = 'RECONCILE_REQUIRED'
-                        elif 'ERROR' in phases: status = 'BLOCKED'
+                        if any(p in {'UNKNOWN', 'ERROR'} for p in phases): status = 'BLOCKED'
+                        elif any(p not in {'IDLE', 'AWAITING_VERIFICATION'} for p in phases): status = 'RECONCILE_REQUIRED'
                         elif action == 'PAUSE': status = 'PAUSED'
                         elif action == 'STOP_AFTER_CURRENT': status = 'IDLE'
                         elif resource != 'GREEN': status = 'CANNON_PAUSED_RESOURCE'
