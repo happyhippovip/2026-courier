@@ -4,10 +4,25 @@ import time
 
 LEDGER_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "events", "ledgers")
 
+def _resolve_ledger_dir():
+    env_dir = os.environ.get("COURIER_LEDGER_DIR")
+    if env_dir:
+        return env_dir
+    try:
+        import sys
+        server_app = sys.modules.get("server.app")
+        state_file = getattr(server_app, "STATE_FILE", None) if server_app else None
+        if state_file and os.path.normpath(str(state_file)) != os.path.normpath("server/state/central_state.json"):
+            return os.path.join(os.path.dirname(os.path.abspath(str(state_file))), "events", "ledgers")
+    except Exception:
+        pass
+    return LEDGER_DIR
+
 def _append(ledger_name, data):
     try:
-        os.makedirs(LEDGER_DIR, exist_ok=True)
-        path = os.path.join(LEDGER_DIR, f"{ledger_name}.jsonl")
+        target_dir = _resolve_ledger_dir()
+        os.makedirs(target_dir, exist_ok=True)
+        path = os.path.join(target_dir, f"{ledger_name}.jsonl")
         with open(path, "a") as f:
             f.write(json.dumps(data) + "\n")
     except Exception:
