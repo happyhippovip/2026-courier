@@ -21,8 +21,9 @@ def dummy_resolver(url):
         }
     }
 
-ahl._attestation_resolver = dummy_resolver
-ahl._verify_attestation = dummy_resolver
+@pytest.fixture(autouse=True)
+def apply_mock_resolver(monkeypatch):
+    monkeypatch.setattr(ahl, '_attestation_resolver', dummy_resolver)
 
 def get_base(observed_at):
     def base_record():

@@ -1,3 +1,4 @@
+import json
 import os
 os.environ["no_proxy"]="*"
 import uuid
@@ -10,7 +11,7 @@ counterexample torture tests, and the three combined cross-check attacks (A, B, 
 """
 
 import hashlib
-import json
+
 import os
 import signal
 import socket
@@ -101,22 +102,26 @@ def start_server():
     env["COURIER_VERIFIER_API_KEY"] = "421606503a874d39b50f6137e3321b7f"
     
     # waitress is missing, so let's start the server and verifier manually here
-    import json
+    
     config_path = REPO_ROOT / "scripts/mac_worker/config.json"
-    if config_path.exists() and 'orig_config' in locals():
+    if config_path.exists() and 'orig_config' in globals() and orig_config is not None:
         with open(config_path, "w") as cf:
             json.dump(orig_config, cf)
             
-        if orig_keychain_srv:
-            try:
-                subprocess.check_call(["security", "add-generic-password", "-a", "courier_worker", "-s", "courier_server_url", "-w", orig_keychain_srv, "-U"])
-            except Exception:
-                pass
+        try:
+            subprocess.check_call(["security", "add-generic-password", "-a", "courier_worker", "-s", "courier_server_url", "-w", "http://127.0.0.1:8081", "-U"])
+        except Exception:
+            pass
                 
         try:
             subprocess.check_call(["launchctl", "stop", "com.courier.mac_worker"])
-        except Exception:
-            pass
+        except Exception as e:
+            print("Stop error:", e)
+        time.sleep(1)
+        try:
+            subprocess.check_call(["launchctl", "start", "com.courier.mac_worker"])
+        except Exception as e:
+            print("Start error:", e)
 
         try:
             subprocess.check_call(["launchctl", "stop", "com.courier.mac_worker"])
@@ -142,20 +147,24 @@ def start_server():
         verifier_proc.kill()
         verifier_proc.wait()
 
-    if config_path.exists() and 'orig_config' in locals():
+    if config_path.exists() and 'orig_config' in globals() and orig_config is not None:
         with open(config_path, "w") as cf:
             json.dump(orig_config, cf)
             
-        if orig_keychain_srv:
-            try:
-                subprocess.check_call(["security", "add-generic-password", "-a", "courier_worker", "-s", "courier_server_url", "-w", orig_keychain_srv, "-U"])
-            except Exception:
-                pass
+        try:
+            subprocess.check_call(["security", "add-generic-password", "-a", "courier_worker", "-s", "courier_server_url", "-w", "http://127.0.0.1:8080/", "-U"])
+        except Exception:
+            pass
                 
         try:
             subprocess.check_call(["launchctl", "stop", "com.courier.mac_worker"])
-        except Exception:
-            pass
+        except Exception as e:
+            print("Stop error:", e)
+        time.sleep(1)
+        try:
+            subprocess.check_call(["launchctl", "start", "com.courier.mac_worker"])
+        except Exception as e:
+            print("Start error:", e)
 
 
 def test_tomato_two_full_torture_chamber():
@@ -365,7 +374,7 @@ def test_tomato_two_full_torture_chamber():
             "artifacts": [],
             "runtime_identity": runtime_id
         }
-        import json, hashlib
+        
         identity_dup = {k: base_payload.get(k) for k in ("goal_id", "task_id", "attempt_id", "dispatch_id", "execution_ref", "worker_id", "run_id", "status", "artifacts", "runtime_identity")}
         rid_dup = hashlib.sha256(json.dumps(identity_dup, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
         payload = dict(base_payload, result_id=f"result-{rid_dup}", provider="mac_native", raw_result={"status": "SUCCESS"})
