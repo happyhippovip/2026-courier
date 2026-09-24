@@ -59,5 +59,29 @@ def test_cannon_process_ownership_and_control():
 
     print("ALL CANNON PROCESS CONTROL CHECKS PASSED.")
 
+def test_cannon_windows_job_lifecycle():
+    from app.cannon.processes import WindowsJob
+    child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(30)"])
+    job = WindowsJob(child)
+    job.close()
+    try:
+        child.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        child.kill()
+        assert False, "WindowsJob.close() failed to terminate child process on Windows"
+    assert child.poll() is not None
+
+def test_cannon_launch_gated_exception_cleanup():
+    from unittest.mock import patch
+    from app.cannon.processes import launch_gated
+    with patch("app.cannon.processes.process_identity", side_effect=RuntimeError("simulated failure")):
+        try:
+            launch_gated([sys.executable, "-c", "import time; time.sleep(30)"], ".", {})
+            assert False, "Should have raised RuntimeError"
+        except RuntimeError as e:
+            assert str(e) == "simulated failure"
+
 if __name__ == "__main__":
     test_cannon_process_ownership_and_control()
+    test_cannon_windows_job_lifecycle()
+    test_cannon_launch_gated_exception_cleanup()
