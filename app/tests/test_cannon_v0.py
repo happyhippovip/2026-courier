@@ -23,6 +23,13 @@ class V0Tests(unittest.TestCase):
         self.server = None
         self.err = None
         self.addCleanup(self.stop_server)
+        def _cleanup_dir():
+            import shutil
+            target_str = str(self.directory)
+            if os.name == 'nt' and not target_str.startswith('\\\\?\\'):
+                target_str = '\\\\?\\' + os.path.abspath(target_str)
+            shutil.rmtree(target_str, ignore_errors=True)
+        self.addCleanup(_cleanup_dir)
 
     def request(self, path, body=None):
         headers = {}

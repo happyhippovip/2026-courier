@@ -36,7 +36,9 @@ if not CORE_MANIFEST.exists() and (FALLBACK_CANNON_DATA / 'core-source-manifest.
     shutil.copyfile(FALLBACK_CANNON_DATA / 'core-source-manifest.json', CORE_MANIFEST)
 
 def _cleanup_cannon_test_data():
-    target = ROOT / 'data/cannon-tests'
+    if os.environ.get('CANNON_DEMO_DIR'):
+        return
+    target = ROOT / 'data/cannon-tests/core-snapshots'
     if target.exists():
         path_str = ('\\\\?\\' + os.path.abspath(str(target))) if os.name == 'nt' else str(target)
         shutil.rmtree(path_str, ignore_errors=True)
