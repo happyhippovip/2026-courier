@@ -79,15 +79,29 @@ def run_cycle(
     incoming_dir: Path,
     processed_dir: Path,
     dispatch_dir: Path,
-    proposals_dir: Path = Path("events/proposals"),
-    approvals_dir: Path = Path("events/approvals"),
-    decisions_dir: Path = Path("events/chief-decisions"),
-    memory_repo: Path = DEFAULT_MEMORY_REPO,
+    proposals_dir: Path | None = None,
+    approvals_dir: Path | None = None,
+    decisions_dir: Path | None = None,
+    memory_repo: Path | None = DEFAULT_MEMORY_REPO,
     enable_auto_memory: bool = True,
     memory_dry_run: bool = False,
     pull: bool = False,
     push: bool = False,
 ) -> dict:
+    if proposals_dir is None:
+        proposals_dir = repo_dir / "events/proposals"
+    if approvals_dir is None:
+        approvals_dir = repo_dir / "events/approvals"
+    if decisions_dir is None:
+        decisions_dir = repo_dir / "events/chief-decisions"
+
+    incoming_dir.mkdir(parents=True, exist_ok=True)
+    processed_dir.mkdir(parents=True, exist_ok=True)
+    dispatch_dir.mkdir(parents=True, exist_ok=True)
+    proposals_dir.mkdir(parents=True, exist_ok=True)
+    approvals_dir.mkdir(parents=True, exist_ok=True)
+    decisions_dir.mkdir(parents=True, exist_ok=True)
+
     # 1. Optional Pull
     if pull:
         res = subprocess.run(["git", "-C", str(repo_dir), "pull", "--ff-only", "origin", "main"], capture_output=True, text=True)
@@ -295,7 +309,7 @@ def run_cycle(
     }
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Run one Chief Relay cycle with Autonomous Memory Policy (max_iterations=1)")
     parser.add_argument("--repo-dir", default=".", help="Repository root directory")
     parser.add_argument("--incoming-dir", default="events/incoming", help="Incoming events directory")
@@ -309,7 +323,8 @@ def main() -> None:
     parser.add_argument("--memory-dry-run", action="store_true", help="Execute memory write in dry-run mode")
     parser.add_argument("--pull", action="store_true", help="Pull latest main before processing")
     parser.add_argument("--push", action="store_true", help="Commit and push result after processing")
-    args = parser.parse_args()
+    parser.add_argument("--json", action="store_true", help="Output machine-readable JSON status")
+    args = parser.parse_args(argv)
 
     repo_dir = Path(args.repo_dir).resolve()
     incoming_dir = (repo_dir / args.incoming_dir).resolve()
@@ -335,7 +350,8 @@ def main() -> None:
         push=args.push,
     )
     print(json.dumps(result, indent=2))
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

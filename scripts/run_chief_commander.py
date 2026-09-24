@@ -37,8 +37,6 @@ STATES_DIR = EVENTS_DIR / "agent-states"
 LOCKS_DIR = EVENTS_DIR / "locks"
 APPROVALS_DIR = EVENTS_DIR / "approvals"
 
-APPROVALS_DIR.mkdir(parents=True, exist_ok=True)
-
 # Import Level 6 Autonomous Engine & Bridge Components
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
