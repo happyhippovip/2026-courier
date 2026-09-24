@@ -38,3 +38,51 @@ def test_windows_worker_health_check_runs_cleanly(monkeypatch):
     assert report["credentials"] == "FOUND (env)"
     assert isinstance(report["pending_task_checkpoint"], bool)
     assert isinstance(report["pending_result_checkpoint"], bool)
+
+
+def test_windows_daemon_run_task_produces_valid_durable_result_for_server(tmp_path, monkeypatch):
+    monkeypatch.setenv("COURIER_API_KEY", "test-secret")
+    from server import app as server_app
+    from scripts.windows_worker import daemon as win_daemon
+
+    monkeypatch.setattr(server_app, "STATE_FILE", str(tmp_path / "state.json"))
+    monkeypatch.setattr(server_app, "BATCH_QUEUE_DIR", str(tmp_path / "empty-batches"))
+    monkeypatch.setattr(server_app, "API_KEY", "test-secret")
+    client = server_app.app.test_client()
+    headers = {"Authorization": "Bearer test-secret"}
+
+    assert client.post(
+        "/workers/register",
+        headers=headers,
+        json={"worker_id": "WIN-TEST-01", "platform": "windows", "capabilities": ["windows"]},
+    ).status_code == 200
+
+    goal_res = client.post(
+        "/goals",
+        headers=headers,
+        json={
+            "goal_text": "Windows Daemon DurableResult Contract Proof",
+            "workflow_plan": [
+                {
+                    "task_id": "win-task-1",
+                    "target_agent": "windows",
+                    "instruction": "Write-Output 'WIN_DAEMON_OK'",
+                }
+            ],
+        },
+    )
+    assert goal_res.status_code == 200
+
+    claim_res = client.post("/tasks/claim", headers=headers, json={"worker_id": "WIN-TEST-01"})
+    assert claim_res.status_code == 200
+    claimed_task = claim_res.get_json()["task"]
+    assert claimed_task is not None
+
+    result_payload = win_daemon.run_task(claimed_task, {"WORKER_ID": "WIN-TEST-01"})
+    assert result_payload["status"] == "SUCCESS"
+    assert "WIN_DAEMON_OK" in result_payload["stdout"]
+    assert result_payload["runtime_identity"] == claimed_task["server_binding"]
+
+    post_res = client.post("/tasks/result", headers=headers, json=result_payload)
+    assert post_res.status_code == 200, post_res.get_json()
+

@@ -89,6 +89,29 @@ def http_post_result(res):
             time.sleep(2 ** attempt)
     raise RuntimeError("Failed to post result after 5 attempts")
 
+def _attach_durable_result_identity(task, res_json):
+    res_json["runtime_identity"] = task.get("server_binding")
+    identity = {
+        "goal_id": res_json.get("goal_id"),
+        "task_id": res_json.get("task_id"),
+        "attempt_id": res_json.get("attempt_id"),
+        "dispatch_id": res_json.get("dispatch_id"),
+        "execution_ref": res_json.get("execution_ref"),
+        "worker_id": res_json.get("worker_id"),
+        "run_id": res_json.get("run_id"),
+        "status": res_json.get("status"),
+        "artifacts": res_json.get("artifacts", []),
+        "runtime_identity": res_json.get("runtime_identity"),
+    }
+    if "batch_id" in res_json:
+        identity["batch_id"] = res_json["batch_id"]
+    if "prompt_id" in res_json:
+        identity["prompt_id"] = res_json["prompt_id"]
+    canonical = json.dumps(identity, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    res_json["result_id"] = f"result-{hashlib.sha256(canonical).hexdigest()}"
+    return res_json
+
+
 def run_task(task, config):
     print(f"[{config['WORKER_ID']}] Running task {task['task_id']}...")
     
@@ -116,7 +139,7 @@ def run_task(task, config):
         }
         if "batch_id" in task: res_json["batch_id"] = task["batch_id"]
         if "prompt_id" in task: res_json["prompt_id"] = task["prompt_id"]
-        return res_json
+        return _attach_durable_result_identity(task, res_json)
 
     out_clean = ""
     stderr = ""
@@ -206,7 +229,7 @@ def run_task(task, config):
     if "batch_id" in task: res_json["batch_id"] = task["batch_id"]
     if "prompt_id" in task: res_json["prompt_id"] = task["prompt_id"]
     
-    return res_json
+    return _attach_durable_result_identity(task, res_json)
 
 import psutil
 
@@ -324,6 +347,7 @@ def loop():
                 }
                 if "batch_id" in crashed_task: res_json["batch_id"] = crashed_task["batch_id"]
                 if "prompt_id" in crashed_task: res_json["prompt_id"] = crashed_task["prompt_id"]
+                _attach_durable_result_identity(crashed_task, res_json)
                 http_post_result(res_json)
             except Exception as e:
                 print(f"[{worker_id}] Failed to report ambiguous crash: {e}")
