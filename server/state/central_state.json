@@ -473,6 +473,95 @@
         }
       ],
       "current_step_index": 0
+    },
+    "goal-f8524e26": {
+      "goal_id": "goal-f8524e26",
+      "goal_text": "Generate a 10-file documentation site for Courier to prove multi-worker orchestration.",
+      "status": "ACTIVE",
+      "terminal": true,
+      "workflow_plan": [
+        {
+          "task_id": "TASK-DOC-1",
+          "instruction": "Create docs/public_site/index.md containing a welcome message for the Courier project.",
+          "target_capability": "mac",
+          "goal_id": "goal-f8524e26",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "TASK-DOC-2",
+          "instruction": "Create docs/public_site/setup.md containing a setup guide for the Courier project.",
+          "target_capability": "windows",
+          "goal_id": "goal-f8524e26",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "TASK-DOC-3",
+          "instruction": "Create docs/public_site/api.md containing an overview of the Courier central API.",
+          "target_capability": "mac",
+          "goal_id": "goal-f8524e26",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "TASK-DOC-4",
+          "instruction": "Create docs/public_site/architecture.md containing a description of the Mac and Windows worker architecture.",
+          "target_capability": "windows",
+          "goal_id": "goal-f8524e26",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "TASK-DOC-5",
+          "instruction": "Create docs/public_site/billing.md containing a placeholder guide for billing and token limits.",
+          "target_capability": "mac",
+          "goal_id": "goal-f8524e26",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "TASK-DOC-6",
+          "instruction": "Create docs/public_site/faq.md containing 3 frequently asked questions about Courier.",
+          "target_capability": "windows",
+          "goal_id": "goal-f8524e26",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "TASK-DOC-7",
+          "instruction": "Create docs/public_site/contributing.md containing guidelines for contributing to Courier.",
+          "target_capability": "mac",
+          "goal_id": "goal-f8524e26",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "TASK-DOC-8",
+          "instruction": "Create docs/public_site/security.md containing the security policies for Courier (e.g., bypassing sandbox, exact process ownership).",
+          "target_capability": "windows",
+          "goal_id": "goal-f8524e26",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "TASK-DOC-9",
+          "instruction": "Create docs/public_site/release_notes.md containing release notes for version 1.0.",
+          "target_capability": "mac",
+          "goal_id": "goal-f8524e26",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "TASK-DOC-10",
+          "instruction": "Read the docs/public_site directory and create a docs/public_site/site_map.md linking to all 9 generated files.",
+          "target_capability": "windows",
+          "goal_id": "goal-f8524e26",
+          "status": "QUEUED",
+          "attempts": 0
+        }
+      ],
+      "current_step_index": 0
     }
   },
   "tasks": {
@@ -761,6 +850,20 @@
       "available": true,
       "current_task": null,
       "cost_class": "low"
+    },
+    "test": {
+      "worker_id": "test",
+      "platform": "unknown",
+      "capabilities": [],
+      "authorities": [],
+      "provider": null,
+      "capacity_identity": null,
+      "provider_available": true,
+      "capacity_available": true,
+      "last_seen": 1790241358.455822,
+      "available": true,
+      "current_task": null,
+      "cost_class": "unknown"
     }
   },
   "resource_owners": {}
