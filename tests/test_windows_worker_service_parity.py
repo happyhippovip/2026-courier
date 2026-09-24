@@ -29,6 +29,18 @@ def test_windows_worker_start_bat_exists_and_resolves_python():
         assert "PYTHON_EXE=" in completed.stdout
         assert "DAEMON=" in completed.stdout
 
+        for line in completed.stdout.splitlines():
+            if line.startswith("PYTHON_EXE="):
+                resolved_python = line.split("=", 1)[1].strip()
+                check_proc = subprocess.run(
+                    [resolved_python, "-c", "import psutil; import scripts.windows_worker.daemon"],
+                    cwd=str(REPO_ROOT),
+                    capture_output=True,
+                    text=True,
+                )
+                assert check_proc.returncode == 0, f"Resolved python {resolved_python} failed to import daemon/psutil: {check_proc.stderr}"
+
+
 
 def test_windows_worker_health_check_runs_cleanly(monkeypatch):
     monkeypatch.setenv("COURIER_API_KEY", "test-key")
