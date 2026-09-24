@@ -34,6 +34,16 @@ FALLBACK_CANNON_DATA = ROOT / 'tmp_cannon_transfer/data/cannon-tests'
 if not CORE_MANIFEST.exists() and (FALLBACK_CANNON_DATA / 'core-source-manifest.json').exists():
     CORE_MANIFEST.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(FALLBACK_CANNON_DATA / 'core-source-manifest.json', CORE_MANIFEST)
+
+def _cleanup_cannon_test_data():
+    target = ROOT / 'data/cannon-tests'
+    if target.exists():
+        path_str = ('\\\\?\\' + os.path.abspath(str(target))) if os.name == 'nt' else str(target)
+        shutil.rmtree(path_str, ignore_errors=True)
+
+import atexit
+atexit.register(_cleanup_cannon_test_data)
+
 # This is a frozen local fixture, never an implicit acceptance of the live Core.
 CORE_HASHES = json.loads(CORE_MANIFEST.read_text(encoding='utf-8'))
 CORE_FIXTURE_ID = digest(CORE_HASHES)
