@@ -39,10 +39,25 @@ import sys
 import uuid
 from pathlib import Path
 
-from scripts.resolve_project_memory import resolve_default_memory_repo
-
 SCRIPTS_DIR = Path(__file__).resolve().parent
 COURIER_DIR = SCRIPTS_DIR.parent
+
+if str(COURIER_DIR) not in sys.path:
+    sys.path.insert(0, str(COURIER_DIR))
+if str(SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_DIR))
+
+try:
+    from scripts.build_memory_update_proposal import resolve_default_memory_repo
+except ImportError:
+    try:
+        from build_memory_update_proposal import resolve_default_memory_repo
+    except ImportError:
+        try:
+            from scripts.resolve_project_memory import resolve_default_memory_repo
+        except ImportError:
+            from resolve_project_memory import resolve_default_memory_repo
+
 PROJECT_MEMORY_DIR = resolve_default_memory_repo()
 
 EVENTS_DIR = COURIER_DIR / "events"
@@ -52,12 +67,6 @@ LESSONS_DIR = ACADEMY_DIR / "lessons"
 EVALS_DIR = ACADEMY_DIR / "evaluations"
 DELIVERIES_DIR = ACADEMY_DIR / "deliveries"
 ADOPTIONS_DIR = ACADEMY_DIR / "adoptions"
-
-for d in [STATES_DIR, ACADEMY_DIR, LESSONS_DIR, EVALS_DIR, DELIVERIES_DIR, ADOPTIONS_DIR]:
-    d.mkdir(parents=True, exist_ok=True)
-
-if str(SCRIPTS_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPTS_DIR))
 
 try:
     from run_antigravity_bridge import AntigravityVisualStateTracker, load_json, save_json
@@ -127,7 +136,15 @@ class AcademyTeacher:
     def __init__(self, repo_dir: Path = COURIER_DIR, memory_dir: Path = PROJECT_MEMORY_DIR):
         self.repo_dir = repo_dir
         self.memory_dir = memory_dir
-        self.config_file = self.repo_dir / "events/academy/config.json"
+        self.academy_dir = self.repo_dir / "events/academy"
+        self.lessons_dir = self.academy_dir / "lessons"
+        self.evals_dir = self.academy_dir / "evaluations"
+        self.deliveries_dir = self.academy_dir / "deliveries"
+        self.adoptions_dir = self.academy_dir / "adoptions"
+        self.states_dir = self.repo_dir / "events/agent-states"
+        for d in [self.academy_dir, self.lessons_dir, self.evals_dir, self.deliveries_dir, self.adoptions_dir, self.states_dir]:
+            d.mkdir(parents=True, exist_ok=True)
+        self.config_file = self.academy_dir / "config.json"
         self.config = self._load_or_init_config()
 
         self.state_tracker = AntigravityVisualStateTracker(
@@ -173,7 +190,7 @@ class AcademyTeacher:
             },
             "last_school_time": now_iso,
             "next_school_time": f"{self.config.get('academy_daily_time', '06:00')} {self.config.get('academy_timezone', 'UTC')}",
-            "lessons_today": len(list(LESSONS_DIR.glob("*.json"))),
+            "lessons_today": len(list(self.lessons_dir.glob("*.json"))),
             "latest_lesson": latest_lesson.get("lesson_id") if latest_lesson else None,
             "pending_lessons": pending_lessons or [],
             "opportunities_found": opportunities_found,
@@ -183,7 +200,7 @@ class AcademyTeacher:
             "next_action": next_action or "Monitoring daily school schedule",
             "updated_at": now_iso,
         }
-        state_file = self.repo_dir / "events/agent-states/agent-academy-teacher.json"
+        state_file = self.states_dir / "agent-academy-teacher.json"
         save_json(state_file, state_data)
         return state_data
 
@@ -220,7 +237,7 @@ class AcademyTeacher:
         novelty_hash = compute_novelty_hash(topic, title, summary, source)
 
         # 1. Deduplication check against existing lessons
-        existing_lessons = list(LESSONS_DIR.glob("*.json"))
+        existing_lessons = list(self.lessons_dir.glob("*.json"))
         for lf in existing_lessons:
             try:
                 ldata = json.loads(lf.read_text(encoding="utf-8"))
@@ -266,7 +283,7 @@ class AcademyTeacher:
             "created_at": now_iso,
         }
 
-        lesson_file = LESSONS_DIR / f"{lesson_id}.json"
+        lesson_file = self.lessons_dir / f"{lesson_id}.json"
         save_json(lesson_file, lesson_data)
         print(f"[TEACHER] New Lesson Proposal created: {lesson_id} ('{title}')")
 
@@ -299,13 +316,13 @@ class AcademyTeacher:
         target_task_id: str | None = None,
     ) -> dict:
         """Determines whether an agent is idle or actively executing, delivering or safely deferring lesson."""
-        lesson_file = LESSONS_DIR / f"{lesson_id}.json"
+        lesson_file = self.lessons_dir / f"{lesson_id}.json"
         if not lesson_file.exists():
             raise FileNotFoundError(f"Lesson file not found: {lesson_id}")
         lesson = load_json(lesson_file)
 
         # Inspect target agent's current state
-        agent_state_file = self.repo_dir / f"events/agent-states/{target_agent}.json"
+        agent_state_file = self.states_dir / f"{target_agent}.json"
         agent_state = load_json(agent_state_file) if agent_state_file.exists() else {}
 
         is_busy = agent_state.get("state") in ["RUNNING", "COMPARING", "COORDINATING", "REVIEWING"]
@@ -327,7 +344,7 @@ class AcademyTeacher:
                 "defer_until_task_completed": agent_state.get("task"),
                 "created_at": now_iso,
             }
-            save_json(DELIVERIES_DIR / f"{delivery_id}.json", defer_record)
+            save_json(self.deliveries_dir / f"{delivery_id}.json", defer_record)
             return defer_record
 
         # Formulate Bounded Delivery Package
@@ -348,7 +365,7 @@ class AcademyTeacher:
             "delivered_at": now_iso,
         }
 
-        save_json(DELIVERIES_DIR / f"{delivery_id}.json", delivery_package)
+        save_json(self.deliveries_dir / f"{delivery_id}.json", delivery_package)
         print(f"[TEACHER] Bounded lesson delivery package created for '{target_agent}' ({delivery_id})")
         return delivery_package
 
@@ -359,7 +376,15 @@ class AcademyDirector:
     def __init__(self, repo_dir: Path = COURIER_DIR, memory_dir: Path = PROJECT_MEMORY_DIR):
         self.repo_dir = repo_dir
         self.memory_dir = memory_dir
-        self.economics_file = self.repo_dir / "events/academy/economics.json"
+        self.academy_dir = self.repo_dir / "events/academy"
+        self.lessons_dir = self.academy_dir / "lessons"
+        self.evals_dir = self.academy_dir / "evaluations"
+        self.deliveries_dir = self.academy_dir / "deliveries"
+        self.adoptions_dir = self.academy_dir / "adoptions"
+        self.states_dir = self.repo_dir / "events/agent-states"
+        for d in [self.academy_dir, self.lessons_dir, self.evals_dir, self.deliveries_dir, self.adoptions_dir, self.states_dir]:
+            d.mkdir(parents=True, exist_ok=True)
+        self.economics_file = self.academy_dir / "economics.json"
         self.economics = self._load_or_init_economics()
 
         self.state_tracker = AntigravityVisualStateTracker(
@@ -430,13 +455,13 @@ class AcademyDirector:
             "next_action": next_action or "Awaiting lesson submissions and evaluation requests",
             "updated_at": now_iso,
         }
-        state_file = self.repo_dir / "events/agent-states/agent-academy-director.json"
+        state_file = self.states_dir / "agent-academy-director.json"
         save_json(state_file, state_data)
         return state_data
 
     def check_attendance(self) -> bool:
         """Verifies that Academy Teacher ran during the daily schedule window."""
-        teacher_state_file = self.repo_dir / "events/agent-states/agent-academy-teacher.json"
+        teacher_state_file = self.states_dir / "agent-academy-teacher.json"
         has_run = teacher_state_file.exists()
         print(f"[DIRECTOR] Attendance check: Agentenlehrer active = {has_run}")
         self.update_visual_state(
@@ -448,7 +473,7 @@ class AcademyDirector:
 
     def review_lesson(self, lesson_id: str) -> dict:
         """Reviews a lesson proposal for deduplication, evidence completeness, and test requirements."""
-        lesson_file = LESSONS_DIR / f"{lesson_id}.json"
+        lesson_file = self.lessons_dir / f"{lesson_id}.json"
         if not lesson_file.exists():
             raise FileNotFoundError(f"Lesson not found: {lesson_id}")
         lesson = load_json(lesson_file)
@@ -492,7 +517,7 @@ class AcademyDirector:
         candidate_metrics: dict,
     ) -> dict:
         """Compares baseline vs candidate methods with measurable metric criteria."""
-        lesson_file = LESSONS_DIR / f"{lesson_id}.json"
+        lesson_file = self.lessons_dir / f"{lesson_id}.json"
         if not lesson_file.exists():
             raise FileNotFoundError(f"Lesson not found: {lesson_id}")
         lesson = load_json(lesson_file)
@@ -531,7 +556,7 @@ class AcademyDirector:
             "evaluated_at": now_iso,
         }
 
-        save_json(EVALS_DIR / f"{eval_id}.json", eval_record)
+        save_json(self.evals_dir / f"{eval_id}.json", eval_record)
 
         lesson["status"] = "EVAL_PASS" if verdict == "PASS" else "EVAL_FAIL"
         lesson["evaluation_id"] = eval_id
@@ -550,12 +575,12 @@ class AcademyDirector:
 
     def approve_adoption(self, lesson_id: str) -> dict:
         """Adoption Gate: Strictly verifies eval passes before adopting into verified context."""
-        lesson_file = LESSONS_DIR / f"{lesson_id}.json"
+        lesson_file = self.lessons_dir / f"{lesson_id}.json"
         if not lesson_file.exists():
             raise FileNotFoundError(f"Lesson not found: {lesson_id}")
         lesson = load_json(lesson_file)
 
-        eval_file = EVALS_DIR / f"eval-{lesson_id}.json"
+        eval_file = self.evals_dir / f"eval-{lesson_id}.json"
         if not eval_file.exists():
             print(f"[DIRECTOR ERROR] Adoption blocked: No evaluation record exists for {lesson_id}.")
             self.update_visual_state(
@@ -591,7 +616,7 @@ class AcademyDirector:
             "evaluation_id": eval_data.get("evaluation_id"),
             "adopted_at": now_iso,
         }
-        save_json(ADOPTIONS_DIR / f"adopt-{lesson_id}.json", adoption_record)
+        save_json(self.adoptions_dir / f"adopt-{lesson_id}.json", adoption_record)
 
         # Update Economic Metrics
         mins_saved = eval_data.get("metrics", {}).get("measured_minutes_saved", 0.0)
@@ -629,19 +654,87 @@ class AcademyDirector:
             "adoption_status": "ACKNOWLEDGED",
             "acknowledged_at": now_iso,
         }
-        save_json(DELIVERIES_DIR / f"ack-{worker_agent_id}-{lesson_id}.json", ack)
+        save_json(self.deliveries_dir / f"ack-{worker_agent_id}-{lesson_id}.json", ack)
         print(f"[DIRECTOR] Worker '{worker_agent_id}' acknowledged lesson {lesson_id} (Context v{context_version})")
         return ack
 
 
-if __name__ == "__main__":
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="AI Academy CLI")
     parser.add_argument("--demo", action="store_true", help="Run bounded Academy demonstration cycle")
-    args = parser.parse_args()
+    parser.add_argument("--repo-dir", type=str, default=str(COURIER_DIR), help="Path to repository root")
+    parser.add_argument("--memory-dir", type=str, default=str(PROJECT_MEMORY_DIR), help="Path to memory directory")
+    parser.add_argument("--status", action="store_true", help="Print Academy status summary")
+    parser.add_argument("--json", action="store_true", help="Output summary in JSON format")
+    args = parser.parse_args(argv)
 
-    teacher = AcademyTeacher()
-    director = AcademyDirector()
+    repo_dir = Path(args.repo_dir).resolve()
+    memory_dir = Path(args.memory_dir).resolve()
 
-    print("=== AI ACADEMY ENGINE: TEACHER & DIRECTOR READY ===")
+    teacher = AcademyTeacher(repo_dir=repo_dir, memory_dir=memory_dir)
+    director = AcademyDirector(repo_dir=repo_dir, memory_dir=memory_dir)
+
     teacher.update_visual_state(state="IDLE", last_action="Academy Teacher standing by")
     director.update_visual_state(state="IDLE", last_action="Academy Director standing by")
+
+    demo_lesson_id = None
+    if args.demo:
+        if args.json:
+            import io
+            import contextlib
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                lesson = teacher.propose_lesson(
+                    topic="demo_testing",
+                    title="Demo Academy Lesson",
+                    summary="Demonstration lesson proposal for CLI verification",
+                    source="Internal test runner",
+                    evidence="Local unit test execution",
+                )
+                director.review_lesson(lesson["lesson_id"])
+                director.evaluate_lesson(
+                    lesson["lesson_id"],
+                    baseline_metrics={"runtime_seconds": 12.0, "error_count": 0, "test_pass_rate": 1.0},
+                    candidate_metrics={"runtime_seconds": 8.0, "error_count": 0, "test_pass_rate": 1.0},
+                )
+                director.approve_adoption(lesson["lesson_id"])
+                demo_lesson_id = lesson["lesson_id"]
+        else:
+            lesson = teacher.propose_lesson(
+                topic="demo_testing",
+                title="Demo Academy Lesson",
+                summary="Demonstration lesson proposal for CLI verification",
+                source="Internal test runner",
+                evidence="Local unit test execution",
+            )
+            director.review_lesson(lesson["lesson_id"])
+            director.evaluate_lesson(
+                lesson["lesson_id"],
+                baseline_metrics={"runtime_seconds": 12.0, "error_count": 0, "test_pass_rate": 1.0},
+                candidate_metrics={"runtime_seconds": 8.0, "error_count": 0, "test_pass_rate": 1.0},
+            )
+            director.approve_adoption(lesson["lesson_id"])
+            demo_lesson_id = lesson["lesson_id"]
+
+    summary = {
+        "academy_enabled": teacher.config.get("academy_enabled", True),
+        "lessons_count": len(list(teacher.lessons_dir.glob("*.json"))),
+        "adoptions_count": len(list(director.adoptions_dir.glob("*.json"))),
+        "total_lessons_adopted": director.economics.get("total_lessons_adopted", 0),
+        "measured_minutes_saved": director.economics.get("measured_minutes_saved", 0.0),
+    }
+    if demo_lesson_id:
+        summary["demo_lesson_id"] = demo_lesson_id
+
+    if args.json:
+        print(json.dumps(summary, indent=2))
+    else:
+        print("=== AI ACADEMY ENGINE: TEACHER & DIRECTOR READY ===")
+        for k, v in summary.items():
+            print(f"  {k}: {v}")
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
