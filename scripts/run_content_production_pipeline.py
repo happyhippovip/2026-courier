@@ -76,11 +76,45 @@ def check_secrets_in_text(text: str) -> int:
     return found
 
 
+def discover_ffmpeg_binary(custom_path: str | None = None) -> str | None:
+    search_paths = []
+    if custom_path:
+        search_paths.append(custom_path)
+    if os.environ.get("FFMPEG_BIN"):
+        search_paths.append(os.environ.get("FFMPEG_BIN"))
+
+    # Workspace & Windows locations
+    search_paths.extend([
+        r"C:\Users\lol\2026-workspace\ffmpeg\ffmpeg-master-latest-win64-gpl\bin\ffmpeg.exe",
+        str(COURIER_DIR.parent / "ffmpeg/ffmpeg-master-latest-win64-gpl/bin/ffmpeg.exe"),
+        "/usr/local/bin/ffmpeg",
+        "/opt/homebrew/bin/ffmpeg",
+        "/usr/bin/ffmpeg",
+    ])
+
+    for p in search_paths:
+        if p and os.path.exists(p):
+            return p
+
+    return shutil.which("ffmpeg")
+
+
 def discover_godot_binary(custom_path: str | None = None) -> tuple[str | None, str | None]:
     """Discovers Godot binary and verifies version if present."""
     search_paths = []
     if custom_path:
         search_paths.append(custom_path)
+    if os.environ.get("GODOT_BIN"):
+        search_paths.append(os.environ.get("GODOT_BIN"))
+
+    # Windows & Workspace locations
+    search_paths.extend([
+        r"C:\Users\lol\2026-workspace\godot\Godot_v4.3-stable_win64_console.exe",
+        r"C:\Users\lol\2026-workspace\godot\Godot_v4.3-stable_win64.exe",
+        str(COURIER_DIR.parent / "godot/Godot_v4.3-stable_win64_console.exe"),
+        str(COURIER_DIR.parent / "godot/Godot_v4.3-stable_win64.exe"),
+        r"C:\Program Files\Godot\Godot_v4.3-stable_win64.exe",
+    ])
 
     # Standard macOS locations & Desktop app bundle
     search_paths.extend([
@@ -98,12 +132,12 @@ def discover_godot_binary(custom_path: str | None = None) -> tuple[str | None, s
             try:
                 res = subprocess.run([p, "--version", "--headless"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=4.0)
                 if res.returncode == 0:
-                    version = res.stdout.strip() or "4.7.stable"
+                    version = res.stdout.strip() or "4.3.stable"
                     return p, version
             except Exception:
                 pass
-            if "Godot.app" in p or "godot" in p.lower():
-                return p, "4.7.stable.official.5b4e0cb0f"
+            if "Godot" in p or "godot" in p.lower():
+                return p, "4.3.stable"
 
     which_godot = shutil.which("godot")
     if which_godot:
@@ -115,6 +149,28 @@ def discover_godot_binary(custom_path: str | None = None) -> tuple[str | None, s
             pass
 
     return None, None
+
+
+def resolve_godot_project_binding(content_project: str, local_tools: dict) -> tuple[str | None, str]:
+    binding = local_tools.get("project_bindings", {}).get(content_project, {})
+    bound_path = binding.get("project_path")
+    default_scene = binding.get("default_scene", "res://strawberry_school_short.tscn")
+
+    if bound_path and os.path.exists(bound_path):
+        return bound_path, default_scene
+
+    env_path = os.environ.get("GODOT_PROJECT_PATH")
+    candidates = [
+        Path(env_path) if env_path else None,
+        COURIER_DIR.parent / "2026-godot-shorts",
+        Path(r"C:\Users\lol\2026-workspace\2026-godot-shorts"),
+        COURIER_DIR / "godot_shorts",
+    ]
+    for c in candidates:
+        if c and (c / "project.godot").is_file():
+            return str(c), default_scene
+
+    return bound_path, default_scene
 
 
 def execute_idea_stage(stage_dir: Path, topic: str, content_project: str, platform: str) -> Path:
@@ -204,9 +260,8 @@ def execute_assets_stage(stage_dir: Path, topic: str, content_project: str, loca
     assets_file = stage_dir / "assets_manifest.json"
     
     # Check read-only project binding
-    binding = local_tools.get("project_bindings", {}).get(content_project, {})
-    bound_path = binding.get("project_path")
-    project_found = (bound_path and os.path.exists(bound_path))
+    bound_path, default_scene = resolve_godot_project_binding(content_project, local_tools)
+    project_found = bool(bound_path and os.path.exists(bound_path))
 
     assets_data = {
         "schema_version": "2.0",
@@ -215,7 +270,7 @@ def execute_assets_stage(stage_dir: Path, topic: str, content_project: str, loca
         "godot_project_binding": {
             "bound_project_path": bound_path,
             "status": "BOUND_READ_ONLY" if project_found else "UNBOUND",
-            "default_scene": binding.get("default_scene")
+            "default_scene": default_scene
         },
         "viewport": {
             "aspect_ratio": "9:16",
@@ -246,9 +301,7 @@ def execute_video_build_stage(stage_dir: Path, topic: str, content_project: str,
     godot_custom_path = local_tools.get("tools", {}).get("godot_binary_path")
     godot_bin, godot_version = discover_godot_binary(godot_custom_path)
 
-    binding = local_tools.get("project_bindings", {}).get(content_project, {})
-    bound_project_path = binding.get("project_path")
-    default_scene = binding.get("default_scene", "res://strawberry_school_short.tscn")
+    bound_project_path, default_scene = resolve_godot_project_binding(content_project, local_tools)
 
     render_details = {
         "ffmpeg_preview_render": None,
@@ -259,7 +312,8 @@ def execute_video_build_stage(stage_dir: Path, topic: str, content_project: str,
     }
 
     # 1. Produce FFMPEG_PREVIEW_RENDER if ffmpeg available
-    ffmpeg_bin = local_tools.get("tools", {}).get("ffmpeg_binary_path") or shutil.which("ffmpeg")
+    ffmpeg_custom_path = local_tools.get("tools", {}).get("ffmpeg_binary_path")
+    ffmpeg_bin = discover_ffmpeg_binary(ffmpeg_custom_path)
     preview_file = stage_dir / f"{slugify(topic)}_preview.mp4"
 
     if ffmpeg_bin and os.path.exists(ffmpeg_bin):
