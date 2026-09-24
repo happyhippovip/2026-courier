@@ -82,15 +82,21 @@ def main(argv: list[str] | None = None) -> int:
     if not godot_bin:
         godot_bin, _ = discover_godot_binary()
     if not godot_bin:
-        godot_bin = "/Users/user/Desktop/Godot.app/Contents/MacOS/Godot"
+        if os.name == "nt":
+            godot_bin = shutil.which("godot") or shutil.which("godot.exe") or "godot.exe"
+        else:
+            godot_bin = shutil.which("godot") or "/Users/user/Desktop/Godot.app/Contents/MacOS/Godot"
 
     ffmpeg_bin = args.ffmpeg
     if not ffmpeg_bin:
         ffmpeg_bin = discover_ffmpeg_binary()
     if not ffmpeg_bin:
-        ffmpeg_bin = shutil.which("ffmpeg") or "/usr/local/bin/ffmpeg"
+        if os.name == "nt":
+            ffmpeg_bin = shutil.which("ffmpeg") or shutil.which("ffmpeg.exe") or "ffmpeg.exe"
+        else:
+            ffmpeg_bin = shutil.which("ffmpeg") or "/usr/local/bin/ffmpeg"
 
-    if not Path(godot_bin).is_file() or not Path(ffmpeg_bin).is_file():
+    if not args.dry_run and (not Path(godot_bin).is_file() or not Path(ffmpeg_bin).is_file()):
         raise FileNotFoundError(f"Godot ({godot_bin}) or ffmpeg ({ffmpeg_bin}) executable is unavailable")
 
     output_dir = args.output_dir.resolve()
