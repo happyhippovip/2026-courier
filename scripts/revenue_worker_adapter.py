@@ -1,4 +1,4 @@
-import json, time, os, sys, shutil, subprocess, uuid, traceback, hashlib
+import json, time, os, sys, shutil, subprocess, uuid, traceback, hashlib, platform
 import base64, zipfile
 from pathlib import Path
 import urllib.request
@@ -56,6 +56,16 @@ def persist_pending_result(work_dir, payload):
             existing = json.loads(destination.read_text(encoding="utf-8"))
             if existing != payload:
                 raise RuntimeError("conflicting pending result already exists for dispatch")
+        except OSError:
+            # Fallback for platforms/filesystems where hard links are not supported
+            if destination.exists():
+                if destination.is_symlink() or not destination.is_file():
+                    raise RuntimeError("pending result path is not a regular owned file")
+                existing = json.loads(destination.read_text(encoding="utf-8"))
+                if existing != payload:
+                    raise RuntimeError("conflicting pending result already exists for dispatch")
+            else:
+                os.replace(temporary, destination)
     finally:
         temporary.unlink(missing_ok=True)
     return destination
@@ -96,6 +106,15 @@ def persist_task_checkpoint(work_dir, task):
                 raise RuntimeError("task checkpoint is not a regular owned file")
             if json.loads(destination.read_text(encoding="utf-8")) != task:
                 raise RuntimeError("conflicting task checkpoint already exists for dispatch")
+        except OSError:
+            # Fallback for platforms/filesystems where hard links are not supported
+            if destination.exists():
+                if destination.is_symlink() or not destination.is_file():
+                    raise RuntimeError("task checkpoint is not a regular owned file")
+                if json.loads(destination.read_text(encoding="utf-8")) != task:
+                    raise RuntimeError("conflicting task checkpoint already exists for dispatch")
+            else:
+                os.replace(temporary, destination)
     finally:
         temporary.unlink(missing_ok=True)
     return destination
@@ -105,54 +124,83 @@ def write_log(msg):
     with open(LOGS_DIR / "revenue_worker.log", "a") as f:
         f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {msg}\n")
 
-def get_config():
-    if CONFIG_PATH.exists():
-        with open(CONFIG_PATH, "r") as f:
+def get_config(config_path=None, repo_dir=None, fail_on_missing=True):
+    cfg_file = Path(config_path) if config_path else CONFIG_PATH
+    if cfg_file.exists():
+        with open(cfg_file, "r", encoding="utf-8") as f:
             config = json.load(f)
     else:
+        prefix = "WIN" if platform.system() == "Windows" else ("MAC" if platform.system() == "Darwin" else "LINUX")
         config = {
-            "WORKER_ID": f"REVENUE-MAC-{uuid.uuid4().hex[:6].upper()}",
+            "WORKER_ID": f"REVENUE-{prefix}-{uuid.uuid4().hex[:6].upper()}",
             "POLL_INTERVAL_SECONDS": 5
         }
-        with open(CONFIG_PATH, "w") as f:
+        cfg_file.parent.mkdir(parents=True, exist_ok=True)
+        with open(cfg_file, "w", encoding="utf-8") as f:
             json.dump(config, f, indent=2)
-            
-    # macOS Keychain support
-    try:
-        pw = subprocess.check_output(["security", "find-generic-password", "-a", "courier_worker", "-s", "courier_api_key", "-w"], stderr=subprocess.DEVNULL)
-        config["COURIER_API_KEY"] = pw.decode("utf-8").strip()
-    except Exception:
-        pass
-        
-    try:
-        srv = subprocess.check_output(["security", "find-generic-password", "-a", "courier_worker", "-s", "courier_server_url", "-w"], stderr=subprocess.DEVNULL)
-        config["COURIER_SERVER"] = srv.decode("utf-8").strip()
-    except Exception:
-        pass
+
+    # macOS Keychain support (only on Darwin)
+    if platform.system() == "Darwin":
+        try:
+            pw = subprocess.check_output(["security", "find-generic-password", "-a", "courier_worker", "-s", "courier_api_key", "-w"], stderr=subprocess.DEVNULL)
+            config["COURIER_API_KEY"] = pw.decode("utf-8").strip()
+        except Exception:
+            pass
+
+        try:
+            srv = subprocess.check_output(["security", "find-generic-password", "-a", "courier_worker", "-s", "courier_server_url", "-w"], stderr=subprocess.DEVNULL)
+            config["COURIER_SERVER"] = srv.decode("utf-8").strip()
+        except Exception:
+            pass
 
     # Windows / cross-platform Keyring support
     try:
         import keyring
         if not config.get("COURIER_API_KEY"):
-            pw = keyring.get_password("courier_worker", "courier_api_key")
-            if pw:
-                config["COURIER_API_KEY"] = pw
+            for service in ["courier_worker", "courier", "Courier"]:
+                for key_name in ["courier_api_key", "COURIER_API_KEY"]:
+                    pw = keyring.get_password(service, key_name)
+                    if pw:
+                        config["COURIER_API_KEY"] = pw
+                        break
+                if config.get("COURIER_API_KEY"):
+                    break
         if not config.get("COURIER_SERVER"):
-            srv = keyring.get_password("courier_worker", "courier_server_url")
+            srv = keyring.get_password("courier_worker", "courier_server_url") or keyring.get_password("courier", "courier_server_url")
             if srv:
                 config["COURIER_SERVER"] = srv
     except ImportError:
         pass
 
+    # Local environment files fallback (.env.txt or .env)
+    search_dir = Path(repo_dir) if repo_dir else BASE_DIR.parent
+    for env_name in [".env.txt", ".env"]:
+        env_path = search_dir / env_name
+        if env_path.exists():
+            try:
+                with open(env_path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith("#") and "=" in line:
+                            k, v = line.split("=", 1)
+                            k = k.strip()
+                            v = v.strip().strip('"\'')
+                            if k in ("COURIER_API_KEY", "courier_api_key") and not config.get("COURIER_API_KEY"):
+                                config["COURIER_API_KEY"] = v
+                            elif k in ("COURIER_SERVER", "courier_server") and not config.get("COURIER_SERVER"):
+                                config["COURIER_SERVER"] = v
+            except Exception:
+                pass
+
     if "COURIER_SERVER" in os.environ:
         config["COURIER_SERVER"] = os.environ["COURIER_SERVER"]
     if "COURIER_API_KEY" in os.environ:
         config["COURIER_API_KEY"] = os.environ["COURIER_API_KEY"]
-        
-    if "COURIER_SERVER" not in config or "COURIER_API_KEY" not in config:
+
+    if ("COURIER_SERVER" not in config or "COURIER_API_KEY" not in config) and fail_on_missing:
         write_log("ERROR: Missing COURIER_SERVER or COURIER_API_KEY. Exiting.")
         sys.exit(1)
-        
+
     return config
 
 def http_post(config, endpoint, data=None):

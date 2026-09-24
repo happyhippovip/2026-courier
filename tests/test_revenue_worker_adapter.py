@@ -170,3 +170,28 @@ def test_worker_subprocess_has_bounded_timeout(monkeypatch, tmp_path):
 
     assert adapter.process_claimed_task({}, "REVENUE-1", packet) is True
     assert observed["timeout"] == 17
+
+
+def test_get_config_windows_worker_id(monkeypatch, tmp_path):
+    monkeypatch.setattr("platform.system", lambda: "Windows")
+    monkeypatch.setenv("COURIER_API_KEY", "test-key")
+    monkeypatch.setenv("COURIER_SERVER", "http://127.0.0.1:8080")
+
+    cfg_file = tmp_path / "config.json"
+    cfg = adapter.get_config(config_path=cfg_file)
+    assert cfg["WORKER_ID"].startswith("REVENUE-WIN-")
+
+
+def test_get_config_file_fallback(monkeypatch, tmp_path):
+    monkeypatch.delenv("COURIER_API_KEY", raising=False)
+    monkeypatch.delenv("COURIER_SERVER", raising=False)
+    monkeypatch.setattr("keyring.get_password", lambda s, k: None)
+
+    env_file = tmp_path / ".env.txt"
+    env_file.write_text("COURIER_API_KEY=from-file-key\nCOURIER_SERVER=http://file-server:9000\n", encoding="utf-8")
+
+    cfg_file = tmp_path / "config.json"
+    cfg = adapter.get_config(config_path=cfg_file, repo_dir=tmp_path)
+    assert cfg["COURIER_API_KEY"] == "from-file-key"
+    assert cfg["COURIER_SERVER"] == "http://file-server:9000"
+
