@@ -41,7 +41,7 @@ def demo(count, mode, max_starts=None, initialize_control=True):
         workspace = owned(DEMO / 'workspace'); workspace.mkdir(parents=True, exist_ok=True)
         os.chdir(workspace)
         api, verifier = load_core()
-        core = IsolatedCore(api, verifier, DEMO / 'core')
+        core = IsolatedCore(api, verifier, DEMO / 'core', lanes=1)
         adapter = FakeAdapter(SNAPSHOT / 'scripts/integration_contract.py', workspace)
         try:
             if not manifest.get('goal_id'):

@@ -20,6 +20,7 @@ import cannon.core
 import cannon.importer
 import cannon.processes
 import cannon.storage
+import cannon.web
 from cannon.core import CourierClient
 from cannon.storage import ROOT, InstanceLock, atomic, digest, file_hash, owned
 if _app_added and str(APP) in sys.path:

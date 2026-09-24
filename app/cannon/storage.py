@@ -36,7 +36,7 @@ def _fs_path(path):
                 resolved = str(p.resolve())
             except OSError:
                 resolved = os.path.abspath(s)
-            if len(resolved) >= 200:
+            if len(resolved) >= 140:
                 if resolved.startswith('\\\\'):
                     return Path('\\\\?\\UNC\\' + resolved[2:])
                 return Path('\\\\?\\' + resolved)

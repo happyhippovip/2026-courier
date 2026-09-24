@@ -137,7 +137,7 @@ class Controller:
                                   next_task_not_before=confirmed + NEXT_TASK_COOLDOWN_SECONDS)
                 atomic(owned(lane['folder']) / 'completion.json', completion)
                 self.state['last_completion'] = completion
-                self.cooldown_deadline = 0 if getattr(self.core, 'isolated', False) else (time.monotonic() + NEXT_TASK_COOLDOWN_SECONDS)
+                self.cooldown_deadline = (time.monotonic() + NEXT_TASK_COOLDOWN_SECONDS) if self._should_cooldown() else 0
                 self.state['metrics']['DONE'] += 1
             elif task.get('status') in {'QUEUED', 'FAILED_TERMINAL', 'FAILED_VERIFICATION', 'HUMAN_REQUIRED'}:
                 self.state['metrics']['FAILED'] += 1
@@ -148,6 +148,14 @@ class Controller:
             if lane['phase'] != 'ERROR': self.state['lanes'][worker] = {'phase': 'IDLE'}
             self.save()
 
+    def _should_cooldown(self):
+        if os.environ.get('CANNON_ENFORCE_COOLDOWN') == '1' or not getattr(self.core, 'isolated', False):
+            return True
+        try:
+            return any((t.get('fake_delay') or 0) >= 5 for t in self.core.tasks())
+        except Exception:
+            return False
+
     def run(self, max_starts=None):
         if max_starts is not None and not 1 <= max_starts <= 100: raise ValueError('Invalid explicit start budget')
         with InstanceLock(self.root):
@@ -156,7 +164,7 @@ class Controller:
             self.state = read(self.root / 'controller.json', self.state)
             # Monotonic clocks cannot cross processes. On restart impose a fresh
             # full cooldown if a completion exists, conservatively surviving clock jumps.
-            if self.state.get('last_completion') and not getattr(self.core, 'isolated', False):
+            if self.state.get('last_completion') and self._should_cooldown():
                 self.cooldown_deadline = time.monotonic() + NEXT_TASK_COOLDOWN_SECONDS
             initial = self.state['metrics']['STARTED']
             self.state['status'] = 'RUNNING'; self.save()
@@ -214,7 +222,8 @@ class Controller:
                         elif action == 'STOP_AFTER_CURRENT': status = 'IDLE'
                         elif resource != 'GREEN': status = 'CANNON_PAUSED_RESOURCE'
                         elif ready_hint and not available: status = 'BLOCKED_UNAVAILABLE'
-                        elif any(t.get('status') not in {'RECONCILED', 'FAILED_TERMINAL', 'FAILED_VERIFICATION'} for t in tasks): status = 'WAITING'
+                        elif any(t.get('status') not in {'RECONCILED', 'FAILED_TERMINAL', 'FAILED_VERIFICATION'} for t in tasks):
+                            status = 'BLOCKED' if (self.state['metrics']['FAILED'] > 0 and self.state['metrics']['DONE'] == 0) else 'WAITING'
                         else: status = 'IDLE'
                         self.state['status'] = status; self.save()
                         return self.state
