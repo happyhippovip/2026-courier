@@ -13,6 +13,7 @@ import json
 import os
 import re
 import sys
+import tempfile
 from pathlib import Path
 
 SCRIPTS_DIR = Path(__file__).resolve().parent
@@ -31,8 +32,12 @@ SECRET_PATTERNS = [
 ]
 
 
+class ChannelRegistrationError(ValueError):
+    pass
+
+
 def fail(message: str) -> None:
-    raise SystemExit(f"CHANNEL_REGISTRATION_ERROR: {message}")
+    raise ChannelRegistrationError(f"CHANNEL_REGISTRATION_ERROR: {message}")
 
 
 def check_secrets(text: str) -> None:
@@ -110,7 +115,10 @@ def register_channel(
             fail(f"Channel with ID '{channel_id}' is already registered in {config_path.name}!")
 
     now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
-    cred_ref = f"MACOS_KEYCHAIN_{platform_upper}_{slug.replace('-', '_').upper()}_PILOT"
+    if os.name == "nt":
+        cred_ref = f"WINDOWS_KEYRING_{platform_upper}_{slug.replace('-', '_').upper()}_PILOT"
+    else:
+        cred_ref = f"MACOS_KEYCHAIN_{platform_upper}_{slug.replace('-', '_').upper()}_PILOT"
 
     new_channel = {
         "channel_id": channel_id,
@@ -130,7 +138,11 @@ def register_channel(
     registry_data["updated_at"] = now_iso
 
     config_path.parent.mkdir(parents=True, exist_ok=True)
-    config_path.write_text(json.dumps(registry_data, indent=2) + "\n", encoding="utf-8")
+    fd, tmp_file = tempfile.mkstemp(dir=config_path.parent, prefix="chan_", suffix=".tmp")
+    with open(fd, "w", encoding="utf-8") as f:
+        json.dump(registry_data, f, indent=2)
+        f.write("\n")
+    os.replace(tmp_file, config_path)
 
     return new_channel
 
@@ -145,15 +157,19 @@ def main() -> None:
     parser.add_argument("--workflows-config", default=str(DEFAULT_WORKFLOWS_CONFIG), help="Path to content_workflows.json")
     args = parser.parse_args()
 
-    channel = register_channel(
-        platform=args.platform,
-        channel_label=args.label,
-        content_project=args.project,
-        workflow_id=args.workflow,
-        config_path=Path(args.config).resolve(),
-        workflows_path=Path(args.workflows_config).resolve(),
-    )
-    print(json.dumps(channel, indent=2))
+    try:
+        channel = register_channel(
+            platform=args.platform,
+            channel_label=args.label,
+            content_project=args.project,
+            workflow_id=args.workflow,
+            config_path=Path(args.config).resolve(),
+            workflows_path=Path(args.workflows_config).resolve(),
+        )
+        print(json.dumps(channel, indent=2))
+    except ChannelRegistrationError as e:
+        print(str(e), file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
