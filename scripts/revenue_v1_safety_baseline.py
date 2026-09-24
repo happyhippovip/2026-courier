@@ -1,4 +1,5 @@
 # Extracted and adapted from Phase-8 workforce commit 60ebd6a4cc33558a243d083baf3f04f3a16ab4ae
+import argparse
 import json
 import hashlib
 import sys
@@ -18,9 +19,17 @@ def hash_file(path: Path) -> str:
     h.update(path.read_bytes())
     return h.hexdigest()
 
-def clone_and_extract(owner: str, repo: str, sha: str, dest: Path):
+def _remove_readonly(func, path, exc_info):
+    import stat
+    try:
+        os.chmod(path, stat.S_IWRITE)
+        func(path)
+    except Exception:
+        pass
+
+def clone_and_extract(owner: str, repo: str, sha: str, dest: Path) -> None:
     if dest.exists():
-        shutil.rmtree(dest)
+        shutil.rmtree(dest, onerror=_remove_readonly)
     subprocess.run(["git", "clone", "--no-checkout", f"https://github.com/{owner}/{repo}.git", str(dest)], check=True, capture_output=False)
     subprocess.run(["git", "-C", str(dest), "checkout", sha], check=True, capture_output=False)
 
@@ -30,7 +39,7 @@ def analyze_workflows(repo_dir: Path) -> dict:
     inspected_files = {}
     
     if workflows_dir.exists() and workflows_dir.is_dir():
-        for wf in workflows_dir.rglob("*.yml"):
+        for wf in sorted(workflows_dir.rglob("*.yml"), key=lambda p: p.name):
             inspected_files[wf.name] = hash_file(wf)
             content = wf.read_text(encoding="utf-8")
             
@@ -157,30 +166,55 @@ def reconcile_handoff(
         "next_safe_state": "HUMAN_REVIEW_REQUIRED",
     }
 
-if __name__ == "__main__":
-    cmd = sys.argv[1]
-    task_path = Path(sys.argv[2])
-    work_dir = Path(sys.argv[3]) if len(sys.argv) > 3 else Path(".")
-    
-    task = json.loads(task_path.read_text())
-    work_dir.mkdir(parents=True, exist_ok=True)
-    
-    if cmd == "worker":
-        res = worker(task, work_dir)
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Revenue V1 Safety Baseline Verifier")
+    subparsers = parser.add_subparsers(dest="cmd", required=True)
+
+    worker_p = subparsers.add_parser("worker", help="Run safety baseline worker")
+    worker_p.add_argument("task_path", type=Path, help="Path to task JSON")
+    worker_p.add_argument("work_dir", type=Path, nargs="?", default=Path("."), help="Work directory")
+
+    verify_p = subparsers.add_parser("verify", help="Run verification")
+    verify_p.add_argument("task_path", type=Path, help="Path to task JSON")
+    verify_p.add_argument("work_dir", type=Path, help="Work directory")
+    verify_p.add_argument("candidate_path", type=Path, help="Path to candidate JSON")
+
+    rec_p = subparsers.add_parser("reconcile", help="Reconcile handoff")
+    rec_p.add_argument("task_path", type=Path, help="Path to task JSON")
+    rec_p.add_argument("work_dir", type=Path, help="Work directory")
+    rec_p.add_argument("result_path", type=Path, help="Path to result JSON")
+    rec_p.add_argument("handoff_path", type=Path, help="Path to handoff JSON")
+    rec_p.add_argument("proposal_number", type=str, help="PR number")
+    rec_p.add_argument("proposal_head", type=str, help="Proposal branch")
+    rec_p.add_argument("proposal_base", type=str, help="Target base branch")
+
+    args = parser.parse_args(argv)
+
+    task = json.loads(args.task_path.read_text(encoding="utf-8"))
+    args.work_dir.mkdir(parents=True, exist_ok=True)
+
+    if args.cmd == "worker":
+        res = worker(task, args.work_dir)
         print(json.dumps(res, indent=2))
-    elif cmd == "verify":
-        candidate_path = Path(sys.argv[4])
-        candidate = json.loads(candidate_path.read_text())
-        verified = verify(task, candidate, work_dir)
+    elif args.cmd == "verify":
+        candidate = json.loads(args.candidate_path.read_text(encoding="utf-8"))
+        verified = verify(task, candidate, args.work_dir)
         print(json.dumps(verified, indent=2))
-    elif cmd == "reconcile":
-        result_path = Path(sys.argv[4])
-        handoff_path = Path(sys.argv[5])
-        proposal_number = sys.argv[6]
-        proposal_head = sys.argv[7]
-        proposal_base = sys.argv[8]
+    elif args.cmd == "reconcile":
+        result_data = json.loads(args.result_path.read_text(encoding="utf-8"))
+        handoff_data = json.loads(args.handoff_path.read_text(encoding="utf-8"))
         reconciliation = reconcile_handoff(
-            task, json.loads(result_path.read_text()), json.loads(handoff_path.read_text()), work_dir,
-            proposal_number, proposal_head, proposal_base
+            task,
+            result_data,
+            handoff_data,
+            args.work_dir,
+            args.proposal_number,
+            args.proposal_head,
+            args.proposal_base,
         )
         print(json.dumps(reconciliation, indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

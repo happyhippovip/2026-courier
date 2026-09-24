@@ -41,14 +41,11 @@ from scripts.resolve_project_memory import resolve_default_memory_repo
 SCRIPTS_DIR = Path(__file__).resolve().parent
 COURIER_DIR = SCRIPTS_DIR.parent
 PROJECT_MEMORY_DIR = resolve_default_memory_repo()
-GODOT_DIR = Path(os.environ.get("COURIER_GODOT_REPO", "/Users/user/Downloads/2026-godot-shorts"))
+GODOT_DIR = Path(os.environ.get("COURIER_GODOT_REPO", str(COURIER_DIR / "godot_media")))
 
 EVENTS_DIR = COURIER_DIR / "events"
 STATES_DIR = EVENTS_DIR / "agent-states"
 SNAPSHOTS_DIR = EVENTS_DIR / "context-snapshots"
-
-STATES_DIR.mkdir(parents=True, exist_ok=True)
-SNAPSHOTS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Add scripts directory to path
 if str(SCRIPTS_DIR) not in sys.path:
@@ -68,26 +65,48 @@ def compute_sha256(data: object) -> str:
 
 def get_git_head(repo_path: Path) -> str:
     """Safely retrieves the git HEAD SHA for a repository without external network calls."""
-    if not repo_path.exists() or not (repo_path / ".git").exists():
+    if not repo_path.exists():
         return "NOT_CONNECTED"
 
-    git_dir = repo_path / ".git"
+    git_entry = repo_path / ".git"
+    if not git_entry.exists():
+        return "NOT_CONNECTED"
+
+    git_dir = git_entry
+    if git_entry.is_file():
+        # Support git worktrees where .git is a file containing "gitdir: <path>"
+        try:
+            txt = git_entry.read_text(encoding="utf-8").strip()
+            if txt.startswith("gitdir:"):
+                ref = txt.split(":", 1)[1].strip()
+                p = Path(ref)
+                git_dir = p if p.is_absolute() else (repo_path / p).resolve()
+        except Exception:
+            pass
+
+    if not git_dir.exists() or not git_dir.is_dir():
+        return "NOT_CONNECTED"
+
     try:
         # Check direct HEAD file
         head_file = git_dir / "HEAD"
         if head_file.exists():
             content = head_file.read_text(encoding="utf-8").strip()
             if content.startswith("ref:"):
-                ref_path = git_dir / content.split(" ", 1)[1].strip()
+                ref_rel = content.split(" ", 1)[1].strip()
+                ref_path = git_dir / ref_rel
                 if ref_path.exists():
                     return ref_path.read_text(encoding="utf-8").strip()
                 # Check packed-refs
                 packed_refs = git_dir / "packed-refs"
                 if packed_refs.exists():
-                    ref_name = content.split(" ", 1)[1].strip()
                     for line in packed_refs.read_text(encoding="utf-8").splitlines():
-                        if line.endswith(ref_name):
-                            return line.split(" ")[0].strip()
+                        line = line.strip()
+                        if not line or line.startswith("#"):
+                            continue
+                        parts = line.split(" ", 1)
+                        if len(parts) == 2 and parts[1].strip() == ref_rel:
+                            return parts[0].strip()
             elif len(content) == 40:
                 return content
     except Exception:
@@ -437,25 +456,37 @@ class UpdateSteward:
         return self.generate_context_snapshot()
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Update Steward & Context Synchronization CLI")
     parser.add_argument("--refresh", action="store_true", help="Force refresh current context snapshot")
     parser.add_argument("--inspect", action="store_true", help="Print current context snapshot metadata")
-    args = parser.parse_args()
+    parser.add_argument("--repo-dir", help="Path to repository root")
+    parser.add_argument("--memory-dir", help="Path to memory repository root")
+    parser.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+    args = parser.parse_args(argv)
 
-    steward = UpdateSteward()
+    repo_dir = Path(args.repo_dir).resolve() if args.repo_dir else COURIER_DIR
+    memory_dir = Path(args.memory_dir).resolve() if args.memory_dir else PROJECT_MEMORY_DIR
+    steward = UpdateSteward(repo_dir=repo_dir, memory_dir=memory_dir)
+
     if args.refresh or not args.inspect:
         snapshot = steward.generate_context_snapshot()
-        print(f"✅ Context Snapshot v{snapshot['context_version']} generated (Hash: {snapshot['snapshot_hash'][:12]})")
-        print(f"   Courier HEAD: {snapshot['repositories']['courier_head'][:8]}")
-        print(f"   Memory HEAD:  {snapshot['repositories']['memory_head'][:8]}")
-        print(f"   Decisions:    {len(snapshot['memory_truth']['latest_decisions'])} indexed")
+        if args.json:
+            print(json.dumps(snapshot, indent=2))
+        else:
+            print(f"✅ Context Snapshot v{snapshot['context_version']} generated (Hash: {snapshot['snapshot_hash'][:12]})")
+            print(f"   Courier HEAD: {snapshot['repositories']['courier_head'][:8]}")
+            print(f"   Memory HEAD:  {snapshot['repositories']['memory_head'][:8]}")
+            print(f"   Decisions:    {len(snapshot['memory_truth']['latest_decisions'])} indexed")
     else:
         snapshot = steward.get_latest_snapshot()
         if snapshot:
             print(json.dumps(snapshot, indent=2))
         else:
-            print("No snapshot available. Run with --refresh to generate one.")
+            if args.json:
+                print(json.dumps({"error": "No snapshot available", "status": "EMPTY"}))
+            else:
+                print("No snapshot available. Run with --refresh to generate one.")
 
     return 0
 
