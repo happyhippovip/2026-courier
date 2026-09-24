@@ -46,10 +46,16 @@ def register_worker(worker_id):
     except Exception:
         pass
 
+    caps = ["windows", "powershell"]
+    if shutil.which("agy"):
+        caps.append("antigravity")
+    if "COURIER_WORKER_CAPABILITIES" in os.environ:
+        caps.extend([c.strip() for c in os.environ["COURIER_WORKER_CAPABILITIES"].split(",") if c.strip()])
+
     payload = {
         "worker_id": worker_id, 
         "platform": "windows", 
-        "capabilities": ["windows"], 
+        "capabilities": sorted(set(caps)), 
         "cost_class": cost_class,
         "runtime_sha": runtime_sha
     }
@@ -63,9 +69,21 @@ def register_worker(worker_id):
         return False
 
 def http_post_result(res):
-    req = urllib.request.Request(f"{API_URL}/tasks/result", method="POST")
-    for k, v in HEADERS.items(): req.add_header(k, v)
-    payload_bytes = json.dumps(res).encode("utf-8")
+    if res.get("status") == "PROVIDER_WAIT":
+        task_id = res.get("task_id")
+        wait_payload = {
+            "worker_id": res.get("worker_id"),
+            "reason": res.get("reason", "QUOTA_OR_RATE_LIMIT"),
+            "wait_type": "WAITING_PROVIDER",
+            "task_id": task_id,
+        }
+        req = urllib.request.Request(f"{API_URL}/tasks/{task_id}/provider_wait", method="POST")
+        for k, v in HEADERS.items(): req.add_header(k, v)
+        payload_bytes = json.dumps(wait_payload).encode("utf-8")
+    else:
+        req = urllib.request.Request(f"{API_URL}/tasks/result", method="POST")
+        for k, v in HEADERS.items(): req.add_header(k, v)
+        payload_bytes = json.dumps(res).encode("utf-8")
     for attempt in range(5):
         try:
             urllib.request.urlopen(req, data=payload_bytes, timeout=10)

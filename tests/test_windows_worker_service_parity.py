@@ -86,3 +86,56 @@ def test_windows_daemon_run_task_produces_valid_durable_result_for_server(tmp_pa
     post_res = client.post("/tasks/result", headers=headers, json=result_payload)
     assert post_res.status_code == 200, post_res.get_json()
 
+
+def test_windows_daemon_provider_wait_transitions_task_to_waiting_provider(tmp_path, monkeypatch):
+    monkeypatch.setenv("COURIER_API_KEY", "test-secret")
+    from server import app as server_app
+    from scripts.windows_worker import daemon as win_daemon
+
+    monkeypatch.setattr(server_app, "STATE_FILE", str(tmp_path / "state.json"))
+    monkeypatch.setattr(server_app, "BATCH_QUEUE_DIR", str(tmp_path / "empty-batches"))
+    monkeypatch.setattr(server_app, "API_KEY", "test-secret")
+    client = server_app.app.test_client()
+    headers = {"Authorization": "Bearer test-secret"}
+
+    assert client.post(
+        "/workers/register",
+        headers=headers,
+        json={"worker_id": "WIN-TEST-02", "platform": "windows", "capabilities": ["windows"]},
+    ).status_code == 200
+
+    goal_res = client.post(
+        "/goals",
+        headers=headers,
+        json={
+            "goal_text": "Windows Daemon Provider Wait Proof",
+            "workflow_plan": [
+                {
+                    "task_id": "win-wait-1",
+                    "target_agent": "windows",
+                    "instruction": "Write-Output '429 quota exceeded'",
+                }
+            ],
+        },
+    )
+    assert goal_res.status_code == 200
+    claimed = client.post("/tasks/claim", headers=headers, json={"worker_id": "WIN-TEST-02"}).get_json()["task"]
+    assert claimed is not None
+
+    res_payload = win_daemon.run_task(claimed, {"WORKER_ID": "WIN-TEST-02"})
+    assert res_payload["status"] == "PROVIDER_WAIT"
+
+    wait_res = client.post(
+        f"/tasks/{claimed['task_id']}/provider_wait",
+        headers=headers,
+        json={
+            "worker_id": res_payload["worker_id"],
+            "reason": res_payload["reason"],
+            "wait_type": "WAITING_PROVIDER",
+            "task_id": claimed["task_id"],
+        },
+    )
+    assert wait_res.status_code == 200
+    assert server_app.load_state()["tasks"]["win-wait-1"]["status"] == "WAITING_PROVIDER"
+
+
