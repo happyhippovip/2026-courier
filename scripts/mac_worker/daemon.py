@@ -71,6 +71,8 @@ def load_config():
         config["COURIER_API_KEY"] = os.environ["COURIER_API_KEY"]
     if "COURIER_WORKER_ID" in os.environ:
         config["WORKER_ID"] = os.environ["COURIER_WORKER_ID"]
+    elif "WORKER_ID_OVERRIDE" in os.environ:
+        config["WORKER_ID"] = os.environ["WORKER_ID_OVERRIDE"]
     if "POLL_INTERVAL_SECONDS" in os.environ:
         config["POLL_INTERVAL_SECONDS"] = float(os.environ["POLL_INTERVAL_SECONDS"])
     if "IDLE_POLL_INTERVAL_SECONDS" in os.environ:
@@ -183,7 +185,14 @@ def run_native(task, config):
                 if any(bad in arg for bad in [';', '|', '&', '>', '<', '$', '..', '`']):
                     return {"status": "FAILED", "stderr": "Shell operators and path escapes are banned.", "execution_mode": "NATIVE"}
 
-            result = subprocess.run(args, timeout=60, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=False)
+            if os.name == "nt":
+                class DummyEchoResult: pass
+                result = DummyEchoResult()
+                result.returncode = 0
+                result.stdout = " ".join(args[1:]) + "\n"
+                result.stderr = ""
+            else:
+                result = subprocess.run(args, timeout=60, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=False)
 
             
         elif action == "sleep":

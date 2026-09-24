@@ -65,7 +65,31 @@ def get_goal_state(goal_id):
         pass
     return None
 
+def _kill_proc_tree(p):
+    if not p:
+        return
+    try:
+        import psutil
+        parent = psutil.Process(p.pid)
+        for child in parent.children(recursive=True):
+            try:
+                child.kill()
+            except psutil.NoSuchProcess:
+                pass
+        parent.kill()
+    except Exception:
+        try:
+            if p.poll() is None:
+                p.terminate()
+                p.wait(timeout=3)
+        except Exception:
+            try:
+                p.kill()
+            except Exception:
+                pass
+
 def start_server():
+    os.makedirs("server/state", exist_ok=True)
     env = os.environ.copy()
     env["COURIER_STATE_FILE"] = "server/state/demo_state.json"
     return subprocess.Popen(
@@ -85,7 +109,15 @@ def start_verifier():
 
 def start_worker(name_suffix="1"):
     env = os.environ.copy()
-    env["WORKER_ID_OVERRIDE"] = f"DEMO-WORKER-{name_suffix}"
+    worker_id = f"DEMO-WORKER-{name_suffix}"
+    env["WORKER_ID_OVERRIDE"] = worker_id
+    env["COURIER_WORKER_ID"] = worker_id
+    env["POLL_INTERVAL_SECONDS"] = "1"
+    env["IDLE_POLL_INTERVAL_SECONDS"] = "1"
+    state_dir = os.path.abspath(os.path.join("server", "state", f"demo_worker_{name_suffix}"))
+    os.makedirs(state_dir, exist_ok=True)
+    env["COURIER_WORKER_STATE_DIR"] = state_dir
+    env["COURIER_WORKER_LOGS_DIR"] = state_dir
     return subprocess.Popen(
         [sys.executable, "scripts/mac_worker/daemon.py"],
         stdout=subprocess.DEVNULL,
@@ -111,8 +143,7 @@ def run_autonomy_test():
         time.sleep(6)
         
         print("Simulating crash by killing Worker A...")
-        mac_proc.terminate()
-        mac_proc.wait()
+        _kill_proc_tree(mac_proc)
         
         print("Worker B started. Sleeping 15 seconds (no polling)...")
         win_proc = start_worker("B")
@@ -130,12 +161,7 @@ def run_autonomy_test():
             
     finally:
         for p in [server_proc, verifier_proc, mac_proc, win_proc]:
-            if p and p.poll() is None:
-                p.terminate()
-                try:
-                    p.wait(timeout=5)
-                except subprocess.TimeoutExpired:
-                    p.kill()
+            _kill_proc_tree(p)
 
 def main():
     parser = argparse.ArgumentParser()

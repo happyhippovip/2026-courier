@@ -453,9 +453,15 @@ def acquire_lock(worker_id):
             print(f"[{worker_id}] Lock acquire failed: {e}")
         return None
 
+def _state_dir() -> Path:
+    d = Path(os.environ.get("COURIER_WORKER_STATE_DIR") or (Path(__file__).parent / "state"))
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
 def loop():
     config = load_config()
-    worker_id = os.environ.get("COURIER_WORKER_ID") or config.get("WORKER_ID", "default-win-worker")
+    worker_id = os.environ.get("COURIER_WORKER_ID") or os.environ.get("WORKER_ID_OVERRIDE") or config.get("WORKER_ID", "default-win-worker")
+    config["WORKER_ID"] = worker_id
     
     lock_path = acquire_lock(worker_id)
     if not lock_path:
@@ -465,7 +471,7 @@ def loop():
     try:
         print(f"[{worker_id}] Windows Worker HTTP Daemon started. PID={os.getpid()}")
         
-        marker_path = Path(__file__).parent / "state" / "effect_marker.json"
+        marker_path = _state_dir() / "effect_marker.json"
         if marker_path.exists():
             try:
                 with open(marker_path, "r") as f:
