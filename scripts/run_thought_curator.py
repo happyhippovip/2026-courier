@@ -39,22 +39,30 @@ import time
 import uuid
 from pathlib import Path
 
-from scripts.resolve_project_memory import resolve_default_memory_repo
-
 SCRIPTS_DIR = Path(__file__).resolve().parent
 COURIER_DIR = SCRIPTS_DIR.parent
+
+if str(COURIER_DIR) not in sys.path:
+    sys.path.insert(0, str(COURIER_DIR))
+if str(SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_DIR))
+
+try:
+    from scripts.build_memory_update_proposal import resolve_default_memory_repo
+except ImportError:
+    try:
+        from build_memory_update_proposal import resolve_default_memory_repo
+    except ImportError:
+        try:
+            from scripts.resolve_project_memory import resolve_default_memory_repo
+        except ImportError:
+            from resolve_project_memory import resolve_default_memory_repo
+
 PROJECT_MEMORY_DIR = resolve_default_memory_repo()
 
 EVENTS_DIR = COURIER_DIR / "events"
 STATES_DIR = EVENTS_DIR / "agent-states"
 THOUGHTS_DIR = EVENTS_DIR / "thoughts"
-
-STATES_DIR.mkdir(parents=True, exist_ok=True)
-THOUGHTS_DIR.mkdir(parents=True, exist_ok=True)
-
-# Add scripts directory to path
-if str(SCRIPTS_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPTS_DIR))
 
 try:
     from run_antigravity_bridge import AntigravityVisualStateTracker, load_json, save_json
@@ -68,10 +76,17 @@ class ThoughtCurator:
     def __init__(self, repo_dir: Path = COURIER_DIR, memory_dir: Path = PROJECT_MEMORY_DIR):
         self.repo_dir = repo_dir
         self.memory_dir = memory_dir
+        self.events_dir = self.repo_dir / "events"
+        self.thoughts_dir = self.events_dir / "thoughts"
+        self.states_dir = self.events_dir / "agent-states"
+        self.thoughts_dir.mkdir(parents=True, exist_ok=True)
+        self.states_dir.mkdir(parents=True, exist_ok=True)
+
         self.state_tracker = AntigravityVisualStateTracker(
             agent_id="agent-thought-curator",
             name="Thought Curator",
             role="Permanent Idea Sync & Memory Curator",
+            repo_dir=self.repo_dir,
         )
         self.memory_index, self.sources_available = self._index_project_memory()
 
@@ -184,7 +199,7 @@ class ThoughtCurator:
         # Check for policy conflicts
         # Policy D-002: Crypto / speculation forbidden
         crypto_keywords = ["crypto", "krypto", "token", "memecoin", "leverage", "trading", "fomo", "hebel", "spekulation"]
-        if any(kw in normalized for kw in crypto_keywords):
+        if any(kw in tokens if " " not in kw else kw in normalized for kw in crypto_keywords):
             conflicts.append({
                 "rule": "D-002 — Crypto and speculative recovery blocked",
                 "severity": "CRITICAL_REJECT",
@@ -194,8 +209,27 @@ class ThoughtCurator:
             classification = "CONFLICT"
 
         # Policy D-004: Paid action without gate
-        paid_keywords = ["kauf", "pay", "credit", "subscription", "kostenpflichtig", "anzeigen schalten", "werbung kaufen", "fremdkapital"]
-        if any(kw in normalized for kw in paid_keywords):
+        paid_keywords = ["kauf", "pay", "payment", "credit", "subscription", "kostenpflichtig", "anzeigen schalten", "werbung kaufen", "fremdkapital"]
+        paid_conflict = False
+        for kw in paid_keywords:
+            if kw == "pay":
+                if any(re.match(r"^pay(?:s|ment|ments|ing)?$", t) for t in tokens):
+                    paid_conflict = True
+                    break
+            elif kw == "kauf":
+                if any(t.startswith("kauf") for t in tokens):
+                    paid_conflict = True
+                    break
+            elif " " in kw:
+                if kw in normalized:
+                    paid_conflict = True
+                    break
+            else:
+                if kw in tokens:
+                    paid_conflict = True
+                    break
+
+        if paid_conflict:
             conflicts.append({
                 "rule": "D-004 — No paid or irreversible action by default",
                 "severity": "HUMAN_GATE_REQUIRED",
@@ -310,23 +344,38 @@ class ThoughtCurator:
         )
 
         # Save thought record
-        thought_file = THOUGHTS_DIR / f"{idea_id}.json"
+        thought_file = self.thoughts_dir / f"{idea_id}.json"
         save_json(thought_file, context_delta)
 
         return context_delta
 
 
-def main():
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Curate Human Ideas against Project Memory")
     parser.add_argument("--idea", type=str, required=True, help="Human idea or strategic thought")
     parser.add_argument("--type", type=str, default="IDEA", choices=["IDEA", "THOUGHT", "STRATEGY", "GOAL"])
-    args = parser.parse_args()
+    parser.add_argument("--repo-dir", type=str, default=str(COURIER_DIR), help="Path to repository root")
+    parser.add_argument("--memory-dir", type=str, default=str(PROJECT_MEMORY_DIR), help="Path to memory directory")
+    parser.add_argument("--json", action="store_true", help="Output summary in JSON format")
+    args = parser.parse_args(argv)
 
-    curator = ThoughtCurator()
-    res = curator.curate_idea(args.idea, args.type)
-    print("\n=== CURATION SUMMARY ===")
-    print(json.dumps(res, indent=2))
+    repo_dir = Path(args.repo_dir).resolve()
+    memory_dir = Path(args.memory_dir).resolve()
+
+    curator = ThoughtCurator(repo_dir=repo_dir, memory_dir=memory_dir)
+    if args.json:
+        import io
+        import contextlib
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            res = curator.curate_idea(args.idea, args.type)
+        print(json.dumps(res, indent=2))
+    else:
+        res = curator.curate_idea(args.idea, args.type)
+        print("\n=== CURATION SUMMARY ===")
+        print(json.dumps(res, indent=2))
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

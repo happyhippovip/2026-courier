@@ -23,28 +23,43 @@ import sys
 import uuid
 from pathlib import Path
 
-from scripts.resolve_project_memory import resolve_default_memory_repo
-
 SCRIPTS_DIR = Path(__file__).resolve().parent
 COURIER_DIR = SCRIPTS_DIR.parent
-PROJECT_MEMORY_DIR = resolve_default_memory_repo()
 
+if str(COURIER_DIR) not in sys.path:
+    sys.path.insert(0, str(COURIER_DIR))
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
+
+try:
+    from scripts.build_memory_update_proposal import resolve_default_memory_repo
+except ImportError:
+    try:
+        from build_memory_update_proposal import resolve_default_memory_repo
+    except ImportError:
+        try:
+            from scripts.resolve_project_memory import resolve_default_memory_repo
+        except ImportError:
+            from resolve_project_memory import resolve_default_memory_repo
+
+PROJECT_MEMORY_DIR = resolve_default_memory_repo()
 
 from run_academy import AcademyTeacher, AcademyDirector
 from run_context_sync import UpdateSteward
 
 
-def run_academy_demo(reset: bool = False) -> dict:
+def run_academy_demo(reset: bool = False, repo_dir: Path | None = None, memory_dir: Path | None = None) -> dict:
+    repo = Path(repo_dir).resolve() if repo_dir else COURIER_DIR
+    mem = Path(memory_dir).resolve() if memory_dir else PROJECT_MEMORY_DIR
+
     print("=======================================================")
     print("🎓 STARTING AI ACADEMY DETERMINISTIC DEMO PIPELINE")
     print("   Teacher: Agentenlehrer | Director: Schuldirektor")
     print("=======================================================")
 
-    teacher = AcademyTeacher(repo_dir=COURIER_DIR, memory_dir=PROJECT_MEMORY_DIR)
-    director = AcademyDirector(repo_dir=COURIER_DIR, memory_dir=PROJECT_MEMORY_DIR)
-    steward = UpdateSteward(repo_dir=COURIER_DIR, memory_dir=PROJECT_MEMORY_DIR)
+    teacher = AcademyTeacher(repo_dir=repo, memory_dir=mem)
+    director = AcademyDirector(repo_dir=repo, memory_dir=mem)
+    steward = UpdateSteward(repo_dir=repo, memory_dir=mem)
 
     # 1. Attendance Check
     print("\n[STAGE 1] DIRECTOR ATTENDANCE CHECK...")
@@ -135,9 +150,29 @@ def run_academy_demo(reset: bool = False) -> dict:
     }
 
 
-if __name__ == "__main__":
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="AI Academy Demo Runner")
     parser.add_argument("--reset", action="store_true", help="Reset academy test data before running")
-    args = parser.parse_args()
+    parser.add_argument("--repo-dir", type=str, default=str(COURIER_DIR), help="Path to repository root")
+    parser.add_argument("--memory-dir", type=str, default=str(PROJECT_MEMORY_DIR), help="Path to memory directory")
+    parser.add_argument("--json", action="store_true", help="Output result as JSON")
+    args = parser.parse_args(argv)
 
-    run_academy_demo(reset=args.reset)
+    repo_dir = Path(args.repo_dir).resolve()
+    memory_dir = Path(args.memory_dir).resolve()
+
+    if args.json:
+        import io
+        import contextlib
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            result = run_academy_demo(reset=args.reset, repo_dir=repo_dir, memory_dir=memory_dir)
+        print(json.dumps(result, indent=2))
+    else:
+        result = run_academy_demo(reset=args.reset, repo_dir=repo_dir, memory_dir=memory_dir)
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
