@@ -10,8 +10,10 @@ import json
 import os
 import re
 import sys
+import tempfile
 import uuid
 from pathlib import Path
+from typing import Any
 
 # Import local memory resolver
 try:
@@ -55,8 +57,12 @@ ALLOWED_COST_POLICIES = {"ZERO_COST_ONLY"}
 ALLOWED_HUMAN_GATE_POLICIES = {"STOP_ON_HUMAN_GATE_ONLY"}
 
 
+class WorkerJobBuilderError(ValueError):
+    """Raised when Antigravity worker job construction or schema validation fails."""
+
+
 def fail(message: str) -> None:
-    raise SystemExit(f"WORKER_JOB_BUILDER_ERROR: {message}")
+    raise WorkerJobBuilderError(f"WORKER_JOB_BUILDER_ERROR: {message}")
 
 
 def canonical_hash(payload: object) -> str:
@@ -161,6 +167,9 @@ def validate_worker_job_against_schema(job_data: dict, schema_path: Path | None 
 
 
 def validate_command_for_job(cmd_data: dict) -> tuple[bool, str]:
+    if not isinstance(cmd_data, dict):
+        return False, "Command data must be a JSON object"
+
     if set(cmd_data) != REQUIRED_ENVELOPE:
         return False, f"Envelope mismatch: {set(cmd_data)} != {REQUIRED_ENVELOPE}"
 
@@ -218,7 +227,7 @@ def build_worker_job(
     output_dir: Path,
     schema_path: Path | None = None,
     memory_repo_path: Path | None = None,
-) -> dict:
+) -> dict[str, Any]:
     if not command_file.exists():
         fail(f"Command file not found: {command_file}")
 
@@ -275,46 +284,73 @@ def build_worker_job(
 
     output_dir.mkdir(parents=True, exist_ok=True)
     out_file = output_dir / f"{task_id}-worker-job.json"
-    out_file.write_text(json.dumps(worker_job, indent=2) + "\n", encoding="utf-8")
+
+    fd, tmp_path = tempfile.mkstemp(dir=str(output_dir), prefix="job_", suffix=".tmp")
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        json.dump(worker_job, f, indent=2)
+        f.write("\n")
+    os.replace(tmp_path, out_file)
 
     return worker_job
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Build and Validate Memory-Aware Antigravity Worker Job from Chief Command")
     parser.add_argument("--command", help="Path to Chief command JSON")
     parser.add_argument("--output-dir", default="events/dispatch", help="Output directory for dispatch worker job")
     parser.add_argument("--validate-job", help="Validate an existing worker job file against the JSON Schema")
     parser.add_argument("--schema", help="Custom path to antigravity_worker_job.schema.json")
     parser.add_argument("--memory-repo", default=str(DEFAULT_MEMORY_REPO_PATH), help="Path to 2026-project-memory")
-    args = parser.parse_args()
+    parser.add_argument("--json", action="store_true", help="Output machine-readable JSON status")
+    args = parser.parse_args(argv)
 
     schema_path = Path(args.schema).resolve() if args.schema else None
 
     if args.validate_job:
         job_file = Path(args.validate_job)
         if not job_file.exists():
-            fail(f"Worker job file not found: {job_file}")
+            print(f"ERROR: Worker job file not found: {job_file}", file=sys.stderr)
+            return 1
         try:
             job_data = json.loads(job_file.read_text(encoding="utf-8"))
         except Exception as exc:
-            fail(f"Invalid JSON in worker job: {exc}")
+            print(f"ERROR: Invalid JSON in worker job: {exc}", file=sys.stderr)
+            return 1
         valid, msg = validate_worker_job_against_schema(job_data, schema_path)
         if not valid:
-            fail(f"Worker job validation failed: {msg}")
-        print(f"WORKER_JOB_SCHEMA_VALID: {job_file.name}")
-        return
+            if args.json:
+                print(json.dumps({"valid": False, "error": msg}))
+            else:
+                print(f"Worker job validation failed: {msg}", file=sys.stderr)
+            return 1
+        if args.json:
+            print(json.dumps({"valid": True, "file": job_file.name}))
+        else:
+            print(f"WORKER_JOB_SCHEMA_VALID: {job_file.name}")
+        return 0
 
     if not args.command:
-        fail("Missing required --command argument")
+        print("ERROR: Missing required --command argument", file=sys.stderr)
+        return 1
 
     command_path = Path(args.command)
     output_dir = Path(args.output_dir)
     mem_repo_path = Path(args.memory_repo).resolve() if args.memory_repo else None
 
-    job = build_worker_job(command_path, output_dir, schema_path, mem_repo_path)
-    print(f"WORKER_JOB_CREATED: id={job['job_id']}, task={job['task_id']}, src_msg={job['source_command_message_id']}")
+    try:
+        job = build_worker_job(command_path, output_dir, schema_path, mem_repo_path)
+        if args.json:
+            print(json.dumps(job, indent=2))
+        else:
+            print(f"WORKER_JOB_CREATED: id={job['job_id']}, task={job['task_id']}, src_msg={job['source_command_message_id']}")
+        return 0
+    except WorkerJobBuilderError as exc:
+        if args.json:
+            print(json.dumps({"error": str(exc)}, indent=2))
+        else:
+            print(str(exc), file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

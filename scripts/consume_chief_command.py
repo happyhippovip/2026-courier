@@ -8,10 +8,11 @@ import datetime
 import hashlib
 import json
 import os
-import subprocess
 import sys
+import tempfile
 import uuid
 from pathlib import Path
+from typing import Any
 
 REQUIRED_ENVELOPE = {
     "schema_version", "message_id", "task_id", "correlation_id", "parent_id",
@@ -34,8 +35,12 @@ ALLOWED_COST_POLICIES = {"ZERO_COST_ONLY", "FREE_TIER_ONLY"}
 ALLOWED_HUMAN_GATE_POLICIES = {"STOP_ON_HUMAN_GATE_ONLY", "AUTO_IF_SAFE"}
 
 
+class ChiefConsumerError(ValueError):
+    """Raised when Chief Command processing fails."""
+
+
 def fail(message: str) -> None:
-    raise SystemExit(f"CONSUMER_ERROR: {message}")
+    raise ChiefConsumerError(f"CONSUMER_ERROR: {message}")
 
 
 def canonical_hash(payload: object) -> str:
@@ -54,13 +59,15 @@ def check_dedupe(candidate_message_id: str, search_dirs: list[Path], exclude_pat
                 existing_data = json.loads(existing_file.read_text(encoding="utf-8"))
             except Exception:
                 continue
-            # Check message_id OR parent_id matching candidate_message_id
             if existing_data.get("message_id") == candidate_message_id or existing_data.get("parent_id") == candidate_message_id:
                 return False
     return True
 
 
 def validate_command(command_data: dict, command_file: Path | None, incoming_dir: Path, processed_dir: Path) -> tuple[bool, str]:
+    if not isinstance(command_data, dict):
+        return False, "Command data must be a JSON object"
+
     if set(command_data) != REQUIRED_ENVELOPE:
         return False, f"Envelope mismatch: {set(command_data)} != {REQUIRED_ENVELOPE}"
 
@@ -120,7 +127,7 @@ def create_antigravity_result(
     test_results: str,
     human_gate: str = "NONE",
     safe_next_state: str = "WAITING_FOR_CHIEF_COMMAND",
-) -> dict:
+) -> dict[str, Any]:
     res_payload = {
         "source_agent": "ANTIGRAVITY",
         "summary": summary,
@@ -154,7 +161,7 @@ def create_antigravity_result(
     return result_event
 
 
-def process_command(command_file: Path, incoming_dir: Path, processed_dir: Path) -> dict:
+def process_command(command_file: Path, incoming_dir: Path, processed_dir: Path) -> dict[str, Any]:
     if not command_file.exists():
         fail(f"Command file does not exist: {command_file}")
 
@@ -169,7 +176,7 @@ def process_command(command_file: Path, incoming_dir: Path, processed_dir: Path)
 
     # Safe Command Execution Dispatcher
     cmd_text = command_data["payload"]["one_next_command"]
-    
+
     summary = f"Executed Chief Command: {cmd_text}"
     verified_facts = [
         f"Command validated successfully: id={command_data['message_id']}",
@@ -177,7 +184,7 @@ def process_command(command_file: Path, incoming_dir: Path, processed_dir: Path)
         f"Cost policy verified: {command_data['payload']['cost_policy']}",
     ]
     files_changed = 0
-    commits = []
+    commits: list[str] = []
     test_results = "PASS"
     result_status = "DONE"
     human_gate = "NONE"
@@ -196,27 +203,44 @@ def process_command(command_file: Path, incoming_dir: Path, processed_dir: Path)
         safe_next_state=safe_next_state,
     )
 
-    # Publish result to processed_dir
+    # Publish result to processed_dir atomically
     processed_dir.mkdir(parents=True, exist_ok=True)
     processed_file = processed_dir / f"{command_data['task_id']}-result.json"
-    processed_file.write_text(json.dumps(result_event, indent=2) + "\n", encoding="utf-8")
+
+    fd, tmp_path = tempfile.mkstemp(dir=str(processed_dir), prefix="res_", suffix=".tmp")
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        json.dump(result_event, f, indent=2)
+        f.write("\n")
+    os.replace(tmp_path, processed_file)
 
     return result_event
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Consume Chief Command and publish Antigravity Result")
     parser.add_argument("--command", required=True, help="Path to Chief command JSON")
     parser.add_argument("--incoming-dir", required=False, default="events/incoming", help="Incoming events directory")
     parser.add_argument("--processed-dir", required=False, default="events/processed", help="Processed events directory")
-    args = parser.parse_args()
+    parser.add_argument("--json", action="store_true", help="Output machine-readable JSON status")
+    args = parser.parse_args(argv)
 
     incoming_dir = Path(args.incoming_dir)
     processed_dir = Path(args.processed_dir)
 
-    result = process_command(Path(args.command), incoming_dir, processed_dir)
-    print(f"RESULT_PUBLISHED: id={result['message_id']}, task={result['task_id']}, status={result['status']}")
+    try:
+        result = process_command(Path(args.command), incoming_dir, processed_dir)
+        if args.json:
+            print(json.dumps(result, indent=2))
+        else:
+            print(f"RESULT_PUBLISHED: id={result['message_id']}, task={result['task_id']}, status={result['status']}")
+        return 0
+    except ChiefConsumerError as exc:
+        if args.json:
+            print(json.dumps({"error": str(exc)}, indent=2))
+        else:
+            print(str(exc), file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
