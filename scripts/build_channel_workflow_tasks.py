@@ -13,6 +13,7 @@ import json
 import os
 import re
 import sys
+import tempfile
 from pathlib import Path
 
 SCRIPTS_DIR = Path(__file__).resolve().parent
@@ -29,7 +30,11 @@ def load_json(path: Path) -> dict:
 
 def save_json(path: Path, data: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    fd, tmp_file = tempfile.mkstemp(dir=path.parent, prefix="task_", suffix=".tmp")
+    with open(fd, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+        f.write("\n")
+    os.replace(tmp_file, path)
 
 
 def slugify(text: str) -> str:
@@ -53,6 +58,8 @@ def build_workflow_tasks_for_channel(
     queue_dir: Path = DEFAULT_QUEUE_DIR,
     channels_path: Path = DEFAULT_CHANNELS_CONFIG,
     workflows_path: Path = DEFAULT_WORKFLOWS_CONFIG,
+    dry_run: bool = False,
+    quiet: bool = False,
 ) -> list[dict]:
     if not channels_path.exists():
         raise FileNotFoundError(f"Channel registry not found: {channels_path}")
@@ -95,7 +102,8 @@ def build_workflow_tasks_for_channel(
     parent_task_id = None
     now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
-    queue_dir.mkdir(parents=True, exist_ok=True)
+    if not dry_run:
+        queue_dir.mkdir(parents=True, exist_ok=True)
 
     for idx, step_name in enumerate(production_steps):
         step_slug = slugify(step_name)
@@ -107,7 +115,8 @@ def build_workflow_tasks_for_channel(
             existing = load_json(task_file)
             existing_status = existing.get("status")
             if existing_status in ("QUEUED", "RUNNING", "COMPLETED", "HUMAN_GATE"):
-                print(f"DEDUPED: Task {task_id} already exists with status '{existing_status}'. Skipping creation.")
+                if not quiet:
+                    print(f"DEDUPED: Task {task_id} already exists with status '{existing_status}'. Skipping creation.")
                 parent_task_id = task_id
                 continue
 
@@ -132,7 +141,8 @@ def build_workflow_tasks_for_channel(
             "target_agent": "ANTIGRAVITY",
         }
 
-        save_json(task_file, task_record)
+        if not dry_run:
+            save_json(task_file, task_record)
         created_tasks.append(task_record)
         parent_task_id = task_id
 
@@ -147,6 +157,8 @@ def main() -> None:
     parser.add_argument("--queue-dir", default=str(DEFAULT_QUEUE_DIR), help="Path to events/night-queue")
     parser.add_argument("--config", default=str(DEFAULT_CHANNELS_CONFIG), help="Path to social_channels.json")
     parser.add_argument("--workflows-config", default=str(DEFAULT_WORKFLOWS_CONFIG), help="Path to content_workflows.json")
+    parser.add_argument("--dry-run", action="store_true", help="Generate tasks in memory without writing files")
+    parser.add_argument("--json", action="store_true", help="Output generated tasks as JSON")
     args = parser.parse_args()
 
     tasks = build_workflow_tasks_for_channel(
@@ -156,10 +168,15 @@ def main() -> None:
         queue_dir=Path(args.queue_dir).resolve(),
         channels_path=Path(args.config).resolve(),
         workflows_path=Path(args.workflows_config).resolve(),
+        dry_run=args.dry_run,
+        quiet=args.json,
     )
-    print(f"Generated {len(tasks)} workflow tasks for channel '{args.channel_id}':")
-    for t in tasks:
-        print(f"  - {t['task_id']}: {t['instruction']}")
+    if args.json:
+        print(json.dumps(tasks, indent=2))
+    else:
+        print(f"Generated {len(tasks)} workflow tasks for channel '{args.channel_id}':")
+        for t in tasks:
+            print(f"  - {t['task_id']}: {t['instruction']}")
 
 
 if __name__ == "__main__":
