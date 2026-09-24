@@ -49,18 +49,20 @@ def test_result_duplicate_invariant(client):
     }
     server.app.save_state(state)
 
+    from scripts.integration_contract import _canonical_hash
     payload1 = {
         "task_id": task_id,
         "worker_id": "worker-1",
-        "result_id": "res-1",
         "status": "SUCCESS",
         "artifacts": [{"path": "file.txt", "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}],
         "attempt_id": "1",
         "dispatch_id": "1",
         "execution_ref": "1",
         "goal_id": "goal-1",
-        "run_id": "run-1"
+        "run_id": "run-1",
+        "runtime_identity": None,
     }
+    payload1["result_id"] = f"result-{_canonical_hash(payload1)}"
     resp1 = client.post("/tasks/result", json=payload1, headers=headers)
     assert resp1.status_code == 200
 
@@ -78,7 +80,8 @@ def test_result_duplicate_invariant(client):
         "dispatch_id": "1",
         "execution_ref": "1",
         "goal_id": "goal-1",
-        "run_id": "run-1"
+        "run_id": "run-1",
+        "runtime_identity": None,
     }
     resp3 = client.post("/tasks/result", json=payload_contradictory, headers=headers)
     assert resp3.status_code == 409
@@ -86,7 +89,7 @@ def test_result_duplicate_invariant(client):
     assert resp3.get_json()["reason"] == "CONTRADICTORY_DUPLICATE"
 
     state = server.app.load_state()
-    assert state["tasks"][task_id]["result"]["result_id"] == "res-1"
+    assert state["tasks"][task_id]["result"]["result_id"] == payload1["result_id"]
 
     payload_worker2 = dict(payload1)
     payload_worker2["worker_id"] = "worker-2"

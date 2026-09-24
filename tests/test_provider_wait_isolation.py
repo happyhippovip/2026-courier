@@ -12,14 +12,17 @@ os.environ["COURIER_VERIFIER_API_KEY"] = "test-key-12345"
 from server.app import app, STATE_FILE, STATE_LOCK
 
 @pytest.fixture
-def client():
+def client(tmp_path, monkeypatch):
+    import server.app as server_app
     app.config["TESTING"] = True
-    
+    state_file = str(tmp_path / "state.json")
+    monkeypatch.setattr(server_app, "STATE_FILE", state_file)
+    monkeypatch.setattr(server_app, "API_KEY", "test-key-12345")
+    monkeypatch.setattr(server_app, "VERIFIER_API_KEY", "test-key-12345")
+    globals()["STATE_FILE"] = state_file
+
     with STATE_LOCK:
-        if os.path.exists(STATE_FILE):
-            os.remove(STATE_FILE)
-            
-        with open(STATE_FILE, "w") as f:
+        with open(state_file, "w") as f:
             json.dump({
                 "schema_version": 2,
                 "workers": {},
@@ -32,13 +35,9 @@ def client():
                     "worker-3": "pool-B"
                 }
             }, f)
-            
+
     with app.test_client() as client:
         yield client
-        
-    with STATE_LOCK:
-        if os.path.exists(STATE_FILE):
-            os.remove(STATE_FILE)
 
 
 def register_worker(client, worker_id, provider):

@@ -196,7 +196,8 @@ def main() -> None:
     parser.add_argument("--inbox", type=Path, default=root / "events/thought-incoming")
     parser.add_argument("--processed", type=Path, default=root / "events/thought-processed")
     parser.add_argument("--rejected", type=Path, default=root / "events/thought-rejected")
-    parser.add_argument("--memory-repo", type=Path, default=Path("/Users/user/Downloads/2026-project-memory"))
+    from build_memory_update_proposal import DEFAULT_MEMORY_REPO_PATH
+    parser.add_argument("--memory-repo", type=Path, default=DEFAULT_MEMORY_REPO_PATH)
     args = parser.parse_args()
     print(json.dumps(run_ingestion(args.inbox, args.processed, args.rejected, args.memory_repo), indent=2))
 

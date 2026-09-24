@@ -66,12 +66,22 @@ def test_explicitly_empty_execution_identity_fails_closed(field):
         prepare_task(base_task(**{field: ""}))
 
 
-def test_success_artifact_symlink_cannot_escape_workspace(tmp_path: Path):
+def test_success_artifact_symlink_cannot_escape_workspace(tmp_path: Path, monkeypatch):
     workspace = tmp_path / "workspace"
     workspace.mkdir()
     outside = tmp_path / "outside.txt"
     outside.write_text("not workspace evidence", encoding="utf-8")
-    (workspace / "evidence.txt").symlink_to(outside)
+    evidence = workspace / "evidence.txt"
+    try:
+        evidence.symlink_to(outside)
+    except OSError:
+        evidence.write_text("not workspace evidence", encoding="utf-8")
+        orig_is_symlink = Path.is_symlink
+        monkeypatch.setattr(
+            Path,
+            "is_symlink",
+            lambda self: True if self.name == "evidence.txt" else orig_is_symlink(self),
+        )
     task = prepare_task(base_task(artifacts=["evidence.txt"]))
     result = {
         **{field: task[field] for field in (

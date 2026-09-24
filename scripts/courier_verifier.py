@@ -10,7 +10,7 @@ try:
     API_URL = os.environ.get("COURIER_SERVER") or keyring.get_password("courier_worker", "courier_server_url") or "http://127.0.0.1:8080"
     API_URL = API_URL.rstrip("/")
     API_KEY = os.environ.get("COURIER_VERIFIER_API_KEY") or keyring.get_password("courier_worker", "courier_verifier_api_key")
-except ImportError:
+except Exception:
     API_URL = os.environ.get("COURIER_SERVER", "http://127.0.0.1:8080").rstrip("/")
     API_KEY = os.environ.get("COURIER_VERIFIER_API_KEY")
 

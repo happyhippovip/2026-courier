@@ -15,7 +15,7 @@ import re
 import sys
 from pathlib import Path
 
-DEFAULT_MEMORY_REPO_PATH = Path("/Users/user/Downloads/2026-project-memory")
+from build_memory_update_proposal import DEFAULT_MEMORY_REPO_PATH
 DEFAULT_MEMORY_REPO_NAME = "happyhippovip/2026-project-memory"
 
 ALWAYS_CONSULTED_FILES = [

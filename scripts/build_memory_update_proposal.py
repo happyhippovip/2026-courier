@@ -21,7 +21,21 @@ import sys
 import uuid
 from pathlib import Path
 
-DEFAULT_MEMORY_REPO_PATH = Path("/Users/user/Downloads/2026-project-memory")
+def resolve_default_memory_repo() -> Path:
+    for candidate in (
+        Path(os.environ["MEMORY_DIR"]) if os.environ.get("MEMORY_DIR") else None,
+        Path("/Users/user/Downloads/2026-project-memory"),
+        Path.home() / "Downloads" / "2026-project-memory",
+        Path.home() / "2026-workspace" / "2026-project-memory",
+        Path.home() / "2026-workspace" / "project-memory",
+        Path(__file__).resolve().parents[1],
+    ):
+        if candidate and (candidate / ".git").exists():
+            return candidate
+    return Path("/Users/user/Downloads/2026-project-memory")
+
+
+DEFAULT_MEMORY_REPO_PATH = resolve_default_memory_repo()
 DEFAULT_SCHEMA_PATH = Path(__file__).resolve().parent.parent / "schemas/memory_update_proposal.schema.json"
 
 

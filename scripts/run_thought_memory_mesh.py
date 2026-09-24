@@ -22,7 +22,7 @@ from typing import Any
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
-from build_memory_update_proposal import get_memory_commit, validate_proposal_against_schema
+from build_memory_update_proposal import DEFAULT_MEMORY_REPO_PATH, get_memory_commit, validate_proposal_against_schema
 
 INITIAL_ANCHOR = "2026-08-25"
 SUPPORTED_SOURCES = {
@@ -315,7 +315,7 @@ def main() -> None:
     parser.add_argument("--messages", required=True, type=Path)
     parser.add_argument("--ledger", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
-    parser.add_argument("--memory-repo", type=Path, default=Path("/Users/user/Downloads/2026-project-memory"))
+    parser.add_argument("--memory-repo", type=Path, default=DEFAULT_MEMORY_REPO_PATH)
     args = parser.parse_args()
     result = run_mesh(read_messages(args.messages), load_json(args.ledger, {}), args.memory_repo)
     args.ledger.parent.mkdir(parents=True, exist_ok=True)
