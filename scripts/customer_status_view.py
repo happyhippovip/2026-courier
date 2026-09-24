@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 import os
 import sys
 import json
@@ -19,13 +19,23 @@ def map_internal_to_customer_status(internal_state: str) -> str:
         return 'FAILED'
     return 'WAITING' # Safe fallback
 
-def get_customer_view(task_id: str, is_admin: bool = False):
-    state_file = 'central_state.json'
+def get_customer_view(task_id: str, is_admin: bool = False, state_file: str = None, repo_dir: str = None):
+    if state_file is None:
+        if repo_dir:
+            state_file = os.path.join(repo_dir, "central_state.json")
+        else:
+            base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+            local_state = os.path.join(base_dir, "central_state.json")
+            state_file = local_state if os.path.exists(local_state) else "central_state.json"
+        
     if not os.path.exists(state_file):
         return {"error": "No tasks found."}
         
-    with open(state_file, 'r') as f:
-        state = json.load(f)
+    try:
+        with open(state_file, "r", encoding="utf-8") as f:
+            state = json.load(f)
+    except (OSError, json.JSONDecodeError) as e:
+        return {"error": f"Failed to read state file: {e}"}
         
     tasks = state.get("tasks", {})
     if task_id not in tasks:
@@ -51,14 +61,20 @@ def get_customer_view(task_id: str, is_admin: bool = False):
     return customer_view
 
 def main():
-    if len(sys.argv) < 2:
-        print("Usage: python3 customer_status_view.py <task_id> [--admin]")
+    import argparse
+    parser = argparse.ArgumentParser(description="Courier Customer Status View")
+    parser.add_argument("task_id", nargs="?", help="Task identifier")
+    parser.add_argument("--admin", action="store_true", help="Include internal administrative fields")
+    parser.add_argument("--state-file", help="Path to central_state.json")
+    parser.add_argument("--repo-dir", help="Path to repository root")
+    parser.add_argument("--json", action="store_true", help="Output view as JSON")
+    args = parser.parse_args()
+
+    if not args.task_id:
+        print("Usage: python3 customer_status_view.py <task_id> [--admin] [--state-file <path>]")
         sys.exit(1)
         
-    task_id = sys.argv[1]
-    is_admin = len(sys.argv) > 2 and sys.argv[2] == "--admin"
-    
-    view = get_customer_view(task_id, is_admin)
+    view = get_customer_view(args.task_id, is_admin=args.admin, state_file=args.state_file, repo_dir=args.repo_dir)
     print(json.dumps(view, indent=2))
 
 if __name__ == '__main__':

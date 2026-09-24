@@ -115,3 +115,4 @@ venv/
 node_modules/
 test-build-identity.json
 test_sync.lock
+.youtube_receipts/

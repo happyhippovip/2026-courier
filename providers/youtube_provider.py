@@ -1,13 +1,15 @@
 import os
 import json
 import logging
+import tempfile
 
 class MissingCredentialError(Exception):
     pass
 
 class YouTubeProvider:
-    def __init__(self, dry_run=False):
+    def __init__(self, dry_run=False, receipts_dir=None):
         self.dry_run = dry_run
+        self.receipts_dir = str(receipts_dir or ".youtube_receipts")
         self.logger = logging.getLogger("YouTubeProvider")
         self._validate_credentials()
 
@@ -19,6 +21,14 @@ class YouTubeProvider:
         # Do NOT initiate OAuth. Do NOT make API calls.
         if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ and \
            "YOUTUBE_OAUTH_CLIENT_SECRET_PATH" not in os.environ:
+            try:
+                import keyring
+                stored = keyring.get_password("courier", "YOUTUBE_OAUTH_CLIENT_SECRET_PATH")
+                if stored:
+                    os.environ["YOUTUBE_OAUTH_CLIENT_SECRET_PATH"] = stored
+                    return
+            except Exception:
+                pass
             raise MissingCredentialError(
                 "No Google/YouTube credentials found. Set GOOGLE_APPLICATION_CREDENTIALS "
                 "or YOUTUBE_OAUTH_CLIENT_SECRET_PATH."
@@ -95,16 +105,18 @@ class YouTubeProvider:
 
     def _check_duplicate(self, idempotency_key):
         # Offline duplicate suppression using a local registry
-        receipt_path = f".youtube_receipts/{idempotency_key}.json"
+        receipt_path = os.path.join(self.receipts_dir, f"{idempotency_key}.json")
         return os.path.exists(receipt_path)
 
     def _get_receipt(self, idempotency_key):
-        receipt_path = f".youtube_receipts/{idempotency_key}.json"
-        with open(receipt_path, "r") as f:
+        receipt_path = os.path.join(self.receipts_dir, f"{idempotency_key}.json")
+        with open(receipt_path, "r", encoding="utf-8") as f:
             return json.load(f)
 
     def _save_receipt(self, idempotency_key, receipt):
-        os.makedirs(".youtube_receipts", exist_ok=True)
-        receipt_path = f".youtube_receipts/{idempotency_key}.json"
-        with open(receipt_path, "w") as f:
-            json.dump(receipt, f)
+        os.makedirs(self.receipts_dir, exist_ok=True)
+        receipt_path = os.path.join(self.receipts_dir, f"{idempotency_key}.json")
+        fd, tmp_file = tempfile.mkstemp(dir=self.receipts_dir, prefix="yt_", suffix=".tmp")
+        with open(fd, "w", encoding="utf-8") as f:
+            json.dump(receipt, f, indent=2)
+        os.replace(tmp_file, receipt_path)

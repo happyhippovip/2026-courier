@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 import os
+import tempfile
 from pathlib import Path
 
 
@@ -73,8 +74,14 @@ def main() -> None:
     target = processed_dir / f"{task['message_id']}.result.json"
     if target.exists():
         fail("terminal result path already exists")
-    target.write_text(json.dumps(result, sort_keys=True, indent=2) + "\n", encoding="utf-8")
-    with Path(args.github_output).open("a", encoding="utf-8") as output:
+    fd, tmp_file = tempfile.mkstemp(dir=processed_dir, prefix=f".{task['message_id']}.", suffix=".tmp")
+    with open(fd, "w", encoding="utf-8") as f:
+        json.dump(result, f, sort_keys=True, indent=2)
+        f.write("\n")
+    os.replace(tmp_file, target)
+    output_path = Path(args.github_output)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with output_path.open("a", encoding="utf-8") as output:
         output.write(f"result_path={target.as_posix()}\n")
 
 
