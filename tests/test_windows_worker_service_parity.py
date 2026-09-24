@@ -240,6 +240,20 @@ def test_windows_uninstall_and_demo_and_tempdir_safety():
     if sys.platform == "win32":
         assert not str(muse_bench_server.WORK_DIR).startswith("/tmp/")
 
+    # Verify pre_courier_muse.muse_runner imports cleanly without fcntl and acquires/blocks locks on Windows
+    from pre_courier_muse import muse_runner
+    import tempfile
+    with tempfile.TemporaryDirectory() as td:
+        lp = str(Path(td) / "muse_runner.lock")
+        fd1 = muse_runner.is_another_instance_running(lp)
+        assert fd1 is not None
+        try:
+            fd2 = muse_runner.is_another_instance_running(lp)
+            assert fd2 is None
+        finally:
+            os.close(fd1)
+
+
 
 
 

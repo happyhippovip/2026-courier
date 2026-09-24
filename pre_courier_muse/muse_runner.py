@@ -4,7 +4,10 @@ import hashlib
 import time
 import subprocess
 import sys
-import fcntl
+try:
+    import fcntl
+except ImportError:
+    fcntl = None
 
 QUEUE_FILE = "muse_queue.json"
 CHECKPOINT_FILE = "muse_checkpoint.json"
@@ -12,24 +15,35 @@ LOCK_FILE = "muse_runner.lock"
 
 def load_json(path, default):
     if os.path.exists(path):
-        with open(path, "r") as f:
+        with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
     return default
 
 def save_json(path, data):
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
 
 def compute_fingerprint(task):
     content = f"{task['objective']}_{task['output_path']}_{task.get('input_refs', '')}"
     return hashlib.sha256(content.encode()).hexdigest()
 
-def is_another_instance_running():
-    lock_fd = os.open(LOCK_FILE, os.O_RDWR | os.O_CREAT)
+def is_another_instance_running(lock_path=LOCK_FILE):
+    lock_fd = os.open(lock_path, os.O_RDWR | os.O_CREAT)
     try:
-        fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        if os.fstat(lock_fd).st_size == 0:
+            os.write(lock_fd, b"0")
+        os.lseek(lock_fd, 0, os.SEEK_SET)
+        if os.name == "nt":
+            import msvcrt
+            msvcrt.locking(lock_fd, msvcrt.LK_NBLCK, 1)
+        elif fcntl is not None:
+            fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
         return lock_fd
-    except BlockingIOError:
+    except (BlockingIOError, OSError):
+        try:
+            os.close(lock_fd)
+        except OSError:
+            pass
         return None
 
 def main():
