@@ -16,7 +16,7 @@ import time
 import uuid
 
 
-def dispatch_intake(intake_file, repo_dir=None, state_file=None, dry_run=False):
+def dispatch_intake(intake_file, repo_dir=None, state_file=None, dry_run=False, quiet=False):
     with open(intake_file, "r", encoding="utf-8") as f:
         intake = json.load(f)
 
@@ -26,7 +26,8 @@ def dispatch_intake(intake_file, repo_dir=None, state_file=None, dry_run=False):
         raise ValueError(f"Intake missing required fields: {', '.join(missing)}")
 
     task_id = f"task-revenue-{uuid.uuid4().hex[:8]}"
-    print(f"Admitting intake {intake.get('customer_reference')} as {task_id}")
+    if not quiet:
+        print(f"Admitting intake {intake.get('customer_reference')} as {task_id}")
 
     execution_ref = "DISPATCHED_DRY_RUN"
     if not dry_run:
@@ -90,7 +91,8 @@ def dispatch_intake(intake_file, repo_dir=None, state_file=None, dry_run=False):
         json.dump(state, f, indent=2)
     os.replace(tmp_file, state_file)
 
-    print("Central state updated. System chain fully connected for intake -> execution -> PR.")
+    if not quiet:
+        print("Central state updated. System chain fully connected for intake -> execution -> PR.")
     return {
         "task_id": task_id,
         "execution_ref": execution_ref,
@@ -112,9 +114,11 @@ def main():
         repo_dir=args.repo_dir,
         state_file=args.state_file,
         dry_run=args.dry_run,
+        quiet=args.json,
     )
     if args.json:
         print(json.dumps(res, indent=2))
+    return 0
 
 
 if __name__ == "__main__":
