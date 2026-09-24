@@ -65,19 +65,19 @@ def register_worker(worker_id):
 def http_post_result(res):
     req = urllib.request.Request(f"{API_URL}/tasks/result", method="POST")
     for k, v in HEADERS.items(): req.add_header(k, v)
-    data = json.dumps(res).encode("utf-8")
+    payload_bytes = json.dumps(res).encode("utf-8")
     for attempt in range(5):
         try:
-            urllib.request.urlopen(req, data=data, timeout=10)
+            urllib.request.urlopen(req, data=payload_bytes, timeout=10)
             return
         except urllib.error.HTTPError as e:
             try:
                 body = e.read().decode('utf-8')
-                data = json.loads(body)
-                if e.code in (200, 409) and data.get("status") == "ACK_DUPLICATE":
+                resp_data = json.loads(body)
+                if e.code in (200, 409) and resp_data.get("status") == "ACK_DUPLICATE":
                     print(f"[Windows Worker] Result already acknowledged by server: {body}")
                     return
-                elif e.code == 409 and data.get("reason") == "CONTRADICTORY_DUPLICATE":
+                elif e.code == 409 and resp_data.get("reason") == "CONTRADICTORY_DUPLICATE":
                     print(f"[Windows Worker] Result rejected as contradictory duplicate: {body}")
                     return
             except Exception:
@@ -265,9 +265,13 @@ def acquire_lock(worker_id):
                 raise ValueError("Empty lock file")
             try:
                 lock_data = json.loads(data)
-                pid = lock_data["pid"]
-                create_time = lock_data.get("process_create_time")
-            except ValueError:
+                if isinstance(lock_data, dict):
+                    pid = lock_data["pid"]
+                    create_time = lock_data.get("process_create_time")
+                else:
+                    pid = int(lock_data)
+                    create_time = None
+            except (ValueError, TypeError, KeyError):
                 pid = int(data)
                 create_time = None
 
