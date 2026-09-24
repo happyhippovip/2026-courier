@@ -239,19 +239,42 @@ def acquire_lock(worker_id):
         os.close(fd)
         return lock_file
     except FileExistsError:
-        # Check if the process is actually running
+        # Accept both legacy plain-PID locks and structured supervisor locks.
+        # Structured locks bind PID + process creation time to avoid PID reuse.
         try:
-            with open(lock_file, "r") as f:
-                pid = int(f.read().strip())
-            # In Windows, we can check if PID exists using tasklist
-            out_bytes = subprocess.check_output(["tasklist", "/FI", f"PID eq {pid}"])
-            out = out_bytes.decode('utf-8', errors='ignore')
-            if str(pid) not in out:
-                # Stale lock
-                os.remove(lock_file)
+            raw = lock_file.read_text(encoding="utf-8").strip()
+            lock_meta = None
+
+            try:
+                pid = int(raw)
+            except ValueError:
+                import json
+
+                lock_meta = json.loads(raw)
+                pid = int(lock_meta["pid"])
+
+            stale = not psutil.pid_exists(pid)
+
+            if not stale and lock_meta is not None:
+                expected_create_time = lock_meta.get("process_create_time")
+                if expected_create_time is not None:
+                    try:
+                        actual_create_time = psutil.Process(pid).create_time()
+                        stale = abs(
+                            actual_create_time - float(expected_create_time)
+                        ) > 1.0
+                    except psutil.NoSuchProcess:
+                        stale = True
+                    except psutil.AccessDenied:
+                        stale = False
+
+            if stale:
+                lock_file.unlink()
                 return acquire_lock(worker_id)
+
         except Exception as e:
             print(f"[{worker_id}] Lock acquire failed: {e}")
+
         return None
 
 def loop():
