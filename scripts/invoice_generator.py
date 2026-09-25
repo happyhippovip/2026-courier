@@ -1,6 +1,5 @@
 import json
 import uuid
-import os
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
