@@ -25,7 +25,6 @@ def test_validate_task_rejects_missing_identity_and_shell():
 
 @pytest.mark.parametrize("bad_result", [[], "oops", 42, None])
 def test_verify_result_rejects_nondict_result(monkeypatch, tmp_path: Path, bad_result):
-    monkeypatch.setattr(adapter, "get_run_head_sha", lambda _: "a" * 40)
     with pytest.raises(ValueError, match="must be a JSON object"):
         adapter.verify_result(packet(), bad_result, None, "99", tmp_path)
 
@@ -43,7 +42,6 @@ def test_verify_result_rejects_nondict_evidence(monkeypatch, tmp_path: Path, bad
         "operation": "deterministic_transform",
         "artifacts": [{"path": "courier_output_dispatch-1.json", "sha256": "x"}],
     }
-    monkeypatch.setattr(adapter, "get_run_head_sha", lambda _: "a" * 40)
     with pytest.raises(ValueError, match="must be a JSON object"):
         adapter.verify_result(task, result, bad_evidence, "99", tmp_path)
 
