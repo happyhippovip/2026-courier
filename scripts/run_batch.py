@@ -16,6 +16,19 @@ def load_batch(batch_file: Path) -> dict:
     with open(batch_file, "r") as f:
         return json.load(f)
 
+def _fsync_directory(directory: Path) -> None:
+    """Best-effort directory fsync so a completed save survives a crash."""
+    try:
+        fd = os.open(str(directory), os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+    except OSError:
+        return
+    try:
+        os.fsync(fd)
+    except OSError:
+        pass
+    finally:
+        os.close(fd)
+
 def save_batch(batch_file: Path, data: dict):
     temp_file = batch_file.with_suffix(".tmp")
     with open(temp_file, "w") as f:
@@ -23,6 +36,7 @@ def save_batch(batch_file: Path, data: dict):
         f.flush()
         os.fsync(f.fileno())
     os.replace(temp_file, batch_file)
+    _fsync_directory(batch_file.parent)
 
 def get_next_item(batch_data: dict) -> dict:
     items = sorted(batch_data.get("items", []), key=lambda x: x.get("sequence", 999))
@@ -89,6 +103,11 @@ def run_batch(batch_id: str):
             next_item["status"] = "IN_PROGRESS"
             next_item["attempt_id"] = next_item.get("attempt_id", 0) + 1
             batch_data["active_prompt_id"] = next_item["prompt_id"]
+            save_batch(batch_file, batch_data)
+        elif next_item.get("status") in ("IN_PROGRESS", "WAITING_PROVIDER"):
+            # Crash/resume pickup: re-execution is a new attempt so retries
+            # stay distinguishable and one-shot simulations do not repeat.
+            next_item["attempt_id"] = next_item.get("attempt_id", 0) + 1
             save_batch(batch_file, batch_data)
         
         # specific logic simulations
