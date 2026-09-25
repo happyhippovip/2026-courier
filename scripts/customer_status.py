@@ -1,6 +1,3 @@
-import json
-import os
-
 STATUS_MAP = {
     "IDLE": "QUEUED",
     "ASSIGNED": "RUNNING",
