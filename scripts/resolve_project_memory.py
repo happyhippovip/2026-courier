@@ -11,11 +11,14 @@ from __future__ import annotations
 import argparse
 import datetime
 import json
+import os
 import re
 import sys
 from pathlib import Path
 
-DEFAULT_MEMORY_REPO_PATH = Path("/Users/user/Downloads/2026-project-memory")
+DEFAULT_MEMORY_REPO_PATH = Path(
+    os.environ.get("COURIER_MEMORY_REPO", "/Users/user/Downloads/2026-project-memory")
+)
 DEFAULT_MEMORY_REPO_NAME = "happyhippovip/2026-project-memory"
 
 ALWAYS_CONSULTED_FILES = [
