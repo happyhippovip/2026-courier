@@ -43,3 +43,26 @@ def test_identical_check_binds_result_id():
     src = _src(_task_result_fn())
     for field in ("result_id", "worker_id", "artifacts"):
         assert field in src, f"identical-check must bind {field}"
+
+
+def _verify_fn():
+    tree = ast.parse(Path("server/app.py").read_text())
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name == "verify_task_result":
+            return node
+    raise AssertionError("verify_task_result() not found in server/app.py")
+
+
+def test_verify_replay_protection():
+    src = _src(_verify_fn())
+    assert "alias attack on replay rejected" in src
+    assert "contradictory verification replay" in src
+    assert "409" in src
+
+
+def test_verify_independence_and_evidence_binding():
+    src = _src(_verify_fn())
+    assert "producer cannot certify itself" in src, "self-certification must be rejected"
+    assert "result_id mismatch" in src
+    assert "artifact evidence mismatch" in src
+    assert "ACK_DUPLICATE" in src, "identical verification replay must be ACKed"
