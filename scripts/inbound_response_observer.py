@@ -1,7 +1,6 @@
 import sys
 import json
 import argparse
-import subprocess
 import datetime as dt
 import enum
 from pathlib import Path
