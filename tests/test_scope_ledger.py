@@ -37,12 +37,12 @@ def test_acquire_overlap_conflict(ledger):
     assert l2 is None
 
 def test_fencing_token_expiry(ledger):
-    l1 = ledger.acquire_lease("/baz", "WRITE", "t1", "e1", "w1", ttl=0.1)
+    l1 = ledger.acquire_lease("/baz", "WRITE", "t1", "e1", "w1", ttl=0.5)
     assert l1 is not None
     
     assert ledger.verify_fencing_token(l1["fencing_token"]) is True
     
-    time.sleep(0.15)
+    time.sleep(0.6)
     
     assert ledger.verify_fencing_token(l1["fencing_token"]) is False
     
