@@ -4,12 +4,21 @@ import urllib.request
 import urllib.error
 import tempfile
 
-API_URL = "http://192.168.178.162:8080"
-API_KEY = "prod-secret-12345"
+# Credentials come only from the environment; there is deliberately no fallback key.
+API_URL = os.environ.get("COURIER_SERVER_URL", "http://192.168.178.162:8080").rstrip("/")
+API_KEY = os.environ.get("COURIER_API_KEY", "").strip()
 HEADERS = {
     "Authorization": f"Bearer {API_KEY}",
     "Content-Type": "application/json"
 }
+
+class MissingCredentialError(RuntimeError):
+    pass
+
+def require_api_key():
+    """Fail closed before any network call when no API key is configured."""
+    if not API_KEY:
+        raise MissingCredentialError("COURIER_API_KEY is not set; refusing to contact the Courier server.")
 
 def load_config():
     config_path = Path(__file__).parent / "config.json"
@@ -20,6 +29,7 @@ STATE_DIR = Path(__file__).parent / "state"
 MAX_RESULT_POST_ATTEMPTS = 5
 
 def register_worker(worker_id, release_task=False):
+    require_api_key()
     req = urllib.request.Request(f"{API_URL}/workers/register", method="POST")
     for k, v in HEADERS.items(): req.add_header(k, v)
     payload = {"worker_id": worker_id, "platform": "windows", "capabilities": ["windows"]}
@@ -41,6 +51,7 @@ def http_post_result(res):
     Only transport errors and 5xx are retried; a 4xx is the server's final
     answer for this exact payload (200 IGNORED means already processed).
     """
+    require_api_key()
     data = json.dumps(res).encode("utf-8")
     for attempt in range(MAX_RESULT_POST_ATTEMPTS):
         req = urllib.request.Request(f"{API_URL}/tasks/result", method="POST")
@@ -175,6 +186,7 @@ def acquire_lock(worker_id):
         return None
 
 def loop():
+    require_api_key()
     config = load_config()
     worker_id = config["WORKER_ID"]
     
@@ -270,4 +282,8 @@ def loop():
             os.remove(lock_path)
 
 if __name__ == "__main__":
-    loop()
+    try:
+        loop()
+    except MissingCredentialError as e:
+        print(f"FATAL: {e}", file=sys.stderr)
+        sys.exit(2)
