@@ -8,7 +8,13 @@ def dispatch_intake(intake_file):
     with open(intake_file, 'r') as f:
         intake = json.load(f)
         
-    task_id = f"task-revenue-{uuid.uuid4().hex[:8]}"
+    task_id = intake.get("task_id")
+    if not task_id:
+        if intake.get("customer_reference"):
+            clean_ref = "".join(c if c.isalnum() or c in "-_" else "_" for c in str(intake["customer_reference"]))
+            task_id = f"task-revenue-{clean_ref}"
+        else:
+            task_id = f"task-revenue-{uuid.uuid4().hex[:8]}"
     print(f"Admitting intake {intake.get('customer_reference')} as {task_id}")
     
     # Revenue V1 uses GitHub Actions as the primary qualified lane
