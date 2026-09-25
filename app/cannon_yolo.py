@@ -1,5 +1,29 @@
 import os
 import re
+import importlib
+import sys as _sys
+import pathlib as _pathlib
+
+# Re-export live_payload (and other runtime symbols) from the canonical
+# scripts/cannon_yolo module. app/cannon_yolo.py only adds the A4 secrets
+# helpers (has_secret, redact); all other cannon_yolo symbols live in
+# scripts/cannon_yolo.py and must not be shadowed.
+def _scripts_cannon_yolo():
+    _root = _pathlib.Path(__file__).parent.parent
+    _sp = str(_root / "scripts")
+    if _sp not in _sys.path:
+        _sys.path.insert(0, _sp)
+    spec = importlib.util.spec_from_file_location(
+        "_scripts_cannon_yolo", str(_root / "scripts" / "cannon_yolo.py"))
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    return m
+
+def live_payload(env=None):
+    return _scripts_cannon_yolo().live_payload(env)
+
+def live_path(env=None):
+    return _scripts_cannon_yolo().live_path(env)
 
 def has_secret(text: str) -> bool:
     """
