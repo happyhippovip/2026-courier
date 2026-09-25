@@ -1,5 +1,4 @@
 import pytest
-import os
 import tempfile
 import threading
 import time
@@ -26,8 +25,7 @@ class ServerThread(threading.Thread):
 def test_server(monkeypatch):
     import server.app
     for k in ["http_proxy", "https_proxy", "HTTP_PROXY", "HTTPS_PROXY"]:
-        if k in os.environ:
-            del os.environ[k]
+        monkeypatch.delenv(k, raising=False)
     temp_dir = tempfile.mkdtemp()
     state_file = Path(temp_dir) / "central_state.json"
     monkeypatch.setattr(server.app, "STATE_FILE", str(state_file))
