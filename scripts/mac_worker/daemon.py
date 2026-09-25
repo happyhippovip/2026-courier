@@ -57,6 +57,45 @@ def http_post(config, endpoint, data):
     except Exception as e:
         return None, str(e)
 
+# current_task.json records how far a claimed task got, so a restart never
+# repeats an effect that may already have happened:
+#   CLAIMED      -> execution has not begun; safe to run
+#   STARTED      -> execution began without a durable result; never re-run
+#   RESULT_READY -> result_payload is final; only (re)deliver it
+# Files without worker_phase come from the previous daemon, which wrote them
+# right before executing, so they are treated as STARTED.
+MAX_RESULT_POST_ATTEMPTS = 8
+
+def persist_task(path, task):
+    tmp_path = path.with_suffix(".tmp")
+    with open(tmp_path, "w") as f:
+        json.dump(task, f)
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp_path, path)
+
+def is_retryable_post_error(err):
+    # http_post reports server answers as "HTTP Error <code>: ..."; anything
+    # else is a transport failure. Only transport errors and 5xx can change on
+    # resend; a 4xx is the server's final answer for this payload.
+    if not err.startswith("HTTP Error "):
+        return True
+    return err[len("HTTP Error "):].startswith("5")
+
+def deliver_result(config, payload):
+    """Post the stored result; returns DELIVERED, REJECTED or UNDELIVERED."""
+    for attempt in range(MAX_RESULT_POST_ATTEMPTS):
+        res, err = http_post(config, "/tasks/result", payload)
+        if not err:
+            write_log(f"Result posted successfully: {res}")
+            return "DELIVERED"
+        if not is_retryable_post_error(err):
+            write_log(f"Result rejected permanently: {err}")
+            return "REJECTED"
+        write_log(f"Result post failed: {err}. Retrying in {2**attempt}s...")
+        time.sleep(2 ** attempt)
+    return "UNDELIVERED"
+
 def run_native(task, config):
     write_log(f"Running NATIVE task {task['task_id']}")
     instruction = task.get('instruction', task.get('description', ''))
@@ -143,21 +182,36 @@ def loop():
     
     # Load previously claimed task for duplicate protection
     task = None
+    release_ambiguous_task = False
     if current_task_state_file.exists():
-        write_log("Found unfinished task from previous run, resuming...")
         with open(current_task_state_file, 'r') as f:
             task = json.load(f)
-            
+        if task.get("worker_phase") not in ("CLAIMED", "RESULT_READY"):
+            task["worker_phase"] = "STARTED"
+        write_log(f"Found unfinished task {task['task_id']} in phase {task['worker_phase']}, resuming...")
+
     registered = False
-    
+
     while True:
         try:
+            if task and task.get("worker_phase") == "STARTED":
+                # Interrupted mid-execution (restart or exception): the effect may
+                # already exist, so never replay it. Re-registering without the
+                # task hands it to Courier's restart recovery (HUMAN_REQUIRED,
+                # WORKER_RESTARTED_AND_LOST_STATE).
+                write_log(f"Task {task['task_id']} was interrupted during execution; not re-running it.")
+                release_ambiguous_task = True
+                registered = False
+                task = None
+
             if not registered:
                 reg_payload = {
                     "worker_id": config["WORKER_ID"],
                     "platform": "macos",
                     "capabilities": ["macos", "linux", "antigravity"]
                 }
+                if release_ambiguous_task:
+                    reg_payload["current_task"] = None
                 res, err = http_post(config, "/workers/register", reg_payload)
                 if err:
                     write_log(f"Failed to register: {err}")
@@ -165,6 +219,9 @@ def loop():
                     continue
                 write_log("Registered successfully.")
                 registered = True
+                if release_ambiguous_task:
+                    os.remove(current_task_state_file)
+                    release_ambiguous_task = False
                 
             # Heartbeat
             res, err = http_post(config, "/workers/heartbeat", {"worker_id": config["WORKER_ID"]})
@@ -184,11 +241,13 @@ def loop():
                     
                 task = res.get("task")
                 if task:
-                    with open(current_task_state_file, 'w') as f:
-                        json.dump(task, f)
-                        
-            if task:
+                    task["worker_phase"] = "CLAIMED"
+                    persist_task(current_task_state_file, task)
+
+            if task and task.get("worker_phase") == "CLAIMED":
                 write_log(f"Processing task {task['task_id']}")
+                task["worker_phase"] = "STARTED"
+                persist_task(current_task_state_file, task)
                 mode = task.get("mode", "ANTIGRAVITY")
                 # Fallback to NATIVE if requested via target_agent routing
                 target = task.get("target_agent", "").lower()
@@ -231,23 +290,20 @@ def loop():
                     "provider": "mac_" + result.get("execution_mode", "unknown").lower(),
                     "raw_result": result
                 }
-                
-                # Backoff loop for posting result
-                retries = 0
-                while retries < 8: # Up to 8 retries (~ 255 seconds)
-                    res, err = http_post(config, "/tasks/result", payload)
-                    if err:
-                        write_log(f"Result post failed: {err}. Retrying in {2**retries}s...")
-                        time.sleep(2 ** retries)
-                        retries += 1
-                    else:
-                        write_log(f"Result posted successfully: {res}")
-                        break
-                        
-                if current_task_state_file.exists():
+                task["result_payload"] = payload
+                task["worker_phase"] = "RESULT_READY"
+                persist_task(current_task_state_file, task)
+
+            if task:
+                outcome = deliver_result(config, task["result_payload"])
+                if outcome == "UNDELIVERED":
+                    # Keep the finished result; later cycles only redeliver it.
+                    write_log(f"Result for task {task['task_id']} not delivered yet; keeping it for redelivery.")
+                else:
+                    if outcome == "REJECTED":
+                        persist_task(STATE_DIR / f"rejected_result_{task['task_id']}.json", task)
                     os.remove(current_task_state_file)
-                    
-                task = None
+                    task = None
                 
         except Exception as e:
             write_log(f"Error in HTTP poll loop: {e}\n{traceback.format_exc()}")
