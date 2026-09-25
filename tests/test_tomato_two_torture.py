@@ -655,7 +655,7 @@ def test_tomato_two_full_torture_chamber():
 
     print(f"\nRAW EVIDENCE WRITTEN TO: {EVIDENCE_LOG}")
     print("\n--- ALL TORTURE CHAMBER PREDICATES PROVEN ---")
-    return evidence
+    
 
 if __name__ == "__main__":
     test_tomato_two_full_torture_chamber()
