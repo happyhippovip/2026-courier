@@ -20,6 +20,18 @@ def packet(**changes):
     return value
 
 
+def test_validate_task_rejects_deterministic_transform_without_string_input():
+    bad = packet()
+    del bad["input"]
+    with pytest.raises(ValueError, match="string input"):
+        adapter.validate_task(bad)
+    with pytest.raises(ValueError, match="string input"):
+        adapter.validate_task(packet(input=42))
+    ok = packet(task_type="report")
+    del ok["input"]
+    adapter.validate_task(ok)
+
+
 def test_validate_task_rejects_missing_identity_and_shell():
     with pytest.raises(ValueError, match="task_id"):
         adapter.validate_task(packet(task_id=""))
