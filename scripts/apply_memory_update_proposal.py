@@ -274,7 +274,19 @@ def apply_memory_update_proposal(
             })
             files_modified.add(change["file"])
         else:
-            # Perform atomic section append
+            # Idempotent retry: exact text already present -> skip, never duplicate.
+            if text_to_apply in current_content:
+                applied_changes.append({
+                    "file": change["file"],
+                    "section": section,
+                    "action": action,
+                    "status_label": change["status_label"],
+                    "text": text_to_apply,
+                    "skipped_duplicate": True,
+                })
+                continue
+            # Perform atomic section append via tmp + replace so a crash
+            # cannot leave a truncated memory file behind.
             if f"## {section}" in current_content or f"# {section}" in current_content:
                 # Append directly under section
                 new_content = current_content.rstrip() + f"\n\n{text_to_apply}\n"
@@ -282,7 +294,9 @@ def apply_memory_update_proposal(
                 # Append section with content at EOF
                 new_content = current_content.rstrip() + f"\n\n## {section}\n\n{text_to_apply}\n"
 
-            target_path.write_text(new_content, encoding="utf-8")
+            tmp_path = target_path.with_name(target_path.name + ".tmp")
+            tmp_path.write_text(new_content, encoding="utf-8")
+            os.replace(tmp_path, target_path)
 
             # Post-write verification: re-read file
             verified_content = target_path.read_text(encoding="utf-8")
