@@ -43,6 +43,8 @@ def validate_task(task: dict[str, Any]) -> None:
         raise ValueError(f"TaskPacket is missing required identity fields: {', '.join(missing)}")
     if task.get("task_type", task.get("type")) not in ALLOW_LIST:
         raise ValueError("TaskPacket has an unsupported bounded task type")
+    if task.get("task_type", task.get("type")) == "deterministic_transform" and not isinstance(task.get("input"), str):
+        raise ValueError("TaskPacket deterministic_transform requires a string input")
 
 
 def find_run(dispatch_id: str) -> tuple[str | None, str | None]:
