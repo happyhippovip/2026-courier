@@ -1,111 +1,9 @@
 {
   "schema_version": 2,
   "goals": {
-    "goal-19854a6c": {
-      "goal_id": "goal-19854a6c",
-      "goal_text": "Test Goal",
-      "status": "ACTIVE",
-      "terminal": true,
-      "workflow_plan": [
-        {
-          "capabilities": [
-            "linux"
-          ],
-          "depends_on": [],
-          "instruction": "Task A",
-          "status": "WAITING_PROVIDER",
-          "task_id": "A",
-          "goal_id": "goal-19854a6c",
-          "attempts": 1,
-          "worker_id": "W1",
-          "attempt_id": "A:attempt:1",
-          "dispatch_id": "dispatch-9728b52711014cc698d23037888b35e2",
-          "execution_ref": "exec-a7b83c9571954b71aadf531afa674f22",
-          "server_binding": {
-            "sha": "790f778c6af3ae72f01a0d8ec33c19a5fdcb2932",
-            "runtime": "courier-server:a16c4289a0a44b8498a80d99872b2c5e"
-          },
-          "run_id": null,
-          "result_id": null,
-          "target_capability": "linux",
-          "last_completed_step": null,
-          "next_action": "EXECUTE",
-          "blocker": "PROVIDER_UNAVAILABLE",
-          "artifact_refs": [],
-          "retry_state": {
-            "execution": 0,
-            "transport": 0,
-            "provider": 1,
-            "verification": 0
-          },
-          "next_retry_at": 1790300524.182983
-        },
-        {
-          "capabilities": [
-            "linux"
-          ],
-          "depends_on": [],
-          "instruction": "Task B",
-          "status": "RECONCILED",
-          "task_id": "B",
-          "goal_id": "goal-19854a6c",
-          "attempts": 1,
-          "worker_id": "W2",
-          "attempt_id": "B:attempt:1",
-          "dispatch_id": "dispatch-f2601353bb674bd79fdf66eb831ef840",
-          "execution_ref": "exec-980368bebe2542ea8bad5cd7026406d2",
-          "server_binding": {
-            "sha": "790f778c6af3ae72f01a0d8ec33c19a5fdcb2932",
-            "runtime": "courier-server:a16c4289a0a44b8498a80d99872b2c5e"
-          },
-          "run_id": null,
-          "result_id": null,
-          "target_capability": "linux",
-          "last_completed_step": null,
-          "next_action": "EXECUTE",
-          "blocker": null,
-          "artifact_refs": [],
-          "verification": {
-            "verifier_id": "VERIFIER-01",
-            "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
-            "result_id": "result-b6082729e7b39e4af20293ddbf7c69e1e46bbca7e4aa417dd5bfe0e93798f95e",
-            "verdict": "PASS",
-            "artifacts": [],
-            "verified_at": 1790338581.752905
-          }
-        },
-        {
-          "capabilities": [
-            "linux"
-          ],
-          "depends_on": [],
-          "instruction": "Task C",
-          "status": "DISPATCHED",
-          "task_id": "C",
-          "goal_id": "goal-19854a6c",
-          "attempts": 1,
-          "worker_id": "W2",
-          "attempt_id": "C:attempt:1",
-          "dispatch_id": "dispatch-a326fe1551e34cf28ffcab9c5b35f9b6",
-          "execution_ref": "exec-4cf9a0f670354ef482136e3ffc8a90e3",
-          "server_binding": {
-            "sha": "790f778c6af3ae72f01a0d8ec33c19a5fdcb2932",
-            "runtime": "courier-server:a16c4289a0a44b8498a80d99872b2c5e"
-          },
-          "run_id": null,
-          "result_id": null,
-          "target_capability": "linux",
-          "last_completed_step": null,
-          "next_action": "EXECUTE",
-          "blocker": null,
-          "artifact_refs": []
-        }
-      ],
-      "current_step_index": 0
-    },
-    "goal-4f65de71": {
-      "goal_id": "goal-4f65de71",
-      "goal_text": "Write a short summary of the Courier project in courier_summary.txt",
+    "goal-8fb7cbbd": {
+      "goal_id": "goal-8fb7cbbd",
+      "goal_text": "Torture Sequence Work",
       "status": "DONE",
       "terminal": true,
       "community_id": "public",
@@ -113,19 +11,21 @@
       "accumulated_cost": 0.0,
       "workflow_plan": [
         {
-          "task_id": "WF-CHIEF-d1a97b-STEP-1-DISCOVER",
-          "goal_id": "goal-4f65de71",
-          "instruction": "Formulate execution strategy and inspect context for: Write a short summary of the Courier project in courier_summary.txt",
+          "task_id": "torture-seq-01-a8c108b3",
           "target_agent": "mac",
+          "mode": "NATIVE",
+          "instruction": "sleep 4",
+          "artifacts": [],
+          "goal_id": "goal-8fb7cbbd",
           "status": "RECONCILED",
           "attempts": 1,
           "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
-          "attempt_id": "WF-CHIEF-d1a97b-STEP-1-DISCOVER:attempt:1",
-          "dispatch_id": "dispatch-2e95c5affcde437581a80682cd1a2fac",
-          "execution_ref": "exec-e2ba5b54e88d47bf82401d5319912f9f",
+          "attempt_id": "torture-seq-01-a8c108b3:attempt:1",
+          "dispatch_id": "dispatch-7d3e40a043f24b01b8459baa6806dfd2",
+          "execution_ref": "exec-2af3f261133246bb83c03b4b75103664",
           "server_binding": {
-            "sha": "3a25f7ff6b53e84b6631fc638d845eac595c47a9",
-            "runtime": "courier-server:6696633af2c143898ed428e15fbb16bc"
+            "sha": "4a7a913b74a5b0339c90fd9ee8d6c0a5c6c4b2af",
+            "runtime": "courier-server:99c1731d28d64dc7914de089f0a0e18e"
           },
           "run_id": null,
           "result_id": null,
@@ -137,26 +37,33 @@
           "verification": {
             "verifier_id": "VERIFIER-01",
             "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
-            "result_id": "result-ccd082a2d82563a8fe6978a5da9f920809d5dc7097c8d2778eec6725c28e2d17",
+            "result_id": "result-6c07c7919c7c71b0af9d81feae3364c14c612f42bbbc7d7555b772424223fe1f",
             "verdict": "PASS",
             "artifacts": [],
-            "verified_at": 1790339110.396757
+            "verified_at": 1790341903.1818
           }
         },
         {
-          "task_id": "WF-CHIEF-d1a97b-STEP-2-IMPLEMENT",
-          "goal_id": "goal-4f65de71",
-          "instruction": "Execute core implementation and asset validation for: Write a short summary of the Courier project in courier_summary.txt",
+          "task_id": "torture-seq-02-a8c108b3",
           "target_agent": "mac",
+          "mode": "NATIVE",
+          "instruction": "touch courier_canary_torture_seq2_a8c108b3.txt",
+          "artifacts": [
+            "courier_canary_torture_seq2_a8c108b3.txt"
+          ],
+          "depends_on": [
+            "torture-seq-01-a8c108b3"
+          ],
+          "goal_id": "goal-8fb7cbbd",
           "status": "RECONCILED",
           "attempts": 1,
           "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
-          "attempt_id": "WF-CHIEF-d1a97b-STEP-2-IMPLEMENT:attempt:1",
-          "dispatch_id": "dispatch-43f1346e394948eea352645ffcc86eee",
-          "execution_ref": "exec-5d1113cd31aa4c27b56199ea7cbd5bd1",
+          "attempt_id": "torture-seq-02-a8c108b3:attempt:1",
+          "dispatch_id": "dispatch-199cb6cda0494cc48a55742173eb7aa5",
+          "execution_ref": "exec-4245316436e14347b0147ebaec4db21f",
           "server_binding": {
-            "sha": "3a25f7ff6b53e84b6631fc638d845eac595c47a9",
-            "runtime": "courier-server:c0d9200f1a914e14a62cee3ef94dc712"
+            "sha": "4a7a913b74a5b0339c90fd9ee8d6c0a5c6c4b2af",
+            "runtime": "courier-server:99c1731d28d64dc7914de089f0a0e18e"
           },
           "run_id": null,
           "result_id": null,
@@ -168,367 +75,629 @@
           "verification": {
             "verifier_id": "VERIFIER-01",
             "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
-            "result_id": "result-0f63296889451cbaa7b5dd36eb35b17c157f9bf5298f266a2a5b941241a7ce51",
+            "result_id": "result-dd24a4c6a7078b25d1525760ab36b86966e6f7cf44573d003b63d7d809579c26",
             "verdict": "PASS",
-            "artifacts": [],
-            "verified_at": 1790339323.521923
-          }
-        },
-        {
-          "task_id": "WF-CHIEF-d1a97b-STEP-3-SYNTHESIZE",
-          "goal_id": "goal-4f65de71",
-          "instruction": "Finalize results, verify invariants, and assemble completion package for: Write a short summary of the Courier project in courier_summary.txt",
-          "target_agent": "mac",
-          "status": "RECONCILED",
-          "attempts": 1,
-          "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
-          "attempt_id": "WF-CHIEF-d1a97b-STEP-3-SYNTHESIZE:attempt:1",
-          "dispatch_id": "dispatch-ff58a66e0a5f48baa98479e27c0a5516",
-          "execution_ref": "exec-a8d99ab429504c1cb944692ef0df9d4d",
-          "server_binding": {
-            "sha": "3a25f7ff6b53e84b6631fc638d845eac595c47a9",
-            "runtime": "courier-server:c0d9200f1a914e14a62cee3ef94dc712"
-          },
-          "run_id": null,
-          "result_id": null,
-          "target_capability": "mac",
-          "last_completed_step": null,
-          "next_action": "EXECUTE",
-          "blocker": null,
-          "artifact_refs": [],
-          "verification": {
-            "verifier_id": "VERIFIER-01",
-            "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
-            "result_id": "result-8261d108feefbd6b91f6bd8027d71c57f317008fff8e2aa0cb828ed8c51a8c52",
-            "verdict": "PASS",
-            "artifacts": [],
-            "verified_at": 1790339444.972023
+            "artifacts": [
+              {
+                "path": "courier_canary_torture_seq2_a8c108b3.txt",
+                "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
+              }
+            ],
+            "verified_at": 1790341904.5471518
           }
         }
       ],
       "current_step_index": 0
+    },
+    "goal-31cf4e97": {
+      "goal_id": "goal-31cf4e97",
+      "goal_text": "Goal A With Provider Wait",
+      "status": "DONE",
+      "terminal": true,
+      "community_id": "public",
+      "max_budget_eur": 10.0,
+      "accumulated_cost": 0.0,
+      "workflow_plan": [
+        {
+          "task_id": "torture-wait-a8c108b3",
+          "target_agent": "mac",
+          "instruction": "touch courier_canary_torture_prov_a8c108b3.txt",
+          "mode": "NATIVE",
+          "artifacts": [],
+          "goal_id": "goal-31cf4e97",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+          "attempt_id": "torture-wait-a8c108b3:attempt:1",
+          "dispatch_id": "dispatch-fe7a182fcfbb42b68a63f58becc37d39",
+          "execution_ref": "exec-33ace5551bc34a04801fc627c4cc9171",
+          "server_binding": {
+            "sha": "4a7a913b74a5b0339c90fd9ee8d6c0a5c6c4b2af",
+            "runtime": "courier-server:99c1731d28d64dc7914de089f0a0e18e"
+          },
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": "SIMULATED_429_RATE_LIMIT",
+          "artifact_refs": [],
+          "retry_state": {
+            "execution": 0,
+            "transport": 0,
+            "provider": 2,
+            "verification": 0
+          },
+          "next_retry_at": 1790341911.309603,
+          "verification": {
+            "verifier_id": "VERIFIER-01",
+            "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
+            "result_id": "result-373f0f3bbebb7128ac9f6d2dc5600f91fe6621be1f146e9e0fe094bea2d7a085",
+            "verdict": "PASS",
+            "artifacts": [],
+            "verified_at": 1790341909.635861
+          }
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-58e7dfc5": {
+      "goal_id": "goal-58e7dfc5",
+      "goal_text": "Goal B Unrelated Independent Work",
+      "status": "DONE",
+      "terminal": true,
+      "community_id": "public",
+      "max_budget_eur": 10.0,
+      "accumulated_cost": 0.0,
+      "workflow_plan": [
+        {
+          "task_id": "torture-indep-a8c108b3",
+          "target_agent": "mac",
+          "instruction": "touch courier_canary_torture_indep_a8c108b3.txt",
+          "mode": "NATIVE",
+          "artifacts": [
+            "courier_canary_torture_indep_a8c108b3.txt"
+          ],
+          "goal_id": "goal-58e7dfc5",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+          "attempt_id": "torture-indep-a8c108b3:attempt:1",
+          "dispatch_id": "dispatch-3f6997a62c684687af7729028c9844b8",
+          "execution_ref": "exec-6bb76bc773da4ae78c1b96d43f19525d",
+          "server_binding": {
+            "sha": "4a7a913b74a5b0339c90fd9ee8d6c0a5c6c4b2af",
+            "runtime": "courier-server:99c1731d28d64dc7914de089f0a0e18e"
+          },
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "verification": {
+            "verifier_id": "VERIFIER-01",
+            "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
+            "result_id": "result-9193b988b466f946e5f29ca7cf69492a4ee82ad039294ed360e0ae90001597db",
+            "verdict": "PASS",
+            "artifacts": [
+              {
+                "path": "courier_canary_torture_indep_a8c108b3.txt",
+                "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
+              }
+            ],
+            "verified_at": 1790341908.197089
+          }
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-ba7a9738": {
+      "goal_id": "goal-ba7a9738",
+      "goal_text": "[{\"task_id\": \"torture-rep-step-a8c108b3\", \"instruction\": \"touch courier_canary_torture_rep_step_a8c108b3.txt\", \"target_agent\": \"mac\", \"mode\": \"NATIVE\", \"artifacts\": [\"courier_canary_torture_rep_step_a8c108b3.txt\"]}]",
+      "status": "BLOCKED",
+      "terminal": false,
+      "community_id": "public",
+      "max_budget_eur": 10.0,
+      "accumulated_cost": 0.0,
+      "workflow_plan": [
+        {
+          "task_id": "torture-rep-init-a8c108b3",
+          "target_agent": "mac",
+          "mode": "NATIVE",
+          "instruction": "touch courier_canary_torture_rep_init_a8c108b3.txt",
+          "artifacts": [
+            "courier_canary_torture_rep_init_a8c108b3.txt"
+          ],
+          "goal_id": "goal-ba7a9738",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+          "attempt_id": "torture-rep-init-a8c108b3:attempt:1",
+          "dispatch_id": "dispatch-f7ec233591f944d292668e3cb53e576e",
+          "execution_ref": "exec-d66c49be7a3f4c05adb3944371a0e669",
+          "server_binding": {
+            "sha": "4a7a913b74a5b0339c90fd9ee8d6c0a5c6c4b2af",
+            "runtime": "courier-server:99c1731d28d64dc7914de089f0a0e18e"
+          },
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "verification": {
+            "verifier_id": "VERIFIER-01",
+            "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
+            "result_id": "result-e3b1acd9629eb143f00b70cdef5e581248952ae3cef3d7b395a9ec3a8d0a27c2",
+            "verdict": "PASS",
+            "artifacts": [
+              {
+                "path": "courier_canary_torture_rep_init_a8c108b3.txt",
+                "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
+              }
+            ],
+            "verified_at": 1790341913.232895
+          }
+        },
+        {
+          "task_id": "WF-CHIEF-7ff75a-STEP-1",
+          "goal_id": "goal-ba7a9738",
+          "instruction": "touch courier_canary_torture_rep_step_a8c108b3.txt",
+          "target_agent": "mac",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "artifacts": [
+            "courier_canary_torture_rep_step_a8c108b3.txt"
+          ],
+          "mode": "NATIVE",
+          "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+          "attempt_id": "WF-CHIEF-7ff75a-STEP-1:attempt:1",
+          "dispatch_id": "dispatch-0e4f4945a7d5453ab857a60ee5eaf6de",
+          "execution_ref": "exec-baff0bde62ca4ac0b2150d14a21653a9",
+          "server_binding": {
+            "sha": "4a7a913b74a5b0339c90fd9ee8d6c0a5c6c4b2af",
+            "runtime": "courier-server:99c1731d28d64dc7914de089f0a0e18e"
+          },
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "verification": {
+            "verifier_id": "VERIFIER-01",
+            "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
+            "result_id": "result-c248b8044ad3410816b832fb074d6d3809ff90b6d9ff2d75abe678fc8ce0839c",
+            "verdict": "PASS",
+            "artifacts": [
+              {
+                "path": "courier_canary_torture_rep_step_a8c108b3.txt",
+                "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
+              }
+            ],
+            "verified_at": 1790341914.8031192
+          }
+        }
+      ],
+      "current_step_index": 0,
+      "replenish_count": 2,
+      "blocker": "Replenish returned no new steps for nonterminal goal"
     }
   },
   "tasks": {
-    "A": {
-      "capabilities": [
-        "linux"
-      ],
-      "depends_on": [],
-      "instruction": "Task A",
-      "status": "WAITING_PROVIDER",
-      "task_id": "A",
-      "goal_id": "goal-19854a6c",
+    "torture-seq-01-a8c108b3": {
+      "task_id": "torture-seq-01-a8c108b3",
+      "target_agent": "mac",
+      "mode": "NATIVE",
+      "instruction": "sleep 4",
+      "artifacts": [],
+      "goal_id": "goal-8fb7cbbd",
+      "status": "RECONCILED",
       "attempts": 1,
-      "worker_id": "W1",
-      "attempt_id": "A:attempt:1",
-      "dispatch_id": "dispatch-9728b52711014cc698d23037888b35e2",
-      "execution_ref": "exec-a7b83c9571954b71aadf531afa674f22",
+      "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+      "attempt_id": "torture-seq-01-a8c108b3:attempt:1",
+      "dispatch_id": "dispatch-7d3e40a043f24b01b8459baa6806dfd2",
+      "execution_ref": "exec-2af3f261133246bb83c03b4b75103664",
       "server_binding": {
-        "sha": "790f778c6af3ae72f01a0d8ec33c19a5fdcb2932",
-        "runtime": "courier-server:a16c4289a0a44b8498a80d99872b2c5e"
+        "sha": "4a7a913b74a5b0339c90fd9ee8d6c0a5c6c4b2af",
+        "runtime": "courier-server:99c1731d28d64dc7914de089f0a0e18e"
       },
       "run_id": null,
       "result_id": null,
-      "target_capability": "linux",
-      "last_completed_step": null,
-      "next_action": "WAIT_THEN_RESUME",
-      "blocker": "PROVIDER_UNAVAILABLE",
+      "target_capability": "mac",
+      "last_completed_step": "torture-seq-01-a8c108b3",
+      "next_action": null,
+      "blocker": null,
+      "artifact_refs": [],
+      "producer_principal": "principal_a2feb8ee4ae6ac6d82e9a68c34fbc7f3b7bef7b64908ded944e60dd5288b970e",
+      "result": {
+        "task_id": "torture-seq-01-a8c108b3",
+        "artifacts": [],
+        "runtime_identity": {
+          "runtime": "courier-server:99c1731d28d64dc7914de089f0a0e18e",
+          "sha": "4a7a913b74a5b0339c90fd9ee8d6c0a5c6c4b2af"
+        },
+        "run_id": "5e23cfb4-4368-4585-835a-9f1aec6bef2c",
+        "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+        "status": "SUCCESS",
+        "attempt_id": "torture-seq-01-a8c108b3:attempt:1",
+        "dispatch_id": "dispatch-7d3e40a043f24b01b8459baa6806dfd2",
+        "goal_id": "goal-8fb7cbbd",
+        "result_id": "result-6c07c7919c7c71b0af9d81feae3364c14c612f42bbbc7d7555b772424223fe1f",
+        "execution_ref": "exec-2af3f261133246bb83c03b4b75103664"
+      },
+      "result_received_at": 1790341900.8320582,
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
+        "result_id": "result-6c07c7919c7c71b0af9d81feae3364c14c612f42bbbc7d7555b772424223fe1f",
+        "verdict": "PASS",
+        "artifacts": [],
+        "verified_at": 1790341903.1818
+      }
+    },
+    "torture-seq-02-a8c108b3": {
+      "task_id": "torture-seq-02-a8c108b3",
+      "target_agent": "mac",
+      "mode": "NATIVE",
+      "instruction": "touch courier_canary_torture_seq2_a8c108b3.txt",
+      "artifacts": [
+        "courier_canary_torture_seq2_a8c108b3.txt"
+      ],
+      "depends_on": [
+        "torture-seq-01-a8c108b3"
+      ],
+      "goal_id": "goal-8fb7cbbd",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+      "attempt_id": "torture-seq-02-a8c108b3:attempt:1",
+      "dispatch_id": "dispatch-199cb6cda0494cc48a55742173eb7aa5",
+      "execution_ref": "exec-4245316436e14347b0147ebaec4db21f",
+      "server_binding": {
+        "sha": "4a7a913b74a5b0339c90fd9ee8d6c0a5c6c4b2af",
+        "runtime": "courier-server:99c1731d28d64dc7914de089f0a0e18e"
+      },
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "last_completed_step": "torture-seq-02-a8c108b3",
+      "next_action": null,
+      "blocker": null,
+      "artifact_refs": [
+        {
+          "path": "courier_canary_torture_seq2_a8c108b3.txt",
+          "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
+        }
+      ],
+      "producer_principal": "principal_a2feb8ee4ae6ac6d82e9a68c34fbc7f3b7bef7b64908ded944e60dd5288b970e",
+      "result": {
+        "task_id": "torture-seq-02-a8c108b3",
+        "artifacts": [
+          {
+            "path": "courier_canary_torture_seq2_a8c108b3.txt",
+            "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
+          }
+        ],
+        "runtime_identity": {
+          "runtime": "courier-server:99c1731d28d64dc7914de089f0a0e18e",
+          "sha": "4a7a913b74a5b0339c90fd9ee8d6c0a5c6c4b2af"
+        },
+        "run_id": "81bbd3df-74eb-4eea-bb82-d832021404d9",
+        "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+        "status": "SUCCESS",
+        "attempt_id": "torture-seq-02-a8c108b3:attempt:1",
+        "dispatch_id": "dispatch-199cb6cda0494cc48a55742173eb7aa5",
+        "goal_id": "goal-8fb7cbbd",
+        "result_id": "result-dd24a4c6a7078b25d1525760ab36b86966e6f7cf44573d003b63d7d809579c26",
+        "execution_ref": "exec-4245316436e14347b0147ebaec4db21f"
+      },
+      "result_received_at": 1790341904.060378,
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
+        "result_id": "result-dd24a4c6a7078b25d1525760ab36b86966e6f7cf44573d003b63d7d809579c26",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "courier_canary_torture_seq2_a8c108b3.txt",
+            "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
+          }
+        ],
+        "verified_at": 1790341904.5471518
+      }
+    },
+    "torture-wait-a8c108b3": {
+      "task_id": "torture-wait-a8c108b3",
+      "target_agent": "mac",
+      "instruction": "touch courier_canary_torture_prov_a8c108b3.txt",
+      "mode": "NATIVE",
+      "artifacts": [],
+      "goal_id": "goal-31cf4e97",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+      "attempt_id": "torture-wait-a8c108b3:attempt:1",
+      "dispatch_id": "dispatch-fe7a182fcfbb42b68a63f58becc37d39",
+      "execution_ref": "exec-33ace5551bc34a04801fc627c4cc9171",
+      "server_binding": {
+        "sha": "4a7a913b74a5b0339c90fd9ee8d6c0a5c6c4b2af",
+        "runtime": "courier-server:99c1731d28d64dc7914de089f0a0e18e"
+      },
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "last_completed_step": "torture-wait-a8c108b3",
+      "next_action": null,
+      "blocker": null,
       "artifact_refs": [],
       "retry_state": {
         "execution": 0,
         "transport": 0,
-        "provider": 1,
+        "provider": 2,
         "verification": 0
       },
-      "next_retry_at": 1790300524.182983,
-      "provider_wait_since": 1790300522.183019
+      "next_retry_at": 1790341911.309603,
+      "producer_principal": "principal_a2feb8ee4ae6ac6d82e9a68c34fbc7f3b7bef7b64908ded944e60dd5288b970e",
+      "result": {
+        "task_id": "torture-wait-a8c108b3",
+        "artifacts": [],
+        "runtime_identity": {
+          "runtime": "courier-server:99c1731d28d64dc7914de089f0a0e18e",
+          "sha": "4a7a913b74a5b0339c90fd9ee8d6c0a5c6c4b2af"
+        },
+        "run_id": "99775876-1eb6-4bea-8c38-f5c8413fb47f",
+        "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+        "status": "SUCCESS",
+        "attempt_id": "torture-wait-a8c108b3:attempt:1",
+        "dispatch_id": "dispatch-fe7a182fcfbb42b68a63f58becc37d39",
+        "goal_id": "goal-31cf4e97",
+        "result_id": "result-373f0f3bbebb7128ac9f6d2dc5600f91fe6621be1f146e9e0fe094bea2d7a085",
+        "execution_ref": "exec-33ace5551bc34a04801fc627c4cc9171"
+      },
+      "result_received_at": 1790341909.5491781,
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
+        "result_id": "result-373f0f3bbebb7128ac9f6d2dc5600f91fe6621be1f146e9e0fe094bea2d7a085",
+        "verdict": "PASS",
+        "artifacts": [],
+        "verified_at": 1790341909.635861
+      }
     },
-    "B": {
-      "capabilities": [
-        "linux"
+    "torture-indep-a8c108b3": {
+      "task_id": "torture-indep-a8c108b3",
+      "target_agent": "mac",
+      "instruction": "touch courier_canary_torture_indep_a8c108b3.txt",
+      "mode": "NATIVE",
+      "artifacts": [
+        "courier_canary_torture_indep_a8c108b3.txt"
       ],
-      "depends_on": [],
-      "instruction": "Task B",
+      "goal_id": "goal-58e7dfc5",
       "status": "RECONCILED",
-      "task_id": "B",
-      "goal_id": "goal-19854a6c",
       "attempts": 1,
-      "worker_id": "W2",
-      "attempt_id": "B:attempt:1",
-      "dispatch_id": "dispatch-f2601353bb674bd79fdf66eb831ef840",
-      "execution_ref": "exec-980368bebe2542ea8bad5cd7026406d2",
+      "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+      "attempt_id": "torture-indep-a8c108b3:attempt:1",
+      "dispatch_id": "dispatch-3f6997a62c684687af7729028c9844b8",
+      "execution_ref": "exec-6bb76bc773da4ae78c1b96d43f19525d",
       "server_binding": {
-        "sha": "790f778c6af3ae72f01a0d8ec33c19a5fdcb2932",
-        "runtime": "courier-server:a16c4289a0a44b8498a80d99872b2c5e"
+        "sha": "4a7a913b74a5b0339c90fd9ee8d6c0a5c6c4b2af",
+        "runtime": "courier-server:99c1731d28d64dc7914de089f0a0e18e"
       },
       "run_id": null,
       "result_id": null,
-      "target_capability": "linux",
-      "last_completed_step": "B",
+      "target_capability": "mac",
+      "last_completed_step": "torture-indep-a8c108b3",
       "next_action": null,
       "blocker": null,
-      "artifact_refs": [],
-      "producer_principal": "principal_5af7da6506495a544198d4a87f183de71cacbd6a24ba13255fe7881049f96979",
-      "result": {
-        "run_id": "run1",
-        "worker_id": "W2",
-        "status": "SUCCESS",
-        "execution_ref": "exec-980368bebe2542ea8bad5cd7026406d2",
-        "runtime_identity": {
-          "runtime": "courier-server:a16c4289a0a44b8498a80d99872b2c5e",
-          "sha": "790f778c6af3ae72f01a0d8ec33c19a5fdcb2932"
-        },
-        "attempt_id": "B:attempt:1",
-        "artifacts": [],
-        "result_id": "result-b6082729e7b39e4af20293ddbf7c69e1e46bbca7e4aa417dd5bfe0e93798f95e",
-        "dispatch_id": "dispatch-f2601353bb674bd79fdf66eb831ef840",
-        "task_id": "B",
-        "goal_id": "goal-19854a6c"
-      },
-      "result_received_at": 1790300522.196183,
-      "verification": {
-        "verifier_id": "VERIFIER-01",
-        "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
-        "result_id": "result-b6082729e7b39e4af20293ddbf7c69e1e46bbca7e4aa417dd5bfe0e93798f95e",
-        "verdict": "PASS",
-        "artifacts": [],
-        "verified_at": 1790338581.752905
-      }
-    },
-    "C": {
-      "capabilities": [
-        "linux"
+      "artifact_refs": [
+        {
+          "path": "courier_canary_torture_indep_a8c108b3.txt",
+          "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
+        }
       ],
-      "depends_on": [],
-      "instruction": "Task C",
-      "status": "DISPATCHED",
-      "task_id": "C",
-      "goal_id": "goal-19854a6c",
-      "attempts": 1,
-      "worker_id": "W2",
-      "attempt_id": "C:attempt:1",
-      "dispatch_id": "dispatch-a326fe1551e34cf28ffcab9c5b35f9b6",
-      "execution_ref": "exec-4cf9a0f670354ef482136e3ffc8a90e3",
-      "server_binding": {
-        "sha": "790f778c6af3ae72f01a0d8ec33c19a5fdcb2932",
-        "runtime": "courier-server:a16c4289a0a44b8498a80d99872b2c5e"
-      },
-      "run_id": null,
-      "result_id": null,
-      "target_capability": "linux",
-      "last_completed_step": null,
-      "next_action": "EXECUTE",
-      "blocker": null,
-      "artifact_refs": []
-    },
-    "WF-CHIEF-d1a97b-STEP-1-DISCOVER": {
-      "task_id": "WF-CHIEF-d1a97b-STEP-1-DISCOVER",
-      "goal_id": "goal-4f65de71",
-      "instruction": "Formulate execution strategy and inspect context for: Write a short summary of the Courier project in courier_summary.txt",
-      "target_agent": "mac",
-      "status": "RECONCILED",
-      "attempts": 1,
-      "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
-      "attempt_id": "WF-CHIEF-d1a97b-STEP-1-DISCOVER:attempt:1",
-      "dispatch_id": "dispatch-2e95c5affcde437581a80682cd1a2fac",
-      "execution_ref": "exec-e2ba5b54e88d47bf82401d5319912f9f",
-      "server_binding": {
-        "sha": "3a25f7ff6b53e84b6631fc638d845eac595c47a9",
-        "runtime": "courier-server:6696633af2c143898ed428e15fbb16bc"
-      },
-      "run_id": null,
-      "result_id": null,
-      "target_capability": "mac",
-      "last_completed_step": "WF-CHIEF-d1a97b-STEP-1-DISCOVER",
-      "next_action": null,
-      "blocker": null,
-      "artifact_refs": [],
       "producer_principal": "principal_a2feb8ee4ae6ac6d82e9a68c34fbc7f3b7bef7b64908ded944e60dd5288b970e",
       "result": {
-        "goal_id": "goal-4f65de71",
-        "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
-        "dispatch_id": "dispatch-2e95c5affcde437581a80682cd1a2fac",
-        "result_id": "result-ccd082a2d82563a8fe6978a5da9f920809d5dc7097c8d2778eec6725c28e2d17",
+        "task_id": "torture-indep-a8c108b3",
+        "artifacts": [
+          {
+            "path": "courier_canary_torture_indep_a8c108b3.txt",
+            "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
+          }
+        ],
         "runtime_identity": {
-          "runtime": "courier-server:6696633af2c143898ed428e15fbb16bc",
-          "sha": "3a25f7ff6b53e84b6631fc638d845eac595c47a9"
+          "runtime": "courier-server:99c1731d28d64dc7914de089f0a0e18e",
+          "sha": "4a7a913b74a5b0339c90fd9ee8d6c0a5c6c4b2af"
         },
-        "artifacts": [],
-        "run_id": "5ddc5207-a967-4ff0-b38a-bac3f1f2271e",
+        "run_id": "8ab48993-66f9-45c1-a423-30157aadd8f1",
+        "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
         "status": "SUCCESS",
-        "task_id": "WF-CHIEF-d1a97b-STEP-1-DISCOVER",
-        "attempt_id": "WF-CHIEF-d1a97b-STEP-1-DISCOVER:attempt:1",
-        "execution_ref": "exec-e2ba5b54e88d47bf82401d5319912f9f"
+        "attempt_id": "torture-indep-a8c108b3:attempt:1",
+        "dispatch_id": "dispatch-3f6997a62c684687af7729028c9844b8",
+        "goal_id": "goal-58e7dfc5",
+        "result_id": "result-9193b988b466f946e5f29ca7cf69492a4ee82ad039294ed360e0ae90001597db",
+        "execution_ref": "exec-6bb76bc773da4ae78c1b96d43f19525d"
       },
-      "result_received_at": 1790339107.224112,
+      "result_received_at": 1790341906.244768,
       "verification": {
         "verifier_id": "VERIFIER-01",
         "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
-        "result_id": "result-ccd082a2d82563a8fe6978a5da9f920809d5dc7097c8d2778eec6725c28e2d17",
+        "result_id": "result-9193b988b466f946e5f29ca7cf69492a4ee82ad039294ed360e0ae90001597db",
         "verdict": "PASS",
-        "artifacts": [],
-        "verified_at": 1790339110.396757
+        "artifacts": [
+          {
+            "path": "courier_canary_torture_indep_a8c108b3.txt",
+            "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
+          }
+        ],
+        "verified_at": 1790341908.197089
       }
     },
-    "WF-CHIEF-d1a97b-STEP-2-IMPLEMENT": {
-      "task_id": "WF-CHIEF-d1a97b-STEP-2-IMPLEMENT",
-      "goal_id": "goal-4f65de71",
-      "instruction": "Execute core implementation and asset validation for: Write a short summary of the Courier project in courier_summary.txt",
+    "torture-rep-init-a8c108b3": {
+      "task_id": "torture-rep-init-a8c108b3",
       "target_agent": "mac",
+      "mode": "NATIVE",
+      "instruction": "touch courier_canary_torture_rep_init_a8c108b3.txt",
+      "artifacts": [
+        "courier_canary_torture_rep_init_a8c108b3.txt"
+      ],
+      "goal_id": "goal-ba7a9738",
       "status": "RECONCILED",
       "attempts": 1,
       "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
-      "attempt_id": "WF-CHIEF-d1a97b-STEP-2-IMPLEMENT:attempt:1",
-      "dispatch_id": "dispatch-43f1346e394948eea352645ffcc86eee",
-      "execution_ref": "exec-5d1113cd31aa4c27b56199ea7cbd5bd1",
+      "attempt_id": "torture-rep-init-a8c108b3:attempt:1",
+      "dispatch_id": "dispatch-f7ec233591f944d292668e3cb53e576e",
+      "execution_ref": "exec-d66c49be7a3f4c05adb3944371a0e669",
       "server_binding": {
-        "sha": "3a25f7ff6b53e84b6631fc638d845eac595c47a9",
-        "runtime": "courier-server:c0d9200f1a914e14a62cee3ef94dc712"
+        "sha": "4a7a913b74a5b0339c90fd9ee8d6c0a5c6c4b2af",
+        "runtime": "courier-server:99c1731d28d64dc7914de089f0a0e18e"
       },
       "run_id": null,
       "result_id": null,
       "target_capability": "mac",
-      "last_completed_step": "WF-CHIEF-d1a97b-STEP-2-IMPLEMENT",
+      "last_completed_step": "torture-rep-init-a8c108b3",
       "next_action": null,
       "blocker": null,
-      "artifact_refs": [],
+      "artifact_refs": [
+        {
+          "path": "courier_canary_torture_rep_init_a8c108b3.txt",
+          "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
+        }
+      ],
       "producer_principal": "principal_a2feb8ee4ae6ac6d82e9a68c34fbc7f3b7bef7b64908ded944e60dd5288b970e",
       "result": {
-        "goal_id": "goal-4f65de71",
-        "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
-        "dispatch_id": "dispatch-43f1346e394948eea352645ffcc86eee",
-        "result_id": "result-0f63296889451cbaa7b5dd36eb35b17c157f9bf5298f266a2a5b941241a7ce51",
+        "task_id": "torture-rep-init-a8c108b3",
+        "artifacts": [
+          {
+            "path": "courier_canary_torture_rep_init_a8c108b3.txt",
+            "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
+          }
+        ],
         "runtime_identity": {
-          "runtime": "courier-server:c0d9200f1a914e14a62cee3ef94dc712",
-          "sha": "3a25f7ff6b53e84b6631fc638d845eac595c47a9"
+          "runtime": "courier-server:99c1731d28d64dc7914de089f0a0e18e",
+          "sha": "4a7a913b74a5b0339c90fd9ee8d6c0a5c6c4b2af"
         },
-        "artifacts": [],
-        "run_id": "05a9b177-7cee-4b20-a684-ade7b34a553a",
+        "run_id": "bfbd0fde-cc5b-4222-be00-02d7354771a6",
+        "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
         "status": "SUCCESS",
-        "task_id": "WF-CHIEF-d1a97b-STEP-2-IMPLEMENT",
-        "attempt_id": "WF-CHIEF-d1a97b-STEP-2-IMPLEMENT:attempt:1",
-        "execution_ref": "exec-5d1113cd31aa4c27b56199ea7cbd5bd1"
+        "attempt_id": "torture-rep-init-a8c108b3:attempt:1",
+        "dispatch_id": "dispatch-f7ec233591f944d292668e3cb53e576e",
+        "goal_id": "goal-ba7a9738",
+        "result_id": "result-e3b1acd9629eb143f00b70cdef5e581248952ae3cef3d7b395a9ec3a8d0a27c2",
+        "execution_ref": "exec-d66c49be7a3f4c05adb3944371a0e669"
       },
-      "result_received_at": 1790339323.4286342,
+      "result_received_at": 1790341910.592992,
       "verification": {
         "verifier_id": "VERIFIER-01",
         "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
-        "result_id": "result-0f63296889451cbaa7b5dd36eb35b17c157f9bf5298f266a2a5b941241a7ce51",
+        "result_id": "result-e3b1acd9629eb143f00b70cdef5e581248952ae3cef3d7b395a9ec3a8d0a27c2",
         "verdict": "PASS",
-        "artifacts": [],
-        "verified_at": 1790339323.521923
+        "artifacts": [
+          {
+            "path": "courier_canary_torture_rep_init_a8c108b3.txt",
+            "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
+          }
+        ],
+        "verified_at": 1790341913.232895
       }
     },
-    "WF-CHIEF-d1a97b-STEP-3-SYNTHESIZE": {
-      "task_id": "WF-CHIEF-d1a97b-STEP-3-SYNTHESIZE",
-      "goal_id": "goal-4f65de71",
-      "instruction": "Finalize results, verify invariants, and assemble completion package for: Write a short summary of the Courier project in courier_summary.txt",
+    "WF-CHIEF-7ff75a-STEP-1": {
+      "task_id": "WF-CHIEF-7ff75a-STEP-1",
+      "goal_id": "goal-ba7a9738",
+      "instruction": "touch courier_canary_torture_rep_step_a8c108b3.txt",
       "target_agent": "mac",
       "status": "RECONCILED",
       "attempts": 1,
+      "artifacts": [
+        "courier_canary_torture_rep_step_a8c108b3.txt"
+      ],
+      "mode": "NATIVE",
       "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
-      "attempt_id": "WF-CHIEF-d1a97b-STEP-3-SYNTHESIZE:attempt:1",
-      "dispatch_id": "dispatch-ff58a66e0a5f48baa98479e27c0a5516",
-      "execution_ref": "exec-a8d99ab429504c1cb944692ef0df9d4d",
+      "attempt_id": "WF-CHIEF-7ff75a-STEP-1:attempt:1",
+      "dispatch_id": "dispatch-0e4f4945a7d5453ab857a60ee5eaf6de",
+      "execution_ref": "exec-baff0bde62ca4ac0b2150d14a21653a9",
       "server_binding": {
-        "sha": "3a25f7ff6b53e84b6631fc638d845eac595c47a9",
-        "runtime": "courier-server:c0d9200f1a914e14a62cee3ef94dc712"
+        "sha": "4a7a913b74a5b0339c90fd9ee8d6c0a5c6c4b2af",
+        "runtime": "courier-server:99c1731d28d64dc7914de089f0a0e18e"
       },
       "run_id": null,
       "result_id": null,
       "target_capability": "mac",
-      "last_completed_step": "WF-CHIEF-d1a97b-STEP-3-SYNTHESIZE",
+      "last_completed_step": "WF-CHIEF-7ff75a-STEP-1",
       "next_action": null,
       "blocker": null,
-      "artifact_refs": [],
+      "artifact_refs": [
+        {
+          "path": "courier_canary_torture_rep_step_a8c108b3.txt",
+          "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
+        }
+      ],
       "producer_principal": "principal_a2feb8ee4ae6ac6d82e9a68c34fbc7f3b7bef7b64908ded944e60dd5288b970e",
       "result": {
-        "goal_id": "goal-4f65de71",
-        "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
-        "dispatch_id": "dispatch-ff58a66e0a5f48baa98479e27c0a5516",
-        "result_id": "result-8261d108feefbd6b91f6bd8027d71c57f317008fff8e2aa0cb828ed8c51a8c52",
+        "task_id": "WF-CHIEF-7ff75a-STEP-1",
+        "artifacts": [
+          {
+            "path": "courier_canary_torture_rep_step_a8c108b3.txt",
+            "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
+          }
+        ],
         "runtime_identity": {
-          "runtime": "courier-server:c0d9200f1a914e14a62cee3ef94dc712",
-          "sha": "3a25f7ff6b53e84b6631fc638d845eac595c47a9"
+          "runtime": "courier-server:99c1731d28d64dc7914de089f0a0e18e",
+          "sha": "4a7a913b74a5b0339c90fd9ee8d6c0a5c6c4b2af"
         },
-        "artifacts": [],
-        "run_id": "80aa277d-a159-4d66-bb23-f9aa7beddaed",
+        "run_id": "31125e1e-0aea-4dd7-9a4b-821ec25c85f8",
+        "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
         "status": "SUCCESS",
-        "task_id": "WF-CHIEF-d1a97b-STEP-3-SYNTHESIZE",
-        "attempt_id": "WF-CHIEF-d1a97b-STEP-3-SYNTHESIZE:attempt:1",
-        "execution_ref": "exec-a8d99ab429504c1cb944692ef0df9d4d"
+        "attempt_id": "WF-CHIEF-7ff75a-STEP-1:attempt:1",
+        "dispatch_id": "dispatch-0e4f4945a7d5453ab857a60ee5eaf6de",
+        "goal_id": "goal-ba7a9738",
+        "result_id": "result-c248b8044ad3410816b832fb074d6d3809ff90b6d9ff2d75abe678fc8ce0839c",
+        "execution_ref": "exec-baff0bde62ca4ac0b2150d14a21653a9"
       },
-      "result_received_at": 1790339444.1222038,
+      "result_received_at": 1790341913.810177,
       "verification": {
         "verifier_id": "VERIFIER-01",
         "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
-        "result_id": "result-8261d108feefbd6b91f6bd8027d71c57f317008fff8e2aa0cb828ed8c51a8c52",
+        "result_id": "result-c248b8044ad3410816b832fb074d6d3809ff90b6d9ff2d75abe678fc8ce0839c",
         "verdict": "PASS",
-        "artifacts": [],
-        "verified_at": 1790339444.972023
+        "artifacts": [
+          {
+            "path": "courier_canary_torture_rep_step_a8c108b3.txt",
+            "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
+          }
+        ],
+        "verified_at": 1790341914.8031192
       }
     }
   },
   "workers": {
-    "W1": {
-      "worker_id": "W1",
-      "platform": "linux",
-      "capabilities": [
-        "linux"
-      ],
-      "authorities": [],
-      "provider": "openai",
-      "capacity_identity": null,
-      "provider_available": true,
-      "capacity_available": true,
-      "last_seen": 1790300522.186638,
-      "available": true,
-      "current_task": null,
-      "cost_class": "unknown"
-    },
-    "W2": {
-      "worker_id": "W2",
-      "platform": "linux",
-      "capabilities": [
-        "linux"
-      ],
-      "authorities": [],
-      "provider": "openai",
-      "capacity_identity": null,
-      "provider_available": true,
-      "capacity_available": true,
-      "last_seen": 1790300522.199987,
-      "available": true,
-      "current_task": null,
-      "cost_class": "unknown"
-    },
     "MAC-MACBOOK-PRO-VON-USER-EDEA96": {
       "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
       "platform": "macos",
       "capabilities": [
         "macos",
-        "antigravity",
-        "linux"
+        "linux",
+        "antigravity"
       ],
       "authorities": [],
       "provider": null,
       "capacity_identity": null,
       "provider_available": true,
       "capacity_available": true,
-      "last_seen": 1790340775.837266,
+      "last_seen": 1790341916.0482671,
       "available": true,
       "current_task": null,
       "cost_class": "low",
       "groups": [],
       "community_id": "public",
-      "tasks_completed": 2
+      "tasks_completed": 6
     }
   },
   "resource_owners": {},
-  "provider_locks": {
-    "W1:openai": 1790300524.182983
-  },
-  "worker_quota_pools": {},
-  "virtual_balance": 9.5
+  "virtual_balance": 0.0,
+  "worker_quota_pools": {}
 }
