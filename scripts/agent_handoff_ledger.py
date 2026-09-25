@@ -918,7 +918,7 @@ def update(
             record["STATUS"] = "WAITING_PHYSICAL_PROOF"
             guard["transition_state"] = "PROVISIONAL"
 # Recompute changed based on the final record state
-        changed = sorted(field for field in RECORD_FIELDS if bundle["record"][field] != record[field])
+        changed = sorted(field for field in RECORD_FIELDS if bundle["record"].get(field) != record.get(field))
         validate_guard(guard)
         validate_guard_binding(record, guard)
 # Enforce history boundaries and reject replayed/copied proofs
