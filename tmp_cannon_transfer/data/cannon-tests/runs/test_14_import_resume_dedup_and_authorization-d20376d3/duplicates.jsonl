@@ -1,0 +1,3 @@
+{"id": "one", "kind": "TASK", "task": {"task_id": "import-one", "instruction": "Cannon harmless local output: import-one", "target_agent": "windows", "required_capabilities": ["cannon.fake"], "artifacts": ["outputs/import-one.txt"]}}
+{"id": "different", "kind": "TASK", "task": {"task_id": "import-one", "instruction": "Cannon harmless local output: import-one", "target_agent": "windows", "required_capabilities": ["cannon.fake"], "artifacts": ["outputs/import-one.txt"]}}
+{"id": "one", "kind": "TASK", "task": {"task_id": "import-one", "instruction": "Cannon harmless local output: import-one", "target_agent": "windows", "required_capabilities": ["cannon.fake"], "artifacts": ["outputs/import-one.txt"]}, "text": "conflict"}

@@ -1,0 +1,106 @@
+{
+  "schema_version": 2,
+  "goals": {
+    "goal-32a49094": {
+      "goal_id": "goal-32a49094",
+      "client_request_id": "bounded-fixture",
+      "goal_text": "Local Cannon fixture",
+      "status": "ACTIVE",
+      "terminal": true,
+      "workflow_plan": [
+        {
+          "artifacts": [
+            "outputs/interrupted.txt"
+          ],
+          "fake_delay": 5,
+          "instruction": "Cannon harmless local output: interrupted",
+          "required_capabilities": [
+            "cannon.fake"
+          ],
+          "target_agent": "windows",
+          "task_id": "interrupted",
+          "goal_id": "goal-32a49094",
+          "status": "DISPATCHED",
+          "attempts": 1,
+          "worker_id": "cannon-fake-1",
+          "attempt_id": "interrupted:attempt:1",
+          "dispatch_id": "dispatch-46ff414f2a314a0c9a364c8cf78abda4",
+          "execution_ref": "exec-f6fe5a5eba90485da67dd9b5b08de642",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "cannon.fake",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": []
+        }
+      ],
+      "current_step_index": 0
+    }
+  },
+  "tasks": {
+    "interrupted": {
+      "artifacts": [
+        "outputs/interrupted.txt"
+      ],
+      "fake_delay": 5,
+      "instruction": "Cannon harmless local output: interrupted",
+      "required_capabilities": [
+        "cannon.fake"
+      ],
+      "target_agent": "windows",
+      "task_id": "interrupted",
+      "goal_id": "goal-32a49094",
+      "status": "DISPATCHED",
+      "attempts": 1,
+      "worker_id": "cannon-fake-1",
+      "attempt_id": "interrupted:attempt:1",
+      "dispatch_id": "dispatch-46ff414f2a314a0c9a364c8cf78abda4",
+      "execution_ref": "exec-f6fe5a5eba90485da67dd9b5b08de642",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "cannon.fake",
+      "last_completed_step": null,
+      "next_action": "EXECUTE",
+      "blocker": null,
+      "artifact_refs": []
+    }
+  },
+  "workers": {
+    "cannon-fake-1": {
+      "worker_id": "cannon-fake-1",
+      "platform": "windows",
+      "capabilities": [
+        "windows",
+        "cannon.fake"
+      ],
+      "authorities": [],
+      "provider": "local-fixture",
+      "capacity_identity": null,
+      "provider_available": true,
+      "capacity_available": true,
+      "last_seen": 1790187695.4304159,
+      "available": false,
+      "current_task": "interrupted",
+      "cost_class": "free"
+    },
+    "cannon-fake-2": {
+      "worker_id": "cannon-fake-2",
+      "platform": "windows",
+      "capabilities": [
+        "windows",
+        "cannon.fake"
+      ],
+      "authorities": [],
+      "provider": "local-fixture",
+      "capacity_identity": null,
+      "provider_available": true,
+      "capacity_available": true,
+      "last_seen": 1790187695.420844,
+      "available": true,
+      "current_task": null,
+      "cost_class": "free"
+    }
+  },
+  "resource_owners": {}
+}

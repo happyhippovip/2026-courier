@@ -1,0 +1,164 @@
+{
+  "schema_version": 2,
+  "goals": {
+    "goal-54881476": {
+      "goal_id": "goal-54881476",
+      "client_request_id": "bounded-fixture",
+      "goal_text": "Local Cannon fixture",
+      "status": "ACTIVE",
+      "terminal": true,
+      "workflow_plan": [
+        {
+          "artifacts": [
+            "outputs/timeout.txt"
+          ],
+          "fake_mode": "TIMEOUT",
+          "instruction": "Cannon harmless local output: timeout",
+          "required_capabilities": [
+            "cannon.fake"
+          ],
+          "target_agent": "windows",
+          "task_id": "timeout",
+          "goal_id": "goal-54881476",
+          "status": "QUEUED",
+          "attempts": 1,
+          "worker_id": null,
+          "attempt_id": "timeout:attempt:1",
+          "dispatch_id": "dispatch-96e1402c71cd4100aa9c9720e04d31ff",
+          "execution_ref": "exec-ed52c6bb26bd463baa16b512654a02e0",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "cannon.fake",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "retry_state": {
+            "execution": 1,
+            "transport": 0,
+            "provider": 0,
+            "verification": 0
+          },
+          "next_retry_at": 1790186409.3200588
+        },
+        {
+          "artifacts": [
+            "outputs/cancel.txt"
+          ],
+          "fake_mode": "CANCEL",
+          "instruction": "Cannon harmless local output: cancel",
+          "required_capabilities": [
+            "cannon.fake"
+          ],
+          "target_agent": "windows",
+          "task_id": "cancel",
+          "goal_id": "goal-54881476",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "artifacts": [
+            "outputs/after.txt"
+          ],
+          "instruction": "Cannon harmless local output: after",
+          "required_capabilities": [
+            "cannon.fake"
+          ],
+          "target_agent": "windows",
+          "task_id": "after",
+          "goal_id": "goal-54881476",
+          "status": "QUEUED",
+          "attempts": 0
+        }
+      ],
+      "current_step_index": 0
+    }
+  },
+  "tasks": {
+    "timeout": {
+      "artifacts": [
+        "outputs/timeout.txt"
+      ],
+      "fake_mode": "TIMEOUT",
+      "instruction": "Cannon harmless local output: timeout",
+      "required_capabilities": [
+        "cannon.fake"
+      ],
+      "target_agent": "windows",
+      "task_id": "timeout",
+      "goal_id": "goal-54881476",
+      "status": "QUEUED",
+      "attempts": 1,
+      "worker_id": null,
+      "attempt_id": "timeout:attempt:1",
+      "dispatch_id": "dispatch-96e1402c71cd4100aa9c9720e04d31ff",
+      "execution_ref": "exec-ed52c6bb26bd463baa16b512654a02e0",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "cannon.fake",
+      "last_completed_step": null,
+      "next_action": "RETRY",
+      "blocker": "[TIMEOUT/HANG] fake deadline",
+      "artifact_refs": [],
+      "result": {
+        "run_id": "fake-pid-73322",
+        "stderr": "[TIMEOUT/HANG] fake deadline",
+        "dispatch_id": "dispatch-96e1402c71cd4100aa9c9720e04d31ff",
+        "worker_id": "cannon-fake-1",
+        "artifacts": [],
+        "attempt_id": "timeout:attempt:1",
+        "result_id": "result-e9e1218641c2be955bc9be6e2957a179e37e5a6d06f1ae1eb558dea3257574cf",
+        "task_id": "timeout",
+        "goal_id": "goal-54881476",
+        "status": "FAILED",
+        "execution_ref": "exec-ed52c6bb26bd463baa16b512654a02e0",
+        "received_runtime_identity": "runtime-sha256:7874527696e582b5c51c3eb6dfaf7267d8a3ef1f98e9b832d806a1e260f70a71",
+        "result_fingerprint": "sha256:b9806a67bf7a79ff456ad987caee2f1df452293170bcbe8565f14837b85676fd"
+      },
+      "retry_state": {
+        "execution": 1,
+        "transport": 0,
+        "provider": 0,
+        "verification": 0
+      },
+      "next_retry_at": 1790186409.3200588
+    }
+  },
+  "workers": {
+    "cannon-fake-1": {
+      "worker_id": "cannon-fake-1",
+      "platform": "windows",
+      "capabilities": [
+        "windows",
+        "cannon.fake"
+      ],
+      "authorities": [],
+      "provider": "local-fixture",
+      "capacity_identity": null,
+      "provider_available": true,
+      "capacity_available": true,
+      "last_seen": 1790186406.780145,
+      "available": true,
+      "current_task": null,
+      "cost_class": "free"
+    },
+    "cannon-fake-2": {
+      "worker_id": "cannon-fake-2",
+      "platform": "windows",
+      "capabilities": [
+        "windows",
+        "cannon.fake"
+      ],
+      "authorities": [],
+      "provider": "local-fixture",
+      "capacity_identity": null,
+      "provider_available": true,
+      "capacity_available": true,
+      "last_seen": 1790186406.7697039,
+      "available": true,
+      "current_task": null,
+      "cost_class": "free"
+    }
+  },
+  "resource_owners": {}
+}

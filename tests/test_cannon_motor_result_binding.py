@@ -59,12 +59,18 @@ def test_work_queue_complete_default_binds_identity():
 
 
 def test_work_queue_legacy_default_never_volatile():
+    """Tasks without attempt_id/dispatch_id bind result_id to result content."""
     data = {"tasks": {"t1": {"task_id": "t1", "status": "CLAIMED"}},
             "leases": {"t1": {}}}
     args = Namespace(task_id="t1", result_json="{}", stage="EVIDENCE_READY")
     cmd_complete(args, data, 0.0)
-    assert data["tasks"]["t1"]["result_id"] == canonical(
-        "t1", None, None, "LOCAL_FAKE")
+    # New behavior: no dispatch identity -> hash over (task_id, result)
+    import hashlib
+    expected_payload = json.dumps(
+        {"task_id": "t1", "result": {}},
+        sort_keys=True, separators=(",", ":")).encode()
+    expected = "result-" + hashlib.sha256(expected_payload).hexdigest()
+    assert data["tasks"]["t1"]["result_id"] == expected
     assert data["tasks"]["t1"]["result_id"] != "t1:r1"
 
 

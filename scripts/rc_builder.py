@@ -21,7 +21,7 @@ def build_release_candidate():
     version = "1.0.0-rc.1"
     try:
         sha = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode("utf-8").strip()
-    except:
+    except Exception:
         sha = "unknown"
 
     blocker = "NONE" if (windows_ready and revenue_v1_ready and human_gates_ready) else "MISSING_COMPONENTS"

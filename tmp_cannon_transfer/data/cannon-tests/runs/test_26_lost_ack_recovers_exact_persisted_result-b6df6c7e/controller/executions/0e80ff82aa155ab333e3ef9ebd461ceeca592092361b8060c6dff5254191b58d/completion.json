@@ -1,0 +1,1 @@
+{"attempt_id": "lost-ack:attempt:1", "confirmed_at": 1790204051.02514, "dispatch_id": "dispatch-87a2f202ef524e2bb5f22453e41727dc", "execution_ref": "exec-6380fa6b8ed64e2981b279dfcca8253a", "goal_id": "goal-8adf1a97", "next_task_not_before": 1790204056.02514, "result_id": "result-8c587809aab8371322241958c795911d7334fa106776df9917a50a7f57cdb33c", "task_id": "lost-ack"}

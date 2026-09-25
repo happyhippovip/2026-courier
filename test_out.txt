@@ -1,0 +1,763 @@
+.........F.............................................................. [ 10%]
+.....................................................ss................. [ 21%]
+........................................................................ [ 32%]
+........................................................................ [ 43%]
+..................................................................F..... [ 53%]
+.FF...........F......................................................... [ 64%]
+...F.........................F.......................................... [ 75%]
+........................................................................ [ 86%]
+........................................................................ [ 97%]
+...................                                                      [100%]
+=================================== FAILURES ===================================
+_ AgentHandoffLedgerTests.test_acceptance_cannot_consume_same_update_evidence __
+
+self = <test_agent_handoff_ledger.AgentHandoffLedgerTests testMethod=test_acceptance_cannot_consume_same_update_evidence>
+
+    def test_acceptance_cannot_consume_same_update_evidence(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            ledger = Path(temporary) / "ledger.json"
+            initialize(ledger)
+            bundle = ledger_module.load_bundle(ledger)
+            landed = ledger_module.copy.deepcopy(
+                bundle["acceptance_guard"]
+            )
+            # Fresh stamp: the 2-day freshness bound is evaluated against
+            # now, so a hardcoded date would rot this test into STALE.
+            observed_at = datetime.now(timezone.utc).replace(
+                microsecond=0).strftime("%Y-%m-%dT%H:%M:%SZ")
+            proof = {
+                "source_url": "https://github.com/example/project/actions/runs/2",
+                "source_type": "MACHINE_ARTIFACT",
+                "observed_at": observed_at,
+                "evidence_sha": "b" * 40,
+                "runtime_binding": "b" * 40,
+                "validity": "VALID",
+                "reason": "foreign attestation",
+                "producer_id": "foreign-producer",
+                "verifier_id": "foreign-verifier",
+            }
+            landed["evidence"].append(proof)
+            landed["transition_state"] = "CANONICAL_ACCEPTED"
+            landed["acceptance_predicate"]["results"]["ISSUE_STATE"][
+                "status"
+            ] = "PASS"
+            landed["acceptance_predicate"]["results"]["ISSUE_STATE"][
+                "evidence_urls"
+            ] = [proof["source_url"]]
+            landed["acceptance_predicate"]["results"]["RUNTIME_ARTIFACT"][
+                "status"
+            ] = "PASS"
+            landed["acceptance_predicate"]["results"]["RUNTIME_ARTIFACT"][
+                "observed_value"
+            ] = "PASS"
+            landed["acceptance_predicate"]["results"]["RUNTIME_ARTIFACT"][
+                "evidence_urls"
+            ] = [proof["source_url"]]
+            # Offline receipt for the promotion step: introduction needs
+            # none, but the independent follow-up promotion requires a
+            # strictly verified attestation via the production seam.
+            goal = bundle["record"]["GOAL"]
+            binding = landed["binding"]
+    
+            def resolve(url):
+                if url != proof["source_url"]:
+                    return None
+                return {
+                    "verdict": "PASS",
+                    "producer_principal": proof["producer_id"],
+                    "verifier_principal": proof["verifier_id"],
+                    "goal_id": goal,
+                    "binding": {
+                        "sha": binding["current_sha"],
+                        "runtime": binding["runtime_identity"],
+                    },
+                }
+    
+            with mock.patch.object(
+                ledger_module, "_attestation_resolver", resolve
+            ):
+>               after_landing = ledger_module.update(
+                    ledger,
+                    bundle["revision"],
+                    {"UNPROVEN_EDGES": [], "PROVEN_EDGES": ["issue state", "runtime artifact"]},
+                    "foreign-worker",
+                    1.0,
+                    landed,
+                )
+
+tests/test_agent_handoff_ledger.py:428: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/tmplbq46lwx/ledger.json')
+expected_revision = 0
+updates = {'PROVEN_EDGES': ['issue state', 'runtime artifact'], 'UNPROVEN_EDGES': []}
+updated_by = 'foreign-worker', timeout = 1.0
+guard = {'acceptance_predicate': {'name': 'courier-physical-acceptance', 'required_results': ['ISSUE_STATE', 'RUNTIME_ARTIFACT...ion', ...}], 'flow': ['EXECUTION', 'EVIDENCE', 'ACCEPTANCE_GUARD', 'LEDGER_TRANSITION', 'NEXT_EXECUTABLE_ACTION'], ...}
+
+    def update(
+        path: Path,
+        expected_revision: int,
+        updates: dict[str, Any],
+        updated_by: str,
+        timeout: float,
+        guard: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        _nonempty_string(updated_by, "updated_by")
+        if not updates:
+            raise ValidationError("at least one --set update is required")
+        invalid = sorted(set(updates) - set(RECORD_FIELDS))
+        if invalid:
+            raise ValidationError(f"unknown record fields: {invalid}")
+        if "LAST_UPDATED_BY" in updates:
+            raise ValidationError("use --updated-by instead of setting LAST_UPDATED_BY")
+        reject_secrets(updates, "updates")
+        with writer_lock(path, timeout):
+            bundle = load_bundle(path)
+            introducer_map = {}
+            first_observed_map = {}
+            for h in bundle.get("history", []):
+                h_updater = h.get("updated_by")
+                for e in h.get("acceptance_guard", {}).get("evidence", []):
+                    url = e.get("source_url")
+                    if not url: raise SelfCertificationError(f"predicate PASS requires prior evidence for {url}")
+                    if url not in introducer_map:
+                        introducer_map[url] = {h_updater}
+                    if url not in first_observed_map:
+                        first_observed_map[url] = (e.get("observed_at"), h.get("timestamp_utc"))
+    
+            if bundle["revision"] != expected_revision:
+                raise RevisionConflictError(
+                    f"revision conflict: expected {expected_revision}, "
+                    f"but currently at {bundle['revision']}"
+                )
+            record = copy.deepcopy(bundle["record"])
+            changed = []
+            for field, value in updates.items():
+                if record[field] != value:
+                    record[field] = value
+                    changed.append(field)
+            if record["LAST_UPDATED_BY"] != updated_by:
+                record["LAST_UPDATED_BY"] = updated_by
+                changed.append("LAST_UPDATED_BY")
+            old_all_edges = set(bundle["record"].get("UNPROVEN_EDGES", [])) | set(bundle["record"].get("PROVEN_EDGES", []))
+            new_all_edges = set(record.get("UNPROVEN_EDGES", [])) | set(record.get("PROVEN_EDGES", []))
+            if old_all_edges != new_all_edges:
+                raise EdgeConservationError(f"edge conservation violated: old={old_all_edges}, new={new_all_edges}")
+            validate_record(record, allow_unknown_sha=False)
+            if guard is None:
+                if bundle["schema_version"] == 1:
+                    raise ValidationError("schema version 1 update requires --guard")
+                guard = copy.deepcopy(bundle["acceptance_guard"])
+            # Auto-derive Guard Acceptance from Evidence
+            evidence = guard.get("evidence", [])
+            old_evidence = bundle.get("acceptance_guard", {}).get("evidence", [])
+            # Acceptance cannot create the evidence used to prove itself: only
+            # evidence that pre-existed this update counts toward acceptance.
+            prior_evidence = [e for e in evidence if e in old_evidence]
+            has_physical_proof = False
+            for e in prior_evidence:
+                if (
+                    e.get("source_type") == "MACHINE_ARTIFACT" and
+                    e.get("evidence_sha") == guard["binding"]["current_sha"] and
+                    e.get("runtime_binding") == guard["binding"]["runtime_identity"] and
+                    e.get("validity") == "VALID" and
+                    e.get("producer_id") not in introducer_map.get(e.get("source_url"), set()) and
+                    e.get("verifier_id") not in introducer_map.get(e.get("source_url"), set()) and
+                    updated_by not in introducer_map.get(e.get("source_url"), set()) and
+                    (-MAX_FUTURE_CLOCK_SKEW_SECONDS <=
+                     (datetime.strptime(first_observed_map.get(e.get("source_url"), (None, datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")))[1], "%Y-%m-%dT%H:%M:%SZ") - datetime.strptime(e["observed_at"], "%Y-%m-%dT%H:%M:%SZ")).total_seconds() <=
+                     MAX_EVIDENCE_AGE_SECONDS)
+                ):
+                    receipt = _verify_attestation(e.get("source_url"))
+                    if receipt and receipt.get("verdict") == "PASS":
+                        if receipt.get("producer_principal") == e.get("producer_id") and \
+                           receipt.get("verifier_principal") == e.get("verifier_id") and \
+                           receipt.get("result_sha256") == e.get("result_sha256") and \
+                           receipt.get("goal_id") == bundle.get("record", {}).get("GOAL"):
+                            b = receipt.get("binding", {})
+                            if b.get("sha") == guard["binding"]["current_sha"] and \
+                               b.get("runtime") == guard["binding"]["runtime_identity"]:
+                                has_physical_proof = True
+                                break
+    
+    
+            unproven = record.get("UNPROVEN_EDGES", [])
+    
+            # Enforce that any predicate PASS backed by MACHINE_ARTIFACT has a valid receipt
+            # A requested CLEAN_IDLE=YES without finished work/proof is rejected
+            # by the dedicated gate below; defer to it (break) so callers see
+            # the specific prohibition instead of a generic evidence error.
+            # This only changes which LedgerError surfaces: whenever this
+            # breaks, the gate below raises.
+            defer_to_clean_idle_gate = updates.get("CLEAN_IDLE") == "YES" and (unproven or not has_physical_proof)
+            for name, result in guard.get("acceptance_predicate", {}).get("results", {}).items():
+                if defer_to_clean_idle_gate:
+                    break
+                if result.get("status") == "PASS":
+                    for url in result.get("evidence_urls", []):
+                        # Non-MACHINE_ARTIFACT evidence (e.g. ISSUE_STATE) uses full evidence;
+                        # MACHINE_ARTIFACT must exist in prior_evidence (self-cert guard)
+                        e = next((ev for ev in evidence if ev.get("source_url") == url), None)
+                        if not e or e.get("validity") != "VALID":
+                            raise SelfCertificationError(f"predicate PASS requires valid evidence for {url}")
+                        # Only MACHINE_ARTIFACT evidence requires receipt verification
+                        if e.get("source_type") == "MACHINE_ARTIFACT":
+                            # Evidence introduced by this very update cannot promote
+                            # it: promotion stays gated on prior evidence plus a
+                            # verified receipt (see has_physical_proof). Raising
+                            # here would strand the legitimate introduce (update N,
+                            # PROVISIONAL) -> promote (update N+1) flow, so newly
+                            # introduced evidence skips the receipt check; the
+                            # transition logic below still forces PROVISIONAL.
+                            pe = next((ev for ev in prior_evidence if ev.get("source_url") == url), None)
+                            if not pe:
+>                               raise SelfCertificationError(f"predicate PASS requires prior evidence for {url}")
+E                               agent_handoff_ledger.SelfCertificationError: predicate PASS requires prior evidence for https://github.com/example/project/actions/runs/2
+
+scripts/agent_handoff_ledger.py:847: SelfCertificationError
+___________________ test_ledger_duplicate_semantics_contract ___________________
+
+tmp_path = PosixPath('/private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/pytest-of-user/pytest-841/test_ledger_duplicate_semantic0')
+
+    def test_ledger_duplicate_semantics_contract(tmp_path):
+        path = tmp_path / "ledger.json"
+        rec = base_record()
+        ahl.initialize(path, rec, base_guard(), 5.0)
+    
+        # Offline receipt via the production seam: this test pins duplicate /
+        # revision semantics, not attestation, so the pre-existing PASS-backed
+        # evidence gets a strictly matching local receipt instead of live net.
+        previous = ahl._attestation_resolver
+    
+        def resolve(url):
+            if url != "https://github.com/example/project/actions/runs/test":
+                return None
+            return {
+                "verdict": "PASS",
+                "producer_principal": "test",
+                "verifier_principal": "test2",
+                "goal_id": "probe",
+                "binding": {
+                    "sha": "cccccccccccccccccccccccccccccccccccccccc",
+                    "runtime": "attacker-runtime",
+                },
+            }
+    
+        ahl._attestation_resolver = resolve
+        try:
+            # 1. Update TASKS_COMPLETED=1
+>           b1 = ahl.update(path, 0, {"TASKS_COMPLETED": 1}, "writer1", 5.0, base_guard())
+
+tests/test_ledger_duplicate_semantics_contract.py:100: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/pytest-of-user/pytest-841/test_ledger_duplicate_semantic0/ledger.json')
+expected_revision = 0, updates = {'TASKS_COMPLETED': 1}, updated_by = 'writer1'
+timeout = 5.0
+guard = {'acceptance_predicate': {'name': 'test-predicate', 'required_results': ['TEST'], 'results': {'TEST': {'evidence_urls'...est', ...}], 'flow': ['EXECUTION', 'EVIDENCE', 'ACCEPTANCE_GUARD', 'LEDGER_TRANSITION', 'NEXT_EXECUTABLE_ACTION'], ...}
+
+    def update(
+        path: Path,
+        expected_revision: int,
+        updates: dict[str, Any],
+        updated_by: str,
+        timeout: float,
+        guard: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        _nonempty_string(updated_by, "updated_by")
+        if not updates:
+            raise ValidationError("at least one --set update is required")
+        invalid = sorted(set(updates) - set(RECORD_FIELDS))
+        if invalid:
+            raise ValidationError(f"unknown record fields: {invalid}")
+        if "LAST_UPDATED_BY" in updates:
+            raise ValidationError("use --updated-by instead of setting LAST_UPDATED_BY")
+        reject_secrets(updates, "updates")
+        with writer_lock(path, timeout):
+            bundle = load_bundle(path)
+            introducer_map = {}
+            first_observed_map = {}
+            for h in bundle.get("history", []):
+                h_updater = h.get("updated_by")
+                for e in h.get("acceptance_guard", {}).get("evidence", []):
+                    url = e.get("source_url")
+                    if not url: raise SelfCertificationError(f"predicate PASS requires prior evidence for {url}")
+                    if url not in introducer_map:
+                        introducer_map[url] = {h_updater}
+                    if url not in first_observed_map:
+                        first_observed_map[url] = (e.get("observed_at"), h.get("timestamp_utc"))
+    
+            if bundle["revision"] != expected_revision:
+                raise RevisionConflictError(
+                    f"revision conflict: expected {expected_revision}, "
+                    f"but currently at {bundle['revision']}"
+                )
+            record = copy.deepcopy(bundle["record"])
+            changed = []
+            for field, value in updates.items():
+                if record[field] != value:
+                    record[field] = value
+                    changed.append(field)
+            if record["LAST_UPDATED_BY"] != updated_by:
+                record["LAST_UPDATED_BY"] = updated_by
+                changed.append("LAST_UPDATED_BY")
+            old_all_edges = set(bundle["record"].get("UNPROVEN_EDGES", [])) | set(bundle["record"].get("PROVEN_EDGES", []))
+            new_all_edges = set(record.get("UNPROVEN_EDGES", [])) | set(record.get("PROVEN_EDGES", []))
+            if old_all_edges != new_all_edges:
+                raise EdgeConservationError(f"edge conservation violated: old={old_all_edges}, new={new_all_edges}")
+            validate_record(record, allow_unknown_sha=False)
+            if guard is None:
+                if bundle["schema_version"] == 1:
+                    raise ValidationError("schema version 1 update requires --guard")
+                guard = copy.deepcopy(bundle["acceptance_guard"])
+            # Auto-derive Guard Acceptance from Evidence
+            evidence = guard.get("evidence", [])
+            old_evidence = bundle.get("acceptance_guard", {}).get("evidence", [])
+            # Acceptance cannot create the evidence used to prove itself: only
+            # evidence that pre-existed this update counts toward acceptance.
+            prior_evidence = [e for e in evidence if e in old_evidence]
+            has_physical_proof = False
+            for e in prior_evidence:
+                if (
+                    e.get("source_type") == "MACHINE_ARTIFACT" and
+                    e.get("evidence_sha") == guard["binding"]["current_sha"] and
+                    e.get("runtime_binding") == guard["binding"]["runtime_identity"] and
+                    e.get("validity") == "VALID" and
+                    e.get("producer_id") not in introducer_map.get(e.get("source_url"), set()) and
+                    e.get("verifier_id") not in introducer_map.get(e.get("source_url"), set()) and
+                    updated_by not in introducer_map.get(e.get("source_url"), set()) and
+                    (-MAX_FUTURE_CLOCK_SKEW_SECONDS <=
+                     (datetime.strptime(first_observed_map.get(e.get("source_url"), (None, datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")))[1], "%Y-%m-%dT%H:%M:%SZ") - datetime.strptime(e["observed_at"], "%Y-%m-%dT%H:%M:%SZ")).total_seconds() <=
+                     MAX_EVIDENCE_AGE_SECONDS)
+                ):
+                    receipt = _verify_attestation(e.get("source_url"))
+                    if receipt and receipt.get("verdict") == "PASS":
+                        if receipt.get("producer_principal") == e.get("producer_id") and \
+                           receipt.get("verifier_principal") == e.get("verifier_id") and \
+                           receipt.get("result_sha256") == e.get("result_sha256") and \
+                           receipt.get("goal_id") == bundle.get("record", {}).get("GOAL"):
+                            b = receipt.get("binding", {})
+                            if b.get("sha") == guard["binding"]["current_sha"] and \
+                               b.get("runtime") == guard["binding"]["runtime_identity"]:
+                                has_physical_proof = True
+                                break
+    
+    
+            unproven = record.get("UNPROVEN_EDGES", [])
+    
+            # Enforce that any predicate PASS backed by MACHINE_ARTIFACT has a valid receipt
+            # A requested CLEAN_IDLE=YES without finished work/proof is rejected
+            # by the dedicated gate below; defer to it (break) so callers see
+            # the specific prohibition instead of a generic evidence error.
+            # This only changes which LedgerError surfaces: whenever this
+            # breaks, the gate below raises.
+            defer_to_clean_idle_gate = updates.get("CLEAN_IDLE") == "YES" and (unproven or not has_physical_proof)
+            for name, result in guard.get("acceptance_predicate", {}).get("results", {}).items():
+                if defer_to_clean_idle_gate:
+                    break
+                if result.get("status") == "PASS":
+                    for url in result.get("evidence_urls", []):
+                        # Non-MACHINE_ARTIFACT evidence (e.g. ISSUE_STATE) uses full evidence;
+                        # MACHINE_ARTIFACT must exist in prior_evidence (self-cert guard)
+                        e = next((ev for ev in evidence if ev.get("source_url") == url), None)
+                        if not e or e.get("validity") != "VALID":
+                            raise SelfCertificationError(f"predicate PASS requires valid evidence for {url}")
+                        # Only MACHINE_ARTIFACT evidence requires receipt verification
+                        if e.get("source_type") == "MACHINE_ARTIFACT":
+                            # Evidence introduced by this very update cannot promote
+                            # it: promotion stays gated on prior evidence plus a
+                            # verified receipt (see has_physical_proof). Raising
+                            # here would strand the legitimate introduce (update N,
+                            # PROVISIONAL) -> promote (update N+1) flow, so newly
+                            # introduced evidence skips the receipt check; the
+                            # transition logic below still forces PROVISIONAL.
+                            pe = next((ev for ev in prior_evidence if ev.get("source_url") == url), None)
+                            if not pe:
+                                raise SelfCertificationError(f"predicate PASS requires prior evidence for {url}")
+                            receipt = _verify_attestation(url)
+                            if not receipt or receipt.get("verdict") != "PASS" or \
+                               receipt.get("producer_principal") != e.get("producer_id") or \
+                               receipt.get("verifier_principal") != e.get("verifier_id") or \
+                               receipt.get("result_sha256") != e.get("result_sha256"):
+>                               raise SelfCertificationError(f"predicate PASS requires verified receipt for {url}")
+E                               agent_handoff_ledger.SelfCertificationError: predicate PASS requires verified receipt for https://github.com/example/project/actions/runs/test
+
+scripts/agent_handoff_ledger.py:853: SelfCertificationError
+_______________ FixGuardTests.test_fresh_bound_evidence_promotes _______________
+
+self = <test_ledger_fix_guards.FixGuardTests testMethod=test_fresh_bound_evidence_promotes>
+
+    def test_fresh_bound_evidence_promotes(self):
+        """DLQ-02 negative: fresh (now-stamped) bound VALID evidence must keep
+        promoting after the recency fix."""
+        path = Path("/tmp/guard_fresh.json")
+        if path.exists():
+            path.unlink()
+        previous = install_resolver()
+        try:
+            ledger.initialize(path, record(), guard(), 5.0)
+            g1 = with_pass(guard(), ART_URL + "-fr")
+            g1["evidence"].append(artifact("-fr", "fresh-prod", "fresh-ver"))
+>           ledger.update(path, 0, {"TASKS_COMPLETED": 1}, "w1", 5.0, g1)
+
+tests/test_ledger_fix_guards.py:186: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/tmp/guard_fresh.json'), expected_revision = 0
+updates = {'TASKS_COMPLETED': 1}, updated_by = 'w1', timeout = 5.0
+guard = {'acceptance_predicate': {'name': 'courier-physical-acceptance', 'required_results': ['ISSUE_STATE', 'RUNTIME_ARTIFACT...ion', ...}], 'flow': ['EXECUTION', 'EVIDENCE', 'ACCEPTANCE_GUARD', 'LEDGER_TRANSITION', 'NEXT_EXECUTABLE_ACTION'], ...}
+
+    def update(
+        path: Path,
+        expected_revision: int,
+        updates: dict[str, Any],
+        updated_by: str,
+        timeout: float,
+        guard: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        _nonempty_string(updated_by, "updated_by")
+        if not updates:
+            raise ValidationError("at least one --set update is required")
+        invalid = sorted(set(updates) - set(RECORD_FIELDS))
+        if invalid:
+            raise ValidationError(f"unknown record fields: {invalid}")
+        if "LAST_UPDATED_BY" in updates:
+            raise ValidationError("use --updated-by instead of setting LAST_UPDATED_BY")
+        reject_secrets(updates, "updates")
+        with writer_lock(path, timeout):
+            bundle = load_bundle(path)
+            introducer_map = {}
+            first_observed_map = {}
+            for h in bundle.get("history", []):
+                h_updater = h.get("updated_by")
+                for e in h.get("acceptance_guard", {}).get("evidence", []):
+                    url = e.get("source_url")
+                    if not url: raise SelfCertificationError(f"predicate PASS requires prior evidence for {url}")
+                    if url not in introducer_map:
+                        introducer_map[url] = {h_updater}
+                    if url not in first_observed_map:
+                        first_observed_map[url] = (e.get("observed_at"), h.get("timestamp_utc"))
+    
+            if bundle["revision"] != expected_revision:
+                raise RevisionConflictError(
+                    f"revision conflict: expected {expected_revision}, "
+                    f"but currently at {bundle['revision']}"
+                )
+            record = copy.deepcopy(bundle["record"])
+            changed = []
+            for field, value in updates.items():
+                if record[field] != value:
+                    record[field] = value
+                    changed.append(field)
+            if record["LAST_UPDATED_BY"] != updated_by:
+                record["LAST_UPDATED_BY"] = updated_by
+                changed.append("LAST_UPDATED_BY")
+            old_all_edges = set(bundle["record"].get("UNPROVEN_EDGES", [])) | set(bundle["record"].get("PROVEN_EDGES", []))
+            new_all_edges = set(record.get("UNPROVEN_EDGES", [])) | set(record.get("PROVEN_EDGES", []))
+            if old_all_edges != new_all_edges:
+                raise EdgeConservationError(f"edge conservation violated: old={old_all_edges}, new={new_all_edges}")
+            validate_record(record, allow_unknown_sha=False)
+            if guard is None:
+                if bundle["schema_version"] == 1:
+                    raise ValidationError("schema version 1 update requires --guard")
+                guard = copy.deepcopy(bundle["acceptance_guard"])
+            # Auto-derive Guard Acceptance from Evidence
+            evidence = guard.get("evidence", [])
+            old_evidence = bundle.get("acceptance_guard", {}).get("evidence", [])
+            # Acceptance cannot create the evidence used to prove itself: only
+            # evidence that pre-existed this update counts toward acceptance.
+            prior_evidence = [e for e in evidence if e in old_evidence]
+            has_physical_proof = False
+            for e in prior_evidence:
+                if (
+                    e.get("source_type") == "MACHINE_ARTIFACT" and
+                    e.get("evidence_sha") == guard["binding"]["current_sha"] and
+                    e.get("runtime_binding") == guard["binding"]["runtime_identity"] and
+                    e.get("validity") == "VALID" and
+                    e.get("producer_id") not in introducer_map.get(e.get("source_url"), set()) and
+                    e.get("verifier_id") not in introducer_map.get(e.get("source_url"), set()) and
+                    updated_by not in introducer_map.get(e.get("source_url"), set()) and
+                    (-MAX_FUTURE_CLOCK_SKEW_SECONDS <=
+                     (datetime.strptime(first_observed_map.get(e.get("source_url"), (None, datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")))[1], "%Y-%m-%dT%H:%M:%SZ") - datetime.strptime(e["observed_at"], "%Y-%m-%dT%H:%M:%SZ")).total_seconds() <=
+                     MAX_EVIDENCE_AGE_SECONDS)
+                ):
+                    receipt = _verify_attestation(e.get("source_url"))
+                    if receipt and receipt.get("verdict") == "PASS":
+                        if receipt.get("producer_principal") == e.get("producer_id") and \
+                           receipt.get("verifier_principal") == e.get("verifier_id") and \
+                           receipt.get("result_sha256") == e.get("result_sha256") and \
+                           receipt.get("goal_id") == bundle.get("record", {}).get("GOAL"):
+                            b = receipt.get("binding", {})
+                            if b.get("sha") == guard["binding"]["current_sha"] and \
+                               b.get("runtime") == guard["binding"]["runtime_identity"]:
+                                has_physical_proof = True
+                                break
+    
+    
+            unproven = record.get("UNPROVEN_EDGES", [])
+    
+            # Enforce that any predicate PASS backed by MACHINE_ARTIFACT has a valid receipt
+            # A requested CLEAN_IDLE=YES without finished work/proof is rejected
+            # by the dedicated gate below; defer to it (break) so callers see
+            # the specific prohibition instead of a generic evidence error.
+            # This only changes which LedgerError surfaces: whenever this
+            # breaks, the gate below raises.
+            defer_to_clean_idle_gate = updates.get("CLEAN_IDLE") == "YES" and (unproven or not has_physical_proof)
+            for name, result in guard.get("acceptance_predicate", {}).get("results", {}).items():
+                if defer_to_clean_idle_gate:
+                    break
+                if result.get("status") == "PASS":
+                    for url in result.get("evidence_urls", []):
+                        # Non-MACHINE_ARTIFACT evidence (e.g. ISSUE_STATE) uses full evidence;
+                        # MACHINE_ARTIFACT must exist in prior_evidence (self-cert guard)
+                        e = next((ev for ev in evidence if ev.get("source_url") == url), None)
+                        if not e or e.get("validity") != "VALID":
+                            raise SelfCertificationError(f"predicate PASS requires valid evidence for {url}")
+                        # Only MACHINE_ARTIFACT evidence requires receipt verification
+                        if e.get("source_type") == "MACHINE_ARTIFACT":
+                            # Evidence introduced by this very update cannot promote
+                            # it: promotion stays gated on prior evidence plus a
+                            # verified receipt (see has_physical_proof). Raising
+                            # here would strand the legitimate introduce (update N,
+                            # PROVISIONAL) -> promote (update N+1) flow, so newly
+                            # introduced evidence skips the receipt check; the
+                            # transition logic below still forces PROVISIONAL.
+                            pe = next((ev for ev in prior_evidence if ev.get("source_url") == url), None)
+                            if not pe:
+>                               raise SelfCertificationError(f"predicate PASS requires prior evidence for {url}")
+E                               agent_handoff_ledger.SelfCertificationError: predicate PASS requires prior evidence for https://github.com/example/project/actions/runs/guard-1-fr
+
+scripts/agent_handoff_ledger.py:847: SelfCertificationError
+__________ FixGuardTests.test_legit_two_writer_accumulation_accepted ___________
+
+self = <test_ledger_fix_guards.FixGuardTests testMethod=test_legit_two_writer_accumulation_accepted>
+
+    def test_legit_two_writer_accumulation_accepted(self):
+        """DLQ-01 negative: introducer A != promoter B with independent
+        producer/verifier must keep working after the writer-independence fix.
+        """
+        path = Path("/tmp") / "guard_two_writer.json"
+        if path.exists():
+            path.unlink()
+        previous = install_resolver()
+        try:
+            ledger.initialize(path, record(), guard(), 5.0)
+            g1 = with_pass(guard(), ART_URL + "-tw")
+            g1["evidence"].append(artifact("-tw", "indep-producer", "indep-verifier"))
+>           b1 = ledger.update(path, 0, {"TASKS_COMPLETED": 1},
+                               "writer-A", 5.0, g1)
+
+tests/test_ledger_fix_guards.py:164: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/tmp/guard_two_writer.json'), expected_revision = 0
+updates = {'TASKS_COMPLETED': 1}, updated_by = 'writer-A', timeout = 5.0
+guard = {'acceptance_predicate': {'name': 'courier-physical-acceptance', 'required_results': ['ISSUE_STATE', 'RUNTIME_ARTIFACT...ion', ...}], 'flow': ['EXECUTION', 'EVIDENCE', 'ACCEPTANCE_GUARD', 'LEDGER_TRANSITION', 'NEXT_EXECUTABLE_ACTION'], ...}
+
+    def update(
+        path: Path,
+        expected_revision: int,
+        updates: dict[str, Any],
+        updated_by: str,
+        timeout: float,
+        guard: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        _nonempty_string(updated_by, "updated_by")
+        if not updates:
+            raise ValidationError("at least one --set update is required")
+        invalid = sorted(set(updates) - set(RECORD_FIELDS))
+        if invalid:
+            raise ValidationError(f"unknown record fields: {invalid}")
+        if "LAST_UPDATED_BY" in updates:
+            raise ValidationError("use --updated-by instead of setting LAST_UPDATED_BY")
+        reject_secrets(updates, "updates")
+        with writer_lock(path, timeout):
+            bundle = load_bundle(path)
+            introducer_map = {}
+            first_observed_map = {}
+            for h in bundle.get("history", []):
+                h_updater = h.get("updated_by")
+                for e in h.get("acceptance_guard", {}).get("evidence", []):
+                    url = e.get("source_url")
+                    if not url: raise SelfCertificationError(f"predicate PASS requires prior evidence for {url}")
+                    if url not in introducer_map:
+                        introducer_map[url] = {h_updater}
+                    if url not in first_observed_map:
+                        first_observed_map[url] = (e.get("observed_at"), h.get("timestamp_utc"))
+    
+            if bundle["revision"] != expected_revision:
+                raise RevisionConflictError(
+                    f"revision conflict: expected {expected_revision}, "
+                    f"but currently at {bundle['revision']}"
+                )
+            record = copy.deepcopy(bundle["record"])
+            changed = []
+            for field, value in updates.items():
+                if record[field] != value:
+                    record[field] = value
+                    changed.append(field)
+            if record["LAST_UPDATED_BY"] != updated_by:
+                record["LAST_UPDATED_BY"] = updated_by
+                changed.append("LAST_UPDATED_BY")
+            old_all_edges = set(bundle["record"].get("UNPROVEN_EDGES", [])) | set(bundle["record"].get("PROVEN_EDGES", []))
+            new_all_edges = set(record.get("UNPROVEN_EDGES", [])) | set(record.get("PROVEN_EDGES", []))
+            if old_all_edges != new_all_edges:
+                raise EdgeConservationError(f"edge conservation violated: old={old_all_edges}, new={new_all_edges}")
+            validate_record(record, allow_unknown_sha=False)
+            if guard is None:
+                if bundle["schema_version"] == 1:
+                    raise ValidationError("schema version 1 update requires --guard")
+                guard = copy.deepcopy(bundle["acceptance_guard"])
+            # Auto-derive Guard Acceptance from Evidence
+            evidence = guard.get("evidence", [])
+            old_evidence = bundle.get("acceptance_guard", {}).get("evidence", [])
+            # Acceptance cannot create the evidence used to prove itself: only
+            # evidence that pre-existed this update counts toward acceptance.
+            prior_evidence = [e for e in evidence if e in old_evidence]
+            has_physical_proof = False
+            for e in prior_evidence:
+                if (
+                    e.get("source_type") == "MACHINE_ARTIFACT" and
+                    e.get("evidence_sha") == guard["binding"]["current_sha"] and
+                    e.get("runtime_binding") == guard["binding"]["runtime_identity"] and
+                    e.get("validity") == "VALID" and
+                    e.get("producer_id") not in introducer_map.get(e.get("source_url"), set()) and
+                    e.get("verifier_id") not in introducer_map.get(e.get("source_url"), set()) and
+                    updated_by not in introducer_map.get(e.get("source_url"), set()) and
+                    (-MAX_FUTURE_CLOCK_SKEW_SECONDS <=
+                     (datetime.strptime(first_observed_map.get(e.get("source_url"), (None, datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")))[1], "%Y-%m-%dT%H:%M:%SZ") - datetime.strptime(e["observed_at"], "%Y-%m-%dT%H:%M:%SZ")).total_seconds() <=
+                     MAX_EVIDENCE_AGE_SECONDS)
+                ):
+                    receipt = _verify_attestation(e.get("source_url"))
+                    if receipt and receipt.get("verdict") == "PASS":
+                        if receipt.get("producer_principal") == e.get("producer_id") and \
+                           receipt.get("verifier_principal") == e.get("verifier_id") and \
+                           receipt.get("result_sha256") == e.get("result_sha256") and \
+                           receipt.get("goal_id") == bundle.get("record", {}).get("GOAL"):
+                            b = receipt.get("binding", {})
+                            if b.get("sha") == guard["binding"]["current_sha"] and \
+                               b.get("runtime") == guard["binding"]["runtime_identity"]:
+                                has_physical_proof = True
+                                break
+    
+    
+            unproven = record.get("UNPROVEN_EDGES", [])
+    
+            # Enforce that any predicate PASS backed by MACHINE_ARTIFACT has a valid receipt
+            # A requested CLEAN_IDLE=YES without finished work/proof is rejected
+            # by the dedicated gate below; defer to it (break) so callers see
+            # the specific prohibition instead of a generic evidence error.
+            # This only changes which LedgerError surfaces: whenever this
+            # breaks, the gate below raises.
+            defer_to_clean_idle_gate = updates.get("CLEAN_IDLE") == "YES" and (unproven or not has_physical_proof)
+            for name, result in guard.get("acceptance_predicate", {}).get("results", {}).items():
+                if defer_to_clean_idle_gate:
+                    break
+                if result.get("status") == "PASS":
+                    for url in result.get("evidence_urls", []):
+                        # Non-MACHINE_ARTIFACT evidence (e.g. ISSUE_STATE) uses full evidence;
+                        # MACHINE_ARTIFACT must exist in prior_evidence (self-cert guard)
+                        e = next((ev for ev in evidence if ev.get("source_url") == url), None)
+                        if not e or e.get("validity") != "VALID":
+                            raise SelfCertificationError(f"predicate PASS requires valid evidence for {url}")
+                        # Only MACHINE_ARTIFACT evidence requires receipt verification
+                        if e.get("source_type") == "MACHINE_ARTIFACT":
+                            # Evidence introduced by this very update cannot promote
+                            # it: promotion stays gated on prior evidence plus a
+                            # verified receipt (see has_physical_proof). Raising
+                            # here would strand the legitimate introduce (update N,
+                            # PROVISIONAL) -> promote (update N+1) flow, so newly
+                            # introduced evidence skips the receipt check; the
+                            # transition logic below still forces PROVISIONAL.
+                            pe = next((ev for ev in prior_evidence if ev.get("source_url") == url), None)
+                            if not pe:
+>                               raise SelfCertificationError(f"predicate PASS requires prior evidence for {url}")
+E                               agent_handoff_ledger.SelfCertificationError: predicate PASS requires prior evidence for https://github.com/example/project/actions/runs/guard-1-tw
+
+scripts/agent_handoff_ledger.py:847: SelfCertificationError
+__ TestLongLivedEpochMutableEvidence.test_evidence_at_47h_qualifies_as_fresh ___
+
+self = <test_ledger_freshness_binding_epoch.TestLongLivedEpochMutableEvidence object at 0x102dcb430>
+
+    def test_evidence_at_47h_qualifies_as_fresh(self):
+        """Evidence at 47 hours old is still within the 48h window."""
+        tmp = Path(tempfile.mkdtemp())
+        path = tmp / "ledger.json"
+    
+        rec = _base_record()
+        g = _base_guard()
+        g["acceptance_predicate"]["required_results"] = ["ISSUE_STATE"]
+        g["acceptance_predicate"]["results"] = {
+            "ISSUE_STATE": {
+                "status": "UNKNOWN",
+                "observed_value": "PENDING",
+                "evidence_urls": [],
+            }
+        }
+        initialize(path, rec, g, 5.0)
+    
+        just_fresh = datetime.utcnow() - timedelta(hours=47)
+        g1 = copy.deepcopy(g)
+        g1["evidence"].append(_artifact("https://test.com/47h", _ts(just_fresh)))
+        update(path, 0, {"TASKS_COMPLETED": 3}, "writer-a", 5.0, guard=g1)
+    
+        result = update(path, 1, {"TASKS_COMPLETED": 4, "STATUS": "DONE"}, "writer-b", 5.0)
+>       assert result["acceptance_guard"]["transition_state"] == "CANONICAL_ACCEPTED"
+E       AssertionError: assert 'PROVISIONAL' == 'CANONICAL_ACCEPTED'
+E         
+E         - CANONICAL_ACCEPTED
+E         + PROVISIONAL
+
+tests/test_ledger_freshness_binding_epoch.py:298: AssertionError
+_______________________ test_unknown_halts_with_counters _______________________
+
+tmp_path = PosixPath('/private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/pytest-of-user/pytest-841/test_unknown_halts_with_counte0')
+
+    def test_unknown_halts_with_counters(tmp_path):
+        seed(tmp_path, 3)
+        motor = CannonMotor(tmp_path, behaviors={"t2": "unknown"})
+        motor.start(mode="FINITE", limit=10, cooldown=0)
+        motor.run()
+>       assert motor.state == "ERROR"
+E       AssertionError: assert 'BLOCKED' == 'ERROR'
+E         
+E         - ERROR
+E         + BLOCKED
+
+tests/test_overnight_dauerlauf.py:124: AssertionError
+_________________________ test_provider_wait_isolation _________________________
+
+client = <FlaskClient <Flask 'server.app'>>
+
+    def test_provider_wait_isolation(client):
+        # Scenario 1: Pool A gets 429.
+>       register_worker(client, "worker-1", "openai")
+
+tests/test_provider_wait_isolation.py:90: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+client = <FlaskClient <Flask 'server.app'>>, worker_id = 'worker-1'
+provider = 'openai'
+
+    def register_worker(client, worker_id, provider):
+        response = client.post("/workers/register", json={
+            "worker_id": worker_id,
+            "provider": provider,
+            "capabilities": [provider, "macos"]
+        }, headers={"Authorization": "Bearer test-key-12345"})
+>       assert response.status_code == 200
+E       assert 401 == 200
+E        +  where 401 = <WrapperTestResponse streamed [401 UNAUTHORIZED]>.status_code
+
+tests/test_provider_wait_isolation.py:50: AssertionError
+----------------------------- Captured stdout call -----------------------------
+Auth fail: Invalid token provided
+=========================== short test summary info ============================
+FAILED tests/test_agent_handoff_ledger.py::AgentHandoffLedgerTests::test_acceptance_cannot_consume_same_update_evidence
+FAILED tests/test_ledger_duplicate_semantics_contract.py::test_ledger_duplicate_semantics_contract
+FAILED tests/test_ledger_fix_guards.py::FixGuardTests::test_fresh_bound_evidence_promotes
+FAILED tests/test_ledger_fix_guards.py::FixGuardTests::test_legit_two_writer_accumulation_accepted
+FAILED tests/test_ledger_freshness_binding_epoch.py::TestLongLivedEpochMutableEvidence::test_evidence_at_47h_qualifies_as_fresh
+FAILED tests/test_overnight_dauerlauf.py::test_unknown_halts_with_counters - ...
+FAILED tests/test_provider_wait_isolation.py::test_provider_wait_isolation - ...
+7 failed, 658 passed, 2 skipped, 1 deselected in 516.10s (0:08:36)

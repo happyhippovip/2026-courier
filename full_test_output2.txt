@@ -1,0 +1,2064 @@
+........................................................................ [ 10%]
+.....................................................ss................. [ 21%]
+........................................................................ [ 32%]
+........................................................................ [ 43%]
+..................................................................F..... [ 53%]
+..............F.............................F........................... [ 64%]
+...F......F..F..FF.FF........F.......F.....................F............ [ 75%]
+.........................F.F............................................ [ 86%]
+.................................................F.F..................F. [ 97%]
+...................                                                      [100%]
+=================================== FAILURES ===================================
+___________________ test_ledger_duplicate_semantics_contract ___________________
+
+tmp_path = PosixPath('/private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/pytest-of-user/pytest-805/test_ledger_duplicate_semantic0')
+
+    def test_ledger_duplicate_semantics_contract(tmp_path):
+        path = tmp_path / "ledger.json"
+        rec = base_record()
+        ahl.initialize(path, rec, base_guard(), 5.0)
+    
+        # Offline receipt via the production seam: this test pins duplicate /
+        # revision semantics, not attestation, so the pre-existing PASS-backed
+        # evidence gets a strictly matching local receipt instead of live net.
+        previous = ahl._attestation_resolver
+    
+        def resolve(url):
+            if url != "https://github.com/example/project/actions/runs/test":
+                return None
+            return {
+                "verdict": "PASS",
+                "producer_principal": "test",
+                "verifier_principal": "test2",
+                "goal_id": "probe",
+                "binding": {
+                    "sha": "cccccccccccccccccccccccccccccccccccccccc",
+                    "runtime": "attacker-runtime",
+                },
+            }
+    
+        ahl._attestation_resolver = resolve
+        try:
+            # 1. Update TASKS_COMPLETED=1
+>           b1 = ahl.update(path, 0, {"TASKS_COMPLETED": 1}, "writer1", 5.0, base_guard())
+
+tests/test_ledger_duplicate_semantics_contract.py:100: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/pytest-of-user/pytest-805/test_ledger_duplicate_semantic0/ledger.json')
+expected_revision = 0, updates = {'TASKS_COMPLETED': 1}, updated_by = 'writer1'
+timeout = 5.0
+guard = {'acceptance_predicate': {'name': 'test-predicate', 'required_results': ['TEST'], 'results': {'TEST': {'evidence_urls'...est', ...}], 'flow': ['EXECUTION', 'EVIDENCE', 'ACCEPTANCE_GUARD', 'LEDGER_TRANSITION', 'NEXT_EXECUTABLE_ACTION'], ...}
+
+    def update(
+        path: Path,
+        expected_revision: int,
+        updates: dict[str, Any],
+        updated_by: str,
+        timeout: float,
+        guard: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        _nonempty_string(updated_by, "updated_by")
+        if not updates:
+            raise ValidationError("at least one --set update is required")
+        invalid = sorted(set(updates) - set(RECORD_FIELDS))
+        if invalid:
+            raise ValidationError(f"unknown record fields: {invalid}")
+        if "LAST_UPDATED_BY" in updates:
+            raise ValidationError("use --updated-by instead of setting LAST_UPDATED_BY")
+        reject_secrets(updates, "updates")
+        with writer_lock(path, timeout):
+            bundle = load_bundle(path)
+            introducer_map = {}
+            first_observed_map = {}
+            for h in bundle.get("history", []):
+                h_updater = h.get("updated_by")
+                for e in h.get("acceptance_guard", {}).get("evidence", []):
+                    url = e.get("source_url")
+                    if not url: continue
+                    if url not in introducer_map:
+                        introducer_map[url] = {h_updater}
+                    if url not in first_observed_map:
+                        first_observed_map[url] = (e.get("observed_at"), h.get("timestamp_utc"))
+    
+            if bundle["revision"] != expected_revision:
+                raise RevisionConflictError(
+                    f"revision conflict: expected {expected_revision}, "
+                    f"but currently at {bundle['revision']}"
+                )
+            record = copy.deepcopy(bundle["record"])
+            changed = []
+            for field, value in updates.items():
+                if record[field] != value:
+                    record[field] = value
+                    changed.append(field)
+            if record["LAST_UPDATED_BY"] != updated_by:
+                record["LAST_UPDATED_BY"] = updated_by
+                changed.append("LAST_UPDATED_BY")
+            old_all_edges = set(bundle["record"].get("UNPROVEN_EDGES", [])) | set(bundle["record"].get("PROVEN_EDGES", []))
+            new_all_edges = set(record.get("UNPROVEN_EDGES", [])) | set(record.get("PROVEN_EDGES", []))
+            if old_all_edges != new_all_edges:
+                raise EdgeConservationError(f"edge conservation violated: old={old_all_edges}, new={new_all_edges}")
+            validate_record(record, allow_unknown_sha=False)
+            if guard is None:
+                if bundle["schema_version"] == 1:
+                    raise ValidationError("schema version 1 update requires --guard")
+                guard = copy.deepcopy(bundle["acceptance_guard"])
+            # Auto-derive Guard Acceptance from Evidence
+            evidence = guard.get("evidence", [])
+            old_evidence = bundle.get("acceptance_guard", {}).get("evidence", [])
+            # Acceptance cannot create the evidence used to prove itself: only
+            # evidence that pre-existed this update counts toward acceptance.
+            prior_evidence = [e for e in evidence if e in old_evidence]
+            has_physical_proof = False
+            for e in prior_evidence:
+                if (
+                    e.get("source_type") == "MACHINE_ARTIFACT" and
+                    e.get("evidence_sha") == guard["binding"]["current_sha"] and
+                    e.get("runtime_binding") == guard["binding"]["runtime_identity"] and
+                    e.get("validity") == "VALID" and
+                    e.get("producer_id") not in introducer_map.get(e.get("source_url"), set()) and
+                    e.get("verifier_id") not in introducer_map.get(e.get("source_url"), set()) and
+                    updated_by not in introducer_map.get(e.get("source_url"), set()) and
+                    (-MAX_FUTURE_CLOCK_SKEW_SECONDS <=
+                     (datetime.strptime(first_observed_map.get(e.get("source_url"), (None, datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")))[1], "%Y-%m-%dT%H:%M:%SZ") - datetime.strptime(e["observed_at"], "%Y-%m-%dT%H:%M:%SZ")).total_seconds() <=
+                     MAX_EVIDENCE_AGE_SECONDS)
+                ):
+                    receipt = _verify_attestation(e.get("source_url"))
+                    if receipt and receipt.get("verdict") == "PASS":
+                        if receipt.get("producer_principal") == e.get("producer_id") and \
+                           receipt.get("verifier_principal") == e.get("verifier_id") and \
+                           receipt.get("result_sha256") == e.get("result_sha256") and \
+                           receipt.get("goal_id") == bundle.get("record", {}).get("GOAL"):
+                            b = receipt.get("binding", {})
+                            if b.get("sha") == guard["binding"]["current_sha"] and \
+                               b.get("runtime") == guard["binding"]["runtime_identity"]:
+                                has_physical_proof = True
+                                break
+    
+    
+            unproven = record.get("UNPROVEN_EDGES", [])
+    
+            # Enforce that any predicate PASS backed by MACHINE_ARTIFACT has a valid receipt
+            # A requested CLEAN_IDLE=YES without finished work/proof is rejected
+            # by the dedicated gate below; defer to it (break) so callers see
+            # the specific prohibition instead of a generic evidence error.
+            # This only changes which LedgerError surfaces: whenever this
+            # breaks, the gate below raises.
+            defer_to_clean_idle_gate = updates.get("CLEAN_IDLE") == "YES" and (unproven or not has_physical_proof)
+            for name, result in guard.get("acceptance_predicate", {}).get("results", {}).items():
+                if defer_to_clean_idle_gate:
+                    break
+                if result.get("status") == "PASS":
+                    for url in result.get("evidence_urls", []):
+                        # Non-MACHINE_ARTIFACT evidence (e.g. ISSUE_STATE) uses full evidence;
+                        # MACHINE_ARTIFACT must exist in prior_evidence (self-cert guard)
+                        e = next((ev for ev in evidence if ev.get("source_url") == url), None)
+                        if not e or e.get("validity") != "VALID":
+                            raise SelfCertificationError(f"predicate PASS requires valid evidence for {url}")
+                        # Only MACHINE_ARTIFACT evidence requires receipt verification
+                        if e.get("source_type") == "MACHINE_ARTIFACT":
+                            # Evidence introduced by this very update cannot promote
+                            # it: promotion stays gated on prior evidence plus a
+                            # verified receipt (see has_physical_proof). Raising
+                            # here would strand the legitimate introduce (update N,
+                            # PROVISIONAL) -> promote (update N+1) flow, so newly
+                            # introduced evidence skips the receipt check; the
+                            # transition logic below still forces PROVISIONAL.
+                            pe = next((ev for ev in prior_evidence if ev.get("source_url") == url), None)
+                            receipt = _verify_attestation(url)
+                            if not receipt or receipt.get("verdict") != "PASS" or \
+                               receipt.get("producer_principal") != e.get("producer_id") or \
+                               receipt.get("verifier_principal") != e.get("verifier_id") or \
+                               receipt.get("result_sha256") != e.get("result_sha256"):
+>                               raise SelfCertificationError(f"predicate PASS requires verified receipt for {url}")
+E                               agent_handoff_ledger.SelfCertificationError: predicate PASS requires verified receipt for https://github.com/example/project/actions/runs/test
+
+scripts/agent_handoff_ledger.py:851: SelfCertificationError
+__ TestLongLivedEpochMutableEvidence.test_evidence_at_47h_qualifies_as_fresh ___
+
+self = <test_ledger_freshness_binding_epoch.TestLongLivedEpochMutableEvidence object at 0x10c88afa0>
+
+    def test_evidence_at_47h_qualifies_as_fresh(self):
+        """Evidence at 47 hours old is still within the 48h window."""
+        tmp = Path(tempfile.mkdtemp())
+        path = tmp / "ledger.json"
+    
+        rec = _base_record()
+        g = _base_guard()
+        g["acceptance_predicate"]["required_results"] = ["ISSUE_STATE"]
+        g["acceptance_predicate"]["results"] = {
+            "ISSUE_STATE": {
+                "status": "UNKNOWN",
+                "observed_value": "PENDING",
+                "evidence_urls": [],
+            }
+        }
+        initialize(path, rec, g, 5.0)
+    
+        just_fresh = datetime.utcnow() - timedelta(hours=47)
+        g1 = copy.deepcopy(g)
+        g1["evidence"].append(_artifact("https://test.com/47h", _ts(just_fresh)))
+        update(path, 0, {"TASKS_COMPLETED": 3}, "writer-a", 5.0, guard=g1)
+    
+        result = update(path, 1, {"TASKS_COMPLETED": 4, "STATUS": "DONE"}, "writer-b", 5.0)
+>       assert result["acceptance_guard"]["transition_state"] == "CANONICAL_ACCEPTED"
+E       AssertionError: assert 'PROVISIONAL' == 'CANONICAL_ACCEPTED'
+E         
+E         - CANONICAL_ACCEPTED
+E         + PROVISIONAL
+
+tests/test_ledger_freshness_binding_epoch.py:284: AssertionError
+_________________________ test_dlq04_adversarial_drain _________________________
+
+tmp_path = PosixPath('/private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/pytest-of-user/pytest-805/test_dlq04_adversarial_drain0')
+
+    def test_dlq04_adversarial_drain(tmp_path):
+        all_edges = PLAN
+    
+        unproven = ["RELEASE - SAFE_AUTOMATABLE_PREPARATION", "RELEASE - IRREVERSIBLE_HUMAN_ACTION"]
+        proven = [e for e in all_edges if e not in unproven]
+    
+        record = {
+            "PROJECT": "Courier",
+            "GOAL": "test-goal",
+            "CURRENT_SHA": "0000000000000000000000000000000000000000",
+            "BRANCH": "test-branch",
+            "RUNTIME_IDENTITY": "0000000000000000000000000000000000000000",
+            "RUNTIME_OWNER": "test",
+            "STATUS": "TEST",
+            "PROVEN_EDGES": proven,
+            "UNPROVEN_EDGES": unproven,
+            "FIRST_CAUSAL_BLOCKER": "NONE",
+            "BLOCKER_OWNER": "Human",
+            "NEXT_EXECUTABLE_ACTION": "test",
+            "ACTIVE_WRITERS": [],
+            "COLLISION_SCOPE": [],
+            "GOALS_SUBMITTED": 0,
+            "TASKS_COMPLETED": 0,
+            "WORKERS_USED": 0,
+            "USER_CONTINUE_MESSAGES": 0,
+            "MANUAL_PROCESS_RESTARTS": 0,
+            "DUPLICATE_EXTERNAL_EFFECTS": 0,
+            "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+            "CLEAN_IDLE": "UNKNOWN",
+            "QUEUE_INDEPENDENT": "YES",
+            "LAST_EVIDENCE": [],
+            "LAST_UPDATED_BY": "test",
+            "CONTINUATION_CHECKPOINT": "none"
+        }
+    
+        guard = {
+            "acceptance_predicate": {
+                "name": "Global-Stop",
+                "version": "1.0",
+                "required_results": ["ISSUE_STATE"],
+                "results": {
+                    "ISSUE_STATE": {
+                        "status": "UNKNOWN",
+                        "observed_value": "NO_FURTHER_ACTION",
+                        "evidence_urls": ["https://test.com"]
+                    }
+                }
+            },
+            "binding": {
+                "branch": "test-branch",
+                "current_sha": "0000000000000000000000000000000000000000",
+                "runtime_identity": "0000000000000000000000000000000000000000"
+            },
+            "evidence": [{"source_url":"https://test.com","source_type":"MACHINE_ARTIFACT","observed_at":"2026-09-18T22:03:59Z","evidence_sha":"0000000000000000000000000000000000000000","runtime_binding":"0000000000000000000000000000000000000000","validity":"VALID","producer_id":"producer_1","verifier_id":"verifier_1","result_sha256":"0000000000000000000000000000000000000000","reason":"test"}],
+            "flow": [
+                "EXECUTION",
+                "EVIDENCE",
+                "ACCEPTANCE_GUARD",
+                "LEDGER_TRANSITION",
+                "NEXT_EXECUTABLE_ACTION"
+            ],
+            "transition_state": "PROVISIONAL",
+            "worker_state": "IDLE/YIELDED"
+        }
+    
+        import json
+        record_path = tmp_path / "record.json"
+        guard_path = tmp_path / "guard.json"
+        ledger_path = tmp_path / "agent_handoff_ledger.json"
+    
+        record_path.write_text(json.dumps(record))
+        guard_path.write_text(json.dumps(guard))
+    
+        repo_dir = Path(__file__).parent.parent.resolve()
+        script = repo_dir / "scripts" / "agent_handoff_ledger.py"
+    
+        subprocess.run([sys.executable, str(script), "init", str(ledger_path), "--record", str(record_path), "--guard", str(guard_path)], check=True)
+        repo_dir = Path(__file__).parent.parent.resolve()
+        script = repo_dir / "tests" / "mock_courier_continue.py"
+    
+        env = dict(
+            os.environ,
+            MOCK_LEDGER=str(ledger_path),
+            MOCK_BRANCH="test-branch",
+            MOCK_SHA="0000000000000000000000000000000000000000",
+            COURIER_WORKER_CAPABILITIES="shell,build_tools,git,api,github_actions,reasoning"
+        )
+    
+        res = subprocess.run(
+            [sys.executable, str(script), "--run", "--once"],
+            env=env,
+            capture_output=True,
+            text=True,
+            cwd=str(repo_dir)
+        )
+    
+        with open(ledger_path, "r") as f:
+            data = json.load(f)
+    
+        final_unproven = data["record"]["UNPROVEN_EDGES"]
+    
+        assert res.returncode == 0, f"courier_continue.py crashed! Stdout: {res.stdout}\nStderr: {res.stderr}"
+    
+>       assert "RELEASE - SAFE_AUTOMATABLE_PREPARATION" not in final_unproven, f"First task didn't complete. Stdout: {res.stdout}"
+E       AssertionError: First task didn't complete. Stdout: MOCK_LEDGER IN ENV: /private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/pytest-of-user/pytest-805/test_dlq04_adversarial_drain0/agent_handoff_ledger.json
+E         USING LEDGER PATH: /private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/pytest-of-user/pytest-805/test_dlq04_adversarial_drain0/agent_handoff_ledger.json
+E         CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+E         
+E         1790285732.436036 === SUBMITTING TASK: RELEASE - SAFE_AUTOMATABLE_PREPARATION ===
+E         Executing/Delegating task: Prove edge: RELEASE - SAFE_AUTOMATABLE_PREPARATION
+E         Automated preparation for RELEASE - SAFE_AUTOMATABLE_PREPARATION completed: validation, payload gen, artifact prep, dry-run, idempotency.
+E         
+E         Currently running 1 tasks concurrently.
+E         CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+E         1790285732.699185 DEBUG: RELEASE - SAFE_AUTOMATABLE_PREPARATION running for 0.26284003257751465 seconds
+E         1790285732.699209 DEBUG: RELEASE - SAFE_AUTOMATABLE_PREPARATION running for 0.26284003257751465 seconds
+E         
+E         1790285732.69924 === FINISHED TASK: RELEASE - SAFE_AUTOMATABLE_PREPARATION ===
+E         CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+E         1790285732.702553 DEBUG BUNDLE BEFORE UPDATE_LEDGER for RELEASE - SAFE_AUTOMATABLE_PREPARATION: ['RELEASE - SAFE_AUTOMATABLE_PREPARATION', 'RELEASE - IRREVERSIBLE_HUMAN_ACTION']
+E         1790285732.702601 DEBUG UPDATES: {'PROVEN_EDGES': ['LEDGER/HANDOFF', 'PR41 ACCEPTANCE', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION', 'PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION', 'PUBLICATION VERIFICATION', 'PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION', 'PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION', 'SALES PACKAGE', 'FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION', 'POST-PILOT HARDENING', 'EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION', 'EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION', 'ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION', 'RELEASE - SAFE_AUTOMATABLE_PREPARATION'], 'UNPROVEN_EDGES': ['RELEASE - IRREVERSIBLE_HUMAN_ACTION'], 'FIRST_CAUSAL_BLOCKER': 'NONE', 'CLEAN_IDLE': 'NO', 'STATUS': 'READY'}
+E         CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+E         
+E         1790285732.718505 === SUBMITTING TASK: PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION ===
+E         
+E         1790285732.7185888 === SUBMITTING TASK: SALES PACKAGE ===
+E         Executing/Delegating task: Prove edge: PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION
+E         Automated preparation for PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION completed: validation, payload gen, artifact prep, dry-run, idempotency.
+E         Executing/Delegating task: Prove edge: SALES PACKAGE
+E         
+E         1790285732.718915 === SUBMITTING TASK: POST-PILOT HARDENING ===
+E         
+E         1790285732.718959 === SUBMITTING TASK: ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION ===
+E         Executing/Delegating task: Prove edge: POST-PILOT HARDENING
+E         Successfully proved: POST-PILOT HARDENING
+E         Executing/Delegating task: Prove edge: ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION
+E         Automated preparation for ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION completed: validation, payload gen, artifact prep, dry-run, idempotency.
+E         
+E         Currently running 4 tasks concurrently.
+E         Successfully proved: SALES PACKAGE
+E         CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+E         1790285732.9336 DEBUG: PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION running for 0.21500372886657715 seconds
+E         1790285732.9336178 DEBUG: PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION running for 0.21500372886657715 seconds
+E         
+E         1790285732.933646 === FINISHED TASK: PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION ===
+E         CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+E         1790285732.9394119 DEBUG BUNDLE BEFORE UPDATE_LEDGER for PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION: ['ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION', 'SALES PACKAGE', 'FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION', 'PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION', 'EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION', 'FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION', 'RELEASE - SAFE_AUTOMATABLE_PREPARATION', 'ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION', 'EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION', 'RELEASE - IRREVERSIBLE_HUMAN_ACTION', 'PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION', 'POST-PILOT HARDENING', 'PUBLICATION VERIFICATION', 'PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION']
+E         1790285732.939874 DEBUG UPDATES: {'PROVEN_EDGES': ['LEDGER/HANDOFF', 'PR41 ACCEPTANCE', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION'], 'UNPROVEN_EDGES': ['ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION', 'SALES PACKAGE', 'FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION', 'PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION', 'EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION', 'FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION', 'RELEASE - SAFE_AUTOMATABLE_PREPARATION', 'ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION', 'EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION', 'RELEASE - IRREVERSIBLE_HUMAN_ACTION', 'PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION', 'POST-PILOT HARDENING', 'PUBLICATION VERIFICATION', 'PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION'], 'FIRST_CAUSAL_BLOCKER': 'NONE', 'CLEAN_IDLE': 'NO', 'STATUS': 'READY'}
+E         1790285732.952945 DEBUG: SALES PACKAGE running for 0.21467804908752441 seconds
+E         1790285732.952964 DEBUG: SALES PACKAGE running for 0.21467804908752441 seconds
+E         
+E         1790285732.953026 === FINISHED TASK: SALES PACKAGE ===
+E         CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+E         1790285732.958873 DEBUG BUNDLE BEFORE UPDATE_LEDGER for SALES PACKAGE: ['ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION', 'RELEASE - IRREVERSIBLE_HUMAN_ACTION', 'PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION', 'SALES PACKAGE', 'FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION', 'PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION', 'EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION', 'POST-PILOT HARDENING', 'FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION', 'RELEASE - SAFE_AUTOMATABLE_PREPARATION', 'ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION', 'PUBLICATION VERIFICATION', 'EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION', 'PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION']
+E         1790285732.95893 DEBUG UPDATES: {'PROVEN_EDGES': ['LEDGER/HANDOFF', 'PR41 ACCEPTANCE', 'SALES PACKAGE'], 'UNPROVEN_EDGES': ['ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION', 'RELEASE - IRREVERSIBLE_HUMAN_ACTION', 'PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION', 'PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION', 'EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION', 'POST-PILOT HARDENING', 'FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION', 'RELEASE - SAFE_AUTOMATABLE_PREPARATION', 'ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION', 'PUBLICATION VERIFICATION', 'EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION', 'PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION'], 'FIRST_CAUSAL_BLOCKER': 'NONE', 'CLEAN_IDLE': 'NO', 'STATUS': 'READY'}
+E         1790285732.9736462 DEBUG: POST-PILOT HARDENING running for 0.21463298797607422 seconds
+E         1790285732.97366 DEBUG: POST-PILOT HARDENING running for 0.21463298797607422 seconds
+E         
+E         1790285732.973681 === FINISHED TASK: POST-PILOT HARDENING ===
+E         CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+E         1790285732.9787579 DEBUG BUNDLE BEFORE UPDATE_LEDGER for POST-PILOT HARDENING: ['ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION', 'PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION', 'RELEASE - IRREVERSIBLE_HUMAN_ACTION', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION', 'SALES PACKAGE', 'PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION', 'EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION', 'POST-PILOT HARDENING', 'FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION', 'RELEASE - SAFE_AUTOMATABLE_PREPARATION', 'ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION', 'PUBLICATION VERIFICATION', 'EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION', 'PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION']
+E         1790285732.978817 DEBUG UPDATES: {'PROVEN_EDGES': ['LEDGER/HANDOFF', 'PR41 ACCEPTANCE', 'POST-PILOT HARDENING'], 'UNPROVEN_EDGES': ['ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION', 'PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION', 'RELEASE - IRREVERSIBLE_HUMAN_ACTION', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION', 'SALES PACKAGE', 'PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION', 'EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION', 'FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION', 'RELEASE - SAFE_AUTOMATABLE_PREPARATION', 'ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION', 'PUBLICATION VERIFICATION', 'EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION', 'PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION'], 'FIRST_CAUSAL_BLOCKER': 'NONE', 'CLEAN_IDLE': 'NO', 'STATUS': 'READY'}
+E         1790285732.997683 DEBUG: ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION running for 0.2138659954071045 seconds
+E         1790285732.997697 DEBUG: ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION running for 0.2138659954071045 seconds
+E         
+E         1790285732.997717 === FINISHED TASK: ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION ===
+E         CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+E         1790285733.004089 DEBUG BUNDLE BEFORE UPDATE_LEDGER for ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION: ['ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION', 'RELEASE - IRREVERSIBLE_HUMAN_ACTION', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION', 'PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION', 'SALES PACKAGE', 'PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION', 'EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION', 'POST-PILOT HARDENING', 'FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION', 'RELEASE - SAFE_AUTOMATABLE_PREPARATION', 'ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION', 'PUBLICATION VERIFICATION', 'EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION', 'PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION']
+E         1790285733.004124 DEBUG UPDATES: {'PROVEN_EDGES': ['LEDGER/HANDOFF', 'PR41 ACCEPTANCE', 'ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION'], 'UNPROVEN_EDGES': ['ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION', 'RELEASE - IRREVERSIBLE_HUMAN_ACTION', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION', 'PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION', 'SALES PACKAGE', 'PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION', 'EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION', 'POST-PILOT HARDENING', 'FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION', 'RELEASE - SAFE_AUTOMATABLE_PREPARATION', 'PUBLICATION VERIFICATION', 'EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION', 'PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION'], 'FIRST_CAUSAL_BLOCKER': 'NONE', 'CLEAN_IDLE': 'NO', 'STATUS': 'READY'}
+E         CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+E         WAITING: No safe, unowned, independent executable tasks exist.
+E         Blockers: NONE
+E         
+E       assert 'RELEASE - SAFE_AUTOMATABLE_PREPARATION' not in ['ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_P...AFE_AUTOMATABLE_PREPARATION', 'RELEASE - IRREVERSIBLE_HUMAN_ACTION', 'FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION', ...]
+
+tests/test_motor_dlq04_adversarial.py:114: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{
+  "acceptance_guard": {
+    "acceptance_predicate": {
+      "name": "Global-Stop",
+      "required_results": [
+        "ISSUE_STATE"
+      ],
+      "results": {
+        "ISSUE_STATE": {
+          "evidence_urls": [
+            "https://test.com"
+          ],
+          "observed_value": "NO_FURTHER_ACTION",
+          "status": "UNKNOWN"
+        }
+      },
+      "version": "1.0"
+    },
+    "binding": {
+      "branch": "test-branch",
+      "current_sha": "0000000000000000000000000000000000000000",
+      "runtime_identity": "0000000000000000000000000000000000000000"
+    },
+    "evidence": [
+      {
+        "evidence_sha": "0000000000000000000000000000000000000000",
+        "observed_at": "2026-09-18T22:03:59Z",
+        "producer_id": "producer_1",
+        "reason": "test",
+        "result_sha256": "0000000000000000000000000000000000000000",
+        "runtime_binding": "0000000000000000000000000000000000000000",
+        "source_type": "MACHINE_ARTIFACT",
+        "source_url": "https://test.com",
+        "validity": "VALID",
+        "verifier_id": "verifier_1"
+      }
+    ],
+    "flow": [
+      "EXECUTION",
+      "EVIDENCE",
+      "ACCEPTANCE_GUARD",
+      "LEDGER_TRANSITION",
+      "NEXT_EXECUTABLE_ACTION"
+    ],
+    "transition_state": "PROVISIONAL",
+    "worker_state": "IDLE/YIELDED"
+  },
+  "format": "courier-agent-handoff-ledger",
+  "history": [
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [
+                "https://test.com"
+              ],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "test-branch",
+          "current_sha": "0000000000000000000000000000000000000000",
+          "runtime_identity": "0000000000000000000000000000000000000000"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "0000000000000000000000000000000000000000",
+            "observed_at": "2026-09-18T22:03:59Z",
+            "producer_id": "producer_1",
+            "reason": "test",
+            "result_sha256": "0000000000000000000000000000000000000000",
+            "runtime_binding": "0000000000000000000000000000000000000000",
+            "source_type": "MACHINE_ARTIFACT",
+            "source_url": "https://test.com",
+            "validity": "VALID",
+            "verifier_id": "verifier_1"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "ACTIVE_WRITERS",
+        "BLOCKER_OWNER",
+        "BRANCH",
+        "CLEAN_IDLE",
+        "COLLISION_SCOPE",
+        "CONTINUATION_CHECKPOINT",
+        "CURRENT_SHA",
+        "DUPLICATE_EXTERNAL_EFFECTS",
+        "FIRST_CAUSAL_BLOCKER",
+        "GOAL",
+        "GOALS_SUBMITTED",
+        "LAST_EVIDENCE",
+        "LAST_UPDATED_BY",
+        "MANUAL_PROCESS_RESTARTS",
+        "NEXT_EXECUTABLE_ACTION",
+        "PROJECT",
+        "PROVEN_EDGES",
+        "QUEUE_INDEPENDENT",
+        "RUNTIME_IDENTITY",
+        "RUNTIME_OWNER",
+        "STATUS",
+        "TASKS_COMPLETED",
+        "TEMP_TASK_PROCESSES_AFTER_DONE",
+        "UNPROVEN_EDGES",
+        "USER_CONTINUE_MESSAGES",
+        "WORKERS_USED"
+      ],
+      "entry_sha256": "42b751bd6d9107ba01d87dba2e3b87a7254b4a34514431c505b6cd346189b4e3",
+      "operation": "INIT",
+      "previous_entry_sha256": null,
+      "record": {
+        "ACTIVE_WRITERS": [],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "test-branch",
+        "CLEAN_IDLE": "UNKNOWN",
+        "COLLISION_SCOPE": [],
+        "CONTINUATION_CHECKPOINT": "none",
+        "CURRENT_SHA": "0000000000000000000000000000000000000000",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "NONE",
+        "GOAL": "test-goal",
+        "GOALS_SUBMITTED": 0,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "test",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "test",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "LEDGER/HANDOFF",
+          "PR41 ACCEPTANCE",
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLICATION VERIFICATION",
+          "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+          "SALES PACKAGE",
+          "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+          "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+          "POST-PILOT HARDENING",
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+          "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION"
+        ],
+        "QUEUE_INDEPENDENT": "YES",
+        "RUNTIME_IDENTITY": "0000000000000000000000000000000000000000",
+        "RUNTIME_OWNER": "test",
+        "STATUS": "TEST",
+        "TASKS_COMPLETED": 0,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+          "RELEASE - IRREVERSIBLE_HUMAN_ACTION"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 0
+      },
+      "record_sha256": "4233d081e02b798c6411754d09ea3c37afc072623e4dfe7312c88ebe2753b4e6",
+      "revision": 0,
+      "state_sha256": "b1c8c42e482a25e41928fa499c36998496b10a7cdc2ba9e12dd9596f4f5cf507",
+      "timestamp_utc": "2026-09-24T21:35:32Z",
+      "updated_by": "test"
+    }
+  ],
+  "non_authority": "Coordination metadata only; this ledger has no scheduler, runtime, execution, dispatch, verification, or Courier truth authority.",
+  "record": {
+    "ACTIVE_WRITERS": [],
+    "BLOCKER_OWNER": "Human",
+    "BRANCH": "test-branch",
+    "CLEAN_IDLE": "UNKNOWN",
+    "COLLISION_SCOPE": [],
+    "CONTINUATION_CHECKPOINT": "none",
+    "CURRENT_SHA": "0000000000000000000000000000000000000000",
+    "DUPLICATE_EXTERNAL_EFFECTS": 0,
+    "FIRST_CAUSAL_BLOCKER": "NONE",
+    "GOAL": "test-goal",
+    "GOALS_SUBMITTED": 0,
+    "LAST_EVIDENCE": [],
+    "LAST_UPDATED_BY": "test",
+    "MANUAL_PROCESS_RESTARTS": 0,
+    "NEXT_EXECUTABLE_ACTION": "test",
+    "PROJECT": "Courier",
+    "PROVEN_EDGES": [
+      "LEDGER/HANDOFF",
+      "PR41 ACCEPTANCE",
+      "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
+      "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+      "PUBLICATION VERIFICATION",
+      "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+      "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+      "SALES PACKAGE",
+      "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+      "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+      "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+      "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+      "POST-PILOT HARDENING",
+      "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+      "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+      "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+      "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION"
+    ],
+    "QUEUE_INDEPENDENT": "YES",
+    "RUNTIME_IDENTITY": "0000000000000000000000000000000000000000",
+    "RUNTIME_OWNER": "test",
+    "STATUS": "TEST",
+    "TASKS_COMPLETED": 0,
+    "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+    "UNPROVEN_EDGES": [
+      "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+      "RELEASE - IRREVERSIBLE_HUMAN_ACTION"
+    ],
+    "USER_CONTINUE_MESSAGES": 0,
+    "WORKERS_USED": 0
+  },
+  "revision": 0,
+  "schema_version": 2
+}
+_______________________ test_unknown_halts_with_counters _______________________
+
+tmp_path = PosixPath('/private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/pytest-of-user/pytest-805/test_unknown_halts_with_counte0')
+
+    def test_unknown_halts_with_counters(tmp_path):
+        seed(tmp_path, 3)
+        motor = CannonMotor(tmp_path, behaviors={"t2": "unknown"})
+        motor.start(mode="FINITE", limit=10, cooldown=0)
+        motor.run()
+>       assert motor.state == "ERROR"
+E       AssertionError: assert 'BLOCKED' == 'ERROR'
+E         
+E         - ERROR
+E         + BLOCKED
+
+tests/test_overnight_dauerlauf.py:124: AssertionError
+__________________________ test_import_without_fcntl ___________________________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10cfca070>
+
+    def test_import_without_fcntl(monkeypatch):
+        """Verify that locking modules import cleanly even if fcntl does not exist."""
+        monkeypatch.setitem(sys.modules, "fcntl", None)
+    
+        # Force reimport of target modules to prove no top-level 'import fcntl' crashes
+        modules_to_test = [
+            "scripts.mac_adapter",
+            "app.cannon.mac_launcher",
+            "app.cannon.storage",
+            "scripts.agent_handoff_ledger",
+            "pre_courier_muse.muse_runner",
+        ]
+        for mod_name in modules_to_test:
+            if mod_name in sys.modules:
+                del sys.modules[mod_name]
+>           mod = importlib.import_module(mod_name)
+
+tests/test_portable_lock_winlock.py:44: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+<frozen importlib._bootstrap>:1030: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1007: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:986: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:680: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:850: in exec_module
+    ???
+<frozen importlib._bootstrap>:228: in _call_with_frames_removed
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    """Mac thin adapter over the accepted cannon core. No rewrite, no daemon.
+    
+    Platform-specific surface only:
+      - Mac default state dir (~/.courier/motor, overridable via
+        COURIER_STATE_DIR or explicit argument)
+      - JSON status snapshot for a browser UI to poll (no server bundled here)
+      - CLI verbs mapping 1:1 to CannonMotor controls
+    
+    Core (scripts/cannon_motor.py, scripts/work_queue.py) is imported read-only
+    and never modified by this adapter. stdlib only.
+    """
+    import argparse
+>   import fcntl
+E   ModuleNotFoundError: import of fcntl halted; None in sys.modules
+
+scripts/mac_adapter.py:14: ModuleNotFoundError
+_________________________ test_posix_muse_runner_lock __________________________
+
+tmp_path = PosixPath('/private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/pytest-of-user/pytest-805/test_posix_muse_runner_lock0')
+
+    @pytest.mark.skipif(os.name == "nt", reason="POSIX fcntl test")
+    def test_posix_muse_runner_lock(tmp_path):
+        """Verify muse_runner acquire_lock and release_lock on POSIX."""
+        lock_path = tmp_path / "muse.lock"
+>       fd1 = muse_runner.acquire_lock(lock_path)
+E       AttributeError: module 'pre_courier_muse.muse_runner' has no attribute 'acquire_lock'
+
+tests/test_portable_lock_winlock.py:83: AttributeError
+________________ test_windows_simulation_mac_adapter_supervise _________________
+
+tmp_path = PosixPath('/private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/pytest-of-user/pytest-805/test_windows_simulation_mac_ad0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10cfc0520>
+
+    def test_windows_simulation_mac_adapter_supervise(tmp_path, monkeypatch):
+        """Verify MacAdapter.supervise uses msvcrt.locking on Windows."""
+        mock_os = MagicMock(wraps=os)
+        mock_os.name = "nt"
+        monkeypatch.setattr(mac_adapter, "os", mock_os)
+    
+        mock_msvcrt = MagicMock()
+        mock_msvcrt.LK_NBLCK = 1
+        mock_msvcrt.LK_UNLCK = 2
+        monkeypatch.setitem(sys.modules, "msvcrt", mock_msvcrt)
+    
+        adapter = MacAdapter(tmp_path)
+        res = adapter.supervise(max_cycles=1, start=("begrenzt", 1, 0, True))
+        assert res.get("snapshot", {}).get("invariants", {}).get("MAX_ACTIVE") == 1
+    
+        # Verify msvcrt.locking was called with LK_NBLCK on enter and LK_UNLCK on exit
+        calls = mock_msvcrt.locking.call_args_list
+>       assert any(c[0][1] == mock_msvcrt.LK_NBLCK for c in calls)
+E       assert False
+E        +  where False = any(<generator object test_windows_simulation_mac_adapter_supervise.<locals>.<genexpr> at 0x10b3d5d60>)
+
+tests/test_portable_lock_winlock.py:159: AssertionError
+____________ test_windows_simulation_mac_adapter_supervise_conflict ____________
+
+tmp_path = PosixPath('/private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/pytest-of-user/pytest-805/test_windows_simulation_mac_ad1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10cfc2af0>
+
+    def test_windows_simulation_mac_adapter_supervise_conflict(tmp_path, monkeypatch):
+        """Verify MacAdapter.supervise handles collision gracefully on Windows."""
+        mock_os = MagicMock(wraps=os)
+        mock_os.name = "nt"
+        monkeypatch.setattr(mac_adapter, "os", mock_os)
+    
+        mock_msvcrt = MagicMock()
+        mock_msvcrt.LK_NBLCK = 1
+        mock_msvcrt.locking.side_effect = OSError(13, "Permission denied")
+        monkeypatch.setitem(sys.modules, "msvcrt", mock_msvcrt)
+    
+        adapter = MacAdapter(tmp_path)
+        res = adapter.supervise(max_cycles=1)
+>       assert res == {"started": False, "reason": "supervisor_active"}
+E       AssertionError: assert {'done': 0, '...rted': 0, ...} == {'reason': 's...arted': False}
+E         
+E         Omitting 1 identical items, use -vv to show
+E         Left contains 4 more items:
+E         {'done': 0,
+E          'remaining': None,
+E          'snapshot': {'current_task': None,
+E                       'error': None,...
+E         
+E         ...Full output truncated (34 lines hidden), use '-vv' to show
+
+tests/test_portable_lock_winlock.py:176: AssertionError
+__________________ test_windows_simulation_mac_launcher_main ___________________
+
+tmp_path = PosixPath('/private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/pytest-of-user/pytest-805/test_windows_simulation_mac_la0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10cd72970>
+
+    def test_windows_simulation_mac_launcher_main(tmp_path, monkeypatch):
+        """Verify mac_launcher.main uses msvcrt on Windows."""
+        mock_os = MagicMock(wraps=os)
+        mock_os.name = "nt"
+        monkeypatch.setattr(mac_launcher, "os", mock_os)
+        monkeypatch.setattr(mac_launcher.Path, "home", lambda: tmp_path)
+    
+        mock_msvcrt = MagicMock()
+        mock_msvcrt.LK_NBLCK = 1
+        mock_msvcrt.LK_UNLCK = 2
+        monkeypatch.setitem(sys.modules, "msvcrt", mock_msvcrt)
+        monkeypatch.setattr(mac_launcher, "open_cannon", lambda: 0)
+    
+        res = mac_launcher.main()
+        assert res == 0
+        calls = mock_msvcrt.locking.call_args_list
+>       assert any(c[0][1] == mock_msvcrt.LK_NBLCK for c in calls)
+E       assert False
+E        +  where False = any(<generator object test_windows_simulation_mac_launcher_main.<locals>.<genexpr> at 0x10b309a50>)
+
+tests/test_portable_lock_winlock.py:217: AssertionError
+___________________ test_windows_simulation_muse_runner_lock ___________________
+
+tmp_path = PosixPath('/private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/pytest-of-user/pytest-805/test_windows_simulation_muse_r0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10ce30580>
+
+    def test_windows_simulation_muse_runner_lock(tmp_path, monkeypatch):
+        """Verify muse_runner acquire_lock and release_lock on Windows (sys.platform == 'win32')."""
+        monkeypatch.setattr(muse_runner.sys, "platform", "win32")
+        mock_msvcrt = MagicMock()
+        mock_msvcrt.LK_NBLCK = 1
+        mock_msvcrt.LK_UNLCK = 2
+        monkeypatch.setitem(sys.modules, "msvcrt", mock_msvcrt)
+    
+        lock_path = tmp_path / "muse_win.lock"
+>       fd = muse_runner.acquire_lock(lock_path)
+E       AttributeError: module 'pre_courier_muse.muse_runner' has no attribute 'acquire_lock'
+
+tests/test_portable_lock_winlock.py:230: AttributeError
+_________________________ test_provider_wait_isolation _________________________
+
+client = <FlaskClient <Flask 'server.app'>>
+
+    def test_provider_wait_isolation(client):
+        # Scenario 1: Pool A gets 429.
+>       register_worker(client, "worker-1", "openai")
+
+tests/test_provider_wait_isolation.py:90: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+client = <FlaskClient <Flask 'server.app'>>, worker_id = 'worker-1'
+provider = 'openai'
+
+    def register_worker(client, worker_id, provider):
+        response = client.post("/workers/register", json={
+            "worker_id": worker_id,
+            "provider": provider,
+            "capabilities": [provider, "macos"]
+        }, headers={"Authorization": "Bearer test-key-12345"})
+>       assert response.status_code == 200
+E       assert 401 == 200
+E        +  where 401 = <WrapperTestResponse streamed [401 UNAUTHORIZED]>.status_code
+
+tests/test_provider_wait_isolation.py:50: AssertionError
+----------------------------- Captured stdout call -----------------------------
+Auth fail: Invalid token provided
+____________ test_queue_independence_a_waits_b_executes_c_executes _____________
+
+tmp_path = PosixPath('/private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/pytest-of-user/pytest-805/test_queue_independence_a_wait0')
+
+    def test_queue_independence_a_waits_b_executes_c_executes(tmp_path):
+        marker = tmp_path / "mock_a_called.txt"
+        if marker.exists():
+            marker.unlink()
+    
+        # We want C to become READY after B. So C is dependent, B is independent.
+        # We can use B = PUBLIC DEPLOYMENT (independent) and C = PUBLICATION VERIFICATION (independent but we put it after B)
+        # Wait, all independent edges are executed in parallel if there is no collision!
+        # "C = becomes READY after B". To do this, C must be dependent on B in the same chain!
+        # For example, PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION (B)
+        # PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION (C)
+        # These are sequential in the same chain!
+    
+        # A = EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION
+        ledger_path = setup_ledger(
+            tmp_path,
+                unproven_edges=['EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION',],
+                blocker="NONE",
+                proven_edges=['LEDGER/HANDOFF', 'PR41 ACCEPTANCE', 'RELEASE - SAFE_AUTOMATABLE_PREPARATION', 'RELEASE - IRREVERSIBLE_HUMAN_ACTION', 'PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION', 'PUBLICATION VERIFICATION', 'PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION', 'PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION', 'SALES PACKAGE', 'FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION', 'POST-PILOT HARDENING', 'EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION', 'ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION'],
+        )
+    
+        env = os.environ.copy()
+        env["MOCK_GOAL_ID"] = "QUEUE-INDEPENDENT-TEST"
+        env["MOCK_LEDGER"] = str(ledger_path)
+        env["MOCK_BRANCH"] = "test-branch"
+        env["MOCK_SHA"] = "0000000000000000000000000000000000000000"
+        env["MOCK_WAITING_TASK"] = "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION"
+    
+        # Run the motor in the temp dir so it creates marker there
+        repo_dir = Path(__file__).parent.parent.resolve()
+        script = repo_dir / "tests" / "mock_courier_continue.py"
+    
+        # We run with --run --once?
+        # If we run with --once, it does exactly one loop.
+        # But we want to prove that "queue continues... A is re-evaluated later".
+        # If we do --run with MOCK_SHA, it does 3 iterations (because mock_iters >= 3 break).
+        # In 3 iterations:
+        # Loop 1: A, B evaluated. A fails with WAITING_PROVIDER. B succeeds.
+        # Loop 2: A evaluated again? C evaluated (since B is done). A fails. C succeeds.
+        # Loop 3: A evaluated again. A succeeds (marker >= 2).
+        # Then it finishes!
+        # Let's run it.
+    
+        res = subprocess.run([sys.executable, str(script), "--run"], env=env, cwd=str(tmp_path), capture_output=True, text=True, timeout=30)
+    
+        # Verify A, B, C succeeded
+        with open(ledger_path) as f:
+            data = json.load(f)
+    
+        unproven = data["record"]["UNPROVEN_EDGES"]
+        print(res.stdout)
+        print(res.stderr)
+>       assert "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION" not in unproven
+E       AssertionError: assert 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION' not in ['EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION', 'POST-PILOT HARDENING', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PRE...OMATABLE_PREPARATION', 'FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION', 'PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION', ...]
+
+tests/test_queue_independence.py:126: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{
+  "acceptance_guard": {
+    "acceptance_predicate": {
+      "name": "Global-Stop",
+      "required_results": [
+        "ISSUE_STATE"
+      ],
+      "results": {
+        "ISSUE_STATE": {
+          "evidence_urls": [
+            "https://test.com"
+          ],
+          "observed_value": "NO_FURTHER_ACTION",
+          "status": "UNKNOWN"
+        }
+      },
+      "version": "1.0"
+    },
+    "binding": {
+      "branch": "test-branch",
+      "current_sha": "0000000000000000000000000000000000000000",
+      "runtime_identity": "0000000000000000000000000000000000000000"
+    },
+    "evidence": [
+      {
+        "evidence_sha": "0000000000000000000000000000000000000000",
+        "observed_at": "2026-09-18T22:05:45Z",
+        "producer_id": "producer_1",
+        "reason": "test",
+        "result_sha256": "0000000000000000000000000000000000000000",
+        "runtime_binding": "0000000000000000000000000000000000000000",
+        "source_type": "MACHINE_ARTIFACT",
+        "source_url": "https://test.com",
+        "validity": "VALID",
+        "verifier_id": "verifier_1"
+      }
+    ],
+    "flow": [
+      "EXECUTION",
+      "EVIDENCE",
+      "ACCEPTANCE_GUARD",
+      "LEDGER_TRANSITION",
+      "NEXT_EXECUTABLE_ACTION"
+    ],
+    "transition_state": "PROVISIONAL",
+    "worker_state": "IDLE/YIELDED"
+  },
+  "format": "courier-agent-handoff-ledger",
+  "history": [
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [
+                "https://test.com"
+              ],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "test-branch",
+          "current_sha": "0000000000000000000000000000000000000000",
+          "runtime_identity": "0000000000000000000000000000000000000000"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "0000000000000000000000000000000000000000",
+            "observed_at": "2026-09-18T22:05:45Z",
+            "producer_id": "producer_1",
+            "reason": "test",
+            "result_sha256": "0000000000000000000000000000000000000000",
+            "runtime_binding": "0000000000000000000000000000000000000000",
+            "source_type": "MACHINE_ARTIFACT",
+            "source_url": "https://test.com",
+            "validity": "VALID",
+            "verifier_id": "verifier_1"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "ACTIVE_WRITERS",
+        "BLOCKER_OWNER",
+        "BRANCH",
+        "CLEAN_IDLE",
+        "COLLISION_SCOPE",
+        "CONTINUATION_CHECKPOINT",
+        "CURRENT_SHA",
+        "DUPLICATE_EXTERNAL_EFFECTS",
+        "FIRST_CAUSAL_BLOCKER",
+        "GOAL",
+        "GOALS_SUBMITTED",
+        "LAST_EVIDENCE",
+        "LAST_UPDATED_BY",
+        "MANUAL_PROCESS_RESTARTS",
+        "NEXT_EXECUTABLE_ACTION",
+        "PROJECT",
+        "PROVEN_EDGES",
+        "QUEUE_INDEPENDENT",
+        "RUNTIME_IDENTITY",
+        "RUNTIME_OWNER",
+        "STATUS",
+        "TASKS_COMPLETED",
+        "TEMP_TASK_PROCESSES_AFTER_DONE",
+        "UNPROVEN_EDGES",
+        "USER_CONTINUE_MESSAGES",
+        "WORKERS_USED"
+      ],
+      "entry_sha256": "dc8c890a9f2bddacae3873c61baedb960009d22adeaf26230a24777247ac866d",
+      "operation": "INIT",
+      "previous_entry_sha256": null,
+      "record": {
+        "ACTIVE_WRITERS": [],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "test-branch",
+        "CLEAN_IDLE": "UNKNOWN",
+        "COLLISION_SCOPE": [],
+        "CONTINUATION_CHECKPOINT": "none",
+        "CURRENT_SHA": "0000000000000000000000000000000000000000",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "NONE",
+        "GOAL": "QUEUE-INDEPENDENT-TEST",
+        "GOALS_SUBMITTED": 0,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "test",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "test",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "LEDGER/HANDOFF",
+          "PR41 ACCEPTANCE",
+          "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+          "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLICATION VERIFICATION",
+          "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+          "SALES PACKAGE",
+          "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+          "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+          "POST-PILOT HARDENING",
+          "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION"
+        ],
+        "QUEUE_INDEPENDENT": "YES",
+        "RUNTIME_IDENTITY": "0000000000000000000000000000000000000000",
+        "RUNTIME_OWNER": "test",
+        "STATUS": "TEST",
+        "TASKS_COMPLETED": 0,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 0
+      },
+      "record_sha256": "594da294a6c6fccfad53a874e6909e2a3a0e72d38d1d691d52281eede94a993b",
+      "revision": 0,
+      "state_sha256": "8b90784afdcc2cc485ab0297d287ed85371c311938f74fc069788ebb9a98221f",
+      "timestamp_utc": "2026-09-24T21:37:08Z",
+      "updated_by": "test"
+    }
+  ],
+  "non_authority": "Coordination metadata only; this ledger has no scheduler, runtime, execution, dispatch, verification, or Courier truth authority.",
+  "record": {
+    "ACTIVE_WRITERS": [],
+    "BLOCKER_OWNER": "Human",
+    "BRANCH": "test-branch",
+    "CLEAN_IDLE": "UNKNOWN",
+    "COLLISION_SCOPE": [],
+    "CONTINUATION_CHECKPOINT": "none",
+    "CURRENT_SHA": "0000000000000000000000000000000000000000",
+    "DUPLICATE_EXTERNAL_EFFECTS": 0,
+    "FIRST_CAUSAL_BLOCKER": "NONE",
+    "GOAL": "QUEUE-INDEPENDENT-TEST",
+    "GOALS_SUBMITTED": 0,
+    "LAST_EVIDENCE": [],
+    "LAST_UPDATED_BY": "test",
+    "MANUAL_PROCESS_RESTARTS": 0,
+    "NEXT_EXECUTABLE_ACTION": "test",
+    "PROJECT": "Courier",
+    "PROVEN_EDGES": [
+      "LEDGER/HANDOFF",
+      "PR41 ACCEPTANCE",
+      "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+      "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
+      "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+      "PUBLICATION VERIFICATION",
+      "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+      "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+      "SALES PACKAGE",
+      "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+      "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+      "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+      "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+      "POST-PILOT HARDENING",
+      "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+      "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+      "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION"
+    ],
+    "QUEUE_INDEPENDENT": "YES",
+    "RUNTIME_IDENTITY": "0000000000000000000000000000000000000000",
+    "RUNTIME_OWNER": "test",
+    "STATUS": "TEST",
+    "TASKS_COMPLETED": 0,
+    "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+    "UNPROVEN_EDGES": [
+      "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+      "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION"
+    ],
+    "USER_CONTINUE_MESSAGES": 0,
+    "WORKERS_USED": 0
+  },
+  "revision": 0,
+  "schema_version": 2
+}
+MOCK_LEDGER IN ENV: /private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/pytest-of-user/pytest-805/test_queue_independence_a_wait0/agent_handoff_ledger.json
+USING LEDGER PATH: /private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/pytest-of-user/pytest-805/test_queue_independence_a_wait0/agent_handoff_ledger.json
+CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+
+1790285828.874766 === SUBMITTING TASK: PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION ===
+Executing/Delegating task: Prove edge: PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION
+Automated preparation for PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION completed: validation, payload gen, artifact prep, dry-run, idempotency.
+
+1790285828.875245 === SUBMITTING TASK: EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION ===
+
+Currently running 2 tasks concurrently.
+Executing/Delegating task: Prove edge: EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION
+CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+1790285829.088258 DEBUG: PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION running for 0.2130110263824463 seconds
+1790285829.088284 DEBUG: PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION running for 0.2130110263824463 seconds
+
+1790285829.08832 === FINISHED TASK: PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION ===
+CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+1790285829.092122 DEBUG BUNDLE BEFORE UPDATE_LEDGER for PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION: ['EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION']
+1790285829.0930262 DEBUG UPDATES: {'PROVEN_EDGES': ['LEDGER/HANDOFF', 'PR41 ACCEPTANCE', 'RELEASE - SAFE_AUTOMATABLE_PREPARATION', 'RELEASE - IRREVERSIBLE_HUMAN_ACTION', 'PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION', 'PUBLICATION VERIFICATION', 'PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION', 'PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION', 'SALES PACKAGE', 'FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION', 'POST-PILOT HARDENING', 'EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION', 'ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION'], 'UNPROVEN_EDGES': ['EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION'], 'FIRST_CAUSAL_BLOCKER': 'NONE', 'CLEAN_IDLE': 'NO', 'STATUS': 'READY'}
+1790285829.106144 DEBUG: EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION running for 0.21295690536499023 seconds
+1790285829.1061592 DEBUG: EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION running for 0.21295690536499023 seconds
+
+1790285829.1061802 === FINISHED TASK: EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION ===
+CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+1790285829.1115499 DEBUG BUNDLE BEFORE UPDATE_LEDGER for EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION: ['POST-PILOT HARDENING', 'EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION', 'PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION', 'RELEASE - IRREVERSIBLE_HUMAN_ACTION', 'FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION', 'EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION', 'SALES PACKAGE', 'RELEASE - SAFE_AUTOMATABLE_PREPARATION', 'PUBLICATION VERIFICATION', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION', 'PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION', 'PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION']
+1790285829.111598 DEBUG UPDATES: {'FIRST_CAUSAL_BLOCKER': 'WAITING_PROVIDER_MOCK', 'STATUS': 'BLOCKED', 'CLEAN_IDLE': 'NO'}
+CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+
+1790285829.132679 === SUBMITTING TASK: RELEASE - SAFE_AUTOMATABLE_PREPARATION ===
+
+1790285829.132752 === SUBMITTING TASK: PUBLICATION VERIFICATION ===
+Executing/Delegating task: Prove edge: RELEASE - SAFE_AUTOMATABLE_PREPARATION
+Automated preparation for RELEASE - SAFE_AUTOMATABLE_PREPARATION completed: validation, payload gen, artifact prep, dry-run, idempotency.
+Executing/Delegating task: Prove edge: PUBLICATION VERIFICATION
+PUBLICATION VERIFICATION passed. URL is live and contact is verified.
+
+1790285829.133117 === SUBMITTING TASK: PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION ===
+
+1790285829.133162 === SUBMITTING TASK: SALES PACKAGE ===
+
+1790285829.133185 === SUBMITTING TASK: FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION ===
+Executing/Delegating task: Prove edge: PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION
+Automated preparation for PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION completed: validation, payload gen, artifact prep, dry-run, idempotency.
+Executing/Delegating task: Prove edge: SALES PACKAGE
+Executing/Delegating task: Prove edge: FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION
+Automated preparation for FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION completed: validation, payload gen, artifact prep, dry-run, idempotency.
+
+1790285829.133708 === SUBMITTING TASK: PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION ===
+
+1790285829.133749 === SUBMITTING TASK: POST-PILOT HARDENING ===
+
+1790285829.1337779 === SUBMITTING TASK: ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION ===
+Executing/Delegating task: Prove edge: PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION
+Automated preparation for PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION completed: validation, payload gen, artifact prep, dry-run, idempotency.
+Executing/Delegating task: Prove edge: POST-PILOT HARDENING
+Successfully proved: POST-PILOT HARDENING
+Executing/Delegating task: Prove edge: ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION
+Automated preparation for ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION completed: validation, payload gen, artifact prep, dry-run, idempotency.
+
+Currently running 8 tasks concurrently.
+Successfully proved: SALES PACKAGE
+CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+1790285829.348771 DEBUG: RELEASE - SAFE_AUTOMATABLE_PREPARATION running for 0.21601295471191406 seconds
+1790285829.348788 DEBUG: RELEASE - SAFE_AUTOMATABLE_PREPARATION running for 0.21601295471191406 seconds
+
+1790285829.348809 === FINISHED TASK: RELEASE - SAFE_AUTOMATABLE_PREPARATION ===
+CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+1790285829.3536808 DEBUG BUNDLE BEFORE UPDATE_LEDGER for RELEASE - SAFE_AUTOMATABLE_PREPARATION: ['POST-PILOT HARDENING', 'EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION', 'PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION', 'RELEASE - IRREVERSIBLE_HUMAN_ACTION', 'FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION', 'EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION', 'SALES PACKAGE', 'RELEASE - SAFE_AUTOMATABLE_PREPARATION', 'PUBLICATION VERIFICATION', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION', 'PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION', 'PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION']
+1790285829.3537412 DEBUG UPDATES: {'PROVEN_EDGES': ['LEDGER/HANDOFF', 'PR41 ACCEPTANCE', 'RELEASE - SAFE_AUTOMATABLE_PREPARATION'], 'UNPROVEN_EDGES': ['POST-PILOT HARDENING', 'EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION', 'PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION', 'RELEASE - IRREVERSIBLE_HUMAN_ACTION', 'FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION', 'EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION', 'SALES PACKAGE', 'PUBLICATION VERIFICATION', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION', 'PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION', 'PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION'], 'CLEAN_IDLE': 'NO', 'STATUS': 'BLOCKED'}
+1790285829.369986 DEBUG: PUBLICATION VERIFICATION running for 0.21564817428588867 seconds
+1790285829.370005 DEBUG: PUBLICATION VERIFICATION running for 0.21564817428588867 seconds
+
+1790285829.370034 === FINISHED TASK: PUBLICATION VERIFICATION ===
+CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+1790285829.3764522 DEBUG BUNDLE BEFORE UPDATE_LEDGER for PUBLICATION VERIFICATION: ['POST-PILOT HARDENING', 'EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION', 'PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION', 'RELEASE - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION', 'PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION', 'EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION', 'SALES PACKAGE', 'RELEASE - SAFE_AUTOMATABLE_PREPARATION', 'PUBLICATION VERIFICATION', 'PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION']
+1790285829.376503 DEBUG UPDATES: {'PROVEN_EDGES': ['LEDGER/HANDOFF', 'PR41 ACCEPTANCE', 'PUBLICATION VERIFICATION'], 'UNPROVEN_EDGES': ['POST-PILOT HARDENING', 'EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION', 'PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION', 'RELEASE - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION', 'PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION', 'EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION', 'SALES PACKAGE', 'RELEASE - SAFE_AUTOMATABLE_PREPARATION', 'PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION'], 'CLEAN_IDLE': 'NO', 'STATUS': 'BLOCKED'}
+1790285829.385777 DEBUG: PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION running for 0.21560311317443848 seconds
+1790285829.385809 DEBUG: PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION running for 0.21560311317443848 seconds
+
+1790285829.3858619 === FINISHED TASK: PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION ===
+CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+1790285829.394901 DEBUG BUNDLE BEFORE UPDATE_LEDGER for PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION: ['POST-PILOT HARDENING', 'EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION', 'PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION', 'RELEASE - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION', 'PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION', 'EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION', 'SALES PACKAGE', 'RELEASE - SAFE_AUTOMATABLE_PREPARATION', 'PUBLICATION VERIFICATION', 'PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION']
+1790285829.394967 DEBUG UPDATES: {'PROVEN_EDGES': ['LEDGER/HANDOFF', 'PR41 ACCEPTANCE', 'PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION'], 'UNPROVEN_EDGES': ['POST-PILOT HARDENING', 'EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION', 'PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION', 'RELEASE - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION', 'FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION', 'EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION', 'SALES PACKAGE', 'RELEASE - SAFE_AUTOMATABLE_PREPARATION', 'PUBLICATION VERIFICATION', 'PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION'], 'CLEAN_IDLE': 'NO', 'STATUS': 'BLOCKED'}
+1790285829.4026802 DEBUG: SALES PACKAGE running for 0.21557903289794922 seconds
+1790285829.402694 DEBUG: SALES PACKAGE running for 0.21557903289794922 seconds
+
+1790285829.402713 === FINISHED TASK: SALES PACKAGE ===
+CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+1790285829.408326 DEBUG BUNDLE BEFORE UPDATE_LEDGER for SALES PACKAGE: ['POST-PILOT HARDENING', 'EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION', 'PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION', 'RELEASE - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION', 'PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION', 'EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION', 'SALES PACKAGE', 'RELEASE - SAFE_AUTOMATABLE_PREPARATION', 'PUBLICATION VERIFICATION', 'PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION']
+1790285829.4083788 DEBUG UPDATES: {'PROVEN_EDGES': ['LEDGER/HANDOFF', 'PR41 ACCEPTANCE', 'SALES PACKAGE'], 'UNPROVEN_EDGES': ['POST-PILOT HARDENING', 'EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION', 'PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION', 'RELEASE - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION', 'PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION', 'EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION', 'RELEASE - SAFE_AUTOMATABLE_PREPARATION', 'PUBLICATION VERIFICATION', 'PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION'], 'CLEAN_IDLE': 'NO', 'STATUS': 'BLOCKED'}
+1790285829.418101 DEBUG: FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION running for 0.2150590419769287 seconds
+1790285829.418119 DEBUG: FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION running for 0.2150590419769287 seconds
+
+1790285829.418148 === FINISHED TASK: FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION ===
+CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+1790285829.4243891 DEBUG BUNDLE BEFORE UPDATE_LEDGER for FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION: ['POST-PILOT HARDENING', 'EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION', 'PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION', 'RELEASE - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION', 'PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION', 'EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION', 'SALES PACKAGE', 'RELEASE - SAFE_AUTOMATABLE_PREPARATION', 'PUBLICATION VERIFICATION', 'PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION']
+1790285829.424469 DEBUG UPDATES: {'PROVEN_EDGES': ['LEDGER/HANDOFF', 'PR41 ACCEPTANCE', 'FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION'], 'UNPROVEN_EDGES': ['POST-PILOT HARDENING', 'EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION', 'PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION', 'RELEASE - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION', 'PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION', 'EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION', 'SALES PACKAGE', 'RELEASE - SAFE_AUTOMATABLE_PREPARATION', 'PUBLICATION VERIFICATION', 'PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION'], 'CLEAN_IDLE': 'NO', 'STATUS': 'BLOCKED'}
+1790285829.433929 DEBUG: PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION running for 0.21501612663269043 seconds
+1790285829.433954 DEBUG: PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION running for 0.21501612663269043 seconds
+
+1790285829.43399 === FINISHED TASK: PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION ===
+CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+1790285829.441612 DEBUG BUNDLE BEFORE UPDATE_LEDGER for PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION: ['POST-PILOT HARDENING', 'EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION', 'PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION', 'RELEASE - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION', 'PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION', 'EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION', 'SALES PACKAGE', 'RELEASE - SAFE_AUTOMATABLE_PREPARATION', 'PUBLICATION VERIFICATION', 'PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION']
+1790285829.441699 DEBUG UPDATES: {'PROVEN_EDGES': ['LEDGER/HANDOFF', 'PR41 ACCEPTANCE', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION'], 'UNPROVEN_EDGES': ['POST-PILOT HARDENING', 'EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION', 'PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION', 'RELEASE - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION', 'PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION', 'EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION', 'SALES PACKAGE', 'RELEASE - SAFE_AUTOMATABLE_PREPARATION', 'PUBLICATION VERIFICATION', 'PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION'], 'CLEAN_IDLE': 'NO', 'STATUS': 'BLOCKED'}
+1790285829.450647 DEBUG: POST-PILOT HARDENING running for 0.21498703956604004 seconds
+1790285829.4506612 DEBUG: POST-PILOT HARDENING running for 0.21498703956604004 seconds
+
+1790285829.45068 === FINISHED TASK: POST-PILOT HARDENING ===
+CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+1790285829.4561229 DEBUG BUNDLE BEFORE UPDATE_LEDGER for POST-PILOT HARDENING: ['POST-PILOT HARDENING', 'EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION', 'PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION', 'RELEASE - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION', 'PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION', 'EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION', 'SALES PACKAGE', 'RELEASE - SAFE_AUTOMATABLE_PREPARATION', 'PUBLICATION VERIFICATION', 'PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION']
+1790285829.456161 DEBUG UPDATES: {'PROVEN_EDGES': ['LEDGER/HANDOFF', 'PR41 ACCEPTANCE', 'POST-PILOT HARDENING'], 'UNPROVEN_EDGES': ['EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION', 'PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION', 'RELEASE - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION', 'PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION', 'EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION', 'SALES PACKAGE', 'RELEASE - SAFE_AUTOMATABLE_PREPARATION', 'PUBLICATION VERIFICATION', 'PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION'], 'CLEAN_IDLE': 'NO', 'STATUS': 'BLOCKED'}
+1790285829.4749281 DEBUG: ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION running for 0.2145240306854248 seconds
+1790285829.474944 DEBUG: ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION running for 0.2145240306854248 seconds
+
+1790285829.474966 === FINISHED TASK: ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION ===
+CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+1790285829.48385 DEBUG BUNDLE BEFORE UPDATE_LEDGER for ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION: ['EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION', 'POST-PILOT HARDENING', 'ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION', 'PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION', 'RELEASE - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION', 'PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION', 'EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION', 'SALES PACKAGE', 'RELEASE - SAFE_AUTOMATABLE_PREPARATION', 'PUBLICATION VERIFICATION', 'PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION']
+1790285829.483903 DEBUG UPDATES: {'PROVEN_EDGES': ['LEDGER/HANDOFF', 'PR41 ACCEPTANCE', 'ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION'], 'UNPROVEN_EDGES': ['EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION', 'POST-PILOT HARDENING', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION', 'PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION', 'RELEASE - IRREVERSIBLE_HUMAN_ACTION', 'PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION', 'ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION', 'PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION', 'FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION', 'EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION', 'SALES PACKAGE', 'RELEASE - SAFE_AUTOMATABLE_PREPARATION', 'PUBLICATION VERIFICATION', 'PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION'], 'CLEAN_IDLE': 'NO', 'STATUS': 'BLOCKED'}
+CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+WAITING: No safe, unowned, independent executable tasks exist.
+Blockers: WAITING_PROVIDER_MOCK
+CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+WAITING: No safe, unowned, independent executable tasks exist.
+Blockers: WAITING_PROVIDER_MOCK
+CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+WAITING: No safe, unowned, independent executable tasks exist.
+Blockers: WAITING_PROVIDER_MOCK
+CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+WAITING: No safe, unowned, independent executable tasks exist.
+Blockers: WAITING_PROVIDER_MOCK
+CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+WAITING: No safe, unowned, independent executable tasks exist.
+Blockers: WAITING_PROVIDER_MOCK
+CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+WAITING: No safe, unowned, independent executable tasks exist.
+Blockers: WAITING_PROVIDER_MOCK
+CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+WAITING: No safe, unowned, independent executable tasks exist.
+Blockers: WAITING_PROVIDER_MOCK
+CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+WAITING: No safe, unowned, independent executable tasks exist.
+Blockers: WAITING_PROVIDER_MOCK
+CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+WAITING: No safe, unowned, independent executable tasks exist.
+Blockers: WAITING_PROVIDER_MOCK
+CHECKING FRESHNESS test-branch 0000000000000000000000000000000000000000
+WAITING: No safe, unowned, independent executable tasks exist.
+Blockers: WAITING_PROVIDER_MOCK
+
+
+_________________________ test_restart_resume_torture __________________________
+
+tmp_path = PosixPath('/private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/pytest-of-user/pytest-805/test_restart_resume_torture0')
+
+    def test_restart_resume_torture(tmp_path):
+        torture_task = "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION"
+    
+        # We put everything in proven_edges except our torture_task to isolate it
+        ledger_path = setup_ledger(
+            tmp_path,
+            unproven_edges=[torture_task],
+            blocker="NONE",
+            proven_edges=[
+                'LEDGER/HANDOFF', 'PR41 ACCEPTANCE',
+                'RELEASE - SAFE_AUTOMATABLE_PREPARATION',
+                'RELEASE - IRREVERSIBLE_HUMAN_ACTION', 'PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION',
+                'PUBLICATION VERIFICATION', 'PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION',
+     'PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION',
+                'SALES PACKAGE', 'FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION',
+     'FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION',
+                'PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION',
+    
+                'PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION',
+                'POST-PILOT HARDENING',
+                'EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION',
+                'ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION',
+    
+                'ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION',
+                'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION',
+    ],
+        )
+    
+        env = os.environ.copy()
+        env["MOCK_GOAL_ID"] = "QUEUE-INDEPENDENT-TEST"
+        env["MOCK_LEDGER"] = str(ledger_path)
+        env["MOCK_BRANCH"] = "test-branch"
+        env["MOCK_SHA"] = "0000000000000000000000000000000000000000"
+        env["MOCK_TORTURE_TASK"] = torture_task
+    
+        repo_dir = Path(__file__).parent.parent.resolve()
+        script = repo_dir / "tests" / "mock_courier_continue.py"
+    
+        # Run #1: Motor starts, hits torture task, does step 1, hard crashes (exit 99)
+        res1 = subprocess.run([sys.executable, str(script), "--run"], env=env, cwd=str(tmp_path), capture_output=True, text=True)
+        assert res1.returncode == 99, f"Expected motor to crash with 99, got {res1.returncode}. Output:\n{res1.stdout}\n{res1.stderr}"
+    
+        # Verify checkpoint 1
+        durable_1 = tmp_path / "torture_durable_1.txt"
+        assert durable_1.exists()
+        assert durable_1.read_text() == "X", "Durable step 1 should have exactly one X"
+    
+        state_file = tmp_path / "torture_state.txt"
+        assert state_file.read_text() == "1"
+    
+        # Run #2: Motor restarts. Resume torture task from state 1.
+        res2 = subprocess.run([sys.executable, str(script), "--run"], env=env, cwd=str(tmp_path), capture_output=True, text=True)
+        assert res2.returncode == 0, f"Expected motor to finish successfully, got {res2.returncode}. Output:\n{res2.stdout}\n{res2.stderr}"
+    
+        # Verify step 1 was not replayed
+        assert durable_1.read_text() == "X", "Durable step 1 MUST NOT be replayed (should still be exactly 'X')"
+    
+        # Verify step 2 was completed
+        durable_2 = tmp_path / "torture_durable_2.txt"
+        assert durable_2.exists()
+        assert durable_2.read_text() == "Y", "Durable step 2 should have exactly one Y"
+    
+        assert state_file.read_text() == "2"
+    
+        # Verify task successfully completed in the ledger
+        with open(ledger_path) as f:
+            data = json.load(f)
+    
+        unproven = data["record"]["UNPROVEN_EDGES"]
+>       assert torture_task not in unproven, "Torture task must be removed from unproven edges upon completion"
+E       AssertionError: Torture task must be removed from unproven edges upon completion
+E       assert 'EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION' not in ['PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION', 'PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION'...E_PREPARATION', 'PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION', 'EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION', ...]
+
+tests/test_restart_resume_torture.py:77: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{
+  "acceptance_guard": {
+    "acceptance_predicate": {
+      "name": "Global-Stop",
+      "required_results": [
+        "ISSUE_STATE"
+      ],
+      "results": {
+        "ISSUE_STATE": {
+          "evidence_urls": [
+            "https://test.com"
+          ],
+          "observed_value": "NO_FURTHER_ACTION",
+          "status": "UNKNOWN"
+        }
+      },
+      "version": "1.0"
+    },
+    "binding": {
+      "branch": "test-branch",
+      "current_sha": "0000000000000000000000000000000000000000",
+      "runtime_identity": "0000000000000000000000000000000000000000"
+    },
+    "evidence": [
+      {
+        "evidence_sha": "0000000000000000000000000000000000000000",
+        "observed_at": "2026-09-18T22:05:45Z",
+        "producer_id": "producer_1",
+        "reason": "test",
+        "result_sha256": "0000000000000000000000000000000000000000",
+        "runtime_binding": "0000000000000000000000000000000000000000",
+        "source_type": "MACHINE_ARTIFACT",
+        "source_url": "https://test.com",
+        "validity": "VALID",
+        "verifier_id": "verifier_1"
+      }
+    ],
+    "flow": [
+      "EXECUTION",
+      "EVIDENCE",
+      "ACCEPTANCE_GUARD",
+      "LEDGER_TRANSITION",
+      "NEXT_EXECUTABLE_ACTION"
+    ],
+    "transition_state": "PROVISIONAL",
+    "worker_state": "IDLE/YIELDED"
+  },
+  "format": "courier-agent-handoff-ledger",
+  "history": [
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [
+                "https://test.com"
+              ],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "test-branch",
+          "current_sha": "0000000000000000000000000000000000000000",
+          "runtime_identity": "0000000000000000000000000000000000000000"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "0000000000000000000000000000000000000000",
+            "observed_at": "2026-09-18T22:05:45Z",
+            "producer_id": "producer_1",
+            "reason": "test",
+            "result_sha256": "0000000000000000000000000000000000000000",
+            "runtime_binding": "0000000000000000000000000000000000000000",
+            "source_type": "MACHINE_ARTIFACT",
+            "source_url": "https://test.com",
+            "validity": "VALID",
+            "verifier_id": "verifier_1"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "ACTIVE_WRITERS",
+        "BLOCKER_OWNER",
+        "BRANCH",
+        "CLEAN_IDLE",
+        "COLLISION_SCOPE",
+        "CONTINUATION_CHECKPOINT",
+        "CURRENT_SHA",
+        "DUPLICATE_EXTERNAL_EFFECTS",
+        "FIRST_CAUSAL_BLOCKER",
+        "GOAL",
+        "GOALS_SUBMITTED",
+        "LAST_EVIDENCE",
+        "LAST_UPDATED_BY",
+        "MANUAL_PROCESS_RESTARTS",
+        "NEXT_EXECUTABLE_ACTION",
+        "PROJECT",
+        "PROVEN_EDGES",
+        "QUEUE_INDEPENDENT",
+        "RUNTIME_IDENTITY",
+        "RUNTIME_OWNER",
+        "STATUS",
+        "TASKS_COMPLETED",
+        "TEMP_TASK_PROCESSES_AFTER_DONE",
+        "UNPROVEN_EDGES",
+        "USER_CONTINUE_MESSAGES",
+        "WORKERS_USED"
+      ],
+      "entry_sha256": "84acc5f69e18bc6e5a576e1c9bc237260c337cf83c42c7609f69f1f351dcc6a5",
+      "operation": "INIT",
+      "previous_entry_sha256": null,
+      "record": {
+        "ACTIVE_WRITERS": [],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "test-branch",
+        "CLEAN_IDLE": "UNKNOWN",
+        "COLLISION_SCOPE": [],
+        "CONTINUATION_CHECKPOINT": "none",
+        "CURRENT_SHA": "0000000000000000000000000000000000000000",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "NONE",
+        "GOAL": "QUEUE-INDEPENDENT-TEST",
+        "GOALS_SUBMITTED": 0,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "test",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "test",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "LEDGER/HANDOFF",
+          "PR41 ACCEPTANCE",
+          "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+          "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLICATION VERIFICATION",
+          "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+          "SALES PACKAGE",
+          "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+          "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+          "POST-PILOT HARDENING",
+          "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION"
+        ],
+        "QUEUE_INDEPENDENT": "YES",
+        "RUNTIME_IDENTITY": "0000000000000000000000000000000000000000",
+        "RUNTIME_OWNER": "test",
+        "STATUS": "TEST",
+        "TASKS_COMPLETED": 0,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 0
+      },
+      "record_sha256": "2d5665e0e883b0fc68c05ef8e3d7d3aad9944031e91040a907f6def8d476e8c9",
+      "revision": 0,
+      "state_sha256": "fcc6924907b78fac66c2915146b134c6d3437e3da4b8b5013dbf24f9ca1d91ef",
+      "timestamp_utc": "2026-09-24T21:37:19Z",
+      "updated_by": "test"
+    }
+  ],
+  "non_authority": "Coordination metadata only; this ledger has no scheduler, runtime, execution, dispatch, verification, or Courier truth authority.",
+  "record": {
+    "ACTIVE_WRITERS": [],
+    "BLOCKER_OWNER": "Human",
+    "BRANCH": "test-branch",
+    "CLEAN_IDLE": "UNKNOWN",
+    "COLLISION_SCOPE": [],
+    "CONTINUATION_CHECKPOINT": "none",
+    "CURRENT_SHA": "0000000000000000000000000000000000000000",
+    "DUPLICATE_EXTERNAL_EFFECTS": 0,
+    "FIRST_CAUSAL_BLOCKER": "NONE",
+    "GOAL": "QUEUE-INDEPENDENT-TEST",
+    "GOALS_SUBMITTED": 0,
+    "LAST_EVIDENCE": [],
+    "LAST_UPDATED_BY": "test",
+    "MANUAL_PROCESS_RESTARTS": 0,
+    "NEXT_EXECUTABLE_ACTION": "test",
+    "PROJECT": "Courier",
+    "PROVEN_EDGES": [
+      "LEDGER/HANDOFF",
+      "PR41 ACCEPTANCE",
+      "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+      "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
+      "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+      "PUBLICATION VERIFICATION",
+      "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+      "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+      "SALES PACKAGE",
+      "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+      "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+      "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+      "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+      "POST-PILOT HARDENING",
+      "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+      "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+      "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
+      "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION"
+    ],
+    "QUEUE_INDEPENDENT": "YES",
+    "RUNTIME_IDENTITY": "0000000000000000000000000000000000000000",
+    "RUNTIME_OWNER": "test",
+    "STATUS": "TEST",
+    "TASKS_COMPLETED": 0,
+    "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+    "UNPROVEN_EDGES": [
+      "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION"
+    ],
+    "USER_CONTINUE_MESSAGES": 0,
+    "WORKERS_USED": 0
+  },
+  "revision": 0,
+  "schema_version": 2
+}
+_____ test_cross_worker_reexecution_can_move_mac_record_to_windows_record ______
+
+motor = <FlaskClient <Flask 'server.app'>>
+
+    def test_cross_worker_reexecution_can_move_mac_record_to_windows_record(motor):
+        register(motor, "MAC", ["macos", "shared"], platform="macos")
+        register(motor, "WINDOWS", ["windows", "shared"], platform="windows")
+        submit(motor, [task("portable", required_capabilities=["shared"])])
+    
+        first = claim(motor, "MAC")
+        assert first is not None
+        assert first["worker_id"] == "MAC"
+        first_attempt = first["attempt_id"]
+        first_dispatch = first["dispatch_id"]
+    
+        response = motor.post(
+            "/tasks/result",
+            headers=auth(),
+            json=result_for(
+                first,
+                "MAC",
+                "result-mac-failed",
+                "FAILED",
+                stderr="deterministic pre-effect failure",
+            ),
+        )
+>       assert response.status_code == 200
+E       assert 400 == 200
+E        +  where 400 = <WrapperTestResponse streamed [400 BAD REQUEST]>.status_code
+
+tests/test_routing_acceptance_v1.py:164: AssertionError
+----------------------------- Captured stdout call -----------------------------
+CONTRACT ERROR: result is missing: runtime_identity
+____ test_reconciliation_exposes_next_ready_task_without_manual_state_edit _____
+
+motor = <FlaskClient <Flask 'server.app'>>
+
+    def test_reconciliation_exposes_next_ready_task_without_manual_state_edit(motor):
+        register(motor, "W", ["X"])
+        submit(
+            motor,
+            [
+                task("first", required_capabilities=["X"]),
+                task("second", required_capabilities=["X"]),
+            ],
+        )
+    
+        first = claim(motor, "W")
+        assert first["task_id"] == "first"
+    
+        result_id = "result-first-success"
+        received = motor.post(
+            "/tasks/result",
+            headers=auth(),
+            json=result_for(first, "W", result_id, "SUCCESS"),
+        )
+>       assert received.status_code == 200
+E       assert 400 == 200
+E        +  where 400 = <WrapperTestResponse streamed [400 BAD REQUEST]>.status_code
+
+tests/test_routing_acceptance_v1.py:221: AssertionError
+----------------------------- Captured stdout call -----------------------------
+CONTRACT ERROR: result is missing: runtime_identity
+____________________ test_turbo_queue_integration_api_path _____________________
+
+app_state = <FlaskClient <Flask 'server.app'>>
+
+    def test_turbo_queue_integration_api_path(app_state):
+        import server.app
+        server.app.API_KEY = "test"
+        server.app.VERIFIER_API_KEY = "test_verifier"
+    
+        auth_worker = {"Authorization": "Bearer test"}
+        auth_verifier = {"Authorization": "Bearer test_verifier"}
+    
+        r1 = app_state.post("/workers/register", json={"worker_id": "w1", "capabilities": ["mock"]}, headers=auth_worker)
+        assert r1.status_code == 200
+        w1_id = "w1"
+    
+        r2 = app_state.post("/workers/register", json={"worker_id": "w2", "capabilities": ["mock"]}, headers=auth_worker)
+        assert r2.status_code == 200
+        w2_id = "w2"
+    
+        goal_data = {
+            "goal_text": "Turbo API test",
+            "workflow_plan": [
+                {"task_id": "A2", "target_agent": "mock", "instruction": "Do A2"},
+                {"task_id": "B2", "target_agent": "mock", "instruction": "Do B2"},
+                {"task_id": "C2", "target_agent": "mock", "instruction": "Do C2", "depends_on": ["A2", "B2"]}
+            ]
+        }
+        r = app_state.post("/goals", json=goal_data, headers=auth_worker)
+        assert r.status_code == 200
+    
+        # Claim A2 and B2
+        t1_res = app_state.post("/tasks/claim", json={"worker_id": w1_id}, headers=auth_worker)
+        t1 = t1_res.json.get("task")
+        t2_res = app_state.post("/tasks/claim", json={"worker_id": w2_id}, headers=auth_worker)
+        t2 = t2_res.json.get("task")
+    
+        assert t1 is not None and t2 is not None
+        assert set([t1["task_id"], t2["task_id"]]) == {"A2", "B2"}
+    
+        # Submit Result for t1
+        result_A = {
+            "goal_id": t1["goal_id"],
+            "task_id": t1["task_id"],
+            "attempt_id": t1["attempt_id"],
+            "dispatch_id": t1["dispatch_id"],
+            "execution_ref": t1["execution_ref"],
+            "worker_id": w1_id,
+            "run_id": "r1",
+            "status": "SUCCESS",
+            "artifacts": [],
+            "runtime_identity": t1.get("server_binding")
+        }
+        result_A["result_id"] = f"result-{_canonical_hash(result_A)}"
+        r = app_state.post(f"/tasks/result", json=result_A, headers=auth_worker)
+        assert r.status_code == 200
+    
+        # Submit Result for t2
+        result_B = {
+            "goal_id": t2["goal_id"],
+            "task_id": t2["task_id"],
+            "attempt_id": t2["attempt_id"],
+            "dispatch_id": t2["dispatch_id"],
+            "execution_ref": t2["execution_ref"],
+            "worker_id": w2_id,
+            "run_id": "r2",
+            "status": "SUCCESS",
+            "artifacts": [],
+            "runtime_identity": t2.get("server_binding")
+        }
+        result_B["result_id"] = f"result-{_canonical_hash(result_B)}"
+        r = app_state.post(f"/tasks/result", json=result_B, headers=auth_worker)
+        assert r.status_code == 200
+    
+        # Try an INVALID verify (using producer key instead of verifier key)
+        verify_invalid_payload = {
+            "task_id": t1["task_id"],
+            "verifier_id": "v1",
+            "result_id": "res_A2",
+            "artifacts": [],
+            "verdict": "PASS",
+            "received_runtime_identity": t1.get("server_binding")
+        }
+        r = app_state.post(f"/tasks/verify", json=verify_invalid_payload, headers=auth_worker)
+        assert r.status_code == 401
+        assert "Verifier authority required" in r.json.get("error", "")
+    
+        # Try an INVALID verify (missing runtime identity)
+        verify_missing_runtime = {
+            "task_id": t1["task_id"],
+            "verifier_id": "v1",
+            "result_id": "res_A2",
+            "artifacts": [],
+            "verdict": "PASS"
+        }
+        r = app_state.post(f"/tasks/verify", json=verify_missing_runtime, headers=auth_verifier)
+        assert r.status_code == 400
+>       assert "missing runtime identity" in r.json.get("error", "")
+E       AssertionError: assert 'missing runtime identity' in 'result_id mismatch'
+E        +  where 'result_id mismatch' = <built-in method get of dict object at 0x10d006340>('error', '')
+E        +    where <built-in method get of dict object at 0x10d006340> = {'error': 'result_id mismatch'}.get
+E        +      where {'error': 'result_id mismatch'} = <WrapperTestResponse 31 bytes [400 BAD REQUEST]>.json
+
+tests/test_turbo_queue.py:165: AssertionError
+__________________ test_concurrency_overlap_and_auto_continue __________________
+
+test_server = 'http://localhost:60013'
+
+    def test_concurrency_overlap_and_auto_continue(test_server):
+        auth_worker = {"Authorization": "Bearer test"}
+        auth_verifier = {"Authorization": "Bearer test_verifier"}
+        requests.post(f"{test_server}/workers/register", json={"worker_id": "w1", "capabilities": ["mock"]}, headers=auth_worker)
+        requests.post(f"{test_server}/workers/register", json={"worker_id": "w2", "capabilities": ["mock"]}, headers=auth_worker)
+    
+        requests.post(f"{test_server}/goals", json={
+            "goal_text": "Overlap test",
+            "workflow_plan": [
+                {"task_id": "A", "target_agent": "mock", "instruction": "Do A"},
+                {"task_id": "B", "target_agent": "mock", "instruction": "Do B"},
+                {"task_id": "C", "target_agent": "mock", "instruction": "Do C", "depends_on": ["A", "B"]}
+            ]
+        }, headers=auth_worker)
+    
+        execution_barrier = threading.Barrier(2)
+        completion_events = {"A": threading.Event(), "B": threading.Event(), "C": threading.Event()}
+    
+        exec_times = {}
+        thread_res_ids = {}
+        stop_event = threading.Event()
+    
+        def worker_loop(w_id):
+            while not stop_event.is_set():
+                res = requests.post(f"{test_server}/tasks/claim", json={"worker_id": w_id}, headers=auth_worker)
+                task = res.json().get("task")
+                if task:
+                    tid = task["task_id"]
+                    exec_times[tid] = time.time()
+    
+                    # If A or B, wait at the barrier to prove execution overlap
+                    if tid in ("A", "B"):
+                        execution_barrier.wait(timeout=5.0)
+    
+                    result = {
+                        "goal_id": task["goal_id"], "task_id": tid, "attempt_id": task["attempt_id"],
+                        "dispatch_id": task["dispatch_id"], "execution_ref": task["execution_ref"],
+                        "worker_id": w_id, "run_id": f"run_{tid}", "result_id": f"res_{tid}",
+                        "status": "SUCCESS", "artifacts": []
+                    }
+                    requests.post(f"{test_server}/tasks/result", json=result, headers=auth_worker)
+                    thread_res_ids[tid] = result["result_id"]
+                    completion_events[tid].set()
+                else:
+                    time.sleep(0.1)
+    
+        t1 = threading.Thread(target=worker_loop, args=("w1",))
+        t2 = threading.Thread(target=worker_loop, args=("w2",))
+        t1.start(); t2.start()
+    
+        # Wait for A and B to complete (meaning they both hit the barrier and submitted results)
+        assert completion_events["A"].wait(timeout=5.0)
+        assert completion_events["B"].wait(timeout=5.0)
+    
+        # Prove they overlapped
+        assert "A" in exec_times and "B" in exec_times
+    
+        time.sleep(0.5)
+        assert not completion_events["C"].is_set()
+    
+        # Verify A and B to unlock C
+        import server.app
+        state = server.app.load_state()
+        for tid in ("A", "B"):
+            t_data = state["tasks"][tid]
+            requests.post(f"{test_server}/tasks/verify", json={
+                "task_id": tid, "verifier_id": "v1", "result_id": thread_res_ids[tid],
+                "artifacts": [], "verdict": "PASS", "received_runtime_identity": t_data.get("server_binding")
+            }, headers=auth_verifier)
+    
+        # Duplicate verify shouldn't double-schedule
+        requests.post(f"{test_server}/tasks/verify", json={
+            "task_id": "A", "verifier_id": "v1", "result_id": thread_res_ids["A"],
+            "artifacts": [], "verdict": "PASS", "received_runtime_identity": state["tasks"]["A"].get("server_binding")
+        }, headers=auth_verifier)
+    
+        # Now the worker loops should automatically claim and finish C
+>       assert completion_events["C"].wait(timeout=5.0)
+E       assert False
+E        +  where False = wait(timeout=5.0)
+E        +    where wait = <threading.Event object at 0x10d12eeb0>.wait
+
+tests/test_turbo_queue_concurrency.py:161: AssertionError
+------------------------------ Captured log setup ------------------------------
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:38] "[33mGET / HTTP/1.1[0m" 404 -
+----------------------------- Captured stdout call -----------------------------
+CONTRACT ERROR: result is missing: runtime_identity
+CONTRACT ERROR: result is missing: runtime_identity
+------------------------------ Captured log call -------------------------------
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:38] "POST /workers/register HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:38] "POST /workers/register HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:38] "POST /goals HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:38] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:38] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:38] "[31m[1mPOST /tasks/result HTTP/1.1[0m" 400 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:38] "[31m[1mPOST /tasks/result HTTP/1.1[0m" 400 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:38] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:38] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:38] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:38] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:38] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:38] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:39] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:39] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:39] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:39] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:39] "[31m[1mPOST /tasks/verify HTTP/1.1[0m" 409 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:39] "[31m[1mPOST /tasks/verify HTTP/1.1[0m" 409 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:39] "[31m[1mPOST /tasks/verify HTTP/1.1[0m" 409 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:39] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:39] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:39] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:39] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:39] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:39] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:39] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:39] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:39] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:39] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:39] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:39] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:40] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:40] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:40] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:40] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:40] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:40] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:40] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:40] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:40] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:40] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:40] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:40] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:40] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:40] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:40] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:40] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:40] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:40] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:41] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:41] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:41] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:41] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:41] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:41] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:41] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:41] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:41] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:41] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:41] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:41] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:41] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:41] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:41] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:41] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:41] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:42] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:42] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:42] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:42] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:42] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:42] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:42] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:42] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:42] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:42] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:42] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:42] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:42] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:42] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:42] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:42] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:42] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:43] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:43] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:43] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:43] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:43] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:43] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:43] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:43] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:43] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:43] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:43] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:43] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:43] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:43] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:43] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:43] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:44] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:44] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:44] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:44] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:44] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [24/Sep/2026 23:37:44] "POST /tasks/claim HTTP/1.1" 200 -
+_____________________________ test_windows_torture _____________________________
+
+    def test_windows_torture():
+        with TemporaryDirectory() as tmpdir:
+            state_file = Path(tmpdir) / "central_state.json"
+    
+            server_env = os.environ.copy()
+            server_env["COURIER_STATE_FILE"] = str(state_file)
+            server_env["COURIER_API_KEY"] = "test-key-12345"
+            server_env["COURIER_VERIFIER_API_KEY"] = "test-key-12345"
+            server_env["PYTHONPATH"] = os.path.abspath(".")
+    
+            print("Starting server...")
+            server_proc = subprocess.Popen([sys.executable, "server/app.py"], env=server_env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    
+            # Wait for server
+            server_ready = False
+            for _ in range(20):
+                try:
+                    req = urllib.request.Request(f"{API_URL}/goals", headers=HEADERS)
+                    res = urllib.request.urlopen(req)
+                    if res.status == 200:
+                        server_ready = True
+                        break
+                except urllib.error.HTTPError as e:
+                    if e.code in (200, 401, 404, 405):
+                        server_ready = True
+                        break
+                except Exception:
+                    pass
+                time.sleep(0.5)
+    
+            print("Server ready.")
+            result_marker = None
+            effect_marker = None
+    
+            try:
+                # 1. Create a dummy task manually
+                goal_id = "goal-win-torture"
+                task_id = "task-win-torture-01"
+                payload = {
+                    "goal_text": "Win Torture",
+                    "workflow_plan": [
+                        {"task_id": task_id, "target_agent": "windows", "mode": "NATIVE", "instruction": "echo test"}
+                    ]
+                }
+>               res = urllib.request.urlopen(urllib.request.Request(f"{API_URL}/goals", method="POST", data=json.dumps(payload).encode(), headers=HEADERS))
+
+tests/test_windows_runtime_torture.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/urllib/request.py:214: in urlopen
+    return opener.open(url, data, timeout)
+/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/urllib/request.py:523: in open
+    response = meth(req, response)
+/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/urllib/request.py:632: in http_response
+    response = self.parent.error(
+/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/urllib/request.py:561: in error
+    return self._call_chain(*args)
+/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/urllib/request.py:494: in _call_chain
+    result = func(*args)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <urllib.request.HTTPDefaultErrorHandler object at 0x10cd31880>
+req = <urllib.request.Request object at 0x10d2eef10>
+fp = <http.client.HTTPResponse object at 0x10d2e2190>, code = 401
+msg = 'UNAUTHORIZED', hdrs = <http.client.HTTPMessage object at 0x10d300640>
+
+    def http_error_default(self, req, fp, code, msg, hdrs):
+>       raise HTTPError(req.full_url, code, msg, hdrs, fp)
+E       urllib.error.HTTPError: HTTP Error 401: UNAUTHORIZED
+
+/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/urllib/request.py:641: HTTPError
+----------------------------- Captured stdout call -----------------------------
+Starting server...
+Server ready.
+=========================== short test summary info ============================
+FAILED tests/test_ledger_duplicate_semantics_contract.py::test_ledger_duplicate_semantics_contract
+FAILED tests/test_ledger_freshness_binding_epoch.py::TestLongLivedEpochMutableEvidence::test_evidence_at_47h_qualifies_as_fresh
+FAILED tests/test_motor_dlq04_adversarial.py::test_dlq04_adversarial_drain - ...
+FAILED tests/test_overnight_dauerlauf.py::test_unknown_halts_with_counters - ...
+FAILED tests/test_portable_lock_winlock.py::test_import_without_fcntl - Modul...
+FAILED tests/test_portable_lock_winlock.py::test_posix_muse_runner_lock - Att...
+FAILED tests/test_portable_lock_winlock.py::test_windows_simulation_mac_adapter_supervise
+FAILED tests/test_portable_lock_winlock.py::test_windows_simulation_mac_adapter_supervise_conflict
+FAILED tests/test_portable_lock_winlock.py::test_windows_simulation_mac_launcher_main
+FAILED tests/test_portable_lock_winlock.py::test_windows_simulation_muse_runner_lock
+FAILED tests/test_provider_wait_isolation.py::test_provider_wait_isolation - ...
+FAILED tests/test_queue_independence.py::test_queue_independence_a_waits_b_executes_c_executes
+FAILED tests/test_restart_resume_torture.py::test_restart_resume_torture - As...
+FAILED tests/test_routing_acceptance_v1.py::test_cross_worker_reexecution_can_move_mac_record_to_windows_record
+FAILED tests/test_routing_acceptance_v1.py::test_reconciliation_exposes_next_ready_task_without_manual_state_edit
+FAILED tests/test_turbo_queue.py::test_turbo_queue_integration_api_path - Ass...
+FAILED tests/test_turbo_queue_concurrency.py::test_concurrency_overlap_and_auto_continue
+FAILED tests/test_windows_runtime_torture.py::test_windows_torture - urllib.e...
+18 failed, 647 passed, 2 skipped, 1 deselected, 2 warnings in 324.25s (0:05:24)

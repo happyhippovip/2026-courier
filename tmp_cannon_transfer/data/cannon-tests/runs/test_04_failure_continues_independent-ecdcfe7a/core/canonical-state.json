@@ -1,0 +1,149 @@
+{
+  "schema_version": 2,
+  "goals": {
+    "goal-a715e48b": {
+      "goal_id": "goal-a715e48b",
+      "client_request_id": "bounded-fixture",
+      "goal_text": "Local Cannon fixture",
+      "status": "ACTIVE",
+      "terminal": true,
+      "workflow_plan": [
+        {
+          "artifacts": [
+            "outputs/bad.txt"
+          ],
+          "fake_mode": "FAILURE",
+          "instruction": "Cannon harmless local output: bad",
+          "required_capabilities": [
+            "cannon.fake"
+          ],
+          "target_agent": "windows",
+          "task_id": "bad",
+          "goal_id": "goal-a715e48b",
+          "status": "QUEUED",
+          "attempts": 1,
+          "worker_id": null,
+          "attempt_id": "bad:attempt:1",
+          "dispatch_id": "dispatch-18d179fea41d4aedb82ccb218ac1b707",
+          "execution_ref": "exec-415c0ece498444e5be5256e44d43f38c",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "cannon.fake",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "retry_state": {
+            "execution": 1,
+            "transport": 0,
+            "provider": 0,
+            "verification": 0
+          },
+          "next_retry_at": 1790186712.6144278
+        },
+        {
+          "artifacts": [
+            "outputs/good.txt"
+          ],
+          "instruction": "Cannon harmless local output: good",
+          "required_capabilities": [
+            "cannon.fake"
+          ],
+          "target_agent": "windows",
+          "task_id": "good",
+          "goal_id": "goal-a715e48b",
+          "status": "QUEUED",
+          "attempts": 0
+        }
+      ],
+      "current_step_index": 0
+    }
+  },
+  "tasks": {
+    "bad": {
+      "artifacts": [
+        "outputs/bad.txt"
+      ],
+      "fake_mode": "FAILURE",
+      "instruction": "Cannon harmless local output: bad",
+      "required_capabilities": [
+        "cannon.fake"
+      ],
+      "target_agent": "windows",
+      "task_id": "bad",
+      "goal_id": "goal-a715e48b",
+      "status": "QUEUED",
+      "attempts": 1,
+      "worker_id": null,
+      "attempt_id": "bad:attempt:1",
+      "dispatch_id": "dispatch-18d179fea41d4aedb82ccb218ac1b707",
+      "execution_ref": "exec-415c0ece498444e5be5256e44d43f38c",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "cannon.fake",
+      "last_completed_step": null,
+      "next_action": "RETRY",
+      "blocker": "Deterministic fake failure",
+      "artifact_refs": [],
+      "result": {
+        "stderr": "Deterministic fake failure",
+        "result_id": "result-8cd3e4fc00bca672d5cd43ff93ca9f01eaeb6cba28799028ea7a333a9ad570be",
+        "status": "FAILED",
+        "goal_id": "goal-a715e48b",
+        "artifacts": [],
+        "execution_ref": "exec-415c0ece498444e5be5256e44d43f38c",
+        "attempt_id": "bad:attempt:1",
+        "task_id": "bad",
+        "run_id": "fake-pid-74916",
+        "worker_id": "cannon-fake-1",
+        "dispatch_id": "dispatch-18d179fea41d4aedb82ccb218ac1b707",
+        "received_runtime_identity": "runtime-sha256:905bbb22dfa4a281e69e1979cf6d26469f6eb3a563ff65426056f51a02d6910e",
+        "result_fingerprint": "sha256:3d45c2d3db88e648bc6f9270d4900dac27167341891bbbe38ab4c90d5a1caa5e"
+      },
+      "retry_state": {
+        "execution": 1,
+        "transport": 0,
+        "provider": 0,
+        "verification": 0
+      },
+      "next_retry_at": 1790186712.6144278
+    }
+  },
+  "workers": {
+    "cannon-fake-1": {
+      "worker_id": "cannon-fake-1",
+      "platform": "windows",
+      "capabilities": [
+        "windows",
+        "cannon.fake"
+      ],
+      "authorities": [],
+      "provider": "local-fixture",
+      "capacity_identity": null,
+      "provider_available": true,
+      "capacity_available": true,
+      "last_seen": 1790186710.411198,
+      "available": true,
+      "current_task": null,
+      "cost_class": "free"
+    },
+    "cannon-fake-2": {
+      "worker_id": "cannon-fake-2",
+      "platform": "windows",
+      "capabilities": [
+        "windows",
+        "cannon.fake"
+      ],
+      "authorities": [],
+      "provider": "local-fixture",
+      "capacity_identity": null,
+      "provider_available": true,
+      "capacity_available": true,
+      "last_seen": 1790186710.4004018,
+      "available": true,
+      "current_task": null,
+      "cost_class": "free"
+    }
+  },
+  "resource_owners": {}
+}

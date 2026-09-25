@@ -1,0 +1,14 @@
+{
+  "agent_id": "muse-agent-02",
+  "slot_id": "MUSE-02",
+  "task_id": "canary-task",
+  "scope": "test_scope",
+  "state": "DONE",
+  "last_confirmed_step": "B",
+  "last_result": "Success B",
+  "proof_ref": "artifact.txt",
+  "next_action": "verify",
+  "expected_proof": "artifact containing A and B",
+  "external_effect_state": "B_done",
+  "updated_at": "2026-09-24T15:18:14.288388"
+}

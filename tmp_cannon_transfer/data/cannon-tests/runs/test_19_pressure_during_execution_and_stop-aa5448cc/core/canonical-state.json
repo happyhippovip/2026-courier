@@ -1,0 +1,174 @@
+{
+  "schema_version": 2,
+  "goals": {
+    "goal-223b070a": {
+      "goal_id": "goal-223b070a",
+      "client_request_id": "bounded-fixture",
+      "goal_text": "Local Cannon fixture",
+      "status": "ACTIVE",
+      "terminal": true,
+      "workflow_plan": [
+        {
+          "artifacts": [
+            "outputs/finishes.txt"
+          ],
+          "fake_delay": 0.15,
+          "instruction": "Cannon harmless local output: finishes",
+          "required_capabilities": [
+            "cannon.fake"
+          ],
+          "target_agent": "windows",
+          "task_id": "finishes",
+          "goal_id": "goal-223b070a",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "cannon-fake-1",
+          "attempt_id": "finishes:attempt:1",
+          "dispatch_id": "dispatch-b8f38afce14c472ba909ea93140d7670",
+          "execution_ref": "exec-cdb04494ab704e55ae231fedd582b969",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "cannon.fake",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "verification": {
+            "verifier_id": "VERIFIER-01",
+            "result_id": "result-3d327a0de73454c7cd4b0ce399991914df0359d31cc215b8a2c973ffb2760e07",
+            "verdict": "PASS",
+            "artifacts": [
+              {
+                "path": "outputs/finishes.txt",
+                "sha256": "298bcfde56faa29be29ea74eb6dda62b07bc2b40894730bbcebf32cb74bd302e"
+              }
+            ],
+            "result_fingerprint": "sha256:4138ce1bbb1622955d216e5e5098462f27bf8aa7b3a0a27ece135de99536d807",
+            "received_runtime_identity": "runtime-sha256:905bbb22dfa4a281e69e1979cf6d26469f6eb3a563ff65426056f51a02d6910e",
+            "verified_runtime_identity": "runtime-sha256:905bbb22dfa4a281e69e1979cf6d26469f6eb3a563ff65426056f51a02d6910e",
+            "verified_at": 1790186774.671742
+          }
+        },
+        {
+          "artifacts": [
+            "outputs/not-yet.txt"
+          ],
+          "instruction": "Cannon harmless local output: not-yet",
+          "required_capabilities": [
+            "cannon.fake"
+          ],
+          "target_agent": "windows",
+          "task_id": "not-yet",
+          "goal_id": "goal-223b070a",
+          "status": "QUEUED",
+          "attempts": 0
+        }
+      ],
+      "current_step_index": 0
+    }
+  },
+  "tasks": {
+    "finishes": {
+      "artifacts": [
+        "outputs/finishes.txt"
+      ],
+      "fake_delay": 0.15,
+      "instruction": "Cannon harmless local output: finishes",
+      "required_capabilities": [
+        "cannon.fake"
+      ],
+      "target_agent": "windows",
+      "task_id": "finishes",
+      "goal_id": "goal-223b070a",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "cannon-fake-1",
+      "attempt_id": "finishes:attempt:1",
+      "dispatch_id": "dispatch-b8f38afce14c472ba909ea93140d7670",
+      "execution_ref": "exec-cdb04494ab704e55ae231fedd582b969",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "cannon.fake",
+      "last_completed_step": "finishes",
+      "next_action": null,
+      "blocker": null,
+      "artifact_refs": [
+        {
+          "path": "outputs/finishes.txt",
+          "sha256": "298bcfde56faa29be29ea74eb6dda62b07bc2b40894730bbcebf32cb74bd302e"
+        }
+      ],
+      "result": {
+        "result_id": "result-3d327a0de73454c7cd4b0ce399991914df0359d31cc215b8a2c973ffb2760e07",
+        "status": "SUCCESS",
+        "task_id": "finishes",
+        "artifacts": [
+          {
+            "path": "outputs/finishes.txt",
+            "sha256": "298bcfde56faa29be29ea74eb6dda62b07bc2b40894730bbcebf32cb74bd302e"
+          }
+        ],
+        "execution_ref": "exec-cdb04494ab704e55ae231fedd582b969",
+        "attempt_id": "finishes:attempt:1",
+        "dispatch_id": "dispatch-b8f38afce14c472ba909ea93140d7670",
+        "run_id": "fake-pid-75320",
+        "worker_id": "cannon-fake-1",
+        "goal_id": "goal-223b070a",
+        "received_runtime_identity": "runtime-sha256:905bbb22dfa4a281e69e1979cf6d26469f6eb3a563ff65426056f51a02d6910e",
+        "result_fingerprint": "sha256:4138ce1bbb1622955d216e5e5098462f27bf8aa7b3a0a27ece135de99536d807"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "result-3d327a0de73454c7cd4b0ce399991914df0359d31cc215b8a2c973ffb2760e07",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "outputs/finishes.txt",
+            "sha256": "298bcfde56faa29be29ea74eb6dda62b07bc2b40894730bbcebf32cb74bd302e"
+          }
+        ],
+        "result_fingerprint": "sha256:4138ce1bbb1622955d216e5e5098462f27bf8aa7b3a0a27ece135de99536d807",
+        "received_runtime_identity": "runtime-sha256:905bbb22dfa4a281e69e1979cf6d26469f6eb3a563ff65426056f51a02d6910e",
+        "verified_runtime_identity": "runtime-sha256:905bbb22dfa4a281e69e1979cf6d26469f6eb3a563ff65426056f51a02d6910e",
+        "verified_at": 1790186774.671742
+      }
+    }
+  },
+  "workers": {
+    "cannon-fake-1": {
+      "worker_id": "cannon-fake-1",
+      "platform": "windows",
+      "capabilities": [
+        "windows",
+        "cannon.fake"
+      ],
+      "authorities": [],
+      "provider": "local-fixture",
+      "capacity_identity": null,
+      "provider_available": true,
+      "capacity_available": true,
+      "last_seen": 1790186774.356927,
+      "available": true,
+      "current_task": null,
+      "cost_class": "free"
+    },
+    "cannon-fake-2": {
+      "worker_id": "cannon-fake-2",
+      "platform": "windows",
+      "capabilities": [
+        "windows",
+        "cannon.fake"
+      ],
+      "authorities": [],
+      "provider": "local-fixture",
+      "capacity_identity": null,
+      "provider_available": true,
+      "capacity_available": true,
+      "last_seen": 1790186774.344693,
+      "available": true,
+      "current_task": null,
+      "cost_class": "free"
+    }
+  },
+  "resource_owners": {}
+}

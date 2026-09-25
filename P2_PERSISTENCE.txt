@@ -1,0 +1,7 @@
+PERSISTENCE_PENDING:
+TASK_ID: P2_approve_merge_fix
+SCOPE: Courier Server PR Verification
+RESULT: Modified `server/app.py` `approve_merge` function to reject tasks with a FALSE block if they introduce `requests` instead of `urllib`, or if they modify core security rules (`core-security`, `motor-eligibility`). Resumed Courier loop locally and verified the `TIMEOUT_HUNG_TASK` clears successfully on continuous execution.
+PROOF: Manual verification with `python3 scripts/courier_continue.py --run --once` completed automated edges successfully on current SHA `2fe697ef2b0fbf71a5ce679bc5874e1bc4afa1a5`.
+TARGET_PATH: server/app.py
+NEXT_ACTION: Proceed with Phase 3 (Terminal-Wall physical reboot test)

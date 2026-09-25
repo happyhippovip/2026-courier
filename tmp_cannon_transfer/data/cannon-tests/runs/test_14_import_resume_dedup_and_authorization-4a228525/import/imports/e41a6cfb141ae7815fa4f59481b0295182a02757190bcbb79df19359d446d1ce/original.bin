@@ -1,0 +1,3 @@
+{"id": "one", "kind": "TASK", "task": {"task_id": "import-one", "instruction": "Cannon harmless local output: import-one", "target_agent": "windows", "required_capabilities": ["cannon.fake"], "artifacts": ["outputs/import-one.txt"]}}
+{"id": "note", "text": "do something"}
+{"id": "two", "kind": "TASK", "task": {"task_id": "import-two", "instruction": "Cannon harmless local output: import-two", "target_agent": "windows", "required_capabilities": ["cannon.fake"], "artifacts": ["outputs/import-two.txt"]}}

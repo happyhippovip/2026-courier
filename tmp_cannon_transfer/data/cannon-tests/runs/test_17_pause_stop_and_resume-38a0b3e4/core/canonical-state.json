@@ -1,0 +1,158 @@
+{
+  "schema_version": 2,
+  "goals": {
+    "goal-52bd3e4f": {
+      "goal_id": "goal-52bd3e4f",
+      "client_request_id": "bounded-fixture",
+      "goal_text": "Local Cannon fixture",
+      "status": "DONE",
+      "terminal": true,
+      "workflow_plan": [
+        {
+          "artifacts": [
+            "outputs/paused.txt"
+          ],
+          "instruction": "Cannon harmless local output: paused",
+          "required_capabilities": [
+            "cannon.fake"
+          ],
+          "target_agent": "windows",
+          "task_id": "paused",
+          "goal_id": "goal-52bd3e4f",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "cannon-fake-1",
+          "attempt_id": "paused:attempt:1",
+          "dispatch_id": "dispatch-ca1bcd21074e4c14b1076019d3532f4c",
+          "execution_ref": "exec-d4d1fe169db54a6bada1076d6ad11a6e",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "cannon.fake",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "verification": {
+            "verifier_id": "VERIFIER-01",
+            "result_id": "result-bc9f521041f9e2a5f518246be225cc1257fbea16e1a2d3c9ff2b89818dcd4106",
+            "verdict": "PASS",
+            "artifacts": [
+              {
+                "path": "outputs/paused.txt",
+                "sha256": "d0a1dfe7258b7c18924e2154fa2b7d594656f68263eaa8d9843a6209e7f612c3"
+              }
+            ],
+            "result_fingerprint": "sha256:7ac316848a01aa206ddd3869cbb0eb697597e8e347033386b337059009fd5cf0",
+            "received_runtime_identity": "runtime-sha256:905bbb22dfa4a281e69e1979cf6d26469f6eb3a563ff65426056f51a02d6910e",
+            "verified_runtime_identity": "runtime-sha256:905bbb22dfa4a281e69e1979cf6d26469f6eb3a563ff65426056f51a02d6910e",
+            "verified_at": 1790186728.6544871
+          }
+        }
+      ],
+      "current_step_index": 0
+    }
+  },
+  "tasks": {
+    "paused": {
+      "artifacts": [
+        "outputs/paused.txt"
+      ],
+      "instruction": "Cannon harmless local output: paused",
+      "required_capabilities": [
+        "cannon.fake"
+      ],
+      "target_agent": "windows",
+      "task_id": "paused",
+      "goal_id": "goal-52bd3e4f",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "cannon-fake-1",
+      "attempt_id": "paused:attempt:1",
+      "dispatch_id": "dispatch-ca1bcd21074e4c14b1076019d3532f4c",
+      "execution_ref": "exec-d4d1fe169db54a6bada1076d6ad11a6e",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "cannon.fake",
+      "last_completed_step": "paused",
+      "next_action": null,
+      "blocker": null,
+      "artifact_refs": [
+        {
+          "path": "outputs/paused.txt",
+          "sha256": "d0a1dfe7258b7c18924e2154fa2b7d594656f68263eaa8d9843a6209e7f612c3"
+        }
+      ],
+      "result": {
+        "result_id": "result-bc9f521041f9e2a5f518246be225cc1257fbea16e1a2d3c9ff2b89818dcd4106",
+        "status": "SUCCESS",
+        "goal_id": "goal-52bd3e4f",
+        "artifacts": [
+          {
+            "path": "outputs/paused.txt",
+            "sha256": "d0a1dfe7258b7c18924e2154fa2b7d594656f68263eaa8d9843a6209e7f612c3"
+          }
+        ],
+        "execution_ref": "exec-d4d1fe169db54a6bada1076d6ad11a6e",
+        "attempt_id": "paused:attempt:1",
+        "task_id": "paused",
+        "run_id": "fake-pid-75028",
+        "worker_id": "cannon-fake-1",
+        "dispatch_id": "dispatch-ca1bcd21074e4c14b1076019d3532f4c",
+        "received_runtime_identity": "runtime-sha256:905bbb22dfa4a281e69e1979cf6d26469f6eb3a563ff65426056f51a02d6910e",
+        "result_fingerprint": "sha256:7ac316848a01aa206ddd3869cbb0eb697597e8e347033386b337059009fd5cf0"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "result-bc9f521041f9e2a5f518246be225cc1257fbea16e1a2d3c9ff2b89818dcd4106",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "outputs/paused.txt",
+            "sha256": "d0a1dfe7258b7c18924e2154fa2b7d594656f68263eaa8d9843a6209e7f612c3"
+          }
+        ],
+        "result_fingerprint": "sha256:7ac316848a01aa206ddd3869cbb0eb697597e8e347033386b337059009fd5cf0",
+        "received_runtime_identity": "runtime-sha256:905bbb22dfa4a281e69e1979cf6d26469f6eb3a563ff65426056f51a02d6910e",
+        "verified_runtime_identity": "runtime-sha256:905bbb22dfa4a281e69e1979cf6d26469f6eb3a563ff65426056f51a02d6910e",
+        "verified_at": 1790186728.6544871
+      }
+    }
+  },
+  "workers": {
+    "cannon-fake-1": {
+      "worker_id": "cannon-fake-1",
+      "platform": "windows",
+      "capabilities": [
+        "windows",
+        "cannon.fake"
+      ],
+      "authorities": [],
+      "provider": "local-fixture",
+      "capacity_identity": null,
+      "provider_available": true,
+      "capacity_available": true,
+      "last_seen": 1790186728.450963,
+      "available": true,
+      "current_task": null,
+      "cost_class": "free"
+    },
+    "cannon-fake-2": {
+      "worker_id": "cannon-fake-2",
+      "platform": "windows",
+      "capabilities": [
+        "windows",
+        "cannon.fake"
+      ],
+      "authorities": [],
+      "provider": "local-fixture",
+      "capacity_identity": null,
+      "provider_available": true,
+      "capacity_available": true,
+      "last_seen": 1790186728.423859,
+      "available": true,
+      "current_task": null,
+      "cost_class": "free"
+    }
+  },
+  "resource_owners": {}
+}

@@ -1,0 +1,120 @@
+{
+  "schema_version": 2,
+  "goals": {
+    "goal-2c59fc5a": {
+      "goal_id": "goal-2c59fc5a",
+      "client_request_id": "bounded-fixture",
+      "goal_text": "Local Cannon fixture",
+      "status": "ACTIVE",
+      "terminal": true,
+      "workflow_plan": [
+        {
+          "artifacts": [
+            "outputs/malformed.txt"
+          ],
+          "fake_mode": "MALFORMED_RESULT",
+          "instruction": "Cannon harmless local output: malformed",
+          "required_capabilities": [
+            "cannon.fake"
+          ],
+          "target_agent": "windows",
+          "task_id": "malformed",
+          "goal_id": "goal-2c59fc5a",
+          "status": "DISPATCHED",
+          "attempts": 1,
+          "worker_id": "cannon-fake-1",
+          "attempt_id": "malformed:attempt:1",
+          "dispatch_id": "dispatch-4f95f160588a438fb63075cff9a6e625",
+          "execution_ref": "exec-0cf626e0b9b04765b2b78db93fa2e29f",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "cannon.fake",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": []
+        },
+        {
+          "artifacts": [
+            "outputs/not-started.txt"
+          ],
+          "instruction": "Cannon harmless local output: not-started",
+          "required_capabilities": [
+            "cannon.fake"
+          ],
+          "target_agent": "windows",
+          "task_id": "not-started",
+          "goal_id": "goal-2c59fc5a",
+          "status": "QUEUED",
+          "attempts": 0
+        }
+      ],
+      "current_step_index": 0
+    }
+  },
+  "tasks": {
+    "malformed": {
+      "artifacts": [
+        "outputs/malformed.txt"
+      ],
+      "fake_mode": "MALFORMED_RESULT",
+      "instruction": "Cannon harmless local output: malformed",
+      "required_capabilities": [
+        "cannon.fake"
+      ],
+      "target_agent": "windows",
+      "task_id": "malformed",
+      "goal_id": "goal-2c59fc5a",
+      "status": "DISPATCHED",
+      "attempts": 1,
+      "worker_id": "cannon-fake-1",
+      "attempt_id": "malformed:attempt:1",
+      "dispatch_id": "dispatch-4f95f160588a438fb63075cff9a6e625",
+      "execution_ref": "exec-0cf626e0b9b04765b2b78db93fa2e29f",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "cannon.fake",
+      "last_completed_step": null,
+      "next_action": "EXECUTE",
+      "blocker": null,
+      "artifact_refs": []
+    }
+  },
+  "workers": {
+    "cannon-fake-1": {
+      "worker_id": "cannon-fake-1",
+      "platform": "windows",
+      "capabilities": [
+        "windows",
+        "cannon.fake"
+      ],
+      "authorities": [],
+      "provider": "local-fixture",
+      "capacity_identity": null,
+      "provider_available": true,
+      "capacity_available": true,
+      "last_seen": 1790186711.271845,
+      "available": false,
+      "current_task": "malformed",
+      "cost_class": "free"
+    },
+    "cannon-fake-2": {
+      "worker_id": "cannon-fake-2",
+      "platform": "windows",
+      "capabilities": [
+        "windows",
+        "cannon.fake"
+      ],
+      "authorities": [],
+      "provider": "local-fixture",
+      "capacity_identity": null,
+      "provider_available": true,
+      "capacity_available": true,
+      "last_seen": 1790186711.260224,
+      "available": true,
+      "current_task": null,
+      "cost_class": "free"
+    }
+  },
+  "resource_owners": {}
+}

@@ -1,0 +1,79 @@
+BRIEFING — WAS WIR HIER TUN (komplett lesen, gilt für alle folgenden Aufträge)
+
+WER UND WAS
+Ich bin Dennis. Wir bauen Courier (auch Courier Symphony): ein System,
+in dem mehrere Agenten Aufgaben selbstständig übernehmen, ausführen,
+prüfen und ihren tatsächlichen Zustand belegen.
+Repository: happyhippovip/2026-courier (öffentlich). Integrationsbranch: release-candidate-integration.
+
+WIE WIR ARBEITEN
+Mehrere KI-Modelle arbeiten parallel mit festen Rollen. Alle Antworten
+sammle ich in einem Vergleichs-Chat und prüfe sie dort gegeneinander,
+gegen Git und gegen Tests. Du wirst also nicht geglaubt, sondern kontrolliert.
+
+ROLLEN
+- Google: einziger Schreiber für Ledger, Guard und Motor im Repo.
+- Muse: Cannon-Steuerung, Oberfläche, Tests und Gegenbeispiele. Es gibt nur EINEN Cannon-Schreiber;
+  welche Instanz (Mac oder Windows, Ordner Muse New 2026) schreibt, steht im Auftrag.
+  Muse schreibt nicht in Googles Bereich.
+- Codex: unabhängiger Reviewer. Baut nichts, prüft vollständige Pakete.
+- ChatGPT: Koordination, keine Autorität über den Repo-Zustand.
+- Vergleichs-Chat (Claude): sammelt und vergleicht Antworten, schreibt nie ins Repo, keine Runtime-Autorität.
+  Lesen darf er nur, was Dennis ihm freigibt.
+- Dennis: entscheidet über Geld, Veröffentlichung, Verträge, Zugangsdaten, Merges sowie AWS- und Sicherheitseinstellungen.
+
+GRUNDREGELN
+0. SHA-MISMATCH = HARD STOP. Erwartet werden immer Branch UND SHA (steht im Auftrag). Vor jeder schreibenden Aktion
+   muss dein HEAD der START_SHA oder dein eigener letzter Commit sein und der Remote-Branch unverändert
+   (git ls-remote ändert lokal nichts). Sonst: nichts schreiben, nichts committen, nichts pushen, nichts reparieren,
+   nur lesen und melden: STATE_MISMATCH / EXPECTED_SHA / ACTUAL_SHA / BRANCH / ACTION: STOPPED — NO CHANGES MADE
+1. Kette der Wahrheit: echtes Ereignis, dauerhafter Zustand, Beleg, unabhängige Prüfung,
+   SHA- und Laufzeit-Check, Freigabe, Ledger zuletzt.
+2. Kein Beleg, kein PASS. Beleg = Befehl, Ausgabe, Exit-Code, SHA.
+   Lob, Zustimmung und Selbstauskünfte sind keine Belege.
+3. Markiere Aussagen als BELEGT, BEHAUPTET oder VERMUTET.
+   Weißt du etwas nicht: UNKNOWN. Raten ist ein Fehler.
+4. Ein Schreiber pro Ordner. Bei Konflikt: OWNERSHIP_CONFLICT melden und
+   einen anderen unabhängigen Punkt bearbeiten.
+5. Kein git reset --hard, kein Force Push, kein blindes clean.
+   Fremde Änderungen nie überschreiben, keine Tests entfernen,
+   keine fremden Prozesse beenden.
+6. Alte SHAs, Checkpoints und frühere PASS-Meldungen sind nur Hinweise.
+   Prüfe zuerst den aktuellen Stand.
+7. Lokal oder Fake ist nicht live. Ein Mac-Test ist kein Windows-Nachweis.
+   Kein "Fake Green".
+8. Geld, Veröffentlichung, Kundenkontakt, Zugangsdaten, AWS- und Sicherheitseinstellungen:
+   nur mit Freigabe von Dennis.
+
+STAND (Übergabe vom 20.09. plus Lesung von Claude am 21.09. um ca. 05:10 MESZ; prüfe selbst)
+- origin/release-candidate-integration: 71b3dc06749b6b9d8ac62834813c8b71aa842249
+  (von Claude per git ls-remote bestätigt, BELEGT). main: 3e2fe24d6dc59d7613aec9d1099695f5520c4733.
+- Auf dem Mac liegen 16 lokale Commits vom 19.09. über diesem HEAD. Auf GitHub sind sie als Branch
+  known-good/1-10-working-2026-09-19 und als Tag courier-1-10-working-2026-09-19 (beide 6ca172ac…) gesichert.
+  Einer berührt Googles Bereich. Details stehen im Auftrag.
+- Offene Befunde an Google: widersprüchliches Duplikat in task_result(), verlorene ThreadPool-Slots im Motor,
+  INIT-Evidence-Laundering im Ledger, Provider-Lock blockiert unabhängige Arbeit.
+- Muse: lokaler Cannon-Dauerlauf mit Fake-Ausführung, Live-Muse unbewiesen.
+  Offen laut Dennis: Live-Ansicht, Logo, Start/Stop, Modulfehler "cannon".
+- Windows-Abnahme steht aus. PR39 ist Draft und wird nicht gemergt (auch PR42, PR43, PR45 nicht).
+- Nur Idee, kein Auftrag: Community mit X-Login, Raid-Gruppen, Zahlungen.
+
+WIE DEINE ANTWORT GEPRÜFT WIRD
+Gleicher Stand (Branch, START_SHA, END_SHA), Beleg je PASS, Widersprüche zu anderen Modellen,
+Scope und Ownership, Git- und Prozess-Sicherheit, ehrliche Einstufung (lokal oder live).
+
+ANTWORTFORMAT
+STAND: Branch, START_SHA, END_SHA
+ERLEDIGT (belegt): Punkt, Beleg
+NICHT ERLEDIGT: Punkt, Grund
+UNKNOWN: Punkt, was fehlt
+GEÄNDERTE DATEIEN:
+TESTS: Befehl, Exit-Code, Ergebnis
+NÄCHSTER SCHRITT:
+
+JETZT
+Dies ist eine ausdrücklich begrenzte Sitzung im Sinne von .agents/rules/00-courier-autonomy.md: Auf den Auftrag
+zu warten ist ein gültiger Stop-Grund (HUMAN_REQUIRED). Arbeite jetzt nicht selbstständig weiter, ändere nichts
+und starte nichts.
+Bestätige in höchstens 6 Zeilen: deine Rolle, dein erlaubter Bereich, was du nicht darfst und wie du antwortest.
+Warte dann auf den Auftrag.

@@ -1,0 +1,239 @@
+__________________ test_concurrency_overlap_and_auto_continue __________________
+
+test_server = 'http://localhost:50622'
+
+    def test_concurrency_overlap_and_auto_continue(test_server):
+        auth_worker = {"Authorization": "Bearer test"}
+        auth_verifier = {"Authorization": "Bearer test_verifier"}
+        requests.post(f"{test_server}/workers/register", json={"worker_id": "w1", "capabilities": ["mock"]}, headers=auth_worker)
+        requests.post(f"{test_server}/workers/register", json={"worker_id": "w2", "capabilities": ["mock"]}, headers=auth_worker)
+    
+        requests.post(f"{test_server}/goals", json={
+            "goal_text": "Overlap test",
+            "workflow_plan": [
+                {"task_id": "A", "target_agent": "mock", "instruction": "Do A"},
+                {"task_id": "B", "target_agent": "mock", "instruction": "Do B"},
+                {"task_id": "C", "target_agent": "mock", "instruction": "Do C", "depends_on": ["A", "B"]}
+            ]
+        }, headers=auth_worker)
+    
+        execution_barrier = threading.Barrier(2)
+        completion_events = {"A": threading.Event(), "B": threading.Event(), "C": threading.Event()}
+    
+        exec_times = {}
+        stop_event = threading.Event()
+    
+        def worker_loop(w_id):
+            while not stop_event.is_set():
+                res = requests.post(f"{test_server}/tasks/claim", json={"worker_id": w_id}, headers=auth_worker)
+                task = res.json().get("task")
+                if task:
+                    tid = task["task_id"]
+                    exec_times[tid] = time.time()
+    
+                    # If A or B, wait at the barrier to prove execution overlap
+                    if tid in ("A", "B"):
+                        execution_barrier.wait(timeout=5.0)
+    
+                    result = {
+                        "goal_id": task["goal_id"], "task_id": tid, "attempt_id": task["attempt_id"],
+                        "dispatch_id": task["dispatch_id"], "execution_ref": task["execution_ref"],
+                        "worker_id": w_id, "run_id": f"run_{tid}", "result_id": f"res_{tid}", "runtime_identity": task.get("server_binding"),
+                        "status": "SUCCESS", "artifacts": []
+                    }
+                    result["result_id"] = f"result-{_canonical_hash(result)}"; r = requests.post(f"{test_server}/tasks/result", json=result, headers=auth_worker); assert r.status_code == 200, r.text
+                    completion_events[tid].set()
+                else:
+                    time.sleep(0.1)
+    
+        t1 = threading.Thread(target=worker_loop, args=("w1",))
+        t2 = threading.Thread(target=worker_loop, args=("w2",))
+        t1.start(); t2.start()
+    
+        # Wait for A and B to complete (meaning they both hit the barrier and submitted results)
+        assert completion_events["A"].wait(timeout=5.0)
+        assert completion_events["B"].wait(timeout=5.0)
+    
+        # Prove they overlapped
+        assert "A" in exec_times and "B" in exec_times
+    
+        time.sleep(0.5)
+        assert not completion_events["C"].is_set()
+    
+        # Verify A and B to unlock C
+        import server.app
+        state = server.app.load_state()
+        for tid in ("A", "B"):
+            t_data = state["tasks"][tid]
+            requests.post(f"{test_server}/tasks/verify", json={
+>               "task_id": tid, "verifier_id": "v1", "result_id": state["res_ids"][tid],
+                "artifacts": [], "verdict": "PASS", "received_runtime_identity": t_data.get("server_binding")
+            }, headers=auth_verifier)
+E           KeyError: 'res_ids'
+
+tests/test_turbo_queue_concurrency.py:148: KeyError
+------------------------------ Captured log setup ------------------------------
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [22/Sep/2026 18:12:21] "GET / HTTP/1.1" 404 -
+------------------------------ Captured log call -------------------------------
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [22/Sep/2026 18:12:21] "POST /workers/register HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [22/Sep/2026 18:12:21] "POST /workers/register HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [22/Sep/2026 18:12:21] "POST /goals HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [22/Sep/2026 18:12:21] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [22/Sep/2026 18:12:21] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [22/Sep/2026 18:12:21] "POST /tasks/result HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [22/Sep/2026 18:12:21] "POST /tasks/result HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [22/Sep/2026 18:12:21] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [22/Sep/2026 18:12:21] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [22/Sep/2026 18:12:22] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [22/Sep/2026 18:12:22] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [22/Sep/2026 18:12:22] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [22/Sep/2026 18:12:22] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [22/Sep/2026 18:12:22] "POST /tasks/claim HTTP/1.1" 200 -
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [22/Sep/2026 18:12:22] "POST /tasks/claim HTTP/1.1" 200 -
+---------------------------- Captured log teardown -----------------------------
+INFO     werkzeug:_internal.py:97 127.0.0.1 - - [22/Sep/2026 18:12:22] "POST /tasks/claim HTTP/1.1" 200 -
+=========================== short test summary info ============================
+FAILED tests/test_turbo_queue_concurrency.py::test_concurrency_overlap_and_auto_continue
+========================= 1 failed, 3 passed in 2.31s ==========================
+/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/_pytest/threadexception.py:58: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-6
+
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/urllib3/connection.py", line 174, in _new_conn
+    conn = connection.create_connection(
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/urllib3/util/connection.py", line 95, in create_connection
+    raise err
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/urllib3/util/connection.py", line 85, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [Errno 61] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/urllib3/connectionpool.py", line 716, in urlopen
+    httplib_response = self._make_request(
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/urllib3/connectionpool.py", line 416, in _make_request
+    conn.request(method, url, **httplib_request_kw)
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/urllib3/connection.py", line 244, in request
+    super(HTTPConnection, self).request(method, url, body=body, headers=headers)
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/http/client.py", line 1285, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/http/client.py", line 1331, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/http/client.py", line 1280, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/http/client.py", line 1040, in _send_output
+    self.send(msg)
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/http/client.py", line 980, in send
+    self.connect()
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/urllib3/connection.py", line 205, in connect
+    conn = self._new_conn()
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/urllib3/connection.py", line 186, in _new_conn
+    raise NewConnectionError(
+urllib3.exceptions.NewConnectionError: <urllib3.connection.HTTPConnection object at 0x10a942880>: Failed to establish a new connection: [Errno 61] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/requests/adapters.py", line 440, in send
+    resp = conn.urlopen(
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/urllib3/connectionpool.py", line 802, in urlopen
+    retries = retries.increment(
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/urllib3/util/retry.py", line 594, in increment
+    raise MaxRetryError(_pool, url, error or ResponseError(cause))
+urllib3.exceptions.MaxRetryError: HTTPConnectionPool(host='localhost', port=50622): Max retries exceeded with url: /tasks/claim (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x10a942880>: Failed to establish a new connection: [Errno 61] Connection refused'))
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/Users/user/Downloads/2026-courier/tests/test_turbo_queue_concurrency.py", line 107, in worker_loop
+    res = requests.post(f"{test_server}/tasks/claim", json={"worker_id": w_id}, headers=auth_worker)
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/requests/api.py", line 117, in post
+    return request('post', url, data=data, json=json, **kwargs)
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/requests/api.py", line 61, in request
+    return session.request(method=method, url=url, **kwargs)
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/requests/sessions.py", line 529, in request
+    resp = self.send(prep, **send_kwargs)
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/requests/sessions.py", line 645, in send
+    r = adapter.send(request, **kwargs)
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/requests/adapters.py", line 519, in send
+    raise ConnectionError(e, request=request)
+requests.exceptions.ConnectionError: HTTPConnectionPool(host='localhost', port=50622): Max retries exceeded with url: /tasks/claim (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x10a942880>: Failed to establish a new connection: [Errno 61] Connection refused'))
+
+Enable tracemalloc to get traceback where the object was allocated.
+See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+  warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/_pytest/threadexception.py:58: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-5
+
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/urllib3/connection.py", line 174, in _new_conn
+    conn = connection.create_connection(
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/urllib3/util/connection.py", line 95, in create_connection
+    raise err
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/urllib3/util/connection.py", line 85, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [Errno 61] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/urllib3/connectionpool.py", line 716, in urlopen
+    httplib_response = self._make_request(
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/urllib3/connectionpool.py", line 416, in _make_request
+    conn.request(method, url, **httplib_request_kw)
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/urllib3/connection.py", line 244, in request
+    super(HTTPConnection, self).request(method, url, body=body, headers=headers)
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/http/client.py", line 1285, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/http/client.py", line 1331, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/http/client.py", line 1280, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/http/client.py", line 1040, in _send_output
+    self.send(msg)
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/http/client.py", line 980, in send
+    self.connect()
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/urllib3/connection.py", line 205, in connect
+    conn = self._new_conn()
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/urllib3/connection.py", line 186, in _new_conn
+    raise NewConnectionError(
+urllib3.exceptions.NewConnectionError: <urllib3.connection.HTTPConnection object at 0x109c68130>: Failed to establish a new connection: [Errno 61] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/requests/adapters.py", line 440, in send
+    resp = conn.urlopen(
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/urllib3/connectionpool.py", line 802, in urlopen
+    retries = retries.increment(
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/urllib3/util/retry.py", line 594, in increment
+    raise MaxRetryError(_pool, url, error or ResponseError(cause))
+urllib3.exceptions.MaxRetryError: HTTPConnectionPool(host='localhost', port=50622): Max retries exceeded with url: /tasks/claim (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x109c68130>: Failed to establish a new connection: [Errno 61] Connection refused'))
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/Users/user/Downloads/2026-courier/tests/test_turbo_queue_concurrency.py", line 107, in worker_loop
+    res = requests.post(f"{test_server}/tasks/claim", json={"worker_id": w_id}, headers=auth_worker)
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/requests/api.py", line 117, in post
+    return request('post', url, data=data, json=json, **kwargs)
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/requests/api.py", line 61, in request
+    return session.request(method=method, url=url, **kwargs)
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/requests/sessions.py", line 529, in request
+    resp = self.send(prep, **send_kwargs)
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/requests/sessions.py", line 645, in send
+    r = adapter.send(request, **kwargs)
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/requests/adapters.py", line 519, in send
+    raise ConnectionError(e, request=request)
+requests.exceptions.ConnectionError: HTTPConnectionPool(host='localhost', port=50622): Max retries exceeded with url: /tasks/claim (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x109c68130>: Failed to establish a new connection: [Errno 61] Connection refused'))
+
+Enable tracemalloc to get traceback where the object was allocated.
+See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+  warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))

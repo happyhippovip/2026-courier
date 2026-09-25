@@ -1,0 +1,137 @@
+{
+  "schema_version": 2,
+  "goals": {
+    "goal-3dea4d4c": {
+      "goal_id": "goal-3dea4d4c",
+      "client_request_id": "bounded-fixture",
+      "goal_text": "Local Cannon fixture",
+      "status": "ACTIVE",
+      "terminal": true,
+      "workflow_plan": [
+        {
+          "artifacts": [
+            "outputs/delay.txt"
+          ],
+          "fake_delay": 0.3,
+          "fake_mode": "DELAYED_RESULT",
+          "instruction": "Cannon harmless local output: delay",
+          "required_capabilities": [
+            "cannon.fake"
+          ],
+          "target_agent": "windows",
+          "task_id": "delay",
+          "goal_id": "goal-3dea4d4c",
+          "status": "QUEUED",
+          "attempts": 1,
+          "worker_id": null,
+          "attempt_id": "delay:attempt:1",
+          "dispatch_id": "dispatch-e824831777064f0381f69bb48d5bfd4f",
+          "execution_ref": "exec-1af63b0a2ac24541857388335c048d7c",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "cannon.fake",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "retry_state": {
+            "execution": 1,
+            "transport": 0,
+            "provider": 0,
+            "verification": 0
+          },
+          "next_retry_at": 1790203996.955783
+        }
+      ],
+      "current_step_index": 0
+    }
+  },
+  "tasks": {
+    "delay": {
+      "artifacts": [
+        "outputs/delay.txt"
+      ],
+      "fake_delay": 0.3,
+      "fake_mode": "DELAYED_RESULT",
+      "instruction": "Cannon harmless local output: delay",
+      "required_capabilities": [
+        "cannon.fake"
+      ],
+      "target_agent": "windows",
+      "task_id": "delay",
+      "goal_id": "goal-3dea4d4c",
+      "status": "QUEUED",
+      "attempts": 1,
+      "worker_id": null,
+      "attempt_id": "delay:attempt:1",
+      "dispatch_id": "dispatch-e824831777064f0381f69bb48d5bfd4f",
+      "execution_ref": "exec-1af63b0a2ac24541857388335c048d7c",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "cannon.fake",
+      "last_completed_step": null,
+      "next_action": "RETRY",
+      "blocker": "Fake worker: cancelled",
+      "artifact_refs": [],
+      "result": {
+        "worker_id": "cannon-fake-1",
+        "dispatch_id": "dispatch-e824831777064f0381f69bb48d5bfd4f",
+        "status": "FAILED",
+        "attempt_id": "delay:attempt:1",
+        "stderr": "Fake worker: cancelled",
+        "run_id": "fake-pid-41525",
+        "execution_ref": "exec-1af63b0a2ac24541857388335c048d7c",
+        "goal_id": "goal-3dea4d4c",
+        "task_id": "delay",
+        "result_id": "result-a6107c9aed8cfc15826ee3171e2172d5a214bdae4b5136fb0ca82e966437caab",
+        "artifacts": [],
+        "received_runtime_identity": "runtime-sha256:6a92e672c6a935df7555a8e0ea2ab5569be9dacbd7a38b15488490222a8c102b",
+        "result_fingerprint": "sha256:2b47caa96754706092801d16f07edfeafaef4cefd1c8216cdddbabd18f9be8ef"
+      },
+      "retry_state": {
+        "execution": 1,
+        "transport": 0,
+        "provider": 0,
+        "verification": 0
+      },
+      "next_retry_at": 1790203996.955783
+    }
+  },
+  "workers": {
+    "cannon-fake-1": {
+      "worker_id": "cannon-fake-1",
+      "platform": "windows",
+      "capabilities": [
+        "windows",
+        "cannon.fake"
+      ],
+      "authorities": [],
+      "provider": "local-fixture",
+      "capacity_identity": null,
+      "provider_available": true,
+      "capacity_available": true,
+      "last_seen": 1790203988.1452,
+      "available": true,
+      "current_task": null,
+      "cost_class": "free"
+    },
+    "cannon-fake-2": {
+      "worker_id": "cannon-fake-2",
+      "platform": "windows",
+      "capabilities": [
+        "windows",
+        "cannon.fake"
+      ],
+      "authorities": [],
+      "provider": "local-fixture",
+      "capacity_identity": null,
+      "provider_available": true,
+      "capacity_available": true,
+      "last_seen": 1790203984.937908,
+      "available": true,
+      "current_task": null,
+      "cost_class": "free"
+    }
+  },
+  "resource_owners": {}
+}

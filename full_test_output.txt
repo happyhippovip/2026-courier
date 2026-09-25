@@ -1,0 +1,413 @@
+...................................................F.................... [ 10%]
+.....................................................ss........F........ [ 21%]
+.....FF.......F......................................................... [ 32%]
+........................................................................ [ 43%]
+................................................................F.F..... [ 53%]
+..............F......................................................... [ 64%]
+...F.........................F.......................................... [ 75%]
+........................................................................ [ 86%]
+........................................................................ [ 97%]
+...................                                                      [100%]
+=================================== FAILURES ===================================
+______________________ test_zero_chat_auto_replenishment _______________________
+
+    def test_zero_chat_auto_replenishment():
+        # 1. Create a Goal that triggers the mocked Auto-Replenishment
+        payload = {
+            "goal_id": "goal-replenish-test",
+            "goal_text": "REPLENISHMENT_TEST",
+            "terminal": False
+        }
+    
+        res = http_post("/goals", payload)
+        assert res.get("status") in ["ACTIVE", "created", "updated"]
+        actual_goal_id = res.get("goal_id", "goal-replenish-test")
+    
+    
+        time.sleep(1)
+    
+        # Worker register
+        http_post("/workers/register", {"worker_id": "linux-worker", "platform": "linux", "capabilities": ["github-actions-safety-baseline-v1", "linux"]})
+        time.sleep(1)
+    
+        tasks_completed = 0
+    
+        for i in range(3):
+            # 2. Worker claims task
+            claim_res = http_post("/tasks/claim", {"worker_id": "linux-worker"})
+            task = claim_res.get("task")
+            if not task:
+                time.sleep(2) # Wait for auto-replenish if it didn't happen yet
+                claim_res = http_post("/tasks/claim", {"worker_id": "linux-worker"})
+                task = claim_res.get("task")
+    
+>           assert task is not None, f"Expected to claim a task on iteration {i}"
+E           AssertionError: Expected to claim a task on iteration 2
+E           assert None is not None
+
+tests/test_auto_replenishment.py:102: AssertionError
+---------------------------- Captured stdout setup -----------------------------
+Starting server for test...
+[Verifier] Starting Courier Verifier (VERIFIER-01) pointing to http://127.0.0.1:8081
+[Verifier] Error polling for tasks: HTTPConnectionPool(host='127.0.0.1', port=8081): Max retries exceeded with url: /tasks/pending_verification (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x1089b5c10>: Failed to establish a new connection: [Errno 61] Connection refused'))
+ * Serving Flask app 'app'
+ * Debug mode: off
+---------------------------- Captured stderr setup -----------------------------
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:8081
+[33mPress CTRL+C to quit[0m
+----------------------------- Captured stdout call -----------------------------
+[Verifier] Verifying task task-cc646da8 (result result-8618bc54cba86d96b78731d5ddd0eb26d81a5324f1e9ac7d07c90241bcbd65a7)...
+[Verifier] Successfully verified task-cc646da8 with verdict PASS
+----------------------------- Captured stderr call -----------------------------
+127.0.0.1 - - [25/Sep/2026 00:05:34] "POST /goals HTTP/1.1" 200 -
+127.0.0.1 - - [25/Sep/2026 00:05:35] "POST /workers/register HTTP/1.1" 200 -
+127.0.0.1 - - [25/Sep/2026 00:05:36] "POST /tasks/claim HTTP/1.1" 200 -
+127.0.0.1 - - [25/Sep/2026 00:05:36] "POST /tasks/result HTTP/1.1" 200 -
+127.0.0.1 - - [25/Sep/2026 00:05:37] "GET /tasks/pending_verification HTTP/1.1" 200 -
+127.0.0.1 - - [25/Sep/2026 00:05:37] "POST /tasks/verify HTTP/1.1" 200 -
+127.0.0.1 - - [25/Sep/2026 00:05:38] "GET /goals/goal-b0bf665f HTTP/1.1" 200 -
+127.0.0.1 - - [25/Sep/2026 00:05:38] "POST /tasks/claim HTTP/1.1" 200 -
+127.0.0.1 - - [25/Sep/2026 00:05:38] "POST /tasks/result HTTP/1.1" 200 -
+127.0.0.1 - - [25/Sep/2026 00:05:40] "GET /goals/goal-b0bf665f HTTP/1.1" 200 -
+127.0.0.1 - - [25/Sep/2026 00:05:40] "POST /tasks/claim HTTP/1.1" 200 -
+127.0.0.1 - - [25/Sep/2026 00:05:42] "POST /tasks/claim HTTP/1.1" 200 -
+--------------------------- Captured stdout teardown ---------------------------
+[Verifier] Verifying task task-21730c9d (result result-6de4d86692a72edb521dee604ee17a62fa3bbb7661cdf0929a5c3297ae1f74f1)...
+[Verifier] Successfully verified task-21730c9d with verdict PASS
+Stopping server...
+--------------------------- Captured stderr teardown ---------------------------
+127.0.0.1 - - [25/Sep/2026 00:05:42] "GET /tasks/pending_verification HTTP/1.1" 200 -
+127.0.0.1 - - [25/Sep/2026 00:05:42] "POST /tasks/verify HTTP/1.1" 200 -
+_______ test_g_guards_block_and_integrate_nothing[rewrite-GUARD_HISTORY] _______
+
+W = namespace(repo=PosixPath('/private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/pytest-of-user/pytest-838/test_g_gu...ivate/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/pytest-of-user/pytest-838/test_g_guards_block_and_integr4/muse'))
+mode = 'rewrite', exp = 'GUARD_HISTORY'
+
+    @pytest.mark.parametrize("mode,exp", [("tag", "GUARD_REFS"), ("desk", "GUARD_DESKTOP"), ("pathhit", "GUARD_PATH:app/cannon.html"),
+                                          ("secret", "GUARD_SECRET"), ("rewrite", "GUARD_HISTORY")])
+    def test_g_guards_block_and_integrate_nothing(W, mode, exp):
+        sha = W.g("rev-parse", "rescue-1"); s, _ = make(W, mode); k, d, _r = step(s)
+>       assert (k, d) == ("unknown", exp)
+E       AssertionError: assert ('unknown', 'IDLE') == ('unknown', 'GUARD_HISTORY')
+E         
+E         At index 1 diff: 'IDLE' != 'GUARD_HISTORY'
+E         Use -v to get more diff
+
+tests/test_cannon_yolo.py:166: AssertionError
+__________________ test_l_three_tasks_serial_then_quota_stop ___________________
+
+W = namespace(repo=PosixPath('/private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/pytest-of-user/pytest-838/test_l_th...ivate/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/pytest-of-user/pytest-838/test_l_three_tasks_serial_then0/muse'))
+
+    def test_l_three_tasks_serial_then_quota_stop(W):
+        s, _ = make(W, "ok", COURIER_YOLO_MAX_TASKS="3")
+>       assert [step(s)[0] for _ in range(3)] == ["done"] * 3 and s.gate() == "LIMIT_KONTINGENT"
+E       AssertionError: assert (['unknown', '...n', 'unknown'] == ['done', 'done', 'done']
+E         
+E         At index 0 diff: 'unknown' != 'done'
+E         Use -v to get more diff)
+
+tests/test_cannon_yolo.py:215: AssertionError
+________ test_l_kill_switch_stops_running_muse_and_freezes_last_output _________
+
+W = namespace(repo=PosixPath('/private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/pytest-of-user/pytest-838/test_l_ki...ivate/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/pytest-of-user/pytest-838/test_l_kill_switch_stops_runni0/muse'))
+
+    def test_l_kill_switch_stops_running_muse_and_freezes_last_output(W):
+        s, e = make(W, "hang", COURIER_YOLO_IDLE_SECONDS="100", COURIER_YOLO_TASK_SECONDS="100")
+        assert s.gate() == ""; t = s.next_task()
+        threading.Timer(1.0, lambda: (s.home / "STOP").write_text("")).start(); t0 = time.time()
+        k, d, _r = s.execute(t); assert (k, d) == ("unknown", "NOTAUS") and time.time() - t0 < 10 and not procs(W) and s.gate() == "NOTAUS"
+        s.end("NOTAUS"); lv = y.live_payload(e)
+>       assert lv["text"].startswith("GESTOPPT · 0001 · NOTAUS") and "arbeite weiter und weiter" in lv["text"]      # letzter Code/Ausgabe bleibt stehen
+E       AssertionError: assert (True and 'arbeite weiter und weiter' in 'GESTOPPT · 0001 · NOTAUS\n\n')
+E        +  where True = <built-in method startswith of str object at 0x1103410a0>('GESTOPPT · 0001 · NOTAUS')
+E        +    where <built-in method startswith of str object at 0x1103410a0> = 'GESTOPPT · 0001 · NOTAUS\n\n'.startswith
+
+tests/test_cannon_yolo.py:225: AssertionError
+____________ test_l_live_shows_output_while_running_not_only_at_end ____________
+
+W = namespace(repo=PosixPath('/private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/pytest-of-user/pytest-838/test_l_li...ivate/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/pytest-of-user/pytest-838/test_l_live_shows_output_while0/muse'))
+
+    def test_l_live_shows_output_while_running_not_only_at_end(W):
+        s, e = make(W, "hang", COURIER_YOLO_IDLE_SECONDS="100", COURIER_YOLO_TASK_SECONDS="100")
+        assert s.gate() == ""; t = s.next_task(); th = threading.Thread(target=s.execute, args=(t,)); th.start(); time.sleep(1.5)
+        lv = y.live_payload(e); (s.home / "STOP").write_text(""); th.join(15)
+>       assert lv["phase"] == "LÄUFT" and "arbeite weiter und weiter" in lv["text"] and not th.is_alive()
+E       AssertionError: assert ('L\xc4UFT' == 'L\xc4UFT'
+E         
+E           LÄUFT and 'arbeite weiter und weiter' in 'LÄUFT · 0001\n\n')
+
+tests/test_cannon_yolo.py:280: AssertionError
+_________ test_self_attack_receipt_cannot_launder_untrusted_predicate __________
+
+context = {'goal': 'goal-50c518ae', 'http': <FlaskClient <Flask 'server.app'>>, 'res_id': 'result-875fc3b5a4e1f3bfec6e82b8961360...60d', 'task': {'artifact_refs': [], 'artifacts': ['a.txt'], 'attempt_id': 'task-A:attempt:1', 'attempts': 1, ...}, ...}
+
+    def test_self_attack_receipt_cannot_launder_untrusted_predicate(context):
+        e=evidence(verify(context))
+        path,g,_=setup_ledger(context,e)
+        fake=dict(e,source_url='https://example.invalid/copied-valid-looking',result_sha256='f'*64)
+        g['evidence'].append(fake)
+        g['acceptance_predicate']['required_results'].append('OTHER')
+        g['acceptance_predicate']['results']['OTHER']={'status':'PASS','observed_value':'fake','evidence_urls':[fake['source_url']]}
+        with pytest.raises(ledger.SelfCertificationError,match='predicate PASS'):
+>           ledger.update(path,0,{'TASKS_COMPLETED':3},'actor-v1',5,guard=g)
+E           Failed: DID NOT RAISE <class 'scripts.agent_handoff_ledger.SelfCertificationError'>
+
+tests/test_ledger_authenticated_receipts.py:216: Failed
+___________________ test_ledger_duplicate_semantics_contract ___________________
+
+tmp_path = PosixPath('/private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/pytest-of-user/pytest-838/test_ledger_duplicate_semantic0')
+
+    def test_ledger_duplicate_semantics_contract(tmp_path):
+        path = tmp_path / "ledger.json"
+        rec = base_record()
+        ahl.initialize(path, rec, base_guard(), 5.0)
+    
+        # Offline receipt via the production seam: this test pins duplicate /
+        # revision semantics, not attestation, so the pre-existing PASS-backed
+        # evidence gets a strictly matching local receipt instead of live net.
+        previous = ahl._attestation_resolver
+    
+        def resolve(url):
+            if url != "https://github.com/example/project/actions/runs/test":
+                return None
+            return {
+                "verdict": "PASS",
+                "producer_principal": "test",
+                "verifier_principal": "test2",
+                "goal_id": "probe",
+                "binding": {
+                    "sha": "cccccccccccccccccccccccccccccccccccccccc",
+                    "runtime": "attacker-runtime",
+                },
+            }
+    
+        ahl._attestation_resolver = resolve
+        try:
+            # 1. Update TASKS_COMPLETED=1
+>           b1 = ahl.update(path, 0, {"TASKS_COMPLETED": 1}, "writer1", 5.0, base_guard())
+
+tests/test_ledger_duplicate_semantics_contract.py:100: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/pytest-of-user/pytest-838/test_ledger_duplicate_semantic0/ledger.json')
+expected_revision = 0, updates = {'TASKS_COMPLETED': 1}, updated_by = 'writer1'
+timeout = 5.0
+guard = {'acceptance_predicate': {'name': 'test-predicate', 'required_results': ['TEST'], 'results': {'TEST': {'evidence_urls'...est', ...}], 'flow': ['EXECUTION', 'EVIDENCE', 'ACCEPTANCE_GUARD', 'LEDGER_TRANSITION', 'NEXT_EXECUTABLE_ACTION'], ...}
+
+    def update(
+        path: Path,
+        expected_revision: int,
+        updates: dict[str, Any],
+        updated_by: str,
+        timeout: float,
+        guard: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        _nonempty_string(updated_by, "updated_by")
+        if not updates:
+            raise ValidationError("at least one --set update is required")
+        invalid = sorted(set(updates) - set(RECORD_FIELDS))
+        if invalid:
+            raise ValidationError(f"unknown record fields: {invalid}")
+        if "LAST_UPDATED_BY" in updates:
+            raise ValidationError("use --updated-by instead of setting LAST_UPDATED_BY")
+        reject_secrets(updates, "updates")
+        with writer_lock(path, timeout):
+            bundle = load_bundle(path)
+            introducer_map = {}
+            first_observed_map = {}
+            for h in bundle.get("history", []):
+                h_updater = h.get("updated_by")
+                for e in h.get("acceptance_guard", {}).get("evidence", []):
+                    url = e.get("source_url")
+                    if not url: raise SelfCertificationError(f"predicate PASS requires prior evidence for {url}")
+                    if url not in introducer_map:
+                        introducer_map[url] = {h_updater}
+                    if url not in first_observed_map:
+                        first_observed_map[url] = (e.get("observed_at"), h.get("timestamp_utc"))
+    
+            if bundle["revision"] != expected_revision:
+                raise RevisionConflictError(
+                    f"revision conflict: expected {expected_revision}, "
+                    f"but currently at {bundle['revision']}"
+                )
+            record = copy.deepcopy(bundle["record"])
+            changed = []
+            for field, value in updates.items():
+                if record[field] != value:
+                    record[field] = value
+                    changed.append(field)
+            if record["LAST_UPDATED_BY"] != updated_by:
+                record["LAST_UPDATED_BY"] = updated_by
+                changed.append("LAST_UPDATED_BY")
+            old_all_edges = set(bundle["record"].get("UNPROVEN_EDGES", [])) | set(bundle["record"].get("PROVEN_EDGES", []))
+            new_all_edges = set(record.get("UNPROVEN_EDGES", [])) | set(record.get("PROVEN_EDGES", []))
+            if old_all_edges != new_all_edges:
+                raise EdgeConservationError(f"edge conservation violated: old={old_all_edges}, new={new_all_edges}")
+            validate_record(record, allow_unknown_sha=False)
+            if guard is None:
+                if bundle["schema_version"] == 1:
+                    raise ValidationError("schema version 1 update requires --guard")
+                guard = copy.deepcopy(bundle["acceptance_guard"])
+            # Auto-derive Guard Acceptance from Evidence
+            evidence = guard.get("evidence", [])
+            old_evidence = bundle.get("acceptance_guard", {}).get("evidence", [])
+            # Acceptance cannot create the evidence used to prove itself: only
+            # evidence that pre-existed this update counts toward acceptance.
+            prior_evidence = [e for e in evidence if e in old_evidence]
+            has_physical_proof = False
+            for e in prior_evidence:
+                if (
+                    e.get("source_type") == "MACHINE_ARTIFACT" and
+                    e.get("evidence_sha") == guard["binding"]["current_sha"] and
+                    e.get("runtime_binding") == guard["binding"]["runtime_identity"] and
+                    e.get("validity") == "VALID" and
+                    e.get("producer_id") not in introducer_map.get(e.get("source_url"), set()) and
+                    e.get("verifier_id") not in introducer_map.get(e.get("source_url"), set()) and
+                    updated_by not in introducer_map.get(e.get("source_url"), set()) and
+                    (-MAX_FUTURE_CLOCK_SKEW_SECONDS <=
+                     (datetime.strptime(first_observed_map.get(e.get("source_url"), (None, datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")))[1], "%Y-%m-%dT%H:%M:%SZ") - datetime.strptime(e["observed_at"], "%Y-%m-%dT%H:%M:%SZ")).total_seconds() <=
+                     MAX_EVIDENCE_AGE_SECONDS)
+                ):
+                    receipt = _verify_attestation(e.get("source_url"))
+                    if receipt and receipt.get("verdict") == "PASS":
+                        if receipt.get("producer_principal") == e.get("producer_id") and \
+                           receipt.get("verifier_principal") == e.get("verifier_id") and \
+                           receipt.get("result_sha256") == e.get("result_sha256") and \
+                           receipt.get("goal_id") == bundle.get("record", {}).get("GOAL"):
+                            b = receipt.get("binding", {})
+                            if b.get("sha") == guard["binding"]["current_sha"] and \
+                               b.get("runtime") == guard["binding"]["runtime_identity"]:
+                                has_physical_proof = True
+                                break
+    
+    
+            unproven = record.get("UNPROVEN_EDGES", [])
+    
+            # Enforce that any predicate PASS backed by MACHINE_ARTIFACT has a valid receipt
+            # A requested CLEAN_IDLE=YES without finished work/proof is rejected
+            # by the dedicated gate below; defer to it (break) so callers see
+            # the specific prohibition instead of a generic evidence error.
+            # This only changes which LedgerError surfaces: whenever this
+            # breaks, the gate below raises.
+            defer_to_clean_idle_gate = updates.get("CLEAN_IDLE") == "YES" and (unproven or not has_physical_proof)
+            for name, result in guard.get("acceptance_predicate", {}).get("results", {}).items():
+                if defer_to_clean_idle_gate:
+                    break
+                if result.get("status") == "PASS":
+                    for url in result.get("evidence_urls", []):
+                        # Non-MACHINE_ARTIFACT evidence (e.g. ISSUE_STATE) uses full evidence;
+                        # MACHINE_ARTIFACT must exist in prior_evidence (self-cert guard)
+                        e = next((ev for ev in evidence if ev.get("source_url") == url), None)
+                        if not e or e.get("validity") != "VALID":
+                            raise SelfCertificationError(f"predicate PASS requires valid evidence for {url}")
+                        # Only MACHINE_ARTIFACT evidence requires receipt verification
+                        if e.get("source_type") == "MACHINE_ARTIFACT":
+                            # Evidence introduced by this very update cannot promote
+                            # it: promotion stays gated on prior evidence plus a
+                            # verified receipt (see has_physical_proof). Raising
+                            # here would strand the legitimate introduce (update N,
+                            # PROVISIONAL) -> promote (update N+1) flow, so newly
+                            # introduced evidence skips the receipt check; the
+                            # transition logic below still forces PROVISIONAL.
+                            pe = next((ev for ev in prior_evidence if ev.get("source_url") == url), None)
+                            if not pe:
+                                raise SelfCertificationError(f"predicate PASS requires prior evidence for {url}")
+                            receipt = _verify_attestation(url)
+                            if not receipt or receipt.get("verdict") != "PASS" or \
+                               receipt.get("producer_principal") != e.get("producer_id") or \
+                               receipt.get("verifier_principal") != e.get("verifier_id") or \
+                               receipt.get("result_sha256") != e.get("result_sha256"):
+>                               raise SelfCertificationError(f"predicate PASS requires verified receipt for {url}")
+E                               agent_handoff_ledger.SelfCertificationError: predicate PASS requires verified receipt for https://github.com/example/project/actions/runs/test
+
+scripts/agent_handoff_ledger.py:853: SelfCertificationError
+__ TestLongLivedEpochMutableEvidence.test_evidence_at_47h_qualifies_as_fresh ___
+
+self = <test_ledger_freshness_binding_epoch.TestLongLivedEpochMutableEvidence object at 0x111606e20>
+
+    def test_evidence_at_47h_qualifies_as_fresh(self):
+        """Evidence at 47 hours old is still within the 48h window."""
+        tmp = Path(tempfile.mkdtemp())
+        path = tmp / "ledger.json"
+    
+        rec = _base_record()
+        g = _base_guard()
+        g["acceptance_predicate"]["required_results"] = ["ISSUE_STATE"]
+        g["acceptance_predicate"]["results"] = {
+            "ISSUE_STATE": {
+                "status": "UNKNOWN",
+                "observed_value": "PENDING",
+                "evidence_urls": [],
+            }
+        }
+        initialize(path, rec, g, 5.0)
+    
+        just_fresh = datetime.utcnow() - timedelta(hours=47)
+        g1 = copy.deepcopy(g)
+        g1["evidence"].append(_artifact("https://test.com/47h", _ts(just_fresh)))
+        update(path, 0, {"TASKS_COMPLETED": 3}, "writer-a", 5.0, guard=g1)
+    
+        result = update(path, 1, {"TASKS_COMPLETED": 4, "STATUS": "DONE"}, "writer-b", 5.0)
+>       assert result["acceptance_guard"]["transition_state"] == "CANONICAL_ACCEPTED"
+E       AssertionError: assert 'PROVISIONAL' == 'CANONICAL_ACCEPTED'
+E         
+E         - CANONICAL_ACCEPTED
+E         + PROVISIONAL
+
+tests/test_ledger_freshness_binding_epoch.py:298: AssertionError
+_______________________ test_unknown_halts_with_counters _______________________
+
+tmp_path = PosixPath('/private/var/folders/zg/db9slj7n6jb3cypnwrg1lr7r0000gn/T/pytest-of-user/pytest-838/test_unknown_halts_with_counte0')
+
+    def test_unknown_halts_with_counters(tmp_path):
+        seed(tmp_path, 3)
+        motor = CannonMotor(tmp_path, behaviors={"t2": "unknown"})
+        motor.start(mode="FINITE", limit=10, cooldown=0)
+        motor.run()
+>       assert motor.state == "ERROR"
+E       AssertionError: assert 'BLOCKED' == 'ERROR'
+E         
+E         - ERROR
+E         + BLOCKED
+
+tests/test_overnight_dauerlauf.py:124: AssertionError
+_________________________ test_provider_wait_isolation _________________________
+
+client = <FlaskClient <Flask 'server.app'>>
+
+    def test_provider_wait_isolation(client):
+        # Scenario 1: Pool A gets 429.
+>       register_worker(client, "worker-1", "openai")
+
+tests/test_provider_wait_isolation.py:90: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+client = <FlaskClient <Flask 'server.app'>>, worker_id = 'worker-1'
+provider = 'openai'
+
+    def register_worker(client, worker_id, provider):
+        response = client.post("/workers/register", json={
+            "worker_id": worker_id,
+            "provider": provider,
+            "capabilities": [provider, "macos"]
+        }, headers={"Authorization": "Bearer test-key-12345"})
+>       assert response.status_code == 200
+E       assert 401 == 200
+E        +  where 401 = <WrapperTestResponse streamed [401 UNAUTHORIZED]>.status_code
+
+tests/test_provider_wait_isolation.py:50: AssertionError
+----------------------------- Captured stdout call -----------------------------
+Auth fail: Invalid token provided
+=========================== short test summary info ============================
+FAILED tests/test_auto_replenishment.py::test_zero_chat_auto_replenishment - ...
+FAILED tests/test_cannon_yolo.py::test_g_guards_block_and_integrate_nothing[rewrite-GUARD_HISTORY]
+FAILED tests/test_cannon_yolo.py::test_l_three_tasks_serial_then_quota_stop
+FAILED tests/test_cannon_yolo.py::test_l_kill_switch_stops_running_muse_and_freezes_last_output
+FAILED tests/test_cannon_yolo.py::test_l_live_shows_output_while_running_not_only_at_end
+FAILED tests/test_ledger_authenticated_receipts.py::test_self_attack_receipt_cannot_launder_untrusted_predicate
+FAILED tests/test_ledger_duplicate_semantics_contract.py::test_ledger_duplicate_semantics_contract
+FAILED tests/test_ledger_freshness_binding_epoch.py::TestLongLivedEpochMutableEvidence::test_evidence_at_47h_qualifies_as_fresh
+FAILED tests/test_overnight_dauerlauf.py::test_unknown_halts_with_counters - ...
+FAILED tests/test_provider_wait_isolation.py::test_provider_wait_isolation - ...
+10 failed, 655 passed, 2 skipped, 1 deselected in 543.31s (0:09:03)

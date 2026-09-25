@@ -1,0 +1,27 @@
+STATUSPAKET — NUR LESEN (Stand 21.09.2026)
+
+Auftrag: Stelle fest, was auf DIESER Maschine wirklich liegt und läuft. Du änderst nichts.
+Erlaubt sind nur lesende Befehle: git status, git log, git branch -vv, git remote -v, git worktree list, git stash list,
+git ls-remote (verändert lokal nichts), ls, stat, Datei lesen, Prozess- und Portliste anzeigen.
+Verboten: schreiben, commit, push, fetch, checkout, stash, reset, clean, Tests starten, Prozesse starten oder beenden.
+Zugangsdaten, Tokens und Schlüssel maskierst du als ***. Was du nicht sicher weißt: UNKNOWN. Belege: Befehl + Ausgabe.
+Beweise deinen Zugriff durch einen aktuellen Lesebefehl, bevor du etwas behauptest.
+
+Antworte NUR in diesem Format:
+
+MACHINE: <Mac | Windows | Cloud>   HOST: <Name>   SYSTEMZEIT: <Datum, Uhrzeit, Zeitzone>
+ORDNER (einmal pro Ordner, der zu 2026-courier gehört, auch Worktrees und Kopien):
+  PFAD:
+  BRANCH und HEAD (volle SHA):
+  origin/release-candidate-integration laut git ls-remote:
+  origin/main laut git ls-remote:
+  COMMITS_NICHT_GEPUSHT (git log @{u}..HEAD --oneline, höchstens 20):
+  DIRTY: <Anzahl geändert> / <Anzahl untracked>, Liste höchstens 40, Laufzeitdateien markieren
+         (Ledger-JSON, Logs, events/, server/state/, coordination/)
+  STASHES: <Anzahl>
+  LEDGER agent_handoff_ledger.json: letzte Änderung (stat) und Größe
+PROZESSE (nur Namen und Anzahl, nichts beenden): Laufen Courier-, Cannon-, Worker-, Server-, Muse- oder Python-Prozesse aus diesen Ordnern?
+  Welche Ports lauschen (zum Beispiel 8080, 8768, 8000)?
+LETZTER AUFTRAG: Was war dein letzter Auftrag, wann, und was war das letzte Ergebnis (mit Zeit)?
+WEITERE ORDNER: Wo liegen Backups oder Kopien (zum Beispiel "Courier Symphony funktioniert 1-10")? Nur Pfad und Änderungszeit.
+UNKNOWN: <was du nicht feststellen konntest>

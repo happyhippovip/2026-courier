@@ -1,0 +1,190 @@
+KONTROLLHINWEIS — ZUERST LESEN
+Stand: 21.09.2026, Repo-Stand gelesen ca. 05:10 MESZ. Auftraggeber: Dennis.
+Repository: 2026-courier (GitHub happyhippovip/2026-courier, ÖFFENTLICH: nichts Vertrauliches hineinschreiben).
+Dieser Prompt gehört zu einem Satz für Google, Muse und Codex. Antworte nur für DEINE Rolle.
+
+Deine Antwort wird nicht geglaubt, sondern geprüft: durch Tests, durch Git (Diff, SHA)
+und durch einen unabhängigen Reviewer. Eine Behauptung ohne Beleg zählt als NICHT erledigt.
+No Evidence → No PASS.
+
+DEINE ROLLE:        WRITER (Ledger + Guard + Motor)
+ERLAUBTER BEREICH:  Repository 2026-courier, darin ausschließlich der Scope ledger_guard_motor und canonical_integration_windows_runtime laut ops/ai/OWNERSHIP_MAP.yaml (server/app.py, scripts/courier_continue.py, scripts/agent_handoff_ledger.py und zugehörige Tests)
+ARBEITSORDNER:      eigener frischer Clone oder Worktree, NICHT ~/Downloads/2026-courier auf dem Mac
+BRANCH:             release-candidate-integration
+START_SHA:          71b3dc06749b6b9d8ac62834813c8b71aa842249
+
+1. SHA-MISMATCH = HARD STOP (gilt vor allen anderen Regeln)
+   Vor JEDER schreibenden Aktion (Datei ändern, commit, push, Reparatur) prüfen:
+   a) Dein lokaler HEAD ist START_SHA oder dein eigener letzter Commit in dieser Sitzung.
+   b) Der Remote-Branch steht auf START_SHA oder auf deinem eigenen letzten Push, ist also nicht durch andere weitergezogen:
+      git ls-remote origin refs/heads/release-candidate-integration   (verändert lokal nichts)
+   Stimmt eines nicht: KEIN Schreiben, KEIN commit, KEIN push, KEINE Reparatur.
+   Nur lesend untersuchen und genau so antworten:
+   STATE_MISMATCH / EXPECTED_SHA / ACTUAL_SHA / BRANCH / ACTION: STOPPED — NO CHANGES MADE
+   Nenne immer Branch UND SHA. Eine SHA ohne Branch ist keine Angabe.
+
+2. EIN SCHREIBER PRO BEREICH
+   Ledger, Guard, Motor (server/app.py, scripts/courier_continue.py, scripts/agent_handoff_ledger.py):
+   nur GOOGLE (ops/ai/OWNERSHIP_MAP.yaml: OWNED_UNTIL_EXPLICIT_HANDOFF; Stille ist keine Übergabe).
+   Cannon, Oberfläche, Studio und deren Tests: nur MUSE. Review: nur CODEX (baut nichts).
+   ChatGPT und Claude koordinieren und vergleichen; sie haben keine Runtime-Autorität.
+   Schreibt schon jemand in deinem Bereich oder liegen dort fremde uncommittete Änderungen:
+   nichts überschreiben, OWNERSHIP_CONFLICT melden und mit einem anderen unabhängigen Punkt
+   weitermachen (BLOCKED TASK != BLOCKED PROJECT). Stoppen nur, wenn keiner bleibt.
+
+3. BELEGE
+   Beleg = Befehl + relevante Ausgabe + Exit-Code, oder Dateipfad + SHA.
+   Markiere wesentliche Aussagen: BELEGT (selbst ausgeführt oder gesehen; = OBSERVED),
+   BEHAUPTET (aus Übergabe oder Dokument, nicht selbst geprüft), VERMUTET (= INFERRED).
+   Weißt du etwas nicht: UNKNOWN. Raten ist ein Fehler. UNKNOWN wird nie stillschweigend zu PASS.
+   Beweise deinen Zugriff durch einen aktuellen Lesebefehl, bevor du etwas über den Stand behauptest.
+   Alte SHAs, Checkpoints, *_CONTINUOUS_*.yaml und frühere PASS-Meldungen sind nur Hinweise.
+   Kein Mock und keine Testfixture wird als physischer Beweis ausgegeben.
+   Lob, Zustimmung und Selbstauskünfte ("ich bin sicher", "das ist fertig") sind keine Belege.
+
+4. SICHERHEIT
+   - Kein git reset --hard, kein blindes git clean, kein Force-Push. Den Branch
+     known-good/1-10-working-2026-09-19 und das Tag courier-1-10-working-2026-09-19 (Rettungspunkt)
+     nie ändern, verschieben oder löschen.
+   - Fremde Stashes und Worktrees nicht anfassen. Keine Tests entfernen, keine Prüfung umgehen.
+   - Keine generischen kill/killall: nur eigene, selbst gestartete Prozesse mit bekannter PID.
+   - Nie in Commits oder Dateien: Zugangsdaten, .env*, Schlüssel, Tokens, AWS-Angaben, Preise, Firmenstrategie.
+   - git add nur mit ausdrücklichen Dateipfaden, nie git add -A oder git add . .
+     Laufzeitdateien nie committen: agent_handoff_ledger.json (lokale Laufzeitänderungen), events/ledgers/*,
+     server/state/*, *.log, coordination/heartbeats/*, tmp_cannon_transfer/, data/recovery/.
+   - Vor jedem Push die Dateiliste zeigen (git diff --stat origin/release-candidate-integration..HEAD). Push nur in den erlaubten Branch.
+   - Kleine gezielte Tests, seriell, mit Zeitlimit. Keine Full-Suite (der Mac war überlastet).
+   - Nur Dennis entscheidet: Zahlung, Veröffentlichung, Kundenkontakt, Deployment, Zugangsdaten,
+     Merge (PR39, PR42, PR43, PR45) sowie AWS- und Sicherheitseinstellungen.
+
+5. BEGRENZTE SITZUNG (ausdrücklich, in Dennis' AKTUELLER Nachricht)
+   Dieser Prompt IST Dennis' aktuelle Nachricht. Er verlangt ausdrücklich eine begrenzte Sitzung im Sinne von
+   .agents/rules/00-courier-autonomy.md. Arbeite die Punkte deines Auftrags der Reihe nach ab.
+   Gültige Stop-Gründe: Auftrag erledigt, HUMAN_REQUIRED, SAFETY (auch STATE_MISMATCH), PERMISSION,
+   UNRESOLVED_WRITER_COLLISION, PROVIDER_QUOTA_EXHAUSTED_CHECKPOINTED. Danach: Antwortformat senden.
+   Erfinde keine neuen Aufgaben, keine neue Architektur, kein Refactoring. Ändere nur, was für den nachgewiesenen Fehler nötig ist.
+
+STAND — HINWEIS, NICHT WAHRHEIT (Claude hat das am 21.09.2026 um ca. 05:10 MESZ gelesen; prüfe selbst, dann gilt dein Befund)
+GitHub laut git ls-remote:
+  main                                 3e2fe24d6dc59d7613aec9d1099695f5520c4733
+  release-candidate-integration        71b3dc06749b6b9d8ac62834813c8b71aa842249   (= Kopf von PR39, Draft, nicht mergen)
+  known-good/1-10-working-2026-09-19   6ca172accce22507e66478a26fbd84932c029eb6   (Branch; derselbe Commit trägt das Tag
+                                                                                   courier-1-10-working-2026-09-19; Rettungspunkt)
+  PR42-Kopf e074ed39…, PR43-Kopf cd839d1a… (beide offen, nicht mergen)
+Mac-Ordner ~/Downloads/2026-courier (Muses Arbeitsordner), Branch candidate/local-lazy-infinite-2026-09-19, HEAD 6ca172ac:
+  - 16 Commits vom 19.09. liegen über origin/release-candidate-integration und sind dort NICHT enthalten
+    (Windows-Fixes, Tests, Cannon). Nur 80656278 ("Trust Root Env Bypass", MOCK_LEDGER-Bypass entfernt) und der
+    Freeze-Commit 6ca172ac berühren server/app.py, scripts/courier_continue.py, scripts/agent_handoff_ledger.py.
+    Wer sie geschrieben hat: UNKNOWN (alle als "happyhippovip" committet).
+  - Uncommittet: 14 geänderte und 5 neue Dateien. Muses Cannon-Zähler (app/cannon*, drei Testdateien, scripts/headless_night.py)
+    und Laufzeitdaten: agent_handoff_ledger.json (+26 Einträge "Global-Stop", alle Status UNKNOWN, updated_by "Google-Antigravity",
+    das ist nur ein String; zuletzt 21.09. 03:25 MESZ), events/ledgers/*, server/state/central_state.json, Logs.
+  - Dort schreibt gerade ein Courier-Prozess (central_state.json, 21.09. 05:09 MESZ). Nichts davon beenden, zurücksetzen oder committen.
+  - OWNERSHIP_MAP.yaml kennt keinen Cannon-Bereich. scripts/cannon_motor.py (Cannon-Motor, Mac) ist nicht der Courier-Motor.
+Tests: BEHAUPTET (Muse): Cannon-Offline-Suite 22 von 24. Ältere Stände (18.09.: 46 PASS / 3 FAIL Provider-Wait, Binding-Epoch 42 / 4;
+  Review-Stand eba56edb: 22 PASS / 3 FAIL) sind veraltet. Heutiger Teststand: UNKNOWN.
+
+ZUM VERSTEHEN (nur zum Verstehen, antworte trotzdem sachlich im Antwortformat)
+Wir bauen gemeinsam ein großes Lego-Haus, an vielen Orten gleichzeitig. Jeder Helfer hat seinen eigenen Baubereich:
+Google das Fundament und die tragenden Wände (Ledger, Guard, Motor), Muse alles, was man sieht (Cannon, Oberfläche, Tests dafür),
+Codex prüft nur und baut nie, ChatGPT und Claude halten den Bauplan und vergleichen, Dennis entscheidet.
+Ein Stein gilt erst als eingebaut, wenn es ein "Foto" davon gibt (den Beleg). Was nicht in deinem Bereich liegt, lässt du liegen,
+auch wenn es dich interessiert. Baut schon jemand an einer Stelle, baust du dort nicht mit.
+
+DEIN AUFTRAG (Google) — Punkte 0 bis 7 der Reihe nach
+Ziel: Gate 1 (Trusted Ledger) belegen. Lieber ein kleiner belegter Punkt als viele behauptete.
+
+0. Stand prüfen (nur lesen) und im Antwortformat unter STATE_CHECK melden.
+   - Arbeite in einem eigenen Worktree oder frischen Clone von origin/release-candidate-integration @ START_SHA,
+     zum Beispiel: git worktree add -b google/ledger-0921 ../2026-courier-google-0921 <START_SHA>
+     NICHT im Mac-Ordner ~/Downloads/2026-courier (dort arbeitet Muse, dort liegen fremde uncommittete Änderungen).
+     Geht nur das: STOP mit HUMAN_REQUIRED.
+   - git status --short --branch; git rev-parse HEAD; git ls-remote origin refs/heads/release-candidate-integration
+   - Lies: AGENTS.md, .agents/rules/00-courier-autonomy.md, ops/ai/START_HERE.md, ops/ai/OWNERSHIP_MAP.yaml,
+     ops/ai/NEXT_WORK.yaml, ops/ai/DEFERRED_LEDGER_QUEUE.yaml, docs/RELEASE_CANDIDATE.md (CURRENT EXECUTION CHECKPOINT),
+     ops/ai/packets/GOOGLE_CENTRAL_REPAIR_HANDOFF_eba56edb.md. Der Review dort war an eba56edb gebunden; der Branch ist neuer.
+
+1. Die Mac-Commits sichten (nur lesen; du bist Scope-Owner):
+   git fetch origin refs/heads/known-good/1-10-working-2026-09-19:refs/remotes/origin/known-good/1-10-working-2026-09-19
+   git log --oneline <START_SHA>..origin/known-good/1-10-working-2026-09-19
+   git diff --stat <START_SHA>..origin/known-good/1-10-working-2026-09-19 -- server/app.py scripts/courier_continue.py scripts/agent_handoff_ledger.py
+   In deinem Bereich liegen 80656278 (Trust Root Env Bypass, MOCK_LEDGER entfernt, result_sha256 in der Attestation) und 6ca172ac
+   (Freeze-Commit, Inhalt prüfen). Je Commit: ÜBERNEHMEN (nur per cherry-pick nach eigener Prüfung und gezieltem Test) | VERWERFEN | OFFEN,
+   mit Begründung. Nichts blind mergen oder rebasen. known-good/… und das Tag nie ändern.
+
+2. Die vier Befunde am START_SHA reproduzieren. ROT → minimal reparieren. GRÜN → Evidenz speichern (Test + Ausgabe), nichts umbauen.
+   Befund 1  server/app.py task_result(): ACK_DUPLICATE nur bei gleichem kanonischem DurableResult-Body/Digest.
+             Gleiche IDs, anderer Body → 409 CONTRADICTORY_DUPLICATE; das erste Ergebnis bleibt unverändert.
+             Hinweis: der String CONTRADICTORY_DUPLICATE steht schon in server/app.py (RC, ca. Zeile 918).
+             Prüfe, ob wirklich der ganze Body/Digest verglichen wird oder nur result_id/worker_id.
+   Befund 2  scripts/courier_continue.py main(): Ein Timeout darf keinen belegten ThreadPool-Slot verlieren.
+             Future.cancel() stoppt einen laufenden Thread nicht, und running_tasks.pop() gibt keine Kapazität zurück.
+             Test: mehrere Tasks hängen lassen, danach muss ein gesunder Folge-Task weiterlaufen. Keine fremden Prozesse beenden.
+   Befund 3  scripts/agent_handoff_ledger.py: INIT=PROVISIONAL plus gepflanztes VALID MACHINE_ARTIFACT darf durch einen anders
+             benannten Folge-Writer nicht vertrauenswürdig werden. producer_id, verifier_id und updated_by sind Strings, keine Autorität.
+             Alte String-only-Evidence ist HISTORICAL_UNTRUSTED: nicht löschen, nicht still hochstufen.
+             Braucht der Fix authentifizierte Attestation oder binding_epoch_id: kleinsten Vorschlag beschreiben und melden,
+             nicht breit umbauen.
+   Befund 4  server/app.py claim_task(): Provider-Lock vor Dispatch beachten, aber unabhängige READY-Arbeit nicht blockieren
+             (Provider A blockiert heißt nicht, dass Provider B blockiert ist).
+   Je Befund: reproduzieren → minimal reparieren → gezielte Tests (T0 → T1 → T2, dann T3) → ein Commit → Evidenz.
+
+3. Gate 1: ordne jedem der neun Punkte einen Test oder Beleg zu (BELEGT | OFFEN | UNKNOWN).
+   1 stabile IDs für Goal, Task, Attempt, Execution, Result   2 Result-Bindung an genau diese IDs   3 Idempotenz
+   4 Duplicate-Behandlung (widersprüchliche Duplikate werden abgelehnt)   5 stale Results werden abgewiesen
+   6 Restart-Persistenz   7 idempotente Reconciliation   8 UNKNOWN bleibt UNKNOWN
+   9 Provenienz (wer hat was mit welchem Beleg erzeugt)
+   Die Neun stammen aus Codex' Aufzählung, nicht aus dem Repo. Widerspricht das Repo, gilt das Repo; melde die Abweichung.
+
+4. Ledger im Mac-Ordner (nur melden, nichts ändern): 26 uncommittete Einträge, Predicate "Global-Stop", alle UNKNOWN,
+   updated_by "Google-Antigravity", 19.09. 13:30 UTC bis 21.09. 01:25 UTC. Sind sie von dir? Beleg oder UNKNOWN.
+   Es sind Laufzeitdaten: nicht committen, nicht zurücksetzen. Schlage vor, wie sie behandelt werden sollen.
+
+5. Dein Befund zu scripts/cannon_motor.py (_admit_local_fake gegen REAL_MUSE, Auto-Rearm). Bisher BEHAUPTET, nicht belegt.
+   Fasse die Datei nicht an, bevor drei Dinge vorliegen:
+   a) ein roter Test (Datei, Testname, Ausgabe), der den Fehler zeigt;
+   b) die Besitzfrage ist geklärt: Die Datei liegt im Cannon-Pfad, Muses scripts/headless_night.py nutzt sie "unverändert",
+      OWNERSHIP_MAP.yaml nennt sie nicht. Schlage die Zuordnung vor und melde sie; ändere sie nicht selbst;
+   c) der Fix erzeugt keine Füllarbeit: Der Code sagt bewusst "no filler work, no busy loop, no model polling"; bei leerer Queue wartet der Motor.
+   Es gibt zwei "Motoren": den Courier-Motor (server/app.py, scripts/courier_continue.py, dein Bereich) und den Cannon-Motor
+   (scripts/cannon_motor.py, Mac). Nenne in jeder Meldung, welchen du meinst.
+
+6. Commit- und Push-Regeln: ein Commit je Befund, git add nur mit Pfaden. Push nur als Fast-Forward nach release-candidate-integration
+   (git push origin HEAD:release-candidate-integration, nie mit --force) und nur, wenn Regel 1 erfüllt ist;
+   vorher git diff --stat origin/release-candidate-integration..HEAD zeigen.
+   main nicht anfassen, PR39, PR42, PR43, PR45 nicht mergen. Kein Blueprint, keine Strategie und keine AWS-Angaben ins Repo.
+
+7. Danach STOP und Antwortformat senden.
+
+NICHT ANFASSEN (Äpfel und Bananen): Muse New 2026, Cannon (app/cannon*, app/tests/test_cannon_*), studio/**, Logo, Live-Ansicht,
+Oberfläche, andere Repositories, fremde Worktrees und Stashes, Prozesse, die du nicht selbst gestartet hast (Courier-Server und
+Mac-Worker auf dem Mac), alles außerhalb des Repos.
+
+SPÄTER — NICHT IN DIESER SITZUNG (nicht anfassen, nicht vorbereiten, nicht bewerben)
+Physische Windows-Abnahme (Human + Google), Live-Muse, Startpaket für den Erstkunden, Updater, Medaillen, Community,
+Login-Anbindungen, Zahlungs- und Geldfunktionen. Beworben wird nur, was belegt ist.
+
+ANTWORTFORMAT — PFLICHT (wiederhole die Aufgabe nicht, melde nur das Ergebnis)
+VON: Google    MACHINE: <Mac | Windows | Cloud>    ARBEITSORDNER: <Pfad>
+STATE_CHECK: BRANCH / START_SHA / END_SHA / SHA des Remote-Branches / dirty ja | nein — Beleg: Befehl + Ausgabe
+BEFUND 1 / 2 / 3 / 4: je ROT bestätigt | GRÜN | UNKNOWN — Beleg (Befehl, Ausgabe, Exit-Code); bei ROT: Fix-Commit
+MAC_COMMITS: 80656278 und 6ca172ac: ÜBERNEHMEN | VERWERFEN | OFFEN — Begründung
+GATE_1_NEUN_PUNKTE: 1 bis 9 je BELEGT | OFFEN | UNKNOWN + Testname
+LEDGER_MAC_26_EINTRÄGE: von mir | nicht von mir | UNKNOWN — Beleg
+CANNON_MOTOR_BEFUND: roter Test ja | nein; Besitzvorschlag; welcher Motor gemeint ist
+REVIEW_PAKET (für Codex; unvollständig = PACKET_INCOMPLETE):
+  CURRENT_HEAD / COMMITS_UNDER_REVIEW / INVARIANTS / REPRODUCERS / T2_RESULTS / T3_RESULTS /
+  KNOWN_ATTACKS / FILES_TO_READ / QUESTIONS_TO_ANSWER
+GEÄNDERTE DATEIEN: <Pfade>
+TESTS: <Befehl> → <Exit-Code> → <passed / failed / skipped>
+COMMITS: <SHA + Nachricht>; gepusht: ja | nein; uncommittete oder untracked Dateien: <Liste>
+OWNERSHIP_CONFLICT: <nein | Beschreibung>
+STOP_GRUND: <Auftrag erledigt | HUMAN_REQUIRED | SAFETY / STATE_MISMATCH | PERMISSION | UNRESOLVED_WRITER_COLLISION | QUOTA>
+UNKNOWN: <was zur Prüfung fehlt>
+NÄCHSTER SCHRITT: <genau ein Punkt>
+
+Prüfe vor dem Absenden: Hat jedes PASS einen Beleg? Habe ich außerhalb meines Bereichs etwas geändert?
+Habe ich etwas Vermutetes als fertig gemeldet? Dann korrigiere es auf UNKNOWN.
+
+ERINNERUNG (gilt bis zur letzten Zeile): SHA-Mismatch = HARD STOP · ein Schreiber pro Bereich ·
+Kein Beleg, kein PASS · UNKNOWN bleibt UNKNOWN · kein Push ohne Dateiliste · nach dem letzten Punkt STOP.
