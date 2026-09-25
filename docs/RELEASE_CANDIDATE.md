@@ -77,3 +77,4 @@ No new architecture, rule, agent, roadmap, or refactor is justified before a con
 - **Testbefehl:** `./scripts/sync_test_mac.sh` in isolierter Umgebung.
 - **Exitcode / Ergebnis:** 0. Mac Test-Build erfolgreich (CANDIDATE_SHA=fcd6ebc864f2ee876e4e9fff082045e445b68996).
 - **Verbleibender Blocker:** REALER PHYSICAL ACCEPTANCE PROOF (FIRST_CURRENT_CAUSAL_BLOCKER=WINDOWS_ENVIRONMENT).
+OS_OWNERSHIP_DISCOVERED=TRUE
