@@ -635,7 +635,9 @@ def submit_goal():
         "goal_text": data.get("goal_text"),
         "status": "ACTIVE",
         "terminal": data.get("terminal", True),
-        "community_id": data.get("community_id", "public")
+        "community_id": data.get("community_id", "public"),
+        "max_budget_eur": data.get("max_budget_eur", 10.00),
+        "accumulated_cost": 0.0
     }
     
     if "workflow_plan" in data:
@@ -909,6 +911,15 @@ def claim_task():
     for goal_id, goal in state["goals"].items():
         
         if goal["status"] == "ACTIVE" and "workflow_plan" in goal:
+            # P6: Sandbox Billing Check
+            import server.sandbox_billing as sandbox_billing
+            budget_ok, budget_err = sandbox_billing.check_goal_budget(goal)
+            if not budget_ok:
+                goal["status"] = "BLOCKED"
+                goal["blocker"] = budget_err
+                save_state(state)
+                return jsonify({"error": budget_err}), 402
+
             completed_tasks = {
                 step.get("task_id") for step in goal["workflow_plan"]
                 if step.get("status") == "RECONCILED"
@@ -1074,6 +1085,14 @@ def task_result():
             except Exception:
                 pass
             
+            # P6: Sandbox Billing Deduction
+            goal_id = task.get("goal_id")
+            if goal_id and "goals" in state and goal_id in state["goals"]:
+                actual_cost = float(data.get("actual_cost", 0.0))
+                if actual_cost > 0:
+                    import server.sandbox_billing as sandbox_billing
+                    sandbox_billing.deduct_task_cost(state["goals"][goal_id], actual_cost)
+
             if durable_result.get("status") == "SUCCESS":
                 set_task_status(task, "RESULT_RECEIVED")  # wait for independent /verify
                 
