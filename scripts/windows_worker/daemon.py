@@ -1,4 +1,4 @@
-import json, time, os, sys, shutil, subprocess
+import json, time, os, sys, shutil, subprocess, uuid, hashlib
 from pathlib import Path
 import urllib.request
 import urllib.error
@@ -16,10 +16,18 @@ def load_config():
     with open(config_path, "r") as f:
         return json.load(f)
 
-def register_worker(worker_id):
+STATE_DIR = Path(__file__).parent / "state"
+MAX_RESULT_POST_ATTEMPTS = 5
+
+def register_worker(worker_id, release_task=False):
     req = urllib.request.Request(f"{API_URL}/workers/register", method="POST")
     for k, v in HEADERS.items(): req.add_header(k, v)
-    data = json.dumps({"worker_id": worker_id, "platform": "windows", "capabilities": ["windows"]}).encode("utf-8")
+    payload = {"worker_id": worker_id, "platform": "windows", "capabilities": ["windows"]}
+    if release_task:
+        # Tells the server this worker no longer holds its task; the server's
+        # restart recovery then quarantines it (HUMAN_REQUIRED) instead of replaying.
+        payload["current_task"] = None
+    data = json.dumps(payload).encode("utf-8")
     try:
         urllib.request.urlopen(req, data=data, timeout=10)
         return True
@@ -28,16 +36,72 @@ def register_worker(worker_id):
         return False
 
 def http_post_result(res):
-    req = urllib.request.Request(f"{API_URL}/tasks/result", method="POST")
-    for k, v in HEADERS.items(): req.add_header(k, v)
+    """Deliver a stored result; returns DELIVERED, REJECTED or UNDELIVERED.
+
+    Only transport errors and 5xx are retried; a 4xx is the server's final
+    answer for this exact payload (200 IGNORED means already processed).
+    """
     data = json.dumps(res).encode("utf-8")
-    for attempt in range(5):
+    for attempt in range(MAX_RESULT_POST_ATTEMPTS):
+        req = urllib.request.Request(f"{API_URL}/tasks/result", method="POST")
+        for k, v in HEADERS.items(): req.add_header(k, v)
         try:
             urllib.request.urlopen(req, data=data, timeout=10)
-            return
+            return "DELIVERED"
+        except urllib.error.HTTPError as e:
+            if e.code < 500:
+                print(f"[Windows Worker] Result rejected permanently: HTTP {e.code} {e.read().decode('utf-8', 'replace')}")
+                return "REJECTED"
+            print(f"[Windows Worker] Failed to post result: HTTP {e.code}")
         except Exception as e:
             print(f"[Windows Worker] Failed to post result: {e}")
-            time.sleep(2 ** attempt)
+        time.sleep(2 ** attempt)
+    return "UNDELIVERED"
+
+# current_task.json records how far a claimed task got (at-most-once execution):
+#   CLAIMED      -> execution has not begun; safe to run
+#   STARTED      -> execution may have had effects; never re-run after a crash
+#   RESULT_READY -> result_payload is final; only (re)deliver it, never recompute
+def persist_task(path, task):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = path.with_suffix(".tmp")
+    with open(tmp_path, "w") as f:
+        json.dump(task, f)
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp_path, path)
+
+def build_result_payload(task, result, config):
+    """Bind the execution outcome to the server-issued dispatch identity."""
+    status = result["status"]
+    artifacts = []
+    if status == "SUCCESS":
+        for expected in task.get("artifacts", []):
+            path = Path(expected.get("path") if isinstance(expected, dict) else expected)
+            if not path.is_file():
+                status = "FAILED"
+                result["stderr"] = result.get("stderr", "") + f"\nMissing artifact: {path}"
+                artifacts = []
+                break
+            artifacts.append({"path": str(expected.get("path") if isinstance(expected, dict) else expected),
+                              "sha256": hashlib.sha256(path.read_bytes()).hexdigest()})
+        if status == "SUCCESS" and not artifacts:
+            status = "FAILED"
+            result["stderr"] = result.get("stderr", "") + "\nNo artifact evidence for success"
+    return {
+        "goal_id": task.get("goal_id"),
+        "task_id": task["task_id"],
+        "attempt_id": task.get("attempt_id"),
+        "dispatch_id": task.get("dispatch_id"),
+        "worker_id": config["WORKER_ID"],
+        "run_id": result["run_id"],
+        "result_id": f"result-{uuid.uuid4().hex}",
+        "status": status,
+        "artifacts": artifacts,
+        "provider": "windows_native",
+        "stdout": result.get("stdout", ""),
+        "stderr": result.get("stderr", ""),
+    }
 
 def run_task(task, config):
     print(f"[{config['WORKER_ID']}] Running task {task['task_id']}...")
@@ -124,9 +188,28 @@ def loop():
         
         backoff = 10
         max_backoff = 300
+        state_file = STATE_DIR / "current_task.json"
+        task = None
+        release_task = False
+        if state_file.exists():
+            task = json.loads(state_file.read_text())
+            if task.get("worker_phase") not in ("CLAIMED", "RESULT_READY"):
+                task["worker_phase"] = "STARTED"
+            print(f"[{worker_id}] Found unfinished task {task['task_id']} in phase {task['worker_phase']}.")
         
         while True:
             try:
+                if task and task["worker_phase"] == "STARTED":
+                    # Interrupted mid-execution: effects may exist, never replay.
+                    print(f"[{worker_id}] Task {task['task_id']} was interrupted during execution; releasing to Courier recovery.")
+                    release_task = True
+                    task = None
+                if release_task:
+                    if not register_worker(worker_id, release_task=True):
+                        raise RuntimeError("could not release interrupted task")
+                    state_file.unlink()
+                    release_task = False
+
                 # 1. Register/Heartbeat
                 req = urllib.request.Request(f"{API_URL}/workers/heartbeat", method="POST")
                 for k, v in HEADERS.items(): req.add_header(k, v)
@@ -143,21 +226,36 @@ def loop():
                     time.sleep(60)
                     continue
                 
-                # 3. Claim Task
-                req = urllib.request.Request(f"{API_URL}/tasks/claim", method="POST")
-                for k, v in HEADERS.items(): req.add_header(k, v)
-                res = urllib.request.urlopen(req, data=data, timeout=10)
-                res_data = json.loads(res.read().decode("utf-8"))
-                
-                task = res_data.get("task")
-                if task:
+                # 3. Claim Task (only when no finished result is pending)
+                if not task:
+                    req = urllib.request.Request(f"{API_URL}/tasks/claim", method="POST")
+                    for k, v in HEADERS.items(): req.add_header(k, v)
+                    res = urllib.request.urlopen(req, data=data, timeout=10)
+                    res_data = json.loads(res.read().decode("utf-8"))
+                    task = res_data.get("task")
+                    if task:
+                        task["worker_phase"] = "CLAIMED"
+                        persist_task(state_file, task)
+
+                if task and task["worker_phase"] == "CLAIMED":
+                    task["worker_phase"] = "STARTED"
+                    persist_task(state_file, task)
                     result = run_task(task, config)
-                    http_post_result(result)
-                    print(f"[{worker_id}] Task {task['task_id']} completed. Result posted.")
-                    backoff = 10 # reset backoff on success
-                else:
-                    # Idle, reset backoff
-                    backoff = 10
+                    task["result_payload"] = build_result_payload(task, result, config)
+                    task["worker_phase"] = "RESULT_READY"
+                    persist_task(state_file, task)
+
+                if task:
+                    outcome = http_post_result(task["result_payload"])
+                    if outcome == "UNDELIVERED":
+                        print(f"[{worker_id}] Result for {task['task_id']} not delivered yet; keeping it for redelivery.")
+                    else:
+                        if outcome == "REJECTED":
+                            persist_task(STATE_DIR / f"rejected_result_{task['task_id']}.json", task)
+                        state_file.unlink()
+                        print(f"[{worker_id}] Task {task['task_id']} result {outcome}.")
+                        task = None
+                backoff = 10
                     
             except Exception as e:
                 print(f"[{worker_id}] Loop error: {e}. Backing off {backoff}s.")
