@@ -1,13 +1,46 @@
 name: Courier Motor
 
 on:
-  schedule:
-    - cron: "*/5 * * * *"
+  # No cron: the motor only reads committed state, so new work can only
+  # arrive via a push to that file. Manual runs skip the precheck.
+  push:
+    branches: [main]
+    paths:
+      - "server/state/central_state.json"
   workflow_dispatch:
 
+# One motor at a time; queued runs wait instead of dispatching twice.
+concurrency:
+  group: courier-motor
+  cancel-in-progress: false
+
 jobs:
-  motor:
+  precheck:
     runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      contents: read
+    outputs:
+      has_work: ${{ steps.check.outputs.has_work }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            scripts/courier_motor_precheck.py
+            server/state/central_state.json
+
+      - id: check
+        name: Check for claimable GitHub work (read-only, stdlib only)
+        run: python3 scripts/courier_motor_precheck.py
+
+  motor:
+    needs: precheck
+    if: github.event_name == 'workflow_dispatch' || needs.precheck.outputs.has_work == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write
       actions: write
