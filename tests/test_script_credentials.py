@@ -68,3 +68,16 @@ def test_revenue_script_uses_key_and_never_echoes_it(tmp_path):
     assert f"Authorization: Bearer {DUMMY}" in args
     assert "http://example.invalid:9/goals" in args
     assert DUMMY not in r.stdout + r.stderr
+
+
+def test_revenue_script_prefers_canonical_courier_server(tmp_path):
+    bindir = tmp_path / "bin"
+    bindir.mkdir()
+    argsfile = tmp_path / "curl_args"
+    (bindir / "curl").write_text(f'#!/bin/sh\nprintf "%s\\n" "$@" > {argsfile}\n')
+    (bindir / "curl").chmod(0o755)
+    env = {"PATH": f"{bindir}:/usr/bin:/bin", "COURIER_API_KEY": DUMMY,
+           "COURIER_SERVER": "http://canonical.invalid:1", "COURIER_SERVER_URL": "http://legacy.invalid:2"}
+    r = subprocess.run(["bash", str(ROOT / "scripts/revenue_v1_goal.sh")], env=env, capture_output=True, text=True, timeout=30)
+    assert r.returncode == 0, r.stderr
+    assert "http://canonical.invalid:1/goals" in argsfile.read_text()

@@ -4,8 +4,11 @@ import urllib.request
 import urllib.error
 import tempfile
 
-# Credentials come only from the environment; there is deliberately no fallback key.
-API_URL = os.environ.get("COURIER_SERVER_URL", "http://192.168.178.162:8080").rstrip("/")
+# No fallback key exists. The key comes from COURIER_API_KEY or, failing that,
+# from config.json where bootstrap.ps1 stores it; the server URL from
+# COURIER_SERVER (COURIER_SERVER_URL accepted), then config.json, then the default.
+DEFAULT_SERVER = "http://192.168.178.162:8080"
+API_URL = (os.environ.get("COURIER_SERVER") or os.environ.get("COURIER_SERVER_URL") or DEFAULT_SERVER).rstrip("/")
 API_KEY = os.environ.get("COURIER_API_KEY", "").strip()
 HEADERS = {
     "Authorization": f"Bearer {API_KEY}",
@@ -15,10 +18,21 @@ HEADERS = {
 class MissingCredentialError(RuntimeError):
     pass
 
+def apply_config_credentials(config):
+    """Environment wins; otherwise use the values bootstrap.ps1 wrote to config.json."""
+    global API_URL, API_KEY
+    if not os.environ.get("COURIER_API_KEY", "").strip():
+        API_KEY = str(config.get("COURIER_API_KEY") or "").strip()
+    if not (os.environ.get("COURIER_SERVER") or os.environ.get("COURIER_SERVER_URL")):
+        server = str(config.get("COURIER_SERVER") or "").strip()
+        if server and server.lower() != "local":
+            API_URL = server.rstrip("/")
+    HEADERS["Authorization"] = f"Bearer {API_KEY}"
+
 def require_api_key():
     """Fail closed before any network call when no API key is configured."""
     if not API_KEY:
-        raise MissingCredentialError("COURIER_API_KEY is not set; refusing to contact the Courier server.")
+        raise MissingCredentialError("COURIER_API_KEY is not set (environment or config.json); refusing to contact the Courier server.")
 
 def load_config():
     config_path = Path(__file__).parent / "config.json"
@@ -208,8 +222,9 @@ def acquire_lock(worker_id):
         return None
 
 def loop():
-    require_api_key()
     config = load_config()
+    apply_config_credentials(config)
+    require_api_key()
     worker_id = config["WORKER_ID"]
     
     lock_path = acquire_lock(worker_id)
