@@ -366,6 +366,9 @@
         },
         "WORKERS_USED": {
           "$ref": "#/$defs/count"
+        },
+        "TOMBSTONED_EDGES": {
+          "$ref": "#/$defs/stringList"
         }
       },
       "required": [
@@ -394,7 +397,8 @@
         "QUEUE_INDEPENDENT",
         "LAST_EVIDENCE",
         "LAST_UPDATED_BY",
-        "CONTINUATION_CHECKPOINT"
+        "CONTINUATION_CHECKPOINT",
+        "TOMBSTONED_EDGES"
       ],
       "type": "object"
     },

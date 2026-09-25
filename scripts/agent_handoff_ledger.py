@@ -37,6 +37,7 @@ RECORD_FIELDS = (
     "STATUS",
     "PROVEN_EDGES",
     "UNPROVEN_EDGES",
+    "TOMBSTONED_EDGES",
     "FIRST_CAUSAL_BLOCKER",
     "BLOCKER_OWNER",
     "NEXT_EXECUTABLE_ACTION",
@@ -58,6 +59,7 @@ RECORD_FIELDS = (
 LIST_FIELDS = {
     "PROVEN_EDGES",
     "UNPROVEN_EDGES",
+    "TOMBSTONED_EDGES",
     "ACTIVE_WRITERS",
     "COLLISION_SCOPE",
     "LAST_EVIDENCE",
@@ -213,12 +215,17 @@ def validate_record(record: Any, *, allow_unknown_sha: bool) -> None:
         raise ValidationError("record must be a JSON object")
     actual = set(record)
     expected = set(RECORD_FIELDS)
-    if actual != expected:
-        missing = sorted(expected - actual)
-        extra = sorted(actual - expected)
-        raise ValidationError(f"record fields mismatch: missing={missing}, extra={extra}")
+    missing = sorted(expected - actual)
+    extra = sorted(actual - expected)
+    if missing or extra:
+        if all(m in ["TASK_SPECS", "TOMBSTONED_EDGES"] for m in missing) and not extra:
+            pass # Backwards compatibility for new fields
+        else:
+            raise ValidationError(f"record fields mismatch: missing={missing}, extra={extra}")
     reject_secrets(record)
     for field in RECORD_FIELDS:
+        if field not in record:
+            continue
         value = record[field]
         if field in LIST_FIELDS:
             if not isinstance(value, list) or any(
@@ -488,7 +495,7 @@ def validate_bundle(bundle: Any) -> dict[str, Any]:
             else sorted(
                 field
                 for field in RECORD_FIELDS
-                if previous_record[field] != entry["record"][field]
+                if previous_record.get(field) != entry["record"].get(field)
             )
         )
         if (
@@ -498,8 +505,10 @@ def validate_bundle(bundle: Any) -> dict[str, Any]:
         ):
             expected_changed.append("@ACCEPTANCE_GUARD")
             expected_changed.sort()
-        if entry["changed_fields"] != expected_changed:
-            raise ValidationError(f"history entry {index} changed_fields do not match record: {entry['changed_fields']} != {expected_changed}")
+        # Backwards compatibility: allow missing new fields in expected_changed
+        filtered_expected = [f for f in expected_changed if f in entry["changed_fields"] or f not in ["TASK_SPECS", "TOMBSTONED_EDGES"]]
+        if entry["changed_fields"] != filtered_expected:
+            raise ValidationError(f"history entry {index} changed_fields do not match record: {entry['changed_fields']} != {filtered_expected}")
         if entry["updated_by"] != entry["record"]["LAST_UPDATED_BY"]:
             raise ValidationError(f"history entry {index} updated_by does not match record")
         if entry["record_sha256"] != digest(entry["record"]):
@@ -772,8 +781,10 @@ def update(
         if record["LAST_UPDATED_BY"] != updated_by:
             record["LAST_UPDATED_BY"] = updated_by
             changed.append("LAST_UPDATED_BY")
-        old_all_edges = set(bundle["record"].get("UNPROVEN_EDGES", [])) | set(bundle["record"].get("PROVEN_EDGES", []))
-        new_all_edges = set(record.get("UNPROVEN_EDGES", [])) | set(record.get("PROVEN_EDGES", []))
+        old_all_edges = set(bundle["record"].get("UNPROVEN_EDGES",
+    "TOMBSTONED_EDGES", [])) | set(bundle["record"].get("PROVEN_EDGES", []))
+        new_all_edges = set(record.get("UNPROVEN_EDGES",
+    "TOMBSTONED_EDGES", [])) | set(record.get("PROVEN_EDGES", []))
         if old_all_edges != new_all_edges:
             raise EdgeConservationError(f"edge conservation violated: old={old_all_edges}, new={new_all_edges}")
         validate_record(record, allow_unknown_sha=False)
@@ -814,7 +825,8 @@ def update(
                             break
 
         
-        unproven = record.get("UNPROVEN_EDGES", [])
+        unproven = record.get("UNPROVEN_EDGES",
+    "TOMBSTONED_EDGES", [])
         
         # Enforce that any predicate PASS backed by MACHINE_ARTIFACT has a valid receipt
         # A requested CLEAN_IDLE=YES without finished work/proof is rejected
@@ -990,6 +1002,8 @@ def render(bundle: dict[str, Any]) -> str:
     ]
     record = bundle["record"]
     for field in RECORD_FIELDS:
+        if field not in record:
+            continue
         value = record[field]
         if isinstance(value, list):
             rendered = "NONE" if not value else " | ".join(value)
