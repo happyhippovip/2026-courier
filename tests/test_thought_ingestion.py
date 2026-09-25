@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -14,7 +15,21 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 from run_thought_ingestion import canonical_hash, run_ingestion
 
-MEMORY = Path("/Users/user/Downloads/2026-project-memory")
+
+def memory_repo() -> Path:
+    """Real memory checkout if present (COURIER_MEMORY_REPO or operator default),
+    else a throwaway git repo so the read-only HEAD invariant is still exercised."""
+    configured = Path(os.environ.get("COURIER_MEMORY_REPO", "/Users/user/Downloads/2026-project-memory"))
+    if (configured / ".git").exists():
+        return configured
+    scratch = Path(tempfile.mkdtemp(prefix="courier-memory-fixture-"))
+    git = ["git", "-C", str(scratch), "-c", "user.name=fixture", "-c", "user.email=fixture@example.invalid"]
+    subprocess.run(["git", "init", "-q", str(scratch)], check=True)
+    subprocess.run(git + ["commit", "-q", "--allow-empty", "-m", "fixture"], check=True)
+    return scratch
+
+
+MEMORY = memory_repo()
 
 
 def envelope(ingestion_id, source_message_id, timestamp, content, *, source_type="CHAT_EXPORT", metadata=None, privacy_class="INTERNAL"):
