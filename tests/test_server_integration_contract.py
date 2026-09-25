@@ -413,3 +413,62 @@ def test_stale_claim_is_quarantined_without_replay_and_other_goal_continues(tmp_
     late_result = durable_result(claimed)
     assert http.post("/tasks/result", headers=auth(), json=late_result).status_code == 409
     assert server_app.load_state()["tasks"][claimed["task_id"]]["status"] == "HUMAN_REQUIRED"
+
+
+def _verify(http, task, result, verdict):
+    return http.post("/tasks/verify", headers=verifier_auth(), json={
+        "task_id": task["task_id"],
+        "result_id": result["result_id"],
+        "verifier_id": "VERIFIER-01",
+        "verdict": verdict,
+        "artifacts": result["artifacts"],
+    })
+
+
+def test_verification_outcome_is_mirrored_into_workflow_step(tmp_path, monkeypatch):
+    http, goal_id, task = setup_claimed_task(tmp_path, monkeypatch)
+    result = durable_result(task)
+    assert http.post("/tasks/result", headers=auth(), json=result).status_code == 200
+    assert _verify(http, task, result, "PASS").status_code == 200
+
+    step = server_app.load_state()["goals"][goal_id]["workflow_plan"][0]
+    assert step["status"] == "RECONCILED"
+
+
+def test_failed_verification_can_be_resumed_with_new_attempt(tmp_path, monkeypatch):
+    http, goal_id, task = setup_claimed_task(tmp_path, monkeypatch)
+    result = durable_result(task)
+    assert http.post("/tasks/result", headers=auth(), json=result).status_code == 200
+    assert _verify(http, task, result, "FAIL").get_json()["status"] == "FAILED_VERIFICATION"
+
+    resumed = http.post(f"/tasks/{task['task_id']}/resume", headers=auth(), json={"action": "retry"})
+
+    assert resumed.status_code == 200
+    state = server_app.load_state()
+    assert state["goals"][goal_id]["status"] == "ACTIVE"
+    assert state["tasks"][task["task_id"]]["status"] == "QUEUED"
+    retried = http.post("/tasks/claim", headers=auth(), json={"worker_id": "MAC-01"}).get_json()["task"]
+    assert retried["attempt_id"] == "task-1:attempt:2"
+    assert retried["dispatch_id"] != task["dispatch_id"]
+    # The superseded attempt's result can no longer bind to the task.
+    assert http.post("/tasks/result", headers=auth(), json=result).status_code == 400
+
+
+def test_resume_cannot_force_success_without_bound_evidence(tmp_path, monkeypatch):
+    http, goal_id, task = setup_claimed_task(tmp_path, monkeypatch)
+    result = durable_result(task)
+    assert http.post("/tasks/result", headers=auth(), json=result).status_code == 200
+    assert _verify(http, task, result, "FAIL").status_code == 200
+
+    forced = http.post(f"/tasks/{task['task_id']}/resume", headers=auth(), json={"action": "force_success"})
+
+    assert forced.status_code == 400
+    state = server_app.load_state()
+    assert state["tasks"][task["task_id"]]["status"] == "FAILED_VERIFICATION"
+    assert state["goals"][goal_id]["workflow_plan"][0]["status"] == "FAILED_VERIFICATION"
+
+
+def test_resume_route_is_registered_when_run_as_script():
+    source = open(server_app.__file__, encoding="utf-8").read()
+    main_guard = source.index('if __name__ == "__main__":')
+    assert source.index("def resume_task") < main_guard

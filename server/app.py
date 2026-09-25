@@ -494,12 +494,12 @@ def verify_task_result():
     else:
         task["status"] = "FAILED_VERIFICATION"
         goal["status"] = "BLOCKED"
+    _, step = _find_workflow_step(state, task_id)
+    if step is not None:
+        step["status"] = task["status"]
     save_state(state)
     return jsonify({"status": task["status"]})
 
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
 
 @app.route('/tasks/<task_id>/resume', methods=['POST'])
 @require_auth
@@ -508,29 +508,41 @@ def resume_task(task_id):
     data = request.get_json(silent=True) or {}
     action = data.get("action", "retry")
     state = load_state()
-    
-    for goal_id, goal in state["goals"].items():
-        if "workflow_plan" not in goal: continue
-        for step in goal["workflow_plan"]:
-            if step["task_id"] == task_id:
-                if step["status"] not in ["HUMAN_REQUIRED", "FAILED_VERIFICATION", "FAILED_TERMINAL"]:
-                    return jsonify({"error": f"Task cannot be resumed from status {step['status']}"}), 400
-                
-                if action == "retry":
-                    step["status"] = "QUEUED"
-                    goal["status"] = "ACTIVE"
-                    if "instruction_override" in data:
-                        step["instruction"] = data["instruction_override"]
-                    step["worker_id"] = None
-                    save_state(state)
-                    return jsonify({"status": "RESUMED", "task_id": task_id, "goal_id": goal_id})
-                elif action == "force_success":
-                    step["status"] = "RESULT_RECEIVED"
-                    goal["status"] = "ACTIVE"
-                    step["result_id"] = "manual-resume-" + task_id
-                    save_state(state)
-                    return jsonify({"status": "FORCED_SUCCESS_PENDING_VERIFICATION", "task_id": task_id})
-                else:
-                    return jsonify({"error": "Unknown action"}), 400
-                    
-    return jsonify({"error": "Task not found"}), 404
+    task = state["tasks"].get(task_id)
+    goal, step = _find_workflow_step(state, task_id)
+    if step is None:
+        return jsonify({"error": "Task not found"}), 404
+
+    status = task["status"] if task else step["status"]
+    if status not in ["HUMAN_REQUIRED", "FAILED_VERIFICATION", "FAILED_TERMINAL"]:
+        return jsonify({"error": f"Task cannot be resumed from status {status}"}), 400
+
+    if action == "retry":
+        # Requeue only; the next claim mints a fresh attempt_id/dispatch_id so
+        # results of the superseded attempt can no longer bind to this task.
+        for record in filter(None, (task, step)):
+            record["resumed_from"] = status
+            record["status"] = "QUEUED"
+            record["worker_id"] = None
+        if "instruction_override" in data:
+            step["instruction"] = data["instruction_override"]
+        goal["status"] = "ACTIVE"
+        save_state(state)
+        return jsonify({"status": "RESUMED", "task_id": task_id, "goal_id": goal["goal_id"]})
+    if action == "force_success":
+        # Success must come from a DurableResult bound to a dispatch and an
+        # independent verifier; a manual marker cannot provide either.
+        return jsonify({"error": "force_success is not supported; retry and verify instead"}), 400
+    return jsonify({"error": "Unknown action"}), 400
+
+
+def _find_workflow_step(state, task_id):
+    for goal in state["goals"].values():
+        for step in goal.get("workflow_plan", []):
+            if step.get("task_id") == task_id:
+                return goal, step
+    return None, None
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8080)
