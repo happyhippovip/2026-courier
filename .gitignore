@@ -1,0 +1,105 @@
+# Runtime envelopes remain local and are never committed automatically.
+events/incoming/*.json
+events/processed/*.json
+events/dispatch/*.json
+events/proposals/*.json
+events/approvals/*.json
+events/chief-decisions/*.json
+events/night-queue/*.json
+events/morning-reports/*.json
+events/morning-reports/*.md
+events/thought-incoming/*.json
+events/thought-processed/*.json
+events/thought-rejected/*.json
+events/thoughts/*.json
+events/agent-states/*.json
+
+# Python & bytecode caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Runtime locks & leases
+events/locks/*.lease
+events/locks/*.lock
+
+# Runtime GitHub Transport envelopes remain local.
+events/transport/incoming/*.json
+events/transport/processed/*.json
+events/transport/rejected/*.json
+events/transport/acknowledgements/*.json
+events/transport/transitions/*.json
+events/transport/transitions.jsonl
+events/transport/claims/*.claim
+events/transport/*.lock
+events/transport/registry.json
+!events/transport/.gitkeep
+!events/transport/incoming/.gitkeep
+!events/transport/processed/.gitkeep
+!events/transport/rejected/.gitkeep
+!events/transport/acknowledgements/.gitkeep
+!events/transport/transitions/.gitkeep
+!events/transport/claims/.gitkeep
+
+# Runtime Review Ledger & Budget files remain local.
+events/reviews/*.json
+events/reviews/*.jsonl
+events/reviews/*.lock
+!events/reviews/.gitkeep
+
+# Runtime state & sensitive payment configs remain strictly local
+events/runtime-state/*.json
+events/runtime-state/*.lock
+events/task-envelopes/*.json
+!events/runtime-state/.gitkeep
+!events/task-envelopes/.gitkeep
+
+
+
+
+
+# Demo workflow runs & scratch assets
+events/demo/*
+!events/demo/.gitkeep
+studio/assets/*_cropped.*
+
+# Intermediate context snapshot history (replicated in 2026-project-memory)
+events/context-snapshots/snapshot-v*.json
+
+# Runtime generated content artifacts remain local.
+runtime/content/*
+!runtime/content/.gitkeep
+
+# Keep directory markers only.
+!events/incoming/.gitkeep
+!events/processed/.gitkeep
+!events/dispatch/.gitkeep
+!events/proposals/.gitkeep
+!events/approvals/.gitkeep
+!events/chief-decisions/.gitkeep
+!events/night-queue/.gitkeep
+!events/morning-reports/.gitkeep
+!events/thought-incoming/.gitkeep
+!events/thought-processed/.gitkeep
+!events/thought-rejected/.gitkeep
+!events/thoughts/.gitkeep
+!events/agent-states/.gitkeep
+!events/locks/.gitkeep
+!events/context-snapshots/.gitkeep
+!events/context-snapshots/snapshot-current.json
+!events/academy/economics.json
+
+# Mac worker runtime
+scripts/mac_worker/config.json
+scripts/mac_worker/logs/
+scripts/mac_worker/state/
+scripts/mac_worker/inbox/
+scripts/mac_worker/outbox/
+scripts/windows_worker/logs/
+scripts/windows_worker/state/
+
+
+# Local confidential strategy material — NEVER COMMIT.
+private_strategy/
+secret_notes/
+confidential/

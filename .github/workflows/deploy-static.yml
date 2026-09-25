@@ -1,0 +1,44 @@
+name: Deploy static validation
+
+on:
+  pull_request:
+    paths:
+      - "deploy/**"
+      - ".github/workflows/deploy-static.yml"
+  push:
+    branches: [main]
+    paths:
+      - "deploy/**"
+      - ".github/workflows/deploy-static.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Validate deployment scripts and systemd unit
+        run: |
+          set -eu
+          bash -n deploy/install.sh deploy/run-supervisor.sh
+          if env -u COURIER_API_KEY -u COURIER_VERIFIER_API_KEY \
+            deploy/run-supervisor.sh > "$RUNNER_TEMP/missing-key.log" 2>&1; then
+            echo "supervisor unexpectedly started without credentials" >&2
+            exit 1
+          fi
+          grep -F "COURIER_API_KEY must be set" "$RUNNER_TEMP/missing-key.log"
+          if env COURIER_API_KEY=same COURIER_VERIFIER_API_KEY=same \
+            deploy/run-supervisor.sh > "$RUNNER_TEMP/shared-key.log" 2>&1; then
+            echo "supervisor unexpectedly accepted shared worker/verifier authority" >&2
+            exit 1
+          fi
+          grep -F "Worker and verifier API keys must differ" "$RUNNER_TEMP/shared-key.log"
+          grep -F 'gunicorn -w 1 --threads 4' deploy/run-supervisor.sh
+          grep -Fx "systemctl enable courier" deploy/install.sh
+          sudo install -d /opt/courier/deploy
+          sudo install -m 0755 deploy/run-supervisor.sh /opt/courier/deploy/run-supervisor.sh
+          systemd-analyze verify "$GITHUB_WORKSPACE/deploy/courier.service"

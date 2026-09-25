@@ -1,0 +1,22 @@
+{
+  "schema_version": "2.0",
+  "updated_at": "2026-08-30T11:58:00Z",
+  "tools": {
+    "ffmpeg_binary_path": "/usr/local/bin/ffmpeg",
+    "godot_binary_path": "/Users/user/Desktop/Godot.app/Contents/MacOS/Godot"
+  },
+  "project_bindings": {
+    "FruitKI": {
+      "project_path": "/Users/user/Downloads/2026-Projektzentrale/05-3D-Shorts-Produktion/godot-short-studio",
+      "project_file": "/Users/user/Downloads/2026-Projektzentrale/05-3D-Shorts-Produktion/godot-short-studio/project.godot",
+      "default_scene": "res://strawberry_school_short.tscn",
+      "status": "FOUND_READ_ONLY"
+    },
+    "3D-KI-Videos": {
+      "project_path": "/Users/user/Downloads/2026-Projektzentrale/05-3D-Shorts-Produktion/godot-short-studio",
+      "project_file": "/Users/user/Downloads/2026-Projektzentrale/05-3D-Shorts-Produktion/godot-short-studio/project.godot",
+      "default_scene": "res://vertical_short.tscn",
+      "status": "FOUND_READ_ONLY"
+    }
+  }
+}

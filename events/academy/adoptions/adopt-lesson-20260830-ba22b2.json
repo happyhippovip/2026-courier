@@ -1,0 +1,12 @@
+{
+  "schema_version": "2.0",
+  "adoption_id": "adopt-lesson-20260830-ba22b2",
+  "lesson_id": "lesson-20260830-ba22b2",
+  "title": "GPU Zero-Copy Subtitle Burn-In",
+  "topic": "FFMPEG_SUBTITLES",
+  "affected_agents": [
+    "antigravity"
+  ],
+  "evaluation_id": "eval-lesson-20260830-ba22b2",
+  "adopted_at": "2026-08-30T15:29:42.839850+00:00"
+}

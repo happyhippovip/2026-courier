@@ -1,0 +1,33 @@
+{
+  "goals": {
+    "goal-canary-s8": {
+      "goal_text": "Verify bounded A->B canary",
+      "status": "ACTIVE",
+      "current_step_index": 0,
+      "workflow_plan": [
+        {
+          "task_id": "WF-CANARY-STEP-1",
+          "goal_id": "goal-canary-s8",
+          "instruction": "Transform canary A",
+          "target_agent": "github",
+          "status": "QUEUED",
+          "attempts": 0,
+          "task_type": "deterministic_transform",
+          "input": "canary_A"
+        },
+        {
+          "task_id": "WF-CANARY-STEP-2",
+          "goal_id": "goal-canary-s8",
+          "instruction": "Transform canary B",
+          "target_agent": "github",
+          "status": "QUEUED",
+          "attempts": 0,
+          "task_type": "deterministic_transform",
+          "input": "canary_B"
+        }
+      ]
+    }
+  },
+  "tasks": {},
+  "workers": {}
+}

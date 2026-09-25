@@ -1,0 +1,153 @@
+{
+  "schema_version": "2.0",
+  "context_version": 8,
+  "generated_at": "2026-08-30T15:18:24.709913+00:00",
+  "repositories": {
+    "courier_head": "b920a5f303982f76eba461ce223dd44d908ca98c",
+    "memory_head": "57ac6525e7f8c74c9521dae883f5538e6d572a26",
+    "godot_head": "NOT_CONNECTED"
+  },
+  "workflow_state": {
+    "workflow_id": "WF-CHIEF-662651",
+    "correlation_id": "UNKNOWN",
+    "current_task_id": "UNKNOWN",
+    "is_locked": true,
+    "agent_states": {
+      "agent-codex-bridge": {
+        "state": "COMPLETED",
+        "task": "REAL-CODEX-ROUND-2-096",
+        "progress": 1.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-08-30T14:44:12.829819+00:00"
+      },
+      "agent-update-steward": {
+        "state": "CHECKING",
+        "task": "Compiling Project Context Snapshot",
+        "progress": 0.1,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-08-30T15:18:24.709934+00:00"
+      },
+      "agent-thought-curator": {
+        "state": "SENT TO CHIEF",
+        "task": "Curated idea-45a767eb",
+        "progress": 1.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-08-30T15:18:24.662180+00:00"
+      },
+      "agent-antigravity-bridge": {
+        "state": "AWAITING_CHIEF_REVIEW",
+        "task": "WF-CHIEF-662651-STEP-1-DISCOVER",
+        "progress": 1.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-08-30T15:18:24.708016+00:00"
+      },
+      "test-agent-g": {
+        "state": "AWAITING_CHIEF_REVIEW",
+        "task": "TASK-AUDIT-G-001",
+        "progress": 1.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-08-30T13:14:32.417837+00:00"
+      },
+      "agent-chief-commander": {
+        "state": "BLOCKED_POLICY_CONFLICT",
+        "task": "Policy Conflict: idea-aa9a9ff3",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-08-30T15:12:51.764196+00:00"
+      },
+      "test-agent-codex": {
+        "state": "AWAITING_CHIEF_REVIEW",
+        "task": "TASK-CDX-H-001",
+        "progress": 1.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-08-30T14:41:16.687284+00:00"
+      }
+    },
+    "total_decisions": 34,
+    "total_results": 46,
+    "total_approvals": 5
+  },
+  "memory_truth": {
+    "latest_verified_milestone": "**VERIFIED_CURRENT** | Source: local repository audit of `2026-Projektzentrale` | Verified: 2026-08-29. Two final vertical FruitKI files exist locally: `kiwi-stealth-short-001-final.mp4` (10 s) and `strawberry-school-short-002-final.mp4` (7.125 s); both were locally inspected as 360\u00d7640 H.264/AAC assets. See [TECHNICAL_CONTEXT.md](TECHNICAL_CONTEXT.md).",
+    "latest_decisions": [
+      "D-001 \u2014 Revenue first, conservative capital",
+      "D-002 \u2014 Crypto and speculative recovery blocked",
+      "D-003 \u2014 Protected and private assets excluded",
+      "D-004 \u2014 No paid or irreversible action by default",
+      "D-005 \u2014 Separate project memory repository",
+      "D-006 \u2014 Courier evidence must be staged",
+      "D-007 \u2014 Postiz legacy preservation",
+      "D-008 \u2014 Direct social paths, no new publication by default",
+      "D-009 \u2014 Sensitive data boundary",
+      "D-010 \u2014 Compact memory, not history deletion",
+      "D-011 \u2014 Configured-secret autonomy without value retention",
+      "D-012 \u2014 Chief Relay Protocol & Handoff Standard",
+      "D-013 \u2014 Antigravity Consumer & Result Publisher Architecture",
+      "D-014 \u2014 Chief Relay Cycle Runner (GitHub Intake & Publish Bridge)",
+      "D-015 \u2014 Truth Audit & Exact Automation Boundary Definition",
+      "D-016 \u2014 Antigravity Worker Dispatch Contract & Handoff Point",
+      "D-017 \u2014 Permanent Zero-UI-Confirmation & Unattended Autonomy Policy",
+      "D-018 \u2014 Worker Job Contract Hardening & Strict JSON Schema Validation",
+      "D-019 \u2014 Sync current state before technical work",
+      "D-020 \u2014 Bounded Godot Movie Maker render contract",
+      "D-021 \u2014 Dedicated Godot short source repository",
+      "D-022 \u2014 Scoped permissions and safe cleanup",
+      "D-023 \u2014 Native local Codex CLI attachment is a distinct evidence stage",
+      "D-024 \u2014 Autonomous Chief Commander & Visual Multi-Agent Operations Cockpit",
+      "D-025 \u2014 Idea Sync & Thought Curator memory comparison layer",
+      "D-026 \u2014 Truth-grounded operations cockpit and human gate persistence"
+    ],
+    "open_blockers": [],
+    "relevant_ideas": [],
+    "human_gates": [],
+    "files_available": {
+      "project_state": true,
+      "decisions": true,
+      "ideas": true,
+      "changelog": true
+    }
+  },
+  "latest_idea_delta": {
+    "idea_id": "idea-45a767eb",
+    "raw_idea": "Neue Feature Idee f\u00fcr automatische Metadaten-Validierung 592061",
+    "normalized_idea": "neue feature idee f\u00fcr automatische metadaten-validierung 592061",
+    "normalized_summary": "Neue Feature Idee f\u00fcr automatische Metadaten-Validierung 592061",
+    "idea_status": "PROPOSED",
+    "type": "IDEA",
+    "classification": "NEW",
+    "truth_boundary": "IDEA != VERIFIED | USER_REPORTED != TECHNICALLY_VERIFIED",
+    "conflicts": [],
+    "related_ideas": [],
+    "memory_references": [],
+    "affected_agents": [
+      "antigravity"
+    ],
+    "affected_workflows": [
+      "General Architecture (Courier System)"
+    ],
+    "recommended_next_action": "ROUTE_TO_ANTIGRAVITY_PRIMARY",
+    "target_agent_recommendation": "antigravity",
+    "sources_indexed": {
+      "decisions": true,
+      "ideas": true,
+      "project_state": true
+    },
+    "timestamp": "2026-08-30T15:18:24.662150+00:00"
+  },
+  "truth_classifications": {
+    "courier_codebase": "VERIFIED",
+    "project_memory": "VERIFIED",
+    "antigravity_worker": "DETERMINISTIC",
+    "codex_worker": "DETERMINISTIC",
+    "godot_media": "NOT_CONNECTED",
+    "human_ideas": "IDEA",
+    "user_reports": "USER_REPORTED",
+    "truth_invariants": "IDEA != IMPLEMENTED | USER_REPORTED != VERIFIED | DETERMINISTIC != REAL_EXTERNAL"
+  },
+  "changed_since_previous_snapshot": [
+    "workflow_id"
+  ],
+  "previous_snapshot_version": 7,
+  "previous_snapshot_hash": "a69a03ba20022b51832ed51508ce76d1d78fd1f6bc0aead1882a89756fd3db61",
+  "snapshot_hash": "a13ffb49bf101a0e418b974dadebec49cd9072f31dc32d980f6aaa89c0124c8e"
+}

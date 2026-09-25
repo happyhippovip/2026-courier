@@ -1,0 +1,15 @@
+[Unit]
+Description=Courier Control Plane (Flask)
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/courier
+ExecStart=/opt/courier/deploy/run-supervisor.sh
+Restart=always
+RestartSec=5
+EnvironmentFile=/opt/courier/deploy/.env
+
+[Install]
+WantedBy=multi-user.target

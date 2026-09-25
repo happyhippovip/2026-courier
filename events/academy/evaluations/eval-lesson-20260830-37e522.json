@@ -1,0 +1,24 @@
+{
+  "schema_version": "2.0",
+  "evaluation_id": "eval-lesson-20260830-37e522",
+  "lesson_id": "lesson-20260830-37e522",
+  "baseline": {
+    "runtime_seconds": 5.0,
+    "error_count": 0,
+    "test_pass_rate": 1.0
+  },
+  "candidate": {
+    "runtime_seconds": 15.0,
+    "error_count": 3,
+    "test_pass_rate": 0.7
+  },
+  "metrics": {
+    "runtime_seconds_delta": 10.0,
+    "error_delta": 3,
+    "pass_rate_delta": -0.3,
+    "measured_minutes_saved": 0.0
+  },
+  "verdict": "FAIL",
+  "truth_invariants": "TESTED != PRODUCTION | NO_FABRICATED_IMPROVEMENT",
+  "evaluated_at": "2026-08-30T15:29:42.833380+00:00"
+}

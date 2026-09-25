@@ -1,0 +1,137 @@
+{
+  "description": "Deterministic machine-readable project permission and sandbox masterlist",
+  "rules": [
+    {
+      "classification": "ALREADY_ALLOWED",
+      "family": "LOCALHOST_HEALTH_CHECKS",
+      "pattern": "^curl\\s+(-[a-zA-Z]+\\s+)?https?://(127\\.0\\.0\\.1|localhost):8088(/api/state)?",
+      "persistable": true,
+      "prefix": "curl http://127.0.0.1:8088/api/state",
+      "reason": "Local Visual Studio health and state query",
+      "risk_class": "SAFE",
+      "safer_equivalent": null
+    },
+    {
+      "classification": "ALREADY_ALLOWED",
+      "family": "LOCALHOST_HEALTH_CHECKS",
+      "pattern": "^open\\s+https?://(127\\.0\\.0\\.1|localhost):8088",
+      "persistable": true,
+      "prefix": "open http://localhost:8088",
+      "reason": "Local browser launch for Studio visual inspection",
+      "risk_class": "SAFE",
+      "safer_equivalent": null
+    },
+    {
+      "classification": "ALREADY_ALLOWED",
+      "family": "STUDIO_LIFECYCLE",
+      "pattern": "^python3\\s+scripts/launch_visual_studio\\.py(\\s+--status)?",
+      "persistable": true,
+      "prefix": "python3 scripts/launch_visual_studio.py",
+      "reason": "Canonical detached Studio server launcher and status inspector",
+      "risk_class": "SAFE",
+      "safer_equivalent": null
+    },
+    {
+      "classification": "ALREADY_ALLOWED",
+      "family": "STUDIO_LIFECYCLE",
+      "pattern": "^python3\\s+scripts/run_visual_studio_server\\.py",
+      "persistable": true,
+      "prefix": "python3 scripts/run_visual_studio_server.py",
+      "reason": "Persistent Studio HTTP/API backend server",
+      "risk_class": "SAFE",
+      "safer_equivalent": null
+    },
+    {
+      "classification": "ALREADY_ALLOWED",
+      "family": "GIT_INSPECTION",
+      "pattern": "^git\\s+(status|diff|log|rev-parse|branch|show|fetch|pull)",
+      "persistable": true,
+      "prefix": "git status",
+      "reason": "Read-only repository state inspection",
+      "risk_class": "SAFE",
+      "safer_equivalent": null
+    },
+    {
+      "classification": "ALREADY_ALLOWED",
+      "family": "GIT_ROUTINE",
+      "pattern": "^git\\s+(add|commit|push(\\s+origin\\s+main)?)",
+      "persistable": true,
+      "prefix": "git add/commit/push",
+      "reason": "Routine non-destructive version control synchronization",
+      "risk_class": "SAFE",
+      "safer_equivalent": null
+    },
+    {
+      "classification": "ALREADY_ALLOWED",
+      "family": "PYTHON_SCRIPTS",
+      "pattern": "^(PYTHONPATH=\\.\\s+)?python3\\s+scripts/(run_visual_studio_server|launch_visual_studio|run_context_sync|run_academy|run_academy_demo|run_chief_commander|run_smart_router|run_snitch_watchdog|run_bodyguards|run_level6_loop|run_autonomous_studio_demo|run_autonomous_full_cycle_demo)\\.py",
+      "persistable": true,
+      "prefix": "python3 scripts/run_*.py",
+      "reason": "Known deterministic project runner scripts in scripts/ directory",
+      "risk_class": "SAFE",
+      "safer_equivalent": null
+    },
+    {
+      "classification": "ALREADY_ALLOWED",
+      "family": "PYTHON_TESTS",
+      "pattern": "^(PYTHONPATH=\\.\\s+)?python3\\s+tests/test_[a-z0-9_]+\\.py",
+      "persistable": true,
+      "prefix": "python3 tests/test_*.py",
+      "reason": "Deterministic unit test suite execution in tests/ directory",
+      "risk_class": "SAFE",
+      "safer_equivalent": null
+    },
+    {
+      "classification": "ALREADY_ALLOWED",
+      "family": "NODE_TESTS",
+      "pattern": "^node\\s+tests/test_(execution_truth|visual_studio_server)\\.mjs",
+      "persistable": true,
+      "prefix": "node tests/test_*.mjs",
+      "reason": "Known JavaScript execution truth tests",
+      "risk_class": "SAFE",
+      "safer_equivalent": null
+    },
+    {
+      "classification": "ALREADY_ALLOWED",
+      "family": "NODE_TESTS",
+      "pattern": "^node\\s+--check\\s+[a-z0-9_/\\.-]+\\.js",
+      "persistable": true,
+      "prefix": "node --check",
+      "reason": "Static syntax verification for JavaScript modules",
+      "risk_class": "SAFE",
+      "safer_equivalent": null
+    },
+    {
+      "classification": "ALREADY_ALLOWED",
+      "family": "FFMPEG_MEDIA",
+      "pattern": "^(ffmpeg|ffprobe)\\s+",
+      "persistable": true,
+      "prefix": "ffmpeg/ffprobe",
+      "reason": "Local media analysis and frame inspection",
+      "risk_class": "SAFE",
+      "safer_equivalent": null
+    },
+    {
+      "classification": "ALREADY_ALLOWED",
+      "family": "GODOT_RENDER",
+      "pattern": "^godot\\s+--headless",
+      "persistable": true,
+      "prefix": "godot --headless",
+      "reason": "Bounded headless Godot 4.7 render pipeline",
+      "risk_class": "SAFE",
+      "safer_equivalent": null
+    },
+    {
+      "classification": "ALREADY_ALLOWED",
+      "family": "FILESYSTEM_READ",
+      "pattern": "^(ls|find|cat|head|tail|grep|echo|pwd|which|sleep|lsof)\\b",
+      "persistable": true,
+      "prefix": "local read-only utils",
+      "reason": "Safe local utility and inspection commands",
+      "risk_class": "SAFE",
+      "safer_equivalent": null
+    }
+  ],
+  "schema_version": "3.0",
+  "updated_at": "2026-08-30T17:49:25.981729+00:00"
+}

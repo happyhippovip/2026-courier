@@ -1,0 +1,13 @@
+{
+  "schema_version": "2.0",
+  "delivery_id": "deliv-829b174a",
+  "lesson_id": "lesson-20260830-7c3375",
+  "target_agent": "test-agent-busy",
+  "relevant_summary": "High severity CVE requires immediate runner environment update.",
+  "reason_for_agent": "Relevant for test-agent-busy workflows: DEPENDENCY_VULNERABILITY",
+  "recommended_change": "Improved automated pattern",
+  "context_version": 21,
+  "safe_from_task_id": "TASK-CRITICAL-EXECUTION-999",
+  "status": "URGENT_LESSON_REVIEW",
+  "delivered_at": "2026-08-30T15:30:54.779801+00:00"
+}

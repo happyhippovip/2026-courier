@@ -1,0 +1,23 @@
+{
+  "schema_version": "2.0",
+  "message_id": "msg-chief-080-6e4505bd",
+  "task_id": "TASK-E2E-CHIEF-RELAY-080",
+  "correlation_id": "corr-080-6e4505bd",
+  "parent_id": null,
+  "source": "chief",
+  "destination": "antigravity",
+  "type": "COMMAND",
+  "status": "NEW",
+  "created_at": "2026-08-29T21:30:00Z",
+  "payload": {
+    "target_agent": "ANTIGRAVITY",
+    "one_next_command": "Validate Chief Relay E2E GitHub transport and result publication",
+    "allowed_scope": [
+      "happyhippovip/2026-courier"
+    ],
+    "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+    "cost_policy": "ZERO_COST_ONLY"
+  },
+  "payload_hash": "a8cd85ef20a121ec7a12ab917a48a5f19eac84f648de3ac73e46d5c20a7b15ca",
+  "max_iterations": 1
+}

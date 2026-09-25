@@ -1,0 +1,338 @@
+{
+  "inspected_files": {
+    "deploy-website.yml": "1149080965bc7b349c07e2eb59adfecb7ebc6b4bc3689c203d71117594800f89",
+    "setup-labels.yml": "deb33be8a1424cc5db34da18cd1ca1f60fa4ad587cb79fa35fcdcec300ef9dc3",
+    "codespell.yml": "074000b1e1c91d54eaf6930a4614dc766d8d8f77aa530bcf5a3c55df70113700",
+    "resource-staleness-report.lock.yml": "22071c788334f149d3c0b7402e19fd2f179f2557672d7af0f5363b2194b51b1d",
+    "publish.yml": "f808d4a7c47e05beaa1d5f5fe09c7a1684ec1e077020e63073cf51d9baaba1d9",
+    "cli-for-beginners-sync.lock.yml": "b3c83eacc2eca56ea5baf739630c4b08cdcd4227ea15d272f279664fc82269cf",
+    "webhook-caller.yml": "2b113d93138a99a0fbe9bd8a66c7ef3e19e84df0d740150f5a1e878d763ee6a1",
+    "copilot-workshops-sync.lock.yml": "39e5a3e81bf2e5cbbc5b244a6e67952ab9e7f70bb3fe008f1842c279fda1fe30",
+    "external-plugin-pr-quality-gates-writer.yml": "1a342574ae5982941b5b0a566f2593409b86a7c50da3aba814d82f6b47474bec",
+    "pr-duplicate-check-writer.yml": "73d0e924a507ed50baa67bf31d28ef7d6ab696fba16ece4277f8bd59b4e86d41",
+    "skill-quality-report.yml": "856280710107e517ed3d8509f2bea8196303634f7afbbe6626680236ba12bf16",
+    "pr-risk-scan.yml": "ce2477167e57870fbd814dac834669c8a36d6040eec873a0deac4973054abcdc",
+    "external-plugin-rereview.yml": "bb38619f94029cc192c5847fe69e98351f238b801005495717d9225d0a6bc9fc",
+    "external-plugin-quality-gates.yml": "0f8ae396f6254f3698b162dbdc7d7833b562c3a8aa77cbf5a8ecd75f2ae5702b",
+    "advanced-copilot-cli-sync.lock.yml": "41c583ff47b3cc91ab22b3b05e3239dd2a45229b2466c31dfb16a8c38b2481f4",
+    "external-plugin-command-router.yml": "9e058548132dcdd2f0557c2de98b5a9aa2ba3a60df85ef4d09706d572044d15a",
+    "validate-agentic-workflows-pr.yml": "7e4cc8af57181823d3996599d046c62675c9ede05b713bf08c621ac7afeb55f6",
+    "contributor-check-writer.yml": "2c20ef18e097207973779b7ca9940017d1b4bca27c72cdbf9dc6699a1d13401f",
+    "external-plugin-intake.yml": "16e7c22498b3bfb31251d3f645757c1f827663ea1a8a7b4a5faa6cce0ebabdc2",
+    "label-pr-intent.yml": "63016a3c0423ace6115a9b3a53eb038b1d5a85f77522577c0e8ba1baee2e4707",
+    "skill-check-comment.yml": "b136dff26bf2858675e10996757b2a4800b5e44aad726aabae9b459897870c4a",
+    "agentics-maintenance.yml": "d804c32afd9f964fb6d53dd24c9b9d00902db21daf06f14bfe48a7316b667964",
+    "copilot-setup-steps.yml": "08eca48591212b0a0c303ad5e87b00622abbe8724db6e6a9e74f87440256977a",
+    "validate-canvas-extensions.yml": "f8984f1d755a869bddf439dcbeb2d98a67b1be65c8aa82add93b6edc342fd66f",
+    "external-plugin-approval-command.yml": "3e475cdd695504aa9ba7a3cd1d301061920862ed27179b495c3e71e16b33d4c3",
+    "duplicate-resource-detector.lock.yml": "8ad6b754cb6e0b1d0fd7c2ae0ef5e141b70accb3909d6488d97ebe2131d1f667",
+    "pr-duplicate-check.lock.yml": "578b3cad4a60e2f3b1f58f72f2166949b2312d4d0007f8c497d6fa77e97d1b82",
+    "validate-readme.yml": "16e9f18679b3381f8eb4adce2989a09a658b66e44d22499d19b52160729dc0d4",
+    "learning-hub-updater.lock.yml": "b8ad9f9adf04c2c07a261d9cc8c7adaee5930cdffccae299de9f5fdeac513d1f",
+    "validate-plugins.yml": "9fe3f7e892714224b68dad43da363e65daf4b652e8fb23b3de1b2f497f9f5abb",
+    "contributors.yml": "1949a91df8d3d3bdf5394d87d3c35ea48271a83c493dac6286b6d89d163175a8",
+    "contributor-check.yml": "bc5d4ffdcd53b938c0474bd856f4dd47a2608392ae73bc59a2ac897c828a2d24",
+    "label-pr-intent-writer.yml": "cd1d84633bb30251f3f645f3ec0c26d7cd280b2cef0bee8d0b7a89c0961352ad",
+    "external-plugin-rereview-command.yml": "9e70786203556108f2cc1bd57304630859c0e2365128e26f15dad5bff9a158d2",
+    "pr-risk-scan-comment.yml": "797299111a8880f5c3b356246865b276e78f6e18900425c42a743ec1048185e5",
+    "codeowner-update.lock.yml": "eaa0305d2abea861ccc6ebb041252fb693bd5b54153bf789e733e47e8b5961ae",
+    "traffic-reporting.yml": "829a6229b00a97f5df0ddb50367169166f548424e2ddd882a1f539ea6c7c55e7",
+    "external-plugin-pr-quality-gates.yml": "644c70d6223e0bdd437aaaaececdd08d19421b4d23904c4ba2ad5b3acfa5d0d5",
+    "skill-check.yml": "fdf73de4dc723d3d7a7a8af80f968a170ecc36e84dcb51913b651bb7802e4839",
+    "check-plugin-structure.yml": "8cccf2fd1f1bcaff9dd98ef8ff6e8152d725d635fce45be9c0e0ec78dd25ef99",
+    "check-line-endings.yml": "7ab6d89613aac0baf9f8acc51bcc0900a779e70c7c01ad64e3d9c6a05699f51e",
+    "deploy-website-preview.yml": "3e358192904aa25e9f97c295d546df280037bf79e4cbf7ef916fd61f39d1e890"
+  },
+  "findings": [
+    {
+      "rule": "timeout",
+      "file": "deploy-website.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "timeout",
+      "file": "setup-labels.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "concurrency",
+      "file": "setup-labels.yml",
+      "issue": "Missing concurrency block."
+    },
+    {
+      "rule": "timeout",
+      "file": "codespell.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "concurrency",
+      "file": "codespell.yml",
+      "issue": "Missing concurrency block."
+    },
+    {
+      "rule": "timeout",
+      "file": "publish.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "mutation_risk",
+      "file": "publish.yml",
+      "issue": "git push detected in workflow."
+    },
+    {
+      "rule": "timeout",
+      "file": "webhook-caller.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "concurrency",
+      "file": "webhook-caller.yml",
+      "issue": "Missing concurrency block."
+    },
+    {
+      "rule": "timeout",
+      "file": "external-plugin-pr-quality-gates-writer.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "timeout",
+      "file": "pr-duplicate-check-writer.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "timeout",
+      "file": "skill-quality-report.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "concurrency",
+      "file": "skill-quality-report.yml",
+      "issue": "Missing concurrency block."
+    },
+    {
+      "rule": "timeout",
+      "file": "pr-risk-scan.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "concurrency",
+      "file": "pr-risk-scan.yml",
+      "issue": "Missing concurrency block."
+    },
+    {
+      "rule": "timeout",
+      "file": "external-plugin-rereview.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "concurrency",
+      "file": "external-plugin-rereview.yml",
+      "issue": "Missing concurrency block."
+    },
+    {
+      "rule": "timeout",
+      "file": "external-plugin-quality-gates.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "concurrency",
+      "file": "external-plugin-quality-gates.yml",
+      "issue": "Missing concurrency block."
+    },
+    {
+      "rule": "timeout",
+      "file": "external-plugin-command-router.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "mutation_risk",
+      "file": "external-plugin-command-router.yml",
+      "issue": "git push detected in workflow."
+    },
+    {
+      "rule": "timeout",
+      "file": "validate-agentic-workflows-pr.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "concurrency",
+      "file": "validate-agentic-workflows-pr.yml",
+      "issue": "Missing concurrency block."
+    },
+    {
+      "rule": "timeout",
+      "file": "contributor-check-writer.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "timeout",
+      "file": "external-plugin-intake.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "timeout",
+      "file": "label-pr-intent.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "concurrency",
+      "file": "label-pr-intent.yml",
+      "issue": "Missing concurrency block."
+    },
+    {
+      "rule": "timeout",
+      "file": "skill-check-comment.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "concurrency",
+      "file": "skill-check-comment.yml",
+      "issue": "Missing concurrency block."
+    },
+    {
+      "rule": "concurrency",
+      "file": "agentics-maintenance.yml",
+      "issue": "Missing concurrency block."
+    },
+    {
+      "rule": "timeout",
+      "file": "copilot-setup-steps.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "concurrency",
+      "file": "copilot-setup-steps.yml",
+      "issue": "Missing concurrency block."
+    },
+    {
+      "rule": "timeout",
+      "file": "validate-canvas-extensions.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "concurrency",
+      "file": "validate-canvas-extensions.yml",
+      "issue": "Missing concurrency block."
+    },
+    {
+      "rule": "timeout",
+      "file": "external-plugin-approval-command.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "timeout",
+      "file": "validate-readme.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "concurrency",
+      "file": "validate-readme.yml",
+      "issue": "Missing concurrency block."
+    },
+    {
+      "rule": "timeout",
+      "file": "validate-plugins.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "concurrency",
+      "file": "validate-plugins.yml",
+      "issue": "Missing concurrency block."
+    },
+    {
+      "rule": "concurrency",
+      "file": "contributors.yml",
+      "issue": "Missing concurrency block."
+    },
+    {
+      "rule": "timeout",
+      "file": "contributor-check.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "concurrency",
+      "file": "contributor-check.yml",
+      "issue": "Missing concurrency block."
+    },
+    {
+      "rule": "timeout",
+      "file": "label-pr-intent-writer.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "timeout",
+      "file": "external-plugin-rereview-command.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "mutation_risk",
+      "file": "external-plugin-rereview-command.yml",
+      "issue": "git push detected in workflow."
+    },
+    {
+      "rule": "timeout",
+      "file": "pr-risk-scan-comment.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "concurrency",
+      "file": "pr-risk-scan-comment.yml",
+      "issue": "Missing concurrency block."
+    },
+    {
+      "rule": "timeout",
+      "file": "traffic-reporting.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "concurrency",
+      "file": "traffic-reporting.yml",
+      "issue": "Missing concurrency block."
+    },
+    {
+      "rule": "timeout",
+      "file": "external-plugin-pr-quality-gates.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "timeout",
+      "file": "skill-check.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "concurrency",
+      "file": "skill-check.yml",
+      "issue": "Missing concurrency block."
+    },
+    {
+      "rule": "timeout",
+      "file": "check-plugin-structure.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "concurrency",
+      "file": "check-plugin-structure.yml",
+      "issue": "Missing concurrency block."
+    },
+    {
+      "rule": "mutation_risk",
+      "file": "check-plugin-structure.yml",
+      "issue": "git push detected in workflow."
+    },
+    {
+      "rule": "timeout",
+      "file": "check-line-endings.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "concurrency",
+      "file": "check-line-endings.yml",
+      "issue": "Missing concurrency block."
+    },
+    {
+      "rule": "timeout",
+      "file": "deploy-website-preview.yml",
+      "issue": "Missing timeout-minutes configuration."
+    }
+  ]
+}

@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>2026 Courier // Living Agent HQ Operations Cockpit</title>
+  <link rel="stylesheet" href="style.css?v=110j_live">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="theme-dark">
+
+  <!-- Top Cockpit Header Bar -->
+  <header class="studio-header">
+    <div class="header-left">
+      <div class="logo-badge">
+        <span class="logo-pulse"></span>
+        <span class="logo-title">COURIER // CHIEF OPERATIONS COCKPIT</span>
+      </div>
+      <div class="live-bus-badge">
+        <span class="bus-dot active"></span>
+        <span class="bus-text" id="server-status">LIVE BUS CONNECTED</span>
+      </div>
+      <div class="head-context-pill">
+        <span class="head-tag" id="courier-commit">HEAD: e7edad01</span>
+        <span class="context-tag" id="context-pill-ver">CONTEXT: v64</span>
+      </div>
+      <div class="live-status-badge">
+        <span class="live-status-dot"></span>
+        <span class="live-status-text">LIVE HQ</span>
+      </div>
+      <div class="mode-toggle">
+        <button id="btn-aspect-16-9" class="btn-toggle active" title="16:9 Fullscreen Landscape">16:9</button>
+        <button id="btn-aspect-9-16" class="btn-toggle" title="9:16 Vertical">9:16</button>
+      </div>
+    </div>
+
+    <!-- Camera / View Navigation Buttons -->
+    <div class="header-center camera-controls" id="camera-controls">
+      <span class="camera-label">CAMERA:</span>
+      <button class="cam-btn active" data-view="overview">HQ OVERVIEW</button>
+      <button class="cam-btn" data-view="command">COMMAND TABLE</button>
+      <button class="cam-btn" data-view="tvwall">TV WALL</button>
+      <button class="cam-btn" data-view="bodyguards">BODYGUARDS</button>
+      <button class="cam-btn" data-view="academy">ACADEMY</button>
+      <button class="cam-btn" data-view="server">SERVER ROOM</button>
+      <button class="cam-btn" data-view="sauna">SAUNA & BAR</button>
+      <button class="cam-btn" data-view="active">ACTIVE WORKER</button>
+    </div>
+
+    <div class="header-right">
+      <button id="btn-toggle-tasks" class="btn-control active" title="Toggle Live Task Board (T)">
+        <span>📋</span> TASKS
+      </button>
+      <button id="btn-toggle-hud" class="btn-control active" title="Toggle Operations HUD (H)">
+        <span>⚡</span> HUD
+      </button>
+      <button id="btn-toggle-speech" class="btn-control active" title="Speech Mode: SMART / ZEN / ALL (S)">
+        <span id="speech-mode-icon">💬</span> <span id="speech-mode-label">SMART</span>
+      </button>
+      <button id="btn-clean-mode" class="btn-control" title="Zen Clean Mode — Hide overlays (Z)">
+        <span>🧹</span> ZEN
+      </button>
+      <button id="btn-refresh-state" class="btn-control" title="Refresh local state snapshot">
+        <span>🔄</span> REFRESH
+      </button>
+      <button id="btn-toggle-timeline" class="btn-control" title="Toggle Productivity Timeline">
+        <span>📈</span> TIMELINE
+      </button>
+      <button id="btn-toggle-morning" class="btn-control" title="Toggle Morning Report">
+        <span>🌅</span> REPORT
+      </button>
+      <button id="btn-toggle-details" class="btn-control" title="Toggle Detailed Control Drawer">
+        <span class="toggle-icon">📊</span> INBOX
+      </button>
+      <button id="btn-cinematic-mode" class="btn-control" title="Toggle Cinematic Presentation">
+        <span class="cinematic-icon">🎥</span> CINEMATIC
+      </button>
+      <div class="hq-time-badge">
+        <span class="time-dot"></span>
+        <span class="hq-time-text" id="hq-live-clock">HQ TIME: 17:42:18 UTC</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Persistent Chief Alert Strip Bar -->
+  <div class="chief-alert-bar" id="chief-alert-bar">
+    <div class="chief-alert-label">
+      <span class="chief-alert-icon">⚡</span>
+      <span class="chief-alert-title">CHIEF ALERT BAR:</span>
+    </div>
+    <div class="chief-alert-stream" id="chief-alert-stream">
+      <span class="chief-alert-pill pill-healthy">🟢 SAFE_IDLE • ALL SYSTEMS HEALTHY • 0 EUR SPEND • LIVE TELEMETRY</span>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- MAIN FULLSCREEN LIVING AGENT HQ OPERATIONS STAGE                  -->
+  <!-- ================================================================= -->
+  <main class="living-hq-wrapper" id="living-hq-wrapper">
+
+    <!-- Interactive Viewport Zoom & Pan Controls -->
+    <div class="hq-zoom-controls" id="hq-zoom-controls">
+      <button id="btn-zoom-out" class="btn-zoom" title="Zoom Out (Scroll Down)">−</button>
+      <span id="zoom-level-label" class="zoom-level-text" title="Current Zoom (Click to Reset)">100%</span>
+      <button id="btn-zoom-in" class="btn-zoom" title="Zoom In (Scroll Up)">+</button>
+      <button id="btn-zoom-reset" class="btn-zoom-reset" title="Reset Camera Overview">RESET</button>
+    </div>
+
+    <div class="living-hq-stage view-overview" id="living-hq-stage">
+
+      <!-- Master Background Image Artwork (1:1 Reference Artwork) -->
+      <div class="room-canvas-art" id="room-canvas-art"></div>
+
+      <!-- Live Big TV Wall Real-Data Overlay -->
+      <div class="tv-wall-live-overlay" id="tv-wall-live-overlay">
+        <!-- Live Active Count & Capacity -->
+        <div class="tv-live-gauge">
+          <div class="tv-gauge-nums">
+            <span class="live-active-num" id="tv-active-count">17</span>
+            <span class="live-slash">/</span>
+            <span class="live-max">40</span>
+          </div>
+          <div class="tv-gauge-percent" id="tv-capacity-pct">42.5% Capacity</div>
+        </div>
+
+        <!-- Live Flight Deck Operational Status -->
+        <div class="tv-live-flight-info">
+          <div class="flight-line">Workflow: <b id="tv-live-wf" class="text-cyan">IDLE_MONITORING</b></div>
+          <div class="flight-line">Correlation: <b id="tv-live-corr" class="text-muted">corr-demo-c94b85b8</b></div>
+          <div class="flight-line">Context: <b id="tv-live-ctx" class="text-green">v64</b> • School: <b id="tv-live-school" class="text-orange">06:00 UTC</b></div>
+        </div>
+
+        <!-- Live 24H PNL & Financial Evidence -->
+        <div class="tv-live-kpis">
+          <div class="live-kpi-item">
+            <span class="kpi-label">24H PNL</span>
+            <span class="kpi-value text-green" id="tv-kpi-pnl">+$28,540.32</span>
+          </div>
+          <div class="live-kpi-item">
+            <span class="kpi-label">WIN RATE</span>
+            <span class="kpi-value text-cyan">78.6%</span>
+          </div>
+          <div class="live-kpi-item">
+            <span class="kpi-label">TREASURY</span>
+            <span class="kpi-value text-white" id="tv-live-treasury">$8 GOAL</span>
+          </div>
+        </div>
+
+        <!-- Live Market & Agent Ticker Tape -->
+        <div class="tv-live-ticker">
+          <span class="ticker-elem"><i class="dot green"></i> BTC <b class="text-green">+1.35%</b></span>
+          <span class="ticker-elem"><i class="dot green"></i> ETH <b class="text-green">+2.21%</b></span>
+          <span class="ticker-elem"><i class="dot green"></i> SOL <b class="text-green">+3.87%</b></span>
+          <span class="ticker-elem"><i class="dot green"></i> XLM <b class="text-green">+1.12%</b></span>
+          <span class="ticker-elem"><i class="dot green"></i> $ORDI <b class="text-green">+8.91%</b></span>
+          <span class="ticker-elem"><i class="dot cyan"></i> AGENTS <b class="text-cyan">100% HEALTHY</b></span>
+        </div>
+      </div>
+
+      <!-- Moving Message / Courier Transport Packet -->
+      <div class="courier-transport-packet" id="courier-packet" style="display: none;">
+        <span class="packet-glow"></span>
+        <span class="packet-icon">📦</span>
+        <span class="packet-label" id="courier-packet-label">RESULT</span>
+      </div>
+
+      <!-- Dynamic Agent Characters Layer (Avatars, MMORPG Nameplates & Speech) -->
+      <div class="living-agents-layer" id="living-agents-layer">
+        <!-- Rendered dynamically by studio.js -->
+      </div>
+
+      <!-- Live Autonomous Organization Operations Panel HUD -->
+      <aside class="live-ops-hud-panel" id="live-ops-hud-panel">
+        <!-- USER ATTENTION PANEL: "NEEDS YOU" -->
+        <div class="ops-needs-you-banner safe" id="hud-needs-you">
+          <span class="needs-you-icon" id="hud-needs-you-icon">🟢</span>
+          <span class="needs-you-text" id="hud-needs-you-text">NEEDS YOU: NOTHING (You can safely walk away)</span>
+        </div>
+
+        <div class="ops-hud-header" id="ops-hud-header-toggle" title="Click to Collapse / Expand HUD">
+          <div class="ops-hud-title">
+            <span class="ops-hud-dot"></span>
+            <span>AUTONOMOUS ORG // LIVE OPERATIONS</span>
+          </div>
+          <div class="panel-header-actions">
+            <span class="ops-hud-badge" id="hud-org-status">IDLE_EXPECTED</span>
+            <button class="panel-toggle-min" id="btn-min-ops-hud" title="Minimize Operations HUD">−</button>
+          </div>
+        </div>
+
+        <div class="ops-hud-body" id="ops-hud-body">
+          <div class="ops-hud-row">
+            <span class="ops-hud-label">🎯 CURRENT GOAL</span>
+            <span class="ops-hud-val text-cyan" id="hud-current-goal">Autonomous Standby</span>
+          </div>
+
+          <div class="ops-hud-row">
+            <span class="ops-hud-label">⚡ ACTIVE TASK</span>
+            <span class="ops-hud-val" id="hud-current-task">None (Safe Standby)</span>
+          </div>
+
+          <div class="ops-hud-row">
+            <span class="ops-hud-label">🤖 WORKER / PROVIDER</span>
+            <span class="ops-hud-val" id="hud-worker-provider">STANDBY (0 Active Slots)</span>
+          </div>
+
+          <div class="ops-hud-row">
+            <span class="ops-hud-label">⏱️ 188G ENDURANCE</span>
+            <span class="ops-hud-val text-green" id="hud-endurance-status">RUNNING (0.0h / 8.0h)</span>
+          </div>
+
+          <div class="ops-hud-row">
+            <span class="ops-hud-label">🛡️ GATES / FIREWALLS</span>
+            <span class="ops-hud-val text-green" id="hud-gates-status">0 EUR (PASS) • PUB: SAFE</span>
+          </div>
+
+          <div class="ops-hud-row">
+            <span class="ops-hud-label">👁️ SNITCH ANOMALY</span>
+            <span class="ops-hud-val text-green" id="hud-snitch-status">HEALTHY (0 Quarantined)</span>
+          </div>
+
+          <div class="ops-hud-row">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span class="ops-hud-label">📊 LIVE RESULT FEED</span>
+              <span class="ops-hud-val text-muted" id="hud-last-result" style="font-size: 8px;">None</span>
+            </div>
+            <div class="ops-result-feed-list" id="hud-result-feed-list">
+              <div class="result-feed-item text-muted">No recent events recorded</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Live Autonomous Task Board Panel (Work Floor) -->
+      <aside class="live-task-board-panel" id="live-task-board-panel">
+        <div class="task-board-header" id="task-board-header-toggle" title="Click to Collapse / Expand Task Board">
+          <div class="task-board-title">
+            <span>📋 LIVE TASK BOARD</span>
+            <div class="panel-header-actions">
+              <span class="task-count-badge" id="task-board-count">0 TASKS</span>
+              <button class="panel-toggle-min" id="btn-min-task-board" title="Minimize Task Board">−</button>
+            </div>
+          </div>
+          <div class="task-board-filters" id="task-board-filters">
+            <button class="tb-filter active" data-filter="ALL">ALL</button>
+            <button class="tb-filter" data-filter="READY">READY</button>
+            <button class="tb-filter" data-filter="ACTIVE">ACTIVE</button>
+            <button class="tb-filter" data-filter="WAITING">WAITING</button>
+            <button class="tb-filter" data-filter="GATED">GATED</button>
+          </div>
+        </div>
+        <div class="task-board-cards" id="task-board-cards">
+          <!-- Rendered dynamically by studio.js -->
+        </div>
+      </aside>
+
+    </div>
+  </main>
+
+  <!-- ================================================================= -->
+  <!-- COLLAPSIBLE CONTROL DRAWER (HUMAN INBOX, AUDIT & GATE MODAL)      -->
+  <!-- ================================================================= -->
+  <section class="control-panel-drawer hidden" id="control-panel-drawer">
+    <div class="drawer-inner">
+      <div class="drawer-header">
+        <h2>🛠️ DETAILED OPERATIONS & HUMAN STRATEGY INBOX</h2>
+        <button id="btn-close-drawer" class="btn-close">✕ CLOSE</button>
+      </div>
+
+      <!-- Human Idea & Strategic Directive Inbox -->
+      <div class="inbox-section-drawer">
+        <div class="inbox-header">
+          <span class="inbox-tag">💡 HUMAN STRATEGY DISPATCH</span>
+          <span class="inbox-sub">Human ➔ Idea Sync ➔ Memory Comparison ➔ Context Delta ➔ Chief ➔ Workers</span>
+        </div>
+        <div class="inbox-form">
+          <input type="text" id="human-idea-input" class="idea-input" placeholder="e.g. Führe Video-Pipeline für Strawberry Shorts aus..." />
+          <div class="preset-pills">
+            <button class="preset-btn" data-idea="Optimiere Godot 3D Video-Render Pipeline und prüfe Channel-Konfigurationen">🎬 3D Shorts Pipeline</button>
+            <button class="preset-btn" data-idea="Führe technische Code-Prüfung und Syntax-Audit der Courier-Tools durch">🔍 Technical QA Audit</button>
+            <button class="preset-btn" data-idea="Synthetisiere Multi-Agent Teamwork Policies und erstelle Release-Paket">📦 Synthesis & Package</button>
+            <button class="preset-btn" data-idea="Kaufe neue Krypto Tokens und starte bezahlte Kampagnen">⚠️ Conflict Test (D-002/D-004)</button>
+          </div>
+          <button id="btn-dispatch-idea" class="btn-dispatch">
+            <span class="dispatch-icon">⚡</span> DISPATCH DIRECTIVE
+          </button>
+        </div>
+      </div>
+
+      <!-- Human Approval Gate Alert Banner -->
+      <aside id="human-gate-banner" class="gate-banner hidden">
+        <div class="gate-content">
+          <div class="gate-icon">🛡️</div>
+          <div class="gate-info">
+            <div class="gate-title">HUMAN APPROVAL REQUIRED</div>
+            <div class="gate-description" id="gate-desc">A workflow task or policy alert requires explicit human sign-off before proceeding.</div>
+          </div>
+          <div class="gate-actions">
+            <button id="btn-gate-approve" class="btn-gate approve">APPROVE</button>
+            <button id="btn-gate-reject" class="btn-gate reject">REJECT</button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Bottom 4 Telemetry Panels in Drawer -->
+      <div class="drawer-telemetry-grid">
+        <!-- Panel 1: SNITCH 3.0 Permission Guard -->
+        <div class="telemetry-card">
+          <h4>🛡️ SNITCH 3.0 — PERMISSION GUARD</h4>
+          <div>Status: <b id="snitch-perm-status" class="badge-perm-healthy">PERMISSIONS HEALTHY</b></div>
+          <div class="code-pill font-mono" id="snitch-perm-command">curl -s http://127.0.0.1:8088/api/state</div>
+          <div>Rule Match: <b id="snitch-perm-rule-rec" class="text-green">ALREADY_ALLOWED</b></div>
+        </div>
+
+        <!-- Panel 2: Live Workflow -->
+        <div class="telemetry-card">
+          <h4>⚡ LIVE WORKFLOW</h4>
+          <div>ID: <b id="live-wf-id" class="text-white">WF-2026-08-30-1742</b></div>
+          <div>Status: <b id="live-wf-status" class="text-cyan">IN_PROGRESS (35%)</b></div>
+          <div class="wf-bar-track"><div class="wf-bar-fill" id="live-wf-bar" style="width: 35%;"></div></div>
+        </div>
+
+        <!-- Panel 3: Treasury Truth -->
+        <div class="telemetry-card">
+          <h4>💰 TREASURY TRUTH</h4>
+          <div>EUR: <b id="treasury-eur">UNKNOWN</b></div>
+          <div>USD: <b id="treasury-usd">UNKNOWN</b></div>
+          <div>Evidence: <b id="treasury-verified">NOT_VERIFIED</b></div>
+          <div>Goal: <b id="treasury-goal">$8 / $1,000,000,000</b></div>
+        </div>
+
+        <!-- Panel 4: Context & Repositories -->
+        <div class="telemetry-card">
+          <h4>📦 CONTEXT & REPOSITORIES</h4>
+          <div>Version: <b id="panel-ctx-ver" class="text-cyan">v64</b> (Prev: <b id="panel-ctx-prev">v63</b>)</div>
+          <div>Hash: <b id="panel-ctx-hash" class="font-mono text-truncate">8f0874f495cf...</b></div>
+          <div>Courier: <b id="panel-repo-courier" class="text-green">e7edad01</b> • Memory: <b id="panel-repo-memory" class="text-green">62c658b0</b></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Modal Drawer: Agent & Task Inspector -->
+  <div class="inspector-modal-backdrop hidden" id="inspector-modal-backdrop">
+    <div class="inspector-modal-card" id="inspector-modal-card">
+      <div class="inspector-modal-header">
+        <h3 id="inspector-modal-title">🔍 INSPECTOR</h3>
+        <button id="btn-close-inspector" class="btn-close">✕</button>
+      </div>
+      <div class="inspector-modal-body" id="inspector-modal-body">
+        <!-- Rendered dynamically by studio.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Drawer: Productivity Timeline & Morning Report -->
+  <div class="report-modal-backdrop hidden" id="report-modal-backdrop">
+    <div class="report-modal-card" id="report-modal-card">
+      <div class="report-modal-header">
+        <h3 id="report-modal-title">📈 PRODUCTIVITY TIMELINE</h3>
+        <button id="btn-close-report" class="btn-close">✕</button>
+      </div>
+      <div class="report-modal-body" id="report-modal-body">
+        <!-- Rendered dynamically by studio.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Script Import -->
+  <script type="module" src="studio.js?v=110j_live"></script>
+</body>
+</html>

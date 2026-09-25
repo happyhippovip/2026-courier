@@ -1,0 +1,4 @@
+COURIER_SERVER=https://courier.example.com
+COURIER_API_KEY=your_secure_api_key_here
+WORKER_ID=AWS-LINUX-01
+WORKER_CAPABILITIES=linux,shell,git,python

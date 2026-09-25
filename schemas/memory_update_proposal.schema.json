@@ -1,0 +1,135 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MemoryUpdateProposal",
+  "description": "Controlled, schema-validated proposal for canonical project memory update requiring explicit Chief Approval",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "proposal_id",
+    "source_result_message_id",
+    "task_id",
+    "correlation_id",
+    "memory_base_commit",
+    "target_files",
+    "proposed_changes",
+    "reason",
+    "status_labels",
+    "source_references",
+    "requires_chief_approval",
+    "created_at"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "2.0"
+    },
+    "proposal_id": {
+      "type": "string",
+      "pattern": "^prop-mem-[A-Za-z0-9_.-]+$"
+    },
+    "source_result_message_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+$"
+    },
+    "task_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+$"
+    },
+    "correlation_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+$"
+    },
+    "memory_base_commit": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{7,40}$"
+    },
+    "target_files": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "proposed_changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "file",
+          "action",
+          "section",
+          "proposed_text",
+          "status_label"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "file": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "APPEND",
+              "UPDATE",
+              "INSERT",
+              "FLAG_STATUS"
+            ]
+          },
+          "section": {
+            "type": "string",
+            "minLength": 1
+          },
+          "proposed_text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status_label": {
+            "type": "string",
+            "enum": [
+              "VERIFIED_CURRENT",
+              "EXTERNAL_STATUS",
+              "HISTORICAL_DECISION",
+              "PLANNED",
+              "IDEA",
+              "CONFLICT",
+              "UNKNOWN",
+              "STATUS_BOUNDARY",
+              "PAUSED",
+              "PAUSED_EXTERNAL_GATE",
+              "DEFERRED",
+              "NOT VERIFIED",
+              "IN PROGRESS"
+            ]
+          }
+        }
+      },
+      "minItems": 1
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status_labels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "source_references": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "requires_chief_approval": {
+      "type": "boolean",
+      "const": true
+    },
+    "created_at": {
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "bundle_id": "full-host-shutdown-backup",
+  "created_at": "2026-09-01T04:16:51.011762+00:00",
+  "schema_version": "DR_BUNDLE_V1",
+  "autonomous_spend_limit_eur": 0.0,
+  "files_included": {
+    "events/chief-brain/memories.json": "41a050eefd5e0cfe1f763e17570ab14c4cacfd2d16e52a35699c1f308b048a5e",
+    "events/chief-brain/open_loops.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+  },
+  "bundle_sha256": "6ea0fe9981957454bd5bc8e38b5b0eb5940923c66125823ca2e6805d44e1e7ff"
+}

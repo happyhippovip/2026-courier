@@ -1,0 +1,17 @@
+{
+  "task_id": "task-harmless-02-consumer",
+  "goal_id": "goal-4dc2ff88",
+  "title": "Harmless Consumer Task",
+  "description": "Verifiziere und konsumiere die von Task 1 erzeugte Staging-Datei.",
+  "target_capability": "mac",
+  "status": "VALIDATED",
+  "safety_classification": "HARMLESS_READ_WRITE_LOCAL",
+  "dependencies": [
+    "task-harmless-01-producer"
+  ],
+  "action": {
+    "type": "verify_marker",
+    "target_file": "runtime/harmless_staging_marker.json",
+    "expected_status": "STAGED_READY"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schema_version": "2.0",
+  "lesson_id": "lesson-20260830-e21baf",
+  "discovered_at": "2026-08-30T17:22:07.724133+00:00",
+  "source": "GitHub Security Advisory",
+  "source_type": "OFFICIAL_DOCS",
+  "source_date": "2026-08-30",
+  "topic": "DEPENDENCY_VULNERABILITY",
+  "title": "Critical Sandbox Escape Patch in Local Tooling a44a86",
+  "summary": "High severity CVE requires immediate runner environment update.",
+  "novelty_hash": "eceae598ba27fb18e9d08f783608d4a9b1c8515654e3fd98c3ba4310a3ddc6d6",
+  "affected_agents": [
+    "antigravity",
+    "codex"
+  ],
+  "affected_workflows": [
+    "Autonomous Operations"
+  ],
+  "current_method": "Manual or baseline implementation",
+  "proposed_method": "Improved automated pattern",
+  "expected_benefit": "Efficiency and reliability improvement",
+  "expected_time_saving": null,
+  "expected_cost_saving": null,
+  "expected_quality_gain": null,
+  "risk": "HIGH",
+  "confidence": 0.9,
+  "evidence": "CVE-2026-9999 security bulletin",
+  "lesson_type": "SECURITY_UPDATE",
+  "status": "DISCOVERED",
+  "truth_invariants": "DISCOVERED != ADOPTED | OPPORTUNITY != REVENUE | TESTED != PRODUCTION",
+  "created_at": "2026-08-30T17:22:07.724133+00:00"
+}

@@ -1,0 +1,68 @@
+name: Courier Motor
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+jobs:
+  motor:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install flask requests
+
+      - name: Run Courier Motor
+        env:
+          COURIER_API_KEY: "cron_motor_key"
+          COURIER_VERIFIER_API_KEY: "cron_motor_key"
+          COURIER_SERVER: "http://127.0.0.1:8080"
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_WORKER_LOCAL_WAIT_SECONDS: "60"
+        run: |
+          export PYTHONPATH="$PWD:$PYTHONPATH"
+          echo "[Motor] Starting internal state server..."
+          python3 server/app.py &
+          SERVER_PID=$!
+          sleep 3
+
+          echo "[Motor] Starting verifier..."
+          python3 scripts/courier_verifier.py &
+          VERIFIER_PID=$!
+          sleep 1
+
+          echo "[Motor] Starting dispatcher for 1 tick..."
+          timeout 5 python3 scripts/courier_github_dispatcher.py || true
+          
+          echo "[Motor] Waiting for adapters to finish (up to 70s)..."
+          for i in {1..70}; do
+            if ! pgrep -f "github_worker_adapter.py" > /dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          
+          # Give verifier a chance to verify any results just posted
+          sleep 5
+
+          echo "[Motor] Stopping background processes..."
+          kill $VERIFIER_PID || true
+          kill $SERVER_PID || true
+          
+          echo "[Motor] Persisting central_state.json if changed..."
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add central_state.json
+          git diff-index --quiet HEAD || (git commit -m "Auto-reconcile Courier State" && git push)

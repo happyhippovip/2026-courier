@@ -1,0 +1,132 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AntigravityWorkerJob",
+  "description": "Validated executable worker job instruction derived deterministically from a Chief Command",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "job_id",
+    "source_command_message_id",
+    "task_id",
+    "correlation_id",
+    "target_agent",
+    "instruction",
+    "allowed_scope",
+    "forbidden_scope",
+    "cost_policy",
+    "human_gate_policy",
+    "max_iterations",
+    "expected_output",
+    "created_at"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "2.0"
+    },
+    "job_id": {
+      "type": "string",
+      "pattern": "^job-ag-[A-Za-z0-9_.-]+$"
+    },
+    "source_command_message_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+$"
+    },
+    "task_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+$"
+    },
+    "correlation_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+$"
+    },
+    "target_agent": {
+      "type": "string",
+      "const": "ANTIGRAVITY"
+    },
+    "instruction": {
+      "type": "string",
+      "minLength": 1
+    },
+    "allowed_scope": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "forbidden_scope": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "cost_policy": {
+      "type": "string",
+      "const": "ZERO_COST_ONLY"
+    },
+    "human_gate_policy": {
+      "type": "string",
+      "const": "STOP_ON_HUMAN_GATE_ONLY"
+    },
+    "max_iterations": {
+      "type": "integer",
+      "const": 1
+    },
+    "expected_output": {
+      "type": "string",
+      "const": "ANTIGRAVITY_RESULT"
+    },
+    "memory_context": {
+      "type": "object",
+      "required": [
+        "memory_repo",
+        "memory_commit",
+        "files_consulted",
+        "relevant_context",
+        "status_labels",
+        "source_references",
+        "generated_at"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "memory_repo": {
+          "type": "string"
+        },
+        "memory_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{7,40}$"
+        },
+        "files_consulted": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "relevant_context": {
+          "type": "object"
+        },
+        "status_labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "source_references": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "generated_at": {
+          "type": "string"
+        }
+      }
+    },
+    "created_at": {
+      "type": "string"
+    }
+  }
+}

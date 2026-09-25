@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LocalToolsConfiguration",
+  "description": "Configuration schema for local production binaries and Godot project bindings without secrets (096)",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "tools",
+    "project_bindings",
+    "updated_at"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "2.0"
+    },
+    "tools": {
+      "type": "object",
+      "required": [
+        "ffmpeg_binary_path",
+        "godot_binary_path"
+      ],
+      "properties": {
+        "ffmpeg_binary_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "godot_binary_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "project_bindings": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "project_path",
+          "project_file",
+          "default_scene",
+          "status"
+        ],
+        "properties": {
+          "project_path": {
+            "type": "string"
+          },
+          "project_file": {
+            "type": "string"
+          },
+          "default_scene": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "FOUND_READ_ONLY",
+              "NOT_FOUND"
+            ]
+          }
+        }
+      }
+    },
+    "updated_at": {
+      "type": "string"
+    }
+  }
+}

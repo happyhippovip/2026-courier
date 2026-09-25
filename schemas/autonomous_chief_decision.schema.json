@@ -1,0 +1,105 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AutonomousChiefDecision",
+  "description": "Deterministic, schema-validated decision record produced by the Autonomous Chief Approval Policy (088)",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "decision_id",
+    "proposal_id",
+    "task_id",
+    "correlation_id",
+    "source_result_message_id",
+    "decision",
+    "reason_codes",
+    "evaluated_status_labels",
+    "memory_base_commit",
+    "source_references",
+    "policy_version",
+    "created_at"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "2.0"
+    },
+    "decision_id": {
+      "type": "string",
+      "pattern": "^dec-chief-[A-Za-z0-9_.-]+$"
+    },
+    "proposal_id": {
+      "type": "string",
+      "pattern": "^prop-mem-[A-Za-z0-9_.-]+$"
+    },
+    "task_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+$"
+    },
+    "correlation_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+$"
+    },
+    "source_result_message_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+$"
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "AUTO_APPROVE",
+        "HUMAN_REVIEW",
+        "BLOCKED"
+      ]
+    },
+    "reason_codes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "SAFE_VERIFIED_TECHNICAL_FACT",
+          "NON_AUTO_APPROVABLE_STATUS",
+          "MEMORY_HEAD_CONFLICT",
+          "SECRET_DETECTED",
+          "SOURCE_MISSING",
+          "TARGET_NOT_ALLOWED",
+          "STRATEGIC_CHANGE",
+          "INVALID_PROPOSAL",
+          "UNVERIFIED_STATUS_PRESENT",
+          "DELETE_ACTION_FORBIDDEN",
+          "APPROVAL_GATE_REQUIRED"
+        ]
+      },
+      "minItems": 1
+    },
+    "evaluated_status_labels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "memory_base_commit": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{7,40}$"
+    },
+    "source_references": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "generated_approval_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "policy_version": {
+      "type": "string",
+      "const": "088"
+    },
+    "created_at": {
+      "type": "string"
+    }
+  }
+}

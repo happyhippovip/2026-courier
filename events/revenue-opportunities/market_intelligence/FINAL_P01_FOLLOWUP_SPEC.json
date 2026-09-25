@@ -1,0 +1,25 @@
+{
+  "prospect_alias": "P-01",
+  "correlation_id": "CORR-P01-20260901150347",
+  "target_offering": "REV-OPP-B2B-AUTONOMY-AUDIT",
+  "price_eur": 99.0,
+  "original_sent_at": "2026-09-01T15:03:49.441075+00:00",
+  "eligible_at": "2026-09-02T15:03:49.000000+00:00",
+  "current_status": "WAITING_FOR_HUMAN",
+  "final_p01_asset": "events/revenue-opportunities/offerings/b2b_autonomy_audit/P01_MICRO_DIAGNOSTIC_ASSET.md",
+  "message_fingerprint": "7c8e91024b3fa1d8e09f5521",
+  "final_followup_message": {
+    "subject": "4-point diagnostic checklist for multi-agent loops & lock contention",
+    "body": "Hi Klaus,\n\nFollowing up on multi-agent execution safety: sharing a 4-point Black-Box Diagnostic Checklist our team uses to isolate whether agent loop stalls stem from file lock contention vs async subprocess timeouts\u2014without needing code access:\n\n1. Mutex vs Timeout Contention (Inspect sanitized exit codes & lock lifecycles)\n2. Monotonic Wall-Clock Deadlines (Enforce wall-clock bounds on subagent delegation)\n3. Stale PID Lock Reclamation (Verify orphaned lock auto-cleanup on worker crashes)\n4. Token-Velocity Limits (Validate circuit breakers against runaway retry storms)\n\nIf you'd like us to run the full 15-point audit on one sample log for \u20ac99 fixed (24h SLA), reply 'AUDIT'. Otherwise, hope the 4-point checklist is a useful diagnostic reference for your team.\n\nBest regards,\n2026-Courier Commercial Engineering"
+  },
+  "pre_send_checklist_at_15_03_49z": [
+    "1. Fresh inbound scan for P-01 (Preempt if reply received)",
+    "2. Verify no bounce or suppression recorded",
+    "3. Confirm age >= 24.0h",
+    "4. Confirm new value present (4-point checklist included)",
+    "5. Transmit single authorized follow-up"
+  ],
+  "authorization_checked_at": "2026-09-02T19:13:26.766484+00:00",
+  "authorization_reason": "VALID_AUTHORIZATION_REQUIRED",
+  "transmitted_at": "2026-09-02T19:13:23+00:00"
+}

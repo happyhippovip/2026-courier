@@ -1,0 +1,10 @@
+{
+  "schema_version": "2.0",
+  "delivery_id": "deliv-08671711",
+  "lesson_id": "lesson-20260830-ba22b2",
+  "target_agent": "test-agent-busy",
+  "status": "PENDING_LESSON",
+  "reason": "Target agent actively executing; safe task boundary deferral enforced",
+  "defer_until_task_completed": "TASK-CRITICAL-EXECUTION-999",
+  "created_at": "2026-08-30T15:29:42.860192+00:00"
+}
