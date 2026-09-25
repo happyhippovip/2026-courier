@@ -10,7 +10,7 @@ CORE_ENGINEERING_QUEUE_EMPTY=YES
 ## CURRENT EXECUTION CHECKPOINT
 
 PLANNING_PHASE=FROZEN
-FIRST_CURRENT_CAUSAL_BLOCKER=NONE_PROVEN
+FIRST_CURRENT_CAUSAL_BLOCKER=WINDOWS_ENVIRONMENT
 NEXT_ACTION=RUN_PHYSICAL_ACCEPTANCE_PROOF
 PHYSICAL_ACCEPTANCE_TARGET=CURRENT_PR_HEAD_AT_RUN_START
 NO_NEW_ARCHITECTURE=YES
@@ -61,7 +61,7 @@ No new architecture, rule, agent, roadmap, or refactor is justified before a con
 - **Testbefehl:** `pytest tests/test_turbo_queue.py -v`
 - **Exitcode / Ergebnis:** 0 (2 passed). Nachweis für parallele Verarbeitung und Reconcile-Blockade C -> A+B auf API-Ebene erbracht.
 - **Fingerprint:** 38b10e188d8ff9ccc73046c2a2c8ef89809215cb
-- **Verbleibender Blocker:** REALER PHYSICAL ACCEPTANCE PROOF (FIRST_CURRENT_CAUSAL_BLOCKER=NONE_PROVEN).
+- **Verbleibender Blocker:** REALER PHYSICAL ACCEPTANCE PROOF (FIRST_CURRENT_CAUSAL_BLOCKER=WINDOWS_ENVIRONMENT).
 
 ### TEST: 2/3 ZWEI LOKALE WORKER UND A+B -> C
 - **Ursache:** Lokale Claim-Sicherheit bei Race-Conditions, tatsächliche Ausführungsüberlappung und das automatische Nachrutschen (Auto-Continue) der blockierten Aufgabe C waren isoliert noch nicht nachgewiesen.
@@ -69,7 +69,7 @@ No new architecture, rule, agent, roadmap, or refactor is justified before a con
 - **Testbefehl:** `pytest tests/test_turbo_queue_concurrency.py -v` (mit Netzwerk-Sandbox-Bypass)
 - **Exitcode / Ergebnis:** 0 (2 passed in 2.22s).
 - **Fingerprint:** 97ef29e1d7c2c00255b2c6a4ea12dd1e58d43db0
-- **Verbleibender Blocker:** REALER PHYSICAL ACCEPTANCE PROOF (FIRST_CURRENT_CAUSAL_BLOCKER=NONE_PROVEN).
+- **Verbleibender Blocker:** REALER PHYSICAL ACCEPTANCE PROOF (FIRST_CURRENT_CAUSAL_BLOCKER=WINDOWS_ENVIRONMENT).
 
 ### TEST: 3/3 PORTABLER KANDIDAT UND ABSCHLUSSPAKET
 - **Ursache:** Fehlender Nachweis eines sauberen Kandidaten für Cross-Platform Abnahme.
