@@ -134,10 +134,16 @@ class MuseWallSupervisor:
         }
 
 
+def repo_root():
+    return Path(__file__).resolve().parent.parent.parent
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("command", choices=("init", "status", "admit", "stop"))
-    parser.add_argument("--root", default=str(Path(__file__).parent))
+    # Canonical runtime lives at <repo>/runtime/slots; the wall directory
+    # itself is NOT a second truth store (SECOND_TRUTH_STORE=NO).
+    parser.add_argument("--root", default=str(repo_root()))
     parser.add_argument("--level", type=int)
     parser.add_argument("--slot")
     arguments = parser.parse_args()
