@@ -117,6 +117,7 @@ def test_provider_wait_isolation(client):
             state = json.load(f)
             # manually push next_retry_at into the past for task-1 to test lock expiry
             state["provider_locks"]["pool-A:openai"] = time.time() - 10
+            state["tasks"]["task-1"]["next_retry_at"] = time.time() - 10
             with open(STATE_FILE, "w") as f:
                 json.dump(state, f)
                 

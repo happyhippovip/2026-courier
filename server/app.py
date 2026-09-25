@@ -275,6 +275,36 @@ def _resources_available(state, task):
 
 def _worker_is_eligible(state, task, worker_id):
     worker = state.get("workers", {}).get(worker_id)
+    if not worker: print("DEBUG: no worker"); return False
+    if not worker.get("available", False): print("DEBUG: not available"); return False
+    if worker.get("current_task"): print("DEBUG: current task"); return False
+    
+    quota_resource_id = state.get("worker_quota_pools", {}).get(worker_id, worker_id)
+    worker_provider = str(worker.get("provider") or "unknown")
+    lock_key = f"{quota_resource_id}:{worker_provider}"
+    if time.time() <= state.get("provider_locks", {}).get(lock_key, 0):
+        print(f"DEBUG: provider lock {lock_key} active")
+        return False
+        
+    if _task_requires_human_gate(task): return False
+    
+    required_capabilities = _string_list(task.get("required_capabilities"))
+    required_authorities = _string_list(task.get("required_authorities"))
+    worker_capabilities = _string_list(worker.get("capabilities"))
+    worker_authorities = _string_list(worker.get("authorities"))
+    
+    if required_capabilities:
+        if not set(required_capabilities).issubset(set(worker_capabilities)):
+            print(f"DEBUG: cap mismatch req {required_capabilities} got {worker_capabilities}")
+            return False
+    elif not _legacy_target_matches(task, worker):
+        print("DEBUG: legacy mismatch")
+        return False
+        
+    return _resources_available(state, task)
+    
+def _worker_is_eligible_OLD(state, task, worker_id):
+    worker = state.get("workers", {}).get(worker_id)
     if not worker or not worker.get("available", False) or worker.get("current_task"):
         return False
     if (
@@ -286,7 +316,7 @@ def _worker_is_eligible(state, task, worker_id):
     # Check cluster-wide provider lock
     import time
     quota_resource_id = state.get("worker_quota_pools", {}).get(worker_id, worker_id)
-    worker_provider = str(worker.get("provider", "unknown"))
+    worker_provider = str(worker.get("provider") or "unknown")
     lock_key = f"{quota_resource_id}:{worker_provider}"
     if time.time() <= state.get("provider_locks", {}).get(lock_key, 0):
         return False
@@ -782,12 +812,12 @@ def claim_task():
 
     # --- Auto-resume WAITING_PROVIDER tasks if backoff elapsed ---
     quota_resource_id = state.get("worker_quota_pools", {}).get(worker_id, worker_id)
-    worker_provider = str(worker.get("provider", "unknown"))
+    worker_provider = str(worker.get("provider") or "unknown")
     lock_key = f"{quota_resource_id}:{worker_provider}"
 
     for task_id, task in state.get("tasks", {}).items():
         if task.get("status") in ("WAITING_PROVIDER", "BLOCKED_TRANSIENT") and task.get("worker_id") == worker_id:
-            if time.time() > state.get("provider_locks", {}).get(lock_key, 0):
+            if time.time() > state.get("provider_locks", {}).get(lock_key, 0) and time.time() >= task.get("next_retry_at", 0):
                 task["status"] = "DISPATCHED"
                 
                 # Sync back to goal
@@ -812,7 +842,7 @@ def claim_task():
         return jsonify({"task": None, "reason": "PROVIDER_UNAVAILABLE"})
         
     quota_resource_id = state.get("worker_quota_pools", {}).get(worker_id, worker_id)
-    worker_provider = str(worker.get("provider", "unknown"))
+    worker_provider = str(worker.get("provider") or "unknown")
     lock_key = f"{quota_resource_id}:{worker_provider}"
     if time.time() <= state.get("provider_locks", {}).get(lock_key, 0):
         save_state(state)
@@ -841,7 +871,9 @@ def claim_task():
                     depends_on = [depends_on]
                 if not all(dependency in completed_tasks for dependency in depends_on):
                     continue
+                
                 if not _worker_is_eligible(state, candidate, worker_id):
+                    print(f"DEBUG: worker {worker_id} NOT eligible for {candidate.get('task_id')}", flush=True)
                     continue
                     continue
                 if _cheaper_eligible_worker_exists(state, candidate, worker_id):
@@ -1537,15 +1569,18 @@ def provider_wait(task_id):
         task["next_action"] = "WAIT_THEN_RESUME"
         # Preserve attempt_id and dispatch_id — no new attempt
         quota_resource_id = state.setdefault("worker_quota_pools", {}).get(worker_id, worker_id)
-        worker_provider = str(state["workers"][worker_id].get("provider", "unknown"))
-        lock_key = f"{quota_resource_id}:{worker_provider}"
+        worker_provider = str(state["workers"][worker_id].get("provider") or "unknown")
         
         new_backoff = time.time() + calculate_backoff(retry_state["provider"])
-        existing_backoff = state.setdefault("provider_locks", {}).get(lock_key, 0)
-        state["provider_locks"][lock_key] = max(existing_backoff, new_backoff)
-        
+        if worker_provider != "unknown":
+            lock_key = f"{quota_resource_id}:{worker_provider}"
+            existing_backoff = state.setdefault("provider_locks", {}).get(lock_key, 0)
+            state["provider_locks"][lock_key] = max(existing_backoff, new_backoff)
+            task["next_retry_at"] = state["provider_locks"][lock_key]
+        else:
+            task["next_retry_at"] = new_backoff
+            
         task["provider_wait_since"] = time.time()
-        task["next_retry_at"] = state["provider_locks"][lock_key]
     else:
         set_task_status(task, "FAILED_TERMINAL")
         task["blocker"] = "MAX_PROVIDER_WAITS_REACHED"
