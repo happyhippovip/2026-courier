@@ -295,10 +295,26 @@ def _worker_is_eligible(state, task, worker_id):
     if _task_requires_human_gate(task):
         return False
 
+    # P5 Package 3: Communities
+    goal_id = task.get("goal_id")
+    if goal_id and "goals" in state and goal_id in state["goals"]:
+        goal = state["goals"][goal_id]
+        goal_community = goal.get("community_id", "public")
+        worker_community = worker.get("community_id", "public")
+        if goal_community != worker_community:
+            return False
+
     required_capabilities = _string_list(task.get("required_capabilities"))
     required_authorities = _string_list(task.get("required_authorities"))
     worker_capabilities = _string_list(worker.get("capabilities"))
     worker_authorities = _string_list(worker.get("authorities"))
+    
+    # P5 Package 2: Group Discovery
+    required_groups = _string_list(task.get("required_groups"))
+    if required_groups:
+        worker_groups = _string_list(worker.get("groups", []))
+        if not worker_groups or not set(required_groups).issubset(set(worker_groups)):
+            return False
     
     if required_capabilities:
         if not set(required_capabilities).issubset(set(worker_capabilities)):
@@ -333,10 +349,26 @@ def _worker_is_eligible_OLD(state, task, worker_id):
     if _task_requires_human_gate(task):
         return False
 
+    # P5 Package 3: Communities
+    goal_id = task.get("goal_id")
+    if goal_id and "goals" in state and goal_id in state["goals"]:
+        goal = state["goals"][goal_id]
+        goal_community = goal.get("community_id", "public")
+        worker_community = worker.get("community_id", "public")
+        if goal_community != worker_community:
+            return False
+
     required_capabilities = _string_list(task.get("required_capabilities"))
     required_authorities = _string_list(task.get("required_authorities"))
     worker_capabilities = _string_list(worker.get("capabilities"))
     worker_authorities = _string_list(worker.get("authorities"))
+    
+    # P5 Package 2: Group Discovery
+    required_groups = _string_list(task.get("required_groups"))
+    if required_groups:
+        worker_groups = _string_list(worker.get("groups", []))
+        if not worker_groups or not set(required_groups).issubset(set(worker_groups)):
+            return False
     if None in (required_capabilities, required_authorities, worker_capabilities, worker_authorities):
         return False
 
@@ -602,7 +634,8 @@ def submit_goal():
         "goal_id": goal_id,
         "goal_text": data.get("goal_text"),
         "status": "ACTIVE",
-        "terminal": data.get("terminal", True)
+        "terminal": data.get("terminal", True),
+        "community_id": data.get("community_id", "public")
     }
     
     if "workflow_plan" in data:
@@ -717,6 +750,9 @@ def register_worker():
         current_task = server_task
 
     capabilities = _string_list(data.get("capabilities", existing.get("capabilities", [])))
+    groups = _string_list(data.get("groups", existing.get("groups", [])))
+    community_id = data.get("community_id", existing.get("community_id", "public"))
+
     authorities = _string_list(data.get("authorities", existing.get("authorities", [])))
     if capabilities is None or authorities is None:
         return jsonify({"error": "capabilities and authorities must be lists of strings"}), 400
@@ -751,7 +787,9 @@ def register_worker():
         "last_seen": time.time(),
         "available": current_task is None,
         "current_task": current_task,
-        "cost_class": data.get("cost_class", "unknown")
+        "cost_class": data.get("cost_class", "unknown"),
+        "groups": groups or [],
+        "community_id": community_id
     }
     
     save_state(state)
@@ -1038,6 +1076,11 @@ def task_result():
             
             if durable_result.get("status") == "SUCCESS":
                 set_task_status(task, "RESULT_RECEIVED")  # wait for independent /verify
+                
+                # P5 Package 1: Profile tasks_completed tracking
+                if worker_id in state["workers"]:
+                    state["workers"][worker_id]["tasks_completed"] = state["workers"][worker_id].get("tasks_completed", 0) + 1
+
                 task["producer_principal"] = get_auth_principal()
                 # Update checkpoint fields on success
                 task["last_completed_step"] = task.get("task_id")
@@ -1140,6 +1183,26 @@ def pending_verification():
         if task.get("status") == "RESULT_RECEIVED":
             pending.append(task)
     return jsonify({"tasks": pending})
+
+
+def _trigger_webhooks(state, goal):
+    import threading, json, urllib.request
+    community_id = goal.get("community_id", "public")
+    webhooks = state.get("communities", {}).get(community_id, {}).get("webhooks", [])
+    if not webhooks:
+        return
+        
+    payload = json.dumps({"goal_id": goal["goal_id"], "status": "DONE"}).encode("utf-8")
+    
+    def post_webhook(url):
+        try:
+            req = urllib.request.Request(url, data=payload, headers={'Content-Type': 'application/json'})
+            urllib.request.urlopen(req, timeout=5.0)
+        except Exception as e:
+            print(f"Webhook failed for {url}: {e}")
+            
+    for w in webhooks:
+        threading.Thread(target=post_webhook, args=(w,), daemon=True).start()
 
 @app.route("/tasks/verify", methods=["POST"])
 @require_verifier_auth
@@ -1338,6 +1401,7 @@ def verify_task_result():
                 else:
 
                     goal["status"] = "DONE"
+                    _trigger_webhooks(state, goal)
                     try:
                         import server.ledger as ledger
                         ledger.record_value(
@@ -1606,11 +1670,13 @@ def approve_merge(task_id):
                         goal["status"] = "READY"
                     else:
                         goal["status"] = "DONE"
+                        _trigger_webhooks(state, goal)
                 except Exception as e:
                     print(f"Failed to auto-replenish in merge approval: {e}")
                     goal["status"] = "BLOCKED"
             else:
                 goal["status"] = "DONE"
+                _trigger_webhooks(state, goal)
 
     save_state(state)
     return jsonify({"status": "RECONCILED", "task_id": task_id})
@@ -1825,6 +1891,126 @@ def custom_save_state(state):
                 json.dump(batch, bf, indent=2)
 
 save_state = custom_save_state
+
+
+# ==========================================
+# P5 Package 1 & 2: Profiles and Groups
+# ==========================================
+@app.route("/profiles", methods=["GET"])
+def list_profiles():
+    state = load_state()
+    profiles = {}
+    for wid, w in state.get("workers", {}).items():
+        profiles[wid] = {
+            "id": wid,
+            "type": "worker",
+            "capabilities": w.get("capabilities", []),
+            "groups": w.get("groups", []),
+            "community_id": w.get("community_id", "public"),
+            "tasks_completed": w.get("tasks_completed", 0),
+            "custom_profile": state.get("profiles", {}).get(wid, {})
+        }
+    for uid, up in state.get("profiles", {}).items():
+        if uid not in profiles:
+            profiles[uid] = {
+                "id": uid,
+                "type": "user",
+                "custom_profile": up
+            }
+    return jsonify({"profiles": list(profiles.values())})
+
+@app.route("/users/<id>", methods=["GET", "POST"])
+@serialize_state_mutation
+def user_profile(id):
+    state = load_state()
+    if request.method == "POST":
+        data = request.get_json(silent=True) or {}
+        # In this sandbox implementation, we allow anyone with API_KEY to write profiles
+        # (simulating owner or system orchestrator)
+        token = request.headers.get("Authorization", "")
+        if token != f"Bearer {API_KEY}" and API_KEY not in INSECURE_API_KEYS:
+            return jsonify({"error": "Unauthorized"}), 401
+            
+        profiles_dict = state.setdefault("profiles", {})
+        profiles_dict[id] = data.get("custom_profile", profiles_dict.get(id, {}))
+        save_state(state)
+        return jsonify({"status": "UPDATED", "profile": profiles_dict[id]})
+    else:
+        # GET
+        w = state.get("workers", {}).get(id)
+        if w:
+            prof = {
+                "id": id,
+                "type": "worker",
+                "capabilities": w.get("capabilities", []),
+                "groups": w.get("groups", []),
+                "community_id": w.get("community_id", "public"),
+                "tasks_completed": w.get("tasks_completed", 0),
+                "custom_profile": state.get("profiles", {}).get(id, {})
+            }
+        else:
+            up = state.get("profiles", {}).get(id)
+            if up:
+                prof = {"id": id, "type": "user", "custom_profile": up}
+            else:
+                return jsonify({"error": "Profile not found"}), 404
+        return jsonify(prof)
+
+@app.route("/groups", methods=["GET"])
+def list_groups():
+    state = load_state()
+    groups_tally = {}
+    for wid, w in state.get("workers", {}).items():
+        for g in w.get("groups", []):
+            groups_tally[g] = groups_tally.get(g, 0) + 1
+            
+    # Include groups that might be empty but are required by active tasks
+    for tid, task in state.get("tasks", {}).items():
+        for g in task.get("required_groups", []):
+            if g not in groups_tally:
+                groups_tally[g] = 0
+                
+    return jsonify({"groups": [{"name": k, "active_workers": v} for k, v in groups_tally.items()]})
+
+
+
+# ==========================================
+# P5 Package 4: Chats
+# ==========================================
+@app.route("/goals/<goal_id>/chat", methods=["GET", "POST"])
+@serialize_state_mutation
+def goal_chat(goal_id):
+    state = load_state()
+    if goal_id not in state.get("goals", {}):
+        return jsonify({"error": "Goal not found"}), 404
+        
+    goal = state["goals"][goal_id]
+    chat_history = goal.setdefault("chat_history", [])
+    
+    if request.method == "POST":
+        data = request.get_json(silent=True) or {}
+        msg = data.get("message")
+        sender = data.get("sender", "unknown")
+        if not msg:
+            return jsonify({"error": "message is required"}), 400
+            
+        # P5 Rule: limit of 100 messages per goal
+        if len(chat_history) >= 100:
+            return jsonify({"error": "Chat history full (limit 100 messages)"}), 400
+            
+        chat_message = {
+            "timestamp": __import__("time").time(),
+            "sender": sender,
+            "message": msg
+        }
+        chat_history.append(chat_message)
+        save_state(state)
+        return jsonify({"status": "POSTED", "message": chat_message})
+        
+    else:
+        # GET
+        return jsonify({"chat_history": chat_history})
+
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=int(os.environ.get("PORT", 8080)))
