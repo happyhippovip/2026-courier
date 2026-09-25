@@ -143,6 +143,17 @@ worktree /tmp/harvest-slot-03. No main push/merge, no force, no reset/clean.
 - `except (Exception, SystemExit)` keeps poisoned intake from dropping
   batch. Verified isolated: 4/4 PASS. Buckets 7/9 → owners port.
 
+## Task 16: adapter fix trio (a133a10a, 1c0fcb4d, 5106447d) — READY_FOR_INTEGRATION
+- Verified isolated (/tmp extraction): 30/30 PASS — antigravity job-ID
+  fullmatch, gemini path-safe task_id, deterministic_transform str-entry.
+- All foreign buckets → owners port. No write.
+
+## Task 17: workflows read-only audit — SUPERSEDED + finding
+- main courier_motor.yml still `*/5` cron; staging e6a5a53a already
+  replaced with push trigger + idle precheck → SUPERSEDED, no action.
+- No timeout-minutes on any workflow; concurrency only on 2/6 files.
+  Runaway-spend angle parked for cost owner (no write).
+
 ## Task 12: venv-python portability sweep — findings only (buckets 8/11/16)
 - Pattern `"venv/bin/python3" if exists else ...` on main in 3 files:
   run_final_acceptance.py (8, staging already → sys.executable),
