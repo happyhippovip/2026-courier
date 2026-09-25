@@ -16,7 +16,8 @@ CLI:
   complete <id> --result-json J [--stage S]   record result, reconcile deps
   block <id> --reason R        mark BLOCKED
   state                        dump queue snapshot
-  reconcile --reclaim-stale N  return stale CLAIMED/RUNNING to READY
+  reconcile --reclaim-stale N  reclaim stale CLAIMED/RUNNING leases (ambiguous
+                               effects BLOCKED as STALE_WORKER_EFFECT_AMBIGUOUS, never replayed)
 
 ONE WRITER PER MUTABLE SCOPE: a claim is refused when any write_scope of
 the task overlaps a scope already held by another live claim.
