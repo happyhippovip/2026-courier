@@ -2,9 +2,9 @@ import pytest
 from server.app import app, load_state
 
 @pytest.fixture
-def client():
+def client(monkeypatch):
     import server.app
-    server.app.API_KEY = "test-secret"
+    monkeypatch.setattr(server.app, "API_KEY", "test-secret")
     app.config["TESTING"] = True
     with app.test_client() as client:
         yield client

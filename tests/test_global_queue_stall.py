@@ -17,10 +17,10 @@ def reset_state():
     state["provider_locks"] = {}
     save_state(state)
 
-def test_waiting_provider_does_not_stall_global_queue(client):
+def test_waiting_provider_does_not_stall_global_queue(client, monkeypatch):
     reset_state()
     import server.app
-    server.app.API_KEY = "TEST"
+    monkeypatch.setattr(server.app, "API_KEY", "TEST")
 
     # Register worker
     res = client.post("/workers/register", json={"worker_id": "W1", "platform": "linux", "capabilities": ["linux"], "provider": "openai"}, headers={"Authorization": "Bearer TEST"})
