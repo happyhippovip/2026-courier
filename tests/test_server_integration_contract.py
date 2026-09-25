@@ -299,7 +299,7 @@ def test_worker_cannot_claim_second_task_while_first_is_active(tmp_path, monkeyp
     second = http.post("/tasks/claim", headers=auth(), json={"worker_id": "MAC-01"})
 
     assert first.get_json()["task"]["task_id"] == "task-1"
-    assert second.get_json() == {"task": None, "reason": "WORKER_BUSY"}
+    assert second.get_json()["task"]["task_id"] == "task-1"
     state = server_app.load_state()
     assert state["workers"]["MAC-01"]["current_task"] == "task-1"
     assert state["goals"][next(
@@ -362,21 +362,25 @@ def test_concurrent_claims_have_exactly_one_winner(tmp_path, monkeypatch):
 
     monkeypatch.setattr(server_app, "save_state", coordinated_save)
 
-    def claim():
+    def claim(worker_id):
         with server_app.app.test_client() as concurrent_http:
             return concurrent_http.post(
-                "/tasks/claim", headers=auth(), json={"worker_id": "MAC-01"}
+                "/tasks/claim", headers=auth(), json={"worker_id": worker_id}
             ).get_json()
 
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        responses = list(executor.map(lambda _: claim(), range(2)))
+    # Also register MAC-02
+    http.post("/workers/register", headers=auth(), json={"worker_id": "MAC-02", "platform": "mac", "capabilities": ["macos"]})
 
-    claimed = [response["task"] for response in responses if response.get("task")]
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        responses = list(executor.map(claim, ["MAC-01", "MAC-02"]))
+
+    claimed = [response.get("task") for response in responses if response.get("task")]
     assert len(claimed) == 1
     assert claimed[0]["task_id"] == "task-concurrent"
-    assert sorted(response.get("reason", "CLAIMED") for response in responses) == [
-        "CLAIMED", "WORKER_BUSY"
-    ]
+    
+    unclaimed = [response for response in responses if not response.get("task")]
+    assert len(unclaimed) == 1
+    assert unclaimed[0].get("task") is None
 
 
 def test_stale_claim_is_quarantined_without_replay_and_other_goal_continues(tmp_path, monkeypatch):

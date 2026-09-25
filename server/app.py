@@ -806,8 +806,9 @@ def claim_task():
                 worker["current_task"] = None
                 worker["available"] = True
             else:
+                worker["available"] = False
                 save_state(state)
-                return jsonify({"task": None, "reason": "WORKER_BUSY"})
+                return jsonify({"task": task})
         else:
             worker["available"] = True
     
@@ -882,11 +883,8 @@ def claim_task():
                     continue
                 
                 if not _worker_is_eligible(state, candidate, worker_id):
-                    print(f"DEBUG: worker {worker_id} NOT eligible for {candidate.get('task_id')}", flush=True)
-                    continue
                     continue
                 if _cheaper_eligible_worker_exists(state, candidate, worker_id):
-                    continue
                     continue
                 try:
                     claimed = _prepare_claimed_task(candidate, worker_id, worker)
