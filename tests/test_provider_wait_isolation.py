@@ -2,9 +2,6 @@ import pytest
 import time
 import json
 import os
-import shutil
-import tempfile
-from pathlib import Path
 
 os.environ.setdefault("COURIER_API_KEY", "test-key-12345")
 os.environ.setdefault("COURIER_VERIFIER_API_KEY", "test-key-verifier-12345")

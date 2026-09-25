@@ -15,12 +15,10 @@ Covers every required attack from GOOGLE_CONTINUOUS_WORK.yaml G03:
   - long-lived epoch mutable evidence
 """
 import pytest
-import json
 import copy
 import tempfile
 from pathlib import Path
 from datetime import datetime, timedelta
-from unittest.mock import patch
 from scripts.agent_handoff_ledger import (
     initialize, update, validate_guard, LedgerError,
 )

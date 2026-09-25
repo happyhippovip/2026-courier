@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import sys
 import tempfile
 import unittest
@@ -15,7 +14,6 @@ if str(COURIER_DIR) not in sys.path:
 
 from scripts.run_bodyguards import (
     BodyguardPoolManager,
-    BODYGUARD_REGISTRY,
     generate_bodyguard_speech,
 )
 

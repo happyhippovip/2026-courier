@@ -2,7 +2,6 @@ import os
 import sys
 import time
 import subprocess
-import signal
 
 # Add scripts directory to path to import agent_session_manager
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "scripts"))

@@ -1,4 +1,3 @@
-import pytest
 from pathlib import Path
 import sys
 import json
@@ -38,7 +37,6 @@ def test_ledger_status_overwrite_fixed(tmp_path):
     with open(ledger_path, "w") as f:
         json.dump(bundle, f)
         
-    import json as json_lib
     
     # Mock 'update' function to return what it would update
     from unittest.mock import patch

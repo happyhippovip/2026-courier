@@ -1,5 +1,4 @@
 import unittest
-import json
 from pathlib import Path
 from scripts.inbound_response_observer import InboundResponseObserver, ResponseClassification
 from scripts.invoice_generator import InvoiceGenerator

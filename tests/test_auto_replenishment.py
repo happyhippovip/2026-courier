@@ -5,7 +5,6 @@ import json
 import time
 import subprocess
 import sys
-import shutil
 from pathlib import Path
 import urllib.request
 import urllib.error

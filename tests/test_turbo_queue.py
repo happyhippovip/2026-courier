@@ -1,6 +1,5 @@
 from scripts.integration_contract import _canonical_hash
 import pytest
-import os
 import tempfile
 from pathlib import Path
 

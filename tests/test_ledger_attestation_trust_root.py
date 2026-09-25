@@ -14,7 +14,6 @@ Covers every required attack from GOOGLE_CONTINUOUS_WORK.yaml G02:
   - valid independent control case
 """
 import pytest
-import json
 import copy
 import tempfile
 

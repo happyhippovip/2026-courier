@@ -1,9 +1,7 @@
 import pytest
 from pathlib import Path
 import json
-import time
-from datetime import datetime, timezone
-import shutil
+from datetime import datetime
 import tempfile
 from scripts.agent_handoff_ledger import initialize, update, LedgerError
 from tests.test_agent_handoff_ledger import guard as make_guard

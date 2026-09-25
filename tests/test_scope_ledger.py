@@ -2,7 +2,6 @@ import pytest
 import os
 import sys
 import time
-from unittest import mock
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from scripts.scope_ledger import ScopeLedger

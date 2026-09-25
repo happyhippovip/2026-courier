@@ -2,7 +2,7 @@ import importlib.util
 import os
 import sys
 from .processes import launch_gated
-from .storage import ROOT, atomic, digest, owned, read
+from .storage import ROOT, atomic, owned, read
 
 
 class FakeAdapter:
@@ -120,7 +120,6 @@ class LiveMuseAdapter:
         import json
         import shutil
         import subprocess
-        import tempfile
         import time
         import uuid
         from pathlib import Path
@@ -193,79 +192,6 @@ class LiveMuseAdapter:
 
     def execute(self, task, folder, persist_identity):
         raise ValueError('LEGACY_EXIT_ONLY_ADAPTER_DISABLED_USE_VERIFIED_CANARY')
-        folder = owned(folder); folder.mkdir(parents=True, exist_ok=True)
-        execution = task['execution_ref']
-        if execution in self.handles: raise RuntimeError('Execution already owned')
-        
-        prompt_text = task.get('request', {}).get('prompt', 'Complete the task.')
-        atomic(folder / 'prompt.txt', prompt_text)
-        
-        env = {k: v for k, v in os.environ.items() if k.upper() in {'SYSTEMROOT', 'WINDIR', 'TEMP', 'TMP', 'PATH'}}
-        
-        # muse exec arguments
-        command = [
-            'muse', 'exec', '--json',
-            '--prompt-file', str(folder / 'prompt.txt'),
-            '--workspace', str(self.workspace),
-            '--no-foreign-personal-context',
-            '--no-session-log',
-            '--session-id', execution,
-            '--provider', 'echo'
-        ]
-        
-        child, job, identity = launch_gated(command, str(self.workspace), env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        self.handles[execution] = (child, job)
-        
-        identity.update(task_id=task['task_id'], attempt_id=task['attempt_id'], execution_id=execution,
-                        dispatch_id=task['dispatch_id'], worker_id=task['worker_id'])
-                        
-        try:
-            atomic(folder / 'process.json', identity)
-            persist_identity(identity)
-            if child.stdin: child.stdin.close()
-            
-            import threading
-            import json
-            def consume_output():
-                final_result = None
-                with open(folder / 'event.json', 'w', encoding='utf-8') as f:
-                    for line in child.stdout:
-                        try:
-                            decoded = line.decode('utf-8')
-                            f.write(decoded)
-                            data = json.loads(decoded)
-                            if data.get('payload_type') == 'run.terminal.completed':
-                                final_result = data
-                        except Exception:
-                            pass
-                
-                # Consume stderr as well to prevent blocking
-                for line in child.stderr: pass
-                
-                # child is terminating, wait for it
-                child.wait()
-                status = 'SUCCESS' if child.returncode == 0 else 'FAILED'
-                
-                # Construct result based on what verify_result expects
-                raw = dict(task)
-                raw['status'] = status
-                raw['run_id'] = f"muse-run-{execution}"
-                
-                # Write to result.json
-                atomic(folder / 'result.json', raw)
-                
-            threading.Thread(target=consume_output, daemon=True).start()
-            
-        except BaseException:
-            self.close_execution(execution); raise
-        return child
-
-    def result(self, task, folder):
-        raw = read(owned(folder) / 'result.json')
-        if not raw: raise ValueError('MISSING_RESULT')
-        # The contract verify_result generates the final canonical DurableResult payload
-        verified = self.contract.verify_result(task, raw, self.workspace)
-        return self.contract.validate_durable_result(task, verified)
 
     def cancel(self, execution_id):
         child, _ = self.handles.get(execution_id, (None, None))

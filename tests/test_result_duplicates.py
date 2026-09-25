@@ -1,5 +1,4 @@
 import pytest
-import os
 import tempfile
 import shutil
 from pathlib import Path
@@ -52,7 +51,6 @@ def test_result_duplicate_invariant(client):
 
 
 
-    import json
     from scripts.integration_contract import _canonical_hash
     
     payload1 = {

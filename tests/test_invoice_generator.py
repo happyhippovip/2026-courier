@@ -2,9 +2,6 @@ import pytest
 import os
 import sys
 import json
-from datetime import datetime, timezone
-from pathlib import Path
-from unittest import mock
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from scripts import invoice_generator

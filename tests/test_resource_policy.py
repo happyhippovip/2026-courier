@@ -1,9 +1,6 @@
-import pytest
 import os
 import sys
-import json
 import hashlib
-from pathlib import Path
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from scripts import resource_policy

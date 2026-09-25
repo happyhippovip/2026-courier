@@ -1,7 +1,5 @@
-import pytest
 import os
 import json
-import psutil
 from unittest import mock
 import sys
 

@@ -1,5 +1,5 @@
 import pytest
-from server.app import app, load_state
+from server.app import app
 
 @pytest.fixture
 def client(monkeypatch):

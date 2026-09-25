@@ -3,7 +3,6 @@ import argparse
 import json
 import os
 import sys
-from pathlib import Path
 from .adapters import FakeAdapter
 from .controller import Controller, resource_state
 from .importer import Importer

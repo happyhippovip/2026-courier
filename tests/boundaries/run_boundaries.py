@@ -1,6 +1,5 @@
 import sys, os, time, subprocess, json, uuid
 import requests
-import importlib.util
 
 API_URL = "http://127.0.0.1:8082"
 API_KEY = "boundary-secret"

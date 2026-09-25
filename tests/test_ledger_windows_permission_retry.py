@@ -8,10 +8,9 @@ Validates that:
 - atomic_write retries os.replace on PermissionError
 - FileNotFoundError is not retried (fast fail)
 """
-import json
 import tempfile
 from pathlib import Path
-from unittest.mock import patch, mock_open, MagicMock
+from unittest.mock import patch
 import pytest
 
 from scripts.agent_handoff_ledger import (

@@ -1,7 +1,6 @@
 import pytest
 from scripts.integration_contract import _canonical_hash
 from server import app as server_app
-import uuid
 
 def auth(): return {"Authorization": "Bearer test-secret"}
 def verifier_auth(): return {"Authorization": "Bearer verifier-secret"}

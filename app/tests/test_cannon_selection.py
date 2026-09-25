@@ -1,6 +1,5 @@
 """Local fixture integrity and 5/10 selection regressions; no providers."""
 import io
-import json
 import unittest
 import uuid
 from unittest.mock import Mock, patch

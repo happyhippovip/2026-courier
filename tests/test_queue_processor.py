@@ -1,7 +1,4 @@
-import pytest
 import os
-import json
-import shutil
 from unittest import mock
 import sys
 

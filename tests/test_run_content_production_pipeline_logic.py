@@ -6,9 +6,7 @@ Covers:
   - discover_godot_binary (with mocked filesystem)
 """
 
-import os
 from pathlib import Path
-import pytest
 import sys
 from unittest.mock import patch, MagicMock
 

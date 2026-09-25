@@ -1,5 +1,4 @@
 """Isolated integration harness: copied existing core, no production state/credentials."""
-import contextlib
 import importlib
 import json
 import os

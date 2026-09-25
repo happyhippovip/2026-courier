@@ -1,11 +1,8 @@
 import subprocess
 import sys
 import time
-import json
 import os
-import psutil
 from pathlib import Path
-import tempfile
 
 def test_cannon_process_ownership_and_control():
     print("--- CANNON START PATH ANALYSIS ---")

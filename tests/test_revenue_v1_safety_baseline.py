@@ -1,10 +1,7 @@
 import pytest
 import os
 import sys
-import json
-import shutil
 from unittest import mock
-from pathlib import Path
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from scripts import revenue_v1_safety_baseline

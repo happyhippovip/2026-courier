@@ -1,5 +1,4 @@
 import sys
-import pytest
 import subprocess
 from pathlib import Path
 import os

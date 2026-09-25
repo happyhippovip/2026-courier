@@ -1,8 +1,6 @@
-import pytest
 import subprocess
 import time
 import sys
-from pathlib import Path
 
 def test_subprocess_run_timeout_regression(tmp_path):
     """

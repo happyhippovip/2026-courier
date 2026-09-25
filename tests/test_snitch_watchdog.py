@@ -18,10 +18,8 @@ from scripts.run_snitch_watchdog import (
     RuntimeObservation,
     SnitchWatchdog,
     PermissionGuard,
-    PermissionMasterlist,
     SandboxAuditor,
 )
-from scripts.run_chief_commander import ChiefCommander
 
 
 

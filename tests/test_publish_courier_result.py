@@ -3,7 +3,6 @@ import os
 import sys
 import json
 from unittest import mock
-from pathlib import Path
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from scripts import publish_courier_result

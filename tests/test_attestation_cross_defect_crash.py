@@ -11,13 +11,11 @@ Covers attacks from GOOGLE_CONTINUOUS_WORK.yaml G06 / Codex C03:
   - concurrent writer conflict detection
 """
 import pytest
-import json
-import copy
 import tempfile
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime
 from scripts.agent_handoff_ledger import (
-    initialize, update, load_bundle, LedgerError, validate_record,
+    initialize, update, load_bundle, LedgerError,
 )
 from tests.test_agent_handoff_ledger import guard as make_guard
 

@@ -56,7 +56,8 @@ def setup_claimed_task(tmp_path, monkeypatch):
 
 
 def durable_result(task):
-    import hashlib, json, server.app
+    import hashlib
+    import json
     base_res = {
         "goal_id": task["goal_id"],
         "task_id": task["task_id"],

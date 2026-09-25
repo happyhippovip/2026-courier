@@ -32,7 +32,6 @@ def claim(http, worker_id):
     return resp.get_json().get("task") if resp.status_code == 200 else None
 
 def complete(http, worker_id, task, status="SUCCESS"):
-    import uuid
     tid = task["task_id"]
     payload = {
         "worker_id": worker_id,

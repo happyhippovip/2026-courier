@@ -1,9 +1,7 @@
 import sys
-import pytest
 import subprocess
 import os
 import json
-import time
 from pathlib import Path
 
 def test_queue_independent_daemon(tmp_path):

@@ -1,11 +1,9 @@
 import pytest
 import os
-import json
 import signal
 import subprocess
 from unittest import mock
 import sys
-from pathlib import Path
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from scripts import agent_session_manager

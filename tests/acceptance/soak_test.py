@@ -1,11 +1,7 @@
 #!/usr/bin/env python3
 import os
-import sys
 import time
 import subprocess
-import requests
-import json
-import threading
 
 def log(msg):
     print(f"[Soak Test] {msg}", flush=True)

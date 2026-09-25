@@ -10,9 +10,9 @@ sys.path.insert(0, str(APP))
 sys.path.insert(0, str(APP / 'tests'))
 
 from cannon.adapters import LiveMuseAdapter
-from cannon_support import CORE_FIXTURE_ID, CORE_MANIFEST, SNAPSHOT, IsolatedCore, load_core, snapshot, step
+from cannon_support import SNAPSHOT, IsolatedCore, load_core, step
 from cannon.importer import Importer
-from cannon.storage import ROOT, InstanceLock, atomic, digest, file_hash, owned, read
+from cannon.storage import ROOT, atomic, digest, owned
 from cannon.controller import Controller, resource_state
 
 def run_acceptance():

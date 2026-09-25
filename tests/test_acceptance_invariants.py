@@ -1,11 +1,7 @@
-import pytest
-import os
 import sys
-import json
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.resolve()))
-from scripts.courier_continue import update_ledger
 
 
 def test_empty_unproven_without_evidence_forbidden():
@@ -25,5 +21,4 @@ def test_empty_unproven_without_evidence_forbidden():
     
     # Mock update to avoid actual file I/O or use a temporary file
     # We can just test the logic directly by examining what would be passed to update()
-    pass
 

@@ -1,12 +1,9 @@
-import os
 """Trust-boundary integration: real isolated server state + Guard + Ledger.
 
 TLS transport is replaced by the Flask test client, not the authority verdict.
 These are software tests, never physical acceptance evidence.
 """
-import copy
 import hashlib
-import json
 from datetime import datetime, timezone
 
 import pytest

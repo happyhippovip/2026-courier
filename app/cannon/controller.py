@@ -1,6 +1,4 @@
 """Bounded lane lifecycle. Canonical claim and verified state remain Courier-owned."""
-import ctypes
-import os
 import queue
 import threading
 import time

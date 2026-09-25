@@ -10,7 +10,6 @@ code touched.
 """
 
 import importlib.util
-import sys
 import unittest
 from datetime import datetime, timezone
 from pathlib import Path

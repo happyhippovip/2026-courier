@@ -1,4 +1,3 @@
-import os
 import pytest
 
 from server.app import app, load_state, save_state

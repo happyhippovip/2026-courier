@@ -1,4 +1,3 @@
-import pytest
 import hashlib
 from tests.test_ab_reconcile_unlock import make_client, auth
 

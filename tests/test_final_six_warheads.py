@@ -2,17 +2,15 @@ import pytest
 import sys
 import copy
 import json
-import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).parent.parent.resolve()))
-from scripts.courier_continue import execute_task, compute_frontier
+from scripts.courier_continue import execute_task
 from scripts.agent_handoff_ledger import (
     freshness,
     load_bundle,
     update,
-    validate_bundle,
     LedgerError,
 )
 from tests.test_agent_handoff_ledger import initialize, guard as mock_guard
