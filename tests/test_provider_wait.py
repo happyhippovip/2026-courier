@@ -94,6 +94,48 @@ def test_provider_wait_resumes_same_dispatch_without_new_attempt(motor):
     assert resumed["execution_ref"] == original["execution_ref"]
 
 
+def test_provider_wait_resume_uses_canonical_status_setter(motor, monkeypatch):
+    """Auto-resume WAITING_PROVIDER->DISPATCHED must go through
+    set_task_status (validation + ledger audit), never direct assignment."""
+    calls = []
+    real_setter = server_app.set_task_status
+
+    def recording(task, new_status):
+        calls.append((task.get("task_id"), new_status))
+        return real_setter(task, new_status)
+
+    monkeypatch.setattr(server_app, "set_task_status", recording)
+    register(motor, "worker-1")
+    submit(
+        motor,
+        [
+            {
+                "task_id": "resume-audit-task",
+                "target_agent": "auto",
+                "instruction": "wait once",
+                "required_capabilities": ["test"],
+            }
+        ],
+    )
+    claim(motor, "worker-1")
+    response = motor.post(
+        "/tasks/resume-audit-task/provider_wait",
+        headers=auth(),
+        json={"worker_id": "worker-1", "reason": "quota"},
+    )
+    assert response.status_code == 200
+
+    state = server_app.load_state()
+    state["tasks"]["resume-audit-task"]["next_retry_at"] = 0
+    state["provider_locks"] = {}
+    server_app.save_state(state)
+    calls.clear()
+
+    resumed = claim(motor, "worker-1")
+    assert resumed["task_id"] == "resume-audit-task"
+    assert ("resume-audit-task", "DISPATCHED") in calls
+
+
 def test_provider_wait_does_not_hide_unrelated_ready_work(motor):
     register(motor, "worker-1")
     register(motor, "worker-2")
