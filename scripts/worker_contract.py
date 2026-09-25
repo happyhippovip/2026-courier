@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-import json
-
 class WorkerContract:
     def __init__(self, worker_id, capability_set, cost_class, runtime_type):
         self.worker_id = worker_id
