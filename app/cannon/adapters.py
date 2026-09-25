@@ -104,11 +104,16 @@ class LiveMuseAdapter:
     @staticmethod
     def validate_canary_terminal(events, path, nonce, sha):
         import json
-        terminals = [e.get('payload', {}) for e in events
+        dicts = [e for e in events if isinstance(e, dict)]
+        terminals = [e.get('payload', {}) for e in dicts
                      if e.get('payload_type') == 'run.terminal.completed']
-        if len(terminals) != 1 or terminals[0].get('terminal') != 'completed':
+        if (len(terminals) != 1 or not isinstance(terminals[0], dict)
+                or terminals[0].get('terminal') != 'completed'):
             raise ValueError('MISSING_OR_AMBIGUOUS_TERMINAL_RESULT')
-        result = json.loads(terminals[0].get('text', ''))
+        text = terminals[0].get('text', '')
+        if not isinstance(text, str):
+            raise ValueError('WRONG_CANARY_RESULT')
+        result = json.loads(text)
         if result != {'path': str(path), 'nonce': nonce, 'sha256': sha}:
             raise ValueError('WRONG_CANARY_RESULT')
         return result
@@ -173,7 +178,7 @@ class LiveMuseAdapter:
                 persist_identity(dict(identity))
         raw = (folder / 'stdout.jsonl').read_text(encoding='utf-8')
         events = [json.loads(line) for line in raw.splitlines() if line.strip()]
-        if not any(e.get('payload_type') == 'run.terminal.completed' for e in events):
+        if not any(isinstance(e, dict) and e.get('payload_type') == 'run.terminal.completed' for e in events):
             raise ValueError('MISSING_TERMINAL_RESULT')
         if target.is_symlink() or not target.is_file() or target.read_bytes() != nonce.encode():
             raise ValueError('CANARY_SIDE_EFFECT_NOT_VERIFIED')

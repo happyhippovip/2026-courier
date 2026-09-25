@@ -37,3 +37,18 @@ def test_terminal_answer_not_prompt_echo():
                    [dict(good,payload={'terminal':'completed','text':'{}'})]]:
         with pytest.raises(ValueError):
             LiveMuseAdapter.validate_canary_terminal(events,'/tmp/a','abc','123')
+
+def test_terminal_non_dict_events_fail_closed():
+    # Garbage JSONL lines (non-dict events, non-dict payload, non-str text)
+    # must fail closed with ValueError so the motor contains the fault as
+    # BLOCKED+review instead of wedging on an uncaught AttributeError/TypeError.
+    good={'payload_type':'run.terminal.completed',
+          'payload':{'terminal':'completed','text':json.dumps({'path':'/tmp/a','nonce':'abc','sha256':'123'})}}
+    for events in [['oops'],[42],[None],[[1,2]],
+                   [dict(good,payload='garbage')],
+                   [dict(good,payload={'terminal':'completed','text':42})]]:
+        with pytest.raises(ValueError):
+            LiveMuseAdapter.validate_canary_terminal(events,'/tmp/a','abc','123')
+    # Noise alongside one valid terminal still validates.
+    assert LiveMuseAdapter.validate_canary_terminal(
+        ['oops',42,None,good],'/tmp/a','abc','123')=={'path':'/tmp/a','nonce':'abc','sha256':'123'}
