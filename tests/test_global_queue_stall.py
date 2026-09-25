@@ -28,7 +28,7 @@ def test_waiting_provider_does_not_stall_global_queue(client):
 
     # Submit goal with 3 parallel tasks
     goal = {
-        "goal_text": "Test Goal",
+        "goal_text": "Test Goal", "estimated_cost": 0.0,
         "workflow_plan": [
             {"task_id": "A", "instruction": "Task A", "capabilities": ["linux"], "depends_on": [], "status": "QUEUED"},
             {"task_id": "B", "instruction": "Task B", "capabilities": ["linux"], "depends_on": [], "status": "QUEUED"},
