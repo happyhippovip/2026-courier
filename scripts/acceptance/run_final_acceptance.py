@@ -2,8 +2,9 @@ import sys, os, time, subprocess, json, uuid
 import requests
 
 API_URL = "http://127.0.0.1:8081"
-API_KEY = "acceptance-secret"
-VERIFIER_API_KEY = "acceptance-verifier-secret"
+# Keys for the throwaway local server come from the environment; no fallback.
+API_KEY = os.environ.get("COURIER_API_KEY", "").strip()
+VERIFIER_API_KEY = os.environ.get("COURIER_VERIFIER_API_KEY", "").strip()
 HEADERS = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
 VERIFIER_HEADERS = {"Authorization": f"Bearer {VERIFIER_API_KEY}", "Content-Type": "application/json"}
 
@@ -245,7 +246,14 @@ def run_tests():
         stop_server(server_proc)
         if os.path.exists(state_file): os.remove(state_file)
 
+def require_keys():
+    missing = [n for n, v in (("COURIER_API_KEY", API_KEY), ("COURIER_VERIFIER_API_KEY", VERIFIER_API_KEY)) if not v]
+    if missing:
+        print(f"ERROR: missing required environment variable(s): {', '.join(missing)}", file=sys.stderr)
+        sys.exit(2)
+
 if __name__ == "__main__":
+    require_keys()
     run_tests()
     
     final_output = f"""

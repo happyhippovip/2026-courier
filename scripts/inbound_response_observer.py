@@ -14,12 +14,6 @@ if str(COURIER_DIR) not in sys.path:
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
-# Import money machine state handling
-try:
-    from scripts.money_machine_pipeline import MoneyMachinePipeline, OpportunityState
-except ImportError:
-    pass
-
 # Import new autonomous invoice generator
 try:
     from scripts.invoice_generator import InvoiceGenerator

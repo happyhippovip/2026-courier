@@ -10,7 +10,7 @@ import hashlib
 import json
 import re
 import uuid
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 
 TASK_STATES = {
@@ -150,11 +150,21 @@ def validate_durable_result(task: dict, result: dict) -> dict:
     if result["status"] == "SUCCESS" and not result["artifacts"]:
         raise ContractError("successful result requires artifact evidence")
     for artifact in result["artifacts"]:
-        if not isinstance(artifact, dict) or set(artifact) != {"path", "sha256"}:
+        # Uploaded artifacts additionally carry the server-issued artifact_id and size.
+        if not isinstance(artifact, dict) or set(artifact) not in ({"path", "sha256"},
+                                                                   {"path", "sha256", "artifact_id", "size"}):
             raise ContractError("invalid artifact evidence")
+        if "artifact_id" in artifact:
+            if not isinstance(artifact["artifact_id"], str) or not re.fullmatch(r"art-[a-f0-9]{64}", artifact["artifact_id"]):
+                raise ContractError("invalid artifact_id")
+            if not isinstance(artifact["size"], int) or isinstance(artifact["size"], bool) or artifact["size"] < 0:
+                raise ContractError("invalid artifact size")
         path = artifact["path"]
         digest = artifact["sha256"]
         if not isinstance(path, str) or not path or Path(path).is_absolute() or ".." in Path(path).parts:
+            raise ContractError("unsafe artifact path")
+        windows = PureWindowsPath(path)
+        if windows.drive or windows.root or ".." in windows.parts:
             raise ContractError("unsafe artifact path")
         if not isinstance(digest, str) or not re.fullmatch(r"[a-f0-9]{64}", digest):
             raise ContractError("invalid artifact fingerprint")

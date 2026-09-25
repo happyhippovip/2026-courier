@@ -26,13 +26,22 @@ jobs:
 
       - name: Run Courier Motor
         env:
-          COURIER_API_KEY: "cron_motor_key"
-          COURIER_VERIFIER_API_KEY: "cron_motor_key"
+          COURIER_API_KEY: ${{ secrets.COURIER_API_KEY }}
+          COURIER_VERIFIER_API_KEY: ${{ secrets.COURIER_VERIFIER_API_KEY }}
           COURIER_SERVER: "http://127.0.0.1:8080"
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_WORKER_LOCAL_WAIT_SECONDS: "60"
         run: |
           export PYTHONPATH="$PWD:$PYTHONPATH"
+          # The server below is a throwaway process on this runner. Without
+          # repository secrets, fall back to per-run random keys (never committed).
+          for var in COURIER_API_KEY COURIER_VERIFIER_API_KEY; do
+            if [ -z "${!var}" ]; then
+              export "$var=$(python3 -c 'import secrets; print(secrets.token_hex(24))')"
+              echo "[Motor] $var secret not set; using an ephemeral per-run key."
+            fi
+            echo "::add-mask::${!var}"
+          done
           echo "[Motor] Starting internal state server..."
           python3 server/app.py &
           SERVER_PID=$!

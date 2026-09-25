@@ -1,0 +1,34 @@
+--- a/server/app.py
++++ b/server/app.py
+@@ -3,6 +3,7 @@
+ from flask import Flask, request, jsonify
+ 
+ from scripts.integration_contract import ContractError, prepare_task, validate_durable_result
++from scripts.artifact_store import ArtifactError, ArtifactStore, create_blueprint
+ from scripts.run_chief_commander import ChiefCommander
+ 
+ app = Flask(__name__)
+@@ -70,6 +71,11 @@
+         os.fsync(f.fileno())
+     os.replace(temp_path, STATE_FILE)
+ 
++ARTIFACT_STORE = ArtifactStore.from_env()
++app.register_blueprint(create_blueprint(
++    ARTIFACT_STORE, worker_auth=require_auth, verifier_auth=require_verifier_auth,
++    task_lookup=lambda task_id: load_state()["tasks"].get(task_id)))
++
+ @app.route("/health", methods=["GET"])
+ def health():
+     return jsonify({"status": "healthy", "time": time.time()})
+@@ -363,7 +369,10 @@
+                 return jsonify({"error": "Task is not awaiting a result"}), 409
+             try:
+                 durable_result = validate_durable_result(task, data)
+-            except ContractError as exc:
++                for ref in durable_result["artifacts"]:
++                    if "artifact_id" in ref:
++                        ARTIFACT_STORE.check_reference(ref, task)
++            except (ContractError, ArtifactError) as exc:
+                 return jsonify({"error": str(exc)}), 400
+             task["status"] = "RESULT_RECEIVED"
+             task["result"] = durable_result
