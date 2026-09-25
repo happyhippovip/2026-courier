@@ -1,6 +1,6 @@
 import pytest
 
-from server import app as server_app
+import server.app as server_app
 
 
 def auth():
