@@ -8,8 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ["deploy/install_mac_runtime.sh", "scripts/setup_local_autonomy.sh", "scripts/revenue_v1_goal.sh"]
 # Known leaked values, stored split so this file is not itself a copy.
 LEAKED = ["prod-secret-" + "12345", "ver-secret-" + "67890"]
-# scripts/windows_worker/daemon.py is handled on the Task04 branch.
-PENDING_ELSEWHERE = {"scripts/windows_worker/daemon.py"}
+PENDING_ELSEWHERE = set()
 DUMMY = "dummy-test-key-not-real"
 
 
