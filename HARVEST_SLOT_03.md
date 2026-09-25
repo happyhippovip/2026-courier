@@ -54,6 +54,58 @@ worktree /tmp/harvest-slot-03. No main push/merge, no force, no reset/clean.
   resume_task force_success mints manual result_id (explicit human action,
   acceptable).
 
-## Next
-- Bucket 2 exhausted (1 branch candidate + 3 files). No foreign-bucket
-  writes. Ready for final report.
+## Task 4: MUSE-B01/yolo-fallback-pin tip (9c8805dc) — CLASS: READY_FOR_INTEGRATION
+- Pins yolo_fallback_result_id/read_queue_task (retry-distinct, missing
+  record, roundtrip, unreadable) + drops dead code (redundant hashlib
+  import, 2 unused except bindings, unused Artifacts assignment —
+  verified unused by reading invariants()).
+- Verified in throwaway worktree: 11/11 PASS.
+- NOT ported to slot branch: depends on peer motor helper chain
+  (a75f23e3) absent from main. Integrator cherry-picks with its chain.
+- Dedup: slot-02 works dead-import/scratch-cleanup lane — no
+  dead-import work from this slot.
+
+## Task 5: safety-hardening tips — CLASS: LINEAGE_DEPENDENT + PREMIUM_REVIEW_CANDIDATE
+- 7f235abc (lease_id, ROLE_KEYS auth, HUMAN_REQUIRED guard, win heartbeat,
+  courier_status.py) targets a DIVERGED server lineage (keyring role keys,
+  old statuses). Main has no lease_id and a different auth model.
+- Credential-architecture + P3 server semantics → integrator/Opus decision,
+  not a Muse micro-port. Keychain scope reserved. Parked with rationale.
+
+## Task 6: staging/cannon-v1-candidate audit — CLASS: READY_FOR_INTEGRATION (audited parts)
+- Real convergence line (23 commits, fresh): scratch fix_*.py deleted,
+  pytest.ini scoping, artifact store + verifier re-hash, motor precheck,
+  failure-recovery matrix, mac/windows contract tests.
+- Verified in throwaway worktree (dummy env): artifact_store +
+  upload_flow + motor_precheck = 56 PASSED; failure_recovery_matrix =
+  26 PASSED (real state assertions: duplicate ACK w/o state change,
+  conflict cannot replace, wrong worker/identity rejected, restart
+  keeps identity, unregister quarantine). Evidence: CONTRACT.
+- Finding (main-wide, server file, no write): server/app.py import-time
+  SystemExit on missing keys kills WHOLE pytest run at collection
+  (INTERNALERROR after 75 collected) when any server-importing test is
+  collected without env. Owner: P3/server lane.
+
+## Task 7: staging/cannon-v1-extra-high-convergence triage — CLASS: NEEDS_VERIFY→PART VERIFIED
+- Superset line (+p3 cutover as docs/patch, adapter fail-closed fixes,
+  mac/windows crash binding). Tips: dd3d2644 (p3 patch as files+test,
+  respects P3 owner rule), 9b36ca5d (mac never-re-execute + 236-line test),
+  27ee67d4 (windows dispatch binding + test).
+- Verified in throwaway worktree: test_p3_server_idempotency.py +
+  test_mac_worker_recovery.py = 18 PASSED. Evidence: CONTRACT/
+  SIMULATED (isolated daemon module + FakeServer; PHYSICAL_MAC_REQUIRED
+  for real crash proof).
+
+## Task 8: root smoke-script hazard — PROVEN finding for bucket-1 owner
+- main's test_agy.py spawns `agy --dangerously-skip-permissions` at
+  MODULE IMPORT. `pytest test_agy.py --collect-only` took 10.78s and
+  launched the external agent binary (/Users/user/.local/bin/agy exists).
+  Mere collection = arbitrary agent execution. Staging's pytest.ini
+  scoping already addresses it; porting belongs to bucket 1, deletion
+  to slot-02's scratch lane. No write from this slot.
+
+## Checkpoint
+- Slot branch pushed: classify + contract-test fix + this checkpoint.
+- Bucket-2 branches: 4/4 triaged. In-bucket files: 3/3 swept.
+- NEXT_EXACT_SAFE_TASK: adapter fail-closed read (cf414d9d lineage) and
+  dispatcher 4xx/5xx sameness review — findings only (foreign buckets).
