@@ -131,6 +131,18 @@ worktree /tmp/harvest-slot-03. No main push/merge, no force, no reset/clean.
 - Release-on-reregister + artifact re-hash before upload read correct.
   No write (reserved runtime + foreign buckets).
 
+## Task 14: intake/dispatcher exception read (main) — findings only (buckets 9/7)
+- intake_dispatcher.py:47-48: corrupt central_state.json → silent
+  `{"tasks": {}}` reset + non-atomic rewrite (local revenue sidecar;
+  limited blast radius, still lossy). External gh dispatch (line 26)
+  happens BEFORE any state record → crash gap = orphaned run.
+- queue_processor: failures stay pending (good); but dispatch_intake's
+  sys.exit(1) aborts whole batch = head-of-line blocking (see task 15).
+
+## Task 15: queue batch fix (d5222821) — CLASS: READY_FOR_INTEGRATION
+- `except (Exception, SystemExit)` keeps poisoned intake from dropping
+  batch. Verified isolated: 4/4 PASS. Buckets 7/9 → owners port.
+
 ## Task 12: venv-python portability sweep — findings only (buckets 8/11/16)
 - Pattern `"venv/bin/python3" if exists else ...` on main in 3 files:
   run_final_acceptance.py (8, staging already → sys.executable),
@@ -139,5 +151,10 @@ worktree /tmp/harvest-slot-03. No main push/merge, no force, no reset/clean.
 
 ## Checkpoint 2
 - Slot branch: +2 docs commits pending push with this one.
-- NEXT: mac daemon never-re-execute read (9b36ca5d) or rock-bottom
-  deep-read leftovers.
+
+## Task 13: mac never-re-execute read (9b36ca5d) — READY (unit) + PHYSICAL_MAC_REQUIRED
+- Phase-persisted CLAIMED/STARTED/RESULT_READY; atomic persist
+  (tmp+fsync+replace); legacy phaseless → STARTED (fail-closed);
+  4xx-final/5xx+transport-retry; rejected payload kept.
+- Unit tests 18/18 (with p3 batch). Live crash proof still needs Mac.
+- Logic sound on read; no write (reserved runtime).
