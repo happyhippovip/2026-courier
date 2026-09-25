@@ -4,12 +4,25 @@ import urllib.request
 import urllib.error
 import tempfile
 
-API_URL = "http://192.168.178.162:8080"
-API_KEY = "prod-secret-12345"
-HEADERS = {
-    "Authorization": f"Bearer {API_KEY}",
-    "Content-Type": "application/json"
-}
+# No credentials in source. bootstrap.ps1 writes COURIER_SERVER/COURIER_API_KEY
+# into the deployed config.json; env vars override for services/containers.
+API_URL = None
+HEADERS = {}
+
+def init_server_auth(config):
+    """Bind API_URL/HEADERS from env-or-config. Fail closed when absent."""
+    global API_URL, HEADERS
+    api_url = os.environ.get("COURIER_SERVER") or config.get("COURIER_SERVER")
+    api_key = os.environ.get("COURIER_API_KEY") or config.get("COURIER_API_KEY")
+    if not api_url or not api_key:
+        raise SystemExit(
+            "COURIER_SERVER and COURIER_API_KEY (env or config.json) are required")
+    API_URL = str(api_url).rstrip("/")
+    HEADERS = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    return API_URL
 
 def load_config():
     config_path = Path(__file__).parent / "config.json"
@@ -112,6 +125,7 @@ def acquire_lock(worker_id):
 
 def loop():
     config = load_config()
+    init_server_auth(config)
     worker_id = config["WORKER_ID"]
     
     lock_path = acquire_lock(worker_id)
