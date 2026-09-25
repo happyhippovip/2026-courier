@@ -387,7 +387,11 @@ class CannonMotor:
             if kind == "done":
                 self.m["executions"][task_id] = self.m["executions"].get(task_id, 0) + 1
                 import hashlib
-                _payload_str = json.dumps({'task_id': task_id, 'executor_kind': 'YOLO'}, sort_keys=True).encode()
+                try:
+                    _t = json.loads((self.state_dir / "queue.json").read_text(encoding="utf-8")).get("tasks", {}).get(task_id, {})
+                except (OSError, ValueError):
+                    _t = {}
+                _payload_str = json.dumps({'task_id': task_id, 'attempt_id': _t.get('attempt_id'), 'dispatch_id': _t.get('dispatch_id'), 'executor_kind': 'YOLO'}, sort_keys=True, separators=(",", ":")).encode()
                 _rid = (res.get("commit") if isinstance(res, dict) else None) or ("result-" + hashlib.sha256(_payload_str).hexdigest())
                 _artifact = self.results_dir / f"{task_id}.result.json"
                 _payload = {"result_id": _rid, "task_id": task_id,
@@ -473,7 +477,11 @@ class CannonMotor:
                 self.m["state"] = "BLOCKED"
                 self.m["error"] = str(detail or "YOLO_FEHLER")
                 import hashlib
-                _payload_str = json.dumps({'task_id': task_id, 'executor_kind': 'YOLO'}, sort_keys=True).encode()
+                try:
+                    _t = json.loads((self.state_dir / "queue.json").read_text(encoding="utf-8")).get("tasks", {}).get(task_id, {})
+                except (OSError, ValueError):
+                    _t = {}
+                _payload_str = json.dumps({'task_id': task_id, 'attempt_id': _t.get('attempt_id'), 'dispatch_id': _t.get('dispatch_id'), 'executor_kind': 'YOLO'}, sort_keys=True, separators=(",", ":")).encode()
                 _rid = "result-" + hashlib.sha256(_payload_str).hexdigest()
                 self.m["last_result"] = {"task": task_id, "result_id": _rid, "completed_at": time.time(), "yolo": res}
                 self.m["current_task"] = None

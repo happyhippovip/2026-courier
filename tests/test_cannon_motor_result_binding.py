@@ -57,6 +57,22 @@ def test_work_queue_complete_default_binds_identity():
     assert data["tasks"]["t1"]["result_id"] == canonical("t1", "a1", "d1")
 
 
+def test_work_queue_legacy_default_never_volatile():
+    data = {"tasks": {"t1": {"task_id": "t1", "status": "CLAIMED"}},
+            "leases": {"t1": {}}}
+    args = Namespace(task_id="t1", result_json="{}", stage="EVIDENCE_READY")
+    cmd_complete(args, data, 0.0)
+    assert data["tasks"]["t1"]["result_id"] == canonical(
+        "t1", None, None, "LOCAL_FAKE")
+    assert data["tasks"]["t1"]["result_id"] != "t1:r1"
+
+
+def test_yolo_canonical_binding_retry_distinct():
+    assert canonical("t1", "a1", "d1", "YOLO") != canonical(
+        "t1", "a2", "d2", "YOLO")
+    assert canonical("t1", "a1", "d1", "YOLO").startswith("result-")
+
+
 def test_work_queue_complete_explicit_result_id_preserved():
     data = {"tasks": {"t1": dict(make_task(), status="CLAIMED")},
             "leases": {"t1": {}}}
