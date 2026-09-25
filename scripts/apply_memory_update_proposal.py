@@ -24,7 +24,9 @@ import re
 import sys
 from pathlib import Path
 
-DEFAULT_MEMORY_REPO_PATH = Path("/Users/user/Downloads/2026-project-memory")
+DEFAULT_MEMORY_REPO_PATH = Path(
+    os.environ.get("COURIER_MEMORY_REPO", "/Users/user/Downloads/2026-project-memory")
+)
 DEFAULT_PROPOSAL_SCHEMA_PATH = Path(__file__).resolve().parent.parent / "schemas/memory_update_proposal.schema.json"
 DEFAULT_APPROVAL_SCHEMA_PATH = Path(__file__).resolve().parent.parent / "schemas/memory_update_approval.schema.json"
 

@@ -59,6 +59,18 @@ def test_double_apply_writes_exactly_one_copy():
         assert content.count("Decision Alpha") == 1
 
 
+def test_default_repo_path_honors_env_override(monkeypatch, tmp_path):
+    import importlib
+    import scripts.apply_memory_update_proposal as mod
+    monkeypatch.setenv("COURIER_MEMORY_REPO", str(tmp_path))
+    reloaded = importlib.reload(mod)
+    try:
+        assert reloaded.DEFAULT_MEMORY_REPO_PATH == tmp_path
+    finally:
+        monkeypatch.delenv("COURIER_MEMORY_REPO", raising=False)
+        importlib.reload(mod)
+
+
 def test_no_tmp_residue_left_behind():
     with tempfile.TemporaryDirectory() as td:
         repo = Path(td)
