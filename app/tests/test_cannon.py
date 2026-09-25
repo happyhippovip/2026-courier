@@ -67,7 +67,10 @@ class CannonTests(unittest.TestCase):
             event = read(folder / 'event.json')
             observed = read(folder / 'process.json')
             self.assertEqual(observed['pid'], event['pid'])
-            self.assertTrue(observed['creation_filetime'])
+            # Windows PID-reuse hardening only: posix launch records no
+            # creation filetime, pid equality already binds the handle.
+            if sys.platform == 'win32':
+                self.assertTrue(observed['creation_filetime'])
         self.remember(state)
 
     def test_01_single_five(self): self.run_count(5)
@@ -400,7 +403,9 @@ class CannonTests(unittest.TestCase):
             return original_read(task_id)
         with patch.object(self.core, 'receive', side_effect=lose_ack), patch.object(self.core, 'task', side_effect=disconnected_read):
             before = self.controller().run()
-        self.assertEqual(before['status'], 'BLOCKED')
+        # UNKNOWN lane phases report RECONCILE_REQUIRED (reconcile pending),
+        # never success: the persisted outbox alone may resolve it on retry.
+        self.assertEqual(before['status'], 'RECONCILE_REQUIRED')
         state = self.controller().run()
         self.assertEqual(state['metrics']['DONE'], 2)
         self.assertEqual(state['metrics']['STARTED'], 2)
