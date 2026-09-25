@@ -17,37 +17,33 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 def start_server():
     print("Starting server for test...")
     python_exe = sys.executable
-    env = os.environ.copy()
-    env["PORT"] = "8081"
-    env["PYTHONPATH"] = str(REPO_ROOT)
-    env["COURIER_SERVER"] = "http://127.0.0.1:8081"
-    env["COURIER_MOCK_CHIEF"] = "1"
-    env["COURIER_API_KEY"] = "321606503a874d39b50f6137e3321b7f"
-    env["COURIER_VERIFIER_API_KEY"] = "421606503a874d39b50f6137e3321b7f"
+    import tempfile
     
-    if os.path.exists("/tmp/mock_replenish.txt"):
-        os.remove("/tmp/mock_replenish.txt")
+    with tempfile.TemporaryDirectory() as tmpdir:
+        env = os.environ.copy()
+        env["PORT"] = "8081"
+        env["PYTHONPATH"] = str(REPO_ROOT)
+        env["COURIER_SERVER"] = "http://127.0.0.1:8081"
+        env["COURIER_MOCK_CHIEF"] = "1"
+        env["COURIER_API_KEY"] = "321606503a874d39b50f6137e3321b7f"
+        env["COURIER_VERIFIER_API_KEY"] = "421606503a874d39b50f6137e3321b7f"
+        
+        tmp_path = Path(tmpdir)
+        state_dir = tmp_path / "server" / "state"
+        state_dir.mkdir(parents=True, exist_ok=True)
+        env["COURIER_STATE_FILE"] = str(state_dir / "central_state.json")
+        
+        if os.path.exists("/tmp/mock_replenish.txt"):
+            os.remove("/tmp/mock_replenish.txt")
 
-    state_file = Path.home() / ".courier_runtime" / "server" / "state" / "central_state.json"
-    if state_file.exists():
-        state_file.unlink()
-
-    server_proc = subprocess.Popen([python_exe, "-m", "server.app"], env=env, cwd=str(Path.home() / ".courier_runtime"))
-    verifier_proc = subprocess.Popen([python_exe, str(REPO_ROOT / "scripts/courier_verifier.py")], env=env, cwd=str(Path.home() / ".courier_runtime"))
-    time.sleep(3)
-    yield
-    print("Stopping server...")
-    server_proc.terminate()
-    verifier_proc.terminate()
-    try:
-        server_proc.wait(timeout=3)
-    except subprocess.TimeoutExpired:
-        server_proc.kill()
+        server_proc = subprocess.Popen([python_exe, "-m", "server.app"], env=env, cwd=tmpdir)
+        verifier_proc = subprocess.Popen([python_exe, str(REPO_ROOT / "scripts/courier_verifier.py")], env=env, cwd=tmpdir)
+        time.sleep(3)
+        yield
+        print("Stopping server...")
+        server_proc.terminate()
+        verifier_proc.terminate()
         server_proc.wait()
-    try:
-        verifier_proc.wait(timeout=3)
-    except subprocess.TimeoutExpired:
-        verifier_proc.kill()
         verifier_proc.wait()
 
 def http_post(path, data):
