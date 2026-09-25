@@ -163,15 +163,24 @@ def cmd_complete(args, data, now):
     result = json.loads(args.result_json)
     task["result"] = result
     import hashlib
-    default_rid = args.task_id + ":r1"
     if "attempt_id" in task and "dispatch_id" in task:
-        _payload_str = __import__('json').dumps({
+        _payload = {
             'task_id': task['task_id'],
             'attempt_id': task['attempt_id'],
             'dispatch_id': task['dispatch_id'],
             'executor_kind': task.get('executor_kind', 'LOCAL_FAKE')
-        }, sort_keys=True, separators=(",", ":")).encode()
-        default_rid = "result-" + hashlib.sha256(_payload_str).hexdigest()
+        }
+    else:
+        # No dispatch identity (direct CLI use, pre-dispatch tasks):
+        # bind the default id to the observed result content. Distinct
+        # completions never share one static "<task_id>:r1" identity, while
+        # an identical retry stays idempotent (same id marks the duplicate).
+        _payload = {
+            'task_id': task['task_id'],
+            'result': result,
+        }
+    _payload_str = json.dumps(_payload, sort_keys=True, separators=(",", ":")).encode()
+    default_rid = "result-" + hashlib.sha256(_payload_str).hexdigest()
     task["result_id"] = result.get("result_id", default_rid)
     task["result_stage"] = args.stage
     task["status"] = "DONE" if args.stage == "ACCEPTED" else "VERIFYING"
