@@ -161,17 +161,25 @@ class TestSymlinkProtection:
         tmp = Path(tempfile.mkdtemp())
         path = _init_ledger(tmp)
         link = tmp / "link.json"
-        link.symlink_to(path)
-
-        with pytest.raises(LedgerError, match="symlink"):
-            load_bundle(link)
+        try:
+            link.symlink_to(path)
+            with pytest.raises(LedgerError, match="symlink"):
+                load_bundle(link)
+        except OSError:
+            with patch.object(Path, "is_symlink", return_value=True):
+                with pytest.raises(LedgerError, match="symlink"):
+                    load_bundle(link)
 
     def test_atomic_write_rejects_symlink(self):
         tmp = Path(tempfile.mkdtemp())
         path = _init_ledger(tmp)
         bundle = load_bundle(path)
         link = tmp / "link.json"
-        link.symlink_to(path)
-
-        with pytest.raises(LedgerError, match="symlink"):
-            atomic_write(link, bundle)
+        try:
+            link.symlink_to(path)
+            with pytest.raises(LedgerError, match="symlink"):
+                atomic_write(link, bundle)
+        except OSError:
+            with patch.object(Path, "is_symlink", return_value=True):
+                with pytest.raises(LedgerError, match="symlink"):
+                    atomic_write(link, bundle)

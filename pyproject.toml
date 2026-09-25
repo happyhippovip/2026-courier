@@ -22,3 +22,9 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/your-org/courier"
 Repository = "https://github.com/your-org/courier.git"
+
+[tool.setuptools.packages.find]
+include = ["server", "server.*", "providers", "providers.*", "scripts", "scripts.*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

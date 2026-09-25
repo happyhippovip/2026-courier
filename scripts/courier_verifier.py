@@ -94,6 +94,8 @@ def run_loop():
                         "verdict": verdict,
                         "artifacts": artifacts
                     }
+                    if task.get("server_binding"):
+                        verify_payload["received_runtime_identity"] = task["server_binding"]
                     vr = requests.post(f"{API_URL}/tasks/verify", json=verify_payload, headers=HEADERS, timeout=10)
                     if vr.status_code == 200:
                         log(f"Successfully verified {task_id} with verdict {verdict}")
