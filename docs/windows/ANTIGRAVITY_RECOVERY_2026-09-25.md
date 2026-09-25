@@ -1,4 +1,4 @@
-# Windows Antigravity Recovery – 2026-09-25
+# Windows Antigravity Recovery - 2026-09-25
 
 Status: **WORKING (E2E PASS)**
 
@@ -38,3 +38,14 @@ If Antigravity stops working:
 - `C:\Users\lol\.gemini`
 - `C:\Users\lol\.gemini_alt`
 - Do not run any ACL or sandbox repairs.
+
+## Latest Checkpoint Info (Session Update)
+- Antigravity läuft
+- language_server läuft
+- aktueller Language-Server-Endpunkt war zuletzt: `https://127.0.0.1:55682/`
+- Port 55682 lieferte HTTPS 200
+- Ports sind dynamisch und dürfen NICHT hart codiert werden
+- **HARD RULE**: DO NOT ENABLE ALLOW CONFIRMATIONS. DO NOT CHANGE CONFIRMATION SETTINGS. IF PROMPTED: DISABLED / CANCEL / NO.
+- Mikrofon wird NICHT benötigt und soll nicht aktiviert werden.
+- Playwright-Download meldete 404, aber das ist NICHT automatisch der Grund für den Language-Server-Ausfall.
+- Aktuelle Recovery-/Windows-Erkenntnisse sind hiermit gesichert.
