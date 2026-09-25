@@ -101,16 +101,16 @@ def validate_worker_job_against_schema(job_data: dict, schema_path: Path | None 
     if job_data.get("schema_version") != "2.0":
         return False, f"Invalid schema_version: {job_data.get('schema_version')} (expected '2.0')"
 
-    if not re.match(r"^job-ag-[A-Za-z0-9_.-]+$", str(job_data.get("job_id", ""))):
+    if not re.fullmatch(r"job-ag-[A-Za-z0-9_.-]+", str(job_data.get("job_id", ""))):
         return False, f"Invalid job_id pattern: {job_data.get('job_id')}"
 
-    if not re.match(r"^[A-Za-z0-9_.-]+$", str(job_data.get("source_command_message_id", ""))):
+    if not re.fullmatch(r"[A-Za-z0-9_.-]+", str(job_data.get("source_command_message_id", ""))):
         return False, f"Invalid source_command_message_id pattern: {job_data.get('source_command_message_id')}"
 
-    if not re.match(r"^[A-Za-z0-9_.-]+$", str(job_data.get("task_id", ""))):
+    if not re.fullmatch(r"[A-Za-z0-9_.-]+", str(job_data.get("task_id", ""))):
         return False, f"Invalid task_id pattern: {job_data.get('task_id')}"
 
-    if not re.match(r"^[A-Za-z0-9_.-]+$", str(job_data.get("correlation_id", ""))):
+    if not re.fullmatch(r"[A-Za-z0-9_.-]+", str(job_data.get("correlation_id", ""))):
         return False, f"Invalid correlation_id pattern: {job_data.get('correlation_id')}"
 
     if job_data.get("target_agent") != "ANTIGRAVITY":
@@ -152,7 +152,7 @@ def validate_worker_job_against_schema(job_data: dict, schema_path: Path | None 
         m_req = {"memory_repo", "memory_commit", "files_consulted", "relevant_context", "status_labels", "source_references", "generated_at"}
         if set(m_ctx.keys()) != m_req:
             return False, f"memory_context fields mismatch: expected {m_req}, got {set(m_ctx.keys())}"
-        if not re.match(r"^[0-9a-fA-F]{7,40}$", str(m_ctx.get("memory_commit", ""))):
+        if not re.fullmatch(r"[0-9a-fA-F]{7,40}", str(m_ctx.get("memory_commit", ""))):
             return False, f"Invalid memory_commit hash: {m_ctx.get('memory_commit')}"
         if not isinstance(m_ctx.get("files_consulted"), list) or not m_ctx.get("files_consulted"):
             return False, "files_consulted must be a non-empty list of strings"
