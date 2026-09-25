@@ -161,6 +161,13 @@ worktree /tmp/harvest-slot-03. No main push/merge, no force, no reset/clean.
   advance, one-winner claims). Removed file-plane tests genuinely
   obsolete (module eliminated). Claim holds.
 
+## Task 19: dispatcher identity persist-first (c70f8f23 line) — READY
+- test_github_dispatcher_identity.py: 14/14 PASS isolated (persist
+  before spawn, no double-spawn per process, restart no-redispatch).
+- Method note: first run showed 1 failure caused by MY incomplete
+  /tmp extraction (missing adapter module), not product. Completed
+  extraction → green. No false alarm filed. Bucket 15 → no write.
+
 ## Task 12: venv-python portability sweep — findings only (buckets 8/11/16)
 - Pattern `"venv/bin/python3" if exists else ...` on main in 3 files:
   run_final_acceptance.py (8, staging already → sys.executable),
