@@ -10,7 +10,8 @@ import hashlib
 import json
 from argparse import Namespace
 
-from scripts.cannon_motor import deterministic_executor
+from scripts.cannon_motor import (deterministic_executor, read_queue_task,
+                                   yolo_fallback_result_id)
 from scripts.work_queue import cmd_complete
 
 
@@ -71,6 +72,43 @@ def test_yolo_canonical_binding_retry_distinct():
     assert canonical("t1", "a1", "d1", "YOLO") != canonical(
         "t1", "a2", "d2", "YOLO")
     assert canonical("t1", "a1", "d1", "YOLO").startswith("result-")
+
+
+def test_yolo_fallback_helper_retry_distinct():
+    """Motor fallback itself (not just the test helper) binds retries."""
+    first = yolo_fallback_result_id(
+        "t1", {"attempt_id": "t1:attempt:1", "dispatch_id": "t1:dispatch:1"})
+    retry = yolo_fallback_result_id(
+        "t1", {"attempt_id": "t1:attempt:2", "dispatch_id": "t1:dispatch:2"})
+    assert first != retry
+    assert first.startswith("result-") and retry.startswith("result-")
+    assert first == canonical(
+        "t1", "t1:attempt:1", "t1:dispatch:1", "YOLO")
+    assert retry == canonical(
+        "t1", "t1:attempt:2", "t1:dispatch:2", "YOLO")
+
+
+def test_yolo_fallback_helper_missing_record_never_volatile():
+    assert yolo_fallback_result_id("t1", {}) == canonical(
+        "t1", None, None, "YOLO")
+    assert yolo_fallback_result_id("t1", None) != "t1:r1"
+
+
+def test_read_queue_task_roundtrip(tmp_path):
+    (tmp_path / "queue.json").write_text(json.dumps(
+        {"tasks": {"t1": {"task_id": "t1", "attempt_id": "a1",
+                          "dispatch_id": "d1"}}}), encoding="utf-8")
+    task = read_queue_task(tmp_path, "t1")
+    assert task["attempt_id"] == "a1"
+    assert yolo_fallback_result_id("t1", task) == canonical(
+        "t1", "a1", "d1", "YOLO")
+    assert read_queue_task(tmp_path, "missing") == {}
+
+
+def test_read_queue_task_unreadable(tmp_path):
+    assert read_queue_task(tmp_path / "no-such-dir", "t1") == {}
+    (tmp_path / "queue.json").write_text("not-json", encoding="utf-8")
+    assert read_queue_task(tmp_path, "t1") == {}
 
 
 def test_work_queue_complete_explicit_result_id_preserved():

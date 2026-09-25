@@ -69,7 +69,6 @@ def deterministic_executor(results_dir, task, behavior="ok"):
     task_id = task['task_id']
     if behavior == "crash":
         raise MotorError(f"executor crash on {task_id}")
-    import hashlib
     identity = {
         'task_id': task_id,
         'attempt_id': task.get('attempt_id'),
@@ -383,7 +382,7 @@ class CannonMotor:
                 if tid:
                     try:
                         self._wq("add", json.dumps({"task_id": tid, "package_id": "yolo-" + str(self.yolo.s.get("run", "run")), "description": "Repo-Aufgabe " + tid, "dependencies": [], "read_scopes": [], "write_scopes": [], "status": "READY"}))
-                    except Exception as _e:
+                    except Exception:
                         try:
                             self._wq("block", tid, "--reason", "BRAUCHT_PRUEFUNG")
                         except Exception:
@@ -431,7 +430,7 @@ class CannonMotor:
         if getattr(self, "yolo", None) is not None:
             try:
                 kind, detail, res = self.yolo.execute(task_id)
-            except Exception as _e:
+            except Exception:
                 kind, detail, res = "unknown", "EXEC_FEHLER", None
             if kind == "done":
                 self.m["executions"][task_id] = self.m["executions"].get(task_id, 0) + 1
@@ -651,8 +650,6 @@ class CannonMotor:
     # ---- acceptance counters ----
     def invariants(self):
         execs = self.m["executions"]
-        Artifacts = list(self.results_dir.glob("*.result.json")) \
-            if self.results_dir.exists() else []
         done_with_artifact = 0
         snap = self.queue_snapshot()
         for tid, info in snap["tasks"].items():
