@@ -32,6 +32,35 @@ def valid_command():
         "max_iterations": 1
     }
 
+def _valid_job(**changes):
+    job = {
+        "schema_version": "2.0",
+        "job_id": "job-ag-t1-abc123de",
+        "task_id": "t1",
+        "correlation_id": "c1",
+        "source_command_message_id": "m1",
+        "target_agent": "ANTIGRAVITY",
+        "instruction": "do it",
+        "expected_output": "ANTIGRAVITY_RESULT",
+        "created_at": "2026-09-24T12:00:00Z",
+        "allowed_scope": ["2026-courier"],
+        "forbidden_scope": [".gemini/"],
+        "cost_policy": "ZERO_COST_ONLY",
+        "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+        "max_iterations": 1,
+    }
+    job.update(changes)
+    return job
+
+
+@pytest.mark.parametrize("field", ["job_id", "task_id", "correlation_id", "source_command_message_id"])
+def test_validate_job_rejects_trailing_newline_ids(field):
+    valid, reason = build_antigravity_worker_job.validate_worker_job_against_schema(
+        _valid_job(**{field: _valid_job()[field] + "\n"})
+    )
+    assert valid is False, f"{field} with trailing newline must not validate: {reason}"
+
+
 def test_validate_command_success(valid_command):
     valid, reason = build_antigravity_worker_job.validate_command_for_job(valid_command)
     assert valid is True
