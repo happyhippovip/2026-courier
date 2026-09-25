@@ -18,8 +18,10 @@ On task completion: Bodyguard -> RETURNING -> STANDBY.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import datetime as dt
 import json
+import time
 from pathlib import Path
 from typing import Any
 
@@ -85,6 +87,34 @@ def save_json(path: Path, value: dict[str, Any]) -> None:
     temp = path.with_suffix(".tmp")
     temp.write_text(json.dumps(value, indent=2, sort_keys=True), encoding="utf-8")
     temp.replace(path)
+
+
+@contextlib.contextmanager
+def _locked(path: Path):
+    """Cross-platform mutual exclusion (POSIX + Windows).
+
+    Same pattern as scripts/work_queue._locked: atomic directory creation,
+    because mkdir is atomic on both platforms (unlike fcntl.flock).
+    Guards the assign read-check-write section so two racers cannot
+    double-book one bodyguard and clobber each other's task binding.
+    """
+    import os
+    lockdir = str(path) + ".lockdir"
+    for _ in range(1000):
+        try:
+            os.mkdir(lockdir)
+            break
+        except FileExistsError:
+            time.sleep(0.01)
+    else:
+        raise TimeoutError(f"bodyguard lock busy: {path}")
+    try:
+        yield
+    finally:
+        try:
+            os.rmdir(lockdir)
+        except OSError:
+            pass
 
 
 def generate_bodyguard_speech(state: str, callsign: str, role: str | None = None) -> str:
@@ -199,44 +229,53 @@ class BodyguardPoolManager:
         target_callsign = bg_to_assign["callsign"]
         path = self.states_dir / f"{bg_to_assign['id']}.json"
 
-        # Check required capabilities
-        reqs = required_capabilities or []
-        unsupported = [c for c in reqs if c not in SUPPORTED_CAPABILITIES]
-        if unsupported:
-            # CAPABILITY_MISMATCH: Do not claim capabilities that do not exist!
+        # Serialize the read-check-write section: re-read under the lock so
+        # a racer that assigned this bodyguard after our selection aborts us
+        # instead of being silently clobbered (duplicate execution).
+        with _locked(path):
+            current = load_json(path)
+            if current.get("state") != "STANDBY":
+                raise ValueError(
+                    f"Bodyguard {target_callsign} is busy (state: {current.get('state')})")
+
+            # Check required capabilities
+            reqs = required_capabilities or []
+            unsupported = [c for c in reqs if c not in SUPPORTED_CAPABILITIES]
+            if unsupported:
+                # CAPABILITY_MISMATCH: Do not claim capabilities that do not exist!
+                state = {
+                    **current,
+                    "state": "CAPABILITY_MISMATCH",
+                    "temporary_role": temporary_role,
+                    "task": task_id,
+                    "workflow": workflow_id,
+                    "correlation_id": correlation_id,
+                    "last_action": f"Capability mismatch: unsupported capabilities {unsupported}",
+                    "next_action": "Chief must route to human or specialized external capability",
+                    "speech": generate_bodyguard_speech("CAPABILITY_MISMATCH", target_callsign),
+                    "blocked": True,
+                    "updated_at": iso_now(),
+                }
+                save_json(path, state)
+                return state
+
+            # Valid Assignment
             state = {
-                **bg_to_assign,
-                "state": "CAPABILITY_MISMATCH",
+                **current,
+                "state": "ASSIGNED",
                 "temporary_role": temporary_role,
                 "task": task_id,
                 "workflow": workflow_id,
                 "correlation_id": correlation_id,
-                "last_action": f"Capability mismatch: unsupported capabilities {unsupported}",
-                "next_action": "Chief must route to human or specialized external capability",
-                "speech": generate_bodyguard_speech("CAPABILITY_MISMATCH", target_callsign),
-                "blocked": True,
+                "progress": 0.1,
+                "last_action": f"Assigned temporary role {temporary_role} for task {task_id}",
+                "next_action": "Executing task steps in local sandbox",
+                "speech": generate_bodyguard_speech("ASSIGNED", target_callsign, temporary_role),
+                "blocked": False,
                 "updated_at": iso_now(),
             }
             save_json(path, state)
             return state
-
-        # Valid Assignment
-        state = {
-            **bg_to_assign,
-            "state": "ASSIGNED",
-            "temporary_role": temporary_role,
-            "task": task_id,
-            "workflow": workflow_id,
-            "correlation_id": correlation_id,
-            "progress": 0.1,
-            "last_action": f"Assigned temporary role {temporary_role} for task {task_id}",
-            "next_action": "Executing task steps in local sandbox",
-            "speech": generate_bodyguard_speech("ASSIGNED", target_callsign, temporary_role),
-            "blocked": False,
-            "updated_at": iso_now(),
-        }
-        save_json(path, state)
-        return state
 
     def update_progress(
         self,

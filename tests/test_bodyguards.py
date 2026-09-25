@@ -181,6 +181,51 @@ class EightBodyguardsTests(unittest.TestCase):
         self.assertEqual(generate_bodyguard_speech("RETURNING", "DELTA"), "Result delivered to Courier. Returning to standby.")
         self.assertEqual(generate_bodyguard_speech("CAPABILITY_MISMATCH", "ECHO"), "Required capability is unavailable. Flagging capability mismatch.")
 
+    def test_11_concurrent_assign_same_callsign_single_winner(self):
+        """11. Two racers, one callsign: exactly one wins, the loser is rejected, no clobber."""
+        import threading
+        import time
+        from unittest import mock
+        import scripts.run_bodyguards as bmod
+
+        real_save = bmod.save_json
+        entered = threading.Event()
+        release = threading.Event()
+        calls = {"n": 0}
+
+        def gated(path, value):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                entered.set()
+                release.wait(timeout=10)
+            return real_save(path, value)
+
+        outcome = {}
+
+        def assign(task, key):
+            try:
+                outcome[key] = self.manager.assign_bodyguard(
+                    "ALPHA", task, "wf", "corr")["task"]
+            except ValueError:
+                outcome[key] = "REJECTED"
+
+        with mock.patch.object(bmod, "save_json", side_effect=gated):
+            ta = threading.Thread(target=assign, args=("TASK-A", "A"))
+            ta.start()
+            self.assertTrue(entered.wait(timeout=10))
+            tb = threading.Thread(target=assign, args=("TASK-B", "B"))
+            tb.start()
+            time.sleep(1)
+            release.set()
+            ta.join(timeout=10)
+            tb.join(timeout=10)
+
+        self.assertEqual(outcome.get("A"), "TASK-A")
+        self.assertEqual(outcome.get("B"), "REJECTED")
+        final = [b for b in self.manager.get_all_bodyguards()
+                 if b["callsign"] == "ALPHA"][0]
+        self.assertEqual(final["task"], "TASK-A")
+
 
 if __name__ == "__main__":
     unittest.main()
