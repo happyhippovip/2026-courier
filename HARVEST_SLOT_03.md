@@ -168,6 +168,12 @@ worktree /tmp/harvest-slot-03. No main push/merge, no force, no reset/clean.
   /tmp extraction (missing adapter module), not product. Completed
   extraction → green. No false alarm filed. Bucket 15 → no write.
 
+## Task 20: mac contract + install tests — READY (12/12)
+- test_mac_worker_contract.py + test_mac_worker_install.py PASS in
+  staging worktree. Lesson repeated: piecemeal /tmp extraction caused
+  9 phantom failures (missing transitive deps); full worktree → green.
+  Prefer worktrees over extraction for server-importing suites.
+
 ## Task 12: venv-python portability sweep — findings only (buckets 8/11/16)
 - Pattern `"venv/bin/python3" if exists else ...` on main in 3 files:
   run_final_acceptance.py (8, staging already → sys.executable),
