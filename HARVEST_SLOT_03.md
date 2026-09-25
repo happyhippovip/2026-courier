@@ -121,5 +121,23 @@ worktree /tmp/harvest-slot-03. No main push/merge, no force, no reset/clean.
 - Server calls have timeout=10; non-JSON 200 fails closed via outer except.
 - No P0. No write.
 
-## Next
-- Windows daemon static pass (main) vs 27ee67d4 binding work.
+## Task 11: windows daemon binding (27ee67d4) — CLASS: READY_FOR_INTEGRATION (unit)
+- Verified: test_windows_worker_binding.py 8/8 PASS (isolated module
+  load, mocked transport). Evidence: UNIT; PHYSICAL_WINDOWS_REQUIRED
+  for real daemon crash proof.
+- SECRET_FINDING=YES FILE=scripts/windows_worker/daemon.py
+  VALUE_REDACTED=YES (main still carries hardcoded fallback credential;
+  convergence removes it → env/config + fail-closed require_api_key).
+- Release-on-reregister + artifact re-hash before upload read correct.
+  No write (reserved runtime + foreign buckets).
+
+## Task 12: venv-python portability sweep — findings only (buckets 8/11/16)
+- Pattern `"venv/bin/python3" if exists else ...` on main in 3 files:
+  run_final_acceptance.py (8, staging already → sys.executable),
+  courier_github_dispatcher.py (11, falls back to bare `python3` —
+  weakest variant), run_boundaries.py (16). Parked for owners.
+
+## Checkpoint 2
+- Slot branch: +2 docs commits pending push with this one.
+- NEXT: mac daemon never-re-execute read (9b36ca5d) or rock-bottom
+  deep-read leftovers.
