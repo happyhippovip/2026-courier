@@ -367,14 +367,18 @@ def test_m4_with_profile_live_text_matches_file(tmp_path, monkeypatch):
     lp = tmp_path / "live.json"
     lp.write_text(json.dumps({"phase": "LÄUFT", "text": "hello-live"}), encoding="utf-8")
     monkeypatch.setenv("COURIER_CANNON_LIVE", str(lp))
+    # Use monkeypatch.syspath_prepend so the path insertion is undone after the test.
+    monkeypatch.syspath_prepend(str(ROOT / "app"))
     for mod in [m for m in list(sys.modules) if m == "cannon_yolo" or m.startswith("cannon_yolo.")]:
         del sys.modules[mod]
-    sys.path.insert(0, str(ROOT / "app"))
     from app.cannon import web
     import importlib
     importlib.reload(web)
     d = web.status()
     assert d.get("live", {}).get("text") == "hello-live"
+    # Restore cannon_yolo to the scripts/ version so later tests get the real module.
+    for mod in [m for m in list(sys.modules) if m == "cannon_yolo" or m.startswith("cannon_yolo.")]:
+        del sys.modules[mod]
 
 
 def test_m5_yolo_done_writes_result_artifact_with_commit_sha(W, monkeypatch):
