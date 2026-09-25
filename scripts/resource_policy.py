@@ -116,7 +116,7 @@ class CostGate:
             return {
                 "allowed": False,
                 "reason": "RESOURCE_PLANNED_NOT_ACTIVE",
-                "message": f"Resource \{resource_id}\ is PLANNED_NOT_ACTIVE and cannot be used for routing or budget.",
+                "message": f"Resource \\{resource_id}\\ is PLANNED_NOT_ACTIVE and cannot be used for routing or budget.",
                 "requires_human_gate": True,
             }
 
@@ -125,7 +125,7 @@ class CostGate:
             return {
                 "allowed": False,
                 "reason": "UNAUTHORIZED_RESOURCE_TIER",
-                "message": f"Resource \{resource_id}\ is UNAVAILABLE or unauthorized by policy.",
+                "message": f"Resource \\{resource_id}\\ is UNAVAILABLE or unauthorized by policy.",
                 "requires_human_gate": True,
             }
 
@@ -141,7 +141,7 @@ class CostGate:
         return {
             "allowed": True,
             "reason": "AUTHORIZED_ACTIVE_RESOURCE",
-            "message": f"Resource \{resource_id}\ is authorized under active paid subscription.",
+            "message": f"Resource \\{resource_id}\\ is authorized under active paid subscription.",
             "requires_human_gate": False,
         }
 
