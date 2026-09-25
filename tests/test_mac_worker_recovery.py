@@ -21,6 +21,7 @@ def load_daemon(tmp_path, monkeypatch):
     monkeypatch.setattr(daemon, "LOGS_DIR", tmp_path / "logs")
     monkeypatch.setattr(daemon, "load_config", lambda: {
         "COURIER_SERVER": "http://courier.invalid", "WORKER_ID": "MAC-01", "POLL_INTERVAL_SECONDS": 0,
+        "COURIER_API_KEY": "dummy-test-key-not-real",
     })
     monkeypatch.setattr(daemon.time, "sleep", lambda seconds: None)
     return daemon

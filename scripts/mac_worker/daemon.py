@@ -1,5 +1,5 @@
 import json, time, os, sys, shutil, subprocess, uuid, traceback
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import urllib.request
 import urllib.error
 import urllib.parse
@@ -62,6 +62,7 @@ def http_post(config, endpoint, data):
 #   CLAIMED      -> execution has not begun; safe to run
 #   STARTED      -> execution began without a durable result; never re-run
 #   RESULT_READY -> result_payload is final; only (re)deliver it
+#   RELEASE_PENDING -> result was rejected (4xx); release the task to the server
 # Files without worker_phase come from the previous daemon, which wrote them
 # right before executing, so they are treated as STARTED.
 MAX_RESULT_POST_ATTEMPTS = 8
@@ -95,6 +96,37 @@ def deliver_result(config, payload):
         write_log(f"Result post failed: {err}. Retrying in {2**attempt}s...")
         time.sleep(2 ** attempt)
     return "UNDELIVERED"
+
+def is_safe_artifact_path(name):
+    """Artifacts are relative to the worker's cwd; reject absolute and '..' paths
+    (same rule as the integration contract) before anything is read."""
+    if not isinstance(name, str) or not name:
+        return False
+    pure = PurePosixPath(name)
+    return not pure.is_absolute() and ".." not in pure.parts
+
+def collect_artifact_evidence(task, result):
+    """Hash expected artifacts; any unsafe, missing or absent evidence makes it FAILED."""
+    import hashlib
+    evidence = []
+    if result.get("status") != "SUCCESS":
+        return evidence
+    for expected in task.get("artifacts", []):
+        name = expected.get("path") if isinstance(expected, dict) else expected
+        if not is_safe_artifact_path(name):
+            problem = f"Unsafe artifact path: {name}"
+        elif not Path(name).is_file():
+            problem = f"Missing artifact: {name}"
+        else:
+            evidence.append({"path": name, "sha256": hashlib.sha256(Path(name).read_bytes()).hexdigest()})
+            continue
+        result["status"] = "FAILED"
+        result["stderr"] = result.get("stderr", "") + "\n" + problem
+        return []
+    if not evidence:
+        result["status"] = "FAILED"
+        result["stderr"] = result.get("stderr", "") + "\nNo artifact evidence for success"
+    return evidence
 
 def run_native(task, config):
     write_log(f"Running NATIVE task {task['task_id']}")
@@ -178,6 +210,9 @@ def run_agy(task, config):
 def loop():
     write_log("Starting Mac Worker HTTP Daemon...")
     config = load_config()
+    if not str(config.get("COURIER_API_KEY") or "").strip():
+        write_log("FATAL: COURIER_API_KEY is not set (keychain or environment); refusing to contact the server.")
+        sys.exit(2)
     current_task_state_file = STATE_DIR / "current_task.json"
     
     # Load previously claimed task for duplicate protection
@@ -261,22 +296,7 @@ def loop():
                     result = run_agy(task, config)
                 
                 # Format result payload
-# Form valid artifacts structure
-                artifact_evidence = []
-                if result.get("status") == "SUCCESS":
-                    expected_arts = task.get("artifacts", [])
-                    import hashlib
-                    for expected in expected_arts:
-                        expected_path = expected.get('path') if isinstance(expected, dict) else expected
-                        p = Path(expected_path)
-                        if p.exists():
-                            artifact_evidence.append({
-                                "path": expected_path,
-                                "sha256": hashlib.sha256(p.read_bytes()).hexdigest()
-                            })
-                        else:
-                            result['status'] = 'FAILED'
-                            result['stderr'] = result.get('stderr', '') + f'\nMissing artifact: {expected_path}'
+                artifact_evidence = collect_artifact_evidence(task, result)
                 payload = {
                     "worker_id": config["WORKER_ID"],
                     "goal_id": task.get("goal_id"),
@@ -299,9 +319,17 @@ def loop():
                 if outcome == "UNDELIVERED":
                     # Keep the finished result; later cycles only redeliver it.
                     write_log(f"Result for task {task['task_id']} not delivered yet; keeping it for redelivery.")
+                elif outcome == "REJECTED":
+                    persist_task(STATE_DIR / f"rejected_result_{task['task_id']}.json", task)
+                    # The server keeps the task assigned after a 4xx; release it (persisted
+                    # first, so a crash still releases on restart) instead of WORKER_BUSY forever.
+                    task["worker_phase"] = "RELEASE_PENDING"
+                    persist_task(current_task_state_file, task)
+                    write_log(f"Result for task {task['task_id']} rejected; releasing it to Courier recovery.")
+                    release_ambiguous_task = True
+                    registered = False
+                    task = None
                 else:
-                    if outcome == "REJECTED":
-                        persist_task(STATE_DIR / f"rejected_result_{task['task_id']}.json", task)
                     os.remove(current_task_state_file)
                     task = None
                 
