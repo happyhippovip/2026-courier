@@ -9,6 +9,12 @@ from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 
+# server/app.py exits at import time when credentials are absent, which breaks
+# collection in clean checkouts. Default them here so the module imports; CI
+# injects real values and fail-closed tests override keys explicitly.
+os.environ.setdefault("COURIER_API_KEY", "test-collection-key")
+os.environ.setdefault("COURIER_VERIFIER_API_KEY", "test-collection-verifier-key")
+
 from server import app as server_app
 
 
