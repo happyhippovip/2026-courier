@@ -1,6 +1,12 @@
 #!/bin/bash
 set -e
 
+# Credentials must come from the environment; never hard-code them here.
+if [ -z "${COURIER_API_KEY// /}" ] || [ -z "${COURIER_VERIFIER_API_KEY// /}" ]; then
+    echo "ERROR: COURIER_API_KEY and COURIER_VERIFIER_API_KEY must be set; aborting before any changes." >&2
+    exit 1
+fi
+
 echo "1. Creating runtime directory out of protected Downloads folder..."
 RUNTIME_DIR="$HOME/.courier_runtime"
 rm -rf "$RUNTIME_DIR"
@@ -47,9 +53,9 @@ cat << PLIST > ~/Library/LaunchAgents/com.courier.server.plist
         <key>PATH</key>
         <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:$HOME/.local/bin</string>
         <key>COURIER_API_KEY</key>
-        <string>prod-secret-12345</string>
+        <string>${COURIER_API_KEY}</string>
         <key>COURIER_VERIFIER_API_KEY</key>
-        <string>ver-secret-67890</string>
+        <string>${COURIER_VERIFIER_API_KEY}</string>
         <key>GITHUB_WORKER_ID</key>
         <string>GITHUB-DISPATCHER</string>
     </dict>
