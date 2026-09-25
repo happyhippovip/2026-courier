@@ -320,7 +320,7 @@ def execute_task(task, ledger_path, record):
         # Fallback for unrecognized test edges: fail closed
         return task, False, f"UNRECOGNIZED_OR_UNVERIFIED_TASK_{edge}"
 
-def update_ledger(ledger_path, edge_name, blocker, bundle):
+def update_ledger(ledger_path, edge_name, blocker, bundle, running_tasks_update=None):
     revision = bundle["revision"]
     record = bundle["record"]
     proven = list(record.get("PROVEN_EDGES", []))
@@ -345,6 +345,9 @@ def update_ledger(ledger_path, edge_name, blocker, bundle):
             updates["FIRST_CAUSAL_BLOCKER"] = "NONE"
 
         
+        if running_tasks_update is not None:
+            updates["RUNNING_TASKS"] = running_tasks_update
+
         if not unproven:
             updates["NEXT_EXECUTABLE_ACTION"] = "NONE"
             updates["CLEAN_IDLE"] = "YES"
@@ -470,6 +473,11 @@ def main():
                 
             if t["edge_name"] in completed_this_session:
                 continue
+                
+            # If the task is running on ANOTHER runtime, skip it
+            task_runtime = record.get("RUNNING_TASKS", {}).get(t["edge_name"])
+            if task_runtime and task_runtime != record.get("RUNTIME_IDENTITY"):
+                continue
             if t["edge_name"] in blocked_tasks_this_run:
                 continue
                 
@@ -539,8 +547,8 @@ def main():
         for edge_name, future in list(running_tasks.items()):
             print(f"{time.time()} DEBUG: {edge_name} running for {current_time - task_start_times[edge_name]} seconds")
             print(f"{time.time()} DEBUG: {edge_name} running for {current_time - task_start_times[edge_name]} seconds")
-            if not future.done() and (current_time - task_start_times[edge_name]) > 8.0:
-                print(f"Task {edge_name} hung for > 8s, abandoning.")
+            if not future.done() and (current_time - task_start_times[edge_name]) > 300.0:
+                print(f"Task {edge_name} hung for > 300s, abandoning.")
                 done_edges.append(edge_name)
                 completed_this_session.add(edge_name)
                 blocked_tasks_this_run.add(edge_name)
@@ -590,12 +598,37 @@ def main():
 
         for edge_name in done_edges:
             del running_tasks[edge_name]
+            
+        if done_edges:
+            try:
+                branch, sha = get_git_info()
+                bundle = check_freshness(ledger_path, branch, sha)
+                current_running = bundle["record"].get("RUNNING_TASKS", {})
+                for edge_name in done_edges:
+                    current_running.pop(edge_name, None)
+                update_ledger(ledger_path, None, None, bundle, running_tasks_update=current_running)
+            except Exception as e:
+                print(f"Failed to clear RUNNING_TASKS in ledger: {e}")
         
         if done_edges:
             continue
 
         # Submit new tasks
         newly_submitted = []
+        
+        # First, batch update RUNNING_TASKS in ledger before submitting
+        to_submit = [t for t in safe_executable_tasks if t["edge_name"] not in running_tasks]
+        if to_submit:
+            try:
+                branch, sha = get_git_info()
+                bundle = check_freshness(ledger_path, branch, sha)
+                current_running = bundle["record"].get("RUNNING_TASKS", {})
+                for t in to_submit:
+                    current_running[t["edge_name"]] = bundle["record"].get("RUNTIME_IDENTITY", "UNKNOWN")
+                update_ledger(ledger_path, None, None, bundle, running_tasks_update=current_running)
+            except Exception as e:
+                print(f"Failed to record RUNNING_TASKS in ledger: {e}")
+                
         for t in safe_executable_tasks:
             if t["edge_name"] not in running_tasks:
                 print(f"\n{time.time()} === SUBMITTING TASK: {t['edge_name']} ===")

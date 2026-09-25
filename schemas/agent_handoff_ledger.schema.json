@@ -369,6 +369,37 @@
         },
         "TOMBSTONED_EDGES": {
           "$ref": "#/$defs/stringList"
+        },
+        "RUNNING_TASKS": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "TASK_SPECS": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "instruction": {
+                "type": "string",
+                "minLength": 1
+              },
+              "target_agent": {
+                "type": "string"
+              },
+              "capabilities": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "instruction"
+            ]
+          }
         }
       },
       "required": [
@@ -398,7 +429,9 @@
         "LAST_EVIDENCE",
         "LAST_UPDATED_BY",
         "CONTINUATION_CHECKPOINT",
-        "TOMBSTONED_EDGES"
+        "TOMBSTONED_EDGES",
+        "RUNNING_TASKS",
+        "TASK_SPECS"
       ],
       "type": "object"
     },

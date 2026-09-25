@@ -56,6 +56,10 @@ RECORD_FIELDS = (
     "LAST_UPDATED_BY",
     "CONTINUATION_CHECKPOINT",
 )
+DICT_FIELDS = {
+    "TASK_SPECS",
+    "RUNNING_TASKS",
+}
 LIST_FIELDS = {
     "PROVEN_EDGES",
     "UNPROVEN_EDGES",
@@ -218,7 +222,7 @@ def validate_record(record: Any, *, allow_unknown_sha: bool) -> None:
     missing = sorted(expected - actual)
     extra = sorted(actual - expected)
     if missing or extra:
-        if all(m in ["TASK_SPECS", "TOMBSTONED_EDGES"] for m in missing) and not extra:
+        if all(m in ["TASK_SPECS", "TOMBSTONED_EDGES", "RUNNING_TASKS"] for m in missing) and not extra:
             pass # Backwards compatibility for new fields
         else:
             raise ValidationError(f"record fields mismatch: missing={missing}, extra={extra}")
@@ -227,7 +231,10 @@ def validate_record(record: Any, *, allow_unknown_sha: bool) -> None:
         if field not in record:
             continue
         value = record[field]
-        if field in LIST_FIELDS:
+        if field in DICT_FIELDS:
+            if not isinstance(value, dict):
+                raise ValidationError(f"{field} must be a dictionary")
+        elif field in LIST_FIELDS:
             if not isinstance(value, list) or any(
                 not isinstance(item, str) or not item.strip() for item in value
             ):
@@ -506,7 +513,7 @@ def validate_bundle(bundle: Any) -> dict[str, Any]:
             expected_changed.append("@ACCEPTANCE_GUARD")
             expected_changed.sort()
         # Backwards compatibility: allow missing new fields in expected_changed
-        filtered_expected = [f for f in expected_changed if f in entry["changed_fields"] or f not in ["TASK_SPECS", "TOMBSTONED_EDGES"]]
+        filtered_expected = [f for f in expected_changed if f in entry["changed_fields"] or f not in ["TASK_SPECS", "TOMBSTONED_EDGES", "RUNNING_TASKS"]]
         if entry["changed_fields"] != filtered_expected:
             raise ValidationError(f"history entry {index} changed_fields do not match record: {entry['changed_fields']} != {filtered_expected}")
         if entry["updated_by"] != entry["record"]["LAST_UPDATED_BY"]:
@@ -781,10 +788,8 @@ def update(
         if record["LAST_UPDATED_BY"] != updated_by:
             record["LAST_UPDATED_BY"] = updated_by
             changed.append("LAST_UPDATED_BY")
-        old_all_edges = set(bundle["record"].get("UNPROVEN_EDGES",
-    "TOMBSTONED_EDGES", [])) | set(bundle["record"].get("PROVEN_EDGES", []))
-        new_all_edges = set(record.get("UNPROVEN_EDGES",
-    "TOMBSTONED_EDGES", [])) | set(record.get("PROVEN_EDGES", []))
+        old_all_edges = set(bundle["record"].get("UNPROVEN_EDGES", [])) | set(bundle["record"].get("TOMBSTONED_EDGES", [])) | set(bundle["record"].get("PROVEN_EDGES", []))
+        new_all_edges = set(record.get("UNPROVEN_EDGES", [])) | set(record.get("TOMBSTONED_EDGES", [])) | set(record.get("PROVEN_EDGES", []))
         if old_all_edges != new_all_edges:
             raise EdgeConservationError(f"edge conservation violated: old={old_all_edges}, new={new_all_edges}")
         validate_record(record, allow_unknown_sha=False)
@@ -825,8 +830,7 @@ def update(
                             break
 
         
-        unproven = record.get("UNPROVEN_EDGES",
-    "TOMBSTONED_EDGES", [])
+        unproven = record.get("UNPROVEN_EDGES", [])
         
         # Enforce that any predicate PASS backed by MACHINE_ARTIFACT has a valid receipt
         # A requested CLEAN_IDLE=YES without finished work/proof is rejected
