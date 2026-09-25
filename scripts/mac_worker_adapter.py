@@ -41,7 +41,11 @@ def run(task_file, root=None):
                 "status": "FAILED",
                 "reason": "TIMEOUT",
                 "goal_id": task.get("goal_id"),
-                "task_id": task["task_id"]
+                "task_id": task["task_id"],
+                "attempt_id": task.get("attempt_id"),
+                "dispatch_id": task.get("dispatch_id"),
+                "worker_id": task.get("worker_id"),
+                "result_id": f"result-{task.get('dispatch_id', task['task_id'])}-timeout",
             }
             incoming_dir = root / "results" / "incoming"
             incoming_dir.mkdir(parents=True, exist_ok=True)

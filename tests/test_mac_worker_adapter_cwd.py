@@ -63,3 +63,29 @@ def test_default_root_is_file_anchored():
     src = Path(adapter.__file__).read_text(encoding="utf-8")
     assert 'Path("scripts' not in src
     assert '"results/incoming"' not in src
+
+
+def test_timeout_preserves_canonical_identity(root, monkeypatch):
+    task_file = root / "T-id.json"
+    task_file.write_text(json.dumps({
+        "task_id": "T-id",
+        "goal_id": "g-1",
+        "attempt_id": "attempt-1",
+        "dispatch_id": "dispatch-1",
+        "worker_id": "MAC-01",
+    }), encoding="utf-8")
+    calls = iter([0.0, 400.0])
+    monkeypatch.setattr(adapter.time, "time", lambda: next(calls))
+    monkeypatch.setattr(adapter.time, "sleep", lambda s: None)
+    adapter.run(str(task_file), root=root)
+    recorded = json.loads(
+        (root / "results" / "incoming" / "T-id_result.json").read_text(
+            encoding="utf-8"))
+    assert recorded["goal_id"] == "g-1"
+    assert recorded["task_id"] == "T-id"
+    assert recorded["attempt_id"] == "attempt-1"
+    assert recorded["dispatch_id"] == "dispatch-1"
+    assert recorded["worker_id"] == "MAC-01"
+    assert recorded["result_id"] == "result-dispatch-1-timeout"
+    assert recorded["status"] == "FAILED"
+
