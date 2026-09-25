@@ -1,0 +1,81 @@
+================================================================================
+2026-Courier: Autonomous Multi-Agent Orchestration Platform Summary
+================================================================================
+
+1. OVERVIEW & MISSION
+--------------------------------------------------------------------------------
+Courier (2026-courier) is an autonomous, federated multi-agent task orchestration
+and engineering operations system designed for resilient, cross-platform execution
+across heterogeneous operating systems (macOS, Windows, Linux) and AI reasoning
+providers (Google Antigravity, Anthropic Claude/Opus, GitHub Copilot).
+
+Its fundamental design tenet is "Maximum Safe Parallelism" coupled with zero-chat
+autonomous continuation: once a goal is submitted, the system autonomously decomposes,
+dispatches, executes, verifies, and replenishes tasks without requiring human
+"continue" prompts (USER_CONTINUE_MESSAGES == 0).
+
+2. CORE ARCHITECTURE & SUBSYSTEMS
+--------------------------------------------------------------------------------
+The platform enforces a strict separation of concerns across core architectural pillars:
+
+A. Central Orchestrator / Motor Scheduler (server/app.py)
+   - Single authoritative source of runtime truth (SECOND_TRUTH_STORE=NO) persisted
+     in server/state/central_state.json.
+   - Dynamic capability-based task dispatching (matching task capability requirements
+     such as 'mac', 'windows', 'linux', 'antigravity', 'copilot' to registered workers).
+   - Dynamic auto-replenishment loop that injects subsequent tasks upon batch completion.
+   - Reconciles worker execution results and coordinates independent verification.
+
+B. Cryptographic Handoff Ledger (agent_handoff_ledger.json, action_ledger.jsonl)
+   - Cryptographically hashed, Git-tracked asynchronous coordination ledger.
+   - Eliminates split-brain execution by validating CURRENT_RUNTIME_SHA and
+     server-binding runtime tokens across dispatches and claims.
+   - Tracks the complete causal lineage of dispatches, results, reconciliations,
+     and verifications (goal_id, task_id, attempt_id, dispatch_id, execution_ref).
+
+C. Federated Worker Daemons (scripts/mac_worker/daemon.py, Windows worker)
+   - Autonomous background daemons that poll /tasks/claim, execute bounded work units,
+     and submit structured result packets with artifact hashes to /tasks/result.
+   - Process tree lifecycle management (ACTIVE_PGIDS, limit_wrapper.sh) ensuring
+     clean teardown and exact process ownership (TEMP_TASK_PROCESSES_AFTER_DONE=0).
+   - Multi-mode execution supporting Native shell tasks and AI reasoning engines.
+
+D. Independent Verifier (courier_verifier.py / VERIFIER-01)
+   - Decoupled verification layer that audits task outputs against strict acceptance
+     predicates before declaring tasks reconciled.
+   - Enforces SHA-256 fingerprint validation of all produced artifacts.
+
+E. Control Plane & Survival Engine (scripts/cannon_motor.py, supervisor.py)
+   - OS-level fencing via flock exclusive locks and monotonic epoch leases.
+   - Disaster recovery and reboot reconciliation protecting against duplicate external effects.
+   - Authoritative PID liveness verification ensuring orphan-free execution.
+
+3. HARD SAFETY INVARIANTS & POLICIES
+--------------------------------------------------------------------------------
+- Zero User Relay (USER_CONTINUE_MESSAGES == 0): The execution loop must proceed
+  autonomously to terminal state without manual user continuation prompts.
+- Zero Spend Boundary: Autonomous budget limit is strictly 0.00 EUR unless
+  explicit human authorization is granted; paid API signups/charges are blocked.
+- Single-Writer Scope Authority: Exactly one writer owns a logical resource scope
+  at any given moment; non-overlapping scopes execute concurrently.
+- Fail-Closed Security: Corrupt state files, missing process IDs, expired leases,
+  or unverified tokens immediately fail closed into quarantine.
+- Exact Process Cleanup: Every task-spawned process is tracked by execution_ref
+  and cleanly terminated, guaranteeing zero zombie or leaked processes.
+- CLEAN_IDLE Termination: CLEAN_IDLE=YES is only valid when the canonical goal is
+  reconciled and no runnable, waiting, or retryable tasks remain.
+
+4. AUTONOMOUS CONTINUITY & OPERATIONS
+--------------------------------------------------------------------------------
+- Universal Bootstrap & Resume: Any authorized worker node resumes execution via:
+    python3 scripts/courier_continue.py --run
+- Minimal Bounded Task Packets: Context is strictly bounded to necessary metadata,
+  files, and predicates to optimize token efficiency and prevent context drift.
+- Comprehensive Test Matrix: Validated via automated regression suites covering
+  state transitions, crash-recovery boundaries, and failure injection.
+
+================================================================================
+Generated for: WF-CHIEF-d1a97b (STEP-2-IMPLEMENT)
+Node: Mac Headless Worker (Antigravity)
+Timestamp: 2026-09-25T14:27:30+02:00
+================================================================================

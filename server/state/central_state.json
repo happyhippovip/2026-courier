@@ -46,7 +46,7 @@
           ],
           "depends_on": [],
           "instruction": "Task B",
-          "status": "RESULT_RECEIVED",
+          "status": "RECONCILED",
           "task_id": "B",
           "goal_id": "goal-19854a6c",
           "attempts": 1,
@@ -64,7 +64,15 @@
           "last_completed_step": null,
           "next_action": "EXECUTE",
           "blocker": null,
-          "artifact_refs": []
+          "artifact_refs": [],
+          "verification": {
+            "verifier_id": "VERIFIER-01",
+            "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
+            "result_id": "result-b6082729e7b39e4af20293ddbf7c69e1e46bbca7e4aa417dd5bfe0e93798f95e",
+            "verdict": "PASS",
+            "artifacts": [],
+            "verified_at": 1790338581.752905
+          }
         },
         {
           "capabilities": [
@@ -91,6 +99,111 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": []
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-4f65de71": {
+      "goal_id": "goal-4f65de71",
+      "goal_text": "Write a short summary of the Courier project in courier_summary.txt",
+      "status": "DONE",
+      "terminal": true,
+      "community_id": "public",
+      "max_budget_eur": 10.0,
+      "accumulated_cost": 0.0,
+      "workflow_plan": [
+        {
+          "task_id": "WF-CHIEF-d1a97b-STEP-1-DISCOVER",
+          "goal_id": "goal-4f65de71",
+          "instruction": "Formulate execution strategy and inspect context for: Write a short summary of the Courier project in courier_summary.txt",
+          "target_agent": "mac",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+          "attempt_id": "WF-CHIEF-d1a97b-STEP-1-DISCOVER:attempt:1",
+          "dispatch_id": "dispatch-2e95c5affcde437581a80682cd1a2fac",
+          "execution_ref": "exec-e2ba5b54e88d47bf82401d5319912f9f",
+          "server_binding": {
+            "sha": "3a25f7ff6b53e84b6631fc638d845eac595c47a9",
+            "runtime": "courier-server:6696633af2c143898ed428e15fbb16bc"
+          },
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "verification": {
+            "verifier_id": "VERIFIER-01",
+            "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
+            "result_id": "result-ccd082a2d82563a8fe6978a5da9f920809d5dc7097c8d2778eec6725c28e2d17",
+            "verdict": "PASS",
+            "artifacts": [],
+            "verified_at": 1790339110.396757
+          }
+        },
+        {
+          "task_id": "WF-CHIEF-d1a97b-STEP-2-IMPLEMENT",
+          "goal_id": "goal-4f65de71",
+          "instruction": "Execute core implementation and asset validation for: Write a short summary of the Courier project in courier_summary.txt",
+          "target_agent": "mac",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+          "attempt_id": "WF-CHIEF-d1a97b-STEP-2-IMPLEMENT:attempt:1",
+          "dispatch_id": "dispatch-43f1346e394948eea352645ffcc86eee",
+          "execution_ref": "exec-5d1113cd31aa4c27b56199ea7cbd5bd1",
+          "server_binding": {
+            "sha": "3a25f7ff6b53e84b6631fc638d845eac595c47a9",
+            "runtime": "courier-server:c0d9200f1a914e14a62cee3ef94dc712"
+          },
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "verification": {
+            "verifier_id": "VERIFIER-01",
+            "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
+            "result_id": "result-0f63296889451cbaa7b5dd36eb35b17c157f9bf5298f266a2a5b941241a7ce51",
+            "verdict": "PASS",
+            "artifacts": [],
+            "verified_at": 1790339323.521923
+          }
+        },
+        {
+          "task_id": "WF-CHIEF-d1a97b-STEP-3-SYNTHESIZE",
+          "goal_id": "goal-4f65de71",
+          "instruction": "Finalize results, verify invariants, and assemble completion package for: Write a short summary of the Courier project in courier_summary.txt",
+          "target_agent": "mac",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+          "attempt_id": "WF-CHIEF-d1a97b-STEP-3-SYNTHESIZE:attempt:1",
+          "dispatch_id": "dispatch-ff58a66e0a5f48baa98479e27c0a5516",
+          "execution_ref": "exec-a8d99ab429504c1cb944692ef0df9d4d",
+          "server_binding": {
+            "sha": "3a25f7ff6b53e84b6631fc638d845eac595c47a9",
+            "runtime": "courier-server:c0d9200f1a914e14a62cee3ef94dc712"
+          },
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "last_completed_step": null,
+          "next_action": "EXECUTE",
+          "blocker": null,
+          "artifact_refs": [],
+          "verification": {
+            "verifier_id": "VERIFIER-01",
+            "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
+            "result_id": "result-8261d108feefbd6b91f6bd8027d71c57f317008fff8e2aa0cb828ed8c51a8c52",
+            "verdict": "PASS",
+            "artifacts": [],
+            "verified_at": 1790339444.972023
+          }
         }
       ],
       "current_step_index": 0
@@ -137,7 +250,7 @@
       ],
       "depends_on": [],
       "instruction": "Task B",
-      "status": "RESULT_RECEIVED",
+      "status": "RECONCILED",
       "task_id": "B",
       "goal_id": "goal-19854a6c",
       "attempts": 1,
@@ -153,7 +266,7 @@
       "result_id": null,
       "target_capability": "linux",
       "last_completed_step": "B",
-      "next_action": "VERIFY",
+      "next_action": null,
       "blocker": null,
       "artifact_refs": [],
       "producer_principal": "principal_5af7da6506495a544198d4a87f183de71cacbd6a24ba13255fe7881049f96979",
@@ -173,7 +286,15 @@
         "task_id": "B",
         "goal_id": "goal-19854a6c"
       },
-      "result_received_at": 1790300522.196183
+      "result_received_at": 1790300522.196183,
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
+        "result_id": "result-b6082729e7b39e4af20293ddbf7c69e1e46bbca7e4aa417dd5bfe0e93798f95e",
+        "verdict": "PASS",
+        "artifacts": [],
+        "verified_at": 1790338581.752905
+      }
     },
     "C": {
       "capabilities": [
@@ -200,6 +321,153 @@
       "next_action": "EXECUTE",
       "blocker": null,
       "artifact_refs": []
+    },
+    "WF-CHIEF-d1a97b-STEP-1-DISCOVER": {
+      "task_id": "WF-CHIEF-d1a97b-STEP-1-DISCOVER",
+      "goal_id": "goal-4f65de71",
+      "instruction": "Formulate execution strategy and inspect context for: Write a short summary of the Courier project in courier_summary.txt",
+      "target_agent": "mac",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+      "attempt_id": "WF-CHIEF-d1a97b-STEP-1-DISCOVER:attempt:1",
+      "dispatch_id": "dispatch-2e95c5affcde437581a80682cd1a2fac",
+      "execution_ref": "exec-e2ba5b54e88d47bf82401d5319912f9f",
+      "server_binding": {
+        "sha": "3a25f7ff6b53e84b6631fc638d845eac595c47a9",
+        "runtime": "courier-server:6696633af2c143898ed428e15fbb16bc"
+      },
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "last_completed_step": "WF-CHIEF-d1a97b-STEP-1-DISCOVER",
+      "next_action": null,
+      "blocker": null,
+      "artifact_refs": [],
+      "producer_principal": "principal_a2feb8ee4ae6ac6d82e9a68c34fbc7f3b7bef7b64908ded944e60dd5288b970e",
+      "result": {
+        "goal_id": "goal-4f65de71",
+        "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+        "dispatch_id": "dispatch-2e95c5affcde437581a80682cd1a2fac",
+        "result_id": "result-ccd082a2d82563a8fe6978a5da9f920809d5dc7097c8d2778eec6725c28e2d17",
+        "runtime_identity": {
+          "runtime": "courier-server:6696633af2c143898ed428e15fbb16bc",
+          "sha": "3a25f7ff6b53e84b6631fc638d845eac595c47a9"
+        },
+        "artifacts": [],
+        "run_id": "5ddc5207-a967-4ff0-b38a-bac3f1f2271e",
+        "status": "SUCCESS",
+        "task_id": "WF-CHIEF-d1a97b-STEP-1-DISCOVER",
+        "attempt_id": "WF-CHIEF-d1a97b-STEP-1-DISCOVER:attempt:1",
+        "execution_ref": "exec-e2ba5b54e88d47bf82401d5319912f9f"
+      },
+      "result_received_at": 1790339107.224112,
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
+        "result_id": "result-ccd082a2d82563a8fe6978a5da9f920809d5dc7097c8d2778eec6725c28e2d17",
+        "verdict": "PASS",
+        "artifacts": [],
+        "verified_at": 1790339110.396757
+      }
+    },
+    "WF-CHIEF-d1a97b-STEP-2-IMPLEMENT": {
+      "task_id": "WF-CHIEF-d1a97b-STEP-2-IMPLEMENT",
+      "goal_id": "goal-4f65de71",
+      "instruction": "Execute core implementation and asset validation for: Write a short summary of the Courier project in courier_summary.txt",
+      "target_agent": "mac",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+      "attempt_id": "WF-CHIEF-d1a97b-STEP-2-IMPLEMENT:attempt:1",
+      "dispatch_id": "dispatch-43f1346e394948eea352645ffcc86eee",
+      "execution_ref": "exec-5d1113cd31aa4c27b56199ea7cbd5bd1",
+      "server_binding": {
+        "sha": "3a25f7ff6b53e84b6631fc638d845eac595c47a9",
+        "runtime": "courier-server:c0d9200f1a914e14a62cee3ef94dc712"
+      },
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "last_completed_step": "WF-CHIEF-d1a97b-STEP-2-IMPLEMENT",
+      "next_action": null,
+      "blocker": null,
+      "artifact_refs": [],
+      "producer_principal": "principal_a2feb8ee4ae6ac6d82e9a68c34fbc7f3b7bef7b64908ded944e60dd5288b970e",
+      "result": {
+        "goal_id": "goal-4f65de71",
+        "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+        "dispatch_id": "dispatch-43f1346e394948eea352645ffcc86eee",
+        "result_id": "result-0f63296889451cbaa7b5dd36eb35b17c157f9bf5298f266a2a5b941241a7ce51",
+        "runtime_identity": {
+          "runtime": "courier-server:c0d9200f1a914e14a62cee3ef94dc712",
+          "sha": "3a25f7ff6b53e84b6631fc638d845eac595c47a9"
+        },
+        "artifacts": [],
+        "run_id": "05a9b177-7cee-4b20-a684-ade7b34a553a",
+        "status": "SUCCESS",
+        "task_id": "WF-CHIEF-d1a97b-STEP-2-IMPLEMENT",
+        "attempt_id": "WF-CHIEF-d1a97b-STEP-2-IMPLEMENT:attempt:1",
+        "execution_ref": "exec-5d1113cd31aa4c27b56199ea7cbd5bd1"
+      },
+      "result_received_at": 1790339323.4286342,
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
+        "result_id": "result-0f63296889451cbaa7b5dd36eb35b17c157f9bf5298f266a2a5b941241a7ce51",
+        "verdict": "PASS",
+        "artifacts": [],
+        "verified_at": 1790339323.521923
+      }
+    },
+    "WF-CHIEF-d1a97b-STEP-3-SYNTHESIZE": {
+      "task_id": "WF-CHIEF-d1a97b-STEP-3-SYNTHESIZE",
+      "goal_id": "goal-4f65de71",
+      "instruction": "Finalize results, verify invariants, and assemble completion package for: Write a short summary of the Courier project in courier_summary.txt",
+      "target_agent": "mac",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+      "attempt_id": "WF-CHIEF-d1a97b-STEP-3-SYNTHESIZE:attempt:1",
+      "dispatch_id": "dispatch-ff58a66e0a5f48baa98479e27c0a5516",
+      "execution_ref": "exec-a8d99ab429504c1cb944692ef0df9d4d",
+      "server_binding": {
+        "sha": "3a25f7ff6b53e84b6631fc638d845eac595c47a9",
+        "runtime": "courier-server:c0d9200f1a914e14a62cee3ef94dc712"
+      },
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "last_completed_step": "WF-CHIEF-d1a97b-STEP-3-SYNTHESIZE",
+      "next_action": null,
+      "blocker": null,
+      "artifact_refs": [],
+      "producer_principal": "principal_a2feb8ee4ae6ac6d82e9a68c34fbc7f3b7bef7b64908ded944e60dd5288b970e",
+      "result": {
+        "goal_id": "goal-4f65de71",
+        "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+        "dispatch_id": "dispatch-ff58a66e0a5f48baa98479e27c0a5516",
+        "result_id": "result-8261d108feefbd6b91f6bd8027d71c57f317008fff8e2aa0cb828ed8c51a8c52",
+        "runtime_identity": {
+          "runtime": "courier-server:c0d9200f1a914e14a62cee3ef94dc712",
+          "sha": "3a25f7ff6b53e84b6631fc638d845eac595c47a9"
+        },
+        "artifacts": [],
+        "run_id": "80aa277d-a159-4d66-bb23-f9aa7beddaed",
+        "status": "SUCCESS",
+        "task_id": "WF-CHIEF-d1a97b-STEP-3-SYNTHESIZE",
+        "attempt_id": "WF-CHIEF-d1a97b-STEP-3-SYNTHESIZE:attempt:1",
+        "execution_ref": "exec-a8d99ab429504c1cb944692ef0df9d4d"
+      },
+      "result_received_at": 1790339444.1222038,
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "verifier_principal": "principal_5a0d9f2daa56fe50ad77ffe74fdc35f5f9d0e1612c1b9c3387de0f039d036e16",
+        "result_id": "result-8261d108feefbd6b91f6bd8027d71c57f317008fff8e2aa0cb828ed8c51a8c52",
+        "verdict": "PASS",
+        "artifacts": [],
+        "verified_at": 1790339444.972023
+      }
     }
   },
   "workers": {
@@ -231,14 +499,36 @@
       "provider_available": true,
       "capacity_available": true,
       "last_seen": 1790300522.199987,
-      "available": false,
-      "current_task": "C",
+      "available": true,
+      "current_task": null,
       "cost_class": "unknown"
+    },
+    "MAC-MACBOOK-PRO-VON-USER-EDEA96": {
+      "worker_id": "MAC-MACBOOK-PRO-VON-USER-EDEA96",
+      "platform": "macos",
+      "capabilities": [
+        "macos",
+        "antigravity",
+        "linux"
+      ],
+      "authorities": [],
+      "provider": null,
+      "capacity_identity": null,
+      "provider_available": true,
+      "capacity_available": true,
+      "last_seen": 1790340775.837266,
+      "available": true,
+      "current_task": null,
+      "cost_class": "low",
+      "groups": [],
+      "community_id": "public",
+      "tasks_completed": 2
     }
   },
   "resource_owners": {},
   "provider_locks": {
     "W1:openai": 1790300524.182983
   },
-  "worker_quota_pools": {}
+  "worker_quota_pools": {},
+  "virtual_balance": 9.5
 }
