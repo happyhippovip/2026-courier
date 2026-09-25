@@ -226,6 +226,54 @@ class EightBodyguardsTests(unittest.TestCase):
                  if b["callsign"] == "ALPHA"][0]
         self.assertEqual(final["task"], "TASK-A")
 
+    def test_12_complete_waits_for_parked_assign(self):
+        """12. complete_task serializes with a parked assign (no silent clobber)."""
+        import threading
+        import time
+        from unittest import mock
+        import scripts.run_bodyguards as bmod
+
+        real_save = bmod.save_json
+        entered = threading.Event()
+        release = threading.Event()
+        calls = {"n": 0}
+
+        def gated(path, value):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                entered.set()
+                release.wait(timeout=10)
+            return real_save(path, value)
+
+        done = threading.Event()
+
+        def do_assign():
+            self.manager.assign_bodyguard("ALPHA", "TASK-A", "wf", "corr")
+
+        def do_complete():
+            self.manager.complete_task("ALPHA", result_file="r.json")
+            done.set()
+
+        with mock.patch.object(bmod, "save_json", side_effect=gated):
+            ta = threading.Thread(target=do_assign)
+            ta.start()
+            self.assertTrue(entered.wait(timeout=10))
+            tc = threading.Thread(target=do_complete)
+            tc.start()
+            time.sleep(1)
+            self.assertFalse(
+                done.is_set(),
+                "complete_task must wait for the parked assign, not clobber it")
+            release.set()
+            ta.join(timeout=10)
+            tc.join(timeout=10)
+
+        self.assertTrue(done.is_set())
+        final = [b for b in self.manager.get_all_bodyguards()
+                 if b["callsign"] == "ALPHA"][0]
+        self.assertEqual(final["state"], "STANDBY")
+        self.assertIn("TASK-A", final["last_action"])
+
 
 if __name__ == "__main__":
     unittest.main()

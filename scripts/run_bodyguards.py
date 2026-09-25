@@ -288,18 +288,19 @@ class BodyguardPoolManager:
         for bg in BODYGUARD_REGISTRY:
             if bg["callsign"] == callsign.upper():
                 path = self.states_dir / f"{bg['id']}.json"
-                current = load_json(path)
-                state_val = "WORKING" if working else current.get("state", "WORKING")
-                updated = {
-                    **current,
-                    "state": state_val,
-                    "progress": progress,
-                    "last_action": action,
-                    "speech": generate_bodyguard_speech(state_val, bg["callsign"], current.get("temporary_role")),
-                    "updated_at": iso_now(),
-                }
-                save_json(path, updated)
-                return updated
+                with _locked(path):
+                    current = load_json(path)
+                    state_val = "WORKING" if working else current.get("state", "WORKING")
+                    updated = {
+                        **current,
+                        "state": state_val,
+                        "progress": progress,
+                        "last_action": action,
+                        "speech": generate_bodyguard_speech(state_val, bg["callsign"], current.get("temporary_role")),
+                        "updated_at": iso_now(),
+                    }
+                    save_json(path, updated)
+                    return updated
         raise ValueError(f"Unknown bodyguard callsign: {callsign}")
 
     def complete_task(
@@ -311,37 +312,41 @@ class BodyguardPoolManager:
         for bg in BODYGUARD_REGISTRY:
             if bg["callsign"] == callsign.upper():
                 path = self.states_dir / f"{bg['id']}.json"
-                current = load_json(path)
-                # First step: RETURNING
-                returning_state = {
-                    **current,
-                    "state": "RETURNING",
-                    "progress": 1.0,
-                    "last_action": f"Result delivered to Courier: {result_file or 'COMPLETED'}",
-                    "next_action": "Returning to Standby in Ready Room",
-                    "speech": generate_bodyguard_speech("RETURNING", bg["callsign"]),
-                    "result": {"result_file": result_file} if result_file else None,
-                    "updated_at": iso_now(),
-                }
-                save_json(path, returning_state)
+                # Hold the lock across both writes so a concurrent assign or
+                # progress update cannot interleave between RETURNING and
+                # STANDBY and lose a fresh binding.
+                with _locked(path):
+                    current = load_json(path)
+                    # First step: RETURNING
+                    returning_state = {
+                        **current,
+                        "state": "RETURNING",
+                        "progress": 1.0,
+                        "last_action": f"Result delivered to Courier: {result_file or 'COMPLETED'}",
+                        "next_action": "Returning to Standby in Ready Room",
+                        "speech": generate_bodyguard_speech("RETURNING", bg["callsign"]),
+                        "result": {"result_file": result_file} if result_file else None,
+                        "updated_at": iso_now(),
+                    }
+                    save_json(path, returning_state)
 
-                # Reset to STANDBY
-                standby_state = {
-                    **returning_state,
-                    "state": "STANDBY",
-                    "temporary_role": None,
-                    "task": "Reserve Duty (Standby)",
-                    "progress": 0.0,
-                    "workflow": None,
-                    "correlation_id": None,
-                    "last_action": f"Completed prior task {current.get('task')}. Back on reserve.",
-                    "next_action": "Awaiting Chief assignment",
-                    "speech": generate_bodyguard_speech("STANDBY", bg["callsign"]),
-                    "result": None,
-                    "updated_at": iso_now(),
-                }
-                save_json(path, standby_state)
-                return standby_state
+                    # Reset to STANDBY
+                    standby_state = {
+                        **returning_state,
+                        "state": "STANDBY",
+                        "temporary_role": None,
+                        "task": "Reserve Duty (Standby)",
+                        "progress": 0.0,
+                        "workflow": None,
+                        "correlation_id": None,
+                        "last_action": f"Completed prior task {current.get('task')}. Back on reserve.",
+                        "next_action": "Awaiting Chief assignment",
+                        "speech": generate_bodyguard_speech("STANDBY", bg["callsign"]),
+                        "result": None,
+                        "updated_at": iso_now(),
+                    }
+                    save_json(path, standby_state)
+                    return standby_state
         raise ValueError(f"Unknown bodyguard callsign: {callsign}")
 
     def release_bodyguard(self, callsign: str) -> dict[str, Any]:
