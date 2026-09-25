@@ -1,13 +1,19 @@
 import json, sys, os, time, shutil
 from pathlib import Path
 
-def run(task_file):
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+def run(task_file, root=None):
+    # Transport dirs are anchored at the repo root, never at the
+    # caller's cwd: a foreign cwd previously scattered inbox/outbox
+    # and the delivered result outside the repo (lost-result risk).
+    root = Path(root) if root is not None else REPO_ROOT
     with open(task_file, 'r') as f:
         task = json.load(f)
         
     print(f"[Mac Transport] Routing task {task['task_id']} to Mac Worker DualTransport...")
     
-    base_dir = Path("scripts/mac_worker")
+    base_dir = root / "scripts" / "mac_worker"
     inbox = base_dir / "inbox"
     outbox = base_dir / "outbox"
     
@@ -37,15 +43,18 @@ def run(task_file):
                 "goal_id": task.get("goal_id"),
                 "task_id": task["task_id"]
             }
-            with open(f"results/incoming/{task['task_id']}_result.json", 'w') as f:
+            incoming_dir = root / "results" / "incoming"
+            incoming_dir.mkdir(parents=True, exist_ok=True)
+            with open(incoming_dir / f"{task['task_id']}_result.json", 'w') as f:
                 json.dump(res, f)
             return
             
         time.sleep(2)
         
     print(f"[Mac Transport] Received result for {task['task_id']} from Mac Worker!")
-    os.makedirs("results/incoming", exist_ok=True)
-    incoming = Path(f"results/incoming/{task['task_id']}_result.json")
+    incoming_dir = root / "results" / "incoming"
+    incoming_dir.mkdir(parents=True, exist_ok=True)
+    incoming = incoming_dir / f"{task['task_id']}_result.json"
     incoming_tmp = incoming.with_suffix(".json.tmp")
     shutil.copy(target_outbox_file, incoming_tmp)
     os.replace(incoming_tmp, incoming)
