@@ -1,4 +1,5 @@
 import pytest
+import sys
 import time
 import json
 import os
@@ -13,9 +14,13 @@ from server.app import app, STATE_FILE, STATE_LOCK
 import server.app as app_module
 
 @pytest.fixture
-def client():
+def client(tmp_path, monkeypatch):
+    # Isolate state in tmp: never touch the tracked server/state/central_state.json.
+    tmp_state = str(tmp_path / "central_state.json")
+    monkeypatch.setattr(app_module, "STATE_FILE", tmp_state)
+    monkeypatch.setattr(sys.modules[__name__], "STATE_FILE", tmp_state)
     app.config["TESTING"] = True
-    
+
     with STATE_LOCK:
         if os.path.exists(STATE_FILE):
             os.remove(STATE_FILE)
