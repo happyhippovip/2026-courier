@@ -46,6 +46,12 @@ def test_verify_result_rejects_nondict_evidence(monkeypatch, tmp_path: Path, bad
         adapter.verify_result(task, result, bad_evidence, "99", tmp_path)
 
 
+@pytest.mark.parametrize("bad_input", [None, 42, ["x"], {"x": 1}])
+def test_validate_task_rejects_non_string_transform_input(bad_input):
+    with pytest.raises(ValueError, match="string input"):
+        adapter.validate_task(packet(input=bad_input))
+
+
 def test_find_run_uses_exact_dispatch_title(monkeypatch):
     monkeypatch.setattr(adapter, "run_cmd", lambda _: (0, json.dumps([
         {"databaseId": 4, "status": "queued", "displayTitle": "Courier dispatch dispatch-1"},
