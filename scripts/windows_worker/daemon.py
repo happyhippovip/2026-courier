@@ -63,6 +63,53 @@ def register_worker(worker_id, release_task=False):
         print(f"[{worker_id}] Failed to register: {e}")
         return False
 
+def upload_enabled(config):
+    """Artifact upload needs the server artifact store (P3 cutover); opt-in until then."""
+    flag = os.environ.get("COURIER_ARTIFACT_UPLOAD", str(config.get("ARTIFACT_UPLOAD", "")))
+    return str(flag).strip().lower() in ("1", "true", "yes")
+
+def upload_artifact(task, art):
+    """Upload one artifact's bytes; returns (OK|REJECTED|UNDELIVERED, record)."""
+    require_api_key()
+    name = art["path"]
+    if not is_safe_artifact_path(name) or not Path(name).is_file():
+        return "REJECTED", None
+    data = Path(name).read_bytes()
+    if hashlib.sha256(data).hexdigest() != art["sha256"]:
+        print(f"[Windows Worker] Artifact {name} changed after hashing; not uploading.")
+        return "REJECTED", None
+    meta = {"name": name, "sha256": art["sha256"], "size": len(data),
+            **{f: task.get(f) for f in ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id")}}
+    req = urllib.request.Request(f"{API_URL}/artifacts", method="POST")
+    for k, v in HEADERS.items():
+        req.add_header(k, v)
+    req.add_header("Content-Type", "application/octet-stream")
+    req.add_header("X-Courier-Artifact", json.dumps(meta, separators=(",", ":")))
+    try:
+        with urllib.request.urlopen(req, data=data, timeout=30) as resp:
+            record = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        print(f"[Windows Worker] Artifact upload failed: HTTP {e.code}")
+        return ("REJECTED" if e.code < 500 else "UNDELIVERED"), None
+    except Exception as e:
+        print(f"[Windows Worker] Artifact upload failed: {e}")
+        return "UNDELIVERED", None
+    if record.get("sha256") != art["sha256"] or record.get("size") != len(data) or not str(record.get("artifact_id", "")).startswith("art-"):
+        return "REJECTED", None
+    return "OK", record
+
+def upload_pending_artifacts(task, state_file):
+    """Attach server artifact_ids to the stored result; READY when all are uploaded."""
+    for art in task["result_payload"].get("artifacts", []):
+        if "artifact_id" in art:
+            continue
+        outcome, record = upload_artifact(task, art)
+        if outcome != "OK":
+            return outcome
+        art["artifact_id"], art["size"] = record["artifact_id"], record["size"]
+        persist_task(state_file, task)
+    return "READY"
+
 def http_post_result(res):
     """Deliver a stored result; returns DELIVERED, REJECTED or UNDELIVERED.
 
@@ -295,7 +342,9 @@ def loop():
                     persist_task(state_file, task)
 
                 if task:
-                    outcome = http_post_result(task["result_payload"])
+                    outcome = upload_pending_artifacts(task, state_file) if upload_enabled(config) else "READY"
+                    if outcome == "READY":
+                        outcome = http_post_result(task["result_payload"])
                     if outcome == "UNDELIVERED":
                         print(f"[{worker_id}] Result for {task['task_id']} not delivered yet; keeping it for redelivery.")
                     elif outcome == "REJECTED":

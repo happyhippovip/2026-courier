@@ -83,6 +83,50 @@ def is_retryable_post_error(err):
         return True
     return err[len("HTTP Error "):].startswith("5")
 
+def upload_enabled(config):
+    """Artifact upload needs the server artifact store (P3 cutover); opt-in until then."""
+    flag = os.environ.get("COURIER_ARTIFACT_UPLOAD", str(config.get("ARTIFACT_UPLOAD", "")))
+    return str(flag).strip().lower() in ("1", "true", "yes")
+
+def http_upload(config, meta, data):
+    """POST raw artifact bytes; returns (record, err) like http_post."""
+    req = urllib.request.Request(config["COURIER_SERVER"].rstrip("/") + "/artifacts", method="POST")
+    req.add_header("Authorization", f"Bearer {config.get('COURIER_API_KEY', '')}")
+    req.add_header("Content-Type", "application/octet-stream")
+    req.add_header("X-Courier-Artifact", json.dumps(meta, separators=(",", ":")))
+    try:
+        with urllib.request.urlopen(req, data=data, timeout=30) as response:
+            return json.loads(response.read().decode("utf-8")), None
+    except urllib.error.HTTPError as e:
+        return None, f"HTTP Error {e.code}: {e.read().decode('utf-8', 'replace')}"
+    except Exception as e:
+        return None, str(e)
+
+def upload_pending_artifacts(config, task, state_file):
+    """Attach server artifact_ids to the stored result; READY|REJECTED|UNDELIVERED."""
+    import hashlib
+    for art in task["result_payload"].get("artifacts", []):
+        if "artifact_id" in art:
+            continue
+        name = art["path"]
+        if not is_safe_artifact_path(name) or not Path(name).is_file():
+            return "REJECTED"
+        data = Path(name).read_bytes()
+        if hashlib.sha256(data).hexdigest() != art["sha256"]:
+            write_log(f"Artifact {name} changed after hashing; not uploading.")
+            return "REJECTED"
+        meta = {"name": name, "sha256": art["sha256"], "size": len(data),
+                **{f: task.get(f) for f in ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id")}}
+        record, err = http_upload(config, meta, data)
+        if err:
+            write_log(f"Artifact upload failed: {err.split(':')[0]}")
+            return "UNDELIVERED" if is_retryable_post_error(err) else "REJECTED"
+        if record.get("sha256") != art["sha256"] or record.get("size") != len(data) or not str(record.get("artifact_id", "")).startswith("art-"):
+            return "REJECTED"
+        art["artifact_id"], art["size"] = record["artifact_id"], record["size"]
+        persist_task(state_file, task)
+    return "READY"
+
 def deliver_result(config, payload):
     """Post the stored result; returns DELIVERED, REJECTED or UNDELIVERED."""
     for attempt in range(MAX_RESULT_POST_ATTEMPTS):
@@ -315,7 +359,9 @@ def loop():
                 persist_task(current_task_state_file, task)
 
             if task:
-                outcome = deliver_result(config, task["result_payload"])
+                outcome = upload_pending_artifacts(config, task, current_task_state_file) if upload_enabled(config) else "READY"
+                if outcome == "READY":
+                    outcome = deliver_result(config, task["result_payload"])
                 if outcome == "UNDELIVERED":
                     # Keep the finished result; later cycles only redeliver it.
                     write_log(f"Result for task {task['task_id']} not delivered yet; keeping it for redelivery.")

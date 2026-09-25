@@ -4,6 +4,10 @@ import sys
 import time
 import requests
 import hashlib
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from scripts.artifact_store import DEFAULT_MAX_BYTES, is_safe_artifact_name, verify_uploaded_artifact
 
 API_URL = os.environ.get("COURIER_SERVER", "http://127.0.0.1:8080").rstrip("/")
 API_KEY = os.environ.get("COURIER_VERIFIER_API_KEY")
@@ -31,6 +35,52 @@ def verify_artifact(path, expected_hash):
     except Exception as e:
         log(f"Error reading artifact {path}: {e}")
         return False
+
+MAX_ARTIFACT_BYTES = int(os.environ.get("COURIER_ARTIFACT_MAX_BYTES", DEFAULT_MAX_BYTES))
+REMOTE_TARGETS = ("mac", "windows")
+
+
+def fetch_artifact(artifact_id):
+    """Return (record, bytes) of the server-side uploaded copy."""
+    meta = requests.get(f"{API_URL}/artifacts/{artifact_id}/meta", headers=HEADERS, timeout=10)
+    meta.raise_for_status()
+    blob = requests.get(f"{API_URL}/artifacts/{artifact_id}", headers=HEADERS, timeout=30)
+    blob.raise_for_status()
+    if len(blob.content) > MAX_ARTIFACT_BYTES:
+        raise ValueError("artifact exceeds size limit")
+    return meta.json(), blob.content
+
+
+def verify_artifacts(task, result, fetch=fetch_artifact, local_verify=None):
+    """PASS only if every artifact is independently confirmed.
+
+    Uploaded artifacts are re-hashed from the server copy. Mac/Windows artifacts
+    must be uploaded: the verifier never opens a remote worker's local path.
+    """
+    local_verify = local_verify or verify_artifact
+    artifacts = result.get("artifacts", [])
+    if not artifacts:
+        log("No artifact evidence.")
+        return "FAIL"
+    target = str(task.get("target_capability") or task.get("target_agent") or "").lower()
+    remote = any(t in target for t in REMOTE_TARGETS)
+    for art in artifacts:
+        if "artifact_id" in art:
+            try:
+                record, data = fetch(art["artifact_id"])
+            except Exception as e:
+                log(f"Cannot fetch uploaded artifact: {e}")
+                return "FAIL"
+            ok, reason = verify_uploaded_artifact(data, record, art, task)
+            if not ok:
+                log(f"Uploaded artifact rejected: {reason}")
+                return "FAIL"
+        elif remote:
+            log(f"Artifact {art.get('path')} from a {target} worker was not uploaded; not opening remote paths.")
+            return "FAIL"
+        elif not is_safe_artifact_name(art.get("path")) or not local_verify(art.get("path"), art.get("sha256")):
+            return "FAIL"
+    return "PASS"
 
 def run_loop():
     if not API_KEY:
@@ -68,13 +118,7 @@ def run_loop():
                                 log(f"Revenue verification failed: {e.output.decode('utf-8', errors='ignore')}")
                                 verdict = "FAIL"
                     else:
-                        verdict = "PASS"
-                        for art in artifacts:
-                            path = art.get("path")
-                            expected_hash = art.get("sha256")
-                            if not verify_artifact(path, expected_hash):
-                                verdict = "FAIL"
-                                break
+                        verdict = verify_artifacts(task, result)
                             
                     verify_payload = {
                         "task_id": task_id,
