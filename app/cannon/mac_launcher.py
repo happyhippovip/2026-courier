@@ -1,5 +1,4 @@
 """Short-lived macOS launcher: reuse Cannon, never wait for its lifetime."""
-import fcntl
 import json
 import os
 from pathlib import Path
@@ -54,17 +53,31 @@ def open_cannon():
 def main():
     directory = Path.home() / ".courier"
     directory.mkdir(exist_ok=True)
-    with (directory / "cannon-launch.lock").open("a") as lock:
+    lock = (directory / "cannon-launch.lock").open("a")
+    try:
         deadline = time.monotonic() + 12
         while True:
             try:
-                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                if os.name == 'nt':
+                    import msvcrt
+                    msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
+                else:
+                    import fcntl
+                    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
                 break
-            except BlockingIOError:
+            except (BlockingIOError, OSError):
                 if time.monotonic() >= deadline:
                     raise RuntimeError("Another Cannon launch has not finished")
                 time.sleep(0.1)
         return open_cannon()
+    finally:
+        try:
+            if os.name == 'nt':
+                import msvcrt
+                msvcrt.locking(lock.fileno(), msvcrt.LK_UNLCK, 1)
+        except OSError:
+            pass
+        lock.close()
 
 
 if __name__ == "__main__":

@@ -78,6 +78,8 @@ def get_git_info():
         return os.environ["MOCK_BRANCH"], os.environ["MOCK_SHA"]
     try:
         branch = subprocess.check_output(["git", "branch", "--show-current"]).decode().strip()
+        if not branch:
+            branch = "UNKNOWN"
         sha = subprocess.check_output([
             "git", "log", "-1", "--format=%H", "--", ".", ":(exclude)agent_handoff_ledger.json"
         ]).decode().strip()

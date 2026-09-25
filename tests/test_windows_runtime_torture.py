@@ -2,7 +2,7 @@ import subprocess, sys, time, json, os, uuid, pytest, urllib.request, urllib.err
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-API_URL = "http://127.0.0.1:8080"
+API_URL = "http://127.0.0.1:8082"
 HEADERS = {"Authorization": "Bearer test-key-12345", "Content-Type": "application/json"}
 
 def t_assert(condition, message):
@@ -20,6 +20,7 @@ def test_windows_torture():
         server_env["COURIER_API_KEY"] = "test-key-12345"
         server_env["COURIER_VERIFIER_API_KEY"] = "test-key-12345"
         server_env["PYTHONPATH"] = os.path.abspath(".")
+        server_env["PORT"] = "8082"
         
         print("Starting server...")
         server_proc = subprocess.Popen([sys.executable, "server/app.py"], env=server_env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)

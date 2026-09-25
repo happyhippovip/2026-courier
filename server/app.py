@@ -991,6 +991,9 @@ def task_result():
                 return jsonify({"status": "ACK_DUPLICATE"})
             return jsonify({"status": "CONFLICT", "reason": "CONTRADICTORY_DUPLICATE"}), 409
             
+        if task.get("worker_id") != worker_id:
+            return jsonify({"error": "WORKER_MISMATCH", "reason": f"Task owned by {task.get('worker_id')}"}), 403
+            
         if task.get("worker_id") == worker_id:
             if task.get("status") != "DISPATCHED":
                 return jsonify({"error": "Task is not awaiting a result"}), 409

@@ -1,9 +1,9 @@
 {
   "schema_version": "2.0",
-  "context_version": 12,
-  "generated_at": "2026-09-18T20:54:59.578464+00:00",
+  "context_version": 15,
+  "generated_at": "2026-09-25T01:24:11.340275+00:00",
   "repositories": {
-    "courier_head": "71b3dc06749b6b9d8ac62834813c8b71aa842249",
+    "courier_head": "1320b8efa3e287b2ee8d0d421dd6bd612f51e1eb",
     "memory_head": "b89b91c97218bbb1d45a271942efdd835cd624e4",
     "godot_head": "NOT_CONNECTED"
   },
@@ -18,7 +18,7 @@
         "task": "Compiling Project Context Snapshot",
         "progress": 0.1,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-09-18T20:54:59.580142+00:00"
+        "updated_at": "2026-09-25T01:24:11.340339+00:00"
       },
       "agent-bodyguard-hotel": {
         "state": "STANDBY",
@@ -182,7 +182,7 @@
   "changed_since_previous_snapshot": [
     "courier_head"
   ],
-  "previous_snapshot_version": 11,
-  "previous_snapshot_hash": "b3926e975e22abd5a4945db35a325bc5650248a219d66a553e73890d49aaf951",
-  "snapshot_hash": "709a415e76830e6bc3d560df69e526d4fbc0fb62a2ba876749a174c6449803ec"
+  "previous_snapshot_version": 14,
+  "previous_snapshot_hash": "2803588f0541493c4dd9fdff3f205aeeb9c8236c09ca0561747617b28261d075",
+  "snapshot_hash": "d980bf7a26ec8c82f55e1fc36a3b3ebee06eea9c0e7a23b27d64ea5aa180e0a0"
 }

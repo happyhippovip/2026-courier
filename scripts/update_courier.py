@@ -1,5 +1,6 @@
-﻿import stat
 #!/usr/bin/env python3
+import stat
+
 import os
 import sys
 import shutil

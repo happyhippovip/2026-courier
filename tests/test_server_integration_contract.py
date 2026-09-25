@@ -431,3 +431,29 @@ def test_stale_claim_is_quarantined_without_replay_and_other_goal_continues(tmp_
     late_result = durable_result(claimed)
     assert http.post("/tasks/result", headers=auth(), json=late_result).status_code == 409
     assert server_app.load_state()["tasks"][claimed["task_id"]]["status"] == "HUMAN_REQUIRED"
+
+def test_result_from_unauthorized_worker_fails_closed(tmp_path, monkeypatch):
+    c = client(tmp_path, monkeypatch)
+    from server.app import load_state, save_state
+    
+    st = load_state()
+    st["tasks"]["t1"] = {
+        "task_id": "t1",
+        "status": "DISPATCHED",
+        "worker_id": "MAC-01",
+        "attempt_id": "a1"
+    }
+    st["workers"]["MAC-01"] = {"worker_id": "MAC-01", "current_task": "t1"}
+    st["workers"]["MAC-02"] = {"worker_id": "MAC-02", "current_task": None}
+    save_state(st)
+    
+    # Submit a result from a different worker (MAC-02)
+    res = c.post("/tasks/result", headers=auth(), json={
+        "task_id": "t1",
+        "worker_id": "MAC-02",
+        "status": "SUCCESS",
+        "result_id": "res_t1",
+        "artifacts": []
+    })
+    assert res.status_code == 403
+    assert res.json["error"] == "WORKER_MISMATCH"

@@ -193,7 +193,7 @@ def test_t12_unknown_result_halts_chain(tmp_path):
     motor = CannonMotor(tmp_path, behaviors={"t2": "unknown"})
     motor.start(cooldown=0)
     motor.run()
-    assert motor.state == "ERROR"
+    assert motor.state == "BLOCKED"
     st = statuses(tmp_path)
     assert st["t1"] == "DONE"
     assert st["t2"] == "BLOCKED"

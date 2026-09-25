@@ -10,12 +10,11 @@ def run(task_file):
     base_dir = Path("scripts/mac_worker")
     inbox = base_dir / "inbox"
     outbox = base_dir / "outbox"
+    incoming_dir = Path("results/incoming")
     
     inbox.mkdir(parents=True, exist_ok=True)
     outbox.mkdir(parents=True, exist_ok=True)
-    
-    # Check if task explicitly needs native or AI
-    # if not specified, default to ANTIGRAVITY for now, or detect based on some keyword.
+    incoming_dir.mkdir(parents=True, exist_ok=True)
     
     target_inbox_file = inbox / f"{task['task_id']}.json"
     shutil.copy(task_file, target_inbox_file)
@@ -37,15 +36,14 @@ def run(task_file):
                 "goal_id": task.get("goal_id"),
                 "task_id": task["task_id"]
             }
-            with open(f"results/incoming/{task['task_id']}_result.json", 'w') as f:
+            with open(incoming_dir / f"{task['task_id']}_result.json", 'w') as f:
                 json.dump(res, f)
             return
             
         time.sleep(2)
         
     print(f"[Mac Transport] Received result for {task['task_id']} from Mac Worker!")
-    os.makedirs("results/incoming", exist_ok=True)
-    incoming = Path(f"results/incoming/{task['task_id']}_result.json")
+    incoming = incoming_dir / f"{task['task_id']}_result.json"
     incoming_tmp = incoming.with_suffix(".json.tmp")
     shutil.copy(target_outbox_file, incoming_tmp)
     os.replace(incoming_tmp, incoming)

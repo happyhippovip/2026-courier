@@ -11,7 +11,6 @@ Core (scripts/cannon_motor.py, scripts/work_queue.py) is imported read-only
 and never modified by this adapter. stdlib only.
 """
 import argparse
-import fcntl
 import json
 import os
 import platform
@@ -68,10 +67,17 @@ class MacAdapter:
     def supervise(self, max_cycles=None, idle_sleep=5.0, start=None):
         # One existing motor supervisor per state directory, including CLI
         # retries. This is an instance lock, not another task/lease authority.
-        with (self.state_dir / "supervisor.lock").open("a") as lock:
+        lock = (self.state_dir / "supervisor.lock").open("a")
+        try:
             try:
-                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            except BlockingIOError:
+                if os.name == 'nt':
+                    import msvcrt
+                    msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
+                else:
+                    import fcntl
+                    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except (BlockingIOError, OSError):
+                lock.close()
                 return {"started": False, "reason": "supervisor_active"}
             self.motor._load()
             if start is not None:
@@ -83,6 +89,15 @@ class MacAdapter:
                 if not started.get("started"):
                     return self._rebind(started)
             return self._rebind(self.motor.supervise(max_cycles, idle_sleep))
+        finally:
+            if not lock.closed:
+                try:
+                    if os.name == 'nt':
+                        import msvcrt
+                        msvcrt.locking(lock.fileno(), msvcrt.LK_UNLCK, 1)
+                except OSError:
+                    pass
+                lock.close()
 
     def save_prompt(self, prompt_id, text, semantics="readonly"):
         return self._rebind(

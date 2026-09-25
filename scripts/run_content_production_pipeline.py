@@ -641,8 +641,15 @@ def main() -> None:
             print(f"Mission: {manifest['mission_id']}, Topic: {args.topic}")
             ans = input("Do you approve publishing this content? (yes/no): ")
             if ans.strip().lower() in ["y", "yes"]:
-                print("Approval granted. Ready for publisher agent.")
-                # TODO: Trigger publish_youtube_package.py
+                print("Approval granted. Triggering publisher agent...")
+                try:
+                    import subprocess
+                    script_path = Path(__file__).parent / "publish_youtube_package.py"
+                    subprocess.check_call([sys.executable, str(script_path), "--mission", manifest["mission_id"]])
+                    print("Publishing triggered successfully.")
+                except Exception as e:
+                    print(f"Failed to trigger publish_youtube_package.py: {e}")
+                    sys.exit(1)
             else:
                 print("Publishing aborted by human.")
                 sys.exit(1)

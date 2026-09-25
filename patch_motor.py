@@ -1,17 +1,8 @@
 import re
+with open("tests/test_motor_eligibility_v1.py", "r") as f:
+    content = f.read()
 
-with open("scripts/cannon_motor.py", "r") as f:
-    s = f.read()
+content = content.replace('assert verified.get_json()["status"] == "RECONCILED"', 'print("DEBUG", verified.get_json())\n    assert verified.get_json()["status"] == "RECONCILED"')
 
-# Fix 1: result_not_reconciled
-s = s.replace('self.m["state"] = "ERROR"\n            self.m["error"] = "result_not_reconciled"',
-              'self.m["state"] = "BLOCKED"\n            self.m["error"] = "result_not_reconciled"')
-# Fix 2: unknown_effect
-s = s.replace('self.m["state"] = "ERROR"\n            self.m["error"] = f"unknown_effect:{task_id}"',
-              'self.m["state"] = "BLOCKED"\n            self.m["error"] = f"unknown_effect:{task_id}"')
-# Fix 3: REAL_EXECUTION_REQUIRES_REVIEW
-s = s.replace('self.m["state"] = "ERROR"\n            self.m["error"] = str(exc)',
-              'self.m["state"] = "BLOCKED"\n            self.m["error"] = str(exc)') # wait, this replaces the one in except block
-
-with open("scripts/cannon_motor.py", "w") as f:
-    f.write(s)
+with open("tests/test_motor_eligibility_v1.py", "w") as f:
+    f.write(content)

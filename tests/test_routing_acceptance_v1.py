@@ -66,7 +66,11 @@ def claim(http, worker_id):
     return response.get_json().get("task")
 
 
+from server.app import SERVER_BINDING
+from scripts.integration_contract import _canonical_hash
+
 def result_for(claimed, worker_id, result_id, status, stderr=None):
+    from server.app import SERVER_BINDING
     result = {
         "goal_id": claimed["goal_id"],
         "task_id": claimed["task_id"],
@@ -75,10 +79,13 @@ def result_for(claimed, worker_id, result_id, status, stderr=None):
         "execution_ref": claimed["execution_ref"],
         "worker_id": worker_id,
         "run_id": f"run-{result_id}",
-        "result_id": result_id,
         "status": status,
+        "runtime_identity": SERVER_BINDING,
         "artifacts": [],
     }
+    identity = dict(result)
+    result["result_id"] = f"result-{_canonical_hash(identity)}"
+    
     if stderr is not None:
         result["stderr"] = stderr
     return result
@@ -213,10 +220,11 @@ def test_reconciliation_exposes_next_ready_task_without_manual_state_edit(motor)
     assert first["task_id"] == "first"
 
     result_id = "result-first-success"
+    res_payload = result_for(first, "W", result_id, "SUCCESS")
     received = motor.post(
         "/tasks/result",
         headers=auth(),
-        json=result_for(first, "W", result_id, "SUCCESS"),
+        json=res_payload,
     )
     assert received.status_code == 200
 
@@ -225,12 +233,15 @@ def test_reconciliation_exposes_next_ready_task_without_manual_state_edit(motor)
         headers=verifier_auth(),
         json={
             "task_id": "first",
-            "result_id": result_id,
+            "result_id": res_payload["result_id"],
             "verifier_id": "independent-verifier",
             "verdict": "PASS",
             "artifacts": [],
+            "received_runtime_identity": SERVER_BINDING,
         },
     )
+    if verified.status_code != 200:
+        print("VERIFY ERROR:", verified.get_data(as_text=True))
     assert verified.status_code == 200
     assert verified.get_json()["status"] == "RECONCILED"
 

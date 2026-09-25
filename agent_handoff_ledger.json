@@ -16,8 +16,8 @@
     },
     "binding": {
       "branch": "agent/mac-cannon-v1-fixes",
-      "current_sha": "a5087918d2a3db3aa873c780993241aca5d5de42",
-      "runtime_identity": "a5087918d2a3db3aa873c780993241aca5d5de42"
+      "current_sha": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
+      "runtime_identity": "b459ff11249d4b164ca851c0b1c441131eb4ff6b"
     },
     "evidence": [
       {
@@ -164238,8 +164238,8 @@
         },
         "binding": {
           "branch": "agent/mac-cannon-v1-fixes",
-          "current_sha": "a5087918d2a3db3aa873c780993241aca5d5de42",
-          "runtime_identity": "a5087918d2a3db3aa873c780993241aca5d5de42"
+          "current_sha": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
+          "runtime_identity": "b459ff11249d4b164ca851c0b1c441131eb4ff6b"
         },
         "evidence": [
           {
@@ -164267,7 +164267,7 @@
         "CURRENT_SHA",
         "RUNTIME_IDENTITY"
       ],
-      "entry_sha256": "7385276ee1756a466e297e50f53d9e02f0db00904996d7f2bc80191f47c7b2e5",
+      "entry_sha256": "d7f1ae46ecb5c91bc42d00999a0c8a9be5c8dde53aa23f54eeb2c548c993064f",
       "operation": "UPDATE",
       "previous_entry_sha256": "d2fa3dc1b9d957fe96b8f9ec0d015ad7bae97d0cc0a1058ae746a9cbab4a612d",
       "record": {
@@ -164282,7 +164282,7 @@
           "motor-eligibility-v1"
         ],
         "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
-        "CURRENT_SHA": "a5087918d2a3db3aa873c780993241aca5d5de42",
+        "CURRENT_SHA": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
         "DUPLICATE_EXTERNAL_EFFECTS": 0,
         "FIRST_CAUSAL_BLOCKER": "TIMEOUT_HUNG_TASK",
         "GOAL": "COURIER-PUBLIC-RELEASE",
@@ -164303,7 +164303,7 @@
           "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION"
         ],
         "QUEUE_INDEPENDENT": "NO",
-        "RUNTIME_IDENTITY": "a5087918d2a3db3aa873c780993241aca5d5de42",
+        "RUNTIME_IDENTITY": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
         "RUNTIME_OWNER": "Google-Antigravity",
         "STATUS": "BLOCKED",
         "TASKS_COMPLETED": 2,
@@ -164334,9 +164334,9 @@
         "USER_CONTINUE_MESSAGES": 0,
         "WORKERS_USED": 1
       },
-      "record_sha256": "8a2fe07a353febe91ead1d5626e241dc928f591c66c6e23af3c102fbe3790127",
+      "record_sha256": "bf544104051deeb3cea777cc3f718cfd839c8d648d50cb0c21255ba920986162",
       "revision": 1371,
-      "state_sha256": "39f475e060e46c315d0287f2d6f29eb6fc1e289390773275758c46d6329f37e1",
+      "state_sha256": "bb86940dea225379cdf5b2b1262d8a3bf21326ffd00ca5322911a79395361713",
       "timestamp_utc": "2026-09-24T08:42:05Z",
       "updated_by": "Google-Antigravity"
     },
@@ -164358,8 +164358,8 @@
         },
         "binding": {
           "branch": "agent/mac-cannon-v1-fixes",
-          "current_sha": "a5087918d2a3db3aa873c780993241aca5d5de42",
-          "runtime_identity": "a5087918d2a3db3aa873c780993241aca5d5de42"
+          "current_sha": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
+          "runtime_identity": "b459ff11249d4b164ca851c0b1c441131eb4ff6b"
         },
         "evidence": [
           {
@@ -164386,9 +164386,9 @@
         "PROVEN_EDGES",
         "UNPROVEN_EDGES"
       ],
-      "entry_sha256": "dc03b0d5fa75f5a0b33e101e91e1450537b9f64b63747accbf1f27f8f0a59133",
+      "entry_sha256": "fd4e513e2dc2a02423c978de125cbfc00d23db61b762bbaef93e9d0dc00c39ee",
       "operation": "UPDATE",
-      "previous_entry_sha256": "7385276ee1756a466e297e50f53d9e02f0db00904996d7f2bc80191f47c7b2e5",
+      "previous_entry_sha256": "d7f1ae46ecb5c91bc42d00999a0c8a9be5c8dde53aa23f54eeb2c548c993064f",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -164401,7 +164401,7 @@
           "motor-eligibility-v1"
         ],
         "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
-        "CURRENT_SHA": "a5087918d2a3db3aa873c780993241aca5d5de42",
+        "CURRENT_SHA": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
         "DUPLICATE_EXTERNAL_EFFECTS": 0,
         "FIRST_CAUSAL_BLOCKER": "TIMEOUT_HUNG_TASK",
         "GOAL": "COURIER-PUBLIC-RELEASE",
@@ -164422,7 +164422,7 @@
           "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION"
         ],
         "QUEUE_INDEPENDENT": "NO",
-        "RUNTIME_IDENTITY": "a5087918d2a3db3aa873c780993241aca5d5de42",
+        "RUNTIME_IDENTITY": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
         "RUNTIME_OWNER": "Google-Antigravity",
         "STATUS": "BLOCKED",
         "TASKS_COMPLETED": 2,
@@ -164453,9 +164453,9 @@
         "USER_CONTINUE_MESSAGES": 0,
         "WORKERS_USED": 1
       },
-      "record_sha256": "b5bba1d3e1e5bb2b3c0b8876b3daa29e25b5d4859129bfaa15ef96061a57aedc",
+      "record_sha256": "531c28e6113cd901dac478e055eee2fb0d07df3994939f626e9e0ac76c73a9ba",
       "revision": 1372,
-      "state_sha256": "ce036098fbfcc09a4af72ed46e06bd4684830e8a3a8ad9ecbf125886de1dc1b1",
+      "state_sha256": "ddaddb0a2b44cb0ffb77a2392c796bbcbdd0742007689b357e3758b548e4a571",
       "timestamp_utc": "2026-09-24T08:42:31Z",
       "updated_by": "Google-Antigravity"
     },
@@ -164477,8 +164477,8 @@
         },
         "binding": {
           "branch": "agent/mac-cannon-v1-fixes",
-          "current_sha": "a5087918d2a3db3aa873c780993241aca5d5de42",
-          "runtime_identity": "a5087918d2a3db3aa873c780993241aca5d5de42"
+          "current_sha": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
+          "runtime_identity": "b459ff11249d4b164ca851c0b1c441131eb4ff6b"
         },
         "evidence": [
           {
@@ -164505,9 +164505,9 @@
         "PROVEN_EDGES",
         "UNPROVEN_EDGES"
       ],
-      "entry_sha256": "d694ae361c86f541be7280ef8d5f4048261e3965a57afbf99e6ee3917faa5683",
+      "entry_sha256": "7d830ec0acf044815d5271e97b65b3d2c490e4f0f68ad62de009edcd8682ea81",
       "operation": "UPDATE",
-      "previous_entry_sha256": "dc03b0d5fa75f5a0b33e101e91e1450537b9f64b63747accbf1f27f8f0a59133",
+      "previous_entry_sha256": "fd4e513e2dc2a02423c978de125cbfc00d23db61b762bbaef93e9d0dc00c39ee",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -164520,7 +164520,7 @@
           "motor-eligibility-v1"
         ],
         "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
-        "CURRENT_SHA": "a5087918d2a3db3aa873c780993241aca5d5de42",
+        "CURRENT_SHA": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
         "DUPLICATE_EXTERNAL_EFFECTS": 0,
         "FIRST_CAUSAL_BLOCKER": "TIMEOUT_HUNG_TASK",
         "GOAL": "COURIER-PUBLIC-RELEASE",
@@ -164541,7 +164541,7 @@
           "Website QA"
         ],
         "QUEUE_INDEPENDENT": "NO",
-        "RUNTIME_IDENTITY": "a5087918d2a3db3aa873c780993241aca5d5de42",
+        "RUNTIME_IDENTITY": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
         "RUNTIME_OWNER": "Google-Antigravity",
         "STATUS": "BLOCKED",
         "TASKS_COMPLETED": 2,
@@ -164572,9 +164572,9 @@
         "USER_CONTINUE_MESSAGES": 0,
         "WORKERS_USED": 1
       },
-      "record_sha256": "05d3320a636a02d1e6cf6a7ea40dd23281bff16ad8329a1e010cf6d68a13ecc6",
+      "record_sha256": "f53067f4ac494368375a1edb96baf42b4e6ddaab7615dfe12c5643f3059983a3",
       "revision": 1373,
-      "state_sha256": "73dd070907af1088b57f7e423614704765316ec7f3471d68a43f94625a14ddfc",
+      "state_sha256": "3479280f051dc117a9460568faf831d14d7576a03297d781128dd02ed33b58a6",
       "timestamp_utc": "2026-09-24T08:43:32Z",
       "updated_by": "Google-Antigravity"
     },
@@ -164596,8 +164596,8 @@
         },
         "binding": {
           "branch": "agent/mac-cannon-v1-fixes",
-          "current_sha": "a5087918d2a3db3aa873c780993241aca5d5de42",
-          "runtime_identity": "a5087918d2a3db3aa873c780993241aca5d5de42"
+          "current_sha": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
+          "runtime_identity": "b459ff11249d4b164ca851c0b1c441131eb4ff6b"
         },
         "evidence": [
           {
@@ -164623,9 +164623,9 @@
       "changed_fields": [
         "PROVEN_EDGES"
       ],
-      "entry_sha256": "9451738abead22ebc0c635199e0731dd7a88dc47a282c4bf49338bac2e2c2b9a",
+      "entry_sha256": "5b6173e164d4067c8f4aae485c7e586b83b9b6e83f8b7af27d98f1854099f603",
       "operation": "UPDATE",
-      "previous_entry_sha256": "d694ae361c86f541be7280ef8d5f4048261e3965a57afbf99e6ee3917faa5683",
+      "previous_entry_sha256": "7d830ec0acf044815d5271e97b65b3d2c490e4f0f68ad62de009edcd8682ea81",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -164638,7 +164638,7 @@
           "motor-eligibility-v1"
         ],
         "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
-        "CURRENT_SHA": "a5087918d2a3db3aa873c780993241aca5d5de42",
+        "CURRENT_SHA": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
         "DUPLICATE_EXTERNAL_EFFECTS": 0,
         "FIRST_CAUSAL_BLOCKER": "TIMEOUT_HUNG_TASK",
         "GOAL": "COURIER-PUBLIC-RELEASE",
@@ -164659,7 +164659,7 @@
           "Website QA"
         ],
         "QUEUE_INDEPENDENT": "NO",
-        "RUNTIME_IDENTITY": "a5087918d2a3db3aa873c780993241aca5d5de42",
+        "RUNTIME_IDENTITY": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
         "RUNTIME_OWNER": "Google-Antigravity",
         "STATUS": "BLOCKED",
         "TASKS_COMPLETED": 2,
@@ -164690,9 +164690,9 @@
         "USER_CONTINUE_MESSAGES": 0,
         "WORKERS_USED": 1
       },
-      "record_sha256": "fd3c52e5b40dc7ba8abf4d50824f147f486988ef55d0e700efd34c6cfd4e1621",
+      "record_sha256": "e19211d06e48783b82fb7fd019dd292487419efc1e8bb4fbac3a83f207ba8b53",
       "revision": 1374,
-      "state_sha256": "4fae502365e47370f4764b0a2cd48b9b8f612386a1cf99c624691c7bdca980aa",
+      "state_sha256": "872da198f1a61ced78cd2f9ce1d77c4598570033c71196373b904aed61d9fc81",
       "timestamp_utc": "2026-09-24T08:43:49Z",
       "updated_by": "Google-Antigravity"
     },
@@ -164714,8 +164714,8 @@
         },
         "binding": {
           "branch": "agent/mac-cannon-v1-fixes",
-          "current_sha": "a5087918d2a3db3aa873c780993241aca5d5de42",
-          "runtime_identity": "a5087918d2a3db3aa873c780993241aca5d5de42"
+          "current_sha": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
+          "runtime_identity": "b459ff11249d4b164ca851c0b1c441131eb4ff6b"
         },
         "evidence": [
           {
@@ -164741,9 +164741,9 @@
       "changed_fields": [
         "PROVEN_EDGES"
       ],
-      "entry_sha256": "23213b4b0d33fe3f0489783ef04e150dae8793cc2a8cfb5e2d164236c9c2092f",
+      "entry_sha256": "787b7a170fb7fc7e25841c06b0ab76c276d15186afdc431104db7e81298b29ba",
       "operation": "UPDATE",
-      "previous_entry_sha256": "9451738abead22ebc0c635199e0731dd7a88dc47a282c4bf49338bac2e2c2b9a",
+      "previous_entry_sha256": "5b6173e164d4067c8f4aae485c7e586b83b9b6e83f8b7af27d98f1854099f603",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -164756,7 +164756,7 @@
           "motor-eligibility-v1"
         ],
         "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
-        "CURRENT_SHA": "a5087918d2a3db3aa873c780993241aca5d5de42",
+        "CURRENT_SHA": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
         "DUPLICATE_EXTERNAL_EFFECTS": 0,
         "FIRST_CAUSAL_BLOCKER": "TIMEOUT_HUNG_TASK",
         "GOAL": "COURIER-PUBLIC-RELEASE",
@@ -164777,7 +164777,7 @@
           "Website QA"
         ],
         "QUEUE_INDEPENDENT": "NO",
-        "RUNTIME_IDENTITY": "a5087918d2a3db3aa873c780993241aca5d5de42",
+        "RUNTIME_IDENTITY": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
         "RUNTIME_OWNER": "Google-Antigravity",
         "STATUS": "BLOCKED",
         "TASKS_COMPLETED": 2,
@@ -164808,9 +164808,9 @@
         "USER_CONTINUE_MESSAGES": 0,
         "WORKERS_USED": 1
       },
-      "record_sha256": "05d3320a636a02d1e6cf6a7ea40dd23281bff16ad8329a1e010cf6d68a13ecc6",
+      "record_sha256": "f53067f4ac494368375a1edb96baf42b4e6ddaab7615dfe12c5643f3059983a3",
       "revision": 1375,
-      "state_sha256": "73dd070907af1088b57f7e423614704765316ec7f3471d68a43f94625a14ddfc",
+      "state_sha256": "3479280f051dc117a9460568faf831d14d7576a03297d781128dd02ed33b58a6",
       "timestamp_utc": "2026-09-24T08:44:02Z",
       "updated_by": "Google-Antigravity"
     },
@@ -164832,8 +164832,8 @@
         },
         "binding": {
           "branch": "agent/mac-cannon-v1-fixes",
-          "current_sha": "a5087918d2a3db3aa873c780993241aca5d5de42",
-          "runtime_identity": "a5087918d2a3db3aa873c780993241aca5d5de42"
+          "current_sha": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
+          "runtime_identity": "b459ff11249d4b164ca851c0b1c441131eb4ff6b"
         },
         "evidence": [
           {
@@ -164859,9 +164859,9 @@
       "changed_fields": [
         "PROVEN_EDGES"
       ],
-      "entry_sha256": "39355ed0f4ac28777f0a38f1b990f906b64fdc741c43161c5ab1928058b61291",
+      "entry_sha256": "66917a9e9a7bcef676a77e7dd7b7a86fc2a8ad380bbb1db9235870c4e9a7d26d",
       "operation": "UPDATE",
-      "previous_entry_sha256": "23213b4b0d33fe3f0489783ef04e150dae8793cc2a8cfb5e2d164236c9c2092f",
+      "previous_entry_sha256": "787b7a170fb7fc7e25841c06b0ab76c276d15186afdc431104db7e81298b29ba",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -164874,7 +164874,7 @@
           "motor-eligibility-v1"
         ],
         "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
-        "CURRENT_SHA": "a5087918d2a3db3aa873c780993241aca5d5de42",
+        "CURRENT_SHA": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
         "DUPLICATE_EXTERNAL_EFFECTS": 0,
         "FIRST_CAUSAL_BLOCKER": "TIMEOUT_HUNG_TASK",
         "GOAL": "COURIER-PUBLIC-RELEASE",
@@ -164895,7 +164895,7 @@
           "Website QA"
         ],
         "QUEUE_INDEPENDENT": "NO",
-        "RUNTIME_IDENTITY": "a5087918d2a3db3aa873c780993241aca5d5de42",
+        "RUNTIME_IDENTITY": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
         "RUNTIME_OWNER": "Google-Antigravity",
         "STATUS": "BLOCKED",
         "TASKS_COMPLETED": 2,
@@ -164926,9 +164926,9 @@
         "USER_CONTINUE_MESSAGES": 0,
         "WORKERS_USED": 1
       },
-      "record_sha256": "fd3c52e5b40dc7ba8abf4d50824f147f486988ef55d0e700efd34c6cfd4e1621",
+      "record_sha256": "e19211d06e48783b82fb7fd019dd292487419efc1e8bb4fbac3a83f207ba8b53",
       "revision": 1376,
-      "state_sha256": "4fae502365e47370f4764b0a2cd48b9b8f612386a1cf99c624691c7bdca980aa",
+      "state_sha256": "872da198f1a61ced78cd2f9ce1d77c4598570033c71196373b904aed61d9fc81",
       "timestamp_utc": "2026-09-24T08:44:13Z",
       "updated_by": "Google-Antigravity"
     },
@@ -164950,8 +164950,8 @@
         },
         "binding": {
           "branch": "agent/mac-cannon-v1-fixes",
-          "current_sha": "a5087918d2a3db3aa873c780993241aca5d5de42",
-          "runtime_identity": "a5087918d2a3db3aa873c780993241aca5d5de42"
+          "current_sha": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
+          "runtime_identity": "b459ff11249d4b164ca851c0b1c441131eb4ff6b"
         },
         "evidence": [
           {
@@ -164977,9 +164977,9 @@
       "changed_fields": [
         "PROVEN_EDGES"
       ],
-      "entry_sha256": "b5902569614715dfda61cff5e183798496abf262317d05893ea2887f89cc8400",
+      "entry_sha256": "84a1cf58274999c6db339ee6ee723220ac564b5fb7d1f0f11f8177b310efa9d9",
       "operation": "UPDATE",
-      "previous_entry_sha256": "39355ed0f4ac28777f0a38f1b990f906b64fdc741c43161c5ab1928058b61291",
+      "previous_entry_sha256": "66917a9e9a7bcef676a77e7dd7b7a86fc2a8ad380bbb1db9235870c4e9a7d26d",
       "record": {
         "ACTIVE_WRITERS": [
           "Google-Antigravity"
@@ -164992,7 +164992,7 @@
           "motor-eligibility-v1"
         ],
         "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
-        "CURRENT_SHA": "a5087918d2a3db3aa873c780993241aca5d5de42",
+        "CURRENT_SHA": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
         "DUPLICATE_EXTERNAL_EFFECTS": 0,
         "FIRST_CAUSAL_BLOCKER": "TIMEOUT_HUNG_TASK",
         "GOAL": "COURIER-PUBLIC-RELEASE",
@@ -165013,7 +165013,7 @@
           "Website QA"
         ],
         "QUEUE_INDEPENDENT": "NO",
-        "RUNTIME_IDENTITY": "a5087918d2a3db3aa873c780993241aca5d5de42",
+        "RUNTIME_IDENTITY": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
         "RUNTIME_OWNER": "Google-Antigravity",
         "STATUS": "BLOCKED",
         "TASKS_COMPLETED": 2,
@@ -165044,10 +165044,839 @@
         "USER_CONTINUE_MESSAGES": 0,
         "WORKERS_USED": 1
       },
-      "record_sha256": "05d3320a636a02d1e6cf6a7ea40dd23281bff16ad8329a1e010cf6d68a13ecc6",
+      "record_sha256": "f53067f4ac494368375a1edb96baf42b4e6ddaab7615dfe12c5643f3059983a3",
       "revision": 1377,
-      "state_sha256": "73dd070907af1088b57f7e423614704765316ec7f3471d68a43f94625a14ddfc",
+      "state_sha256": "3479280f051dc117a9460568faf831d14d7576a03297d781128dd02ed33b58a6",
       "timestamp_utc": "2026-09-24T08:44:28Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "agent/mac-cannon-v1-fixes",
+          "current_sha": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
+          "runtime_identity": "b459ff11249d4b164ca851c0b1c441131eb4ff6b"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "PROVEN_EDGES",
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "7a51c215d8564589527cc19b28ed51075f5161431e2e6f9ff81b06cde0b0fe4f",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "84a1cf58274999c6db339ee6ee723220ac564b5fb7d1f0f11f8177b310efa9d9",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "agent/mac-cannon-v1-fixes",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "TIMEOUT_HUNG_TASK",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "Prove edge: RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Token Efficiency",
+          "Zero-Chat Handoff",
+          "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION",
+          "Website QA",
+          "Demo Readiness",
+          "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION",
+          "PR41 ACCEPTANCE",
+          "LEDGER/HANDOFF"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "BLOCKED",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+          "SALES PACKAGE",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION",
+          "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION",
+          "RELEASE - AUTHORIZED_MACHINE_ACTION",
+          "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+          "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+          "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - AUTHORIZED_MACHINE_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+          "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLICATION VERIFICATION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+          "POST-PILOT HARDENING",
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "e1199c9590fc82b8a54f3169ec765b66135596f46dd618034cea3952044317ac",
+      "revision": 1378,
+      "state_sha256": "232514ca36e14f342cea60667f959de52ff3c0ed74ff44c44b7fb49d7844e0a7",
+      "timestamp_utc": "2026-09-24T12:31:40Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "agent/mac-cannon-v1-fixes",
+          "current_sha": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
+          "runtime_identity": "b459ff11249d4b164ca851c0b1c441131eb4ff6b"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "PROVEN_EDGES"
+      ],
+      "entry_sha256": "328cd2f7780a0ebe25602a4a1bf5fa718e93efae5d50ea31e39630f2b50c2ded",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "7a51c215d8564589527cc19b28ed51075f5161431e2e6f9ff81b06cde0b0fe4f",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "agent/mac-cannon-v1-fixes",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "TIMEOUT_HUNG_TASK",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "Prove edge: RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Token Efficiency",
+          "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "Demo Readiness",
+          "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION",
+          "PR41 ACCEPTANCE",
+          "LEDGER/HANDOFF"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "BLOCKED",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+          "SALES PACKAGE",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION",
+          "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION",
+          "RELEASE - AUTHORIZED_MACHINE_ACTION",
+          "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+          "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+          "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - AUTHORIZED_MACHINE_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+          "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLICATION VERIFICATION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+          "POST-PILOT HARDENING",
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "70c55c40c8f9d46c8b74faecca58b05ddc7d5d3da7fca3ea44c6fd697664bb8f",
+      "revision": 1379,
+      "state_sha256": "40e5e2c3e4cb4aa1131be8f8a868e7fea6e649be6b5b69fab8291c0628ad05c0",
+      "timestamp_utc": "2026-09-24T12:31:51Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "agent/mac-cannon-v1-fixes",
+          "current_sha": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
+          "runtime_identity": "b459ff11249d4b164ca851c0b1c441131eb4ff6b"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "PROVEN_EDGES"
+      ],
+      "entry_sha256": "f8c9ab837fe3043fe54dc9051865534648eff5a6acb90e6c182d57228bd62db9",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "328cd2f7780a0ebe25602a4a1bf5fa718e93efae5d50ea31e39630f2b50c2ded",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "agent/mac-cannon-v1-fixes",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "TIMEOUT_HUNG_TASK",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "Prove edge: RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Token Efficiency",
+          "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION",
+          "Website QA",
+          "Zero-Chat Handoff",
+          "Demo Readiness",
+          "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION",
+          "PR41 ACCEPTANCE",
+          "LEDGER/HANDOFF"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "BLOCKED",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+          "SALES PACKAGE",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION",
+          "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION",
+          "RELEASE - AUTHORIZED_MACHINE_ACTION",
+          "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+          "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+          "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - AUTHORIZED_MACHINE_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+          "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLICATION VERIFICATION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+          "POST-PILOT HARDENING",
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "30b625244de88518166c91ee939566af11e744fa2873fdac020e0eed82326f31",
+      "revision": 1380,
+      "state_sha256": "78cefd5ffdd21302eb2527fd8015663c05a8ea3bcf15db36a2049a10ec677a5c",
+      "timestamp_utc": "2026-09-24T12:32:00Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "agent/mac-cannon-v1-fixes",
+          "current_sha": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
+          "runtime_identity": "b459ff11249d4b164ca851c0b1c441131eb4ff6b"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "88ae8430ba788e7fbba0891114c1527e48b9c644f1398804e743ca721d5af866",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "f8c9ab837fe3043fe54dc9051865534648eff5a6acb90e6c182d57228bd62db9",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "agent/mac-cannon-v1-fixes",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "TIMEOUT_HUNG_TASK",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "Prove edge: RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Token Efficiency",
+          "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION",
+          "Website QA",
+          "Zero-Chat Handoff",
+          "Demo Readiness",
+          "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION",
+          "PR41 ACCEPTANCE",
+          "LEDGER/HANDOFF"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "BLOCKED",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+          "SALES PACKAGE",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION",
+          "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION",
+          "RELEASE - AUTHORIZED_MACHINE_ACTION",
+          "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+          "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+          "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - AUTHORIZED_MACHINE_ACTION",
+          "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLICATION VERIFICATION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+          "POST-PILOT HARDENING",
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "02747dc0d1869b63158f6ab9da62551b4fe85e9e32eda0cd9ecf808e96f56306",
+      "revision": 1381,
+      "state_sha256": "f8b0ef2a5280e1d7dfc64ce12b7d7fec8de432a53d58dd983c87ab3f4f55ad31",
+      "timestamp_utc": "2026-09-24T12:32:35Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "agent/mac-cannon-v1-fixes",
+          "current_sha": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
+          "runtime_identity": "b459ff11249d4b164ca851c0b1c441131eb4ff6b"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "f41eb09aa49739925777935fbe01f1f043188d5b40b25796baba54f2ee847698",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "88ae8430ba788e7fbba0891114c1527e48b9c644f1398804e743ca721d5af866",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "agent/mac-cannon-v1-fixes",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "TIMEOUT_HUNG_TASK",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "Prove edge: RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Token Efficiency",
+          "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION",
+          "Website QA",
+          "Zero-Chat Handoff",
+          "Demo Readiness",
+          "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION",
+          "PR41 ACCEPTANCE",
+          "LEDGER/HANDOFF"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "BLOCKED",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+          "SALES PACKAGE",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION",
+          "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION",
+          "RELEASE - AUTHORIZED_MACHINE_ACTION",
+          "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+          "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+          "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - AUTHORIZED_MACHINE_ACTION",
+          "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLICATION VERIFICATION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+          "POST-PILOT HARDENING",
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "a674f5fa4caba692132c0e2a6404716259b7d5156d43e95ecc1c6286b084dc27",
+      "revision": 1382,
+      "state_sha256": "5e4ccbd13b99c5c347034627b3e45ab60ffbb61b34372337c69464df51af2750",
+      "timestamp_utc": "2026-09-24T12:33:11Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "agent/mac-cannon-v1-fixes",
+          "current_sha": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
+          "runtime_identity": "b459ff11249d4b164ca851c0b1c441131eb4ff6b"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "PROVEN_EDGES",
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "3b1bbcb12db0303ce1bdd4b7b7167d1559b3c720b7b0150bef2cca9be1f216c5",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "f41eb09aa49739925777935fbe01f1f043188d5b40b25796baba54f2ee847698",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "agent/mac-cannon-v1-fixes",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "TIMEOUT_HUNG_TASK",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "Prove edge: RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION",
+          "LEDGER/HANDOFF",
+          "PR41 ACCEPTANCE",
+          "Zero-Chat Handoff",
+          "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION",
+          "Token Efficiency",
+          "Demo Readiness",
+          "Website QA"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "BLOCKED",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - AUTHORIZED_MACHINE_ACTION",
+          "RELEASE - AUTHORIZED_MACHINE_ACTION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+          "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLICATION VERIFICATION",
+          "POST-PILOT HARDENING",
+          "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+          "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION",
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
+          "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+          "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+          "SALES PACKAGE"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "c07f87b0d2c5c0fd0ec68fed05a543411ba735f1cb618a1419e3a1027ef0cfa9",
+      "revision": 1383,
+      "state_sha256": "8b7d9d7fd180ac8094321939e0d4bb447140a5e3b4489fc899d28bad418853f9",
+      "timestamp_utc": "2026-09-24T12:53:22Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "agent/mac-cannon-v1-fixes",
+          "current_sha": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
+          "runtime_identity": "b459ff11249d4b164ca851c0b1c441131eb4ff6b"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "PROVEN_EDGES",
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "857b9b50e0c4819cae28fe479745a56a8c69c055442c40ebf225fd7128f8c140",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "3b1bbcb12db0303ce1bdd4b7b7167d1559b3c720b7b0150bef2cca9be1f216c5",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "agent/mac-cannon-v1-fixes",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "TIMEOUT_HUNG_TASK",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "Prove edge: RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION",
+          "PR41 ACCEPTANCE",
+          "Demo Readiness",
+          "Website QA",
+          "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION",
+          "LEDGER/HANDOFF",
+          "Token Efficiency",
+          "Zero-Chat Handoff"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "BLOCKED",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "SALES PACKAGE",
+          "POST-PILOT HARDENING",
+          "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+          "RELEASE - AUTHORIZED_MACHINE_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - AUTHORIZED_MACHINE_ACTION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
+          "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+          "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+          "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION",
+          "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLICATION VERIFICATION",
+          "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION",
+          "RELEASE - IRREVERSIBLE_HUMAN_ACTION"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "d6811412f3a3a49a8adf546286c97ed0d06e97885ba0c31a3add0c3f161cf6d2",
+      "revision": 1384,
+      "state_sha256": "cd3a131e8cef23f285d512579f9ba13b3f333487f20a356f53b7bff52960d711",
+      "timestamp_utc": "2026-09-24T12:54:15Z",
       "updated_by": "Google-Antigravity"
     }
   ],
@@ -165064,7 +165893,7 @@
       "motor-eligibility-v1"
     ],
     "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
-    "CURRENT_SHA": "a5087918d2a3db3aa873c780993241aca5d5de42",
+    "CURRENT_SHA": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
     "DUPLICATE_EXTERNAL_EFFECTS": 0,
     "FIRST_CAUSAL_BLOCKER": "TIMEOUT_HUNG_TASK",
     "GOAL": "COURIER-PUBLIC-RELEASE",
@@ -165075,47 +165904,47 @@
     "NEXT_EXECUTABLE_ACTION": "Prove edge: RELEASE - SAFE_AUTOMATABLE_PREPARATION",
     "PROJECT": "Courier",
     "PROVEN_EDGES": [
-      "LEDGER/HANDOFF",
-      "Demo Readiness",
       "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION",
-      "Zero-Chat Handoff",
-      "Token Efficiency",
-      "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION",
       "PR41 ACCEPTANCE",
-      "Website QA"
+      "Demo Readiness",
+      "Website QA",
+      "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION",
+      "LEDGER/HANDOFF",
+      "Token Efficiency",
+      "Zero-Chat Handoff"
     ],
     "QUEUE_INDEPENDENT": "NO",
-    "RUNTIME_IDENTITY": "a5087918d2a3db3aa873c780993241aca5d5de42",
+    "RUNTIME_IDENTITY": "b459ff11249d4b164ca851c0b1c441131eb4ff6b",
     "RUNTIME_OWNER": "Google-Antigravity",
     "STATUS": "BLOCKED",
     "TASKS_COMPLETED": 2,
     "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
     "UNPROVEN_EDGES": [
-      "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
-      "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
-      "PUBLICATION VERIFICATION",
-      "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
-      "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION",
-      "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
-      "RELEASE - AUTHORIZED_MACHINE_ACTION",
+      "SALES PACKAGE",
+      "POST-PILOT HARDENING",
       "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+      "RELEASE - AUTHORIZED_MACHINE_ACTION",
+      "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
       "FIRST PILOT - AUTHORIZED_MACHINE_ACTION",
+      "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
+      "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+      "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
       "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
       "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
-      "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION",
-      "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
-      "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
-      "POST-PILOT HARDENING",
-      "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
-      "SALES PACKAGE",
-      "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+      "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+      "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
       "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
-      "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
-      "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION"
+      "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+      "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION",
+      "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+      "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
+      "PUBLICATION VERIFICATION",
+      "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION",
+      "RELEASE - IRREVERSIBLE_HUMAN_ACTION"
     ],
     "USER_CONTINUE_MESSAGES": 0,
     "WORKERS_USED": 1
   },
-  "revision": 1377,
+  "revision": 1384,
   "schema_version": 2
 }

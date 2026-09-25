@@ -4,7 +4,6 @@ import hashlib
 import time
 import subprocess
 import sys
-import fcntl
 
 QUEUE_FILE = "muse_queue.json"
 CHECKPOINT_FILE = "muse_checkpoint.json"
@@ -24,13 +23,32 @@ def compute_fingerprint(task):
     content = f"{task['objective']}_{task['output_path']}_{task.get('input_refs', '')}"
     return hashlib.sha256(content.encode()).hexdigest()
 
-def is_another_instance_running():
-    lock_fd = os.open(LOCK_FILE, os.O_RDWR | os.O_CREAT)
+def acquire_lock(lock_file):
+    lock_fd = os.open(lock_file, os.O_RDWR | os.O_CREAT)
     try:
-        fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        if sys.platform == 'win32':
+            import msvcrt
+            msvcrt.locking(lock_fd, msvcrt.LK_NBLCK, 1)
+        else:
+            import fcntl
+            fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
         return lock_fd
-    except BlockingIOError:
+    except (BlockingIOError, OSError):
+        os.close(lock_fd)
         return None
+
+def release_lock(lock_fd):
+    if lock_fd is not None:
+        if sys.platform == 'win32':
+            import msvcrt
+            msvcrt.locking(lock_fd, msvcrt.LK_UNLCK, 1)
+        else:
+            import fcntl
+            fcntl.flock(lock_fd, fcntl.LOCK_UN)
+        os.close(lock_fd)
+
+def is_another_instance_running():
+    return acquire_lock(LOCK_FILE)
 
 def main():
     lock_fd = is_another_instance_running()

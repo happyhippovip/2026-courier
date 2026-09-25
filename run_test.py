@@ -1,7 +1,5 @@
-import subprocess
+import os
 import sys
-res = subprocess.run(["python3", "-m", "pytest", "tests/test_motor_dlq04_adversarial.py", "-v", "-s"], capture_output=True, text=True)
-print("STDOUT:")
-print(res.stdout)
-print("STDERR:")
-print(res.stderr)
+sys.path.append(os.path.abspath("."))
+import pytest
+pytest.main(["tests/test_ledger_freshness_binding_epoch.py::TestLongLivedEpochMutableEvidence::test_evidence_at_47h_qualifies_as_fresh", "-s"])

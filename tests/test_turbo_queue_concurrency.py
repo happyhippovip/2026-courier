@@ -115,12 +115,18 @@ def test_concurrency_overlap_and_auto_continue(test_server):
                 if tid in ("A", "B"):
                     execution_barrier.wait(timeout=5.0)
                 
-                result = {
+
+                import server.app, hashlib, json
+                base_res = {
                     "goal_id": task["goal_id"], "task_id": tid, "attempt_id": task["attempt_id"],
                     "dispatch_id": task["dispatch_id"], "execution_ref": task["execution_ref"],
-                    "worker_id": w_id, "run_id": f"run_{tid}", "result_id": f"res_{tid}",
-                    "status": "SUCCESS", "artifacts": []
+                    "worker_id": w_id, "run_id": f"run_{tid}",
+                    "status": "SUCCESS", "artifacts": [],
+                    "runtime_identity": server.app.SERVER_BINDING
                 }
+                rid = hashlib.sha256(json.dumps(base_res, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+                result = dict(base_res, result_id=f"result-{rid}")
+
                 requests.post(f"{test_server}/tasks/result", json=result, headers=auth_worker)
                 thread_res_ids[tid] = result["result_id"]
                 completion_events[tid].set()

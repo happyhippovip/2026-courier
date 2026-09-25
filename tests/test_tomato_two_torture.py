@@ -100,6 +100,17 @@ def start_server():
     env["COURIER_API_KEY"] = "321606503a874d39b50f6137e3321b7f"
     env["COURIER_MOCK_CHIEF"] = "1"
     env["COURIER_VERIFIER_API_KEY"] = "421606503a874d39b50f6137e3321b7f"
+
+    # CLEANUP STATE BEFORE TEST
+    state_file = REPO_ROOT / "server/state.json"
+    if state_file.exists():
+        state_file.unlink()
+        
+    worker_state_dir = REPO_ROOT / "scripts/mac_worker/state"
+    if worker_state_dir.exists():
+        for f in worker_state_dir.glob("*.json"):
+            f.unlink()
+
     
     # waitress is missing, so let's start the server and verifier manually here
     

@@ -378,10 +378,12 @@ def test_dispatch_preserves_taskpacket_as_raw_json(tmp_path: Path, monkeypatch):
 
 
 def test_durable_result_preserves_github_run_attempt():
-    task = {**packet(), "execution_ref": "ref"}
+    task = {**packet(), "execution_ref": "ref", "server_binding": "test-runner"}
     result = {
-        **packet(), "execution_ref": "ref", "run_id": "99", "run_attempt": "1", "result_id": "result-dispatch-1",
+        **packet(), "execution_ref": "ref", "run_id": "99", "run_attempt": "1", 
+        "result_id": "result-7a09f063806b2465c595bf32a25916bb9ac91555a1714a66e704353cc1dad8bc",
         "status": "SUCCESS", "artifacts": [{"path": "courier_output_dispatch-1.json", "sha256": "a" * 64}],
+        "runtime_identity": "test-runner",
     }
     assert validate_durable_result(task, result)["run_attempt"] == "1"
 
