@@ -1,8 +1,14 @@
 #!/bin/bash
 # Reicht das Revenue V1 "Oil Market Anomaly Alarm" Goal an den Server ein.
 
-curl -X POST http://127.0.0.1:8080/goals \
-  -H "Authorization: Bearer prod-secret-12345" \
+if [ -z "${COURIER_API_KEY// /}" ]; then
+    echo "ERROR: COURIER_API_KEY is not set; refusing to contact the Courier server." >&2
+    exit 1
+fi
+COURIER_SERVER_URL="${COURIER_SERVER_URL:-http://127.0.0.1:8080}"
+
+curl -X POST "${COURIER_SERVER_URL%/}/goals" \
+  -H "Authorization: Bearer ${COURIER_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{
     "goal_text": "Hourly Oil Market Anomaly Alarm",
