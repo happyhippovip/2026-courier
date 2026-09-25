@@ -589,6 +589,15 @@ def submit_goal():
     goal_id = f"goal-{uuid.uuid4().hex[:8]}"
     state = load_state()
     
+    # Virtual Balance Check (P4)
+    estimated_cost = float(data.get("estimated_cost", 2.50))
+    virtual_balance = float(state.get("virtual_balance", 10.00))
+    if estimated_cost > virtual_balance:
+        return jsonify({"error": "Payment Required"}), 402
+    
+    state["virtual_balance"] = virtual_balance - estimated_cost
+    save_state(state)
+    
     goal = {
         "goal_id": goal_id,
         "goal_text": data.get("goal_text"),
@@ -1499,6 +1508,16 @@ def approve_merge(task_id):
     task = state["tasks"].get(task_id)
     if not task:
         return jsonify({"error": "Task not found"}), 404
+        
+    actual_cost = float(data.get("actual_cost", 0.0))
+    if actual_cost > 0:
+        virtual_balance = float(state.get("virtual_balance", 10.00))
+        # If the actual cost was HIGHER than estimated, we might have to halt
+        # Let's just deduct it. If balance goes negative, fail.
+        if actual_cost > virtual_balance:
+            return jsonify({"error": "Payment Required (Actual Cost Exceeded Provision)"}), 402
+        state["virtual_balance"] = virtual_balance - actual_cost
+        # We don't save state here yet, save_state(state) is called below
     if task.get("status") != "RECONCILED_PENDING_MERGE":
         return jsonify({"error": f"Task is not pending merge (status={task.get('status')})"}), 409
 
@@ -1614,6 +1633,16 @@ def provider_wait(task_id):
     task = state["tasks"].get(task_id)
     if not task:
         return jsonify({"error": "Task not found"}), 404
+        
+    actual_cost = float(data.get("actual_cost", 0.0))
+    if actual_cost > 0:
+        virtual_balance = float(state.get("virtual_balance", 10.00))
+        # If the actual cost was HIGHER than estimated, we might have to halt
+        # Let's just deduct it. If balance goes negative, fail.
+        if actual_cost > virtual_balance:
+            return jsonify({"error": "Payment Required (Actual Cost Exceeded Provision)"}), 402
+        state["virtual_balance"] = virtual_balance - actual_cost
+        # We don't save state here yet, save_state(state) is called below
     if task.get("status") != "DISPATCHED":
         return jsonify({"error": f"Task not in DISPATCHED state (is {task.get('status')})"}), 409
     if task.get("worker_id") != worker_id:
