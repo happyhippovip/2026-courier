@@ -167,6 +167,23 @@ def test_verifier_fails_when_fetch_fails(monkeypatch):
     assert v.verify_artifacts({"target_capability": "windows"}, {"artifacts": [art]}, fetch=boom) == "FAIL"
 
 
+def test_verifier_fails_when_expected_artifact_missing(monkeypatch):
+    v = load_verifier(monkeypatch)
+    task = {"target_capability": "linux", "artifacts": ["file_a.txt", "file_b.txt"]}
+    result = {"artifacts": [{"path": "file_a.txt", "sha256": "a" * 64}]}
+    assert v.verify_artifacts(task, result, local_verify=lambda *a: True) == "FAIL"
+
+
+def test_verifier_rejects_path_traversal_local_artifact(monkeypatch):
+    v = load_verifier(monkeypatch)
+    local = []
+    task = {"target_capability": "linux"}
+    result = {"artifacts": [{"path": "../outside.txt", "sha256": "a" * 64}]}
+    assert v.verify_artifacts(task, result, local_verify=lambda *a: local.append(a) or True) == "FAIL"
+    assert local == []
+
+
+
 # ---------------------------------------------------------------- Windows worker end to end
 
 class Resp(io.BytesIO):

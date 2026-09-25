@@ -62,6 +62,13 @@ def verify_artifacts(task, result, fetch=fetch_artifact, local_verify=None):
     if not artifacts:
         log("No artifact evidence.")
         return "FAIL"
+    expected = task.get("artifacts")
+    if expected:
+        provided_paths = {art.get("path") for art in artifacts if isinstance(art, dict)}
+        for exp in expected:
+            if exp not in provided_paths:
+                log(f"Expected artifact missing from result: {exp}")
+                return "FAIL"
     target = str(task.get("target_capability") or task.get("target_agent") or "").lower()
     remote = any(t in target for t in REMOTE_TARGETS)
     for art in artifacts:
@@ -99,7 +106,10 @@ def run_loop():
                     
                     log(f"Verifying task {task_id} (result {result_id})...")
                     
-                    if "revenue_safety_audit" in task.get("capabilities", []):
+                    if result.get("status") != "SUCCESS":
+                        log(f"Task result status is {result.get('status')}; rejecting verification")
+                        verdict = "FAIL"
+                    elif "revenue_safety_audit" in task.get("capabilities", []):
                         log(f"Running deterministic revenue verification for {task_id}...")
                         import tempfile, json, subprocess
                         with tempfile.TemporaryDirectory() as td:
