@@ -32,8 +32,8 @@ def test_server(monkeypatch):
     temp_dir = tempfile.mkdtemp()
     state_file = Path(temp_dir) / "central_state.json"
     monkeypatch.setattr(server.app, "STATE_FILE", str(state_file))
-    server.app.API_KEY = "test"
-    server.app.VERIFIER_API_KEY = "test_verifier"
+    monkeypatch.setattr(server.app, "API_KEY", "test")
+    monkeypatch.setattr(server.app, "VERIFIER_API_KEY", "test_verifier")
 
     
     server_thread = ServerThread(server.app.app)
