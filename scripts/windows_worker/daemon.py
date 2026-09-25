@@ -1,5 +1,5 @@
 import json, time, os, sys, shutil, subprocess, uuid, hashlib
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 import urllib.request
 import urllib.error
 import tempfile
@@ -28,11 +28,15 @@ def load_config():
 STATE_DIR = Path(__file__).parent / "state"
 MAX_RESULT_POST_ATTEMPTS = 5
 
+# Only capabilities run_task() can actually execute (native PowerShell). config.json
+# WORKER_CAPABILITIES is not authoritative: e.g. "antigravity" would route agy tasks here.
+CAPABILITIES = ["windows"]
+
 def register_worker(worker_id, release_task=False):
     require_api_key()
     req = urllib.request.Request(f"{API_URL}/workers/register", method="POST")
     for k, v in HEADERS.items(): req.add_header(k, v)
-    payload = {"worker_id": worker_id, "platform": "windows", "capabilities": ["windows"]}
+    payload = {"worker_id": worker_id, "platform": "windows", "capabilities": list(CAPABILITIES)}
     if release_task:
         # Tells the server this worker no longer holds its task; the server's
         # restart recovery then quarantines it (HUMAN_REQUIRED) instead of replaying.
@@ -73,6 +77,7 @@ def http_post_result(res):
 #   CLAIMED      -> execution has not begun; safe to run
 #   STARTED      -> execution may have had effects; never re-run after a crash
 #   RESULT_READY -> result_payload is final; only (re)deliver it, never recompute
+#   RELEASE_PENDING -> result was rejected (4xx); release the task to the server
 def persist_task(path, task):
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp_path = path.with_suffix(".tmp")
@@ -82,13 +87,30 @@ def persist_task(path, task):
         os.fsync(f.fileno())
     os.replace(tmp_path, path)
 
+def is_safe_artifact_path(name):
+    """Artifacts are workspace-relative (the daemon's cwd, which PowerShell
+    inherits). Reject absolute, drive-qualified, UNC and '..' paths under both
+    Windows and POSIX rules, matching the integration contract."""
+    if not isinstance(name, str) or not name:
+        return False
+    for pure in (PureWindowsPath(name), PurePosixPath(name)):
+        if pure.is_absolute() or pure.drive or pure.root or ".." in pure.parts:
+            return False
+    return True
+
 def build_result_payload(task, result, config):
     """Bind the execution outcome to the server-issued dispatch identity."""
     status = result["status"]
     artifacts = []
     if status == "SUCCESS":
         for expected in task.get("artifacts", []):
-            path = Path(expected.get("path") if isinstance(expected, dict) else expected)
+            name = expected.get("path") if isinstance(expected, dict) else expected
+            if not is_safe_artifact_path(name):
+                status = "FAILED"
+                result["stderr"] = result.get("stderr", "") + f"\nUnsafe artifact path: {name}"
+                artifacts = []
+                break
+            path = Path(name)
             if not path.is_file():
                 status = "FAILED"
                 result["stderr"] = result.get("stderr", "") + f"\nMissing artifact: {path}"
@@ -261,9 +283,17 @@ def loop():
                     outcome = http_post_result(task["result_payload"])
                     if outcome == "UNDELIVERED":
                         print(f"[{worker_id}] Result for {task['task_id']} not delivered yet; keeping it for redelivery.")
+                    elif outcome == "REJECTED":
+                        persist_task(STATE_DIR / f"rejected_result_{task['task_id']}.json", task)
+                        # The server keeps the task assigned after a 4xx; release it so recovery
+                        # quarantines it instead of leaving us WORKER_BUSY forever. The phase is
+                        # persisted first, so a crash here still releases on restart.
+                        task["worker_phase"] = "RELEASE_PENDING"
+                        persist_task(state_file, task)
+                        print(f"[{worker_id}] Task {task['task_id']} result REJECTED; releasing it.")
+                        release_task = True
+                        task = None
                     else:
-                        if outcome == "REJECTED":
-                            persist_task(STATE_DIR / f"rejected_result_{task['task_id']}.json", task)
                         state_file.unlink()
                         print(f"[{worker_id}] Task {task['task_id']} result {outcome}.")
                         task = None
