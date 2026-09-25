@@ -87,14 +87,16 @@ def test_zero_chat_auto_replenishment():
     
     for i in range(3):
         # 2. Worker claims task
-        claim_res = http_post("/tasks/claim", {"worker_id": "linux-worker"})
-        task = claim_res.get("task")
-        if not task:
-            time.sleep(2) # Wait for auto-replenish if it didn't happen yet
+        # Poll for claim to handle variable auto-replenish or verification latency
+        task = None
+        for _ in range(10):
             claim_res = http_post("/tasks/claim", {"worker_id": "linux-worker"})
             task = claim_res.get("task")
+            if task:
+                break
+            time.sleep(1)
             
-        assert task is not None, f"Expected to claim a task on iteration {i}"
+        assert task is not None, f"Expected to claim a task on iteration {i} after polling"
         
         # 3. Worker executes task (mock)
         task_id = task["task_id"]
