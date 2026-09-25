@@ -3,20 +3,29 @@ import json
 import os
 import time
 
+# Machine-readable outcome per crash phase, so a reconciler can act on it
+# instead of relying on log lines. Returned and persisted into worker state.
+RECOVERY_DECISIONS = {
+    'PRE_EFFECT': 'REEXECUTE_SAFE',
+    'ARTIFACT_CREATED': 'RESUME_FROM_ARTIFACT',
+    'POST_EXTERNAL_EFFECT': 'FAIL_CLOSED_HUMAN_GATE',
+    'POST_RESULT': 'VERIFY_WITH_SERVER',
+}
+
 def recover_worker(worker_state_file='worker_state.json'):
     print("Initiating Windows Worker Crash Recovery...")
-    
+
     if not os.path.exists(worker_state_file):
         print("No worker state found. Nothing to recover.")
-        return
-        
+        return None
+
     with open(worker_state_file, 'r') as f:
         wstate = json.load(f)
-        
+
     current_task = wstate.get('current_task')
     if not current_task:
         print("Worker crashed while idle. No recovery needed.")
-        return
+        return None
         
     task_id = current_task.get('task_id')
     execution_ref = current_task.get('execution_ref')
@@ -56,12 +65,22 @@ def recover_worker(worker_state_file='worker_state.json'):
         print(f"Cleaning up orphaned processes from crash: {owned_pids}")
         # Process kill logic omitted for simulation
         
-    # Clear worker state
+    # Clear worker state but keep a machine-readable recovery record
+    decision = RECOVERY_DECISIONS.get(last_known_phase, 'FAIL_CLOSED_HUMAN_GATE')
+    record = {
+        'task_id': task_id,
+        'execution_ref': execution_ref,
+        'phase': last_known_phase,
+        'decision': decision,
+        'recovered_at': time.time(),
+    }
     wstate['current_task'] = None
     wstate['owned_pids'] = []
-    
+    wstate['last_recovery'] = record
+
     with open(worker_state_file, 'w') as f:
         json.dump(wstate, f, indent=2)
+    return record
 
 if __name__ == '__main__':
     # Setup mock crashes and recover

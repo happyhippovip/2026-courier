@@ -2,6 +2,7 @@ import pytest
 import os
 import sys
 import json
+import time
 from unittest import mock
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -62,4 +63,36 @@ def test_recover_worker_phases(tmp_path, capsys):
         wstate = json.loads(state_file.read_text())
         assert wstate["current_task"] is None
         assert wstate["owned_pids"] == []
+
+def test_recover_worker_returns_machine_readable_record(tmp_path):
+    expected = {
+        'PRE_EFFECT': 'REEXECUTE_SAFE',
+        'ARTIFACT_CREATED': 'RESUME_FROM_ARTIFACT',
+        'POST_EXTERNAL_EFFECT': 'FAIL_CLOSED_HUMAN_GATE',
+        'POST_RESULT': 'VERIFY_WITH_SERVER',
+        'UNKNOWN': 'FAIL_CLOSED_HUMAN_GATE',
+    }
+    for phase, decision in expected.items():
+        state_file = tmp_path / f"worker_state_{phase}.json"
+        state_file.write_text(json.dumps({
+            "current_task": {"task_id": "T1", "execution_ref": "exec_1", "phase": phase},
+            "owned_pids": [],
+        }))
+        with mock.patch("scripts.windows_crash_recovery.os.path.exists", return_value=True):
+            record = windows_crash_recovery.recover_worker(str(state_file))
+
+        assert record["task_id"] == "T1"
+        assert record["execution_ref"] == "exec_1"
+        assert record["phase"] == phase
+        assert record["decision"] == decision
+        assert record["recovered_at"] <= time.time()
+
+        wstate = json.loads(state_file.read_text())
+        assert wstate["last_recovery"] == record
+
+def test_recover_worker_no_task_returns_none(tmp_path, capsys):
+    state_file = tmp_path / "worker_state.json"
+    state_file.write_text(json.dumps({"current_task": None}))
+    with mock.patch("scripts.windows_crash_recovery.os.path.exists", return_value=True):
+        assert windows_crash_recovery.recover_worker(str(state_file)) is None
 
