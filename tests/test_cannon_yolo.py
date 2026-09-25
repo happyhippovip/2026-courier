@@ -109,22 +109,8 @@ def test_d1_golden_without_live_identical_dom_writes(tmp_path):
     assert n == o and not [x for x in n if x[0] == "!"], n
 
 
-@pytest.mark.skip("UI out of scope")
-def test_d2_live_text_only_in_result_and_written_once(tmp_path):
-    txt = "LÄUFT · 0001\n\nprint('x')"; st = {**STATUS, "live": {"phase": "LÄUFT", "text": txt}}
-    n, o = dom(new_js(), st, tmp_path), dom(old_js(), st, tmp_path)
-    res = lambda L: [x for x in L if x[:2] == ["result", "textContent"]]
-    assert [x for x in n if x not in res(n)] == [x for x in o if x not in res(o)]      # sonst nichts anders
-    assert res(n) == [["result", "textContent", txt]]                                   # 1 Schreibzugriff bei 4 Refreshes: Markierung bleibt
 
 
-@pytest.mark.skip("UI out of scope")
-def test_d4_new_js_lines_use_no_new_dom_api_or_ids():
-    add = "\n".join(l[1:] for l in subprocess.run(["git", "diff", "-U0", PRE, "--", "app/cannon.js"], cwd=ROOT, capture_output=True, text=True, check=True).stdout.splitlines()
-                    if l.startswith("+") and not l.startswith("+++"))
-    assert add and not re.search(r"innerHTML|outerHTML|createElement|classList|\.style|appendChild|insertAdjacent|setAttribute|document\.write|eval\(|new Function", add)
-    ids = set(re.findall(r'id="([\w-]+)"', (ROOT / "app/cannon.html").read_text(encoding="utf-8")))
-    assert set(re.findall(r"\$\('([\w-]+)'\)", add)) <= ids
 
 
 def test_d5_redact_hides_secrets_keeps_code():
