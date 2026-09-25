@@ -74,8 +74,10 @@ def load_daemon(tmp_path, monkeypatch, harness, executions, effect=True):
     daemon = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(daemon)
     monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv("COURIER_SERVER", raising=False)
     monkeypatch.setattr(daemon, "STATE_DIR", tmp_path / "state")
-    monkeypatch.setattr(daemon, "load_config", lambda: {"WORKER_ID": "WINDOWS-01"})
+    monkeypatch.setattr(daemon, "load_config", lambda: {"WORKER_ID": "WINDOWS-01", "COURIER_SERVER": "http://courier.test:8080",
+                                                      "COURIER_API_KEY": "test-worker-key"})
     monkeypatch.setattr(daemon, "acquire_lock", lambda worker_id: tmp_path / "lock")
     monkeypatch.setattr(daemon, "is_resource_pressure_high", lambda: False)
     monkeypatch.setattr(daemon.time, "sleep", lambda s: None)

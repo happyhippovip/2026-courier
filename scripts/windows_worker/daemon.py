@@ -4,12 +4,11 @@ import urllib.request
 import urllib.error
 import tempfile
 
-API_URL = "http://192.168.178.162:8080"
-API_KEY = "prod-secret-12345"
-HEADERS = {
-    "Authorization": f"Bearer {API_KEY}",
-    "Content-Type": "application/json"
-}
+# Connection settings are resolved at startup by resolve_connection():
+# environment first, then config.json (written by bootstrap.ps1). There is no
+# built-in server or key; a worker without them refuses to start.
+API_URL = None
+HEADERS = {}
 
 def load_config():
     config_path = Path(__file__).parent / "config.json"
@@ -18,6 +17,29 @@ def load_config():
 
 STATE_DIR = Path(__file__).parent / "state"
 MAX_RESULT_POST_ATTEMPTS = 5
+
+def resolve_connection(config):
+    """Return (server_url, api_key): environment overrides config.json.
+
+    Error messages name the missing setting only and never echo a value.
+    """
+    server = (os.environ.get("COURIER_SERVER") or config.get("COURIER_SERVER") or "").strip()
+    api_key = (os.environ.get("COURIER_API_KEY") or config.get("COURIER_API_KEY") or "").strip()
+    if not server or server == "local":
+        raise SystemExit("COURIER_SERVER is not configured: set the COURIER_SERVER environment variable "
+                         "or COURIER_SERVER in config.json (see bootstrap.ps1)")
+    if not api_key:
+        raise SystemExit("COURIER_API_KEY is not configured: set the COURIER_API_KEY environment variable "
+                         "or COURIER_API_KEY in config.json (see bootstrap.ps1)")
+    return server.rstrip("/"), api_key
+
+def configure_connection(config):
+    global API_URL, HEADERS
+    API_URL, api_key = resolve_connection(config)
+    HEADERS = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
 
 def register_worker(worker_id, release_task=False):
     req = urllib.request.Request(f"{API_URL}/workers/register", method="POST")
@@ -177,6 +199,7 @@ def acquire_lock(worker_id):
 def loop():
     config = load_config()
     worker_id = config["WORKER_ID"]
+    configure_connection(config)
     
     lock_path = acquire_lock(worker_id)
     if not lock_path:
