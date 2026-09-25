@@ -47,3 +47,26 @@ def test_gemini_worker_rejects_path_unsafe_task_id(tmp_path):
 
     popen.assert_not_called()
 
+def test_gemini_worker_timeout_kills_process_and_fails_closed(tmp_path):
+    task_file = tmp_path / "timeout.json"
+    with open(task_file, "w") as f:
+        json.dump({"task_id": "gemini-timeout", "instruction": "do it"}, f)
+
+    mock_process = mock.Mock()
+    mock_process.pid = 5678
+    mock_process.communicate.side_effect = [
+        subprocess.TimeoutExpired(cmd="agy", timeout=60),
+        ("timeout garbage", ""),
+    ]
+
+    with mock.patch("subprocess.Popen", return_value=mock_process):
+        with mock.patch("scripts.gemini_worker_adapter.consume"):
+            pid, dispatch_ref, result_ref = gemini_worker_adapter.run_worker(str(task_file))
+
+    assert mock_process.kill.called
+    assert pid == 5678
+    with open(result_ref) as f:
+        res = json.load(f)
+    assert res["status"] != "SUCCESS"
+    os.remove(result_ref)
+
