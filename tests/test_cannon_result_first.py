@@ -19,7 +19,7 @@ def register(http, worker_id):
     http.post("/workers/register", headers=auth(), json={"worker_id": worker_id, "platform": "test", "capabilities": ["linux"], "provider": "local"})
 
 def submit(http, tasks):
-    resp = http.post("/goals", headers=auth(), json={"goal_text": "test", "workflow_plan": tasks})
+    resp = http.post("/goals", headers=auth(), json={"goal_text": "test", "estimated_cost": 0.0, "workflow_plan": tasks, "estimated_cost": 0.0, "estimated_cost": 0.0})
     return resp.get_json()["goal_id"]
 
 def claim(http, worker_id):

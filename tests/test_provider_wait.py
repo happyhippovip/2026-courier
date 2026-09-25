@@ -36,7 +36,7 @@ def submit(http, tasks):
     response = http.post(
         "/goals",
         headers=auth(),
-        json={"goal_text": "provider wait regression", "workflow_plan": tasks},
+        json={"goal_text": "provider wait regression", "workflow_plan": tasks, "estimated_cost": 0.0},
     )
     assert response.status_code == 200
     return response.get_json()["goal_id"]

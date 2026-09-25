@@ -23,7 +23,7 @@ def register(http, worker_id):
     assert resp.status_code == 200
 
 def submit(http, tasks):
-    resp = http.post("/goals", headers=auth(), json={"goal_text": "cannon test", "workflow_plan": tasks})
+    resp = http.post("/goals", headers=auth(), json={"goal_text": "cannon test", "workflow_plan": tasks, "estimated_cost": 0.0})
     assert resp.status_code == 200
     return resp.get_json()["goal_id"]
 
