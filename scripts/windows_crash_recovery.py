@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import json
 import os
-import time
 
 def recover_worker(worker_state_file='worker_state.json'):
     print("Initiating Windows Worker Crash Recovery...")
