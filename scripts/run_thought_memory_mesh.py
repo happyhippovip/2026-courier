@@ -16,7 +16,6 @@ import json
 import re
 import sys
 import uuid
-from collections import Counter
 from pathlib import Path
 from typing import Any
 
