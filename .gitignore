@@ -106,3 +106,7 @@ confidential/
 
 # Durable GitHub dispatch packets and adapter state (runtime only).
 events/github-dispatch/
+
+# Local credential files (never commit real keys).
+.env
+deploy/.env

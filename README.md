@@ -44,7 +44,17 @@
 6. **Workers** — Mac and Windows daemons plus the GitHub worker adapter; all
    credentials come from the environment (`COURIER_API_KEY`).
 
-`deploy/run-supervisor.sh` starts the server, verifier, dispatcher and watchdog.
+### Startup authorities
+
+| Component | Production start | Notes |
+|---|---|---|
+| Server (`server.app`) | `deploy/run-supervisor.sh` (gunicorn) via `deploy/courier.service` (Linux) or the `com.courier.server` LaunchAgent from `deploy/install_mac_runtime.sh` / `scripts/setup_local_autonomy.sh` (macOS) | `scripts/start_daemon.sh` / `stop_daemon.sh` are a dev-only alternative (Flask dev server) |
+| Verifier, GitHub dispatcher, watchdog | started by the same `run-supervisor.sh` | need `COURIER_API_KEY` and a different `COURIER_VERIFIER_API_KEY` |
+| Mac worker | LaunchAgent `com.courier.mac_worker` from `scripts/mac_worker/install.sh` | key and server URL from the macOS Keychain (`setup_keychain.sh`) or environment |
+| Windows worker | Scheduled Task `CourierWindowsWorker` from `scripts/windows_worker/bootstrap.ps1` | key and server URL from environment or the local `config.json` written by bootstrap |
+| GitHub worker | `.github/workflows/courier_worker.yml`, dispatched per task | results collected by `github_worker_adapter.py` |
+
+All components read the server address from `COURIER_SERVER`.
 
 The earlier Studio HQ / autonomous-supervisor stack (canonical authority, host
 survival, snitch observer, opportunity queue, flywheel) is **not** part of the

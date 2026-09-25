@@ -1,4 +1,5 @@
 import os
+import re
 import subprocess
 from pathlib import Path
 
@@ -81,3 +82,17 @@ def test_revenue_script_prefers_canonical_courier_server(tmp_path):
     r = subprocess.run(["bash", str(ROOT / "scripts/revenue_v1_goal.sh")], env=env, capture_output=True, text=True, timeout=30)
     assert r.returncode == 0, r.stderr
     assert "http://canonical.invalid:1/goals" in argsfile.read_text()
+
+
+def test_linux_install_installs_requests_and_never_overwrites_env():
+    text = (ROOT / "deploy/install.sh").read_text()
+    assert re.search(r"pip install [^\n]*\brequests\b", text)
+    assert "if [ ! -f deploy/.env ]" in text
+    assert "systemctl restart courier" not in [l.strip() for l in text.splitlines()]
+    assert "systemctl enable courier" in [l.strip() for l in text.splitlines()]
+
+
+def test_local_env_files_are_git_ignored():
+    for path in ("deploy/.env", ".env"):
+        r = subprocess.run(["git", "check-ignore", "-q", path], cwd=ROOT)
+        assert r.returncode == 0, path
