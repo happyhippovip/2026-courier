@@ -2,7 +2,6 @@ import sqlite3
 import json
 import os
 import hashlib
-import time
 import tracemalloc
 
 class MagazineLedger:
