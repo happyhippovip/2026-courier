@@ -119,6 +119,10 @@ def download_result(run_id: str, dispatch_id: str, destination: Path) -> tuple[d
 
 
 def verify_result(task: dict[str, Any], result: dict[str, Any], evidence: dict[str, Any] | None, run_id: str, directory: Path) -> None:
+    if not isinstance(result, dict):
+        raise ValueError("DurableResult must be a JSON object")
+    if evidence is not None and not isinstance(evidence, dict):
+        raise ValueError("evidence must be a JSON object or null")
     if any(result.get(field) != task[field] for field in IDENTITY_FIELDS):
         raise ValueError("DurableResult identity does not match TaskPacket")
     if str(result.get("run_id")) != run_id or result.get("result_id") != f"result-{task['dispatch_id']}":

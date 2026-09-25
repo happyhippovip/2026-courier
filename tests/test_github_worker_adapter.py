@@ -144,6 +144,31 @@ def test_verify_result_rejects_wrong_execution_reference(tmp_path: Path):
         )
 
 
+@pytest.mark.parametrize("bad_result", [[], "oops", 42, None])
+def test_verify_result_rejects_nondict_result(monkeypatch, tmp_path: Path, bad_result):
+    monkeypatch.setattr(adapter, "get_run_head_sha", lambda _: "a" * 40)
+    with pytest.raises(ValueError, match="must be a JSON object"):
+        adapter.verify_result(packet(), bad_result, None, "99", tmp_path)
+
+
+@pytest.mark.parametrize("bad_evidence", [[], "oops", 42])
+def test_verify_result_rejects_nondict_evidence(monkeypatch, tmp_path: Path, bad_evidence):
+    task = packet()
+    result = {
+        **task,
+        "run_id": "99",
+        "run_attempt": "1",
+        "source_sha": "a" * 40,
+        "result_id": "result-dispatch-1",
+        "status": "SUCCESS",
+        "operation": "deterministic_transform",
+        "artifacts": [{"path": "courier_output_dispatch-1.json", "sha256": "x"}],
+    }
+    monkeypatch.setattr(adapter, "get_run_head_sha", lambda _: "a" * 40)
+    with pytest.raises(ValueError, match="must be a JSON object"):
+        adapter.verify_result(task, result, bad_evidence, "99", tmp_path)
+
+
 def test_find_run_uses_exact_dispatch_title(monkeypatch):
     monkeypatch.setattr(adapter, "run_cmd", lambda _: (0, json.dumps([
         {"databaseId": 4, "status": "queued", "displayTitle": "Courier dispatch dispatch-1"},
