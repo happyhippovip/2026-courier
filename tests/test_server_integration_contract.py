@@ -509,3 +509,24 @@ def test_resent_failed_result_is_acknowledged_after_requeue(tmp_path, monkeypatc
     state = server_app.load_state()
     assert state["tasks"][task["task_id"]]["status"] == "QUEUED"
     assert state["tasks"][task["task_id"]]["attempts"] == 1
+
+
+def test_unregistered_worker_stays_stopped_despite_heartbeat(tmp_path, monkeypatch):
+    http = client(tmp_path, monkeypatch)
+    worker = {"worker_id": "MAC-01", "platform": "mac", "capabilities": ["macos"]}
+    assert http.post("/workers/register", headers=auth(), json=worker).status_code == 200
+    http.post("/goals", headers=auth(), json={
+        "goal_text": "must not run on a stopped worker",
+        "workflow_plan": [{"task_id": "task-stop", "target_agent": "mac", "artifacts": ["x.txt"]}],
+    })
+    assert http.post("/workers/unregister", headers=auth(), json={"worker_id": "MAC-01"}).status_code == 200
+
+    assert http.post("/workers/heartbeat", headers=auth(), json={"worker_id": "MAC-01"}).status_code == 200
+    claimed = http.post("/tasks/claim", headers=auth(), json={"worker_id": "MAC-01"}).get_json()
+
+    assert claimed["task"] is None
+    assert server_app.load_state()["tasks"] == {}
+
+    # An explicit re-registration is the only way back into service.
+    assert http.post("/workers/register", headers=auth(), json=worker).status_code == 200
+    assert http.post("/tasks/claim", headers=auth(), json={"worker_id": "MAC-01"}).get_json()["task"]["task_id"] == "task-stop"

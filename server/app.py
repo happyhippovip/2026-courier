@@ -226,6 +226,8 @@ def unregister_worker():
     
     if worker_id in state["workers"]:
         state["workers"][worker_id]["available"] = False
+        # Stop is sticky: only an explicit re-registration returns the worker to service.
+        state["workers"][worker_id]["unregistered"] = True
         save_state(state)
         return jsonify({"status": "UNREGISTERED"})
     return jsonify({"error": "Unknown worker"}), 404
@@ -241,7 +243,8 @@ def heartbeat():
     if worker_id in state["workers"]:
         state["workers"][worker_id]["last_seen"] = time.time()
         # Only mark available if not currently working
-        if not state["workers"][worker_id].get("current_task"):
+        worker = state["workers"][worker_id]
+        if not worker.get("current_task") and not worker.get("unregistered"):
             state["workers"][worker_id]["available"] = True
         save_state(state)
         return jsonify({"status": "OK"})
