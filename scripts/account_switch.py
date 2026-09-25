@@ -2,7 +2,6 @@
 import json
 import os
 import subprocess
-import time
 import psutil
 from windows_worker import WindowsPrimaryWorker
 
