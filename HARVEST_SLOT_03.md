@@ -33,7 +33,27 @@ worktree /tmp/harvest-slot-03. No main push/merge, no force, no reset/clean.
 ## Deferred gates
 - None.
 
+## Task 2: tests/test_integration_contract.py (bucket 2) — CLASS: BROKEN → FIXED
+- Main's file hard-imports eliminated `scripts.courier_control_plane`
+  (removed by 575f3893) → whole P0 contract suite ERRORs at collection.
+- Fix already existed on staging/cannon-v1-candidate (caa7cff4, 202-line
+  retirement). Verified staging's version: 8/8 PASS against main's scripts.
+- Ported ONLY the test-file hunk to slot branch (own bucket), committed,
+  pushed (92197787). No rebuild, no duplication.
+
+## Task 3: Phase B P0 sweep — bucket-2 production files
+- scripts/courier_verifier.py: reviewed. Verdict re-POST safe (main's
+  /tasks/verify: ACK_DUPLICATE on same rid, 409/400 fail-closed, no
+  double-advance). No P0. No patch.
+- scripts/mac_worker_adapter.py: DEAD CODE — zero callers repo-wide
+  (live Mac path is scripts/mac_worker/daemon.py). Latent bugs only
+  (makedirs-after-use on timeout path, no task_id path guard, stale
+  outbox reuse across attempts). No patch per no-cosmetics rule.
+  Resurrect-with-fixes if ever reactivated.
+- server/app.py NOT touched (conflict-prone, foreign buckets). Read-only note:
+  resume_task force_success mints manual result_id (explicit human action,
+  acceptable).
+
 ## Next
-- Phase B: production files with sha256(path)%32==2 → P0 sweep
-  (duplicate execution, volatile IDs, lost persistence, unsafe retries,
-  ambiguous crash recovery).
+- Bucket 2 exhausted (1 branch candidate + 3 files). No foreign-bucket
+  writes. Ready for final report.
