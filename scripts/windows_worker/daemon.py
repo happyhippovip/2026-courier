@@ -80,6 +80,9 @@ def http_post_result(res):
                 elif e.code == 409 and data.get("reason") == "CONTRADICTORY_DUPLICATE":
                     print(f"[Windows Worker] Result rejected as contradictory duplicate: {body}")
                     return
+                elif e.code == 409 and "Task is not awaiting a result" in body:
+                    print(f"[Windows Worker] Result rejected (task no longer active): {body}")
+                    return
             except Exception:
                 body = ""
             print(f"[Windows Worker] Failed to post result: {e} - {body}")
@@ -88,6 +91,27 @@ def http_post_result(res):
             print(f"[Windows Worker] Failed to post result: {e}")
             time.sleep(2 ** attempt)
     raise RuntimeError("Failed to post result after 5 attempts")
+
+
+def generate_result_id(res):
+    identity = {
+        "goal_id": res.get("goal_id"),
+        "task_id": res.get("task_id"),
+        "attempt_id": res.get("attempt_id"),
+        "dispatch_id": res.get("dispatch_id"),
+        "execution_ref": res.get("execution_ref"),
+        "worker_id": res.get("worker_id"),
+        "run_id": res.get("run_id"),
+        "status": res.get("status"),
+        "artifacts": res.get("artifacts", []),
+        "runtime_identity": res.get("runtime_identity")
+    }
+    if "batch_id" in res:
+        identity["batch_id"] = res["batch_id"]
+    if "prompt_id" in res:
+        identity["prompt_id"] = res["prompt_id"]
+    encoded = json.dumps(identity, sort_keys=True, separators=(',', ':')).encode('utf-8')
+    return "result-" + hashlib.sha256(encoded).hexdigest()
 
 def run_task(task, config):
     print(f"[{config['WORKER_ID']}] Running task {task['task_id']}...")
@@ -108,14 +132,16 @@ def run_task(task, config):
             "attempt_id": task.get("attempt_id"),
             "dispatch_id": task.get("dispatch_id"),
             "execution_ref": task.get("execution_ref"),
-            "worker_id": task.get("worker_id") or config["WORKER_ID"],
+            "worker_id": task.get("worker_id") or os.environ.get("COURIER_WORKER_ID") or config.get("WORKER_ID", "default-win-worker"),
             "provider": "windows_native",
+            "runtime_identity": task.get("server_binding"),
             "run_id": "win-native",
             "result_id": f"result-{uuid.uuid4().hex}",
             "artifacts": []
         }
         if "batch_id" in task: res_json["batch_id"] = task["batch_id"]
         if "prompt_id" in task: res_json["prompt_id"] = task["prompt_id"]
+        res_json["result_id"] = generate_result_id(res_json)
         return res_json
 
     out_clean = ""
@@ -194,8 +220,9 @@ def run_task(task, config):
         "attempt_id": task.get("attempt_id"),
         "dispatch_id": task.get("dispatch_id"),
         "execution_ref": task.get("execution_ref"),
-        "worker_id": task.get("worker_id") or config["WORKER_ID"],
+        "worker_id": task.get("worker_id") or os.environ.get("COURIER_WORKER_ID") or config.get("WORKER_ID", "default-win-worker"),
         "provider": "windows_native",
+            "runtime_identity": task.get("server_binding"),
         "run_id": run_id,
         "result_id": f"result-{uuid.uuid4().hex}",
         "artifacts": artifacts if status == "SUCCESS" else []
@@ -205,6 +232,8 @@ def run_task(task, config):
         
     if "batch_id" in task: res_json["batch_id"] = task["batch_id"]
     if "prompt_id" in task: res_json["prompt_id"] = task["prompt_id"]
+    
+    res_json["result_id"] = generate_result_id(res_json)
     
     return res_json
 
@@ -314,11 +343,13 @@ def loop():
                     "execution_ref": crashed_task.get("execution_ref"),
                     "worker_id": worker_id,
                     "provider": "windows_native",
+            "runtime_identity": crashed_task.get("server_binding"),
                     "run_id": "crashed-unknown",
                     "result_id": f"result-{uuid.uuid4().hex}",
                     "artifacts": []
                 }
                 if "batch_id" in crashed_task: res_json["batch_id"] = crashed_task["batch_id"]
+                res_json["result_id"] = generate_result_id(res_json)
                 if "prompt_id" in crashed_task: res_json["prompt_id"] = crashed_task["prompt_id"]
                 http_post_result(res_json)
             except Exception as e:

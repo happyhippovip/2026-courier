@@ -11,6 +11,24 @@ def t_assert(condition, message):
         sys.exit(1)
     print(f"[PASS] {message}")
 
+
+def generate_result_id(res):
+    identity = {
+        "goal_id": res.get("goal_id"),
+        "task_id": res.get("task_id"),
+        "attempt_id": res.get("attempt_id"),
+        "dispatch_id": res.get("dispatch_id"),
+        "execution_ref": res.get("execution_ref"),
+        "worker_id": res.get("worker_id"),
+        "run_id": res.get("run_id"),
+        "status": res.get("status"),
+        "artifacts": res.get("artifacts", []),
+        "runtime_identity": res.get("runtime_identity")
+    }
+    encoded = json.dumps(identity, sort_keys=True, separators=(',', ':')).encode('utf-8')
+    import hashlib
+    return "result-" + hashlib.sha256(encoded).hexdigest()
+
 def test_windows_torture():
     with TemporaryDirectory() as tmpdir:
         state_file = Path(tmpdir) / "central_state.json"
@@ -48,7 +66,6 @@ def test_windows_torture():
         
         try:
             # 1. Create a dummy task manually
-            goal_id = "goal-win-torture"
             task_id = "task-win-torture-01"
             payload = {
                 "goal_text": "Win Torture",
@@ -57,7 +74,17 @@ def test_windows_torture():
                 ]
             }
             res = urllib.request.urlopen(urllib.request.Request(f"{API_URL}/goals", method="POST", data=json.dumps(payload).encode(), headers=HEADERS))
+            res_data = json.loads(res.read().decode())
             t_assert(res.status == 200, "Goal created")
+            goal_id = res_data["goal_id"]
+
+            register_req = urllib.request.Request(f"{API_URL}/workers/register", method="POST", data=json.dumps({"worker_id": "WINDOWS-TORTURE-01", "capabilities": ["windows", "windows_native"], "git_sha": "cbaf514a"}).encode(), headers=HEADERS)
+            urllib.request.urlopen(register_req)
+            claim_req = urllib.request.Request(f"{API_URL}/tasks/claim", method="POST", data=json.dumps({"worker_id": "WINDOWS-TORTURE-01"}).encode(), headers=HEADERS)
+            claim_res = json.loads(urllib.request.urlopen(claim_req).read().decode())
+            dispatch_id = claim_res["task"]["dispatch_id"]
+            execution_ref = claim_res["task"]["execution_ref"]
+            server_binding = claim_res["task"]["server_binding"]
 
             # 2. Test AMBIGUOUS_CRASH recovery
             worker_dir = Path("scripts/windows_worker")
@@ -69,9 +96,10 @@ def test_windows_torture():
                 "goal_id": goal_id,
                 "task_id": task_id,
                 "attempt_id": f"{task_id}:attempt:1",
-                "dispatch_id": f"dispatch-{uuid.uuid4().hex}",
-                "execution_ref": f"exec-{uuid.uuid4().hex}"
-            }
+                "dispatch_id": dispatch_id,
+                "execution_ref": execution_ref,
+                "server_binding": server_binding
+                }
             with open(effect_marker, "w") as f:
                 json.dump(fake_task, f)
 
@@ -79,7 +107,7 @@ def test_windows_torture():
             daemon_env = os.environ.copy()
             daemon_env["COURIER_SERVER"] = API_URL
             daemon_env["COURIER_API_KEY"] = "test-key-12345"
-            daemon_env["WORKER_ID"] = "WINDOWS-TORTURE-01"
+            daemon_env["COURIER_WORKER_ID"] = "WINDOWS-TORTURE-01"
             daemon_env["PYTHONPATH"] = os.path.abspath(".")
             
             daemon_proc = subprocess.Popen([sys.executable, "-u", str(worker_dir / "daemon.py")], env=daemon_env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
@@ -107,14 +135,16 @@ def test_windows_torture():
                 "goal_id": goal_id,
                 "task_id": task_id,
                 "attempt_id": f"{task_id}:attempt:1",
-                "dispatch_id": f"dispatch-{uuid.uuid4().hex}",
-                "execution_ref": f"exec-{uuid.uuid4().hex}",
+                "dispatch_id": dispatch_id,
+                "execution_ref": execution_ref,
                 "worker_id": "WINDOWS-TORTURE-01",
                 "provider": "windows_native",
+                "runtime_identity": server_binding,
                 "run_id": "win-native",
-                "result_id": f"result-{uuid.uuid4().hex}",
+                "result_id": "WILL_BE_REPLACED",
                 "artifacts": []
             }
+            fake_result["result_id"] = generate_result_id(fake_result)
             with open(result_marker, "w") as f:
                 json.dump(fake_result, f)
                 
