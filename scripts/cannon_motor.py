@@ -552,7 +552,7 @@ class CannonMotor:
                 outcome, result_id = LiveMuseAdapter.execute_canary(task, self.results_dir, persist_identity)
             else:
                 raise MotorError('UNKNOWN_EXECUTOR_KIND')
-        except (MotorError, ValueError, OSError) as exc:
+        except (MotorError, ValueError, OSError, KeyError) as exc:
             self._wq('block', task_id, '--reason', 'REAL_EXECUTION_REQUIRES_REVIEW')
             self.m['needs_review'].append(task_id)
             self.m["state"] = "BLOCKED"
