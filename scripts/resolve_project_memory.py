@@ -12,7 +12,6 @@ import argparse
 import datetime
 import json
 import re
-import sys
 from pathlib import Path
 
 DEFAULT_MEMORY_REPO_PATH = Path("/Users/user/Downloads/2026-project-memory")
