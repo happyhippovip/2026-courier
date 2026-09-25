@@ -1,4 +1,4 @@
-import json, requests, os, sys, uuid
+import json, requests, os
 
 API_URL = os.environ.get("COURIER_SERVER", "http://127.0.0.1:8080")
 try:
@@ -11,33 +11,32 @@ HEADERS = {"Authorization": f"Bearer {API_KEY}"}
 
 def main():
     print("Preparing Physical Acceptance Goal...")
-    goal_id = f"physical-proof-{uuid.uuid4().hex[:8]}"
-    
+
     plan = [
-        {"task_id": f"pt-01", "target_agent": "mac", "mode": "NATIVE", "instruction": "echo 'Mac Native Task 1'"},
-        {"task_id": f"pt-02", "depends_on": "pt-01", "target_agent": "windows", "mode": "NATIVE", "instruction": "echo Windows Native Task 2"},
-        {"task_id": f"pt-03", "depends_on": "pt-02", "target_agent": "mac", "mode": "NATIVE", "instruction": "echo 'Mac Native Task 3'"},
-        {"task_id": f"pt-04", "depends_on": "pt-03", "target_agent": "windows", "mode": "NATIVE", "instruction": "echo Windows Native Task 4"},
-        
+        {"task_id": "pt-01", "target_agent": "mac", "mode": "NATIVE", "instruction": "echo 'Mac Native Task 1'"},
+        {"task_id": "pt-02", "depends_on": "pt-01", "target_agent": "windows", "mode": "NATIVE", "instruction": "echo Windows Native Task 2"},
+        {"task_id": "pt-03", "depends_on": "pt-02", "target_agent": "mac", "mode": "NATIVE", "instruction": "echo 'Mac Native Task 3'"},
+        {"task_id": "pt-04", "depends_on": "pt-03", "target_agent": "windows", "mode": "NATIVE", "instruction": "echo Windows Native Task 4"},
+
         # WAITING_PROVIDER SCENARIOS
-        {"task_id": f"pt-05", "depends_on": "pt-04", "target_agent": "mac", "mode": "NATIVE", "instruction": "echo 'quota exceeded'"},
-        {"task_id": f"pt-06", "depends_on": "pt-05", "target_agent": "windows", "mode": "NATIVE", "instruction": "echo quota exceeded"},
-        
+        {"task_id": "pt-05", "depends_on": "pt-04", "target_agent": "mac", "mode": "NATIVE", "instruction": "echo 'quota exceeded'"},
+        {"task_id": "pt-06", "depends_on": "pt-05", "target_agent": "windows", "mode": "NATIVE", "instruction": "echo quota exceeded"},
+
         # RESTART/RESUME SCENARIOS (AMBIGUOUS CRASH)
         # We will use python to kill the parent daemon process to test survival.
-        {"task_id": f"pt-07", "depends_on": "pt-06", "target_agent": "mac", "mode": "NATIVE", "instruction": "python3 -c \"import os, signal; os.kill(os.getppid(), signal.SIGKILL)\""},
-        {"task_id": f"pt-08", "depends_on": "pt-07", "target_agent": "windows", "mode": "NATIVE", "instruction": "python -c \"import os, subprocess; subprocess.run(['taskkill', '/F', '/PID', str(os.getppid())])\""},
-        
+        {"task_id": "pt-07", "depends_on": "pt-06", "target_agent": "mac", "mode": "NATIVE", "instruction": "python3 -c \"import os, signal; os.kill(os.getppid(), signal.SIGKILL)\""},
+        {"task_id": "pt-08", "depends_on": "pt-07", "target_agent": "windows", "mode": "NATIVE", "instruction": "python -c \"import os, subprocess; subprocess.run(['taskkill', '/F', '/PID', str(os.getppid())])\""},
+
         # FINAL TASKS
-        {"task_id": f"pt-09", "depends_on": "pt-08", "target_agent": "mac", "mode": "NATIVE", "instruction": "echo 'Mac Native Task 9'"},
-        {"task_id": f"pt-10", "depends_on": "pt-09", "target_agent": "windows", "mode": "NATIVE", "instruction": "echo Windows Native Task 10"}
+        {"task_id": "pt-09", "depends_on": "pt-08", "target_agent": "mac", "mode": "NATIVE", "instruction": "echo 'Mac Native Task 9'"},
+        {"task_id": "pt-10", "depends_on": "pt-09", "target_agent": "windows", "mode": "NATIVE", "instruction": "echo Windows Native Task 10"}
     ]
-    
+
     payload = {
         "goal_text": "Physical Acceptance Proof Run",
         "workflow_plan": plan
     }
-    
+
     res = requests.post(f"{API_URL}/goals", json=payload, headers=HEADERS)
     if res.status_code == 200:
         print(f"Successfully injected Physical Acceptance Goal: {res.json().get('goal_id')}")
