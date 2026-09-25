@@ -472,3 +472,40 @@ def test_resume_route_is_registered_when_run_as_script():
     source = open(server_app.__file__, encoding="utf-8").read()
     main_guard = source.index('if __name__ == "__main__":')
     assert source.index("def resume_task") < main_guard
+
+
+def test_resent_result_is_acknowledged_idempotently(tmp_path, monkeypatch):
+    http, _, task = setup_claimed_task(tmp_path, monkeypatch)
+    result = durable_result(task)
+    assert http.post("/tasks/result", headers=auth(), json=result).status_code == 200
+
+    resent = http.post("/tasks/result", headers=auth(), json=result)
+
+    assert resent.status_code == 200
+    assert resent.get_json()["status"] == "ACK_DUPLICATE"
+
+
+def test_conflicting_result_for_processed_task_is_rejected(tmp_path, monkeypatch):
+    http, _, task = setup_claimed_task(tmp_path, monkeypatch)
+    result = durable_result(task)
+    assert http.post("/tasks/result", headers=auth(), json=result).status_code == 200
+    conflicting = dict(result, result_id="result-other")
+
+    rejected = http.post("/tasks/result", headers=auth(), json=conflicting)
+
+    assert rejected.status_code == 409
+    assert server_app.load_state()["tasks"][task["task_id"]]["result"]["result_id"] == "result-1"
+
+
+def test_resent_failed_result_is_acknowledged_after_requeue(tmp_path, monkeypatch):
+    http, _, task = setup_claimed_task(tmp_path, monkeypatch)
+    failed = dict(durable_result(task), status="FAILED", artifacts=[])
+    assert http.post("/tasks/result", headers=auth(), json=failed).status_code == 200
+
+    resent = http.post("/tasks/result", headers=auth(), json=failed)
+
+    assert resent.status_code == 200
+    assert resent.get_json()["status"] == "ACK_DUPLICATE"
+    state = server_app.load_state()
+    assert state["tasks"][task["task_id"]]["status"] == "QUEUED"
+    assert state["tasks"][task["task_id"]]["attempts"] == 1

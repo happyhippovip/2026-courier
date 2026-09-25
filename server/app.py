@@ -352,13 +352,15 @@ def task_result():
     if task_id in state["tasks"]:
         task = state["tasks"][task_id]
         
-        # Duplicate protection
-        if task["status"] in ["RECONCILED", "FAILED_TERMINAL", "RESULT_RECEIVED"]:
-            return jsonify({"status": "IGNORED", "reason": "DUPLICATE_OR_ALREADY_PROCESSED"})
-            
+        # Duplicate protection: a resend of the stored result (e.g. after a lost
+        # response) is acknowledged; any other result for a processed task conflicts.
+        stored = task.get("result") or {}
+        if stored and all(stored.get(field) == data.get(field) for field in ("dispatch_id", "result_id", "status")):
+            return jsonify({"status": "ACK_DUPLICATE"})
+        if task["status"] in ["RECONCILED", "FAILED_TERMINAL", "RESULT_RECEIVED", "FAILED_VERIFICATION"]:
+            return jsonify({"error": "Conflicting result for already processed task"}), 409
+
         if task.get("worker_id") == worker_id:
-            if task.get("status") == "RESULT_RECEIVED" and task.get("result", {}).get("result_id") == data.get("result_id"):
-                return jsonify({"status": "ACK_DUPLICATE"})
             if task.get("status") != "DISPATCHED":
                 return jsonify({"error": "Task is not awaiting a result"}), 409
             try:
