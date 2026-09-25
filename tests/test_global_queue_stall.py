@@ -23,7 +23,7 @@ def test_waiting_provider_does_not_stall_global_queue(client):
     server.app.API_KEY = "TEST"
 
     # Register worker
-    res = client.post("/workers/register", json={"worker_id": "W1", "platform": "linux", "capabilities": ["linux"]}, headers={"Authorization": "Bearer TEST"})
+    res = client.post("/workers/register", json={"worker_id": "W1", "platform": "linux", "capabilities": ["linux"], "provider": "openai"}, headers={"Authorization": "Bearer TEST"})
     assert res.status_code == 200
 
     # Submit goal with 3 parallel tasks
@@ -60,7 +60,7 @@ def test_waiting_provider_does_not_stall_global_queue(client):
 
     # True negative (DLQ-05 invariant): an independent worker on its own pool
     # keeps processing READY work while W1 is locked.
-    res = client.post("/workers/register", json={"worker_id": "W2", "platform": "linux", "capabilities": ["linux"]}, headers={"Authorization": "Bearer TEST"})
+    res = client.post("/workers/register", json={"worker_id": "W2", "platform": "linux", "capabilities": ["linux"], "provider": "openai"}, headers={"Authorization": "Bearer TEST"})
     assert res.status_code == 200
     res = client.post("/tasks/claim", json={"worker_id": "W2"}, headers={"Authorization": "Bearer TEST"})
     task_b = res.json.get("task")
@@ -68,7 +68,21 @@ def test_waiting_provider_does_not_stall_global_queue(client):
     assert task_b["task_id"] == "B"
 
     # Set Task B to SUCCESS
-    res = client.post("/tasks/result", json={"task_id": "B", "worker_id": "W2", "result_id": "res-b", "status": "SUCCESS", "execution_ref": task_b["execution_ref"], "run_id": "run1", "artifacts": [], "goal_id": goal_id, "dispatch_id": task_b["dispatch_id"], "attempt_id": task_b["attempt_id"]}, headers={"Authorization": "Bearer TEST"})
+    import hashlib, json
+    identity = {
+        "goal_id": goal_id,
+        "task_id": "B",
+        "attempt_id": task_b["attempt_id"],
+        "dispatch_id": task_b["dispatch_id"],
+        "execution_ref": task_b["execution_ref"],
+        "worker_id": "W2",
+        "run_id": "run1",
+        "status": "SUCCESS",
+        "artifacts": [],
+        "runtime_identity": server.app.SERVER_BINDING
+    }
+    res_id = "result-" + hashlib.sha256(json.dumps(identity, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    res = client.post("/tasks/result", json={**identity, "result_id": res_id}, headers={"Authorization": "Bearer TEST"})
     print("Result B:", res.json)
 
     # Worker 2 should be able to claim Task C immediately
