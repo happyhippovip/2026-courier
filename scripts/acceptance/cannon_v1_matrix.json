@@ -1,0 +1,436 @@
+{
+  "SCHEMA_VERSION": 1,
+  "BASE": {
+    "REF": "staging/cannon-v1-candidate",
+    "COMMIT": "e6a5a53a74ae457523eba72e6aeaacada97b65f3"
+  },
+  "SCOPE": "Pinned HTTP control-plane candidate. Local app/cannon motor branches are not integrated here; branch review is in cannon_v1_branch_review.json. No physical claims.",
+  "MATRIX": [
+    {
+      "ID": "CV1-DUP-001",
+      "INVARIANT": "A",
+      "SCENARIO": "Repeated and concurrent server claims",
+      "EXPECTED": "One active claim per worker; exactly one winner",
+      "TEST": [
+        "tests/test_server_integration_contract.py::test_worker_cannot_claim_second_task_while_first_is_active",
+        "tests/test_server_integration_contract.py::test_concurrent_claims_have_exactly_one_winner",
+        "tests/test_server_integration_contract.py::test_reregister_does_not_erase_active_worker_claim"
+      ],
+      "PROOF_LEVEL": "CONTRACT_PROOF",
+      "SCOPE": "INTEGRATED_CANDIDATE",
+      "REQUIRED": true,
+      "STATUS": "NOT_RUN",
+      "EVIDENCE": []
+    },
+    {
+      "ID": "CV1-DUP-002",
+      "INVARIANT": "A",
+      "SCENARIO": "Completed packet delivered again to Mac/Windows worker",
+      "EXPECTED": "Same attempt executes at most once, including after ACK",
+      "TEST": [
+        "tests/test_cannon_v1_acceptance_gaps.py::test_completed_packet_redelivery_cannot_execute_same_attempt_twice"
+      ],
+      "PROOF_LEVEL": "SIMULATED_INTEGRATION_PROOF",
+      "SCOPE": "INTEGRATED_CANDIDATE",
+      "REQUIRED": true,
+      "STATUS": "NOT_RUN",
+      "EVIDENCE": []
+    },
+    {
+      "ID": "CV1-DUR-001",
+      "INVARIANT": "B",
+      "SCENARIO": "Mac and Windows execution finishes before first result send",
+      "EXPECTED": "RESULT_READY containing exact outgoing payload already on disk",
+      "TEST": [
+        "tests/test_cannon_v1_acceptance_gaps.py::test_mac_result_is_persisted_before_first_send",
+        "tests/test_cannon_v1_acceptance_gaps.py::test_windows_result_is_persisted_before_first_send"
+      ],
+      "PROOF_LEVEL": "SIMULATED_INTEGRATION_PROOF",
+      "SCOPE": "INTEGRATED_CANDIDATE",
+      "REQUIRED": true,
+      "STATUS": "NOT_RUN",
+      "EVIDENCE": []
+    },
+    {
+      "ID": "CV1-DUR-002",
+      "INVARIANT": "B",
+      "SCENARIO": "Worker atomic persistence",
+      "EXPECTED": "File fsync completes before replacement; not a directory-fsync or power-loss proof",
+      "TEST": [
+        "tests/test_cannon_v1_acceptance_gaps.py::test_persist_fsyncs_file_before_atomic_replace"
+      ],
+      "PROOF_LEVEL": "UNIT_PROOF",
+      "SCOPE": "INTEGRATED_CANDIDATE",
+      "REQUIRED": true,
+      "STATUS": "NOT_RUN",
+      "EVIDENCE": []
+    },
+    {
+      "ID": "CV1-DUR-004",
+      "INVARIANT": "B",
+      "SCENARIO": "Disk-full/result-persistence failure before send",
+      "EXPECTED": "No transmission until result is successfully persisted; no reexecution",
+      "TEST": ["tests/test_cannon_v1_acceptance_gaps.py::test_failed_result_persistence_must_prevent_send"],
+      "PROOF_LEVEL": "SIMULATED_INTEGRATION_PROOF",
+      "SCOPE": "INTEGRATED_CANDIDATE",
+      "REQUIRED": true,
+      "STATUS": "NOT_RUN",
+      "EVIDENCE": []
+    },
+    {
+      "ID": "CV1-DUR-003",
+      "INVARIANT": "B",
+      "SCENARIO": "Result delivery remains unavailable",
+      "EXPECTED": "Persisted payload retained; no new claim or recomputation",
+      "TEST": [
+        "tests/test_mac_worker_recovery.py::test_undeliverable_result_is_kept_and_never_recomputed",
+        "tests/test_windows_worker_binding.py::test_undelivered_result_is_kept_and_blocks_new_claims"
+      ],
+      "PROOF_LEVEL": "SIMULATED_INTEGRATION_PROOF",
+      "SCOPE": "INTEGRATED_CANDIDATE",
+      "REQUIRED": true,
+      "STATUS": "NOT_RUN",
+      "EVIDENCE": []
+    },
+    {
+      "ID": "CV1-ID-001",
+      "INVARIANT": "C",
+      "SCENARIO": "Canonical task/result identity",
+      "EXPECTED": "IDs and expected effect hash stable; mismatches rejected",
+      "TEST": [
+        "tests/test_integration_contract.py",
+        "tests/test_result_identity_binding.py"
+      ],
+      "PROOF_LEVEL": "UNIT_PROOF",
+      "SCOPE": "INTEGRATED_CANDIDATE",
+      "REQUIRED": true,
+      "STATUS": "NOT_RUN",
+      "EVIDENCE": []
+    },
+    {
+      "ID": "CV1-ID-002",
+      "INVARIANT": "C",
+      "SCENARIO": "Worker binding and new attempt",
+      "EXPECTED": "Worker result IDs stable on resend; new retry has new attempt/dispatch",
+      "TEST": [
+        "tests/test_windows_worker_binding.py::test_result_carries_binding_and_is_accepted_by_server_contract",
+        "tests/test_windows_worker_contract.py::test_result_id_is_stable_across_every_resend",
+        "tests/test_mac_worker_contract.py::test_success_is_bound_and_accepted",
+        "tests/test_server_integration_contract.py::test_retry_gets_new_attempt_and_dispatch_identity",
+        "tests/test_server_integration_contract.py::test_claim_returns_complete_common_identity"
+      ],
+      "PROOF_LEVEL": "SIMULATED_INTEGRATION_PROOF",
+      "SCOPE": "INTEGRATED_CANDIDATE",
+      "REQUIRED": true,
+      "STATUS": "NOT_RUN",
+      "EVIDENCE": []
+    },
+    {
+      "ID": "CV1-ID-003",
+      "INVARIANT": "C",
+      "SCENARIO": "Server rejects mismatched result identity before first receipt",
+      "EXPECTED": "Wrong worker/goal/attempt/dispatch refused without advancement",
+      "TEST": [
+        "tests/test_failure_recovery_matrix.py::test_result_from_another_worker_is_rejected",
+        "tests/test_failure_recovery_matrix.py::test_result_with_wrong_identity_is_rejected"
+      ],
+      "PROOF_LEVEL": "CONTRACT_PROOF",
+      "SCOPE": "INTEGRATED_CANDIDATE",
+      "REQUIRED": true,
+      "STATUS": "NOT_RUN",
+      "EVIDENCE": []
+    },
+    {
+      "ID": "CV1-CRASH-001",
+      "INVARIANT": "D",
+      "SCENARIO": "Worker restarts from STARTED without result",
+      "EXPECTED": "No automatic re-execution; release to quarantine/HUMAN_REQUIRED",
+      "TEST": [
+        "tests/test_mac_worker_recovery.py::test_restart_after_started_execution_does_not_execute_again",
+        "tests/test_windows_worker_binding.py::test_started_without_result_is_released_not_reexecuted",
+        "tests/test_mac_worker_recovery.py::test_exception_during_execution_is_not_retried_in_process",
+        "tests/test_cannon_v1_acceptance_gaps.py::test_mac_started_restart_is_quarantined_by_server"
+      ],
+      "PROOF_LEVEL": "SIMULATED_INTEGRATION_PROOF",
+      "SCOPE": "INTEGRATED_CANDIDATE",
+      "REQUIRED": true,
+      "STATUS": "NOT_RUN",
+      "EVIDENCE": []
+    },
+    {
+      "ID": "CV1-CRASH-002",
+      "INVARIANT": "D",
+      "SCENARIO": "Ambiguous stale worker and independent goal",
+      "EXPECTED": "Quarantine ambiguous dispatch without replay; independent work continues",
+      "TEST": [
+        "tests/test_server_integration_contract.py::test_stale_claim_is_quarantined_without_replay_and_other_goal_continues",
+        "tests/test_failure_recovery_matrix.py::test_unregister_then_reregister_without_task_quarantines_instead_of_replaying"
+      ],
+      "PROOF_LEVEL": "CONTRACT_PROOF",
+      "SCOPE": "INTEGRATED_CANDIDATE",
+      "REQUIRED": true,
+      "STATUS": "NOT_RUN",
+      "EVIDENCE": []
+    },
+    {
+      "ID": "CV1-HTTP-001",
+      "INVARIANT": "E",
+      "SCENARIO": "Network failure, timeout and 5xx",
+      "EXPECTED": "Bounded retries use same payload, one execution",
+      "TEST": [
+        "tests/test_mac_worker_recovery.py::test_transport_errors_and_5xx_are_retried_with_identical_payload",
+        "tests/test_windows_worker_binding.py::test_transient_failures_retry_identical_payload"
+      ],
+      "PROOF_LEVEL": "SIMULATED_INTEGRATION_PROOF",
+      "SCOPE": "INTEGRATED_CANDIDATE",
+      "REQUIRED": true,
+      "STATUS": "NOT_RUN",
+      "EVIDENCE": []
+    },
+    {
+      "ID": "CV1-HTTP-002",
+      "INVARIANT": "E",
+      "SCENARIO": "Permanent 400/401/403/404/409/422",
+      "EXPECTED": "One result send, durable rejection evidence; no endless resend",
+      "TEST": [
+        "tests/test_cannon_v1_acceptance_gaps.py::test_permanent_4xx_is_sent_once_and_retained",
+        "tests/test_mac_worker_contract.py::test_crash_after_rejection_still_releases_on_restart",
+        "tests/test_windows_worker_contract.py::test_crash_after_rejection_still_releases_on_restart"
+      ],
+      "PROOF_LEVEL": "SIMULATED_INTEGRATION_PROOF",
+      "SCOPE": "INTEGRATED_CANDIDATE",
+      "REQUIRED": true,
+      "STATUS": "NOT_RUN",
+      "EVIDENCE": []
+    },
+    {
+      "ID": "CV1-HTTP-003",
+      "INVARIANT": "E",
+      "SCENARIO": "Server accepts result but ACK is lost",
+      "EXPECTED": "Same result resent, original effect executed once",
+      "TEST": [
+        "tests/test_mac_worker_contract.py::test_crash_after_post_before_ack_resends_same_result_once_executed",
+        "tests/test_cannon_v1_acceptance_gaps.py::test_windows_lost_ack_after_server_acceptance_is_idempotent"
+      ],
+      "PROOF_LEVEL": "SIMULATED_INTEGRATION_PROOF",
+      "SCOPE": "INTEGRATED_CANDIDATE",
+      "REQUIRED": true,
+      "STATUS": "NOT_RUN",
+      "EVIDENCE": []
+    },
+    {
+      "ID": "CV1-ART-001",
+      "INVARIANT": "F",
+      "SCENARIO": "Artifact bytes, binding, SHA256 and safe names",
+      "EXPECTED": "Store and verifier reject tampering/mismatched metadata",
+      "TEST": [
+        "tests/test_artifact_store.py"
+      ],
+      "PROOF_LEVEL": "UNIT_PROOF",
+      "SCOPE": "COMPONENT_ONLY",
+      "REQUIRED": true,
+      "STATUS": "NOT_RUN",
+      "EVIDENCE": []
+    },
+    {
+      "ID": "CV1-ART-002",
+      "INVARIANT": "F",
+      "SCENARIO": "Relative, missing and unsafe worker artifacts",
+      "EXPECTED": "Expected relative files hashed; unsafe/missing files cannot produce SUCCESS",
+      "TEST": [
+        "tests/test_mac_worker_contract.py::test_unsafe_artifact_is_never_read_and_never_success",
+        "tests/test_mac_worker_contract.py::test_success_without_any_artifact_evidence_is_reported_failed",
+        "tests/test_windows_worker_contract.py::test_unsafe_artifact_path_is_never_read_and_never_success",
+        "tests/test_windows_worker_contract.py::test_relative_artifact_resolves_in_worker_workspace",
+        "tests/test_windows_worker_contract.py::test_expected_canary_artifact_is_bound",
+        "tests/test_windows_worker_contract.py::test_success_cannot_claim_nonexistent_artifact"
+      ],
+      "PROOF_LEVEL": "SIMULATED_INTEGRATION_PROOF",
+      "SCOPE": "INTEGRATED_CANDIDATE",
+      "REQUIRED": true,
+      "STATUS": "NOT_RUN",
+      "EVIDENCE": []
+    },
+    {
+      "ID": "CV1-ART-003",
+      "INVARIANT": "F",
+      "SCENARIO": "Unexpected artifact name in otherwise valid SUCCESS",
+      "EXPECTED": "Server refuses evidence that does not cover dispatched expectations",
+      "TEST": [
+        "tests/test_cannon_v1_acceptance_gaps.py::test_success_evidence_must_cover_expected_artifact"
+      ],
+      "PROOF_LEVEL": "CONTRACT_PROOF",
+      "SCOPE": "INTEGRATED_CANDIDATE",
+      "REQUIRED": true,
+      "STATUS": "NOT_RUN",
+      "EVIDENCE": []
+    },
+    {
+      "ID": "CV1-ART-004",
+      "INVARIANT": "F",
+      "SCENARIO": "Actual candidate exposes server artifact API",
+      "EXPECTED": "Upload is integrated, not merely present in an unapplied patch",
+      "TEST": [
+        "tests/test_cannon_v1_acceptance_gaps.py::test_unpatched_candidate_exposes_artifact_upload"
+      ],
+      "PROOF_LEVEL": "CONTRACT_PROOF",
+      "SCOPE": "INTEGRATED_CANDIDATE",
+      "REQUIRED": true,
+      "STATUS": "NOT_RUN",
+      "EVIDENCE": []
+    },
+    {
+      "ID": "CV1-ART-007",
+      "INVARIANT": "F",
+      "SCENARIO": "Unmodified candidate worker upload and verifier flow",
+      "EXPECTED": "Uploaded artifacts independently verified from server bytes using integrated code, no patch",
+      "TEST": ["tests/test_cannon_v1_acceptance_gaps.py::test_integrated_candidate_upload_and_independent_verification"],
+      "PROOF_LEVEL": "SIMULATED_INTEGRATION_PROOF",
+      "SCOPE": "INTEGRATED_CANDIDATE",
+      "REQUIRED": true,
+      "STATUS": "NOT_RUN",
+      "EVIDENCE": []
+    },
+    {
+      "ID": "CV1-ART-005",
+      "INVARIANT": "F",
+      "SCENARIO": "Server artifact cutover in temporary patched copy",
+      "EXPECTED": "Upload/binding/auth/independent verification work in preview ONLY",
+      "TEST": [
+        "tests/test_artifact_upload_flow.py::test_upload_then_result_reference_is_accepted",
+        "tests/test_artifact_upload_flow.py::test_upload_rejects_wrong_binding_name_or_claims",
+        "tests/test_artifact_upload_flow.py::test_upload_requires_dispatched_task_and_worker_key",
+        "tests/test_artifact_upload_flow.py::test_upload_size_limit",
+        "tests/test_artifact_upload_flow.py::test_result_with_foreign_or_unknown_artifact_id_is_rejected",
+        "tests/test_artifact_upload_flow.py::test_artifact_read_requires_verifier_key",
+        "tests/test_artifact_upload_flow.py::test_verifier_independently_hashes_server_copy_and_detects_tampering",
+        "tests/test_artifact_upload_flow.py::test_windows_worker_uploads_and_verifier_reconciles",
+        "tests/test_artifact_upload_flow.py::test_windows_transient_upload_failure_keeps_result_without_reexecution",
+        "tests/test_artifact_upload_flow.py::test_windows_artifact_changed_after_hashing_is_released_not_uploaded",
+        "tests/test_artifact_upload_flow.py::test_mac_worker_uploads_and_verifier_reconciles"
+      ],
+      "PROOF_LEVEL": "SIMULATED_INTEGRATION_PROOF",
+      "SCOPE": "PATCH_PREVIEW",
+      "REQUIRED": false,
+      "STATUS": "NOT_RUN",
+      "EVIDENCE": [],
+      "PATCH": "docs/p3/artifact-upload-cutover.patch"
+    },
+    {
+      "ID": "CV1-ART-006",
+      "INVARIANT": "F",
+      "SCENARIO": "Verifier cannot access remote worker filesystem",
+      "EXPECTED": "Path-only remote artifacts and missing/fetch-failed evidence fail closed",
+      "TEST": [
+        "tests/test_artifact_upload_flow.py::test_verifier_never_opens_remote_worker_paths",
+        "tests/test_artifact_upload_flow.py::test_verifier_fails_without_evidence",
+        "tests/test_artifact_upload_flow.py::test_verifier_fails_when_fetch_fails"
+      ],
+      "PROOF_LEVEL": "UNIT_PROOF",
+      "SCOPE": "INTEGRATED_CANDIDATE",
+      "REQUIRED": true,
+      "STATUS": "NOT_RUN",
+      "EVIDENCE": []
+    },
+    {
+      "ID": "CV1-RESTART-001",
+      "INVARIANT": "G",
+      "SCENARIO": "Reload worker with persisted result",
+      "EXPECTED": "Resend identical result, never reexecute; module reload simulation",
+      "TEST": [
+        "tests/test_mac_worker_contract.py::test_restart_with_result_ready_redelivers_to_server_without_executing",
+        "tests/test_windows_worker_binding.py::test_crash_before_ack_resends_same_result_without_reexecuting",
+        "tests/test_cannon_v1_acceptance_gaps.py::test_windows_generated_result_survives_restart_without_reexecution"
+      ],
+      "PROOF_LEVEL": "SIMULATED_INTEGRATION_PROOF",
+      "SCOPE": "INTEGRATED_CANDIDATE",
+      "REQUIRED": true,
+      "STATUS": "NOT_RUN",
+      "EVIDENCE": []
+    },
+    {
+      "ID": "CV1-IDEMP-001",
+      "INVARIANT": "H",
+      "SCENARIO": "Identical result replay",
+      "EXPECTED": "Acknowledged/ignored without canonical state mutation",
+      "TEST": [
+        "tests/test_failure_recovery_matrix.py::test_duplicate_result_is_acknowledged_without_state_change",
+        "tests/test_cannon_v1_acceptance_gaps.py::test_failed_result_resend_is_idempotent_after_requeue"
+      ],
+      "PROOF_LEVEL": "CONTRACT_PROOF",
+      "SCOPE": "INTEGRATED_CANDIDATE",
+      "REQUIRED": true,
+      "STATUS": "NOT_RUN",
+      "EVIDENCE": []
+    },
+    {
+      "ID": "CV1-IDEMP-002",
+      "INVARIANT": "H",
+      "SCENARIO": "Contradictory result replay",
+      "EXPECTED": "400/409 rather than success ACK; first result immutable",
+      "TEST": [
+        "tests/test_cannon_v1_acceptance_gaps.py::test_conflicting_duplicate_is_rejected_not_successfully_ignored"
+      ],
+      "PROOF_LEVEL": "CONTRACT_PROOF",
+      "SCOPE": "INTEGRATED_CANDIDATE",
+      "REQUIRED": true,
+      "STATUS": "NOT_RUN",
+      "EVIDENCE": []
+    },
+    {
+      "ID": "CV1-VERIFY-001",
+      "INVARIANT": "C,H",
+      "SCENARIO": "Independent verifier authority",
+      "EXPECTED": "Worker cannot self-certify; verification advances exactly once",
+      "TEST": [
+        "tests/test_server_integration_contract.py::test_worker_success_cannot_advance_goal_without_independent_verifier",
+        "tests/test_server_integration_contract.py::test_worker_credential_cannot_self_certify_with_forged_verifier_id",
+        "tests/test_server_integration_contract.py::test_verifier_authority_fails_closed_when_shared_with_worker",
+        "tests/test_server_integration_contract.py::test_only_independent_verification_advances_goal_exactly_once"
+      ],
+      "PROOF_LEVEL": "CONTRACT_PROOF",
+      "SCOPE": "INTEGRATED_CANDIDATE",
+      "REQUIRED": true,
+      "STATUS": "NOT_RUN",
+      "EVIDENCE": []
+    },
+    {
+      "ID": "CV1-HARNESS-001",
+      "INVARIANT": "META",
+      "SCENARIO": "Fail-closed entry and truthful matrix reduction",
+      "EXPECTED": "No default runtime execution or PASS from skip/xfail/missing tests",
+      "TEST": [
+        "tests/test_final_acceptance_harness_fail_closed.py"
+      ],
+      "PROOF_LEVEL": "UNIT_PROOF",
+      "SCOPE": "INTEGRATED_CANDIDATE",
+      "REQUIRED": true,
+      "STATUS": "NOT_RUN",
+      "EVIDENCE": []
+    },
+    {
+      "ID": "CV1-PHYSICAL-MAC",
+      "INVARIANT": "A-H",
+      "SCENARIO": "Real MAC OS-owned worker lifecycle, durable resend, crash boundary and external effects",
+      "EXPECTED": "One fixed-SHA continuous canonical goal across >=2 real workers, >=10 eligible tasks, automatic result/verifier/reconcile/next dispatch; terminal DONE -> CLEAN_IDLE; no manual continuation/restart, duplicate effects or leaked owned processes. Include disconnect/reconnect and OS restart recovery; pin server+worker SHAs.",
+      "TEST": [],
+      "PROOF_LEVEL": "PHYSICAL_MAC_PROOF_REQUIRED",
+      "SCOPE": "PHYSICAL_RUNTIME",
+      "REQUIRED": false,
+      "STATUS": "REQUIRED",
+      "EVIDENCE": []
+    },
+    {
+      "ID": "CV1-PHYSICAL-WINDOWS",
+      "INVARIANT": "A-H",
+      "SCENARIO": "Real WINDOWS OS-owned worker lifecycle, durable resend, crash boundary and external effects",
+      "EXPECTED": "One fixed-SHA continuous canonical goal across >=2 real workers, >=10 eligible tasks, automatic result/verifier/reconcile/next dispatch; terminal DONE -> CLEAN_IDLE; no manual continuation/restart, duplicate effects or leaked owned processes. Include disconnect/reconnect and OS restart recovery; pin server+worker SHAs.",
+      "TEST": [],
+      "PROOF_LEVEL": "PHYSICAL_WINDOWS_PROOF_REQUIRED",
+      "SCOPE": "PHYSICAL_RUNTIME",
+      "REQUIRED": false,
+      "STATUS": "REQUIRED",
+      "EVIDENCE": []
+    }
+  ]
+}

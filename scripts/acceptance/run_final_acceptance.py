@@ -1,278 +1,233 @@
-import sys, os, time, subprocess, json, uuid
-import requests
+#!/usr/bin/env python3
+"""Existing acceptance entry point: fail-closed, repository-only.
 
-API_URL = "http://127.0.0.1:8081"
-# Keys for the throwaway local server come from the environment; no fallback.
-API_KEY = os.environ.get("COURIER_API_KEY", "").strip()
-VERIFIER_API_KEY = os.environ.get("COURIER_VERIFIER_API_KEY", "").strip()
-HEADERS = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
-VERIFIER_HEADERS = {"Authorization": f"Bearer {VERIFIER_API_KEY}", "Content-Type": "application/json"}
+Reuses a58ff1f3's refusal protocol and existing contract/recovery tests.
+No live server, worker impersonation, provider, credential lookup or ledger.
+Exit 0: required repo proofs pass (NOT physical acceptance); 1: proof failure;
+2: refused/incomplete. See cannon_v1_matrix.json for scope and pinned candidate.
+"""
+from __future__ import annotations
 
-results = {
-    "ACCEPTANCE_HARNESS": "YES",
-    "LOCAL_END_TO_END": "NO",
-    "RESTART_RESUME": "NO",
-    "DUPLICATE_RESULT": "NO",
-    "BAD_CORRELATION_REJECTED": "NO",
-    "GITHUB_COMPATIBLE": "NO",
-    "MAC_COMPATIBLE": "NO",
-    "WINDOWS_COMPATIBLE": "NO",
-    "TESTS_RUN": 0,
-    "PASS": 0,
-    "FAIL": 0,
-    "EXTERNAL_WALLS": 0,
-    "LOGS": []
-}
+import argparse
+from collections import Counter
+from datetime import datetime, timezone
+import hashlib
+import json
+import os
+from pathlib import Path
+import socket
+import subprocess
+import sys
+import tempfile
+import types
 
-def log(msg):
-    print(msg)
-    results["LOGS"].append(msg)
+ROOT = Path(__file__).resolve().parents[2]
+MANIFEST = Path(__file__).with_name("cannon_v1_matrix.json")
 
-def start_server(state_file):
-    env = os.environ.copy()
-    env["COURIER_STATE_FILE"] = state_file
-    env["COURIER_API_KEY"] = API_KEY
-    env["COURIER_VERIFIER_API_KEY"] = VERIFIER_API_KEY
-    
-    python_bin = "venv/bin/python3" if os.path.exists("venv/bin/python3") else sys.executable
-    proc = subprocess.Popen([python_bin, "-m", "flask", "--app", "server.app", "run", "-p", "8081"], env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    
-    # wait for start
-    for _ in range(30):
-        try:
-            res = requests.get(f"{API_URL}/health")
-            if res.status_code == 200:
-                log("Server started.")
-                return proc
-        except:
-            pass
-        time.sleep(0.5)
-    
-    out, err = proc.communicate()
-    log(f"Server failed to start. Stdout: {out} Stderr: {err}")
-    proc.kill()
-    sys.exit(1)
 
-def stop_server(proc):
-    proc.terminate()
-    proc.wait()
-    log("Server stopped.")
-
-def t_assert(cond, msg):
-    results["TESTS_RUN"] += 1
-    if cond:
-        results["PASS"] += 1
-        log(f"[PASS] {msg}")
+def evaluate(rows, outcomes, pytest_exit):
+    """All selected parameterizations must pass; absent/skip/xfail never pass."""
+    matrix = []
+    for source in rows:
+        row = dict(source)
+        evidence, missing = {}, []
+        for selector in row["TEST"]:
+            matches = {node: status for node, status in outcomes.items()
+                       if node == selector or node.startswith(selector + "[")
+                       or node.startswith(selector + "::")}
+            evidence.update(matches)
+            if not matches:
+                missing.append(selector)
+        if row.get("PROOF_LEVEL", "").endswith("_PROOF_REQUIRED"):
+            status = "REQUIRED"
+        elif any(v in ("FAIL", "ERROR", "XPASS") for v in evidence.values()):
+            status = "FAIL"
+        elif not evidence or missing or any(v != "PASS" for v in evidence.values()):
+            status = "NOT_PROVEN"
+        else:
+            status = "PREVIEW_PASS" if row.get("SCOPE") == "PATCH_PREVIEW" else "PASS"
+        row.update(STATUS=status, EVIDENCE={"CASES": evidence, "MISSING": missing})
+        matrix.append(row)
+    required = [row for row in matrix if row.get("REQUIRED")]
+    if any(row["STATUS"] == "FAIL" for row in required) or pytest_exit == 1:
+        status = "FAIL"
+    elif not required or pytest_exit != 0 or any(row["STATUS"] != "PASS" for row in required):
+        status = "NOT_PROVEN"
     else:
-        results["FAIL"] += 1
-        log(f"[FAIL] {msg}")
-        raise AssertionError(msg)
+        status = "PASS"
+    invariants = {}
+    for group in "ABCDEFGH":
+        members = [row["STATUS"] for row in required if group in row.get("INVARIANT", "").split(",")]
+        invariants[group] = ("FAIL" if "FAIL" in members else "PASS"
+                             if members and all(v == "PASS" for v in members) else "NOT_PROVEN")
+    return {"CANNON_V1_REPO_STATUS": status, "PHYSICAL_ACCEPTANCE": "NO",
+            "SYNTHETIC_TEST_ONLY": "YES", "PYTEST_EXIT_CODE": pytest_exit,
+            "INVARIANTS": invariants, "MATRIX": matrix}
 
-def run_tests():
-    state_file = "./acceptance_state.json"
-    if os.path.exists(state_file): os.remove(state_file)
-    
-    server_proc = start_server(state_file)
-    
-    try:
-        # Test 1: Goal intake & routing progression (LOCAL_END_TO_END)
-        log("Testing Goal Intake and Progression...")
-        goal_payload = {
-            "goal_text": "Acceptance Test",
-            "workflow_plan": [
-                {"task_id": "t1", "target_agent": "mac", "instruction": "do something mac", "mode": "NATIVE"},
-                {"task_id": "t2", "target_agent": "windows", "instruction": "do something win", "mode": "NATIVE"},
-                {"task_id": "t3", "target_agent": "github", "instruction": "do something gh", "mode": "NATIVE"}
-            ]
-        }
-        res = requests.post(f"{API_URL}/goals", json=goal_payload, headers=HEADERS)
-        t_assert(res.status_code == 200, "Goal created")
-        goal_id = res.json()["goal_id"]
-        
-        # Test 2: Worker Registration
-        res = requests.post(f"{API_URL}/workers/register", json={"worker_id": "MAC-01", "platform": "macos", "capabilities": ["macos"]}, headers=HEADERS)
-        t_assert(res.status_code == 200, "Mac worker registered")
-        
-        res = requests.post(f"{API_URL}/workers/register", json={"worker_id": "WINDOWS-01", "platform": "windows", "capabilities": ["windows"]}, headers=HEADERS)
-        t_assert(res.status_code == 200, "Windows worker registered")
-        
-        # Test 3: Heartbeat
-        res = requests.post(f"{API_URL}/workers/heartbeat", json={"worker_id": "MAC-01"}, headers=HEADERS)
-        t_assert(res.status_code == 200, "Mac heartbeat OK")
-        
-        # Test 4: Task Claim (MAC_COMPATIBLE & progression)
-        res = requests.post(f"{API_URL}/tasks/claim", json={"worker_id": "MAC-01"}, headers=HEADERS)
-        t_assert(res.status_code == 200, "Mac task claim OK")
-        task1 = res.json().get("task")
-        t_assert(task1 is not None and task1["task_id"] == "t1", "Mac claimed correct task")
-        
-        # Ensure windows worker can't claim anything yet because sequential
-        res = requests.post(f"{API_URL}/tasks/claim", json={"worker_id": "WINDOWS-01"}, headers=HEADERS)
-        t_assert(res.json().get("task") is None, "Windows worker idle while step 1 runs")
-        
-        # Provide result for t1
-        import hashlib
-        h = hashlib.sha256()
-        h.update(b"test")
-        art = [{"path": f"courier_canary_{task1['task_id']}.txt", "sha256": h.hexdigest()}]
-        
-        res_payload_1 = {
-            "worker_id": "MAC-01",
-            "goal_id": goal_id,
-            "task_id": task1["task_id"],
-            "attempt_id": task1["attempt_id"],
-            "dispatch_id": task1["dispatch_id"],
-            "run_id": "run-mac",
-            "result_id": "result-mac",
-            "status": "SUCCESS",
-            "artifacts": art
-        }
-        res = requests.post(f"{API_URL}/tasks/result", json=res_payload_1, headers=HEADERS)
-        t_assert(res.status_code == 200, "Mac result posted successfully")
-        results["MAC_COMPATIBLE"] = "YES"
-        
-        # Verify and Reconcile t1
-        verify_payload_1 = {
-            "task_id": task1["task_id"],
-            "verifier_id": "ACCEPTANCE_HARNESS",
-            "result_id": res_payload_1["result_id"],
-            "verdict": "PASS",
-            "artifacts": res_payload_1["artifacts"]
-        }
-        res = requests.post(f"{API_URL}/tasks/verify", json=verify_payload_1, headers=VERIFIER_HEADERS)
-        t_assert(res.status_code == 200, "Mac result verified and reconciled")
 
-        # Test 5: Re-claim duplicate prevention (DUPLICATE_RESULT)
-        res = requests.post(f"{API_URL}/tasks/result", json=res_payload_1, headers=HEADERS)
-        t_assert(res.status_code == 200, "Duplicate result handling OK (idempotent)")
-        results["DUPLICATE_RESULT"] = "YES"
-        
-        # Test 6: Automatic progression to t2 (WINDOWS_COMPATIBLE)
-        res = requests.post(f"{API_URL}/tasks/claim", json={"worker_id": "WINDOWS-01"}, headers=HEADERS)
-        task2 = res.json().get("task")
-        t_assert(task2 is not None and task2["task_id"] == "t2", "Windows claimed step 2 correctly")
-        
-        # Test 7: Mismatch rejection (BAD_CORRELATION_REJECTED)
-        bad_payload = dict(res_payload_1)
-        bad_payload["task_id"] = "t2"
-        bad_payload["worker_id"] = "WINDOWS-01"
-        bad_payload["attempt_id"] = "wrong-attempt" # bad correlation
-        res = requests.post(f"{API_URL}/tasks/result", json=bad_payload, headers=HEADERS)
-        t_assert(res.status_code == 400, "Bad correlation rejected")
-        results["BAD_CORRELATION_REJECTED"] = "YES"
-        
-        # Post correct t2 result
-        res_payload_2 = {
-            "worker_id": "WINDOWS-01",
-            "goal_id": goal_id,
-            "task_id": task2["task_id"],
-            "attempt_id": task2["attempt_id"],
-            "dispatch_id": task2["dispatch_id"],
-            "run_id": "run-win",
-            "result_id": "result-win",
-            "status": "SUCCESS",
-            "artifacts": [{"path": f"courier_canary_{task2['task_id']}.txt", "sha256": h.hexdigest()}]
-        }
-        res = requests.post(f"{API_URL}/tasks/result", json=res_payload_2, headers=HEADERS)
-        t_assert(res.status_code == 200, "Windows result posted successfully")
-        results["WINDOWS_COMPATIBLE"] = "YES"
-        
-        # Verify t2
-        verify_payload_2 = {
-            "task_id": task2["task_id"],
-            "verifier_id": "ACCEPTANCE_HARNESS",
-            "result_id": res_payload_2["result_id"],
-            "verdict": "PASS",
-            "artifacts": res_payload_2["artifacts"]
-        }
-        res = requests.post(f"{API_URL}/tasks/verify", json=verify_payload_2, headers=VERIFIER_HEADERS)
-        t_assert(res.status_code == 200, "Windows result verified and reconciled")
+class Results:
+    def __init__(self):
+        self.outcomes, self.collection_errors = {}, []
 
-# Step 3 is github. 
-        # We need to register a github worker and claim the task.
-        res = requests.post(f"{API_URL}/workers/register", json={"worker_id": "GITHUB-HOSTED", "platform": "linux", "capabilities": ["linux", "github"]}, headers=HEADERS)
-        t_assert(res.status_code == 200, "GitHub worker registered")
-        
-        res = requests.post(f"{API_URL}/tasks/claim", json={"worker_id": "GITHUB-HOSTED"}, headers=HEADERS)
-        t3_task = res.json().get("task")
-        t_assert(t3_task is not None and t3_task["task_id"] == "t3", "GitHub task dispatched automatically via claim")
-        
-        res_payload_3 = {
-            "worker_id": "GITHUB-HOSTED",
-            "goal_id": goal_id,
-            "task_id": t3_task["task_id"],
-            "attempt_id": t3_task["attempt_id"],
-            "dispatch_id": t3_task["dispatch_id"],
-            "run_id": "run-gh",
-            "result_id": "result-gh",
-            "status": "SUCCESS",
-            "artifacts": [{"path": f"courier_canary_{t3_task['task_id']}.txt", "sha256": h.hexdigest()}]
-        }
-        res = requests.post(f"{API_URL}/tasks/result", json=res_payload_3, headers=HEADERS)
-        t_assert(res.status_code == 200, f"GitHub result posted successfully")
-        results["GITHUB_COMPATIBLE"] = "YES"
-        
-        # Verify t3
-        verify_payload_3 = {
-            "task_id": t3_task["task_id"],
-            "verifier_id": "ACCEPTANCE_HARNESS",
-            "result_id": res_payload_3["result_id"],
-            "verdict": "PASS",
-            "artifacts": res_payload_3["artifacts"]
-        }
-        res = requests.post(f"{API_URL}/tasks/verify", json=verify_payload_3, headers=VERIFIER_HEADERS)
-        t_assert(res.status_code == 200, "GitHub result verified and reconciled")
+    def pytest_collection_finish(self, session):
+        self.outcomes.update({item.nodeid: "NOT_RUN" for item in session.items})
 
-        results["LOCAL_END_TO_END"] = "YES"
-        
-        # Test 8: Restart / Resume (RESTART_RESUME)
-        stop_server(server_proc)
-        server_proc = start_server(state_file)
-        
-        # Verify goal is COMPLETE after restart
-        with open(state_file, "r") as f:
-            st = json.load(f)
-        goal_status = st["goals"][goal_id]["status"]
-        t_assert(goal_status == "DONE", f"Goal state persisted and loaded correctly ({goal_status})")
-        results["RESTART_RESUME"] = "YES"
+    def pytest_collectreport(self, report):
+        if report.failed:
+            self.collection_errors.append(report.nodeid)
 
-    except AssertionError as e:
-        log(f"Test failed: {e}")
-    except Exception as e:
-        import traceback
-        log(f"Unexpected error: {traceback.format_exc()}")
-        results["FAIL"] += 1
-    finally:
-        stop_server(server_proc)
-        if os.path.exists(state_file): os.remove(state_file)
+    def pytest_runtest_logreport(self, report):
+        if report.failed:
+            value = "FAIL" if report.when == "call" else "ERROR"
+        elif getattr(report, "wasxfail", None):
+            value = "XPASS" if report.passed else "XFAIL"
+        elif report.skipped:
+            value = "SKIP"
+        elif report.when == "call":
+            value = "PASS"
+        else:
+            return
+        if self.outcomes.get(report.nodeid) not in ("FAIL", "ERROR", "XPASS"):
+            self.outcomes[report.nodeid] = value
 
-def require_keys():
-    missing = [n for n, v in (("COURIER_API_KEY", API_KEY), ("COURIER_VERIFIER_API_KEY", VERIFIER_API_KEY)) if not v]
-    if missing:
-        print(f"ERROR: missing required environment variable(s): {', '.join(missing)}", file=sys.stderr)
-        sys.exit(2)
+
+def install_test_guards(scratch):
+    """Defense in depth, not a sandbox for hostile tests. Tests are reviewed."""
+    violations = []
+
+    def denied(*args, **kwargs):
+        violations.append("credential_or_provider_access")
+        raise RuntimeError("acceptance forbids credential access")
+
+    keyring = types.ModuleType("keyring")
+    keyring.get_password = keyring.get_credential = keyring.set_password = denied
+    keyring.delete_password = denied
+    sys.modules["keyring"] = keyring
+    # Selected server tests supply explicit plans. The unrelated provider planner
+    # creates repository event directories even at import time; do not import it.
+    planner = types.ModuleType("scripts.run_chief_commander")
+    planner.ChiefCommander = denied
+    sys.modules["scripts.run_chief_commander"] = planner
+    # urllib3 performs an IPv6 bind probe at import. Disable that capability in
+    # this throwaway test process; keep the socket audit guard fully enforced.
+    socket.has_ipv6 = False
+
+    def audit(event, args):
+        blocked = event in {"socket.connect", "socket.bind", "socket.getaddrinfo", "os.system"}
+        if event == "subprocess.Popen":
+            _, argv, cwd, _ = args
+            argv = list(argv) if not isinstance(argv, str) else [argv]
+            preview = (len(argv) == 3 and argv[:2] == ["git", "apply"]
+                       and Path(argv[2]).resolve() == ROOT / "docs/p3/artifact-upload-cutover.patch"
+                       and cwd and Path(cwd).resolve().is_relative_to(scratch.resolve()))
+            # Reused refusal test launches this script WITHOUT opt-in.
+            refusal = argv == [sys.executable, str(Path(__file__).resolve())]
+            blocked = not (preview or refusal)
+        if event == "open" and isinstance(args[0], (str, bytes)):
+            path = Path(os.fsdecode(args[0]))
+            blocked = blocked or path.name == ".env" or "Keychains" in path.parts
+        if blocked:
+            violations.append(event)
+            raise RuntimeError("acceptance blocked external/credential operation")
+
+    sys.addaudithook(audit)
+    return violations
+
+
+def execute_tests(scratch, selectors):
+    import pytest
+    sys.path[:0] = [str(ROOT), str(ROOT / "tests")]
+    violations = install_test_guards(scratch)
+    plugin = Results()
+    code = int(pytest.main(["-q", "-p", "no:cacheprovider", "--tb=short",
+                           "--basetemp", str(scratch / "pytest"), *selectors], plugins=[plugin]))
+    payload = {"outcomes": plugin.outcomes, "pytest_exit": code,
+               "collection_errors": plugin.collection_errors, "guard_violations": violations}
+    (scratch / "results.json").write_text(json.dumps(payload), encoding="utf-8")
+    return code
+
+
+def fingerprint(paths):
+    return {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
+            for name in sorted(set(paths)) if (ROOT / name).is_file()}
+
+
+def git(*args):
+    return subprocess.check_output(["git", *args], cwd=ROOT, text=True).strip()
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--repo", action="store_true", help="isolated repo proofs; never physical acceptance")
+    parser.add_argument("--output", type=Path, help="JSON evidence file (new file only)")
+    parser.add_argument("--only", action="append", default=[], metavar="ID",
+                        help="target matrix row(s); unexecuted proofs remain NOT_PROVEN")
+    parser.add_argument("--_execute", type=Path, help=argparse.SUPPRESS)
+    args = parser.parse_args(argv)
+    if not args.repo:
+        print("REFUSED: explicit --repo required; this is not a physical acceptance proof.")
+        print("SYNTHETIC_TEST_ONLY=YES\nPHYSICAL_ACCEPTANCE=NO")
+        return 2
+    spec = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    unknown = set(args.only) - {row["ID"] for row in spec["MATRIX"]}
+    if unknown:
+        parser.error("unknown matrix ID")
+    selectors = sorted({test for row in spec["MATRIX"] if not args.only or row["ID"] in args.only
+                        for test in row["TEST"]})
+    if not selectors:
+        parser.error("selection has no executable repository proof")
+    if args._execute:
+        return execute_tests(args._execute, selectors)
+    if args.output and args.output.exists():
+        parser.error("output already exists; use a new evidence filename")
+    tracked = git("ls-files", "*.py", "docs/p3/artifact-upload-cutover.patch").splitlines()
+    tracked += [str(MANIFEST.relative_to(ROOT)), "tests/test_cannon_v1_acceptance_gaps.py",
+                "tests/test_final_acceptance_harness_fail_closed.py"]
+    before = fingerprint(tracked)
+    head = git("rev-parse", "HEAD")
+    product_changes = [path for path in git("diff", "--name-only", spec["BASE"]["COMMIT"], "--").splitlines()
+                       if not path.startswith(("tests/", "scripts/acceptance/"))]
+    with tempfile.TemporaryDirectory(prefix="courier-cv1-") as name:
+        scratch = Path(name)
+        env = {"PATH": "/usr/local/bin:/usr/bin:/bin", "PYTHONUTF8": "1",
+               "PYTHONDONTWRITEBYTECODE": "1", "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+               "COURIER_API_KEY": "test-secret", "COURIER_VERIFIER_API_KEY": "verifier-secret",
+               "COURIER_SERVER": "http://courier.invalid", "COURIER_SERVER_URL": "http://courier.invalid",
+               "COURIER_STATE_FILE": str(scratch / "unused-central.json"),
+               "COURIER_ARTIFACT_DIR": str(scratch / "unused-artifacts")}
+        try:
+            selection = [item for row_id in args.only for item in ("--only", row_id)]
+            child = subprocess.run([sys.executable, str(Path(__file__).resolve()), "--repo", "--_execute", name, *selection],
+                                   cwd=ROOT, env=env, text=True, capture_output=True, timeout=120)
+            path = scratch / "results.json"
+            raw = json.loads(path.read_text()) if path.exists() else {"outcomes": {}, "pytest_exit": child.returncode}
+            print(child.stdout[-18000:])
+            if child.returncode != raw["pytest_exit"]:
+                raw["pytest_exit"] = 3
+        except subprocess.TimeoutExpired:
+            raw = {"outcomes": {}, "pytest_exit": 3, "error": "isolated test process timed out"}
+        report = evaluate(spec["MATRIX"], raw["outcomes"], raw["pytest_exit"])
+        after = fingerprint(tracked)
+        changed = sorted(set(before) ^ set(after) | {p for p in before if before[p] != after.get(p)})
+        if changed or raw.get("guard_violations") or raw.get("collection_errors"):
+            report["CANNON_V1_REPO_STATUS"] = "NOT_PROVEN"
+        report.update(BASE=spec["BASE"], TESTED_HEAD=head, BRANCH=git("branch", "--show-current"),
+                      UTC=datetime.now(timezone.utc).isoformat(), FILE_SHA256=before,
+                      PRODUCT_CHANGES_VS_BASE=product_changes,
+                      CHANGED_DURING_RUN=changed, TEST_COUNTS=dict(Counter(raw["outcomes"].values())),
+                      EXECUTION_ERROR=raw.get("error"),
+                      GUARD_VIOLATIONS=raw.get("guard_violations", []),
+                      COLLECTION_ERRORS=raw.get("collection_errors", []))
+    if args.output:
+        with args.output.open("x", encoding="utf-8") as stream:
+            json.dump(report, stream, indent=2, sort_keys=True)
+            stream.write("\n")
+    for row in report["MATRIX"]:
+        print(f"{row['ID']}={row['STATUS']}")
+    print(f"CANNON_V1_REPO_STATUS={report['CANNON_V1_REPO_STATUS']}")
+    print("SYNTHETIC_TEST_ONLY=YES\nPHYSICAL_ACCEPTANCE=NO")
+    return {"PASS": 0, "FAIL": 1, "NOT_PROVEN": 2}[report["CANNON_V1_REPO_STATUS"]]
+
 
 if __name__ == "__main__":
-    require_keys()
-    run_tests()
-    
-    final_output = f"""
-ACCEPTANCE_HARNESS=YES
-LOCAL_END_TO_END={results['LOCAL_END_TO_END']}
-RESTART_RESUME={results['RESTART_RESUME']}
-DUPLICATE_RESULT={results['DUPLICATE_RESULT']}
-BAD_CORRELATION_REJECTED={results['BAD_CORRELATION_REJECTED']}
-GITHUB_COMPATIBLE={results['GITHUB_COMPATIBLE']}
-MAC_COMPATIBLE={results['MAC_COMPATIBLE']}
-WINDOWS_COMPATIBLE={results['WINDOWS_COMPATIBLE']}
-TESTS_RUN={results['TESTS_RUN']}
-PASS={results['PASS']}
-FAIL={results['FAIL']}
-EXTERNAL_WALLS={results['EXTERNAL_WALLS']}
-COMMIT=pending
-PUSHED=NO
-REAL_WALL=NONE
-STOPPED=YES
-"""
-    print("====================")
-    print(final_output.strip())
+    sys.exit(main())

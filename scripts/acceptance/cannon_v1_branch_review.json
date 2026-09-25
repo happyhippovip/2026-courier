@@ -1,0 +1,203 @@
+{
+  "BASE": "e6a5a53a74ae457523eba72e6aeaacada97b65f3",
+  "METHOD": "Read-only ancestry, stable patch-id, exact tip files and existing harvest notes. These classifications do not claim all branch tests passed.",
+  "BROKEN_COMPONENTS": [
+    {
+      "PATH": "scripts/acceptance/run_final_acceptance.py",
+      "AT": "e6a5a53a74ae457523eba72e6aeaacada97b65f3",
+      "CLASSIFICATION": "BROKEN",
+      "EVIDENCE": "Default refusal proof failed before repair; old script fabricated worker/verifier traffic and lacked trustworthy pass/exit semantics.",
+      "ACTION": "Repaired here at same path; no second harness."
+    }
+  ],
+  "BRANCHES": [
+    {
+      "BRANCH": "codex/canonical-physical-proof-harness",
+      "COMMIT": "e074ed390843c99fcd2be93cf7e7de89cd10b1c1",
+      "CLASSIFICATION": "ACCEPTANCE_RELEVANT",
+      "EVIDENCE": [
+        "a58ff1f3 fail-closed entry/test reused",
+        "Old synthetic traffic impersonates workers; obsolete sequencing/schema assumptions; no real physical proof",
+        "Muse HARVEST_SLOT_03.md independently identified the same gate gap; no second harvest performed"
+      ],
+      "ACTION": "Reuse refusal protocol in the existing entry point. Do not cherry-pick whole divergent runtime/ledger branch."
+    },
+    {
+      "BRANCH": "courier/codex-single-flight-fix",
+      "COMMIT": "c5c0dbf63e527937ff2b9c8b2ec419f0bc390c34",
+      "CLASSIFICATION": "KEEP",
+      "EVIDENCE": [
+        "Ancestor of fixed candidate",
+        "CV1-DUP-001 exercises its existing tests"
+      ],
+      "ACTION": "Already integrated; no rewrite."
+    },
+    {
+      "BRANCH": "courier/codex-stale-effect-quarantine",
+      "COMMIT": "32fdcd3c690f8ab3b94258cc98706a8eff5c26f0",
+      "CLASSIFICATION": "KEEP",
+      "EVIDENCE": [
+        "Ancestor of fixed candidate",
+        "CV1-CRASH-002"
+      ],
+      "ACTION": "Already integrated; no rewrite."
+    },
+    {
+      "BRANCH": "courier/codex-verifier-authority",
+      "COMMIT": "2d24e02e6ca0ec231af195a8a95514f27c999d42",
+      "CLASSIFICATION": "KEEP",
+      "EVIDENCE": [
+        "Ancestor of fixed candidate",
+        "CV1-VERIFY-001"
+      ],
+      "ACTION": "Preserve role separation; independent effect observation is a separate artifact gate."
+    },
+    {
+      "BRANCH": "claude/task02-mac-worker-crash-recovery",
+      "COMMIT": "1c57d92c39bdc6aed6d90e25fe4a000fb7eb1bed",
+      "CLASSIFICATION": "SUPERSEDED",
+      "EVIDENCE": [
+        "Stable patch-id equals integrated 9b36ca5d: 8f180d20818b91546b697cd3c4478f38df258073",
+        "Candidate adds d90c9d63 and fd60da67",
+        "Recovery tests reused unchanged"
+      ],
+      "ACTION": "Use candidate implementation/tests; do not apply duplicate patch."
+    },
+    {
+      "BRANCH": "claude/task03-windows-worker-binding",
+      "COMMIT": "f0dc97a69c8835bdb52a46104d1e3531a6895e23",
+      "CLASSIFICATION": "SUPERSEDED",
+      "EVIDENCE": [
+        "Stable patch-id equals integrated 27ee67d4: 0db588a3730f2fb496f7db0a47914b962392c1c4",
+        "Candidate adds 487cfc10 and fd60da67"
+      ],
+      "ACTION": "Use candidate implementation/tests; no physical Windows assertion."
+    },
+    {
+      "BRANCH": "claude/task04b-windows-worker-credentials",
+      "COMMIT": "7da7b9707b52ea2813b997cf76b67396ac5cb976",
+      "CLASSIFICATION": "CONFLICT",
+      "EVIDENCE": [
+        "Candidate uses alternative e3153e7c plus 50b1a0ac",
+        "Both externalize keys; URL-fallback semantics differ; not patch-equivalent",
+        "No actual credential/config file read"
+      ],
+      "ACTION": "Cloud owner decides URL-policy convergence; do not overwrite candidate credentials work."
+    },
+    {
+      "BRANCH": "claude/task05-integration-contract-test",
+      "COMMIT": "293973525a93e28e18009b180b7d02c80fb5dd9d",
+      "CLASSIFICATION": "SUPERSEDED",
+      "EVIDENCE": [
+        "Patch-id equals integrated 9e0ef78f: 4aaead0dddf43ddc4d13c241300147249c585d78",
+        "Candidate caa7cff4 subsequently removed retired control-plane tests rather than skipping them"
+      ],
+      "ACTION": "Reuse surviving canonical identity tests; no skipped legacy tests counted as proof."
+    },
+    {
+      "BRANCH": "agent/cannon-v1-result-id-fix",
+      "COMMIT": "5d2a9c9a638fe710d5d61e28bc7669d78aa0ae6f",
+      "CLASSIFICATION": "CONFLICT",
+      "EVIDENCE": [
+        "Changes app/cannon/adapters.py, scripts/cannon_motor.py, scripts/work_queue.py",
+        "All three runtime paths absent from fixed HTTP candidate"
+      ],
+      "ACTION": "Park for Cloud harvest; cannot prove candidate HTTP workers with different local-motor implementation."
+    },
+    {
+      "BRANCH": "agent/cannon-v1-retry-semantics2",
+      "COMMIT": "a75f23e345f42fc46d33453d743b932fa569ee01",
+      "CLASSIFICATION": "CONFLICT",
+      "EVIDENCE": [
+        "Targets scripts/cannon_motor.py, absent from candidate"
+      ],
+      "ACTION": "Do not integrate another runtime; retain for owning local-motor lane."
+    },
+    {
+      "BRANCH": "agent/cannon-v1-dead-imports",
+      "COMMIT": "7fbfac655d19bd75c0bd980f3f60a9d0032f04ff",
+      "CLASSIFICATION": "CONFLICT",
+      "EVIDENCE": [
+        "86-file divergent sweep including adapter behavior and result-binding tests, not only imports",
+        "Depends on local-motor lineage absent here"
+      ],
+      "ACTION": "No blanket cherry-pick; Cloud/Muse retain file-level ownership."
+    },
+    {
+      "BRANCH": "muse/MUSE-A01-adapter-double-exec-guard",
+      "COMMIT": "cdc8a1b472e4af24f0b6bfc0bdd40a87b7eaef8d",
+      "CLASSIFICATION": "ACCEPTANCE_RELEVANT",
+      "EVIDENCE": [
+        "Pins FakeAdapter duplicate execution on 5d2a9c9a lineage"
+      ],
+      "ACTION": "Relevant nonphysical test, not an HTTP daemon redelivery proof; not run against incompatible base."
+    },
+    {
+      "BRANCH": "muse/MUSE-01-result-binding",
+      "COMMIT": "1088f9866e6be76ceb71968bce3084e38feba989",
+      "CLASSIFICATION": "ACCEPTANCE_RELEVANT",
+      "EVIDENCE": [
+        "tests/test_cannon_motor_result_binding.py depends on absent motor/queue"
+      ],
+      "ACTION": "Park until owning candidate actually includes those modules."
+    },
+    {
+      "BRANCH": "muse/MUSE-B01-yolo-result-binding",
+      "COMMIT": "8eadc2544869f5434c8d63a3afc67955b9aad8dd",
+      "CLASSIFICATION": "CONFLICT",
+      "EVIDENCE": [
+        "Refines earlier 5d2a9c9a result identity for YOLO motor/queue",
+        "Not the HTTP worker result_id path"
+      ],
+      "ACTION": "Later specialized fix, no wholesale duplicate implementation."
+    },
+    {
+      "BRANCH": "muse/MUSE-01-wq-default-rid",
+      "COMMIT": "2d330c250d9fec634bdb38bd64879d82e783788f",
+      "CLASSIFICATION": "CONFLICT",
+      "EVIDENCE": [
+        "Content-bound default result identity in absent scripts/work_queue.py"
+      ],
+      "ACTION": "Owning queue lane decides overlap with 8eadc254; not simulated as current candidate proof."
+    },
+    {
+      "BRANCH": "muse/MUSE-A01-runbatch-resume-attempt",
+      "COMMIT": "cca9f151c20da3596242fc3809cadfa9d43a7c09",
+      "CLASSIFICATION": "CONFLICT",
+      "EVIDENCE": [
+        "Targets scripts/run_batch.py, absent from candidate"
+      ],
+      "ACTION": "Do not conflate new run-batch attempt with HTTP redelivery of the same attempt."
+    },
+    {
+      "BRANCH": "muse/MUSE-A01-runstep-missing-record-failclosed",
+      "COMMIT": "73144d2e11a746e226cbb55c6f549bca0835f753",
+      "CLASSIFICATION": "ACCEPTANCE_RELEVANT",
+      "EVIDENCE": [
+        "Missing queue-record guard in absent scripts/cannon_motor.py"
+      ],
+      "ACTION": "Park with local motor lane; no direct candidate applicability."
+    },
+    {
+      "BRANCH": "muse/MUSE-A01-duplicate-guard-failclosed",
+      "COMMIT": "ac76931814dc60c84d6b79d770b3f242cd143240",
+      "CLASSIFICATION": "ACCEPTANCE_RELEVANT",
+      "EVIDENCE": [
+        "Relevant earlier commit 5b6117140864afa1c13214039c7ed705d4e29b27 makes corrupt publish-result duplicate scan fail closed",
+        "Candidate publish_courier_result.py still has old guard; active HTTP workers do not use this file for result delivery"
+      ],
+      "ACTION": "Reuse finding for Cloud-owned publisher harvest, not as a fix for worker CV1-DUP-002."
+    },
+    {
+      "BRANCH": "claude/keen-gates-8miu4n",
+      "COMMIT": "a83ea7edbe4acc7c3dc7047fb64b9128676a6b0f",
+      "CLASSIFICATION": "ACCEPTANCE_RELEVANT",
+      "EVIDENCE": [
+        "Contains c9259d92acc38ce0106d939a28d2f7fd88d2060f: acknowledges FAILED resend and rejects some conflicts",
+        "Not integrated in fixed candidate",
+        "Inspection: equality checks dispatch_id/result_id/status only, so altered artifact/worker/attempt with same triple would still ACK; NOT a complete H proof"
+      ],
+      "ACTION": "Cloud should reuse/extend the existing result fix, then run CV1-IDEMP-001 and CV1-IDEMP-002. No duplicate fix written here."
+    }
+  ]
+}
