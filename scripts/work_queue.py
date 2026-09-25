@@ -24,7 +24,6 @@ the task overlaps a scope already held by another live claim.
 import argparse
 import contextlib
 import json
-import sys
 import time
 from pathlib import Path
 
