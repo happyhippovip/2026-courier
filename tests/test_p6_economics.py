@@ -2,8 +2,10 @@ import pytest
 from server.app import app, load_state
 
 @pytest.fixture
-def client(monkeypatch):
+def client(tmp_path, monkeypatch):
     import server.app
+    # Isolate state in tmp: never touch the tracked server/state/central_state.json.
+    monkeypatch.setattr(server.app, "STATE_FILE", str(tmp_path / "central_state.json"))
     monkeypatch.setattr(server.app, "API_KEY", "test-secret")
     app.config["TESTING"] = True
     with app.test_client() as client:
