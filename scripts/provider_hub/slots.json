@@ -1,0 +1,10 @@
+{
+  "default_effort": "medium",
+  "poll_seconds": 3,
+  "slots": [
+    {"slot_id": "GOOGLE-01", "provider": "google", "account": "google-account-1", "profile_home": null},
+    {"slot_id": "GOOGLE-02", "provider": "google", "account": "google-account-1", "profile_home": "C:\\Users\\lol\\.gemini_alt"},
+    {"slot_id": "MUSE-H1", "provider": "muse", "account": "muse-account-1"},
+    {"slot_id": "MUSE-H2", "provider": "muse", "account": "muse-account-1"}
+  ]
+}
