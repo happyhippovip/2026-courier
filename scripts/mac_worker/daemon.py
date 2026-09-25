@@ -3,9 +3,14 @@ from pathlib import Path, PurePosixPath
 import urllib.request
 import urllib.error
 import urllib.parse
+import signal
+from contextlib import nullcontext
 
 # Paths
 BASE_DIR = Path(__file__).parent
+sys.path.insert(0, str(BASE_DIR.resolve()))
+from runtime_state import (CANONICAL_WORKSPACE, atomic_json, control_lock, read_object,
+                           process_identity, same_process, cleanup_group, group_exists)
 CONFIG_PATH = Path(os.environ.get("COURIER_WORKER_CONFIG", BASE_DIR / "config.json"))
 # A supervisor slot runs its own daemon with its own home, so each slot has
 # isolated task state (current_task.json) and logs.
@@ -73,12 +78,77 @@ def http_post(config, endpoint, data):
 MAX_RESULT_POST_ATTEMPTS = 8
 
 def persist_task(path, task):
-    tmp_path = path.with_suffix(".tmp")
-    with open(tmp_path, "w") as f:
-        json.dump(task, f)
-        f.flush()
-        os.fsync(f.fileno())
-    os.replace(tmp_path, path)
+    atomic_json(path, task)
+
+
+def worker_wall():
+    value = os.environ.get("COURIER_WALL_DIR")
+    return Path(value) if value else None
+
+
+def admission_lock():
+    wall = worker_wall()
+    return control_lock(wall) if wall else nullcontext()
+
+
+def stopped():
+    wall = worker_wall()
+    return bool(wall and (wall / "STOP").exists())
+
+
+def resource_ready():
+    if not worker_wall():
+        return True  # Non-wall legacy worker; supervised Muse always has a wall.
+    from muse_supervisor import CapacityGovernor
+    return CapacityGovernor(1).evaluate() > 0
+
+
+class MuseAdmissionBlocked(Exception):
+    """No child has been spawned; retaining CLAIMED is safe."""
+
+
+class WorkerShutdown(BaseException):
+    pass
+
+
+def artifact_path(task, name):
+    return Path(task.get("workspace") or ".") / name
+
+
+def bind_runtime_task(task, config):
+    mode = task.get("mode", os.environ.get("COURIER_WORKER_DEFAULT_MODE", "ANTIGRAVITY"))
+    if mode != "MUSE":
+        return
+    import muse_adapter
+    binding = muse_adapter.task_binding(task, os.environ.get("COURIER_SLOT_ID") or config["WORKER_ID"],
+        os.environ.get("COURIER_MUSE_WORKSPACE", config.get("MUSE_WORKSPACE", CANONICAL_WORKSPACE)))
+    if task.get("runtime_binding") and task["runtime_binding"] != binding:
+        raise muse_adapter.MuseBindingError("Restored runtime binding mismatch; reconciliation required")
+    task["runtime_binding"] = binding
+    if task.get("workspace") and task["workspace"] != binding["workspace"]:
+        raise muse_adapter.MuseBindingError("Restored artifact workspace mismatch")
+    payload = task.get("result_payload")
+    if payload and any(payload.get(key) != task.get(key)
+                       for key in (*muse_adapter.IDENTITY_FIELDS, "worker_id")):
+        raise muse_adapter.MuseBindingError("Stored result identity differs from its task")
+
+
+def require_no_orphan():
+    previous = read_object(STATE_DIR / "muse_process.json")
+    if previous and previous.get("state") != "CLEAN":
+        identity = previous.get("identity")
+        if not identity or group_exists(identity["pgid"]):
+            raise RuntimeError("Unreconciled Muse child; no further claims/executions allowed")
+
+
+def persist_ready_result(path, task, config):
+    result = task["result_payload"].get("raw_result", {})
+    if result.get("execution_mode") == "MUSE":
+        import muse_adapter
+        muse_adapter.save_checkpoint(STATE_DIR, task, result,
+            slot_id=os.environ.get("COURIER_SLOT_ID") or config["WORKER_ID"],
+            workspace=os.environ.get("COURIER_MUSE_WORKSPACE", config.get("MUSE_WORKSPACE", CANONICAL_WORKSPACE)))
+    persist_task(path, task)
 
 def is_retryable_post_error(err):
     # http_post reports server answers as "HTTP Error <code>: ..."; anything
@@ -114,9 +184,9 @@ def upload_pending_artifacts(config, task, state_file):
         if "artifact_id" in art:
             continue
         name = art["path"]
-        if not is_safe_artifact_path(name) or not Path(name).is_file():
+        if not is_safe_artifact_path(name) or not artifact_path(task, name).is_file():
             return "REJECTED"
-        data = Path(name).read_bytes()
+        data = artifact_path(task, name).read_bytes()
         if hashlib.sha256(data).hexdigest() != art["sha256"]:
             write_log(f"Artifact {name} changed after hashing; not uploading.")
             return "REJECTED"
@@ -164,10 +234,10 @@ def collect_artifact_evidence(task, result):
         name = expected.get("path") if isinstance(expected, dict) else expected
         if not is_safe_artifact_path(name):
             problem = f"Unsafe artifact path: {name}"
-        elif not Path(name).is_file():
+        elif not artifact_path(task, name).is_file():
             problem = f"Missing artifact: {name}"
         else:
-            evidence.append({"path": name, "sha256": hashlib.sha256(Path(name).read_bytes()).hexdigest()})
+            evidence.append({"path": name, "sha256": hashlib.sha256(artifact_path(task, name).read_bytes()).hexdigest()})
             continue
         result["status"] = "FAILED"
         result["stderr"] = result.get("stderr", "") + "\n" + problem
@@ -262,19 +332,61 @@ def run_muse(task, config):
         sys.path.insert(0, str(BASE_DIR))
     import muse_adapter
     write_log(f"Running MUSE task {task['task_id']}")
+    slot = os.environ.get("COURIER_SLOT_ID") or config["WORKER_ID"]
+    workspace = os.environ.get("COURIER_MUSE_WORKSPACE", config.get("MUSE_WORKSPACE", CANONICAL_WORKSPACE))
+    binding = muse_adapter.task_binding(task, slot, workspace)
+    bind_runtime_task(task, config)
     checkpoint = muse_adapter.load_checkpoint(STATE_DIR)
-    try:
-        argv, stdin_text = muse_adapter.build_muse_command(task, checkpoint, muse_adapter.cli_capabilities(config))
-    except muse_adapter.MuseCapabilityUnknown as exc:
-        return {"status": "FAILED", "reason": "MUSE_PROMPT_METHOD_UNCONFIRMED", "stderr": str(exc), "execution_mode": "MUSE"}
-    try:
-        completed = subprocess.run(argv, input=stdin_text, capture_output=True, text=True,
-                                   timeout=float(config.get("MUSE_TIMEOUT_SECONDS", 3600)))
-    except (OSError, subprocess.TimeoutExpired) as exc:
-        return {"status": "FAILED", "stderr": str(exc), "execution_mode": "MUSE"}
-    result = muse_adapter.parse_result(completed.stdout, completed.returncode)
-    result["stderr"] = completed.stderr[-4000:]
-    muse_adapter.save_checkpoint(STATE_DIR, task, result)
+    action = task.get("muse_action", "exec")
+    if checkpoint and checkpoint.get("binding") != binding:
+        # Preserve evidence, but never feed another task's context to this task.
+        atomic_json(STATE_DIR / ("checkpoint.quarantine-" + uuid.uuid4().hex + ".json"), checkpoint)
+        if action != "exec":
+            raise muse_adapter.MuseBindingError("Foreign checkpoint cannot authorize resume")
+        checkpoint = {}
+    caps = muse_adapter.cli_capabilities(config)
+    prompt = muse_adapter.prepare_prompt(STATE_DIR, task, binding, checkpoint, caps)
+    argv, _ = muse_adapter.build_muse_command(task, checkpoint, caps, slot_id=slot,
+                                             workspace=workspace, action=action, prompt=prompt)
+    child_file = STATE_DIR / "muse_process.json"
+    require_no_orphan()
+    proc = None
+    identity = None
+    task["workspace"] = workspace
+    persist_task(STATE_DIR / "current_task.json", task)
+    # Durable output survives daemon interruption. Bounded by size and wall time.
+    with open(STATE_DIR / "muse.stdout", "w+") as out, open(STATE_DIR / "muse.stderr", "w+") as err:
+        try:
+            with admission_lock():
+                if stopped() or not resource_ready():
+                    raise MuseAdmissionBlocked("STOP or resource admission denied")
+                atomic_json(child_file, {"state": "STARTING", "binding": binding})
+                proc = subprocess.Popen(argv, stdin=subprocess.DEVNULL, stdout=out, stderr=err,
+                                        start_new_session=True)
+                identity = process_identity(proc.pid)
+                atomic_json(child_file, {"state": "RUNNING", "identity": identity, "binding": binding})
+            deadline = time.monotonic() + min(float(config.get("MUSE_TIMEOUT_SECONDS", 3600)), 3600)
+            heartbeat_at = time.monotonic() + 30
+            while proc.poll() is None:
+                if time.monotonic() >= deadline or out.tell() + err.tell() > 8 * 1024 * 1024:
+                    raise RuntimeError("Muse execution ambiguous: timeout/output limit; reconcile, do not retry")
+                if time.monotonic() >= heartbeat_at:
+                    if config.get("COURIER_SERVER"):
+                        http_post(config, "/workers/heartbeat", {"worker_id": config["WORKER_ID"]})
+                    heartbeat_at = time.monotonic() + 30
+                time.sleep(0.1)
+            if proc.returncode != 0:
+                raise RuntimeError("Muse nonzero exit has ambiguous effects; reconcile, do not retry")
+            out.seek(0); err.seek(0)
+            result = muse_adapter.parse_result(out.read(8 * 1024 * 1024), proc.returncode, caps)
+            result["stderr"] = err.read(8 * 1024 * 1024)[-4000:]
+        finally:
+            if proc is not None:
+                clean = cleanup_group(proc, identity)
+                atomic_json(child_file, {"state": "CLEAN" if clean else "ORPHANS_REMAIN",
+                                         "identity": identity, "binding": binding})
+                if not clean:
+                    raise RuntimeError("Muse child cleanup unproven; no new execution allowed")
     return result
 
 def acquire_worker_lock():
@@ -299,6 +411,7 @@ def loop():
     one_task = os.environ.get("COURIER_WORKER_ONE_TASK") == "1"
     write_log("Starting Mac Worker HTTP Daemon...")
     config = load_config()
+    require_no_orphan()
     if not str(config.get("COURIER_API_KEY") or "").strip():
         write_log("FATAL: COURIER_API_KEY is not set (keychain or environment); refusing to contact the server.")
         sys.exit(2)
@@ -310,14 +423,32 @@ def loop():
     if current_task_state_file.exists():
         with open(current_task_state_file, 'r') as f:
             task = json.load(f)
-        if task.get("worker_phase") not in ("CLAIMED", "RESULT_READY"):
+        if task.get("worker_phase") not in ("CLAIMED", "RESULT_READY", "RECOVERY_BLOCKED"):
             task["worker_phase"] = "STARTED"
         write_log(f"Found unfinished task {task['task_id']} in phase {task['worker_phase']}, resuming...")
+        if task.get("worker_id") and task["worker_id"] != config["WORKER_ID"]:
+            raise RuntimeError("Restored task belongs to another worker; reconciliation required")
+        if (task.get("worker_phase") == "CLAIMED"
+                and task.get("mode", os.environ.get("COURIER_WORKER_DEFAULT_MODE")) == "MUSE"
+                and not task.get("runtime_binding")):
+            raise RuntimeError("Legacy unbound Muse claim requires reconciliation before execution")
+        bind_runtime_task(task, config)
 
     registered = False
 
     while True:
         try:
+            if task and task.get("worker_phase") == "RECOVERY_BLOCKED":
+                # Storage failure during/after execution must not release and drain
+                # another task. Preserve the marker when storage becomes writable.
+                try:
+                    persist_task(current_task_state_file, task)
+                except OSError:
+                    pass
+                time.sleep(config.get("POLL_INTERVAL_SECONDS", 5))
+                continue
+            if stopped() and (not task or task.get("worker_phase") == "CLAIMED"):
+                return
             if task and task.get("worker_phase") == "STARTED":
                 # Interrupted mid-execution (restart or exception): the effect may
                 # already exist, so never replay it. Re-registering without the
@@ -357,7 +488,14 @@ def loop():
                 
             if not task:
                 # Claim Task
-                res, err = http_post(config, "/tasks/claim", {"worker_id": config["WORKER_ID"]})
+                with admission_lock():
+                    if stopped():
+                        return
+                    require_no_orphan()
+                    if not resource_ready():
+                        res, err = {"task": None}, None
+                    else:
+                        res, err = http_post(config, "/tasks/claim", {"worker_id": config["WORKER_ID"]})
                 if err:
                     write_log(f"Claim failed: {err}")
                     time.sleep(5)
@@ -365,10 +503,16 @@ def loop():
                     
                 task = res.get("task")
                 if task:
+                    bind_runtime_task(task, config)
                     task["worker_phase"] = "CLAIMED"
                     persist_task(current_task_state_file, task)
 
             if task and task.get("worker_phase") == "CLAIMED":
+                if task.get("worker_id") and task["worker_id"] != config["WORKER_ID"]:
+                    raise RuntimeError("Claimed task worker mismatch")
+                with admission_lock():
+                    if stopped():
+                        return
                 write_log(f"Processing task {task['task_id']}")
                 task["worker_phase"] = "STARTED"
                 persist_task(current_task_state_file, task)
@@ -382,7 +526,13 @@ def loop():
                 if mode == "NATIVE":
                     result = run_native(task, config)
                 elif mode == "MUSE":
-                    result = run_muse(task, config)
+                    try:
+                        result = run_muse(task, config)
+                    except MuseAdmissionBlocked:
+                        task["worker_phase"] = "CLAIMED"
+                        persist_task(current_task_state_file, task)
+                        time.sleep(config.get("POLL_INTERVAL_SECONDS", 5))
+                        continue
                 else:
                     result = run_agy(task, config)
                 
@@ -402,8 +552,15 @@ def loop():
                     "raw_result": result
                 }
                 task["result_payload"] = payload
-                task["worker_phase"] = "RESULT_READY"
-                persist_task(current_task_state_file, task)
+                task["worker_phase"] = "RESULT_PENDING"
+
+            if task and task.get("worker_phase") == "RESULT_PENDING":
+                # Do not advance in-memory state until the durable write succeeded.
+                # On ENOSPC we retain this same result and IDs, retry only persistence,
+                # and neither send a success nor claim/execute another task.
+                durable = dict(task, worker_phase="RESULT_READY")
+                persist_ready_result(current_task_state_file, durable, config)
+                task = durable
 
             if task:
                 outcome = upload_pending_artifacts(config, task, current_task_state_file) if upload_enabled(config) else "READY"
@@ -429,10 +586,21 @@ def loop():
                         write_log("Task delivered; exiting for a fresh slot process.")
                         return
                 
+        except OSError as e:
+            if task and task.get("worker_phase") == "STARTED":
+                task.update(worker_phase="RECOVERY_BLOCKED", blocker="EXECUTION_STORAGE_FAILURE")
+            print(f"Storage failure: {type(e).__name__}; result/task retained, no completion acknowledged.")
         except Exception as e:
             write_log(f"Error in HTTP poll loop: {e}\n{traceback.format_exc()}")
             
         time.sleep(config.get("POLL_INTERVAL_SECONDS", 5))
 
 if __name__ == "__main__":
-    loop()
+    def shutdown(signum, frame):
+        raise WorkerShutdown()
+    signal.signal(signal.SIGTERM, shutdown)
+    signal.signal(signal.SIGINT, shutdown)
+    try:
+        loop()
+    except WorkerShutdown:
+        pass

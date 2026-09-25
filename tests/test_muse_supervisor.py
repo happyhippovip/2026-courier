@@ -22,12 +22,13 @@ HEALTHY = {"swap_mb": 0.0, "load_1m": 0.5, "mem_free_pct": 80.0}
 
 FAKE_MUSE = r'''
 import json, os, sys, time
-prompt = sys.stdin.read()
+prompt = sys.argv[-1]
+workspace = sys.argv[sys.argv.index("--workspace") + 1]
 log = os.environ["FAKE_MUSE_LOG"]
 with open(log, "a") as f:
     f.write(json.dumps({"cwd": os.getcwd(), "prompt": prompt}) + "\n")
 time.sleep(float(os.environ.get("FAKE_MUSE_SLEEP", "0")))
-open("out.txt", "w").write("done\n")
+open(os.path.join(workspace, "out.txt"), "w").write("done\n")
 print("```json\n" + json.dumps({"status": "SUCCESS", "branch": "muse/sim", "last_commit": "c0ffee1",
                                 "next_task": "verify"}) + "\n```")
 '''
@@ -62,16 +63,34 @@ def env(tmp_path, monkeypatch):
     worker_cfg = tmp_path / "worker_config.json"
     worker_cfg.write_text(json.dumps({"WORKER_ID": "unused", "POLL_INTERVAL_SECONDS": 0.1}))
     monkeypatch.setenv("COURIER_SERVER", url)
-    monkeypatch.setenv("COURIER_MUSE_CLI", json.dumps({"binary": str(tmp_path / "muse.sh"), "prompt_via": "stdin"}))
+    monkeypatch.setenv("COURIER_MUSE_CLI", json.dumps({"binary": str(tmp_path / "muse.sh"), "protocol": "headless-v1"}))
     monkeypatch.setenv("FAKE_MUSE_LOG", str(tmp_path / "muse_calls.jsonl"))
     monkeypatch.setenv("COURIER_WALL_DIR", str(tmp_path / "wall"))
     sup = load_module(f"sup_{tmp_path.name}", SUP_PATH)
     (tmp_path / "wall").mkdir()
-    sup.write_json(sup.CONFIG_FILE, {"worker_config": str(worker_cfg)})
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    sup.write_json(sup.CONFIG_FILE, {"worker_config": str(worker_cfg), "workspace": str(workspace)})
+    # Test-only bootstrap: no Keychain or real resource probes in worker processes.
+    bootstrap = tmp_path / "fake_config_daemon.py"
+    bootstrap.write_text(
+        f"import sys, os, signal\nsys.path.insert(0, {str(ROOT / 'scripts' / 'mac_worker')!r})\n"
+        "import daemon as d\n"
+        "d.load_config = lambda: {'COURIER_SERVER': os.environ['COURIER_SERVER'], "
+        "'COURIER_API_KEY': os.environ['COURIER_API_KEY'], 'WORKER_ID': os.environ['COURIER_WORKER_ID'], "
+        "'POLL_INTERVAL_SECONDS': 0.1}\n"
+        "d.resource_ready = lambda: True\n"
+        "def stop(*args): raise d.WorkerShutdown()\n"
+        "signal.signal(signal.SIGTERM, stop)\n"
+        "try: d.loop()\nexcept d.WorkerShutdown: pass\n")
+    monkeypatch.setattr(sup, "DAEMON", bootstrap)
     http = server.app.test_client()
     auth = {"Authorization": f"Bearer {WORKER_KEY}"}
-    yield sup, server, http, auth, tmp_path
-    httpd.shutdown()
+    try:
+        yield sup, server, http, auth, tmp_path
+    finally:
+        sup.cmd_stop(terminate=True)
+        httpd.shutdown()
 
 
 def add_goal(http, auth, task_id):
@@ -126,7 +145,8 @@ def test_slot_claims_canonical_task_runs_muse_exits_and_restarts_with_checkpoint
     assert (view["branch"], view["last_commit"], view["next_task"]) == ("muse/sim", "c0ffee1", "verify")
     add_goal(http, auth, "t-2")
     assert run_until(s, lambda: task_state(server, "t-2").get("status") == "RESULT_RECEIVED", clock=clock)
-    assert '"branch": "muse/sim"' in muse_calls(tmp)[1]["prompt"]                  # checkpoint resumed
+    assert '"branch": "muse/sim"' not in muse_calls(tmp)[1]["prompt"]  # new task, not foreign context
+    assert list((sup.slot_home("01") / "state").glob("checkpoint.quarantine-*.json"))
     sup.cmd_stop()
     assert run_until(s, lambda: sup.load_slots()["01"]["state"] == "STOPPED", clock=clock)
 
@@ -180,7 +200,9 @@ def test_duplicate_slot_and_supervisor_are_prevented(env):
     sup.save_slots(slots)
     s.tick(HEALTHY)
     assert sup.load_slots()["01"]["pid"] == first and len(s.launcher.children) == 1
-    assert sup.acquire_lock() is not None and sup.acquire_lock() is None
+    lock = sup.acquire_lock()
+    assert lock is not None and sup.acquire_lock() is None
+    lock.close()
     # the daemon itself refuses a second process on the same slot state
     second = s.launcher.start("01", sup.slot_env("01", sup.read_json(sup.CONFIG_FILE, {})))
     deadline = time.time() + 10
@@ -199,7 +221,7 @@ def test_missing_metrics_block_scale_up(env):
     clock.t += 10_000
     s.tick()
     states = [v["state"] for _, v in sorted(sup.load_slots().items())]
-    assert states.count("RUNNING") == 1 and states.count("RESOURCE_BLOCKED") == 3  # held at 1
+    assert states.count("RUNNING") == 0 and states.count("RESOURCE_BLOCKED") == 4
     sup.cmd_stop(terminate=True, launcher=s.launcher)
 
 
@@ -210,7 +232,8 @@ def test_ramp_and_crash_backoff_to_paused(env):
     for expected in (1, 4, 8, 16, 32):
         assert gov.evaluate(HEALTHY) == expected
         clock.t += sup.RAMP_HOLD_SECONDS + 1
-    assert gov.evaluate(dict(HEALTHY, mem_free_pct=5.0)) == 16                     # step down, kill nothing
+    assert gov.evaluate(dict(HEALTHY, mem_free_pct=5.0)) == 0
+    assert gov.admitted == 16
 
     class Crashy:
         def __init__(self): self.starts = 0
@@ -268,5 +291,6 @@ def test_unconfirmed_prompt_method_fails_closed():
         muse_adapter.build_muse_command(task, {}, {})
     with pytest.raises(muse_adapter.MuseCapabilityUnknown):
         muse_adapter.build_muse_command(task, {}, {"prompt_via": "arg"})           # flag not confirmed
-    argv, stdin = muse_adapter.build_muse_command(task, {"branch": "b"}, {"prompt_via": "arg", "prompt_flag": "-p"})
-    assert argv[:2] == ["muse", "-p"] and "d-1" in argv[2] and stdin is None
+    argv, stdin = muse_adapter.build_muse_command(task, {}, {"protocol": "headless-v1"},
+        slot_id="01", workspace="/Users/user/Downloads/2026-courier")
+    assert argv[:2] == ["muse", "exec"] and "d-1" in argv[-1] and stdin is None
