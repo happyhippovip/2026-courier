@@ -103,3 +103,6 @@ scripts/windows_worker/state/
 private_strategy/
 secret_notes/
 confidential/
+
+# Durable GitHub dispatch packets and adapter state (runtime only).
+events/github-dispatch/
