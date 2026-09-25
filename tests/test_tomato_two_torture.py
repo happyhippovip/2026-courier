@@ -102,7 +102,7 @@ def start_server():
     env["COURIER_VERIFIER_API_KEY"] = "421606503a874d39b50f6137e3321b7f"
 
     # CLEANUP STATE BEFORE TEST
-    state_file = REPO_ROOT / "server/state.json"
+    state_file = REPO_ROOT / "server/state/central_state.json"
     if state_file.exists():
         state_file.unlink()
         
