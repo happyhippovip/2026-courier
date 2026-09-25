@@ -1,4 +1,4 @@
-import os, glob, json, shutil, sys
+import os, glob, shutil, sys
 
 # Ensure we can import from scripts dir
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
