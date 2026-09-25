@@ -4,6 +4,8 @@ import os
 import sys
 from unittest import mock
 
+import pytest
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from scripts import gemini_worker_adapter
 
@@ -54,11 +56,22 @@ def test_gemini_worker_adapter_timeout(tmp_path):
             
     assert mock_process.kill.called
     assert os.path.exists(result_ref)
-    
+
     with open(result_ref, "r") as f:
         res = json.load(f)
         # Should fail closed because output is not valid json
         assert res["status"] == "FAILED"
-        
+
     os.remove(result_ref)
+
+def test_gemini_worker_rejects_path_unsafe_task_id(tmp_path):
+    task_file = tmp_path / "evil.json"
+    with open(task_file, "w") as f:
+        json.dump({"task_id": "../../outside", "instruction": "do it"}, f)
+
+    with mock.patch("subprocess.Popen") as popen:
+        with pytest.raises(ValueError, match="path-safe"):
+            gemini_worker_adapter.run_worker(str(task_file))
+
+    popen.assert_not_called()
 
