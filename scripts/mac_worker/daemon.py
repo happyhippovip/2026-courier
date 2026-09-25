@@ -1,4 +1,4 @@
-import json, time, os, sys, shutil, subprocess, uuid, traceback
+import json, time, os, sys, shutil, subprocess, uuid, traceback, fcntl
 from pathlib import Path, PurePosixPath
 import urllib.request
 import urllib.error
@@ -6,9 +6,12 @@ import urllib.parse
 
 # Paths
 BASE_DIR = Path(__file__).parent
-CONFIG_PATH = BASE_DIR / "config.json"
-STATE_DIR = BASE_DIR / "state"
-LOGS_DIR = BASE_DIR / "logs"
+CONFIG_PATH = Path(os.environ.get("COURIER_WORKER_CONFIG", BASE_DIR / "config.json"))
+# A supervisor slot runs its own daemon with its own home, so each slot has
+# isolated task state (current_task.json) and logs.
+WORKER_HOME = Path(os.environ["COURIER_WORKER_HOME"]) if os.environ.get("COURIER_WORKER_HOME") else None
+STATE_DIR = WORKER_HOME / "state" if WORKER_HOME else BASE_DIR / "state"
+LOGS_DIR = WORKER_HOME / "logs" if WORKER_HOME else BASE_DIR / "logs"
 
 def load_config():
     with open(CONFIG_PATH, "r") as f:
@@ -18,13 +21,13 @@ def load_config():
     try:
         pw = subprocess.check_output(["security", "find-generic-password", "-a", "courier_worker", "-s", "courier_api_key", "-w"], stderr=subprocess.DEVNULL)
         config["COURIER_API_KEY"] = pw.decode("utf-8").strip()
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, OSError):
         pass
         
     try:
         srv = subprocess.check_output(["security", "find-generic-password", "-a", "courier_worker", "-s", "courier_server_url", "-w"], stderr=subprocess.DEVNULL)
         config["COURIER_SERVER"] = srv.decode("utf-8").strip()
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, OSError):
         pass
     
     # Environment overrides
@@ -32,6 +35,8 @@ def load_config():
         config["COURIER_SERVER"] = os.environ["COURIER_SERVER"]
     if "COURIER_API_KEY" in os.environ:
         config["COURIER_API_KEY"] = os.environ["COURIER_API_KEY"]
+    if os.environ.get("COURIER_WORKER_ID"):
+        config["WORKER_ID"] = os.environ["COURIER_WORKER_ID"]
         
     return config
 
@@ -251,7 +256,47 @@ def run_agy(task, config):
     except Exception as e:
         return {"status": "FAILED", "stderr": str(e), "execution_mode": "ANTIGRAVITY"}
 
+def run_muse(task, config):
+    """Muse slot execution through the muse_adapter boundary (no guessed CLI method)."""
+    if str(BASE_DIR) not in sys.path:
+        sys.path.insert(0, str(BASE_DIR))
+    import muse_adapter
+    write_log(f"Running MUSE task {task['task_id']}")
+    checkpoint = muse_adapter.load_checkpoint(STATE_DIR)
+    try:
+        argv, stdin_text = muse_adapter.build_muse_command(task, checkpoint, muse_adapter.cli_capabilities(config))
+    except muse_adapter.MuseCapabilityUnknown as exc:
+        return {"status": "FAILED", "reason": "MUSE_PROMPT_METHOD_UNCONFIRMED", "stderr": str(exc), "execution_mode": "MUSE"}
+    try:
+        completed = subprocess.run(argv, input=stdin_text, capture_output=True, text=True,
+                                   timeout=float(config.get("MUSE_TIMEOUT_SECONDS", 3600)))
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        return {"status": "FAILED", "stderr": str(exc), "execution_mode": "MUSE"}
+    result = muse_adapter.parse_result(completed.stdout, completed.returncode)
+    result["stderr"] = completed.stderr[-4000:]
+    muse_adapter.save_checkpoint(STATE_DIR, task, result)
+    return result
+
+def acquire_worker_lock():
+    """One daemon per state directory: a second one would re-claim or re-send."""
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+    LOGS_DIR.mkdir(parents=True, exist_ok=True)
+    handle = open(STATE_DIR / "worker.lock", "w")
+    try:
+        fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        handle.close()
+        return None
+    return handle
+
 def loop():
+    worker_lock = acquire_worker_lock()
+    if worker_lock is None:
+        print("Another worker daemon already owns this state directory; exiting.")
+        sys.exit(3)
+    # Supervisor slots: exit 0 after one task is delivered or released, so the
+    # slot restarts with a fresh process; task state survives in current_task.json.
+    one_task = os.environ.get("COURIER_WORKER_ONE_TASK") == "1"
     write_log("Starting Mac Worker HTTP Daemon...")
     config = load_config()
     if not str(config.get("COURIER_API_KEY") or "").strip():
@@ -327,7 +372,7 @@ def loop():
                 write_log(f"Processing task {task['task_id']}")
                 task["worker_phase"] = "STARTED"
                 persist_task(current_task_state_file, task)
-                mode = task.get("mode", "ANTIGRAVITY")
+                mode = task.get("mode", os.environ.get("COURIER_WORKER_DEFAULT_MODE", "ANTIGRAVITY"))
                 # Fallback to NATIVE if requested via target_agent routing
                 target = task.get("target_agent", "").lower()
                 if "mac" in target and mode == "ANTIGRAVITY" and "echo" in task.get("instruction", "").lower():
@@ -336,6 +381,8 @@ def loop():
 
                 if mode == "NATIVE":
                     result = run_native(task, config)
+                elif mode == "MUSE":
+                    result = run_muse(task, config)
                 else:
                     result = run_agy(task, config)
                 
@@ -378,6 +425,9 @@ def loop():
                 else:
                     os.remove(current_task_state_file)
                     task = None
+                    if one_task:
+                        write_log("Task delivered; exiting for a fresh slot process.")
+                        return
                 
         except Exception as e:
             write_log(f"Error in HTTP poll loop: {e}\n{traceback.format_exc()}")
