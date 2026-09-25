@@ -30,7 +30,7 @@ class MotorError(Exception):
     pass
 
 
-def deterministic_executor(results_dir, task_id, behavior="ok"):
+def deterministic_executor(results_dir, task, behavior="ok"):
     """Local deterministic worker. No network, no provider, no LLM.
 
     Returns (outcome, result_id) where outcome is 'ok' or 'unknown'.
@@ -40,9 +40,18 @@ def deterministic_executor(results_dir, task_id, behavior="ok"):
     results_dir.mkdir(parents=True, exist_ok=True)
     if behavior == "unknown":
         return ("unknown", None)
+    task_id = task['task_id']
     if behavior == "crash":
         raise MotorError(f"executor crash on {task_id}")
-    result_id = f"{task_id}:r1"
+    import hashlib
+    identity = {
+        'task_id': task_id,
+        'attempt_id': task.get('attempt_id'),
+        'dispatch_id': task.get('dispatch_id'),
+        'executor_kind': 'LOCAL_FAKE'
+    }
+    payload_str = json.dumps(identity, sort_keys=True, separators=(",", ":")).encode()
+    result_id = "result-" + hashlib.sha256(payload_str).hexdigest()
     artifact = results_dir / f"{task_id}.result.json"
     payload = {"result_id": result_id, "task_id": task_id,
                "outcome": "ok", "persisted_at": time.time()}
@@ -377,7 +386,9 @@ class CannonMotor:
                 kind, detail, res = "unknown", "EXEC_FEHLER", None
             if kind == "done":
                 self.m["executions"][task_id] = self.m["executions"].get(task_id, 0) + 1
-                _rid = (res.get("commit") if isinstance(res, dict) else None) or (task_id + ":r1")
+                import hashlib
+                _payload_str = json.dumps({'task_id': task_id, 'executor_kind': 'YOLO'}, sort_keys=True).encode()
+                _rid = (res.get("commit") if isinstance(res, dict) else None) or ("result-" + hashlib.sha256(_payload_str).hexdigest())
                 _artifact = self.results_dir / f"{task_id}.result.json"
                 _payload = {"result_id": _rid, "task_id": task_id,
                             "outcome": "ok", "persisted_at": time.time(),
@@ -461,7 +472,10 @@ class CannonMotor:
                     self.m["needs_review"].append(task_id)
                 self.m["state"] = "BLOCKED"
                 self.m["error"] = str(detail or "YOLO_FEHLER")
-                self.m["last_result"] = {"task": task_id, "result_id": task_id + ":r1", "completed_at": time.time(), "yolo": res}
+                import hashlib
+                _payload_str = json.dumps({'task_id': task_id, 'executor_kind': 'YOLO'}, sort_keys=True).encode()
+                _rid = "result-" + hashlib.sha256(_payload_str).hexdigest()
+                self.m["last_result"] = {"task": task_id, "result_id": _rid, "completed_at": time.time(), "yolo": res}
                 self.m["current_task"] = None
                 self._save()
                 self.yolo.end("FEHLER " + str(detail or ""))
@@ -484,7 +498,7 @@ class CannonMotor:
             task = json.loads((self.state_dir / 'queue.json').read_text())['tasks'][task_id]
             kind = task.get('executor_kind', 'LOCAL_FAKE')
             if kind == 'LOCAL_FAKE':
-                outcome, result_id = deterministic_executor(self.results_dir, task_id, behavior)
+                outcome, result_id = deterministic_executor(self.results_dir, task, behavior)
             elif kind == 'REAL_MUSE':
                 from app.cannon.adapters import LiveMuseAdapter
                 def persist_identity(identity):

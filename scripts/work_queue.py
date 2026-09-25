@@ -162,7 +162,17 @@ def cmd_complete(args, data, now):
         return {"error": "not claimed"}
     result = json.loads(args.result_json)
     task["result"] = result
-    task["result_id"] = result.get("result_id", args.task_id + ":r1")
+    import hashlib
+    default_rid = args.task_id + ":r1"
+    if "attempt_id" in task and "dispatch_id" in task:
+        _payload_str = __import__('json').dumps({
+            'task_id': task['task_id'],
+            'attempt_id': task['attempt_id'],
+            'dispatch_id': task['dispatch_id'],
+            'executor_kind': task.get('executor_kind', 'LOCAL_FAKE')
+        }, sort_keys=True, separators=(",", ":")).encode()
+        default_rid = "result-" + hashlib.sha256(_payload_str).hexdigest()
+    task["result_id"] = result.get("result_id", default_rid)
     task["result_stage"] = args.stage
     task["status"] = "DONE" if args.stage == "ACCEPTED" else "VERIFYING"
     data["leases"].pop(args.task_id, None)

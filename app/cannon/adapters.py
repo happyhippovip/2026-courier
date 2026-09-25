@@ -142,6 +142,7 @@ class LiveMuseAdapter:
         prompt_file = folder / 'prompt.txt'
         prompt_file.write_text(prompt, encoding='utf-8')
         identity = {'executor_kind': 'REAL_MUSE', 'provider': 'meta', 'task_id': task['task_id'],
+                    'attempt_id': task.get('attempt_id'), 'dispatch_id': task.get('dispatch_id'),
                     'execution_id': execution, 'worker_id': 'muse-' + execution,
                     'started_at': time.time(), 'heartbeat_at': time.time(), 'terminal': False}
         command = [executable, 'exec', '--json', '--provider', 'meta', '--reasoning-effort', 'low',
@@ -180,7 +181,8 @@ class LiveMuseAdapter:
         sha = hashlib.sha256(target.read_bytes()).hexdigest()
         # Only the explicit terminal answer counts; prompt/log echoes never count.
         LiveMuseAdapter.validate_canary_terminal(events, target, nonce, sha)
-        result_id = execution + ':r1'
+        payload_str = json.dumps(identity, sort_keys=True, separators=(",", ":")).encode()
+        result_id = "result-" + hashlib.sha256(payload_str).hexdigest()
         receipt = dict(identity, result_id=result_id, outcome='ok', path=str(target), nonce=nonce, sha256=sha)
         path = Path(results_dir) / (task['task_id'] + '.result.json')
         temporary = path.with_suffix('.tmp')
