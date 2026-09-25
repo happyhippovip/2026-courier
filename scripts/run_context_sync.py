@@ -28,12 +28,9 @@ import hashlib
 import json
 import os
 import re
-import shutil
 import subprocess
 import sys
 import tempfile
-import time
-import uuid
 from pathlib import Path
 
 SCRIPTS_DIR = Path(__file__).resolve().parent
@@ -53,9 +50,9 @@ if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
 try:
-    from run_antigravity_bridge import AntigravityVisualStateTracker, load_json, save_json
+    from run_antigravity_bridge import AntigravityVisualStateTracker
 except ImportError:
-    from scripts.run_antigravity_bridge import AntigravityVisualStateTracker, load_json, save_json
+    from scripts.run_antigravity_bridge import AntigravityVisualStateTracker
 
 
 def compute_sha256(data: object) -> str:
