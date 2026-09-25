@@ -97,6 +97,9 @@ scripts/mac_worker/inbox/
 scripts/mac_worker/outbox/
 scripts/windows_worker/logs/
 scripts/windows_worker/state/
+scripts/revenue_worker_config.json
+scripts/revenue_worker_state/
+scripts/logs/
 
 
 # Local confidential strategy material — NEVER COMMIT.
