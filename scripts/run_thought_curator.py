@@ -41,7 +41,8 @@ from pathlib import Path
 
 SCRIPTS_DIR = Path(__file__).resolve().parent
 COURIER_DIR = SCRIPTS_DIR.parent
-PROJECT_MEMORY_DIR = Path("/Users/user/Downloads/2026-project-memory")
+PROJECT_MEMORY_DIR = Path(os.environ.get(
+    "COURIER_MEMORY_REPO", "/Users/user/Downloads/2026-project-memory"))
 
 EVENTS_DIR = COURIER_DIR / "events"
 STATES_DIR = EVENTS_DIR / "agent-states"
