@@ -107,5 +107,19 @@ worktree /tmp/harvest-slot-03. No main push/merge, no force, no reset/clean.
 ## Checkpoint
 - Slot branch pushed: classify + contract-test fix + this checkpoint.
 - Bucket-2 branches: 4/4 triaged. In-bucket files: 3/3 swept.
-- NEXT_EXACT_SAFE_TASK: adapter fail-closed read (cf414d9d lineage) and
-  dispatcher 4xx/5xx sameness review — findings only (foreign buckets).
+
+## Task 9: github adapter non-dict guards (cf414d9d) — CLASS: READY_FOR_INTEGRATION
+- RED: 7/7 new nondict tests FAIL vs main's adapter (AttributeError).
+- GREEN: 18/18 PASS vs convergence version (isolated /tmp extraction).
+- File bucket 14 → CROSS_SLOT_DEPENDENCY (port owns bucket 14). No write.
+
+## Task 10: github dispatcher static read (main, bucket 11, findings only)
+- Fire-and-forget Popen per claim: no wait/code check, no log capture;
+  crash-before-post relies on lease reclaim. Tolerable, note for owner.
+- Unsanitized task_id in /tmp path + `venv/bin/python3`-else-python3
+  portability wart (staging fixed this pattern elsewhere).
+- Server calls have timeout=10; non-JSON 200 fails closed via outer except.
+- No P0. No write.
+
+## Next
+- Windows daemon static pass (main) vs 27ee67d4 binding work.
