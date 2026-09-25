@@ -30,6 +30,32 @@ class MotorError(Exception):
     pass
 
 
+def read_queue_task(state_dir, task_id):
+    """Authoritative queue record for a task; {} when unreadable/missing."""
+    try:
+        raw = json.loads((Path(state_dir) / "queue.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    tasks = raw.get("tasks", {}) if isinstance(raw, dict) else {}
+    task = tasks.get(task_id, {})
+    return task if isinstance(task, dict) else {}
+
+
+def yolo_fallback_result_id(task_id, queue_task):
+    """Canonical YOLO fallback identity.
+
+    Binds (task_id, attempt_id, dispatch_id, executor_kind=YOLO) so retries
+    of the same task never reuse one result_id. A missing queue record binds
+    None attempt/dispatch — still namespaced by task_id, never volatile.
+    """
+    task = queue_task if isinstance(queue_task, dict) else {}
+    payload_str = json.dumps(
+        {'task_id': task_id, 'attempt_id': task.get('attempt_id'),
+         'dispatch_id': task.get('dispatch_id'), 'executor_kind': 'YOLO'},
+        sort_keys=True, separators=(",", ":")).encode()
+    return "result-" + hashlib.sha256(payload_str).hexdigest()
+
+
 def deterministic_executor(results_dir, task, behavior="ok"):
     """Local deterministic worker. No network, no provider, no LLM.
 
@@ -297,6 +323,29 @@ class CannonMotor:
             self._save()
             if getattr(self, "yolo", None) is not None: self.yolo.end("LIMIT_MOTOR")
             return {"step": "limit_reached", "state": "COMPLETED"}
+
+        # --- CRASH/RESUME RECOVERY ---
+        if self.m.get("current_task"):
+            crashed_tid = self.m["current_task"]
+            try:
+                _snap = self.queue_snapshot()
+                _t = _snap.get("tasks", {}).get(crashed_tid, {})
+            except Exception:
+                _t = {}
+            if _t.get("status") in ("DONE", "VERIFYING"):
+                self.m["current_task"] = None
+                self._save()
+            else:
+                self._wq("block", crashed_tid, "--reason", "CRASH_DURING_EXECUTION")
+                if crashed_tid not in self.m.setdefault("needs_review", []):
+                    self.m["needs_review"].append(crashed_tid)
+                self.m["current_task"] = None
+                self.m["state"] = "BLOCKED"
+                self.m["error"] = f"crash_recovery_blocked:{crashed_tid}"
+                self._save()
+                if getattr(self, "yolo", None) is not None: self.yolo.end("CRASH_RECOVERY")
+                return {"step": "crash_recovery", "task": crashed_tid, "state": "BLOCKED"}
+        # -----------------------------
         if self.m.get("local_fake") or self.m.get("continuous_canary"):
             # Persisted deadline also covers reopening during the cooldown.
             delay = self.m.get("next_admission_after", 0) - time.time()
@@ -386,13 +435,8 @@ class CannonMotor:
                 kind, detail, res = "unknown", "EXEC_FEHLER", None
             if kind == "done":
                 self.m["executions"][task_id] = self.m["executions"].get(task_id, 0) + 1
-                import hashlib
-                try:
-                    _t = json.loads((self.state_dir / "queue.json").read_text(encoding="utf-8")).get("tasks", {}).get(task_id, {})
-                except (OSError, ValueError):
-                    _t = {}
-                _payload_str = json.dumps({'task_id': task_id, 'attempt_id': _t.get('attempt_id'), 'dispatch_id': _t.get('dispatch_id'), 'executor_kind': 'YOLO'}, sort_keys=True, separators=(",", ":")).encode()
-                _rid = (res.get("commit") if isinstance(res, dict) else None) or ("result-" + hashlib.sha256(_payload_str).hexdigest())
+                _t = read_queue_task(self.state_dir, task_id)
+                _rid = (res.get("commit") if isinstance(res, dict) else None) or yolo_fallback_result_id(task_id, _t)
                 _artifact = self.results_dir / f"{task_id}.result.json"
                 _payload = {"result_id": _rid, "task_id": task_id,
                             "outcome": "ok", "persisted_at": time.time(),
@@ -476,13 +520,7 @@ class CannonMotor:
                     self.m["needs_review"].append(task_id)
                 self.m["state"] = "BLOCKED"
                 self.m["error"] = str(detail or "YOLO_FEHLER")
-                import hashlib
-                try:
-                    _t = json.loads((self.state_dir / "queue.json").read_text(encoding="utf-8")).get("tasks", {}).get(task_id, {})
-                except (OSError, ValueError):
-                    _t = {}
-                _payload_str = json.dumps({'task_id': task_id, 'attempt_id': _t.get('attempt_id'), 'dispatch_id': _t.get('dispatch_id'), 'executor_kind': 'YOLO'}, sort_keys=True, separators=(",", ":")).encode()
-                _rid = "result-" + hashlib.sha256(_payload_str).hexdigest()
+                _rid = yolo_fallback_result_id(task_id, read_queue_task(self.state_dir, task_id))
                 self.m["last_result"] = {"task": task_id, "result_id": _rid, "completed_at": time.time(), "yolo": res}
                 self.m["current_task"] = None
                 self._save()
