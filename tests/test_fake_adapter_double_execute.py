@@ -9,9 +9,8 @@ from pathlib import Path
 import pytest
 
 REPO = Path(__file__).parent.parent.resolve()
-sys.path.insert(0, str(REPO / "app"))
 
-from cannon import adapters, storage
+from app.cannon import adapters, storage
 
 
 def _task(ref="exec-dup-1"):
