@@ -28,6 +28,7 @@ WORKER_IDS = {
     "mac": "MAC-01",
     "windows": "WINDOWS-01",
     "linux": "AWS-LINUX-01",
+    "antigravity": "MAC-01",
 }
 
 

@@ -115,3 +115,10 @@ def test_result_id_is_idempotent_for_same_observation(tmp_path: Path):
     second = verify_result(packet, json.loads(json.dumps(raw)), tmp_path)
 
     assert first["result_id"] == second["result_id"]
+
+
+def test_antigravity_capability_binds_to_mac_worker():
+    packet = task_packet(target_capability="antigravity")
+    assert packet["target_capability"] == "antigravity"
+    assert packet["worker_id"] == "MAC-01"
+    assert packet["dispatch_id"].startswith("dispatch-")
