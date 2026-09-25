@@ -31,6 +31,7 @@ if os.environ.get("COURIER_MOCK_CHIEF"):
                 return None, [{
                     "task_id": f"task-{uuid.uuid4().hex[:8]}",
                     "target_agent": "linux",
+                    "required_capabilities": ["mock-replenish-cap"],
                     "instruction": f"touch mock_replenish_{count}.txt",
                     "status": "QUEUED"
                 }]

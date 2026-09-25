@@ -85,7 +85,7 @@ def test_zero_chat_auto_replenishment():
     time.sleep(1)
     
     # Worker register
-    http_post("/workers/register", {"worker_id": "linux-worker", "platform": "linux", "capabilities": ["github-actions-safety-baseline-v1", "linux"]})
+    http_post("/workers/register", {"worker_id": "linux-worker", "platform": "linux", "capabilities": ["github-actions-safety-baseline-v1", "linux", "mock-replenish-cap"]})
     time.sleep(1)
     
     tasks_completed = 0
