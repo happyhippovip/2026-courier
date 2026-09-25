@@ -31,3 +31,12 @@ Customers must never have to debug Python module paths or run manual shell comma
 
 ### 10. SAFE UPDATE/ROLLBACK
 Updates must be completely non-destructive to state. Migrations are idempotent. If a post-update health check fails, the local runtime reverts state gracefully from a backup.
+
+### 11. GOOGLE ANTIGRAVITY ON THE WINDOWS PC (observed 2026-09-25)
+- **HARD RULE: DO NOT ENABLE "ALLOW/ENABLE CONFIRMATIONS". DO NOT CHANGE CONFIRMATION SETTINGS. IF PROMPTED, LEAVE DISABLED / CANCEL / NO.** Enabling it dropped the working agent connection.
+- Proven start (Antigravity 2.16.0): `Start-Process "$env:LOCALAPPDATA\Programs\antigravity\Antigravity.exe" -ArgumentList '--disable-gpu','--disable-gpu-sandbox'` (historic shortcut `Desktop\Antigravity (Fix).lnk` with the same arguments). Without these flags the window was black after a reboot.
+- UI ports on 127.0.0.1 are dynamic (seen: 51131, 51156, 50367, 50458, 51026). Never hard-code a port. A URL from `%APPDATA%\Antigravity\logs\main.log` is only a hint: it counts only if that port is listening now and answers HTTPS 200.
+- 2.17.0 was downloaded in the background. Do not apply it blindly, do not restart 2.16 carelessly in a way that installs it, and do not delete updater files.
+- No reinstall without proven cause, no profile/account changes, no hosts-file edits, no broad taskkill (rule 2).
+- Google E2E counts only for a real Antigravity agent reply to `Antworte exakt: GOOGLE_E2E_OK_20260925`; no PowerShell echo or fake test.
+- If the same repair attempt gives the same result twice: stop, collect new evidence, document the blocker, continue Courier work.

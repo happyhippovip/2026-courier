@@ -217,3 +217,10 @@ If the Mac remains abnormally hot at low software load after software cleanup, s
 Any future agent working on Courier must read this document and `docs/COMPUTE_RESOURCE_SAFETY_POLICY.md` before changing heavy execution, retries, worker routing, subprocess handling, or autonomous loops.
 
 This incident is a **system-safety precedent**. Throughput, convenience, and ordinary approval never override the host-protection gate.
+
+## Incident 2026-09-25 (Mac kernel panic)
+- Two severe Mac crashes in the night, the last a real kernel panic (watchdog timeout).
+- Cause as reported: the local wall controller `Terminal-Wall-Control.command` (not in the repo; local on the Mac only) with 33-34 Muse processes and ~36 windows at once.
+- Code finding (branch `marketing/solo-community-vision-2026-09-24`, `scripts/mac_worker/Terminal-Wall-BACKGROUND.py`): profile AUTO allowed up to 73 slots; the CapacityGovernor treated unreadable metrics as healthy and ramped +4 every 5 s.
+- A resource guard and a "NUR ORDNEN" hotfix were ordered from Codex; no result was on GitHub as of 2026-09-25.
+- Gate: no local Muse supervisor start until the resource guard is confirmed; then 1 slot, then 4.
