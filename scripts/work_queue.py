@@ -194,14 +194,16 @@ def cmd_block(args, data, now):
 
 
 def cmd_reconcile(args, data, now):
-    # Restart recovery: stale CLAIMED/RUNNING leases return to READY.
+    # Restart recovery: stale CLAIMED/RUNNING leases are BLOCKED to prevent duplicate effects.
     reclaimed = []
     for tid, lease in list(data["leases"].items()):
         if now - lease.get("claimed_at", 0) > args.reclaim_stale:
             task = data["tasks"].get(tid)
             if task and task.get("status") in ("CLAIMED", "RUNNING"):
-                if "result" not in task:  # never completed: safe, no effect yet
-                    task["status"] = "READY"
+                if "result" not in task:  # may have crashed during execution
+                    # STALE_WORKER_EFFECT_AMBIGUOUS: Replaying it risks a duplicate effect
+                    task["status"] = "BLOCKED"
+                    task["block_reason"] = "STALE_WORKER_EFFECT_AMBIGUOUS"
                     task.pop("owner", None)
                     reclaimed.append(tid)
             data["leases"].pop(tid, None)
