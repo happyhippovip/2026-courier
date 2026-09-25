@@ -59,8 +59,11 @@ def simulate_quota_hit(batch_data, item, batch_file):
 def get_git_sha():
     try:
         return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=str(COURIER_DIR)).decode("utf-8").strip()
-    except:
-        return "fake-sha-" + uuid.uuid4().hex[:8]
+    except Exception:
+        # Fail closed: never fabricate provenance. "UNKNOWN" cannot be
+        # mistaken for a real SHA and lets callers mark evidence accordingly.
+        # (BaseException such as KeyboardInterrupt/SystemExit propagates.)
+        return "UNKNOWN"
 
 def run_batch(batch_id: str):
     batch_file = QUEUE_DIR / f"{batch_id}.json"
