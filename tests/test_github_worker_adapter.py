@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from scripts import github_worker_adapter as adapter
-from scripts.integration_contract import validate_durable_result
+from scripts.integration_contract import _canonical_hash, validate_durable_result
 
 
 WORKFLOW = Path(__file__).parent.parent / ".github" / "workflows" / "courier_worker.yml"
@@ -378,11 +378,17 @@ def test_dispatch_preserves_taskpacket_as_raw_json(tmp_path: Path, monkeypatch):
 
 
 def test_durable_result_preserves_github_run_attempt():
-    task = {**packet(), "execution_ref": "ref"}
+    task = {**packet(), "execution_ref": "ref", "server_binding": "test-runner"}
     result = {
-        **packet(), "execution_ref": "ref", "run_id": "99", "run_attempt": "1", "result_id": "result-dispatch-1",
+        **packet(), "execution_ref": "ref", "run_id": "99", "run_attempt": "1",
         "status": "SUCCESS", "artifacts": [{"path": "courier_output_dispatch-1.json", "sha256": "a" * 64}],
+        "runtime_identity": "test-runner",
     }
+    identity = {field: result[field] for field in (
+        "goal_id", "task_id", "attempt_id", "dispatch_id", "execution_ref",
+        "worker_id", "run_id", "status", "artifacts", "runtime_identity",
+    )}
+    result["result_id"] = f"result-{_canonical_hash(identity)}"
     assert validate_durable_result(task, result)["run_attempt"] == "1"
 
 
@@ -434,3 +440,60 @@ def test_post_result_rejects_noncanonical_success_response(monkeypatch, payload)
 
     with pytest.raises(RuntimeError, match="was not acknowledged"):
         adapter.post_result({"result_id": "result-1"})
+
+
+def test_crash_between_post_and_state_reposts_identical_result(tmp_path: Path, monkeypatch):
+    """Lost POSTED persist must re-POST the identical result (at-least-once).
+
+    First run POSTs (ACK_RESULT_RECEIVED) but the POSTED state persist is
+    lost; the second run must resend the byte-identical result and accept
+    ACK_DUPLICATE instead of recomputing or dropping it.
+    """
+    task_file = tmp_path / "task.json"
+    task = packet()
+    task_file.write_text(json.dumps(task), encoding="utf-8")
+    result = {
+        **task, "run_id": "99", "run_attempt": "1", "result_id": "result-dispatch-1",
+        "status": "SUCCESS", "operation": "deterministic_transform",
+        "artifacts": [{"path": "courier_output_dispatch-1.json", "sha256": "x"}],
+    }
+    evidence = {
+        "operation": "deterministic_transform",
+        "input_sha256": hashlib.sha256(b"canary").hexdigest(),
+    }
+    posts = []
+
+    def fake_post(deliverable):
+        posts.append(dict(deliverable))
+        return "ACK_RESULT_RECEIVED" if len(posts) == 1 else "ACK_DUPLICATE"
+
+    monkeypatch.setattr(adapter, "find_run", lambda _: ("99", "completed"))
+    monkeypatch.setattr(
+        adapter, "download_result",
+        lambda _run_id, _dispatch_id, _directory: (dict(result), dict(evidence)),
+    )
+    monkeypatch.setattr(adapter, "verify_result", lambda *args: None)
+    monkeypatch.setattr(adapter, "post_result", fake_post)
+
+    assert adapter.run(str(task_file)) == 0
+    assert len(posts) == 1
+
+    # Simulate the crash: POSTED persist lost, back to WAITING with same bindings.
+    adapter.write_state(
+        task_file,
+        {
+            "dispatch_id": "dispatch-1",
+            "task_identity_sha256": adapter.task_identity_sha256(task),
+            "task_packet_sha256": adapter.task_packet_sha256(task),
+            "run_id": "99",
+            "status": "WAITING_FOR_WORKER",
+        },
+    )
+    assert adapter.run(str(task_file)) == 0
+
+    assert len(posts) == 2
+    assert posts[1] == posts[0]
+    state = json.loads(adapter.state_path(task_file).read_text(encoding="utf-8"))
+    assert state["status"] == "POSTED"
+    assert state["result_id"] == "result-dispatch-1"
+    assert state["run_attempt"] == "1"
