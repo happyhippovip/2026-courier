@@ -78,3 +78,10 @@ No new architecture, rule, agent, roadmap, or refactor is justified before a con
 - **Exitcode / Ergebnis:** 0. Mac Test-Build erfolgreich (CANDIDATE_SHA=fcd6ebc864f2ee876e4e9fff082045e445b68996).
 - **Verbleibender Blocker:** REALER PHYSICAL ACCEPTANCE PROOF (FIRST_CURRENT_CAUSAL_BLOCKER=WINDOWS_ENVIRONMENT).
 OS_OWNERSHIP_DISCOVERED=TRUE
+
+### TEST: 4/4 LOKALER MAC PHYSICAL ACCEPTANCE PROOF
+- **Ursache:** "Submit exactly one real non-mock Goal through the live API... Use real workers... Observe automatic result -> verifier -> reconcile -> READY -> next dispatch... require genuine DONE -> CLEAN_IDLE"
+- **Änderung:** Worker daemon, Motor, and Verifier gestartet via macOS `launchctl` (OS-owned). Goal per cURL an `127.0.0.1:8080` übergeben.
+- **Exitcode / Ergebnis:** SUCCESS. Workflow wurde über `agy` headless vollständig ausgeführt (DISPATCHED -> RESULT -> VERIFIED -> RECONCILED) bis State DONE und CLEAN_IDLE erreicht wurde. Alle Lifecycle Invarianten gewahrt.
+- **Fingerprint:** 8cb07c89a08e03e5c94d1df0033cfb8b7e2ccf57
+- **Verbleibender Blocker:** REALER PHYSICAL ACCEPTANCE PROOF WINDOWS (FIRST_CURRENT_CAUSAL_BLOCKER=WINDOWS_ENVIRONMENT).
