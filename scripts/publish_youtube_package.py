@@ -7,7 +7,6 @@ validates credentials, and uses the YouTubeProvider for safe, idempotent publish
 
 import argparse
 import json
-import os
 import logging
 from pathlib import Path
 
