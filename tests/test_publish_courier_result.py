@@ -83,6 +83,22 @@ def test_main_mismatched_hash(tmp_path, valid_task, valid_result):
                 publish_courier_result.main()
             assert "payload hash mismatch" in str(exc.value)
 
+def test_main_corrupt_guard_file_fail_closed(tmp_path, valid_task, valid_result):
+    task_file = tmp_path / "task.json"
+    task_file.write_text(json.dumps(valid_task))
+
+    processed_dir = tmp_path / "processed"
+    processed_dir.mkdir()
+
+    corrupt = processed_dir / "partial-crash.json"
+    corrupt.write_text("{corrupt-json:::")
+
+    with mock.patch.dict(os.environ, {"CODEX_RESULT_JSON": json.dumps(valid_result)}):
+        with mock.patch.object(sys, 'argv', ['prog', '--task', str(task_file), '--processed-dir', str(processed_dir), '--github-output', 'g']):
+            with pytest.raises(SystemExit) as exc:
+                publish_courier_result.main()
+            assert "corrupt processed result prevents safe duplicate check" in str(exc.value)
+
 def test_main_duplicate_terminal_result(tmp_path, valid_task, valid_result):
     task_file = tmp_path / "task.json"
     task_file.write_text(json.dumps(valid_task))

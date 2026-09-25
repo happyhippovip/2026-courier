@@ -66,7 +66,7 @@ def main() -> None:
         try:
             existing = json.loads(candidate.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
-            continue
+            fail(f"corrupt processed result prevents safe duplicate check: {candidate.name}")
         if existing.get("parent_id") == task["message_id"] or existing.get("message_id") == result["message_id"]:
             fail("duplicate terminal result")
 
