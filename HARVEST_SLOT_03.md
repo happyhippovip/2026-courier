@@ -154,6 +154,13 @@ worktree /tmp/harvest-slot-03. No main push/merge, no force, no reset/clean.
 - No timeout-minutes on any workflow; concurrency only on 2/6 files.
   Runaway-spend angle parked for cost owner (no write).
 
+## Task 18: replacement-coverage quality check — CONFIRMED
+- caa7cff4 claimed reconciliation covered by
+  test_server_integration_contract.py. Verified on main: 19/19 PASS;
+  real coverage (quarantine w/o replay, late-result 409, exactly-once
+  advance, one-winner claims). Removed file-plane tests genuinely
+  obsolete (module eliminated). Claim holds.
+
 ## Task 12: venv-python portability sweep — findings only (buckets 8/11/16)
 - Pattern `"venv/bin/python3" if exists else ...` on main in 3 files:
   run_final_acceptance.py (8, staging already → sys.executable),
