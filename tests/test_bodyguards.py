@@ -171,6 +171,22 @@ class EightBodyguardsTests(unittest.TestCase):
         available = self.manager.get_available_bodyguards()
         self.assertEqual(len(available), 6)
 
+    def test_09b_restart_without_reset_preserves_assignment(self):
+        """9b. Crash/Resume: a fresh manager on the same dir (no force_reset)
+        still sees the in-flight assignment — no lost or duplicated dispatch."""
+        self.manager.assign_bodyguard(
+            callsign="ALPHA",
+            task_id="TASK-RESUME-001",
+            workflow_id="WF-RESUME",
+            correlation_id="corr-resume",
+            temporary_role="QA_WORKER",
+        )
+        fresh = BodyguardPoolManager(self.repo)
+        resumed = {b["callsign"]: b for b in fresh.get_all_bodyguards()}
+        self.assertEqual(resumed["ALPHA"]["state"], "ASSIGNED")
+        self.assertEqual(resumed["ALPHA"]["task"], "TASK-RESUME-001")
+        self.assertEqual(resumed["BRAVO"]["state"], "STANDBY")
+
     def test_10_speech_bubbles_match_state_invariants(self):
         """10. Bodyguard speech generation produces exact deterministic text for all states."""
         self.assertEqual(generate_bodyguard_speech("STANDBY", "ALPHA"), "Ready for reserve duty.")
