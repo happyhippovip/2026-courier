@@ -30,6 +30,30 @@ def test_process_queue_success(tmp_path):
     mock_dispatch.assert_called_once_with(str(task_file))
     mock_move.assert_called_once_with(str(task_file), os.path.join("intakes/processed", "test_intake.json"))
 
+def test_process_queue_systemexit_continues_batch(tmp_path):
+    # dispatch_intake signals failure via sys.exit(); the failing intake
+    # stays pending but must not abort the rest of the batch.
+    def mock_glob(pattern):
+        if pattern == "intakes/pending/*.json":
+            return ["fail.json", "ok.json"]
+        return []
+
+    dispatched = []
+
+    def fake_dispatch(path):
+        dispatched.append(path)
+        if path == "fail.json":
+            raise SystemExit(1)
+
+    with mock.patch("scripts.queue_processor.os.makedirs"):
+        with mock.patch("scripts.queue_processor.glob.glob", side_effect=mock_glob):
+            with mock.patch("scripts.queue_processor.dispatch_intake", side_effect=fake_dispatch):
+                with mock.patch("scripts.queue_processor.shutil.move") as mock_move:
+                    queue_processor.process_queue()  # must not raise
+
+    assert dispatched == ["fail.json", "ok.json"]
+    mock_move.assert_called_once_with("ok.json", os.path.join("intakes/processed", "ok.json"))
+
 def test_process_queue_empty():
     with mock.patch("scripts.queue_processor.os.makedirs"):
         with mock.patch("scripts.queue_processor.glob.glob", return_value=[]):
