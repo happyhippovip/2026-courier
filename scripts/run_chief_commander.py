@@ -19,10 +19,20 @@ import datetime
 import hashlib
 import json
 import os
+import re
 import sys
 import time
 import uuid
 from pathlib import Path
+
+SAFE_ID_RE = re.compile(r"^[A-Za-z0-9._-]{1,128}$")
+
+
+def require_path_safe(value: str, field: str) -> str:
+    """Fail closed when an ID flows into a filename (path traversal guard)."""
+    if not isinstance(value, str) or not SAFE_ID_RE.fullmatch(value):
+        raise ValueError(f"{field} is not path-safe")
+    return value
 
 SCRIPTS_DIR = Path(__file__).resolve().parent
 COURIER_DIR = SCRIPTS_DIR.parent
@@ -535,6 +545,7 @@ class ChiefCommander:
         return decision_obj
 
     def _persist_decision(self, task_id: str, decision: ChiefDecisionContract) -> Path:
+        require_path_safe(task_id, "task_id")
         decision_dir = self.repo_dir / "events/chief-decisions"
         decision_dir.mkdir(parents=True, exist_ok=True)
         decision_file = decision_dir / f"{task_id}-chief-decision.json"
@@ -553,6 +564,7 @@ class ChiefCommander:
             raise ValueError("Runtime alert lacks required provenance")
         if alert.get("agent_id") != "agent-snitch":
             raise ValueError("Runtime alert source must be agent-snitch")
+        require_path_safe(alert["message_id"], "message_id")
 
         description = f"Runtime alert diagnosis: {alert['classification']} — {alert['reason']}"
         target_agent, routing_reason, execution_class = SmartResourceRouter.classify_and_route(
