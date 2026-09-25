@@ -15,9 +15,9 @@ def app_state(monkeypatch):
     with server.app.app.test_client() as client:
         yield client
 
-def test_turbo_queue_parallel_fixture_state(app_state):
+def test_turbo_queue_parallel_fixture_state(app_state, monkeypatch):
     import server.app
-    server.app.API_KEY = "test"
+    monkeypatch.setattr(server.app, "API_KEY", "test")
     auth = {"Authorization": "Bearer test"}
     r1 = app_state.post("/workers/register", json={"worker_id": "w1", "capabilities": ["mock"]}, headers=auth)
     w1_id = "w1"
@@ -69,10 +69,10 @@ def test_turbo_queue_parallel_fixture_state(app_state):
 
 
 
-def test_turbo_queue_integration_api_path(app_state):
+def test_turbo_queue_integration_api_path(app_state, monkeypatch):
     import server.app
-    server.app.API_KEY = "test"
-    server.app.VERIFIER_API_KEY = "test_verifier"
+    monkeypatch.setattr(server.app, "API_KEY", "test")
+    monkeypatch.setattr(server.app, "VERIFIER_API_KEY", "test_verifier")
     
     auth_worker = {"Authorization": "Bearer test"}
     auth_verifier = {"Authorization": "Bearer test_verifier"}
