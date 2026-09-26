@@ -136,3 +136,39 @@ def test_adapter_restart_after_workflow_dispatch_does_not_redispatch(tmp_path, m
     monkeypatch.setattr(adapter, "LOCAL_WAIT_SECONDS", 0)
     assert adapter.run(str(task_file)) == 0
     assert not any(c[:3] == ["gh", "workflow", "run"] for c in calls)
+
+
+def test_adapter_crash_posts_failure_and_quarantines(tmp_path, monkeypatch):
+    d = load(monkeypatch, tmp_path)
+    posted_results = []
+
+    class FakeResponse:
+        status_code = 200
+        text = "ok"
+
+    monkeypatch.setattr(d.requests, "post", lambda url, json=None, **k: posted_results.append((url, json)) or FakeResponse())
+
+    task = packet()
+    path = d.persist_packet(task)
+    assert path is not None
+
+    class DeadProcess:
+        pid = 11111
+        returncode = 1
+        def poll(self):
+            return 1
+
+    d.ACTIVE_ADAPTERS[11111] = (DeadProcess(), path)
+    d.check_adapters()
+
+    # Process must be reaped
+    assert 11111 not in d.ACTIVE_ADAPTERS
+    # State file must be marked POSTED
+    state_file = path.with_name(f"{path.stem}.github-worker-state.json")
+    assert state_file.is_file()
+    assert json.loads(state_file.read_text())["status"] == "POSTED"
+    # Failure result must be posted to /tasks/result
+    result_posts = [p for p in posted_results if "/tasks/result" in p[0]]
+    assert len(result_posts) == 1
+    assert result_posts[0][1]["status"] == "FAILED"
+    assert result_posts[0][1]["dispatch_id"] == task["dispatch_id"]
