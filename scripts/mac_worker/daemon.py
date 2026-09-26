@@ -197,7 +197,13 @@ def run_native(task, config):
     # Safe bounded execution
     try:
         if action == "echo":
-            result = subprocess.run(instruction, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, executable="/bin/bash", timeout=60)
+            if instruction.lower().startswith("echo "):
+                content = instruction[5:]
+            elif instruction.lower().strip() == "echo":
+                content = ""
+            else:
+                content = instruction
+            result = subprocess.run(["echo", content], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=60)
         elif action == "git_status":
             result = subprocess.run(["git", "status"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=60)
         else:
