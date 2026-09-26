@@ -31,3 +31,14 @@ PROVEN=All paths physically confirmed. Artifact store layout from candidate-b-1 
 UNKNOWN=None
 BLOCKER=None
 NEXT=TASK_10
+
+## UPDATE 17:33 — Verifier CWD Finding
+VERIFIER_CWD=/Users/user/.courier_runtime  (proven via lsof -p 42002)
+CANARY_IMPACT=Canary verifier MUST be started with CWD = canary workspace root
+RISK=If verifier starts from wrong CWD, relative artifact paths may resolve incorrectly
+MITIGATION=In run_canary.sh: cd /Users/user/Downloads/courier_canary && python3 .../courier_verifier.py
+
+## UPDATE 17:33 — Memory Pressure
+SWAP_USED=13.54GB / 14GB (critical)
+ACTIVE_MUSE_PROCESSES=35
+RECOMMENDATION=Run canary only during low-load window; do not add more muse processes

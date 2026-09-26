@@ -29,3 +29,11 @@ PROVEN=Adapter mismatch identified and classified. Only reasoning_effort is crit
 UNKNOWN=None
 BLOCKER=Adapter bug — fix required for supervisor path, not for direct-exec Canary 1
 NEXT=TASK_07
+
+## UPDATE 17:33 — GOOGLE_CLI_MAC_PHYSICAL_FACT_QUEUE.md
+NEW_DEFECTS_FROM_PHYSICAL_FACT_QUEUE=
+  Defect 1 (M45-MUSE-CLI-REASONING-EFFORT-01): reasoning_effort="auto" → exit code 2 [KNOWN]
+  Defect 2 (M45-MUSE-SESSION-ID-MISSING-01): exec_task() does not pass --session-id <UUID>; resume_task() cannot find session by synthesized name → session cannot be resumed
+  Defect 3 (M45-SESSION-MESSAGE-FORMAT-01): session_message() format differs; physical CLI requires: muse session-message send --target <UUID> <MSG>
+
+ADAPTER_MATCH_UPDATED=PARTIAL — 3 confirmed defects

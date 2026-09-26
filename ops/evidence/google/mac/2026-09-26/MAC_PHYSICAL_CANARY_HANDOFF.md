@@ -76,3 +76,15 @@ READY_FOR_PHYSICAL_CANARY=YES
 - /Users/user/Downloads/courier_work/google_longrun/reports/GOOGLE_CLI_RESTART_REPLAY_EVIDENCE.md
 - /Users/user/Downloads/courier_work/google_longrun/reports/GOOGLE_CLI_PHYSICAL_RUNTIME_AND_BINDING_CARD.md
 - /Users/user/Downloads/courier_work/google_longrun/reports/CLI5_VISIBLE_PROOF.md
+
+## UPDATE 17:44 — New Physical Facts (GOOGLE_CLI_MAC_PHYSICAL_FACT_QUEUE.md)
+MUSE_DEFECT_2=M45-MUSE-SESSION-ID-MISSING-01: exec_task() missing --session-id; resume/session-message broken
+MUSE_DEFECT_3=M45-SESSION-MESSAGE-FORMAT-01: muse session-message send --target <UUID> <MSG> (not current adapter format)
+VERIFIER_CWD=PID 42002 CWD=/Users/user/.courier_runtime (must run canary verifier from courier_canary/ root)
+MEMORY_PRESSURE=CRITICAL: swap 13.54GB/14GB used, 35 muse processes active → defer canary to low-load window
+PHYSICAL_PREFLIGHT=PASS (Courier processes healthy, port 8081 free, workspace isolated)
+ADDITIONAL_BLOCKERS=
+  M45-VERIFIER-CWD-ANCHOR-01 (canary verifier CWD must be courier_canary/)
+  M45-MUSE-SESSION-ID-MISSING-01 (for resume path; not on critical path for simple Canary 1)
+  M45-SESSION-MESSAGE-FORMAT-01 (for session messages; not on critical path for Canary 1)
+SAFE_FOR_SIMPLE_CANARY_1=YES (direct muse exec + manual artifact write, no supervisor/resume needed)
