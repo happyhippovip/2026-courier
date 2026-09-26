@@ -12,12 +12,16 @@ Use this index to keep long-run wall work consistent across providers and hosts.
 
 - COURIER_GROWTH_GOALS_2026-09-26.md
 - WALL_SCALING_LEDGER_REQUIREMENT_2026-09-26.md
+- OVERNIGHT_WALL_10H_POLICY_2026-09-26.md
+- CONTEXT_HYGIENE_AND_HANDOFF_POLICY_2026-09-26.md
 - WALL_VISUAL_ICON_LANGUAGE.md
 - LARGE_WORK_PACKAGES_2026-09-26.md
+- docs/V1_CAPACITY_UPDATES_AND_CRYPTO_READINESS_PLAN.md
 
 ## Copy/paste prompts
 
 - UNIVERSAL_WALL_BOOTSTRAP.txt
+- OVERNIGHT_WALL_BOOTSTRAP.txt
 - UNIVERSAL_WALL_PASTE.txt
 - UNIVERSAL_WALL_LONGRUN_PROMPT.md
 - QUICK_FREE_CLI_PROMPT.md
@@ -31,9 +35,15 @@ Use this index to keep long-run wall work consistent across providers and hosts.
 
 ## Current operating idea
 
-Use a configurable logical wall from 1..37.
+Use a configurable logical wall from 1..64.
 
 Keep a configurable number of interactive/reserve slots free.
+
+Prefer a smooth smaller wall over a laggy larger wall.
+
+Use bounded 10-hour overnight rounds when safe and useful.
+
+Checkpoint -> clear/rotate stale context -> reload minimal truth.
 
 Use the universal long-run prompt for autonomous windows.
 
