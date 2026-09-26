@@ -98,5 +98,17 @@ scripts/mac_worker/outbox/
 scripts/windows_worker/logs/
 scripts/windows_worker/state/
 scripts/mac_worker/logs/
+handoffs/
+ops/ai/packets/
+runtime/
+reports/
+logs/
+server/state/
+server/crash.log
+server/server.log
+scripts/logs/
+scripts/revenue_worker_state/
+courier_runtime.egg-info/
+
 scripts/mac_worker/state/
 .env.local
