@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "policy_id": "COURIER_GRANDMA_TEST",
+  "required": true,
+  "daily_update_required": true,
+  "rules": {
+    "ordinary_language_first": true,
+    "technical_detail_second": true,
+    "no_fake_metrics": true,
+    "no_simulation_as_physical_proof": true,
+    "unknown_must_be_labeled": true
+  },
+  "daily_update_fields": [
+    "AUFTRAG",
+    "ERLEDIGT",
+    "BEWEIS",
+    "MENSCH_MUSSTE_EINGREIFEN",
+    "ALS_NAECHSTES"
+  ],
+  "acceptance": "A non-technical person can explain in one sentence what Courier accomplished and what happens next."
+}
