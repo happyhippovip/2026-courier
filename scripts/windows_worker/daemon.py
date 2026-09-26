@@ -197,24 +197,52 @@ def build_result_payload(task, result, config):
         "stderr": result.get("stderr", ""),
     }
 
+def kill_process_tree(pid):
+    """Best-effort: stop the child and anything PowerShell spawned under it.
+
+    communicate(timeout=...) never kills the child on TimeoutExpired (Python
+    docs), so a hung/long instruction otherwise keeps running and mutating
+    the workspace after run_task() already returned FAILED. taskkill /T
+    reaches the process tree on Windows; elsewhere only the direct child can
+    be stopped, so its own children (if any) may still need a tree kill.
+    """
+    if os.name == "nt":
+        subprocess.run(["taskkill", "/PID", str(pid), "/T", "/F"],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=15)
+    else:
+        os.kill(pid, 9)  # non-Windows test/dev path; no tree kill available here.
+
 def run_task(task, config):
     print(f"[{config['WORKER_ID']}] Running task {task['task_id']}...")
-    
+
     instruction = task.get("instruction", "")
-    
+
     out_clean = ""
     stderr = ""
     run_id = "win-native"
-    
+
     print(f"[{config['WORKER_ID']}] Executing native PowerShell instruction.")
     cmd = ["powershell", "-Command", instruction]
     try:
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         run_id = str(process.pid)
-        stdout, stderr_out = process.communicate(timeout=600)
-        out_clean = stdout.strip()
-        stderr = stderr_out
-        status = "SUCCESS" if process.returncode == 0 else "FAILED"
+        try:
+            stdout, stderr_out = process.communicate(timeout=600)
+            out_clean = stdout.strip()
+            stderr = stderr_out
+            status = "SUCCESS" if process.returncode == 0 else "FAILED"
+        except subprocess.TimeoutExpired:
+            try:
+                kill_process_tree(process.pid)
+            except (OSError, subprocess.SubprocessError):
+                pass
+            try:
+                stdout, stderr_out = process.communicate(timeout=15)
+            except subprocess.TimeoutExpired:
+                stdout, stderr_out = "", ""
+            out_clean = (stdout or "").strip()
+            status = "FAILED"
+            stderr = (stderr_out or "") + "\nTimed out after 600s; process killed, not left running."
     except Exception as e:
         status = "FAILED"
         stderr = str(e)
