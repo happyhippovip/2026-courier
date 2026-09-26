@@ -92,7 +92,7 @@ def test_process_queue_error(tmp_path):
 
 def test_dispatch_intake_concurrency_execution_ref_isolation(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
-    monkeypatch.setenv("COURIER_STATE_FILE", "central_state.json")
+    monkeypatch.setattr("scripts.intake_dispatcher.STATE_FILE", tmp_path / "central_state.json")
     state_file = tmp_path / "central_state.json"
 
     intake1 = tmp_path / "i1.json"
@@ -117,34 +117,3 @@ def test_dispatch_intake_concurrency_execution_ref_isolation(tmp_path, monkeypat
     assert tasks["task-revenue-cust_A"]["execution_ref"] == "DISPATCHED_PENDING_EXACT_BINDING"
     assert tasks["task-revenue-cust_B"]["execution_ref"] == "DISPATCHED_PENDING_EXACT_BINDING"
 
-
-    state_file = tmp_path / "central_state.json"
-
-    intake1 = tmp_path / "i1.json"
-    intake1.write_text('{"customer_reference": "cust_A", "target_owner": "a", "target_repo": "a", "target_sha": "a"}')
-
-    intake2 = tmp_path / "i2.json"
-    intake2.write_text('{"customer_reference": "cust_B", "target_owner": "b", "target_repo": "b", "target_sha": "b"}')
-
-    orig_open = builtins.open
-    with mock.patch("scripts.intake_dispatcher.os.path.exists", side_effect=lambda x: x == "central_state.json" and state_file.exists()):
-        def mock_open_file(*args, **kwargs):
-            if args[0] == "central_state.json":
-                return orig_open(state_file, args[1])
-            return orig_open(*args, **kwargs)
-        with mock.patch("builtins.open", side_effect=mock_open_file):
-            with mock.patch("scripts.intake_dispatcher.subprocess.run"):
-                from scripts.intake_dispatcher import dispatch_intake
-                dispatch_intake(str(intake1))
-                dispatch_intake(str(intake2))
-
-    import json
-    state = json.loads(state_file.read_text())
-
-    tasks = state.get("tasks", {})
-    assert "task-revenue-cust_A" in tasks
-    assert "task-revenue-cust_B" in tasks
-
-    # Verify execution_ref deferred isolation
-    assert tasks["task-revenue-cust_A"]["execution_ref"] == "DISPATCHED_PENDING_EXACT_BINDING"
-    assert tasks["task-revenue-cust_B"]["execution_ref"] == "DISPATCHED_PENDING_EXACT_BINDING"
