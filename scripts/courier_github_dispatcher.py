@@ -5,7 +5,10 @@ import requests
 import json
 import re
 import subprocess
+import sys
 from pathlib import Path
+
+ACTIVE_ADAPTERS = {}
 
 API_URL = os.environ.get("COURIER_SERVER", "http://127.0.0.1:8080").rstrip("/")
 API_KEY = os.environ.get("COURIER_API_KEY")
@@ -42,7 +45,8 @@ def persist_packet(task):
 
 def spawn_adapter(path):
     python_bin = "venv/bin/python3" if os.path.exists("venv/bin/python3") else "python3"
-    subprocess.Popen([python_bin, "scripts/github_worker_adapter.py", str(path)])
+    process = subprocess.Popen([python_bin, "scripts/github_worker_adapter.py", str(path)])
+    ACTIVE_ADAPTERS[process.pid] = (process, path)
 
 def handle_claimed_task(task):
     """Persist identity first; only then start execution."""
@@ -87,6 +91,25 @@ def run_loop():
 
     while True:
         try:
+            # Check adapters
+            finished = []
+            for pid, (process, path) in list(ACTIVE_ADAPTERS.items()):
+                if process.poll() is not None:
+                    finished.append(pid)
+                    state_file = path.with_name(f"{path.stem}.github-worker-state.json")
+                    posted = False
+                    if state_file.is_file():
+                        try:
+                            if json.loads(state_file.read_text(encoding="utf-8")).get("status") == "POSTED":
+                                posted = True
+                        except Exception:
+                            pass
+                    if not posted:
+                        log(f"Adapter for {path} exited unexpectedly without posting result. Crashing dispatcher to trigger reclamation.")
+                        raise SystemExit(1)
+            for pid in finished:
+                ACTIVE_ADAPTERS.pop(pid, None)
+
             # Heartbeat
             requests.post(f"{API_URL}/workers/heartbeat", json={"worker_id": WORKER_ID}, headers=HEADERS, timeout=10)
             

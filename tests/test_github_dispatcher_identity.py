@@ -46,6 +46,12 @@ class Spawns:
         if self.fail:
             raise OSError("simulated crash before adapter start")
         self.paths.append(path)
+        class MockProcess:
+            def __init__(self):
+                self.pid = 99999
+            def poll(self):
+                return None
+        return MockProcess()
 
 
 def test_identity_persisted_before_adapter_starts(monkeypatch, tmp_path):
@@ -126,6 +132,7 @@ def test_adapter_restart_after_workflow_dispatch_does_not_redispatch(tmp_path, m
     calls = []
     monkeypatch.setattr(adapter, "find_run", lambda did: ("123", "in_progress"))
     monkeypatch.setattr(adapter, "run_cmd", lambda cmd: calls.append(cmd) or (0, "", ""))
+    monkeypatch.setattr(adapter, "post_result", lambda res: None)
     monkeypatch.setattr(adapter, "LOCAL_WAIT_SECONDS", 0)
     assert adapter.run(str(task_file)) == 0
     assert not any(c[:3] == ["gh", "workflow", "run"] for c in calls)
