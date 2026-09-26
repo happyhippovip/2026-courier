@@ -21,13 +21,20 @@ WORKER_ID = "GITHUB-DISPATCHER"
 WAITING_EXIT_CODE = 75
 MAX_ADAPTER_RESTARTS = 3
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
 def log(msg):
     print(f"[GitHub Dispatcher] {msg}", flush=True)
 
 
-def launch_adapter(task_file):
-    python_bin = "venv/bin/python3" if os.path.exists("venv/bin/python3") else "python3"
-    return subprocess.Popen([python_bin, "scripts/github_worker_adapter.py", task_file])
+def launch_adapter(task_file, root=None):
+    # Adapter/venv paths are anchored at the repo root, never at the
+    # caller's cwd: a foreign cwd previously made the adapter fail to
+    # start (lost dispatch while the loop kept polling).
+    root = Path(root) if root is not None else REPO_ROOT
+    venv_python = root / "venv" / "bin" / "python3"
+    python_bin = str(venv_python) if venv_python.exists() else "python3"
+    return subprocess.Popen([python_bin, str(root / "scripts" / "github_worker_adapter.py"), task_file])
 
 
 def task_file_path(task):

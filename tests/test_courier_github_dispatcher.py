@@ -49,7 +49,16 @@ def test_persist_conflict_different_task(tmp_path):
         task1 = {"dispatch_id": "dispatch-conflict", "info": "A"}
         task2 = {"dispatch_id": "dispatch-conflict", "info": "B"}
         courier_github_dispatcher.persist_task_file(task1)
-        
+
         with pytest.raises(RuntimeError, match="conflicting TaskPacket already exists"):
             courier_github_dispatcher.persist_task_file(task2)
+
+def test_launch_adapter_anchored_to_repo_root(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    with mock.patch("subprocess.Popen") as popen:
+        courier_github_dispatcher.launch_adapter("task.json")
+    argv = popen.call_args[0][0]
+    assert Path(argv[1]).is_absolute(), f"adapter path must not depend on cwd: {argv}"
+    assert Path(argv[1]).is_file()
+    assert argv[1].endswith(os.path.join("scripts", "github_worker_adapter.py"))
 
