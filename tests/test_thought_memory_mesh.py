@@ -15,23 +15,6 @@ from run_thought_memory_mesh import canonical_hash, run_mesh
 
 
 
-def memory_repo() -> Path:
-    """Real memory checkout if present (COURIER_MEMORY_REPO or the operator default),
-    else a throwaway git repo so the read-only invariant is still exercised."""
-    import os
-    configured = Path(os.environ.get("COURIER_MEMORY_REPO", "/Users/user/Downloads/2026-project-memory"))
-    if (configured / ".git").exists():
-        return configured
-    scratch = Path(tempfile.mkdtemp(prefix="courier-memory-fixture-"))
-    git = ["git", "-C", str(scratch), "-c", "user.name=fixture", "-c", "user.email=fixture@example.invalid"]
-    subprocess.run(["git", "init", "-q", str(scratch)], check=True)
-    subprocess.run(git + ["commit", "-q", "--allow-empty", "-m", "fixture"], check=True)
-    return scratch
-
-
-MEMORY = memory_repo()
-
-
 def message(message_id, timestamp, source, kind, summary, status_label, requested_status=None):
     payload = {"kind": kind, "summary": summary, "status_label": status_label}
     if requested_status:
@@ -40,16 +23,35 @@ def message(message_id, timestamp, source, kind, summary, status_label, requeste
 
 
 class ThoughtMeshTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        import os
+        configured = Path(os.environ.get("COURIER_MEMORY_REPO", "/Users/user/Downloads/2026-project-memory"))
+        if (configured / ".git").exists():
+            cls.memory = configured
+            cls._temp_dir = None
+        else:
+            cls._temp_dir = tempfile.TemporaryDirectory(prefix="courier-memory-fixture-")
+            cls.memory = Path(cls._temp_dir.name)
+            git = ["git", "-C", str(cls.memory), "-c", "user.name=fixture", "-c", "user.email=fixture@example.invalid"]
+            subprocess.run(["git", "init", "-q", str(cls.memory)], check=True)
+            subprocess.run(git + ["commit", "-q", "--allow-empty", "-m", "fixture"], check=True)
+
+    @classmethod
+    def tearDownClass(cls):
+        if getattr(cls, "_temp_dir", None):
+            cls._temp_dir.cleanup()
+
     def test_coverage_audit_dedupe_delta_and_proposal(self):
         memory_head_before = subprocess.run(
-            ["git", "-C", str(MEMORY), "rev-parse", "HEAD"], check=True, capture_output=True, text=True
+            ["git", "-C", str(self.memory), "rev-parse", "HEAD"], check=True, capture_output=True, text=True
         ).stdout.strip()
         initial = [
             message("m-20260825", "2026-08-25T09:00:00Z", "CHAT_EXPORT", "INTENT", "Keep historical statements classified.", "USER_INTENT"),
             message("m-20260827", "2026-08-27T09:00:00Z", "COURIER_EVENT", "OPEN_QUESTION", "Verify external status before promotion.", "UNKNOWN", "VERIFIED_CURRENT"),
         ]
         initial.append(dict(initial[0]))  # deliberate identical duplicate
-        first = run_mesh(initial, {}, MEMORY)
+        first = run_mesh(initial, {}, self.memory)
         audit = first["scene_audit"]
         self.assertTrue(audit["coverage_complete"])
         expected_ids = {"m-20260825", "m-20260827"}
@@ -66,38 +68,38 @@ class ThoughtMeshTests(unittest.TestCase):
         self.assertTrue(first["memory_update_proposal"]["requires_chief_approval"])
         self.assertEqual(first["chief_delivery_adapter"]["delivery_status"], "PREPARED_NOT_DELIVERED")
         second_input = initial + [message("m-20260828", "2026-08-28T09:00:00Z", "WORK_RESULT", "TASK", "Process only the next-day delta.", "PLANNED")]
-        second = run_mesh(second_input, first["coverage_ledger"], MEMORY)
+        second = run_mesh(second_input, first["coverage_ledger"], self.memory)
         self.assertEqual(second["coverage_ledger"]["message_counts"]["delta_processed"], 1)
         self.assertEqual(second["thought_manager"][0]["message_id"], "m-20260828")
-        replay = run_mesh(second_input, second["coverage_ledger"], MEMORY)
+        replay = run_mesh(second_input, second["coverage_ledger"], self.memory)
         self.assertEqual(replay["coverage_ledger"]["message_counts"]["delta_processed"], 0)
         self.assertIsNone(replay["memory_update_proposal"])
         memory_head_after = subprocess.run(
-            ["git", "-C", str(MEMORY), "rev-parse", "HEAD"], check=True, capture_output=True, text=True
+            ["git", "-C", str(self.memory), "rev-parse", "HEAD"], check=True, capture_output=True, text=True
         ).stdout.strip()
         self.assertEqual(memory_head_before, memory_head_after)
 
     def test_invalid_empty_changed_hash_and_volume_behavior(self):
-        empty = run_mesh([], {}, MEMORY)
+        empty = run_mesh([], {}, self.memory)
         self.assertEqual(empty["coverage_ledger"]["message_counts"]["valid_unique"], 0)
         self.assertIsNone(empty["memory_update_proposal"])
         invalid = {"schema_version": "thought-message-1.0", "message_id": "missing-time", "source": "CHAT_EXPORT", "payload": {}, "payload_hash": canonical_hash({})}
         naive = message("naive", "2026-08-25T09:00:00", "CHAT_EXPORT", "TASK", "Naive timestamp.", "UNKNOWN")
-        rejected = run_mesh([invalid, naive], {}, MEMORY)
+        rejected = run_mesh([invalid, naive], {}, self.memory)
         self.assertEqual(rejected["coverage_ledger"]["message_counts"]["rejected"], 2)
         sensitive_payload = {"kind": "TASK", "summary": "Do not retain credential material.", "status_label": "UNKNOWN", "api_key": "placeholder-value"}
         sensitive = {"schema_version": "thought-message-1.0", "message_id": "sensitive", "timestamp": "2026-08-25T10:00:00Z", "source": "CHAT_EXPORT", "payload": sensitive_payload, "payload_hash": canonical_hash(sensitive_payload)}
-        sensitive_result = run_mesh([sensitive], {}, MEMORY)
+        sensitive_result = run_mesh([sensitive], {}, self.memory)
         self.assertEqual(sensitive_result["coverage_ledger"]["message_counts"]["rejected"], 1)
         self.assertIsNone(sensitive_result["memory_update_proposal"])
         original = message("stable-id", "2026-08-25T09:00:00Z", "CHAT_EXPORT", "IDEA", "First payload.", "IDEA")
-        first = run_mesh([original], {}, MEMORY)
+        first = run_mesh([original], {}, self.memory)
         changed = message("stable-id", "2026-08-26T09:00:00Z", "CHAT_EXPORT", "IDEA", "Changed payload.", "IDEA")
-        conflict = run_mesh([changed], first["coverage_ledger"], MEMORY)
+        conflict = run_mesh([changed], first["coverage_ledger"], self.memory)
         self.assertEqual(conflict["coverage_ledger"]["message_counts"]["delta_processed"], 0)
         self.assertEqual(conflict["scene_audit"]["prior_identity_hash_conflicts"][0]["message_id"], "stable-id")
         volume = [message(f"bulk-{n}", f"2026-08-30T{n // 60:02d}:{n % 60:02d}:00Z", "COURIER_EVENT", "TASK", f"Bulk {n}", "PLANNED") for n in range(1000)]
-        bulk = run_mesh(volume, {}, MEMORY)
+        bulk = run_mesh(volume, {}, self.memory)
         self.assertEqual(bulk["coverage_ledger"]["message_counts"]["valid_unique"], 1000)
         self.assertNotIn("message_ids", bulk["coverage_ledger"]["scanner_ranges"]["THOUGHT_FORWARD_SCANNER"])
 

@@ -16,23 +16,6 @@ from run_thought_ingestion import canonical_hash, run_ingestion
 
 
 
-def memory_repo() -> Path:
-    """Real memory checkout if present (COURIER_MEMORY_REPO or the operator default),
-    else a throwaway git repo so the read-only invariant is still exercised."""
-    import os
-    configured = Path(os.environ.get("COURIER_MEMORY_REPO", "/Users/user/Downloads/2026-project-memory"))
-    if (configured / ".git").exists():
-        return configured
-    scratch = Path(tempfile.mkdtemp(prefix="courier-memory-fixture-"))
-    git = ["git", "-C", str(scratch), "-c", "user.name=fixture", "-c", "user.email=fixture@example.invalid"]
-    subprocess.run(["git", "init", "-q", str(scratch)], check=True)
-    subprocess.run(git + ["commit", "-q", "--allow-empty", "-m", "fixture"], check=True)
-    return scratch
-
-
-MEMORY = memory_repo()
-
-
 def envelope(ingestion_id, source_message_id, timestamp, content, *, source_type="CHAT_EXPORT", metadata=None, privacy_class="INTERNAL"):
     return {"ingestion_id": ingestion_id, "source_type": source_type, "source_message_id": source_message_id, "source_timestamp": timestamp, "received_at": timestamp, "content_hash": canonical_hash(content), "content": content, "metadata": metadata or {"kind": "OPEN_QUESTION", "status_label": "UNKNOWN"}, "correlation_id": f"corr-{ingestion_id}", "privacy_class": privacy_class}
 
@@ -42,8 +25,27 @@ def write_json(path, data):
 
 
 class ThoughtIngestionTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        import os
+        configured = Path(os.environ.get("COURIER_MEMORY_REPO", "/Users/user/Downloads/2026-project-memory"))
+        if (configured / ".git").exists():
+            cls.memory = configured
+            cls._temp_dir = None
+        else:
+            cls._temp_dir = tempfile.TemporaryDirectory(prefix="courier-memory-fixture-")
+            cls.memory = Path(cls._temp_dir.name)
+            git = ["git", "-C", str(cls.memory), "-c", "user.name=fixture", "-c", "user.email=fixture@example.invalid"]
+            subprocess.run(["git", "init", "-q", str(cls.memory)], check=True)
+            subprocess.run(git + ["commit", "-q", "--allow-empty", "-m", "fixture"], check=True)
+
+    @classmethod
+    def tearDownClass(cls):
+        if getattr(cls, "_temp_dir", None):
+            cls._temp_dir.cleanup()
+
     def test_real_file_ingestion_dedupe_conflict_secret_and_delta(self):
-        memory_before = subprocess.run(["git", "-C", str(MEMORY), "rev-parse", "HEAD"], check=True, capture_output=True, text=True).stdout.strip()
+        memory_before = subprocess.run(["git", "-C", str(self.memory), "rev-parse", "HEAD"], check=True, capture_output=True, text=True).stdout.strip()
         with tempfile.TemporaryDirectory() as temporary:
             base = Path(temporary)
             inbox, processed, rejected = base / "inbox", base / "processed", base / "rejected"
@@ -59,7 +61,7 @@ class ThoughtIngestionTests(unittest.TestCase):
                 write_json(inbox / f"{index:03d}.json", data)
             (inbox / "invalid.json").write_text("{not valid json", encoding="utf-8")
             source_bytes_before = {path.name: path.read_bytes() for path in inbox.iterdir()}
-            first = run_ingestion(inbox, processed, rejected, MEMORY)
+            first = run_ingestion(inbox, processed, rejected, self.memory)
             self.assertEqual(first["new_ingestions"], 4)
             self.assertEqual(first["skipped"], 1)
             self.assertEqual(first["conflicts"], 1)
@@ -68,20 +70,20 @@ class ThoughtIngestionTests(unittest.TestCase):
             self.assertTrue(first["scene_audit"]["coverage_complete"])
             self.assertEqual(first["chief_delivery"]["delivery_status"], "PREPARED_NOT_DELIVERED")
             self.assertEqual(source_bytes_before, {path.name: path.read_bytes() for path in inbox.iterdir()})
-            replay = run_ingestion(inbox, processed, rejected, MEMORY)
+            replay = run_ingestion(inbox, processed, rejected, self.memory)
             self.assertEqual(replay["new_ingestions"], 0)
             self.assertFalse(replay["proposal_created"])
             changed_source = envelope("ing-008", "source-001", "2026-08-29T09:00:00Z", "Changed source id with a new ingestion id.")
             write_json(inbox / "998.json", changed_source)
             day_two = envelope("ing-007", "source-007", "2026-08-29T10:00:00Z", "A next-day delta.", source_type="GOOGLE_ANTIGRAVITY_RESULT", metadata={"kind": "TASK", "status_label": "PLANNED"})
             write_json(inbox / "999.json", day_two)
-            delta = run_ingestion(inbox, processed, rejected, MEMORY)
+            delta = run_ingestion(inbox, processed, rejected, self.memory)
             self.assertEqual(delta["new_ingestions"], 1)
             self.assertGreaterEqual(delta["conflicts"], 1)
             self.assertTrue(delta["proposal_created"])
             self.assertTrue(delta["scene_audit"]["coverage_complete"])
             self.assertTrue(any(rejected.glob("*-rejected.json")))
-        memory_after = subprocess.run(["git", "-C", str(MEMORY), "rev-parse", "HEAD"], check=True, capture_output=True, text=True).stdout.strip()
+        memory_after = subprocess.run(["git", "-C", str(self.memory), "rev-parse", "HEAD"], check=True, capture_output=True, text=True).stdout.strip()
         self.assertEqual(memory_before, memory_after)
 
     def test_pre_anchor_privacy_hash_and_lock_boundaries(self):
@@ -95,12 +97,12 @@ class ThoughtIngestionTests(unittest.TestCase):
             mismatch["content_hash"] = "0" * 64
             for index, data in enumerate([pre_anchor, bank_data, mismatch]):
                 write_json(inbox / f"boundary-{index}.json", data)
-            result = run_ingestion(inbox, processed, rejected, MEMORY)
+            result = run_ingestion(inbox, processed, rejected, self.memory)
             self.assertEqual(result["new_ingestions"], 0)
             self.assertEqual(result["rejected"], 3)
             lock = processed / ".ingestion.lock"
             lock.mkdir(parents=True)
-            locked = run_ingestion(inbox, processed, rejected, MEMORY)
+            locked = run_ingestion(inbox, processed, rejected, self.memory)
             self.assertEqual(locked["status"], "LOCKED")
             lock.rmdir()
 
@@ -112,7 +114,7 @@ class ThoughtIngestionTests(unittest.TestCase):
             for number in range(1000):
                 timestamp = f"2026-08-30T{number // 60:02d}:{number % 60:02d}:00Z"
                 write_json(inbox / f"bulk-{number:04d}.json", envelope(f"bulk-{number}", f"source-bulk-{number}", timestamp, f"Bulk record {number}.", source_type="COURIER_EVENT", metadata={"kind": "TASK", "status_label": "PLANNED"}))
-            result = run_ingestion(inbox, processed, rejected, MEMORY)
+            result = run_ingestion(inbox, processed, rejected, self.memory)
             self.assertEqual(result["new_ingestions"], 1000)
             record = json.loads(Path(result["run_record"]).read_text(encoding="utf-8"))
             self.assertEqual(record["coverage_ledger"]["message_counts"]["valid_unique"], 1000)
