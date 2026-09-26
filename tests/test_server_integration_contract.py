@@ -413,3 +413,17 @@ def test_stale_claim_is_quarantined_without_replay_and_other_goal_continues(tmp_
     late_result = durable_result(claimed)
     assert http.post("/tasks/result", headers=auth(), json=late_result).status_code == 409
     assert server_app.load_state()["tasks"][claimed["task_id"]]["status"] == "HUMAN_REQUIRED"
+
+def test_resent_result_is_ignored_on_unpatched_server(tmp_path, monkeypatch):
+    '''Proves the unpatched server's behavior on duplicate result (NT1).
+    The patched server returns ACK_DUPLICATE, while the live server returns IGNORED.
+    '''
+    http, _, task = setup_claimed_task(tmp_path, monkeypatch)
+    result = durable_result(task)
+    assert http.post("/tasks/result", headers=auth(), json=result).status_code == 200
+
+    resent = http.post("/tasks/result", headers=auth(), json=result)
+    assert resent.status_code == 200
+    data = resent.get_json()
+    assert data["status"] == "IGNORED"
+    assert data["reason"] == "DUPLICATE_OR_ALREADY_PROCESSED"
