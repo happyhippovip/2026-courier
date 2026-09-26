@@ -54,3 +54,9 @@ def test_generate_invoice_increments_sequence(tmp_path):
     assert doc1["invoice_id"] != doc2["invoice_id"]
     assert doc1["invoice_id"].endswith("-01")
     assert doc2["invoice_id"].endswith("-02")
+
+
+def test_invoice_dir_anchored_to_repo_root():
+    import invoice_generator
+    assert invoice_generator.REPO_ROOT.is_absolute()
+    assert (invoice_generator.REPO_ROOT / "events" / "invoices").is_absolute()

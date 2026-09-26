@@ -4,8 +4,10 @@ import os
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+REPO_ROOT = Path(__file__).resolve().parent.parent
+
 class InvoiceGenerator:
-    INVOICE_DIR = Path("events/invoices")
+    INVOICE_DIR = REPO_ROOT / "events" / "invoices"
     
     @classmethod
     def setup(cls):
@@ -50,8 +52,12 @@ class InvoiceGenerator:
         }
         
         out_path = cls.INVOICE_DIR / f"{invoice_id}.json"
-        with open(out_path, "w") as f:
+        tmp_path = cls.INVOICE_DIR / f".{invoice_id}.tmp.{os.getpid()}"
+        with open(tmp_path, "w", encoding="utf-8") as f:
             json.dump(invoice_doc, f, indent=2)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp_path, out_path)
             
         print(f"Generated Invoice: {invoice_id} for {amount} EUR")
         print(f"File: {out_path}")
