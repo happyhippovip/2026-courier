@@ -21,4 +21,4 @@ kill_safe() {
 kill_safe "logs/courier_daemon.pid" "server/app.py\|run_waitress.py" "Courier Server"
 kill_safe "logs/courier_verifier.pid" "courier_verifier.py" "Courier Verifier"
 kill_safe "logs/courier_github_dispatcher.pid" "courier_github_dispatcher.py" "Courier GitHub Dispatcher"
-kill_safe "logs/courier_watchdog.pid" "run_autonomous_supervisor.py" "Courier Watchdog"
+kill_safe "logs/courier_watchdog.pid" "courier_watchdog.py" "Courier Watchdog"
