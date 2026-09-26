@@ -62,6 +62,7 @@ def run(task_file, root=None):
                 "attempt_id": task.get("attempt_id"),
                 "dispatch_id": task.get("dispatch_id"),
                 "worker_id": task.get("worker_id"),
+                "run_id": f"run-{task.get('dispatch_id', task['task_id'])}-timeout",
                 "result_id": f"result-{task.get('dispatch_id', task['task_id'])}-timeout",
             }
             res["artifacts"] = []

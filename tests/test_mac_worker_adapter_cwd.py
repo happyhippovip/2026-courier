@@ -88,6 +88,11 @@ def test_timeout_preserves_canonical_identity(root, monkeypatch):
     assert recorded["attempt_id"] == "attempt-1"
     assert recorded["dispatch_id"] == "dispatch-1"
     assert recorded["worker_id"] == "MAC-01"
+    assert recorded["run_id"] == "run-dispatch-1-timeout"
     assert recorded["result_id"] == "result-dispatch-1-timeout"
+
+    # Prove integration contract accepts it
+    from scripts.integration_contract import validate_durable_result
+    validate_durable_result(json.loads(task_file.read_text(encoding="utf-8")), recorded)
     assert recorded["status"] == "FAILED"
 
