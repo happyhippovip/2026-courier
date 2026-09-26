@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0",
+  "checkpoint_id": "COURIER-CONVERGENCE-2026-09-26",
+  "status": "ACTIVE",
+  "not_a_canonical_completion_handoff": true,
+  "rules": [
+    "CONTINUE_BY_DEFAULT",
+    "FEATHERLIGHT_BY_DEFAULT",
+    "TRUTH > SPEED",
+    "NO_EVIDENCE_NO_PASS"
+  ],
+  "current_goal": "Close the smallest physical Mac proof: A -> independent VERIFY -> automatic B with zero human relay on one bound candidate.",
+  "required_preconditions": [
+    "Artifact-to-Verify cutover closed",
+    "documented duplicate gaps closed",
+    "candidate branch/SHA/config/runtime/provider binding captured",
+    "targeted tests pass"
+  ],
+  "known": [
+    "two scheduler files do not prove two active authorities",
+    "conflict-free merge does not prove safe integration",
+    "proof binds to exact authorized candidate, not necessarily main",
+    "scale 4/8/16 requires provider authorization, quota/capacity and resource admission",
+    "benchmark separates single-task latency from verified continuation throughput without human relay",
+    "demo metrics must be runtime-derived"
+  ],
+  "unknown": [
+    "actual live scheduler authority",
+    "current physical Mac wall/slot/writer/runtime state",
+    "physical Muse CLI protocol/session binding",
+    "provider authorization/quota for multi-slot scale",
+    "real LIGHT/HEAVY task-contract support",
+    "measured idle supervisor overhead",
+    "existence/coverage of persistent structured context reuse layer"
+  ],
+  "corrected_assumptions": {
+    "scheduler_authority": "runtime mutation authority must be observed, not inferred from filenames",
+    "merge_safety": "mergeability is not integration proof",
+    "proof_branch": "authorized bound candidate is sufficient; main is not required",
+    "process_identity_overhead": "per-slot-per-tick ps fanout is not proven; measure actual spawn/adoption/tick cost",
+    "context_reuse": "suspected gap, not proven absence"
+  },
+  "parked": [
+    "N1-010"
+  ],
+  "waiting_for": [
+    "CODEX_FINAL_REPORT"
+  ],
+  "human_understanding_copy_pending": true,
+  "physical_mac_a_verify_b_proven": false,
+  "ready_for_final_writer_task": false,
+  "ready_for_scale_4": false,
+  "sequence": [
+    "receive Codex final report",
+    "Opus final reconciliation against repo/runtime evidence",
+    "emit one minimal writer task",
+    "close Artifact/Verify and duplicate gaps",
+    "bind exact candidate",
+    "run targeted tests",
+    "physical one-slot A->VERIFY->B with HUMAN_RELAY=0",
+    "restart/no-A-replay proof",
+    "provider/quota/resource preflight",
+    "scale 1->4->8->16",
+    "60-120+ minute featherlight soak",
+    "record evidence-backed demo"
+  ]
+}
