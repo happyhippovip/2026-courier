@@ -33,9 +33,14 @@ def run_worker(task_path, negative_test=False):
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     pid = process.pid
     
-    stdout, stderr = process.communicate(timeout=60)
-    
-    out = stdout.strip()
+    try:
+        stdout, stderr = process.communicate(timeout=60)
+        out = stdout.strip()
+    except subprocess.TimeoutExpired:
+        process.kill()
+        stdout, stderr = process.communicate()
+        out = '{"status": "FAILED", "reason": "TIMEOUT"}'
+
     
     # Parse json safely
     parsed = False
@@ -87,8 +92,8 @@ def consume(res_json, task_id, result_ref):
         "platform": "antigravity",
         "dispatch_ref": res_json.get("dispatch_ref"),
         "pid": res_json.get("pid"),
-        "state": "RECONCILED",
-        "reconciled_status": status,
+        "state": "RESULT_RECEIVED",
+        "reconciled_status": None,
         "result_ref": result_ref,
         "last_transition": "AUTOMATIC_CONSUMPTION",
         "next_explicit_transition": "HUMAN_REVIEW_REQUIRED" if status == "SUCCESS" else "STOP_FAILED",
@@ -103,12 +108,18 @@ if __name__ == "__main__":
     
     if mode == "positive":
         task_id = "task-gemini-002"
-        with open('dummy_task_2.json', 'w') as f:
+        import tempfile, os
+        with tempfile.NamedTemporaryFile('w', delete=False) as f:
             json.dump({"task_id": task_id, "instruction": "Respond with {'status': 'SUCCESS'}"}, f)
-        run_worker('dummy_task_2.json', negative_test=False)
+            temp_name = f.name
+        run_worker(temp_name, negative_test=False)
+        os.remove(temp_name)
         
     elif mode == "negative":
         task_id = "task-gemini-003-invalid"
-        with open('dummy_task_3.json', 'w') as f:
+        import tempfile, os
+        with tempfile.NamedTemporaryFile('w', delete=False) as f:
             json.dump({"task_id": task_id, "instruction": "Respond with garbage"}, f)
-        run_worker('dummy_task_3.json', negative_test=True)
+            temp_name = f.name
+        run_worker(temp_name, negative_test=True)
+        os.remove(temp_name)
