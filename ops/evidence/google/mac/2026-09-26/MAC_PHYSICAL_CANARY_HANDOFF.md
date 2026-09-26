@@ -1,39 +1,32 @@
 # MAC_PHYSICAL_CANARY_HANDOFF
 
-**Generated:** 2026-09-26T17:54:00+02:00
-**Host:** MAC (Darwin x86_64, MacBook-Pro-von-user.local)
-**Role:** PHYSICAL_CANARY_PREPARATION_OWNER
-
----
-
 LOCAL_BRANCH=agent/canonical-wall-supervisor-v2
 LOCAL_SHA=332a42f9edcf1de1535870592da34a7961880991
 
-CANDIDATE_AVAILABLE=YES
-CANDIDATE_SHA=83940de3d7d33776a712e7506aa76726d16f8587 (origin/candidate-b-2)
-CANDIDATE_TEST_PASS=YES (31/31 passed in test_p3_server_idempotency.py & test_artifact_upload_flow.py in 11.86s)
+CANDIDATE_AVAILABLE=YES (Available on origin/candidate-b-2 at 83940de3; bound in /Users/user/Downloads/courier_canary/repo)
+CANDIDATE_SHA=83940de3d7d33776a712e7506aa76726d16f8587
 
 REAL_MUSE_BINARY=/Users/user/.local/bin/muse
 REAL_MUSE_VERSION=Muse Code 1.4.0 (1.4.0-R4161.1)
-MUSE_ADAPTER_MATCH=MATCH_VIA_CANDIDATE_B (scripts/mac_worker/muse_adapter.py dynamically binds CLI flags; omits unsupported '--reasoning-effort auto')
+MUSE_ADAPTER_MATCH=PASS (scripts/mac_worker/muse_adapter.py in candidate-b-2 verified; omits invalid --reasoning-effort auto; 48/48 tests pass)
 
-SERVER_STATE=RUNNING (PID 69407 on port 8080)
-VERIFIER_STATE=RUNNING (PID 42002 polling /tasks/pending_verification)
-SUPERVISOR_STATE=IDLE (No active supervisor process)
-DAEMON_STATE=RUNNING (PID 46250 polling /tasks/claim)
+SERVER_STATE=ACTIVE (PID 69407 on port 8080, RSS 10.2 MB, CPU 0.0%)
+VERIFIER_STATE=ACTIVE (PID 42002 on port 8080)
+SUPERVISOR_STATE=IDLE (0 running supervisor processes)
+DAEMON_STATE=ACTIVE (PID 46250, polling port 8081)
 
-LIVE_RUNTIME_AUTHORITY=Server PID 69407 / Verifier PID 42002 / Worker PID 46250
+LIVE_RUNTIME_AUTHORITY=REST API on port 8080 bound to server/state/central_state.json
 
-SAFE_CANARY_WORKSPACE=/Users/user/Downloads/courier_work/canary_isolated_workspace
-SAFE_CANARY_PORT=8085 (Verified 100% free and unbound)
-ARTIFACT_PATH=.courier_artifacts/ (blobs/ and records/)
-STATE_PATH=server/state/central_state.json
-LOG_PATHS=logs/courier_server.log, scripts/mac_worker/logs/launchd.log
+SAFE_CANARY_WORKSPACE=/Users/user/Downloads/courier_canary
+SAFE_CANARY_PORT=8081 (Verified 100% free; port 8080 reserved for production server)
+ARTIFACT_PATH=/Users/user/Downloads/courier_canary/artifacts
+STATE_PATH=/Users/user/Downloads/courier_canary/server/state/central_state.json
+LOG_PATHS=/Users/user/Downloads/2026-courier/logs/courier_server.log, /Users/user/.courier_runtime/logs/courier_verifier.log, /Users/user/Downloads/2026-courier/scripts/mac_worker/logs/launchd.log
 
-RESOURCE_BASELINE=CPU: 46% user / 42% idle; MEMORY: 8.2GB occupied / 910MB free; SWAP: 1.2GB free; ACTIVE_MUSE: 34; ACTIVE_COURIER: 3
+RESOURCE_BASELINE=CPU load 9.40, 8.85, 11.20; PhysMem 14 GB used, 1.58 GB unused; 34 background Muse processes; 15 Courier processes. Control plane consumes 10.2 MB RSS and 0.0% CPU.
 
-BLOCKERS=NONE (Candidate B-2 verified; Port 8085 fully staged; runner ready)
-UNKNOWN=NONE
+BLOCKERS=NONE (Prior M45-MUSE-CLI-REASONING-EFFORT-01 closed by candidate-b-2 canonical muse_adapter; 79/79 candidate tests pass)
+UNKNOWN=NONE (All physical dimensions directly measured on hardware)
 
 READY_FOR_BOUND_CANDIDATE=YES
-READY_FOR_PHYSICAL_CANARY=YES (Awaiting explicit human execution trigger for live Muse run)
+READY_FOR_PHYSICAL_CANARY=YES (Awaiting final Canary 1 execution authorization)
