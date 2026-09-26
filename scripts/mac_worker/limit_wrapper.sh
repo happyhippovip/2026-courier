@@ -10,6 +10,8 @@ fi
 "$@" &
 PID=$!
 
+trap 'kill -TERM "$PID" 2>/dev/null; wait "$PID" 2>/dev/null; exit 1' TERM INT HUP
+
 # Lower CPU priority (niceness)
 renice 10 -p $PID >/dev/null 2>&1
 
