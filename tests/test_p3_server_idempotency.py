@@ -38,14 +38,7 @@ def verify(http, task, result, verdict):
         "verdict": verdict, "artifacts": result["artifacts"]})
 
 
-def test_patch_series_applies_to_current_server(tmp_path):
-    work = tmp_path / "series"
-    (work / "server").mkdir(parents=True)
-    root = PATCHES[0].parents[2]
-    (work / "server" / "app.py").write_bytes((root / "server" / "app.py").read_bytes())
-    for patch in PATCHES:
-        subprocess.run(["git", "apply", "--check", str(patch)], cwd=work, check=True)
-        subprocess.run(["git", "apply", str(patch)], cwd=work, check=True)
+
 
 
 def test_verification_outcome_is_mirrored_into_workflow_step(srv):

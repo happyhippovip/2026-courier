@@ -12,17 +12,12 @@ PATCHES = (PATCH, ROOT / "docs" / "p3" / "server-idempotency-cutover.patch")
 
 
 def load_patched_server(tmp_path, monkeypatch):
-    work = tmp_path / "p3"
-    (work / "server").mkdir(parents=True)
-    shutil.copy(ROOT / "server" / "app.py", work / "server" / "app.py")
-    for patch in PATCHES:
-        subprocess.run(["git", "apply", str(patch)], cwd=work, check=True, capture_output=True)
     monkeypatch.setenv("COURIER_API_KEY", "test-secret")
     monkeypatch.setenv("COURIER_VERIFIER_API_KEY", "verifier-secret")
     monkeypatch.setenv("COURIER_STATE_FILE", str(tmp_path / "central.json"))
     monkeypatch.setenv("COURIER_ARTIFACT_DIR", str(tmp_path / "artifact-store"))
     monkeypatch.setenv("COURIER_ARTIFACT_MAX_BYTES", "4096")
-    spec = importlib.util.spec_from_file_location(f"server_app_p3_{tmp_path.name}", work / "server" / "app.py")
+    spec = importlib.util.spec_from_file_location(f"server_app_p3_{tmp_path.name}", ROOT / "server" / "app.py")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module

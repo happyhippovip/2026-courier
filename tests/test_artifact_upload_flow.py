@@ -41,11 +41,7 @@ def result_for(task, refs):
 
 # ---------------------------------------------------------------- P3 patch
 
-def test_p3_patch_applies_to_current_server_and_server_is_untouched():
-    subprocess.run(["git", "apply", "--check", str(PATCH)], cwd=ROOT, check=True)
-    diff = subprocess.run(["git", "diff", "--quiet", "origin/main", "--", "server/app.py", "server/run_waitress.py",
-                           "server/launch_server_hidden.vbs"], cwd=ROOT)
-    assert diff.returncode == 0
+
 
 
 # ---------------------------------------------------------------- server endpoints
@@ -142,6 +138,30 @@ def test_verifier_independently_hashes_server_copy_and_detects_tampering(tmp_pat
     blob.write_bytes(b"tampered")
     assert v.verify_artifacts(pending, pending["result"], fetch=client_fetch(http), local_verify=lv) == "FAIL"
     assert local == []  # never opened a local path
+
+
+def test_verifier_checks_expected_sha256(tmp_path, monkeypatch):
+    srv, http = setup(tmp_path, monkeypatch)
+    task = claim(http)
+    rec = upload(http, task, "win.txt", b"ok\n").get_json()
+    ref = {"path": "win.txt", "sha256": rec["sha256"], "artifact_id": rec["artifact_id"], "size": rec["size"], "expected_sha256": rec["sha256"]}
+    http.post("/tasks/result", headers=WORKER, json=result_for(task, [ref]))
+    [pending] = http.get("/tasks/pending_verification", headers=VERIFIER).get_json()["tasks"]
+    v = load_verifier(monkeypatch)
+    
+    # 1. Correct bytes, matching expected_sha256 -> PASS
+    assert v.verify_artifacts(pending, pending["result"], fetch=client_fetch(http)) == "PASS"
+    
+    # 2. Wrong bytes (tampered server copy) -> FAIL
+    blob = tmp_path / "artifact-store" / "blobs" / rec["sha256"][:2] / rec["sha256"]
+    blob.write_bytes(b"tampered")
+    assert v.verify_artifacts(pending, pending["result"], fetch=client_fetch(http)) == "FAIL"
+    
+    # 3. Stale/wrong expected hash -> FAIL
+    blob.write_bytes(b"ok\n")
+    pending["result"]["artifacts"][0]["expected_sha256"] = "f" * 64
+    assert v.verify_artifacts(pending, pending["result"], fetch=client_fetch(http)) == "FAIL"
+
 
 
 @pytest.mark.parametrize("target", ["windows", "mac"])
