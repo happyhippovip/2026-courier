@@ -140,24 +140,6 @@ class AutonomousLevel6Loop:
         pid = os.getpid()
         now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
-        if lock_file.exists():
-            try:
-                data = load_json(lock_file)
-                existing_pid = data.get("pid")
-                # Check if process is actually alive on Unix
-                if existing_pid and existing_pid != pid:
-                    try:
-                        os.kill(existing_pid, 0)
-                        # Process is still alive
-                        raise WorkflowLockedError(
-                            f"Workflow {workflow_id} is already locked by PID {existing_pid}."
-                        )
-                    except ProcessLookupError:
-                        # Stale lock from crashed process -> can safely reclaim
-                        print(f"[LOCK] Reclaiming stale lock for {workflow_id} from dead PID {existing_pid}")
-            except (json.JSONDecodeError, KeyError):
-                pass
-
         lock_data = {
             "workflow_id": workflow_id,
             "correlation_id": correlation_id or "UNKNOWN",
@@ -167,8 +149,45 @@ class AutonomousLevel6Loop:
             "created_at": now_iso,
             "updated_at": now_iso,
         }
-        save_json(lock_file, lock_data)
-        return lock_file
+
+        while True:
+            try:
+                fd = os.open(lock_file, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
+                with os.fdopen(fd, "w") as f:
+                    json.dump(lock_data, f, indent=2)
+                return lock_file
+            except FileExistsError:
+                # The file exists. Check if it's stale.
+                try:
+                    data = load_json(lock_file)
+                    existing_pid = data.get("pid")
+                    if existing_pid and existing_pid != pid:
+                        try:
+                            os.kill(existing_pid, 0)
+                            # Process is still alive
+                            raise WorkflowLockedError(
+                                f"Workflow {workflow_id} is already locked by PID {existing_pid}."
+                            )
+                        except ProcessLookupError:
+                            # Stale lock from crashed process
+                            print(f"[LOCK] Reclaiming stale lock for {workflow_id} from dead PID {existing_pid}")
+                            lock_file.unlink()
+                            continue  # Try O_CREAT again
+                except (json.JSONDecodeError, KeyError):
+                    # Corrupt lock file
+                    print(f"[LOCK] Reclaiming corrupt lock for {workflow_id}")
+                    try:
+                        lock_file.unlink()
+                        continue
+                    except FileNotFoundError:
+                        pass
+                except FileNotFoundError:
+                    # Unlinked by another process right before we tried to read it
+                    continue
+                    
+                # If we reach here, it's either locked by us (should not happen normally unless logic dictates),
+                # or we failed to unlink, or we shouldn't steal it.
+                raise WorkflowLockedError(f"Workflow {workflow_id} is already locked by PID {data.get('pid', 'UNKNOWN')}.")
 
     def release_workflow_lock(self, workflow_id: str) -> None:
         """Releases the workflow lock file."""
