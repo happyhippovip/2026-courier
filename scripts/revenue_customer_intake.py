@@ -14,11 +14,11 @@ def submit_intake(owner: str, repo: str, sha: str, customer_ref: str):
     task_id = f"REV-{uuid.uuid4().hex[:8].upper()}"
     
     goal_payload = {
-        "goal_id": goal_id,
         "goal_text": f"Revenue Safety Audit for {owner}/{repo}",
-        "tasks": [
+        "workflow_plan": [
             {
                 "task_id": task_id,
+                "instruction": f"Perform revenue safety audit on {owner}/{repo} at {sha} (ref: {customer_ref})",
                 "type": "revenue_safety_audit",
                 "capabilities": ["revenue_safety_audit"],
                 "target_owner": owner,
