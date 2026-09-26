@@ -1,0 +1,78 @@
+# MAC_PHYSICAL_CANARY_HANDOFF.md
+# MISSION=COURIER_GOOGLE_DUAL_HOST_QUEUE_50
+# DATE=2026-09-26  UPDATED=17:34 CET
+
+LOCAL_BRANCH=agent/canonical-wall-supervisor-v2
+LOCAL_SHA=332a42f9edcf1de1535870592da34a7961880991
+
+CANDIDATE_AVAILABLE=YES
+CANDIDATE_BRANCH=origin/candidate-b-1
+CANDIDATE_SHA=4c1e24ccc522042af826bc4c2b595daf85d097f9
+CANDIDATE_BASE_SHA=3e2fe24d6dc59d7613aec9d1099695f5520c4733
+CANDIDATE_AUTHOR=Google Windows <google-windows@local.internal>
+CANDIDATE_DATE=2026-09-26T17:19:41+0200
+CANDIDATE_COMMITS=4 (4c1e24cc, 7b993162, 8173f17e, 8d2384df)
+
+REAL_MUSE_BINARY=/Users/user/.local/bin/muse
+REAL_MUSE_VERSION=Muse Code 1.4.0 (1.4.0-R4161.1)
+MUSE_ADAPTER_MATCH=PARTIAL
+  MATCH=exec subcommand, --workspace, --yolo
+  MISMATCH=reasoning_effort="auto" in muse_wall_supervisor.py:39 (BUG M45-MUSE-CLI-ARG-01)
+  FIX_IN_CANDIDATE=NO — muse_wall_supervisor.py not changed in candidate-b-1
+
+SERVER_STATE=RUNNING (PID 69407, port 8080, source 332a42f9)
+VERIFIER_STATE=RUNNING (PID 42002)
+SUPERVISOR_STATE=NOT_RUNNING (blocked by reasoning_effort bug)
+DAEMON_STATE=RUNNING (PID 46250, mac_worker/daemon.py)
+
+LIVE_RUNTIME_AUTHORITY=PID 69407 server @ port 8080
+
+SAFE_CANARY_WORKSPACE=/Users/user/Downloads/courier_canary/  (prior proof run complete)
+SAFE_CANARY_PORT=8081  (confirmed free)
+ARTIFACT_PATH=/Users/user/Downloads/courier_canary/artifacts/
+  canary_A.txt: COURIER-A2B-A\n (12 bytes, sha256=96c1471cc2dfc55d49de5a3279dc927774a84b0f5c5bdc7c5755f19d8de9391c)
+STATE_PATH=/Users/user/Downloads/courier_canary/server/state/central_state.json
+  task-canary-A: RECONCILED
+  task-canary-B: DISPATCHED
+LOG_PATHS=
+  /Users/user/Downloads/2026-courier/scripts/mac_worker/logs/worker.log
+  /Users/user/Downloads/2026-courier/logs/courier_motor.log
+
+RESOURCE_BASELINE=
+  RAM_TOTAL=16GB
+  RAM_FREE=~2.1GB (pages_free * 4096)
+  DISK_FREE=602GB (/Users/user/Downloads)
+  CPU_LOGICAL=16
+  SERVER_RSS=9.4MB (PID 69407)
+  VERIFIER_RSS=9.5MB (PID 42002)
+  WORKER_RSS=7.2MB (PID 46250)
+
+BLOCKERS=
+  1. muse_wall_supervisor.py:39 reasoning_effort="auto" → exit 2 (supervisor path only)
+  2. candidate-b-1 not yet deployed to courier_canary workspace
+  BLOCKING_CANARY_WITH_SUPERVISOR=YES
+  BLOCKING_CANARY_WITH_DIRECT_EXEC=NO (direct muse exec --reasoning-effort high works)
+
+UNKNOWN=
+  1. Whether Windows will commit supervisor fix in follow-up
+  2. Whether candidate-b-1 artifact_store path works E2E with canary server (not yet physically run)
+
+READY_FOR_BOUND_CANDIDATE=YES
+  candidate-b-1 @ 4c1e24cc fetched, source-audited, authorized scope confirmed
+
+READY_FOR_PHYSICAL_CANARY=YES
+  Option A: Deploy candidate-b-1 to courier_canary_b1/ workspace, run A→VERIFY→B with artifact upload
+  Option B: Wait for supervisor fix, then run full supervisor-mediated Canary
+  Prior proof run already validates base flow (A→VERIFY→B RECONCILED, restart no-replay proven)
+
+## Key Authorized Changes in candidate-b-1
+- scripts/artifact_store.py (NEW): Server-owned artifact store, content-addressed blobs, idempotent uploads
+- server/app.py (MODIFIED): Imports artifact_store, registers ARTIFACT_STORE, checks artifact references
+- scripts/courier_verifier.py (MODIFIED): Fetches artifacts from server, expected_sha256 check against server bytes
+- scripts/windows_worker/daemon.py (MODIFIED): PowerShell encoding + locking fixes (Windows-only)
+
+## Physical Evidence Already Collected
+- /Users/user/Downloads/courier_work/google_longrun/reports/GOOGLE_CLI_A_VERIFY_B_RUNTIME_EVIDENCE.json
+- /Users/user/Downloads/courier_work/google_longrun/reports/GOOGLE_CLI_RESTART_REPLAY_EVIDENCE.md
+- /Users/user/Downloads/courier_work/google_longrun/reports/GOOGLE_CLI_PHYSICAL_RUNTIME_AND_BINDING_CARD.md
+- /Users/user/Downloads/courier_work/google_longrun/reports/CLI5_VISIBLE_PROOF.md
