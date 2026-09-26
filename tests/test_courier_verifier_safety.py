@@ -41,3 +41,20 @@ def test_verify_artifacts_empty_artifacts_fails_closed():
     task = {"task_id": "T-1", "target_capability": "mac"}
     result = {"status": "SUCCESS", "artifacts": []}
     assert verify_artifacts(task, result) == "FAIL"
+
+
+def test_verify_artifacts_non_dict_elements_fails_closed():
+    task = {"task_id": "T-1", "target_capability": "mac"}
+    assert verify_artifacts(task, {"status": "SUCCESS", "artifacts": ["canary.txt"]}) == "FAIL"
+    assert verify_artifacts(task, {"status": "SUCCESS", "artifacts": [123]}) == "FAIL"
+    assert verify_artifacts(task, {"status": "SUCCESS", "artifacts": [None]}) == "FAIL"
+    assert verify_artifacts(task, {"status": "SUCCESS", "artifacts": None}) == "FAIL"
+    assert verify_artifacts(task, "not a dict") == "FAIL"
+
+
+def test_verify_artifacts_missing_or_invalid_fields_fails_closed():
+    task = {"task_id": "T-1", "target_capability": "mac"}
+    assert verify_artifacts(task, {"status": "SUCCESS", "artifacts": [{"path": None, "sha256": "abc"}]}) == "FAIL"
+    assert verify_artifacts(task, {"status": "SUCCESS", "artifacts": [{"path": "file.txt"}]}) == "FAIL"
+    assert verify_artifacts(task, {"status": "SUCCESS", "artifacts": [{"sha256": "abc"}]}) == "FAIL"
+    assert verify_artifacts(task, {"status": "SUCCESS", "artifacts": [{"path": "file.txt", "sha256": 123}]}) == "FAIL"

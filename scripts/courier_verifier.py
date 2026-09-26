@@ -70,8 +70,11 @@ def verify_artifacts(task, result, fetch=fetch_artifact, local_verify=None):
     must be uploaded: the verifier never opens a remote worker's local path.
     """
     local_verify = local_verify or verify_artifact
-    artifacts = result.get("artifacts", [])
-    if not artifacts:
+    if not isinstance(result, dict):
+        log("Result is not a dict.")
+        return "FAIL"
+    artifacts = result.get("artifacts")
+    if not isinstance(artifacts, list) or not artifacts:
         log("No artifact evidence.")
         return "FAIL"
     expected = task.get("artifacts")
@@ -84,6 +87,9 @@ def verify_artifacts(task, result, fetch=fetch_artifact, local_verify=None):
     target = str(task.get("target_capability") or task.get("target_agent") or "").lower()
     remote = any(t in target for t in REMOTE_TARGETS)
     for art in artifacts:
+        if not isinstance(art, dict):
+            log(f"Artifact entry is not a dict: {art}")
+            return "FAIL"
         if "artifact_id" in art:
             try:
                 record, data = fetch(art["artifact_id"])
@@ -97,8 +103,14 @@ def verify_artifacts(task, result, fetch=fetch_artifact, local_verify=None):
         elif remote:
             log(f"Artifact {art.get('path')} from a {target} worker was not uploaded; not opening remote paths.")
             return "FAIL"
-        elif not is_safe_artifact_name(art.get("path")) or not local_verify(art.get("path"), art.get("sha256")):
-            return "FAIL"
+        else:
+            path = art.get("path")
+            sha256 = art.get("sha256")
+            if not isinstance(path, str) or not isinstance(sha256, str):
+                log(f"Artifact missing or invalid path/sha256: {art}")
+                return "FAIL"
+            if not is_safe_artifact_name(path) or not local_verify(path, sha256):
+                return "FAIL"
     return "PASS"
 
 def run_loop():
@@ -113,50 +125,57 @@ def run_loop():
                 for task in tasks:
                     task_id = task.get("task_id")
                     result = task.get("result", {})
-                    result_id = result.get("result_id")
-                    artifacts = result.get("artifacts", [])
+                    result_id = result.get("result_id") if isinstance(result, dict) else None
+                    artifacts = result.get("artifacts", []) if isinstance(result, dict) else []
                     
                     log(f"Verifying task {task_id} (result {result_id})...")
-                    
-                    if result.get("status") != "SUCCESS":
-                        log(f"Task result status is {result.get('status')}; rejecting verification")
+                    try:
+                        if not isinstance(result, dict) or result.get("status") != "SUCCESS":
+                            status = result.get("status") if isinstance(result, dict) else "INVALID"
+                            log(f"Task result status is {status}; rejecting verification")
+                            verdict = "FAIL"
+                        elif "revenue_safety_audit" in task.get("capabilities", []):
+                            log(f"Running deterministic revenue verification for {task_id}...")
+                            import tempfile, json, subprocess
+                            with tempfile.TemporaryDirectory() as td:
+                                task_file = os.path.join(td, "task.json")
+                                candidate_file = os.path.join(td, "candidate.json")
+                                with open(task_file, "w") as f:
+                                    json.dump(task, f)
+                                with open(candidate_file, "w") as f:
+                                    json.dump(result.get("result_data", {}), f)
+
+                                cmd = [sys.executable, os.path.join(os.path.dirname(__file__), "revenue_v1_safety_baseline.py"), "verify", task_file, td, candidate_file]
+                                try:
+                                    subprocess.check_output(cmd, stderr=subprocess.STDOUT, timeout=60)
+                                    verdict = "PASS"
+                                except subprocess.TimeoutExpired:
+                                    log("Revenue verification timed out after 60s")
+                                    verdict = "FAIL"
+                                except subprocess.CalledProcessError as e:
+                                    log(f"Revenue verification failed: {e.output.decode('utf-8', errors='ignore')}")
+                                    verdict = "FAIL"
+                        else:
+                            verdict = verify_artifacts(task, result)
+                    except Exception as e:
+                        log(f"Unexpected error verifying task {task_id}: {e}")
                         verdict = "FAIL"
-                    elif "revenue_safety_audit" in task.get("capabilities", []):
-                        log(f"Running deterministic revenue verification for {task_id}...")
-                        import tempfile, json, subprocess
-                        with tempfile.TemporaryDirectory() as td:
-                            task_file = os.path.join(td, "task.json")
-                            candidate_file = os.path.join(td, "candidate.json")
-                            with open(task_file, "w") as f:
-                                json.dump(task, f)
-                            with open(candidate_file, "w") as f:
-                                json.dump(result.get("result_data", {}), f)
-                            
-                            cmd = [sys.executable, os.path.join(os.path.dirname(__file__), "revenue_v1_safety_baseline.py"), "verify", task_file, td, candidate_file]
-                            try:
-                                subprocess.check_output(cmd, stderr=subprocess.STDOUT, timeout=60)
-                                verdict = "PASS"
-                            except subprocess.TimeoutExpired:
-                                log("Revenue verification timed out after 60s")
-                                verdict = "FAIL"
-                            except subprocess.CalledProcessError as e:
-                                log(f"Revenue verification failed: {e.output.decode('utf-8', errors='ignore')}")
-                                verdict = "FAIL"
-                    else:
-                        verdict = verify_artifacts(task, result)
                             
                     verify_payload = {
                         "task_id": task_id,
                         "verifier_id": VERIFIER_ID,
                         "result_id": result_id,
                         "verdict": verdict,
-                        "artifacts": artifacts
+                        "artifacts": artifacts if isinstance(artifacts, list) else []
                     }
-                    vr = requests.post(f"{API_URL}/tasks/verify", json=verify_payload, headers=HEADERS, timeout=10)
-                    if vr.status_code == 200:
-                        log(f"Successfully verified {task_id} with verdict {verdict}")
-                    else:
-                        log(f"Failed to submit verification for {task_id}: HTTP {vr.status_code} {vr.text}")
+                    try:
+                        vr = requests.post(f"{API_URL}/tasks/verify", json=verify_payload, headers=HEADERS, timeout=10)
+                        if vr.status_code == 200:
+                            log(f"Successfully verified {task_id} with verdict {verdict}")
+                        else:
+                            log(f"Failed to submit verification for {task_id}: HTTP {vr.status_code} {vr.text}")
+                    except Exception as e:
+                        log(f"Error submitting verification for {task_id}: {e}")
         except Exception as e:
             log(f"Error polling for tasks: {e}")
             
