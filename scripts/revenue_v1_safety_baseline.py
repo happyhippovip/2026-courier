@@ -19,39 +19,53 @@ def hash_file(path: Path) -> str:
     return h.hexdigest()
 
 def clone_and_extract(owner: str, repo: str, sha: str, dest: Path):
+    if not isinstance(owner, str) or not re.fullmatch(r"^[a-zA-Z0-9_.-]+$", owner):
+        fail(f"Invalid owner format: {owner}")
+    if not isinstance(repo, str) or not re.fullmatch(r"^[a-zA-Z0-9_.-]+$", repo):
+        fail(f"Invalid repo format: {repo}")
+    if not isinstance(sha, str) or not re.fullmatch(r"^[0-9a-fA-F]{7,40}$", sha):
+        fail(f"Invalid commit sha format: {sha}")
+
+    git_env = {**os.environ, "GIT_TERMINAL_PROMPT": "0"}
     if dest.exists():
         shutil.rmtree(dest)
     dest.mkdir(parents=True)
-    subprocess.run(["git", "-C", str(dest), "init"], check=True, capture_output=True)
-    subprocess.run(["git", "-C", str(dest), "remote", "add", "origin", f"https://github.com/{owner}/{repo}.git"], check=True, capture_output=True)
-    subprocess.run(["git", "-C", str(dest), "config", "core.sparseCheckout", "true"], check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(dest), "init"], check=True, capture_output=True, env=git_env, timeout=30)
+    subprocess.run(["git", "-C", str(dest), "remote", "add", "origin", f"https://github.com/{owner}/{repo}.git"], check=True, capture_output=True, env=git_env, timeout=30)
+    subprocess.run(["git", "-C", str(dest), "config", "core.sparseCheckout", "true"], check=True, capture_output=True, env=git_env, timeout=30)
     (dest / ".git" / "info" / "sparse-checkout").write_text(".github/workflows/\n", encoding="utf-8")
-    subprocess.run(["git", "-C", str(dest), "fetch", "--depth=1", "--filter=blob:none", "origin", sha], check=True, capture_output=True)
-    subprocess.run(["git", "-C", str(dest), "checkout", "FETCH_HEAD"], check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(dest), "fetch", "--depth=1", "--filter=blob:none", "origin", "--", sha], check=True, capture_output=True, env=git_env, timeout=60)
+    subprocess.run(["git", "-C", str(dest), "checkout", "FETCH_HEAD"], check=True, capture_output=True, env=git_env, timeout=30)
 
 def analyze_workflows(repo_dir: Path) -> dict:
     workflows_dir = repo_dir / ".github" / "workflows"
     findings = []
     inspected_files = {}
-    
+
     if workflows_dir.exists() and workflows_dir.is_dir():
-        for wf in workflows_dir.rglob("*.yml"):
-            inspected_files[wf.name] = hash_file(wf)
+        wf_files = sorted(
+            list(workflows_dir.rglob("*.yml")) + list(workflows_dir.rglob("*.yaml")),
+            key=lambda p: str(p.relative_to(workflows_dir))
+        )
+        for wf in wf_files:
+            rel_name = str(wf.relative_to(workflows_dir))
+            inspected_files[rel_name] = hash_file(wf)
             content = wf.read_text(encoding="utf-8")
-            
+
             if "runs-on: self-hosted" in content:
-                findings.append({"rule": "runner_type", "file": wf.name, "issue": "Self-hosted runner detected."})
+                findings.append({"rule": "runner_type", "file": rel_name, "issue": "Self-hosted runner detected."})
             if "timeout-minutes:" not in content:
-                findings.append({"rule": "timeout", "file": wf.name, "issue": "Missing timeout-minutes configuration."})
+                findings.append({"rule": "timeout", "file": rel_name, "issue": "Missing timeout-minutes configuration."})
             if "permissions:" not in content:
-                findings.append({"rule": "permissions", "file": wf.name, "issue": "Missing explicit permissions block."})
+                findings.append({"rule": "permissions", "file": rel_name, "issue": "Missing explicit permissions block."})
             elif "write-all" in content:
-                findings.append({"rule": "permissions", "file": wf.name, "issue": "Permissive write-all detected."})
+                findings.append({"rule": "permissions", "file": rel_name, "issue": "Permissive write-all detected."})
             if "concurrency:" not in content:
-                findings.append({"rule": "concurrency", "file": wf.name, "issue": "Missing concurrency block."})
+                findings.append({"rule": "concurrency", "file": rel_name, "issue": "Missing concurrency block."})
             if "git push" in content:
-                findings.append({"rule": "mutation_risk", "file": wf.name, "issue": "git push detected in workflow."})
-    
+                findings.append({"rule": "mutation_risk", "file": rel_name, "issue": "git push detected in workflow."})
+
+    findings.sort(key=lambda f: (f["file"], f["rule"], f["issue"]))
     return {
         "inspected_files": inspected_files,
         "findings": findings
