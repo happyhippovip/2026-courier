@@ -20,16 +20,34 @@
     "server/app.py",
     "tests/test_p3_server_idempotency.py"
   ],
+  "completed_gates": [
+    "MUSE_STDOUT_CONTRACT"
+  ],
   "critical_path": [
     "FINAL_CANONICAL_CANDIDATE",
     "REAL_TARGETED_TESTS",
-    "MUSE_STDOUT_CONTRACT",
     "EXACT_MAC_BINDING",
     "RUN_1_A_VERIFY_B_ZERO_RELAY",
     "RUN_2_RESTART_NO_A_REPLAY",
     "MINIMUM_HONEST_DUAL_SURFACE_UI",
     "FIRST_FRIEND_TRIAL"
   ],
+  "muse_stdout_contract": {
+    "status": "MATCH",
+    "physically_executed": true,
+    "muse_version": "1.4.0",
+    "exit_code": 0,
+    "stdout_shape": "plain JSON success object",
+    "stderr_separate": true,
+    "ansi_or_tui": false,
+    "parseable_by_current_adapter": true,
+    "writer_scope_change_required": false,
+    "repeat_only_if": [
+      "Muse binary/version changes",
+      "adapter parsing changes",
+      "CLI invocation contract changes"
+    ]
+  },
   "trusted_content_rule": "expected content hash comes from trusted task/workflow input; never worker result",
   "duplicate_rule": "only same canonical result in same attempt/dispatch generation may duplicate-ACK",
   "canary_failed_rule": "any FAILED execution invalidates RUN_1; do not retry into a fake PASS",
@@ -47,11 +65,16 @@
   ],
   "model_roles": {
     "windows_antigravity": "ONLY_SOURCE_WRITER_FOR_FINAL_CANDIDATE",
-    "mac_antigravity": "PHYSICAL_PROOF_RUNNER_AND_ISOLATED_PROBE",
+    "mac_antigravity": "PHYSICAL_PROOF_RUNNER",
     "google_cli_secondary": "READ_ONLY_SUPPORT",
     "muse": "READ_ONLY_FINALIZATION_SUPPORT_UNLESS_EXPLICITLY_ASSIGNED",
     "codex": "INDEPENDENT_CODE_GROUNDED_REVIEW",
     "opus_ultracode": "PRODUCT_AND_CONVERGENCE_JUDGE"
+  },
+  "mac_preflight": {
+    "port_8081_free": true,
+    "safe_for_one_heavy_slot": "CONDITIONAL_PASS",
+    "note": "high swap pressure and many Muse processes; use one heavy physical slot only and recheck admission immediately before RUN_1/RUN_2"
   },
   "ui_after_run2": {
     "user": "simple featherlight real-state view",
