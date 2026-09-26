@@ -1,3 +1,5 @@
+import tempfile
+import shutil
 import unittest
 import json
 from pathlib import Path
@@ -30,17 +32,19 @@ class TestM230(unittest.TestCase):
         self.assertEqual(c, ResponseClassification.POSITIVE_INTEREST)
 
     def test_invoice_semantics(self):
-        test_exp = {"prospect_alias": "P-TEST", "price_eur": 99.0, "target_offering": "TEST"}
-        inv = InvoiceGenerator.generate_invoice(test_exp, "test@test.com", "Test")
-        self.assertEqual(inv["artifact_status"], "DRAFT_SIMULATION")
-        self.assertEqual(inv["payment_status"], "UNCONFIGURED")
-        self.assertNotIn("status", inv)
-        self.assertNotEqual(inv.get("status"), "ISSUED_UNPAID")
-
-        # cleanup
-        fpath = Path("events/invoices") / f"{inv['invoice_id']}.json"
-        if fpath.exists():
-            fpath.unlink()
+        test_dir = tempfile.mkdtemp()
+        orig_dir = InvoiceGenerator.INVOICE_DIR
+        InvoiceGenerator.INVOICE_DIR = Path(test_dir)
+        try:
+            test_exp = {"prospect_alias": "P-TEST", "price_eur": 99.0, "target_offering": "TEST"}
+            inv = InvoiceGenerator.generate_invoice(test_exp, "test@test.com", "Test")
+            self.assertEqual(inv["artifact_status"], "DRAFT_SIMULATION")
+            self.assertEqual(inv["payment_status"], "UNCONFIGURED")
+            self.assertNotIn("status", inv)
+            self.assertNotEqual(inv.get("status"), "ISSUED_UNPAID")
+        finally:
+            InvoiceGenerator.INVOICE_DIR = orig_dir
+            shutil.rmtree(test_dir, ignore_errors=True)
 
 
 if __name__ == '__main__':
