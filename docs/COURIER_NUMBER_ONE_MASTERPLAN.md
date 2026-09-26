@@ -3,6 +3,8 @@
 Status: Strategic operating plan
 Date: 2026-09-26
 Rule #1: CONTINUE BY DEFAULT
+Rule #2: FEATHERLIGHT BY DEFAULT
+Rule #3: THE GRANDMA TEST — if a non-technical person cannot understand the outcome, the product is not yet simple enough.
 
 ## Mission
 
@@ -15,6 +17,42 @@ The target is not "more agent windows". The target is:
 Courier should become more valuable than any single coding model or agent because it owns the durable control plane around models:
 
 `GOAL -> CONTRACT -> QUEUE -> CLAIM -> ADMIT -> EXECUTE -> RESULT -> VERIFY -> LEARN -> NEXT`
+
+
+## Rule #3 — The Grandma Test
+
+Courier must be understandable from the outcome, not from the machinery underneath it.
+
+Every major feature, milestone, demo and daily update must have a plain-language layer that a non-technical family member can understand without knowing terms such as agents, tokens, context windows, schedulers, runtimes, APIs or model names.
+
+The required question is:
+
+> **What changed in real life because Courier ran?**
+
+A technical implementation is not considered product-clear until it can be explained as:
+
+1. what the person asked for;
+2. what Courier did by itself;
+3. what finished;
+4. how we know it is correct;
+5. what happens next.
+
+The daily update must therefore include a short **GRANDMA_UPDATE** section using ordinary language:
+
+- **AUFTRAG:** What was supposed to get done?
+- **ERLEDIGT:** What actually finished?
+- **BEWEIS:** How do we know it really happened?
+- **MENSCH MUSSTE EINGREIFEN:** How many times did a person have to step in?
+- **ALS NÄCHSTES:** What will Courier do next?
+
+No invented numbers. No simulated result may be presented as a real-world result. If something is not yet proven, say so plainly.
+
+Technical detail may exist underneath as a second layer, but the first layer must remain understandable.
+
+A good acceptance test is:
+
+> A person who does not care how AI works can still explain in one sentence what Courier accomplished for them.
+
 
 ## The strategic thesis
 
