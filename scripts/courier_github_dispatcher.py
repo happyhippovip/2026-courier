@@ -66,8 +66,15 @@ def resume_pending():
             try:
                 if json.loads(state_file.read_text(encoding="utf-8")).get("status") == "POSTED":
                     continue
-            except (OSError, ValueError):
-                pass
+            except (OSError, ValueError) as exc:
+                quarantine = path.with_name(
+                    f"{path.stem}.github-worker-state.json.corrupt-{int(time.time())}")
+                try:
+                    os.replace(state_file, quarantine)
+                except OSError:
+                    pass
+                log(f"Quarantined corrupt worker state {state_file.name}: {exc}")
+                continue
         spawn_adapter(path)
         resumed += 1
     return resumed

@@ -107,6 +107,22 @@ def test_posted_dispatch_is_not_resumed(monkeypatch, tmp_path):
     assert spawns.paths == []
 
 
+def test_corrupt_worker_state_is_quarantined_not_respawned(monkeypatch, tmp_path):
+    d = load(monkeypatch, tmp_path)
+    monkeypatch.setattr(d.subprocess, "Popen", Spawns())
+    d.handle_claimed_task(packet())
+    path = next((tmp_path / "dispatch").glob("*.json"))
+    state = path.with_name(f"{path.stem}.github-worker-state.json")
+    state.write_text("{corrupt:::")
+    spawns = Spawns()
+    monkeypatch.setattr(d.subprocess, "Popen", spawns)
+    assert d.resume_pending() == 0
+    assert spawns.paths == []
+    assert not state.exists()
+    assert len(list((tmp_path / "dispatch").glob("*.corrupt-*"))) == 1
+    assert path.is_file()
+
+
 def test_redelivered_same_dispatch_does_not_spawn_twice_in_one_process(monkeypatch, tmp_path):
     d = load(monkeypatch, tmp_path)
     spawns = Spawns()
