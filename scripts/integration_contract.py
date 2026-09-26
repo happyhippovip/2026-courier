@@ -47,11 +47,21 @@ def prepare_task(task: dict) -> dict:
     task_id = packet.get("task_id")
     goal_id = packet.get("goal_id")
     capability = packet.get("target_capability")
+    
+    if capability:
+        cap_lower = capability.lower()
+        if "github" in cap_lower: capability = "github"
+        elif "mac" in cap_lower: capability = "mac"
+        elif "windows" in cap_lower: capability = "windows"
+        elif "linux" in cap_lower: capability = "linux"
+        elif "antigravity" in cap_lower: capability = "antigravity"
+        
     if not all(isinstance(value, str) and value for value in (task_id, goal_id, capability)):
         raise ContractError("task_id, goal_id and target_capability are required")
     if capability not in WORKER_IDS:
         raise ContractError(f"unsupported target_capability: {capability}")
 
+    packet["target_capability"] = capability
     packet.setdefault("attempt_id", f"{task_id}:attempt:1")
     packet.setdefault("dispatch_id", f"dispatch-{uuid.uuid4().hex}")
     packet.setdefault("worker_id", WORKER_IDS[capability])
