@@ -1,0 +1,70 @@
+{
+  "date": "2026-09-26",
+  "status": "ACTIVE_ENDGAME",
+  "do_not_restart_analysis": true,
+  "canonical_base": {
+    "branch": "candidate-b-1",
+    "sha": "4c1e24ccc522042af826bc4c2b595daf85d097f9"
+  },
+  "rejected_candidates": [
+    {
+      "branch": "candidate-b-2",
+      "sha": "83940de3d7d33776a712e7506aa76726d16f8587",
+      "reason": "weakens duplicate-equivalence semantics; not canonical"
+    }
+  ],
+  "final_writer_scope": [
+    "scripts/courier_verifier.py",
+    "scripts/integration_contract.py",
+    "tests/test_artifact_upload_flow.py",
+    "server/app.py",
+    "tests/test_p3_server_idempotency.py"
+  ],
+  "critical_path": [
+    "FINAL_CANONICAL_CANDIDATE",
+    "REAL_TARGETED_TESTS",
+    "MUSE_STDOUT_CONTRACT",
+    "EXACT_MAC_BINDING",
+    "RUN_1_A_VERIFY_B_ZERO_RELAY",
+    "RUN_2_RESTART_NO_A_REPLAY",
+    "MINIMUM_HONEST_DUAL_SURFACE_UI",
+    "FIRST_FRIEND_TRIAL"
+  ],
+  "trusted_content_rule": "expected content hash comes from trusted task/workflow input; never worker result",
+  "duplicate_rule": "only same canonical result in same attempt/dispatch generation may duplicate-ACK",
+  "canary_failed_rule": "any FAILED execution invalidates RUN_1; do not retry into a fake PASS",
+  "product_laws": [
+    "CONTINUE_BY_DEFAULT",
+    "FEATHERLIGHT_BY_DEFAULT",
+    "THE_GRANDMA_TEST",
+    "NO_EVIDENCE_NO_PASS",
+    "NO_BUSYWORK",
+    "SHORTEST_TRUE_ANSWER_FIRST",
+    "NO_PERMISSION_SPAM",
+    "DUAL_SURFACE_TRUTH",
+    "SHOW_THE_MAGIC_NOT_THE_MACHINERY",
+    "WORLD_FEELING_MUST_NOT_DELAY_CORE_PROOF"
+  ],
+  "model_roles": {
+    "windows_antigravity": "ONLY_SOURCE_WRITER_FOR_FINAL_CANDIDATE",
+    "mac_antigravity": "PHYSICAL_PROOF_RUNNER_AND_ISOLATED_PROBE",
+    "google_cli_secondary": "READ_ONLY_SUPPORT",
+    "muse": "READ_ONLY_FINALIZATION_SUPPORT_UNLESS_EXPLICITLY_ASSIGNED",
+    "codex": "INDEPENDENT_CODE_GROUNDED_REVIEW",
+    "opus_ultracode": "PRODUCT_AND_CONVERGENCE_JUDGE"
+  },
+  "ui_after_run2": {
+    "user": "simple featherlight real-state view",
+    "owner": "optional read-only observability drawer",
+    "no_fake_progress": true,
+    "contradictory_state": "UNKNOWN",
+    "existing_dashboard": "visual assets reusable; demo/activity truth logic not reusable"
+  },
+  "private_world_vision_in_public_repo": false,
+  "n1_010": "PARKED",
+  "readiness": {
+    "physical_a_to_b": false,
+    "scale_4": false,
+    "ui": false
+  }
+}
