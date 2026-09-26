@@ -22,9 +22,10 @@ import json
 import os
 import re
 import sys
+import tempfile
 from pathlib import Path
 
-DEFAULT_MEMORY_REPO_PATH = Path("/Users/user/Downloads/2026-project-memory")
+DEFAULT_MEMORY_REPO_PATH = Path(os.environ.get("COURIER_MEMORY_REPO", "/Users/user/Downloads/2026-project-memory"))
 DEFAULT_PROPOSAL_SCHEMA_PATH = Path(__file__).resolve().parent.parent / "schemas/memory_update_proposal.schema.json"
 DEFAULT_APPROVAL_SCHEMA_PATH = Path(__file__).resolve().parent.parent / "schemas/memory_update_approval.schema.json"
 
@@ -81,6 +82,14 @@ def get_memory_commit(repo_path: Path) -> str:
     if not git_dir.exists():
         return "0000000000000000000000000000000000000000"
 
+    if git_dir.is_file():
+        # Handle worktrees and submodules where .git is a file
+        content = git_dir.read_text(encoding="utf-8").strip()
+        if content.startswith("gitdir:"):
+            git_dir = (repo_path / content[7:].strip()).resolve()
+            if not git_dir.exists():
+                return "0000000000000000000000000000000000000000"
+
     head_file = git_dir / "HEAD"
     if not head_file.exists():
         return "0000000000000000000000000000000000000000"
@@ -98,6 +107,50 @@ def get_memory_commit(repo_path: Path) -> str:
                     return line.split()[0].strip()
         return "0000000000000000000000000000000000000000"
     return head_content
+
+
+def insert_into_section(content: str, section: str, text_to_apply: str) -> str:
+    """Inserts text under the specified markdown section header.
+
+    If the section header exists, the text is inserted before the next heading
+    of equal or higher level (or at EOF).
+    If the section header does not exist, a new level-2 section heading is appended at EOF.
+    """
+    sec = section.strip()
+    text = text_to_apply.strip()
+
+    header_pattern = re.compile(
+        rf"^(#{{1,6}})\s+{re.escape(sec)}\s*$",
+        re.MULTILINE
+    )
+    match = header_pattern.search(content)
+    if not match:
+        stripped = content.rstrip()
+        if stripped:
+            return f"{stripped}\n\n## {sec}\n\n{text}\n"
+        return f"## {sec}\n\n{text}\n"
+
+    level = len(match.group(1))
+    start_pos = match.end()
+
+    # Look for the next header of equal or higher level (<= level hashes)
+    next_header_pattern = re.compile(
+        rf"^(#{{1,{level}}})\s+\S",
+        re.MULTILINE
+    )
+    next_match = next_header_pattern.search(content, pos=start_pos)
+
+    if next_match:
+        section_body = content[start_pos:next_match.start()]
+        stripped_body = section_body.rstrip()
+        if stripped_body:
+            new_section_body = f"{stripped_body}\n\n{text}\n\n"
+        else:
+            new_section_body = f"\n\n{text}\n\n"
+        return content[:start_pos] + new_section_body + content[next_match.start():]
+    else:
+        stripped = content.rstrip()
+        return f"{stripped}\n\n{text}\n"
 
 
 def validate_proposal(proposal_data: dict, schema_path: Path | None = None) -> tuple[bool, str]:
@@ -274,21 +327,26 @@ def apply_memory_update_proposal(
             })
             files_modified.add(change["file"])
         else:
-            # Perform atomic section append
-            if f"## {section}" in current_content or f"# {section}" in current_content:
-                # Append directly under section
-                new_content = current_content.rstrip() + f"\n\n{text_to_apply}\n"
-            else:
-                # Append section with content at EOF
-                new_content = current_content.rstrip() + f"\n\n## {section}\n\n{text_to_apply}\n"
+            # Perform atomic section append with section locality
+            new_content = insert_into_section(current_content, section, text_to_apply)
 
-            tmp_path = target_path.with_suffix('.md.tmp')
-            with open(tmp_path, 'w', encoding='utf-8') as f:
-                f.write(new_content)
-                f.flush()
-                import os
-                os.fsync(f.fileno())
-            os.replace(tmp_path, target_path)
+            tmp_fd, tmp_path_str = tempfile.mkstemp(
+                dir=target_path.parent,
+                prefix=f".{target_path.name}.tmp-"
+            )
+            try:
+                with os.fdopen(tmp_fd, "w", encoding="utf-8") as f:
+                    f.write(new_content)
+                    f.flush()
+                    os.fsync(f.fileno())
+                os.replace(tmp_path_str, target_path)
+            except Exception:
+                if os.path.exists(tmp_path_str):
+                    try:
+                        os.unlink(tmp_path_str)
+                    except OSError:
+                        pass
+                raise
 
             # Post-write verification: re-read file
             verified_content = target_path.read_text(encoding="utf-8")
