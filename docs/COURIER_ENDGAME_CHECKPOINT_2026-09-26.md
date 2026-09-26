@@ -1,9 +1,9 @@
 # Courier Endgame Checkpoint — 2026-09-26
 
-Status: active endgame / handoff-safe checkpoint  
-Purpose: allow a fresh chat, Codex, Opus, Google or Muse worker to continue without reopening settled architecture.
+Status: **ACTIVE / HANDOFF-SAFE / DO NOT RESTART BROAD ANALYSIS**  
+Purpose: allow a fresh chat, Codex, Opus, Google, Muse or human operator to continue from the current endgame without reopening settled architecture.
 
-## Short answer first
+## 0. Short answer first
 
 For family / nontechnical explanation, answer first:
 
@@ -19,7 +19,7 @@ Rules:
 - EXPLANATION_ONLY_AFTER_CORE_ANSWER
 - TECHNICAL_DETAIL_ON_DEMAND
 
-## Product permission law
+## 1. Product permission law
 
 NO_PERMISSION_SPAM:
 - Developer environment may use aggressive trusted-workspace permissions.
@@ -28,38 +28,41 @@ NO_PERMISSION_SPAM:
 - Inside that scope Courier continues autonomously.
 - Ask again only for a real gate: money, auth/2FA, publish, destructive/irreversible action, outside-scope write, or permission expansion.
 
-## Current critical path
+## 2. Current critical path
 
-1. Build final canonical candidate from candidate-b-1.
-2. Physically confirm Muse stdout/result contract on Mac in an isolated scratch workspace.
-3. Bind Mac runtime to the exact final candidate SHA in an isolated worktree/runtime.
-4. RUN_1: physical A -> VERIFY -> B with human relay = 0.
-5. RUN_2: deterministic restart with no A replay.
-6. Only then proceed to longer chain / branch / bounded loop / scale / product-shell gates.
+Do not insert product/world/community work ahead of this sequence:
+
+1. Build the final canonical candidate from candidate-b-1.
+2. Run real targeted tests against the integrated server/storage path.
+3. Physically confirm Muse stdout/result contract on Mac in an isolated scratch workspace.
+4. Bind the Mac runtime to the exact final candidate SHA in an isolated worktree/runtime.
+5. RUN_1: physical A -> VERIFY -> B with human relay = 0.
+6. RUN_2: deterministic restart with no A replay.
+7. Only after RUN_2: build the smallest honest read-only dual-surface UI for owner-led product validation.
+8. First friend trial.
+9. Broader world/community/product expansion only after the above is real.
 
 N1-010 remains PARKED.
 
-## Canonical candidate decision
+## 3. Canonical candidate decision
 
 Accepted repair base:
-
 - branch: candidate-b-1
 - SHA: 4c1e24ccc522042af826bc4c2b595daf85d097f9
-- server/app.py fingerprint: 97c1bf46... (authorized two-patch server state)
+- server/app.py fingerprint at that base: 97c1bf46... (authorized two-patch server state)
 
 Rejected:
-
 - candidate-b-2
 - SHA: 83940de3d7d33776a712e7506aa76726d16f8587
 - server/app.py fingerprint: 61fa19e0...
-- reason: removes status from duplicate comparison, weakening duplicate semantics; none of this behavior should be retained merely because it exists in b-2.
+- reason: candidate-b-2 weakens duplicate equivalence by removing status from the duplicate comparison. No b-2 behavior is retained by default.
 
-Also invalid as candidate/proof:
-- agent/canonical-wall-supervisor-v2 @ 332a42f9 (second wall / noncandidate live Mac code)
+Also invalid as final candidate/proof:
+- agent/canonical-wall-supervisor-v2 @ 332a42f9
 - prior unbound Mac proof on 332a42f9
-- any Google line not based on the accepted repair base
+- any line not based on the accepted repair base plus the explicitly authorized final correction
 
-## Final writer scope
+## 4. Final writer scope
 
 Exactly five files may change for the final correction:
 
@@ -69,9 +72,9 @@ Exactly five files may change for the final correction:
 4. server/app.py
 5. tests/test_p3_server_idempotency.py
 
-Everything else stays unchanged for this correction.
+Everything else stays unchanged for this correction unless a later explicit blocker changes scope.
 
-### Trusted content verification rule
+### 4.1 Trusted content verification rule
 
 The expected content hash must originate from trusted task/workflow input, never from worker result data.
 
@@ -100,27 +103,29 @@ For deterministic Canary content verification:
 
 If task has no expected hash:
 - legacy integrity/binding behavior may remain for non-Canary tasks
-- this must NOT be claimed as deterministic content verification
-- Canary task without the target must fail.
+- this must NOT be called deterministic content verification
+- Canary task without the required target must fail.
 
 Worker-supplied expected_* fields must be rejected by contract.
 
 Claim boundary:
 expected_sha256 proves exact deterministic Canary content, NOT universal semantic correctness.
 
-### Duplicate semantics rule
+### 4.2 Duplicate semantics rule
 
-Only a legitimate replay of the same accepted result for the same attempt/dispatch generation may receive duplicate ACK.
+Only a legitimate replay of the same accepted canonical result for the same attempt/dispatch generation may receive duplicate ACK.
 
-Before ACK, validate current attempt/dispatch binding and canonical result equivalence.
+Before ACK:
+- validate current attempt/dispatch generation
+- compare canonical result identity/content, including status and binding fields
 
 Changed status, worker, attempt, dispatch, or artifact result must not be treated as identical duplicate success.
 
 Do not broaden FAILED execution retry semantics.
 
-Any FAILED execution invalidates Canary 1; do not hide it behind a successful retry.
+Any FAILED execution invalidates Canary RUN_1; do not hide it behind a successful retry.
 
-## Minimum final tests
+## 5. Minimum final tests
 
 Integrated server/storage tests must cover at least:
 
@@ -139,7 +144,7 @@ Integrated server/storage tests must cover at least:
 
 Real targeted test output is required. A handoff with SKIPPED tests is invalid.
 
-## Mac physical binding requirements
+## 6. Mac physical binding requirements
 
 Use the exact final candidate SHA in its own worktree, not the ordinary live repo tree.
 
@@ -149,25 +154,25 @@ Requirements:
 - isolated artifact directory
 - isolated logs
 - isolated workspace
-- isolated server port (8081 was reported available, re-check physically)
+- isolated server port (previously 8081 was reported available; re-check physically)
 - do not use the live server on old code
 - do not reuse old courier_canary state
 - verifier from final candidate
 - canonical muse_supervisor.py, not muse_wall_supervisor.py
 - own wall/config pointing at a new empty workspace
 - COURIER_ARTIFACT_UPLOAD=1
-- Muse CLI physical binary: /Users/user/.local/bin/muse
-- Muse Code 1.4.0
-- exec, --workspace and --yolo physically confirmed
-- reasoning_effort only if actually documented by current Muse help
+- Muse CLI physical binary previously confirmed as /Users/user/.local/bin/muse
+- Muse Code 1.4.0 previously reported
+- exec, --workspace and --yolo previously physically reported
+- reasoning_effort only if the installed Muse help actually documents a usable value
 
-## Open Muse output blocker
+## 7. Open Muse output blocker
 
 The existing adapter accepts success only when stdout contains the expected fenced JSON success payload.
 
 Before RUN_1, perform one separately authorized probe OUTSIDE Courier in a fresh empty scratch directory.
 
-Need to record:
+Record:
 - exact command form
 - exit code
 - raw stdout form
@@ -180,7 +185,7 @@ If adapter output does not match:
 - classify as CHANGES_WRITER_SCOPE for muse_adapter parsing
 - do not run the physical Canary until resolved
 
-## Invalid proof reminders
+## 8. Invalid proof reminders
 
 Do not count as final physical proof:
 - prior Mac run on nonfinal/nonbound candidate
@@ -189,8 +194,9 @@ Do not count as final physical proof:
 - stale handoffs claiming no unknowns without real tests
 - single-task proof that never demonstrates A -> VERIFY -> B
 - incorrect fixture byte counts or inferred values
+- a verifier PASS that proves only integrity while being described as exact content
 
-## RUN_1 pass criteria
+## 9. RUN_1 pass criteria
 
 Physical A -> VERIFY -> B:
 
@@ -201,12 +207,12 @@ Physical A -> VERIFY -> B:
 - server-side bytes verify PASS
 - A reconciles
 - B becomes legal because A verified
-- B starts automatically
+- B actually dispatches/starts automatically
 - B completes
 - human relay count = 0
 - no FAILED execution
 
-## RUN_2 pass criteria
+## 10. RUN_2 pass criteria
 
 Deterministic restart proof:
 
@@ -220,27 +226,119 @@ Deterministic restart proof:
 - A is not reexecuted
 - A reconciles
 - B starts automatically
+- B completes
 - A execution count remains 1
 
-## Current model roles
+## 11. Post-RUN_2 UI decision
+
+After RUN_2, do not remain terminal-only for months.
+
+Build the smallest honest read-only **dual-surface** UI:
+
+USER:
+- simple
+- calm
+- featherlight
+- plain-language state
+- no infrastructure by default
+
+OWNER:
+- optional detail drawer
+- gives EYES, not a control cockpit
+- shows real state, mismatches, retries, waiting reasons and proof boundaries
+
+Authoritative UI observations must reconcile matching server/task state with the matching worker/slot/process observations. If bindings conflict or are stale, display UNKNOWN / WAITING.
+
+Important rules:
+- RESULT_RECEIVED = reported, not independently verified
+- RECONCILED + matching PASS = verifier accepted the implemented verification property
+- "B automatically started" requires actual post-verification dispatch/execution evidence, not merely an incremented step index
+- no fake progress or demo success messages in the live-runtime path
+
+The existing dashboard may contribute CSS/cards/layout, but its demo/activity logic must not be treated as runtime truth.
+
+See:
+docs/COURIER_DUAL_SURFACE_OBSERVABILITY_POLICY_2026-09-26.md
+
+## 12. Confirmed observability gaps for first UI
+
+Current code review reports:
+- reliable transition timestamps are incomplete
+- full time-in-state cannot be computed for all key transitions
+- durable verification method/version is not consistently present in stored verdict data
+- durable governor reason/resource age is not fully exported
+- loaded runtime candidate SHA/fingerprint is not a trustworthy existing dashboard field
+- current snapshot alone cannot prove absence of a short-lived duplicate execution
+
+These are **post-RUN_2 UI/observability concerns**, not reasons to delay RUN_1/RUN_2.
+
+If the first UI promises "how long has this been stuck?", a small post-RUN_2 transition timestamp field (for example status_changed_at / phase_changed_at) is the current candidate remedy and needs its own authorization.
+
+## 13. Public/private product boundary
+
+Public/demo/social proof must never expose:
+- prompts/instructions
+- private filenames/content
+- local user/repo paths
+- credentials/keys/provider sessions
+- customer data
+- raw logs/artifact bytes
+- unnecessary internal architecture identifiers
+
+Public Proof Cards must be separately redacted and opt-in.
+
+The private Courier Symphony world/community vision is intentionally NOT stored in this public repository.
+
+Public-safe principles that may be stored here:
+- verified real work, not clicks, may later drive progression
+- resource capacity must stay separate from reputation
+- social sharing is opt-in
+- community contributions must eventually respect explicit permission/trust boundaries
+- LIGHT AS A FEATHER remains mandatory
+- future world/community work must not delay the physical core proof
+
+## 14. Current model roles
 
 - Windows Antigravity Central Writer: ONLY source writer for final candidate.
 - Mac Antigravity: physical proof runner / isolated physical probe.
 - Google CLI / secondary Google workers: read-only evidence/support.
 - Muse pools: read-only finalization/support unless explicitly assigned otherwise.
-- Codex: independent final candidate code reviewer.
-- Opus Ultracode: convergence sentinel/judge, not a source writer.
+- Codex: independent code-grounded final reviewer.
+- Opus Ultracode: product/convergence judge, not a source writer.
 
-## Stop condition for analysis
+## 15. Stop condition for broad analysis
 
 Once BOTH are true:
-
 - final candidate SHA exists with real targeted tests and correct five-file scope
 - Muse stdout probe matches adapter expectations
 
 stop broad analysis.
 
 Proceed directly to:
-Mac binding preflight -> RUN_1 -> RUN_2.
+Mac binding preflight -> RUN_1 -> RUN_2 -> smallest honest UI.
 
-After RUN_2, update visible proof / Grandma card and only then open the next product gate.
+## 16. Resume rule
+
+A fresh chat/session should first read:
+
+1. this file
+2. docs/COURIER_DUAL_SURFACE_OBSERVABILITY_POLICY_2026-09-26.md
+3. docs/COURIER_CURRENT_CONVERGENCE_CHECKPOINT_2026-09-26.md
+4. docs/CODEX_MASTER_CONTEXT_2026-09-26.md
+5. docs/COURIER_NUMBER_ONE_MASTERPLAN.md
+
+Then:
+- load only new evidence
+- do not restart settled analysis
+- resume at the first unresolved gate
+- never claim RUN_1/RUN_2/UI proof from stale/simulated evidence
+
+Current flags:
+
+DO_NOT_RESTART_ANALYSIS=YES
+FINAL_BASE=candidate-b-1@4c1e24ccc522042af826bc4c2b595daf85d097f9
+CANDIDATE_B2=REJECTED
+READY_FOR_PHYSICAL_A_TO_B=NO
+READY_FOR_SCALE_4=NO
+READY_FOR_UI=NO
+N1_010=PARKED
