@@ -17,5 +17,16 @@
     "MENSCH_MUSSTE_EINGREIFEN",
     "ALS_NAECHSTES"
   ],
-  "acceptance": "A non-technical person can explain in one sentence what Courier accomplished and what happens next."
+  "acceptance": "A non-technical person can explain in one sentence what Courier accomplished and what happens next.",
+  "tomorrow_test_required": true,
+  "end_of_day_card_fields": [
+    "GESTERN",
+    "HEUTE",
+    "SICHTBAR",
+    "BEWEIS",
+    "OHNE_MEINE_HILFE",
+    "MORGEN"
+  ],
+  "one_minute_show_required": true,
+  "visible_outcome_rule": "Every meaningful workday should end with something a non-technical person can visibly understand, or explicitly state that the visible proof is not yet complete."
 }
