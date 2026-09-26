@@ -86,7 +86,11 @@ def verify_result(task: dict, raw_result: dict, workspace: Path) -> dict:
         if not isinstance(expected, list) or not expected:
             raise ContractError("successful task has no expected artifacts")
         for relative_name in expected:
-            if not isinstance(relative_name, str) or Path(relative_name).is_absolute() or ".." in Path(relative_name).parts:
+            if not isinstance(relative_name, str) or not relative_name:
+                raise ContractError("unsafe artifact path")
+            if Path(relative_name).is_absolute() or PureWindowsPath(relative_name).is_absolute() or bool(PureWindowsPath(relative_name).drive):
+                raise ContractError("unsafe artifact path")
+            if ".." in Path(relative_name).parts or ".." in PureWindowsPath(relative_name).parts:
                 raise ContractError("unsafe artifact path")
             artifact_path = workspace / relative_name
             if not artifact_path.is_file():
@@ -162,7 +166,11 @@ def validate_durable_result(task: dict, result: dict) -> dict:
                 raise ContractError("invalid artifact size")
         path = artifact["path"]
         digest = artifact["sha256"]
-        if not isinstance(path, str) or not path or Path(path).is_absolute() or ".." in Path(path).parts:
+        if not isinstance(path, str) or not path:
+            raise ContractError("unsafe artifact path")
+        if Path(path).is_absolute() or PureWindowsPath(path).is_absolute() or bool(PureWindowsPath(path).drive):
+            raise ContractError("unsafe artifact path")
+        if ".." in Path(path).parts or ".." in PureWindowsPath(path).parts:
             raise ContractError("unsafe artifact path")
         windows = PureWindowsPath(path)
         if windows.drive or windows.root or ".." in windows.parts:
