@@ -5,6 +5,24 @@
 
 `2026-courier` is the deterministic, safe, zero-spend autonomous operations and engineering engine for **Computer A** (Primary Builder: Google / Antigravity).
 
+## ♾️ Rule #1 — CONTINUE BY DEFAULT
+
+> **Company promise:** **Du bist im Urlaub. Courier arbeitet weiter.**
+>
+> **Operating slogan:** **UNENDLICH — solange Arbeit sicher, erlaubt und technisch möglich ist.**
+
+Courier must not return work to the human merely because a task, model turn, terminal window, worker process, provider session, or machine cycle ended. The default is durable continuation:
+
+`GOAL -> QUEUE -> CLAIM -> WORK -> RESULT -> VERIFY -> NEXT -> ...`
+
+A pause is legitimate only for a real boundary such as a Human Gate, provider/quota unavailability, resource/safety gate, unresolved execution ambiguity, or a genuinely completed goal. When the boundary clears, Courier resumes the same durable mission instead of starting from zero.
+
+**"Unendlich" is the operating principle, not a claim of literally infinite compute or guaranteed provider availability.** The product promise is that ordinary worker completion, idle windows, restarts, and handoffs do not require the human to become the message bus.
+
+See [docs/COURIER_CONTINUOUS_OPERATION_PROMISE.md](docs/COURIER_CONTINUOUS_OPERATION_PROMISE.md).
+
+---
+
 ---
 
 ## 🏛️ System Architecture
