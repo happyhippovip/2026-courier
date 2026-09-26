@@ -34,11 +34,11 @@ def test_delivery_lands_under_root_from_foreign_cwd(root, tmp_path, monkeypatch)
     monkeypatch.chdir(foreign)
     (root / "scripts" / "mac_worker" / "outbox" / "T-1_result.json").write_text(
         '{"status":"SUCCESS"}', encoding="utf-8")
+    posted = []
+    monkeypatch.setattr(adapter, "post_result", lambda res: posted.append(res))
     adapter.run(str(write_task(root)), root=root)
     assert (root / "scripts" / "mac_worker" / "inbox" / "T-1.json").exists()
-    assert json.loads(
-        (root / "results" / "incoming" / "T-1_result.json").read_text(
-            encoding="utf-8")) == {"status": "SUCCESS"}
+    assert posted[-1]["status"] == "SUCCESS"
     assert not (foreign / "scripts").exists()
     assert not (foreign / "results").exists()
 
@@ -50,10 +50,12 @@ def test_timeout_records_failure_under_root(root, tmp_path, monkeypatch):
     calls = iter([0.0, 400.0])
     monkeypatch.setattr(adapter.time, "time", lambda: next(calls))
     monkeypatch.setattr(adapter.time, "sleep", lambda s: None)
+    posted = []
+    monkeypatch.setattr(adapter, "post_result", lambda res: posted.append(res))
+    posted = []
+    monkeypatch.setattr(adapter, "post_result", lambda res: posted.append(res))
     adapter.run(str(write_task(root)), root=root)
-    recorded = json.loads(
-        (root / "results" / "incoming" / "T-1_result.json").read_text(
-            encoding="utf-8"))
+    recorded = posted[0]
     assert recorded["status"] == "FAILED" and recorded["reason"] == "TIMEOUT"
     assert not (foreign / "results").exists()
 
@@ -77,10 +79,10 @@ def test_timeout_preserves_canonical_identity(root, monkeypatch):
     calls = iter([0.0, 400.0])
     monkeypatch.setattr(adapter.time, "time", lambda: next(calls))
     monkeypatch.setattr(adapter.time, "sleep", lambda s: None)
+    posted = []
+    monkeypatch.setattr(adapter, "post_result", lambda res: posted.append(res))
     adapter.run(str(task_file), root=root)
-    recorded = json.loads(
-        (root / "results" / "incoming" / "T-id_result.json").read_text(
-            encoding="utf-8"))
+    recorded = posted[0]
     assert recorded["goal_id"] == "g-1"
     assert recorded["task_id"] == "T-id"
     assert recorded["attempt_id"] == "attempt-1"

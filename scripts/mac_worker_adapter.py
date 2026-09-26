@@ -1,7 +1,24 @@
-import json, sys, os, time, shutil
+import json, sys, os, time, shutil, requests
+from typing import Any
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
+def post_result(result: dict[str, Any]) -> None:
+    key = os.environ.get("COURIER_API_KEY")
+    if not key:
+        print("[Mac Transport] Warning: COURIER_API_KEY not set, cannot post result.", file=sys.stderr)
+        return
+    url = os.environ.get("COURIER_SERVER", "http://127.0.0.1:8080").rstrip("/") + "/tasks/result"
+    response = requests.post(
+        url,
+        json=result,
+        headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+        timeout=15,
+    )
+    if response.status_code >= 400:
+        raise RuntimeError(f"Courier result POST failed: {response.status_code} {response.text}")
 
 def run(task_file, root=None):
     # Transport dirs are anchored at the repo root, never at the
@@ -47,21 +64,18 @@ def run(task_file, root=None):
                 "worker_id": task.get("worker_id"),
                 "result_id": f"result-{task.get('dispatch_id', task['task_id'])}-timeout",
             }
-            incoming_dir = root / "results" / "incoming"
-            incoming_dir.mkdir(parents=True, exist_ok=True)
-            with open(incoming_dir / f"{task['task_id']}_result.json", 'w') as f:
-                json.dump(res, f)
+            res["artifacts"] = []
+            res["provider"] = "mac_timeout"
+            res["raw_result"] = {"reason": "TIMEOUT"}
+            post_result(res)
             return
             
         time.sleep(2)
         
     print(f"[Mac Transport] Received result for {task['task_id']} from Mac Worker!")
-    incoming_dir = root / "results" / "incoming"
-    incoming_dir.mkdir(parents=True, exist_ok=True)
-    incoming = incoming_dir / f"{task['task_id']}_result.json"
-    incoming_tmp = incoming.with_suffix(".json.tmp")
-    shutil.copy(target_outbox_file, incoming_tmp)
-    os.replace(incoming_tmp, incoming)
+    with open(target_outbox_file, 'r') as f:
+        res = json.load(f)
+    post_result(res)
     os.remove(target_outbox_file)
 
 if __name__ == "__main__":
