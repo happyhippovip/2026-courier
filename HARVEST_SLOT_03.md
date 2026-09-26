@@ -180,6 +180,17 @@ worktree /tmp/harvest-slot-03. No main push/merge, no force, no reset/clean.
   CONTRACT (mocked transports); physical proofs still required for
   live daemons. No write (reserved runtimes).
 
+## Task 22 (GOOGLE-05): windows daemon static audit — 1 OPEN finding
+- Orphan-on-timeout: run_task Popen + communicate(600), TimeoutExpired
+  → FAILED posted, child NEVER killed/waited (zero kill/terminate/
+  TimeoutExpired refs in main AND convergence daemon). Orphan may
+  complete effect after failure recorded → ambiguous/duplicate effect
+  + handle leak. Demo /tmp/orphan_demo.py: child alive after handler.
+  Suggested minimal fix (owner writes): except TimeoutExpired →
+  process.kill()+wait, distinct TIMEOUT status. PHYSICAL_WINDOWS_
+  REQUIRED for live proof. SUPERSEDED-check: convergence fixed
+  4xx/5xx split + identity binding but NOT this. No write (reserved).
+
 ## Task 12: venv-python portability sweep — findings only (buckets 8/11/16)
 - Pattern `"venv/bin/python3" if exists else ...` on main in 3 files:
   run_final_acceptance.py (8, staging already → sys.executable),
