@@ -325,6 +325,10 @@ def test_windows_upload_disabled_by_default(tmp_path, monkeypatch):
 # ---------------------------------------------------------------- Mac worker end to end
 
 def test_mac_worker_uploads_and_verifier_reconciles(tmp_path, monkeypatch):
+    import sys
+    import pytest
+    if sys.platform == "win32":
+        pytest.skip("Mac daemon requires fcntl")
     import importlib.util
     srv, http = setup(tmp_path, monkeypatch, worker="MAC-01", target="mac", caps=("macos",), artifacts=("effect.txt",))
     spec = importlib.util.spec_from_file_location("mac_daemon_upload", ROOT / "scripts/mac_worker/daemon.py")

@@ -12,6 +12,9 @@ PATCHES = (PATCH, ROOT / "docs" / "p3" / "server-idempotency-cutover.patch")
 
 
 def load_patched_server(tmp_path, monkeypatch):
+    import sys
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
     monkeypatch.setenv("COURIER_API_KEY", "test-secret")
     monkeypatch.setenv("COURIER_VERIFIER_API_KEY", "verifier-secret")
     monkeypatch.setenv("COURIER_STATE_FILE", str(tmp_path / "central.json"))
