@@ -99,3 +99,16 @@ Gaps (grep-proven, no owner writes made):
 - Canon ref check: origin/supervisor/canonical-muse-runtime =
   7a90e673a5b006076175769f47d2bffb1a268343 (matches prompt, no drift).
   Heavy-test lock runtime/resource_guard/heavy.lock EMPTY (no heavy run active).
+
+## GOOGLE-09 unit — portability sweep (main, read-only)
+- 12 py files hardcode /Users/user/... (memory-dir cluster: apply/build/evaluate
+  memory proposal, resolve_project_memory, run_academy*, run_context_sync,
+  run_thought_curator, run_chief_relay_cycle, run_content_production_pipeline,
+  mac daemon, render_godot_movie). Zero env overrides in scripts/; the ONE
+  precedent is dashboard/server.py:21 (MEMORY_DIR env + repo-relative fallback)
+  → canonical shape for an owner-lane fix. No patch from here (12-file blast
+  radius, foreign scopes).
+- scripts/courier_github_dispatcher.py:42 writes f"/tmp/{task_id}.json":
+  absolute tmp + unsanitized task_id in filename (traversal/symlink surface).
+  Finding for dispatcher owner (google/mac-longrun-singlewriter active there).
+- No C:\Users hardcodes in py files.
