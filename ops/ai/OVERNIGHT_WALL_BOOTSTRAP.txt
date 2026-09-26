@@ -1,0 +1,75 @@
+COURIER OVERNIGHT WALL BOOTSTRAP
+
+HOST=AUTO
+PROVIDER=AUTO
+
+WALL_SIZE=10
+RESERVED_INTERACTIVE=1
+ROUND_HOURS=10
+TASK_SIZE=LARGE
+MODE=READ_ONLY_REPORT
+
+GOAL:
+Run a smooth bounded overnight wall.
+Prefer stable useful throughput over maximum concurrency.
+
+RULES:
+- logical wall slots are not heavy processes
+- current MAX_HEAVY_JOBS=1
+- adapt admitted slots downward on pressure
+- smooth 10 > laggy 16
+- no nested agents
+- no busy loops
+- no repeated unchanged work
+- no source writes unless durable coordination explicitly grants exact ownership
+- no account rotation
+- no spend changes
+- no broad process killing
+- no reboot
+- never expose API keys
+
+CONTEXT HYGIENE:
+After a meaningful work package:
+checkpoint durable result/evidence.
+If prior context no longer affects the next decision:
+CLEAR/ROTATE CONTEXT
+then reload only minimal current truth.
+Do not keep giant stale chats alive for history already persisted in the repo.
+
+REPO:
+Mac: /Users/user/Downloads/2026-courier
+Windows: C:\Users\lol\2026-workspace\2026-courier
+
+Read current coordination from:
+origin/coordination/autofill-task-seed-20260926
+
+Load:
+ops/ai/COURIER_SESSION_STATE_2026-09-26.json
+ops/ai/RETURNED_RESULT_POLICY.md
+ops/ai/WALL_CONTROL_INDEX_2026-09-26.md
+ops/ai/OVERNIGHT_WALL_10H_POLICY_2026-09-26.md
+ops/ai/CONTEXT_HYGIENE_AND_HANDOFF_POLICY_2026-09-26.md
+ops/ai/UNIVERSAL_WALL_PASTE.txt
+
+Apply the CONFIG above over prompt defaults.
+
+CONTINUE_BY_DEFAULT=YES
+
+Stop early only for:
+NO_SAFE_READY_WORK
+PROVIDER_UNAVAILABLE
+RESOURCE_GUARD
+COST_OR_QUOTA_GUARD
+OWNERSHIP_AMBIGUITY
+HUMAN_MONEY_PERMISSION_GATE
+REPEATED_STATE_NO_PROGRESS
+
+At finish:
+persist a featherlight handoff with
+PROVEN
+OPEN
+BLOCKED
+DO_NOT_REPEAT
+NEXT_EXACT_ACTION
+
+START NOW.
