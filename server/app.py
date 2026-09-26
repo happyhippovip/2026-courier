@@ -364,7 +364,7 @@ def task_result():
         # Duplicate protection: a resend of the stored result (e.g. after a lost
         # response) is acknowledged; any other result for a processed task conflicts.
         stored = task.get("result") or {}
-        if stored and all(stored.get(field) == data.get(field) for field in ("dispatch_id", "result_id", "status")):
+        if stored and all(stored.get(field) == data.get(field) for field in ("dispatch_id", "result_id")):
             return jsonify({"status": "ACK_DUPLICATE"})
         if task["status"] in ["RECONCILED", "FAILED_TERMINAL", "RESULT_RECEIVED", "FAILED_VERIFICATION"]:
             return jsonify({"error": "Conflicting result for already processed task"}), 409
