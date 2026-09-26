@@ -6,6 +6,6 @@
 **DONE_COUNT:** 50
 **BLOCKED_COUNT:** 0
 **SKIPPED_EXISTING_EVIDENCE:** 0
-**CURRENT_CANDIDATE:** origin/candidate-b-1 (4c1e24cc544b62dbef32948bbcb94a530eb74360)
+**CURRENT_CANDIDATE:** origin/candidate-b-1 (4c1e24ccc522042af826bc4c2b595daf85d097f9)
 **FIRST_CAUSAL_BLOCKER:** NONE (Awaiting authorization to deploy Candidate B to physical execution lane)
 **NEXT:** MAC_PHYSICAL_CANARY_HANDOFF
