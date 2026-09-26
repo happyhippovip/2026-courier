@@ -3,6 +3,7 @@ import sys
 import uuid
 import subprocess
 import os
+import tempfile
 
 def dispatch_intake(intake_file):
     with open(intake_file, 'r') as f:
@@ -17,6 +18,22 @@ def dispatch_intake(intake_file):
             import hashlib
             content_hash = hashlib.sha256(json.dumps(intake, sort_keys=True).encode('utf-8')).hexdigest()[:8]
             task_id = f"task-revenue-{content_hash}"
+            
+    # Check Duplicate Execution before dispatching
+    state_file = 'central_state.json'
+    try:
+        if os.path.exists(state_file):
+            with open(state_file, 'r') as f:
+                state = json.load(f)
+        else:
+            state = {"tasks": {}}
+    except Exception:
+        state = {"tasks": {}}
+        
+    if task_id in state["tasks"]:
+        print(f"Task {task_id} is already dispatched. Skipping duplicate execution.")
+        return
+
     print(f"Admitting intake {intake.get('customer_reference')} as {task_id}")
     
     # Revenue V1 uses GitHub Actions as the primary qualified lane
@@ -41,17 +58,6 @@ def dispatch_intake(intake_file):
     # Under concurrency, `limit=1` binds the wrong run. We omit the guesswork.
     # The worker will report its true execution_ref upon result delivery.
     execution_ref = "DISPATCHED_PENDING_EXACT_BINDING"
-    
-    # Update Central State
-    state_file = 'central_state.json'
-    try:
-        if os.path.exists(state_file):
-            with open(state_file, 'r') as f:
-                state = json.load(f)
-        else:
-            state = {"tasks": {}}
-    except Exception:
-        state = {"tasks": {}}
         
     state["tasks"][task_id] = {
         "task_id": task_id,
@@ -66,8 +72,10 @@ def dispatch_intake(intake_file):
         "real_wall": "HUMAN_REVIEW_REQUIRED_ON_PR"
     }
     
-    with open(state_file, 'w') as f:
+    fd, tmp_file = tempfile.mkstemp(dir=os.path.dirname(os.path.abspath(state_file)) or '.', prefix=".state-tmp-")
+    with os.fdopen(fd, 'w') as f:
         json.dump(state, f, indent=2)
+    os.replace(tmp_file, state_file)
         
     print(f"Central state updated. System chain fully connected for intake -> execution -> PR.")
 

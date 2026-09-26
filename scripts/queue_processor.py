@@ -8,7 +8,7 @@ def process_queue():
     os.makedirs("intakes/pending", exist_ok=True)
     os.makedirs("intakes/processed", exist_ok=True)
 
-    pending_files = glob.glob("intakes/pending/*.json")
+    pending_files = sorted(glob.glob("intakes/pending/*.json"))
     if not pending_files:
         return
 
