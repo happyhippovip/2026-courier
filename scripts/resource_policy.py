@@ -38,6 +38,8 @@ def save_json(path: Path, data: Any) -> None:
     temp_path = path.with_suffix(path.suffix + f".tmp.{os.getpid()}")
     with open(temp_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
+        f.flush()
+        os.fsync(f.fileno())
     os.replace(temp_path, path)
 
 
@@ -283,11 +285,17 @@ class FileManifestTracker:
 
     @staticmethod
     def build_manifest(file_paths: list[str], repo_dir: Path | None = None) -> dict[str, str]:
-        base = repo_dir or COURIER_DIR
+        base = (repo_dir or COURIER_DIR).resolve()
         manifest = {}
         for rel_p in file_paths:
-            full_p = base / rel_p if not Path(rel_p).is_absolute() else Path(rel_p)
-            manifest[rel_p] = FileManifestTracker.get_file_hash(full_p)
+            try:
+                candidate = (base / rel_p).resolve()
+                if candidate == base or base in candidate.parents:
+                    manifest[rel_p] = FileManifestTracker.get_file_hash(candidate)
+                else:
+                    manifest[rel_p] = "OUT_OF_BOUNDS"
+            except Exception:
+                manifest[rel_p] = "OUT_OF_BOUNDS"
         return manifest
 
 

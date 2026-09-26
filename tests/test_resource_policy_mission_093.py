@@ -19,6 +19,8 @@ from scripts.resource_policy import (
     FileManifestTracker,
     ChiefContextPackageBuilder,
     ReviewDedupeTracker,
+    save_json,
+    load_json,
 )
 from scripts.run_chief_commander import SmartResourceRouter
 from scripts.run_autonomous_loop import AutonomousLevel6Loop
@@ -268,6 +270,33 @@ class TestMission093And095And097HardenedPolicy(unittest.TestCase):
             self.assertNotIn("events/academy/evaluations/*.json", content)
             self.assertNotIn("events/academy/adoptions/*.json", content)
             self.assertNotIn("events/academy/deliveries/*.json", content)
+
+    def test_10_file_manifest_boundary_containment(self):
+        """Prove FileManifestTracker confines paths to repo_dir and rejects traversal / absolute escapes."""
+        valid_file = self.test_dir / "valid.txt"
+        valid_file.write_text("secure content", encoding="utf-8")
+
+        manifest = FileManifestTracker.build_manifest(["valid.txt"], repo_dir=self.test_dir)
+        self.assertIn("valid.txt", manifest)
+        self.assertNotEqual(manifest["valid.txt"], "OUT_OF_BOUNDS")
+        self.assertNotEqual(manifest["valid.txt"], "FILE_NOT_FOUND")
+
+        # Test absolute escape outside base
+        manifest_abs = FileManifestTracker.build_manifest(["/etc/hosts"], repo_dir=self.test_dir)
+        self.assertEqual(manifest_abs.get("/etc/hosts"), "OUT_OF_BOUNDS")
+
+        # Test traversal escape outside base
+        manifest_trav = FileManifestTracker.build_manifest(["../../../../etc/hosts"], repo_dir=self.test_dir)
+        self.assertEqual(manifest_trav.get("../../../../etc/hosts"), "OUT_OF_BOUNDS")
+
+    def test_11_save_json_durability_fsync(self):
+        """Prove save_json creates valid file atomically with proper content."""
+        target_path = self.test_dir / "subdir" / "policy_dump.json"
+        data = {"status": "ACTIVE_PAID", "count": 42}
+        save_json(target_path, data)
+
+        loaded = load_json(target_path)
+        self.assertEqual(loaded, data)
 
 
 if __name__ == "__main__":
