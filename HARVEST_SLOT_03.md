@@ -180,6 +180,18 @@ worktree /tmp/harvest-slot-03. No main push/merge, no force, no reset/clean.
   CONTRACT (mocked transports); physical proofs still required for
   live daemons. No write (reserved runtimes).
 
+## Task 23 (GOOGLE-05): mac daemon symmetric pass — SAME CLASS OPEN
+- run_agy: Popen + communicate(300), TimeoutExpired → FAILED, no kill
+  (main daemon.py:113-137; convergence keeps communicate(300) with zero
+  kill/terminate refs). Orphan agy (spawned with
+  --dangerously-skip-permissions!) may keep acting after failure
+  recorded — worst instance of the orphan class.
+- run_native echo/git via subprocess.run with NO timeout at all
+  (lines 85-87): hanging instruction blocks worker indefinitely.
+- Bare except on json-parse (line 125) benign (→FAILED). Hardcoded
+  /Users/user/.local/bin lookup acceptable (mac-only daemon).
+- No write (reserved runtime + MUSE-primary guard: read-only).
+
 ## Task 22 (GOOGLE-05): windows daemon static audit — 1 OPEN finding
 - Orphan-on-timeout: run_task Popen + communicate(600), TimeoutExpired
   → FAILED posted, child NEVER killed/waited (zero kill/terminate/
