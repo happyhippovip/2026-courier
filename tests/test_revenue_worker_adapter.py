@@ -67,6 +67,16 @@ def test_generic_ignored_response_is_not_completion(monkeypatch):
         adapter.post_result({}, {"result_id": "result-1"})
 
 
+def test_duplicate_processed_ignored_response_is_acknowledged(monkeypatch):
+    monkeypatch.setattr(
+        adapter,
+        "http_post",
+        lambda *args, **kwargs: {"status": "IGNORED", "reason": "DUPLICATE_OR_ALREADY_PROCESSED"}
+    )
+    ack = adapter.post_result({}, {"result_id": "result-1"})
+    assert ack == "ACK_DUPLICATE"
+
+
 def test_conflicting_pending_result_never_overwrites_authoritative_payload(monkeypatch, tmp_path):
     monkeypatch.setattr(adapter, "STATE_DIR", tmp_path)
     work_dir = adapter.work_dir_for_task(task())

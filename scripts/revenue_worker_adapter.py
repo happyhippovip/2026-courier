@@ -176,9 +176,11 @@ def http_post(config, endpoint, data=None):
 def post_result(config, payload):
     response = http_post(config, "/tasks/result", payload)
     status = response.get("status") if isinstance(response, dict) else None
-    if status not in {"ACK_RESULT_RECEIVED", "ACK_DUPLICATE"}:
-        raise ResultPostError(f"result was not canonically acknowledged: {status or 'NO_RESPONSE'}")
-    return status
+    if status in {"ACK_RESULT_RECEIVED", "ACK_DUPLICATE"}:
+        return status
+    if status == "IGNORED" and isinstance(response, dict) and response.get("reason") == "DUPLICATE_OR_ALREADY_PROCESSED":
+        return "ACK_DUPLICATE"
+    raise ResultPostError(f"result was not canonically acknowledged: {status or 'NO_RESPONSE'}")
 
 
 def deliver_pending_result(config, work_dir):
