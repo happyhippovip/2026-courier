@@ -14,7 +14,9 @@ def dispatch_intake(intake_file):
             clean_ref = "".join(c if c.isalnum() or c in "-_" else "_" for c in str(intake["customer_reference"]))
             task_id = f"task-revenue-{clean_ref}"
         else:
-            task_id = f"task-revenue-{uuid.uuid4().hex[:8]}"
+            import hashlib
+            content_hash = hashlib.sha256(json.dumps(intake, sort_keys=True).encode('utf-8')).hexdigest()[:8]
+            task_id = f"task-revenue-{content_hash}"
     print(f"Admitting intake {intake.get('customer_reference')} as {task_id}")
     
     # Revenue V1 uses GitHub Actions as the primary qualified lane
@@ -35,12 +37,10 @@ def dispatch_intake(intake_file):
         print(f"Failed to dispatch: {e.stderr}")
         sys.exit(1)
         
-    # Find the execution_ref (the GitHub run ID)
-    # We pause a tiny bit so GitHub registers the workflow dispatch
-    import time
-    time.sleep(3)
-    run_info = subprocess.run(["gh", "run", "list", "--workflow=revenue_v1_baseline.yml", "--limit=1", "--json", "databaseId", "-q", ".[0].databaseId"], capture_output=True, text=True)
-    execution_ref = run_info.stdout.strip()
+    # Find the execution_ref safely
+    # Under concurrency, `limit=1` binds the wrong run. We omit the guesswork.
+    # The worker will report its true execution_ref upon result delivery.
+    execution_ref = "DISPATCHED_PENDING_EXACT_BINDING"
     
     # Update Central State
     state_file = 'central_state.json'

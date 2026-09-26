@@ -130,3 +130,16 @@ def test_unregistered_worker_stays_stopped_despite_heartbeat(srv):
     assert http.post("/workers/register", headers=WORKER, json=worker).status_code == 200
     claimed = http.post("/tasks/claim", headers=WORKER, json={"worker_id": "MAC-01"}).get_json()["task"]
     assert claimed["task_id"] == "task-stop"
+
+def test_verify_returns_404_on_missing_goal(srv):
+    http, goal_id, task = setup_claimed_task(srv)
+    result = durable_result(task)
+    assert http.post("/tasks/result", headers=WORKER, json=result).status_code == 200
+    
+    state = srv.load_state()
+    del state["goals"][goal_id]
+    srv.save_state(state)
+    
+    res = verify(http, task, result, "PASS")
+    assert res.status_code == 404
+    assert "Unknown goal_id" in res.json["error"]

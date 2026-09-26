@@ -112,7 +112,7 @@ def verify_result(task: dict, raw_result: dict, workspace: Path) -> dict:
         "status": raw_result["status"],
         "artifacts": artifacts,
     }
-    identity["result_id"] = f"result-{_canonical_hash(identity)}"
+    identity["result_id"] = f"result-{task['dispatch_id']}"
     return identity
 
 

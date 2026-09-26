@@ -1,0 +1,13 @@
+diff --git a/server/app.py b/server/app.py
+index 369cd308..9de893e0 100644
+--- a/server/app.py
++++ b/server/app.py
+@@ -485,6 +485,8 @@ def verify_task_result():
+         "verdict": verdict,
+         "artifacts": result["artifacts"],
+     }
++    if task["goal_id"] not in state["goals"]:
++        return jsonify({"error": "Unknown goal_id"}), 404
+     goal = state["goals"][task["goal_id"]]
+     if verdict == "PASS":
+         task["status"] = "RECONCILED"

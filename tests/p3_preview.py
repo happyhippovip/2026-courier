@@ -8,7 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PATCH = ROOT / "docs" / "p3" / "artifact-upload-cutover.patch"
 # Cutover order: each patch applies on top of the previous one.
-PATCHES = (PATCH, ROOT / "docs" / "p3" / "server-idempotency-cutover.patch")
+PATCHES = (PATCH, ROOT / "docs" / "p3" / "server-idempotency-cutover.patch", ROOT / "docs" / "p3" / "g07-11-verify-orphan-goal.patch")
 
 
 def load_patched_server(tmp_path, monkeypatch):
