@@ -70,9 +70,12 @@ def run_worker(task_path, negative_test=False):
         res_json["status"] = "FAILED"
         res_json["reason"] = "FORCED_FAIL_CLOSED"
         
+    import tempfile, os
     result_ref = f"gemini_result_{task['task_id']}.json"
-    with open(result_ref, 'w') as f:
+    fd, tmp_file = tempfile.mkstemp(dir='.', prefix=".gemini-res-")
+    with os.fdopen(fd, 'w') as f:
         json.dump(res_json, f, indent=2)
+    os.replace(tmp_file, result_ref)
         
     consume(res_json, task['task_id'], result_ref)
     return pid, dispatch_ref, result_ref
@@ -100,8 +103,10 @@ def consume(res_json, task_id, result_ref):
         "real_wall": "HUMAN_REVIEW_REQUIRED" if status == "SUCCESS" else "DIAGNOSTIC_REQUIRED"
     }
     
-    with open('central_state.json', 'w') as f:
+    fd, tmp_file = tempfile.mkstemp(dir='.', prefix=".state-tmp-")
+    with os.fdopen(fd, 'w') as f:
         json.dump(state, f, indent=2)
+    os.replace(tmp_file, 'central_state.json')
 
 if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else "positive"

@@ -34,7 +34,14 @@ def state_path(task_file: Path) -> Path:
 
 
 def write_state(task_file: Path, state: dict[str, Any]) -> None:
-    state_path(task_file).write_text(json.dumps(state, sort_keys=True) + "\n", encoding="utf-8")
+    target = state_path(task_file)
+    import tempfile
+    fd, tmp_file = tempfile.mkstemp(dir=str(target.parent) or '.', prefix=".state-tmp-")
+    with os.fdopen(fd, 'w', encoding='utf-8') as f:
+        f.write(json.dumps(state, sort_keys=True) + "\n")
+    os.replace(tmp_file, target)
+
+
 
 
 def validate_task(task: dict[str, Any]) -> None:

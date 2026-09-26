@@ -62,6 +62,7 @@ def main() -> None:
         fail("unsafe result message_id")
 
     processed_dir = Path(args.processed_dir)
+    target = processed_dir / f"{task['message_id']}.result.json"
     for candidate in processed_dir.glob("*.json"):
         try:
             existing = json.loads(candidate.read_text(encoding="utf-8"))
@@ -69,21 +70,27 @@ def main() -> None:
             continue
         if existing.get("parent_id") == task["message_id"] or existing.get("message_id") == result["message_id"]:
             if existing == result:
-                target = processed_dir / f"{task['message_id']}.result.json"
                 if target.exists():
                     with Path(args.github_output).open("a", encoding="utf-8") as output:
                         output.write(f"result_path={target.as_posix()}\n")
                     return
             fail("duplicate terminal result")
 
-    target = processed_dir / f"{task['message_id']}.result.json"
     if target.exists():
         if json.loads(target.read_text(encoding="utf-8")) == result:
             with Path(args.github_output).open("a", encoding="utf-8") as output:
                 output.write(f"result_path={target.as_posix()}\n")
             return
         fail("terminal result path already exists")
-    target.write_text(json.dumps(result, sort_keys=True, indent=2) + "\n", encoding="utf-8")
+
+    temp_target = target.with_suffix(f".tmp.{os.getpid()}")
+    with temp_target.open("w", encoding="utf-8") as f:
+        json.dump(result, f, sort_keys=True, indent=2)
+        f.write("\n")
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(temp_target, target)
+
     with Path(args.github_output).open("a", encoding="utf-8") as output:
         output.write(f"result_path={target.as_posix()}\n")
 
