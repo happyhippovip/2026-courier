@@ -20,17 +20,19 @@ Before broad implementation expansion:
 
 New ideas below are captured now so they are not lost, but they must not weaken those gates.
 
-## G1 — Exact Wall Size 1..37
+## G1 — Exact Wall Size 1..64
 
-The user must be able to choose any exact logical wall size from 1 through 37.
+The user must be able to choose any exact logical wall size from 1 through 64.
 
 Examples:
 - 1 = tiny local setup
+- 2 / 3 = simple free-package starter sizes
 - 6 = modest laptop
-- 10 = current Windows preference
-- 15 = larger Windows fleet
+- 10 = preferred smooth Windows/Mac target when host conditions fit
+- 16 = larger wall only when it remains smooth
 - 30 = large Muse wall
-- 37 = maximum currently requested product surface
+- 37 = previously requested larger surface
+- 64 = current maximum requested product surface
 
 Important:
 requested_slots != heavy_processes
@@ -43,10 +45,11 @@ Truthful surface:
 - ACTIVE
 - WAITING
 - GUARDED
+- RESERVED_INTERACTIVE
 - IDLE
 - DONE
 
-Never fake "37 active" merely because 37 were requested.
+Never fake "64 active" merely because 64 were requested.
 
 ## G2 — Reserve Interactive Slots
 
@@ -70,8 +73,11 @@ Courier should support bounded unattended rounds such as:
 - 5 h
 - 6 h
 - 8 h
+- 10 h
 
 A long round is productive continuation, not busywork.
+
+A smooth 10-slot wall for 10 hours is preferred over a laggy 16-slot wall that wastes CPU/RAM/API or increases error risk.
 
 Every round remains bounded by:
 - wall-clock budget
@@ -82,6 +88,7 @@ Every round remains bounded by:
 - dependency-safe READY work
 - repeated-state/no-progress detection
 - writer ownership
+- context-hygiene checkpoints
 
 When no safe authorized work remains: persist IDLE/DONE/BLOCKED and stop.
 
@@ -141,7 +148,7 @@ Avoid:
 - duplicate reviewers
 - idle terminals whose only job is waiting
 
-The wall should feel large without requiring the host to carry 37 heavy resident processes.
+The wall should feel large without requiring the host to carry 64 heavy resident processes.
 
 ## G7 — Bigger Work Packages
 
@@ -151,7 +158,7 @@ Task sizes:
 - SMALL: 10–30 min
 - MEDIUM: 30–90 min
 - LARGE: 2–4 h
-- SLEEP: 3–8 h bounded round
+- SLEEP: 3–10 h bounded round
 
 Large work must still have a clear scope, evidence target, stop condition and ownership boundary.
 
@@ -317,6 +324,40 @@ But it remains real work, not fake gamification.
 Progress should derive from verified useful work, not clicks, login streaks or artificial activity.
 
 This idea is LATER until core proof is complete.
+
+## G15 — Context Hygiene / Clear-by-Default
+
+Active AI context is a bounded resource.
+
+When old information no longer affects the next decision:
+
+CHECKPOINT
+-> CLEAR
+-> LOAD MINIMAL CURRENT TRUTH
+-> CONTINUE
+
+Every agent/chat/provider handoff should be featherlight.
+
+Do not drag obsolete logs/history into a new phase.
+
+See:
+ops/ai/CONTEXT_HYGIENE_AND_HANDOFF_POLICY_2026-09-26.md
+
+## G16 — V1 Automatic Updates + Daily Safety Review
+
+V1 should eventually support:
+
+- daily update checks;
+- fast signed/verified updates at application/host boot;
+- rollback to last known-good version;
+- small/delta/component patches where safe;
+- daily bounded safety-review agents;
+- cryptographic agility and post-quantum readiness tracking.
+
+Do not claim "quantum secure" without a proven concrete profile.
+
+See:
+docs/V1_CAPACITY_UPDATES_AND_CRYPTO_READINESS_PLAN.md
 
 ## Design invariant
 
