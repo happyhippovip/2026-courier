@@ -215,6 +215,17 @@ def run_task(task, config):
         out_clean = stdout.strip()
         stderr = stderr_out
         status = "SUCCESS" if process.returncode == 0 else "FAILED"
+    except subprocess.TimeoutExpired as e:
+        # TimeoutExpired never kills the child: reap it explicitly so no
+        # unmanaged PowerShell process survives, then fail closed.
+        status = "FAILED"
+        try:
+            process.kill()
+            _, tail = process.communicate()
+            tail = (tail or "").strip()
+            stderr = "TIMEOUT after 600s; child killed" + (": " + tail if tail else "")
+        except Exception:
+            stderr = f"TIMEOUT after 600s: {e}"
     except Exception as e:
         status = "FAILED"
         stderr = str(e)
