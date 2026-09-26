@@ -1,0 +1,27 @@
+COURIER WALL BOOTSTRAP
+
+HOST=AUTO
+PROVIDER=AUTO
+WALL_SIZE=10
+RESERVED_INTERACTIVE=2
+ROUND_HOURS=4
+
+Detect this host's Courier repo.
+
+Mac:
+/Users/user/Downloads/2026-courier
+
+Windows:
+C:\Users\lol\2026-workspace\2026-courier
+
+Do not checkout, merge or switch branches.
+
+Load and execute:
+origin/coordination/autofill-task-seed-20260926:ops/ai/UNIVERSAL_WALL_PASTE.txt
+
+Use git show after a read-only fetch if needed.
+If shell/fetch is unavailable, read the local copy if present.
+
+Apply the CONFIG values above over the defaults in the loaded prompt.
+
+START NOW.
