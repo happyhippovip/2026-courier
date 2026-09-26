@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import sys
 import os
 import time
 import requests
@@ -43,7 +44,7 @@ def persist_packet(task):
     return path
 
 def spawn_adapter(path):
-    python_bin = "venv/bin/python3" if os.path.exists("venv/bin/python3") else "python3"
+    python_bin = sys.executable
     process = subprocess.Popen([python_bin, "scripts/github_worker_adapter.py", str(path)])
     ACTIVE_ADAPTERS[process.pid] = (process, path)
 

@@ -1,26 +1,24 @@
 #!/bin/bash
-if [ -f logs/courier_daemon.pid ]; then
-    kill $(cat logs/courier_daemon.pid)
-    rm logs/courier_daemon.pid
-    echo "Courier Server stopped."
-else
-    echo "No running daemon found."
-fi
 
-if [ -f logs/courier_verifier.pid ]; then
-    kill $(cat logs/courier_verifier.pid)
-    rm logs/courier_verifier.pid
-    echo "Courier Verifier stopped."
-fi
+kill_safe() {
+    local pid_file=$1
+    local script_name=$2
+    local label=$3
+    if [ -f "$pid_file" ]; then
+        local pid=$(cat "$pid_file")
+        if ps -p "$pid" -o args= 2>/dev/null | grep -q "$script_name"; then
+            kill "$pid"
+            echo "$label stopped."
+        else
+            echo "Stale PID file for $label (PID $pid did not match $script_name)."
+        fi
+        rm "$pid_file"
+    else
+        echo "No running $label found."
+    fi
+}
 
-if [ -f logs/courier_github_dispatcher.pid ]; then
-    kill $(cat logs/courier_github_dispatcher.pid)
-    rm logs/courier_github_dispatcher.pid
-    echo "Courier GitHub Dispatcher stopped."
-fi
-
-if [ -f logs/courier_watchdog.pid ]; then
-    kill $(cat logs/courier_watchdog.pid)
-    rm logs/courier_watchdog.pid
-    echo "Courier Watchdog stopped."
-fi
+kill_safe "logs/courier_daemon.pid" "server/app.py\|run_waitress.py" "Courier Server"
+kill_safe "logs/courier_verifier.pid" "courier_verifier.py" "Courier Verifier"
+kill_safe "logs/courier_github_dispatcher.pid" "courier_github_dispatcher.py" "Courier GitHub Dispatcher"
+kill_safe "logs/courier_watchdog.pid" "run_autonomous_supervisor.py" "Courier Watchdog"

@@ -6,7 +6,7 @@
     <string>com.courier.mac_worker</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/usr/local/bin/python3</string>
+        <string>PYTHON_BIN</string>
         <string>TARGET_DIR/scripts/mac_worker/daemon.py</string>
     </array>
     <key>WorkingDirectory</key>
@@ -22,7 +22,7 @@
     <key>EnvironmentVariables</key>
     <dict>
         <key>PATH</key>
-        <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:/Users/user/.local/bin</string>
+        <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:USER_HOME/.local/bin</string>
     </dict>
 </dict>
 </plist>

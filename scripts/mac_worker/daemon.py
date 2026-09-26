@@ -18,13 +18,13 @@ def load_config():
     try:
         pw = subprocess.check_output(["security", "find-generic-password", "-a", "courier_worker", "-s", "courier_api_key", "-w"], stderr=subprocess.DEVNULL)
         config["COURIER_API_KEY"] = pw.decode("utf-8").strip()
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, OSError):
         pass
         
     try:
         srv = subprocess.check_output(["security", "find-generic-password", "-a", "courier_worker", "-s", "courier_server_url", "-w"], stderr=subprocess.DEVNULL)
         config["COURIER_SERVER"] = srv.decode("utf-8").strip()
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, OSError):
         pass
     
     # Environment overrides

@@ -252,7 +252,7 @@ def is_resource_pressure_high():
         return False
     except Exception:
         # Defaults to safe (no pressure) if check fails to prevent starvation, but we could also back off
-        return False
+        return True
 
 def acquire_lock(worker_id):
     lock_file = Path(tempfile.gettempdir()) / f"courier_worker_{worker_id}.lock"
