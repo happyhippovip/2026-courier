@@ -55,3 +55,20 @@ SIDE_BRANCH_GREEN_TESTS != FINAL_CANONICAL_CANDIDATE
 LOCAL_MAC_COMMIT != AUTHORIZED_FINAL_DELTA
 
 READ_ONLY_AUDIT_FINDING != MERGE_PERMISSION
+
+
+## Retirement clarification
+
+A later Mac retirement check reported that the specific active Mac session:
+- made zero source commits to /Users/user/Downloads/2026-courier;
+- held no writer lock;
+- remained on agent/canonical-wall-supervisor-v2 @ 332a42f9edcf1de1535870592da34a7961880991;
+- wrote only evidence/runtime/scratch data outside the canonical source checkout;
+- is now READ_ONLY_REPORT.
+
+Therefore the earlier reported Mac writer commits should be treated as belonging to a separate legacy writer-worktree/session, not this specific retirement session.
+
+Also:
+- a local failure to git show this coordination file may mean the local remote-tracking ref is stale; the file exists on the remote coordination branch.
+- candidate-b-3 is NOT a required dependency. Do not wait for it.
+- the accepted repair base remains candidate-b-1 @ 4c1e24ccc522042af826bc4c2b595daf85d097f9.
