@@ -167,7 +167,25 @@ def run(task_file_name: str) -> int:
         if run_id:
             write_state(task_file, {"dispatch_id": task["dispatch_id"], "run_id": run_id, "status": "WAITING_FOR_WORKER"})
         time.sleep(POLL_SECONDS)
-    write_state(task_file, {"dispatch_id": task["dispatch_id"], "run_id": run_id, "status": "WAITING_FOR_WORKER"})
+
+    # Wait loop expired without a completed run: post a terminal FAILED
+    # result instead of exiting silently (a silent exit 0 leaves the task
+    # stranded in WAITING_FOR_WORKER with no server-side record).
+    timeout_result = {
+        "goal_id": task.get("goal_id"),
+        "task_id": task["task_id"],
+        "attempt_id": task.get("attempt_id"),
+        "dispatch_id": task["dispatch_id"],
+        "worker_id": task.get("worker_id"),
+        "run_id": str(run_id) if run_id else "unknown",
+        "result_id": f"result-{task['dispatch_id']}-timeout",
+        "status": "FAILED",
+        "artifacts": [],
+        "provider": "github_timeout",
+        "raw_result": {"reason": "TIMEOUT", "run_id": run_id},
+    }
+    post_result(timeout_result)
+    write_state(task_file, {"dispatch_id": task["dispatch_id"], "run_id": run_id, "status": "POSTED"})
     return 0
 
 

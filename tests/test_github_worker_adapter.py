@@ -83,7 +83,25 @@ def test_existing_waiting_dispatch_is_reconciled_not_dispatched(tmp_path: Path, 
     monkeypatch.setattr(adapter, "LOCAL_WAIT_SECONDS", 0)
     monkeypatch.setattr(adapter, "find_run", lambda _: (None, None))
     monkeypatch.setattr(adapter, "run_cmd", lambda command: pytest.fail(f"must not redispatch: {command}"))
+    monkeypatch.setattr(adapter, "post_result", lambda res: None)
     assert adapter.run(str(task_file)) == 0
+
+
+def test_wait_timeout_posts_failed_result_and_marks_posted(tmp_path: Path, monkeypatch):
+    """Deadline expiry must post a terminal FAILED/TIMEOUT result, never exit silently."""
+    task_file = tmp_path / "task.json"
+    task_file.write_text(json.dumps(packet()), encoding="utf-8")
+    posted = []
+    monkeypatch.setattr(adapter, "LOCAL_WAIT_SECONDS", 0)
+    monkeypatch.setattr(adapter, "find_run", lambda _: (None, None))
+    monkeypatch.setattr(adapter, "run_cmd", lambda command: (0, "branch", ""))
+    monkeypatch.setattr(adapter, "post_result", posted.append)
+    assert adapter.run(str(task_file)) == 0
+    assert len(posted) == 1
+    assert posted[0]["status"] == "FAILED"
+    assert posted[0]["raw_result"]["reason"] == "TIMEOUT"
+    assert posted[0]["dispatch_id"] == "dispatch-1"
+    assert json.loads(adapter.state_path(task_file).read_text())["status"] == "POSTED"
 
 
 def test_dispatch_preserves_taskpacket_as_raw_json(tmp_path: Path, monkeypatch):
@@ -93,6 +111,7 @@ def test_dispatch_preserves_taskpacket_as_raw_json(tmp_path: Path, monkeypatch):
     monkeypatch.setattr(adapter, "LOCAL_WAIT_SECONDS", 0)
     commands = []
     monkeypatch.setattr(adapter, "run_cmd", lambda command: (commands.append(command) or (0, "branch", "")))
+    monkeypatch.setattr(adapter, "post_result", lambda res: None)
     assert adapter.run(str(task_file)) == 0
     dispatch = next(command for command in commands if command[:3] == ["gh", "workflow", "run"])
     assert "--raw-field" in dispatch
