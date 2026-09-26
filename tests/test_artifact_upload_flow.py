@@ -141,10 +141,11 @@ def test_verifier_independently_hashes_server_copy_and_detects_tampering(tmp_pat
 
 
 def test_verifier_checks_expected_sha256(tmp_path, monkeypatch):
-    srv, http = setup(tmp_path, monkeypatch)
+    expected_hash = hashlib.sha256(b"ok\n").hexdigest()
+    srv, http = setup(tmp_path, monkeypatch, artifacts=([{"path": "win.txt", "expected_sha256": expected_hash}]))
     task = claim(http)
     rec = upload(http, task, "win.txt", b"ok\n").get_json()
-    ref = {"path": "win.txt", "sha256": rec["sha256"], "artifact_id": rec["artifact_id"], "size": rec["size"], "expected_sha256": rec["sha256"]}
+    ref = {"path": "win.txt", "sha256": rec["sha256"], "artifact_id": rec["artifact_id"], "size": rec["size"]}
     http.post("/tasks/result", headers=WORKER, json=result_for(task, [ref]))
     [pending] = http.get("/tasks/pending_verification", headers=VERIFIER).get_json()["tasks"]
     v = load_verifier(monkeypatch)
@@ -159,7 +160,7 @@ def test_verifier_checks_expected_sha256(tmp_path, monkeypatch):
     
     # 3. Stale/wrong expected hash -> FAIL
     blob.write_bytes(b"ok\n")
-    pending["result"]["artifacts"][0]["expected_sha256"] = "f" * 64
+    pending["artifacts"][0]["expected_sha256"] = "f" * 64
     assert v.verify_artifacts(pending, pending["result"], fetch=client_fetch(http)) == "FAIL"
 
 

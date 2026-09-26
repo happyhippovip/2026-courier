@@ -63,7 +63,10 @@ def verify_artifacts(task, result, fetch=fetch_artifact, local_verify=None):
         log("No artifact evidence.")
         return "FAIL"
     target = str(task.get("target_capability") or task.get("target_agent") or "").lower()
-    remote = any(t in target for t in REMOTE_TARGETS)
+    if target not in ("linux", "windows", "mac", "github"):
+        log(f"Malformed or ambiguous target: {target}")
+        return "FAIL"
+    remote = any(t == target for t in REMOTE_TARGETS)
     for art in artifacts:
         if "artifact_id" in art:
             try:
@@ -71,8 +74,13 @@ def verify_artifacts(task, result, fetch=fetch_artifact, local_verify=None):
             except Exception as e:
                 log(f"Cannot fetch uploaded artifact: {e}")
                 return "FAIL"
-            if "expected_sha256" in art:
-                if hashlib.sha256(data).hexdigest() != art["expected_sha256"]:
+            task_expected_sha256 = None
+            for expected_art in task.get("artifacts", []):
+                if isinstance(expected_art, dict) and expected_art.get("path") == art.get("path"):
+                    task_expected_sha256 = expected_art.get("expected_sha256")
+            
+            if task_expected_sha256:
+                if hashlib.sha256(data).hexdigest() != task_expected_sha256:
                     log(f"Hash mismatch against expected_sha256 for {art.get('path')}")
                     return "FAIL"
             ok, reason = verify_uploaded_artifact(data, record, art, task)

@@ -84,7 +84,8 @@ def verify_result(task: dict, raw_result: dict, workspace: Path) -> dict:
         expected = task.get("artifacts")
         if not isinstance(expected, list) or not expected:
             raise ContractError("successful task has no expected artifacts")
-        for relative_name in expected:
+        for item in expected:
+            relative_name = item.get("path") if isinstance(item, dict) else item
             if not isinstance(relative_name, str) or Path(relative_name).is_absolute() or ".." in Path(relative_name).parts:
                 raise ContractError("unsafe artifact path")
             artifact_path = workspace / relative_name
@@ -152,8 +153,7 @@ def validate_durable_result(task: dict, result: dict) -> dict:
     for artifact in result["artifacts"]:
         # Uploaded artifacts additionally carry the server-issued artifact_id and size.
         if not isinstance(artifact, dict) or set(artifact) not in ({"path", "sha256"},
-                                                                   {"path", "sha256", "artifact_id", "size"},
-                                                                   {"path", "sha256", "artifact_id", "size", "expected_sha256"}):
+                                                                   {"path", "sha256", "artifact_id", "size"}):
             raise ContractError("invalid artifact evidence")
         if "artifact_id" in artifact:
             if not isinstance(artifact["artifact_id"], str) or not re.fullmatch(r"art-[a-f0-9]{64}", artifact["artifact_id"]):

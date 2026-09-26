@@ -108,6 +108,16 @@ def test_resent_failed_result_is_acknowledged_after_requeue(srv):
     assert state["tasks"][task["task_id"]]["attempts"] == 1
 
 
+def test_changed_result_not_duplicate_success(srv):
+    http, _, task = setup_claimed_task(srv)
+    result = durable_result(task)
+    assert http.post("/tasks/result", headers=WORKER, json=result).status_code == 200
+    
+    # Change artifacts
+    changed = dict(result, artifacts=[{"path": "bounded.txt", "sha256": "b" * 64}])
+    assert http.post("/tasks/result", headers=WORKER, json=changed).status_code == 409
+
+
 def test_unregistered_worker_stays_stopped_despite_heartbeat(srv):
     http = srv.app.test_client()
     worker = {"worker_id": "MAC-01", "platform": "mac", "capabilities": ["macos"]}
