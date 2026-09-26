@@ -114,3 +114,56 @@ Courier must make its value obvious in ordinary language.
 Together:
 
 > Start it once. It keeps going. The computer stays usable. Anyone can understand what got done.
+
+
+## The Tomorrow Test
+
+The Grandma Test is not only about explaining Courier. It must produce something visibly understandable the next day.
+
+Every meaningful workday should end with a simple answer to:
+
+> **"Was kann ich morgen jemandem zeigen, das gestern noch nicht da war?"**
+
+The answer must be one or more visible outcomes such as:
+
+- a finished file, report, page or feature;
+- a before/after comparison;
+- a real task timeline showing what finished automatically;
+- a verified result with a simple PASS/NOT YET PROVEN label;
+- a restart/recovery proof;
+- a visible counter based on real runtime evidence;
+- a one-minute demo that works without technical explanation.
+
+A day with only internal discussion is not enough for the Tomorrow Test unless the discussion closed a real decision or removed a blocker that can be shown plainly.
+
+### Required end-of-day Grandma Card
+
+Every important day should produce one plain-language card:
+
+**GESTERN:** What was not working or not proven?
+
+**HEUTE:** What changed?
+
+**SICHTBAR:** What can another person actually see?
+
+**BEWEIS:** What proves it is real?
+
+**OHNE MEINE HILFE:** What continued without manual intervention?
+
+**MORGEN:** What is the next visible outcome?
+
+If the answer to **SICHTBAR** is "nothing yet", say so honestly and state the nearest real proof still missing.
+
+## The One-Minute Show Test
+
+A non-technical person should be able to understand the day's progress in under one minute without reading logs.
+
+Preferred order:
+
+1. show the original task;
+2. show the finished result;
+3. show the evidence/check;
+4. show what started next automatically;
+5. show how many human interventions were required.
+
+If the viewer needs an explanation of models, credits, providers, terminals or internal architecture before understanding the value, the visible product layer is still too technical.
