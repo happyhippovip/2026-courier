@@ -17,13 +17,25 @@ VERIFIER_ID = "VERIFIER-01"
 def log(msg):
     print(f"[Verifier] {msg}", flush=True)
 
-def verify_artifact(path, expected_hash):
-    if not os.path.exists(path):
-        log(f"Artifact missing: {path}")
+REPO_ROOT = Path(__file__).resolve().parent.parent
+
+def verify_artifact(path, expected_hash, repo_root=None):
+    root = Path(repo_root or REPO_ROOT).resolve()
+    try:
+        p = Path(path)
+        full_p = p.resolve() if p.is_absolute() else (root / p).resolve()
+        if root not in full_p.parents and full_p != root:
+            log(f"Artifact path outside repository boundary: {path}")
+            return False
+        if not full_p.is_file():
+            log(f"Artifact missing: {path}")
+            return False
+    except Exception as e:
+        log(f"Invalid artifact path {path}: {e}")
         return False
     h = hashlib.sha256()
     try:
-        with open(path, "rb") as f:
+        with open(full_p, "rb") as f:
             for chunk in iter(lambda: f.read(4096), b""):
                 h.update(chunk)
         actual_hash = h.hexdigest()
@@ -122,8 +134,11 @@ def run_loop():
                             
                             cmd = [sys.executable, os.path.join(os.path.dirname(__file__), "revenue_v1_safety_baseline.py"), "verify", task_file, td, candidate_file]
                             try:
-                                subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+                                subprocess.check_output(cmd, stderr=subprocess.STDOUT, timeout=60)
                                 verdict = "PASS"
+                            except subprocess.TimeoutExpired:
+                                log("Revenue verification timed out after 60s")
+                                verdict = "FAIL"
                             except subprocess.CalledProcessError as e:
                                 log(f"Revenue verification failed: {e.output.decode('utf-8', errors='ignore')}")
                                 verdict = "FAIL"
