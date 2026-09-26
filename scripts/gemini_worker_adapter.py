@@ -32,9 +32,16 @@ def run_worker(task_path, negative_test=False):
     
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     pid = process.pid
-    
-    stdout, stderr = process.communicate(timeout=60)
-    
+
+    try:
+        stdout, stderr = process.communicate(timeout=60)
+    except subprocess.TimeoutExpired:
+        # TimeoutExpired never kills the child: reap it explicitly so no
+        # unmanaged worker survives, then fail closed (never SUCCESS).
+        process.kill()
+        stdout, stderr = process.communicate()
+        stdout = '{"status": "FAILED", "reason": "TIMEOUT"}'
+
     out = stdout.strip()
     
     # Parse json safely
