@@ -17,6 +17,7 @@ Use this index to keep long-run wall work consistent across providers and hosts.
 
 ## Copy/paste prompts
 
+- UNIVERSAL_WALL_BOOTSTRAP.txt
 - UNIVERSAL_WALL_PASTE.txt
 - UNIVERSAL_WALL_LONGRUN_PROMPT.md
 - QUICK_FREE_CLI_PROMPT.md
