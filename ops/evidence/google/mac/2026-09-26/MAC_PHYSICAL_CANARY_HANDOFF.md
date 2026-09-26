@@ -1,6 +1,6 @@
 # MAC_PHYSICAL_CANARY_HANDOFF.md
 # MISSION=COURIER_GOOGLE_DUAL_HOST_QUEUE_50
-# DATE=2026-09-26  UPDATED=17:34 CET
+# DATE=2026-09-26  UPDATED=20:16 CET
 
 LOCAL_BRANCH=agent/canonical-wall-supervisor-v2
 LOCAL_SHA=332a42f9edcf1de1535870592da34a7961880991
@@ -88,3 +88,36 @@ ADDITIONAL_BLOCKERS=
   M45-MUSE-SESSION-ID-MISSING-01 (for resume path; not on critical path for simple Canary 1)
   M45-SESSION-MESSAGE-FORMAT-01 (for session messages; not on critical path for Canary 1)
 SAFE_FOR_SIMPLE_CANARY_1=YES (direct muse exec + manual artifact write, no supervisor/resume needed)
+
+## UPDATE 20:16 CET — MISSION=MAC_FINAL_PHYSICAL_RUNNER
+
+### Muse stdout contract PHYSICALLY PROVEN (20:15 CET)
+MUSE_STDOUT_CONTRACT=RESOLVED
+COMMAND_TESTED=muse exec --workspace /Users/user/Downloads/courier_work/muse_stdout_probe/scratch_ws --yolo 'Output exactly: {"status":"SUCCESS","summary":"probe"}'
+STDOUT_OUTPUT={"status":"SUCCESS","summary":"probe"}
+EXIT_CODE=0
+STDERR_ONLY_PREFIX_LINES=YES (muse: workspace root: ..., muse: workspace trust: ...)
+PHYSICAL_EVIDENCE=task-1305 log, 20:14-20:15 CET
+BLOCKER_CLOSED=MUSE_STDOUT_CONTRACT
+
+### Final Candidate Status
+FINAL_CANDIDATE_REQUIRED=candidate-b-3 (Windows building — NOT YET PUSHED)
+CANDIDATE_B1=4c1e24ccc522042af826bc4c2b595daf85d097f9 (authorized base, present on origin)
+CANDIDATE_B2=83940de3d7d33776a712e7506aa76726d16f8587 (REJECTED, present on origin)
+CANDIDATE_B3=WAITING (Windows MISSION=BUILD_FINAL_CANONICAL_CANDIDATE_B3 in progress)
+
+### Canary B fixtures
+CANARY_A_CONTENT=COURIER-A2B-A\n (12 bytes)
+CANARY_A_SHA256=96c1471cc2dfc55d49de5a3279dc927774a84b0f5c5bdc7c5755f19d8de9391c
+CANARY_B_CONTENT=COURIER-A2B-B\n (14 bytes)
+CANARY_B_SHA256=b9032958fc90e7380195fcc51eca5822d60bb31eb15d370a44c3c15e60942a50
+
+### RUN_1 Isolation
+RUN1_WORKSPACE=/Users/user/Downloads/courier_work/canary_run1/
+RUN1_PORT=8081 (confirmed free)
+RUN1_STATE=PREP_COMPLETE — waiting for final SHA before binding
+
+### Current Blockers
+BLOCKER_1=candidate-b-3 SHA not yet available (Windows building)
+BLOCKER_2=None — Muse stdout resolved, isolation ready, fixtures confirmed
+NEXT_ACTION=On candidate-b-3 push: fetch, deploy to canary_run1/, bind server, run RUN_1
