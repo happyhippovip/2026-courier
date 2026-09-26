@@ -70,3 +70,32 @@ No main push/merge, no force, no reset/clean, no foreign-tree writes.
 - Manual live re-runs of smoke scripts (foreign live server on :8080).
 - All parked product decisions (401/403 fail-fast, force_success removal,
   reconcile resurrect).
+
+## GOOGLE-04 unit — Cannon invariant test-gap map (main, read-only)
+Covered (tests/test_server_integration_contract.py): claim identity fields,
+verifier independence (400/401/503), wrong-attempt 400, retry attempt:2 +
+fresh dispatch, WORKER_BUSY, re-register preserves claim, concurrent
+exactly-one-winner, stale quarantine + late-409, corrupt-state raises,
+insecure-default 503, background agents fail-closed.
+Gaps (grep-proven, no owner writes made):
+- crash-after-persist / crash-before-ack: ZERO "crash" tests in tests/.
+- stale-lock / PID-reuse: ZERO tests.
+- 4xx worker fail-fast: unpinned (decision parked).
+- result-resend ACK at /tasks/result: main lacks it (P3 branch has it + tests).
+- server-owned artifact integrity: untestable on main (store absent).
+- Manual harnesses tests/acceptance/soak_test.py + tests/boundaries/run_boundaries.py
+  are not collected (names); boundaries file carries hardcoded credential
+  (SECRET_FINDING redacted, pre-existing). Soak submits 50 live goals — heavy, manual only.
+
+## GOOGLE-08 unit — workflow cost audit (main, read-only)
+- courier_motor.yml cron */5 (288 runs/day), no concurrency group, boots
+  server+verifier+dispatcher unconditionally. Fix EXISTS unmerged (e6a5a53a,
+  codex-local: push-trigger + idle precheck + concurrency): SUPERSEDED.
+- Cross-evidence: motor workflow sets COURIER_VERIFIER_API_KEY equal to
+  COURIER_API_KEY, while contract tests require them distinct (shared → 503).
+  As configured the cron motor can never complete verification. Finding for
+  motor owner (e6a5a53a may already address; not re-verified here).
+- No other schedules; deploy-pages + worker have concurrency; sleeps trivial.
+- Canon ref check: origin/supervisor/canonical-muse-runtime =
+  7a90e673a5b006076175769f47d2bffb1a268343 (matches prompt, no drift).
+  Heavy-test lock runtime/resource_guard/heavy.lock EMPTY (no heavy run active).
