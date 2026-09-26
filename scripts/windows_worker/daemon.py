@@ -207,7 +207,9 @@ def run_task(task, config):
     run_id = "win-native"
     
     print(f"[{config['WORKER_ID']}] Executing native PowerShell instruction.")
-    cmd = ["powershell", "-Command", instruction]
+    import base64
+    encoded_instruction = base64.b64encode(instruction.encode("utf-16le")).decode("utf-8")
+    cmd = ["powershell", "-EncodedCommand", encoded_instruction]
     try:
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         run_id = str(process.pid)
