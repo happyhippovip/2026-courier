@@ -82,13 +82,13 @@ def validate_proposal_against_schema(proposal_data: dict, schema_path: Path | No
     if proposal_data.get("schema_version") != "2.0":
         return False, f"Invalid schema_version: {proposal_data.get('schema_version')} (expected '2.0')"
 
-    if not re.match(r"^prop-mem-[A-Za-z0-9_.-]+$", str(proposal_data.get("proposal_id", ""))):
+    if not re.fullmatch(r"prop-mem-[A-Za-z0-9_.-]+", str(proposal_data.get("proposal_id", ""))):
         return False, f"Invalid proposal_id pattern: {proposal_data.get('proposal_id')}"
 
-    if not re.match(r"^[A-Za-z0-9_.-]+$", str(proposal_data.get("source_result_message_id", ""))):
+    if not re.fullmatch(r"[A-Za-z0-9_.-]+", str(proposal_data.get("source_result_message_id", ""))):
         return False, f"Invalid source_result_message_id pattern: {proposal_data.get('source_result_message_id')}"
 
-    if not re.match(r"^[0-9a-fA-F]{7,40}$", str(proposal_data.get("memory_base_commit", ""))):
+    if not re.fullmatch(r"[0-9a-fA-F]{7,40}", str(proposal_data.get("memory_base_commit", ""))):
         return False, f"Invalid memory_base_commit: {proposal_data.get('memory_base_commit')}"
 
     if proposal_data.get("requires_chief_approval") is not True:

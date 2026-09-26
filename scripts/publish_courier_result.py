@@ -68,10 +68,20 @@ def main() -> None:
         except (OSError, json.JSONDecodeError):
             continue
         if existing.get("parent_id") == task["message_id"] or existing.get("message_id") == result["message_id"]:
+            if existing == result:
+                target = processed_dir / f"{task['message_id']}.result.json"
+                if target.exists():
+                    with Path(args.github_output).open("a", encoding="utf-8") as output:
+                        output.write(f"result_path={target.as_posix()}\n")
+                    return
             fail("duplicate terminal result")
 
     target = processed_dir / f"{task['message_id']}.result.json"
     if target.exists():
+        if json.loads(target.read_text(encoding="utf-8")) == result:
+            with Path(args.github_output).open("a", encoding="utf-8") as output:
+                output.write(f"result_path={target.as_posix()}\n")
+            return
         fail("terminal result path already exists")
     target.write_text(json.dumps(result, sort_keys=True, indent=2) + "\n", encoding="utf-8")
     with Path(args.github_output).open("a", encoding="utf-8") as output:

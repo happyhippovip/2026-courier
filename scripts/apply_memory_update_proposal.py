@@ -122,10 +122,10 @@ def validate_proposal(proposal_data: dict, schema_path: Path | None = None) -> t
     if proposal_data.get("requires_chief_approval") is not True:
         return False, "Proposal requires_chief_approval must be strictly True"
 
-    if not re.match(r"^prop-mem-[A-Za-z0-9_.-]+$", str(proposal_data.get("proposal_id", ""))):
+    if not re.fullmatch(r"prop-mem-[A-Za-z0-9_.-]+", str(proposal_data.get("proposal_id", ""))):
         return False, f"Invalid proposal_id format: {proposal_data.get('proposal_id')}"
 
-    if not re.match(r"^[0-9a-fA-F]{7,40}$", str(proposal_data.get("memory_base_commit", ""))):
+    if not re.fullmatch(r"[0-9a-fA-F]{7,40}", str(proposal_data.get("memory_base_commit", ""))):
         return False, f"Invalid memory_base_commit: {proposal_data.get('memory_base_commit')}"
 
     return True, "VALID"
@@ -149,10 +149,10 @@ def validate_approval(approval_data: dict, schema_path: Path | None = None) -> t
     if approval_data.get("schema_version") != "2.0":
         return False, f"Invalid schema_version: {approval_data.get('schema_version')}"
 
-    if not re.match(r"^appr-mem-[A-Za-z0-9_.-]+$", str(approval_data.get("approval_id", ""))):
+    if not re.fullmatch(r"appr-mem-[A-Za-z0-9_.-]+", str(approval_data.get("approval_id", ""))):
         return False, f"Invalid approval_id format: {approval_data.get('approval_id')}"
 
-    if not re.match(r"^prop-mem-[A-Za-z0-9_.-]+$", str(approval_data.get("proposal_id", ""))):
+    if not re.fullmatch(r"prop-mem-[A-Za-z0-9_.-]+", str(approval_data.get("proposal_id", ""))):
         return False, f"Invalid proposal_id format: {approval_data.get('proposal_id')}"
 
     if approval_data.get("approval_status") != "APPROVED":
@@ -282,7 +282,13 @@ def apply_memory_update_proposal(
                 # Append section with content at EOF
                 new_content = current_content.rstrip() + f"\n\n## {section}\n\n{text_to_apply}\n"
 
-            target_path.write_text(new_content, encoding="utf-8")
+            tmp_path = target_path.with_suffix('.md.tmp')
+            with open(tmp_path, 'w', encoding='utf-8') as f:
+                f.write(new_content)
+                f.flush()
+                import os
+                os.fsync(f.fileno())
+            os.replace(tmp_path, target_path)
 
             # Post-write verification: re-read file
             verified_content = target_path.read_text(encoding="utf-8")
