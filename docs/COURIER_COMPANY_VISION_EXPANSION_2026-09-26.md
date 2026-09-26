@@ -2,12 +2,18 @@
 
 Status: Strategic expansion map. Does not override the canonical product gates.
 Primary rule: Finish the current proof before product expansion.
+
 Operating laws:
 1. CONTINUE_BY_DEFAULT
 2. FEATHERLIGHT_BY_DEFAULT
 3. THE_GRANDMA_TEST
 4. NO_EVIDENCE -> NO_PASS
 5. NO_BUSYWORK -> EVERY TASK MUST ADVANCE A GATE, REDUCE RISK, OR CREATE REUSABLE EVIDENCE
+6. SHORTEST_TRUE_ANSWER_FIRST
+7. NO_PERMISSION_SPAM
+8. DUAL_SURFACE_TRUTH
+9. SHOW_THE_MAGIC_NOT_THE_MACHINERY
+10. WORLD_FEELING_MUST_NOT_DELAY_CORE_PROOF
 
 ## 1. Company vision
 
@@ -19,7 +25,7 @@ Courier is a durable autonomous work control plane that can:
 - preserve the goal contract;
 - turn it into bounded tasks;
 - route each task to an appropriate worker/provider;
-- persist every important state transition;
+- persist important state and evidence;
 - verify results;
 - choose the next legal action;
 - survive restarts and provider loss;
@@ -74,7 +80,34 @@ Later this must support:
 
 No branch or loop is accepted unless its transition reason and side-effect safety are explicit.
 
-## 4. Product layers
+## 4. Human communication law
+
+For nontechnical explanations:
+- shortest true answer first
+- known words first
+- explanation after the core answer
+- technical detail only when requested
+
+Example first answer:
+
+> Ich programmiere etwas Neues.
+
+Then, if asked:
+
+> Wir erfinden ein Programm, das Arbeit am Computer selbst weiterführen soll.
+
+## 5. Permission law
+
+Customer-facing autonomy must not reproduce development-tool permission spam.
+
+NO_PERMISSION_SPAM:
+- authorize a project scope once
+- work autonomously inside that authorized scope
+- ask again only at genuine gates such as money, auth/2FA, publishing, destructive/irreversible action, outside-scope writes or permission expansion
+
+Developer aggressive/trusted mode and customer scoped-autonomy mode are different concepts.
+
+## 6. Product layers
 
 ### Layer A — Human outcome
 
@@ -102,7 +135,21 @@ For trust and debugging:
 
 Layer B exists so Layer A can be trusted.
 
-## 5. Core product moats
+### Layer C — Owner eyes
+
+After the physical core proof, Courier should expose a small read-only owner/advanced view over the same reconciled truth as the simple user view.
+
+The owner surface exists to reveal:
+- stuck/waiting states
+- retries/reexecution
+- server/worker disagreement
+- reported-vs-verified boundaries
+- missing/ambiguous evidence
+- candidate/runtime binding problems
+
+It must not become a second control plane.
+
+## 7. Core product moats
 
 ### Verified continuation
 A verified result deterministically enables the next allowed action.
@@ -125,7 +172,12 @@ Verified findings and runtime facts should reduce future context/tool cost.
 ### Human clarity
 A non-technical person can understand the visible outcome.
 
-## 6. Company expansion lanes
+### Evidence-backed reputation
+If Courier later introduces progression/reputation, it should derive from real verified work rather than clicks, streaks or payment.
+
+Resource capacity, paid plan, honorary status, reputation and verified contribution must remain separate concepts.
+
+## 8. Company expansion lanes
 
 These are product lanes, not permission to bypass gates.
 
@@ -148,7 +200,7 @@ Proof Cards, deterministic acceptance evidence, benchmark harness, single-task l
 Low idle overhead, small active physical set, cheap logical slots, context reuse, bounded polling.
 
 ### Lane G — Human Product Surface
-Grandma Update, one-minute visible proof, simple status, "works / needs you / done", technical details hidden by default.
+Grandma Update, one-minute visible proof, simple status, dual-surface truth, technical details hidden by default.
 
 ### Lane H — Vacation Mode
 Bounded long-running operation, rate-limit parking, automatic resume, zero human relay except genuine gates.
@@ -159,7 +211,16 @@ Customer problem discovery, baseline, pilot contract, payment experiment, data-f
 ### Lane J — Productization
 Only after gates: one-command install, one goal entry, one status surface, one safe stop, update/rollback.
 
-## 7. Muse strategy
+### Lane K — Community / World (deferred)
+Future direction only after core proof and early user validation:
+- people/projects/teams can discover each other
+- community tools/workflows may be contributed under explicit trust and permission boundaries
+- social Proof Cards are opt-in and evidence-backed
+- larger compute/team capacity should feel simple rather than technical
+
+No implementation of this lane is authorized by this document.
+
+## 9. Muse strategy
 
 Muse should not repeatedly rebuild the same feature.
 
@@ -190,10 +251,10 @@ Bad Muse work:
 - another wall
 - another ledger
 - duplicate implementation of an existing subsystem
-- speculative UI before proof
+- speculative world/community implementation before proof
 - work created only because credits exist
 
-## 8. Task generation law
+## 10. Task generation law
 
 A new task is eligible only if it answers YES to at least one:
 
@@ -213,20 +274,26 @@ Every task must also include:
 
 No acceptance evidence -> not a valid task.
 
-## 9. Near-term work model
+## 11. Near-term work model
 
 ### NOW — Gate-critical
-- Artifact->Verify cutover
-- content verification for deterministic Canary A/B
+- final canonical candidate
+- trusted deterministic content verification
 - duplicate/replay rules
-- bound candidate
-- targeted tests
+- targeted integrated tests
+- Muse stdout/result contract
+- exact Mac binding
 - physical A->VERIFY->B
 - deterministic restart/no-replay proof
 
+### IMMEDIATELY AFTER RUN_2
+- smallest honest read-only user/owner UI
+- owner-led product validation
+- first friend trial preparation
+- real Proof Card from real evidence
+
 ### PARALLEL SAFE PREP
 - read-only runtime authority inventory
-- Muse CLI capability evidence
 - provider quota/authorization checklist
 - benchmark fixture design
 - restart matrix fixtures
@@ -244,12 +311,24 @@ No acceptance evidence -> not a valid task.
 - real telemetry demo
 
 ### AFTER PILOT SIGNAL
-- product shell
 - one-command install
 - packaging/update/rollback
 - broader connectors
+- community/world expansion only when supported by real user demand and core reliability
 
-## 10. Business reality
+## 12. Public/private boundary
+
+Publicly show value and proof, not proprietary machinery.
+
+SHOW_THE_MAGIC_NOT_THE_MACHINERY:
+- public demos may show outcomes, verified continuation and recovery
+- private implementation details, prompts, secrets, local paths, raw customer data and unnecessary architecture details stay private
+- social sharing is opt-in
+- public Proof Cards must be separately redacted and evidence-backed
+
+The detailed Courier Symphony world/community concept is intentionally kept outside this public repository.
+
+## 13. Business reality
 
 Do not optimize for appearing large tonight.
 
@@ -267,9 +346,9 @@ Revenue comes from solving a real recurring problem, not from terminal count or 
 
 The fastest credible company path is:
 
-proof -> repeatable proof -> one painful customer workflow -> paid pilot -> retention -> productization.
+proof -> repeatable proof -> smallest honest UI -> first real users -> one painful customer workflow -> paid pilot -> retention -> productization -> community/network effects.
 
-## 11. Success metric hierarchy
+## 14. Success metric hierarchy
 
 1. VERIFIED_CONTINUATION
 2. HUMAN_RELAYS_PER_GOAL
@@ -283,7 +362,7 @@ proof -> repeatable proof -> one painful customer workflow -> paid pilot -> rete
 10. NEXT_DAY_RETURN
 11. PAID_PILOT_CONVERSION
 
-## 12. Tomorrow Test
+## 15. Tomorrow Test
 
 Every day should end with a visible answer to:
 
@@ -292,3 +371,15 @@ Every day should end with a visible answer to:
 If the answer is "nothing visible yet", say so and state the exact proof still missing.
 
 The company should compound visible verified outcomes, not just conversations.
+
+## 16. World-feeling guardrail
+
+The future product may feel like entering a larger living world of real projects, capability and collaboration, but:
+- no fake progression
+- no purchased competence/reputation
+- no artificial grind
+- no game metaphor may hide real system state
+- no world/community feature may delay the physical core proof
+- the interface must remain LIGHT AS A FEATHER as capability grows
+
+The world may become enormous. The default interaction remains simple.
