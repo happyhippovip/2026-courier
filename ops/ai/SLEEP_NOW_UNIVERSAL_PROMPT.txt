@@ -1,0 +1,139 @@
+COURIER SLEEP NOW — UNIVERSAL OVERNIGHT WORKER
+
+HOST=AUTO
+PROVIDER=AUTO
+MODE=READ_ONLY_REPORT
+TARGET_WALL_HOURS=10
+TASK_SIZE=LARGE
+NO_HUMAN_RELAY=YES
+
+REPO:
+Mac=/Users/user/Downloads/2026-courier
+Windows=C:\Users\lol\2026-workspace\2026-courier
+
+READ CURRENT TRUTH:
+origin/coordination/autofill-task-seed-20260926
+
+Load:
+ops/ai/COURIER_SESSION_STATE_2026-09-26.json
+ops/ai/RETURNED_RESULT_POLICY.md
+ops/ai/WALL_CONTROL_INDEX_2026-09-26.md
+ops/ai/SLEEP_MODE_OVERNIGHT_POLICY_2026-09-27.md
+ops/ai/CONTEXT_HYGIENE_AND_HANDOFF_POLICY_2026-09-26.md
+ops/ai/LARGE_WORK_PACKAGES_2026-09-26.md
+
+CANONICAL:
+accepted repair base =
+candidate-b-1
+4c1e24ccc522042af826bc4c2b595daf85d097f9
+
+candidate-b-2 rejected.
+candidate-b-3 is NOT required.
+Do not wait for it.
+
+AUTHORITY:
+READ_ONLY_REPORT
+
+Windows Antigravity Central Writer remains sole final-candidate source writer unless newer durable coordination explicitly changes that.
+
+NO source writes.
+NO commits.
+NO push/merge/rebase.
+NO branch creation.
+NO physical Canary.
+NO server/worker start.
+NO broad/heavy suite.
+NO nested agents.
+NO account rotation.
+NO spend changes.
+NO destructive process control.
+
+RESOURCE:
+MAX_HEAVY_JOBS=1 per host.
+Stay LIGHT unless explicitly admitted.
+On CPU/RAM/swap/pagefile/thermal pressure:
+stop admitting new work and switch to LIGHT READ ONLY.
+
+CLAIM:
+Claim exactly ONE unique free logical slot from the host/provider namespace already in use.
+Never steal a live slot.
+Never duplicate a live scope.
+
+SELECT ONE UNOWNED ROLE FAMILY:
+1 FINAL_CANDIDATE_TEST_EVIDENCE
+2 TWELVE_CASE_ACCEPTANCE_MATRIX
+3 DUPLICATE_REPLAY_LOST_ACK
+4 TRUSTED_ARTIFACT_HASH_CHAIN
+5 RESTART_DURABILITY_CRASH_WINDOWS
+6 AUTO_B_ELIGIBILITY_DISPATCH
+7 CLAIM_LEASE_CONCURRENCY
+8 FAILURE_SEMANTICS
+9 RESOURCE_PROCESS_SAFETY
+10 CROSS_PLATFORM_PORTABILITY
+11 STALE_TRUTH_BRANCH_RECONCILIATION
+12 RESULT_HARVEST_LEDGER_GAPS
+13 PRODUCT_TRUTH_GRANDMA_TEST
+14 UPDATE_SIGNING_CRYPTO_READINESS
+15 CREW_DEDUP_NEXT_USEFUL_ROLE
+
+Prefer 1-12 until critical-path evidence is saturated.
+
+CONTINUE_BY_DEFAULT=YES
+DO_NOT_RETURN_AFTER_ONE_TASK=YES
+DO_NOT_ASK_PROCEED=YES
+
+LOOP:
+READ
+-> TRACE
+-> VERIFY
+-> EVIDENCE
+-> CHECKPOINT
+-> RECHECK PEERS/LEDGER
+-> NEXT UNOWNED SAFE PACKAGE
+-> CONTINUE
+
+After each meaningful package:
+persist durable result/evidence.
+
+If old context no longer changes the next decision:
+CHECKPOINT
+-> CLEAR/ROTATE CONTEXT
+-> reload only minimal current truth
+-> CONTINUE SAME LOGICAL ROLE
+
+Do not invent busywork.
+Do not claim physical proof from static analysis.
+Do not turn RESULT_RECEIVED into VERIFIED.
+
+STOP EARLY only for:
+NO_SAFE_READY_WORK
+PROVIDER_LIMIT
+RATE_LIMIT
+TOOL_OR_SHELL_BLOCK
+RESOURCE_GUARD
+OWNERSHIP_AMBIGUITY
+COST_OR_QUOTA_GUARD
+HUMAN_MONEY_PERMISSION_GATE
+REPEATED_STATE_NO_PROGRESS
+
+Do NOT send a normal user-facing completion message between packages.
+Continue internally while useful safe work remains.
+
+ONLY AT REAL STOP return:
+
+SLOT=
+HOST=
+PROVIDER=
+ROLE=
+PACKAGES_COMPLETED=
+PROVEN=
+OPEN=
+BLOCKED=
+CONTRADICTIONS=
+DO_NOT_REPEAT=
+CENTRAL_WRITER_INPUT=
+NEXT_EXACT_ACTION=
+HOST_RESOURCE_STATUS=
+STOP_REASON=
+
+STOP.
