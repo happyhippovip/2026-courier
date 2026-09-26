@@ -502,12 +502,6 @@ def require_auth(f):
         auth_header = request.headers.get("Authorization")
         expected = f"Bearer {API_KEY}"
         if not auth_header or auth_header != expected:
-            try:
-                import time
-                with open("C:/Users/lol/2026-workspace/courier/debug_auth2.txt", "a") as f2:
-                    f2.write(f"[{time.time()}] AUTH FAIL: Invalid token provided\n")
-            except Exception as e:
-                pass
             print("Auth fail: Invalid token provided"); return jsonify({"error": "Unauthorized"}), 401
         return f(*args, **kwargs)
     wrapper.__name__ = f.__name__

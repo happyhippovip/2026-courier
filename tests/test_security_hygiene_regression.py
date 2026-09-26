@@ -1,6 +1,7 @@
 import os
 import sys
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -30,3 +31,24 @@ def test_server_does_not_leak_bearer_token(tmp_path):
                 leaked = True
                 
     assert not leaked, "CRITICAL: Server leaked the Bearer token to debug_auth2.txt!"
+
+
+def test_auth_failure_attempts_no_file_write():
+    """401 path must not attempt any debug file write (dead hardcoded path)."""
+    app.config["TESTING"] = True
+    client = app.test_client()
+    opened = []
+    real_open = open
+
+    def spy(path, *args, **kwargs):
+        opened.append(str(path))
+        return real_open(path, *args, **kwargs)
+
+    with mock.patch("builtins.open", side_effect=spy):
+        response = client.get(
+            "/workers", headers={"Authorization": "Bearer wrong-token"}
+        )
+    assert response.status_code == 401
+    assert not [p for p in opened if "debug_auth2" in p], (
+        f"auth failure attempted debug file writes: {opened}"
+    )
