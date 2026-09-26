@@ -226,8 +226,15 @@ def run_agy(task, config):
     cmd = [wrapper, agy_bin, "-p", prompt, "--dangerously-skip-permissions"]
     
     try:
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        stdout, stderr = process.communicate(timeout=300)
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, start_new_session=True)
+        try:
+            stdout, stderr = process.communicate(timeout=300)
+        except subprocess.TimeoutExpired as e:
+            import os, signal
+            os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+            stdout, stderr = process.communicate()
+            return {"status": "FAILED", "stderr": "TIMEOUT EXPIRED after 300s", "execution_mode": "ANTIGRAVITY"}
+
         
         out_clean = stdout.strip()
         parsed = False
