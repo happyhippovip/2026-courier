@@ -167,7 +167,23 @@ def run(task_file_name: str) -> int:
         if run_id:
             write_state(task_file, {"dispatch_id": task["dispatch_id"], "run_id": run_id, "status": "WAITING_FOR_WORKER"})
         time.sleep(POLL_SECONDS)
-    write_state(task_file, {"dispatch_id": task["dispatch_id"], "run_id": run_id, "status": "WAITING_FOR_WORKER"})
+        
+    # Timeout
+    timeout_result = {
+        "goal_id": task.get("goal_id"),
+        "task_id": task["task_id"],
+        "attempt_id": task.get("attempt_id"),
+        "dispatch_id": task["dispatch_id"],
+        "worker_id": task.get("worker_id"),
+        "run_id": str(run_id) if run_id else "unknown",
+        "result_id": f"result-{task['dispatch_id']}-timeout",
+        "status": "FAILED",
+        "artifacts": [],
+        "provider": "github_timeout",
+        "raw_result": {"reason": "TIMEOUT", "run_id": run_id}
+    }
+    post_result(timeout_result)
+    write_state(task_file, {"dispatch_id": task["dispatch_id"], "run_id": run_id, "status": "POSTED"})
     return 0
 
 
