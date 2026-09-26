@@ -258,9 +258,42 @@ def run_agy(task, config):
     except Exception as e:
         return {"status": "FAILED", "stderr": str(e), "execution_mode": "ANTIGRAVITY"}
 
+
+import tempfile
+
+def acquire_lock(worker_id):
+    lock_file = STATE_DIR / f"courier_mac_worker_{worker_id}.lock"
+    try:
+        fd = os.open(str(lock_file), os.O_CREAT | os.O_EXCL | os.O_RDWR)
+        os.write(fd, str(os.getpid()).encode())
+        os.close(fd)
+        return lock_file
+    except FileExistsError:
+        try:
+            with open(lock_file, "r") as f:
+                pid = int(f.read().strip())
+            # On Mac/POSIX, we can check if PID exists using ps
+            try:
+                os.kill(pid, 0)
+                # If we get here, process is running
+            except OSError:
+                # Stale lock
+                os.remove(lock_file)
+                return acquire_lock(worker_id)
+        except Exception:
+            pass
+        return None
+
 def loop():
     write_log("Starting Mac Worker HTTP Daemon...")
     config = load_config()
+
+    worker_id = config.get("WORKER_ID", "unknown")
+    lock_file = acquire_lock(worker_id)
+    if not lock_file:
+        write_log(f"FATAL: Another instance of Mac Worker {worker_id} is already running.")
+        sys.exit(3)
+
     if not str(config.get("COURIER_API_KEY") or "").strip():
         write_log("FATAL: COURIER_API_KEY is not set (keychain or environment); refusing to contact the server.")
         sys.exit(2)
@@ -392,4 +425,14 @@ def loop():
         time.sleep(config.get("POLL_INTERVAL_SECONDS", 5))
 
 if __name__ == "__main__":
-    loop()
+    try:
+        loop()
+    finally:
+        config = load_config()
+        worker_id = config.get("WORKER_ID", "unknown")
+        lock_file = STATE_DIR / f"courier_mac_worker_{worker_id}.lock"
+        if lock_file.exists():
+            try:
+                lock_file.unlink()
+            except Exception:
+                pass
