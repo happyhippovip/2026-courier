@@ -1,0 +1,128 @@
+COURIER UNIVERSAL WALL LONGRUN
+
+HOST=AUTO
+PROVIDER=AUTO
+WALL_SIZE=10
+RESERVED_INTERACTIVE=2
+ROUND_HOURS=4
+TASK_SIZE=LARGE
+MODE=READ_ONLY_REPORT
+
+Mac repo: /Users/user/Downloads/2026-courier
+Windows repo: C:\Users\lol\2026-workspace\2026-courier
+
+If no matching repo exists: STATUS=WRONG_HOST; STOP.
+
+Read current coordination truth from origin/coordination/autofill-task-seed-20260926 without checkout/merge:
+ops/ai/COURIER_SESSION_STATE_2026-09-26.json
+ops/ai/RETURNED_RESULT_POLICY.md
+ops/ai/COURIER_GROWTH_GOALS_2026-09-26.md
+ops/ai/WALL_SCALING_LEDGER_REQUIREMENT_2026-09-26.md
+ops/ai/META_MODEL_API_BILLING_GUARD_2026-09-26.md
+
+Accepted repair base:
+candidate-b-1
+4c1e24ccc522042af826bc4c2b595daf85d097f9
+
+candidate-b-2 is rejected.
+Do not wait for candidate-b-3.
+
+Default authority:
+READ_ONLY_REPORT
+
+Do not source-write unless current durable coordination explicitly assigns this exact session an unowned writer scope.
+Windows Antigravity remains the only final-candidate source writer.
+
+Logical wall:
+WALL_SIZE is requested capacity, not heavy-process count.
+Claim exactly one free logical slot using existing claim/report convention.
+Never steal a live slot.
+Never knowingly duplicate another live scope.
+Leave RESERVED_INTERACTIVE slots free for coordinator/human work.
+
+Resource:
+Host safety outranks throughput.
+Current MAX_HEAVY_JOBS=1.
+No nested agents.
+No busy loops.
+No tight polling.
+No broad process killing.
+No reboot.
+No account rotation.
+No spend changes.
+Never expose API keys.
+On resource pressure switch to LIGHT READ ONLY.
+
+Prefer LARGE coherent work:
+1 final-candidate/test-evidence reconciliation
+2 12-case final evidence matrix
+3 duplicate/replay/lost-ACK
+4 trusted artifact/hash chain
+5 restart durability/crash windows
+6 automatic B dispatch
+7 claim/lease concurrency
+8 persistence/recovery honesty
+9 verifier fail-closed paths
+10 resource/process safety
+11 cross-platform portability
+12 stale truth/branch evidence
+13 Ledger gaps Goal->Reconcile
+14 result harvest/dedup/next READY
+
+Before work:
+read current results
+dedupe peer scopes
+choose highest-value unowned safe area
+do not redo proven work
+do not invent busywork
+
+CONTINUE_BY_DEFAULT=YES
+
+Loop:
+READ
+-> TRACE
+-> VERIFY
+-> EVIDENCE
+-> RESULT
+-> RECHECK PEERS/LEDGER
+-> NEXT UNOWNED SAFE AREA
+-> CONTINUE
+
+Target ROUND_HOURS, but stop earlier on:
+no safe authorized work
+provider unavailable
+ownership ambiguity
+resource guard
+money/permission/human gate
+repeated state/no progress
+
+Truth:
+RESULT_RECEIVED != VERIFIED
+mocks != physical proof
+historical SHA != newer candidate proof
+no evidence = no PASS
+worker-controlled expected hash cannot authorize exact-content success
+changed status/worker/attempt/dispatch/artifact result is not identical replay
+
+Return:
+SLOT=
+HOST=
+PROVIDER=
+MODE=
+AREAS_CHECKED=
+STATUS=
+PROVEN=
+NEW_FINDINGS=
+CONTRADICTIONS=
+MISSING_EVIDENCE=
+MISSING_TESTS=
+WRITE_REQUIRED=
+PHYSICAL_PROOF_REQUIRED=
+CRITICAL_PATH_IMPACT=
+SAFE_TO_PARK=
+CENTRAL_WRITER_INPUT=
+NEXT_UNCHECKED_AREA=
+HOST_RESOURCE_STATUS=
+STOP_REASON=
+
+STOP.
