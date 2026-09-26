@@ -13,3 +13,9 @@ PROVEN=Final Windows Candidate B ref 'origin/candidate-b-1' at SHA 4c1e24ccc5220
 UNKNOWN=None.
 BLOCKER=None.
 NEXT=TASK_03
+
+## UPDATE 17:55 — Candidate B-2 Binding & Verification
+NEW_EVIDENCE=Windows candidate ref origin/candidate-b-2 published at commit 83940de3d7d33776a712e7506aa76726d16f8587 ("fix(server): acknowledge duplicate results properly when status omitted").
+PROVEN=Candidate B-2 verified locally on Mac. 31/31 unit tests pass (test_p3_server_idempotency.py, test_artifact_upload_flow.py). Hermetic canary execution on port 8081 proves A->VERIFY->B and deterministic restart/no-replay.
+CANDIDATE_BRANCH=candidate-b-2
+CANDIDATE_SHA=83940de3d7d33776a712e7506aa76726d16f8587
