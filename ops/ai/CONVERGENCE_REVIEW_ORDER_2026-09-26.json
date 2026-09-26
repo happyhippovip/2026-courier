@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.0",
+  "mission_id": "COURIER_CONVERGENCE_HANDOFF_20260926",
+  "status": "ACTIVE",
+  "rule_1": "CONTINUE_BY_DEFAULT",
+  "rule_2": "FEATHERLIGHT_BY_DEFAULT",
+  "sequence": [
+    {
+      "step": 1,
+      "owner": "OPUS_HIGH",
+      "action": "finish independent convergence report",
+      "input": [
+        "repo",
+        "current reports"
+      ],
+      "output": "OPUS_CONTINUATION_CONVERGENCE.md",
+      "must_not": "interrupt running workers"
+    },
+    {
+      "step": 2,
+      "owner": "CODEX_HIGH",
+      "action": "finish independent runtime red-team",
+      "input": [
+        "repo",
+        "current runtime evidence"
+      ],
+      "output": "CODEX_NUMBER_ONE_RED_TEAM.md",
+      "must_not": "consume Opus conclusion before independent review unless explicitly required"
+    },
+    {
+      "step": 3,
+      "owner": "COORDINATOR",
+      "action": "build evidence disagreement matrix",
+      "output": "claim matrix"
+    },
+    {
+      "step": 4,
+      "owner": "OPUS_HIGH",
+      "action": "reconcile Opus + Codex + repo evidence and featherlight requirements",
+      "output": "OPUS_FEATHERLIGHT_NUMBER_ONE.md"
+    },
+    {
+      "step": 5,
+      "owner": "COORDINATOR_OR_EXISTING_WRITER",
+      "action": "persist canonical handoff record",
+      "references": [
+        "docs/CANONICAL_COMPLETION_HANDOFF.md",
+        "schemas/canonical_handoff.schema.json"
+      ]
+    },
+    {
+      "step": 6,
+      "owner": "EXISTING_SINGLE_WRITER",
+      "action": "implement one minimal approved delta"
+    },
+    {
+      "step": 7,
+      "owner": "RUNTIME",
+      "action": "physical zero-human A-to-B canary"
+    },
+    {
+      "step": 8,
+      "owner": "RUNTIME",
+      "action": "scale 1->4->8->16 with evidence"
+    },
+    {
+      "step": 9,
+      "owner": "RUNTIME",
+      "action": "60-120+ minute featherlight soak"
+    }
+  ],
+  "report_paths": {
+    "opus_convergence": "/Users/user/Downloads/courier_work/muse_burn30/reports/OPUS_CONTINUATION_CONVERGENCE.md",
+    "codex_red_team": "/Users/user/Downloads/courier_work/muse_burn30/reports/CODEX_NUMBER_ONE_RED_TEAM.md",
+    "codex_runtime_proof": "/Users/user/Downloads/courier_work/muse_burn30/reports/CODEX_NEXT_VIDEO_RUNTIME_PROOF.md",
+    "opus_final": "/Users/user/Downloads/courier_work/muse_burn30/reports/OPUS_FEATHERLIGHT_NUMBER_ONE.md"
+  }
+}
