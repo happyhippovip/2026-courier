@@ -152,7 +152,7 @@ class AutonomousLevel6Loop:
                         raise WorkflowLockedError(
                             f"Workflow {workflow_id} is already locked by PID {existing_pid}."
                         )
-                    except OSError:
+                    except ProcessLookupError:
                         # Stale lock from crashed process -> can safely reclaim
                         print(f"[LOCK] Reclaiming stale lock for {workflow_id} from dead PID {existing_pid}")
             except (json.JSONDecodeError, KeyError):

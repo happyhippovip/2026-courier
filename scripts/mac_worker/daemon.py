@@ -276,7 +276,7 @@ def acquire_lock(worker_id):
             try:
                 os.kill(pid, 0)
                 # If we get here, process is running
-            except OSError:
+            except ProcessLookupError:
                 # Stale lock
                 os.remove(lock_file)
                 return acquire_lock(worker_id)

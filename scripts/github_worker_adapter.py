@@ -170,7 +170,7 @@ def acquire_lock(task_id):
                 # Fallback to os.kill if psutil is not available
                 try:
                     os.kill(pid, 0)
-                except OSError:
+                except ProcessLookupError:
                     os.remove(lock_file)
                     return acquire_lock(task_id)
         except Exception:
