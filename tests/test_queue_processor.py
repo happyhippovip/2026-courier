@@ -92,6 +92,7 @@ def test_process_queue_error(tmp_path):
 
 def test_dispatch_intake_concurrency_execution_ref_isolation(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("COURIER_STATE_FILE", "central_state.json")
     state_file = tmp_path / "central_state.json"
 
     intake1 = tmp_path / "i1.json"

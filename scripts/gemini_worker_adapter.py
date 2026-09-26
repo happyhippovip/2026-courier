@@ -3,6 +3,9 @@ import re
 import subprocess
 import sys
 import uuid
+import os
+
+STATE_FILE = os.environ.get('COURIER_STATE_FILE', 'server/state/central_state.json')
 
 SAFE_TASK_RE = re.compile(r"^[A-Za-z0-9._-]{1,128}$")
 
@@ -82,7 +85,7 @@ def run_worker(task_path, negative_test=False):
 
 def consume(res_json, task_id, result_ref):
     try:
-        with open('central_state.json', 'r') as f:
+        with open(STATE_FILE, 'r') as f:
             state = json.load(f)
     except Exception:
         state = {"tasks": {}}
@@ -106,7 +109,7 @@ def consume(res_json, task_id, result_ref):
     fd, tmp_file = tempfile.mkstemp(dir='.', prefix=".state-tmp-")
     with os.fdopen(fd, 'w') as f:
         json.dump(state, f, indent=2)
-    os.replace(tmp_file, 'central_state.json')
+    os.replace(tmp_file, STATE_FILE)
 
 if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else "positive"

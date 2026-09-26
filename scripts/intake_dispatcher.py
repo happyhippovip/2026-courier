@@ -7,7 +7,7 @@ import tempfile
 
 from pathlib import Path
 
-STATE_FILE = Path(os.environ.get("COURIER_STATE_FILE", "central_state.json"))
+STATE_FILE = Path(os.environ.get("COURIER_STATE_FILE", "server/state/central_state.json"))
 
 
 def _load_state(state_path: Path):
