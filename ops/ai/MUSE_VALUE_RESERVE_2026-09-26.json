@@ -1,0 +1,214 @@
+{
+  "schema_version": "1.0",
+  "mission_id": "COURIER_MUSE_VALUE_RESERVE_20260926",
+  "policy": {
+    "no_busywork": true,
+    "no_duplicate_architecture": true,
+    "no_locked_product_scope_changes": true,
+    "active_gate_first": true,
+    "evidence_required": true,
+    "writer_conflicts_forbidden": true
+  },
+  "states": [
+    "READY_NOW_READONLY",
+    "READY_NOW_PREP",
+    "WAIT_FOR_A2B",
+    "WAIT_FOR_RESTART",
+    "WAIT_FOR_PILOT",
+    "BLOCKED"
+  ],
+  "tasks": [
+    {
+      "id": "MV-001",
+      "state": "READY_NOW_READONLY",
+      "mode": "REVIEW",
+      "scope": "artifact-verify-map",
+      "objective": "Map exact artifact/result/verify/reconcile call path with file:line evidence and identify every state transition.",
+      "acceptance": "One concise call-path map with no speculative claims."
+    },
+    {
+      "id": "MV-002",
+      "state": "READY_NOW_READONLY",
+      "mode": "REVIEW",
+      "scope": "duplicate-matrix",
+      "objective": "Build duplicate/replay failure matrix for result resend, stale result, FAILED retry, STARTED ambiguity and restart.",
+      "acceptance": "Each row names identity keys, current behavior, risk, and existing protection."
+    },
+    {
+      "id": "MV-003",
+      "state": "READY_NOW_PREP",
+      "mode": "TEST_PREP",
+      "scope": "content-verify-fixtures",
+      "objective": "Prepare deterministic artifact fixtures for correct/wrong content, newline variance and stale hash.",
+      "acceptance": "Fixtures and expected outcomes documented without touching protected runtime."
+    },
+    {
+      "id": "MV-004",
+      "state": "READY_NOW_READONLY",
+      "mode": "REVIEW",
+      "scope": "runtime-authority",
+      "objective": "Inventory which components can mutate queue/claim/retry/NEXT state and distinguish source presence from live authority.",
+      "acceptance": "Authority candidates and required runtime evidence listed."
+    },
+    {
+      "id": "MV-005",
+      "state": "READY_NOW_READONLY",
+      "mode": "REVIEW",
+      "scope": "muse-cli-contract",
+      "objective": "Inventory repo assumptions about Muse argv, workspace, yolo, output and session binding.",
+      "acceptance": "Expected CLI contract with every assumption marked proven/unproven."
+    },
+    {
+      "id": "MV-006",
+      "state": "READY_NOW_PREP",
+      "mode": "TEST_PREP",
+      "scope": "restart-fixtures",
+      "objective": "Prepare deterministic restart checkpoints for RESULT_RECEIVED-before-verify, READY-before-dispatch, STARTED ambiguity and RESULT_READY resend.",
+      "acceptance": "Each checkpoint has setup, expected state and failure criteria."
+    },
+    {
+      "id": "MV-007",
+      "state": "READY_NOW_READONLY",
+      "mode": "REVIEW",
+      "scope": "context-reuse-inventory",
+      "objective": "Find existing reusable repo maps, branch inventories, test inventories and verified findings before proposing new knowledge storage.",
+      "acceptance": "Reuse inventory + duplication hotspots."
+    },
+    {
+      "id": "MV-008",
+      "state": "READY_NOW_PREP",
+      "mode": "MEASURE_PREP",
+      "scope": "featherlight-metrics",
+      "objective": "Define low-cost measurements for idle CPU, RSS, swap, process spawns/tick and result-to-next latency.",
+      "acceptance": "Measurement plan uses existing runtime where possible and adds no busy loop."
+    },
+    {
+      "id": "MV-009",
+      "state": "READY_NOW_READONLY",
+      "mode": "REVIEW",
+      "scope": "dead-code-map",
+      "objective": "Identify superseded schedulers/walls/helpers that are not needed by the candidate, without deleting anything.",
+      "acceptance": "Evidence-backed keep/superseded/unknown map."
+    },
+    {
+      "id": "MV-010",
+      "state": "READY_NOW_PREP",
+      "mode": "DOC",
+      "scope": "grandma-proof-card",
+      "objective": "Prepare a runtime-derived Grandma Update template and mapping from technical evidence to ordinary language.",
+      "acceptance": "No fake metrics; fields map to real evidence sources."
+    },
+    {
+      "id": "MV-011",
+      "state": "READY_NOW_PREP",
+      "mode": "BENCHMARK_PREP",
+      "scope": "benchmark-fixtures",
+      "objective": "Prepare identical deterministic task set for single-task latency and continuation-throughput comparison.",
+      "acceptance": "Tasks, expected outputs and metrics specified; no benchmark claims yet."
+    },
+    {
+      "id": "MV-012",
+      "state": "READY_NOW_READONLY",
+      "mode": "REVIEW",
+      "scope": "provider-capability",
+      "objective": "Inventory provider/session limits and which facts require physical/account confirmation.",
+      "acceptance": "No quota circumvention; unknowns explicit."
+    },
+    {
+      "id": "MV-013",
+      "state": "READY_NOW_READONLY",
+      "mode": "REVIEW",
+      "scope": "mac-windows-contract",
+      "objective": "Compare Mac and Windows worker identity/process ownership/restart contracts for semantic drift.",
+      "acceptance": "Only actionable cross-platform mismatches reported."
+    },
+    {
+      "id": "MV-014",
+      "state": "READY_NOW_PREP",
+      "mode": "TEST_PREP",
+      "scope": "task-graph-fixtures",
+      "objective": "Design deterministic fixtures for chain A->B->C->D, branch B->C/F and bounded loop F->A.",
+      "acceptance": "Each transition has explicit condition, attempt semantics, side-effect rule and loop termination."
+    },
+    {
+      "id": "MV-015",
+      "state": "WAIT_FOR_A2B",
+      "mode": "TEST",
+      "scope": "chain-proof",
+      "objective": "Physically prove a multi-step zero-relay chain after A->B passes.",
+      "acceptance": "At least four verified transitions with HUMAN_RELAY_COUNT=0."
+    },
+    {
+      "id": "MV-016",
+      "state": "WAIT_FOR_A2B",
+      "mode": "TEST",
+      "scope": "branch-proof",
+      "objective": "Physically prove one deterministic PASS/FAIL branch chooses exactly one legal successor.",
+      "acceptance": "Observed branch matches deterministic evidence and no alternate branch executes."
+    },
+    {
+      "id": "MV-017",
+      "state": "WAIT_FOR_A2B",
+      "mode": "TEST",
+      "scope": "loop-proof",
+      "objective": "Physically prove one bounded safe loop with new attempt identity and explicit termination.",
+      "acceptance": "Loop executes only allowed count, no duplicate side effect, deterministic exit."
+    },
+    {
+      "id": "MV-018",
+      "state": "WAIT_FOR_A2B",
+      "mode": "WRITE",
+      "scope": "proof-card-export",
+      "objective": "Generate compact Proof Cards from canonical runtime evidence.",
+      "acceptance": "Every displayed claim traces to evidence IDs and candidate fingerprint."
+    },
+    {
+      "id": "MV-019",
+      "state": "WAIT_FOR_RESTART",
+      "mode": "TEST",
+      "scope": "scale-4",
+      "objective": "Run resource-admitted four-slot canary after restart proof and provider authorization.",
+      "acceptance": "No writer conflict, no lost result, no duplicate effect, measured resource headroom."
+    },
+    {
+      "id": "MV-020",
+      "state": "WAIT_FOR_RESTART",
+      "mode": "TEST",
+      "scope": "scale-8-16",
+      "objective": "Progressively test 8 then 16 logical slots with bounded active work.",
+      "acceptance": "Each stage separately admitted and evidence-backed."
+    },
+    {
+      "id": "MV-021",
+      "state": "WAIT_FOR_RESTART",
+      "mode": "TEST",
+      "scope": "vacation-soak",
+      "objective": "Run bounded 60-120+ minute continuation soak.",
+      "acceptance": "Repeated verified NEXT transitions, durable pauses, zero relay except real gates."
+    },
+    {
+      "id": "MV-022",
+      "state": "WAIT_FOR_RESTART",
+      "mode": "MEASURE",
+      "scope": "featherlight-soak",
+      "objective": "Measure Mac responsiveness while screen recording/music/browser remain active.",
+      "acceptance": "Real CPU/RAM/swap/latency evidence; no claim without measurement."
+    },
+    {
+      "id": "MV-023",
+      "state": "WAIT_FOR_PILOT",
+      "mode": "WRITE",
+      "scope": "one-command-product",
+      "objective": "Create one-command install/start/status/stop after core gates pass.",
+      "acceptance": "Fresh supported host completes lifecycle without per-worker prompts."
+    },
+    {
+      "id": "MV-024",
+      "state": "WAIT_FOR_PILOT",
+      "mode": "PRODUCT",
+      "scope": "human-status-surface",
+      "objective": "Create simple Works/Needs You/Done surface backed only by canonical state.",
+      "acceptance": "Grandma Test passes; technical detail remains optional Layer B."
+    }
+  ]
+}
