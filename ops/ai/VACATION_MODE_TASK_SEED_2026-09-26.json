@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0",
+  "mission_id": "COURIER_VACATION_MODE_20260926",
+  "principle": "CONTINUE_BY_DEFAULT",
+  "slogan": "Du bist im Urlaub. Courier arbeitet weiter.",
+  "tasks": [
+    {
+      "id": "VAC-001",
+      "priority": "P0",
+      "mode": "WRITE",
+      "preferred": "MUSE_MAX",
+      "write_scope": "replenisher",
+      "objective": "Ensure a finished/idle worker slot immediately receives the next compatible READY task without human prompt refill.",
+      "acceptance": "Five consecutive task transitions complete with HUMAN_RELAYS=0."
+    },
+    {
+      "id": "VAC-002",
+      "priority": "P0",
+      "mode": "WRITE",
+      "preferred": "MUSE_MAX",
+      "write_scope": "provider-state",
+      "objective": "Persist READY/RUNNING/RESULT_READY/RATE_LIMITED/IDLE_WAIT states and make provider eligibility wake stalled capacity without losing task identity.",
+      "acceptance": "Rate-limit simulation parks and later resumes a slot with no duplicate execution."
+    },
+    {
+      "id": "VAC-003",
+      "priority": "P0",
+      "mode": "WRITE",
+      "preferred": "MUSE_MAX",
+      "write_scope": "backlog-refill",
+      "objective": "When runnable backlog falls below a low-water mark, deterministically derive/activate already-approved follow-up work without asking the human.",
+      "acceptance": "Queue replenishes from approved follow-ups and deduplicates candidates."
+    },
+    {
+      "id": "VAC-004",
+      "priority": "P0",
+      "mode": "TEST",
+      "preferred": "CODEX_HIGH",
+      "write_scope": "vacation-soak",
+      "objective": "Run a bounded multi-hour soak of repeated RESULT->VERIFY->NEXT transitions under resource limits.",
+      "acceptance": "No human relay, duplicate effect, lost result, conflicting writer, or unowned process during soak."
+    },
+    {
+      "id": "VAC-005",
+      "priority": "P1",
+      "mode": "WRITE",
+      "preferred": "MUSE_MAX",
+      "write_scope": "idle-efficiency",
+      "objective": "Make idle logical slots event/backoff driven so 30/64 logical workers do not busy-wait or burn CPU while no task is admissible.",
+      "acceptance": "Idle control-plane process/CPU use remains bounded and no model process exists solely to poll."
+    },
+    {
+      "id": "VAC-006",
+      "priority": "P1",
+      "mode": "WRITE",
+      "preferred": "GOOGLE_MEDIUM",
+      "write_scope": "wrong-host-and-capability-routing",
+      "objective": "Route tasks only to hosts/providers that satisfy host, mode, model-tier, write-scope, heavy and dependency requirements.",
+      "acceptance": "Ineligible Windows/Mac/provider slot cannot claim incompatible task."
+    },
+    {
+      "id": "VAC-007",
+      "priority": "P1",
+      "mode": "REVIEW",
+      "preferred": "OPUS_HIGH",
+      "write_scope": "vacation-integration-gate",
+      "objective": "Reconcile evidence for one-start continuous operation and list only unresolved blockers.",
+      "acceptance": "PASS/FAIL/UNKNOWN matrix for refill, restart, quota, result durability, write locking and resource gates."
+    }
+  ]
+}
