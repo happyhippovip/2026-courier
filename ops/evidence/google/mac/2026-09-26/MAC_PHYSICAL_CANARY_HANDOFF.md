@@ -3,8 +3,8 @@
 LOCAL_BRANCH=agent/canonical-wall-supervisor-v2
 LOCAL_SHA=332a42f9edcf1de1535870592da34a7961880991
 
-CANDIDATE_AVAILABLE=YES (Available in writer-worktree at f7e1acb6; remote evidence branch pending)
-CANDIDATE_SHA=f7e1acb677eb673d6d4bdeff703b427333ba4cc0
+CANDIDATE_AVAILABLE=YES (Available on origin/candidate-b-1 at 4c1e24cc; includes server idempotency, artifact store, and expected_sha256 verification)
+CANDIDATE_SHA=4c1e24ccc522042af826bc4c2b595daf85d097f9
 
 REAL_MUSE_BINARY=/Users/user/.local/bin/muse
 REAL_MUSE_VERSION=Muse Code 1.4.0 (1.4.0-R4161.1)
