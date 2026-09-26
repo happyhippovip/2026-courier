@@ -215,6 +215,12 @@ def run_task(task, config):
         out_clean = stdout.strip()
         stderr = stderr_out
         status = "SUCCESS" if process.returncode == 0 else "FAILED"
+    except subprocess.TimeoutExpired as e:
+        subprocess.run(["taskkill", "/F", "/T", "/PID", str(process.pid)], capture_output=True)
+        stdout, stderr_out = process.communicate()
+        out_clean = stdout.strip()
+        stderr = f"TIMEOUT EXPIRED (600s).\nStderr: {stderr_out}"
+        status = "FAILED"
     except Exception as e:
         status = "FAILED"
         stderr = str(e)
@@ -227,6 +233,9 @@ def run_task(task, config):
         
     res_json["goal_id"] = task.get("goal_id")
     res_json["task_id"] = task["task_id"]
+    res_json["attempt_id"] = task.get("attempt_id")
+    res_json["dispatch_id"] = task.get("dispatch_id")
+    res_json["result_id"] = f"result-{task.get('dispatch_id', task['task_id'])}"
     res_json["worker_id"] = config["WORKER_ID"]
     res_json["provider"] = "windows_native"
     res_json["run_id"] = run_id
@@ -374,8 +383,12 @@ def loop():
     finally:
         if os.path.exists(lock_path):
             os.remove(lock_path)
+        if Path("worker.pid").exists():
+            Path("worker.pid").unlink()
 
 if __name__ == "__main__":
+    pid_file = Path("worker.pid")
+    pid_file.write_text(str(os.getpid()))
     try:
         loop()
     except MissingCredentialError as e:
