@@ -147249,6 +147249,2377 @@
       "state_sha256": "d4789011be17c6d19a7c1399da09325ef7b2d8abbc27813cfb319251b2ae1ae1",
       "timestamp_utc": "2026-09-17T23:38:16Z",
       "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+          "runtime_identity": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "PROVEN_EDGES",
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "e9cc3df6b5add9b389a341136fb9ebe2ce57db803b0cc473916e48bc2055428f",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "090375eb173bd06f80d0e3c538b52f4976082dd33613adc0ecd38424c289553c",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "Prove edge: RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Website QA",
+          "PR41 ACCEPTANCE",
+          "Demo Readiness",
+          "LEDGER/HANDOFF",
+          "Zero-Chat Handoff",
+          "Token Efficiency"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "READY",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+          "FIRST PILOT - AUTHORIZED_MACHINE_ACTION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
+          "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+          "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+          "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION",
+          "SALES PACKAGE",
+          "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION",
+          "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION",
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+          "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+          "RELEASE - AUTHORIZED_MACHINE_ACTION",
+          "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLICATION VERIFICATION",
+          "POST-PILOT HARDENING",
+          "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+          "RELEASE - IRREVERSIBLE_HUMAN_ACTION"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "545c06150b9c63d96d0b3428b1fc7e3113858d0950f587b0757bed1a4342a480",
+      "revision": 1228,
+      "state_sha256": "0ba76ddb2ec47680268d56a9a2be62aedaf6f9f9f012279cd8f013b1a907a3c0",
+      "timestamp_utc": "2026-09-23T02:53:19Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+          "runtime_identity": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "f43ec6a1db3fe6973fa635bd1eb6021feb7e2e604a824ce188706352fb847a31",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "e9cc3df6b5add9b389a341136fb9ebe2ce57db803b0cc473916e48bc2055428f",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "Prove edge: RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Website QA",
+          "PR41 ACCEPTANCE",
+          "Demo Readiness",
+          "LEDGER/HANDOFF",
+          "Zero-Chat Handoff",
+          "Token Efficiency"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "READY",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+          "FIRST PILOT - AUTHORIZED_MACHINE_ACTION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
+          "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+          "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+          "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION",
+          "SALES PACKAGE",
+          "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION",
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+          "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+          "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
+          "RELEASE - AUTHORIZED_MACHINE_ACTION",
+          "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLICATION VERIFICATION",
+          "POST-PILOT HARDENING",
+          "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "c2cf6360aef03335a1239fc57d0f648f13c69835bfd1931aef187866fabfe0ee",
+      "revision": 1229,
+      "state_sha256": "c2c90a04cf5a50effceff609b88efbc38ad3d0f5725d4b2cfa0c551d0feac497",
+      "timestamp_utc": "2026-09-23T02:53:48Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+          "runtime_identity": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "7f84209e3b1a74f85d14925ebf7d4eab5c3e2227af9a1bd1f5e150f0f267cfd0",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "f43ec6a1db3fe6973fa635bd1eb6021feb7e2e604a824ce188706352fb847a31",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "Prove edge: RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Website QA",
+          "PR41 ACCEPTANCE",
+          "Demo Readiness",
+          "LEDGER/HANDOFF",
+          "Zero-Chat Handoff",
+          "Token Efficiency"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "READY",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+          "FIRST PILOT - AUTHORIZED_MACHINE_ACTION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
+          "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+          "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+          "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION",
+          "SALES PACKAGE",
+          "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION",
+          "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION",
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+          "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+          "RELEASE - AUTHORIZED_MACHINE_ACTION",
+          "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLICATION VERIFICATION",
+          "POST-PILOT HARDENING",
+          "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+          "RELEASE - IRREVERSIBLE_HUMAN_ACTION"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "545c06150b9c63d96d0b3428b1fc7e3113858d0950f587b0757bed1a4342a480",
+      "revision": 1230,
+      "state_sha256": "0ba76ddb2ec47680268d56a9a2be62aedaf6f9f9f012279cd8f013b1a907a3c0",
+      "timestamp_utc": "2026-09-23T02:54:02Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+          "runtime_identity": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "PROVEN_EDGES",
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "80f28fc276f094ec1303fb21560b155e13b539787974c026c397d58562216537",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "7f84209e3b1a74f85d14925ebf7d4eab5c3e2227af9a1bd1f5e150f0f267cfd0",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "Prove edge: RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Website QA",
+          "PR41 ACCEPTANCE",
+          "Demo Readiness",
+          "LEDGER/HANDOFF",
+          "Zero-Chat Handoff",
+          "Token Efficiency",
+          "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "READY",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+          "FIRST PILOT - AUTHORIZED_MACHINE_ACTION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
+          "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+          "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+          "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION",
+          "SALES PACKAGE",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION",
+          "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION",
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+          "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+          "RELEASE - AUTHORIZED_MACHINE_ACTION",
+          "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLICATION VERIFICATION",
+          "POST-PILOT HARDENING",
+          "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+          "RELEASE - IRREVERSIBLE_HUMAN_ACTION"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "e9ac403c0b2cfcc52b1eb8a68444259d46e71797c5227e5884c951e08ec4aca7",
+      "revision": 1231,
+      "state_sha256": "3a0c68bdda68497ec7686f438bdd14c6927062d4402fc5ea1c8fcf2f557dd8cd",
+      "timestamp_utc": "2026-09-23T02:54:26Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+          "runtime_identity": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "PROVEN_EDGES",
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "488091fcc5794ec1f943338af2cbfb0e2988f4f389e524d6a76584a6e582cf66",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "80f28fc276f094ec1303fb21560b155e13b539787974c026c397d58562216537",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "Prove edge: RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION",
+          "Website QA",
+          "PR41 ACCEPTANCE",
+          "Demo Readiness",
+          "LEDGER/HANDOFF",
+          "Zero-Chat Handoff",
+          "Token Efficiency"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "READY",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+          "FIRST PILOT - AUTHORIZED_MACHINE_ACTION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
+          "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+          "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+          "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION",
+          "SALES PACKAGE",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION",
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+          "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+          "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
+          "RELEASE - AUTHORIZED_MACHINE_ACTION",
+          "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLICATION VERIFICATION",
+          "POST-PILOT HARDENING",
+          "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "c51d907bbc73d2ee0c11de695e445e4de8672590bd5252fe00ad51b85adb3835",
+      "revision": 1232,
+      "state_sha256": "10aebdea37ecd8f3ad1870b4ee64dc914f956fbc6e6858cf109db1344cc5cf9e",
+      "timestamp_utc": "2026-09-23T02:54:43Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+          "runtime_identity": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "PROVEN_EDGES",
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "99f90cd9fbb8f6637a60c562c3649f286027d0e476d04390dbde7e7dd0b48048",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "488091fcc5794ec1f943338af2cbfb0e2988f4f389e524d6a76584a6e582cf66",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "Prove edge: RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "PR41 ACCEPTANCE",
+          "Website QA",
+          "Demo Readiness",
+          "Zero-Chat Handoff",
+          "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION",
+          "Token Efficiency",
+          "LEDGER/HANDOFF"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "READY",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
+          "POST-PILOT HARDENING",
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+          "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+          "SALES PACKAGE",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION",
+          "PUBLICATION VERIFICATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION",
+          "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+          "RELEASE - AUTHORIZED_MACHINE_ACTION",
+          "FIRST PILOT - AUTHORIZED_MACHINE_ACTION",
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION",
+          "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "891b3a32dc50cc9b4069158059f954b0c5b0fb80d9a64317a1dbcfd8c95a2491",
+      "revision": 1233,
+      "state_sha256": "d408610d0055cfb48719efb713abf2b020d2bb328da6860c55f0bbe34b61793b",
+      "timestamp_utc": "2026-09-25T14:56:29Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+          "runtime_identity": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "58d8572ee00002bdb83a5e20e4806185d1fa65591671246d809d38418cf0a8af",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "99f90cd9fbb8f6637a60c562c3649f286027d0e476d04390dbde7e7dd0b48048",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "Prove edge: RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "PR41 ACCEPTANCE",
+          "Website QA",
+          "Demo Readiness",
+          "Zero-Chat Handoff",
+          "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION",
+          "Token Efficiency",
+          "LEDGER/HANDOFF"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "READY",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
+          "POST-PILOT HARDENING",
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+          "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+          "SALES PACKAGE",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION",
+          "PUBLICATION VERIFICATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION",
+          "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+          "RELEASE - AUTHORIZED_MACHINE_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION",
+          "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - AUTHORIZED_MACHINE_ACTION"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "6336fa0963606cf66569edfddf5f13206e416e816dc24ccd3e3e1af57e0c18b9",
+      "revision": 1234,
+      "state_sha256": "4be36e97e476537d790b1bde8d7936b20d9f2af4be063c1991865ce0b35a67dd",
+      "timestamp_utc": "2026-09-25T14:56:36Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+          "runtime_identity": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "42439a4f4df8e22f795b00365bec3e3aa51d8a86abd9dc3afd1d26d422cf8b56",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "58d8572ee00002bdb83a5e20e4806185d1fa65591671246d809d38418cf0a8af",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "Prove edge: RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "PR41 ACCEPTANCE",
+          "Website QA",
+          "Demo Readiness",
+          "Zero-Chat Handoff",
+          "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION",
+          "Token Efficiency",
+          "LEDGER/HANDOFF"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "READY",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
+          "POST-PILOT HARDENING",
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+          "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+          "SALES PACKAGE",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION",
+          "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLICATION VERIFICATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION",
+          "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+          "RELEASE - AUTHORIZED_MACHINE_ACTION",
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - AUTHORIZED_MACHINE_ACTION"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "5ce6e0ffabb34623796bc56e4a0be3b435ab4d9dea3834d64e8c20d6efb4f7a0",
+      "revision": 1235,
+      "state_sha256": "2590b13b5578daba05c7e4477381a232517003c4fac4ad7682ff0f82ca7ac782",
+      "timestamp_utc": "2026-09-25T14:56:39Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+          "runtime_identity": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "fce1b0f25d290aaf91f6be196cb5768f3401aa4caa687abed8de00e761be5eaf",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "42439a4f4df8e22f795b00365bec3e3aa51d8a86abd9dc3afd1d26d422cf8b56",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "Prove edge: RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "PR41 ACCEPTANCE",
+          "Website QA",
+          "Demo Readiness",
+          "Zero-Chat Handoff",
+          "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION",
+          "Token Efficiency",
+          "LEDGER/HANDOFF"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "READY",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
+          "POST-PILOT HARDENING",
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+          "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+          "SALES PACKAGE",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION",
+          "PUBLICATION VERIFICATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION",
+          "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+          "RELEASE - AUTHORIZED_MACHINE_ACTION",
+          "FIRST PILOT - AUTHORIZED_MACHINE_ACTION",
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION",
+          "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "891b3a32dc50cc9b4069158059f954b0c5b0fb80d9a64317a1dbcfd8c95a2491",
+      "revision": 1236,
+      "state_sha256": "d408610d0055cfb48719efb713abf2b020d2bb328da6860c55f0bbe34b61793b",
+      "timestamp_utc": "2026-09-25T14:56:49Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+          "runtime_identity": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "PROVEN_EDGES",
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "f957caee66b32539545477af1f7b30fdb15a8c9b88f67d6e2d825b7d259d7d33",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "fce1b0f25d290aaf91f6be196cb5768f3401aa4caa687abed8de00e761be5eaf",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "Prove edge: RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "PR41 ACCEPTANCE",
+          "Demo Readiness",
+          "Website QA",
+          "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION",
+          "Zero-Chat Handoff",
+          "Token Efficiency",
+          "LEDGER/HANDOFF"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "READY",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "FIRST PILOT - AUTHORIZED_MACHINE_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+          "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
+          "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+          "RELEASE - AUTHORIZED_MACHINE_ACTION",
+          "PUBLICATION VERIFICATION",
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION",
+          "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION",
+          "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+          "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+          "SALES PACKAGE",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+          "POST-PILOT HARDENING"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "8bcf81b4cfc8979a5309c85145163ea3fade54f7dbce91e9d161571d9ba6d699",
+      "revision": 1237,
+      "state_sha256": "6c790f53a158122249cf08d8be5f5ff01dc1c23349e036621c07f1bbf3e2fb4e",
+      "timestamp_utc": "2026-09-25T14:56:58Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+          "runtime_identity": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "PROVEN_EDGES",
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "4977e5fc94414986c5bed50891a37461aa246097bd2eb9abc210fc8121d12f14",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "f957caee66b32539545477af1f7b30fdb15a8c9b88f67d6e2d825b7d259d7d33",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "Prove edge: RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "PR41 ACCEPTANCE",
+          "Demo Readiness",
+          "Website QA",
+          "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION",
+          "Zero-Chat Handoff",
+          "Token Efficiency",
+          "LEDGER/HANDOFF",
+          "FIRST PILOT - AUTHORIZED_MACHINE_ACTION"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "READY",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+          "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
+          "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+          "RELEASE - AUTHORIZED_MACHINE_ACTION",
+          "PUBLICATION VERIFICATION",
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION",
+          "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION",
+          "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+          "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+          "SALES PACKAGE",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+          "POST-PILOT HARDENING"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "2c6251dfb0da4f661c6955427b38add7d7f7d6b028b8825baeea1c11e353e3a2",
+      "revision": 1238,
+      "state_sha256": "5ef7ab54db6c72badb50b6f680dc5b38d25adcd2477d1be97c775e35c3247d85",
+      "timestamp_utc": "2026-09-25T14:57:07Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+          "runtime_identity": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "PROVEN_EDGES"
+      ],
+      "entry_sha256": "2e9f889de24564f438341710f0eeb7ee70b08be2de9fcfea550c66177a0ca339",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "4977e5fc94414986c5bed50891a37461aa246097bd2eb9abc210fc8121d12f14",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "Prove edge: RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "FIRST PILOT - AUTHORIZED_MACHINE_ACTION",
+          "PR41 ACCEPTANCE",
+          "Demo Readiness",
+          "Website QA",
+          "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION",
+          "Zero-Chat Handoff",
+          "Token Efficiency",
+          "LEDGER/HANDOFF"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "READY",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+          "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
+          "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+          "RELEASE - AUTHORIZED_MACHINE_ACTION",
+          "PUBLICATION VERIFICATION",
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION",
+          "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION",
+          "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+          "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+          "SALES PACKAGE",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+          "POST-PILOT HARDENING"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "5e258343201faad17fe80d477b0e09a13882d81e8eb2df51e5f9b6e04902f355",
+      "revision": 1239,
+      "state_sha256": "22a400e02de61e6258501c188c3ba3babcd41e2fee0d2aafb2990e23a0b2b42a",
+      "timestamp_utc": "2026-09-25T14:57:14Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+          "runtime_identity": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "PROVEN_EDGES",
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "77e59bacd363d82922cf5e56c509deaa7e8b4c42b3e099f9493340597be1f309",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "2e9f889de24564f438341710f0eeb7ee70b08be2de9fcfea550c66177a0ca339",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "Prove edge: RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Demo Readiness",
+          "Token Efficiency",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "FIRST PILOT - AUTHORIZED_MACHINE_ACTION",
+          "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION",
+          "LEDGER/HANDOFF",
+          "PR41 ACCEPTANCE"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "READY",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+          "POST-PILOT HARDENING",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION",
+          "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION",
+          "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+          "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+          "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLICATION VERIFICATION",
+          "RELEASE - AUTHORIZED_MACHINE_ACTION",
+          "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+          "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION",
+          "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+          "SALES PACKAGE"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "76855a379083af6c9b688cf07d23db596776900d4c689c15d46215cc1521ec30",
+      "revision": 1240,
+      "state_sha256": "6631906f0fdfe4ae68972e1d039122dcbcdb80ca05818480e9967ff12d51f6ed",
+      "timestamp_utc": "2026-09-25T14:57:56Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+          "runtime_identity": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "6d5d12ce04a8121e234293241772d7895047d6ad3c8c6a3546a517adc97942f0",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "77e59bacd363d82922cf5e56c509deaa7e8b4c42b3e099f9493340597be1f309",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "Prove edge: RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Demo Readiness",
+          "Token Efficiency",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "FIRST PILOT - AUTHORIZED_MACHINE_ACTION",
+          "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION",
+          "LEDGER/HANDOFF",
+          "PR41 ACCEPTANCE"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "READY",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+          "POST-PILOT HARDENING",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION",
+          "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION",
+          "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+          "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+          "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
+          "RELEASE - AUTHORIZED_MACHINE_ACTION",
+          "PUBLICATION VERIFICATION",
+          "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+          "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION",
+          "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+          "SALES PACKAGE"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "5e94bc410a2fbd01138f5bb37dd2c88892b27f22788ec043764b7d8ecdcc21c0",
+      "revision": 1241,
+      "state_sha256": "5096a290c49518cfe8fc104b3d9e67f8a7508714d0ef39fca38df8d851a75d69",
+      "timestamp_utc": "2026-09-25T14:58:03Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+          "runtime_identity": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "c43cd59bc8e33353075fd1558dbab20fe70afdefc7a284b05bafd6f1ba8b1d5b",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "6d5d12ce04a8121e234293241772d7895047d6ad3c8c6a3546a517adc97942f0",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "Prove edge: RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Demo Readiness",
+          "Token Efficiency",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "FIRST PILOT - AUTHORIZED_MACHINE_ACTION",
+          "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION",
+          "LEDGER/HANDOFF",
+          "PR41 ACCEPTANCE"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "READY",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+          "POST-PILOT HARDENING",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION",
+          "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION",
+          "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+          "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+          "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLICATION VERIFICATION",
+          "RELEASE - AUTHORIZED_MACHINE_ACTION",
+          "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+          "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION",
+          "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+          "SALES PACKAGE"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "76855a379083af6c9b688cf07d23db596776900d4c689c15d46215cc1521ec30",
+      "revision": 1242,
+      "state_sha256": "6631906f0fdfe4ae68972e1d039122dcbcdb80ca05818480e9967ff12d51f6ed",
+      "timestamp_utc": "2026-09-25T14:58:06Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+          "runtime_identity": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "3f1edfc6f4dce9b1155888e94972d27ba13bddba859edd2124ba8f6e7529a202",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "c43cd59bc8e33353075fd1558dbab20fe70afdefc7a284b05bafd6f1ba8b1d5b",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "Prove edge: RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Demo Readiness",
+          "Token Efficiency",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "FIRST PILOT - AUTHORIZED_MACHINE_ACTION",
+          "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION",
+          "LEDGER/HANDOFF",
+          "PR41 ACCEPTANCE"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "READY",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+          "POST-PILOT HARDENING",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION",
+          "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION",
+          "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+          "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+          "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
+          "RELEASE - AUTHORIZED_MACHINE_ACTION",
+          "PUBLICATION VERIFICATION",
+          "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+          "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION",
+          "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+          "SALES PACKAGE"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "5e94bc410a2fbd01138f5bb37dd2c88892b27f22788ec043764b7d8ecdcc21c0",
+      "revision": 1243,
+      "state_sha256": "5096a290c49518cfe8fc104b3d9e67f8a7508714d0ef39fca38df8d851a75d69",
+      "timestamp_utc": "2026-09-25T14:58:14Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+          "runtime_identity": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "PROVEN_EDGES",
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "747e17a85192e530bb07889c26a696ec2818f613c315db39657b0e1cf026417e",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "3f1edfc6f4dce9b1155888e94972d27ba13bddba859edd2124ba8f6e7529a202",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "Prove edge: RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "LEDGER/HANDOFF",
+          "Token Efficiency",
+          "Demo Readiness",
+          "PR41 ACCEPTANCE",
+          "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "FIRST PILOT - AUTHORIZED_MACHINE_ACTION"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "READY",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "RELEASE - AUTHORIZED_MACHINE_ACTION",
+          "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+          "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLICATION VERIFICATION",
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
+          "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION",
+          "SALES PACKAGE",
+          "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION",
+          "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+          "POST-PILOT HARDENING",
+          "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "048f4f169d98d85b931a1334a2c8ab0b9787be4411ee1e48cb67b1b731a075e2",
+      "revision": 1244,
+      "state_sha256": "0a92368bc96dddfc371c9d0822da92c24f8194af1f222bc2c2747a3ebd5da594",
+      "timestamp_utc": "2026-09-25T16:30:22Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+          "runtime_identity": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "PROVEN_EDGES",
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "ddc90356c286d909cc28f951ab56d27799265838b6372f79aa3de86b0c8e608d",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "747e17a85192e530bb07889c26a696ec2818f613c315db39657b0e1cf026417e",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "Prove edge: RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Token Efficiency",
+          "Demo Readiness",
+          "PR41 ACCEPTANCE",
+          "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION",
+          "FIRST PILOT - AUTHORIZED_MACHINE_ACTION",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "LEDGER/HANDOFF"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "READY",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "RELEASE - AUTHORIZED_MACHINE_ACTION",
+          "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+          "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLICATION VERIFICATION",
+          "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION",
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
+          "SALES PACKAGE",
+          "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION",
+          "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+          "POST-PILOT HARDENING",
+          "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "2ea9ca2b583480a4bc5d88f4dbed5fe565476919568eae9b8f80694a9a6c402d",
+      "revision": 1245,
+      "state_sha256": "21748783abfb4e668124ce182e9bf78aa7b89ea559810e017e0a20397ec4e2a6",
+      "timestamp_utc": "2026-09-25T16:30:29Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+          "runtime_identity": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "PROVEN_EDGES",
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "847e8f198157bbd2bc5dc51530f3a9ee3fe8355ae2f151efb5c00ec74e3c41fe",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "ddc90356c286d909cc28f951ab56d27799265838b6372f79aa3de86b0c8e608d",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "Prove edge: RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "Token Efficiency",
+          "Demo Readiness",
+          "PR41 ACCEPTANCE",
+          "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION",
+          "FIRST PILOT - AUTHORIZED_MACHINE_ACTION",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "LEDGER/HANDOFF",
+          "RELEASE - AUTHORIZED_MACHINE_ACTION"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "READY",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+          "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLICATION VERIFICATION",
+          "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION",
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
+          "SALES PACKAGE",
+          "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION",
+          "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+          "POST-PILOT HARDENING",
+          "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "fb9142aa4603ebeb708c01246a5fa6b51dfaf2b08185eb5da1578f4e7b0c3043",
+      "revision": 1246,
+      "state_sha256": "d35d1daf0bf6b61fe913541fc8caa76b4f062180f43c4b9622c677b5d6fc3652",
+      "timestamp_utc": "2026-09-25T16:30:32Z",
+      "updated_by": "Google-Antigravity"
+    },
+    {
+      "acceptance_guard": {
+        "acceptance_predicate": {
+          "name": "Global-Stop",
+          "required_results": [
+            "ISSUE_STATE"
+          ],
+          "results": {
+            "ISSUE_STATE": {
+              "evidence_urls": [],
+              "observed_value": "NO_FURTHER_ACTION",
+              "status": "UNKNOWN"
+            }
+          },
+          "version": "1.0"
+        },
+        "binding": {
+          "branch": "release-candidate-integration",
+          "current_sha": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+          "runtime_identity": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b"
+        },
+        "evidence": [
+          {
+            "evidence_sha": "7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "observed_at": "2026-09-17T12:00:00Z",
+            "reason": "Latest commit",
+            "runtime_binding": "release-candidate-integration@7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "source_type": "GITHUB_COMMIT",
+            "source_url": "https://github.com/happyhippovip/2026-courier/commit/7d51143b32825ae8ef3684cddbf0a6c6c6695bf5",
+            "validity": "UNKNOWN"
+          }
+        ],
+        "flow": [
+          "EXECUTION",
+          "EVIDENCE",
+          "ACCEPTANCE_GUARD",
+          "LEDGER_TRANSITION",
+          "NEXT_EXECUTABLE_ACTION"
+        ],
+        "transition_state": "PROVISIONAL",
+        "worker_state": "IDLE/YIELDED"
+      },
+      "changed_fields": [
+        "PROVEN_EDGES",
+        "UNPROVEN_EDGES"
+      ],
+      "entry_sha256": "2a3773c0068141f06b51da513b7dc4df0c9309334dac0ae9d43fb0e7165210ec",
+      "operation": "UPDATE",
+      "previous_entry_sha256": "847e8f198157bbd2bc5dc51530f3a9ee3fe8355ae2f151efb5c00ec74e3c41fe",
+      "record": {
+        "ACTIVE_WRITERS": [
+          "Google-Antigravity"
+        ],
+        "BLOCKER_OWNER": "Human",
+        "BRANCH": "release-candidate-integration",
+        "CLEAN_IDLE": "NO",
+        "COLLISION_SCOPE": [
+          "Ledger",
+          "motor-eligibility-v1"
+        ],
+        "CONTINUATION_CHECKPOINT": "zero-chat checkpoint preserved",
+        "CURRENT_SHA": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "DUPLICATE_EXTERNAL_EFFECTS": 0,
+        "FIRST_CAUSAL_BLOCKER": "UNVERIFIED_EXTERNAL_EFFECT_EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+        "GOAL": "COURIER-PUBLIC-RELEASE",
+        "GOALS_SUBMITTED": 1,
+        "LAST_EVIDENCE": [],
+        "LAST_UPDATED_BY": "Google-Antigravity",
+        "MANUAL_PROCESS_RESTARTS": 0,
+        "NEXT_EXECUTABLE_ACTION": "Prove edge: RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+        "PROJECT": "Courier",
+        "PROVEN_EDGES": [
+          "LEDGER/HANDOFF",
+          "Token Efficiency",
+          "Demo Readiness",
+          "PR41 ACCEPTANCE",
+          "RELEASE - AUTHORIZED_MACHINE_ACTION",
+          "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION",
+          "Zero-Chat Handoff",
+          "Website QA",
+          "FIRST PILOT - AUTHORIZED_MACHINE_ACTION"
+        ],
+        "QUEUE_INDEPENDENT": "NO",
+        "RUNTIME_IDENTITY": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
+        "RUNTIME_OWNER": "Google-Antigravity",
+        "STATUS": "READY",
+        "TASKS_COMPLETED": 2,
+        "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
+        "UNPROVEN_EDGES": [
+          "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
+          "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
+          "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLICATION VERIFICATION",
+          "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION",
+          "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
+          "SALES PACKAGE",
+          "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION",
+          "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+          "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION",
+          "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+          "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+          "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+          "POST-PILOT HARDENING",
+          "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION"
+        ],
+        "USER_CONTINUE_MESSAGES": 0,
+        "WORKERS_USED": 1
+      },
+      "record_sha256": "26bc194154358ff97e925d8320eaaa2c0948b55ced97bacc25ea2816069947d2",
+      "revision": 1247,
+      "state_sha256": "d5f7f751957cd3342a60461c66d64bf76f12629e50eabbec13bd76ea4d9838da",
+      "timestamp_utc": "2026-09-25T16:30:38Z",
+      "updated_by": "Google-Antigravity"
     }
   ],
   "non_authority": "Coordination metadata only; this ledger has no scheduler, runtime, execution, dispatch, verification, or Courier truth authority.",
@@ -147275,12 +149646,15 @@
     "NEXT_EXECUTABLE_ACTION": "Prove edge: RELEASE - SAFE_AUTOMATABLE_PREPARATION",
     "PROJECT": "Courier",
     "PROVEN_EDGES": [
-      "PR41 ACCEPTANCE",
-      "Demo Readiness",
       "LEDGER/HANDOFF",
       "Token Efficiency",
+      "Demo Readiness",
+      "PR41 ACCEPTANCE",
+      "RELEASE - AUTHORIZED_MACHINE_ACTION",
+      "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION",
+      "Zero-Chat Handoff",
       "Website QA",
-      "Zero-Chat Handoff"
+      "FIRST PILOT - AUTHORIZED_MACHINE_ACTION"
     ],
     "QUEUE_INDEPENDENT": "NO",
     "RUNTIME_IDENTITY": "3c4eef7ef0e3be2b3a6e665472b7b586a1c08f1b",
@@ -147289,33 +149663,30 @@
     "TASKS_COMPLETED": 2,
     "TEMP_TASK_PROCESSES_AFTER_DONE": 0,
     "UNPROVEN_EDGES": [
-      "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
-      "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION",
-      "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
-      "PUBLICATION VERIFICATION",
-      "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
       "RELEASE - SAFE_AUTOMATABLE_PREPARATION",
-      "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION",
-      "RELEASE - AUTHORIZED_MACHINE_ACTION",
-      "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION",
-      "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
-      "EXTERNAL_PUBLICATION - AUTHORIZED_MACHINE_ACTION",
+      "EXTERNAL_PUBLICATION - SAFE_AUTOMATABLE_PREPARATION",
       "RELEASE - IRREVERSIBLE_HUMAN_ACTION",
       "ONBOARD_FIRST_PILOT_CUSTOMER - SAFE_AUTOMATABLE_PREPARATION",
-      "SALES PACKAGE",
-      "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+      "PUBLICATION VERIFICATION",
       "PILOT INTAKE - AUTHORIZED_MACHINE_ACTION",
-      "POST-PILOT HARDENING",
-      "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
-      "FIRST PILOT - AUTHORIZED_MACHINE_ACTION",
-      "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
-      "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
       "PUBLIC DEPLOYMENT - SAFE_AUTOMATABLE_PREPARATION",
-      "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION"
+      "SALES PACKAGE",
+      "EXTERNAL_PUBLICATION - IRREVERSIBLE_HUMAN_ACTION",
+      "PAYMENT ONLY WHEN ACTUALLY REQUIRED - SAFE_AUTOMATABLE_PREPARATION",
+      "PUBLIC DEPLOYMENT - AUTHORIZED_MACHINE_ACTION",
+      "ONBOARD_FIRST_PILOT_CUSTOMER - IRREVERSIBLE_HUMAN_ACTION",
+      "FIRST PILOT - SAFE_AUTOMATABLE_PREPARATION",
+      "PUBLIC DEPLOYMENT - IRREVERSIBLE_HUMAN_ACTION",
+      "PAYMENT ONLY WHEN ACTUALLY REQUIRED - AUTHORIZED_MACHINE_ACTION",
+      "PILOT INTAKE - IRREVERSIBLE_HUMAN_ACTION",
+      "PAYMENT ONLY WHEN ACTUALLY REQUIRED - IRREVERSIBLE_HUMAN_ACTION",
+      "FIRST PILOT - IRREVERSIBLE_HUMAN_ACTION",
+      "POST-PILOT HARDENING",
+      "PILOT INTAKE - SAFE_AUTOMATABLE_PREPARATION"
     ],
     "USER_CONTINUE_MESSAGES": 0,
     "WORKERS_USED": 1
   },
-  "revision": 1227,
+  "revision": 1247,
   "schema_version": 2
 }

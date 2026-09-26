@@ -1,4 +1,4 @@
-import copy, os, json, re, uuid, time, threading
+import copy, os, json, re, sys, uuid, time, threading
 from functools import wraps
 from flask import Flask, request, jsonify
 
@@ -404,7 +404,7 @@ def require_auth(f):
         if not auth_header or auth_header != expected:
             try:
                 import time
-                with open("C:/Users/lol/2026-workspace/courier/debug_auth2.txt", "a") as f2:
+                with open(os.devnull, "a") as f2:
                     f2.write(f"[{time.time()}] AUTH FAIL: Invalid token provided\n")
             except Exception as e:
                 pass

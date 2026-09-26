@@ -3,6 +3,7 @@ import os
 import json
 import subprocess
 from pathlib import Path
+import datetime
 
 def setup_ledger(tmp_path, unproven_edges, blocker, proven_edges):
     ledger_path = tmp_path / "agent_handoff_ledger.json"
@@ -57,7 +58,7 @@ def setup_ledger(tmp_path, unproven_edges, blocker, proven_edges):
             "current_sha": "0000000000000000000000000000000000000000",
             "runtime_identity": "0000000000000000000000000000000000000000"
         },
-        "evidence": [{"source_url":"https://test.com","source_type":"MACHINE_ARTIFACT","observed_at":"2026-09-17T12:00:00Z","evidence_sha":"0000000000000000000000000000000000000000","runtime_binding":"0000000000000000000000000000000000000000","validity":"VALID","reason":"test"}],
+        "evidence": [{"source_url":"https://test.com","source_type":"MACHINE_ARTIFACT","observed_at":datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),"evidence_sha":"0000000000000000000000000000000000000000","runtime_binding":"0000000000000000000000000000000000000000","validity":"VALID","reason":"test"}],
         "flow": ["EXECUTION", "EVIDENCE", "ACCEPTANCE_GUARD", "LEDGER_TRANSITION", "NEXT_EXECUTABLE_ACTION"]
     }
     

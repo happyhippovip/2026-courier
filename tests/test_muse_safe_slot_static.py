@@ -61,10 +61,14 @@ def test_previous_environment_captured_before_throwing_lookup():
 def test_environment_restored_in_finally():
     text = read()
     finally_at = text.index("finally")
+    # Null-safe restore: a previously-unset variable must be UNSET again via
+    # Remove-Item Env:, never assigned back as an empty string.
+    assert "$null -eq $Previous" in text
+    assert 'Remove-Item "Env:\\$Name"' in text
     for restore in (
-        "$env:XDG_DATA_HOME = $previousData",
-        "$env:MUSE_NO_AUTO_UPDATE = $previousUpdate",
-        "$env:MUSE_LOGIN = $previousLogin",
+        "Restore-SlotEnvValue 'XDG_DATA_HOME' $previousData",
+        "Restore-SlotEnvValue 'MUSE_NO_AUTO_UPDATE' $previousUpdate",
+        "Restore-SlotEnvValue 'MUSE_LOGIN' $previousLogin",
     ):
         assert restore in text
         assert text.index(restore) > finally_at

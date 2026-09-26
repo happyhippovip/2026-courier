@@ -31,7 +31,7 @@ This document outlines the exact steps required to transition the YouTube integr
 2. Run `pip install google-api-python-client google-auth-oauthlib google-auth-httplib2`.
 
 ## Step 6: Initial Authentication (Interactive)
-1. In the `YouTubeProvider`, implement the `google_auth_oauthlib.flow.InstalledAppFlow` to read `client_secret.json`.
+1. In a separate one-time human-operated script (never inside `YouTubeProvider`'s autonomous path, which must stay fail-closed and never start a browser flow), use `google_auth_oauthlib.flow.InstalledAppFlow` to read `client_secret.json`.
 2. Run a script that calls `flow.run_local_server(port=0)`.
 3. The developer will be prompted in their browser to log in and grant the `youtube.upload` scope.
 4. Save the resulting credentials to `.secrets/token.json`.

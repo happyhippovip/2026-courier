@@ -58,7 +58,7 @@ def test_dry_run_upload(fake_credentials, clean_receipts):
     receipt = provider.upload_video(payload, idempotency_key="test-key-123")
     assert receipt["status"] == "dry_run"
     assert receipt["video_id"] == "dry_run_video_id"
-    
+
 def test_duplicate_suppression(fake_credentials, clean_receipts):
     provider = YouTubeProvider(dry_run=True)
     payload = {
@@ -70,14 +70,15 @@ def test_duplicate_suppression(fake_credentials, clean_receipts):
     # Change payload (simulate user changing mind but keeping idempotency key)
     payload["title"] = "Changed Title"
     receipt2 = provider.upload_video(payload, idempotency_key="dup-key")
-    
+
     assert receipt1 == receipt2 # Second call should return the first receipt
 
-def test_real_upload_fails_offline(fake_credentials):
+def test_real_upload_without_token_fails_closed(fake_credentials):
+    """Live mode requires a real OAuth token; a fake reference must fail closed."""
     provider = YouTubeProvider(dry_run=False)
     payload = {
         "title": "Test Video",
         "video_path": "/fake/video.mp4"
     }
-    with pytest.raises(NotImplementedError, match="Real upload is disabled"):
+    with pytest.raises(MissingCredentialError):
         provider.upload_video(payload)

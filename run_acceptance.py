@@ -27,7 +27,7 @@ def run_proof():
         env["COURIER_STATE_FILE"] = str(state_file)
         env["COURIER_SERVER"] = "http://127.0.0.1:8089"
         env["CONFIG_PATH"] = str(config_path)
-        env["STATE_DIR"] = str(worker_state_dir)
+        env["COURIER_WORKER_STATE_DIR"] = str(worker_state_dir)
         env["POLL_INTERVAL_SECONDS"] = "1"
         
         server_proc = subprocess.Popen(

@@ -91,6 +91,7 @@ def run_proof():
                 "result_id": f"res-{task['task_id']}",
                 "verdict": "PASS",
                 "artifacts": [{"path": filename, "sha256": digest}],
+                "received_runtime_identity": task.get("server_binding")
             }
             req = urllib.request.Request("http://127.0.0.1:8080/tasks/verify",
                                         data=json.dumps(verify_data).encode(),

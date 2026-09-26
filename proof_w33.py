@@ -91,7 +91,7 @@ def run_proof():
                 "goal_id": task.get("goal_id"),
                 "run_id": "simulated_run",
                 "status": "SUCCESS",
-                "artifacts": [{"path": filename, "sha256": digest}],
+                "artifacts": [{"path": filename, "sha256": digest}], "received_runtime_identity": task.get("server_binding", "simulated_run"),
                 "stdout": "done",
                 "stderr": ""
             }
@@ -110,7 +110,7 @@ def run_proof():
                 "verifier_id": "w33-verifier",
                 "result_id": f"res-{task['task_id']}",
                 "verdict": "PASS",
-                "artifacts": [{"path": filename, "sha256": digest}],
+                "artifacts": [{"path": filename, "sha256": digest}], "received_runtime_identity": task.get("server_binding", "simulated_run"),
             }
             req = urllib.request.Request("http://127.0.0.1:8080/tasks/verify",
                                         data=json.dumps(verify_data).encode(),

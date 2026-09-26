@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "goals": {
-    "goal-985210cb": {
-      "goal_id": "goal-985210cb",
+    "goal-c8efb616": {
+      "goal_id": "goal-c8efb616",
       "goal_text": "Verify T-W32-G1",
       "status": "DONE",
       "terminal": true,
@@ -11,13 +11,17 @@
           "task_id": "T-W32-G1-0",
           "instruction": "Do step 0",
           "target_agent": "windows",
-          "goal_id": "goal-985210cb",
+          "goal_id": "goal-c8efb616",
           "status": "RECONCILED",
           "attempts": 1,
           "worker_id": "w32-worker1",
           "attempt_id": "T-W32-G1-0:attempt:1",
-          "dispatch_id": "dispatch-2f0a03e0b16943d7a5c79fc5f2830985",
-          "execution_ref": "exec-c16cc46c54ce4f8895c2a4c57fd164f3",
+          "dispatch_id": "dispatch-72712ac478634173978d63395067a095",
+          "execution_ref": "exec-b8f63edc799c4392877b6089091d5328",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:add627ab801a4e129220ced6854867e7"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -25,11 +29,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W32-G1-0.txt"
-          ],
           "verification": {
             "verifier_id": "w32-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W32-G1-0",
             "verdict": "PASS",
             "artifacts": [
@@ -38,20 +40,24 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789620857.34622
+            "verified_at": 1790419290.6394637
           }
         },
         {
           "task_id": "T-W32-G1-1",
           "instruction": "Do step 1",
           "target_agent": "windows",
-          "goal_id": "goal-985210cb",
+          "goal_id": "goal-c8efb616",
           "status": "RECONCILED",
           "attempts": 1,
           "worker_id": "w32-worker2",
           "attempt_id": "T-W32-G1-1:attempt:1",
-          "dispatch_id": "dispatch-4ed3b61aca6b41a2ada51a3c2102020c",
-          "execution_ref": "exec-f1923ce5bce74a988cd37ceef3435e03",
+          "dispatch_id": "dispatch-653e300adb8f4550a197d7a5a498afe1",
+          "execution_ref": "exec-6ac0532401ad4d9dbd6159d58be7fac6",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:add627ab801a4e129220ced6854867e7"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -59,11 +65,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W32-G1-1.txt"
-          ],
           "verification": {
             "verifier_id": "w32-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W32-G1-1",
             "verdict": "PASS",
             "artifacts": [
@@ -72,20 +76,24 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789620857.360494
+            "verified_at": 1790419290.6727688
           }
         },
         {
           "task_id": "T-W32-G1-2",
           "instruction": "Do step 2",
           "target_agent": "windows",
-          "goal_id": "goal-985210cb",
+          "goal_id": "goal-c8efb616",
           "status": "RECONCILED",
           "attempts": 1,
           "worker_id": "w32-worker1",
           "attempt_id": "T-W32-G1-2:attempt:1",
-          "dispatch_id": "dispatch-4d66c75bec6d45289e3c37cb584d8219",
-          "execution_ref": "exec-62d918131e7c4748b78cfc9424eb3a29",
+          "dispatch_id": "dispatch-36d1e71afd1e43d6ba30e8e81683ff86",
+          "execution_ref": "exec-4c02d50437d04724a6bc79cf1902c42f",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:add627ab801a4e129220ced6854867e7"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -93,11 +101,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W32-G1-2.txt"
-          ],
           "verification": {
             "verifier_id": "w32-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W32-G1-2",
             "verdict": "PASS",
             "artifacts": [
@@ -106,20 +112,24 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789620857.4358974
+            "verified_at": 1790419290.8696837
           }
         },
         {
           "task_id": "T-W32-G1-3",
           "instruction": "Do step 3",
           "target_agent": "windows",
-          "goal_id": "goal-985210cb",
+          "goal_id": "goal-c8efb616",
           "status": "RECONCILED",
           "attempts": 1,
           "worker_id": "w32-worker2",
           "attempt_id": "T-W32-G1-3:attempt:1",
-          "dispatch_id": "dispatch-4c39ce1400e14418a6930a9f6145b848",
-          "execution_ref": "exec-e7b0a657831049d5993cda53a7814f2d",
+          "dispatch_id": "dispatch-ddf146973e2c4872869df73956e9c6ac",
+          "execution_ref": "exec-e74b6843fb6140d7a726716b83065678",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:add627ab801a4e129220ced6854867e7"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -127,11 +137,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W32-G1-3.txt"
-          ],
           "verification": {
             "verifier_id": "w32-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W32-G1-3",
             "verdict": "PASS",
             "artifacts": [
@@ -140,20 +148,24 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789620857.4503758
+            "verified_at": 1790419290.8973393
           }
         },
         {
           "task_id": "T-W32-G1-4",
           "instruction": "Do step 4",
           "target_agent": "windows",
-          "goal_id": "goal-985210cb",
+          "goal_id": "goal-c8efb616",
           "status": "RECONCILED",
           "attempts": 1,
           "worker_id": "w32-worker1",
           "attempt_id": "T-W32-G1-4:attempt:1",
-          "dispatch_id": "dispatch-f4dd4d7bca284e58b472c8b06aad2475",
-          "execution_ref": "exec-35d18fb74b594262b917b70a011809da",
+          "dispatch_id": "dispatch-61c582873f3244a5b481a3113d113db9",
+          "execution_ref": "exec-72a1997ebc1f4928a9f4d4a890b2d186",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:add627ab801a4e129220ced6854867e7"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -161,11 +173,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W32-G1-4.txt"
-          ],
           "verification": {
             "verifier_id": "w32-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W32-G1-4",
             "verdict": "PASS",
             "artifacts": [
@@ -174,14 +184,14 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789620857.5137188
+            "verified_at": 1790419291.100991
           }
         }
       ],
       "current_step_index": 0
     },
-    "goal-203662da": {
-      "goal_id": "goal-203662da",
+    "goal-8b06d37b": {
+      "goal_id": "goal-8b06d37b",
       "goal_text": "Verify T-W32-G2",
       "status": "DONE",
       "terminal": true,
@@ -190,13 +200,17 @@
           "task_id": "T-W32-G2-0",
           "instruction": "Do step 0",
           "target_agent": "windows",
-          "goal_id": "goal-203662da",
+          "goal_id": "goal-8b06d37b",
           "status": "RECONCILED",
           "attempts": 1,
-          "worker_id": "w32-worker2",
+          "worker_id": "w32-worker1",
           "attempt_id": "T-W32-G2-0:attempt:1",
-          "dispatch_id": "dispatch-38a5505f926b405baafdbe1c5fe1634e",
-          "execution_ref": "exec-d254995fdb044951bbd70e7b4d706d3a",
+          "dispatch_id": "dispatch-7121d72cfc2943cca539664603548f90",
+          "execution_ref": "exec-e2ff714dfacd4711b2e56bbfac6f69e0",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:add627ab801a4e129220ced6854867e7"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -204,11 +218,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W32-G2-0.txt"
-          ],
           "verification": {
             "verifier_id": "w32-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W32-G2-0",
             "verdict": "PASS",
             "artifacts": [
@@ -217,20 +229,24 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789620857.6747286
+            "verified_at": 1790419291.3114526
           }
         },
         {
           "task_id": "T-W32-G2-1",
           "instruction": "Do step 1",
           "target_agent": "windows",
-          "goal_id": "goal-203662da",
+          "goal_id": "goal-8b06d37b",
           "status": "RECONCILED",
           "attempts": 1,
-          "worker_id": "w32-worker1",
+          "worker_id": "w32-worker2",
           "attempt_id": "T-W32-G2-1:attempt:1",
-          "dispatch_id": "dispatch-e4b27898e77c4172a990f2ef59056b74",
-          "execution_ref": "exec-8eae8631bbbb407cb5dd85b1ce5cd41a",
+          "dispatch_id": "dispatch-d6d26a6f2f9249579fc20731f3c43e55",
+          "execution_ref": "exec-ba75635be249416486a3ba13f2e42570",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:add627ab801a4e129220ced6854867e7"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -238,11 +254,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W32-G2-1.txt"
-          ],
           "verification": {
             "verifier_id": "w32-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W32-G2-1",
             "verdict": "PASS",
             "artifacts": [
@@ -251,20 +265,24 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789620857.6886966
+            "verified_at": 1790419291.3394837
           }
         },
         {
           "task_id": "T-W32-G2-2",
           "instruction": "Do step 2",
           "target_agent": "windows",
-          "goal_id": "goal-203662da",
+          "goal_id": "goal-8b06d37b",
           "status": "RECONCILED",
           "attempts": 1,
-          "worker_id": "w32-worker2",
+          "worker_id": "w32-worker1",
           "attempt_id": "T-W32-G2-2:attempt:1",
-          "dispatch_id": "dispatch-e41717de20594da8abfee34574aa5485",
-          "execution_ref": "exec-bb7fcf34f05c4561951456d18c58c768",
+          "dispatch_id": "dispatch-6311b4e53aae4699ae8950e218fe17e8",
+          "execution_ref": "exec-2fe688b80ded447b892ca06cebe7d674",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:add627ab801a4e129220ced6854867e7"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -272,11 +290,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W32-G2-2.txt"
-          ],
           "verification": {
             "verifier_id": "w32-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W32-G2-2",
             "verdict": "PASS",
             "artifacts": [
@@ -285,20 +301,24 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789620857.7674444
+            "verified_at": 1790419291.5067809
           }
         },
         {
           "task_id": "T-W32-G2-3",
           "instruction": "Do step 3",
           "target_agent": "windows",
-          "goal_id": "goal-203662da",
+          "goal_id": "goal-8b06d37b",
           "status": "RECONCILED",
           "attempts": 1,
-          "worker_id": "w32-worker1",
+          "worker_id": "w32-worker2",
           "attempt_id": "T-W32-G2-3:attempt:1",
-          "dispatch_id": "dispatch-85a31689efab4003af5ec34f22640eda",
-          "execution_ref": "exec-22d8086eb06a4f5dba5f7928910633c7",
+          "dispatch_id": "dispatch-250328f33e82412a9358668ad16c0266",
+          "execution_ref": "exec-92ee6f00c490431c8970881b1d9add48",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:add627ab801a4e129220ced6854867e7"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -306,11 +326,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W32-G2-3.txt"
-          ],
           "verification": {
             "verifier_id": "w32-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W32-G2-3",
             "verdict": "PASS",
             "artifacts": [
@@ -319,20 +337,24 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789620857.7820015
+            "verified_at": 1790419291.5403924
           }
         },
         {
           "task_id": "T-W32-G2-4",
           "instruction": "Do step 4",
           "target_agent": "windows",
-          "goal_id": "goal-203662da",
+          "goal_id": "goal-8b06d37b",
           "status": "RECONCILED",
           "attempts": 1,
-          "worker_id": "w32-worker2",
+          "worker_id": "w32-worker1",
           "attempt_id": "T-W32-G2-4:attempt:1",
-          "dispatch_id": "dispatch-197faf34ec0d4d2cb11b1183c06d98f1",
-          "execution_ref": "exec-40cdfbe445654d35b4a31bace2cb78d1",
+          "dispatch_id": "dispatch-44f9917235f841958bea87adb3df12ca",
+          "execution_ref": "exec-609d3d4c934e4fe09e282f8e3a962328",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:add627ab801a4e129220ced6854867e7"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -340,11 +362,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W32-G2-4.txt"
-          ],
           "verification": {
             "verifier_id": "w32-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W32-G2-4",
             "verdict": "PASS",
             "artifacts": [
@@ -353,7 +373,7 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789620857.8505533
+            "verified_at": 1790419291.6834533
           }
         }
       ],
@@ -365,13 +385,17 @@
       "task_id": "T-W32-G1-0",
       "instruction": "Do step 0",
       "target_agent": "windows",
-      "goal_id": "goal-985210cb",
+      "goal_id": "goal-c8efb616",
       "status": "RECONCILED",
       "attempts": 1,
       "worker_id": "w32-worker1",
       "attempt_id": "T-W32-G1-0:attempt:1",
-      "dispatch_id": "dispatch-2f0a03e0b16943d7a5c79fc5f2830985",
-      "execution_ref": "exec-c16cc46c54ce4f8895c2a4c57fd164f3",
+      "dispatch_id": "dispatch-72712ac478634173978d63395067a095",
+      "execution_ref": "exec-b8f63edc799c4392877b6089091d5328",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:add627ab801a4e129220ced6854867e7"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -384,30 +408,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W32-G1-0.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
+        "dispatch_id": "dispatch-72712ac478634173978d63395067a095",
         "status": "SUCCESS",
+        "result_id": "res-T-W32-G1-0",
         "stderr": "",
-        "execution_ref": "exec-c16cc46c54ce4f8895c2a4c57fd164f3",
         "worker_id": "w32-worker1",
+        "goal_id": "goal-c8efb616",
+        "attempt_id": "T-W32-G1-0:attempt:1",
+        "stdout": "done",
         "task_id": "T-W32-G1-0",
+        "run_id": "simulated_run",
         "artifacts": [
           {
             "path": "courier_canary_T-W32-G1-0.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "attempt_id": "T-W32-G1-0:attempt:1",
-        "stdout": "done",
-        "goal_id": "goal-985210cb",
-        "dispatch_id": "dispatch-2f0a03e0b16943d7a5c79fc5f2830985",
-        "run_id": "simulated_run",
-        "result_id": "res-T-W32-G1-0"
+        "execution_ref": "exec-b8f63edc799c4392877b6089091d5328"
       },
+      "result_received_at": 1790419290.564023,
       "verification": {
         "verifier_id": "w32-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W32-G1-0",
         "verdict": "PASS",
         "artifacts": [
@@ -416,20 +440,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789620857.34622
+        "verified_at": 1790419290.6394637
       }
     },
     "T-W32-G1-1": {
       "task_id": "T-W32-G1-1",
       "instruction": "Do step 1",
       "target_agent": "windows",
-      "goal_id": "goal-985210cb",
+      "goal_id": "goal-c8efb616",
       "status": "RECONCILED",
       "attempts": 1,
       "worker_id": "w32-worker2",
       "attempt_id": "T-W32-G1-1:attempt:1",
-      "dispatch_id": "dispatch-4ed3b61aca6b41a2ada51a3c2102020c",
-      "execution_ref": "exec-f1923ce5bce74a988cd37ceef3435e03",
+      "dispatch_id": "dispatch-653e300adb8f4550a197d7a5a498afe1",
+      "execution_ref": "exec-6ac0532401ad4d9dbd6159d58be7fac6",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:add627ab801a4e129220ced6854867e7"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -442,30 +470,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W32-G1-1.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
+        "dispatch_id": "dispatch-653e300adb8f4550a197d7a5a498afe1",
         "status": "SUCCESS",
+        "result_id": "res-T-W32-G1-1",
         "stderr": "",
-        "execution_ref": "exec-f1923ce5bce74a988cd37ceef3435e03",
         "worker_id": "w32-worker2",
+        "goal_id": "goal-c8efb616",
+        "attempt_id": "T-W32-G1-1:attempt:1",
+        "stdout": "done",
         "task_id": "T-W32-G1-1",
+        "run_id": "simulated_run",
         "artifacts": [
           {
             "path": "courier_canary_T-W32-G1-1.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "attempt_id": "T-W32-G1-1:attempt:1",
-        "stdout": "done",
-        "goal_id": "goal-985210cb",
-        "dispatch_id": "dispatch-4ed3b61aca6b41a2ada51a3c2102020c",
-        "run_id": "simulated_run",
-        "result_id": "res-T-W32-G1-1"
+        "execution_ref": "exec-6ac0532401ad4d9dbd6159d58be7fac6"
       },
+      "result_received_at": 1790419290.6084232,
       "verification": {
         "verifier_id": "w32-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W32-G1-1",
         "verdict": "PASS",
         "artifacts": [
@@ -474,20 +502,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789620857.360494
+        "verified_at": 1790419290.6727688
       }
     },
     "T-W32-G1-2": {
       "task_id": "T-W32-G1-2",
       "instruction": "Do step 2",
       "target_agent": "windows",
-      "goal_id": "goal-985210cb",
+      "goal_id": "goal-c8efb616",
       "status": "RECONCILED",
       "attempts": 1,
       "worker_id": "w32-worker1",
       "attempt_id": "T-W32-G1-2:attempt:1",
-      "dispatch_id": "dispatch-4d66c75bec6d45289e3c37cb584d8219",
-      "execution_ref": "exec-62d918131e7c4748b78cfc9424eb3a29",
+      "dispatch_id": "dispatch-36d1e71afd1e43d6ba30e8e81683ff86",
+      "execution_ref": "exec-4c02d50437d04724a6bc79cf1902c42f",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:add627ab801a4e129220ced6854867e7"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -500,30 +532,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W32-G1-2.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
+        "dispatch_id": "dispatch-36d1e71afd1e43d6ba30e8e81683ff86",
         "status": "SUCCESS",
+        "result_id": "res-T-W32-G1-2",
         "stderr": "",
-        "execution_ref": "exec-62d918131e7c4748b78cfc9424eb3a29",
         "worker_id": "w32-worker1",
+        "goal_id": "goal-c8efb616",
+        "attempt_id": "T-W32-G1-2:attempt:1",
+        "stdout": "done",
         "task_id": "T-W32-G1-2",
+        "run_id": "simulated_run",
         "artifacts": [
           {
             "path": "courier_canary_T-W32-G1-2.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "attempt_id": "T-W32-G1-2:attempt:1",
-        "stdout": "done",
-        "goal_id": "goal-985210cb",
-        "dispatch_id": "dispatch-4d66c75bec6d45289e3c37cb584d8219",
-        "run_id": "simulated_run",
-        "result_id": "res-T-W32-G1-2"
+        "execution_ref": "exec-4c02d50437d04724a6bc79cf1902c42f"
       },
+      "result_received_at": 1790419290.7846227,
       "verification": {
         "verifier_id": "w32-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W32-G1-2",
         "verdict": "PASS",
         "artifacts": [
@@ -532,20 +564,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789620857.4358974
+        "verified_at": 1790419290.8696837
       }
     },
     "T-W32-G1-3": {
       "task_id": "T-W32-G1-3",
       "instruction": "Do step 3",
       "target_agent": "windows",
-      "goal_id": "goal-985210cb",
+      "goal_id": "goal-c8efb616",
       "status": "RECONCILED",
       "attempts": 1,
       "worker_id": "w32-worker2",
       "attempt_id": "T-W32-G1-3:attempt:1",
-      "dispatch_id": "dispatch-4c39ce1400e14418a6930a9f6145b848",
-      "execution_ref": "exec-e7b0a657831049d5993cda53a7814f2d",
+      "dispatch_id": "dispatch-ddf146973e2c4872869df73956e9c6ac",
+      "execution_ref": "exec-e74b6843fb6140d7a726716b83065678",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:add627ab801a4e129220ced6854867e7"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -558,30 +594,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W32-G1-3.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
+        "dispatch_id": "dispatch-ddf146973e2c4872869df73956e9c6ac",
         "status": "SUCCESS",
+        "result_id": "res-T-W32-G1-3",
         "stderr": "",
-        "execution_ref": "exec-e7b0a657831049d5993cda53a7814f2d",
         "worker_id": "w32-worker2",
+        "goal_id": "goal-c8efb616",
+        "attempt_id": "T-W32-G1-3:attempt:1",
+        "stdout": "done",
         "task_id": "T-W32-G1-3",
+        "run_id": "simulated_run",
         "artifacts": [
           {
             "path": "courier_canary_T-W32-G1-3.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "attempt_id": "T-W32-G1-3:attempt:1",
-        "stdout": "done",
-        "goal_id": "goal-985210cb",
-        "dispatch_id": "dispatch-4c39ce1400e14418a6930a9f6145b848",
-        "run_id": "simulated_run",
-        "result_id": "res-T-W32-G1-3"
+        "execution_ref": "exec-e74b6843fb6140d7a726716b83065678"
       },
+      "result_received_at": 1790419290.8138843,
       "verification": {
         "verifier_id": "w32-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W32-G1-3",
         "verdict": "PASS",
         "artifacts": [
@@ -590,20 +626,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789620857.4503758
+        "verified_at": 1790419290.8973393
       }
     },
     "T-W32-G1-4": {
       "task_id": "T-W32-G1-4",
       "instruction": "Do step 4",
       "target_agent": "windows",
-      "goal_id": "goal-985210cb",
+      "goal_id": "goal-c8efb616",
       "status": "RECONCILED",
       "attempts": 1,
       "worker_id": "w32-worker1",
       "attempt_id": "T-W32-G1-4:attempt:1",
-      "dispatch_id": "dispatch-f4dd4d7bca284e58b472c8b06aad2475",
-      "execution_ref": "exec-35d18fb74b594262b917b70a011809da",
+      "dispatch_id": "dispatch-61c582873f3244a5b481a3113d113db9",
+      "execution_ref": "exec-72a1997ebc1f4928a9f4d4a890b2d186",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:add627ab801a4e129220ced6854867e7"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -616,30 +656,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W32-G1-4.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
+        "dispatch_id": "dispatch-61c582873f3244a5b481a3113d113db9",
         "status": "SUCCESS",
+        "result_id": "res-T-W32-G1-4",
         "stderr": "",
-        "execution_ref": "exec-35d18fb74b594262b917b70a011809da",
         "worker_id": "w32-worker1",
+        "goal_id": "goal-c8efb616",
+        "attempt_id": "T-W32-G1-4:attempt:1",
+        "stdout": "done",
         "task_id": "T-W32-G1-4",
+        "run_id": "simulated_run",
         "artifacts": [
           {
             "path": "courier_canary_T-W32-G1-4.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "attempt_id": "T-W32-G1-4:attempt:1",
-        "stdout": "done",
-        "goal_id": "goal-985210cb",
-        "dispatch_id": "dispatch-f4dd4d7bca284e58b472c8b06aad2475",
-        "run_id": "simulated_run",
-        "result_id": "res-T-W32-G1-4"
+        "execution_ref": "exec-72a1997ebc1f4928a9f4d4a890b2d186"
       },
+      "result_received_at": 1790419291.0482569,
       "verification": {
         "verifier_id": "w32-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W32-G1-4",
         "verdict": "PASS",
         "artifacts": [
@@ -648,20 +688,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789620857.5137188
+        "verified_at": 1790419291.100991
       }
     },
     "T-W32-G2-0": {
       "task_id": "T-W32-G2-0",
       "instruction": "Do step 0",
       "target_agent": "windows",
-      "goal_id": "goal-203662da",
+      "goal_id": "goal-8b06d37b",
       "status": "RECONCILED",
       "attempts": 1,
-      "worker_id": "w32-worker2",
+      "worker_id": "w32-worker1",
       "attempt_id": "T-W32-G2-0:attempt:1",
-      "dispatch_id": "dispatch-38a5505f926b405baafdbe1c5fe1634e",
-      "execution_ref": "exec-d254995fdb044951bbd70e7b4d706d3a",
+      "dispatch_id": "dispatch-7121d72cfc2943cca539664603548f90",
+      "execution_ref": "exec-e2ff714dfacd4711b2e56bbfac6f69e0",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:add627ab801a4e129220ced6854867e7"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -674,30 +718,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W32-G2-0.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
+        "dispatch_id": "dispatch-7121d72cfc2943cca539664603548f90",
         "status": "SUCCESS",
+        "result_id": "res-T-W32-G2-0",
         "stderr": "",
-        "execution_ref": "exec-d254995fdb044951bbd70e7b4d706d3a",
-        "worker_id": "w32-worker2",
+        "worker_id": "w32-worker1",
+        "goal_id": "goal-8b06d37b",
+        "attempt_id": "T-W32-G2-0:attempt:1",
+        "stdout": "done",
         "task_id": "T-W32-G2-0",
+        "run_id": "simulated_run",
         "artifacts": [
           {
             "path": "courier_canary_T-W32-G2-0.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "attempt_id": "T-W32-G2-0:attempt:1",
-        "stdout": "done",
-        "goal_id": "goal-203662da",
-        "dispatch_id": "dispatch-38a5505f926b405baafdbe1c5fe1634e",
-        "run_id": "simulated_run",
-        "result_id": "res-T-W32-G2-0"
+        "execution_ref": "exec-e2ff714dfacd4711b2e56bbfac6f69e0"
       },
+      "result_received_at": 1790419291.25161,
       "verification": {
         "verifier_id": "w32-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W32-G2-0",
         "verdict": "PASS",
         "artifacts": [
@@ -706,20 +750,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789620857.6747286
+        "verified_at": 1790419291.3114526
       }
     },
     "T-W32-G2-1": {
       "task_id": "T-W32-G2-1",
       "instruction": "Do step 1",
       "target_agent": "windows",
-      "goal_id": "goal-203662da",
+      "goal_id": "goal-8b06d37b",
       "status": "RECONCILED",
       "attempts": 1,
-      "worker_id": "w32-worker1",
+      "worker_id": "w32-worker2",
       "attempt_id": "T-W32-G2-1:attempt:1",
-      "dispatch_id": "dispatch-e4b27898e77c4172a990f2ef59056b74",
-      "execution_ref": "exec-8eae8631bbbb407cb5dd85b1ce5cd41a",
+      "dispatch_id": "dispatch-d6d26a6f2f9249579fc20731f3c43e55",
+      "execution_ref": "exec-ba75635be249416486a3ba13f2e42570",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:add627ab801a4e129220ced6854867e7"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -732,30 +780,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W32-G2-1.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
+        "dispatch_id": "dispatch-d6d26a6f2f9249579fc20731f3c43e55",
         "status": "SUCCESS",
+        "result_id": "res-T-W32-G2-1",
         "stderr": "",
-        "execution_ref": "exec-8eae8631bbbb407cb5dd85b1ce5cd41a",
-        "worker_id": "w32-worker1",
+        "worker_id": "w32-worker2",
+        "goal_id": "goal-8b06d37b",
+        "attempt_id": "T-W32-G2-1:attempt:1",
+        "stdout": "done",
         "task_id": "T-W32-G2-1",
+        "run_id": "simulated_run",
         "artifacts": [
           {
             "path": "courier_canary_T-W32-G2-1.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "attempt_id": "T-W32-G2-1:attempt:1",
-        "stdout": "done",
-        "goal_id": "goal-203662da",
-        "dispatch_id": "dispatch-e4b27898e77c4172a990f2ef59056b74",
-        "run_id": "simulated_run",
-        "result_id": "res-T-W32-G2-1"
+        "execution_ref": "exec-ba75635be249416486a3ba13f2e42570"
       },
+      "result_received_at": 1790419291.2817965,
       "verification": {
         "verifier_id": "w32-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W32-G2-1",
         "verdict": "PASS",
         "artifacts": [
@@ -764,20 +812,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789620857.6886966
+        "verified_at": 1790419291.3394837
       }
     },
     "T-W32-G2-2": {
       "task_id": "T-W32-G2-2",
       "instruction": "Do step 2",
       "target_agent": "windows",
-      "goal_id": "goal-203662da",
+      "goal_id": "goal-8b06d37b",
       "status": "RECONCILED",
       "attempts": 1,
-      "worker_id": "w32-worker2",
+      "worker_id": "w32-worker1",
       "attempt_id": "T-W32-G2-2:attempt:1",
-      "dispatch_id": "dispatch-e41717de20594da8abfee34574aa5485",
-      "execution_ref": "exec-bb7fcf34f05c4561951456d18c58c768",
+      "dispatch_id": "dispatch-6311b4e53aae4699ae8950e218fe17e8",
+      "execution_ref": "exec-2fe688b80ded447b892ca06cebe7d674",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:add627ab801a4e129220ced6854867e7"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -790,30 +842,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W32-G2-2.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
+        "dispatch_id": "dispatch-6311b4e53aae4699ae8950e218fe17e8",
         "status": "SUCCESS",
+        "result_id": "res-T-W32-G2-2",
         "stderr": "",
-        "execution_ref": "exec-bb7fcf34f05c4561951456d18c58c768",
-        "worker_id": "w32-worker2",
+        "worker_id": "w32-worker1",
+        "goal_id": "goal-8b06d37b",
+        "attempt_id": "T-W32-G2-2:attempt:1",
+        "stdout": "done",
         "task_id": "T-W32-G2-2",
+        "run_id": "simulated_run",
         "artifacts": [
           {
             "path": "courier_canary_T-W32-G2-2.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "attempt_id": "T-W32-G2-2:attempt:1",
-        "stdout": "done",
-        "goal_id": "goal-203662da",
-        "dispatch_id": "dispatch-e41717de20594da8abfee34574aa5485",
-        "run_id": "simulated_run",
-        "result_id": "res-T-W32-G2-2"
+        "execution_ref": "exec-2fe688b80ded447b892ca06cebe7d674"
       },
+      "result_received_at": 1790419291.442106,
       "verification": {
         "verifier_id": "w32-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W32-G2-2",
         "verdict": "PASS",
         "artifacts": [
@@ -822,20 +874,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789620857.7674444
+        "verified_at": 1790419291.5067809
       }
     },
     "T-W32-G2-3": {
       "task_id": "T-W32-G2-3",
       "instruction": "Do step 3",
       "target_agent": "windows",
-      "goal_id": "goal-203662da",
+      "goal_id": "goal-8b06d37b",
       "status": "RECONCILED",
       "attempts": 1,
-      "worker_id": "w32-worker1",
+      "worker_id": "w32-worker2",
       "attempt_id": "T-W32-G2-3:attempt:1",
-      "dispatch_id": "dispatch-85a31689efab4003af5ec34f22640eda",
-      "execution_ref": "exec-22d8086eb06a4f5dba5f7928910633c7",
+      "dispatch_id": "dispatch-250328f33e82412a9358668ad16c0266",
+      "execution_ref": "exec-92ee6f00c490431c8970881b1d9add48",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:add627ab801a4e129220ced6854867e7"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -848,30 +904,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W32-G2-3.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
+        "dispatch_id": "dispatch-250328f33e82412a9358668ad16c0266",
         "status": "SUCCESS",
+        "result_id": "res-T-W32-G2-3",
         "stderr": "",
-        "execution_ref": "exec-22d8086eb06a4f5dba5f7928910633c7",
-        "worker_id": "w32-worker1",
+        "worker_id": "w32-worker2",
+        "goal_id": "goal-8b06d37b",
+        "attempt_id": "T-W32-G2-3:attempt:1",
+        "stdout": "done",
         "task_id": "T-W32-G2-3",
+        "run_id": "simulated_run",
         "artifacts": [
           {
             "path": "courier_canary_T-W32-G2-3.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "attempt_id": "T-W32-G2-3:attempt:1",
-        "stdout": "done",
-        "goal_id": "goal-203662da",
-        "dispatch_id": "dispatch-85a31689efab4003af5ec34f22640eda",
-        "run_id": "simulated_run",
-        "result_id": "res-T-W32-G2-3"
+        "execution_ref": "exec-92ee6f00c490431c8970881b1d9add48"
       },
+      "result_received_at": 1790419291.4725366,
       "verification": {
         "verifier_id": "w32-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W32-G2-3",
         "verdict": "PASS",
         "artifacts": [
@@ -880,20 +936,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789620857.7820015
+        "verified_at": 1790419291.5403924
       }
     },
     "T-W32-G2-4": {
       "task_id": "T-W32-G2-4",
       "instruction": "Do step 4",
       "target_agent": "windows",
-      "goal_id": "goal-203662da",
+      "goal_id": "goal-8b06d37b",
       "status": "RECONCILED",
       "attempts": 1,
-      "worker_id": "w32-worker2",
+      "worker_id": "w32-worker1",
       "attempt_id": "T-W32-G2-4:attempt:1",
-      "dispatch_id": "dispatch-197faf34ec0d4d2cb11b1183c06d98f1",
-      "execution_ref": "exec-40cdfbe445654d35b4a31bace2cb78d1",
+      "dispatch_id": "dispatch-44f9917235f841958bea87adb3df12ca",
+      "execution_ref": "exec-609d3d4c934e4fe09e282f8e3a962328",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:add627ab801a4e129220ced6854867e7"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -906,30 +966,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W32-G2-4.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
+        "dispatch_id": "dispatch-44f9917235f841958bea87adb3df12ca",
         "status": "SUCCESS",
+        "result_id": "res-T-W32-G2-4",
         "stderr": "",
-        "execution_ref": "exec-40cdfbe445654d35b4a31bace2cb78d1",
-        "worker_id": "w32-worker2",
+        "worker_id": "w32-worker1",
+        "goal_id": "goal-8b06d37b",
+        "attempt_id": "T-W32-G2-4:attempt:1",
+        "stdout": "done",
         "task_id": "T-W32-G2-4",
+        "run_id": "simulated_run",
         "artifacts": [
           {
             "path": "courier_canary_T-W32-G2-4.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "attempt_id": "T-W32-G2-4:attempt:1",
-        "stdout": "done",
-        "goal_id": "goal-203662da",
-        "dispatch_id": "dispatch-197faf34ec0d4d2cb11b1183c06d98f1",
-        "run_id": "simulated_run",
-        "result_id": "res-T-W32-G2-4"
+        "execution_ref": "exec-609d3d4c934e4fe09e282f8e3a962328"
       },
+      "result_received_at": 1790419291.6465638,
       "verification": {
         "verifier_id": "w32-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W32-G2-4",
         "verdict": "PASS",
         "artifacts": [
@@ -938,7 +998,7 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789620857.8505533
+        "verified_at": 1790419291.6834533
       }
     }
   },
@@ -949,7 +1009,12 @@
       "capabilities": [
         "windows"
       ],
-      "last_seen": 1789620857.8180091,
+      "authorities": [],
+      "provider": null,
+      "capacity_identity": null,
+      "provider_available": true,
+      "capacity_available": true,
+      "last_seen": 1790419291.5769613,
       "available": true,
       "current_task": null,
       "cost_class": "unknown"
@@ -960,10 +1025,16 @@
       "capabilities": [
         "windows"
       ],
-      "last_seen": 1789620857.796795,
+      "authorities": [],
+      "provider": null,
+      "capacity_identity": null,
+      "provider_available": true,
+      "capacity_available": true,
+      "last_seen": 1790419291.6103082,
       "available": true,
       "current_task": null,
       "cost_class": "unknown"
     }
-  }
+  },
+  "resource_owners": {}
 }

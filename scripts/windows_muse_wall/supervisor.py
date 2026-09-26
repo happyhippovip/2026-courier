@@ -40,6 +40,105 @@ class MuseWallSupervisor:
     def state_path(self, slot_id):
         return self.slot_dir(slot_id) / "state.json"
 
+    def job_path(self, slot_id):
+        return self.slot_dir(slot_id) / "job.json"
+
+    def job_log_path(self, slot_id, job_id):
+        return self.slot_dir(slot_id) / "logs" / f"job-{job_id}.log"
+
+    @staticmethod
+    def test_job_snippet(job_id, slot_id):
+        """The ONLY command template runnable as kind=test (harmless, unique)."""
+        return f"print('{job_id} on {slot_id} OK')"
+
+    def assign_job(self, slot_id, job_id, kind="test", prompt=None, overwrite=False):
+        """Map one job to one slot (Slot NN <- Job NN). Test jobs carry the
+        generated unique print snippet; real commands need kind=real and the
+        real_jobs_enabled gate at run time. Never launches a process."""
+        number = slot_id.rsplit("-", 1)[-1]
+        if job_id.rsplit("-", 1)[-1] != number:
+            return {"assigned": False, "reason": "slot_job_mismatch"}
+        with SlotLock(self.slot_dir(slot_id) / "slot.lock"):
+            slot = self.load_slot(slot_id)  # validates slot identity
+            if self.job_path(slot_id).exists() and not overwrite:
+                existing = read_json(self.job_path(slot_id))
+                if existing.get("status") in {"ASSIGNED", "RUNNING"}:
+                    return {"assigned": False, "reason": "job_pending"}
+            if kind == "test":
+                command = [sys.executable, "-c", self.test_job_snippet(job_id, slot_id)]
+            else:
+                command = None  # real command is supplied at run time, never guessed
+            job = {
+                "job_id": job_id,
+                "slot_id": slot_id,
+                "kind": kind,
+                "command": command,
+                "prompt": prompt,
+                "status": "ASSIGNED",
+                "created_at": time.time(),
+            }
+            atomic_write(self.job_path(slot_id), job)
+            return {"assigned": True, "reason": "assigned", "job": job}
+
+    def assign_all_test(self, count):
+        """Slot 01 <- Job 01 ... Slot NN <- Job NN (each unique, none identical)."""
+        results = []
+        for index in range(1, count + 1):
+            slot_id = self.slot_id(index)
+            job_id = f"JOB-{index:02d}"
+            outcome = self.assign_job(slot_id, job_id, kind="test", overwrite=True)
+            results.append({"slot_id": slot_id, "job_id": job_id, **outcome})
+        return results
+
+    def run_job(self, slot_id, real_command=None):
+        """Run the assigned job via the standard gated start path (exact-process
+        ownership, per-slot log). Test jobs re-verify the known template;
+        real jobs require config real_jobs_enabled plus an explicit command."""
+        try:
+            job = read_json(self.job_path(slot_id))
+        except StateCorruptionError:
+            return {"started": False, "reason": "no_job_assigned"}
+        if job.get("slot_id") != slot_id or job.get("status") != "ASSIGNED":
+            return {"started": False, "reason": "job_not_runnable"}
+        if job.get("kind") == "test":
+            expected = [sys.executable, "-c", self.test_job_snippet(job["job_id"], slot_id)]
+            if job.get("command") != expected:
+                return {"started": False, "reason": "test_template_mismatch"}
+            command = expected
+        else:
+            if not self.config.get("real_jobs_enabled", False):
+                return {"started": False, "reason": "real_jobs_disabled"}
+            if not real_command:
+                return {"started": False, "reason": "no_launch_command"}
+            command = real_command
+        log_path = self.job_log_path(slot_id, job["job_id"])
+        started = self.start_slot(slot_id, command, log_path=str(log_path))
+        if not started["started"]:
+            return started
+        with SlotLock(self.slot_dir(slot_id) / "slot.lock"):
+            job = read_json(self.job_path(slot_id))
+            job["status"] = "RUNNING"
+            job["started_at"] = time.time()
+            atomic_write(self.job_path(slot_id), job)
+        return {"started": True, "reason": "started", "job": job}
+
+    def job_status(self, slot_id):
+        """Reap finished one-shot jobs to DONE (terminal, no CRASHED pollution)."""
+        with SlotLock(self.slot_dir(slot_id) / "slot.lock"):
+            slot = self.load_slot(slot_id)
+            try:
+                job = read_json(self.job_path(slot_id))
+            except StateCorruptionError:
+                return {"slot_id": slot_id, "job": None, "slot_state": slot["state"]}
+            if job.get("status") == "RUNNING" and not process_matches(slot.get("process")):
+                slot["process"] = None
+                slot["state"] = "DONE"
+                self.save_slot(slot)
+                job["status"] = "DONE"
+                job["finished_at"] = time.time()
+                atomic_write(self.job_path(slot_id), job)
+            return {"slot_id": slot_id, "job": job, "slot_state": slot["state"]}
+
     def initialize(self):
         for index in range(1, self.desired_slots + 1):
             slot_id = self.slot_id(index)
@@ -70,7 +169,7 @@ class MuseWallSupervisor:
                 self.save_slot(slot)
             return slot
 
-    def start_slot(self, slot_id, command=None):
+    def start_slot(self, slot_id, command=None, log_path=None):
         """Start only a supplied test command; provider starts are default-denied."""
         with SlotLock(self.slot_dir(slot_id) / "slot.lock"):
             slot = self.load_slot(slot_id)
@@ -80,7 +179,15 @@ class MuseWallSupervisor:
                 return {"started": False, "reason": "provider_launch_disabled", "slot": slot}
             if command is None:
                 return {"started": False, "reason": "no_launch_command", "slot": slot}
-            process = subprocess.Popen(command, cwd=slot["workdir"], stdin=subprocess.DEVNULL)
+            if log_path is None:
+                process = subprocess.Popen(command, cwd=slot["workdir"], stdin=subprocess.DEVNULL)
+            else:
+                Path(log_path).parent.mkdir(parents=True, exist_ok=True)
+                with open(log_path, "ab") as log_handle:
+                    process = subprocess.Popen(
+                        command, cwd=slot["workdir"], stdin=subprocess.DEVNULL,
+                        stdout=log_handle, stderr=subprocess.STDOUT,
+                    )
             slot["process"] = {
                 "pid": process.pid,
                 "create_time": psutil.Process(process.pid).create_time(),
@@ -140,12 +247,17 @@ def repo_root():
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=("init", "status", "admit", "stop"))
+    parser.add_argument(
+        "command",
+        choices=("init", "status", "admit", "stop", "assign-job", "assign-all-test", "run-job", "job-status"),
+    )
     # Canonical runtime lives at <repo>/runtime/slots; the wall directory
     # itself is NOT a second truth store (SECOND_TRUTH_STORE=NO).
     parser.add_argument("--root", default=str(repo_root()))
     parser.add_argument("--level", type=int)
     parser.add_argument("--slot")
+    parser.add_argument("--job")
+    parser.add_argument("--count", type=int, default=32)
     arguments = parser.parse_args()
     supervisor = MuseWallSupervisor(arguments.root)
     supervisor.initialize()
@@ -155,6 +267,14 @@ def main():
         print(supervisor.status())
     elif arguments.command == "admit":
         print({"admitted": supervisor.admitted_count(arguments.level)})
+    elif arguments.command == "assign-job":
+        print(supervisor.assign_job(arguments.slot, arguments.job))
+    elif arguments.command == "assign-all-test":
+        print(supervisor.assign_all_test(arguments.count))
+    elif arguments.command == "run-job":
+        print(supervisor.run_job(arguments.slot))
+    elif arguments.command == "job-status":
+        print(supervisor.job_status(arguments.slot))
     else:
         print(supervisor.stop_slot(arguments.slot))
 

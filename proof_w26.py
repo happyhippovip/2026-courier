@@ -12,6 +12,7 @@ def run_proof():
         os.remove("test_central_state.json")
         
     os.environ["COURIER_API_KEY"] = "test-secret-key"
+    os.environ["COURIER_VERIFIER_API_KEY"] = "test-secret-key"
     os.environ["COURIER_WORKER_ID"] = "w26-worker"
     
     import importlib

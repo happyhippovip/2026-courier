@@ -73,6 +73,8 @@ def test_restart_resume_torture(tmp_path):
         data = json.load(f)
     
     unproven = data["record"]["UNPROVEN_EDGES"]
+    print("RES2 STDOUT:", res2.stdout)
+    print("RES2 STDERR:", res2.stderr)
     assert torture_task not in unproven, "Torture task must be removed from unproven edges upon completion"
 
 

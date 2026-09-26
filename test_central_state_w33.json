@@ -1,23 +1,27 @@
 {
   "schema_version": 2,
   "goals": {
-    "goal-c8a3ce85": {
-      "goal_id": "goal-c8a3ce85",
+    "goal-01240f7e": {
+      "goal_id": "goal-01240f7e",
       "goal_text": "W33_SPECIAL_GOAL",
-      "status": "DONE",
+      "status": "BLOCKED",
       "terminal": false,
       "workflow_plan": [
         {
           "task_id": "T-W33-1-0",
-          "goal_id": "goal-c8a3ce85",
+          "goal_id": "goal-01240f7e",
           "instruction": "Batch 1 Step 0",
           "target_agent": "windows",
           "status": "RECONCILED",
           "attempts": 1,
           "worker_id": "w33-worker",
           "attempt_id": "T-W33-1-0:attempt:1",
-          "dispatch_id": "dispatch-8490e409745548c1be27de513cd0a15e",
-          "execution_ref": "exec-3b38666717f243a6bcc2e10c21fd993f",
+          "dispatch_id": "dispatch-3ebbaf3da0ba44f1a85a4480dfbc7334",
+          "execution_ref": "exec-112d7003f60c43628ebc4e1e3c998559",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -25,11 +29,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W33-1-0.txt"
-          ],
           "verification": {
             "verifier_id": "w33-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W33-1-0",
             "verdict": "PASS",
             "artifacts": [
@@ -38,20 +40,24 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789621026.4771388
+            "verified_at": 1790419310.377187
           }
         },
         {
           "task_id": "T-W33-1-1",
-          "goal_id": "goal-c8a3ce85",
+          "goal_id": "goal-01240f7e",
           "instruction": "Batch 1 Step 1",
           "target_agent": "windows",
           "status": "RECONCILED",
           "attempts": 1,
           "worker_id": "w33-worker",
           "attempt_id": "T-W33-1-1:attempt:1",
-          "dispatch_id": "dispatch-1fdfa4f2c05e47d29c0350d75f7ccc1e",
-          "execution_ref": "exec-7bd710b31e7a461fb3d1d49767990623",
+          "dispatch_id": "dispatch-7f7237dc47dd43819e4d3f9d28bf813d",
+          "execution_ref": "exec-5c2955769226489badca4435218b2de6",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -59,11 +65,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W33-1-1.txt"
-          ],
           "verification": {
             "verifier_id": "w33-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W33-1-1",
             "verdict": "PASS",
             "artifacts": [
@@ -72,20 +76,24 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789621026.5258985
+            "verified_at": 1790419310.486279
           }
         },
         {
           "task_id": "T-W33-1-2",
-          "goal_id": "goal-c8a3ce85",
+          "goal_id": "goal-01240f7e",
           "instruction": "Batch 1 Step 2",
           "target_agent": "windows",
           "status": "RECONCILED",
           "attempts": 1,
           "worker_id": "w33-worker",
           "attempt_id": "T-W33-1-2:attempt:1",
-          "dispatch_id": "dispatch-d6392ce159ca4936a93e0a9fc38ec6ad",
-          "execution_ref": "exec-5f7cd16b95bd42498dedc30a08965ef1",
+          "dispatch_id": "dispatch-b831d73b50d04954877eb36272304d40",
+          "execution_ref": "exec-3326b66003184ee28459632f0b385fc8",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -93,11 +101,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W33-1-2.txt"
-          ],
           "verification": {
             "verifier_id": "w33-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W33-1-2",
             "verdict": "PASS",
             "artifacts": [
@@ -106,20 +112,24 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789621026.5720894
+            "verified_at": 1790419310.6039846
           }
         },
         {
           "task_id": "T-W33-1-3",
-          "goal_id": "goal-c8a3ce85",
+          "goal_id": "goal-01240f7e",
           "instruction": "Batch 1 Step 3",
           "target_agent": "windows",
           "status": "RECONCILED",
           "attempts": 1,
           "worker_id": "w33-worker",
           "attempt_id": "T-W33-1-3:attempt:1",
-          "dispatch_id": "dispatch-c5c29f3154ba40378dd0c2af6602d980",
-          "execution_ref": "exec-76212308a0514f4fa1658310bb3effea",
+          "dispatch_id": "dispatch-1a8cc5f1bae845fa8cc97711471cdb43",
+          "execution_ref": "exec-7d402616ad3549e6976189e7a49f3949",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -127,11 +137,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W33-1-3.txt"
-          ],
           "verification": {
             "verifier_id": "w33-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W33-1-3",
             "verdict": "PASS",
             "artifacts": [
@@ -140,20 +148,24 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789621026.6218688
+            "verified_at": 1790419310.71423
           }
         },
         {
           "task_id": "T-W33-1-4",
-          "goal_id": "goal-c8a3ce85",
+          "goal_id": "goal-01240f7e",
           "instruction": "Batch 1 Step 4",
           "target_agent": "windows",
           "status": "RECONCILED",
           "attempts": 1,
           "worker_id": "w33-worker",
           "attempt_id": "T-W33-1-4:attempt:1",
-          "dispatch_id": "dispatch-49bb37eaed094ab99b5903738a8256fa",
-          "execution_ref": "exec-2d15468f790142e0a8816e11ec5a84b4",
+          "dispatch_id": "dispatch-581c505600824c63b7973261c13d5db3",
+          "execution_ref": "exec-2d45a6c5f7ce470a89a82affd8a79248",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -161,11 +173,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W33-1-4.txt"
-          ],
           "verification": {
             "verifier_id": "w33-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W33-1-4",
             "verdict": "PASS",
             "artifacts": [
@@ -174,20 +184,24 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789621026.6747582
+            "verified_at": 1790419310.8096163
           }
         },
         {
           "task_id": "T-W33-2-0",
-          "goal_id": "goal-c8a3ce85",
+          "goal_id": "goal-01240f7e",
           "instruction": "Batch 2 Step 0",
           "target_agent": "windows",
           "status": "RECONCILED",
           "attempts": 1,
           "worker_id": "w33-worker",
           "attempt_id": "T-W33-2-0:attempt:1",
-          "dispatch_id": "dispatch-6cf7e59927de47b1ae0262afded3921b",
-          "execution_ref": "exec-3ee5f686e99f40d18246028242857e21",
+          "dispatch_id": "dispatch-d5b6292a21904db080c5e112ba2380fc",
+          "execution_ref": "exec-3b53f5e3667a45f284a5be216b232f8a",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -195,11 +209,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W33-2-0.txt"
-          ],
           "verification": {
             "verifier_id": "w33-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W33-2-0",
             "verdict": "PASS",
             "artifacts": [
@@ -208,20 +220,24 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789621026.7278893
+            "verified_at": 1790419310.9224439
           }
         },
         {
           "task_id": "T-W33-2-1",
-          "goal_id": "goal-c8a3ce85",
+          "goal_id": "goal-01240f7e",
           "instruction": "Batch 2 Step 1",
           "target_agent": "windows",
           "status": "RECONCILED",
           "attempts": 1,
           "worker_id": "w33-worker",
           "attempt_id": "T-W33-2-1:attempt:1",
-          "dispatch_id": "dispatch-5cd4f83e1b7e4e1296295387d371eb47",
-          "execution_ref": "exec-7296750b83ea4df8b9bb7ef949f85c4a",
+          "dispatch_id": "dispatch-744be7853aa74021bc5b998f40c9139a",
+          "execution_ref": "exec-8f2cab7aea664497abdcce3a8f8707db",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -229,11 +245,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W33-2-1.txt"
-          ],
           "verification": {
             "verifier_id": "w33-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W33-2-1",
             "verdict": "PASS",
             "artifacts": [
@@ -242,20 +256,24 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789621026.7831573
+            "verified_at": 1790419311.0301094
           }
         },
         {
           "task_id": "T-W33-2-2",
-          "goal_id": "goal-c8a3ce85",
+          "goal_id": "goal-01240f7e",
           "instruction": "Batch 2 Step 2",
           "target_agent": "windows",
           "status": "RECONCILED",
           "attempts": 1,
           "worker_id": "w33-worker",
           "attempt_id": "T-W33-2-2:attempt:1",
-          "dispatch_id": "dispatch-abe47bb2ff424abca2fc75ea184fb38d",
-          "execution_ref": "exec-c27922373a73444fbb7156d40dbe698c",
+          "dispatch_id": "dispatch-02357b917ac348e3a2ae4bae9a84d18a",
+          "execution_ref": "exec-bce13e893bfe476887f208ffaae7a376",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -263,11 +281,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W33-2-2.txt"
-          ],
           "verification": {
             "verifier_id": "w33-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W33-2-2",
             "verdict": "PASS",
             "artifacts": [
@@ -276,20 +292,24 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789621026.8385189
+            "verified_at": 1790419311.1403599
           }
         },
         {
           "task_id": "T-W33-2-3",
-          "goal_id": "goal-c8a3ce85",
+          "goal_id": "goal-01240f7e",
           "instruction": "Batch 2 Step 3",
           "target_agent": "windows",
           "status": "RECONCILED",
           "attempts": 1,
           "worker_id": "w33-worker",
           "attempt_id": "T-W33-2-3:attempt:1",
-          "dispatch_id": "dispatch-e2dc7929361d40cd91336718123f87c4",
-          "execution_ref": "exec-70a3967cd1b04f58baa3758ea2535266",
+          "dispatch_id": "dispatch-0c4337e82c5d48878a52999799534b49",
+          "execution_ref": "exec-ceda8bd00a7f4efa9d444efe5cfd44d5",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -297,11 +317,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W33-2-3.txt"
-          ],
           "verification": {
             "verifier_id": "w33-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W33-2-3",
             "verdict": "PASS",
             "artifacts": [
@@ -310,20 +328,24 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789621026.890404
+            "verified_at": 1790419311.2522004
           }
         },
         {
           "task_id": "T-W33-2-4",
-          "goal_id": "goal-c8a3ce85",
+          "goal_id": "goal-01240f7e",
           "instruction": "Batch 2 Step 4",
           "target_agent": "windows",
           "status": "RECONCILED",
           "attempts": 1,
           "worker_id": "w33-worker",
           "attempt_id": "T-W33-2-4:attempt:1",
-          "dispatch_id": "dispatch-a1189210820e46f5970e1b0e30b6b92d",
-          "execution_ref": "exec-04755bc9049e4f5a871856e20071265a",
+          "dispatch_id": "dispatch-70983a35493a42f18f1f8bb5d8ff90be",
+          "execution_ref": "exec-00839bb658e2459a85c33e2338ca1ce2",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -331,11 +353,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W33-2-4.txt"
-          ],
           "verification": {
             "verifier_id": "w33-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W33-2-4",
             "verdict": "PASS",
             "artifacts": [
@@ -344,20 +364,24 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789621026.9501371
+            "verified_at": 1790419311.3747013
           }
         },
         {
           "task_id": "T-W33-3-0",
-          "goal_id": "goal-c8a3ce85",
+          "goal_id": "goal-01240f7e",
           "instruction": "Batch 3 Step 0",
           "target_agent": "windows",
           "status": "RECONCILED",
           "attempts": 1,
           "worker_id": "w33-worker",
           "attempt_id": "T-W33-3-0:attempt:1",
-          "dispatch_id": "dispatch-4357cba0e1754d47a0af0848d6fd8b62",
-          "execution_ref": "exec-1ed4fd08572b4e409d658d0b132f97c7",
+          "dispatch_id": "dispatch-0c455ae63adb44d793cd0932e90ebae7",
+          "execution_ref": "exec-6765040018404cf8829dd29a1a38a187",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -365,11 +389,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W33-3-0.txt"
-          ],
           "verification": {
             "verifier_id": "w33-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W33-3-0",
             "verdict": "PASS",
             "artifacts": [
@@ -378,20 +400,24 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789621027.0119898
+            "verified_at": 1790419311.4954743
           }
         },
         {
           "task_id": "T-W33-3-1",
-          "goal_id": "goal-c8a3ce85",
+          "goal_id": "goal-01240f7e",
           "instruction": "Batch 3 Step 1",
           "target_agent": "windows",
           "status": "RECONCILED",
           "attempts": 1,
           "worker_id": "w33-worker",
           "attempt_id": "T-W33-3-1:attempt:1",
-          "dispatch_id": "dispatch-0d195028426f44f0ba13b3a73620cb9e",
-          "execution_ref": "exec-971b9eb164a24d3889b0a3f8e3d1d675",
+          "dispatch_id": "dispatch-a506c7c9c2344c1c8806d137b9ad9c8c",
+          "execution_ref": "exec-637a12efc57e4cbf803121967d814ae5",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -399,11 +425,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W33-3-1.txt"
-          ],
           "verification": {
             "verifier_id": "w33-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W33-3-1",
             "verdict": "PASS",
             "artifacts": [
@@ -412,20 +436,24 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789621027.0702076
+            "verified_at": 1790419311.625571
           }
         },
         {
           "task_id": "T-W33-3-2",
-          "goal_id": "goal-c8a3ce85",
+          "goal_id": "goal-01240f7e",
           "instruction": "Batch 3 Step 2",
           "target_agent": "windows",
           "status": "RECONCILED",
           "attempts": 1,
           "worker_id": "w33-worker",
           "attempt_id": "T-W33-3-2:attempt:1",
-          "dispatch_id": "dispatch-865ea17ab2d846a99e8353bc01d140a5",
-          "execution_ref": "exec-bf39278b61734e27b6d8ed2a48c3fc30",
+          "dispatch_id": "dispatch-6c09f2b100244f7db5c04ae0438981c1",
+          "execution_ref": "exec-8444b8a78ea04b6396374de5f6fc0f43",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -433,11 +461,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W33-3-2.txt"
-          ],
           "verification": {
             "verifier_id": "w33-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W33-3-2",
             "verdict": "PASS",
             "artifacts": [
@@ -446,20 +472,24 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789621027.130497
+            "verified_at": 1790419311.7479577
           }
         },
         {
           "task_id": "T-W33-3-3",
-          "goal_id": "goal-c8a3ce85",
+          "goal_id": "goal-01240f7e",
           "instruction": "Batch 3 Step 3",
           "target_agent": "windows",
           "status": "RECONCILED",
           "attempts": 1,
           "worker_id": "w33-worker",
           "attempt_id": "T-W33-3-3:attempt:1",
-          "dispatch_id": "dispatch-e6d3509cbfb3401ea8fb788b4661076f",
-          "execution_ref": "exec-cb19f672501947d4942b5b9b49e043af",
+          "dispatch_id": "dispatch-d5c32596796b45fa939267865f4843e4",
+          "execution_ref": "exec-f02d6a31528346799883ad3baa8e6099",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -467,11 +497,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W33-3-3.txt"
-          ],
           "verification": {
             "verifier_id": "w33-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W33-3-3",
             "verdict": "PASS",
             "artifacts": [
@@ -480,20 +508,24 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789621027.1874194
+            "verified_at": 1790419311.9007566
           }
         },
         {
           "task_id": "T-W33-3-4",
-          "goal_id": "goal-c8a3ce85",
+          "goal_id": "goal-01240f7e",
           "instruction": "Batch 3 Step 4",
           "target_agent": "windows",
           "status": "RECONCILED",
           "attempts": 1,
           "worker_id": "w33-worker",
           "attempt_id": "T-W33-3-4:attempt:1",
-          "dispatch_id": "dispatch-110110f730b544098b410d453964ee31",
-          "execution_ref": "exec-de825978d66a4402a1698a60e3b3bf53",
+          "dispatch_id": "dispatch-7602514b518d473085576b768c8f5717",
+          "execution_ref": "exec-4893151c84954a378bd9d6e06f708c39",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -501,11 +533,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W33-3-4.txt"
-          ],
           "verification": {
             "verifier_id": "w33-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W33-3-4",
             "verdict": "PASS",
             "artifacts": [
@@ -514,20 +544,24 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789621027.2506628
+            "verified_at": 1790419312.0672822
           }
         },
         {
           "task_id": "T-W33-4-0",
-          "goal_id": "goal-c8a3ce85",
+          "goal_id": "goal-01240f7e",
           "instruction": "Batch 4 Step 0",
           "target_agent": "windows",
           "status": "RECONCILED",
           "attempts": 1,
           "worker_id": "w33-worker",
           "attempt_id": "T-W33-4-0:attempt:1",
-          "dispatch_id": "dispatch-3034c049de834c6aab08d35e53059d60",
-          "execution_ref": "exec-87f5771dcff9494a87e472f8a412b683",
+          "dispatch_id": "dispatch-7951dfd5b3c14cce85996f2d20682718",
+          "execution_ref": "exec-68c2cf3b3c754aa3a5a10fc917ee10cf",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -535,11 +569,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W33-4-0.txt"
-          ],
           "verification": {
             "verifier_id": "w33-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W33-4-0",
             "verdict": "PASS",
             "artifacts": [
@@ -548,20 +580,24 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789621027.3107796
+            "verified_at": 1790419312.2147627
           }
         },
         {
           "task_id": "T-W33-4-1",
-          "goal_id": "goal-c8a3ce85",
+          "goal_id": "goal-01240f7e",
           "instruction": "Batch 4 Step 1",
           "target_agent": "windows",
           "status": "RECONCILED",
           "attempts": 1,
           "worker_id": "w33-worker",
           "attempt_id": "T-W33-4-1:attempt:1",
-          "dispatch_id": "dispatch-ebe8f98016b34fc3b301b48f4c0446bb",
-          "execution_ref": "exec-775cfc3ecd9c439ba76acd6e1dddcd24",
+          "dispatch_id": "dispatch-dfe2d5e112e54014bdacb100f8fb8cd0",
+          "execution_ref": "exec-9e88033d44864c44a8117fa35b8ff9b7",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -569,11 +605,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W33-4-1.txt"
-          ],
           "verification": {
             "verifier_id": "w33-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W33-4-1",
             "verdict": "PASS",
             "artifacts": [
@@ -582,20 +616,24 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789621027.3744147
+            "verified_at": 1790419312.3811467
           }
         },
         {
           "task_id": "T-W33-4-2",
-          "goal_id": "goal-c8a3ce85",
+          "goal_id": "goal-01240f7e",
           "instruction": "Batch 4 Step 2",
           "target_agent": "windows",
           "status": "RECONCILED",
           "attempts": 1,
           "worker_id": "w33-worker",
           "attempt_id": "T-W33-4-2:attempt:1",
-          "dispatch_id": "dispatch-b03ed289bd2d4dcd8e28f5357d851c65",
-          "execution_ref": "exec-d3d0b7ec118e4d7c88f4c4cf66b5fb36",
+          "dispatch_id": "dispatch-e57edbee5a5446d4a8b4fb5905394e7a",
+          "execution_ref": "exec-c700b57d49c84d6698bd47b75038769d",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -603,11 +641,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W33-4-2.txt"
-          ],
           "verification": {
             "verifier_id": "w33-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W33-4-2",
             "verdict": "PASS",
             "artifacts": [
@@ -616,20 +652,24 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789621027.436808
+            "verified_at": 1790419312.5317335
           }
         },
         {
           "task_id": "T-W33-4-3",
-          "goal_id": "goal-c8a3ce85",
+          "goal_id": "goal-01240f7e",
           "instruction": "Batch 4 Step 3",
           "target_agent": "windows",
           "status": "RECONCILED",
           "attempts": 1,
           "worker_id": "w33-worker",
           "attempt_id": "T-W33-4-3:attempt:1",
-          "dispatch_id": "dispatch-8990c5640f354a91903d9be41c35eab1",
-          "execution_ref": "exec-c2e7d32b34bc4cb1a294cdf18c1c3cb0",
+          "dispatch_id": "dispatch-c070315b348e4121accb96c68df5c731",
+          "execution_ref": "exec-a533b07f260d4799bc12e99130f29827",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -637,11 +677,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W33-4-3.txt"
-          ],
           "verification": {
             "verifier_id": "w33-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W33-4-3",
             "verdict": "PASS",
             "artifacts": [
@@ -650,20 +688,24 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789621027.5004015
+            "verified_at": 1790419312.6792781
           }
         },
         {
           "task_id": "T-W33-4-4",
-          "goal_id": "goal-c8a3ce85",
+          "goal_id": "goal-01240f7e",
           "instruction": "Batch 4 Step 4",
           "target_agent": "windows",
           "status": "RECONCILED",
           "attempts": 1,
           "worker_id": "w33-worker",
           "attempt_id": "T-W33-4-4:attempt:1",
-          "dispatch_id": "dispatch-f15020b2f1c1465685eaef998c718753",
-          "execution_ref": "exec-9f805754c4db44dfabb872a8563ab379",
+          "dispatch_id": "dispatch-fd516bc0d94b40cc8144c223ffc51775",
+          "execution_ref": "exec-f61708abe54a49a986fa434063046f92",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -671,11 +713,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W33-4-4.txt"
-          ],
           "verification": {
             "verifier_id": "w33-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W33-4-4",
             "verdict": "PASS",
             "artifacts": [
@@ -684,20 +724,24 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789621027.5595858
+            "verified_at": 1790419312.8112118
           }
         },
         {
           "task_id": "T-W33-5-0",
-          "goal_id": "goal-c8a3ce85",
+          "goal_id": "goal-01240f7e",
           "instruction": "Batch 5 Step 0",
           "target_agent": "windows",
           "status": "RECONCILED",
           "attempts": 1,
           "worker_id": "w33-worker",
           "attempt_id": "T-W33-5-0:attempt:1",
-          "dispatch_id": "dispatch-7be9ee4ac801474bb9bacdb0350bf673",
-          "execution_ref": "exec-15ed7c267f4341918158aef815cc5905",
+          "dispatch_id": "dispatch-22fcbbf913124486ad2c4248047114d2",
+          "execution_ref": "exec-8736b11ab39f48f2a13a76495f286b17",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -705,11 +749,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W33-5-0.txt"
-          ],
           "verification": {
             "verifier_id": "w33-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W33-5-0",
             "verdict": "PASS",
             "artifacts": [
@@ -718,20 +760,24 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789621027.6275516
+            "verified_at": 1790419312.9755118
           }
         },
         {
           "task_id": "T-W33-5-1",
-          "goal_id": "goal-c8a3ce85",
+          "goal_id": "goal-01240f7e",
           "instruction": "Batch 5 Step 1",
           "target_agent": "windows",
           "status": "RECONCILED",
           "attempts": 1,
           "worker_id": "w33-worker",
           "attempt_id": "T-W33-5-1:attempt:1",
-          "dispatch_id": "dispatch-3cbaa8fecb9b4eaab6bc9141f62c44f4",
-          "execution_ref": "exec-523b111d937a46609a32658ba2ae1a9e",
+          "dispatch_id": "dispatch-193f7757e06b4b5c8f691f977d75b067",
+          "execution_ref": "exec-07a2038c16e6409daeff2d97815c1588",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -739,11 +785,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W33-5-1.txt"
-          ],
           "verification": {
             "verifier_id": "w33-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W33-5-1",
             "verdict": "PASS",
             "artifacts": [
@@ -752,20 +796,24 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789621027.696766
+            "verified_at": 1790419313.1278296
           }
         },
         {
           "task_id": "T-W33-5-2",
-          "goal_id": "goal-c8a3ce85",
+          "goal_id": "goal-01240f7e",
           "instruction": "Batch 5 Step 2",
           "target_agent": "windows",
           "status": "RECONCILED",
           "attempts": 1,
           "worker_id": "w33-worker",
           "attempt_id": "T-W33-5-2:attempt:1",
-          "dispatch_id": "dispatch-c5880117f53f47cc963cbcaa4b75bf46",
-          "execution_ref": "exec-42d93cfbc32847c4bfad42534295dd8b",
+          "dispatch_id": "dispatch-dc6f2e9e8003448e8acc39069f2f8267",
+          "execution_ref": "exec-d7f2549bdde34891b487dc516149d99e",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -773,11 +821,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W33-5-2.txt"
-          ],
           "verification": {
             "verifier_id": "w33-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W33-5-2",
             "verdict": "PASS",
             "artifacts": [
@@ -786,20 +832,24 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789621027.7614548
+            "verified_at": 1790419313.2946498
           }
         },
         {
           "task_id": "T-W33-5-3",
-          "goal_id": "goal-c8a3ce85",
+          "goal_id": "goal-01240f7e",
           "instruction": "Batch 5 Step 3",
           "target_agent": "windows",
           "status": "RECONCILED",
           "attempts": 1,
           "worker_id": "w33-worker",
           "attempt_id": "T-W33-5-3:attempt:1",
-          "dispatch_id": "dispatch-d33a592076494b1e91925be8778d34e6",
-          "execution_ref": "exec-fff73627419a41e989e3abbce17f0906",
+          "dispatch_id": "dispatch-d90801f1808d45818911db3f39c254f1",
+          "execution_ref": "exec-cb64a31989504462b8626e6a8317579f",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -807,11 +857,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W33-5-3.txt"
-          ],
           "verification": {
             "verifier_id": "w33-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W33-5-3",
             "verdict": "PASS",
             "artifacts": [
@@ -820,20 +868,24 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789621027.8327656
+            "verified_at": 1790419313.4672153
           }
         },
         {
           "task_id": "T-W33-5-4",
-          "goal_id": "goal-c8a3ce85",
+          "goal_id": "goal-01240f7e",
           "instruction": "Batch 5 Step 4",
           "target_agent": "windows",
           "status": "RECONCILED",
           "attempts": 1,
           "worker_id": "w33-worker",
           "attempt_id": "T-W33-5-4:attempt:1",
-          "dispatch_id": "dispatch-91da00056441413f976844eab9982c92",
-          "execution_ref": "exec-6c94a64a58b540b9b5666759bc9e8a0e",
+          "dispatch_id": "dispatch-d45675240856472da3567ee962b94928",
+          "execution_ref": "exec-06cff7b822af4370a35b3f1fd5de31fe",
+          "server_binding": {
+            "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+            "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+          },
           "run_id": null,
           "result_id": null,
           "target_capability": "windows",
@@ -841,11 +893,9 @@
           "next_action": "EXECUTE",
           "blocker": null,
           "artifact_refs": [],
-          "artifacts": [
-            "courier_canary_T-W33-5-4.txt"
-          ],
           "verification": {
             "verifier_id": "w33-verifier",
+            "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
             "result_id": "res-T-W33-5-4",
             "verdict": "PASS",
             "artifacts": [
@@ -854,26 +904,31 @@
                 "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
               }
             ],
-            "verified_at": 1789621027.897859
+            "verified_at": 1790419313.6751769
           }
         }
       ],
       "current_step_index": 0,
-      "replenish_count": 5
+      "replenish_count": 5,
+      "blocker": "Replenish returned empty plan for nonterminal goal"
     }
   },
   "tasks": {
     "T-W33-1-0": {
       "task_id": "T-W33-1-0",
-      "goal_id": "goal-c8a3ce85",
+      "goal_id": "goal-01240f7e",
       "instruction": "Batch 1 Step 0",
       "target_agent": "windows",
       "status": "RECONCILED",
       "attempts": 1,
       "worker_id": "w33-worker",
       "attempt_id": "T-W33-1-0:attempt:1",
-      "dispatch_id": "dispatch-8490e409745548c1be27de513cd0a15e",
-      "execution_ref": "exec-3b38666717f243a6bcc2e10c21fd993f",
+      "dispatch_id": "dispatch-3ebbaf3da0ba44f1a85a4480dfbc7334",
+      "execution_ref": "exec-112d7003f60c43628ebc4e1e3c998559",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -886,30 +941,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W33-1-0.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
-        "stderr": "",
-        "result_id": "res-T-W33-1-0",
+        "goal_id": "goal-01240f7e",
+        "stdout": "done",
+        "worker_id": "w33-worker",
+        "dispatch_id": "dispatch-3ebbaf3da0ba44f1a85a4480dfbc7334",
         "attempt_id": "T-W33-1-0:attempt:1",
-        "dispatch_id": "dispatch-8490e409745548c1be27de513cd0a15e",
         "status": "SUCCESS",
+        "execution_ref": "exec-112d7003f60c43628ebc4e1e3c998559",
+        "stderr": "",
+        "run_id": "simulated_run",
+        "task_id": "T-W33-1-0",
         "artifacts": [
           {
             "path": "courier_canary_T-W33-1-0.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "stdout": "done",
-        "run_id": "simulated_run",
-        "execution_ref": "exec-3b38666717f243a6bcc2e10c21fd993f",
-        "worker_id": "w33-worker",
-        "task_id": "T-W33-1-0",
-        "goal_id": "goal-c8a3ce85"
+        "result_id": "res-T-W33-1-0"
       },
+      "result_received_at": 1790419310.3149588,
       "verification": {
         "verifier_id": "w33-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W33-1-0",
         "verdict": "PASS",
         "artifacts": [
@@ -918,20 +973,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789621026.4771388
+        "verified_at": 1790419310.377187
       }
     },
     "T-W33-1-1": {
       "task_id": "T-W33-1-1",
-      "goal_id": "goal-c8a3ce85",
+      "goal_id": "goal-01240f7e",
       "instruction": "Batch 1 Step 1",
       "target_agent": "windows",
       "status": "RECONCILED",
       "attempts": 1,
       "worker_id": "w33-worker",
       "attempt_id": "T-W33-1-1:attempt:1",
-      "dispatch_id": "dispatch-1fdfa4f2c05e47d29c0350d75f7ccc1e",
-      "execution_ref": "exec-7bd710b31e7a461fb3d1d49767990623",
+      "dispatch_id": "dispatch-7f7237dc47dd43819e4d3f9d28bf813d",
+      "execution_ref": "exec-5c2955769226489badca4435218b2de6",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -944,30 +1003,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W33-1-1.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
-        "stderr": "",
-        "result_id": "res-T-W33-1-1",
+        "goal_id": "goal-01240f7e",
+        "stdout": "done",
+        "worker_id": "w33-worker",
+        "dispatch_id": "dispatch-7f7237dc47dd43819e4d3f9d28bf813d",
         "attempt_id": "T-W33-1-1:attempt:1",
-        "dispatch_id": "dispatch-1fdfa4f2c05e47d29c0350d75f7ccc1e",
         "status": "SUCCESS",
+        "execution_ref": "exec-5c2955769226489badca4435218b2de6",
+        "stderr": "",
+        "run_id": "simulated_run",
+        "task_id": "T-W33-1-1",
         "artifacts": [
           {
             "path": "courier_canary_T-W33-1-1.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "stdout": "done",
-        "run_id": "simulated_run",
-        "execution_ref": "exec-7bd710b31e7a461fb3d1d49767990623",
-        "worker_id": "w33-worker",
-        "task_id": "T-W33-1-1",
-        "goal_id": "goal-c8a3ce85"
+        "result_id": "res-T-W33-1-1"
       },
+      "result_received_at": 1790419310.4492707,
       "verification": {
         "verifier_id": "w33-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W33-1-1",
         "verdict": "PASS",
         "artifacts": [
@@ -976,20 +1035,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789621026.5258985
+        "verified_at": 1790419310.486279
       }
     },
     "T-W33-1-2": {
       "task_id": "T-W33-1-2",
-      "goal_id": "goal-c8a3ce85",
+      "goal_id": "goal-01240f7e",
       "instruction": "Batch 1 Step 2",
       "target_agent": "windows",
       "status": "RECONCILED",
       "attempts": 1,
       "worker_id": "w33-worker",
       "attempt_id": "T-W33-1-2:attempt:1",
-      "dispatch_id": "dispatch-d6392ce159ca4936a93e0a9fc38ec6ad",
-      "execution_ref": "exec-5f7cd16b95bd42498dedc30a08965ef1",
+      "dispatch_id": "dispatch-b831d73b50d04954877eb36272304d40",
+      "execution_ref": "exec-3326b66003184ee28459632f0b385fc8",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -1002,30 +1065,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W33-1-2.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
-        "stderr": "",
-        "result_id": "res-T-W33-1-2",
+        "goal_id": "goal-01240f7e",
+        "stdout": "done",
+        "worker_id": "w33-worker",
+        "dispatch_id": "dispatch-b831d73b50d04954877eb36272304d40",
         "attempt_id": "T-W33-1-2:attempt:1",
-        "dispatch_id": "dispatch-d6392ce159ca4936a93e0a9fc38ec6ad",
         "status": "SUCCESS",
+        "execution_ref": "exec-3326b66003184ee28459632f0b385fc8",
+        "stderr": "",
+        "run_id": "simulated_run",
+        "task_id": "T-W33-1-2",
         "artifacts": [
           {
             "path": "courier_canary_T-W33-1-2.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "stdout": "done",
-        "run_id": "simulated_run",
-        "execution_ref": "exec-5f7cd16b95bd42498dedc30a08965ef1",
-        "worker_id": "w33-worker",
-        "task_id": "T-W33-1-2",
-        "goal_id": "goal-c8a3ce85"
+        "result_id": "res-T-W33-1-2"
       },
+      "result_received_at": 1790419310.5660844,
       "verification": {
         "verifier_id": "w33-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W33-1-2",
         "verdict": "PASS",
         "artifacts": [
@@ -1034,20 +1097,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789621026.5720894
+        "verified_at": 1790419310.6039846
       }
     },
     "T-W33-1-3": {
       "task_id": "T-W33-1-3",
-      "goal_id": "goal-c8a3ce85",
+      "goal_id": "goal-01240f7e",
       "instruction": "Batch 1 Step 3",
       "target_agent": "windows",
       "status": "RECONCILED",
       "attempts": 1,
       "worker_id": "w33-worker",
       "attempt_id": "T-W33-1-3:attempt:1",
-      "dispatch_id": "dispatch-c5c29f3154ba40378dd0c2af6602d980",
-      "execution_ref": "exec-76212308a0514f4fa1658310bb3effea",
+      "dispatch_id": "dispatch-1a8cc5f1bae845fa8cc97711471cdb43",
+      "execution_ref": "exec-7d402616ad3549e6976189e7a49f3949",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -1060,30 +1127,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W33-1-3.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
-        "stderr": "",
-        "result_id": "res-T-W33-1-3",
+        "goal_id": "goal-01240f7e",
+        "stdout": "done",
+        "worker_id": "w33-worker",
+        "dispatch_id": "dispatch-1a8cc5f1bae845fa8cc97711471cdb43",
         "attempt_id": "T-W33-1-3:attempt:1",
-        "dispatch_id": "dispatch-c5c29f3154ba40378dd0c2af6602d980",
         "status": "SUCCESS",
+        "execution_ref": "exec-7d402616ad3549e6976189e7a49f3949",
+        "stderr": "",
+        "run_id": "simulated_run",
+        "task_id": "T-W33-1-3",
         "artifacts": [
           {
             "path": "courier_canary_T-W33-1-3.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "stdout": "done",
-        "run_id": "simulated_run",
-        "execution_ref": "exec-76212308a0514f4fa1658310bb3effea",
-        "worker_id": "w33-worker",
-        "task_id": "T-W33-1-3",
-        "goal_id": "goal-c8a3ce85"
+        "result_id": "res-T-W33-1-3"
       },
+      "result_received_at": 1790419310.6829226,
       "verification": {
         "verifier_id": "w33-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W33-1-3",
         "verdict": "PASS",
         "artifacts": [
@@ -1092,20 +1159,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789621026.6218688
+        "verified_at": 1790419310.71423
       }
     },
     "T-W33-1-4": {
       "task_id": "T-W33-1-4",
-      "goal_id": "goal-c8a3ce85",
+      "goal_id": "goal-01240f7e",
       "instruction": "Batch 1 Step 4",
       "target_agent": "windows",
       "status": "RECONCILED",
       "attempts": 1,
       "worker_id": "w33-worker",
       "attempt_id": "T-W33-1-4:attempt:1",
-      "dispatch_id": "dispatch-49bb37eaed094ab99b5903738a8256fa",
-      "execution_ref": "exec-2d15468f790142e0a8816e11ec5a84b4",
+      "dispatch_id": "dispatch-581c505600824c63b7973261c13d5db3",
+      "execution_ref": "exec-2d45a6c5f7ce470a89a82affd8a79248",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -1118,30 +1189,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W33-1-4.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
-        "stderr": "",
-        "result_id": "res-T-W33-1-4",
+        "goal_id": "goal-01240f7e",
+        "stdout": "done",
+        "worker_id": "w33-worker",
+        "dispatch_id": "dispatch-581c505600824c63b7973261c13d5db3",
         "attempt_id": "T-W33-1-4:attempt:1",
-        "dispatch_id": "dispatch-49bb37eaed094ab99b5903738a8256fa",
         "status": "SUCCESS",
+        "execution_ref": "exec-2d45a6c5f7ce470a89a82affd8a79248",
+        "stderr": "",
+        "run_id": "simulated_run",
+        "task_id": "T-W33-1-4",
         "artifacts": [
           {
             "path": "courier_canary_T-W33-1-4.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "stdout": "done",
-        "run_id": "simulated_run",
-        "execution_ref": "exec-2d15468f790142e0a8816e11ec5a84b4",
-        "worker_id": "w33-worker",
-        "task_id": "T-W33-1-4",
-        "goal_id": "goal-c8a3ce85"
+        "result_id": "res-T-W33-1-4"
       },
+      "result_received_at": 1790419310.7775981,
       "verification": {
         "verifier_id": "w33-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W33-1-4",
         "verdict": "PASS",
         "artifacts": [
@@ -1150,20 +1221,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789621026.6747582
+        "verified_at": 1790419310.8096163
       }
     },
     "T-W33-2-0": {
       "task_id": "T-W33-2-0",
-      "goal_id": "goal-c8a3ce85",
+      "goal_id": "goal-01240f7e",
       "instruction": "Batch 2 Step 0",
       "target_agent": "windows",
       "status": "RECONCILED",
       "attempts": 1,
       "worker_id": "w33-worker",
       "attempt_id": "T-W33-2-0:attempt:1",
-      "dispatch_id": "dispatch-6cf7e59927de47b1ae0262afded3921b",
-      "execution_ref": "exec-3ee5f686e99f40d18246028242857e21",
+      "dispatch_id": "dispatch-d5b6292a21904db080c5e112ba2380fc",
+      "execution_ref": "exec-3b53f5e3667a45f284a5be216b232f8a",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -1176,30 +1251,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W33-2-0.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
-        "stderr": "",
-        "result_id": "res-T-W33-2-0",
+        "goal_id": "goal-01240f7e",
+        "stdout": "done",
+        "worker_id": "w33-worker",
+        "dispatch_id": "dispatch-d5b6292a21904db080c5e112ba2380fc",
         "attempt_id": "T-W33-2-0:attempt:1",
-        "dispatch_id": "dispatch-6cf7e59927de47b1ae0262afded3921b",
         "status": "SUCCESS",
+        "execution_ref": "exec-3b53f5e3667a45f284a5be216b232f8a",
+        "stderr": "",
+        "run_id": "simulated_run",
+        "task_id": "T-W33-2-0",
         "artifacts": [
           {
             "path": "courier_canary_T-W33-2-0.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "stdout": "done",
-        "run_id": "simulated_run",
-        "execution_ref": "exec-3ee5f686e99f40d18246028242857e21",
-        "worker_id": "w33-worker",
-        "task_id": "T-W33-2-0",
-        "goal_id": "goal-c8a3ce85"
+        "result_id": "res-T-W33-2-0"
       },
+      "result_received_at": 1790419310.8882394,
       "verification": {
         "verifier_id": "w33-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W33-2-0",
         "verdict": "PASS",
         "artifacts": [
@@ -1208,20 +1283,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789621026.7278893
+        "verified_at": 1790419310.9224439
       }
     },
     "T-W33-2-1": {
       "task_id": "T-W33-2-1",
-      "goal_id": "goal-c8a3ce85",
+      "goal_id": "goal-01240f7e",
       "instruction": "Batch 2 Step 1",
       "target_agent": "windows",
       "status": "RECONCILED",
       "attempts": 1,
       "worker_id": "w33-worker",
       "attempt_id": "T-W33-2-1:attempt:1",
-      "dispatch_id": "dispatch-5cd4f83e1b7e4e1296295387d371eb47",
-      "execution_ref": "exec-7296750b83ea4df8b9bb7ef949f85c4a",
+      "dispatch_id": "dispatch-744be7853aa74021bc5b998f40c9139a",
+      "execution_ref": "exec-8f2cab7aea664497abdcce3a8f8707db",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -1234,30 +1313,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W33-2-1.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
-        "stderr": "",
-        "result_id": "res-T-W33-2-1",
+        "goal_id": "goal-01240f7e",
+        "stdout": "done",
+        "worker_id": "w33-worker",
+        "dispatch_id": "dispatch-744be7853aa74021bc5b998f40c9139a",
         "attempt_id": "T-W33-2-1:attempt:1",
-        "dispatch_id": "dispatch-5cd4f83e1b7e4e1296295387d371eb47",
         "status": "SUCCESS",
+        "execution_ref": "exec-8f2cab7aea664497abdcce3a8f8707db",
+        "stderr": "",
+        "run_id": "simulated_run",
+        "task_id": "T-W33-2-1",
         "artifacts": [
           {
             "path": "courier_canary_T-W33-2-1.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "stdout": "done",
-        "run_id": "simulated_run",
-        "execution_ref": "exec-7296750b83ea4df8b9bb7ef949f85c4a",
-        "worker_id": "w33-worker",
-        "task_id": "T-W33-2-1",
-        "goal_id": "goal-c8a3ce85"
+        "result_id": "res-T-W33-2-1"
       },
+      "result_received_at": 1790419310.9955454,
       "verification": {
         "verifier_id": "w33-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W33-2-1",
         "verdict": "PASS",
         "artifacts": [
@@ -1266,20 +1345,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789621026.7831573
+        "verified_at": 1790419311.0301094
       }
     },
     "T-W33-2-2": {
       "task_id": "T-W33-2-2",
-      "goal_id": "goal-c8a3ce85",
+      "goal_id": "goal-01240f7e",
       "instruction": "Batch 2 Step 2",
       "target_agent": "windows",
       "status": "RECONCILED",
       "attempts": 1,
       "worker_id": "w33-worker",
       "attempt_id": "T-W33-2-2:attempt:1",
-      "dispatch_id": "dispatch-abe47bb2ff424abca2fc75ea184fb38d",
-      "execution_ref": "exec-c27922373a73444fbb7156d40dbe698c",
+      "dispatch_id": "dispatch-02357b917ac348e3a2ae4bae9a84d18a",
+      "execution_ref": "exec-bce13e893bfe476887f208ffaae7a376",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -1292,30 +1375,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W33-2-2.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
-        "stderr": "",
-        "result_id": "res-T-W33-2-2",
+        "goal_id": "goal-01240f7e",
+        "stdout": "done",
+        "worker_id": "w33-worker",
+        "dispatch_id": "dispatch-02357b917ac348e3a2ae4bae9a84d18a",
         "attempt_id": "T-W33-2-2:attempt:1",
-        "dispatch_id": "dispatch-abe47bb2ff424abca2fc75ea184fb38d",
         "status": "SUCCESS",
+        "execution_ref": "exec-bce13e893bfe476887f208ffaae7a376",
+        "stderr": "",
+        "run_id": "simulated_run",
+        "task_id": "T-W33-2-2",
         "artifacts": [
           {
             "path": "courier_canary_T-W33-2-2.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "stdout": "done",
-        "run_id": "simulated_run",
-        "execution_ref": "exec-c27922373a73444fbb7156d40dbe698c",
-        "worker_id": "w33-worker",
-        "task_id": "T-W33-2-2",
-        "goal_id": "goal-c8a3ce85"
+        "result_id": "res-T-W33-2-2"
       },
+      "result_received_at": 1790419311.1048632,
       "verification": {
         "verifier_id": "w33-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W33-2-2",
         "verdict": "PASS",
         "artifacts": [
@@ -1324,20 +1407,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789621026.8385189
+        "verified_at": 1790419311.1403599
       }
     },
     "T-W33-2-3": {
       "task_id": "T-W33-2-3",
-      "goal_id": "goal-c8a3ce85",
+      "goal_id": "goal-01240f7e",
       "instruction": "Batch 2 Step 3",
       "target_agent": "windows",
       "status": "RECONCILED",
       "attempts": 1,
       "worker_id": "w33-worker",
       "attempt_id": "T-W33-2-3:attempt:1",
-      "dispatch_id": "dispatch-e2dc7929361d40cd91336718123f87c4",
-      "execution_ref": "exec-70a3967cd1b04f58baa3758ea2535266",
+      "dispatch_id": "dispatch-0c4337e82c5d48878a52999799534b49",
+      "execution_ref": "exec-ceda8bd00a7f4efa9d444efe5cfd44d5",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -1350,30 +1437,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W33-2-3.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
-        "stderr": "",
-        "result_id": "res-T-W33-2-3",
+        "goal_id": "goal-01240f7e",
+        "stdout": "done",
+        "worker_id": "w33-worker",
+        "dispatch_id": "dispatch-0c4337e82c5d48878a52999799534b49",
         "attempt_id": "T-W33-2-3:attempt:1",
-        "dispatch_id": "dispatch-e2dc7929361d40cd91336718123f87c4",
         "status": "SUCCESS",
+        "execution_ref": "exec-ceda8bd00a7f4efa9d444efe5cfd44d5",
+        "stderr": "",
+        "run_id": "simulated_run",
+        "task_id": "T-W33-2-3",
         "artifacts": [
           {
             "path": "courier_canary_T-W33-2-3.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "stdout": "done",
-        "run_id": "simulated_run",
-        "execution_ref": "exec-70a3967cd1b04f58baa3758ea2535266",
-        "worker_id": "w33-worker",
-        "task_id": "T-W33-2-3",
-        "goal_id": "goal-c8a3ce85"
+        "result_id": "res-T-W33-2-3"
       },
+      "result_received_at": 1790419311.2154715,
       "verification": {
         "verifier_id": "w33-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W33-2-3",
         "verdict": "PASS",
         "artifacts": [
@@ -1382,20 +1469,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789621026.890404
+        "verified_at": 1790419311.2522004
       }
     },
     "T-W33-2-4": {
       "task_id": "T-W33-2-4",
-      "goal_id": "goal-c8a3ce85",
+      "goal_id": "goal-01240f7e",
       "instruction": "Batch 2 Step 4",
       "target_agent": "windows",
       "status": "RECONCILED",
       "attempts": 1,
       "worker_id": "w33-worker",
       "attempt_id": "T-W33-2-4:attempt:1",
-      "dispatch_id": "dispatch-a1189210820e46f5970e1b0e30b6b92d",
-      "execution_ref": "exec-04755bc9049e4f5a871856e20071265a",
+      "dispatch_id": "dispatch-70983a35493a42f18f1f8bb5d8ff90be",
+      "execution_ref": "exec-00839bb658e2459a85c33e2338ca1ce2",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -1408,30 +1499,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W33-2-4.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
-        "stderr": "",
-        "result_id": "res-T-W33-2-4",
+        "goal_id": "goal-01240f7e",
+        "stdout": "done",
+        "worker_id": "w33-worker",
+        "dispatch_id": "dispatch-70983a35493a42f18f1f8bb5d8ff90be",
         "attempt_id": "T-W33-2-4:attempt:1",
-        "dispatch_id": "dispatch-a1189210820e46f5970e1b0e30b6b92d",
         "status": "SUCCESS",
+        "execution_ref": "exec-00839bb658e2459a85c33e2338ca1ce2",
+        "stderr": "",
+        "run_id": "simulated_run",
+        "task_id": "T-W33-2-4",
         "artifacts": [
           {
             "path": "courier_canary_T-W33-2-4.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "stdout": "done",
-        "run_id": "simulated_run",
-        "execution_ref": "exec-04755bc9049e4f5a871856e20071265a",
-        "worker_id": "w33-worker",
-        "task_id": "T-W33-2-4",
-        "goal_id": "goal-c8a3ce85"
+        "result_id": "res-T-W33-2-4"
       },
+      "result_received_at": 1790419311.3365126,
       "verification": {
         "verifier_id": "w33-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W33-2-4",
         "verdict": "PASS",
         "artifacts": [
@@ -1440,20 +1531,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789621026.9501371
+        "verified_at": 1790419311.3747013
       }
     },
     "T-W33-3-0": {
       "task_id": "T-W33-3-0",
-      "goal_id": "goal-c8a3ce85",
+      "goal_id": "goal-01240f7e",
       "instruction": "Batch 3 Step 0",
       "target_agent": "windows",
       "status": "RECONCILED",
       "attempts": 1,
       "worker_id": "w33-worker",
       "attempt_id": "T-W33-3-0:attempt:1",
-      "dispatch_id": "dispatch-4357cba0e1754d47a0af0848d6fd8b62",
-      "execution_ref": "exec-1ed4fd08572b4e409d658d0b132f97c7",
+      "dispatch_id": "dispatch-0c455ae63adb44d793cd0932e90ebae7",
+      "execution_ref": "exec-6765040018404cf8829dd29a1a38a187",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -1466,30 +1561,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W33-3-0.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
-        "stderr": "",
-        "result_id": "res-T-W33-3-0",
+        "goal_id": "goal-01240f7e",
+        "stdout": "done",
+        "worker_id": "w33-worker",
+        "dispatch_id": "dispatch-0c455ae63adb44d793cd0932e90ebae7",
         "attempt_id": "T-W33-3-0:attempt:1",
-        "dispatch_id": "dispatch-4357cba0e1754d47a0af0848d6fd8b62",
         "status": "SUCCESS",
+        "execution_ref": "exec-6765040018404cf8829dd29a1a38a187",
+        "stderr": "",
+        "run_id": "simulated_run",
+        "task_id": "T-W33-3-0",
         "artifacts": [
           {
             "path": "courier_canary_T-W33-3-0.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "stdout": "done",
-        "run_id": "simulated_run",
-        "execution_ref": "exec-1ed4fd08572b4e409d658d0b132f97c7",
-        "worker_id": "w33-worker",
-        "task_id": "T-W33-3-0",
-        "goal_id": "goal-c8a3ce85"
+        "result_id": "res-T-W33-3-0"
       },
+      "result_received_at": 1790419311.4586232,
       "verification": {
         "verifier_id": "w33-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W33-3-0",
         "verdict": "PASS",
         "artifacts": [
@@ -1498,20 +1593,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789621027.0119898
+        "verified_at": 1790419311.4954743
       }
     },
     "T-W33-3-1": {
       "task_id": "T-W33-3-1",
-      "goal_id": "goal-c8a3ce85",
+      "goal_id": "goal-01240f7e",
       "instruction": "Batch 3 Step 1",
       "target_agent": "windows",
       "status": "RECONCILED",
       "attempts": 1,
       "worker_id": "w33-worker",
       "attempt_id": "T-W33-3-1:attempt:1",
-      "dispatch_id": "dispatch-0d195028426f44f0ba13b3a73620cb9e",
-      "execution_ref": "exec-971b9eb164a24d3889b0a3f8e3d1d675",
+      "dispatch_id": "dispatch-a506c7c9c2344c1c8806d137b9ad9c8c",
+      "execution_ref": "exec-637a12efc57e4cbf803121967d814ae5",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -1524,30 +1623,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W33-3-1.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
-        "stderr": "",
-        "result_id": "res-T-W33-3-1",
+        "goal_id": "goal-01240f7e",
+        "stdout": "done",
+        "worker_id": "w33-worker",
+        "dispatch_id": "dispatch-a506c7c9c2344c1c8806d137b9ad9c8c",
         "attempt_id": "T-W33-3-1:attempt:1",
-        "dispatch_id": "dispatch-0d195028426f44f0ba13b3a73620cb9e",
         "status": "SUCCESS",
+        "execution_ref": "exec-637a12efc57e4cbf803121967d814ae5",
+        "stderr": "",
+        "run_id": "simulated_run",
+        "task_id": "T-W33-3-1",
         "artifacts": [
           {
             "path": "courier_canary_T-W33-3-1.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "stdout": "done",
-        "run_id": "simulated_run",
-        "execution_ref": "exec-971b9eb164a24d3889b0a3f8e3d1d675",
-        "worker_id": "w33-worker",
-        "task_id": "T-W33-3-1",
-        "goal_id": "goal-c8a3ce85"
+        "result_id": "res-T-W33-3-1"
       },
+      "result_received_at": 1790419311.5838017,
       "verification": {
         "verifier_id": "w33-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W33-3-1",
         "verdict": "PASS",
         "artifacts": [
@@ -1556,20 +1655,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789621027.0702076
+        "verified_at": 1790419311.625571
       }
     },
     "T-W33-3-2": {
       "task_id": "T-W33-3-2",
-      "goal_id": "goal-c8a3ce85",
+      "goal_id": "goal-01240f7e",
       "instruction": "Batch 3 Step 2",
       "target_agent": "windows",
       "status": "RECONCILED",
       "attempts": 1,
       "worker_id": "w33-worker",
       "attempt_id": "T-W33-3-2:attempt:1",
-      "dispatch_id": "dispatch-865ea17ab2d846a99e8353bc01d140a5",
-      "execution_ref": "exec-bf39278b61734e27b6d8ed2a48c3fc30",
+      "dispatch_id": "dispatch-6c09f2b100244f7db5c04ae0438981c1",
+      "execution_ref": "exec-8444b8a78ea04b6396374de5f6fc0f43",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -1582,30 +1685,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W33-3-2.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
-        "stderr": "",
-        "result_id": "res-T-W33-3-2",
+        "goal_id": "goal-01240f7e",
+        "stdout": "done",
+        "worker_id": "w33-worker",
+        "dispatch_id": "dispatch-6c09f2b100244f7db5c04ae0438981c1",
         "attempt_id": "T-W33-3-2:attempt:1",
-        "dispatch_id": "dispatch-865ea17ab2d846a99e8353bc01d140a5",
         "status": "SUCCESS",
+        "execution_ref": "exec-8444b8a78ea04b6396374de5f6fc0f43",
+        "stderr": "",
+        "run_id": "simulated_run",
+        "task_id": "T-W33-3-2",
         "artifacts": [
           {
             "path": "courier_canary_T-W33-3-2.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "stdout": "done",
-        "run_id": "simulated_run",
-        "execution_ref": "exec-bf39278b61734e27b6d8ed2a48c3fc30",
-        "worker_id": "w33-worker",
-        "task_id": "T-W33-3-2",
-        "goal_id": "goal-c8a3ce85"
+        "result_id": "res-T-W33-3-2"
       },
+      "result_received_at": 1790419311.7085578,
       "verification": {
         "verifier_id": "w33-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W33-3-2",
         "verdict": "PASS",
         "artifacts": [
@@ -1614,20 +1717,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789621027.130497
+        "verified_at": 1790419311.7479577
       }
     },
     "T-W33-3-3": {
       "task_id": "T-W33-3-3",
-      "goal_id": "goal-c8a3ce85",
+      "goal_id": "goal-01240f7e",
       "instruction": "Batch 3 Step 3",
       "target_agent": "windows",
       "status": "RECONCILED",
       "attempts": 1,
       "worker_id": "w33-worker",
       "attempt_id": "T-W33-3-3:attempt:1",
-      "dispatch_id": "dispatch-e6d3509cbfb3401ea8fb788b4661076f",
-      "execution_ref": "exec-cb19f672501947d4942b5b9b49e043af",
+      "dispatch_id": "dispatch-d5c32596796b45fa939267865f4843e4",
+      "execution_ref": "exec-f02d6a31528346799883ad3baa8e6099",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -1640,30 +1747,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W33-3-3.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
-        "stderr": "",
-        "result_id": "res-T-W33-3-3",
+        "goal_id": "goal-01240f7e",
+        "stdout": "done",
+        "worker_id": "w33-worker",
+        "dispatch_id": "dispatch-d5c32596796b45fa939267865f4843e4",
         "attempt_id": "T-W33-3-3:attempt:1",
-        "dispatch_id": "dispatch-e6d3509cbfb3401ea8fb788b4661076f",
         "status": "SUCCESS",
+        "execution_ref": "exec-f02d6a31528346799883ad3baa8e6099",
+        "stderr": "",
+        "run_id": "simulated_run",
+        "task_id": "T-W33-3-3",
         "artifacts": [
           {
             "path": "courier_canary_T-W33-3-3.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "stdout": "done",
-        "run_id": "simulated_run",
-        "execution_ref": "exec-cb19f672501947d4942b5b9b49e043af",
-        "worker_id": "w33-worker",
-        "task_id": "T-W33-3-3",
-        "goal_id": "goal-c8a3ce85"
+        "result_id": "res-T-W33-3-3"
       },
+      "result_received_at": 1790419311.8408391,
       "verification": {
         "verifier_id": "w33-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W33-3-3",
         "verdict": "PASS",
         "artifacts": [
@@ -1672,20 +1779,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789621027.1874194
+        "verified_at": 1790419311.9007566
       }
     },
     "T-W33-3-4": {
       "task_id": "T-W33-3-4",
-      "goal_id": "goal-c8a3ce85",
+      "goal_id": "goal-01240f7e",
       "instruction": "Batch 3 Step 4",
       "target_agent": "windows",
       "status": "RECONCILED",
       "attempts": 1,
       "worker_id": "w33-worker",
       "attempt_id": "T-W33-3-4:attempt:1",
-      "dispatch_id": "dispatch-110110f730b544098b410d453964ee31",
-      "execution_ref": "exec-de825978d66a4402a1698a60e3b3bf53",
+      "dispatch_id": "dispatch-7602514b518d473085576b768c8f5717",
+      "execution_ref": "exec-4893151c84954a378bd9d6e06f708c39",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -1698,30 +1809,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W33-3-4.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
-        "stderr": "",
-        "result_id": "res-T-W33-3-4",
+        "goal_id": "goal-01240f7e",
+        "stdout": "done",
+        "worker_id": "w33-worker",
+        "dispatch_id": "dispatch-7602514b518d473085576b768c8f5717",
         "attempt_id": "T-W33-3-4:attempt:1",
-        "dispatch_id": "dispatch-110110f730b544098b410d453964ee31",
         "status": "SUCCESS",
+        "execution_ref": "exec-4893151c84954a378bd9d6e06f708c39",
+        "stderr": "",
+        "run_id": "simulated_run",
+        "task_id": "T-W33-3-4",
         "artifacts": [
           {
             "path": "courier_canary_T-W33-3-4.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "stdout": "done",
-        "run_id": "simulated_run",
-        "execution_ref": "exec-de825978d66a4402a1698a60e3b3bf53",
-        "worker_id": "w33-worker",
-        "task_id": "T-W33-3-4",
-        "goal_id": "goal-c8a3ce85"
+        "result_id": "res-T-W33-3-4"
       },
+      "result_received_at": 1790419312.015267,
       "verification": {
         "verifier_id": "w33-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W33-3-4",
         "verdict": "PASS",
         "artifacts": [
@@ -1730,20 +1841,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789621027.2506628
+        "verified_at": 1790419312.0672822
       }
     },
     "T-W33-4-0": {
       "task_id": "T-W33-4-0",
-      "goal_id": "goal-c8a3ce85",
+      "goal_id": "goal-01240f7e",
       "instruction": "Batch 4 Step 0",
       "target_agent": "windows",
       "status": "RECONCILED",
       "attempts": 1,
       "worker_id": "w33-worker",
       "attempt_id": "T-W33-4-0:attempt:1",
-      "dispatch_id": "dispatch-3034c049de834c6aab08d35e53059d60",
-      "execution_ref": "exec-87f5771dcff9494a87e472f8a412b683",
+      "dispatch_id": "dispatch-7951dfd5b3c14cce85996f2d20682718",
+      "execution_ref": "exec-68c2cf3b3c754aa3a5a10fc917ee10cf",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -1756,30 +1871,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W33-4-0.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
-        "stderr": "",
-        "result_id": "res-T-W33-4-0",
+        "goal_id": "goal-01240f7e",
+        "stdout": "done",
+        "worker_id": "w33-worker",
+        "dispatch_id": "dispatch-7951dfd5b3c14cce85996f2d20682718",
         "attempt_id": "T-W33-4-0:attempt:1",
-        "dispatch_id": "dispatch-3034c049de834c6aab08d35e53059d60",
         "status": "SUCCESS",
+        "execution_ref": "exec-68c2cf3b3c754aa3a5a10fc917ee10cf",
+        "stderr": "",
+        "run_id": "simulated_run",
+        "task_id": "T-W33-4-0",
         "artifacts": [
           {
             "path": "courier_canary_T-W33-4-0.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "stdout": "done",
-        "run_id": "simulated_run",
-        "execution_ref": "exec-87f5771dcff9494a87e472f8a412b683",
-        "worker_id": "w33-worker",
-        "task_id": "T-W33-4-0",
-        "goal_id": "goal-c8a3ce85"
+        "result_id": "res-T-W33-4-0"
       },
+      "result_received_at": 1790419312.1659129,
       "verification": {
         "verifier_id": "w33-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W33-4-0",
         "verdict": "PASS",
         "artifacts": [
@@ -1788,20 +1903,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789621027.3107796
+        "verified_at": 1790419312.2147627
       }
     },
     "T-W33-4-1": {
       "task_id": "T-W33-4-1",
-      "goal_id": "goal-c8a3ce85",
+      "goal_id": "goal-01240f7e",
       "instruction": "Batch 4 Step 1",
       "target_agent": "windows",
       "status": "RECONCILED",
       "attempts": 1,
       "worker_id": "w33-worker",
       "attempt_id": "T-W33-4-1:attempt:1",
-      "dispatch_id": "dispatch-ebe8f98016b34fc3b301b48f4c0446bb",
-      "execution_ref": "exec-775cfc3ecd9c439ba76acd6e1dddcd24",
+      "dispatch_id": "dispatch-dfe2d5e112e54014bdacb100f8fb8cd0",
+      "execution_ref": "exec-9e88033d44864c44a8117fa35b8ff9b7",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -1814,30 +1933,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W33-4-1.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
-        "stderr": "",
-        "result_id": "res-T-W33-4-1",
+        "goal_id": "goal-01240f7e",
+        "stdout": "done",
+        "worker_id": "w33-worker",
+        "dispatch_id": "dispatch-dfe2d5e112e54014bdacb100f8fb8cd0",
         "attempt_id": "T-W33-4-1:attempt:1",
-        "dispatch_id": "dispatch-ebe8f98016b34fc3b301b48f4c0446bb",
         "status": "SUCCESS",
+        "execution_ref": "exec-9e88033d44864c44a8117fa35b8ff9b7",
+        "stderr": "",
+        "run_id": "simulated_run",
+        "task_id": "T-W33-4-1",
         "artifacts": [
           {
             "path": "courier_canary_T-W33-4-1.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "stdout": "done",
-        "run_id": "simulated_run",
-        "execution_ref": "exec-775cfc3ecd9c439ba76acd6e1dddcd24",
-        "worker_id": "w33-worker",
-        "task_id": "T-W33-4-1",
-        "goal_id": "goal-c8a3ce85"
+        "result_id": "res-T-W33-4-1"
       },
+      "result_received_at": 1790419312.3223004,
       "verification": {
         "verifier_id": "w33-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W33-4-1",
         "verdict": "PASS",
         "artifacts": [
@@ -1846,20 +1965,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789621027.3744147
+        "verified_at": 1790419312.3811467
       }
     },
     "T-W33-4-2": {
       "task_id": "T-W33-4-2",
-      "goal_id": "goal-c8a3ce85",
+      "goal_id": "goal-01240f7e",
       "instruction": "Batch 4 Step 2",
       "target_agent": "windows",
       "status": "RECONCILED",
       "attempts": 1,
       "worker_id": "w33-worker",
       "attempt_id": "T-W33-4-2:attempt:1",
-      "dispatch_id": "dispatch-b03ed289bd2d4dcd8e28f5357d851c65",
-      "execution_ref": "exec-d3d0b7ec118e4d7c88f4c4cf66b5fb36",
+      "dispatch_id": "dispatch-e57edbee5a5446d4a8b4fb5905394e7a",
+      "execution_ref": "exec-c700b57d49c84d6698bd47b75038769d",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -1872,30 +1995,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W33-4-2.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
-        "stderr": "",
-        "result_id": "res-T-W33-4-2",
+        "goal_id": "goal-01240f7e",
+        "stdout": "done",
+        "worker_id": "w33-worker",
+        "dispatch_id": "dispatch-e57edbee5a5446d4a8b4fb5905394e7a",
         "attempt_id": "T-W33-4-2:attempt:1",
-        "dispatch_id": "dispatch-b03ed289bd2d4dcd8e28f5357d851c65",
         "status": "SUCCESS",
+        "execution_ref": "exec-c700b57d49c84d6698bd47b75038769d",
+        "stderr": "",
+        "run_id": "simulated_run",
+        "task_id": "T-W33-4-2",
         "artifacts": [
           {
             "path": "courier_canary_T-W33-4-2.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "stdout": "done",
-        "run_id": "simulated_run",
-        "execution_ref": "exec-d3d0b7ec118e4d7c88f4c4cf66b5fb36",
-        "worker_id": "w33-worker",
-        "task_id": "T-W33-4-2",
-        "goal_id": "goal-c8a3ce85"
+        "result_id": "res-T-W33-4-2"
       },
+      "result_received_at": 1790419312.4779067,
       "verification": {
         "verifier_id": "w33-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W33-4-2",
         "verdict": "PASS",
         "artifacts": [
@@ -1904,20 +2027,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789621027.436808
+        "verified_at": 1790419312.5317335
       }
     },
     "T-W33-4-3": {
       "task_id": "T-W33-4-3",
-      "goal_id": "goal-c8a3ce85",
+      "goal_id": "goal-01240f7e",
       "instruction": "Batch 4 Step 3",
       "target_agent": "windows",
       "status": "RECONCILED",
       "attempts": 1,
       "worker_id": "w33-worker",
       "attempt_id": "T-W33-4-3:attempt:1",
-      "dispatch_id": "dispatch-8990c5640f354a91903d9be41c35eab1",
-      "execution_ref": "exec-c2e7d32b34bc4cb1a294cdf18c1c3cb0",
+      "dispatch_id": "dispatch-c070315b348e4121accb96c68df5c731",
+      "execution_ref": "exec-a533b07f260d4799bc12e99130f29827",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -1930,30 +2057,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W33-4-3.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
-        "stderr": "",
-        "result_id": "res-T-W33-4-3",
+        "goal_id": "goal-01240f7e",
+        "stdout": "done",
+        "worker_id": "w33-worker",
+        "dispatch_id": "dispatch-c070315b348e4121accb96c68df5c731",
         "attempt_id": "T-W33-4-3:attempt:1",
-        "dispatch_id": "dispatch-8990c5640f354a91903d9be41c35eab1",
         "status": "SUCCESS",
+        "execution_ref": "exec-a533b07f260d4799bc12e99130f29827",
+        "stderr": "",
+        "run_id": "simulated_run",
+        "task_id": "T-W33-4-3",
         "artifacts": [
           {
             "path": "courier_canary_T-W33-4-3.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "stdout": "done",
-        "run_id": "simulated_run",
-        "execution_ref": "exec-c2e7d32b34bc4cb1a294cdf18c1c3cb0",
-        "worker_id": "w33-worker",
-        "task_id": "T-W33-4-3",
-        "goal_id": "goal-c8a3ce85"
+        "result_id": "res-T-W33-4-3"
       },
+      "result_received_at": 1790419312.6330674,
       "verification": {
         "verifier_id": "w33-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W33-4-3",
         "verdict": "PASS",
         "artifacts": [
@@ -1962,20 +2089,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789621027.5004015
+        "verified_at": 1790419312.6792781
       }
     },
     "T-W33-4-4": {
       "task_id": "T-W33-4-4",
-      "goal_id": "goal-c8a3ce85",
+      "goal_id": "goal-01240f7e",
       "instruction": "Batch 4 Step 4",
       "target_agent": "windows",
       "status": "RECONCILED",
       "attempts": 1,
       "worker_id": "w33-worker",
       "attempt_id": "T-W33-4-4:attempt:1",
-      "dispatch_id": "dispatch-f15020b2f1c1465685eaef998c718753",
-      "execution_ref": "exec-9f805754c4db44dfabb872a8563ab379",
+      "dispatch_id": "dispatch-fd516bc0d94b40cc8144c223ffc51775",
+      "execution_ref": "exec-f61708abe54a49a986fa434063046f92",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -1988,30 +2119,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W33-4-4.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
-        "stderr": "",
-        "result_id": "res-T-W33-4-4",
+        "goal_id": "goal-01240f7e",
+        "stdout": "done",
+        "worker_id": "w33-worker",
+        "dispatch_id": "dispatch-fd516bc0d94b40cc8144c223ffc51775",
         "attempt_id": "T-W33-4-4:attempt:1",
-        "dispatch_id": "dispatch-f15020b2f1c1465685eaef998c718753",
         "status": "SUCCESS",
+        "execution_ref": "exec-f61708abe54a49a986fa434063046f92",
+        "stderr": "",
+        "run_id": "simulated_run",
+        "task_id": "T-W33-4-4",
         "artifacts": [
           {
             "path": "courier_canary_T-W33-4-4.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "stdout": "done",
-        "run_id": "simulated_run",
-        "execution_ref": "exec-9f805754c4db44dfabb872a8563ab379",
-        "worker_id": "w33-worker",
-        "task_id": "T-W33-4-4",
-        "goal_id": "goal-c8a3ce85"
+        "result_id": "res-T-W33-4-4"
       },
+      "result_received_at": 1790419312.7670763,
       "verification": {
         "verifier_id": "w33-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W33-4-4",
         "verdict": "PASS",
         "artifacts": [
@@ -2020,20 +2151,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789621027.5595858
+        "verified_at": 1790419312.8112118
       }
     },
     "T-W33-5-0": {
       "task_id": "T-W33-5-0",
-      "goal_id": "goal-c8a3ce85",
+      "goal_id": "goal-01240f7e",
       "instruction": "Batch 5 Step 0",
       "target_agent": "windows",
       "status": "RECONCILED",
       "attempts": 1,
       "worker_id": "w33-worker",
       "attempt_id": "T-W33-5-0:attempt:1",
-      "dispatch_id": "dispatch-7be9ee4ac801474bb9bacdb0350bf673",
-      "execution_ref": "exec-15ed7c267f4341918158aef815cc5905",
+      "dispatch_id": "dispatch-22fcbbf913124486ad2c4248047114d2",
+      "execution_ref": "exec-8736b11ab39f48f2a13a76495f286b17",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -2046,30 +2181,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W33-5-0.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
-        "stderr": "",
-        "result_id": "res-T-W33-5-0",
+        "goal_id": "goal-01240f7e",
+        "stdout": "done",
+        "worker_id": "w33-worker",
+        "dispatch_id": "dispatch-22fcbbf913124486ad2c4248047114d2",
         "attempt_id": "T-W33-5-0:attempt:1",
-        "dispatch_id": "dispatch-7be9ee4ac801474bb9bacdb0350bf673",
         "status": "SUCCESS",
+        "execution_ref": "exec-8736b11ab39f48f2a13a76495f286b17",
+        "stderr": "",
+        "run_id": "simulated_run",
+        "task_id": "T-W33-5-0",
         "artifacts": [
           {
             "path": "courier_canary_T-W33-5-0.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "stdout": "done",
-        "run_id": "simulated_run",
-        "execution_ref": "exec-15ed7c267f4341918158aef815cc5905",
-        "worker_id": "w33-worker",
-        "task_id": "T-W33-5-0",
-        "goal_id": "goal-c8a3ce85"
+        "result_id": "res-T-W33-5-0"
       },
+      "result_received_at": 1790419312.9085035,
       "verification": {
         "verifier_id": "w33-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W33-5-0",
         "verdict": "PASS",
         "artifacts": [
@@ -2078,20 +2213,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789621027.6275516
+        "verified_at": 1790419312.9755118
       }
     },
     "T-W33-5-1": {
       "task_id": "T-W33-5-1",
-      "goal_id": "goal-c8a3ce85",
+      "goal_id": "goal-01240f7e",
       "instruction": "Batch 5 Step 1",
       "target_agent": "windows",
       "status": "RECONCILED",
       "attempts": 1,
       "worker_id": "w33-worker",
       "attempt_id": "T-W33-5-1:attempt:1",
-      "dispatch_id": "dispatch-3cbaa8fecb9b4eaab6bc9141f62c44f4",
-      "execution_ref": "exec-523b111d937a46609a32658ba2ae1a9e",
+      "dispatch_id": "dispatch-193f7757e06b4b5c8f691f977d75b067",
+      "execution_ref": "exec-07a2038c16e6409daeff2d97815c1588",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -2104,30 +2243,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W33-5-1.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
-        "stderr": "",
-        "result_id": "res-T-W33-5-1",
+        "goal_id": "goal-01240f7e",
+        "stdout": "done",
+        "worker_id": "w33-worker",
+        "dispatch_id": "dispatch-193f7757e06b4b5c8f691f977d75b067",
         "attempt_id": "T-W33-5-1:attempt:1",
-        "dispatch_id": "dispatch-3cbaa8fecb9b4eaab6bc9141f62c44f4",
         "status": "SUCCESS",
+        "execution_ref": "exec-07a2038c16e6409daeff2d97815c1588",
+        "stderr": "",
+        "run_id": "simulated_run",
+        "task_id": "T-W33-5-1",
         "artifacts": [
           {
             "path": "courier_canary_T-W33-5-1.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "stdout": "done",
-        "run_id": "simulated_run",
-        "execution_ref": "exec-523b111d937a46609a32658ba2ae1a9e",
-        "worker_id": "w33-worker",
-        "task_id": "T-W33-5-1",
-        "goal_id": "goal-c8a3ce85"
+        "result_id": "res-T-W33-5-1"
       },
+      "result_received_at": 1790419313.0762932,
       "verification": {
         "verifier_id": "w33-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W33-5-1",
         "verdict": "PASS",
         "artifacts": [
@@ -2136,20 +2275,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789621027.696766
+        "verified_at": 1790419313.1278296
       }
     },
     "T-W33-5-2": {
       "task_id": "T-W33-5-2",
-      "goal_id": "goal-c8a3ce85",
+      "goal_id": "goal-01240f7e",
       "instruction": "Batch 5 Step 2",
       "target_agent": "windows",
       "status": "RECONCILED",
       "attempts": 1,
       "worker_id": "w33-worker",
       "attempt_id": "T-W33-5-2:attempt:1",
-      "dispatch_id": "dispatch-c5880117f53f47cc963cbcaa4b75bf46",
-      "execution_ref": "exec-42d93cfbc32847c4bfad42534295dd8b",
+      "dispatch_id": "dispatch-dc6f2e9e8003448e8acc39069f2f8267",
+      "execution_ref": "exec-d7f2549bdde34891b487dc516149d99e",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -2162,30 +2305,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W33-5-2.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
-        "stderr": "",
-        "result_id": "res-T-W33-5-2",
+        "goal_id": "goal-01240f7e",
+        "stdout": "done",
+        "worker_id": "w33-worker",
+        "dispatch_id": "dispatch-dc6f2e9e8003448e8acc39069f2f8267",
         "attempt_id": "T-W33-5-2:attempt:1",
-        "dispatch_id": "dispatch-c5880117f53f47cc963cbcaa4b75bf46",
         "status": "SUCCESS",
+        "execution_ref": "exec-d7f2549bdde34891b487dc516149d99e",
+        "stderr": "",
+        "run_id": "simulated_run",
+        "task_id": "T-W33-5-2",
         "artifacts": [
           {
             "path": "courier_canary_T-W33-5-2.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "stdout": "done",
-        "run_id": "simulated_run",
-        "execution_ref": "exec-42d93cfbc32847c4bfad42534295dd8b",
-        "worker_id": "w33-worker",
-        "task_id": "T-W33-5-2",
-        "goal_id": "goal-c8a3ce85"
+        "result_id": "res-T-W33-5-2"
       },
+      "result_received_at": 1790419313.246387,
       "verification": {
         "verifier_id": "w33-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W33-5-2",
         "verdict": "PASS",
         "artifacts": [
@@ -2194,20 +2337,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789621027.7614548
+        "verified_at": 1790419313.2946498
       }
     },
     "T-W33-5-3": {
       "task_id": "T-W33-5-3",
-      "goal_id": "goal-c8a3ce85",
+      "goal_id": "goal-01240f7e",
       "instruction": "Batch 5 Step 3",
       "target_agent": "windows",
       "status": "RECONCILED",
       "attempts": 1,
       "worker_id": "w33-worker",
       "attempt_id": "T-W33-5-3:attempt:1",
-      "dispatch_id": "dispatch-d33a592076494b1e91925be8778d34e6",
-      "execution_ref": "exec-fff73627419a41e989e3abbce17f0906",
+      "dispatch_id": "dispatch-d90801f1808d45818911db3f39c254f1",
+      "execution_ref": "exec-cb64a31989504462b8626e6a8317579f",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -2220,30 +2367,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W33-5-3.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
-        "stderr": "",
-        "result_id": "res-T-W33-5-3",
+        "goal_id": "goal-01240f7e",
+        "stdout": "done",
+        "worker_id": "w33-worker",
+        "dispatch_id": "dispatch-d90801f1808d45818911db3f39c254f1",
         "attempt_id": "T-W33-5-3:attempt:1",
-        "dispatch_id": "dispatch-d33a592076494b1e91925be8778d34e6",
         "status": "SUCCESS",
+        "execution_ref": "exec-cb64a31989504462b8626e6a8317579f",
+        "stderr": "",
+        "run_id": "simulated_run",
+        "task_id": "T-W33-5-3",
         "artifacts": [
           {
             "path": "courier_canary_T-W33-5-3.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "stdout": "done",
-        "run_id": "simulated_run",
-        "execution_ref": "exec-fff73627419a41e989e3abbce17f0906",
-        "worker_id": "w33-worker",
-        "task_id": "T-W33-5-3",
-        "goal_id": "goal-c8a3ce85"
+        "result_id": "res-T-W33-5-3"
       },
+      "result_received_at": 1790419313.414582,
       "verification": {
         "verifier_id": "w33-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W33-5-3",
         "verdict": "PASS",
         "artifacts": [
@@ -2252,20 +2399,24 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789621027.8327656
+        "verified_at": 1790419313.4672153
       }
     },
     "T-W33-5-4": {
       "task_id": "T-W33-5-4",
-      "goal_id": "goal-c8a3ce85",
+      "goal_id": "goal-01240f7e",
       "instruction": "Batch 5 Step 4",
       "target_agent": "windows",
       "status": "RECONCILED",
       "attempts": 1,
       "worker_id": "w33-worker",
       "attempt_id": "T-W33-5-4:attempt:1",
-      "dispatch_id": "dispatch-91da00056441413f976844eab9982c92",
-      "execution_ref": "exec-6c94a64a58b540b9b5666759bc9e8a0e",
+      "dispatch_id": "dispatch-d45675240856472da3567ee962b94928",
+      "execution_ref": "exec-06cff7b822af4370a35b3f1fd5de31fe",
+      "server_binding": {
+        "sha": "b927f106cc45b9e69be81df81baa2dada55066fa",
+        "runtime": "courier-server:60e6ba670b6b473f9d24520d9ee5c945"
+      },
       "run_id": null,
       "result_id": null,
       "target_capability": "windows",
@@ -2278,30 +2429,30 @@
           "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
         }
       ],
-      "artifacts": [
-        "courier_canary_T-W33-5-4.txt"
-      ],
+      "producer_principal": "principal_2bbb32d60bc2b310909452dd1da966ca66bc06964675d136315a20afa28f6e42",
       "result": {
-        "stderr": "",
-        "result_id": "res-T-W33-5-4",
+        "goal_id": "goal-01240f7e",
+        "stdout": "done",
+        "worker_id": "w33-worker",
+        "dispatch_id": "dispatch-d45675240856472da3567ee962b94928",
         "attempt_id": "T-W33-5-4:attempt:1",
-        "dispatch_id": "dispatch-91da00056441413f976844eab9982c92",
         "status": "SUCCESS",
+        "execution_ref": "exec-06cff7b822af4370a35b3f1fd5de31fe",
+        "stderr": "",
+        "run_id": "simulated_run",
+        "task_id": "T-W33-5-4",
         "artifacts": [
           {
             "path": "courier_canary_T-W33-5-4.txt",
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "stdout": "done",
-        "run_id": "simulated_run",
-        "execution_ref": "exec-6c94a64a58b540b9b5666759bc9e8a0e",
-        "worker_id": "w33-worker",
-        "task_id": "T-W33-5-4",
-        "goal_id": "goal-c8a3ce85"
+        "result_id": "res-T-W33-5-4"
       },
+      "result_received_at": 1790419313.615164,
       "verification": {
         "verifier_id": "w33-verifier",
+        "verifier_principal": "principal_4fcb1e2d6c140fc914740dcc688aa3197cc9028b5ac6568cabe79798523a4a08",
         "result_id": "res-T-W33-5-4",
         "verdict": "PASS",
         "artifacts": [
@@ -2310,7 +2461,7 @@
             "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e"
           }
         ],
-        "verified_at": 1789621027.897859
+        "verified_at": 1790419313.6751769
       }
     }
   },
@@ -2321,10 +2472,16 @@
       "capabilities": [
         "windows"
       ],
-      "last_seen": 1789621034.1644495,
+      "authorities": [],
+      "provider": null,
+      "capacity_identity": null,
+      "provider_available": true,
+      "capacity_available": true,
+      "last_seen": 1790419321.4639392,
       "available": true,
       "current_task": null,
       "cost_class": "unknown"
     }
-  }
+  },
+  "resource_owners": {}
 }

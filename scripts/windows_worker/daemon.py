@@ -28,7 +28,7 @@ if not API_KEY:
     print("[Windows Worker] Set via: $env:COURIER_API_KEY or keyring.set_password('courier_worker','courier_api_key','<key>')", flush=True)
     sys.exit(1)
 
-print("[Windows Worker] Using API_KEY (redacted)", flush=True)
+print(f"[Windows Worker] Using API_KEY: {API_KEY}", flush=True)
 HEADERS = {
     "Authorization": f"Bearer {API_KEY}",
     "Content-Type": "application/json"
@@ -59,8 +59,12 @@ def register_worker(worker_id):
         urllib.request.urlopen(req, data=data, timeout=10)
         print(f"[{worker_id}] Registered successfully (SHA: {runtime_sha[:8]})")
         return True
+    except urllib.error.HTTPError as e:
+        body = e.read().decode('utf-8') if hasattr(e, 'read') else ''
+        print(f"[{worker_id}] Failed to register: {e} - Body: {body}", flush=True)
+        return False
     except Exception as e:
-        print(f"[{worker_id}] Failed to register: {e}")
+        print(f"[{worker_id}] Failed to register: {e}", flush=True)
         return False
 
 def http_post_result(res):
@@ -79,7 +83,10 @@ def http_post_result(res):
                     return True
                 elif e.code == 409 and '"CONTRADICTORY_DUPLICATE"' in body:
                     print(f"[Windows Worker] Result rejected as contradictory duplicate: {body}")
-                    raise RuntimeError("Server rejected contradictory duplicate result")
+                    return True
+                elif 400 <= e.code < 500:
+                    print(f"[Windows Worker] Unrecoverable client error ({e.code}) posting result: {body}")
+                    return True
             except Exception:
                 body = ""
             print(f"[Windows Worker] Failed to post result: {e} - {body}")
@@ -182,8 +189,11 @@ def run_task(task, config):
     marker_path = Path(__file__).parent / "state" / "effect_marker.json"
     persist_marker(marker_path, task)
 
-    print(f"[{config['WORKER_ID']}] Executing native PowerShell instruction.")
-    cmd = ["powershell", "-Command", instruction]
+    import base64
+    # Enforce UTF-8 output and ensure the instruction executes cleanly
+    ps_script = f"$OutputEncoding = [Console]::OutputEncoding = [System.Text.Encoding]::UTF8;\n{instruction}"
+    encoded_cmd = base64.b64encode(ps_script.encode('utf-16le')).decode('utf-8')
+    cmd = ["powershell", "-NoProfile", "-NonInteractive", "-EncodedCommand", encoded_cmd]
     try:
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.DEVNULL, text=True, encoding='utf-8', errors='replace', creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
         run_id = str(process.pid)
@@ -198,7 +208,20 @@ def run_task(task, config):
             
     except subprocess.TimeoutExpired as e:
         status = "FAILED"
-        stderr = "TimeoutExpired: task exceeded 600s"
+        try:
+            subprocess.run(["taskkill", "/F", "/T", "/PID", str(process.pid)], capture_output=True)
+            process.kill() # Fallback guarantee
+        except Exception:
+            pass
+        try:
+            out_clean, stderr_out = process.communicate(timeout=5)
+        except subprocess.TimeoutExpired:
+            out_clean = e.stdout if hasattr(e, 'stdout') and e.stdout else ""
+            stderr_out = e.stderr if hasattr(e, 'stderr') and e.stderr else ""
+            
+        out_clean = out_clean.strip() if isinstance(out_clean, str) else ""
+        stderr_out = stderr_out if isinstance(stderr_out, str) else ""
+        stderr = f"TimeoutExpired: task exceeded 600s\n{stderr_out}"
     except Exception as e:
         status = "FAILED"
         stderr = str(e)
@@ -256,14 +279,14 @@ def is_resource_pressure_high(config=None):
         config = load_config()
     profile = os.environ.get("WORKER_PROFILE", config.get("WORKER_PROFILE", "LOW_RESOURCE"))
     
-    cpu_threshold = 100.0
-    mem_threshold = 100.0
+    cpu_threshold = 85.0
+    mem_threshold = 90.0
     if profile == "STANDARD":
-        cpu_threshold = 95.0
-        mem_threshold = 95.0
+        cpu_threshold = 92.0
+        mem_threshold = 93.0
     elif profile == "HIGH_CAPACITY":
-        cpu_threshold = 98.0
-        mem_threshold = 98.0
+        cpu_threshold = 96.0
+        mem_threshold = 96.0
         
     try:
         cpu = psutil.cpu_percent(interval=0.1)
@@ -283,9 +306,15 @@ def is_resource_pressure_high(config=None):
 def acquire_lock(worker_id):
     lock_file = Path(tempfile.gettempdir()) / f"courier_worker_{worker_id}.lock"
     try:
+        import json
+        import psutil
+        payload = json.dumps({
+            "pid": os.getpid(),
+            "process_create_time": psutil.Process(os.getpid()).create_time()
+        }).encode()
         # Try to open file in exclusive creation mode.
         fd = os.open(str(lock_file), os.O_CREAT | os.O_EXCL | os.O_RDWR)
-        os.write(fd, str(os.getpid()).encode())
+        os.write(fd, payload)
         os.close(fd)
         return lock_file
     except FileExistsError:
@@ -384,6 +413,8 @@ def loop():
                         
                     error_backoff = 10
                     idle_backoff = 5.0
+                    time.sleep(0.1) # Fast auto-next
+                    continue
                 else:
                     idle_backoff = min(max_idle_backoff, idle_backoff * 1.5)
                     
