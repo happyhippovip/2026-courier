@@ -1,0 +1,9 @@
+TASK_ID=WALL-P2-LANDING-STRUCTURE
+CATEGORY=WEBSITE_LAUNCH_PREP
+PRIORITY=P2
+PREREQUISITES=none
+MODE=READ_ONLY
+QUESTION=Static landing page structure + value-prop copy; claim only proven behavior
+ALLOWED_ACTIONS=write draft copy in wall reports
+FORBIDDEN_ACTIONS=unproven claims (zero-human-pass, restart-passed, installer exists)
+EXPECTED_REPORT=draft MD

@@ -1,0 +1,9 @@
+TASK_ID=WALL-P2-PILOT-SIGNUP
+CATEGORY=PILOT_COMMERCIAL_PREP
+PRIORITY=P2
+PREREQUISITES=Z14 acceptance material
+MODE=READ_ONLY
+QUESTION=Pilot signup flow + manual onboarding guide; no fake customers
+ALLOWED_ACTIONS=draft in wall reports
+FORBIDDEN_ACTIONS=fake revenue/users
+EXPECTED_REPORT=draft MD

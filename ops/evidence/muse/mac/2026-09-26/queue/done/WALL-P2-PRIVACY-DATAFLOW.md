@@ -1,0 +1,9 @@
+TASK_ID=WALL-P2-PRIVACY-DATAFLOW
+CATEGORY=PRIVACY_DATAFLOW_PREP
+PRIORITY=P2
+PREREQUISITES=none
+MODE=READ_ONLY
+QUESTION=Privacy/data-flow explainer: what runs where (Mac/Windows), credential handling (keyring/env only), no keychain reads
+ALLOWED_ACTIONS=read code/docs
+FORBIDDEN_ACTIONS=touching credentials
+EXPECTED_REPORT=draft MD

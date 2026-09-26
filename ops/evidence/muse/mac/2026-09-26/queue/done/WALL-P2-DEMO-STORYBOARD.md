@@ -1,0 +1,9 @@
+TASK_ID=WALL-P2-DEMO-STORYBOARD
+CATEGORY=DEMO_EVIDENCE_PREP
+PRIORITY=P2
+PREREQUISITES=Z12 demo scripts
+MODE=READ_ONLY
+QUESTION=Evidence-backed demo storyboard: only steps with existing proof; placeholders where proof missing
+ALLOWED_ACTIONS=read evidence
+FORBIDDEN_ACTIONS=inventing results
+EXPECTED_REPORT=storyboard MD

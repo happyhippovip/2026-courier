@@ -1,0 +1,9 @@
+TASK_ID=WALL-P0-PLAN-RESUME-OPEN-HALF
+CATEGORY=CORE_EVIDENCE
+PRIORITY=P0
+PREREQUISITES=CLI-20 report
+MODE=READ_ONLY
+QUESTION=Does verify_task_result itself sync plan steps on writer tip, or only the reclaim path?
+ALLOWED_ACTIONS=git show, static reads
+FORBIDDEN_ACTIONS=source writes, checkout
+EXPECTED_REPORT=YES/NO with file:line evidence

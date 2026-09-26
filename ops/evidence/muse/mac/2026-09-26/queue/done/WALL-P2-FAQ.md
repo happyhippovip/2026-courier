@@ -1,0 +1,9 @@
+TASK_ID=WALL-P2-FAQ
+CATEGORY=WEBSITE_LAUNCH_PREP
+PRIORITY=P2
+PREREQUISITES=none
+MODE=READ_ONLY
+QUESTION=FAQ draft grounded in existing evidence only
+ALLOWED_ACTIONS=write draft in wall reports
+FORBIDDEN_ACTIONS=unproven claims
+EXPECTED_REPORT=draft MD

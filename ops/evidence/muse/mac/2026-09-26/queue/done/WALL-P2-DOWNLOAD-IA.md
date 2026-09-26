@@ -1,0 +1,9 @@
+TASK_ID=WALL-P2-DOWNLOAD-IA
+CATEGORY=DOWNLOAD_INSTALL_PREP
+PRIORITY=P2
+PREREQUISITES=none
+MODE=READ_ONLY
+QUESTION=Download page IA + install prerequisites (uv, Python, git, disk); mark installer as NOT YET EXISTING
+ALLOWED_ACTIONS=read code for prereqs
+FORBIDDEN_ACTIONS=claiming installer exists
+EXPECTED_REPORT=draft MD

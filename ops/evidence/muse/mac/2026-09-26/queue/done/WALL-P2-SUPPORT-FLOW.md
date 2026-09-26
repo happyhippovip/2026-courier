@@ -1,0 +1,9 @@
+TASK_ID=WALL-P2-SUPPORT-FLOW
+CATEGORY=PILOT_COMMERCIAL_PREP
+PRIORITY=P2
+PREREQUISITES=none
+MODE=READ_ONLY
+QUESTION=Support/contact flow + pilot pricing copy; commercial-safe wording
+ALLOWED_ACTIONS=draft in wall reports
+FORBIDDEN_ACTIONS=fake customers, unproven SLA claims
+EXPECTED_REPORT=draft MD

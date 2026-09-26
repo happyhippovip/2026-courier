@@ -1,0 +1,9 @@
+TASK_ID=WALL-P0-VERIFY-400
+CATEGORY=CORE_EVIDENCE
+PRIORITY=P0
+PREREQUISITES=CLI-20 report
+MODE=READ_ONLY
+QUESTION=Is verifier-400-before-verdict still present on writer tip, and what is the minimal fix shape?
+ALLOWED_ACTIONS=git show, static reads
+FORBIDDEN_ACTIONS=source writes, checkout, merge
+EXPECTED_REPORT=confirmation + minimal-fix plan, no code

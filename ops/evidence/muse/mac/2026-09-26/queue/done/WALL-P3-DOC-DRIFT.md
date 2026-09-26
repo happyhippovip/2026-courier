@@ -1,0 +1,9 @@
+TASK_ID=WALL-P3-DOC-DRIFT
+CATEGORY=CORE_EVIDENCE
+PRIORITY=P3
+PREREQUISITES=none
+MODE=READ_ONLY
+QUESTION=Sample docs/code drift: verify 5 doc claims against current code
+ALLOWED_ACTIONS=read docs+code
+FORBIDDEN_ACTIONS=source writes
+EXPECTED_REPORT=drift list MD

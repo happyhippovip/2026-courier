@@ -1,0 +1,9 @@
+TASK_ID=WALL-P0-CANARY-PREFLIGHT
+CATEGORY=MAC_CANARY_PREP
+PRIORITY=P0
+PREREQUISITES=binding proofs MAC_REAL_MUSE_BINDING.md
+MODE=READ_ONLY
+QUESTION=Consolidate canary pre-flight checklist: command template, effort values, exit-code parsing rule, external timeout wrapper requirement
+ALLOWED_ACTIONS=read reports
+FORBIDDEN_ACTIONS=executing canary, model work
+EXPECTED_REPORT=one checklist MD in wall reports

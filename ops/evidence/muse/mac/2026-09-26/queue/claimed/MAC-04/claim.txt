@@ -1,0 +1,5 @@
+WORKER=MAC-04 (muse-session-01a0d7e1)
+HOST=MAC
+MODE=READ_ONLY
+CLAIMED=2026-09-26T15:50Z
+TASK=PILOT_COMMERCIAL_PREP (uncovered items only; signup/FAQ/landing/privacy/support/demo owned by peers)
