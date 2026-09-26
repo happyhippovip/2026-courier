@@ -1,0 +1,451 @@
+{
+  "schema_version": "1.0",
+  "mission_id": "COURIER_AUTOFILL_TASK_SEED_20260926",
+  "purpose": "Seed backlog for automatic dispatch so humans do not refill Muse/Google windows manually.",
+  "policies": {
+    "one_scheduler_authority": true,
+    "one_writer_per_write_scope": true,
+    "mac_max_heavy_initial": 1,
+    "windows_max_heavy_initial": 2,
+    "logical_slots": 64,
+    "backlog_target": [
+      100,
+      1000
+    ],
+    "protected_files": [
+      "server/app.py",
+      "server/run_waitress.py",
+      "server/launch_server_hidden.vbs"
+    ],
+    "no_main_push": true,
+    "no_force_push": true,
+    "no_github_actions_for_local_checks": true
+  },
+  "tasks": [
+    {
+      "id": "AUTO-001",
+      "priority": "P0",
+      "mode": "READ_ONLY",
+      "host": "ANY",
+      "preferred": "GOOGLE_LOW",
+      "write_scope": "scheduler-audit",
+      "heavy": false,
+      "depends_on": [],
+      "objective": "Identify the single canonical scheduling authority and list competing schedulers/adapters that must not dispatch independently.",
+      "acceptance": "One evidence-backed authority map with exact files/functions and no source changes."
+    },
+    {
+      "id": "AUTO-002",
+      "priority": "P0",
+      "mode": "WRITE",
+      "host": "ANY",
+      "preferred": "MUSE_MAX",
+      "write_scope": "autofill-dispatcher",
+      "heavy": false,
+      "depends_on": [
+        "AUTO-001"
+      ],
+      "objective": "Connect canonical queue/continuation state to worker dispatch without creating a second scheduler.",
+      "acceptance": "One queued task can be dispatched by the canonical authority and records durable dispatch identity."
+    },
+    {
+      "id": "AUTO-003",
+      "priority": "P0",
+      "mode": "TEST",
+      "host": "MAC",
+      "preferred": "MUSE_MAX",
+      "write_scope": "muse-capability",
+      "heavy": false,
+      "depends_on": [],
+      "objective": "Prove the least-interactive supported Muse invocation path suitable for programmatic task delivery; do not spawn uncontrolled workers.",
+      "acceptance": "Documented command/API capability and bounded no-side-effect probe."
+    },
+    {
+      "id": "AUTO-004",
+      "priority": "P0",
+      "mode": "WRITE",
+      "host": "MAC",
+      "preferred": "MUSE_MAX",
+      "write_scope": "muse-adapter",
+      "heavy": false,
+      "depends_on": [
+        "AUTO-002",
+        "AUTO-003"
+      ],
+      "objective": "Implement or complete the Muse worker adapter behind the existing provider-neutral worker boundary.",
+      "acceptance": "start/status/result/cancel/health path exists with stable worker_execution_id and targeted tests."
+    },
+    {
+      "id": "AUTO-005",
+      "priority": "P0",
+      "mode": "WRITE",
+      "host": "ANY",
+      "preferred": "MUSE_MAX",
+      "write_scope": "slot-lifecycle",
+      "heavy": false,
+      "depends_on": [
+        "AUTO-002"
+      ],
+      "objective": "Add deterministic logical slot states READY/CLAIMING/RUNNING/RESULT_READY/BLOCKED/RATE_LIMITED/IDLE_WAIT/AMBIGUOUS.",
+      "acceptance": "State transitions are persisted and restart-safe."
+    },
+    {
+      "id": "AUTO-006",
+      "priority": "P0",
+      "mode": "WRITE",
+      "host": "ANY",
+      "preferred": "MUSE_MAX",
+      "write_scope": "rate-limit",
+      "heavy": false,
+      "depends_on": [
+        "AUTO-005"
+      ],
+      "objective": "Classify provider quota/rate-limit as RATE_LIMITED with backoff and no aggressive retry or account rotation.",
+      "acceptance": "Rate-limited slot releases schedulable work safely and resumes only after eligibility."
+    },
+    {
+      "id": "AUTO-007",
+      "priority": "P0",
+      "mode": "WRITE",
+      "host": "ANY",
+      "preferred": "MUSE_MAX",
+      "write_scope": "auto-next",
+      "heavy": false,
+      "depends_on": [
+        "AUTO-002",
+        "AUTO-005"
+      ],
+      "objective": "Make VERIFIED/CLOSED task release its scope and automatically claim the next compatible task.",
+      "acceptance": "Task A verified -> Task B starts without human relay."
+    },
+    {
+      "id": "AUTO-008",
+      "priority": "P0",
+      "mode": "TEST",
+      "host": "ANY",
+      "preferred": "CODEX_HIGH",
+      "write_scope": "result-idempotency",
+      "heavy": false,
+      "depends_on": [],
+      "objective": "Prove RESULT_READY or completed result is never re-executed after retry/restart; resend same durable result instead.",
+      "acceptance": "Repro/test covers duplicate delivery and restart."
+    },
+    {
+      "id": "AUTO-009",
+      "priority": "P0",
+      "mode": "TEST",
+      "host": "ANY",
+      "preferred": "CODEX_HIGH",
+      "write_scope": "ambiguous-recovery",
+      "heavy": false,
+      "depends_on": [],
+      "objective": "Prove ambiguous STARTED/IN_FLIGHT state does not blindly replay effects.",
+      "acceptance": "Ambiguous execution moves to explicit uncertainty/block state with no duplicate effect."
+    },
+    {
+      "id": "AUTO-010",
+      "priority": "P0",
+      "mode": "WRITE",
+      "host": "ANY",
+      "preferred": "MUSE_MAX",
+      "write_scope": "process-leases",
+      "heavy": false,
+      "depends_on": [
+        "AUTO-005"
+      ],
+      "objective": "Ensure every spawned worker process has durable ownership metadata including task/attempt/worker/machine/process identity.",
+      "acceptance": "No unowned worker process in canary path."
+    },
+    {
+      "id": "AUTO-011",
+      "priority": "P0",
+      "mode": "TEST",
+      "host": "ANY",
+      "preferred": "CODEX_HIGH",
+      "write_scope": "owned-stop",
+      "heavy": true,
+      "depends_on": [
+        "AUTO-010"
+      ],
+      "objective": "Verify STOP/cleanup only terminates owned process trees and unrelated processes survive.",
+      "acceptance": "Bounded integration test passes on target host without broad kill."
+    },
+    {
+      "id": "AUTO-012",
+      "priority": "P1",
+      "mode": "WRITE",
+      "host": "MAC",
+      "preferred": "MUSE_MAX",
+      "write_scope": "resource-governor-mac",
+      "heavy": false,
+      "depends_on": [
+        "AUTO-005"
+      ],
+      "objective": "Keep Mac new heavy admissions at max 1 initially; fail closed when resource/thermal state is UNKNOWN.",
+      "acceptance": "Synthetic state tests prove admission rules; no stress test."
+    },
+    {
+      "id": "AUTO-013",
+      "priority": "P1",
+      "mode": "WRITE",
+      "host": "WINDOWS",
+      "preferred": "GOOGLE_MEDIUM",
+      "write_scope": "resource-governor-windows",
+      "heavy": false,
+      "depends_on": [
+        "AUTO-005"
+      ],
+      "objective": "Implement evidence-based Windows admission starting at max 2 heavy tasks independently of Mac.",
+      "acceptance": "Windows state tests prove independent host limits and fail-closed UNKNOWN."
+    },
+    {
+      "id": "AUTO-014",
+      "priority": "P1",
+      "mode": "WRITE",
+      "host": "ANY",
+      "preferred": "MUSE_MAX",
+      "write_scope": "slot-registry",
+      "heavy": false,
+      "depends_on": [
+        "AUTO-005"
+      ],
+      "objective": "Represent 64 logical slots without launching 64 heavy processes.",
+      "acceptance": "32 MAC + 32 WIN logical slots register with zero task load and near-idle control-plane cost."
+    },
+    {
+      "id": "AUTO-015",
+      "priority": "P1",
+      "mode": "WRITE",
+      "host": "ANY",
+      "preferred": "MUSE_MAX",
+      "write_scope": "host-registration",
+      "heavy": false,
+      "depends_on": [
+        "AUTO-014"
+      ],
+      "objective": "Register two hosts with host affinity/capability metadata so Mac and Windows do not claim incompatible work.",
+      "acceptance": "Same queue routes host-specific tasks only to eligible host."
+    },
+    {
+      "id": "AUTO-016",
+      "priority": "P0",
+      "mode": "TEST",
+      "host": "ANY",
+      "preferred": "CODEX_HIGH",
+      "write_scope": "global-claim",
+      "heavy": false,
+      "depends_on": [
+        "AUTO-015"
+      ],
+      "objective": "Prove one global atomic claim across two hosts.",
+      "acceptance": "Concurrent Mac/Windows claim test yields exactly one winner."
+    },
+    {
+      "id": "AUTO-017",
+      "priority": "P0",
+      "mode": "WRITE",
+      "host": "ANY",
+      "preferred": "MUSE_MAX",
+      "write_scope": "write-scope-lock",
+      "heavy": false,
+      "depends_on": [
+        "AUTO-016"
+      ],
+      "objective": "Enforce at most one active writer per write_scope while allowing compatible read-only work.",
+      "acceptance": "Conflicting writer is not dispatched; read-only task remains eligible."
+    },
+    {
+      "id": "AUTO-018",
+      "priority": "P1",
+      "mode": "WRITE",
+      "host": "ANY",
+      "preferred": "MUSE_MAX",
+      "write_scope": "worktree-isolation",
+      "heavy": false,
+      "depends_on": [
+        "AUTO-017"
+      ],
+      "objective": "Create deterministic attempt-scoped worktree lifecycle for writer tasks.",
+      "acceptance": "Writer effects are isolated and bound to exact attempt/base SHA."
+    },
+    {
+      "id": "AUTO-019",
+      "priority": "P0",
+      "mode": "WRITE",
+      "host": "ANY",
+      "preferred": "MUSE_MAX",
+      "write_scope": "result-collector",
+      "heavy": false,
+      "depends_on": [
+        "AUTO-004",
+        "AUTO-007"
+      ],
+      "objective": "Collect structured worker results centrally and reconcile them to task/attempt/worker identity.",
+      "acceptance": "Result cannot be attached to wrong attempt and survives supervisor restart."
+    },
+    {
+      "id": "AUTO-020",
+      "priority": "P1",
+      "mode": "WRITE",
+      "host": "ANY",
+      "preferred": "GOOGLE_MEDIUM",
+      "write_scope": "backlog-dedupe",
+      "heavy": false,
+      "depends_on": [
+        "AUTO-001"
+      ],
+      "objective": "Deduplicate equivalent task candidates before dispatch and preserve provenance.",
+      "acceptance": "Duplicate candidates collapse to one dispatchable logical task without deleting evidence."
+    },
+    {
+      "id": "AUTO-021",
+      "priority": "P1",
+      "mode": "TEST",
+      "host": "ANY",
+      "preferred": "GOOGLE_MEDIUM",
+      "write_scope": "queue-scale",
+      "heavy": false,
+      "depends_on": [
+        "AUTO-014",
+        "AUTO-020"
+      ],
+      "objective": "Prove 1000 queued tasks do not create 1000 model/process instances.",
+      "acceptance": "Queue contains 1000 synthetic tasks while active process count remains bounded by admission limits."
+    },
+    {
+      "id": "AUTO-022",
+      "priority": "P1",
+      "mode": "WRITE",
+      "host": "MAC",
+      "preferred": "MUSE_MAX",
+      "write_scope": "bootstrap-mac",
+      "heavy": false,
+      "depends_on": [
+        "AUTO-004",
+        "AUTO-015"
+      ],
+      "objective": "Provide one-command Mac worker bootstrap/registration using existing architecture.",
+      "acceptance": "Fresh normal user shell can register host without opening 30 manual terminals."
+    },
+    {
+      "id": "AUTO-023",
+      "priority": "P1",
+      "mode": "WRITE",
+      "host": "WINDOWS",
+      "preferred": "GOOGLE_MEDIUM",
+      "write_scope": "bootstrap-windows",
+      "heavy": false,
+      "depends_on": [
+        "AUTO-015"
+      ],
+      "objective": "Provide one-command Windows worker bootstrap/registration using existing architecture.",
+      "acceptance": "Fresh PowerShell can register host without manual per-window prompting."
+    },
+    {
+      "id": "AUTO-024",
+      "priority": "P1",
+      "mode": "WRITE",
+      "host": "ANY",
+      "preferred": "GOOGLE_MEDIUM",
+      "write_scope": "wrong-host-guard",
+      "heavy": false,
+      "depends_on": [
+        "AUTO-015"
+      ],
+      "objective": "Add fail-closed host identity guard so Mac-only tasks cannot execute on Windows and vice versa.",
+      "acceptance": "Wrong-host task returns WRONG_HOST before any source/process mutation."
+    },
+    {
+      "id": "AUTO-025",
+      "priority": "P2",
+      "mode": "WRITE",
+      "host": "WINDOWS",
+      "preferred": "GOOGLE_MEDIUM",
+      "write_scope": "antigravity-bootstrap",
+      "heavy": false,
+      "depends_on": [
+        "AUTO-023"
+      ],
+      "objective": "Productize known Antigravity IDE non-secret settings with backup + verifier; never store credentials or enable confirmations.",
+      "acceptance": "Setup is idempotent, preserves unknown keys, and verifier reports expected policy."
+    },
+    {
+      "id": "AUTO-026",
+      "priority": "P1",
+      "mode": "WRITE",
+      "host": "ANY",
+      "preferred": "MUSE_MAX",
+      "write_scope": "wall-status",
+      "heavy": false,
+      "depends_on": [
+        "AUTO-014",
+        "AUTO-019"
+      ],
+      "objective": "Make Wall a read-only status surface for logical slots, not a competing scheduler.",
+      "acceptance": "Wall shows host/model/mode/task/scope/state/elapsed and aggregate counts from canonical state."
+    },
+    {
+      "id": "AUTO-027",
+      "priority": "P0",
+      "mode": "TEST",
+      "host": "MAC",
+      "preferred": "CODEX_HIGH",
+      "write_scope": "canary-scale",
+      "heavy": true,
+      "depends_on": [
+        "AUTO-004",
+        "AUTO-007",
+        "AUTO-012",
+        "AUTO-019"
+      ],
+      "objective": "Run bounded canary 1 -> 4 Muse workers with auto-next and no human relay.",
+      "acceptance": "All results persisted, no duplicate execution, no scope collision, resource gate respected."
+    },
+    {
+      "id": "AUTO-028",
+      "priority": "P0",
+      "mode": "TEST",
+      "host": "ANY",
+      "preferred": "CODEX_HIGH",
+      "write_scope": "restart-canary",
+      "heavy": true,
+      "depends_on": [
+        "AUTO-008",
+        "AUTO-009",
+        "AUTO-010",
+        "AUTO-019"
+      ],
+      "objective": "Prove controlled supervisor/worker restart recovers durable state without lost result or duplicate execution.",
+      "acceptance": "Exact task/attempt identity survives restart and terminal state is correct."
+    },
+    {
+      "id": "AUTO-029",
+      "priority": "P1",
+      "mode": "TEST",
+      "host": "ANY",
+      "preferred": "GOOGLE_LOW",
+      "write_scope": "idle-efficiency",
+      "heavy": false,
+      "depends_on": [
+        "AUTO-014"
+      ],
+      "objective": "Verify idle logical slots do not busy-poll or keep unnecessary model processes alive.",
+      "acceptance": "Idle control plane uses bounded backoff/event waiting and process count remains minimal."
+    },
+    {
+      "id": "AUTO-030",
+      "priority": "P0",
+      "mode": "REVIEW",
+      "host": "ANY",
+      "preferred": "OPUS_HIGH",
+      "write_scope": "integration-gate",
+      "heavy": false,
+      "depends_on": [
+        "AUTO-027",
+        "AUTO-028"
+      ],
+      "objective": "Reconcile final evidence for queue->claim->worker->result->verify->next across two hosts and identify only real remaining blockers.",
+      "acceptance": "Evidence matrix with PASS/FAIL/UNKNOWN per invariant; no architecture rewrite and no unsourced success."
+    }
+  ]
+}
