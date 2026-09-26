@@ -122,3 +122,31 @@ def test_antigravity_capability_binds_to_mac_worker():
     assert packet["target_capability"] == "antigravity"
     assert packet["worker_id"] == "MAC-01"
     assert packet["dispatch_id"].startswith("dispatch-")
+
+
+@pytest.mark.parametrize(
+    "bad_path",
+    [
+        "../escape.txt",
+        r"..\escape.txt",
+        "/etc/shadow",
+        r"C:\Windows\System32\calc.exe",
+        "C:relative.txt",
+        "",
+    ],
+)
+def test_unsafe_artifact_paths_rejected(tmp_path: Path, bad_path: str):
+    packet = task_packet()
+    packet["artifacts"] = [bad_path]
+    raw = {
+        "goal_id": packet["goal_id"],
+        "task_id": packet["task_id"],
+        "worker_id": packet["worker_id"],
+        "attempt_id": packet["attempt_id"],
+        "dispatch_id": packet["dispatch_id"],
+        "run_id": "run-1",
+        "status": "SUCCESS",
+    }
+    with pytest.raises(ContractError, match="unsafe artifact path"):
+        verify_result(packet, raw, tmp_path)
+
