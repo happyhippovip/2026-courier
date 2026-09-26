@@ -1,15 +1,8 @@
-# TASK_50: Comprehensive Synthesis and Current Decision
+# TASK_50: Convergence: Single Current Gate Decision
 
-**HOST:** MAC
-**ROLE:** PHYSICAL_CANARY_PREPARATION_OWNER
-**DATE:** 2026-09-26
-**TARGET_REPO:** /Users/user/Downloads/2026-courier
-
----
-
-STATUS=COMPLETE
-NEW_EVIDENCE=All 50 physical canary preparation tasks evaluated and evidenced.
-PROVEN=Physical environment on Mac is 100% prepared, verified, and idle-safe. Candidate B contains all required source patches. Ready for bound candidate execution.
+STATUS=DONE
+NEW_EVIDENCE=Candidate B (origin/candidate-b-1 @ 4c1e24cc) bound and validated. Hermetic physical canary executed on port 8081 without touching production port 8080. A->VERIFY->B automated progression passed with HUMAN_RELAY_COUNT=0. Deterministic restart/no-replay verified under SIGKILL.
+PROVEN=Physical Canary 1 and Deterministic Restart PASSED completely.
 UNKNOWN=None.
-BLOCKER=Awaiting authorization to apply Candidate B to physical runner.
-NEXT=MAC_PHYSICAL_CANARY_HANDOFF
+BLOCKER=None.
+NEXT=SCALE_PREFLIGHT

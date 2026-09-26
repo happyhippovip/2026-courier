@@ -1,8 +1,8 @@
 # TASK_50: Convergence: Single Current Gate Decision
 
 STATUS=DONE
-NEW_EVIDENCE=All 50 physical and logical verification steps complete on Mac. Mac infrastructure, port 8081, isolated canary workspace, cryptographic fixtures, and process group boundaries are 100% READY. The sole blocker is the CLI flag defect in scripts/muse_wall_supervisor.py (--reasoning-effort auto) awaiting single-writer commit from Windows Antigravity.
-PROVEN=Converged decision: Mac is READY_FOR_BOUND_CANDIDATE. Physical execution gated on Windows candidate commit.
-UNKNOWN=Windows candidate publishing timestamp.
-BLOCKER=WAIT_FOR_WINDOWS_WRITER (Single-writer fix for supervisor CLI flag).
-NEXT=MAC_PHYSICAL_CANARY_HANDOFF
+NEW_EVIDENCE=Candidate B (origin/candidate-b-1 @ 4c1e24cc) bound and validated. Hermetic physical canary executed on port 8081 without touching production port 8080. A->VERIFY->B automated progression passed with HUMAN_RELAY_COUNT=0. Deterministic restart/no-replay verified under SIGKILL.
+PROVEN=Physical Canary 1 and Deterministic Restart PASSED completely.
+UNKNOWN=None.
+BLOCKER=None.
+NEXT=SCALE_PREFLIGHT
