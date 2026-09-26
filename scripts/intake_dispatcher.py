@@ -5,8 +5,27 @@ import subprocess
 import os
 import tempfile
 
-def dispatch_intake(intake_file):
-    with open(intake_file, 'r') as f:
+from pathlib import Path
+
+STATE_FILE = Path(os.environ.get("COURIER_STATE_FILE", "central_state.json"))
+
+
+def _load_state(state_path: Path):
+    if not state_path.exists():
+        return {"tasks": {}}, None
+    try:
+        with open(state_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if not isinstance(data, dict):
+            return None, f"{state_path} does not contain a JSON object"
+        data.setdefault("tasks", {})
+        return data, None
+    except Exception as e:
+        return None, f"refusing to dispatch: cannot read {state_path}: {e}"
+
+
+def dispatch_intake(intake_file, state_path=None):
+    with open(intake_file, 'r', encoding="utf-8") as f:
         intake = json.load(f)
         
     task_id = intake.get("task_id")
@@ -20,15 +39,11 @@ def dispatch_intake(intake_file):
             task_id = f"task-revenue-{content_hash}"
             
     # Check Duplicate Execution before dispatching
-    state_file = 'central_state.json'
-    try:
-        if os.path.exists(state_file):
-            with open(state_file, 'r') as f:
-                state = json.load(f)
-        else:
-            state = {"tasks": {}}
-    except Exception:
-        state = {"tasks": {}}
+    state_file = Path(state_path) if state_path else STATE_FILE
+    state, err = _load_state(state_file)
+    if err:
+        print(f"ERROR: {err}")
+        sys.exit(1)
         
     if task_id in state["tasks"]:
         print(f"Task {task_id} is already dispatched. Skipping duplicate execution.")
@@ -72,10 +87,15 @@ def dispatch_intake(intake_file):
         "real_wall": "HUMAN_REVIEW_REQUIRED_ON_PR"
     }
     
-    fd, tmp_file = tempfile.mkstemp(dir=os.path.dirname(os.path.abspath(state_file)) or '.', prefix=".state-tmp-")
-    with os.fdopen(fd, 'w') as f:
+    state_dir = Path(state_file).resolve().parent
+    state_dir.mkdir(parents=True, exist_ok=True)
+    fd, tmp_file = tempfile.mkstemp(dir=str(state_dir), prefix=".state-tmp-")
+    with os.fdopen(fd, 'w', encoding="utf-8") as f:
         json.dump(state, f, indent=2)
-    os.replace(tmp_file, state_file)
+        f.write("\n")
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp_file, str(state_file))
         
     print(f"Central state updated. System chain fully connected for intake -> execution -> PR.")
 
