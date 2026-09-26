@@ -80,6 +80,24 @@ def test_durable_result_preserves_github_run_attempt():
     assert validate_durable_result(task, result)["run_attempt"] == "1"
 
 
+def test_verify_result_enforces_dispatch_bound_identity(tmp_path: Path):
+    directory = tmp_path / "dl"
+    directory.mkdir()
+    evidence_name = "courier_output_dispatch-1.json"
+    evidence = {"operation": "deterministic_transform",
+                "input_sha256": hashlib.sha256(b"canary").hexdigest()}
+    evidence_file = directory / evidence_name
+    evidence_file.write_text(json.dumps(evidence), encoding="utf-8")
+    digest = hashlib.sha256(evidence_file.read_bytes()).hexdigest()
+    good = {**packet(), "run_id": "99", "run_attempt": "1", "result_id": "result-dispatch-1",
+            "status": "SUCCESS", "operation": "deterministic_transform",
+            "artifacts": [{"path": evidence_name, "sha256": digest}]}
+    adapter.verify_result(packet(), good, evidence, "99", directory)
+    bad = dict(good, result_id="result-something-else")
+    with pytest.raises(ValueError, match="not bound"):
+        adapter.verify_result(packet(), bad, evidence, "99", directory)
+
+
 def test_post_result_uses_courier_bearer_token(monkeypatch):
     captured = {}
 
