@@ -50,14 +50,16 @@ def print_result(data, as_json):
 def cmd_submit(args):
     payload = {"goal_text": args.goal}
     data, status = make_request("POST", "/goals", payload)
-    if status == 200:
+    if status in (200, 201):
         if not args.json:
             print(f"Goal submitted successfully. ID: {data.get('goal_id')}")
         else:
             print_result(data, True)
+        return 0
     else:
         print(f"ERROR: Failed to submit goal (HTTP {status})", file=sys.stderr)
         print_result(data, args.json)
+        return 1
 
 def cmd_status(args):
     data, status = make_request("GET", "/status")
@@ -65,9 +67,11 @@ def cmd_status(args):
         if not args.json:
             print("--- COURIER SYSTEM STATUS ---")
         print_result(data, args.json)
+        return 0
     else:
         print(f"ERROR: Failed to get status (HTTP {status})", file=sys.stderr)
         print_result(data, args.json)
+        return 1
 
 def cmd_goal(args):
     data, status = make_request("GET", f"/goals/{args.id}")
@@ -89,9 +93,11 @@ def cmd_goal(args):
                     print(f"  Task: {t.get('task_id')} | Worker: {t.get('worker_id')} | Status: {t.get('status')} | Attempts: {t.get('attempts', 0)}")
         else:
             print_result(data, True)
+        return 0
     else:
         print(f"ERROR: Failed to get goal (HTTP {status})", file=sys.stderr)
         print_result(data, args.json)
+        return 1
 
 def cmd_workers(args):
     data, status = make_request("GET", "/workers")
@@ -101,11 +107,14 @@ def cmd_workers(args):
         else:
             print("ERROR: Server is missing endpoint GET /workers")
             print("Handoff: The server needs a read endpoint to list workers.")
+        return 1
     elif status == 200:
         print_result(data, args.json)
+        return 0
     else:
         print(f"ERROR: Failed to get workers (HTTP {status})", file=sys.stderr)
         print_result(data, args.json)
+        return 1
 
 def cmd_health(args):
     data, status = make_request("GET", "/health")
@@ -114,9 +123,11 @@ def cmd_health(args):
             print("Server is HEALTHY.")
         else:
             print_result(data, True)
+        return 0
     else:
         print(f"ERROR: Server health check failed (HTTP {status})", file=sys.stderr)
         print_result(data, args.json)
+        return 1
 
 def cmd_wall(args):
     data, status = make_request("GET", "/walls")
@@ -126,11 +137,14 @@ def cmd_wall(args):
         else:
             print("ERROR: Server is missing endpoint GET /walls")
             print("Handoff: The server needs a read endpoint to list external walls/blocked goals.")
+        return 1
     elif status == 200:
         print_result(data, args.json)
+        return 0
     else:
         print(f"ERROR: Failed to get walls (HTTP {status})", file=sys.stderr)
         print_result(data, args.json)
+        return 1
 
 def main():
     parser = argparse.ArgumentParser(description="Courier CLI Operator Client")
@@ -154,18 +168,20 @@ def main():
     
     args = parser.parse_args()
     
+    rc = 0
     if args.command == "submit":
-        cmd_submit(args)
+        rc = cmd_submit(args)
     elif args.command == "status":
-        cmd_status(args)
+        rc = cmd_status(args)
     elif args.command == "goal":
-        cmd_goal(args)
+        rc = cmd_goal(args)
     elif args.command == "workers":
-        cmd_workers(args)
+        rc = cmd_workers(args)
     elif args.command == "health":
-        cmd_health(args)
+        rc = cmd_health(args)
     elif args.command == "wall":
-        cmd_wall(args)
+        rc = cmd_wall(args)
+    sys.exit(rc or 0)
 
 if __name__ == "__main__":
     main()
