@@ -34,7 +34,7 @@ Do not insert product/world/community work ahead of this sequence:
 
 1. Build the final canonical candidate from candidate-b-1.
 2. Run real targeted tests against the integrated server/storage path.
-3. Physically confirm Muse stdout/result contract on Mac in an isolated scratch workspace.
+3. Muse stdout/result contract: **PHYSICALLY CONFIRMED MATCH** on Mac in an isolated scratch workspace.
 4. Bind the Mac runtime to the exact final candidate SHA in an isolated worktree/runtime.
 5. RUN_1: physical A -> VERIFY -> B with human relay = 0.
 6. RUN_2: deterministic restart with no A replay.
@@ -166,24 +166,25 @@ Requirements:
 - exec, --workspace and --yolo previously physically reported
 - reasoning_effort only if the installed Muse help actually documents a usable value
 
-## 7. Open Muse output blocker
+## 7. Muse output contract — CLOSED
 
-The existing adapter accepts success only when stdout contains the expected fenced JSON success payload.
+A physical isolated Mac probe was executed and reported:
 
-Before RUN_1, perform one separately authorized probe OUTSIDE Courier in a fresh empty scratch directory.
+- Muse Code 1.4.0
+- exit code 0
+- model final response emitted directly on stdout as a plain JSON success object
+- Muse diagnostic prefix lines emitted on stderr, not stdout
+- no ANSI/TUI contamination reported
+- current Muse adapter classified the output as parseable
+- no adapter writer-scope change required
 
-Record:
-- exact command form
-- exit code
-- raw stdout form
-- raw stderr form
-- ANSI/TUI behavior
-- whether fenced JSON is visible in stdout exactly as the adapter expects
+Public checkpoint intentionally omits local workspace/user paths.
 
-If adapter output does not match:
-- RUN_1 remains blocked
-- classify as CHANGES_WRITER_SCOPE for muse_adapter parsing
-- do not run the physical Canary until resolved
+Decision:
+
+MUSE_OUTPUT_CONTRACT=MATCH
+
+Do not repeat this probe unless the Muse binary/version, adapter parsing code, or relevant CLI invocation changes.
 
 ## 8. Invalid proof reminders
 
@@ -308,11 +309,9 @@ Public-safe principles that may be stored here:
 
 ## 15. Stop condition for broad analysis
 
-Once BOTH are true:
-- final candidate SHA exists with real targeted tests and correct five-file scope
-- Muse stdout probe matches adapter expectations
+Muse stdout probe already matches adapter expectations.
 
-stop broad analysis.
+Once the final candidate SHA exists with real targeted tests and correct five-file scope, stop broad analysis.
 
 Proceed directly to:
 Mac binding preflight -> RUN_1 -> RUN_2 -> smallest honest UI.
@@ -338,6 +337,7 @@ Current flags:
 DO_NOT_RESTART_ANALYSIS=YES
 FINAL_BASE=candidate-b-1@4c1e24ccc522042af826bc4c2b595daf85d097f9
 CANDIDATE_B2=REJECTED
+MUSE_OUTPUT_CONTRACT=MATCH
 READY_FOR_PHYSICAL_A_TO_B=NO
 READY_FOR_SCALE_4=NO
 READY_FOR_UI=NO
