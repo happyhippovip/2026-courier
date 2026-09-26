@@ -102,8 +102,21 @@ def verify_result(task: dict[str, Any], result: dict[str, Any], evidence: dict[s
     if not isinstance(artifacts, list) or len(artifacts) != 1:
         raise ValueError("successful DurableResult requires one evidence artifact")
     artifact = artifacts[0]
-    evidence_file = directory / artifact.get("path", "")
-    if not evidence_file.is_file() or artifact.get("sha256") != hashlib.sha256(evidence_file.read_bytes()).hexdigest():
+    if not isinstance(artifact, dict):
+        raise ValueError("evidence artifact must be a JSON object")
+    artifact_path = artifact.get("path")
+    if not isinstance(artifact_path, str) or not artifact_path:
+        raise ValueError("evidence artifact requires a non-empty string path")
+    rel_p = Path(artifact_path)
+    if rel_p.is_absolute():
+        raise ValueError("evidence artifact path must not be absolute")
+    evidence_file = (directory / rel_p).resolve()
+    dir_resolved = directory.resolve()
+    if dir_resolved not in evidence_file.parents and evidence_file != dir_resolved:
+        raise ValueError("evidence artifact path escapes download directory boundary")
+    if not evidence_file.is_file():
+        raise ValueError("evidence artifact file is missing")
+    if artifact.get("sha256") != hashlib.sha256(evidence_file.read_bytes()).hexdigest():
         raise ValueError("evidence artifact hash does not match")
     operation = result["operation"]
     if evidence.get("operation") != operation:
@@ -133,70 +146,110 @@ def post_result(result: dict[str, Any]) -> None:
         raise RuntimeError(f"Courier result POST failed: {response.status_code} {response.text}")
 
 
+
+import tempfile
+
+def acquire_lock(task_id):
+    lock_file = Path(tempfile.gettempdir()) / f"courier_gh_worker_{task_id}.lock"
+    try:
+        fd = os.open(str(lock_file), os.O_CREAT | os.O_EXCL | os.O_RDWR)
+        os.write(fd, str(os.getpid()).encode())
+        os.close(fd)
+        return lock_file
+    except FileExistsError:
+        try:
+            with open(lock_file, "r") as f:
+                pid = int(f.read().strip())
+            # Cross-platform check
+            try:
+                import psutil
+                if not psutil.pid_exists(pid):
+                    os.remove(lock_file)
+                    return acquire_lock(task_id)
+            except ImportError:
+                # Fallback to os.kill if psutil is not available
+                try:
+                    os.kill(pid, 0)
+                except OSError:
+                    os.remove(lock_file)
+                    return acquire_lock(task_id)
+        except Exception:
+            pass
+        return None
+
 def run(task_file_name: str) -> int:
     task_file = Path(task_file_name)
     task = json.loads(task_file.read_text(encoding="utf-8"))
     validate_task(task)
-    prior = {}
-    if state_path(task_file).is_file():
-        prior = json.loads(state_path(task_file).read_text(encoding="utf-8"))
-        if prior.get("dispatch_id") != task["dispatch_id"]:
-            raise ValueError("persisted GitHub state belongs to another dispatch")
-        if prior.get("status") == "POSTED":
-            return 0
 
-    run_id, status = find_run(task["dispatch_id"])
-    if not run_id and not prior:
-        ref = os.environ.get("GITHUB_WORKER_REF") or run_cmd(["git", "branch", "--show-current"])[1]
-        if not ref:
-            raise RuntimeError("cannot determine dispatch ref")
-        rc, _, error = run_cmd(["gh", "workflow", "run", WORKFLOW, "--repo", REPOSITORY, "--ref", ref,
-                                "--raw-field", "task_payload_base64=" + base64.b64encode(
-                                    json.dumps(task, separators=(",", ":")).encode("utf-8")).decode("ascii"),
-                                "--field", f"dispatch_id={task['dispatch_id']}"])
-        if rc:
-            raise RuntimeError(f"workflow dispatch failed: {error}")
-        write_state(task_file, {"dispatch_id": task["dispatch_id"], "status": "WAITING_FOR_WORKER"})
+    lock_file = acquire_lock(task["dispatch_id"])
+    if not lock_file:
+        print(f"Adapter for {task['dispatch_id']} is already running.")
+        return 0
 
-    deadline = time.monotonic() + LOCAL_WAIT_SECONDS
-    while time.monotonic() < deadline:
-        run_id, status = find_run(task["dispatch_id"])
-        if run_id and status == "completed":
-            directory = task_file.parent / f".courier-result-{task['dispatch_id']}"
-            try:
-                result, evidence = download_result(run_id, task["dispatch_id"], directory)
-                verify_result(task, result, evidence, run_id, directory)
-                post_result(result)
-                write_state(task_file, {"dispatch_id": task["dispatch_id"], "run_id": run_id, "run_attempt": result["run_attempt"], "result_id": result["result_id"], "status": "POSTED"})
+    try:
+        prior = {}
+        if state_path(task_file).is_file():
+            prior = json.loads(state_path(task_file).read_text(encoding="utf-8"))
+            if prior.get("dispatch_id") != task["dispatch_id"]:
+                raise ValueError("persisted GitHub state belongs to another dispatch")
+            if prior.get("status") == "POSTED":
                 return 0
-            finally:
-                shutil.rmtree(directory, ignore_errors=True)
-        if run_id:
-            write_state(task_file, {"dispatch_id": task["dispatch_id"], "run_id": run_id, "status": "WAITING_FOR_WORKER"})
-        time.sleep(POLL_SECONDS)
-        
-    # Timeout
-    timeout_result = {
-        "goal_id": task.get("goal_id"),
-        "task_id": task["task_id"],
-        "attempt_id": task.get("attempt_id"),
-        "dispatch_id": task["dispatch_id"],
-        "worker_id": task.get("worker_id"),
-        "run_id": str(run_id) if run_id else "unknown",
-        "result_id": f"result-{task['dispatch_id']}-timeout",
-        "status": "FAILED",
-        "artifacts": [],
-        "provider": "github_timeout",
-        "raw_result": {"reason": "TIMEOUT", "run_id": run_id}
-    }
-    post_result(timeout_result)
-    write_state(task_file, {"dispatch_id": task["dispatch_id"], "run_id": run_id, "status": "POSTED"})
-    return 0
 
+        run_id, status = find_run(task["dispatch_id"])
+        if not run_id and not prior:
+            ref = os.environ.get("GITHUB_WORKER_REF") or run_cmd(["git", "branch", "--show-current"])[1]
+            if not ref:
+                raise RuntimeError("cannot determine dispatch ref")
+            rc, _, error = run_cmd(["gh", "workflow", "run", WORKFLOW, "--repo", REPOSITORY, "--ref", ref,
+                                    "--raw-field", "task_payload_base64=" + base64.b64encode(
+                                        json.dumps(task, separators=(",", ":")).encode("utf-8")).decode("ascii"),
+                                    "--field", f"dispatch_id={task['dispatch_id']}"])
+            if rc:
+                raise RuntimeError(f"workflow dispatch failed: {error}")
+            write_state(task_file, {"dispatch_id": task["dispatch_id"], "status": "WAITING_FOR_WORKER"})
+
+        deadline = time.monotonic() + LOCAL_WAIT_SECONDS
+        while time.monotonic() < deadline:
+            run_id, status = find_run(task["dispatch_id"])
+            if run_id and status == "completed":
+                directory = task_file.parent / f".courier-result-{task['dispatch_id']}"
+                try:
+                    result, evidence = download_result(run_id, task["dispatch_id"], directory)
+                    verify_result(task, result, evidence, run_id, directory)
+                    post_result(result)
+                    write_state(task_file, {"dispatch_id": task["dispatch_id"], "run_id": run_id, "run_attempt": result["run_attempt"], "result_id": result["result_id"], "status": "POSTED"})
+                    return 0
+                finally:
+                    shutil.rmtree(directory, ignore_errors=True)
+            if run_id:
+                write_state(task_file, {"dispatch_id": task["dispatch_id"], "run_id": run_id, "status": "WAITING_FOR_WORKER"})
+            time.sleep(POLL_SECONDS)
+
+        # Timeout
+        timeout_result = {
+            "goal_id": task.get("goal_id"),
+            "task_id": task["task_id"],
+            "attempt_id": task.get("attempt_id"),
+            "dispatch_id": task["dispatch_id"],
+            "worker_id": task.get("worker_id"),
+            "run_id": str(run_id) if run_id else "unknown",
+            "result_id": f"result-{task['dispatch_id']}-timeout",
+            "status": "FAILED",
+            "artifacts": [],
+            "provider": "github_timeout",
+            "raw_result": {"reason": "TIMEOUT", "run_id": run_id}
+        }
+        post_result(timeout_result)
+        write_state(task_file, {"dispatch_id": task["dispatch_id"], "run_id": run_id, "status": "POSTED"})
+        return 0
+    finally:
+        if lock_file and os.path.exists(str(lock_file)):
+            os.remove(str(lock_file))
 
 if __name__ == "__main__":
     try:
         raise SystemExit(run(sys.argv[1]))
-    except (IndexError, OSError, RuntimeError, ValueError, json.JSONDecodeError) as exc:
+    except (IndexError, OSError, RuntimeError, ValueError, json.JSONDecodeError, AttributeError, TypeError) as exc:
         print(f"GITHUB_WORKER_ERROR={exc}", file=sys.stderr)
         raise SystemExit(1)

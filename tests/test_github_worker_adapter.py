@@ -131,3 +131,57 @@ def test_post_result_uses_courier_bearer_token(monkeypatch):
 
     assert captured["url"] == "http://courier.test/tasks/result"
     assert captured["headers"]["Authorization"] == "Bearer courier-test-token"
+
+
+def test_verify_result_rejects_nondict_artifact_element(tmp_path: Path):
+    task = packet()
+    evidence = {"operation": "deterministic_transform", "input_sha256": hashlib.sha256(b"canary").hexdigest()}
+    result = {
+        **task, "run_id": "99", "run_attempt": "1", "result_id": "result-dispatch-1",
+        "status": "SUCCESS", "operation": "deterministic_transform",
+        "artifacts": ["courier_output.json"],
+    }
+    with pytest.raises(ValueError, match="must be a JSON object"):
+        adapter.verify_result(task, result, evidence, "99", tmp_path)
+
+
+def test_verify_result_rejects_absolute_artifact_path(tmp_path: Path):
+    task = packet()
+    evidence = {"operation": "deterministic_transform", "input_sha256": hashlib.sha256(b"canary").hexdigest()}
+    result = {
+        **task, "run_id": "99", "run_attempt": "1", "result_id": "result-dispatch-1",
+        "status": "SUCCESS", "operation": "deterministic_transform",
+        "artifacts": [{"path": "/etc/hosts", "sha256": "dummy"}],
+    }
+    with pytest.raises(ValueError, match="must not be absolute"):
+        adapter.verify_result(task, result, evidence, "99", tmp_path)
+
+
+def test_verify_result_rejects_path_traversal_escape(tmp_path: Path):
+    task = packet()
+    evidence = {"operation": "deterministic_transform", "input_sha256": hashlib.sha256(b"canary").hexdigest()}
+    result = {
+        **task, "run_id": "99", "run_attempt": "1", "result_id": "result-dispatch-1",
+        "status": "SUCCESS", "operation": "deterministic_transform",
+        "artifacts": [{"path": "../../etc/hosts", "sha256": "dummy"}],
+    }
+    with pytest.raises(ValueError, match="escapes download directory boundary"):
+        adapter.verify_result(task, result, evidence, "99", tmp_path)
+
+
+def test_verify_result_rejects_missing_file_or_hash_mismatch(tmp_path: Path):
+    task = packet()
+    evidence = {"operation": "deterministic_transform", "input_sha256": hashlib.sha256(b"canary").hexdigest()}
+    result = {
+        **task, "run_id": "99", "run_attempt": "1", "result_id": "result-dispatch-1",
+        "status": "SUCCESS", "operation": "deterministic_transform",
+        "artifacts": [{"path": "nonexistent.json", "sha256": "dummy"}],
+    }
+    with pytest.raises(ValueError, match="file is missing"):
+        adapter.verify_result(task, result, evidence, "99", tmp_path)
+
+    f = tmp_path / "valid.json"
+    f.write_bytes(b"content")
+    result["artifacts"] = [{"path": "valid.json", "sha256": "wrong_hash"}]
+    with pytest.raises(ValueError, match="hash does not match"):
+        adapter.verify_result(task, result, evidence, "99", tmp_path)
