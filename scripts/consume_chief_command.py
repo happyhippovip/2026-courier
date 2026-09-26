@@ -8,6 +8,7 @@ import datetime
 import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 import uuid
@@ -30,8 +31,8 @@ ALLOWED_SCOPES_DEFAULT = {
     "2026-courier",
     "2026-project-memory",
 }
-ALLOWED_COST_POLICIES = {"ZERO_COST_ONLY", "FREE_TIER_ONLY"}
-ALLOWED_HUMAN_GATE_POLICIES = {"STOP_ON_HUMAN_GATE_ONLY", "AUTO_IF_SAFE"}
+ALLOWED_COST_POLICIES = {"ZERO_COST_ONLY"}
+ALLOWED_HUMAN_GATE_POLICIES = {"STOP_ON_HUMAN_GATE_ONLY"}
 
 
 def fail(message: str) -> None:
@@ -102,10 +103,23 @@ def validate_command(command_data: dict, command_file: Path | None, incoming_dir
     if payload.get("human_gate_policy") not in ALLOWED_HUMAN_GATE_POLICIES:
         return False, f"Human gate policy violation: {payload.get('human_gate_policy')} not allowed"
 
-    # Deduplication check
+    # Identifier validation against path traversal and malformed inputs
+    task_id = command_data.get("task_id")
+    if not isinstance(task_id, str) or not re.fullmatch(r"[A-Za-z0-9_.-]+", task_id):
+        return False, f"Invalid task_id pattern: {task_id}"
+
     msg_id = command_data.get("message_id")
+    if not isinstance(msg_id, str) or not re.fullmatch(r"[A-Za-z0-9_.-]+", msg_id):
+        return False, f"Invalid message_id pattern: {msg_id}"
+
+    # Deduplication check
     if not check_dedupe(msg_id, [processed_dir], exclude_path=command_file):
         return False, f"Duplicate command: message_id '{msg_id}' already has a processed result in processed/"
+
+    # Prevent silent overwrite of existing task result
+    expected_result_file = processed_dir / f"{task_id}-result.json"
+    if expected_result_file.exists() and (not command_file or expected_result_file.resolve() != command_file.resolve()):
+        return False, f"Duplicate task: task_id '{task_id}' already has a processed result in processed/"
 
     return True, "VALID"
 
@@ -196,10 +210,16 @@ def process_command(command_file: Path, incoming_dir: Path, processed_dir: Path)
         safe_next_state=safe_next_state,
     )
 
-    # Publish result to processed_dir
+    # Publish result to processed_dir atomically
     processed_dir.mkdir(parents=True, exist_ok=True)
     processed_file = processed_dir / f"{command_data['task_id']}-result.json"
-    processed_file.write_text(json.dumps(result_event, indent=2) + "\n", encoding="utf-8")
+    temp_file = processed_file.with_suffix(f".tmp.{os.getpid()}")
+    with open(temp_file, "w", encoding="utf-8") as f:
+        json.dump(result_event, f, indent=2)
+        f.write("\n")
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(temp_file, processed_file)
 
     return result_event
 
