@@ -208,10 +208,11 @@ def run_task(task, config):
     
     print(f"[{config['WORKER_ID']}] Executing native PowerShell instruction.")
     import base64
-    encoded_instruction = base64.b64encode(instruction.encode("utf-16le")).decode("utf-8")
+    utf8_instruction = f"[Console]::OutputEncoding = [System.Text.Encoding]::UTF8;\n{instruction}"
+    encoded_instruction = base64.b64encode(utf8_instruction.encode("utf-16le")).decode("utf-8")
     cmd = ["powershell", "-EncodedCommand", encoded_instruction]
     try:
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8", errors="replace")
         run_id = str(process.pid)
         stdout, stderr_out = process.communicate(timeout=600)
         out_clean = stdout.strip()
@@ -247,27 +248,19 @@ def is_resource_pressure_high():
         # Defaults to safe (no pressure) if check fails to prevent starvation, but we could also back off
         return False
 
+_lock_fd = None
 def acquire_lock(worker_id):
+    global _lock_fd
+    import msvcrt
     lock_file = Path(tempfile.gettempdir()) / f"courier_worker_{worker_id}.lock"
     try:
-        # Try to open file in exclusive creation mode.
-        fd = os.open(str(lock_file), os.O_CREAT | os.O_EXCL | os.O_RDWR)
+        fd = os.open(str(lock_file), os.O_CREAT | os.O_RDWR)
+        msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)
+        os.ftruncate(fd, 0)
         os.write(fd, str(os.getpid()).encode())
-        os.close(fd)
+        _lock_fd = fd
         return lock_file
-    except FileExistsError:
-        # Check if the process is actually running
-        try:
-            with open(lock_file, "r") as f:
-                pid = int(f.read().strip())
-            # In Windows, we can check if PID exists using tasklist
-            out = subprocess.check_output(["tasklist", "/FI", f"PID eq {pid}"], text=True)
-            if str(pid) not in out:
-                # Stale lock
-                os.remove(lock_file)
-                return acquire_lock(worker_id)
-        except Exception:
-            pass
+    except OSError:
         return None
 
 def loop():
