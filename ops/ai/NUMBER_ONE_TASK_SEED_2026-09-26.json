@@ -1,0 +1,96 @@
+{
+  "schema_version": "1.0",
+  "mission_id": "COURIER_NUMBER_ONE_20260926",
+  "tasks": [
+    {
+      "id": "N1-001",
+      "priority": "P0",
+      "mode": "TEST",
+      "preferred": "CODEX_HIGH",
+      "write_scope": "physical-a2b-proof",
+      "objective": "Produce physical proof of Task A -> verified result -> automatic Task B on real Muse with zero human relay.",
+      "acceptance": "Two real consecutive Muse tasks complete with durable identity/evidence and no human prompt between them."
+    },
+    {
+      "id": "N1-002",
+      "priority": "P0",
+      "mode": "REVIEW",
+      "preferred": "OPUS_HIGH",
+      "write_scope": "canonical-convergence",
+      "objective": "Identify one canonical scheduler/runtime path and eliminate duplicate architectural authority.",
+      "acceptance": "One authority map; duplicate schedulers explicitly excluded; minimal integration order documented."
+    },
+    {
+      "id": "N1-003",
+      "priority": "P0",
+      "mode": "TEST",
+      "preferred": "CODEX_HIGH",
+      "write_scope": "restart-recovery-proof",
+      "objective": "Physically prove restart/resume without duplicate side effects or lost RESULT_READY.",
+      "acceptance": "Controlled restart preserves identity and terminal result; ambiguous STARTED is not replayed."
+    },
+    {
+      "id": "N1-004",
+      "priority": "P1",
+      "mode": "WRITE",
+      "preferred": "MUSE_MAX",
+      "write_scope": "benchmark-harness",
+      "objective": "Create local reproducible benchmark harness comparing Courier and a single-agent baseline on identical task sets.",
+      "acceptance": "Outputs machine-readable metrics for verified tasks/hour, human relays, duplicates, lost results, result-to-next latency and tool calls."
+    },
+    {
+      "id": "N1-005",
+      "priority": "P1",
+      "mode": "TEST",
+      "preferred": "MUSE_MAX",
+      "write_scope": "scale-canary",
+      "objective": "Run safe scale canaries 1->4->8->16 under host resource governors.",
+      "acceptance": "Every stage has admission evidence, zero writer conflicts, zero unowned processes and persisted results."
+    },
+    {
+      "id": "N1-006",
+      "priority": "P1",
+      "mode": "WRITE",
+      "preferred": "MUSE_MAX",
+      "write_scope": "telemetry-proof-board",
+      "objective": "Expose real demo telemetry from canonical state without creating a second scheduler.",
+      "acceptance": "Dashboard/projection shows logical slots, active workers, tasks completed, auto-next count, human relays, duplicates, lost results and runtime."
+    },
+    {
+      "id": "N1-007",
+      "priority": "P1",
+      "mode": "TEST",
+      "preferred": "MUSE_MAX",
+      "write_scope": "vacation-soak",
+      "objective": "Run bounded 60-120+ minute Vacation Mode soak and retain evidence.",
+      "acceptance": "Repeated RESULT->VERIFY->NEXT transitions with no human relay except real gates."
+    },
+    {
+      "id": "N1-008",
+      "priority": "P2",
+      "mode": "RESEARCH",
+      "preferred": "GOOGLE_LOW",
+      "write_scope": "customer-problem",
+      "objective": "Identify one workflow where durable verified continuation has measurable customer value.",
+      "acceptance": "One narrow pilot hypothesis with baseline, acceptance metric and willingness-to-pay test; no speculative mass-market build."
+    },
+    {
+      "id": "N1-009",
+      "priority": "P2",
+      "mode": "WRITE",
+      "preferred": "MUSE_MAX",
+      "write_scope": "one-command-product",
+      "objective": "Prepare one-command install/status/stop for proven runtime after motor gates pass.",
+      "acceptance": "Fresh supported host can install/register/start/status/stop without per-worker manual prompts."
+    },
+    {
+      "id": "N1-010",
+      "priority": "P2",
+      "mode": "REVIEW",
+      "preferred": "OPUS_HIGH",
+      "write_scope": "standalone-business-gate",
+      "objective": "Review whether Courier can remain standalone: cost structure, provider substitution, pilot economics and lock-in risk.",
+      "acceptance": "Evidence-based standalone plan with no acquisition dependency."
+    }
+  ]
+}
