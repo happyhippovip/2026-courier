@@ -1,6 +1,6 @@
 {
   "desired_slots": 64,
-  "active_limit": 0,
+  "active_limit": 16,
   "provider_launch_enabled": false,
   "staged_levels": [1, 4, 8, 16, 32, 64],
   "minimum_free_memory_mb": 2500,
