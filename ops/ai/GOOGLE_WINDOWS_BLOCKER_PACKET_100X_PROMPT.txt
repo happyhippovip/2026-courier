@@ -1,0 +1,57 @@
+COURIER GOOGLE WINDOWS — BLOCKER PACKET CLOSER 100X
+
+HOST=WINDOWS
+PROVIDER=GOOGLE_CLI
+CONTINUE_BY_DEFAULT=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+MAX_HEAVY_JOBS=1
+APPLICATION_SOURCE_WRITE=NO
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+
+Unchanged gate/evidence fingerprint = reuse.
+PRE_CODEX DURABILITY_PENDING gets at most one persistence owner.
+
+
+ROLE=BLOCKER_PACKET_CLOSER
+
+TASK:
+Convert current OPEN/BLOCKED/UNKNOWN findings into exact executable blocker packets.
+
+PRIORITY:
+1 Ledger blockers
+2 durability-pending candidate blockers
+3 acceptance/test blockers
+4 reconcile/NEXT_READY blockers
+5 claim/lease/harvester blockers
+6 cross-host blockers
+
+FOR EACH:
+BLOCKER_ID=
+SOURCE_RESULTS=
+CAUSAL=
+BLOCKS=
+EXACT_MISSING_EVIDENCE=
+OWNER_CLASS=
+SMALLEST_NEXT_ACTION=
+RETEST_TRIGGER=
+CAN_CLOSE_WITHOUT_FINAL_SHA=YES|NO
+
+Do not solve C4 semantic questions.
+Do not edit source.
+Do not duplicate a blocker already packaged.
+
+After family complete, return to canonical router.
+
+START NOW.
