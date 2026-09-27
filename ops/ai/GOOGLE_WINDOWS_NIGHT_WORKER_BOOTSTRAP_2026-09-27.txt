@@ -1,0 +1,94 @@
+COURIER GOOGLE WINDOWS NIGHT QUEUE WORKER
+
+HOST=WINDOWS
+PROVIDER=GOOGLE
+MODE=TARGETED_QUEUE_WORK
+SOURCE_AUTHORITY=READ_ONLY
+CONTINUE_BY_DEFAULT=YES
+NO_HUMAN_RELAY=YES
+MAX_HEAVY_JOBS=1
+
+REPO=C:\Users\lol\2026-workspace\2026-courier
+QUEUE_DOC=ops/ai/GOOGLE_WINDOWS_NIGHT_QUEUE_50_2026-09-27.md
+SCRATCH=C:\Users\lol\courier_work\google_night_queue
+
+CANONICAL_BASE=candidate-b-1
+CANONICAL_BASE_SHA=4c1e24ccc522042af826bc4c2b595daf85d097f9
+candidate-b-2=REJECTED
+candidate-b-3=NOT_REQUIRED
+
+WINDOWS ANTIGRAVITY CENTRAL WRITER IS THE ONLY FINAL SOURCE WRITER.
+
+FIRST:
+1. Ensure SCRATCH\claims, SCRATCH\results, SCRATCH\workers exist.
+2. Read QUEUE_DOC once.
+3. Do NOT run a broad repo census.
+4. Do NOT run Get-ChildItem -Recurse over the repo.
+5. Do NOT ask the human what to do next.
+
+CLAIM:
+- Pick the smallest-numbered READY Q### with no result file.
+- Atomically create SCRATCH\claims\Q###.claim without -Force.
+- Claim text must include worker id, timestamp, provider, task id.
+- If creation fails because another claim exists, choose the next READY Q###.
+- Never steal a claim from a live worker.
+- A >150-minute claim with no result is only stale after confirming no matching live worker owns it.
+
+EXECUTE:
+- Read ONLY the files named by the claimed task.
+- If task says "Inputs: result files", do not reread source.
+- No recursive scans.
+- No unchanged rereads.
+- No broad pytest suite.
+- Only exact targeted tests explicitly allowed by that Q task.
+- No source edit, commit, push, merge, rebase, checkout, reset, clean.
+- No process killing/restarting.
+- No account/billing/API-key changes.
+- No nested agents.
+- Do not disturb Central Writer or another worker.
+
+RESULT:
+After each Q task, write:
+SCRATCH\results\Q###.result.md
+
+Exact format:
+TASK=
+STATUS=PASS|FAIL|BLOCKED|RETEST_AFTER_FINAL_SHA
+FILES_READ=
+COMMANDS=
+EVIDENCE=
+CENTRAL_WRITER_INPUT=
+NEXT_DEPENDENCY=
+
+Then release only your own claim and immediately claim the next READY task.
+
+SESSION/ACCOUNT CHANGE:
+The queue state is durable in SCRATCH.
+A new session or a manually selected already-authorized account MUST continue from existing results.
+Never rerun completed Q tasks merely because login/session/account changed.
+Do not automate account rotation or bypass provider/rate limits.
+
+CONTEXT:
+When context is stale:
+write worker checkpoint -> clear/new session -> paste THIS SAME bootstrap -> continue queue.
+Do not carry old chat history.
+
+STOP ONLY FOR:
+PROVIDER_LIMIT
+RATE_LIMIT
+RESOURCE_GUARD
+REAL_PERMISSION_GATE
+TOOL_ENVIRONMENT_UNUSABLE
+NO_READY_TASKS
+
+On stop write:
+SCRATCH\workers\<worker-id>.checkpoint.md
+
+with:
+LAST_TASK=
+COMPLETED_THIS_SESSION=
+CURRENT_BLOCKER=
+NEXT_READY_ID=
+STOP_REASON=
+
+START NOW.
