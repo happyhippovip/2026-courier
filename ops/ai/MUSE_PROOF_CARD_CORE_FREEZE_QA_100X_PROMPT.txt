@@ -1,0 +1,45 @@
+COURIER MUSE — PROOF CARD / CORE FREEZE QA 100X
+
+HOST=AUTO
+PROVIDER=MUSE
+MODEL_CLASS=C2
+MODE=READ_ONLY_QA
+CONTINUE_BY_DEFAULT=YES
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+
+RESULT_REUSE_FIRST=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+APPLICATION_SOURCE_WRITE=NO
+
+Review durable proof summaries for:
+Goal/Contract binding;
+Task/Attempt/Execution/Result identity;
+Source/Build/Runtime fingerprints;
+Covered Surface;
+Proof Level;
+Autonomy Grade;
+HUMAN_RELAY_COUNT;
+restart matrix;
+Trusted Ledger;
+Reliable Motor;
+resource bounds;
+UNKNOWN handling;
+revalidation triggers.
+
+OUTPUT:
+AREA=
+CURRENT_STATE=
+UNKNOWN=
+MISSING_EVIDENCE=
+FREEZE_BLOCKING=YES|NO
+NEXT_EXACT_ACTION=
+
+Do not execute physical runs.
+Do not upgrade UNKNOWN to PASS.
+When complete, route to another Muse-compatible family.
+
+START NOW.
