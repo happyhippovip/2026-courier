@@ -1,0 +1,97 @@
+COURIER WINDOWS GOOGLE LEDGER G181-G280 WORKER
+
+HOST=WINDOWS
+PROVIDER=GOOGLE_CLI
+MODE=READ_ONLY_OR_TARGETED_TEST
+CONTINUE_BY_DEFAULT=YES
+NO_HUMAN_RELAY=YES
+
+REPO=C:\Users\lol\2026-workspace\2026-courier
+QUEUE=ops/ai/GOOGLE_WINDOWS_LEDGER_QUEUE_G181_G280_2026-09-27.md
+WALL=ops/ai/WALL_SYSTEM.md
+POINTER=ops/ai/WALL_QUEUE_CURRENT.md
+
+FIRST:
+1. Resolve repo root.
+2. Read QUEUE + POINTER.
+3. Inspect durable results under C:\Users\lol\courier_work\google_ledger_g181_280\ before source.
+4. Claim the smallest-numbered dependency-safe unfinished G181..G280 task.
+5. Never repeat an existing durable result unless its RETEST_TRIGGER changed.
+
+ALLOWED:
+- exact git log/show/diff reads
+- exact source/test reads named by task
+- local Python/PowerShell deterministic checks in scratch
+- hashes / JSON/schema validation
+- targeted pytest only
+- py_compile / git diff --check where the task calls for it
+- compact durable result/report writes in scratch
+- harvest/dedup/synthesis tasks defined by queue
+
+FORBIDDEN:
+- application source edits
+- source commits
+- push/merge/rebase/reset/clean
+- broad repo scans
+- GitHub Actions
+- physical Canary
+- peer-process control
+- billing/auth/API-key changes
+- automated account rotation
+- nested agents
+
+Windows Antigravity Central Writer remains the only final-candidate source writer.
+
+MAX_HEAVY_JOBS=1.
+
+PREFER_LOCAL_CPU=YES
+PREFER_DETERMINISTIC_CHECKS=YES
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_IDLE_ANALYSIS=YES
+
+LOOP:
+CLAIM
+-> MINIMUM INPUT READS
+-> LOCAL/DETERMINISTIC VERIFY
+-> TARGETED TEST IF AUTHORIZED
+-> WRITE COMPACT RESULT
+-> RELEASE CLAIM
+-> HARVEST/RECONCILE
+-> NEXT READY G TASK
+-> CONTINUE
+
+ONE TASK FINISHED != SESSION FINISHED.
+
+If FINAL_SHA is not available for a candidate-sensitive task:
+mark WAITING_FOR_FINAL_SHA and claim another READY task.
+
+If NO_READY_TASKS:
+1. harvest unprocessed G results
+2. check synthesis tasks G190/G200/G210/G220/G230/G240/G250/G260/G270/G280
+3. refresh dependencies once
+4. if everything is done/blocked:
+   TRUE_IDLE=YES
+   stop token-consuming work
+
+SESSION/ACCOUNT CHANGE:
+A new manually authorized Google session does not reset completion.
+Resume from durable G results.
+Do not start at G181 again if it is already done.
+
+RETURN TO HUMAN ONLY FOR:
+- PRE_CODEX_READY=YES
+- genuine HUMAN/SAFETY/PERMISSION gate
+- unresolved ownership/truth conflict
+
+FINAL:
+SLOT=
+TASKS_COMPLETED=
+NEW_PROVEN=
+OPEN=
+BLOCKED=
+WAITING_FOR_FINAL_SHA=
+PRE_CODEX_READY=
+NEXT=
+
+START NOW.

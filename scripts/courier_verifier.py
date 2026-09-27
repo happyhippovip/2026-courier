@@ -75,8 +75,9 @@ def verify_artifacts(task, result, fetch=fetch_artifact, local_verify=None):
             except Exception as e:
                 log(f"Cannot fetch uploaded artifact: {e}")
                 return "FAIL"
-            if "expected_sha256" in art:
-                if hashlib.sha256(data).hexdigest() != art["expected_sha256"]:
+            task_expected = task.get("expected_artifacts", {}).get(art.get("path")) or task.get("expected_sha256")
+            if task_expected:
+                if hashlib.sha256(data).hexdigest() != task_expected:
                     log(f"Hash mismatch against expected_sha256 for {art.get('path')}")
                     return "FAIL"
             ok, reason = verify_uploaded_artifact(data, record, art, task)
