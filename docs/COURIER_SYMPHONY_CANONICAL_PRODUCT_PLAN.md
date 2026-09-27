@@ -1023,3 +1023,34 @@ Courier gewinnt dadurch, dass begonnene Arbeit morgen zuverlässig, beweisbar un
 ## Datenschutz-/Speicherhinweis
 
 Persönliche Zahlungs-, Konto-, Steuer- oder Identifikationsdaten gehören **nicht** in das öffentliche Courier-Repository. Private Zahlungsdaten werden nur in dafür vorgesehenen privaten Nutzerunterlagen verwaltet.
+
+## 22a. Shared Capability + Update Fabric (LATER after Core + positive pilot)
+
+Canonical strategy: `docs/COURIER_SHARED_CAPABILITY_UPDATE_FABRIC_2026-09-28.md`.
+
+Courier should compound across users without pooling their private data. A useful pattern built in one project may become a shared capability only after authorization/rights checks, sanitization/generalization, provenance/licensing review, tests, security review, compatibility binding and versioned packaging.
+
+Distribution classes:
+- CORE_SECURITY_UPDATE;
+- SHARED_CAPABILITY_PACK;
+- DOMAIN_PACK;
+- PRIVATE_PROJECT_ARTIFACT.
+
+Optional shared/domain capabilities remain user-controlled. Private project artifacts remain private by default.
+
+Desired later update system:
+- signed manifests;
+- source/build/runtime identity;
+- content-addressed and deduplicated artifacts;
+- delta/component downloads;
+- compatibility contracts;
+- staged/atomic activation;
+- rollback + Last Known Good;
+- durable version/Time-Machine history;
+- weekly stable channel;
+- monthly platform/capability rollup;
+- emergency security channel.
+
+All cryptographic update work follows crypto-agility and post-quantum migration-readiness principles. "Quantum secure" is not a permitted marketing claim without a concrete proven cryptographic profile.
+
+This is product direction, not permission to bypass Gate 1-5 or build a marketplace before proof.
