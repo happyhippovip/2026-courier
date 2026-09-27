@@ -34,6 +34,7 @@ Workers should start here instead of guessing dated paths.
 - Google wall system builder: `ops/ai/GOOGLE_WALL_SYSTEM_BUILDER_MASTER_PROMPT.txt`
 - Cost/noninterference: `ops/ai/NIGHT_QUEUE_NONINTERFERENCE_AND_COST_POLICY_2026-09-27.md`
 - Returned-result policy: `ops/ai/RETURNED_RESULT_POLICY.md`
+- Mac Google permanent worker: `ops/ai/MAC_GOOGLE_PERMANENT_WORKER_PROMPT.txt`
 
 ## MD-first rule
 
