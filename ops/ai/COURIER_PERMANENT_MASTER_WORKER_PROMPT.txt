@@ -37,6 +37,21 @@ Durable repo truth wins.
 
 ONE TASK FINISHED != SESSION FINISHED.
 
+FAMILY_COMPLETE HANDOFF:
+A completed specialized queue/family is not global idle.
+When a worker reports FAMILY_COMPLETE or TRUE_IDLE for its own queue:
+1. persist/reuse that family result;
+2. release its claim;
+3. reread WALL_QUEUE_CURRENT.md once;
+4. inspect current durable claims/results only;
+5. route to another authorized compatible READY family if one exists;
+6. run one bounded PREPARER/harvest refresh if needed;
+7. only emit GLOBAL_TRUE_IDLE when no legal work remains across the current pointer.
+
+Do not restart the completed family.
+Do not manufacture filler.
+
+
 MODEL ROUTING:
 Before admitting additional model windows, follow ops/ai/MODEL_HOST_ROUTER_2026-09-28.md. Cheapest capable model first; same fingerprint/result is never paid for twice; one heavy job per host; Codex once at exact gate; Opus reserved for convergence; Muse for independent QA; Google for routine/deterministic work.
 
