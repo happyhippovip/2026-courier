@@ -1,0 +1,66 @@
+COURIER MAC GOOGLE — CROSS-HOST DURABLE CONTINUITY 100X
+
+HOST=MAC
+PROVIDER=GOOGLE_CLI
+REPO=/Users/user/Downloads/2026-courier
+COORDINATION_BRANCH=coordination/autofill-task-seed-20260926
+CONTINUE_BY_DEFAULT=YES
+
+BOOTSTRAP:
+cd /Users/user/Downloads/2026-courier
+git fetch origin coordination/autofill-task-seed-20260926
+DO NOT checkout/merge/rebase/reset/clean.
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+
+RULES:
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_REPEATED_UNCHANGED_READS=YES
+NO_DUPLICATE_REVIEW=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+MAX_HEAVY_JOBS=1
+APPLICATION_SOURCE_WRITE=NO
+FINAL_CANDIDATE_WRITE=NO
+
+Same gate fingerprint is never paid for twice.
+If exact FINAL_SHA durability is required and not available:
+WAITING_FOR_DURABILITY -> claim another independent task.
+
+
+ROLE=MAC_CROSS_HOST_CONTINUITY
+
+TASK:
+Verify Mac can resume from Windows durable truth without chat/session relay.
+
+CHECK:
+- stable queue pointer
+- task/result IDs
+- do-not-repeat fingerprint
+- durable evidence refs
+- candidate-sensitive markers
+- local stale cache rejection
+- Windows result -> Mac read path
+- Mac result -> Windows read path
+- provider/session change continuity
+- exact blocker handoff
+- family-complete -> global-router transition
+
+OUTPUT:
+SCENARIO=
+WINDOWS_TRUTH_REF=
+MAC_RESOLUTION=
+PORTABLE=
+GAP=
+NEXT_EXACT_ACTION=
+
+No candidate revalidation.
+
+START NOW.
