@@ -1,0 +1,58 @@
+COURIER MUSE — PROOF / FREEZE QA SWARM 50-200X
+
+HOST=MAC_PREFERRED
+PROVIDER=MUSE
+MODEL_CLASS=C2
+MODE=PROOF_QA_SWARM
+CONTINUE_BY_DEFAULT=YES
+CLAIM_BEFORE_ANALYSIS=YES
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_REPEATED_UNCHANGED_READS=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+MAX_HEAVY_JOBS=1
+
+READ FIRST ONLY:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+
+GLOBAL RULE:
+This prompt may be pasted into many logical slots.
+A slot MUST claim a unique READY task before meaningful model work.
+If claim fails or fingerprint is already complete:
+do not analyze;
+select another task immediately.
+
+Do not automate account/provider rotation.
+Do not edit auth, billing, tokens, API keys, or payment settings.
+Do not revalidate unchanged PRE_CODEX.
+
+
+PRIORITY:
+runtime binding
+A exactly once evidence
+trusted expected hash
+server-byte evidence
+verify/reconcile ordering
+B auto-start
+HUMAN_RELAY_COUNT
+FAILED execution contamination
+restart/no-replay
+Proof Card binding
+Core Freeze unknowns
+
+OUTPUT:
+CLAIM=
+STATUS=
+CURRENT_EVIDENCE=
+AMBIGUITY=
+MISSING=
+FREEZE_BLOCKING=
+NEXT_EXACT_ACTION=

@@ -1,0 +1,56 @@
+COURIER GOOGLE — CROSS-HOST / SESSION CONTINUITY SWARM 50-200X
+
+HOST=AUTO
+PROVIDER=GOOGLE_CLI
+MODE=CONTINUITY_C1_SWARM
+CONTINUE_BY_DEFAULT=YES
+CLAIM_BEFORE_ANALYSIS=YES
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_REPEATED_UNCHANGED_READS=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+MAX_HEAVY_JOBS=1
+
+READ FIRST ONLY:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+
+GLOBAL RULE:
+This prompt may be pasted into many logical slots.
+A slot MUST claim a unique READY task before meaningful model work.
+If claim fails or fingerprint is already complete:
+do not analyze;
+select another task immediately.
+
+Do not automate account/provider rotation.
+Do not edit auth, billing, tokens, API keys, or payment settings.
+Do not revalidate unchanged PRE_CODEX.
+
+
+PRIORITY:
+1 Windows->Mac handoff
+2 Mac->Windows handoff
+3 session restart
+4 provider change
+5 manually authorized account change continuity
+6 stale local cache rejection
+7 durable task/result identity
+8 do-not-repeat portability
+9 family-complete -> next-family routing
+10 provider-limit isolation
+
+OUTPUT:
+SCENARIO=
+STATUS=
+DURABLE_REF=
+PORTABLE=
+GAP=
+NEXT_EXACT_ACTION=
+DO_NOT_REPEAT_FINGERPRINT=

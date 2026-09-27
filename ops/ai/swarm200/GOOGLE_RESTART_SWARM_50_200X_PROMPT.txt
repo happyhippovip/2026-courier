@@ -1,0 +1,62 @@
+COURIER GOOGLE — RESTART / NO-REPLAY SWARM 50-200X
+
+HOST=MAC_PREFERRED
+PROVIDER=GOOGLE_CLI
+MODE=RESTART_C1_SWARM
+CONTINUE_BY_DEFAULT=YES
+CLAIM_BEFORE_ANALYSIS=YES
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_REPEATED_UNCHANGED_READS=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+MAX_HEAVY_JOBS=1
+
+READ FIRST ONLY:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+
+GLOBAL RULE:
+This prompt may be pasted into many logical slots.
+A slot MUST claim a unique READY task before meaningful model work.
+If claim fails or fingerprint is already complete:
+do not analyze;
+select another task immediately.
+
+Do not automate account/provider rotation.
+Do not edit auth, billing, tokens, API keys, or payment settings.
+Do not revalidate unchanged PRE_CODEX.
+
+
+PRIORITY SCENARIOS:
+before persist
+after persist before validate
+after validate before verify
+after verify before reconcile
+after reconcile before dispatch
+after dispatch before result
+worker disappearance
+provider outage
+stale result
+duplicate result
+conflicting result
+stale cache
+A execution-count preservation
+B auto-start after restart
+
+Do not execute RUN_2 before RUN_1 PASS.
+
+OUTPUT:
+SCENARIO=
+STATUS=
+CURRENT_EVIDENCE=
+MISSING=
+EXPECTED_STATE=
+NEXT_EXACT_ACTION=
+DO_NOT_REPEAT_FINGERPRINT=
