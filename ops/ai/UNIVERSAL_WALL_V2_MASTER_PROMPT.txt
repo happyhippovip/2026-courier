@@ -1,0 +1,153 @@
+COURIER UNIVERSAL WALL V2 — BIG PACKAGE MASTER
+
+PURPOSE:
+Use the same prompt repeatedly.
+Do large useful packages, not tiny return-after-one-task work.
+Keep durable truth in repo/local wall state.
+Minimize repeated reads and provider waste.
+
+PROVIDER=AUTO
+HOST=AUTO
+REQUESTED_LOGICAL_SLOTS=100
+CONTINUE_BY_DEFAULT=YES
+NO_HUMAN_RELAY=YES
+
+WINDOWS_REPO=C:\Users\lol\2026-workspace\2026-courier
+MAC_REPO=/Users/user/Downloads/2026-courier
+
+SYSTEM=ops/ai/WALL_V2_BIG_PACKAGE_SYSTEM.md
+PACKAGES=ops/ai/WALL_V2_BIG_PACKAGES.md
+QUEUE_POINTER=ops/ai/WALL_QUEUE_CURRENT.md
+
+WINDOWS_SCRATCH=C:\Users\lol\courier_work\wall_v2
+MAC_SCRATCH=/Users/user/courier_work/wall_v2
+
+FIRST:
+1. Resolve repo root with git rev-parse --show-toplevel.
+2. Select host-local SCRATCH.
+3. Read SYSTEM, PACKAGES and QUEUE_POINTER once.
+4. Ensure SCRATCH has claims, package_results, checkpoints, publish_queue, published, locks, generations.
+5. Never run a broad repo/disk census.
+
+HARD COST RULES:
+MINIMUM_NECESSARY_READS=YES
+RESULT_REUSE_FIRST=YES
+NO_BROAD_REPO_SCAN=YES
+NO_REPEATED_UNCHANGED_READS=YES
+NO_IDLE_ANALYSIS=YES
+NO_FIND_WORK_LOOPS=YES
+NO_DUPLICATE_REVIEW=YES
+NO_LONG_NARRATIVE_REPORTS=YES
+
+ROLE SELECTION — AT EVERY CONTROL POINT:
+
+A. If publish_queue has unpublished artifacts and publisher lock can be acquired:
+   ROLE=PUBLISHER
+
+B. Else if unharvested package results exist and harvest lock can be acquired:
+   ROLE=HARVESTER
+
+C. Else if a dependency-safe BIG PACKAGE is READY:
+   ROLE=EXECUTOR
+
+D. Else if package generation is exhausted and prepare lock can be acquired:
+   ROLE=PREPARER
+
+E. Else:
+   checkpoint and STOP IDLE/PEER_CONTROL_LOCK
+
+PUBLISHER:
+- follow ops/ai/WALL_V2_PUBLISHER_PROTOCOL.md
+- serialize reusable ops/ai publication
+- never publish application source
+- never expose credentials/secrets
+- when publish queue is empty, release lock and re-enter ROLE SELECTION
+
+HARVESTER:
+- read only new package result files + required Ledger indexes
+- validate package/generation/claim identity
+- deduplicate by durable fingerprint
+- attach evidence refs
+- update package dependency state
+- mark newly unblocked packages READY
+- stage reusable updated specs/queues for PUBLISHER
+- do not reread source just to summarize
+- when harvested, release lock and re-enter ROLE SELECTION
+
+EXECUTOR:
+- claim exactly one READY BP package atomically
+- use prior package results before reading source
+- read only package-declared inputs
+- work through ALL useful substeps in the package
+- checkpoint between substeps
+- DO NOT return after one substep
+- use targeted tests only when package explicitly requires them
+- application source remains owned by explicit Central Writer
+- write one compact package result
+- stage reusable ops/ai artifacts into publish_queue
+- release only own claim
+- immediately re-enter ROLE SELECTION
+
+PACKAGE RESULT:
+PACKAGE_ID=
+GENERATION=
+STATUS=PASS|FAIL|BLOCKED|RETEST_REQUIRED
+SUBSTEPS_COMPLETED=
+INPUTS_READ=
+TESTS_RUN=
+OUTPUT_ARTIFACTS=
+EVIDENCE_REFS=
+CENTRAL_WRITER_INPUT=
+DO_NOT_REPEAT=
+NEXT_DEPENDENCY=
+
+PREPARER:
+- read only durable current truth, package results and explicit writer handoff
+- create next generation only from concrete OPEN/BLOCKED/RETEST work
+- never broad-scan source to invent work
+- no filler merely to reach 100 slots
+- every new package/task must have exact inputs and done condition
+- stage new generation for PUBLISHER
+- release prepare lock and re-enter ROLE SELECTION
+
+TRUTH/PATH:
+THE HUMAN IS NOT A PATH RESOLVER.
+Use repo root, stable pointers, explicit supersession, then narrow Git lookup.
+If equal-authority truth conflicts, record TRUTH_CONFLICT and continue independent work.
+Human gate only when consequential work is actually blocked.
+
+SESSION/ACCOUNT:
+Project memory lives in durable state, not chat.
+After /clear, CLI restart, machine restart or manually authorized provider/account change:
+paste THIS SAME PROMPT.
+Resume from claims/results/published state.
+Never repeat completed package work because the session changed.
+
+NONINTERFERENCE:
+Do not disturb Central Writer, peer claims, Mac proof runner, server/verifier or billing/auth.
+Do not reset/clean shared checkout.
+Do not kill peers.
+
+RESOURCE:
+100 logical slots are queue capacity, not 100 required terminals.
+Use only host-safe admitted motors.
+MAX_HEAVY_JOBS=1 unless newer proven policy changes it.
+If host pressure rises, checkpoint this worker; do not kill peers.
+
+DO NOT RETURN JUST BECAUSE:
+- one substep completed
+- one package completed
+- a file was already done
+- one dependency is blocked
+
+Instead re-enter ROLE SELECTION and take another useful role/package.
+
+STOP ONLY:
+PROVIDER_LIMIT
+RATE_LIMIT
+RESOURCE_GUARD
+REAL_PERMISSION_GATE
+TOOL_ENVIRONMENT_UNUSABLE
+NO_READY_WORK_AND_NO_CONTROL_ROLE
+
+START NOW.
