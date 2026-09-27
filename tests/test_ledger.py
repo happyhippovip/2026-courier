@@ -75,3 +75,22 @@ def test_ledger_event_integrity(tmp_path):
     events = ledger.read_events()
     assert len(events) == 0
 
+
+def test_ledger_duplicate_event_explicit(tmp_path):
+    ledger = Ledger(tmp_path / "ledger.jsonl")
+    e1 = ledger.append_event({"event_type": "GOAL_CREATED", "goal_id": "g1"})
+    
+    # Should probably reject or handle explicit duplicate
+    # We will just append it again and it should get a new event_id but identical payload
+    e2 = ledger.append_event({"event_type": "GOAL_CREATED", "goal_id": "g1"})
+    assert e1["event_id"] != e2["event_id"]
+    
+
+def test_ledger_verification_evidence_bound(tmp_path):
+    ledger = Ledger(tmp_path / "ledger.jsonl")
+    ledger.append_event({"event_type": "VERIFICATION_PASS", "goal_id": "g1", "task_id": "t1", "result_id": "r1", "verification_reference": "v1"})
+    
+    events = ledger.events_for_task("t1")
+    assert events[0]["result_id"] == "r1"
+    assert events[0]["verification_reference"] == "v1"
+
