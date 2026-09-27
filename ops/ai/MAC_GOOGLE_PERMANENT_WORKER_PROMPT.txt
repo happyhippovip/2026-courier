@@ -191,3 +191,8 @@ NEXT_READY_TASK=
 DURABLE_CHECKPOINT_PATH=
 
 START NOW.
+
+
+CROSS-FAMILY CONTINUATION:
+FAMILY_COMPLETE != GLOBAL_TRUE_IDLE.
+When the current Mac family completes, route through ops/ai/MAC_CROSS_FAMILY_AUTO_CONTINUATION_PROMPT.txt and take another compatible Mac/EITHER family. Do not repeat the completed family. Only global idle after bounded cross-family refresh finds nothing legal.
