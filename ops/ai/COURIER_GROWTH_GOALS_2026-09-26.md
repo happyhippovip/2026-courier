@@ -390,6 +390,17 @@ Courier should route broad routine work to cheaper/faster models and reserve pre
 
 Exact provider plans/prices are configuration and must not be hard-coded as permanent product truth.
 
+## G21 — Device-Adaptive Motor Admission
+
+Courier must separate logical wall size from the number of active motors a specific device can sustain smoothly.
+
+A user may request Wall 10 while the host admits only 4, 5, 6, 8, 9 or 10 active lightweight motors depending on current device conditions.
+
+Admission should be learned per device using gradual scale-up, fast pressure backoff and truthful REQUESTED / ADMITTED / ACTIVE / GUARDED state.
+
+See:
+ops/ai/DEVICE_ADAPTIVE_MOTOR_ADMISSION_2026-09-27.md
+
 ## Design invariant
 
 Bigger must mean:
