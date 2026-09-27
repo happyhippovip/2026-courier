@@ -25,6 +25,7 @@ PRE_CODEX_READY=YES only when all are true:
 8. No stale older-SHA PASS is reused as final evidence.
 9. No known unresolved causal P0 blocker remains.
 10. A compact pre-Codex handoff exists.
+11. FINAL_SHA is durably resolvable from a canonical remote ref/commit or explicitly referenced durable candidate bundle; a SHA visible only in one local session is DURABILITY_PENDING, not cross-host PRE_CODEX_READY.
 
 Required handoff:
 
@@ -46,3 +47,7 @@ NEXT=CODEX_HIGH_ONCE
 If FINAL_SHA changes:
 invalidate only candidate-sensitive evidence and rerun the exact affected final-gate checks.
 Do not restart all completed queue work.
+
+
+COST-SAFE RESULT REUSE:
+Use ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md. Same gate fingerprint is validated once. New windows/providers reuse the durable gate result rather than re-running the gate.
