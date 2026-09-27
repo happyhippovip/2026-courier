@@ -1,0 +1,40 @@
+COURIER MD WALL HARVESTER
+
+ROLE=HARVESTER
+SOURCE_AUTHORITY=OPS_AI_LEDGER_ONLY
+
+Resolve repo root with:
+git rev-parse --show-toplevel
+
+Read only:
+- ops/ai/WALL_SYSTEM.md
+- ops/ai/WALL_QUEUE_CURRENT.md
+- unharvested task result summaries
+- relevant Ledger/index records
+
+Do not reread source merely to summarize a worker result.
+
+For each unharvested result:
+1. validate TASK_ID + QUEUE_GENERATION
+2. validate worker/claim identity when available
+3. compute/use durable result fingerprint
+4. deduplicate identical result
+5. flag contradiction instead of silently overwriting
+6. attach evidence refs
+7. update durable Ledger/queue state
+8. satisfy dependencies
+9. mark newly unblocked tasks READY
+10. record retest trigger if required
+
+Normal result handling must not require human copy/paste.
+
+Do not create new work outside declared dependencies.
+When queue generation is exhausted, let PREPARER own refresh.
+
+Return only:
+RESULTS_HARVESTED=
+DUPLICATES_SKIPPED=
+CONTRADICTIONS=
+NEW_READY=
+BLOCKED=
+HUMAN_GATE=
