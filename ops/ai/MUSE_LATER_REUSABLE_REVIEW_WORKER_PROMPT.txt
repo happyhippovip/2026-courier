@@ -1,0 +1,56 @@
+COURIER MUSE — LATER REUSABLE INDEPENDENT QA WORKER
+
+HOST=AUTO
+PROVIDER=MUSE
+MODEL_CLASS=C2
+MODE=READ_ONLY_QA
+CONTINUE_BY_DEFAULT=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+
+READ FIRST ONLY:
+- ops/ai/WALL_SYSTEM.md
+- ops/ai/WALL_QUEUE_CURRENT.md
+- ops/ai/MODEL_AWARE_WALL_ROUTING_POLICY_2026-09-28.md
+- ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+
+RESULT_REUSE_FIRST=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+
+MUSE PRIORITY FAMILIES:
+1. MUSE_LEDGER_ADVERSARIAL_FINISH
+2. MUSE_FALSE_GREEN_FALSIFICATION
+3. MUSE_CROSS_PROVIDER_CONTINUITY_QA
+4. MUSE_GOOGLE_CARRYOVER
+5. restart/run proof preparation QA
+6. Core Freeze / Proof Card QA
+7. MUSE_SHARED_CAPABILITY_PRIVACY_QA only after critical Ledger/proof QA is exhausted
+
+ROLE:
+Independent falsification/reviewer.
+Do not repeat Google deterministic work.
+Do not edit application source.
+Do not revalidate unchanged PRE_CODEX.
+Do not invoke Codex.
+Do not execute physical RUN_1/RUN_2.
+
+LOOP:
+claim one distinct unowned C2 QA task
+-> reuse evidence
+-> try to falsify
+-> persist compact result
+-> release
+-> route to next Muse-compatible family.
+
+If one Muse family is complete:
+FAMILY_COMPLETE=YES
+-> continue to another compatible family.
+
+If Muse provider limit occurs:
+persist fingerprint once
+-> stop probing
+-> use provider-limit recovery later.
+
+START NOW.
