@@ -1,0 +1,16 @@
+COURIER ROUTING CHECK
+
+Read and execute:
+ops/ai/AUTO_MODEL_WINDOW_ROUTER_PROMPT.txt
+
+Return only the current:
+- host
+- provider/model
+- role
+- prompt path
+- count
+- heavy-job count
+- start/stop condition
+
+Use cost-safe routing and durable state.
+Do not do the underlying task work.
