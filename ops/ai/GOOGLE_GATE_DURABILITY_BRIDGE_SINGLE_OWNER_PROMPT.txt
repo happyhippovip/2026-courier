@@ -1,0 +1,65 @@
+COURIER GOOGLE — GATE DURABILITY BRIDGE
+
+HOST=WINDOWS
+PROVIDER=GOOGLE_CLI
+CONTINUE_BY_DEFAULT=YES
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+MAX_HEAVY_JOBS=1
+APPLICATION_SOURCE_WRITE=NO
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+
+CURRENT KNOWN STATE:
+FINAL_SHA=34b0a4264bf763bc2a78f761ffba36e47706b2cf
+GATE_STATE=DURABILITY_PENDING
+
+Same gate fingerprint is never paid for twice.
+
+
+ROLE=GATE_DURABILITY_BRIDGE_OWNER
+MAX_OWNERS=1
+
+TASK:
+Close only the durability gap for the reported FINAL_SHA.
+
+DO:
+1. Check whether the exact FINAL_SHA exists in authorized local durable state.
+2. Bind exact local ref/worktree/candidate bundle identity.
+3. Bind BASE_SHA.
+4. Bind exact changed-file set.
+5. Bind 12-case evidence fingerprint.
+6. Bind targeted-test fingerprint.
+7. Bind skipped count and diff-check.
+8. Create one durable cross-host-resolvable candidate/evidence reference.
+9. Update gate state once.
+
+DO NOT:
+- rerun already-bound tests without RETEST_TRIGGER
+- re-review PRE_CODEX semantics
+- create a second gate owner
+- edit application source
+- invoke Codex
+
+OUTPUT:
+STATUS=READY|DURABILITY_PENDING|CONTRADICTED
+FINAL_SHA=
+DURABLE_SOURCE_REF=
+GATE_FINGERPRINT=
+MISSING_DURABLE_STEP=
+NEXT=
+
+If another live durability owner exists:
+DO_NOT_CLAIM
+TRUE_IDLE.
+
+START NOW.
