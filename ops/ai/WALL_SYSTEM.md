@@ -215,3 +215,11 @@ Routing/admission policy: `ops/ai/MODEL_AWARE_WALL_ROUTING_POLICY_2026-09-28.md`
 Universal router-worker prompt: `ops/ai/MODEL_AWARE_WALL_ROUTER_WORKER_PROMPT.txt`
 
 Every admitted worker must self-identify provider/model/mode/authority, recommend the minimum sufficient reasoning level, and refuse tasks that are a poor/forbidden fit. Task packets declare preferred/allowed model classes and provider/host hints. The router prefers deterministic/local work first, then the cheapest capable safe model. Expensive reviewers are bounded and never used merely because windows are free.
+
+
+## Provider-limit recovery
+
+Policy: `ops/ai/PROVIDER_LIMIT_AND_HUMAN_GATE_POLICY_2026-09-28.md`
+Recovery router: `ops/ai/PROVIDER_LIMIT_RECOVERY_ROUTER_PROMPT.txt`
+
+One new limit fingerprint gets at most one recovery-router owner. Re-route only to already-available capable providers. If operator action is required, create one provider-access HUMAN_GATE and continue unrelated work.
