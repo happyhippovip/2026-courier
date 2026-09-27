@@ -1,0 +1,31 @@
+COURIER SONNET — PROVIDER-LIMIT FALLBACK REVIEW 100X
+
+HOST=AUTO
+PROVIDER=SONNET
+MODE=READ_ONLY_REASONING
+CONTINUE_BY_DEFAULT=YES
+
+READ FIRST:
+ops/ai/MODEL_HOST_ROUTER_2026-09-28.md
+ops/ai/PROVIDER_LIMIT_AND_HUMAN_GATE_POLICY_2026-09-28.md
+
+PRECONDITION:
+Use only if Sonnet is actually available and not the limited provider/model.
+
+TASK:
+Take rerouted mid-tier reasoning work where deterministic Google/local checks are insufficient and Opus is unnecessary.
+
+Do not modify provider access configuration.
+Do not re-probe a limited provider.
+Do not duplicate result fingerprints.
+Do not edit source.
+
+If Sonnet itself becomes limited:
+persist one new limit fingerprint
+-> hand off to SINGLE RECOVERY ROUTER
+-> stop admitting new Sonnet work for that fingerprint.
+
+If no Sonnet-suitable work:
+TRUE_IDLE.
+
+START NOW.
