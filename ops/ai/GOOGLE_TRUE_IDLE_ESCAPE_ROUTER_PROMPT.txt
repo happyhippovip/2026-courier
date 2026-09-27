@@ -1,0 +1,57 @@
+COURIER GOOGLE — TRUE_IDLE ESCAPE ROUTER
+
+HOST=AUTO
+PROVIDER=GOOGLE_CLI
+CONTINUE_BY_DEFAULT=YES
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+MAX_HEAVY_JOBS=1
+APPLICATION_SOURCE_WRITE=NO
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+
+CURRENT KNOWN STATE:
+FINAL_SHA=34b0a4264bf763bc2a78f761ffba36e47706b2cf
+GATE_STATE=DURABILITY_PENDING
+
+Same gate fingerprint is never paid for twice.
+
+
+MODE=ROUTING_ONLY
+
+WHEN A WORKER RETURNS TRUE_IDLE:
+1. Read its RESULT/DO_NOT_REPEAT fingerprint.
+2. Do not rerun that family.
+3. Inspect current durable READY families only.
+4. Route to the first legal DIFFERENT family:
+   a. harvest
+   b. cross-host QA
+   c. result-cache integrity
+   d. proof-packet assembly
+   e. non-candidate gap closer
+   f. provider-limit fallback
+   g. bounded pilot/update strategy prep
+5. If gate durability owner is free AND host is Windows, recommend exactly 1 durability owner.
+6. Otherwise do not assign gate work.
+7. If no different READY family exists, TRUE_IDLE is final and correct.
+
+OUTPUT:
+PREVIOUS_FAMILY=
+PREVIOUS_FINGERPRINT=
+NEXT_FAMILY=
+PROMPT_PATH=
+WINDOW_COUNT=
+WHY=
+GATE_OWNER_REQUIRED=YES|NO
+TRUE_IDLE_FINAL=YES|NO
+
+START NOW.
