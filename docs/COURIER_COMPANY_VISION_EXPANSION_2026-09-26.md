@@ -383,3 +383,11 @@ The future product may feel like entering a larger living world of real projects
 - the interface must remain LIGHT AS A FEATHER as capability grows
 
 The world may become enormous. The default interaction remains simple.
+
+## Shared capability economy
+
+Canonical direction: `docs/COURIER_SHARED_CAPABILITY_UPDATE_FABRIC_2026-09-28.md`.
+
+Courier should become more valuable as real users solve real problems. Reusable solutions can become safe capability packs that other users optionally install, creating compounding product value without requiring customers to surrender private repos or raw business data.
+
+Future distribution should combine safe Core updates, shared cross-industry capabilities, optional domain packs, delta/deduplicated delivery, rollback and cryptographic agility.
