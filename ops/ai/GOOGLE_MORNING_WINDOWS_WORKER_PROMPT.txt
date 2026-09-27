@@ -1,3 +1,8 @@
+
+COST-SAFE GATE LAW:
+Read ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md and ops/ai/GATE_STATE_CURRENT.md before any gate-family work.
+Same gate fingerprint is validated at most once. Reuse the durable verdict across windows/providers/hosts. If DURABILITY_PENDING or VALIDATING is already owned, skip that gate family without model analysis and take another READY task or TRUE_IDLE.
+
 COURIER GOOGLE MORNING WINDOWS WORKER
 
 HOST=WINDOWS
