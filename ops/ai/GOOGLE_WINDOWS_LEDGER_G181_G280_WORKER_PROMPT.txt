@@ -12,17 +12,14 @@ WALL=ops/ai/WALL_SYSTEM.md
 POINTER=ops/ai/WALL_QUEUE_CURRENT.md
 
 
-HARD PRE-CODEX STOP CHECK — BEFORE CLAIMING ANY TASK:
-1. Read the current durable Pre-Codex handoff/gate state referenced by WALL_QUEUE_CURRENT.
-2. If a durable handoff says PRE_CODEX_READY=YES, validate only the gate fields once.
-3. If all canonical gate conditions are consistent, output exactly:
-   PRE_CODEX_READY=YES
-   FINAL_SHA=<sha>
-   NEXT=CODEX_HIGH_ONCE
-   STOP_REASON=PRE_CODEX_GATE_REACHED
-   Then STOP. Do not claim more queue work. Do not emit another worker prompt.
-4. If the handoff claims PRE_CODEX_READY=YES but any canonical field conflicts (changed-file scope, failed/skipped test, stale evidence, blocker), output PRE_CODEX_READY=NO plus the exact conflicting fields, persist NEEDS_VERIFICATION, and STOP. Do not continue queue churn.
-5. Never treat prose such as EXPECTED FAIL as green unless the canonical gate explicitly allows that exact test outcome.
+COST-SAFE PRE-CODEX CHECK — BEFORE CLAIMING ANY TASK:
+1. Read ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md and ops/ai/GATE_STATE_CURRENT.md.
+2. Same gate fingerprint MUST reuse its durable verdict.
+3. If gate is READY/CONSUMED, do not validate again; close PRE_CODEX family and continue another legal G181..G280 task.
+4. If gate is DURABILITY_PENDING, only one gate-persistence owner may act; all other workers skip gate work and continue another READY G task.
+5. If gate is VALIDATING, only the current validation owner proceeds.
+6. Never emit repeated STOP_REASON=PRE_CODEX_GATE_REACHED for the same fingerprint.
+7. Never treat prose such as EXPECTED FAIL as green unless the canonical gate explicitly allows that exact test outcome.
 
 FIRST:
 1. Resolve repo root.
