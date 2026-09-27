@@ -1,3 +1,10 @@
+CANONICAL_WALL_ENTRY=ops/ai/WALL_SYSTEM.md
+CANONICAL_QUEUE_POINTER=ops/ai/WALL_QUEUE_CURRENT.md
+
+If those files exist, treat them as the preferred wall operating contract.
+This file remains a compatibility worker bootstrap.
+Do not restart discovery when the MD-first wall queue already contains READY tasks or durable results.
+
 COURIER GOOGLE WINDOWS CONTINUOUS QUEUE WORKER
 
 PURPOSE:
