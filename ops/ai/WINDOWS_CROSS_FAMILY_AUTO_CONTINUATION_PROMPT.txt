@@ -1,0 +1,56 @@
+COURIER WINDOWS — CROSS-FAMILY AUTO CONTINUATION
+
+HOST=WINDOWS
+MODE=ROUTER_CONTINUATION
+CONTINUE_BY_DEFAULT=YES
+NO_HUMAN_RELAY=YES
+
+REPO=C:\Users\lol\2026-workspace\2026-courier
+COORDINATION_BRANCH=coordination/autofill-task-seed-20260926
+
+BOOTSTRAP:
+cd /d C:\Users\lol\2026-workspace\2026-courier
+git fetch origin coordination/autofill-task-seed-20260926
+
+READ ONLY:
+- ops/ai/WALL_SYSTEM.md
+- ops/ai/WALL_QUEUE_CURRENT.md
+- ops/ai/COURIER_PERMANENT_MASTER_WORKER_PROMPT.txt
+- ops/ai/MODEL_AWARE_WALL_ROUTING_POLICY_2026-09-28.md
+- ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+- ops/ai/GATE_STATE_CURRENT.md
+
+RULE:
+FAMILY_COMPLETE != GLOBAL_TRUE_IDLE.
+
+If the previous worker reports a completed family such as O48:
+1. record/reuse its completion;
+2. never restart that family unless RETEST_TRIGGER changed;
+3. inspect only current durable pointers/claims/results;
+4. harvest any unprocessed result;
+5. route this window to the next compatible READY family;
+6. prefer cheapest capable class;
+7. if current model is wrong fit, emit ROUTE_TO with exact prompt path and continue only compatible work;
+8. run at most one bounded PREPARER refresh;
+9. GLOBAL_TRUE_IDLE is legal only when no READY work, no unharvested results, no unlocked synthesis/prep, and no compatible cross-family task remains.
+
+CURRENT IMPORTANT STATE:
+O48 may be FAMILY_COMPLETE.
+PRE_CODEX may be DURABILITY_PENDING.
+Do not revalidate unchanged PRE_CODEX.
+Only one gate durability/persistence owner is allowed.
+
+OUTPUT:
+PREVIOUS_FAMILY=
+FAMILY_COMPLETE=
+GLOBAL_READY_FAMILIES=
+SELECTED_NEXT_FAMILY=
+NEXT_PROMPT_PATH=
+MODEL_FIT=
+ROUTE_TO=
+GLOBAL_TRUE_IDLE=
+WHY=
+
+If current session can continue, execute the selected compatible next family immediately rather than waiting for the human.
+
+START NOW.
