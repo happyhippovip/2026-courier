@@ -2,6 +2,10 @@
 
 Status: STABLE POINTER
 
+MASTER_CONTROL=ops/ai/COURIER_MASTER_CONTROL_PLANE_2026-09-27.md
+PERMANENT_MASTER_PROMPT=ops/ai/COURIER_PERMANENT_MASTER_WORKER_PROMPT.txt
+COMPANY_LAUNCH_PLAN=docs/COURIER_COMPANY_AND_LAUNCH_OPERATING_PLAN_2026-09-27.md
+
 WALL_SYSTEM=ops/ai/WALL_SYSTEM.md
 TASK_SCHEMA=ops/ai/WALL_TASK_PACKET_SCHEMA.md
 MASTER_PROMPT=ops/ai/UNIVERSAL_MD_WALL_MASTER_PROMPT.txt
@@ -9,13 +13,14 @@ MAC_PERMANENT_WORKER=ops/ai/MAC_GOOGLE_PERMANENT_WORKER_PROMPT.txt
 
 CURRENT_PREPARATION_PACK=ops/ai/GOOGLE_LEDGER_MUSE_WALL_BUILD_PACK_2026-09-27.md
 CURRENT_GOOGLE_QUEUE=ops/ai/GOOGLE_WINDOWS_NIGHT_QUEUE_50_2026-09-27.md
+PRE_CODEX_GATE=ops/ai/GOOGLE_PRE_CODEX_GATE_2026-09-27.md
 
 CURRENT_WALL_BUILD_QUEUE=ops/ai/WALL_BUILD_QUEUE_V1.md
 CURRENT_WALL_BUILD_PROMPT=ops/ai/GOOGLE_WALL_SYSTEM_BUILDER_MASTER_PROMPT.txt
 OPERATOR_PROTOCOL=ops/ai/WALL_ROLLOUT_AND_OPERATOR_PROTOCOL.md
 
 CURRENT_GOAL:
-Finish Extended Execution Ledger, cost-aware wall preparation, automatic result harvesting, and reusable Muse wall bootstrap.
+Finish Extended Execution Ledger, cost-aware wall preparation, automatic result harvesting, reusable Muse/Google wall behavior, and the exact pre-Codex final-candidate gate.
 
 QUEUE_REFRESH_RULE:
 Use durable result summaries and canonical truth only.
@@ -23,6 +28,18 @@ Do not broad-scan source to invent new work.
 
 SOURCE_WRITER:
 Windows Antigravity Central Writer remains the only final-candidate application source writer unless newer canonical truth explicitly changes this.
+
+CURRENT CRITICAL PATH:
+1 FINAL_CANONICAL_CANDIDATE
+2 REAL_TARGETED_TESTS + EXACT_12_CASE_MATRIX
+3 PRE_CODEX_READY
+4 CODEX_HIGH_ONCE
+5 EXACT_MAC_BINDING
+6 RUN_1_A_VERIFY_B_ZERO_RELAY
+7 RUN_2_RESTART_NO_A_REPLAY
+8 CORE_FREEZE
+9 MINIMUM_REAL_PILOT
+10 PRODUCT_SHELL_AFTER_POSITIVE_PILOT_SIGNAL
 
 WHEN CURRENT QUEUES COMPLETE:
 One PREPARER generates the next Markdown queue generation from:
@@ -32,3 +49,5 @@ One PREPARER generates the next Markdown queue generation from:
 4. open Ledger blockers.
 
 If those sources define no concrete READY work, wall becomes IDLE.
+
+NO_READY_TASKS never authorizes broad discovery or busywork.
