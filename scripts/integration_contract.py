@@ -91,12 +91,13 @@ def verify_result(task: dict, raw_result: dict, workspace: Path) -> dict:
             artifact_path = workspace / relative_name
             if not artifact_path.is_file():
                 raise ContractError(f"missing expected artifact: {relative_name}")
-            artifacts.append(
-                {
-                    "path": relative_name,
-                    "sha256": hashlib.sha256(artifact_path.read_bytes()).hexdigest(),
-                }
-            )
+            art_dict = {
+                "path": relative_name,
+                "sha256": hashlib.sha256(artifact_path.read_bytes()).hexdigest(),
+            }
+            if isinstance(item, dict) and "expected_sha256" in item:
+                art_dict["expected_sha256"] = item["expected_sha256"]
+            artifacts.append(art_dict)
 
     identity = {
         "goal_id": task["goal_id"],
@@ -152,8 +153,11 @@ def validate_durable_result(task: dict, result: dict) -> dict:
         raise ContractError("successful result requires artifact evidence")
     for artifact in result["artifacts"]:
         # Uploaded artifacts additionally carry the server-issued artifact_id and size.
-        if not isinstance(artifact, dict) or set(artifact) not in ({"path", "sha256"},
-                                                                   {"path", "sha256", "artifact_id", "size"}):
+        if not isinstance(artifact, dict):
+            raise ContractError("invalid artifact evidence")
+        keys = set(artifact)
+        keys.discard("expected_sha256")
+        if keys not in ({"path", "sha256"}, {"path", "sha256", "artifact_id", "size"}):
             raise ContractError("invalid artifact evidence")
         if "artifact_id" in artifact:
             if not isinstance(artifact["artifact_id"], str) or not re.fullmatch(r"art-[a-f0-9]{64}", artifact["artifact_id"]):

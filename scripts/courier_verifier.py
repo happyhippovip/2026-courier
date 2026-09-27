@@ -92,6 +92,15 @@ def verify_artifacts(task, result, fetch=fetch_artifact, local_verify=None):
             return "FAIL"
         elif not is_safe_artifact_name(art.get("path")) or not local_verify(art.get("path"), art.get("sha256")):
             return "FAIL"
+            
+    # Check for Case 5 Omission Bypass: ensure all expected_sha256 artifacts were uploaded
+    result_paths = {a.get("path") for a in artifacts if isinstance(a, dict)}
+    for expected_art in task.get("artifacts", []):
+        if isinstance(expected_art, dict) and "expected_sha256" in expected_art:
+            if expected_art.get("path") not in result_paths:
+                log(f"Expected artifact {expected_art.get('path')} was omitted from result.")
+                return "FAIL"
+                
     return "PASS"
 
 def run_loop():
@@ -104,46 +113,49 @@ def run_loop():
             if res.status_code == 200:
                 tasks = res.json().get("tasks", [])
                 for task in tasks:
-                    task_id = task.get("task_id")
-                    result = task.get("result", {})
-                    result_id = result.get("result_id")
-                    artifacts = result.get("artifacts", [])
-                    
-                    log(f"Verifying task {task_id} (result {result_id})...")
-                    
-                    if "revenue_safety_audit" in task.get("capabilities", []):
-                        log(f"Running deterministic revenue verification for {task_id}...")
-                        import tempfile, json, subprocess
-                        with tempfile.TemporaryDirectory() as td:
-                            task_file = os.path.join(td, "task.json")
-                            candidate_file = os.path.join(td, "candidate.json")
-                            with open(task_file, "w") as f:
-                                json.dump(task, f)
-                            with open(candidate_file, "w") as f:
-                                json.dump(result.get("result_data", {}), f)
-                            
-                            cmd = [sys.executable, os.path.join(os.path.dirname(__file__), "revenue_v1_safety_baseline.py"), "verify", task_file, td, candidate_file]
-                            try:
-                                subprocess.check_output(cmd, stderr=subprocess.STDOUT)
-                                verdict = "PASS"
-                            except subprocess.CalledProcessError as e:
-                                log(f"Revenue verification failed: {e.output.decode('utf-8', errors='ignore')}")
-                                verdict = "FAIL"
-                    else:
-                        verdict = verify_artifacts(task, result)
-                            
-                    verify_payload = {
-                        "task_id": task_id,
-                        "verifier_id": VERIFIER_ID,
-                        "result_id": result_id,
-                        "verdict": verdict,
-                        "artifacts": artifacts
-                    }
-                    vr = requests.post(f"{API_URL}/tasks/verify", json=verify_payload, headers=HEADERS, timeout=10)
-                    if vr.status_code == 200:
-                        log(f"Successfully verified {task_id} with verdict {verdict}")
-                    else:
-                        log(f"Failed to submit verification for {task_id}: HTTP {vr.status_code} {vr.text}")
+                    try:
+                        task_id = task.get("task_id")
+                        result = task.get("result", {})
+                        result_id = result.get("result_id")
+                        artifacts = result.get("artifacts", [])
+                        
+                        log(f"Verifying task {task_id} (result {result_id})...")
+                        
+                        if "revenue_safety_audit" in task.get("capabilities", []):
+                            log(f"Running deterministic revenue verification for {task_id}...")
+                            import tempfile, json, subprocess
+                            with tempfile.TemporaryDirectory() as td:
+                                task_file = os.path.join(td, "task.json")
+                                candidate_file = os.path.join(td, "candidate.json")
+                                with open(task_file, "w") as f:
+                                    json.dump(task, f)
+                                with open(candidate_file, "w") as f:
+                                    json.dump(result.get("result_data", {}), f)
+                                
+                                cmd = [sys.executable, os.path.join(os.path.dirname(__file__), "revenue_v1_safety_baseline.py"), "verify", task_file, td, candidate_file]
+                                try:
+                                    subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+                                    verdict = "PASS"
+                                except subprocess.CalledProcessError as e:
+                                    log(f"Revenue verification failed: {e.output.decode('utf-8', errors='ignore')}")
+                                    verdict = "FAIL"
+                        else:
+                            verdict = verify_artifacts(task, result)
+                                
+                        verify_payload = {
+                            "task_id": task_id,
+                            "verifier_id": VERIFIER_ID,
+                            "result_id": result_id,
+                            "verdict": verdict,
+                            "artifacts": artifacts
+                        }
+                        vr = requests.post(f"{API_URL}/tasks/verify", json=verify_payload, headers=HEADERS, timeout=10)
+                        if vr.status_code == 200:
+                            log(f"Successfully verified {task_id} with verdict {verdict}")
+                        else:
+                            log(f"Failed to submit verification for {task_id}: HTTP {vr.status_code} {vr.text}")
+                    except Exception as e:
+                        log(f"Error verifying task {task.get('task_id')}: {e}")
         except Exception as e:
             log(f"Error polling for tasks: {e}")
             
