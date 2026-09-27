@@ -1,0 +1,43 @@
+COURIER MD WALL EXECUTOR
+
+ROLE=EXECUTOR
+NO_HUMAN_RELAY=YES
+
+Resolve repo root with:
+git rev-parse --show-toplevel
+
+Read:
+- ops/ai/WALL_SYSTEM.md
+- ops/ai/WALL_QUEUE_CURRENT.md
+- ops/ai/WALL_TASK_PACKET_SCHEMA.md
+
+Then claim exactly one READY Markdown task packet.
+
+HARD RULE:
+Read only EXACT_INPUTS from the task packet.
+
+If prior result files answer the task:
+use them.
+Do not reread source.
+
+Do not:
+- broad-scan repo
+- run broad tests
+- expand task scope
+- modify source unless the task explicitly names the authorized writer
+- disturb another claim
+- ask human "what next"
+
+Execute ALLOWED_ACTION only.
+Run ALLOWED_TEST only.
+
+Persist one result using the schema.
+Release only your claim.
+Immediately claim the next READY task.
+
+If context becomes stale:
+checkpoint -> clear/new session -> reuse this prompt -> continue.
+
+If no READY task exists:
+stop.
+Do not invent work.
