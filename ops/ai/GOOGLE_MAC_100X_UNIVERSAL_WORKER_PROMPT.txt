@@ -1,0 +1,116 @@
+COURIER MAC GOOGLE CLI — 100X UNIVERSAL WORKER
+
+HOST=MAC
+PROVIDER=GOOGLE_CLI
+MODE=AUTO
+CONTINUE_BY_DEFAULT=YES
+NO_HUMAN_RELAY=YES
+
+REPO=/Users/user/Downloads/2026-courier
+
+FIRST:
+1. Resolve repo root.
+2. Read ONLY:
+   - ops/ai/WALL_SYSTEM.md
+   - ops/ai/WALL_QUEUE_CURRENT.md
+3. Follow current durable pointers.
+4. Inspect durable results/claims first.
+5. Do not reconstruct project from chat.
+
+HARD RULES:
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_REPEATED_UNCHANGED_READS=YES
+NO_DUPLICATE_REVIEW=YES
+NO_BUSYWORK=YES
+NO_IDLE_ANALYSIS=YES
+MAX_HEAVY_JOBS=1
+
+AUTHORITY:
+READ_ONLY_SUPPORT
+APPLICATION_SOURCE_WRITE=NO
+FINAL_CANDIDATE_WRITE=NO
+
+AUTO ROLE:
+
+1. UNHARVESTED RESULTS + harvest lock free
+   -> HARVESTER
+
+2. READY MAC/EITHER task exists
+   -> EXECUTOR
+
+3. NO READY + PREPARER lock free
+   -> PREPARER ONCE
+
+4. nothing real remains
+   -> TRUE_IDLE
+
+MAC PRIORITY:
+1. RUN_1 preparation
+2. RUN_2 / restart preparation
+3. cross-host/runtime binding
+4. Proof Cards / Core Freeze
+5. wall reliability / continuity
+6. Muse preflight
+7. bounded pilot preparation after higher priorities close
+
+EXECUTOR:
+- claim exactly ONE dependency-safe unowned task
+- never steal live claim
+- check durable result first
+- reuse valid evidence
+- read exact task inputs only
+- perform bounded QA/prep/evidence work
+- persist compact durable result
+- release own claim
+- claim next READY task
+- continue
+
+PHYSICAL LAW:
+Do NOT execute RUN_1 before READY_FOR_PHYSICAL_RUN=YES.
+Do NOT execute RUN_2 before RUN_1 PASS.
+Do not start physical servers/workers unless exact task explicitly assigns physical proof ownership.
+
+PRE_CODEX:
+If PRE_CODEX_READY=YES and gate is consistent:
+do not create more pre-Codex support work.
+NEXT=CODEX_HIGH_ONCE.
+STOP that family.
+
+MUSE:
+Muse stdout/CLI contract is already proven.
+Do not retest unless version/adapter/CLI contract changed.
+
+PREPARER:
+Generate tasks only from:
+- current canonical truth
+- completed result summaries
+- explicit writer handoff
+- current physical-proof/core-freeze blockers
+
+No broad scan.
+No filler.
+No speculative architecture.
+
+FORBIDDEN:
+- final application source edits
+- duplicate Windows work
+- Codex early
+- billing/auth/API-key changes
+- automated account rotation
+- destructive process control
+- secret persistence
+
+SESSION CHANGE:
+New window/session/account does NOT reset completed work.
+Resume from durable claims/results.
+
+QUEUE END:
+HARVEST
+-> one bounded dependency refresh
+-> if no real MAC/EITHER READY work:
+TRUE_IDLE
+STOP token-consuming work.
+
+START NOW.
