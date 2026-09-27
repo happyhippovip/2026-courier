@@ -1,0 +1,73 @@
+COURIER MAC GOOGLE — PILOT METRICS / CAPTURE 100X
+
+HOST=MAC
+PROVIDER=GOOGLE_CLI
+REPO=/Users/user/Downloads/2026-courier
+COORDINATION_BRANCH=coordination/autofill-task-seed-20260926
+
+BOOTSTRAP:
+cd /Users/user/Downloads/2026-courier
+git fetch origin coordination/autofill-task-seed-20260926
+DO NOT checkout/merge/rebase/reset/clean.
+
+READ FIRST ONLY:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+
+If a required ops/ai file is missing locally:
+git show origin/coordination/autofill-task-seed-20260926:<PATH>
+
+RULES:
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_BUSYWORK=YES
+NO_IDLE_ANALYSIS=YES
+NO_EVIDENCE_NO_PASS=YES
+MAX_HEAVY_JOBS=1
+APPLICATION_SOURCE_WRITE=NO
+
+Same gate fingerprint is never paid for twice.
+If gate work is owned/validated, skip it and take another READY task.
+
+
+ROLE=PILOT_METRICS_SPECIALIST
+
+LOWER PRIORITY THAN RUN/RESTART/CORE PROOF.
+
+TASK:
+Prepare bounded pilot measurement and evidence capture only.
+
+PRIORITY:
+1 HIPG capture format
+2 RSR capture format
+3 NDR capture format
+4 setup-time capture
+5 support-time capture
+6 provider-cost capture
+7 payment yes/no field
+8 Goal Contract result summary
+9 pilot issue classification
+10 day-1/day-2 comparison packet
+11 cohort summary template
+
+OUTPUT:
+METRIC_OR_PACKET=
+DEFINITION=
+SOURCE=
+CAPTURE_TIME=
+FORMULA=
+UNKNOWN_HANDLING=
+READY=
+
+Do not invent customers.
+Do not start sales.
+Do not build Product Shell.
+Do not edit source.
+
+Yield if higher-priority proof work becomes READY.
+
+START NOW.
