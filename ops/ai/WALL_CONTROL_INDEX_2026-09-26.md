@@ -22,6 +22,18 @@ Use this index to keep long-run wall work consistent across providers and hosts.
 - docs/COURIER_V1_BEGINNER_WALL_AND_COMMUNITY_VISION_2026-09-27.md
 - docs/COURIER_ADAPTIVE_WALL_UNIVERSAL_DEVICE_REQUIREMENT_2026-09-27.md
 
+## MD-first wall system
+
+- WALL_SYSTEM.md
+- WALL_QUEUE_CURRENT.md
+- WALL_TASK_PACKET_SCHEMA.md
+- UNIVERSAL_MD_WALL_MASTER_PROMPT.txt
+- WALL_MD_PREPARER_PROMPT.txt
+- WALL_MD_EXECUTOR_PROMPT.txt
+- WALL_MD_HARVESTER_PROMPT.txt
+
+The MD-first wall system is the preferred operating path for new wall work. Prepare durable task packets before execution; use the universal prompt when one reusable prompt is preferred, or the three role prompts when explicit role separation is safer.
+
 ## Copy/paste prompts
 
 - UNIVERSAL_WALL_BOOTSTRAP.txt
@@ -49,7 +61,7 @@ Use bounded 10-hour overnight rounds when safe and useful.
 
 Checkpoint -> clear/rotate stale context -> reload minimal truth.
 
-Use the universal long-run prompt for autonomous windows.
+Prefer the MD-first wall pipeline for new autonomous windows. The legacy universal long-run prompt is retained for compatibility.
 
 Use the quick free-CLI prompt for reserved short investigations.
 
