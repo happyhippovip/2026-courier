@@ -144,22 +144,27 @@ def test_verifier_checks_expected_sha256(tmp_path, monkeypatch):
     srv, http = setup(tmp_path, monkeypatch)
     task = claim(http)
     rec = upload(http, task, "win.txt", b"ok\n").get_json()
-    ref = {"path": "win.txt", "sha256": rec["sha256"], "artifact_id": rec["artifact_id"], "size": rec["size"], "expected_sha256": rec["sha256"]}
+    ref = {"path": "win.txt", "sha256": rec["sha256"], "artifact_id": rec["artifact_id"], "size": rec["size"]}
     http.post("/tasks/result", headers=WORKER, json=result_for(task, [ref]))
     [pending] = http.get("/tasks/pending_verification", headers=VERIFIER).get_json()["tasks"]
+    pending["expected_artifacts"] = {"win.txt": rec["sha256"]}
     v = load_verifier(monkeypatch)
-    
-    # 1. Correct bytes, matching expected_sha256 -> PASS
+
+    # 1. Correct bytes, matching task expected_artifacts -> PASS
     assert v.verify_artifacts(pending, pending["result"], fetch=client_fetch(http)) == "PASS"
-    
+
     # 2. Wrong bytes (tampered server copy) -> FAIL
     blob = tmp_path / "artifact-store" / "blobs" / rec["sha256"][:2] / rec["sha256"]
     blob.write_bytes(b"tampered")
     assert v.verify_artifacts(pending, pending["result"], fetch=client_fetch(http)) == "FAIL"
-    
-    # 3. Stale/wrong expected hash -> FAIL
+
+    # 3. Stale/wrong expected hash on task -> FAIL
     blob.write_bytes(b"ok\n")
-    pending["result"]["artifacts"][0]["expected_sha256"] = "f" * 64
+    pending["expected_artifacts"] = {"win.txt": "f" * 64}
+    assert v.verify_artifacts(pending, pending["result"], fetch=client_fetch(http)) == "FAIL"
+
+    # 4. Worker-supplied expected_sha256 in artifact is untrusted and ignored
+    pending["result"]["artifacts"][0]["expected_sha256"] = rec["sha256"]
     assert v.verify_artifacts(pending, pending["result"], fetch=client_fetch(http)) == "FAIL"
 
 
@@ -397,7 +402,7 @@ def test_verifier_rejects_omitted_expected_artifact(monkeypatch):
 def test_verifier_poison_pill_isolation(monkeypatch):
     import requests
     v = load_verifier(monkeypatch)
-    
+
     # Mock the API responses
     class MockResponse:
         def __init__(self, json_data, status_code):
@@ -405,10 +410,10 @@ def test_verifier_poison_pill_isolation(monkeypatch):
             self.status_code = status_code
         def json(self):
             return self.json_data
-            
+
     # Track verification submissions
     submitted = []
-    
+
     def mock_get(url, **kwargs):
         if url.endswith("/tasks/pending_verification"):
             return MockResponse({"tasks": [
@@ -419,16 +424,16 @@ def test_verifier_poison_pill_isolation(monkeypatch):
                 }
             ]}, 200)
         return MockResponse({}, 404)
-        
+
     def mock_post(url, json=None, **kwargs):
         if url.endswith("/tasks/verify"):
             submitted.append(json.get("task_id"))
             return MockResponse({}, 200)
         return MockResponse({}, 404)
-        
+
     monkeypatch.setattr(requests, "get", mock_get)
     monkeypatch.setattr(requests, "post", mock_post)
-    
+
     # We run the loop but throw StopLoop after one iteration to avoid infinite loop
     # Wait, run_loop catches exceptions. We can mock requests.get to throw StopLoop on the second call.
     calls = []
@@ -437,14 +442,13 @@ def test_verifier_poison_pill_isolation(monkeypatch):
         if len(calls) > 1:
             raise StopLoop()
         return mock_get(url, **kwargs)
-        
+
     monkeypatch.setattr(requests, "get", mock_get_stop)
-    
+
     try:
         v.run_loop()
     except StopLoop:
         pass
-        
+
     assert "valid_task" in submitted
     assert len(submitted) == 1
-

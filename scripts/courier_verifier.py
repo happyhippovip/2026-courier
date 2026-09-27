@@ -106,9 +106,9 @@ def run_loop():
                         result = task.get("result") or {}
                         result_id = result.get("result_id")
                         artifacts = result.get("artifacts", [])
-                        
+
                         log(f"Verifying task {task_id} (result {result_id})...")
-                        
+
                         if "revenue_safety_audit" in (task.get("capabilities") or []):
                             log(f"Running deterministic revenue verification for {task_id}...")
                             import tempfile, json, subprocess
@@ -119,7 +119,7 @@ def run_loop():
                                     json.dump(task, f)
                                 with open(candidate_file, "w") as f:
                                     json.dump(result.get("result_data", {}), f)
-                                
+
                                 cmd = [sys.executable, os.path.join(os.path.dirname(__file__), "revenue_v1_safety_baseline.py"), "verify", task_file, td, candidate_file]
                                 try:
                                     subprocess.check_output(cmd, stderr=subprocess.STDOUT)
@@ -129,7 +129,7 @@ def run_loop():
                                     verdict = "FAIL"
                         else:
                             verdict = verify_artifacts(task, result)
-                                
+
                         verify_payload = {
                             "task_id": task_id,
                             "verifier_id": VERIFIER_ID,
