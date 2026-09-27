@@ -177,3 +177,11 @@ python3 -m unittest -v \
 Product priority, proof levels, Autonomy Grades, Goal Contracts, pilot metrics, Scope Freeze and gate transitions are governed by [docs/COURIER_SYMPHONY_CANONICAL_PRODUCT_PLAN.md](docs/COURIER_SYMPHONY_CANONICAL_PRODUCT_PLAN.md).
 
 This plan is governance, not runtime evidence. Current code/runtime/acceptance evidence still decides what is actually implemented or proven. Personal payment/account identifiers are never stored in this public repository.
+
+## Shared Capability + Safe Update Direction
+
+Long-term strategy is documented in [docs/COURIER_SHARED_CAPABILITY_UPDATE_FABRIC_2026-09-28.md](docs/COURIER_SHARED_CAPABILITY_UPDATE_FABRIC_2026-09-28.md).
+
+Courier is intended to compound useful verified solutions across users through sanitized, versioned capability packs while keeping private repositories/data isolated by default. The later update fabric targets signed manifests, content-addressed/delta delivery, rollback/Last Known Good, user-controlled optional packs, a durable release-history/Time-Machine model, and crypto agility with post-quantum migration readiness.
+
+This is product direction, not a claim that the distribution/update system is already implemented or that Courier is "quantum secure."
