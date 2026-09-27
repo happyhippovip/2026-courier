@@ -18,6 +18,7 @@ Use this index to keep long-run wall work consistent across providers and hosts.
 - WALL_VISUAL_ICON_LANGUAGE.md
 - LARGE_WORK_PACKAGES_2026-09-26.md
 - docs/V1_CAPACITY_UPDATES_AND_CRYPTO_READINESS_PLAN.md
+- docs/COURIER_V1_BEGINNER_WALL_AND_COMMUNITY_VISION_2026-09-27.md
 
 ## Copy/paste prompts
 
