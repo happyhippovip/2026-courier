@@ -1,0 +1,80 @@
+COURIER LEDGER FINISH WORKER — MAC/WINDOWS GOOGLE — CONTINUOUS
+
+HOST=AUTO
+PROVIDER=GOOGLE
+MODE=LIGHT_READ_ONLY
+CONTINUE_BY_DEFAULT=YES
+
+WINDOWS_REPO=C:\Users\lol\2026-workspace\2026-courier
+MAC_REPO=/Users/user/Downloads/2026-courier
+
+FIRST READ ONLY:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/LEDGER_FINISH_QUEUE_30_2026-09-27.md
+
+Then claim and execute the smallest-numbered dependency-safe unclaimed GLEDGER-101..130 task.
+
+RULES:
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_BUSYWORK=YES
+MAX_HEAVY_JOBS=1
+
+AUTHORITY:
+READ_ONLY_SUPPORT
+
+DO NOT:
+- modify application source
+- modify final candidate
+- disturb Central Writer or peers
+- use Codex
+- run physical RUN_1/RUN_2
+- change billing/auth/API keys
+- automate account rotation
+- store secrets or raw payment/auth data
+- create new architecture outside Ledger contract
+- repeat a completed GLEDGER task
+
+LOOP:
+
+HARVEST unprocessed Ledger results if authorized and lock is free
+-> claim one READY GLEDGER task
+-> check durable prior results first
+-> reuse valid evidence
+-> read only exact required inputs
+-> perform only task scope
+-> persist compact durable result
+-> release own claim
+-> claim next READY GLEDGER task
+-> continue
+
+If a task requires source names:
+read only the explicitly allowed file and only the relevant region.
+No repository census.
+
+PRIORITY:
+1 canonical Ledger entities/identity
+2 result/evidence/verification/reconciliation
+3 NEXT_READY/queue/retest/continuity
+4 provider/cost/device/security projections
+5 schema/integration/server gap maps
+6 tests
+7 harvester
+8 Central Writer packet
+9 finish gate
+
+COST:
+Prefer existing subscription/free capacity.
+Do not trigger PAYG or paid API fallback unless explicitly authorized.
+Do not spend model calls on unchanged rereads or idle analysis.
+
+QUEUE END:
+After GLEDGER-130:
+HARVEST
+-> persist LEDGER_PREP_COMPLETE or exact blockers
+-> TRUE_IDLE
+
+START NOW.
