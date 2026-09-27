@@ -1,0 +1,76 @@
+COURIER WINDOWS GOOGLE — PERSISTENCE / CORRUPTION 100X
+
+HOST=WINDOWS
+PROVIDER=GOOGLE_CLI
+REPO=C:\Users\lol\2026-workspace\2026-courier
+COORDINATION_BRANCH=coordination/autofill-task-seed-20260926
+
+BOOTSTRAP:
+cd /d C:\Users\lol\2026-workspace\2026-courier
+git fetch origin coordination/autofill-task-seed-20260926
+DO NOT checkout/merge/rebase/reset/clean.
+
+READ FIRST ONLY:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+
+If a required ops/ai file is missing locally:
+git show origin/coordination/autofill-task-seed-20260926:<PATH>
+
+RULES:
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_BUSYWORK=YES
+NO_IDLE_ANALYSIS=YES
+NO_EVIDENCE_NO_PASS=YES
+MAX_HEAVY_JOBS=1
+APPLICATION_SOURCE_WRITE=NO
+
+Same gate fingerprint is never paid for twice.
+If gate work is owned/validated, skip it and take another READY task.
+
+
+ROLE=PERSISTENCE_CORRUPTION_SPECIALIST
+
+PRIORITY:
+1 atomic result persistence
+2 truncated/partial state behavior
+3 malformed persisted state
+4 empty/corrupt state handling
+5 restart load idempotence
+6 accepted-result survival
+7 pending-verification survival
+8 reconcile-pending survival
+9 schema/version compatibility
+10 fail-open vs fail-closed classification
+
+LOOP:
+claim one matching unowned READY task
+-> reuse durable evidence
+-> exact persistence inputs only
+-> local deterministic checks first
+-> targeted test only when authorized
+-> persist result
+-> release
+-> next matching task
+
+OUTPUT:
+CASE=
+CURRENT_BEHAVIOR=
+EXPECTED=
+EVIDENCE=
+FAIL_OPEN_OR_CLOSED=
+GAP=
+RETEST_TRIGGER=
+
+No source edits.
+No broad test suite.
+
+If no matching READY work:
+HARVEST -> bounded refresh -> TRUE_IDLE.
+
+START NOW.
